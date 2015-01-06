@@ -301,30 +301,30 @@
         ##:ARGUMENT: expand.factor.strategy The strategy used to expand factors into fixed effects based on their levels. The default strategy is us use the \code{model.matrix}-function for which NA's are not allowed (\code{expand.factor.strategy="model.matrix"}) and levels are possible removed. The alternative option (\code{expand.factor.strategy="inla"}) use an \code{inla}-spesific expansion which expand a factor into one fixed effects for each level, do allow for NA's and all levels are present in the model.
         expand.factor.strategy = "model.matrix", 
 
-         ##:ARGUMENT: cdf  A list of values to compute the CDF for, for all fixed effects
-         cdf=NULL,
+        ##:ARGUMENT: cdf  A list of values to compute the CDF for, for all fixed effects
+        cdf=NULL,
 
-         ##:ARGUMENT: quantiles  A list of quantiles to compute for all fixed effects
-         quantiles = NULL,
+        ##:ARGUMENT: quantiles  A list of quantiles to compute for all fixed effects
+        quantiles = NULL,
 
-         ##:ARGUMENT: mean Prior mean for all fixed effects except the intercept. Alternatively, a named list with specific means where name=default applies to unmatched names. For example \code{control.fixed=list(mean=list(a=1, b=2, default=0))} assign 'mean=1' to fixed effect 'a' , 'mean=2' to effect 'b' and 'mean=0' to all others.
-         mean = 0.0,
+        ##:ARGUMENT: mean Prior mean for all fixed effects except the intercept. Alternatively, a named list with specific means where name=default applies to unmatched names. For example \code{control.fixed=list(mean=list(a=1, b=2, default=0))} assign 'mean=1' to fixed effect 'a' , 'mean=2' to effect 'b' and 'mean=0' to all others.
+        mean = 0.0,
 
-         ##:ARGUMENT: mean.intercept Prior mean for the intercept
-         mean.intercept = 0.0,
+        ##:ARGUMENT: mean.intercept Prior mean for the intercept
+        mean.intercept = 0.0,
 
-         ##:ARGUMENT: prec  Default precision for all fixed effects except the intercept. Alternatively, a named list with specific means where name=default applies to unmatched names.  For example \code{control.fixed=list(prec=list(a=1, b=2, default=0.01))} assign 'prec=1' to fixed effect 'a' , 'prec=2' to effect 'b' and 'prec=0.01' to all others.
-         prec= 0.001,
+        ##:ARGUMENT: prec  Default precision for all fixed effects except the intercept. Alternatively, a named list with specific means where name=default applies to unmatched names.  For example \code{control.fixed=list(prec=list(a=1, b=2, default=0.01))} assign 'prec=1' to fixed effect 'a' , 'prec=2' to effect 'b' and 'prec=0.01' to all others.
+        prec= 0.001,
 
-         ##:ARGUMENT: prec.intercept  Default precision the intercept (default 0.0)
-         prec.intercept = 0.0,
+        ##:ARGUMENT: prec.intercept  Default precision the intercept (default 0.0)
+        prec.intercept = 0.0,
 
-         ##:ARGUMENT: compute Compute marginals for the fixed effects ? (default TRUE)
-         compute = TRUE,
+        ##:ARGUMENT: compute Compute marginals for the fixed effects ? (default TRUE)
+        compute = TRUE,
 
-         ##:ARGUMENT: correlation.matrix Compute the posterior correlation matrix for all fixed effects? (default FALSE) OOPS: This option will set up appropriate linear combinations and the results are shown as the posterior correlation matrix of the linear combinations. This option will imply \code{control.inla=list(lincomb.derived.correlation.matrix=TRUE)}.
+        ##:ARGUMENT: correlation.matrix Compute the posterior correlation matrix for all fixed effects? (default FALSE) OOPS: This option will set up appropriate linear combinations and the results are shown as the posterior correlation matrix of the linear combinations. This option will imply \code{control.inla=list(lincomb.derived.correlation.matrix=TRUE)}.
          
-         correlation.matrix = FALSE)
+        correlation.matrix = FALSE)
 
     ##:SEEALSO: inla
 }
@@ -341,136 +341,142 @@
     ##:EXTRA: 
     ##:NAME: control.inla
     ans = list(
-            ##:ARGUMENT: strategy  The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default) or 'laplace'
-            strategy="simplified.laplace",
+        ##:ARGUMENT: strategy  The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default) or 'laplace'
+        strategy="simplified.laplace",
 
-            ##:ARGUMENT: int.strategy  The integration strategy to use; one of 'ccd' (default), 'grid' or 'eb' (empirical bayes)
-            int.strategy="ccd",
+        ##:ARGUMENT: int.strategy  The integration strategy to use; one of 'ccd' (default), 'grid' or 'eb' (empirical bayes)
+        int.strategy="ccd",
 
-            ##:ARGUMENT: interpolator  The interpolator used to compute the marginals for the hyperparameters. One of 'auto', 'nearest', 'quadratic', 'weighted.distance', 'ccd', 'ccdintegrate', 'gridsum', 'gaussian'. Default is 'auto'.
-            interpolator="auto",
+        ##:ARGUMENT: interpolator  The interpolator used to compute the marginals for the hyperparameters. One of 'auto', 'nearest', 'quadratic', 'weighted.distance', 'ccd', 'ccdintegrate', 'gridsum', 'gaussian'. Default is 'auto'.
+        interpolator="auto",
 
-            ##:ARGUMENT: fast Fast mode? If on, then replace conditional modes in the Laplace approximation with conditional expectation (default TRUE)
-            fast = TRUE,
+        ##:ARGUMENT: fast Fast mode? If on, then replace conditional modes in the Laplace approximation with conditional expectation (default TRUE)
+        fast = TRUE,
             
-            ##:ARGUMENT: linear.correction  Default TRUE for the 'strategy = laplace' option.
-            linear.correction=NULL,
+        ##:ARGUMENT: linear.correction  Default TRUE for the 'strategy = laplace' option.
+        linear.correction=NULL,
 
-            ##:ARGUMENT: h The step-length for the gradient calculations for the hyperparameters. Default 0.01.
-            h=0.01,
+        ##:ARGUMENT: h The step-length for the gradient calculations for the hyperparameters. Default 0.01.
+        h=0.01,
 
-            ##:ARGUMENT: dz The step-length in the standarised scale for the integration of the hyperparameters. Default 1.0.
-            dz=1.0,
+        ##:ARGUMENT: dz The step-length in the standarised scale for the integration of the hyperparameters. Default 1.0.
+        dz=1.0,
 
-            ##:ARGUMENT: diff.logdens The difference of the log.density for the hyperpameters to stop numerical integration using int.strategy='grid'. Default 2.5.
-            diff.logdens=2.5,
+        ##:ARGUMENT: diff.logdens The difference of the log.density for the hyperpameters to stop numerical integration using int.strategy='grid'. Default 2.5.
+        diff.logdens=2.5,
 
-            ##:ARGUMENT: print.joint.hyper If TRUE, the store also the joint distribution of the hyperparameters (without any costs). Default TRUE.
-            print.joint.hyper=TRUE,
+        ##:ARGUMENT: print.joint.hyper If TRUE, the store also the joint distribution of the hyperparameters (without any costs). Default TRUE.
+        print.joint.hyper=TRUE,
 
-            ##:ARGUMENT: force.diagonal A boolean variable, if TRUE, then force the Hessian to be diagonal. (Default FALSE.)
-            force.diagonal=FALSE,
+        ##:ARGUMENT: force.diagonal A boolean variable, if TRUE, then force the Hessian to be diagonal. (Default FALSE.)
+        force.diagonal=FALSE,
 
-            ##:ARGUMENT: skip.configurations A boolean variable; skip configurations if the values at the main axis are to small. (Default TRUE.)
-            skip.configurations=TRUE,
+        ##:ARGUMENT: skip.configurations A boolean variable; skip configurations if the values at the main axis are to small. (Default TRUE.)
+        skip.configurations=TRUE,
 
-            ##:ARGUMENT: mode.known A boolean variable: If TRUE then no optimisation is done. (Default FALSE.)
-            mode.known=FALSE,
+        ##:ARGUMENT: mode.known A boolean variable: If TRUE then no optimisation is done. (Default FALSE.)
+        mode.known=FALSE,
 
-            ##:ARGUMENT: adjust.weights A boolean variable; If TRUE then just more accurate integration weights. (Default TRUE.)
-            adjust.weights=TRUE,
+        ##:ARGUMENT: adjust.weights A boolean variable; If TRUE then just more accurate integration weights. (Default TRUE.)
+        adjust.weights=TRUE,
 
-            ##:ARGUMENT: tolerance The tolerance for the optimisation of the hyperparameters. If set, this is the default value for for 'tolerance.f^(2/3)',  'tolerance.g' and  'tolerance.x'; see below.
-            tolerance = 0.005,
+        ##:ARGUMENT: tolerance The tolerance for the optimisation of the hyperparameters. If set, this is the default value for for 'tolerance.f^(2/3)',  'tolerance.g' and  'tolerance.x'; see below.
+        tolerance = 0.005,
 
-            ##:ARGUMENT: tolerance.f The tolerance for the absolute change in the log posterior in the optimisation of the hyperparameters.
-            tolerance.f = NULL,
+        ##:ARGUMENT: tolerance.f The tolerance for the absolute change in the log posterior in the optimisation of the hyperparameters.
+        tolerance.f = NULL,
 
-            ##:ARGUMENT: tolerance.g The tolerance for the absolute change in the gradient of the log posterior in the optimisation of the hyperparameters.
-            tolerance.g = NULL,
+        ##:ARGUMENT: tolerance.g The tolerance for the absolute change in the gradient of the log posterior in the optimisation of the hyperparameters.
+        tolerance.g = NULL,
 
-            ##:ARGUMENT: tolerance.x The tolerance for the change in the hyperparameters (root-mean-square) in the optimisation of the hyperparameters.
-            tolerance.x = NULL, 
+        ##:ARGUMENT: tolerance.x The tolerance for the change in the hyperparameters (root-mean-square) in the optimisation of the hyperparameters.
+        tolerance.x = NULL, 
 
-            ##:ARGUMENT: restart To improve the optimisation, the optimiser is restarted at the found optimum 'restart' number of times.
-            restart = 0L,
+        ##:ARGUMENT: restart To improve the optimisation, the optimiser is restarted at the found optimum 'restart' number of times.
+        restart = 0L,
 
-            ##:ARGUMENT: optimiser The optimiser to use; one of 'gsl', 'domin' or 'default'.
-            optimiser = "default",
+        ##:ARGUMENT: optimiser The optimiser to use; one of 'gsl', 'domin' or 'default'.
+        optimiser = "default",
 
-            ##:ARGUMENT: verbose A boolean variable; run in verbose mode? (Default FALSE)
-            verbose = NULL,
+        ##:ARGUMENT: verbose A boolean variable; run in verbose mode? (Default FALSE)
+        verbose = NULL,
 
-            ##:ARGUMENT: reordering Type of reordering to use. (EXPERT OPTION; one of "AUTO", "DEFAULT", "IDENTITY", "REVERSEIDENTITY",  "BAND", "METIS", "GENMMD", "AMD", "MD", "MMD", "AMDBAR", "AMDC", "AMDBARC",  or the output from \code{inla.qreordering}.)
-            reordering = "auto",
+        ##:ARGUMENT: reordering Type of reordering to use. (EXPERT OPTION; one of "AUTO", "DEFAULT", "IDENTITY", "REVERSEIDENTITY",  "BAND", "METIS", "GENMMD", "AMD", "MD", "MMD", "AMDBAR", "AMDC", "AMDBARC",  or the output from \code{inla.qreordering}.)
+        reordering = "auto",
 
-            ##:ARGUMENT: cpo.diff Threshold to define when the cpo-calculations are inaccurate. (EXPERT OPTION.)
-            cpo.diff = NULL,
+        ##:ARGUMENT: cpo.diff Threshold to define when the cpo-calculations are inaccurate. (EXPERT OPTION.)
+        cpo.diff = NULL,
 
-            ##:ARGUMENT: npoints Number of points to use in the 'stratey=laplace' approximation
-            npoints = 9,
+        ##:ARGUMENT: npoints Number of points to use in the 'stratey=laplace' approximation
+        npoints = 9,
 
-            ##:ARGUMENT: cutoff The cutoff used in the 'stratey=laplace' approximation. (Smaller value is more accurate and more slow.)
-            cutoff = 1e-4,
+        ##:ARGUMENT: cutoff The cutoff used in the 'stratey=laplace' approximation. (Smaller value is more accurate and more slow.)
+        cutoff = 1e-4,
 
-            ##:ARGUMENT: adapt.hessian.mode A boolean variable; should optimisation be continued if the Hessian estimate is void? (Default TRUE)
-            adapt.hessian.mode = NULL,
+        ##:ARGUMENT: adapt.hessian.mode A boolean variable; should optimisation be continued if the Hessian estimate is void? (Default TRUE)
+        adapt.hessian.mode = NULL,
 
-            ##:ARGUMENT: adapt.hessian.max.trials Number of steps in the adaptive Hessian optimisation
-            adapt.hessian.max.trials = NULL,
+        ##:ARGUMENT: adapt.hessian.max.trials Number of steps in the adaptive Hessian optimisation
+        adapt.hessian.max.trials = NULL,
 
-            ##:ARGUMENT: adapt.hessian.scale The scaling of the 'h' after each trial.
-            adapt.hessian.scale = NULL, 
+        ##:ARGUMENT: adapt.hessian.scale The scaling of the 'h' after each trial.
+        adapt.hessian.scale = NULL, 
 
-            ##:ARGUMENT: huge A boolean variable; if TRUE then try to do some of the internal parallisations differently. Hopefully this will be of benefite for 'HUGE' models. (Default FALSE.) [THIS OPTION IS OBSOLETE AND NOT USED!]
-            huge = FALSE,
+        ##:ARGUMENT: huge A boolean variable; if TRUE then try to do some of the internal parallisations differently. Hopefully this will be of benefite for 'HUGE' models. (Default FALSE.) [THIS OPTION IS OBSOLETE AND NOT USED!]
+        huge = FALSE,
 
-            ##:ARGUMENT: step.len The step-length used to compute numerical derivaties of the log-likelihood
-            step.len = .Machine$double.eps^(1.0/3.5),
+        ##:ARGUMENT: step.len The step-length used to compute numerical derivaties of the log-likelihood
+        step.len = .Machine$double.eps^(1.0/3.5),
 
-            ##:ARGUMENT: stencil Number of points in the stencil used to compute the numerical derivaties of the log-likelihood (3, 5 or 7).
-            stencil = 5L, 
+        ##:ARGUMENT: stencil Number of points in the stencil used to compute the numerical derivaties of the log-likelihood (3, 5 or 7).
+        stencil = 5L, 
 
-            ##:ARGUMENT: lincomb.derived.only A boolean variable: if TRUE the only compute the marginals for the derived linear combinations and if FALSE, the and also the linear combinations to the graph (Default TRUE)
-            lincomb.derived.only = TRUE,
+        ##:ARGUMENT: lincomb.derived.only A boolean variable: if TRUE the only compute the marginals for the derived linear combinations and if FALSE, the and also the linear combinations to the graph (Default TRUE)
+        lincomb.derived.only = TRUE,
 
-            ##:ARGUMENT: lincomb.derived.correlation.matrix A boolean variable: if TRUE compute also the correlations for the derived linear combinations, if FALSE do not (Default FALSE)
-            lincomb.derived.correlation.matrix = FALSE,
+        ##:ARGUMENT: lincomb.derived.correlation.matrix A boolean variable: if TRUE compute also the correlations for the derived linear combinations, if FALSE do not (Default FALSE)
+        lincomb.derived.correlation.matrix = FALSE,
 
-            ##:ARGUMENT: diagonal Expert use only! Add a this value on the diagonal of the joint precision matrix.
-            diagonal = 0.0,
+        ##:ARGUMENT: diagonal Expert use only! Add a this value on the diagonal of the joint precision matrix.
+        diagonal = 0.0,
 
-            ##:ARGUMENT: numint.maxfeval Maximum number of function evaluations in the the numerical integration for the hyperparameters. (Default 10000.)
-            numint.maxfeval = 100000,
+        ##:ARGUMENT: numint.maxfeval Maximum number of function evaluations in the the numerical integration for the hyperparameters. (Default 10000.)
+        numint.maxfeval = 100000,
 
-            ##:ARGUMENT: numint.relerr Relative error requirement in the the numerical integration for the hyperparameters. (Default 1e-5)
-            numint.relerr = 1e-5,
+        ##:ARGUMENT: numint.relerr Relative error requirement in the the numerical integration for the hyperparameters. (Default 1e-5)
+        numint.relerr = 1e-5,
 
-            ##:ARGUMENT: numint.abserr Absolute error requirement in the the numerical integration for the hyperparameters. (Default 1e-6)
-            numint.abserr = 1e-6,
+        ##:ARGUMENT: numint.abserr Absolute error requirement in the the numerical integration for the hyperparameters. (Default 1e-6)
+        numint.abserr = 1e-6,
 
-            ##:ARGUMENT: cmin The minimum value for the negative Hessian from the likelihood. Increasing this value will stabalise the optimisation. (Default 0.0)
-            cmin = 0.0,
+        ##:ARGUMENT: cmin The minimum value for the negative Hessian from the likelihood. Increasing this value will stabalise the optimisation. (Default 0.0)
+        cmin = 0.0,
 
-            ##:ARGUMENT: step.factor The step factor in the Newton-Raphson algorithm saying how large step to take (Default 1.0)
-            ## YES! setting this to a negative values means = 1,  EXCEPT the first time (for each thread) where |step.factor| is used.
-            ## This is an hidden option.
-            step.factor = -0.1,
+        ##:ARGUMENT: step.factor The step factor in the Newton-Raphson algorithm saying how large step to take (Default 1.0)
+        ## YES! setting this to a negative values means = 1,  EXCEPT the first time (for each thread) where |step.factor| is used.
+        ## This is an hidden option.
+        step.factor = -0.1,
 
-            ##:ARGUMENT: global.node.factor The factor which defines the degree required (how many neighbors), as a fraction of n-1, that is required to be classified as a global node and numbered last (whatever the reordering routine says). Here,  n,  is the size of the graph. (Disabled if larger than 1.)
-            global.node.factor = 2.0, 
+        ##:ARGUMENT: global.node.factor The factor which defines the degree required (how many neighbors), as a fraction of n-1, that is required to be classified as a global node and numbered last (whatever the reordering routine says). Here,  n,  is the size of the graph. (Disabled if larger than 1.)
+        global.node.factor = 2.0, 
 
-            ##:ARGUMENT: global.node.degree The degree required (number of neighbors) to be classified as a global node and numbered last (whatever the reordering routine says).
-            global.node.degree = .Machine$integer.max,
+        ##:ARGUMENT: global.node.degree The degree required (number of neighbors) to be classified as a global node and numbered last (whatever the reordering routine says).
+        global.node.degree = .Machine$integer.max,
 
-            ##:ARGUMENT: stupid.search Enable or disable the stupid-search-algorithm, if the Hessian calculations reveals that the mode is not found. (Default \code{TRUE}.)
-            stupid.search = TRUE,
+        ##:ARGUMENT: stupid.search Enable or disable the stupid-search-algorithm, if the Hessian calculations reveals that the mode is not found. (Default \code{TRUE}.)
+        stupid.search = TRUE,
             
-            ##:ARGUMENT: stupid.search.max.iter Maximum number of iterations allowed for the stupid-search-algorithm.
-            stupid.search.max.iter = 1000L, 
+        ##:ARGUMENT: stupid.search.max.iter Maximum number of iterations allowed for the stupid-search-algorithm.
+        stupid.search.max.iter = 1000L, 
 
-            ##:ARGUMENT: stupid.search.factor Factor (>=1) to increase the step-length with after each new interation.
-            stupid.search.factor = 1.05)
+        ##:ARGUMENT: stupid.search.factor Factor (>=1) to increase the step-length with after each new interation.
+        stupid.search.factor = 1.05,
+        
+        ##:ARGUMENT: correct Add correction for the Laplace approximation.
+        correct = FALSE,
+
+        ##:ARGUMENT: correction.factor Factor used in adjusting the correction factor (default=1) if correct=TRUE
+        correction.factor = 1.0)
             
 
     ## use default Gaussian strategy if the observations are gaussian
@@ -489,41 +495,41 @@
     ##:EXTRA: 
     ##:NAME: control.predictor
     list(
-         ##:ARGUMENT: hyper Definition of the hyperparameters.
-         hyper = NULL,
+        ##:ARGUMENT: hyper Definition of the hyperparameters.
+        hyper = NULL,
 
-         ##:ARGUMENT: fixed (OBSOLETE!) If the precision for the artificial noise is fixed or not (defualt TRUE)
-         fixed=NULL,
+        ##:ARGUMENT: fixed (OBSOLETE!) If the precision for the artificial noise is fixed or not (defualt TRUE)
+        fixed=NULL,
 
-         ##:ARGUMENT: prior (OBSOLETE!) The prior for the artificial noise
-         prior=NULL,
+        ##:ARGUMENT: prior (OBSOLETE!) The prior for the artificial noise
+        prior=NULL,
 
-         ##:ARGUMENT: param (OBSOLETE!) Prior parameters for the artificial noise
-         param=NULL,
+        ##:ARGUMENT: param (OBSOLETE!) Prior parameters for the artificial noise
+        param=NULL,
 
-         ##:ARGUMENT: initial (OBSOLETE!) The value of the log precision of the artificial noise
-         initial=NULL,
+        ##:ARGUMENT: initial (OBSOLETE!) The value of the log precision of the artificial noise
+        initial=NULL,
 
-         ##:ARGUMENT: compute A boolean variable; should the marginals for the linear predictor be computed? (Default FALSE.)
-         compute=FALSE,
+        ##:ARGUMENT: compute A boolean variable; should the marginals for the linear predictor be computed? (Default FALSE.)
+        compute=FALSE,
 
-         ##:ARGUMENT: cdf A list of values to compute the CDF for the linear predictor
-         cdf=NULL,
+        ##:ARGUMENT: cdf A list of values to compute the CDF for the linear predictor
+        cdf=NULL,
 
-         ##:ARGUMENT: quantiles A list of quantiles to compute for the linear predictor
-         quantiles = NULL,
+        ##:ARGUMENT: quantiles A list of quantiles to compute for the linear predictor
+        quantiles = NULL,
 
-         ##:ARGUMENT: cross Cross-sum-to-zero constraints with the linear predictor. All linear predictors with the same level of 'cross' are constrained to have sum zero. Use 'NA' for no contribution. 'Cross' has the same length as the linear predictor (including the 'A' matrix extention). (THIS IS AN EXPERIMENTAL OPTION, CHANGES MAY APPEAR.)
-         cross=NULL,
+        ##:ARGUMENT: cross Cross-sum-to-zero constraints with the linear predictor. All linear predictors with the same level of 'cross' are constrained to have sum zero. Use 'NA' for no contribution. 'Cross' has the same length as the linear predictor (including the 'A' matrix extention). (THIS IS AN EXPERIMENTAL OPTION, CHANGES MAY APPEAR.)
+        cross=NULL,
 
-         ##:ARGUMENT: A The observation matrix (matrix or Matrix::sparseMatrix) or a filename with format `i j value'.
-         A = NULL,
+        ##:ARGUMENT: A The observation matrix (matrix or Matrix::sparseMatrix) or a filename with format `i j value'.
+        A = NULL,
 
-         ##:ARGUMENT: precision The precision for eta* - A*eta,
-         precision = exp(15),
+        ##:ARGUMENT: precision The precision for eta* - A*eta,
+        precision = exp(15),
 
-         ##:ARGUMENT: link Define the family-connection for unobserved observations (\code{NA}). \code{link} is integer values which defines the family connection; \code{family[link[idx]]} unless \code{is.na(link[idx])} for which the identity-link is used. The \code{link}-argument only influence the \code{fitted.values} in the \code{result}-object. If \code{is.null(link)} (default) then the identity-link is used for all missing observations. If the length of \code{link} is 1, then this value is replicated with the length of the responce vector. If an element of the responce vector is \code{!NA} then the corresponding entry in \code{link} is not used (but must still be a legal value). Setting this variable implies \code{compute=TRUE}.
-         link = NULL)
+        ##:ARGUMENT: link Define the family-connection for unobserved observations (\code{NA}). \code{link} is integer values which defines the family connection; \code{family[link[idx]]} unless \code{is.na(link[idx])} for which the identity-link is used. The \code{link}-argument only influence the \code{fitted.values} in the \code{result}-object. If \code{is.null(link)} (default) then the identity-link is used for all missing observations. If the length of \code{link} is 1, then this value is replicated with the length of the responce vector. If an element of the responce vector is \code{!NA} then the corresponding entry in \code{link} is not used (but must still be a legal value). Setting this variable implies \code{compute=TRUE}.
+        link = NULL)
 
     ##:SEEALSO: inla
 }
@@ -534,11 +540,11 @@
     ##:EXTRA: 
     ##:NAME: control.results
     list(
-         ##:ARGUMENT: return.marginals.random A boolean variable; read the marginals for the fterms? (Default TRUE)
-         return.marginals.random=TRUE,
+        ##:ARGUMENT: return.marginals.random A boolean variable; read the marginals for the fterms? (Default TRUE)
+        return.marginals.random=TRUE,
 
-         ##:ARGUMENT: return.marginals.predictor A boolean variable; read the marginals for the linear predictor? (Default TRUE)
-         return.marginals.predictor=TRUE)
+        ##:ARGUMENT: return.marginals.predictor A boolean variable; read the marginals for the linear predictor? (Default TRUE)
+        return.marginals.predictor=TRUE)
     ##:SEEALSO: inla
 }
 
@@ -549,20 +555,20 @@
     ##:EXTRA: 
     ##:NAME: control.mode
     list(
-         ##:ARGUMENT: result Prevous result from inla(). Use the theta- and x-mode from this run.
-         result = NULL,
+        ##:ARGUMENT: result Prevous result from inla(). Use the theta- and x-mode from this run.
+        result = NULL,
 
-         ##:ARGUMENT: theta The theta-mode/initial values for theta. This option has preference over result$mode$theta.
-         theta = NULL,
+        ##:ARGUMENT: theta The theta-mode/initial values for theta. This option has preference over result$mode$theta.
+        theta = NULL,
 
-         ##:ARGUMENT: x The x-mode/intitial values for x. This option has preference over result$mode$x.
-         x = NULL,
+        ##:ARGUMENT: x The x-mode/intitial values for x. This option has preference over result$mode$x.
+        x = NULL,
 
-         ##:ARGUMENT: restart A boolean variable; should we restart the optimisation from this configuration or fix the mode at this configuration? (Default FALSE.)
-         restart = FALSE,
+        ##:ARGUMENT: restart A boolean variable; should we restart the optimisation from this configuration or fix the mode at this configuration? (Default FALSE.)
+        restart = FALSE,
 
-         ##:ARGUMENT: fixed A boolean variable. If TRUE then treat all thetas as known and fixed, and if FALSE then treat all thetas as unknown and random (default).
-         fixed = FALSE)
+        ##:ARGUMENT: fixed A boolean variable. If TRUE then treat all thetas as known and fixed, and if FALSE then treat all thetas as unknown and random (default).
+        fixed = FALSE)
     ##:SEEALSO: inla
 }
 
@@ -572,35 +578,35 @@
     ##:EXTRA:
     ##:NAME: control.hazard
     list(
-         ##:ARGUMENT: model The model for the baseline hazard model. One of 'rw1' or 'rw2'. (Default 'rw1'.)
-         model = "rw1",
+        ##:ARGUMENT: model The model for the baseline hazard model. One of 'rw1' or 'rw2'. (Default 'rw1'.)
+        model = "rw1",
 
-         ##:ARGUMENT: hyper The definition of the hyperparameters.
-         hyper = NULL,
+        ##:ARGUMENT: hyper The definition of the hyperparameters.
+        hyper = NULL,
 
-         ##:ARGUMENT: fixed (OBSOLETE!) A boolean variable; is the precision for 'model' fixed? (Default FALSE.)
-         fixed = FALSE,
+        ##:ARGUMENT: fixed (OBSOLETE!) A boolean variable; is the precision for 'model' fixed? (Default FALSE.)
+        fixed = FALSE,
 
-         ##:ARGUMENT: initial (OBSOLETE!) The initial value for the precision.
-         initial = NULL,
+        ##:ARGUMENT: initial (OBSOLETE!) The initial value for the precision.
+        initial = NULL,
 
-         ##:ARGUMENT: prior (OBSOLETE!) The prior distribution for the precision for 'model'
-         prior = NULL,
+        ##:ARGUMENT: prior (OBSOLETE!) The prior distribution for the precision for 'model'
+        prior = NULL,
 
-         ##:ARGUMENT: param (OBSOLETE!) The parameters in the prior distribution
-         param = NULL,
+        ##:ARGUMENT: param (OBSOLETE!) The parameters in the prior distribution
+        param = NULL,
 
-         ##:ARGUMENT: constr A boolean variable; shall the  'model' be constrained to sum to zero?
-         constr = TRUE,
+        ##:ARGUMENT: constr A boolean variable; shall the  'model' be constrained to sum to zero?
+        constr = TRUE,
 
-         ##:ARGUMENT: n.intervals Number of intervals in the baseline hazard. (Default 15)
-         n.intervals = 15,
+        ##:ARGUMENT: n.intervals Number of intervals in the baseline hazard. (Default 15)
+        n.intervals = 15,
 
-         ##:ARGUMENT: cutpoints The cutpoints to use. If not specified the they are compute from 'n.intervals' and the maximum length of the interval. (Default NULL)
-         cutpoints = NULL,
+        ##:ARGUMENT: cutpoints The cutpoints to use. If not specified the they are compute from 'n.intervals' and the maximum length of the interval. (Default NULL)
+        cutpoints = NULL,
 
-         ##:ARGUMENT: strata.name The name of the stratefication variable for the baseline hazard in the data.frame
-         strata.name = NULL,
+        ##:ARGUMENT: strata.name The name of the stratefication variable for the baseline hazard in the data.frame
+        strata.name = NULL,
 
         ##:ARGUMENT: scale.model Scale the baseline hazard model (RW1, RW2) so the generalized variance is 1. (Default \code{inla.getOption("scale.model.default")}.)
         scale.model = NULL)
@@ -672,7 +678,7 @@
 inla.make.completion.function = function(...)
 {
     my.eval = function(command, envir = parent.frame(),
-            enclos = if (is.list(envir) || is.pairlist(envir)) parent.frame() else baseenv()) 
+        enclos = if (is.list(envir) || is.pairlist(envir)) parent.frame() else baseenv()) 
     {
         return(eval(parse(text = command), envir, enclos))
     }
