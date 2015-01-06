@@ -620,6 +620,8 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		GMRFLib_marginal_hidden_store_tp *marginal_hidden_store = Calloc(1, GMRFLib_marginal_hidden_store_tp);
 		GMRFLib_density_tp **dens = Calloc(compute_n, GMRFLib_density_tp *);
 		GMRFLib_ai_param_tp *ai_par_local = Calloc(1, GMRFLib_ai_param_tp);
+		marginal_hidden_store->n = graph->n;
+		marginal_hidden_store->subgraphs = Calloc(graph->n, GMRFLib_graph_tp *);
 
 		memcpy(ai_par_local, ai_par, sizeof(GMRFLib_ai_param_tp));
 		/*
@@ -628,6 +630,9 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		if (ai_par_local->strategy != GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN) {
 			ai_par_local->strategy = GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN;
 		}
+		FIXME1("FIX ME LATER");
+		ai_par_local->strategy = GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN;
+		
 		if (debug) {
 			printf("Correct: Add Qinv...\n");
 		}
