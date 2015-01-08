@@ -313,8 +313,8 @@ inla.pc.multvar.sphere.general.core = function(
     ## this is the general case involving rescaling and rotation
     eig = eigen(H)
     V = eig$vectors
-    Lam.sqrt = diag(sqrt(eig$values))
-    rep.Lam.sqrt = diag(1/sqrt(eig$values))
+    Lam.sqrt = diag(sqrt(eig$values), ncol = p)
+    rep.Lam.sqrt = diag(1/sqrt(eig$values), ncol = p)
 
     ## x = Lam.sqrt %*% V^T z
     ## and z is such that  x^T H x = z^T z
