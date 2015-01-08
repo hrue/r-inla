@@ -735,7 +735,7 @@
                          initial = 4,
                          fixed = FALSE,
                          prior = "loggamma",
-                         param = c(0, 0.001),
+                         param = c(1, 0.001),
                          to.theta = function(x) log(x),
                          from.theta = function(x) exp(x)
                          )
