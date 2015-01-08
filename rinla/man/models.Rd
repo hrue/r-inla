@@ -902,7 +902,7 @@ inla.models()
 							\item{initial = }{`4'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`0 0.001'}
+							\item{param = }{`1 0.001'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}

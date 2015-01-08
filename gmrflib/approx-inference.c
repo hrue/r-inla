@@ -693,7 +693,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 			for (j = 0; j < compute_n; j++) {
 				corr += (dens[i]->std_mean - dens[i]->user_mean)
 				    * icov[i + j * compute_n]
-				    * (dens[j]->std_mean - dens[i]->user_mean);
+				    * (dens[j]->std_mean - dens[j]->user_mean);
 			}
 		}
 
