@@ -3,10 +3,6 @@
 ## Export: inla.pc.multvar.simplex.r
 ## Export: inla.pc.multvar.sphere.d
 ## Export: inla.pc.multvar.sphere.r
-## Export: inla.pc.multvar.simplex.general.d
-## Export: inla.pc.multvar.simplex.general.r
-## Export: inla.pc.multvar.sphere.general.d
-## Export: inla.pc.multvar.sphere.general.r
 
 ##! \name{pc.multvar}
 ##! \alias{pc.multvar}
@@ -14,28 +10,17 @@
 ##! \alias{inla.pc.multvar.simplex}
 ##! \alias{inla.pc.multvar.simplex.d}
 ##! \alias{inla.pc.multvar.simplex.r}
-##! \alias{inla.pc.multvar.simplex.general}
-##! \alias{inla.pc.multvar.simplex.general.d}
-##! \alias{inla.pc.multvar.simplex.general.r}
 ##! \alias{inla.pc.multvar.sphere}
 ##! \alias{inla.pc.multvar.sphere.d}
 ##! \alias{inla.pc.multvar.sphere.r}
-##! \alias{inla.pc.multvar.sphere.general}
-##! \alias{inla.pc.multvar.sphere.general.d}
-##! \alias{inla.pc.multvar.sphere.general.r}
 ##! \alias{inla.pc.multvar.h.default}
+##! \alias{pc.multvar}
 ##! \alias{pc.multvar.simplex}
 ##! \alias{pc.multvar.simplex.d}
 ##! \alias{pc.multvar.simplex.r}
-##! \alias{pc.multvar.simplex.general}
-##! \alias{pc.multvar.simplex.general.d}
-##! \alias{pc.multvar.simplex.general.r}
 ##! \alias{pc.multvar.sphere}
 ##! \alias{pc.multvar.sphere.d}
 ##! \alias{pc.multvar.sphere.r}
-##! \alias{pc.multvar.sphere.general}
-##! \alias{pc.multvar.sphere.general.d}
-##! \alias{pc.multvar.sphere.general.r}
 ##! \alias{pc.multvar.h.default}
 ##!
 ##! \title{Multivariate PC priors}
@@ -44,14 +29,10 @@
 ##!              multivariate PC priors: The simplex and sphere case}
 ##! \usage{
 ##! inla.pc.multvar.h.default(x, inverse = FALSE, derivative = FALSE)
-##! inla.pc.multvar.simplex.r(n, p, lambda = 1, h = inla.pc.multvar.h.default)
-##! inla.pc.multvar.simplex.d(x, lambda = 1, log = FALSE, h = inla.pc.multvar.h.default)
-##! inla.pc.multvar.simplex.general.r(n = NULL, lambda = 1, h = inla.pc.multvar.h.default, b = NULL)
-##! inla.pc.multvar.simplex.general.d(x = NULL, lambda = 1, log = FALSE, h = inla.pc.multvar.h.default, b = NULL)
-##! inla.pc.multvar.sphere.r(n, p, lambda = 1, h = inla.pc.multvar.h.default)
-##! inla.pc.multvar.sphere.d(x, lambda = 1, log = FALSE, h = inla.pc.multvar.h.default)
-##! inla.pc.multvar.sphere.general.r(n = NULL, lambda = 1, h = inla.pc.multvar.h.default, H = NULL)
-##! inla.pc.multvar.sphere.general.d(x = NULL, lambda = 1, log = FALSE, h = inla.pc.multvar.h.default, H = NULL)
+##! inla.pc.multvar.simplex.r(n = NULL, lambda = 1, h = inla.pc.multvar.h.default, b = NULL)
+##! inla.pc.multvar.simplex.d(x = NULL, lambda = 1, log = FALSE, h = inla.pc.multvar.h.default, b = NULL)
+##! inla.pc.multvar.sphere.r(n = NULL, lambda = 1, h = inla.pc.multvar.h.default, H = NULL)
+##! inla.pc.multvar.sphere.d(x = NULL, lambda = 1, log = FALSE, h = inla.pc.multvar.h.default, H = NULL)
 ##! }
 ##! \arguments{
 ##!   \item{x}{Samples to evaluate. If input is a matrix then each row is a sample. If input is
@@ -65,23 +46,18 @@
 ##!   \item{log}{Evaluate the density in log-scale or ordinary scale.}
 ##!   \item{h}{The h()-function,  defaults to \code{inla.pc.multvar.h.default}. See that code
 ##!            for an example of how to write a user-spesific function.}
-##!   \item{b}{The b-vector (gradient) in the general expression for the simplex option,  \code{d(xi) = h(b^T xi)}}
-##!   \item{b}{The H(essian)-matrix in the general expression for the sphere option,  \code{d(xi) =
+##!   \item{b}{The b-vector (gradient) in the expression for the simplex option,  \code{d(xi) = h(b^T xi)}}
+##!   \item{H}{The H(essian)-matrix in the expression for the sphere option,  \code{d(xi) =
 ##!            h(1/2 *xi^T H xi)}}
 ##!}
 ##! \details{
-##!   These functions implements general multivariate PC-priors of the simplex and sphere type.
+##!   These functions implements multivariate PC-priors of the simplex and sphere type.
 ##! }
 ##! \value{%%
-##!     \code{inla.pc.multvar.simplex.r} generate samples from the standard simplex case,  and
+##!     \code{inla.pc.multvar.simplex.r} generate samples from the simplex case, and
 ##!     \code{inla.pc.multvar.simplex.d} evaluate the density.
-##!     \code{inla.pc.multvar.simplex.general.r} generate samples from the general simplex case,  and
-##!     \code{inla.pc.multvar.simplex.general.d} evaluate the density.
-##!     \code{inla.pc.multvar.sphere.r} generate samples from the standard sphere case,  and
+##!     \code{inla.pc.multvar.sphere.r} generate samples from the sphere case,  and
 ##!     \code{inla.pc.multvar.sphere.d} evaluate the density.
-##!     \code{inla.pc.multvar.sphere.general.r} generate samples from the general sphere case,  and
-##!     \code{inla.pc.multvar.sphere.general.d} evaluate the density.
-##!
 ##!     \code{inla.pc.multvar.h.default} implements the default h()-function and illustrate how
 ##!     to code your own spesific one, if needed. 
 ##! }
@@ -107,10 +83,8 @@ inla.pc.multvar.h.default = function(x, inverse = FALSE, derivative = FALSE)
     }
 }
 
-inla.pc.multvar.simplex.r = function(n, p, lambda = 1, h = inla.pc.multvar.h.default)
+inla.pc.multvar.simplex.r.core = function(n, p, lambda = 1, h = inla.pc.multvar.h.default)
 {
-    ## simulate from the pc prior where d = h(\sum x_i), x_i >=0
-    stopifnot(n > 0)
     stopifnot(p > 0)
     stopifnot(lambda > 0)
 
@@ -131,7 +105,7 @@ inla.pc.multvar.simplex.r = function(n, p, lambda = 1, h = inla.pc.multvar.h.def
     return (x)
 }
 
-inla.pc.multvar.simplex.d = function(x, lambda = 1, log = FALSE, 
+inla.pc.multvar.simplex.d.core = function(x, lambda = 1, log = FALSE, 
     h = inla.pc.multvar.h.default)
 {
     ## evaluate the density from the pc prior where d = h(\sum x_i), x_i >=0.
@@ -164,21 +138,21 @@ inla.pc.multvar.simplex.d = function(x, lambda = 1, log = FALSE,
     return (if (log) ldens else exp(ldens))
 }
 
-inla.pc.multvar.simplex.general.r = function(
+inla.pc.multvar.simplex.r = function(
     n = NULL, lambda = 1, h = inla.pc.multvar.h.default, b = NULL)
 {
-    return (inla.pc.multvar.simplex.general.core(
+    return (inla.pc.multvar.simplex.core(
         n = n, lambda = lambda, h = h, b = b, mode = "r"))
 }
 
-inla.pc.multvar.simplex.general.d = function(
+inla.pc.multvar.simplex.d = function(
     x = NULL, lambda = 1, log = FALSE, h = inla.pc.multvar.h.default, b = NULL)
 {
-    return (inla.pc.multvar.simplex.general.core(
+    return (inla.pc.multvar.simplex.core(
         x = x, lambda = lambda, log = log, h = h, b = b, mode = "d"))
 }
 
-inla.pc.multvar.simplex.general.core = function(
+inla.pc.multvar.simplex.core = function(
     x = NULL, n = NULL, lambda = 1, log = FALSE,
     h = inla.pc.multvar.h.default, b = NULL, mode = c("r", "d"))
 {
@@ -202,7 +176,7 @@ inla.pc.multvar.simplex.general.core = function(
     }
 
     if (mode == "r") {
-        X = inla.pc.multvar.simplex.r(n, p = p, lambda = lambda,  h = h)
+        X = inla.pc.multvar.simplex.r.core(n, p = p, lambda = lambda,  h = h)
         for(i in 1:n) {
             X[i, ] = t(1/b) %*% X[i,, drop = FALSE]
         }
@@ -212,7 +186,7 @@ inla.pc.multvar.simplex.general.core = function(
         ldens.x = numeric(n)
         for(i in 1:n) {
             theta = c(b) * c(x[i,])
-            ldens = inla.pc.multvar.simplex.d(theta, lambda = lambda, log = TRUE, h = h)
+            ldens = inla.pc.multvar.simplex.d.core(theta, lambda = lambda, log = TRUE, h = h)
             ldens.x[i] = ldens + sum(log(abs(b)))
         }
         return (if (log) ldens.x else exp(ldens.x))
@@ -223,7 +197,7 @@ inla.pc.multvar.simplex.general.core = function(
 }
 
 
-inla.pc.multvar.sphere.r = function(n, p, lambda = 1, h = inla.pc.multvar.h.default)
+inla.pc.multvar.sphere.r.core = function(n, p, lambda = 1, h = inla.pc.multvar.h.default)
 {
     ## simulate from the pc prior where d = h(1/2 * \sum x_i^2)
     stopifnot(n > 0)
@@ -247,7 +221,7 @@ inla.pc.multvar.sphere.r = function(n, p, lambda = 1, h = inla.pc.multvar.h.defa
     return (x)
 }
 
-inla.pc.multvar.sphere.d = function(x, lambda = 1, log = FALSE, 
+inla.pc.multvar.sphere.d.core = function(x, lambda = 1, log = FALSE, 
     h = inla.pc.multvar.h.default)
 {
     ## evaluate the density from the pc prior where d = h(1/2 * \sum x_i^2), x_i >=0.
@@ -279,22 +253,22 @@ inla.pc.multvar.sphere.d = function(x, lambda = 1, log = FALSE,
     return (if (log) ldens else exp(ldens))
 }
 
-inla.pc.multvar.sphere.general.r = function(
+inla.pc.multvar.sphere.r = function(
     n = NULL, lambda = 1, h = inla.pc.multvar.h.default, H = NULL)
 {
-    return (inla.pc.multvar.sphere.general.core(
+    return (inla.pc.multvar.sphere.core(
         n = n, lambda = lambda, h = h, H = H, mode = "r"))
 }
 
-inla.pc.multvar.sphere.general.d = function(
+inla.pc.multvar.sphere.d = function(
     x = NULL, lambda = 1, log = FALSE, h = inla.pc.multvar.h.default, H = NULL)
 {
-    return (inla.pc.multvar.sphere.general.core(
+    return (inla.pc.multvar.sphere.core(
         x = x, lambda = lambda, log = log, h = h, H = H, mode = "d"))
 }
 
 
-inla.pc.multvar.sphere.general.core = function(
+inla.pc.multvar.sphere.core = function(
     x = NULL, n = NULL, lambda = 1, log = FALSE,
     h = inla.pc.multvar.h.default, H = NULL, mode = c("r", "d"))
 {
@@ -310,7 +284,7 @@ inla.pc.multvar.sphere.general.core = function(
         x = matrix(c(x), ncol = length(x))
     }
 
-    ## this is the general case involving rescaling and rotation
+    ## this case involving rescaling and rotation
     eig = eigen(H)
     V = eig$vectors
     Lam.sqrt = diag(sqrt(eig$values), ncol = p)
@@ -322,7 +296,7 @@ inla.pc.multvar.sphere.general.core = function(
     z.to.x = V %*% rep.Lam.sqrt
 
     if (mode == "r") {
-        X = inla.pc.multvar.sphere.r(n, p = p, lambda = lambda,  h = h)
+        X = inla.pc.multvar.sphere.r.core(n, p = p, lambda = lambda,  h = h)
         for(i in 1:n) {
             z = t(X[i,, drop=FALSE])
             X[i, ] = z.to.x %*% z
@@ -334,7 +308,7 @@ inla.pc.multvar.sphere.general.core = function(
         ldens.x = numeric(n)
         for(i in 1:n) {
             z = x.to.z %*% t(x[i,, drop=FALSE])
-            ldens = inla.pc.multvar.sphere.d(t(z), lambda = lambda, log = TRUE, h = h)
+            ldens = inla.pc.multvar.sphere.d.core(t(z), lambda = lambda, log = TRUE, h = h)
             ldens.x[i] = ldens + ljac
         }
         return (if (log) ldens.x else exp(ldens.x))

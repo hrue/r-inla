@@ -8,28 +8,17 @@
  \alias{inla.pc.multvar.simplex}
  \alias{inla.pc.multvar.simplex.d}
  \alias{inla.pc.multvar.simplex.r}
- \alias{inla.pc.multvar.simplex.general}
- \alias{inla.pc.multvar.simplex.general.d}
- \alias{inla.pc.multvar.simplex.general.r}
  \alias{inla.pc.multvar.sphere}
  \alias{inla.pc.multvar.sphere.d}
  \alias{inla.pc.multvar.sphere.r}
- \alias{inla.pc.multvar.sphere.general}
- \alias{inla.pc.multvar.sphere.general.d}
- \alias{inla.pc.multvar.sphere.general.r}
  \alias{inla.pc.multvar.h.default}
+ \alias{pc.multvar}
  \alias{pc.multvar.simplex}
  \alias{pc.multvar.simplex.d}
  \alias{pc.multvar.simplex.r}
- \alias{pc.multvar.simplex.general}
- \alias{pc.multvar.simplex.general.d}
- \alias{pc.multvar.simplex.general.r}
  \alias{pc.multvar.sphere}
  \alias{pc.multvar.sphere.d}
  \alias{pc.multvar.sphere.r}
- \alias{pc.multvar.sphere.general}
- \alias{pc.multvar.sphere.general.d}
- \alias{pc.multvar.sphere.general.r}
  \alias{pc.multvar.h.default}
 
  \title{Multivariate PC priors}
@@ -38,14 +27,10 @@
               multivariate PC priors: The simplex and sphere case}
  \usage{
  inla.pc.multvar.h.default(x, inverse = FALSE, derivative = FALSE)
- inla.pc.multvar.simplex.r(n, p, lambda = 1, h = inla.pc.multvar.h.default)
- inla.pc.multvar.simplex.d(x, lambda = 1, log = FALSE, h = inla.pc.multvar.h.default)
- inla.pc.multvar.simplex.general.r(n = NULL, lambda = 1, h = inla.pc.multvar.h.default, b = NULL)
- inla.pc.multvar.simplex.general.d(x = NULL, lambda = 1, log = FALSE, h = inla.pc.multvar.h.default, b = NULL)
- inla.pc.multvar.sphere.r(n, p, lambda = 1, h = inla.pc.multvar.h.default)
- inla.pc.multvar.sphere.d(x, lambda = 1, log = FALSE, h = inla.pc.multvar.h.default)
- inla.pc.multvar.sphere.general.r(n = NULL, lambda = 1, h = inla.pc.multvar.h.default, H = NULL)
- inla.pc.multvar.sphere.general.d(x = NULL, lambda = 1, log = FALSE, h = inla.pc.multvar.h.default, H = NULL)
+ inla.pc.multvar.simplex.r(n = NULL, lambda = 1, h = inla.pc.multvar.h.default, b = NULL)
+ inla.pc.multvar.simplex.d(x = NULL, lambda = 1, log = FALSE, h = inla.pc.multvar.h.default, b = NULL)
+ inla.pc.multvar.sphere.r(n = NULL, lambda = 1, h = inla.pc.multvar.h.default, H = NULL)
+ inla.pc.multvar.sphere.d(x = NULL, lambda = 1, log = FALSE, h = inla.pc.multvar.h.default, H = NULL)
  }
  \arguments{
    \item{x}{Samples to evaluate. If input is a matrix then each row is a sample. If input is
@@ -59,23 +44,18 @@
    \item{log}{Evaluate the density in log-scale or ordinary scale.}
    \item{h}{The h()-function,  defaults to \code{inla.pc.multvar.h.default}. See that code
             for an example of how to write a user-spesific function.}
-   \item{b}{The b-vector (gradient) in the general expression for the simplex option,  \code{d(xi) = h(b^T xi)}}
-   \item{b}{The H(essian)-matrix in the general expression for the sphere option,  \code{d(xi) =
+   \item{b}{The b-vector (gradient) in the expression for the simplex option,  \code{d(xi) = h(b^T xi)}}
+   \item{H}{The H(essian)-matrix in the expression for the sphere option,  \code{d(xi) =
             h(1/2 *xi^T H xi)}}
 }
  \details{
-   These functions implements general multivariate PC-priors of the simplex and sphere type.
+   These functions implements multivariate PC-priors of the simplex and sphere type.
  }
  \value{%%
-     \code{inla.pc.multvar.simplex.r} generate samples from the standard simplex case,  and
+     \code{inla.pc.multvar.simplex.r} generate samples from the simplex case, and
      \code{inla.pc.multvar.simplex.d} evaluate the density.
-     \code{inla.pc.multvar.simplex.general.r} generate samples from the general simplex case,  and
-     \code{inla.pc.multvar.simplex.general.d} evaluate the density.
-     \code{inla.pc.multvar.sphere.r} generate samples from the standard sphere case,  and
+     \code{inla.pc.multvar.sphere.r} generate samples from the sphere case,  and
      \code{inla.pc.multvar.sphere.d} evaluate the density.
-     \code{inla.pc.multvar.sphere.general.r} generate samples from the general sphere case,  and
-     \code{inla.pc.multvar.sphere.general.d} evaluate the density.
-
      \code{inla.pc.multvar.h.default} implements the default h()-function and illustrate how
      to code your own spesific one, if needed. 
  }
