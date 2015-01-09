@@ -605,6 +605,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	GMRFLib_free_problem(ai_store->problem);
 	ai_store->problem = problem;
 
+	//printf("CORRECTIONLDENS %f\n", *logdens);
 	if (ai_par->correct) {
 		/*
 		 * compute the correction to the LA
@@ -701,6 +702,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		double upper = (compute_n + 2.0 * sqrt(2.0 * compute_n)) * ai_par->correction_factor;
 		*logdens += 0.5 * upper * FUNCORR(corr / upper);
 		printf("Correct: correction: raw = %.6f adjusted = %.6f\n", 0.5 * corr, 0.5 * upper * FUNCORR(corr / upper));
+		//printf("CORRECTIONTERM %f\n", 0.5 * corr);
 #undef FUNCORR
 
 		GMRFLib_free_marginal_hidden_store(marginal_hidden_store);
@@ -717,6 +719,8 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		Free(Alin);
 		Free(cov);
 		Free(compute_idx);
+	} else {
+		//printf("CORRECTIONTERM %f\n", 0.0);
 	}
 
 	/*
