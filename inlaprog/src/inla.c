@@ -18159,16 +18159,16 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 
 	mb->ai_par->cmin = iniparser_getdouble(ini, inla_string_join(secname, "CMIN"), mb->ai_par->cmin);
 	int corr = iniparser_getboolean(ini, inla_string_join(secname, "CORRECT"), 0);
-	mb->ai_par->correction_factor = iniparser_getdouble(ini, inla_string_join(secname, "CORRECTION.FACTOR"), mb->ai_par->correction_factor);
 	mb->ai_par->correct = (corr ? Calloc(1, char) : NULL);
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CORRECTION.STRATEGY"), NULL));
+	mb->ai_par->correct_factor = iniparser_getdouble(ini, inla_string_join(secname, "CORRECT.FACTOR"), mb->ai_par->correct_factor);
+	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CORRECT.STRATEGY"), NULL));
 	if (opt) {
 		if (!strcasecmp(opt, "SIMPLIFIED.LAPLACE")) {
-			mb->ai_par->correction_strategy = GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN;
+			mb->ai_par->correct_strategy = GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN;
 		} else if (!strcasecmp(opt, "LAPLACE")) {
-			mb->ai_par->correction_strategy = GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN;
+			mb->ai_par->correct_strategy = GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN;
 		} else {
-			inla_error_field_is_void(__GMRFLib_FuncName, secname, "correction.strategy", opt);
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "correct.strategy", opt);
 		}
 	}
 

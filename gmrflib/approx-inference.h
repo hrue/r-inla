@@ -506,12 +506,12 @@ typedef struct {
 	/**
 	 * \brief Ajustment-factor if we use correction
 	 */
-	double correction_factor;
+	double correct_factor;
 
 	/**
 	 * \brief Strategy to use computing the correction
 	 */
-	double correction_strategy;
+	double correct_strategy;
 	
 } GMRFLib_ai_param_tp;
 
