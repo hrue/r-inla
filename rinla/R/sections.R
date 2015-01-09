@@ -697,12 +697,12 @@
     }
 
     inla.write.boolean.field("correct", inla.spec$correct, file)
-    if (!is.null(inla.spec$correction.factor)) {
-        stopifnot(inla.spec$correction.factor > 0);
-        cat("correction.factor = ", inla.spec$correction.factor, "\n", file = file, append = TRUE)
+    if (!is.null(inla.spec$correct.factor)) {
+        stopifnot(inla.spec$correct.factor > 0);
+        cat("correct.factor = ", inla.spec$correct.factor, "\n", file = file, append = TRUE)
     }
-    if (!is.null(inla.spec$correction.strategy)) {
-        cat("correction.strategy = ", inla.spec$correction.strategy,"\n", sep = " ", file = file,  append = TRUE)
+    if (!is.null(inla.spec$correct.strategy)) {
+        cat("correct.strategy = ", inla.spec$correct.strategy,"\n", sep = " ", file = file,  append = TRUE)
     }
 
     cat("\n", sep = " ", file = file,  append = TRUE)

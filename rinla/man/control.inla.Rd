@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.inla} for use in \code{inla}}
 \usage{
 inla.set.control.inla.default(...)
-control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, adjust.weights, cmin, correct, correct.strategy, correction.factor, cpo.diff, cutoff, diagonal, diff.logdens, dz, fast, force.diagonal, global.node.degree, global.node.factor, h, huge, int.strategy, interpolator, lincomb.derived.correlation.matrix, lincomb.derived.only, linear.correction, mode.known, npoints, numint.abserr, numint.maxfeval, numint.relerr, optimiser, print.joint.hyper, reordering, restart, skip.configurations, stencil, step.factor, step.len, strategy, stupid.search, stupid.search.factor, stupid.search.max.iter, tolerance, tolerance.f, tolerance.g, tolerance.x, verbose)
+control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, adjust.weights, cmin, correct, correct.factor, correct.strategy, cpo.diff, cutoff, diagonal, diff.logdens, dz, fast, force.diagonal, global.node.degree, global.node.factor, h, huge, int.strategy, interpolator, lincomb.derived.correlation.matrix, lincomb.derived.only, linear.correction, mode.known, npoints, numint.abserr, numint.maxfeval, numint.relerr, optimiser, print.joint.hyper, reordering, restart, skip.configurations, stencil, step.factor, step.len, strategy, stupid.search, stupid.search.factor, stupid.search.max.iter, tolerance, tolerance.f, tolerance.g, tolerance.x, verbose)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -60,7 +60,7 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 \item{stupid.search.max.iter}{  Maximum number of iterations allowed for the stupid-search-algorithm.}
 \item{stupid.search.factor}{  Factor (>=1) to increase the step-length with after each new interation.}
 \item{correct}{  Add correction for the Laplace approximation.}
-\item{correction.factor}{  Factor used in adjusting the correction factor (default=1) if correct=TRUE}
+\item{correct.factor}{  Factor used in adjusting the correction factor (default=1) if correct=TRUE}
 \item{correct.strategy}{  The strategy used to compute the correction; one of 'simplified.laplace' (default) or 'laplace'}
 }
 \value{
