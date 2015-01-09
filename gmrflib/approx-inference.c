@@ -265,8 +265,8 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	 * default is no correction
 	 */
 	(*ai_par)->correct = NULL;
-	(*ai_par)->correction_factor = 1.0;		       /* set but is default not used */
-	(*ai_par)->correction_strategy = GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN;
+	(*ai_par)->correct_factor = 1.0;		       /* set but is default not used */
+	(*ai_par)->correct_strategy = GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN;
 
 	return GMRFLib_SUCCESS;
 }
@@ -404,11 +404,11 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	}
 
 	if (ai_par->correct) {
-		fprintf(fp, "\tLaplace-correction is Enabled with correction factor[%.4f]\n", ai_par->correction_factor);
-		if (ai_par->correction_strategy == GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN ||
-		    ai_par->correction_strategy == GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN)
+		fprintf(fp, "\tLaplace-correction is Enabled with correction factor[%.4f]\n", ai_par->correct_factor);
+		if (ai_par->correct_strategy == GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN ||
+		    ai_par->correct_strategy == GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN)
 			fprintf(fp, "\t\tstrategy = [simplified.laplace]\n");
-		if (ai_par->correction_strategy == GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN)
+		if (ai_par->correct_strategy == GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN)
 			fprintf(fp, "\t\tstrategy = [laplace]\n");
 	} else {
 		fprintf(fp, "\tLaplace-correction is Disabled.\n");
@@ -631,7 +631,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		marginal_hidden_store->subgraphs = Calloc(graph->n, GMRFLib_graph_tp *);
 
 		memcpy(ai_par_local, ai_par, sizeof(GMRFLib_ai_param_tp));
-		ai_par_local->strategy = ai_par->correction_strategy;
+		ai_par_local->strategy = ai_par->correct_strategy;
 		if (debug) {
 			printf("Correct: Add Qinv...\n");
 		}
@@ -699,7 +699,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		}
 
 #define FUNCORR(_x)  (2.0/(1+exp(-2.0 * (_x))) -1.0)	       // makes the derivative in 0 eq to 1
-		double upper = (compute_n + 2.0 * sqrt(2.0 * compute_n)) * ai_par->correction_factor;
+		double upper = (compute_n + 2.0 * sqrt(2.0 * compute_n)) * ai_par->correct_factor;
 		*logdens += 0.5 * upper * FUNCORR(corr / upper);
 		printf("Correct: correction: raw = %.6f adjusted = %.6f\n", 0.5 * corr, 0.5 * upper * FUNCORR(corr / upper));
 		//printf("CORRECTIONTERM %f\n", 0.5 * corr);

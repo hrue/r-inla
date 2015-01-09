@@ -475,11 +475,11 @@
         ##:ARGUMENT: correct Add correction for the Laplace approximation.
         correct = FALSE,
 
-        ##:ARGUMENT: correction.factor Factor used in adjusting the correction factor (default=1) if correct=TRUE
-        correction.factor = 1.0,
+        ##:ARGUMENT: correct.factor Factor used in adjusting the correction factor (default=1) if correct=TRUE
+        correct.factor = 1.0,
 
         ##:ARGUMENT: correct.strategy  The strategy used to compute the correction; one of 'simplified.laplace' (default) or 'laplace'
-        correction.strategy = "simplified.laplace")
+        correct.strategy = "simplified.laplace")
 
     ## use default Gaussian strategy if the observations are gaussian
     if (all(tolower(family) %in% "gaussian"))
