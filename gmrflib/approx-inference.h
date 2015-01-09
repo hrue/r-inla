@@ -512,6 +512,11 @@ typedef struct {
 	 * \brief Strategy to use computing the correction
 	 */
 	double correct_strategy;
+
+	/**
+	 * \brief Be verbose about the correction?
+	 */
+	int correct_verbose;
 	
 } GMRFLib_ai_param_tp;
 

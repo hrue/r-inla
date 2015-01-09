@@ -479,8 +479,11 @@
         correct.factor = 1.0,
 
         ##:ARGUMENT: correct.strategy  The strategy used to compute the correction; one of 'simplified.laplace' (default) or 'laplace'
-        correct.strategy = "simplified.laplace")
+        correct.strategy = "simplified.laplace", 
 
+        ##:ARGUMENT: correct.verbose  Be verbose when computing the correction?
+        correct.verbose = FALSE)
+ 
     ## use default Gaussian strategy if the observations are gaussian
     if (all(tolower(family) %in% "gaussian"))
         ans$strategy = "gaussian"

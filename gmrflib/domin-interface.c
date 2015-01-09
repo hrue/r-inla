@@ -286,8 +286,6 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 		Free(bnew_local);
 	}
 
-	//printf("CORRECTIONTHETA %f\n", x[0]);
-	
 	if (0) {
 		FIXME1("FIX");
 		for (i = 0; i < G.nhyper; i++) {

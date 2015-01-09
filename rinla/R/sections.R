@@ -697,6 +697,7 @@
     }
 
     inla.write.boolean.field("correct", inla.spec$correct, file)
+    inla.write.boolean.field("correct.verbose", inla.spec$correct.verbose, file)
     if (!is.null(inla.spec$correct.factor)) {
         stopifnot(inla.spec$correct.factor > 0);
         cat("correct.factor = ", inla.spec$correct.factor, "\n", file = file, append = TRUE)
