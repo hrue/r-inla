@@ -267,6 +267,7 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	(*ai_par)->correct = NULL;
 	(*ai_par)->correct_factor = 1.0;		       /* set but is default not used */
 	(*ai_par)->correct_strategy = GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN;
+	(*ai_par)->correct_verbose = GMRFLib_FALSE;
 
 	return GMRFLib_SUCCESS;
 }
@@ -410,6 +411,7 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 			fprintf(fp, "\t\tstrategy = [simplified.laplace]\n");
 		if (ai_par->correct_strategy == GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN)
 			fprintf(fp, "\t\tstrategy = [laplace]\n");
+		fprintf(fp, "\t\tverbose = [%s]\n", (ai_par->correct_verbose ? "TRUE" : "FALSE"));
 	} else {
 		fprintf(fp, "\tLaplace-correction is Disabled.\n");
 	}
@@ -605,12 +607,11 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	GMRFLib_free_problem(ai_store->problem);
 	ai_store->problem = problem;
 
-	//printf("CORRECTIONLDENS %f\n", *logdens);
 	if (ai_par->correct) {
 		/*
 		 * compute the correction to the LA
 		 */
-		int i, j, compute_n = 0, *compute_idx = NULL, debug = 1;
+		int i, j, compute_n = 0, *compute_idx = NULL;
 		for (i = 0; i < n; i++) {
 			compute_n += (int) ai_par->correct[i];
 		}
@@ -632,13 +633,10 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 
 		memcpy(ai_par_local, ai_par, sizeof(GMRFLib_ai_param_tp));
 		ai_par_local->strategy = ai_par->correct_strategy;
-		if (debug) {
-			printf("Correct: Add Qinv...\n");
-		}
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 
-		if (debug) {
-			printf("Correct: Compute marginals for %d nodes\n", compute_n);
+		if (ai_par->correct_verbose) {
+			printf("\tCorrect: Compute marginals for %d nodes\n", compute_n);
 		}
 		for (i = 0; i < compute_n; i++) {
 			GMRFLib_ai_marginal_hidden(&dens[i],
@@ -669,23 +667,23 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		GMRFLib_density_tp **lin_dens = Calloc(compute_n, GMRFLib_density_tp *);
 		double *cov = NULL;
 
-		if (debug) {
-			printf("Correct: Compute the covariance for the %d nodes\n", compute_n);
+		if (ai_par->correct_verbose) {
+			printf("\tCorrect: Compute the covariance for the %d nodes\n", compute_n);
 		}
 		GMRFLib_ai_compute_lincomb(&lin_dens, &cov, compute_n, Alin, ai_store, improved_mean);
-		if (debug) {
-			printf("\tCovariance matrix:\n");
-		}
-		for (i = 0; i < compute_n; i++) {
-			printf("\t\t");
-			for (j = 0; j < compute_n; j++) {
-				printf("%10.5f ", cov[i + j * compute_n]);
+		if (ai_par->correct_verbose) {
+			printf("\t\tCovariance matrix:\n");
+			for (i = 0; i < compute_n; i++) {
+				printf("\t\t");
+				for (j = 0; j < compute_n; j++) {
+					printf("%10.5f ", cov[i + j * compute_n]);
+				}
+				printf("\n");
 			}
-			printf("\n");
-		}
-		printf("\tDifference in the mean:\n");
-		for (i = 0; i < compute_n; i++) {
-			printf("\t\t%10.5f\n", dens[i]->std_mean - dens[i]->user_mean);
+			printf("\t\tDifference in the mean:\n");
+			for (i = 0; i < compute_n; i++) {
+				printf("\t\t%10.5f\n", dens[i]->std_mean - dens[i]->user_mean);
+			}
 		}
 
 		double corr = 0.0, *icov = cov;
@@ -701,8 +699,9 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 #define FUNCORR(_x)  (2.0/(1+exp(-2.0 * (_x))) -1.0)	       // makes the derivative in 0 eq to 1
 		double upper = (compute_n + 2.0 * sqrt(2.0 * compute_n)) * ai_par->correct_factor;
 		*logdens += 0.5 * upper * FUNCORR(corr / upper);
-		printf("Correct: correction: raw = %.6f adjusted = %.6f\n", 0.5 * corr, 0.5 * upper * FUNCORR(corr / upper));
-		//printf("CORRECTIONTERM %f\n", 0.5 * corr);
+		if (ai_par->correct_verbose){
+			printf("\t\tCorrect: correction: raw = %.6f adjusted = %.6f\n", 0.5 * corr, 0.5 * upper * FUNCORR(corr / upper));
+		}
 #undef FUNCORR
 
 		GMRFLib_free_marginal_hidden_store(marginal_hidden_store);
@@ -719,9 +718,8 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		Free(Alin);
 		Free(cov);
 		Free(compute_idx);
-	} else {
-		//printf("CORRECTIONTERM %f\n", 0.0);
-	}
+	} 
+
 
 	/*
 	 * cleanup 
