@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+D=www/R
+OPTIND=1 
+OPTERR=1
+nkeep=3
+force=0
+while getopts fn: arg; do
+    case "$arg" in
+        f) force=1;;
+	n) nkeep=$OPTARG;;
+        h) 
+        echo "Usage: $0 [-f] [-n keep]"
+        exit 0;;
+        *) exit 1;;
+    esac
+done
+shift $[ $OPTIND - 1 ]
+
+dirs=$(find $D -name INLA_0.0-\* | xargs dirname | sort | uniq)
+
+for d in $dirs; do
+    (
+	cd $d 2>&1 >/dev/null
+	nn=$(ls -1 -r INLA_0.0-* | wc -l)
+	nremove=$[ $nn - $nkeep ]
+	if [ $nremove -gt 0 ]; then
+	    rem=$(ls -1 INLA_0.0-* | head -n$nremove)
+	    for r in $rem; do
+		if [ $force -eq 1 ]; then
+		    rm -v $r
+		else
+		    echo Will remove: $d/$r "($(ls -l $r|awk '{print $6,$7,$8}'))"
+		fi
+	    done
+	fi
+	if [ $force -eq 1 ]; then
+	    f=updateBinaryPackages
+	    test -f $f && ./$f
+	fi
+    )
+done
+
