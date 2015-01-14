@@ -39,7 +39,6 @@
    \item{derivative}{Compute the derivative of the h()-function. (derivative of the inverse
                      function is not used).}
    \item{n}{Number of samples to generate.}
-   \item{p}{The dimension of the PC-prior.}
    \item{lambda}{The lambda-parameter in the PC-prior.}
    \item{log}{Evaluate the density in log-scale or ordinary scale.}
    \item{h}{The h()-function,  defaults to \code{inla.pc.multvar.h.default}. See that code
