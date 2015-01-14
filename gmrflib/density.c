@@ -1981,7 +1981,7 @@ int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * de
 	};
 
 	double x_add [] = {
-		-6.0, -5.0, -4.0, -3.0, 3.0, 4.0, 5.0, 6.0, 
+		-10.0, -8.0, -6.0, -5.0, -4.0, -3.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0
 	};
 	
 	int i, use_many = GMRFLib_FALSE, m;
