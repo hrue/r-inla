@@ -41,7 +41,6 @@
 ##!   \item{derivative}{Compute the derivative of the h()-function. (derivative of the inverse
 ##!                     function is not used).}
 ##!   \item{n}{Number of samples to generate.}
-##!   \item{p}{The dimension of the PC-prior.}
 ##!   \item{lambda}{The lambda-parameter in the PC-prior.}
 ##!   \item{log}{Evaluate the density in log-scale or ordinary scale.}
 ##!   \item{h}{The h()-function,  defaults to \code{inla.pc.multvar.h.default}. See that code
@@ -99,8 +98,8 @@ inla.pc.multvar.simplex.r.core = function(n, p, lambda = 1, h = inla.pc.multvar.
         ## and scale it
         x[i, ] = z*r
     }
-    colnames(x) = paste("x", INLA:::inla.num(1:p), sep="")
-    rownames(x) = paste("sample", INLA:::inla.num(1:n), sep="")
+    colnames(x) = paste("x", inla.num(1:p), sep="")
+    rownames(x) = paste("sample", inla.num(1:n), sep="")
 
     return (x)
 }
@@ -215,8 +214,8 @@ inla.pc.multvar.sphere.r.core = function(n, p, lambda = 1, h = inla.pc.multvar.h
         ## and scale it
         x[i, ] = z*r
     }
-    colnames(x) = paste("x", INLA:::inla.num(1:p), sep="")
-    rownames(x) = paste("sample", INLA:::inla.num(1:n), sep="")
+    colnames(x) = paste("x", inla.num(1:p), sep="")
+    rownames(x) = paste("sample", inla.num(1:n), sep="")
 
     return (x)
 }

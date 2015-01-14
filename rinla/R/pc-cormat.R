@@ -226,7 +226,7 @@ inla.pc.cormat.dtheta = function(theta, lambda = 1, log = FALSE)
     ## reimplementation using the simplex function
     p = length(theta)
     gamma = -log(sin(theta))
-    ldens = (inla.pc.multvar.simplex.d(gamma, lambda = lambda, log = TRUE)
+    ldens = (inla.pc.multvar.simplex.d(gamma, lambda = lambda, log = TRUE, b = rep(1, p))
              + sum(log(abs(1/tan(theta)))) - p*log(2))
 
     return (if (log) ldens else exp(ldens))
