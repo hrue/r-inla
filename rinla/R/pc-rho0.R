@@ -1,6 +1,6 @@
 ## Export: inla.pc.rcor0 inla.pc.dcor0 inla.pc.qcor0 inla.pc.pcor0
 
-##! \name{pc.prec}
+##! \name{pc.cor0}
 ##! \alias{inla.pc.cor0}
 ##! \alias{pc.cor0}
 ##! \alias{pc.rcor0}

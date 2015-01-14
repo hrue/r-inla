@@ -183,11 +183,11 @@
         ##:ARGUMENT: cpo.idx  The index of the data point to remove. (EXPERT OPTION: DO NOT USE)
         cpo.idx = -1,
 
-        ##:ARGUMENT: jp.Rfile The R-file to be sourced to set up a joint prior for the hyperparmaters to be evaluated by \code{jp.func} 
-        jp.Rfile = NULL,
-        
         ##:ARGUMENT: jp.func The R-function which returns the joint prior,  to be defined in \code{jp.Rfile} 
-        jp.func = NULL
+        jp.func = NULL, 
+        
+        ##:ARGUMENT: jp.Rfile The R-file to be sourced to set up a joint prior for the hyperparmaters to be evaluated by \code{jp.func} 
+        jp.Rfile = NULL
         
         )
 
