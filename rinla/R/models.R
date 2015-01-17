@@ -4364,6 +4364,26 @@
                  pdf = "gamma"
                  ),
 
+             gammacount = list(
+                 hyper = list(
+                     theta = list(
+                         name = "log alpha",
+                         short.name = "alpha",
+                         initial = log(1),
+                         fixed = FALSE,
+                         prior = "loggamma",
+                         param = c(10, 10),
+                         to.theta = function(x) log(x), 
+                         from.theta = function(x) exp(x)
+                         )
+                     ),
+                 survival = FALSE,
+                 discrete = FALSE,
+                 link = c("default", "log"),
+                 status = "experimental", 
+                 pdf = "gammacount"
+                 ),
+
              beta = list(
                  hyper = list(
                      theta = list(

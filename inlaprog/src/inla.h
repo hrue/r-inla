@@ -338,6 +338,11 @@ typedef struct {
 	 * MIX ~ Normal(x, 1/prec)
 	 */
 	double **mix_log_prec_gaussian;
+
+	/*
+	 * Gammacount; parameter alpha
+	 */
+	double **gammacount_log_alpha;
 } Data_tp;
 
 typedef struct {
@@ -401,6 +406,7 @@ typedef enum {
 	L_WRAPPED_CAUCHY,
 	L_TEST_BINOMIAL_1,
 	L_SIMPLEX,
+	L_GAMMACOUNT, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1432,6 +1438,7 @@ int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
