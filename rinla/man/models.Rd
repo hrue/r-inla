@@ -5258,6 +5258,33 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `gammacount'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{name = }{`log alpha'}
+							\item{short.name = }{`alpha'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`10 10'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default log'}
+								\item{status = }{`experimental'}
+								\item{pdf = }{`gammacount'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `beta'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{

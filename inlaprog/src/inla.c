@@ -2924,6 +2924,11 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[0] = ds->data_observations.gamma_weight = Calloc(mb->predictor_ndata, double);
 		break;
 
+	case L_GAMMACOUNT:
+		idiv = 2;
+		a[0] = NULL;
+		break;
+
 	case L_BETA:
 		idiv = 2;
 		a[0] = NULL;
@@ -5386,6 +5391,51 @@ int loglikelihood_gamma(double *logll, double *x, int m, int idx, double *x_vec,
 	}
 
 	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * Gammacount
+	 */
+#define G(_alpha, _beta) gsl_cdf_gamma_P((_beta), (_alpha), 1.0)
+
+
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double alpha = map_exp(ds->data_observations.gammacount_log_alpha[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double beta, mu, p, logp;
+
+	LINK_INIT;
+
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			beta = alpha * mu;
+			p = G(y*alpha, beta) - G((y+1.0)*alpha, beta);
+			logp = log(p);
+			// this can go in over/underflow...
+			if (ISINF(logp) || ISNAN(logp)) {
+				logll[i] = log(GMRFLib_eps(1.0)) + PENALTY * SQR(x[i]+OFFSET(idx));
+			} else {
+				logll[i] = logp;
+			}
+		}
+	} else {
+		for (i = 0; i < -m; i++) {
+			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			beta = alpha * mu;
+			logll[i] = G((y+1.0)*alpha, beta);
+		}
+	}
+
+	LINK_END;
+#undef G
 	return GMRFLib_SUCCESS;
 }
 int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
@@ -8109,6 +8159,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "GAMMA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gamma;
 		ds->data_id = L_GAMMA;
+	} else if (!strcasecmp(ds->data_likelihood, "GAMMACOUNT")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gammacount;
+		ds->data_id = L_GAMMACOUNT;
 	} else if (!strcasecmp(ds->data_likelihood, "BETA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_beta;
 		ds->data_id = L_BETA;
@@ -8348,6 +8401,18 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Poisson data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
 							ds->data_observations.E[i], ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+		break;
+
+	case L_GAMMACOUNT:
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Gammacount data[%1d] (y) = (%g) is void\n", secname, i,
+							ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -9400,6 +9465,50 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.gamma_log_prec;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_exp;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+		break;
+
+	case L_GAMMACOUNT:
+		/*
+		 * get options related to the gammacount
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
+		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
+		if (!ds->data_fixed && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.gammacount_log_alpha, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_alpha[%g]\n", ds->data_observations.gammacount_log_alpha[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+		}
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log-alpha parameter for Gammacount observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Alpha parameter for Gammacount observations", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.gammacount_log_alpha;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
@@ -18752,6 +18861,19 @@ double extra(double *theta, int ntheta, void *argument)
 					double precision_intern = theta[count];
 
 					val += PRIOR_EVAL(ds->data_prior, &precision_intern);
+					count++;
+				}
+				break;
+
+			case L_GAMMACOUNT:
+				if (!ds->data_fixed) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					double log_alpha = theta[count];
+
+					val += PRIOR_EVAL(ds->data_prior, &log_alpha);
 					count++;
 				}
 				break;

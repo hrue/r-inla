@@ -1,0 +1,74 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{The Gammacount-distribution}
+
+\subsection*{Parametrisation}
+
+The Gammacount-distribution is a discrete probability distribution on
+$0, 1, 2, 3, \ldots$,  where
+\begin{displaymath}
+    \text{Prob}(y) = G(y\alpha, \beta) - G((y+1)\alpha, \beta)
+\end{displaymath}
+where
+\begin{displaymath}
+    G(a, b) = \frac{1}{\Gamma(a)} \int_0^{b} x^{a-1}\exp(-x) dx.
+\end{displaymath}
+The reciprocal of the expected waiting time depends on the linear
+predictor
+\begin{displaymath}
+    (\alpha/\beta)^{-1} = \exp(\eta),
+\end{displaymath}
+so that high values of $\eta$ corresponds to high values of $y$, and
+low values of $\eta$ corresponds to low values of $y$.
+
+\subsection*{Link-function}
+
+The linear predictor $\eta$ is linked to the reciprocal of the
+expected waiting time, by a log-link,
+\begin{displaymath}
+    (\alpha/\beta)^{-1} = \exp(\eta).
+\end{displaymath}
+
+\subsection*{Hyperparameter}
+
+The hyperparameter is the parameter $\alpha$, which is
+represented as
+\begin{displaymath}
+    \alpha = \exp(\theta)
+\end{displaymath}
+and the prior is defined on $\theta$.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{gammacount}$
+\item Required arguments: $y$
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/gammacount.tex}
+
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example.
+\verbatiminput{example-gammacount.R}
+
+\subsection*{Notes}
+
+None.
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
