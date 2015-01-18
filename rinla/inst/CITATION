@@ -1,0 +1,66 @@
+citHeader("To cite INLA in publications use:")
+
+citEntry(
+    entry = "Article",
+    author =
+      personList(as.person("H{\\aa}vard Rue"),
+                 as.person("Sara Martino"),
+                 as.person("Nicholas Chopin")),
+    title =
+      paste("Approximate {Bayesian} Inference for Latent {Gaussian}",
+            "Models Using Integrated Nested {Laplace} Approximations"),
+    journal = "Journal of the Royal Statistical Society B",
+    year    = "2009",
+    volume  = "71",
+    pages   = "319--392",
+
+    textVersion  =
+    paste("Havard Rue, Sara Martino, and Nicholas Chopin (2009).",
+          "Approximate Bayesian Inference for Latent Gaussian",
+          "Models Using Integrated Nested Laplace Approximations.",
+        "Journal of the Royal Statistical Society B, 71, 319-392.")
+)
+
+citEntry(
+    entry = "Article",
+    title =
+      paste("An Explicit Link between {Gaussian} Fields",
+            "and {Gaussian} {Markov} Random Fields:",
+            "The Stochastic Partial Differential Equation Approach"),
+    author  =
+      personList(as.person("Finn Lindgren"),
+                 as.person("H{\\aa}vard Rue"),
+                 as.person('Johan Lindstr{\\"o}m')),
+    year    = "2011",
+    volume  = "73",
+    number  = "4",
+    pages   = "423--498",
+    journal = "Journal of the Royal Statistical Society B",
+
+    textVersion  =
+      paste("Finn Lindgren, Havard Rue, and Johan Lindstrom (2011).",
+            "An Explicit Link Between Gaussian Fields and Gaussian",
+            "Markov Random Fields: The Stochastic Partial Differential",
+            "Equation Approach.",
+            "Journal of the Royal Statistical Society B, 73(4), 423-498.")
+)
+
+citEntry(
+    entry = "Article",
+    title        = "Bayesian Spatial Modelling with {R}-{INLA}",
+    author       =
+      personList(as.person("Finn Lindgren"),
+                 as.person("H{\\aa}vard Rue")),
+    journal      = "Journal of Statistical Software",
+    year         = "2015",
+    volume       = "63",
+    number       = "19",
+    pages        = "1--25",
+    url          = "http://www.jstatsoft.org/v63/i19/",
+
+    textVersion  =
+      paste("Finn Lindgren, Havard Rue (2015).",
+            "Bayesian Spatial Modelling with R-INLA.",
+            "Journal of Statistical Software, 63(19), 1-25.",
+            "URL http://www.jstatsoft.org/v63/i19/.")
+)
