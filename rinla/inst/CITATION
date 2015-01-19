@@ -8,7 +8,7 @@ citEntry(
                  as.person("Nicholas Chopin")),
     title =
       paste("Approximate {Bayesian} Inference for Latent {Gaussian}",
-            "Models Using Integrated Nested {Laplace} Approximations"),
+            "Models Using Integrated Nested {Laplace} Approximations (with discussion)"),
     journal = "Journal of the Royal Statistical Society B",
     year    = "2009",
     volume  = "71",
@@ -26,7 +26,7 @@ citEntry(
     title =
       paste("An Explicit Link between {Gaussian} Fields",
             "and {Gaussian} {Markov} Random Fields:",
-            "The Stochastic Partial Differential Equation Approach"),
+            "The Stochastic Partial Differential Equation Approach (with discussion)"),
     author  =
       personList(as.person("Finn Lindgren"),
                  as.person("H{\\aa}vard Rue"),
