@@ -340,9 +340,14 @@
 
     return (fq(pp))
 }
-`inla.hpdmarginal` = function(p, marginal, len = 1024)
+`inla.hpdmarginal` = function(p, marginal, len = 2048L)
 {
-    f = inla.sfmarginal(inla.smarginal(marginal))
+    sm = inla.smarginal(marginal, keep.type = FALSE)
+    ## if maximum is at the edges, then use the one-sided interval instead
+    one.sided = any(which.max(sm$y) == c(1L, length(sm$y)))
+    mode.left = if (one.sided) (which.max(sm$y) == 1L) else NA
+    
+    f = inla.sfmarginal(sm)
     xx = seq(f$range[1], f$range[2], length = len)
     d = cumsum(exp(f$fun(xx)))
     d = d/d[length(d)]
@@ -374,8 +379,18 @@
     tol= sqrt(.Machine$double.eps)
     result = matrix(NA, np, 2)
     for(i in 1:np) {
-        out = optimize(f, c(0, pp[i]), posterior.icdf = fq, conf = pp[i], tol = tol)
-        result[i, ] = c(fq(out$minimum), fq(1 - pp[i] + out$minimum))
+        if (!one.sided) {
+            ## the usual case
+            out = optimize(f, c(0, pp[i]), posterior.icdf = fq, conf = pp[i], tol = tol)
+            result[i, ] = c(fq(out$minimum), fq(1 - pp[i] + out$minimum))
+        } else {
+            ## border cases: the mode is at the left or right edge
+            if (mode.left) {
+                result[i, ] = c(min(sm$x), inla.qmarginal(1-pp[i]/2.0, marginal))
+            } else {
+                result[i, ] = c(inla.qmarginal(pp[i]/2.0, marginal), max(sm$x))
+            }
+        }
     }
     colnames(result) = c("low", "high")
     rownames(result) = paste("level:", format(1-pp, digits=6, justify="left", trim=TRUE), sep="")
