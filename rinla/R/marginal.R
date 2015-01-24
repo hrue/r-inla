@@ -386,9 +386,9 @@
         } else {
             ## border cases: the mode is at the left or right edge
             if (mode.left) {
-                result[i, ] = c(min(sm$x), inla.qmarginal(1-pp[i]/2.0, marginal))
+                result[i, ] = c(min(sm$x), inla.qmarginal(1-pp[i], marginal))
             } else {
-                result[i, ] = c(inla.qmarginal(pp[i]/2.0, marginal), max(sm$x))
+                result[i, ] = c(inla.qmarginal(pp[i], marginal), max(sm$x))
             }
         }
     }
