@@ -8,28 +8,22 @@
 
 \title{Upgrade the INLA-package}
 
-\description{This function will upgrade the \code{INLA}-package to the
+\description{Functions to upgrade the \code{INLA}-package to the
   current version.}
 
-
 \usage{
-inla.upgrade(lib = NULL, testing=FALSE, force=FALSE)
-inla.update(lib = NULL, testing=FALSE, force=FALSE)
+inla.upgrade(lib = NULL, testing=FALSE)
+inla.update(lib = NULL, testing=FALSE)
 }
 
 \arguments{
-
   \item{lib}{Location to install the library.}
-
   \item{testing}{If \code{TRUE}, then look for a test-version if the
     INLA-package.}
-
-  \item{force}{If \code{TRUE}, then force a new install}
 }
-
-\value{\code{inla.upgrade} will download and install the current version
-  of \code{INLA}. The \code{inla.update} is the same function for backward compatibility.}
-
+\value{\code{inla.upgrade} will update the INLA package to the current version, 
+ and \code{inla.update} do the same 
+  for backward compatibility. This function is simple wrapper for
+  \code{update.packages} using the INLA repository.}
 \author{Havard Rue \email{hrue@math.ntnu.no}}
-
-\seealso{\code{install.packages}}
+\seealso{\code{update.packages}}
