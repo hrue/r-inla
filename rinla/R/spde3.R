@@ -29,11 +29,11 @@ inla.spde3.generic <-
     if (!inla.is.matrix(M0)) stop("M0 must be of a matrix type.")
     if (!inla.is.matrix(M1)) stop("M1 must be of a matrix type.")
     if (!inla.is.matrix(M2)) stop("M2 must be of a matrix type.")
-    if (!inla.is.matrix(M3)) stop("M2 must be of a matrix type.")
+    if (!inla.is.matrix(M3)) stop("M3 must be of a matrix type.")
     M0 = inla.as.dgTMatrix(M0)
     M1 = inla.as.dgTMatrix(M1)
     M2 = inla.as.dgTMatrix(M2)
-    M2 = inla.as.dgTMatrix(M3)
+    M3 = inla.as.dgTMatrix(M3)
 
     n.spde = nrow(M0)
     n.theta = length(theta.mu)
