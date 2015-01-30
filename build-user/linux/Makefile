@@ -64,7 +64,7 @@ all :;
 	echo "";\
 	echo "	$(MAKE) update";\
 	echo "";\
-	echo "To build a package for the JSS 2014 paper, do";\
+	echo "To build a package for the JSS 2015 paper, do";\
 	echo "";\
 	echo "	$(MAKE) download-jss2014 && $(MAKE) bin && $(MAKE) package";\
 	echo "";\
