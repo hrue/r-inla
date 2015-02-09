@@ -968,7 +968,7 @@
         variance = omega^2 * (1 - 2*delta^2/pi)
         skewness = (4-pi)/2 * (delta * sqrt(2/pi))^3 / (1-2*delta^2/pi)^(3/2)
 
-        return (c(mean, variance, skewness))
+        return (c(mean = mean, variance = variance, skewness = skewness))
     } else {
         mean = moments[1]
         variance = moments[2]
@@ -980,7 +980,7 @@
         omega = sqrt(variance / (1-2*delta^2/pi))
         xi = mean - omega * delta * sqrt(2/pi)
 
-        return (c(xi, omega, alpha))
+        return (c(xi = xi, omega = omega, alpha = alpha))
     }
 }
 
