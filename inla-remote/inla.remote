@@ -70,7 +70,7 @@ verbose=0
 if $(echo $args | awk '$0 ~ /(^|[ \t])-v($|[ \t])/{exit 0};{exit 1}'); then
     {
 	verbose=1
-	echo -e "\tRun $RemoteINLA at host $RemoteHost" 
+	echo -e "\tRun $RemoteINLA at $RemoteUser@$RemoteHost" 
     } 1>&2
 fi
 
