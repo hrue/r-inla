@@ -76,14 +76,14 @@ inla.spde3.generic <-
             B1[,c(TRUE, fixed), drop=FALSE] %*% c(1.0, theta.fixed)
         param.inla$B2[,1] =
             B2[,c(TRUE, fixed), drop=FALSE] %*% c(1.0, theta.fixed)
-        param.inla$B2[,1] =
+        param.inla$B3[,1] =
             B3[,c(TRUE, fixed), drop=FALSE] %*% c(1.0, theta.fixed)
         param.inla$BLC[,1] =
             BLC[,c(TRUE, fixed), drop=FALSE] %*% c(1.0, theta.fixed)
         param.inla$B0 = param.inla$B0[,c(TRUE, !fixed), drop=FALSE]
         param.inla$B1 = param.inla$B1[,c(TRUE, !fixed), drop=FALSE]
         param.inla$B2 = param.inla$B2[,c(TRUE, !fixed), drop=FALSE]
-        param.inla$B3 = param.inla$B2[,c(TRUE, !fixed), drop=FALSE]
+        param.inla$B3 = param.inla$B3[,c(TRUE, !fixed), drop=FALSE]
         param.inla$BLC = param.inla$BLC[,c(TRUE, !fixed), drop=FALSE]
         param.inla$theta.Q = param.inla$theta.Q[!fixed, !fixed, drop=FALSE]
         if (!all(fixed)) {
