@@ -177,7 +177,7 @@ inla.pc.multvar.simplex.core = function(
     if (mode == "r") {
         X = inla.pc.multvar.simplex.r.core(n, p = p, lambda = lambda,  h = h)
         for(i in 1:n) {
-            X[i, ] = t(1/b) %*% X[i,, drop = FALSE]
+            X[i, ] = t(1/b) * X[i,, drop = FALSE]
         }
         return (X)
     } else if (mode == "d") {

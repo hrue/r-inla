@@ -44,9 +44,7 @@ inla.pc.ar.rpacf = function(n=1, p, lambda = 1)
     
     rpac = function(n, p, lambda)
     {
-        r = rexp(1, rate = lambda)
-        gamma = rexp(p)
-        gamma = (gamma/sum(gamma)) * r^2
+        gamma = inla.pc.multvar.simplex.r(n=n, b = rep(1, p), lambda = lambda)
         pac = sqrt(1-exp(-gamma)) * sample(c(-1, 1), size = p, replace=TRUE)
         return (pac)
     }
@@ -60,14 +58,9 @@ inla.pc.ar.dpacf = function(pac, lambda = 1, log = TRUE)
 {
     p = length(pac)
     stopifnot(p >= 1)
-    d = sqrt(sum(-log(1-pac^2)))
-    ld = (log(lambda) 
-          + lfactorial(p) 
-          + (7*p/2) * log(2.0)
-          - 0.5 * log(p+1) 
-          - (2*p+1) * log(d)
-          - lambda * d
-          + sum(log(abs(pac/(1-pac^2)))))
-    
+    gamma = -log(1-pac^2)
+    ld = (inla.pc.multvar.simplex.d(x = gamma,  lambda = lambda, b = rep(1, p), log=TRUE)
+          +
+          sum(log(abs(pac/(1-pac^2)))))
     return (if (log) ld else exp(ld))
 }    
