@@ -26,13 +26,14 @@
 \usage{
    inla.ar.pacf2phi(pac)
    inla.ar.phi2pacf(phi)
-   inla.ar.pacf2acf(pac)
-   inla.ar.phi2acf(phi)
+   inla.ar.pacf2acf(pac, lag.max = length(pac)+1L))
+   inla.ar.phi2acf(phi, lag.max = length(pac)+1L))
 }
 
 \arguments{
   \item{pac}{The partial autorcorrelation coefficients}
   \item{phi}{The AR(p) parameters \code{phi}}
+  \item{lag.max}{The maximum lag to compute the ACF for}
 }
 \value{
   \code{inla.ar.pacf2phi}  returns \code{phi} for given \code{pacf}.
