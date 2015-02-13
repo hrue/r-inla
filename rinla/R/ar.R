@@ -27,13 +27,14 @@
 ##!\usage{
 ##!   inla.ar.pacf2phi(pac)
 ##!   inla.ar.phi2pacf(phi)
-##!   inla.ar.pacf2acf(pac)
-##!   inla.ar.phi2acf(phi)
+##!   inla.ar.pacf2acf(pac, lag.max = length(pac)+1L))
+##!   inla.ar.phi2acf(phi, lag.max = length(pac)+1L))
 ##!}
 ##!
 ##!\arguments{
 ##!  \item{pac}{The partial autorcorrelation coefficients}
 ##!  \item{phi}{The AR(p) parameters \code{phi}}
+##!  \item{lag.max}{The maximum lag to compute the ACF for}
 ##!}
 ##!\value{
 ##!  \code{inla.ar.pacf2phi}  returns \code{phi} for given \code{pacf}.
@@ -94,7 +95,7 @@ inla.ar.phi2pacf = function(phi)
     
     return (pac)
 }
-inla.ar.phi2acf = function(phi)
+inla.ar.phi2acf = function(phi, lag.max = length(phi)+1L)
 {
     ## return acf for given phi
     p = length(phi)
@@ -120,9 +121,18 @@ inla.ar.phi2acf = function(phi)
         return (numeric(0))
     }
     r = pmax(-1, pmin(1, r)) ## known to be true
-    return (c(1, r))
+    r = c(1, r)
+    if (lag.max > p+1) {
+        r = c(r, rep(0, lag.max-p-1))
+        for(i in (p+2):lag.max) {
+            r[i] = sum(phi * r[(i-1):(i-1-p+1)])
+        }
+        r = pmax(-1, pmin(1, r)) ## known to be true
+    }
+
+    return (r)
 }
-inla.ar.pacf2acf = function(pac)
+inla.ar.pacf2acf = function(pac, lag.max = length(pac)+1L)
 {
-    return (inla.ar.phi2acf(inla.ar.pacf2phi(pac)))
+    return (inla.ar.phi2acf(inla.ar.pacf2phi(pac), lag.max = lag.max))
 }
