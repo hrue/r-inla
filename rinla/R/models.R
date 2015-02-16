@@ -483,18 +483,18 @@
                          short.name = "prec",
                          initial = 4,
                          fixed = FALSE,
-                         prior = "loggamma",
-                         param = c(1, 0.00005),
+                         prior = "pc.prec",
+                         param = c(1, 0.01),
                          to.theta = function(x) log(x),
                          from.theta = function(x) exp(x)
                          ),
                      theta2 = list(
                          name = "pacf1",
                          short.name = "pacf1",
-                         initial = 2,
+                         initial = 1,
                          fixed = FALSE,
-                         prior = "mvnorm",
-                         param = c(0, 0.15), ## same as for AR1
+                         prior = "pc.ar",
+                         param = 1.0, ## lambda
                          to.theta = function(x) log((1+x)/(1-x)),
                          from.theta = function(x) 2*exp(x)/(1+exp(x))-1
                          ),
@@ -5541,6 +5541,11 @@
              mvnorm = list(
                  nparameters = -1L,
                  pdf = "mvnorm"
+                 ),
+
+             pc.ar = list(
+                 nparameters = 1L,
+                 pdf = "pc.ar"
                  ),
 
              ## this is the 'no prior needed' prior
