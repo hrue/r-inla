@@ -1,7 +1,7 @@
 
 /* pc-priors.c
  * 
- * Copyright (C) 2014 Havard Rue
+ * Copyright (C) 2014-2015 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,6 +40,67 @@ static const char RCSId[] = HGVERSION;
 #include "inla.h"
 
 
+double inla_pc_h_default(double x, int inverse, int derivative)
+{
+	// default: h(x) = sqrt(2*x)
+	if (derivative) {
+		if (inverse) {
+			GMRFLib_ASSERT_RETVAL(derivative && inverse, GMRFLib_EPARAMETER, 0.0);
+		} else {
+			return (1.0 / sqrt(2.0 * x));
+		}
+	} else {
+		if (inverse) {
+			return (1.0 / 2.0 * SQR(x));
+		} else {
+			return (sqrt(2.0 * x));
+		}
+	}
+
+	assert(0 == 1);
+	return (0.0);
+}
+double inla_pc_simplex_d(double *x, double *b, int p, double lambda)
+{
+	double *theta = Calloc(p, double), ldens = 0.0;
+	int i;
+
+	for (i = 0; i < p; i++) {
+		theta[i] = b[i] * x[i];
+		GMRFLib_ASSERT_RETVAL(theta[i] >= 0.0, GMRFLib_EPARAMETER, 0.0);
+	}
+	ldens = inla_pc_simplex_core_d(theta, p, lambda);
+	for (i = 0; i < p; i++) {
+		ldens += log(ABS(b[i]));
+	}
+	Free(theta);
+	return (ldens);
+}
+double inla_pc_simplex_core_d(double *x, int p, double lambda)
+{
+	// evaluate the log-density from the pc prior where d = h(\sum x_i), x_i >=0.
+
+	// volumne of the n-simplex with n+1 vertices, see
+	// en.wikipedia.org/wiki/Simplex#Volume
+
+#define simplex_log_volume(n) (-gsl_sf_lnfact((unsigned int) (n)))
+
+	double ldens, r, d;
+	int i;
+
+	for (i = 0, r = 0.0; i < p; i++) {
+		r += x[i];
+	}
+	if (ISZERO(r)) {				       /* singular... */
+		r = DBL_EPSILON;
+	}
+	d = inla_pc_h_default(r, 0, 0);
+	ldens = log(lambda) - lambda * d + log(ABS(inla_pc_h_default(r, 0, 1)))
+	    - (p - 1.0) * log(r) - simplex_log_volume(p - 1);
+
+	return (ldens);
+#undef simplex_log_volume
+}
 
 double inla_pcp_dof_kld_approx(double dof)
 {

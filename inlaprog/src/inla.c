@@ -1,7 +1,7 @@
 
 /* inla.c
  * 
- * Copyright (C) 2007-2014 Havard Rue
+ * Copyright (C) 2007-2015 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2310,6 +2310,35 @@ double priorfunc_minuslogsqrtruncnormal(double *x, double *parameters)
 	    log(ABS(-0.5 * sd));
 
 	return val;
+}
+double priorfunc_pc_ar(double *x, double *parameters)
+{
+	int i, p;
+	double lambda, *b, *gamma, *pacf, ldens, logjac;
+
+	p = (int) parameters[1];
+	lambda = parameters[0];
+	b = Calloc(p, double);
+	gamma = Calloc(p, double);
+	lpacf = Calloc(p, double);
+
+	for (i = 0, logjac = 0.0; i < p; i++) {
+		b[i] = 0.5;
+		// x is internal and this gives us the pacf. 
+		pacf[i] = map_phi(x[i], MAP_FORWARD, NULL);
+		// but the pc-simplex prior is given in terms of 'gamma'
+		gamma[i] = -log(1.0 - SQR(pacf[i]));
+		// hence we need two jacobians, one for x->pacf and one for pacf->gamma. recall that we have a singularity for x[i]=0
+		double xtmp = (ISZERO(pacf[i]) ? DBL_EPSILON : pacf[i]);
+		logjac += log(ABS(map_phi(x[i], MAP_DFORWARD, NULL))) + log(ABS(xtmp / (1.0 - SQR(pacf[i]))));
+	}
+	ldens = inla_pc_simplex_d(gamma, b, p, lambda) + logjac;
+
+	Free(b);
+	Free(gamma);
+	Free(pacf);
+
+	return (ldens);
 }
 double priorfunc_beta(double *x, double *parameters)
 {
@@ -5417,11 +5446,11 @@ int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x
 		for (i = 0; i < m; i++) {
 			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			beta = alpha * mu;
-			p = G(y*alpha, beta) - G((y+1.0)*alpha, beta);
+			p = G(y * alpha, beta) - G((y + 1.0) * alpha, beta);
 			logp = log(p);
 			// this can go in over/underflow...
 			if (ISINF(logp) || ISNAN(logp)) {
-				logll[i] = log(GMRFLib_eps(1.0)) + PENALTY * SQR(x[i]+OFFSET(idx));
+				logll[i] = log(GMRFLib_eps(1.0)) + PENALTY * SQR(x[i] + OFFSET(idx));
 			} else {
 				logll[i] = logp;
 			}
@@ -5430,7 +5459,7 @@ int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x
 		for (i = 0; i < -m; i++) {
 			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			beta = alpha * mu;
-			logll[i] = G((y+1.0)*alpha, beta);
+			logll[i] = G((y + 1.0) * alpha, beta);
 		}
 	}
 
@@ -7001,6 +7030,25 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
+	} else if (!strcasecmp(prior->name, "PCAR")) {
+		prior->id = P_PC_AR;
+		prior->priorfunc = priorfunc_pc_ar;
+		if (param && inla_is_NAs(1, param) != GMRFLib_SUCCESS) {
+			prior->parameters = Calloc(2, double);
+			double tmp;
+			if (inla_sread_doubles(&tmp, 1, param) == INLA_FAIL) {
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
+			}
+			prior->parameters[0] = tmp;	       /* lambda */
+			prior->parameters[1] = -1;	       /* ORDER: to be decided */
+		} else {
+			prior->parameters = Calloc(2, double);
+			prior->parameters[0] = 1.0;	       /* lambda */
+			prior->parameters[1] = -1;	       /* ORDER: to be decided */
+		}
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[%g]\n", prior_tag, param_tag, prior->parameters[0]);
+		}
 	} else if (!strncasecmp(prior->name, "EXPRESSION:", strlen("EXPRESSION:"))) {
 		prior->id = P_EXPRESSION;
 		prior->expression = GMRFLib_strdup(prior->name);
@@ -8411,8 +8459,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.y[i] < 0.0) {
-					GMRFLib_sprintf(&msg, "%s: Gammacount data[%1d] (y) = (%g) is void\n", secname, i,
-							ds->data_observations.y[i]);
+					GMRFLib_sprintf(&msg, "%s: Gammacount data[%1d] (y) = (%g) is void\n", secname, i, ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -12371,8 +12418,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	case F_AR:
 		mb->f_prior[mb->nf] = Calloc(2, Prior_tp);
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	// log precision
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "MVNORM");	// the pacf
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "PCPREC");	// log precision
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "PCAR");	// the pacf
 		break;
 
 	case F_COPY:
@@ -13022,7 +13069,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			if (mb->verbose) {
 				printf("\t\torder=[%1d]\n", order);
 			}
-
 			mb->f_order[mb->nf] = order;
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
 			break;
@@ -13850,13 +13896,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tntheta = [%1d]\n", ntheta);
 		}
-
-		if ((int) mb->f_prior[mb->nf][1].parameters[0] != ntheta - 1) {
-			GMRFLib_sprintf(&ptmp, "Dimension of the MVNORM prior is not equal to the order of the AR-model: %1d != %1d\n",
-					(int) mb->f_prior[mb->nf][1].parameters[0], ntheta - 1);
-			inla_error_general(ptmp);
-			exit(EXIT_FAILURE);
-		}
+		mb->f_prior[mb->nf][1].parameters[1] = ntheta - 1;	/* add the order as the second parameter in the pc-prior! */
 
 		/*
 		 * mark all possible as read 
@@ -25505,6 +25545,23 @@ double inla_update_density(double *theta, inla_update_tp * arg)
 int testit(int argc, char **argv)
 {
 	if (1) {
+		// checking the expression and the jacobian for this prior
+		double x, xx, dx = 0.001, sum = 0.0, parameters[2];
+
+		parameters[0] = 3.123;			       /* lambda */
+		parameters[1] = 2;			       /* p */
+		for (x = -6.001; x < 6.0; x += dx) {
+			for (xx = -6.001; xx < 6.0; xx += dx) {
+				double x2[2];
+				x2[0] = x;
+				x2[1] = xx;
+				sum += exp(priorfunc_pc_ar(x2, parameters)) * SQR(dx);
+			}
+		}
+		P(sum);
+	}
+
+	if (0) {
 		// test the new R-interface
 
 		printf("TESTIT!\n");
