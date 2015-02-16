@@ -2320,7 +2320,7 @@ double priorfunc_pc_ar(double *x, double *parameters)
 	lambda = parameters[0];
 	b = Calloc(p, double);
 	gamma = Calloc(p, double);
-	lpacf = Calloc(p, double);
+	pacf = Calloc(p, double);
 
 	for (i = 0, logjac = 0.0; i < p; i++) {
 		b[i] = 0.5;
