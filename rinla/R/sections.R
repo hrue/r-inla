@@ -240,11 +240,14 @@
         cat("adjust.for.con.comp = ", as.numeric(random.spec$adjust.for.con.comp), "\n", sep = " ", file = file,  append = TRUE)
     }
     
-    if (inla.one.of(random.spec$model, "ar")) {
-        ## set a default prior for order > 1 if the param is given only for p=1
-        par = random.spec$hyper$theta2$param
-        if (length(par) == 2L && random.spec$order > 1L) {
-            random.spec$hyper$theta2$param = c(rep(par[1], random.spec$order), par[2]*diag(random.spec$order))
+    if (FALSE) {
+        ## this is only for the mvnorm prior,  which we do not use anymore (hrue/16/02/2015)
+        if (inla.one.of(random.spec$model, "ar")) {
+            ## set a default prior for order > 1 if the param is given only for p=1
+            par = random.spec$hyper$theta2$param
+            if (length(par) == 2L && random.spec$order > 1L) {
+                random.spec$hyper$theta2$param = c(rep(par[1], random.spec$order), par[2]*diag(random.spec$order))
+            }
         }
     }
 

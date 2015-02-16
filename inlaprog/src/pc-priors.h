@@ -43,7 +43,12 @@ __BEGIN_DECLS
 /* 
  *
  */
-    GMRFLib_spline_tp * inla_pcp_dof_create_spline(void);
+
+double inla_pc_h_default(double x, int inverse, int derivative);
+double inla_pc_simplex_core_d(double *x, int p, double lambda);
+double inla_pc_simplex_d(double *x, double *b, int p, double lambda);
+
+GMRFLib_spline_tp * inla_pcp_dof_create_spline(void);
 double inla_pcp_dof_dof(double d);
 double inla_pcp_dof_kld_approx(double dof);
 double inla_pcp_dof_d(double dof);
