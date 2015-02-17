@@ -589,8 +589,8 @@ inla.models()
 							\item{short.name = }{`prec'}
 							\item{initial = }{`4'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`1 5e-05'}
+							\item{prior = }{`pc.prec'}
+							\item{param = }{`1 0.01'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
@@ -599,10 +599,10 @@ inla.models()
 							 \describe{
 							\item{name = }{`pacf1'}
 							\item{short.name = }{`pacf1'}
-							\item{initial = }{`2'}
+							\item{initial = }{`1'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`mvnorm'}
-							\item{param = }{`0 0.15'}
+							\item{prior = }{`pc.ar'}
+							\item{param = }{`1'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
 							}
@@ -6717,6 +6717,8 @@ inla.models()
 				\item{Model `logiflat'.}{					 Number of parameters in the prior = 0 
 				 }
 				\item{Model `mvnorm'.}{					 Number of parameters in the prior = -1 
+				 }
+				\item{Model `pc.ar'.}{					 Number of parameters in the prior = 1 
 				 }
 				\item{Model `none'.}{					 Number of parameters in the prior = 0 
 				 }

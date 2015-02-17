@@ -548,6 +548,8 @@
         cat("order = ", random.spec$order, "\n", append=TRUE, sep = " ", file = file)
     }
 
+    inla.write.boolean.field("correct", random.spec$correct, file)
+
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 

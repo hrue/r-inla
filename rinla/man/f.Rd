@@ -65,6 +65,7 @@
          rgeneric = NULL, 
          scale.model = NULL, 
          args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL), 
+         correct = FALSE, 
          debug = FALSE)
 }
 \arguments{
@@ -213,6 +214,7 @@ used for other models at the time being.}
 \item{rgeneric}{A object of class \code{inla-rgeneric} which defines the model. (EXPERIMENTAL!)}
 \item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default value is \code{inla.getOption("scale.model.default")}} 
 \item{args.slm}{Required arguments to the model="slm"; see the documentation for further details.}, 
+\item{correct}{Add this model component to the list of variables to be used in the corrected Laplace approximation. (This option is currently experimental.)}, 
 \item{debug}{Enable local debug output}
 }
 \value{TODO}
