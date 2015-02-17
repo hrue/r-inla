@@ -12098,6 +12098,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	mb->f_precision = Realloc(mb->f_precision, mb->nf + 1, double);
 	mb->f_output = Realloc(mb->f_output, mb->nf + 1, Output_tp *);
 	mb->f_id_names = Realloc(mb->f_id_names, mb->nf + 1, inla_file_contents_tp *);
+	mb->f_correct = Realloc(mb->f_correct, mb->nf + 1, int);
 
 	/*
 	 * set everything to `ZERO' initially 
@@ -12147,6 +12148,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	SET(group_order, 0);
 	SET(group_graph, NULL);
 	SET(id_names, NULL);
+	SET(correct, 0);
 
 	sprintf(default_tag, "default tag for ffield %d", mb->nf);
 	mb->f_tag[mb->nf] = GMRFLib_strdup((secname ? secname : default_tag));
@@ -12548,6 +12550,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		abort();
 	}
 
+	mb->f_correct[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "CORRECT"), 0);
+	if (mb->verbose) {
+		printf("\t\tcorrect=[%1d]\n", mb->f_correct[mb->nf]);
+	}
 	mb->f_sumzero[mb->nf] = (char) iniparser_getboolean(ini, inla_string_join(secname, "CONSTRAINT"), 0);
 	if (mb->verbose) {
 		printf("\t\tconstr=[%1d]\n", mb->f_sumzero[mb->nf]);
@@ -21412,12 +21418,14 @@ int inla_INLA(inla_tp * mb)
 		correct = Calloc(N, char);
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
-			if (mb->f_Ntotal[i] == 1) {
+			if (mb->f_Ntotal[i] == 1 || mb->f_correct[i]) {
 				/*
 				 * add also random effects with size 1
 				 */
-				correct[count] = (char) 1;
-				local_count++;
+				for(j = 0; j < mb->f_Ntotal[i]; j++) {
+					correct[count+j] = (char) 1;
+					local_count++;
+				}
 			}
 			count += mb->f_Ntotal[i];
 		}

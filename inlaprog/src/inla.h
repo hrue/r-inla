@@ -797,6 +797,7 @@ struct inla_tp_struct {
 	double *f_precision;
 	Output_tp **f_output;
 	inla_file_contents_tp **f_id_names;
+	int *f_correct;					       /* correct or not? */
 
 	GMRFLib_Qfunc_tp ***ff_Qfunc;			       /* interactions */
 	void ***ff_Qfunc_arg;
