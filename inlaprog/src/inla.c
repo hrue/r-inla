@@ -12148,7 +12148,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	SET(group_order, 0);
 	SET(group_graph, NULL);
 	SET(id_names, NULL);
-	SET(correct, 0);
+	SET(correct, -1);
 
 	sprintf(default_tag, "default tag for ffield %d", mb->nf);
 	mb->f_tag[mb->nf] = GMRFLib_strdup((secname ? secname : default_tag));
@@ -12550,7 +12550,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		abort();
 	}
 
-	mb->f_correct[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "CORRECT"), 0);
+	mb->f_correct[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "CORRECT"), -1);
 	if (mb->verbose) {
 		printf("\t\tcorrect=[%1d]\n", mb->f_correct[mb->nf]);
 	}
@@ -21418,7 +21418,7 @@ int inla_INLA(inla_tp * mb)
 		correct = Calloc(N, char);
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
-			if (mb->f_Ntotal[i] == 1 || mb->f_correct[i]) {
+			if ((mb->f_correct[i] < 0 && mb->f_Ntotal[i] == 1) || mb->f_correct[i]) {
 				/*
 				 * add also random effects with size 1
 				 */
