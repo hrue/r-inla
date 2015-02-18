@@ -63,7 +63,7 @@
 ##!         rgeneric = NULL, 
 ##!         scale.model = NULL, 
 ##!         args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL), 
-##!         correct = FALSE, 
+##!         correct = NULL, 
 ##!         debug = FALSE)
 ##!}
 ##!\arguments{
@@ -314,8 +314,8 @@
     ##!\item{args.slm}{Required arguments to the model="slm"; see the documentation for further details.}, 
     args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL), 
 
-    ##!\item{correct}{Add this model component to the list of variables to be used in the corrected Laplace approximation. (This option is currently experimental.)}, 
-    correct = FALSE, 
+    ##!\item{correct}{Add this model component to the list of variables to be used in the corrected Laplace approximation? If \code{NULL} use default choice,  otherwise correct if \code{TRUE} and do not if \code{FALSE}. (This option is currently experimental.)}, 
+    correct = NULL, 
 
     ##!\item{debug}{Enable local debug output}
     debug = FALSE)
