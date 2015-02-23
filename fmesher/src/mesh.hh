@@ -185,9 +185,14 @@ namespace fmesh {
     Mesh& S_append(const Matrix3double& S);
     Mesh& TV_append(const Matrix3int& TV); 
 
-    Dart find_path_direction(const Dart& d0, const Point& s, const int v = -1) const;
+    Dart find_path_direction(const Dart& d0, const Point& s,
+			     const int v = -1) const;
+    Dart find_path_direction(const Point& s0, const Point& s1,
+			     const Dart& d0) const;
     DartPair trace_path(const Dart& d0, const Point& s,
 			const int v = -1, DartList* trace = NULL) const;
+    DartPair trace_path(const Point& s0, const Point& s1,
+			const Dart& d0, DartList* trace = NULL) const;
     Dart locate_point(const Dart& d0, const Point& s, const int v = -1) const;
     Dart locate_vertex(const Dart& d0, const int v) const;
     
