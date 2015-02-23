@@ -2018,6 +2018,58 @@ namespace fmesh {
 
 
   /*!
+    Find the edge that a straight path will pass through.
+
+    If the path endpoint is inside the original triangle, a null Dart
+    is returned.
+  */
+  Dart Mesh::find_path_direction(const Point& s0,
+				 const Point& s1,
+				 const Dart& d0) const
+  {
+    if (d0.isnull())
+      return Dart();
+    Dart d(*this, d0.t(), 1, 0);
+    
+    /* Check if we're starting on a vertex, and call alternative method */
+    /* onleft[i] = is triangle vertex i to the left of the line? */
+    /* inside[i] = is s1 inside triangle edge i? */
+    bool onleft[3];
+    for (int i = 0; i < 3; i++) {
+      if ( edgeLength(S_[d.v()], s0) < MESH_EPSILON ) {
+	d = find_path_direction(d, s1, -1);
+	/* Check that the line actually crosses the dart. */
+	if (inLeftHalfspace(S_[d.v()], S_[d.vo()], s1) < 0.0) {
+	  return d;
+	} else {
+	  return Dart();
+	}
+      }
+      onleft[i] = (inLeftHalfspace(s0, s1, S_[d.v()]) <= 0.0);
+      d.orbit2();
+    }
+
+    for (int i0 = 0; i0 < 3; i0++) {
+      int i1 = (i0+1) % 3;
+      if (inLeftHalfspace(S_[d.v()], S_[d.vo()], s1) < 0.0) {
+	if (!onleft[i1]) {
+	  d.orbit2();
+	  return d;
+	}
+	if (onleft[i0]) {
+	  d.orbit2rev();
+	  return d;
+	}
+	return d;
+      }
+      d.orbit2();
+    }
+    return Dart();
+  }
+
+
+
+  /*!
     Trace the geodesic path from a vertex to a point or another vertex.
 
     Return a pair of darts identifying the starting vertex, together
@@ -2046,7 +2098,8 @@ namespace fmesh {
     10.   found2 = inLeftHalfspace(d2,s)
     11.   if found1 & found2 return d2
     12.   if leavethrough2, d=d2, else d=d1
-    13. return null
+    13. store d in path-trace
+    14. return null
     \endverbatim
    */
   DartPair Mesh::trace_path(const Dart& d0,
@@ -2079,8 +2132,8 @@ namespace fmesh {
 	     << TV_[d.t()][2] << ")"
 	     << endl);
     if (d.isnull()) {
-      LOG("Not found" << endl);
-      return DartPair(Dart(),Dart());
+      LOG("No direction found, so is in starting triangle" << endl);
+      return DartPair(dh, dh);
     }
     Dart dstart = d;
     while (dstart.v() != d0.v())
@@ -2115,6 +2168,93 @@ namespace fmesh {
     LOG("Endpoint not found "
 	     << dstart << " " << d << endl);
     return DartPair(dstart,Dart());
+  }
+
+
+  /*!
+    Trace the geodesic path between two points.
+
+    Return a pair of darts identifying the starting and end triangles.
+    If the end point is not reached due to reaching a mesh boundary
+    the second dart returned will be null, but the path trace up to an
+    including the mesh boundary will be populated.  The trace only
+    includes darts strictly intersected.
+
+    \verbatim
+    tracePath:
+     2. d = findPathDirection(s0,s1,d0)
+     3. if d is null (i.e. inLeftHalfspace(d,s1)), return (d0,d0)
+     4. while !d.onBoundary
+     5.   store d in path-trace
+     6.   d1 = d.orbit1.orbit2rev
+     7.   found1 = inLeftHalfspace(d1,s1)
+     8.   leavethrough2 = inLeftHalfspace(s0,s1,S(d.v))
+     9.   d2 = d1.orbit2rev
+    10.   found2 = inLeftHalfspace(d2,s1)
+    11.   if found1 & found2 return (d0,d2)
+    12.   if leavethrough2, d=d2, else d=d1
+    13. store d in path-trace
+    14. return (d0,null)
+    \endverbatim
+   */
+  DartPair Mesh::trace_path(const Point& s0,
+			    const Point& s1,
+			    const Dart& d0,
+			    DartList* trace) const
+  {
+    Dart dh;
+    bool found, other;
+    int trace_index = 0;
+    if (d0.isnull()) {
+      return DartPair(Dart(), Dart());
+    }
+    dh = Dart(*this, d0.t(), 1, d0.vi());
+    LOG("Locating point s1=" << s1
+	<< "from s0=" << s0
+	<< endl);
+    Dart dstart = dh;
+    LOG("Starting dart " << dstart << endl);
+
+    Dart d(find_path_direction(s0, s1, dstart));
+    LOG("Path-direction " << d << endl);
+    LOG("Starting triangle " << d.t() << " ("
+	     << TV_[d.t()][0] << ","
+	     << TV_[d.t()][1] << ","
+	     << TV_[d.t()][2] << ")"
+	     << endl);
+    if (d.isnull()) {
+      LOG("No direction found, so is in starting triangle" << endl);
+      return DartPair(dstart, dstart);
+    }
+    if (d.inLeftHalfspace(s1) >= -MESH_EPSILON) {
+      LOG("Found " << d << endl);
+      return DartPair(dstart, dstart);
+    }
+    while (!d.onBoundary()) {
+      if (trace) {
+	trace->push_back(d);
+	trace_index++;
+      }
+      d.orbit1().orbit2rev();
+      LOG("In triangle " << d << endl);
+      found = (d.inLeftHalfspace(s1) >= -MESH_EPSILON);
+      other = (inLeftHalfspace(s0, s1, S_[d.v()]) > 0.0);
+      d.orbit2rev();
+      if (found && (d.inLeftHalfspace(s1) >= -MESH_EPSILON))
+	return DartPair(dstart, d);
+      else
+	found = false;
+      if (!other)
+	d.orbit2();
+      LOG("Go to next triangle, from " << d << endl);
+    }
+    LOG("Endpoint not found "
+	     << dstart << " " << d << endl);
+    if (trace) {
+      trace->push_back(d);
+      trace_index++;
+    }
+    return DartPair(dstart, Dart());
   }
 
 

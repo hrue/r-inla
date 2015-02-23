@@ -62,6 +62,7 @@ namespace fmesh {
 
 
   int TriangleLocator::locate(const Point& s) const {
+    LOG("Looking for s=" << s << std::endl)
     std::vector<double> loc(dim_.size());
     for (size_t di=0; di<dim_.size(); ++di) {
       loc[di] = s[dim_[di]];
@@ -71,10 +72,13 @@ namespace fmesh {
 	   bbox_locator_.search_begin(loc);
 	 !si.is_null();
 	 ++si) {
+      LOG("Starting at "<< *si << std::endl)
       d = mesh_->locate_point(Dart(*mesh_,(*si)),s);
+      LOG("Resulting dart " << d << std::endl)
       if (!d.isnull()) {
 	  Point b;
 	  mesh_->barycentric(Dart(*mesh_,d.t()),s,b);
+	  LOG("Barycentric coordinates " << b << std::endl)
 	  if ((b[0] >= -10.0*MESH_EPSILON) &&
 	      (b[1] >= -10.0*MESH_EPSILON) &&
 	      (b[2] >= -10.0*MESH_EPSILON))
@@ -84,6 +88,7 @@ namespace fmesh {
 	  }
       }
     }
+    LOG("Point not found, s=" << s << std::endl)
     return -1;
   }
 
