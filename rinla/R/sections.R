@@ -549,7 +549,7 @@
     }
 
     if (is.null(random.spec$correct)) {
-        random.spec$correct = -1L  ## code for do the default choice
+        random.spec$correct = -1L  ## code for ``make the default choice''
     }
     cat("correct = ", as.numeric(random.spec$correct), "\n", append=TRUE, sep = "", file = file)
 
@@ -807,13 +807,13 @@
         cpo, po, mlik, quantiles, smtp, q, openmp.strategy, graph, config, gdensity)
 {
     cat("", sep = "", file = file, append=FALSE)
-    cat(" ###  ", inla.version("hgid"), "\n", sep = "", file = file,  append = TRUE) 
-    cat(" ###  ", inla.paste(Sys.info()), "\n", sep = "", file = file,  append = TRUE) 
-    cat(" ###  ", inla.os.type(), "-", inla.os.32or64bit(), "bit", " ", date(), "\n", sep = "", file = file,  append = TRUE) 
+    cat("###  ", inla.version("hgid"), "\n", sep = "", file = file,  append = TRUE) 
+    cat("###  ", inla.paste(Sys.info()), "\n", sep = "", file = file,  append = TRUE) 
+    cat("###  ", inla.os.type(), "-", inla.os.32or64bit(), "bit", " ", date(), "\n", sep = "", file = file,  append = TRUE) 
     cat("inladatadir = ", data.dir, "\n", sep = "", file = file,  append = TRUE)
     cat("inlaresdir = ", result.dir, "\n", sep = "", file = file,  append = TRUE)
-    cat(" #inladatadir = ", gsub("^.*/","", data.dir), "\n", sep = "", file = file,  append = TRUE) #
-    cat(" #inlaresdir = ", gsub("^.*/","", result.dir), "-%d\n", sep = "", file = file,  append = TRUE) #
+    cat("#inladatadir = ", gsub("^.*/","", data.dir), "\n", sep = "", file = file,  append = TRUE) #
+    cat("#inlaresdir = ", gsub("^.*/","", result.dir), "-%d\n", sep = "", file = file,  append = TRUE) #
  
 
     cat("\n", sep = " ", file = file,  append = TRUE)
