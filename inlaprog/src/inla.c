@@ -21423,10 +21423,11 @@ int inla_INLA(inla_tp * mb)
 				 * add also random effects with size 1
 				 */
 				for(j = 0; j < mb->f_Ntotal[i]; j++) {
-					correct[count++] = (char) 1;
+					correct[count + j] = (char) 1;
 					local_count++;
 				}
 			}
+			count += mb->f_Ntotal[i];
 		}
 		for (i = 0; i < mb->nlinear; i++) {
 			correct[count++] = (char) 1;
