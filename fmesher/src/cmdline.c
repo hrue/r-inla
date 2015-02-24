@@ -27,7 +27,7 @@
 
 const char *gengetopt_args_info_purpose = "Generate triangular meshes and prepare finite element calculations";
 
-const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version]\n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC]\n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all]\n         [--ir=SPEC] [-TNAME|--input=NAME] [--cutoff=DISTANCE]\n         [--spheretolerance=DISTANCE] [-EPARAM|--cet=PARAM]\n         [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME]\n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--boundarygrp=NAME]\n         [--interiorgrp=NAME] [--globe=SUBSEGMENTS] [--smorg] [--fem=ORDER]\n         [--aniso=NAME] [--grad] [--sph0=ORDER] [--sph=ORDER] [--bspline=PARAM]\n         [--points2mesh=NAME] [-xDELAY|--x11=DELAY] [PREFIX]...";
+const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version]\n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC]\n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all]\n         [--ir=SPEC] [-TNAME|--input=NAME] [--cutoff=DISTANCE]\n         [--spheretolerance=DISTANCE] [-EPARAM|--cet=PARAM]\n         [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME]\n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--boundarygrp=NAME]\n         [--interiorgrp=NAME] [--globe=SUBSEGMENTS] [--smorg] [--fem=ORDER]\n         [--aniso=NAME] [--grad] [--sph0=ORDER] [--sph=ORDER] [--bspline=PARAM]\n         [--points2mesh=NAME] [--splitlines=NAME] [-xDELAY|--x11=DELAY]\n         [PREFIX]...";
 
 const char *gengetopt_args_info_versiontext = "";
 
@@ -72,6 +72,7 @@ const char *gengetopt_args_info_detailed_help[] = {
   "      --sph=ORDER               Calculate spherical harmonics up through order\n                                  sph  (default=`-1')",
   "      --bspline=PARAM           Calculate rotationally invariant B-spline basis\n                                  functions",
   "      --points2mesh=NAME        Calculate barycentric triangle coordinates for\n                                  a set of points  (default=`s')",
+  "      --splitlines=NAME         Split line segments into within-triangle parts\n                                  and calculate corresponding barycentric\n                                  coordinates",
   "\nMiscellaneous options:",
   "  -x, --x11[=DELAY]             Show progress in an x11 window, with delay\n                                  factor  (default=`1.0')",
   "      --x11-zoom=LIMITS         Zoom into a smaller section of the graph,\n                                  [minx,maxx,miny,maxy]",
@@ -117,11 +118,12 @@ init_full_help_array(void)
   gengetopt_args_info_full_help[34] = gengetopt_args_info_detailed_help[38];
   gengetopt_args_info_full_help[35] = gengetopt_args_info_detailed_help[39];
   gengetopt_args_info_full_help[36] = gengetopt_args_info_detailed_help[40];
-  gengetopt_args_info_full_help[37] = 0; 
+  gengetopt_args_info_full_help[37] = gengetopt_args_info_detailed_help[41];
+  gengetopt_args_info_full_help[38] = 0; 
   
 }
 
-const char *gengetopt_args_info_full_help[38];
+const char *gengetopt_args_info_full_help[39];
 
 static void
 init_help_array(void)
@@ -162,11 +164,12 @@ init_help_array(void)
   gengetopt_args_info_help[33] = gengetopt_args_info_detailed_help[37];
   gengetopt_args_info_help[34] = gengetopt_args_info_detailed_help[38];
   gengetopt_args_info_help[35] = gengetopt_args_info_detailed_help[39];
-  gengetopt_args_info_help[36] = 0; 
+  gengetopt_args_info_help[36] = gengetopt_args_info_detailed_help[40];
+  gengetopt_args_info_help[37] = 0; 
   
 }
 
-const char *gengetopt_args_info_help[37];
+const char *gengetopt_args_info_help[38];
 
 typedef enum {ARG_NO
   , ARG_FLAG
@@ -251,6 +254,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->sph_given = 0 ;
   args_info->bspline_given = 0 ;
   args_info->points2mesh_given = 0 ;
+  args_info->splitlines_given = 0 ;
   args_info->x11_given = 0 ;
   args_info->x11_zoom_given = 0 ;
 }
@@ -307,6 +311,8 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->bspline_orig = NULL;
   args_info->points2mesh_arg = gengetopt_strdup ("s");
   args_info->points2mesh_orig = NULL;
+  args_info->splitlines_arg = NULL;
+  args_info->splitlines_orig = NULL;
   args_info->x11_arg = 1.0;
   args_info->x11_orig = NULL;
   args_info->x11_zoom_arg = NULL;
@@ -376,8 +382,11 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->bspline_min = 1;
   args_info->bspline_max = 3;
   args_info->points2mesh_help = gengetopt_args_info_detailed_help[37] ;
-  args_info->x11_help = gengetopt_args_info_detailed_help[39] ;
-  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[40] ;
+  args_info->splitlines_help = gengetopt_args_info_detailed_help[38] ;
+  args_info->splitlines_min = 2;
+  args_info->splitlines_max = 2;
+  args_info->x11_help = gengetopt_args_info_detailed_help[40] ;
+  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[41] ;
   args_info->x11_zoom_min = 3;
   args_info->x11_zoom_max = 4;
   
@@ -579,6 +588,7 @@ cmdline_release (struct gengetopt_args_info *args_info)
   args_info->bspline_arg = 0;
   free_string_field (&(args_info->points2mesh_arg));
   free_string_field (&(args_info->points2mesh_orig));
+  free_multiple_string_field (args_info->splitlines_given, &(args_info->splitlines_arg), &(args_info->splitlines_orig));
   free_string_field (&(args_info->x11_orig));
   free_multiple_field (args_info->x11_zoom_given, (void *)(args_info->x11_zoom_arg), &(args_info->x11_zoom_orig));
   args_info->x11_zoom_arg = 0;
@@ -715,6 +725,7 @@ cmdline_dump(FILE *outfile, struct gengetopt_args_info *args_info)
   write_multiple_into_file(outfile, args_info->bspline_given, "bspline", args_info->bspline_orig, 0);
   if (args_info->points2mesh_given)
     write_into_file(outfile, "points2mesh", args_info->points2mesh_orig, 0);
+  write_multiple_into_file(outfile, args_info->splitlines_given, "splitlines", args_info->splitlines_orig, 0);
   if (args_info->x11_given)
     write_into_file(outfile, "x11", args_info->x11_orig, 0);
   write_multiple_into_file(outfile, args_info->x11_zoom_given, "x11-zoom", args_info->x11_zoom_orig, 0);
@@ -1006,6 +1017,9 @@ cmdline_required2 (struct gengetopt_args_info *args_info, const char *prog_name,
      error_occurred = 1;
   
   if (check_multiple_option_occurrences(prog_name, args_info->bspline_given, args_info->bspline_min, args_info->bspline_max, "'--bspline'"))
+     error_occurred = 1;
+  
+  if (check_multiple_option_occurrences(prog_name, args_info->splitlines_given, args_info->splitlines_min, args_info->splitlines_max, "'--splitlines'"))
      error_occurred = 1;
   
   if (check_multiple_option_occurrences(prog_name, args_info->x11_zoom_given, args_info->x11_zoom_min, args_info->x11_zoom_max, "'--x11-zoom'"))
@@ -1333,6 +1347,7 @@ cmdline_internal (
   struct generic_list * interiorgrp_list = NULL;
   struct generic_list * aniso_list = NULL;
   struct generic_list * bspline_list = NULL;
+  struct generic_list * splitlines_list = NULL;
   struct generic_list * x11_zoom_list = NULL;
   int error_occurred = 0;
   struct gengetopt_args_info local_args_info;
@@ -1395,6 +1410,7 @@ cmdline_internal (
         { "sph",	1, NULL, 0 },
         { "bspline",	1, NULL, 0 },
         { "points2mesh",	1, NULL, 0 },
+        { "splitlines",	1, NULL, 0 },
         { "x11",	2, NULL, 'x' },
         { "x11-zoom",	1, NULL, 0 },
         { 0,  0, 0, 0 }
@@ -1761,6 +1777,17 @@ cmdline_internal (
               goto failure;
           
           }
+          /* Split line segments into within-triangle parts and calculate corresponding barycentric coordinates.  */
+          else if (strcmp (long_options[option_index].name, "splitlines") == 0)
+          {
+          
+            if (update_multiple_arg_temp(&splitlines_list, 
+                &(local_args_info.splitlines_given), optarg, 0, 0, ARG_STRING,
+                "splitlines", '-',
+                additional_error))
+              goto failure;
+          
+          }
           /* Zoom into a smaller section of the graph, [minx,maxx,miny,maxy].  */
           else if (strcmp (long_options[option_index].name, "x11-zoom") == 0)
           {
@@ -1841,6 +1868,10 @@ cmdline_internal (
     &(args_info->bspline_orig), args_info->bspline_given,
     local_args_info.bspline_given, 0,
     ARG_DOUBLE, bspline_list);
+  update_multiple_arg((void *)&(args_info->splitlines_arg),
+    &(args_info->splitlines_orig), args_info->splitlines_given,
+    local_args_info.splitlines_given, 0,
+    ARG_STRING, splitlines_list);
   update_multiple_arg((void *)&(args_info->x11_zoom_arg),
     &(args_info->x11_zoom_orig), args_info->x11_zoom_given,
     local_args_info.x11_zoom_given, 0,
@@ -1872,6 +1903,8 @@ cmdline_internal (
   local_args_info.aniso_given = 0;
   args_info->bspline_given += local_args_info.bspline_given;
   local_args_info.bspline_given = 0;
+  args_info->splitlines_given += local_args_info.splitlines_given;
+  local_args_info.splitlines_given = 0;
   args_info->x11_zoom_given += local_args_info.x11_zoom_given;
   local_args_info.x11_zoom_given = 0;
   
@@ -1925,6 +1958,7 @@ failure:
   free_list (interiorgrp_list, 1 );
   free_list (aniso_list, 1 );
   free_list (bspline_list, 0 );
+  free_list (splitlines_list, 1 );
   free_list (x11_zoom_list, 0 );
   
   cmdline_release (&local_args_info);

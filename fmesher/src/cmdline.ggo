@@ -124,6 +124,8 @@ option "bspline" - "Calculate rotationally invariant B-spline basis functions" d
        multiple(1-3) optional
 option "points2mesh" - "Calculate barycentric triangle coordinates for a set of points" string typestr="NAME"
        default="s" optional
+option "splitlines" - "Split line segments into within-triangle parts and calculate corresponding barycentric coordinates" string typestr="NAME"
+       multiple(2) optional
 
 section "Miscellaneous options"
 option "x11" x "Show progress in an x11 window, with delay factor" double
