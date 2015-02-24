@@ -21418,12 +21418,12 @@ int inla_INLA(inla_tp * mb)
 		correct = Calloc(N, char);
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
-			if ((mb->f_correct[i] < 0 && mb->f_Ntotal[i] == 1) || mb->f_correct[i]) {
+			if ((mb->f_correct[i] < 0 && mb->f_Ntotal[i] == 1) || mb->f_correct[i] > 0) {
 				/*
 				 * add also random effects with size 1
 				 */
 				for(j = 0; j < mb->f_Ntotal[i]; j++) {
-					correct[count+j] = (char) 1;
+					correct[count + j] = (char) 1;
 					local_count++;
 				}
 			}
