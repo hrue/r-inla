@@ -34,6 +34,7 @@ using std::cout;
 using std::endl;
 
 using fmesh::Dart;
+using fmesh::DartPair;
 using fmesh::Int3;
 using fmesh::Int3Raw;
 using fmesh::IOHelper;
@@ -534,6 +535,45 @@ void prepare_cdt_input(const Matrix<int>& segm0,
 
 
 
+
+
+/*
+  loc0: nloc0-by-3
+  idx0: nidx0-by-2
+  loc1: nloc1-by-2
+  idx1: nidx1-by-2
+  triangle1: nidx1-by-1
+  origin1: nidx1-by-1
+*/
+void split_line_segments_on_triangles(const Mesh& M,
+				      const Matrix<double>& loc0,
+				      const Matrix<int>& idx0,
+				      Matrix<double>& loc1,
+				      Matrix<int>& idx1,
+				      Matrix<int>& origin1)
+{
+  LOG_("Split line segments into subsegments on triangles." << endl);
+  LOG_("Point size: " << loc0.rows() << ", " << loc0.cols() << endl);
+  LOG_("Index size: " << idx0.rows() << ", " << idx0.cols() << endl);
+  Matrix<int>* loc_in_tri = new Matrix<int>(loc0.rows(), 1);
+  Matrix<double>* bary_in_tri = new Matrix<double>(loc0.rows(), 3);
+  map_points_to_mesh(M, loc0, *loc_in_tri, *bary_in_tri);
+  for (size_t i=0; i < idx0.rows(); i++) {
+    Dart d(M, (*loc_in_tri)[idx0[i][0]][0]);
+    LOG_("Starting point " << d << endl);
+    DartPair endpoints(M.trace_path(loc0[idx0[i][0]], loc0[idx0[i][1]], d));
+    //    matrix(i,j) = idx[matrix[i][j]][0];
+  }
+  delete bary_in_tri;
+  delete loc_in_tri;
+  LOG("Done." << endl);
+}
+
+
+
+
+
+
 int main(int argc, char* argv[])
 {
   
@@ -620,6 +660,11 @@ int main(int argc, char* argv[])
   std::vector<string> aniso_names;
   for (size_t i=0; i < args_info.aniso_given; i++) {
     aniso_names.push_back(string(args_info.aniso_arg[i]));
+  }
+
+  std::vector<string> splitlines_names;
+  for (size_t i=0; i < args_info.splitlines_given; i++) {
+    splitlines_names.push_back(string(args_info.splitlines_arg[i]));
   }
 
   double cutoff = 1.0e-12;
@@ -849,6 +894,12 @@ int main(int argc, char* argv[])
   for (size_t i=0; i<aniso_names.size(); i++) {
     if (!matrices.load(aniso_names[i]).active) {
       cout << "Matrix "+aniso_names[i]+" not found." << endl;
+    }
+  }
+
+  for (size_t i=0; i<splitlines_names.size(); i++) {
+    if (!matrices.load(splitlines_names[i]).active) {
+      cout << "Matrix "+splitlines_names[i]+" not found." << endl;
     }
   }
 
@@ -1263,6 +1314,30 @@ int main(int argc, char* argv[])
     matrices.output("dx").output("dy").output("dz");
   }
 
+  
+  if (splitlines_names.size()>0) {
+    Matrix<double>& splitlocinput_raw = matrices.DD(splitlines_names[0]);
+    /* Make sure we have a Nx3 matrix. */
+    Matrix3double splitlocinput(splitlocinput_raw);
+    Matrix<double>* splitloc1 = new Matrix<double>();
+    Matrix<int>* splitidx1 = new Matrix<int>();
+    Matrix<int>* splitorigin1 = new Matrix<int>();
+
+    split_line_segments_on_triangles(M,
+				     splitlocinput,
+				     matrices.DI(splitlines_names[1]),
+				     *splitloc1,
+				     *splitidx1,
+				     *splitorigin1);
+
+    /* Now it's ok to overwrite potential input split* matrices. */
+    matrices.attach("splitloc", splitloc1, true);
+    matrices.attach("splitidx", splitidx1, true);
+    matrices.attach("splitorigin", splitorigin1, true);
+    matrices.output("splitloc").output("splitidx").output("splitorigin");
+  }
+
+  
   for (size_t i=0; i<args_info.collect_given; i++) {
     string matrix_name = string(args_info.collect_arg[i]);
     if (!(matrix_name=="-") & !(matrix_name=="--")) {
