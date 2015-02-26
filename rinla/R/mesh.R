@@ -2039,6 +2039,7 @@ inla.parse.queries <-function(...)
                                  sph=NULL,
                                  bspline=NULL,
                                  points2mesh=NULL,
+                                 splitlines=NULL,
                                  output=NULL,
                                  keep=FALSE)
 {
@@ -2064,6 +2065,12 @@ inla.parse.queries <-function(...)
     output.sph = list("sph")
     output.bspline = list("bspline")
     output.p2m = list("p2m.t", "p2m.b")
+    output.splitlines <- list("split.loc1", "split.loc2",
+                              "split.idx", "split.origin",
+                              "split.t", "split.b1", "split.b2")
+
+    ## Outputs that need +1L index adjustment
+    indexoutput <- list("split.idx", "split.t", "split.origin")
 
     fmesher.write(inla.affirm.double(loc), prefix, "s")
     fmesher.write(inla.affirm.integer(tv)-1L, prefix, "tv")
@@ -2105,6 +2112,13 @@ inla.parse.queries <-function(...)
         all.args = paste(all.args," --points2mesh=p2m", sep="")
         if (!output.given) output = c(output, output.p2m)
     }
+    if (!is.null(splitlines)) {
+        fmesher.write(inla.affirm.double(splitlines$loc), prefix, "splitloc")
+        fmesher.write(inla.affirm.integer(splitlines$idx)-1L, prefix, "splitidx")
+
+        all.args = paste(all.args," --splitlines=splitloc,splitidx", sep="")
+        if (!output.given) output = c(output, output.splitlines)
+    }
     all.args = paste(all.args, inla.getOption("fmesher.arg"))
 
     echoc = inla.fmesher.call(all.args=all.args, prefix=prefix)
@@ -2115,14 +2129,16 @@ inla.parse.queries <-function(...)
             if (!file.exists(paste(prefix, name, sep="")))
                 result[[name]] = fmesher.read(prefix, "points2mesh.t")+1L
             else
-                result[[name]] = fmesher.read(prefix, name)+1L
+                result[[name]] = fmesher.read(prefix, name) + 1L
         else if (identical(name, "p2m.b"))
             if (!file.exists(paste(prefix, name, sep="")))
                 result[[name]] = fmesher.read(prefix, "points2mesh.b")
             else
                 result[[name]] = fmesher.read(prefix, name)
+        else if (name %in% indexoutput)
+          result[[name]] = fmesher.read(prefix, name) + 1L
         else
-            result[[name]] = fmesher.read(prefix, name)
+          result[[name]] = fmesher.read(prefix, name)
     }
 
     if (!keep)
