@@ -35,6 +35,7 @@ using std::endl;
 
 using fmesh::Dart;
 using fmesh::DartPair;
+using fmesh::DartList;
 using fmesh::Int3;
 using fmesh::Int3Raw;
 using fmesh::IOHelper;
@@ -541,8 +542,10 @@ void prepare_cdt_input(const Matrix<int>& segm0,
   loc0: nloc0-by-3
   idx0: nidx0-by-2
   loc1: nloc1-by-2
-  idx1: nidx1-by-2
+  idx1: nidx1-by-2 
   triangle1: nidx1-by-1
+  bary1: nidx1-by-3, idx1[i,0] coordinates within triangle1[i]
+  bary2: nidx1-by-3, idx1[i,1] coordinates within triangle1[i]
   origin1: nidx1-by-1
 */
 void split_line_segments_on_triangles(const Mesh& M,
@@ -550,6 +553,9 @@ void split_line_segments_on_triangles(const Mesh& M,
 				      const Matrix<int>& idx0,
 				      Matrix<double>& loc1,
 				      Matrix<int>& idx1,
+				      Matrix<int>& triangle1,
+				      Matrix<double>& bary1,
+				      Matrix<double>& bary2,
 				      Matrix<int>& origin1)
 {
   LOG_("Split line segments into subsegments on triangles." << endl);
@@ -557,12 +563,80 @@ void split_line_segments_on_triangles(const Mesh& M,
   LOG_("Index size: " << idx0.rows() << ", " << idx0.cols() << endl);
   Matrix<int>* loc_in_tri = new Matrix<int>(loc0.rows(), 1);
   Matrix<double>* bary_in_tri = new Matrix<double>(loc0.rows(), 3);
+  DartList dart_trace;
   map_points_to_mesh(M, loc0, *loc_in_tri, *bary_in_tri);
+
+  /* Initialize output structures. */
+  loc1.rows(0);
+  idx1.rows(0);
+  triangle1.rows(0);
+  bary1.rows(0);
+  bary2.rows(0);
+  origin1.rows(0);
+  int i_loc_curr = -1;
+  int i_idx_curr = -1;
+
   for (size_t i=0; i < idx0.rows(); i++) {
     Dart d(M, (*loc_in_tri)[idx0[i][0]][0]);
+    Point s0(loc0[idx0[i][0]]);
+    Point s1(loc0[idx0[i][1]]);
     LOG_("Starting point " << d << endl);
-    DartPair endpoints(M.trace_path(loc0[idx0[i][0]], loc0[idx0[i][1]], d));
-    //    matrix(i,j) = idx[matrix[i][j]][0];
+
+    DartPair endpoints(M.trace_path(s0, s1, d, &dart_trace));
+
+    Point b1;
+    Point b2;
+    Point s_curr(s0);
+    Point s_next(s0); /* Initialise the first sub-segment */
+
+    /* Add the first point */
+    ++i_loc_curr;
+    for (size_t di=0; di<3; di++) {
+      loc1(i_loc_curr,di) = s_next[di];
+    }
+
+    /* Middle sub-segments */
+    for (DartList::const_iterator dti(dart_trace.begin());
+	 dti != dart_trace.end();
+	 ++dti) {
+      s_curr = s_next;
+      M.edgeIntersection(s_curr, s1,
+			 M.S((*dti).v()), M.S((*dti).vo()),
+			 s_next);
+      M.barycentric(*dti, s_curr, b1);
+      M.barycentric(*dti, s_next, b2);
+      //
+      ++i_idx_curr;
+      idx1(i_idx_curr, 0) = i_loc_curr;
+      ++i_loc_curr;
+      idx1(i_idx_curr, 1) = i_loc_curr;
+      for (size_t di=0; di<3; di++) {
+	loc1(i_loc_curr, di) = s_next[di];
+	bary1(i_idx_curr, di) = b1[di];
+	bary2(i_idx_curr, di) = b2[di];
+      }
+      origin1(i_idx_curr, 0) = i;
+      triangle1(i_idx_curr, 0) = (*dti).t();
+    }
+    /* Final sub-segment, or both points in the same triangle */
+    if (!endpoints.second.isnull()) {
+      s_curr = s_next;
+      s_next = s1;
+      M.barycentric(endpoints.second, s_curr, b1);
+      M.barycentric(endpoints.second, s_next, b2);
+      //
+      ++i_idx_curr;
+      idx1(i_idx_curr, 0) = i_loc_curr;
+      ++i_loc_curr;
+      idx1(i_idx_curr, 1) = i_loc_curr;
+      for (size_t di=0; di<3; di++) {
+	loc1(i_loc_curr, di) = s_next[di];
+	bary1(i_idx_curr, di) = b1[di];
+	bary2(i_idx_curr, di) = b2[di];
+      }
+      origin1(i_idx_curr, 0) = i;
+      triangle1(i_idx_curr, 0) = endpoints.second.t();
+    }
   }
   delete bary_in_tri;
   delete loc_in_tri;
@@ -1319,22 +1393,33 @@ int main(int argc, char* argv[])
     Matrix<double>& splitlocinput_raw = matrices.DD(splitlines_names[0]);
     /* Make sure we have a Nx3 matrix. */
     Matrix3double splitlocinput(splitlocinput_raw);
-    Matrix<double>* splitloc1 = new Matrix<double>();
-    Matrix<int>* splitidx1 = new Matrix<int>();
-    Matrix<int>* splitorigin1 = new Matrix<int>();
+    Matrix<double>* splitloc1 = new Matrix<double>(3);
+    Matrix<int>* splitidx1 = new Matrix<int>(1);
+    Matrix<int>* splittriangle1 = new Matrix<int>(1);
+    Matrix<double>* splitbary1 = new Matrix<double>(3);
+    Matrix<double>* splitbary2 = new Matrix<double>(3);
+    Matrix<int>* splitorigin1 = new Matrix<int>(1);
 
     split_line_segments_on_triangles(M,
 				     splitlocinput,
 				     matrices.DI(splitlines_names[1]),
 				     *splitloc1,
 				     *splitidx1,
+				     *splittriangle1,
+				     *splitbary1,
+				     *splitbary2,
 				     *splitorigin1);
 
     /* Now it's ok to overwrite potential input split* matrices. */
-    matrices.attach("splitloc", splitloc1, true);
-    matrices.attach("splitidx", splitidx1, true);
-    matrices.attach("splitorigin", splitorigin1, true);
-    matrices.output("splitloc").output("splitidx").output("splitorigin");
+    matrices.attach("split.loc", splitloc1, true);
+    matrices.attach("split.idx", splitidx1, true);
+    matrices.attach("split.t", splittriangle1, true);
+    matrices.attach("split.b1", splitbary1, true);
+    matrices.attach("split.b2", splitbary2, true);
+    matrices.attach("split.origin", splitorigin1, true);
+    matrices.output("split.loc").output("split.idx");
+    matrices.output("split.b1").output("split.b2");
+    matrices.output("split.t").output("split.origin");
   }
 
   
