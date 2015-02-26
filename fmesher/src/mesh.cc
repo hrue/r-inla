@@ -2040,12 +2040,15 @@ namespace fmesh {
 	d = find_path_direction(d, s1, -1);
 	/* Check that the line actually crosses the dart. */
 	if (inLeftHalfspace(S_[d.v()], S_[d.vo()], s1) < 0.0) {
+	  LOG("Checkpoint 4" << endl);
 	  return d;
 	} else {
 	  return Dart();
 	}
       }
-      onleft[i] = (inLeftHalfspace(s0, s1, S_[d.v()]) <= 0.0);
+      onleft[i] = (inLeftHalfspace(s0, s1, S_[d.v()]) >= 0.0);
+      LOG("D=" << d << endl);
+      LOG("onleft[" << i << "] = " << onleft[i] << endl);
       d.orbit2();
     }
 
@@ -2053,13 +2056,16 @@ namespace fmesh {
       int i1 = (i0+1) % 3;
       if (inLeftHalfspace(S_[d.v()], S_[d.vo()], s1) < 0.0) {
 	if (!onleft[i1]) {
+	  LOG("Checkpoint 1" << endl);
 	  d.orbit2();
 	  return d;
 	}
 	if (onleft[i0]) {
+	  LOG("Checkpoint 2" << endl);
 	  d.orbit2rev();
 	  return d;
 	}
+	LOG("Checkpoint 3" << endl);
 	return d;
       }
       d.orbit2();
