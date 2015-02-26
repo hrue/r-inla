@@ -558,9 +558,9 @@ void split_line_segments_on_triangles(const Mesh& M,
 				      Matrix<double>& bary2,
 				      Matrix<int>& origin1)
 {
-  LOG_("Split line segments into subsegments on triangles." << endl);
-  LOG_("Point size: " << loc0.rows() << ", " << loc0.cols() << endl);
-  LOG_("Index size: " << idx0.rows() << ", " << idx0.cols() << endl);
+  LOG("Split line segments into subsegments on triangles." << endl);
+  LOG("Point size: " << loc0.rows() << ", " << loc0.cols() << endl);
+  LOG("Index size: " << idx0.rows() << ", " << idx0.cols() << endl);
   Matrix<int>* loc_in_tri = new Matrix<int>(loc0.rows(), 1);
   Matrix<double>* bary_in_tri = new Matrix<double>(loc0.rows(), 3);
   DartList dart_trace;
