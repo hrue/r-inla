@@ -986,8 +986,11 @@
 
 `inla.runjags2dataframe` = function(runjags.object)
 {
-    ## convert from runjags-output to a dataframe
-
+    ## convert from runjags-output to a data.frame
+    inla.require("runjags")
+    return (as.data.frame(combine.mcmc(runjags.object, collapse.chains=TRUE)))
+    
+    ## old code
     r = runjags.object$mcmc
     nchains = length(r)
     nvar = ncol(r[[1]])
@@ -1006,6 +1009,3 @@
 
     return (as.data.frame(result))
 }
-
-    
-    
