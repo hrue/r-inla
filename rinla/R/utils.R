@@ -984,5 +984,28 @@
     }
 }
 
+`inla.runjags2dataframe` = function(runjags.object)
+{
+    ## convert from runjags-output to a dataframe
+
+    r = runjags.object$mcmc
+    nchains = length(r)
+    nvar = ncol(r[[1]])
+    len = nrow(r[[1]]) * nchains
+    stopifnot(nchains > 0)
+    stopifnot(nvar > 0)
+
+    result = matrix(NA, nrow = len, ncol = nvar)
+    colnames(result) = colnames(r[[1]])
+    for(i in 1:nvar) {
+        for(j in 1:nchains) {
+            result[ ( r[[j]][, i])
+        }
+        result[, i] = x
+    }
+
+    return (as.data.frame(result))
+}
+
     
     
