@@ -558,6 +558,9 @@ void split_line_segments_on_triangles(const Mesh& M,
 				      Matrix<double>& bary2,
 				      Matrix<int>& origin1)
 {
+  LOG("Mesh M=" << M << endl);
+  LOG("Mesh M.TT=" << M.TT() << endl);
+  
   LOG("Split line segments into subsegments on triangles." << endl);
   LOG("Point size: " << loc0.rows() << ", " << loc0.cols() << endl);
   LOG("Index size: " << idx0.rows() << ", " << idx0.cols() << endl);
@@ -580,9 +583,13 @@ void split_line_segments_on_triangles(const Mesh& M,
     Dart d(M, (*loc_in_tri)[idx0[i][0]][0]);
     Point s0(loc0[idx0[i][0]]);
     Point s1(loc0[idx0[i][1]]);
-    LOG_("Starting point " << d << endl);
+    LOG("Tracing path between points" << std::endl);
+    LOG("s0=" << s0 << std::endl);
+    LOG("s1=" << s1 << std::endl);
+    LOG("Starting dart " << d << endl);
 
     DartPair endpoints(M.trace_path(s0, s1, d, &dart_trace));
+    LOG("Trace:" << endl << dart_trace << std::endl)
 
     Point b1;
     Point b2;
