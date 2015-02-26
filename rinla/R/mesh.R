@@ -2065,8 +2065,7 @@ inla.parse.queries <-function(...)
     output.sph = list("sph")
     output.bspline = list("bspline")
     output.p2m = list("p2m.t", "p2m.b")
-    output.splitlines <- list("split.loc1", "split.loc2",
-                              "split.idx", "split.origin",
+    output.splitlines <- list("split.loc", "split.idx", "split.origin",
                               "split.t", "split.b1", "split.b2")
 
     ## Outputs that need +1L index adjustment
