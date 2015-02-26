@@ -14,6 +14,7 @@ inla.fmesher.smorg(loc, tv,
                    gradients = FALSE,
                    sph0 = NULL, sph = NULL, bspline = NULL,
                    points2mesh = NULL,
+                   splitlines = NULL,
                    output = NULL,
                    keep = FALSE)
 }
@@ -51,6 +52,11 @@ inla.fmesher.smorg(loc, tv,
 }
 \item{points2mesh}{
   3-column matrix with points to be located in the mesh.
+}
+\item{splitlines}{
+  A list with elements \code{loc} (3-column coordinate matrix) and
+  \code{idx} (2-column index matrix) describing line segments that are
+  to be split into sub-segments at triangle boundaries.
 }
 \item{output}{
   Names of objects to be included in the output, if different from defaults.
