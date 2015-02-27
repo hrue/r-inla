@@ -579,7 +579,10 @@ void split_line_segments_on_triangles(const Mesh& M,
   int i_loc_curr = -1;
   int i_idx_curr = -1;
 
-  for (size_t i=0; i < idx0.rows(); i++) {
+  LOG("Number of lines to split: " << idx0.rows() << std::endl);
+  for (size_t i=0; i < idx0.rows(); ++i) {
+    LOG("Split line: (" << idx0[i][0] << ", " <<
+	 idx0[i][1] << ")" << std::endl);
     Dart d(M, (*loc_in_tri)[idx0[i][0]][0]);
     Point s0(loc0[idx0[i][0]]);
     Point s1(loc0[idx0[i][1]]);
@@ -606,10 +609,18 @@ void split_line_segments_on_triangles(const Mesh& M,
     for (DartList::const_iterator dti(dart_trace.begin());
 	 dti != dart_trace.end();
 	 ++dti) {
+      LOG("Making middle subsegment, split on" << endl <<
+	  *dti << std::endl);
       s_curr = s_next;
+      LOG("Line to split:" << endl << " " <<
+	  s_curr << endl << " " << s1 << endl);
+      LOG("Edge to split on:" << endl << " " <<
+	  M.S((*dti).v()) << endl << " " <<
+	  M.S((*dti).vo()) << endl);
       M.edgeIntersection(s_curr, s1,
 			 M.S((*dti).v()), M.S((*dti).vo()),
 			 s_next);
+      LOG("Split result = " << s_next << endl);
       M.barycentric(*dti, s_curr, b1);
       M.barycentric(*dti, s_next, b2);
       //
@@ -627,10 +638,18 @@ void split_line_segments_on_triangles(const Mesh& M,
     }
     /* Final sub-segment, or both points in the same triangle */
     if (!endpoints.second.isnull()) {
+      LOG("Making final subsegment." << std::endl);
       s_curr = s_next;
       s_next = s1;
-      M.barycentric(endpoints.second, s_curr, b1);
-      M.barycentric(endpoints.second, s_next, b2);
+      if (dart_trace.size() == 0) {
+	LOG("Staying in initial triangle." << std::endl);
+	M.barycentric(endpoints.first, s_curr, b1);
+	M.barycentric(endpoints.first, s_next, b2);
+      } else {
+	LOG("Moving to final triangle." << std::endl);
+	M.barycentric(endpoints.second, s_curr, b1);
+	M.barycentric(endpoints.second, s_next, b2);
+      }
       //
       ++i_idx_curr;
       idx1(i_idx_curr, 0) = i_loc_curr;
