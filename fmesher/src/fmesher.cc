@@ -581,7 +581,8 @@ void split_line_segments_on_triangles(const Mesh& M,
 
   LOG("Number of lines to split: " << idx0.rows() << std::endl);
   for (size_t i=0; i < idx0.rows(); ++i) {
-    LOG("Split line: (" << idx0[i][0] << ", " <<
+    LOG("Split line nr " << i << ": (" <<
+	 idx0[i][0] << ", " <<
 	 idx0[i][1] << ")" << std::endl);
     Dart d(M, (*loc_in_tri)[idx0[i][0]][0]);
     Point s0(loc0[idx0[i][0]]);
@@ -591,6 +592,7 @@ void split_line_segments_on_triangles(const Mesh& M,
     LOG("s1=" << s1 << std::endl);
     LOG("Starting dart " << d << endl);
 
+    dart_trace.clear();
     DartPair endpoints(M.trace_path(s0, s1, d, &dart_trace));
     LOG("Trace:" << endl << dart_trace << std::endl)
 
@@ -610,7 +612,7 @@ void split_line_segments_on_triangles(const Mesh& M,
 	 dti != dart_trace.end();
 	 ++dti) {
       LOG("Making middle subsegment, split on" << endl <<
-	  *dti << std::endl);
+	   " " << *dti << std::endl);
       s_curr = s_next;
       LOG("Line to split:" << endl << " " <<
 	  s_curr << endl << " " << s1 << endl);
