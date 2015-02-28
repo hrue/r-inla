@@ -272,6 +272,13 @@ typedef struct {
 	double *weight_skew_normal;			       /* weights for the skew_normal: Variance = 1/(weight*prec) [for a=0] */
 
 	/*
+	 * Skew-Normal2
+	 */
+	double **logit_skewness_skew_normal2;
+	double **log_prec_skew_normal2;
+	double *weight_skew_normal2;			       /* weights for the skew_normal2: Variance = 1/(weight*prec) */
+
+	/*
 	 * GEV 
 	 */
 	double *weight_gev;				       /* weights for the skew_normal: Variance propto 1/(weight*prec) */
@@ -407,6 +414,7 @@ typedef enum {
 	L_TEST_BINOMIAL_1,
 	L_SIMPLEX,
 	L_GAMMACOUNT, 
+	L_SKEWNORMAL2,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1227,6 +1235,8 @@ double eval_logsum_safe(double lA, double lB);
 double exp_taylor(double x, double x0, int order);
 double extra(double *theta, int ntheta, void *argument);
 double iid_mfunc(int idx, void *arg);
+double inla_Phi_fast(double x);
+double inla_log_Phi_fast(double x);
 double inla_Phi(double x);
 double inla_ar1_cyclic_logdet(int N_orig, double phi);
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec, void *arg);
@@ -1457,6 +1467,7 @@ int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, do
 int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_simplex(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_skew_normal2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_stochvol_nig(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *x_vec, void *arg);

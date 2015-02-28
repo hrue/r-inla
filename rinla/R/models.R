@@ -4684,7 +4684,7 @@
                      theta2 = list(
                          name = "logit skewness",
                          short.name = "skew",
-                         initial = 4,
+                         initial = 0,
                          fixed = FALSE,
                          prior = "gaussian",
                          param = c(0, 10),
@@ -4696,6 +4696,34 @@
                  discrete = FALSE,
                  link = c("default", "identity"),
                  pdf = "sn"
+                 ),
+
+             sn2 = list(
+                 hyper = list(
+                     theta1 = list(
+                         name = "log precision",
+                         short.name = "prec",
+                         initial = 1,
+                         fixed = FALSE,
+                         prior = "loggamma",
+                         param = c(1, 0.00005)
+                         ),
+                     theta2 = list(
+                         name = "logit skewness",
+                         short.name = "skew",
+                         initial = 0,
+                         fixed = FALSE,
+                         prior = "gaussian",
+                         param = c(0, 10),
+                         to.theta = function(x) log((1+x)/(1-x)),
+                         from.theta = function(x) (2*exp(x)/(1+exp(x))-1)
+                         )
+                     ),
+                 survival = FALSE,
+                 discrete = FALSE,
+                 link = c("default", "identity"),
+                 status = "experimental", 
+                 pdf = "sn2"
                  ),
 
              gev = list(

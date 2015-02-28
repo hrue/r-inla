@@ -960,19 +960,31 @@
               (missing(moments) && !missing(param)))
     
     if (!missing(param)) {
-        xi = param[1]
-        omega = param[2]
-        alpha = param[3]
+        if (is.list(param)) {
+            xi = param$xi
+            omega = param$omega
+            alpha = param$alpha
+        } else {
+            xi = param[1]
+            omega = param[2]
+            alpha = param[3]
+        }
         delta = alpha/sqrt(1 + alpha^2)
         mean = xi + omega * delta * sqrt(2/pi)
         variance = omega^2 * (1 - 2*delta^2/pi)
         skewness = (4-pi)/2 * (delta * sqrt(2/pi))^3 / (1-2*delta^2/pi)^(3/2)
 
-        return (c(mean = mean, variance = variance, skewness = skewness))
+        return (list(mean = mean, variance = variance, skewness = skewness))
     } else {
-        mean = moments[1]
-        variance = moments[2]
-        skewness = moments[3]
+        if (is.list(moments)) {
+            mean = moments$mean
+            variance = moments$variance
+            skewness = moments$skewness
+        } else {
+            mean = moments[1]
+            variance = moments[2]
+            skewness = moments[3]
+        }
         delta = sqrt(pi/2 *abs(skewness)^(2/3) /
                 (abs(skewness)^(2/3) + ((4-pi)/2)^(2/3)))
         delta = delta * sign(skewness)
@@ -980,7 +992,7 @@
         omega = sqrt(variance / (1-2*delta^2/pi))
         xi = mean - omega * delta * sqrt(2/pi)
 
-        return (c(xi = xi, omega = omega, alpha = alpha))
+        return (list(xi = xi, omega = omega, alpha = alpha))
     }
 }
 
