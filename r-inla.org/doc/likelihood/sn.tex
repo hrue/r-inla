@@ -5,16 +5,17 @@
 \usepackage{verbatim}
 
 \begin{document}
-\section*{Skew-Normal}
+\section*{Skew-Normal (version 1 and 2)}
 
 \subsection*{Parametrisation}
 
 The Skew-Normal distribution is
 \begin{displaymath}
     f(y) = 2\frac{\sqrt{w\tau}}{\sqrt{2\pi}} \exp\left( -\frac{1}{2}
-      w\tau \left(y-\mu\right)^{2}\right) \; \Phi(a\; a_{\text{max}} \left[w\tau \left(y-\mu\right)\right])
+      w\tau \left(y-\mu\right)^{2}\right) \;
+    \Phi(a\; a_{\text{max}} \left[w\tau \left(y-\mu\right)\right])
 \end{displaymath}
-for continuously responses $y$ where $\Phi(\cdot)$ is the cummulative
+for continuously responses $y$ where $\Phi(\cdot)$ is the cumulative
 distribution function for a standard Normal, and
 \begin{description}
 \item[$\mu$:] is the the location parameter
@@ -50,7 +51,7 @@ and the prior is defined on $\theta_{2}$.
 
 \begin{itemize}
 \item $\text{family}=\texttt{sn}$
-\item Required arguments: $y$ and $w$ (keyword \texttt{weights}). The
+\item Required arguments: $y$ and $w$ (keyword \texttt{scale}). The
     weights has default value 1.
 \item Optional control arguments: \texttt{sn.shape.max}. Default value is
     $5.0$.
@@ -68,7 +69,69 @@ This is a simulated example requiring the package \verb@sn@.
 
 \subsection*{Notes}
 
-None.
+An simpler approximation to $\Phi(\cdot)$ is used to improve the
+speed, which has maximum absolute error of 0.00197323; see the source
+code for further details.
+
+\clearpage
+
+
+\section*{Skew-Normal (version 2)}
+
+\subsection*{Parametrisation (version 2)}
+
+In the family ``sn2'' we offer an alternative parametersisation of the
+skew-normal with moment parameterr mean $\mu$, precision $w\tau$
+(where $w$ is a fixed weight or scale) and standarized skewness
+$\gamma$ (where $|\gamma|<1$
+due to the skew-normal family\footnote{%
+    or to be presice,
+    $|\gamma| < \frac{4-\pi}{2\left(\pi/2-1\right)^{3/2}} =
+    0.995271746\ldots$}). In this parameterisation, the mean
+parameter is linked to the linear predictor by
+\begin{displaymath}
+    \mu = \eta
+\end{displaymath}
+
+\subsection*{Hyperparameters}
+The precision $\tau$ is represented as
+\begin{displaymath}
+    \theta_{1} = \log \tau
+\end{displaymath}
+and the prior is defined on $\theta_{1}$. 
+The (standarized) skewness $\gamma$ is 
+\begin{displaymath}
+    \gamma = 2 \frac{\exp(\theta_{2})}{1+\exp(\theta_{2})}-1
+\end{displaymath}
+and the prior is defined on $\theta_{2}$. 
+
+The function \texttt{INLA:::inla.sn.reparam} offer the mapping between
+the moments (mean, variance and skewness) and the parameters used in
+the skew-normal density in the format used in the package \texttt{sn},
+which are ($\xi, \omega, \alpha$), where
+\begin{displaymath}
+    f(x) = \frac{2}{\omega} \phi\left(\frac{x-\xi}{\omega}\right)
+    \Phi\left(\alpha \left[\frac{x-\xi}{\omega}\right]\right)
+\end{displaymath}
+where $\phi(\cdot)$ and $\Phi(\cdot)$ is the density and cumulative
+distribution function for the standard Gaussian distribution. 
+
+\subsubsection*{Hyperparameter spesification and default values for
+    \texttt{sn2}}
+\input{../hyper/likelihood/sn2.tex}
+
+\subsection*{Example for \texttt{sn2}}
+
+This is a simulated example requiring the package \verb@sn@.
+\verbatiminput{example-sn2.R}
+
+\subsection*{Notes for \texttt{sn2}}
+
+In this parametersiation there is no \texttt{sn.shape.max}.
+
+An simpler approximation to $\Phi(\cdot)$ is used to improve the
+speed, which has maximum absolute error of 0.00197323; see the source
+code for further details.
 
 
 \end{document}

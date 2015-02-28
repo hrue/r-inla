@@ -5677,7 +5677,7 @@ inla.models()
 							 \describe{
 							\item{name = }{`logit skewness'}
 							\item{short.name = }{`skew'}
-							\item{initial = }{`4'}
+							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`0 10'}
@@ -5693,6 +5693,43 @@ inla.models()
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
 								\item{pdf = }{`sn'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `sn2'.}{Number of hyperparmeters are 2.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{name = }{`log precision'}
+							\item{short.name = }{`prec'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 5e-05'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{name = }{`logit skewness'}
+							\item{short.name = }{`skew'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`0 10'}
+							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) (2*exp(x)/(1+exp(x))-1)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default identity'}
+								\item{status = }{`experimental'}
+								\item{pdf = }{`sn2'}
 							 }
 						 }
 					 }
