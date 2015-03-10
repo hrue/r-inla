@@ -3271,7 +3271,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 #define COMPUTE_PO_LOCAL						\
 	if (d[ii]) {							\
 		if (po) {						\
-			GMRFLib_ai_po_integrate(&po_theta_local[ii], &po2_theta_local[ii], &po3_theta_local, \
+			GMRFLib_ai_po_integrate(&po_theta_local[ii], &po2_theta_local[ii], &po3_theta_local[ii], \
 						ii, dens_local[ii], d[ii], loglFunc, loglFunc_arg, xx_mode); \
 		}							\
 	}
