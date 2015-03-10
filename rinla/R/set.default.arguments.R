@@ -222,6 +222,9 @@
         ##:ARGUMENT: po A boolean variable if the predictive ordinate should be computed
         po=FALSE,
         
+        ##:ARGUMENT: waic A boolean variable if the Watanabe-Akaike information criteria should be computed
+        waic=FALSE,
+        
         ##:ARGUMENT: q A boolean variable if binary images of the precision matrix, the reordered precision matrix and the Cholesky triangle should be generated. (Default FALSE.)
         q=FALSE,
 

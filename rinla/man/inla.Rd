@@ -261,6 +261,11 @@ If \code{po}=\code{TRUE} in \code{control.compute}, a list
 of one elements: \code{po$po} are the values of the 
 predictive ordinate (CPO) (\code{pi(yi|y)})
 }
+\item{waic}{
+If \code{waic}=\code{TRUE} in \code{control.compute}, a list
+of two elements: \code{waic$waic} is the Watanabe-Akaike information criteria,  and 
+\code{waic$p.eff} is the estimated effective number of parameters
+}
 \item{mlik}{
 If \code{mlik}=\code{TRUE} in \code{control.compute}, the
  log marginal likelihood of the model (using two different estimates), otherwise \code{NULL}

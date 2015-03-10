@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.compute} for use in \code{inla}}
 \usage{
 inla.set.control.compute.default(...)
-control.compute(config, cpo, dic, gdensity, graph, hyperpar, mlik, openmp.strategy, po, q, return.marginals, smtp)
+control.compute(config, cpo, dic, gdensity, graph, hyperpar, mlik, openmp.strategy, po, q, return.marginals, smtp, waic)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -23,6 +23,7 @@ control.compute(config, cpo, dic, gdensity, graph, hyperpar, mlik, openmp.strate
 \item{mlik}{  A boolean variable if the marginal likelihood should be computed. Default FALSE.}
 \item{cpo}{  A boolean variable if the cross-validated predictive measures (cpo, pit) should be computed}
 \item{po}{  A boolean variable if the predictive ordinate should be computed}
+\item{waic}{  A boolean variable if the Watanabe-Akaike information criteria should be computed}
 \item{q}{  A boolean variable if binary images of the precision matrix, the reordered precision matrix and the Cholesky triangle should be generated. (Default FALSE.)}
 \item{config}{  A boolean variable if the internal GMRF approximations be stored. (Default FALSE. EXPERIMENTAL)}
 \item{smtp}{  The sparse-matrix solver, one of 'smtp' (default) or 'band'}
