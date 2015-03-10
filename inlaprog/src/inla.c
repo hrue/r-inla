@@ -23349,16 +23349,16 @@ int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * po, int predictor_
 	for (i = 0; i < n; i++) {
 		if (po->value[i]) {
 			if (G.binary) {
-				IDW(i, po->value[i][0]);
+				ID2W(i, po->value[i][0], po->value[i][1]);
 			} else {
-				fprintf(fp, "%1d %.8g\n", i, po->value[i][0]);
+				fprintf(fp, "%1d %.8g %.8g\n", i, po->value[i][0], po->value[i][1]);
 			}
 		} else {
 			if (add_empty) {
 				if (G.binary) {
-					IDW(i, NAN);
+					ID2W(i, NAN, NAN);
 				} else {
-					fprintf(fp, "%1d %.8g\n", i, NAN);
+					fprintf(fp, "%1d %.8g %.8g\n", i, NAN, NAN);
 				}
 			}
 		}

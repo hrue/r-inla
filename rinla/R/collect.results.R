@@ -79,6 +79,7 @@
         res.dic = inla.collect.dic(results.dir, debug)
         res.cpo.pit = inla.collect.cpo(results.dir, debug)
         res.po = inla.collect.po(results.dir, debug)
+        res.waic = inla.collect.waic(results.dir, debug)
         res.random = inla.collect.random(results.dir, control.results$return.marginals.random, debug)
         res.predictor = inla.collect.predictor(results.dir, control.results$return.marginals.predictor, debug)
         res.spde2.blc = inla.collect.spde2.blc(results.dir, control.results$return.marginals.random, debug)
@@ -96,6 +97,7 @@
         res.dic=NULL
         res.cpo.pit =NULL
         res.po = NULL
+        res.waic = NULL
         res.random=NULL
         res.predictor =NULL
         res.spde2.blc = NULL
@@ -191,7 +193,7 @@
 
     names(theta.mode) = theta.tags
     res = c(res.fixed, res.lincomb, res.lincomb.derived, res.mlik,
-            list(cpo=res.cpo.pit), list(po = res.po), 
+            list(cpo=res.cpo.pit), list(po = res.po), list(waic = res.waic), 
             res.random, res.predictor, res.hyper,
             res.offset, res.spde2.blc, res.spde3.blc, logfile, 
             list(misc = misc,
@@ -922,6 +924,7 @@ inla.internal.experimental.mode = FALSE
         xx = inla.read.binary.file(file=paste(results.dir, .Platform$file.sep,"po", .Platform$file.sep,"po.dat", sep=""))
         n = xx[1L]
         xx = xx[-1L]
+        xx = xx[-seq(3, length(xx), by = 3L)] ## skip entry 3, 6, 9, ...
         len = length(xx)
         po.res=numeric(n)
         po.res[1L:n] = NA
@@ -934,6 +937,42 @@ inla.internal.experimental.mode = FALSE
     po.res[is.nan(po.res)] = NA
 
     return(list(po=po.res))
+}
+
+`inla.collect.waic` =
+    function(results.dir,
+             debug = FALSE)
+{
+    ## yes, here we use the po-results!!!!
+    alldir = dir(results.dir)
+    if (length(grep("^po$", alldir))==1L) {
+        if (debug)
+            cat(paste("collect waic from po-results\n", sep=""))
+      
+        xx = inla.read.binary.file(file=paste(results.dir, .Platform$file.sep,"po", .Platform$file.sep,"po.dat", sep=""))
+        n = xx[1L]
+        xx = xx[-1L]
+        len = length(xx)
+        po.res=numeric(n)
+        po2.res=numeric(n)
+        po.res[1L:n] = NA
+        po.res[xx[seq(1L, len, by=3L)] +1L] = xx[seq(2L, len, by=3L)]
+        po2.res[1L:n] = NA
+        po2.res[xx[seq(1L, len, by=3L)] +1L] = xx[seq(3L, len, by=3L)]
+    } else {
+        po.res = NULL
+        po2.res = NULL
+    }
+    ## want NA not NaN
+    po.res[is.nan(po.res)] = NA
+    po2.res[is.nan(po2.res)] = NA
+
+    ## compute waic
+    waic = list(
+        waic = -2*(sum(log(po.res), na.rm=TRUE) - sum(po2.res, na.rm=TRUE)),
+        p.eff = sum(po2.res, na.rm=TRUE))
+
+    return(waic)
 }
 
 `inla.collect.dic` =
