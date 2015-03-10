@@ -351,6 +351,12 @@
     ##!predictive ordinate (CPO) (\code{pi(yi|y)})
     ##!}
 
+    ##!\item{waic}{
+    ##!If \code{waic}=\code{TRUE} in \code{control.compute}, a list
+    ##!of two elements: \code{waic$waic} is the Watanabe-Akaike information criteria,  and 
+    ##!\code{waic$p.eff} is the estimated effective number of parameters
+    ##!}
+
     ##!\item{mlik}{
     ##!If \code{mlik}=\code{TRUE} in \code{control.compute}, the
     ##! log marginal likelihood of the model (using two different estimates), otherwise \code{NULL}
@@ -765,7 +771,7 @@
     cont.compute[names(control.compute)] = control.compute
     if (only.hyperparam) {
         cont.compute$hyperpar = TRUE
-        cont.compute$dic = cont.compute$cpo = cont.compute$po = FALSE 
+        cont.compute$dic = cont.compute$cpo = cont.compute$po = cont.compute$waic = FALSE 
     } 
     
     ## control predictor section
@@ -776,7 +782,7 @@
         cont.predictor$hyper, cont.predictor$initial,
         cont.predictor$fixed, cont.predictor$prior, cont.predictor$param)
     all.hyper$predictor$hyper = cont.predictor$hyper
-    if (cont.compute$cpo || cont.compute$dic || cont.compute$po || !is.null(cont.predictor$link))
+    if (cont.compute$cpo || cont.compute$dic || cont.compute$po || cont.compute$waic || !is.null(cont.predictor$link))
         cont.predictor$compute=TRUE
     if (only.hyperparam) {
         cont.predictor$compute = cont.predictor$return.marginals = FALSE
@@ -925,7 +931,10 @@
 
     inla.problem.section(file = file.ini, data.dir = data.dir, result.dir = results.dir,
                          hyperpar = cont.compute$hyperpar, return.marginals = cont.compute$return.marginals,
-                         dic = cont.compute$dic, mlik = cont.compute$mlik, cpo = cont.compute$cpo, po = cont.compute$po, 
+                         dic = cont.compute$dic, mlik = cont.compute$mlik,
+                         cpo = cont.compute$cpo,
+                         ## these two are merged together as they are compute together
+                         po = (cont.compute$po || cont.compute$waic), 
                          quantiles = quantiles, smtp = cont.compute$smtp, q = cont.compute$q,
                          openmp.strategy = cont.compute$openmp.strategy, graph = cont.compute$graph,
                          config = cont.compute$config, gdensity = cont.compute$gdensity)
