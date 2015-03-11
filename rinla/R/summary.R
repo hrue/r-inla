@@ -91,6 +91,10 @@
         ret = c(ret, list(dic = lapply(object$dic, round, digits = digits)))
     }
 
+    if (!is.null(object$waic)) {
+        ret = c(ret, list(waic = lapply(object$waic, round, digits = digits)))
+    }
+
     if(!is.null(object$mlik))
         ret = c(ret, list(mlik = round(object$mlik, digits)))
     
@@ -161,11 +165,19 @@
     }
 
     if (inla.is.element("dic", x)) 
-        cat(paste("Deviance Information Criterion: ", format(x$dic$dic, digits=digits, nsmall=2), "\n", 
-                  "Effective number of parameters: ", format(x$dic$p.eff, digits=digits, nsmall=2), "\n\n", sep=""))
+        cat(paste("Deviance Information Criterion (DIC) ...: ",
+                  format(x$dic$dic, digits=digits, nsmall=2), "\n", 
+                  "Effective number of parameters .........: ",
+                  format(x$dic$p.eff, digits=digits, nsmall=2), "\n\n", sep=""))
+
+    if (inla.is.element("waic", x)) 
+        cat(paste("Watanabe-Akaike information criterion (WAIC) ...: ",
+                  format(x$waic$waic, digits=digits, nsmall=2), "\n", 
+                  "Effective number of parameters .................: ",
+                  format(x$waic$p.eff, digits=digits, nsmall=2), "\n\n", sep=""))
      
     if (inla.is.element("mlik", x)) 
-        cat(paste("Marginal Likelihood: ", format(x$mlik[2], digits=digits, nsmall=2),"\n"))
+        cat(paste("Marginal log-Likelihood: ", format(x$mlik[2], digits=digits, nsmall=2),"\n"))
 
     if (inla.is.element("cpo", x)) 
         cat("CPO and PIT are computed\n\n")
