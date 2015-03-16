@@ -3597,7 +3597,6 @@
                          param = c(1, 10),
                          to.theta = function(x, REPLACE.ME.low, REPLACE.ME.high) {
                              if (all(is.infinite(c(low, high))) || low == high) {
-                                 stopifnot(low < high)
                                  return (x)
                              } else if (all(is.finite(c(low, high)))) {
                                  stopifnot(low < high)
@@ -3610,7 +3609,6 @@
                          }, 
                          from.theta = function(x, REPLACE.ME.low, REPLACE.ME.high) {
                              if (all(is.infinite(c(low, high))) || low == high) {
-                                 stopifnot(low < high)
                                  return (x)
                              } else if (all(is.finite(c(low, high)))) {
                                  stopifnot(low < high)
