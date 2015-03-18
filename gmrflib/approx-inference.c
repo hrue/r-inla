@@ -3834,11 +3834,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		/*
 		 * compute the corrected scalings/stdevs, if required. 
 		 */
-		if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD
+		if ((ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD)
 		    || (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID && density_hyper &&
 			(ai_par->interpolator == GMRFLib_AI_INTERPOLATOR_CCD || ai_par->interpolator == GMRFLib_AI_INTERPOLATOR_CCD_INTEGRATE))
-		    // as the scalings are used for the inla.sample.hyper() function..
-		    || 1) {
+		    // as the scalings are used for the inla.sample.hyper() function... and they do not take much time in any case
+		    || 1
+			) {
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_HESSIAN_SCALE, (void *) &nhyper);
 
 			stdev_corr_pos = Calloc(nhyper, double);
@@ -3940,13 +3941,29 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				}
 			}
 
-
 			if (misc_output) {
 				misc_output->stdev_corr_pos = Calloc(nhyper, double);
 				memcpy(misc_output->stdev_corr_pos, stdev_corr_pos, nhyper * sizeof(double));
-
 				misc_output->stdev_corr_neg = Calloc(nhyper, double);
 				memcpy(misc_output->stdev_corr_neg, stdev_corr_neg, nhyper * sizeof(double));
+			}
+		} else {
+			// just fill with 1's
+			if (misc_output) {
+				// these are now computed, hence we use the Gaussian approximation
+				misc_output->stdev_corr_pos = Calloc(nhyper, double);
+				misc_output->stdev_corr_neg = Calloc(nhyper, double);
+				stdev_corr_pos = Calloc(nhyper, double);
+				stdev_corr_neg = Calloc(nhyper, double);
+				for(k = 0; k < nhyper; k++) {
+					stdev_corr_pos[k] = misc_output->stdev_corr_pos[k] = stdev_corr_neg[k] = misc_output->stdev_corr_neg[k] = 1.0;
+				}
+			} else {
+				stdev_corr_pos = Calloc(nhyper, double);
+				stdev_corr_neg = Calloc(nhyper, double);
+				for(k = 0; k < nhyper; k++) {
+					stdev_corr_pos[k] = stdev_corr_neg[k] = 1.0;
+				}
 			}
 		}
 
@@ -5510,7 +5527,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR, (void *) &nhyper);
 
-		if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES || ai_par->interpolator == GMRFLib_AI_INTERPOLATOR_GAUSSIAN) {
+		if (ai_par->interpolator == GMRFLib_AI_INTERPOLATOR_GAUSSIAN) {
 			/*
 			 * Just use the modal values and the stdev's found from the Hessian. 
 			 */
