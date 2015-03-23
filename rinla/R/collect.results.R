@@ -959,20 +959,18 @@ inla.internal.experimental.mode = FALSE
         po.res[xx[seq(1L, len, by=3L)] +1L] = xx[seq(2L, len, by=3L)]
         po2.res[1L:n] = NA
         po2.res[xx[seq(1L, len, by=3L)] +1L] = xx[seq(3L, len, by=3L)]
+
+        ## want NA not NaN
+        po.res[is.nan(po.res)] = NA
+        po2.res[is.nan(po2.res)] = NA
+        
+        ## compute waic
+        return (list(
+            waic = -2*(sum(log(po.res), na.rm=TRUE) - sum(po2.res, na.rm=TRUE)),
+            p.eff = sum(po2.res, na.rm=TRUE)))
     } else {
-        po.res = NULL
-        po2.res = NULL
+        return (NULL)
     }
-    ## want NA not NaN
-    po.res[is.nan(po.res)] = NA
-    po2.res[is.nan(po2.res)] = NA
-
-    ## compute waic
-    waic = list(
-        waic = -2*(sum(log(po.res), na.rm=TRUE) - sum(po2.res, na.rm=TRUE)),
-        p.eff = sum(po2.res, na.rm=TRUE))
-
-    return(waic)
 }
 
 `inla.collect.dic` =
