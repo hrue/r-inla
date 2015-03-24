@@ -158,17 +158,17 @@ int subtract64(uint32 hi0, uint32 lo0, uint32 hi1, uint32 lo1)
 double timer()
 {
 	uint32 hi, lo;
-	static uint32 hi0, lo0;
-	static uint32 hi1, lo1;
+	uint32 hi0, lo0;
+	uint32 hi1, lo1;
 	uint32 hir, lor;
-	static double loticks_per_ns;
-	static double hiticks_per_ns;
-	static int first_time = 1;
+	double loticks_per_ns;
+	double hiticks_per_ns;
+	int first_time = 1;
 
 	if (first_time) {
 		struct timeb T;
-		static time_t start_time, time_diff;
-		static time_t start_mill, mill_diff;
+		time_t start_time, time_diff;
+		time_t start_mill, mill_diff;
 		int rc;
 		double dt;
 
@@ -255,14 +255,14 @@ double taucs_wtime()
 	struct timeb T;
 
 	/*
-	 * static int first_time = 1;
+	 * int first_time = 1;
 	 */
 	/*
-	 * static time_t start_time, time_diff; static time_t start_mill, mill_diff; 
+	 * time_t start_time, time_diff; time_t start_mill, mill_diff; 
 	 */
 
-	static time_t time_diff;
-	static time_t mill_diff;
+	time_t time_diff;
+	time_t mill_diff;
 
 	/*
 	 * int rc;
@@ -326,15 +326,15 @@ void cpu_time_from_last(char s[])
 {
 	struct rusage a;
 	struct timeb T;
-	static int first_time = 1;
-	static time_t start_time, time_diff;
-	static time_t start_mill, mill_diff;
+	int first_time = 1;
+	time_t start_time, time_diff;
+	time_t start_mill, mill_diff;
 
 	/*
 	 * int rc;
 	 */
 	double dt, cpu_t;
-	static double last_cpu_t;
+	double last_cpu_t;
 
 	(void) ftime(&T);
 
@@ -371,15 +371,15 @@ void cpu_time_from_start(char s[])
 {
 	struct rusage a;
 	struct timeb T;
-	static int first_time = 1;
-	static time_t start_time, time_diff;
-	static time_t start_mill, mill_diff;
+	int first_time = 1;
+	time_t start_time, time_diff;
+	time_t start_mill, mill_diff;
 
 	/*
 	 * int rc;
 	 */
 	double dt, cpu_t;
-	static double start_cpu_t;
+	double start_cpu_t;
 
 	(void) ftime(&T);
 
