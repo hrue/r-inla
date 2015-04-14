@@ -18,7 +18,7 @@
         if (result) {
             ## check that the version is at least the one use to build the binaries. 
             s = system("sw_vers -productVersion", intern=T)
-            vers = strsplit(s, ".", fixed=TRUE)[[1]]
+            vers = as.integer(strsplit(s, ".", fixed=TRUE)[[1]])
             ver = vers[1] + vers[2]/10
             s.req = inla.getOption("macosx.version")
             if (ver < s.req) {
