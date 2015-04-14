@@ -75,23 +75,25 @@
 ##!}
 
 
-`inla.getOption` = function(option = c("inla.call",
-                                    "inla.arg",
-                                    "fmesher.call",
-                                    "fmesher.arg",
-                                    "num.threads",
-                                    "keep",
-                                    "working.directory",
-                                    "silent",
-                                    "debug",
-                                    "internal.binary.mode",
-                                    "internal.experimental.mode", 
-                                    "cygwin",
-                                    "ssh.auth.sock",
-                                    "cygwin.home",
-                                    "enable.inla.argument.weights",
-                                    "show.warning.graph.file",
-                                    "scale.model.default"))
+`inla.getOption` = function(
+    option = c("inla.call",
+        "inla.arg",
+        "fmesher.call",
+        "fmesher.arg",
+        "num.threads",
+        "keep",
+        "working.directory",
+        "silent",
+        "debug",
+        "internal.binary.mode",
+        "internal.experimental.mode", 
+        "cygwin",
+        "ssh.auth.sock",
+        "cygwin.home",
+        "enable.inla.argument.weights",
+        "show.warning.graph.file",
+        "scale.model.default",
+        "macosx.version"))
 {
     if (missing(option))
         stop("argument is required.")
@@ -117,24 +119,25 @@
         fmesher.call = opt$fmesher.call
 
     default.opt = list(
-            inla.call = inla.call,
-            fmesher.call = fmesher.call, 
-            inla.arg = NULL,
-            fmesher.arg = "", 
-            num.threads = NULL, 
-            keep = FALSE, 
-            working.directory = NULL, 
-            silent = TRUE, 
-            debug = FALSE, 
-            internal.binary.mode = TRUE, 
-            internal.experimental.mode = FALSE, 
-            cygwin = "C:/cygwin",
-            cygwin.home = paste("/home/", inla.get.USER(), sep=""), 
-            ssh.auth.sock = paste("/tmp/ssh-auth-sock-", inla.get.USER(), sep=""),
-            enable.inla.argument.weights = FALSE, 
-            show.warning.graph.file = TRUE, 
-            scale.model.default = FALSE
-            )
+        inla.call = inla.call,
+        fmesher.call = fmesher.call, 
+        inla.arg = NULL,
+        fmesher.arg = "", 
+        num.threads = NULL, 
+        keep = FALSE, 
+        working.directory = NULL, 
+        silent = TRUE, 
+        debug = FALSE, 
+        internal.binary.mode = TRUE, 
+        internal.experimental.mode = FALSE, 
+        cygwin = "C:/cygwin",
+        cygwin.home = paste("/home/", inla.get.USER(), sep=""), 
+        ssh.auth.sock = paste("/tmp/ssh-auth-sock-", inla.get.USER(), sep=""),
+        enable.inla.argument.weights = FALSE, 
+        show.warning.graph.file = TRUE, 
+        scale.model.default = FALSE,
+        macosx.version = 10.7 ## the MacOSX version used to build the binaries. @@@HARDCODED@@@
+        )
 
     res = c()
     for (i in 1:length(option)) {
@@ -157,23 +160,25 @@
     ## and
     ##     inla.setOption(keep=TRUE, num.threads=10)
 
-    `inla.setOption.core` = function(option = c("inla.call",
-                                             "inla.arg",
-                                             "fmesher.call",
-                                             "fmesher.arg",
-                                             "num.threads",
-                                             "keep",
-                                             "working.directory",
-                                             "silent",
-                                             "debug",
-                                             "internal.binary.mode",
-                                             "internal.experimental.mode", 
-                                             "cygwin",
-                                             "ssh.auth.sock",
-                                             "cygwin.home",
-                                             "enable.inla.argument.weights",
-                                             "show.warning.graph.file", 
-                                             "scale.model.default"), value)
+    `inla.setOption.core` = function(
+        option = c("inla.call",
+            "inla.arg",
+            "fmesher.call",
+            "fmesher.arg",
+            "num.threads",
+            "keep",
+            "working.directory",
+            "silent",
+            "debug",
+            "internal.binary.mode",
+            "internal.experimental.mode", 
+            "cygwin",
+            "ssh.auth.sock",
+            "cygwin.home",
+            "enable.inla.argument.weights",
+            "show.warning.graph.file", 
+            "scale.model.default",
+            "macosx.version"), value)
     {
         envir = inla.get.inlaEnv()
 

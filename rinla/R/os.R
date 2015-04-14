@@ -15,6 +15,17 @@
         if (is.na(result)) {
             result = FALSE
         }
+        if (result) {
+            ## check that the version is at least the one use to build the binaries. 
+            s = system("sw_vers -productVersion", intern=T)
+            vers = strsplit(s, ".", fixed=TRUE)[[1]]
+            ver = vers[1] + vers[2]/10
+            s.req = inla.getOption("macosx.version")
+            if (ver < s.req) {
+                stop("Your version, ", s, ", of MacOSX is to old for R-INLA. Update MacOSX to at least version ",
+                     as.character(s.req), sep="")
+            }
+        }
         return (result)
     } else if (type == "linux") {
         return ((.Platform$OS.type == "unix") && !inla.os("mac"))
