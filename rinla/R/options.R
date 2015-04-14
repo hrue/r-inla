@@ -92,8 +92,7 @@
         "cygwin.home",
         "enable.inla.argument.weights",
         "show.warning.graph.file",
-        "scale.model.default",
-        "macosx.version"))
+        "scale.model.default"))
 {
     if (missing(option))
         stop("argument is required.")
@@ -135,8 +134,7 @@
         ssh.auth.sock = paste("/tmp/ssh-auth-sock-", inla.get.USER(), sep=""),
         enable.inla.argument.weights = FALSE, 
         show.warning.graph.file = TRUE, 
-        scale.model.default = FALSE,
-        macosx.version = 10.7 ## the MacOSX version used to build the binaries. @@@HARDCODED@@@
+        scale.model.default = FALSE
         )
 
     res = c()
@@ -177,8 +175,7 @@
             "cygwin.home",
             "enable.inla.argument.weights",
             "show.warning.graph.file", 
-            "scale.model.default",
-            "macosx.version"), value)
+            "scale.model.default"), value)
     {
         envir = inla.get.inlaEnv()
 
