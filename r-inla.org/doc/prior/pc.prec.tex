@@ -7,22 +7,22 @@
 \section*{PC prior for precision}
 
 \subsection*{Parametrization}
-The PC prior for precision has density 
+The PC prior for the log-precision $x$ has density 
 \begin{equation}
     \pi(x) = \frac{\theta}{2} \exp\left(
       -\theta\exp\left(-\frac{x}{2}\right) - \frac{x}{2}
     \right)
 \end{equation}
-for $x>0$ where
+for $\theta>0$ where
 \begin{displaymath}
     \theta = -\frac{\ln(\alpha)}{u}
 \end{displaymath}
-and $(u, \alpha{})$ are the parameters to this prior. The
+and $(u, \alpha{})$ are the parameters to this prior The
 interpretation of $(u,\alpha)$ is that
 \begin{displaymath}
-    \text{Prob}(\sigma > u) = \alpha
+    \text{Prob}(\sigma > u) = \alpha, \qquad u>0, \quad 0<\alpha<1,
 \end{displaymath}
-where $\sigma = 1/\sqrt{\exp(x)}$, as $x$ is the log-precision.
+where the standard deviation is $\sigma = 1/\sqrt{\exp(x)}$.
 
 \subsection*{Specification}
 This prior for the hyperparameters is specified inside the
