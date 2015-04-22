@@ -17,8 +17,27 @@ citEntry(
     textVersion  =
     paste("Havard Rue, Sara Martino, and Nicholas Chopin (2009).",
           "Approximate Bayesian Inference for Latent Gaussian",
-          "Models Using Integrated Nested Laplace Approximations.",
+          "Models Using Integrated Nested Laplace Approximations (with discussion).",
         "Journal of the Royal Statistical Society B, 71, 319-392.")
+)
+
+citEntry(
+    entry = "Article",
+    title = "Bayesian computing with {INLA}: {N}ew features",
+    author  =
+      personList(as.person("Thiago G. Martins"),
+      		 as.person("Daniel Simpson"),
+		 as.person("Finn Lindgren"),
+                 as.person("H{\\aa}vard Rue")),
+    year    = "2013",
+    volume  = "67",
+    pages   = "68--83",
+    journal = "Computational Statistics and Data Analysis",
+
+    textVersion  =
+      paste("Thiago G. Martins, Daniel Simpson, Finn Lindgren and Havard Rue (2013).",
+            "Bayesian computing with INLA: New features".
+	    "Computational Statistics and Data Analysis, 67(2013) 68-83".)
 )
 
 citEntry(
@@ -41,7 +60,7 @@ citEntry(
       paste("Finn Lindgren, Havard Rue, and Johan Lindstrom (2011).",
             "An Explicit Link Between Gaussian Fields and Gaussian",
             "Markov Random Fields: The Stochastic Partial Differential",
-            "Equation Approach.",
+            "Equation Approach (with discussion).",
             "Journal of the Royal Statistical Society B, 73(4), 423-498.")
 )
 
