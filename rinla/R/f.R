@@ -5,8 +5,8 @@
 ##!\title{Define general Gaussian models in the INLA formula }
 ##!\description{
 ##!
-##!  Function used in definition of smooth and spatial terms within \code{inla} model
-##!  formulae. The function does not evaluate a anything - it
+##!  Function used for defining of smooth and spatial terms within \code{inla} model
+##!  formulae. The function does not evaluate anything - it
 ##!  exists purely to help set up a model. The function specifies one
 ##!  smooth function in the linear predictor (see \code{\link{inla.models}}) as
 ##!  \deqn{w\ f(x)}{weight*f(var)}
@@ -71,7 +71,7 @@
     ##!\item{...}{ Name of the covariate and, possibly of the
     ##!weights vector. NB: order counts!!!! The first specified
     ##!term is the covariate and the second one is the vector of
-    ##!weights.}
+    ##!weights (which can be negative).}
     ...,
 
     ##!\item{model}{ A string indicating the choosen model. The
@@ -178,7 +178,7 @@
     ##!\item{cyclic}{A boolean specifying wheather the model is
     ##!cyclical. Only valid for "rw1" and "rw2" models, is
     ##!cyclic=T then the sum to 0 constraint is removed. For the
-    ##!correct form of the grah file see \cite{Martinoand Rue
+    ##!correct form of the grah file see \cite{Martino and Rue
     ##!(2008)}.}
     cyclic = NULL,
 
@@ -216,11 +216,11 @@
     ##!\item{Cmatrix}{The specification of the precision matrix
     ##!for the generic,  generic3 or z models (up to a scaling constant).
     ##!\code{Cmatrix} is either a
-    ##!(dense) matrix, a matrix create using
+    ##!(dense) matrix, a matrix created using
     ##!\code{Matrix::sparseMatrix()}, or a filename which stores the
     ##!non-zero elements of \code{Cmatrix}, in three columns:
     ##!\code{i}, \code{j} and \code{Qij}. In case of the generic3 model,
-    ##!it is a list of such spesifications.}
+    ##!it is a list of such specifications.}
     Cmatrix=NULL,
 
     ##!\item{rankdef}{A number \bold{defining} the rank
