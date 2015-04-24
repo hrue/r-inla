@@ -1215,6 +1215,27 @@
         if (nr!=(ncol(rf)-1))
             stop("\n\tSOMETHING STRANGE: You probably used one variable as a covariate more than once.")
         
+        ## make the covariate numeric if its all NA (for which it is of type 'logical')
+        stopifnot(ncol(rf) >= 2L)
+        for(r in 1:(ncol(rf)-1)) { ## YES, '-1' is correct
+            idx = rf[, r+1]
+            if (is.logical(idx) && all(is.na(idx))) {
+                rf[, r+1] = idx = as.numeric(idx)
+            }
+            if (all(is.na(idx))) {
+                ## check that either 'n' or 'values' are given, to prevent errors from happening
+                ## below.
+                if (is.null(gp$random.spec[[r]]$values) && is.null(gp$random.spec[[r]]$n)) {
+                    stop(paste("Model component 'f(", 
+                               gp$random.spec[[r]]$term,
+                               ", ...)' have only NA values in '",
+                               gp$random.spec[[r]]$term, "'. ", 
+                               "In this case, ",
+                               "either argument 'n' or 'values' must be spesified.", sep=""))
+                }
+            }
+        }
+
         location = list()
         covariate = list()
 

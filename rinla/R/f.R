@@ -703,14 +703,14 @@
     need.nrow.ncol = inla.model.properties(model, "latent")$nrow.ncol
     ## nrow/ncol
     if ((!is.null(nrow) || !is.null(ncol)) && !need.nrow.ncol) {
-        stop(paste("nrow and ncol are not needed for model = ", model))
+        stop(paste("'nrow' and 'ncol' are not needed for model = ", model))
     }
     if (need.nrow.ncol) {
         if (is.null(nrow) || is.null(ncol)) {
-            stop(paste("nrow and ncol must be specified for model", model))
+            stop(paste("'nrow' and 'ncol' must be specified for model", model))
         }
         if (nrow <= 0 || ncol <= 0 || trunc(nrow) != nrow || trunc(ncol) != ncol) {
-            stop("nrow and ncol must be positive intergers.")
+            stop("'nrow' and 'ncol' must be positive intergers.")
         }
 
         ## set n as well, makes it easier.
