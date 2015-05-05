@@ -19,52 +19,44 @@ of the linear predictor for the data response.
 For details on this please see~\cite{lindgren:2012}. 
 
 The key is that we have a random field 
-modeled at the mesh vertices, with dimention $m$, 
+modeled at the mesh vertices, with dimension $m$, 
 and a response at $n$ locations. 
 So, we need to define how the random field and 
 other model components are linked to the response. 
 
-Let the matrix $\bA$ that links the 
-process on the mesh vertices triangles 
-with the locations response. 
-This matrix is called the projector matrix 
-because it do the projection of the 
-latent field modeled at mesh vertices 
-to data locations. 
-
+Let the projector matrix $\bA$ to project the process 
+at the mesh vertices to the locations response. 
 The projector matrix can be builded with 
 the \code{inla.spde.make.A} function. 
-Considering that each mesh vertices has a weight, 
+Considering that each mesh vertex has a weight, 
 the value for one point within one triangle is 
 the projection of the plane (formed by these 
 three weights) at this point location. 
 This projection is just a weighted average 
 with the weights computed by the 
 \code{inla.spde.make.A()} function. 
-Using the toy data set and the mesh five we have
+Using the toy data set and mesh number five we have
 <<proj2>>=
 coords <- as.matrix(SPDEtoy[,1:2])
 A5 <- inla.spde.make.A(mesh5, loc=coords)
 @ 
 
-This matrix has dimention equal the number of 
+This matrix has dimension equal to the number of 
 data locations by the number of vertices on 
 the mesh 
 <<dima1>>=
 dim(A5)
 @ 
-We have exact three non-zero elemens on each line 
+We have exactly three non-zero elements on each line 
 <<a5lines>>=
 table(rowSums(A5>0))
 @ 
-because each location points are 
-inside one of the triangles. 
-These three non-zero elements 
-on each line sums one
+because each point location is inside one of the triangles. 
+These three non-zero elements on each line sums to one
 <<rsum>>=
 table(rowSums(A5))
 @ 
-because multiplication with any vector weights 
+because multiplication with any vector of weights 
 at mesh nodes by this matrix is the projection 
 of these weights at the location points. 
 
@@ -73,41 +65,41 @@ matrix with all elements equals zero.
 <<colsA>>=
 table(colSums(A5)>0)
 @ 
-This columns corresponds the triangles 
-without any location point inside.
-This columns that can be droped and 
+These columns correspond the triangles 
+without any  point locations inside.
+These columns  can be droped and 
 the stack functionality (section~\ref{sec:stack}) 
 automatically handles this situation.
 
-When we have a mesh where each location 
-points are on the vertice set, the projector 
-matrix has exact one line with nonzero element
+When we have a mesh where every pont location is on 
+a mesh vertex, each line on the projector matrix has 
+exacty one nonzero element. 
+This is the case for the \code{m1} 
 <<eacha1>>=
 A1 <- inla.spde.make.A(mesh1, loc=coords)
 table(rowSums(A1>0))
 @
-and all these elements are equals one 
+and all these elements are equal to one 
 <<summarya1>>=
 table(rowSums(A1))
 @ 
-because in this case the the projection on the 
+because in this case the projection on the 
 location points are just the weight at the 
 corresponding node (at same location) of the mesh. 
 
 \section{GRF sampling through SPDE}\label{sec:simula} 
 
-The main thing is that the SPDE make the model 
-on the mesh vertices and we need to make simulation 
-on a set o location points. 
+The SPDE approach builds the model on the mesh vertices and 
+we need to simulate values at the set of location points. 
 We start by defining the spde model 
 <<spde>>=
 spde5 <- inla.spde2.matern(mesh5, alpha=2)
 @ 
-and build the precision matrix associated. 
+and build the associated precision matrix. 
 
-It can be done by the \code{inla.spde2.precision()} function. 
-On this function, we have to provide the SPDE model 
-and the parameters $\theta$ on the SPDE parametrization. 
+This can be done with the \code{inla.spde2.precision()} function. 
+To use this function, we have to provide the SPDE model 
+and the parameters $\theta$ for the SPDE parametrization. 
 $\theta$ is a length two vector where the second element 
 is the logarithim of the scale parameter, log($\kappa$), 
 and the first one is the 'local variance parameter' $\tau$
@@ -140,17 +132,17 @@ project it with the projector matrix by
 x <- drop(A5%*%x5)
 @ 
 
-We can have a more general function to generate 
+We can write a more general function to generate 
 one or more samples, by defining a function that 
-need just the coordinates and model parameters. 
+needs just the coordinates and model parameters. 
 A mesh can be provided and if not it is also 
 generated within this function 
 <<rspde>>=
 rspde
 @ 
 
-We can generate samples at a milion of locations 
-in some seconds  
+We can generate samples at a million of locations 
+in a matter of seconds  
 <<sample>>=
 pts1 <- matrix(runif(2e6), ncol=2)
 x1 <- rspde(pts1, kappa=5)
@@ -170,7 +162,7 @@ dim(attr(x1, 'Q'))
 dim(attr(x1, 'A'))
 @ 
 
-This function is used on some of next Chapters.
+This function is used in some of next Chapters.
 
 \section{Maximum likelihood inference}
 
@@ -210,30 +202,30 @@ Now, we can write a concentrated likelihood deriving
 the likelihood with respect to $\sigma^2_x$ and $\beta$. 
 We have that 
 \[ (\bF^{'}\bW\bF)\hat{\beta} = \bF^{'}\bW\bby \;.\] 
-and  
+and 
 \[
 \hat{\sigma}^2_x = (y_i-\bF\hat{\beta})^{'}\bW(y_i-\bF\hat{\beta})/n
 \] 
 
 Now, we can work with the log-likelihood 
-as a function of the noise relative variance and 
-the scale parameter $\kappa$. 
+as a function of a relative variance, instead of the noise variance, 
+and the scale parameter $\kappa$. 
 The concentrated log-likelihood can be writed as 
 \[
 -\frac{1}{2}\{|\bW| + n[\log(2\pi\hat{\sigma}^2_x)+1]\}
 \]
-And we can use one of the quasi-Newton 
+And we can use a quasi-Newton 
 optimization algorithim to find the maximum 
 likelihood estimate of each the two parameters 
-on the concentrated likelihood. 
-These parameters are these one the $\bW$ matrix and 
+in the concentrated likelihood. 
+These parameters are the ones in the $\bW$ matrix and 
 are parametrized as log($r$) and log($\kappa$). 
 
-To eval the likelihood function efficiently 
-we need to take care on the evaluation of 
-the determinant $|\bW|$ and of $\bW$ itself. 
-
-$\bW = (r\bI + Q(\tau^{'}, \kappa))$ 
+To evaluate the likelihood function efficiently 
+we need to compute the determinant $|\bW|$ 
+and $\bW$ itself. Both computations needs care. 
+We have that 
+$\bW = (r\bI + Q(\tau^{'}, \kappa))$. 
 
 To evaluate the determinant, we use a 
 matrix determinant lemma such that we have 
@@ -257,7 +249,7 @@ We implement it with the following function
 precFun
 @ 
 
-Considering $\theta$ and log($\sigma_y^2$) the 
+Considering $\theta$ and log($\sigma_y^2$) as a 
 three parameter vetor, we have the following 
 negative of the log likelihood function 
 <<nllf,echo=F>>=
@@ -299,16 +291,16 @@ opt <- optim(log(c(sigma2e/sigma2x, kappa)), negLogLikFun, hessian=TRUE,
 We also define a function to map the 
 SPDE model parameters to the 
 $\sigma_x^2$ and $\kappa$ user parameters. 
-The function bellow recieve $\theta$, 
+The function below recieves $\theta$, 
 log($\sigma_y^2$) and $\beta$ (regression 
-parameters) and return $\sigma_x^2$, $\kappa$, 
+parameters) and returns $\sigma_x^2$, $\kappa$, 
 $\sigma_y^2$ and $\beta$. 
 <<par2user,echo=F>>=
 par2user
 @ 
 
 We use this function to compare the results with 
-the results by \code{geoR} package 
+the results from the \code{geoR} package 
 <<lkfgeoR>>=
 require(geoR)
 system.time(lkf <- likfit(as.geodata(SPDEtoy),

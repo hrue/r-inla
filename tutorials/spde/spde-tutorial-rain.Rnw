@@ -192,11 +192,12 @@ the relationship, such that the coefficients over the range
 of the covariate values have a first order random walk prior. 
 So we have the model adopted is of the form
 \[
-log(\mu_i) = \alpha + \sum_{j=1}^kw_kI(F_i=F0_k) + x_i \\
+log(\mu_i) = \alpha + \sum_{k=1}^m w_k \tilde{F}_i + x_i \\
 \]
-were $F$ is the distance to sea or the longitude and $F0_k$ 
-is a knot (choose on range of the covariate values) and $w_k$ 
-are regression coefficients with first order random walk prior. 
+were $F$ is the distance to sea or the longitude and $\tilde{F}_i$ 
+is a discretized version of $F$ using a set of knots 
+(choose on range of the covariate values with the \texttt{inla.group()} function) 
+and $w_k$ are a set of serially correlated regression coefficients with first order random walk prior. 
 
 We use the mesh builded for the Paran\'a state on the 
 Chapter~\ref{ch:mesh}. 
@@ -410,6 +411,10 @@ A better alternative is the joint
 prediction with the estimation process. 
 But it is computationally expensive 
 when we have large grid. 
+At the end of this section we show a cheap 
+way for a specific case. 
+
+\subsection{By computation of the posterior distributions} 
 
 Using the grid from previous section 
 we have points discarded because they 
@@ -495,3 +500,66 @@ on the average of the daily accumulated
 precipitation occurred on January of 2012. 
 It's high near to sea and lower 
 at north west side of the Paran\'a state.
+
+\subsection{By sampling and interpolating the linear predictor}
+
+In some specific cases it makes sense to interpolate the linear predictor. 
+This cases happens when whe only have the spatial effect and 
+enviromental covariates which are smooth over space. 
+
+In our example the idea is to compute the effect 
+of the distance to sea at the mesh nodes. 
+Them, compute the linear predictor at the mesh nodes. 
+To predict the response on gridn one can interpolate it. 
+In our example the link is log and to aproximate also the 
+standard error on the response, we use the sampling approach. 
+
+It consists in geting samples from the linear predictor at the mesh nodes. 
+Them, interpolate it to grid and compute the expected value, 
+in the response scale by applying the inverse link. 
+When we do it for each sample, we can have any functional, 
+for example, the mean and standard error. 
+
+The first step is to have the enviromental covariate at the mesh node
+<<dsmesh>>=
+dsmesh <- apply(spDists(PRborder[1034:1078,], prmesh2$loc[,1:2], longlat=TRUE), 2, min)
+imesh0 <- apply(abs(outer(ug.seadist, dsmesh, '-')), 2, which.min)
+mesh.seadist <- ug.seadist[imesh0]
+@ 
+
+Building the stack for predict into the mesh 
+<<stkmesh>>=
+stk.mesh <- inla.stack(data=list(y=NA), A=list(1,1), 
+                       effects=list(i=1:spde$n.spde, 
+                           data.frame(Intercept=1, 
+                                      gSeaDist=mesh.seadist)), tag='mesh') 
+stk.all <- inla.stack(stk.dat, stk.mesh)
+@ 
+
+Fitting the model again and ask for the configuration, 
+needed for sampling from the model 
+<<fittmesh>>=
+rm.sead <- inla(f.sead, family='Gamma', data=inla.stack.data(stk.all), 
+                control.predictor=list(A=inla.stack.A(stk.all), 
+                    compute=TRUE), quantiles=NULL, 
+                control.results=list(return.marginals.random=FALSE,
+                    return.marginals.predictor=FALSE), 
+                control.compute=list(config=TRUE))
+@ 
+<<calll,echo=F,results=hide>>=
+inla.setOption(inla.call=lcall)
+@ 
+
+Sampling from the model 
+<<sampl>>=
+sampl <- inla.posterior.sample(n=1000, result=rm.sead)
+@ 
+
+Accessing the index for the components ($\alpha$)
+<<idexs>>=
+spde$n.spde
+dimnames(sampl[[1]]$latent)
+ids <- lapply(c('Intercept', 'z.intercept', 'y.field', 'z.field', 'zc.field'),
+              function(x) grep(x, rownames(s1[[1]]$latent), fixed=TRUE))
+plot(rm.sead$summary.linear.pred$mean)
+@ 
