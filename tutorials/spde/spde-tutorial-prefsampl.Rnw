@@ -82,7 +82,8 @@ Doing the simulation
 <<simulapp>>=
 set.seed(1)
 lg.s <- rLGCP('matern', beta0, 
-              c(0, variance=sigma2x, nugget=0, scale=1/kappa, nu=1), win=win)
+##              c(0, variance=sigma2x, nugget=0, scale=1/kappa, nu=1), win=win)
+              var=sigma2x, scale=1/kappa, nu=1, win=win)
 @ 
 
 Both, the LGRF and the point pattern, are returned. 
@@ -207,13 +208,32 @@ rather another of the reference points.
 We can see these polygons on Figure~\ref{fig:vppmesh}. 
 
 Third, we get the interection polygons between these polygons 
-and the study region polygon, using functions from 
-the \pkg{gpclib} package:
+and the study region polygon, using functions from the 
+\pkg{rgeos} package. First, we define a function to convert 
+from simple coordinates defining a polygon to the 
+\texttt{SpatialPolygons} object 
+<<coo2sp>>=
+require(rgeos)
+coo2sp <- function(coo) {
+    n <- nrow(coo)
+    if (any(coo[1,]!=coo[n,]))
+        coo <- coo[c(1:n,1),]
+    SpatialPolygons(list(Polygons(list(Polygon(coo)), '0')))
+}
+@ 
+As an example, we apply it to coordinates that defines the domain area 
+and compute its area
+<<gArea>>=
+gArea(pl.study <- coo2sp(loc.d))
+@ 
+and them compute the intersection areas with 
 <<pols>>=
-require(gpclib)
-area.poly(pl.study <- as(loc.d, 'gpc.poly'))
-sum(w <- sapply(tiles, function(p) area.poly(intersect(
-    as(cbind(p$x, p$y), 'gpc.poly'), pl.study))))
+sum(w <- sapply(tiles, function(p) {
+    pl <- coo2sp(cbind(p$x, p$y))
+    if (gIntersects(pl, pl.study))
+        return(gArea(gIntersection(pl, pl.study)))
+    else return(0)
+}))
 @ 
 and we have some points without any weights (the red ones on Figure~\ref{fig:vppmesh}). 
 <<wsummary>>=
@@ -358,7 +378,8 @@ Doing the simulation
 <<simulappc>>=
 set.seed(1)
 lg.s.c <- rLGCP('matern', im(beta0 + beta1*gridcov, xcol=x0, yrow=y0), 
-                c(0, variance=sigma2x, nugget=0, scale=1/kappa, nu=1), win=win)
+##                c(0, variance=sigma2x, nugget=0, scale=1/kappa, nu=1), win=win)
+              var=sigma2x, scale=1/kappa, nu=1, win=win)
 @ 
 
 Both, the LGRF and the point pattern, are returned. 
