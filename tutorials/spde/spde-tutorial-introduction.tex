@@ -1,97 +1,93 @@
 
 \chapter{Introduction} 
 
-If we have data measured at some locations, 
-so we have a point refereed data set. 
-By locations we mean some coordinates reference 
-system where are each data from, for example, 
-the longitude and latitude coordiantes.
-The point refereed data is very common in many 
-areas of science. These type of data appear on 
-mining, climate modeling, ecology, agriculture 
-and other areas. 
-If we want do model that data incorporating 
-the reference about where are each data from, 
-we want do use a model to point refereed data. 
+A point-referenced dataset is made up of any 
+data measured at known locations. 
+These locations may be in any coordinate reference system, 
+most often the longitude and latitude coordinates. 
+Point-referenced data are very common in 
+many areas of science. 
+This type of data appears in mining, climate modeling, 
+ecology, agriculture and other areas. 
+If we want to model the data while incorporating 
+the information about where the data are from, 
+we need a model for point referenced data. 
 
-It is possible that we build a regression model 
-considering each coordinates as covariate. 
-But in some cases it is necessary a very 
-complicated function based on coordinates to 
-get a adequate description of the mean. 
-For example, any complex non-linear function or 
+It is possible to build a regression model 
+using each coordinate as a covariate. 
+But in some cases it is necessary to include a very 
+complicated function based on the coordinates to 
+get an adequate description of the mean. 
+For example, we may need complex non-linear function or 
 a non-parametric function. 
-If these type of model are only to incorporate 
-some trend on the mean based on the coordinates. 
+This type of model only incorporates a
+trend on the mean based on the coordinates. 
 Also, this type of model is a fixed effect model. 
 
-But, we want a model to measure the first geography 
-law in a simple way. 
+Instead, it is more natural for a model to measure 
+the first law of geography in a simple way. 
 This law says: ``Everything is related to everything else, 
 but near things are more related than distant things'', 
 \cite{tobler:1970}. 
-So, we need a model to incorporate the property that a 
-observation is more correlated with a observation 
-collected on a neighbour local, than another that 
-is collected on more distant local. 
-One option to modelled this dependence is the use 
-of a random effect spatially structured. 
-This type of model is a model to spatial dependency, 
-different of the spatial trend. 
-But, it is possible to include both terms in a model. 
-Also, the models for spatial dependency are used 
-within more general models as random effects, 
-the spatially structured random effects. 
+So, we need a model that incorporates the property that an 
+observation is more correlated with an observation 
+collected at a neighboring location than with another that 
+is collected at more distant location. 
+One option to model this dependence is to use 
+a spatially-structured random effect. 
+This type of model incorporates spatial dependency, 
+rather than simply the spatial trend. 
+However, it is possible to include both terms in a model. 
+Spatial dependency can be accounted for 
+within more general models using 
+spatially structured random effects. 
 
-In spatial statistics we have models to incorporate the 
-spatial dependency when the locations are areas 
-(states, cities, etc.) and when the locations are points. 
-In the last case, it is also possible that such 
-locations are fixed or are random. 
-The models to point refereed data with a spatially 
-structured random effect is commonly called a 
+In spatial statistics, different models are used to incorporate 
+spatial dependency depending on whether the locations are areas 
+(states, cities, etc.) or whether the locations are points. 
+In the latter case, the locations can be fixed or random. 
+Models of point-referenced data that include a 
+spatially-structured random effect are commonly called 
 geostatistical models. 
-There are a specific area of spatial statistics 
-that study these models, the geostatistics. 
-See \cite{cressie:1993} for a good introduction on 
-the spatial statistics. 
+Geostatistics is the specific area of spatial statistics 
+that these models. 
+See \cite{cressie:1993} for a good introduction to spatial statistics. 
 
 \section{The Gaussian random field}
 
-To introduce some notation, let $s$ any 
-location on the study area and $X(s)$ is 
-the random effect at this location. 
-We have $X(s)$ a stochastic process, with $s\in \bD$, 
-were $\bD$ is the domain area of the locations 
-and $\bD\in \Re^d$. 
-Suppose, for example, that we have $\bD$ any country 
-and we have any data measured on geographical 
-locations, $d=2$, within this country. 
+To introduce some notation, let $s$ be any 
+location in the study area and let $X(s)$ be 
+the random effect at that location. 
+$X(s)$ is a stochastic process, with $s\in \bD$, 
+were $\bD$ is the domain of the study area and $\bD\in \Re^d$. 
+Suppose, for example, that $\bD$ is a specific country 
+and we have data measured at geographical 
+locations, over $d=2$ dimensions, within this country. 
 
-Suppose that we assume that we have a realization 
+Suppose we assume that we have a realization 
 of $x(s_i)$, $i=1,2,...,n$, a realization of $X(s)$ 
-in $n$ locations. It is common assumed that 
+in $n$ locations. It is commonlly assumed that 
 $x(s)$ has a multivariate Gaussian distribution. 
-Also, if we assume that $X(s)$ continuous over space, 
+Also, if we assume that $X(s)$ is continuous over space, 
 we have a continuously indexed Gaussian field (GF). 
-It is because we suppose that it is possible that 
-we get data in any location within the study region. 
+This implies that it is possible to collect these 
+data at any location within the study region. 
 To complete the specification of the distribution of 
-$x(s)$, is necessary to defines it mean and covariance. 
+$x(s)$, is necessary to define its mean and covariance. 
 
-A very simple option, is the definition of a 
+A very simple option is to define a 
 correlation function based only on euclidean 
 distance between locations. 
-This assume that if we have two pairs of 
-points separated same distance $h$, both pairs 
+This assumes that if we have two pairs of 
+points separated by the same distance $h$, both pairs 
 have same correlation. 
-Also, is intuitive to choose any function 
+It is intuitive to choose any function 
 decreasing with $h$. 
 There is some work about the GF and correlation 
 functions in \cite{abrahamsen:1997}. 
 
 A very popular correlation function is the 
-Mat\'ern correlation function, that depends 
+Mat\'ern correlation function, which depends 
 on a scale parameter $\kappa>0$ and a smoothness 
 parameter $\nu>0$. 
 Considering two locations $s_i$ and $s_j$, the 
@@ -104,42 +100,41 @@ K_\nu(\kappa \parallel s_i - s_j \parallel)
 \end{equation}
 where $\parallel . \parallel$ denotes 
 the euclidean distance and $K_\nu$ is the modified 
-Bessel function of second kind order. 
-Also, we defines the Mat\'ern covariance function 
-by $\sigma_x Cor(X(s_i), X(s_j))$, where 
+Bessel function of the second order. 
+The Mat\'ern covariance function is
+$\sigma_x Cor(X(s_i), X(s_j))$, where 
 $\sigma_x$ is the marginal variance of the process. 
 
-If we have a realization $x(s)$ on $n$ locations, 
-we write the joint correlation, or joint covariance, 
-matrix $\Sigma$ making each entry 
+If we have a realization $x(s)$ at $n$ locations, 
+we can define its joint covariance matrix. 
+Each entry of this joint covariance matrix $\Sigma$ is 
 $\Sigma_{i,j} = \sigma_xCor_M(X(s_i), X(s_j))$. 
 It is common to assume that $X(x)$ has a zero mean. 
-So, we have completely defined a multivariate 
-distribution to $x(s)$. 
+We have now completely defined a multivariate 
+distribution for $x(s)$. 
 
-Now, suppose now that we have a data $y_i$ observed at 
+Now, suppose that we have data $y_i$ observed at 
 locations $s_i$, $i=1,...,n$. 
-If we suppose that we have an underlie GF that 
-generate these data, we are going to fit the 
-parameters of this process, making the identity 
-$y(s_i) = x(s_i)$, and $y(s_i)$ is just a 
+If an underlying GF generated these data, we can fit the 
+parameters of this process, based on the identity 
+$y(s_i) = x(s_i)$, where $y(s_i)$ is a 
 realization of the GF. 
-In this case, we the likelihood function 
-is just the multivariate distribution with 
+In this case, the likelihood function 
+is the multivariate distribution with 
 mean $\mu_x$ and covariance $\Sigma$. 
 If we assume $\mu_x = \beta_0$, 
 we have four parameters to estimate. 
 
-In many situations we assume that we have an 
-underlie GF but we no observe it and observe 
-a data with a measurement error, i. e., 
+In many situations we assume that we have an underlying 
+GF but cannot directly observe it and instead observe 
+data with measurement error, i.e., 
 $y(s_i) = x(s_i) + e_i$. 
-Additionally, it is common to assume that $e_i$ 
+It is common to assume that $e_i$ is 
 independent of $e_j$ for all $i\neq j$ and 
 $e_i \sim N(0, \sigma_e)$. 
-These additional parameter, $\sigma_e$, measures 
-the noise effect, called nugget effect. 
-In this case the covariance of marginal distribution 
+This additional parameter, $\sigma_e$, measures 
+the noise, called the nugget effect. 
+In this case the covariance of the marginal distribution 
 of $y(s)$ is $\sigma^2_eI + \Sigma$. 
 This model is a short extension of the basic GF model, 
 and in this case, we have one additional parameter 
@@ -157,68 +152,67 @@ y_i|\theta,\beta,x_i,F_i \sim P(y_i|\mu_i,\phi) \\
 \end{array}\end{equation}
 where $\mu_i = h(F_i^{T}\beta + x_i)$, 
 $F$ is a matrix of covariates, 
-$x$ is the random effects, 
-$\theta$ are parameters of random effects, 
+$x$ is the random effect, 
+$\theta$ are parameters of the random effect, 
 $\beta$ are covariate coefficients, 
 $h()$ is a function mapping the linear predictor 
 $F_i^{T}\beta + x_i$ to $E(y_i) = \mu_i$ and 
 $\phi$ is a dispersion parameter of the distribution, 
-in the exponential family, assumed to $y_i$. 
-To write the GF with nugget effect on this class, 
-we replace $F_i^{T}\beta$ by $\beta_0$, 
-consider the Gaussian distribution to $y_i$, with 
-variance $\sigma_e^2$ and $x$ as GF.
+in the exponential family, which is assumed for $y_i$. 
+To write the GF with a nugget effect, 
+we replace $\beta_0$ with $F_i^{T}\beta$, 
+assume a Gaussian distribution for $y_i$, with 
+variance $\sigma_e^2$ and $x$ as a GF.
 
-We have many extensions of this basic hierarchical model. 
-Now, we stop these extensions and return on some 
-extensions in later sections. 
-But, if we know the properties of the GF, 
-we are able to study all the practical models 
+We can extend this basic hierarchical model in many ways,
+and we return to some extensions in later sections. 
+If we know the properties of the GF, 
+we can study all the practical models 
 that contain, or are based on, this random effect. 
 
-It is mentioned that the data, or the random effect,  
-on a finite number of $n$ points that we have observed 
-data is considered a realization of a 
+It is worth mentioning that the data, or the random effect,  
+on a finite number of $n$ points where we have observed 
+data are considered a realization of a 
 multivariate Gaussian distribution. 
-But, to evaluate the likelihood function, or the random 
-effect distribution, we need to make 
-computations of the multivariate Gaussian density. 
+Therefore, to evaluate the likelihood function, or the random 
+effect distribution, we need to compute the 
+multivariate Gaussian density. 
 So, we have, in the log scale, the expression 
 \begin{equation}
--\frac{1}{2}\left(nlog(2\pi) + log(|\Sigma|) 
+-\frac{1}{2}\left(n\log(2\pi) + \log(|\Sigma|) 
 + [x(s) - \mu_x]^{T}\Sigma^{-1}[x(s)-\mu_x]\right)
 \end{equation}
 where $\Sigma$ is a dense $n\times n$. 
 To compute this, we need a factorization of this matrix. 
 Because this matrix is a dense, this is a operation of 
-order $O(n^3)$, so is one 'big n problem'. 
+order $O(n^3)$, so this is a 'big n problem'. 
 
-An alternative used in some software's to do 
-geostatistical analysis, is the use of the empirical 
+An alternative used in some software for 
+geostatistical analysis is to use the empirical 
 variogram to fit the parameters of the correlation 
-function. This option don't use any likelihood for 
-the data and the multivariate Gaussian 
-distribution to the random effects. 
+function. This option does not use any likelihood for 
+the data or uses a multivariate Gaussian 
+distribution for the spatially structured random effect. 
 A good description of these techniques is made 
-on \cite{cressie:1993}. 
+in \cite{cressie:1993}. 
 
-However, it is adequate to assume any likelihood for the 
-data and a GF for the spatial dependence, the model 
-based approach on geostatistics, \cite{diggleribeiro:2007}. 
-So, in some times we need the use the multivariate 
-Gaussian distribution to the random effects. 
+However, it is adequate to assume a likelihood for the 
+data and a GF for the spatial dependence as in the model 
+based approach proposed for geostatistics, \cite{diggleribeiro:2007}. 
+At times we need to use the multivariate 
+Gaussian distribution for the random effect. 
 But, if the dimension of the GF is big, 
-it is impractical to make model based inference. 
+it becomes impractical for model-based inference 
+to directy use the covariance as defined previously. 
 
 In another area of the spatial statistics, the 
-analysis of areal data, there is models specified 
-by conditional distributions that implies a joint 
+analysis of areal data, there are models specified 
+by conditional distributions that imply a joint 
 distribution with a sparse precision matrix. 
-These models are called the 
-Gaussian Markov random fields (GMRF), 
-\cite{RueHeld:2005}. 
-So, the inference when we use GMRF is more easy 
-to do than we use the GF, because to work with two dimensional 
-GMRF models, we have cost of $O(n^{3/2})$ 
+These models are called Gaussian Markov random 
+fields (GMRF), \cite{RueHeld:2005}. 
+It is easier to make Bayesian inference when we use a GMRF 
+than when we use the GF, because to work with two dimensional 
+GMRF models we have a cost of $O(n^{3/2})$ 
 on the computations with its precision matrix. 
-So, it is more easy to make analysis with big 'n'. 
+This makes it easier to conduct analyses with big 'n'. 

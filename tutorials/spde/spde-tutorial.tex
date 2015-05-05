@@ -12,6 +12,7 @@
 \newcommand{\bC}{\mbox{\protect \boldmath $C$}}
 \newcommand{\bG}{\mbox{\protect \boldmath $G$}}
 \newcommand{\bK}{\mbox{\protect \boldmath $K$}}
+\newcommand{\bI}{\mbox{\protect \boldmath $I$}}
 \newcommand{\bQ}{\mbox{\protect \boldmath $Q$}}
 \newcommand{\bM}{\mbox{\protect \boldmath $M$}}
 \newcommand{\bU}{\mbox{\protect \boldmath $U$}}
@@ -31,20 +32,26 @@ Suggestions are welcome to \texttt{elias@r-inla.org}}
 \maketitle
 
 \begin{abstract}
-  In this tutorial we presents how we fit models 
-  to spatial point refered data, the called 
+  In this tutorial we present how to fit models 
+  to spatial point-referenced data, the so-called 
   geostatistical model, using INLA and SPDE. 
-  Before a fast introduction on such models, 
+  After a fast introduction to such models, 
   we start with the mesh building 
   (necessary to fit the models) and show the application 
-  on a toy example with details. 
-  In forward examples we presents some funcionalities 
-  to fit more complex models, such as  non-Gaussian,  
-  models with two likelihoods, such as a semi-continuous,  
-  missaligned and preferential sampling, where we model 
-  jointly the point pattern process. Also, we introduce 
-  the non-stationary SPDE models, space-time model, data-cloning.
+  to a toy example with details. 
+  In the following examples we presents some funcionalities 
+  to fit more complex models, including non-Gaussian models 
+  and those with two likelihoods, such as semi-continuous,  
+  missaligned and preferential sampling, where we joingly model 
+  the point pattern process. Also, we introduce 
+  non-stationary SPDE models, and show hot wo fit 
+  some space-time models, including point process, 
+  and lowering time dimention. 
+  We also briefly present the data-cloning approach.
 \end{abstract} 
+
+\section{Acknowledgments}
+To Helen Sofaer for valuable English review in Chapter~1. 
 
 \input{updates} 
 
@@ -54,11 +61,14 @@ Suggestions are welcome to \texttt{elias@r-inla.org}}
 \input{spde-tutorial-spde-introduction}
 \input{spde-tutorial-toy} 
 \input{spde-tutorial-rain} 
+\input{spde-tutorial-survival}
 \input{spde-tutorial-semicontinuous} 
 \input{spde-tutorial-jcovar} 
 \input{spde-tutorial-nonstationar} 
+\input{spde-tutorial-spacetime}
+\input{spde-tutorial-lower-spatio-temporal}
 \input{spde-tutorial-prefsampl} 
-\input{spde-tutorial-spacetime} 
+\input{spde-tutorial-burkitt}
 \input{spde-tutorial-datacloning} 
 
 \bibliographystyle{apalike}
