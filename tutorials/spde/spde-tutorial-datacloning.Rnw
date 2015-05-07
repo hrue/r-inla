@@ -15,23 +15,10 @@ with the hybrid data clone when the
 random effect are 'iid' on 
 \url{http://www.math.ntnu.no/inla/r-inla.org/papers/FS8-2010-R.pdf}
 
-Here we use the hybrid data cloning 
-approach to see what happens with the 
-parameters of the toy spatial continuous 
-model considering the SPDE model. 
-
-We use the toy data set 
+We use the toy data set and built the mesh and SPDE model as follows:
 <<toydat>>=
-data(SPDEtoy)
-coords <- as.matrix(SPDEtoy[,1:2])
-@ 
-with the mesh 
-<<mesh>>=
-(mesh <- inla.mesh.2d(coords, cutoff=0.05,
-                      max.edge=c(0.1, 0.2)))$n 
-@ 
-to build the model
-<<spde>>=
+data(SPDEtoy);    coords <- as.matrix(SPDEtoy[,1:2])
+mesh <- inla.mesh.2d(coords, cutoff=0.05, max.edge=1:2/10)
 spde <- inla.spde2.matern(mesh)
 @ 
 
@@ -43,8 +30,7 @@ function \code{f()}.
 The \code{inla.spde.make.index} function 
 allow us to make the replica index. 
 
-In the following code we do a loop 
-on the number o clones an fit the model 
+The following code loops on the number of clones an fit the model 
 with replications 
 <<dclonerun>>=
 n <- nrow(coords); k <- c(1,2,3,5,10); names(k) <- k
@@ -64,15 +50,15 @@ for (i in 1:length(k)) {
 }
 @ 
 
-Also we get the posterior marginal distribution 
-of the marginal variance and practical range with
+The posterior marginal distributions 
+for the marginal variance and practical range:
 <<rfpars>>=
 res.f <- lapply(1:length(resk), function(i)
                 inla.spde2.result(resk[[i]], 'i', spde, do.transf=TRUE))
 @ 
 
-We collect the results of the posterior mean 
-and posterior variance of each parameter with 
+Collecting the results of the posterior mean 
+and posterior variance of each parameter:
 <<>>=
 r <- list()
 r$Intercept <- sapply(resk, function(x)
@@ -113,7 +99,7 @@ variance of each parameter ($\beta_0$, $\sigma_y^2$,
 $\sigma_x^2$ and $\kappa$) relative to 
 the result without clone ($k=1$). 
 Also, to compare, we visualize the 
-likelihood estimate. This graphs are on the 
+likelihood estimate. These plots are shown in 
 Figure~\ref{fig:dclon} with following commands
 <<dcloneplot, eval=F>>=
 par(mfrow=c(2, 2), mar=c(3,3,2,1), mgp=c(1.5,.5,0)) 
@@ -124,7 +110,7 @@ for (i in 1:length(r)) {
   abline(h=lk.est[i]/r[[i]][1,1], col=4, lty=3) 
 }
 @ 
-\setkeys{Gin}{width=0.9\textwidth}
+\setkeys{Gin}{width=0.7\textwidth}
 \begin{figure}\centering 
 <<dclonevis,fig=T,eps=F,echo=F,width=5.5,height=5.5>>=
 <<dcloneplot>>
