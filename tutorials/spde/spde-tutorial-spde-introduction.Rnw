@@ -284,8 +284,10 @@ The maximum likelihood estimation is done
 using the \code{optim()} function. 
 Using the default Nelder-Mead method
 <<nm>>= 
-opt <- optim(log(c(sigma2e/sigma2x, kappa)), negLogLikFun, hessian=TRUE,
-             X=matrix(1,nrow(xy)), A=A, y=SPDEtoy[,3], spde=spde) 
+opt <- optim(log(c(sigma2e/sigma2x, kappa)), 
+             negLogLikFun, hessian=TRUE,
+             X=matrix(1,nrow(xy)), A=A, 
+             y=SPDEtoy[,3], spde=spde)
 @ 
 
 We also define a function to map the 
@@ -303,10 +305,10 @@ We use this function to compare the results with
 the results from the \code{geoR} package 
 <<lkfgeoR>>=
 require(geoR)
-system.time(lkf <- likfit(as.geodata(SPDEtoy),
-                          ini=c(sigma2x, 1/kappa), 
-                          kappa=1, ### kappa in geoR is nu 
-                          nugget=sigma2e))
+lkf <- likfit(as.geodata(SPDEtoy),
+              ini=c(sigma2x, 1/kappa), 
+              kappa=1, ### kappa in geoR is nu 
+              nugget=sigma2e, messages=FALSE)
 @ 
 and have similar results 
 <<compare>>=
