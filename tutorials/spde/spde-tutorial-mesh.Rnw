@@ -254,7 +254,7 @@ for (i in 10:13) {
    points(p5, pch=19, col=2); title(main=paste('m', i, sep=''))
 }
 @ 
-\setkeys{Gin}{width=0.99\textwidth}
+\setkeys{Gin}{width=0.7\textwidth}
 \begin{figure}\centering
 <<vnonconmeshv,echo=F,results=hide,fig=TRUE,eps=FALSE,width=5.5,height=5.5>>=
 <<nonconmeshv>>
@@ -347,9 +347,8 @@ and the other is the coordinates reference system.
 
 We have the daily rainfall data 
 <<prrain>>=
-data(PRprec)
-dim(PRprec)
-PRprec[1:3, 1:10]
+data(PRprec); dim(PRprec)
+PRprec[1:2, 1:10]
 @ 
 that consists of the daily rainfall data from \code{616} 
 stations for each day of the 2011 year. 
@@ -358,8 +357,7 @@ are on the latlong projection.
 
 Also, we have the Paran\'a state polygon with 
 <<prpl>>=
-data(PRborder)
-dim(PRborder)
+data(PRborder); dim(PRborder)
 @ 
 that consists of a set of \code{2055} 
 points on the latlong projection. 
@@ -417,7 +415,7 @@ To do it, we use the \code{unionSpatialPolygons()}
 package~\cite{rgeos}. If we don't have the \pkg{rgeos} 
 we can use the \pkg{gpclib} package, but we need to set 
 a permission before the work with this library 
-<<uionsp>>=
+<<uionsp,results=hide>>=
 gpclibPermit()
 nc.border <- unionSpatialPolygons(nc.sids, rep(1, nrow(nc.sids)))
 @ 
@@ -426,9 +424,7 @@ Now, we use the \code{inla.sp2segment()} to extract the
 boundary of the \code{SpatialPolygons} object that contains 
 the border of the map 
 <<ncsegment>>=
-require(INLA)
 nc.bdry <- inla.sp2segment(nc.border)
-
 @ 
 and creates the mesh
 <<ncmesh>>=
@@ -467,32 +463,32 @@ Sometimes we need to deal with physical boundaries.
 It can be when there is a hole inside the domain or when the domain shape is not convex. 
 An example of application is when modelling fish and we have to consider 
 the inland as a physical barrier and, sometimes, islands inside the domain. 
-In the Figure~\ref{fig:lakehole} we have two neighbour regions, 
+
+The polygons in the Figure~\ref{fig:lakehole} were created with the following commands:
+<<hexample,eval=FALSE>>=
+pl1 <- Polygon(cbind(c(0,15,15,0,0), c(5,0,20,20,5)), hole=FALSE)
+h1 <- Polygon(cbind(c(5,7,7,5,5), c(7,7,15,15,7)), hole=TRUE)
+pl2 <- Polygon(cbind(c(15,20,20,30,30,15,15), c(10,10,0,0,20,20,10)), hole=FALSE)
+sp <- SpatialPolygons(list(Polygons(list(pl1, h1), '0'), Polygons(list(pl2), '1')))
+par(mar=c(0,0,0,0)); plot(sp) ### to visualize it
+text(c(13, 17, 23), c(3, 12, 3), LETTERS[1:3], cex=3)
+@ 
+\setkeys{Gin}{width=0.7\textwidth}
+\begin{figure}\centering
+<<plotlake,echo=F,results=hide,fig=TRUE,eps=FALSE,width=7,height=5>>=
+<<hexample>>
+@ 
+\caption{Region with a hole and non convex domain.}
+\label{fig:lakehole}
+\end{figure}
+
+We have two neighbour regions, 
 one with a hole and one with no convex shape.
 Suppose that it is necessary to avoid correlation between 
 near regions separated by land. 
 For example, suppose that we want to make sure that the 
 correlation between A and C is smaller than between 
 A and B or between B and C.
-
-<<hexample,eval=FALSE>>=
-### polygon with hole
-pl1 <- Polygon(cbind(c(0,15,15,0,0), c(5,0,20,20,5)), hole=FALSE)
-h1 <- Polygon(cbind(c(5,7,7,5,5), c(7,7,15,15,7)), hole=TRUE)
-pl2 <- Polygon(cbind(c(15,20,20,30,30,15,15), c(10,10,0,0,20,20,10)), hole=FALSE)
-sp <- SpatialPolygons(list(Polygons(list(pl1, h1), '0'), Polygons(list(pl2), '1')))
-plot(sp) ### to visualize it
-text(c(13, 17, 23), c(3, 12, 3), LETTERS[1:3], cex=3)
-@ 
-
-\setkeys{Gin}{width=0.99\textwidth}
-\begin{figure}\centering
-<<plotlake,echo=F,results=hide,fig=TRUE,eps=FALSE,width=5.5,height=3.5>>=
-<<hexample>>
-@ 
-\caption{Region with a hole and non convex domain.}
-\label{fig:lakehole}
-\end{figure}
 
 In this example we do not want additional points outer the domain. 
 To have it, we have to supply a length one value for \texttt{max.edge}. 
@@ -510,9 +506,9 @@ plot(sp, col=rgb(.3,.7,.9))
 plot(mesh, add=TRUE, lwd=2)
 text(c(13, 17, 23), c(3, 12, 3), LETTERS[1:3], cex=3)
 @ 
-\setkeys{Gin}{width=0.99\textwidth}
+\setkeys{Gin}{width=0.7\textwidth}
 \begin{figure}\centering
-<<plothex,echo=F,results=hide,fig=TRUE,eps=FALSE,width=5.5,height=5.5>>=
+<<plothex,echo=F,results=hide,fig=TRUE,eps=FALSE,width=7,height=5>>=
 <<holeexample>>
 @ 
 \caption{Triangulation with hole and non convex shaped region}

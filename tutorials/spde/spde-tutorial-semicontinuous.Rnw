@@ -11,6 +11,9 @@ lcall <- inla.getOption('inla.call')
 inla.setOption(inla.call='remote') 
 @ 
 
+This chapter is better presented in the 
+last chapter of~\cite{blangiardoC:2015}.
+
 In some applications we have data with is 
 hard to fit a single distribution to. 
 For example, when whe have more zeros than 
@@ -41,7 +44,7 @@ A particular case in this problem is that
 the daily cumulated precipitation 
 is commonly very asymmetric. 
 
-\section{The model and data} 
+\section{The hurdle continuous model}
 
 In this section we build a jointly model 
 for occurrence and rainfall amount. 
@@ -98,10 +101,12 @@ $\beta_x$ is a scaling parameter to $x_i$
 that is a shared random effect with the 
 first component of the model. 
 
+\section{The daily rainfall data} 
+
 We use a rainfall data collected by the 
 Brasilian National Wather Agency. 
 We have a dataset collected at 616 
-gauge stations for each day of 2012. 
+gauge stations for each day of 2011. 
 These stations covers the 
 Paran\'a State in South of Brasil. 
 
@@ -119,7 +124,7 @@ at three stations with
 PRprec[1:3, 1:10] 
 @ 
 Also considering the first seven days, 
-a summary over stations 
+A summary over stations for the first seven days
 and the number of stations with rain
 <<summ>>=
 sapply(PRprec[,4:10], summary) 
@@ -155,6 +160,7 @@ q.y <- c(0, quantile(y, 0:7/7, na.rm=T))
 legend('topright', format(q.y, dig=2), pch=1, bty='n', 
        pt.cex=0.3+q.y/20, col=c('red',rep('blue',length(q.y)-1))) 
 @ 
+\setkeys{Gin}{width=0.99\textwidth} 
 \begin{figure}\centering 
 <<vrain,echo=F,fig=T,eps=F,width=11,height=4.5>>=
 <<rain>>
@@ -164,7 +170,7 @@ legend('topright', format(q.y, dig=2), pch=1, bty='n',
 \label{fig:rain}
 \end{figure}
 
-\section{Fitting the model and some results}
+\section{Model fitting and some results}
 
 First we need to define the mesh 
 and prepare the data to fit the model. 
@@ -173,17 +179,6 @@ mesh <- inla.mesh.2d(cbind(PRprec[,1], PRprec[,2]),
                      max.edge=c(0.5, 1), cutoff=0.05) 
 mesh$n
 @ 
-This mesh can be visualized at Figure~\ref{fig:prmesh} 
-with following commands 
-<<plotprmesh, eval=FALSE>>=
-plot(mesh, asp=1)
-@ 
-\begin{figure}\centering 
-  <<vprmesh,figure=TRUE,eps=FALSE,width=5.5,height=5>>=
-  <<plotprmesh>>
-  @
-  \caption{Mesh for the Paran\'a state.}
-\end{figure}\label{fig:prmesh} 
 
 The SPDE model definition is made by 
 <<spdedef>>=
@@ -336,8 +331,8 @@ and it looks similar to observed:
 c(occ=mean(z, na.rm=TRUE), rain=mean(y, na.rm=TRUE)) 
 @ 
 
-The summary of the posterior distribution of the 
-precision parameter on second component is
+The summary for the posterior marginal distribution of Gamma
+precision parameter is
 <<sphi>>=
 res.yz$summary.hy[1, ] 
 @ 
@@ -357,8 +352,9 @@ plot(res.yz$marginals.hy[[1]], type='l', ylab='Density',
 plot(res.yz$marginals.hy[[4]], type='l', ylab='Density', 
      xlab=expression(beta)) 
 @ 
+\setkeys{Gin}{width=0.9\textwidth} 
 \begin{figure}\centering 
-<<vpost,echo=F,fig=T,eps=F,width=11,height=4.5>>=
+<<vpost,echo=F,fig=T,eps=F,width=7.7,height=3.5>>=
 <<post>>
 @ 
 \caption{Posterior marginal distributions 
@@ -387,8 +383,9 @@ plot(res.yz$summary.random$i.z$mean[ordx], type='l', ylab='x',
 for (i in c(4,6)) lines(res.yz$summary.random$i.z[ordx,i], lty=2) 
 abline(h=0, lty=3) 
 @ 
+\setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering 
-<<vxq,echo=F,fig=T,eps=F,width=11,height=4.5>>=
+<<vxq,echo=F,fig=T,eps=F,width=9,height=4>>=
 <<xq>>
 @ 
 \caption{Posterior man of each $x_i$ (continuous line) 
