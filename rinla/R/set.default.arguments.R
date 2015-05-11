@@ -301,7 +301,7 @@
     ##:EXTRA: 
     ##:NAME: control.fixed
     list(
-        ##:ARGUMENT: expand.factor.strategy The strategy used to expand factors into fixed effects based on their levels. The default strategy is us use the \code{model.matrix}-function for which NA's are not allowed (\code{expand.factor.strategy="model.matrix"}) and levels are possible removed. The alternative option (\code{expand.factor.strategy="inla"}) use an \code{inla}-spesific expansion which expand a factor into one fixed effects for each level, do allow for NA's and all levels are present in the model.
+        ##:ARGUMENT: expand.factor.strategy The strategy used to expand factors into fixed effects based on their levels. The default strategy is us use the \code{model.matrix}-function for which NA's are not allowed (\code{expand.factor.strategy="model.matrix"}) and levels are possible removed. The alternative option (\code{expand.factor.strategy="inla"}) use an \code{inla}-spesific expansion which expand a factor into one fixed effects for each level, do allow for NA's and all levels are present in the model. In this case, factors MUST BE factors in the data.frame/list and NOT added as \code{...+factor(x1)+...} in the formula only.
         expand.factor.strategy = "model.matrix", 
 
         ##:ARGUMENT: cdf  A list of values to compute the CDF for, for all fixed effects
