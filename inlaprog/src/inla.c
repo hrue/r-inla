@@ -6036,14 +6036,14 @@ int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *
 		case SURV_EVENT_RIGHT:
 			for (i = 0; i < m; i++) {
 				eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log(1.0 - FF(upper, eta));
+				logll[i] = log(1.0 - FF(lower, eta));
 			}
 			break;
 
 		case SURV_EVENT_LEFT:
 			for (i = 0; i < m; i++) {
 				eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log(FF(lower, eta));
+				logll[i] = log(FF(upper, eta));
 			}
 			break;
 
@@ -6110,14 +6110,14 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 		case SURV_EVENT_RIGHT:
 			for (i = 0; i < m; i++) {
 				eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log(1.0 - FF(upper, eta));
+				logll[i] = log(1.0 - FF(lower, eta));
 			}
 			break;
 
 		case SURV_EVENT_LEFT:
 			for (i = 0; i < m; i++) {
 				eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log(FF(lower, eta));
+				logll[i] = log(FF(upper, eta));
 			}
 			break;
 		case SURV_EVENT_INTERVAL:
