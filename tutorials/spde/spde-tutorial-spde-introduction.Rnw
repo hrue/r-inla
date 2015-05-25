@@ -145,7 +145,7 @@ We can generate samples at a million of locations
 in a matter of seconds  
 <<sample>>=
 pts1 <- matrix(runif(2e6), ncol=2)
-x1 <- rspde(pts1, kappa=5)
+x1 <- rspde(pts1, kappa=5, return.attributes=TRUE)
 @ 
 
 Some summary
