@@ -1,4 +1,4 @@
-\chapter{Non stationary model}
+\chapter{Explanatory variables in the covariance}
 
 \SweaveOpts{prefix.string=figs/nonstationar} 
 <<opts,echo=F,results=hide>>=
@@ -11,16 +11,16 @@ lcall <- inla.getOption('inla.call')
 
 \section{Introduction}
 
-To introduce the non stationarity 
+In this Chapter we present the model proposed 
+in~\cite{ingebrigtsenLS:2013}. 
+To introduce variables in the covariance matrix 
 we need to remember the definition 
 of the precision matrix of the 
 GMRF that defines the RF. 
 This matrix is defined on equations 
 (\ref{eq:Qalpha}) and (\ref{eq:Qfrac}). 
-The non stationarity is made by a 
-redefinition of the precision matrix. 
 
-This new definition is 
+These matrices are written in a more general way
 \begin{equation}\label{eq:Qnst}
   \bQ = \bD^{(0)}(\bD^{(1)}\bM^{(0)}\bD^{(1)} + 
   \bD^{(2)}\bD^{(1)}\bM^{(1)} + (\bM^{(1)})^T\bD^{(1)}\bD^{(2)} + 
@@ -38,7 +38,7 @@ $\bM^{(2)}=\bG\bC^{-1}\bG$.
 
 All three $\bD^{(0)}$, $\bD^{(1)}$ and $\bD^{(2)}$ 
 are diagonal with elements used to 
-describe the non-stationarity. 
+describe non-stationarity. 
 The definition of these matrixes are
 \begin{align*}
 \bD^{(0)} = diag\{\bD^{(0)}_i\} = diag\{e^{{\phi}^{(0)}_i}\} \\
@@ -61,9 +61,13 @@ for the scaling parameter $\kappa$.
 When this matrix have just one line, 
 the another lines are formed using the 
 same element of this first line. 
+
 In the next section, we add one of the 
 location coordinates as a fourth column 
 to build a non stationary model. 
+This is a kind of non stationarity 
+that allows variation in the variance and range 
+over the domain. 
 
 \section{An example}
 
