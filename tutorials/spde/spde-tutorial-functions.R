@@ -1,5 +1,5 @@
-rspde <- function(coords, kappa, variance=1, alpha=2, n=1, 
-                  verbose=TRUE, mesh, return.attributes=TRUE) {
+rspde <- function(coords, kappa, variance=1, alpha=2, n=1, mesh, 
+                  verbose=FALSE, seed, return.attributes=FALSE) {
     t0 <- Sys.time()
     theta <- c(-0.5*log(4*pi*variance*kappa^2), log(kappa))
     if (verbose) cat('theta =', theta, '\n')
@@ -21,8 +21,9 @@ rspde <- function(coords, kappa, variance=1, alpha=2, n=1,
             Q=attributes$Q,
             constr=attributes$spde$f$extraconstr))
     t1 <- Sys.time() 
-    result <- inla.qsample(n, attributes$Q,
-                           constr=attributes$spde$f$extraconstr)
+    result <- inla.qsample(n, attributes$Q, 
+                           seed=ifelse(missing(seed), 0, seed), 
+                           constr=attributes$spde$f$extraconstr) 
     if (nrow(result)<nrow(attributes$A)) {
         result <- rbind(result, matrix(
             NA, nrow(attributes$A)-nrow(result), ncol(result)))
