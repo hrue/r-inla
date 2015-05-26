@@ -1,4 +1,4 @@
-\chapter{A space time example}
+\chapter{A space time example}\label{ch:spacetime}
 
 \SweaveOpts{prefix.string=figs/spacetime} 
 <<sett,echo=F,results=hide>>=
@@ -63,7 +63,8 @@ The $k$ independent realizations can be done by
 <<rk>>=
 params <- c(variance=1, kappa=1/2) 
 set.seed(1)
-x.k <- rspde(coords, kappa=1/2, n=k, mesh=prmesh1)
+x.k <- rspde(coords, kappa=1/2, n=k, 
+             mesh=prmesh1, return.attributes=TRUE)
 dim(x.k)
 @ 
 
