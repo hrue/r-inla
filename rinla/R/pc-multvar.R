@@ -225,11 +225,11 @@ inla.pc.multvar.sphere.d.core = function(x, lambda = 1, log = FALSE,
 {
     ## evaluate the density from the pc prior where d = h(1/2 * \sum x_i^2), x_i >=0.
 
-    sphere.log.volume = function(n)
+    sphere.log.surface = function(n)
     {
-        ## volumne of the sphere in n-dimensions with radii=1
-        ## https://en.wikipedia.org/wiki/Volume_of_an_n-ball
-        return (n/2*log(pi) - lgamma(n/2 +1))
+        ## surface of the sphere in n-dimensions with radii=1
+        ## n=0 line, n=1 circle, n=2 sphere etc
+        return (log(n+1) +  (n+1)/2*log(pi) - lgamma((n+1)/2 +1))
     }
 
     ## each row is a sample
@@ -244,8 +244,8 @@ inla.pc.multvar.sphere.d.core = function(x, lambda = 1, log = FALSE,
         function(z) {
             r = sqrt(sum(z^2))
             d = h(0.5*r^2)
-            ldens = (- log(2) + log(lambda) - lambda * d + log(abs(h(0.5*r^2, derivative = TRUE)))
-                     - (p-1)*log(r) - sphere.log.volume(p-1) + log(mean(abs(z))))
+            ldens = (log(lambda) - lambda * d + log(abs(h(0.5*r^2, derivative = TRUE)))
+                     - (p-2)*log(r) - sphere.log.surface(p-1))
             return (ldens)
         })
 
