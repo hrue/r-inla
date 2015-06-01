@@ -1362,6 +1362,7 @@ double Qfunc_group(int i, int j, void *arg)
 		ardef = a->ardef;
 		break;
 
+	case G_I: 
 	case G_RW1:
 	case G_RW2:
 	case G_BESAG:
@@ -1413,6 +1414,10 @@ double Qfunc_group(int i, int j, void *arg)
 			fac = prec * Qfunc_besag(igroup, jgroup, (void *) (a->besagdef));
 			break;
 
+		case G_I:
+			fac = prec;
+			break;
+			
 		default:
 			inla_error_general("This should not happen.");
 			abort();
@@ -1446,6 +1451,10 @@ double Qfunc_group(int i, int j, void *arg)
 			fac = prec * Qfunc_besag(igroup, jgroup, (void *) (a->besagdef));
 			break;
 
+		case G_I:
+			fac = prec * 0.0;
+			break;
+			
 		default:
 			inla_error_general("This should not happen.");
 			abort();
@@ -1531,6 +1540,13 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 					GMRFLib_ged_insert_graph2(ged, graph, i * n, j * n);
 				}
 			}
+		}
+		break;
+
+	case G_I:
+		assert(ngroup >= 1);
+		for (i = 0; i < ngroup; i++) {
+			GMRFLib_ged_insert_graph2(ged, graph, i * n, i * n);
 		}
 		break;
 
@@ -17276,6 +17292,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				mb->f_group_model[mb->nf] = G_RW2;
 			} else if (!strcasecmp(ptmp, "BESAG")) {
 				mb->f_group_model[mb->nf] = G_BESAG;
+			} else if (!strcasecmp(ptmp, "I")) {
+				mb->f_group_model[mb->nf] = G_I;
 			} else {
 				GMRFLib_sprintf(&msg, "%s: Unknown GROUP.MODEL: %s\n", secname, ptmp);
 				inla_error_general(msg);
@@ -17303,6 +17321,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			case G_RW1:
 			case G_RW2:
 			case G_BESAG:
+			case G_I:
 				fixed = iniparser_getboolean(ini, inla_string_join(secname, "GROUP.FIXED"), 0);
 				tmp = iniparser_getdouble(ini, inla_string_join(secname, "GROUP.INITIAL"), 0.0);
 				if (!fixed && mb->reuse_mode) {
@@ -17350,6 +17369,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					mb->f_ntheta[mb->nf]++;
 					break;
 
+				case G_I: 
 				case G_RW1:
 				case G_RW2:
 				case G_BESAG:
@@ -17409,6 +17429,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 						mb->theta_map_arg[mb->ntheta] = NULL;
 						break;
 
+					case G_I: 
 					case G_RW1:
 					case G_RW2:
 					case G_BESAG:
@@ -18783,6 +18804,13 @@ double extra(double *theta, int ntheta, void *argument)
 				}					\
 			} else if (mb->f_group_model[i] == G_RW1 || mb->f_group_model[i] == G_RW2 || mb->f_group_model[i] == G_BESAG) { \
 				grankdef = (mb->f_group_model[i] == G_RW1 || mb->f_group_model[i] == G_BESAG ? 1.0 : 2.0); \
+				group_prec = map_precision(group_prec_intern, MAP_FORWARD, NULL); \
+				normc_g = 0.5 * (ngroup - grankdef) * log(group_prec); \
+				if (NOT_FIXED(f_fixed[i][(_nt_)])) {	\
+					val += PRIOR_EVAL(mb->f_prior[i][(_nt_)], &group_prec_intern); \
+				}					\
+			} else if (mb->f_group_model[i] == G_I) {	\
+				grankdef = 0.0;				\
 				group_prec = map_precision(group_prec_intern, MAP_FORWARD, NULL); \
 				normc_g = 0.5 * (ngroup - grankdef) * log(group_prec); \
 				if (NOT_FIXED(f_fixed[i][(_nt_)])) {	\
