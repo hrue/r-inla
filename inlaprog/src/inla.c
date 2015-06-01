@@ -2288,7 +2288,7 @@ double priorfunc_betacorrelation(double *x, double *parameters)
 	 * The function returns the log prior for \rho.intern = log((1 +\rho)/(1-\rho))
 	 */
 	double p = exp(*x) / (1.0 + exp(*x)), a = parameters[0], b = parameters[1];
-	return log(gsl_ran_beta_pdf(p, a, b)) + 2.0 * (*x) - 2.0 * log(1.0 + exp(*x));
+	return log(gsl_ran_beta_pdf(p, a, b)) + log(2.0) + (*x) - 2.0 * log(1.0 + exp(*x));
 }
 double priorfunc_logitbeta(double *x, double *parameters)
 {
