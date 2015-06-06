@@ -5634,6 +5634,11 @@
                  pdf = NA
                  ), 
 
+             ref.ar = list(
+                 nparameters = 0L,
+                 pdf = NA
+                 ),
+             
              jeffreystdf = list(
                  nparameters = 0L,
                  pdf = "jeffreystdf"

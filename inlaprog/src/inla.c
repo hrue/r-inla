@@ -1362,7 +1362,7 @@ double Qfunc_group(int i, int j, void *arg)
 		ardef = a->ardef;
 		break;
 
-	case G_I: 
+	case G_I:
 	case G_RW1:
 	case G_RW2:
 	case G_BESAG:
@@ -1417,7 +1417,7 @@ double Qfunc_group(int i, int j, void *arg)
 		case G_I:
 			fac = prec;
 			break;
-			
+
 		default:
 			inla_error_general("This should not happen.");
 			abort();
@@ -1454,7 +1454,7 @@ double Qfunc_group(int i, int j, void *arg)
 		case G_I:
 			fac = prec * 0.0;
 			break;
-			
+
 		default:
 			inla_error_general("This should not happen.");
 			abort();
@@ -2353,6 +2353,50 @@ double priorfunc_pc_ar(double *x, double *parameters)
 	Free(b);
 	Free(gamma);
 	Free(pacf);
+
+	return (ldens);
+}
+double priorfunc_ref_ar(double *x, double *parameters)
+{
+	int i, p;
+	double lambda, *b, *gamma, pacf[3], ldens, logjac;
+
+	p = (int) parameters[0];
+	assert(p >= 0 && p <= 3);
+	for (i = 0; i < p; i++) {
+		pacf[i] = map_phi(x[i], MAP_FORWARD, NULL);
+	}
+
+	switch (p) {
+	case 0:
+		ldens = 0.0;
+		break;
+	case 1:
+		ldens = -log(M_PI)
+		    - 0.5 * log(1.0 - SQR(pacf[0]))
+		    + log(ABS(map_phi(x[0], MAP_DFORWARD, NULL)));
+		break;
+	case 2:
+		ldens = -2.0 * log(M_PI)
+		    - 0.5 * log(1.0 - SQR(pacf[0]))
+		    - 0.5 * log(1.0 - SQR(pacf[1]))
+		    + log(ABS(map_phi(x[0], MAP_DFORWARD, NULL)))
+		    + log(ABS(map_phi(x[1], MAP_DFORWARD, NULL)));
+		break;
+	case 3:
+		ldens = -2.0 * log(M_PI)
+		    - log(1.12)
+		    - 0.5 * log(1.0 - SQR(pacf[0]))
+		    - 0.5 * log(1.0 - SQR(pacf[1]))
+		    - 0.5 * log(1.0 - SQR(pacf[2]))
+		    - M_PI * SQR(pacf[2])
+		    + log(ABS(map_phi(x[0], MAP_DFORWARD, NULL)))
+		    + log(ABS(map_phi(x[1], MAP_DFORWARD, NULL)))
+		    + log(ABS(map_phi(x[2], MAP_DFORWARD, NULL)));
+		break;
+	default:
+		GMRFLib_ASSERT(p <= 3 && p >= 0, GMRFLib_EPARAMETER);
+	}
 
 	return (ldens);
 }
@@ -7152,6 +7196,14 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		}
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g]\n", prior_tag, param_tag, prior->parameters[0]);
+		}
+	} else if (!strcasecmp(prior->name, "REFAR")) {
+		prior->id = P_REF_AR;
+		prior->priorfunc = priorfunc_ref_ar;
+		prior->parameters = Calloc(1, double);
+		prior->parameters[0] = -1;		       /* ORDER: to be decided */
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[NULL]\n", prior_tag, param_tag);
 		}
 	} else if (!strncasecmp(prior->name, "EXPRESSION:", strlen("EXPRESSION:"))) {
 		prior->id = P_EXPRESSION;
@@ -14107,7 +14159,26 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tntheta = [%1d]\n", ntheta);
 		}
-		mb->f_prior[mb->nf][1].parameters[1] = ntheta - 1;	/* add the order as the second parameter in the pc-prior! */
+
+		/*
+		 * add the order as a parameter in the prior
+		 */
+		switch (mb->f_prior[mb->nf][1].id) {
+		case P_PC_AR:
+			/*
+			 * add the order as the second parameter in the pc-prior! 
+			 */
+			mb->f_prior[mb->nf][1].parameters[1] = mb->f_order[mb->nf];
+			break;
+		case P_REF_AR:
+			/*
+			 * add the order as the first parameter in the ref-prior! 
+			 */
+			mb->f_prior[mb->nf][1].parameters[0] = mb->f_order[mb->nf];
+			break;
+		default:
+			break;
+		}
 
 		/*
 		 * mark all possible as read 
@@ -17369,7 +17440,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					mb->f_ntheta[mb->nf]++;
 					break;
 
-				case G_I: 
+				case G_I:
 				case G_RW1:
 				case G_RW2:
 				case G_BESAG:
@@ -17429,7 +17500,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 						mb->theta_map_arg[mb->ntheta] = NULL;
 						break;
 
-					case G_I: 
+					case G_I:
 					case G_RW1:
 					case G_RW2:
 					case G_BESAG:
@@ -20209,9 +20280,6 @@ double extra(double *theta, int ntheta, void *argument)
 			ldens = priorfunc_mvnorm(zero, param) + (n_ar - p - mb->f_rankdef[i]) * (-0.5 * log(2 * M_PI) + 0.5 * log(conditional_prec));
 			val += mb->f_nrep[i] * (ldens * (ngroup - grankdef) + normc_g);
 
-			/*
-			 * this is the mvnormal prior...  'count_ref' is the 'first theta as this is a mutivariate prior.
-			 */
 			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
