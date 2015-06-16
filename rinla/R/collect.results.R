@@ -1019,7 +1019,7 @@ inla.internal.experimental.mode = FALSE
         fam.dic = dic.values[4L]
         fam.p.eff = dic.values[3L]
         
-        if (!is.null(f.idx)) {
+        if (!is.null(f.idx) && !all(is.na(f.idx))) {
             n.fam = max(f.idx, na.rm = TRUE)
             fam.dic = numeric(n.fam)
             fam.p.eff = numeric(n.fam)
