@@ -8,7 +8,7 @@ skewness = 0.25
 y = numeric(n)
 for(i in 1:n) {
     param = INLA:::inla.sn.reparam(moments = c(eta[i], 1/prec[i], skewness))
-    y[i] = rsn(1, xi=eta[i], omega = param$omega, alpha = param$alpha)
+    y[i] = rsn(1, xi=param$xi, omega = param$omega, alpha = param$alpha)
 }
 r = inla(y ~ 1 + x, family = "sn2", scale = w, data = data.frame(y, x, w),  verbose=T)
 summary(r)
