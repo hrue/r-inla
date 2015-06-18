@@ -3813,9 +3813,8 @@ int loglikelihood_skew_normal2(double *logll, double *x, int m, int idx, double 
 			alpha = SIGN(skewness) * sqrt(g / (1.0 - g));
 			delta = alpha / sqrt(1.0 + SQR(alpha));
 			omega = sqrt(variance / (1.0 - 2.0 * SQR(delta) / M_PI));
-			// Do not do this anymore...
-			// xi = ypred - omega * delta * sqrt(2.0 / M_PI); 
-			xi = ypred;
+			xi = ypred - omega * delta * sqrt(2.0 / M_PI); 
+			//xi = ypred;
 			xarg = (y - xi) / omega;
 			logll[i] = LOG_NORMC_GAUSSIAN + M_LOG2E - log(omega) - 0.5 * SQR(xarg) + inla_log_Phi_fast(alpha * xarg);
 		}
