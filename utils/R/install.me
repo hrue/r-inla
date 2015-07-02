@@ -8,7 +8,7 @@ rm INLA*tar.gz INLA*tgz INLA*zip
 
 bdate=$(date -d @$epoch +%Y%m%d%H%M)
 date=$(date -d @$epoch)
-D=inla/rinla/R
+D=r-inla/rinla/R
 DD=INLA/R
 
 hg=$(cd $D >/dev/null 2>/dev/null; hg parents --template 'hgid: {node|short}  date: {date|date}')
