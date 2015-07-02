@@ -103,7 +103,7 @@ inla.changelog()
 %%
 will take your browser to the list of the most recent changes. You can also visit
 \begin{verbatim}
-    inla.googlecode.com
+    bitbucket.org/hrue/r-inla
 \end{verbatim}
 to view or download the complete source-code. 
 

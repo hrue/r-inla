@@ -246,7 +246,7 @@ inla.changelog()
 %%
 will place your browser at the list of the most recent changes. You can also visit
 \begin{verbatim}
-    inla.googlecode.com
+    bitbucket.org/hrue/r-inla
 \end{verbatim}
 to view or download the complete source-code. 
 
@@ -1499,5 +1499,5 @@ There is a dedicated web-site for \tv{R-INLA}
 \end{verbatim}
 and for the source-code itself
 \begin{verbatim}
-    http://inla.googlecode.com
+    http://bitbucket.org/hrue/r-inla
 \end{verbatim}

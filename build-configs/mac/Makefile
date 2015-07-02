@@ -73,9 +73,9 @@ testmac :;
 
 download :; 
 	$(MAKE) testmac && ( \
-		test -d inla && rm -rf inla;\
-		hg clone https://inla.googlecode.com/hg inla;\
-		ln -sf inla/* .;\
+		test -d r-inla && rm -rf r-inla;\
+		hg clone https://bitbucket.org/hrue/r-inla;\
+		ln -sf r-inla/* .;\
 		mkdir -p local/lib;\
 		mkdir -p local/bin;\
 		mkdir -p local/include; )
