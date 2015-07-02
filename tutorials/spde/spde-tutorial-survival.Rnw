@@ -1,0 +1,204 @@
+\chapter{Survival analysis} 
+
+\SweaveOpts{prefix.string=figs/survival} 
+<<opts,echo=F,results=hide>>=
+options(width=75, prompt = " ", continue = "   ")
+require(INLA)
+require(fields)
+lcall <- inla.getOption('inla.call')
+inla.setOption(inla.call='remote')
+@ 
+
+In this chapter we shown how to fit a survival model using a 
+continuous spatial random effect modeled throught the SPDE approach. 
+We use the data presented in~\cite{hendersonSG:2003}. 
+The original code for the analysis in~\cite{lindgrenRL:2011} 
+is adapted here to use the stack functionality. 
+In the section~\ref{sec:parsurv} we show how to fit a 
+parametric survival model and in the section~\ref{sec:coxph} 
+we also show how to fit the semiparametric 
+Cox proportional hazard model. 
+
+\section{Parametric survival model}\label{sec:parsurv} 
+
+We load the Leukaemia survival data using 
+<<Leuk>>=
+data(Leuk);    sapply(Leuk, summary)
+@ 
+<<echo=FALSE,results=hide>>=
+if (sum(ls()=='nwEngland')==0)
+    load('~/inla-project/source/inla/rinla/data/Leuk.rda')
+@ 
+
+The mesh is builded using the following code
+<<mesh>>=
+loc <- cbind(Leuk$xcoord, Leuk$ycoord)
+bnd1 <- inla.nonconvex.hull(loc, convex=0.05)
+bnd2 <- inla.nonconvex.hull(loc, convex=0.25)
+mesh <- inla.mesh.2d(loc, boundary=list(bnd1, bnd2), 
+    max.edge=c(0.05, 0.2), cutoff=0.005)
+@ 
+
+The projector matrix is obtained with 
+<<proj>>=
+A <- inla.spde.make.A(mesh, loc)
+@ 
+
+The SPDE model is created with 
+<<spde>>=
+spde <- inla.spde2.matern(mesh, alpha=2)
+@ 
+
+The model formula, including the intercept, 
+covariates and the SPDE model is 
+<<form>>=
+formula <- inla.surv(time, cens) ~ 0 + a0 +
+    sex + age + wbc + tpi +
+    f(spatial, model=spde)
+@ 
+
+The trick for building the data stack is to include all 
+the variables needed to the formula. 
+So, for the response we have the \texttt{time} and the 
+censoring pattern \texttt{cens}. 
+The spatial stuff, the intercept and the covariates 
+are included like in the other models. 
+<<stack>>=
+stk <- inla.stack(data=list(time=Leuk$time, cens=Leuk$cens),
+                  A=list(A, 1),
+                  effect=list(
+                      list(spatial=1:spde$n.spde),
+                      data.frame(a0=1, Leuk[,-c(1:4)])))
+@ 
+
+Now, we just had to fit the model. In this example we use 
+the 'weibull' likelihood. Hovewer, other parametric 
+likelihoods can be used as well. 
+<<res,results=hide>>=
+r <- inla(formula, family="weibull", data=inla.stack.data(stk), 
+          control.predictor=list(A=inla.stack.A(stk)))
+@ 
+
+The intercept and the covariate effects can be extracted with 
+<<fix>>=
+round(r$summary.fix, 4)
+@ 
+and the hyperparameters with 
+<<hy>>=
+round(r$summary.hy, 3)
+@ 
+
+We visualize the spatial effect into the map. 
+The map of the districts is also available into the INLA package. 
+First, we define a projection from the mesh into a grid 
+<<prj>>=
+r0 <- diff(range(bbox(nwEngland)[1,]))/diff(range(bbox(nwEngland)[2,]))
+prj <- inla.mesh.projector(mesh, xlim=bbox(nwEngland)[1,], 
+                           ylim=bbox(nwEngland)[2,], 
+                           dims=c(200*r0, 200))
+@ 
+then we interplate it and assign NA for grid points not inside the map
+<<nas>>=
+m.spat <- inla.mesh.project(prj, r$summary.ran$spatial$mean)
+sd.spat <- inla.mesh.project(prj, r$summary.ran$spatial$sd)
+ov <- over(SpatialPoints(prj$lattice$loc), nwEngland)
+sd.spat[is.na(ov)] <- m.spat[is.na(ov)] <- NA
+@ 
+
+The posterior mean and standard deviation are in Figure~\ref{fig:wsmap}. 
+As a result, the spatial effect has continuous variation 
+along the region, rather than constant inside each district.
+<<wscode,eval=FALSE>>=
+par(mfrow=c(1,2), mar=c(0,0,0,0)) 
+image.plot(x=prj$x, y=prj$y, z=m.spat, asp=1, 
+           xlab='', ylab='', axes=FALSE, horizontal=TRUE)
+plot(nwEngland, add=TRUE)
+image.plot(x=prj$x, y=prj$y, z=sd.spat, asp=1, 
+           xlab='', ylab='', axes=FALSE, horizontal=TRUE)
+plot(nwEngland, add=TRUE)
+@
+\setkeys{Gin}{width=0.99\textwidth} 
+\begin{figure}\centering
+<<wsmap,echo=F,fig=T,eps=F,width=7,height=5.3>>= 
+<<wscode>>
+@ 
+\caption{Map of the spatial effect in the Weibull survival model.
+Posterior mean (left) and posterior standard deviation (right).} 
+\label{fig:wsmap}
+\end{figure}
+
+\section{Cox proportional hazard survival model}\label{sec:coxph} 
+
+The Cox proportinal hazard (coxph) survival model can be written 
+as a Poisson regression. 
+In \texttt{R-INLA} it is done internally using the 
+\texttt{inla.coxph()} function. 
+We need this function to pre-prepare the data before using it 
+as input for the \texttt{inla.stack()} function. 
+So, we have to supply the data converted into the Poisson regression 
+data to \texttt{inla.stack()} to prepare then the data stack  
+in order to have the SPDE model included in the model. 
+
+We first define a formula without the spatial effect to have the 
+data extended to the Poisson model. 
+<<coxphdat>>=
+formula0 <- inla.surv(time, cens) ~ 0 + a0 + sex + age + wbc + tpi 
+cph.leuk <- inla.coxph(formula0, data=data.frame(a0=1, Leuk[, c(1:8)]),
+                       control.hazard=list(n.intervals=25))
+@ 
+
+For comparison pourpose we can fit this model using 
+<<coxph0,results=hide>>=
+cph.res0 <- inla(formula0, 'coxph', data=data.frame(a0=1,Leuk))
+@ 
+
+Then, we have to include the spatial effect in the formula
+<<>>=
+cph.formula <- update(cph.leuk$formula, 
+                      '. ~ . + f(spatial, model=spde)')
+@ 
+
+The projector matrix can be built with 
+<<Acph>>=
+cph.A <- inla.spde.make.A(mesh, loc=cbind(
+   cph.leuk$data$xcoord, cph.leuk$data$ycoord))
+@ 
+
+And the stack is built considering the relevant data from 
+the output of the \texttt{inla.coxph()} function
+<<stkcph>>=
+cph.stk <- inla.stack(data=c(list(E=cph.leuk$E), 
+                          cph.leuk$data[c('y..coxph')]),
+                      A=list(cph.A, 1),
+                      effects=list(
+                          list(spatial=1:spde$n.spde), 
+                          cph.leuk$data[c('baseline.hazard', 'a0',
+                                          'age', 'sex', 'wbc', 'tpi')]))
+cph.data <- c(inla.stack.data(cph.stk), cph.leuk$data.list)
+@ 
+
+Then, we only had to use it considering the Poisson likelihood
+<<cphres,results=hide>>=
+cph.res <- inla(cph.formula, family='Poisson', 
+                data=cph.data, E=cph.data$E, 
+                control.predictor=list(A=inla.stack.A(cph.stk)))
+@ 
+
+We can compare the results with the result from the \pkg{survival} package. 
+<<survival>>=
+require(survival)
+m0 <- coxph(Surv(time, cens) ~ sex + age + wbc + tpi, Leuk)
+cbind(survival=c(NA, coef(m0)),
+      r0=cph.res0$summary.fix[,1], r1=cph.res$summary.fix[,1])
+@
+
+The spatial effect fitted very is similar to that from the Weibull model
+<<corwcph>>=
+cor(as.vector(m.spat), 
+    as.vector(inla.mesh.project(
+        prj, cph.res$summary.ran$spatial$mean)), use='p')
+
+cor(as.vector(sd.spat), 
+    as.vector(inla.mesh.project(
+        prj, cph.res$summary.ran$spatial$sd)), use='p')
+@ 

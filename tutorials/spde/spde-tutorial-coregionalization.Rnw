@@ -1,0 +1,300 @@
+\chapter{Space-time coregionalization model}\label{ch:coreg}
+
+\SweaveOpts{prefix.string=figs/correg} 
+<<sett,echo=F,results=hide>>=
+options(width=77, prompt = " ", continue = "   ")
+require(INLA)
+lcall <- inla.getOption('inla.call')
+source('spde-tutorial-functions.R')
+set.seed(1)
+@ 
+
+In this Chapter we present a way to fit the 
+Bayesian coregionalization model proposed by 
+\cite{schmidtG:2003}. 
+We consider a generalization for the space-time case. 
+Also, the approach implemented in \texttt{R-INLA} 
+allows completelly missalignment on space and time 
+for all the outcomes, 
+it only need the same space-time observation window. 
+
+WARNING: a crude mesh is used and simplifications 
+in the fitting process are made to run this example in a short time. 
+
+\section{The model and parametrization} 
+
+An example for the  particular case of three outcomes
+defined as folowing 
+\[ 
+y_1(s,t) = \alpha_0 + z_1(s,t) 
+\]
+\[
+y_2(s,t) = \alpha_1 + z_2(s,t) + \lambda_1 y_1(s,t) 
+\]
+\[
+y_3(s,t) = \alpha_2 + z_3(s,t) + \lambda_2 y_1(s,t) + \lambda_3 y_2(s,t) 
+\]
+
+This model can be fitted in \texttt{R-INLA} using the copy feature. 
+In the parametrization above it is needed to copy the linear predictor 
+in the first equation to the second and the linear predictor in the 
+second equation to the third. 
+However, this model can be reparametrized to make the fitting process easier. 
+This reparametrization is to change the second and the third equation as follows 
+\[ 
+y_2(s,t) = \alpha_1 + \lambda_1\alpha_1 + \lambda_1 z_1(s,t) + z_2(s,t) + e_2(s,t) 
+\]
+\[
+y_3(s,t) = \alpha_2 + (\lambda_2+\lambda_3\lambda_1)\alpha_1 + \lambda_3 \alpha_2 + (\lambda_2 + \lambda_3 \lambda_1) z_1(s,t) + \lambda_3 z_2(s,t) + z_3(s,t) + e_3(s,t) 
+\]
+We have then two new intercepts 
+$\alpha_1^{*}=\alpha_1 + \lambda_1\alpha_1$ and 
+$\alpha_2^{*}=\alpha_2 + (\lambda_2+\lambda_3\lambda_1)\alpha_1 + \lambda_3\alpha_2$. 
+
+We will use the copy feature to fit $\lambda_1=\beta_1$. 
+In the second equation and $\lambda_2 + \lambda_3\lambda_1 = \beta_2$ will be the first copy parameter in the third equation. 
+A second copy will be used in the third equation to fit $\lambda_3=\beta_3$. 
+
+\section{Data simulation}
+
+Parameter setting 
+<<param>>=
+alpha <- c(-5, 3, 10) ### intercept on reparametrized model
+m.var <- (3:5)/10 ### random field marginal variances
+kappa <- c(10, 7, 5) ### GRF scales: inverse range parameters
+beta <- c(.7, .5, -.5) ### copy par.: reparam. coregionalization par.
+rho <- c(.7, .8, .9) ### temporal correlations
+n <- 50;  k <- 15  ### number of spatial locations and time points
+@ 
+
+It is not required to the spatial locations to be the same for each 
+process to fit this model in \texttt{R-INLA}, 
+as shown in the Chapter~\ref{ch:jcovar}. 
+It is also not required for the time points to be the same, 
+as we can define the model on a set of time knots, 
+see Chapter~\ref{ch:lowst}. 
+However, to simplify the code, we just use the same 
+spatial locations and the same time points for all three processes. 
+<<sloc>>=
+loc <- cbind(runif(n), runif(n)) 
+@ 
+
+We use the function defined in the section~\ref{sec:simula} 
+to simulate independent random field realizations for each time. 
+<<echo=F,result=hide>>=
+inla.setOption(inla.call=lcall)
+@ 
+<<rfs,results=hide>>=
+x1 <- rspde(loc, kappa[1], m.var[1], n=k, seed=1)
+x2 <- rspde(loc, kappa[2], m.var[2], n=k, seed=2)
+x3 <- rspde(loc, kappa[3], m.var[3], n=k, seed=3)
+@ 
+
+The time evolution will follows an autoregressive first order process 
+as we used in Chapter~\ref{ch:spacetime}. 
+<<st>>=
+z1 <- x1; z2 <- x2; z3 <- x3
+for (j in 2:k) {
+    z1[, j] <- rho[1] * z1[,j-1] + sqrt(1-rho[1]^2) * x1[,j]
+    z2[, j] <- rho[2] * z2[,j-1] + sqrt(1-rho[2]^2) * x2[,j]
+    z3[, j] <- rho[3] * z3[,j-1] + sqrt(1-rho[3]^2) * x3[,j]
+}   
+@ 
+The term $\sqrt{(1-\rho^2)}$ is because we are sampling from the 
+stationary distribution, and is in accord to the 
+first order autoregressive process parametrization implemented in \texttt{R-INLA}. 
+
+Then we define the observation samples 
+<<yyy>>=
+y1 <- alpha[1] + z1 
+y2 <- alpha[2] + beta[1] * z1 + z2 
+y3 <- alpha[3] + beta[2] * z1 + beta[3] * z2 + z3 
+@ 
+
+\section{Model fitting}
+
+Build the mesh to use in the fitting process 
+(this is a crude mesh used here for short computational time pourpose)
+<<mesh>>=
+mesh <- inla.mesh.2d(loc, max.edge=0.3, offset=0.2, cutoff=0.15)
+@ 
+<<eval=F,echo=F,results=hide>>=
+mesh$n
+plot(mesh)
+points(loc, pch=19)
+@ 
+
+Define the object that includes the SPDE stuff
+<<spde>>=
+spde <- inla.spde2.matern(mesh)
+@ 
+
+Defining all the index set for the space-time fields 
+and the for the copies. 
+As we have the same mesh, they are the same. 
+<<idx>>=
+s1 = s2 = s3 = s12 = s13 = s23 = rep(1:spde$n.spde, times=k)
+g1 = g2 = g3 = g12 = g13 = g23 = rep(1:k, each=spde$n.spde)
+@ 
+
+Prior for $\rho_j$ is chosen as the Penalized Complexity prior, \cite{simpsonMRFRS:2015}
+<<pbeta>>=
+rho1p <- list(theta=list(prior='pc.rho1', param=c(0, 0.9))) 
+ctr.g <- list(model='ar1', hyper=rho1p)
+@ 
+Ther prior chosen above consider $P(\rho>0)=0.9$.
+
+Priors for each of the the copy parameters $N(0, 10)$
+%%as unit variance Gaussian centered at the values used to do the simulation, which are informative priors:
+<<pcopy>>=
+hc3 <- hc2 <- hc1 <- list(theta=list(prior='normal', param=c(0,10)))
+@ 
+
+The priors for the fields are the default ones, 
+described in~\cite{lindgrenR:2013}. 
+
+Define the formula including all the terms in the model. 
+<<form>>= 
+form <- y ~ 0 + intercept1 + intercept2 + intercept3 + 
+  f(s1, model=spde, ngroup=k, group=g1, control.group=ctr.g) + 
+  f(s2, model=spde, ngroup=k, group=g2, control.group=ctr.g) + 
+  f(s3, model=spde, ngroup=k, group=g3, control.group=ctr.g) + 
+  f(s12, copy="s1", group=g12, fixed=FALSE, hyper=hc1) + 
+  f(s13, copy="s1", group=g13, fixed=FALSE, hyper=hc2) + 
+  f(s23, copy="s2", group=g23, fixed=FALSE, hyper=hc3) 
+@ 
+
+Define the projector matrix 
+(all they are equal in this example, but it can be different)
+<<stlokA>>=
+stloc <- kronecker(matrix(1,k,1), loc) ### rep. coordinates each time
+A <- inla.spde.make.A(mesh, stloc, n.group=k, group=rep(1:k, each=n))
+@ 
+
+Organize the data in three data stack and join it
+<<stack>>=
+stack1 <- inla.stack(
+  data=list(y=cbind(as.vector(y1), NA, NA)), A=list(A), 
+  effects=list(list(intercept1=1, s1=s1, g1=g1))) 
+stack2 <- inla.stack(
+  data=list(y=cbind(NA, as.vector(y2), NA)), A=list(A), 
+  effects=list(list(intercept2=1, s2=s2, g2=g2, 
+                    s12=s12, g12=g12))) 
+stack3 <- inla.stack(
+  data=list(y=cbind(NA, NA, as.vector(y3))), A=list(A), 
+  effects=list(list(intercept3=1, s3=s3, g3=g3, 
+                    s13=s13, g13=g13, s23=s23, g23=g23))) 
+stack <- inla.stack(stack1, stack2, stack3) 
+@ 
+
+We consider that there is no nugget effect in all the three outcomes. 
+So the likelihood precision parameter for each likelihood are set fixed as a high value:
+<<fixnugget>>=
+hfix <- list(hyper=list(theta=list(initial=5, fixed=TRUE)))
+@ 
+Precision equals to $\exp(5)$ is not so high in this case and we  
+chose this value to add some 'flexibility' 
+to help the fitting process.
+
+We have 12 hyperparameters in the model. 
+To make the optimization process fast, we use the parameter 
+values used in the simulation as the initial values
+<<initheta>>=
+theta.ini <- c(-log(4*pi*m.var*kappa^2)/2, 
+               log(kappa), binomial()$linkfun(rho), beta
+               )[c(1,4, 7, 2,5, 8, 3,6, 9, 10:12)]
+@ 
+
+With 12 hyperparameters the CCD strategy uses 281 integration points to compute 
+$$\pi(x_i|y) = \int \pi(y|x)\pi(x|\theta)\pi(\theta)d\theta $$ 
+We avoid it using the Empirical Bayes strategy 
+approaching such marginals using only the 
+modal configuration of $\theta$. 
+
+<<remote,echo=FALSE,results=hide>>=
+inla.setOption(inla.call='remote')
+@ 
+<<result,results=hide>>=
+(result <- inla(form, rep('gaussian', 3), data=inla.stack.data(stack), 
+                control.family=list(hfix, hfix, hfix), 
+                control.mode=list(theta=theta.ini, restart=TRUE),
+                control.inla=list(int.strategy='eb'),##avoid integration 
+                control.predictor=list(A=inla.stack.A(stack))))$cpu
+@ 
+<<cpu,echo=FALSE>>=
+result$cpu
+@ 
+<<mode>>=
+result$logfile[grep('Number of function evaluations', result$logfile)] 
+round(result$misc$theta.mode, 2) 
+@ 
+
+Summary of the posterior marginal density for the intercepts 
+<<intercepts>>=
+round(cbind(true=alpha, result$summary.fix), 2) 
+@ 
+
+Summary of the posterior marginal density for the temporal correlations:
+<<rho>>=
+round(cbind(true=rho, result$summary.hy[c(3,6,9),]), 4) 
+@ 
+
+Summary of the posterior marginal density for the copy parameters:
+<<fixed>>=
+round(cbind(true=beta, result$summary.hy[10:12,]), 4)
+@ 
+
+Computing the random field parameters for each field 
+<<rfpars>>=
+rf1 <- inla.spde2.result(result, 's1', spde, do.transf=TRUE)
+rf2 <- inla.spde2.result(result, 's2', spde, do.transf=TRUE)
+rf3 <- inla.spde2.result(result, 's3', spde, do.transf=TRUE)
+@ 
+
+The marginal variance for each random field
+<<rfvar>>=
+round(cbind(true=m.var, t(sapply(list(rf1, rf2, rf3), function(rf) 
+    unlist(inla.zmarginal(rf$marginals.variance.nominal[[1]], 
+                          silent=TRUE))))), 3)
+@ 
+
+Scale parameter for each random field
+<<rfscale>>=
+round(cbind(true=kappa, t(sapply(list(rf1, rf2, rf3), function(rf) 
+    unlist(inla.zmarginal(rf$marginals.kappa[[1]], silent=TRUE))))), 3)
+@ 
+
+
+Spatial range nominal for each random field
+<<rfrange>>=
+round(cbind(true=sqrt(8)/kappa, t(sapply(list(rf1, rf2, rf3), 
+                function(rf) unlist(inla.zmarginal(
+                    rf$marginals.range.nom[[1]], silent=TRUE))))), 3)
+@ 
+
+<<zfit,eval=FALSE>>=
+par(mfrow=c(1,3), mar=c(2,2,0.5,0.5), mgp=c(1.5,0.5,0))
+plot(drop(A%*%result$summary.ran$s1$mean), as.vector(z1),
+     xlab='', ylab='', asp=1); abline(0:1)
+plot(drop(A%*%result$summary.ran$s2$mean), as.vector(z2),
+     xlab='', ylab='', asp=1); abline(0:1)
+plot(drop(A%*%result$summary.ran$s3$mean), as.vector(z3),
+     xlab='', ylab='', asp=1); abline(0:1)
+@ 
+\setkeys{Gin}{width=0.9\textwidth}
+\begin{figure}\centering
+<<zfitplot,echo=F,fig=T,eps=F,width=15,heigh=3>>=
+<<zfit>> 
+@ 
+\caption{True and fitted random field values.}
+\label{fig:zfit}
+\end{figure}
+
+The simplifications for a fast inference may caused that the 
+posterior mean for the marginal variances and the scale parameters 
+are not close to the values used to simulate the data. 
+However, the nominal range is not so far and the posterior marginals 
+cover the value used for simulation in two of the three fields. 
+Also, we can see in Figure~\ref{fig:zfit} that the posterior mean 
+of each random field at each space and time location 
+are well correlated with the simulated ones. 
