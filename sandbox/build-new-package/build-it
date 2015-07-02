@@ -242,7 +242,7 @@ bdate=$(date  +%Y%m%d%H%M)
     echo "        cat(\"\\tMaintainers........: Havard Rue <hrue@math.ntnu.no>\\n\")"
     echo "        cat(\"\\t                     Finn Lindgren <finn.lindgren@gmail.com>\\n\")"
     echo "        cat(\"\\tWeb-page.. ........: http://www.r-inla.org\\n\")"
-    echo "        cat(\"\\tSource-code........: http://inla.googlecode.com\\n\")"
+    echo "        cat(\"\\tSource-code........: http://bitbucket.org/hrue/r-inla\\n\")"
     echo "        return (invisible())"
     echo "    } else {"
     echo "        return($bdate)"

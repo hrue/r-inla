@@ -72,7 +72,7 @@
         cat(        "\tWeb-page ................: http://www.r-inla.org\n")
         cat(        "\tEmail support ...........: help@r-inla.org\n")
         cat(        "\t                         : r-inla-discussion-group@googlegroups.com\n")
-        cat(        "\tSource-code .............: http://inla.googlecode.com\n")
+        cat(        "\tSource-code .............: bitbucket.org/hrue/r-inla\n")
         cat("\n")
 
         return(invisible())
