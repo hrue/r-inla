@@ -6797,6 +6797,8 @@ inla.models()
 				 }
 				\item{Model `pc'.}{					 Number of parameters in the prior = 2 
 				 }
+				\item{Model `ref.ar'.}{					 Number of parameters in the prior = 0 
+				 }
 				\item{Model `jeffreystdf'.}{					 Number of parameters in the prior = 0 
 				 }
 				\item{Model `expression:'.}{					 Number of parameters in the prior = -1 

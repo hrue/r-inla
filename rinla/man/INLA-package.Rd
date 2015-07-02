@@ -19,7 +19,7 @@ Version: \tab 0.0\cr
 Date: \tab TODAY\cr
 License: \tab GPL2\cr
 NOTE: \tab This package has no version number yet; it is to heavily developed
-at the moment; see \code{inla.googlecode.com} and \code{www.r-inla.org}
+at the moment; see \code{bitbucket.org/hrue/r-inla} and \code{www.r-inla.org}
 }
 
 See the web-site \cite{www.r-inla.org} for further details.

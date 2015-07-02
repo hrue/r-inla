@@ -89,8 +89,8 @@ init :
 	@mkdir -p $(INCPREFIX)
 
 download : init
-	@( test -d inla && $(MAKE) download-update ) || \
-	( rm -rf inla && hg clone https://inla.googlecode.com/hg inla )
+	@( test -d r-inla && $(MAKE) download-update ) || \
+	( rm -rf r-inla && hg clone https://bitbucket.org/hrue/r-inla )
 	@ln -sTf $(PREFIX) inla/local
 
 download-update : init
