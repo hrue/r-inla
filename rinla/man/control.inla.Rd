@@ -60,7 +60,7 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 \item{stupid.search.max.iter}{  Maximum number of iterations allowed for the stupid-search-algorithm.}
 \item{stupid.search.factor}{  Factor (>=1) to increase the step-length with after each new interation.}
 \item{correct}{  Add correction for the Laplace approximation.}
-\item{correct.factor}{  Factor used in adjusting the correction factor (default=1) if correct=TRUE}
+\item{correct.factor}{  Factor used in adjusting the correction factor (default=10) if correct=TRUE}
 \item{correct.strategy}{  The strategy used to compute the correction; one of 'simplified.laplace' (default) or 'laplace'}
 \item{correct.verbose}{  Be verbose when computing the correction?}
 }
