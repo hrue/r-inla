@@ -291,7 +291,7 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 		for (i = 0; i < G.nhyper; i++) {
 			printf("theta%1d = %.12f ", i, x[i]);
 		}
-		printf(" %.12f %.12f\n", - *fx, -ffx);
+		printf(" %.12f %.12f\n", -*fx, -ffx);
 	}
 
 	*fx += ffx;					       /* add contributions */
@@ -445,11 +445,18 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		/*
 		 * use central differences. 'Estimate' the f0 using the mean of all difference
 		 */
-		double *f = NULL, *fm = NULL;
+		double *f = NULL, *fm = NULL, *ff = NULL, *ffm = NULL;
+		/*
+		 * use a five-point stencil instead? 
+		 */
+		int use_five_point = GMRFLib_FALSE;
 
 		f = Calloc(G.nhyper, double);
 		fm = Calloc(G.nhyper, double);
-
+		if (use_five_point) {
+			ff = Calloc(G.nhyper, double);
+			ffm = Calloc(G.nhyper, double);
+		}
 #pragma omp parallel for private(i)
 		for (i = 0; i < 2 * G.nhyper; i++) {
 			int j, err;
@@ -478,23 +485,44 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			if (i < G.nhyper) {
 				xx[j] += h;
 				GMRFLib_domin_f_intern(xx, &f[j], &err, ais, NULL, NULL);
+				if (use_five_point) {
+					xx[j] += h;
+					GMRFLib_domin_f_intern(xx, &ff[j], &err, ais, NULL, NULL);
+				}
 			} else {
 				xx[j] -= h;
 				GMRFLib_domin_f_intern(xx, &fm[j], &err, ais, NULL, NULL);
+				if (use_five_point) {
+					xx[j] -= h;
+					GMRFLib_domin_f_intern(xx, &ffm[j], &err, ais, NULL, NULL);
+				}
 			}
 			Free(xx);
 			GMRFLib_thread_id = 0;
 		}
 
-		for (i = 0; i < G.nhyper; i++) {
-			gradx[i] = (f[i] - fm[i]) / (2.0 * h);
+		if (use_five_point) {
+			for (i = 0; i < G.nhyper; i++) {
+				gradx[i] = (-ff[i] + 8.0 * f[i] - 8.0 * fm[i] + ffm[i]) / (12.0 * h);
+			}
+		} else {
+			for (i = 0; i < G.nhyper; i++) {
+				gradx[i] = (f[i] - fm[i]) / (2.0 * h);
+			}
 		}
+
 		/*
 		 * this should be the mean of the means 
 		 */
 		double sum = 0.0;
-		for (i = 0; i < G.nhyper; i++) {
-			sum += (f[i] + fm[i]) / 2.0;
+		if (use_five_point) {
+			for (i = 0; i < G.nhyper; i++) {
+				sum += (ff[i] + f[i] + fm[i] + ffm[i]) / 4.0;
+			}
+		} else {
+			for (i = 0; i < G.nhyper; i++) {
+				sum += (f[i] + fm[i]) / 2.0;
+			}
 		}
 		f_zero = sum / G.nhyper;
 		if (f0) {
@@ -502,6 +530,8 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		}
 		Free(f);
 		Free(fm);
+		Free(ff);
+		Free(ffm);
 	}
 
 	GMRFLib_thread_id = id_save;
@@ -654,7 +684,6 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 			fprintf(G.ai_par->fp_log, "Estimate Hessian Part I (%1d) ", 2 * n + 1);
 		}
 	}
-	
 
 #pragma omp parallel for private(i)
 	for (i = 0; i < 2 * n + 1; i++) {
@@ -802,7 +831,6 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 					fprintf(G.ai_par->fp_log, "\nEstimate Hessian Part II (%1d) ", nn);
 				}
 			}
-			
 #pragma omp parallel for private(k)
 			for (k = 0; k < nn; k++) {
 				int ii, jj;
@@ -814,7 +842,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 						fprintf(G.ai_par->fp_log, "[%1d]", k);
 					}
 				}
-				
+
 				GMRFLib_thread_id = omp_get_thread_num();
 				if (omp_in_parallel()) {
 					if (!ai_store[GMRFLib_thread_id]) {
