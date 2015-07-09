@@ -4377,7 +4377,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				GMRFLib_ASSERT(dens_count == 0, GMRFLib_ESNH);
 				GMRFLib_ASSERT(hyper_count == 0, GMRFLib_ESNH);
 
-#pragma omp parallel for private(i, log_dens, tref, tu, ierr)
+#pragma omp parallel for private(i, log_dens, tref, tu, ierr, kk)
 				for (kk = 0; kk < pool->nconfig; kk++) {
 					GMRFLib_ai_store_tp *ai_store_id = NULL;
 					GMRFLib_density_tp **dens_local = NULL;
@@ -4455,7 +4455,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							if (dic) {
 								deviance_theta_local = Calloc(graph->n, double);
 							}
-							// GMRFLib_ai_store_config(misc_output, nhyper, theta_local, log_dens, ai_store_id->problem);
 							for (i = 0; i < compute_n; i++) {
 								GMRFLib_density_tp *cpodens = NULL;
 								int ii;
