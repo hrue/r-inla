@@ -37,7 +37,7 @@ citEntry(
     textVersion  =
       paste("Thiago G. Martins, Daniel Simpson, Finn Lindgren and Havard Rue (2013).",
             "Bayesian computing with INLA: New features",
-	    "Computational Statistics and Data Analysis, 67(2013) 68-83".)
+	    "Computational Statistics and Data Analysis, 67(2013) 68-83")
 )
 
 citEntry(
