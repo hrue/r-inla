@@ -20,23 +20,26 @@ regression models, disease mapping models, Log-Gaussian Cox-processes,
 model-based geostatistics and spatio-temporal models.
 
 \emph{Approximate Bayesian inference} means that we do not target to
-do exact inference, meaning that there is not button to tune on in
-order to make the results converge towards the true ones. This
-strategy is very different from the one using MCMC, say, where as the
-number of samples tends to infinity the results get increasingly more
-accurate. Also we do not aim to compute all possible marginals, but
-only the marginals for the parameters in the model and linear
-combinations thereof. These are in most cases the target for the
+do exact inference, meaning that there is no button to tune on in
+order to make the results converge towards the true ones. We provide 
+deterministic but accurate approximations to the posterior marginals 
+distributions using integrated nested Laplace approximations (INLA). This
+strategy is in contrast to MCMC, say, where the results get increasingly more 
+as the number of samples tends to infinity accurate. Also we do not aim to 
+compute all possible marginals, but only the posteriors marginals for the 
+parameters in the model and linear combinations thereof that are desired. These 
+are in most cases the target for the
 statistical analysis. It turns out, that in most cases, we can compute
-approximated marginals for the model parameters both much much quicker
+approximated marginals for the model parameters both much quicker
 and more accurate, compared to common MCMC alternatives. The main
 reasons to these achievements, are as follows.
 \begin{enumerate}
 \item We make use of the latent Gaussian field by using Laplace
     approximations.
 \item We make use of the conditional independence properties of the
-    latent Gaussian field by using numerical algorithms for sparse
-    (symmetric and positive definite) matrices.
+    latent Gaussian field, representing Gaussian Markov random fields (GMRFs) 
+    by using numerical algorithms for sparse (symmetric and positive definite) 
+    matrices.
 \item We make use of the low dimension of the hyperparameters by using
     \emph{integrated nested} Laplace approximations.
 \end{enumerate}
@@ -46,6 +49,91 @@ a teaser, \cite{art451} is the main reference,
 approach with applications, \cite{tech106} gives details of new
 extensions in \tv{INLA}, and \cite{tech104} discuss some extensions to
 latent near-Gaussian models.
+
+All procedures required to perform INLA need to be carefully implemented to 
+achieve a good speed. It is much easier to implement a slow version of INLA.
+Figure~\ref{fig:inla-scheme} shows the structure of the \tv{R-INLA}.
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{figure/scheme}
+\caption{The \tv{R-INLA} package. Schematic illustration of the workflow from 
+input to output. 
+\label{fig:inla-scheme}}
+\end{figure}
+The implementation of the INLA method consists
+of three parts:
+\begin{itemize}
+	\item \tv{GMRFLib}-library:
+	  A library for GMRFs written in \tv{C}
+	\item \tv{inla}-program:
+		The implementation of INLA written in \texttt{C}
+	\item \tv{R-INLA} package for \texttt{R}:
+		An \tv{R}-interface to the \texttt{inla}-program
+\end{itemize}
+The first two are \emph{not} particularly user-friendly. 
+They are used in the background by the \tv{R-INLA} package. The \tv{GMRFLib} 
+library is the basic library. It is written in \tv{C} and \tv{Fortran} and 
+provides various methods for fast and exact simulation of GMRFs addressing four 
+main tasks. These are unconditional and conditional sampling 
+from a GMRF, evaluation of the log-density of a sample from a GMRF and 
+constructing non-Gaussian approximations to latent GMRFs. 
+
+The \tv{inla}-program defines latent Gaussian models and provides an 
+interface to the \tv{GMRFLib}-library. By defining models using \tv{.ini}-files 
+it avoids \tv{C}-programming. However, it requires a certain input format that 
+the user needs to stick to. All results are written to text files. 
+
+The \tv{R}-package \tv{R-INLA} makes the INLA idea accessible to all applied 
+scientists using a free and open-source implementation in one of the most 
+commons statistical software environments. \tv{R-INLA} is thus itself an 
+interface to the \tv{inla}-program. It allows the user to define a latent 
+Gaussian model using a similar syntax as the established {\tv glm} regression
+model framework in R. After defining the models using a \tv{formula}-statement, 
+all input information is converted into an \tv{.ini} file and required input 
+text files that are needed by the \tv{inla}-program, see 
+Figure~\ref{fig:inla-scheme}. The \tv{inla}-program runs, all results are 
+collected and consequently presented to the user in \tv{R} as an object of type
+\tv{list}. Different in built functions of the \tv{R-INLA} package, which will 
+be described throughout this tutorial, allow the user to graphically inspect 
+and extract information of interest.
+% 
+%     \pause
+%     
+%     \begin{itemize}
+%     \item \structure{The {\tt GMRFLib}-library} \only<2>{
+%             \begin{itemize}
+%             \item Basic library written in \texttt{C}, user friendly
+%                 for programmers
+%             \end{itemize}
+%         } \pause
+%     \item \structure{The \texttt{inla}-program}
+% 
+%         \only<3>{
+%             \begin{itemize}
+%             \item Define \emph{latent Gaussian models} and interface
+%                 with the {\tt GMRFLib}-library
+%             \item Avoids the need for \texttt{C}-programming
+%             \item Models are defined using \texttt{.ini}-files
+%             \item Requires to write input files in a special format
+%             \item \texttt{inla}-program write all the results
+%                 (E/Var/marginals) to files
+%             \end{itemize}
+%         } \pause
+%     \item \structure{The \texttt{INLA} package for \texttt{R}}
+%         
+%         \only<4>{
+%             \begin{itemize}
+%             \item \texttt{R}-interface to the \texttt{inla}-program.
+%                % (That's why its not on CRAN.)
+%             \item Convert ``formula''-statements into ``.ini''-file
+%                 definitions
+%            %\item Similar interface as other \texttt{R} packages
+%             \end{itemize}
+%         }
+%     \end{itemize}
+%     The first two are \emph{not} particularly user-friendly. 
+%     They are used in the background by the \texttt{INLA} package.
+% \end{frame}
 
 \section{What models can it be used for?}
 \label{intro:2}
