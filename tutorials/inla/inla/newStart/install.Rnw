@@ -11,11 +11,12 @@ The \tv{R-INLA} package is available from the web-site
 \begin{verbatim}
     www.r-inla.org
 \end{verbatim}
-which also contains a lot of information, like the documentation,
-help-pages, tutorials, case-studies, the discussion group, etc.
+which also contains a lot of information, like source code, this documentation,
+help-pages, tutorials, worked-through examples, the discussion group, etc.
 
-Before installing \tv{R-INLA} you might want to install the
-packages \tv{R-INLA} depends on, these are
+The R-package \tv{R-INLA} works on Linux, Windows and Mac. Before installing 
+\tv{R-INLA} you might want to install the packages \tv{R-INLA} depends on, 
+these are
 <<echo=FALSE>>=
 description.file = readLines(system.file("DESCRIPTION", package="INLA"))
 deps = parse_deps(description.file[grep("^Depends", description.file)])
@@ -31,20 +32,19 @@ print(sugg)
 @ 
 which are recommended but not required.
 
-There are two ways to install \tv{R-INLA}.
+The R-package \tv{R-INLA} can be installed using 
 \begin{enumerate}
 \item  The following command in \tv{R}
 <<eval=FALSE>>=
-source("http://www.math.ntnu.no/inla/givemeINLA.R")
-##source("http://www.math.ntnu.no/inla/givemeINLA-testing.R")
+install.packages("INLA", repos="http://www.math.ntnu.no/inla/R/stable")
+##install.packages("INLA", repos="http://www.math.ntnu.no/inla/R/testing")
 @     
 %%
 will download and install the more stable version of the package,
 whereas the ``testing'' command will install the newest testing
 version.
 \item You can also install the package manually.  Using
-    Linux or Mac, then 
- download
+    Linux or Mac download
 \begin{verbatim}
 http://www.math.ntnu.no/inla/binaries/INLA.tgz
 \end{verbatim}
@@ -67,12 +67,12 @@ still rapid.
 \begin{enumerate}
 \item To update towards the more stable version, do 
 <<eval=FALSE>>=
-inla.upgrade()
+update.packages(oldPkgs="INLA", repos="http://www.math.ntnu.no/inla/R/stable")
 @     
 %%
 \item To update towards the testing-version, do
 <<eval=FALSE>>=
-inla.upgrade(testing=TRUE)
+update.packages(oldPkgs="INLA", repos="http://www.math.ntnu.no/inla/R/testing")
 @ 
 %%
 The testing-version is the most recent version of the package, and all
@@ -88,13 +88,18 @@ You can check which version you have installed using
 inla.version()
 @ 
 %%
-The ``build date'' shows when the package was compiled and build, the
+The ``date'' shows when the package was compiled and build, the
 ``INLA hgid'' is the version and date of the \tv{R}-code and
 ``INLA-program hgid'' is the version and date of the inla-program. The
 version and date for the inla-program is often the same as for the
 \tv{R}-code, but it can be slightly older. You also see the contact
 information and web-adresses for the website and where the source is
 hosted. 
+
+To identify a specific version for the purpose of being able to recreate it at 
+a later date use the "INLA hgid" identifier. This identifier can be used to 
+download any specific version of the source code (and, with some work, build a 
+package from it).
 
 If you are interested in recent changes in the package then
 <<eval=FALSE>>=
