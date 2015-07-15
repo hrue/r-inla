@@ -1,0 +1,56 @@
+246.5 	809 	Johan Remen Evensen 	2011-2-11 	Vikersund, Norway 	Vikersundbakken
+243.0 	797 	Johan Remen Evensen 	2011-2-11 	Vikersund, Norway 	Vikersundbakken
+239.0 	784 	Bjørn Einar Romøren 	2005-3-20 	Planica, Slovenia 	Letalnica bratov Gorišek
+235.5 	773 	Matti Hautamäki 	2005-3-20 	Planica, Slovenia 	Letalnica bratov Gorišek
+234.5 	769 	Bjørn Einar Romøren 	2005-3-20 	Planica, Slovenia 	Letalnica bratov Gorišek
+231.0 	758 	Tommy Ingebrigtsen 	2005-3-20 	Planica, Slovenia 	Letalnica bratov Gorišek
+231.0 	758 	Matti Hautamäki 	2003-3-23 	Planica, Slovenia 	Letalnica bratov Gorišek
+228.5 	750 	Matti Hautamäki 	2003-3-22 	Planica, Slovenia 	Letalnica bratov Gorišek
+227.5 	746 	Matti Hautamäki 	2003-3-20 	Planica, Slovenia 	Letalnica bratov Gorišek
+225.0 	738 	Adam Małysz 	2003-3-20 	Planica, Slovenia 	Letalnica bratov Gorišek
+225.0 	738 	Andreas Goldberger 	2000-3-18 	Planica, Slovenia 	Letalnica bratov Gorišek
+224.5 	737 	Thomas Hörl 	2000-3-16 	Planica, Slovenia 	Letalnica bratov Gorišek
+219.5 	720 	Tommy Ingebrigtsen 	1999-3-20 	Planica, Slovenia 	Letalnica bratov Gorišek
+214.5 	704 	Martin Schmitt 	1999-3-19 	Planica, Slovenia 	Letalnica bratov Gorišek
+212.0 	696 	Lasse Ottesen 	1997-3-22 	Planica, Slovenia 	Letalnica bratov Gorišek
+210.0 	689 	Espen Bredesen 	1997-3-22 	Planica, Slovenia 	Letalnica bratov Gorišek
+209.0 	686 	Espen Bredesen 	1994-3-18 	Planica, Slovenia 	Letalnica bratov Gorišek
+203.0 	666 	Toni Nieminen 	1994-3-17 	Planica, Slovenia 	Letalnica bratov Gorišek
+196.0 	643 	Martin Höllwarth 	1994-3-17 	Planica, Slovenia 	Letalnica bratov Gorišek
+194.0 	636 	Ralph Gebstedt 	1991-3-24 	Planica, Yugoslavia 	Letalnica bratov Gorišek
+194.0 	636 	Piotr Fijas 	1987-3-14 	Planica, Yugoslavia 	Letalnica bratov Gorišek
+191.0 	627 	Andreas Felder 	1987-3-14 	Planica, Yugoslavia 	Letalnica bratov Gorišek
+191.0 	627 	Andreas Felder 	1986-3-09 	Bad Mitterndorf, Austria 	Kulm
+191.0 	627 	Matti Nykänen 	1985-3-15 	Planica, Yugoslavia 	Letalnica bratov Gorišek
+187.0 	614 	Matti Nykänen 	1985-3-15 	Planica, Yugoslavia 	Letalnica bratov Gorišek
+186.0 	610 	Mike Holland 	1985-3-15 	Planica, Yugoslavia 	Letalnica bratov Gorišek
+185.0 	607 	Matti Nykänen 	1984-3-17 	Oberstdorf, Germany 	Heini-Klopfer-Skiflugschanze
+182.0 	597 	Matti Nykänen 	1984-3-16 	Oberstdorf, Germany 	Heini-Klopfer-Skiflugschanze
+182.0 	597 	Matti Nykänen 	1984-3-16 	Oberstdorf, Germany 	Heini-Klopfer-Skiflugschanze
+181.0 	594 	Pavel Ploc 	1983-3-19 	Harrachov, Czechoslovakia 	Čerťák
+180.0 	591 	Armin Kogler 	1981-2-26 	Oberstdorf, Germany 	Heini-Klopfer-Skiflugschanze
+176.0 	577 	Armin Kogler 	1980-3-27 	Harrachov, Czechoslovakia 	Čerťák
+176.0 	577 	Klaus Ostwald 	1979-3-16 	Planica, Yugoslavia 	Letalnica bratov Gorišek
+176.0 	577 	Toni Innauer 	1976-3-07 	Oberstdorf, Germany 	Heini-Klopfer-Skiflugschanze
+174.0 	571 	Falko Weißpflog 	1976-3-05 	Oberstdorf, Germany 	Heini-Klopfer-Skiflugschanze
+174.0 	571 	Toni Innauer 	1976-3-05 	Oberstdorf, Germany 	Heini-Klopfer-Skiflugschanze
+173.0 	568 	Geir Ove Berg 	1976-3-04 	Oberstdorf, Germany 	Heini-Klopfer-Skiflugschanze
+169.0 	554 	Walter Steiner 	1974-3-15 	Planica, Yugoslavia 	Letalnica bratov Gorišek
+169.0 	554 	Heinz Wosipiwo 	1973-3-09 	Oberstdorf, Germany 	Heini-Klopfer-Skiflugschanze
+165.0 	541 	Manfred Wolf 	1969-3-22 	Planica, Yugoslavia 	Letalnica bratov Gorišek
+164.0 	538 	Jiří Raška 	1969-3-22 	Planica, Yugoslavia 	Letalnica bratov Gorišek
+160.0 	525 	Bjørn Wirkola 	1969-3-21 	Planica, Yugoslavia 	Letalnica bratov Gorišek
+156.0 	512 	Jiří Raška 	1969-3-21 	Planica, Yugoslavia 	Letalnica bratov Gorišek
+156.0 	512 	Bjørn Wirkola 	1969-3-21 	Planica, Yugoslavia 	Letalnica bratov Gorišek
+154.0 	505 	Reinhold Bachler 	1967-3-12 	Vikersund, Norway 	Vikersundbakken
+150.0 	492 	Lars Grini 	1967-2-11 	Oberstdorf, Germany 	Heini-Klopfer-Skiflugschanze
+148.0 	486 	Kjell Sjöberg 	1967-2-10 	Oberstdorf, Germany 	Heini-Klopfer-Skiflugschanze
+147.0 	482 	Lars Grini 	1967-2-10 	Oberstdorf, Germany 	Heini-Klopfer-Skiflugschanze
+146.0 	479 	Bjørn Wirkola 	1966-3-13 	Vikersund, Norway 	Vikersundbakken
+145.0 	476 	Bjørn Wirkola 	1966-3-12 	Vikersund, Norway 	Vikersundbakken
+145.0 	476 	Peter Lesser 	1965-3-21 	Bad Mitterndorf, Austria 	Kulm
+144.0 	472 	Nilo Zandanel 	1964-2-18 	Oberstdorf, Germany 	Heini-Klopfer-Skiflugschanze
+142.0 	466 	Dalibor Motejlek 	1964-2-15 	Oberstdorf, Germany 	Heini-Klopfer-Skiflugschanze
+141.0 	463 	Kjell Sjöberg 	1964-2-15 	Oberstdorf, Germany 	Heini-Klopfer-Skiflugschanze
+141.0 	463 	Peter Lesser 	1962-3-01 	Bad Mitterndorf, Austria 	Kulm
+141.0 	463 	Jože Šlibar 	1961-2-24 	Oberstdorf, Germany 	Heini-Klopfer-Skiflugschanze
