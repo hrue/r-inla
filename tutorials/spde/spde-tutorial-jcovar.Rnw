@@ -1,4 +1,4 @@
-\chapter{Joint modeling a covariate with misalignment}\label{ch:jcovar} 
+\chapter{Joint modeling a covariate with misalignment}\label{ch:jcovar}
 
 \SweaveOpts{prefix.string=figs/jcovar} 
 \setkeys{Gin}{width=0.99\textwidth}
@@ -118,8 +118,8 @@ yy <- alpha.y + beta*mm[n.c+1:n.y] + xx +
 First we make the mesh 
 <<mesh>>=
 pl01 <- matrix(c(0,1,1,0,0, 0,0,1,1,0), ncol=2)
-(mesh <- inla.mesh.create.helper(, pl01, cutoff=.03, 
-                                 max.edge=c(.05,.1)))$n
+(mesh <- inla.mesh.create.helper(, pl01, cutoff=.05, 
+                                 max.edge=c(.1,.2)))$n
 @ 
 and use it for both the random fields. 
 So, the both index set based on the mesh 
@@ -177,7 +177,7 @@ res <- inla(form, data=inla.stack.data(stk), family=rep('gaussian',2),
 The true values of the intercept and 
 the summary of its posterior marginal 
 <<resfix>>=
-round(c(True=alpha.y, res$summary.fix), 4)
+round(cbind(True=alpha.y, res$summary.fix), 4)
 @ 
 
 The true values of the precisions and 
@@ -190,7 +190,7 @@ round(cbind(True=1/c(Prec.c=sigma2.c, Prec.y=sigma2.y),
 The true value of the regression coefficient and 
 the summary of the posterior marginal 
 <<reshyb>>=
-round(c(True=beta, res$summary.hy[7,]), 4)
+round(cbind(True=beta, res$summary.hy[7,]), 4)
 @ 
 
 The true values for the precision of the both random 
