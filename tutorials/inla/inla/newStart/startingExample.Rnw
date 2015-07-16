@@ -54,7 +54,7 @@ the record was obtained. Fitting a linear model in R using:
 <<eval=FALSE>>=
   lm(y ~ x)
 @
-leads to the red line indictated in Figure~\ref{fig:ski}, with intercept equal 
+leads to the red line indicated in Figure~\ref{fig:ski}, with intercept equal 
 to $\Sexpr{format(coef(res)[1], digits=2, nsmall=2)}$ 
 (SD: $\Sexpr{format(summary(res)$coefficients[1,2], digits=2, nsmall=2)}$) and
 slope $\beta$ equal to $\Sexpr{format(coef(res)[2], digits=2, nsmall=2)}$ 
@@ -88,13 +88,37 @@ The obtained summary of the posterior estimates in step 4. is as follows:
 data = data.frame(y=m[,2],x=m[,1])
 library(INLA)
 formula = y~x
-model = inla(formula, family="gaussian", data=data)
-summary(model)
+result = inla(formula, family="gaussian", data=data)
+summary(result)
 @
+
+Here, various information is shown. First the inla-call is repeated and then
+time need to fit the model is given. Next posterior summary information for all 
+fixed effects is provided. In this example there are two fixed effects, the 
+intercept $\mu$ and the regression coefficient $\beta$ belonging to the 
+covariate $x$. Per default posterior mean, standard deviation, as well as the 
+$2.5\%, 50\%, 97.5\%$ quantiles and the posterior mode are given. 
+\textcolor{red}{Mention what KLD means}.
+
+Next, there are comes a note that there are no random effects in the model. 
+Analogously to the fixed effects we obtain posterior summary statistics for 
+each hyperparameter, such as precision or correlation parameters, in the model. 
+Here, we only have the precision parameter of the observation noise $\tau$. 
+
+The expected number of effective parameters represents the number of
+independent parameters included in the model and is followed by the number of 
+equivalent replicates which indicates the available information (in
+terms of sample size) per effective parameter. Finally an estimate of the 
+marginal log-likelihood is provided which can be used for model choice, see 
+Section~TODO.
+
+Comparing the results with the estimates obtained in the classical framework we 
+see that the results are very similar.
 
 \section{Data organisation}
 
-The responses and covariates are collected in an \tv{R}-object of type 
+In order to estimate a model in \tv{R-INLA}, all data needed to 
+define the model have to be collected in one single \tv{R}-object of type 
 \tv{list} or \tv{data.frame}. Assume we have a response \texttt{y}, covariates 
 \texttt{x1} and \texttt{x2}, and a time index \texttt{t}. Then can they be 
 organized in one object using
@@ -110,8 +134,12 @@ data = data.frame(y = y, x1 = x1, x2 = x2, t = t)
 \section{Specifying the linear predictor}
 
 Similar to the well-know functions \tv{lm} and \tv{glm} in R, is the model 
-specified using a \tv{formula} object of the for
-
+specified using a \tv{formula} object. A \tv{formula} is a compact symbolic 
+description of the model. The $\sim$ operator is basic in the formation of 
+such models.  An expression of the form \tv{y} $\sim$ \tv{model} means that the 
+response $\tv{y}$ is modelled by a linear predictor specified symbolically by 
+$\tv{model}$. Such a model consists of a series of terms separated by \tv{+} 
+operators, such as
 <<eval=FALSE>>=
 formula = y ~ x1 + x2 + f(t, ...)
 @
@@ -145,6 +173,55 @@ result = inla(
     # there are also some "control statements"
     # to customize things)
 @
+
+\section{Inspecting the posterior results}
+
+Besides inspecting the results as obtained by the \tv{summary} function, we 
+can directly look at all marginal posterior densities. The marginal posterior 
+densities of all fixed effects are saved in the slot \tv{marginals.fixed}. This 
+is a list whose length is equal to the number of fixed effects (including the 
+intercept), i.e. in our case equal to $2$.
+<<>>=
+  names(result$marginals.fixed)
+  length(result$marginals.fixed)
+@
+Each marginal posterior density is represented as a matrix with two columns, 
+the x-values and the correponding y-values, i.e. the density values at location 
+$x$. 
+
+<<>>=
+   m  = result$marginals.fixed[[1]]
+   str(m)
+   head(m)
+@
+Thus, we can simply visualize a posterior marginal by plotting the y versus 
+the x values, see Figure~\ref{fig:marg1}. T
+\begin{figure}
+\begin{center}
+<<echo=FALSE, fig.width=10, fig.height=7, out.width=".6\\textwidth">>=
+   plot(m, pch=20, cex=2)
+@
+\caption{Illustration of the posterior marginal density of the intercept $\mu$ 
+in the ski jumping example.\label{fig:marg1}}
+\end{center}
+\end{figure}
+The marginal is only represented by limited number of pairs. To get a more 
+smooth representation we can use the function \tv{inla.smarginal} which 
+interpolates values between the provided points using a spline. 
+Figure~\ref{fig:marg2} shows the corresponing smoother representation.
+\begin{figure}
+\begin{center}
+<<echo=FALSE, fig.width=10, fig.height=7, out.width=".6\\textwidth">>=
+   plot(inla.smarginal(m), pch=20, cex=2)
+@
+\caption{Illustration of the posterior marginal density of the intercept $\mu$ 
+in the ski jumping example in a higher resolution.\label{fig:marg2}}
+\end{center}
+\end{figure}
+
+
+
+
 % 
 % Provide an example that illustrates the most central point of R-INLA
 % and also points common to several examples. Thus, maybe an
