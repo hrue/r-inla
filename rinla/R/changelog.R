@@ -17,6 +17,6 @@
 
 'inla.changelog' = function()
 {
-    browseURL("http://code.google.com/p/inla/source/list")
+    browseURL("http://bitbucket.org/hrue/r-inla/commits/all")
     return (invisible())
 }
