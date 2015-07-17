@@ -432,7 +432,8 @@ Now we get the covariate values
 at each point on the grid. 
 First we compute the distance to sea
 <<seadcov0>>=
-seaDist0 <- apply(spDists(PRborder[1034:1078,], prdcoo, longlat=TRUE), 2, min)
+seaDist0 <- apply(spDists(PRborder[1034:1078,], 
+                          prdcoo, longlat=TRUE), 2, min)
 @ 
 and found the knot group, using the same 
 used on the model
@@ -459,7 +460,7 @@ the mean and standard deviation of the response
 <<predfit>>=
 r2.sead <- inla(f.sead, family='Gamma', data=inla.stack.data(stk.all), 
                 control.predictor=list(A=inla.stack.A(stk.all), 
-                  compute=TRUE), quantiles=NULL, 
+                  compute=TRUE, link=1), quantiles=NULL, 
                 control.results=list(return.marginals.random=FALSE,
                   return.marginals.predictor=FALSE))
 @ 
@@ -503,9 +504,11 @@ at north west side of the Paran\'a state.
 
 \subsection{By sampling and interpolating the linear predictor}
 
-In some specific cases it makes sense to interpolate the linear predictor. 
+The approach in this section does not always makes sense!
+However, in some SPECIFIC cases it makes sense to interpolate the linear predictor. 
 This cases happens when whe only have the spatial effect and 
 enviromental covariates which are smooth over space. 
+The advantage is that is computationally cheap than to compute the full posterior marginals like in the previous section.
 
 In our example the idea is to compute the effect 
 of the distance to sea at the mesh nodes. 
@@ -522,7 +525,8 @@ for example, the mean and standard error.
 
 The first step is to have the enviromental covariate at the mesh node
 <<dsmesh>>=
-dsmesh <- apply(spDists(PRborder[1034:1078,], prmesh2$loc[,1:2], longlat=TRUE), 2, min)
+dsmesh <- apply(spDists(PRborder[1034:1078,], 
+                        prmesh2$loc[,1:2], longlat=TRUE), 2, min)
 imesh0 <- apply(abs(outer(ug.seadist, dsmesh, '-')), 2, which.min)
 mesh.seadist <- ug.seadist[imesh0]
 @ 
@@ -533,15 +537,15 @@ stk.mesh <- inla.stack(data=list(y=NA), A=list(1,1),
                        effects=list(i=1:spde$n.spde, 
                            data.frame(Intercept=1, 
                                       gSeaDist=mesh.seadist)), tag='mesh') 
-stk.all <- inla.stack(stk.dat, stk.mesh)
+stk.b <- inla.stack(stk.dat, stk.mesh)
 @ 
 
 Fitting the model again and ask for the configuration, 
 needed for sampling from the model 
 <<fittmesh>>=
-rm.sead <- inla(f.sead, family='Gamma', data=inla.stack.data(stk.all), 
-                control.predictor=list(A=inla.stack.A(stk.all), 
-                    compute=TRUE), quantiles=NULL, 
+rm.sead <- inla(f.sead, family='Gamma', data=inla.stack.data(stk.b), 
+                control.predictor=list(A=inla.stack.A(stk.b), 
+                    compute=TRUE, link=1), quantiles=NULL, 
                 control.results=list(return.marginals.random=FALSE,
                     return.marginals.predictor=FALSE), 
                 control.compute=list(config=TRUE))
@@ -555,11 +559,20 @@ Sampling from the model
 sampl <- inla.posterior.sample(n=1000, result=rm.sead)
 @ 
 
-Accessing the index for the components ($\alpha$)
+The first $n$ elements of the latent field are the linear predictor for the observed data 
+and the next $m$ elements are for the location at the mesh nodes. 
 <<idexs>>=
-spde$n.spde
-dimnames(sampl[[1]]$latent)
-ids <- lapply(c('Intercept', 'z.intercept', 'y.field', 'z.field', 'zc.field'),
-              function(x) grep(x, rownames(s1[[1]]$latent), fixed=TRUE))
-plot(rm.sead$summary.linear.pred$mean)
+dim(pred.nodes <- exp(sapply(sampl, function(x) 
+    x$latent[nrow(PRprec) + 1:nrow(prmesh2$loc)])))
+@ 
+Computing the mean and standard deviation over the samples and projecting it
+<<projsamples>>=
+sd.prd.s <- m.prd.s <- matrix(NA, nxy[1], nxy[2])
+m.prd.s[xy.in] <- drop(Aprd %*% rowMeans(pred.nodes))
+sd.prd.s[xy.in] <- drop(Aprd %*% apply(pred.nodes, 1, sd))
+@ 
+and we can see that it is similar to the computed analitically
+<<comparepreds>>=
+cor(as.vector(m.prd.s), as.vector(m.prd), use='p')
+cor(as.vector(sd.prd.s), as.vector(sd.prd), use='p')
 @ 

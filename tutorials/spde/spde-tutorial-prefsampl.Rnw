@@ -80,6 +80,7 @@ sigma2x <- 0.2;      kappa <- 2
 
 Doing the simulation
 <<simulapp>>=
+require(RandomFields)
 set.seed(1)
 lg.s <- rLGCP('matern', beta0, 
 ##              c(0, variance=sigma2x, nugget=0, scale=1/kappa, nu=1), win=win)
