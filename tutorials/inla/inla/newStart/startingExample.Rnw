@@ -195,7 +195,7 @@ $x$.
    head(m)
 @
 Thus, we can simply visualize a posterior marginal by plotting the y versus 
-the x values, see Figure~\ref{fig:marg1}. T
+the x values, see Figure~\ref{fig:marg1}. 
 \begin{figure}
 \begin{center}
 <<echo=FALSE, fig.width=10, fig.height=7, out.width=".6\\textwidth">>=
@@ -219,8 +219,100 @@ in the ski jumping example in a higher resolution.\label{fig:marg2}}
 \end{center}
 \end{figure}
 
+The summary result for the fixed effects can be acessed using
+{\small
+<<>>=
+   print(result$summary.fixed)
+@
+}
+which includes per defaultt posterior mean, standard deviation, as well as the 
+$2.5\%, 50\%, 97.5\%$ quantiles and the posterior mode in form of a matrix, 
+where each line corresponds to one fixed effect.  The mean of all fixed effects
+is extracted using
+{
+<<>>=
+   result$summary.fixed[,1]
+@
+}
 
+Based on the posterior marginal distribution also other quantiles of interest 
+can be computed after running the model. For example, assume interest lies in 
+the $10\%$ posterior quantile for the intercept, then we can call the function 
+\tv{inla.qmarginal} as follows
+<<>>=
+   inla.qmarginal(0.1, m)
+@
+Here, the first entriy is the quantile of interest and the second is the 
+posterior marginal density as obtained from \tv{inla()} which is a matrix with 
+two columns where the first column gives the locations and the second the 
+density values at these locations.
 
+Similar to \tv{inla.qmarginal} there exist the function \tv{inla.dmarginal} and 
+\tv{inla.pmarginal} to compute the CDF and density function of a posterior 
+marginal.
+
+<<>>=
+   inla.dmarginal(137, m)
+   inla.pmarginal(140, m)
+@
+
+The function \tv{inla.emarginal()} can be used to compute the expected value of
+a transformed quantity. Consider, for example,
+
+<<>>=
+   E=inla.emarginal(function(x){return(c(x,x^2))}, m)
+   E
+@
+
+This gives us the posterior mean (which we already now) and the posterior mean 
+for $x^2$. From this we can compute the posterior standard deviation as
+
+<<>>=
+   sqrt(E[2] - E[1]^2)
+@
+
+We can compare the obtained quantity to the posterior standard deviation 
+returned in the summary information for the intercept
+
+<<>>=
+   result$summary.fixed[1, 1:2]
+@
+
+and see that the value fits very well. The functions \tv{inla.qmarginal}, 
+\tv{inla.dmarginal}, \tv{inla.pmarginal} and \tv{inla.emarginal} can be applied
+to any posterior marginal distribution. To ease computations INLA works with 
+inverse variance, i.e. precision parameters, instead of variance parameters. 
+However, it is easy to transform the returned summary information for the 
+precision into summary information for the variance.
+
+In our simple model we only have one hyperparameters namely the precision 
+parameter for the observational noise. The corresponding postrior marginal can 
+be found in
+<<>>=
+  tau0 = result$marginals.hyperpar$"Precision for the Gaussian observations"
+@
+
+If we are interested in the posterior mean and posterior standard deviation of 
+the variance we can simply use the function \tv{inla.emarginal} as follows
+
+<<>>=
+  # compute the expected value of 1/x and 1/x^2
+  E = inla.emarginal(function(x){return(c(1/x, 1/x^2))}, tau0)
+  
+  # compute the standard deviation
+  mysd = sqrt(E[2] - E[1]^2)
+  
+  print(c(mean=E[1], sd=mysd))
+@
+
+In this section we focused on a short overview of \tv{R-INLA}. We have looked 
+at a simple linear model and learned how to get and inspect posterior results
+for fixed effects and hyperparameters. The following sections will investigate 
+all things presented here in more detail. In addition, we will describe how to 
+extend the model formulation by including random effects or linear combinations 
+of various components in the latent field, for example. We discuss how to 
+obtain predictions and different tools available for model choice. Finally we 
+discuss more advanced modelling options.
 
 % 
 % Provide an example that illustrates the most central point of R-INLA
