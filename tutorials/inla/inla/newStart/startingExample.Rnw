@@ -314,6 +314,27 @@ of various components in the latent field, for example. We discuss how to
 obtain predictions and different tools available for model choice. Finally we 
 discuss more advanced modelling options.
 
+\begin{table}
+\begin{center} 
+\begin{tabular}{lcc}
+\toprule
+\tv{inla.dmarginal} & x & x\\
+\tv{inla.pmarginal} &&\\
+\tv{inla.qmarginal} &&\\
+\tv{inla.rmarginal} &&\\
+\tv{inla.hpdmarginal} &&\\
+\tv{inla.emarginal} &&\\
+\tv{inla.mmarginal} &&\\
+\tv{inla.smarginal} &&\\
+\tv{inla.tmarginal} &&\\
+\tv{inla.zmarginal} &&\\
+\bottomrule
+\end{tabular}
+\caption{Functions which use posterior marginal density to derive some 
+information of interest.\label{tab:margFunc}}
+\end{center}
+\end{table}
+
 % 
 % Provide an example that illustrates the most central point of R-INLA
 % and also points common to several examples. Thus, maybe an
