@@ -314,26 +314,89 @@ of various components in the latent field, for example. We discuss how to
 obtain predictions and different tools available for model choice. Finally we 
 discuss more advanced modelling options.
 
+
+Table~\ref{tab:margFunc} gives a short overview of tasks and arguments of 
+different functions that use a posterior marginal, as returend by \tv{inla} for 
+example, to derive different quantities of interest. Here, we illustrate the 
+use of some of the functions using the standard normal distribution as an 
+example for a potentially returned marginal density.
 \begin{table}
 \begin{center} 
-\begin{tabular}{lcc}
+\begin{tabular}{lp{8cm}}
 \toprule
-\tv{inla.dmarginal} & x & x\\
-\tv{inla.pmarginal} &&\\
-\tv{inla.qmarginal} &&\\
-\tv{inla.rmarginal} &&\\
-\tv{inla.hpdmarginal} &&\\
-\tv{inla.emarginal} &&\\
-\tv{inla.mmarginal} &&\\
-\tv{inla.smarginal} &&\\
-\tv{inla.tmarginal} &&\\
-\tv{inla.zmarginal} &&\\
+\tv{inla.dmarginal(x, marginal, ...)} & Density at a vector of 
+evaluation points $x$ \\
+\tv{inla.pmarginal(q, marginal, ...)} & Distribution function at a vector of 
+quantiles $q$ \\
+\tv{inla.qmarginal(p, marginal, ...)} & Quantile function at a vector of 
+probabilities $p$.\\
+\tv{inla.rmarginal(n, marginal)} & Generate $n$ random deviates \\
+\tv{inla.hpdmarginal(p, marginal, ...)} & Compute the highest posterior denisty 
+interval at level $p$\\
+\tv{inla.emarginal(fun, marginal, ...)} & Compute the expected value of the 
+marginal assuming the transformation given by fun\\
+\tv{inla.mmarginal(marginal)} & Computes the mode\\
+\tv{inla.smarginal(marginal, ...)} & Smoothed density in 
+form of a list of length two. The first entry contains the x-values, the second 
+entry includes the interpolated y-values\\
+\tv{inla.tmarginal(fun, marginal, ...)} & Transform the marginal using the 
+function fun.\\
+\tv{inla.zmarginal(marginal)} & Summary statistics for the marginal\\
 \bottomrule
 \end{tabular}
-\caption{Functions which use posterior marginal density to derive some 
-information of interest.\label{tab:margFunc}}
+\caption{Functions which use a posterior marginal density to derive some 
+information of interest. The \tv{marginal} is thereby given 
+in form of a matrix with two columns where the first column 
+represents the location points and the second column the density 
+values at those location points. \label{tab:margFunc}}
 \end{center}
 \end{table}
+
+\begin{figure}
+\begin{center}
+<<fig.width=15,fig.height=7,out.width=".8\\textwidth">>=
+x=seq(-5,5, by=0.4)
+y = dnorm(x)
+marginal = cbind(x,y)
+# get a more smooth version
+smarginal = inla.smarginal(marginal)
+# head(smarginal)
+# inspect the marginal
+par(mfrow=c(1,2), cex.lab=1.5, cex.axis=1.5, las=1)
+plot(marginal, type="b", lwd=4)
+plot(smarginal, type="b", lwd=4, xlab="x", ylab="y")
+@
+\end{center}
+\end{figure}
+
+<<>>=
+# find the mode
+inla.mmarginal(smarginal)
+# evaluate the density at the values 0.5 and 1
+inla.dmarginal(c(0.5,1), smarginal)
+# sample 5 values from the density
+inla.rmarginal(5, smarginal)
+# compute the 95% HPD interval. Since we have as symmetric density. 
+# This corresponds to the 95% quantile-based interval.
+inla.hpdmarginal(0.95, marginal)
+# compute the 2.5% and 97.5% quantile
+inla.qmarginal(c(0.025, 0.975), smarginal)
+# get a summary of point estimates for this density
+inla.zmarginal(smarginal)
+@
+
+
+\begin{figure}
+\begin{center}
+<<echo=TRUE, fig.width=8, fig.height=5, out.width=".8\\textwidth">>=
+# compute the density for exp(x)
+tmarg = inla.tmarginal(function(x){exp(x)}, smarginal)
+plot(tmarg, xlab="x", ylab="x")
+# this corresponds to the log-normal distribution (indicated in red)
+curve(dlnorm, from=0, to=20, col=2, lwd=2.5, add=T)
+@
+\end{center}
+\end{figure}
 
 % 
 % Provide an example that illustrates the most central point of R-INLA
