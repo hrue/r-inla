@@ -918,6 +918,8 @@
         }
         
         if (!is.null(args$theta)) {
+            ## set non-finite's to 0
+            args$theta[!is.finite(args$theta)] = 0
             file.theta = inla.tempfile(tmpdir=data.dir)
             ##cat("theta = ", inla.paste(as.character(args$theta)), "\n", sep = " ", file = file,  append = TRUE)
             fp.binary = file(file.theta, "wb")
@@ -937,6 +939,8 @@
             args$x = args$result$mode$x
         }
         if (!is.null(args$x)) {
+            ## set non-finite's to 0
+            args$x[!is.finite(args$x)] = 0
             file.x = inla.tempfile(tmpdir=data.dir)
             ##write(args$x, ncol=1, file=file.x)
             fp.binary = file(file.x, "wb")
