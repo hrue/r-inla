@@ -352,24 +352,14 @@ values at those location points. \label{tab:margFunc}}
 \end{center}
 \end{table}
 
-\begin{figure}
-\begin{center}
-<<fig.width=15,fig.height=7,out.width=".8\\textwidth">>=
+
+<<>>=
 x=seq(-5,5, by=0.4)
 y = dnorm(x)
 marginal = cbind(x,y)
 # get a more smooth version
 smarginal = inla.smarginal(marginal)
 # head(smarginal)
-# inspect the marginal
-par(mfrow=c(1,2), cex.lab=1.5, cex.axis=1.5, las=1)
-plot(marginal, type="b", lwd=4)
-plot(smarginal, type="b", lwd=4, xlab="x", ylab="y")
-@
-\end{center}
-\end{figure}
-
-<<>>=
 # find the mode
 inla.mmarginal(smarginal)
 # evaluate the density at the values 0.5 and 1
@@ -385,6 +375,16 @@ inla.qmarginal(c(0.025, 0.975), smarginal)
 inla.zmarginal(smarginal)
 @
 
+\begin{figure}
+\begin{center}
+<<fig.width=15,fig.height=7,out.width=".8\\textwidth">>=
+# inspect the marginal
+par(mfrow=c(1,2), cex.lab=1.5, cex.axis=1.5, las=1)
+plot(marginal, type="b", lwd=4)
+plot(smarginal, type="b", lwd=4, xlab="x", ylab="y")
+@
+\end{center}
+\end{figure}
 
 \begin{figure}
 \begin{center}

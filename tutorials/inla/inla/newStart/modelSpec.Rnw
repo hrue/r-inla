@@ -11,31 +11,155 @@ $y_i \stackrel{\text{iid}}{\sim} p(y_i \mid \lambda_i)$, where
 the link function $h(\cdot)$ is used to link the mean $\lambda$ to 
 the linear predictor:
 \begin{equation}\label{eq:exampleLinPred}
-	\eta_i = g(\lambda_i) = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + f(z_i)
+	\eta_i = h(\lambda_i) = \beta_0 + \beta_1 X_{i} + \beta_2 Z_{i} + 
+f(W_i) + \ldots
 \end{equation}
-Here, $\bm{\beta} = (\beta_0, \beta_1, \beta_2)$ are ``fixed'' effects
+Here, $\bm{\beta} = (\beta_0, \beta_1, \beta_2)$ denote ``fixed'' effects
 where $\beta_0$ is the intercept and $\beta_1$ and $\beta_2$ describe a
-linear effect of the observed covariates $\bm{x}_1$ and $\bm{x}_2$.
-The term $f(z_i)$ specifies a non-linear/smooth effect of the covariate $\bm{z}$.
+linear effect of the observed covariates $\bm{X}$ and $\bm{Z}$.
+The term $f(W_i)$ specifies a non-linear/smooth effect of the covariate 
+$\bm{W}$.
 The specification on the level of the linear predictor is regarded as 
-the latent structure and striclty speaking this structure has
-to be Gaussian. Within \tv{R-INLA} a structure, such as the one
+the latent structure and strictly speaking this structure has
+to be Gaussian in order to be able to use \tv{R-INLA}. Within \tv{R-INLA} a 
+structure, such as the one
 provided in \eqref{eq:exampleLinPred} is specified through a $\tt{formula}$
 object:
 <<eval=FALSE>>=
-  formula = y ~ x1 + x2 + f(z, model= ...)
+  formula = y ~ X + Z + f(W, model="...", ...)
 @ 
 A formula object is thereby composed of two different types of terms,
-fixed effects just added to the model without additional specification
-and random effects specified using the ${\tt f(.)}$ function. Here,
-additional arguments to describe the underlying latent model are available.
+fixed effects just added to the model without additional specification, see 
+previous chapter, and random effects specified using the ${\tt f(.)}$ function. 
+Here, additional arguments to describe the underlying latent model are 
+available.
 Both terms will be described in more detail in following section.
 
 
 \section{Define the latent structure}
 
 \subsection{Fixed effects}
-How to specify them.
+
+The notation used to include fixed effects is analogous to the use in the 
+\tv{glm} or \tv{lm} function in \tv{R}, see also \tv{?formula} within 
+\tv{R}\footnote{One exception is that the specification
+    ``\tv{y $\sim$ .}'' is not allowed.}. 
+Table~\ref{tab:fixed} list symbols and their meaning for specifying fixed 
+effects within a \tv{formula}.
+\begin{table}
+\begin{tabular}{lcl}
+\toprule
+Symbol & Example & Meaning\\
+\midrule
+\tv{+} & \tv{+ X} & include this variable\\
+\tv{:} & \tv{X:Z} & include the interaction between these variables\\
+\tv{*} & \tv{X*Y} & include these variables and the interaction 
+between them\\
+\tv{1} & \tv{- 1} & intercept: delete the intercept (regress through the 
+origin)\\
+\bottomrule
+\end{tabular}
+\caption{Symbols used to include effects in a \tv{formula} 
+object. \label{tab:fixed}}
+\end{table}
+
+Importantly, the use of \tv{+} in the \tv{formula} context is different than 
+its usual meaning. Within the \tv{formula} notation it is a short-hand for 
+which variable to include in the statistical model.  Note that an intercept 
+$\beta_0$ is automatically added to the model,
+unless it is explicitly removed by adding term $-1$ or $0$:
+<<eval=FALSE>>=
+  formula = y ~ -1 + ...
+  formula = y ~ 0 + ...
+@
+Similarly, adding term $1$ makes the intercept appear explicitly
+<<eval=FALSE>>=
+  formula = y ~ 1 + ...
+@
+There is often more than one way to specify a specific model; the notation is 
+not unique. For example the following formulae are all equivalent:
+<<eval=FALSE>>=
+  formula = y ~ 1 + X + Z + X:Z
+  formula = y ~ 1 + X*Z 
+  formula = y ~ X*Z
+@
+each corresponding to 
+\begin{equation}\label{eq:exampleLinPred}
+	\eta_i = h(\lambda_i) = \beta_0 + \beta_1 X_{i} + \beta_2 Z_{i} +
+	\beta_3 X_iZ_i
+\end{equation}
+A small example will illustrate these features.
+<<>>=
+n = 100
+x = rnorm(n)
+z = rnorm(n)
+y = 1 + x + z + x*z + rnorm(n, sd=0.5)
+
+formula = y ~ x*z
+result = inla(formula, data = data.frame(y=y, x=x, z=z))
+result$summary.fixed
+@ 
+Note that we need to pass a \tv{data.frame} or a \tv{list} containing the 
+explanatory variables to the field \tv{data} in the functin \tv{inla()}.
+
+It is also possible to use the design matrix $\mathbf{X}$ explicitly as in
+<<eval=FALSE>>=
+  formula = y ~ X
+@
+An alternative specification of the last example, is
+<<>>=
+formula = y ~ X
+X = cbind(x=x, z=z, "x:z"=x*z)
+result = inla(formula, data = list(y=y,X=X))
+result$summary.fixed
+@ 
+%%
+\tv{R-INLA} adds prefix \tv{X} to the fixed effects names, to make the
+connection to the design-matrix $\mathbf{X}$ explicit.
+
+\tv{R-INLA} attributes independent Gaussian priors for each fixed effect of the
+model. The mean and precision of each of the priors can be controlled
+using the argument \tv{control.fixed} of the \tv{inla}
+function.  The argument \texttt{control.fixed} needs to be a list, and
+the arguments relevant for the prior specification of the fixed
+effects are:
+\begin{itemize}
+\item \texttt{mean.intercept}: prior mean for the intercept. Default value is 
+    \Sexpr{inla.set.control.fixed.default()$mean.intercept}
+\item \texttt{prec.intercept}: precision for the intercept. Default
+    value is    
+\Sexpr{inla.set.control.fixed.default()$prec.intercept}\footnote{Note
+        that the this prior is improper!}
+\item \texttt{mean}: prior mean for all fixed effects except the
+    intercept.  Default is
+    \Sexpr{inla.set.control.fixed.default()$mean}.  Alternatively, a
+    named list with specific means where \texttt{name = default}
+    applies to unmatched names. For example
+    \begin{center}
+        \texttt{control.fixed = list(mean = list(a = 1, b = 2, default = 0))} 
+    \end{center}
+    assign \texttt{mean = 1} to fixed effect \texttt{a}, \texttt{mean
+        = 2} to effect \texttt{b} and \texttt{mean = 0} to all others.
+\item \texttt{prec}: Similar to the \texttt{mean} argument above,
+    \texttt{prec} set the precision for all fixed effects except the
+    intercept.  Default is
+    \Sexpr{inla.set.control.fixed.default()$prec}.  Alternatively, a
+    named list with specific precisions where \texttt{name = default}
+    applies to unmatched names.
+\end{itemize}
+As an example, assume we have a model with an intercept and four fixed
+effects \tv{a}, \tv{b}, \tv{c} and \tv{d} and we want the intercept to
+have mean $0$ and precision $10$, the fixed effect \tv{b} to have mean
+$3$ and precision $5$ and the remaining to have mean $10$ and
+precision $20$. Then the prior specification in this case would be
+<<eval=FALSE,echo=TRUE>>=
+control.fixed = list(mean.intercept = 0,
+                     prec.intercept = 10,
+                     mean = list(b = 3, default = 10),
+                     prec = list(b = 5, default = 20))
+inla(..., control.fixed = control.fixed)
+@ 
+
 
 \subsection{Random effects}
 
@@ -71,7 +195,7 @@ Write about Sigrunns and your paper.
 \subsection{The inla-call}
 What can be specified.
 
-\subsection{Data structure and available likelhoods}
+\subsection{Data structure and available likelihoods}
 \begin{itemize}
 \item Say something about how data need to be organised what needs
 to be provided.
