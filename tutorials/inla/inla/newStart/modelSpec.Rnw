@@ -163,8 +163,84 @@ inla(..., control.fixed = control.fixed)
 
 \subsection{Random effects}
 
-Write about f-field, list possible latent models, write about
-weights and values.
+Within a linear predictor we are usually not only interested in including 
+fixed effects but also random effects.
+Here, we describe the specification of Gaussian random effects models of the 
+form
+\begin{equation*}
+  \mm{w} \cdot f(\mm{c}; \mm{\theta}),
+\end{equation*}
+where $\mm{w}$ denotes a vector of known weights for the effect and 
+$\mm{\theta}$ represents the hyperparameters of the Gaussian model.
+
+A random effects model can be defined using the \tv{f()}-function.
+This function allows the user to specify the latent model to be used, the prior 
+distributions for its hyperparameters $\mm{\theta}$, linear constraints,
+and much more. In this section we will describe the most important
+features of the \tv{f()}-function. More advanced topics like replicating
+a latent model, or grouping several latent models will be described later in 
+detail.
+
+The basic form of the \tv{f()}-function is:
+<<eval=FALSE,echo=TRUE>>=
+  f(c, w, model="...", ...)
+@
+where the first argument \tv{name} refers to the covariate to be modelled, 
+the second argument is n optional vector of known weights $\mm{w}$ (one for 
+each covariate value) and \tv{model} defines the type of the latent model. 
+For example, to define an independent and identically distributed (iid) random 
+effect for each observation, we set $\tv{c}=1,2,\ldots,n$, with $n$ 
+denoting the total number of observations,
+leading to:
+<<eval=FALSE,echo=TRUE>>=
+        f(c, model="iid")
+@
+
+Table~\ref{tab:latentModels} gives an overview of all implemented latent 
+Gaussian models.
+\begin{table}[h!]
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Model & Identifier\\
+\midrule
+Independent random noise &  {\tt iid}\\
+Linear & {\tt linear}\\
+Constrained linear & {\tt clinear}\\
+Random walk of order 1  &     {\tt rw1  }\\
+Random walk of order 2  &    {\tt rw2 }\\
+Continuous random walk of order 2 &     {\tt crw2   }\\
+Model for seasonal variation &     {\tt seasonal  }\\
+Model for spatial effect (know as Besag model)  &   {\tt besag   }\\
+Model for spatial effect (proper version)  &    {\tt besagproper    }\\ 
+Model for weighted spatial effects   &    {\tt besag2 }\\
+Model for spatial effect + random effect (known as Besag-York-Mollie model) &  
+    {\tt bym }\\
+Autoregressive model of order 1  &     {\tt ar1 }\\
+Autoregressive model of order p &     {\tt ar}\\
+The Ornstein-Uhlenbeck process  &    {\tt ou}\\
+User defined structure matrix, type 0  &    {\tt generic0 }\\
+User defined structure matrix, type 1   &    {\tt generic1  }\\
+User defined structure matrix, type 2  &     {\tt generic2   }\\
+Model for correlated effects with Wishart prior &{\tt iid1d, iid2d, iid3d}\\
+  (dimension 1, 2, 3, 4 and 5) &      {\tt iid4d, iid5d}\\
+Classical random effect model   &    {\tt z   }\\
+Random walk of order 2 on a lattice   &    {\tt rw2d  }\\
+Gaussian field with Matern covariance function  &    {\tt matern2d   }\\
+Classical measurement error model &      {\tt mec     }\\
+Berkson measurement error model  &    {\tt meb }\\
+Spatial lag model & {\tt slm}\\
+Sigmodial and reverse sigmodial & {\tt sigm}, {\tt revsigm}\\
+\bottomrule
+\end{tabular}
+\caption{List of latent Gaussian field models implemented in 
+\tv{R-INLA}.}\label{tab:latentModels}
+\end{center}
+\end{table}
+Specific documentation for each model can be found on 
+\url{http://www.r-inla.org/models/latent-models}. Within {\tt R} model 
+documentation can be requested using the function {\tt inla.doc(<identifier>)}, 
+e.g.~{\tt inla.doc("rw1")}.
 
 \section{Define hyperpriors for random effects}
 
