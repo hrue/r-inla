@@ -193,7 +193,7 @@ effect for each observation, we set $\tv{c}=1,2,\ldots,n$, with $n$
 denoting the total number of observations,
 leading to:
 <<eval=FALSE,echo=TRUE>>=
-        f(c, model="iid")
+  f(c, model="iid")
 @
 
 Table~\ref{tab:latentModels} gives an overview of all implemented latent 
@@ -241,6 +241,99 @@ Specific documentation for each model can be found on
 \url{http://www.r-inla.org/models/latent-models}. Within {\tt R} model 
 documentation can be requested using the function {\tt inla.doc(<identifier>)}, 
 e.g.~{\tt inla.doc("rw1")}.
+This will open a documentation pdf-file, with the following structure
+\begin{enumerate}
+        \item Description of the model parameterization.
+        \item Definition of the hyperparameters.
+        \item Model specification using R-INLA.
+        \item Hyperparameter specification and default values of the model.
+        \item Illustration of usage using a small simulated example.
+\end{enumerate}
+
+% \begin{example}
+Consider a simple regression model including one linear covariate $\bm{X}$ and 
+a random effect $\mathbf{a}=(a_1,\dots,a_n)$ that follows an 
+autoregressive models of order 1 (AR (1)) and is defined as:
+\begin{eqnarray}\nonumber
+    a_1&\sim&\mathcal{N}(0,(\tau(1-\rho^2))^{-1}) \\\nonumber
+    a_i&=&\rho\ a_{i-1}+\epsilon_i; \qquad 
+\epsilon_i\sim\mathcal{N}(0,\tau^{-1}) \qquad  i=2,\dots,n
+\end{eqnarray}
+where
+\[
+|\rho|<1
+\]
+Thus, the model can be written in hierarchical form as follows.
+\begin{description}
+  \item[Stage 1:]
+    \[
+      y_i|\eta_i \sim \mathcal{N}(\eta_i, \sigma_\mathrm{o}^2)
+    \]
+  \item[Stage 2:]
+    Covariates and AR(1) component  are connected to likelihood by
+    \[
+      \eta_i = \beta_0 + \beta_1 x_i + a_i
+    \]
+  \item[Stage 3:]
+  \begin{itemize}
+	\item
+	  \(\sigma_\mathrm{o}^2\)\,: variance of observation noise
+	\item
+	  \(\rho\)\,: dependence in AR(1) process
+	\item
+	  \(\tau^{-1}\)\,: variance of the innovations in AR(1) process
+  \end{itemize}
+\end{description}
+
+Using a simulated dataset we show how to estimate this model in \tv{R-INLA}
+<<setup, include=FALSE, cache=FALSE, tidy=TRUE>>=
+options(tidy=TRUE, width=70)
+@
+
+<<>>=
+n = 1000
+t = 1:n
+ar = rep(0 ,n)
+
+# Generate the autoregressive component
+for(i in 2:n)
+  ar[i] = 0.8 * ar[i -1] + rnorm(n = 1, sd = 0.1)
+  
+# Generate data with AR (1) component
+x = runif(n)
+y = 1 + 2 * x + ar + rnorm(n = n , sd = 0.1)
+
+# Specify the model and run inla
+formula = y ~ 1 + x + f(t , model = "ar1" )
+result = inla(formula, data = list(x = x, y = y, t = t), family ="gaussian")
+@
+
+Using the \tv{summary()} function we can expect the parameter estimates. Of note
+in the summary only estimates for the fixed effects here $\beta_0$ and 
+$\beta_1$ as well as the three hyperparameters are given. Section~TODO disusses 
+how to extract output information for the random effects.
+<<>>=
+summary(result)
+@
+To  reduce the number of unique values of a covariate the
+helper function {\tt inla.group()} can be used. This might help to reduce
+numerical instabilities. For example,
+<<eval=FALSE>>=
+  inla.group(c, n=20)
+@
+groups the covariate values into 20 classes. For more information
+type {\tt ?inla.group} within {\tt R}. The resulting {\tt f()}-function
+changes to
+<<eval=FALSE>>=
+  f(inla.group(c, n=20), w, model="...")
+@
+% To define all values assumed by a covariate and
+% for which an effect should be estimated,  the optional field
+% {\tt values} can be used. Here, a numerical vector, a vector of
+% factors or ‘NULL’ can be set:
+% <<eval=FALSE>>=
+%   f(c, w, model="...", values=<values assumed by the covariate>)
+% @
 
 \section{Define hyperpriors for random effects}
 

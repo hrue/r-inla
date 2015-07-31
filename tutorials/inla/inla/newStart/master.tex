@@ -32,7 +32,15 @@
 
 \setcounter{secnumdepth}{1} % \section nummereres ikke
 
-
+\usepackage{lipsum}
+\newcounter{examplecounter}
+\newenvironment{example}{\begin{quote}%
+    \refstepcounter{examplecounter}%
+  \textbf{Example \arabic{examplecounter}}%
+  \quad
+}{%
+\end{quote}%
+}
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%% Paper settings %%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%
