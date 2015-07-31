@@ -2,6 +2,7 @@
 <<echo=FALSE>>=
 library(INLA)
 @ 
+\section{Values}
 
 \section{Replicate}
 
