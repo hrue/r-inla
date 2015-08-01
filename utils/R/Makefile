@@ -29,6 +29,6 @@ updateBIN:;
 
 updateREPO:;
 	## the output of this command must be copied
-	-hg --cwd inla pull; hg --cwd inla update
+	-hg --cwd r-inla pull; hg --cwd r-inla update
 
 .PHONY: updateBIN updateREPO local install testing check
