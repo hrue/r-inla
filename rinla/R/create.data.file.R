@@ -22,7 +22,6 @@
     } else {
         y.orig = as.data.frame(y.orig)
     }
-
     n.data = dim(y.orig)[1L]
     ind=seq(0L, n.data-1L)
 
@@ -248,7 +247,7 @@
         }
 
     } else if (inla.one.of(family, c("stochvol", "stochvolt", "stochvolnig", "loggammafrailty",
-                                     "iidlogitbeta", "beta"))) {
+                                     "iidlogitbeta", "beta", "kumar"))) {
 
         response = cbind(ind, y.orig)
         null.dat = is.na(response[, 2L])

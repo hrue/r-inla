@@ -2283,7 +2283,7 @@ double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logpre
 }
 double priorfunc_invalid(double *x,  double *parameters)
 {
-	inla_error_general("Prior 'invalid' is used, but it is not ment to be used.");
+	inla_error_general("Prior 'invalid' is used, but it is not ment to be.");
 	exit(EXIT_FAILURE);
 	return 0.0;
 }
@@ -3025,6 +3025,11 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_GAMMACOUNT:
+		idiv = 2;
+		a[0] = NULL;
+		break;
+
+	case L_KUMAR:
 		idiv = 2;
 		a[0] = NULL;
 		break;
@@ -5620,6 +5625,44 @@ int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x
 #undef G
 	return GMRFLib_SUCCESS;
 }
+int loglikelihood_kumar(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * Kumar-distr
+	 */
+
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double phi = map_exp(ds->data_observations.kumar_log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double q = map_identity(ds->data_observations.kumar_q[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double alpha, beta, kappa, mu;
+
+	beta = log(1.0 - q) / log(1.0 - exp(-phi));
+	LINK_INIT;
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			kappa = mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			alpha = log(1.0 - pow(1.0 - q, 1.0/beta)) / log(kappa);
+			logll[i] = log(alpha) + log(beta) +
+				(alpha - 1.0) * log(y) +
+				(beta - 1.0) * log(1.0 - pow(y, alpha));
+		}
+	} else {
+		for (i = 0; i < -m; i++) {
+			kappa = mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			alpha = log(1.0 - pow(1.0 - q, 1.0/beta)) / log(kappa);
+			logll[i] = 1.0 - pow(1.0 - pow(y, alpha), beta);
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
 int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
 	/*
@@ -7009,6 +7052,10 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		prior->id = P_FLAT;
 		prior->priorfunc = priorfunc_flat;
 		prior->parameters = NULL;
+	} else if (!strcasecmp(prior->name, "INVALID")) {
+		prior->id = P_INVALID;
+		prior->priorfunc = priorfunc_invalid;
+		prior->parameters = NULL;
 	} else if (!strcasecmp(prior->name, "WISHART1D") ||
 		   !strcasecmp(prior->name, "WISHART2D") ||
 		   !strcasecmp(prior->name, "WISHART3D") || !strcasecmp(prior->name, "WISHART4D") || !strcasecmp(prior->name, "WISHART5D")) {
@@ -8374,6 +8421,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "GAMMACOUNT")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gammacount;
 		ds->data_id = L_GAMMACOUNT;
+	} else if (!strcasecmp(ds->data_likelihood, "KUMAR")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_kumar;
+		ds->data_id = L_KUMAR;
 	} else if (!strcasecmp(ds->data_likelihood, "BETA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_beta;
 		ds->data_id = L_BETA;
@@ -8680,6 +8730,17 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				if (ds->data_observations.y[i] < 0.0 || ds->data_observations.gamma_weight[i] <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Gamma data[%1d] (y) = %g or weight %g is void\n", secname, i,
 							ds->data_observations.y[i], ds->data_observations.gamma_weight[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+		break;
+
+	case L_KUMAR:
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.y[i] <= 0.0 || ds->data_observations.y[i] >= 1.0) {
+					GMRFLib_sprintf(&msg, "%s: Kumar data[%1d] (y) = (%g) is void\n", secname, i, ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -9826,6 +9887,93 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->data_ntheta++;
 		}
 		break;
+
+	case L_KUMAR:
+		/*
+		 * get options related to the kumar-distribution
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* yes! */
+		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
+		if (!ds->data_fixed0 && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.kumar_log_prec, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.kumar_log_prec[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
+		}
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed0) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("log precision for kumar observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("precision for kumar observations", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.kumar_log_prec;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+
+		/*
+		 * the quantile. MUST BE FIXED
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
+		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
+		if (!ds->data_fixed1 && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.kumar_q, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise quantile[%g]\n", ds->data_observations.kumar_q[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
+		}
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "INVALID");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed1) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("intern quantile for kumar observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("quantile for kumar observations", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.kumar_q;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_identity; /* YES, since it is not ment to be used */
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+		break;
+
 
 	case L_BETA:
 		/*
@@ -19239,6 +19387,29 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				break;
 
+			case L_KUMAR:
+				if (!ds->data_fixed0) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					double precision_intern = theta[count];
+
+					val += PRIOR_EVAL(ds->data_prior0, &precision_intern);
+					count++;
+				}
+				if (!ds->data_fixed1) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					double q = theta[count];
+
+					val += PRIOR_EVAL(ds->data_prior1, &q);
+					count++;
+				}
+				break;
+
 			case L_BETA:
 				if (!ds->data_fixed) {
 					/*
@@ -19251,6 +19422,7 @@ double extra(double *theta, int ntheta, void *argument)
 					count++;
 				}
 				break;
+
 			case L_BETABINOMIAL:
 				if (!ds->data_fixed) {
 					/*
