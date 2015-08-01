@@ -480,6 +480,7 @@ typedef enum {
 	P_PC_SPDE_GA,					       /* Experimental prior from GA when dim(theta)=2 */
 	P_PC_AR, 
 	P_REF_AR, 					       /* Reference prior for AR(p) for p=1,2,3 */
+	P_INVALID, 
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_AR1,
 	G_RW1,
@@ -1285,6 +1286,7 @@ double mfunc_mec(int i, void *arg);
 double mfunc_clinear(int i, void *arg);
 double mfunc_sigm(int i, void *arg);
 double mfunc_revsigm(int i, void *arg);
+double priorfunc_invalid(double *x, double *parameters);
 double priorfunc_ref_ar(double *x, double *parameters);
 double priorfunc_pc_ar(double *x, double *parameters);
 double priorfunc_beta(double *x, double *parameters);

@@ -5592,6 +5592,9 @@
              ## this is the 'no prior needed' prior
              none = list(nparameters = 0L),
 
+             ## this is the 'flag an error if used' prior
+             invalid = list(nparameters = 0L),
+
              betacorrelation = list(
                  nparameters = 2L,
                  pdf = "betacorrelation"
