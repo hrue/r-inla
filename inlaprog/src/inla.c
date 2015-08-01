@@ -2281,6 +2281,12 @@ double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logpre
 
 	return val;
 }
+double priorfunc_invalid(double *x,  double *parameters)
+{
+	inla_error_general("Prior 'invalid' is used, but it is not ment to be used.");
+	exit(EXIT_FAILURE);
+	return 0.0;
+}
 double priorfunc_betacorrelation(double *x, double *parameters)
 {
 	/*

@@ -6781,6 +6781,8 @@ inla.models()
 				 }
 				\item{Model `none'.}{					 Number of parameters in the prior = 0 
 				 }
+				\item{Model `invalid'.}{					 Number of parameters in the prior = 0 
+				 }
 				\item{Model `betacorrelation'.}{					 Number of parameters in the prior = 2 
 				 }
 				\item{Model `logitbeta'.}{					 Number of parameters in the prior = 2 
