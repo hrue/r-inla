@@ -11,6 +11,7 @@ date=$(date -d @$epoch)
 D=r-inla/rinla/R
 DD=INLA/R
 
+(cd $D; hg update; )
 hg=$(cd $D >/dev/null 2>/dev/null; hg parents --template 'hgid: {node|short}  date: {date|date}')
 ##inlahg=$(extern/inla64.linux -V 2>&1 | grep hgid:|head -n1)
 inlahg=$hg
