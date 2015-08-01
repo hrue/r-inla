@@ -158,7 +158,7 @@ typedef struct {
 	 * y ~ Neg.Binomial(n, p(x)), n=size is a hyperparameter (overdispersion)
 	 */
 	double **log_size;
-	
+
 	/*
 	 * y ~ Neg.Binomial(n, p(x)) strata2
 	 */
@@ -351,7 +351,7 @@ typedef struct {
 	 */
 	double **gammacount_log_alpha;
 
-	/* 
+	/*
 	 * The Kumar... distribution  
 	 */
 	double **kumar_log_prec;
@@ -419,9 +419,9 @@ typedef enum {
 	L_WRAPPED_CAUCHY,
 	L_TEST_BINOMIAL_1,
 	L_SIMPLEX,
-	L_GAMMACOUNT, 
+	L_GAMMACOUNT,
 	L_SKEWNORMAL2,
-	L_KUMAR, 
+	L_KUMAR,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -485,9 +485,9 @@ typedef enum {
 	P_PC_RHO1,
 	P_PC_DOF,
 	P_PC_SPDE_GA,					       /* Experimental prior from GA when dim(theta)=2 */
-	P_PC_AR, 
-	P_REF_AR, 					       /* Reference prior for AR(p) for p=1,2,3 */
-	P_INVALID, 
+	P_PC_AR,
+	P_REF_AR,					       /* Reference prior for AR(p) for p=1,2,3 */
+	P_INVALID,
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_AR1,
 	G_RW1,
@@ -668,13 +668,11 @@ typedef struct {
 	gsl_matrix *eigen_vectors;
 } inla_update_tp;
 
-typedef struct 
-{
+typedef struct {
 	char *R_HOME;					       /* environment variable to be set */
 	char *Rfile;					       /* filename to be sourced */
-	char *func;					       /* function to be called: fun(theta)*/
-}
-	inla_jp_tp;
+	char *func;					       /* function to be called: fun(theta) */
+} inla_jp_tp;
 
 
 struct inla_tp_struct {
@@ -868,7 +866,7 @@ struct inla_tp_struct {
 	 */
 	GMRFLib_ai_param_tp *ai_par;
 
-	/* 
+	/*
 	 * Expermental stuff: joint prior in R.
 	 */
 	inla_jp_tp *jp;
