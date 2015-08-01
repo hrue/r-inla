@@ -350,6 +350,12 @@ typedef struct {
 	 * Gammacount; parameter alpha
 	 */
 	double **gammacount_log_alpha;
+
+	/* 
+	 * The Kumar... distribution  
+	 */
+	double **kumar_log_prec;
+	double **kumar_q;
 } Data_tp;
 
 typedef struct {
@@ -415,6 +421,7 @@ typedef enum {
 	L_SIMPLEX,
 	L_GAMMACOUNT, 
 	L_SKEWNORMAL2,
+	L_KUMAR, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1459,6 +1466,7 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_v
 int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_kumar(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_inla(double *logll, double *x, int m, int idx, double *x_vec, void *arg);

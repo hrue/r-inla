@@ -4397,6 +4397,35 @@
                  pdf = "gammacount"
                  ),
 
+             kumar = list(
+                 hyper = list(
+                     theta1 = list(
+                         name = "precision parameter",
+                         short.name = "prec",
+                         initial = 0,
+                         fixed = FALSE,
+                         prior = "loggamma",
+                         param = c(1, 0.001),
+                         to.theta = function(x) log(x), 
+                         from.theta = function(x) exp(x)
+                         ), 
+                     theta2 = list(
+                         name = "quantile",
+                         short.name = "q",
+                         initial = 0.5,
+                         fixed = TRUE,
+                         prior = "invalid",
+                         param = numeric(0),
+                         to.theta = function(x) x, 
+                         from.theta = function(x) x
+                         )
+                     ),
+                 survival = FALSE,
+                 discrete = FALSE,
+                 link = c("default", "logit"),
+                 pdf = "kumar"
+                 ),
+
              beta = list(
                  hyper = list(
                      theta = list(
