@@ -2281,7 +2281,7 @@ double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logpre
 
 	return val;
 }
-double priorfunc_invalid(double *x,  double *parameters)
+double priorfunc_invalid(double *x, double *parameters)
 {
 	inla_error_general("Prior 'invalid' is used, but it is not ment to be.");
 	exit(EXIT_FAILURE);
@@ -3824,8 +3824,8 @@ int loglikelihood_skew_normal2(double *logll, double *x, int m, int idx, double 
 			alpha = SIGN(skewness) * sqrt(g / (1.0 - g));
 			delta = alpha / sqrt(1.0 + SQR(alpha));
 			omega = sqrt(variance / (1.0 - 2.0 * SQR(delta) / M_PI));
-			xi = ypred - omega * delta * sqrt(2.0 / M_PI); 
-			//xi = ypred;
+			xi = ypred - omega * delta * sqrt(2.0 / M_PI);
+			// xi = ypred;
 			xarg = (y - xi) / omega;
 			logll[i] = LOG_NORMC_GAUSSIAN + M_LOG2E - log(omega) - 0.5 * SQR(xarg) + inla_log_Phi_fast(alpha * xarg);
 		}
@@ -5647,15 +5647,13 @@ int loglikelihood_kumar(double *logll, double *x, int m, int idx, double *x_vec,
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			kappa = mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			alpha = log(1.0 - pow(1.0 - q, 1.0/beta)) / log(kappa);
-			logll[i] = log(alpha) + log(beta) +
-				(alpha - 1.0) * log(y) +
-				(beta - 1.0) * log(1.0 - pow(y, alpha));
+			alpha = log(1.0 - pow(1.0 - q, 1.0 / beta)) / log(kappa);
+			logll[i] = log(alpha) + log(beta) + (alpha - 1.0) * log(y) + (beta - 1.0) * log(1.0 - pow(y, alpha));
 		}
 	} else {
 		for (i = 0; i < -m; i++) {
 			kappa = mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			alpha = log(1.0 - pow(1.0 - q, 1.0/beta)) / log(kappa);
+			alpha = log(1.0 - pow(1.0 - q, 1.0 / beta)) / log(kappa);
 			logll[i] = 1.0 - pow(1.0 - pow(y, alpha), beta);
 		}
 	}
@@ -9966,7 +9964,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->theta[mb->ntheta] = ds->data_observations.kumar_q;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_identity; /* YES, since it is not ment to be used */
+			mb->theta_map[mb->ntheta] = map_identity;	/* YES, since it is not ment to be used */
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -19925,7 +19923,7 @@ double extra(double *theta, int ntheta, void *argument)
 	for (i = 0; i < mb->nlinear; i++) {
 		if (mb->linear_precision[i] > 0.0) {
 			val += LOG_NORMC_GAUSSIAN + 1.0 / 2.0 * log(mb->linear_precision[i])
-				- 1.0 / 2.0 * mb->linear_precision[i] * SQR(mb->linear_mean[i]);
+			    - 1.0 / 2.0 * mb->linear_precision[i] * SQR(mb->linear_mean[i]);
 		}
 	}
 
