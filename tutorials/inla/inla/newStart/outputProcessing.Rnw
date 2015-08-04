@@ -2,9 +2,19 @@
 <<echo=FALSE>>=
 rm(list=ls())
 library(INLA)
+formula=y~x
+result=inla(formula, family='gaussian', data=data.frame(y=rnorm(100), x=1:00))
 @ 
 
 
+Before we illustrate ways to access input of interest we would like to describe the general organization of an object returned by the function \tv{inla}. 
+
+<<>>=
+length(result)
+names(result)
+@ 
+The object obtained after running \tv{inla} is a list of length 
+$\Sexpr{length(result)}$. However, not all entries are filled by default.
 
 \section{Access the output and plotting}
 
