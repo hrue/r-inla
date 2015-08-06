@@ -334,6 +334,32 @@ changes to
 % <<eval=FALSE>>=
 %   f(c, w, model="...", values=<values assumed by the covariate>)
 % @
+Besides the type of latent model some general options can be specified.
+All available options are
+listed on the help page of the {\tt f()}-function, found via {\tt ?f}.
+Some important options are
+
+\begin{itemize}
+        \item[{\tt constr}:] A boolean variable indicating whether to
+        set a sum to zero constraint. By default the sum to zero constraint is
+        imposed on all intrinsic models ("iid","rw1","rw2","besag", etc..)
+        \item[{\tt extraconstr}] This argument defines extra linear
+        constraints. The argument is a list with two elements, a matrix
+        {\tt A} and a
+        vector {\tt e}, which defines the extra constraint {\tt Ax = e};
+        leading to {\tt extraconstr = list(A=A, e=e)}. Note that this
+        constraint comes additional to the
+        sum-to-zero constraint defined if {\tt constr = TRUE}.
+        \item[{\tt quantile}:]A vector of maximum $10$ quantiles
+        to compute for each posterior marginal.
+        \item[{\tt rankdef}:] A number *defining* the rank deficiency of
+                the latent model.
+        \item[{\tt cyclic}:]A boolean specifying wheather the model is cyclical. Only
+          valid for "rw1" and "rw2" models. If cyclic=T then the sum to
+          0 constraint is removed.
+\end{itemize}
+The following section illustrates the specification of hyperparameter settings for
+a random effect to be defined within the \tv{f}-function.
 
 \section{Define hyperpriors for random effects}
 

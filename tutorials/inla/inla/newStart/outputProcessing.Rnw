@@ -20,8 +20,9 @@ $\Sexpr{length(result)}$. However, not all entries are filled by default.
 
 In this section we will discuss how to access the output of the
 Bayesian analysis and how to perform operations on posterior
-marginals. To fix ideas, we will study a simple example
-which implements this model
+marginals. To fix ideas, we will study a simple example which
+implements this model
+  
 \begin{displaymath}
     y_i = \mu + \beta x_i + u_{j_i} + \epsilon_i
 \end{displaymath}
