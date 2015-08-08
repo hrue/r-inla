@@ -810,11 +810,19 @@
     cat("###  ", inla.version("hgid"), "\n", sep = "", file = file,  append = TRUE) 
     cat("###  ", inla.paste(Sys.info()), "\n", sep = "", file = file,  append = TRUE) 
     cat("###  ", inla.os.type(), "-", inla.os.32or64bit(), "bit", " ", date(), "\n", sep = "", file = file,  append = TRUE) 
+
+    cat("\n### [[[start of output from sessionInfo()]]]", "\n",  file = file, append = TRUE)
+    s = paste("###   ", capture.output(sessionInfo()))
+    for(i in seq_along(s)) {
+        cat(s[i], "\n",  file = file, append = TRUE)
+    }
+    cat("### [[[end of output from sessionInfo()]]]\n", "\n",  file = file, append = TRUE)
+
     cat("inladatadir = ", data.dir, "\n", sep = "", file = file,  append = TRUE)
     cat("inlaresdir = ", result.dir, "\n", sep = "", file = file,  append = TRUE)
-    cat("#inladatadir = ", gsub("^.*/","", data.dir), "\n", sep = "", file = file,  append = TRUE) #
-    cat("#inlaresdir = ", gsub("^.*/","", result.dir), "-%d\n", sep = "", file = file,  append = TRUE) #
- 
+    cat("##inladatadir = ", gsub("^.*/","", data.dir), "\n", sep = "", file = file,  append = TRUE) #
+    cat("##inlaresdir = ", gsub("^.*/","", result.dir), "-%d\n", sep = "", file = file,  append = TRUE) #
+        
 
     cat("\n", sep = " ", file = file,  append = TRUE)
     cat("[INLA.Model]\n", sep = " ", file = file,  append = TRUE)
