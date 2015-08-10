@@ -2340,26 +2340,23 @@ double priorfunc_pc_ar(double *x, double *parameters)
 
 	p = (int) parameters[1];
 	lambda = parameters[0];
-	b = Calloc(p, double);
-	gamma = Calloc(p, double);
-	pacf = Calloc(p, double);
+	b = Calloc(3*p, double);
+	gamma = &(b[p]);
+	pacf = &(b[2*p]);
 
 	for (i = 0, logjac = 0.0; i < p; i++) {
 		b[i] = 0.5;
 		// x is internal and this gives us the pacf. 
-		pacf[i] = map_phi(x[i], MAP_FORWARD, NULL);
+		pacf[i] = ar_map_pacf(x[i], MAP_FORWARD, NULL);
 		// but the pc-simplex prior is given in terms of 'gamma'
 		gamma[i] = -log(1.0 - SQR(pacf[i]));
 		// hence we need two jacobians, one for x->pacf and one for pacf->gamma. recall that we have a singularity for x[i]=0
 		double xtmp = (ISZERO(pacf[i]) ? DBL_EPSILON : pacf[i]);
-		logjac += log(ABS(map_phi(x[i], MAP_DFORWARD, NULL))) + log(ABS(xtmp / (1.0 - SQR(pacf[i]))));
+		logjac += log(ABS(ar_map_pacf(x[i], MAP_DFORWARD, NULL))) + log(ABS(xtmp / (1.0 - SQR(pacf[i]))));
 	}
 	ldens = inla_pc_simplex_d(gamma, b, p, lambda) + logjac;
 
 	Free(b);
-	Free(gamma);
-	Free(pacf);
-
 	return (ldens);
 }
 double priorfunc_ref_ar(double *x, double *parameters)
@@ -14449,7 +14446,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
 					mb->theta[mb->ntheta] = pacf_intern[i - 1];
 					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-					mb->theta_map[mb->ntheta] = map_phi;
+					mb->theta_map[mb->ntheta] = ar_map_pacf;
 					mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 					mb->theta_map_arg[mb->ntheta] = NULL;
 					mb->ntheta++;
@@ -26035,7 +26032,7 @@ double inla_update_density(double *theta, inla_update_tp * arg)
 }
 int testit(int argc, char **argv)
 {
-	if (1) {
+	if (0) {
 		double x;
 		for (x = -100.0; x < 100.0; x = x + 0.01) {
 			printf("x %.12g log(Phi(x)) %.12g %.12g\n", x, inla_log_Phi_fast(x), inla_log_Phi(x));
@@ -26044,19 +26041,54 @@ int testit(int argc, char **argv)
 	}
 	if (1) {
 		// checking the expression and the jacobian for this prior
-		double x, xx, dx = 0.001, sum = 0.0, parameters[2];
+		double x, xx, xxx, dx = 0.01, sum = 0.0, parameters[2], low= -4.001, high=4.0;
+		int i;
 
-		parameters[0] = 3.123;			       /* lambda */
+		parameters[0] = 2.123;			       /* lambda */
+		parameters[1] = 1;			       /* p */
+		sum = 0;
+#pragma omp parallel for private(i, x, xx) reduction(+: sum)
+		for (i = 0; i < (int) ((high - low)/dx + 1); i++){
+			x = low + dx * i;
+			double x2[1];
+			x2[0] = x;
+			sum += exp(priorfunc_pc_ar(x2, parameters));
+		}
+		P(sum * pow(dx, 1.0));
+
+		
+		parameters[0] = 2.123;			       /* lambda */
 		parameters[1] = 2;			       /* p */
-		for (x = -6.001; x < 6.0; x += dx) {
-			for (xx = -6.001; xx < 6.0; xx += dx) {
+		sum = 0;
+#pragma omp parallel for private(i, x, xx) reduction(+: sum)
+		for (i = 0; i < (int) ((high - low)/dx + 1); i++){
+			x = low + dx * i;
+			for (xx = low; xx < high; xx += dx) {
 				double x2[2];
 				x2[0] = x;
 				x2[1] = xx;
-				sum += exp(priorfunc_pc_ar(x2, parameters)) * SQR(dx);
+				sum += exp(priorfunc_pc_ar(x2, parameters));
 			}
 		}
-		P(sum);
+		P(sum * pow(dx, 2.0));
+
+		parameters[0] = 3.123;			       /* lambda */
+		parameters[1] = 3;			       /* p */
+		sum = 0;
+#pragma omp parallel for private(i, x, xx, xxx) reduction(+: sum)
+		for (i = 0; i < (int) ((high - low)/dx + 1); i++){
+			x = low + dx * i;
+			for (xx = low; xx < high; xx += dx) {
+				for (xxx = low; xxx < high; xxx += dx) {
+					double x2[3];
+					x2[0] = x;
+					x2[1] = xx;
+					x2[2] = xxx;
+					sum += exp(priorfunc_pc_ar(x2, parameters));
+				}
+			}
+		}
+		P(sum * pow(dx, 3.0));
 	}
 
 	if (0) {
