@@ -2340,9 +2340,9 @@ double priorfunc_pc_ar(double *x, double *parameters)
 
 	p = (int) parameters[1];
 	lambda = parameters[0];
-	b = Calloc(3*p, double);
+	b = Calloc(3 * p, double);
 	gamma = &(b[p]);
-	pacf = &(b[2*p]);
+	pacf = &(b[2 * p]);
 
 	for (i = 0, logjac = 0.0; i < p; i++) {
 		b[i] = 0.5;
@@ -7332,9 +7332,13 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 
 
 	/*
-	 * default: gaussian data is on, then its turned off... 
+	 * default: gaussian data is on, then its turned off... unless we chose to disable the check
 	 */
-	mb->gaussian_data = GMRFLib_TRUE;
+	if (mb->expert_disable_gaussian_check) {
+		mb->gaussian_data = GMRFLib_FALSE;
+	} else {
+		mb->gaussian_data = GMRFLib_TRUE;
+	}
 
 	/*
 	 * ...then parse the sections in this order: EXPERT, MODE, PROBLEM, PREDICTOR, DATA, FFIELD, LINEAR, INLA, UPDATE, LINCOMB, OUTPUT
@@ -12251,7 +12255,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 	}
 
-	if (ds->data_id != L_GAUSSIAN || ds->predictor_invlinkfunc != link_identity || ds->mix_use) {
+	if (ds->data_id != L_GAUSSIAN || ds->predictor_invlinkfunc != link_identity || ds->mix_use || mb->expert_disable_gaussian_check) {
 		mb->gaussian_data = GMRFLib_FALSE;
 	}
 
@@ -18856,6 +18860,11 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
 		printf("\t\tsection[%s]\n", secname);
+	}
+
+	mb->expert_disable_gaussian_check = iniparser_getint(ini, inla_string_join(secname, "DISABLE.GAUSSIAN.CHECK"), 0);
+	if (mb->verbose) {
+		printf("\t\t\tdisable.gaussian.check=[%1d]\n", mb->expert_disable_gaussian_check);
 	}
 
 	/*
@@ -26041,14 +26050,14 @@ int testit(int argc, char **argv)
 	}
 	if (1) {
 		// checking the expression and the jacobian for this prior
-		double x, xx, xxx, dx = 0.01, sum = 0.0, parameters[2], low= -4.001, high=4.0;
+		double x, xx, xxx, dx = 0.01, sum = 0.0, parameters[2], low = -4.001, high = 4.0;
 		int i;
 
 		parameters[0] = 2.123;			       /* lambda */
 		parameters[1] = 1;			       /* p */
 		sum = 0;
 #pragma omp parallel for private(i, x, xx) reduction(+: sum)
-		for (i = 0; i < (int) ((high - low)/dx + 1); i++){
+		for (i = 0; i < (int) ((high - low) / dx + 1); i++) {
 			x = low + dx * i;
 			double x2[1];
 			x2[0] = x;
@@ -26056,12 +26065,12 @@ int testit(int argc, char **argv)
 		}
 		P(sum * pow(dx, 1.0));
 
-		
+
 		parameters[0] = 2.123;			       /* lambda */
 		parameters[1] = 2;			       /* p */
 		sum = 0;
 #pragma omp parallel for private(i, x, xx) reduction(+: sum)
-		for (i = 0; i < (int) ((high - low)/dx + 1); i++){
+		for (i = 0; i < (int) ((high - low) / dx + 1); i++) {
 			x = low + dx * i;
 			for (xx = low; xx < high; xx += dx) {
 				double x2[2];
@@ -26076,7 +26085,7 @@ int testit(int argc, char **argv)
 		parameters[1] = 3;			       /* p */
 		sum = 0;
 #pragma omp parallel for private(i, x, xx, xxx) reduction(+: sum)
-		for (i = 0; i < (int) ((high - low)/dx + 1); i++){
+		for (i = 0; i < (int) ((high - low) / dx + 1); i++) {
 			x = low + dx * i;
 			for (xx = low; xx < high; xx += dx) {
 				for (xxx = low; xxx < high; xxx += dx) {
