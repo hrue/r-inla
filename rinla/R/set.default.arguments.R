@@ -187,8 +187,10 @@
         jp.func = NULL, 
         
         ##:ARGUMENT: jp.Rfile The R-file to be sourced to set up a joint prior for the hyperparmaters to be evaluated by \code{jp.func} 
-        jp.Rfile = NULL
-        
+        jp.Rfile = NULL,
+
+        ##:ARGUMENT: disable.gaussian.check Disable the check for fast computations with a Gaussian likelihood and identity link
+        disable.gaussian.check = FALSE
         )
 
     ##:SEEALSO: inla

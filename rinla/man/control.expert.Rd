@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.expert} for use in \code{inla}}
 \usage{
 inla.set.control.expert.default(...)
-control.expert(cpo.idx, cpo.manual, jp.func, jp.Rfile)
+control.expert(cpo.idx, cpo.manual, disable.gaussian.check, jp.func, jp.Rfile)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -20,6 +20,7 @@ control.expert(cpo.idx, cpo.manual, jp.func, jp.Rfile)
 \item{cpo.idx}{  The index of the data point to remove. (EXPERT OPTION: DO NOT USE)}
 \item{jp.func}{  The R-function which returns the joint prior, to be defined in \code{jp.Rfile}}
 \item{jp.Rfile}{  The R-file to be sourced to set up a joint prior for the hyperparmaters to be evaluated by \code{jp.func}}
+\item{disable.gaussian.check}{  Disable the check for fast computations with a Gaussian likelihood and identity link}
 }
 \value{
  
