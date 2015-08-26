@@ -22,16 +22,15 @@ t(sapply(burkitt[, 1:3], summary))
 The folowing commands shows the time when each event occurred, Figure~\ref{fig:timeshow}.
 <<timeshow,eval=FALSE>>=
 n <- nrow(burkitt)
-par(mfrow=c(1,1), mar=c(3,.1,.1,.1), mgp=c(2,1,0))
+par(mfrow=c(1,1), mar=c(1.5,.1,.1,1), mgp=c(2,0.7,0))
 plot(burkitt$t, rep(1,n), type='h', xlim=c(0,max(burkitt$t)), 
-     ylim=0:1, axes=FALSE, xlab='time', ylab='')
+     ylim=0:1, axes=FALSE, xlab='', ylab='')
 box(); axis(1)
 @ 
 
-We have to define a set of knots over time to define the 
+We have to define a set of knots over time in order to fit 
 SPDE spatio temporal model. 
-And use it then to built a temporal mesh to project the 
-field into the data time location 
+It is then used to built a temporal mesh 
 <<tmesh,eval=FALSE>>=
 tknots <- seq(0, 1, 0.2)*max(burkitt$t)
 abline(v=tknots, lwd=4, col=4) ## add to plot
@@ -40,11 +39,11 @@ k <- (mesh.t <- inla.mesh.1d(tknots))$n
 
 \setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}[h]\centering 
-<<timeplot,echo=F,fig=T,eps=F,width=10,height=2.5>>=
+<<timeplot,echo=F,fig=T,eps=F,width=10,height=2>>=
 <<timeshow>>
 <<tmesh>>
 @ 
-\caption{Time when each event occurred.}
+\caption{Time when each event occurred (black) and knots used for inference (blue).}
 \label{fig:timeshow}
 \end{figure}
 
@@ -65,19 +64,20 @@ m <- (mesh.s <- inla.mesh.2d(burpts, boundary=inla.sp2segment(domainSP),
                              max.edge=c(15, 50), cutoff=7))$n
 @ 
 
+The SPDE model is defined using the spatial mesh as usual
+<<spde>>=
+spde <- inla.spde2.matern(mesh.s)
+@ 
+
 The spatio temporal projector matrix is made considering 
-both spatial and temporal locations and both meshes, spatial and temporal. 
+both spatial and temporal locations and both spatial and temporal meshes. 
 <<Ast>>=
 dim(Ast <- inla.spde.make.A(mesh=mesh.s, loc=burpts, n.group=length(mesh.t$n), 
                             group=burkitt$t, group.mesh=mesh.t))
 @ 
+Internally \texttt{inla.spde.make.A} function makes a row Kronecker product (see \texttt{inla.row.kron}) between the spatial projector and the group (temporal in our case) projector.  
 This matrix has number of columns equals to the number 
 of nodes in the mesh times the number of groups. 
-
-The SPDE model is defined using the spatial mesh
-<<spde>>=
-spde <- inla.spde2.matern(mesh.s)
-@ 
 
 The index set is made considering the group feature: 
 <<idx>>=
