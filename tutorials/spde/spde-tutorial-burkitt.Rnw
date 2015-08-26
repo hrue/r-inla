@@ -94,7 +94,7 @@ The second is zero as for a point the expectation is zero,
 in accord to the likelihood approximation proposed by \cite{simpsonetal:2011}. 
 
 We first need to build the Voronoi polygons. 
-We choose to use a function from the \textbf{\textsf{deldir}} package:
+We choose to use a function from the \textbf{\textsf{deldir}} package: 
 <<voronoi>>=
 require(deldir)
 dd <- deldir(mesh.s$loc[,1], mesh.s$loc[,2])
