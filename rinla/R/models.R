@@ -4079,21 +4079,6 @@
                  pdf = NA
                  ),
 
-             special2 = list(
-                 hyper = list(
-                     theta = list(
-                         name = "beta",
-                         short.name = "b",
-                         prior = "normal",
-                         param = c(0, 10),
-                         initial = 0,
-                         fixed = FALSE,
-                         to.theta = function(x) x,
-                         from.theta = function(x) x
-                         )),
-                 pdf = NA
-                 ),
-
              special1 = list(
                  hyper = list(
                      theta1 = list(
@@ -4207,6 +4192,21 @@
                          from.theta = function(x) x
                          )
                      ),
+                 pdf = NA
+                 ),
+             
+             special2 = list(
+                 hyper = list(
+                     theta = list(
+                         name = "beta",
+                         short.name = "b",
+                         prior = "normal",
+                         param = c(0, 10),
+                         initial = 0,
+                         fixed = FALSE,
+                         to.theta = function(x) x,
+                         from.theta = function(x) x
+                         )),
                  pdf = NA
                  )
              )
