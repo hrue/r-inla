@@ -710,7 +710,7 @@ struct inla_tp_struct {
 	int expert_n_cpo_idx;				       /* the length */
 	double expert_diagonal_emergencey;
 	int expert_disable_gaussian_check;		       /* do not check for faster computations */
-	
+
 	/*
 	 * section Problem
 	 */

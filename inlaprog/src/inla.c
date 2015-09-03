@@ -1049,7 +1049,7 @@ double link_logoffset(double x, map_arg_tp typ, void *param, double *cov)
 	case MAP_BACKWARD:
 		return log(sign * (x - off));
 	case MAP_DFORWARD:
-		return sign*exp(x);
+		return sign * exp(x);
 	case MAP_INCREASING:
 		return sign;
 	default:
