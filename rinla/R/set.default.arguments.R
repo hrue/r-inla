@@ -657,7 +657,7 @@
                           "\n\n  Valid ones are:\n\t",
                           inla.paste(sort(elms), sep="\n\t")), sep=""))
     }
-
+        
     for(elm in names(contr)) {
         if (!is.element(elm, elms)) {
             stop(inla.paste(c("Name `", elm,"' in control-argument `", nm, "', is void.\n\n  Valid ones are:\n\t",

@@ -1,3 +1,4 @@
+
 ## Export: inla
 
 ##! \name{inla}
@@ -820,10 +821,17 @@
     control.family.save = control.family
     for(ii in 1:n.family) {
         control.family = control.family.save[[ii]]
+        ## need to be able to say when n.family =  1
+        ## control.family = list(
+        ##    list(hyper = list(), control.link = list())))
+        while (is.list(control.family) &&
+               length(control.family) > 0 &&
+               is.null(names(control.family))) {
+            control.family = control.family[[1]]
+        }
         control.family.save[[ii]] = inla.check.control(control.family, data)
     }
     control.family = control.family.save
-    
     cont.family = list(list())
     for(i.family in 1:n.family) {
         cont.family[[i.family]] = inla.set.control.family.default()
