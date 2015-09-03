@@ -4050,6 +4050,8 @@
                  pdf = NA
                  ), 
              logoffset = list(
+                 ## variant = 0, a+exp(...),  a>0
+                 ## variant = 1, a-exp(...),  a>0
                  hyper = list(
                      theta = list(
                          name = "beta",

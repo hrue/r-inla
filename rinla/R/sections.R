@@ -145,6 +145,23 @@
             stop(paste("For link-model:", lmod, ", the argument 'order' is not used and must be NULL."))
         }
     }
+
+    variant = control$control.link$variant
+    if (inla.one.of(lmod, c("logoffset"))) {
+        ## for these models, the argument 'variant' is required
+        if (## general
+            is.null(variant) ||
+            ## model-spesific
+            (inla.one.of(lmod, c("logoffset")) && all(variant != c(0, 1)))) {
+            stop(paste("For link-model:", lmod, ", the argument variant must be 0 or 1,  not", variant))
+        }
+        cat("link.variant = ", variant, "\n", file = file,  append = TRUE)
+    } else {
+        if (!is.null(variant)) {
+            stop(paste("For link-model:", lmod, ", the argument 'variant' is not used and must be NULL."))
+        }
+    }
+
     inla.write.hyper(control$control.link$hyper, file, prefix = "link.", data.dir = dirname(file))
     if (!is.null(link.covariates)) {
         if (!is.matrix(link.covariates)) {

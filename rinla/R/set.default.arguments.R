@@ -142,6 +142,9 @@
         ##:ARGUMENT: order The \code{order} of the link function, where the interpretation of \code{order} is model-dependent.
         order = NULL, 
 
+        ##:ARGUMENT: variant The \code{variant} of the link function, where the interpretation of \code{variant} is model-dependent.
+        variant = NULL, 
+
         ##:ARGUMENT: nq Number of quadrature-points used to do the numerical integration
         nq = 15, 
 

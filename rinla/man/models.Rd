@@ -4925,29 +4925,6 @@ inla.models()
 						 }
 					 }
 				 }
-				\item{Model `special2'.}{Number of hyperparmeters are 1.
-					 \describe{
-						\item{Hyperparameter `theta'}{
-							 \describe{
-							\item{name = }{`beta'}
-							\item{short.name = }{`b'}
-							\item{prior = }{`normal'}
-							\item{param = }{`0 10'}
-							\item{initial = }{`0'}
-							\item{fixed = }{`FALSE'}
-							\item{to.theta = }{`\code{function(x) x}'}
-							\item{from.theta = }{`\code{function(x) x}'}
-							}
-						}
-					 }
-					 \describe{
-						\item{Properties:}{
-							\describe{
-								\item{pdf = }{`NA'}
-							 }
-						 }
-					 }
-				 }
 				\item{Model `special1'.}{Number of hyperparmeters are 11.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
@@ -5078,6 +5055,29 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{pdf = }{`NA'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `special2'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{name = }{`beta'}
+							\item{short.name = }{`b'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 10'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
 							\item{to.theta = }{`\code{function(x) x}'}
 							\item{from.theta = }{`\code{function(x) x}'}
 							}
@@ -5471,7 +5471,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default identity logit log'}
+								\item{link = }{`default identity logit log logoffset'}
 								\item{pdf = }{`gaussian'}
 							 }
 						 }
