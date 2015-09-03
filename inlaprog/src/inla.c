@@ -1023,7 +1023,7 @@ double link_logoffset(double x, map_arg_tp typ, void *param, double *cov)
 	 * the link-functions calls the inverse map-function 
 	 */
 	Link_param_tp *p;
-	double beta, off;
+	double beta, off, sign;
 
 	if (!cov) {
 		char *msg;
@@ -1041,16 +1041,17 @@ double link_logoffset(double x, map_arg_tp typ, void *param, double *cov)
 	p = (Link_param_tp *) param;
 	beta = exp(p->beta_intern[GMRFLib_thread_id][0]);
 	off = beta * cov[0];
+	sign = (p->variant == 0 ? 1.0 : -1.0);
 
 	switch (typ) {
 	case MAP_FORWARD:
-		return off + exp(x);
+		return off + sign * exp(x);
 	case MAP_BACKWARD:
-		return log(x - off);
+		return log(sign * (x - off));
 	case MAP_DFORWARD:
-		return exp(x);
+		return sign*exp(x);
 	case MAP_INCREASING:
-		return 1.0;
+		return sign;
 	default:
 		abort();
 	}
@@ -11721,10 +11722,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	 * the meaning of 'order' is model dependent
 	 */
 	ds->link_order = iniparser_getint(ini, inla_string_join(secname, "LINK.ORDER"), -1);
+	ds->link_variant = iniparser_getint(ini, inla_string_join(secname, "LINK.VARIANT"), -1);
 	if (mb->verbose) {
-		printf("\t\tLink model  [%s]\n", ds->link_model);
-		printf("\t\tLink order  [%1d]\n", ds->link_order);
-		printf("\t\tLink ntheta [%1d]\n", ds->link_ntheta);
+		printf("\t\tLink model   [%s]\n", ds->link_model);
+		printf("\t\tLink order   [%1d]\n", ds->link_order);
+		printf("\t\tLink variant [%1d]\n", ds->link_variant);
+		printf("\t\tLink ntheta  [%1d]\n", ds->link_ntheta);
 	}
 
 	/*
@@ -11871,6 +11874,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		ds->link_parameters = Calloc(1, Link_param_tp);
 		ds->link_parameters->order = ds->link_order;
+		ds->link_parameters->variant = ds->link_variant;
 		ds->predictor_invlinkfunc_arg = (void *) (ds->link_parameters);
 
 		HYPER_NEW(ds->link_parameters->beta_intern, tmp);

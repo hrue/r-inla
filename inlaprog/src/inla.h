@@ -360,6 +360,7 @@ typedef struct {
 
 typedef struct {
 	int order;					       /* a copy of ds->link_order */
+	int variant;					       /* a copy of ds->link_variant */
 	double **log_prec;
 	double **beta;					       /* one covariate */
 	double **beta_intern;				       /* one covariate */
@@ -607,17 +608,17 @@ typedef struct {
 	 * the link model
 	 */
 	char *link_model;
-	inla_component_tp link_id;
+	int *link_fixed;
+	int link_ntheta;
 	int link_order;
+	int link_variant;
+	double *link_initial;
+	GMRFLib_matrix_tp *link_covariates;
+	Link_param_tp *link_parameters;
+	Prior_tp *link_prior;
+	inla_component_tp link_id;
 	link_func_tp *predictor_invlinkfunc;
 	void *predictor_invlinkfunc_arg;
-	Prior_tp *link_prior;
-	int *link_fixed;
-	double *link_initial;
-	int link_ntheta;
-	Link_param_tp *link_parameters;
-	GMRFLib_matrix_tp *link_covariates;
-
 
 	/*
 	 * the re-extention

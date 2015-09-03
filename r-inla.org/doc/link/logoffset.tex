@@ -27,7 +27,10 @@ and the prior is defined on $\mathbf{\theta}$.
 
 \subsection*{Specification}
 
-Use \texttt{model="logoffset"} within \texttt{control.link}
+Use \texttt{model="logoffset"} within \texttt{control.link}.  The
+\texttt{variant=0} in \texttt{control.link} gives the link function
+above, while \texttt{variant=1} gives $\beta x_{i} - \exp(\eta_{i})$
+(for other likelihoods).
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/link/logoffset.tex}
