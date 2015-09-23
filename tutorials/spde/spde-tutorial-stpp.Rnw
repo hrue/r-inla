@@ -1,4 +1,4 @@
-\chapter{Spatio temporal log-Cox process}\label{ch:stpp}
+\chapter{Space-time log-Cox process}\label{ch:stpp}
 
 \SweaveOpts{prefix.string=figs/stpp} 
 <<opts,echo=F,results=hide>>=
@@ -6,6 +6,7 @@ options(width=75, prompt = " ", continue = "   ")
 require(INLA)
 lcall <- inla.getOption('inla.call')
 inla.setOption(inla.call='remote')
+inla.setOption(num.threads=7)
 @ 
 
 In this chapter we show how to fit a 
@@ -74,7 +75,7 @@ points(xyt$x, xyt$y, cex=0.5, pch=3)
 \label{fig:stlppshow}
 \end{figure}
 
-\subsection{Spacetime aggregation}
+\subsection{Space-time aggregation}
 
 For large datasets it can be computationally demanding to fit the model. 
 The problem is because the dimention of the model would be $n+m*k$, 
@@ -152,14 +153,14 @@ with $n$ cases the intensity varies around the average number of cases (intensit
 (i0 <- n / (gArea(domainSP) * diff(range(tmesh$loc))))
 @ 
 and this value is related to an intercept in the model we fit below. 
-The space time volumn (area unit per time unit) at each polygon and time knot is
+The space-time volumn (area unit per time unit) at each polygon and time knot is
 <<stvol>>=
 summary(e0 <- w.areas[agg.dat$area] * (w.t[agg.dat$time]))
 @ 
 
 \subsection{Model fit}
 
-The projector matrix, SPDE model object and the spacetime index set definition:
+The projector matrix, SPDE model object and the space-time index set definition:
 <<spde>>=
 A.st <- inla.spde.make.A(smesh, smesh$loc[agg.dat$area,],
                          group=agg.dat$time, mesh.group=tmesh)

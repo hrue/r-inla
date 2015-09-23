@@ -5,8 +5,9 @@
 options(width=75, prompt = " ", continue = "   ")
 require(lattice) 
 require(INLA)
-noremote <- inla.getOption('inla.call')
+lcall <- inla.getOption('inla.call')
 inla.setOption(inla.call='remote')
+inla.setOption(num.threads=7)
 @ 
 
 In this section we start to show the fitting process 
@@ -40,7 +41,7 @@ locations the $s_i$, $i=1,...,n$, and we
 define the model 
 \begin{equation}\begin{array}{c}
 y_i|\beta_0,x_i,\sigma_e^2 \sim N(\beta_0 + x_i, \sigma_e^2) \\
-\bbx \sim GF(0, \Sigma)
+\bx \sim GF(0, \Sigma)
 \end{array}\end{equation}
 We consider that $x$ is a realization of 
 a Gaussian Field, with Mat\'ern correlation 
@@ -115,7 +116,7 @@ effect of the random field and the intercept
 that is treated as a covariate. 
 So, we define the new intercept $\eta^{*}$ as 
 \[
-\eta^{*} = \bA\bbx + \b1\beta_0
+\eta^{*} = \bA\bx + \b1\beta_0
 \]
 that is a sum of two components each one 
 can be represented as a product of a projector 
@@ -459,8 +460,8 @@ For the standard error,
 we need to take into account the 
 error of the covariate values and 
 regression coefficients. 
-<<optnoremote,echo=F>>=
-inla.setOption(inla.call=noremote)
+<<optlcall,echo=F>>=
+inla.setOption(inla.call=lcall)
 @ 
 <<cov,results=hide,echo=F>>=
 q <- inla.spde2.precision(spde5, theta=res5$summary.hyper[2:3,1])
@@ -606,7 +607,7 @@ beta0 <- 10; sigma2e <- 0.3; sigma2x <- 5; kappa <- 7; nu <- 1
 and the maximum likelihood estimates are 
 <<likfit,echo=F,results=hide>>=
 source('spde-tutorial-functions.R')
-inla.setOption(inla.call=noremote)
+inla.setOption(inla.call=lcall)
 system.time(opt.b <- optim(
     c(-1,2), negLogLikFun, hessian=TRUE, method='BFGS',
     X=matrix(1,nrow(coords)), A=A5, y=SPDEtoy[,3], spde=spde5)) 

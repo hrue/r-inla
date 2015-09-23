@@ -5,6 +5,8 @@
 options(width=77, prompt = " ", continue = "   ")
 require(INLA)
 lcall <- inla.getOption('inla.call')
+inla.setOption(inla.call='remote')
+inla.setOption(num.threads=7)
 source('spde-tutorial-functions.R')
 set.seed(1)
 @ 

@@ -413,10 +413,13 @@ We simplify this map by uniting all the areas together.
 To do it, we use the \code{unionSpatialPolygons()} 
 \pkg{spdep} function that uses function of the \pkg{rgeos} 
 package~\cite{rgeos}. If we don't have the \pkg{rgeos} 
-we can use the \pkg{gpclib} package, but we need to set 
-a permission before the work with this library 
-<<uionsp,results=hide>>=
+we can use the \pkg{gpclib} package instead, 
+but the we do need to set a permission 
+<<uionsp,results=hide,eval=F>>=
 gpclibPermit()
+@ 
+before working with this library 
+<<unionSpatialPolygons>>=
 nc.border <- unionSpatialPolygons(nc.sids, rep(1, nrow(nc.sids)))
 @ 
 
