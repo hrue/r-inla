@@ -7,6 +7,7 @@ require(INLA)
 require(fields)
 lcall <- inla.getOption('inla.call')
 inla.setOption(inla.call='remote')
+inla.setOption(num.threads=7)
 @ 
 
 In this chapter we shown how to fit a survival model using a 

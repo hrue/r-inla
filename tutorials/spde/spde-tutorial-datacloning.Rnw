@@ -4,8 +4,9 @@
 <<sett,echo=F,results=hide>>=
 options(width=75, prompt = " ", continue = "   ")
 require(INLA)
-noremote <- inla.getOption('inla.call')
+lcall <- inla.getOption('inla.call')
 inla.setOption(inla.call='remote')
+inla.setOption(num.threads=7)
 @ 
 
 The data clone algorithm for spatial models is described in 
@@ -80,7 +81,7 @@ r$Kappa <- sapply(resk, function(x) {
 @ 
 <<likfit,echo=F,results=hide>>=
 source('spde-tutorial-functions.R') 
-inla.setOption(inla.call=noremote) 
+inla.setOption(inla.call=lcall) 
 A <- inla.spde.make.A(mesh, loc=coords) 
 opt.b <- optim(c(-2,2), negLogLikFun, hessian=TRUE, method='BFGS', 
                X=matrix(1,nrow(coords)), A=A, y=SPDEtoy[,3], spde=spde) 

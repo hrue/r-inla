@@ -4,10 +4,11 @@
 <<opts,echo=F,results=hide>>=
 options(width=75, prompt = " ", continue = "   ")
 require(INLA)
+lcall <- inla.getOption('inla.call')
+inla.setOption(inla.call='remote')
+inla.setOption(num.threads=7)
 require(lattice) 
 require(gridExtra) 
-lcall <- inla.getOption('inla.call') 
-inla.setOption(inla.call='remote') 
 @ 
 
 A very common data in spatial statistics is the climate data. 

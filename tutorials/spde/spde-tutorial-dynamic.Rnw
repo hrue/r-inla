@@ -1,0 +1,363 @@
+\chapter{Dynamic regression example}\label{ch:dynamic}
+
+\SweaveOpts{prefix.string=figs/dynamic} 
+<<opts,echo=F,results=hide>>=
+options(width=75, prompt = " ", continue = "   ")
+require(INLA) 
+lcall <- inla.getOption('inla.call') 
+inla.setOption(inla.call='remote')
+inla.setOption(num.threads=7)
+@ 
+
+There is a large literature about dynamic models 
+with also some books about it, from \cite{westH:1997} 
+to \cite{PetrisPC:2009}. 
+These models basically defines an hierarchical 
+framework for a class of time series models. 
+A particular case is the dynamic regression 
+model on some covariates, also time series. 
+This is the case when we make a model where the regression coefficients 
+vary smoothly over time, we have a dynamic model.
+
+The specific class of models for spatially 
+structured time series was proposed on \cite{gelfandKSB:2003}. 
+So, there are defined models where the regression coefficients 
+varies smoothly over time and space. 
+Also, a particular class of such models called 
+``spatially varying coefficient models'' was proposed, 
+\cite{assuncaoGA:1999}, \cite{assuncaoPC:2002}, \cite{gamermanMR:2003}. 
+This class is particular, since the coefficients vary only spatially. 
+
+The dynamic models include a wide class of 
+univariate and multivariate time series models. 
+By having each time series a spatial reference, 
+one can define the spatio temporal dynamic models. 
+It can be defined as convolution of realizations at each time 
+of proper Gaussian Markov random fields (PGMRF) over space.
+This class of spatio temporal models have also been proposed by
+\cite{vivarF:2009} using an MCMC algorithm based on forward information 
+filtering and backward sampling (FIFBS) recursions to perform Bayesian inference. 
+Such MCMC is computationally expensive, particularly as it need the 
+covariance matrix instead precision. 
+
+One can avoid the FFBS algorithm as a relation between the Kalman-filter 
+and the Cholesky factorization is provided in \cite{knorrheldR:2002}. 
+The Cholesky fator  is more general and has superior performance 
+when using sparse matrix methods, \cite[p. 149]{RueHeld:2005}.  
+Additionally, it does not need the restriction that the prior for the latent field has to be proper. 
+The fitting process using the INLA algorithm follows naturally and 
+one can see the way to specify dynamic models in the INLA package in \cite{cardenasKR:2012}. 
+When the likelihood is Gaussian, there is no approximation needed in the inference process since 
+the distribution of the latent field given the data and 
+the hyperparameters has closed form: is Gaussian. 
+
+\section{Dynamic regression}
+
+In this section we introduce the dynamic regression model, 
+one useful class of such models. 
+Let a parametric family for the vector 
+of observations at time $t$, $\by_t$. 
+To have a model for the $E(\by_t) = \bmu_t$, 
+where $\by_t$ is the length $n$ vector of 
+the response at a set of $n$ areas. 
+We define a class of dynamic models by the 
+two following equations:
+\begin{equation}\begin{array}{rcl}
+ \bmu_t &=& \rm{g}^{-1}(\rm{trace}(\bx_t'\bxi_t)) \\
+ (\bxi_t - \bmu_{\xi}) &=& \bG_t(\bxi_{t-1} - \bmu_{\xi}) + \bomega_{t}\;. 
+\end{array}\end{equation}\label{eq:dyn0}
+Where the trace(.) indicates that only the diagonal of $\bx_t'\bxi_t$ counts and
+\begin{itemize}
+ \item $g(.)$ is the link function, $g^{-1}(.)$ the inverse link function 
+ \item $\bx_t$ is, in our applications, 
+   considered a covariate matrix 
+   $p \times n$ at time $t$,
+ \item $\bxi_t$ is the latent (unobservable) 
+   state $p \times n$ matrix at time $t$, 
+ \item $\bG_t$ is the $p \times p$ matrix that 
+   describes the time evolution of the states, 
+ \item $\bomega_t$ is the $p \times n$ matrix of 
+   errors in the state equation. 
+\end{itemize}
+To make the estimation process easy, we can re-write~\ref{eq:dyn0} as
+\begin{equation}\begin{array}{rcl}
+ \bmu_t &=& \rm{g}^{-1}(\rm{trace}(\bx_t'(\bxi_t+\bmu_{\xi}))) \\
+ \bxi_t  &=& \bG_t\bxi_{t-1} + \bomega_{t}\;. 
+\end{array}\end{equation}\label{eq:dyn}
+where now $E(\bxi)=\b0$. 
+
+It is assumed that at each time $t$ 
+$\bomega_{t}$ are independent realization 
+from its distribution. Also, we have 
+independence between lines of $\bomega_t$ and 
+each line is Normally distributed 
+with zero mean and covariance matrix 
+$\Sigma_k$, $k=1, ..., p$. 
+The matrix $\bG_t$ is considered fixed over time as $\bG$ and 
+defines the correlation structure of $\bxi_t$ over time. 
+By assuming $\bG$ a diagonal matrix, 
+it implies that there is no correlation between lines of the $\bxi_t$ matrix. 
+So, the regression coeffient of any covariate is 
+not correlated with one of another covariate. 
+
+The distributional assumption is for 
+each entry of $\by_t$ and can be chosen 
+from the generalized linear models family. 
+For example, if $\by_t$ are counts, 
+a Poisson distribution and $\rm{g}^{-1}()=\exp()$ can be considered. 
+We can have the linear dynamic model by 
+considering the identity link. 
+Then, it is common to consider an error in the observation equation
+\[
+ \by = \bmu + \be
+\]
+where $\be$ is a $n$ length vector of errors 
+  in the observation equation, and has Normal distribution
+  with zero mean and covariance matrix $\Sigma_e$.
+In this particular case, if assume $\Sigma_e$ to be a diagonal matrix, 
+then we have independent noise. 
+
+To define the spatial component we assume that $\Sigma_k$ 
+is a covariance matrix defined by any spatial model. 
+Considering the areal data, discrete spatial domain, 
+we just need to have a graph associated to neighborhood structure. 
+There is some options for implementing 
+proper GMRF's over a graph in the \pkg{INLA} package, 
+see  \cite{cardenasKR:2012} and \cite{blangiardoC:2015}. 
+
+In this Chapter we show an example for the continuous spatial domain case, 
+where the Mat\'ern random field is used through the SPDE approach. 
+In this example we consider a dynamic intercept 
+and a dynamic regression coefficient for one covariate. 
+This model is just an extension of the one in 
+\cite{cameletti:2012}, where only the intercept is dynamic.
+
+\section{Simulation from the model}
+
+We can start on defining the spatial locations:
+<<coom>>=
+n <- 100;   set.seed(1);  coo <- matrix(runif(2*n), n)
+@ 
+
+To sample from a random field on a set of location, 
+we use the following function 
+<<rrffun>>=
+rrf <- function(n, coords, kappa, variance, nu=1) {
+    m <- as.matrix(dist(coords))
+    m <- exp((1-nu)*log(2) + nu*log(kappa*m)-
+             lgamma(nu))*besselK(m*kappa, nu)
+    diag(m) <- 1
+    chol(variance*m)%*%matrix(rnorm(nrow(coords)*n), ncol=n)
+}
+@ 
+
+We use the above function to draw $k$ (number of time points) 
+samples from the random field. 
+Then, we make it temporally correlated 
+considering the time autoregression 
+<<sample>>=
+kappa <- c(10, 12);    tauE <- c(1, 3/2)
+k <- 10;  rho <- c(0.9, 0.8) 
+E1 <- rrf(k, coo, kappa[1], 1/tauE[1]) * (1-rho[1]^2)
+E2 <- rrf(k, coo, kappa[2], 1/tauE[2]) * (1-rho[2]^2)
+for (j in 2:k) {
+    E1[, j] <- E1[,j-1]*rho[1] + E1[,j]
+    E2[, j] <- E2[,j-1]*rho[2] + E2[,j]
+}
+rbind(summary(as.vector(E1)), summary(as.vector(E2)))
+@ 
+where the term $(1-\rho_j^2)$ is to make it in accord to the 
+parametrization of the AR($1$) model in INLA.
+
+To get the response, we do simulations for the covariate, 
+compute the mean and add an error term 
+<<response>>=
+xx <- matrix(runif(n*k), n) ### covariate
+muE <- c(-5, 1);   taue <- 5
+y <- (muE[1] + E1) + (muE[2]+E2)*xx + ### dynamic regression part
+    rnorm(n*k, 0, sqrt(1/taue)) ### error in the observation
+length(y)
+@ 
+
+\section{Fitting the model}
+
+In this case we are going to work with the 
+SPDE approach and, as we seen in previous SPDE 
+examples, it works with a model on the mesh. 
+In this case do simulations in $n$ locations 
+over space and in $k$ time points 
+and we need to fit the model for this $n$ 
+spatial locations based on the mesh defined in 
+possible different number of vertices. 
+Because of this, we need a particular trick 
+to fit dynamic continuous spatial with \pkg{INLA}. 
+
+To build the SPDE model over the space, we just need the 
+mesh which only depends on the spatial domain. 
+We can have it before the simulation of the observations. 
+Because we have two spatio temporal terms on the model 
+and each one with three hyperparameters 
+(precision, spatial correlation range, 
+temporal correlation) and we have also the noise the variance 
+($7$ hyperparameters in total)
+we build a mesh with small number of vertices just to avoid it to be 
+computationally expensive. 
+
+We build the mesh and the SPDE model object with the following commands:
+<<spde>>=
+mesh <- inla.mesh.2d(coo, max.edge=0.15, offset=0.05, cutoff=0.05)
+(spde <- inla.spde2.matern(mesh))$n.spde 
+@ 
+
+Also, we chan define the projector matrix and the indexes set. 
+To have it, we need to take into account the time dimension. 
+<<spdebuild>>=
+dim(A <- inla.spde.make.A(mesh, cbind(rep(coo[,1], k), rep(coo[,2], k)),
+                          group=rep(1:k, each=n)))
+iE1 <- inla.spde.make.index('E1', spde$n.spde, n.group=k)
+iE2 <- inla.spde.make.index('E2', spde$n.spde, n.group=k)
+@ 
+
+Now, we need to deal with the fact that we have covariate values 
+only at the response locations and not on the mesh vertex, 
+where the SPDE model is defined. 
+Considering that $\bxi$ are modeled on the mesh vertex, 
+we have that the observation equation can be written as 
+\[
+\by = \bx(\bA \bxi) + \be
+\]
+where we take into account the spatio temporal projector matrix. 
+We need a particular trick to deal with this issue. 
+
+First we split $\bxi_t$ into two parts: 
+the intercept $\xi_{0t}$ and 
+the regression coefficient $\xi_{1t}$  
+\[
+y_i = \bA_i \xi_{0t} + x_t(\bA_i \xi_{1t}) + e_t\;.
+\]
+Or, in the vectorial form for entire time domain
+\[
+\by = \bA \bxi_{0} + \bx(\bA \bxi_{1}) + \be\;.
+\]
+Then, we write a faked zero equation to have an 
+augmented version approach to fit $\bxi_{1}$ 
+\[
+0 = \bA \bxi_{1} - \bxi_1^{*}
+\]
+where we force $\bxi_1^{*}$ to be equal to $\bA \bxi_1$ by
+setting a Gaussian likelihood with fixed and hight precision value 
+for the faked zero observations in this equation. 
+To have the values for $\bxi_1^{*}$ on the observation equation, 
+we assign an independent random effect for $\bxi_1^{*}$ on the 
+facked zero observations with small and fixed precision. 
+Then we copy it on the observation equation with copy parameter fixed and equal one. 
+
+The data stack on this case is specified with two columns matrix response. 
+The stack data for the faked zero observations is 
+<<stkE>>=
+stk.E <- inla.stack(data=list(y=cbind(NA, rep(0,n*k))), tag='E', 
+                    A=list(A, 1), 
+                     effects=list(iE2, 
+                         data.frame(E2x=1:(n*k), wE2x=-1)))
+@ 
+where the \code{iE2} effect is the index set for the spatial Mat\'ern random field with grouping for time, \code{E2x} is the index from one to the number of observations ($n \times k$) which account for the effect at each observation. 
+
+For the observed data we have to specify the $\bxi_1$ effect which need 
+the spatio temporal projector matrix. For the $\bxi_1^{*}$ effect, 
+we just specify a vector with length the same as the number of observations. 
+So, we have 
+<<stky>>=
+stk.y <- inla.stack(data=list(y=cbind(as.vector(y), NA)), tag='y', 
+                    A=list(A, 1), 
+                    effects=list(iE1,
+                        data.frame(mu1=1, E2xc=1:(n*k), 
+                                   x=as.vector(xx)))) 
+@ 
+where \code{iE1} is similar to \code{iE2} and \code{E2xc} is defined to match \code{E2x}. 
+
+The formula take these things into account 
+<<formula>>=
+hlow <- list(theta=list(initial=-10, fixed=TRUE))
+form <- y ~ 0 + mu1 + x + ### to fit mu_x
+    f(E1, model=spde, group=E1.group, control.group=list(model='ar1')) + 
+        f(E2, model=spde, group=E2.group, control.group=list(model='ar1')) + 
+            f(E2x, wE2x, model='iid', hyper=hlow) + 
+                f(E2xc, x, copy='E2x') 
+@
+
+We fit the model with joining both stacks together
+<<jstack>>=
+jstack <- inla.stack(stk.y, stk.E) 
+@ 
+
+The first step of the INLA algorithm is to find the mode of the hyperparameters. 
+By choosing good starting values it will be needed less iteractions in this optimization process. 
+Below, we define starting values for the hyperparameters in the internal scale considering the values used to simute the data
+<<theta>>=
+(theta.ini <- c(log(taue), 
+                -log(4*pi*tauE[1]*kappa[1]^2)/2, log(kappa[1]), 
+                qlogis(rho[1]), 
+                -log(4*pi*tauE[2]*kappa[2]^2)/2, log(kappa[2]), 
+                qlogis(rho[2]))) 
+@ 
+
+Fitting the model considering the initial values defined above
+<<fittingdyn3,results=hide>>=
+hhigh <- list(hyper=list(theta=list(initial=10, fixed=TRUE)))
+res <- inla(form, rep('gaussian',2), data=inla.stack.data(jstack), 
+            control.predictor=list(A=inla.stack.A(jstack)),
+            control.family=list(list(), hhigh),
+            control.mode=list(theta=theta.ini, restart=TRUE))
+@ 
+
+As we have Gaussian likelihood, $k=$\Sexpr{k} time points and a crude mesh, the computational is cost mainly dominated by the optimization step to find the mode of the $7$ hyperparameters in the model. 
+This step takes around few minutes to fit, to do more than 600 posterior evaluations. 
+The integration step is performed at 79 hyperparameter configurations using the CCD strategy. 
+<<cpu>>=
+res$cpu
+@ 
+
+Summary of the $\bmu_x$:
+<<summarymux>>=
+round(cbind(true=muE, res$summary.fix), 4)
+@ 
+
+The results for the random fields
+<<rfres>>=
+rf1 <- inla.spde2.result(res, 'E1', spde)
+rf2 <- inla.spde2.result(res, 'E2', spde)
+@ 
+
+We can see the posterior marginal distributions for the 
+model hyperparameters and the range for each 
+spatio-temporal process in Figure~\ref{fig:hd3pmds}. 
+<<hd3pmds, echo=TRUE, eval=FALSE>>=
+par(mfrow=c(3, 3), mar=c(2.5,2.5,0.3,0.3), mgp=c(1.5,0.5,0)) 
+plot(res$marginals.hy[[1]], type='l', xlab=expression(tau[E]), ylab='Density') 
+abline(v=taue, col=gray(.4)) 
+plot(res$marginals.hy[[4]], type='l', xlab=expression(rho[1]), ylab='Density') 
+abline(v=rho[1], col=gray(.4)) 
+plot(res$marginals.hy[[7]], type='l', xlab=expression(rho[2]), ylab='Density') 
+abline(v=rho[2], col=gray(.4)) 
+plot(rf1$marginals.variance[[1]], type='l', xlab=expression(sigma[1]^2), ylab='Density') 
+abline(v=1/tauE[1], col=gray(.4)) 
+plot(rf1$marginals.kappa[[1]], type='l', xlab=expression(kappa[1]), ylab='Density') 
+abline(v=kappa[1], col=gray(.4)) 
+plot(rf1$marginals.range[[1]], type='l', xlab='range 1', ylab='Density')
+abline(v=sqrt(8*1)/kappa[1], col=gray(.4)) 
+plot(rf2$marginals.variance[[1]], type='l', xlab=expression(sigma[2]^2), ylab='Density') 
+abline(v=1/tauE[2], col=gray(.4)) 
+plot(rf2$marginals.kappa[[1]], type='l', xlab=expression(kappa[2]), ylab='Density') 
+abline(v=kappa[2], col=gray(.4)) 
+plot(rf2$marginals.range[[1]], type='l', xlab='range 2', ylab='Density') 
+abline(v=sqrt(8*1)/kappa[2], col=gray(.4)) 
+@ 
+\setkeys{Gin}{width=0.99\textwidth}
+\begin{figure}\centering
+<<hd3pmdsf, eval=TRUE, echo=FALSE, fig=T,eps=F, width=7.5, height=5>>=
+<<hd3pmds>>
+@ 
+\caption{Posterior marginal distributions for the 
+  dynamic continuous spatial model hyperparameters} 
+\label{fig:hd3pmds}\end{figure}
+

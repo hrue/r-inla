@@ -178,7 +178,7 @@ for the observation data. So, we have
 \[y|\mu_y,x,\bA,\bQ,\sigma_y^2 \sim N(\mu_y + \bA x, \bI \sigma^2_y)\;.\]
 Integrating out $x$, we have that 
 \[ y | \mu_y, \bQ, \bA, \sigma_y^2 \sim 
-N(\mu_y, (\bA \bQ^{-1}\bA' + \bI\sigma_y^2)^{-1}) \;.\]
+N(\mu_y, (\bA \bQ \bA' + \bI\sigma_y^2)^{-1}) \;.\]
 
 The log-likelihood function, 
 marginalized with respect $x$, becomes 
@@ -187,7 +187,7 @@ marginalized with respect $x$, becomes
 \frac{1}{2}(y-\bF\beta)^{'}\Sigma^{-1}(y-\bF\beta) 
 \]
 where 
-$\Sigma = (\bA \bQ^{-1}\bA' + \bI\sigma_y^2)^{-1}$ 
+$\Sigma = (\bA \bQ \bA' + \bI\sigma_y^2)^{-1}$ 
 and $\bQ=\bQ(\theta) = \bQ(\tau,\kappa)$. 
 We choose $\tau^{'}$ to have marginal variance of $x$ equal 1, 
 $\bQ(\tau^{'}, \kappa))$ = $\bQ^{'}$. 
@@ -201,7 +201,7 @@ where $r=\frac{\sigma^2_e}{\sigma^2_x}$ and
 Now, we can write a concentrated likelihood deriving 
 the likelihood with respect to $\sigma^2_x$ and $\beta$. 
 We have that 
-\[ (\bF^{'}\bW\bF)\hat{\beta} = \bF^{'}\bW\bby \;.\] 
+\[ (\bF^{'}\bW\bF)\hat{\beta} = \bF^{'}\bW\by \;.\] 
 and 
 \[
 \hat{\sigma}^2_x = (y_i-\bF\hat{\beta})^{'}\bW(y_i-\bF\hat{\beta})/n
