@@ -116,13 +116,13 @@ remaining parameters.
 
 Deriving with respect to $\beta$ we can compute 
 its maximum likelihood estimator solving 
-\[ (\bF^{'}\bW\bF)\hat{\beta} = \bF^{'}\bW\bby \]
+\[ (\bF^{'}\bW\bF)\hat{\beta} = \bF^{'}\bW\by \]
 where $\bW$ is the inverse of the covariance matrix. 
 Writing the variance parameter of the noise, 
 $\sigma^2_e$, in terms of the relative one, 
 $r=\sigma_e^2/\sigma_x^2$, we have 
 \[
-Cov(\bby) = \sigma^2_x(r\bI + \bC )
+Cov(\by) = \sigma^2_x(r\bI + \bC )
 \]
 where $\bC$ is the correlation matrix. 
 This implies that $\bW = (r\bI + \bC )^{-1}$. 

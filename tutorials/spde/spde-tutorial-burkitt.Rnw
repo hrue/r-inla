@@ -4,8 +4,9 @@ options(width=75, prompt = " ", continue = "   ")
 require(sp) 
 require(INLA)
 require(fields)
-##lcall <- inla.getOption('inla.call')
-inla.setOption('inla.call'='remote')
+lcall <- inla.getOption('inla.call')
+inla.setOption(inla.call='remote')
+inla.setOption(num.threads=7)
 @ 
 
 \section{Burkitt example}\label{sec:burkitt}

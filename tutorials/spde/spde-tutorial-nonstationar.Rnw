@@ -7,6 +7,8 @@ require(lattice)
 require(INLA)
 require(gridExtra)
 lcall <- inla.getOption('inla.call')
+inla.setOption(inla.call='remote')
+inla.setOption(num.threads=7)
 @ 
 
 \section{Introduction}
