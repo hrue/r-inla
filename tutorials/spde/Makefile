@@ -16,7 +16,6 @@ spde-tutorial-spde-introduction.tex : spde-tutorial-functions.R spde-tutorial-sp
 	@R --vanilla -e 'Sweave("spde-tutorial-spde-introduction.Rnw")' </dev/null
 
 
-
 clean :; latexmk -C
 
 .PHONY: clean
