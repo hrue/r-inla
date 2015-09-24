@@ -164,9 +164,8 @@ for (j in 2:k) {
     E1[, j] <- E1[,j-1]*rho[1] + E1[,j]
     E2[, j] <- E2[,j-1]*rho[2] + E2[,j]
 }
-rbind(summary(as.vector(E1)), summary(as.vector(E2)))
 @ 
-where the term $(1-\rho_j^2)$ is to make it in accord to the 
+where the $(1-\rho_j^2)$ term is in accord to the 
 parametrization of the AR($1$) model in INLA.
 
 To get the response, we do simulations for the covariate, 
@@ -174,53 +173,15 @@ compute the mean and add an error term
 <<response>>=
 xx <- matrix(runif(n*k), n) ### covariate
 muE <- c(-5, 1);   taue <- 5
-y <- (muE[1] + E1) + (muE[2]+E2)*xx + ### dynamic regression part
-    rnorm(n*k, 0, sqrt(1/taue)) ### error in the observation
-length(y)
+length(y <- (muE[1] + E1) + (muE[2]+E2)*xx + ### dynamic regression part
+           rnorm(n*k, 0, sqrt(1/taue))) ### error in the observation
 @ 
 
 \section{Fitting the model}
 
-In this case we are going to work with the 
-SPDE approach and, as we seen in previous SPDE 
-examples, it works with a model on the mesh. 
-In this case do simulations in $n$ locations 
-over space and in $k$ time points 
-and we need to fit the model for this $n$ 
-spatial locations based on the mesh defined in 
-possible different number of vertices. 
-Because of this, we need a particular trick 
-to fit dynamic continuous spatial with \pkg{INLA}. 
+The data were simulated over a set of $n$ locations over space and $k$ time points over time. 
+However, the dynamic regression coefficients when modelled using the SPDE are defined over the $m$ nodes of the spatial mesh and the time knots over time. 
 
-To build the SPDE model over the space, we just need the 
-mesh which only depends on the spatial domain. 
-We can have it before the simulation of the observations. 
-Because we have two spatio temporal terms on the model 
-and each one with three hyperparameters 
-(precision, spatial correlation range, 
-temporal correlation) and we have also the noise the variance 
-($7$ hyperparameters in total)
-we build a mesh with small number of vertices just to avoid it to be 
-computationally expensive. 
-
-We build the mesh and the SPDE model object with the following commands:
-<<spde>>=
-mesh <- inla.mesh.2d(coo, max.edge=0.15, offset=0.05, cutoff=0.05)
-(spde <- inla.spde2.matern(mesh))$n.spde 
-@ 
-
-Also, we chan define the projector matrix and the indexes set. 
-To have it, we need to take into account the time dimension. 
-<<spdebuild>>=
-dim(A <- inla.spde.make.A(mesh, cbind(rep(coo[,1], k), rep(coo[,2], k)),
-                          group=rep(1:k, each=n)))
-iE1 <- inla.spde.make.index('E1', spde$n.spde, n.group=k)
-iE2 <- inla.spde.make.index('E2', spde$n.spde, n.group=k)
-@ 
-
-Now, we need to deal with the fact that we have covariate values 
-only at the response locations and not on the mesh vertex, 
-where the SPDE model is defined. 
 Considering that $\bxi$ are modeled on the mesh vertex, 
 we have that the observation equation can be written as 
 \[
@@ -239,58 +200,52 @@ Or, in the vectorial form for entire time domain
 \[
 \by = \bA \bxi_{0} + \bx(\bA \bxi_{1}) + \be\;.
 \]
-Then, we write a faked zero equation to have an 
-augmented version approach to fit $\bxi_{1}$ 
-\[
-0 = \bA \bxi_{1} - \bxi_1^{*}
-\]
-where we force $\bxi_1^{*}$ to be equal to $\bA \bxi_1$ by
-setting a Gaussian likelihood with fixed and hight precision value 
-for the faked zero observations in this equation. 
-To have the values for $\bxi_1^{*}$ on the observation equation, 
-we assign an independent random effect for $\bxi_1^{*}$ on the 
-facked zero observations with small and fixed precision. 
-Then we copy it on the observation equation with copy parameter fixed and equal one. 
 
-The data stack on this case is specified with two columns matrix response. 
-The stack data for the faked zero observations is 
-<<stkE>>=
-stk.E <- inla.stack(data=list(y=cbind(NA, rep(0,n*k))), tag='E', 
-                    A=list(A, 1), 
-                     effects=list(iE2, 
-                         data.frame(E2x=1:(n*k), wE2x=-1)))
+To work out the second term in the right side of the last equation we just need to supply the covariate values as the \texttt{weights} argument in the \texttt{inla.spde.make.A()} function.
+First, we build the mesh and the SPDE model object with the following commands:
+<<spde>>=
+mesh <- inla.mesh.2d(coo, max.edge=0.15, offset=0.05, cutoff=0.05)
+(spde <- inla.spde2.matern(mesh))$n.spde 
 @ 
-where the \code{iE2} effect is the index set for the spatial Mat\'ern random field with grouping for time, \code{E2x} is the index from one to the number of observations ($n \times k$) which account for the effect at each observation. 
+Because we have two spatio temporal terms on the model 
+and each one with three hyperparameters 
+(precision, spatial correlation range, 
+temporal correlation) and we have also the noise the variance 
+($7$ hyperparameters in total)
+we build a mesh with small number of vertices just to avoid it to be 
+computationally expensive. 
 
-For the observed data we have to specify the $\bxi_1$ effect which need 
-the spatio temporal projector matrix. For the $\bxi_1^{*}$ effect, 
-we just specify a vector with length the same as the number of observations. 
-So, we have 
+Two needed projector matrices and the indexes set as follows: 
+<<spdebuild>>=
+A1 <- inla.spde.make.A(mesh, cbind(rep(coo[,1], k), rep(coo[,2], k)),
+                       group=rep(1:k, each=n))
+A2 <- inla.spde.make.A(mesh, cbind(rep(coo[,1], k), rep(coo[,2], k)),
+                       group=rep(1:k, each=n), weights=as.vector(xx))
+iE1 <- inla.spde.make.index('E1', spde$n.spde, n.group=k)
+iE2 <- inla.spde.make.index('E2', spde$n.spde, n.group=k)
+@ 
+
+The data stack is as follows
 <<stky>>=
-stk.y <- inla.stack(data=list(y=cbind(as.vector(y), NA)), tag='y', 
-                    A=list(A, 1), 
-                    effects=list(iE1,
-                        data.frame(mu1=1, E2xc=1:(n*k), 
-                                   x=as.vector(xx)))) 
+stk.y <- inla.stack(data=list(y=as.vector(y)), tag='y', 
+                    A=list(A1, A2, 1), 
+                    effects=list(iE1, iE2, 
+                        data.frame(mu1=1, x=as.vector(xx)))) 
 @ 
-where \code{iE1} is similar to \code{iE2} and \code{E2xc} is defined to match \code{E2x}. 
+where \code{iE1} is similar to \code{iE2} and 
+the elements \code{mu1} and \texttt{x} in the second element of the effects \texttt{data.frame} is for $\bmu_{\xi}$.  
 
 The formula take these things into account 
 <<formula>>=
-hlow <- list(theta=list(initial=-10, fixed=TRUE))
 form <- y ~ 0 + mu1 + x + ### to fit mu_x
     f(E1, model=spde, group=E1.group, control.group=list(model='ar1')) + 
-        f(E2, model=spde, group=E2.group, control.group=list(model='ar1')) + 
-            f(E2x, wE2x, model='iid', hyper=hlow) + 
-                f(E2xc, x, copy='E2x') 
+        f(E2, model=spde, group=E2.group, control.group=list(model='ar1'))
 @
 
-We fit the model with joining both stacks together
-<<jstack>>=
-jstack <- inla.stack(stk.y, stk.E) 
-@ 
-
-The first step of the INLA algorithm is to find the mode of the hyperparameters. 
+As we have Gaussian likelihood there is no approximation in the fitting process. 
+The first step of the INLA algorithm is the optimization to find the mode of the $7$ hyperparameters in the model. 
+This step takes around few minutes to fit, to make around 600 posterior evaluations. 
+The integration step is performed at 79 hyperparameter configurations using the CCD strategy. 
 By choosing good starting values it will be needed less iteractions in this optimization process. 
 Below, we define starting values for the hyperparameters in the internal scale considering the values used to simute the data
 <<theta>>=
@@ -303,18 +258,9 @@ Below, we define starting values for the hyperparameters in the internal scale c
 
 Fitting the model considering the initial values defined above
 <<fittingdyn3,results=hide>>=
-hhigh <- list(hyper=list(theta=list(initial=10, fixed=TRUE)))
-res <- inla(form, rep('gaussian',2), data=inla.stack.data(jstack), 
-            control.predictor=list(A=inla.stack.A(jstack)),
-            control.family=list(list(), hhigh),
+res <- inla(form, family='gaussian', data=inla.stack.data(stk.y), 
+            control.predictor=list(A=inla.stack.A(stk.y)),
             control.mode=list(theta=theta.ini, restart=TRUE))
-@ 
-
-As we have Gaussian likelihood, $k=$\Sexpr{k} time points and a crude mesh, the computational is cost mainly dominated by the optimization step to find the mode of the $7$ hyperparameters in the model. 
-This step takes around few minutes to fit, to do more than 600 posterior evaluations. 
-The integration step is performed at 79 hyperparameter configurations using the CCD strategy. 
-<<cpu>>=
-res$cpu
 @ 
 
 Summary of the $\bmu_x$:
