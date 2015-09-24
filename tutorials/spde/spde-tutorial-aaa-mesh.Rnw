@@ -1,0 +1,522 @@
+\section{The triangulation}\label{ch:mesh} 
+
+\SweaveOpts{prefix.string=figs/mesh} 
+<<sett,echo=F,results=hide>>=
+options(width=75, prompt = " ", continue = "   ")
+require(INLA)
+@ 
+
+The first step to fit the model is 
+the construction of the 'mesh'. 
+This step must be done VERY CAREFULLY. 
+It is similar to choosing the integration 
+points on a numeric integration algorithm. 
+Should the boints be regular?
+How many points are needed? 
+
+Additionally, we need to add, ALSO CAREFULLY, 
+additional points around the boundary, 
+the outer extension.
+This is necessary to avoid a 
+boundary effect where we have a variance 
+twice as larger at the border than within the domain 
+\cite{lindgren:2012}. 
+For more about it please see \cite{lindgrenR:2013}. 
+
+\subsection{Getting started}
+
+For a two dimentional mesh, we have a main 
+function \code{inla.mesh.2d()} that is
+recommended to use for building a mesh. 
+This function creates the Constrained Refined 
+Delaunay Triangulation (CRDT) that we just call mesh. 
+There are a several options: 
+<<argsmesh>>=
+args(inla.mesh.2d)
+@ 
+
+We need some reference about the study region, 
+which can be provided by the location points or just a domain. 
+The location, supplied on the \code{loc} argument, 
+are used as initial triangulation nodes. 
+A single polygon can be supplied to determine the 
+domain extent on the \code{loc.domain} argument. 
+If we supply the point locations, or the domain 
+is supplied using the \code{loc.domain} argument, 
+the algorithm find a convex hull mesh. 
+A non convex hull mesh can be made when we 
+provide a (list of) set of polygons on the 
+\code{boundary} argument, where each element of 
+this list is of \code{inla.mesh.segment()} class. 
+So, one of these three options is mandatory. 
+
+The other mandatory argument is the \code{max.edge}. 
+This argument specifies the maximum allowed 
+triangle edge lengths in the inner domain 
+and in the outer extension. 
+So, it is a scalar or length two vector.
+This argument is numeric on the 
+\textbf{SAME SCALE UNIT} as the coordinates. 
+
+The another arguments are used to specify additional 
+conditions. The \code{offset} is a numeric, or 
+length two vector. If negative it is interpreted as
+a factor relative to the approximate data diameter. 
+If positive it is the extension distance on same 
+scale unit to the coordinates provided. 
+
+The argument \code{n} is the initial number 
+of points on the extended boundary. 
+The \code{interior} is a list of segments 
+to specify interior constraints, each one of  
+\code{inla.mesh.segment} class. 
+A good mesh needs to have triangles as 
+regular as possible in size and shape. 
+To help this requirement in addition to 
+\code{max.edge}, we have the 
+\code{min.angle} argument, which can be 
+scalar or length two vector, to specify 
+the minimum internal angles of the 
+triangles on the inner domain and 
+on the outer extension. 
+Values up to 21 guarantee 
+the convergence of the algorithm. 
+
+To further control the shape of the triangles, 
+we also have the \code{cutoff} argument, which is 
+the minimum allowed distance between points. 
+It means that points at a closer 
+distance than the supplied value 
+are replaced by a single vertex. 
+So, it avoids small triangles and 
+must be a positive number, and is critical 
+when we have some very close points, either 
+for point locations or on the domain boundary. 
+
+To understand how this function works, 
+we apply it while varying some arguments
+to the first five locations of the toy dataset. 
+<<SPDEtoy>>=
+data(SPDEtoy)
+coords <- as.matrix(SPDEtoy[,1:2]) ;   p5 <- coords[1:5,]
+@ 
+We also build some meshes using the domain and not 
+the points and we define the domain with
+<<domain>>= 
+pl.dom <- cbind(c(0,1,1,0.7,0), c(0,0,0.7,1,1))
+@ 
+
+Creating some meshes for the first five points:
+<<mesh5ab>>=
+m1 <- inla.mesh.2d(p5, max.edge=c(0.5, 0.5)) 
+m2 <- inla.mesh.2d(p5, max.edge=c(0.5, 0.5), cutoff=0.1) 
+m3 <- inla.mesh.2d(p5, max.edge=c(0.1, 0.5), cutoff=0.1) 
+m4 <- inla.mesh.2d(p5, max.edge=c(0.1, 0.5), offset=c(0,-0.65)) 
+m5 <- inla.mesh.2d(, pl.dom, max.edge=c(0.3, 0.5), offset=c(0.03, 0.5)) 
+m6 <- inla.mesh.2d(, pl.dom, max.edge=c(0.3, 0.5), offset=c(0.03, 0.5), cutoff=0.1)
+m7 <- inla.mesh.2d(, pl.dom, max.edge=c(0.3, 0.5), n=5, offset=c(.05,.1)) 
+m8 <- inla.mesh.2d(, pl.dom, max.edge=c(.3, 0.5), n=7, offset=c(.01,.3)) 
+m9 <- inla.mesh.2d(, pl.dom, max.edge=c(.3, 0.5), n=4, offset=c(.05,.3)) 
+@ 
+We visualize these meshes in Figure~\ref{fig:meshtest}, 
+produced with the code below 
+<<vizmesh,eval=FALSE>>=
+par(mfrow=c(3, 3), mar=c(0,0,1,0))
+for (i in 1:9) { 
+  plot(pl.dom, type='l', col=3, lwd=2*(i>4), xlim=c(-0.57,1.57), 
+       main = paste('m',i,sep=''), asp=1, axes=FALSE)
+  plot(get(paste('m', i, sep='')), add=TRUE) 
+  points(p5, pch=19, col=2)
+}
+@ 
+\setkeys{Gin}{width=0.99\textwidth}
+\begin{figure}\centering
+<<vvizmesh,echo=F,results=hide,fig=TRUE,eps=FALSE,width=5.5,height=5.5>>=
+<<vizmesh>>
+@ 
+\caption{Triangulation with different restrictions.}
+\label{fig:meshtest}
+\end{figure}
+
+The \code{m1} mesh has two main problems: 
+1) some triangles with small inner angles, 
+2) some large triangles in the inner domain. 
+In the \code{m2} mesh, we relax the restriction 
+on the locations, because points with distance less 
+than the cutoff are considered a single vertex. 
+This avoids some of the triangles (at bottom right 
+side) with small angles on the previous mesh.
+So the \textbf{cutoff is a VERY GOOD idea}!
+Each inner triangle in the \code{m3} mesh on the 
+top right had edge length less than 0.1 and this 
+mesh looks better than the two previous ones.
+
+The \code{m4} was made without first building a 
+convex hull extension around the points. 
+It has just the second outer bondary. 
+In this case, the length of inner triangles does not 
+work (first value on \code{max.edge} argument) and 
+we have triangles with edge lengths up to 0.5. 
+The shape of the triangles looks good, 
+except for these ones with vertices 
+including the two points at the bottom right side. 
+
+The \code{m5} mesh was made just using the domain 
+polygon and it has shape similar to the domain area. 
+In this mesh we have some small triangles at corners 
+due the fact that is was built without specifying a \code{cutoff}. 
+Also, we have a (relatively) small first extension 
+and a (relatively) large second one. 
+On the \code{m6} mesh we have added the cutoff 
+and got a better mesh than the previous one. 
+
+In the last tree meshes we change the initial 
+number of extension points. 
+It can be useful to change in some situations 
+to get convergence. 
+Here we show the shape of the mesh 
+that we got with, for example,
+\code{n=5}, in the \code{m7} mesh. 
+This number produces a mesh that seems 
+inadequate for this domain because we have a 
+non uniform exension behind the border. 
+The \code{m9} mesh has very bad 
+triangles shapes.
+
+The object returned by the \code{inla.mesh.2d()} 
+function is of class \code{inla.mesh} 
+and contains a list of things:
+<<meshclass>>=
+class(m1)
+names(m1)
+@ 
+The number of vertices on each mesh is 
+<<n>>=
+c(m1$n, m2$n, m3$n, m4$n, m5$n, m6$n, m7$n, m8$n, m9$n)
+@ 
+The 'graph' element represents the CRDT obtained. 
+In addition, the 'graph' element contains the matrix that 
+represents the graph of the neighborhood structure. 
+For example, for \code{m1} we have 'A'
+<<A1>>=
+dim(m1$graph$vv)
+@ 
+The vertices that correspond the location 
+points are identified in the 'idx' element
+<<meshid>>=
+m1$idx$loc
+@ 
+
+\subsection{Non-convex hull meshes}
+
+All the meshes in Figure~\ref{fig:meshtest} 
+are made to have a convex hull boundary. 
+A convex hull is a polygon of 
+triangles out of the domain area, the 
+extension made to avoid the boundary effect. 
+A triangulation without an additional border 
+can be made by supplying the \code{boundary} 
+argument instead of the \code{location} or 
+\code{loc.domain} argument. 
+One way is to build a boundary for the points 
+and supply it on \code{boundary} argument. 
+
+We can also build boundaries using the 
+\code{inla.nonconvex.hull()} function
+<<noncovex>>=
+args(inla.nonconvex.hull)
+@ 
+In this function we provide the points 
+and set some constraint. 
+We can control the shape of 
+the boundary including its convexity, 
+concavity and resolution.
+Here, we make some boundaries and build a mesh
+with each one to better understand it. 
+<<nonconmesh>>=
+bound1 <- inla.nonconvex.hull(p5)
+bound2 <- inla.nonconvex.hull(p5, convex=0.5, concave=-0.15)
+bound3 <- inla.nonconvex.hull(p5, concave=0.5)
+bound4 <- inla.nonconvex.hull(p5, concave=0.5, resolution=c(20, 20))
+
+m10 <- inla.mesh.2d(boundary=bound1, cutoff=0.05, max.edge=c(.1,.2))
+m11 <- inla.mesh.2d(boundary=bound2, cutoff=0.05, max.edge=c(.1,.2))
+m12 <- inla.mesh.2d(boundary=bound3, cutoff=0.05, max.edge=c(.1,.2))
+m13 <- inla.mesh.2d(boundary=bound4, cutoff=0.05, max.edge=c(.1,.2))
+@ 
+
+These meshes are visualized in 
+Figure~\ref{fig:nonconmesh} by commands bellow 
+<<nonconmeshv,eval=F>>=
+par(mfrow=c(2,2), mar=c(0,0,1,0))
+for (i in 10:13) { 
+   plot(get(paste('m', i, sep='')), asp=1, main='') 
+   points(p5, pch=19, col=2); title(main=paste('m', i, sep=''))
+}
+@ 
+\setkeys{Gin}{width=0.7\textwidth}
+\begin{figure}\centering
+<<vnonconmeshv,echo=F,results=hide,fig=TRUE,eps=FALSE,width=5.5,height=5.5>>=
+<<nonconmeshv>>
+@ 
+\caption{Non-convex meshes with different boundaries.}
+\label{fig:nonconmesh}
+\end{figure}
+
+The \code{m10} mesh is built with a boundary 
+that we got using default arguments in the 
+\code{inla.nonconvex.hull()} function. 
+The default \code{convex} and \code{concave} 
+arguments are both equal \code{0.15} proportion 
+of the points domain radius, that is computed by
+<<defnc>>=
+max(diff(range(p5[,1])), diff(range(p5[,2])))*.15
+@ 
+If we supply a larger convex value, like the one used 
+to generate \code{m11}, we get a larger boundary. 
+It's because all circles with a centre on each 
+point and a radius less than the convex value 
+are inside the boundary. 
+When we choose a larger concave value, as in the 
+boundary used for the 'm12' and 'm13' meshes, 
+we don't have circles with radius less than the 
+concave value outside the boudary. 
+If we choose a smaller resolution, 
+we get a boundary with small resolution 
+(in terms of number of points), for example, 
+comparing the \code{m12} and \code{m13} meshes. 
+
+\subsection{Meshes for the toy example}
+
+To analyze the toy data set, we use 
+six triangulation options to make 
+comparisons in section~\ref{sec:meshcompare}. 
+The first mesh forces the location points 
+to be vertices of the mesh. 
+<<mesh12>>=
+mesh1 <- inla.mesh.2d(coords, max.edge=c(0.035, 0.1)) 
+mesh2 <- inla.mesh.2d(coords, max.edge=c(0.15, 0.2)) 
+@ 
+
+The second and third meshes are based on 
+the points, but we use a cutoff greather 
+than zero to avoid small triangles in regions 
+where we have dense observations 
+<<mesh3>>=
+mesh3 <- inla.mesh.2d(coords, max.edge=c(0.15, 0.2), cutoff=0.02)
+@ 
+
+We also build three other meshes based on the 
+domain area. These are built to have 
+approximately the same number of vertices as the 
+previous ones 
+<<mesh456>>=
+mesh4 <- inla.mesh.2d(, pl.dom, max.e=c(0.0355, 0.1))
+mesh5 <- inla.mesh.2d(, pl.dom, max.e=c(0.092, 0.2))
+mesh6 <- inla.mesh.2d(, pl.dom, max.e=c(0.11, 0.2))
+@ 
+
+The number of nodes in each one of these meshes is 
+<<nmesh>>=
+c(mesh1$n, mesh2$n, mesh3$n, mesh4$n, mesh5$n, mesh6$n)
+@ 
+
+These six meshes are shown in Figure \ref{fig:crdt1} 
+with code below 
+<<plotmesh1,eval=F>>=
+par(mfrow=c(2,3), mar=c(0,0,0,0)) 
+for (i in 1:6) 
+  plot(get(paste('mesh',i,sep='')), asp=1, main='')
+@ 
+\setkeys{Gin}{width=0.99\textwidth}
+\begin{figure}\centering
+<<vplotmesh1,fig=T,eps=F,width=7.5,height=5,echo=F,results=hide>>=
+<<plotmesh1>>
+@ 
+\caption{Six triangulation options for the toy example.}
+\label{fig:crdt1}
+\end{figure}
+
+\subsection{Meshes for Paran\'a state}
+
+We have some examples using data collected in 
+Paran\'a state, in Brazil. 
+In this case we need to take into account two 
+things: one is the shape of this domain area 
+and the other is the coordinates reference system. 
+
+We have the daily rainfall data 
+<<prrain>>=
+data(PRprec); dim(PRprec)
+PRprec[1:2, 1:10]
+@ 
+that consists of the daily rainfall data from \code{616} 
+stations for each day of the 2011 year. 
+The coordinates (two first colums) 
+are on the latlong projection. 
+
+Also, we have the Paran\'a state polygon with 
+<<prpl>>=
+data(PRborder); dim(PRborder)
+@ 
+that consists of a set of \code{2055} 
+points on the latlong projection. 
+
+In this case is best to use a non-convex hull mesh. 
+We start by building a non-convex domain with
+<<prmesh>>=
+prdomain <- inla.nonconvex.hull(as.matrix(PRprec[,1:2]), 
+                                -0.03, -0.05, resolution=c(100,100))
+@ 
+with this defined domain we build two meshes with different 
+resolution (max edge length) on the inner domain 
+<<mesh2pr>>=
+(prmesh1 <- inla.mesh.2d(boundary=prdomain, max.edge=c(.7,.7), 
+                         cutoff=0.35, offset=c(-0.05, -0.05)))$n
+(prmesh2 <- inla.mesh.2d(boundary=prdomain, max.edge=c(.45,1), cutoff=0.2))$n
+@ 
+
+We can visualize both meshes on the 
+Figure~\ref{fig:prmesh} with commands below 
+<<prmesh,eval=F>>=
+par(mfrow=c(1,2), mar=c(0,0,0,0))
+plot(prmesh1, asp=1, main='');   lines(PRborder, col=3)
+plot(prmesh2, asp=1, main='');   lines(PRborder, col=3)
+@ 
+\setkeys{Gin}{width=0.99\textwidth}
+\begin{figure}\centering
+<<vprmesh,echo=F,results=hide,fig=TRUE,eps=FALSE,width=7.5,height=3.5>>=
+<<prmesh>>
+@ 
+\caption{Mesh for Paran\'a state}
+\label{fig:prmesh}
+\end{figure}
+
+\subsection{Triangulation with a SpatialPolygonsDataFrame}
+
+Suppose that we have a map of the domain region. 
+In \pkg{R} the representation of a spatial object 
+is made using object classes in the \pkg{sp} package, 
+see~\cite{sp} and \cite{Bivandetal:2008}. 
+To show an aplication in this case, we use 
+the North Carolina map, in package \pkg{spdep}, 
+\cite{spdep}. 
+
+<<ncmap>>=
+require(maptools)
+nc.fl <- system.file("etc/shapes/sids.shp", package="spdep")[1]
+nc.sids <- readShapePoly(nc.fl, ID="FIPSNO", 
+                         proj4string=CRS("+proj=longlat +ellps=clrk66"))
+@ 
+
+We simplify this map by uniting all the areas together. 
+To do it, we use the \code{unionSpatialPolygons()} 
+\pkg{spdep} function that uses function of the \pkg{rgeos} 
+package~\cite{rgeos}. If we don't have the \pkg{rgeos} 
+we can use the \pkg{gpclib} package instead, 
+but the we do need to set a permission 
+<<uionsp,results=hide,eval=F>>=
+gpclibPermit()
+@ 
+before working with this library 
+<<unionSpatialPolygons>>=
+nc.border <- unionSpatialPolygons(nc.sids, rep(1, nrow(nc.sids)))
+@ 
+
+Now, we use the \code{inla.sp2segment()} to extract the 
+boundary of the \code{SpatialPolygons} object that contains 
+the border of the map 
+<<ncsegment>>=
+nc.bdry <- inla.sp2segment(nc.border)
+@ 
+and creates the mesh
+<<ncmesh>>=
+(nc.mesh <- inla.mesh.2d(boundary=nc.bdry, cutoff=0.15, 
+                         max.edge=c(0.3, 1)))$n
+@ 
+that is visualized on Figure~\ref{fig:ncmesh} 
+with the commands bellow. 
+<<ncmeshplot,eval=F>>=
+par(mar=c(0,0,0,0)) 
+plot(nc.mesh, asp=1, main='')
+@ 
+\begin{figure}\centering
+<<ncmeshv,echo=F,fig=T,eps=F,width=8,height=3>>=
+<<ncmeshplot>>
+@ 
+\caption{Mesh constructed using the North Carolina map}
+\label{fig:ncmesh}
+\end{figure}
+
+
+<<savemesh,echo=F,results=hide>>=
+save('mesh1', file='mesh1.RData')
+save('mesh2', file='mesh2.RData')
+save('mesh3', file='mesh3.RData')
+save('mesh4', file='mesh4.RData')
+save('mesh5', file='mesh5.RData')
+save('mesh6', file='mesh6.RData')
+save('prmesh1', file='prmesh1.RData')
+save('prmesh2', file='prmesh2.RData')
+@ 
+
+\section{Mesh with holes and physical boundaries}
+
+Sometimes we need to deal with physical boundaries. 
+It can be when there is a hole inside the domain or when the domain shape is not convex. 
+An example of application is when modelling fish and we have to consider 
+the inland as a physical barrier and, sometimes, islands inside the domain. 
+
+The polygons in the Figure~\ref{fig:lakehole} were created with the following commands:
+<<hexample,eval=FALSE>>=
+pl1 <- Polygon(cbind(c(0,15,15,0,0), c(5,0,20,20,5)), hole=FALSE)
+h1 <- Polygon(cbind(c(5,7,7,5,5), c(7,7,15,15,7)), hole=TRUE)
+pl2 <- Polygon(cbind(c(15,20,20,30,30,15,15), c(10,10,0,0,20,20,10)), hole=FALSE)
+sp <- SpatialPolygons(list(Polygons(list(pl1, h1), '0'), Polygons(list(pl2), '1')))
+par(mar=c(0,0,0,0)); plot(sp) ### to visualize it
+text(c(13, 17, 23), c(3, 12, 3), LETTERS[1:3], cex=3)
+@ 
+\setkeys{Gin}{width=0.7\textwidth}
+\begin{figure}\centering
+<<plotlake,echo=F,results=hide,fig=TRUE,eps=FALSE,width=7,height=5>>=
+<<hexample>>
+@ 
+\caption{Region with a hole and non convex domain.}
+\label{fig:lakehole}
+\end{figure}
+
+We have two neighbour regions, 
+one with a hole and one with no convex shape.
+Suppose that it is necessary to avoid correlation between 
+near regions separated by land. 
+For example, suppose that we want to make sure that the 
+correlation between A and C is smaller than between 
+A and B or between B and C.
+
+In this example we do not want additional points outer the domain. 
+To have it, we have to supply a length one value for \texttt{max.edge}. 
+The following code is to prepare the boundary and built the mesh. 
+<<hbond>>=
+bound <- inla.sp2segment(sp)
+mesh <- inla.mesh.2d(boundary=bound, max.edge=2)
+@ 
+
+The mesh is displayed in the Figure~\ref{fig:meshhole} 
+using the commands below:
+<<holeexample,eval=FALSE>>=
+par(mar=c(0,0,0,0), bg=rgb(.7,.5,.5))
+plot(sp, col=rgb(.3,.7,.9))
+plot(mesh, add=TRUE, lwd=2)
+text(c(13, 17, 23), c(3, 12, 3), LETTERS[1:3], cex=3)
+@ 
+\setkeys{Gin}{width=0.7\textwidth}
+\begin{figure}\centering
+<<plothex,echo=F,results=hide,fig=TRUE,eps=FALSE,width=7,height=5>>=
+<<holeexample>>
+@ 
+\caption{Triangulation with hole and non convex shaped region}
+\label{fig:meshhole}
+\end{figure}
+
+Notice that when building the SPDE model, the neighborhood structure of the mesh is taken into account. 
+So, it is easier to reach B from A than C on the related graph.
