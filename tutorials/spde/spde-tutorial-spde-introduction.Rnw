@@ -1,5 +1,5 @@
 \input{spde-tutorial-spde-results}
-\input{spde-tutorial-mesh}
+\input{spde-tutorial-aaa-mesh}
 
 \section{The projector matrix}\label{sec:projmat} 
 
