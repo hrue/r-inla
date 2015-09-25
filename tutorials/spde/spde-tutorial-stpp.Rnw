@@ -103,13 +103,15 @@ polys <- SpatialPolygons(lapply(1:length(tiles), function(i)
 
 Find to which polygon belongs each data point:
 <<ppinsp>>=
-area <- over(SpatialPoints(cbind(xyt$x, xyt$y)), polys)
+area <- factor(over(SpatialPoints(cbind(xyt$x, xyt$y)), 
+                    polys), levels=1:length(polys))
 @ 
 Fint to which part of the time mesh belongs each data point:
 <<tnear>>=
 t.breaks <- sort(c(tmesh$loc[c(1,k)],
                    tmesh$loc[2:k-1]/2 + tmesh$loc[2:k]/2))
-table(time <- findInterval(xyt$t, t.breaks))
+table(time <- factor(findInterval(xyt$t, t.breaks), 
+                     levels=1:(length(t.breaks)-1)))
 @ 
 Use these both identification index sets to aggregate the data
 <<agg>>=
