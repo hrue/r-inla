@@ -13,11 +13,11 @@ load('prmesh1.RData')
 @ 
 
 In this chapter we show an example on fitting 
-a spatio-temporal model. This model is a separable 
+a space-time model. This model is a separable 
 one described on \cite{cameletti:2012}. 
 Basically the model is defined as a SPDE 
 model for the spatial domain and an AR($1$) model for the time dimention. 
-The spatio-temporal separable model is defined 
+The space-time separable model is defined 
 by the kronecker product between the precision of these two models. 
 
 We provide two examples, one for discrete time domain and another when the time is discretized over a set of knots. 
@@ -107,7 +107,7 @@ for (j in 1:k)
 <<ftimevisual,echo=F,fig=TRUE,eps=FALSE,width=7.5,height=7>>=
 <<timevisual>>
 @ 
-\caption{Realization of the spatio temporal random field.} 
+\caption{Realization of the space-time random field.} 
 \label{fig:timevisual}
 \end{figure}
 
@@ -155,7 +155,7 @@ to fit the model still work on this situation.
 \subsection{Data stack preparation} 
 
 Now, we need the data preparation to build the 
-spatio-temporal model. 
+space-time model. 
 The index set is made taking into account 
 the number of weights on the SPDE model 
 and the number of groups
@@ -326,7 +326,7 @@ do.call(function(...) grid.arrange(..., nrow=4),
 <<strf>>
 @ 
 \caption{Visualization of the posterior mean of the 
-  spatio temporal random field.} 
+  space-time random field.} 
 \label{fig:strf}
 \end{figure}
 
@@ -374,7 +374,7 @@ abline(0:1, col=gray(.7))
 \caption{Validation: Observed versus posterior mean.}
 \label{fig:stval}\end{figure}
 
-\section{Continuous time domain}
+\section{Continuous time domain}\label{sec:stcont}
 
 We now suppose that we have that the observations are not collected over discrete time points. 
 This is the case for fishing data and space-time point process in general. 
@@ -382,7 +382,7 @@ Similar to the Finite Method approach for the space,
 we can use piecewise linear basis function at a set of time knots, 
 as we have in some other examples in Chapters \ref{ch:lowst} and \ref{ch:stpp}. 
 
-\subsection{Data simulation} 
+\subsection{Data simulation}\label{sec:stcsim} 
 
 We now sample some locations over space and time points as well. 
 <<loctime>>=
@@ -390,7 +390,7 @@ n <- nrow(loc <- unique(as.matrix(PRprec[,1:2])))
 time <- sort(runif(n, 0, 1))
 @ 
 
-To sample from the model, we define a space-time separabel covariance function, 
+To sample from the model, we define a space-time separable covariance function, 
 which is Mat\'ern in space and Exponential over time:
 <<stcov>>=
 stcov <- function(coords, time, kappa.s, kappa.t, variance=1, nu=1) {
@@ -500,6 +500,6 @@ for (j in 15:17) {
 <<stcpost>>
 @ 
 \caption{Marginal posterior distribution for the intercept, 
-  likelihood precision and the parameters in the spatio-temporal process.}
+  likelihood precision and the parameters in the space-time process.}
 \label{fig:stcpost}
 \end{figure}
