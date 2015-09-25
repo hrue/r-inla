@@ -45,6 +45,8 @@ static const char RCSId[] = HGVERSION;
 #include <Rembedded.h>
 #include <Rinternals.h>
 #include <Rdefines.h>
+#define CSTACK_DEFNS 1
+#include <Rinterface.h>
 
 //#include "GMRFLib/GMRFLib.h"
 //#include "GMRFLib/GMRFLibP.h"
@@ -76,6 +78,10 @@ int inla_R_init(void)
  		                char *Rargv[] = {"REmbeddedPostgres", "--gui=none", "--silent", "--no-init-file"};
 				int Rargc = sizeof(Rargv)/sizeof(Rargv[0]);
 				Rf_initEmbeddedR(Rargc, Rargv);
+
+				// Disable C stack limit check
+				R_CStackLimit = (uintptr_t)-1;
+
 				atexit(inla_R_exit);			       /* cleanup at exit */
 				R_init = INLA_OK;
 				if (R_debug)
