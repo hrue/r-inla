@@ -38,9 +38,7 @@
 #define __BEGIN_DECLS					       /* empty */
 #define __END_DECLS					       /* empty */
 #endif
-__BEGIN_DECLS
-
-void inla_R_exit(void);
+__BEGIN_DECLS void inla_R_exit(void);
 int inla_R_init(void);
 int inla_R_source(const char *filename);
 int inla_R_funcall1(int *n_out, double **x_out, const char *function, int n, double *x);
