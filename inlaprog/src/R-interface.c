@@ -75,7 +75,7 @@ int inla_R_init(void)
 #pragma omp critical
 		{
 			if (R_init == !INLA_OK) {
- 		                char *Rargv[] = {"REmbeddedPostgres", "--gui=none", "--silent", "--no-init-file", "--vanilla"};
+ 		                char *Rargv[] = {"REmbeddedPostgres", "--gui=none", "--silent", "--vanilla"};
 				int Rargc = sizeof(Rargv)/sizeof(Rargv[0]);
 				Rf_initEmbeddedR(Rargc, Rargv);
 
