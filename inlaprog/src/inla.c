@@ -2146,7 +2146,7 @@ double priorfunc_pc_prec(double *x, double *parameters)
 }
 double priorfunc_pc_rho0(double *x, double *parameters)
 {
-	// alpha = Prob(rho > u)
+	// alpha = Prob(|rho| > u)
 	int debug = 0;
 	double u = parameters[0], alpha = parameters[1];
 	double rho = map_rho(*x, MAP_FORWARD, NULL);
@@ -2154,9 +2154,9 @@ double priorfunc_pc_rho0(double *x, double *parameters)
 
 	mu = sqrt(-log(1.0 - SQR(rho)));
 	lambda = -log(alpha) / sqrt(-log(1.0 - SQR(u)));
-	ldens = log(lambda) - lambda * mu + log(ABS(rho) / (1.0 - SQR(rho))) - log(mu);
+	// add the EPS to ensure its not INFINITY...
+	ldens = log(lambda) - lambda * mu + log((ABS(rho) + FLT_EPSILON) / (1.0 - SQR(rho))) - log(mu + FLT_EPSILON);
 	ljac = log(ABS(map_rho(*x, MAP_DFORWARD, NULL)));
-
 	val = ldens + ljac;
 
 	if (debug) {
@@ -6794,6 +6794,22 @@ int inla_read_prior5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 int inla_read_prior6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 6);
+}
+int inla_read_prior7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+{
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 7);
+}
+int inla_read_prior8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+{
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 8);
+}
+int inla_read_prior9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+{
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 9);
+}
+int inla_read_prior10(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+{
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 10);
 }
 int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N)
 {
@@ -12832,9 +12848,19 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case F_AR:
-		mb->f_prior[mb->nf] = Calloc(2, Prior_tp);
+		mb->f_prior[mb->nf] = Calloc(11, Prior_tp);
+		assert(11 == AR_MAXTHETA + 1);		
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "PCPREC");	// log precision
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "PCAR");	// the pacf
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "PCRHO0");	// the pacf
+		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "PCRHO0");	// the pacf
+		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "PCRHO0");	// the pacf
+		inla_read_prior4(mb, ini, sec, &(mb->f_prior[mb->nf][4]), "PCRHO0");	// the pacf
+		inla_read_prior5(mb, ini, sec, &(mb->f_prior[mb->nf][5]), "PCRHO0");	// the pacf
+		inla_read_prior6(mb, ini, sec, &(mb->f_prior[mb->nf][6]), "PCRHO0");	// the pacf
+		inla_read_prior7(mb, ini, sec, &(mb->f_prior[mb->nf][7]), "PCRHO0");	// the pacf
+		inla_read_prior8(mb, ini, sec, &(mb->f_prior[mb->nf][8]), "PCRHO0");	// the pacf
+		inla_read_prior9(mb, ini, sec, &(mb->f_prior[mb->nf][9]), "PCRHO0");	// the pacf
+		inla_read_prior10(mb, ini, sec, &(mb->f_prior[mb->nf][10]), "PCRHO0");	// the pacf
 		break;
 
 	case F_COPY:
@@ -14320,12 +14346,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 * add the order as a parameter in the prior
 		 */
 		switch (mb->f_prior[mb->nf][1].id) {
-		case P_PC_AR:
-			/*
-			 * add the order as the second parameter in the pc-prior! 
-			 */
-			mb->f_prior[mb->nf][1].parameters[1] = mb->f_order[mb->nf];
-			break;
 		case P_REF_AR:
 			/*
 			 * add the order as the first parameter in the ref-prior! 
@@ -20469,8 +20489,18 @@ double extra(double *theta, int ntheta, void *argument)
 			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
-			val += PRIOR_EVAL(mb->f_prior[i][1], pacf_intern);
-
+			
+			if (mb->f_prior[i][1].id == P_REF_AR) {
+				// joint reference prior
+				val += PRIOR_EVAL(mb->f_prior[i][1], pacf_intern);
+			} else {
+				// sequential pc prior
+				for (j = 0; j < p; j++) {
+					if (NOT_FIXED(f_fixed[i][j + 1])) {
+						val += PRIOR_EVAL(mb->f_prior[i][j+1], &(pacf_intern[j]));
+					}
+				}
+			}
 			Free(pacf);
 			Free(pacf_intern);
 			Free(marginal_Q);
