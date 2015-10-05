@@ -1,0 +1,10 @@
+\frametitle{Example - A simple R-INLA turorial}
+This example shows how to use the UI and containers....
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black, title=Corresponding reaction]
+\begin{verbatim}
+output$inlares <- renderPrint({
+    summary(res)
+  })
+\end{verbatim}
+\end{tcolorbox}
+See \alert{Step 6}....

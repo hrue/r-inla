@@ -1,0 +1,15 @@
+References  No.Study    TP      FP      FN      TN      Se      Sp
+Sozen		140	29	19	11	81	73	81
+Zippe		330	18	45	0	267	100	86
+Casella		235	67	17	63	88	52	84
+Sharma		205	4	33	2	166	67	83
+Ramakumar	196	30	56	27	83	53	60
+Landman 	77	38	7	9	23	81	77
+Giannopoulos	118	47	16	21	34	69	68
+Miyanaga        309	20	68	2	219	91	76
+Paoluzzi        90	27	22	5	36	84	62
+Abbate          182	59	4	50	69	54	95
+Lee             106	53	10	17	26	76	72
+Chahal          96	7	7	9	73	44	91
+Lahme           169	25	31	15	98	63	76
+Oge             37	20	4	7	6	74	60
