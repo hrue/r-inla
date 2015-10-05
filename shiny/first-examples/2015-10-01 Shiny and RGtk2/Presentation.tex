@@ -1,0 +1,416 @@
+\documentclass[compress]{beamer}
+%\documentclass[compress,handout,dvips]{beamer}
+% Try the class options [notes], [notes=only], [trans], [handout],
+% [red], [compress], [draft], [class=article] and see what happens!
+
+%\usepackage[latin1]{inputenc}
+%\usepackage[T1]{fontenc}
+%\usepackage{fontspec}
+%\setsansfont{SimSun}
+%\setromanfont{Times New Roman}
+\usepackage[latin1]{inputenc}
+%\usepackage[swedish]{babel}
+\usepackage{graphicx}
+\usepackage{tcolorbox}
+\usepackage{lipsum}
+\usepackage{amsthm, amsmath, amssymb, amsfonts,verbatim}
+%\usepackage{times,mathptm,mathptmx,bm}
+%\usepackage{mathptm}
+%\hypersetup{colorlinks=true,linkcolor=red}
+%\usepackage{comment}
+%\usepackage{multimedia}
+%\usepackage{geometry}
+     % \geometry{verbose,letterpaper}
+      %\usepackage{movie15}
+      %\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{graphicx,epstopdf}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{animate}
+\usepackage{graphicx}
+\usepackage{colortbl}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{enumerate}
+\usepackage{color,shortvrb}
+\usepackage{tikz} 
+\usetikzlibrary{calc,arrows,positioning,matrix,fit,intersections,shapes,shapes.misc,snakes}
+%\usepackage[round]{natbib}
+\usepackage{float}
+
+
+%\setbeamertemplate{footline}{Your Footer Text \hfill\insertframenumber/\inserttotalframenumber} 
+
+
+%\usecolortheme[rgb={0.6,0.4,0.2}]{structure}  % LU-brons 996633
+%\definecolor{lubrons}{rgb}{0.6,0.4,0.2}
+%\definecolor{lublue}{rgb}{0,0,0.5}
+\usecolortheme[rgb={0,0,0.5}]{structure}  % LU-brons 996633
+\definecolor{lubrons}{rgb}{0,0,0.5}
+\definecolor{lublue}{rgb}{0,0,0.5}
+\usepackage{beamerthemesplit}
+\setbeamercolor{palette quaternary}{bg=lublue,fg=white}
+\setbeamercolor{frametitle}{fg=lublue,bg=lightgray}
+\setbeamercolor{title}{fg=lublue,bg=white}
+
+\beamertemplatetransparentcovered
+
+\title[Shiny and RGtk2 \hspace{35mm} \insertframenumber/\inserttotalframenumber]{BUILDING INTERACTIVE, R-POWERED APPLICATIONS with 'Shiny' and 'RGtk2'}
+\author[Jingyi Guo]{Jingyi Guo}
+\institute{}
+\date{1, Oct, 2015}
+
+
+
+
+\begin{document}
+\begin{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\titlepage
+\vspace{-5mm}
+\begin{flushright}
+%\includegraphics[height=10mm]{NTNUlogo.png}
+%\includegraphics[height=20mm]{logocLUeng.pdf}
+\end{flushright}
+\end{frame}
+
+\DeclareGraphicsExtensions{.eps,.mps,.pdf,.jpg,.png,.ipeg}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%                                                                                      %%%%%%%%%%
+%%%%%%%                            Part 1                                                %%%%%%%%%%
+%%%%%%%                                                                                      %%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section[Shiny]{Shiny}
+\begin{frame}{Shiny}
+\begin{itemize}
+  \item Open-Sourced by RStudio 11/2012 on CRAN
+  \item New model for web-accessible R code
+  \item Able to generate basic web UIs
+  \item Built on a ``Reactive Programming'' model
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Getting started: Setup}
+\begin{itemize}
+  \item \alert{R$>$ install.packages("shiny")} from CRAN
+  \item Create directory \alert{HelloShiny}
+  \item Edit \alert{ui.r}
+  \item Edit \alert{server.r}
+  \item \alert{R$>$ shiny::runApp("HelloShiny")}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]{Getting started: server.R}
+The Core Component with functionality for input and output as plots, tables and plain text.
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black]
+\begin{verbatim}
+shinyServer(function(input, output) {
+       output$distPlot <- renderPlot({
+         dist <- rnorm(input$obs)
+         hist(dist)
+         })
+})
+\end{verbatim}
+\end{tcolorbox}
+\end{frame}
+
+
+\begin{frame}[fragile]{Getting started: ui.R}
+This file creates the structure of HTML
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black]
+\begin{verbatim}
+shinyUI(fluidPage(
+   headerPanel("Example Hello Shiny"),
+   sidebarPanel(
+      sliderInput("obs",  "", 0, 1000, 500)
+   ),
+   mainPanel(
+      plotOutput("distPlot")
+   )
+))
+\end{verbatim}
+\end{tcolorbox}
+\end{frame}
+
+\begin{frame}[fragile]{Getting started: A simple shiny App}
+A shiny App contains two parts:
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black, title=ui.R]
+\begin{verbatim}
+shinyUI(fluidPage(
+))
+\end{verbatim}
+\end{tcolorbox}
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black, title=server.R]
+\begin{verbatim}
+shinyServer(function(input, output){
+})
+\end{verbatim}
+\end{tcolorbox}
+\end{frame}
+
+
+\begin{frame}[fragile]{UI Layout}
+Simple layout: Sidebar Layout
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black, title=ui.R]
+\begin{verbatim}
+shinyUI(fluidPage(
+  titlePanel("title panel"),
+  
+  sidebarLayout(
+    sidebarPanel( "sidebar panel"),
+    mainPanel("main panel")
+  )
+))
+\end{verbatim}
+\end{tcolorbox}
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black, title=server.R]
+\begin{verbatim}
+shinyServer(function(input, output){
+})
+\end{verbatim}
+\end{tcolorbox}
+\end{frame}
+
+\begin{frame}[fragile]{UI Layout}
+Fancy layout: 
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black]
+\begin{itemize}
+  \item Grid Layout
+  \item Tabsets Panel
+  \item Navlists Panel
+\end{itemize}
+\end{tcolorbox}
+\end{frame}
+
+
+\begin{frame}[fragile]{UI Input - Add control widgets}
+The widgets in Shiny
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black]
+\begin{itemize}
+  \item actionButton
+  \item checkboxGroupInput $\&$ checkboxInput
+  \item dateInput $\&$ dateRangeInput
+  \item fileInput	
+  \item helpText	
+  \item numericInput	
+  \item radioButtons	
+  \item selectInput	
+  \item sliderInput	
+  \item submitButton	
+  \item textInput	 
+\end{itemize}
+\end{tcolorbox}
+\end{frame}
+
+\begin{frame}[fragile]{UI Input - How do they work?}
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black]
+A example of Action Button.....
+\end{tcolorbox}
+\end{frame}
+
+\begin{frame}[fragile]{UI Output}
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black, title=ui.R]
+\begin{itemize}
+  \item htmlOutput
+  \item plotOutput
+  \item tableOutput
+  \item textOutput	
+  \item verbatimTextOutput	
+  \item downloadButton	
+\end{itemize}
+\end{tcolorbox}
+\end{frame}
+
+\begin{frame}[fragile]{Reactive functions}
+Functions that you use in your application's server side code, assigning them to outputs that appear in your user interface.
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black, title=server.R]
+\begin{itemize}
+  \item \alert{renderPlot} (renderImage) 
+  \item \alert{renderText} 	
+  \item \alert{renderTable} 	
+  \item \alert{renderPrint} 
+  \item \alert{renderUI}	
+\end{itemize}
+\end{tcolorbox}
+\end{frame}
+
+\begin{frame}[fragile]{Example - A simple R-INLA turorial}
+This example shows how to use the UI and containers....
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black, title=ui.R]
+\begin{verbatim}
+shinyUI(navbarPage("A Simple R-INLA tutorial",
+                   tabPanel("R-INLA"),
+                   tabPanel("SPDE")
+)
+)
+\end{verbatim}
+\end{tcolorbox}
+See \alert{Step 1}....
+\end{frame}
+
+\begin{frame}[fragile]{Example - A simple R-INLA turorial}
+This example shows how to use the UI and containers....
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black, title=``R-INLA'' tabPanel]
+\begin{verbatim}
+tabPanel("R-INLA",
+         fluidRow(
+           column(4,
+                  wellPanel("Sidebar Panel")
+           ),
+           column(8,
+                  wellPanel("Main Panel")
+           )
+         )
+)
+\end{verbatim}
+\end{tcolorbox}
+See \alert{Step 2}....
+\end{frame}
+
+\begin{frame}[fragile]{Example - A simple R-INLA turorial}
+This example shows how to use the UI and containers....
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black, title=``R-INLA'' fluidRow]
+\begin{verbatim}
+column(4,
+       wellPanel("UI-Input 1"),
+       wellPanel("UI-Input 2"),
+       wellPanel("UI-Input 3")
+),
+
+column(8,
+       wellPanel("UI-Output 1"),
+       wellPanel("UI-Output 2"),
+       wellPanel("UI-Output 3")
+)
+\end{verbatim}
+\end{tcolorbox}
+See \alert{Step 3}....
+\end{frame}
+
+
+\begin{frame}[fragile]{Example - A simple R-INLA turorial}
+This example shows how to use the UI and containers....
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black, title=UI-Input 1]
+\begin{verbatim}
+wellPanel(selectInput("latent", 
+                      label = "Latent models", 
+                      width='100%',
+                      choices = list("NULL" = 1, 
+                                     "iid" = 2,
+                                     "rw2" = 3), 
+                      selected = 1))
+\end{verbatim}
+\end{tcolorbox}
+See \alert{Step 4}....
+\end{frame}
+
+\begin{frame}[fragile]{Example - A simple R-INLA turorial}
+This example shows how to use the UI and containers....
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black, title=UI-Input 3]
+\begin{verbatim}
+wellPanel(radioButtons("radio", 
+                       label = "Show simulate data",
+                       choices = list("No" = 1, 
+                                      "Yes" = 2),
+                       selected = 1,
+                       inline = TRUE))
+\end{verbatim}
+\end{tcolorbox}
+See \alert{Step 5}....
+\end{frame}
+
+
+\begin{frame}[fragile]{Example - A simple R-INLA turorial}
+This example shows how to use the UI and containers....
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black, title=``R-INLA'' UI-Output]
+\begin{verbatim}
+column(8,
+       conditionalPanel(
+         condition = "input.radio == 2",
+         wellPanel(plotOutput("dataPlot"))),
+       wellPanel(htmlOutput("inlafuncs", 
+                            container = span)),
+       wellPanel(verbatimTextOutput("inlares"))    
+)
+\end{verbatim}
+\end{tcolorbox}
+See \alert{Step 6}....
+\end{frame}
+
+
+\begin{frame}[fragile]{Example - A simple R-INLA turorial}
+This example shows how to use the UI and containers....
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black, title=Corresponding reaction]
+\begin{verbatim}
+output$dataPlot <- renderPlot({
+  plot(y,ylab="y")
+})
+\end{verbatim}
+\end{tcolorbox}
+See \alert{Step 6}....
+\end{frame}
+
+\begin{frame}[fragile]{Example - A simple R-INLA turorial}
+This example shows how to use the UI and containers....
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black, title=Corresponding reaction]
+\begin{verbatim}
+output$inlafuncs <- renderUI({
+  if(isolate(input$latent==1)){
+    if(input$likelihood==1){
+      return(HTML("r = inla(y ~ 1 + x, 
+      data = data.frame(y, x, E), 
+      family = \"nbinomial\", E=E)"))
+    }
+    if(isolate(input$likelihood==2)){
+      return(HTML("r = inla(y ~ 1 + z, 
+      data = list(y=y, z=z),
+      family = \"gaussian\")"))
+    }
+  }
+})
+\end{verbatim}
+\end{tcolorbox}
+See \alert{Step 6}....
+\end{frame}
+
+\begin{frame}[fragile]{Example - A simple R-INLA turorial}
+This example shows how to use the UI and containers....
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black, title=Corresponding reaction]
+\begin{verbatim}
+output$inlares <- renderPrint({
+    summary(res)
+  })
+\end{verbatim}
+\end{tcolorbox}
+See \alert{Step 6}....
+\end{frame}
+
+\section[RGtk2]{RGtk2}
+\begin{frame}{RGtk2}
+\begin{itemize}
+  \item RGtk2 is a GUI toolkit for R
+  \item RGtk2 provides programmatic access to \alert{GTK+} (GIMP ToolKit)
+  \item cross-platform (Windows, Mac, and Linux)
+  \item each UI defined as a gObject
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Layout}
+\begin{itemize}
+  \item gtkWindow
+  \item gtkAlignment
+  \item gtkVBox and gtkHBox
+  \item gtkNotebook
+\end{itemize}
+\end{frame}
+
+\end{document}

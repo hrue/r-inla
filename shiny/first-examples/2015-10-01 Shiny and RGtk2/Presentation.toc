@@ -1,0 +1,3 @@
+\beamer@endinputifotherversion {3.26pt}
+\beamer@sectionintoc {1}{Shiny}{2}{0}{1}
+\beamer@sectionintoc {2}{RGtk2}{22}{0}{2}
