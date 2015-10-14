@@ -18939,9 +18939,9 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 	} else {
 		mb->jp = NULL;
 	}
-	Free(R_HOME);
-	Free(Rfile);
-	Free(func);
+//	Free(R_HOME);
+//	Free(Rfile);
+//	Free(func);
 
 	return INLA_OK;
 }
