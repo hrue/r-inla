@@ -82,7 +82,7 @@ int inla_R_init(void)
 				// Disable C stack limit check
 				R_CStackLimit = (uintptr_t) - 1;
 
-				atexit(inla_R_exit);	       /* cleanup at exit */
+//				atexit(inla_R_exit);	       /* cleanup at exit */
 				R_init = INLA_OK;
 				if (R_debug)
 					fprintf(stderr, "R-interface: init\n");
