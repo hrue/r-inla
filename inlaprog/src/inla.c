@@ -2153,7 +2153,12 @@ double priorfunc_pc_rho0(double *x, double *parameters)
 	double ldens, lambda, ljac, val, mu;
 
 	mu = sqrt(-log(1.0 - SQR(rho)));
-	lambda = -log(alpha) / sqrt(-log(1.0 - SQR(u)));
+	if (alpha <= 0 || alpha >= 1.0) {
+		FIXEME1("*****************************  USING lambda = u **********************************");
+		lambda = u;
+	} else {
+		lambda = -log(alpha) / sqrt(-log(1.0 - SQR(u)));
+	}
 	// add the EPS to ensure its not INFINITY...
 	ldens = log(lambda) - lambda * mu + log((ABS(rho) + FLT_EPSILON) / (1.0 - SQR(rho))) - log(mu + FLT_EPSILON);
 	ljac = log(ABS(map_rho(*x, MAP_DFORWARD, NULL)));
