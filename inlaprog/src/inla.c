@@ -2154,7 +2154,7 @@ double priorfunc_pc_rho0(double *x, double *parameters)
 
 	mu = sqrt(-log(1.0 - SQR(rho)));
 	if (alpha <= 0 || alpha >= 1.0) {
-		FIXEME1("*****************************  USING lambda = u **********************************");
+		FIXME1("*****************************  USING lambda = u **********************************");
 		lambda = u;
 	} else {
 		lambda = -log(alpha) / sqrt(-log(1.0 - SQR(u)));
