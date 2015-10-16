@@ -123,7 +123,7 @@ inla.ar.phi2acf = function(phi, lag.max = length(phi))
     r = pmax(-1, pmin(1, r)) ## known to be true
     r = c(1, r)
     if (lag.max > p) {
-        r = c(r, rep(0, lag.max-p-1))
+        r = c(r, rep(0, lag.max-p))
         for(i in (p+1):(lag.max+1)) {
             r[i] = sum(phi * r[(i-1):(i-1-p+1)])
         }
