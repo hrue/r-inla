@@ -394,8 +394,8 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	fprintf(fp, "\t\tRelative error ....................... [%g]\n", ai_par->numint_rel_err);
 	fprintf(fp, "\t\tAbsolute error ....................... [%g]\n", ai_par->numint_abs_err);
 
-	fprintf(fp, "\tTo stabalise the numerical optimisation:\n");
-	fprintf(fp, "\t\tMinimum value of the -Hesssian [%g]\n", ai_par->cmin);
+	fprintf(fp, "\tTo stabilise the numerical optimisation:\n");
+	fprintf(fp, "\t\tMinimum value of the -Hessian [%g]\n", ai_par->cmin);
 
 	if (show_expert_options) {
 		/*
