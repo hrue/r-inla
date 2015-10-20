@@ -672,6 +672,7 @@ typedef struct {
 typedef struct {
 	char *R_HOME;					       /* environment variable to be set */
 	char *Rfile;					       /* filename to be sourced */
+	char *RData;						   /* filename to be loaded */
 	char *func;					       /* function to be called: fun(theta) */
 } inla_jp_tp;
 

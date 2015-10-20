@@ -18924,14 +18924,19 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * joint prior?
 	 */
-	char *R_HOME = NULL, *Rfile = NULL, *func = NULL;
+	char *R_HOME = NULL, *Rfile = NULL, *RData = NULL, *func = NULL;
 
 	R_HOME = iniparser_getstring(ini, inla_string_join(secname, "JP.R_HOME"), R_HOME);
 	Rfile = iniparser_getstring(ini, inla_string_join(secname, "JP.RFILE"), Rfile);
+	RData = iniparser_getstring(ini, inla_string_join(secname, "JP.RDATA"), RData);
 	func = iniparser_getstring(ini, inla_string_join(secname, "JP.FUNC"), func);
 	if (mb->verbose) {
 		printf("\t\t\tjp.R_HOME=[%s]\n", R_HOME);
 		printf("\t\t\tjp.Rfile=[%s]\n", Rfile);
+		if(RData != NULL)
+			printf("\t\t\tjp.RData=[%s]\n", RData);
+		else
+			printf("\t\t\tjp.RData=NULL\n");
 		printf("\t\t\tjp.func=[%s]\n", func);
 	}
 	if (func) {
@@ -18939,6 +18944,7 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 		mb->jp = Calloc(1, inla_jp_tp);
 		mb->jp->R_HOME = GMRFLib_strdup(R_HOME);
 		mb->jp->Rfile = GMRFLib_strdup(Rfile);
+		mb->jp->RData = GMRFLib_strdup(RData);
 		mb->jp->func = GMRFLib_strdup(func);
 
 	} else {
@@ -19108,8 +19114,14 @@ double extra(double *theta, int ntheta, void *argument)
 			GMRFLib_sprintf(&env, "R_HOME=%s", mb->jp->R_HOME);
 			my_setenv(env, 0);
 			Free(env);
-			// and source the Rfile
+
+			// Load data
+			if(mb->jp->RData != NULL)
+				inla_R_load(mb->jp->RData);
+
+			// Source file with functions
 			inla_R_source(mb->jp->Rfile);
+
 			first_time = 0;
 		}
 
