@@ -115,6 +115,34 @@ int inla_R_source(const char *filename)
 	}
 	return INLA_OK;
 }
+
+int inla_R_load(const char *filename)
+{
+	if (!filename)
+		return INLA_OK;
+	inla_R_init();
+
+#pragma omp critical
+	{
+		SEXP e, result;
+		int error;
+
+		if (R_debug)
+			fprintf(stderr, "R-interface: loading file [%s]\n", filename);
+
+		PROTECT(e = lang2(install("load"), mkString(filename)));
+		PROTECT(result = R_tryEval(e, R_GlobalEnv, &error));
+		if (error) {
+			fprintf(stderr, "\n *** ERROR ***: loading RData-file [%s] failed.\n", filename);
+			exit(1);
+		}
+		UNPROTECT(2);
+
+	}
+	return INLA_OK;
+}
+
+
 int inla_R_funcall1(int *n_out, double **x_out, const char *function, int n, double *x)
 {
 	return inla_R_funcall2(n_out, x_out, function, NULL, n, x);

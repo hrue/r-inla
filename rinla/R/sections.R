@@ -997,6 +997,10 @@
             fnm = inla.copy.file.for.section(args$jp.Rfile, data.dir)
             cat("jp.Rfile = ", fnm, "\n", sep = " ", file = file,  append = TRUE)
         }
+        if (!is.null(args$jp.RData)) {
+            fnm = inla.copy.file.for.section(args$jp.RData, data.dir)
+            cat("jp.RData = ", fnm, "\n", sep = " ", file = file,  append = TRUE)
+        }
     }
     if (is.null(args$disable.gaussian.check)) {
         args$disable.gaussian.check = FALSE
