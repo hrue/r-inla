@@ -7,7 +7,7 @@
 
 `inla.cygwin.protect.special.chars` = function(cmd)
 {
-    cmd = gsub(" ", "\\\\ ", cmd)
+    ##cmd = gsub(" ", "\\\\ ", cmd)
     return (cmd) 
 }
 
