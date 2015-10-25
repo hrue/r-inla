@@ -16702,9 +16702,16 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		int adj = iniparser_getint(ini, inla_string_join(secname, "ADJUST.FOR.CON.COMP"), 1);
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 1);
-		assert(std == 1);			       /* this has to be true for this model */
-
-		inla_besag_scale(arg->besag_arg, adj);
+		if (std) {
+			inla_besag_scale(arg->besag_arg, adj);
+		} else {
+			fprintf(stderr,
+				"\n\n*** Warning ***\tModel[%s] in Section[%s] set scale.model=FALSE which is NOT recommended!\n\n",
+			       model, secname);
+			arg->besag_arg->prec_scale = Calloc(1, double);
+			arg->besag_arg->prec_scale[0] = 1.0;
+		}
+			
 		if (mb->verbose) {
 			printf("\t\tadjust.for.con.comp[%1d]\n", adj);
 			printf("\t\tscale.model[%1d]\n", std);
