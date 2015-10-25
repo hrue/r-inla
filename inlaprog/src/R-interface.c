@@ -223,6 +223,11 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 {
 	ERROR_MESSAGE;
 }
+
+int inla_R_load(const char *filename)
+{
+	ERROR_MESSAGE;
+}
 #undef ERROR_MESSAGE
 
 #endif
