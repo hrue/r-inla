@@ -94,7 +94,7 @@ inla.pc.bym.phi = function(
         ## where to switch to alternative strategy
         dim.limit = 1000L, 
         eps = sqrt(.Machine$double.eps), 
-        debug = FALSE)
+        debug = TRUE)
 {
     my.debug = function(...) if (debug) cat("*** debug *** inla.pc.bym.phi: ", ... , "\n")
     
@@ -128,7 +128,7 @@ inla.pc.bym.phi = function(
             }
             if (rankdef > 0) {
                 if (adjust.for.con.comp) {
-                    if (is.null(g)) g = inla.read.graph(Q)  ## if 'g' exists...
+                    if (is.null(g)) g = inla.read.graph(Q) ## if 'g' exists...
                     nc = g$cc$n
                     constr = list(A = matrix(0, nc, n), e = rep(0, nc))
                     for(k in 1:nc) {
@@ -190,24 +190,24 @@ inla.pc.bym.phi = function(
         d = numeric(length(phi.s))
         log.q1.det = inla.sparse.det.bym(Q, adjust.for.con.comp = adjust.for.con.comp)
         d = unlist(inla.mclapply(phi.s, 
-                function(phi) {
-                    aa = n*phi*f
-                    ## add eps for stability for small phi. This is
-                    ## hack to get it close to the eigenvalue
-                    ## solution...
-                    if (phi <= 0.5) {
-                        eps = sqrt(.Machine$double.eps)
-                        rdef = 0
-                    } else {
-                        eps = 0
-                        rdef = 1
-                    }
-                    bb = n * log((1.0 - phi)/phi) +
-                        inla.sparse.det.bym(Q + (phi/(1-phi) + eps) * Diagonal(n), rankdef = rdef,
-                                            adjust.for.con.comp = adjust.for.con.comp) -
-                                                (log.q1.det - (n-rankdef) * log(phi))
-                    return (if (aa >= bb) sqrt(aa-bb) else NA)
-                }))
+            function(phi) {
+                aa = n*phi*f
+                ## add eps for stability for small phi. This is
+                ## hack to get it close to the eigenvalue
+                ## solution...
+                if (phi <= 0.5) {
+                    eps = sqrt(.Machine$double.eps)
+                    rdef = 0
+                } else {
+                    eps = 0
+                    rdef = 1
+                }
+                bb = n * log((1.0 - phi)/phi) +
+                    inla.sparse.det.bym(Q + (phi/(1-phi) + eps) * Diagonal(n), rankdef = rdef,
+                                        adjust.for.con.comp = adjust.for.con.comp) -
+                                            (log.q1.det - (n-rankdef) * log(phi))
+                return (if (aa >= bb) sqrt(aa-bb) else NA)
+            }))
     }
             
     ## remove phi's that failed, if any
@@ -225,8 +225,10 @@ inla.pc.bym.phi = function(
     phi.s = 1/(1+exp(-phi.intern))
     f.d = splinefun(c(0, phi.s), c(0, ff.d(phi.intern)))
     d = f.d(phi.s)
+    ## use the theoretical limit
     d.max = f.d(1.0)
-    
+    d.max = Inf ## theoretical limit
+
     if (missing(lambda)) {
         ## Prob(phi < u) = alpha
         alpha.min = f.d(u)/d.max
@@ -249,17 +251,22 @@ inla.pc.bym.phi = function(
             return (value)
         }
 
-        ## do the screning in two rounds
-        lam = exp(seq(-10, 3, len=25))
-        idx = which.min(f.target(lam, alpha, f.d(u), d.max))
-        lam = exp(seq(log(lam[idx-1]), log(lam[idx+1]), len=25))
-        idx = which.min(f.target(lam, alpha, f.d(u), d.max))
-        ## then call the optimiser...
-        r = optimise(f.target, interval = c(lam[idx-1], lam[idx+1]),
+        if (is.infinite(d.max)) {
+            ## analytical solution
+            lambda = -log(1-alpha)/f.d(u)
+        } else {
+            ## do the screning in two rounds
+            lam = exp(seq(-10, 3, len=25))
+            idx = which.min(f.target(lam, alpha, f.d(u), d.max))
+            lam = exp(seq(log(lam[idx-1]), log(lam[idx+1]), len=25))
+            idx = which.min(f.target(lam, alpha, f.d(u), d.max))
+            ## then call the optimiser...
+            r = optimise(f.target, interval = c(lam[idx-1], lam[idx+1]),
                 maximum = FALSE,
                 alpha = alpha, d.u = f.d(u), d.max = d.max)
-        stopifnot(abs(r$objective) < 1e-3)
-        lambda = r$minimum
+            stopifnot(abs(r$objective) < 1e-3)
+            lambda = r$minimum
+        }
         my.debug("found lambda = ", lambda)
     }
     
@@ -276,7 +283,7 @@ inla.pc.bym.phi = function(
         theta = log(phi.s/(1-phi.s))
         log.prior.theta = log.prior + log(exp(-theta)/(1+exp(-theta))^2)
         theta.prior.table = paste(c("table:", cbind(theta, log.prior.theta)),
-                sep = "", collapse = " ")
+            sep = "", collapse = " ")
         return (theta.prior.table)
     } else {
         ## return a function which evaluates the log-prior as a
