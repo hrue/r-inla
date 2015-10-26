@@ -425,7 +425,7 @@ inla.models()
 							\item{name = }{`logit phi'}
 							\item{short.name = }{`phi'}
 							\item{prior = }{`pc'}
-							\item{param = }{`0.5 -1'}
+							\item{param = }{`0.5 0.5'}
 							\item{initial = }{`-3'}
 							\item{fixed = }{`FALSE'}
 							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
@@ -4233,7 +4233,7 @@ inla.models()
 							\item{name = }{`logit phi'}
 							\item{short.name = }{`phi'}
 							\item{prior = }{`pc'}
-							\item{param = }{`0.5 -1'}
+							\item{param = }{`0.5 0.5'}
 							\item{initial = }{`3'}
 							\item{fixed = }{`FALSE'}
 							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
