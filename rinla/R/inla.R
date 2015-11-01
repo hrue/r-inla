@@ -854,6 +854,7 @@
                                    cont.family[[i.family]]$prior,
                                    cont.family[[i.family]]$param)
         all.hyper$family[[i.family]] = list(
+                            hyperid = paste("INLA.Data", i.family, sep=""), 
                             label = family[i.family],
                             hyper = cont.family[[i.family]]$hyper)
         
@@ -1713,9 +1714,36 @@
 
                     n.weights = n.weights+1
                 }
-                ##create a FFIELD section
-                all.hyper$random[[r]] = list(label = inla.namefix(gp$random.spec[[r]]$term),
-                                    hyper = gp$random.spec[[r]]$hyper)
+
+                ## we need to replace "REPLACE.ME.ngroup" in the function call, before we pass
+                ## them into 'all.hyper'. its kind of 'dirty'. switch to temporary name 'gh' for
+                ## simplicity
+                gh = gp$random.spec[[r]]$control.group$hyper
+                if (is.null(gp$random.spec[[r]]$range)) {
+                    low = -Inf
+                    high = Inf
+                } else {
+                    low = gp$random.spec[[r]]$range[1]
+                    high = gp$random.spec[[r]]$range[2]
+                }
+
+                for(ii in seq_along(length(gh))) {
+                    gh[[ii]]$from.theta = eval(parse(text = gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""),
+                                                         inla.function2source(gh[[ii]]$from.theta, newline = ""))))
+                    gh[[ii]]$from.theta = eval(parse(text = gsub("REPLACE.ME.low", paste("ngroup=", as.numeric(low), sep=""),
+                                                         inla.function2source(gh[[ii]]$from.theta, newline = ""))))
+                    gh[[ii]]$from.theta = eval(parse(text = gsub("REPLACE.ME.high", paste("ngroup=", as.numeric(high), sep=""),
+                                                         inla.function2source(gh[[ii]]$from.theta, newline = ""))))
+                    gh[[ii]]$to.theta = eval(parse(text= gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""),
+                                       inla.function2source(gh[[ii]]$to.theta, newline = ""))))
+                    gh[[ii]]$to.theta = eval(parse(text= gsub("REPLACE.ME.low", paste("ngroup=", as.numeric(low), sep=""),
+                                       inla.function2source(gh[[ii]]$to.theta, newline = ""))))
+                    gh[[ii]]$to.theta = eval(parse(text= gsub("REPLACE.ME.high", paste("ngroup=", as.numeric(high), sep=""),
+                                       inla.function2source(gh[[ii]]$to.theta, newline = ""))))
+                }
+                
+                all.hyper$random[[r]] = list(hyperid = inla.namefix(gp$random.spec[[r]]$term),
+                                    hyper = gp$random.spec[[r]]$hyper, group.hyper = gh)
 
                 inla.ffield.section(file=file.ini, file.loc=file.loc, file.cov=file.cov,
                                     file.id.names = file.id.names, 
@@ -2053,4 +2081,3 @@
     }
     return (data)
 }
-

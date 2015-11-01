@@ -1,7 +1,7 @@
 
 /* inla.h
  * 
- * Copyright (C) 2007-2010 Havard Rue
+ * Copyright (C) 2007-2015 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -518,6 +518,7 @@ typedef double inla_priorfunc_tp(double *param, double *parameters);
 
 typedef struct {
 	inla_component_tp id;				       /* prior Id */
+	char *hyperid;					       /* hyperpar Id */
 	char *name;					       /* name of prior */
 	double *parameters;				       /* the parameters */
 	char *to_theta;					       /* R-code */
@@ -853,6 +854,7 @@ struct inla_tp_struct {
 	GMRFLib_hgmrfm_tp *hgmrfm;
 	int ntheta;
 	double ***theta;
+	char **theta_hyperid;
 	char **theta_tag;
 	char **theta_tag_userscale;
 	char **theta_dir;
@@ -1211,6 +1213,7 @@ GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRF
 GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n);
 char *inla_fnmfix(char *name);
 char *inla_make_tag(const char *string, int ds);
+char *inla_create_hyperid(int id, const char *secname);
 const char *inla_string_join(const char *a, const char *b);
 double Qfunc_2diid(int i, int j, void *arg);
 double Qfunc_2diid_wishart(int i, int j, void *arg);
@@ -1401,6 +1404,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 int inla_output_names(const char *dir, const char *sdir, int n, const char **names, const char *suffix);
 int inla_output_ok(const char *dir);
 int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal, int ngroup, int nrep);
+int inla_output_hyperid(const char *dir, const char *sdir, char * hyperid);
 int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir);
 int inla_parse_data(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec);
@@ -1436,7 +1440,7 @@ int inla_read_prior9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 int inla_read_prior10(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N);
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag, const char *param_tag, const char *from_theta,
-			    const char *to_theta, const char *default_prior);
+			    const char *to_theta, const char *hyperid, const char *default_prior);
 int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int make_dir);
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
