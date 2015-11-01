@@ -1,5 +1,5 @@
 SHELL = /bin/bash
-MAC = darwin
+MAC = hruemac
 
 default:;
 	@echo "TARGETS: all build-configs update-inla update-R update-r-inla.org update-build-yourself www Rinla-local Rinla-install Rinla-testing"

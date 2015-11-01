@@ -24,6 +24,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`1001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -55,6 +56,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`2001'}
 							\item{name = }{`beta'}
 							\item{short.name = }{`b'}
 							\item{prior = }{`gaussian'}
@@ -67,6 +69,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`2002'}
 							\item{name = }{`prec.u'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -79,6 +82,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
+							\item{hyperid = }{`2003'}
 							\item{name = }{`mean.x'}
 							\item{short.name = }{`mu.x'}
 							\item{prior = }{`gaussian'}
@@ -91,6 +95,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta4'}{
 							 \describe{
+							\item{hyperid = }{`2004'}
 							\item{name = }{`prec.x'}
 							\item{short.name = }{`prec.x'}
 							\item{prior = }{`loggamma'}
@@ -123,6 +128,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`3001'}
 							\item{name = }{`beta'}
 							\item{short.name = }{`b'}
 							\item{prior = }{`gaussian'}
@@ -135,6 +141,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`3002'}
 							\item{name = }{`prec.u'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -169,6 +176,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`4001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -200,6 +208,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`5001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -231,6 +240,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`6001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -262,6 +272,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`7001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -293,6 +304,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`8001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -324,6 +336,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`9001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -336,6 +349,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`9002'}
 							\item{name = }{`scaling parameter'}
 							\item{short.name = }{`a'}
 							\item{prior = }{`loggamma'}
@@ -367,6 +381,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`10001'}
 							\item{name = }{`log unstructured precision'}
 							\item{short.name = }{`prec.unstruct'}
 							\item{prior = }{`loggamma'}
@@ -379,6 +394,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`10002'}
 							\item{name = }{`log spatial precision'}
 							\item{short.name = }{`prec.spatial'}
 							\item{prior = }{`loggamma'}
@@ -410,6 +426,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`11001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`pc.prec'}
@@ -422,6 +439,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`11002'}
 							\item{name = }{`logit phi'}
 							\item{short.name = }{`phi'}
 							\item{prior = }{`pc'}
@@ -454,6 +472,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`12001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -466,6 +485,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`12002'}
 							\item{name = }{`log diagonal'}
 							\item{short.name = }{`diag'}
 							\item{prior = }{`loggamma'}
@@ -498,6 +518,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`13001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -510,6 +531,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`13002'}
 							\item{name = }{`logit lambda'}
 							\item{short.name = }{`lambda'}
 							\item{prior = }{`gaussian'}
@@ -542,6 +564,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`14001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -554,6 +577,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`14002'}
 							\item{name = }{`logit lag one correlation'}
 							\item{short.name = }{`rho'}
 							\item{prior = }{`normal'}
@@ -585,6 +609,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`15001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`4'}
@@ -597,6 +622,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`15002'}
 							\item{name = }{`pacf1'}
 							\item{short.name = }{`pacf1'}
 							\item{initial = }{`1'}
@@ -609,6 +635,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
+							\item{hyperid = }{`15003'}
 							\item{name = }{`pacf2'}
 							\item{short.name = }{`pacf2'}
 							\item{initial = }{`0'}
@@ -621,6 +648,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta4'}{
 							 \describe{
+							\item{hyperid = }{`15004'}
 							\item{name = }{`pacf3'}
 							\item{short.name = }{`pacf3'}
 							\item{initial = }{`0'}
@@ -633,6 +661,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta5'}{
 							 \describe{
+							\item{hyperid = }{`15005'}
 							\item{name = }{`pacf4'}
 							\item{short.name = }{`pacf4'}
 							\item{initial = }{`0'}
@@ -645,6 +674,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta6'}{
 							 \describe{
+							\item{hyperid = }{`15006'}
 							\item{name = }{`pacf5'}
 							\item{short.name = }{`pacf5'}
 							\item{initial = }{`0'}
@@ -657,6 +687,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta7'}{
 							 \describe{
+							\item{hyperid = }{`15007'}
 							\item{name = }{`pacf6'}
 							\item{short.name = }{`pacf6'}
 							\item{initial = }{`0'}
@@ -669,6 +700,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta8'}{
 							 \describe{
+							\item{hyperid = }{`15008'}
 							\item{name = }{`pacf7'}
 							\item{short.name = }{`pacf7'}
 							\item{initial = }{`0'}
@@ -681,6 +713,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta9'}{
 							 \describe{
+							\item{hyperid = }{`15009'}
 							\item{name = }{`pacf8'}
 							\item{short.name = }{`pacf8'}
 							\item{initial = }{`0'}
@@ -693,6 +726,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta10'}{
 							 \describe{
+							\item{hyperid = }{`15010'}
 							\item{name = }{`pacf9'}
 							\item{short.name = }{`pacf9'}
 							\item{initial = }{`0'}
@@ -705,6 +739,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta11'}{
 							 \describe{
+							\item{hyperid = }{`15011'}
 							\item{name = }{`pacf10'}
 							\item{short.name = }{`pacf10'}
 							\item{initial = }{`0'}
@@ -737,6 +772,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`16001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -749,6 +785,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`16002'}
 							\item{name = }{`log phi'}
 							\item{short.name = }{`phi'}
 							\item{prior = }{`normal'}
@@ -780,6 +817,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`17001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -811,6 +849,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`18001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -842,6 +881,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`19001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -854,6 +894,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`19002'}
 							\item{name = }{`beta'}
 							\item{short.name = }{`beta'}
 							\item{initial = }{`2'}
@@ -885,6 +926,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`20001'}
 							\item{name = }{`log precision cmatrix'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`4'}
@@ -897,6 +939,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`20002'}
 							\item{name = }{`log precision random'}
 							\item{short.name = }{`prec.random'}
 							\item{initial = }{`4'}
@@ -928,6 +971,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`21001'}
 							\item{name = }{`log precision1'}
 							\item{short.name = }{`prec1'}
 							\item{initial = }{`4'}
@@ -940,6 +984,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`21002'}
 							\item{name = }{`log precision2'}
 							\item{short.name = }{`prec2'}
 							\item{initial = }{`4'}
@@ -952,6 +997,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
+							\item{hyperid = }{`21003'}
 							\item{name = }{`log precision3'}
 							\item{short.name = }{`prec3'}
 							\item{initial = }{`4'}
@@ -964,6 +1010,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta4'}{
 							 \describe{
+							\item{hyperid = }{`21004'}
 							\item{name = }{`log precision4'}
 							\item{short.name = }{`prec4'}
 							\item{initial = }{`4'}
@@ -976,6 +1023,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta5'}{
 							 \describe{
+							\item{hyperid = }{`21005'}
 							\item{name = }{`log precision5'}
 							\item{short.name = }{`prec5'}
 							\item{initial = }{`4'}
@@ -988,6 +1036,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta6'}{
 							 \describe{
+							\item{hyperid = }{`21006'}
 							\item{name = }{`log precision6'}
 							\item{short.name = }{`prec6'}
 							\item{initial = }{`4'}
@@ -1000,6 +1049,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta7'}{
 							 \describe{
+							\item{hyperid = }{`21007'}
 							\item{name = }{`log precision7'}
 							\item{short.name = }{`prec7'}
 							\item{initial = }{`4'}
@@ -1012,6 +1062,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta8'}{
 							 \describe{
+							\item{hyperid = }{`21008'}
 							\item{name = }{`log precision8'}
 							\item{short.name = }{`prec8'}
 							\item{initial = }{`4'}
@@ -1024,6 +1075,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta9'}{
 							 \describe{
+							\item{hyperid = }{`21009'}
 							\item{name = }{`log precision9'}
 							\item{short.name = }{`prec9'}
 							\item{initial = }{`4'}
@@ -1036,6 +1088,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta10'}{
 							 \describe{
+							\item{hyperid = }{`21010'}
 							\item{name = }{`log precision10'}
 							\item{short.name = }{`prec10'}
 							\item{initial = }{`4'}
@@ -1048,6 +1101,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta11'}{
 							 \describe{
+							\item{hyperid = }{`21011'}
 							\item{name = }{`log precision common'}
 							\item{short.name = }{`prec.common'}
 							\item{initial = }{`0'}
@@ -1080,6 +1134,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`22001'}
 							\item{name = }{`theta.T'}
 							\item{short.name = }{`T'}
 							\item{initial = }{`2'}
@@ -1092,6 +1147,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`22002'}
 							\item{name = }{`theta.K'}
 							\item{short.name = }{`K'}
 							\item{initial = }{`-2'}
@@ -1104,6 +1160,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
+							\item{hyperid = }{`22003'}
 							\item{name = }{`theta.KT'}
 							\item{short.name = }{`KT'}
 							\item{initial = }{`0'}
@@ -1116,6 +1173,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta4'}{
 							 \describe{
+							\item{hyperid = }{`22004'}
 							\item{name = }{`theta.OC'}
 							\item{short.name = }{`OC'}
 							\item{initial = }{`-20'}
@@ -1147,6 +1205,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`23001'}
 							\item{name = }{`theta1'}
 							\item{short.name = }{`t1'}
 							\item{initial = }{`0'}
@@ -1159,6 +1218,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`23002'}
 							\item{name = }{`theta2'}
 							\item{short.name = }{`t2'}
 							\item{initial = }{`0'}
@@ -1171,6 +1231,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
+							\item{hyperid = }{`23003'}
 							\item{name = }{`theta3'}
 							\item{short.name = }{`t3'}
 							\item{initial = }{`0'}
@@ -1183,6 +1244,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta4'}{
 							 \describe{
+							\item{hyperid = }{`23004'}
 							\item{name = }{`theta4'}
 							\item{short.name = }{`t4'}
 							\item{initial = }{`0'}
@@ -1195,6 +1257,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta5'}{
 							 \describe{
+							\item{hyperid = }{`23005'}
 							\item{name = }{`theta5'}
 							\item{short.name = }{`t5'}
 							\item{initial = }{`0'}
@@ -1207,6 +1270,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta6'}{
 							 \describe{
+							\item{hyperid = }{`23006'}
 							\item{name = }{`theta6'}
 							\item{short.name = }{`t6'}
 							\item{initial = }{`0'}
@@ -1219,6 +1283,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta7'}{
 							 \describe{
+							\item{hyperid = }{`23007'}
 							\item{name = }{`theta7'}
 							\item{short.name = }{`t7'}
 							\item{initial = }{`0'}
@@ -1231,6 +1296,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta8'}{
 							 \describe{
+							\item{hyperid = }{`23008'}
 							\item{name = }{`theta8'}
 							\item{short.name = }{`t8'}
 							\item{initial = }{`0'}
@@ -1243,6 +1309,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta9'}{
 							 \describe{
+							\item{hyperid = }{`23009'}
 							\item{name = }{`theta9'}
 							\item{short.name = }{`t9'}
 							\item{initial = }{`0'}
@@ -1255,6 +1322,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta10'}{
 							 \describe{
+							\item{hyperid = }{`23010'}
 							\item{name = }{`theta10'}
 							\item{short.name = }{`t10'}
 							\item{initial = }{`0'}
@@ -1267,6 +1335,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta11'}{
 							 \describe{
+							\item{hyperid = }{`23011'}
 							\item{name = }{`theta11'}
 							\item{short.name = }{`t11'}
 							\item{initial = }{`0'}
@@ -1279,6 +1348,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta12'}{
 							 \describe{
+							\item{hyperid = }{`23012'}
 							\item{name = }{`theta12'}
 							\item{short.name = }{`t12'}
 							\item{initial = }{`0'}
@@ -1291,6 +1361,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta13'}{
 							 \describe{
+							\item{hyperid = }{`23013'}
 							\item{name = }{`theta13'}
 							\item{short.name = }{`t13'}
 							\item{initial = }{`0'}
@@ -1303,6 +1374,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta14'}{
 							 \describe{
+							\item{hyperid = }{`23014'}
 							\item{name = }{`theta14'}
 							\item{short.name = }{`t14'}
 							\item{initial = }{`0'}
@@ -1315,6 +1387,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta15'}{
 							 \describe{
+							\item{hyperid = }{`23015'}
 							\item{name = }{`theta15'}
 							\item{short.name = }{`t15'}
 							\item{initial = }{`0'}
@@ -1327,6 +1400,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta16'}{
 							 \describe{
+							\item{hyperid = }{`23016'}
 							\item{name = }{`theta16'}
 							\item{short.name = }{`t16'}
 							\item{initial = }{`0'}
@@ -1339,6 +1413,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta17'}{
 							 \describe{
+							\item{hyperid = }{`23017'}
 							\item{name = }{`theta17'}
 							\item{short.name = }{`t17'}
 							\item{initial = }{`0'}
@@ -1351,6 +1426,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta18'}{
 							 \describe{
+							\item{hyperid = }{`23018'}
 							\item{name = }{`theta18'}
 							\item{short.name = }{`t18'}
 							\item{initial = }{`0'}
@@ -1363,6 +1439,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta19'}{
 							 \describe{
+							\item{hyperid = }{`23019'}
 							\item{name = }{`theta19'}
 							\item{short.name = }{`t19'}
 							\item{initial = }{`0'}
@@ -1375,6 +1452,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta20'}{
 							 \describe{
+							\item{hyperid = }{`23020'}
 							\item{name = }{`theta20'}
 							\item{short.name = }{`t20'}
 							\item{initial = }{`0'}
@@ -1387,6 +1465,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta21'}{
 							 \describe{
+							\item{hyperid = }{`23021'}
 							\item{name = }{`theta21'}
 							\item{short.name = }{`t21'}
 							\item{initial = }{`0'}
@@ -1399,6 +1478,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta22'}{
 							 \describe{
+							\item{hyperid = }{`23022'}
 							\item{name = }{`theta22'}
 							\item{short.name = }{`t22'}
 							\item{initial = }{`0'}
@@ -1411,6 +1491,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta23'}{
 							 \describe{
+							\item{hyperid = }{`23023'}
 							\item{name = }{`theta23'}
 							\item{short.name = }{`t23'}
 							\item{initial = }{`0'}
@@ -1423,6 +1504,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta24'}{
 							 \describe{
+							\item{hyperid = }{`23024'}
 							\item{name = }{`theta24'}
 							\item{short.name = }{`t24'}
 							\item{initial = }{`0'}
@@ -1435,6 +1517,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta25'}{
 							 \describe{
+							\item{hyperid = }{`23025'}
 							\item{name = }{`theta25'}
 							\item{short.name = }{`t25'}
 							\item{initial = }{`0'}
@@ -1447,6 +1530,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta26'}{
 							 \describe{
+							\item{hyperid = }{`23026'}
 							\item{name = }{`theta26'}
 							\item{short.name = }{`t26'}
 							\item{initial = }{`0'}
@@ -1459,6 +1543,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta27'}{
 							 \describe{
+							\item{hyperid = }{`23027'}
 							\item{name = }{`theta27'}
 							\item{short.name = }{`t27'}
 							\item{initial = }{`0'}
@@ -1471,6 +1556,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta28'}{
 							 \describe{
+							\item{hyperid = }{`23028'}
 							\item{name = }{`theta28'}
 							\item{short.name = }{`t28'}
 							\item{initial = }{`0'}
@@ -1483,6 +1569,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta29'}{
 							 \describe{
+							\item{hyperid = }{`23029'}
 							\item{name = }{`theta29'}
 							\item{short.name = }{`t29'}
 							\item{initial = }{`0'}
@@ -1495,6 +1582,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta30'}{
 							 \describe{
+							\item{hyperid = }{`23030'}
 							\item{name = }{`theta30'}
 							\item{short.name = }{`t30'}
 							\item{initial = }{`0'}
@@ -1507,6 +1595,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta31'}{
 							 \describe{
+							\item{hyperid = }{`23031'}
 							\item{name = }{`theta31'}
 							\item{short.name = }{`t31'}
 							\item{initial = }{`0'}
@@ -1519,6 +1608,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta32'}{
 							 \describe{
+							\item{hyperid = }{`23032'}
 							\item{name = }{`theta32'}
 							\item{short.name = }{`t32'}
 							\item{initial = }{`0'}
@@ -1531,6 +1621,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta33'}{
 							 \describe{
+							\item{hyperid = }{`23033'}
 							\item{name = }{`theta33'}
 							\item{short.name = }{`t33'}
 							\item{initial = }{`0'}
@@ -1543,6 +1634,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta34'}{
 							 \describe{
+							\item{hyperid = }{`23034'}
 							\item{name = }{`theta34'}
 							\item{short.name = }{`t34'}
 							\item{initial = }{`0'}
@@ -1555,6 +1647,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta35'}{
 							 \describe{
+							\item{hyperid = }{`23035'}
 							\item{name = }{`theta35'}
 							\item{short.name = }{`t35'}
 							\item{initial = }{`0'}
@@ -1567,6 +1660,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta36'}{
 							 \describe{
+							\item{hyperid = }{`23036'}
 							\item{name = }{`theta36'}
 							\item{short.name = }{`t36'}
 							\item{initial = }{`0'}
@@ -1579,6 +1673,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta37'}{
 							 \describe{
+							\item{hyperid = }{`23037'}
 							\item{name = }{`theta37'}
 							\item{short.name = }{`t37'}
 							\item{initial = }{`0'}
@@ -1591,6 +1686,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta38'}{
 							 \describe{
+							\item{hyperid = }{`23038'}
 							\item{name = }{`theta38'}
 							\item{short.name = }{`t38'}
 							\item{initial = }{`0'}
@@ -1603,6 +1699,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta39'}{
 							 \describe{
+							\item{hyperid = }{`23039'}
 							\item{name = }{`theta39'}
 							\item{short.name = }{`t39'}
 							\item{initial = }{`0'}
@@ -1615,6 +1712,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta40'}{
 							 \describe{
+							\item{hyperid = }{`23040'}
 							\item{name = }{`theta40'}
 							\item{short.name = }{`t40'}
 							\item{initial = }{`0'}
@@ -1627,6 +1725,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta41'}{
 							 \describe{
+							\item{hyperid = }{`23041'}
 							\item{name = }{`theta41'}
 							\item{short.name = }{`t41'}
 							\item{initial = }{`0'}
@@ -1639,6 +1738,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta42'}{
 							 \describe{
+							\item{hyperid = }{`23042'}
 							\item{name = }{`theta42'}
 							\item{short.name = }{`t42'}
 							\item{initial = }{`0'}
@@ -1651,6 +1751,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta43'}{
 							 \describe{
+							\item{hyperid = }{`23043'}
 							\item{name = }{`theta43'}
 							\item{short.name = }{`t43'}
 							\item{initial = }{`0'}
@@ -1663,6 +1764,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta44'}{
 							 \describe{
+							\item{hyperid = }{`23044'}
 							\item{name = }{`theta44'}
 							\item{short.name = }{`t44'}
 							\item{initial = }{`0'}
@@ -1675,6 +1777,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta45'}{
 							 \describe{
+							\item{hyperid = }{`23045'}
 							\item{name = }{`theta45'}
 							\item{short.name = }{`t45'}
 							\item{initial = }{`0'}
@@ -1687,6 +1790,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta46'}{
 							 \describe{
+							\item{hyperid = }{`23046'}
 							\item{name = }{`theta46'}
 							\item{short.name = }{`t46'}
 							\item{initial = }{`0'}
@@ -1699,6 +1803,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta47'}{
 							 \describe{
+							\item{hyperid = }{`23047'}
 							\item{name = }{`theta47'}
 							\item{short.name = }{`t47'}
 							\item{initial = }{`0'}
@@ -1711,6 +1816,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta48'}{
 							 \describe{
+							\item{hyperid = }{`23048'}
 							\item{name = }{`theta48'}
 							\item{short.name = }{`t48'}
 							\item{initial = }{`0'}
@@ -1723,6 +1829,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta49'}{
 							 \describe{
+							\item{hyperid = }{`23049'}
 							\item{name = }{`theta49'}
 							\item{short.name = }{`t49'}
 							\item{initial = }{`0'}
@@ -1735,6 +1842,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta50'}{
 							 \describe{
+							\item{hyperid = }{`23050'}
 							\item{name = }{`theta50'}
 							\item{short.name = }{`t50'}
 							\item{initial = }{`0'}
@@ -1747,6 +1855,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta51'}{
 							 \describe{
+							\item{hyperid = }{`23051'}
 							\item{name = }{`theta51'}
 							\item{short.name = }{`t51'}
 							\item{initial = }{`0'}
@@ -1759,6 +1868,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta52'}{
 							 \describe{
+							\item{hyperid = }{`23052'}
 							\item{name = }{`theta52'}
 							\item{short.name = }{`t52'}
 							\item{initial = }{`0'}
@@ -1771,6 +1881,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta53'}{
 							 \describe{
+							\item{hyperid = }{`23053'}
 							\item{name = }{`theta53'}
 							\item{short.name = }{`t53'}
 							\item{initial = }{`0'}
@@ -1783,6 +1894,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta54'}{
 							 \describe{
+							\item{hyperid = }{`23054'}
 							\item{name = }{`theta54'}
 							\item{short.name = }{`t54'}
 							\item{initial = }{`0'}
@@ -1795,6 +1907,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta55'}{
 							 \describe{
+							\item{hyperid = }{`23055'}
 							\item{name = }{`theta55'}
 							\item{short.name = }{`t55'}
 							\item{initial = }{`0'}
@@ -1807,6 +1920,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta56'}{
 							 \describe{
+							\item{hyperid = }{`23056'}
 							\item{name = }{`theta56'}
 							\item{short.name = }{`t56'}
 							\item{initial = }{`0'}
@@ -1819,6 +1933,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta57'}{
 							 \describe{
+							\item{hyperid = }{`23057'}
 							\item{name = }{`theta57'}
 							\item{short.name = }{`t57'}
 							\item{initial = }{`0'}
@@ -1831,6 +1946,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta58'}{
 							 \describe{
+							\item{hyperid = }{`23058'}
 							\item{name = }{`theta58'}
 							\item{short.name = }{`t58'}
 							\item{initial = }{`0'}
@@ -1843,6 +1959,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta59'}{
 							 \describe{
+							\item{hyperid = }{`23059'}
 							\item{name = }{`theta59'}
 							\item{short.name = }{`t59'}
 							\item{initial = }{`0'}
@@ -1855,6 +1972,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta60'}{
 							 \describe{
+							\item{hyperid = }{`23060'}
 							\item{name = }{`theta60'}
 							\item{short.name = }{`t60'}
 							\item{initial = }{`0'}
@@ -1867,6 +1985,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta61'}{
 							 \describe{
+							\item{hyperid = }{`23061'}
 							\item{name = }{`theta61'}
 							\item{short.name = }{`t61'}
 							\item{initial = }{`0'}
@@ -1879,6 +1998,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta62'}{
 							 \describe{
+							\item{hyperid = }{`23062'}
 							\item{name = }{`theta62'}
 							\item{short.name = }{`t62'}
 							\item{initial = }{`0'}
@@ -1891,6 +2011,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta63'}{
 							 \describe{
+							\item{hyperid = }{`23063'}
 							\item{name = }{`theta63'}
 							\item{short.name = }{`t63'}
 							\item{initial = }{`0'}
@@ -1903,6 +2024,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta64'}{
 							 \describe{
+							\item{hyperid = }{`23064'}
 							\item{name = }{`theta64'}
 							\item{short.name = }{`t64'}
 							\item{initial = }{`0'}
@@ -1915,6 +2037,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta65'}{
 							 \describe{
+							\item{hyperid = }{`23065'}
 							\item{name = }{`theta65'}
 							\item{short.name = }{`t65'}
 							\item{initial = }{`0'}
@@ -1927,6 +2050,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta66'}{
 							 \describe{
+							\item{hyperid = }{`23066'}
 							\item{name = }{`theta66'}
 							\item{short.name = }{`t66'}
 							\item{initial = }{`0'}
@@ -1939,6 +2063,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta67'}{
 							 \describe{
+							\item{hyperid = }{`23067'}
 							\item{name = }{`theta67'}
 							\item{short.name = }{`t67'}
 							\item{initial = }{`0'}
@@ -1951,6 +2076,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta68'}{
 							 \describe{
+							\item{hyperid = }{`23068'}
 							\item{name = }{`theta68'}
 							\item{short.name = }{`t68'}
 							\item{initial = }{`0'}
@@ -1963,6 +2089,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta69'}{
 							 \describe{
+							\item{hyperid = }{`23069'}
 							\item{name = }{`theta69'}
 							\item{short.name = }{`t69'}
 							\item{initial = }{`0'}
@@ -1975,6 +2102,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta70'}{
 							 \describe{
+							\item{hyperid = }{`23070'}
 							\item{name = }{`theta70'}
 							\item{short.name = }{`t70'}
 							\item{initial = }{`0'}
@@ -1987,6 +2115,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta71'}{
 							 \describe{
+							\item{hyperid = }{`23071'}
 							\item{name = }{`theta71'}
 							\item{short.name = }{`t71'}
 							\item{initial = }{`0'}
@@ -1999,6 +2128,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta72'}{
 							 \describe{
+							\item{hyperid = }{`23072'}
 							\item{name = }{`theta72'}
 							\item{short.name = }{`t72'}
 							\item{initial = }{`0'}
@@ -2011,6 +2141,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta73'}{
 							 \describe{
+							\item{hyperid = }{`23073'}
 							\item{name = }{`theta73'}
 							\item{short.name = }{`t73'}
 							\item{initial = }{`0'}
@@ -2023,6 +2154,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta74'}{
 							 \describe{
+							\item{hyperid = }{`23074'}
 							\item{name = }{`theta74'}
 							\item{short.name = }{`t74'}
 							\item{initial = }{`0'}
@@ -2035,6 +2167,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta75'}{
 							 \describe{
+							\item{hyperid = }{`23075'}
 							\item{name = }{`theta75'}
 							\item{short.name = }{`t75'}
 							\item{initial = }{`0'}
@@ -2047,6 +2180,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta76'}{
 							 \describe{
+							\item{hyperid = }{`23076'}
 							\item{name = }{`theta76'}
 							\item{short.name = }{`t76'}
 							\item{initial = }{`0'}
@@ -2059,6 +2193,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta77'}{
 							 \describe{
+							\item{hyperid = }{`23077'}
 							\item{name = }{`theta77'}
 							\item{short.name = }{`t77'}
 							\item{initial = }{`0'}
@@ -2071,6 +2206,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta78'}{
 							 \describe{
+							\item{hyperid = }{`23078'}
 							\item{name = }{`theta78'}
 							\item{short.name = }{`t78'}
 							\item{initial = }{`0'}
@@ -2083,6 +2219,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta79'}{
 							 \describe{
+							\item{hyperid = }{`23079'}
 							\item{name = }{`theta79'}
 							\item{short.name = }{`t79'}
 							\item{initial = }{`0'}
@@ -2095,6 +2232,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta80'}{
 							 \describe{
+							\item{hyperid = }{`23080'}
 							\item{name = }{`theta80'}
 							\item{short.name = }{`t80'}
 							\item{initial = }{`0'}
@@ -2107,6 +2245,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta81'}{
 							 \describe{
+							\item{hyperid = }{`23081'}
 							\item{name = }{`theta81'}
 							\item{short.name = }{`t81'}
 							\item{initial = }{`0'}
@@ -2119,6 +2258,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta82'}{
 							 \describe{
+							\item{hyperid = }{`23082'}
 							\item{name = }{`theta82'}
 							\item{short.name = }{`t82'}
 							\item{initial = }{`0'}
@@ -2131,6 +2271,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta83'}{
 							 \describe{
+							\item{hyperid = }{`23083'}
 							\item{name = }{`theta83'}
 							\item{short.name = }{`t83'}
 							\item{initial = }{`0'}
@@ -2143,6 +2284,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta84'}{
 							 \describe{
+							\item{hyperid = }{`23084'}
 							\item{name = }{`theta84'}
 							\item{short.name = }{`t84'}
 							\item{initial = }{`0'}
@@ -2155,6 +2297,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta85'}{
 							 \describe{
+							\item{hyperid = }{`23085'}
 							\item{name = }{`theta85'}
 							\item{short.name = }{`t85'}
 							\item{initial = }{`0'}
@@ -2167,6 +2310,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta86'}{
 							 \describe{
+							\item{hyperid = }{`23086'}
 							\item{name = }{`theta86'}
 							\item{short.name = }{`t86'}
 							\item{initial = }{`0'}
@@ -2179,6 +2323,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta87'}{
 							 \describe{
+							\item{hyperid = }{`23087'}
 							\item{name = }{`theta87'}
 							\item{short.name = }{`t87'}
 							\item{initial = }{`0'}
@@ -2191,6 +2336,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta88'}{
 							 \describe{
+							\item{hyperid = }{`23088'}
 							\item{name = }{`theta88'}
 							\item{short.name = }{`t88'}
 							\item{initial = }{`0'}
@@ -2203,6 +2349,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta89'}{
 							 \describe{
+							\item{hyperid = }{`23089'}
 							\item{name = }{`theta89'}
 							\item{short.name = }{`t89'}
 							\item{initial = }{`0'}
@@ -2215,6 +2362,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta90'}{
 							 \describe{
+							\item{hyperid = }{`23090'}
 							\item{name = }{`theta90'}
 							\item{short.name = }{`t90'}
 							\item{initial = }{`0'}
@@ -2227,6 +2375,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta91'}{
 							 \describe{
+							\item{hyperid = }{`23091'}
 							\item{name = }{`theta91'}
 							\item{short.name = }{`t91'}
 							\item{initial = }{`0'}
@@ -2239,6 +2388,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta92'}{
 							 \describe{
+							\item{hyperid = }{`23092'}
 							\item{name = }{`theta92'}
 							\item{short.name = }{`t92'}
 							\item{initial = }{`0'}
@@ -2251,6 +2401,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta93'}{
 							 \describe{
+							\item{hyperid = }{`23093'}
 							\item{name = }{`theta93'}
 							\item{short.name = }{`t93'}
 							\item{initial = }{`0'}
@@ -2263,6 +2414,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta94'}{
 							 \describe{
+							\item{hyperid = }{`23094'}
 							\item{name = }{`theta94'}
 							\item{short.name = }{`t94'}
 							\item{initial = }{`0'}
@@ -2275,6 +2427,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta95'}{
 							 \describe{
+							\item{hyperid = }{`23095'}
 							\item{name = }{`theta95'}
 							\item{short.name = }{`t95'}
 							\item{initial = }{`0'}
@@ -2287,6 +2440,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta96'}{
 							 \describe{
+							\item{hyperid = }{`23096'}
 							\item{name = }{`theta96'}
 							\item{short.name = }{`t96'}
 							\item{initial = }{`0'}
@@ -2299,6 +2453,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta97'}{
 							 \describe{
+							\item{hyperid = }{`23097'}
 							\item{name = }{`theta97'}
 							\item{short.name = }{`t97'}
 							\item{initial = }{`0'}
@@ -2311,6 +2466,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta98'}{
 							 \describe{
+							\item{hyperid = }{`23098'}
 							\item{name = }{`theta98'}
 							\item{short.name = }{`t98'}
 							\item{initial = }{`0'}
@@ -2323,6 +2479,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta99'}{
 							 \describe{
+							\item{hyperid = }{`23099'}
 							\item{name = }{`theta99'}
 							\item{short.name = }{`t99'}
 							\item{initial = }{`0'}
@@ -2335,6 +2492,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta100'}{
 							 \describe{
+							\item{hyperid = }{`23100'}
 							\item{name = }{`theta100'}
 							\item{short.name = }{`t100'}
 							\item{initial = }{`0'}
@@ -2366,6 +2524,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`24001'}
 							\item{name = }{`theta1'}
 							\item{short.name = }{`t1'}
 							\item{initial = }{`0'}
@@ -2378,6 +2537,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`24002'}
 							\item{name = }{`theta2'}
 							\item{short.name = }{`t2'}
 							\item{initial = }{`0'}
@@ -2390,6 +2550,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
+							\item{hyperid = }{`24003'}
 							\item{name = }{`theta3'}
 							\item{short.name = }{`t3'}
 							\item{initial = }{`0'}
@@ -2402,6 +2563,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta4'}{
 							 \describe{
+							\item{hyperid = }{`24004'}
 							\item{name = }{`theta4'}
 							\item{short.name = }{`t4'}
 							\item{initial = }{`0'}
@@ -2414,6 +2576,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta5'}{
 							 \describe{
+							\item{hyperid = }{`24005'}
 							\item{name = }{`theta5'}
 							\item{short.name = }{`t5'}
 							\item{initial = }{`0'}
@@ -2426,6 +2589,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta6'}{
 							 \describe{
+							\item{hyperid = }{`24006'}
 							\item{name = }{`theta6'}
 							\item{short.name = }{`t6'}
 							\item{initial = }{`0'}
@@ -2438,6 +2602,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta7'}{
 							 \describe{
+							\item{hyperid = }{`24007'}
 							\item{name = }{`theta7'}
 							\item{short.name = }{`t7'}
 							\item{initial = }{`0'}
@@ -2450,6 +2615,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta8'}{
 							 \describe{
+							\item{hyperid = }{`24008'}
 							\item{name = }{`theta8'}
 							\item{short.name = }{`t8'}
 							\item{initial = }{`0'}
@@ -2462,6 +2628,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta9'}{
 							 \describe{
+							\item{hyperid = }{`24009'}
 							\item{name = }{`theta9'}
 							\item{short.name = }{`t9'}
 							\item{initial = }{`0'}
@@ -2474,6 +2641,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta10'}{
 							 \describe{
+							\item{hyperid = }{`24010'}
 							\item{name = }{`theta10'}
 							\item{short.name = }{`t10'}
 							\item{initial = }{`0'}
@@ -2486,6 +2654,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta11'}{
 							 \describe{
+							\item{hyperid = }{`24011'}
 							\item{name = }{`theta11'}
 							\item{short.name = }{`t11'}
 							\item{initial = }{`0'}
@@ -2498,6 +2667,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta12'}{
 							 \describe{
+							\item{hyperid = }{`24012'}
 							\item{name = }{`theta12'}
 							\item{short.name = }{`t12'}
 							\item{initial = }{`0'}
@@ -2510,6 +2680,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta13'}{
 							 \describe{
+							\item{hyperid = }{`24013'}
 							\item{name = }{`theta13'}
 							\item{short.name = }{`t13'}
 							\item{initial = }{`0'}
@@ -2522,6 +2693,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta14'}{
 							 \describe{
+							\item{hyperid = }{`24014'}
 							\item{name = }{`theta14'}
 							\item{short.name = }{`t14'}
 							\item{initial = }{`0'}
@@ -2534,6 +2706,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta15'}{
 							 \describe{
+							\item{hyperid = }{`24015'}
 							\item{name = }{`theta15'}
 							\item{short.name = }{`t15'}
 							\item{initial = }{`0'}
@@ -2546,6 +2719,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta16'}{
 							 \describe{
+							\item{hyperid = }{`24016'}
 							\item{name = }{`theta16'}
 							\item{short.name = }{`t16'}
 							\item{initial = }{`0'}
@@ -2558,6 +2732,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta17'}{
 							 \describe{
+							\item{hyperid = }{`24017'}
 							\item{name = }{`theta17'}
 							\item{short.name = }{`t17'}
 							\item{initial = }{`0'}
@@ -2570,6 +2745,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta18'}{
 							 \describe{
+							\item{hyperid = }{`24018'}
 							\item{name = }{`theta18'}
 							\item{short.name = }{`t18'}
 							\item{initial = }{`0'}
@@ -2582,6 +2758,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta19'}{
 							 \describe{
+							\item{hyperid = }{`24019'}
 							\item{name = }{`theta19'}
 							\item{short.name = }{`t19'}
 							\item{initial = }{`0'}
@@ -2594,6 +2771,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta20'}{
 							 \describe{
+							\item{hyperid = }{`24020'}
 							\item{name = }{`theta20'}
 							\item{short.name = }{`t20'}
 							\item{initial = }{`0'}
@@ -2606,6 +2784,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta21'}{
 							 \describe{
+							\item{hyperid = }{`24021'}
 							\item{name = }{`theta21'}
 							\item{short.name = }{`t21'}
 							\item{initial = }{`0'}
@@ -2618,6 +2797,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta22'}{
 							 \describe{
+							\item{hyperid = }{`24022'}
 							\item{name = }{`theta22'}
 							\item{short.name = }{`t22'}
 							\item{initial = }{`0'}
@@ -2630,6 +2810,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta23'}{
 							 \describe{
+							\item{hyperid = }{`24023'}
 							\item{name = }{`theta23'}
 							\item{short.name = }{`t23'}
 							\item{initial = }{`0'}
@@ -2642,6 +2823,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta24'}{
 							 \describe{
+							\item{hyperid = }{`24024'}
 							\item{name = }{`theta24'}
 							\item{short.name = }{`t24'}
 							\item{initial = }{`0'}
@@ -2654,6 +2836,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta25'}{
 							 \describe{
+							\item{hyperid = }{`24025'}
 							\item{name = }{`theta25'}
 							\item{short.name = }{`t25'}
 							\item{initial = }{`0'}
@@ -2666,6 +2849,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta26'}{
 							 \describe{
+							\item{hyperid = }{`24026'}
 							\item{name = }{`theta26'}
 							\item{short.name = }{`t26'}
 							\item{initial = }{`0'}
@@ -2678,6 +2862,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta27'}{
 							 \describe{
+							\item{hyperid = }{`24027'}
 							\item{name = }{`theta27'}
 							\item{short.name = }{`t27'}
 							\item{initial = }{`0'}
@@ -2690,6 +2875,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta28'}{
 							 \describe{
+							\item{hyperid = }{`24028'}
 							\item{name = }{`theta28'}
 							\item{short.name = }{`t28'}
 							\item{initial = }{`0'}
@@ -2702,6 +2888,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta29'}{
 							 \describe{
+							\item{hyperid = }{`24029'}
 							\item{name = }{`theta29'}
 							\item{short.name = }{`t29'}
 							\item{initial = }{`0'}
@@ -2714,6 +2901,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta30'}{
 							 \describe{
+							\item{hyperid = }{`24030'}
 							\item{name = }{`theta30'}
 							\item{short.name = }{`t30'}
 							\item{initial = }{`0'}
@@ -2726,6 +2914,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta31'}{
 							 \describe{
+							\item{hyperid = }{`24031'}
 							\item{name = }{`theta31'}
 							\item{short.name = }{`t31'}
 							\item{initial = }{`0'}
@@ -2738,6 +2927,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta32'}{
 							 \describe{
+							\item{hyperid = }{`24032'}
 							\item{name = }{`theta32'}
 							\item{short.name = }{`t32'}
 							\item{initial = }{`0'}
@@ -2750,6 +2940,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta33'}{
 							 \describe{
+							\item{hyperid = }{`24033'}
 							\item{name = }{`theta33'}
 							\item{short.name = }{`t33'}
 							\item{initial = }{`0'}
@@ -2762,6 +2953,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta34'}{
 							 \describe{
+							\item{hyperid = }{`24034'}
 							\item{name = }{`theta34'}
 							\item{short.name = }{`t34'}
 							\item{initial = }{`0'}
@@ -2774,6 +2966,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta35'}{
 							 \describe{
+							\item{hyperid = }{`24035'}
 							\item{name = }{`theta35'}
 							\item{short.name = }{`t35'}
 							\item{initial = }{`0'}
@@ -2786,6 +2979,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta36'}{
 							 \describe{
+							\item{hyperid = }{`24036'}
 							\item{name = }{`theta36'}
 							\item{short.name = }{`t36'}
 							\item{initial = }{`0'}
@@ -2798,6 +2992,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta37'}{
 							 \describe{
+							\item{hyperid = }{`24037'}
 							\item{name = }{`theta37'}
 							\item{short.name = }{`t37'}
 							\item{initial = }{`0'}
@@ -2810,6 +3005,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta38'}{
 							 \describe{
+							\item{hyperid = }{`24038'}
 							\item{name = }{`theta38'}
 							\item{short.name = }{`t38'}
 							\item{initial = }{`0'}
@@ -2822,6 +3018,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta39'}{
 							 \describe{
+							\item{hyperid = }{`24039'}
 							\item{name = }{`theta39'}
 							\item{short.name = }{`t39'}
 							\item{initial = }{`0'}
@@ -2834,6 +3031,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta40'}{
 							 \describe{
+							\item{hyperid = }{`24040'}
 							\item{name = }{`theta40'}
 							\item{short.name = }{`t40'}
 							\item{initial = }{`0'}
@@ -2846,6 +3044,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta41'}{
 							 \describe{
+							\item{hyperid = }{`24041'}
 							\item{name = }{`theta41'}
 							\item{short.name = }{`t41'}
 							\item{initial = }{`0'}
@@ -2858,6 +3057,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta42'}{
 							 \describe{
+							\item{hyperid = }{`24042'}
 							\item{name = }{`theta42'}
 							\item{short.name = }{`t42'}
 							\item{initial = }{`0'}
@@ -2870,6 +3070,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta43'}{
 							 \describe{
+							\item{hyperid = }{`24043'}
 							\item{name = }{`theta43'}
 							\item{short.name = }{`t43'}
 							\item{initial = }{`0'}
@@ -2882,6 +3083,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta44'}{
 							 \describe{
+							\item{hyperid = }{`24044'}
 							\item{name = }{`theta44'}
 							\item{short.name = }{`t44'}
 							\item{initial = }{`0'}
@@ -2894,6 +3096,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta45'}{
 							 \describe{
+							\item{hyperid = }{`24045'}
 							\item{name = }{`theta45'}
 							\item{short.name = }{`t45'}
 							\item{initial = }{`0'}
@@ -2906,6 +3109,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta46'}{
 							 \describe{
+							\item{hyperid = }{`24046'}
 							\item{name = }{`theta46'}
 							\item{short.name = }{`t46'}
 							\item{initial = }{`0'}
@@ -2918,6 +3122,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta47'}{
 							 \describe{
+							\item{hyperid = }{`24047'}
 							\item{name = }{`theta47'}
 							\item{short.name = }{`t47'}
 							\item{initial = }{`0'}
@@ -2930,6 +3135,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta48'}{
 							 \describe{
+							\item{hyperid = }{`24048'}
 							\item{name = }{`theta48'}
 							\item{short.name = }{`t48'}
 							\item{initial = }{`0'}
@@ -2942,6 +3148,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta49'}{
 							 \describe{
+							\item{hyperid = }{`24049'}
 							\item{name = }{`theta49'}
 							\item{short.name = }{`t49'}
 							\item{initial = }{`0'}
@@ -2954,6 +3161,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta50'}{
 							 \describe{
+							\item{hyperid = }{`24050'}
 							\item{name = }{`theta50'}
 							\item{short.name = }{`t50'}
 							\item{initial = }{`0'}
@@ -2966,6 +3174,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta51'}{
 							 \describe{
+							\item{hyperid = }{`24051'}
 							\item{name = }{`theta51'}
 							\item{short.name = }{`t51'}
 							\item{initial = }{`0'}
@@ -2978,6 +3187,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta52'}{
 							 \describe{
+							\item{hyperid = }{`24052'}
 							\item{name = }{`theta52'}
 							\item{short.name = }{`t52'}
 							\item{initial = }{`0'}
@@ -2990,6 +3200,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta53'}{
 							 \describe{
+							\item{hyperid = }{`24053'}
 							\item{name = }{`theta53'}
 							\item{short.name = }{`t53'}
 							\item{initial = }{`0'}
@@ -3002,6 +3213,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta54'}{
 							 \describe{
+							\item{hyperid = }{`24054'}
 							\item{name = }{`theta54'}
 							\item{short.name = }{`t54'}
 							\item{initial = }{`0'}
@@ -3014,6 +3226,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta55'}{
 							 \describe{
+							\item{hyperid = }{`24055'}
 							\item{name = }{`theta55'}
 							\item{short.name = }{`t55'}
 							\item{initial = }{`0'}
@@ -3026,6 +3239,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta56'}{
 							 \describe{
+							\item{hyperid = }{`24056'}
 							\item{name = }{`theta56'}
 							\item{short.name = }{`t56'}
 							\item{initial = }{`0'}
@@ -3038,6 +3252,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta57'}{
 							 \describe{
+							\item{hyperid = }{`24057'}
 							\item{name = }{`theta57'}
 							\item{short.name = }{`t57'}
 							\item{initial = }{`0'}
@@ -3050,6 +3265,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta58'}{
 							 \describe{
+							\item{hyperid = }{`24058'}
 							\item{name = }{`theta58'}
 							\item{short.name = }{`t58'}
 							\item{initial = }{`0'}
@@ -3062,6 +3278,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta59'}{
 							 \describe{
+							\item{hyperid = }{`24059'}
 							\item{name = }{`theta59'}
 							\item{short.name = }{`t59'}
 							\item{initial = }{`0'}
@@ -3074,6 +3291,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta60'}{
 							 \describe{
+							\item{hyperid = }{`24060'}
 							\item{name = }{`theta60'}
 							\item{short.name = }{`t60'}
 							\item{initial = }{`0'}
@@ -3086,6 +3304,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta61'}{
 							 \describe{
+							\item{hyperid = }{`24061'}
 							\item{name = }{`theta61'}
 							\item{short.name = }{`t61'}
 							\item{initial = }{`0'}
@@ -3098,6 +3317,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta62'}{
 							 \describe{
+							\item{hyperid = }{`24062'}
 							\item{name = }{`theta62'}
 							\item{short.name = }{`t62'}
 							\item{initial = }{`0'}
@@ -3110,6 +3330,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta63'}{
 							 \describe{
+							\item{hyperid = }{`24063'}
 							\item{name = }{`theta63'}
 							\item{short.name = }{`t63'}
 							\item{initial = }{`0'}
@@ -3122,6 +3343,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta64'}{
 							 \describe{
+							\item{hyperid = }{`24064'}
 							\item{name = }{`theta64'}
 							\item{short.name = }{`t64'}
 							\item{initial = }{`0'}
@@ -3134,6 +3356,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta65'}{
 							 \describe{
+							\item{hyperid = }{`24065'}
 							\item{name = }{`theta65'}
 							\item{short.name = }{`t65'}
 							\item{initial = }{`0'}
@@ -3146,6 +3369,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta66'}{
 							 \describe{
+							\item{hyperid = }{`24066'}
 							\item{name = }{`theta66'}
 							\item{short.name = }{`t66'}
 							\item{initial = }{`0'}
@@ -3158,6 +3382,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta67'}{
 							 \describe{
+							\item{hyperid = }{`24067'}
 							\item{name = }{`theta67'}
 							\item{short.name = }{`t67'}
 							\item{initial = }{`0'}
@@ -3170,6 +3395,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta68'}{
 							 \describe{
+							\item{hyperid = }{`24068'}
 							\item{name = }{`theta68'}
 							\item{short.name = }{`t68'}
 							\item{initial = }{`0'}
@@ -3182,6 +3408,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta69'}{
 							 \describe{
+							\item{hyperid = }{`24069'}
 							\item{name = }{`theta69'}
 							\item{short.name = }{`t69'}
 							\item{initial = }{`0'}
@@ -3194,6 +3421,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta70'}{
 							 \describe{
+							\item{hyperid = }{`24070'}
 							\item{name = }{`theta70'}
 							\item{short.name = }{`t70'}
 							\item{initial = }{`0'}
@@ -3206,6 +3434,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta71'}{
 							 \describe{
+							\item{hyperid = }{`24071'}
 							\item{name = }{`theta71'}
 							\item{short.name = }{`t71'}
 							\item{initial = }{`0'}
@@ -3218,6 +3447,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta72'}{
 							 \describe{
+							\item{hyperid = }{`24072'}
 							\item{name = }{`theta72'}
 							\item{short.name = }{`t72'}
 							\item{initial = }{`0'}
@@ -3230,6 +3460,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta73'}{
 							 \describe{
+							\item{hyperid = }{`24073'}
 							\item{name = }{`theta73'}
 							\item{short.name = }{`t73'}
 							\item{initial = }{`0'}
@@ -3242,6 +3473,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta74'}{
 							 \describe{
+							\item{hyperid = }{`24074'}
 							\item{name = }{`theta74'}
 							\item{short.name = }{`t74'}
 							\item{initial = }{`0'}
@@ -3254,6 +3486,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta75'}{
 							 \describe{
+							\item{hyperid = }{`24075'}
 							\item{name = }{`theta75'}
 							\item{short.name = }{`t75'}
 							\item{initial = }{`0'}
@@ -3266,6 +3499,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta76'}{
 							 \describe{
+							\item{hyperid = }{`24076'}
 							\item{name = }{`theta76'}
 							\item{short.name = }{`t76'}
 							\item{initial = }{`0'}
@@ -3278,6 +3512,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta77'}{
 							 \describe{
+							\item{hyperid = }{`24077'}
 							\item{name = }{`theta77'}
 							\item{short.name = }{`t77'}
 							\item{initial = }{`0'}
@@ -3290,6 +3525,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta78'}{
 							 \describe{
+							\item{hyperid = }{`24078'}
 							\item{name = }{`theta78'}
 							\item{short.name = }{`t78'}
 							\item{initial = }{`0'}
@@ -3302,6 +3538,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta79'}{
 							 \describe{
+							\item{hyperid = }{`24079'}
 							\item{name = }{`theta79'}
 							\item{short.name = }{`t79'}
 							\item{initial = }{`0'}
@@ -3314,6 +3551,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta80'}{
 							 \describe{
+							\item{hyperid = }{`24080'}
 							\item{name = }{`theta80'}
 							\item{short.name = }{`t80'}
 							\item{initial = }{`0'}
@@ -3326,6 +3564,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta81'}{
 							 \describe{
+							\item{hyperid = }{`24081'}
 							\item{name = }{`theta81'}
 							\item{short.name = }{`t81'}
 							\item{initial = }{`0'}
@@ -3338,6 +3577,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta82'}{
 							 \describe{
+							\item{hyperid = }{`24082'}
 							\item{name = }{`theta82'}
 							\item{short.name = }{`t82'}
 							\item{initial = }{`0'}
@@ -3350,6 +3590,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta83'}{
 							 \describe{
+							\item{hyperid = }{`24083'}
 							\item{name = }{`theta83'}
 							\item{short.name = }{`t83'}
 							\item{initial = }{`0'}
@@ -3362,6 +3603,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta84'}{
 							 \describe{
+							\item{hyperid = }{`24084'}
 							\item{name = }{`theta84'}
 							\item{short.name = }{`t84'}
 							\item{initial = }{`0'}
@@ -3374,6 +3616,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta85'}{
 							 \describe{
+							\item{hyperid = }{`24085'}
 							\item{name = }{`theta85'}
 							\item{short.name = }{`t85'}
 							\item{initial = }{`0'}
@@ -3386,6 +3629,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta86'}{
 							 \describe{
+							\item{hyperid = }{`24086'}
 							\item{name = }{`theta86'}
 							\item{short.name = }{`t86'}
 							\item{initial = }{`0'}
@@ -3398,6 +3642,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta87'}{
 							 \describe{
+							\item{hyperid = }{`24087'}
 							\item{name = }{`theta87'}
 							\item{short.name = }{`t87'}
 							\item{initial = }{`0'}
@@ -3410,6 +3655,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta88'}{
 							 \describe{
+							\item{hyperid = }{`24088'}
 							\item{name = }{`theta88'}
 							\item{short.name = }{`t88'}
 							\item{initial = }{`0'}
@@ -3422,6 +3668,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta89'}{
 							 \describe{
+							\item{hyperid = }{`24089'}
 							\item{name = }{`theta89'}
 							\item{short.name = }{`t89'}
 							\item{initial = }{`0'}
@@ -3434,6 +3681,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta90'}{
 							 \describe{
+							\item{hyperid = }{`24090'}
 							\item{name = }{`theta90'}
 							\item{short.name = }{`t90'}
 							\item{initial = }{`0'}
@@ -3446,6 +3694,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta91'}{
 							 \describe{
+							\item{hyperid = }{`24091'}
 							\item{name = }{`theta91'}
 							\item{short.name = }{`t91'}
 							\item{initial = }{`0'}
@@ -3458,6 +3707,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta92'}{
 							 \describe{
+							\item{hyperid = }{`24092'}
 							\item{name = }{`theta92'}
 							\item{short.name = }{`t92'}
 							\item{initial = }{`0'}
@@ -3470,6 +3720,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta93'}{
 							 \describe{
+							\item{hyperid = }{`24093'}
 							\item{name = }{`theta93'}
 							\item{short.name = }{`t93'}
 							\item{initial = }{`0'}
@@ -3482,6 +3733,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta94'}{
 							 \describe{
+							\item{hyperid = }{`24094'}
 							\item{name = }{`theta94'}
 							\item{short.name = }{`t94'}
 							\item{initial = }{`0'}
@@ -3494,6 +3746,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta95'}{
 							 \describe{
+							\item{hyperid = }{`24095'}
 							\item{name = }{`theta95'}
 							\item{short.name = }{`t95'}
 							\item{initial = }{`0'}
@@ -3506,6 +3759,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta96'}{
 							 \describe{
+							\item{hyperid = }{`24096'}
 							\item{name = }{`theta96'}
 							\item{short.name = }{`t96'}
 							\item{initial = }{`0'}
@@ -3518,6 +3772,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta97'}{
 							 \describe{
+							\item{hyperid = }{`24097'}
 							\item{name = }{`theta97'}
 							\item{short.name = }{`t97'}
 							\item{initial = }{`0'}
@@ -3530,6 +3785,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta98'}{
 							 \describe{
+							\item{hyperid = }{`24098'}
 							\item{name = }{`theta98'}
 							\item{short.name = }{`t98'}
 							\item{initial = }{`0'}
@@ -3542,6 +3798,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta99'}{
 							 \describe{
+							\item{hyperid = }{`24099'}
 							\item{name = }{`theta99'}
 							\item{short.name = }{`t99'}
 							\item{initial = }{`0'}
@@ -3554,6 +3811,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta100'}{
 							 \describe{
+							\item{hyperid = }{`24100'}
 							\item{name = }{`theta100'}
 							\item{short.name = }{`t100'}
 							\item{initial = }{`0'}
@@ -3585,6 +3843,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`25001'}
 							\item{name = }{`precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`4'}
@@ -3616,6 +3875,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`26001'}
 							\item{name = }{`log precision1'}
 							\item{short.name = }{`prec1'}
 							\item{initial = }{`4'}
@@ -3628,6 +3888,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`26002'}
 							\item{name = }{`log precision2'}
 							\item{short.name = }{`prec2'}
 							\item{initial = }{`4'}
@@ -3640,6 +3901,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
+							\item{hyperid = }{`26003'}
 							\item{name = }{`logit correlation'}
 							\item{short.name = }{`cor'}
 							\item{initial = }{`4'}
@@ -3671,6 +3933,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`27001'}
 							\item{name = }{`log precision1'}
 							\item{short.name = }{`prec1'}
 							\item{initial = }{`4'}
@@ -3683,6 +3946,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`27002'}
 							\item{name = }{`log precision2'}
 							\item{short.name = }{`prec2'}
 							\item{initial = }{`4'}
@@ -3695,6 +3959,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
+							\item{hyperid = }{`27003'}
 							\item{name = }{`log precision3'}
 							\item{short.name = }{`prec3'}
 							\item{initial = }{`4'}
@@ -3707,6 +3972,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta4'}{
 							 \describe{
+							\item{hyperid = }{`27004'}
 							\item{name = }{`logit correlation12'}
 							\item{short.name = }{`cor12'}
 							\item{initial = }{`0'}
@@ -3719,6 +3985,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta5'}{
 							 \describe{
+							\item{hyperid = }{`27005'}
 							\item{name = }{`logit correlation13'}
 							\item{short.name = }{`cor13'}
 							\item{initial = }{`0'}
@@ -3731,6 +3998,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta6'}{
 							 \describe{
+							\item{hyperid = }{`27006'}
 							\item{name = }{`logit correlation23'}
 							\item{short.name = }{`cor23'}
 							\item{initial = }{`0'}
@@ -3762,6 +4030,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`28001'}
 							\item{name = }{`log precision1'}
 							\item{short.name = }{`prec1'}
 							\item{initial = }{`4'}
@@ -3774,6 +4043,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`28002'}
 							\item{name = }{`log precision2'}
 							\item{short.name = }{`prec2'}
 							\item{initial = }{`4'}
@@ -3786,6 +4056,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
+							\item{hyperid = }{`28003'}
 							\item{name = }{`log precision3'}
 							\item{short.name = }{`prec3'}
 							\item{initial = }{`4'}
@@ -3798,6 +4069,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta4'}{
 							 \describe{
+							\item{hyperid = }{`28004'}
 							\item{name = }{`log precision4'}
 							\item{short.name = }{`prec4'}
 							\item{initial = }{`4'}
@@ -3810,6 +4082,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta5'}{
 							 \describe{
+							\item{hyperid = }{`28005'}
 							\item{name = }{`logit correlation12'}
 							\item{short.name = }{`cor12'}
 							\item{initial = }{`0'}
@@ -3822,6 +4095,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta6'}{
 							 \describe{
+							\item{hyperid = }{`28006'}
 							\item{name = }{`logit correlation13'}
 							\item{short.name = }{`cor13'}
 							\item{initial = }{`0'}
@@ -3834,6 +4108,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta7'}{
 							 \describe{
+							\item{hyperid = }{`28007'}
 							\item{name = }{`logit correlation14'}
 							\item{short.name = }{`cor14'}
 							\item{initial = }{`0'}
@@ -3846,6 +4121,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta8'}{
 							 \describe{
+							\item{hyperid = }{`28008'}
 							\item{name = }{`logit correlation23'}
 							\item{short.name = }{`cor23'}
 							\item{initial = }{`0'}
@@ -3858,6 +4134,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta9'}{
 							 \describe{
+							\item{hyperid = }{`28009'}
 							\item{name = }{`logit correlation24'}
 							\item{short.name = }{`cor24'}
 							\item{initial = }{`0'}
@@ -3870,6 +4147,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta10'}{
 							 \describe{
+							\item{hyperid = }{`28010'}
 							\item{name = }{`logit correlation34'}
 							\item{short.name = }{`cor34'}
 							\item{initial = }{`0'}
@@ -3901,6 +4179,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`29001'}
 							\item{name = }{`log precision1'}
 							\item{short.name = }{`prec1'}
 							\item{initial = }{`4'}
@@ -3913,6 +4192,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`29002'}
 							\item{name = }{`log precision2'}
 							\item{short.name = }{`prec2'}
 							\item{initial = }{`4'}
@@ -3925,6 +4205,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
+							\item{hyperid = }{`29003'}
 							\item{name = }{`log precision3'}
 							\item{short.name = }{`prec3'}
 							\item{initial = }{`4'}
@@ -3937,6 +4218,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta4'}{
 							 \describe{
+							\item{hyperid = }{`29004'}
 							\item{name = }{`log precision4'}
 							\item{short.name = }{`prec4'}
 							\item{initial = }{`4'}
@@ -3949,6 +4231,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta5'}{
 							 \describe{
+							\item{hyperid = }{`29005'}
 							\item{name = }{`log precision5'}
 							\item{short.name = }{`prec5'}
 							\item{initial = }{`4'}
@@ -3961,6 +4244,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta6'}{
 							 \describe{
+							\item{hyperid = }{`29006'}
 							\item{name = }{`logit correlation12'}
 							\item{short.name = }{`cor12'}
 							\item{initial = }{`0'}
@@ -3973,6 +4257,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta7'}{
 							 \describe{
+							\item{hyperid = }{`29007'}
 							\item{name = }{`logit correlation13'}
 							\item{short.name = }{`cor13'}
 							\item{initial = }{`0'}
@@ -3985,6 +4270,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta8'}{
 							 \describe{
+							\item{hyperid = }{`29008'}
 							\item{name = }{`logit correlation14'}
 							\item{short.name = }{`cor14'}
 							\item{initial = }{`0'}
@@ -3997,6 +4283,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta9'}{
 							 \describe{
+							\item{hyperid = }{`29009'}
 							\item{name = }{`logit correlation15'}
 							\item{short.name = }{`cor15'}
 							\item{initial = }{`0'}
@@ -4009,6 +4296,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta10'}{
 							 \describe{
+							\item{hyperid = }{`29010'}
 							\item{name = }{`logit correlation23'}
 							\item{short.name = }{`cor23'}
 							\item{initial = }{`0'}
@@ -4021,6 +4309,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta11'}{
 							 \describe{
+							\item{hyperid = }{`29011'}
 							\item{name = }{`logit correlation24'}
 							\item{short.name = }{`cor24'}
 							\item{initial = }{`0'}
@@ -4033,6 +4322,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta12'}{
 							 \describe{
+							\item{hyperid = }{`29012'}
 							\item{name = }{`logit correlation25'}
 							\item{short.name = }{`cor25'}
 							\item{initial = }{`0'}
@@ -4045,6 +4335,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta13'}{
 							 \describe{
+							\item{hyperid = }{`29013'}
 							\item{name = }{`logit correlation34'}
 							\item{short.name = }{`cor34'}
 							\item{initial = }{`0'}
@@ -4057,6 +4348,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta14'}{
 							 \describe{
+							\item{hyperid = }{`29014'}
 							\item{name = }{`logit correlation35'}
 							\item{short.name = }{`cor35'}
 							\item{initial = }{`0'}
@@ -4069,6 +4361,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta15'}{
 							 \describe{
+							\item{hyperid = }{`29015'}
 							\item{name = }{`logit correlation45'}
 							\item{short.name = }{`cor45'}
 							\item{initial = }{`0'}
@@ -4100,6 +4393,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`30001'}
 							\item{name = }{`log precision1'}
 							\item{short.name = }{`prec1'}
 							\item{initial = }{`4'}
@@ -4112,6 +4406,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`30002'}
 							\item{name = }{`log precision2'}
 							\item{short.name = }{`prec2'}
 							\item{initial = }{`4'}
@@ -4124,6 +4419,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
+							\item{hyperid = }{`30003'}
 							\item{name = }{`correlation'}
 							\item{short.name = }{`cor'}
 							\item{initial = }{`4'}
@@ -4155,6 +4451,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`31001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`4'}
@@ -4187,6 +4484,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`32001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`4'}
@@ -4218,6 +4516,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`33001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`pc.prec'}
@@ -4230,6 +4529,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`33002'}
 							\item{name = }{`logit phi'}
 							\item{short.name = }{`phi'}
 							\item{prior = }{`pc'}
@@ -4262,6 +4562,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`34001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`4'}
@@ -4274,6 +4575,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`34002'}
 							\item{name = }{`rho'}
 							\item{short.name = }{`rho'}
 							\item{initial = }{`0'}
@@ -4306,6 +4608,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`35001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`4'}
@@ -4318,6 +4621,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`35002'}
 							\item{name = }{`log range'}
 							\item{short.name = }{`range'}
 							\item{initial = }{`2'}
@@ -4349,6 +4653,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`36001'}
 							\item{name = }{`beta'}
 							\item{short.name = }{`b'}
 							\item{initial = }{`1'}
@@ -4380,6 +4685,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`37001'}
 							\item{name = }{`beta'}
 							\item{short.name = }{`b'}
 							\item{initial = }{`1'}
@@ -4411,6 +4717,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`38001'}
 							\item{name = }{`beta'}
 							\item{short.name = }{`b'}
 							\item{initial = }{`1'}
@@ -4423,6 +4730,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`38002'}
 							\item{name = }{`loghalflife'}
 							\item{short.name = }{`halflife'}
 							\item{initial = }{`3'}
@@ -4435,6 +4743,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
+							\item{hyperid = }{`38003'}
 							\item{name = }{`logshape'}
 							\item{short.name = }{`shape'}
 							\item{initial = }{`0'}
@@ -4467,6 +4776,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`39001'}
 							\item{name = }{`beta'}
 							\item{short.name = }{`b'}
 							\item{initial = }{`1'}
@@ -4479,6 +4789,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`39002'}
 							\item{name = }{`loghalflife'}
 							\item{short.name = }{`halflife'}
 							\item{initial = }{`3'}
@@ -4491,6 +4802,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
+							\item{hyperid = }{`39003'}
 							\item{name = }{`logshape'}
 							\item{short.name = }{`shape'}
 							\item{initial = }{`0'}
@@ -4528,6 +4840,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`40001'}
 							\item{name = }{`logit correlation'}
 							\item{short.name = }{`rho'}
 							\item{initial = }{`1'}
@@ -4550,6 +4863,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`41001'}
 							\item{name = }{`logit correlation'}
 							\item{short.name = }{`rho'}
 							\item{initial = }{`2'}
@@ -4572,6 +4886,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`42001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`0'}
@@ -4584,6 +4899,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`42002'}
 							\item{name = }{`pacf1'}
 							\item{short.name = }{`pacf1'}
 							\item{initial = }{`2'}
@@ -4596,6 +4912,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
+							\item{hyperid = }{`42003'}
 							\item{name = }{`pacf2'}
 							\item{short.name = }{`pacf2'}
 							\item{initial = }{`0'}
@@ -4608,6 +4925,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta4'}{
 							 \describe{
+							\item{hyperid = }{`42004'}
 							\item{name = }{`pacf3'}
 							\item{short.name = }{`pacf3'}
 							\item{initial = }{`0'}
@@ -4620,6 +4938,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta5'}{
 							 \describe{
+							\item{hyperid = }{`42005'}
 							\item{name = }{`pacf4'}
 							\item{short.name = }{`pacf4'}
 							\item{initial = }{`0'}
@@ -4632,6 +4951,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta6'}{
 							 \describe{
+							\item{hyperid = }{`42006'}
 							\item{name = }{`pacf5'}
 							\item{short.name = }{`pacf5'}
 							\item{initial = }{`0'}
@@ -4644,6 +4964,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta7'}{
 							 \describe{
+							\item{hyperid = }{`42007'}
 							\item{name = }{`pacf6'}
 							\item{short.name = }{`pacf6'}
 							\item{initial = }{`0'}
@@ -4656,6 +4977,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta8'}{
 							 \describe{
+							\item{hyperid = }{`42008'}
 							\item{name = }{`pacf7'}
 							\item{short.name = }{`pacf7'}
 							\item{initial = }{`0'}
@@ -4668,6 +4990,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta9'}{
 							 \describe{
+							\item{hyperid = }{`42009'}
 							\item{name = }{`pacf8'}
 							\item{short.name = }{`pacf8'}
 							\item{initial = }{`0'}
@@ -4680,6 +5003,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta10'}{
 							 \describe{
+							\item{hyperid = }{`42010'}
 							\item{name = }{`pacf9'}
 							\item{short.name = }{`pacf9'}
 							\item{initial = }{`0'}
@@ -4692,6 +5016,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta11'}{
 							 \describe{
+							\item{hyperid = }{`42011'}
 							\item{name = }{`pacf10'}
 							\item{short.name = }{`pacf10'}
 							\item{initial = }{`0'}
@@ -4714,6 +5039,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`43001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -4736,6 +5062,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`44001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -4758,6 +5085,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`45001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -4780,6 +5108,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`46001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -4807,6 +5136,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`47001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{prior = }{`loggamma'}
@@ -4848,6 +5178,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`48001'}
 							\item{name = }{`sensitivity'}
 							\item{short.name = }{`sens'}
 							\item{prior = }{`logitbeta'}
@@ -4860,6 +5191,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`48002'}
 							\item{name = }{`specificity'}
 							\item{short.name = }{`spec'}
 							\item{prior = }{`logitbeta'}
@@ -4883,6 +5215,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`49001'}
 							\item{name = }{`beta'}
 							\item{short.name = }{`b'}
 							\item{prior = }{`normal'}
@@ -4906,6 +5239,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`50001'}
 							\item{name = }{`beta'}
 							\item{short.name = }{`b'}
 							\item{prior = }{`normal'}
@@ -4929,6 +5263,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`51001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`0'}
@@ -4941,6 +5276,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`51002'}
 							\item{name = }{`beta1'}
 							\item{short.name = }{`beta1'}
 							\item{initial = }{`0'}
@@ -4953,6 +5289,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
+							\item{hyperid = }{`51003'}
 							\item{name = }{`beta2'}
 							\item{short.name = }{`beta2'}
 							\item{initial = }{`0'}
@@ -4965,6 +5302,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta4'}{
 							 \describe{
+							\item{hyperid = }{`51004'}
 							\item{name = }{`beta3'}
 							\item{short.name = }{`beta3'}
 							\item{initial = }{`0'}
@@ -4977,6 +5315,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta5'}{
 							 \describe{
+							\item{hyperid = }{`51005'}
 							\item{name = }{`beta4'}
 							\item{short.name = }{`beta4'}
 							\item{initial = }{`0'}
@@ -4989,6 +5328,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta6'}{
 							 \describe{
+							\item{hyperid = }{`51006'}
 							\item{name = }{`beta5'}
 							\item{short.name = }{`beta5'}
 							\item{initial = }{`0'}
@@ -5001,6 +5341,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta7'}{
 							 \describe{
+							\item{hyperid = }{`51007'}
 							\item{name = }{`beta6'}
 							\item{short.name = }{`beta6'}
 							\item{initial = }{`0'}
@@ -5013,6 +5354,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta8'}{
 							 \describe{
+							\item{hyperid = }{`51008'}
 							\item{name = }{`beta7'}
 							\item{short.name = }{`beta7'}
 							\item{initial = }{`0'}
@@ -5025,6 +5367,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta9'}{
 							 \describe{
+							\item{hyperid = }{`51009'}
 							\item{name = }{`beta8'}
 							\item{short.name = }{`beta8'}
 							\item{initial = }{`0'}
@@ -5037,6 +5380,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta10'}{
 							 \describe{
+							\item{hyperid = }{`51010'}
 							\item{name = }{`beta9'}
 							\item{short.name = }{`beta9'}
 							\item{initial = }{`0'}
@@ -5049,6 +5393,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta11'}{
 							 \describe{
+							\item{hyperid = }{`51011'}
 							\item{name = }{`beta10'}
 							\item{short.name = }{`beta10'}
 							\item{initial = }{`0'}
@@ -5072,6 +5417,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`52001'}
 							\item{name = }{`beta'}
 							\item{short.name = }{`b'}
 							\item{prior = }{`normal'}
@@ -5100,6 +5446,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`53001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`11'}
@@ -5127,6 +5474,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`54001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`4'}
@@ -5149,6 +5497,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`55001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`4'}
@@ -5178,6 +5527,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`56001'}
 							\item{name = }{`overdispersion'}
 							\item{short.name = }{`phi'}
 							\item{initial = }{`0'}
@@ -5190,6 +5540,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`56002'}
 							\item{name = }{`p'}
 							\item{short.name = }{`p'}
 							\item{initial = }{`1'}
@@ -5219,6 +5570,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`57001'}
 							\item{name = }{`sensitivity'}
 							\item{short.name = }{`s'}
 							\item{initial = }{`3'}
@@ -5231,6 +5583,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`57002'}
 							\item{name = }{`specificity'}
 							\item{short.name = }{`e'}
 							\item{initial = }{`3'}
@@ -5258,6 +5611,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`58001'}
 							\item{name = }{`precision parameter'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`4.60517018598809'}
@@ -5284,6 +5638,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`59001'}
 							\item{name = }{`log alpha'}
 							\item{short.name = }{`alpha'}
 							\item{initial = }{`0'}
@@ -5311,6 +5666,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`60001'}
 							\item{name = }{`precision parameter'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`0'}
@@ -5323,6 +5679,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`60002'}
 							\item{name = }{`quantile'}
 							\item{short.name = }{`q'}
 							\item{initial = }{`0.5'}
@@ -5349,6 +5706,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`61001'}
 							\item{name = }{`precision parameter'}
 							\item{short.name = }{`phi'}
 							\item{initial = }{`2.30258509299405'}
@@ -5375,6 +5733,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`62001'}
 							\item{name = }{`overdispersion'}
 							\item{short.name = }{`rho'}
 							\item{initial = }{`0'}
@@ -5403,6 +5762,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`63001'}
 							\item{name = }{`size'}
 							\item{short.name = }{`size'}
 							\item{initial = }{`2.30258509299405'}
@@ -5429,6 +5789,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`64001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`4'}
@@ -5455,6 +5816,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`65001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`4'}
@@ -5481,6 +5843,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`66001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`4'}
@@ -5507,6 +5870,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`67001'}
 							\item{name = }{`log precision parameter'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`2'}
@@ -5534,6 +5898,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`68001'}
 							\item{name = }{`log precision parameter'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`2'}
@@ -5561,6 +5926,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`69001'}
 							\item{name = }{`logshape'}
 							\item{short.name = }{`shape'}
 							\item{initial = }{`0'}
@@ -5573,6 +5939,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`69002'}
 							\item{name = }{`lograte'}
 							\item{short.name = }{`rate'}
 							\item{initial = }{`0'}
@@ -5600,6 +5967,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`70001'}
 							\item{name = }{`log.a'}
 							\item{short.name = }{`a'}
 							\item{initial = }{`1'}
@@ -5612,6 +5980,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`70002'}
 							\item{name = }{`log.b'}
 							\item{short.name = }{`b'}
 							\item{initial = }{`1'}
@@ -5639,6 +6008,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`71001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`4'}
@@ -5665,6 +6035,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`72001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`1'}
@@ -5691,6 +6062,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`73001'}
 							\item{name = }{`inverse.scale'}
 							\item{short.name = }{`iscale'}
 							\item{initial = }{`4'}
@@ -5701,6 +6073,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`73002'}
 							\item{name = }{`skewness'}
 							\item{short.name = }{`skew'}
 							\item{initial = }{`4'}
@@ -5725,6 +6098,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`74001'}
 							\item{name = }{`log inverse scale'}
 							\item{short.name = }{`iscale'}
 							\item{initial = }{`4'}
@@ -5735,6 +6109,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`74002'}
 							\item{name = }{`logit skewness'}
 							\item{short.name = }{`skew'}
 							\item{initial = }{`0'}
@@ -5761,6 +6136,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`75001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`1'}
@@ -5771,6 +6147,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`75002'}
 							\item{name = }{`logit skewness'}
 							\item{short.name = }{`skew'}
 							\item{initial = }{`0'}
@@ -5798,6 +6175,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`76001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`4'}
@@ -5810,6 +6188,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`76002'}
 							\item{name = }{`gev parameter'}
 							\item{short.name = }{`gev'}
 							\item{initial = }{`0'}
@@ -5837,6 +6216,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`77001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`4'}
@@ -5864,6 +6244,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`78001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`2'}
@@ -5894,6 +6275,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`79001'}
 							\item{name = }{`log alpha'}
 							\item{short.name = }{`a'}
 							\item{initial = }{`0'}
@@ -5920,6 +6302,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`80001'}
 							\item{name = }{`log alpha'}
 							\item{short.name = }{`alpha'}
 							\item{initial = }{`1'}
@@ -5946,6 +6329,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`81001'}
 							\item{name = }{`log alpha'}
 							\item{short.name = }{`a'}
 							\item{initial = }{`4'}
@@ -5958,6 +6342,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`81002'}
 							\item{name = }{`logit probability'}
 							\item{short.name = }{`prob'}
 							\item{initial = }{`-1'}
@@ -5984,6 +6369,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`82001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`500'}
@@ -6010,6 +6396,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`83001'}
 							\item{name = }{`log degrees of freedom'}
 							\item{short.name = }{`dof'}
 							\item{initial = }{`4'}
@@ -6036,6 +6423,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`84001'}
 							\item{name = }{`skewness'}
 							\item{short.name = }{`skew'}
 							\item{initial = }{`0'}
@@ -6048,6 +6436,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`84002'}
 							\item{name = }{`shape'}
 							\item{short.name = }{`shape'}
 							\item{initial = }{`0'}
@@ -6074,6 +6463,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`85001'}
 							\item{name = }{`logit probability'}
 							\item{short.name = }{`prob'}
 							\item{initial = }{`-1'}
@@ -6100,6 +6490,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`86001'}
 							\item{name = }{`logit probability'}
 							\item{short.name = }{`prob'}
 							\item{initial = }{`-1'}
@@ -6126,6 +6517,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`87001'}
 							\item{name = }{`log alpha'}
 							\item{short.name = }{`a'}
 							\item{initial = }{`0.693147180559945'}
@@ -6152,6 +6544,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`88001'}
 							\item{name = }{`overdispersion'}
 							\item{short.name = }{`rho'}
 							\item{initial = }{`0'}
@@ -6164,6 +6557,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`88002'}
 							\item{name = }{`logit probability'}
 							\item{short.name = }{`prob'}
 							\item{initial = }{`-1'}
@@ -6190,6 +6584,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`89001'}
 							\item{name = }{`overdispersion'}
 							\item{short.name = }{`rho'}
 							\item{initial = }{`0'}
@@ -6202,6 +6597,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`89002'}
 							\item{name = }{`logit probability'}
 							\item{short.name = }{`prob'}
 							\item{initial = }{`-1'}
@@ -6228,6 +6624,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`90001'}
 							\item{name = }{`logit probability'}
 							\item{short.name = }{`prob'}
 							\item{initial = }{`-1'}
@@ -6254,6 +6651,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`91001'}
 							\item{name = }{`logit probability'}
 							\item{short.name = }{`prob'}
 							\item{initial = }{`-1'}
@@ -6280,6 +6678,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`92001'}
 							\item{name = }{`alpha'}
 							\item{short.name = }{`alpha'}
 							\item{initial = }{`-1'}
@@ -6306,6 +6705,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`93001'}
 							\item{name = }{`alpha1'}
 							\item{short.name = }{`alpha1'}
 							\item{initial = }{`-1'}
@@ -6318,6 +6718,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`93002'}
 							\item{name = }{`alpha2'}
 							\item{short.name = }{`alpha2'}
 							\item{initial = }{`-1'}
@@ -6344,6 +6745,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`94001'}
 							\item{name = }{`log alpha'}
 							\item{short.name = }{`a'}
 							\item{initial = }{`0.693147180559945'}
@@ -6356,6 +6758,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`94002'}
 							\item{name = }{`beta'}
 							\item{short.name = }{`b'}
 							\item{initial = }{`0'}
@@ -6382,6 +6785,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`95001'}
 							\item{name = }{`log size'}
 							\item{short.name = }{`size'}
 							\item{initial = }{`2.30258509299405'}
@@ -6394,6 +6798,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`95002'}
 							\item{name = }{`logit probability'}
 							\item{short.name = }{`prob'}
 							\item{initial = }{`-1'}
@@ -6420,6 +6825,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`96001'}
 							\item{name = }{`log size'}
 							\item{short.name = }{`size'}
 							\item{initial = }{`2.30258509299405'}
@@ -6432,6 +6838,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`96002'}
 							\item{name = }{`logit probability'}
 							\item{short.name = }{`prob'}
 							\item{initial = }{`-1'}
@@ -6458,6 +6865,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`97001'}
 							\item{name = }{`log size'}
 							\item{short.name = }{`size'}
 							\item{initial = }{`2.30258509299405'}
@@ -6470,6 +6878,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`97002'}
 							\item{name = }{`logit probability 1'}
 							\item{short.name = }{`prob1'}
 							\item{initial = }{`-1'}
@@ -6482,6 +6891,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
+							\item{hyperid = }{`97003'}
 							\item{name = }{`logit probability 2'}
 							\item{short.name = }{`prob2'}
 							\item{initial = }{`-1'}
@@ -6509,6 +6919,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`98001'}
 							\item{name = }{`log size 1'}
 							\item{short.name = }{`size1'}
 							\item{initial = }{`2.30258509299405'}
@@ -6521,6 +6932,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`98002'}
 							\item{name = }{`log size 2'}
 							\item{short.name = }{`size2'}
 							\item{initial = }{`2.30258509299405'}
@@ -6533,6 +6945,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
+							\item{hyperid = }{`98003'}
 							\item{name = }{`logit probability'}
 							\item{short.name = }{`prob'}
 							\item{initial = }{`-1'}
@@ -6560,6 +6973,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`99001'}
 							\item{name = }{`log size'}
 							\item{short.name = }{`size'}
 							\item{initial = }{`2.30258509299405'}
@@ -6572,6 +6986,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`99002'}
 							\item{name = }{`log alpha'}
 							\item{short.name = }{`a'}
 							\item{initial = }{`0.693147180559945'}
@@ -6598,6 +7013,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`100001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`0'}
@@ -6610,6 +7026,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`100002'}
 							\item{name = }{`log degrees of freedom'}
 							\item{short.name = }{`dof'}
 							\item{initial = }{`5'}
@@ -6636,6 +7053,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
+							\item{hyperid = }{`101001'}
 							\item{name = }{`log degrees of freedom'}
 							\item{short.name = }{`dof'}
 							\item{initial = }{`4'}
@@ -6648,6 +7066,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
+							\item{hyperid = }{`101002'}
 							\item{name = }{`log precision1'}
 							\item{short.name = }{`prec1'}
 							\item{initial = }{`2'}
@@ -6660,6 +7079,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
+							\item{hyperid = }{`101003'}
 							\item{name = }{`log precision2'}
 							\item{short.name = }{`prec2'}
 							\item{initial = }{`2'}
@@ -6672,6 +7092,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta4'}{
 							 \describe{
+							\item{hyperid = }{`101004'}
 							\item{name = }{`log precision3'}
 							\item{short.name = }{`prec3'}
 							\item{initial = }{`2'}
@@ -6684,6 +7105,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta5'}{
 							 \describe{
+							\item{hyperid = }{`101005'}
 							\item{name = }{`log precision4'}
 							\item{short.name = }{`prec4'}
 							\item{initial = }{`2'}
@@ -6696,6 +7118,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta6'}{
 							 \describe{
+							\item{hyperid = }{`101006'}
 							\item{name = }{`log precision5'}
 							\item{short.name = }{`prec5'}
 							\item{initial = }{`2'}
@@ -6708,6 +7131,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta7'}{
 							 \describe{
+							\item{hyperid = }{`101007'}
 							\item{name = }{`log precision6'}
 							\item{short.name = }{`prec6'}
 							\item{initial = }{`2'}
@@ -6720,6 +7144,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta8'}{
 							 \describe{
+							\item{hyperid = }{`101008'}
 							\item{name = }{`log precision7'}
 							\item{short.name = }{`prec7'}
 							\item{initial = }{`2'}
@@ -6732,6 +7157,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta9'}{
 							 \describe{
+							\item{hyperid = }{`101009'}
 							\item{name = }{`log precision8'}
 							\item{short.name = }{`prec8'}
 							\item{initial = }{`2'}
@@ -6744,6 +7170,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta10'}{
 							 \describe{
+							\item{hyperid = }{`101010'}
 							\item{name = }{`log precision9'}
 							\item{short.name = }{`prec9'}
 							\item{initial = }{`2'}
@@ -6756,6 +7183,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta11'}{
 							 \describe{
+							\item{hyperid = }{`101011'}
 							\item{name = }{`log precision10'}
 							\item{short.name = }{`prec10'}
 							\item{initial = }{`2'}
@@ -6854,6 +7282,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
+							\item{hyperid = }{`102001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
 							\item{initial = }{`0'}

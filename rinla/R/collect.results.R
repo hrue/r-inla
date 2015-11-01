@@ -550,6 +550,13 @@ inla.internal.experimental.mode = FALSE
     return (list(n=siz[1L], N = siz[2L], Ntotal = siz[3L], ngroup = siz[4L], nrep=siz[5L]))
 }
 
+`inla.collect.hyperid` = function(dir, debug = FALSE)
+{
+    fnm = paste(dir, "/hyperid.dat", sep="")
+    id = readLines(fnm)
+    return (id)
+}
+
 `inla.collect.fixed` = function(results.dir, debug = FALSE)
 {
     alldir=dir(results.dir)
@@ -1139,6 +1146,7 @@ inla.internal.experimental.mode = FALSE
             first.time = (i == 1L)
             dir.hyper =  paste(results.dir, .Platform$file.sep, hyper[i], sep="")
             file = paste(dir.hyper, .Platform$file.sep,"summary.dat", sep="")
+            hyperid = inla.collect.hyperid(dir.hyper)
             dd = inla.read.binary.file(file)[-1L]
             summ = dd
             if (first.time)
@@ -1169,6 +1177,7 @@ inla.internal.experimental.mode = FALSE
             file =paste(results.dir, .Platform$file.sep, hyper[i], .Platform$file.sep,"marginal-densities.dat", sep="")
             xx = inla.read.binary.file(file)
             marg1 = inla.interpret.vector(xx, debug=debug)
+            attr(marg1, "hyperid") = hyperid
             rm(xx)
             if (!is.null(marg1)) {
                 colnames(marg1) = c("x","y")
@@ -1219,6 +1228,7 @@ inla.internal.experimental.mode = FALSE
             first.time = (i == 1L)
             dir.hyper =  paste(results.dir, .Platform$file.sep, hyper[i], sep="")
             file = paste(dir.hyper, .Platform$file.sep,"summary.dat", sep="")
+            hyperid = inla.collect.hyperid(dir.hyper)
             dd = inla.read.binary.file(file)[-1L]
             summ = dd
             if (first.time)
@@ -1251,6 +1261,7 @@ inla.internal.experimental.mode = FALSE
             file =paste(results.dir, .Platform$file.sep, hyper[i], .Platform$file.sep,"marginal-densities.dat", sep="")
             xx = inla.read.binary.file(file)
             marg1 = inla.interpret.vector(xx, debug=debug)
+            attr(marg1, "hyperid") = hyperid
             rm(xx)
             if (!is.null(marg1))
                 colnames(marg1) = c("x","y")

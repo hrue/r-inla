@@ -22,6 +22,9 @@
               postscript = FALSE,
               pdf = FALSE,
               prefix = "inla.plots/figure-",
+              prior = FALSE, 
+              internal.scale = FALSE, 
+              debug = FALSE, 
               ...)
  }
  \arguments{
@@ -43,6 +46,9 @@
    \item{postscript}{Boolean indicating if postscript files should be produced instead}
    \item{pdf}{Boolean indicating if PDF files should be produced instead}
    \item{prefix}{The prefix for the created files. Additional numbering and suffix is added.}
+   \item{prior}{Plot also the prior density.}
+   \item{internal.scale}{Plot also the hyperparameters in its internal scale.}
+   \item{debug}{Write some debug information}
    \item{...}{Additional arguments to \code{postscript()}, \code{pdf()} or \code{dev.new()}.}
  }
  \value{The return value is a list of the files created (if any).}

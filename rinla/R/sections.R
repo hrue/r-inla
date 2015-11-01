@@ -17,8 +17,9 @@
         } else {
             suff = as.character(k-1L)
         }
-        cat(prefix, "initial",    suff, " = ", hyper[[k]]$initial, "\n", file = file, append = TRUE, sep="")
-        cat(prefix, "fixed",      suff, " = ", as.numeric(hyper[[k]]$fixed), "\n", file = file, append = TRUE, sep="")
+        cat(prefix, "initial", suff, " = ", hyper[[k]]$initial, "\n", file = file, append = TRUE, sep="")
+        cat(prefix, "fixed", suff, " = ", as.numeric(hyper[[k]]$fixed), "\n", file = file, append = TRUE, sep="")
+        cat(prefix, "hyperid", suff, " = ", as.numeric(hyper[[k]]$hyperid), "\n", file = file, append = TRUE, sep="")
 
         ## these are for "expression:"...
         ## if there are newlines,  remove them
@@ -1166,5 +1167,3 @@
     rprefix = paste(rdir, "/", file.prefix, sep="")
     return (rprefix)
 }
-
-
