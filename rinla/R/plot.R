@@ -442,10 +442,12 @@
 
                     if (prior) {
                         id = unlist(strsplit(attr(hyper[[i]], "hyperid"), "\\|"))
-                        xy = (inla.get.prior.xy(section = tolower(id[2]), hyperid = id[1],
-                                                all.hyper = x$all.hyper, range = range(m$x), internal.scale = FALSE,
-                                                debug = debug))
-                        lines(xy, lwd = 1, col = "blue")
+                        if (length(id) > 0) {
+                            xy = (inla.get.prior.xy(section = tolower(id[2]), hyperid = id[1],
+                                                    all.hyper = x$all.hyper, range = range(m$x), internal.scale = FALSE,
+                                                    debug = debug))
+                            lines(xy, lwd = 1, col = "blue")
+                        }
                     }
                 }
             }
@@ -483,10 +485,12 @@
 
                     if (prior) {
                         id = unlist(strsplit(attr(hyper[[i]], "hyperid"), "\\|"))
-                        xy = (inla.get.prior.xy(section = tolower(id[2]), hyperid = id[1], 
-                                                all.hyper = x$all.hyper, range = range(m$x), internal.scale = TRUE,
-                                                debug = debug))
-                        lines(xy, lwd = 1, col = "blue")
+                        if (length(id) > 0) {
+                            xy = (inla.get.prior.xy(section = tolower(id[2]), hyperid = id[1], 
+                                                    all.hyper = x$all.hyper, range = range(m$x), internal.scale = TRUE,
+                                                    debug = debug))
+                            lines(xy, lwd = 1, col = "blue")
+                        }
                     }
                 }
             }
