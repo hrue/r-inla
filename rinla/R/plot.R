@@ -83,6 +83,10 @@
     figure.count = 1L
     figures = c()
 
+    if (prior) {
+        all.hyper = inla.all.hyper.postprocess(x$all.hyper)
+    }
+
     if (postscript && pdf) {
         stop("Only one of 'postscript' and 'pdf' can be generated at the time.")
     }
@@ -182,7 +186,7 @@
 
                     if (prior) {
                         xy = (inla.get.prior.xy(section = "fixed", hyperid = labels.fix[i],
-                                                all.hyper = x$all.hyper, range = range(m$x), debug = debug))
+                                                all.hyper = all.hyper, range = range(m$x), debug = debug))
                         lines(xy, lwd = 1, col = "blue")
                     }
 
@@ -444,7 +448,7 @@
                         id = unlist(strsplit(attr(hyper[[i]], "hyperid"), "\\|"))
                         if (length(id) > 0) {
                             xy = (inla.get.prior.xy(section = tolower(id[2]), hyperid = id[1],
-                                                    all.hyper = x$all.hyper, range = range(m$x), internal.scale = FALSE,
+                                                    all.hyper = all.hyper, range = range(m$x), internal.scale = FALSE,
                                                     debug = debug))
                             lines(xy, lwd = 1, col = "blue")
                         }
@@ -487,7 +491,7 @@
                         id = unlist(strsplit(attr(hyper[[i]], "hyperid"), "\\|"))
                         if (length(id) > 0) {
                             xy = (inla.get.prior.xy(section = tolower(id[2]), hyperid = id[1], 
-                                                    all.hyper = x$all.hyper, range = range(m$x), internal.scale = TRUE,
+                                                    all.hyper = all.hyper, range = range(m$x), internal.scale = TRUE,
                                                     debug = debug))
                             lines(xy, lwd = 1, col = "blue")
                         }
@@ -954,4 +958,51 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
         y = exp(ld + log(abs(fun(x, deriv=1))))
     }
     return (list(x = x, y = y))
+}
+
+`inla.all.hyper.postprocess` = function(all.hyper)
+{
+    ## postprocess all.hyper, by converting and replacing prior = 'mvnorm' into its p
+    ## marginals. this is for the spde-models
+
+    len.n = function(param, max.dim = 10000)
+    {
+        len = function(n) {
+            return (n + n^2)
+        }
+
+        len.taget = length(param)
+        for(n in 1:max.dim) {
+            if (len(n) == len.taget) {
+                return (n)
+            }
+        }
+        stop(paste("length(param) is wrong:", len.target))
+    }
+
+    get.mvnorm.marginals = function(param)
+    {
+        n = len.n(param)
+        mu = param[1:n]
+        Q = matrix(param[-(1:n)], n, n)
+        Sigma = solve((Q + t(Q))/2.)
+        return (list(mean = mu, prec = 1/diag(Sigma)))
+    }
+    
+    for (i in seq_along(length(all.hyper$random))) {
+        for(j in seq_along(length(all.hyper$random[[i]]$hyper))) {
+
+            if (all.hyper$random[[i]]$hyper[[j]]$prior == "mvnorm") {
+                ## replace this one, and the p-following ones, with its marginals
+                m = get.mvnorm.marginals(all.hyper$random[[i]]$hyper[[j]]$param)
+                for(k in 1:length(m$mean)) {
+                    kk = j + k - 1
+                    all.hyper$random[[i]]$hyper[[kk]]$prior = "normal"
+                    all.hyper$random[[i]]$hyper[[kk]]$param = c(m$mean[k], m$prec[k])
+                }
+            }
+        }
+    }
+
+    return (all.hyper)
 }
