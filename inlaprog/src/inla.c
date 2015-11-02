@@ -9060,7 +9060,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		if (!ds->data_fixed1) {
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
 			mb->theta_hyperid[mb->ntheta] = ds->data_prior1.hyperid;
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
