@@ -339,13 +339,6 @@
                 ## 'order' is only used for model=ar
                 p = inla.ifelse(is.null(random.spec$control.group$order), 0, as.integer(random.spec$control.group$order))
                 cat("group.order = ", p, "\n", sep = " ", file = file,  append = TRUE)
-                ## set a default prior for order > 1 if the param is given only for p=1
-                par = random.spec$control.group$hyper$theta2$param
-                if (length(par) == 2L) {
-                    if (p > 1L) {
-                        random.spec$control.group$hyper$theta2$param = c(rep(par[1], p), par[2]*diag(p))
-                    }
-                }
             }
             if (inla.one.of(random.spec$control.group$model, "besag")) {
                 stopifnot(!is.null(random.spec$control.group$graph))
