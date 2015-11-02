@@ -12216,6 +12216,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			GMRFLib_sprintf(&ctmp, "LINK.PRIOR%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
+			GMRFLib_sprintf(&ctmp, "LINK.HYPERID%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
 			GMRFLib_sprintf(&ctmp, "LINK.PARAMETERS%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
@@ -14273,6 +14276,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
+			GMRFLib_sprintf(&ctmp, "HYPERID%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
 			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
@@ -14423,6 +14429,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
+			GMRFLib_sprintf(&ctmp, "HYPERID%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
 			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
@@ -14532,6 +14541,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
 			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "HYPERID%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
 			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
@@ -17997,6 +18009,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
 					GMRFLib_sprintf(&ctmp, "GROUP.PRIOR%1d", i);
+					iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+					GMRFLib_sprintf(&ctmp, "GROUP.HYPERID%1d", i);
 					iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
 					GMRFLib_sprintf(&ctmp, "GROUP.PARAMETERS%1d", i);
