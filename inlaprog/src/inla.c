@@ -17950,7 +17950,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					 */
 					mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
 					mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-					mb->theta_hyperid[mb->ntheta] = mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]-1].hyperid;
+					mb->theta_hyperid[mb->ntheta] = mb->f_prior[mb->nf][mb->f_ntheta[mb->nf] - 1].hyperid;
 					mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 					mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 					mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
@@ -18037,7 +18037,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				inla_read_prior_group8(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 8]), "PCRHO0");	// the pacf
 				inla_read_prior_group9(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 9]), "PCRHO0");	// the pacf
 				inla_read_prior_group10(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 10]), "PCRHO0");	// the pacf
-				
+
 
 				mb->f_initial[mb->nf] = Realloc(mb->f_initial[mb->nf], ntheta_orig + AR_MAXTHETA + 1, double);
 				if (mb->verbose) {
@@ -18076,7 +18076,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 				HYPER_NEW(log_prec, 0.0);
 				mb->f_theta[mb->nf][ntheta_orig] = log_prec;
-				pacf_intern = Calloc(AR_MAXTHETA+1, double **);
+				pacf_intern = Calloc(AR_MAXTHETA + 1, double **);
 				for (i = 0; i < AR_MAXTHETA; i++) {
 					HYPER_NEW(pacf_intern[i], 0.0);
 					mb->f_theta[mb->nf][ntheta_orig + i + 1] = pacf_intern[i];
@@ -20821,7 +20821,7 @@ double extra(double *theta, int ntheta, void *argument)
 			P(marginal_prec);
 			P(marginal_Q[0]);
 			P(log_precision);
-			
+
 			param = Calloc(1 + p + ISQR(p), double);
 			zero = Calloc(p, double);
 			param[0] = p;
@@ -23455,7 +23455,7 @@ int inla_output_hyperid(const char *dir, const char *sdir, char *hyperid)
 	FILE *fp;
 	char *fnm, *ndir;
 
-	//fprintf(stderr, "output hyperid %s / %s [%s]\n", dir, sdir, hyperid);
+	// fprintf(stderr, "output hyperid %s / %s [%s]\n", dir, sdir, hyperid);
 
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, sdir);
 	inla_fnmfix(ndir);
