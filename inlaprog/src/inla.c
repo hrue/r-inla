@@ -2404,6 +2404,7 @@ double priorfunc_ref_ar(double *x, double *parameters)
 		    + log(ABS(map_phi(x[2], MAP_DFORWARD, NULL)));
 		break;
 	default:
+		ldens = NAN;
 		GMRFLib_ASSERT(p <= 3 && p >= 0, GMRFLib_EPARAMETER);
 	}
 
@@ -6773,6 +6774,51 @@ int inla_read_prior_group0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * p
 int inla_read_prior_group1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR1", "GROUP.PARAMETERS1", "GROUP.FROM.THETA1", "GROUP.TO.THETA1", "GROUP.HYPERID1",
+				       default_prior);
+}
+int inla_read_prior_group2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+{
+	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR2", "GROUP.PARAMETERS2", "GROUP.FROM.THETA2", "GROUP.TO.THETA2", "GROUP.HYPERID2",
+				       default_prior);
+}
+int inla_read_prior_group3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+{
+	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR3", "GROUP.PARAMETERS3", "GROUP.FROM.THETA3", "GROUP.TO.THETA3", "GROUP.HYPERID3",
+				       default_prior);
+}
+int inla_read_prior_group4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+{
+	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR4", "GROUP.PARAMETERS4", "GROUP.FROM.THETA4", "GROUP.TO.THETA4", "GROUP.HYPERID4",
+				       default_prior);
+}
+int inla_read_prior_group5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+{
+	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR5", "GROUP.PARAMETERS5", "GROUP.FROM.THETA5", "GROUP.TO.THETA5", "GROUP.HYPERID5",
+				       default_prior);
+}
+int inla_read_prior_group6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+{
+	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR6", "GROUP.PARAMETERS6", "GROUP.FROM.THETA6", "GROUP.TO.THETA6", "GROUP.HYPERID6",
+				       default_prior);
+}
+int inla_read_prior_group7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+{
+	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR7", "GROUP.PARAMETERS7", "GROUP.FROM.THETA7", "GROUP.TO.THETA7", "GROUP.HYPERID7",
+				       default_prior);
+}
+int inla_read_prior_group8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+{
+	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR8", "GROUP.PARAMETERS8", "GROUP.FROM.THETA8", "GROUP.TO.THETA8", "GROUP.HYPERID8",
+				       default_prior);
+}
+int inla_read_prior_group9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+{
+	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR9", "GROUP.PARAMETERS9", "GROUP.FROM.THETA9", "GROUP.TO.THETA9", "GROUP.HYPERID9",
+				       default_prior);
+}
+int inla_read_prior_group10(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+{
+	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR10", "GROUP.PARAMETERS10", "GROUP.FROM.THETA10", "GROUP.TO.THETA10", "GROUP.HYPERID10",
 				       default_prior);
 }
 int inla_read_prior0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
@@ -17977,24 +18023,25 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				ntheta_orig = mb->f_ntheta[mb->nf];
 				ntheta = mb->f_group_order[mb->nf] + 1;
 				assert(ntheta <= AR_MAXTHETA + 1 && ntheta >= 1);
+				assert(11 == AR_MAXTHETA + 1);
 
-				mb->f_prior[mb->nf] = Realloc(mb->f_prior[mb->nf], ntheta_orig + 2, Prior_tp);
+				mb->f_prior[mb->nf] = Realloc(mb->f_prior[mb->nf], ntheta_orig + AR_MAXTHETA + 1, Prior_tp);
 				inla_read_prior_group0(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 0]), "LOGGAMMA");	// log precision
-				inla_read_prior_group1(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 1]), "MVNORM");	// the pacf
+				inla_read_prior_group1(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 1]), "PCRHO0");	// the pacf
+				inla_read_prior_group2(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 2]), "PCRHO0");	// the pacf
+				inla_read_prior_group3(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 3]), "PCRHO0");	// the pacf
+				inla_read_prior_group4(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 4]), "PCRHO0");	// the pacf
+				inla_read_prior_group5(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 5]), "PCRHO0");	// the pacf
+				inla_read_prior_group6(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 6]), "PCRHO0");	// the pacf
+				inla_read_prior_group7(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 7]), "PCRHO0");	// the pacf
+				inla_read_prior_group8(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 8]), "PCRHO0");	// the pacf
+				inla_read_prior_group9(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 9]), "PCRHO0");	// the pacf
+				inla_read_prior_group10(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 10]), "PCRHO0");	// the pacf
+				
 
-				int this_function_need_to_change_default_priors = 1;
-				GMRFLib_ASSERT(this_function_need_to_change_default_priors == 0, GMRFLib_ESNH);
-
-				mb->f_initial[mb->nf] = Realloc(mb->f_initial[mb->nf], ntheta + ntheta_orig, double);
+				mb->f_initial[mb->nf] = Realloc(mb->f_initial[mb->nf], ntheta_orig + AR_MAXTHETA + 1, double);
 				if (mb->verbose) {
 					printf("\t\tgroup.ntheta = [%1d]\n", ntheta);
-				}
-
-				if ((int) mb->f_prior[mb->nf][ntheta_orig + 1].parameters[0] != ntheta - 1) {
-					GMRFLib_sprintf(&ptmp, "Dimension of the MVNORM prior is not equal to the order of the GROUP-AR-model: %1d != %1d\n",
-							(int) mb->f_prior[mb->nf][ntheta_orig + 0].parameters[0], ntheta - 1);
-					inla_error_general(ptmp);
-					exit(EXIT_FAILURE);
 				}
 
 				/*
@@ -18024,12 +18071,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 				}
 
-				mb->f_fixed[mb->nf] = Realloc(mb->f_fixed[mb->nf], ntheta + ntheta_orig, int);
-				mb->f_theta[mb->nf] = Realloc(mb->f_theta[mb->nf], ntheta + ntheta_orig, double **);
+				mb->f_fixed[mb->nf] = Realloc(mb->f_fixed[mb->nf], ntheta_orig + AR_MAXTHETA + 1, int);
+				mb->f_theta[mb->nf] = Realloc(mb->f_theta[mb->nf], ntheta_orig + AR_MAXTHETA + 1, double **);
 
 				HYPER_NEW(log_prec, 0.0);
 				mb->f_theta[mb->nf][ntheta_orig] = log_prec;
-				pacf_intern = Calloc(AR_MAXTHETA, double **);
+				pacf_intern = Calloc(AR_MAXTHETA+1, double **);
 				for (i = 0; i < AR_MAXTHETA; i++) {
 					HYPER_NEW(pacf_intern[i], 0.0);
 					mb->f_theta[mb->nf][ntheta_orig + i + 1] = pacf_intern[i];
@@ -18046,7 +18093,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 					GMRFLib_sprintf(&ctmp, "GROUP.INITIAL%1d", i);
 					theta_initial = iniparser_getdouble(ini, inla_string_join(secname, ctmp), theta_initial);
-					if (!mb->f_fixed[mb->nf][i] && mb->reuse_mode) {
+
+					if (!mb->f_fixed[mb->nf][ntheta_orig + i] && mb->reuse_mode) {
 						theta_initial = mb->theta_file[mb->theta_counter_file++];
 					}
 
@@ -19309,7 +19357,11 @@ double extra(double *theta, int ntheta, void *argument)
 			if (NOT_FIXED(f_fixed[i][(_nt_) + 0])) {	\
 				val += PRIOR_EVAL(mb->f_prior[i][(_nt_) + 0], &_log_precision); \
 			}						\
-			val += PRIOR_EVAL(mb->f_prior[i][(_nt_) + 1], _pacf_intern); \
+			for (j = 0; j < _p; j++) {			\
+				if (NOT_FIXED(f_fixed[i][(_nt_) + j + 1])) { \
+					val += PRIOR_EVAL(mb->f_prior[i][(_nt_) + j + 1], &(_pacf_intern[j])); \
+				}					\
+			}						\
 			Free(_param);					\
 			Free(_zero);					\
 			Free(_pacf);					\
@@ -20766,6 +20818,10 @@ double extra(double *theta, int ntheta, void *argument)
 			ar_marginal_distribution(p, pacf, &marginal_prec, marginal_Q);
 			conditional_prec = exp(log_precision) / marginal_prec;
 
+			P(marginal_prec);
+			P(marginal_Q[0]);
+			P(log_precision);
+			
 			param = Calloc(1 + p + ISQR(p), double);
 			zero = Calloc(p, double);
 			param[0] = p;

@@ -509,7 +509,7 @@
                          initial = 4,
                          fixed = FALSE,
                          prior = "pc.prec",
-                         param = c(1, 0.01),
+                         param = c(3, 0.01),
                          to.theta = function(x) log(x),
                          from.theta = function(x) exp(x)
                          ),
@@ -4135,8 +4135,8 @@
                          short.name = "prec",
                          initial = 0,
                          fixed = TRUE,
-                         prior = "loggamma",
-                         param = c(1, 0.00005),
+                         prior = "pc.prec",
+                         param = c(3, 0.01),
                          to.theta = function(x) log(x),
                          from.theta = function(x) exp(x)
                          ),
@@ -4146,8 +4146,8 @@
                          short.name = "pacf1",
                          initial = 2,
                          fixed = FALSE,
-                         prior = "mvnorm",
-                         param = c(0, 0.15), ## same as for AR1
+                         prior = "pc.rho0",
+                         param = c(0.5, 0.5), 
                          to.theta = function(x) log((1+x)/(1-x)),
                          from.theta = function(x) 2*exp(x)/(1+exp(x))-1
                          ),
@@ -4157,8 +4157,8 @@
                          short.name = "pacf2",
                          initial = 0,
                          fixed = FALSE,
-                         prior = "none",
-                         param = numeric(0),
+                         prior = "pc.rho0",
+                         param = c(0.5, 0.4),
                          to.theta = function(x) log((1+x)/(1-x)),
                          from.theta = function(x) 2*exp(x)/(1+exp(x))-1
                          ),
@@ -4168,8 +4168,8 @@
                          short.name = "pacf3",
                          initial = 0,
                          fixed = FALSE,
-                         prior = "none",
-                         param = numeric(0),
+                         prior = "pc.rho0",
+                         param = c(0.5, 0.3),
                          to.theta = function(x) log((1+x)/(1-x)),
                          from.theta = function(x) 2*exp(x)/(1+exp(x))-1
                          ),
@@ -4179,8 +4179,8 @@
                          short.name = "pacf4",
                          initial = 0,
                          fixed = FALSE,
-                         prior = "none",
-                         param = numeric(0),
+                         prior = "pc.rho0",
+                         param = c(0.5, 0.2),
                          to.theta = function(x) log((1+x)/(1-x)),
                          from.theta = function(x) 2*exp(x)/(1+exp(x))-1
                          ),
@@ -4190,8 +4190,8 @@
                          short.name = "pacf5",
                          initial = 0,
                          fixed = FALSE,
-                         prior = "none",
-                         param = numeric(0),
+                         prior = "pc.rho0",
+                         param = c(0.5, 0.1),
                          to.theta = function(x) log((1+x)/(1-x)),
                          from.theta = function(x) 2*exp(x)/(1+exp(x))-1
                          ),
@@ -4201,8 +4201,8 @@
                          short.name = "pacf6",
                          initial = 0,
                          fixed = FALSE,
-                         prior = "none",
-                         param = numeric(0),
+                         prior = "pc.rho0",
+                         param = c(0.5, 0.1),
                          to.theta = function(x) log((1+x)/(1-x)),
                          from.theta = function(x) 2*exp(x)/(1+exp(x))-1
                          ),
@@ -4212,8 +4212,8 @@
                          short.name = "pacf7",
                          initial = 0,
                          fixed = FALSE,
-                         prior = "none",
-                         param = numeric(0),
+                         prior = "pc.rho0",
+                         param = c(0.5, 0.1),
                          to.theta = function(x) log((1+x)/(1-x)),
                          from.theta = function(x) 2*exp(x)/(1+exp(x))-1
                          ),
@@ -4223,8 +4223,8 @@
                          short.name = "pacf8",
                          initial = 0,
                          fixed = FALSE,
-                         prior = "none",
-                         param = numeric(0),
+                         prior = "pc.rho0",
+                         param = c(0.5, 0.1),
                          to.theta = function(x) log((1+x)/(1-x)),
                          from.theta = function(x) 2*exp(x)/(1+exp(x))-1
                          ),
@@ -4234,8 +4234,8 @@
                          short.name = "pacf9",
                          initial = 0,
                          fixed = FALSE,
-                         prior = "none",
-                         param = numeric(0),
+                         prior = "pc.rho0",
+                         param = c(0.5, 0.1),
                          to.theta = function(x) log((1+x)/(1-x)),
                          from.theta = function(x) 2*exp(x)/(1+exp(x))-1
                          ),
@@ -4245,8 +4245,8 @@
                          short.name = "pacf10",
                          initial = 0,
                          fixed = FALSE,
-                         prior = "none",
-                         param = numeric(0),
+                         prior = "pc.rho0",
+                         param = c(0.5, 0.1),
                          to.theta = function(x) log((1+x)/(1-x)),
                          from.theta = function(x) 2*exp(x)/(1+exp(x))-1
                          )
