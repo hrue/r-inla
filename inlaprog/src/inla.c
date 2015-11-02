@@ -20818,10 +20818,6 @@ double extra(double *theta, int ntheta, void *argument)
 			ar_marginal_distribution(p, pacf, &marginal_prec, marginal_Q);
 			conditional_prec = exp(log_precision) / marginal_prec;
 
-			P(marginal_prec);
-			P(marginal_Q[0]);
-			P(log_precision);
-
 			param = Calloc(1 + p + ISQR(p), double);
 			zero = Calloc(p, double);
 			param[0] = p;
