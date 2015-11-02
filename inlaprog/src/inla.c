@@ -2181,8 +2181,8 @@ double priorfunc_pc_rho1(double *x, double *parameters)
 	// solve for lambda
 #define Fsolve(_lam) (((1.0 - exp(-(_lam)*sqrt(1.0-u)))/(1.0-exp(-(_lam)*M_SQRT2))) - alpha)
 
-	int count = 0, count_max = 10000;
-	double lambda_initial = -1.0, lambda_step = 0.01, h = GMRFLib_eps(1. / 3.), eps_lambda = GMRFLib_eps(0.5), df;
+	int count = 0, count_max = 1000;
+	double lambda_initial = -1.0, lambda_step = 1.1, h = GMRFLib_eps(1. / 3.), eps_lambda = GMRFLib_eps(0.5), df;
 
 	if (!(u > -1.0 && u < 1.0 && alpha > sqrt((1.0 - u) / 2.0) && alpha < 1.0)) {
 		char *msg;
@@ -2194,12 +2194,12 @@ double priorfunc_pc_rho1(double *x, double *parameters)
 	lambda = 1.0;
 	if (Fsolve(lambda) > 0.0) {
 		while (Fsolve(lambda) > 0.0) {
-			lambda += lambda_step;
+			lambda /= lambda_step;
 			assert(count++ < count_max);
 		}
 	} else {
 		while (Fsolve(lambda) < 0.0 && lambda >= eps_lambda) {
-			lambda -= lambda_step;
+			lambda *= lambda_step;
 			assert(count++ < count_max);
 		}
 	}
@@ -14366,12 +14366,17 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\tfixed[%1d]=[%1d]\n", i, mb->f_fixed[mb->nf][i]);
 			}
 
+			GMRFLib_sprintf(&ctmp, "HYPERID%1d", i);
+			char *cctmp = iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL), *hid = NULL;
+			GMRFLib_sprintf(&hid, "%s|%s", cctmp, secname);
+			Free(cctmp);
+
 			/*
 			 * add this \theta 
 			 */
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
 			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = NULL;
+			mb->theta_hyperid[mb->ntheta] = hid;
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
