@@ -12,8 +12,8 @@ build-configs :;
 
 update-inla :;
 	-gnome-terminal --title="LAPTOP"       -e 'nice make -C /home/hrue/p/inla/builds/my-laptop update'
-	-gnome-terminal --title="LAPTOP-O3"    -e 'nice make -C /home/hrue/p/inla//builds/my-laptop-O3 update'
-	-gnome-terminal --title="LAPTOP-g"     -e 'nice make -C /home/hrue/p/inla//builds/my-laptop-g update'
+	-gnome-terminal --title="LAPTOP-O3"    -e 'nice make -C /home/hrue/p/inla/builds/my-laptop-O3 update'
+	-gnome-terminal --title="LAPTOP-g"     -e 'nice make -C /home/hrue/p/inla/builds/my-laptop-g update'
 	-gnome-terminal --title="MAC32"        -e 'ssh -x -t hrue@$(MAC).math.ntnu.no make -C builds/build32 update'
 	-gnome-terminal --title="MAC64"        -e 'ssh -x -t hrue@$(MAC).math.ntnu.no make -C builds/build64 update'
 	#-gnome-terminal --title="MACdebug"     -e 'ssh -x -t hrue@$(MAC).math.ntnu.no make -C builds/debug update'
