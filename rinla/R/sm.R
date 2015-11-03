@@ -39,25 +39,6 @@
 }
 
 
-`inla.idx` = function(idx, n = max(idx), group = rep(1, n), ngroup = max(group),
-        replicate = rep(1, n), nrep = max(replicate))
-{
-    ## this function might be useful to convert from (idx, group, rep)
-    ## to idx, in the same way as done internally in inla.R
-
-    stopifnot(n >= 1)
-    stopifnot(ngroup >= 1)
-    stopifnot(nrep >= 1)
-    stopifnot(all(group >= 1))
-    stopifnot(all(replicate >= 1))
-    stopifnot(all(idx >= 1))
-    stopifnot(all(idx <= n))
-    stopifnot(ngroup >= max(group))
-    stopifnot(nrep >= max(replicate))
-
-    return (idx + (group-1)*n + (replicate-1)*n*ngroup)
-}
-
 
 ### Some utilities for sparse matrices using the `Matrix' library
 

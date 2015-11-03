@@ -11,12 +11,9 @@
 ##!  replicated model}
 ##!
 ##!\usage{
-##!inla.idx(idx,
-##!         n = max(idx),
-##!         group = rep(1, n),
-##!         ngroup = max(group), 
-##!         replicate = rep(1, n),
-##!         nrep = max(replicate)) 
+##!inla.idx(idx, n = max(idx),
+##!         group = rep(1, length(idx)), ngroup = max(group),
+##!         replicate = rep(1, length(idx)),  nrep = max(replicate)) 
 ##!}
 ##!
 ##!\arguments{
@@ -44,8 +41,9 @@
 ##!}
 
 
-`inla.idx` = function(idx, n = max(idx), group = rep(1, n), ngroup = max(group),
-        replicate = rep(1, n), nrep = max(replicate))
+`inla.idx` = function(idx, n = max(idx),
+                      group = rep(1, length(idx)), ngroup = max(group),
+                      replicate = rep(1, length(idx)), nrep = max(replicate))
 {
     ## this function might be useful to convert from (idx, group, rep)
     ## to idx, in the same way as done internally in inla.R
