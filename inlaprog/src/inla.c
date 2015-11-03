@@ -6630,12 +6630,12 @@ int inla_is_NAs(int nx, const char *string)
 const char *inla_string_join(const char *a, const char *b)
 {
 	/*
-	 * join strings A and B into A:B. this returns a ptr to a static storage; be aware! 
+	 * join strings A and B into A:B. 
 	 */
-	static char ans[1025];
+	char *ans = NULL;
 
 	assert((a ? strlen(a) + 1 : 0) + (b ? strlen(b) + 1 : 0) < 1025);
-	sprintf(ans, "%s%c%s", (a ? a : ""), INIPARSER_SEP, (b ? b : ""));
+	GMRFLib_sprintf(&ans, "%s%c%s", (a ? a : ""), INIPARSER_SEP, (b ? b : ""));
 	return ans;
 }
 int inla_error_missing_required_field(const char *funcname, const char *secname, const char *field)
@@ -14367,9 +14367,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 
 			GMRFLib_sprintf(&ctmp, "HYPERID%1d", i);
-			char *cctmp = iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL), *hid = NULL;
+			char *hid = NULL, *cctmp = iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 			GMRFLib_sprintf(&hid, "%s|%s", cctmp, secname);
-			Free(cctmp);
 
 			/*
 			 * add this \theta 
