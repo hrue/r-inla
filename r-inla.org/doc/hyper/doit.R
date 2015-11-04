@@ -10,6 +10,8 @@ for(nm in names(m)) {
         dir.create(nm)
     for (mod  in names(m[[nm]])) {
         fnm = paste(nm, "/", mod, ".tex",  sep="")
+        ## remove ':' in the filename
+        fnm = gsub(":", "", fnm)
         cat("Generate file", fnm, "\n")
         inla.models.generate.tex(m[[nm]][[mod]], fnm)
     }
