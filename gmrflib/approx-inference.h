@@ -753,7 +753,8 @@ typedef struct {
 } GMRFLib_ai_po_tp;
 
 typedef struct {
-	double log_posterior;				       /* */
+	double log_posterior;				       /* May have been adjusted for integration weight */
+	double log_posterior_orig;			       /* Not adjusted for integration weight */
 	double *theta;					       /* */
 	double *mean;					       /* mean */
 	double *improved_mean;				       /* improved mean */
@@ -942,7 +943,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
 		    int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin, GMRFLib_ai_misc_output_tp * misc_output);
 int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo,
-			    int ntheta, double *theta, double log_posterior, double *improved_mean, double *skewness, GMRFLib_problem_tp * gmrf_approx);
+			    int ntheta, double *theta, double log_posterior, double log_posterior_orig, 
+			    double *improved_mean, double *skewness, GMRFLib_problem_tp * gmrf_approx);
 
 int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_ai_store_tp * ai_store,
 			       double *improved_mean);

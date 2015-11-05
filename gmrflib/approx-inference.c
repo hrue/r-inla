@@ -3118,7 +3118,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		Free(_improved_mean);					\
 	}
 
-#define ADD_CONFIG(_store, _theta, _log_posterior)			\
+#define ADD_CONFIG(_store, _theta, _log_posterior, _log_posterior_orig)	\
 	if (1) {							\
 		int _i;							\
 		double *_improved_mean = Calloc(graph->n, double);	\
@@ -3132,7 +3132,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				_improved_mean[_i] = (_store)->problem->mean_constr[_i]; \
 			}						\
 		}							\
-		GMRFLib_ai_store_config(misc_output, nhyper, _theta, _log_posterior, _improved_mean, _skewness, (_store)->problem); \
+		GMRFLib_ai_store_config(misc_output, nhyper, _theta, _log_posterior, _log_posterior_orig, _improved_mean, _skewness, (_store)->problem); \
 		Free(_improved_mean);					\
 		Free(_skewness);					\
 	}
@@ -4044,7 +4044,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
 			}
 			COMPUTE_LINDENS(ai_store);
-			ADD_CONFIG(ai_store, theta_mode, 0.0);
+			ADD_CONFIG(ai_store, theta_mode, 0.0, 0.0);
 
 			izs[dens_count] = Calloc(nhyper, double);
 			for (i = 0; i < nhyper; i++) {
@@ -4187,7 +4187,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store_id->problem, theta_local, nhyper);
 					}
 					COMPUTE_LINDENS(ai_store_id);
-					ADD_CONFIG(ai_store_id, theta_local, log_dens);
+					ADD_CONFIG(ai_store_id, theta_local, log_dens, log_dens_orig);
 					tu = GMRFLib_cpu() - tref;
 					if (ai_par->fp_log) {
 #pragma omp critical
@@ -4225,7 +4225,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 					GMRFLib_tabulate_Qfunc_tp *tabQfunc = NULL;
 					double *bnew = NULL;
-
+					double log_dens_orig;
+					
 					for (i = 0; i < nhyper; i++) {
 						z[i] = f * design->experiment[k][i]
 						    * (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
@@ -4243,10 +4244,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							omp_get_thread_num());
 					}
 
-					/*
+										/*
 					 * correct the log_dens due to the integration weights which is special for the CCD integration:
 					 * double the weights for the points not in the center
 					 */
+					log_dens_orig = log_dens;
 					if (nhyper > 1) {
 						/*
 						 * the weight formula is only valid for nhyper > 1. 
@@ -4347,7 +4349,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
 					}
 					COMPUTE_LINDENS(ai_store);
-					ADD_CONFIG(ai_store, theta, log_dens);
+					ADD_CONFIG(ai_store, theta, log_dens, log_dens_orig);
 					tu = GMRFLib_cpu() - tref;
 					if (ai_par->fp_log) {
 						fprintf(ai_par->fp_log, " %.2fs\n", tu);
@@ -4512,7 +4514,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									}
 								}
 								COMPUTE_LINDENS(ai_store_id);
-								ADD_CONFIG(ai_store_id, theta_local, log_dens);
+								ADD_CONFIG(ai_store_id, theta_local, log_dens, log_dens);
 								if (cpo) {
 									for (i = 0; i < compute_n; i++) {
 										ii = compute_idx[i];
@@ -4703,7 +4705,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 								userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
 							}
 							COMPUTE_LINDENS(ai_store);
-							ADD_CONFIG(ai_store, theta, log_dens);
+							ADD_CONFIG(ai_store, theta, log_dens, log_dens);
 							tu = GMRFLib_cpu() - tref;
 							if (ai_par->fp_log) {
 								fprintf(ai_par->fp_log, " %.2fs\n", tu);
@@ -4858,7 +4860,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 								userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
 							}
 							COMPUTE_LINDENS(ai_store);
-							ADD_CONFIG(ai_store, theta, log_dens);
+							ADD_CONFIG(ai_store, theta, log_dens, log_dens);
 							tu = GMRFLib_cpu() - tref;
 							if (ai_par->fp_log) {
 								fprintf(ai_par->fp_log, " %.2fs\n", tu);
@@ -5012,7 +5014,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
 		}
 		COMPUTE_LINDENS(ai_store);
-		ADD_CONFIG(ai_store, NULL, log_dens_mode);
+		ADD_CONFIG(ai_store, NULL, log_dens_mode, log_dens_mode);
 		weights[dens_count] = 0.0;
 		dens_count++;
 
@@ -5972,6 +5974,7 @@ int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior,
+			    double log_posterior_orig, 
 			    double *improved_mean, double *skewness, GMRFLib_problem_tp * gmrf_approx)
 {
 	if (!mo || !(mo->configs)) {
@@ -6082,7 +6085,8 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 	mo->configs[id]->config[mo->configs[id]->nconfig]->mean = mean;
 	mo->configs[id]->config[mo->configs[id]->nconfig]->improved_mean = imean;
 	mo->configs[id]->config[mo->configs[id]->nconfig]->skewness = skew;
-	mo->configs[id]->config[mo->configs[id]->nconfig]->log_posterior = log_posterior;
+	mo->configs[id]->config[mo->configs[id]->nconfig]->log_posterior = log_posterior; /* may include integration weights */
+	mo->configs[id]->config[mo->configs[id]->nconfig]->log_posterior_orig = log_posterior_orig; /* do NOT include integration weights */
 	if (mo->configs[id]->ntheta) {
 		mo->configs[id]->config[mo->configs[id]->nconfig]->theta = Calloc(mo->configs[id]->ntheta, double);
 		memcpy(mo->configs[id]->config[mo->configs[id]->nconfig]->theta, theta, mo->configs[id]->ntheta * sizeof(double));
