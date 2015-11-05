@@ -441,6 +441,7 @@ inla.internal.experimental.mode = FALSE
             configs$config[[configs$nconfig]] = list()
             for(k in 1L:configs$nconfig) {
                 log.post = readBin(fp, numeric(), 1)
+                log.post.orig = readBin(fp, numeric(), 1)
                 if (configs$ntheta > 0L) {
                     theta = readBin(fp, numeric(), configs$ntheta)
                     names(theta) = theta.tag
@@ -472,6 +473,7 @@ inla.internal.experimental.mode = FALSE
                 configs$config[[k]] = list(
                                       theta = theta, 
                                       log.posterior = log.post, 
+                                      log.posterior.orig = log.post.orig, 
                                       mean = mean,
                                       improved.mean = improved.mean,
                                       skewness = skewness, 
@@ -492,9 +494,10 @@ inla.internal.experimental.mode = FALSE
             }
 
             ## rescale the log.posteriors
-            configs$max.log.posterior = max(sapply(configs$config, function(x) x$log.posterior))
+            configs$max.log.posterior = max(sapply(configs$config, function(x) x$log.posterior.orig))
             for(k in 1L:configs$nconfig) {
                 configs$config[[k]]$log.posterior = configs$config[[k]]$log.posterior - configs$max.log.posterior
+                configs$config[[k]]$log.posterior.orig = configs$config[[k]]$log.posterior.orig - configs$max.log.posterior
             }
         } else {
             configs$config = NULL
