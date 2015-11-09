@@ -490,6 +490,7 @@ typedef enum {
 	P_REF_AR,					       /* Reference prior for AR(p) for p=1,2,3 */
 	P_INVALID,
 	G_EXCHANGEABLE = 3000,				       /* group models */
+	G_EXCHANGEABLE_POS,
 	G_AR1,
 	G_RW1,
 	G_RW2,
@@ -673,7 +674,7 @@ typedef struct {
 typedef struct {
 	char *R_HOME;					       /* environment variable to be set */
 	char *Rfile;					       /* filename to be sourced */
-	char *RData;						   /* filename to be loaded */
+	char *RData;					       /* filename to be loaded */
 	char *func;					       /* function to be called: fun(theta) */
 } inla_jp_tp;
 
@@ -1404,7 +1405,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 int inla_output_names(const char *dir, const char *sdir, int n, const char **names, const char *suffix);
 int inla_output_ok(const char *dir);
 int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal, int ngroup, int nrep);
-int inla_output_hyperid(const char *dir, const char *sdir, char * hyperid);
+int inla_output_hyperid(const char *dir, const char *sdir, char *hyperid);
 int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir);
 int inla_parse_data(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec);

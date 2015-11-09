@@ -4110,6 +4110,22 @@
                      )
                  ),
 
+             exchangeablepos = list(
+                 hyper = list(
+                     theta = list(
+                         hyperid =  40101,
+                         name = "logit correlation",
+                         short.name = "rho",
+                         initial = 1,
+                         fixed = FALSE,
+                         prior = "pc.rho0",
+                         param = c(0.5, 0.5),
+                         to.theta = function(x) log(x/(1-x)), 
+                         from.theta = function(x) exp(x)/(1+exp(x))
+                         )
+                     )
+                 ),
+
              ar1 = list(
                  hyper = list(
                      theta = list(

@@ -1351,8 +1351,11 @@ double Qfunc_group(int i, int j, void *arg)
 
 	switch (a->type) {
 	case G_EXCHANGEABLE:
-		// FIX THIS LATER
 		rho = map_group_rho(a->group_rho_intern[GMRFLib_thread_id][0], MAP_FORWARD, (void *) &(a->ngroup));
+		break;
+
+	case G_EXCHANGEABLE_POS:
+		rho = map_probability(a->group_rho_intern[GMRFLib_thread_id][0], MAP_FORWARD, (void *) &(a->ngroup));
 		break;
 
 	case G_AR1:
@@ -1387,6 +1390,7 @@ double Qfunc_group(int i, int j, void *arg)
 
 		switch (a->type) {
 		case G_EXCHANGEABLE:
+		case G_EXCHANGEABLE_POS:
 			fac = -((ngroup - 2.0) * rho + 1.0) / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
 			break;
 
@@ -1428,6 +1432,7 @@ double Qfunc_group(int i, int j, void *arg)
 	} else {
 		switch (a->type) {
 		case G_EXCHANGEABLE:
+		case G_EXCHANGEABLE_POS:
 			fac = rho / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
 			break;
 
@@ -1478,6 +1483,7 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 
 	switch (type) {
 	case G_EXCHANGEABLE:
+	case G_EXCHANGEABLE_POS:
 		assert(cyclic == 0);
 		for (i = 0; i < ngroup; i++) {
 			for (j = i + 1; j < ngroup; j++) {
@@ -17848,6 +17854,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GROUP.MODEL"), ptmp));
 			if (!strcasecmp(ptmp, "EXCHANGEABLE")) {
 				mb->f_group_model[mb->nf] = G_EXCHANGEABLE;
+			} else if (!strcasecmp(ptmp, "EXCHANGEABLEPOS")) {
+				mb->f_group_model[mb->nf] = G_EXCHANGEABLE_POS;
 			} else if (!strcasecmp(ptmp, "AR1")) {
 				mb->f_group_model[mb->nf] = G_AR1;
 			} else if (!strcasecmp(ptmp, "AR")) {
@@ -17883,6 +17891,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 			switch (mb->f_group_model[mb->nf]) {
 			case G_EXCHANGEABLE:
+			case G_EXCHANGEABLE_POS:
 			case G_AR1:
 			case G_RW1:
 			case G_RW2:
@@ -17895,7 +17904,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				}
 				mb->f_initial[mb->nf] = Realloc(mb->f_initial[mb->nf], mb->f_ntheta[mb->nf] + 1, double);
 				SetInitial(mb->f_ntheta[mb->nf], tmp);
-				if (mb->f_group_model[mb->nf] == G_AR1 || mb->f_group_model[mb->nf] == G_EXCHANGEABLE) {
+				if (mb->f_group_model[mb->nf] == G_AR1 || mb->f_group_model[mb->nf] == G_EXCHANGEABLE ||
+				    mb->f_group_model[mb->nf] == G_EXCHANGEABLE_POS) {
 					HYPER_INIT(group_rho_intern, tmp);
 					if (mb->verbose) {
 						printf("\t\tinitialise group_rho_intern[%g]\n", tmp);
@@ -17916,7 +17926,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				mb->f_fixed[mb->nf] = Realloc(mb->f_fixed[mb->nf], mb->f_ntheta[mb->nf] + 1, int);
 				mb->f_prior[mb->nf] = Realloc(mb->f_prior[mb->nf], mb->f_ntheta[mb->nf] + 1, Prior_tp);
 
-				if (mb->f_group_model[mb->nf] == G_AR1 || mb->f_group_model[mb->nf] == G_EXCHANGEABLE) {
+				if (mb->f_group_model[mb->nf] == G_AR1 || mb->f_group_model[mb->nf] == G_EXCHANGEABLE ||
+				    mb->f_group_model[mb->nf] == G_EXCHANGEABLE_POS) {
 					mb->f_theta[mb->nf][mb->f_ntheta[mb->nf]] = group_rho_intern;
 				} else {
 					mb->f_theta[mb->nf][mb->f_ntheta[mb->nf]] = group_prec_intern;
@@ -17926,6 +17937,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 				switch (mb->f_group_model[mb->nf]) {
 				case G_EXCHANGEABLE:
+				case G_EXCHANGEABLE_POS:
 					inla_read_prior_group(mb, ini, sec, &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]]), "GAUSSIAN-group");
 					mb->f_ntheta[mb->nf]++;
 					break;
@@ -17959,7 +17971,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 					mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 
-					if (mb->f_group_model[mb->nf] == G_AR1 || mb->f_group_model[mb->nf] == G_EXCHANGEABLE) {
+					if (mb->f_group_model[mb->nf] == G_AR1 || mb->f_group_model[mb->nf] == G_EXCHANGEABLE ||
+					    mb->f_group_model[mb->nf] == G_EXCHANGEABLE_POS) {
 						GMRFLib_sprintf(&msg, "Group rho_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
 						mb->theta_tag[mb->ntheta] = msg;
 						GMRFLib_sprintf(&msg, "GroupRho for %s", (secname ? secname : mb->f_tag[mb->nf]));
@@ -17973,7 +17986,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 					GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], mb->f_ntheta[mb->nf] - 1);
 					mb->theta_dir[mb->ntheta] = msg;
-					if (mb->f_group_model[mb->nf] == G_AR1 || mb->f_group_model[mb->nf] == G_EXCHANGEABLE) {
+					if (mb->f_group_model[mb->nf] == G_AR1 || mb->f_group_model[mb->nf] == G_EXCHANGEABLE ||
+					    mb->f_group_model[mb->nf] == G_EXCHANGEABLE_POS) {
 						mb->theta[mb->ntheta] = group_rho_intern;
 					} else {
 						mb->theta[mb->ntheta] = group_prec_intern;
@@ -17982,11 +17996,19 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 					mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 
+					int *ngp = NULL;
 					switch (mb->f_group_model[mb->nf]) {
 					case G_EXCHANGEABLE:
 						mb->theta_map[mb->ntheta] = map_group_rho;
 						// need to add a pointer that stays fixed, mb->theta_map_arg[mb->nf] does not!
-						int *ngp = NULL;
+						ngp = Calloc(1, int);
+						*ngp = mb->f_ngroup[mb->nf];
+						mb->theta_map_arg[mb->ntheta] = (void *) ngp;
+						break;
+
+					case G_EXCHANGEABLE_POS:
+						mb->theta_map[mb->ntheta] = map_probability;
+						// need to add a pointer that stays fixed, mb->theta_map_arg[mb->nf] does not!
 						ngp = Calloc(1, int);
 						*ngp = mb->f_ngroup[mb->nf];
 						mb->theta_map_arg[mb->ntheta] = (void *) ngp;
@@ -19381,6 +19403,13 @@ double extra(double *theta, int ntheta, void *argument)
 			if (mb->f_group_model[i] == G_EXCHANGEABLE) {	\
 				int ingroup = (int) ngroup;		\
 				group_rho = map_group_rho(group_rho_intern, MAP_FORWARD, (void *) &ingroup); \
+				normc_g = - 0.5 * (log(1.0+(ngroup - 1.0) * group_rho) + (ngroup-1)*log(1.0-group_rho)); \
+				if (NOT_FIXED(f_fixed[i][(_nt_)])) {	\
+					val += PRIOR_EVAL(mb->f_prior[i][(_nt_)], &group_rho_intern); \
+				}					\
+			}else if (mb->f_group_model[i] == G_EXCHANGEABLE_POS) {	\
+				int ingroup = (int) ngroup;		\
+				group_rho = map_probability(group_rho_intern, MAP_FORWARD, (void *) &ingroup); \
 				normc_g = - 0.5 * (log(1.0+(ngroup - 1.0) * group_rho) + (ngroup-1)*log(1.0-group_rho)); \
 				if (NOT_FIXED(f_fixed[i][(_nt_)])) {	\
 					val += PRIOR_EVAL(mb->f_prior[i][(_nt_)], &group_rho_intern); \
