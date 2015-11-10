@@ -123,7 +123,7 @@ convert_to_mac_binary () {
     for f in "$@"; do
 	ff=$(basename $f)
 	scp $f $host:$ff
-	ssh $host R CMD INSTALL --build --library=./tmp $ff
+	ssh $host myR CMD INSTALL --build --library=./tmp $ff
 	scp $host:$ff $f
     done
 }
