@@ -1,5 +1,5 @@
 SHELL = /bin/bash
-MAC = hruemac
+MAC = darwin
 
 default:;
 	@echo "TARGETS: all build-configs update-inla update-R update-r-inla.org update-build-yourself www Rinla-local Rinla-install Rinla-testing"
@@ -37,7 +37,7 @@ update-REPO:;
 	make MAC=$(MAC) -C R updateREPO
 
 update-r-inla.org :;
-	-rsync -auvL --delete google-code/inla/r-inla.org/. www/r-inla.org/.
+	-rsync -auvL --delete r-inla/r-inla.org/. www/r-inla.org/.
 
 update-build-yourself :;
 	-rsync -auv --exclude 'mc.tgz' --exclude 'my-laptop.tgz' build-yourself/.  www/build-yourself/.
