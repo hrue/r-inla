@@ -119,11 +119,11 @@ OldDir=$(echo ~hrue/www/www.inla/binaries/testing/Old)
 old="$tgzINLA-$bdate"
 
 convert_to_mac_binary () {
-    host=hruemac.math.ntnu.no
+    host=darwin.math.ntnu.no
     for f in "$@"; do
 	ff=$(basename $f)
 	scp $f $host:$ff
-	ssh $host myR CMD INSTALL --build --library=./tmp $ff
+	ssh $host R CMD INSTALL --build --library=./tmp $ff
 	scp $host:$ff $f
     done
 }
