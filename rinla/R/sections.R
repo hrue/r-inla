@@ -59,9 +59,24 @@
         from.t = gsub("REPLACE.ME.high", paste("high=", as.numeric(high), sep=""), from.t)
         cat(prefix, "to.theta", suff, " = ", to.t, "\n", file = file, append = TRUE, sep="")
         cat(prefix, "from.theta", suff, " = ", from.t, "\n", file = file, append = TRUE, sep="")
+
+        ## do a second replacement so that we replace the functions with actual functions after
+        ## the replacement of REPLACE.ME.....
+        hyper[[k]]$from.theta = eval(parse(text = gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""),
+                                               inla.function2source(hyper[[k]]$from.theta, newline = ""))))
+        hyper[[k]]$from.theta = eval(parse(text = gsub("REPLACE.ME.low", paste("ngroup=", as.numeric(low), sep=""),
+                                               inla.function2source(hyper[[k]]$from.theta, newline = ""))))
+        hyper[[k]]$from.theta = eval(parse(text = gsub("REPLACE.ME.high", paste("ngroup=", as.numeric(high), sep=""),
+                                               inla.function2source(hyper[[k]]$from.theta, newline = ""))))
+        hyper[[k]]$to.theta = eval(parse(text= gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""),
+                                             inla.function2source(hyper[[k]]$to.theta, newline = ""))))
+        hyper[[k]]$to.theta = eval(parse(text= gsub("REPLACE.ME.low", paste("ngroup=", as.numeric(low), sep=""),
+                                             inla.function2source(hyper[[k]]$to.theta, newline = ""))))
+        hyper[[k]]$to.theta = eval(parse(text= gsub("REPLACE.ME.high", paste("ngroup=", as.numeric(high), sep=""),
+                                             inla.function2source(hyper[[k]]$to.theta, newline = ""))))
     }
 
-    return ()
+    return (hyper)
 }
 
 `inla.write.boolean.field` = function(tag, val, file)
@@ -305,7 +320,7 @@
         low = random.spec$range[1]
         high = random.spec$range[2]
     }
-    inla.write.hyper(random.spec$hyper, file, data.dir = data.dir, ngroup = ngroup, low = low, high = high)
+    random.spec$hyper = inla.write.hyper(random.spec$hyper, file, data.dir = data.dir, ngroup = ngroup, low = low, high = high)
 
     if (inla.model.properties(random.spec$model, "latent")$nrow.ncol) {
         cat("nrow = ", random.spec$nrow, "\n", sep = " ", file = file,  append = TRUE)
@@ -349,7 +364,9 @@
             } else {
                 stopifnot(is.null(random.spec$control.group$graph))
             }
-            inla.write.hyper(random.spec$control.group$hyper, file = file,  prefix = "group.", data.dir = data.dir, ngroup = ngroup)
+            random.spec$control.group$hyper = (inla.write.hyper(random.spec$control.group$hyper,
+                                                                file = file,  prefix = "group.",
+                                                                data.dir = data.dir, ngroup = ngroup))
         }
     }
         
@@ -563,8 +580,10 @@
         random.spec$correct = -1L  ## code for ``make the default choice''
     }
     cat("correct = ", as.numeric(random.spec$correct), "\n", append=TRUE, sep = "", file = file)
-
     cat("\n", sep = " ", file = file,  append = TRUE)
+
+    ## need to store the updated one
+    return (random.spec)
 }
 
 `inla.inla.section` = function(file, inla.spec)

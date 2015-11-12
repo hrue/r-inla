@@ -1718,7 +1718,6 @@
                 ## we need to replace "REPLACE.ME.ngroup" in the function call, before we pass
                 ## them into 'all.hyper'. its kind of 'dirty'. switch to temporary name 'gh' for
                 ## simplicity
-                gh = gp$random.spec[[r]]$control.group$hyper
                 if (is.null(gp$random.spec[[r]]$range)) {
                     low = -Inf
                     high = Inf
@@ -1727,32 +1726,23 @@
                     high = gp$random.spec[[r]]$range[2]
                 }
 
-                for(ii in seq_along(length(gh))) {
-                    gh[[ii]]$from.theta = eval(parse(text = gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""),
-                                                         inla.function2source(gh[[ii]]$from.theta, newline = ""))))
-                    gh[[ii]]$from.theta = eval(parse(text = gsub("REPLACE.ME.low", paste("ngroup=", as.numeric(low), sep=""),
-                                                         inla.function2source(gh[[ii]]$from.theta, newline = ""))))
-                    gh[[ii]]$from.theta = eval(parse(text = gsub("REPLACE.ME.high", paste("ngroup=", as.numeric(high), sep=""),
-                                                         inla.function2source(gh[[ii]]$from.theta, newline = ""))))
-                    gh[[ii]]$to.theta = eval(parse(text= gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""),
-                                       inla.function2source(gh[[ii]]$to.theta, newline = ""))))
-                    gh[[ii]]$to.theta = eval(parse(text= gsub("REPLACE.ME.low", paste("ngroup=", as.numeric(low), sep=""),
-                                       inla.function2source(gh[[ii]]$to.theta, newline = ""))))
-                    gh[[ii]]$to.theta = eval(parse(text= gsub("REPLACE.ME.high", paste("ngroup=", as.numeric(high), sep=""),
-                                       inla.function2source(gh[[ii]]$to.theta, newline = ""))))
-                }
-                
-                all.hyper$random[[r]] = list(hyperid = inla.namefix(gp$random.spec[[r]]$term),
-                                    hyper = gp$random.spec[[r]]$hyper, group.hyper = gh)
+                ## for some models, the priors are computed in this function. in these cases, we
+                ## need to updated all.hyper with these priors, not the ones that goes into this
+                ## function...
+                rs.updated = (inla.ffield.section(file=file.ini,
+                                                  file.loc=file.loc, file.cov=file.cov,
+                                                  file.id.names = file.id.names, 
+                                                  file.extraconstr=file.extraconstr, 
+                                                  file.weights=file.weights, n=n, nrep = nrep, ngroup = ngroup,
+                                                  random.spec=gp$random.spec[[r]], 
+                                                  results.dir=paste("random.effect", inla.num(count.random), sep=""), 
+                                                  only.hyperparam= only.hyperparam,
+                                                  data.dir=data.dir))
+                all.hyper$random[[r]] = (list(hyperid = inla.namefix(gp$random.spec[[r]]$term),
+                                              hyper = rs.updated$hyper,
+                                              group.hyper = rs.updated$control.group$hyper))
 
-                inla.ffield.section(file=file.ini, file.loc=file.loc, file.cov=file.cov,
-                                    file.id.names = file.id.names, 
-                                    file.extraconstr=file.extraconstr, 
-                                    file.weights=file.weights, n=n, nrep = nrep, ngroup = ngroup,
-                                    random.spec=gp$random.spec[[r]], 
-                                    results.dir=paste("random.effect", inla.num(count.random), sep=""), 
-                                    only.hyperparam= only.hyperparam,
-                                    data.dir=data.dir)
+
             } else if (inla.one.of(gp$random.spec[[r]]$model, "linear")) {
                 ##....while here we have to add a LINEAR section
                 count.linear = count.linear+1
