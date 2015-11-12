@@ -13285,6 +13285,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 		mb->f_N[mb->nf] = mb->f_n[mb->nf] = mb->f_nrow[mb->nf] * mb->f_ncol[mb->nf];
+		if (mb->f_id[mb->nf] == F_RW2DIID) {
+			/* 
+			 * we need this for the RW2DIID model otherwise the locations are not set correctly (the length is wrong...)
+			 */
+			mb->f_N[mb->nf] = 2 * mb->f_n[mb->nf];
+		}
+
 		if (mb->verbose) {
 			printf("\t\tnrow[%1d] x ncol[%1d] = n[%1d] \n", mb->f_nrow[mb->nf], mb->f_ncol[mb->nf], mb->f_n[mb->nf]);
 		}
@@ -24966,7 +24973,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 
 	assert(nrep > 0);
 	ndiv = n / nrep;
-
 	d_mode = Calloc(n, double);
 	g_mode = Calloc(n, double);
 
