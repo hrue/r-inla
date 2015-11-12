@@ -1,0 +1,73 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Censored Poisson}
+
+\subsection*{Parametrisation}
+
+The Poisson distribution is
+\begin{displaymath}
+    \text{Prob}(y) = \frac{\lambda^{y}}{y!}\exp(-\lambda)
+\end{displaymath}
+for responses $y=0, 1, 2, \ldots$, where $\lambda$ is the expected
+value.
+
+The censored version is that observations $y \le C$ are censored and
+not reported (like, $y$ is reported to always $0$), whereas if $y > C$
+then $y$ is reported. The cencoring value, $C$, is a parameter in this
+distribution.
+
+
+\subsection*{Link-function}
+
+The mean-parameter is $\lambda$ and is linked to the linear predictor
+by
+\begin{displaymath}
+    \lambda(\eta) = E \exp(\eta)
+\end{displaymath}
+where $E>0$ is a known constant (or $\log(E)$ is the offset of $\eta$).
+
+\subsection*{Hyperparameters}
+
+None.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{cpoisson}$
+\item Required arguments: $y$, $E$ and $C$ (family-argument \texttt{cpoisson.C=<C>}).
+\end{itemize}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example with Poisson responses.
+{\small
+\verbatiminput{example-cpoisson.R}
+}
+
+\subsection*{Notes}
+
+For censored values, then $y$ must be one arbitrary value between $0$
+and $C$; \texttt{NA} does not work!
+
+\end{document}
+
+
+% LocalWords:  np Hyperparameters Ntrials poisson
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
+
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

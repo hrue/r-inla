@@ -2993,6 +2993,11 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 		break;
 
+	case L_CPOISSON:
+		idiv = 3;
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
+		break;
+
 	case L_GPOISSON:
 		idiv = 3;
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
@@ -4226,6 +4231,61 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_ve
 				}
 			} else {
 				logll[i] = gsl_cdf_poisson_P((unsigned int) y, E * lambda);
+			}
+		}
+	}
+
+	LINK_END;
+#undef logE
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_cpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+#define logE(E_) (E_ > 0.0 ? log(E_) : 0.0)
+
+	/*
+	 * y ~ Poisson(E*exp(x)), also accept E=0, giving the likelihood y * x. values <= C a cencored
+	 */
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double C = ds->data_observations.cpoisson_c;
+
+	if (C < 0.0) {
+		// then we're back to the poisson case
+		return (loglikelihood_poisson(logll, x, m, idx, x_vec, arg));
+	}
+
+	int i;
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y), lambda;
+
+	LINK_INIT;
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			if (y > C) {
+				logll[i] = y * (log(lambda) + logE(E)) - E * lambda - normc;
+			} else {
+				logll[i] = log(gsl_cdf_poisson_P((unsigned int) C, lambda));
+			}
+		}
+	} else {
+		for (i = 0; i < -m; i++) {
+			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			if (ISZERO(E * lambda)) {
+				if (ISZERO(y)) {
+					logll[i] = 1.0;
+				} else {
+					assert(!ISZERO(y));
+				}
+			} else {
+				if (y > C) {
+					logll[i] = gsl_cdf_poisson_P((unsigned int) y, E * lambda);
+				} else {
+					logll[i] = 1.0;
+				}
 			}
 		}
 	}
@@ -7342,7 +7402,6 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%s]\n", prior_tag, prior->name, prior->expression);
 		}
-
 	} else if (!strncasecmp(prior->name, "TABLE:", strlen("TABLE:"))) {
 		prior->id = P_TABLE;
 		prior->expression = GMRFLib_strdup(prior->name);	/* yes, use the same storage */
@@ -8476,6 +8535,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "POISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_poisson;
 		ds->data_id = L_POISSON;
+	} else if (!strcasecmp(ds->data_likelihood, "CPOISSON")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_cpoisson;
+		ds->data_id = L_CPOISSON;
 	} else if (!strcasecmp(ds->data_likelihood, "GPOISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gpoisson;
 		ds->data_id = L_GPOISSON;
@@ -8756,6 +8818,18 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Poisson data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
+							ds->data_observations.E[i], ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+		break;
+
+	case L_CPOISSON:
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: CPoisson data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
 							ds->data_observations.E[i], ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
@@ -9044,6 +9118,16 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 			ds->data_ntheta++;
+		}
+		break;
+
+	case L_CPOISSON:
+		/*
+		 * get options related to the cpoisson 
+		 */
+		ds->data_observations.cpoisson_c = iniparser_getdouble(ini, inla_string_join(secname, "CPOISSON.C"), -1);
+		if (mb->verbose) {
+			printf("\t\tcensor value for cpoisson [%g]\n", ds->data_observations.cpoisson_c);
 		}
 		break;
 

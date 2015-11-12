@@ -103,6 +103,7 @@
         response = response[!null.dat,]
 
     } else if (inla.one.of(family, c("poisson",
+                                     "cpoisson", 
                                      "gpoisson", 
                                      "zeroinflatedpoisson0",
                                      "zeroinflatedpoisson1", 

@@ -330,6 +330,12 @@ typedef struct {
 	double **gpoisson_overdispersion;
 	double **gpoisson_p;
 
+	/* 
+	 * cencored poisson. only observations > CPOISSON is reported, so the likelihood is poission(y) if y > CPOISSON, and sum_yy=0^CPOISSON poisson(yy) if y <=
+	 * CPOISSON is observed (normally coded as NA, which must be recoded as a integer <= CPOISSON)
+	 */
+	double cpoisson_c;
+
 	/*
 	 * test-implementations  
 	 */
@@ -423,6 +429,7 @@ typedef enum {
 	L_GAMMACOUNT,
 	L_SKEWNORMAL2,
 	L_KUMAR,
+	L_CPOISSON, 					       /* cencored poisson */
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1480,6 +1487,7 @@ int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double 
 int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_cpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
