@@ -112,8 +112,8 @@
         inla.ifelse(is.null(control$variant), 0L, as.integer(control$variant)),
         "\n", file = file,  append = TRUE)
 
-    if (inla.one.of(family, "cpoisson")) {
-        cat("cpoisson.C = ", inla.ifelse(is.null(control$cpoisson.C), -1, round(control$cpoisson.C)), "\n",
+    if (inla.one.of(family, "cenpoisson")) {
+        cat("cenpoisson.C = ", inla.ifelse(is.null(control$cenpoisson.C), -1, round(control$cenpoisson.C)), "\n",
             sep="", file=file, append=TRUE)
     }
 
