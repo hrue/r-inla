@@ -4655,14 +4655,14 @@
                  pdf = "poisson"
                  ),
 
-             cpoisson = list(
+             cenpoisson = list(
                  hyper = list(
                      ),
                  survival = FALSE,
                  discrete = TRUE,
                  link = c("default", "log", "logoffset", "test1", "special1", "special2"),
                  status = "experimental", 
-                 pdf = "cpoisson"
+                 pdf = "cenpoisson"
                  ),
 
              gpoisson = list(
