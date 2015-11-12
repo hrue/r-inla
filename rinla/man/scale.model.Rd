@@ -16,7 +16,6 @@
  }
 
  \arguments{
-
    \item{Q}{A SPD matrix,  either as a (dense) matrix or \code{sparseMatrix}}
    \item{constr}{Linear constraints spanning the null-space of \code{Q};
                  see \code{?INLA::f} and argument \code{extraconstr}} 

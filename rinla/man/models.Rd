@@ -4859,6 +4859,29 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `exchangeablepos'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{hyperid = }{`40101'}
+							\item{name = }{`logit correlation'}
+							\item{short.name = }{`rho'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`pc.rho0'}
+							\item{param = }{`0.5 0.5'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+							 }
+						 }
+					 }
+				 }
 				\item{Model `ar1'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{

@@ -18,11 +18,11 @@
               plot.predictor = TRUE,
               plot.q = TRUE,
               plot.cpo = TRUE,
+              plot.prior = FALSE, 
               single = FALSE,
               postscript = FALSE,
               pdf = FALSE,
               prefix = "inla.plots/figure-",
-              prior = FALSE, 
               internal.scale = FALSE, 
               debug = FALSE, 
               ...)
@@ -41,12 +41,12 @@
      for the linear predictor in the model should be plotted }
    \item{plot.q}{Boolean indicating if precision matrix should be displayed}
    \item{plot.cpo}{Boolean indicating if CPO/PIT valuesshould be plotted}
+   \item{plot.prior}{Plot also the prior density for the hyperparameters}
    \item{single}{Boolean indicating if there should be more than one plot per page
                  (FALSE) or just one (TRUE)}
    \item{postscript}{Boolean indicating if postscript files should be produced instead}
    \item{pdf}{Boolean indicating if PDF files should be produced instead}
    \item{prefix}{The prefix for the created files. Additional numbering and suffix is added.}
-   \item{prior}{Plot also the prior density.}
    \item{internal.scale}{Plot also the hyperparameters in its internal scale.}
    \item{debug}{Write some debug information}
    \item{...}{Additional arguments to \code{postscript()}, \code{pdf()} or \code{dev.new()}.}
