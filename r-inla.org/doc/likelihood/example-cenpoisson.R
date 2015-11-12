@@ -12,5 +12,5 @@ y[y <= C] = 0
 data = list(y=y,z=z)
 formula = y ~ 1+z
 result = inla(formula, family = "cenpoisson", data = data, E=E,
-    control.family = list(cpoisson.C = C))
+    control.family = list(cenpoisson.C = C))
 summary(result)
