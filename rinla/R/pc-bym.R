@@ -81,7 +81,7 @@ inla.pc.bym.phi = function(
         ## where to switch to alternative strategy
         dim.limit = 1000L, 
         eps = sqrt(.Machine$double.eps), 
-        debug = TRUE)
+        debug = FALSE)
 {
     my.debug = function(...) if (debug) cat("*** debug *** inla.pc.bym.phi: ", ... , "\n")
     
