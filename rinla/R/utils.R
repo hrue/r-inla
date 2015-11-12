@@ -810,7 +810,7 @@
         return (invisible())
     }
     dots = lapply(match.call(), eval, envir = parent.frame())[-1L]
-    for(i in seq_along(length(dots))) {
+    for(i in seq_along(dots)) {
         nm = names(dots)[i]
         if (!is.null(nm)) {
             if (!is.null(allowed.names)) {
