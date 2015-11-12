@@ -5546,6 +5546,8 @@ inla.models()
 			 \describe{
 				\item{Model `poisson'.}{Number of hyperparmeters are 0.
 				 }
+				\item{Model `cpoisson'.}{Number of hyperparmeters are 0.
+				 }
 				\item{Model `gpoisson'.}{Number of hyperparmeters are 2.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
