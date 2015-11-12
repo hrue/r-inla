@@ -4655,6 +4655,16 @@
                  pdf = "poisson"
                  ),
 
+             cpoisson = list(
+                 hyper = list(
+                     ),
+                 survival = FALSE,
+                 discrete = TRUE,
+                 link = c("default", "log", "logoffset", "test1", "special1", "special2"),
+                 status = "experimental", 
+                 pdf = "cpoisson"
+                 ),
+
              gpoisson = list(
                  hyper = list(
                      theta1 = list(

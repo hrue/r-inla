@@ -45,7 +45,7 @@
             file.xy = inla.tempfile(tmpdir=data.dir)
             inla.write.fmesher.file(xy, filename = file.xy)
             file.xy = gsub(data.dir, "$inladatadir", file.xy, fixed=TRUE)
-            cat("prior", suff, " = table: ", file.xy, "\n", append=TRUE, sep = "", file = file)
+            cat(prefix, "prior", suff, " = table: ", file.xy, "\n", append=TRUE, sep = "", file = file)
         } else {
             cat(prefix, "prior", suff, " = ", tmp.prior, "\n", file = file, append = TRUE, sep="")
         }
@@ -111,6 +111,11 @@
     cat("variant = ",
         inla.ifelse(is.null(control$variant), 0L, as.integer(control$variant)),
         "\n", file = file,  append = TRUE)
+
+    if (inla.one.of(family, "cpoisson")) {
+        cat("cpoisson.C = ", inla.ifelse(is.null(control$cpoisson.C), -1, round(control$cpoisson.C)), "\n",
+            sep="", file=file, append=TRUE)
+    }
 
     if (inla.one.of(family, "laplace")) {
         ## two parameters, alpha and epsilon is require for LAPLACE
