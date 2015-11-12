@@ -2993,7 +2993,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 		break;
 
-	case L_CPOISSON:
+	case L_CENPOISSON:
 		idiv = 3;
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 		break;
@@ -4239,7 +4239,7 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_ve
 #undef logE
 	return GMRFLib_SUCCESS;
 }
-int loglikelihood_cpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
 #define logE(E_) (E_ > 0.0 ? log(E_) : 0.0)
 
@@ -4251,7 +4251,7 @@ int loglikelihood_cpoisson(double *logll, double *x, int m, int idx, double *x_v
 	}
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double C = ds->data_observations.cpoisson_c;
+	double C = ds->data_observations.cenpoisson_c;
 
 	if (C < 0.0) {
 		// then we're back to the poisson case
@@ -8535,9 +8535,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "POISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_poisson;
 		ds->data_id = L_POISSON;
-	} else if (!strcasecmp(ds->data_likelihood, "CPOISSON")) {
-		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_cpoisson;
-		ds->data_id = L_CPOISSON;
+	} else if (!strcasecmp(ds->data_likelihood, "CENPOISSON")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_cenpoisson;
+		ds->data_id = L_CENPOISSON;
 	} else if (!strcasecmp(ds->data_likelihood, "GPOISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gpoisson;
 		ds->data_id = L_GPOISSON;
@@ -8825,7 +8825,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
-	case L_CPOISSON:
+	case L_CENPOISSON:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
@@ -9121,13 +9121,13 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
-	case L_CPOISSON:
+	case L_CENPOISSON:
 		/*
-		 * get options related to the cpoisson 
+		 * get options related to the cenpoisson 
 		 */
-		ds->data_observations.cpoisson_c = iniparser_getdouble(ini, inla_string_join(secname, "CPOISSON.C"), -1);
+		ds->data_observations.cenpoisson_c = iniparser_getdouble(ini, inla_string_join(secname, "CENPOISSON.C"), -1);
 		if (mb->verbose) {
-			printf("\t\tcensor value for cpoisson [%g]\n", ds->data_observations.cpoisson_c);
+			printf("\t\tcensor value for cenpoisson [%g]\n", ds->data_observations.cenpoisson_c);
 		}
 		break;
 
@@ -13370,7 +13370,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		mb->f_N[mb->nf] = mb->f_n[mb->nf] = mb->f_nrow[mb->nf] * mb->f_ncol[mb->nf];
 		if (mb->f_id[mb->nf] == F_RW2DIID) {
-			/* 
+			/*
 			 * we need this for the RW2DIID model otherwise the locations are not set correctly (the length is wrong...)
 			 */
 			mb->f_N[mb->nf] = 2 * mb->f_n[mb->nf];
