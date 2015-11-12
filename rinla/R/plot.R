@@ -989,8 +989,8 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
         return (list(mean = mu, prec = 1/diag(Sigma)))
     }
     
-    for (i in seq_along(length(all.hyper$random))) {
-        for(j in seq_along(length(all.hyper$random[[i]]$hyper))) {
+    for (i in seq_along(all.hyper$random)) {
+        for(j in seq_along(all.hyper$random[[i]]$hyper)) {
 
             if (all.hyper$random[[i]]$hyper[[j]]$prior == "mvnorm") {
                 ## replace this one, and the p-following ones, with its marginals
