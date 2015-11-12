@@ -4268,7 +4268,7 @@ int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *x
 			if (y > C) {
 				logll[i] = y * (log(lambda) + logE(E)) - E * lambda - normc;
 			} else {
-				logll[i] = log(gsl_cdf_poisson_P((unsigned int) C, lambda));
+				logll[i] = log(gsl_cdf_poisson_P((unsigned int) C, E * lambda));
 			}
 		}
 	} else {
