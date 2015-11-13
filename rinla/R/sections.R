@@ -64,15 +64,15 @@
         ## the replacement of REPLACE.ME.....
         hyper[[k]]$from.theta = eval(parse(text = gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""),
                                                inla.function2source(hyper[[k]]$from.theta, newline = ""))))
-        hyper[[k]]$from.theta = eval(parse(text = gsub("REPLACE.ME.low", paste("ngroup=", as.numeric(low), sep=""),
+        hyper[[k]]$from.theta = eval(parse(text = gsub("REPLACE.ME.low", paste("low=", as.numeric(low), sep=""),
                                                inla.function2source(hyper[[k]]$from.theta, newline = ""))))
-        hyper[[k]]$from.theta = eval(parse(text = gsub("REPLACE.ME.high", paste("ngroup=", as.numeric(high), sep=""),
+        hyper[[k]]$from.theta = eval(parse(text = gsub("REPLACE.ME.high", paste("high=", as.numeric(high), sep=""),
                                                inla.function2source(hyper[[k]]$from.theta, newline = ""))))
+        hyper[[k]]$to.theta = eval(parse(text= gsub("REPLACE.ME.low", paste("low=", as.numeric(low), sep=""),
+                                             inla.function2source(hyper[[k]]$to.theta, newline = ""))))
+        hyper[[k]]$to.theta = eval(parse(text= gsub("REPLACE.ME.high", paste("high=", as.numeric(high), sep=""),
+                                             inla.function2source(hyper[[k]]$to.theta, newline = ""))))
         hyper[[k]]$to.theta = eval(parse(text= gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""),
-                                             inla.function2source(hyper[[k]]$to.theta, newline = ""))))
-        hyper[[k]]$to.theta = eval(parse(text= gsub("REPLACE.ME.low", paste("ngroup=", as.numeric(low), sep=""),
-                                             inla.function2source(hyper[[k]]$to.theta, newline = ""))))
-        hyper[[k]]$to.theta = eval(parse(text= gsub("REPLACE.ME.high", paste("ngroup=", as.numeric(high), sep=""),
                                              inla.function2source(hyper[[k]]$to.theta, newline = ""))))
     }
 
