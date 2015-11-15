@@ -113,8 +113,19 @@
         "\n", file = file,  append = TRUE)
 
     if (inla.one.of(family, "cenpoisson")) {
-        cat("cenpoisson.C = ", inla.ifelse(is.null(control$cenpoisson.C), -1, round(control$cenpoisson.C)), "\n",
-            sep="", file=file, append=TRUE)
+        if (is.null(control$cenpoisson.I)) {
+            interval = inla.set.control.family.default()$cenpoisson.I
+        } else {
+            ## must be integers
+            interval = round(control$cenpoisson.I)
+        }
+        if (length(interval) != 2L) {
+            stop(paste("cenpoisson.I: Must be a vector of length 2.", length(interval)))
+        }
+        if (interval[1] > interval[2]) {
+            stop(paste("cenpoisson.I = c(Low, High): Low > High!", interval[1],  interval[2]))
+        }
+        cat("cenpoisson.I = ", interval[1], " ",  interval[2], "\n", sep="", file=file, append=TRUE)
     }
 
     if (inla.one.of(family, "laplace")) {

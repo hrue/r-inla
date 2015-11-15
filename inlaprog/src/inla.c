@@ -2374,7 +2374,7 @@ double priorfunc_pc_ar(double *x, double *parameters)
 double priorfunc_ref_ar(double *x, double *parameters)
 {
 	int i, p;
-	double lambda, *b, *gamma, pacf[3], ldens, logjac;
+	double pacf[3], ldens, logjac;
 
 	p = (int) parameters[0];
 	assert(p >= 0 && p <= 3);
@@ -4244,17 +4244,17 @@ int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *x
 #define logE(E_) (E_ > 0.0 ? log(E_) : 0.0)
 
 	/*
-	 * y ~ Poisson(E*exp(x)), also accept E=0, giving the likelihood y * x. values <= C a cencored
+	 * y ~ Poisson(E*exp(x)), also accept E=0, giving the likelihood y * x. values in CENINTERVAL is cencored
 	 */
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double C = ds->data_observations.cenpoisson_c;
+	double *interval = ds->data_observations.cenpoisson_interval;
 
-	if (C < 0.0) {
-		// then we're back to the poisson case
+	if (interval[0] == interval[1] && (interval[0] < 0.0 || ISINF(interval[0]))) {
+		// now we are back to the poisson case
 		return (loglikelihood_poisson(logll, x, m, idx, x_vec, arg));
 	}
 
@@ -4265,10 +4265,15 @@ int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *x
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			if (y > C) {
-				logll[i] = y * (log(lambda) + logE(E)) - E * lambda - normc;
+			if (y >= interval[0] && y <= interval[1]) {
+				if (interval[0] > 0.0) {
+					logll[i] = log(gsl_cdf_poisson_P((unsigned int) interval[1], E * lambda)
+						       - gsl_cdf_poisson_P((unsigned int) (interval[0] - 1L), E * lambda));
+				} else {
+					logll[i] = log(gsl_cdf_poisson_P((unsigned int) interval[1], E * lambda));
+				}
 			} else {
-				logll[i] = log(gsl_cdf_poisson_P((unsigned int) C, E * lambda));
+				logll[i] = y * (log(lambda) + logE(E)) - E * lambda - normc;
 			}
 		}
 	} else {
@@ -4281,10 +4286,12 @@ int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *x
 					assert(!ISZERO(y));
 				}
 			} else {
-				if (y > C) {
+				if (y < interval[0] || y > interval[1]) {
+					// not censored
 					logll[i] = gsl_cdf_poisson_P((unsigned int) y, E * lambda);
 				} else {
-					logll[i] = 1.0;
+					// censored
+					logll[i] = gsl_cdf_poisson_P((unsigned int) interval[1], E * lambda);
 				}
 			}
 		}
@@ -8469,7 +8476,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	 * parse section = DATA 
 	 */
 
-	char *secname = NULL, *msg = NULL;
+	char *secname = NULL, *msg = NULL, *ctmp = NULL;
 	int i;
 	double tmp;
 	Data_section_tp *ds;
@@ -9125,10 +9132,16 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * get options related to the cenpoisson 
 		 */
-		ds->data_observations.cenpoisson_c = iniparser_getdouble(ini, inla_string_join(secname, "CENPOISSON.C"), -1);
-		if (mb->verbose) {
-			printf("\t\tcensor value for cenpoisson [%g]\n", ds->data_observations.cenpoisson_c);
+		ds->data_observations.cenpoisson_interval = Calloc(2, double);
+		ctmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CENPOISSON.I"), NULL));
+		if (inla_sread_doubles(ds->data_observations.cenpoisson_interval, 2, ctmp) == INLA_FAIL) {
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "CENPOISSON.I", ctmp);
 		}
+		if (mb->verbose) {
+			printf("\t\tcenpoisson censor-interval = [%g, %g]\n",
+			       ds->data_observations.cenpoisson_interval[0], ds->data_observations.cenpoisson_interval[1]);
+		}
+		Free(ctmp);
 		break;
 
 	case L_GPOISSON:
