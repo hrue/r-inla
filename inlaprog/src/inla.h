@@ -331,10 +331,9 @@ typedef struct {
 	double **gpoisson_p;
 
 	/* 
-	 * cencored poisson. only observations > CENPOISSON is reported, so the likelihood is poission(y) if y > CENPOISSON, and sum_yy=0^CENPOISSON poisson(yy) if y <=
-	 * CENPOISSON is observed (normally coded as NA, which must be recoded as a integer <= CENPOISSON)
+	 * cencored poisson. values in [interval[0], interval[1]] are cencored
 	 */
-	double cenpoisson_c;
+	double *cenpoisson_interval;
 
 	/*
 	 * test-implementations  
