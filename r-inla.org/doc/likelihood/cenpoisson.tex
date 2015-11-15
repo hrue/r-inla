@@ -14,13 +14,9 @@ The Poisson distribution is
     \text{Prob}(y) = \frac{\lambda^{y}}{y!}\exp(-\lambda)
 \end{displaymath}
 for responses $y=0, 1, 2, \ldots$, where $\lambda$ is the expected
-value.
-
-The censored version is that observations $y \le C$ are censored and
-not reported (like, $y$ is reported to always $0$), whereas if $y > C$
-then $y$ is reported. The cencoring value, $C$, is a parameter in this
-distribution.
-
+value.  The cencored version is that reponse values in the interval
+$L \le y \le H$ are cencored (and reported as $y=L$, say), whereas
+other values are reported as is.
 
 \subsection*{Link-function}
 
@@ -39,7 +35,8 @@ None.
 
 \begin{itemize}
 \item $\text{family}=\texttt{cenpoisson}$
-\item Required arguments: $y$, $E$ and $C$ (family-argument \texttt{cenpoisson.C=<C>}).
+\item Required arguments: $y$, $E$, $L$ and $H$ (family-argument
+    \texttt{cenpoisson.I=c(L,H)}).
 \end{itemize}
 
 \subsection*{Example}
@@ -52,8 +49,7 @@ example with Poisson responses.
 
 \subsection*{Notes}
 
-For censored values, then $y$ must be one arbitrary value between $0$
-and $C$; \texttt{NA} does not work!
+For censored values, then $y$ must be one arbitrary value in the interval; \texttt{NA} does not work!!!
 
 \end{document}
 
