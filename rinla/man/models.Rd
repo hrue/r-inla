@@ -199,6 +199,7 @@ inla.models()
 								\item{n.div.by = }{`NULL'}
 								\item{n.required = }{`FALSE'}
 								\item{set.default.values = }{`FALSE'}
+								\item{min.diff = }{`1e-05'}
 								\item{pdf = }{`rw1'}
 							 }
 						 }
@@ -231,6 +232,7 @@ inla.models()
 								\item{n.div.by = }{`NULL'}
 								\item{n.required = }{`FALSE'}
 								\item{set.default.values = }{`FALSE'}
+								\item{min.diff = }{`0.001'}
 								\item{pdf = }{`rw2'}
 							 }
 						 }
@@ -263,6 +265,7 @@ inla.models()
 								\item{n.div.by = }{`NULL'}
 								\item{n.required = }{`FALSE'}
 								\item{set.default.values = }{`FALSE'}
+								\item{min.diff = }{`0.001'}
 								\item{pdf = }{`crw2'}
 							 }
 						 }

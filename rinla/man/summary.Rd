@@ -14,14 +14,16 @@ a summary from it.
 
 }
 \usage{
-\method{summary}{inla}(object,...)
-\method{print}{summary.inla}(x,...)
+\method{summary}{inla}(object, ..., digits = 4L, include.lincomb = TRUE)
+\method{print}{summary.inla}(x, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{object}{  a fitted \code{inla} object as produced by
     \code{inla}.}
-  \item{x}{a \code{summary.inla} object produced by \code{summary.inla}.}
+  \item{x}{a \code{summary.inla} object produced by \code{summary.inla}}
+  \item{digits}{Integer Number of digits}
+  \item{include.lincomb}{Logcial Include the summary for the the linear combinations or not}
   \item{...}{ other arguments.}
 
 }
@@ -40,7 +42,9 @@ posterior mean and standard deviations for the hyperparameters
   \item{random}{the component from \code{object}.}
   \item{neffp}{the component from \code{object}.}          
   \item{linear.predictor}{the component from \code{object}.}
+  \item{lincomb}{the component from \code{object}.}
+  \item{lincomb.derived}{the component from \code{object}.}
   \item{family}{the component from \code{object}.}   
 }
-\author{Sara Martino}
+\author{Sara Martino and Havard Rue}
 \seealso{ \code{\link{inla}} }
