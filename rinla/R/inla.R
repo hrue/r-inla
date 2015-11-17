@@ -1532,6 +1532,9 @@
                 file.loc=inla.tempfile(tmpdir=data.dir)
                 if (inla.getOption("internal.binary.mode")) {
                     inla.write.fmesher.file(as.matrix(as.numeric(location[[r]]), ncol = 1),  filename = file.loc, debug = debug)
+                    ## prevent some numerical instabilities for models rw1, rw2, crw2, etc...
+                    inla.check.location(location[[r]], term = gp$random.spec[[r]]$term,
+                                        model = gp$random.spec[[r]]$model, section = "latent")
                 } else {
                     file.create(file.loc)
                     write(as.numeric(location[[r]]), ncolumns=1, file=file.loc, append=FALSE)
@@ -1713,17 +1716,6 @@
                     file.weights = gsub(data.dir, "$inladatadir", file.weights, fixed=TRUE)
 
                     n.weights = n.weights+1
-                }
-
-                ## we need to replace "REPLACE.ME.ngroup" in the function call, before we pass
-                ## them into 'all.hyper'. its kind of 'dirty'. switch to temporary name 'gh' for
-                ## simplicity
-                if (is.null(gp$random.spec[[r]]$range)) {
-                    low = -Inf
-                    high = Inf
-                } else {
-                    low = gp$random.spec[[r]]$range[1]
-                    high = gp$random.spec[[r]]$range[2]
                 }
 
                 ## for some models, the priors are computed in this function. in these cases, we
