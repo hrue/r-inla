@@ -1027,13 +1027,19 @@
     min.diff = min(diff(sort(loc)))/diff(range(loc))
     lim = inla.model.properties(model, section)$min.diff
     if (!is.null(lim) && (min.diff < lim)) {
-        stop(paste("locations are to close for f(",
+        stop(paste(sep = "", 
+                   "Locations are to close for f(",
                    term, ", model=\"",
-                   model, "\", ...), ", 
+                   model, "\", ...): ", 
                    " min.diff = ",
                    format(min.diff, scientific=TRUE, digits=4),
-                   " < ", format(lim, scientific=TRUE, digits=4), 
-                   "; see ?inla.group()", sep=""))
+                   " < ", format(lim, scientific=TRUE, digits=4), "\n", 
+                   "  You can fix this by some kind of binning, see ?inla.group", "\n",
+                   "  If you want/need to bypass this check at your own risk, do", "\n", 
+                   "\t> m = get(\"inla.models\", inla.get.inlaEnv())\n", 
+                   "\t> m$", section, "$", model, "$min.diff = NULL\n", 
+                   "\t> assign(\"inla.models\", m, inla.get.inlaEnv())"))
+                   
     }
     return (invisible())
 }
