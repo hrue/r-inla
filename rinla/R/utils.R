@@ -1021,3 +1021,19 @@
 
     return (as.data.frame(result))
 }
+
+`inla.check.location` = function(loc, term, model, section = "latent")
+{
+    min.diff = min(diff(sort(loc)))/diff(range(loc))
+    lim = inla.model.properties(model, section)$min.diff
+    if (!is.null(lim) && (min.diff < lim)) {
+        stop(paste("locations are to close for f(",
+                   term, ", model=\"",
+                   model, "\", ...), ", 
+                   " min.diff = ",
+                   format(min.diff, scientific=TRUE, digits=4),
+                   " < ", format(lim, scientific=TRUE, digits=4), 
+                   "; see ?inla.group()", sep=""))
+    }
+    return (invisible())
+}
