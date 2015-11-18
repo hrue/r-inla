@@ -1060,6 +1060,15 @@ inla.internal.experimental.mode = FALSE
     function(results.dir,
              debug = FALSE)
 {
+    my.read.pnm = function(...) {
+        ## disable warnings
+        warn = getOption("warn")
+        options(warn=-1L) ## disable...
+        ret = read.pnm(...)
+        do.call("options", args = list(warn = warn))
+        return (ret)
+    }
+
     alldir = dir(results.dir)
     if (length(grep("^Q$", alldir))==1L) {
         pixm = inla.require("pixmap")
@@ -1074,19 +1083,19 @@ inla.internal.experimental.mode = FALSE
         }
             
         if (file.exists(file) && pixm)
-            Q.matrix = read.pnm(file)
+            Q.matrix = my.read.pnm(file)
         else
             Q.matrix = NULL
         
         file=paste(results.dir, .Platform$file.sep,"Q/precision-matrix-reordered.pbm", sep="")
         if (file.exists(file) && pixm)
-            Q.matrix.reorder = read.pnm(file)
+            Q.matrix.reorder = my.read.pnm(file)
         else
             Q.matrix.reorder = NULL
         
         file=paste(results.dir, .Platform$file.sep,"Q/precision-matrix_L.pbm", sep="")
         if (file.exists(file) && pixm)
-            L = read.pnm(file)
+            L = my.read.pnm(file)
         else
             L = NULL
 
