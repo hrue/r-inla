@@ -1024,9 +1024,15 @@
 
 `inla.check.location` = function(loc, term, model, section = "latent")
 {
-    min.diff = min(diff(sort(loc)))/diff(range(loc))
+    if (is.null(loc) || length(loc) <= 1) {
+        return (invisible())
+    }
     lim = inla.model.properties(model, section)$min.diff
-    if (!is.null(lim) && (min.diff < lim)) {
+    if (is.null(lim))
+        return (invisible())
+    
+    min.diff = min(diff(sort(loc)))/diff(range(loc))
+    if (min.diff < lim) {
         stop(paste(sep = "", 
                    "Locations are to close for f(",
                    term, ", model=\"",
@@ -1039,7 +1045,7 @@
                    "\t> m = get(\"inla.models\", inla.get.inlaEnv())\n", 
                    "\t> m$", section, "$", model, "$min.diff = NULL\n", 
                    "\t> assign(\"inla.models\", m, inla.get.inlaEnv())"))
-                   
+        
     }
     return (invisible())
 }
