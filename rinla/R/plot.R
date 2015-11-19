@@ -685,7 +685,6 @@ inla.extract.prior = function(section = NULL, hyperid = NULL, all.hyper, debug=F
         ## hyperid = name of fixed effect
         output("enter section [fixed]")
         output("searching for hyperid = ", hyperid)
-
         h = all.hyper$fixed
         found = FALSE
         for(i in seq_len(length(h))) {
@@ -695,13 +694,32 @@ inla.extract.prior = function(section = NULL, hyperid = NULL, all.hyper, debug=F
                 break
             }
         }
-        if (!found) {
-            output(paste("cannot find hyperid '", hyperid, "' in section 'fixed'.",  sep=""),  stop=TRUE)
+        if (found) {
+            prior = "gaussian"
+            param = c(h[[i]]$prior.mean, h[[i]]$prior.prec)
+            from.theta = function(x) x
+            to.theta = function(x) x
+        } else {
+            ## try section 'linear' instead
+            output("enter section [linear]")
+            output("searching for hyperid = ", hyperid)
+            h = all.hyper$linear
+            found = FALSE
+            for(i in seq_len(length(h))) {
+                ## output("search for label = ", h[[i]]$label)
+                if (inla.strcasecmp(h[[i]]$label, hyperid)) {
+                    found = TRUE
+                    break
+                }
+            }
+            if (!found) {
+                output(paste("cannot find hyperid '", hyperid, "' in sections 'fixed' and 'linear'.",  sep=""),  stop=TRUE)
+            }
+            prior = "gaussian"
+            param = c(h[[i]]$prior.mean, h[[i]]$prior.prec)
+            from.theta = function(x) x
+            to.theta = function(x) x
         }
-        prior = "gaussian"
-        param = c(h[[i]]$prior.mean, h[[i]]$prior.prec)
-        from.theta = function(x) x
-        to.theta = function(x) x
     } else if (section == "predictor") {
         output("section predictor")
         h = all.hyper$predictor
