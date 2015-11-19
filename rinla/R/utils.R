@@ -1034,7 +1034,7 @@
     min.diff = min(diff(sort(loc)))/diff(range(loc))
     if (min.diff < lim) {
         stop(paste(sep = "", 
-                   "Locations are to close for f(",
+                   "Locations are too close for f(",
                    term, ", model=\"",
                    model, "\", ...): ", 
                    " min.diff = ",
