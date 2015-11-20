@@ -7,24 +7,18 @@
 ##!
 ##!\description{\code{inla.group} group or cluster covariates so to reduce
 ##!  the number of unique values}
-##!
 ##!\usage{
 ##!inla.group(x, n = 25, method = c("cut", "quantile"), idx.only = FALSE)
 ##!}
-##!
 ##!\arguments{
 ##!
 ##!  \item{x}{The vector of covariates to group.}
-##!
 ##!  \item{n}{Number of classes or bins to group into.}
-##!  
 ##!  \item{method}{Group either using bins with equal length intervals
 ##!    (\code{method = "cut"}), or equal distance in the `probability'
 ##!    scale using the quantiles (\code{method = "quantile"}).}
-##!
 ##!  \item{idx.only}{Option to return the index only and not the
 ##!    \code{method}.}
-##!
 ##!}
 ##!
 ##!
@@ -32,11 +26,8 @@
 ##!  \code{inla.group} return the new grouped covariates where the classes
 ##!  are set to the median of all the covariates belonging to that group.
 ##!}
-##!
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
-##!
 ##!\seealso{\code{\link{f}}}
-##!
 ##!\examples{
 ##!## this gives groups 3 and 8
 ##!x = 1:10
@@ -108,18 +99,48 @@
     if (any(is.na(x))) {
         idx.ok = !is.na(x)
         x[idx.ok] = inla.group.core(x[idx.ok], n, method, idx.only)
-
         return (x)
     } else {
         return (inla.group.core(x, n, method, idx.only))
     }
 }
 
-`inla.group.old` = function(x, n)
+`inla.group.dist` = function(x, dist.min = NULL, dist.min.rel = NULL)
 {
-    ### old version
-    cutpoints = seq(range(x)[1], range(x)[2], length.out=(n+1))
-    lev = (cutpoints[1:(n)]+cutpoints[2:(n+1)])/2
-    int = cut(x, breaks=cutpoints, include.lowest=TRUE, labels=FALSE)
-    return(lev[int])
+    ## form groups based on the distance such that min.distance > dist.min
+    if (missing(x))
+        return (NULL)
+    
+    if (any(is.na(x))) {
+        idx.ok = !is.na(x)
+        x[idx.ok] = inla.group.dist(x[idx.ok], dist.min, dist.min.rel)
+        return (x)
+    }
+    
+    if ((is.null(dist.min) && is.null(dist.min.rel)) || (length(x) == 1L)) {
+        return (x)
+    }
+    dist = if (!is.null(dist.min)) dist.min else diff(range(x)) * dist.min.rel
+    x.sort = order(x)
+    n = length(x)
+    xx = x[x.sort]
+
+    ## this is potentially slow...
+    i = 1L
+    while(i <= n-1) {
+        if (xx[i+1L] - xx[i] > 0.0 && xx[i+1L] - xx[i] < 2*dist) {
+            k = 2L
+            while(i + k <= n && xx[i+k] - xx[i] < 2*dist) {
+                k = k + 1L
+            }
+            idx = i:(i+k-1L)
+            xx[idx] = mean(range(xx[idx]))
+            i = i + k
+        } else {
+            i = i + 1L
+        }
+    }
+    xx[x.sort] = xx
+
+    return (xx)
 }
