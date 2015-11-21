@@ -71,12 +71,8 @@
 
 `print.inla.q` = function(x, ...)
 {
-    if (length(x) == 0) {
-        ##cat("No jobs available\n")
-    } else {
-        for(k in seq_along(x)) {
-            cat("\t Job:", x[[k]]$no, "\tId:", x[[k]]$id, "\tStatus:", x[[k]]$status, "\n")
-        }
+    for(k in seq_along(x)) {
+        cat("\t Job:", x[[k]]$no, "\tId:", x[[k]]$id, "\tStatus:", x[[k]]$status, "\n")
     }
     return (invisible(x))
 }
