@@ -673,10 +673,10 @@ inla.extract.prior = function(section = NULL, hyperid = NULL, all.hyper, debug=F
         return(str)
     }
 
-    output = function(..., stop=FALSE, force = FALSE)
+    output = function(..., warning=FALSE, force = FALSE)
     {
         msg = paste("*** inla.extract.prior: ", ..., sep="", collapse=" ")
-        if (stop) stop(msg)
+        if (warning) warning(msg)
         if (debug || force) print(msg)
         return (invisible())
     }
@@ -713,7 +713,9 @@ inla.extract.prior = function(section = NULL, hyperid = NULL, all.hyper, debug=F
                 }
             }
             if (!found) {
-                output(paste("cannot find hyperid '", hyperid, "' in sections 'fixed' and 'linear'.",  sep=""),  stop=TRUE)
+                output(paste("cannot find hyperid '", hyperid,
+                             "' in sections 'fixed' and 'linear'.",  sep=""), warning = TRUE)
+                return (NA)
             }
             prior = "gaussian"
             param = c(h[[i]]$prior.mean, h[[i]]$prior.prec)
@@ -741,7 +743,8 @@ inla.extract.prior = function(section = NULL, hyperid = NULL, all.hyper, debug=F
             }
         }
         if (!found) {
-            output("likelihood ",  section, " with hyperid ", hyperid,  " is not found",  stop=TRUE)
+            output("likelihood ",  section, " with hyperid ", hyperid,  " is not found", warning=TRUE)
+            return (NA)
         } else {
             output("likelihood ",  section, " with hyperid ", hyperid,  " is found with idx.family=", idx.family)
         }
@@ -755,7 +758,9 @@ inla.extract.prior = function(section = NULL, hyperid = NULL, all.hyper, debug=F
             }
         }
         if (!found) {
-            output("likelihood ",  section, " with hyperid ", hyperid,  ". theta is not found",  stop=TRUE)
+            output("likelihood ",  section, " with hyperid ", hyperid,  ". theta is not found",
+                   warning = TRUE)
+            return (NA)
         } else {
            output("likelihood ",  section, " with hyperid ", hyperid,  ". theta is found with idx.theta=", idx.theta)
         }
@@ -776,7 +781,8 @@ inla.extract.prior = function(section = NULL, hyperid = NULL, all.hyper, debug=F
             }
         }
         if (!found) {
-            output("random ",  section, " with hyperid ", hyperid,  " is not found",  stop=TRUE)
+            output("random ",  section, " with hyperid ", hyperid,  " is not found", warning = TRUE)
+            return (NA)
         } else {
             output("random ",  section, " with hyperid ", hyperid,  " is found with idx.random=", idx.random)
         }
@@ -800,7 +806,8 @@ inla.extract.prior = function(section = NULL, hyperid = NULL, all.hyper, debug=F
             hyper = h[[idx.random]]$group.hyper
             if (!found) {
                 output("random ",  section, " with hyperid ", hyperid,  ". theta is not found",
-                       stop=TRUE)
+                       warning = TRUE)
+                return (NA)
             } else {
                 output("random ",  section, " with hyperid ", hyperid,  ". theta is found with (group) idx.theta=", idx.theta)
             }
