@@ -2150,7 +2150,7 @@ double priorfunc_pc_prec(double *x, double *parameters)
 
 	return val;
 }
-double priorfunc_pc_rho0(double *x, double *parameters)
+double priorfunc_pc_cor0(double *x, double *parameters)
 {
 	// alpha = Prob(|rho| > u)
 	int debug = 0;
@@ -2171,13 +2171,13 @@ double priorfunc_pc_rho0(double *x, double *parameters)
 	val = ldens + ljac;
 
 	if (debug) {
-		fprintf(stderr, "priorfunc_pc_rho0: mu %g lambda %g ldens %g ljac %g\n", mu, lambda, ldens, ljac);
-		fprintf(stderr, "priorfunc_pc_rho0: theta %g val %g\n", *x, val);
+		fprintf(stderr, "priorfunc_pc_cor0: mu %g lambda %g ldens %g ljac %g\n", mu, lambda, ldens, ljac);
+		fprintf(stderr, "priorfunc_pc_cor0: theta %g val %g\n", *x, val);
 	}
 
 	return val;
 }
-double priorfunc_pc_rho1(double *x, double *parameters)
+double priorfunc_pc_cor1(double *x, double *parameters)
 {
 	// alpha = Prob(rho > u)
 	int debug = 0;
@@ -2192,7 +2192,7 @@ double priorfunc_pc_rho1(double *x, double *parameters)
 
 	if (!(u > -1.0 && u < 1.0 && alpha > sqrt((1.0 - u) / 2.0) && alpha < 1.0)) {
 		char *msg;
-		GMRFLib_sprintf(&msg, "Wrong rho1 prior-parameters. We must have alpha > sqrt((1-u)/2); see the documentation.");
+		GMRFLib_sprintf(&msg, "Wrong cor1 prior-parameters. We must have alpha > sqrt((1-u)/2); see the documentation.");
 		inla_error_general(msg);
 		exit(1);
 	}
@@ -2211,7 +2211,7 @@ double priorfunc_pc_rho1(double *x, double *parameters)
 	}
 
 	if (debug) {
-		printf("priorfunc_pc_rho1: u=%g alpha=%g  initial value for lambda=%g\n", u, alpha, lambda);
+		printf("priorfunc_pc_cor1: u=%g alpha=%g  initial value for lambda=%g\n", u, alpha, lambda);
 	}
 
 	count = 0;
@@ -2220,12 +2220,12 @@ double priorfunc_pc_rho1(double *x, double *parameters)
 		df = (Fsolve(lambda_initial + h) - Fsolve(lambda_initial - h)) / (2.0 * h);
 		lambda = lambda_initial - Fsolve(lambda) / df;
 		if (debug) {
-			printf("priorfunc_pc_rho1: iteration=%d lambda=%g\n", count, lambda);
+			printf("priorfunc_pc_cor1: iteration=%d lambda=%g\n", count, lambda);
 		}
 		assert(count++ < count_max);
 	}
 	if (debug)
-		printf("priorfunc_pc_rho1: function value %g\n", Fsolve(lambda));
+		printf("priorfunc_pc_cor1: function value %g\n", Fsolve(lambda));
 
 #undef Fsolve
 	rho = map_rho(*x, MAP_FORWARD, NULL);
@@ -7341,9 +7341,9 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
-	} else if (!strcasecmp(prior->name, "PCRHO0")) {
-		prior->id = P_PC_RHO0;
-		prior->priorfunc = priorfunc_pc_rho0;
+	} else if (!strcasecmp(prior->name, "PCCOR0")) {
+		prior->id = P_PC_COR0;
+		prior->priorfunc = priorfunc_pc_cor0;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
@@ -7357,9 +7357,9 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
-	} else if (!strcasecmp(prior->name, "PCRHO1")) {
-		prior->id = P_PC_RHO1;
-		prior->priorfunc = priorfunc_pc_rho1;
+	} else if (!strcasecmp(prior->name, "PCCOR1")) {
+		prior->id = P_PC_COR1;
+		prior->priorfunc = priorfunc_pc_cor1;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
