@@ -630,7 +630,7 @@ inla.models()
 							\item{short.name = }{`pacf1'}
 							\item{initial = }{`1'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.5'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -643,7 +643,7 @@ inla.models()
 							\item{short.name = }{`pacf2'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.4'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -656,7 +656,7 @@ inla.models()
 							\item{short.name = }{`pacf3'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.3'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -669,7 +669,7 @@ inla.models()
 							\item{short.name = }{`pacf4'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.2'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -682,7 +682,7 @@ inla.models()
 							\item{short.name = }{`pacf5'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -695,7 +695,7 @@ inla.models()
 							\item{short.name = }{`pacf6'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -708,7 +708,7 @@ inla.models()
 							\item{short.name = }{`pacf7'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -721,7 +721,7 @@ inla.models()
 							\item{short.name = }{`pacf8'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -734,7 +734,7 @@ inla.models()
 							\item{short.name = }{`pacf9'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -747,7 +747,7 @@ inla.models()
 							\item{short.name = }{`pacf10'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -4871,7 +4871,7 @@ inla.models()
 							\item{short.name = }{`rho'}
 							\item{initial = }{`1'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.5'}
 							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
@@ -4930,7 +4930,7 @@ inla.models()
 							\item{short.name = }{`pacf1'}
 							\item{initial = }{`2'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.5'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -4943,7 +4943,7 @@ inla.models()
 							\item{short.name = }{`pacf2'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.4'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -4956,7 +4956,7 @@ inla.models()
 							\item{short.name = }{`pacf3'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.3'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -4969,7 +4969,7 @@ inla.models()
 							\item{short.name = }{`pacf4'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.2'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -4982,7 +4982,7 @@ inla.models()
 							\item{short.name = }{`pacf5'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -4995,7 +4995,7 @@ inla.models()
 							\item{short.name = }{`pacf6'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -5008,7 +5008,7 @@ inla.models()
 							\item{short.name = }{`pacf7'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -5021,7 +5021,7 @@ inla.models()
 							\item{short.name = }{`pacf8'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -5034,7 +5034,7 @@ inla.models()
 							\item{short.name = }{`pacf9'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -5047,7 +5047,7 @@ inla.models()
 							\item{short.name = }{`pacf10'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`pc.rho0'}
+							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
@@ -7285,9 +7285,9 @@ inla.models()
 				 }
 				\item{Model `pc.dof'.}{					 Number of parameters in the prior = 2 
 				 }
-				\item{Model `pc.rho0'.}{					 Number of parameters in the prior = 2 
+				\item{Model `pc.cor0'.}{					 Number of parameters in the prior = 2 
 				 }
-				\item{Model `pc.rho1'.}{					 Number of parameters in the prior = 2 
+				\item{Model `pc.cor1'.}{					 Number of parameters in the prior = 2 
 				 }
 				\item{Model `pc.spde.GA'.}{					 Number of parameters in the prior = 4 
 				 }

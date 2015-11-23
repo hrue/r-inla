@@ -9,24 +9,18 @@
 
 \description{\code{inla.group} group or cluster covariates so to reduce
   the number of unique values}
-
 \usage{
 inla.group(x, n = 25, method = c("cut", "quantile"), idx.only = FALSE)
 }
-
 \arguments{
 
   \item{x}{The vector of covariates to group.}
-
   \item{n}{Number of classes or bins to group into.}
-  
   \item{method}{Group either using bins with equal length intervals
     (\code{method = "cut"}), or equal distance in the `probability'
     scale using the quantiles (\code{method = "quantile"}).}
-
   \item{idx.only}{Option to return the index only and not the
     \code{method}.}
-
 }
 
 
@@ -34,11 +28,8 @@ inla.group(x, n = 25, method = c("cut", "quantile"), idx.only = FALSE)
   \code{inla.group} return the new grouped covariates where the classes
   are set to the median of all the covariates belonging to that group.
 }
-
 \author{Havard Rue \email{hrue@math.ntnu.no}}
-
 \seealso{\code{\link{f}}}
-
 \examples{
 ## this gives groups 3 and 8
 x = 1:10
