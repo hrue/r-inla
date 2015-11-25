@@ -20,7 +20,6 @@
 ##! \alias{emarginal}
 ##! \alias{inla.marginal.expectation}
 ##! \alias{marginal.expectation}
-##! \alias{inla.spline}
 ##! \alias{inla.smarginal}
 ##! \alias{smarginal}
 ##! \alias{inla.marginal.transform}
@@ -177,7 +176,8 @@
     ## density is to small compared to the maximum density. (othewise
     ## we can get trouble with the spline interpolation). same with
     ## 'x'? No...
-    eps = sqrt(.Machine$double.eps)
+    eps = .Machine$double.eps^(1/4)
+    ##marginal = spline(marginal)
     if (is.matrix(marginal)) {
         i = (marginal[, 2] > 0) & (abs(marginal[, 2]/max(marginal[, 2])) > eps)
         m = list(x=marginal[i, 1], y=marginal[i, 2])
@@ -193,11 +193,20 @@
     return (m)
 }
 
-`inla.spline` = function(marginal, log = FALSE, extrapolate = 0.0, factor = 10L) {
-    return (inla.smarginal(marginal, log, extrapolate, factor))
+`inla.spline` = function(x, ...)
+{
+    s = spline(x, ...)
+    if (is.matrix(x)) {
+        m = cbind(x = s$x, y = s$y)
+    } else if (is.list(x)) {
+        m = list(x = s$x, y = s$y)
+    } else {
+        m = s
+    }
+    return (m)
 }
 
-`inla.smarginal` = function(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE, factor=10L)
+`inla.smarginal` = function(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE, factor=15L)
 {
     ## for marginal in matrix MARGINAL, which is a marginal density,
     ## return the nice interpolated (x, y) where the interpolation is
@@ -206,12 +215,27 @@
     is.mat = is.matrix(marginal)
     m = inla.marginal.fix(marginal)
     r = diff(range(m$x))
-    ans = spline(m$x, log(m$y), xmin = min(m$x) - extrapolate * r, xmax = max(m$x) + extrapolate * r,
-            n = factor*length(m$x),  method = "natural")
+    xmin = min(m$x) - extrapolate * r
+    xmax = max(m$x) + extrapolate * r
+    n = factor * length(m$x)
+    xx = seq(xmin, xmax, len = n)
+    if (extrapolate) {
+        xx = c(xmin, m$x, xmax)
+    } else {
+        xx = m$x
+    }
+    nx = length(xx)
+    dx = nx * diff(xx) / median(diff(xx))
+    xnew = c(0, cumsum(sqrt(dx)))
+    xnew = xmin + (xmax - xmin) * ((xnew - min(xnew))/(max(xnew) - min(xnew)))
+    fun = splinefun(xnew, xx, method = "hyman")
+    fun.inv = splinefun(xx, xnew, method = "hyman")
+    ans = spline(fun.inv(m$x), log(m$y), xmin = fun.inv(xmin), xmax = fun.inv(xmax), n = n, method = "fmm")
+    ans$x = fun(ans$x)
     if (!log) {
         ans$y = exp(ans$y)
+        ans = inla.marginal.fix(ans)
     }
-
     if (is.mat && keep.type) {
         return (cbind(ans$x, ans$y))
     } else {
@@ -243,7 +267,6 @@
     n = length(xx$x)
     if (n%%2 == 0)
         n = n -1
-
     ## use Simpsons integration rule
     i.0 = c(1, n)
     i.4 = seq(2, n-1, by=2)
@@ -302,7 +325,7 @@
     d = d/d[length(d)]
 
     ## just spline-interpolate the mapping
-    fq = splinefun(xx, d, method = "monoH.FC")
+    fq = splinefun(xx, d, method = "hyman")
 
     ## just make sure the p's are in [0, 1]
     n = length(q)
@@ -332,7 +355,7 @@
     }
 
     ## just spline-interpolate the inverse mapping
-    fq = splinefun(d, xx, method = "monoH.FC")
+    fq = splinefun(d, xx, method = "hyman")
 
     ## just make sure the p's are in [0, 1]
     n = length(p)
@@ -367,7 +390,7 @@
         }
     }
     ## just spline-interpolate the inverse mapping
-    fq = splinefun(d, xx, method = "monoH.FC")
+    fq = splinefun(d, xx, method = "hyman")
 
     ## just make sure the p's are in [0, 1]
     np = length(p)
@@ -379,6 +402,7 @@
     }
 
     tol= sqrt(.Machine$double.eps)
+    tol = 1E-6
     result = matrix(NA, np, 2)
     for(i in 1:np) {
         out = optimize(f, c(0, pp[i]), posterior.icdf = fq, conf = pp[i], tol = tol)
