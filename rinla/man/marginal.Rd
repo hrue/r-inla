@@ -20,7 +20,6 @@
  \alias{emarginal}
  \alias{inla.marginal.expectation}
  \alias{marginal.expectation}
- \alias{inla.spline}
  \alias{inla.smarginal}
  \alias{smarginal}
  \alias{inla.marginal.transform}
