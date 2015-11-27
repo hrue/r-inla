@@ -27,8 +27,8 @@
 ##!\usage{
 ##!   inla.ar.pacf2phi(pac)
 ##!   inla.ar.phi2pacf(phi)
-##!   inla.ar.pacf2acf(pac, lag.max = length(pac)))
-##!   inla.ar.phi2acf(phi, lag.max = length(pac)))
+##!   inla.ar.pacf2acf(pac, lag.max = length(pac))
+##!   inla.ar.phi2acf(phi, lag.max = length(pac))
 ##!}
 ##!
 ##!\arguments{

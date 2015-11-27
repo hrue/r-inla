@@ -41,9 +41,9 @@
     ##!n = 10
     ##!y = rnorm(n)
     ##!r = inla(y ~ 1, data = data.frame(y), control.compute = list(cpo=TRUE))
-    ##!## Not run:
+    ##!\donttest{
     ##!rr = inla.cpo(r, force=TRUE)
-    ##!## End(Not run)
+    ##!}
     ##!}
     ##!\seealso{\code{\link{inla}}}
 
