@@ -165,21 +165,26 @@
         mode.status = misc$mode.status
 
         if (!is.null(misc$lincomb.derived.correlation.matrix)) {
-            stopifnot(!is.null(res.lincomb.derived))
-            id = res.lincomb.derived$summary.lincomb.derived$ID
-            tag = rownames(res.lincomb.derived$summary.lincomb.derived)
-            R = misc$lincomb.derived.correlation.matrix
-            rownames(R) = colnames(R) = tag[id]
-            misc$lincomb.derived.correlation.matrix = R
+            if (!is.null(res.lincomb.derived)) {
+                id = res.lincomb.derived$summary.lincomb.derived$ID
+                tag = rownames(res.lincomb.derived$summary.lincomb.derived)
+                R = misc$lincomb.derived.correlation.matrix
+                rownames(R) = colnames(R) = tag[id]
+                misc$lincomb.derived.correlation.matrix = R
+            } else {
+                misc$lincomb.derived.correlation.matrix = NULL
+            }
         }
         if (!is.null(misc$lincomb.derived.covariance.matrix)) {
-            ## same code as above
-            stopifnot(!is.null(res.lincomb.derived))
-            id = res.lincomb.derived$summary.lincomb.derived$ID
-            tag = rownames(res.lincomb.derived$summary.lincomb.derived)
-            R = misc$lincomb.derived.covariance.matrix
-            rownames(R) = colnames(R) = tag[id]
-            misc$lincomb.derived.covariance.matrix = R
+            if (!is.null(res.lincomb.derived)) {
+                id = res.lincomb.derived$summary.lincomb.derived$ID
+                tag = rownames(res.lincomb.derived$summary.lincomb.derived)
+                R = misc$lincomb.derived.covariance.matrix
+                rownames(R) = colnames(R) = tag[id]
+                misc$lincomb.derived.covariance.matrix = R
+            } else {
+                misc$lincomb.derived.covariance.matrix = NULL
+            }
         }
 
         ## also put the linkfunctions here

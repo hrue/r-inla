@@ -123,12 +123,15 @@
     ## replace this into inla.call="remote"
     result.tmp$.args$inla.call = sub("inla.submit", "inla.remote", result.tmp$.args$inla.call)
         
+    ## store this one, for later usage
+    copy.misc = result$misc
+    
     ## call itself
     result.tmp = inla.rerun(result.tmp, plain = TRUE)
     
     ## these are the entries that we want to replace
     replace.names = c("summary.hyperpar", "marginals.hyperpar", "internal.marginals.hyperpar",
-            "internal.summary.hyperpar", "joint.hyper", "mlik", "version", "cpu.used", "misc")
+        "internal.summary.hyperpar", "joint.hyper", "mlik", "version", "cpu.used", "misc")
 
     for (nm in replace.names) {
         idx.result = which(names(result) == nm)
@@ -137,6 +140,10 @@
             result[[idx.result]] = result.tmp[[idx.result.tmp]]
         }
     }
+    
+    ## copy these, as they are special
+    result$misc$lincomb.derived.covariance.matrix = copy.misc$lincomb.derived.covariance.matrix
+    result$misc$lincomb.derived.correlation.matrix = copy.misc$lincomb.derived.correlation.matrix
 
     return(result)
 }
