@@ -196,7 +196,7 @@
     ##!CODE.
     ##!Name of the file containing the graph
     ##!of the model; see
-    ##!\url{http://www.r-inla.org/help/faq}.}
+    ##!\url{http://www.r-inla.org/faq}.}
     graph.file=NULL,
 
     ##!\item{cdf}{A vector of maximum 10 values between 0 and 1

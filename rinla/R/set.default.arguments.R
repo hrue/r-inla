@@ -186,15 +186,15 @@
         ##:ARGUMENT: cpo.idx  The index of the data point to remove. (EXPERT OPTION: DO NOT USE)
         cpo.idx = -1,
 
-        ##:ARGUMENT: jp.func The R-function which returns the joint prior,  to be defined in \code{jp.Rfile} 
-        jp.func = NULL, 
-        
-        ##:ARGUMENT: jp.Rfile The R-file to be sourced to set up a joint prior for the hyperparameters to be evaluated by \code{jp.func} 
-        jp.Rfile = NULL,
-
         ##:ARGUMENT: jp.RData The R-data file that contains global variables to be used by \code{jp.func}
         jp.RData = NULL,
 
+        ##:ARGUMENT: jp.Rfile The R-file to be sourced to set up a joint prior for the hyperparameters to be evaluated by \code{jp.func} 
+        jp.Rfile = NULL,
+
+        ##:ARGUMENT: jp.func The R-function which returns the joint prior,  to be defined in \code{jp.Rfile} 
+        jp.func = NULL, 
+        
         ##:ARGUMENT: disable.gaussian.check Disable the check for fast computations with a Gaussian likelihood and identity link
         disable.gaussian.check = FALSE
         )
@@ -312,14 +312,14 @@
     ##:EXTRA: 
     ##:NAME: control.fixed
     list(
-        ##:ARGUMENT: expand.factor.strategy The strategy used to expand factors into fixed effects based on their levels. The default strategy is us use the \code{model.matrix}-function for which NA's are not allowed (\code{expand.factor.strategy="model.matrix"}) and levels are possible removed. The alternative option (\code{expand.factor.strategy="inla"}) use an \code{inla}-spesific expansion which expand a factor into one fixed effects for each level, do allow for NA's and all levels are present in the model. In this case, factors MUST BE factors in the data.frame/list and NOT added as \code{...+factor(x1)+...} in the formula only.
-        expand.factor.strategy = "model.matrix", 
-
         ##:ARGUMENT: cdf  A list of values to compute the CDF for, for all fixed effects
         cdf=NULL,
 
         ##:ARGUMENT: quantiles  A list of quantiles to compute for all fixed effects
         quantiles = NULL,
+
+        ##:ARGUMENT: expand.factor.strategy The strategy used to expand factors into fixed effects based on their levels. The default strategy is us use the \code{model.matrix}-function for which NA's are not allowed (\code{expand.factor.strategy="model.matrix"}) and levels are possible removed. The alternative option (\code{expand.factor.strategy="inla"}) use an \code{inla}-spesific expansion which expand a factor into one fixed effects for each level, do allow for NA's and all levels are present in the model. In this case, factors MUST BE factors in the data.frame/list and NOT added as \code{...+factor(x1)+...} in the formula only.
+        expand.factor.strategy = "model.matrix", 
 
         ##:ARGUMENT: mean Prior mean for all fixed effects except the intercept. Alternatively, a named list with specific means where name=default applies to unmatched names. For example \code{control.fixed=list(mean=list(a=1, b=2, default=0))} assign 'mean=1' to fixed effect 'a' , 'mean=2' to effect 'b' and 'mean=0' to all others.
         mean = 0.0,
