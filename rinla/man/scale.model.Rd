@@ -37,5 +37,5 @@
  diag(Q) = -rowSums(Q)
  stopifnot(all(rowSums(Q) == 0))
  n = dim(Q)[1]
- Q.scaled = inla.scale.model(Q, constr = list(Q = rep(1, n), e=0))
+ Q.scaled = inla.scale.model(Q, constr = list(A = matrix(1, 1, n), e=0))
  }
