@@ -156,7 +156,7 @@
         ##!nodes in the latent field. The posterior distribution
         ##!of such linear combination is computed by the
         ##!\code{inla} function. See
-        ##!\url{http://www.r-inla.org/help/faq} for examples of
+        ##!\url{http://www.r-inla.org/faq} for examples of
         ##!how to define such linear combinations.}
         lincomb = NULL,
         
