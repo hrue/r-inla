@@ -13,7 +13,7 @@
 \alias{ar.phi2acf}
 \alias{phi2acf}
 \alias{inla.ar.pacf2acf}
-\a
+\alias{ar.pacf2acf}
 \alias{pacf2acf}
 
 \title{Convert between parameterizations for the AR(p) model}
