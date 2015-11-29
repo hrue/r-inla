@@ -13,7 +13,7 @@
 \alias{ar.phi2acf}
 \alias{phi2acf}
 \alias{inla.ar.pacf2acf}
-\alias{ar.pacf2acf}
+\a
 \alias{pacf2acf}
 
 \title{Convert between parameterizations for the AR(p) model}
@@ -27,7 +27,7 @@
    inla.ar.pacf2phi(pac)
    inla.ar.phi2pacf(phi)
    inla.ar.pacf2acf(pac, lag.max = length(pac))
-   inla.ar.phi2acf(phi, lag.max = length(pac))
+   inla.ar.phi2acf(phi, lag.max = length(phi))
 }
 
 \arguments{
