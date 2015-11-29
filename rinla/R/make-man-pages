@@ -79,7 +79,7 @@ Rsort () {
     echo 'write(sort(readLines(Sys.getenv("TT_FILE"))),ncol=1,file=Sys.getenv("TTT_FILE"))' | R --vanilla --slave 2>/dev/null
     cat $TTT_FILE
 }
-    
+
 for f in $helppages; do
     ## need to replace REPLACEME with a sorted list of all arguments
     echo "Postprocess $f"
