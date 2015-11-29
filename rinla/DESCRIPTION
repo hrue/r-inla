@@ -1,6 +1,6 @@
 Package: INLA
 Type: Package
-Title: Functions which allow to perform full Bayesian analysis of latent Gaussian models using Integrated Nested Laplace Approximaxion
+Title: Functions which Allow to Perform Full Bayesian Analysis of Latent Gaussian Models using Integrated Nested Laplace Approximaxion
 Author: Havard Rue, Sara Martino, Finn Lindgren, Daniel Simpson, Andrea Riebler and Elias Teixeira Krainski
 Maintainer: Havard Rue <hrue@math.ntnu.no>, Finn Lindgren <finn.lindgren@gmail.com>,  Daniel Simpson <dp.simpson@gmail.com>, Andrea Riebler <andrea.riebler@math.ntnu.no> and Elias Teixeira Krainski <elias.krainski@math.ntnu.no>
 Description: This package contains functions which allow to perform full Bayesian analysis of latent Gaussian models using Integrated Nested Laplace Approximaxion, and is a front-end to the inla-program.
