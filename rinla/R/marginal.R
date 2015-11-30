@@ -47,14 +47,14 @@
 ##! 
 ##! \usage{
 ##! inla.dmarginal(x, marginal, log = FALSE)
-##! inla.pmarginal(q, marginal, normalize = TRUE, len = 2048L)
-##! inla.qmarginal(p, marginal, len = 1024)
+##! inla.pmarginal(q, marginal, normalize = TRUE, len = 1024L)
+##! inla.qmarginal(p, marginal, len = 1024L)
 ##! inla.rmarginal(n, marginal)
-##! inla.hpdmarginal(p, marginal, len = 1024)
+##! inla.hpdmarginal(p, marginal, len = 1024L)
 ##! inla.smarginal(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE, factor=15L)
 ##! inla.emarginal(fun, marginal, ...)
 ##! inla.mmarginal(marginal)
-##! inla.tmarginal(fun, marginal, n=1024, h.diff = .Machine$double.eps^(1/3),
+##! inla.tmarginal(fun, marginal, n=1024L, h.diff = .Machine$double.eps^(1/3),
 ##!                method = c("quantile", "linear"),  ...) 
 ##! inla.zmarginal(marginal, silent = FALSE)
 ##! }
@@ -317,7 +317,7 @@
     return (d)
 }
 
-`inla.pmarginal` = function(q, marginal, normalize = TRUE, len = 1024)
+`inla.pmarginal` = function(q, marginal, normalize = TRUE, len = 1024L)
 {
     f = inla.sfmarginal(inla.smarginal(marginal))
     xx = seq(f$range[1], f$range[2], length = len)
@@ -334,7 +334,7 @@
     return (fq(xx))
 }
 
-`inla.qmarginal` = function(p, marginal, len = 1024)
+`inla.qmarginal` = function(p, marginal, len = 1024L)
 {
     f = inla.sfmarginal(inla.smarginal(marginal))
     xx = seq(f$range[1], f$range[2], length = len)
@@ -363,7 +363,7 @@
 
     return (fq(pp))
 }
-`inla.hpdmarginal` = function(p, marginal, len = 2048L)
+`inla.hpdmarginal` = function(p, marginal, len = 1024L)
 {
     sm = inla.smarginal(marginal, keep.type = FALSE)
     f = inla.sfmarginal(sm)
@@ -421,13 +421,13 @@
     return (inla.qmarginal(runif(n), marginal))
 }
 
-`inla.marginal.transform` = function(fun, marginal, n=1024, h.diff = .Machine$double.eps^(1/3),
+`inla.marginal.transform` = function(fun, marginal, n=1024L, h.diff = .Machine$double.eps^(1/3),
         method = c("quantile", "linear"),  ...)
 {
     return (inla.tmarginal(fun, marginal, n, h.diff, method = method, ...))
 }
 
-`inla.tmarginal` = function(fun, marginal, n=1024, h.diff = .Machine$double.eps^(1/3),
+`inla.tmarginal` = function(fun, marginal, n=1024L, h.diff = .Machine$double.eps^(1/3),
         method = c("quantile", "linear"),  ...) 
 {
     f = match.fun(fun)

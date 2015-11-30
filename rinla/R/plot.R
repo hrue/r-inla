@@ -996,9 +996,9 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
             return (n + n^2)
         }
 
-        len.taget = length(param)
+        len.target = length(param)
         for(n in 1:max.dim) {
-            if (len(n) == len.taget) {
+            if (len(n) == len.target) {
                 return (n)
             }
         }
