@@ -47,14 +47,14 @@
  
  \usage{
  inla.dmarginal(x, marginal, log = FALSE)
- inla.pmarginal(q, marginal, normalize = TRUE, len = 2048L)
- inla.qmarginal(p, marginal, len = 1024)
+ inla.pmarginal(q, marginal, normalize = TRUE, len = 1024L)
+ inla.qmarginal(p, marginal, len = 1024L)
  inla.rmarginal(n, marginal)
- inla.hpdmarginal(p, marginal, len = 1024)
+ inla.hpdmarginal(p, marginal, len = 1024L)
  inla.smarginal(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE, factor=15L)
  inla.emarginal(fun, marginal, ...)
  inla.mmarginal(marginal)
- inla.tmarginal(fun, marginal, n=1024, h.diff = .Machine$double.eps^(1/3),
+ inla.tmarginal(fun, marginal, n=1024L, h.diff = .Machine$double.eps^(1/3),
                 method = c("quantile", "linear"),  ...) 
  inla.zmarginal(marginal, silent = FALSE)
  }
