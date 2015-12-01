@@ -16,6 +16,7 @@
 ## Export: control.lincomb
 ## Export: control.update
 ## Export: control.group
+
 ## Export: control.mix
 ## Export: control.link
 ## Export: control.expert
@@ -704,14 +705,16 @@ inla.make.completion.function = function(...)
     }
 
     xx = sort(list(...)[[1L]])
-    my.eval(paste("function(", paste(xx, sep="", collapse=" ,"), ") {
+    my.eval(paste("function(", paste(xx, sep="", collapse=", "), ") {
     aa = match.call()[-1L]
     ret = list()
-    for(a in sort(names(aa))) {
-        if (!missing(a)) {
-            xx = get(a)
-            names(xx) = a
-            ret = c(ret, xx)
+    if (!is.null(aa)) {
+        for(a in sort(names(aa))) {
+            if (!missing(a)) {
+                xx = get(a)
+                names(xx) = a
+                ret = c(ret, xx)
+            }
         }
     }
     return (ret)
