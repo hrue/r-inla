@@ -206,18 +206,18 @@ inla.matern.cov <- function(nu,kappa,x,d=1,corr=FALSE, norm.corr=FALSE, theta, e
 
 inla.matern.cov.s2 <- function(nu,kappa,x,norm.corr=FALSE,theta=0)
 {
-    inla.require("orthopolynom")
+    stopifnot(inla.require("orthopolynom"))
     y = cos(abs(x))
 
     freq.max = 40L
     freq.n = freq.max+1L
     w = 0L:freq.max
     spec = 1/(kappa^4+2*kappa^2*cos(pi*theta)*w*(w+1)+w^2*(w+1)^2)^((nu+1)/2)
-    leg = legendre.polynomials(freq.max)
+    leg = orthopolynom::legendre.polynomials(freq.max)
     covariance = y*0
     for (k in 1:freq.n) {
         covariance = (covariance + (2*w[k]+1)/(4*pi)*spec[k]*
-                      polynomial.values(leg[k],y)[[1]])
+                      orthopolynom::polynomial.values(leg[k],y)[[1]])
     }
 
     if (norm.corr) {

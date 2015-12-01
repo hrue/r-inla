@@ -447,18 +447,13 @@
     }
     xx = ff(x)
 
-    ## use the numDeriv library if present
-    present = inla.require("numDeriv")
-
-    if (present) {
-        ## using numDeriv
+    if (inla.require("numDeriv")) {
         dif = numeric(length(x))
         for(i in 1:length(x)) {
             dif[i] = numDeriv::grad(ff, x[i])
         }
         log.dens = inla.dmarginal(x, marginal, log=FALSE)/ abs(dif)
     } else {
-        ## use a simple algorithm
         log.dens = inla.dmarginal(x, marginal, log=FALSE)/
             abs((ff(x + h.diff) - ff(x-h.diff))/(2*h.diff))
     }

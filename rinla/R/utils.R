@@ -787,6 +787,12 @@
 
 `inla.require` = function(pkg)
 {
+    ## follow the `new' standard...
+    return (requireNamespace(pkg, quietly = TRUE))
+}
+
+`inla.require.old` = function(pkg)
+{
     ## load PKG if it exists, but be silent. return status
     w = getOption("warn")
     options(warn = -1L)
@@ -937,10 +943,10 @@
         if (is.null(mc.cores)) {
             mc.cores = inla.getOption("num.threads")
             if (is.null(mc.cores)) {
-                mc.cores = detectCores()
+                mc.cores = parallel::detectCores()
             }
         }
-        return (mclapply(..., mc.cores = mc.cores))
+        return (parallel::mclapply(..., mc.cores = mc.cores))
     } else {
         return (lapply(...))
     }
@@ -948,7 +954,7 @@
 `inla.cmpfun` = function(fun, options = list(optimize = 3L))
 {
     if (inla.require("compiler")) {
-        return (cmpfun(fun, options = options))
+        return (compiler::cmpfun(fun, options = options))
     } else {
         return(fun)
     }
@@ -999,27 +1005,8 @@
 `inla.runjags2dataframe` = function(runjags.object)
 {
     ## convert from runjags-output to a data.frame
-    inla.require("runjags")
-    return (as.data.frame(combine.mcmc(runjags.object, collapse.chains=TRUE)))
-    
-    ## old code
-    r = runjags.object$mcmc
-    nchains = length(r)
-    nvar = ncol(r[[1]])
-    len = nrow(r[[1]]) * nchains
-    len2 = nrow(r[[1]])
-    stopifnot(nchains > 0)
-    stopifnot(nvar > 0)
-
-    result = matrix(NA, nrow = len, ncol = nvar)
-    colnames(result) = colnames(r[[1]])
-    for(i in 1:nvar) {
-        for(j in 1:nchains) {
-            result[(j-1)*len2 + 1:len2, i] = r[[j]][, i]
-        }
-    }
-
-    return (as.data.frame(result))
+    stopifnot(inla.require("runjags"))
+    return (as.data.frame(runjags::combine.mcmc(runjags.object, collapse.chains=TRUE)))
 }
 
 `inla.check.location` = function(loc, term, model, section = "latent")

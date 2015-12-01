@@ -1864,19 +1864,19 @@
                 if (inla.os("mac")) {
                     ## cannot run in verbose mode
                     all.args = gsub("-v", "", all.args)
-                    tmp.0 = mcparallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))))
+                    tmp.0 = parallel::mcparallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))))
                 } else {
                     if (verbose) {
-                        tmp.0 = mcparallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))))
+                        tmp.0 = parallel::mcparallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))))
                     } else {
-                        tmp.0 = mcparallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log,
+                        tmp.0 = parallel::mcparallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log,
                             inla.ifelse(silent == 2L, " 2>/dev/null", ""))))
                     }
                 }
                 for (i in 1L:nrgeneric) {
-                    inla.eval(paste("tmp.", i, " = mcparallel(inla.rgeneric.loop(rgeneric[[", i, "]], debug=debug))", sep=""))
+                    inla.eval(paste("tmp.", i, " = parallel::mcparallel(inla.rgeneric.loop(rgeneric[[", i, "]], debug=debug))", sep=""))
                 }
-                inla.eval(paste("tmp = mccollect(list(tmp.0,", paste("tmp.", 1L:nrgeneric, collapse=",", sep=""), "))"))
+                inla.eval(paste("tmp = parallel::mccollect(list(tmp.0,", paste("tmp.", 1L:nrgeneric, collapse=",", sep=""), "))"))
                 echoc = tmp[[1L]]
             } else {
                 if (verbose) {
