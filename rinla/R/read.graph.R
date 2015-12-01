@@ -487,7 +487,7 @@
 
     filter = match.arg(filter, filter.args)
     if (is.null(attrs)) {
-        attrs = getDefaultAttrs(layoutType = filter)
+        attrs = Rgraphviz::getDefaultAttrs(layoutType = filter)
     }
     if (!is.null(node.names)) {
         stopifnot(length(node.names) == x$n)
@@ -500,7 +500,7 @@
             j = x$nbs[[i]]
             j = j[j > i]
             if (length(j) > 0L) {
-                g = addEdge(node.names[i], node.names[j], g)
+                g = graph::addEdge(node.names[i], node.names[j], g)
             }
         }
     }
