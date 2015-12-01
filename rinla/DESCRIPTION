@@ -1,11 +1,11 @@
 Package: INLA
 Type: Package
 Title: Functions which Allow to Perform Full Bayesian Analysis of Latent Gaussian Models using Integrated Nested Laplace Approximaxion
-Author: Havard Rue, Sara Martino, Finn Lindgren, Daniel Simpson, Andrea Riebler and Elias Teixeira Krainski
-Maintainer: Havard Rue <hrue@math.ntnu.no>, Finn Lindgren <finn.lindgren@gmail.com>,  Daniel Simpson <dp.simpson@gmail.com>, Andrea Riebler <andrea.riebler@math.ntnu.no> and Elias Teixeira Krainski <elias.krainski@math.ntnu.no>
+Author: Havard Rue, Sara Martino, Finn Lindgren, Daniel Simpson, Andrea Riebler, Elias Teixeira Krainski and Geir-Arne Fuglstad
+Maintainer: Havard Rue <hrue@math.ntnu.no>, Finn Lindgren <finn.lindgren@gmail.com>,  Daniel Simpson <dp.simpson@gmail.com>, Andrea Riebler <andrea.riebler@math.ntnu.no>, Elias Teixeira Krainski <elias.krainski@math.ntnu.no> and Geir-Arne Fuglstad <fulgstad@math.ntnu.no>
 Description: This package contains functions which allow to perform full Bayesian analysis of latent Gaussian models using Integrated Nested Laplace Approximaxion, and is a front-end to the inla-program.
 Depends: sp, Matrix, splines
-Suggests: numDeriv, Rgraphviz, graph, fields, rgl, mvtnorm, parallel, pixmap, splancs, orthopolynom, compiler
+Suggests: numDeriv, Rgraphviz, graph, fields, rgl, parallel, pixmap, splancs, orthopolynom, compiler
 ByteCompile: yes
 License: GPL (>= 2)
 Version: TO BE SET DURING BUILD

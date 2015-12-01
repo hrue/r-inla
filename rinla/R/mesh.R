@@ -176,9 +176,10 @@ lines.inla.mesh.segment <- function(x, loc=NULL, col=NULL,
     }
     color = col
     if (rgl) {
+        stopifnot(inla.require("rgl"))
         if (!add) {
-            dev=open3d()
-            view3d(0, 0, fov=0)
+            dev = rgl::open3d()
+            rgl::view3d(0, 0, fov=0)
         } else {
             dev = NULL
         }
@@ -199,9 +200,9 @@ lines.inla.mesh.segment <- function(x, loc=NULL, col=NULL,
             color=colors[1+(grp%%length(colors))]
         }
         if (rgl) {
-            segments3d(loc[as.vector(t(segm$idx[idx,, drop=FALSE])),,drop=FALSE],
-                       color=color,
-                       ...)
+            rgl::segments3d(loc[as.vector(t(segm$idx[idx,, drop=FALSE])),,drop=FALSE],
+                            color=color,
+                            ...)
         } else {
             lines(loc[t(cbind(segm$idx[idx,, drop=FALSE], NA)), 1],
                   loc[t(cbind(segm$idx[idx,, drop=FALSE], NA)), 2],
@@ -288,11 +289,11 @@ lines.inla.mesh.segment <- function(x, loc=NULL, col=NULL,
                                 edge.color=rgb(0.3, 0.3, 0.3), ...)
 {
     TV = x
-    require(rgl)
+    stopifnot(inla.require("rgl"))
 
     ## Make indices 1 based.  Deprecated and is deactivated.
     if (min(TV) == 0) {
-      stop("Zero-based indices in TV are not supported.")
+        stop("Zero-based indices in TV are not supported.")
     }
 
     colors = (inla.generate.colors(color, color.axis, color.n,
@@ -304,30 +305,30 @@ lines.inla.mesh.segment <- function(x, loc=NULL, col=NULL,
     Ty = S[tTV, 2]
     Tz = S[tTV, 3]
     if (length(colors$colors) == 1) {
-      ## One color
-      Tcol = colors$colors
-      Talpha = colors$alpha
+        ## One color
+        Tcol = colors$colors
+        Talpha = colors$alpha
     } else if (length(colors$colors) == nrow(S)) {
-      ## One color per vertex
-      Tcol = colors$colors[tTV]
-      Talpha = colors$alpha[tTV]
+        ## One color per vertex
+        Tcol = colors$colors[tTV]
+        Talpha = colors$alpha[tTV]
     } else {
-      ## One color per triangle
-      stopifnot(length(colors$colors) == nrow(TV))
-      Tcol = colors$colors[t(matrix(rep(1:nrow(TV), 3), dim(TV)))]
-      Talpha = colors$alpha[t(matrix(rep(1:nrow(TV), 3), dim(TV)))]
+        ## One color per triangle
+        stopifnot(length(colors$colors) == nrow(TV))
+        Tcol = colors$colors[t(matrix(rep(1:nrow(TV), 3), dim(TV)))]
+        Talpha = colors$alpha[t(matrix(rep(1:nrow(TV), 3), dim(TV)))]
     }
     Ex = S[tETV, 1]
     Ey = S[tETV, 2]
     Ez = S[tETV, 3]
     Ecol = edge.color
     if (draw.vertices) {
-      points3d(S, color="black", ...)
+        rgl::points3d(S, color="black", ...)
     }
     if (draw.edges) {
-      lines3d(Ex, Ey, Ez, color=Ecol, lwd=lwd, ...)
+        rgl::lines3d(Ex, Ey, Ez, color=Ecol, lwd=lwd, ...)
     }
-    triangles3d(Tx, Ty, Tz, color=Tcol, specular=specular, alpha=Talpha, ...)
+    rgl::triangles3d(Tx, Ty, Tz, color=Tcol, specular=specular, alpha=Talpha, ...)
 
     return (invisible())
 }
@@ -375,16 +376,16 @@ plot.inla.mesh <- function(x,
     if (rgl) {
         stopifnot(inla.require("rgl"))
         if (!add) {
-            dev=open3d()
-            view3d(0, 0, fov=0)
+            dev = rgl::open3d()
+            rgl::view3d(0, 0, fov=0)
         } else {
             dev = NULL
         }
         tv = mesh$graph$tv[t.sub,,drop=FALSE]
         if (draw.vertices) {
             idx = intersect(unique(as.vector(tv)), mesh$idx$loc)
-            points3d(mesh$loc[idx,,drop=FALSE],
-                     size=2*size, lwd=lwd, color = "blue", ...)
+            rgl::points3d(mesh$loc[idx,,drop=FALSE],
+                          size=2*size, lwd=lwd, color = "blue", ...)
         }
         if (draw.segments) {
             if (!is.null(mesh$segm$bnd))
@@ -3030,20 +3031,16 @@ inla.nonconvex.hull.basic <-
                       sep=""))
     }
 
-    ax =
-        list(
-            seq(lim[1,1] - ex[1], lim[1,2] + ex[1], length=resolution[1]),
-            seq(lim[2,1] - ex[2], lim[2,2] + ex[2], length=resolution[2])
-            )
+    ax = list(seq(lim[1,1] - ex[1], lim[1,2] + ex[1], length=resolution[1]),
+        seq(lim[2,1] - ex[2], lim[2,2] + ex[2], length=resolution[2]))
     xy = as.matrix(expand.grid(ax[[1]], ax[[2]]))
     tr = diag(c(1/ex[1],1/ex[2]))
 
-    require(splancs)
+    stopifnot(inla.require("splancs"))
     z = (matrix(splancs::nndistF(points%*%tr, xy%*%tr),
                 resolution[1], resolution[2]))
-    segm =
-        inla.contour.segment(ax[[1]], ax[[2]], z,
-                             levels=c(1), positive=FALSE, eps=eps)
+    segm = inla.contour.segment(ax[[1]], ax[[2]], z,
+        levels=c(1), positive=FALSE, eps=eps)
     return(segm)
 }
 
@@ -3098,8 +3095,7 @@ inla.nonconvex.hull <-
             )
     xy = as.matrix(expand.grid(ax[[1]], ax[[2]]))
 
-    require(splancs)
-
+    stopifnot(inla.require("splancs"))
     z = (matrix(splancs::nndistF(points, xy),
                 resolution[1],resolution[2]))
     segm.dilation =

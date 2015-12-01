@@ -1066,48 +1066,42 @@ inla.internal.experimental.mode = FALSE
              debug = FALSE)
 {
     my.read.pnm = function(...) {
-        ## disable warnings
-        warn = getOption("warn")
-        options(warn=-1L) ## disable...
-        ret = read.pnm(...)
-        do.call("options", args = list(warn = warn))
+        args = list(...)
+        filename = args[[1]]
+        if (file.exists(filename) && inla.require("pixmap")) {
+            ## disable warnings
+            warn = getOption("warn")
+            options(warn=-1L) ## disable...
+            ret = pixmap::read.pnm(...)
+            do.call("options", args = list(warn = warn))
+        } else {
+            if (file.exists(filename)) {
+                warning("You need to install 'pixmap' to read bitmap files.")
+            }
+            ret = NULL
+        }
         return (ret)
     }
 
     alldir = dir(results.dir)
     if (length(grep("^Q$", alldir))==1L) {
-        pixm = inla.require("pixmap")
         if (debug)
             cat(paste("collect q\n", sep=""))
         
         file=paste(results.dir, .Platform$file.sep,"Q/precision-matrix.pbm", sep="")
+        Q.matrix = my.read.pnm(file)
 
-        ## tell...
-        if (file.exists(file) && !pixm) {
-            warning("You need to install library 'pixmap' to read bitmap images of the precision matrix files.")
-        }
-            
-        if (file.exists(file) && pixm)
-            Q.matrix = my.read.pnm(file)
-        else
-            Q.matrix = NULL
-        
         file=paste(results.dir, .Platform$file.sep,"Q/precision-matrix-reordered.pbm", sep="")
-        if (file.exists(file) && pixm)
-            Q.matrix.reorder = my.read.pnm(file)
-        else
-            Q.matrix.reorder = NULL
-        
-        file=paste(results.dir, .Platform$file.sep,"Q/precision-matrix_L.pbm", sep="")
-        if (file.exists(file) && pixm)
-            L = my.read.pnm(file)
-        else
-            L = NULL
+        Q.matrix.reorder = my.read.pnm(file)
 
-        if (is.null(Q.matrix) && is.null(Q.matrix.reorder) && is.null(L))
+        file=paste(results.dir, .Platform$file.sep,"Q/precision-matrix_L.pbm", sep="")
+        L = my.read.pnm(file)
+
+        if (is.null(Q.matrix) && is.null(Q.matrix.reorder) && is.null(L)) {
             q = NULL
-        else
+        } else {
             q = list(Q = Q.matrix, Q.reorder = Q.matrix.reorder, L = L)
+        }
     } else {
         q = NULL
     }
