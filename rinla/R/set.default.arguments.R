@@ -707,7 +707,7 @@ inla.make.completion.function = function(...)
     my.eval(paste("function(", paste(xx, sep="", collapse=" ,"), ") {
     aa = match.call()[-1L]
     ret = list()
-    for(a in names(aa)) {
+    for(a in sort(names(aa))) {
         if (!missing(a)) {
             xx = get(a)
             names(xx) = a
