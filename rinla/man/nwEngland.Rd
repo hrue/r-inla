@@ -1,5 +1,5 @@
 \name{nwEngland}
-\alias{nwEncland}
+\alias{nwEngland}
 \alias{NewEngland}
 \docType{data}
 \title{The New England map}
