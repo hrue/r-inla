@@ -571,6 +571,39 @@ double map_invloglog(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
+double map_invcauchit(double arg, map_arg_tp typ, void *param)
+{
+	/*
+	 * the inverse cauchit function
+	 */
+	switch (typ) {
+	case MAP_FORWARD:
+		/*
+		 * extern = func(local) 
+		 */
+		return tan(M_PI * (arg - 0.5));
+	case MAP_BACKWARD:
+		/*
+		 * local = func(extern) 
+		 */
+		return M_1_PI * atan(arg) + 0.5;
+	case MAP_DFORWARD:
+		/*
+		 * d_extern / d_local 
+		 */
+		return M_PI * (1.0 + SQR(tan(M_PI * (arg - 0.5))));
+		 
+	case MAP_INCREASING:
+		/*
+		 * return 1.0 if montone increasing and 0.0 otherwise 
+		 */
+		return 1.0;
+	default:
+		abort();
+	}
+	abort();
+	return 0.0;
+}
 double map_invcloglog(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -1034,6 +1067,13 @@ double link_loglog(double x, map_arg_tp typ, void *param, double *cov)
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_invloglog(x, typ, param);
+}
+double link_cauchit(double x, map_arg_tp typ, void *param, double *cov)
+{
+	/*
+	 * the link-functions calls the inverse map-function 
+	 */
+	return map_invcauchit(x, typ, param);
 }
 double link_log(double x, map_arg_tp typ, void *param, double *cov)
 {
@@ -12021,6 +12061,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_ntheta = 0;
 		ds->predictor_invlinkfunc = link_loglog;
 		ds->predictor_invlinkfunc_arg = NULL;
+	} else if (!strcasecmp(ds->link_model, "CAUCHIT")) {
+		ds->link_id = LINK_CAUCHIT;
+		ds->link_ntheta = 0;
+		ds->predictor_invlinkfunc = link_cauchit;
+		ds->predictor_invlinkfunc_arg = NULL;
 	} else if (!strcasecmp(ds->link_model, "LOGIT")) {
 		ds->link_id = LINK_LOGIT;
 		ds->link_ntheta = 0;
@@ -12116,6 +12161,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case LINK_PROBIT:
 	case LINK_CLOGLOG:
 	case LINK_LOGLOG:
+	case LINK_CAUCHIT:
 	case LINK_LOGIT:
 	case LINK_TAN:
 		/*
@@ -20383,6 +20429,7 @@ double extra(double *theta, int ntheta, void *argument)
 			case LINK_PROBIT:
 			case LINK_CLOGLOG:
 			case LINK_LOGLOG:
+			case LINK_CAUCHIT:
 			case LINK_LOGIT:
 			case LINK_TAN:
 				break;
