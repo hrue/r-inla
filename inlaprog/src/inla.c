@@ -539,10 +539,10 @@ double map_invprobit(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
-double map_invcloglog(double arg, map_arg_tp typ, void *param)
+double map_invloglog(double arg, map_arg_tp typ, void *param)
 {
 	/*
-	 * the inverse cloglog function
+	 * the inverse loglog function
 	 */
 	switch (typ) {
 	case MAP_FORWARD:
@@ -559,7 +559,39 @@ double map_invcloglog(double arg, map_arg_tp typ, void *param)
 		/*
 		 * d_extern / d_local 
 		 */
-		return exp(-arg) * exp(-exp(-arg));
+		return exp(-arg - exp(-arg));
+	case MAP_INCREASING:
+		/*
+		 * return 1.0 if montone increasing and 0.0 otherwise 
+		 */
+		return 1.0;
+	default:
+		abort();
+	}
+	abort();
+	return 0.0;
+}
+double map_invcloglog(double arg, map_arg_tp typ, void *param)
+{
+	/*
+	 * the inverse cloglog function
+	 */
+	switch (typ) {
+	case MAP_FORWARD:
+		/*
+		 * extern = func(local) 
+		 */
+		return 1.0 - exp(-exp(arg));
+	case MAP_BACKWARD:
+		/*
+		 * local = func(extern) 
+		 */
+		return log(-log(1.0 - arg));
+	case MAP_DFORWARD:
+		/*
+		 * d_extern / d_local 
+		 */
+		return exp(arg - exp(arg));
 	case MAP_INCREASING:
 		/*
 		 * return 1.0 if montone increasing and 0.0 otherwise 
@@ -995,6 +1027,13 @@ double link_cloglog(double x, map_arg_tp typ, void *param, double *cov)
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_invcloglog(x, typ, param);
+}
+double link_loglog(double x, map_arg_tp typ, void *param, double *cov)
+{
+	/*
+	 * the link-functions calls the inverse map-function 
+	 */
+	return map_invloglog(x, typ, param);
 }
 double link_log(double x, map_arg_tp typ, void *param, double *cov)
 {
@@ -11977,6 +12016,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_ntheta = 0;
 		ds->predictor_invlinkfunc = link_cloglog;
 		ds->predictor_invlinkfunc_arg = NULL;
+	} else if (!strcasecmp(ds->link_model, "LOGLOG")) {
+		ds->link_id = LINK_LOGLOG;
+		ds->link_ntheta = 0;
+		ds->predictor_invlinkfunc = link_loglog;
+		ds->predictor_invlinkfunc_arg = NULL;
 	} else if (!strcasecmp(ds->link_model, "LOGIT")) {
 		ds->link_id = LINK_LOGIT;
 		ds->link_ntheta = 0;
@@ -12071,6 +12115,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case LINK_LOG:
 	case LINK_PROBIT:
 	case LINK_CLOGLOG:
+	case LINK_LOGLOG:
 	case LINK_LOGIT:
 	case LINK_TAN:
 		/*
@@ -20337,6 +20382,7 @@ double extra(double *theta, int ntheta, void *argument)
 			case LINK_LOG:
 			case LINK_PROBIT:
 			case LINK_CLOGLOG:
+			case LINK_LOGLOG:
 			case LINK_LOGIT:
 			case LINK_TAN:
 				break;
