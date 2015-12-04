@@ -514,7 +514,7 @@ typedef enum {
 	LINK_SPECIAL1,
 	LINK_SPECIAL2,					       /* exp(eta)*((1-x) + x*exp(beta)) for Poisson (JW) */
 	LINK_LOGOFFSET,
-	LINK_SSLOGIT,
+	LINK_SSLOGIT, 
 	LINK_LOGLOG,
 	LINK_CAUCHIT
 } inla_component_tp;
