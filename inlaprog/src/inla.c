@@ -33,6 +33,12 @@
 static const char RCSId[] = HGVERSION;
 
 #if defined(__sun__)
+#if defined(__sun__)
+#include <stdlib.h>
+#endif
+#if defined(__FreeBSD__)
+#include <unistd.h>
+#endif
 #include <stdlib.h>
 #endif
 #if defined(__linux__)
@@ -581,18 +587,17 @@ double map_invcauchit(double arg, map_arg_tp typ, void *param)
 		/*
 		 * extern = func(local) 
 		 */
-		return tan(M_PI * (arg - 0.5));
+		return M_1_PI * atan(arg) + 0.5;
 	case MAP_BACKWARD:
 		/*
 		 * local = func(extern) 
 		 */
-		return M_1_PI * atan(arg) + 0.5;
+		return tan(M_PI * (arg - 0.5));
 	case MAP_DFORWARD:
 		/*
 		 * d_extern / d_local 
 		 */
-		return M_PI * (1.0 + SQR(tan(M_PI * (arg - 0.5))));
-		 
+		return M_1_PI / (SQR(arg) + 1.0);
 	case MAP_INCREASING:
 		/*
 		 * return 1.0 if montone increasing and 0.0 otherwise 
