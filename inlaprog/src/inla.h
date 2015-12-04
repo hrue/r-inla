@@ -514,7 +514,8 @@ typedef enum {
 	LINK_SPECIAL1,
 	LINK_SPECIAL2,					       /* exp(eta)*((1-x) + x*exp(beta)) for Poisson (JW) */
 	LINK_LOGOFFSET,
-	LINK_SSLOGIT
+	LINK_SSLOGIT,
+	LINK_LOGLOG
 } inla_component_tp;
 
 
@@ -1265,6 +1266,7 @@ double inla_update_density(double *theta, inla_update_tp * arg);
 double inla_log_Phi(double x);
 double laplace_likelihood_normalising_constant(double alpha, double gamma, double tau);
 double link_cloglog(double x, map_arg_tp typ, void *param, double *cov);
+double link_loglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_identity(double x, map_arg_tp typ, void *param, double *cov);
 double link_log(double x, map_arg_tp typ, void *param, double *cov);
 double link_logit(double x, map_arg_tp typ, void *param, double *cov);
@@ -1288,6 +1290,7 @@ double map_group_rho(double x, map_arg_tp typ, void *param);
 double map_identity(double arg, map_arg_tp typ, void *param);
 double map_identity_scale(double arg, map_arg_tp typ, void *param);
 double map_invcloglog(double arg, map_arg_tp typ, void *param);
+double map_invloglog(double arg, map_arg_tp typ, void *param);
 double map_invlogit(double x, map_arg_tp typ, void *param);
 double map_invprobit(double arg, map_arg_tp typ, void *param);
 double map_invtan(double arg, map_arg_tp typ, void *param);
