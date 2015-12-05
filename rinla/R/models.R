@@ -5047,7 +5047,7 @@
                          ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "logit", "cauchit"),
+                     link = c("default", "logit"),
                      pdf = "iidlogitbeta",
                      status = "experimental"
                      ),
