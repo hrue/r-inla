@@ -4663,8 +4663,8 @@ inla.models()
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`1 10'}
-							\item{to.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                             if (all(is.infinite(c(low, high))) || low == high) {} \code{                                 return (x)} \code{                             } else if (all(is.finite(c(low, high)))) {} \code{                                 stopifnot(low < high)} \code{                                 return (log( - (low - x)/(high -x)))} \code{                             } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                 return (log(x-low))} \code{                             } else {} \code{                                 stop("Condition not yet implemented")} \code{                             }} \code{                         }}'}
-							\item{from.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                             if (all(is.infinite(c(low, high))) || low == high) {} \code{                                 return (x)} \code{                             } else if (all(is.finite(c(low, high)))) {} \code{                                 stopifnot(low < high)} \code{                                 return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                             } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                 return (low + exp(x))} \code{                             } else {} \code{                                 stop("Condition not yet implemented")} \code{                             }} \code{                         }}'}
+							\item{to.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                 if (all(is.infinite(c(low, high))) || low == high) {} \code{                                     return (x)} \code{                                 } else if (all(is.finite(c(low, high)))) {} \code{                                     stopifnot(low < high)} \code{                                     return (log( - (low - x)/(high -x)))} \code{                                 } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                     return (log(x-low))} \code{                                 } else {} \code{                                     stop("Condition not yet implemented")} \code{                                 }} \code{                             }}'}
+							\item{from.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                 if (all(is.infinite(c(low, high))) || low == high) {} \code{                                     return (x)} \code{                                 } else if (all(is.finite(c(low, high)))) {} \code{                                     stopifnot(low < high)} \code{                                     return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                                 } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                     return (low + exp(x))} \code{                                 } else {} \code{                                     stop("Condition not yet implemented")} \code{                                 }} \code{                             }}'}
 							}
 						}
 					 }
@@ -4695,8 +4695,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`1 10'}
-							\item{to.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                             if (all(is.infinite(c(low, high))) || low == high) {} \code{                                 stopifnot(low < high)} \code{                                 return (x)} \code{                             } else if (all(is.finite(c(low, high)))) {} \code{                                 stopifnot(low < high)} \code{                                 return (log( - (low - x)/(high -x)))} \code{                             } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                 return (log(x-low))} \code{                             } else {} \code{                                 stop("Condition not yet implemented")} \code{                             }} \code{                         }}'}
-							\item{from.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                             if (all(is.infinite(c(low, high))) || low == high) {} \code{                                 stopifnot(low < high)} \code{                                 return (x)} \code{                             } else if (all(is.finite(c(low, high)))) {} \code{                                 stopifnot(low < high)} \code{                                 return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                             } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                 return (low + exp(x))} \code{                             } else {} \code{                                 stop("Condition not yet implemented")} \code{                             }} \code{                         }}'}
+							\item{to.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                 if (all(is.infinite(c(low, high))) || low == high) {} \code{                                     stopifnot(low < high)} \code{                                     return (x)} \code{                                 } else if (all(is.finite(c(low, high)))) {} \code{                                     stopifnot(low < high)} \code{                                     return (log( - (low - x)/(high -x)))} \code{                                 } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                     return (log(x-low))} \code{                                 } else {} \code{                                     stop("Condition not yet implemented")} \code{                                 }} \code{                             }}'}
+							\item{from.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                 if (all(is.infinite(c(low, high))) || low == high) {} \code{                                     stopifnot(low < high)} \code{                                     return (x)} \code{                                 } else if (all(is.finite(c(low, high)))) {} \code{                                     stopifnot(low < high)} \code{                                     return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                                 } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                     return (low + exp(x))} \code{                                 } else {} \code{                                     stop("Condition not yet implemented")} \code{                                 }} \code{                             }}'}
 							}
 						}
 					 }
@@ -5190,6 +5190,8 @@ inla.models()
 				 }
 				\item{Model `cloglog'.}{Number of hyperparmeters are 0.
 				 }
+				\item{Model `loglog'.}{Number of hyperparmeters are 0.
+				 }
 				\item{Model `identity'.}{Number of hyperparmeters are 0.
 				 }
 				\item{Model `log'.}{Number of hyperparmeters are 0.
@@ -5197,6 +5199,8 @@ inla.models()
 				\item{Model `logit'.}{Number of hyperparmeters are 0.
 				 }
 				\item{Model `probit'.}{Number of hyperparmeters are 0.
+				 }
+				\item{Model `cauchit'.}{Number of hyperparmeters are 0.
 				 }
 				\item{Model `tan'.}{Number of hyperparmeters are 0.
 				 }
@@ -5629,7 +5633,7 @@ inla.models()
 								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default logit probit cloglog log'}
+								\item{link = }{`default logit cauchit probit cloglog loglog log'}
 								\item{pdf = }{`testbinomial1'}
 							 }
 						 }
@@ -5724,7 +5728,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit'}
+								\item{link = }{`default logit cauchit'}
 								\item{pdf = }{`kumar'}
 							 }
 						 }
@@ -5751,7 +5755,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit probit cloglog'}
+								\item{link = }{`default logit cauchit probit cloglog loglog'}
 								\item{pdf = }{`beta'}
 							 }
 						 }
@@ -5778,7 +5782,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default logit probit cloglog'}
+								\item{link = }{`default logit cauchit probit cloglog loglog'}
 								\item{pdf = }{`betabinomial'}
 							 }
 						 }
@@ -5834,7 +5838,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit probit cloglog'}
+								\item{link = }{`default logit cauchit probit cloglog loglog'}
 								\item{pdf = }{`simplex'}
 							 }
 						 }
@@ -5861,7 +5865,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default identity logit log logoffset'}
+								\item{link = }{`default identity logit cauchit log logoffset'}
 								\item{pdf = }{`gaussian'}
 							 }
 						 }
@@ -6602,7 +6606,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default logit probit cloglog'}
+								\item{link = }{`default logit cauchit probit cloglog loglog'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }
@@ -6642,7 +6646,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default logit probit cloglog'}
+								\item{link = }{`default logit cauchit probit cloglog loglog'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }
@@ -6669,7 +6673,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit probit cloglog'}
+								\item{link = }{`default logit cauchit probit cloglog loglog'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }
@@ -6696,7 +6700,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit probit cloglog'}
+								\item{link = }{`default logit cauchit probit cloglog loglog'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }
@@ -6723,7 +6727,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit probit cloglog'}
+								\item{link = }{`default logit cauchit probit cloglog loglog'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }
@@ -6763,7 +6767,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit probit cloglog'}
+								\item{link = }{`default logit cauchit probit cloglog loglog'}
 								\item{pdf = }{`NA'}
 							 }
 						 }
@@ -6803,7 +6807,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit probit cloglog'}
+								\item{link = }{`default logit cauchit probit cloglog loglog'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }

@@ -13,12 +13,16 @@
  \alias{inla.link.invprobit}
  \alias{inla.link.cloglog}
  \alias{inla.link.invcloglog}
+ \alias{inla.link.loglog}
+ \alias{inla.link.invloglog}
  \alias{inla.link.tan}
  \alias{inla.link.invtan}
  \alias{inla.link.identity}
  \alias{inla.link.invidentity}
  \alias{inla.link.invalid}
  \alias{inla.link.invinvalid}
+ \alias{inla.link.cauchit}
+ \alias{inla.link.invcauchit}
  
  \title{Link functions in INLA}
  
@@ -33,8 +37,12 @@
  inla.link.invprobit(x, inverse=FALSE)
  inla.link.cloglog(x, inverse=FALSE)
  inla.link.invcloglog(x, inverse=FALSE)
+ inla.link.loglog(x, inverse=FALSE)
+ inla.link.invloglog(x, inverse=FALSE)
  inla.link.tan(x, inverse=FALSE)
  inla.link.invtan(x, inverse=FALSE)
+ inla.link.cauchit(x, inverse=FALSE)
+ inla.link.invcauchit(x, inverse=FALSE)
  inla.link.identity(x, inverse=FALSE)
  inla.link.invidentity(x, inverse=FALSE)
  inla.link.invalid(x, inverse=FALSE)
