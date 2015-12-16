@@ -1,9 +1,11 @@
+
 \chapter{Predictions} 
 <<echo=FALSE>>=
 rm(list=ls())
 library(INLA)
 @ 
 
+poople
 
 In this chapter we will dicuss how to precition using
 \verb|INLA|. This is a bit different from other tools, as there is not
@@ -247,4 +249,3 @@ lines(r$summary.fitted.values$mean[1:n + n])
 abline(v = range(which(is.na(y.2))))
 @ 
 \end{center}
-
