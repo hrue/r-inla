@@ -5,7 +5,6 @@ rm(list=ls())
 library(INLA)
 @ 
 
-poople
 
 In this chapter we will dicuss how to precition using
 \verb|INLA|. This is a bit different from other tools, as there is not
