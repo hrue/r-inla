@@ -4083,6 +4083,54 @@
                      set.default.values = FALSE,
                      status = "experimental", 
                      pdf = "sigm"
+                     ),
+
+                 log1exp = list(
+                     hyper = list(
+                         theta1 = list(
+                             hyperid =  39011,
+                             name = "beta",
+                             short.name = "b",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                             ),
+                         theta2 = list(
+                             hyperid =  39012,
+                             name = "alpha",
+                             short.name = "a",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                             ), 
+                         theta3 = list(
+                             hyperid =  39013,
+                             name = "gamma",
+                             short.name = "g",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                             )
+                         ),
+                     constr = FALSE,
+                     nrow.ncol = FALSE,
+                     augmented = FALSE,
+                     aug.factor = 1L,
+                     aug.constr = NULL,
+                     n.div.by = NULL,
+                     n.required = FALSE,
+                     set.default.values = FALSE,
+                     status = "experimental", 
+                     pdf = "log1exp"
                      )
                  ##
                  )

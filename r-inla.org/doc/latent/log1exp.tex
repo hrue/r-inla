@@ -1,0 +1,77 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{log1exp effect of a covariate}
+
+\subsection*{Parametrization}
+
+This model implements a non-linear effect of a positive covariate $x$
+as a part of the linear predictor,
+\begin{displaymath}
+    \beta \log\left(1 + \exp(\alpha -\gamma x)\right)
+\end{displaymath}
+where $\beta, \alpha, \gamma \in \Re$ and $x\ge 0$.
+
+\subsection*{Hyperparameters}
+
+This model has three hyperparameters, the scaling $\beta$, halflife
+$a$ and shape $k$,
+\begin{displaymath}
+    \theta_1 = \beta \qquad \theta_2 = \alpha \qquad  \theta_3 = \gamma
+\end{displaymath}
+and the priors are given for $\theta_1, \theta_2$ and $\theta_3$.
+
+
+\subsection*{Specification}
+
+\begin{verbatim}
+    f(x, model="log1exp", hyper = ..., precision = <precision>)
+\end{verbatim}
+where \texttt{precision} is the precision for the tiny noise used to
+implement this as a latent model. 
+
+\subsubsection*{Hyperparameter specification and default values}
+\input{../hyper/latent/log1exp.tex}
+
+\subsection*{Example}
+
+\begin{verbatim}
+log1exp = function(x, beta,  alpha, gamma)
+{
+    return (beta * log(1.0 + exp(alpha - gamma * x)))
+}
+
+n = 100
+lambda = 2
+s=0.1
+x = rpois(n, lambda = lambda)
+beta = 1
+alpha = 0
+gamma = .5
+
+y = log1exp(x, beta,  alpha, gamma) + rnorm(n, sd = s)
+r = inla(y ~ -1 + f(x, model="log1exp"),
+        data = data.frame(y, x),
+        family = "gaussian",
+        control.inla = list(h=0.001), 
+        control.family = list(
+                hyper = list(
+                        prec = list(
+                                initial = log(1/s^2),
+                                fixed = TRUE))))
+summary(r)
+\end{verbatim}
+
+\subsection*{Notes}
+None
+
+\end{document}
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
