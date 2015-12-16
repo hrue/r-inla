@@ -468,6 +468,7 @@ typedef enum {
 	F_RW2DIID,
 	F_SPDE3,
 	F_GENERIC3,
+	F_LOG1EXP, 
 	P_LOGGAMMA = 2000,				       /* priors */
 	P_GAUSSIAN,
 	P_MVGAUSSIAN,
@@ -1115,7 +1116,7 @@ typedef struct {
 
 
 /* 
-   sigmodial and reverse sigmodial
+   sigmodial and reverse sigmodial and log1exp
  */
 typedef struct {
 	double **beta;
@@ -1124,6 +1125,14 @@ typedef struct {
 	double *x;
 	double precision;
 } inla_sigm_tp;
+
+typedef struct {
+	double **beta;
+	double **alpha;
+	double **gamma;
+	double *x;
+	double precision;
+} inla_log1exp_tp;
 
 /* 
    classic me model
@@ -1246,6 +1255,7 @@ double Qfunc_iid_wishart(int node, int nnode, void *arg);
 double Qfunc_mec(int i, int j, void *arg);
 double Qfunc_clinear(int i, int j, void *arg);
 double Qfunc_sigm(int i, int j, void *arg);
+double Qfunc_log1exp(int i, int j, void *arg);
 double Qfunc_ou(int i, int j, void *arg);
 double Qfunc_replicate(int i, int j, void *arg);
 double Qfunc_rgeneric(int i, int j, void *arg);
@@ -1308,6 +1318,7 @@ double map_sqrt1exp(double arg, map_arg_tp typ, void *param);
 double map_tau_laplace(double arg, map_arg_tp typ, void *param);
 double mfunc_mec(int i, void *arg);
 double mfunc_clinear(int i, void *arg);
+double mfunc_log1exp(int i, void *arg);
 double mfunc_sigm(int i, void *arg);
 double mfunc_revsigm(int i, void *arg);
 double priorfunc_invalid(double *x, double *parameters);

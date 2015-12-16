@@ -196,7 +196,7 @@ component, only used if \code{model="linear"}}
  usefull for large models where we are only interested in
  some posterior marginals.}
 \item{of}{TODO}
-\item{precision}{The precision for the artifical noise added when creating a copy of a model or the z-model.}
+\item{precision}{The precision for the artifical noise added when creating a copy of a model and others.}
 \item{range}{A vector of size two giving the lower and
 upper range for the scaling parameter \code{beta} in the
 model \code{COPY}, \code{CLINEAR}, \code{MEC} and \code{MEB}.
