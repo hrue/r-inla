@@ -12,11 +12,12 @@ This model implements a non-linear effect of a positive covariate $x$
 as a part of the linear predictor. It comes in two variants,
 \emph{sigmoidal}
 \begin{displaymath}
-    \beta \frac{x^{k}}{x^{k} + a^{k}}
+    \beta \frac{x^{k}}{x^{k} + a^{k}}\qquad\text{or}\qquad \beta \frac{z}{z+1}
 \end{displaymath}
-where $x\ge 0$, $k>0$ and $a>0$, and the \emph{reverse-sigmoidal}
+with $z    = (x/a)^{k}$, 
+ $x\ge 0$, $k>0$ and $a>0$, and the \emph{reverse-sigmoidal}
 \begin{displaymath}
-    \beta \frac{a^{k}}{x^{k} + a^{k}}.
+    \beta \frac{a^{k}}{x^{k} + a^{k}} \qquad\text{or}\qquad \beta \frac{1}{z+1}.
 \end{displaymath}
 Here, $a$ is the halflife parameter, $k$ the shape-parameter and
 $\beta$ the scaling.
@@ -97,4 +98,4 @@ None
 %%% Local Variables: 
 %%% TeX-master: t
 %%% End: 
-
+
