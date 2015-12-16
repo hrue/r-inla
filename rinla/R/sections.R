@@ -267,10 +267,13 @@
         if (!is.null(random.spec$of)) {
             cat("of =", random.spec$of, "\n", sep = " ", file = file,  append = TRUE)
         }
+    }
+    if (inla.one.of(random.spec$model, c("copy", "sigm", "revsigm", "log1exp"))) {
         if (!is.null(random.spec$precision)) {
             cat("precision =", random.spec$precision, "\n", sep = " ", file = file,  append = TRUE)
         }
     }
+    
     if (inla.one.of(random.spec$model, c("clinear", "copy", "mec", "meb"))) {
         if (is.null(random.spec$range)) {
             ## default is the identity mapping
