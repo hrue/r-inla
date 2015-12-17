@@ -22421,6 +22421,7 @@ double extra(double *theta, int ntheta, void *argument)
 			} else {
 				// 
 			}
+			val += mb->f_Ntotal[i] * (LOG_NORMC_GAUSSIAN + 0.5 * log(mb->f_precision[i]));
 			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
 			}
@@ -22456,6 +22457,7 @@ double extra(double *theta, int ntheta, void *argument)
 			} else {
 				// 
 			}
+			val += mb->f_Ntotal[i] * (LOG_NORMC_GAUSSIAN + 0.5 * log(mb->f_precision[i]));
 			if (NOT_FIXED(f_fixed[i][2])) {
 				val += PRIOR_EVAL(mb->f_prior[i][2], &log_shape);
 			}
@@ -22473,7 +22475,6 @@ double extra(double *theta, int ntheta, void *argument)
 			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
 			}
-
 			if (NOT_FIXED(f_fixed[i][1])) {
 				alpha = theta[count];
 				count++;
@@ -22483,13 +22484,13 @@ double extra(double *theta, int ntheta, void *argument)
 			if (NOT_FIXED(f_fixed[i][1])) {
 				val += PRIOR_EVAL(mb->f_prior[i][1], &alpha);
 			}
-
 			if (NOT_FIXED(f_fixed[i][2])) {
 				gama = theta[count];
 				count++;
 			} else {
 				// 
 			}
+			val += mb->f_Ntotal[i] * (LOG_NORMC_GAUSSIAN + 0.5 * log(mb->f_precision[i]));
 			if (NOT_FIXED(f_fixed[i][2])) {
 				val += PRIOR_EVAL(mb->f_prior[i][2], &gama);
 			}
