@@ -12877,8 +12877,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp,
 	    **beta_intern = NULL, **beta = NULL, **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd,
-		**mean_x = NULL, **log_prec_x = NULL, ***pacf_intern = NULL, slm_rho_min = 0.0, slm_rho_max = 0.0, **log_halflife = NULL, **log_shape = NULL,
-		**alpha = NULL, **gama = NULL;
+	    **mean_x = NULL, **log_prec_x = NULL, ***pacf_intern = NULL, slm_rho_min = 0.0, slm_rho_max = 0.0, **log_halflife = NULL, **log_shape = NULL,
+	    **alpha = NULL, **gama = NULL;
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	inla_spde_tp *spde_model = NULL;
@@ -13297,7 +13297,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL");
 		break;
 
-	case F_LOG1EXP: 
+	case F_LOG1EXP:
 	case F_SIGM:
 	case F_REVSIGM:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL");	// beta
@@ -16400,7 +16400,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	}
 
 
-	case F_LOG1EXP: 
+	case F_LOG1EXP:
 	{
 		char *local_name = GMRFLib_strdup("LOG1EXP");
 
@@ -19714,7 +19714,7 @@ double extra(double *theta, int ntheta, void *argument)
 	double val = 0.0, log_precision, log_precision0, log_precision1, rho, rho_intern, beta, beta_intern, logit_rho,
 	    group_rho = NAN, group_rho_intern = NAN, ngroup = NAN, normc_g = 0.0, n_orig = NAN, N_orig = NAN, rankdef_orig = NAN,
 	    h2_intern, phi, phi_intern, a_intern, dof_intern, logdet, group_prec = NAN, group_prec_intern = NAN, grankdef = 0.0, gcorr = 1.0,
-		log_halflife, log_shape, alpha, gama;
+	    log_halflife, log_shape, alpha, gama;
 
 
 	inla_tp *mb = NULL;
@@ -23976,16 +23976,10 @@ int inla_output(inla_tp * mb)
 
 				GMRFLib_sprintf(&newtag, "%s in user scale", mb->predictor_tag);
 				GMRFLib_sprintf(&sdir, "%s user scale", mb->predictor_dir);
-				if (0) {
-					// OLD CODE WHICH IS DISABLED
-					inla_output_detail(mb->dir, &(mb->density_transform[offset]), NULL, NULL, mb->predictor_n + mb->predictor_m, 1,
-							   mb->predictor_output, sdir, NULL, NULL, NULL, newtag, NULL, local_verbose);
-				} else {
-					inla_output_detail(mb->dir, &(mb->density[offset]),
-							   (mb->gdensity ? &(mb->gdensity[offset]) : NULL),
-							   NULL, mb->predictor_n + mb->predictor_m, 1,
-							   mb->predictor_output, sdir, NULL, NULL, mb->transform_funcs, newtag, NULL, local_verbose);
-				}
+				inla_output_detail(mb->dir, &(mb->density[offset]),
+						   (mb->gdensity ? &(mb->gdensity[offset]) : NULL),
+						   NULL, mb->predictor_n + mb->predictor_m, 1,
+						   mb->predictor_output, sdir, NULL, NULL, mb->transform_funcs, newtag, NULL, local_verbose);
 				inla_output_size(mb->dir, sdir, mb->predictor_n + mb->predictor_m, -1, -1, -1, (mb->predictor_m == 0 ? 1 : 2));
 			}
 		} else if (i == 1) {
@@ -26676,56 +26670,6 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc)
 
 	fclose(fp);
 	return INLA_OK;
-}
-
-int inla_besag_scale_OLD(inla_besag_Qfunc_arg_tp * arg)
-{
-	/*
-	 * OLD version: SLOW
-	 */
-
-	inla_besag_Qfunc_arg_tp *def = Calloc(1, inla_besag_Qfunc_arg_tp);
-	inla_besag_Qfunc_arg_tp *odef = arg;
-
-	GMRFLib_copy_graph(&(def->graph), odef->graph);
-	def->log_prec = NULL;
-	def->prec_scale = NULL;
-
-	gsl_matrix *Q = gsl_matrix_alloc(def->graph->n, def->graph->n);
-	size_t i, j, k;
-
-	/*
-	 * yes, use dense matrix
-	 */
-	for (i = 0; i < (size_t) def->graph->n; i++) {
-		gsl_matrix_set(Q, i, i, Qfunc_besag(i, i, def));
-		for (k = 0; k < (size_t) def->graph->nnbs[i]; k++) {
-			double value;
-
-			j = def->graph->nbs[i][k];
-			value = Qfunc_besag(i, j, def);
-			gsl_matrix_set(Q, i, j, value);
-			gsl_matrix_set(Q, j, i, value);
-		}
-	}
-
-	FIXME("ASSUME NCC=1!!!!");
-	GMRFLib_gsl_ginv(Q, -1, 1);
-	double sum = 0.0, scale;
-
-	for (i = 0; i < (size_t) def->graph->n; i++) {
-		sum += log(gsl_matrix_get(Q, i, i));
-	}
-	scale = exp(sum / def->graph->n);
-
-	odef->prec_scale = Calloc(1, double);
-	odef->prec_scale[0] = scale;
-
-	gsl_matrix_free(Q);
-	GMRFLib_free_graph(def->graph);
-	Free(def);
-
-	return GMRFLib_SUCCESS;
 }
 int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 {
