@@ -16,8 +16,7 @@
 ##!
 ##! \arguments{
 ##!
-##!   \item{Q}{A SPD matrix,  either as a (dense) matrix,  sparseMatrix,  or
-##!           a (ascii-)filename with entries in the following format \code{i j Qij}.}
+##!   \item{Q}{A SPD matrix,  either as a (dense) matrix or sparseMatrix.}
 ##!   \item{constr}{Optional linear constraints; see \code{?INLA::f} and argument \code{extraconstr}}
 ##!   \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()}
 ##!        or the output from \code{inla.qreordering(Q)}.
