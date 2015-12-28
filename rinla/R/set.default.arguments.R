@@ -539,7 +539,7 @@
         ##:ARGUMENT: cross Cross-sum-to-zero constraints with the linear predictor. All linear predictors with the same level of 'cross' are constrained to have sum zero. Use 'NA' for no contribution. 'Cross' has the same length as the linear predictor (including the 'A' matrix extention). (THIS IS AN EXPERIMENTAL OPTION, CHANGES MAY APPEAR.)
         cross=NULL,
 
-        ##:ARGUMENT: A The observation matrix (matrix or Matrix::sparseMatrix) or a filename with format `i j value'.
+        ##:ARGUMENT: A The observation matrix (matrix or Matrix::sparseMatrix).
         A = NULL,
 
         ##:ARGUMENT: precision The precision for eta* - A*eta,
