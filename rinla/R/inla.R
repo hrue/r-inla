@@ -465,6 +465,11 @@
     ## expansion might occur.
     control.compute = inla.check.control(control.compute, data)
     control.predictor = inla.check.control(control.predictor, data)
+    ## I need to check for NA's already here.
+    if (!is.null(control.predictor$A)) {
+        control.predictor$A[ is.na(control.predictor$A) ] = 0
+        control.predictor$A = inla.as.sparse(control.predictor$A)
+    }
     ## do not check control.family here, as we need to know n.family
     control.inla = inla.check.control(control.inla, data)
     control.results = inla.check.control(control.results, data)
@@ -778,7 +783,6 @@
     ## control predictor section
     cont.predictor = inla.set.control.predictor.default()
     cont.predictor[names(control.predictor)] = control.predictor
-
     cont.predictor$hyper = inla.set.hyper("predictor", "predictor",
         cont.predictor$hyper, cont.predictor$initial,
         cont.predictor$fixed, cont.predictor$prior, cont.predictor$param)
