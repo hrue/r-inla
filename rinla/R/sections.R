@@ -820,7 +820,6 @@
         ## Aextended = [ I, -A; -A^T, A^T A ] ((n+m) x (n+m))
         ##
         ## This matrix is the one that is needed for input to inla. 
-    
         if (is.character(predictor.spec$A)) {
             A = read.table(predictor.spec$A, col.names = c("i", "j", "x"))
             A = sparseMatrix(i = A$i, j = A$j, x = A$x, index1=TRUE)
@@ -833,8 +832,8 @@
         stopifnot(dim(A)[1] == m)
         stopifnot(dim(A)[2] == n)
 
-        ## replace NA's with zeros.
-        A[ is.na(A) ] = 0.0
+        ## replace NA's with zeros. (This is now done already in inla.R)
+        ## A[ is.na(A) ] = 0.0
 
         ## Aext = [ I, -A; -A^T, A^T A ] ((n+m) x (n+m))
         Aext = rBind(cBind(Diagonal(m), -A), cBind(-t(A), t(A) %*% A))
