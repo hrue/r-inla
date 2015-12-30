@@ -10,6 +10,8 @@ inla.setOption(inla.call='remote')
 inla.setOption(num.threads=7)
 require(geoR)
 @ 
+This chapter is better presented in the
+last chapter of~\cite{blangiardoC:2015}.
 
 Here we focus on the situation when we 
 have a response $y$ and a covariate $c$. 
