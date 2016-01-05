@@ -148,7 +148,7 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 			if (i == j) {
 				gsl_matrix_set(A, i, j, -1.0);
 			} else {
-				lag = (size_t) IABS(i - j);
+				lag = (size_t) IABS((int)i - (int)j);
 				lag_idx = lag - 1;	       /* as correlation for lag 1 is x[0], lag 2 is x[1] (lag 0 = 1 and not used) */
 				gsl_matrix_set(A, i, lag_idx, phi[j] + gsl_matrix_get(A, i, lag_idx));
 			}
@@ -174,7 +174,7 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 			if (i == j) {
 				gsl_matrix_set(Sigma, i, j, 1.0);
 			} else {
-				lag = (size_t) IABS(i - j);
+				lag = (size_t) IABS((int)i - (int)j);
 				lag_idx = lag - 1;
 				gsl_matrix_set(Sigma, i, j, gsl_vector_get(x, lag_idx));
 			}
