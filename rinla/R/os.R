@@ -20,7 +20,7 @@
             s = system("sw_vers -productVersion", intern=T)
             vers = as.integer(strsplit(s, ".", fixed=TRUE)[[1]])
             ver = vers[1] + vers[2]/10
-            s.req = 10.9 ## @@@HARDCODED@@@
+            s.req = 10.10 ## @@@HARDCODED@@@
             if (ver < s.req) {
                 stop("Your version, ", s, ", of MacOSX is to old for R-INLA. Update MacOSX to at least version ",
                      as.character(s.req), sep="")
