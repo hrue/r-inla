@@ -785,10 +785,10 @@
     return (is.element(pkg, installed.packages()[,1L]))
 }
 
-`inla.require` = function(pkg)
+`inla.require` = function(pkg, ...)
 {
     ## follow the `new' standard...
-    return (requireNamespace(pkg, quietly = TRUE))
+    return (requireNamespace(pkg, quietly = TRUE, ...))
 }
 
 `inla.require.old` = function(pkg)
