@@ -43,5 +43,17 @@
     } else {
         install.packages(pkgs = "INLA", lib = lib, repos = repo)
     }
+
+    ## reload INLA if possible, otherwise tell. use 'standalone' functions since this file is
+    ## also the installer script
+    if (require("INLA", quietly = TRUE)) {
+        if (require("devtools", quietly = TRUE)) {
+            devtools::reload("INLA", quiet = FALSE)
+        } else {
+            cat("\n *** Please restart R to load package 'INLA'\n\n")
+        }
+    } else {
+        library("INLA")
+    }
     return (invisible())
 }
