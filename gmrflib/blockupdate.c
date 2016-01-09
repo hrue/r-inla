@@ -1298,7 +1298,7 @@ int GMRFLib_2order_approx_core(double *a, double *b, double *c, double x0, int i
 		}
 
 		default:
-			GMRFLib_ASSERT(num_points == 3 || num_points == 5 || num_points == 7,  GMRFLib_EINVARG);
+			GMRFLib_ASSERT(num_points == 3 || num_points == 5 || num_points == 7 || num_points == 9,  GMRFLib_EINVARG);
 			abort();
 		}
 	}
