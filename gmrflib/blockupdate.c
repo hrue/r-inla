@@ -1122,7 +1122,7 @@ int GMRFLib_init_GMRF_approximation_store(GMRFLib_problem_tp ** problem, double 
 #undef FREE_ALL
 }
 int GMRFLib_2order_taylor(double *a, double *b, double *c, double d, double x0, int indx,
-			  double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *step_len)
+			  double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {
 	/*
 	 * compute a,b,c in the taylor expansion around x0 of d*loglFunc(x0,...)
@@ -1135,7 +1135,7 @@ int GMRFLib_2order_taylor(double *a, double *b, double *c, double d, double x0, 
 	if (ISZERO(d)) {
 		f0 = df = ddf = 0.0;
 	} else {
-		GMRFLib_2order_approx_core(&f0, &df, &ddf, x0, indx, x_vec, loglFunc, loglFunc_arg, step_len, NULL);
+		GMRFLib_2order_approx_core(&f0, &df, &ddf, x0, indx, x_vec, loglFunc, loglFunc_arg, step_len, stencil);
 	}
 
 	if (a) {
@@ -1182,7 +1182,7 @@ int GMRFLib_2order_approx(double *a, double *b, double *c, double d, double x0, 
 int GMRFLib_2order_approx_core(double *a, double *b, double *c, double x0, int indx,
 			       double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {
-	double step, df, ddf, xx[7], f[7], f0;
+	double step, df, ddf, xx[9], f[9], f0;
 	int code = loglFunc(f, &x0, 0, indx, x_vec, loglFunc_arg);
 
 	if (step_len && *step_len < 0.0) {
@@ -1272,6 +1272,28 @@ int GMRFLib_2order_approx_core(double *a, double *b, double *c, double x0, int i
 			f0 = f[3];
 			df = (wf[0] * f[0] + wf[1] * f[1] + wf[2] * f[2] + wf[3] * f[3] + wf[4] * f[4] + wf[5] * f[5] + wf[6] * f[6]) / step;
 			ddf = (wff[0] * f[0] + wff[1] * f[1] + wff[2] * f[2] + wff[3] * f[3] + wff[4] * f[4] + wff[5] * f[5] + wff[6] * f[6]) / step / step;
+			break;
+		}
+
+		case 9:
+		{
+			double wf[] = {1.0/280.0, -4.0/105.0, 1.0/5.0, -4.0/5.0,  0.0, 4.0/5.0, -1.0/5.0, 4.0/105.0, -1.0/280.0}; 
+			double wff[] = { -1.0/560.0, 8.0/315.0, -1.0/5.0, 8.0/5.0, -205.0/72.0, 8.0/5.0, -1.0/5.0, 8.0/315.0, -1.0/560.0}; 
+
+			xx[0] = x0 - 4.0 * step;
+			xx[1] = x0 - 3.0 * step;
+			xx[2] = x0 - 2.0 * step;
+			xx[3] = x0 - step;
+			xx[4] = x0;
+			xx[5] = x0 + step;
+			xx[6] = x0 + 2.0 * step;
+			xx[7] = x0 + 3.0 * step;
+			xx[8] = x0 + 4.0 * step;
+
+			loglFunc(f, xx, 9, indx, x_vec, loglFunc_arg);
+			f0 = f[4];
+			df = (wf[0] * f[0] + wf[1] * f[1] + wf[2] * f[2] + wf[3] * f[3] + wf[4] * f[4] + wf[5] * f[5] + wf[6] * f[6] + wf[7] * f[7] + wf[8] * f[8]) / step;
+			ddf = (wff[0] * f[0] + wff[1] * f[1] + wff[2] * f[2] + wff[3] * f[3] + wff[4] * f[4] + wff[5] * f[5] + wff[6] * f[6] + wff[7] * f[7] + wff[8] * f[8]) / step / step;
 			break;
 		}
 
