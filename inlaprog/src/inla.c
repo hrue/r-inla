@@ -22480,10 +22480,10 @@ double extra(double *theta, int ntheta, void *argument)
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg)
 {
 	/*
-	 * solve arg min logl(x[i]) - prec * 0.5*x[i]^2. But we have no option of what PREC is, so I set it to 1.0
+	 * solve arg min logl(x[i]) - prec * 0.5*x[i]^2. But we have no option of what PREC is, so I set it to 10.0
 	 */
-	double prec = 1.0, x, xnew, f, deriv, dderiv, arr[3], xarr[3], eps = 1.0e-4;
-	int niter = 0, compute_deriv, retval, niter_max = 10, debug = 0;
+	double prec = 10.0, x, xnew, f, deriv, dderiv, arr[3], xarr[3], eps = 1.0e-4, steplen = 1.0e-4;
+	int niter = 0, compute_deriv, retval, niter_max = 100, debug = 0, stencil = 7;
 
 	GMRFLib_thread_id = 0;				       /* yes, this is what we want! */
 	x = xnew = 0.0;
@@ -22497,13 +22497,13 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp * loglfunc, double *x
 			xarr[0] = xarr[1] = xarr[2] = x;
 			loglfunc(arr, xarr, 3, idx, x_vec, arg);
 		} else {
-			GMRFLib_2order_taylor(&arr[0], &arr[1], &arr[2], 1.0, x, idx, x_vec, loglfunc, arg, NULL);
+			GMRFLib_2order_taylor(&arr[0], &arr[1], &arr[2], 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
 		}
 		f = arr[0] - 0.5 * prec * SQR(x);
 		deriv = arr[1] - prec * x;
 		dderiv = DMIN(0.0, arr[2]) - prec;
 
-		xnew = x - DMIN(0.25 + niter * 0.25, 1.0) * deriv / dderiv;
+		xnew = x - DMIN(0.1 + niter * 0.1, 1.0) * deriv / dderiv;
 		if (debug) {
 			printf("idx %d x %.10g xnew %.10g f %.10g deriv %.10g dderiv %.10g\n", idx, x, xnew, f, deriv, dderiv);
 		}
