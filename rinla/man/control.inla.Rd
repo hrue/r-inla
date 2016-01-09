@@ -45,7 +45,7 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 \item{adapt.hessian.scale}{  Numerical The scaling of the 'h' after each trial.}
 \item{huge}{  Logical If TRUE then try to do some of the internal parallisations differently. Hopefully this will be of benefite for 'HUGE' models. (Default FALSE.) [THIS OPTION IS OBSOLETE AND NOT USED!]}
 \item{step.len}{  Numerical The step-length used to compute numerical derivaties of the log-likelihood}
-\item{stencil}{  Numerical Number of points in the stencil used to compute the numerical derivaties of the log-likelihood (3, 5 or 7).}
+\item{stencil}{  Numerical Number of points in the stencil used to compute the numerical derivaties of the log-likelihood (3, 5, 7 or 9).}
 \item{lincomb.derived.only}{  Logical If TRUE the only compute the marginals for the derived linear combinations and if FALSE, the and also the linear combinations to the graph (Default TRUE)}
 \item{lincomb.derived.correlation.matrix}{  Logical If TRUE compute also the correlations for the derived linear combinations, if FALSE do not (Default FALSE)}
 \item{diagonal}{  Numerical Expert use only! Add a this value on the diagonal of the joint precision matrix.}

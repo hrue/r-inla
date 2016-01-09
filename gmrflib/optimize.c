@@ -598,7 +598,8 @@ int GMRFLib_optimize2(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 
 				GMRFLib_2order_taylor(NULL, &bcoof, &ccoof, opt_problem->d[i],
 						      opt_problem->mode[i], opt_problem->map[i], opt_problem->x_vec,
-						      opt_problem->loglFunc, opt_problem->loglFunc_arg, &(opt_problem->optpar->step_len));
+						      opt_problem->loglFunc, opt_problem->loglFunc_arg, &(opt_problem->optpar->step_len),
+						      &(opt_problem->optpar->stencil));
 				grad[i] += bcoof;
 				opt_problem->sub_Qfunc_arg->diagonal_adds[i] += DMAX(0.0, -ccoof);
 			}
@@ -777,7 +778,8 @@ int GMRFLib_linesearch(GMRFLib_optimize_problem_tp * opt_problem, double *dir)
 			if (opt_problem->d[i]) {
 				GMRFLib_2order_taylor(NULL, &loglikgrad[i], &loglikggrad[i], 1.0,
 						      opt_problem->mode[i], opt_problem->map[i], opt_problem->x_vec,
-						      opt_problem->loglFunc, opt_problem->loglFunc_arg, &(opt_problem->optpar->step_len));
+						      opt_problem->loglFunc, opt_problem->loglFunc_arg, &(opt_problem->optpar->step_len),
+						      &(opt_problem->optpar->stencil));
 			} else {
 				loglikgrad[i] = loglikggrad[i] = 0.0;
 			}
