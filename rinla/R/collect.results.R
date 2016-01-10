@@ -983,7 +983,7 @@ inla.internal.experimental.mode = FALSE
         return (list(
             waic = -2*(sum(log(po.res), na.rm=TRUE) - sum(po2.res, na.rm=TRUE)),
             p.eff = sum(po2.res, na.rm=TRUE), 
-            local.waic=-2*log(po.res)-po2.res, 
+            local.waic=-2*(log(po.res)-po2.res), 
             local.p.eff=po2.res))
     } else {
         return (NULL)
