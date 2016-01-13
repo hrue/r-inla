@@ -47,7 +47,8 @@
 ##!            for an example of how to write a user-spesific function.}
 ##!   \item{b}{The b-vector (gradient) in the expression for the simplex option,  \code{d(xi) = h(b^T xi)}}
 ##!   \item{H}{The H(essian)-matrix in the expression for the sphere option,  \code{d(xi) =
-##!            h(1/2 *xi^T H xi)}}
+##!            h(1/2 *xi^T H xi)}. If \code{H} is a vector, then it is interpreted as the
+##!            diagonal of a (sparse) diagonal matrix.}
 ##!}
 ##! \details{
 ##!   These functions implements multivariate PC-priors of the simplex and sphere type.
@@ -275,19 +276,38 @@ inla.pc.multvar.sphere.core = function(
 
     mode = match.arg(mode)
     stopifnot(!is.null(H)) 
-    p = nrow(H)
 
     ## ensure x, if given, is a matrix. this is relevant if x is just one sample which can be
     ## given as a vector
     if (!is.null(x) && !is.matrix(x)) {
         x = matrix(c(x), ncol = length(x))
     }
+    ## if the class is ddiMatrix, convert it
+    if (is(H, class(Diagonal(1)))) {
+        H = diag(H)
+    }
 
-    ## this case involving rescaling and rotation
-    eig = eigen(H)
-    V = eig$vectors
-    Lam.sqrt = diag(sqrt(eig$values), ncol = p)
-    rep.Lam.sqrt = diag(1/sqrt(eig$values), ncol = p)
+    if (is.vector(H)) {
+        ## in case H is a diagonal matrix
+        p = length(H)
+        d = sort(H, decreasing = TRUE)
+        ## create the reverse-diagonal, as this is how R compute the eigenvectors. In this case
+        ## we will get exactly the same results as with H as a dense diagonal matrix. Copy this
+        ## trick from lava::revdiag
+        V = Diagonal(p, x = rep(0, p))
+        V[cbind(rev(seq(p)), seq(p))] = rep(1, p)
+        ##
+        Lam.sqrt = Diagonal(p, x = sqrt(d))
+        rep.Lam.sqrt = Diagonal(p, x = 1.0/sqrt(d))
+        eig = list(values = d)
+    } else {
+        p = nrow(H)
+        ## this case involving rescaling and rotation
+        eig = eigen(H)
+        V = eig$vectors
+        Lam.sqrt = diag(sqrt(eig$values), ncol = p)
+        rep.Lam.sqrt = diag(1/sqrt(eig$values), ncol = p)
+    }
 
     ## x = Lam.sqrt %*% V^T z
     ## and z is such that  x^T H x = z^T z
@@ -298,7 +318,7 @@ inla.pc.multvar.sphere.core = function(
         X = inla.pc.multvar.sphere.r.core(n, p = p, lambda = lambda,  h = h)
         for(i in 1:n) {
             z = t(X[i,, drop=FALSE])
-            X[i, ] = z.to.x %*% z
+            X[i, ] = as.numeric(z.to.x %*% z)
         }
         return (X)
     } else if (mode == "d") {
