@@ -45,7 +45,8 @@
             for an example of how to write a user-spesific function.}
    \item{b}{The b-vector (gradient) in the expression for the simplex option,  \code{d(xi) = h(b^T xi)}}
    \item{H}{The H(essian)-matrix in the expression for the sphere option,  \code{d(xi) =
-            h(1/2 *xi^T H xi)}}
+            h(1/2 *xi^T H xi)}. If \code{H} is a vector, then it is interpreted as the
+            diagonal of a (sparse) diagonal matrix.}
 }
  \details{
    These functions implements multivariate PC-priors of the simplex and sphere type.
