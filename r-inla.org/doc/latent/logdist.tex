@@ -1,0 +1,86 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{logdist effect of a covariate}
+
+\subsection*{Parametrization}
+
+This model implements a non-linear effect of a positive covariate $x$
+as a part of the linear predictor,
+\begin{displaymath}
+    \beta \left(1 + \exp(\alpha_1\log(x) - \alpha_2 x\right)
+\end{displaymath}
+where $\beta\in\Re$, $\alpha_1, \alpha_2 \in \Re^{+}$ and $x\ge 0$.
+
+\subsection*{Hyperparameters}
+
+This model has three hyperparameters, the scaling $\beta$, $\alpha_1$
+and $\alpha_2$. 
+\begin{displaymath}
+    \theta_1 = \beta \qquad \theta_2 = \log(\alpha_1) \qquad  \theta_3 = \log(\alpha_2)
+\end{displaymath}
+and the priors are given for $\theta_1, \theta_2$ and $\theta_3$.
+
+
+\subsection*{Specification}
+
+\begin{verbatim}
+    f(x, model="logdist", hyper = ..., precision = <precision>)
+\end{verbatim}
+where \texttt{precision} is the precision for the tiny noise used to
+implement this as a latent model. 
+
+\subsubsection*{Hyperparameter specification and default values}
+\input{../hyper/latent/logdist.tex}
+
+\subsection*{Example}
+
+\begin{verbatim}
+logdist = function(x, beta,  alpha)
+{
+    return (beta * (1 + exp(alpha[1] * log(x) - alpha[2] * x)))
+}
+
+n = 1000
+s=0.1
+x = runif(n)
+beta = 1
+alpha = c(1, 0.5)
+## start at the true values
+hyper = list(
+    beta = list(initial = beta), 
+    a1 = list(initial = log(alpha[1])),
+    a2 = list(initial = log(alpha[2])))
+## start somewhere else
+hyper = list(
+    beta = list(initial = 1), 
+    a1 = list(initial = 0), 
+    a2 = list(initial = 0))
+
+y = logdist(x, beta,  alpha) + rnorm(n, sd = s)
+r = (inla(y ~ -1 + f(x, model="logdist", hyper = hyper), 
+          data = data.frame(y, x),
+          family = "gaussian",
+          verbose=TRUE, 
+          control.inla = list(h=0.0001), 
+          control.family = list(
+              hyper = list(
+                  prec = list(
+                      initial = log(1/s^2),
+                      fixed = TRUE)))))
+summary(r)
+\end{verbatim}
+
+\subsection*{Notes}
+None
+
+\end{document}
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

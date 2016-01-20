@@ -469,6 +469,7 @@ typedef enum {
 	F_SPDE3,
 	F_GENERIC3,
 	F_LOG1EXP, 
+	F_LOGDIST, 
 	P_LOGGAMMA = 2000,				       /* priors */
 	P_GAUSSIAN,
 	P_MVGAUSSIAN,
@@ -1134,6 +1135,14 @@ typedef struct {
 	double precision;
 } inla_log1exp_tp;
 
+typedef struct {
+	double **beta;
+	double **alpha1;
+	double **alpha2;
+	double *x;
+	double precision;
+} inla_logdist_tp;
+
 /* 
    classic me model
  */
@@ -1254,6 +1263,7 @@ double Qfunc_group(int i, int j, void *arg);
 double Qfunc_iid2d(int i, int j, void *arg);
 double Qfunc_iid_wishart(int node, int nnode, void *arg);
 double Qfunc_log1exp(int i, int j, void *arg);
+double Qfunc_logdist(int i, int j, void *arg);
 double Qfunc_mec(int i, int j, void *arg);
 double Qfunc_ou(int i, int j, void *arg);
 double Qfunc_replicate(int i, int j, void *arg);
@@ -1318,6 +1328,7 @@ double map_sqrt1exp(double arg, map_arg_tp typ, void *param);
 double map_tau_laplace(double arg, map_arg_tp typ, void *param);
 double mfunc_clinear(int i, void *arg);
 double mfunc_log1exp(int i, void *arg);
+double mfunc_logdist(int i, void *arg);
 double mfunc_mec(int i, void *arg);
 double mfunc_revsigm(int i, void *arg);
 double mfunc_sigm(int i, void *arg);
