@@ -1547,7 +1547,6 @@
                 
                 ## this have to match
                 stopifnot(length(covariate[[r]]) == NPredictor)
-
                 file.cov=inla.tempfile(tmpdir=data.dir)
                 if (inla.getOption("internal.binary.mode")) {
                     inla.write.fmesher.file(as.matrix(cbind(indN, covariate[[r]])), filename=file.cov, debug = debug)

@@ -4131,6 +4131,54 @@
                      set.default.values = FALSE,
                      status = "experimental", 
                      pdf = "log1exp"
+                     ),
+                 
+                 logdist = list(
+                     hyper = list(
+                         theta1 = list(
+                             hyperid =  39021,
+                             name = "beta",
+                             short.name = "b",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                             ),
+                         theta2 = list(
+                             hyperid =  39022,
+                             name = "alpha1",
+                             short.name = "a1",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "loggamma",
+                             param = c(0.1, 1),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                             ), 
+                         theta3 = list(
+                             hyperid =  39023,
+                             name = "alpha2",
+                             short.name = "a2",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "loggamma",
+                             param = c(0.1, 1),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                             )
+                         ),
+                     constr = FALSE,
+                     nrow.ncol = FALSE,
+                     augmented = FALSE,
+                     aug.factor = 1L,
+                     aug.constr = NULL,
+                     n.div.by = NULL,
+                     n.required = FALSE,
+                     set.default.values = FALSE,
+                     status = "experimental", 
+                     pdf = "logdist"
                      )
                  ##
                  )
