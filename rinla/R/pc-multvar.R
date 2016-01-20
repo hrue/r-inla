@@ -196,7 +196,6 @@ inla.pc.multvar.simplex.core = function(
     return()
 }
 
-
 inla.pc.multvar.sphere.r.core = function(n, p, lambda = 1, h = inla.pc.multvar.h.default)
 {
     ## simulate from the pc prior where d = h(1/2 * \sum x_i^2)
