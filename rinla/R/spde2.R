@@ -453,8 +453,36 @@ inla.spde2.matern =
              prior.kappa = NULL,
              theta.prior.mean = NULL,
              theta.prior.prec = 0.1,
-             n.iid.group = 1)
+             n.iid.group = 1,
+             prior.pc.rho = NULL,
+             prior.pc.sig = NULL)
 {
+    ## Temporary implementation of PC prior for standard deviation and range
+    ##    - Changes parametrization to range and standard deviation
+    ##    - Sets prior according to hyperparameters for range   : prior.pc.rho
+    ##                                              and std.dev.: prior.pc.sig
+        if(!is.null(prior.pc.rho) && !is.null(prior.pc.sig)){
+            # Call inla.spde2.matern with range and standard deviation parametrization
+            d = inla.ifelse(inherits(mesh, "inla.mesh"), 2, 1)
+            nu = alpha-d/2
+            kappa0 = log(8*nu)/2
+            tau0   = 0.5*(lgamma(nu)-lgamma(nu+d/2)-d/2*log(4*pi))-nu*kappa0
+            spde   = inla.spde2.matern(mesh = mesh,
+                                       B.tau   = cbind(tau0,   nu,  -1),
+                                       B.kappa = cbind(kappa0, -1, 0))
+
+            # Change prior information
+            param = c(prior.pc.rho, prior.pc.sig)
+            spde$f$hyper.default$theta1$prior = "pcspdega"
+            spde$f$hyper.default$theta1$param = param
+            spde$f$hyper.default$theta1$initial = log(prior.pc.rho[1])+1
+            spde$f$hyper.default$theta2$initial = log(prior.pc.sig[1])-1
+
+            # End and return
+            return(invisible(spde))
+        }
+
+    ## Standard code    
     inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
     fractional.method = match.arg(fractional.method)
 
