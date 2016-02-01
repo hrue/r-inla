@@ -1,4 +1,4 @@
-\chapter{Non-Gaussian response: Precipitation on Paran\'a}\label{ch:prprec}
+\chapter{Non-Gaussian response: Precipitation on Paran\'a}\label{ch:prprec} 
 
 \SweaveOpts{prefix.string=figs/rain} 
 <<opts,echo=F,results=hide>>=
@@ -193,12 +193,15 @@ the relationship, such that the coefficients over the range
 of the covariate values have a first order random walk prior. 
 So we have the model adopted is of the form
 \[
-log(\mu_i) = \alpha + \sum_{k=1}^m w_k \tilde{F}_i + x_i \\
+log(\mu_i) = \alpha + x_i + \sum_{k=1}^m I_{ki} f_k(\tilde{F}_i^{(k)}) \\
 \]
-were $F$ is the distance to sea or the longitude and $\tilde{F}_i$ 
-is a discretized version of $F$ using a set of knots 
-(choose on range of the covariate values with the \texttt{inla.group()} function) 
-and $w_k$ are a set of serially correlated regression coefficients with first order random walk prior. 
+were 
+$\alpha$ is the intercept, 
+$x_i$ is the spatial random effect 
+and $\tilde{F}_i^{(k)}$ is the mean of the sea distance(or longitude) 
+in the class $k$ out of $m$ classes chosen 
+considering the \texttt{inla.group()} function, 
+$I_{ki}$ indicates if the covariate for the observation $i$ belongs to class $k$. 
 
 We use the mesh builded for the Paran\'a state on the 
 Chapter~\ref{ch:mesh}. 
@@ -290,14 +293,14 @@ distribution to $\beta_0$, $\phi$,
 $1/\kappa$, $\sigma_x^2$, practical range and to the 
 mean and 95\% credibility interval of the 
 distance to sea effect at Figure~\ref{fig:dseaeff}. 
-We choose $1/\kappa$ instead $kappa$ because 
+We choose $1/\kappa$ instead $\kappa$ because 
 $1/\kappa$ is the range parameter and in 
 this case is expressed in degrees units.
 <<seacoefs,eval=F>>= 
 par(mfrow=c(2,3), mar=c(3,3.5,0,0), mgp=c(1.5, .5, 0), las=0) 
 plot(r.sead$marginals.fix[[1]], type='l', xlab='Intercept', ylab='Density') 
 plot(r.sead$summary.random[[1]][,1:2], type='l', 
-     xlab='Distance to sea (Km)', ylab='Coeficient'); abline(h=0, lty=3) 
+     xlab='Distance to sea (Km)', ylab='Effect'); abline(h=0, lty=3) 
 for (i in c(4,6)) lines(r.sead$summary.random[[1]][,c(1,i)], lty=2) 
 plot(r.sead$marginals.hy[[1]], type='l', ylab='Density', xlab=expression(phi)) 
 plot.default(inla.tmarginal(function(x) 1/exp(x), r.sead$marginals.hy[[4]]), 
