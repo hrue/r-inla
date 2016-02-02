@@ -1984,7 +1984,7 @@ int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * de
 		-10.0, -8.0, -6.0, -5.0, -4.0, -3.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0
 	};
 	
-	int i, use_many = GMRFLib_FALSE, m;
+	int i, use_many = GMRFLib_TRUE, m;
 	double *p_ptr = (use_many ? p_many : p_few);
 
 	*len_x = (use_many ? sizeof(p_many) + sizeof(x_add): sizeof(p_few) + sizeof(x_add)) / sizeof(double);
