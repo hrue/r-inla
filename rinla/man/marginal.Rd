@@ -55,7 +55,7 @@
  inla.emarginal(fun, marginal, ...)
  inla.mmarginal(marginal)
  inla.tmarginal(fun, marginal, n=1024L, h.diff = .Machine$double.eps^(1/3),
-                method = c("quantile", "linear"),  ...) 
+                method = c("quantile", "linear"),  disable.numDeriv = FALSE, ...) 
  inla.zmarginal(marginal, silent = FALSE)
  }
  \arguments{
@@ -104,6 +104,8 @@
                  which is argument \code{n} in \code{spline}}
    
     \item{method}{Which method should be used to layout points for where the transformation is computed.}
+
+    \item{disable.numDeriv}{Disable the use of library \code{numDeriv}.}
 
     \item{silent}{Output the result visually (TRUE) or just through the call.}
  }
