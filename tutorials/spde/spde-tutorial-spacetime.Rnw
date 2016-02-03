@@ -405,7 +405,7 @@ stcov <- function(coords, time, kappa.s, kappa.t, variance=1, nu=1) {
 and use it to sample from the model
 <<sample>>=
 kappa.s <- 3; kappa.t <- 5; s2 <- 1/2; taue <- 3
-y <- chol(stcov(loc, time, kappa.s, kappa.t, s2))%*%rnorm(n) + 
+y <- crossprod(chol(stcov(loc, time, kappa.s, kappa.t, s2)), rnorm(n)) + 
     rnorm(n, 0, sqrt(1/taue))
 @ 
 
