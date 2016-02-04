@@ -17,9 +17,11 @@ for continuous response $y$ where
 \item[$\tau$]: is the precision parameter
 \item[$s$]: is a fixed scaling $s>0$
 \item[$\eta$]: is the linear predictor
-\item[$T_{\nu}$]: is a standardized Student-$t$ with $\nu$ degrees of
-    freedom such that its variace is $1$ for any value of $\nu$.
+\item[$T_{\nu}$]: is a \textbf{reparameterized standard} Student-$t$
+    with $\nu>2$ degrees of freedom with \textbf{unit variance for all
+        values of $\nu$}. \textbf{Please see the example for details!}
 \end{itemize}
+
 \subsection*{Link-function}
 
 Identity
@@ -52,7 +54,7 @@ phi=0.85
 mu=0.5
 eta=rep(0,n)
 for(i in 2:n)
-eta[i]=mu+phi*(eta[i-1]-mu)+rnorm(1)
+    eta[i]=mu+phi*(eta[i-1]-mu)+rnorm(1)
 nu=3
 t=rt(n,df=nu)
 y=eta+t/(sqrt(nu/(nu-2)))
