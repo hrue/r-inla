@@ -9012,7 +9012,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_GAMMA:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.y[i] < 0.0 || ds->data_observations.gamma_weight[i] <= 0.0) {
+				if (ds->data_observations.y[i] <= 0.0 || ds->data_observations.gamma_weight[i] <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Gamma data[%1d] (y) = %g or weight %g is void\n", secname, i,
 							ds->data_observations.y[i], ds->data_observations.gamma_weight[i]);
 					inla_error_general(msg);
