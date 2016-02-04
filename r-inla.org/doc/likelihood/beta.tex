@@ -53,15 +53,17 @@ default logit-link
 The hyperparameter is the precision parameter $\phi$, which is
 represented as
 \begin{displaymath}
-    \phi = \exp(\theta)
+    \phi = s_i \exp(\theta)
 \end{displaymath}
-and the prior is defined on $\theta$.
+where $s = (s_i) > 0$ is a fixed scaling, and the prior is defined on
+$\theta$.
 
 \subsection*{Specification}
 
 \begin{itemize}
 \item $\text{family}=\texttt{beta}$
-\item Required arguments: $y$.
+\item Required argument: $y$
+\item Optional argument: $s$ (argument \texttt{scale}, default all 1, $s>0$)
 \end{itemize}
 
 \subsubsection*{Hyperparameter spesification and default values}

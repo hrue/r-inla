@@ -3172,8 +3172,8 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_BETA:
-		idiv = 2;
-		a[0] = NULL;
+		idiv = 3;
+		a[0] = ds->data_observations.weight_beta = Calloc(mb->predictor_ndata, double);
 		break;
 
 	case L_BETABINOMIAL:
@@ -5873,7 +5873,8 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
-	double phi = map_exp(ds->data_observations.beta_precision_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double w = ds->data_observations.weight_beta[idx];
+	double phi = map_exp(ds->data_observations.beta_precision_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
 	double a, b, mu;
 
 	LINK_INIT;
@@ -9035,8 +9036,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_BETA:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.y[i] <= 0.0 || ds->data_observations.y[i] >= 1.0) {
-					GMRFLib_sprintf(&msg, "%s: Beta data[%1d] (y) = (%g) is void\n", secname, i, ds->data_observations.y[i]);
+				if (ds->data_observations.y[i] <= 0.0 || ds->data_observations.y[i] >= 1.0 ||
+					ds->data_observations.weight_beta[i] <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Beta data[%1d] (y) = (%g) or weight (%g)is void\n",
+							secname, i, ds->data_observations.y[i], ds->data_observations.weight_beta[i]);
 					inla_error_general(msg);
 				}
 			}
