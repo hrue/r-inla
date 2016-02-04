@@ -687,7 +687,7 @@ inla.extract.prior = function(section = NULL, hyperid = NULL, all.hyper, debug=F
         output("searching for hyperid = ", hyperid)
         h = all.hyper$fixed
         found = FALSE
-        for(i in seq_len(length(h))) {
+        for(i in seq_along(h)) {
             ## output("search for label = ", h[[i]]$label)
             if (inla.strcasecmp(h[[i]]$label, hyperid)) {
                 found = TRUE
@@ -705,7 +705,7 @@ inla.extract.prior = function(section = NULL, hyperid = NULL, all.hyper, debug=F
             output("searching for hyperid = ", hyperid)
             h = all.hyper$linear
             found = FALSE
-            for(i in seq_len(length(h))) {
+            for(i in seq_along(h)) {
                 ## output("search for label = ", h[[i]]$label)
                 if (inla.strcasecmp(h[[i]]$label, hyperid)) {
                     found = TRUE
@@ -736,7 +736,7 @@ inla.extract.prior = function(section = NULL, hyperid = NULL, all.hyper, debug=F
         output("request for likelihood ", section, " with hyperid ",  hyperid)
         h = all.hyper$family
         found = FALSE
-        for (idx.family in seq_len(length(h))) {
+        for (idx.family in seq_along(h)) {
             if (inla.strcasecmp(section, h[[idx.family]]$hyperid)) {
                 found = TRUE
                 break
@@ -751,30 +751,45 @@ inla.extract.prior = function(section = NULL, hyperid = NULL, all.hyper, debug=F
 
         ## now we need to find the theta
         found = FALSE
-        for (idx.theta in seq_len(length(h[[idx.family]]$hyper))) {
+        for (idx.theta in seq_along(h[[idx.family]]$hyper)) {
             if (inla.strcasecmp(hyperid, h[[idx.family]]$hyper[[idx.theta]]$hyperid)) {
                 found = TRUE
                 break
             }
         }
-        if (!found) {
-            output("likelihood ",  section, " with hyperid ", hyperid,  ". theta is not found",
-                   warning = TRUE)
-            return (NA)
+        if (found) {
+            output("likelihood ",  section, " with hyperid ", hyperid,  ". theta is found with idx.theta=", idx.theta)
+            prior = h[[idx.family]]$hyper[[idx.theta]]$prior
+            param = h[[idx.family]]$hyper[[idx.theta]]$param
+            from.theta = h[[idx.family]]$hyper[[idx.theta]]$from.theta
+            to.theta = h[[idx.family]]$hyper[[idx.theta]]$to.theta
         } else {
-           output("likelihood ",  section, " with hyperid ", hyperid,  ". theta is found with idx.theta=", idx.theta)
+            ## look in the link-section for theta
+            found = FALSE
+            for (idx.theta in seq_along(h[[idx.family]]$link$hyper)) {
+                if (inla.strcasecmp(hyperid, h[[idx.family]]$link$hyper[[idx.theta]]$hyperid)) {
+                    found = TRUE
+                    break
+                }
+            }
+            if (found) {
+                output("likelihood ",  section, " with hyperid ", hyperid,  ". theta is found with idx.theta=", idx.theta)
+                prior = h[[idx.family]]$link$hyper[[idx.theta]]$prior
+                param = h[[idx.family]]$link$hyper[[idx.theta]]$param
+                from.theta = h[[idx.family]]$link$hyper[[idx.theta]]$from.theta
+                to.theta = h[[idx.family]]$link$hyper[[idx.theta]]$to.theta
+            } else {
+                output("likelihood ",  section, " with hyperid ", hyperid,  ". theta is not found",
+                       warning = TRUE)
+                return (NA)
+            }
         }
-
-        prior = h[[idx.family]]$hyper[[idx.theta]]$prior
-        param = h[[idx.family]]$hyper[[idx.theta]]$param
-        from.theta = h[[idx.family]]$hyper[[idx.theta]]$from.theta
-        to.theta = h[[idx.family]]$hyper[[idx.theta]]$to.theta
     } else {
         ## random
         output("request for random ", section, " with hyperid ",  hyperid)
         h = all.hyper$random
         found = FALSE
-        for (idx.random in seq_len(length(h))) {
+        for (idx.random in seq_along(h)) {
             if (inla.strcasecmp(section, h[[idx.random]]$hyperid)) {
                 found = TRUE
                 break
@@ -789,7 +804,7 @@ inla.extract.prior = function(section = NULL, hyperid = NULL, all.hyper, debug=F
 
         ## now we need to find the theta
         found = FALSE
-        for (idx.theta in seq_len(length(h[[idx.random]]$hyper))) {
+        for (idx.theta in seq_along(h[[idx.random]]$hyper)) {
             if (inla.strcasecmp(hyperid, h[[idx.random]]$hyper[[idx.theta]]$hyperid)) {
                 found = TRUE
                 break
@@ -797,7 +812,7 @@ inla.extract.prior = function(section = NULL, hyperid = NULL, all.hyper, debug=F
         }
         hyper = h[[idx.random]]$hyper
         if (!found) {
-            for (idx.theta in seq_len(length(h[[idx.random]]$group.hyper))) {
+            for (idx.theta in seq_along(h[[idx.random]]$group.hyper)) {
                 if (inla.strcasecmp(hyperid, h[[idx.random]]$group.hyper[[idx.theta]]$hyperid)) {
                     found = TRUE
                     break
