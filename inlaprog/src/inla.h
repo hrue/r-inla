@@ -171,6 +171,11 @@ typedef struct {
 	double **log_prec_gaussian;
 	double *weight_gaussian;			       /* weights for the gaussian: Variance = 1/(weight*prec) */
 
+	/* 
+	 *  Beta
+	 */
+	double *weight_beta;
+
 	/*
 	 * y ~ Simplex(....,1/(weight*prec))
 	 */
