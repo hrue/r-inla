@@ -21161,6 +21161,11 @@ double extra(double *theta, int ntheta, void *argument)
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 			double *cc_add = Calloc(spde->graph->n, double);
 
+			int ii;
+			for(ii=0; ii < spde->graph->n; ii++) {
+				cc_add[ii] = mb->f_diag[i];
+			}
+
 			while (!ok) {
 				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
 							      spde->graph, spde->Qfunc, spde->Qfunc_arg, NULL, mb->f_constr_orig[i],
@@ -21260,6 +21265,11 @@ double extra(double *theta, int ntheta, void *argument)
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 			double *cc_add = Calloc(spde2->graph->n, double);
 
+			int ii;
+			for(ii=0; ii < spde2->graph->n; ii++) {
+				cc_add[ii] = mb->f_diag[i];
+			}
+
 			while (!ok) {
 				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
 							      spde2->graph, spde2->Qfunc, spde2->Qfunc_arg, NULL, mb->f_constr_orig[i],
@@ -21355,6 +21365,11 @@ double extra(double *theta, int ntheta, void *argument)
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 			double *cc_add = Calloc(spde3->graph->n, double);
+
+			int ii;
+			for(ii=0; ii < spde3->graph->n; ii++) {
+				cc_add[ii] = mb->f_diag[i];
+			}
 
 			while (!ok) {
 				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
@@ -21589,9 +21604,14 @@ double extra(double *theta, int ntheta, void *argument)
 			 */
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-			double *cc_add = Calloc(arg->n * arg->m, double);
+			double *cc_add = Calloc(arg->n + arg->m, double);
 
 			assert(mb->f_graph_orig[i]->n == arg->n + arg->m);
+
+			int ii;
+			for(ii=0; ii < arg->n + arg->m; ii++) {
+				cc_add[ii] = mb->f_diag[i];
+			}
 
 			while (!ok) {
 				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL, mb->f_graph_orig[i], mb->f_Qfunc_orig[i],
@@ -21686,6 +21706,11 @@ double extra(double *theta, int ntheta, void *argument)
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 			double *cc_add = Calloc(a->n, double);
 
+			int ii;
+			for(ii=0; ii < a->n; ii++) {
+				cc_add[ii] = mb->f_diag[i];
+			}
+			
 			while (!ok) {
 				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
 							      mb->f_graph_orig[i],
@@ -21801,6 +21826,12 @@ double extra(double *theta, int ntheta, void *argument)
 			double *cc_add = Calloc(arg->n + arg->m, double);
 
 			assert(mb->f_graph_orig[i]->n == arg->n + arg->m);
+
+			int ii;
+			for(ii=0; ii < arg->n + arg->m; ii++) {
+				cc_add[ii] = mb->f_diag[i];
+			}
+
 			while (!ok) {
 				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
 							      mb->f_graph_orig[i],
