@@ -4078,7 +4078,6 @@ int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, voi
 		for (i = 0; i < m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			y_std = (y - ypred) * fac;
-			// logll[i] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(y_std) / dof) + log(fac);
 			logll[i] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * gsl_log1p(SQR(y_std) / dof) + log(fac);
 		}
 	} else {
