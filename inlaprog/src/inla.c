@@ -11121,6 +11121,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 * dof 
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 3.0);
+		if (ISINF(tmp) || ISNAN(tmp)) {
+			char *msg;
+			GMRFLib_sprintf(&msg, "Initial value for dof_internal is void [%g]\n", tmp);
+			inla_error_general(msg);
+			exit(1);
+		}
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
 		if (!ds->data_fixed1 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
@@ -11185,6 +11191,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 * dof = theta0
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 3.0);
+		if (ISINF(tmp) || ISNAN(tmp)) {
+			char *msg;
+			GMRFLib_sprintf(&msg, "Initial value for dof_internal is void [%g]\n", tmp);
+			inla_error_general(msg);
+			exit(1);
+		}
 		ds->data_nfixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
 		if (!ds->data_nfixed[0] && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
