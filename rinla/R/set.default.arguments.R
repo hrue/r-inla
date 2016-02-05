@@ -465,8 +465,8 @@
         ##:ARGUMENT: numint.abserr Numerical Absolute error requirement in the the numerical integration for the hyperparameters. (Default 1e-6)
         numint.abserr = 1e-6,
 
-        ##:ARGUMENT: cmin Numerical The minimum value for the negative Hessian from the likelihood. Increasing this value will stabalise the optimisation. (Default 0.0)
-        cmin = 0.0,
+        ##:ARGUMENT: cmin Numerical The minimum value for the negative Hessian from the likelihood. Increasing this value will stabalise the optimisation but can introduce bias in some estimates unless \code{-Inf} is used.  (Default -Inf)
+        cmin = -Inf,
 
         ##:ARGUMENT: step.factor Numerical The step factor in the Newton-Raphson algorithm saying how large step to take (Default 1.0)
         ## YES! setting this to a negative values means = 1,  EXCEPT the first time (for each thread) where |step.factor| is used.

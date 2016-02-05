@@ -52,7 +52,7 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 \item{numint.maxfeval}{  Numerical Maximum number of function evaluations in the the numerical integration for the hyperparameters. (Default 10000.)}
 \item{numint.relerr}{  Numerical Relative error requirement in the the numerical integration for the hyperparameters. (Default 1e-5)}
 \item{numint.abserr}{  Numerical Absolute error requirement in the the numerical integration for the hyperparameters. (Default 1e-6)}
-\item{cmin}{  Numerical The minimum value for the negative Hessian from the likelihood. Increasing this value will stabalise the optimisation. (Default 0.0)}
+\item{cmin}{  Numerical The minimum value for the negative Hessian from the likelihood. Increasing this value will stabalise the optimisation but can introduce bias in some estimates unless \code{-Inf} is used. (Default -Inf)}
 \item{step.factor}{  Numerical The step factor in the Newton-Raphson algorithm saying how large step to take (Default 1.0)}
 \item{global.node.factor}{  Numerical The factor which defines the degree required (how many neighbors), as a fraction of n-1, that is required to be classified as a global node and numbered last (whatever the reordering routine says). Here, n, is the size of the graph. (Disabled if larger than 1.)}
 \item{global.node.degree}{  Numerical The degree required (number of neighbors) to be classified as a global node and numbered last (whatever the reordering routine says).}
