@@ -6946,15 +6946,18 @@ int inla_read_prior_link(inla_tp * mb, dictionary * ini, int sec, Prior_tp * pri
 }
 int inla_read_prior_link0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR0", "LINK.PARAMETERS0", "LINK.FROM.THETA0", "LINK.TO.THETA0", "LINK.HYPERID0", default_prior);
+	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR0", "LINK.PARAMETERS0", "LINK.FROM.THETA0", "LINK.TO.THETA0", "LINK.HYPERID0",
+				       default_prior);
 }
 int inla_read_prior_link1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR1", "LINK.PARAMETERS1", "LINK.FROM.THETA1", "LINK.TO.THETA1", "LINK.HYPERID1", default_prior);
+	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR1", "LINK.PARAMETERS1", "LINK.FROM.THETA1", "LINK.TO.THETA1", "LINK.HYPERID1",
+				       default_prior);
 }
 int inla_read_prior_link2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR2", "LINK.PARAMETERS2", "LINK.FROM.THETA2", "LINK.TO.THETA2", "LINK.HYPERID2", default_prior);
+	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR2", "LINK.PARAMETERS2", "LINK.FROM.THETA2", "LINK.TO.THETA2", "LINK.HYPERID2",
+				       default_prior);
 }
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
 {
@@ -9035,8 +9038,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_BETA:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.y[i] <= 0.0 || ds->data_observations.y[i] >= 1.0 ||
-					ds->data_observations.weight_beta[i] <= 0.0) {
+				if (ds->data_observations.y[i] <= 0.0 || ds->data_observations.y[i] >= 1.0 || ds->data_observations.weight_beta[i] <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Beta data[%1d] (y) = (%g) or weight (%g)is void\n",
 							secname, i, ds->data_observations.y[i], ds->data_observations.weight_beta[i]);
 					inla_error_general(msg);
@@ -12911,7 +12913,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	    **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp,
 	    **beta_intern = NULL, **beta = NULL, **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd,
 	    **mean_x = NULL, **log_prec_x = NULL, ***pacf_intern = NULL, slm_rho_min = 0.0, slm_rho_max = 0.0, **log_halflife = NULL, **log_shape = NULL,
-            **alpha = NULL, **gama = NULL, **alpha1 = NULL, **alpha2 = NULL;
+	    **alpha = NULL, **gama = NULL, **alpha1 = NULL, **alpha2 = NULL;
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	inla_spde_tp *spde_model = NULL;
@@ -21161,9 +21163,11 @@ double extra(double *theta, int ntheta, void *argument)
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 			double *cc_add = Calloc(spde->graph->n, double);
 
-			int ii;
-			for(ii=0; ii < spde->graph->n; ii++) {
-				cc_add[ii] = mb->f_diag[i];
+			if (mb->f_diag[i]) {
+				int ii;
+				for (ii = 0; ii < spde->graph->n; ii++) {
+					cc_add[ii] = mb->f_diag[i];
+				}
 			}
 
 			while (!ok) {
@@ -21265,9 +21269,11 @@ double extra(double *theta, int ntheta, void *argument)
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 			double *cc_add = Calloc(spde2->graph->n, double);
 
-			int ii;
-			for(ii=0; ii < spde2->graph->n; ii++) {
-				cc_add[ii] = mb->f_diag[i];
+			if (mb->f_diag[i]) {
+				int ii;
+				for (ii = 0; ii < spde2->graph->n; ii++) {
+					cc_add[ii] = mb->f_diag[i];
+				}
 			}
 
 			while (!ok) {
@@ -21366,9 +21372,11 @@ double extra(double *theta, int ntheta, void *argument)
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 			double *cc_add = Calloc(spde3->graph->n, double);
 
-			int ii;
-			for(ii=0; ii < spde3->graph->n; ii++) {
-				cc_add[ii] = mb->f_diag[i];
+			if (mb->f_diag[i]) {
+				int ii;
+				for (ii = 0; ii < spde3->graph->n; ii++) {
+					cc_add[ii] = mb->f_diag[i];
+				}
 			}
 
 			while (!ok) {
@@ -21608,9 +21616,11 @@ double extra(double *theta, int ntheta, void *argument)
 
 			assert(mb->f_graph_orig[i]->n == arg->n + arg->m);
 
-			int ii;
-			for(ii=0; ii < arg->n + arg->m; ii++) {
-				cc_add[ii] = mb->f_diag[i];
+			if (mb->f_diag[i]) {
+				int ii;
+				for (ii = 0; ii < arg->n + arg->m; ii++) {
+					cc_add[ii] = mb->f_diag[i];
+				}
 			}
 
 			while (!ok) {
@@ -21706,11 +21716,13 @@ double extra(double *theta, int ntheta, void *argument)
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 			double *cc_add = Calloc(a->n, double);
 
-			int ii;
-			for(ii=0; ii < a->n; ii++) {
-				cc_add[ii] = mb->f_diag[i];
+			if (mb->f_diag[i]) {
+				int ii;
+				for (ii = 0; ii < a->n; ii++) {
+					cc_add[ii] = mb->f_diag[i];
+				}
 			}
-			
+
 			while (!ok) {
 				retval = GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL,
 							      mb->f_graph_orig[i],
@@ -21827,9 +21839,11 @@ double extra(double *theta, int ntheta, void *argument)
 
 			assert(mb->f_graph_orig[i]->n == arg->n + arg->m);
 
-			int ii;
-			for(ii=0; ii < arg->n + arg->m; ii++) {
-				cc_add[ii] = mb->f_diag[i];
+			if (mb->f_diag[i]) {
+				int ii;
+				for (ii = 0; ii < arg->n + arg->m; ii++) {
+					cc_add[ii] = mb->f_diag[i];
+				}
 			}
 
 			while (!ok) {
