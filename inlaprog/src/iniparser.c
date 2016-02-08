@@ -16,7 +16,15 @@
     $Revision: 1.26 $
 */
 
+#include <stddef.h>
+#include <string.h>
+#include <stdio.h>
+#if !defined(__FreeBSD__)
+#include <malloc.h>
+#endif
+#include <stdlib.h>
 #include "iniparser.h"
+#include "gsl/gsl_math.h"
 #include "my-fix.h"
 #include "strlib.h"
 
@@ -264,7 +272,18 @@ int iniparser_getint(dictionary * d, const char *key, int notfound)
 	char *str = NULL;
 
 	str = iniparser_getstring(d, key, INI_INVALID_KEY);
-	if (str == INI_INVALID_KEY || !my_is_int(str))
+	if (str == INI_INVALID_KEY)
+		return notfound;
+
+	while (str[0] == ' ')
+		str++;
+	if (!strncasecmp(str, "Inf", (size_t) 3))
+		return INT_MAX;
+	if (!strncasecmp(str, "+Inf", (size_t) 4))
+		return INT_MAX;
+	if (!strncasecmp(str, "-Inf", (size_t) 4))
+		return INT_MIN;
+	if (!my_is_int(str))
 		return notfound;
 	return (int) strtol(str, NULL, 0);
 }
@@ -285,7 +304,19 @@ double iniparser_getdouble(dictionary * d, const char *key, double notfound)
 	char *str = NULL;
 
 	str = iniparser_getstring(d, key, INI_INVALID_KEY);
-	if (str == INI_INVALID_KEY || !my_is_double(str))
+
+	if (str == INI_INVALID_KEY)
+		return notfound;
+
+	while (str[0] == ' ')
+		str++;
+	if (!strncasecmp(str, "Inf", (size_t) 3))
+		return GSL_POSINF;
+	if (!strncasecmp(str, "+Inf", (size_t) 4))
+		return GSL_POSINF;
+	if (!strncasecmp(str, "-Inf", (size_t) 4))
+		return GSL_NEGINF;
+	if (!my_is_double(str))
 		return notfound;
 	return atof(str);
 }
