@@ -734,6 +734,8 @@
         if (is.infinite(cmin)) {
             cmin = 10^(floor(log10(.Machine$double.xmax)))
             if (inla.spec$cmin < 0) cmin = -cmin
+        } else {
+            cmin = inla.spec$cmin            
         }
         cat("cmin = ", cmin, "\n", file = file, append = TRUE)
     }
