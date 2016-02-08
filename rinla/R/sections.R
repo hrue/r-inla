@@ -730,7 +730,12 @@
         cat("numint.abserr = ", inla.spec$numint.abserr, "\n", file = file, append = TRUE)
     }
     if (!is.null(inla.spec$cmin)) {
-        cat("cmin = ", inla.spec$cmin, "\n", file = file, append = TRUE)
+        ## otherwise we have to pass it using a binary file
+        if (is.infinite(cmin)) {
+            cmin = 10^(floor(log10(.Machine$double.xmax)))
+            if (inla.spec$cmin < 0) cmin = -cmin
+        }
+        cat("cmin = ", cmin, "\n", file = file, append = TRUE)
     }
     if (!is.null(inla.spec$step.factor)) {
         cat("nr.step.factor = ", inla.spec$step.factor, "\n", file = file, append = TRUE)
