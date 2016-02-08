@@ -730,7 +730,7 @@
         cat("numint.abserr = ", inla.spec$numint.abserr, "\n", file = file, append = TRUE)
     }
     if (!is.null(inla.spec$cmin)) {
-        cat("cmin = ", cmin, "\n", file = file, append = TRUE)
+        cat("cmin = ", inla.spec$cmin, "\n", file = file, append = TRUE)
     }
     if (!is.null(inla.spec$step.factor)) {
         cat("nr.step.factor = ", inla.spec$step.factor, "\n", file = file, append = TRUE)
