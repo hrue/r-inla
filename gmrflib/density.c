@@ -1980,23 +1980,31 @@ int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * de
 		0.9999999
 	};
 
-	double x_add [] = {
+	double x_add[] = {
 		-10.0, -8.0, -6.0, -5.0, -4.0, -3.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0
 	};
-	
-	int i, use_many = GMRFLib_TRUE, m;
+
+	int i, m, use_many;
+
+	if ((GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT ||
+	     GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH)) {
+		use_many = GMRFLib_TRUE;
+	} else {
+		use_many = GMRFLib_FALSE;
+	}
+
 	double *p_ptr = (use_many ? p_many : p_few);
 
-	*len_x = (use_many ? sizeof(p_many) + sizeof(x_add): sizeof(p_few) + sizeof(x_add)) / sizeof(double);
+	*len_x = (use_many ? sizeof(p_many) + sizeof(x_add) : sizeof(p_few) + sizeof(x_add)) / sizeof(double);
 	m = (use_many ? sizeof(p_many) : sizeof(p_few)) / sizeof(double);
 	*x_vec = Calloc(*len_x, double);
 	for (i = 0; i < m; i++) {
 		GMRFLib_density_Pinv(&((*x_vec)[i]), p_ptr[i], density);
 	}
-	for(i = m; i < *len_x; i++) {
-		(*x_vec)[i] = x_add[i-m];
+	for (i = m; i < *len_x; i++) {
+		(*x_vec)[i] = x_add[i - m];
 	}
-	qsort(*x_vec, (size_t)(*len_x), sizeof(double), GMRFLib_dcmp);
+	qsort(*x_vec, (size_t) (*len_x), sizeof(double), GMRFLib_dcmp);
 	GMRFLib_unique_additive(len_x, *x_vec, GMRFLib_eps(0.5));
 
 	return GMRFLib_SUCCESS;

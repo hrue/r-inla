@@ -57,6 +57,7 @@
 
 __BEGIN_DECLS
 
+
 /*
  * do not integrate beyond +- GMRFLib_DENSITY_INTEGRATION_LIMIT stdev's, unless requested to do so.
  */
@@ -261,6 +262,24 @@ typedef struct {
 typedef enum {
 	DENSITY_FLAGS_FAILURE = 0
 } GMRFLib_density_flag_tp;
+
+typedef enum {
+	
+	/**
+	 * \brief Default storage strategy
+	 */
+	GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT = 0, 
+	
+	/**
+	 * \brief Low storage strategy
+	 */
+	GMRFLib_DENSITY_STORAGE_STRATEGY_LOW, 
+	
+	/**
+	 * \brief High storage strategy
+	 */
+	GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH
+} GMRFLib_density_storage_strategy_tp;
 
 
 /* 

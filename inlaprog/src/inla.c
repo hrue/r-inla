@@ -22828,10 +22828,34 @@ int inla_INLA(inla_tp * mb)
 				mb->strategy = GMRFLib_OPENMP_STRATEGY_HUGE;
 				sname = GMRFLib_strdup("HUGE");
 			}
-			printf("\tSize is [%1d] and strategy [%s] is chosen\n", ntot, sname);
+			printf("\tSize is [%1d]\n\t\tChose OpenMP-strategy [%s]\n", ntot, sname);
 		}
 	}
 	GMRFLib_openmp->strategy = mb->strategy;
+
+	/* 
+	 * set storage strategy for density
+	 */
+	switch (mb->strategy) {
+	case GMRFLib_OPENMP_STRATEGY_SMALL:
+	case GMRFLib_OPENMP_STRATEGY_MEDIUM:
+	case GMRFLib_OPENMP_STRATEGY_LARGE:
+	case GMRFLib_OPENMP_STRATEGY_DEFAULT:
+		GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH;
+		break;
+	case GMRFLib_OPENMP_STRATEGY_HUGE:
+		GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_LOW;
+		break;
+	default:
+		assert(0 == 1);
+	}
+	if (mb->verbose){
+		printf("\t\tChose density-strategy [%s]\n", 
+		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT ?
+			"DEFAULT" :
+			(GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ?
+			 "LOW" :  "HIGH")));
+	}
 
 	GMRFLib_init_hgmrfm(&(mb->hgmrfm), mb->predictor_n, mb->predictor_m,
 			    mb->predictor_cross_sumzero, NULL, mb->predictor_log_prec,
