@@ -243,6 +243,12 @@ int GMRFLib_catch_error_for_inla = GMRFLib_FALSE;
 GMRFLib_global_node_tp GMRFLib_global_node = { 2.0, INT_MAX };
 
 /* 
+   storage strategy for density
+ */
+GMRFLib_density_storage_strategy_tp GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT; 
+
+
+/* 
    internal use only; for debugging
  */
 int GMRFLib_debug_code = 0;
