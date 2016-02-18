@@ -22828,7 +22828,7 @@ int inla_INLA(inla_tp * mb)
 				mb->strategy = GMRFLib_OPENMP_STRATEGY_HUGE;
 				sname = GMRFLib_strdup("HUGE");
 			}
-			printf("\tSize is [%1d]\n\t\tChose OpenMP-strategy [%s]\n", ntot, sname);
+			printf("\tSize is [%1d]\n\tChose OpenMP-strategy [%s]\n", ntot, sname);
 		}
 	}
 	GMRFLib_openmp->strategy = mb->strategy;
@@ -22850,7 +22850,7 @@ int inla_INLA(inla_tp * mb)
 		assert(0 == 1);
 	}
 	if (mb->verbose){
-		printf("\t\tChose density-strategy [%s]\n", 
+		printf("\tChose density-strategy [%s]\n", 
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT ?
 			"DEFAULT" :
 			(GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ?
