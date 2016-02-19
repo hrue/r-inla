@@ -17,7 +17,8 @@
 ##!        constr,
 ##!        reordering = inla.reorderings(),
 ##!        seed = 0L,
-##!        logdens = ifelse(missing(sample), FALSE, TRUE))
+##!        logdens = ifelse(missing(sample), FALSE, TRUE),
+##!        compute.mean = ifelse(missing(sample), FALSE, TRUE))
 ##! }
 ##! 
 ##! \arguments{
@@ -35,17 +36,20 @@
 ##!               GMRFLib will set the seed intelligently/at 'random'.
 ##!               If \code{seed > 0L} then this value is used as the seed for the RNG.}
 ##!   \item{logdens}{If \code{TRUE}, compute also the log-density of each sample. Note that the output format then change.}
+##!   \item{compute.mean}{If \code{TRUE}, compute also the (constrained) mean. Note that the output format then change.}
 ##!}
 ##!\value{
 ##!      The log-density has form {-1/2(x-mu)^T Q (x-mu) + b^T x}
 ##!
 ##!  If \code{logdens} is \code{FALSE},  then \code{inla.qsample} returns 
 ##!  the samples in a matrix,  where each column is a sample. 
-##!  If \code{logdens} is \code{TRUE}, then a list 
-##!   with names \code{sample} and
-##!  \code{logdens} is returned. The samples are stored in the matrix
+##!  If \code{logdens} or \code{compute.mean} is \code{TRUE}, then a list 
+##!   with names \code{sample}, 
+##!  \code{logdens} and \code{mean} is returned. The samples are stored in the matrix
 ##!  \code{sample} where each column is a sample, and the log
-##!  densities of each sample are stored the vector \code{logdens}.
+##!  densities of each sample are stored as the vector \code{logdens}.
+##!  The mean (include corrections for the constraints,  if any) is store in
+##!  the vector \code{mean}. 
 ##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
 ##! 
@@ -91,7 +95,8 @@
         constr,
         reordering = inla.reorderings(),
         seed = 0L,
-        logdens = ifelse(missing(sample), FALSE, TRUE))
+        logdens = ifelse(missing(sample), FALSE, TRUE), 
+        compute.mean = ifelse(missing(sample), FALSE, TRUE))
 {
     stopifnot(!missing(Q))
     stopifnot(n >= 1L)
@@ -119,7 +124,8 @@
     x.file = inla.tempfile()
     sample.file = inla.tempfile()
     rng.file = inla.tempfile()
-
+    cmean.file = inla.tempfile()
+    
     if (!missing(b)) {
         stopifnot(length(b) == nrow(Q))
         b = matrix(b, nrow(Q), 1)
@@ -164,10 +170,12 @@
 
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample", 
-                "-r", reordering, "-z", seed, Q.file, x.file, n, rng.file, sample.file, b.file, mu.file, constr.file), intern=TRUE)
+            "-r", reordering, "-z", seed, Q.file, x.file, as.integer(n), rng.file,
+            sample.file, b.file, mu.file, constr.file, cmean.file), intern=TRUE)
     } else if(inla.os("windows")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample",
-                "-r", reordering, "-z", seed, Q.file, x.file, n, rng.file, sample.file, b.file, mu.file, constr.file), intern=TRUE)
+            "-r", reordering, "-z", seed, Q.file, x.file, as.integer(n), rng.file,
+            sample.file, b.file, mu.file, constr.file, cmean.file), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }
@@ -184,7 +192,9 @@
     unlink(rng.file)
 
     x = inla.read.fmesher.file(x.file)
+    cmean = inla.read.fmesher.file(cmean.file)
     unlink(x.file)
+    unlink(cmean.file)
 
     nx = dim(Q)[1L]
     samples = matrix(x[-(nx + 1L),, drop=FALSE], nx, n)
@@ -198,8 +208,8 @@
     unlink(constr.file)
     unlink(sample.file)
 
-    if (logdens) {
-        return (list(sample=samples, logdens = ld))
+    if (logdens || compute.mean) {
+        return (list(sample=samples, logdens = ld, mean = c(cmean)))
     } else {
         return (samples)
     }
