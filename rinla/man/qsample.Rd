@@ -19,7 +19,8 @@
         constr,
         reordering = inla.reorderings(),
         seed = 0L,
-        logdens = ifelse(missing(sample), FALSE, TRUE))
+        logdens = ifelse(missing(sample), FALSE, TRUE),
+        compute.mean = ifelse(missing(sample), FALSE, TRUE))
  }
  
  \arguments{
@@ -37,17 +38,20 @@
                GMRFLib will set the seed intelligently/at 'random'.
                If \code{seed > 0L} then this value is used as the seed for the RNG.}
    \item{logdens}{If \code{TRUE}, compute also the log-density of each sample. Note that the output format then change.}
+   \item{compute.mean}{If \code{TRUE}, compute also the (constrained) mean. Note that the output format then change.}
 }
 \value{
       The log-density has form {-1/2(x-mu)^T Q (x-mu) + b^T x}
 
   If \code{logdens} is \code{FALSE},  then \code{inla.qsample} returns 
   the samples in a matrix,  where each column is a sample. 
-  If \code{logdens} is \code{TRUE}, then a list 
-   with names \code{sample} and
-  \code{logdens} is returned. The samples are stored in the matrix
+  If \code{logdens} or \code{compute.mean} is \code{TRUE}, then a list 
+   with names \code{sample}, 
+  \code{logdens} and \code{mean} is returned. The samples are stored in the matrix
   \code{sample} where each column is a sample, and the log
-  densities of each sample are stored the vector \code{logdens}.
+  densities of each sample are stored as the vector \code{logdens}.
+  The mean (include corrections for the constraints,  if any) is store in
+  the vector \code{mean}. 
 }
 \author{Havard Rue \email{hrue@math.ntnu.no}}
  

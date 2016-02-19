@@ -26741,7 +26741,8 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 }
 
 int inla_qsample(const char *filename, const char *outfile, const char *nsamples, const char *rngfile,
-		 const char *samplefile, const char *bfile, const char *mufile, const char *constrfile)
+		 const char *samplefile, const char *bfile, const char *mufile, const char *constrfile,
+	         const char *meanfile)
 {
 	size_t siz, ret;
 	char *state;
@@ -26761,7 +26762,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		Free(state);
 	}
 
-	int i, ns = atoi(nsamples);
+	int i, ns; 
 	GMRFLib_tabulate_Qfunc_tp *tab;
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem;
@@ -26769,6 +26770,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp), *S = NULL, *b = NULL, *mu = NULL, *constr_x = NULL;
 	GMRFLib_constr_tp *constr = NULL;
 
+	inla_sread_ints(&ns, 1, nsamples);
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL, NULL, NULL);
 
 	fp = fopen(samplefile, "r");
@@ -26824,6 +26826,14 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	}
 
 	GMRFLib_write_fmesher_file(M, outfile, (long int) 0, -1);
+
+	GMRFLib_matrix_tp *CM = Calloc(1, GMRFLib_matrix_tp); 
+	CM->nrow = graph->n;
+	CM->ncol = 1;
+	CM->elems = CM->ncol * CM->nrow;
+	CM->A = Calloc(CM->nrow * CM->ncol, double);
+	memcpy(CM->A, problem->mean_constr, graph->n * sizeof(double));
+	GMRFLib_write_fmesher_file(CM, meanfile, (long int) 0, -1);
 
 	state = GMRFLib_rng_getstate(&siz);
 	fp = fopen(rngfile, "wb");
@@ -27660,7 +27670,7 @@ int main(int argc, char **argv)
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_QSAMPLE) {
 		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5],
-			     argv[optind + 6], argv[optind + 7]);
+			     argv[optind + 6], argv[optind + 7], argv[optind + 8]);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_FINN) {
 		inla_finn(argv[optind]);
