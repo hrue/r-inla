@@ -38,13 +38,23 @@
 #define __BEGIN_DECLS					       /* empty */
 #define __END_DECLS					       /* empty */
 #endif
-__BEGIN_DECLS void inla_R_exit(void);
+
+__BEGIN_DECLS
+
+/*
+ *
+ */
+
+void inla_R_exit(void);
 int inla_R_init(void);
 int inla_R_source(const char *filename);
+int inla_R_library(const char *library);
 int inla_R_load(const char *filename);
 int inla_R_funcall1(int *n_out, double **x_out, const char *function, int n, double *x);
 int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char *tag, int n, double *x);
-
+int inla_R_assign(const char *variable, int n, double *x);
+int inla_R_get(int *n_out, double **x_out, const char *variable);
+int inla_R_rgeneric2(int *n_out, double **x_out, const char *cmd, const char *model, int n, double *theta);
 
 __END_DECLS
 #endif

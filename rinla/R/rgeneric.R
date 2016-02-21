@@ -1,4 +1,5 @@
-## Export: inla.rgeneric.define inla.rgeneric.ar1.model
+## Export: inla.rgeneric.define inla.rgeneric.ar1.model 
+## Export: inla.rgeneric2.ar1.model inla.rgeneric2.define inla.rgeneric2.wrapper
 
 ##!\name{rgeneric.define}
 ##!\alias{rgeneric}
@@ -12,7 +13,7 @@
 ##!\description{A framework for defining latent models in R}
 ##!
 ##!\usage{
-##!inla.rgeneric.define(model.def = NULL, ...)
+##!inla.rgeneric.define(model = NULL, ...)
 ##!inla.rgeneric.ar1.model(
 ##!        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
 ##!        theta = NULL,
@@ -21,7 +22,7 @@
 ##!
 ##!\arguments{
 ##!
-##!  \item{model.def}{The definition of the model; see \code{inla.rgeneric.ar1.model}}
+##!  \item{model}{The definition of the model; see \code{inla.rgeneric.ar1.model}}
 ##!  \item{cmd}{The allowed commands}
 ##!  \item{theta}{Values of theta}
 ##!  \item{args}{Further args}
@@ -38,10 +39,10 @@
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
 
 
-`inla.rgeneric.define` = function(model.def = NULL, ...)
+`inla.rgeneric.define` = function(model = NULL, ...)
 {
     model = list(
-            definition = model.def,
+            definition = model,
             fifo = list(c2R = tempfile(), R2c = tempfile()), 
             args = list(...)
             )
@@ -274,4 +275,75 @@
                                ntheta = as.integer(args$ntheta), 
                                theta = theta))
     return (val)
+}
+
+
+`inla.rgeneric2.define` = function(model = NULL, ...)
+{
+    model = list(
+            definition = model,
+            args = list(...)
+            )
+    class(model) = "inla-rgeneric2"
+    return (model)
+}
+
+`inla.rgeneric2.wrapper` = function(cmd, model, theta = NULL, debug=FALSE)
+{
+    debug.cat = function(...) {
+        if (debug)
+            cat("Rgeneric2", ...)
+    }
+
+    debug.cat("Enter with cmd=", cmd, ", model=", model, "theta=", theta, "\n")
+
+    if (is.character(model)) {
+        model = get(model, envir = parent.frame())
+    }
+
+    result = NULL
+    ntheta = if (is.null(theta)) 0 else length(theta)
+    
+    debug.cat("cmd", cmd, "\n")
+    debug.cat("input ntheta", ntheta, "\n")
+    if (ntheta > 0) debug.cat("\ttheta:", theta, "\n")
+    res = do.call(model$definition, args = list(cmd = cmd, theta = theta, args = model$args))
+
+    if (cmd %in% "Q") {
+        Q = inla.as.sparse(res)
+        debug.cat("dim(Q)", dim(Q), "\n")
+        n = dim(Q)[1L]
+        stopifnot(dim(Q)[1L] == dim(Q)[2L])
+        stopifnot(dim(Q)[1L] == n && dim(Q)[2L] == n)
+        idx = which(Q@i <= Q@j)
+        len = length(Q@i[idx])
+        result = c(n, len, Q@i[idx], Q@j[idx], Q@x[idx])
+    } else if (cmd %in% "graph") {
+        G = inla.as.sparse(res)
+        stopifnot(dim(G)[1L] == dim(G)[2L])
+        n = dim(G)[1L]
+        idx = which(G@i <= G@j)
+        len = length(G@i[idx])
+        debug.cat("n", n, "len", len, "\n")
+        result = c(n, len, G@i[idx], G@j[idx])
+    } else if (cmd %in% "initial") {
+        init = res
+        ntheta = length(init)
+        result = c(length(init), init)
+    } else if (cmd %in% "log.norm.const") {
+        lnc = res
+        debug.cat("\t", "log.norm.const", lnc, "\n")
+        result = c(lnc)
+    } else if (cmd %in% "log.prior") {
+        lp = res
+        debug.cat("Got log.prior", lp, "\n")
+        result = c(lp)
+    } else if (cmd %in% c("quit", "exit")) {
+        ## nothing for the moment
+        result = NULL
+    } else {
+        stop(paste("Unknown command", cmd))
+    }
+
+    return (as.numeric(result))
 }
