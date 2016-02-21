@@ -31,6 +31,7 @@
  */
 #ifndef __INLA_H__
 #define __INLA_H__
+
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
@@ -40,7 +41,9 @@
 #define __BEGIN_DECLS					       /* empty */
 #define __END_DECLS					       /* empty */
 #endif
+
 __BEGIN_DECLS
+
 #include "iniparser.h"
 #include "dictionary.h"
 #include "strlib.h"
@@ -1236,7 +1239,7 @@ typedef struct {
 #define R_GENERIC_QUIT "quit"
 
 #define R_GENERIC2_MODEL ".inla.rgeneric2.model"
-#define R_GENERIC2_WRAPPER "INLA:::inla.rgeneric2.wrapper"
+#define R_GENERIC2_WRAPPER "inla.rgeneric2.wrapper"
 
 #define INLA_LITTLE_ENDIAN 1
 #define INLA_BIG_ENDIAN    2
