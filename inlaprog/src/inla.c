@@ -15477,7 +15477,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		{
 			inla_R_library("INLA");
 			inla_R_load(rgeneric2_filename);
-			inla_R_source("/home/hrue/p/inla/r-inla/rinla/R/rgeneric.R");
 		}
 
 		int n_out;
