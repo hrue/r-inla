@@ -15,6 +15,7 @@
 
 \usage{
 inla.rgeneric.define(model = NULL, ...)
+inla.rgeneric2.define(model = NULL, ...)
 inla.rgeneric.ar1.model(
         cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
         theta = NULL,

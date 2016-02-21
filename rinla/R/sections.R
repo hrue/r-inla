@@ -600,6 +600,7 @@
         inla.eval(paste("save(", model,
                         ", file = ", "\"", file.rgeneric2, "\"", 
                         ", ascii = FALSE, compress = TRUE)",  sep=""))
+        rm(model) ## do not need it anymore
         fnm = gsub(data.dir, "$inladatadir", file.rgeneric2, fixed=TRUE)
         cat("rgeneric2.file =", fnm, "\n", file=file, append = TRUE)
         cat("rgeneric2.model =", model, "\n", file=file, append = TRUE)
