@@ -61,6 +61,7 @@
 ##!         scale = NULL, 
 ##!         strata = NULL, 
 ##!         rgeneric = NULL, 
+##!         rgeneric2 = NULL, 
 ##!         scale.model = NULL, 
 ##!         args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL), 
 ##!         correct = NULL, 
@@ -307,6 +308,9 @@
 
     ##!\item{rgeneric}{A object of class \code{inla-rgeneric} which defines the model. (EXPERIMENTAL!)}
     rgeneric = NULL, 
+
+    ##!\item{rgeneric2}{A object of class \code{inla-rgeneric2} which defines the model. (EXPERIMENTAL!)}
+    rgeneric2 = NULL, 
 
     ##!\item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default value is \code{inla.getOption("scale.model.default")}} 
     scale.model = NULL, 
@@ -887,6 +891,17 @@
         }
     }
 
+    if (model %in% "rgeneric2") {
+        stopifnot(inherits(rgeneric2, "inla-rgeneric2"))
+        if (inla.os("windows")) {
+            stop("Model 'rgeneric2' is not available for Windows; please use Linux or MacOSX. (No, there is no quick fix.)")
+        }
+
+        ## add an 'Id' so we know who we are
+        rgeneric2 = list(model = rgeneric2, Id = vars[[1]])
+    }
+
+
     if (!missing(scale.model) && !inla.one.of(model, c("rw1", "rw2", "besag", "bym", "bym2", "besag2", "rw2d", "rw2diid"))) {
         stop("Option 'scale.model' is only used for models RW1 and RW2 and BESAG and BYM and BYM2 andBESAG2 and RW2D and RW2DIID.")
     }
@@ -942,6 +957,7 @@
         scale = scale,
         strata = strata,
         rgeneric = rgeneric, 
+        rgeneric2 = rgeneric2, 
         scale.model = as.logical(scale.model),
         adjust.for.con.comp = as.logical(adjust.for.con.comp),
         args.slm = args.slm,

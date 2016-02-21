@@ -590,6 +590,20 @@
         cat("rgeneric.fifo.R2c = ", random.spec$rgeneric$fifo$R2c, "\n", append=TRUE, sep = " ", file = file)
         cat("rgeneric.fifo.c2R = ", random.spec$rgeneric$fifo$c2R, "\n", append=TRUE, sep = " ", file = file)
     }
+
+    if (random.spec$model == "rgeneric2") {
+        file.rgeneric2 = inla.tempfile(tmpdir=data.dir)
+        ## this must be the same name as R_GENERIC2_MODEL in inla.h
+        model = paste(".inla.rgeneric2.model", ".", random.spec$rgeneric2$Id, sep="")
+        assign(model, random.spec$rgeneric2$model)
+        ## save model, or the object that 'model' expands to
+        inla.eval(paste("save(", model,
+                        ", file = ", "\"", file.rgeneric2, "\"", 
+                        ", ascii = FALSE, compress = TRUE)",  sep=""))
+        fnm = gsub(data.dir, "$inladatadir", file.rgeneric2, fixed=TRUE)
+        cat("rgeneric2.file =", fnm, "\n", file=file, append = TRUE)
+        cat("rgeneric2.model =", model, "\n", file=file, append = TRUE)
+    }
             
     if (random.spec$model == "ar") {
         cat("order = ", random.spec$order, "\n", append=TRUE, sep = " ", file = file)
