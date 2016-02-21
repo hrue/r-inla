@@ -48,46 +48,42 @@ static const char RCSId[] = HGVERSION;
 #define CSTACK_DEFNS 1
 #include <Rinterface.h>
 
-//#include "GMRFLib/GMRFLib.h"
-//#include "GMRFLib/GMRFLibP.h"
+// two copies...
+#define R_GENERIC2_WRAPPER "inla.rgeneric2.wrapper"
+#define INLA_OK (0)
 
-#include "inla.h"
 #include "R-interface.h"
 
-#define INLA_OK (1)
-
-static int R_init = !INLA_OK;
-static int R_debug = !INLA_OK;
+static int R_init = 1;
+static int R_debug = 0;
 
 void inla_R_exit(void)
 {
 	if (R_debug)
 		fprintf(stderr, "R-interface: exit\n");
 	Rf_endEmbeddedR(0);
-	R_init = !INLA_OK;
+	R_init = 1;
 }
 int inla_R_init(void)
 {
-	if (R_init == !INLA_OK) {
-		if (R_init == !INLA_OK) {
-			char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--silent", "--vanilla" };
-			int Rargc = sizeof(Rargv) / sizeof(Rargv[0]);
-			Rf_initEmbeddedR(Rargc, Rargv);
+	if (R_init) {
+		char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--silent", "--vanilla" };
+		int Rargc = sizeof(Rargv) / sizeof(Rargv[0]);
+		Rf_initEmbeddedR(Rargc, Rargv);
 
-			// Disable C stack limit check
-			R_CStackLimit = (uintptr_t) - 1;
-			R_init = INLA_OK;
-			if (R_debug)
-				fprintf(stderr, "R-interface: init\n");
-		}
+		// Disable C stack limit check
+		R_CStackLimit = (uintptr_t) - 1;
+		R_init = 0;
+		if (R_debug)
+			fprintf(stderr, "R-interface: init\n");
 	}
 
-	return INLA_OK;
+	return (INLA_OK);
 }
 int inla_R_library(const char *library)
 {
 	if (!library)
-		return INLA_OK;
+		return (INLA_OK);
 	inla_R_init();
 
 	SEXP e, result;
@@ -104,12 +100,12 @@ int inla_R_library(const char *library)
 	}
 	UNPROTECT(2);
 
-	return INLA_OK;
+	return (INLA_OK);
 }
 int inla_R_source(const char *filename)
 {
 	if (!filename)
-		return INLA_OK;
+		return (INLA_OK);
 	inla_R_init();
 
 	SEXP e, result;
@@ -127,12 +123,12 @@ int inla_R_source(const char *filename)
 	UNPROTECT(2);
 
 
-	return INLA_OK;
+	return (INLA_OK);
 }
 int inla_R_load(const char *filename)
 {
 	if (!filename)
-		return INLA_OK;
+		return (INLA_OK);
 	inla_R_init();
 
 	SEXP e, result;
@@ -149,7 +145,7 @@ int inla_R_load(const char *filename)
 	}
 	UNPROTECT(2);
 
-	return INLA_OK;
+	return (INLA_OK);
 }
 
 int inla_R_funcall1(int *n_out, double **x_out, const char *function, int n, double *x)
@@ -192,7 +188,7 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 	}
 	UNPROTECT(4);
 
-	return INLA_OK;
+	return (INLA_OK);
 }
 
 int inla_R_assign(const char *variable, int n, double *x)
@@ -220,7 +216,7 @@ int inla_R_assign(const char *variable, int n, double *x)
 	}
 	UNPROTECT(3);
 
-	return INLA_OK;
+	return (INLA_OK);
 }
 
 int inla_R_get(int *n_out, double **x_out, const char *variable)
@@ -249,7 +245,7 @@ int inla_R_get(int *n_out, double **x_out, const char *variable)
 	}
 	UNPROTECT(2);
 
-	return INLA_OK;
+	return (INLA_OK);
 }
 
 int inla_R_rgeneric2(int *n_out, double **x_out, const char *cmd, const char *model, int n, double *theta)
@@ -282,7 +278,7 @@ int inla_R_rgeneric2(int *n_out, double **x_out, const char *cmd, const char *mo
 	}
 	UNPROTECT(3);
 
-	return INLA_OK;
+	return (INLA_OK);
 }
 
 
