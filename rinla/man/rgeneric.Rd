@@ -14,7 +14,7 @@
 \description{A framework for defining latent models in R}
 
 \usage{
-inla.rgeneric.define(model.def = NULL, ...)
+inla.rgeneric.define(model = NULL, ...)
 inla.rgeneric.ar1.model(
         cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
         theta = NULL,
@@ -23,7 +23,7 @@ inla.rgeneric.ar1.model(
 
 \arguments{
 
-  \item{model.def}{The definition of the model; see \code{inla.rgeneric.ar1.model}}
+  \item{model}{The definition of the model; see \code{inla.rgeneric.ar1.model}}
   \item{cmd}{The allowed commands}
   \item{theta}{Values of theta}
   \item{args}{Further args}

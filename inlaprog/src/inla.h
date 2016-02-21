@@ -475,6 +475,7 @@ typedef enum {
 	F_GENERIC3,
 	F_LOG1EXP, 
 	F_LOGDIST, 
+	F_R_GENERIC2,
 	P_LOGGAMMA = 2000,				       /* priors */
 	P_GAUSSIAN,
 	P_MVGAUSSIAN,
@@ -1185,6 +1186,23 @@ typedef struct {
 } inla_rgeneric_tp;
 
 typedef struct {
+	int Id;
+	int R2c;
+	int c2R;
+	char *filename_R2c;
+	char *filename_c2R;
+
+
+
+	char *filename;					       /* file to load containing the model definition */
+	char *model;					       /* the variable name that contains the model definition */
+	int ntheta;
+	double ***theta;
+	double **param;
+	GMRFLib_tabulate_Qfunc_tp **Q;
+} inla_rgeneric2_tp;
+
+typedef struct {
 	int n;						       /* size of graph */
 	int m;						       /* number of terms in the sum */
 	GMRFLib_graph_tp *graph;			       /* total graph */
@@ -1216,6 +1234,9 @@ typedef struct {
 #define R_GENERIC_LOG_NORM_CONST "log.norm.const"
 #define R_GENERIC_LOG_PRIOR "log.prior"
 #define R_GENERIC_QUIT "quit"
+
+#define R_GENERIC2_MODEL ".inla.rgeneric2.model"
+#define R_GENERIC2_WRAPPER "INLA:::inla.rgeneric2.wrapper"
 
 #define INLA_LITTLE_ENDIAN 1
 #define INLA_BIG_ENDIAN    2
@@ -1273,6 +1294,7 @@ double Qfunc_mec(int i, int j, void *arg);
 double Qfunc_ou(int i, int j, void *arg);
 double Qfunc_replicate(int i, int j, void *arg);
 double Qfunc_rgeneric(int i, int j, void *arg);
+double Qfunc_rgeneric2(int i, int j, void *arg);
 double Qfunc_sigm(int i, int j, void *arg);
 double Qfunc_slm(int i, int j, void *arg);
 double Qfunc_z(int i, int j, void *arg);

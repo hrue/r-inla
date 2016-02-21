@@ -44,13 +44,13 @@ Anyway, we still hope it would be useful.
 \section*{Defining a latent model in \texttt{R}}
 
 The use of this feature, is in short the following. First we pass our
-definition of the model \texttt{model.def}, to define a
+definition of the model \texttt{model}, to define a
 \texttt{inla-rgeneric} object,
 \begin{verbatim}
-    my.rgeneric.model = inla.rgeneric.define(my.model.def, <args>)
+    my.rgeneric.model = inla.rgeneric.define(my.model, <args>)
 \end{verbatim}
-Here \texttt{args} could be parameters to \texttt{my.model.def}
-such as dimension, prior-settings, etc, so \texttt{my.model.def} can
+Here \texttt{args} could be parameters to \texttt{my.model}
+such as dimension, prior-settings, etc, so \texttt{my.model} can
 be written more generically.  Then we can use this object as a latent
 model
 \begin{verbatim}
@@ -59,7 +59,7 @@ model
 
 \section*{Example: the AR1 model}
 
-The \texttt{my.model.def} needs to follow some rules and provide the
+The \texttt{my.model} needs to follow some rules and provide the
 required features. It is easier with an example, so let us implement
 the AR1-model (see also \texttt{inla.doc("ar1")}), which is defined
 as\footnote{The second argument in ${\mathcal N}(,)$ is the precision

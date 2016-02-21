@@ -155,6 +155,20 @@
                      pdf = "rgeneric"
                      ),
 
+                 rgeneric2 = list(
+                     hyper = list(), 
+                     constr = FALSE,
+                     nrow.ncol = FALSE,
+                     augmented = FALSE,
+                     aug.factor = 1L,
+                     aug.constr = NULL,
+                     n.div.by = NULL,
+                     n.required = FALSE,
+                     set.default.values = FALSE,
+                     status = "experimental", 
+                     pdf = "rgeneric"
+                     ),
+
                  rw1 = list(
                      hyper = list(
                          theta = list(
