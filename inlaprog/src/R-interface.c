@@ -41,11 +41,11 @@ static const char RCSId[] = HGVERSION;
 #include <stdlib.h>
 #include <omp.h>
 
+#define CSTACK_DEFNS 1
 #include <R.h>
 #include <Rembedded.h>
 #include <Rinternals.h>
 #include <Rdefines.h>
-#define CSTACK_DEFNS 1
 #include <Rinterface.h>
 
 // two copies...
