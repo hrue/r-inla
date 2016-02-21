@@ -1,5 +1,5 @@
 ## Export: inla.rgeneric.define inla.rgeneric.ar1.model 
-## Export: inla.rgeneric2.define
+## Export: inla.rgeneric2.define inla.rgeneric2.wrapper
 
 ##!\name{rgeneric.define}
 ##!\alias{rgeneric}
@@ -17,8 +17,8 @@
 ##!inla.rgeneric2.define(model = NULL, ...)
 ##!inla.rgeneric.ar1.model(
 ##!        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
-##!        theta = NULL,
-##!        args = NULL)
+##!        theta = NULL, args = NULL)
+##!inla.rgeneric2.wrapper(cmd, model, theta = NULL, debug=FALSE)
 ##!}
 ##!
 ##!\arguments{
@@ -28,6 +28,7 @@
 ##!  \item{theta}{Values of theta}
 ##!  \item{args}{Further args}
 ##!  \item{...}{Further args}
+##!  \item{debug}{Logical. Enable debug output}
 ##!}
 ##!
 ##!\value{%%

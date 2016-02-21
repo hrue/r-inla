@@ -51,7 +51,7 @@ static const char RCSId[] = HGVERSION;
 //#include "GMRFLib/GMRFLib.h"
 //#include "GMRFLib/GMRFLibP.h"
 
-//#include "inla.h"
+#include "inla.h"
 #include "R-interface.h"
 
 #define INLA_OK (1)
@@ -269,7 +269,7 @@ int inla_R_rgeneric2(int *n_out, double **x_out, const char *cmd, const char *mo
 	for (i = 0; i < n; i++) {
 		REAL(xx_theta)[i] = theta[i];
 	}
-	PROTECT(e = lang4(install("inla.rgeneric2.wrapper"), mkString(cmd), mkString(model), xx_theta));
+	PROTECT(e = lang4(install(R_GENERIC2_WRAPPER), mkString(cmd), mkString(model), xx_theta));
 	PROTECT(result = R_tryEval(e, R_GlobalEnv, &error));
 	if (error) {
 		fprintf(stderr, "\n *** ERROR *** rgeneric2 [%s] with model [%s] failed\n", cmd,  model);
