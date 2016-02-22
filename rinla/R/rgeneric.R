@@ -44,6 +44,7 @@
 `inla.rgeneric.define` = function(model = NULL, ...)
 {
     model = list(
+            name = model, 
             definition = model,
             fifo = list(c2R = tempfile(), R2c = tempfile()), 
             args = list(...)
@@ -283,10 +284,15 @@
 `inla.rgeneric2.define` = function(model = NULL, ...)
 {
     model = list(
-            definition = model,
-            args = list(...)
+        f = list(
+            model = "rgeneric2", 
+            rgeneric2 = list(
+                definition = model,
+                args = list(...)
+                )
             )
-    class(model) = "inla-rgeneric2"
+        )
+    class(model) = class(model$f$rgeneric2) = "inla.rgeneric2"
     return (model)
 }
 
