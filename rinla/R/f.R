@@ -309,7 +309,7 @@
     ##!\item{rgeneric}{A object of class \code{inla-rgeneric} which defines the model. (EXPERIMENTAL!)}
     rgeneric = NULL, 
 
-    ##!\item{rgeneric2}{A object of class \code{inla-rgeneric2} which defines the model. (EXPERIMENTAL!)}
+    ##!\item{rgeneric2}{A object of class \code{inla.rgeneric2} which defines the model. (EXPERIMENTAL!)}
     rgeneric2 = NULL, 
 
     ##!\item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default value is \code{inla.getOption("scale.model.default")}} 
@@ -892,7 +892,11 @@
     }
 
     if (model %in% "rgeneric2") {
-        stopifnot(inherits(rgeneric2, "inla-rgeneric2"))
+        if (inla.is.element("f", rgeneric2) && inla.is.element("rgeneric2", rgeneric2$f)) {
+            rgeneric2 = rgeneric2$f$rgeneric2
+        }
+        stopifnot(inherits(rgeneric2, "inla.rgeneric2"))
+
         if (inla.os("windows")) {
             stop("Model 'rgeneric2' is not available for Windows; please use Linux or MacOSX. (No, there is no quick fix.)")
         }
@@ -972,5 +976,6 @@
 `inla.model.object.classes` = function()
 {
     return (c("inla.model.class", "inla.wrapper.model",
-              "inla.spde", "inla.spde1", "inla.spde2", "inla.spde3"))
+              "inla.spde", "inla.spde1", "inla.spde2", "inla.spde3",
+              "inla.rgeneric2"))
 }
