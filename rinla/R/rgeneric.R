@@ -14,7 +14,7 @@
 ##!
 ##!\usage{
 ##!inla.rgeneric.define(model = NULL, ...)
-##!inla.rgeneric2.define(model = NULL, ...)
+##!inla.rgeneric2.define(model = NULL, debug = TRUE, ...)
 ##!inla.rgeneric.ar1.model(
 ##!        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
 ##!        theta = NULL, args = NULL)
@@ -26,6 +26,7 @@
 ##!  \item{model}{The definition of the model; see \code{inla.rgeneric.ar1.model}}
 ##!  \item{cmd}{The allowed commands}
 ##!  \item{theta}{Values of theta}
+##!  \item{debug}{Logical. Turn on/off debugging}
 ##!  \item{args}{Further args}
 ##!  \item{...}{Further args}
 ##!  \item{debug}{Logical. Enable debug output}
@@ -158,16 +159,14 @@
     return (invisible())
 }
 
-`inla.rgeneric.ar1.model` = function(
-        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
-        theta = NULL,
-        args = NULL)
+`inla.rgeneric.ar1.model` = function(cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+                                     theta = NULL, args = NULL)
 {
     ## this is an example of the 'rgeneric' model. here we implement
     ## the AR-1 model as described in inla.doc("ar1"), where 'rho' is
     ## the lag-1 correlation and 'prec' is the *marginal* (not
     ## conditional) precision.
-
+    
     interpret.theta = function(n, ntheta, theta)
     {
         ## internal helper-function to map the parameters from the
@@ -190,15 +189,15 @@
             ## fast and little more complicated: sparse matrices. we
             ## only need to define the lower-triangular of G!
             i = c(
-                    ## diagonal
-                    1L, n, 2L:(n-1L),
-                    ## off-diagonal
-                    1L:(n-1L))
+                ## diagonal
+                1L, n, 2L:(n-1L),
+                ## off-diagonal
+                1L:(n-1L))
             j = c(
-                    ## diagonal
-                    1L, n, 2L:(n-1L),
-                    ## off-diagonal
-                    2L:n)
+                ## diagonal
+                1L, n, 2L:(n-1L),
+                ## off-diagonal
+                2L:n)
             x = 1 ## meaning that all are 1
             G = sparseMatrix(i=i, j=j, x=x, giveCsparse = FALSE)
         }            
@@ -221,20 +220,20 @@
             ## fast and a little more complicated: sparse matrices. we
             ## only need to define the lower-triangular G!
             i = c(
-                    ## diagonal
-                    1L, n, 2L:(n-1L),
-                    ## off-diagonal
-                    1L:(n-1L))
+                ## diagonal
+                1L, n, 2L:(n-1L),
+                ## off-diagonal
+                1L:(n-1L))
             j = c(
-                    ## diagonal
-                    1L, n, 2L:(n-1L),
-                    ## off-diagonal
-                    2L:n)
+                ## diagonal
+                1L, n, 2L:(n-1L),
+                ## off-diagonal
+                2L:n)
             x = param$prec/(1-param$rho^2) * c(
-                    ## diagonal
-                    1L, 1L, rep(1+param$rho^2, n-2L),
-                    ## off-diagonal
-                    rep(-param$rho, n-1L))
+                ## diagonal
+                1L, 1L, rep(1+param$rho^2, n-2L),
+                ## off-diagonal
+                rep(-param$rho, n-1L))
             Q = sparseMatrix(i=i, j=j, x=x, giveCsparse=FALSE)
         }            
         return (Q)
@@ -257,7 +256,7 @@
         ## log(precision).
         param = interpret.theta(n, ntheta, theta)
         val = (dgamma(param$prec, shape = 1, rate = 1, log=TRUE) + theta[1L] + 
-               dnorm(theta[2L], mean = 0, sd = 1, log=TRUE))
+                   dnorm(theta[2L], mean = 0, sd = 1, log=TRUE))
         return (val)
     }
 
@@ -274,52 +273,62 @@
 
     cmd = match.arg(cmd)
     val = do.call(cmd, args = list(
-                               n = as.integer(args$n),
-                               ntheta = as.integer(args$ntheta), 
-                               theta = theta))
+                           n = as.integer(args$n),
+                           ntheta = as.integer(args$ntheta), 
+                           theta = theta))
     return (val)
 }
 
 
-`inla.rgeneric2.define` = function(model = NULL, ...)
+`inla.rgeneric2.define` = function(model = NULL, debug = FALSE, ...)
 {
     model = list(
+        ## pass everything in here,  so it can be evaluated in f() using f(model=<VAR>)
         f = list(
             model = "rgeneric2", 
             rgeneric2 = list(
                 definition = model,
+                debug = debug, 
                 args = list(...)
                 )
             )
         )
-    class(model) = class(model$f$rgeneric2) = "inla.rgeneric2"
+    class(model) = "inla.rgeneric2"
+    class(model$f$rgeneric2) = "inla.rgeneric2"
     return (model)
 }
 
-`inla.rgeneric2.wrapper` = function(cmd, model, theta = NULL, debug=FALSE)
+`inla.rgeneric2.wrapper` = function(cmd, model, theta = NULL)
 {
     debug.cat = function(...) {
         if (debug)
-            cat("Rgeneric2", ...)
+            cat("Rgeneric2: ", ..., "\n")
     }
 
-    debug.cat("Enter with cmd=", cmd, ", model=", model, "theta=", theta, "\n")
-
+    model.orig = model
     if (is.character(model)) {
         model = get(model, envir = parent.frame())
     }
 
+    if (is.null(model$debug) || !model$debug) {
+        debug = FALSE
+    } else {
+        debug = TRUE
+    }
+
+    debug.cat("Enter with cmd=", cmd, ", model=", model.orig, "theta=", theta)
+
     result = NULL
     ntheta = if (is.null(theta)) 0 else length(theta)
     
-    debug.cat("cmd", cmd, "\n")
-    debug.cat("input ntheta", ntheta, "\n")
-    if (ntheta > 0) debug.cat("\ttheta:", theta, "\n")
-    res = do.call(model$definition, args = list(cmd = cmd, theta = theta, args = model$args))
+    debug.cat("cmd", cmd)
+    debug.cat("input ntheta", ntheta)
+    if (ntheta > 0) debug.cat("\ttheta:", theta)
 
+    res = do.call(model$definition, args = list(cmd = cmd, theta = theta, args = model$args))
     if (cmd %in% "Q") {
         Q = inla.as.sparse(res)
-        debug.cat("dim(Q)", dim(Q), "\n")
+        debug.cat("dim(Q)", dim(Q))
         n = dim(Q)[1L]
         stopifnot(dim(Q)[1L] == dim(Q)[2L])
         stopifnot(dim(Q)[1L] == n && dim(Q)[2L] == n)
@@ -332,19 +341,20 @@
         n = dim(G)[1L]
         idx = which(G@i <= G@j)
         len = length(G@i[idx])
-        debug.cat("n", n, "len", len, "\n")
+        debug.cat("n", n, "len", len)
         result = c(n, len, G@i[idx], G@j[idx])
     } else if (cmd %in% "initial") {
         init = res
         ntheta = length(init)
+        debug.cat("initial", init)
         result = c(length(init), init)
     } else if (cmd %in% "log.norm.const") {
         lnc = res
-        debug.cat("\t", "log.norm.const", lnc, "\n")
+        debug.cat("log.norm.const", lnc)
         result = c(lnc)
     } else if (cmd %in% "log.prior") {
         lp = res
-        debug.cat("Got log.prior", lp, "\n")
+        debug.cat("log.prior", lp)
         result = c(lp)
     } else if (cmd %in% c("quit", "exit")) {
         ## nothing for the moment
