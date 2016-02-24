@@ -15,7 +15,7 @@
 
 \usage{
 inla.rgeneric.define(model = NULL, ...)
-inla.rgeneric2.define(model = NULL, debug = TRUE, ...)
+inla.rgeneric2.define(model = NULL, debug = TRUE, R.init = NULL, ...)
 inla.rgeneric.ar1.model(
         cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
         theta = NULL, args = NULL)
@@ -28,6 +28,7 @@ inla.rgeneric2.wrapper(cmd, model, theta = NULL, debug=FALSE)
   \item{cmd}{The allowed commands}
   \item{theta}{Values of theta}
   \item{debug}{Logical. Turn on/off debugging}
+  \item{R.init}{Character. Source this file when the R-engine starts.}
   \item{args}{Further args}
   \item{...}{Further args}
   \item{debug}{Logical. Enable debug output}
