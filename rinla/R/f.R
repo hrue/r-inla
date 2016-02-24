@@ -897,8 +897,10 @@
         }
         stopifnot(inherits(rgeneric2, "inla.rgeneric2"))
 
-        if (inla.os("windows")) {
-            stop("Model 'rgeneric2' is not available for Windows; please use Linux or MacOSX. (No, there is no quick fix.)")
+        if (FALSE) {
+            if (inla.os("windows")) {
+                stop("Model 'rgeneric2' is not available for Windows; please use Linux or MacOSX. (No, there is no quick fix.)")
+            }
         }
 
         ## add an 'Id' so we know who we are
