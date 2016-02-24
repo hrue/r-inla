@@ -1,7 +1,7 @@
 
 /* inla.c
  * 
- * Copyright (C) 2007-2015 Havard Rue
+ * Copyright (C) 2007-2016 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1864,9 +1864,9 @@ double Qfunc_rgeneric2(int i, int j, void *arg)
 			rebuild = (a->param[id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
 		}
 	}
-	
+
 	if (rebuild) {
-		int *ilist = NULL, *jlist = NULL, n, len, k=0, n_out;
+		int *ilist = NULL, *jlist = NULL, n, len, k = 0, n_out;
 		double *Qijlist = NULL, *x_out = NULL;
 		GMRFLib_graph_tp *graph = NULL;
 #pragma omp critical
@@ -1883,7 +1883,7 @@ double Qfunc_rgeneric2(int i, int j, void *arg)
 			for (ii = 0; ii < a->ntheta; ii++) {
 				a->param[id][ii] = a->theta[ii][GMRFLib_thread_id][0];
 			}
-			
+
 			if (debug) {
 				printf("Call rgeneric2\n");
 			}
@@ -1897,12 +1897,12 @@ double Qfunc_rgeneric2(int i, int j, void *arg)
 			len = (int) x_out[k++];
 
 			ilist = Calloc(len, int);
-			for(ii = 0; ii < len; ii++) {
+			for (ii = 0; ii < len; ii++) {
 				ilist[ii] = (int) x_out[k++];
 			}
-			
+
 			jlist = Calloc(len, int);
-			for(ii = 0; ii < len; ii++) {
+			for (ii = 0; ii < len; ii++) {
 				jlist[ii] = (int) x_out[k++];
 			}
 
@@ -12975,7 +12975,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	int i, j, k, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1;
 	int R2c = -1, c2R = -1, Id = -1;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg = NULL, default_tag[100], *file_loc,
-		*filename_R2c = NULL, *filename_c2R = NULL, *ctmp = NULL, *rgeneric2_filename = NULL, *rgeneric2_model = NULL, *rgeneric2_file_init = NULL;
+	    *filename_R2c = NULL, *filename_c2R = NULL, *ctmp = NULL, *rgeneric2_filename = NULL, *rgeneric2_model = NULL, *rgeneric2_Rinit = NULL;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp,
 	    **beta_intern = NULL, **beta = NULL, **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd,
@@ -15464,20 +15464,20 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		rgeneric2_filename = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC2.FILE"), NULL);
 		rgeneric2_model = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC2.MODEL"), NULL);
-		rgeneric2_file_init = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC2.INIT.FILE"), NULL);
+		rgeneric2_Rinit = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC2.RINIT"), NULL);
 
 		if (mb->verbose) {
-			printf("\t\trgeneric2.file [%s]\n", rgeneric2_filename);
-			printf("\t\trgeneric2.init.file [%s]\n", rgeneric2_file_init);
+			printf("\t\trgeneric2.file  [%s]\n", rgeneric2_filename);
+			printf("\t\trgeneric2.Rinit [%s]\n", rgeneric2_Rinit);
 			printf("\t\trgeneric2.model [%s]\n", rgeneric2_model);
 		}
 
-		/* 
+		/*
 		 * we need to know ntheta, therefore we need to initialise and load files etc, here...
 		 */
 #pragma omp critical
 		{
-			inla_R_source(rgeneric2_file_init);
+			inla_R_source(rgeneric2_Rinit);
 			inla_R_library("INLA");
 			inla_R_load(rgeneric2_filename);
 		}
@@ -18316,7 +18316,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 #if !defined(WINDOWS_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX)
 		inla_rgeneric2_tp *def = Calloc(1, inla_rgeneric2_tp);
 
-		def->file_init = GMRFLib_strdup(rgeneric2_file_init);
+		def->file_init = GMRFLib_strdup(rgeneric2_Rinit);
 		def->filename = GMRFLib_strdup(rgeneric2_filename);
 		def->model = GMRFLib_strdup(rgeneric2_model);
 		def->ntheta = mb->f_ntheta[mb->nf];
@@ -18338,12 +18338,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		len = (int) x_out[k++];
 
 		ilist = Calloc(len, int);
-		for(i = 0; i < len; i++) {
+		for (i = 0; i < len; i++) {
 			ilist[i] = (int) x_out[k++];
 		}
 
 		jlist = Calloc(len, int);
-		for(i = 0; i < len; i++) {
+		for (i = 0; i < len; i++) {
 			jlist[i] = (int) x_out[k++];
 		}
 		assert(k == n_out);
@@ -20306,7 +20306,7 @@ double extra(double *theta, int ntheta, void *argument)
 #pragma omp critical
 		{
 			static int first_time = 1;
-			assert(!(mb->update));			       /* only one at the time... */
+			assert(!(mb->update));		       /* only one at the time... */
 			evaluate_hyper_prior = 0;
 			if (first_time) {
 				// the first time only, set the R_HOME variable
@@ -22296,12 +22296,12 @@ double extra(double *theta, int ntheta, void *argument)
 			{
 				int n_out;
 				double *x_out = NULL;
-				
+
 				inla_R_rgeneric2(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, ntheta, param);
 				assert(n_out == 1);
 				log_norm_const = x_out[0];
 				Free(x_out);
-				
+
 				inla_R_rgeneric2(&n_out, &x_out, R_GENERIC_LOG_PRIOR, def->model, ntheta, param);
 				assert(n_out == 1);
 				log_prior = x_out[0];
@@ -23115,7 +23115,7 @@ int inla_INLA(inla_tp * mb)
 	}
 	GMRFLib_openmp->strategy = mb->strategy;
 
-	/* 
+	/*
 	 * set storage strategy for density
 	 */
 	switch (mb->strategy) {
@@ -23131,12 +23131,10 @@ int inla_INLA(inla_tp * mb)
 	default:
 		assert(0 == 1);
 	}
-	if (mb->verbose){
-		printf("\tChose density-strategy [%s]\n", 
+	if (mb->verbose) {
+		printf("\tChose density-strategy [%s]\n",
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT ?
-			"DEFAULT" :
-			(GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ?
-			 "LOW" :  "HIGH")));
+			"DEFAULT" : (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "LOW" : "HIGH")));
 	}
 
 	GMRFLib_init_hgmrfm(&(mb->hgmrfm), mb->predictor_n, mb->predictor_m,
@@ -27023,8 +27021,7 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 }
 
 int inla_qsample(const char *filename, const char *outfile, const char *nsamples, const char *rngfile,
-		 const char *samplefile, const char *bfile, const char *mufile, const char *constrfile,
-	         const char *meanfile)
+		 const char *samplefile, const char *bfile, const char *mufile, const char *constrfile, const char *meanfile)
 {
 	size_t siz, ret;
 	char *state;
@@ -27044,7 +27041,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		Free(state);
 	}
 
-	int i, ns; 
+	int i, ns;
 	GMRFLib_tabulate_Qfunc_tp *tab;
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem;
@@ -27109,7 +27106,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 
 	GMRFLib_write_fmesher_file(M, outfile, (long int) 0, -1);
 
-	GMRFLib_matrix_tp *CM = Calloc(1, GMRFLib_matrix_tp); 
+	GMRFLib_matrix_tp *CM = Calloc(1, GMRFLib_matrix_tp);
 	CM->nrow = graph->n;
 	CM->ncol = 1;
 	CM->elems = CM->ncol * CM->nrow;
@@ -27404,7 +27401,7 @@ double inla_update_density(double *theta, inla_update_tp * arg)
 int testit(int argc, char **argv)
 {
 	my_setenv(GMRFLib_strdup("R_HOME=/usr/lib64/R"), 0);
-	
+
 	if (1) {
 #pragma omp critical
 		{
@@ -27414,27 +27411,27 @@ int testit(int argc, char **argv)
 			inla_R_load("rgeneric2.RData");
 			inla_R_source("/home/hrue/p/inla/r-inla/rinla/R/rgeneric.R");
 
-			double theta[] = {1.0, 2.0};
-			int ntheta = sizeof(theta)/sizeof(double);
+			double theta[] = { 1.0, 2.0 };
+			int ntheta = sizeof(theta) / sizeof(double);
 			int i;
 
 			int n_out;
 			double *x_out;
-		
+
 #define PPP(cmd)							\
 			printf("\ncmd [%s] n_out [%1d]\n", cmd, n_out);	\
 			for(i=0; i<n_out; i++) {			\
 				printf("x[ %1d ] = %g\n", i, x_out[i]);	\
 			};						\
 			Free(x_out)
-		
+
 
 			inla_R_rgeneric2(&n_out, &x_out, "graph", MODEL, ntheta, theta);
 			PPP("graph");
 
 			inla_R_rgeneric2(&n_out, &x_out, "Q", MODEL, ntheta, theta);
 			PPP("Q");
-		
+
 			inla_R_rgeneric2(&n_out, &x_out, "initial", MODEL, ntheta, theta);
 			PPP("initial");
 
@@ -27451,7 +27448,7 @@ int testit(int argc, char **argv)
 #undef MODEL
 #undef PPP
 	}
-	
+
 	if (0) {
 		printf("test R!\n");
 		inla_R_library("INLA");
