@@ -12975,7 +12975,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	int i, j, k, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1;
 	int R2c = -1, c2R = -1, Id = -1;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg = NULL, default_tag[100], *file_loc,
-		*filename_R2c = NULL, *filename_c2R = NULL, *ctmp = NULL, *rgeneric2_filename = NULL, *rgeneric2_model = NULL;
+		*filename_R2c = NULL, *filename_c2R = NULL, *ctmp = NULL, *rgeneric2_filename = NULL, *rgeneric2_model = NULL, *rgeneric2_file_init = NULL;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp,
 	    **beta_intern = NULL, **beta = NULL, **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd,
@@ -15464,9 +15464,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		rgeneric2_filename = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC2.FILE"), NULL);
 		rgeneric2_model = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC2.MODEL"), NULL);
+		rgeneric2_file_init = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC2.INIT.FILE"), NULL);
 
 		if (mb->verbose) {
 			printf("\t\trgeneric2.file [%s]\n", rgeneric2_filename);
+			printf("\t\trgeneric2.init.file [%s]\n", rgeneric2_file_init);
 			printf("\t\trgeneric2.model [%s]\n", rgeneric2_model);
 		}
 
@@ -15475,6 +15477,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 */
 #pragma omp critical
 		{
+			inla_R_source(rgeneric2_file_init);
 			inla_R_library("INLA");
 			inla_R_load(rgeneric2_filename);
 		}
@@ -18313,6 +18316,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 #if !defined(WINDOWS_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX)
 		inla_rgeneric2_tp *def = Calloc(1, inla_rgeneric2_tp);
 
+		def->file_init = GMRFLib_strdup(rgeneric2_file_init);
 		def->filename = GMRFLib_strdup(rgeneric2_filename);
 		def->model = GMRFLib_strdup(rgeneric2_model);
 		def->ntheta = mb->f_ntheta[mb->nf];

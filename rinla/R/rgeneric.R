@@ -14,7 +14,7 @@
 ##!
 ##!\usage{
 ##!inla.rgeneric.define(model = NULL, ...)
-##!inla.rgeneric2.define(model = NULL, debug = TRUE, ...)
+##!inla.rgeneric2.define(model = NULL, debug = TRUE, R.init.file = NULL, ...)
 ##!inla.rgeneric.ar1.model(
 ##!        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
 ##!        theta = NULL, args = NULL)
@@ -27,6 +27,7 @@
 ##!  \item{cmd}{The allowed commands}
 ##!  \item{theta}{Values of theta}
 ##!  \item{debug}{Logical. Turn on/off debugging}
+##!  \item{R.init.file}{Character. Source this file when the R-engine starts.}
 ##!  \item{args}{Further args}
 ##!  \item{...}{Further args}
 ##!  \item{debug}{Logical. Enable debug output}
@@ -280,16 +281,16 @@
 }
 
 
-`inla.rgeneric2.define` = function(model = NULL, debug = FALSE, ...)
+`inla.rgeneric2.define` = function(model = NULL, debug = FALSE, R.init.file = NULL, ...)
 {
     model = list(
-        ## pass everything in here,  so it can be evaluated in f() using f(model=<VAR>)
         f = list(
             model = "rgeneric2", 
             rgeneric2 = list(
                 definition = model,
                 debug = debug, 
-                args = list(...)
+                args = list(...), 
+                R.init.file = R.init.file
                 )
             )
         )
