@@ -92,7 +92,8 @@ int inla_R_library(const char *library)
 	if (R_debug)
 		fprintf(stderr, "R-interface: load library [%s]\n", library);
 
-	PROTECT(e = lang2(install("library"), mkString(library)));
+	PROTECT(e = lang3(install("library"), mkString(library), 
+			  mkString("lib.loc='C:/Program Files/R/R-3.2.3/library/'")));
 	PROTECT(result = R_tryEval(e, R_GlobalEnv, &error));
 	if (error) {
 		fprintf(stderr, "\n *** ERROR ***: load library [%s] failed.\n", library);
