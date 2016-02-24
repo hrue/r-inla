@@ -15456,7 +15456,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	case F_R_GENERIC2:
 	{
-#if defined(WINDOWS)
+#if defined(WINDOWS_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX)
 		inla_error_general("Model 'rgeneric2' is not available for Windows; please use Linux or MacOSX.");
 		exit(EXIT_FAILURE);
 #else
@@ -18310,7 +18310,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * R_GENERIC2
 		 */
-#if !defined(WINDOWS)
+#if !defined(WINDOWS_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX)
 		inla_rgeneric2_tp *def = Calloc(1, inla_rgeneric2_tp);
 
 		def->filename = GMRFLib_strdup(rgeneric2_filename);
@@ -22276,7 +22276,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_R_GENERIC2:
 		{
-#if !defined(WINDOWS)
+#if !defined(WINDOWS_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXxx)
 			int ntheta = mb->f_ntheta[i], ii;
 			inla_rgeneric2_tp *def;
 			double *param, log_norm_const, log_prior;
