@@ -604,6 +604,11 @@
         cat("rgeneric2.file =", fnm, "\n", file=file, append = TRUE)
         cat("rgeneric2.model =", model, "\n", file=file, append = TRUE)
         rm(model) ## do not need it anymore
+
+        if (!is.null(random.spec$rgeneric2$R.init.file)) {
+            fnm = inla.copy.file.for.section(random.spec$rgeneric2$R.init.file, data.dir)
+            cat("rgeneric2.init.file =", fnm, "\n", file=file, append = TRUE)
+        }
     }
             
     if (random.spec$model == "ar") {

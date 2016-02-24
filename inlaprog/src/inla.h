@@ -1190,13 +1190,7 @@ typedef struct {
 
 typedef struct {
 	int Id;
-	int R2c;
-	int c2R;
-	char *filename_R2c;
-	char *filename_c2R;
-
-
-
+	char *file_init;				       /* source this file once in the beginning, if any */
 	char *filename;					       /* file to load containing the model definition */
 	char *model;					       /* the variable name that contains the model definition */
 	int ntheta;
