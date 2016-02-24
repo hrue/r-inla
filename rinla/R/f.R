@@ -895,7 +895,7 @@
         if (inla.is.element("f", rgeneric2) && inla.is.element("rgeneric2", rgeneric2$f)) {
             rgeneric2 = rgeneric2$f$rgeneric2
         } 
-        R.init.file = rgeneric2$R.init.file
+        R.init = rgeneric2$R.init
     
         stopifnot(inherits(rgeneric2, "inla.rgeneric2"))
 
@@ -906,7 +906,7 @@
         }
 
         ## add an 'Id' so we know who we are
-        rgeneric2 = list(model = rgeneric2, Id = vars[[1]], R.init.file = R.init.file)
+        rgeneric2 = list(model = rgeneric2, Id = vars[[1]], R.init = R.init)
     }
 
 

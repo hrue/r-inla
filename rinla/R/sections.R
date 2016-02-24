@@ -605,9 +605,9 @@
         cat("rgeneric2.model =", model, "\n", file=file, append = TRUE)
         rm(model) ## do not need it anymore
 
-        if (!is.null(random.spec$rgeneric2$R.init.file)) {
-            fnm = inla.copy.file.for.section(random.spec$rgeneric2$R.init.file, data.dir)
-            cat("rgeneric2.init.file =", fnm, "\n", file=file, append = TRUE)
+        if (!is.null(random.spec$rgeneric2$R.init)) {
+            fnm = inla.copy.file.for.section(random.spec$rgeneric2$R.init, data.dir)
+            cat("rgeneric2.Rinit =", fnm, "\n", file=file, append = TRUE)
         }
     }
             
