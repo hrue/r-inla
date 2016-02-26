@@ -13,16 +13,25 @@ inla.setOption(num.threads=7)
 
 \section{Introduction}
 
-In this Chapter we present the model proposed 
+In this Chapter we present an example of the model proposed 
 in~\cite{ingebrigtsenLS:2013}. 
-To introduce variables in the covariance matrix 
-we need to remember the definition 
-of the precision matrix of the 
-GMRF that defines the RF. 
-This matrix is defined on equations 
-(\ref{eq:Qalpha}) and (\ref{eq:Qfrac}). 
+This model consider that the two parameters in the SPDE 
+can depends on a set of explanatory variables/covariates. 
 
-These matrices are written in a more general way
+First, we have to remember the definition for the precision 
+matrix considering the equations 
+(\ref{eq:Qalpha}) and (\ref{eq:Qfrac}). 
+Considering $\alpha=1$ and $\alpha=2$ we have 
+  \begin{itemize}
+  \item $\alpha=1$: $\bm{Q}_{1,\kappa} = 
+    \bm{K}_\kappa = \kappa^2\bm{C} + \bm{G}$
+  \item $\alpha=2$: $\bm{Q}_{2,\kappa} = \bm{K}_\kappa \bm{C}^{-1} \bm{K}_\kappa$ = $\kappa^4\bm{C} + \kappa^2\bm{G} + \kappa^2\bm{G} + \bm{G}\bm{C}^{-1}\bm{G}$ 
+  \end{itemize}
+
+The way it is done is to have a regression like model for 
+$\log\tau$ and $\log\kappa$. 
+In order to implement it, the precision matrix 
+are written in a more general way as
 \begin{equation}\label{eq:Qnst}
   \bQ = \bD^{(0)}(\bD^{(1)}\bM^{(0)}\bD^{(1)} + 
   \bD^{(2)}\bD^{(1)}\bM^{(1)} + (\bM^{(1)})^T\bD^{(1)}\bD^{(2)} + 
@@ -41,7 +50,7 @@ $\bM^{(2)}=\bG\bC^{-1}\bG$.
 All three $\bD^{(0)}$, $\bD^{(1)}$ and $\bD^{(2)}$ 
 are diagonal with elements used to 
 describe non-stationarity. 
-The definition of these matrixes are
+The definition of these matrices are
 \begin{align*}
 \bD^{(0)} = diag\{\bD^{(0)}_i\} = diag\{e^{{\phi}^{(0)}_i}\} \\
 \bD^{(1)} = diag\{\bD^{(1)}_i\} = diag\{e^{{\phi}^{(1)}_i}\} \\
@@ -56,138 +65,151 @@ with the $\bB^{(k)}:$ $n$-by-$(p+1)$
 user defined matrix. 
 
 The default stationary SPDE model uses 
-$\bB=[0\; 1\; 0]$ (one by three) matrix 
-for the marginal variance and uses 
-$\bB=[0\; 0\; 1]$ (one by three) matrix 
-for the scaling parameter $\kappa$. 
-When this matrix have just one line, 
-the another lines are formed using the 
-same element of this first line. 
+$\bB^{(0)}=[0\; 1\; 0]$ (one by three) matrix 
+for the local precision parameter $\tau$,  
+$\bB^{(1)}=[0\; 0\; 1]$ (one by three) matrix 
+for the scaling parameter $\kappa$, 
+and $\bm{B}^{(2)}=1$. 
+When these basis matrices are supplied 
+as just one line matrix,  
+the actual basis matrix will be formed having 
+all lines equals to this unique line matrix. 
 
 In the next section, we add one of the 
 location coordinates as a fourth column 
-to build a non stationary model. 
-This is a kind of non stationarity 
-that allows variation in the variance and range 
-over the domain. 
+for $\bm{B}^{(1)}$ in order to build a non-stationary model. 
 
 \section{An example}
 
 In this section we define a model where 
-the variance depends in one of the coordinates. 
-Note that the any precision matrix 
-defined on the equation~(\ref{eq:Qnst}) 
-we need $\bM^{(0)}$, $\bM^{(1)}$ and $\bM^{(2)}$ 
-that are based on any mesh.
+the local precision depends in one of the coordinates. 
+Note that in order to build a precision matrix 
+defined in the equation~(\ref{eq:Qnst}), 
+one also needs $\bM^{(0)}$, $\bM^{(1)}$ and $\bM^{(2)}$ 
+defined at the mesh nodes. 
 
 First, we define a polygon to define a mesh. 
 We define an unitary square
 <<poly>>=
 pl01 <- cbind(c(0,1,1,0,0), c(0,0,1,1,0))
 @ 
-and build a mesh on the polygon with 
+and build a mesh using this polygon with 
 <<mesh>>=
 (mesh <- inla.mesh.2d(, pl01, cutoff=0.03, 
                       max.edge=c(0.07,.12)))$n
 @ 
 
-Now, we define the non stationary SPDE model. 
-The non stationarity is defined on the 
-two $\bB$ matrix, one for $\tau$ and 
-another for $\kappa$. 
+Now, we define the non-stationary SPDE model. 
 We want to define a model where the 
-variance depends on the first coordinate. 
-We just choose to put it into a 
-fourth column on the $\bB$ matrix for $\tau$. 
-Also, we need a prior for the three 
-dimentional $\theta$, simplified by 
-definition of a vetor of mean and precision 
-(considering independence of the priors). 
+local precision depends on the first coordinate. 
+So, we have to consider a fourth column for $\bm{B}^{(1)}$, 
+supplied as in the \texttt{B.tau} argument of the 
+\texttt{inla.spde2.matern()} function.
+By doing it, we also do need to set prior $\theta$ according to its new dimension, a three length vector. 
+The default is a Gaussian distribution and we just need to specify the mean and precision diagonal, two vectors as follows: 
 <<spde>>=
-spde <- inla.spde2.matern(mesh, B.tau=cbind(0, 1, 0, sin(pi*mesh$loc[,1])),
-                          B.kappa=cbind(0, 0, 1, 0), ##mesh$loc[,1]),
-                          theta.prior.mean=rep(0, 3),
-                          theta.prior.prec=rep(1, 3))
+spde <- inla.spde2.matern(mesh, 
+   B.tau=cbind(0, 1, 0, sin(pi*mesh$loc[,1])),
+   B.kappa=cbind(0, 0, 1, 0), 
+   theta.prior.mean=rep(0, 3),
+   theta.prior.prec=rep(1, 3))
 @ 
+where it was set $\bm{B}^{(1)}$ to define 
+$$\tau_i = e^{\theta_1 + \theta_3 sin(\pi loc[i,1])}$$
+having the local precision non-constant. 
+In this case it also implies in a 
+marginal variance non-constant as well, 
+as the marginal variance is: 
+$$\sigma^2 = (4\pi\tau^2\kappa^2)^{-1}.$$
 
-To finalize the precision matrix definition, 
-we need to define the values of $\theta$. 
-Just to test, we define two different 
-precision matrix, both with non stationarity 
-based on the same $\bB$ matrix. 
-The $\theta$ vector has length equal the 
-number of columns of $\bB$ minus one. 
-The two different $\theta$ vectors are
+We can have a feeling about the model just defined 
+setting values for $\theta$, build the covariance 
+and look at the marginal variance (our interest).
+We consider two different cases: 
 <<thetas>>=
 theta1 <- c(-1, 2, -1)
 theta2 <- c(-1, 2, 1)
 @ 
-and we have both the precision matrix with
+The precision matrices are built with
 <<Q>>=
 Q1 <- inla.spde2.precision(spde, theta=theta1)
 Q2 <- inla.spde2.precision(spde, theta=theta2)
 @ 
+As we have the x-coordinate in the (0,1) interval, 
+and the sin function is positive and non-decreasing 
+in this interval, 
+the second precision matrix 
+has larger values of $\tau_i$, 
+implying in a lower marginal variance. 
 
-The first and second values of these vetors 
-are the same. The structure of the $\bB$ matrix 
-indicate that we have 
-$$\tau_i = e^{\theta_1 + \theta_3 sin(\pi loc[i,1])}$$
-and we have that the second precision matrix 
-with larger values of $\tau_i$, because its 
-values are increased by a positive value. 
-
-To make more clear, we compute both 
-covariance matrix implied. 
+To clarify, we compute both covariance matrix implied. 
 The covariance matrix of 
 $$x(s) = \sum_{k=1}^n A_k(s) w_k$$
-is easy to obtain when we have $s$ 
-(the locations) equals the locations 
-of the mesh vertices. 
-It is just the inverse of the 
-precision matrix defined. 
+at the mesh nodes as the inverse of the precision matrix. 
+The \texttt{inla.qinv()} function computes the 
+diagonal of the covariance matrix and the covariance elements 
+at the non-zero elements of $\bm{Q}$ efficiently.
 <<changecalltolocal,echo=F>>=
 inla.setOption(inla.call=lcall)
 @ 
 <<covs>>=
 cov1 <- inla.qinv(Q1);         cov2 <- inla.qinv(Q2) 
 @ 
-and we see a summary of the variance 
+A summary of the variances implied  
 (diagonal of the covariance matrix) 
-for both covariance matrix
+for both covariance matrices is obtained with
 <<diagC>>=
 v1 <- diag(cov1);      v2 <- diag(cov2)
 rbind(v1=summary(v1),  v2=summary(v2))
 @ 
-and we see that the first has larger variances. 
-Its because the precision is less than the second. 
+showing large values for the first case. 
 
-We see the variance of both process 
-on the Figure~\ref{fig:varns} by 
+We can see the marginal variance at the mesh nodes 
+considering both process in the Figure~\ref{fig:varns}. 
+Commands to make the figure~\ref{fig:varns}: 
 <<varns,eval=F>>=
-par(mar=c(3,3,.5,.5), mgp=c(1.7, .5, 0), las=1)
-plot(mesh$loc[,1], v1, ylim=range(v1,v2), 
-     xlab='x-coordinate', ylab='variance', las=1)
+par(mfrow=c(1,2), mar=c(3,3,.5,.5), mgp=c(2, .7, 0), las=1)
+plot(mesh$loc[,1], v1, ylim=range(v1,v2), las=1, 
+     xlab='x-coordinate', ylab='marginal variance')
 points(mesh$loc[,1], v2, col=2)
+i1 <- which((mesh$loc[,1]>0) & (mesh$loc[,1]<1) & 
+  (mesh$loc[,2]>0) & (mesh$loc[,2]<1))
+plot(mesh$loc[i1,1], v1[i1], ylim=range(v1[i1],v2[i1]), 
+     xlab='x-coordinate', ylab='marginal variance', las=1)
+points(mesh$loc[i1,1], v2[i1], col=2)
+legend('topleft', as.expression(lapply(
+                      c(theta1[3], theta2[3]), 
+                      function(x) bquote(theta[3]==.(x)))), col=1:2)
 @ 
-\setkeys{Gin}{width=0.49\textwidth}
+\setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
-<<vvarns,echo=F,fig=T,eps=F>>=
+<<vvarns,echo=F,fig=T,eps=F,width=10,heigh=5.5>>=
 <<varns>>
 @ 
-\caption{Variances implied by both 
-  non stationary process defined.}
+\caption{Marginal variances at mesh nodes implied 
+ by both non-stationary process defined, 
+ considering all the mesh points (left) and 
+ only those inside the region domain (right).}
 \label{fig:varns}
 \end{figure}
 
+In the plot at left we have some marginal variances 
+that does not follows the pattern. 
+For example, it is clear that some points in the right plot 
+does not follows the expected pattern when $x-axis$ is near 0.5. 
+These points are marginal variances computed for the mesh 
+nodes for $y-axis$ near bellow 0 or above 1, outside the domain. 
+This is expected as the variance of the approximation 
+happens to be bigger at the boundary of the mesh.
 
-\section{Simulation on the mesh vertices}
+\section{Simulation at the mesh nodes}
 
-Both precision matrix defined on previous 
+Both precision matrix defined in previous 
 the section consider that the locations 
-are the triangles vertices of mesh. 
+are the mesh nodes. 
 So, the simulation made with it is a 
 realization of the random field on each 
-point of the triangles vertices of the mesh.
+point of the mesh nodes. 
 We use the same seed for each simulation, 
 just to show it. 
 <<samples>>=
@@ -206,13 +228,13 @@ We observe that the variance of the sample
 from the first random field increase near 0.5 
 and decrease near 0 and near 1. 
 For the sample of the second random field 
-the oposite happens and we have 
-larger values, because we have less precision.
+the opposite happens and we have larger values, 
+as it has lower local precision.
 
-We see the simulated values projected 
-on a grid on Figure~\ref{fig:s12ns}. 
+One can see the simulated values projected 
+to a grid in Figure~\ref{fig:s12ns}. 
 We use a projector matrix to project the 
-simulated values on the grid limited on the 
+simulated values in the grid limited in the 
 unit square with limits (0,0) and (1,1) with 
 <<plotsamples,eval=F>>=
 proj <- inla.mesh.projector(mesh, xlim=0:1, ylim=0:1)
@@ -229,23 +251,22 @@ grid.arrange(levelplot(inla.mesh.project(proj, field=sample1),
 <<plotsamples>>
 @ 
 \caption{Two simulated random fields, using two 
-  diferent $\theta$ on same basis functions.}
+  diferent $\theta$ in the same basis functions.}
 \label{fig:s12ns}
 \end{figure}
 
 \subsection{Simulation with linear constraint}
 
-The linear constraint is common on models 
-such as random walk, in one or two dimentions. 
-Its because these models are improper. 
-In this section we just want to show how 
-we do linear constraint in the SPDE models. 
+The linear constraint is common for models 
+intrinsic models, such the random walks in one or two dimensions. 
+This is not the case for the models we have defined in this chapter. 
+However, in this section we would like to show the 
+use of linear constraints for the SPDE models. 
 
-Because the SPDE models are based on the 
-Finite Element Method (FEM) aproximation, 
+Because the SPDE models are based in the 
+Finite Element Method (FEM) approximation, 
 the sum-to-zero restriction in this 
 case is non trivial. 
-
 The issue is that
 $$\sum_k x_k$$
 doesn't mean anything for the mesh-based spde-models. 
@@ -253,25 +274,24 @@ Whereas
 $$\int x(s) ds = \int \Psi_(s) x_k ds$$
 does mean something, and that integral is equal to
 $$
-\sum_k C_kk x_k
+\sum_k C_kk x_k\;.
 $$
-so the constraint
+So the constraint
 $$
 \int x(s) ds = 0
 $$
 is provided by
 $$
-A*x = 0, where A_{1k} = C_{kk}
+A*x = 0, where A_{1k} = C_{kk},
 $$
-Where $\bC$ is the matrix used on the FEM.
+where $\bC$ is the matrix used in the FEM.
 
 Using $A = (1,...,1)$ instead of $diag(\bC)$ 
-leads to very bad behaviour
-for irregular meshes.
-So, if we want a linear constrait, 
+leads to very bad behavior for irregular meshes.
+So, if we want a linear constraint, 
 we need to use $\bC$. 
 
-That matrix is obtained by the 
+The $\bm{C}$ matrix is obtained by the 
 \code{inla.mesh.fem()} function and 
 is available directly in outputs of 
 \code{inla.spde2.matern()} function. 
@@ -280,36 +300,36 @@ So, we do the simulation with
 s1r <-  as.vector(inla.qsample(1, Q1, seed=1, constr=spde$f$extraconstr))
 s2r <-  as.vector(inla.qsample(1, Q2, seed=1, constr=spde$f$extraconstr))
 @ 
-and we have
+So, we have
 <<comparss>>=
 rbind(s1r=summary(s1r), s2r=summary(s2r))
 c(cor1=cor(sample1, s1r), cor2=cor(sample2, s2r))
 @ 
 where the mean of the process simulated 
-on the mesh vertices have mean near zero. 
+at mesh nodes have mean near zero. 
 
-\section{Estimation with data simulated on the mesh vertices}
+\section{Estimation with data simulated at the mesh nodes} 
 
 <<changecalltoremote,echo=F>>=
 ##inla.setOption(inla.call='remote')
 @ 
 
-The model can be fitted easly with 
-the data simulated on mesh vertices. 
+The model can be fitted easily with 
+the data simulated at mesh nodes. 
 Considering that we have data exactly 
-on each vertice of the mesh, we don't 
+at each mesh node, we don't 
 need the use of any predictor matrix 
 and the stack functionality. 
 Because we have just realizations of the 
 random field, we don't have noise 
 and need to fix the precision of the 
-Gaussian likelihood on higth value, 
+Gaussian likelihood in a high value, 
 for example on the value $e^{20}$
 <<likehy>>=
 clik <- list(hyper=list(theta=list(initial=20, fixed=TRUE)))
 @ 
 Remember that we have a zero mean random field, 
-so we also don't have fixed parameters to fit. 
+so we also do not have fixed parameters to fit. 
 We just do 
 <<fit12>>=
 formula <- y ~ 0 + f(i, model=spde)
@@ -332,9 +352,9 @@ round(cbind(true=theta2, fit2$summary.hy), 4)
 We see that for both we have good results. 
 In next section we see more results. 
 
-\section{Estimation with locations not on mesh vertices}
+\section{Estimation with locations not at the mesh nodes}
 
-Suppose that we have the data on the locations 
+Suppose that we have the data at the locations 
 simulated by the commands below 
 <<>>=
 set.seed(2);     n <- 100
@@ -342,7 +362,7 @@ loc <- cbind(runif(n), runif(n))
 @ 
 
 Now, we project the data simulated 
-on the mesh vertices to this locations. 
+at the mesh vertices to this locations. 
 To do it, we need a projection matrix
 <<projloc>>=
 projloc <- inla.mesh.projector(mesh, loc)
@@ -352,7 +372,7 @@ with
 x1 <- inla.mesh.project(projloc, sample1)
 x2 <- inla.mesh.project(projloc, sample2)
 @ 
-and we have the sample data on these locations.
+and we have the sample data at these locations.
 
 Now, because the this locations aren't vertices 
 of the mesh, we need to use the stack functionality. 
@@ -383,7 +403,7 @@ round(cbind(True=theta2, res2$summary.hy), 4)
 @ 
 
 To make the visualization more good, we 
-take the logarithmum of the variance. 
+take the logarithm of the variance. 
 <<projpostrf>>=
 x1.mean <- inla.mesh.project(proj, field=res1$summary.ran$i$mean)
 x1.var <- inla.mesh.project(proj, field=res1$summary.ran$i$sd^2)
@@ -393,7 +413,7 @@ x2.var <- inla.mesh.project(proj, field=res2$summary.ran$i$sd^2)
 
 We visualize, for both random fields, the 
 simulated, the predicted (posterior mean) 
-and the posterior variance on 
+and the posterior variance in 
 Figure~\ref{fig:visprojp} with commands below 
 <<visprojp,eval=F>>=
 do.call(function(...) grid.arrange(..., nrow=2), 
@@ -413,12 +433,12 @@ do.call(function(...) grid.arrange(..., nrow=2),
 \label{fig:visprojp}
 \end{figure}
 
-We see on the Figure~\ref{fig:visprojp} 
+We see in the Figure~\ref{fig:visprojp} 
 that the predicted values are similar to 
 the simulated ones. 
 Also, we see that the posterior variance of the first 
-model increase near 0.5 on the first coordinate. 
-And we see the oposite for the second random field. 
+model increase near 0.5 for the first coordinate. 
+And we see the opposite for the second random field. 
 Also, we see that the variance of 
 the first is greater than the second. 
 

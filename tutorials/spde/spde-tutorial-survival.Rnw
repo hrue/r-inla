@@ -6,8 +6,8 @@ options(width=75, prompt = " ", continue = "   ")
 require(INLA)
 require(fields)
 lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
-inla.setOption(num.threads=7)
+#inla.setOption(inla.call='remote')
+#inla.setOption(num.threads=7)
 @ 
 
 In this chapter we shown how to fit a survival model using a 
@@ -25,10 +25,6 @@ Cox proportional hazard model.
 We load the Leukaemia survival data using 
 <<Leuk>>=
 data(Leuk);    sapply(Leuk, summary)
-@ 
-<<echo=FALSE,results=hide>>=
-if (sum(ls()=='nwEngland')==0)
-    load('~/inla-project/source/inla/rinla/data/Leuk.rda')
 @ 
 
 The mesh is builded using the following code

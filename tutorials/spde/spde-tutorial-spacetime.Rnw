@@ -6,8 +6,8 @@ options(width=75, prompt = " ", continue = "   ")
 require(lattice) 
 require(INLA)
 lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
-inla.setOption(num.threads=7)
+#inla.setOption(inla.call='remote')
+#inla.setOption(num.threads=7)
 source('spde-tutorial-functions.R')
 load('prmesh1.RData')
 @ 
@@ -78,19 +78,23 @@ x.k <- rspde(coords, kappa=1/2, n=k,
 dim(x.k)
 @ 
 <<echo=F,results=hide>>=
-inla.setOption(inla.call='remote')
+#inla.setOption(inla.call='remote')
 @ 
 
 Now, we define the autoregressive parameter $\rho$ 
 <<beta>>=
 rho <- 0.7
 @ 
-and get the sample 
+and get the correlated sample over time using
 <<x>>=
 x <- x.k
 for (j in 2:k) 
-    x[,j] <- rho*x[,j-1] + x.k[,j]
+    x[,j] <- rho*x[,j-1] + sqrt(1-rho^2)*x.k[,j]
 @ 
+where the $\sqrt(1-\rho^2)$ term is added as we 
+would like to consider that the innovation noise 
+follows the stationary distribution, 
+see \cite{RueHeld:2005} and \cite{cameletti:2012}.
 
 We can visualize the realization 
 at the figure~\ref{fig:timevisual} 
@@ -203,7 +207,7 @@ To deal with the categorical covariate we need
 to set \code{expand.factor.strategy='inla'} 
 on the \code{control.fixed} argument list. 
 <<remote,echo=F>>=
-inla.setOption(inla.call='remote')
+#inla.setOption(inla.call='remote')
 @ 
 <<ft>>=
 formulae <- y ~ 0 + w + 
