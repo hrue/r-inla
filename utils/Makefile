@@ -25,7 +25,6 @@ update-inla :;
 	-gnome-terminal -e 'ssh -x -t hrue@inla.math.ntnu.no sudo install --verbose --mode=755 builds/build.O2/local/bin/inla /usr/local/bin/inla.binary; sudo install --verbose --mode=755 builds/build.debug/local/bin/inla /usr/local/bin/inla.debug.binary; sleep 3'
 
 update-R :;
-	make MAC=$(MAC) -C R updateBIN
 	make MAC=$(MAC) -C R updateREPO
 
 update-REPO:;
