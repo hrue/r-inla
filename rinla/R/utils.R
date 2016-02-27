@@ -114,11 +114,11 @@
 `inla.call.builtin` = function()
 {
     if (inla.os("mac")) {
-        fnm = system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/inla", sep=""), package="INLA")
+        fnm = system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/inla.run", sep=""), package="INLA")
     } else if (inla.os("linux")) {
-        fnm = system.file(paste("bin/linux/inla", inla.os.32or64bit(), sep=""), package="INLA")
+        fnm = system.file(paste("bin/linux/", inla.os.32or64bit(), "bit/inla.run", sep=""), package="INLA")
     } else if (inla.os("windows")) {
-        fnm = system.file(paste("bin/windows/inla", inla.os.32or64bit(), ".exe", sep=""), package="INLA")
+        fnm = system.file(paste("bin/windows/", inla.os.32or64bit(), "bit/inla.exe", sep=""), package="INLA")
     } else {
         stop("Unknown OS")
     }
@@ -133,11 +133,11 @@
 `inla.fmesher.call.builtin` = function()
 {
     if (inla.os("mac")) {
-        fnm = system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/fmesher", sep=""), package="INLA")
+        fnm = system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/fmesher.run", sep=""), package="INLA")
     } else if (inla.os("linux")) {
-        fnm = system.file(paste("bin/linux/fmesher", inla.os.32or64bit(), sep=""), package="INLA")
+        fnm = system.file(paste("bin/linux/", inla.os.32or64bit(), "bit/fmesher.run", sep=""), package="INLA")
     } else if (inla.os("windows")) {
-        fnm = system.file(paste("bin/windows/fmesher", inla.os.32or64bit(), ".exe", sep=""), package="INLA")
+        fnm = system.file(paste("bin/windows/", inla.os.32or64bit(), "bit/fmesher.exe", sep=""), package="INLA")
     } else {
         stop("Unknown OS")
     }
