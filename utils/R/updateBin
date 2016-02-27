@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 d=INLA/inst/bin
-MAC=hrue@hruemac.math.ntnu.no
-LINUX=hrue@inla.math.ntnu.no
-WINDOWS=$(~/p/inla/builds/windows)
+MAC="hrue@hruemac.math.ntnu.no"
+LINUX="hrue@inla.math.ntnu.no"
+WINDOWS=$(echo ~/p/inla/builds/windows)
 
 for m in 32 64; do
     for p in inla fmesher; do 
 	for f in $(ssh $MAC bin/my.otool builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
-	    rsync -auv $MAC:$f $d/mac/${m}bit/.
+	    rsync -auvL $MAC:$f $d/mac/${m}bit/.
 	done
     done
 done
@@ -17,16 +17,16 @@ for m in 32 64; do
     for p in inla fmesher; do 
 	for f in $(ssh $LINUX bin/my.ldd builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
-	    rsync -auv $LINUX:$f $d/linux/${m}bit/.
+	    rsync -auvL $LINUX:$f $d/linux/${m}bit/.
 	done
     done
 done
 
 for m in 32 64; do
     for p in inla fmesher; do 
-	for f in $($WINDOWS/bin/my.objdump $WINDOWS/local/bin/$p.exe) $WINDOWS/local/bin/$p.exe; do
+	for f in $($WINDOWS$m/bin/my.objdump $WINDOWS$m/local/bin/$p.exe) $WINDOWS$m/local/bin/$p.exe; do
 	    echo sync $f
-	    rsync -auv $f $d/windows/${m}bit/.
+	    rsync -auvL $f $d/windows/${m}bit/.
 	done
     done
 done
