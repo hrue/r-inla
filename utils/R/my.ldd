@@ -1,0 +1,5 @@
+#!/bin/sh
+
+for f in "$@"; do
+ ldd -r "$f" | awk '/ => / {print $3}'|grep /
+done
