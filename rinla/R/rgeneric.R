@@ -42,7 +42,8 @@
 ##!\value{%%
 ##!  This is a test-implementation of how a latent model can be
 ##!  defined within R, and details would likely change in the future.
-##!  See \code{inla.rgeneric.ar1.model} and \code{inla.rgeneric.iid.model} and the documentation for 
+##!  See \code{inla.rgeneric.ar1.model} and
+##!  \code{inla.rgeneric.iid.model} and the documentation for 
 ##!  worked out examples of how to define the AR1 and IID model this way.
 ##!  Using this function require the \code{multicore}-package, and
 ##!  only runs smoothly under Linux.}
@@ -318,8 +319,8 @@
 
     log.prior = function(n, ntheta, theta)
     {
-        param = interpret.theta(n, ntheta, theta)$prec
-        val = dgamma(param$prec, shape = 1, rate = 1, log=TRUE) + theta[1L]
+        prec = interpret.theta(n, ntheta, theta)$prec
+        val = dgamma(prec, shape = 1, rate = 1, log=TRUE) + theta[1L]
         return (val)
     }
 
@@ -363,7 +364,7 @@
 {
     debug.cat = function(...) {
         if (debug)
-            cat("Rgeneric2: ", ..., "\n")
+            cat("Rgeneric2: ", ..., "\n", file = stderr())
     }
 
     model.orig = model
