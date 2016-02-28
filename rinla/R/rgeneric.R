@@ -1,4 +1,5 @@
 ## Export: inla.rgeneric.define inla.rgeneric.ar1.model 
+## Export: inla.rgeneric.iid.model 
 ## Export: inla.rgeneric2.define inla.rgeneric2.wrapper
 
 ##!\name{rgeneric.define}
@@ -7,6 +8,8 @@
 ##!\alias{inla.rgeneric.define}
 ##!\alias{rgeneric.ar1.model}
 ##!\alias{inla.rgeneric.ar1.model}
+##!\alias{rgeneric.iid.model}
+##!\alias{inla.rgeneric.iid.model}
 ##!
 ##!\title{rgeneric models}
 ##!
@@ -15,6 +18,9 @@
 ##!\usage{
 ##!inla.rgeneric.define(model = NULL, ...)
 ##!inla.rgeneric2.define(model = NULL, debug = TRUE, R.init = NULL, ...)
+##!inla.rgeneric.iid.model(
+##!        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+##!        theta = NULL, args = NULL)
 ##!inla.rgeneric.ar1.model(
 ##!        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
 ##!        theta = NULL, args = NULL)
@@ -36,8 +42,8 @@
 ##!\value{%%
 ##!  This is a test-implementation of how a latent model can be
 ##!  defined within R, and details would likely change in the future.
-##!  See \code{inla.rgeneric.ar1.model} and the documentation for a
-##!  worked through example of how to define the AR1 model this way.
+##!  See \code{inla.rgeneric.ar1.model} and \code{inla.rgeneric.iid.model} and the documentation for 
+##!  worked out examples of how to define the AR1 and IID model this way.
 ##!  Using this function require the \code{multicore}-package, and
 ##!  only runs smoothly under Linux.}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
@@ -280,6 +286,60 @@
     return (val)
 }
 
+`inla.rgeneric.iid.model` = function(cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+                                     theta = NULL, args = NULL)
+{
+    ## this is an example of the 'rgeneric' model. here we implement the iid model as described
+    ## in inla.doc("iid"), without the scaling-option
+
+    interpret.theta = function(n, ntheta, theta)
+    {
+        return (list(prec = exp(theta[1L])))
+    }
+
+    graph = function(n, ntheta, theta)
+    {
+        G = Diagonal(n, x= rep(1, n))
+        return (G)
+    }
+
+    Q = function(n, ntheta, theta)
+    {
+        Q = Diagonal(n, x= rep(1, n))
+        return (Q)
+    }
+
+    log.norm.const = function(n, ntheta, theta)
+    {
+        prec = interpret.theta(n, ntheta, theta)$prec
+        val = sum(dnorm(rep(0, n), sd = 1/sqrt(prec), log=TRUE))
+        return (val)
+    }
+
+    log.prior = function(n, ntheta, theta)
+    {
+        param = interpret.theta(n, ntheta, theta)$prec
+        val = dgamma(param$prec, shape = 1, rate = 1, log=TRUE) + theta[1L]
+        return (val)
+    }
+
+    initial = function(n, ntheta, theta)
+    {
+        return (rep(1, ntheta))
+    }
+
+    quit = function(n, ntheta, theta)
+    {
+        return (invisible())
+    }
+
+    cmd = match.arg(cmd)
+    val = do.call(cmd, args = list(
+                           n = as.integer(args$n),
+                           ntheta = as.integer(args$ntheta), 
+                           theta = theta))
+    return (val)
+}
 
 `inla.rgeneric2.define` = function(model = NULL, debug = FALSE, R.init = NULL, ...)
 {
