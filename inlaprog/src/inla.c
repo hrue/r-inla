@@ -27400,8 +27400,6 @@ double inla_update_density(double *theta, inla_update_tp * arg)
 }
 int testit(int argc, char **argv)
 {
-	//my_setenv(GMRFLib_strdup("R_HOME=/usr/lib64/R"), 0);
-
 	if (0) {
 #pragma omp critical
 		{
@@ -27450,8 +27448,8 @@ int testit(int argc, char **argv)
 	}
 
 	if (1) {
-		printf("test R!\n");
-		inla_R_library("INLA");
+		printf("test R, source %s\n", argv[0]);
+		inla_R_source(argv[0]);
 
 		double x[] = { 1.123, 2.234, 3.345 };
 		int nx = sizeof(x) / sizeof(x[1]);
@@ -28027,7 +28025,7 @@ int main(int argc, char **argv)
 		inla_read_graph(argv[optind]);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_TESTIT) {
-		testit(argc, argv);
+		testit(argc, &(argv[optind]));
 		exit(EXIT_SUCCESS);
 	} else {
 		/*
