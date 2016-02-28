@@ -11,8 +11,7 @@ fix-perm () {
 	for f in {fmesher,inla}{,.run,.exe}; do
 	    test -f "$d/$f" && chmod 755 "$d/$f"
 	done
-	for lib in "$d"/*.a "$d"/*.so "$d"/*.so.* "$d"/*.dylib \
-		       "$d"/*.dylib.* "$d"/*.dll \ "$d"/*.dll ; do
+	for lib in "$d"/*.a "$d"/*.so "$d"/*.so.* "$d"/*.dylib "$d"/*.dll; do
 	    test -f "$lib" && chmod 644 "$lib"
 	done
 	      
