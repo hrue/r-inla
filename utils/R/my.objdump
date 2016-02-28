@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+case $1 in
+    /*)
+    DIR=${1%/*};;
+    *)
+    DIR=$PWD/${1%/*};;
+esac
+DIR=${DIR%/.}
+DIR=${DIR%inla.exe}
+DIR=${DIR%fmesher.exe}
+## echo $DIR
+
+
+objdump=$(echo ~/p/inla/builds/windows64/bin/objdump)
+for f in "$@"; do
+    $objdump -p "$f" 2>/dev/null | grep dll | \
+	awk  '/^[ \t]*DLL Name:/ {print $3}' | \
+	egrep -v '(KERNEL32.dll|msvcrt.dll|USER32.dll)' | \
+	egrep -v '(KERNEL64.dll|msvcrt.dll|USER64.dll)'
+    for f in $DIR/*dll; do 
+	test -f "$f" && echo $f
+    done
+done
+
+
