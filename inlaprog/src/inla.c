@@ -27410,7 +27410,6 @@ int inla_R(char **argv)
 	return GMRFLib_SUCCESS;
 }
 
-
 int testit(int argc, char **argv)
 {
 	if (0) {
