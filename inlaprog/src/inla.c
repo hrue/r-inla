@@ -27400,7 +27400,7 @@ double inla_update_density(double *theta, inla_update_tp * arg)
 }
 int testit(int argc, char **argv)
 {
-	my_setenv(GMRFLib_strdup("R_HOME=/usr/lib64/R"), 0);
+	//my_setenv(GMRFLib_strdup("R_HOME=/usr/lib64/R"), 0);
 
 	if (0) {
 #pragma omp critical
