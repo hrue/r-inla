@@ -5,3 +5,4 @@ Tokyo          Binomial time-series
 Tokyo-compare  Binomial time-series; compare with MCMC
 Leuk           Spatial survival with Cox proportial hazard model 
 LeukPCprior    Spatial survival with Cox proportial hazard model using PCpriors
+rgeneric       Example of the rgeneric model
