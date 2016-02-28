@@ -4,6 +4,21 @@ MAC="hrue@hruemac.math.ntnu.no"
 LINUX="hrue@inla.math.ntnu.no"
 WINDOWS=$(echo ~/p/inla/builds/windows)
 
+fix-perm () {
+    local d
+    local f
+    for d in "$@"; do
+	for f in {fmesher,inla}{,.run,.exe}; do
+	    test -f "$d/$f" && chmod 755 "$d/$f"
+	done
+	for lib in "$d"/*/*.a "$d"/*/*.so "$d"/*/*.so.* "$d"/*/*.dylib \
+		       "$d"/*/*.dylib.* "$d"/*/*.dll \ "$d"/*/*.dll ; do
+	    test -f "$lib" && chmod 644 "$lib"
+	done
+	      
+    done
+}
+
 for m in 32 64; do
     for p in inla fmesher; do 
 	for f in $(ssh $MAC bin/my.otool builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
@@ -11,6 +26,7 @@ for m in 32 64; do
 	    rsync -auvL $MAC:$f $d/mac/${m}bit/.
 	done
     done
+    fix-perm $d/mac/${m}bit
 done
 
 for m in 32 64; do
@@ -20,6 +36,7 @@ for m in 32 64; do
 	    rsync -auvL $LINUX:$f $d/linux/${m}bit/.
 	done
     done
+    fix-perm $d/linux/${m}bit
 done
 
 for m in 32 64; do
@@ -29,4 +46,5 @@ for m in 32 64; do
 	    rsync -auvL $f $d/windows/${m}bit/.
 	done
     done
+    fix-perm $d/windows/${m}bit
 done
