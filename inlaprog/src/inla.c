@@ -27402,7 +27402,7 @@ int testit(int argc, char **argv)
 {
 	my_setenv(GMRFLib_strdup("R_HOME=/usr/lib64/R"), 0);
 
-	if (1) {
+	if (0) {
 #pragma omp critical
 		{
 #define MODEL "rgeneric2.model"
@@ -27449,7 +27449,7 @@ int testit(int argc, char **argv)
 #undef PPP
 	}
 
-	if (0) {
+	if (1) {
 		printf("test R!\n");
 		inla_R_library("INLA");
 
