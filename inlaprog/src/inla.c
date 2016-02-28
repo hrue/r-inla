@@ -27398,6 +27398,19 @@ double inla_update_density(double *theta, inla_update_tp * arg)
 	Free(z);
 	return update_dens;
 }
+int inla_R(char **argv)
+{
+	while(*argv){
+		fprintf(stderr, "R> source file [%s]...\n", *argv);
+		inla_R_source(*argv);
+		argv++;
+	}
+	exit(0);
+
+	return GMRFLib_SUCCESS;
+}
+
+
 int testit(int argc, char **argv)
 {
 	if (0) {
@@ -27846,6 +27859,8 @@ int main(int argc, char **argv)
 				G.mode = INLA_MODE_FINN;
 			} else if (!strncasecmp(optarg, "GRAPH", 5)) {
 				G.mode = INLA_MODE_GRAPH;
+			} else if (!strncasecmp(optarg, "R", 1)) {
+				G.mode = INLA_MODE_R;
 			} else if (!strncasecmp(optarg, "TESTIT", 6)) {
 				G.mode = INLA_MODE_TESTIT;
 			} else {
@@ -28023,6 +28038,9 @@ int main(int argc, char **argv)
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_GRAPH) {
 		inla_read_graph(argv[optind]);
+		exit(EXIT_SUCCESS);
+	} else if (G.mode == INLA_MODE_R) {
+		inla_R(&(argv[optind]));
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_TESTIT) {
 		testit(argc, &(argv[optind]));

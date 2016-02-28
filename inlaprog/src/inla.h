@@ -91,6 +91,7 @@ typedef enum {
 	INLA_MODE_QSAMPLE,
 	INLA_MODE_FINN,
 	INLA_MODE_GRAPH,
+	INLA_MODE_R,
 	INLA_MODE_TESTIT = 999
 } inla_mode_tp;
 
@@ -1582,6 +1583,7 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 int loglikelihood_zeroinflated_poisson0(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int inla_R(char **argv);
 int my_setenv(char *str, int prefix);
 int testit(int argc, char **argv);
 map_table_tp *mapfunc_find(const char *name);

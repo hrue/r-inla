@@ -68,7 +68,7 @@ int inla_R_init(void)
 {
 	if (R_init) {
 		//char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--silent", "--vanilla" };
-		char *Rargv[] = { "REmbeddedPostgres", "--gui=none"}; 
+		char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--silent"}; 
 		int Rargc = sizeof(Rargv) / sizeof(Rargv[0]);
 		Rf_initEmbeddedR(Rargc, Rargv);
 
