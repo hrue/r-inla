@@ -6,7 +6,9 @@ case $0 in
     *)
     DIR=$PWD/${0%/*};;
 esac
+DIR=${DIR%/.}
+
 export LD_LIBRARY_PATH="$DIR:$LD_LIBRARY_PATH"
-exec $DIR/inla "$@"
+exec "$DIR/inla" "$@"
 
 
