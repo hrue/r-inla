@@ -8,6 +8,8 @@
 \alias{inla.rgeneric.define}
 \alias{rgeneric.ar1.model}
 \alias{inla.rgeneric.ar1.model}
+\alias{rgeneric.iid.model}
+\alias{inla.rgeneric.iid.model}
 
 \title{rgeneric models}
 
@@ -16,6 +18,9 @@
 \usage{
 inla.rgeneric.define(model = NULL, ...)
 inla.rgeneric2.define(model = NULL, debug = TRUE, R.init = NULL, ...)
+inla.rgeneric.iid.model(
+        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+        theta = NULL, args = NULL)
 inla.rgeneric.ar1.model(
         cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
         theta = NULL, args = NULL)
@@ -37,8 +42,9 @@ inla.rgeneric2.wrapper(cmd, model, theta = NULL, debug=FALSE)
 \value{%%
   This is a test-implementation of how a latent model can be
   defined within R, and details would likely change in the future.
-  See \code{inla.rgeneric.ar1.model} and the documentation for a
-  worked through example of how to define the AR1 model this way.
+  See \code{inla.rgeneric.ar1.model} and
+  \code{inla.rgeneric.iid.model} and the documentation for 
+  worked out examples of how to define the AR1 and IID model this way.
   Using this function require the \code{multicore}-package, and
   only runs smoothly under Linux.}
 \author{Havard Rue \email{hrue@math.ntnu.no}}
