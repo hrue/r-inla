@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-d=INLA/inst/bin
+d="INLA/inst/bin"
 MAC="hrue@hruemac.math.ntnu.no"
 LINUX="hrue@inla.math.ntnu.no"
 WINDOWS=$(echo ~/p/inla/builds/windows)
@@ -11,8 +11,8 @@ fix-perm () {
 	for f in {fmesher,inla}{,.run,.exe}; do
 	    test -f "$d/$f" && chmod 755 "$d/$f"
 	done
-	for lib in "$d"/*/*.a "$d"/*/*.so "$d"/*/*.so.* "$d"/*/*.dylib \
-		       "$d"/*/*.dylib.* "$d"/*/*.dll \ "$d"/*/*.dll ; do
+	for lib in "$d"/*.a "$d"/*.so "$d"/*.so.* "$d"/*.dylib \
+		       "$d"/*.dylib.* "$d"/*.dll \ "$d"/*.dll ; do
 	    test -f "$lib" && chmod 644 "$lib"
 	done
 	      
