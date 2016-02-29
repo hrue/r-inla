@@ -2,7 +2,7 @@
 
 /* R-interface.c
  * 
- * Copyright (C) 2014 Havard Rue
+ * Copyright (C) 2014-2016 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,7 +68,7 @@ int inla_R_init(void)
 {
 	if (R_init) {
 		//char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--silent", "--vanilla" };
-		char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--silent"}; 
+		char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--silent", "--no-save" }; 
 		int Rargc = sizeof(Rargv) / sizeof(Rargv[0]);
 		Rf_initEmbeddedR(Rargc, Rargv);
 
