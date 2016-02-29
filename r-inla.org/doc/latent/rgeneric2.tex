@@ -1,0 +1,529 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{verbatim}
+\begin{document}
+
+
+\section*{Model ``rgeneric''}
+
+
+This is a class of generic models allows the user to define latent
+(sub-)models in \texttt{R}, for cases where the requested model is not
+yet implemented in \texttt{INLA}, and do the Bayesian inference using
+\texttt{INLA}. It will run slower as the model properties has to be
+evaluated in \texttt{R} within a \texttt{C}-program.
+
+\section*{Defining a latent model in \texttt{R}}
+
+The use of this feature, is in short the following. First we pass our
+definition of the model \texttt{model}, to define a
+\texttt{inla-rgeneric} object,
+{\small
+\begin{verbatim}
+    model = inla.rgeneric.define(rmodel, debug, R.init, <args>)
+\end{verbatim}
+}
+Here, \texttt{rmodel} is model definition encoded as an
+\texttt{R}-function, \texttt{debug} is a logical parameter if debug
+information should be printed, \texttt{R.init} is a \texttt{R}-file
+which is \texttt{sourced} before the model is defined, and
+\texttt{<args>} are further parameters to the model (like dimension,
+prior-settings, etc).  Then the model can used as
+{\small
+\begin{verbatim}
+    y ~ ... + f(i, model=model)
+\end{verbatim}
+}
+
+\section*{Example: the AR1 model}
+
+The \texttt{rmodel} needs to follow some rules to provide the required
+features. As an example, we will show how to implement the AR1-model,
+see \texttt{inla.doc("ar1")}). This model is defined as\footnote{The
+    second argument in ${\mathcal N}(,)$ is the precision not the
+    covariance.}
+\begin{displaymath}
+    x_{1} \;\sim\; {\mathcal N}(0, \tau)
+\end{displaymath}
+and
+\begin{displaymath}
+    x_{t} \mid x_{1}, \ldots, x_{t-1} \;\sim\; {\mathcal N}(\rho
+    x_{t-1}, \tau_{I}), \qquad t=2, \ldots,n.
+\end{displaymath}
+The scale-parameter is the marginal precision $\tau$, but the joint
+density is more naturally expressed using the innovation precision
+$\tau_{I} = \tau/(1-\rho^{2})$. The joint density of $x$ is Gaussian
+\begin{displaymath}
+    \pi(x|\rho,\tau) = \left(\frac{1}{\sqrt{2\pi}}\right)^{n}
+    \tau_{I}^{n/2} (1-\rho^{2})^{1/2}
+    \exp\left(-\frac{\tau_{I}}{2} x^{T} R x\right)
+\end{displaymath}
+where the precision-matrix is
+\begin{displaymath}
+    Q = \tau_I R = 
+    \tau_I
+    \begin{bmatrix}
+        1 & -\rho &&&& \\
+        -\rho & 1+\rho^{2}& -\rho &&& \\
+        &-\rho & 1+\rho^{2}& -\rho && \\
+        && \ddots& \ddots& \ddots& \\
+        &       &       &       -\rho & 1 + \rho^{2} & -\rho\\
+        & & & & -\rho & 1
+    \end{bmatrix}
+\end{displaymath}
+There are two (hyper-)parameters for this model, it is the marginal
+precision $\tau$ and the lag-one correlation $\rho$.  We
+reparameterise these as
+\begin{displaymath}
+    \tau = \exp(\theta_1) 
+\end{displaymath}
+and
+\begin{displaymath}
+    \rho = 2\frac{\exp(\theta_{2})}{1+\exp(\theta_{2})} - 1
+\end{displaymath}
+It is required that the parameters $\theta = (\theta_{1}, \theta_{2})$
+have support on $\Re$ and the priors for $\tau$ and $\rho$ are given
+as the corresponding priors for $\theta_{1}$ and $\theta_{2}$. Note
+that \texttt{INLA} only provide the marginal posteriors for $\theta$,
+but you can use \texttt{inla.tmarginal} to convert it to the
+appropriate marginals for $\rho$ and $\tau$.
+
+We assign a (Gamma) $\Gamma(.; a,b)$ prior (with mean $a/b$ and
+variance $a/b^{2}$) for $\tau$ and a Gaussian prior
+${\mathcal N}(\mu,\kappa)$ for $\theta_{2}$, so the joint prior for
+$\theta$ becomes
+\begin{displaymath}
+    \pi(\theta) = \Gamma(\exp(\theta_1); a,b) \exp(\theta_1) \times
+    {\mathcal N}(\theta_{2}; \mu, \kappa).
+\end{displaymath}
+We will use $a=b=1$, $\mu=0$ and $\kappa=1$.
+
+In order to define the AR1-model, we need to make functions that
+returns
+\begin{itemize}
+\item the precision matrix $Q(\theta)$,
+\item the graph,
+\item the initial values of $\theta$,
+\item the log-normalising constant, and
+\item the log-prior
+\end{itemize}
+which except for the graph, depends on the current value of
+$\theta$. We need to wrap this into a common function, which process
+the request from the C-program. The list of commands and its names
+{\small
+\begin{verbatim}
+        cmd = c("Q", "graph", "initial", "log.norm.const", "log.prior", "quit"),
+\end{verbatim}
+}
+are fixed.  The skeleton-function for defining a model is 
+{\small
+\begin{verbatim}
+`inla.rgeneric.ar1.model` = function(
+        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+        theta = NULL,
+        args = NULL)
+{
+    graph = function(n, theta){ <to be completed> }
+    Q = function(n, theta) { <to be completed> }
+    log.norm.const = function(n, theta) { <to be completed> }
+    log.prior = function(n, theta) { <to be completed> }
+    initial = function(n, theta) { <to be completed> }
+    quit = function(n, theta) { <to be completed> }
+
+    cmd = match.arg(cmd)
+    val = do.call(cmd, args = list(n = as.integer(args$n), theta = theta))
+    return (val)
+}
+\end{verbatim}
+}
+The input parameters are
+\begin{description}
+\item[cmd] What to return
+\item[theta] The values of the $\theta$-parameters
+\item[args] User-defined argument(s) from the
+    \texttt{inla.rgeneric.define()}-call. In this example we use
+    \texttt{n} as the user-defined argument and
+    pass it to every function. We then need to pass \texttt{n} 
+    when we define the model
+{\small
+\begin{verbatim}
+        model = inla.rgeneric.define(inla.rgeneric.ar1.model, n = 100)
+\end{verbatim}
+}
+    This is just an example, and you may chose to do this differently.
+\end{description}
+Our next task, is the ``fill in the blanks'' in this function.
+
+
+\subsection*{Function \texttt{graph}}
+
+This function must return a sparseMatrix, with the non-zero elements
+of the precision matrix. Only the lower-triangular part of the matrix
+is used. 
+{\small
+\begin{verbatim}
+    graph = function(n, theta)
+    {
+        ## return the graph of the model. the values of Q is only interpreted as zero or
+        ## non-zero. return a sparse.matrix
+        if (FALSE) {
+            ## slow and easy: dense-matrices
+            G = toeplitz(c(1, 1, rep(0, n-2L)))
+            G = inla.as.sparse(G)
+        } else {
+            ## faster. we only need to define the lower-triangular of G
+            i = c(
+                ## diagonal
+                1L, n, 2L:(n-1L),
+                ## off-diagonal
+                1L:(n-1L))
+            j = c(
+                ## diagonal
+                1L, n, 2L:(n-1L),
+                ## off-diagonal
+                2L:n)
+            x = 1 ## meaning that all are 1
+            G = sparseMatrix(i=i, j=j, x=x, giveCsparse = FALSE)
+        }            
+        return (G)
+    }
+\end{verbatim}
+}
+
+\subsection*{Function \texttt{Q}}
+
+This function must return the precision matrix $Q(\theta)$, and 
+must be a sparseMatrix. Only the
+lower-triangular part of the matrix is used. We will make use of the
+helper function
+{\small
+\begin{verbatim}
+    interpret.theta = function(n, theta)
+    {
+        ## internal helper-function to map the parameters from the internal-scale to the
+        ## user-scale
+        return (list(prec = exp(theta[1L]),
+                     rho = 2*exp(theta[2L])/(1+exp(theta[2L])) - 1.0))
+    }
+\end{verbatim}
+}
+to convert from $\theta_{1}$ to $\tau$, and from $\theta_{2}$ to
+$\rho$.  The \texttt{Q}-function can then be implemented as follows.
+{\small
+\begin{verbatim}
+    Q = function(n, theta)
+    {
+        ## returns the precision matrix for given parameters
+        param = interpret.theta(n, theta)
+        if (FALSE) {
+            ## slow and easy: dense-matrices
+            Q = param$prec/(1-param$rho^2) * toeplitz(c(1+param$rho^2, -param$rho, rep(0, n-2L)))
+            Q[1, 1] = Q[n, n] = param$prec/(1-param$rho^2)
+            Q = inla.as.sparse(Q)
+        } else {
+            ## faster. we only need to define the lower-triangular Q!
+            i = c(
+                ## diagonal
+                1L, n, 2L:(n-1L),
+                ## off-diagonal
+                1L:(n-1L))
+            j = c(
+                ## diagonal
+                1L, n, 2L:(n-1L),
+                ## off-diagonal
+                2L:n)
+            x = param$prec/(1-param$rho^2) *
+                c(  ## diagonal
+                    1L, 1L, rep(1+param$rho^2, n-2L),
+                    ## off-diagonal
+                    rep(-param$rho, n-1L))
+            Q = sparseMatrix(i=i, j=j, x=x, giveCsparse=FALSE)
+        }            
+        return (Q)
+    }
+\end{verbatim}
+}
+
+
+\subsection*{Function \texttt{log.norm.const}}
+
+This function must return the log of the normalising constant. For the
+AR1-model the normalising constant is
+\begin{displaymath}
+    \left(\frac{1}{\sqrt{2\pi}}\right)^{n} \tau_{I}^{n/2} (1-\rho^{2})^{1/2}
+\end{displaymath}
+where
+\begin{displaymath}
+    \tau_{I} = \tau/(1-\rho^{2}).
+\end{displaymath}
+The function can then be implemented as
+{\small
+\begin{verbatim}
+    log.norm.const = function(n, theta)
+    {
+        ## return the log(normalising constant) for the model
+        param = interpret.theta(n, theta)
+        prec.innovation  = param$prec / (1.0 - param$rho^2)
+        val = n * (- 0.5 * log(2*pi) + 0.5 * log(prec.innovation)) + 0.5 * log(1.0 - param$rho^2)
+        return (val)
+    }
+\end{verbatim}
+}
+
+\subsection*{Function \texttt{log.prior}}
+
+This function must return the (log-)prior of the prior density for
+$\theta$. For the AR1-model, we have for simplicity chosen this prior
+\begin{displaymath}
+    \pi(\theta) = \Gamma(\exp(\theta_1); a,b) \exp(\theta_1) \times
+    {\mathcal N}(\theta_{2}; \mu, \kappa)
+\end{displaymath}
+so we can implement this as with our choices $a=b=1$, $\mu=0$ and
+$\kappa=1$. 
+{\small
+\begin{verbatim}
+   log.prior = function(n, theta)
+    {
+        ## return the log-prior for the hyperparameters. the '+theta[1L]' is the log(Jacobian)
+        ## for having a gamma prior on the precision and convert it into the prior for the
+        ## log(precision).
+        param = interpret.theta(n, theta)
+        val = (dgamma(param$prec, shape = 1, rate = 1, log=TRUE) + theta[1L] + 
+                   dnorm(theta[2L], mean = 0, sd = 1, log=TRUE))
+        return (val)
+    }
+\end{verbatim}
+}
+
+
+\subsection*{Function \texttt{initial}}
+
+This function returns the initial values for $\theta$.
+{\small
+\begin{verbatim}
+    initial = function(n, theta)
+    {
+        ## return initial values
+        ntheta = 2
+        return (rep(1, ntheta))
+    }
+\end{verbatim}
+}
+
+\subsection*{Function \texttt{quit}}
+
+This function is called when all the computations are done and before
+exit-ing the \texttt{C}-program. Usually, there is nothing in
+particular to do, but if there is something that should be done, you
+can do this here.
+{\small
+\begin{verbatim}
+    quit = function(n, theta)
+    {
+        return (invisible())
+    }
+\end{verbatim}
+}
+
+
+\section*{The complete definition of the AR1-model}
+
+For completeness, we include here the complete code for the AR1-model,
+collecting all the functions already defined. The function is
+predefined in the \texttt{INLA}-library.
+{\small
+\begin{verbatim}
+`inla.rgeneric.ar1.model` = function(cmd = c("graph", "Q", "initial",
+                                             "log.norm.const", "log.prior", "quit"),
+                                     theta = NULL, args = NULL)
+{
+    ## this is an example of the 'rgeneric' model. here we implement
+    ## the AR-1 model as described in inla.doc("ar1"), where 'rho' is
+    ## the lag-1 correlation and 'prec' is the *marginal* (not
+    ## conditional) precision.
+    
+    interpret.theta = function(n, theta)
+    {
+        ## internal helper-function to map the parameters from the internal-scale to the
+        ## user-scale
+        return (list(prec = exp(theta[1L]),
+                     rho = 2*exp(theta[2L])/(1+exp(theta[2L])) - 1.0))
+    }
+
+    graph = function(n, theta)
+    {
+        ## return the graph of the model. the values of Q is only interpreted as zero or
+        ## non-zero. return a sparse.matrix
+        if (FALSE) {
+            ## slow and easy: dense-matrices
+            G = toeplitz(c(1, 1, rep(0, n-2L)))
+            G = inla.as.sparse(G)
+        } else {
+            ## faster. we only need to define the lower-triangular of G
+            i = c(
+                ## diagonal
+                1L, n, 2L:(n-1L),
+                ## off-diagonal
+                1L:(n-1L))
+            j = c(
+                ## diagonal
+                1L, n, 2L:(n-1L),
+                ## off-diagonal
+                2L:n)
+            x = 1 ## meaning that all are 1
+            G = sparseMatrix(i=i, j=j, x=x, giveCsparse = FALSE)
+        }            
+        return (G)
+    }
+
+    Q = function(n, theta)
+    {
+        ## returns the precision matrix for given parameters
+        param = interpret.theta(n, theta)
+        if (FALSE) {
+            ## slow and easy: dense-matrices
+            Q = param$prec/(1-param$rho^2) * toeplitz(c(1+param$rho^2, -param$rho, rep(0, n-2L)))
+            Q[1, 1] = Q[n, n] = param$prec/(1-param$rho^2)
+            Q = inla.as.sparse(Q)
+        } else {
+            ## faster. we only need to define the lower-triangular Q!
+            i = c(
+                ## diagonal
+                1L, n, 2L:(n-1L),
+                ## off-diagonal
+                1L:(n-1L))
+            j = c(
+                ## diagonal
+                1L, n, 2L:(n-1L),
+                ## off-diagonal
+                2L:n)
+            x = param$prec/(1-param$rho^2) *
+                c(  ## diagonal
+                    1L, 1L, rep(1+param$rho^2, n-2L),
+                    ## off-diagonal
+                    rep(-param$rho, n-1L))
+            Q = sparseMatrix(i=i, j=j, x=x, giveCsparse=FALSE)
+        }            
+        return (Q)
+    }
+
+    log.norm.const = function(n, theta)
+    {
+        ## return the log(normalising constant) for the model
+        param = interpret.theta(n, theta)
+        prec.innovation  = param$prec / (1.0 - param$rho^2)
+        val = n * (- 0.5 * log(2*pi) + 0.5 * log(prec.innovation)) + 0.5 * log(1.0 - param$rho^2)
+        return (val)
+    }
+
+    log.prior = function(n, theta)
+    {
+        ## return the log-prior for the hyperparameters. the '+theta[1L]' is the log(Jacobian)
+        ## for having a gamma prior on the precision and convert it into the prior for the
+        ## log(precision).
+        param = interpret.theta(n, theta)
+        val = (dgamma(param$prec, shape = 1, rate = 1, log=TRUE) + theta[1L] + 
+                   dnorm(theta[2L], mean = 0, sd = 1, log=TRUE))
+        return (val)
+    }
+
+    initial = function(n, theta)
+    {
+        ## return initial values
+        ntheta = 2
+        return (rep(1, ntheta))
+    }
+
+    quit = function(n, theta)
+    {
+        return (invisible())
+    }
+
+    cmd = match.arg(cmd)
+    val = do.call(cmd, args = list(n = as.integer(args$n), theta = theta))
+    return (val)
+}
+\end{verbatim}
+}
+
+\section*{Example of usage}
+
+{\small
+\verbatiminput{rgeneric-example.R}
+}
+
+\section*{Example: the iid-model}
+
+The following function defines the \texttt{iid}-model, see
+\texttt{inla.doc("iid")}, which we give without further comments. To
+run this model in \texttt{R}, you may do \texttt{demo(rgeneric)}.
+
+{\small
+\begin{verbatim}
+`inla.rgeneric.iid.model` = function(cmd = c("graph", "Q", "initial",
+                                             "log.norm.const", "log.prior", "quit"),
+                                     theta = NULL, args = NULL)
+{
+    ## this is an example of the 'rgeneric' model. here we implement the iid model as described
+    ## in inla.doc("iid"), without the scaling-option
+
+    interpret.theta = function(n, theta)
+    {
+        return (list(prec = exp(theta[1L])))
+    }
+
+    graph = function(n, theta)
+    {
+        G = Diagonal(n, x= rep(1, n))
+        return (G)
+    }
+
+    Q = function(n, theta)
+    {
+        Q = Diagonal(n, x= rep(1, n))
+        return (Q)
+    }
+
+    log.norm.const = function(n, theta)
+    {
+        prec = interpret.theta(n, theta)$prec
+        val = sum(dnorm(rep(0, n), sd = 1/sqrt(prec), log=TRUE))
+        return (val)
+    }
+
+    log.prior = function(n, theta)
+    {
+        prec = interpret.theta(n, theta)$prec
+        val = dgamma(prec, shape = 1, rate = 1, log=TRUE) + theta[1L]
+        return (val)
+    }
+
+    initial = function(n, theta)
+    {
+        ntheta = 1
+        return (rep(1, ntheta))
+    }
+
+    quit = function(n, theta)
+    {
+        return (invisible())
+    }
+
+    cmd = match.arg(cmd)
+    val = do.call(cmd, args = list(n = as.integer(args$n), theta = theta))
+    return (val)
+}
+\end{verbatim}
+}
+
+\end{document}
+
+% LocalWords:  rgeneric INLA MacOSX multi inla args ar covariance cmd ntheta ie
+% LocalWords:  reparameterise sparseMatrix ing rmodel init tmarginal iid
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
