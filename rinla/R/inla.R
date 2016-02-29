@@ -1,4 +1,3 @@
-
 ## Export: inla
 
 ##! \name{inla}
@@ -1389,6 +1388,25 @@
                             stop(paste("There are one or more NA's in 'group' where 'idx' in f(idx,...) is not NA: idx = \'",
                                        gp$random.spec[[r]]$term, "\'", sep=""))
                         group[ is.na(xx) ] = 1
+
+                        ## issue a WARNING,  if there are to many unused groups
+                        g.used = unique(sort(group))
+                        g.unused = setdiff(1:ngroup, g.used)
+                        ng.used = length(g.used)
+                        ng.unused = length(g.unused)
+
+                        txt = paste("f(", gp$random.spec[[r]]$term, ", ...)",  sep="")
+                        if (!is.element(1, g.used)) {
+                            warning(paste(txt, ": ", 
+                                          "There is no indices where group[]=1, this is *usually* a misspesification"),
+                                    immediate. = TRUE)
+                        }
+                        if (ng.unused >= ng.used) {
+                            warning(paste(txt, ": ", 
+                                          "Number of unused groups >= the number of groups used: ", ng.unused, " >= ", ng.used, 
+                                        ", this is *usually* a misspesification", sep=""),
+                                    immediate. = TRUE)
+                        }
                     }
                 } else {
                     N = NULL
