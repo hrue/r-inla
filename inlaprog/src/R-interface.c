@@ -49,7 +49,7 @@ static const char RCSId[] = HGVERSION;
 #include <Rinterface.h>
 
 // two copies...
-#define R_GENERIC2_WRAPPER "inla.rgeneric2.wrapper"
+#define R_GENERIC_WRAPPER "inla.rgeneric.wrapper"
 #define INLA_OK (0)
 
 #include "R-interface.h"
@@ -248,15 +248,15 @@ int inla_R_get(int *n_out, double **x_out, const char *variable)
 	return (INLA_OK);
 }
 
-int inla_R_rgeneric2(int *n_out, double **x_out, const char *cmd, const char *model, int n, double *theta)
+int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *model, int n, double *theta)
 {
 	/*
-	 * do the rgeneric2 call with CMD and THETA and given MODEL name for the model definition
+	 * do the rgeneric call with CMD and THETA and given MODEL name for the model definition
 	 */
 
 	inla_R_init();
 	if (R_debug)
-		fprintf(stderr, "R-interface[%1d]: rgeneric2: [%s] model [%s]\n", omp_get_thread_num(), cmd, model);
+		fprintf(stderr, "R-interface[%1d]: rgeneric: [%s] model [%s]\n", omp_get_thread_num(), cmd, model);
 
 	int error, i;
 	SEXP xx_theta, result, e;
@@ -265,10 +265,10 @@ int inla_R_rgeneric2(int *n_out, double **x_out, const char *cmd, const char *mo
 	for (i = 0; i < n; i++) {
 		REAL(xx_theta)[i] = theta[i];
 	}
-	PROTECT(e = lang4(install(R_GENERIC2_WRAPPER), mkString(cmd), mkString(model), xx_theta));
+	PROTECT(e = lang4(install(R_GENERIC_WRAPPER), mkString(cmd), mkString(model), xx_theta));
 	PROTECT(result = R_tryEval(e, R_GlobalEnv, &error));
 	if (error) {
-		fprintf(stderr, "\n *** ERROR *** rgeneric2 [%s] with model [%s] failed\n", cmd,  model);
+		fprintf(stderr, "\n *** ERROR *** rgeneric [%s] with model [%s] failed\n", cmd,  model);
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
@@ -340,7 +340,7 @@ int inla_R_load(const char *filename)
 	ERROR_MESSAGE;
 }
 
-int inla_R_rgeneric2(int *n_out, double **x_out, const char *cmd, const char *model, int n, double *theta)
+int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *model, int n, double *theta)
 {
 	ERROR_MESSAGE;
 }

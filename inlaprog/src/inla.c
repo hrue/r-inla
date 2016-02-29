@@ -1817,55 +1817,6 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 	}
 
 	if (rebuild) {
-		int *ilist = NULL, *jlist = NULL, len;
-		double *Qijlist = NULL;
-		GMRFLib_graph_tp *graph = NULL;
-#pragma omp critical
-		{
-			if (debug) {
-				printf("Rebuild Q-hash for id %d\n", id);
-			}
-			if (a->Q[id]) {
-				GMRFLib_free_tabulate_Qfunc(a->Q[id]);
-			}
-			if (!(a->param[id])) {
-				a->param[id] = Calloc(a->ntheta, double);
-			}
-			for (ii = 0; ii < a->ntheta; ii++) {
-				a->param[id][ii] = a->theta[ii][GMRFLib_thread_id][0];
-			}
-			WRITE_MSG(a->c2R, a->Id, R_GENERIC_Q);
-			WRITE(a->c2R, a->param[id], a->ntheta, double);
-			READ(a->R2c, &len, 1, int);
-			ilist = Calloc(2 * len, int);
-			jlist = ilist + len;
-			Qijlist = Calloc(len, double);
-			READ(a->R2c, ilist, len, int);
-			READ(a->R2c, jlist, len, int);
-			READ(a->R2c, Qijlist, len, double);
-			GMRFLib_tabulate_Qfunc_from_list(&(a->Q[id]), &graph, len, ilist, jlist, Qijlist, -1, NULL, NULL, NULL);
-		}
-		GMRFLib_free_graph(graph);
-		Free(ilist);				       /* jlist is ok */
-		Free(Qijlist);
-	}
-
-	return (a->Q[id]->Qfunc(i, j, a->Q[id]->Qfunc_arg));
-}
-double Qfunc_rgeneric2(int i, int j, void *arg)
-{
-	inla_rgeneric2_tp *a = (inla_rgeneric2_tp *) arg;
-	int rebuild, ii, debug = 0, id;
-
-	id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
-	rebuild = (a->param[id] == NULL || a->Q[GMRFLib_thread_id] == NULL);
-	if (!rebuild) {
-		for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
-			rebuild = (a->param[id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
-		}
-	}
-
-	if (rebuild) {
 		int *ilist = NULL, *jlist = NULL, n, len, k = 0, n_out;
 		double *Qijlist = NULL, *x_out = NULL;
 		GMRFLib_graph_tp *graph = NULL;
@@ -1885,11 +1836,11 @@ double Qfunc_rgeneric2(int i, int j, void *arg)
 			}
 
 			if (debug) {
-				printf("Call rgeneric2\n");
+				printf("Call rgeneric\n");
 			}
-			inla_R_rgeneric2(&n_out, &x_out, R_GENERIC_Q, a->model, a->ntheta, a->param[id]);
+			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_Q, a->model, a->ntheta, a->param[id]);
 			if (debug) {
-				printf("Return from rgeneric2 with n_out= %1d\n", n_out);
+				printf("Return from rgeneric with n_out= %1d\n", n_out);
 			}
 
 			assert(n_out >= 2);
@@ -12973,9 +12924,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	 * parse section = ffield 
 	 */
 	int i, j, k, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1;
-	int R2c = -1, c2R = -1, Id = -1;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg = NULL, default_tag[100], *file_loc,
-	    *filename_R2c = NULL, *filename_c2R = NULL, *ctmp = NULL, *rgeneric2_filename = NULL, *rgeneric2_model = NULL, *rgeneric2_Rinit = NULL;
+		*ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL, *rgeneric_Rinit = NULL;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp,
 	    **beta_intern = NULL, **beta = NULL, **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd,
@@ -13234,10 +13184,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("MEB");
 	} else if (OneOf("RGENERIC")) {
 		mb->f_id[mb->nf] = F_R_GENERIC;
-		mb->f_ntheta[mb->nf] = -1;
-		mb->f_modelname[mb->nf] = GMRFLib_strdup("RGeneric");
-	} else if (OneOf("RGENERIC2")) {
-		mb->f_id[mb->nf] = F_R_GENERIC2;
 		mb->f_ntheta[mb->nf] = -1;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("RGeneric2");
 	} else if (OneOf("RW1")) {
@@ -13527,7 +13473,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case F_R_GENERIC:
-	case F_R_GENERIC2:
 		break;
 
 	default:
@@ -14216,7 +14161,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		case F_LOG1EXP:
 		case F_LOGDIST:
 		case F_R_GENERIC:
-		case F_R_GENERIC2:
 			/*
 			 * RW-models and OU-model and ME: read LOCATIONS, set N from LOCATIONS, else read field N and use LOCATIONS=DEFAULT.
 			 */
@@ -15347,129 +15291,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	case F_R_GENERIC:
 	{
-#if defined(WINDOWS)
-		inla_error_general("Model 'rgeneric' is not available for Windows; please use Linux or MacOSX.");
-		exit(EXIT_FAILURE);
-#else
-		int err, debug = 0;
-
-		Id = iniparser_getint(ini, inla_string_join(secname, "RGENERIC.ID"), -999);
-		filename_R2c = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC.FIFO.R2c"), NULL);
-		filename_c2R = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC.FIFO.c2R"), NULL);
+		rgeneric_filename = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC.FILE"), NULL);
+		rgeneric_model = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC.MODEL"), NULL);
+		rgeneric_Rinit = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC.RINIT"), NULL);
 
 		if (mb->verbose) {
-			printf("\t\trgeneric.Id [%1d]\n", Id);
-			printf("\t\trgeneric.FIFO.R2c [%s]\n", filename_R2c);
-			printf("\t\trgeneric.FIFO.c2R [%s]\n", filename_c2R);
-		}
-
-		if (debug) {
-			printf("C open R2c %s\n", filename_R2c);
-		}
-		err = mkfifo(filename_R2c, 0700);
-		assert(err == 0);
-		R2c = open(filename_R2c, O_RDONLY);
-		if (debug) {
-			printf("C open R2c done\n");
-			printf("C open c2R %s\n", filename_c2R);
-		}
-		err = mkfifo(filename_c2R, 0700);
-		assert(err == 0);
-		c2R = open(filename_c2R, O_WRONLY);
-		if (debug) {
-			printf("C open c2R done\n");
-		}
-
-		int ntheta;
-		double *initial = NULL;
-#pragma omp critical
-		{
-			WRITE_MSG(c2R, Id, R_GENERIC_INITIAL);
-			READ(R2c, &ntheta, 1, int);
-			if (ntheta) {
-				initial = Calloc(ntheta, double);
-			}
-			READ(R2c, initial, ntheta, double);
-		}
-
-		mb->f_ntheta[mb->nf] = ntheta;
-		mb->f_initial[mb->nf] = initial;
-		if (mb->verbose) {
-			int ii;
-
-			printf("\t\tntheta = [%1d]\n", ntheta);
-			for (ii = 0; ii < ntheta; ii++) {
-				printf("\t\tinitial[%1d] = %g\n", ii, initial[ii]);
-			}
-		}
-
-		mb->f_fixed[mb->nf] = Calloc(ntheta, int);
-		mb->f_theta[mb->nf] = Calloc(ntheta, double **);
-
-		for (i = 0; i < ntheta; i++) {
-			double theta_initial;
-
-			mb->f_fixed[mb->nf][i] = 0;
-			theta_initial = initial[i];
-
-			if (!mb->f_fixed[mb->nf][i] && mb->reuse_mode) {
-				theta_initial = mb->theta_file[mb->theta_counter_file++];
-			}
-			HYPER_NEW(mb->f_theta[mb->nf][i], theta_initial);
-			if (mb->verbose) {
-				printf("\t\tinitialise theta[%1d]=[%g]\n", i, theta_initial);
-				printf("\t\tfixed[%1d]=[%1d]\n", i, mb->f_fixed[mb->nf][i]);
-			}
-
-			/*
-			 * add this \theta 
-			 */
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = NULL;
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Theta%1d for %s", i + 1, (secname ? secname : mb->f_tag[mb->nf]));
-			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "Theta%1d for %s", i + 1, (secname ? secname : mb->f_tag[mb->nf]));
-			mb->theta_tag_userscale[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], i + 1);
-			mb->theta_dir[mb->ntheta] = msg;
-
-			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup("function(x) x");
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup("function(x) x");
-
-			mb->theta[mb->ntheta] = mb->f_theta[mb->nf][i];
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_identity;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-		}
-
-#endif							       /* !defined(WINDOWS) */
-		break;
-	}
-
-	case F_R_GENERIC2:
-	{
-#if defined(WINDOWS_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX)
-		inla_error_general("Model 'rgeneric2' is not available for Windows; please use Linux or MacOSX.");
-		exit(EXIT_FAILURE);
-#else
-		int err, debug = 0;
-
-		rgeneric2_filename = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC2.FILE"), NULL);
-		rgeneric2_model = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC2.MODEL"), NULL);
-		rgeneric2_Rinit = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC2.RINIT"), NULL);
-
-		if (mb->verbose) {
-			printf("\t\trgeneric2.file  [%s]\n", rgeneric2_filename);
-			printf("\t\trgeneric2.Rinit [%s]\n", rgeneric2_Rinit);
-			printf("\t\trgeneric2.model [%s]\n", rgeneric2_model);
+			printf("\t\trgeneric.file  [%s]\n", rgeneric_filename);
+			printf("\t\trgeneric.Rinit [%s]\n", rgeneric_Rinit);
+			printf("\t\trgeneric.model [%s]\n", rgeneric_model);
 		}
 
 		/*
@@ -15477,9 +15306,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 */
 #pragma omp critical
 		{
-			inla_R_source(rgeneric2_Rinit);
+			inla_R_source(rgeneric_Rinit);
 			inla_R_library("INLA");
-			inla_R_load(rgeneric2_filename);
+			inla_R_load(rgeneric_filename);
 		}
 
 		int n_out;
@@ -15487,7 +15316,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 #pragma omp critical
 		{
-			inla_R_rgeneric2(&n_out, &x_out, R_GENERIC_INITIAL, rgeneric2_model, 0, NULL);
+			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_INITIAL, rgeneric_model, 0, NULL);
 		}
 
 		int ntheta = (int) x_out[0];
@@ -15551,7 +15380,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 		}
 
-#endif							       /* !defined(WINDOWS) */
 		break;
 	}
 
@@ -18261,64 +18089,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * R_GENERIC
 		 */
-#if !defined(WINDOWS)
 		inla_rgeneric_tp *def = Calloc(1, inla_rgeneric_tp);
 
-		def->Id = Id;
-		def->R2c = R2c;
-		def->c2R = c2R;
-		def->filename_R2c = GMRFLib_strdup(filename_R2c);
-		def->filename_c2R = GMRFLib_strdup(filename_c2R);
-		def->ntheta = mb->f_ntheta[mb->nf];
-		def->theta = mb->f_theta[mb->nf];
-		def->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
-		def->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_tabulate_Qfunc_tp *);	/* easier if we do this here */
-
-		int len, *ilist, *jlist;
-#pragma omp critical
-		{
-			WRITE_MSG(c2R, def->Id, R_GENERIC_GRAPH);
-			READ(R2c, &len, 1, int);
-			ilist = Calloc(len, int);
-			jlist = Calloc(len, int);
-			READ(R2c, ilist, len, int);
-			READ(R2c, jlist, len, int);
-		}
-
-		double *Qijlist = Calloc(len, double);
-		for (i = 0; i < len; i++) {
-			Qijlist[i] = 1.0;
-		}
-
-		GMRFLib_tabulate_Qfunc_tp *tab;
-		GMRFLib_graph_tp *graph;
-
-		GMRFLib_tabulate_Qfunc_from_list(&tab, &graph, len, ilist, jlist, Qijlist, -1, NULL, NULL, NULL);
-		GMRFLib_free_tabulate_Qfunc(tab);
-		Free(ilist);
-		Free(jlist);
-		Free(Qijlist);
-
-		mb->f_graph[mb->nf] = graph;
-		mb->f_Qfunc[mb->nf] = Qfunc_rgeneric;
-		mb->f_Qfunc_arg[mb->nf] = (void *) def;
-		mb->f_N[mb->nf] = mb->f_n[mb->nf] = graph->n;
-		mb->f_rankdef[mb->nf] = 0.0;
-#endif							       /* !defined(WINDOWS) */
-		break;
-	}
-
-	case F_R_GENERIC2:
-	{
-		/*
-		 * R_GENERIC2
-		 */
-#if !defined(WINDOWS_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX)
-		inla_rgeneric2_tp *def = Calloc(1, inla_rgeneric2_tp);
-
-		def->file_init = GMRFLib_strdup(rgeneric2_Rinit);
-		def->filename = GMRFLib_strdup(rgeneric2_filename);
-		def->model = GMRFLib_strdup(rgeneric2_model);
+		def->file_init = GMRFLib_strdup(rgeneric_Rinit);
+		def->filename = GMRFLib_strdup(rgeneric_filename);
+		def->model = GMRFLib_strdup(rgeneric_model);
 		def->ntheta = mb->f_ntheta[mb->nf];
 		def->theta = mb->f_theta[mb->nf];
 		def->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
@@ -18328,7 +18103,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		double *x_out;
 #pragma omp critical
 		{
-			inla_R_rgeneric2(&n_out, &x_out, R_GENERIC_GRAPH, def->model, 0, NULL);
+			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_GRAPH, def->model, 0, NULL);
 		}
 
 		int n, len, *ilist, *jlist, k = 0;
@@ -18365,11 +18140,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		// GMRFLib_print_graph(stdout, graph);
 		mb->f_graph[mb->nf] = graph;
-		mb->f_Qfunc[mb->nf] = Qfunc_rgeneric2;
+		mb->f_Qfunc[mb->nf] = Qfunc_rgeneric;
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf] = graph->n;
 		mb->f_rankdef[mb->nf] = 0.0;
-#endif							       /* !defined(WINDOWS) */
 		break;
 	}
 
@@ -22250,42 +22024,11 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_R_GENERIC:
 		{
-#if !defined(WINDOWS)
 			int ntheta = mb->f_ntheta[i], ii;
 			inla_rgeneric_tp *def;
 			double *param, log_norm_const, log_prior;
 
 			def = (inla_rgeneric_tp *) mb->f_Qfunc_arg[i];
-			param = Calloc(ntheta, double);
-			for (ii = 0; ii < ntheta; ii++) {
-				param[ii] = theta[count];
-				count++;
-			}
-#pragma omp critical
-			{
-				WRITE_MSG(def->c2R, def->Id, R_GENERIC_LOG_NORM_CONST);
-				WRITE(def->c2R, param, ntheta, double);
-				READ(def->R2c, &log_norm_const, 1, double);
-				WRITE_MSG(def->c2R, def->Id, R_GENERIC_LOG_PRIOR);
-				WRITE(def->c2R, param, ntheta, double);
-				READ(def->R2c, &log_prior, 1, double);
-			}
-
-			SET_GROUP_RHO(ntheta);
-			val += mb->f_nrep[i] * (normc_g + log_norm_const * (mb->f_ngroup[i] - grankdef)) + log_prior;
-			Free(param);
-#endif							       /* !defined(WINDOWS) */
-			break;
-		}
-
-		case F_R_GENERIC2:
-		{
-#if !defined(WINDOWS_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXxx)
-			int ntheta = mb->f_ntheta[i], ii;
-			inla_rgeneric2_tp *def;
-			double *param, log_norm_const, log_prior;
-
-			def = (inla_rgeneric2_tp *) mb->f_Qfunc_arg[i];
 			param = Calloc(ntheta, double);
 			for (ii = 0; ii < ntheta; ii++) {
 				param[ii] = theta[count];
@@ -22297,12 +22040,12 @@ double extra(double *theta, int ntheta, void *argument)
 				int n_out;
 				double *x_out = NULL;
 
-				inla_R_rgeneric2(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, ntheta, param);
+				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, ntheta, param);
 				assert(n_out == 1);
 				log_norm_const = x_out[0];
 				Free(x_out);
 
-				inla_R_rgeneric2(&n_out, &x_out, R_GENERIC_LOG_PRIOR, def->model, ntheta, param);
+				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_PRIOR, def->model, ntheta, param);
 				assert(n_out == 1);
 				log_prior = x_out[0];
 				Free(x_out);
@@ -22311,7 +22054,6 @@ double extra(double *theta, int ntheta, void *argument)
 			SET_GROUP_RHO(ntheta);
 			val += mb->f_nrep[i] * (normc_g + log_norm_const * (mb->f_ngroup[i] - grankdef)) + log_prior;
 			Free(param);
-#endif							       /* !defined(WINDOWS) */
 			break;
 		}
 
@@ -27415,10 +27157,10 @@ int testit(int argc, char **argv)
 	if (0) {
 #pragma omp critical
 		{
-#define MODEL "rgeneric2.model"
-			printf("test rgeneric2\n");
+#define MODEL "rgeneric.model"
+			printf("test rgeneric\n");
 			inla_R_library("INLA");
-			inla_R_load("rgeneric2.RData");
+			inla_R_load("rgeneric.RData");
 			inla_R_source("/home/hrue/p/inla/r-inla/rinla/R/rgeneric.R");
 
 			double theta[] = { 1.0, 2.0 };
@@ -27436,22 +27178,22 @@ int testit(int argc, char **argv)
 			Free(x_out)
 
 
-			inla_R_rgeneric2(&n_out, &x_out, "graph", MODEL, ntheta, theta);
+			inla_R_rgeneric(&n_out, &x_out, "graph", MODEL, ntheta, theta);
 			PPP("graph");
 
-			inla_R_rgeneric2(&n_out, &x_out, "Q", MODEL, ntheta, theta);
+			inla_R_rgeneric(&n_out, &x_out, "Q", MODEL, ntheta, theta);
 			PPP("Q");
 
-			inla_R_rgeneric2(&n_out, &x_out, "initial", MODEL, ntheta, theta);
+			inla_R_rgeneric(&n_out, &x_out, "initial", MODEL, ntheta, theta);
 			PPP("initial");
 
-			inla_R_rgeneric2(&n_out, &x_out, "log.norm.const", MODEL, ntheta, theta);
+			inla_R_rgeneric(&n_out, &x_out, "log.norm.const", MODEL, ntheta, theta);
 			PPP("log.norm.const");
 
-			inla_R_rgeneric2(&n_out, &x_out, "log.prior", MODEL, ntheta, theta);
+			inla_R_rgeneric(&n_out, &x_out, "log.prior", MODEL, ntheta, theta);
 			PPP("log.prior");
 
-			inla_R_rgeneric2(&n_out, &x_out, "quit", MODEL, ntheta, theta);
+			inla_R_rgeneric(&n_out, &x_out, "quit", MODEL, ntheta, theta);
 			PPP("quit");
 		}
 
@@ -28129,25 +27871,6 @@ int main(int argc, char **argv)
 				printf("\t---------------------------------\n");
 				printf("\tTotal           : %7.3f seconds\n", time_used[0] + time_used[1] + time_used[2]);
 				printf("\n");
-			}
-
-			/*
-			 * close fifo-pipes
-			 */
-			for (i = 0; i < mb->nf; i++) {
-				if (mb->f_id[i] == F_R_GENERIC) {
-					inla_rgeneric_tp *a = (inla_rgeneric_tp *) mb->f_Qfunc_arg[i];
-					if (a) {
-#pragma omp critical
-						{
-							WRITE_MSG(a->c2R, a->Id, R_GENERIC_QUIT);	/* this will also delete the files */
-							close(a->c2R);
-							close(a->R2c);
-						}
-						unlink(a->filename_c2R);
-						unlink(a->filename_R2c);
-					}
-				}
 			}
 		}
 	} else {
