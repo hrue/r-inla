@@ -584,30 +584,31 @@
     }
 
     if (random.spec$model == "rgeneric") {
-        cat("rgeneric.Id = ", random.spec$rgeneric$Id, "\n", append=TRUE, sep = " ", file = file)
-        stopifnot(!file.exists(random.spec$rgeneric$fifo$R2c))
-        stopifnot(!file.exists(random.spec$rgeneric$fifo$c2R))
-        cat("rgeneric.fifo.R2c = ", random.spec$rgeneric$fifo$R2c, "\n", append=TRUE, sep = " ", file = file)
-        cat("rgeneric.fifo.c2R = ", random.spec$rgeneric$fifo$c2R, "\n", append=TRUE, sep = " ", file = file)
-    }
-
-    if (random.spec$model == "rgeneric2") {
-        file.rgeneric2 = inla.tempfile(tmpdir=data.dir)
+        file.rgeneric = inla.tempfile(tmpdir=data.dir)
         ## this must be the same name as R_GENERIC2_MODEL in inla.h
-        model = paste(".inla.rgeneric2.model", ".", random.spec$rgeneric2$Id, sep="")
-        assign(model, random.spec$rgeneric2$model)
+        model = paste(".inla.rgeneric.model", ".", random.spec$rgeneric$Id, sep="")
+        assign(model, random.spec$rgeneric$model)
         ## save model, or the object that 'model' expands to
         inla.eval(paste("save(", model,
-                        ", file = ", "\"", file.rgeneric2, "\"", 
+                        ", file = ", "\"", file.rgeneric, "\"", 
                         ", ascii = FALSE, compress = TRUE)",  sep=""))
-        fnm = gsub(data.dir, "$inladatadir", file.rgeneric2, fixed=TRUE)
-        cat("rgeneric2.file =", fnm, "\n", file=file, append = TRUE)
-        cat("rgeneric2.model =", model, "\n", file=file, append = TRUE)
+        fnm = gsub(data.dir, "$inladatadir", file.rgeneric, fixed=TRUE)
+        cat("rgeneric.file =", fnm, "\n", file=file, append = TRUE)
+        cat("rgeneric.model =", model, "\n", file=file, append = TRUE)
         rm(model) ## do not need it anymore
 
-        if (!is.null(random.spec$rgeneric2$R.init)) {
-            fnm = inla.copy.file.for.section(random.spec$rgeneric2$R.init, data.dir)
-            cat("rgeneric2.Rinit =", fnm, "\n", file=file, append = TRUE)
+        if (!is.null(random.spec$rgeneric$R.init)) {
+            ## if file does not exists, then interpret this as R-commands, and evaluate them
+            ## instead.
+            if (file.exists(random.spec$rgeneric$R.init)) {
+                fnm = inla.copy.file.for.section(random.spec$rgeneric$R.init, data.dir)
+            } else {
+                tfile = tempfile()
+                cat(random.spec$rgeneric$R.init, "\n", file = tfile)
+                fnm = inla.copy.file.for.section(tfile, data.dir)
+                unlink(tfile)
+            }
+            cat("rgeneric.Rinit =", fnm, "\n", file=file, append = TRUE)
         }
     }
             

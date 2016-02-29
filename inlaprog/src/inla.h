@@ -469,7 +469,7 @@ typedef enum {
 	F_COPY,
 	F_MEC,
 	F_MEB,
-	F_R_GENERIC,
+	F_R_GENERIC________DISABLED,
 	F_SLM,
 	F_CLINEAR,					       /* constrained fixed effect */
 	F_SIGM,
@@ -479,7 +479,7 @@ typedef enum {
 	F_GENERIC3,
 	F_LOG1EXP, 
 	F_LOGDIST, 
-	F_R_GENERIC2,
+	F_R_GENERIC,
 	P_LOGGAMMA = 2000,				       /* priors */
 	P_GAUSSIAN,
 	P_MVGAUSSIAN,
@@ -1179,18 +1179,6 @@ typedef struct {
 
 typedef struct {
 	int Id;
-	int R2c;
-	int c2R;
-	int ntheta;
-	char *filename_R2c;
-	char *filename_c2R;
-	double ***theta;
-	double **param;
-	GMRFLib_tabulate_Qfunc_tp **Q;
-} inla_rgeneric_tp;
-
-typedef struct {
-	int Id;
 	char *file_init;				       /* source this file once in the beginning, if any */
 	char *filename;					       /* file to load containing the model definition */
 	char *model;					       /* the variable name that contains the model definition */
@@ -1198,7 +1186,7 @@ typedef struct {
 	double ***theta;
 	double **param;
 	GMRFLib_tabulate_Qfunc_tp **Q;
-} inla_rgeneric2_tp;
+} inla_rgeneric_tp;
 
 typedef struct {
 	int n;						       /* size of graph */
@@ -1233,8 +1221,8 @@ typedef struct {
 #define R_GENERIC_LOG_PRIOR "log.prior"
 #define R_GENERIC_QUIT "quit"
 
-#define R_GENERIC2_MODEL ".inla.rgeneric2.model"
-#define R_GENERIC2_WRAPPER "inla.rgeneric2.wrapper"
+#define R_GENERIC_MODEL ".inla.rgeneric.model"
+#define R_GENERIC_WRAPPER "inla.rgeneric.wrapper"
 
 #define INLA_LITTLE_ENDIAN 1
 #define INLA_BIG_ENDIAN    2
@@ -1292,7 +1280,6 @@ double Qfunc_mec(int i, int j, void *arg);
 double Qfunc_ou(int i, int j, void *arg);
 double Qfunc_replicate(int i, int j, void *arg);
 double Qfunc_rgeneric(int i, int j, void *arg);
-double Qfunc_rgeneric2(int i, int j, void *arg);
 double Qfunc_sigm(int i, int j, void *arg);
 double Qfunc_slm(int i, int j, void *arg);
 double Qfunc_z(int i, int j, void *arg);
