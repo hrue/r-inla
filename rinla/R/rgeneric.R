@@ -1,8 +1,7 @@
-## Export: inla.rgeneric.define
 ## Export: inla.rgeneric.ar1.model 
 ## Export: inla.rgeneric.iid.model 
-## Export: inla.rgeneric2.define
-## Export: inla.rgeneric2.wrapper
+## Export: inla.rgeneric.define
+## Export: inla.rgeneric.wrapper
 
 ##!\name{rgeneric.define}
 ##!\alias{rgeneric}
@@ -18,159 +17,43 @@
 ##!\description{A framework for defining latent models in R}
 ##!
 ##!\usage{
-##!inla.rgeneric.define(model = NULL, ...)
-##!inla.rgeneric2.define(model = NULL, debug = TRUE, R.init = NULL, ...)
+##!inla.rgeneric.define(model = NULL, debug = TRUE, R.init = NULL, ...)
 ##!inla.rgeneric.iid.model(
 ##!        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
 ##!        theta = NULL, args = NULL)
 ##!inla.rgeneric.ar1.model(
 ##!        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
 ##!        theta = NULL, args = NULL)
-##!inla.rgeneric2.wrapper(cmd, model, theta = NULL, debug=FALSE)
+##!inla.rgeneric.wrapper(cmd, model, theta = NULL)
 ##!}
 ##!
 ##!\arguments{
 ##!
 ##!  \item{model}{The definition of the model; see \code{inla.rgeneric.ar1.model}}
-##!  \item{cmd}{The allowed commands}
+##!  \item{cmd}{An allowed request}
 ##!  \item{theta}{Values of theta}
 ##!  \item{debug}{Logical. Turn on/off debugging}
-##!  \item{R.init}{Character. Source this file when the R-engine starts.}
-##!  \item{args}{Further args}
+##!  \item{R.init}{Character. Source this file when the R-engine starts}
+##!  \item{args}{A list. A list of further args}
 ##!  \item{...}{Further args}
 ##!  \item{debug}{Logical. Enable debug output}
 ##!}
 ##!
 ##!\value{%%
-##!  This is a test-implementation of how a latent model can be
-##!  defined within R, and details would likely change in the future.
+##!  This allows a latent model to be 
+##!  defined in \code{R}.
 ##!  See \code{inla.rgeneric.ar1.model} and
 ##!  \code{inla.rgeneric.iid.model} and the documentation for 
-##!  worked out examples of how to define the AR1 and IID model this way.
-##!  Using this function require the \code{multicore}-package, and
-##!  only runs smoothly under Linux.}
+##!  worked out examples of how to define latent models in  this way.
+##!  This will be somewhat slow and is intended for special cases and
+##!  protyping. The function \code{inla.rgeneric.wrapper} is for
+##!  internal use only.}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
 
 
-`inla.rgeneric.define` = function(model = NULL, ...)
-{
-    model = list(
-            name = model, 
-            definition = model,
-            fifo = list(c2R = tempfile(), R2c = tempfile()), 
-            args = list(...)
-            )
-    class(model) = "inla-rgeneric"
-    return (model)
-}
-
-`inla.rgeneric.loop` = function(model, debug = FALSE)
-{
-    debug.cat = function(...) {
-        if (debug)
-            cat("R", ...)
-    }
-     
-    stopifnot(inherits(model, "inla-rgeneric"))
-    while (TRUE) {
-        if (file.exists(model$fifo$R2c)) {
-            R2c = fifo(model$fifo$R2c, "wb", blocking=TRUE)
-            break
-        }
-    }
-    debug.cat("Open file R2c", model$fifo$R2c, "\n")
-
-    while (TRUE) {
-        if (file.exists(model$fifo$c2R)) {
-            c2R = fifo(model$fifo$c2R, "rb", blocking=TRUE)
-            break
-        }
-    }
-    debug.cat("Open file c2R", model$fifo$c2R, "\n")
-    
-    Id = NA
-    n = -1L
-    ntheta = -1L
-    
-    ## Enter the loop
-    while (TRUE) {
-        Id = readBin(c2R, what = integer())
-        cmd = readBin(c2R, what = character())
-        debug.cat("Id[", Id, "]. Got command:", cmd, "\n")
-
-        if (cmd %in% "Q") {
-            debug.cat("ntheta", ntheta, "\n")
-            if (ntheta > 0L) {
-                theta = readBin(c2R, what = numeric(), n = ntheta)
-           } else {
-                theta = numeric(0)
-            }
-            debug.cat("Got theta", theta, "\n")
-            Q = do.call(model$definition, args = list(cmd = cmd, theta = theta, args = model$args))
-            Q = inla.as.sparse(Q)
-            stopifnot(dim(Q)[1L] == n && dim(Q)[2L] == n)
-            idx = which(Q@i <= Q@j)
-            len = length(Q@i[idx])
-            writeBin(as.integer(len), R2c)
-            writeBin(as.integer(Q@i[idx]), R2c)
-            writeBin(as.integer(Q@j[idx]), R2c)
-            writeBin(Q@x[idx], R2c)
-        } else if (cmd %in% "graph") {
-            G = do.call(model$definition, args = list(cmd = cmd, theta = NULL, args = model$args))
-            G = inla.as.sparse(G)
-            n = dim(G)[1L]
-            idx = which(G@i <= G@j)
-            len = length(G@i[idx])
-            debug.cat("Put len =", len, "\n")
-            writeBin(as.integer(len), R2c)
-            writeBin(as.integer(G@i[idx]), R2c)
-            writeBin(as.integer(G@j[idx]), R2c)
-        } else if (cmd %in% "initial") {
-            init = do.call(model$definition, args = list(cmd = cmd, theta = NULL, args = model$args))
-            ntheta = length(init)
-            debug.cat("Put ntheta =", ntheta, "\n")
-            debug.cat("Put initial", init, "\n")
-            writeBin(as.integer(length(init)), R2c)
-            if (length(init) > 0L) {
-                writeBin(init, R2c)
-            }
-        } else if (cmd %in% "log.norm.const") {
-            if (ntheta > 0L) {
-                theta = readBin(c2R, what = numeric(), n = ntheta)
-            } else {
-                theta = numeric(0)
-            }
-            debug.cat("Got theta",  theta, "\n")
-            lnc = do.call(model$definition, args = list(cmd = cmd, theta = theta, args = model$args))
-            debug.cat("Put log.norm.const", lnc, "\n")
-            writeBin(lnc, R2c)
-        } else if (cmd %in% "log.prior") {
-            if (ntheta > 0L) {
-                theta = readBin(c2R, what = numeric(), n = ntheta)
-            } else {
-                theta = numeric(0)
-            }
-            debug.cat("Got theta",  theta, "\n")
-            lp = do.call(model$definition, args = list(cmd = cmd, theta = theta, args = model$args))
-            debug.cat("Put log.prior", lp, "\n")
-            writeBin(lp, R2c)
-        } else if (cmd %in% c("quit", "exit")) {
-            debug.cat("Got a cleanup-and-exit-loop-message\n")
-            close(R2c)
-            unlink(R2c, force = TRUE)
-            close(c2R)
-            unlink(c2R, force = TRUE)
-            break
-        } else {
-            stop(paste("Unknown command", cmd))
-        }
-    }
-
-    return (invisible())
-}
-
-`inla.rgeneric.ar1.model` = function(cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
-                                     theta = NULL, args = NULL)
+`inla.rgeneric.ar1.model` = function(
+    cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+    theta = NULL, args = NULL)
 {
     ## this is an example of the 'rgeneric' model. here we implement
     ## the AR-1 model as described in inla.doc("ar1"), where 'rho' is
@@ -279,8 +162,9 @@
     return (val)
 }
 
-`inla.rgeneric.iid.model` = function(cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
-                                     theta = NULL, args = NULL)
+`inla.rgeneric.iid.model` = function(
+    cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+    theta = NULL, args = NULL)
 {
     ## this is an example of the 'rgeneric' model. here we implement the iid model as described
     ## in inla.doc("iid"), without the scaling-option
@@ -333,12 +217,12 @@
     return (val)
 }
 
-`inla.rgeneric2.define` = function(model = NULL, debug = FALSE, R.init = NULL, ...)
+`inla.rgeneric.define` = function(model = NULL, debug = FALSE, R.init = NULL, ...)
 {
     model = list(
         f = list(
-            model = "rgeneric2", 
-            rgeneric2 = list(
+            model = "rgeneric", 
+            rgeneric = list(
                 definition = model,
                 debug = debug, 
                 args = list(...), 
@@ -346,16 +230,16 @@
                 )
             )
         )
-    class(model) = "inla.rgeneric2"
-    class(model$f$rgeneric2) = "inla.rgeneric2"
+    class(model) = "inla.rgeneric"
+    class(model$f$rgeneric) = "inla.rgeneric"
     return (model)
 }
 
-`inla.rgeneric2.wrapper` = function(cmd, model, theta = NULL)
+`inla.rgeneric.wrapper` = function(cmd, model, theta = NULL)
 {
     debug.cat = function(...) {
         if (debug)
-            cat("Rgeneric2: ", ..., "\n", file = stderr())
+            cat("Rgeneric: ", ..., "\n", file = stderr())
     }
 
     model.orig = model

@@ -61,7 +61,6 @@
 ##!         scale = NULL, 
 ##!         strata = NULL, 
 ##!         rgeneric = NULL, 
-##!         rgeneric2 = NULL, 
 ##!         scale.model = NULL, 
 ##!         args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL), 
 ##!         correct = NULL, 
@@ -306,11 +305,8 @@
     ##!\item{strata}{A stratum vector. It meaning depends on the model.}
     strata = NULL, 
 
-    ##!\item{rgeneric}{A object of class \code{inla-rgeneric} which defines the model. (EXPERIMENTAL!)}
+    ##!\item{rgeneric}{A object of class \code{inla.rgeneric} which defines the model. (EXPERIMENTAL!)}
     rgeneric = NULL, 
-
-    ##!\item{rgeneric2}{A object of class \code{inla.rgeneric2} which defines the model. (EXPERIMENTAL!)}
-    rgeneric2 = NULL, 
 
     ##!\item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default value is \code{inla.getOption("scale.model.default")}} 
     scale.model = NULL, 
@@ -885,28 +881,13 @@
     }
 
     if (model %in% "rgeneric") {
-        stopifnot(inherits(rgeneric, "inla-rgeneric"))
-        if (inla.os("windows")) {
-            stop("Model 'rgeneric' is not available for Windows; please use Linux or MacOSX. (No, there is no quick fix.)")
-        }
-    }
-
-    if (model %in% "rgeneric2") {
-        if (inla.is.element("f", rgeneric2) && inla.is.element("rgeneric2", rgeneric2$f)) {
-            rgeneric2 = rgeneric2$f$rgeneric2
+        if (inla.is.element("f", rgeneric) && inla.is.element("rgeneric", rgeneric$f)) {
+            rgeneric = rgeneric$f$rgeneric
         } 
-        R.init = rgeneric2$R.init
-    
-        stopifnot(inherits(rgeneric2, "inla.rgeneric2"))
-
-        if (FALSE) {
-            if (inla.os("windows")) {
-                stop("Model 'rgeneric2' is not available for Windows; please use Linux or MacOSX. (No, there is no quick fix.)")
-            }
-        }
-
+        R.init = rgeneric$R.init
+        stopifnot(inherits(rgeneric, "inla.rgeneric"))
         ## add an 'Id' so we know who we are
-        rgeneric2 = list(model = rgeneric2, Id = vars[[1]], R.init = R.init)
+        rgeneric = list(model = rgeneric, Id = vars[[1]], R.init = R.init)
     }
 
 
@@ -965,7 +946,6 @@
         scale = scale,
         strata = strata,
         rgeneric = rgeneric, 
-        rgeneric2 = rgeneric2, 
         scale.model = as.logical(scale.model),
         adjust.for.con.comp = as.logical(adjust.for.con.comp),
         args.slm = args.slm,
@@ -981,5 +961,5 @@
 {
     return (c("inla.model.class", "inla.wrapper.model",
               "inla.spde", "inla.spde1", "inla.spde2", "inla.spde3",
-              "inla.rgeneric2"))
+              "inla.rgeneric"))
 }

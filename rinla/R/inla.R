@@ -1220,9 +1220,6 @@
     j=0
     extra.fixed=0
 
-    rgeneric = list()
-    nrgeneric = 0
-    
     if (nr>0) {
         name.random.dir=c()
         if (nr!=(ncol(rf)-1))
@@ -1296,13 +1293,6 @@
         
         for (r in 1:nr) {
             n = nrep = ngroup = N = NULL
-            
-            if (gp$random.spec[[r]]$model == "rgeneric") {
-                ## collect it and give it an Id
-                nrgeneric = nrgeneric + 1L
-                rgeneric[[nrgeneric]] = gp$random.spec[[r]]$rgeneric
-                gp$random.spec[[r]]$rgeneric$Id = nrgeneric
-            }
             
             if (gp$random.spec[[r]]$model != "linear") {
                 ##in this case we have to add a FFIELD section.........
@@ -1860,34 +1850,11 @@
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
     if (nchar(inla.call) > 0) {
         if (inla.os("linux") || inla.os("mac")) {
-            if (nrgeneric > 0L) {
-                if (!inla.require("parallel")) {
-                    stop("Library 'parallel' is required to use the 'rgeneric'-model.")
-                }
-                if (inla.os("mac")) {
-                    ## cannot run in verbose mode
-                    all.args = gsub("-v", "", all.args)
-                    tmp.0 = parallel::mcparallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))))
-                } else {
-                    if (verbose) {
-                        tmp.0 = parallel::mcparallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini))))
-                    } else {
-                        tmp.0 = parallel::mcparallel(system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log,
-                            inla.ifelse(silent == 2L, " 2>/dev/null", ""))))
-                    }
-                }
-                for (i in 1L:nrgeneric) {
-                    inla.eval(paste("tmp.", i, " = parallel::mcparallel(inla.rgeneric.loop(rgeneric[[", i, "]], debug=debug))", sep=""))
-                }
-                inla.eval(paste("tmp = parallel::mccollect(list(tmp.0,", paste("tmp.", 1L:nrgeneric, collapse=",", sep=""), "))"))
-                echoc = tmp[[1L]]
+            if (verbose) {
+                echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
             } else {
-                if (verbose) {
-                    echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
-                } else {
-                    echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log,
-                        inla.ifelse(silent == 2L, " 2>/dev/null", "")))
-                }
+                echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log,
+                    inla.ifelse(silent == 2L, " 2>/dev/null", "")))
             }
         } else if (inla.os("windows")) {
             if (!remote && !submit) {

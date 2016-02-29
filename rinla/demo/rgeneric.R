@@ -3,7 +3,7 @@ s = 0.1
 x = rnorm(n)
 y = 1 + x + rnorm(n, sd = s)
 
-model = (inla.rgeneric2.define(inla.rgeneric.iid.model, n=n, debug=FALSE))
+model = (inla.rgeneric.define(inla.rgeneric.iid.model, n=n, debug=FALSE))
 r2 = (inla(y ~ -1 + f(idx, model=model), 
            data = data.frame(y = y, idx = 1:n),
            control.family = list(

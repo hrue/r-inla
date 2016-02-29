@@ -54,7 +54,7 @@ int inla_R_funcall1(int *n_out, double **x_out, const char *function, int n, dou
 int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char *tag, int n, double *x);
 int inla_R_assign(const char *variable, int n, double *x);
 int inla_R_get(int *n_out, double **x_out, const char *variable);
-int inla_R_rgeneric2(int *n_out, double **x_out, const char *cmd, const char *model, int n, double *theta);
+int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *model, int n, double *theta);
 
 __END_DECLS
 #endif
