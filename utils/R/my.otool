@@ -12,4 +12,13 @@
 	    fi
 	done
     done
-} | sort | uniq | grep -v /usr/lib/system | grep -v /usr/lib/libSystem | grep -v libX11 | grep -v libicucore.A.dylib
+} | sort | uniq | \
+    grep -v /usr/lib/system | \
+    grep -v /usr/lib/libSystem | \
+    grep -v libX11. | \
+    grep -v /usr/lib/libicucore.A.dylib | \
+    grep -v /usr/lib/libbz2.1.0.dylib | \
+    grep -v /usr/lib/libiconv.2.dylib | \
+    grep -v /usr/lib/libz.1.dylib
+
+
