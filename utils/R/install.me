@@ -31,7 +31,7 @@ for f in INLA/NAMESPACE INLA/DESCRIPTION; do
     test -f $f && rm -f $f
 done
 
-rsync -auvL --delete --exclude '/*~' --exclude RCS/ --exclude TAGS $D/.. INLA/. 
+rsync -auv --delete --exclude '/*~' --exclude RCS/ --exclude TAGS $D/.. INLA/. 
 ./updateBin
 
 ## generate the exports defined in the R-files
