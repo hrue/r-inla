@@ -12925,7 +12925,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	 */
 	int i, j, k, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg = NULL, default_tag[100], *file_loc,
-		*ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL, *rgeneric_Rinit = NULL;
+	    *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL, *rgeneric_Rinit = NULL;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp,
 	    **beta_intern = NULL, **beta = NULL, **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd,
@@ -27142,7 +27142,7 @@ double inla_update_density(double *theta, inla_update_tp * arg)
 }
 int inla_R(char **argv)
 {
-	while(*argv){
+	while (*argv) {
 		fprintf(stderr, "R> source file [%s]...\n", *argv);
 		inla_R_source(*argv);
 		argv++;
