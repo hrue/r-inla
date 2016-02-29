@@ -482,7 +482,8 @@ run this model in \texttt{R}, you may do \texttt{demo(rgeneric)}.
 
     Q = function(n, theta)
     {
-        Q = Diagonal(n, x= rep(1, n))
+        prec = interpret.theta(n, theta)$prec
+        Q = Diagonal(n, x= rep(prec, n))
         return (Q)
     }
 
