@@ -1,6 +1,13 @@
 #!/bin/bash
 DIR=$(dirname "$(readlink -f "$0")")
-export LD_LIBRARY_PATH="$DIR:$LD_LIBRARY_PATH"
+
+if [ -d "/usr/lib64" ]; then
+    D="/usr/lib64"
+else
+    D="/usr/lib"
+fi
+
+export LD_LIBRARY_PATH="$D:$DIR:$LD_LIBRARY_PATH"
 exec "$DIR/inla" "$@"
 
 
