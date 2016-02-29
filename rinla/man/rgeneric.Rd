@@ -16,35 +16,35 @@
 \description{A framework for defining latent models in R}
 
 \usage{
-inla.rgeneric.define(model = NULL, ...)
-inla.rgeneric2.define(model = NULL, debug = TRUE, R.init = NULL, ...)
+inla.rgeneric.define(model = NULL, debug = TRUE, R.init = NULL, ...)
 inla.rgeneric.iid.model(
         cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
         theta = NULL, args = NULL)
 inla.rgeneric.ar1.model(
         cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
         theta = NULL, args = NULL)
-inla.rgeneric2.wrapper(cmd, model, theta = NULL, debug=FALSE)
+inla.rgeneric.wrapper(cmd, model, theta = NULL)
 }
 
 \arguments{
 
   \item{model}{The definition of the model; see \code{inla.rgeneric.ar1.model}}
-  \item{cmd}{The allowed commands}
+  \item{cmd}{An allowed request}
   \item{theta}{Values of theta}
   \item{debug}{Logical. Turn on/off debugging}
-  \item{R.init}{Character. Source this file when the R-engine starts.}
-  \item{args}{Further args}
+  \item{R.init}{Character. Source this file when the R-engine starts}
+  \item{args}{A list. A list of further args}
   \item{...}{Further args}
   \item{debug}{Logical. Enable debug output}
 }
 
 \value{%%
-  This is a test-implementation of how a latent model can be
-  defined within R, and details would likely change in the future.
+  This allows a latent model to be 
+  defined in \code{R}.
   See \code{inla.rgeneric.ar1.model} and
   \code{inla.rgeneric.iid.model} and the documentation for 
-  worked out examples of how to define the AR1 and IID model this way.
-  Using this function require the \code{multicore}-package, and
-  only runs smoothly under Linux.}
+  worked out examples of how to define latent models in  this way.
+  This will be somewhat slow and is intended for special cases and
+  protyping. The function \code{inla.rgeneric.wrapper} is for
+  internal use only.}
 \author{Havard Rue \email{hrue@math.ntnu.no}}
