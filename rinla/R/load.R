@@ -1,0 +1,35 @@
+## Export: inla.load
+
+##! \alias{inla.load}
+##! \title{Load or source a file}
+##! \description{Load or source a file: (internal use)}
+##! \usage{
+##!     inla.load(filename)
+##! }
+##! \arguments{
+##!   \item{filename}{The name of the file to be loaded, alternatively, sourced. }
+##!  }
+##! \value{
+##!   None
+##! }
+##! \description{
+##!   Try to \code{load} the file,  if that fail,  try to \code{source} the file. 
+##! }    
+##! \author{Havard Rue \email{hrue@math.ntnu.no}}
+
+`inla.load` = function(filename)
+{
+    w = getOption("warn")
+    options(warn = -1L)
+    val = try(load(filename),  silent=TRUE)
+    options(warn = w)
+    if (inherits(val, "try-error")) {
+        source(filename)
+    }
+    return (invisible())
+}
+
+
+
+    
+
