@@ -585,7 +585,7 @@
 
     if (random.spec$model == "rgeneric") {
         file.rgeneric = inla.tempfile(tmpdir=data.dir)
-        ## this must be the same name as R_GENERIC2_MODEL in inla.h
+        ## this must be the same name as R_GENERIC_MODEL in inla.h
         model = paste(".inla.rgeneric.model", ".", random.spec$rgeneric$Id, sep="")
         assign(model, random.spec$rgeneric$model)
         ## save model, or the object that 'model' expands to
