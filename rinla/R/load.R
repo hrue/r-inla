@@ -1,5 +1,6 @@
 ## Export: inla.load
 
+##! \name{inla.load}
 ##! \alias{inla.load}
 ##! \title{Load or source a file}
 ##! \description{Load or source a file: (internal use)}
