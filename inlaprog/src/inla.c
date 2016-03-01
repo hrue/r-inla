@@ -15306,7 +15306,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 */
 #pragma omp critical
 		{
-			inla_R_source(rgeneric_Rinit);
+			inla_R_inlaload(rgeneric_Rinit);
 			inla_R_library("INLA");
 			inla_R_load(rgeneric_filename);
 		}
