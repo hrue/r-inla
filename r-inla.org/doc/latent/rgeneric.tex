@@ -24,14 +24,12 @@ definition of the model \texttt{model}, to define a
 \begin{verbatim}
     model = inla.rgeneric.define(rmodel, debug, R.init, <args>)
 \end{verbatim}
-}
-Here, \texttt{rmodel} is model definition encoded as an
+} Here, \texttt{rmodel} is model definition encoded as an
 \texttt{R}-function, \texttt{debug} is a logical parameter if debug
 information should be printed, \texttt{R.init} is a \texttt{R}-file
-which is \texttt{sourced} before the model is defined, and
-\texttt{<args>} are further parameters to the model (like dimension,
-prior-settings, etc).  Then the model can used as
-{\small
+which is \texttt{sourced} or \texttt{loaded} before the model is
+defined, and \texttt{<args>} are further parameters to the model (like
+dimension, prior-settings, etc).  Then the model can used as {\small
 \begin{verbatim}
     y ~ ... + f(i, model=model)
 \end{verbatim}
