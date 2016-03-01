@@ -7,10 +7,11 @@
  \title{Load or source a file}
  \description{Load or source a file: (internal use)}
  \usage{
-     inla.load(filename)
+     inla.load(filename, debug = TRUE)
  }
  \arguments{
    \item{filename}{The name of the file to be loaded, alternatively, sourced. }
+   \item{debug}{Logical. Turn on/off debug information.}
   }
  \value{
    None

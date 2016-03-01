@@ -5,10 +5,11 @@
 ##! \title{Load or source a file}
 ##! \description{Load or source a file: (internal use)}
 ##! \usage{
-##!     inla.load(filename)
+##!     inla.load(filename, debug = TRUE)
 ##! }
 ##! \arguments{
 ##!   \item{filename}{The name of the file to be loaded, alternatively, sourced. }
+##!   \item{debug}{Logical. Turn on/off debug information.}
 ##!  }
 ##! \value{
 ##!   None
@@ -18,15 +19,26 @@
 ##! }    
 ##! \author{Havard Rue \email{hrue@math.ntnu.no}}
 
-`inla.load` = function(filename)
+`inla.load` = function(filename, debug = TRUE)
 {
+    msg = function(...) {
+        if (debug) {
+            cat("inla.load: ", ...,  "\n", sep="")
+        }
+   }
+
     w = getOption("warn")
     options(warn = -1L)
-    val = try(load(filename),  silent=TRUE)
+    val = try(load(filename), silent=TRUE)
     options(warn = w)
+
     if (inherits(val, "try-error")) {
-        source(filename)
+        msg("source file [", filename, "]")
+        source(filename, echo = TRUE)
+    } else {
+        msg("load file [", filename, "]")
     }
+
     return (invisible())
 }
 

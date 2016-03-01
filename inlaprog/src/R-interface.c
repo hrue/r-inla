@@ -98,6 +98,7 @@ int inla_R_init(void)
 		}
 
 		char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--silent", "--no-save" };
+		//char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--no-save" };
 		int Rargc = sizeof(Rargv) / sizeof(Rargv[0]);
 		Rf_initEmbeddedR(Rargc, Rargv);
 
@@ -142,14 +143,13 @@ int inla_R_source(const char *filename)
 
 	if (R_debug)
 		fprintf(stderr, "R-interface: source file [%s]\n", filename);
-
-	PROTECT(e = lang2(install("source"), mkString(filename)));
+	PROTECT(e = lang4(install("source"), mkString(filename), ScalarLogical(FALSE), ScalarLogical(TRUE)));
 	PROTECT(result = R_tryEval(e, R_GlobalEnv, &error));
 	if (error) {
 		fprintf(stderr, "\n *** ERROR ***: source R-file [%s] failed.\n", filename);
 		exit(1);
 	}
-	UNPROTECT(2);
+	UNPROTECT(3);
 
 
 	return (INLA_OK);
