@@ -26571,6 +26571,14 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 #undef FUNC_ARG
 	return INLA_OK;
 }
+int my_file_exists(const char *filename)
+{
+	if (access(filename, F_OK) != -1) {
+		return (INLA_OK);
+	} else {
+		return (!INLA_OK);
+	}
+}
 int my_setenv(char *str, int prefix)
 {
 	/*

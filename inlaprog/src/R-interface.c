@@ -51,9 +51,11 @@ static const char RCSId[] = HGVERSION;
 // two copies...
 #define R_GENERIC_WRAPPER "inla.rgeneric.wrapper"
 #define INLA_OK (0)
+int my_file_exists(const char *filename);
+int my_setenv(char *str, int prefix);
+int GMRFLib_sprintf(char **ptr, const char *fmt, ...);
 
 #include "R-interface.h"
-
 static int R_init = 1;
 static int R_debug = 0;
 
@@ -67,13 +69,40 @@ void inla_R_exit(void)
 int inla_R_init(void)
 {
 	if (R_init) {
-		//char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--silent", "--vanilla" };
-		char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--silent", "--no-save" }; 
+		/*
+		 * Check if R_HOME is set. If not, try to guess it, otherwise fail.
+		 */
+		char *rhome = getenv((const char *) "R_HOME");
+		if (!rhome) {
+			if (my_file_exists("/Library/Frameworks/R.framework/Resources") == INLA_OK) {
+				GMRFLib_sprintf(&rhome, "R_HOME=/Library/Frameworks/R.framework/Resources");
+			} else if (my_file_exists("/usr/lib64/R") == INLA_OK) {
+				GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib64/R");
+			} else if (my_file_exists("/usr/lib/R") == INLA_OK) {
+				GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib/R");
+			} else if (my_file_exists("/usr/lib32/R") == INLA_OK) {
+				GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib32/R");
+			} else {
+				fprintf(stderr, "\n\n");
+				fprintf(stderr, "*** R-interface  ERROR: Environment variable R_HOME is not set.\n");
+				fprintf(stderr, "*** R_interface  ERROR: Evaluate this in R:  Sys.getenv(\"R_HOME\")\n");
+				fprintf(stderr, "\n\n");
+				fflush(stderr);
+				exit(1);
+			}
+			fprintf(stderr, "\n\n");
+			fprintf(stderr, "*** R-interface WARNING: Environment variable R_HOME is not set.\n");
+			fprintf(stderr, "*** R-interface WARNING: Set it to a _GUESSED_ value [%s]\n\n", rhome);
+			my_setenv(rhome, 0);
+			Free(rhome);
+		}
+
+		char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--silent", "--no-save" };
 		int Rargc = sizeof(Rargv) / sizeof(Rargv[0]);
 		Rf_initEmbeddedR(Rargc, Rargv);
 
 		// Disable C stack limit check
-		R_CStackLimit = (uintptr_t) - 1;
+		R_CStackLimit = (uintptr_t) (-1);
 		R_init = 0;
 		if (R_debug)
 			fprintf(stderr, "R-interface: init\n");
@@ -182,7 +211,7 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
-	*x_out = (double *) calloc((size_t)(*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
+	*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
 	for (i = 0; i < *n_out; i++) {
 		(*x_out)[i] = REAL(result)[i];
 	}
@@ -211,7 +240,7 @@ int inla_R_assign(const char *variable, int n, double *x)
 	PROTECT(e = lang3(install("assign"), mkString(variable), xx));
 	PROTECT(result = R_tryEval(e, R_GlobalEnv, &error));
 	if (error) {
-		fprintf(stderr, "\n *** ERROR *** assign [%s] with n [%1d] failed\n", variable,  n);
+		fprintf(stderr, "\n *** ERROR *** assign [%s] with n [%1d] failed\n", variable, n);
 		exit(1);
 	}
 	UNPROTECT(3);
@@ -239,7 +268,7 @@ int inla_R_get(int *n_out, double **x_out, const char *variable)
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
-	*x_out = (double *) calloc((size_t)(*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
+	*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
 	for (i = 0; i < *n_out; i++) {
 		(*x_out)[i] = REAL(result)[i];
 	}
@@ -268,11 +297,11 @@ int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *mod
 	PROTECT(e = lang4(install(R_GENERIC_WRAPPER), mkString(cmd), mkString(model), xx_theta));
 	PROTECT(result = R_tryEval(e, R_GlobalEnv, &error));
 	if (error) {
-		fprintf(stderr, "\n *** ERROR *** rgeneric [%s] with model [%s] failed\n", cmd,  model);
+		fprintf(stderr, "\n *** ERROR *** rgeneric [%s] with model [%s] failed\n", cmd, model);
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
-	*x_out = (double *) calloc((size_t)(*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
+	*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
 	for (i = 0; i < *n_out; i++) {
 		(*x_out)[i] = REAL(result)[i];
 	}
