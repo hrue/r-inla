@@ -93,6 +93,7 @@ int inla_R_init(void)
 			fprintf(stderr, "\n\n");
 			fprintf(stderr, "*** R-interface WARNING: Environment variable R_HOME is not set.\n");
 			fprintf(stderr, "*** R-interface WARNING: Set it to a _GUESSED_ value [%s]\n\n", rhome);
+			fflush(stderr);
 			my_setenv(rhome, 0);
 			Free(rhome);
 		}
