@@ -17,6 +17,8 @@
    None
  }
  \description{
-   Try to \code{load} the file,  if that fail,  try to \code{source} the file. 
+   Try to \code{load} the file into the global environment,
+   if that fail,  try to \code{source} the file into the
+   global environment.
  }    
  \author{Havard Rue \email{hrue@math.ntnu.no}}
