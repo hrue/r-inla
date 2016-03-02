@@ -29,7 +29,7 @@
 
     w = getOption("warn")
     options(warn = -1L)
-    val = try(load(filename), silent=TRUE)
+    val = try(load(filename, envir = globalenv()), silent=TRUE)
     options(warn = w)
 
     if (inherits(val, "try-error")) {
