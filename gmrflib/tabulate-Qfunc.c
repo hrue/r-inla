@@ -98,12 +98,13 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 double GMRFLib_tabulate_Qfunction(int node, int nnode, void *arg)
 {
 	GMRFLib_tabulate_Qfunc_arg_tp *args = NULL;
-	double prec;
+	double prec, *dp;
 
 	args = (GMRFLib_tabulate_Qfunc_arg_tp *) arg;
 	prec = GMRFLib_SET_PREC(args);
 
-	return prec * (*map_id_ptr(args->values[IMIN(node, nnode)], IMAX(node, nnode)));
+	dp = map_id_ptr(args->values[IMIN(node, nnode)], IMAX(node, nnode));
+	return (dp ? prec * (*dp) : 0.0);
 }
 double GMRFLib_tabulate_Qfunction_std(int node, int nnode, void *arg)
 {
