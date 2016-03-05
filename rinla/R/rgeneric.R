@@ -24,7 +24,9 @@
 ##!inla.rgeneric.ar1.model(
 ##!        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
 ##!        theta = NULL, args = NULL)
-##!inla.rgeneric.wrapper(cmd, model, theta = NULL)
+##!inla.rgeneric.wrapper(
+##!        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+##!        model, theta = NULL)
 ##!}
 ##!
 ##!\arguments{
@@ -235,13 +237,17 @@
     return (model)
 }
 
-`inla.rgeneric.wrapper` = function(cmd, model, theta = NULL)
+`inla.rgeneric.wrapper` = function(
+    cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+    model,
+    theta = NULL)
 {
     debug.cat = function(...) {
         if (debug)
             cat("Rgeneric: ", ..., "\n", file = stderr())
     }
 
+    stopifnot(inherits(model, "inla.rgeneric"))
     model.orig = model
     if (is.character(model)) {
         model = get(model, envir = parent.frame())
@@ -255,6 +261,7 @@
     }
 
     result = NULL
+    cmd = match.arg(cmd)
     res = do.call(model$definition, args = list(cmd = cmd, theta = theta, args = model$args))
     if (cmd %in% "Q") {
         Q = inla.as.sparse(res)

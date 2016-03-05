@@ -23,7 +23,9 @@ inla.rgeneric.iid.model(
 inla.rgeneric.ar1.model(
         cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
         theta = NULL, args = NULL)
-inla.rgeneric.wrapper(cmd, model, theta = NULL)
+inla.rgeneric.wrapper(
+        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+        model, theta = NULL)
 }
 
 \arguments{

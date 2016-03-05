@@ -178,7 +178,7 @@
     ## density is to small compared to the maximum density. (othewise
     ## we can get trouble with the spline interpolation). same with
     ## 'x'? No...
-    eps = .Machine$double.eps^(1/4)
+    eps = .Machine$double.eps * 1000
     ##marginal = spline(marginal)
     if (is.matrix(marginal)) {
         i = (marginal[, 2] > 0) & (abs(marginal[, 2]/max(marginal[, 2])) > eps)
