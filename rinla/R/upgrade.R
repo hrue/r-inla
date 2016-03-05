@@ -35,8 +35,8 @@
 
 `inla.upgrade` = function(lib = NULL, testing = FALSE)
 {
-    repo=c(CRAN = "http://cran.rstudio.com",
-        INLA = paste("http://www.math.ntnu.no/inla/R/",
+    repo=c(CRAN = "https://cran.rstudio.com",
+        INLA = paste("https://www.math.ntnu.no/inla/R/",
             (if (testing) "testing" else "stable"),  sep=""))
     if (require("INLA", quietly = TRUE, lib.loc = lib, character.only=TRUE)) {
         update.packages(repos = repo, oldPkgs = "INLA")
