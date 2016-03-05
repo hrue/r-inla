@@ -49,7 +49,7 @@ inla.write.graph(graph, filename = "graph.dat", mode = c("binary", "ascii"), ...
     using \code{graph = inla.add.graph.cc(graph)} if you manually construct the \code{inla.graph}-object.
     Methods implemented for \code{inla.graph} are \code{summary} and \code{plot}.
     The method \code{plot} require the libraries \code{Rgraphviz} and \code{graph} from the Bioconductor-project,
-    see \url{http://www.bioconductor.org}.
+    see \url{https://www.bioconductor.org}.
 }
 \author{Havard Rue \email{hrue@math.ntnu.no}}
 \seealso{

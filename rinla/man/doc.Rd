@@ -18,7 +18,7 @@ inla.doc(what, sec, verbose=FALSE)
 \item{verbose}{Logical if \code{TRUE} then run in verbose mode}
 }
 \author{Havard Rue \email{hrue@math.ntnu.no}}
-\seealso{\code{http://www.r-inla.org}}
+\seealso{\code{https://www.r-inla.org}}
 \examples{
 \dontrun{inla.doc("rw2")}
 \dontrun{inla.doc("gaussian")}

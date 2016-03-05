@@ -152,7 +152,7 @@ THE MORE GENERAL ARGUMENT \code{graph}. PLEASE CHANGE YOUR
 CODE.
 Name of the file containing the graph
 of the model; see
-\url{http://www.r-inla.org/faq}.}
+\url{https://www.r-inla.org/faq}.}
 \item{cdf}{A vector of maximum 10 values between 0 and 1
 \eqn{x(0), x(1),\ldots}{x(0), x(1),\ldots}. The function
 returns, for each posterior marginal the probabilities
