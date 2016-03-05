@@ -16,7 +16,7 @@
 ##!\item{verbose}{Logical if \code{TRUE} then run in verbose mode}
 ##!}
 ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
-##!\seealso{\code{https://www.r-inla.org}}
+##!\seealso{\code{www.r-inla.org}}
 ##!\examples{
 ##!\dontrun{inla.doc("rw2")}
 ##!\dontrun{inla.doc("gaussian")}
