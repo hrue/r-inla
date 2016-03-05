@@ -19,7 +19,7 @@ inla.print.version <- function()
 
 .onLoad <- function(...)
 {
-    ##
+    ## nothing for the moment
 }
 
 .onAttach <- function(...)
@@ -27,4 +27,7 @@ inla.print.version <- function()
     inla.print.version()
 }
 
-.onUnload <- function(libpath) library.dynam.unload("INLA", libpath)
+.onUnload <- function(libpath) {
+    ## library.dynam.unload("INLA", libpath)
+}
+
