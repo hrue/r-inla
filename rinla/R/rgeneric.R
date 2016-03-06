@@ -247,11 +247,11 @@
             cat("Rgeneric: ", ..., "\n", file = stderr())
     }
 
-    stopifnot(inherits(model, "inla.rgeneric"))
     model.orig = model
     if (is.character(model)) {
         model = get(model, envir = parent.frame())
     }
+    stopifnot(inherits(model, "inla.rgeneric"))
 
     debug = ifelse(is.null(model$debug) || !model$debug, FALSE, TRUE)
     if (is.character(model.orig)) {
