@@ -1833,6 +1833,9 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 			}
 			for (ii = 0; ii < a->ntheta; ii++) {
 				a->param[id][ii] = a->theta[ii][GMRFLib_thread_id][0];
+				if (debug){
+					printf("\ttheta[%1d] %.20g\n", ii, a->param[id][ii]);
+				}
 			}
 
 			if (debug) {
