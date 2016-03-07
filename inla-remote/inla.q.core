@@ -95,7 +95,7 @@ if [ "$cmd" = "stat" ]; then
 	            else	\
 	                status="\""Aborted"\""; \
                     fi; \
-	            echo \"\$(cat \$d/jobid) \$nno   \$(cat \$d/.inla.pid)  \${siz}Mb  \$status\"; \
+	            echo \"\$(cat \$d/jobid) \$nno  \$(cat \$d/.inla.pid) \$status \${siz}Mb \"; \
                 fi; \
             fi; \
         done"
