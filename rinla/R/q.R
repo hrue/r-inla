@@ -72,7 +72,7 @@
 `print.inla.q` = function(x, ...)
 {
     for(k in seq_along(x)) {
-        cat("\t Job:", x[[k]]$no, "\tId:", x[[k]]$id, "\tStatus:", x[[k]]$status, "\n")
+        cat("Job:", x[[k]]$no, "  Id:", x[[k]]$id, "  Size:", x[[k]]$size, "  Status:", x[[k]]$status, "\n")
     }
     return (invisible(x))
 }
@@ -85,7 +85,7 @@
 `inla.qdel` = function(id)
 {
     return (inla.q(cmd = "del", id = id))
-}
+} 
 
 `inla.qstat` = function(id)
 {
@@ -169,7 +169,7 @@
             output = lapply(
                     strsplit(output, " +"),
                     function(a) {
-                        names(a) = c("id", "no", "pid", "status")
+                        names(a) = c("id", "no", "pid", "status", "size")
                         return(as.list(a))
                     })
         } else {
