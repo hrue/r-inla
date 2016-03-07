@@ -86,6 +86,7 @@ if [ "$cmd" = "stat" ]; then
     	for d in \$(ls -1 .); do \
             if [ -d \$d -a -f \$d/jobid -a -f \$d/.inla.pid -a \! -f \$d/working ]; then \
 	        nno=\$[ \$nno + 1 ]; \
+		siz=\$(du -sm \$d | cut	-f1); \
 	        if [ $no -eq 0 -o $no -eq \$nno -o \$(cat \$d/jobid) = "$id" ]; then \
        	            if [ -f \$d/done ]; then \
 	                status="\""Finished"\""; \
@@ -94,7 +95,7 @@ if [ "$cmd" = "stat" ]; then
 	            else	\
 	                status="\""Aborted"\""; \
                     fi; \
-	            echo \"\$(cat \$d/jobid) \$nno   \$(cat \$d/.inla.pid)    \$status\"; \
+	            echo \"\$(cat \$d/jobid) \$nno   \$(cat \$d/.inla.pid)  \${siz}Mb  \$status\"; \
                 fi; \
             fi; \
         done"
