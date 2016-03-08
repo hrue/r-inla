@@ -8,12 +8,14 @@
 ##! 
 ##! \description{This function generate samples from an approximated posterior of a fitted model,  ie an inla-object}
 ##! \usage{
-##!     inla.posterior.sample(n = 1L, result, hyper.user.scale = TRUE, use.improved.mean = TRUE)
+##!     inla.posterior.sample(n = 1L, result, hyper.user.scale = TRUE, use.improved.mean = TRUE,
+##!                           add.names = TRUE)
 ##! }
 ##! 
 ##! \arguments{
 ##!   \item{n}{Number of samples.}
-##!   \item{result}{The inla-object, ie the output from an \code{inla}-call. The \code{inla}-object must be created with
+##!   \item{result}{The inla-object, ie the output from an \code{inla}-call.
+##!                 The \code{inla}-object must be created with
 ##!                 \code{control.compute=list(config=TRUE)}.}
 ##!   \item{hyper.user.scale}{Logical. If \code{TRUE} then values of
 ##!   the hyperparameters are given in the user scale (for example
@@ -23,6 +25,9 @@
 ##!   \item{use.improved.mean}{Logical. If \code{TRUE} then use the
 ##!   marginal mean values when constructing samples. If \code{FALSE}
 ##!   then use the mean in the Gaussian approximations.}
+##!   \item{add.names}{Logical. If \code{TRUE} then add name for each elements of each
+##!                sample. If \code{FALSE}, only add name for the first sample. 
+##!                (This save space.)}
 ##!}
 ##!\value{ A list of the samples, where each sample is a list with
 ##!  names \code{hyperpar} and \code{latent}, and with their marginal
@@ -37,7 +42,8 @@
 ##!}
 
 
-`inla.posterior.sample` = function(n = 1, result, hyper.user.scale = TRUE, use.improved.mean = TRUE)
+`inla.posterior.sample` = function(n = 1, result, hyper.user.scale = TRUE,
+                                   use.improved.mean = TRUE, add.names = TRUE)
 {
     warning("inla.posterior.sample: THIS FUNCTION IS EXPERIMENTAL!!!")
     
@@ -63,8 +69,7 @@
         n.idx[i] = sum(idx == i)
     }
 
-    all.samples = list(list())
-    all.samples[[n]] = NA
+    all.samples = rep(list(c()), n)
     i.sample = 1L
     for(k in 1:cs$nconfig) {
         if (n.idx[k] > 0) {
@@ -151,7 +156,7 @@
                                     latent = as.numeric(xx$logdens[i]),
                                     joint = as.numeric(ld.h + xx$logdens[i])))
                 }
-                rownames(a.sample$latent) = nm
+                rownames(a.sample$latent) = if (add.names || i.sample == 1L) nm else NULL
                 all.samples[[i.sample]] = a.sample
                 i.sample = i.sample + 1L
             }    
