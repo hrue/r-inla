@@ -360,8 +360,8 @@
         ##:ARGUMENT: strategy  Character The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default) or 'laplace'
         strategy="simplified.laplace",
 
-        ##:ARGUMENT: int.strategy  Character The integration strategy to use; one of 'ccd' (default), 'grid' or 'eb' (empirical bayes)
-        int.strategy="ccd",
+        ##:ARGUMENT: int.strategy  Character The integration strategy to use; one of 'auto' (default),  'ccd', 'grid' or 'eb' (empirical bayes)
+        int.strategy="auto",
 
         ##:ARGUMENT: interpolator  Character The interpolator used to compute the marginals for the hyperparameters. One of 'auto', 'nearest', 'quadratic', 'weighted.distance', 'ccd', 'ccdintegrate', 'gridsum', 'gaussian'. Default is 'auto'.
         interpolator="auto",
@@ -375,11 +375,11 @@
         ##:ARGUMENT: h Numerical The step-length for the gradient calculations for the hyperparameters. Default 0.01.
         h=0.01,
 
-        ##:ARGUMENT: dz Numerical The step-length in the standarised scale for the integration of the hyperparameters. Default 1.0.
-        dz=1.0,
+        ##:ARGUMENT: dz Numerical The step-length in the standarised scale for the integration of the hyperparameters. Default 0.75.
+        dz=0.75,
 
-        ##:ARGUMENT: diff.logdens Numerical The difference of the log.density for the hyperpameters to stop numerical integration using int.strategy='grid'. Default 2.5.
-        diff.logdens=2.5,
+        ##:ARGUMENT: diff.logdens Numerical The difference of the log.density for the hyperpameters to stop numerical integration using int.strategy='grid'. Default 4.
+        diff.logdens=4,
 
         ##:ARGUMENT: print.joint.hyper Logical If TRUE, the store also the joint distribution of the hyperparameters (without any costs). Default TRUE.
         print.joint.hyper=TRUE,

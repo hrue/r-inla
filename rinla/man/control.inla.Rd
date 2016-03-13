@@ -17,13 +17,13 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 \arguments{
 \item{...}{Possible arguments}
 \item{strategy}{  Character The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default) or 'laplace'}
-\item{int.strategy}{  Character The integration strategy to use; one of 'ccd' (default), 'grid' or 'eb' (empirical bayes)}
+\item{int.strategy}{  Character The integration strategy to use; one of 'auto' (default), 'ccd', 'grid' or 'eb' (empirical bayes)}
 \item{interpolator}{  Character The interpolator used to compute the marginals for the hyperparameters. One of 'auto', 'nearest', 'quadratic', 'weighted.distance', 'ccd', 'ccdintegrate', 'gridsum', 'gaussian'. Default is 'auto'.}
 \item{fast}{  Logical If TRUE, then replace conditional modes in the Laplace approximation with conditional expectation (default TRUE)}
 \item{linear.correction}{  Logical Default TRUE for the 'strategy = laplace' option.}
 \item{h}{  Numerical The step-length for the gradient calculations for the hyperparameters. Default 0.01.}
-\item{dz}{  Numerical The step-length in the standarised scale for the integration of the hyperparameters. Default 1.0.}
-\item{diff.logdens}{  Numerical The difference of the log.density for the hyperpameters to stop numerical integration using int.strategy='grid'. Default 2.5.}
+\item{dz}{  Numerical The step-length in the standarised scale for the integration of the hyperparameters. Default 0.75.}
+\item{diff.logdens}{  Numerical The difference of the log.density for the hyperpameters to stop numerical integration using int.strategy='grid'. Default 4.}
 \item{print.joint.hyper}{  Logical If TRUE, the store also the joint distribution of the hyperparameters (without any costs). Default TRUE.}
 \item{force.diagonal}{  Logical If TRUE, then force the Hessian to be diagonal. (Default FALSE.)}
 \item{skip.configurations}{  Logical Skip configurations if the values at the main axis are to small. (Default TRUE.)}
