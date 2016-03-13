@@ -7,8 +7,7 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
+ *  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
@@ -4355,7 +4354,7 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_ve
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y), lambda;
-
+	
 	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
@@ -15322,8 +15321,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_INITIAL, rgeneric_model, 0, NULL);
 		}
 
-		int ntheta = (int) x_out[0];
-		double *initial = &(x_out[1]);
+		int ntheta;
+		double *initial = NULL; 
+		
+		ntheta = (int) x_out[0];
+		if (ntheta) {
+			initial = &(x_out[1]);
+		}
 
 		mb->f_ntheta[mb->nf] = ntheta;
 		mb->f_initial[mb->nf] = initial;
@@ -15336,8 +15340,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 
-		mb->f_fixed[mb->nf] = Calloc(ntheta, int);
-		mb->f_theta[mb->nf] = Calloc(ntheta, double **);
+		if (ntheta) {
+			mb->f_fixed[mb->nf] = Calloc(ntheta, int);
+			mb->f_theta[mb->nf] = Calloc(ntheta, double **);
+		} else {
+			mb->f_fixed[mb->nf] = NULL;
+			mb->f_theta[mb->nf] = NULL;
+		}
 
 		for (i = 0; i < ntheta; i++) {
 			double theta_initial;
@@ -22029,13 +22038,15 @@ double extra(double *theta, int ntheta, void *argument)
 		{
 			int ntheta = mb->f_ntheta[i], ii;
 			inla_rgeneric_tp *def;
-			double *param, log_norm_const, log_prior;
+			double *param = NULL, log_norm_const, log_prior;
 
 			def = (inla_rgeneric_tp *) mb->f_Qfunc_arg[i];
-			param = Calloc(ntheta, double);
-			for (ii = 0; ii < ntheta; ii++) {
-				param[ii] = theta[count];
-				count++;
+			if (ntheta) {
+				param = Calloc(ntheta, double);
+				for (ii = 0; ii < ntheta; ii++) {
+					param[ii] = theta[count];
+					count++;
+				}
 			}
 
 #pragma omp critical
@@ -22048,9 +22059,12 @@ double extra(double *theta, int ntheta, void *argument)
 				log_norm_const = x_out[0];
 				Free(x_out);
 
+				x_out = NULL;
 				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_PRIOR, def->model, ntheta, param);
-				assert(n_out == 1);
-				log_prior = x_out[0];
+				assert(n_out == 0 || n_out == 1);
+				if (n_out == 1) {
+					log_prior = x_out[0];
+				}
 				Free(x_out);
 			}
 
