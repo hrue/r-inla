@@ -176,11 +176,12 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	(*ai_par)->int_strategy = GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES;
 	(*ai_par)->int_strategy = GMRFLib_AI_INT_STRATEGY_CCD;
 	(*ai_par)->int_strategy = GMRFLib_AI_INT_STRATEGY_GRID;
+	(*ai_par)->int_strategy = GMRFLib_AI_INT_STRATEGY_AUTO;
 	(*ai_par)->f0 = 1.1;
-	(*ai_par)->dz = 1.0;
+	(*ai_par)->dz = 0.75;
 	(*ai_par)->adjust_weights = GMRFLib_FALSE;
 	(*ai_par)->adjust_weights = GMRFLib_TRUE;
-	(*ai_par)->diff_log_dens = 2.5;
+	(*ai_par)->diff_log_dens = 4.0;
 	(*ai_par)->skip_configurations = GMRFLib_FALSE;
 	(*ai_par)->skip_configurations = GMRFLib_TRUE;
 
@@ -346,6 +347,9 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	fprintf(fp, "\tLog calculated marginal for the hyperparameters:\t %s\n", (ai_par->fp_hyperparam ? "On" : "Off"));
 
 	fprintf(fp, "\tIntegration strategy:\t ");
+	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_AUTO) {
+		fprintf(fp, "Automatic (GRID for dim(theta)=1 and otherwise CCD)\n");
+	}
 	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD) {
 		fprintf(fp, "Use points from Central Composite Design (CCD)\n");
 	}
@@ -3337,8 +3341,15 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	 * otherwise, it might go very wrong below 
 	 */
 	GMRFLib_ASSERT(ai_par && (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID ||
+				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_AUTO ||
 				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES ||
 				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD), GMRFLib_EPARAMETER);
+	/* 
+	 * Simply chose int-strategy here
+	 */
+	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_AUTO) {
+		ai_par->int_strategy = (nhyper == 1 ? GMRFLib_AI_INT_STRATEGY_GRID : GMRFLib_AI_INT_STRATEGY_CCD);
+	}
 
 	GMRFLib_ENTER_ROUTINE;
 

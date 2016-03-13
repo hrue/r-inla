@@ -19473,6 +19473,10 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	}
 
 	switch (mb->ai_par->int_strategy) {
+	case GMRFLib_AI_INT_STRATEGY_AUTO:
+		default_int_strategy = GMRFLib_strdup("GMRFLib_AI_INT_STRATEGY_AUTO");
+		break;
+
 	case GMRFLib_AI_INT_STRATEGY_GRID:
 		default_int_strategy = GMRFLib_strdup("GMRFLib_AI_INT_STRATEGY_GRID");
 		break;
@@ -19577,7 +19581,9 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	}
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "INT.STRATEGY"), default_int_strategy));
 	if (opt) {
-		if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_GRID") || !strcasecmp(opt, "GRID")) {
+		if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_AUTO") || !strcasecmp(opt, "AUTO")) {
+			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_AUTO;
+		} else if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_GRID") || !strcasecmp(opt, "GRID")) {
 			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_GRID;
 		} else if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_CCD") || !strcasecmp(opt, "CCD")) {
 			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_CCD;
