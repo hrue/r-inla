@@ -123,7 +123,12 @@ typedef enum {
 	/**
 	 * \brief Use an Empirical Bayes approach
 	 */
-	GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES
+	GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES,
+	
+	/**
+	 * \brief Auto 
+	 */
+	GMRFLib_AI_INT_STRATEGY_AUTO
 } GMRFLib_ai_int_strategy_tp;
 
 /** 
