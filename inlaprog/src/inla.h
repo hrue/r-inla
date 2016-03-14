@@ -1183,6 +1183,7 @@ typedef struct {
 	char *filename;					       /* file to load containing the model definition */
 	char *model;					       /* the variable name that contains the model definition */
 	int ntheta;
+	int n;
 	double ***theta;
 	double **param;
 	GMRFLib_tabulate_Qfunc_tp **Q;

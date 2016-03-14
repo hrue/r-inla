@@ -1866,6 +1866,7 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 			assert(k == n_out);
 
 			GMRFLib_tabulate_Qfunc_from_list(&(a->Q[id]), &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
+			assert(graph->n == a->n);
 		}
 		GMRFLib_free_graph(graph);
 		Free(ilist);
@@ -1915,13 +1916,11 @@ double mfunc_rgeneric(int i, void *arg)
 			if (debug) {
 				printf("Return from rgeneric with n_out= %1d\n", n_out);
 			}
-
 			assert(n_out > 0);
 			n = (int) x_out[k++];
-			len = (int) x_out[k++];
-			a->mu[id] = Calloc(n, double);
-			if (len > 0) {
-				assert(len == n);
+			if (n > 0) {
+				assert(n == a->n);
+				a->mu[id] = Calloc(n, double);
 				memcpy((void *) (a->mu[id]), (void *) &(x_out[k]), n*sizeof(double));
 			}
 			Free(x_out);
@@ -18164,7 +18163,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def->ntheta = mb->f_ntheta[mb->nf];
 		def->theta = mb->f_theta[mb->nf];
 		def->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
-		def->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_tabulate_Qfunc_tp *);	/* easier if we do this here */
+		def->mu_param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
+		def->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_tabulate_Qfunc_tp *); /* easier if we do this here */
+		def->mu = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);			 /* easier if we do this here */
 
 		int n_out;
 		double *x_out;
@@ -18209,7 +18210,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_graph[mb->nf] = graph;
 		mb->f_Qfunc[mb->nf] = Qfunc_rgeneric;
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
-		mb->f_N[mb->nf] = mb->f_n[mb->nf] = graph->n;
+		mb->f_N[mb->nf] = mb->f_n[mb->nf] = def->n = graph->n;
 		mb->f_rankdef[mb->nf] = 0.0;
 
 		mb->f_bfunc2[mb->nf] = Calloc(1, GMRFLib_bfunc2_tp);
