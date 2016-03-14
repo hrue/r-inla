@@ -19,13 +19,13 @@
 ##!\usage{
 ##!inla.rgeneric.define(model = NULL, debug = TRUE, R.init = NULL, ...)
 ##!inla.rgeneric.iid.model(
-##!        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+##!        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
 ##!        theta = NULL, args = NULL)
 ##!inla.rgeneric.ar1.model(
-##!        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+##!        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
 ##!        theta = NULL, args = NULL)
 ##!inla.rgeneric.wrapper(
-##!        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+##!        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
 ##!        model, theta = NULL)
 ##!}
 ##!
@@ -54,7 +54,7 @@
 
 
 `inla.rgeneric.ar1.model` = function(
-    cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+    cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
     theta = NULL, args = NULL)
 {
     ## this is an example of the 'rgeneric' model. here we implement
@@ -127,6 +127,11 @@
         return (Q)
     }
 
+    mu = function(n, theta)
+    {
+        return (numeric(0))
+    }
+        
     log.norm.const = function(n, theta)
     {
         ## return the log(normalising constant) for the model
@@ -165,7 +170,7 @@
 }
 
 `inla.rgeneric.iid.model` = function(
-    cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+    cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
     theta = NULL, args = NULL)
 {
     ## this is an example of the 'rgeneric' model. here we implement the iid model as described
@@ -189,6 +194,11 @@
         return (Q)
     }
 
+    mu = function(n, theta)
+    {
+        return (numeric(0))
+    }
+    
     log.norm.const = function(n, theta)
     {
         prec = interpret.theta(n, theta)$prec
@@ -238,7 +248,7 @@
 }
 
 `inla.rgeneric.wrapper` = function(
-    cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+    cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
     model,
     theta = NULL)
 {
@@ -281,6 +291,10 @@
         len = length(G@i[idx])
         debug.cat("n", n, "len", len)
         result = c(n, len, G@i[idx], G@j[idx])
+    } else if (cmd %in% "mu") {
+        mu = res
+        debug.cat("length(mu)", length(mu))
+        result = c(n, length(mu), mu)
     } else if (cmd %in% "initial") {
         init = res
         debug.cat("initial", init)
