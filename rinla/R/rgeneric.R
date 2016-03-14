@@ -294,7 +294,7 @@
     } else if (cmd %in% "mu") {
         mu = res
         debug.cat("length(mu)", length(mu))
-        result = c(n, length(mu), mu)
+        result = c(length(mu), mu)
     } else if (cmd %in% "initial") {
         init = res
         debug.cat("initial", init)
