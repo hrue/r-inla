@@ -18,13 +18,13 @@
 \usage{
 inla.rgeneric.define(model = NULL, debug = TRUE, R.init = NULL, ...)
 inla.rgeneric.iid.model(
-        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
         theta = NULL, args = NULL)
 inla.rgeneric.ar1.model(
-        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
         theta = NULL, args = NULL)
 inla.rgeneric.wrapper(
-        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
         model, theta = NULL)
 }
 

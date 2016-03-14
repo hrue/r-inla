@@ -112,19 +112,22 @@ $\theta$. We need to wrap this into a common function, which process
 the request from the C-program. The list of commands and its names
 {\small
 \begin{verbatim}
-        cmd = c("Q", "graph", "initial", "log.norm.const", "log.prior", "quit"),
+        cmd = c("Q", "graph", "mu", "initial", "log.norm.const",
+                "log.prior", "quit"),
 \end{verbatim}
 }
 are fixed.  The skeleton-function for defining a model is 
 {\small
 \begin{verbatim}
 `inla.rgeneric.ar1.model` = function(
-        cmd = c("graph", "Q", "initial", "log.norm.const", "log.prior", "quit"),
+        cmd = c("graph", "Q", "mu", "initial", "log.norm.const",
+                "log.prior", "quit"),
         theta = NULL,
         args = NULL)
 {
     graph = function(n, theta){ <to be completed> }
     Q = function(n, theta) { <to be completed> }
+    mu = function(n, theta) { <to be completed> }
     log.norm.const = function(n, theta) { <to be completed> }
     log.prior = function(n, theta) { <to be completed> }
     initial = function(n, theta) { <to be completed> }
@@ -244,6 +247,23 @@ $\rho$.  The \texttt{Q}-function can then be implemented as follows.
 \end{verbatim}
 }
 
+\subsection*{Function \texttt{mu}}
+
+This function must return the mean of the model. Often, the mean is
+zero, but sometimes it might depend on the hyperparameters as well. If
+\texttt{numeric(0)} is returned, then this is equivalent that the mean
+is zero. An alternative in this example, would be to return
+\texttt{rep(0,n)}.
+
+{\small
+\begin{verbatim}
+    mu = function(n, theta)
+    {
+        return(numeric(0))
+    }
+\end{verbatim}
+}
+
 
 \subsection*{Function \texttt{log.norm.const}}
 
@@ -333,7 +353,7 @@ collecting all the functions already defined. The function is
 predefined in the \texttt{INLA}-library.
 {\small
 \begin{verbatim}
-`inla.rgeneric.ar1.model` = function(cmd = c("graph", "Q", "initial",
+`inla.rgeneric.ar1.model` = function(cmd = c("graph", "Q", "mu", "initial",
                                              "log.norm.const", "log.prior", "quit"),
                                      theta = NULL, args = NULL)
 {
@@ -407,6 +427,11 @@ predefined in the \texttt{INLA}-library.
         return (Q)
     }
 
+    mu = function(n, theta)
+    {
+        return(numeric(0))
+    }
+
     log.norm.const = function(n, theta)
     {
         ## return the log(normalising constant) for the model
@@ -460,7 +485,7 @@ run this model in \texttt{R}, you may do \texttt{demo(rgeneric)}.
 
 {\small
 \begin{verbatim}
-`inla.rgeneric.iid.model` = function(cmd = c("graph", "Q", "initial",
+`inla.rgeneric.iid.model` = function(cmd = c("graph", "Q", "mu", "initial",
                                              "log.norm.const", "log.prior", "quit"),
                                      theta = NULL, args = NULL)
 {
@@ -483,6 +508,11 @@ run this model in \texttt{R}, you may do \texttt{demo(rgeneric)}.
         prec = interpret.theta(n, theta)$prec
         Q = Diagonal(n, x= rep(prec, n))
         return (Q)
+    }
+
+    mu = function(n, theta)
+    {
+        return(numeric(0))
     }
 
     log.norm.const = function(n, theta)
