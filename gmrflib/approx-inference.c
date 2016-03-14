@@ -348,7 +348,7 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 
 	fprintf(fp, "\tIntegration strategy:\t ");
 	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_AUTO) {
-		fprintf(fp, "Automatic (GRID for dim(theta)=1 and otherwise CCD)\n");
+		fprintf(fp, "Automatic (GRID for dim(theta)=1 and 2 and otherwise CCD)\n");
 	}
 	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD) {
 		fprintf(fp, "Use points from Central Composite Design (CCD)\n");
@@ -3348,7 +3348,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	 * Simply chose int-strategy here
 	 */
 	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_AUTO) {
-		ai_par->int_strategy = (nhyper == 1 ? GMRFLib_AI_INT_STRATEGY_GRID : GMRFLib_AI_INT_STRATEGY_CCD);
+		ai_par->int_strategy = (nhyper <= 2 ? GMRFLib_AI_INT_STRATEGY_GRID : GMRFLib_AI_INT_STRATEGY_CCD);
 	}
 
 	GMRFLib_ENTER_ROUTINE;
