@@ -1922,6 +1922,8 @@ double mfunc_rgeneric(int i, void *arg)
 				assert(n == a->n);
 				a->mu[id] = Calloc(n, double);
 				memcpy((void *) (a->mu[id]), (void *) &(x_out[k]), n*sizeof(double));
+			} else {
+				a->mu[id] = Calloc(a->n, double);
 			}
 			Free(x_out);
 		}
@@ -22112,7 +22114,7 @@ double extra(double *theta, int ntheta, void *argument)
 		{
 			int ntheta = mb->f_ntheta[i], ii;
 			inla_rgeneric_tp *def;
-			double *param = NULL, log_norm_const, log_prior;
+			double *param = NULL, log_norm_const = 0, log_prior = 0;
 
 			def = (inla_rgeneric_tp *) mb->f_Qfunc_arg[i];
 			if (ntheta) {

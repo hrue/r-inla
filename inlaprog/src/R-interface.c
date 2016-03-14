@@ -33,6 +33,9 @@
 #endif
 static const char RCSId[] = HGVERSION;
 
+#include <assert.h>
+#include <time.h>
+#include <stdint.h>
 #include <stddef.h>
 #include <stdio.h>
 #if !defined(__FreeBSD__)
@@ -235,6 +238,7 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
+	assert(*n_out >= 0);
 	if (*n_out > 0) {
 		*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
 		for (i = 0; i < *n_out; i++) {
@@ -297,6 +301,7 @@ int inla_R_get(int *n_out, double **x_out, const char *variable)
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
+	assert(*n_out >= 0);
 	if (*n_out > 0) {
 		*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
 		for (i = 0; i < *n_out; i++) {
@@ -324,7 +329,6 @@ int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *mod
 	int error, i;
 	SEXP xx_theta, result, e;
 
-	fprintf(stderr, "cmd %s n %d\n", cmd, n);
 	PROTECT(xx_theta = allocVector(REALSXP, n));
 	for (i = 0; i < n; i++) {
 		REAL(xx_theta)[i] = theta[i];
@@ -336,7 +340,7 @@ int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *mod
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
-	fprintf(stderr, "cmd %s n_out %d\n", cmd, *n_out);
+	assert(*n_out >= 0);
 	if (*n_out > 0) {
 		*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
 		for (i = 0; i < *n_out; i++) {
