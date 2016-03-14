@@ -8,22 +8,22 @@ citEntry(
                  as.person("Nicholas Chopin")),
     title =
       paste("Approximate {Bayesian} Inference for Latent {Gaussian}",
-            "Models Using Integrated Nested {Laplace} Approximations (with discussion)"),
+            "Models Using Integrated Nested {Laplace} Approximations (with discussion)."),
     journal = "Journal of the Royal Statistical Society B",
     year    = "2009",
     volume  = "71",
     pages   = "319--392",
 
     textVersion  =
-    paste("Havard Rue, Sara Martino, and Nicholas Chopin (2009).",
+    paste("Havard Rue, Sara Martino, and Nicholas Chopin (2009), ",
           "Approximate Bayesian Inference for Latent Gaussian",
-          "Models Using Integrated Nested Laplace Approximations (with discussion).",
+          "Models Using Integrated Nested Laplace Approximations (with discussion), ",
         "Journal of the Royal Statistical Society B, 71, 319-392.")
 )
 
 citEntry(
     entry = "Article",
-    title = "Bayesian computing with {INLA}: {N}ew features",
+    title = "Bayesian computing with {INLA}: {N}ew features.",
     author  =
       personList(as.person("Thiago G. Martins"),
       		 as.person("Daniel Simpson"),
@@ -35,8 +35,8 @@ citEntry(
     journal = "Computational Statistics and Data Analysis",
 
     textVersion  =
-      paste("Thiago G. Martins, Daniel Simpson, Finn Lindgren and Havard Rue (2013).",
-            "Bayesian computing with INLA: New features",
+      paste("Thiago G. Martins, Daniel Simpson, Finn Lindgren and Havard Rue (2013), ",
+            "Bayesian computing with INLA: New features, ",
 	    "Computational Statistics and Data Analysis, 67(2013) 68-83")
 )
 
@@ -45,7 +45,7 @@ citEntry(
     title =
       paste("An Explicit Link between {Gaussian} Fields",
             "and {Gaussian} {Markov} Random Fields:",
-            "The Stochastic Partial Differential Equation Approach (with discussion)"),
+            "The Stochastic Partial Differential Equation Approach (with discussion)."),
     author  =
       personList(as.person("Finn Lindgren"),
                  as.person("H{\\aa}vard Rue"),
@@ -60,7 +60,7 @@ citEntry(
       paste("Finn Lindgren, Havard Rue, and Johan Lindstrom (2011).",
             "An Explicit Link Between Gaussian Fields and Gaussian",
             "Markov Random Fields: The Stochastic Partial Differential",
-            "Equation Approach (with discussion).",
+            "Equation Approach (with discussion), ",
             "Journal of the Royal Statistical Society B, 73(4), 423-498.")
 )
 
@@ -78,8 +78,8 @@ citEntry(
     url          = "http://www.jstatsoft.org/v63/i19/",
 
     textVersion  =
-      paste("Finn Lindgren, Havard Rue (2015).",
-            "Bayesian Spatial Modelling with R-INLA.",
-            "Journal of Statistical Software, 63(19), 1-25.",
+      paste("Finn Lindgren, Havard Rue (2015). ",
+            "Bayesian Spatial Modelling with R-INLA. ",
+            "Journal of Statistical Software, 63(19), 1-25. ",
             "URL http://www.jstatsoft.org/v63/i19/.")
 )
