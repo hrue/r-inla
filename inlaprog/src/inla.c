@@ -1816,7 +1816,7 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 	}
 
 	if (rebuild) {
-		int *ilist = NULL, *jlist = NULL, n, len, k = 0, n_out;
+		int *ilist = NULL, *jlist = NULL, n, len, k = 0, n_out, jj;
 		double *Qijlist = NULL, *x_out = NULL;
 		GMRFLib_graph_tp *graph = NULL;
 #pragma omp critical
@@ -1830,10 +1830,10 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 			if (!(a->param[id])) {
 				a->param[id] = Calloc(a->ntheta, double);
 			}
-			for (ii = 0; ii < a->ntheta; ii++) {
-				a->param[id][ii] = a->theta[ii][GMRFLib_thread_id][0];
+			for (jj = 0; jj < a->ntheta; jj++) {
+				a->param[id][jj] = a->theta[jj][GMRFLib_thread_id][0];
 				if (debug){
-					printf("\ttheta[%1d] %.20g\n", ii, a->param[id][ii]);
+					printf("\ttheta[%1d] %.20g\n", jj, a->param[id][jj]);
 				}
 			}
 
@@ -1850,18 +1850,18 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 			len = (int) x_out[k++];
 
 			ilist = Calloc(len, int);
-			for (ii = 0; ii < len; ii++) {
-				ilist[ii] = (int) x_out[k++];
+			for (jj = 0; jj < len; jj++) {
+				ilist[jj] = (int) x_out[k++];
 			}
 
 			jlist = Calloc(len, int);
-			for (ii = 0; ii < len; ii++) {
-				jlist[ii] = (int) x_out[k++];
+			for (jj = 0; jj < len; jj++) {
+				jlist[jj] = (int) x_out[k++];
 			}
 
 			Qijlist = Calloc(len, double);
-			for (ii = 0; ii < len; ii++) {
-				Qijlist[ii] = x_out[k++];
+			for (jj = 0; jj < len; jj++) {
+				Qijlist[jj] = x_out[k++];
 			}
 			assert(k == n_out);
 
@@ -1874,6 +1874,61 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 	}
 
 	return (a->Q[id]->Qfunc(i, j, a->Q[id]->Qfunc_arg));
+}
+double mfunc_rgeneric(int i, void *arg)
+{
+	inla_rgeneric_tp *a = (inla_rgeneric_tp *) arg;
+	int rebuild, ii, debug = 0, id;
+
+	id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
+	rebuild = (a->mu_param[id] == NULL || a->mu[GMRFLib_thread_id] == NULL);
+	if (!rebuild) {
+		for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
+			rebuild = (a->mu_param[id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
+		}
+	}
+
+	if (rebuild) {
+		int n, len, k = 0, n_out, jj;
+		double *mu = NULL, *x_out = NULL;
+#pragma omp critical
+		{
+			if (debug) {
+				printf("Rebuild mu-hash for id %d\n", id);
+			}
+			if (a->mu[id]) {
+				Free(a->mu[id]);
+			}
+			if (!(a->mu_param[id])) {
+				a->mu_param[id] = Calloc(a->ntheta, double);
+			}
+			for (jj = 0; jj < a->ntheta; jj++) {
+				a->mu_param[id][jj] = a->theta[jj][GMRFLib_thread_id][0];
+				if (debug){
+					printf("\ttheta[%1d] %.20g\n", jj, a->mu_param[id][jj]);
+				}
+			}
+			if (debug) {
+				printf("Call rgeneric\n");
+			}
+			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_MU, a->model, a->ntheta, a->mu_param[id]);
+			if (debug) {
+				printf("Return from rgeneric with n_out= %1d\n", n_out);
+			}
+
+			assert(n_out > 0);
+			n = (int) x_out[k++];
+			len = (int) x_out[k++];
+			a->mu[id] = Calloc(n, double);
+			if (len > 0) {
+				assert(len == n);
+				memcpy((void *) (a->mu[id]), (void *) &(x_out[k]), n*sizeof(double));
+			}
+			Free(x_out);
+		}
+	}
+
+	return (a->mu[id][i]);
 }
 double Qfunc_clinear(int i, int j, void *arg)
 {
@@ -18156,6 +18211,18 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf] = graph->n;
 		mb->f_rankdef[mb->nf] = 0.0;
+
+		mb->f_bfunc2[mb->nf] = Calloc(1, GMRFLib_bfunc2_tp);
+                mb->f_bfunc2[mb->nf]->graph = mb->f_graph[mb->nf];
+                mb->f_bfunc2[mb->nf]->Qfunc = mb->f_Qfunc[mb->nf];
+                mb->f_bfunc2[mb->nf]->Qfunc_arg = mb->f_Qfunc_arg[mb->nf];
+                mb->f_bfunc2[mb->nf]->diagonal = mb->f_diag[mb->nf];
+                mb->f_bfunc2[mb->nf]->mfunc = mfunc_rgeneric;
+                mb->f_bfunc2[mb->nf]->mfunc_arg = mb->f_Qfunc_arg[mb->nf];
+                mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
+                mb->f_bfunc2[mb->nf]->nreplicate = 1;
+                mb->f_bfunc2[mb->nf]->ngroup = 1;
+
 		break;
 	}
 

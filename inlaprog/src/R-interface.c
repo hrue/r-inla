@@ -235,10 +235,15 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
-	*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
-	for (i = 0; i < *n_out; i++) {
-		(*x_out)[i] = REAL(result)[i];
+	if (*n_out > 0) {
+		*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
+		for (i = 0; i < *n_out; i++) {
+			(*x_out)[i] = REAL(result)[i];
+		}
+	} else {
+		*x_out = NULL;
 	}
+	
 	UNPROTECT(4);
 
 	return (INLA_OK);
@@ -292,10 +297,15 @@ int inla_R_get(int *n_out, double **x_out, const char *variable)
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
-	*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
-	for (i = 0; i < *n_out; i++) {
-		(*x_out)[i] = REAL(result)[i];
+	if (*n_out > 0) {
+		*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
+		for (i = 0; i < *n_out; i++) {
+			(*x_out)[i] = REAL(result)[i];
+		}
+	} else {
+		*x_out = NULL;
 	}
+	
 	UNPROTECT(2);
 
 	return (INLA_OK);
@@ -325,10 +335,15 @@ int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *mod
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
-	*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
-	for (i = 0; i < *n_out; i++) {
-		(*x_out)[i] = REAL(result)[i];
+	if (*n_out > 0) {
+		*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
+		for (i = 0; i < *n_out; i++) {
+			(*x_out)[i] = REAL(result)[i];
+		}
+	} else {
+		*x_out = NULL;
 	}
+	
 	UNPROTECT(3);
 
 	return (INLA_OK);

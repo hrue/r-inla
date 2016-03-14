@@ -1186,6 +1186,8 @@ typedef struct {
 	double ***theta;
 	double **param;
 	GMRFLib_tabulate_Qfunc_tp **Q;
+	double **mu;
+	double **mu_param;
 } inla_rgeneric_tp;
 
 typedef struct {
@@ -1216,6 +1218,7 @@ typedef struct {
 
 #define R_GENERIC_Q "Q"
 #define R_GENERIC_GRAPH "graph"
+#define R_GENERIC_MU "mu"
 #define R_GENERIC_INITIAL "initial"
 #define R_GENERIC_LOG_NORM_CONST "log.norm.const"
 #define R_GENERIC_LOG_PRIOR "log.prior"
@@ -1247,12 +1250,13 @@ typedef struct {
    functions
  */
 
+
 GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp * constr);
 GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRFLib_constr_tp * constr);
 GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n);
+char *inla_create_hyperid(int id, const char *secname);
 char *inla_fnmfix(char *name);
 char *inla_make_tag(const char *string, int ds);
-char *inla_create_hyperid(int id, const char *secname);
 const char *inla_string_join(const char *a, const char *b);
 double Qfunc_2diid(int i, int j, void *arg);
 double Qfunc_2diid_wishart(int i, int j, void *arg);
@@ -1280,6 +1284,7 @@ double Qfunc_mec(int i, int j, void *arg);
 double Qfunc_ou(int i, int j, void *arg);
 double Qfunc_replicate(int i, int j, void *arg);
 double Qfunc_rgeneric(int i, int j, void *arg);
+double Qfunc_rw2diid(int i, int j, void *arg);
 double Qfunc_sigm(int i, int j, void *arg);
 double Qfunc_slm(int i, int j, void *arg);
 double Qfunc_z(int i, int j, void *arg);
@@ -1290,27 +1295,27 @@ double eval_logsum_safe(double lA, double lB);
 double exp_taylor(double x, double x0, int order);
 double extra(double *theta, int ntheta, void *argument);
 double iid_mfunc(int idx, void *arg);
-double inla_Phi_fast(double x);
-double inla_log_Phi_fast(double x);
 double inla_Phi(double x);
+double inla_Phi_fast(double x);
 double inla_ar1_cyclic_logdet(int N_orig, double phi);
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec, void *arg);
-double inla_update_density(double *theta, inla_update_tp * arg);
 double inla_log_Phi(double x);
+double inla_log_Phi_fast(double x);
+double inla_update_density(double *theta, inla_update_tp * arg);
 double laplace_likelihood_normalising_constant(double alpha, double gamma, double tau);
-double link_cloglog(double x, map_arg_tp typ, void *param, double *cov);
-double link_loglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_cauchit(double x, map_arg_tp typ, void *param, double *cov);
+double link_cloglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_identity(double x, map_arg_tp typ, void *param, double *cov);
 double link_log(double x, map_arg_tp typ, void *param, double *cov);
 double link_logit(double x, map_arg_tp typ, void *param, double *cov);
+double link_loglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_logoffset(double x, map_arg_tp typ, void *param, double *cov);
 double link_probit(double x, map_arg_tp typ, void *param, double *cov);
 double link_special1(double x, map_arg_tp typ, void *param, double *cov);
 double link_special2(double x, map_arg_tp typ, void *param, double *cov);
+double link_sslogit(double x, map_arg_tp typ, void *param, double *cov);
 double link_tan(double x, map_arg_tp typ, void *param, double *cov);
 double link_test1(double x, map_arg_tp typ, void *param, double *cov);
-double link_sslogit(double x, map_arg_tp typ, void *param, double *cov);
 double link_this_should_not_happen(double x, map_arg_tp typ, void *param, double *cov);
 double map_1exp(double arg, map_arg_tp typ, void *param);
 double map_alpha_loglogistic(double arg, map_arg_tp typ, void *param);
@@ -1323,10 +1328,10 @@ double map_exp(double arg, map_arg_tp typ, void *param);
 double map_group_rho(double x, map_arg_tp typ, void *param);
 double map_identity(double arg, map_arg_tp typ, void *param);
 double map_identity_scale(double arg, map_arg_tp typ, void *param);
-double map_invcloglog(double arg, map_arg_tp typ, void *param);
-double map_invloglog(double arg, map_arg_tp typ, void *param);
 double map_invcauchit(double arg, map_arg_tp typ, void *param);
+double map_invcloglog(double arg, map_arg_tp typ, void *param);
 double map_invlogit(double x, map_arg_tp typ, void *param);
+double map_invloglog(double arg, map_arg_tp typ, void *param);
 double map_invprobit(double arg, map_arg_tp typ, void *param);
 double map_invtan(double arg, map_arg_tp typ, void *param);
 double map_p_weibull_cure(double arg, map_arg_tp typ, void *param);
@@ -1344,15 +1349,13 @@ double mfunc_logdist(int i, void *arg);
 double mfunc_mec(int i, void *arg);
 double mfunc_revsigm(int i, void *arg);
 double mfunc_sigm(int i, void *arg);
-double priorfunc_invalid(double *x, double *parameters);
-double priorfunc_ref_ar(double *x, double *parameters);
-double priorfunc_pc_ar(double *x, double *parameters);
 double priorfunc_beta(double *x, double *parameters);
 double priorfunc_betacorrelation(double *x, double *parameters);
 double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logprec_iid, double *p_iid);
 double priorfunc_flat(double *x, double *parameters);
 double priorfunc_gamma(double *precision, double *parameters);
 double priorfunc_gaussian(double *x, double *parameters);
+double priorfunc_invalid(double *x, double *parameters);
 double priorfunc_jeffreys_df_student_t(double *x, double *parameters);
 double priorfunc_logflat(double *x, double *parameters);
 double priorfunc_loggamma(double *x, double *parameters);
@@ -1361,11 +1364,13 @@ double priorfunc_logitbeta(double *x, double *parameters);
 double priorfunc_minuslogsqrtruncnormal(double *x, double *parameters);
 double priorfunc_mvnorm(double *x, double *parameters);
 double priorfunc_normal(double *x, double *parameters);
-double priorfunc_pc_dof(double *x, double *parameters);
-double priorfunc_pc_prec(double *x, double *parameters);
+double priorfunc_pc_ar(double *x, double *parameters);
 double priorfunc_pc_cor0(double *x, double *parameters);
 double priorfunc_pc_cor1(double *x, double *parameters);
+double priorfunc_pc_dof(double *x, double *parameters);
+double priorfunc_pc_prec(double *x, double *parameters);
 double priorfunc_pc_spde_ga(double *x, double *parameters);
+double priorfunc_ref_ar(double *x, double *parameters);
 double priorfunc_wishart(int dim, double *x, double *parameters);
 double priorfunc_wishart1d(double *x, double *parameters);
 double priorfunc_wishart1d(double *x, double *parameters);
@@ -1376,10 +1381,10 @@ double priorfunc_wishart3d(double *x, double *parameters);
 double priorfunc_wishart4d(double *x, double *parameters);
 double priorfunc_wishart5d(double *x, double *parameters);
 double priorfunc_wishart_generic(int idim, double *x, double *parameters);
+double rgeneric_mfunc(int idx, void *arg);
 inla_file_contents_tp *inla_read_file_contents(const char *filename);
 inla_iarray_tp *find_all_f(inla_tp * mb, inla_component_tp id);
 inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir);
-int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj);
 int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q);
 int ar_pacf2phi(int p, double *pacf, double *phi);
 int ar_phi2pacf(int p, double *phi, double *pacf);
@@ -1389,7 +1394,9 @@ int find_f(inla_tp * mb, inla_component_tp id);
 int find_tag(inla_tp * mb, const char *name);
 int inla_INLA(inla_tp * mb);
 int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new);
+int inla_R(char **argv);
 int inla_add_copyof(inla_tp * mb);
+int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj);
 int inla_computed(GMRFLib_density_tp ** d, int n);
 int inla_divisible(int n, int by);
 int inla_endian(void);
@@ -1408,8 +1415,8 @@ int inla_iid3d_adjust(double *rho);
 int inla_iid_wishart_adjust(int dim, double *rho);
 int inla_iid_wishart_nparam(int dim);
 int inla_initial_setup(inla_tp * mb);
-int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp * density, map_func_tp * func, void *func_arg,
-			GMRFLib_transform_array_func_tp * tfunc);
+int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp * density, map_func_tp * func,
+			void *func_arg, GMRFLib_transform_array_func_tp * tfunc); 
 int inla_is_NAs(int nx, const char *string);
 int inla_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * density);
 int inla_layout_x_ORIG(double **x, int *n, double xmin, double xmax, double mean);
@@ -1420,18 +1427,20 @@ int inla_make_3diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_3diid_arg_tp *
 int inla_make_ar1_graph(GMRFLib_graph_tp ** graph, inla_ar1_arg_tp * arg);
 int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp * graph);
 int inla_make_bym_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph);
-int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type, int cyclic, int order, GMRFLib_graph_tp * group_graph);
+int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type, int cyclic,
+			  int order, GMRFLib_graph_tp * group_graph);
 int inla_make_iid2d_graph(GMRFLib_graph_tp ** graph, inla_iid2d_arg_tp * arg);
 int inla_make_iid3d_graph(GMRFLib_graph_tp ** graph, inla_iid3d_arg_tp * arg);
 int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_tp * arg);
 int inla_make_ou_graph(GMRFLib_graph_tp ** graph, inla_ou_arg_tp * arg);
+int inla_make_rw2diid_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def);
 int inla_mkdir(const char *dirname);
 int inla_ncpu(void);
 int inla_output(inla_tp * mb);
 int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
-int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, double *locations, int n, int nrep, Output_tp * output,
-		       const char *sdir, map_func_tp * func, void *func_arg, GMRFLib_transform_array_func_tp ** tfunc, const char *tag, const char *modelname,
-		       int verbose);
+int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, double *locations,
+		       int n, int nrep, Output_tp * output, const char *sdir, map_func_tp * func, void *func_arg,
+		       GMRFLib_transform_array_func_tp ** tfunc, const char *tag, const char *modelname, int verbose);
 int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *family_idx, int len_family_idx, int verbose);
 int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp * mlik, int verbose);
@@ -1442,15 +1451,15 @@ int inla_output_detail_theta_sha1(unsigned char *sha1_hash, double ***theta, int
 int inla_output_detail_x(const char *dir, double *x, int n_x);
 int inla_output_graph(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
 int inla_output_hgid(const char *dir);
+int inla_output_hyperid(const char *dir, const char *sdir, char *hyperid);
 int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_tp * fc);
 int inla_output_linkfunctions(const char *dir, inla_tp * mb);
 int inla_output_matrix(const char *dir, const char *sdir, const char *filename, int n, double *matrix, int *order);
-int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta, char **theta_tag, char **from_theta, char **to_theta, double *lc_order,
-		     int verbose, inla_tp * mb);
+int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta, char **theta_tag,
+		     char **from_theta, char **to_theta, double *lc_order, int verbose, inla_tp * mb);
 int inla_output_names(const char *dir, const char *sdir, int n, const char **names, const char *suffix);
 int inla_output_ok(const char *dir);
 int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal, int ngroup, int nrep);
-int inla_output_hyperid(const char *dir, const char *sdir, char *hyperid);
 int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir);
 int inla_parse_data(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec);
@@ -1461,20 +1470,23 @@ int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out);
 int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int mkdir);
+int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int make_dir);
 int inla_print_sha1(FILE * fp, unsigned char *md);
 int inla_qinv(const char *filename, const char *outfile, const char *constrfile);
 int inla_qreordering(const char *filename);
-int inla_qsample(const char *filename, const char *outfile, const char *nsamples, const char *rngfile, const char *samplefile, const char *bfile,
-		 const char *mufile, const char *constr_file, const char *meanfile);
+int inla_qsample(const char *filename, const char *outfile, const char *nsamples, const char *rngfile,
+		 const char *samplefile, const char *bfile, const char *mufile, const char *constr_file, const char *meanfile);
 int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilename, const char *method);
 int inla_read_data_all(double **x, int *n, const char *filename);
-int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filename, int n, int column, int n_columns, int verbose, double default_value);
+int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filename, int n, int column,
+			   int n_columns, int verbose, double default_value);
 int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec);
 int inla_read_fileinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file, const char *FILENAME);
 int inla_read_graph(const char *filename);
 int inla_read_prior(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
+int inla_read_prior10(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
@@ -1483,14 +1495,14 @@ int inla_read_prior6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 int inla_read_prior7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior10(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N);
-int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag, const char *param_tag, const char *from_theta,
-			    const char *to_theta, const char *hyperid, const char *default_prior);
-int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int make_dir);
+int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag,
+			    const char *param_tag, const char *from_theta, const char *to_theta,
+			    const char *hyperid, const char *default_prior);
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
+int inla_read_prior_group10(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
@@ -1499,7 +1511,6 @@ int inla_read_prior_group6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * p
 int inla_read_prior_group7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior_group10(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_link(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_link0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_link1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
@@ -1524,17 +1535,17 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
-int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
-int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
-int loglikelihood_kumar(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_inla(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_kumar(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_laplace(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_loggamma_frailty(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
@@ -1570,7 +1581,6 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 int loglikelihood_zeroinflated_poisson0(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
-int inla_R(char **argv);
 int my_file_exists(const char *filename);
 int my_setenv(char *str, int prefix);
 int testit(int argc, char **argv);
@@ -1578,9 +1588,6 @@ map_table_tp *mapfunc_find(const char *name);
 unsigned char *inla_fp_sha1(FILE * fp);
 unsigned char *inla_inifile_sha1(const char *filename);
 void inla_signal(int sig);
-
-int inla_make_rw2diid_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def);
-double Qfunc_rw2diid(int i, int j, void *arg);
 
 /* 
 ***
