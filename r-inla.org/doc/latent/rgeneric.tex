@@ -18,7 +18,7 @@ be evaluated in \texttt{R} within a \texttt{C}-program.
 \section*{Defining a latent model in \texttt{R}}
 
 The use of this feature, is in short the following. First we pass our
-definition of the model \texttt{model}, to define a
+definition of the model \texttt{rmodel}, to define a
 \texttt{inla-rgeneric} object,
 {\small
 \begin{verbatim}
@@ -144,11 +144,10 @@ The input parameters are
 \item[cmd] What to return
 \item[theta] The values of the $\theta$-parameters
 \item[args] User-defined argument(s) from the
-    \texttt{inla.rgeneric.define()}-call. In this example we use
-    \texttt{n} as the user-defined argument and
-    pass it to every function. We then need to pass \texttt{n} 
-    when we define the model
-{\small
+    \texttt{inla.rgeneric.define()}-call; all arguments in
+    \texttt{<args>} as a list. In this example we use \texttt{n} as
+    the user-defined argument and pass it to every function. We then
+    need to pass \texttt{n} when we define the model {\small
 \begin{verbatim}
         model = inla.rgeneric.define(inla.rgeneric.ar1.model, n = 100)
 \end{verbatim}
