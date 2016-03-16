@@ -6,9 +6,10 @@
 ##! 
 ##! \title{Generate samples from an approximated posterior of a fitted model}
 ##! 
-##! \description{This function generate samples from an approximated posterior of a fitted model,  ie an inla-object}
+##! \description{This function generate samples from an approximated posterior
+##!              of a fitted model (an inla-object}
 ##! \usage{
-##!     inla.posterior.sample(n = 1L, result, hyper.user.scale = TRUE, use.improved.mean = TRUE,
+##!     inla.posterior.sample(n = 1L, result, intern = FALSE, use.improved.mean = TRUE,
 ##!                           add.names = TRUE)
 ##! }
 ##! 
@@ -17,14 +18,13 @@
 ##!   \item{result}{The inla-object, ie the output from an \code{inla}-call.
 ##!                 The \code{inla}-object must be created with
 ##!                 \code{control.compute=list(config=TRUE)}.}
-##!   \item{hyper.user.scale}{Logical. If \code{TRUE} then values of
-##!   the hyperparameters are given in the user scale (for example
-##!   \code{precision}). If \code{FALSE} then values of the
-##!   hyperparameters are given in the internal representation (for
-##!   example \code{log(precision)}).}
 ##!   \item{use.improved.mean}{Logical. If \code{TRUE} then use the
 ##!   marginal mean values when constructing samples. If \code{FALSE}
 ##!   then use the mean in the Gaussian approximations.}
+##!  \item{intern}{Logical. If \code{TRUE} then produce samples in the
+##!  internal scale for the hyperparmater, if \code{FALSE} then produce
+##!  samples in the user-scale. (For example log-precision (intern)
+##!  and precision (user-scale))}
 ##!   \item{add.names}{Logical. If \code{TRUE} then add name for each elements of each
 ##!                sample. If \code{FALSE}, only add name for the first sample. 
 ##!                (This save space.)}
@@ -42,7 +42,7 @@
 ##!}
 
 
-`inla.posterior.sample` = function(n = 1, result, hyper.user.scale = TRUE,
+`inla.posterior.sample` = function(n = 1, result, intern = FALSE,
                                    use.improved.mean = TRUE, add.names = TRUE)
 {
     warning("inla.posterior.sample: THIS FUNCTION IS EXPERIMENTAL!!!")
@@ -90,11 +90,11 @@
             
             theta = cs$config[[k]]$theta
             log.J = 0.0
-            if (!is.null(theta) && hyper.user.scale) {
+            if (!is.null(theta) && !intern) {
                 for(j in 1:length(theta)) {
                     theta[j] = do.call(result$misc$from.theta[[j]], args = list(theta[j]))
                 }
-                names(theta) = paste(names(theta), "-- in user scale")
+                names(theta) = inla.transform.names(result, names(theta))
                 
                 if (TRUE) {
                     ## new fancy code using the automatic differentiation feature in R

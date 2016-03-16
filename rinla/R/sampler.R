@@ -17,7 +17,7 @@
 ##!  \item{n}{Integer. Number of samples required.}
 ##!  \item{result}{An \code{inla}-object,  f.ex the output from an \code{inla}-call.}
 ##!  \item{intern}{Logical. If \code{TRUE} then produce samples in the
-##!  intern scale for the hyperparmater, if \code{FALSE} then produce
+##!  internal scale for the hyperparmater, if \code{FALSE} then produce
 ##!  samples in the user-scale. (For example log-precision (intern)
 ##!  and precision (user-scale))}
 ##!}
@@ -41,7 +41,7 @@
 {
     ## generate 'n' samples from the joint for the hyperparameters
     ## computed using the CCD approach. if intern==TRUE, then generate
-    ## the variables in their internal scale otherwise in the user
+    ## the variables in their intern scale otherwise in the user
     ## scale.
     
     stopifnot(!is.null(result))
@@ -94,9 +94,35 @@
     if (intern) {
         colnames(theta) = names(result$misc$to.theta)
     } else {
-        colnames(theta) = paste(names(result$misc$to.theta), "in user-scale")
+        colnames(theta) = inla.transform.names(result, names(result$misc$to.theta))
     }
     rownames(theta) = paste("sample-", inla.num(1L:n), sep="")
 
     return (theta)
+}
+
+inla.transform.names = function(res, nms)
+{
+    ## enter name of a hyperpar, return the corresponding name in either in the internal or user
+    ## scale
+    ret = c()
+    for (nm in nms) {
+        def = paste(nm, "-- unknown")
+        if (is.null(res$internal.summary.hyperpar) || is.null(res$summary.hyperpar)) {
+            ret = c(ret, def)
+        } else {
+            i = which(nm == rownames(r$internal.summary.hyperpar))
+            if (length(i) == 1) {
+                ret = c(ret, rownames(r$summary.hyperpar)[i])
+            } else {
+                i = which(nm == rownames(r$summary.hyperpar))
+                if (length(i) == 1) {
+                    ret = c(ret, rownames(r$internal.summary.hyperpar)[i])
+                } else {
+                    ret = c(ret, def)
+                }
+            }
+        }
+    }
+    return (ret)
 }
