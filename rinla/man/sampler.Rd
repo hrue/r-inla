@@ -19,7 +19,7 @@ inla.hyperpar.sample(n, result, intern=FALSE)
   \item{n}{Integer. Number of samples required.}
   \item{result}{An \code{inla}-object,  f.ex the output from an \code{inla}-call.}
   \item{intern}{Logical. If \code{TRUE} then produce samples in the
-  intern scale for the hyperparmater, if \code{FALSE} then produce
+  internal scale for the hyperparmater, if \code{FALSE} then produce
   samples in the user-scale. (For example log-precision (intern)
   and precision (user-scale))}
 }
