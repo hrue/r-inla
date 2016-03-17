@@ -23,7 +23,7 @@
               postscript = FALSE,
               pdf = FALSE,
               prefix = "inla.plots/figure-",
-              internal.scale = FALSE, 
+              intern = FALSE, 
               debug = FALSE, 
               ...)
  }
@@ -47,7 +47,7 @@
    \item{postscript}{Boolean indicating if postscript files should be produced instead}
    \item{pdf}{Boolean indicating if PDF files should be produced instead}
    \item{prefix}{The prefix for the created files. Additional numbering and suffix is added.}
-   \item{internal.scale}{Plot also the hyperparameters in its internal scale.}
+   \item{intern}{Plot also the hyperparameters in its internal scale.}
    \item{debug}{Write some debug information}
    \item{...}{Additional arguments to \code{postscript()}, \code{pdf()} or \code{dev.new()}.}
  }
