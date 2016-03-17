@@ -21,7 +21,7 @@
 ##!              postscript = FALSE,
 ##!              pdf = FALSE,
 ##!              prefix = "inla.plots/figure-",
-##!              internal.scale = FALSE, 
+##!              intern = FALSE, 
 ##!              debug = FALSE, 
 ##!              ...)
 ##! }
@@ -45,7 +45,7 @@
 ##!   \item{postscript}{Boolean indicating if postscript files should be produced instead}
 ##!   \item{pdf}{Boolean indicating if PDF files should be produced instead}
 ##!   \item{prefix}{The prefix for the created files. Additional numbering and suffix is added.}
-##!   \item{internal.scale}{Plot also the hyperparameters in its internal scale.}
+##!   \item{intern}{Plot also the hyperparameters in its internal scale.}
 ##!   \item{debug}{Write some debug information}
 ##!   \item{...}{Additional arguments to \code{postscript()}, \code{pdf()} or \code{dev.new()}.}
 ##! }
@@ -76,7 +76,7 @@
              postscript = FALSE,
              pdf = FALSE,
              prefix = "inla.plots/figure-",
-             internal.scale = FALSE, 
+             intern = FALSE, 
              debug = FALSE, 
              ...)
 {
@@ -448,7 +448,7 @@
                         id = unlist(strsplit(attr(hyper[[i]], "hyperid"), "\\|"))
                         if (length(id) > 0) {
                             xy = (inla.get.prior.xy(section = tolower(id[2]), hyperid = id[1],
-                                                    all.hyper = all.hyper, range = range(m$x), internal.scale = FALSE,
+                                                    all.hyper = all.hyper, range = range(m$x), intern = FALSE,
                                                     debug = debug))
                             lines(xy, lwd = 1, col = "blue")
                         }
@@ -458,7 +458,7 @@
         }
     }
 
-    if (plot.hyperparameters && internal.scale) {
+    if (plot.hyperparameters && intern) {
         hyper = x$internal.marginals.hyperpar
         if (!is.null(hyper)) {
             nhyper = length(hyper)
@@ -491,7 +491,7 @@
                         id = unlist(strsplit(attr(hyper[[i]], "hyperid"), "\\|"))
                         if (length(id) > 0) {
                             xy = (inla.get.prior.xy(section = tolower(id[2]), hyperid = id[1], 
-                                                    all.hyper = all.hyper, range = range(m$x), internal.scale = TRUE,
+                                                    all.hyper = all.hyper, range = range(m$x), intern = TRUE,
                                                     debug = debug))
                             lines(xy, lwd = 1, col = "blue")
                         }
@@ -841,7 +841,7 @@ inla.extract.prior = function(section = NULL, hyperid = NULL, all.hyper, debug=F
 }
 
 inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FALSE,
-    len = 1000, range, internal.scale = FALSE)
+    len = 1000, range, intern = FALSE)
 {
     str.trunc = function(..., max.len = 32)
     {
@@ -984,7 +984,7 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
     }
     output("prior: ", str.trunc(prior$prior), " param: ", str.trunc(prior$param))
 
-    if (internal.scale) {
+    if (intern) {
         ## use a linear scale. 'x' is in the linear scale
         x = seq(range[1], range[2], len = len)
         y = do.call(myp, list(theta=x, param = prior$param))
