@@ -17789,6 +17789,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		def->n = mb->f_n[mb->nf];
 		def->p = mb->f_order[mb->nf];
+		assert((def->n > def->p) && (def->p > 0));
 		def->log_prec = log_prec;
 		def->pacf_intern = pacf_intern;
 
@@ -18239,6 +18240,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		def = Calloc(1, inla_ar1_arg_tp);
 		def->n = mb->f_n[mb->nf];
+		assert(def->n > 1);
 		def->cyclic = mb->f_cyclic[mb->nf];
 		def->log_prec = log_prec;
 		def->phi_intern = phi_intern;
