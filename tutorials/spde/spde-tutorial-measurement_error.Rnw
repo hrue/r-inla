@@ -90,6 +90,8 @@ kappa.m <- 7;          sigma2.m <- 3
 kappa.x <- 10;         sigma2.x <- 2
 @ 
 and we use the \code{rspde} function from Chapter~\ref{ch:spde}. 
+This function is available in the file at                      
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/spde-tutorial-functions.R}.
 This function need a mesh to do simulation. 
 We can provide the mesh or it is builded automatically. 
 We build a mesh to provide taking into account the 

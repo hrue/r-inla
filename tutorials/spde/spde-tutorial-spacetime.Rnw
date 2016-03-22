@@ -6,8 +6,8 @@ options(width=75, prompt = " ", continue = "   ")
 require(lattice) 
 require(INLA)
 lcall <- inla.getOption('inla.call')
-#inla.setOption(inla.call='remote')
-#inla.setOption(num.threads=7)
+inla.setOption(inla.call='remote')
+inla.setOption(num.threads=8)
 source('spde-tutorial-functions.R')
 load('prmesh1.RData')
 @ 
@@ -66,6 +66,10 @@ data(PRprec)
 coords <- as.matrix(PRprec[sample(1:nrow(PRprec)), 1:2])
 @ 
 
+In the following simulation step we will use the \texttt{rspde()} 
+function defined in Section~\ref{sec:simula}. 
+This function is available in the file at
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/spde-tutorial-functions.R}.
 <<echo=F,results=hide>>=
 inla.setOption(inla.call=lcall)
 @ 

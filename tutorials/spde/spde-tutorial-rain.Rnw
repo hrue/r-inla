@@ -578,5 +578,5 @@ sd.prd.s[xy.in] <- drop(Aprd %*% apply(pred.nodes, 1, sd))
 and we can see that it is similar to the computed analitically
 <<comparepreds>>=
 cor(as.vector(m.prd.s), as.vector(m.prd), use='p')
-cor(as.vector(sd.prd.s), as.vector(sd.prd), use='p')
+cor(log(as.vector(sd.prd.s)), log(as.vector(sd.prd)), use='p')
 @ 

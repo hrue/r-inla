@@ -6,8 +6,8 @@ options(width=75, prompt = " ", continue = "   ")
 require(INLA)
 require(fields)
 lcall <- inla.getOption('inla.call')
-#inla.setOption(inla.call='remote')
-#inla.setOption(num.threads=7)
+inla.setOption(inla.call='remote')
+inla.setOption(num.threads=8)
 @ 
 
 In this chapter we shown how to fit a survival model using a 
@@ -195,7 +195,7 @@ cor(as.vector(m.spat),
     as.vector(inla.mesh.project(
         prj, cph.res$summary.ran$spatial$mean)), use='p')
 
-cor(as.vector(sd.spat), 
-    as.vector(inla.mesh.project(
-        prj, cph.res$summary.ran$spatial$sd)), use='p')
+cor(log(as.vector(sd.spat)), 
+    log(as.vector(inla.mesh.project(
+        prj, cph.res$summary.ran$spatial$sd))), use='p')
 @ 

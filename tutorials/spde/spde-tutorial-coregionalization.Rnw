@@ -6,7 +6,7 @@ options(width=77, prompt = " ", continue = "   ")
 require(INLA)
 lcall <- inla.getOption('inla.call')
 inla.setOption(inla.call='remote')
-inla.setOption(num.threads=7)
+inla.setOption(num.threads=8)
 source('spde-tutorial-functions.R')
 set.seed(1)
 @ 
@@ -81,11 +81,13 @@ spatial locations and the same time points for all three processes.
 loc <- cbind(runif(n), runif(n)) 
 @ 
 
-We use the function defined in the section~\ref{sec:simula} 
+We can use the \texttt{rspde()} function defined in the section~\ref{sec:simula}
 to simulate independent random field realizations for each time. 
 <<echo=F,result=hide>>=
 inla.setOption(inla.call=lcall)
 @ 
+This function is available in the file at 
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/spde-tutorial-functions.R}
 <<rfs,results=hide>>=
 x1 <- rspde(loc, kappa[1], m.var[1], n=k, seed=1)
 x2 <- rspde(loc, kappa[2], m.var[2], n=k, seed=2)
@@ -141,7 +143,7 @@ g1 = g2 = g3 = g12 = g13 = g23 = rep(1:k, each=spde$n.spde)
 
 Prior for $\rho_j$ is chosen as the Penalized Complexity prior, \cite{simpsonMRFRS:2015}
 <<pbeta>>=
-rho1p <- list(theta=list(prior='pc.rho1', param=c(0, 0.9))) 
+rho1p <- list(theta=list(prior='pccor1', param=c(0, 0.9))) 
 ctr.g <- list(model='ar1', hyper=rho1p)
 @ 
 Ther prior chosen above consider $P(\rho>0)=0.9$.
