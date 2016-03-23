@@ -47,3 +47,8 @@ for m in 32 64; do
     done
     fix-perm $d/windows/${m}bit
 done
+
+rsync -auv $LINUX:builds/build.static/local/bin/inla $d/linux/64bit/inla.static
+rsync -auv $LINUX:builds/build.static/local/bin/fmesher $d/linux/64bit/fmesher.static
+
+
