@@ -27304,7 +27304,7 @@ int testit(int argc, char **argv)
 #undef PPP
 	}
 
-	if (1) {
+	if (0) {
 		printf("test R, source %s\n", argv[0]);
 		inla_R_source(argv[0]);
 
