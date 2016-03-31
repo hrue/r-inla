@@ -2,7 +2,7 @@
 title: "SPDE how to"
 author: "Elias T. Krainski"
 date: "created: March 31, 2016, last update `r Sys.Date()`"
-output: rmarkdown::pdf_document
+output: rmarkdown::html_vignette
 vignette: >
   \VignetteIndexEntry{SPDEhowto}
   \VignetteEngine{knitr::rmarkdown}
