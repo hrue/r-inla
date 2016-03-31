@@ -1,11 +1,9 @@
 ---
 title: "SPDE how to"
 author: "Elias T. Krainski"
-date: "created: March 31, 2016, last update `r Sys.Date()`"
-vignette: >
-  %\VignetteIndexEntry{SPDEhowto}
-  %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc}
+date: 'created: March 31, 2016, last update `r Sys.Date()`'
+output: html_document
+vignette: "%\\VignetteIndexEntry{SPDEhowto} \n%\\VignetteEngine{knitr::knitr} \n\\usepackage[utf8]{inputenc}\n"
 ---
 
 # A short introduction on how to fit a **SPDE** model using **INLA**
@@ -24,8 +22,15 @@ implementation in the package available at
 <http://www.r-inla.org>.
 
 
-```{r, include=FALSE}
+```{r settings, include=FALSE}
 library(knitr);  library(INLA);  library(fields) 
+opts_chunk$set(message=FALSE, warning=FALSE, tidy=FALSE, fig.align='center')
+knit_hooks$set(small.mar = function(before, options, envir) {
+    if (before) par(mar = c(0.1, 0.1, .1, .1))  # smaller margin on top and right
+})
+knit_hooks$set(mar3311 = function(before, options, envir) {
+    if (before) par(mar = c(3, 3, 1, 1), mgp=c(2, 1, 0))  # smaller margin on top and right
+})
 set.seed(1) 
 ```
 
@@ -37,7 +42,7 @@ and the Random Field (RF)
 **covariance** matrix, considering
 exponential correlation function: 
 
-```{r, tidy=FALSE}
+```{r locations}
 n = 200  ## number of location points
 coo = matrix(runif(2*n), n) ## location points
 k <- 10;   s2s <- 0.7 ## RF parameters
@@ -46,13 +51,13 @@ R <- s2s*exp(-k*as.matrix(dist(coo))) ## covariance matrix
 
 Draw a **RF** sample: a multivariate Normal realization 
   
-```{r, tidy=FALSE}
+```{r field simulate}
 s <- drop(rnorm(n)%*%chol(R)) ## one RF realization
 ```
 
 Adding a **covariate** effect and a noise
 
-```{r,tidy=FALSE}
+```{r covariate and outcome}
 x <- runif(n)  ## covariate
 beta <- 1:2  ## regression coefficients
 lin.pred <- beta[1] + beta[2]*x + s ## linear predictor
@@ -66,14 +71,13 @@ y <- lin.pred + rnorm(n, 0, sqrt(s2e))  ## the outcome
 a triangulation to discretize the 
 random field (RF) at 'm' nodes. 
 
-```{r, tidy=FALSE, fig.width=5, fig.height=5.1, out.width='0.57\\textwidth', fig.align='center'}
+```{r mesh, fig.width=4.5, fig.height=4.6, small.mar=TRUE}
+r0.1 <- sqrt(0.5 * 8)/k ## distance with correlation around 0.139
 mesh <- inla.mesh.2d( ## 2D mesh creator
   loc=coo, ## provided locations 
-  ## works if only domain or boundary are provided
-  max.edge=c(1/k, 3/k), ## maximum edge length (inner, outer): mandatory 
-  offset=c(1/k, 5/k), ## outer extension
-  cutoff=0.1/k) ## good to have >0
-### visualize it
+  max.edge=c(r0.1/3, r0.1), ## maximum edge length (inner, outer): mandatory 
+  offset=c(r0.1/3, r0.1*2), ## outer extension
+  cutoff=r0.1/10) ## good to have >0
 par(mar=c(0,0,1,0))
 plot(mesh, asp=1) ## plot the mesh
 points(coo, col='red') ## add the points 
@@ -94,7 +98,7 @@ might not be any spatial effect.
 * __Define the__ _n x m_ __projector matrix__ to project 
  the process at the mesh nodes to locations 
 
-```{r, projector, tidy=FALSE}
+```{r, projector, fig.width=8, fig.height=4.5, small.mar=TRUE}
 image(A <- inla.spde.make.A( ## projector creator
     mesh=mesh, ## provide the mesh
     loc=coo) ### locations where to project the field
@@ -105,7 +109,7 @@ image(A <- inla.spde.make.A( ## projector creator
 Set $\alpha=3/2$ to build the precision structure for 
 an Exponential correlation function
 
-```{r,tidy=FALSE}
+```{r SPDE model}
 spde <- inla.spde2.matern( ## precision components creator
     mesh=mesh, ## mesh supplied
     alpha=1.5) ## smoothness parameter
@@ -119,7 +123,7 @@ with the covariate (and the intercept)
 effect at _n_ locations. 
 We do it using different projector matrices. 
 
-```{r, tidy=FALSE}
+```{r data stack}
 stk.e <- inla.stack( ## stack creator
   data=list(y=y),  ## response
   effects=list(## two elements:
@@ -134,7 +138,7 @@ stk.e <- inla.stack( ## stack creator
 * __Fit__ the posterior marginal distributions
   for all model parameters 
 
-```{r, tidy=FALSE, message=FALSE, warning=FALSE}
+```{r fitting}
 formula <- y ~ 0 + b0 + x + ## fixed part
   f(s, model=spde) ## RF term
 res <- inla( ## main function in INLA package
@@ -149,19 +153,18 @@ res <- inla( ## main function in INLA package
 
 Summary of the regression coefficients PMDs
 
-```{r}
+```{r fixed}
 round(res$summary.fixed, 4) 
 ```
 We have to transform the precision PMD to have 
 the variance PMD. It can be done and visialized by
 
-```{r, tidy=FALSE, fig.width=3.5, fig.height=3.5, out.width='0.35\\textwidth', fig.align='center', fig.pos='h'}
+```{r nugget, fig.width=3.5, fig.height=3, mar3311=TRUE}
 m.prec <- res$marginals.hyperpar$'Precision for the Gaussian observations' ## the marginal
 post.s2e <- inla.tmarginal(## function to compute a tranformation 
-  function(x) 1/x, ## consider the inverse transformation
-  m.prec) ## of this marginal
+  function(x) 1/x, ## inverse transformation
+  m.prec) ## marginal to be applied
 ### visualize it
-par(mar=c(2.5,2.5,0.1,0.1), mgp=c(1.7,0.5,0))
 plot(post.s2e, type='l', ylab='Density', 
      xlab=expression(sigma[e]^2))
 abline(v=s2e, col=2) ## add value used to generate the data
@@ -176,7 +179,7 @@ an additional computation.
 The PMDs for all RF parameters on 
 user scale are computed by
 
-```{r} 
+```{r rf} 
 rf <- inla.spde.result( ## function to compute the 'interpretable' parameters
     inla=res, ## the inla() output
     name='s', ## name of RF index set
@@ -186,7 +189,7 @@ rf <- inla.spde.result( ## function to compute the 'interpretable' parameters
 
 It can be visualized by 
 
-```{r, fig.width=7.5, fig.height=2.5, out.width='0.99\\textwidth', out.height='0.33\\textwidth', fig.align='center', fig.pos='h', fig.keep='last'}
+```{r parameters, fig.width=10, fig.height=3}
 par(mfrow=c(1,3), mar=c(3,3,0.3,0.3), mgp=c(2,0.5,0))
 plot(rf$marginals.var[[1]], ty='l', 
      xlab=expression(sigma[s]^2), yla='Density')
@@ -207,7 +210,7 @@ We just have to define the projector matrix
 and project, for example, the posterior 
 mean and posterior standard deviation on the grid. 
 
-```{r}
+```{r project}
 gproj <- inla.mesh.projector( ## projector builder
   mesh, ## mesh used to define the model
   xlim=0:1, ylim=0:1, ## limits where to create the grid
@@ -218,7 +221,7 @@ g.sd <- inla.mesh.project(gproj, res$summary.random$s$sd)
 ```
 
 We can visualize it by 
-```{r, tidy=FALSE, fig.width=9, fig.height=5, out.width='0.97\\textwidth', fig.align='center', fig.pos='h'}
+```{r visualize, fig.width=9, fig.height=5}
 par(mfrow=c(1,2), mar=c(0,0,1,0))
 require(fields)
 image.plot(g.mean, asp=1, main='RF posterior mean', axes=FALSE, horizontal=TRUE)
@@ -231,7 +234,7 @@ Define the set of target locations,
 the corresponding projector 
 matrix and covariate values at target locations 
 
-```{r}
+```{r prediction scenario}
 tcoo <- rbind(c(0.3,0.3), c(0.5,0.5), c(0.7,0.7))
 dim(Ap <- inla.spde.make.A(mesh=mesh, loc=tcoo)) 
 x0 <- c(0.5, 0.5, 0.5)
@@ -243,7 +246,7 @@ estimation process by assigning NA
 for the response at these locations. 
 Defining the prediction stack 
 
-```{r}
+```{r prediction stack} 
 stk.pred <- inla.stack(
   tag='pred', ## will be used to collect the posterior marginals
   data=list(y=NA), ## response set as NA
@@ -255,7 +258,7 @@ stk.pred <- inla.stack(
 
 Fit the model again with the full stack 
 
-```{r}
+```{r refitting}
 stk.full <- inla.stack(stk.e, stk.pred) ## join both data
 p.res <- inla(
   formula, data=inla.stack.data(stk.full), ## using the full data 
@@ -267,7 +270,7 @@ p.res <- inla(
 Get the prediction data index and collect the 
 linear predictor PMDs  to work with 
 
-```{r}
+```{r prediction index}
 pred.ind <- inla.stack.index( ## stack index extractor function
   stk.full, ## the data stack to be considered
   tag='pred' ## which part of the data to look at
@@ -277,7 +280,7 @@ ypost <- p.res$marginals.fitted.values[pred.ind]
 
 Visualize with commands bellow
 
-```{r, tidy=FALSE, fig.width=8, fig.height=3, out.width='0.99\\textwidth', out.height='0.35\\textwidth', fig.pos='h', fig.keep='last'}
+```{r predicted, fig.width=10, fig.height=3}
 xyl <- apply(Reduce('rbind', ypost), 2, range)
 par(mfrow=c(1,3), mar=c(3,3,2,1), mgp=c(2,1,0))
 for (j in 1:3) 
@@ -289,15 +292,15 @@ We have already used the *inla.tmarginal()* function.
 There are some other functions to work with 
 marginal distributions which may be usefull as well: 
 
-```{r}
+```{r marginals}
 apropos('marginal')
 ```
 
 Playing with the posterior marginal for the first target location
-```{r}
+```{r marginals playing}
 inla.qmarginal(c(0.15, 0.7), ypost[[1]]) ## quantiles
 inla.emarginal(function(x) x^2, ypost[[1]]) - ## E(y^2) -
-  inla.emarginal(function(x) x, ypost[[1]])^2 ## E(y)^2 = variance
+  inla.emarginal(function(x) x, ypost[[1]])^2 ## E(y)^2 to compute the variance
 inla.pmarginal(inla.qmarginal(0.3, ypost[[1]]), ypost[[1]]) 
 inla.zmarginal(ypost[[1]]) ## posterior summary
 ```
