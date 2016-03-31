@@ -25,7 +25,7 @@
 `inla.doc` = function(what, sec, verbose=FALSE)
 {
     what = inla.trim.family(what)
-    sections = names(inla.models())
+    sections = names(inla.models(), "../vignettes")
     m = inla.models()
 
     for(section in 1:length(m)) {
