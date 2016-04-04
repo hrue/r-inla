@@ -1832,7 +1832,7 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 			}
 			for (jj = 0; jj < a->ntheta; jj++) {
 				a->param[id][jj] = a->theta[jj][GMRFLib_thread_id][0];
-				if (debug){
+				if (debug) {
 					printf("\ttheta[%1d] %.20g\n", jj, a->param[id][jj]);
 				}
 			}
@@ -1905,7 +1905,7 @@ double mfunc_rgeneric(int i, void *arg)
 			}
 			for (jj = 0; jj < a->ntheta; jj++) {
 				a->mu_param[id][jj] = a->theta[jj][GMRFLib_thread_id][0];
-				if (debug){
+				if (debug) {
 					printf("\ttheta[%1d] %.20g\n", jj, a->mu_param[id][jj]);
 				}
 			}
@@ -1921,7 +1921,7 @@ double mfunc_rgeneric(int i, void *arg)
 			if (n > 0) {
 				assert(n == a->n);
 				a->mu[id] = Calloc(n, double);
-				memcpy((void *) (a->mu[id]), (void *) &(x_out[k]), n*sizeof(double));
+				memcpy((void *) (a->mu[id]), (void *) &(x_out[k]), n * sizeof(double));
 			} else {
 				a->mu[id] = Calloc(a->n, double);
 			}
@@ -4410,7 +4410,7 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_ve
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y), lambda;
-	
+
 	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
@@ -15378,8 +15378,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		int ntheta;
-		double *initial = NULL; 
-		
+		double *initial = NULL;
+
 		ntheta = (int) x_out[0];
 		if (ntheta) {
 			initial = &(x_out[1]);
@@ -18167,8 +18167,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def->theta = mb->f_theta[mb->nf];
 		def->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
 		def->mu_param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
-		def->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_tabulate_Qfunc_tp *); /* easier if we do this here */
-		def->mu = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);			 /* easier if we do this here */
+		def->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_tabulate_Qfunc_tp *);	/* easier if we do this here */
+		def->mu = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
 
 		int n_out;
 		double *x_out;
@@ -18217,15 +18217,15 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_rankdef[mb->nf] = 0.0;
 
 		mb->f_bfunc2[mb->nf] = Calloc(1, GMRFLib_bfunc2_tp);
-                mb->f_bfunc2[mb->nf]->graph = mb->f_graph[mb->nf];
-                mb->f_bfunc2[mb->nf]->Qfunc = mb->f_Qfunc[mb->nf];
-                mb->f_bfunc2[mb->nf]->Qfunc_arg = mb->f_Qfunc_arg[mb->nf];
-                mb->f_bfunc2[mb->nf]->diagonal = mb->f_diag[mb->nf];
-                mb->f_bfunc2[mb->nf]->mfunc = mfunc_rgeneric;
-                mb->f_bfunc2[mb->nf]->mfunc_arg = mb->f_Qfunc_arg[mb->nf];
-                mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
-                mb->f_bfunc2[mb->nf]->nreplicate = 1;
-                mb->f_bfunc2[mb->nf]->ngroup = 1;
+		mb->f_bfunc2[mb->nf]->graph = mb->f_graph[mb->nf];
+		mb->f_bfunc2[mb->nf]->Qfunc = mb->f_Qfunc[mb->nf];
+		mb->f_bfunc2[mb->nf]->Qfunc_arg = mb->f_Qfunc_arg[mb->nf];
+		mb->f_bfunc2[mb->nf]->diagonal = mb->f_diag[mb->nf];
+		mb->f_bfunc2[mb->nf]->mfunc = mfunc_rgeneric;
+		mb->f_bfunc2[mb->nf]->mfunc_arg = mb->f_Qfunc_arg[mb->nf];
+		mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
+		mb->f_bfunc2[mb->nf]->nreplicate = 1;
+		mb->f_bfunc2[mb->nf]->ngroup = 1;
 
 		break;
 	}
@@ -22116,7 +22116,7 @@ double extra(double *theta, int ntheta, void *argument)
 		{
 			int ntheta = mb->f_ntheta[i], ii;
 			inla_rgeneric_tp *def;
-			double *param = NULL, log_norm_const = 0, log_prior = 0;
+			double *param = NULL, log_norm_const = 0.0, log_prior = 0.0;
 
 			def = (inla_rgeneric_tp *) mb->f_Qfunc_arg[i];
 			if (ntheta) {
@@ -22127,24 +22127,70 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 			}
 
-#pragma omp critical
-			{
-				int n_out;
-				double *x_out = NULL;
+			int n_out;
+			double *x_out = NULL;
 
-				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, ntheta, param);
-				assert(n_out == 1);
+			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, ntheta, param);
+			assert(n_out == 0 || n_out == 1);
+			if (n_out == 1) {
 				log_norm_const = x_out[0];
 				Free(x_out);
+			} else if (n_out == 0) {
+				/*
+				 * if it is the standard norm.const, the user can request us to compute it here if numeric(0) is returned from R_rgeneric.
+				 */
+				int *ilist = NULL, *jlist = NULL, n, len, k = 0, nn_out, jj;
+				double *Qijlist = NULL, *xx_out = NULL, logdet;
+				GMRFLib_tabulate_Qfunc_tp *Qf = NULL;
+				GMRFLib_graph_tp *graph = NULL;
+				GMRFLib_sm_fact_tp *sm_fact = NULL;
 
-				x_out = NULL;
-				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_PRIOR, def->model, ntheta, param);
-				assert(n_out == 0 || n_out == 1);
-				if (n_out == 1) {
-					log_prior = x_out[0];
+				inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_Q, def->model, ntheta, param);
+				assert(nn_out >= 2);
+				n = (int) xx_out[k++];
+				len = (int) xx_out[k++];
+				ilist = Calloc(len, int);
+				jlist = Calloc(len, int);
+				Qijlist = Calloc(len, double);
+				for (jj = 0; jj < len; jj++) {
+					ilist[jj] = (int) xx_out[k++];
 				}
-				Free(x_out);
+				for (jj = 0; jj < len; jj++) {
+					jlist[jj] = (int) xx_out[k++];
+				}
+				for (jj = 0; jj < len; jj++) {
+					Qijlist[jj] = xx_out[k++];
+				}
+				assert(k == nn_out);
+				GMRFLib_tabulate_Qfunc_from_list(&Qf, &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
+				assert(graph->n == n);
+				sm_fact = Calloc(1, GMRFLib_sm_fact_tp);
+				sm_fact->smtp = GMRFLib_SMTP_TAUCS;
+				GMRFLib_compute_reordering(sm_fact, graph, NULL);
+				GMRFLib_build_sparse_matrix(sm_fact, Qf->Qfunc, Qf->Qfunc_arg, graph);
+				GMRFLib_factorise_sparse_matrix(sm_fact, graph);
+				GMRFLib_log_determinant(&logdet, sm_fact, graph);
+
+				log_norm_const = -n / 2.0 * log(2.0 * M_PI) + 0.5 * logdet;
+
+				GMRFLib_free_fact_sparse_matrix(sm_fact);
+				GMRFLib_free_tabulate_Qfunc(Qf);
+				Free(xx_out);
+				GMRFLib_free_graph(graph);
+				Free(ilist);
+				Free(jlist);
+				Free(Qijlist);
+			} else {
+				assert(0 == 1);
 			}
+
+			x_out = NULL;
+			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_PRIOR, def->model, ntheta, param);
+			assert(n_out == 0 || n_out == 1);
+			if (n_out == 1) {
+				log_prior = x_out[0];
+			}
+			Free(x_out);
 
 			SET_GROUP_RHO(ntheta);
 			val += mb->f_nrep[i] * (normc_g + log_norm_const * (mb->f_ngroup[i] - grankdef)) + log_prior;
