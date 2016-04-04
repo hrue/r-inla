@@ -289,6 +289,20 @@ The function can then be implemented as
     }
 \end{verbatim}
 }
+\noindent
+\textbf{NOTE:} If the log-normalizing constant in any case need to be
+computed from scratch as $$-\frac{n}{2}\log(2\pi) +
+\frac{1}{2} \log(|{Q}|),$$ then \texttt{INLA} will compute this if
+\texttt{numeric(0)} is returned, like {\small
+\begin{verbatim}
+    log.norm.const = function(n, theta)
+    {
+        ## let INLA compute it
+        return (numeric(0))
+    }
+\end{verbatim}
+}
+
 
 \subsection*{Function \texttt{log.prior}}
 
