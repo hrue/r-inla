@@ -111,13 +111,13 @@ inla.transform.names = function(res, nms)
         if (is.null(res$internal.summary.hyperpar) || is.null(res$summary.hyperpar)) {
             ret = c(ret, def)
         } else {
-            i = which(nm == rownames(r$internal.summary.hyperpar))
+            i = which(nm == rownames(res$internal.summary.hyperpar))
             if (length(i) == 1) {
-                ret = c(ret, rownames(r$summary.hyperpar)[i])
+                ret = c(ret, rownames(res$summary.hyperpar)[i])
             } else {
-                i = which(nm == rownames(r$summary.hyperpar))
+                i = which(nm == rownames(res$summary.hyperpar))
                 if (length(i) == 1) {
-                    ret = c(ret, rownames(r$internal.summary.hyperpar)[i])
+                    ret = c(ret, rownames(res$internal.summary.hyperpar)[i])
                 } else {
                     ret = c(ret, def)
                 }
