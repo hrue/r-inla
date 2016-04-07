@@ -184,7 +184,7 @@
         ##:ARGUMENT: cpo.manual A boolean variable to decide if the inla-program is to be runned in a manual-cpo-mode. (EXPERT OPTION: DO NOT USE)
         cpo.manual = FALSE,
 
-        ##:ARGUMENT: cpo.idx  The index of the data point to remove. (EXPERT OPTION: DO NOT USE)
+        ##:ARGUMENT: cpo.idx  The index/indices of the data point(s) to remove. (EXPERT OPTION: DO NOT USE)
         cpo.idx = -1,
 
         ##:ARGUMENT: disable.gaussian.check Disable the check for fast computations with a Gaussian likelihood and identity link
