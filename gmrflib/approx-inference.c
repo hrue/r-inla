@@ -5306,42 +5306,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				}
 			}
 
-			(*cpo)->mean_value = (*cpo)->gmean_value = 0.0;
-			if (compute_n) {
-				int count = 0;
-				int gmean_inf = 0;
-
-				for (j = 0; j < compute_n; j++) {
-					int ii = compute_idx[j];
-
-					if (cpo_theta[ii]) {
-						(*cpo)->mean_value += *((*cpo)->value[ii]);
-						if (*((*cpo)->value[ii]) > 0.0) {
-							(*cpo)->gmean_value += log(*((*cpo)->value[ii]));
-						} else {
-							/*
-							 * flag the case cpo=0
-							 */
-							(*cpo)->gmean_value = 0.0;
-							gmean_inf = 1;
-						}
-						count++;
-					}
-				}
-				if (count) {
-					(*cpo)->mean_value /= (double) count;
-					if (!gmean_inf) {
-						(*cpo)->gmean_value = exp((*cpo)->gmean_value / (double) count);
-					} else {
-						/*
-						 * cpo=0, hence the geometric mean is -Inf, which is more or less -DBL_MAX
-						 */
-						(*cpo)->gmean_value = -DBL_MAX;
-					}
-				} else {
-					(*cpo)->mean_value = (*cpo)->gmean_value = 0.0;
-				}
-			}
 			Free(Z);
 		} else {
 			/* 
@@ -5377,6 +5341,42 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					(*cpo)->pit_value[ii] = NULL;
 					(*cpo)->failure[ii] = NULL;
 				}
+			}
+		}
+		(*cpo)->mean_value = (*cpo)->gmean_value = 0.0;
+		if (compute_n) {
+			int count = 0;
+			int gmean_inf = 0;
+
+			for (j = 0; j < compute_n; j++) {
+				int ii = compute_idx[j];
+
+				if (cpo_theta[ii]) {
+					(*cpo)->mean_value += *((*cpo)->value[ii]);
+					if (*((*cpo)->value[ii]) > 0.0) {
+						(*cpo)->gmean_value += log(*((*cpo)->value[ii]));
+					} else {
+						/*
+						 * flag the case cpo=0
+						 */
+						(*cpo)->gmean_value = 0.0;
+						gmean_inf = 1;
+					}
+					count++;
+				}
+			}
+			if (count) {
+				(*cpo)->mean_value /= (double) count;
+				if (!gmean_inf) {
+					(*cpo)->gmean_value = exp((*cpo)->gmean_value / (double) count);
+				} else {
+					/*
+					 * cpo=0, hence the geometric mean is -Inf, which is more or less -DBL_MAX
+					 */
+					(*cpo)->gmean_value = -DBL_MAX;
+				}
+			} else {
+				(*cpo)->mean_value = (*cpo)->gmean_value = 0.0;
 			}
 		}
 	}
