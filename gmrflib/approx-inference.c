@@ -5235,110 +5235,150 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	}
 
 	if (cpo) {
-		/*
-		 * first we need to compute the normalising constants for \pi(theta|y_i) for each i. This we call Z[i].
-		 * 
-		 * Note that \pi(theta_j | y_{-i}) = adj_weights[j] / cpo_theta[i][j] / Z[i]; 
-		 */
-		double *Z = Calloc(graph->n, double);
-
-		for (j = 0; j < compute_n; j++) {
-			int jj, ii;
-
-			ii = compute_idx[j];
-			if (cpo_theta[ii]) {
-				for (jj = 0; jj < dens_count; jj++) {
-					if (!ISNAN(cpo_theta[ii][jj]))	/* we ignore those that have failed */
-						Z[ii] += adj_weights[jj] / cpo_theta[ii][jj];
-				}
-			}
-		}
-
-		for (j = 0; j < compute_n; j++) {
-			int ii, jj;
-			double evalue, evalue2, evalue_one;
-
-			ii = compute_idx[j];
-			if (cpo_theta[ii]) {
-				(*cpo)->value[ii] = Calloc(1, double);
-
-				for (jj = 0, evalue = evalue_one = 0.0; jj < dens_count; jj++) {
-					if (!ISNAN(cpo_theta[ii][jj])) {
-						evalue += cpo_theta[ii][jj] * adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
-						evalue_one += adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
-					}
-				}
-				if (evalue_one) {
-					(*cpo)->value[ii][0] = evalue / evalue_one;
-				} else {
-					(*cpo)->value[ii][0] = 0.0;
-				}
-			} else {
-				(*cpo)->value[ii] = NULL;
-			}
-
-			if (cpo_theta[ii]) {
-				(*cpo)->pit_value[ii] = Calloc(1, double);
-				(*cpo)->failure[ii] = Calloc(1, double);
-				for (jj = 0, evalue = evalue2 = evalue_one = 0.0; jj < dens_count; jj++) {
-					if (!ISNAN(cpo_theta[ii][jj])) {
-						evalue += pit_theta[ii][jj] * adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
-						evalue_one += adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
-					}
-					/*
-					 * this is defined over the unadjusted weights 
-					 */
-					evalue2 += failure_theta[ii][jj] * adj_weights[jj];
-				}
-				if (evalue_one) {
-					evalue = TRUNCATE(evalue / evalue_one, 0.0, 1.0);
-				} else {
-					evalue = 0.0;
-				}
-				(*cpo)->pit_value[ii][0] = evalue;
-				(*cpo)->failure[ii][0] = evalue2;
-			} else {
-				(*cpo)->pit_value[ii] = NULL;
-				(*cpo)->failure[ii] = NULL;
-			}
-		}
-		(*cpo)->mean_value = (*cpo)->gmean_value = 0.0;
-		if (compute_n) {
-			int count = 0;
-			int gmean_inf = 0;
+		if (!(ai_par->cpo_manual)) {
+			/*
+			 * In this case, the \pi(theta|y) is computed with all the data. then we need to correct
+			 *
+			 * first we need to compute the normalising constants for \pi(theta|y_i) for each i. This we call Z[i].
+			 * 
+			 * Note that \pi(theta_j | y_{-i}) = adj_weights[j] / cpo_theta[i][j] / Z[i]; 
+			 */
+			double *Z = Calloc(graph->n, double);
 
 			for (j = 0; j < compute_n; j++) {
-				int ii = compute_idx[j];
+				int jj, ii;
+
+				ii = compute_idx[j];
+				if (cpo_theta[ii]) {
+					for (jj = 0; jj < dens_count; jj++) {
+						if (!ISNAN(cpo_theta[ii][jj]))	/* we ignore those that have failed */
+							Z[ii] += adj_weights[jj] / cpo_theta[ii][jj];
+					}
+				}
+			}
+
+			for (j = 0; j < compute_n; j++) {
+				int ii, jj;
+				double evalue, evalue2, evalue_one;
+
+				ii = compute_idx[j];
+				if (cpo_theta[ii]) {
+					(*cpo)->value[ii] = Calloc(1, double);
+
+					for (jj = 0, evalue = evalue_one = 0.0; jj < dens_count; jj++) {
+						if (!ISNAN(cpo_theta[ii][jj])) {
+							evalue += cpo_theta[ii][jj] * adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
+							evalue_one += adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
+						}
+					}
+					if (evalue_one) {
+						(*cpo)->value[ii][0] = evalue / evalue_one;
+					} else {
+						(*cpo)->value[ii][0] = 0.0;
+					}
+				} else {
+					(*cpo)->value[ii] = NULL;
+				}
 
 				if (cpo_theta[ii]) {
-					(*cpo)->mean_value += *((*cpo)->value[ii]);
-					if (*((*cpo)->value[ii]) > 0.0) {
-						(*cpo)->gmean_value += log(*((*cpo)->value[ii]));
+					(*cpo)->pit_value[ii] = Calloc(1, double);
+					(*cpo)->failure[ii] = Calloc(1, double);
+					for (jj = 0, evalue = evalue2 = evalue_one = 0.0; jj < dens_count; jj++) {
+						if (!ISNAN(cpo_theta[ii][jj])) {
+							evalue += pit_theta[ii][jj] * adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
+							evalue_one += adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
+						}
+						/*
+						 * this is defined over the unadjusted weights 
+						 */
+						evalue2 += failure_theta[ii][jj] * adj_weights[jj];
+					}
+					if (evalue_one) {
+						evalue = TRUNCATE(evalue / evalue_one, 0.0, 1.0);
+					} else {
+						evalue = 0.0;
+					}
+					(*cpo)->pit_value[ii][0] = evalue;
+					(*cpo)->failure[ii][0] = evalue2;
+				} else {
+					(*cpo)->pit_value[ii] = NULL;
+					(*cpo)->failure[ii] = NULL;
+				}
+			}
+
+			(*cpo)->mean_value = (*cpo)->gmean_value = 0.0;
+			if (compute_n) {
+				int count = 0;
+				int gmean_inf = 0;
+
+				for (j = 0; j < compute_n; j++) {
+					int ii = compute_idx[j];
+
+					if (cpo_theta[ii]) {
+						(*cpo)->mean_value += *((*cpo)->value[ii]);
+						if (*((*cpo)->value[ii]) > 0.0) {
+							(*cpo)->gmean_value += log(*((*cpo)->value[ii]));
+						} else {
+							/*
+							 * flag the case cpo=0
+							 */
+							(*cpo)->gmean_value = 0.0;
+							gmean_inf = 1;
+						}
+						count++;
+					}
+				}
+				if (count) {
+					(*cpo)->mean_value /= (double) count;
+					if (!gmean_inf) {
+						(*cpo)->gmean_value = exp((*cpo)->gmean_value / (double) count);
 					} else {
 						/*
-						 * flag the case cpo=0
+						 * cpo=0, hence the geometric mean is -Inf, which is more or less -DBL_MAX
 						 */
-						(*cpo)->gmean_value = 0.0;
-						gmean_inf = 1;
+						(*cpo)->gmean_value = -DBL_MAX;
 					}
-					count++;
+				} else {
+					(*cpo)->mean_value = (*cpo)->gmean_value = 0.0;
 				}
 			}
-			if (count) {
-				(*cpo)->mean_value /= (double) count;
-				if (!gmean_inf) {
-					(*cpo)->gmean_value = exp((*cpo)->gmean_value / (double) count);
+			Free(Z);
+		} else {
+			/* 
+			 * cpo_manual. In this case, \pi(theta|y) is compute with the cpo-data removed, hence we do not need to correct
+			 */
+			for (j = 0; j < compute_n; j++) {
+				int ii, jj;
+				double evalue, evalue2;
+
+				ii = compute_idx[j];
+				if (cpo_theta[ii]) {
+					(*cpo)->value[ii] = Calloc(1, double);
+					for (jj = 0, evalue = 0.0; jj < dens_count; jj++) {
+						evalue += cpo_theta[ii][jj] * adj_weights[jj];
+					}
+					(*cpo)->value[ii][0] = evalue; 
 				} else {
-					/*
-					 * cpo=0, hence the geometric mean is -Inf, which is more or less -DBL_MAX
-					 */
-					(*cpo)->gmean_value = -DBL_MAX;
+					(*cpo)->value[ii] = NULL;
 				}
-			} else {
-				(*cpo)->mean_value = (*cpo)->gmean_value = 0.0;
+
+				if (cpo_theta[ii]) {
+					(*cpo)->pit_value[ii] = Calloc(1, double);
+					(*cpo)->failure[ii] = Calloc(1, double);
+					for (jj = 0, evalue = evalue2 = 0.0; jj < dens_count; jj++) {
+						evalue += pit_theta[ii][jj] * adj_weights[jj]; 
+						evalue2 += failure_theta[ii][jj] * adj_weights[jj];
+					}
+					evalue = TRUNCATE(evalue, 0.0, 1.0);
+
+					(*cpo)->pit_value[ii][0] = evalue;
+					(*cpo)->failure[ii][0] = evalue2;
+				} else {
+					(*cpo)->pit_value[ii] = NULL;
+					(*cpo)->failure[ii] = NULL;
+				}
 			}
 		}
-		Free(Z);
 	}
 
 	if (po) {
