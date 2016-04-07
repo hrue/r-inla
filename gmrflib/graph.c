@@ -1237,10 +1237,10 @@ int GMRFLib_print_Qfunc(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * 
 		fp = stdout;
 	}
 	for (i = 0; i < graph->n; i++) {
-		fprintf(fp, "Q[ %1d, %1d ] = %.12f\n", i, i, Qfunc(i, i, Qfunc_arg));
+		fprintf(fp, "Q[ %1d , %1d ] = %.12f\n", i, i, Qfunc(i, i, Qfunc_arg));
 		for (j = 0; j < graph->nnbs[i]; j++) {
 			jj = graph->nbs[i][j];
-			fprintf(fp, "\tQ[ %1d, %1d ] = %.12f\n", i, jj, Qfunc(i, jj, Qfunc_arg));
+			fprintf(fp, "\tQ[ %1d , %1d ] = %.12f\n", i, jj, Qfunc(i, jj, Qfunc_arg));
 		}
 	}
 	return GMRFLib_SUCCESS;

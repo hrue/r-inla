@@ -17,7 +17,7 @@ control.expert(cpo.idx, cpo.manual, disable.gaussian.check, jp.func, jp.RData, j
 \arguments{
 \item{...}{Possible arguments}
 \item{cpo.manual}{  A boolean variable to decide if the inla-program is to be runned in a manual-cpo-mode. (EXPERT OPTION: DO NOT USE)}
-\item{cpo.idx}{  The index of the data point to remove. (EXPERT OPTION: DO NOT USE)}
+\item{cpo.idx}{  The index/indices of the data point(s) to remove. (EXPERT OPTION: DO NOT USE)}
 \item{disable.gaussian.check}{  Disable the check for fast computations with a Gaussian likelihood and identity link}
 \item{jp.RData}{  The R-data file that contains global variables to be used by \code{jp.func}}
 \item{jp.Rfile}{  The R-file to be sourced to set up a joint prior for the hyperparameters to be evaluated by \code{jp.func}}
