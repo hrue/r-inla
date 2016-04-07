@@ -22155,7 +22155,6 @@ double extra(double *theta, int ntheta, void *argument)
 					}
 					assert(k == nn_out);
 					GMRFLib_tabulate_Qfunc_from_list(&Qf, &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
-
 					int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 					GMRFLib_problem_tp *problem = NULL;
 					GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
@@ -22163,7 +22162,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 					if (mb->f_diag[i]) {
 						for (jj = 0; jj < n; jj++) {
-							cc_add[jj] = mb->f_diag[jj];
+							cc_add[jj] = mb->f_diag[i];
 						}
 					}
 
