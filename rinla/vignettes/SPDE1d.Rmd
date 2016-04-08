@@ -3,10 +3,8 @@ title: "SPDE one dimensional example"
 author: "Elias T. Krainski"
 date: 'created: April 2, 2016, last update `r Sys.Date()`'
 output: pdf_document
-vignette: >
-  %\\VignetteIndexEntry{SPDE1d}  
-  %\\VignetteEngine{knitr::knitr}  
-  \usepackage[utf8]{inputenc}
+vignette: |
+  %\\VignetteIndexEntry{SPDE1d}   %\\VignetteEngine{knitr::knitr}   \usepackage[utf8]{inputenc}
 ---
 
 # A **SPDE** model for one dimensional data 

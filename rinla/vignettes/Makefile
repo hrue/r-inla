@@ -1,38 +1,23 @@
-RmdSOURCES = $(wildcard *.Rmd)
-mdDepends = $(RmdSOURCES:.Rmd=.md) 
-htmlDepends = $(mdDepends:.md=.html)
-texDepends = SPDE1d.tex SPDEhowto.tex
-pdfDepends = SPDE1d.pdf SPDEhowto.pdf
+RmdSources = $(wildcard *.Rmd)
 
-all : igmrfs isbaspde spde-tutorial html pdf
+all : others mdtutorials
 
-igmrfs : 
-	cp ../../tutorials/inla/scale.model/demo.R .
+others : 
 	cp ../../tutorials/inla/scale.model/tutorial_igmrfs.Rnw .
-	cp ../../tutorials/inla/scale.model/tutorial_igmrfs.pdf .
-
-spde-tutorial : 
+	cp ../../tutorials/spde-isba/isbaspde.pdf .
 	cp ../../tutorials/spde/spde-tutorial.pdf .
 
-isbaspde : 
-	cp ../../tutorials/spde-isba/isbaspde.pdf .
-
-%.md : %.Rmd
-	@echo generating file $@
+%.pdf : %.Rmd
+	@echo generating .md file
 	@R --vanilla -e 'knitr::knit("$^")' </dev/null
+	@echo generating the $@
+	@/usr/lib/rstudio/bin/pandoc/pandoc -V geometry:margin=0.9in -s $(^:.Rmd=.md) -o $@
+	@echo generating the HTML
+	@/usr/lib/rstudio/bin/pandoc/pandoc $(^:.Rmd=.md) --from markdown+autolink_bare_uris+ascii_identifiers+tex_math_single_backslash-implicit_figures -t html -s -o $(@:.pdf=.html) --smart --email-obfuscation none --self-contained --standalone --section-divs ##--mathjax  --variable 'mathjax-url:https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' 
+	@rm figure* -rf 
+	@rm *.md
 
-%.html : %.md 
-	@echo generating file $@
-	@Rscript -e "require(markdown); markdownToHTML('$^', '$@', options=c('use_xhtml', 'base64_images'))"
-
-html : $(htmlDepends)
-
-%.pdf : %.md
-	@echo generating file $@
-	@/usr/lib/rstudio/bin/pandoc/pandoc -V geometry:margin=0.9in -s $^ -o $@ 
-
-tex : $(texDepends)
-pdf : $(pdfDepends) 
+mdtutorials : $(RmdSources:.Rmd=.pdf)
 
 clean :; latexmk -C
 
