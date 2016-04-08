@@ -1,3 +1,6 @@
+.o.d.a <- options()$demo.ask
+options('demo.ask'=FALSE)
+
 library(INLA)
 library(shiny)
 
@@ -42,3 +45,4 @@ server <- function(input, output) {
 
 runApp(shinyApp(ui=ui, server=server))
 
+options('demo.ask') <- .o.d.a
