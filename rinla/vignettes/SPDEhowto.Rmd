@@ -308,3 +308,4 @@ inla.emarginal(function(x) x^2, ypost[[1]]) - ## E(y^2) -
 inla.pmarginal(inla.qmarginal(0.3, ypost[[1]]), ypost[[1]]) 
 inla.zmarginal(ypost[[1]]) ## posterior summary
 ```
+

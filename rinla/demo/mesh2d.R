@@ -25,8 +25,10 @@ ui <- fluidPage(
    sliderInput("cutoff", 
     label="The minimum allowed distance between points",
     min=1e-10, max=1, value=0.1, step=0.01), 
-   width=2
-   ), 
+
+   actionButton("Exit", "Exit"), 
+
+   width=2), 
 
   mainPanel(plotOutput("plot"))
  )
@@ -40,9 +42,15 @@ server <- function(input, output) {
     par(mar=c(0,0,1,0), mgp=c(1,0.5,0))
     plot(mesh, asp=1);
     points(loc, pch=19)
-  }, width=500, height=500)
+  }, width=500, height=500);
+
+  observe({
+      if(input$Exit > 0){
+        stopApp(NULL)
+    }
+    })
 }
 
 runApp(shinyApp(ui=ui, server=server))
 
-options('demo.ask') <- .o.d.a
+options('demo.ask'=.o.d.a)
