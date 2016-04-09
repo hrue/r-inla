@@ -1,6 +1,3 @@
-.o.d.a <- options()$demo.ask
-options('demo.ask'=FALSE)
-
 library(INLA)
 library(shiny)
 
@@ -28,7 +25,7 @@ ui <- fluidPage(
 
    actionButton("Exit", "Exit"), 
 
-   width=2), 
+   width=4), 
 
   mainPanel(plotOutput("plot"))
  )
@@ -53,4 +50,3 @@ server <- function(input, output) {
 
 runApp(shinyApp(ui=ui, server=server))
 
-options('demo.ask'=.o.d.a)
