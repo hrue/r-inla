@@ -1,1 +1,4 @@
-source(system.file("demo/shiny-demo/mesh2d.R", package = "INLA"))
+require(INLA)
+require(shiny)
+demo('mesh2d_run_me', echo=FALSE)
+
