@@ -21,7 +21,7 @@
  *
  *       H{\aa}vard Rue
  *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
+ *       The Norwegian University of Science and Technology.
  *       N-7491 Trondheim, Norway
  *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
  *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
@@ -321,11 +321,13 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 				if (debug)
 					printf("\t%d: set: B.f_best %.12g fx %.12g\n", omp_get_thread_num(), B.f_best, fx_local);
 				if (G.ai_par->fp_log) {
-					fprintf(G.ai_par->fp_log, "Max.post.marg(theta): log(dens) = %.6f fn = %1d theta = ", -fx_local,
+					fprintf(G.ai_par->fp_log, "max.logdens= %.6f fn= %1d theta=", -fx_local,
 						GMRFLib_domin_get_f_count());
 					for (i = 0; i < G.nhyper; i++) {
 						fprintf(G.ai_par->fp_log, " %.6f", x[i]);
 					}
+					fprintf(G.ai_par->fp_log, "  range.x=[%.3f", GMRFLib_min_value(ais->mode, G.graph->n, NULL));
+					fprintf(G.ai_par->fp_log, " %.3f]", GMRFLib_max_value(ais->mode, G.graph->n, NULL));
 					fprintf(G.ai_par->fp_log, "\n");
 					fflush(G.ai_par->fp_log);
 					fflush(stdout);	       /* helps for remote inla */
