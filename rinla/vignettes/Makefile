@@ -1,11 +1,7 @@
 RmdSources = $(wildcard *.Rmd)
+RnwSources = $(wildcard *.Rnw)
 
-all : others mdtutorials
-
-others : 
-	cp ../../tutorials/inla/scale.model/tutorial_igmrfs.Rnw .
-	cp ../../tutorials/spde-isba/isbaspde.pdf .
-	cp ../../tutorials/spde/spde-tutorial.pdf .
+all : mdtutorials nwtutorials
 
 %.pdf : %.Rmd
 	@echo generating .md file
@@ -17,7 +13,16 @@ others :
 	@rm figure* -rf 
 	@rm *.md
 
+%.tex : %.Rnw 
+	@echo generating file $@
+	@R --vanilla -e 'Sweave("$^")' </dev/null
+
+%.pdf : %.tex
+	@latexmk -pdf $^ </dev/null
+
 mdtutorials : $(RmdSources:.Rmd=.pdf)
+
+nwtutorials : $(RnwSources:.Rnw=.pdf)
 
 clean :; latexmk -C
 
