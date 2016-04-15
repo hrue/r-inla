@@ -3,9 +3,7 @@
 ## Define the environment for INLA used to store options and the
 ## model-list. Reuse the environment if it is there already.
 
-if (exists(".inlaEnv") && is.environment(.inlaEnv)) {
-    ## then reuse it
-} else {
+if (!(exists(".inlaEnv") && is.environment(.inlaEnv))) {
     .inlaEnv = new.env()
 }
 
