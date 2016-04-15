@@ -1,4 +1,5 @@
-## Export: inla.qstat inla.qdel inla.qget inla.qnuke print!inla.q summary!inla.q
+## Export: inla.qstat inla.qdel inla.qget inla.qnuke inla.qlog
+## Export: print!inla.q summary!inla.q
 
 ##!\name{inla.qstat}
 ##!\alias{inla.qstat}
@@ -6,6 +7,7 @@
 ##!\alias{inla.qget}
 ##!\alias{inla.qdel}
 ##!\alias{inla.qnuke}
+##!\alias{inla.qlog}
 ##!\alias{summary.inla.q}
 ##!\alias{print.inla.q}
 ##!\title{Control and view a remote inla-queue}
@@ -16,6 +18,7 @@
 ##!inla.qget(id, remove = TRUE)
 ##!inla.qdel(id)
 ##!inla.qstat(id)
+##!inla.qlog(id)
 ##!inla.qnuke()
 ##!\method{summary}{inla.q}(object,...)
 ##!\method{print}{inla.q}(x,...)
@@ -35,6 +38,7 @@
 ##!\code{inla.qget} fetch the results (and by default remove
 ##!the files on the server),  \code{inla.qdel} removes 
 ##!a job on the server and \code{inla.qnuke} remove all jobs on the server.
+##!\code{inla.qlog} fetches the logfile only.
 ##!
 ##!The recommended procedure is to use \code{r=inla(...,
 ##!inla.call="submit")} and then do \code{r=inla.qget(r)} at a later
@@ -92,14 +96,24 @@
     return (inla.q(cmd = "stat", id = id))
 }
 
+`inla.qlog` = function(id)
+{
+    return (inla.q(cmd = "log", id = id))
+}
+
 `inla.qnuke` = function()
 {
     return (inla.q(cmd = "nuke"))
 }
 
-`inla.q` = function(cmd = c("get", "del", "stat", "nuke"), id, remove = TRUE)
+`inla.q` = function(cmd = c("get", "del", "stat", "log", "nuke"), id, remove = TRUE)
 {
     cmd = match.arg(cmd)
+
+    ## do a quick return here if possible
+    if (cmd == "log" && missing(id))
+        return (NULL)
+
     ## define some environment variables for remote computing
     inla.eval(paste("Sys.setenv(", "\"INLA_PATH\"", "=\"", system.file("bin", package="INLA"), "\"", ")", sep=""))
     inla.eval(paste("Sys.setenv(", "\"INLA_OS\"", "=\"", inla.os.type() , "\"", ")", sep=""))
@@ -147,6 +161,15 @@
         cat("Delete job", output, "\n")
     } else if (length(grep("^NUKE", output)) > 0) {
         output = gsub("^NUKE *", "", output)
+    } else if (length(grep("^LOG", output)) > 0) {
+        output = gsub("^LOG *", "", output)
+        if (file.exists(output)) {
+            logfile = list(logfile = gsub("\t", "        ", readLines(output)))
+            try(unlink(output, recursive = TRUE), silent = TRUE)
+        } else {
+            logfile = NULL
+        }
+        return (logfile)
     } else if (length(output) > 0 && length(strsplit(output, " ")[[1]]) == 1) {
         r = inla.collect.results(output, file.log = paste(output, "/results.files/Logfile.txt", sep=""))
         rr = c(r, ret)
