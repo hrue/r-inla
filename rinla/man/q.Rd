@@ -8,6 +8,7 @@
 \alias{inla.qget}
 \alias{inla.qdel}
 \alias{inla.qnuke}
+\alias{inla.qlog}
 \alias{summary.inla.q}
 \alias{print.inla.q}
 \title{Control and view a remote inla-queue}
@@ -18,6 +19,7 @@ Control and view a remote inla-queue of submitted jobs
 inla.qget(id, remove = TRUE)
 inla.qdel(id)
 inla.qstat(id)
+inla.qlog(id)
 inla.qnuke()
 \method{summary}{inla.q}(object,...)
 \method{print}{inla.q}(x,...)
@@ -37,6 +39,7 @@ inla.qnuke()
 \code{inla.qget} fetch the results (and by default remove
 the files on the server),  \code{inla.qdel} removes 
 a job on the server and \code{inla.qnuke} remove all jobs on the server.
+\code{inla.qlog} fetches the logfile only.
 
 The recommended procedure is to use \code{r=inla(...,
 inla.call="submit")} and then do \code{r=inla.qget(r)} at a later
