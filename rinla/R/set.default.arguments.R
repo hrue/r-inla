@@ -16,7 +16,6 @@
 ## Export: control.lincomb
 ## Export: control.update
 ## Export: control.group
-
 ## Export: control.mix
 ## Export: control.link
 ## Export: control.expert
