@@ -4,14 +4,14 @@
 %%
 \name{inla.coxph}
 \alias{inla.coxph}
-\alias{inla.cbind.data.frames}
+\alias{inla.rbind.data.frames}
 \alias{coxph}
 \alias{cbind.data.frames}
 \title{Convert a Cox proportional hazard model into Poisson regression}
 \description{Tools to convert a Cox proportional hazard model into Poisson regression}
 \usage{
     inla.coxph(formula, data, control.hazard = list(), debug=FALSE)
-    inla.cbind.data.frames(...)
+    inla.rbind.data.frames(...)
 }
 \arguments{
   \item{formula}{The formula for the coxph model where the reponse must be a \code{inla.surv}-object.}
@@ -24,14 +24,14 @@
       \code{inla.coxph} returns a list of new expanded variables to be used in the \code{inla}-call.
       Note that element \code{data} and \code{data.list} needs to be merged into
       a \code{list} to be passed as the \code{data} argument. See the example for details.
-      \code{inla.cbind.data.frames} returns the new data.frame.
+      \code{inla.rbind.data.frames} returns the new data.frame.
 }
 \author{Havard Rue \email{hrue@math.ntnu.no}}
 \examples{
 ## How the cbind.data.frames works:
 df1 = data.frame(x=1:2, y=2:3, z=3:4)
 df2 = data.frame(x=3:4, yy=4:5, zz=5:6)
-inla.cbind.data.frames(df1, df2)
+inla.rbind.data.frames(df1, df2)
 
 ## Standard example of how to convert a coxph into a Poisson regression
 n = 1000
@@ -58,7 +58,7 @@ df = data.frame(intercept2, x, y)
 
 ## new need to cbind the data.frames, and then add the list-part of
 ## the data
-df.joint = c(as.list(inla.cbind.data.frames(p$data, df)), p$data.list)
+df.joint = c(as.list(inla.rbind.data.frames(p$data, df)), p$data.list)
 df.joint$Y = cbind(df.joint$y..coxph, df.joint$y)
 
 ## merge the formulas, recall to add '-1' and to use the new joint
