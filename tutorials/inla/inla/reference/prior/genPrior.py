@@ -49,9 +49,9 @@ for idx in range(0, len(likList)):
 			elif ('\\input{' in line):
 				test = line.split('/')
 				if ('hazard' in test[len(test)-2]):
-					fMain.write('\\input{../../../../../r-inla.org/doc/hyper/hazard/' + test[len(test)-1])
+					fMain.write('\\input{../../../../r-inla.org/doc/hyper/hazard/' + test[len(test)-1])
 				else:
-					fMain.write('\\input{../../../../../r-inla.org/doc/hyper/likelihood/' + test[len(test)-1])
+					fMain.write('\\input{../../../../r-inla.org/doc/hyper/likelihood/' + test[len(test)-1])
 			else:
 				fMain.write(line)
 		
