@@ -1,22 +1,22 @@
 fMain = open('likelihood.tex', 'w')
 
 # Insert start of section
-fMain.write("\\input{likeStart.tex}\cleardoublepage\n")
+fMain.write("\\input{likelihood/likeStart.tex}\cleardoublepage\n")
 
 # Get list of likelihoods
 from os import listdir
 from os.path import isfile, join
-likDir = "../../../../r-inla.org/doc/likelihood/"
+likDir = "../../../../../r-inla.org/doc/likelihood/"
 likList = [f for f in listdir(likDir) if f.endswith('.tex')]
-print(likList)
+
 # Extract likelihood names
 for idx in range(0, len(likList)):
 	# Get names of likelihoods
 	currLik = likList[idx]
 	parts = currLik.split('.')
 	
-	# Add subsection for likelihood
-	fMain.write('\\subsubsection{\texttt{%s}}\n' % parts[0])
+#	# Add subsection for likelihood
+#	fMain.write('\\subsubsection{\texttt{%s}}\n' % parts[0])
 
 	# Read text from file
 	fSource = open(join(likDir, likList[idx]), 'r')
@@ -24,23 +24,16 @@ for idx in range(0, len(likList)):
 	inSection  = False
 	for line in fSource:
 		if 'end{document}' in line:
+			if (inPreamble == True):
+				fSource.close()
+				break
 			inPreamble = True
-		if (inPreamble == False):
-			if ('\\verbatiminput{' in line):
-				test = line.split('{')
-				fMain.write('\\verbatiminput{'+likDir+test[1])
-			elif ('\\input{' in line):
-				test = line.split('/')
-				if ('hazard' in test[len(test)-2]):
-					fMain.write('\\input{../../../../r-inla.org/doc/hyper/hazard/' + test[len(test)-1])
-				else:
-					fMain.write('\\input{../../../../r-inla.org/doc/hyper/likelihood/' + test[len(test)-1])
-			else:
-				fMain.write(line)
 		if 'section*' in line:
 			inSection = True
+			inPreamble = True
 		if (inSection == True):
 			test = line.split('*')
+			print(test)
 			if(len(test) == 1):
 				fMain.write(test[0])
 			else:
@@ -48,8 +41,22 @@ for idx in range(0, len(likList)):
 			if ('}' in line):
 				inSection = False
 				inPreamble = False
+			continue
+		if (inPreamble == False):
+			if ('\\verbatiminput{' in line):
+				test = line.split('{')
+				fMain.write('\\verbatiminput{'+likDir+test[1])
+			elif ('\\input{' in line):
+				test = line.split('/')
+				if ('hazard' in test[len(test)-2]):
+					fMain.write('\\input{../../../../../r-inla.org/doc/hyper/hazard/' + test[len(test)-1])
+				else:
+					fMain.write('\\input{../../../../../r-inla.org/doc/hyper/likelihood/' + test[len(test)-1])
+			else:
+				fMain.write(line)
+		
 			
-			
+	fSource.close()
 
 	# New page between each likelihood
 	fMain.write('\\cleardoublepage\n')

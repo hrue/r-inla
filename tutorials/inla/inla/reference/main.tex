@@ -2,10 +2,20 @@
 \usepackage{amsmath}
 \usepackage{verbatim}
 \usepackage{etoc}
+\usepackage{hyperref}
 
 \begin{document}
+\setcounter{tocdepth}{1}
+\tableofcontents
+\setcounter{tocdepth}{5}
 
-\input{likelihood}
+\chapter{Introduction}
+The \textsf{R} package \texttt{INLA} supports latent Gaussian models (LGMs)
+that are defined through a likelihood, latent components and priors. The
+different options for each of the levels are described in this document.
+
+
+\input{likelihood/likelihood.tex}
 
 \end{document}
 
