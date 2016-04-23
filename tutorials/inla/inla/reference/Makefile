@@ -1,5 +1,5 @@
 all:
-	python genLikelihood.py
+	make -C likelihood
 	pdflatex main.tex
 	pdflatex main.tex
 
