@@ -1,0 +1,3 @@
+likelihood:
+	python genLatent.py
+
