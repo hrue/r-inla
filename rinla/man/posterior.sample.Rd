@@ -45,10 +45,12 @@
        to change the \code{int.stratey} variable and friends. The latent field is
        sampled from the Gaussian approximation conditioned on the hyperparameters,
        but with a correction for the mean (default).
+}
 \value{A list of the samples, where each sample is a list with
      names \code{hyperpar} and \code{latent}, and with their marginal
      densities in \code{logdens$hyperpar} and \code{logdens$latent}
-     and the joint density is in \code{logdens$joint}.  }
+     and the joint density is in \code{logdens$joint}.
+}
 \author{Havard Rue \email{hrue@math.ntnu.no}}
  
 \examples{
