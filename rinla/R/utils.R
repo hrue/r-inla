@@ -1036,3 +1036,12 @@
     }
     return (invisible())
 }
+
+`inla.dynload.workaround` = function()
+{
+    ## setup the static builds instead
+    d = dirname(inla.call.builtin())
+    inla.setOption(inla.call = paste(d,"/inla.static", sep=""))
+    inla.setOption(fmesher.call = paste(d,"/fmesher.static", sep=""))
+    return (invisible())
+}
