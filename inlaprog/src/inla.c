@@ -1553,12 +1553,21 @@ double Qfunc_group(int i, int j, void *arg)
 }
 int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type, int cyclic, int order, GMRFLib_graph_tp * group_graph)
 {
-	int i, j, n = graph->n;
+	int i, j, n = graph->n, debug = 0;
 	GMRFLib_ged_tp *ged = NULL;
 
 	GMRFLib_ged_init(&ged, NULL);
 	for (i = 0; i < ngroup; i++) {
 		GMRFLib_ged_append_graph(ged, graph);
+	}
+
+	if (debug) {
+		P(n);
+		P(ngroup);
+		P(graph->n);
+		P(group_graph->n);
+		P((GMRFLib_ged_max_node(ged)));
+		P(n * ngroup - 1);
 	}
 
 	switch (type) {
