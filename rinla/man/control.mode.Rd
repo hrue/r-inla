@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.mode} for use in \code{inla}}
 \usage{
 inla.set.control.mode.default(...)
-control.mode(fixed, restart, result, theta, x)
+control.mode()
 }
 \arguments{
 \item{...}{Possible arguments}

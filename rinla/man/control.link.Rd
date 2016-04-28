@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.link} for use in \code{inla}}
 \usage{
 inla.set.control.link.default(...)
-control.link(fixed, hyper, initial, model, nq, order, param, prior, variant)
+control.link()
 }
 \arguments{
 \item{...}{Possible arguments}

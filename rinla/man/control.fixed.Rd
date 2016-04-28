@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.fixed} for use in \code{inla}}
 \usage{
 inla.set.control.fixed.default(...)
-control.fixed(cdf, compute, correlation.matrix, expand.factor.strategy, mean, mean.intercept, prec, prec.intercept, quantiles)
+control.fixed()
 }
 \arguments{
 \item{...}{Possible arguments}
