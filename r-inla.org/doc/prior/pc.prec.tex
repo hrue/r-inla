@@ -7,22 +7,27 @@
 \section*{PC prior for precision}
 
 \subsection*{Parametrization}
-The PC prior for the log-precision $x$ has density 
-\begin{equation}
-    \pi(x) = \frac{\theta}{2} \exp\left(
-      -\theta\exp\left(-\frac{x}{2}\right) - \frac{x}{2}
-    \right)
-\end{equation}
-for $\theta>0$ where
+The PC prior for the precision $\tau$ has density $$
+\pi(\tau) = \frac{\lambda}{2}\tau^{-3/2} \exp\left(-\lambda \tau^{-1/2}\right), \quad \tau >0
+$$
+for $\lambda>0$ where
 \begin{displaymath}
-    \theta = -\frac{\ln(\alpha)}{u}
+    \lambda = -\frac{\ln(\alpha)}{u}
 \end{displaymath}
-and $(u, \alpha{})$ are the parameters to this prior The
+and $(u, \alpha{})$ are the parameters to this prior. The
 interpretation of $(u,\alpha)$ is that
 \begin{displaymath}
     \text{Prob}(\sigma > u) = \alpha, \qquad u>0, \quad 0<\alpha<1,
 \end{displaymath}
-where the standard deviation is $\sigma = 1/\sqrt{\exp(x)}$.
+where the standard deviation is $\sigma = 1/\sqrt{\tau}$.  The density, cumulative distribution function, quantile function, and a random number generator for this distribution are implemented in the  \texttt{inla.pc.\{d,p,q,r\}prec} functions.
+
+
+Internally, R-INLA uses the log-precision rather than the precision and the corresponding  PC prior for the log-precision $x$ has density 
+\begin{equation}
+    \pi(x) = \frac{\lambda}{2} \exp\left(
+      -\lambda\exp\left(-\frac{x}{2}\right) - \frac{x}{2}
+    \right).
+\end{equation}
 
 \subsection*{Specification}
 This prior for the hyperparameters is specified inside the
