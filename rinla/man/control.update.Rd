@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.update} for use in \code{inla}}
 \usage{
 inla.set.control.update.default(...)
-control.update()
+control.update(result)
 }
 \arguments{
 \item{...}{Possible arguments}

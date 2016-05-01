@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.group} for use in \code{inla}}
 \usage{
 inla.set.control.group.default(...)
-control.group()
+control.group(adjust.for.con.comp, cyclic, fixed, graph, hyper, initial, model, order, param, prior, scale.model)
 }
 \arguments{
 \item{...}{Possible arguments}

@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.results} for use in \code{inla}}
 \usage{
 inla.set.control.results.default(...)
-control.results()
+control.results(return.marginals.predictor, return.marginals.random)
 }
 \arguments{
 \item{...}{Possible arguments}

@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.lincomb} for use in \code{inla}}
 \usage{
 inla.set.control.lincomb.default(...)
-control.lincomb()
+control.lincomb(precision, verbose)
 }
 \arguments{
 \item{...}{Possible arguments}

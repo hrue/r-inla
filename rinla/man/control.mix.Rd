@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.mix} for use in \code{inla}}
 \usage{
 inla.set.control.mix.default(...)
-control.mix()
+control.mix(fixed, hyper, initial, model, param, prior)
 }
 \arguments{
 \item{...}{Possible arguments}

@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.family} for use in \code{inla}}
 \usage{
 inla.set.control.family.default(...)
-control.family()
+control.family(alpha, cenpoisson.I, control.link, control.mix, epsilon, fixed, gamma, gev.scale.xi, hyper, initial, link, param, prior, sn.shape.max, variant)
 }
 \arguments{
 \item{...}{Possible arguments}

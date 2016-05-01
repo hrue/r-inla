@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.hazard} for use in \code{inla}}
 \usage{
 inla.set.control.hazard.default(...)
-control.hazard()
+control.hazard(constr, cutpoints, fixed, hyper, initial, model, n.intervals, param, prior, scale.model, strata.name)
 }
 \arguments{
 \item{...}{Possible arguments}

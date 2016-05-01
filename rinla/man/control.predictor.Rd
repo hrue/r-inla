@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.predictor} for use in \code{inla}}
 \usage{
 inla.set.control.predictor.default(...)
-control.predictor()
+control.predictor(A, cdf, compute, cross, fixed, hyper, initial, link, param, precision, prior, quantiles)
 }
 \arguments{
 \item{...}{Possible arguments}
