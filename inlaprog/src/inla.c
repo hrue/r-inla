@@ -19967,7 +19967,6 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 	int n = 0;
 	int *idx = NULL;
 	inla_sread_ints_q(&idx, &n, (const char *) str);
-	Free(str);
 
 	mb->expert_n_cpo_idx = n;
 	mb->expert_cpo_idx = idx;
