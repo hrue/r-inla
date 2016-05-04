@@ -6,8 +6,15 @@ if [ -d "/usr/lib64" ]; then
 else
     D="/usr/lib"
 fi
-
 export LD_LIBRARY_PATH="$D:$DIR:$LD_LIBRARY_PATH"
+
+DFIRST="$DIR/first"
+export LD_LIBRARY_PATH="$DFIRST:$LD_LIBRARY_PATH"
+if [ "${INLA_DEBUG}XX" != "XX" ]; then
+    echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+    ldd -r "$DIR/inla"
+fi
+
 exec "$DIR/fmesher" "$@"
 
 
