@@ -7,7 +7,11 @@ DIR=$(dirname "$cmd")
 D=""
 for d in /lib64 /usr/lib64 /usr/lib/x86_64-linux-gnu /lib /usr/lib; do
     if [ -d "$d" ]; then
-	D="$D:$d"
+	if [ -z "$D" ]; then
+	    D="$d"
+	else
+	    D="$D:$d"
+	fi
     fi
 done
 export LD_LIBRARY_PATH="$DIR/first:$D:$DIR:$LD_LIBRARY_PATH"
