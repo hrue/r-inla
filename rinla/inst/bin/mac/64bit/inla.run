@@ -21,19 +21,20 @@ DIR=$(dirname "$(myreadlink "$0")")
 
 ## path for the libR.dylib
 if [ -z "$INLA_RVERSION" ]; then
-    RPATH="$DIR/libR/default"
+    RLIB_PATH="$DIR/libR/default"
 else
-    RPATH="$DIR/libR/$INLA_RVERSION"
+    RLIB_PATH="$DIR/libR/$INLA_RVERSION"
 fi
 
 if [ -z "$INLA_RHOME" ]; then
-    RHOME_LIB="$DIR"
+    ## default path
+    RHOME_LIB="/Library/Frameworks/R.framework/Resources"
 else
     RHOME_LIB="$INLA_RHOME/lib"
 fi
 
-export DYLD_LIBRARY_PATH=$RPATH:$DIR:$RHOME_LIB:/usr/lib:$DYLD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$RPATH:$DIR:$RHOME_LIB:/usr/lib:$LD_LIBRARY_PATH
+export DYLD_LIBRARY_PATH=$RLIB_PATH:$DIR:$RHOME_LIB:/usr/lib:$DYLD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$RLIB_PATH:$DIR:$RHOME_LIB:/usr/lib:$LD_LIBRARY_PATH
 
 exec "$DIR/inla" "$@"
 
