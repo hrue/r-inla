@@ -32,7 +32,9 @@ for f in INLA/NAMESPACE INLA/DESCRIPTION; do
 done
 
 rsync -auvL --delete --exclude '/*~' --exclude RCS/ --exclude TAGS $D/.. INLA/. 
-rsync -auv $D/../inst/bin/linux/64bit/first/. $DD/../inst/bin/linux/64bit/first/.
+if [ -d $D/../inst/bin/linux/64bit/first ]; then
+    rsync -auv $D/../inst/bin/linux/64bit/first/. $DD/../inst/bin/linux/64bit/first/.
+fi
 ./updateBin
 
 ## generate the exports defined in the R-files
