@@ -1,20 +1,21 @@
 #!/bin/bash
-DIR=$(dirname "$(readlink -f "$0")")
+cmd=$(readlink -f "$0")
+tmp=$(basename "$cmd")
+prog=${tmp%%.run}
+DIR=$(dirname "$cmd")
 
 if [ -d "/usr/lib64" ]; then
-    D="/usr/lib64"
+    ## fedora like...
+    D="/lib64:/usr/lib64"
 else
-    D="/usr/lib"
+    ## ubuntu like...
+    D="/lib:/usr/lib:/usr/lib/x86_64-linux-gnu"
 fi
-export LD_LIBRARY_PATH="$D:$DIR:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="$DIR/first:$D:$DIR:$LD_LIBRARY_PATH"
 
-DFIRST="$DIR/first"
-export LD_LIBRARY_PATH="$DFIRST:$LD_LIBRARY_PATH"
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
     echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
-    ldd -r "$DIR/inla"
+    ldd -r "$DIR/$prog"
 fi
 
-exec "$DIR/fmesher" "$@"
-
-
+exec "$DIR/$prog" "$@"
