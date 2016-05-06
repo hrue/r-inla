@@ -42,7 +42,8 @@
         update.packages(repos = repo, oldPkgs = "INLA")
         cat("\n *** Please restart R to load package 'INLA'\n\n")
     } else {
-        install.packages(pkgs = "INLA", lib = lib, repos = repo)
+        install.packages(pkgs = "INLA", lib = lib, repos = repo,
+                         dependencies = TRUE)
         library("INLA")
     }
 
