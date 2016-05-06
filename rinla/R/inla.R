@@ -1842,6 +1842,9 @@
     inla.eval(paste("Sys.setenv(", "\"INLA_PATH\"", "=\"", system.file("bin", package="INLA"), "\"", ")", sep=""))
     inla.eval(paste("Sys.setenv(", "\"INLA_OS\"", "=\"", inla.os.type() , "\"", ")", sep=""))
     inla.eval(paste("Sys.setenv(", "\"INLA_HGVERSION\"", "=\"", inla.version("hgid") , "\"", ")", sep=""))
+    rversion = paste(R.Version()$major, ".", strsplit(R.Version()$minor,"[.]")[[1]][1], sep="")
+    inla.eval(paste("Sys.setenv(", "\"INLA_RVERSION\"", "=\"", rversion , "\"", ")", sep=""))
+    inla.eval(paste("Sys.setenv(", "\"INLA_RHOME\"", "=\"", Sys.getenv("R_HOME") , "\"", ")", sep=""))
     if (debug) {
         inla.eval(paste("Sys.setenv(", "\"INLA_DEBUG=\"", "=\"", 1, "\"", ")", sep=""))
     }
