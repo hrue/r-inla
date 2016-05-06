@@ -1353,24 +1353,34 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 #define COMPUTE_CPO_DENSITY						\
 	if (cpo_density) {						\
 		if (d[idx]) {						\
-			double *xp = NULL, *xp_tmp = NULL, fac = 2.0, *ld = NULL, *logcor = NULL, *x_user = NULL, *work = NULL, _alpha=-1.0; \
-			int itry, np_orig = 51, _debug = 0, _one = 1, _i, ex = 2; \
-			double cor_eps = GMRFLib_eps(0.75), cor_max;	\
+			double *xp = NULL, *xp_tmp = NULL,		\
+				*ld = NULL, *logcor = NULL, *x_user = NULL, *work = NULL, _alpha=-1.0; \
+			int itry, flag, np, np_orig = 51, _debug = 0, _one = 1, _i, npx = 8, itmp, np_new = np_orig + 2*npx; \
+			double cor_eps = GMRFLib_eps(0.75), cor_max, range;	\
 									\
-			work = Calloc(4*np_orig+ex, double); /* storage */ \
+			work = Calloc(4*np_new, double);		\
 			for(itry = 0; itry < 2;	itry++)			\
 			{						\
-				int np = np_orig;			\
-				int flag = 0;				\
+				np = np_orig;				\
+				flag = 0;				\
 				ld = &work[0];				\
-				logcor = &work[np];			\
-				x_user = &work[2*np];			\
-				xp = &work[3*np];			\
+				logcor = &work[np_new];			\
+				x_user = &work[2*np_new];		\
+				xp = &work[3*np_new];			\
 				GMRFLib_ghq_abscissas(&xp_tmp, np);	\
-				memcpy(xp+1, xp_tmp, np*sizeof(double)); \
-				xp[0] = xp[1]*fac;			\
-				xp[np+1] = xp[np]*fac;			\
-				if (_debug) GMRFLib_density_printf(stdout, *density); \
+				range = xp_tmp[np-1];			\
+				memcpy(xp+npx, xp_tmp, np*sizeof(double)); \
+				for(itmp = 0; itmp < npx; itmp++) {	\
+					xp[itmp] = xp[npx] - range * (npx - itmp)/(double)npx; \
+					xp[np + npx + itmp] = xp[npx + np - 1]  + range * (itmp + 1.0)/(double)npx; \
+				}					\
+				np = np_new;				\
+				if (_debug) {				\
+					if (0) \
+						for(itmp = 0; itmp < np; itmp++) \
+							printf("xp[%1d] = %f\n", itmp, xp[itmp]); \
+					GMRFLib_density_printf(stdout, *density); \
+				}					\
 				GMRFLib_evaluate_nlogdensity(ld, xp, np, *density); \
 				GMRFLib_density_std2user_n(x_user, xp, np, *density); \
 				loglFunc(logcor, x_user, np, idx, fixed_mode, loglFunc_arg); \
@@ -1378,7 +1388,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 					logcor[_i] *= d[idx];		\
 				}					\
 				if (_debug && np) {			\
-					for(_i = 0; _i < np + ex; _i++)	\
+					for(_i = 0; _i < np; _i++)	\
 						printf("CPO: %d BEFORE x_user %g xp %g ld %g logcor %g ld-logcor %g\n", idx,\
 						       x_user[_i], xp[_i], ld[_i], logcor[_i], ld[_i]-logcor[_i]); \
 				}					\
@@ -1389,7 +1399,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 						ld[_i] = ld[_i] + logcor[_i] - 2.0*GMRFLib_log_apbex(cor_max, logcor[_i]); \
 					}				\
 				} else {				\
-					daxpy_(&np, &_alpha, logcor, &_one, ld, &_one);  /* ld = ld - logcor */ \
+					daxpy_(&np, &_alpha, logcor, &_one, ld, &_one);  /* ld = ld + logcor */ \
 				}					\
 				GMRFLib_ai_correct_cpodens(ld, xp, &np, ai_par); \
 				if (_debug && np) {			\
@@ -3344,7 +3354,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_AUTO ||
 				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES ||
 				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD), GMRFLib_EPARAMETER);
-	/* 
+	/*
 	 * Simply chose int-strategy here
 	 */
 	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_AUTO) {
@@ -3849,8 +3859,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    || (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID && density_hyper &&
 			(ai_par->interpolator == GMRFLib_AI_INTERPOLATOR_CCD || ai_par->interpolator == GMRFLib_AI_INTERPOLATOR_CCD_INTEGRATE))
 		    // as the scalings are used for the inla.sample.hyper() function... and they do not take much time in any case
-		    || 1
-			) {
+		    || 1) {
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_HESSIAN_SCALE, (void *) &nhyper);
 
 			stdev_corr_pos = Calloc(nhyper, double);
@@ -3966,13 +3975,13 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				misc_output->stdev_corr_neg = Calloc(nhyper, double);
 				stdev_corr_pos = Calloc(nhyper, double);
 				stdev_corr_neg = Calloc(nhyper, double);
-				for(k = 0; k < nhyper; k++) {
+				for (k = 0; k < nhyper; k++) {
 					stdev_corr_pos[k] = misc_output->stdev_corr_pos[k] = stdev_corr_neg[k] = misc_output->stdev_corr_neg[k] = 1.0;
 				}
 			} else {
 				stdev_corr_pos = Calloc(nhyper, double);
 				stdev_corr_neg = Calloc(nhyper, double);
-				for(k = 0; k < nhyper; k++) {
+				for (k = 0; k < nhyper; k++) {
 					stdev_corr_pos[k] = stdev_corr_neg[k] = 1.0;
 				}
 			}
@@ -4237,7 +4246,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					GMRFLib_tabulate_Qfunc_tp *tabQfunc = NULL;
 					double *bnew = NULL;
 					double log_dens_orig;
-					
+
 					for (i = 0; i < nhyper; i++) {
 						z[i] = f * design->experiment[k][i]
 						    * (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
@@ -4255,7 +4264,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							omp_get_thread_num());
 					}
 
-										/*
+					/*
 					 * correct the log_dens due to the integration weights which is special for the CCD integration:
 					 * double the weights for the points not in the center
 					 */
@@ -5308,7 +5317,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 			Free(Z);
 		} else {
-			/* 
+			/*
 			 * cpo_manual. In this case, \pi(theta|y) is compute with the cpo-data removed, hence we do not need to correct
 			 */
 			for (j = 0; j < compute_n; j++) {
@@ -5321,7 +5330,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					for (jj = 0, evalue = 0.0; jj < dens_count; jj++) {
 						evalue += cpo_theta[ii][jj] * adj_weights[jj];
 					}
-					(*cpo)->value[ii][0] = evalue; 
+					(*cpo)->value[ii][0] = evalue;
 				} else {
 					(*cpo)->value[ii] = NULL;
 				}
@@ -5330,7 +5339,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					(*cpo)->pit_value[ii] = Calloc(1, double);
 					(*cpo)->failure[ii] = Calloc(1, double);
 					for (jj = 0, evalue = evalue2 = 0.0; jj < dens_count; jj++) {
-						evalue += pit_theta[ii][jj] * adj_weights[jj]; 
+						evalue += pit_theta[ii][jj] * adj_weights[jj];
 						evalue2 += failure_theta[ii][jj] * adj_weights[jj];
 					}
 					evalue = TRUNCATE(evalue, 0.0, 1.0);
@@ -6025,8 +6034,7 @@ int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior,
-			    double log_posterior_orig, 
-			    double *improved_mean, double *skewness, GMRFLib_problem_tp * gmrf_approx)
+			    double log_posterior_orig, double *improved_mean, double *skewness, GMRFLib_problem_tp * gmrf_approx)
 {
 	if (!mo || !(mo->configs)) {
 		return GMRFLib_SUCCESS;
@@ -6136,8 +6144,8 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 	mo->configs[id]->config[mo->configs[id]->nconfig]->mean = mean;
 	mo->configs[id]->config[mo->configs[id]->nconfig]->improved_mean = imean;
 	mo->configs[id]->config[mo->configs[id]->nconfig]->skewness = skew;
-	mo->configs[id]->config[mo->configs[id]->nconfig]->log_posterior = log_posterior; /* may include integration weights */
-	mo->configs[id]->config[mo->configs[id]->nconfig]->log_posterior_orig = log_posterior_orig; /* do NOT include integration weights */
+	mo->configs[id]->config[mo->configs[id]->nconfig]->log_posterior = log_posterior;	/* may include integration weights */
+	mo->configs[id]->config[mo->configs[id]->nconfig]->log_posterior_orig = log_posterior_orig;	/* do NOT include integration weights */
 	if (mo->configs[id]->ntheta) {
 		mo->configs[id]->config[mo->configs[id]->nconfig]->theta = Calloc(mo->configs[id]->ntheta, double);
 		memcpy(mo->configs[id]->config[mo->configs[id]->nconfig]->theta, theta, mo->configs[id]->ntheta * sizeof(double));

@@ -326,7 +326,7 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 					for (i = 0; i < G.nhyper; i++) {
 						fprintf(G.ai_par->fp_log, " %.6f", x[i]);
 					}
-					fprintf(G.ai_par->fp_log, "  range.x=[%.3f", GMRFLib_min_value(ais->mode, G.graph->n, NULL));
+					fprintf(G.ai_par->fp_log, "  range=[%.3f", GMRFLib_min_value(ais->mode, G.graph->n, NULL));
 					fprintf(G.ai_par->fp_log, " %.3f]", GMRFLib_max_value(ais->mode, G.graph->n, NULL));
 					fprintf(G.ai_par->fp_log, "\n");
 					fflush(G.ai_par->fp_log);
