@@ -24,9 +24,9 @@ prog=${tmp%%.run}
 
 if [ -z "$INLA_RHOME" ]; then
     if $(which R 2>/dev/null >/dev/null); then
-	RHOME="$(R RHOME)/lib"
+	RHOME_LIB="$(R RHOME)/lib"
     else
-	RHOME"/Library/Frameworks/R.framework/Resources/lib"
+	RHOME_LIB="/Library/Frameworks/R.framework/Resources/lib"
     fi
 else
     RHOME_LIB="$INLA_RHOME/lib"
