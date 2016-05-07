@@ -62,11 +62,11 @@ marg.prec = prec * (1-rho^2)
 E=sample(c(5,4,10,12),size=n,replace=T)
 eta = as.vector(arima.sim(list(order = c(1,0,0), ar = rho), n = n,sd=sqrt(1/prec)))
 y=rpois(n,E*exp(eta))
-data = list(y=y,z=1:n)
+data = list(y=y, z=1:n, E=E)
 
 ## fit the model
 formula = y~f(z,model="ar1")
-result = inla(formula,family="poisson", data = data)
+result = inla(formula,family="poisson", data = data, E=E)
 \end{verbatim}
 
 
