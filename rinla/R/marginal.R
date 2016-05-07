@@ -262,8 +262,12 @@
 
     xx = inla.smarginal(marginal)
     n = length(xx$x)
-    if (n%%2 == 0)
+    if (n%%2 == 0) {
         n = n -1
+        xx$x = xx$x[1:n]
+        xx$y = xx$y[1:n]
+    }
+    
     ## use Simpsons integration rule
     i.0 = c(1, n)
     i.4 = seq(2, n-1, by=2)
