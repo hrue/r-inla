@@ -1,3 +1,12 @@
+rMatern <- function(n, coords, kappa, variance, nu=1) {
+    m <- as.matrix(dist(coords))
+    m <- exp((1-nu)*log(2) + nu*log(kappa*m)-
+             lgamma(nu))*besselK(m*kappa, nu)
+    diag(m) <- 1
+    return(drop(crossprod(chol(variance*m),
+                          matrix(rnorm(nrow(coords)*n), ncol=n))))
+}
+
 rspde <- function(coords, kappa, variance=1, alpha=2, n=1, mesh, 
                   verbose=FALSE, seed, return.attributes=FALSE) {
     t0 <- Sys.time()
