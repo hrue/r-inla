@@ -1004,7 +1004,7 @@
     ## offset = as.vector(model.extract(mf, "offset"))
 
     for (nm in c("scale", "weights", "Ntrials", "offset", "E", "strata", "link.covariates")) {
-        inla.eval(paste("tmp = try(eval(mf$", nm, ", data), silent=TRUE)", sep=""))
+        inla.eval(paste("tmp = try(eval(mf$", nm, ", data, enclos = parent.frame()), silent=TRUE)", sep=""))
         if (!is.null(tmp) && !inherits(tmp, "try-error")) {
             inla.eval(paste("mf$", nm, " = NULL", sep=""))
             inla.eval(paste(nm, " = tmp"))
