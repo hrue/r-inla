@@ -20,6 +20,7 @@ update-inla :;
 	-gnome-terminal --title="INLA64"       -e 'ssh -x -t hrue@inla.math.ntnu.no make -C builds/build64 update'
 	-gnome-terminal --title="INLA-O2"      -e 'ssh -x -t hrue@inla.math.ntnu.no make -C builds/build.O2 update'
 	-gnome-terminal --title="INLA-g"       -e 'ssh -x -t hrue@inla.math.ntnu.no make -C builds/build.debug update'
+	-gnome-terminal --title="INLA-static"  -e 'ssh -x -t hrue@inla.math.ntnu.no make -C builds/build.static update'
 	-$(MAKE) -C $(HOME)/p/inla/builds/windows32 update
 	-$(MAKE) -C $(HOME)/p/inla/builds/windows64 update
 
