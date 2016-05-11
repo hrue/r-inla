@@ -1,4 +1,5 @@
 ## Export: inla.sens
+## Export: inla.sens.distance
 
 ##!\name{inla.sens}
 ##!
@@ -20,7 +21,7 @@
 ##! TODO
 ##!}
 
-inla.sens = function(inlaObj, lambda = 1){
+inla.sens = function(inlaObj, lambda = 1, nThreads = NULL){
     # Ensure that $misc$configs information is available
     if(!inlaObj$.args$control.compute$config){
         # Turn on storage of x|theta distributions
@@ -40,17 +41,20 @@ inla.sens = function(inlaObj, lambda = 1){
     nTheta = inlaObj$misc$configs$nconfig
 
     # Number of latent components
-    nLatent = length(inlaObj$misc$configs[[1]]$improved.mean)
+    nLatent = length(inlaObj$misc$configs$config[[1]]$improved.mean)
 
     # Store parameters of distributions in matrices
-    muMarg = matrix(0, nrow = nLatent, ncol = nTheta)
+    muMarg = matrix(0, nrow = nTheta, ncol = nLatent)
     sdMarg = muMarg
     skMarg = muMarg
+    prob = vector(mode = "numeric", length = nTheta)
     for(idxC in 1:nTheta){
-        muMarg[, idxC] = inlaObj$misc$configs$config[[idxC]]$improved.mean
-        sdMarg[, idxC] = sqrt(diag(inlaObj$misc$configs$config[[idxC]]$Qinv))
-        skMarg[, idxC] = inlaObj$misc$configs$config[[idxC]]$skewness
+        muMarg[idxC, ] = inlaObj$misc$configs$config[[idxC]]$improved.mean
+        sdMarg[idxC, ] = sqrt(diag(inlaObj$misc$configs$config[[idxC]]$Qinv))
+        skMarg[idxC, ] = inlaObj$misc$configs$config[[idxC]]$skewness
+        prob[idxC] = exp(inlaObj$misc$configs$config[[idxC]]$log.posterior)
     }
+    prob = prob/sum(prob)
 
     ## Pre-compute robustification (Could be tabulated)
         # Resolution
@@ -79,7 +83,7 @@ inla.sens = function(inlaObj, lambda = 1){
 
         # Extract mean and standard deviations
         muRobust = z12[, 1]
-        sdRobust = exp(z12[, 1])
+        sdRobust = exp(z12[, 2])
 
         # Choose interval to compute robustification of Gaussian on
         len = sqrt(var(muRobust) + mean(sdRobust^2))
@@ -88,7 +92,72 @@ inla.sens = function(inlaObj, lambda = 1){
         nGrid = 1e4
 
         # Calculate distribution
-        
+        xR = seq(-20*len, 20*len, length.out = nGrid)
+        yR = vector(mode = "numeric", length = nGrid)
+        for(idxS in 1:nSamples){
+            yR = yR + dnorm(xR, mean = muRobust[idxS], sd = sdRobust[idxS])
+        }
+        yR = log(yR)-log(nSamples)
+        robMarg = list(x = xR, y = yR)
 
-    return(inlaObj)
+    ## Calculate distance between original marginal posterior and
+    ## posterior with uncertainty added in each conditional density
+    ## x_i | \theta, y
+    require(doParallel)
+    if(is.null(nThreads)){
+        registerDoParallel()
+    } else{
+        registerDoParallel(nThreads)
+    }
+    require(foreach)
+
+    nIntGrid = 1e4
+    nWorkers = getDoParWorkers()
+    breaks = floor(seq(1, nLatent+1, length.out = nWorkers+1))
+    ds = foreach(idxW = 1:nWorkers, .combine = 'c') %dopar%{
+        tmpRes = vector(mode = "numeric", length = breaks[idxW+1]-breaks[idxW])
+        for(idx in breaks[idxW]:(breaks[idxW+1]-1)){
+            tmpRes[idx-breaks[idxW]+1] = inla.sens.distance(muMarg[, idx], sdMarg[, idx], skMarg[, idx], prob, robMarg, nIntGrid)
+        }
+
+        tmpRes
+    }
+
+    # Calculate max distance
+    dMax = inla.sens.distance(0, 1, 0, 1, robMarg, nIntGrid)
+
+    # Standardize against max distance
+    res = (dMax-ds)/dMax
+
+    return(res)
+}
+
+inla.sens.distance = function(muMarg, sdMarg, skMarg, prob, robMarg, nGrid, extraLen = 20){
+    # Estimate required integration grid
+    sdMax = max(sdMarg)
+    xs = seq(-1, 1, length.out = nGrid)*sdMax*extraLen + mean(muMarg)
+
+    # Iterate through \theta values
+    yO = vector(mode = "numeric", length = nGrid)
+    yR = yO
+    for(idxT in 1:length(muMarg)){
+        # Use precomputed table of standard robust distribution
+        xx = (xs - muMarg[idxT])/sdMarg[idxT]
+        yy = exp(spline(x = robMarg$x, y = robMarg$y, xout = xx)$y)/sdMarg[idxT]
+
+        # Remove the extrapolated values
+        yy[(xx < min(robMarg$x)) | (xx > max(robMarg$x))] = 0
+
+        # Add original and robust to their respective mixtures
+        yO = yO + prob[idxT]*dnorm(xs, mean = muMarg[idx], sd = sdMarg[idxT])
+        yR = yR + prob[idxT]*yy
+    }
+
+    #  Calculate KLD between original and added uncertainty
+    intG = yR*log(yR/yO)
+    intG[yR == 0] = 0
+    KLD = sum((intG[-nGrid] + intG[-1])*(xs[2]-xs[1])/2)
+
+    # Convert to distance and return value
+    return(sqrt(2*KLD))
 }
