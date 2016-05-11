@@ -21,7 +21,11 @@
 ##! TODO
 ##!}
 
-inla.sens = function(inlaObj, lambda = 1, nThreads = NULL){
+inla.sens = function(inlaObj, lambda = 5, nThreads = NULL, seed = NULL, nGrid = 1e4, nSamples = 2e4, nIntGrid = 1e4){
+    # Ensure reproducability
+    if(!is.null(seed))
+        set.seed(seed)
+
     # Ensure that $misc$configs information is available
     if(!inlaObj$.args$control.compute$config){
         # Turn on storage of x|theta distributions
@@ -57,11 +61,8 @@ inla.sens = function(inlaObj, lambda = 1, nThreads = NULL){
     prob = prob/sum(prob)
 
     ## Pre-compute robustification (Could be tabulated)
-        # Resolution
-        nSamples = 2e4
-
         # Correct lambda for number of parameters
-        nPar = p + p*(p+1)/2
+        nPar = nLatent + nLatent*(nLatent+1)/2
         lambda = lambda/sqrt(nPar)
 
         # Sample distances
@@ -86,10 +87,7 @@ inla.sens = function(inlaObj, lambda = 1, nThreads = NULL){
         sdRobust = exp(z12[, 2])
 
         # Choose interval to compute robustification of Gaussian on
-        len = sqrt(var(muRobust) + mean(sdRobust^2))
-
-        # Choose resolution for grid
-        nGrid = 1e4
+        len = sqrt(var(muRobust) + mean(sdRobust)^2)
 
         # Calculate distribution
         xR = seq(-20*len, 20*len, length.out = nGrid)
@@ -111,7 +109,6 @@ inla.sens = function(inlaObj, lambda = 1, nThreads = NULL){
     }
     require(foreach)
 
-    nIntGrid = 1e4
     nWorkers = getDoParWorkers()
     breaks = floor(seq(1, nLatent+1, length.out = nWorkers+1))
     ds = foreach(idxW = 1:nWorkers, .combine = 'c') %dopar%{
@@ -128,6 +125,48 @@ inla.sens = function(inlaObj, lambda = 1, nThreads = NULL){
 
     # Standardize against max distance
     res = (dMax-ds)/dMax
+
+    # Make one plot for each group of variables
+    groups = inlaObj$misc$configs$contents
+    nGroups = length(groups$tag)
+    xLab = c()
+    val  = c()
+    cex.names = 1.2
+    cex.axis  = 1.2
+    lwd       = 1.2
+    for(idxP in 1:nGroups){
+        if(groups$length[idxP] == 1){
+            xLab = c(xLab, groups$tag[idxP])
+            val  = c(val,  res[idxP])
+        } else{
+            sIdx = groups$start[idxP]
+            eIdx = sIdx + groups$length[idxP]-1
+            inla.dev.new()
+            barplot(res[sIdx:eIdx], 
+                    space = 2,
+                    ylim = c(0, 1), 
+                    main = groups$tag[idxP], 
+                    names.arg = 1:(eIdx-sIdx+1), 
+                    xlab = "Index", 
+                    ylab = "Sensitivity",
+                    cex.names = cex.names,
+                    cex.axis  = cex.axis,
+                    lwd       = lwd)
+        }
+    }
+    if(length(val) >= 1){
+        inla.dev.new()
+        barplot(val, 
+                space = 2, 
+                ylim = c(0, 1), 
+                main = "Fixed effects", 
+                names.arg = xLab, 
+                ylab = "Sensitivity",
+                cex.names = cex.names,
+                cex.axis  = cex.axis,
+                lwd       = lwd)
+    }
+    inla.dev.new()
 
     return(res)
 }
@@ -149,7 +188,7 @@ inla.sens.distance = function(muMarg, sdMarg, skMarg, prob, robMarg, nGrid, extr
         yy[(xx < min(robMarg$x)) | (xx > max(robMarg$x))] = 0
 
         # Add original and robust to their respective mixtures
-        yO = yO + prob[idxT]*dnorm(xs, mean = muMarg[idx], sd = sdMarg[idxT])
+        yO = yO + prob[idxT]*dnorm(xs, mean = muMarg[idxT], sd = sdMarg[idxT])
         yR = yR + prob[idxT]*yy
     }
 
