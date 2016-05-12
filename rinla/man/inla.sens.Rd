@@ -146,7 +146,7 @@ Geir-Arne Fuglstad \email{geirarne.fuglstad@gmail.com}
   u = L%*%rnorm(nObs) + rnorm(nObs)*sdNoise
   
   # Generate Covariate
-  x = runif(nObs)
+  x = runif(nObs)-0.5
 
   # Combine to observations
   y = beta0 + beta1*x + u
@@ -159,7 +159,8 @@ Geir-Arne Fuglstad \email{geirarne.fuglstad@gmail.com}
   mesh = inla.mesh.2d(loc, max.edge = 0.05, cutoff = 0.05)
   
   # Make SPDE object
-  spde = inla.spde2.matern(mesh)
+  spde  = inla.spde2.matern(mesh)
+  spde2 = inla.spde2.matern(mesh, constr = TRUE)
   
   # Make A matrix
   A = inla.spde.make.A(mesh, loc)
@@ -171,14 +172,20 @@ Geir-Arne Fuglstad \email{geirarne.fuglstad@gmail.com}
                                   X = X))
   
   # Run INLA
-  mod = inla(y ~ -1 + X + f(field, model = spde),
-             data = inla.stack.data(stk),
-             control.predictor = list(A = inla.stack.A(stk)),
-             control.family = list(prior = "pcprec",
-                                   param = c(3, 0.05)))
+  mod1 = inla(y ~ -1 + X + f(field, model = spde),
+              data = inla.stack.data(stk),
+              control.predictor = list(A = inla.stack.A(stk)),
+              control.family = list(prior = "pcprec",
+                                    param = c(3, 0.05)))
+  mod2 = inla(y ~ -1 + X + f(field, model = spde2),
+              data = inla.stack.data(stk),
+              control.predictor = list(A = inla.stack.A(stk)),
+              control.family = list(prior = "pcprec",
+                                    param = c(3, 0.05)))
 
   # Calculate sensitivities
-  inla.sens(mod)
+  res1 = inla.sens(mod1)
+  res2 = inla.sens(mod2)
 }
 
 % Add one or more standard keywords, see file 'KEYWORDS' in the
