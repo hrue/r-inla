@@ -1,0 +1,227 @@
+## Export: inla.sens
+## Export: inla.sens.distance
+
+##!\name{inla.sens}
+##!
+##!\title{Calculate sensitivity measurements}
+##!
+##!\description{TODO}
+##!\usage{
+##!   inla.sens(inlaRes)
+##!}
+##!
+##!\arguments{
+##!  \item{inlaRes}{Object returned by \code{inla} function.}
+##!}
+##!\value{
+##!  \code{inla.sens}  plots robustness and returns object with different robustnesses
+##!}
+##!\author{Geir-Arne Fuglstad \email{geirarne.fuglstad@gmail.com}}
+##!\examples{
+##! TODO
+##!}
+
+inla.sens = function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL, nGrid = 1e4, nSamples = 2e4, nIntGrid = 1e4){
+    # Ensure reproducability
+    if(!is.null(seed))
+        set.seed(seed)
+
+    # Ensure that $misc$configs information is available
+    if(!inlaObj$.args$control.compute$config){
+        # Turn on storage of x|theta distributions
+        inlaObj$.args$control.compute$config = TRUE
+
+        # Use the previously calculated mode
+        inlaObj$.args$control.mode$result = NULL
+        inlaObj$.args$control.mode$restart = FALSE
+        inlaObj$.args$control.mode$theta = inlaObj$mode$theta
+        inlaObj$.args$control.mode$x = inlaObj$mode$x
+
+        # Run INLA with all the settings
+        inlaObj = do.call("inla", args = inlaObj$.args)
+    }
+
+    # Number of different theta values
+    nTheta = inlaObj$misc$configs$nconfig
+
+    # Number of latent components
+    nLatent = length(inlaObj$misc$configs$config[[1]]$improved.mean)
+
+    # Store parameters of distributions in matrices
+    muMarg = matrix(0, nrow = nTheta, ncol = nLatent)
+    sdMarg = muMarg
+    skMarg = muMarg
+    prob = vector(mode = "numeric", length = nTheta)
+    for(idxC in 1:nTheta){
+        muMarg[idxC, ] = inlaObj$misc$configs$config[[idxC]]$improved.mean
+        sdMarg[idxC, ] = sqrt(diag(inlaObj$misc$configs$config[[idxC]]$Qinv))
+        skMarg[idxC, ] = inlaObj$misc$configs$config[[idxC]]$skewness
+        prob[idxC] = exp(inlaObj$misc$configs$config[[idxC]]$log.posterior)
+    }
+    prob = prob/sum(prob)
+
+    ## Pre-compute robustification (Could be tabulated)
+        ## Using the exponential distribution too easily leads to a distribution for the standard deviations
+        ## that has no mean
+            # # Correct lambda for number of parameters
+            # nPar = nLatent + nLatent*(nLatent+1)/2
+            # lambda = lambda/sqrt(nPar)
+
+            # # Make sure mean and variance of standard deviations will exist
+
+
+            # # Sample distances
+            # R = rexp(n = nSamples, rate = lambda)
+
+        ## With the Gaussian distribution we can ensure the correct behaviour
+            # Scale variance according to number of samples
+            nPar = nLatent + nLatent*(nLatent+1)/2
+            sigDist = lambda*sqrt(nPar-3)
+
+            # Simulate distances
+            R = abs(rnorm(nSamples, sd = sigDist))
+
+        # Approximate the draws from the ellipsiod with draws from n-sphere
+        z12 = matrix(rnorm(n = 2*nSamples), ncol = 2)
+        zRest2 = rchisq(n = nSamples, df = nPar-2)
+        sphereRadius = sqrt(rowSums(z12^2) + zRest2)
+        sphereRadius = cbind(sphereRadius, sphereRadius)
+        z12 = z12/sphereRadius
+
+        # Scale with distances
+        z12 = z12*R
+
+        # Correct for different semi-axis
+        z12[, 1] = z12[, 1]/1
+        z12[, 2] = z12[, 2]/2
+
+        # Extract mean and standard deviations
+        muRobust = z12[, 1]
+        sdRobust = exp(z12[, 2])
+
+        # Choose interval to compute robustification of Gaussian on
+        len = sqrt(var(muRobust) + mean(sdRobust^2))
+
+        # Calculate distribution
+        xR = seq(-20*len, 20*len, length.out = nGrid)
+        yR = vector(mode = "numeric", length = nGrid)
+        for(idxS in 1:nSamples){
+            yR = yR + dnorm(xR, mean = muRobust[idxS], sd = sdRobust[idxS])
+        }
+        yR = log(yR)-log(nSamples)
+        robMarg = list(x = xR, y = yR)
+
+    ## Calculate distance between original marginal posterior and
+    ## posterior with uncertainty added in each conditional density
+    ## x_i | \theta, y
+    require(doParallel)
+    if(is.null(nThreads)){
+        registerDoParallel()
+    } else{
+        registerDoParallel(nThreads)
+    }
+    require(foreach)
+
+    nWorkers = getDoParWorkers()
+    breaks = floor(seq(1, nLatent+1, length.out = nWorkers+1))
+    ds = foreach(idxW = 1:nWorkers, .combine = 'c') %dopar%{
+        tmpRes = vector(mode = "numeric", length = breaks[idxW+1]-breaks[idxW])
+        for(idx in breaks[idxW]:(breaks[idxW+1]-1)){
+            tmpRes[idx-breaks[idxW]+1] = inla.sens.distance(muMarg[, idx], sdMarg[, idx], skMarg[, idx], prob, robMarg, nIntGrid)
+        }
+
+        tmpRes
+    }
+
+    # Calculate max distance
+    dMax = inla.sens.distance(0, 1, 0, 1, robMarg, nIntGrid)
+
+    # Standardize against max distance
+    stdDist = (dMax-ds)/dMax
+
+    # Store results in groups
+    res = list()
+
+    # Make one plot for each group of variables
+    groups = inlaObj$misc$configs$contents
+    nGroups = length(groups$tag)
+    xLab = c()
+    val  = c()
+    cex.names = 1.2
+    cex.axis  = 1.2
+    lwd       = 1.2
+    for(idxP in 1:nGroups){
+        sIdx = groups$start[idxP]
+        eIdx = sIdx + groups$length[idxP]-1
+        if(groups$length[idxP] == 1){
+            xLab = c(xLab, groups$tag[idxP])
+            val  = c(val,  stdDist[sIdx])
+        } else{
+            inla.dev.new()
+            barplot(stdDist[sIdx:eIdx], 
+                    space = 2,
+                    ylim = c(0, 1), 
+                    main = groups$tag[idxP], 
+                    names.arg = 1:(eIdx-sIdx+1), 
+                    xlab = "Index", 
+                    ylab = "Uncertainty",
+                    cex.names = cex.names,
+                    cex.axis  = cex.axis,
+                    lwd       = lwd)
+
+            # Add groups into result object
+            res = c(res, list(list(tag = groups$tag[idxP],
+                                   val = stdDist[sIdx:eIdx])))
+        }
+    }
+    if(length(val) >= 1){
+        inla.dev.new()
+        barplot(val, 
+                space = 2, 
+                ylim = c(0, 1), 
+                main = "Fixed effects", 
+                names.arg = xLab, 
+                ylab = "Uncertainty",
+                cex.names = cex.names,
+                cex.axis  = cex.axis,
+                lwd       = lwd)
+
+        # Add fixed effects to result object
+        res = c(res, list(list(tag = "Fixed effects",
+                               val = val,
+                               names = xLab)))
+    }
+    inla.dev.new()
+
+    return(res)
+}
+
+inla.sens.distance = function(muMarg, sdMarg, skMarg, prob, robMarg, nGrid, extraLen = 20){
+    # Estimate required integration grid
+    sdMax = max(sdMarg)
+    xs = seq(-1, 1, length.out = nGrid)*sdMax*extraLen + mean(muMarg)
+
+    # Iterate through \theta values
+    yO = vector(mode = "numeric", length = nGrid)
+    yR = yO
+    for(idxT in 1:length(muMarg)){
+        # Use precomputed table of standard robust distribution
+        xx = (xs - muMarg[idxT])/sdMarg[idxT]
+        yy = exp(spline(x = robMarg$x, y = robMarg$y, xout = xx)$y)/sdMarg[idxT]
+
+        # Remove the extrapolated values
+        yy[(xx < min(robMarg$x)) | (xx > max(robMarg$x))] = 0
+
+        # Add original and robust to their respective mixtures
+        yO = yO + prob[idxT]*dnorm(xs, mean = muMarg[idxT], sd = sdMarg[idxT])
+        yR = yR + prob[idxT]*yy
+    }
+
+    #  Calculate KLD between original and added uncertainty
+    intG = yR*log(yR/yO)
+    intG[yR == 0] = 0
+    KLD = sum((intG[-nGrid] + intG[-1])*(xs[2]-xs[1])/2)
+
+    # Convert to distance and return value
+    return(sqrt(2*KLD))
+}
