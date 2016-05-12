@@ -21,7 +21,7 @@
 ##! TODO
 ##!}
 
-inla.sens = function(inlaObj, lambda = 5, nThreads = NULL, seed = NULL, nGrid = 1e4, nSamples = 2e4, nIntGrid = 1e4){
+inla.sens = function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL, nGrid = 1e4, nSamples = 2e4, nIntGrid = 1e4){
     # Ensure reproducability
     if(!is.null(seed))
         set.seed(seed)
@@ -61,12 +61,25 @@ inla.sens = function(inlaObj, lambda = 5, nThreads = NULL, seed = NULL, nGrid = 
     prob = prob/sum(prob)
 
     ## Pre-compute robustification (Could be tabulated)
-        # Correct lambda for number of parameters
-        nPar = nLatent + nLatent*(nLatent+1)/2
-        lambda = lambda/sqrt(nPar)
+        ## Using the exponential distribution too easily leads to a distribution for the standard deviations
+        ## that has no mean
+            # # Correct lambda for number of parameters
+            # nPar = nLatent + nLatent*(nLatent+1)/2
+            # lambda = lambda/sqrt(nPar)
 
-        # Sample distances
-        R = rexp(n = nSamples, rate = lambda)
+            # # Make sure mean and variance of standard deviations will exist
+
+
+            # # Sample distances
+            # R = rexp(n = nSamples, rate = lambda)
+
+        ## With the Gaussian distribution we can ensure the correct behaviour
+            # Scale variance according to number of samples
+            nPar = nLatent + nLatent*(nLatent+1)/2
+            sigDist = lambda*sqrt(nPar-3)
+
+            # Simulate distances
+            R = abs(rnorm(nSamples, sd = sigDist))
 
         # Approximate the draws from the ellipsiod with draws from n-sphere
         z12 = matrix(rnorm(n = 2*nSamples), ncol = 2)
@@ -87,7 +100,7 @@ inla.sens = function(inlaObj, lambda = 5, nThreads = NULL, seed = NULL, nGrid = 
         sdRobust = exp(z12[, 2])
 
         # Choose interval to compute robustification of Gaussian on
-        len = sqrt(var(muRobust) + mean(sdRobust)^2)
+        len = sqrt(var(muRobust) + mean(sdRobust^2))
 
         # Calculate distribution
         xR = seq(-20*len, 20*len, length.out = nGrid)
@@ -135,12 +148,12 @@ inla.sens = function(inlaObj, lambda = 5, nThreads = NULL, seed = NULL, nGrid = 
     cex.axis  = 1.2
     lwd       = 1.2
     for(idxP in 1:nGroups){
+        sIdx = groups$start[idxP]
+        eIdx = sIdx + groups$length[idxP]-1
         if(groups$length[idxP] == 1){
             xLab = c(xLab, groups$tag[idxP])
-            val  = c(val,  res[idxP])
+            val  = c(val,  res[sIdx])
         } else{
-            sIdx = groups$start[idxP]
-            eIdx = sIdx + groups$length[idxP]-1
             inla.dev.new()
             barplot(res[sIdx:eIdx], 
                     space = 2,
@@ -148,7 +161,7 @@ inla.sens = function(inlaObj, lambda = 5, nThreads = NULL, seed = NULL, nGrid = 
                     main = groups$tag[idxP], 
                     names.arg = 1:(eIdx-sIdx+1), 
                     xlab = "Index", 
-                    ylab = "Sensitivity",
+                    ylab = "Uncertainty",
                     cex.names = cex.names,
                     cex.axis  = cex.axis,
                     lwd       = lwd)
@@ -161,7 +174,7 @@ inla.sens = function(inlaObj, lambda = 5, nThreads = NULL, seed = NULL, nGrid = 
                 ylim = c(0, 1), 
                 main = "Fixed effects", 
                 names.arg = xLab, 
-                ylab = "Sensitivity",
+                ylab = "Uncertainty",
                 cex.names = cex.names,
                 cex.axis  = cex.axis,
                 lwd       = lwd)
