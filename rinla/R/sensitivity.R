@@ -137,7 +137,10 @@ inla.sens = function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL, nGrid 
     dMax = inla.sens.distance(0, 1, 0, 1, robMarg, nIntGrid)
 
     # Standardize against max distance
-    res = (dMax-ds)/dMax
+    stdDist = (dMax-ds)/dMax
+
+    # Store results in groups
+    res = list()
 
     # Make one plot for each group of variables
     groups = inlaObj$misc$configs$contents
@@ -152,10 +155,10 @@ inla.sens = function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL, nGrid 
         eIdx = sIdx + groups$length[idxP]-1
         if(groups$length[idxP] == 1){
             xLab = c(xLab, groups$tag[idxP])
-            val  = c(val,  res[sIdx])
+            val  = c(val,  stdDist[sIdx])
         } else{
             inla.dev.new()
-            barplot(res[sIdx:eIdx], 
+            barplot(stdDist[sIdx:eIdx], 
                     space = 2,
                     ylim = c(0, 1), 
                     main = groups$tag[idxP], 
@@ -165,6 +168,10 @@ inla.sens = function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL, nGrid 
                     cex.names = cex.names,
                     cex.axis  = cex.axis,
                     lwd       = lwd)
+
+            # Add groups into result object
+            res = c(res, list(list(tag = groups$tag[idxP],
+                                   val = stdDist[sIdx:eIdx])))
         }
     }
     if(length(val) >= 1){
@@ -178,6 +185,11 @@ inla.sens = function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL, nGrid 
                 cex.names = cex.names,
                 cex.axis  = cex.axis,
                 lwd       = lwd)
+
+        # Add fixed effects to result object
+        res = c(res, list(list(tag = "Fixed effects",
+                               val = val,
+                               names = xLab)))
     }
     inla.dev.new()
 

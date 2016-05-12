@@ -103,7 +103,84 @@ Geir-Arne Fuglstad \email{geirarne.fuglstad@gmail.com}
   # Calculate sensitivities
   inla.sens(mod)
 
+## Case 3: Epil dataset
+  data(Epil)
+  my.center = function(x) (x - mean(x))
+
+  # make centered covariates
+  Epil$CTrt    = my.center(Epil$Trt)
+  Epil$ClBase4 = my.center(log(Epil$Base/4))
+  Epil$CV4     = my.center(Epil$V4)
+  Epil$ClAge   = my.center(log(Epil$Age))
+  Epil$CBT     = my.center(Epil$Trt*Epil$ClBase4)
+
+  # Define the model
+  formula = y ~ ClBase4 + CTrt + CBT+ ClAge + CV4 +
+            f(Ind, model="iid") + f(rand,model="iid")
+
+  mod = inla(formula,family="poisson", data = Epil)
+ 
+  # Calculate sensitivities
+  inla.sens(mod)
+
+## Case 4: Spatial data
+  # Number of observations
+  nObs = 100
+  
+  # Measurement noise
+  sdNoise = 0.2
+
+  # Spatial process
+  sdProc = 1.0
+  rho0 = 0.2
+
+  # Coefficients
+  beta0 = 1
+  beta1 = 2
+  
+  # Generate spatial data + measurement noise
+  loc = cbind(runif(nObs), runif(nObs))
+  dd = as.matrix(dist(loc))
+  Sig = sdProc^2*inla.matern.cov(nu = 1, kappa = sqrt(8)/rho0, dd, corr = TRUE)
+  L = t(chol(Sig))
+  u = L%*%rnorm(nObs) + rnorm(nObs)*sdNoise
+  
+  # Generate Covariate
+  x = runif(nObs)
+
+  # Combine to observations
+  y = beta0 + beta1*x + u
+  
+  # Number of unobserved
+  nUnObs = 2
+  y[1:nUnObs] = NA
+  
+  # Mesh
+  mesh = inla.mesh.2d(loc, max.edge = 0.05, cutoff = 0.05)
+  
+  # Make SPDE object
+  spde = inla.spde2.matern(mesh)
+  
+  # Make A matrix
+  A = inla.spde.make.A(mesh, loc)
+  
+  # Stack
+  X = cbind(1, x)
+  stk = inla.stack(data = list(y = y), A = list(A, 1),
+                   effects = list(field = 1:spde$n.spde,
+                                  X = X))
+  
+  # Run INLA
+  mod = inla(y ~ -1 + X + f(field, model = spde),
+             data = inla.stack.data(stk),
+             control.predictor = list(A = inla.stack.A(stk)),
+             control.family = list(prior = "pcprec",
+                                   param = c(3, 0.05)))
+
+  # Calculate sensitivities
+  inla.sens(mod)
 }
+
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 %%\keyword{ ~kwd1 }
