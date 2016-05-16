@@ -12,14 +12,15 @@
   current version.}
 
 \usage{
-inla.upgrade(lib = NULL, testing=FALSE)
-inla.update(lib = NULL, testing=FALSE)
+inla.upgrade(lib = NULL, testing=FALSE, ask = TRUE)
+inla.update(lib = NULL, testing=FALSE, ask = TRUE)
 }
 
 \arguments{
   \item{lib}{Location to install the library.}
   \item{testing}{If \code{TRUE}, then look for a test-version if the
     INLA-package.}
+  \item{ask}{same argument as in \code{update.packages}}
 }
 \value{\code{inla.upgrade} will update the INLA package to the current version, 
  and \code{inla.update} do the same 
