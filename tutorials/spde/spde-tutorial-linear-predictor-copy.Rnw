@@ -25,12 +25,13 @@ Consider a case were we have the following three observation models
 \mb{y}2(\mb{s}) & = & \beta_2(\beta_0 + \beta_1 \mb{x}(\mb{s})) + \mb{\epsilon} 2(\mb{s})   \label{eq:y2obs} \\
 \mb{y}3(\mb{s}) & = & \beta_3(\beta_0 + \beta_1 \mb{x}(\mb{s}) + \mb{A}(\mb{s},\mb{s}0)\mb{b}(\mb{s}0)) + \mb{\epsilon} 3(\mb{s})   \label{eq:y3obs} 
 \end{eqnarray}
-where we have an SPDE model at the mesh nodes $\mb{b}(\mb{s}0)$
+where we have a SPDE model at the mesh nodes $\mb{b}(\mb{s}0)$
 with $\mb{A}(\mb{s},\mb{s}0)$ being the projector matrix, 
 $\mb{\epsilon} j$, j=1,2,3, are observation errors 
 considered as zero mean Gaussian with variance $\sigma^2_j$. 
 By this setting we have a linear model for each outcome. 
-We can see that a common effect is scaled from one linear preditor into another.
+We can see that a common effect is scaled from one linear preditor into another, 
+where $\beta_2$ and $\beta_3$ are the scaling parameters.
 
 We can define the following model terms 
 \begin{itemize}
