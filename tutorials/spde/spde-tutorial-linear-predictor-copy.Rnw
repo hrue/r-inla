@@ -20,10 +20,7 @@ Consider a case were we have the following three observation models
 \mb{y2} & = & \beta_2(\beta_0 + \beta_1 \mb{x}) + \mb{\epsilon} 2   \label{eq:y2obs} \\
 \mb{y3} & = & \beta_3(\beta_0 + \beta_1 \mb{x} + \mb{A}(s)\mb{b}(s)) + \mb{\epsilon} 3   \label{eq:y3obs} 
 \end{eqnarray}
-where we call 
-$\beta_0 + \beta_1 \mb{x}$ as $\mb{\eta}_1$ and 
-$\beta_0 + \beta_1 \mb{x} + \mb{A}(s)\mb{b}(s)$ as $\mb{\eta} 2$, 
-considering $b(s)$ an SPDE based model 
+where considering $b(s)$ an SPDE based model 
 with $\mb{A}(s)$ being the projector matrix, 
 $\mb{\epsilon} j$, j=1,2,3, are observation errors 
 considered as zero mean Gaussian with variance $\sigma^2_j$. 
@@ -33,7 +30,19 @@ For simplicity we consider that all the three
 observation vectors, $\mb{y1}$, $\mb{y2}$ and $\mb{y3}$ 
 were observed at the same locations. 
 By this assumption, $\mb{A}(s)$ is the same in the 
-equations for $\mb{y1}$ and $\mb{y3}$
+equations for $\mb{y1}$ and $\mb{y3}$. 
+
+We can define the following model terms 
+\begin{itemize}
+ \item $\mb{\eta}_0 = \beta_0 + \beta_1 \mb{x}$ 
+ \item $\mb{\eta}_1 = \mb{\eta}_0 + \mb{A}(s)\mb{b}(s)$ 
+ \item $\mb{\eta}_2 = \beta_2\mb{\eta}_0$ 
+ \item $\mb{\eta}_3 = \beta_3\mb{\eta}_1$ 
+\end{itemize}
+By this, this example is about showing how to copy 
+$\mb{\eta}_0$ into $\mb{\eta}_2$ and 
+$\mb{\eta}_1$ into $\mb{\eta}_3$ 
+in order to estimate $\beta_2$ and $\beta_3$. 
 
 \section{Generating data}
 
