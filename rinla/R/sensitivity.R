@@ -1,5 +1,7 @@
 ## Export: inla.sens
 ## Export: inla.sens.distance
+## Export: inla.sens.distance.skew
+## Export: inla.sens.skewMap
 
 ##!\name{inla.sens}
 ##!
@@ -224,4 +226,71 @@ inla.sens.distance = function(muMarg, sdMarg, skMarg, prob, robMarg, nGrid, extr
 
     # Convert to distance and return value
     return(sqrt(2*KLD))
+}
+
+inla.sens.distance.skew = function(muMarg, sdMarg, skMarg, prob, robMarg, nGrid, extraLen = 20){
+    # Estimate required integration grid
+    sdMax = max(sdMarg)
+    xs = seq(-1, 1, length.out = nGrid)*sdMax*extraLen + mean(muMarg)
+
+    # Iterate through \theta values
+    yO = vector(mode = "numeric", length = nGrid)
+    yR = yO
+    for(idxT in 1:length(muMarg)){
+        # Extract parameters of skew normal marginal
+        mu  = muMarg[idxT]
+        sig = sdMarg[idxT]
+        gamma = skMarg[idxT]
+        if(is.nan(gamma))
+            gamma = 0
+
+        # Convert to standard parametrization of skew normal
+        p = inla.sens.skewMap(c(mu, sig, gamma))
+
+        # Map to standard distribution
+        sIdx = 1
+        mIdx = floor(nGrid/2)
+        eIdx = nGrid
+        tmpXX1 = psn(xs[sIdx:(mIdx-1)], xi = p[1], omega = p[2], alpha = p[3])
+        tmpXX2 = psn(-xs[mIdx:eIdx], xi = -p[1], omega = p[2], alpha = -p[3])
+        xx = qnorm(tmpXX1)
+        xx2 = -qnorm(tmpXX2)
+        xx = c(xx, xx2)
+
+        # Use precomputed table of standard robust distribution
+        yy = exp(spline(x = robMarg$x, y = robMarg$y, xout = xx)$y)
+
+        # Correct for transformation
+        yy = yy*exp(dsn(xs, xi = p[1], omega = p[2], alpha = p[3], log = TRUE)-dnorm(xx, log = TRUE))
+
+        # Remove the extrapolated values
+        yy[(xx < min(robMarg$x)) | (xx > max(robMarg$x))] = 0
+
+        # Add original and robust to their respective mixtures
+        yO = yO + prob[idxT]*dsn(xs, xi = p[1], omega = p[2], alpha = p[3])
+        yR = yR + prob[idxT]*yy
+    }
+
+    #  Calculate KLD between original and added uncertainty
+    intG = yR*log(yR/yO)
+    intG[yR == 0] = 0
+    KLD = sum((intG[-nGrid] + intG[-1])*(xs[2]-xs[1])/2)
+
+    # Convert to distance and return value
+    return(sqrt(2*KLD))
+}
+
+inla.sens.skewMap = function(x){
+    # Extract desired parameters of skew normal
+    mu = x[1]
+    s = x[2]
+    g1 = x[3]
+
+    # Transform to usual parametrization of skew normal
+    d = sign(g1)*sqrt(abs(g1)^(2/3)/(2/pi*(((4-pi)/2)^(2/3)+abs(g1)^(2/3))))
+    alpha = d/sqrt(1-d^2)
+    w = s*(1-2*d^2/pi)^(-0.5)
+    ksi = mu - w*d*sqrt(2/pi)
+
+    return(c(ksi, w, alpha))
 }
