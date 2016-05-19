@@ -23,7 +23,7 @@
 ##! TODO
 ##!}
 
-inla.sens = function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL, nGrid = 1e4, nSamples = 2e4, nIntGrid = 1e4){
+inla.sens = function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL, nGrid = 1e4, nSamples = 2e4, nIntGrid = 1e4, useSkew = FALSE, calcPriorSens = TRUE){
     # Ensure reproducability
     if(!is.null(seed))
         set.seed(seed)
@@ -41,6 +41,14 @@ inla.sens = function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL, nGrid 
 
         # Run INLA with all the settings
         inlaObj = do.call("inla", args = inlaObj$.args)
+    }
+
+    # Re-run with all data set to NA to get prior-level
+    if(calcPriorSens){
+        inlaObjRef = inlaObj
+        inlaObjRef$.args$data$y = NA*inlaObjRef$.args$data$y
+        inlaObjRef = do.call("inla", args = inlaObjRef$.args)
+        priorSens = inla.sens(inlaObjRef, lambda = lambda, nThreads = nThreads, seed = seed, nGrid = nGrid, nSamples = nSamples, nIntGrid = nIntGrid, useSkew = useSkew, calcPriorSens = FALSE)
     }
 
     # Number of different theta values
@@ -129,7 +137,11 @@ inla.sens = function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL, nGrid 
     ds = foreach(idxW = 1:nWorkers, .combine = 'c') %dopar%{
         tmpRes = vector(mode = "numeric", length = breaks[idxW+1]-breaks[idxW])
         for(idx in breaks[idxW]:(breaks[idxW+1]-1)){
-            tmpRes[idx-breaks[idxW]+1] = inla.sens.distance(muMarg[, idx], sdMarg[, idx], skMarg[, idx], prob, robMarg, nIntGrid)
+            if(useSkew){
+                tmpRes[idx-breaks[idxW]+1] = inla.sens.distance.skew(muMarg[, idx], sdMarg[, idx], skMarg[, idx], prob, robMarg, nIntGrid)
+            } else{
+                tmpRes[idx-breaks[idxW]+1] = inla.sens.distance(muMarg[, idx], sdMarg[, idx], skMarg[, idx], prob, robMarg, nIntGrid)
+            }
         }
 
         tmpRes
@@ -171,6 +183,15 @@ inla.sens = function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL, nGrid 
                     cex.axis  = cex.axis,
                     lwd       = lwd)
 
+            # Add prior level to plot if calculated
+            if(calcPriorSens){
+                barplot(priorSens[[length(res)+1]]$val, 
+                    add = TRUE, 
+                    col = rgb(1, 0, 0, alpha = .20),
+                    space = 2,
+                    cex.axis = cex.axis)
+            }
+
             # Add groups into result object
             res = c(res, list(list(tag = groups$tag[idxP],
                                    val = stdDist[sIdx:eIdx])))
@@ -188,12 +209,20 @@ inla.sens = function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL, nGrid 
                 cex.axis  = cex.axis,
                 lwd       = lwd)
 
+        # Add prior level to plot if calculated
+        if(calcPriorSens){
+            barplot(priorSens[[length(res)+1]]$val, 
+                    add = TRUE, 
+                    col = rgb(1, 0, 0, alpha = .20),
+                    space = 2,
+                    cex.axis = cex.axis)
+        }
+
         # Add fixed effects to result object
         res = c(res, list(list(tag = "Fixed effects",
                                val = val,
                                names = xLab)))
     }
-    inla.dev.new()
 
     return(res)
 }
