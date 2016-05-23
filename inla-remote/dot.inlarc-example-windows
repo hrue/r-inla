@@ -8,7 +8,9 @@
 ### The username on the remote host
 #RemoteUser="hrue"
 
-### Full path to the inla-program on the remote host
+### Full path to the inla-program on the remote host. If you use the
+### buildtin version, you can find it using INLA:::inla.call.builtin()
+### on the remote host
 #RemoteINLA="/usr/local/bin/inla"
 
 ### Arguments to ssh. Usually no need to change this
