@@ -23,7 +23,7 @@
 ##! TODO
 ##!}
 
-inla.sens = function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL, nGrid = 1e4, nSamples = 2e4, nIntGrid = 1e4, useSkew = FALSE, calcPriorSens = TRUE){
+inla.sens = function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL, nGrid = 1e4, nSamples = 2e4, nIntGrid = 1e4, useSkew = FALSE, calcPriorSens = FALSE){
     # Ensure reproducability
     if(!is.null(seed))
         set.seed(seed)
