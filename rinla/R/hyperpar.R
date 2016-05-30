@@ -135,7 +135,7 @@
             result[[idx.result]] = result.tmp[[idx.result.tmp]]
         }
     }
-    ## from $misc, we only want this one
+    ## from $misc, we only want this one.
     result$misc$configs = result.tmp$misc$configs
 
     return(result)
