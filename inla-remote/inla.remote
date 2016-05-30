@@ -106,17 +106,13 @@ tar cfm$compress_put - . | ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
     mkdir -p $rdir; \
     cd $rdir; \
     tar xfm$compress_put - ; \
-    $RemoteINLA $args Model.ini"
+    $RemoteINLA $args Model.ini < /dev/null"
 
 if [ $verbose == 1 ]; then
    {
        echo 
        echo -e " *** Computations finished at $(date)"
        echo -e " *** Transfer the results...\n" 
-       if [ $CYGWIN == 1 ]; then
-	   echo -e " *** Since you are using Cygwin/Windows, the transfer is done in a"
-	   echo -e " *** more robust way which is somewhat slower; sorry about that...\n"
-       fi
    } 1>&2
 fi
 
