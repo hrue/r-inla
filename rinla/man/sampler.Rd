@@ -11,17 +11,20 @@
 \title{Produce samples from the approximated joint posterior for the hyperparameters}
 
 \description{Produce samples from the approximated joint posterior for the hyperparameters}
+
 \usage{
-inla.hyperpar.sample(n, result, intern=FALSE)
+inla.hyperpar.sample(n, result, intern=FALSE, improve.marginals = FALSE)
 }
 
 \arguments{
   \item{n}{Integer. Number of samples required.}
   \item{result}{An \code{inla}-object,  f.ex the output from an \code{inla}-call.}
   \item{intern}{Logical. If \code{TRUE} then produce samples in the
-  internal scale for the hyperparmater, if \code{FALSE} then produce
-  samples in the user-scale. (For example log-precision (intern)
-  and precision (user-scale))}
+        internal scale for the hyperparmater, if \code{FALSE} then produce
+        samples in the user-scale. (For example log-precision (intern)
+        and precision (user-scale))}
+  \item{improve.marginals}{Logical. If \code{TRUE}, then improve the samples taking into account
+        possible better marginal estimates for the hyperparameters in \code{result}.} 
 }
 
 \value{%%
@@ -33,7 +36,11 @@ inla.hyperpar.sample(n, result, intern=FALSE)
 \author{Havard Rue \email{hrue@math.ntnu.no}}
 
 \examples{
-r = inla(y ~ 1, data = data.frame(y=1:10), family = "t")
-x = inla.hyperpar.sample(10,r)
-str(x)
+n = 100
+r = inla(y ~ 1 + f(idx), data = data.frame(y=rnorm(n), idx = 1:n))
+ns = 500
+x = inla.hyperpar.sample(ns, r)
+
+rr = inla.hyperpar(r)
+xx = inla.hyperpar.sample(ns, rr, improve.marginals=TRUE)
 }
