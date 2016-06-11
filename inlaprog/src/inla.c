@@ -1137,6 +1137,31 @@ double link_logoffset(double x, map_arg_tp typ, void *param, double *cov)
 	}
 	return NAN;
 }
+double link_logitoffset(double x, map_arg_tp typ, void *param, double *cov)
+{
+	/*
+	 * the link-functions calls the inverse map-function 
+	 */
+	Link_param_tp *p;
+	double prob;
+
+	p = (Link_param_tp *) param;
+	prob = map_probability(p->prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+
+	switch (typ) {
+	case MAP_FORWARD:
+		return prob + (1.0 - prob) * map_probability(x, MAP_FORWARD, NULL);
+	case MAP_BACKWARD:
+		return map_probability((x-prob)/(1.0 - prob), MAP_BACKWARD, NULL);
+	case MAP_DFORWARD:
+		return (1.0 - prob) * map_probability(x, MAP_DFORWARD, NULL);
+	case MAP_INCREASING:
+		return 1.0;
+	default:
+		abort();
+	}
+	return NAN;
+}
 double link_sslogit(double x, map_arg_tp typ, void *param, double *cov)
 {
 	Link_param_tp *p;
@@ -12225,6 +12250,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_ntheta = 1;
 		ds->predictor_invlinkfunc = link_logoffset;
 		ds->predictor_invlinkfunc_arg = NULL;	       /* to be completed */
+	} else if (!strcasecmp(ds->link_model, "LOGITOFFSET")) {
+		ds->link_id = LINK_LOGITOFFSET;
+		ds->link_ntheta = 1;
+		ds->predictor_invlinkfunc = link_logitoffset;
+		ds->predictor_invlinkfunc_arg = NULL;	       /* to be completed */
 	} else if (!strcasecmp(ds->link_model, "SSLOGIT")) {
 		ds->link_id = LINK_SSLOGIT;
 		ds->link_ntheta = 2;
@@ -12455,6 +12485,58 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
+	case LINK_LOGITOFFSET:
+		/*
+		 * p + (1-p) * exp(linear.predictor)/(1 + exp(linear.predictor))
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL"), 0.0);
+		ds->link_fixed = Calloc(1, int);
+		ds->link_fixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED"), 0);
+		if (!ds->link_fixed[0] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		ds->link_parameters = Calloc(1, Link_param_tp);
+		ds->link_parameters->order = ds->link_order;
+		ds->link_parameters->variant = ds->link_variant;
+		ds->predictor_invlinkfunc_arg = (void *) (ds->link_parameters);
+
+		HYPER_NEW(ds->link_parameters->prob_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise link prob[%g]\n", ds->link_parameters->prob_intern[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->link_fixed[0]);
+		}
+		ds->link_prior = Calloc(1, Prior_tp);
+		inla_read_prior_link(mb, ini, sec, ds->link_prior, "GAUSSIAN-std");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->link_fixed[0]) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->link_prior[0].hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Link prob_intern for logitoffset", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link prob for logitoffset", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].to_theta);
+			mb->theta[mb->ntheta] = ds->link_parameters->prob_intern;
+
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_probability;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->link_ntheta++;
+		}
+		break;
 
 	case LINK_TEST1:
 		/*
@@ -20958,6 +21040,14 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				break;
 
+			case LINK_LOGITOFFSET:
+				if (!ds->link_fixed[0]) {
+					double prob_intern = theta[count];
+					val += PRIOR_EVAL(ds->link_prior[0], &prob_intern);
+					count++;
+				}
+				break;
+
 			case LINK_SSLOGIT:
 				if (!ds->link_fixed[0]) {
 					double sensitivity_intern = theta[count];
@@ -25511,6 +25601,8 @@ int inla_output_linkfunctions(const char *dir, inla_tp * mb)
 			fprintf(fp, "sslogit\n");
 		} else if (lf == link_logoffset) {
 			fprintf(fp, "logoffset\n");
+		} else if (lf == link_logitoffset) {
+			fprintf(fp, "logitoffset\n");
 		} else if (lf == NULL) {
 			fprintf(fp, "invalid\n");
 		} else {
