@@ -381,6 +381,7 @@ typedef struct {
 	double ***betas;				       /* with variable number of covariates */
 	double **sensitivity_intern;
 	double **specificity_intern;
+	double **prob_intern;
 } Link_param_tp;
 
 /* 
@@ -528,7 +529,8 @@ typedef enum {
 	LINK_LOGOFFSET,
 	LINK_SSLOGIT, 
 	LINK_LOGLOG,
-	LINK_CAUCHIT
+	LINK_CAUCHIT,
+	LINK_LOGITOFFSET
 } inla_component_tp;
 
 
@@ -1309,6 +1311,7 @@ double link_cloglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_identity(double x, map_arg_tp typ, void *param, double *cov);
 double link_log(double x, map_arg_tp typ, void *param, double *cov);
 double link_logit(double x, map_arg_tp typ, void *param, double *cov);
+double link_logitoffset(double x, map_arg_tp typ, void *param, double *cov);
 double link_loglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_logoffset(double x, map_arg_tp typ, void *param, double *cov);
 double link_probit(double x, map_arg_tp typ, void *param, double *cov);
