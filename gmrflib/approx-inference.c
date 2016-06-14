@@ -6704,14 +6704,6 @@ double GMRFLib_ai_po_integrate(double *po, double *po2, double *po3, int idx, GM
 		return fail;
 	}
 
-	retval = loglFunc(NULL, NULL, 0, idx, x_vec, loglFunc_arg);
-	if (!(retval == GMRFLib_LOGL_COMPUTE_CDF || retval == GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF)) {
-		/*
-		 * I do not think this case is covered. 
-		 */
-		assert(0 == 1);
-	}
-
 	GMRFLib_ASSERT_RETVAL(np > 3, GMRFLib_ESNH, 0.0);
 	work = Calloc(6 * np, double);
 	xp = work;
