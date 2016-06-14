@@ -5383,6 +5383,31 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `logitoffset'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{hyperid = }{`49011'}
+							\item{name = }{`prob'}
+							\item{short.name = }{`p'}
+							\item{prior = }{`normal'}
+							\item{param = }{`-1 100'}
+							\item{initial = }{`-1'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{status = }{`experimental'}
+								\item{pdf = }{`logitoffset'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `test1'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{
@@ -6427,7 +6452,7 @@ inla.models()
 							 \describe{
 							\item{hyperid = }{`79001'}
 							\item{name = }{`log alpha'}
-							\item{short.name = }{`a'}
+							\item{short.name = }{`alpha'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
