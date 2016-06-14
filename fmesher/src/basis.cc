@@ -46,13 +46,16 @@ namespace fmesh {
   {
     Matrix<double> sph(sph_basis_n(max_order,rotationally_symmetric));
     size_t i, k, m;
-    double GSL_res_array[max_order+1];
+    size_t GSL_res_n = gsl_sf_legendre_array_n(max_order);
+    double* GSL_res_array = new double[GSL_res_n];
 
     if (rotationally_symmetric) {    
       for (i=0; i<S.rows(); i++) {
-	gsl_sf_legendre_sphPlm_array(max_order, 0, S[i][2], GSL_res_array);
+	gsl_sf_legendre_array(GSL_SF_LEGENDRE_SPHARM, max_order, S[i][2],
+			      GSL_res_array);
 	for (k = 0; k <= max_order; k++) {
-	  sph(i,k) = M_2_SQRT_PI * GSL_res_array[k];
+	  sph(i,k) =
+	    M_2_SQRT_PI * GSL_res_array[gsl_sf_legendre_array_index(k,0)];
 	}
       }
     } else {
@@ -67,22 +70,27 @@ namespace fmesh {
 	for (i=0; i<S.rows(); i++) {
 	  phi = atan2(S[i][1], S[i][0]);
 	  
-	  gsl_sf_legendre_sphPlm_array(max_order, 0, S[i][2], GSL_res_array);
+	  gsl_sf_legendre_array_e(GSL_SF_LEGENDRE_SPHARM, max_order, S[i][2],
+				  -1, GSL_res_array);
 	  for (k = 0; k <= max_order; k++) {
-	    sph(i,Idxs2[k]) = M_2_SQRT_PI * GSL_res_array[k];
+	    sph(i,Idxs2[k]) =
+	      M_2_SQRT_PI * GSL_res_array[gsl_sf_legendre_array_index(k,0)];
 	  }
 	  for (m = 1; m <= max_order; m++) {
 	    scaling_sin = M_2_SQRT_PI * M_SQRT2 * sin(-(m * phi));
 	    scaling_cos = M_2_SQRT_PI * M_SQRT2 * cos(m * phi);
-	    gsl_sf_legendre_sphPlm_array(max_order, m, S[i][2], GSL_res_array);
 	    for (k = m; k <= max_order; k++) {
-	      sph(i,Idxs2[k] - m) = scaling_sin * GSL_res_array[k - m];
-	      sph(i,Idxs2[k] + m) = scaling_cos * GSL_res_array[k - m];
+	      sph(i,Idxs2[k] - m) =
+		scaling_sin * GSL_res_array[gsl_sf_legendre_array_index(k,m)];
+	      sph(i,Idxs2[k] + m) =
+		scaling_cos * GSL_res_array[gsl_sf_legendre_array_index(k,m)];
 	    }
 	  }
 	}
 
    }
+
+    delete[] GSL_res_array;
 
     return sph;
   }
