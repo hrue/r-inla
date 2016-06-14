@@ -5389,7 +5389,7 @@
                          theta = list(
                              hyperid =  79001,
                              name = "log alpha",
-                             short.name = "a",
+                             short.name = "alpha",
                              initial = 0,
                              fixed = FALSE,
                              prior = "loggamma",
