@@ -520,17 +520,17 @@ inla.mesh.map <-
             ## NR-solver for sin.theta.
             ## Typically finishes after at most 7 iterations.
             ## When cos.theta=0, sin.theta is already correct, +/- 1.
-            nook = (cos.theta>0)
+            nook = (cos.theta > 0)
             for (k in 1:20) {
-                if (any(nook)) {
-                    delta =
-                        (atan2(sin.theta[nook], cos.theta[nook]) +
-                         sin.theta[nook]*cos.theta[nook] - pi/2*z[nook])/
-                             (2*cos.theta[nook])
-                    sin.theta[nook] = sin.theta[nook] - delta
-                    cos.theta[nook] = sqrt(1-sin.theta[nook]^2)
-                    nook[nook] = (abs(delta)>1e-14)
-                }
+              if (any(nook)) {
+                delta =
+                  (atan2(sin.theta[nook], cos.theta[nook]) +
+                     sin.theta[nook]*cos.theta[nook] - pi/2*z[nook])/
+                    (2*cos.theta[nook])
+                sin.theta[nook] = sin.theta[nook] - delta
+                cos.theta[nook] = sqrt(1-sin.theta[nook]^2)
+                nook[nook] = (abs(delta) > 1e-14)
+              }
             }
             proj = cbind(2*lon/pi*cos.theta, sin.theta)
         }
