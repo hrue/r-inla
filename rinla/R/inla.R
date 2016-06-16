@@ -1283,7 +1283,7 @@
         }            
         if (debug) {
             for(r in 1:nr)
-                print(paste(r, gp$random.spec[[r]]$model, gp$random.spec[[r]]$of))
+                cat(paste(r, gp$random.spec[[r]]$model, gp$random.spec[[r]]$of, gp$random.spec[[r]]$same.as), "\n")
         }
         
         all.terms = c()
