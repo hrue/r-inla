@@ -34,7 +34,7 @@
 #define MAXVALSZ	80
 
 /** Minimal allocated number of entries in a dictionary */
-#define DICTMINSZ	128
+#define DICTMINSZ	262144
 
 /** Invalid key token */
 #define DICT_INVALID_KEY    ((char*)-1)
