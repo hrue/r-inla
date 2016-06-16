@@ -8099,6 +8099,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	/*
 	 * make the final predictor_... from all the data-sections 
 	 */
+	int need_link = 0;
 	mb->predictor_invlinkfunc = Calloc(mb->predictor_n + mb->predictor_m, link_func_tp *);
 	mb->predictor_invlinkfunc_arg = Calloc(mb->predictor_n + mb->predictor_m, void *);
 	mb->predictor_invlinkfunc_covariates = Calloc(mb->predictor_n + mb->predictor_m, GMRFLib_matrix_tp *);
@@ -8123,8 +8124,16 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		mb->predictor_invlinkfunc_covariates[i] = (found == 1 ? mb->data_sections[k].link_covariates :
 							   (mb->link_fitted_values && !gsl_isnan(mb->link_fitted_values[i])) ?
 							   mb->data_sections[(int) (mb->link_fitted_values[i])].link_covariates : NULL);
+
+		if (found == 0 && mb->predictor_invlinkfunc[i] == NULL) need_link++;
 	}
 
+	//fprintf(stderr, "%d\n", mb->gaussian_data);
+	if (need_link && !mb->gaussian_data) {
+		fprintf(stderr, "\n\n*** Warning *** You might want to consider to setting ``control.predictor=list(link=...)''\n");
+		fprintf(stderr, "*** Warning *** otherwise the identity link will be used to compute the fitted values for NA data\n\n\n");
+	}
+	
 	iniparser_freedict(ini);
 	return mb;
 }
@@ -19216,6 +19225,13 @@ int inla_add_copyof(inla_tp * mb)
 {
 	int i, k, kk, kkk, debug = 0, nf = mb->nf;
 	char *msg;
+
+	if (debug) {
+		for (k = 0; k < nf; k++) {
+			printf("k= %1d tag= %s of= %s\n", k, mb->f_tag[k], mb->f_of[k]);
+		}
+	}
+
 
 	for (k = 0; k < nf; k++) {
 		if (mb->f_id[k] == F_COPY) {
