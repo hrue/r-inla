@@ -554,6 +554,7 @@ inla.spde.make.A =
                                     1,
                                     max(repl)))))
 
+
     ## Handle loc and index input semantics:
     if (is.null(loc)) {
         if (is.null(A.loc)) {
@@ -562,6 +563,15 @@ inla.spde.make.A =
     } else {
         if (is.null(mesh))
             stop("'loc' specified but 'mesh' is NULL.")
+
+        ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
+        if (inherits(loc, "SpatialPoints") ||
+            inherits(loc, "SpatialPointsDataFrame")) {
+          if (is.null(mesh$proj4string))
+            stop("'mesh$proj4string is NULL and SpatialPoints were provided.'")
+          loc = coordinates(spTransform(loc, mesh$proj4string))
+        }
+
         A.loc = inla.mesh.project(mesh, loc=loc)$A
     }
     if (is.null(index)) {
