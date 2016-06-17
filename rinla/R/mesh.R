@@ -1298,10 +1298,10 @@ inla.mesh.2d <-
     if (!is.null(segm)) {
       if (inherits(segm, "list")) {
         for (j in seq_along(segm)) {
-          segm[[j]] <- unify.one.segm(segm[[j]])
+          segm[[j]] <- unify.one.segm(segm[[j]], crs=crs)
         }
       } else {
-        segm <- unify.one.segm(segm)
+        segm <- unify.one.segm(segm, crs=crs)
       }
     }
     segm
