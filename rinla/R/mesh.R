@@ -731,7 +731,7 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
         return(input)
     }
 ##################################################
-  join.segm.input <- function(input, segm.offset=0L, loc.offset=0L,
+  join.segm.input <- function(segm, segm.offset=0L, loc.offset=0L,
                               crs=NULL)
     {
         loc = NULL
@@ -741,12 +741,12 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
         storage.mode(bnd$grp) <- "integer"
         storage.mode(int$idx) <- "integer"
         storage.mode(int$grp) <- "integer"
-        for (k in seq_along(input)) if (!is.null(input[[k]])) {
-            inla.require.inherits(input[[k]],
+        for (k in seq_along(segm)) if (!is.null(segm[[k]])) {
+            inla.require.inherits(segm[[k]],
                                   "inla.mesh.segment",
                                   "Segment info list members ")
-            if (!is.null(input[[k]]$loc)) {
-              local.loc <- spTransform.inla.mesh.segment(input[[k]], crs)$loc
+            if (!is.null(segm[[k]]$loc)) {
+              local.loc <- spTransform.inla.mesh.segment(segm[[k]], crs)$loc
               extra.loc.n = nrow(local.loc)
               idx.offset = segm.offset
               segm.offset = segm.offset + extra.loc.n
@@ -756,12 +756,12 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
             } else {
                 idx.offset = loc.offset
             }
-            if (input[[k]]$is.bnd) {
-                bnd$idx = rbind(bnd$idx, input[[k]]$idx+idx.offset)
-                bnd$grp = rbind(bnd$grp, input[[k]]$grp)
+            if (segm[[k]]$is.bnd) {
+                bnd$idx = rbind(bnd$idx, segm[[k]]$idx+idx.offset)
+                bnd$grp = rbind(bnd$grp, segm[[k]]$grp)
             } else {
-                int$idx = rbind(int$idx, input[[k]]$idx+idx.offset)
-                int$grp = rbind(int$grp, input[[k]]$grp)
+                int$idx = rbind(int$idx, segm[[k]]$idx+idx.offset)
+                int$grp = rbind(int$grp, segm[[k]]$grp)
             }
         }
         if (nrow(bnd$idx)==0)
@@ -792,7 +792,7 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
               lapply(inla.ifelse(inherits(interior, "list"),
                                  interior, list(interior)),
                      function(x){homogenise.segm.input(x, FALSE, crs=crs)})))
-    segm = homogenise.segm.grp(segm, crs=crs)
+    segm = homogenise.segm.grp(segm)
 
   join.segm.input(segm=segm, segm.offset=segm.offset, loc.offset=loc.offset,
                   crs=crs)
@@ -906,7 +906,7 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
           inherits(loc, "SpatialPointsDataFrame")) {
         loc <- coordinates(safe.spTransform(loc, CRSobj=crs))
       }
-      
+
       if (!is.matrix(loc)) {
         loc = as.matrix(loc)
       }
@@ -1379,10 +1379,12 @@ inla.mesh.2d <-
         loc = cbind(loc, 0.0)
     if (!is.null(loc.domain) && (ncol(loc.domain)==2))
         loc.domain = cbind(loc.domain, 0.0)
-  ## Unify the dimensionality of the boundary&interior segments input
-  ## and optionally transform coordinates.
+    ## Unify the dimensionality of the boundary&interior segments input
+    ## and optionally transform coordinates.
     for (k in seq_len(num.layers)) {
-      boundary[[k]] <- unify.segm.coords(boundary[[k]], crs=crs)
+      if (!is.null(boundary[[k]])) {
+        boundary[[k]] <- unify.segm.coords(boundary[[k]], crs=crs)
+      }
     }
     interior <- unify.segm.coords(interior, crs=crs)
 
@@ -1675,10 +1677,10 @@ summary.inla.mesh <- function(object, verbose=FALSE, ...)
                        xlim=range(x$loc[,1]),
                        ylim=range(x$loc[,2]),
                        zlim=range(x$loc[,3]))))
-    if (is.null(x$crs) || is.na(x$crs)) {
+    if (is.null(x$crs) || is.na(CRSargs(x$crs))) {
       ret <- c(ret, list(crs="N/A"))
     } else {
-      ret <- c(ret, list(crs=x$crs))
+      ret <- c(ret, list(crs=CRSargs(x$crs)))
     }
 
     my.segm <- function(x) {
@@ -1740,7 +1742,7 @@ print.summary.inla.mesh <- function(x, ...)
     }
 
     cat("\nManifold:\t", x$manifold, "\n", sep="")
-    cat("\nCRS:\t", x$crs, "\n", sep="")
+    cat("CRS:\t", x$crs, "\n", sep="")
     if (x$verbose) {
         cat("Refined:\t", x$is.refined, "\n", sep="")
     }
