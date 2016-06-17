@@ -795,7 +795,7 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
     segm = homogenise.segm.grp(segm, crs=crs)
 
   join.segm.input(segm=segm, segm.offset=segm.offset, loc.offset=loc.offset,
-                  crs=crs))
+                  crs=crs)
 }
 
 
@@ -906,13 +906,12 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
           inherits(loc, "SpatialPointsDataFrame")) {
         loc <- coordinates(safe.spTransform(loc, CRSobj=crs))
       }
-
+      
       if (!is.matrix(loc)) {
-            loc = as.matrix(loc)
-        }
-        if (!is.double(loc)) {
-            storage.mode(loc) = "double"
-        }
+        loc = as.matrix(loc)
+      }
+      if (!is.double(loc)) {
+        storage.mode(loc) = "double"
       }
     }
 
