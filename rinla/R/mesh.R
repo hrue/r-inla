@@ -1221,7 +1221,15 @@ inla.mesh.2d <-
     if (missing(max.edge) || is.null(max.edge)) {
         stop("max.edge must be specified")
     }
-
+    
+    ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
+    if (inherits(loc, "SpatialPoints") | inherits(loc, "SpatialPointsDataFrame")) {
+      p4s = proj4string(sploc)
+      loc = coordinates(loc)
+    } else {
+      p4s = NULL
+    }
+      
     if (missing(loc) || is.null(loc)) {
         loc = matrix(c(0.0), 0, 3)
     } else if (!is.matrix(loc)) {
@@ -1353,6 +1361,10 @@ inla.mesh.2d <-
     }
 
     if (num.layers == 1) {
+      
+        ## Attach proj4string
+        mesh2$proj4string = p4s
+        
         return(invisible(mesh2))
     }
 
@@ -1402,6 +1414,9 @@ inla.mesh.2d <-
         inla.dev.new()
         plot(mesh3)
     }
+
+    ## Attach proj4string
+    mesh3$proj4string = p4s
 
     return(invisible(mesh3))
 }
@@ -1681,6 +1696,13 @@ inla.mesh.project <- function(...)
 inla.mesh.project.inla.mesh <- function(mesh, loc, field=NULL, ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+  
+    ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
+    if (inherits(loc, "SpatialPoints") | inherits(loc, "SpatialPointsDataFrame")) {
+      if (is.null(mesh) | is.null(mesh$proj4string))
+        stop("'mesh' is NULL or 'mesh$proj4string is NULL and SpatialPoints were provided.'")
+      loc = coordinates(spTransform(loc, CRS(mesh$proj4string)))
+    }
 
     if (!missing(field) && !is.null(field)) {
         proj = inla.mesh.projector(mesh, loc, ...)
