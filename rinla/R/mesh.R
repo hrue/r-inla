@@ -854,12 +854,23 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
     time.pre = system.time({ ## Pre-processing timing start
 
     if (!is.null(loc)) {
-        if (!is.matrix(loc)) {
+      ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
+      if (inherits(loc, "SpatialPoints") ||
+          inherits(loc, "SpatialPointsDataFrame")) {
+        p4s = CRS(proj4string(loc))
+        loc = coordinates(loc)
+      } else {
+        p4s = NULL
+      }
+
+      if (!is.matrix(loc)) {
             loc = as.matrix(loc)
         }
         if (!is.double(loc)) {
             storage.mode(loc) = "double"
         }
+    } else {
+        p4s <- NULL
     }
 
     if (is.logical(extend) && extend) extend = list()
@@ -1122,7 +1133,8 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
                  loc = loc,
                  graph = graph,
                  segm = list(bnd=segm.bnd, int=segm.int),
-                 idx = idx))
+                 idx = idx,
+                 proj4string = p4s))
     class(mesh) <- "inla.mesh"
 
     }) ## Object construction timing end
@@ -1218,18 +1230,38 @@ inla.mesh.2d <-
     ## <0  --> Intermediate meshes displayed at the end
     ## >0   --> Dynamical fmesher plotting
 {
-    if (missing(max.edge) || is.null(max.edge)) {
+  update.p4s <- function(p4s, newp4s) {
+    if (is.null(p4s)) {
+      newp4s
+    } else {
+      if (identicalCRS(p4s, newp4s)) {
+        show(p4s)
+        show(newp4s)
+        error("Projection mismatch.")
+      }
+      p4s
+    }
+  }
+
+
+  if (missing(max.edge) || is.null(max.edge)) {
         stop("max.edge must be specified")
     }
-    
+
     ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
-    if (inherits(loc, "SpatialPoints") | inherits(loc, "SpatialPointsDataFrame")) {
-      p4s = proj4string(sploc)
+    if (inherits(loc, "SpatialPoints") ||
+        inherits(loc, "SpatialPointsDataFrame")) {
+      p4s = CRS(proj4string(loc))
       loc = coordinates(loc)
     } else {
       p4s = NULL
     }
-      
+    if (inherits(loc.domain, "SpatialPoints") ||
+        inherits(loc.domain, "SpatialPointsDataFrame")) {
+      p4s = update.p4s(p4s, CRS(proj4string(loc.domain)))
+      loc = coordinates(loc.domain)
+    }
+
     if (missing(loc) || is.null(loc)) {
         loc = matrix(c(0.0), 0, 3)
     } else if (!is.matrix(loc)) {
@@ -1361,10 +1393,10 @@ inla.mesh.2d <-
     }
 
     if (num.layers == 1) {
-      
+
         ## Attach proj4string
         mesh2$proj4string = p4s
-        
+
         return(invisible(mesh2))
     }
 
@@ -1444,6 +1476,15 @@ inla.mesh.create.helper <- function(points=NULL, points.domain=NULL, ...)
 
 inla.delaunay <- function(loc, ...)
 {
+    ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
+    if (inherits(loc, "SpatialPoints") ||
+        inherits(loc, "SpatialPointsDataFrame")) {
+      p4s = CRS(proj4string(loc))
+      loc = coordinates(loc)
+    } else {
+      p4s = NULL
+    }
+
     hull = chull(loc[,1],loc[,2])
     bnd = inla.mesh.segment(loc=loc[hull[length(hull):1],],is.bnd=TRUE)
     mesh =
@@ -1452,6 +1493,9 @@ inla.delaunay <- function(loc, ...)
                          extend=list(n=3),
                          refine=FALSE,
                          ...)
+
+    mesh$proj4string <- p4s;
+
     return(invisible(mesh))
 }
 
@@ -1696,12 +1740,13 @@ inla.mesh.project <- function(...)
 inla.mesh.project.inla.mesh <- function(mesh, loc, field=NULL, ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
-  
+
     ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
-    if (inherits(loc, "SpatialPoints") | inherits(loc, "SpatialPointsDataFrame")) {
-      if (is.null(mesh) | is.null(mesh$proj4string))
-        stop("'mesh' is NULL or 'mesh$proj4string is NULL and SpatialPoints were provided.'")
-      loc = coordinates(spTransform(loc, CRS(mesh$proj4string)))
+    if (inherits(loc, "SpatialPoints") ||
+        inherits(loc, "SpatialPointsDataFrame")) {
+      if (is.null(mesh$proj4string))
+        error("'mesh$proj4string' is NULL and SpatialPoints were provided.'")
+      loc = coordinates(spTransform(loc, mesh$proj4string))
     }
 
     if (!missing(field) && !is.null(field)) {
@@ -1827,9 +1872,11 @@ inla.mesh.projector.inla.mesh <-
         projector = list(x=x, y=y, lattice=lattice, loc=NULL, proj=proj)
         class(projector) = "inla.mesh.projector"
     } else {
-        proj = inla.mesh.project(mesh, loc)
-        projector = list(x=NULL, y=NULL, lattice=NULL, loc=loc, proj=proj)
-        class(projector) = "inla.mesh.projector"
+      proj = inla.mesh.project(mesh, loc)
+      ## TODO: Check usage of projector$loc for compatibility or not
+      ##       with SpatialPoints objects
+      projector = list(x=NULL, y=NULL, lattice=NULL, loc=loc, proj=proj)
+      class(projector) = "inla.mesh.projector"
     }
 
     return (projector)
@@ -3084,6 +3131,11 @@ inla.nonconvex.hull.basic <-
 inla.nonconvex.hull <-
     function(points, convex=-0.15, concave=convex, resolution=40, eps=NULL)
 {
+    if (inherits(points, "SpatialPoints") ||
+        inherits(points, "SpatialPointsDataFrame")) {
+        points = coordinates(points)
+    }
+
     if (length(resolution)==1)
         resolution = rep(resolution,2)
     lim = rbind(range(points[,1]), range(points[,2]))

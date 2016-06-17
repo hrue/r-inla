@@ -29,6 +29,7 @@ inla.delaunay(loc, ...)
 \arguments{
   \item{loc}{
     Matrix of point locations.
+    Can alternatively be a \code{SpatialPoints} or \code{SpatialPointsDataFrame} object.
   }
   \item{tv}{
     A triangle-vertex index matrix, specifying an existing triangulation.
