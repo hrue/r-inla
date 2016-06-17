@@ -553,7 +553,14 @@ inla.spde.make.A =
                              ifelse(length(repl)==0,
                                     1,
                                     max(repl)))))
-
+    
+    ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
+    if (inherits(loc, "SpatialPoints") | inherits(loc, "SpatialPointsDataFrame")) {
+      if (is.null(mesh) | is.null(mesh$proj4string))
+        stop("'mesh' is NULL or 'mesh$proj4string is NULL and SpatialPoints were provided.'")
+      loc = coordinates(spTransform(loc, CRS(mesh$proj4string)))
+    }
+    
     ## Handle loc and index input semantics:
     if (is.null(loc)) {
         if (is.null(A.loc)) {
