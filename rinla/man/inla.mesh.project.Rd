@@ -41,6 +41,7 @@ inla.mesh.projector(...)
   }
   \item{loc}{
     Projection locations.
+    Can be a matrix or a \code{SpatialPoints} or a \code{SpatialPointsDataFrame} object.
   }
   \item{lattice}{
     An \code{\link{inla.mesh.lattice}} object.

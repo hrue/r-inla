@@ -22,9 +22,11 @@ inla.mesh.2d(loc = NULL,
 \arguments{
   \item{loc}{
     Matrix of point locations to be used as initial triangulation nodes.
+    Can alternatively be a \code{SpatialPoints} or \code{SpatialPointsDataFrame} object.
   }
   \item{loc.domain}{
     Matrix of point locations used to determine the domain extent.
+    Can alternatively be a \code{SpatialPoints} or \code{SpatialPointsDataFrame} object.
   }
   \item{offset}{
     The automatic extension distance.  One or two values, for an inner
