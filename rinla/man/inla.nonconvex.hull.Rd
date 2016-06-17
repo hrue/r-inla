@@ -23,6 +23,7 @@ inla.nonconvex.hull.basic(points,
 \arguments{
   \item{points}{
     2D point coordinates (2-column matrix).
+    Can alternatively be a \code{SpatialPoints} or \code{SpatialPointsDataFrame} object.
 }
 \item{convex}{
   The desired extension radius.  Also determines the smallest allowed
