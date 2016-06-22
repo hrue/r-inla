@@ -1024,7 +1024,7 @@
                    "Locations are too close for f(",
                    term, ", model=\"",
                    model, "\", ...): ", 
-                   " min.diff/range = ",
+                   " min(diff(sort(x)))/diff(range(x)) = ",
                    format(min.diff, scientific=TRUE, digits=4),
                    " < ", format(lim, scientific=TRUE, digits=4), "\n", 
                    "  You can fix this by some kind of binning, see ?inla.group", "\n",
