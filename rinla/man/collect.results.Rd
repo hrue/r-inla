@@ -13,7 +13,8 @@
               control.results = inla.set.control.results.default(),
               debug=FALSE,
               only.hyperparam=FALSE,
-              file.log = NULL)
+              file.log = NULL, 
+              file.log2 = NULL)
 }
  \arguments{
  \item{results.dir}{The directory where the results of the inla run are stored}
@@ -23,6 +24,8 @@
  \item{only.hyperparam}{Binary variable indicating wheather only the
  results for the hyperparameters should be collected}
  \item{file.log}{Character. The filename, if any, of the logfile for
+ the internal calculations}
+ \item{file.log2}{Character. The filename, if any, of the logfile2 for
  the internal calculations}
  }
  \value{ The function returns an object of class \code{"inla"}, see the
