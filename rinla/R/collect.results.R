@@ -11,7 +11,8 @@
 ##!              control.results = inla.set.control.results.default(),
 ##!              debug=FALSE,
 ##!              only.hyperparam=FALSE,
-##!              file.log = NULL)
+##!              file.log = NULL, 
+##!              file.log2 = NULL)
 ##!}
 ##! \arguments{
 
@@ -33,7 +34,11 @@
 
         ##! \item{file.log}{Character. The filename, if any, of the logfile for
         ##! the internal calculations}
-        file.log = NULL)
+        file.log = NULL, 
+
+        ##! \item{file.log2}{Character. The filename, if any, of the logfile2 for
+        ##! the internal calculations}
+        file.log2 = NULL)
 {
     ##! }
     ##! \value{ The function returns an object of class \code{"inla"}, see the
@@ -64,7 +69,8 @@
                                          control.results = control.results, 
                                          debug = debug, 
                                          only.hyperparam = only.hyperparam, 
-                                         file.log = file.log))
+                                         file.log = file.log,
+                                         file.log = file.log2))
         } else {
             ## neither directories contain the file /.ok, then we
             ## assume the inla-program has crashed
@@ -151,7 +157,9 @@
         joint.hyper = NULL
     }
 
-    logfile = inla.collect.logfile(file.log, debug)
+    logfile = list(logfile = c(inla.collect.logfile(file.log, debug)$logfile, 
+                               "", paste(rep("*",72),sep="",collapse=""), "", 
+                               inla.collect.logfile(file.log2, debug)$logfile))
     misc = inla.collect.misc(results.dir, debug)
     theta.tags = NULL
     mode.status = NA
