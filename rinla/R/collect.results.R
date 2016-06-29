@@ -70,7 +70,7 @@
                                          debug = debug, 
                                          only.hyperparam = only.hyperparam, 
                                          file.log = file.log,
-                                         file.log = file.log2))
+                                         file.log2 = file.log2))
         } else {
             ## neither directories contain the file /.ok, then we
             ## assume the inla-program has crashed
