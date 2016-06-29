@@ -5,6 +5,7 @@ ui <- fluidPage(
     headerPanel("Two dimensional mesh demostration app"), 
     sidebarLayout(
         sidebarPanel(
+            checkboxInput("domain", "Add domain: [0,1]x[0,1]", value=FALSE),
             sliderInput("N", 
                         label="Number of random locatins to drawn", 
                         min=1, max=100, value=30, step=1), 
@@ -29,7 +30,10 @@ ui <- fluidPage(
 server <- function(input, output) {
     output$plot <- renderPlot({
         loc <- cbind(runif(input$N), runif(input$N))
-        mesh <- inla.mesh.2d(loc, max.edge=input$max.edge, 
+        loc.dom <- NULL
+        if(input$domain)
+             loc.dom <- cbind(x=c(0,1,1,0,0), y=c(0,0,1,1,0))
+        mesh <- inla.mesh.2d(loc, loc.domain=loc.dom, max.edge=input$max.edge, 
                              offset=input$offset, n=input$n, cutoff=input$cutoff)
         par(mar=c(0,0,1,0), mgp=c(1,0.5,0))
         plot(mesh, asp=1);
