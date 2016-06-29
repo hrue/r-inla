@@ -936,6 +936,7 @@
     ## create the .file.ini and make the problem.section
     file.ini = paste(inla.dir, "/Model.ini", sep="")
     file.log = paste(inla.dir, "/Logfile.txt", sep="")
+    file.log2 = paste(inla.dir, "/Logfile2.txt", sep="")
 
     ## problem section
     if (debug) 
@@ -1882,15 +1883,18 @@
                 if (verbose) {
                     echoc = try(system2(inla.call, args=paste(all.args, shQuote(file.ini)), stdout="", stderr="", wait=TRUE))
                 } else {
-                    bat.file = paste(tempfile(), ".BAT",  sep="")
-                    cat("@echo off\n",  file=bat.file, append=FALSE)
-                    cat(paste(shQuote(inla.call), all.args, "-v", shQuote(file.ini), ">", shQuote(file.log),
-                              inla.ifelse(silent == 2L, "2>NUL", "")), file=bat.file, append=TRUE)
-                    ## this one fails on windows in run from within emacs
-                    ##echoc = try(shell(paste("@", shQuote(bat.file), sep=""), wait=TRUE), silent=FALSE)
-                    ## try this one which is reported to work
-                    echoc = try(system2(bat.file, wait=TRUE), silent=FALSE)
-                    unlink(bat.file)
+                    if (FALSE) {
+                        ## old .bat-solution
+                        bat.file = paste(tempfile(), ".BAT",  sep="")
+                        cat("@echo off\n",  file=bat.file, append=FALSE)
+                        cat(paste(shQuote(inla.call), all.args, "-v", shQuote(file.ini), ">", shQuote(file.log),
+                                  inla.ifelse(silent == 2L, "2>NUL", "")), file=bat.file, append=TRUE)
+                        echoc = try(system2(bat.file, wait=TRUE), silent=FALSE)
+                        unlink(bat.file)
+                    } else {
+                        ## new try
+                        echoc = try(system2(inla.call, args=paste(all.args, shQuote(file.ini)), stdout=file.log, stderr=file.log2, wait=TRUE))
+                    }
                 }
                 if (echoc != 0L) {
                     if (!verbose && (silent != 2L)) {
@@ -1919,7 +1923,7 @@
         if (echoc == 0L) {
             if (!submit) {
                 ret = try(inla.collect.results(results.dir, control.results=cont.results, debug=debug,
-                    only.hyperparam=only.hyperparam, file.log = file.log), silent=FALSE)
+                    only.hyperparam=only.hyperparam, file.log = file.log, file.log2=file.log2), silent=FALSE)
                 if (!is.list(ret)) {
                     ret = list()
                 }
@@ -1970,10 +1974,14 @@
                 inla.inlaprogram.has.crashed()
             } else {
                 ## with a crash, try to collect the logfile only
-                ret = try(inla.collect.logfile(file.log, debug), silent = TRUE)
-                if (inherits(ret, "try-error")) {
+                ret1 = try(inla.collect.logfile(file.log, debug), silent = TRUE)
+                ret2 = try(inla.collect.logfile(file.log2, debug), silent = TRUE)
+                if (inherits(ret1, "try-error")) { ## yes,  its 'ret1'
                     ret = NULL
                 } else {
+                    ret = list(logfile = c(ret1$logfile,
+                                           "", paste(rep("*",72),sep="",collapse=""), "", 
+                                           ret2$logfile))
                     class(ret) = "inla"
                 }
             }
