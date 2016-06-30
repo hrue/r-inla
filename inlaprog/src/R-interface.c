@@ -31,7 +31,6 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] = HGVERSION;
 
 #include <assert.h>
 #include <time.h>
@@ -43,6 +42,8 @@ static const char RCSId[] = HGVERSION;
 #endif
 #include <stdlib.h>
 #include <omp.h>
+
+static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 #define CSTACK_DEFNS 1
 #include <R.h>
@@ -69,6 +70,7 @@ void inla_R_exit(void)
 	Rf_endEmbeddedR(0);
 	R_init = 1;
 }
+
 int inla_R_init(void)
 {
 	if (R_init) {
@@ -115,45 +117,51 @@ int inla_R_init(void)
 
 	return (INLA_OK);
 }
+
 int inla_R_library(const char *library)
 {
 	if (!library)
 		return (INLA_OK);
 	inla_R_init();
 
-	SEXP e, result;
+	SEXP e, result, yy;
 	int error;
 
 	if (R_debug)
 		fprintf(stderr, "R-interface: load library [%s]\n", library);
-	PROTECT(e = lang2(install("library"), mkString(library)));
-	PROTECT(result = R_tryEval(e, R_GlobalEnv, &error));
+	yy = PROTECT(mkString(library));
+	e = PROTECT(lang2(install("library"), yy));
+	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
 	if (error) {
 		fprintf(stderr, "\n *** ERROR ***: load library [%s] failed.\n", library);
 		exit(1);
 	}
-	UNPROTECT(2);
+	UNPROTECT(3);
 
 	return (INLA_OK);
 }
+
 int inla_R_source(const char *filename)
 {
 	if (!filename)
 		return (INLA_OK);
 	inla_R_init();
 
-	SEXP e, result;
+	SEXP e, result, yy, false, true;
 	int error;
 
 	if (R_debug)
 		fprintf(stderr, "R-interface: source file [%s]\n", filename);
-	PROTECT(e = lang4(install("source"), mkString(filename), ScalarLogical(FALSE), ScalarLogical(TRUE)));
-	PROTECT(result = R_tryEval(e, R_GlobalEnv, &error));
+	false = PROTECT(ScalarLogical(FALSE));
+	true = PROTECT(ScalarLogical(TRUE));
+	yy = PROTECT(mkString(filename));
+	e = PROTECT(lang4(install("source"), yy, false, true));
+	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
 	if (error) {
 		fprintf(stderr, "\n *** ERROR ***: source R-file [%s] failed.\n", filename);
 		exit(1);
 	}
-	UNPROTECT(3);
+	UNPROTECT(5);
 
 
 	return (INLA_OK);
@@ -164,19 +172,20 @@ int inla_R_load(const char *filename)
 		return (INLA_OK);
 	inla_R_init();
 
-	SEXP e, result;
+	SEXP e, result, yy;
 	int error;
 
 	if (R_debug)
 		fprintf(stderr, "R-interface: loading file [%s]\n", filename);
 
-	PROTECT(e = lang2(install("load"), mkString(filename)));
-	PROTECT(result = R_tryEval(e, R_GlobalEnv, &error));
+	yy = PROTECT(mkString(filename));
+	e = PROTECT(lang2(install("load"), yy));
+	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
 	if (error) {
 		fprintf(stderr, "\n *** ERROR ***: loading RData-file [%s] failed.\n", filename);
 		exit(1);
 	}
-	UNPROTECT(2);
+	UNPROTECT(3);
 
 	return (INLA_OK);
 }
@@ -187,27 +196,24 @@ int inla_R_inlaload(const char *filename)
 		return (INLA_OK);
 	inla_R_init();
 
-	SEXP e, result;
+	SEXP e, result, yy;
 	int error;
 
 	if (R_debug)
 		fprintf(stderr, "R-interface: inla.load file [%s]\n", filename);
 
-	PROTECT(e = lang2(install("inla.load"), mkString(filename)));
-	PROTECT(result = R_tryEval(e, R_GlobalEnv, &error));
+	yy = PROTECT(mkString(filename));
+	e = PROTECT(lang2(install("inla.load"), yy));
+	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
 	if (error) {
 		fprintf(stderr, "\n *** ERROR ***: inla.load file [%s] failed.\n", filename);
 		exit(1);
 	}
-	UNPROTECT(2);
+	UNPROTECT(3);
 
 	return (INLA_OK);
 }
 
-int inla_R_funcall1(int *n_out, double **x_out, const char *function, int n, double *x)
-{
-	return inla_R_funcall2(n_out, x_out, function, NULL, n, x);
-}
 int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char *tag, int n, double *x)
 {
 	/*
@@ -220,19 +226,19 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 		fprintf(stderr, "R-interface[%1d]: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag, n);
 
 	int error, i;
-	SEXP yy, xx, result, e;
-
-	PROTECT(yy = mkString((tag ? tag : "<<<NoTag>>>")));
-	PROTECT(xx = allocVector(REALSXP, n));
+	SEXP xx, result, e;
+	
+	xx = PROTECT(allocVector(REALSXP, n));
 	for (i = 0; i < n; i++) {
 		REAL(xx)[i] = x[i];
 	}
 	if (tag) {
-		PROTECT(e = lang3(install(function), yy, xx));
+		SEXP yy = PROTECT(mkString(tag));
+		e = PROTECT(lang3(install(function), yy, xx));
 	} else {
-		PROTECT(e = lang2(install(function), xx));
+		e = PROTECT(lang2(install(function), xx));
 	}
-	PROTECT(result = R_tryEval(e, R_GlobalEnv, &error));
+	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
 	if (error) {
 		fprintf(stderr, "\n *** ERROR *** Calling R-function [%s] with tag [%s] and [%1d] arguments\n", function, tag, n);
 		exit(1);
@@ -248,9 +254,13 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 		*x_out = NULL;
 	}
 	
-	UNPROTECT(4);
-
+	UNPROTECT((tag ? 4 : 3));
 	return (INLA_OK);
+}
+
+int inla_R_funcall1(int *n_out, double **x_out, const char *function, int n, double *x)
+{
+	return inla_R_funcall2(n_out, x_out, function, NULL, n, x);
 }
 
 int inla_R_assign(const char *variable, int n, double *x)
@@ -264,19 +274,20 @@ int inla_R_assign(const char *variable, int n, double *x)
 		fprintf(stderr, "R-interface[%1d]: assign: [%s] n [%1d]\n", omp_get_thread_num(), variable, n);
 
 	int error, i;
-	SEXP xx, result, e;
+	SEXP xx, result, e, yy;
 
-	PROTECT(xx = allocVector(REALSXP, n));
+	yy = PROTECT(mkString(variable));
+	xx = PROTECT(allocVector(REALSXP, n));
 	for (i = 0; i < n; i++) {
 		REAL(xx)[i] = x[i];
 	}
-	PROTECT(e = lang3(install("assign"), mkString(variable), xx));
-	PROTECT(result = R_tryEval(e, R_GlobalEnv, &error));
+	e = PROTECT(lang3(install("assign"), yy, xx));
+	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
 	if (error) {
 		fprintf(stderr, "\n *** ERROR *** assign [%s] with n [%1d] failed\n", variable, n);
 		exit(1);
 	}
-	UNPROTECT(3);
+	UNPROTECT(4);
 
 	return (INLA_OK);
 }
@@ -292,10 +303,11 @@ int inla_R_get(int *n_out, double **x_out, const char *variable)
 		fprintf(stderr, "R-interface[%1d]: get: [%s]\n", omp_get_thread_num(), variable);
 
 	int error, i;
-	SEXP result, e;
+	SEXP result, e, yy;
 
-	PROTECT(e = lang2(install("get"), mkString(variable)));
-	PROTECT(result = R_tryEval(e, R_GlobalEnv, &error));
+	yy = PROTECT(mkString(variable));
+	e = PROTECT(lang2(install("get"), yy));
+	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
 	if (error) {
 		fprintf(stderr, "\n *** ERROR *** get [%s]\n", variable);
 		exit(1);
@@ -311,7 +323,7 @@ int inla_R_get(int *n_out, double **x_out, const char *variable)
 		*x_out = NULL;
 	}
 	
-	UNPROTECT(2);
+	UNPROTECT(3);
 
 	return (INLA_OK);
 }
@@ -327,14 +339,17 @@ int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *mod
 		fprintf(stderr, "R-interface[%1d]: rgeneric: [%s] model [%s]\n", omp_get_thread_num(), cmd, model);
 
 	int error, i;
-	SEXP xx_theta, result, e;
+	SEXP xx_theta, result, e, yy, yyy;
 
 	PROTECT(xx_theta = allocVector(REALSXP, n));
 	for (i = 0; i < n; i++) {
 		REAL(xx_theta)[i] = theta[i];
 	}
-	PROTECT(e = lang4(install(R_GENERIC_WRAPPER), mkString(cmd), mkString(model), xx_theta));
-	PROTECT(result = R_tryEval(e, R_GlobalEnv, &error));
+
+	yy = PROTECT(mkString(cmd));
+	yyy = PROTECT(mkString(model));
+	e = PROTECT(lang4(install(R_GENERIC_WRAPPER), yy, yyy, xx_theta));
+	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
 	if (error) {
 		fprintf(stderr, "\n *** ERROR *** rgeneric [%s] with model [%s] failed\n", cmd, model);
 		exit(1);
@@ -350,7 +365,7 @@ int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *mod
 		*x_out = NULL;
 	}
 	
-	UNPROTECT(3);
+	UNPROTECT(5);
 
 	return (INLA_OK);
 }
