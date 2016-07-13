@@ -33,6 +33,23 @@
 
 
 
+inla.CRS <- function(projargs = NA_character_, doCheckCRSArgs = TRUE,
+                     params=NULL) {
+  predef <- list(
+    longlat = "+proj=longlat +ellps=sphere +a=1 +b=1",
+    sphere = "+proj=geocent +ellps=sphere +a=1 +b=1 +units=m",
+    mollweide = "+proj=moll +ellps=sphere +units=m +a=0.7071067811865 +b=0.7071067811865",
+    lambert = "+proj=cea +ellps=sphere +lat_ts=0 +units=m +a=1 +b=1")
+  if (projargs %in% names(predef)) {
+    x <- CRS(predef[[projargs]], doCheckCRSArgs)
+  } else {
+    x <- CRS(projargs, doCheckCRSArgs)
+  }
+  x
+}
+
+
+
 inla.mesh.segment <- function(...) {
     UseMethod("inla.mesh.segment")
 }
@@ -154,7 +171,7 @@ inla.mesh.segment.inla.mesh.segment <- function(..., grp.default=0) {
                              }
                          }))
     is.bnd <- unlist(lapply(segm, function(x) x$is.bnd))
-    if (!all(is.bnd) || all(!is.bnd)) {
+    if (!all(is.bnd) || !all(!is.bnd)) {
         warning("Inconsistent 'is.bnd' attributes.  Setting 'is.bnd=FALSE'.")
         is.bnd <- FALSE
     } else {
