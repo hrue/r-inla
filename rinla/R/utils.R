@@ -275,7 +275,7 @@
             for(nm in name)
                 from[which(nm == names(from))] = NULL
     }
-    
+
     return (from)
 }
 
@@ -804,7 +804,7 @@
 
 `inla.inlaprogram.has.crashed` = function()
 {
-    stop("The inla-program exited with an error. Unless you interupted it yourself, please rerun with verbose=TRUE and check the output carefully.\n  If this does help; please contact the developers at <help@r-inla.org>.")
+    stop("The inla-program exited with an error. Unless you interupted it yourself, please rerun with verbose=TRUE and check the output carefully.\n  If this does not help, please contact the developers at <help@r-inla.org>.")
 }
 
 `inla.eval.dots` = function(..., stop.if.no.name = TRUE, allowed.names = NULL) {
@@ -864,15 +864,15 @@
         return (get(var, envir = as.environment(data)))
     }
 }
-`inla.ginv` = function(x, tol = sqrt(.Machine$double.eps), rankdef = NULL) 
+`inla.ginv` = function(x, tol = sqrt(.Machine$double.eps), rankdef = NULL)
 {
     ## from MASS:::ginv, but with added option 'rankdef'.
-    if (length(dim(x)) > 2 || !(is.numeric(x) || is.complex(x))) 
+    if (length(dim(x)) > 2 || !(is.numeric(x) || is.complex(x)))
         stop("'x' must be a numeric or complex matrix")
-    if (!is.matrix(x)) 
+    if (!is.matrix(x))
         x <- as.matrix(x)
     xsvd <- svd(x)
-    if (is.complex(x)) 
+    if (is.complex(x))
         xsvd$u <- Conj(xsvd$u)
     if (is.null(rankdef) || rankdef == 0) {
         Positive <- xsvd$d > max(tol * xsvd$d[1], 0)
@@ -882,11 +882,11 @@
         stopifnot(rankdef >= 1 && rankdef <= n)
         Positive <- c(rep(TRUE, n - rankdef), rep(FALSE, rankdef))
     }
-    if (all(Positive)) 
+    if (all(Positive))
         xsvd$v %*% (1/xsvd$d * t(xsvd$u))
-    else if (!any(Positive)) 
+    else if (!any(Positive))
         array(0, dim(x)[2:1])
-    else xsvd$v[, Positive, drop = FALSE] %*% ((1/xsvd$d[Positive]) * 
+    else xsvd$v[, Positive, drop = FALSE] %*% ((1/xsvd$d[Positive]) *
         t(xsvd$u[, Positive, drop = FALSE]))
 }
 `inla.gdet` = function(x, tol = sqrt(.Machine$double.eps), rankdef = NULL, log=TRUE)
@@ -960,11 +960,11 @@
     }
 }
 
-`inla.sn.reparam` = function(moments, param) 
+`inla.sn.reparam` = function(moments, param)
 {
     stopifnot((!missing(moments) && missing(param)) ||
               (missing(moments) && !missing(param)))
-    
+
     if (!missing(param)) {
         if (is.list(param)) {
             xi = param$xi
@@ -1017,22 +1017,22 @@
     lim = inla.model.properties(model, section)$min.diff
     if (is.null(lim))
         return (invisible())
-    
+
     min.diff = min(diff(sort(loc)))/diff(range(loc))
     if (min.diff < lim) {
-        stop(paste(sep = "", 
+        stop(paste(sep = "",
                    "Locations are too close for f(",
                    term, ", model=\"",
-                   model, "\", ...): ", 
+                   model, "\", ...): ",
                    " min(diff(sort(x)))/diff(range(x)) = ",
                    format(min.diff, scientific=TRUE, digits=4),
-                   " < ", format(lim, scientific=TRUE, digits=4), "\n", 
+                   " < ", format(lim, scientific=TRUE, digits=4), "\n",
                    "  You can fix this by some kind of binning, see ?inla.group", "\n",
-                   "  If you want/need to bypass this check at your own risk, do", "\n", 
-                   "\t> m = get(\"inla.models\", INLA:::inla.get.inlaEnv())\n", 
-                   "\t> m$", section, "$", model, "$min.diff = NULL\n", 
+                   "  If you want/need to bypass this check at your own risk, do", "\n",
+                   "\t> m = get(\"inla.models\", INLA:::inla.get.inlaEnv())\n",
+                   "\t> m$", section, "$", model, "$min.diff = NULL\n",
                    "\t> assign(\"inla.models\", m, INLA:::inla.get.inlaEnv())"))
-        
+
     }
     return (invisible())
 }
