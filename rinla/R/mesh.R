@@ -853,7 +853,7 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
 
     time.pre = system.time({ ## Pre-processing timing start
 
-    if (!is.null(loc)) {
+    if (!(missing(loc) || is.null(loc))) {
       ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
       if (inherits(loc, "SpatialPoints") ||
           inherits(loc, "SpatialPointsDataFrame")) {
@@ -1245,22 +1245,24 @@ inla.mesh.2d <-
 
 
   if (missing(max.edge) || is.null(max.edge)) {
-        stop("max.edge must be specified")
-    }
+    stop("max.edge must be specified")
+  }
 
-    ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
-    if (inherits(loc, "SpatialPoints") ||
-        inherits(loc, "SpatialPointsDataFrame")) {
-      p4s = CRS(proj4string(loc))
-      loc = coordinates(loc)
-    } else {
-      p4s = NULL
-    }
-    if (inherits(loc.domain, "SpatialPoints") ||
-        inherits(loc.domain, "SpatialPointsDataFrame")) {
-      p4s = update.p4s(p4s, CRS(proj4string(loc.domain)))
-      loc = coordinates(loc.domain)
-    }
+  ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
+  if (!(missing(loc) || is.null(loc)) &&
+      (inherits(loc, "SpatialPoints") ||
+       inherits(loc, "SpatialPointsDataFrame"))) {
+    p4s = CRS(proj4string(loc))
+    loc = coordinates(loc)
+  } else {
+    p4s = NULL
+  }
+  if (!(missing(loc.domain) || is.null(loc.domain)) &&
+      (inherits(loc.domain, "SpatialPoints") ||
+       inherits(loc.domain, "SpatialPointsDataFrame"))) {
+    p4s = update.p4s(p4s, CRS(proj4string(loc.domain)))
+    loc = coordinates(loc.domain)
+  }
 
     if (missing(loc) || is.null(loc)) {
         loc = matrix(c(0.0), 0, 3)
@@ -1742,8 +1744,9 @@ inla.mesh.project.inla.mesh <- function(mesh, loc, field=NULL, ...)
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
     ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
-    if (inherits(loc, "SpatialPoints") ||
-        inherits(loc, "SpatialPointsDataFrame")) {
+    if (!(missing(loc) || is.null(loc)) &&
+        (inherits(loc, "SpatialPoints") ||
+         inherits(loc, "SpatialPointsDataFrame"))) {
       if (is.null(mesh$proj4string))
         error("'mesh$proj4string' is NULL and SpatialPoints were provided.'")
       loc = coordinates(spTransform(loc, mesh$proj4string))
