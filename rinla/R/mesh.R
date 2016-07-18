@@ -1479,8 +1479,9 @@ inla.mesh.create.helper <- function(points=NULL, points.domain=NULL, ...)
 inla.delaunay <- function(loc, ...)
 {
     ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
-    if (inherits(loc, "SpatialPoints") ||
-        inherits(loc, "SpatialPointsDataFrame")) {
+    if (!(missing(loc) || is.null(loc)) &&
+        (inherits(loc, "SpatialPoints") ||
+         inherits(loc, "SpatialPointsDataFrame"))) {
       p4s = CRS(proj4string(loc))
       loc = coordinates(loc)
     } else {
@@ -3134,8 +3135,9 @@ inla.nonconvex.hull.basic <-
 inla.nonconvex.hull <-
     function(points, convex=-0.15, concave=convex, resolution=40, eps=NULL)
 {
-    if (inherits(points, "SpatialPoints") ||
-        inherits(points, "SpatialPointsDataFrame")) {
+    if (!(missing(points) || is.null(points)) &&
+        (inherits(points, "SpatialPoints") ||
+         inherits(points, "SpatialPointsDataFrame"))) {
         points = coordinates(points)
     }
 
