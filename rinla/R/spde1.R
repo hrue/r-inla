@@ -18,13 +18,10 @@ inla.spde1.create =
     if (is.null(param))
         param = list()
 
-    spde.prefix = inla.fmesher.make.prefix(NULL, NULL)
-
     spde = (list(model = model,
                  mesh = mesh,
                  internal = list(),
                  f = (list(model="spde",
-                           spde.prefix=spde.prefix,
                            n=nrow(mesh$loc)
                            ))
                  ))
@@ -96,14 +93,6 @@ inla.spde1.create =
             kappa0 = sqrt(sqrt(8)/(mesh.range*0.2))
             tau0 = 1/sqrt(4*pi)/1.0
         }
-        ## inla checks PREFIX valididy by looking for "s":
-        fmesher.write(inla.affirm.double(spde$mesh$loc), spde.prefix, "s")
-        ## Write the precision building blocks:
-        fmesher.write(inla.affirm.double(spde$internal$c0), spde.prefix, "c0")
-        fmesher.write(inla.affirm.double(spde$internal$g1), spde.prefix, "g1")
-        fmesher.write(inla.affirm.double(spde$internal$g2), spde.prefix, "g2")
-        fmesher.write(inla.affirm.double(spde$internal$basis.T), spde.prefix, "basisT")
-        fmesher.write(inla.affirm.double(spde$internal$basis.K), spde.prefix, "basisK")
 
         if (identical(model, "matern")) {
             spde$f$hyper.default = (list(theta1=(list(initial=log(tau0),

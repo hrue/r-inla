@@ -6,7 +6,7 @@
 {
     stopifnot(!missing(hyper))
     stopifnot(!missing(file))
-    
+
     if (is.null(hyper) || length(hyper) == 0L) {
         return ()
     }
@@ -96,7 +96,7 @@
     ## this is just a wrapper to make the naming better
     return (inla.data.section(...))
 }
-    
+
 `inla.data.section` = function(
         file, family, file.data, file.weights, control, i.family="",
         link.covariates = link.covariates, data.dir)
@@ -149,7 +149,7 @@
     }
 
     inla.write.hyper(control$hyper, file, data.dir = data.dir)
-    
+
     ## the link-part. first make it backward-compatible...
     if (!(is.null(control$link) || inla.strcasecmp(control$link, "default"))) {
         ## control$link is set,  use that if not control.link$model is set
@@ -218,12 +218,12 @@
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 
-`inla.ffield.section` = function(file, file.loc, file.cov, file.id.names = NULL,  n, nrep, ngroup, 
+`inla.ffield.section` = function(file, file.loc, file.cov, file.id.names = NULL,  n, nrep, ngroup,
         file.extraconstr, file.weights, random.spec, results.dir, only.hyperparam, data.dir)
 {
     label= inla.namefix(random.spec$term)
     prop = inla.model.properties(random.spec$model, "latent", stop.on.error=TRUE)
-    
+
     cat("[", label,"]\n", sep = "", file = file,  append = TRUE)
     cat("dir = ", results.dir,"\n", sep = " ", file = file,  append = TRUE)
     cat("type = ffield\n", sep = " ", file = file,  append = TRUE)
@@ -273,11 +273,11 @@
             cat("precision =", random.spec$precision, "\n", sep = " ", file = file,  append = TRUE)
         }
     }
-    
+
     if (inla.one.of(random.spec$model, c("clinear", "copy", "mec", "meb"))) {
         if (is.null(random.spec$range)) {
             ## default is the identity mapping
-            random.spec$range = c(0, 0) 
+            random.spec$range = c(0, 0)
         }
         cat("range.low  =", random.spec$range[1], "\n", sep = " ", file = file, append = TRUE)
         cat("range.high =", random.spec$range[2], "\n", sep = " ", file = file, append = TRUE)
@@ -291,7 +291,7 @@
     if (inla.one.of(random.spec$model, c("besag", "bym", "bym2", "besag2"))) {
         cat("adjust.for.con.comp = ", as.numeric(random.spec$adjust.for.con.comp), "\n", sep = " ", file = file,  append = TRUE)
     }
-    
+
     if (FALSE) {
         ## this is only for the mvnorm prior,  which we do not use anymore (hrue/16/02/2015)
         if (inla.one.of(random.spec$model, "ar")) {
@@ -321,7 +321,7 @@
                 random.spec$hyper$theta2$param = numeric(0)
             } else if (inla.one.of(random.spec$model, "rw2diid")) {
                 random.spec$hyper$theta2$prior = inla.pc.rw2diid.phi(
-                    size = c(random.spec$nrow,  random.spec$ncol), 
+                    size = c(random.spec$nrow,  random.spec$ncol),
                     u = random.spec$hyper$theta2$param[1L],
                     alpha = random.spec$hyper$theta2$param[2L],
                     return.as.table = TRUE)
@@ -361,7 +361,7 @@
     if (!is.null(ngroup) && ngroup > 1) {
         cat("ngroup = ", ngroup, "\n", sep = " ", file = file,  append = TRUE)
 
-        if (!inla.one.of(random.spec$model, "copy")) { 
+        if (!inla.one.of(random.spec$model, "copy")) {
             cat("group.model = ", random.spec$control.group$model, "\n", sep = " ", file = file,  append = TRUE)
             inla.write.boolean.field("group.cyclic", random.spec$control.group$cyclic, file)
             if (is.null(random.spec$control.group$scale.model)) {
@@ -388,7 +388,7 @@
                                                                 data.dir = data.dir, ngroup = ngroup))
         }
     }
-        
+
     if (!is.null(random.spec$cyclic)) {
         cat("cyclic = ", as.numeric(random.spec$cyclic),"\n", sep = " ", file = file,  append = TRUE)
     }
@@ -489,7 +489,7 @@
         ## matrix A1
         A1 = cBind(
             rBind(Diagonal(slm.n),
-                  -t(X)), 
+                  -t(X)),
             rBind(-X,
                   t(X) %*% X))
         file.A1 = inla.tempfile(tmpdir=data.dir)
@@ -511,7 +511,7 @@
         ## matrix B
         B = cBind(
             rBind(-(t(W) + W),
-                  t(X) %*% W), 
+                  t(X) %*% W),
             rBind(t(W) %*% X,
                   Matrix(0, slm.m, slm.m)))
         file.B = inla.tempfile(tmpdir=data.dir)
@@ -522,8 +522,8 @@
         ## matrix C
         C = cBind(
             rBind(t(W) %*% W,
-                  Matrix(0, slm.m, slm.n)), 
-            rBind(Matrix(0, slm.n, slm.m), 
+                  Matrix(0, slm.m, slm.n)),
+            rBind(Matrix(0, slm.n, slm.m),
                   Matrix(0, slm.m, slm.m)))
         file.C = inla.tempfile(tmpdir=data.dir)
         inla.write.fmesher.file(C, filename = file.C)
@@ -590,7 +590,7 @@
         assign(model, random.spec$rgeneric$model)
         ## save model, or the object that 'model' expands to
         inla.eval(paste("save(", model,
-                        ", file = ", "\"", file.rgeneric, "\"", 
+                        ", file = ", "\"", file.rgeneric, "\"",
                         ", ascii = FALSE, compress = TRUE)",  sep=""))
         fnm = gsub(data.dir, "$inladatadir", file.rgeneric, fixed=TRUE)
         cat("rgeneric.file =", fnm, "\n", file=file, append = TRUE)
@@ -617,7 +617,7 @@
             cat("rgeneric.Rinit =", fnm, "\n", file=file, append = TRUE)
         }
     }
-            
+
     if (random.spec$model == "ar") {
         cat("order = ", random.spec$order, "\n", append=TRUE, sep = " ", file = file)
     }
@@ -669,7 +669,7 @@
     }
 
     if (is.null(inla.spec$tolerance.f) || is.na(inla.spec$tolerance.f)) {
-        inla.spec$tolerance.f = inla.spec$tolerance^(3/2) ## yes. 
+        inla.spec$tolerance.f = inla.spec$tolerance^(3/2) ## yes.
     }
     cat("tolerance.f = ", inla.spec$tolerance.f,"\n", sep = " ", file = file,  append = TRUE)
 
@@ -712,7 +712,7 @@
             r.code = inla.reorderings.name2code(r)
         } else if (is.integer(r)) {
             ## this will fail is code is wrong
-            dummy = inla.reorderings.code2name(r) 
+            dummy = inla.reorderings.code2name(r)
             r.code = r
         } else {
             stop("This should not happen.")
@@ -806,7 +806,7 @@
 
     inla.write.boolean.field("fixed", predictor.spec$fixed, file)
     inla.write.boolean.field("compute", predictor.spec$compute, file)
-    
+
     if (!is.null(predictor.spec$cdf)) {
         cat("cdf = ", predictor.spec$cdf, "\n", sep = " ", file = file,  append = TRUE)
     }
@@ -827,7 +827,7 @@
             stop(paste("Length of cross does not match the total length of predictor", length(predictor.spec$cross), "!=", n+m))
         }
         file.cross = inla.tempfile(tmpdir=data.dir)
-        ## better to go through factor to get levels 1...ncross. 
+        ## better to go through factor to get levels 1...ncross.
         cross = as.factor(predictor.spec$cross)
         cross = as.integer(cross)
         cross[is.na(cross)] = 0L ## means not in use
@@ -846,7 +846,7 @@
         ##
         ## Aextended = [ I, -A; -A^T, A^T A ] ((n+m) x (n+m))
         ##
-        ## This matrix is the one that is needed for input to inla. 
+        ## This matrix is the one that is needed for input to inla.
         if (is.character(predictor.spec$A)) {
             A = read.table(predictor.spec$A, col.names = c("i", "j", "x"))
             A = sparseMatrix(i = A$i, j = A$j, x = A$x, index1=TRUE)
@@ -882,9 +882,9 @@
         cpo, po, mlik, quantiles, smtp, q, openmp.strategy, graph, config, gdensity)
 {
     cat("", sep = "", file = file, append=FALSE)
-    cat("###  ", inla.version("hgid"), "\n", sep = "", file = file,  append = TRUE) 
-    cat("###  ", inla.paste(Sys.info()), "\n", sep = "", file = file,  append = TRUE) 
-    cat("###  ", inla.os.type(), "-", inla.os.32or64bit(), "bit", " ", date(), "\n", sep = "", file = file,  append = TRUE) 
+    cat("###  ", inla.version("hgid"), "\n", sep = "", file = file,  append = TRUE)
+    cat("###  ", inla.paste(Sys.info()), "\n", sep = "", file = file,  append = TRUE)
+    cat("###  ", inla.os.type(), "-", inla.os.32or64bit(), "bit", " ", date(), "\n", sep = "", file = file,  append = TRUE)
 
     cat("\n### [[[start of output from sessionInfo()]]]", "\n",  file = file, append = TRUE)
     s = paste("###   ", capture.output(sessionInfo()))
@@ -897,7 +897,7 @@
     cat("inlaresdir = ", result.dir, "\n", sep = "", file = file,  append = TRUE)
     cat("##inladatadir = ", gsub("^.*/","", data.dir), "\n", sep = "", file = file,  append = TRUE) #
     cat("##inlaresdir = ", gsub("^.*/","", result.dir), "-%d\n", sep = "", file = file,  append = TRUE) #
-        
+
 
     cat("\n", sep = " ", file = file,  append = TRUE)
     cat("[INLA.Model]\n", sep = " ", file = file,  append = TRUE)
@@ -999,7 +999,7 @@
         if (is.null(args$theta) && !is.null(args$result)) {
             args$theta = args$result$mode$theta
         }
-        
+
         if (!is.null(args$theta)) {
             ## set non-finite's to 0
             args$theta[!is.finite(args$theta)] = 0
@@ -1099,9 +1099,9 @@
     ## or
     ##
     ##     list("lc1" = list( "a" = list(idx=1, weight=1), "b" = list(idx=c(2, 3), weight = c(1, 2)), ...), ...)
-    ##       
+    ##
     ## use the functions 'inla.make.lincomb()' and 'inla.make.lincombs()'
-    
+
     ## if use.one.file = TRUE, then use one file for all lincombs and
     ## the 'ENTRY keyword', otherwise, use one file for each lincomb.
 
@@ -1117,7 +1117,7 @@
         prev.secnames = c()
 
         for(i in 1:length(lincomb)) {
-            
+
             nam = names(lincomb[i])
             if (is.null(nam) || is.na(nam)) {
                 secname = paste("lincomb.", inla.num(i, width=numlen), sep="")
@@ -1129,7 +1129,7 @@
                 secname = paste("lincomb.", nam[1], sep="")
                 lc = lincomb[[i]]
             }
-                
+
             ## check if the name is used previously, if so, stop.
             if (secname %in% prev.secnames) {
                 stop(paste("Duplicated name [", secname, "] in 'lincomb'; need unique names or NA or ''.",
@@ -1147,7 +1147,7 @@
             inla.write.boolean.field("verbose", contr$verbose, file)
 
             cat("file.offset = ", as.integer(seek(fp.binary, where=NA)), "\n", sep="", file = file, append = TRUE)
-            
+
             ## number of entries
             writeBin(as.integer(length(lc)), fp.binary)
 
@@ -1222,5 +1222,7 @@
     file.copy(files.to.copy, d.fnm, recursive=TRUE)
     rdir = gsub(data.dir, "$inladatadir", d.fnm, fixed=TRUE)
     rprefix = paste(rdir, "/", file.prefix, sep="")
+    ## They original files were created by f(), so remove them:
+    unlink(files.to.copy)
     return (rprefix)
 }

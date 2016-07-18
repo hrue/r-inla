@@ -13,7 +13,7 @@
 ##!
 ##!}
 ##!\usage{
-##!    f(..., 
+##!    f(...,
 ##!         model = "iid",
 ##!         copy=NULL,
 ##!         same.as = NULL,
@@ -50,20 +50,20 @@
 ##!         spde2.transform = c("logit", "log", "identity"),
 ##!         spde3.prefix = NULL,
 ##!         spde3.transform = c("logit", "log", "identity"),
-##!         mean.linear = inla.set.control.fixed.default()$mean, 
-##!         prec.linear = inla.set.control.fixed.default()$prec, 
+##!         mean.linear = inla.set.control.fixed.default()$mean,
+##!         prec.linear = inla.set.control.fixed.default()$prec,
 ##!         compute = TRUE,
 ##!         of=NULL,
 ##!         precision = 1.0e9,
 ##!         range = NULL,
 ##!         adjust.for.con.comp = TRUE,
-##!         order = NULL, 
-##!         scale = NULL, 
-##!         strata = NULL, 
-##!         rgeneric = NULL, 
-##!         scale.model = NULL, 
-##!         args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL), 
-##!         correct = NULL, 
+##!         order = NULL,
+##!         scale = NULL,
+##!         strata = NULL,
+##!         rgeneric = NULL,
+##!         scale.model = NULL,
+##!         args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL),
+##!         correct = NULL,
 ##!         debug = FALSE)
 ##!}
 ##!\arguments{
@@ -167,7 +167,7 @@
     ##!\code{f}-model.  Note that this constraint comes
     ##!additional to the sum-to-zero constraint defined if
     ##!\code{constr = TRUE}.}
-    extraconstr=list(A=NULL, e=NULL), 
+    extraconstr=list(A=NULL, e=NULL),
 
     ##!\item{values}{An optional vector giving all values
     ##!assumed by the covariate for which we want estimated the
@@ -262,11 +262,11 @@
 
     ##!\item{mean.linear}{Prior mean for the linear component,
     ##!only used if \code{model="linear"}}
-    mean.linear = inla.set.control.fixed.default()$mean, 
+    mean.linear = inla.set.control.fixed.default()$mean,
 
     ##!\item{prec.linear}{Prior precision for the linear
     ##!component, only used if \code{model="linear"}}
-    prec.linear = inla.set.control.fixed.default()$prec, 
+    prec.linear = inla.set.control.fixed.default()$prec,
 
     ##!\item{compute}{ A boolean variable indicating wheather the
     ##! marginal posterior distribution for the nodes in the
@@ -297,25 +297,25 @@
     ##!\item{order}{Defines the \code{order} of the model: for
     ##!model \code{ar} this defines the order p, in AR(p). Not
     ##!used for other models at the time being.}
-    order = NULL, 
+    order = NULL,
 
     ##!\item{scale}{A scaling vector. Its meaning depends on the model.}
-    scale = NULL, 
+    scale = NULL,
 
     ##!\item{strata}{A stratum vector. It meaning depends on the model.}
-    strata = NULL, 
+    strata = NULL,
 
     ##!\item{rgeneric}{A object of class \code{inla.rgeneric} which defines the model. (EXPERIMENTAL!)}
-    rgeneric = NULL, 
+    rgeneric = NULL,
 
-    ##!\item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default value is \code{inla.getOption("scale.model.default")}} 
-    scale.model = NULL, 
-        
-    ##!\item{args.slm}{Required arguments to the model="slm"; see the documentation for further details.}, 
-    args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL), 
+    ##!\item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default value is \code{inla.getOption("scale.model.default")}}
+    scale.model = NULL,
 
-    ##!\item{correct}{Add this model component to the list of variables to be used in the corrected Laplace approximation? If \code{NULL} use default choice,  otherwise correct if \code{TRUE} and do not if \code{FALSE}. (This option is currently experimental.)}, 
-    correct = NULL, 
+    ##!\item{args.slm}{Required arguments to the model="slm"; see the documentation for further details.},
+    args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL),
+
+    ##!\item{correct}{Add this model component to the list of variables to be used in the corrected Laplace approximation? If \code{NULL} use default choice,  otherwise correct if \code{TRUE} and do not if \code{FALSE}. (This option is currently experimental.)},
+    correct = NULL,
 
     ##!\item{debug}{Enable local debug output}
     debug = FALSE)
@@ -348,6 +348,42 @@
     ## are defined in the function inla.model.object.classes() as this
     ## is also used in the inla() function itself.
     if (any(inherits(model, inla.model.object.classes()))) {
+        if (any(inherits(model, inla.spde.object.classes()))) {
+          ## Write specific spde models to disk. These files should be
+          ## move/removed later in the code instead of copied.
+          ## Perhaps in section.R, since that where the copy now takes
+          ## place?
+          my.spde.prefix <- inla.fmesher.make.prefix(NULL, NULL)
+          if (any(inherits(model, "inla.spde1"))) {
+            spde.prefix <- my.spde.prefix
+            ## inla checks PREFIX valididy by looking for "s"
+            model$param.inla <- list(
+              s=spde$mesh$loc,
+              c0=internal$c0,
+              g1=internal$g1,
+              g2=internal$g2,
+              basis.T=internal$basis.T,
+              basis.K=internal$basis.K)
+            spde.matrices <- names(model$param.inla)
+          } else if (any(inherits(model, "inla.spde2"))) {
+            spde2.prefix <- my.spde.prefix
+            spde.matrices <- c("M0", "M1", "M2",
+                               "B0", "B1", "B2", "BLC")
+          } else if (any(inherits(model, "inla.spde3"))) {
+            spde3.prefix <- my.spde.prefix
+            spde.matrices <- c("M0", "M1", "M2", "M3",
+                               "B0", "B1", "B2", "B3", "BLC")
+          }
+          for (spde.matrix.name in spde.matrices) {
+            ## Only write matrix if it is non-empty (only happens for BLC)
+            if (nrow(model$param.inla[[spde.matrix.name]]) > 0) {
+              fmesher.write(inla.affirm.double(
+                model$param.inla[[spde.matrix.name]]),
+                my.spde.prefix, spde.matrix.name)
+            }
+          }
+        }
+
         atmp = paste(unlist(lapply(as.list(formals(INLA::f)), function(x) names(x))))
         arguments = unique(sort(c(names(formals(INLA::f)), atmp[-which(nchar(atmp) == 0L)])))
         arguments = arguments[ -grep("^[.][.][.]$",arguments) ]
@@ -495,7 +531,7 @@
         }
     }
 
-    ## Check that the Cmatrix is defined for those models needing it, and oposite. 
+    ## Check that the Cmatrix is defined for those models needing it, and oposite.
     if (!inla.one.of(model, "z")) {
         if (inla.one.of(model, c("generic", "generic0","generic1", "generic2"))) {
             if (is.null(Cmatrix)) {
@@ -590,7 +626,7 @@
         }
         if (!is.null(constr) && constr == TRUE) {
             ## let constr=TRUE be defined as sum(z)=0 only.
-            constr=FALSE 
+            constr=FALSE
             zn = dim(Z)[1L]
             zm = dim(Z)[2L]
             z.row = c(rep(0, zn), rep(1, zm))
@@ -629,7 +665,7 @@
             stopifnot(n == slm.n + slm.m)
         }
     }
-        
+
     ## is N required?
     if (is.null(n) && (!is.null(inla.model.properties(model, "latent")$n.required)
                        && inla.model.properties(model, "latent")$n.required)) {
@@ -676,6 +712,7 @@
     }
 
     if (inla.one.of(model, c("spde2"))) {
+        ## If spde2.prefix is given, use it.
         if (is.null(spde2.prefix)) {
             stop("Argument spde2.prefix=NULL is required for model = spde2")
         }
@@ -883,7 +920,7 @@
     if (model %in% "rgeneric") {
         if (inla.is.element("f", rgeneric) && inla.is.element("rgeneric", rgeneric$f)) {
             rgeneric = rgeneric$f$rgeneric
-        } 
+        }
         R.init = rgeneric$R.init
         stopifnot(inherits(rgeneric, "inla.rgeneric"))
         ## add an 'Id' so we know who we are
@@ -914,7 +951,7 @@
         cyclic=cyclic,
         d=d,
         diagonal = diagonal,
-        extraconstr= inla.ifelse(empty.extraconstr(extraconstr), NULL,  extraconstr), 
+        extraconstr= inla.ifelse(empty.extraconstr(extraconstr), NULL,  extraconstr),
         graph=graph,
         group = group,
         hyper = hyper,
@@ -941,11 +978,11 @@
         spde3.transform = spde3.transform,
         term=term,
         values=values,
-        order = order, 
+        order = order,
         weights=weights,
         scale = scale,
         strata = strata,
-        rgeneric = rgeneric, 
+        rgeneric = rgeneric,
         scale.model = as.logical(scale.model),
         adjust.for.con.comp = as.logical(adjust.for.con.comp),
         args.slm = args.slm,
@@ -962,4 +999,10 @@
     return (c("inla.model.class", "inla.wrapper.model",
               "inla.spde", "inla.spde1", "inla.spde2", "inla.spde3",
               "inla.rgeneric"))
+}
+
+## List spde classes that f() can write to disk when needed.
+`inla.spde.object.classes` = function()
+{
+    return (c("inla.spde1", "inla.spde2", "inla.spde3"))
 }
