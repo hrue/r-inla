@@ -4,7 +4,8 @@
   Matern SPDE model object for INLA
 }
 \description{
-  Create an \code{inla.spde2} model object for a Matern model.
+  Create an \code{inla.spde2} model object for a Matern model. Use
+  \alias{inla.spde2.pcmatern} instead for a PC prior for the parameters.
 }
 \usage{
 inla.spde2.matern(mesh,
@@ -111,6 +112,7 @@ inla.spde2.matern(mesh,
 \seealso{
   \code{\link{inla.mesh.2d}}, \code{\link{inla.mesh.create}},
   \code{\link{inla.mesh.1d}}, \code{\link{inla.mesh.basis}},
+  \code{\link{inla.spde2.pcmatern}},
   \code{\link{inla.spde2.generic}}
 }
 \examples{
