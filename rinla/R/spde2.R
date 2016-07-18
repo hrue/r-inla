@@ -3,6 +3,7 @@
 ## Export: inla.spde.result!inla.spde2 inla.spde2.generic
 ## Export: inla.spde2.matern param2.matern.orig
 ## Export: inla.spde2.matern.sd.basis inla.spde2.models
+## Export: inla.spde2.pcmatern
 ## Export: inla.spde2.precision inla.spde2.result
 ## Export: inla.spde2.theta2phi0 inla.spde2.theta2phi1 inla.spde2.theta2phi2
 ## Internal: inla.internal.spde2.matern.B.tau
@@ -439,30 +440,32 @@ inla.spde2.matern =
              prior.pc.rho = NULL,
              prior.pc.sig = NULL)
 {
-    ## Temporary implementation of PC prior for standard deviation and range
-    ##    - Changes parametrization to range and standard deviation
-    ##    - Sets prior according to hyperparameters for range   : prior.pc.rho
-    ##                                              and std.dev.: prior.pc.sig
-        if(!is.null(prior.pc.rho) && !is.null(prior.pc.sig)){
-            # Call inla.spde2.matern with range and standard deviation parametrization
-            d = inla.ifelse(inherits(mesh, "inla.mesh"), 2, 1)
-            nu = alpha-d/2
-            kappa0 = log(8*nu)/2
-            tau0   = 0.5*(lgamma(nu)-lgamma(nu+d/2)-d/2*log(4*pi))-nu*kappa0
-            spde   = inla.spde2.matern(mesh = mesh,
-                                       B.tau   = cbind(tau0,   nu,  -1),
-                                       B.kappa = cbind(kappa0, -1, 0))
+    if(!is.null(prior.pc.rho) && !is.null(prior.pc.sig)){
+      ## Temporary implementation of PC prior for standard deviation and range
+      ##    - Changes parametrization to range and standard deviation
+      ##    - Sets prior according to hyperparameters for range   : prior.pc.rho
+      ##                                              and std.dev.: prior.pc.sig
+      warning("You're using a deprecated experimental PC prior matern model that will be removed in a future version of the package. Use 'inla.spde2.pcmatern' instead.")
 
-            # Change prior information
-            param = c(prior.pc.rho, prior.pc.sig)
-            spde$f$hyper.default$theta1$prior = "pcspdega"
-            spde$f$hyper.default$theta1$param = param
-            spde$f$hyper.default$theta1$initial = log(prior.pc.rho[1])+1
-            spde$f$hyper.default$theta2$initial = log(prior.pc.sig[1])-1
+      ## Call inla.spde2.matern with range and standard deviation parametrization
+      d = inla.ifelse(inherits(mesh, "inla.mesh"), 2, 1)
+      nu = alpha-d/2
+      kappa0 = log(8*nu)/2
+      tau0   = 0.5*(lgamma(nu)-lgamma(nu+d/2)-d/2*log(4*pi))-nu*kappa0
+      spde   = inla.spde2.matern(mesh = mesh,
+                                 B.tau   = cbind(tau0,   nu,  -1),
+                                 B.kappa = cbind(kappa0, -1, 0))
 
-            # End and return
-            return(invisible(spde))
-        }
+      ## Change prior information
+      param = c(prior.pc.rho, prior.pc.sig)
+      spde$f$hyper.default$theta1$prior = "pcspdega"
+      spde$f$hyper.default$theta1$param = param
+      spde$f$hyper.default$theta1$initial = log(prior.pc.rho[1])+1
+      spde$f$hyper.default$theta2$initial = log(prior.pc.sig[1])-1
+
+      ## End and return
+      return(invisible(spde))
+    }
 
     ## Standard code
     inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
@@ -646,6 +649,75 @@ inla.spde2.matern =
 
 
 
+
+
+inla.spde2.pcmatern =
+    function(mesh,
+             alpha = 2,
+             param = NULL,
+             constr = FALSE,
+             extraconstr.int = NULL,
+             extraconstr = NULL,
+             fractional.method = c("parsimonious", "null"),
+             n.iid.group = 1,
+             prior.rho,
+             prior.sigma)
+{
+  ## Implementation of PC prior for standard deviation and range
+  ##    - Sets the parametrization to range and standard deviation
+  ##    - Sets prior according to hyperparameters for range   : prior[1]
+  ##                                              and std.dev.: prior[2]
+  ## Calls inla.spde2.matern to construct the object, then changes the prior
+  if (inherits(mesh, "inla.mesh")) {
+    d <- 2
+  } else if (inherits(mesh, "inla.mesh.1d")) {
+    d <- 1
+  } else {
+    stop(paste("Unknown mesh class '",
+               paste(class(mesh), collapse=",", sep=""),
+               "'.", sep=""))
+  }
+
+  if (missing(prior.rho) || is.null(prior.rho) ||
+      !is.vector(prior.rho) || (length(prior.rho) != 2)) {
+    stop("'prior.rho' should be a length 2 vector 'c(rho0,tailprob)'.")
+  }
+  if (missing(prior.sigma) || is.null(prior.sigma) ||
+      !is.vector(prior.sigma) || (length(prior.sigma) != 2)) {
+    stop("'prior.sigma' should be a length 2 vector 'c(sigma0,tailprob)'.")
+  }
+
+  nu <- alpha-d/2
+  if (nu <= 0) {
+    stop(paste("Smoothness nu = alpha-dim/2 = ", nu,
+               ", but must be > 0.", sep=""))
+  }
+
+  kappa0 <- log(8*nu)/2
+  tau0   <- 0.5*(lgamma(nu)-lgamma(nu+d/2)-d/2*log(4*pi))-nu*kappa0
+  spde   <- inla.spde2.matern(mesh = mesh,
+                              B.tau   = cbind(tau0,   nu,  -1),
+                              B.kappa = cbind(kappa0, -1, 0),
+                              alpha=alpha,
+                              param = NULL,
+                              constr = constr,
+                              extraconstr.int = extraconstr.int,
+                              extraconstr = extraconstr,
+                              fractional.method = fractional.method,
+                              n.iid.group = 1)
+
+  ## Change prior information
+  spde$f$hyper.default <-
+    list(theta1=list(prior="pcspdega",
+                     param=c(prior.rho, prior.sigma),
+                     initial=log(prior.rho[1])+1),
+         theta2=list(initial=log(prior.sigma[1])-1))
+
+  ## Change the model descriptor
+  spde$model = "pcmatern"
+
+  invisible(spde)
+}
 
 
 
@@ -987,7 +1059,7 @@ inla.spde2.result = function(inla, name, spde, do.transform=TRUE, ...)
 
 inla.spde2.models = function()
 {
-    return(c("generic", "matern"))
+    return(c("generic", "matern", "pcmatern"))
 }
 
 
