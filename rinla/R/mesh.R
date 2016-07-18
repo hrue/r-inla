@@ -917,7 +917,7 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
 
     time.pre = system.time({ ## Pre-processing timing start
 
-    if (!is.null(loc)) {
+    if (!(missing(loc) || is.null(loc))) {
       ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
       if (inherits(loc, "SpatialPoints") ||
           inherits(loc, "SpatialPointsDataFrame")) {
@@ -1325,13 +1325,14 @@ inla.mesh.2d <-
 ###########################
 
   if (missing(max.edge) || is.null(max.edge)) {
-        stop("max.edge must be specified")
-    }
+    stop("max.edge must be specified")
+  }
 
-    ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
-    if (inherits(loc, "SpatialPoints") ||
-        inherits(loc, "SpatialPointsDataFrame")) {
-      loc = coordinates(safe.spTransform(loc, CRSobj=crs))
+  ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
+  if (!(missing(loc) || is.null(loc)) &&
+      (inherits(loc, "SpatialPoints") ||
+       inherits(loc, "SpatialPointsDataFrame"))) {
+     loc = coordinates(safe.spTransform(loc, CRSobj=crs))
     }
     if (inherits(loc.domain, "SpatialPoints") ||
         inherits(loc.domain, "SpatialPointsDataFrame")) {
@@ -1805,9 +1806,10 @@ inla.mesh.project.inla.mesh <- function(mesh, loc, field=NULL, ...)
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
     ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
-    if (inherits(loc, "SpatialPoints") ||
-        inherits(loc, "SpatialPointsDataFrame")) {
-      loc = cordinates(safe.spTransform(loc, mesh$crs))
+    if (!(missing(loc) || is.null(loc)) &&
+        (inherits(loc, "SpatialPoints") ||
+         inherits(loc, "SpatialPointsDataFrame"))) {
+     loc = cordinates(safe.spTransform(loc, mesh$crs))
     }
 
     if (!missing(field) && !is.null(field)) {
@@ -3138,8 +3140,9 @@ inla.contour.segment <-
 inla.nonconvex.hull.basic <-
     function(points, convex=-0.15, resolution=40, eps=NULL, crs=NULL)
 {
-  if (inherits(points, "SpatialPoints") ||
-      inherits(points, "SpatialPointsDataFrame")) {
+  if (!(mising(points) || is.null(points)) &&
+      (inherits(points, "SpatialPoints") ||
+       inherits(points, "SpatialPointsDataFrame"))) {
     points <- coordinates(safe.spTransform(points, CRSobj=crs))
   }
 
@@ -3200,8 +3203,9 @@ inla.nonconvex.hull <-
   function(points, convex=-0.15, concave=convex, resolution=40, eps=NULL,
            crs=NULL)
 {
-  if (inherits(points, "SpatialPoints") ||
-      inherits(points, "SpatialPointsDataFrame")) {
+  if (!(missing(points) || is.null(points)) &&
+      (inherits(points, "SpatialPoints") ||
+       inherits(points, "SpatialPointsDataFrame"))) {
     points <- coordinates(safe.spTransform(points, CRSobj=crs))
   }
 
