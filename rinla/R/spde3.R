@@ -108,12 +108,7 @@ inla.spde3.generic <-
 
     spde$param.inla = param.inla
 
-    ## NOTE: Should the prefix be set inside the f function instead?
-    ##       Yes, it should.
-    spde.prefix = inla.fmesher.make.prefix(NULL, NULL)
-
     spde$f = (list(model="spde3",
-                   spde3.prefix=spde.prefix,
                    n=n.spde,
                    spde3.transform=transform,
                    hyper.default =
@@ -130,21 +125,6 @@ inla.spde3.generic <-
                        paste("spde$f$hyper.default$theta", k,
                              "$initial = param.inla$theta.mu[k]", sep="")))
         }
-
-    ## NOTE: Should this be in the f function instead?
-    ##       Yes, it should.
-    fmesher.write(inla.affirm.double(spde$param.inla$M0), spde.prefix, "M0")
-    fmesher.write(inla.affirm.double(spde$param.inla$M1), spde.prefix, "M1")
-    fmesher.write(inla.affirm.double(spde$param.inla$M2), spde.prefix, "M2")
-    fmesher.write(inla.affirm.double(spde$param.inla$M3), spde.prefix, "M3")
-    fmesher.write(inla.affirm.double(spde$param.inla$B0), spde.prefix, "B0")
-    fmesher.write(inla.affirm.double(spde$param.inla$B1), spde.prefix, "B1")
-    fmesher.write(inla.affirm.double(spde$param.inla$B2), spde.prefix, "B2")
-    fmesher.write(inla.affirm.double(spde$param.inla$B3), spde.prefix, "B3")
-    ## Only write BLC if it is non-empty
-    if (nrow(spde$param.inla$BLC)>0)
-        fmesher.write(inla.affirm.double(spde$param.inla$BLC),
-                      spde.prefix, "BLC")
 
     return(spde)
 }
