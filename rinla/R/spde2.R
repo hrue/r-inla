@@ -99,12 +99,7 @@ inla.spde2.generic =
 
     spde$param.inla = param.inla
 
-    ## NOTE: Should the prefix be set inside the f function instead?
-    ##       Yes, it should.
-    spde.prefix = inla.fmesher.make.prefix(NULL, NULL)
-
     spde$f = (list(model="spde2",
-                   spde2.prefix=spde.prefix,
                    n=n.spde,
                    spde2.transform=transform,
                    hyper.default =
@@ -121,19 +116,6 @@ inla.spde2.generic =
                        paste("spde$f$hyper.default$theta", k,
                              "$initial = param.inla$theta.mu[k]", sep="")))
         }
-
-    ## NOTE: Should this be in the f function instead?
-    ##       Yes, it should.
-    fmesher.write(inla.affirm.double(spde$param.inla$M0), spde.prefix, "M0")
-    fmesher.write(inla.affirm.double(spde$param.inla$M1), spde.prefix, "M1")
-    fmesher.write(inla.affirm.double(spde$param.inla$M2), spde.prefix, "M2")
-    fmesher.write(inla.affirm.double(spde$param.inla$B0), spde.prefix, "B0")
-    fmesher.write(inla.affirm.double(spde$param.inla$B1), spde.prefix, "B1")
-    fmesher.write(inla.affirm.double(spde$param.inla$B2), spde.prefix, "B2")
-    ## Only write BLC if it is non-empty
-    if (nrow(spde$param.inla$BLC)>0)
-        fmesher.write(inla.affirm.double(spde$param.inla$BLC),
-                      spde.prefix, "BLC")
 
     return(spde)
 }
@@ -482,7 +464,7 @@ inla.spde2.matern =
             return(invisible(spde))
         }
 
-    ## Standard code    
+    ## Standard code
     inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
     fractional.method = match.arg(fractional.method)
 
