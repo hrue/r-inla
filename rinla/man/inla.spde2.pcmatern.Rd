@@ -1,5 +1,5 @@
-\name{inla.spde2.matern}
-\alias{inla.spde2.matern}
+\name{inla.spde2.pcmatern}
+\alias{inla.spde2.pcmatern}
 \title{
   Matern SPDE model object with PC prior for INLA
 }
@@ -8,15 +8,15 @@
   using a PC prior for the parameters.
 }
 \usage{
-inla.spde2.matern(mesh,
-                  alpha = 2,
-                  constr = FALSE,
-                  extraconstr.int = NULL,
-                  extraconstr = NULL,
-                  fractional.method = c("parsimonious", "null"),
-                  n.iid.group = 1,
-                  prior.rho,
-                  prior.sigma)
+inla.spde2.pcmatern(mesh,
+                    alpha = 2,
+                    constr = FALSE,
+                    extraconstr.int = NULL,
+                    extraconstr = NULL,
+                    fractional.method = c("parsimonious", "null"),
+                    n.iid.group = 1,
+                    prior.rho,
+                    prior.sigma)
 }
 \arguments{
   \item{mesh}{
