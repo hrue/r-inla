@@ -2,6 +2,7 @@
 ## Export: inla.sens.distance
 ## Export: inla.sens.distance.skew
 ## Export: inla.sens.skewMap
+## Export: inla.sens.post
 
 ##!\name{inla.sens}
 ##!
@@ -23,7 +24,7 @@
 ##! TODO
 ##!}
 
-inla.sens = function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL, nGrid = 1e4, nSamples = 2e4, nIntGrid = 1e4, useSkew = FALSE, calcPriorSens = FALSE){
+inla.sens = function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL, nGrid = 1e4, nSamples = 2e4, nIntGrid = 1e4, useSkew = FALSE, calcPriorSens = FALSE, makePlots = TRUE){
     # Ensure reproducability
     if(!is.null(seed))
         set.seed(seed)
@@ -171,25 +172,27 @@ inla.sens = function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL, nGrid 
             xLab = c(xLab, groups$tag[idxP])
             val  = c(val,  stdDist[sIdx])
         } else{
-            inla.dev.new()
-            barplot(stdDist[sIdx:eIdx], 
-                    space = 2,
-                    ylim = c(0, 1), 
-                    main = groups$tag[idxP], 
-                    names.arg = 1:(eIdx-sIdx+1), 
-                    xlab = "Index", 
-                    ylab = "Uncertainty",
-                    cex.names = cex.names,
-                    cex.axis  = cex.axis,
-                    lwd       = lwd)
+            if(makePlots){
+                inla.dev.new()
+                barplot(stdDist[sIdx:eIdx], 
+                        space = 2,
+                        ylim = c(0, 1), 
+                        main = groups$tag[idxP], 
+                        names.arg = 1:(eIdx-sIdx+1), 
+                        xlab = "Index", 
+                        ylab = "Uncertainty",
+                        cex.names = cex.names,
+                        cex.axis  = cex.axis,
+                        lwd       = lwd)
 
-            # Add prior level to plot if calculated
-            if(calcPriorSens){
-                barplot(priorSens[[length(res)+1]]$val, 
-                    add = TRUE, 
-                    col = rgb(1, 0, 0, alpha = .20),
-                    space = 2,
-                    cex.axis = cex.axis)
+                # Add prior level to plot if calculated
+                if(calcPriorSens){
+                    barplot(priorSens[[length(res)+1]]$val, 
+                        add = TRUE, 
+                        col = rgb(1, 0, 0, alpha = .20),
+                        space = 2,
+                        cex.axis = cex.axis)
+                }
             }
 
             # Add groups into result object
@@ -198,24 +201,26 @@ inla.sens = function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL, nGrid 
         }
     }
     if(length(val) >= 1){
-        inla.dev.new()
-        barplot(val, 
-                space = 2, 
-                ylim = c(0, 1), 
-                main = "Fixed effects", 
-                names.arg = xLab, 
-                ylab = "Uncertainty",
-                cex.names = cex.names,
-                cex.axis  = cex.axis,
-                lwd       = lwd)
+        if(makePlots){
+            inla.dev.new()
+            barplot(val, 
+                    space = 2, 
+                    ylim = c(0, 1), 
+                    main = "Fixed effects", 
+                    names.arg = xLab, 
+                    ylab = "Uncertainty",
+                    cex.names = cex.names,
+                    cex.axis  = cex.axis,
+                    lwd       = lwd)
 
-        # Add prior level to plot if calculated
-        if(calcPriorSens){
-            barplot(priorSens[[length(res)+1]]$val, 
-                    add = TRUE, 
-                    col = rgb(1, 0, 0, alpha = .20),
-                    space = 2,
-                    cex.axis = cex.axis)
+            # Add prior level to plot if calculated
+            if(calcPriorSens){
+                barplot(priorSens[[length(res)+1]]$val, 
+                        add = TRUE, 
+                        col = rgb(1, 0, 0, alpha = .20),
+                        space = 2,
+                        cex.axis = cex.axis)
+            }
         }
 
         # Add fixed effects to result object
@@ -322,4 +327,50 @@ inla.sens.skewMap = function(x){
     ksi = mu - w*d*sqrt(2/pi)
 
     return(c(ksi, w, alpha))
+}
+
+inla.sens.post = function(res.sens, rIdx, X){
+    # Number of components
+    nC = length(res.sens)
+    nP = length(res.sens[[1]]$val)
+
+    # Iterate through each posterior and plot
+    par(ask = TRUE)
+    for(idxP in 1:nP){
+        # Get values and names
+        val = NULL
+        nam = NULL
+        for(idxC in 1:nC){
+            if(res.sens[[idxC]]$tag == "Fixed effects"){
+                tmpIdx = (X[idxP, ] != 0)
+                val = c(val, res.sens[[idxC]]$val[tmpIdx])
+                nam = c(nam, res.sens[[idxC]]$names[tmpIdx])
+            } else{
+                if(!is.na(rIdx[idxP, idxC])){
+                    val = c(val, res.sens[[idxC]]$val[rIdx[idxP, idxC]])
+                    nam = c(nam, res.sens[[idxC]]$tag)
+                }
+            }
+        }
+
+        # Standardize with linear predictor
+        val = val/val[1]
+        inla.dev.new()
+        cex.names = 1.5
+        cex.axis = 1.5
+        lwd = 1.5
+        barplot(val, 
+                space = 2,
+                ylim = c(1/exp(3), exp(3)), 
+                main = paste("Linear predicter", idxP), 
+                names.arg = nam, 
+                xlab = "Index", 
+                ylab = "Resiliency",
+                cex.names = cex.names,
+                cex.axis  = cex.axis,
+                lwd       = lwd,
+                log = c("y"))
+    }
+    par(ask = FALSE)
+
 }
