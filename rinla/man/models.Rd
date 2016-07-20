@@ -7436,7 +7436,8 @@ inla.models()
 				 }
 				\item{Model `pc.cor1'.}{					 Number of parameters in the prior = 2 
 				 }
-				\item{Model `pc.spde.GA'.}{					 Number of parameters in the prior = 4 
+				\item{Model `pc.spde.GA'.}{					 Number of parameters in the prior = 4
+				 }
 				\item{Model `pc.matern'.}{					 Number of parameters in the prior = 3 
 				 }
 				\item{Model `pc'.}{					 Number of parameters in the prior = 2 
