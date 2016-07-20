@@ -6240,6 +6240,11 @@
                      nparameters = 3L,
                      pdf = NA
                      ), 
+		
+		 pc.range = list(
+                     nparameters = 2L,
+                     pdf = NA
+                     ), 
 
                  ## this is the generic one,  which is case-spesific and possibly adaptive
                  pc = list(

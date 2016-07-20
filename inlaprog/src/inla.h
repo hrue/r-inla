@@ -506,6 +506,7 @@ typedef enum {
 	P_PC_DOF,
 	P_PC_SPDE_GA,					       /* Experimental prior from GA when dim(theta)=2 */
 	P_PC_MATERN,
+	P_PC_RANGE,
 	P_PC_AR,
 	P_REF_AR,					       /* Reference prior for AR(p) for p=1,2,3 */
 	P_INVALID,
@@ -1376,6 +1377,7 @@ double priorfunc_pc_dof(double *x, double *parameters);
 double priorfunc_pc_prec(double *x, double *parameters);
 double priorfunc_pc_spde_ga(double *x, double *parameters);
 double priorfunc_pc_matern(double *x, double *parameters);
+double priorfunc_pc_range(double *x, double *parameters);
 double priorfunc_ref_ar(double *x, double *parameters);
 double priorfunc_wishart(int dim, double *x, double *parameters);
 double priorfunc_wishart1d(double *x, double *parameters);
