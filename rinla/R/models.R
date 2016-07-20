@@ -6235,6 +6235,11 @@
                      nparameters = 4L,
                      pdf = NA
                      ), 
+                
+		 pc.matern = list(
+                     nparameters = 3L,
+                     pdf = NA
+                     ), 
 
                  ## this is the generic one,  which is case-spesific and possibly adaptive
                  pc = list(
