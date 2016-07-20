@@ -1,37 +1,98 @@
 \chapter{Model specification}
 <<echo=FALSE>>=
 library(INLA)
-@ 
+@
 
-The first thing to do for running \tv{R-INLA} is to specify the model of 
-interest in the right way. We start the model specification by looking at 
-the linear predictor $\bm{\eta}$. For 
-example, assume we have a generic model 
-$y_i \stackrel{\text{iid}}{\sim} p(y_i \mid \lambda_i)$, where
-the link function $h(\cdot)$ is used to link the mean $\lambda$ to 
-the linear predictor:
-\begin{equation}\label{eq:exampleLinPred}
-	\eta_i = h(\lambda_i) = \beta_0 + \beta_1 X_{i} + \beta_2 Z_{i} + 
-f(W_i) + \ldots
-\end{equation}
-Here, $\bm{\beta} = (\beta_0, \beta_1, \beta_2)$ denote ``fixed'' effects
-where $\beta_0$ is the intercept and $\beta_1$ and $\beta_2$ describe a
-linear effect of the observed covariates $\bm{X}$ and $\bm{Z}$.
-The term $f(W_i)$ specifies a non-linear/smooth effect of the covariate 
-$\bm{W}$.
-The specification on the level of the linear predictor is regarded as 
-the latent structure and strictly speaking this structure has
-to be Gaussian in order to be able to use \tv{R-INLA}. Within \tv{R-INLA} a 
+The first thing to do for running \tv{R-INLA} is to specify the model of
+interest in the right way.
+
+\section{Bayesian hierarchical models}
+
+INLA can be used to estimate Bayesian hierarchical models defined over
+three stages. The first
+stage describes the distibribution of the response vector $\bs{y}=(y_1,
+\ldots, y_{n_d})^\top$ and is formed by a likelihood function with conditional independence
+properties given the ($n_d \times 1$) vector of linear predictors
+$\bs{\eta}$ and the ($m \times 1$) vector of possible hyperparameters
+$\bs{\theta}_1$
+\begin{list}{\labelitemi}{\leftmargin=5em}
+\item[\textbf{Stage 1.}] $\bs{y}|\bs{\eta},\bs{\theta}_1 \sim
+    p(\bs{y}|\bs{\eta},\bs{\theta}) = \prod _{i=1}^{n_d} p(y_i|g^{-1}
+    (\eta _i), \bs{\theta}_1)$,
+\end{list}
+where $g^{-1}(\cdot)$ is the inverse of the link function that connects the
+conditional mean of $y_i$ to the linear predictor $\eta _i$.  The
+second stage defines the distribution of the underlying unobserved
+(latent) components. This stage is the systematic part of the model and states
+that the covariates are linearly related to the linear predictor. This
+stage can include fixed effects for covariates, unstructured random
+effects, such as individual or group effects, or structured random
+effects, such as an autoregressive model of order 1 or a smoothin
+random effect over space. It is crucial that the second stage, the
+so-called latent level, is Gaussian
+distributed in order to apply INLA. In matrix notation we have,
+\begin{list}{\labelitemi}{\leftmargin=5em}
+\item[\textbf{Stage 2.}] $\bs{\eta} = \bs{X} \bs{\beta} + \bs{w}
+  f(\bs{c}, \bs{\theta}_2) + \ldots, \quad
+    \bs{\beta} \sim N(\bs{\mu}, \text{diag}(\bs{\tau}^{-1}))$,
+\end{list}
+where $\bs{X}$ is a ($n_d \times p$) design matrix which has the $p$
+covariate vectors as its columns and $\bs{\beta}$ is a ($p \times 1$)
+vector of regression coefficients, i.e. fixed effects. INLA attributes independent
+Gaussian priors with mean $\mu _i$ and precision $\tau_i$ for each of
+the regressor coefficients $\beta_i$, $i = 1,...,p$. The term $\bs{w}
+f(\bs{c}, \bs{\theta}_2)$ specifies a non-linear/smooth Gaussian effect of
+covariate $\bs{c}$  weighted with a vector of known weights $\bs{w}$
+and $\bs{\theta}_2$ represent the hyperparameters for this Guassian
+model. The hierarchical
+model is then completed with an appropriate prior distribution for the
+possible vector of hyperparameters $\bs{\theta} = (\bs{\theta}_1,
+\bs{\theta}_2)$
+which controls the
+single model components
+\begin{list}{\labelitemi}{\leftmargin=5em}
+  \item[\textbf{Stage 3.}] $\bs{\theta} \sim \pi(\bs{\theta})$.
+\end{list}
+Here, $\bs{\theta}_1$ denots the hyperparameters of the likelihood
+model which can include the variance of the observation noise, the
+dispersion parameter in the negative binomial model, the probabiliy of
+observing zero counts in a zero-inflated model. In contrast,
+$\bs{\theta}_2$ includes all hyperparameters from the second stage,
+e.g.~variance parameters of structured or unstructured random effects,
+correlation parameters for multivariate effects, autocorrelation
+parameters, etc.
+
+
+% We start the model specification by looking at
+% the linear predictor $\bm{\eta}$. For
+% example, assume we have a generic model
+% $y_i \stackrel{\text{iid}}{\sim} p(y_i \mid \lambda_i)$, where
+% the link function $h(\cdot)$ is used to link the mean $\lambda$ to
+% the linear predictor:
+% \begin{equation}\label{eq:exampleLinPred}
+% 	\eta_i = h(\lambda_i) = \beta_0 + \beta_1 X_{i} + \beta_2 Z_{i} +
+% f(W_i) + \ldots
+% \end{equation}
+% Here, $\bm{\beta} = (\beta_0, \beta_1, \beta_2)$ denote ``fixed'' effects
+% where $\beta_0$ is the intercept and $\beta_1$ and $\beta_2$ describe a
+% linear effect of the observed covariates $\bm{X}$ and $\bm{Z}$.
+% The term $f(W_i)$ specifies a non-linear/smooth effect of the covariate
+% $\bm{W}$.
+% The specification on the level of the linear predictor is regarded as
+% the latent structure and strictly speaking this structure has
+% to be Gaussian in order to be able to use \tv{R-INLA}.
+
+ Within \tv{R-INLA} a
 structure, such as the one
-provided in \eqref{eq:exampleLinPred} is specified through a $\tt{formula}$
+provided in stage 2 is specified through a $\tt{formula}$
 object:
 <<eval=FALSE>>=
-  formula = y ~ X + Z + f(W, model="...", ...)
-@ 
+  formula = y ~ X + f(c, w, model="...", ...)
+@
 A formula object is thereby composed of two different types of terms,
-fixed effects just added to the model without additional specification, see 
-previous chapter, and random effects specified using the ${\tt f(.)}$ function. 
-Here, additional arguments to describe the underlying latent model are 
+fixed effects just added to the model without additional specification, see
+previous chapter, and random effects specified using the ${\tt f(.)}$ function.
+Here, additional arguments to describe the underlying latent model are
 available.
 Both terms will be described in more detail in following section.
 
@@ -40,11 +101,11 @@ Both terms will be described in more detail in following section.
 
 \subsection{Fixed effects}
 
-The notation used to include fixed effects is analogous to the use in the 
-\tv{glm} or \tv{lm} function in \tv{R}, see also \tv{?formula} within 
+The notation used to include fixed effects is analogous to the use in the
+\tv{glm} or \tv{lm} function in \tv{R}, see also \tv{?formula} within
 \tv{R}\footnote{One exception is that the specification
-    ``\tv{y $\sim$ .}'' is not allowed.}. 
-Table~\ref{tab:fixed} list symbols and their meaning for specifying fixed 
+    ``\tv{y $\sim$ .}'' is not allowed.}.
+Table~\ref{tab:fixed} list symbols and their meaning for specifying fixed
 effects within a \tv{formula}.
 \begin{table}
 \begin{tabular}{lcl}
@@ -53,19 +114,19 @@ Symbol & Example & Meaning\\
 \midrule
 \tv{+} & \tv{+ X} & include this variable\\
 \tv{:} & \tv{X:Z} & include the interaction between these variables\\
-\tv{*} & \tv{X*Y} & include these variables and the interaction 
+\tv{*} & \tv{X*Y} & include these variables and the interaction
 between them\\
-\tv{1} & \tv{- 1} & intercept: delete the intercept (regress through the 
+\tv{1} & \tv{- 1} & intercept: delete the intercept (regress through the
 origin)\\
 \bottomrule
 \end{tabular}
-\caption{Symbols used to include effects in a \tv{formula} 
+\caption{Symbols used to include effects in a \tv{formula}
 object. \label{tab:fixed}}
 \end{table}
 
-Importantly, the use of \tv{+} in the \tv{formula} context is different than 
-its usual meaning. Within the \tv{formula} notation it is a short-hand for 
-which variable to include in the statistical model.  Note that an intercept 
+Importantly, the use of \tv{+} in the \tv{formula} context is different than
+its usual meaning. Within the \tv{formula} notation it is a short-hand for
+which variable to include in the statistical model.  Note that an intercept
 $\beta_0$ is automatically added to the model,
 unless it is explicitly removed by adding term $-1$ or $0$:
 <<eval=FALSE>>=
@@ -76,14 +137,14 @@ Similarly, adding term $1$ makes the intercept appear explicitly
 <<eval=FALSE>>=
   formula = y ~ 1 + ...
 @
-There is often more than one way to specify a specific model; the notation is 
+There is often more than one way to specify a specific model; the notation is
 not unique. For example the following formulae are all equivalent:
 <<eval=FALSE>>=
   formula = y ~ 1 + X + Z + X:Z
-  formula = y ~ 1 + X*Z 
+  formula = y ~ 1 + X*Z
   formula = y ~ X*Z
 @
-each corresponding to 
+each corresponding to
 \begin{equation}\label{eq:exampleLinPred}
 	\eta_i = h(\lambda_i) = \beta_0 + \beta_1 X_{i} + \beta_2 Z_{i} +
 	\beta_3 X_iZ_i
@@ -98,8 +159,8 @@ y = 1 + x + z + x*z + rnorm(n, sd=0.5)
 formula = y ~ x*z
 result = inla(formula, data = data.frame(y=y, x=x, z=z))
 result$summary.fixed
-@ 
-Note that we need to pass a \tv{data.frame} or a \tv{list} containing the 
+@
+Note that we need to pass a \tv{data.frame} or a \tv{list} containing the
 explanatory variables to the field \tv{data} in the functin \tv{inla()}.
 
 It is also possible to use the design matrix $\mathbf{X}$ explicitly as in
@@ -112,7 +173,7 @@ formula = y ~ X
 X = cbind(x=x, z=z, "x:z"=x*z)
 result = inla(formula, data = list(y=y,X=X))
 result$summary.fixed
-@ 
+@
 %%
 \tv{R-INLA} adds prefix \tv{X} to the fixed effects names, to make the
 connection to the design-matrix $\mathbf{X}$ explicit.
@@ -124,10 +185,10 @@ function.  The argument \texttt{control.fixed} needs to be a list, and
 the arguments relevant for the prior specification of the fixed
 effects are:
 \begin{itemize}
-\item \texttt{mean.intercept}: prior mean for the intercept. Default value is 
+\item \texttt{mean.intercept}: prior mean for the intercept. Default value is
     \Sexpr{inla.set.control.fixed.default()$mean.intercept}
 \item \texttt{prec.intercept}: precision for the intercept. Default
-    value is    
+    value is
 \Sexpr{inla.set.control.fixed.default()$prec.intercept}\footnote{Note
         that the this prior is improper!}
 \item \texttt{mean}: prior mean for all fixed effects except the
@@ -136,7 +197,7 @@ effects are:
     named list with specific means where \texttt{name = default}
     applies to unmatched names. For example
     \begin{center}
-        \texttt{control.fixed = list(mean = list(a = 1, b = 2, default = 0))} 
+        \texttt{control.fixed = list(mean = list(a = 1, b = 2, default = 0))}
     \end{center}
     assign \texttt{mean = 1} to fixed effect \texttt{a}, \texttt{mean
         = 2} to effect \texttt{b} and \texttt{mean = 0} to all others.
@@ -158,45 +219,45 @@ control.fixed = list(mean.intercept = 0,
                      mean = list(b = 3, default = 10),
                      prec = list(b = 5, default = 20))
 inla(..., control.fixed = control.fixed)
-@ 
+@
 
 
 \subsection{Random effects}
 
-Within a linear predictor we are usually not only interested in including 
+Within a linear predictor we are usually not only interested in including
 fixed effects but also random effects.
-Here, we describe the specification of Gaussian random effects models of the 
+Here, we describe the specification of Gaussian random effects models of the
 form
 \begin{equation*}
   \mm{w} \cdot f(\mm{c}; \mm{\theta}),
 \end{equation*}
-where $\mm{w}$ denotes a vector of known weights for the effect and 
+where $\mm{w}$ denotes a vector of known weights for the effect and
 $\mm{\theta}$ represents the hyperparameters of the Gaussian model.
 
 A random effects model can be defined using the \tv{f()}-function.
-This function allows the user to specify the latent model to be used, the prior 
+This function allows the user to specify the latent model to be used, the prior
 distributions for its hyperparameters $\mm{\theta}$, linear constraints,
 and much more. In this section we will describe the most important
 features of the \tv{f()}-function. More advanced topics like replicating
-a latent model, or grouping several latent models will be described later in 
+a latent model, or grouping several latent models will be described later in
 detail.
 
 The basic form of the \tv{f()}-function is:
 <<eval=FALSE,echo=TRUE>>=
   f(c, w, model="...", ...)
 @
-where the first argument \tv{name} refers to the covariate to be modelled, 
-the second argument is n optional vector of known weights $\mm{w}$ (one for 
-each covariate value) and \tv{model} defines the type of the latent model. 
-For example, to define an independent and identically distributed (iid) random 
-effect for each observation, we set $\tv{c}=1,2,\ldots,n$, with $n$ 
+where the first argument \tv{name} refers to the covariate to be modelled,
+the second argument is n optional vector of known weights $\mm{w}$ (one for
+each covariate value) and \tv{model} defines the type of the latent model.
+For example, to define an independent and identically distributed (iid) random
+effect for each observation, we set $\tv{c}=1,2,\ldots,n$, with $n$
 denoting the total number of observations,
 leading to:
 <<eval=FALSE,echo=TRUE>>=
   f(c, model="iid")
 @
 
-Table~\ref{tab:latentModels} gives an overview of all implemented latent 
+Table~\ref{tab:latentModels} gives an overview of all implemented latent
 Gaussian models.
 \begin{table}[h!]
 \begin{center}
@@ -212,9 +273,9 @@ Random walk of order 2  &    {\tt rw2 }\\
 Continuous random walk of order 2 &     {\tt crw2   }\\
 Model for seasonal variation &     {\tt seasonal  }\\
 Model for spatial effect (know as Besag model)  &   {\tt besag   }\\
-Model for spatial effect (proper version)  &    {\tt besagproper    }\\ 
+Model for spatial effect (proper version)  &    {\tt besagproper    }\\
 Model for weighted spatial effects   &    {\tt besag2 }\\
-Model for spatial effect + random effect (known as Besag-York-Mollie model) &  
+Model for spatial effect + random effect (known as Besag-York-Mollie model) &
     {\tt bym }\\
 Autoregressive model of order 1  &     {\tt ar1 }\\
 Autoregressive model of order p &     {\tt ar}\\
@@ -233,13 +294,13 @@ Spatial lag model & {\tt slm}\\
 Sigmodial and reverse sigmodial & {\tt sigm}, {\tt revsigm}\\
 \bottomrule
 \end{tabular}
-\caption{List of latent Gaussian field models implemented in 
+\caption{List of latent Gaussian field models implemented in
 \tv{R-INLA}.}\label{tab:latentModels}
 \end{center}
 \end{table}
-Specific documentation for each model can be found on 
-\url{http://www.r-inla.org/models/latent-models}. Within {\tt R} model 
-documentation can be requested using the function {\tt inla.doc(<identifier>)}, 
+Specific documentation for each model can be found on
+\url{http://www.r-inla.org/models/latent-models}. Within {\tt R} model
+documentation can be requested using the function {\tt inla.doc(<identifier>)},
 e.g.~{\tt inla.doc("rw1")}.
 This will open a documentation pdf-file, with the following structure
 \begin{enumerate}
@@ -251,12 +312,12 @@ This will open a documentation pdf-file, with the following structure
 \end{enumerate}
 
 % \begin{example}
-Consider a simple regression model including one linear covariate $\bm{X}$ and 
-a random effect $\mathbf{a}=(a_1,\dots,a_n)$ that follows an 
+Consider a simple regression model including one linear covariate $\bm{X}$ and
+a random effect $\mathbf{a}=(a_1,\dots,a_n)$ that follows an
 autoregressive models of order 1 (AR (1)) and is defined as:
 \begin{eqnarray}\nonumber
     a_1&\sim&\mathcal{N}(0,(\tau(1-\rho^2))^{-1}) \\\nonumber
-    a_i&=&\rho\ a_{i-1}+\epsilon_i; \qquad 
+    a_i&=&\rho\ a_{i-1}+\epsilon_i; \qquad
 \epsilon_i\sim\mathcal{N}(0,\tau^{-1}) \qquad  i=2,\dots,n
 \end{eqnarray}
 where
@@ -298,7 +359,7 @@ ar = rep(0 ,n)
 # Generate the autoregressive component
 for(i in 2:n)
   ar[i] = 0.8 * ar[i -1] + rnorm(n = 1, sd = 0.1)
-  
+
 # Generate data with AR (1) component
 x = runif(n)
 y = 1 + 2 * x + ar + rnorm(n = n , sd = 0.1)
@@ -309,8 +370,8 @@ result = inla(formula, data = list(x = x, y = y, t = t), family ="gaussian")
 @
 
 Using the \tv{summary()} function we can expect the parameter estimates. Of note
-in the summary only estimates for the fixed effects here $\beta_0$ and 
-$\beta_1$ as well as the three hyperparameters are given. Section~TODO disusses 
+in the summary only estimates for the fixed effects here $\beta_0$ and
+$\beta_1$ as well as the three hyperparameters are given. Section~TODO disusses
 how to extract output information for the random effects.
 <<>>=
 summary(result)
@@ -366,7 +427,7 @@ a random effect to be defined within the \tv{f}-function.
 \subsection{General structure}
 Write about internal scale.
 
-Use of 
+Use of
 <<eval=FALSE>>=
 hyper=list(...)
 @
