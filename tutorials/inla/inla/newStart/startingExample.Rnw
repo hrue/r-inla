@@ -3,6 +3,15 @@
 library(INLA)
 @
 
+
+If you have installed the \tv{R-INLA} package then
+<<eval=FALSE>>=
+library(INLA)
+@
+%%
+will load the library and you are ready to go.
+
+
 There are essentially four parts to an \tv{R-INLA}-program: 1) Organise
 the data so that response, covariate, \ldots, are saved in one object; 2) Use
 the \tv{formula} notation to specify your model; 3) Call the
@@ -145,6 +154,9 @@ data = data.frame(y = y, x1 = x1, x2 = x2, t = t)
 
 \section{Specifying the linear predictor}
 
+Of note, throughout this tutorial we will use the terms ``fixed effects'' and ``random
+effects'', even though also ``fixed effects'' are ``random'' in a
+Bayesian setting.
 Similar to the well-know functions \tv{lm} and \tv{glm} in R, is the model
 specified using a \tv{formula} object. A \tv{formula} is a compact symbolic
 description of the model. The $\sim$ operator is basic in the formation of
