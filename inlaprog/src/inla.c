@@ -2353,6 +2353,24 @@ double priorfunc_pc_matern(double *x, double *parameters)
 
 	return ldens;
 }
+double priorfunc_pc_range(double *x, double *parameters)
+{
+	double theta1 = x[0], ldens, lam, dHalf;
+	int debug = 0;
+
+	lam = parameters[0];
+	dHalf = parameters[1]/2.0;
+
+	ldens = log(lam * dHalf) - dHalf * theta1 - lam * exp(-dHalf * theta1);
+
+	if (debug) {
+		fprintf(stderr, "pc_range: x = %g\n", x[0]);
+		fprintf(stderr, "          param = %g %g\n", parameters[0], parameters[1]);
+		fprintf(stderr, "          lam = %g  dHalf = %g  ldens = %g\n", lam, dHalf, ldens);
+	}
+
+	return ldens;
+}
 double priorfunc_pc_dof(double *x, double *parameters)
 {
 #define NP 5
@@ -7436,6 +7454,18 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
 			}
 		}	
+	} else if (!strcasecmp(prior->name, "PCRANGE")) {
+		int nparam, i;
+
+		prior->id = P_PC_RANGE;
+		prior->priorfunc = priorfunc_pc_range;
+		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
+		assert(nparam == 2);
+		if (mb->verbose) {
+			for (i = 0; i < nparam; i++) {
+				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
+			}
+		}
 	} else if (!strcasecmp(prior->name, "MINUSLOGSQRTRUNCNORMAL") || !strcasecmp(prior->name, "MINUSLOGSQRTRUNCGAUSSIAN") ||
 		   // easier names...
 		   !strcasecmp(prior->name, "LOGTNORMAL") || !strcasecmp(prior->name, "LOGTGAUSSIAN")) {
