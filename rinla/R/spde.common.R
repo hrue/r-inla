@@ -567,8 +567,10 @@ inla.spde.make.A =
         ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
         if (inherits(loc, "SpatialPoints") ||
             inherits(loc, "SpatialPointsDataFrame")) {
-          loc <- safe.spTransform(loc, mesh$crs)
-          loc <- coordinates(loc)
+          loc <- inla.spTransform(coordinates(loc),
+                                  CRS(proj4string(loc)),
+                                  mesh$crs,
+                                  passthrough=TRUE)
         }
 
         A.loc = inla.mesh.project(mesh, loc=loc)$A
