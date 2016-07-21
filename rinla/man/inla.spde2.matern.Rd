@@ -5,7 +5,7 @@
 }
 \description{
   Create an \code{inla.spde2} model object for a Matern model. Use
-  \alias{inla.spde2.pcmatern} instead for a PC prior for the parameters.
+  \code{inla.spde2.pcmatern} instead for a PC prior for the parameters.
 }
 \usage{
 inla.spde2.matern(mesh,
