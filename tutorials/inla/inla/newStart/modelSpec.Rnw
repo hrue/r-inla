@@ -256,6 +256,30 @@ leading to:
 <<eval=FALSE,echo=TRUE>>=
   f(c, model="iid")
 @
+A smooth effect, e.g.~a random walk of second order (RW2),
+of a covariate $\mm{c}=(c_1, \ldots, c_n)^\top$, assuming
+covariate values $c_i$ for observation $i$, can be obtained by
+<<eval=FALSE,echo=TRUE>>=
+  f(c, model="rw2")
+@
+The vector $c$ needs consequently to be added to the {\tt data.frame}
+or {\tt list}, which is then passed to the field {\tt data} in the
+function {\tt inla}. It is important to note that each {\tt f}-function
+needs its own index/covariate. That means if we consider a time series
+model for $T$ time points where we would like to have an temporal
+unstructured effect, i.e.~iid, and a temporal structured effect, a RW1
+say, then we have to define the temporal index twice:
+<<eval=FALSE,echo=TRUE>>=
+  formula = y ~ f(t, model="iid") + f(t2, model="rw1") + ...
+@
+We call the {\tt inla} function as
+<<eval=FALSE,echo=TRUE>>=
+  result = inla(formula, family="...", data=data.frame(y=y, t=1:T, t2=1:T, ...), ...)
+@
+This means that we cannot use the time index {\tt t} twice, once for the {\tt iid} and
+once for the {\tt rw1} model.
+
+
 
 Table~\ref{tab:latentModels} gives an overview of all implemented latent
 Gaussian models.
@@ -352,7 +376,8 @@ options(tidy=TRUE, width=70)
 @
 
 <<>>=
-n = 1000
+set.seed(580258)
+n = 100
 t = 1:n
 ar = rep(0 ,n)
 
@@ -360,18 +385,29 @@ ar = rep(0 ,n)
 for(i in 2:n)
   ar[i] = 0.8 * ar[i -1] + rnorm(n = 1, sd = 0.1)
 
-# Generate data with AR (1) component
+# Simulate data with AR (1) component
 x = runif(n)
 y = 1 + 2 * x + ar + rnorm(n = n , sd = 0.1)
 
-# Specify the model and run inla
+# Specify the model and run inla to estimate the parameters back
 formula = y ~ 1 + x + f(t , model = "ar1" )
 result = inla(formula, data = list(x = x, y = y, t = t), family ="gaussian")
 @
 
-Using the \tv{summary()} function we can expect the parameter estimates. Of note
+Using the \tv{summary()} function we can inspect the parameter estimates. Of note
 in the summary only estimates for the fixed effects here $\beta_0$ and
-$\beta_1$ as well as the three hyperparameters are given. Section~TODO disusses
+$\beta_1$ as well as the three hyperparameters are given.The posterior
+mean for the intercept and regression coefficient are
+$\Sexpr{format(result$summary.fixed$mean[1],digits=2,nsmall=2)}$  (SD:
+$\Sexpr{format(result$summary.fixed$sd[1],digits=2,nsmall=2)}$)
+and $\Sexpr{format(result$summary.fixed$mean[2],digits=2,nsmall=2)}$ (SD:
+$\Sexpr{format(result$summary.fixed$sd[2],digits=2,nsmall=2)}$),
+respectively, and therefore  well estimated. The posterior mean and
+standard deviation for the  autocorrelation parameter $\rho$ are
+$\Sexpr{format(result$summary.hyperpar$mean[3],digits=2,nsmall=2)}$  and
+$\Sexpr{format(result$summary.hyperpar$sd[3],digits=2,nsmall=2)}$,
+respectively. Estimates will be closer to the simulated values of
+$0.8$ when increasing the number of observations. Section~TODO  disusses
 how to extract output information for the random effects.
 <<>>=
 summary(result)
@@ -403,11 +439,14 @@ Some important options are
 \begin{itemize}
         \item[{\tt constr}:] A boolean variable indicating whether to
         set a sum to zero constraint. By default the sum to zero constraint is
-        imposed on all intrinsic models ("iid","rw1","rw2","besag", etc..)
+        imposed on all intrinsic models ("iid","rw1","rw2","besag",
+        etc..). That means to all models where the corresponding
+        precision matrix has not full rank.
         \item[{\tt extraconstr}] This argument defines extra linear
         constraints. The argument is a list with two elements, a matrix
         {\tt A} and a
-        vector {\tt e}, which defines the extra constraint {\tt Ax = e};
+        vector {\tt e}, which defines the extra constraint {\tt Ax =
+          e} for random effect {\tt x};
         leading to {\tt extraconstr = list(A=A, e=e)}. Note that this
         constraint comes additional to the
         sum-to-zero constraint defined if {\tt constr = TRUE}.
