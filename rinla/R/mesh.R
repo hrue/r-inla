@@ -7,8 +7,6 @@
 ## Export: inla.mesh.map.lim inla.mesh.query
 ## Export: inla.nonconvex.hull inla.nonconvex.hull.basic
 ## Export: inla.simplify.curve plot.inla.trimesh
-## Export: spTransform.inla.mesh.segment
-## Export: spTransform.inla.mesh
 ## Internal: inla.mesh.filter.locations
 ## Internal: inla.mesh.parse.segm.input inla.mesh.extract.segments
 ##
@@ -33,23 +31,6 @@
 
 
 
-inla.CRS <- function(projargs = NA_character_, doCheckCRSArgs = TRUE,
-                     params=NULL) {
-  predef <- list(
-    longlat = "+proj=longlat +ellps=sphere +a=1 +b=1",
-    sphere = "+proj=geocent +ellps=sphere +a=1 +b=1 +units=m",
-    mollweide = "+proj=moll +ellps=sphere +units=m +a=0.7071067811865 +b=0.7071067811865",
-    lambert = "+proj=cea +ellps=sphere +lat_ts=0 +units=m +a=1 +b=1")
-  if (projargs %in% names(predef)) {
-    x <- CRS(predef[[projargs]], doCheckCRSArgs)
-  } else {
-    x <- CRS(projargs, doCheckCRSArgs)
-  }
-  x
-}
-
-
-
 inla.mesh.segment <- function(...) {
     UseMethod("inla.mesh.segment")
 }
@@ -63,6 +44,15 @@ inla.mesh.segment.default <-
         stop("At most one of 'loc' and 'idx' may be missing or null.")
     }
     if (!missing(loc) && !is.null(loc)) {
+      ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
+      if (inherits(loc, "SpatialPoints") ||
+          inherits(loc, "SpatialPointsDataFrame")) {
+        loc <- inla.spTransform(coordinates(loc),
+                                CRS(proj4string(loc)),
+                                crs,
+                                passthrough=TRUE)
+      }
+
         if (!is.matrix(loc)) {
             loc = as.matrix(loc)
         }
@@ -763,7 +753,8 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
                                   "inla.mesh.segment",
                                   "Segment info list members ")
             if (!is.null(segm[[k]]$loc)) {
-              local.loc <- spTransform.inla.mesh.segment(segm[[k]], crs)$loc
+              local.loc <- inla.spTransform(segm[[k]], crs,
+                                            passthrough=TRUE)$loc
               extra.loc.n = nrow(local.loc)
               idx.offset = segm.offset
               segm.offset = segm.offset + extra.loc.n
@@ -921,7 +912,10 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
       ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
       if (inherits(loc, "SpatialPoints") ||
           inherits(loc, "SpatialPointsDataFrame")) {
-        loc <- coordinates(safe.spTransform(loc, CRSobj=crs))
+        loc <- inla.spTransform(coordinates(loc),
+                                CRS(proj4string(loc)),
+                                crs,
+                                passthrough=TRUE)
       }
 
       if (!is.matrix(loc)) {
@@ -1299,11 +1293,12 @@ inla.mesh.2d <-
 ###########################
   unify.one.segm <- function(segm, crs=NULL) {
     if (inherits(segm, "inla.mesh.segment")) {
-      segm <- spTransform.inla.mesh.segment(segm, crs)
+      segm <- inla.spTransform(segm, crs, passthrough=TRUE)
     } else if (inherits("matrix")) {
       segm <- inla.mesh.segment(loc=segm, crs=crs)
     } else {
-      segm <- as.inla.mesh.segment(safe.spTransform(segm, crs))
+      segm <- inla.spTransform(as.inla.mesh.segment(segm), crs,
+                               passthrough=TRUE)
     }
     if (ncol(segm$loc)==2) {
       segm$loc = cbind(segm$loc, 0.0)
@@ -1332,12 +1327,19 @@ inla.mesh.2d <-
   if (!(missing(loc) || is.null(loc)) &&
       (inherits(loc, "SpatialPoints") ||
        inherits(loc, "SpatialPointsDataFrame"))) {
-     loc = coordinates(safe.spTransform(loc, CRSobj=crs))
-    }
-    if (inherits(loc.domain, "SpatialPoints") ||
-        inherits(loc.domain, "SpatialPointsDataFrame")) {
-      loc.domain = coordinates(safe.spTransform(loc.domain, CRSobj=crs))
-    }
+    loc = inla.spTransform(coordinates(loc),
+                           CRS(proj4string(loc)),
+                           crs,
+                           passthrough=TRUE)
+  }
+  if (!(missing(loc.domain) || is.null(loc.domain)) &&
+      (inherits(loc.domain, "SpatialPoints") ||
+       inherits(loc.domain, "SpatialPointsDataFrame"))) {
+    loc.domain = inla.spTransform(coordinates(loc.domain),
+                                  CRS(proj4string(loc.domain)),
+                                  crs,
+                                  passthrough=TRUE)
+  }
 
     if (missing(loc) || is.null(loc)) {
         loc = matrix(c(0.0), 0, 3)
@@ -1810,7 +1812,10 @@ inla.mesh.project.inla.mesh <- function(mesh, loc, field=NULL, ...)
     if (!(missing(loc) || is.null(loc)) &&
         (inherits(loc, "SpatialPoints") ||
          inherits(loc, "SpatialPointsDataFrame"))) {
-     loc = cordinates(safe.spTransform(loc, mesh$crs))
+      loc = inla.spTransform(cordinates(loc),
+                             CRS(proj4string(loc)),
+                             mesh$crs,
+                             passthrough=TRUE)
     }
 
     if (!missing(field) && !is.null(field)) {
@@ -3144,7 +3149,10 @@ inla.nonconvex.hull.basic <-
   if (!(mising(points) || is.null(points)) &&
       (inherits(points, "SpatialPoints") ||
        inherits(points, "SpatialPointsDataFrame"))) {
-    points <- coordinates(safe.spTransform(points, CRSobj=crs))
+    points <- inla.spTransform(coordinates(points),
+                               CRS(proj4string(points)),
+                               crs,
+                               passthrough=TRUE)
   }
 
   if (length(convex)==1)
@@ -3207,7 +3215,10 @@ inla.nonconvex.hull <-
   if (!(missing(points) || is.null(points)) &&
       (inherits(points, "SpatialPoints") ||
        inherits(points, "SpatialPointsDataFrame"))) {
-    points <- coordinates(safe.spTransform(points, CRSobj=crs))
+    points <- inla.spTransform(coordinates(points),
+                               CRS(proj4string(points)),
+                               crs,
+                               passthrough=TRUE)
   }
 
     if (length(resolution)==1)

@@ -1,6 +1,6 @@
 ## Internal: update.crs
 ## Internal: inla.internal.sp2segment.join
-## Internal: safe.spTransform
+## Internal: inla.identical.CRS
 ##
 ## S3methods; also export some methods explicitly
 ## Export: inla.sp2segment
@@ -15,8 +15,38 @@
 ## Export: as.inla.mesh.segment!SpatialLinesDataFrame
 ## Export: as.inla.mesh.segment!SpatialPoints
 ## Export: as.inla.mesh.segment!SpatialPointsDataFrame
-## Internal: spTransform.inla.mesh
-## Internal: spTransform.inla.mesh.segment
+## Export: inla.CRS
+## Export: inla.spTransform
+## Export: inla.spTransform!inla.mesh
+## Export: inla.spTransform!inla.mesh.segment
+## Export: inla.spTransform!default
+
+
+inla.CRS <- function(projargs = NA_character_, doCheckCRSArgs = TRUE,
+                     params=NULL, orient=NULL) {
+  predef <- list(
+    longlat = "+proj=longlat +ellps=sphere +a=1 +b=1",
+    sphere = "+proj=geocent +ellps=sphere +a=1 +b=1 +units=m",
+    mollweide = "+proj=moll +ellps=sphere +units=m +a=0.7071067811865 +b=0.7071067811865",
+    lambert = "+proj=cea +ellps=sphere +lat_ts=0 +units=m +a=1 +b=1")
+  if (projargs %in% names(predef)) {
+    x <- CRS(predef[[projargs]], doCheckCRSArgs)
+  } else {
+    x <- CRS(projargs, doCheckCRSArgs)
+  }
+  if (!is.null(orient)) {
+    x <- list(crs=x, orient=orient)
+    class(x) <- "inla.CRS"
+  }
+  x
+}
+
+
+inla.crs.transform.orient <- function(x, orient, inverse) {
+  warning("inla.crs.transform.orient NOT IMPLEMENTED")
+  x
+}
+
 
 
 update.crs <- function(crs, newcrs, mismatch.allowed) {
@@ -33,42 +63,104 @@ update.crs <- function(crs, newcrs, mismatch.allowed) {
 }
 
 
-safe.spTransform <- function(x, CRSobj, ...) {
-  if (!is.null(CRSobj) &&
-      !is.na(CRSargs(CRSobj)) &&
-      !is.na(proj4string(x))) {
-    spTransform(x, CRSobj)
+inla.identical.CRS <- function(crs0, crs1, crsonly=FALSE) {
+  if (!crsonly) {
+    stop("'crsonly=FALSE' not implemented.")
   } else {
-    x
+    if (inherits(crs0, "inla.CRS")) {
+      crs0 <- crs0$crs
+    }
+    if (inherits(crs1, "inla.CRS")) {
+      crs1 <- crs1$crs
+    }
+    identical(crs0, crs1)
   }
 }
 
-spTransform.inla.mesh.segment <- function(x, CRSobj, ...) {
-  if (!is.null(CRSobj) &&
-      !is.na(CRSargs(CRSobj)) &&
-      !is.null(x$crs) &&
-      !is.na(CRSargs(x$crs))) {
-    x$loc <-
-      coordinates(spTransform(
-        SpatialPoints(x$loc, proj4string=x$crs),
-        CRSobj))
-    x$crs <- CRSobj
+## Low level stransformation of raw coordinates.
+inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
+  ok0 <- (!is.null(crs0) &&
+          ((inherits(crs0, "CRS") && !is.na(CRSargs(crs0))) ||
+           (inherits(crs0, "inla.CRS"))))
+  ok1 <- (!is.null(crs1) &&
+          ((inherits(crs1, "CRS") && !is.na(CRSargs(crs1))) ||
+           (inherits(crs1, "inla.CRS"))))
+  if (ok0 && ok1) {
+    if (ncol(x) == 2) {
+      x <- cbind(x, 0)
+    }
+    onsphere <- inla.identical.CRS(crs0, inla.CRS("sphere"), crsonly=TRUE)
+    if (inherits(crs0, "inla.CRS")) {
+      if (!onsphere) {
+        x <- spTransform(SpatialPoints(x, proj4string=crs0$crs),
+                         inla.CRS("sphere"))
+      }
+      if (!is.null(crs0$orient)) {
+        x <- SpatialPoints(inla.crs.transform.orient(coordinates(x),
+                                                     crs0$orient,
+                                                     inverse=TRUE),
+                           proj4string=inla.CRS("sphere"))
+      }
+      onshpere <- TRUE
+    } else {
+      x <- SpatialPoints(x, proj4string=crs0)
+    }
+    if (inherits(crs1, "inla.CRS")) {
+      if (!onsphere) {
+        x <- spTransform(x, inla.CRS("sphere"))
+      }
+      if (!is.null(crs1$orient)) {
+        x <- SpatialPoints(inla.crs.transform.orient(coordinates(x),
+                                                     crs1$orient,
+                                                     inverse=FALSE),
+                           proj4string=inla.CRS("sphere"))
+      }
+      x <- spTransform(x, crs1$crs)
+    } else {
+      x <- spTransform(x, crs1)
+    }
+  } else if (!passthrough) {
+    if (!ok0) {
+      stop("'crs0' is an invalid coordinate reference object.")
+    }
+    if (!ok1) {
+      stop("'crs1' is an invalid coordinate reference object.")
+    }
   }
+  if (is.matrix(x)) {
+    invisible(x)
+  } else {
+    invisible(coordinates(x))
+  }
+}
+
+inla.spTransform.SpatialPoints <- function(x, CRSobj, passthrough=FALSE, ...) {
+  ok1 <- (!missing(CRSobj) && is.null(CRSobj) &&
+          (inherits(CRSobj, "CRS") && !is.na(CRSargs(CRSobj))))
+  if (!ok1) {
+    if (!passthrough) {
+      stop("Invalid target CRS for SpatialPoints")
+    }
+    invisible(SpatialPoints(coordinates(x), proj4string=inla.CRS()))
+  } else {
+    invisible(spTransform(x, CRSobj=CRSobj))
+  }
+}
+
+inla.spTransform.inla.mesh.segment <- function(x, CRSobj, passthrough=FALSE, ...) {
+  x$loc <- inla.spTransform(x$loc, x$crs, CRSobj, passthrough=passthrough)
+  x$crs <- CRSobj
   invisible(x)
 }
 
-spTransform.inla.mesh <- function(x, CRSobj, ...) {
-  if (!is.null(CRSobj) &&
-      !is.na(CRSargs(CRSobj)) &&
-      !is.null(x$crs) &&
-      !is.na(CRSargs(x$crs))) {
-    x$loc <-
-      coordinates(spTransform(
-        SpatialPoints(x$loc, proj4string=x$crs),
-        CRSobj))
-    x$crs <- CRSobj
-  }
+inla.spTransform.inla.mesh <- function(x, CRSobj, passthrough=FALSE, ...) {
+  x$loc <- inla.spTransform(x$loc, x$crs, CRSobj, passthrough=passthrough)
+  x$crs <- CRSobj
   invisible(x)
+}
+
+inla.spTransform <- function(x, ...) {
+  UseMethod("inla.spTransform")
 }
 
 
