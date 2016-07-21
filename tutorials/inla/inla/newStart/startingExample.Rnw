@@ -3,14 +3,25 @@
 library(INLA)
 @
 
-There are essentially four parts to an \tv{R-INLA}-program: 1) Organise 
-the data and store response, covariate, \ldots, in an object; 2) Use 
-the \tv{formula} notation to specify the model; 3) Call the 
-\tv{inla}-program; 4)) Extract posterior information of interest.\\[0.2cm]
 
-Before we go into detail on how these four steps proceed, consider a simple 
+If you have installed the \tv{R-INLA} package then
+<<eval=FALSE>>=
+library(INLA)
+@
+%%
+will load the library and you are ready to go.
+
+
+There are essentially four parts to an \tv{R-INLA}-program: 1) Organise
+the data so that response, covariate, \ldots, are saved in one object; 2) Use
+the \tv{formula} notation to specify your model; 3) Call the
+\tv{inla}-program handing over your data object, formula and some more
+information regarding likelihood family etc. ; 4)) Extract posterior
+information of interest from the result object.\\[0.2cm]
+
+Before we go into detail on how these four steps proceed, consider a simple
 example describing the world records in ski jumping from
-1961 to 2011. Figure~\ref{fig:ski} shows the obtained length in meters for 
+1961 to 2011. Figure~\ref{fig:ski} shows the obtained length in meters for
 the corresponding years.
 \begin{figure}
 \begin{center}
@@ -32,7 +43,7 @@ for(i in 1:length(yearu)){
 	m[i,] = c(t,len)
 }
 par(mar=c(5,5,5, 0.5), cex.lab=1.3, cex.axis=1.3, cex.main=1.4)
-plot(m[,1], m[,2], xlab="year", 
+plot(m[,1], m[,2], xlab="year",
 	ylab="Length in meters",
 	pch=19, xaxt="n")
 axis(1, at=seq(1, 51, by=5), label=seq(1961, 2011, by=5))
@@ -43,42 +54,43 @@ legend("topleft", c("Linear model"), col=2, lty=1)
 \caption{World records in ski jumping, 1961--2011.\label{fig:ski}}
 \end{center}
 \end{figure}
-Obviously, there seems to be a linear relationship in the data. Thus, let us 
+Obviously, there seems to be a linear relationship in the data. Thus, let us
 assume a simple linear regression model with
 \begin{align*}
   E(y_i) &= \mu + \beta x_i,& Var(y_i) = 1/\tau.
 \end{align*}
-for $i=1, \ldots, n$. Here $y_i, i=1, \ldots, n$ represents the obtained jump 
-length of the record and $x_i, i=1, \ldots, n$, an index for the year in which 
-the record was obtained. Fitting a linear model in R using:
+for $i=1, \ldots, n$. Here $y_i, i=1, \ldots, n$ represents the obtained jump
+length of the record and $x_i, i=1, \ldots, n$, an index for the year in which
+the record was obtained. Here, we use the year minus 1960 to get the
+intercept right. Fitting a linear model in R using:
 <<eval=FALSE>>=
   lm(y ~ x)
 @
-leads to the red line indicated in Figure~\ref{fig:ski}, with intercept equal 
-to $\Sexpr{format(coef(res)[1], digits=2, nsmall=2)}$ 
+leads to the red line indicated in Figure~\ref{fig:ski}, with intercept equal
+to $\Sexpr{format(coef(res)[1], digits=2, nsmall=2)}$
 (SD: $\Sexpr{format(summary(res)$coefficients[1,2], digits=2, nsmall=2)}$) and
-slope $\beta$ equal to $\Sexpr{format(coef(res)[2], digits=2, nsmall=2)}$ 
+slope $\beta$ equal to $\Sexpr{format(coef(res)[2], digits=2, nsmall=2)}$
 (SD: $\Sexpr{format(summary(res)$coefficients[2,2], digits=2, nsmall=2)}$).
 
-Alternatively we can use a Bayesian approach, where priors are assigned to the 
-parameters $\mu$, $\beta$ and $\tau$. Delaying the issue of choosing priors to 
-Section TODO, assume we use the default priors of \tv{R-INLA}. Then we can
-define the linear model in using
+Alternatively we can use a Bayesian approach, where priors are assigned to the
+parameters $\mu$, $\beta$ and $\tau$. Delaying the issue of choosing priors to
+Section TODO, we choose here the default priors of \tv{R-INLA} and
+define our model using
 
 \begin{itemize}
 	\item[1.]
-		\textbf{Data organisation}: Make an object to store 
+		\textbf{Data organisation}: Make an object to store
 response and covariate information\\[0.2cm]
 		\hspace{0.5cm}\verb|data = list(y = y, x = x)|
 	\item[2.]
-		\textbf{Use the \tv{formula}-notation} to specify the 
+		\textbf{Use the \tv{formula}-notation} to specify the
 model (similar to \tv{lm} and \tv{glm} functions)\\[0.2cm]
 		\hspace{0.5cm}\verb|formula = y~x|
 	\item[3.]
 		\textbf{Call the \tv{inla}-program}\\[0.2cm]
 		\hspace{0.5cm}
 	\verb|res = inla(formula, data=data, family="gaussian")|
-	\item[4.] \textbf{Extract posterior information}, e.g.~for a 
+	\item[4.] \textbf{Extract posterior information}, e.g.~for a
 first overview use \\[0.2cm]
 		\hspace{0.5cm}\verb|summary(res)|
 \end{itemize}
@@ -93,34 +105,43 @@ summary(result)
 @
 
 Here, various information is shown. First the inla-call is repeated and then
-time need to fit the model is given. Next posterior summary information for all 
-fixed effects is provided. In this example there are two fixed effects, the 
-intercept $\mu$ and the regression coefficient $\beta$ belonging to the 
-covariate $x$. Per default posterior mean, standard deviation, as well as the 
-$2.5\%, 50\%, 97.5\%$ quantiles and the posterior mode are given. 
-\textcolor{red}{Mention what KLD means}.
+the time needed to fit the model is given. Next posterior summary information for all
+fixed effects is provided. In this example there are two fixed effects, the
+intercept $\mu$ and the regression coefficient $\beta$ belonging to the
+covariate $x$. Per default posterior mean, standard deviation, as well as the
+$2.5\%, 50\%, 97.5\%$ quantiles and the posterior mode are given.
+The value of the Kullback-Leibler divergence (KLD) describes the difference
+between the simplest approximation INLA can used, the Gaussian
+approximation, versus the default approximation that is  used, the
+simplified Laplace approximation (SLA), to the marginal posterior densities.
+Small values indicate that the posterior distribution is well approximated by a
+normal distribution. If so, the more sophisticated SLA gives a
+``good'' error rate and therefore there
+is no need to use the more computationally intensive “full” Laplace
+approximation.
 
-Next, there are comes a note that there are no random effects in the model. 
-Analogously to the fixed effects we obtain posterior summary statistics for 
-each hyperparameter, such as precision or correlation parameters, in the model. 
-Here, we only have the precision parameter of the observation noise $\tau$. 
+Next, there is a note indicating that there are no random effects in
+this model.
+Analogously to the fixed effects we then obtain posterior summary statistics for
+each hyperparameter, such as precision or correlation parameters, in the model.
+Here, we only have the precision parameter of the observation noise $\tau$.
 
 The expected number of effective parameters represents the number of
-independent parameters included in the model and is followed by the number of 
+independent parameters included in the model and is followed by the number of
 equivalent replicates which indicates the available information (in
-terms of sample size) per effective parameter. Finally an estimate of the 
-marginal log-likelihood is provided which can be used for model choice, see 
+terms of sample size) per effective parameter. Finally an estimate of the
+marginal log-likelihood is provided which can be used for model choice, see
 Section~TODO.
 
-Comparing the results with the estimates obtained in the classical framework we 
+Comparing the results with the estimates obtained in the classical framework we
 see that the results are very similar.
 
 \section{Data organisation}
 
-In order to estimate a model in \tv{R-INLA}, all data needed to 
-define the model have to be collected in one single \tv{R}-object of type 
-\tv{list} or \tv{data.frame}. Assume we have a response \texttt{y}, covariates 
-\texttt{x1} and \texttt{x2}, and a time index \texttt{t}. Then can they be 
+In order to estimate a model in \tv{R-INLA}, all data needed to
+define the model have to be collected in one single \tv{R}-object of type
+\tv{list} or \tv{data.frame}. Assume we have a response \texttt{y}, covariates
+\texttt{x1} and \texttt{x2}, and a time index \texttt{t}. Then can they be
 organized in one object using
 
 <<eval=FALSE>>=
@@ -133,27 +154,102 @@ data = data.frame(y = y, x1 = x1, x2 = x2, t = t)
 
 \section{Specifying the linear predictor}
 
-Similar to the well-know functions \tv{lm} and \tv{glm} in R, is the model 
-specified using a \tv{formula} object. A \tv{formula} is a compact symbolic 
-description of the model. The $\sim$ operator is basic in the formation of 
-such models.  An expression of the form \tv{y} $\sim$ \tv{model} means that the 
-response $\tv{y}$ is modelled by a linear predictor specified symbolically by 
-$\tv{model}$. Such a model consists of a series of terms separated by \tv{+} 
-operators, such as
-<<eval=FALSE>>=
-formula = y ~ x1 + x2 + f(t, ...)
+Of note, throughout this tutorial we will use the terms ``fixed effects'' and ``random
+effects'', even though also ``fixed effects'' are ``random'' in a
+Bayesian setting.
+Similar to the well-know functions \tv{lm} and \tv{glm} in R, is the model
+specified using a \tv{formula} object. A \tv{formula} is a compact symbolic
+description of the model. The $\sim$ operator is basic in the formation of
+such models.  An expression of the form \tv{y} $\sim$ \tv{model} means that the
+response $\tv{y}$ is modelled by a linear predictor specified symbolically by
+$\tv{model}$. Such a model consists of a series of terms separated by
+\tv{+},  \tv{*} or \tv{:} operators.
+
+That
+    is, the linear predictor can be specified using the formula
+    notation
+\begin{center}
+    \texttt{formula = y \;\mbox{$\sim$}\; a + b + a:b + c*d}
+\end{center}
+where \texttt{y} is the name of the response and \texttt{a}, \texttt{b},
+\texttt{c} and \texttt{d} are covariates.  The meaning of the symbols
+\texttt{+}, \texttt{:} and \texttt{*} used  are as follows.
+\begin{description}
+\item[``+''] combine main effects, as in \tv{a + b}
+\item[``:''] for interaction terms, as in \tv{a:b}
+\item[``*''] for both main effects and interaction terms, so \tv{c*d = c+d+c:d}
+\end{description}
+In mathematical language, the model would read
+\begin{displaymath}
+    \eta_{i} = \mu
+    + \beta_{a}a_{i}
+    + \beta_{b}b_{i}
+    + \beta_{ab}a_{i}b_{i}
+    + \beta_{c}c_{i}
+    + \beta_{d}d_{i}
+    + \beta_{cd}c_{i}d_{i}, \qquad i=1, \ldots, n
+\end{displaymath}
+where $\eta_{i}$ is the linear predictor for $y_{i}$ with a not yet
+defined likelihood, and $\beta_a$, $\beta_b$, $\beta_{ab}$, $\beta_c$,
+$\beta_d$ and $\beta_{cd}$ are regression coefficients known as fixed
+effects. INLA assigns i.i.d Gaussian priors with mean zero and low inverse
+variance (default: $0.01$) to all fixed effects.
+
+Note that an intercept $\mu$ is automatically added to the model,
+unless you say that you do not want it by adding term $-1$ or $0$:
+\begin{center}
+    \texttt{y \;\mbox{$\sim$}\; -1 + ....}\\
+    \texttt{y \;\mbox{$\sim$}\; 0 + ....}
+\end{center}
+Similarly, adding term $1$ makes the intercept appear explicitly
+\begin{center}
+    \texttt{y \;\mbox{$\sim$}\; 1 + ....}
+\end{center}
+
+A small simulated example will illustrate these features.
+<<>>=
+n = 100
+x = rnorm(n)
+z = rnorm(n)
+y = 1 + x + z + x*z + rnorm(n)
+
+formula = y ~ x*z
+r = inla(formula, family="gaussian", data = data.frame(y,x,z))
+r$summary.fixed
 @
-Here, \tv{y} is the name of the response in the object \tv{data}. The 
-fixed effects are given i.i.d Gaussian priors with mean zero and low inverse 
-variance (default: $0.01$).The \tv{f} function is used to specify random 
-effects, such as temporal or spatial effects or smooth effects of covariates,
-see Section TODO. An intercept is included automatically and can be removed
-by adding \tv{-1} to the formula.
+%%
+Note that it is essential to pass a \verb|data.frame| or a \verb|list|
+containing the variables.
+
+It is also possible to use the design matrix $\bs{X}$ explicitly as in
+\begin{center}
+    \texttt{formula = y \;\mbox{$\sim$}\; X}
+\end{center}
+An alternative specification of the last example, is
+<<>>=
+formula = y ~ X
+X = cbind(x=x, z=z, "x:z"=x*z)
+r = inla(formula, data = list(y=y,X=X))
+r$summary.fixed
+@
+%%
+\tv{R-INLA} adds the prefix ``X'' to the fixed effects names, to make the
+connection to the design-matrix $X$ explicit.
+
+
+So far only an  intercept and fixed effects are included in the
+model. To add a random effect, such as temporal or spatial effects,  we use
+the so-called \tv{f} function and extend the formula as follows
+\begin{center}
+    \texttt{formula = y \;\mbox{$\sim$}\; a + b + a:b + c*d + f(t, ...)}
+\end{center}
+Here, \tv{t} could a the time index. More details regarding the \tv{f}
+function and the specification for random effects are given in Section TODO.
 
 
 \section{Calling \tv{inla}}
 
-After the data are organised and the model is specified we can call the 
+After the data are organised and the model is specified we can call the
 \tv{inla} function, which in its basic form is
 <<eval=FALSE>>=
 result = inla(
@@ -163,58 +259,85 @@ result = inla(
     family = "gaussian",
     # List or data frame with response, covariates, etc.
     data = data,
-    
-    ## This is all that is needed for a basic call  
+
+    ## This is all that is needed for a basic call
     # check what happens
     verbose = TRUE,
     # keep working files
     keep = TRUE
-    
+
     # there are also some "control statements"
     # to customize things)
 @
 
+As we see later, \tv{R-INLA} offers a wide range of different
+likelihood function, Gaussian latent models and prior distributions
+for the hyperparameters. In additions, the user is able to define its
+own latent Gauusian mode or prior distribution, if it is not already
+implemented in the default options. What the user cannot define is a
+new likelihood function. However, the range of supported likelihoods
+is huge and if you should need a not yet supported likelihood function
+please contact the developer team. To see which likelihood functions
+are supported you can either check
+\url{http://www.r-inla.org/models/likelihoods} or use the call
+
+<<>>=
+names(inla.models()$likelihood)
+@
+
+The corresponding documentation of the Poisson likelihood, say, can
+be obtained from R using
+
+<<eval=FALSE>>=
+names(inla.doc("poisson"))
+@
+
+which opens all documentation files for a topic including the string
+``poisson'' are opened.
+
+
+
 \section{Inspecting the posterior results}
 
-Besides inspecting the results as obtained by the \tv{summary} function, we 
-can directly look at all marginal posterior densities. The marginal posterior 
-densities of all fixed effects are saved in the slot \tv{marginals.fixed}. This 
-is a list whose length is equal to the number of fixed effects (including the 
+Besides inspecting the results as obtained by the \tv{summary} function, we
+can directly look at all marginal posterior densities. The marginal posterior
+densities of all fixed effects are saved in the slot \tv{marginals.fixed}. This
+is a list whose length is equal to the number of fixed effects (including the
 intercept), i.e. in our case equal to $2$.
 <<>>=
   names(result$marginals.fixed)
   length(result$marginals.fixed)
 @
-Each marginal posterior density is represented as a matrix with two columns, 
-the x-values and the correponding y-values, i.e. the density values at location 
-$x$. 
+Each marginal posterior density is represented as a matrix with two columns,
+the x-values and the correponding y-values, i.e. the density values at location
+$x$.
 
 <<>>=
    m  = result$marginals.fixed[[1]]
    str(m)
    head(m)
 @
-Thus, we can simply visualize a posterior marginal by plotting the y versus 
-the x values, see Figure~\ref{fig:marg1}. 
+Thus, we can simply visualize a posterior marginal by plotting the y versus
+the x values, see Figure~\ref{fig:marg1}.
 \begin{figure}
 \begin{center}
 <<echo=FALSE, fig.width=10, fig.height=7, out.width=".6\\textwidth">>=
    plot(m, pch=20, cex=2)
 @
-\caption{Illustration of the posterior marginal density of the intercept $\mu$ 
+\caption{Illustration of the posterior marginal density of the intercept $\mu$
 in the ski jumping example.\label{fig:marg1}}
 \end{center}
 \end{figure}
-The marginal is only represented by limited number of pairs. To get a more 
-smooth representation we can use the function \tv{inla.smarginal} which 
-interpolates values between the provided points using a spline. 
+The marginal is only represented by limited number of pairs. To get a more
+smooth representation we can use the function \tv{inla.smarginal} which
+interpolates values between the provided points using a spline.
 Figure~\ref{fig:marg2} shows the corresponing smoother representation.
 \begin{figure}
 \begin{center}
 <<echo=FALSE, fig.width=10, fig.height=7, out.width=".6\\textwidth">>=
    plot(inla.smarginal(m), pch=20, cex=2)
 @
-\caption{Illustration of the posterior marginal density of the intercept $\mu$ 
+\caption{Illustration of the posterior marginal density of the intercept $\mu$
 in the ski jumping example in a higher resolution.\label{fig:marg2}}
 \end{center}
 \end{figure}
@@ -225,8 +348,8 @@ The summary result for the fixed effects can be acessed using
    print(result$summary.fixed)
 @
 }
-which includes per defaultt posterior mean, standard deviation, as well as the 
-$2.5\%, 50\%, 97.5\%$ quantiles and the posterior mode in form of a matrix, 
+which includes per defaultt posterior mean, standard deviation, as well as the
+$2.5\%, 50\%, 97.5\%$ quantiles and the posterior mode in form of a matrix,
 where each line corresponds to one fixed effect.  The mean of all fixed effects
 is extracted using
 {
@@ -235,20 +358,20 @@ is extracted using
 @
 }
 
-Based on the posterior marginal distribution also other quantiles of interest 
-can be computed after running the model. For example, assume interest lies in 
-the $10\%$ posterior quantile for the intercept, then we can call the function 
+Based on the posterior marginal distribution also other quantiles of interest
+can be computed after running the model. For example, assume interest lies in
+the $10\%$ posterior quantile for the intercept, then we can call the function
 \tv{inla.qmarginal} as follows
 <<>>=
    inla.qmarginal(0.1, m)
 @
-Here, the first entriy is the quantile of interest and the second is the 
-posterior marginal density as obtained from \tv{inla()} which is a matrix with 
-two columns where the first column gives the locations and the second the 
+Here, the first entriy is the quantile of interest and the second is the
+posterior marginal density as obtained from \tv{inla()} which is a matrix with
+two columns where the first column gives the locations and the second the
 density values at these locations.
 
-Similar to \tv{inla.qmarginal} there exist the function \tv{inla.dmarginal} and 
-\tv{inla.pmarginal} to compute the CDF and density function of a posterior 
+Similar to \tv{inla.qmarginal} there exist the function \tv{inla.dmarginal} and
+\tv{inla.pmarginal} to compute the CDF and density function of a posterior
 marginal.
 
 <<>>=
@@ -264,64 +387,64 @@ a transformed quantity. Consider, for example,
    E
 @
 
-This gives us the posterior mean (which we already now) and the posterior mean 
+This gives us the posterior mean (which we already now) and the posterior mean
 for $x^2$. From this we can compute the posterior standard deviation as
 
 <<>>=
    sqrt(E[2] - E[1]^2)
 @
 
-We can compare the obtained quantity to the posterior standard deviation 
+We can compare the obtained quantity to the posterior standard deviation
 returned in the summary information for the intercept
 
 <<>>=
    result$summary.fixed[1, 1:2]
 @
 
-and see that the value fits very well. The functions \tv{inla.qmarginal}, 
+and see that the value fits very well. The functions \tv{inla.qmarginal},
 \tv{inla.dmarginal}, \tv{inla.pmarginal} and \tv{inla.emarginal} can be applied
-to any posterior marginal distribution. To ease computations INLA works with 
-inverse variance, i.e. precision parameters, instead of variance parameters. 
-However, it is easy to transform the returned summary information for the 
+to any posterior marginal distribution. To ease computations INLA works with
+inverse variance, i.e. precision parameters, instead of variance parameters.
+However, it is easy to transform the returned summary information for the
 precision into summary information for the variance.
 
-In our simple model we only have one hyperparameters namely the precision 
-parameter for the observational noise. The corresponding postrior marginal can 
+In our simple model we only have one hyperparameters namely the precision
+parameter for the observational noise. The corresponding postrior marginal can
 be found in
 <<>>=
   tau0 = result$marginals.hyperpar$"Precision for the Gaussian observations"
 @
 
-If we are interested in the posterior mean and posterior standard deviation of 
+If we are interested in the posterior mean and posterior standard deviation of
 the variance we can simply use the function \tv{inla.emarginal} as follows
 
 <<>>=
   # compute the expected value of 1/x and 1/x^2
   E = inla.emarginal(function(x){return(c(1/x, 1/x^2))}, tau0)
-  
+
   # compute the standard deviation
   mysd = sqrt(E[2] - E[1]^2)
-  
+
   print(c(mean=E[1], sd=mysd))
 @
 
-In this section we focused on a short overview of \tv{R-INLA}. We have looked 
+In this section we focused on a short overview of \tv{R-INLA}. We have looked
 at a simple linear model and learned how to get and inspect posterior results
-for fixed effects and hyperparameters. The following sections will investigate 
-all things presented here in more detail. In addition, we will describe how to 
-extend the model formulation by including random effects or linear combinations 
-of various components in the latent field, for example. We discuss how to 
-obtain predictions and different tools available for model choice. Finally we 
+for fixed effects and hyperparameters. The following sections will investigate
+all things presented here in more detail. In addition, we will describe how to
+extend the model formulation by including random effects or linear combinations
+of various components in the latent field, for example. We discuss how to
+obtain predictions and different tools available for model choice. Finally we
 discuss more advanced modelling options.
 
 
-% 
+%
 % Provide an example that illustrates the most central point of R-INLA
 % and also points common to several examples. Thus, maybe an
 % interesting/popular example including fixed and random effects.
-% 
+%
 % Show data structure, model definition, inla call, output + interpretation.
-% 
+%
 % Goal: After reading this section the reader should already have
 % an idea about how \verb|R-INLA| works, its structure, output and some details.
-% 
+%

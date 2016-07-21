@@ -1,7 +1,7 @@
 \chapter{General issues}
 <<echo=FALSE>>=
 library(INLA)
-@ 
+@
 
 \section{Running \tv{R-INLA} remotely}
 
@@ -20,7 +20,7 @@ or
 @
 from inside \verb|R|.
 
-For the case in which this is not sufficienter, there are two ways
+For the case in which this is not sufficient, there are two ways
 to get help from the \verb|inla-developers| and
 other users. You can either sign up and post your questions to the
 \verb|R-inla discussion group|, see
@@ -38,10 +38,10 @@ group or to \verb|help@r-inla.org|; see Section~\ref{sec:gethelp}.
 
 An error is easiest reported to \verb|help@r-inla.org| or
 \verb|hrue@r-inla.org|. However, please make sure that you run with
-the latest version of the software, i.e.\ please do 
+the latest version of the software, i.e.\ please do
 <<eval=FALSE>>=
 inla.upgrade(testing=TRUE)
-@ 
+@
 %%
 and rerun your example. If the error is still there, please make us
 aware of it.
@@ -52,13 +52,13 @@ used to generate the error. If the error occurs inside the
 \verb|inla()|-call, then you may do as follows; rerun with
 <<eval=FALSE>>=
 inla(<your stuff here>,  keep=TRUE, inla.call="")
-@ 
+@
 %%
 which will just generate the internal files, but no Bayesian inference
 will be done.  In the current (seen from within \verb|R|)
 directory/folder, look for most recent directory/folder starting with
 \verb|inla.model| and just send us that directory/folder. This option
-keep your data \emph{almost} secret, in the sense that they are there,
+keeps your data \emph{almost} secret, in the sense that they are there,
 but in a form that makes it very hard to extract any useful
 information about unless knowing how the model was defined. However,
 it contains what we need to rerun your model and check what is causing
