@@ -2334,6 +2334,43 @@ double priorfunc_pc_spde_ga(double *x, double *parameters)
 
 	return ldens;
 }
+double priorfunc_pc_matern(double *x, double *parameters)
+{
+	double theta1 = x[0], theta2 = x[1], *par = parameters, ldens, lam1, lam2, dHalf;
+	int debug = 0;
+
+	lam1 = parameters[0];
+	lam2 = parameters[1];
+	dHalf = parameters[2]/2.0;
+
+	ldens = (log(lam1*dHalf) - dHalf * theta1 - lam1 * exp(-dHalf * theta1)) + (log(lam2) + theta2 - lam2 * exp(theta2));
+
+	if (debug) {
+		fprintf(stderr, "pc_matern: x = %g %g\n", x[0], x[1]);
+		fprintf(stderr, "           param = %g %g %g\n", par[0], par[1], par[2]);
+		fprintf(stderr, "           lam1 = %g  lam2 = %g  ldens = %g\n", lam1, lam2, ldens);
+	}
+
+	return ldens;
+}
+double priorfunc_pc_range(double *x, double *parameters)
+{
+	double theta1 = x[0], ldens, lam, dHalf;
+	int debug = 0;
+
+	lam = parameters[0];
+	dHalf = parameters[1]/2.0;
+
+	ldens = log(lam * dHalf) - dHalf * theta1 - lam * exp(-dHalf * theta1);
+
+	if (debug) {
+		fprintf(stderr, "pc_range: x = %g\n", x[0]);
+		fprintf(stderr, "          param = %g %g\n", parameters[0], parameters[1]);
+		fprintf(stderr, "          lam = %g  dHalf = %g  ldens = %g\n", lam, dHalf, ldens);
+	}
+
+	return ldens;
+}
 double priorfunc_pc_dof(double *x, double *parameters)
 {
 #define NP 5
@@ -7400,6 +7437,30 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		prior->priorfunc = priorfunc_pc_spde_ga;
 		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
 		assert(nparam == 4);
+		if (mb->verbose) {
+			for (i = 0; i < nparam; i++) {
+				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "PCMATERN")) {
+		int nparam, i;
+
+		prior->id = P_PC_MATERN;
+		prior->priorfunc = priorfunc_pc_matern;
+		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
+		assert(nparam == 3);
+		if (mb->verbose) {
+			for (i = 0; i < nparam; i++) {
+				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
+			}
+		}	
+	} else if (!strcasecmp(prior->name, "PCRANGE")) {
+		int nparam, i;
+
+		prior->id = P_PC_RANGE;
+		prior->priorfunc = priorfunc_pc_range;
+		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
+		assert(nparam == 2);
 		if (mb->verbose) {
 			for (i = 0; i < nparam; i++) {
 				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
@@ -14752,6 +14813,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				exit(EXIT_FAILURE);
 			}
 		} else if (!strcasecmp(mb->f_prior[mb->nf][0].name, "PCSPDEGA")) {
+			assert(ntheta == 2);		       /* requirement... */
+		} else if (!strcasecmp(mb->f_prior[mb->nf][0].name, "PCMATERN")) {
 			assert(ntheta == 2);		       /* requirement... */
 		} else {
 			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);

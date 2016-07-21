@@ -6235,6 +6235,16 @@
                      nparameters = 4L,
                      pdf = NA
                      ), 
+                
+		 pc.matern = list(
+                     nparameters = 3L,
+                     pdf = NA
+                     ), 
+		
+		 pc.range = list(
+                     nparameters = 2L,
+                     pdf = NA
+                     ), 
 
                  ## this is the generic one,  which is case-spesific and possibly adaptive
                  pc = list(
@@ -6323,7 +6333,7 @@
             inla.models.section.likelihood(),
             inla.models.section.prior(),
             inla.models.section.wrapper())
-
+        
         ## set "read.only" attribute for the `hyper' at those elements
         ## that cannot be changed.
         for (section in names(models)) {
