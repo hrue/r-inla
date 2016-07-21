@@ -6323,8 +6323,6 @@
 
     } else {
         ## have to split it, as option keep.source has an upper limit...
-        current.warn = getOption("warn")
-        options(warn=-1L)
         models = c(
             inla.models.section.latent(),
             inla.models.section.group(),
@@ -6335,7 +6333,6 @@
             inla.models.section.likelihood(),
             inla.models.section.prior(),
             inla.models.section.wrapper())
-        options(warn=current.warn)
         
         ## set "read.only" attribute for the `hyper' at those elements
         ## that cannot be changed.
