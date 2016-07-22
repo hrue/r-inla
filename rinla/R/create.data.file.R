@@ -181,6 +181,7 @@
                              "zeroinflatedbinomial1",
                              "zeroinflatedbinomial2",
                              "zeroninflatedbinomial2",
+                             "zeroninflatedbinomial3",
                              "zeroinflatedbetabinomial0",
                              "zeroinflatedbetabinomial1",
                              "zeroinflatedbetabinomial2",

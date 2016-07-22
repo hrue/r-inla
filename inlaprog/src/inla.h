@@ -43,7 +43,6 @@
 #endif
 
 __BEGIN_DECLS
-
 #include "iniparser.h"
 #include "dictionary.h"
 #include "strlib.h"
@@ -175,7 +174,7 @@ typedef struct {
 	double **log_prec_gaussian;
 	double *weight_gaussian;			       /* weights for the gaussian: Variance = 1/(weight*prec) */
 
-	/* 
+	/*
 	 *  Beta
 	 */
 	double *weight_beta;
@@ -252,6 +251,12 @@ typedef struct {
 	 */
 	double **zero_n_inflated_alpha1_intern;
 	double **zero_n_inflated_alpha2_intern;
+
+	/*
+	 * the zero-n-inflated binomial 3
+	 */
+	double **zero_n_inflated_alpha0_intern;
+	double **zero_n_inflated_alphaN_intern;
 
 	/*
 	 * the overdispersion parameter for the betabinomial, \rho = 1/(a+b+1).
@@ -339,7 +344,7 @@ typedef struct {
 	double **gpoisson_overdispersion;
 	double **gpoisson_p;
 
-	/* 
+	/*
 	 * cencored poisson. values in [interval[0], interval[1]] are cencored
 	 */
 	double *cenpoisson_interval;
@@ -426,6 +431,7 @@ typedef enum {
 	L_ZEROINFLATEDPOISSON1,
 	L_ZEROINFLATEDPOISSON2,
 	L_ZERO_N_INFLATEDBINOMIAL2,
+	L_ZERO_N_INFLATEDBINOMIAL3,
 	L_WEIBULL_CURE,					       /* Patrick and Silvia's model */
 	L_LAPLACE,
 	L_LOGGAMMA_FRAILTY,
@@ -438,7 +444,7 @@ typedef enum {
 	L_GAMMACOUNT,
 	L_SKEWNORMAL2,
 	L_KUMAR,
-	L_CENPOISSON, 					       /* cencored poisson */
+	L_CENPOISSON,					       /* cencored poisson */
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -478,8 +484,8 @@ typedef enum {
 	F_RW2DIID,
 	F_SPDE3,
 	F_GENERIC3,
-	F_LOG1EXP, 
-	F_LOGDIST, 
+	F_LOG1EXP,
+	F_LOGDIST,
 	F_R_GENERIC,
 	P_LOGGAMMA = 2000,				       /* priors */
 	P_GAUSSIAN,
@@ -529,7 +535,7 @@ typedef enum {
 	LINK_SPECIAL1,
 	LINK_SPECIAL2,					       /* exp(eta)*((1-x) + x*exp(beta)) for Poisson (JW) */
 	LINK_LOGOFFSET,
-	LINK_SSLOGIT, 
+	LINK_SSLOGIT,
 	LINK_LOGLOG,
 	LINK_CAUCHIT,
 	LINK_LOGITOFFSET
@@ -1424,7 +1430,7 @@ int inla_iid_wishart_adjust(int dim, double *rho);
 int inla_iid_wishart_nparam(int dim);
 int inla_initial_setup(inla_tp * mb);
 int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp * density, map_func_tp * func,
-			void *func_arg, GMRFLib_transform_array_func_tp * tfunc); 
+			void *func_arg, GMRFLib_transform_array_func_tp * tfunc);
 int inla_is_NAs(int nx, const char *string);
 int inla_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * density);
 int inla_layout_x_ORIG(double **x, int *n, double xmin, double xmax, double mean);
@@ -1435,8 +1441,7 @@ int inla_make_3diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_3diid_arg_tp *
 int inla_make_ar1_graph(GMRFLib_graph_tp ** graph, inla_ar1_arg_tp * arg);
 int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp * graph);
 int inla_make_bym_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph);
-int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type, int cyclic,
-			  int order, GMRFLib_graph_tp * group_graph);
+int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type, int cyclic, int order, GMRFLib_graph_tp * group_graph);
 int inla_make_iid2d_graph(GMRFLib_graph_tp ** graph, inla_iid2d_arg_tp * arg);
 int inla_make_iid3d_graph(GMRFLib_graph_tp ** graph, inla_iid3d_arg_tp * arg);
 int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_tp * arg);
@@ -1486,8 +1491,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		 const char *samplefile, const char *bfile, const char *mufile, const char *constr_file, const char *meanfile);
 int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilename, const char *method);
 int inla_read_data_all(double **x, int *n, const char *filename);
-int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filename, int n, int column,
-			   int n_columns, int verbose, double default_value);
+int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filename, int n, int column, int n_columns, int verbose, double default_value);
 int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec);
 int inla_read_fileinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file, const char *FILENAME);
 int inla_read_graph(const char *filename);
@@ -1505,8 +1509,7 @@ int inla_read_prior8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 int inla_read_prior9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N);
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag,
-			    const char *param_tag, const char *from_theta, const char *to_theta,
-			    const char *hyperid, const char *default_prior);
+			    const char *param_tag, const char *from_theta, const char *to_theta, const char *hyperid, const char *default_prior);
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
@@ -1575,6 +1578,7 @@ int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_ve
 int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_wrapped_cauchy(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_zero_n_inflated_binomial3(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_betabinomial0(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_betabinomial1(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);

@@ -1,0 +1,21 @@
+%% DO NOT EDIT!
+%% This file is generated automatically from models.R
+\begin{description}
+	\item[hyper]\ 
+	 \begin{description}
+	 	\item[theta]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 49011
+	 	 	\item[name] prob
+	 	 	\item[short.name] p
+	 	 	\item[prior] normal
+	 	 	\item[param] -1 100
+	 	 	\item[initial] -1
+	 	 	\item[fixed] FALSE
+	 	 	\item[to.theta] \verb!function(x) log(x/(1-x))!
+	 	 	\item[from.theta] \verb!function(x) exp(x)/(1+exp(x))!
+	 	 \end{description}
+	 \end{description}
+	\item[status] experimental
+	\item[pdf] logitoffset
+\end{description}

@@ -192,12 +192,54 @@ implemented for the cases where its needed/requested.
 \paragraph{Zeroinflated Negative Binomial Type 2}
 \input{../hyper/likelihood/zeroinflatednbinomial2.tex}
 
-\end{document}
 
+\subsubsection{Zero and $N$-inflated Binomial likelihood: type 3}
+
+This is the case where
+\begin{eqnarray*}
+  \mbox{Prob}(y|\ldots) &=& p_0 \times 1_{[y=0]}+\\
+                        && p_N \times 1_{[y=N]}+\\
+                        &&(1-p_0 - p_N) \times \mbox{binomial}(y,N,p)
+\end{eqnarray*}
+where:
+\begin{displaymath}
+    p = \frac{\mbox{exp}(\eta)}{1+\mbox{exp}(\eta)}\qquad
+    p_0 = \frac{p^{\alpha_0}}{1+p^{\alpha_0}+(1-p)^{\alpha_N}}\qquad
+    p_N = \frac{(1-p)^{\alpha_N}}{1+p^{\alpha_0}+(1-p)^{\alpha_N}}
+\end{displaymath}
+
+There are 2 hyperparameters, $\alpha_0$ and $\alpha_N$, governing
+zero-inflation where: The zero-inflation parameters $\alpha_0$ and
+$\alpha_N$ are represented as $\theta_0$ = $\mbox{log}(\alpha_0)$;
+$\theta_N$ = $\mbox{log}(\alpha_N)$ and the prior and initial value is
+given for $\theta_0$ and $\theta_N$ respectively.
+
+Here is an example
+\begin{verbatim}
+nsim<-10000
+x<-rnorm(nsim)
+alpha0<-1.5
+alphaN<-2.0
+p = exp(x)/(1+exp(x))
+p0 = p^alpha0 / (1 + p^alpha0 + (1-p)^alphaN)
+pN = (1-p)^alphaN / (1 + p^alpha0 + (1-p)^alphaN)
+P<-cbind(p0, pN, (1-p0 -pN))
+N<-rpois(nsim,20)
+y<-rep(0,nsim)
+for(i in 1:nsim)
+    y[i]<-sum(rmultinom(1,size = 1,P[i,])*c(0,N[i],rbinom(1,N[i],p[i])))
+formula = y ~1 + x  
+r = inla(formula, family = "zeroninflatedbinomial3",  Ntrials = N, verbose = TRUE,
+           data = data.frame(y, x))
+\end{verbatim}
+and the default settings
+\input{../hyper/likelihood/zeroninflatedbinomial3.tex}
+
+\end{document}
 
 % LocalWords:  np Hyperparameters Ntrials gaussian hyperparameter
 
 %%% Local Variables: 
 %%% TeX-master: t
 %%% End: 
-% LocalWords:  zeroinflatedpoisson zeroinflatedbinomial
+
