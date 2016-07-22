@@ -17,6 +17,7 @@
 ## Export: as.inla.mesh.segment!SpatialPointsDataFrame
 ## Export: inla.CRS
 ## Export: inla.spTransform
+## Export: inla.spTransform!SpatialPoints
 ## Export: inla.spTransform!inla.mesh
 ## Export: inla.spTransform!inla.mesh.segment
 ## Export: inla.spTransform!default
@@ -27,12 +28,12 @@ inla.CRS <- function(projargs = NA_character_, doCheckCRSArgs = TRUE,
   predef <- list(
     longlat = "+proj=longlat +ellps=sphere +a=1 +b=1",
     sphere = "+proj=geocent +ellps=sphere +a=1 +b=1 +units=m",
-    mollweide = "+proj=moll +ellps=sphere +units=m +a=0.7071067811865 +b=0.7071067811865",
+    mollweide = "+proj=moll +ellps=sphere +units=m +a=0.7071067811865476 +b=0.7071067811865476",
     lambert = "+proj=cea +ellps=sphere +lat_ts=0 +units=m +a=1 +b=1")
   if (projargs %in% names(predef)) {
-    x <- CRS(predef[[projargs]], doCheckCRSArgs)
+    x <- CRS(predef[[projargs]], doCheckCRSArgs=doCheckCRSArgs)
   } else {
-    x <- CRS(projargs, doCheckCRSArgs)
+    x <- CRS(projargs, doCheckCRSArgs=doCheckCRSArgs)
   }
   if (!is.null(orient)) {
     x <- list(crs=x, orient=orient)
@@ -45,6 +46,62 @@ inla.CRS <- function(projargs = NA_character_, doCheckCRSArgs = TRUE,
 inla.crs.transform.orient <- function(x, orient, inverse) {
   warning("inla.crs.transform.orient NOT IMPLEMENTED")
   x
+}
+
+
+## List of name=value pairs from CRS proj4 string
+inla.parse.CRSargs <- function(x) {
+  do.call(c, lapply(strsplit(x=strsplit(x=paste0(" ", x),
+                                        split=" \\+")[[1]][-1],
+                             split="="),
+                    function(x) {
+               xx <- list(x[2])
+               names(xx) <- x[1]
+               xx
+             }))
+}
+
+
+## +proj=longlat in (-180,360)x(-90,90)
+## +proj=moll in (-2,2)x(-1,1) scaled by +a and +b, and +units
+## +proj=lambert in (?,?)x(?,?) scaled by +a and +b, and +units
+inla.spTransformBounds <- function(crs) {
+  if (inherits(crs, "inla.CRS")) {
+    args <- inla.parse.CRSargs(rgdal::CRSargs(crs$crs))
+  } else {
+    args <- inla.parse.CRSargs(rgdal::CRSargs(crs))
+  }
+  if (args[["proj"]] == "longlat") {
+    bounds <- list(type="rectangle", xlim=c(-180,360), ylim=c(-90,90))
+  } else if (args[["proj"]] == "moll") {
+    axis <- c(2, 1)
+    center <- c(0,0)
+    if (!is.null(args[["a"]])) {
+      axis[1] <- axis[1] * as.numeric(args$a) / sqrt(1/2)
+    }
+    if (!is.null(args[["b"]])) {
+      axis[2] <- axis[2] * as.numeric(args$b) / sqrt(1/2)
+    }
+    bounds <- list(type="ellipse", axis=axis, center=c(0,0))
+  } else {
+    warning("Could not identify transformation shape.")
+    bounds <- list(type="rectangle", xlim=c(-Inf, Inf), ylim=c(-Inf, Inf))
+  }
+  bounds
+}
+## TRUE/FALSE for points inside/outside projection domain.
+inla.spTransformBounds.ok <- function(x, bounds) {
+  inla.require.inherits(x, "matrix")
+  if (bounds$type == "rectangle") {
+    ok <- ((bounds$xlim[1] <= x[,1]) & (x[,1] <= bounds$xlim[2]) &
+           (bounds$ylim[1] <= x[,2]) & (x[,2] <= bounds$ylim[2]))
+  } else if (bounds$type == "ellipse") {
+    ok <- ( (((x[,1] - bounds$center[1]) / bounds$axis[1])^2) +
+            (((x[,2] - bounds$center[2]) / bounds$axis[2])^2) <= 1 )
+  } else {
+    stop("Unknown transformation type. This should not happen.")
+  }
+  ok
 }
 
 
@@ -80,10 +137,10 @@ inla.identical.CRS <- function(crs0, crs1, crsonly=FALSE) {
 ## Low level stransformation of raw coordinates.
 inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
   ok0 <- (!is.null(crs0) &&
-          ((inherits(crs0, "CRS") && !is.na(CRSargs(crs0))) ||
+          ((inherits(crs0, "CRS") && !is.na(rgdal::CRSargs(crs0))) ||
            (inherits(crs0, "inla.CRS"))))
   ok1 <- (!is.null(crs1) &&
-          ((inherits(crs1, "CRS") && !is.na(CRSargs(crs1))) ||
+          ((inherits(crs1, "CRS") && !is.na(rgdal::CRSargs(crs1))) ||
            (inherits(crs1, "inla.CRS"))))
   if (ok0 && ok1) {
     if (ncol(x) == 2) {
@@ -135,15 +192,21 @@ inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
 }
 
 inla.spTransform.SpatialPoints <- function(x, CRSobj, passthrough=FALSE, ...) {
+  ok0 <- !is.na(proj4string(x))
   ok1 <- (!missing(CRSobj) && is.null(CRSobj) &&
-          (inherits(CRSobj, "CRS") && !is.na(CRSargs(CRSobj))))
-  if (!ok1) {
+          (inherits(CRSobj, "CRS") && !is.na(rgdal::CRSargs(CRSobj))))
+  if (ok0 && ok1) {
+    invisible(spTransform(x, CRSobj=CRSobj))
+  } else if (ok1) { ## Know: !ok0 && ok1
+    if (!passthrough) {
+      stop("Invalid origin CRS for SpatialPoints")
+    }
+    invisible(SpatialPoints(coordinates(x), proj4string=CRSobj))
+  } else { ## Know: (ok0 || !ok0) && !ok1
     if (!passthrough) {
       stop("Invalid target CRS for SpatialPoints")
     }
     invisible(SpatialPoints(coordinates(x), proj4string=inla.CRS()))
-  } else {
-    invisible(spTransform(x, CRSobj=CRSobj))
   }
 }
 
