@@ -1431,7 +1431,9 @@ namespace fmesh {
   bool MeshC::prepareRCDT(double skinny_limit,
 			  double big_limit,
 			  const double* big_limits,
-			  size_t nQL)
+			  size_t nQL,
+			  int max_n0,
+			  int max_n1)
   {
     if (!prepareCDT()) return false; /* Make sure we have a CDT. */
 
@@ -1444,6 +1446,9 @@ namespace fmesh {
       skinny_.insert(Dart(*M_,t));
       big_.insert(Dart(*M_,t));
     }
+
+    max_n0_ = max_n0;
+    max_n1_ = max_n1;
 
     state_ = State_RCDT;
     return true;
@@ -2211,6 +2216,15 @@ namespace fmesh {
 	continue;
       }
 
+      if ((max_n0_ >= 0) & (max_n0_ <= M_->nV())) {
+	MESHC_LOG("Max vertex count reached: max_n0 = "
+		  << max_n0_ << " <= nV = "
+		  << M_->nV() << endl);
+	skinny_.clear();
+	big_.clear();
+	continue;
+      }
+
       //      xtmpl_press_ret("No segments need splitting.");
 
       dh = skinny_.quality();
@@ -2235,6 +2249,14 @@ namespace fmesh {
 	continue;
       }
       
+      if ((max_n1_ >= 0) & (max_n1_ <= M_->nV())) {
+	MESHC_LOG("Max vertex count reached: max_n1 = "
+		  << max_n1_ << " <= nV = "
+		  << M_->nV() << endl);
+	big_.clear();
+	continue;
+      }
+
       dh = big_.quality();
       if (!dh.isnull()) {
 	MESHC_LOG("Big triangle: "
@@ -2266,10 +2288,12 @@ namespace fmesh {
   bool MeshC::RCDT(double angle_limit,
 		   double big_limit,
 		   const double* big_limits,
-		   size_t nQL)
+		   size_t nQL,
+		   int max_n0,
+		   int max_n1)
   {
     if (!prepareRCDT(1./std::sin(M_PI/180.*angle_limit)/2.,
-		     big_limit,big_limits,nQL)) return false;
+		     big_limit,big_limits,nQL,max_n0,max_n1)) return false;
     return buildRCDT();
   };
 
