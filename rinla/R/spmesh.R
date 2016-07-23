@@ -1,6 +1,8 @@
 ## Internal: update.crs
 ## Internal: inla.internal.sp2segment.join
 ## Internal: inla.identical.CRS
+## Internal: inla.proj4string2list
+## Internal: inla.list2proj4string
 ##
 ## S3methods; also export some methods explicitly
 ## Export: inla.sp2segment
@@ -20,6 +22,7 @@
 ## Export: inla.spTransform!SpatialPoints
 ## Export: inla.spTransform!inla.mesh
 ## Export: inla.spTransform!inla.mesh.segment
+## Export: inla.spTransform!inla.mesh.lattice
 ## Export: inla.spTransform!default
 
 
@@ -80,7 +83,7 @@ inla.proj4string2list <- function(x) {
 
 ## +proj=longlat in (-180,360)x(-90,90)
 ## +proj=moll in (-2,2)x(-1,1) scaled by +a and +b, and +units
-## +proj=lambert in (?,?)x(?,?) scaled by +a and +b, and +units
+## +proj=lambert in (-2,2)x(-1,1) scaled by +a and +b, and +units
 inla.spTransformBounds <- function(crs) {
   if (inherits(crs, "inla.CRS")) {
     args <- inla.proj4string2list(rgdal::CRSargs(crs$crs))
@@ -89,6 +92,17 @@ inla.spTransformBounds <- function(crs) {
   }
   if (args[["proj"]] == "longlat") {
     bounds <- list(type="rectangle", xlim=c(-180,360), ylim=c(-90,90))
+  } else if (args[["proj"]] == "cea") {
+    axis <- c(2, 1)
+    if (!is.null(args[["a"]])) {
+      axis[1] <- axis[1] * as.numeric(args$a)
+    }
+    if (!is.null(args[["b"]])) {
+      axis[2] <- axis[2] * as.numeric(args$b)
+    }
+    ## TODO: Handle "lat_ts" and "units"
+    bounds <- list(type="rectangle",
+                   xlim=c(-1,1)*axis[1], ylim=c(-1,1)*axis[2])
   } else if (args[["proj"]] == "moll") {
     axis <- c(2, 1)
     center <- c(0,0)
@@ -98,7 +112,10 @@ inla.spTransformBounds <- function(crs) {
     if (!is.null(args[["b"]])) {
       axis[2] <- axis[2] * as.numeric(args$b) / sqrt(1/2)
     }
-    bounds <- list(type="ellipse", axis=axis, center=c(0,0))
+    ## TODO: Handle "units"
+    bounds <- list(type="ellipse", axis=axis, center=center,
+                   xlim=center[1]+c(-1,1)*axis[1],
+                   ylim=center[2]+c(-1,1)*axis[2])
   } else {
     warning("Could not identify transformation shape.")
     bounds <- list(type="rectangle", xlim=c(-Inf, Inf), ylim=c(-Inf, Inf))
@@ -177,7 +194,7 @@ inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
     }
     if (inherits(crs0, "inla.CRS")) {
       if (!onsphere) {
-        x <- spTransform(SpatialPoints(x[ok,], proj4string=crs0$crs),
+        x <- spTransform(SpatialPoints(x[ok,,drop=FALSE], proj4string=crs0$crs),
                          inla.CRS("sphere"))
       }
       if (!is.null(crs0$orient)) {
@@ -188,7 +205,7 @@ inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
       }
       onshpere <- TRUE
     } else {
-      x <- SpatialPoints(x[ok,], proj4string=crs0)
+      x <- SpatialPoints(x[ok,,drop=FALSE], proj4string=crs0)
     }
     if (inherits(crs1, "inla.CRS")) {
       if (!onsphere) {
@@ -226,10 +243,13 @@ inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
 
 inla.spTransform.SpatialPoints <- function(x, CRSobj, passthrough=FALSE, ...) {
   ok0 <- !is.na(proj4string(x))
-  ok1 <- (!missing(CRSobj) && is.null(CRSobj) &&
+  ok1 <- (!missing(CRSobj) && !is.null(CRSobj) &&
           (inherits(CRSobj, "CRS") && !is.na(rgdal::CRSargs(CRSobj))))
   if (ok0 && ok1) {
-    invisible(spTransform(x, CRSobj=CRSobj))
+    invisible(SpatialPoints(inla.spTransform(coordinates(x),
+                                             CRS(proj4string(x)),
+                                             CRSobj),
+                            proj4string=CRSobj))
   } else if (ok1) { ## Know: !ok0 && ok1
     if (!passthrough) {
       stop("Invalid origin CRS for SpatialPoints")
@@ -241,6 +261,13 @@ inla.spTransform.SpatialPoints <- function(x, CRSobj, passthrough=FALSE, ...) {
     }
     invisible(SpatialPoints(coordinates(x), proj4string=inla.CRS()))
   }
+}
+
+inla.spTransform.inla.mesh.lattice <- function(x, CRSobj, passthrough=FALSE, ...) {
+  x$segm <- inla.spTransform(x$segm, CRSobj, passthrough=passthrough)
+  x$loc <- inla.spTransform(x$loc, x$crs, CRSobj, passthrough=passthrough)
+  x$crs <- CRSobj
+  invisible(x)
 }
 
 inla.spTransform.inla.mesh.segment <- function(x, CRSobj, passthrough=FALSE, ...) {

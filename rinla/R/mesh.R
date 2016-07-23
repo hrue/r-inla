@@ -580,13 +580,23 @@ inla.mesh.lattice <- function(x=seq(0, 1, length.out=2),
                               } else {
                                   c(length(x), length(y))
                               },
-                              units = NULL)
+                              units = NULL,
+                              crs = NULL)
 {
+  if (is.null(crs)) {
     units = match.arg(units, c("default", "longlat", "longsinlat", "mollweide"))
 
     lim = inla.mesh.map.lim(projection=units)
     xlim = lim$xlim
     ylim = lim$ylim
+  } else { ## !is.null(crs)
+    if (!is.null(units)) {
+      stop("Only one of 'units' and 'crs' can be non-null.")
+    }
+    bounds <- inla.spTransformBounds(crs)
+    xlim = bounds$xlim
+    ylim = bounds$ylim
+  }
 
     if (missing(x) && !missing(dims)) {
       x = seq(xlim[1], xlim[2], length.out=dims[1])
@@ -617,7 +627,9 @@ inla.mesh.lattice <- function(x=seq(0, 1, length.out=2),
     if (!is.double(loc))
         storage.mode(loc) = "double"
 
+  if (is.null(crs)) {
     loc = inla.mesh.map(loc=loc, projection=units, inverse=TRUE)
+  }
 
     ## Construct lattice boundary
     segm.idx = (c(1:(dims[1]-1),
@@ -631,9 +643,10 @@ inla.mesh.lattice <- function(x=seq(0, 1, length.out=2),
 
     segm = (inla.mesh.segment(loc=loc[segm.idx,, drop=FALSE],
                               grp=segm.grp,
-                              is.bnd=TRUE))
+                              is.bnd=TRUE,
+                              crs=crs))
 
-    lattice = list(dims=dims, x=x, y=y, loc=loc, segm=segm)
+    lattice = list(dims=dims, x=x, y=y, loc=loc, segm=segm, crs=crs)
     class(lattice) = "inla.mesh.lattice"
     return(lattice)
 }
@@ -925,6 +938,7 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
         storage.mode(loc) = "double"
       }
     }
+    loc.n = max(0L,nrow(loc))
 
     if (is.logical(extend) && extend) extend = list()
     if (is.logical(refine) && refine) refine = list()
@@ -943,9 +957,22 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
                                       boundary, list(boundary)),
                           list(lattice$segm)))
         }
-        lattice.n = max(0L,nrow(lattice$loc))
+
+        if (!is.null(lattice[["crs"]])) {
+          lattice$loc <- inla.spTransform(lattice$loc,
+                                          lattice$crs,
+                                          crs,
+                                          passthrough=TRUE)
+        }
+
+        if (!is.matrix(lattice$loc)) {
+          lattice$loc = as.matrix(lattice$loc)
+        }
+        if (!is.double(lattice$loc)) {
+          storage.mode(lattice$loc) = "double"
+        }
     }
-    loc.n = max(0L,nrow(loc))
+      lattice.n = max(0L,nrow(lattice$loc))
 
     segm = (inla.mesh.parse.segm.input(boundary,
                                        interior,
@@ -1804,7 +1831,7 @@ inla.mesh.project <- function(...)
     UseMethod("inla.mesh.project")
 }
 
-inla.mesh.project.inla.mesh <- function(mesh, loc, field=NULL, ...)
+inla.mesh.project.inla.mesh <- function(mesh, loc=NULL, field=NULL, ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
@@ -1812,15 +1839,19 @@ inla.mesh.project.inla.mesh <- function(mesh, loc, field=NULL, ...)
     if (!(missing(loc) || is.null(loc)) &&
         (inherits(loc, "SpatialPoints") ||
          inherits(loc, "SpatialPointsDataFrame"))) {
-      loc = inla.spTransform(cordinates(loc),
-                             CRS(proj4string(loc)),
-                             mesh$crs,
-                             passthrough=TRUE)
+      if (is.null(mesh$crs)) {
+        loc <- coordinates(loc)
+      } else {
+        loc = inla.spTransform(coordinates(loc),
+                               CRS(proj4string(loc)),
+                               mesh$crs,
+                               passthrough=FALSE)
+      }
     }
 
     if (!missing(field) && !is.null(field)) {
-        proj = inla.mesh.projector(mesh, loc, ...)
-        return(inla.mesh.project(proj, field))
+      proj <- inla.mesh.projector(mesh, loc=loc, ...)
+      return(inla.mesh.project(proj, field=field))
     }
 
     jj =
@@ -1844,7 +1875,7 @@ inla.mesh.project.inla.mesh <- function(mesh, loc, field=NULL, ...)
                       j = as.vector(mesh$graph$tv[ti[ii,1L],]),
                       x = as.vector(b[ii,]) ))
 
-    return (list(t=ti, bary=b, A=A, ok=ok))
+    list(t=ti, bary=b, A=A, ok=ok)
 }
 
 inla.mesh.project.inla.mesh.1d <- function(mesh, loc, field=NULL, ...)
@@ -1905,50 +1936,61 @@ inla.mesh.projector.inla.mesh <-
              ylim=range(mesh$loc[,2]),
              dims=c(100,100),
              projection=NULL,
+             crs=NULL,
              ...)
 {
-    inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+  inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
-    if (missing(loc) || is.null(loc)) {
-        if (missing(lattice) || is.null(lattice)) {
-            if (identical(mesh$manifold, "R2")) {
-                units = "default"
-                x = seq(xlim[1], xlim[2], length.out=dims[1])
-                y = seq(ylim[1], ylim[2], length.out=dims[2])
-            } else if (identical(mesh$manifold, "S2")) {
-                projection =
-                    match.arg(projection, c("longlat", "longsinlat", "mollweide"))
-                units = projection
-                lim = inla.mesh.map.lim(loc=mesh$loc, projection=projection)
-                if (missing(xlim) || is.null(xlim)) {
-                    xlim = lim$xlim
-                }
-                if (missing(ylim) || is.null(ylim)) {
-                    ylim = lim$ylim
-                }
-                x = seq(xlim[1], xlim[2], length.out=dims[1])
-                y = seq(ylim[1], ylim[2], length.out=dims[2])
-            }
-
-            lattice = (inla.mesh.lattice(x=x, y=y, units = units))
-        } else {
-            dims = lattice$dims
-            x = lattice$x
-            y = lattice$y
-        }
-
-        proj = inla.mesh.project(mesh, lattice$loc)
-        projector = list(x=x, y=y, lattice=lattice, loc=NULL, proj=proj)
-        class(projector) = "inla.mesh.projector"
+  if (missing(loc) || is.null(loc)) {
+    if (missing(lattice) || is.null(lattice)) {
+      if (identical(mesh$manifold, "R2") &&
+          (is.null(mesh$crs) || is.null(crs))) {
+        units = "default"
+      } else if (identical(mesh$manifold, "S2") &&
+                 (is.null(mesh$crs) || is.null(crs))) {
+        projection =
+          match.arg(projection, c("longlat", "longsinlat",
+                                  "mollweide"))
+        units = projection
+        lim = inla.mesh.map.lim(loc=mesh$loc, projection=projection)
+      } else {
+        lim <- inla.spTransformBounds(crs)
+      }
+      if (missing(xlim) || is.null(xlim)) {
+        xlim = lim$xlim
+      }
+      if (missing(ylim) || is.null(ylim)) {
+        ylim = lim$ylim
+      }
+      x = seq(xlim[1], xlim[2], length.out=dims[1])
+      y = seq(ylim[1], ylim[2], length.out=dims[2])
+      if (is.null(mesh$crs) || is.null(crs)) {
+        lattice <- inla.mesh.lattice(x=x, y=y, units = units)
+      } else {
+        lattice <- inla.mesh.lattice(x=x, y=y, crs=crs)
+      }
     } else {
-      proj = inla.mesh.project(mesh, loc)
-      ## TODO: Check usage of projector$loc for compatibility or not
-      ##       with SpatialPoints objects
-      projector = list(x=NULL, y=NULL, lattice=NULL, loc=loc, proj=proj)
-      class(projector) = "inla.mesh.projector"
+      dims = lattice$dims
+      x = lattice$x
+      y = lattice$y
     }
 
-    return (projector)
+    if (is.null(mesh$crs) || is.null(lattice$crs)) {
+      proj = inla.mesh.project(mesh, lattice$loc)
+    } else {
+      proj <- inla.mesh.project(mesh,
+                                loc=SpatialPoints(lattice$loc,
+                                                  proj4string=lattice$crs))
+    }
+    projector = list(x=x, y=y, lattice=lattice, loc=NULL, proj=proj)
+    class(projector) = "inla.mesh.projector"
+  } else {
+    proj = inla.mesh.project(mesh, loc=loc)
+    projector = list(x=NULL, y=NULL, lattice=NULL, loc=loc, proj=proj)
+    class(projector) = "inla.mesh.projector"
+  }
+
+  return (projector)
 }
 
 
@@ -1958,7 +2000,7 @@ inla.mesh.projector.inla.mesh.1d <-
              xlim=mesh$interval,
              dims=100,
              ...)
-{
+  {
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
 
     if (missing(loc) || is.null(loc)) {
@@ -1970,7 +2012,7 @@ inla.mesh.projector.inla.mesh.1d <-
     class(projector) = "inla.mesh.projector"
 
     return (projector)
-}
+  }
 
 
 
