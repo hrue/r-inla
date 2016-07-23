@@ -102,11 +102,29 @@
             ld.theta = cs$max.log.posterior + cs$config[[k]]$log.posterior
             for(j in 1:length(cs$contents$tag)) {
                 ii = seq(cs$contents$start[j], length = cs$contents$length[j])
-                nm = c(nm,
-                        paste(cs$contents$tag[j],
-                              ".",
-                              inla.ifelse(cs$contents$length[j] == 1L, 1, inla.num(1:cs$contents$length[j])), 
-                              sep=""))
+
+                ## if 'tag' is a f() term,  use the ID-names from there
+                tag = cs$contents$tag[j]
+                random.idx = which(names(result$summary.random) == tag)
+                if (length(random.idx) != 1L) {
+                    if (cs$contents$length[j] == 1L) {
+                        ## this corresponds to fixed effects,  no need to do "(Intercept):1"
+                        ## instead of just "(Intercept)"
+                        nm = c(nm, cs$contents$tag[j])
+                    } else {
+                        nm = c(nm,
+                               paste(cs$contents$tag[j],
+                                     ":",
+                                     inla.ifelse(cs$contents$length[j] == 1L, 1, inla.num(1:cs$contents$length[j])), 
+                                     sep=""))
+                    }
+                } else {
+                    nm = c(nm,
+                           paste(cs$contents$tag[j],
+                                 ":",
+                                 result$summary.random[[random.idx]]$ID, 
+                                 sep=""))
+                }
             }
             
             theta = cs$config[[k]]$theta
