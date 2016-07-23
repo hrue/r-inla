@@ -356,20 +356,6 @@
             my.spde.prefix <- inla.fmesher.make.prefix(NULL, NULL)
             if (any(inherits(model, "inla.spde1"))) {
                 spde.prefix <- my.spde.prefix
-
-                if (!exists("spde", globalenv())) {
-                    assign("spde", NA, globalenv())
-                    rm.spde = TRUE
-                } else {
-                    rm.spde = FALSE
-                }
-                if (!exists("internal", globalenv())) {
-                    assign("internal", NA, globalenv())
-                    rm.internal = TRUE
-                } else {
-                    rm.internal = FALSE
-                }
-
                 ## inla checks PREFIX valididy by looking for "s"
                 model$param.inla <- list(
                     s=spde$mesh$loc,
@@ -379,13 +365,6 @@
                     basis.T=internal$basis.T,
                     basis.K=internal$basis.K)
                 spde.matrices <- names(model$param.inla)
-
-                if (rm.spde) {
-                    rm("spde", envir = globalenv())
-                }
-                if (rm.internal) {
-                    rm("internal", envir = globalenv())
-                }
             } else if (any(inherits(model, "inla.spde2"))) {
                 spde2.prefix <- my.spde.prefix
                 spde.matrices <- c("M0", "M1", "M2",
