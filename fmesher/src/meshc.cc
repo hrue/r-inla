@@ -1135,7 +1135,7 @@ namespace fmesh {
 	    nc = std::cos(th-margini);
 	    ns = std::sin(th-margini);
 	  } else {
-	    cout << WHEREAMI << "Oops!" << endl;
+	    cout << WHEREAMI << "Oops! Perhaps some NA input?" << endl;
 	    nc = 1.0;
 	    ns = 0.0;
 	  }

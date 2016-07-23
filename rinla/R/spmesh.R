@@ -49,9 +49,25 @@ inla.crs.transform.orient <- function(x, orient, inverse) {
 }
 
 
+## CRS proj4 string for name=value pair list
+inla.list2proj4string <- function(x) {
+  paste(lapply(names(x),
+               function(xx) {
+    if (is.na(x[[xx]])) {
+      paste("+", xx, sep="")
+    } else {
+      paste("+", xx, "=", x[[xx]], sep="")
+    }
+  }),
+  collapse=" ")
+}
+
 ## List of name=value pairs from CRS proj4 string
-inla.parse.CRSargs <- function(x) {
-  do.call(c, lapply(strsplit(x=strsplit(x=paste0(" ", x),
+inla.proj4string2list <- function(x) {
+  if (!is.character(x)) {
+    stop("proj4string must be of class character")
+  }
+  do.call(c, lapply(strsplit(x=strsplit(x=paste(" ", x, sep=""),
                                         split=" \\+")[[1]][-1],
                              split="="),
                     function(x) {
@@ -67,9 +83,9 @@ inla.parse.CRSargs <- function(x) {
 ## +proj=lambert in (?,?)x(?,?) scaled by +a and +b, and +units
 inla.spTransformBounds <- function(crs) {
   if (inherits(crs, "inla.CRS")) {
-    args <- inla.parse.CRSargs(rgdal::CRSargs(crs$crs))
+    args <- inla.proj4string2list(rgdal::CRSargs(crs$crs))
   } else {
-    args <- inla.parse.CRSargs(rgdal::CRSargs(crs))
+    args <- inla.proj4string2list(rgdal::CRSargs(crs))
   }
   if (args[["proj"]] == "longlat") {
     bounds <- list(type="rectangle", xlim=c(-180,360), ylim=c(-90,90))
