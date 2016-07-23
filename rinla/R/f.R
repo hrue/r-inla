@@ -349,39 +349,60 @@
     ## is also used in the inla() function itself.
     if (any(inherits(model, inla.model.object.classes()))) {
         if (any(inherits(model, inla.spde.object.classes()))) {
-          ## Write specific spde models to disk. These files should be
-          ## move/removed later in the code instead of copied.
-          ## Perhaps in section.R, since that where the copy now takes
-          ## place?
-          my.spde.prefix <- inla.fmesher.make.prefix(NULL, NULL)
-          if (any(inherits(model, "inla.spde1"))) {
-            spde.prefix <- my.spde.prefix
-            ## inla checks PREFIX valididy by looking for "s"
-            model$param.inla <- list(
-              s=spde$mesh$loc,
-              c0=internal$c0,
-              g1=internal$g1,
-              g2=internal$g2,
-              basis.T=internal$basis.T,
-              basis.K=internal$basis.K)
-            spde.matrices <- names(model$param.inla)
-          } else if (any(inherits(model, "inla.spde2"))) {
-            spde2.prefix <- my.spde.prefix
-            spde.matrices <- c("M0", "M1", "M2",
-                               "B0", "B1", "B2", "BLC")
-          } else if (any(inherits(model, "inla.spde3"))) {
-            spde3.prefix <- my.spde.prefix
-            spde.matrices <- c("M0", "M1", "M2", "M3",
-                               "B0", "B1", "B2", "B3", "BLC")
-          }
-          for (spde.matrix.name in spde.matrices) {
-            ## Only write matrix if it is non-empty (only happens for BLC)
-            if (nrow(model$param.inla[[spde.matrix.name]]) > 0) {
-              fmesher.write(inla.affirm.double(
-                model$param.inla[[spde.matrix.name]]),
-                my.spde.prefix, spde.matrix.name)
+            ## Write specific spde models to disk. These files should be
+            ## move/removed later in the code instead of copied.
+            ## Perhaps in section.R, since that where the copy now takes
+            ## place?
+            my.spde.prefix <- inla.fmesher.make.prefix(NULL, NULL)
+            if (any(inherits(model, "inla.spde1"))) {
+                spde.prefix <- my.spde.prefix
+
+                if (!exists("spde", globalenv())) {
+                    assign("spde", NA, globalenv())
+                    rm.spde = TRUE
+                } else {
+                    rm.spde = FALSE
+                }
+                if (!exists("internal", globalenv())) {
+                    assign("internal", NA, globalenv())
+                    rm.internal = TRUE
+                } else {
+                    rm.internal = FALSE
+                }
+
+                ## inla checks PREFIX valididy by looking for "s"
+                model$param.inla <- list(
+                    s=spde$mesh$loc,
+                    c0=internal$c0,
+                    g1=internal$g1,
+                    g2=internal$g2,
+                    basis.T=internal$basis.T,
+                    basis.K=internal$basis.K)
+                spde.matrices <- names(model$param.inla)
+
+                if (rm.spde) {
+                    rm("spde", envir = globalenv())
+                }
+                if (rm.internal) {
+                    rm("internal", envir = globalenv())
+                }
+            } else if (any(inherits(model, "inla.spde2"))) {
+                spde2.prefix <- my.spde.prefix
+                spde.matrices <- c("M0", "M1", "M2",
+                                   "B0", "B1", "B2", "BLC")
+            } else if (any(inherits(model, "inla.spde3"))) {
+                spde3.prefix <- my.spde.prefix
+                spde.matrices <- c("M0", "M1", "M2", "M3",
+                                   "B0", "B1", "B2", "B3", "BLC")
             }
-          }
+            for (spde.matrix.name in spde.matrices) {
+                ## Only write matrix if it is non-empty (only happens for BLC)
+                if (nrow(model$param.inla[[spde.matrix.name]]) > 0) {
+                    fmesher.write(inla.affirm.double(
+                        model$param.inla[[spde.matrix.name]]),
+                        my.spde.prefix, spde.matrix.name)
+                }
+            }
         }
 
         atmp = paste(unlist(lapply(as.list(formals(INLA::f)), function(x) names(x))))
