@@ -1071,6 +1071,8 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
     }
     if (inherits(refine,"list")) {
         rcdt = c(0,0,0)
+        rcdt_max_n0 = -1
+        rcdt_max_n1 = -1
         if (!missing(globe) && !is.null(globe)) {
             max.edge.default=10
         } else {
@@ -1101,6 +1103,16 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
                                rcdt[3], refine$max.edge.data))
         all.args = (paste(all.args," --rcdt=",
                           rcdt[1],",", rcdt[2],",", rcdt[3], sep=""))
+        if (!is.null(refine$max.n0)) {
+          rcdt_max_n0 <- inla.ifelse(is.na(refine$max.n0), -1, refine$max.n0)
+        }
+        if (!is.null(refine$max.n1)) {
+          rcdt_max_n1 <- inla.ifelse(is.na(refine$max.n1), -1, refine$max.n1)
+        }
+        all.args = (paste(all.args,
+                          " --max_n0=", rcdt_max_n0,
+                          " --max_n1=", rcdt_max_n1,
+                          sep=""))
         is.refined = TRUE
 
         if (!is.null(quality)) {
@@ -1311,7 +1323,9 @@ inla.mesh.2d <-
              min.angle=NULL, ## Angle constraint for the entire domain
              cutoff=1e-12, ## Only add input points further apart than this
              plot.delay=NULL,
-             crs=NULL) ## Coordinate Reference System
+             crs=NULL, ## Coordinate Reference System
+             max.n0=NULL,
+             max.n1=NULL)
     ## plot.delay: Do plotting.
     ## NULL --> No plotting
     ## <0  --> Intermediate meshes displayed at the end
@@ -1396,6 +1410,10 @@ inla.mesh.2d <-
         n = c(8)
     if (missing(min.angle) || is.null(min.angle))
         min.angle = c(21)
+    if (missing(max.n0) || is.null(max.n0))
+        max.n0 = c(NA)
+    if (missing(max.n1) || is.null(max.n1))
+        max.n1 = c(NA)
     if (missing(cutoff) || is.null(cutoff))
         cutoff = 1e-12
     if (missing(plot.delay) || is.null(plot.delay))
@@ -1403,7 +1421,8 @@ inla.mesh.2d <-
 
     num.layers =
         max(c(length(boundary), length(offset), length(n),
-              length(min.angle), length(max.edge)))
+              length(min.angle), length(max.edge),
+              length(max.n0), length(max.n1)))
     if (num.layers > 2) {
         warning(paste("num.layers=", num.layers, " > 2 detected.  ",
                       "Excess information ignored.", sep=""))
@@ -1414,10 +1433,16 @@ inla.mesh.2d <-
         boundary = c(boundary, list(NULL))
     if (length(min.angle) < num.layers)
         min.angle = c(min.angle, min.angle)
+    if (length(max.n0) < num.layers)
+        max.n0 = c(max.n0, max.n0)
+    if (length(max.n1) < num.layers)
+        max.n1 = c(max.n1, max.n1)
     if (length(max.edge) < num.layers)
         max.edge = c(max.edge, max.edge)
     if (length(offset) < num.layers)
         offset = c(offset, -0.15)
+    if (length(n) < num.layers)
+        n = c(n, 16)
     if (length(n) < num.layers)
         n = c(n, 16)
 
@@ -1470,7 +1495,9 @@ inla.mesh.2d <-
                          refine=
                              list(min.angle=min.angle[1],
                                   max.edge=max.edge[1],
-                                  max.edge.extra=max.edge[1]),
+                                  max.edge.extra=max.edge[1],
+                                  max.n0=max.n0[1],
+                                  max.n1=max.n1[1]),
                          plot.delay=plot.delay,
                          crs=crs)
 
@@ -1500,7 +1527,9 @@ inla.mesh.2d <-
                          refine=
                              list(min.angle=min.angle[2],
                                   max.edge=max.edge[2],
-                                  max.edge.extra=max.edge[2]),
+                                  max.edge.extra=max.edge[2],
+                                  max.n0=mesh2$n + max.n0[2],
+                                  max.n1=mesh2$n + max.n1[2]),
                          plot.delay=plot.delay,
                          crs=crs)
 
