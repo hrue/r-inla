@@ -87,21 +87,24 @@ inla.spTransformBounds <- function(crs) {
     warning("Could not identify transformation shape.")
     bounds <- list(type="rectangle", xlim=c(-Inf, Inf), ylim=c(-Inf, Inf))
   }
+  if (bounds$type == "rectangle") {
+    bounds$polygon <- cbind(bounds$xlim[c(1,2,2,1,1)],
+                            bounds$ylim[c(1,1,2,2,1)])
+  } else if (bounds$type == "ellipse") {
+    theta <- seq(0, 2*pi, length=1000)
+    bounds$polygon <- cbind(bounds$center[1] + bounds$axis[1]*cos(theta),
+                            bounds$center[2] + bounds$axis[2]*sin(theta))
+  } else {
+    stop("Unknown transformation type. This should not happen.")
+  }
   bounds
 }
 ## TRUE/FALSE for points inside/outside projection domain.
 inla.spTransformBounds.ok <- function(x, bounds) {
   inla.require.inherits(x, "matrix")
-  if (bounds$type == "rectangle") {
-    ok <- ((bounds$xlim[1] <= x[,1]) & (x[,1] <= bounds$xlim[2]) &
-           (bounds$ylim[1] <= x[,2]) & (x[,2] <= bounds$ylim[2]))
-  } else if (bounds$type == "ellipse") {
-    ok <- ( (((x[,1] - bounds$center[1]) / bounds$axis[1])^2) +
-            (((x[,2] - bounds$center[2]) / bounds$axis[2])^2) <= 1 )
-  } else {
-    stop("Unknown transformation type. This should not happen.")
-  }
-  ok
+  (sp::point.in.polygon(x[,1], x[,2],
+                        bounds$polygon[,1], bounds$polygon[,2])
+    > 0)
 }
 
 
@@ -134,7 +137,7 @@ inla.identical.CRS <- function(crs0, crs1, crsonly=FALSE) {
   }
 }
 
-## Low level stransformation of raw coordinates.
+## Low level transformation of raw coordinates.
 inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
   ok0 <- (!is.null(crs0) &&
           ((inherits(crs0, "CRS") && !is.na(rgdal::CRSargs(crs0))) ||
@@ -147,9 +150,18 @@ inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
       x <- cbind(x, 0)
     }
     onsphere <- inla.identical.CRS(crs0, inla.CRS("sphere"), crsonly=TRUE)
+    if (onsphere) {
+      ok <- TRUE
+    } else {
+      bounds <- inla.spTransformBounds(crs0)
+      ok <- inla.spTransformBounds.ok(x, bounds)
+      if (!all(ok)) {
+        xx <- x
+      }
+    }
     if (inherits(crs0, "inla.CRS")) {
       if (!onsphere) {
-        x <- spTransform(SpatialPoints(x, proj4string=crs0$crs),
+        x <- spTransform(SpatialPoints(x[ok,], proj4string=crs0$crs),
                          inla.CRS("sphere"))
       }
       if (!is.null(crs0$orient)) {
@@ -160,7 +172,7 @@ inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
       }
       onshpere <- TRUE
     } else {
-      x <- SpatialPoints(x, proj4string=crs0)
+      x <- SpatialPoints(x[ok,], proj4string=crs0)
     }
     if (inherits(crs1, "inla.CRS")) {
       if (!onsphere) {
@@ -175,6 +187,11 @@ inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
       x <- spTransform(x, crs1$crs)
     } else {
       x <- spTransform(x, crs1)
+    }
+    if (!all(ok)) {
+      xx[ok,] <- coordinates(x)
+      xx[!ok,] <- NA
+      x <- xx
     }
   } else if (!passthrough) {
     if (!ok0) {
