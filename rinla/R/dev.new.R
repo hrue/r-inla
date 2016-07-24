@@ -27,7 +27,7 @@
         ret = dev.new(...)
     }
     if (exists("inla.dev.new.hook") && is.function(inla.dev.new.hook)) {
-        inla.dev.new.hook()
+        do.call("inla.dev.new.hook")
     }
     return (invisible(ret))
 }
