@@ -6355,23 +6355,6 @@
 
     } else {
         ## have to split it, as option keep.source has an upper limit...
-
-        if (FALSE) {
-            ## remove warnings...
-            if (!exists("low", globalenv())) {
-                assign("low", NA, globalenv())
-                rm.low = TRUE
-            } else {
-                rm.low = FALSE
-            }
-            if (!exists("high", globalenv())) {
-                ##assign("high", NA, globalenv())
-                rm.high = TRUE
-            } else {
-                rm.high = FALSE
-            }
-        }
-        
         models = c(
             inla.models.section.latent(),
             inla.models.section.group(),
@@ -6382,16 +6365,6 @@
             inla.models.section.likelihood(),
             inla.models.section.prior(),
             inla.models.section.wrapper())
-        
-        if (FALSE) {
-            if (rm.low) {
-                rm("low", envir = globalenv())
-            }
-            if (rm.high) {
-                rm("high", envir = globalenv())
-            }
-        }
-        
         ## set "read.only" attribute for the `hyper' at those elements
         ## that cannot be changed.
         for (section in names(models)) {
