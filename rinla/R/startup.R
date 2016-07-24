@@ -1,5 +1,10 @@
 ## copied from the mgcv-code...
 
+## this does not work...
+##  invisible(utils::globalVariables(c("low", "high", "spde", "internal")))
+##  invisible(utils::suppressForeignCheck(c("low", "high", "spde", "internal")))
+
+
 inla.print.version <- function()
 {
     info = library(help=INLA)$info[[1]]
