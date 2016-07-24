@@ -31,6 +31,5 @@ inla.print.version <- function()
     ## library.dynam.unload("INLA", libpath)
 }
 
-invisible(utils::suppressForeignCheck(c("low", "high", "spde", "internal"),
-                                      package = "INLA"))
+invisible(utils::suppressForeignCheck(c("low", "high", "spde", "internal"))
 
