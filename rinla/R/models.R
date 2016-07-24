@@ -6356,18 +6356,20 @@
     } else {
         ## have to split it, as option keep.source has an upper limit...
 
-        ## remove warnings...
-        if (!exists("low", globalenv())) {
-            ##assign("low", NA, globalenv())
-            rm.low = TRUE
-        } else {
-            rm.low = FALSE
-        }
-        if (!exists("high", globalenv())) {
-            ##assign("high", NA, globalenv())
-            rm.high = TRUE
-        } else {
-            rm.high = FALSE
+        if (FALSE) {
+            ## remove warnings...
+            if (!exists("low", globalenv())) {
+                assign("low", NA, globalenv())
+                rm.low = TRUE
+            } else {
+                rm.low = FALSE
+            }
+            if (!exists("high", globalenv())) {
+                ##assign("high", NA, globalenv())
+                rm.high = TRUE
+            } else {
+                rm.high = FALSE
+            }
         }
         
         models = c(
@@ -6381,11 +6383,13 @@
             inla.models.section.prior(),
             inla.models.section.wrapper())
         
-        if (rm.low) {
-            rm("low", envir = globalenv())
-        }
-        if (rm.high) {
-            rm("high", envir = globalenv())
+        if (FALSE) {
+            if (rm.low) {
+                rm("low", envir = globalenv())
+            }
+            if (rm.high) {
+                rm("high", envir = globalenv())
+            }
         }
         
         ## set "read.only" attribute for the `hyper' at those elements

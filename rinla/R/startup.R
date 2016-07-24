@@ -1,8 +1,8 @@
 ## copied from the mgcv-code...
 
-
-invisible(utils::globalVariables(c("low", "high", "spde", "internal")))
-invisible(utils::suppressForeignCheck(c("low", "high", "spde", "internal")))
+## this does not work...
+##  invisible(utils::globalVariables(c("low", "high", "spde", "internal")))
+##  invisible(utils::suppressForeignCheck(c("low", "high", "spde", "internal")))
 
 
 inla.print.version <- function()
