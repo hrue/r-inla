@@ -1,5 +1,10 @@
 ## copied from the mgcv-code...
 
+
+invisible(utils::globalVariables(c("low", "high", "spde", "internal")))
+invisible(utils::suppressForeignCheck(c("low", "high", "spde", "internal")))
+
+
 inla.print.version <- function()
 {
     info = library(help=INLA)$info[[1]]
@@ -30,6 +35,4 @@ inla.print.version <- function()
 .onUnload <- function(libpath) {
     ## library.dynam.unload("INLA", libpath)
 }
-
-invisible(utils::suppressForeignCheck(c("low", "high", "spde", "internal")))
 
