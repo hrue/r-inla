@@ -1,3 +1,4 @@
+op
 ## Internal: inla.internal.sp2segment.join
 ##
 ## S3methods; also export some methods explicitly
