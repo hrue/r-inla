@@ -1152,7 +1152,7 @@ double link_logitoffset(double x, map_arg_tp typ, void *param, double *cov)
 	case MAP_FORWARD:
 		return prob + (1.0 - prob) * map_probability(x, MAP_FORWARD, NULL);
 	case MAP_BACKWARD:
-		return map_probability((x-prob)/(1.0 - prob), MAP_BACKWARD, NULL);
+		return map_probability((x - prob) / (1.0 - prob), MAP_BACKWARD, NULL);
 	case MAP_DFORWARD:
 		return (1.0 - prob) * map_probability(x, MAP_DFORWARD, NULL);
 	case MAP_INCREASING:
@@ -2341,9 +2341,9 @@ double priorfunc_pc_matern(double *x, double *parameters)
 
 	lam1 = parameters[0];
 	lam2 = parameters[1];
-	dHalf = parameters[2]/2.0;
+	dHalf = parameters[2] / 2.0;
 
-	ldens = (log(lam1*dHalf) - dHalf * theta1 - lam1 * exp(-dHalf * theta1)) + (log(lam2) + theta2 - lam2 * exp(theta2));
+	ldens = (log(lam1 * dHalf) - dHalf * theta1 - lam1 * exp(-dHalf * theta1)) + (log(lam2) + theta2 - lam2 * exp(theta2));
 
 	if (debug) {
 		fprintf(stderr, "pc_matern: x = %g %g\n", x[0], x[1]);
@@ -2359,7 +2359,7 @@ double priorfunc_pc_range(double *x, double *parameters)
 	int debug = 0;
 
 	lam = parameters[0];
-	dHalf = parameters[1]/2.0;
+	dHalf = parameters[1] / 2.0;
 
 	ldens = log(lam * dHalf) - dHalf * theta1 - lam * exp(-dHalf * theta1);
 
@@ -3344,6 +3344,11 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_ZERO_N_INFLATEDBINOMIAL2:
+		idiv = 3;
+		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
+		break;
+
+	case L_ZERO_N_INFLATEDBINOMIAL3:
 		idiv = 3;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 		break;
@@ -5887,6 +5892,57 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 #undef P2
 	return GMRFLib_SUCCESS;
 }
+int loglikelihood_zero_n_inflated_binomial3(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * zeroNinflated Binomial : see doc from JS.
+	 */
+#define P0(_p) (pow(_p,        alpha0)/(1.0 + pow((_p), alpha0) + pow(1.0- (_p), alphaN)))
+#define PN(_p) (pow(1.0- (_p), alphaN)/(1.0 + pow((_p), alpha0) + pow(1.0- (_p), alphaN)))
+
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx],
+	    alpha0 = map_exp(ds->data_observations.zero_n_inflated_alpha0_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL),
+	    alphaN = map_exp(ds->data_observations.zero_n_inflated_alphaN_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), p, p0, pN, logA, logB;
+
+	gsl_sf_result res;
+	gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
+
+	LINK_INIT;
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			p0 = P0(p);
+			pN = PN(p);
+			if (ISINF(p)) {
+				logll[i] = -DBL_MAX;
+			} else {
+				logB = log(1.0 - p0 - pN) + res.val + y * log(p) + (n - y) * log(1.0 - p);
+				if ((int) y == 0) {
+					logA = log(p0);
+					logll[i] = eval_logsum_safe(logA, logB);
+				} else if ((int) y == (int) n) {
+					logA = log(pN);
+					logll[i] = eval_logsum_safe(logA, logB);
+				} else {
+					logll[i] = logB;
+				}
+			}
+		}
+	} else {
+		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
+	}
+
+	LINK_END;
+#undef P0
+#undef PN
+	return GMRFLib_SUCCESS;
+}
 int loglikelihood_gamma(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
 	/*
@@ -7453,7 +7509,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 			for (i = 0; i < nparam; i++) {
 				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
 			}
-		}	
+		}
 	} else if (!strcasecmp(prior->name, "PCRANGE")) {
 		int nparam, i;
 
@@ -8186,15 +8242,16 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 							   (mb->link_fitted_values && !gsl_isnan(mb->link_fitted_values[i])) ?
 							   mb->data_sections[(int) (mb->link_fitted_values[i])].link_covariates : NULL);
 
-		if (found == 0 && mb->predictor_invlinkfunc[i] == NULL) need_link++;
+		if (found == 0 && mb->predictor_invlinkfunc[i] == NULL)
+			need_link++;
 	}
 
-	//fprintf(stderr, "%d\n", mb->gaussian_data);
+	// fprintf(stderr, "%d\n", mb->gaussian_data);
 	if (need_link && !mb->gaussian_data) {
 		fprintf(stderr, "\n\n*** Warning *** You might want to consider to setting ``control.predictor=list(link=...)''\n");
 		fprintf(stderr, "*** Warning *** otherwise the identity link will be used to compute the fitted values for NA data\n\n\n");
 	}
-	
+
 	iniparser_freedict(ini);
 	return mb;
 }
@@ -8898,6 +8955,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "ZERONINFLATEDBINOMIAL2")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zero_n_inflated_binomial2;
 		ds->data_id = L_ZERO_N_INFLATEDBINOMIAL2;
+	} else if (!strcasecmp(ds->data_likelihood, "ZERONINFLATEDBINOMIAL3")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zero_n_inflated_binomial3;
+		ds->data_id = L_ZERO_N_INFLATEDBINOMIAL3;
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDBETABINOMIAL0")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_betabinomial0;
 		ds->data_id = L_ZEROINFLATEDBETABINOMIAL0;
@@ -9229,6 +9289,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_BINOMIAL:
 	case L_ZERO_N_INFLATEDBINOMIAL2:
+	case L_ZERO_N_INFLATEDBINOMIAL3:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.nb[i] <= 0.0 ||
@@ -12103,6 +12164,95 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
 			mb->theta[mb->ntheta] = ds->data_observations.zero_n_inflated_alpha2_intern;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_exp;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+		break;
+	}
+
+	case L_ZERO_N_INFLATEDBINOMIAL3:
+	{
+		/*
+		 * get options related to the zero_n_inflatedbinomial3
+		 */
+		double initial_value = log(2.0);
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), initial_value);
+		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
+		if (!ds->data_fixed0 && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.zero_n_inflated_alpha0_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise alpha0_intern[%g]\n", ds->data_observations.zero_n_inflated_alpha0_intern[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
+		}
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN-std");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed0) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior0.hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("intern alpha0 parameter for zero-n-inflated binomial_3", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("alpha0 parameter for zero-n-inflated binomial_3", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.zero_n_inflated_alpha0_intern;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_exp;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), initial_value);
+		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
+		if (!ds->data_fixed1 && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.zero_n_inflated_alphaN_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise alphaN_intern[%g]\n", ds->data_observations.zero_n_inflated_alphaN_intern[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
+		}
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed1) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior1.hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("intern alphaN parameter for zero-n-inflated binomial_3", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("alphaN parameter for zero-n-inflated binomial_3", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta[mb->ntheta] = ds->data_observations.zero_n_inflated_alphaN_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
@@ -20872,6 +21022,25 @@ double extra(double *theta, int ntheta, void *argument)
 					double log_alpha2 = theta[count];
 
 					val += PRIOR_EVAL(ds->data_prior1, &log_alpha2);
+					count++;
+				}
+				break;
+
+			case L_ZERO_N_INFLATEDBINOMIAL3:
+				if (!ds->data_fixed0) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					double log_alpha0 = theta[count];
+
+					val += PRIOR_EVAL(ds->data_prior0, &log_alpha0);
+					count++;
+				}
+				if (!ds->data_fixed1) {
+					double log_alphaN = theta[count];
+
+					val += PRIOR_EVAL(ds->data_prior1, &log_alphaN);
 					count++;
 				}
 				break;
