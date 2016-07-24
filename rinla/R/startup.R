@@ -24,12 +24,13 @@ inla.print.version <- function()
 
 .onAttach <- function(...)
 { 
-    dummy = utils::suppressForeignCheck(c("low", "high", "spde", "internal"),
-                                        package = "INLA")
     inla.print.version()
 }
 
 .onUnload <- function(libpath) {
     ## library.dynam.unload("INLA", libpath)
 }
+
+invisible(utils::suppressForeignCheck(c("low", "high", "spde", "internal"),
+                                      package = "INLA"))
 
