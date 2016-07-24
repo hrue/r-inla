@@ -6358,13 +6358,13 @@
 
         ## remove warnings...
         if (!exists("low", globalenv())) {
-            assign("low", NA, globalenv())
+            ##assign("low", NA, globalenv())
             rm.low = TRUE
         } else {
             rm.low = FALSE
         }
         if (!exists("high", globalenv())) {
-            assign("high", NA, globalenv())
+            ##assign("high", NA, globalenv())
             rm.high = TRUE
         } else {
             rm.high = FALSE
