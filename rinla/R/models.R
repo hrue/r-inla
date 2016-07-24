@@ -5739,6 +5739,38 @@
                      pdf = NA
                      ),
 
+                 zeroninflatedbinomial3 = list(
+                     hyper = list(
+                         theta1 = list(
+                             hyperid =  93101,
+                             name = "alpha0",
+                             short.name = "alpha0",
+                             initial = 2,
+                             fixed = FALSE,
+                             prior = "gaussian",
+                             param = c(4, 1),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                             ),
+                         theta2 = list(
+                             hyperid =  93102,
+                             name = "alphaN",
+                             short.name = "alphaN",
+                             initial = 2,
+                             fixed = FALSE,
+                             prior = "gaussian",
+                             param = c(4, 1),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                             )
+                         ),
+                     status = "experimental", 
+                     survival = FALSE,
+                     discrete = FALSE,
+                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog"),
+                     pdf = "zeroinflated"
+                     ),
+
                  zeroinflatedbetabinomial2 = list(
                      hyper = list(
                          theta1 = list(
@@ -6333,7 +6365,6 @@
             inla.models.section.likelihood(),
             inla.models.section.prior(),
             inla.models.section.wrapper())
-        
         ## set "read.only" attribute for the `hyper' at those elements
         ## that cannot be changed.
         for (section in names(models)) {
