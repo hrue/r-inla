@@ -705,11 +705,16 @@ inla.spde2.pcmatern =
                               extraconstr = extraconstr,
                               fractional.method = fractional.method,
                               n.iid.group = 1)
+  
+  ## Calculate hyperparameters
+  lam1 = -log(prior.rho[2])*prior.rho[1]^(d/2)
+  lam2 = -log(prior.sigma[2])/prior.sigma[1]
+  pVec = c(lam1, lam2, d)
 
   ## Change prior information
   spde$f$hyper.default <-
-    list(theta1=list(prior="pcspdega",
-                     param=c(prior.rho, prior.sigma),
+    list(theta1=list(prior="pcmatern",
+                     param=pVec,
                      initial=log(prior.rho[1])+1),
          theta2=list(initial=log(prior.sigma[1])-1))
 
