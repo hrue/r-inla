@@ -2343,7 +2343,15 @@ double priorfunc_pc_matern(double *x, double *parameters)
 	lam2 = parameters[1];
 	dHalf = parameters[2] / 2.0;
 
-	ldens = (log(lam1 * dHalf) - dHalf * theta1 - lam1 * exp(-dHalf * theta1)) + (log(lam2) + theta2 - lam2 * exp(theta2));
+	ldens = 0.0;
+	
+	// Check if range is fixed
+	if(!ISNAN(theta1))
+		ldens += log(lam1 * dHalf) - dHalf * theta1 - lam1 * exp(-dHalf * theta1);
+
+	// Check if standard deviation is fixed
+	if(!ISNAN(theta2))
+		ldens += log(lam2) + theta2 - lam2 * exp(theta2);
 
 	if (debug) {
 		fprintf(stderr, "pc_matern: x = %g %g\n", x[0], x[1]);
