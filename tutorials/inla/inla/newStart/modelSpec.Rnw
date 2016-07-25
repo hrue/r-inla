@@ -439,7 +439,7 @@ Some important options are
 \begin{itemize}
         \item[{\tt constr}:] A boolean variable indicating whether to
         set a sum to zero constraint. By default the sum to zero constraint is
-        imposed on all intrinsic models ("iid","rw1","rw2","besag",
+        imposed on all intrinsic models (``iid'', ``rw1'', ``rw2'', ``besag'',
         etc..). That means to all models where the corresponding
         precision matrix has not full rank.
         \item[{\tt extraconstr}] This argument defines extra linear
@@ -447,7 +447,27 @@ Some important options are
         {\tt A} and a
         vector {\tt e}, which defines the extra constraint {\tt Ax =
           e} for random effect {\tt x};
-        leading to {\tt extraconstr = list(A=A, e=e)}. Note that this
+        leading to {\tt extraconstr = list(A=A, e=e)}. The number of
+        columns of {\tt A} must correspond to the length of this
+        f-model.
+
+
+        For example, assume that the random effect $j$ has length
+        five and is modelled as an RW1.
+        In addition to the default sum-to-zero constraing we would
+        like to have two
+        extra constraints, the
+        first saying that the first two effects should be equal and the
+        second that the last two
+        elements are equal. Thus we have
+<<eval=FALSE>>=
+  A = matrix(1,-1,0,0,0,
+             0,0,0,1,-1), nrow=2, ncol=5, byrow=TRUE)
+  e = c(0,0)
+  extra = list(A=A, e=e)
+  formula = y ~ f(j, model="rw1", constr=TRUE, extraconstr=extra) + ....
+@
+         Note that this
         constraint comes additional to the
         sum-to-zero constraint defined if {\tt constr = TRUE}.
         \item[{\tt quantile}:]A vector of maximum $10$ quantiles
@@ -464,12 +484,91 @@ a random effect to be defined within the \tv{f}-function.
 \section{Define hyperpriors for random effects}
 
 \subsection{General structure}
-Write about internal scale.
 
-Use of
+Each latent model depends on a certain number of hyperparameters,
+e.g.~the {\tt iid} model has one hyperparameter namely the precision,
+for which a prior distribution
+needs to be specified.
+
+Hyperparameters are internally often not represented in its original scale
+but using a more well defined transforamtion. For example, a
+precison parameter $\tau$ and a correlation parameter $\rho$ are
+internally represented as
+\begin{align*}
+  \theta_1 &= \log(\tau)\\
+  \theta_2 &= \log \Biggl( \frac{1+\rho}{1-\rho}\Biggr)
+\end{align*}
+That means that prior distributions as well as starting values for the
+numerical optimisation must be specified on the corresponding internal
+scale. Of note, posterior marginals and summary estimates are
+returned on the original scale.
+
+To set the details for the hyperparameters the field {\tt hyper} of
+the {\tt f()} function is used, which takes as argument a list. This
+list has as many entries as hyperparameters exist for the latent model.
+For each hyperparameter again a list containing the prior settings is
+defined.
+The prior settings for a precision parameter, in case of the {\tt rw2}
+model for example, are set via:
 <<eval=FALSE>>=
-hyper=list(...)
+ hyper=list(
+   prec=list(
+     prior="loggamma",
+     param=c(1, 1e-04),
+     initial=4,
+     fixed=FALSE,
+     to.theta = function(x) log(x),
+     from.theta = function(x) exp(x)
+   )
+ )
 @
+{\tt prec} in line 2 is the short name identifier to indicate that
+the settings specified in the subsequent list belong to the precision
+parameter. Internally the precision parameter is log-transformed and
+all prior settings are defined for this transformed parameter.
+The transformation used can be seen in lines 7 and 8.
+Here, we use a log-gamma distribution  with parameters $1$ and
+$1e-04$ (lines 3 and 4). It is also possible to fix the hyperparameter setting
+the field {\tt fixed = TRUE} in line 6, i.e.~to not estimate this parameter.
+The value to which it should be fixed
+is assigned to {\tt initial} in line 5. If {\tt fixed=FALSE} the value
+set in {\tt initial} is used as starting value in the numerical
+optimisation for finding the mode of $\bm{\theta} \mid \bm{y}$.
+
+For a latent model with more than one hyperparameter several of prior lists
+can be specified in {\tt hyper}. For example for an AR1 model, which
+has two hyperparameters,  the corresponding specification would be:
+<<eval=FALSE>>=
+ hyper=list(
+   prec=list(
+     prior="loggamma",
+     param=c(1, 1e-04),
+     initial=4,
+     fixed=FALSE,
+     to.theta = function(x) log(x),
+     from.theta = function(x) exp(x)
+   ),
+   rho=list(
+     prior = "normal",
+     param = c(0, 0.15),
+     initial = 2,
+     fixed = FALSE,
+     to.theta = function(x) log((1+x)/(1-x)),
+     from.theta = function(x) 2*exp(x)/(1+exp(x))-1
+   )
+ )
+@
+Here, a log-gamma distribution with parameters  $1$ and $1e-04$ is assigned
+to the log-precision parameter and a normal distribution with mean $0$
+and precision $0.15$ is assigned to the logit-transformed lag one correlation
+parameter $\rho$.
+
+The details on the hyperparameters  (number, identifier names, \ldots)
+% and default values of all latent models can be requested within {\tt R}
+% using the function {\tt inla.model.properties(<identifier>, "latent")}.
+are given in the documentary pdf file of the latent model or
+listed when typing {\tt ?inla.models}.
+
 
 \subsection{List of available priors}
 
