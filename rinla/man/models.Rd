@@ -6923,10 +6923,10 @@ inla.models()
 							\item{hyperid = }{`93101'}
 							\item{name = }{`alpha0'}
 							\item{short.name = }{`alpha0'}
-							\item{initial = }{`2'}
+							\item{initial = }{`1'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`gaussian'}
-							\item{param = }{`4 1'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 1'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
@@ -6936,10 +6936,10 @@ inla.models()
 							\item{hyperid = }{`93102'}
 							\item{name = }{`alphaN'}
 							\item{short.name = }{`alphaN'}
-							\item{initial = }{`2'}
+							\item{initial = }{`1'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`gaussian'}
-							\item{param = }{`4 1'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 1'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
@@ -6948,6 +6948,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default logit cauchit probit cloglog loglog'}
