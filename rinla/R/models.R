@@ -5745,10 +5745,10 @@
                              hyperid =  93101,
                              name = "alpha0",
                              short.name = "alpha0",
-                             initial = 2,
+                             initial = 1,
                              fixed = FALSE,
-                             prior = "gaussian",
-                             param = c(4, 1),
+                             prior = "loggamma",
+                             param = c(1, 1),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
                              ),
@@ -5756,10 +5756,10 @@
                              hyperid =  93102,
                              name = "alphaN",
                              short.name = "alphaN",
-                             initial = 2,
+                             initial = 1,
                              fixed = FALSE,
-                             prior = "gaussian",
-                             param = c(4, 1),
+                             prior = "loggamma",
+                             param = c(1, 1),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
                              )
