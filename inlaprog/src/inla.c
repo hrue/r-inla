@@ -1924,8 +1924,8 @@ double mfunc_rgeneric(int i, void *arg)
 	}
 
 	if (rebuild) {
-		int n, len, k = 0, n_out, jj;
-		double *mu = NULL, *x_out = NULL;
+		int n, k = 0, n_out, jj;
+		double *x_out = NULL;
 #pragma omp critical
 		{
 			if (debug) {
@@ -2027,7 +2027,7 @@ double mfunc_revsigm(int i, void *arg)
 double mfunc_log1exp(int i, void *arg)
 {
 	inla_log1exp_tp *a = (inla_log1exp_tp *) arg;
-	double beta, alpha, gama, x, xx;
+	double beta, alpha, gama, x;
 
 	beta = a->beta[GMRFLib_thread_id][0];
 	alpha = a->alpha[GMRFLib_thread_id][0];
@@ -2344,13 +2344,13 @@ double priorfunc_pc_matern(double *x, double *parameters)
 	dHalf = parameters[2] / 2.0;
 
 	ldens = 0.0;
-	
+
 	// Check if range is fixed
-	if(!ISNAN(theta1))
+	if (!ISNAN(theta1))
 		ldens += log(lam1 * dHalf) - dHalf * theta1 - lam1 * exp(-dHalf * theta1);
 
 	// Check if standard deviation is fixed
-	if(!ISNAN(theta2))
+	if (!ISNAN(theta2))
 		ldens += log(lam2) + theta2 - lam2 * exp(theta2);
 
 	if (debug) {
@@ -2651,7 +2651,7 @@ double priorfunc_pc_ar(double *x, double *parameters)
 double priorfunc_ref_ar(double *x, double *parameters)
 {
 	int i, p;
-	double pacf[3], ldens, logjac;
+	double pacf[3], ldens;
 
 	p = (int) parameters[0];
 	assert(p >= 0 && p <= 3);
@@ -21777,10 +21777,23 @@ double extra(double *theta, int ntheta, void *argument)
 			val += mb->f_nrep[i] * (problem[i]->sub_logdens * (ngroup - grankdef) + normc_g);
 
 			/*
-			 * this is the mvnormal prior...  'count_ref' is the 'first theta as this is a mutivariate prior.
+			 * this is a multivariate prior...  'count_ref' is the 'first theta'
 			 */
 			if (!mb->fixed_mode) {
-				val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
+				if (mb->f_prior[i][0].id == P_PC_MATERN) {
+					/*
+					 *  This is a special case: the pc_matern prior. pass NAN for fixed values and the prior will do the correct thing.
+					 */
+					double local_theta[2];
+					int local_count = 0;
+
+					local_theta[0] = (NOT_FIXED(f_fixed[i][0]) ? theta[count_ref + local_count++] : NAN);
+					local_theta[1] = (NOT_FIXED(f_fixed[i][1]) ? theta[count_ref + local_count++] : NAN);
+					assert(local_count == spde2_ntheta);
+					val += PRIOR_EVAL(mb->f_prior[i][0], local_theta);
+				} else {
+					val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
+				}
 			}
 			break;
 		}
