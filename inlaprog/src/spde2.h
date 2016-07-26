@@ -55,9 +55,13 @@ __BEGIN_DECLS
 typedef struct {
 	int n;
 	int ntheta;					       /* that is `p' in Finn's notes */
+	int ntheta_used;				       /* how many are non-fixed. */
 	int debug;
 	int theta_first_idx;
 
+	int *fixed;
+	double *fixed_values;
+	
 	spde2_transform_tp transform;
 
 	GMRFLib_matrix_tp **B;

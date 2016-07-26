@@ -43,8 +43,6 @@
 #include <stdlib.h>
 #include <omp.h>
 
-static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
-
 #define CSTACK_DEFNS 1
 #include <R.h>
 #include <Rembedded.h>
@@ -102,8 +100,7 @@ int inla_R_init(void)
 			my_setenv(rhome, 0);
 			Free(rhome);
 		}
-
-		//char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--silent", "--no-save" };
+		// char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--silent", "--no-save" };
 		char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--no-save" };
 		int Rargc = sizeof(Rargv) / sizeof(Rargv[0]);
 		Rf_initEmbeddedR(Rargc, Rargv);
@@ -227,7 +224,7 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 
 	int error, i;
 	SEXP xx, result, e;
-	
+
 	xx = PROTECT(allocVector(REALSXP, n));
 	for (i = 0; i < n; i++) {
 		REAL(xx)[i] = x[i];
@@ -253,7 +250,7 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 	} else {
 		*x_out = NULL;
 	}
-	
+
 	UNPROTECT((tag ? 4 : 3));
 	return (INLA_OK);
 }
@@ -322,7 +319,7 @@ int inla_R_get(int *n_out, double **x_out, const char *variable)
 	} else {
 		*x_out = NULL;
 	}
-	
+
 	UNPROTECT(3);
 
 	return (INLA_OK);
@@ -364,7 +361,7 @@ int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *mod
 	} else {
 		*x_out = NULL;
 	}
-	
+
 	UNPROTECT(5);
 
 	return (INLA_OK);
