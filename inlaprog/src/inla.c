@@ -2337,7 +2337,7 @@ double priorfunc_pc_spde_ga(double *x, double *parameters)
 double priorfunc_pc_matern(double *x, double *parameters)
 {
 	double theta1 = x[0], theta2 = x[1], *par = parameters, ldens, lam1, lam2, dHalf;
-	int debug = 1;
+	int debug = 0;
 
 	lam1 = parameters[0];
 	lam2 = parameters[1];
@@ -15018,7 +15018,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			GMRFLib_sprintf(&hid, "%s|%s", cctmp, secname);
 
 			/*
-			 * add this \theta 
+			 * add this \theta. make spesific names for the pcmatern-case
 			 */
 			if (!mb->f_fixed[mb->nf][i]) {
 				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
@@ -15027,21 +15027,38 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-				GMRFLib_sprintf(&msg, "Theta%1d for %s", i + 1, (secname ? secname : mb->f_tag[mb->nf]));
-				mb->theta_tag[mb->ntheta] = msg;
-				GMRFLib_sprintf(&msg, "Theta%1d for %s", i + 1, (secname ? secname : mb->f_tag[mb->nf]));
-				mb->theta_tag_userscale[mb->ntheta] = msg;
-				GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], i + 1);
-				mb->theta_dir[mb->ntheta] = msg;
-				
-				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);	/* YES, use prior0, which is a joint prior */
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);	/* YES, use prior0, which is a joint prior */
-				
-				mb->theta[mb->ntheta] = spde2_model->theta[i];
-				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-				mb->theta_map[mb->ntheta] = map_identity;
+
+				if (mb->f_prior[mb->nf][0].id == P_PC_MATERN && (i == 0 || i == 1)) {
+					GMRFLib_sprintf(&msg, "%s for %s", (i == 0 ? "log(Range)" : "log(Stdev)"),
+							(secname ? secname : mb->f_tag[mb->nf]));
+					mb->theta_tag[mb->ntheta] = msg;
+					GMRFLib_sprintf(&msg, "%s for %s", (i == 0 ? "Range" : "Stdev"),
+							(secname ? secname : mb->f_tag[mb->nf]));
+					mb->theta_tag_userscale[mb->ntheta] = msg;
+					GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], i + 1);
+					mb->theta_dir[mb->ntheta] = msg;
+					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+					mb->theta_from[mb->ntheta] = GMRFLib_strdup("function (x) <<NEWLINE>>log(x)"); /* they are not there... */
+					mb->theta_to[mb->ntheta] = GMRFLib_strdup("function (x) <<NEWLINE>>exp(x)");   /* .... */
+					mb->theta[mb->ntheta] = spde2_model->theta[i];
+					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+					mb->theta_map[mb->ntheta] = map_exp;
+				} else {
+					GMRFLib_sprintf(&msg, "Theta%1d for %s", i + 1, (secname ? secname : mb->f_tag[mb->nf]));
+					mb->theta_tag[mb->ntheta] = msg;
+					GMRFLib_sprintf(&msg, "Theta%1d for %s", i + 1, (secname ? secname : mb->f_tag[mb->nf]));
+					mb->theta_tag_userscale[mb->ntheta] = msg;
+					GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], i + 1);
+					mb->theta_dir[mb->ntheta] = msg;
+					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+					mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);	/* YES, use prior0, which is a joint prior */
+					mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);	/* YES, use prior0, which is a joint prior */
+					mb->theta[mb->ntheta] = spde2_model->theta[i];
+					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+					mb->theta_map[mb->ntheta] = map_identity;
+				}
 				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 				mb->theta_map_arg[mb->ntheta] = NULL;
 				mb->ntheta++;
@@ -15069,7 +15086,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		memcpy(spde2_model_orig->fixed, spde2_model->fixed, ntheta * sizeof(int));
 		memcpy(spde2_model_orig->fixed_values, spde2_model->fixed_values, ntheta * sizeof(double));
 		
-		if (!strcasecmp(mb->f_prior[mb->nf][0].name, "MVNORM")) {
+		if (mb->f_prior[mb->nf][0].id == P_MVNORM) {
 			if ((int) mb->f_prior[mb->nf][0].parameters[0] != mb->f_ntheta[mb->nf]) {
 				GMRFLib_sprintf(&ptmp, "Dimension of the MVNORM prior is not equal to number of used hyperparameters: %1d != %1d\n",
 						(int) mb->f_prior[mb->nf][0].parameters[0], mb->f_ntheta[mb->nf]);
@@ -15078,7 +15095,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 		} else if (!strcasecmp(mb->f_prior[mb->nf][0].name, "PCSPDEGA")) {
 			assert(mb->f_ntheta[mb->nf] == 2);		       /* requirement... */
-		} else if (!strcasecmp(mb->f_prior[mb->nf][0].name, "PCMATERN")) {
+		} else if (mb->f_prior[mb->nf][0].id == P_PC_MATERN) {
 			assert(mb->f_ntheta[mb->nf] <= 2);		       /* requirement... */
 		} else {
 			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
