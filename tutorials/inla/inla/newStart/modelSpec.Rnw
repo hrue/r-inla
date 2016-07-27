@@ -10,7 +10,7 @@ interest in the right way.
 
 INLA can be used to estimate Bayesian hierarchical models defined over
 three stages. The first
-stage describes the distibribution of the response vector $\bs{y}=(y_1,
+stage describes the distribution of the response vector $\bs{y}=(y_1,
 \ldots, y_{n_d})^\top$ and is formed by a likelihood function with conditional independence
 properties given the ($n_d \times 1$) vector of linear predictors
 $\bs{\eta}$ and the ($m \times 1$) vector of possible hyperparameters
@@ -27,7 +27,7 @@ second stage defines the distribution of the underlying unobserved
 that the covariates are linearly related to the linear predictor. This
 stage can include fixed effects for covariates, unstructured random
 effects, such as individual or group effects, or structured random
-effects, such as an autoregressive model of order 1 or a smoothin
+effects, such as an autoregressive model of order 1 or a smoothing
 random effect over space. It is crucial that the second stage, the
 so-called latent level, is Gaussian
 distributed in order to apply INLA. In matrix notation we have,
@@ -43,7 +43,7 @@ Gaussian priors with mean $\mu _i$ and precision $\tau_i$ for each of
 the regressor coefficients $\beta_i$, $i = 1,...,p$. The term $\bs{w}
 f(\bs{c}, \bs{\theta}_2)$ specifies a non-linear/smooth Gaussian effect of
 covariate $\bs{c}$  weighted with a vector of known weights $\bs{w}$
-and $\bs{\theta}_2$ represent the hyperparameters for this Guassian
+and $\bs{\theta}_2$ represent the hyperparameters for this Gaussian
 model. The hierarchical
 model is then completed with an appropriate prior distribution for the
 possible vector of hyperparameters $\bs{\theta} = (\bs{\theta}_1,
@@ -53,9 +53,9 @@ single model components
 \begin{list}{\labelitemi}{\leftmargin=5em}
   \item[\textbf{Stage 3.}] $\bs{\theta} \sim \pi(\bs{\theta})$.
 \end{list}
-Here, $\bs{\theta}_1$ denots the hyperparameters of the likelihood
+Here, $\bs{\theta}_1$ denotes the hyperparameters of the likelihood
 model which can include the variance of the observation noise, the
-dispersion parameter in the negative binomial model, the probabiliy of
+dispersion parameter in the negative binomial model, the probability of
 observing zero counts in a zero-inflated model. In contrast,
 $\bs{\theta}_2$ includes all hyperparameters from the second stage,
 e.g.~variance parameters of structured or unstructured random effects,
@@ -161,7 +161,7 @@ result = inla(formula, data = data.frame(y=y, x=x, z=z))
 result$summary.fixed
 @
 Note that we need to pass a \tv{data.frame} or a \tv{list} containing the
-explanatory variables to the field \tv{data} in the functin \tv{inla()}.
+explanatory variables to the field \tv{data} in the function \tv{inla()}.
 
 It is also possible to use the design matrix $\mathbf{X}$ explicitly as in
 <<eval=FALSE>>=
@@ -407,7 +407,7 @@ standard deviation for the  autocorrelation parameter $\rho$ are
 $\Sexpr{format(result$summary.hyperpar$mean[3],digits=2,nsmall=2)}$  and
 $\Sexpr{format(result$summary.hyperpar$sd[3],digits=2,nsmall=2)}$,
 respectively. Estimates will be closer to the simulated values of
-$0.8$ when increasing the number of observations. Section~TODO  disusses
+$0.8$ when increasing the number of observations. Section~TODO  discusses
 how to extract output information for the random effects.
 <<>>=
 summary(result)
@@ -456,7 +456,7 @@ Some important options are
 
         For example, assume that the random effect $j$ has length
         five and is modelled as an RW1.
-        In addition to the default sum-to-zero constraing we would
+        In addition to the default sum-to-zero constraining we would
         like to have two
         extra constraints, the
         first saying that the first two effects should be equal and the
@@ -476,7 +476,7 @@ Some important options are
         to compute for each posterior marginal.
         \item[{\tt rankdef}:] A number *defining* the rank deficiency of
                 the latent model.
-        \item[{\tt cyclic}:]A boolean specifying wheather the model is cyclical. Only
+        \item[{\tt cyclic}:]A boolean specifying whether the model is cyclical. Only
           valid for "rw1" and "rw2" models. If cyclic=T then the sum to
           0 constraint is removed.
 \end{itemize}
@@ -494,7 +494,7 @@ needs to be specified.
 
 Hyperparameters are internally often not represented in its original scale
 but using a more well defined transforamtion. For example, a
-precison parameter $\tau$ and a correlation parameter $\rho$ are
+precision parameter $\tau$ and a correlation parameter $\rho$ are
 internally represented as
 \begin{align*}
   \theta_1 &= \log(\tau)\\
@@ -659,7 +659,7 @@ where ``\texttt{<statement>}'' is any regular statement
 of the prior, evaluated at the current value for $\theta$.
 
 Here, is an example defining the log-gamma distribution for the
-precision parameter on the interal log scale:
+precision parameter on the internal log scale:
 <<eval=FALSE>>=
 prior.expression = "expression: a = 1; b = 0.1;
   precision = exp(log_precision);
@@ -778,11 +778,87 @@ r3 = inla(y~1,
 c(r1$mlik[1], r2$mlik[1], r3$mlik[1])
 @
 
-
-
 \subsection{Model scaling}
 
-Write about Sigrunns and your paper.
+All intrinsic latent Gaussian models, that means models where the
+precision matrix has not full-rank, such as the RW1, RW2 or Besag
+model,  suffer from a so-called scaling problem CITE SIGRUNN. These
+models are non scaled with the effect that their properties change
+with locations, dimensions or graph structure. Scaling is therefore
+crucial to facilitate hyperprior assignment and guarantee that
+hyperpriors used in one application have the same interpretation in
+another application.
+
+Consider a RW1 for a random effect $\mathbf{x} = (x_1, \dots,
+x_n)^\top$  with density
+\begin{equation*}
+  \pi(\mathbf{x}) =
+  (2\pi)^{\frac{-(n-1)}{2}}(|\mathbf{Q}|)^{1/2}\exp\left(-\frac{1}{2}\bm{x}^\top \mathbf{Q}\bm{x}\right),
+\end{equation*}
+where $\mathbf{Q} = \kappa\mathbf{R}$ and where $\mathbf{R}$ is the
+so-called structure matrix
+    \begin{equation*}
+        \bm{R} = \begin{pmatrix}
+            1&-1&&&&&\\
+            -1&2&-1&&&&\\
+            &-1&2&-1&&&\\
+            &&\ddots&\ddots&\ddots&&\\
+            &&&-1&2&-1&\\
+            &&&&-1&2&-1\\
+            &&&&&-1&1\\
+        \end{pmatrix}.
+    \end{equation*}
+The marginal variances $\kappa^{-1}[\mathbf{R}^{-}]_{ii}$ depend on the graph
+structure reflected by the structure matrix $\mathbf{R}$.
+This can be illustrated by calculating a generalized variance, computed as
+the geometric mean (or some other
+typical value) of the marginal variances
+ \begin{eqnarray}
+  \sigma_{\text{GV}}^2(\mathbf{x}) &= &  \exp \left(\frac{1}{n}\sum_{i=1}^n
+    \log\left(\frac{1}{\kappa} [\mathbf{R}^{-}]_{ii}\right) \right)
+    = \frac{1}{\kappa} \exp \left(\frac{1}{n}\sum_{i=1}^n
+    \log([\mathbf{R}^{-}]_{ii}) \right). \label{eq:cv}
+\end{eqnarray}
+Here $(\cdot)^{-}$ denotes the generalised inverse.
+The generalized variance  for random effects of different length is
+not the same:
+<<echo=TRUE>>=
+  library(MASS)
+  INLA:::inla.rw1(5)
+  exp(mean(log(diag(ginv(as.matrix(INLA:::inla.rw1(5)))))))
+  exp(mean(log(diag(ginv(as.matrix(INLA:::inla.rw1(50)))))))
+  exp(mean(log(diag(ginv(as.matrix(INLA:::inla.rw1(500)))))))
+@
+This means that putting a prior on $\kappa$ will have different
+smoothing effects depending on the length of the random walk. Assuming
+we keep $n=10$, say, then the generalised variance will vary between
+assuming an RW1 versus an RW2. This makes prior assignment
+challenging. The same applies for the Besag model. Here, the
+smoothness will depend on the underlying graph structure CITE PC4BYM.
+
+To facilitate prior assignment and preserve interpretability we
+recommend to scale all intrinsic GMRF models, so that
+ \begin{eqnarray}
+   \exp \left(\frac{1}{n}\sum_{i=1}^n
+    \log([\mathbf{R}^{-}]_{ii}) \right) = 1
+\end{eqnarray}
+In {\tt INLA} this can be easily done by adding the option {\tt
+  scale.model=TRUE} to the {\tt f}-function. For example for the RW1
+this means
+<<eval=FALSE>>=
+   formula = y ~ f(idx, model="rw1", scale.model=TRUE, ...)
+@
+Furthermore, {\tt INLA} offers the function {\tt inla.scale.model} to
+scale any arbitrary structure matrix. It takes as argument any
+singular structure matrix $\mathbf{R}$  and the linear constraints
+spanning the null-space $\mathbf{V}$ of $\mathbf{R}$, and returns the scaled
+structure matrix where the geometric mean of the marginal variances is
+equal to one. For the Besag model on a connected graph where we have
+$\mathbf{V} = \mathbf{1}$, we can scale the structure matrix using
+<<eval=FALSE>>=
+  R = inla.scale.model(R, constr=list(A=matrix(1, nrow=1, ncol=n), e=0))
+@
+
 
 
 \section{Define the observation model and run the model}
