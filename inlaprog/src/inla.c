@@ -21731,7 +21731,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 			spde2->debug = 0;
 			if (!mb->fixed_mode) {
-				for (k = kk = 0; k < spde2->ntheta_used; k++, k++) {
+				for (k = kk = 0; k < spde2->ntheta_used; k++, kk++) {
 					while(mb->f_fixed[i][kk]) kk++;
 					spde2->theta[kk][GMRFLib_thread_id][0] = theta[count + k];
 				}
