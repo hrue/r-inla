@@ -35,6 +35,7 @@ knit_hooks$set(pars = function(before, options, envir) {
     if (before) graphics::par(options$pars)
 }) 
 library(lattice);   library(gridExtra);  library(INLA);  library(plyr) 
+lcall <- inla.getOption('inla.call')
 inla.setOption(inla.call='remote') 
 @ 
 
@@ -75,7 +76,7 @@ random field (RF) at $m$ nodes.
 <<fmesh, tidy=FALSE, pars=list(mar=c(0,0,0.7,0)), out.width='0.45\\textwidth', fig.align='center'>>= 
 mesh <- inla.mesh.2d(
     coo, ## provide locations or domain
-    max.edge=c(1/k, 2/k), ## mandatory 
+    max.edge=c(0.5/k, 1/k), ## mandatory 
     cutoff=0.1/k) ## good to have >0
 plot(mesh, asp=1);  points(coo, col='red')
 @ 
@@ -187,6 +188,7 @@ rf <- inla.spde.result(
     do.transf=TRUE) ## to user scale
 @ 
 \end{multicols} 
+
 These posterior marginals can be visualized by 
 <<rfpars, pars=list(mfrow=c(1,3), mar=c(3,3,0.3,0.3), mgp=c(2,0.5,0)), fig.width=7.5, fig.height=2.5, out.width='0.99\\textwidth', out.height='0.33\\textwidth', fig.align='center', fig.pos='h', fig.keep='last'>>=
 plot(rf$marginals.var[[1]], type='l', xlab=expression(sigma[s]^2), yla='Density')
@@ -206,7 +208,8 @@ and project, for example, the posterior
 mean and posterior standard deviation on the grid. 
 
 <<project-grid>>=
-gproj <- inla.mesh.projector(mesh,  xlim=0:1, ylim=0:1, dims=c(300,300))
+nxy <- c(300, 300)
+gproj <- inla.mesh.projector(mesh,  xlim=0:1, ylim=0:1, dims=nxy)
 g.mean <- inla.mesh.project(gproj, res$summary.random$s$mean)
 g.sd <- inla.mesh.project(gproj, res$summary.random$s$sd)
 @ 
@@ -225,126 +228,169 @@ grid.arrange(levelplot(g.mean, scales=list(draw=F), xlab='', ylab='', main='mean
 The prediction is usually needed when one wants to know the distribution the 
 expected value for the outcome given the data. 
 It consider each model component, not only the random field, 
-which is only one component in the model and showed in the previous section. 
-There is two ways to compute the posterior marginals for 
-the linear predictor. 
+which is only one component in the model, showed in the previous section. 
 
 First, one has to define the scenario for the prediction, 
 that is the locationas and value for the covariates. 
-Example with only three locations and 
-covariate values set in its the mean value
+We show an example with only three locations, 
+predictions over a fine grid can also be considered, 
+and covariate values set in its the mean value
 <<target-loc>>=
-tcoo <- rbind(c(0.3,0.3), c(0.5,0.5), c(0.7,0.7))
+tcoo <- rbind(c(0.3,0.9), c(0.5,0.5), c(0.7,0.3))
 dim(Ap <- inla.spde.make.A(mesh=mesh, loc=tcoo)) 
 x0 <- c(0.5, 0.5, 0.5)
 @ 
 
-\subsection{Including NA's in the response vector}
+There is more than one ways to compute the posterior marginals for 
+the linear predictor. 
+When predictions over a fine grid is needed, 
+it will be preferable a computationally cheaper way.
 
-When including target locations on the 
-estimation process by assigning NA 
-for the response at these locations, 
-these unknows are treated in the entire 
-model fitting process. 
+\subsection{Expensive way: NA's in the response vector}
 
-Defining the prediction stack 
+An usual way is to build a scenario, 
+for fixed and random effects, 
+and assign NA for the outcome. 
+In this case, the linear predictor for 
+such missing observations is also 
+part of the model graph, \cite{Rueetal:2016},
+and is treated in the entire model fitting process. 
+
+Defining a prediction stack, join and use the full stack in \texttt{inla()}
 <<prediction-stack>>=
 stk.pred <- inla.stack(tag='pred', A=list(Ap, 1), data=list(y=NA), ## response as NA
                        effects=list(s=1:spde$n.spde, data.frame(x=x0, b0=1)))
-@ 
-
-Fit the model again with the full stack 
-
-<<refit-predict>>=
 stk.full <- inla.stack(stk.e, stk.pred) 
 p.res <- inla(formula, data=inla.stack.data(stk.full), ## full stack
               control.predictor=list(compute=TRUE, ## compute the predictor
                        A=inla.stack.A(stk.full))) ## using full stack data
 @ 
 
-Get the prediction data index 
+Get the prediction data index and have a look into the summary
 <<prdind>>=
 pred.ind <- inla.stack.index(stk.full, tag='pred')$data
-@ 
-and have a look into the summary
-<<prdsumm>>=
-p.res$summary.fitted.val[pred.ind,]
+round(p.res$summary.fitted.val[pred.ind,], 4)
 @ 
 
-Collect the linear predictor PMDs to work with
-<<ypost>>=
-ypost <- p.res$marginals.fitted.values[pred.ind]
-@ 
-
-Visualize with commands bellow
+Collect the linear predictor PMDs to work with, 
+and isualize with commands bellow
 <<ppred, tidy=FALSE, fig.width=9.9, fig.height=3.5, out.width='0.99\\textwidth', out.height='0.35\\textwidth', fig.pos='h', fig.keep='last'>>=
+ypost <- p.res$marginals.fitted.values[pred.ind]
 names(ypost) <- paste('y', seq_along(ypost), sep='_');     library(plyr) 
 xyplot(y~x | .id, ldply(ypost), panel='llines', xlab='y', ylab='Density')
 @ 
 
-\subsection{Considering linear combinations}
-
-It will be better to have a look first in the 
-examples at \url{http://www.r-inla.org/faq}. 
-This aproach is usefull to approximate the posterior marginals for 
-a linear combination defined over componens of the linar predictor, 
-as named in the model formula. 
-It has a computational advantage as it 
-can be avoided the inclusion of the desired unknows in the 
-model graph, with 
-\texttt{control.inla(lincomb.derived.only=TRUE)}, 
-which is the default option.
-
-Defining the linear combinations needed
-<<lcs>>=
-lcs <- inla.make.lincombs(b0=rep(1, nrow(Ap)), ## intercept
-                          x=x0, ### covariate values
-                          s=Ap) ### projector for target locations
-@ 
-
-Now, it just need to fit the model again. 
-In order to make the fitting process easier, 
-we can use the \texttt{inla.rerun()} function. 
-We just need to include to update the arguments 
-including the linear combinations. 
-We do it considering the first model result, 
-the one with only the observed data.
-<<rerun, results=FALSE, message=FALSE, warning=FALSE>>=
-res$.args$lincomb <- lcs
-res.lcs <- inla.rerun(res)
-@ 
-
-The summary for the PMD's are 
-<<lcssumm>>=
-res.lcs$summary.lincomb.derived
-@ 
-and the PMD's can be ploted with
-<<lcspost, tidy=FALSE, fig.width=9.9, fig.height=3.5, out.width='0.99\\textwidth', out.height='0.35\\textwidth', fig.pos='h', fig.keep='last'>>=
-ypost.lcs <- res.lcs$marginals.lincomb.derived
-names(ypost.lcs) <- paste('y', seq_along(ypost.lcs), sep='_')
-xyplot(y~x | .id, ldply(ypost.lcs), panel='llines', xlab='y', ylab='Density')
-@ 
-
+\begin{multicols}{2} 
+%\addtolength{\linewidth}{2in}
 In \textbf{\textsf{INLA}} we have some functions to work 
 with marginals distributions 
 
-<<marginals-funcs>>=
+<<echo=FALSE>>=
+options(width=43)
+@ 
+
+<<marginals-funcs, comment=NA>>=
 apropos('marginal')
 @ 
 
-\begin{multicols}{2} 
-
 <<marginals-examples>>=
-inla.mmarginal(ypost[[1]]) ## mode
-inla.qmarginal(c(0.15, 0.7), ## quantiles
-               ypost[[1]]) 
+## inla.mmarginal(ypost[[1]]) ## mode
+inla.qmarginal(c(0.15, 0.7), 
+               ypost[[1]]) ## quantiles
 inla.pmarginal(inla.qmarginal(
     0.3, ypost[[1]]), ypost[[1]]) 
+@ 
+\end{multicols} 
+
+\subsection{Cheaper way: Monte Carlo samples}
+
+The way we show here is cheaper if the number of locations 
+to be predicted is not small. 
+The idea is to drawn samples from the joint posterior distribution. 
+As any functional of interest can be considered, we will consider 
+the linear predictor at a set of target locations. 
+We start with the three locations previously considered and 
+at the end we consider a grid of location. 
+
+Monte Carlo saples from the joint posterior marginal distribution 
+can be drawn from the result of from \texttt{inla()} function when 
+the precision matrix of the entire latent field, 
+\cite{Rueetal:2016}, is stored for each hyperparameter configuration. 
+It can be asked setting \texttt{control.compute=list(cofig=TRUE)} 
+in the \texttt{inla()} call. 
+
+We can just rerun the model asking for the configurations with
+<<configs, warning=FALSE, message=FALSE>>=
+res$.args$control.compute$config <- TRUE
+res <- inla.rerun(res)
+@ 
+<<echo=FALSE,results=FALSE>>=
+inla.setOption(inla.call=lcall) 
+@ 
+
+Monte Carlo samples can be drawn using the 
+\texttt{inla.posterior.sample()} function. 
+<<samples>>=
+samples <- inla.posterior.sample(
+    n=1000, result=res, add.names=FALSE)
+@ 
+
+We have to find the index set for the elements we need samples, 
+the fixed effecs ('b0' and 'x') and the random effect ('s'). 
+The names were stored for the first sample as rownames of the latent field
+<<xnames>>=
+xnames <- rownames(samples[[1]]$latent) ### collect the names
+idx <- lapply(c('b0', 'x', 's'), function(nam) ## for each effect
+    which(substr(xnames, 1, nchar(nam))==nam)) ## find the index
+@ 
+
+These indexes are used to collect the desired part of the latent field 
+and organize it into a matrix
+<<samplesmat>>=
+mat.samples <- sapply(samples, function(spl) 
+    c(bo=spl$latent[idx[[1]]], x=spl$latent[idx[[2]]], s=spl$latent[idx[[3]]]))
+@ 
+
+The next step is to compute the linear predictor 
+for the scenario needed for each sample.  
+<<y3sample>>=
+lin.pred.3.sample <- as.matrix(cBind(b0=1, x=0.5, s=Ap)%*%mat.samples)
+@ 
+We can visualize it comparing wit the previous result with
+<<comparey3,fig.width=9.9, fig.height=3.5, out.width='0.99\\textwidth', out.height='0.35\\textwidth', fig.pos='h', fig.keep='last'>>=
+par(mfrow=c(1,3), mar=c(3,3,1,1), mgp=c(2,1,0))
+for (j in 1:3) {
+    hist(lin.pred.3.sample[j,], freq=FALSE, xlab=paste0('y',j), main='')
+    lines(ypost[[j]], lwd=2)
+}
+@ 
+
+\subsubsection{Considering a grid}
+
+We can use the projector matrix for the grid used previously with 
+<<linpredsample>>=
+lin.pred.sample <- as.matrix(cBind(b0=1, x=0.5, s=gproj$proj$A)%*%mat.samples)
+@ 
+
+Any summary statistics can be computed. 
+As an example, we compute the mean and standard deviation
+<<meansdgrid,warning=FALSE,message=FALSE>>=
+eta.mean <- rowMeans(lin.pred.sample)
+require(matrixStats)
+eta.sd <- rowSds(lin.pred.sample)
+@ 
+
+It can be visualized with the commands bellow. 
+The sampled locations is added on top of the standard deviation map. 
+<<responsemaps, fig.width=10, fig.height=4, out.width='0.99\\textwidth', fig.pos='h', fig.align='center'>>=
+require(fields)
+par(mfrow=c(1,2), mar=c(2,2,1,5), mgp=c(1,0.5,0))
+image.plot(list(x=gproj$x, y=gproj$y, z=matrix(eta.mean, nxy[1])), legend.mar=3)
+image.plot(list(x=gproj$x, y=gproj$y, z=matrix(eta.sd, nxy[2])), legend.mar=3)
+points(coo, pch=19, cex=1)
 @ 
 
 \bibliographystyle{apalike}
 \bibliography{spde-tutorial}
-
-\end{multicols} 
 
 \end{document} 
