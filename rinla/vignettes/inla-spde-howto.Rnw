@@ -1,7 +1,7 @@
 \documentclass[a4paper,11pt]{article} 
 
 \usepackage[margin={2cm,2cm}]{geometry} 
-\usepackage{multicol} 
+\usepackage{multicol,hyperref}
 
 \title{\vspace{-2cm}
   A short introduction on how to fit a \textbf{SPDE} model 
@@ -179,7 +179,6 @@ $\sigma_{s}^2$, we have to do
 an additional computation. 
 The PMDs for all RF parameters on 
 user scale are computed by
-
 <<rf>>=
 rf <- inla.spde.result(
     inla=res, ## the inla() output
@@ -187,20 +186,14 @@ rf <- inla.spde.result(
     spde=spde, ## SPDE model object
     do.transf=TRUE) ## to user scale
 @ 
-
 \end{multicols} 
-
-It can be visualized by 
-
+These posterior marginals can be visualized by 
 <<rfpars, pars=list(mfrow=c(1,3), mar=c(3,3,0.3,0.3), mgp=c(2,0.5,0)), fig.width=7.5, fig.height=2.5, out.width='0.99\\textwidth', out.height='0.33\\textwidth', fig.align='center', fig.pos='h', fig.keep='last'>>=
-plot(rf$marginals.var[[1]], ty='l', 
-     xlab=expression(sigma[s]^2), yla='Density')
+plot(rf$marginals.var[[1]], type='l', xlab=expression(sigma[s]^2), yla='Density')
 abline(v=s2s, col=2) ## add the true value
-plot(rf$marginals.kap[[1]], type='l',
-     xlab=expression(kappa), ylab='Density')
+plot(rf$marginals.kap[[1]], type='l', xlab=expression(kappa), ylab='Density')
 abline(v=k, col=2) ## add the true value
-plot(rf$marginals.range[[1]], type='l', 
-     xlab='range nominal', ylab='Density')
+plot(rf$marginals.range[[1]], type='l', xlab='range nominal', ylab='Density')
 abline(v=sqrt(4)/k, col=2) ## add the 'true' value
 @
 
@@ -229,21 +222,32 @@ grid.arrange(levelplot(g.mean, scales=list(draw=F), xlab='', ylab='', main='mean
 
 \section{Prediction} 
 
-Define target locations, the corresponding projector 
-matrix and covariate values at target locations 
+The prediction is usually needed when one wants to know the distribution the 
+expected value for the outcome given the data. 
+It consider each model component, not only the random field, 
+which is only one component in the model and showed in the previous section. 
+There is two ways to compute the posterior marginals for 
+the linear predictor. 
 
+First, one has to define the scenario for the prediction, 
+that is the locationas and value for the covariates. 
+Example with only three locations and 
+covariate values set in its the mean value
 <<target-loc>>=
 tcoo <- rbind(c(0.3,0.3), c(0.5,0.5), c(0.7,0.7))
 dim(Ap <- inla.spde.make.A(mesh=mesh, loc=tcoo)) 
 x0 <- c(0.5, 0.5, 0.5)
 @ 
 
-To do a fully Bayesian analysis, 
-we include the target locations on the 
-estimation process by assigning NA 
-for the response at these locations. 
-Defining the prediction stack 
+\subsection{Including NA's in the response vector}
 
+When including target locations on the 
+estimation process by assigning NA 
+for the response at these locations, 
+these unknows are treated in the entire 
+model fitting process. 
+
+Defining the prediction stack 
 <<prediction-stack>>=
 stk.pred <- inla.stack(tag='pred', A=list(Ap, 1), data=list(y=NA), ## response as NA
                        effects=list(s=1:spde$n.spde, data.frame(x=x0, b0=1)))
@@ -255,22 +259,70 @@ Fit the model again with the full stack
 stk.full <- inla.stack(stk.e, stk.pred) 
 p.res <- inla(formula, data=inla.stack.data(stk.full), ## full stack
               control.predictor=list(compute=TRUE, ## compute the predictor
-                  A=inla.stack.A(stk.full))) ## using full stack data
+                       A=inla.stack.A(stk.full))) ## using full stack data
 @ 
 
-Get the prediction data index and collect the 
-linear predictor PMDs  to work with 
-
-<<ypost>>=
+Get the prediction data index 
+<<prdind>>=
 pred.ind <- inla.stack.index(stk.full, tag='pred')$data
+@ 
+and have a look into the summary
+<<prdsumm>>=
+p.res$summary.fitted.val[pred.ind,]
+@ 
+
+Collect the linear predictor PMDs to work with
+<<ypost>>=
 ypost <- p.res$marginals.fitted.values[pred.ind]
 @ 
 
 Visualize with commands bellow
-
 <<ppred, tidy=FALSE, fig.width=9.9, fig.height=3.5, out.width='0.99\\textwidth', out.height='0.35\\textwidth', fig.pos='h', fig.keep='last'>>=
 names(ypost) <- paste('y', seq_along(ypost), sep='_');     library(plyr) 
 xyplot(y~x | .id, ldply(ypost), panel='llines', xlab='y', ylab='Density')
+@ 
+
+\subsection{Considering linear combinations}
+
+It will be better to have a look first in the 
+examples at \url{http://www.r-inla.org/faq}. 
+This aproach is usefull to approximate the posterior marginals for 
+a linear combination defined over componens of the linar predictor, 
+as named in the model formula. 
+It has a computational advantage as it 
+can be avoided the inclusion of the desired unknows in the 
+model graph, with 
+\texttt{control.inla(lincomb.derived.only=TRUE)}, 
+which is the default option.
+
+Defining the linear combinations needed
+<<lcs>>=
+lcs <- inla.make.lincombs(b0=rep(1, nrow(Ap)), ## intercept
+                          x=x0, ### covariate values
+                          s=Ap) ### projector for target locations
+@ 
+
+Now, it just need to fit the model again. 
+In order to make the fitting process easier, 
+we can use the \texttt{inla.rerun()} function. 
+We just need to include to update the arguments 
+including the linear combinations. 
+We do it considering the first model result, 
+the one with only the observed data.
+<<rerun, results=FALSE, message=FALSE, warning=FALSE>>=
+res$.args$lincomb <- lcs
+res.lcs <- inla.rerun(res)
+@ 
+
+The summary for the PMD's are 
+<<lcssumm>>=
+res.lcs$summary.lincomb.derived
+@ 
+and the PMD's can be ploted with
+<<lcspost, tidy=FALSE, fig.width=9.9, fig.height=3.5, out.width='0.99\\textwidth', out.height='0.35\\textwidth', fig.pos='h', fig.keep='last'>>=
+ypost.lcs <- res.lcs$marginals.lincomb.derived
+names(ypost.lcs) <- paste('y', seq_along(ypost.lcs), sep='_')
+xyplot(y~x | .id, ldply(ypost.lcs), panel='llines', xlab='y', ylab='Density')
 @ 
 
 In \textbf{\textsf{INLA}} we have some functions to work 
