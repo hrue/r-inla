@@ -66,11 +66,10 @@
 \maketitle
 
 
-<<echo=FALSE,eval=TRUE>>= %chunk 1
+<<echo=FALSE,eval=TRUE,message=FALSE>>= %chunk 1
 if (Sys.getenv("USER") == "sigrunnsrbye") {
 setwd("/Users/sigrunnsrbye/Dropbox/Tutorial_igmrfs")
 } 
-options(warn=-1)
 library(spatstat)
 library(mvtnorm)
 library(lattice)
@@ -244,7 +243,8 @@ sd.rw2=ss.rw2.sdref(1:n,1)
 
 \begin{figure}[ht]
     \centering 
-    \mbox{\makebox[0.45\textwidth][c]{ 
+    \mbox{%%
+        \makebox[0.45\textwidth][c]{ 
 <<fig.keep='high',echo=FALSE,out.width='0.45\\linewidth'>>= %chunk 5
 plot(sd.rw1,xlab="Node i", ylab="Marginal standard deviation") 
 @ 
@@ -255,13 +255,9 @@ plot(sd.rw1,xlab="Node i", ylab="Marginal standard deviation")
 plot(sd.rw2,xlab="Node i",ylab="Marginal standard deviation") 
 @ 
 }}
-    % \mbox{ \makebox[0.4\textwidth][c]{(a) $\sigma(x_i)$ for
-    % \texttt{rw1}, $n=100$.}
-    % \makebox[\MyFigureSpacing][c]{}
-    % \makebox[0.4\textwidth][c]{(b) $\sigma(x_i)$ for \texttt{rw2},
-    % $n=100$.}}
-    \caption{The marginal standard deviations $\sigma(x_i)$ for the
-        \texttt{rw1}-model (left) and the \texttt{rw2}-model (right), calculated using a fixed precision $\tau=1$ and  $n=100$ nodes.}
+\caption{The marginal standard deviations $\sigma(x_i)$ for the
+    \texttt{rw1}-model (left) and the \texttt{rw2}-model (right),
+    calculated using a fixed precision $\tau=1$ and $n=100$ nodes.}
     \label{fig:marg.std}
 \end{figure}
 
@@ -425,15 +421,15 @@ intervals of $x$, see Figure \ref{fig:fx2}.
 
 \setkeys{Gin}{width=0.33\textwidth}
 \begin{figure}[ht]
-\centering
-\mbox{
-\makebox[0.28\textwidth][c]{
+    \centering
+    \mbox{
+        \makebox[0.28\textwidth][c]{
 <<fig.keep='high',echo=FALSE,eval=TRUE,out.width='0.28\\linewidth'>>= %chunk 14
-# Estimate of f using unscaled and scaled model
+                                        # Estimate of f using unscaled and scaled model
 r=range(c(mat1,mat2,mat3))
 matplot(x1,mat1,type="lll",lty=c(1,2,4),col=c(1,4,2),xlab="x",ylab="f(x)",ylim=r,lwd=3) 
-#legend("topright",c("true f","scale.model=F","scale.model=T"),lty=c(1,2,4),col=c(1,2,4))
-#points(x,y)
+                                        #legend("topright",c("true f","scale.model=F","scale.model=T"),lty=c(1,2,4),col=c(1,2,4))
+                                        #points(x,y)
 @
 }
 \makebox[\MyFigureSpacing][c]{}
@@ -448,11 +444,10 @@ matplot(x2,mat2,type="lll",lty=c(1,2,4),col=c(1,4,2),xlab="x",ylab="f(x)",ylim=r
 matplot(x3,mat3,type="lll",lty=c(1,2,4),col=c(1,4,2),xlab="x",ylab="f(x)",ylim=r,lwd=3)
 @
 }}
-%\mbox{
-%       \makebox[0.45\textwidth][c]{(a)}
-%       \makebox[\MyFigureSpacing][]{}
-%       \makebox[0.45\textwidth][c]{(b)}}
-\caption{The true function (black solid line) and the estimated functions using the scaled (blue dashed line) and unscaled (red dashed/dotted line)  \texttt{rw2}-models for different scalings of  the covariate.} 
+\caption{The true function (black solid line) and the estimated
+    functions using the scaled (blue dashed line) and unscaled (red
+    dashed/dotted line) \texttt{rw2}-models for different scalings of
+    the covariate.}
 \label{fig:fx2}
 \end{figure}
 
@@ -571,9 +566,9 @@ models (results not shown).
 
 \setkeys{Gin}{width=0.45\textwidth}
 \begin{figure}[ht]
-\centering
-\mbox{
-\makebox[0.45\textwidth][c]{
+    \centering
+    \mbox{
+        \makebox[0.45\textwidth][c]{
 <<fig.keep='high',echo=FALSE,eval=TRUE,out.width='0.45\\linewidth'>>= %chunk 22
 mat=cbind(mod$summary.random$year$mean,mod.scaled$summary.random$year$mean)
 matplot(mod$summary.random$year$ID,mat,type="ll",lty=c(2,1),col=c(2,1),xlab="Year of construction",ylab="",lwd=2.5)
@@ -586,14 +581,10 @@ mat=cbind(mod$summary.random$floor.size$mean,mod.scaled$summary.random$floor.siz
 matplot(mod$summary.random$floor.size$ID,mat,type="ll",lty=c(2,1),col=c(2,1),xlab="Floor size",ylab="",lwd=2.5)
 @
 }}
-%\mbox{
-%       \makebox[0.45\textwidth][c]{(a)}
-%       \makebox[\MyFigureSpacing][]{}
-%       \makebox[0.45\textwidth][c]{(b)}}
-\caption{The estimated effects of the covariates 'Year of construction' 
-    and  'Floor size' on the rental prizes in Munich, 
-    using the scaled (black solid line) and the 
-    unscaled (red dashed line) \texttt{rw2}-models.} 
+\caption{The estimated effects of the covariates 'Year of
+    construction' and 'Floor size' on the rental prizes in Munich,
+    using the scaled (black solid line) and the unscaled (red dashed
+    line) \texttt{rw2}-models.}
 \label{fig:munich}
 \end{figure}
 
@@ -628,9 +619,9 @@ not change significantly for these different parameter choices
 (results not shown). Naturally, we could also consider other values of $a$. 
  
 \begin{figure}[ht]
-\centering
-\mbox{
-\makebox[0.45\textwidth][c]{
+    \centering
+    \mbox{
+        \makebox[0.45\textwidth][c]{
 <<fig.keep='high',echo=FALSE,eval=TRUE,out.width='0.45\\linewidth'>>= %chunk 25
 mat=cbind(c1$summary.random$year$mean,c2$summary.random$year$mean,c3$summary.random$year$mean,c4$summary.random$year$mean)
 matplot(mod$summary.random$year$ID,mat,type="llll",lty=c(1,2,3,4),col=c(1,2,3,4),xlab="Year of construction",ylab="",lwd=2.5)
@@ -645,9 +636,11 @@ matplot(mod$summary.random$floor.size$ID,mat,type="llll",lty=c(1,2,3,4),col=c(1,
 legend("topright",paste("U= ",u.vec),lty=1:4,col=1:4,lwd=2.5)
 @
 }}
-\caption{The estimated effects of the covariates 'Year of construction' and  'Floor size' on the rental prizes in Munich, varying the upper limit for the scaled models.} 
+\caption{The estimated effects of the covariates 'Year of
+    construction' and 'Floor size' on the rental prizes in Munich,
+    varying the upper limit for the scaled models.}
 \label{fig:sens.u}
-
+\end{figure}
 
   
 \section{Concluding remarks}\label{sec:conclusion}
