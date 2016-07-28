@@ -198,7 +198,7 @@ Simpson, D., Rue, H., Martins, T., Riebler, A., and Sørbye, S. (2015) Penalisin
                                d = 2,
                                corr = TRUE)
   L = t(chol(Sig))
-  u = L%*%rnorm(nObs)
+  u = L \%*\% rnorm(nObs)
 
   ## Construct observation with nugget
   sigN = 0.1
