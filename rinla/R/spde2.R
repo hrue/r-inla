@@ -660,15 +660,13 @@ inla.spde2.pcmatern =
              extraconstr = NULL,
              fractional.method = c("parsimonious", "null"),
              n.iid.group = 1,
-             prior.rho = NULL,
-             prior.sigma = NULL,
-             fixed.rho = NULL,
-             fixed.sigma = NULL)
+             prior.range = NULL,
+             prior.sigma = NULL)
 {
   ## Implementation of PC prior for standard deviation and range
   ##    - Sets the parametrization to range and standard deviation
-  ##    - Sets prior according to hyperparameters for range   : prior[1]
-  ##                                              and std.dev.: prior[2]
+  ##    - Sets prior according to hyperparameters for range   : prior.range
+  ##                                              and std.dev.: prior.sigma
   ## Calls inla.spde2.matern to construct the object, then changes the prior
   if (inherits(mesh, "inla.mesh")) {
     d <- 2
@@ -680,26 +678,27 @@ inla.spde2.pcmatern =
                "'.", sep=""))
   }
 
-  if (missing(prior.rho) || is.null(prior.rho) ||
-      !is.vector(prior.rho) || (length(prior.rho) != 2)) {
-    if (is.null(fixed.rho))
-      stop("'prior.rho' should be a length 2 vector 'c(rho0,tailprob)' or range must be fixed with 'fixed.rho'.")
+  if (missing(prior.range) || is.null(prior.range) ||
+      !is.vector(prior.range) || (length(prior.range) != 2)) {
+    stop("'prior.range' should be a length 2 vector 'c(range0,tailprob)' or a fixed range specified with 'c(range,NA)'.")
   }
   if (missing(prior.sigma) || is.null(prior.sigma) ||
       !is.vector(prior.sigma) || (length(prior.sigma) != 2)) {
-    if (is.null(fixed.sigma))
-      stop("'prior.sigma' should be a length 2 vector 'c(sigma0,tailprob)' or sigma must be fixed with 'fixed.sigma'.")
+    stop("'prior.sigma' should be a length 2 vector 'c(sigma0,tailprob)' or a fixed sigma specified with 'c(sigma,NA)'.")
   }
-
-  if (!is.null(fixed.rho)){
-    if (!is.numeric(fixed.rho) || (fixed.rho <= 0)){
-        stop("'fixed.rho' must be a number greater than 0 specifying which value to fix the range at")
-    }
+  if (prior.range[1] <= 0){
+    stop("'prior.range[1]' must be a number greater than 0 specifying a spatial range")
   }
-  if (!is.null(fixed.sigma)){
-    if (!is.numeric(fixed.sigma) || (fixed.sigma <= 0)){
-        stop("'fixed.sigma' must be a number greater than 0 specifying which value to fix the standard deviation at")
-    }
+  if (prior.sigma[1] <= 0){
+    stop("'prior.sigma[1]' must be a number greater than 0 specifying a standard deviation")
+  }
+  if (!is.na(prior.range[2]) &&
+      ((prior.range[2] <= 0) || (prior.range[2] >= 1))) {
+    stop("'prior.range[2]' must be a probaility strictly between 0 and 1 (or NA to specify a fixed range)")
+  }
+  if (!is.na(prior.sigma[2]) &&
+      ((prior.sigma[2] <= 0) || (prior.sigma[2] >= 1))) {
+    stop("'prior.sigma[2]' must be a probaility strictly between 0 and 1 (or NA to specify a fixed sigma)")
   }
 
   nu <- alpha-d/2
@@ -713,40 +712,39 @@ inla.spde2.pcmatern =
   spde   <- inla.spde2.matern(mesh = mesh,
                               B.tau   = cbind(tau0,   nu,  -1),
                               B.kappa = cbind(kappa0, -1, 0),
-                              alpha=alpha,
+                              alpha = alpha,
                               param = NULL,
                               constr = constr,
                               extraconstr.int = extraconstr.int,
                               extraconstr = extraconstr,
                               fractional.method = fractional.method,
                               n.iid.group = 1)
-  
+
   ## Calculate hyperparameters
-  is.fixed.range = FALSE
-  if (is.null(fixed.rho)){
-    lam1 = -log(prior.rho[2])*prior.rho[1]^(d/2)
-    initial.range = log(prior.rho[1])+1
+  is.fixed.range <- is.na(prior.range[2])
+  if (is.fixed.range) {
+    lam1 <- 0
+    initial.range <- log(fixed.rho)
   } else {
-    lam1 = 0
-    is.fixed.range = TRUE
-    initial.range = log(fixed.rho)
+    lam1 <- -log(prior.range[2])*prior.range[1]^(d/2)
+    initial.range <- log(prior.range[1]) + 1
   }
 
-  is.fixed.sigma = FALSE
-  if (is.null(fixed.sigma)){
-    lam2 = -log(prior.sigma[2])/prior.sigma[1]
-    initial.sigma = log(prior.sigma[1])-1
+  is.fixed.sigma <- is.na(prior.sigma[2])
+  if (is.fixed.sigma){
+    lam2 <- 0
+    initial.sigma <- log(fixed.sigma)
   } else{
-    lam2 = 0
-    is.fixed.sigma = TRUE
-    initial.sigma = log(fixed.sigma)
+    lam2 <- -log(prior.sigma[2])/prior.sigma[1]
+    initial.sigma <- log(prior.sigma[1]) - 1
   }
-  pVec = c(lam1, lam2, d)
+
+  pcmatern.param = c(lam1, lam2, d)
 
   ## Change prior information
   spde$f$hyper.default <-
     list(theta1=list(prior="pcmatern",
-                     param=pVec,
+                     param=pcmatern.param,
                      initial=initial.range,
                      fixed=is.fixed.range),
          theta2=list(initial=initial.sigma,
