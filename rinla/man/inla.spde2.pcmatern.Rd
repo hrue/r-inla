@@ -15,8 +15,8 @@ inla.spde2.pcmatern(mesh,
                     extraconstr = NULL,
                     fractional.method = c("parsimonious", "null"),
                     n.iid.group = 1,
-                    prior.rho,
-                    prior.sigma)
+                    prior.range = NULL,
+                    prior.sigma = NULL)
 }
 \arguments{
   \item{mesh}{
@@ -44,12 +44,15 @@ inla.spde2.pcmatern(mesh,
     \code{mesh$m} for 1D), or as general constraints on the collection
     of replicates (\code{ncol(A)} should be \code{mesh$n * n.iid.group}
     for 2D meshes, \code{mesh$m * n.iid.group} for 1D).}
-  \item{prior.rho}{A length 2 vector, with \code{(rho0,prho)}
+  \item{prior.range}{A length 2 vector, with \code{(range0,Prange)}
     specifying that \eqn{P(\rho < \rho_0)=p_\rho}, where \eqn{\rho} is the
-    spatial range of the random field.}
-  \item{prior.sigma}{A length 2 vector, with \code{(sigma0,psigma)}
-    specifying that \eqn{P(\sigma > \sigma_0)=p_sigma}, where
-    \eqn{\sigma} is the marginal standard deviation of the field.}
+    spatial range of the random field. If \code{Prange} is \code{NA},
+    then \code{range0} is used as a fixed range value.}
+  \item{prior.sigma}{A length 2 vector, with \code{(sigma0,Psigma)}
+    specifying that \eqn{P(\sigma > \sigma_0)=p_\sigma}, where
+    \eqn{\sigma} is the marginal standard deviation of the field.
+    If \code{Psigma} is \code{NA},
+    then \code{sigma0} is used as a fixed range value.}
 }
 \details{
   This method constructs a Matern SPDE model, with spatial 
@@ -148,7 +151,7 @@ Simpson, D., Rue, H., Martins, T., Riebler, A., and Sørbye, S. (2015) Penalisin
 
   mesh = inla.mesh.2d(loc, max.edge=0.05, cutoff=0.01)
   spde = inla.spde2.pcmatern(mesh,
-           prior.rho=c(0.01,0.1), prior.sigma=c(100,0.1))
+           prior.range=c(0.01,0.1), prior.sigma=c(100,0.1))
   data = list(y=y, field=mesh$idx$loc[idx.y])
   formula = y ~ -1 + f(field, model=spde)
   result = inla(formula, data=data, family="normal")
@@ -206,7 +209,7 @@ Simpson, D., Rue, H., Martins, T., Riebler, A., and Sørbye, S. (2015) Penalisin
                       max.edge = 0.05,
                       cutoff = 0.01)
   spde = inla.spde2.pcmatern(mesh,
-                             prior.rho = c(0.01, 0.05),
+                             prior.range = c(0.01, 0.05),
                              prior.sigma = c(10, 0.05))
 
   ## Create projection matrix for observations
@@ -221,7 +224,7 @@ Simpson, D., Rue, H., Martins, T., Riebler, A., and Sørbye, S. (2015) Penalisin
 
 ## Re-run model with fixed range
   spde.fixed = inla.spde2.pcmatern(mesh,
-                                   fixed.rho = 0.2,
+                                   prior.range = c(0.2, NA),
                                    prior.sigma = c(10, 0.05))
 
   res.fixed = inla(y ~ f(idx, model = spde) - 1,
