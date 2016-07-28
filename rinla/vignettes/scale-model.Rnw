@@ -54,7 +54,8 @@
 %\definecolor{links}{HTML}{2A1B81}
 %\hypersetup{colorlinks,linkcolor=,urlcolor=links}
 
-
+%\VignetteEngine{knitr::knitr} 
+%\VignetteIndexEntry{ScaleModel}
 
 \begin{document}
 \begin{titlepage}
