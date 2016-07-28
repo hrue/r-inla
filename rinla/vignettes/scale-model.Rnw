@@ -59,9 +59,9 @@
 
 \begin{document}
 \begin{titlepage}
-\title{Tutorial: Scaling IGMRF-models in \texttt{R-INLA}}
-\vspace{0.5cm}
-\author{Sigrunn Holbek S\o rbye \\ Department of Mathematics and Statistics, University of Troms{\o}}
+    \title{Tutorial: Scaling IGMRF-models in \texttt{R-INLA}}
+    \vspace{0.5cm} \author{Sigrunn Holbek S\o rbye \\ Department of
+        Mathematics and Statistics, University of Troms{\o}}
 \end{titlepage}
 \maketitle
 
@@ -70,7 +70,7 @@
 if (Sys.getenv("USER") == "sigrunnsrbye") {
 setwd("/Users/sigrunnsrbye/Dropbox/Tutorial_igmrfs")
 } 
-
+options(warn=-1)
 library(spatstat)
 library(mvtnorm)
 library(lattice)
@@ -79,25 +79,24 @@ library(pixmap)
 library(numDeriv)
 library(fields)
 library(INLA)
-#inla.upgrade(testing=TRUE)
 @
 
 \section{Introduction}
 
 Intrinsic Gaussian Markov random fields (IGMRFs) are widely used as
-priors to model latent dependency structures in
-\texttt{R-INLA}. Examples of this type of models include the
-\texttt{rw1}, \texttt{rw2}, \texttt{besag}, \texttt{besag2},
-\texttt{bym} and the \texttt{rw2d} models, see \texttt{www.r-inla.org}
-for further descriptions. All of these models can be described in
-terms of having an improper Gaussian density with a scaled precision
-matrix that reflects the neighbourhood structure of the model. The
-scaling is represented as a random precision parameter, and applying
-these models the user has to define a hyperprior for this parameter.
-This is a rather delicate issue and such hyperpriors are often
-selected in a rather ad-hoc and subjective manner. One problem is
-that a specific fixed hyperprior for the precision parameter does not
-have the same interpretation for different IGMRFs.
+priors to model latent dependency structures in \texttt{R-INLA}.
+Examples of this type of models include the \texttt{rw1},
+\texttt{rw2}, \texttt{besag}, \texttt{besag2}, \texttt{bym} and the
+\texttt{rw2d} models, see \texttt{www.r-inla.org} for further
+descriptions. All of these models can be described in terms of having
+an improper Gaussian density with a scaled precision matrix that
+reflects the neighbourhood structure of the model. The scaling is
+represented as a random precision parameter, and applying these models
+the user has to define a hyperprior for this parameter. This is a
+rather delicate issue and such hyperpriors are often selected in a
+rather ad-hoc and subjective manner. One problem is that a specific
+fixed hyperprior for the precision parameter does not have the same
+interpretation for different IGMRFs.
 
 The aim of this tutorial is to introduce and demonstrate a recently
 implemented option in \texttt{R-INLA} named \texttt{scale.model},
@@ -105,16 +104,16 @@ which can be added when specifying the inla formula-call for the
 different IGMRFs. For example, we might specify the formula as
 <<echo=TRUE,eval=FALSE>>= %chunk 2
 formula = y ~  f(idx, model = "rw2", scale.model = TRUE, hyper=..)
-@ 
+@
 By defining \texttt{scale.model = TRUE}, the \texttt{rw2}-model is
 scaled to have a generalized variance equal to 1, see
-Section~\ref{sec:igmrf} for further explanations.  The new option is
+Section~\ref{sec:igmrf} for further explanations. The new option is
 also available using \texttt{control.group},
 <<echo=TRUE,eval=FALSE>>= %chunk 3
 f(idx, model="..", group=g, control.group = list(model="rw2", scale.model=TRUE))
 @ 
 which is relevant for the \texttt{rw1}, \texttt{rw2} and the
-\texttt{besag}-models.  Note that \texttt{scale.model = FALSE} by
+\texttt{besag}-models. Note that \texttt{scale.model = FALSE} by
 default for all models to make the option backwards-compatible.
 
 The purpose of scaling the models is to ensure that a fixed hyperprior
@@ -126,20 +125,21 @@ level (\texttt{rw1}, \texttt{besag}, \texttt{bym}), a line
 (\texttt{rw2}) or a plane (\texttt{rw2d}). A priori, the hyperprior
 chosen for the precision parameter will influence how large we allow
 this local deviation to be. It seems reasonable to select hyperpriors
-such that different random effects in a regression
-model are assumed to have a similar range for this deviation.  By
-scaling the models, this is achieved by assigning the same fixed
-hyperprior to the precisions of all IGMRFs in the regression model. If
-we do this using unscaled IGMRFs (as often done in the literature), the
-influence using different hyperprior choices is less controllable as the variances
-of the IGMRFs differ. 
+such that different random effects in a regression model are assumed
+to have a similar range for this deviation. By scaling the models,
+this is achieved by assigning the same fixed hyperprior to the
+precisions of all IGMRFs in the regression model. If we do this using
+unscaled IGMRFs (as often done in the literature), the influence using
+different hyperprior choices is less controllable as the variances of
+the IGMRFs differ.
 
-The hyperpriors for scaled models will also be invariant to the shape and size of the graph for a specific IGMRF and to different
-scalings of covariates. By mapping the
-random precision to the marginal variance of an IGMRF, we also get an
-alternative interpretation of different parameter choices for a
-hyperprior, as these can be viewed in terms of the local deviation,
-see Section~\ref{sec:igmrf} for further details.
+The hyperpriors for scaled models will also be invariant to the shape
+and size of the graph for a specific IGMRF and to different scalings
+of covariates. By mapping the random precision to the marginal
+variance of an IGMRF, we also get an alternative interpretation of
+different parameter choices for a hyperprior, as these can be viewed
+in terms of the local deviation, see Section~\ref{sec:igmrf} for
+further details.
 
 The new option is based on ideas introduced in \cite{sorbye:13} and
 these ideas have also been applied in \cite{papoila:13}. Note that the
@@ -159,11 +159,12 @@ which is not of full rank. In \cite{rueheld:05}, the order of an IGMRF
 is defined as the rank deficiency of its precision matrix. This
 implies that a zero-mean IGMRF of $k$th order is specified by
 \begin{equation*}
-    \pi(\mm{x}) = (2\pi)^{-(n-k)/2}(|\mm{Q}|^*)^{1/2} \exp\{-\frac{1}{2}\mm{x}^T \mm{Q} \mm{x}\}, %\label{eq:igmrf}
+    \pi(\mm{x}) = (2\pi)^{-(n-k)/2}(|\mm{Q}|^*)^{1/2} 
+    \exp\{-\frac{1}{2}\mm{x}^T \mm{Q} \mm{x}\}, %\label{eq:igmrf}
 \end{equation*}
 where the precision matrix $\mm{Q}$ is assumed to be semi-positive
 definite. $|\mm{Q}|^*$ denotes the generalized determinant equal to
-the product of the $n-k$ non-zero eigenvalues of $\mm{Q}$.  The
+the product of the $n-k$ non-zero eigenvalues of $\mm{Q}$. The
 marginal variances of $\mm{x}$ are given by the diagonal elements of
 the generalized inverse matrix $\mm{\Sigma^*} = \mm{Q}^{-1}$, that
 is $$\sigma^2(x_i) = \Sigma^*_{ii}, \quad i=1,\ldots , n.$$ Different
@@ -175,8 +176,8 @@ labelled graph with nodes and edges. This implies that the marginal
 variances/standard deviations of the IGMRF will depend on both the
 structure and size of $\mm{R}$. For example, we can consider the
 marginal standard deviations of the \texttt{rw1} and
-\texttt{rw2}-models when the precision is fixed as $\tau= 1$. Due to the different structure matrices of these
-two models,
+\texttt{rw2}-models when the precision is fixed as $\tau= 1$. Due to
+the different structure matrices of these two models,
 % , see \cite[p. 95 and p. 110]{rueheld:05},
 the levels for the marginal standard deviations are quite different,
 see Figure~\ref{fig:marg.std}. This illustrates that it seems 
@@ -243,15 +244,14 @@ sd.rw2=ss.rw2.sdref(1:n,1)
 
 \begin{figure}[ht]
     \centering 
-    \mbox{ 
-        \makebox[0.45\textwidth][c]{
-<<fig.keep='high',echo=FALSE>>= %chunk 5
+    \mbox{\makebox[0.45\textwidth][c]{ 
+<<fig.keep='high',echo=FALSE,out.width='0.45\\linewidth'>>= %chunk 5
 plot(sd.rw1,xlab="Node i", ylab="Marginal standard deviation") 
 @ 
-} 
+}
 \makebox[\MyFigureSpacing][c]{}
 \makebox[0.45\textwidth][c]{ 
-<<fig.keep='high',echo=FALSE>>= %chunk 6
+<<fig.keep='high',echo=FALSE,out.width='0.45\\linewidth'>>= %chunk 6
 plot(sd.rw2,xlab="Node i",ylab="Marginal standard deviation") 
 @ 
 }}
@@ -265,9 +265,11 @@ plot(sd.rw2,xlab="Node i",ylab="Marginal standard deviation")
     \label{fig:marg.std}
 \end{figure}
 
-Notice that for a fixed precision $\tau$, the marginal variances of the components of $\mm{x}$ can be expressed, as a function of $\tau$, by
+Notice that for a fixed precision $\tau$, the marginal variances of
+the components of $\mm{x}$ can be expressed, as a function of $\tau$,
+by
 \begin{equation}
-\sigma^2_{\tau}(x_i)=\frac{\sigma^2_{\{\tau=1\}}(x_i)}{\tau},\quad i=1,\ldots , n.\label{eq:sigma.xi}
+    \sigma^2_{\tau}(x_i)=\frac{\sigma^2_{\{\tau=1\}}(x_i)}{\tau},\quad i=1,\ldots , n.\label{eq:sigma.xi}
 \end{equation}
 To characterize the level of the marginal variances when $\tau=1$, we
 define the generalized variance of $\mm{x}$ as the geometric mean
@@ -275,29 +277,35 @@ define the generalized variance of $\mm{x}$ as the geometric mean
     \sigma^2_{\mbox{\scriptsize{GV}}}(\mm{x}) = \exp\left(\frac{1}{n}\sum_{i=1}^n \log(\sigma^2_{\{\tau=1\}}(x_i))\right). \label{eq:sigma.gv}
 \end{equation*} 
 When \texttt{scale.model = TRUE}, IGMRFs are scaled such that
-$\sigma^2_{\mbox{\scriptsize{GV}}}(\mm{x}) =1$. This implies that the precision parameters of different models have similar interpretation which makes it reasonable to  assign the same fixed hyperprior to precision parameters of different IGMRFs in a regression model. Note that in \cite{sorbye:13}, the generalized
-variance was referred to as the reference variance
-$\sigma^2_{\mbox{\scriptsize{ref}}}(\mm x)$. The hyperprior was then
-assigned to the scaled precision
+$\sigma^2_{\mbox{\scriptsize{GV}}}(\mm{x}) =1$. This implies that the
+precision parameters of different models have similar interpretation
+which makes it reasonable to assign the same fixed hyperprior to
+precision parameters of different IGMRFs in a regression model. Note
+that in \cite{sorbye:13}, the generalized variance was referred to as
+the reference variance $\sigma^2_{\mbox{\scriptsize{ref}}}(\mm x)$.
+The hyperprior was then assigned to the scaled precision
 $\tau/\sigma^2_{\mbox{\scriptsize{ref}}}(\mm x)$ to achieve the same
 interpretation for different models.
 
 As already mentioned, IGMRFs penalize local deviation from an
 unspecified overall level. The marginal standard deviation of the
 models, integrating out the random precision, give information on how
-large we allow this local deviation to be. Following \cite{sorbye:13},  we apply the  identity in (\ref{eq:sigma.xi}) also when $\tau$ is random and define an upper limit $U$
-for the marginal standard deviation of a model by
+large we allow this local deviation to be. Following \cite{sorbye:13},
+we apply the identity in (\ref{eq:sigma.xi}) also when $\tau$ is
+random and define an upper limit $U$ for the marginal standard
+deviation of a model by
 \begin{equation}
     P(\sigma(x_i)>U)\approx P\left(\tau<\frac{\sigma^2_{\mbox{\scriptsize{GV}}}(\mm{x})}{U^2}\right)=\alpha, \label{eq:tau}
 \end{equation}
-where $\alpha$ is a fixed small probability. For scaled models, this implies that the parameter choices for the hyperprior of $\tau$ has the same interpretation in terms of $U$, for all models $\mm{x}$. 
+where $\alpha$ is a fixed small probability. For scaled models, this
+implies that the parameter choices for the hyperprior of $\tau$ has
+the same interpretation in terms of $U$, for all models $\mm{x}$.
 
 In \texttt{R-INLA}, precision parameters are assigned Gamma
 distributions by default (but any other distribution can be specified
-by the user).  Assume that $\tau\sim \mbox{Gamma}(a,b)$, where $a$
+by the user). Assume that $\tau\sim \mbox{Gamma}(a,b)$, where $a$
 denotes the shape parameter and $b$ the inverse-scale parameter. Then
-$b\tau\sim\mbox{Gamma}(a,1)$ and  (\ref{eq:tau})
-implies that
+$b\tau\sim\mbox{Gamma}(a,1)$ and (\ref{eq:tau}) implies that
 \begin{equation}
     \frac{b\sigma^2_{\mbox{\scriptsize{GV}}}(\mm{x})}{U^2} = F^{-1}(\alpha,a,1), \label{eq:upper.limit}
 \end{equation}
@@ -321,19 +329,19 @@ alpha=0.001
 upper.limit=func.u(a,b,alpha,1) 
 @ 
 %%
-For
-example, if we choose the default parameter values in \texttt{R-INLA},
-$a=\Sexpr{a}$ and $b=5\cdot 10^{-5}$, the upper limit equals $U\approx
-\Sexpr{round(upper.limit,2)}$ when $\alpha =\Sexpr{alpha}$. Notice
-that the explicit value of $U$ has to be interpreted with care as this
-depends on the selected value of $\alpha$. Also, $U$ is not uniquely
-defined and different combinations of $a$ and $b$ giving the same
-values of $U$, do not in general give the same estimated results.
+For example, if we choose the default parameter values in
+\texttt{R-INLA}, $a=\Sexpr{a}$ and $b=5\cdot 10^{-5}$, the upper limit
+equals $U\approx \Sexpr{round(upper.limit,2)}$ when
+$\alpha =\Sexpr{alpha}$. Notice that the explicit value of $U$ has to
+be interpreted with care as this depends on the selected value of
+$\alpha$. Also, $U$ is not uniquely defined and different combinations
+of $a$ and $b$ giving the same values of $U$, do not in general give
+the same estimated results.
 
 \section{Examples}\label{sec:examples}
 
 The new option makes it very easy to compare results using unscaled
-and scaled models.  Here we consider two examples, analysing
+and scaled models. Here we consider two examples, analysing
 semiparametric regression models. Other examples are given in
 \cite{sorbye:13} and \cite{papoila:13}.
 
@@ -396,10 +404,10 @@ is defined as
 <<echo=TRUE,eval=F>>= %chunk 11
 formula = y ~  f(x, model = "rw2", scale.model = TRUE, hyper=...)
 @ 
-where the hyperprior assigned to the precision parameter is specified
-in \texttt{hyper}.  Here, we just select the default hyperprior, that
-is $\tau \sim \mbox{Gamma}(1,5\cdot
-10^{-5})$. %(Technically, the hyperprior is assigned to the log-precision but in choosing a log-Gamma distribution, this corresponds to assigning a Gamma distribution to the precision).
+where the hyperprior assigned to the precision parameter is
+specified in \texttt{hyper}. Here, we just select the default
+hyperprior, that is $\tau \sim \mbox{Gamma}(1,5\cdot
+10^{-5})$. 
 
 Let the unknown true function $f(.)$ be defined as
  $$f(x)=\frac{x}{t}+\sin(\frac{2\pi x}{t})-0.5,\quad x\in(0,t).$$
@@ -413,14 +421,14 @@ We then plot the estimated function
 result$summary.random$x$mean
 @ 
 both using the unscaled and scaled models for three different
-intervals of $x$, see Figure \ref{fig:fx2}. 
+intervals of $x$, see Figure \ref{fig:fx2}.
 
 \setkeys{Gin}{width=0.33\textwidth}
 \begin{figure}[ht]
 \centering
 \mbox{
 \makebox[0.28\textwidth][c]{
-<<fig.keep='high',echo=FALSE,eval=TRUE>>= %chunk 14
+<<fig.keep='high',echo=FALSE,eval=TRUE,out.width='0.28\\linewidth'>>= %chunk 14
 # Estimate of f using unscaled and scaled model
 r=range(c(mat1,mat2,mat3))
 matplot(x1,mat1,type="lll",lty=c(1,2,4),col=c(1,4,2),xlab="x",ylab="f(x)",ylim=r,lwd=3) 
@@ -430,13 +438,13 @@ matplot(x1,mat1,type="lll",lty=c(1,2,4),col=c(1,4,2),xlab="x",ylab="f(x)",ylim=r
 }
 \makebox[\MyFigureSpacing][c]{}
 \makebox[0.28\textwidth][c]{
-<<fig.keep='high',echo=FALSE,eval=TRUE>>= %chunk 15
+<<fig.keep='high',echo=FALSE,eval=TRUE,out.width='0.28\\linewidth'>>= %chunk 15
 matplot(x2,mat2,type="lll",lty=c(1,2,4),col=c(1,4,2),xlab="x",ylab="f(x)",ylim=r,lwd=3)
 @
 }
 \makebox[\MyFigureSpacing][c]{}
 \makebox[0.28\textwidth][c]{
-<<fig.keep='high',echo=FALSE,eval=TRUE>>= %chunk 16
+<<fig.keep='high',echo=FALSE,eval=TRUE,out.width='0.28\\linewidth'>>= %chunk 16
 matplot(x3,mat3,type="lll",lty=c(1,2,4),col=c(1,4,2),xlab="x",ylab="f(x)",ylim=r,lwd=3)
 @
 }}
@@ -450,20 +458,21 @@ matplot(x3,mat3,type="lll",lty=c(1,2,4),col=c(1,4,2),xlab="x",ylab="f(x)",ylim=r
 
 
 Using the scaled model, the results using a fixed hyperprior is
-invariant to different scalings of the covariate and we get exactly the
-same estimated curve in all three cases. For the unscaled model, the
-marginal variance will decrease/increase as the distance between nodes
-decreases/increases. By using the same fixed
-hyperprior for the three cases, we implicitly assume very different values for
-the upper limit $U$ in (\ref{eq:upper.limit}), see
-Table~\ref{tab:upper.limit}. In the extreme case of assuming a very low value of $U$, the resulting estimate is just a straight line.
+invariant to different scalings of the covariate and we get exactly
+the same estimated curve in all three cases. For the unscaled model,
+the marginal variance will decrease/increase as the distance between
+nodes decreases/increases. By using the same fixed hyperprior for the
+three cases, we implicitly assume very different values for the upper
+limit $U$ in (\ref{eq:upper.limit}), see Table~\ref{tab:upper.limit}.
+In the extreme case of assuming a very low value of $U$, the resulting
+estimate is just a straight line.
 
 \begin{table}[ht]
 \begin{center}
 \begin{tabular}{l|ccc}%\hline
- Interval length&  $t=1$& $t=100$ & $t=1000$ \\ \hline%\hline
-%$\sigma^2_{\mbox{\scriptsize{GV}}}(\mm{x})$ & $\Sexpr{round(v1,4)}$&$\Sexpr{round(v2,1)}$ & $\Sexpr{round(v3,1)}$\\
-$U$ (unscaled model) &  $\Sexpr{round(u1,3)}$ & $\Sexpr{round(u2,1)}$ & $\Sexpr{round(u3,1)}$%\hline
+  Interval length&  $t=1$& $t=100$ & $t=1000$ \\ \hline%\hline
+  % $\sigma^2_{\mbox{\scriptsize{GV}}}(\mm{x})$ & $\Sexpr{round(v1,4)}$&$\Sexpr{round(v2,1)}$ & $\Sexpr{round(v3,1)}$\\
+  $U$ (unscaled model) &  $\Sexpr{round(u1,3)}$ & $\Sexpr{round(u2,1)}$ & $\Sexpr{round(u3,1)}$%\hline
 \end{tabular}
 \end{center}
 \caption{The upper limit $U$  as defined in (\ref{eq:upper.limit}) 
@@ -473,8 +482,8 @@ $U$ (unscaled model) &  $\Sexpr{round(u1,3)}$ & $\Sexpr{round(u2,1)}$ & $\Sexpr{
 \end{table}
 
 As noted in \cite{akerkar:10} and \cite{sorbye:13}, a given hyperprior
-for the precision of unscaled models can  be adjusted to account
-for different scalings of the covariate, adjusting the inverse-scale
+for the precision of unscaled models can be adjusted to account for
+different scalings of the covariate, adjusting the inverse-scale
 parameter of the Gamma distribution. However, by scaling the models,
 we don't have to think about this at all as a given fixed prior will
 give the same estimated curve.
@@ -493,11 +502,10 @@ indicator variables. Smooth effects of the covariates are modelled
 using the \texttt{rw2}-model, while the spatially structured effect
 for location is modelled using the \texttt{besag}-model. Previously,
 this data has been analysed using a fixed Gamma$(1,0.01)$ for all the
-precision parameters in the model.  The
-inverse-scale parameter of the Gamma distribution can be adjusted to
-account for different types of IGMRFs by scaling this parameter with
-the generalized variance, see \cite{sorbye:13}, but it is easier to just
-use the new option.
+precision parameters in the model. The inverse-scale parameter of the
+Gamma distribution can be adjusted to account for different types of
+IGMRFs by scaling this parameter with the generalized variance, see
+\cite{sorbye:13}, but it is easier to just use the new option.
 
 To simplify notation let
 <<echo=TRUE,eval=F>>= %chunk 17
@@ -551,30 +559,29 @@ u.munich=func.u(a,b,alpha,1)
 mod=func.munich(a,b,FALSE)
 mod.scaled=func.munich(a,b,TRUE)
 @
-Figure~\ref{fig:munich} illustrates the resulting estimated effects of
-the covariates 'Year of construction' and 'Floor size' using the
+Figure~\ref{fig:munich} illustrates the resulting estimated effects
+of the covariates 'Year of construction' and 'Floor size' using the
 scaled and unscaled models. Applying the given hyperprior for the
 scaled models, we have assumed that the upper limit in
-(\ref{eq:upper.limit}) is
-$U\approx\Sexpr{round(u.munich,1)}$. This seems to give quite
-reasonable results, while the estimated curves are more wiggly using
-the unscaled models. The results for the spatially structured effects
-are very similar using the scaled and unscaled models (results not
-shown).
+(\ref{eq:upper.limit}) is $U\approx\Sexpr{round(u.munich,1)}$. This
+seems to give quite reasonable results, while the estimated curves are
+more wiggly using the unscaled models. The results for the spatially
+structured effects are very similar using the scaled and unscaled
+models (results not shown).
 
 \setkeys{Gin}{width=0.45\textwidth}
 \begin{figure}[ht]
 \centering
 \mbox{
 \makebox[0.45\textwidth][c]{
-<<fig.keep='high',echo=FALSE,eval=TRUE>>= %chunk 22
+<<fig.keep='high',echo=FALSE,eval=TRUE,out.width='0.45\\linewidth'>>= %chunk 22
 mat=cbind(mod$summary.random$year$mean,mod.scaled$summary.random$year$mean)
 matplot(mod$summary.random$year$ID,mat,type="ll",lty=c(2,1),col=c(2,1),xlab="Year of construction",ylab="",lwd=2.5)
 @
 }
 \makebox[\MyFigureSpacing][c]{}
 \makebox[0.45\textwidth][c]{
-<<fig.keep='high',echo=FALSE,eval=TRUE>>= %chunk 23
+<<fig.keep='high',echo=FALSE,eval=TRUE,out.width='0.45\\linewidth'>>= %chunk 23
 mat=cbind(mod$summary.random$floor.size$mean,mod.scaled$summary.random$floor.size$mean)
 matplot(mod$summary.random$floor.size$ID,mat,type="ll",lty=c(2,1),col=c(2,1),xlab="Floor size",ylab="",lwd=2.5)
 @
@@ -624,7 +631,7 @@ not change significantly for these different parameter choices
 \centering
 \mbox{
 \makebox[0.45\textwidth][c]{
-<<fig.keep='high',echo=FALSE,eval=TRUE>>= %chunk 25
+<<fig.keep='high',echo=FALSE,eval=TRUE,out.width='0.45\\linewidth'>>= %chunk 25
 mat=cbind(c1$summary.random$year$mean,c2$summary.random$year$mean,c3$summary.random$year$mean,c4$summary.random$year$mean)
 matplot(mod$summary.random$year$ID,mat,type="llll",lty=c(1,2,3,4),col=c(1,2,3,4),xlab="Year of construction",ylab="",lwd=2.5)
 legend("topleft",paste("U= ",u.vec),lty=1:4,col=1:4,lwd=2.5)
@@ -632,7 +639,7 @@ legend("topleft",paste("U= ",u.vec),lty=1:4,col=1:4,lwd=2.5)
 }
 \makebox[\MyFigureSpacing][c]{}
 \makebox[0.45\textwidth][c]{
-<<fig.keep='high',echo=FALSE,eval=TRUE>>= %chunk 26
+<<fig.keep='high',echo=FALSE,eval=TRUE,out.width='0.45\\linewidth'>>= %chunk 26
 mat=cbind(c1$summary.random$floor.size$mean,c2$summary.random$floor.size$mean,c3$summary.random$floor.size$mean,c4$summary.random$floor.size$mean)
 matplot(mod$summary.random$floor.size$ID,mat,type="llll",lty=c(1,2,3,4),col=c(1,2,3,4),xlab="Floor size",ylab="",lwd=2.5)
 legend("topright",paste("U= ",u.vec),lty=1:4,col=1:4,lwd=2.5)
@@ -640,7 +647,7 @@ legend("topright",paste("U= ",u.vec),lty=1:4,col=1:4,lwd=2.5)
 }}
 \caption{The estimated effects of the covariates 'Year of construction' and  'Floor size' on the rental prizes in Munich, varying the upper limit for the scaled models.} 
 \label{fig:sens.u}
-\end{figure}
+
 
   
 \section{Concluding remarks}\label{sec:conclusion}
@@ -648,26 +655,27 @@ legend("topright",paste("U= ",u.vec),lty=1:4,col=1:4,lwd=2.5)
 By scaling all IGMRFs to a unit generalized variance, we avoid that
 the precision parameters of these models have different
 interpretation. This makes it reasonable to assign the same hyperprior
-to precision parameters of different IGMRF-models, which greatly simplifies
-the issue of selecting hyperpriors and performing sensitivity
-analysis. These ideas were introduced in \cite{sorbye:13}, in which
-the precision parameter was scaled by the generalized variance. The
-new option in \texttt{R-INLA} makes these ideas easy to apply
-as we don't have to calculate the generalized variance for each
+to precision parameters of different IGMRF-models, which greatly
+simplifies the issue of selecting hyperpriors and performing
+sensitivity analysis. These ideas were introduced in \cite{sorbye:13},
+in which the precision parameter was scaled by the generalized
+variance. The new option in \texttt{R-INLA} makes these ideas easy to
+apply as we don't have to calculate the generalized variance for each
 model. We simply set the \texttt{scale.model}-option equal to
 \texttt{TRUE} in the inla formula-call for the relevant terms.
 
 If you are now convinced that all IGMRF-models should in fact be
-scaled, you can do this in an even simpler way than already
-described. By specifying the following global option
+scaled, you can do this in an even simpler way than already described.
+By specifying the following global option
 <<echo=TRUE,eval=FALSE>>= %chunk 27
 inla.setOption(scale.model.default = TRUE)
 @ 
-all the IGMRF-models are scaled automatically. This also includes the
-situation using the \texttt{control.group} argument mentioned in the
-introduction. Hyperpriors still have to be selected with care using scaled models,
-but the issue of selecting hyperpriors is simplified and we believe that hyperpriors can be chosen in a more meaningful and controlled
-way.
+all the IGMRF-models are scaled automatically. This also includes
+the situation using the \texttt{control.group} argument mentioned in
+the introduction. Hyperpriors still have to be selected with care
+using scaled models, but the issue of selecting hyperpriors is
+simplified and we believe that hyperpriors can be chosen in a more
+meaningful and controlled way.
 
 %% Currently, the option of scaling models only applies to IGMRFs but we
 %% believe that similar ideas can be useful also for other models, for
