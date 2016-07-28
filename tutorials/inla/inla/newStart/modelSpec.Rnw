@@ -10,7 +10,7 @@ interest in the right way.
 
 INLA can be used to estimate Bayesian hierarchical models defined over
 three stages. The first
-stage describes the distibribution of the response vector $\bs{y}=(y_1,
+stage describes the distribution of the response vector $\bs{y}=(y_1,
 \ldots, y_{n_d})^\top$ and is formed by a likelihood function with conditional independence
 properties given the ($n_d \times 1$) vector of linear predictors
 $\bs{\eta}$ and the ($m \times 1$) vector of possible hyperparameters
@@ -27,7 +27,7 @@ second stage defines the distribution of the underlying unobserved
 that the covariates are linearly related to the linear predictor. This
 stage can include fixed effects for covariates, unstructured random
 effects, such as individual or group effects, or structured random
-effects, such as an autoregressive model of order 1 or a smoothin
+effects, such as an autoregressive model of order 1 or a smoothing
 random effect over space. It is crucial that the second stage, the
 so-called latent level, is Gaussian
 distributed in order to apply INLA. In matrix notation we have,
@@ -43,7 +43,7 @@ Gaussian priors with mean $\mu _i$ and precision $\tau_i$ for each of
 the regressor coefficients $\beta_i$, $i = 1,...,p$. The term $\bs{w}
 f(\bs{c}, \bs{\theta}_2)$ specifies a non-linear/smooth Gaussian effect of
 covariate $\bs{c}$  weighted with a vector of known weights $\bs{w}$
-and $\bs{\theta}_2$ represent the hyperparameters for this Guassian
+and $\bs{\theta}_2$ represent the hyperparameters for this Gaussian
 model. The hierarchical
 model is then completed with an appropriate prior distribution for the
 possible vector of hyperparameters $\bs{\theta} = (\bs{\theta}_1,
@@ -53,9 +53,9 @@ single model components
 \begin{list}{\labelitemi}{\leftmargin=5em}
   \item[\textbf{Stage 3.}] $\bs{\theta} \sim \pi(\bs{\theta})$.
 \end{list}
-Here, $\bs{\theta}_1$ denots the hyperparameters of the likelihood
+Here, $\bs{\theta}_1$ denotes the hyperparameters of the likelihood
 model which can include the variance of the observation noise, the
-dispersion parameter in the negative binomial model, the probabiliy of
+dispersion parameter in the negative binomial model, the probability of
 observing zero counts in a zero-inflated model. In contrast,
 $\bs{\theta}_2$ includes all hyperparameters from the second stage,
 e.g.~variance parameters of structured or unstructured random effects,
@@ -161,7 +161,7 @@ result = inla(formula, data = data.frame(y=y, x=x, z=z))
 result$summary.fixed
 @
 Note that we need to pass a \tv{data.frame} or a \tv{list} containing the
-explanatory variables to the field \tv{data} in the functin \tv{inla()}.
+explanatory variables to the field \tv{data} in the function \tv{inla()}.
 
 It is also possible to use the design matrix $\mathbf{X}$ explicitly as in
 <<eval=FALSE>>=
@@ -281,7 +281,7 @@ once for the {\tt rw1} model.
 
 
 
-Table~\ref{tab:latentModels} gives an overview of all implemented latent
+Table~\ref{tab:latentModels} gives an overview of most implemented latent
 Gaussian models.
 \begin{table}[h!]
 \begin{center}
@@ -407,7 +407,7 @@ standard deviation for the  autocorrelation parameter $\rho$ are
 $\Sexpr{format(result$summary.hyperpar$mean[3],digits=2,nsmall=2)}$  and
 $\Sexpr{format(result$summary.hyperpar$sd[3],digits=2,nsmall=2)}$,
 respectively. Estimates will be closer to the simulated values of
-$0.8$ when increasing the number of observations. Section~TODO  disusses
+$0.8$ when increasing the number of observations. Section~TODO  discusses
 how to extract output information for the random effects.
 <<>>=
 summary(result)
@@ -437,9 +437,11 @@ listed on the help page of the {\tt f()}-function, found via {\tt ?f}.
 Some important options are
 
 \begin{itemize}
+        \item[{\tt hyper}:] A list containing prior information for
+          the hyper parameter(s), see Section~\ref{sec:prior}.
         \item[{\tt constr}:] A boolean variable indicating whether to
         set a sum to zero constraint. By default the sum to zero constraint is
-        imposed on all intrinsic models ("iid","rw1","rw2","besag",
+        imposed on all intrinsic models (``iid'', ``rw1'', ``rw2'', ``besag'',
         etc..). That means to all models where the corresponding
         precision matrix has not full rank.
         \item[{\tt extraconstr}] This argument defines extra linear
@@ -447,42 +449,416 @@ Some important options are
         {\tt A} and a
         vector {\tt e}, which defines the extra constraint {\tt Ax =
           e} for random effect {\tt x};
-        leading to {\tt extraconstr = list(A=A, e=e)}. Note that this
+        leading to {\tt extraconstr = list(A=A, e=e)}. The number of
+        columns of {\tt A} must correspond to the length of this
+        f-model.
+
+
+        For example, assume that the random effect $j$ has length
+        five and is modelled as an RW1.
+        In addition to the default sum-to-zero constraining we would
+        like to have two
+        extra constraints, the
+        first saying that the first two effects should be equal and the
+        second that the last two
+        elements are equal. Thus we have
+<<eval=FALSE>>=
+  A = matrix(1,-1,0,0,0,
+             0,0,0,1,-1), nrow=2, ncol=5, byrow=TRUE)
+  e = c(0,0)
+  extra = list(A=A, e=e)
+  formula = y ~ f(j, model="rw1", constr=TRUE, extraconstr=extra) + ....
+@
+         Note that this
         constraint comes additional to the
         sum-to-zero constraint defined if {\tt constr = TRUE}.
         \item[{\tt quantile}:]A vector of maximum $10$ quantiles
         to compute for each posterior marginal.
         \item[{\tt rankdef}:] A number *defining* the rank deficiency of
                 the latent model.
-        \item[{\tt cyclic}:]A boolean specifying wheather the model is cyclical. Only
+        \item[{\tt cyclic}:]A boolean specifying whether the model is cyclical. Only
           valid for "rw1" and "rw2" models. If cyclic=T then the sum to
           0 constraint is removed.
 \end{itemize}
 The following section illustrates the specification of hyperparameter settings for
 a random effect to be defined within the \tv{f}-function.
 
-\section{Define hyperpriors for random effects}
+\section{Define hyperpriors for random effects}\label{sec:prior}
 
 \subsection{General structure}
-Write about internal scale.
 
-Use of
+Each latent model depends on a certain number of hyperparameters,
+e.g.~the {\tt iid} model has one hyperparameter namely the precision,
+for which a prior distribution
+needs to be specified.
+
+Hyperparameters are internally often not represented in its original scale
+but using a more well defined transforamtion. For example, a
+precision parameter $\tau$ and a correlation parameter $\rho$ are
+internally represented as
+\begin{align*}
+  \theta_1 &= \log(\tau)\\
+  \theta_2 &= \log \Biggl( \frac{1+\rho}{1-\rho}\Biggr)
+\end{align*}
+That means that prior distributions as well as starting values for the
+numerical optimisation must be specified on the corresponding internal
+scale. Of note, posterior marginals and summary estimates are
+returned on the original scale.
+
+To set the details for the hyperparameters the field {\tt hyper} of
+the {\tt f()} function is used, which takes as argument a list. This
+list has as many entries as hyperparameters exist for the latent model.
+For each hyperparameter again a list containing the prior settings is
+defined.
+The prior settings for a precision parameter, in case of the {\tt rw2}
+model for example, are set via:
 <<eval=FALSE>>=
-hyper=list(...)
+ hyper=list(
+   prec=list(
+     prior="loggamma",
+     param=c(1, 1e-04),
+     initial=4,
+     fixed=FALSE,
+     to.theta = function(x) log(x),
+     from.theta = function(x) exp(x)
+   )
+ )
+
+ formula = y ~ f(idx, model="rw2", hyper=hyper, ...)
 @
+{\tt prec} in line 2 is the short name identifier to indicate that
+the settings specified in the subsequent list belong to the precision
+parameter. Internally the precision parameter is log-transformed and
+all prior settings are defined for this transformed parameter.
+The transformation used can be seen in lines 7 and 8.
+Here, we use a log-gamma distribution  with parameters $1$ and
+$1e-04$ (lines 3 and 4). It is also possible to fix the hyperparameter setting
+the field {\tt fixed = TRUE} in line 6, i.e.~to not estimate this parameter.
+The value to which it should be fixed
+is assigned to {\tt initial} in line 5. If {\tt fixed=FALSE} the value
+set in {\tt initial} is used as starting value in the numerical
+optimisation for finding the mode of $\bm{\theta} \mid \bm{y}$.
 
-\subsection{List of available priors}
+For a latent model with more than one hyperparameter several of prior lists
+can be specified in {\tt hyper}. For example for an AR1 model, which
+has two hyperparameters,  the corresponding specification would be:
+<<eval=FALSE>>=
+ hyper=list(
+   prec=list(
+     prior="loggamma",
+     param=c(1, 1e-04),
+     initial=4,
+     fixed=FALSE,
+     to.theta = function(x) log(x),
+     from.theta = function(x) exp(x)
+   ),
+   rho=list(
+     prior = "normal",
+     param = c(0, 0.15),
+     initial = 2,
+     fixed = FALSE,
+     to.theta = function(x) log((1+x)/(1-x)),
+     from.theta = function(x) 2*exp(x)/(1+exp(x))-1
+   )
+ )
 
-Provide table about what it exists separated by type of parameter:
-precision parameter, correlation, covariance matrix, ...
+  formula = y ~ f(idx, model="ar1", hyper=hyper, ...)
+@
+Here, a log-gamma distribution with parameters  $1$ and $1e-04$ is assigned
+to the log-precision parameter and a normal distribution with mean $0$
+and precision $0.15$ is assigned to the logit-transformed lag one correlation
+parameter $\rho$.
+
+The details on the hyperparameters  (number, identifier names, \ldots)
+% and default values of all latent models can be requested within {\tt R}
+% using the function {\tt inla.model.properties(<identifier>, "latent")}.
+are given in the documentary pdf file of the latent model, which can
+be obtained using {\tt inla.doc("ar1")}, for example, or
+listed when typing {\tt ?inla.models}.
+
+
+\subsection{List of ready-to-use priors in INLA}
+
+
+Table~\ref{tab:hyperpriors} gives an overview of most implemented
+hyper prior distributions.
+\begin{table}[h!]
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Prior & Identifier\\
+\midrule
+Normal distribution &  {\tt normal}, {\tt gaussian}\\
+Log-gamma distribution & {\tt loggamma}\\
+Penalised complexity prior & {\tt pc.prec}\\
+Improper flat prior & {\tt flat}\\
+Truncated normal distribution  &     {\tt logtnormal}, {\tt logtgaussian}\\
+Improper flat prior on the log scale  &    {\tt logflat}\\
+Improper flat prior on the 1/log scale &     {\tt logiflat}\\
+Wishart &     {\tt wishart}\\
+Beta for correlation parameters  &   {\tt betacorrelation}\\
+Logit of a beta &    {\tt logitbeta}\\
+\bottomrule
+\end{tabular}
+\caption{List of hyperpriors implemented in
+\tv{R-INLA}.}\label{tab:hyperpriors}
+\end{center}
+\end{table}
+Specific documentation for each model can be found on
+\url{http://www.r-inla.org/models/priors}. Within {\tt R} model
+documentation can be requested using the function {\tt inla.doc(<identifier>)},
+e.g.~{\tt inla.doc("flat")}.
+This will open a documentation pdf-file, providing the
+parameterisation and specification of the prior distribution.
+
+
+% Provide table about what it exists separated by type of parameter:
+% precision parameter, correlation, covariance matrix, ...
 
 \subsection{User-defined priors}
 
-Possible using table and expression.
+
+Besides the list of available prior functions for hyperparameters,
+compare Table~\ref{tab:hyperprior}, it is possible to define
+user-specific prior distributions. This might be needed to incorporate
+expert-motivated prior distributions or to use prior distributions
+that are non-standard.
+
+Thus, there are three ways to specify prior distributions for hyperparameters
+in INLA:
+\begin{enumerate}
+        \item Use an available prior distribution.
+        \item Define your own prior distribution function using R-like
+            syntax as expression.
+        \item Assign a table of x and corresponding y values which
+            represent your prior distribution.
+\end{enumerate}
+
+In the following we will provide more details regarding 2.) and
+3.). Finally, we will present an example illustrating (and comparing)
+the three different possibilities by means of the log-gamma
+distribution for the precision parameter.
+
+\subsubsection{“Expression”: a do-it-yourself prior}
+
+A user can specify any (univariate) prior distribution by defining an
+expression for the log-density $\log\pi(\theta)$, as a function of the
+corresponding $\theta$. Here, it is important to be aware that
+$\theta$ is defined on the internal scale.
+
+The expression is evaluated using the
+\texttt{muparser}-library\footnote{See
+\texttt{http://muparser.sourceforge.net/} for more documentation},
+with some changes to make it more ``\texttt{R}''-like in style. The
+format is
+\begin{quote} \texttt{expression: <statement>; <statement>; ...;
+return(<value>)}
+\end{quote}
+where ``\texttt{<statement>}'' is any regular statement
+(more below) and ``\texttt{<value>}'' is the value for the log-density
+of the prior, evaluated at the current value for $\theta$.
+
+Here, is an example defining the log-gamma distribution for the
+precision parameter on the internal log scale:
+<<eval=FALSE>>=
+prior.expression = "expression: a = 1; b = 0.1;
+  precision = exp(log_precision);
+  logdens = log(b^a) - lgamma(a) + (a-1)*log_precision - b*precision;
+  log_jacobian = log_precision;
+  return(logdens + log_jacobian);"
+@
+
+Some syntax specific notes:
+\begin{enumerate}
+\item \verb|return (x)| (with a space before ``(.)'') is NOT allowed,
+it must be \verb|return(x)|.
+\item A ``;'' is needed to terminate each expression.
+\item You can use ``\verb|_|'' in variable-names, like
+\verb|log_precision = <whatever>|;
+\end{enumerate}
+
+Known functions that can be used within the \texttt{expression} statement are:
+\begin{itemize}
+\item common math functions, such as \verb exp(x), \verb sin(x), $\ldots$.
+\item \verb|gamma(x)| denotes the gamma-function and \verb|lgamma(x)| is
+    its $\log$ (see \verb|?gamma| in \verb|R|).
+\item \verb|pi| is $\pi$
+\item $x^y$ is expressed as either \verb|x^y| or \verb|pow(x;y)|
+\end{itemize}
+
+\subsubsection{“Table”: provide a suitable set of support points}
+
+Instead of defining a prior distribution function, it is possible to provide a table of suitable support values $x$ (internal scale) and the corresponding log-density values $y$. INLA fits a spline through the provided points and continues with this in the succeeding computations. Note, there is no transformation into a functional form performed or required.
+
+The input-format for the table is a string, which starts with
+\texttt{table: } and is then followed by a block of $x$-values and  a
+block of the corresponding $y$-values, which represent the values of
+the log-density evaluated on $x$. Thus, the form is
+\begin{quote}
+    ``\texttt{table: x\_1 ... x\_n y\_1 ... y\_n}''
+\end{quote}
+
+% Here, is an example
+% <<eval=FALSE>>=
+% # use suitable support points x for the parameter on internal scale
+% lprec = seq(-10, 10, len=100)
+
+% # link the x and corresponding y values into a string which
+% # begins with "table:""
+% prior.table = INLA:::inla.paste(c("table:", cbind(lprec,
+%     prior.function(lprec))))
+% @
+% This is consequently assigned as
+% <<eval=FALSE>>=
+% hyper = list(prec = list(prior = prior.table))
+% @
+
+\subsubsection{Example: The log-gamma distribution}
+
+We illustrate all three different ways of defining a prior
+distribution for the residual precision of a normal likelihood. To
+show that the three definitions lead to the same result we inspect the
+log-marginal likelihood.
+
+<<echo=FALSE, eval=TRUE>>=
+set.seed(1352)
+@
+<<echo=TRUE, eval=TRUE, tidy=FALSE>>=
+## the loggamma-prior for the log-precision
+## (can be derived using the change of variable formula)
+prior.function = function(log_precision) {
+    a = 1;
+    b = 0.1;
+    precision = exp(log_precision);
+    logdens = log(b^a) - lgamma(a) + (a-1)*log_precision - b*precision;
+    log_jacobian = log_precision;
+    return(logdens + log_jacobian)
+}
+
+## implementing the loggamma-prior using "expression:"
+prior.expression = "expression:
+            a = 1;
+            b = 0.1;
+            precision = exp(log_precision);
+            logdens = log(b^a) - lgamma(a)
+                      + (a-1)*log_precision - b*precision;
+            log_jacobian = log_precision;
+            return(logdens + log_jacobian);"
+
+## use suitable support points x
+lprec = seq(-10, 10, len=100)
+## link the x and corresponding y values into a string beginnng with "table:""
+prior.table = paste(c("table:",
+                      cbind(lprec, prior.function(lprec))),
+                      sep="", collapse=" ")
+
+# simulate some data
+n = 50
+y = rnorm(n)
+
+## 1. use the built-in loggamma prior
+r1 = inla(y~1,data = data.frame(y),
+        control.family = list(hyper =
+            list(prec = list(prior = "loggamma", param = c(1, 0.1)))))
+
+## 2. use the definition using expression
+r2 = inla(y~1,
+        data = data.frame(y),
+        control.family = list(hyper =
+            list(prec = list(prior = prior.expression))))
+
+## 3. use a table of x and y values representing the loggamma prior
+r3 = inla(y~1,
+        data = data.frame(y),
+        verbose=T,
+        control.family = list(hyper =
+            list(prec = list(prior = prior.table))))
+
+## and we verify that we get the same result using the log-marginal likelihood
+c(r1$mlik[1], r2$mlik[1], r3$mlik[1])
+@
 
 \subsection{Model scaling}
 
-Write about Sigrunns and your paper.
+All intrinsic latent Gaussian models, that means models where the
+precision matrix has not full-rank, such as the RW1, RW2 or Besag
+model,  suffer from a so-called scaling problem CITE SIGRUNN. These
+models are non scaled with the effect that their properties change
+with locations, dimensions or graph structure. Scaling is therefore
+crucial to facilitate hyperprior assignment and guarantee that
+hyperpriors used in one application have the same interpretation in
+another application.
+
+Consider a RW1 for a random effect $\mathbf{x} = (x_1, \dots,
+x_n)^\top$  with density
+\begin{equation*}
+  \pi(\mathbf{x}) =
+  (2\pi)^{\frac{-(n-1)}{2}}(|\mathbf{Q}|)^{1/2}\exp\left(-\frac{1}{2}\bm{x}^\top \mathbf{Q}\bm{x}\right),
+\end{equation*}
+where $\mathbf{Q} = \kappa\mathbf{R}$ and where $\mathbf{R}$ is the
+so-called structure matrix
+    \begin{equation*}
+        \bm{R} = \begin{pmatrix}
+            1&-1&&&&&\\
+            -1&2&-1&&&&\\
+            &-1&2&-1&&&\\
+            &&\ddots&\ddots&\ddots&&\\
+            &&&-1&2&-1&\\
+            &&&&-1&2&-1\\
+            &&&&&-1&1\\
+        \end{pmatrix}.
+    \end{equation*}
+The marginal variances $\kappa^{-1}[\mathbf{R}^{-}]_{ii}$ depend on the graph
+structure reflected by the structure matrix $\mathbf{R}$.
+This can be illustrated by calculating a generalized variance, computed as
+the geometric mean (or some other
+typical value) of the marginal variances
+ \begin{eqnarray}
+  \sigma_{\text{GV}}^2(\mathbf{x}) &= &  \exp \left(\frac{1}{n}\sum_{i=1}^n
+    \log\left(\frac{1}{\kappa} [\mathbf{R}^{-}]_{ii}\right) \right)
+    = \frac{1}{\kappa} \exp \left(\frac{1}{n}\sum_{i=1}^n
+    \log([\mathbf{R}^{-}]_{ii}) \right). \label{eq:cv}
+\end{eqnarray}
+Here $(\cdot)^{-}$ denotes the generalised inverse.
+The generalized variance  for random effects of different length is
+not the same:
+<<echo=TRUE>>=
+  library(MASS)
+  INLA:::inla.rw1(5)
+  exp(mean(log(diag(ginv(as.matrix(INLA:::inla.rw1(5)))))))
+  exp(mean(log(diag(ginv(as.matrix(INLA:::inla.rw1(50)))))))
+  exp(mean(log(diag(ginv(as.matrix(INLA:::inla.rw1(500)))))))
+@
+This means that putting a prior on $\kappa$ will have different
+smoothing effects depending on the length of the random walk. Assuming
+we keep $n=10$, say, then the generalised variance will vary between
+assuming an RW1 versus an RW2. This makes prior assignment
+challenging. The same applies for the Besag model. Here, the
+smoothness will depend on the underlying graph structure CITE PC4BYM.
+
+To facilitate prior assignment and preserve interpretability we
+recommend to scale all intrinsic GMRF models, so that
+ \begin{eqnarray}
+   \exp \left(\frac{1}{n}\sum_{i=1}^n
+    \log([\mathbf{R}^{-}]_{ii}) \right) = 1
+\end{eqnarray}
+In {\tt INLA} this can be easily done by adding the option {\tt
+  scale.model=TRUE} to the {\tt f}-function. For example for the RW1
+this means
+<<eval=FALSE>>=
+   formula = y ~ f(idx, model="rw1", scale.model=TRUE, ...)
+@
+Furthermore, {\tt INLA} offers the function {\tt inla.scale.model} to
+scale any arbitrary structure matrix. It takes as argument any
+singular structure matrix $\mathbf{R}$  and the linear constraints
+spanning the null-space $\mathbf{V}$ of $\mathbf{R}$, and returns the scaled
+structure matrix where the geometric mean of the marginal variances is
+equal to one. For the Besag model on a connected graph where we have
+$\mathbf{V} = \mathbf{1}$, we can scale the structure matrix using
+<<eval=FALSE>>=
+  R = inla.scale.model(R, constr=list(A=matrix(1, nrow=1, ncol=n), e=0))
+@
+
 
 
 \section{Define the observation model and run the model}
