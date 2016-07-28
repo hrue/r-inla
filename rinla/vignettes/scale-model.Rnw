@@ -66,8 +66,7 @@
 \maketitle
 
 
-<<echo=FALSE,eval=T>>= %chunk 1
-
+<<echo=FALSE,eval=TRUE>>= %chunk 1
 if (Sys.getenv("USER") == "sigrunnsrbye") {
 setwd("/Users/sigrunnsrbye/Dropbox/Tutorial_igmrfs")
 } 
@@ -104,14 +103,14 @@ The aim of this tutorial is to introduce and demonstrate a recently
 implemented option in \texttt{R-INLA} named \texttt{scale.model},
 which can be added when specifying the inla formula-call for the
 different IGMRFs. For example, we might specify the formula as
-<<echo=TRUE,eval=F>>= %chunk 2
+<<echo=TRUE,eval=FALSE>>= %chunk 2
 formula = y ~  f(idx, model = "rw2", scale.model = TRUE, hyper=..)
 @ 
 By defining \texttt{scale.model = TRUE}, the \texttt{rw2}-model is
 scaled to have a generalized variance equal to 1, see
 Section~\ref{sec:igmrf} for further explanations.  The new option is
 also available using \texttt{control.group},
-<<echo=TRUE,eval=F>>= %chunk 3
+<<echo=TRUE,eval=FALSE>>= %chunk 3
 f(idx, model="..", group=g, control.group = list(model="rw2", scale.model=TRUE))
 @ 
 which is relevant for the \texttt{rw1}, \texttt{rw2} and the
@@ -184,7 +183,7 @@ see Figure~\ref{fig:marg.std}. This illustrates that it seems
 unreasonable to assign the exact same hyperprior for the precision
 parameters of these two models when these parameters are random.
 
-<<echo=F,eval=T>>= %chunk 4
+<<echo=F,eval=TRUE>>= %chunk 4
 ss.rw1.sdref = function(values,tau) { 
     n = length(values)
     stopifnot(!missing(n)) 
@@ -246,13 +245,13 @@ sd.rw2=ss.rw2.sdref(1:n,1)
     \centering 
     \mbox{ 
         \makebox[0.45\textwidth][c]{
-<<fig=TRUE,echo=FALSE>>= %chunk 5
+<<fig.keep='high',echo=FALSE>>= %chunk 5
 plot(sd.rw1,xlab="Node i", ylab="Marginal standard deviation") 
 @ 
 } 
 \makebox[\MyFigureSpacing][c]{}
 \makebox[0.45\textwidth][c]{ 
-<<fig=TRUE,echo=FALSE>>= %chunk 6
+<<fig.keep='high',echo=FALSE>>= %chunk 6
 plot(sd.rw2,xlab="Node i",ylab="Marginal standard deviation") 
 @ 
 }}
@@ -308,10 +307,10 @@ models, we again notice that the
 interpretation of $a$ and $b$ stays the same for all $\mm{x}$ and the
 upper limit $U$ is easily calculated as 
 %%
-<<echo=T,eval=F>>= %chunk 7
+<<echo=TRUE,eval=F>>= %chunk 7
 U = sqrt(b/qgamma(alpha,a,1)) 
 @ 
-<<echo=FALSE,eval=T>>= %chunk 8
+<<echo=FALSE,eval=TRUE>>= %chunk 8
 func.u = function(a,b,alpha,sigma.ref) { 
     upper.limit = sqrt(b)*sigma.ref/sqrt(qgamma(alpha,a,1)) 
     return(upper.limit) 
@@ -338,7 +337,7 @@ and scaled models.  Here we consider two examples, analysing
 semiparametric regression models. Other examples are given in
 \cite{sorbye:13} and \cite{papoila:13}.
 
-<<echo=F,eval=T>>= %chunk 9
+<<echo=F,eval=TRUE>>= %chunk 9
 func<-function(x,t)
 {
     f.x=x/t+sin(2*pi* x/t)-0.5
@@ -354,7 +353,7 @@ f.est <- function(y,x,a,b,option)
 }
 @
 
-<<echo=F,eval=T>>= %chunk 10
+<<echo=F,eval=TRUE>>= %chunk 10
 ### Same values of the function, same observations, but  defined on different intervals ###
 set.seed(89236)
 x2=0:n
@@ -421,7 +420,7 @@ intervals of $x$, see Figure \ref{fig:fx2}.
 \centering
 \mbox{
 \makebox[0.28\textwidth][c]{
-<<fig=TRUE,echo=FALSE,eval=T>>= %chunk 14
+<<fig.keep='high',echo=FALSE,eval=TRUE>>= %chunk 14
 # Estimate of f using unscaled and scaled model
 r=range(c(mat1,mat2,mat3))
 matplot(x1,mat1,type="lll",lty=c(1,2,4),col=c(1,4,2),xlab="x",ylab="f(x)",ylim=r,lwd=3) 
@@ -431,13 +430,13 @@ matplot(x1,mat1,type="lll",lty=c(1,2,4),col=c(1,4,2),xlab="x",ylab="f(x)",ylim=r
 }
 \makebox[\MyFigureSpacing][c]{}
 \makebox[0.28\textwidth][c]{
-<<fig=TRUE,echo=FALSE,eval=T>>= %chunk 15
+<<fig.keep='high',echo=FALSE,eval=TRUE>>= %chunk 15
 matplot(x2,mat2,type="lll",lty=c(1,2,4),col=c(1,4,2),xlab="x",ylab="f(x)",ylim=r,lwd=3)
 @
 }
 \makebox[\MyFigureSpacing][c]{}
 \makebox[0.28\textwidth][c]{
-<<fig=TRUE,echo=FALSE,eval=T>>= %chunk 16
+<<fig.keep='high',echo=FALSE,eval=TRUE>>= %chunk 16
 matplot(x3,mat3,type="lll",lty=c(1,2,4),col=c(1,4,2),xlab="x",ylab="f(x)",ylim=r,lwd=3)
 @
 }}
@@ -527,7 +526,7 @@ Further, the call to inla is given as
 mod  =  inla(formula, data = Munich)
 @                   
 
-<<echo=FALSE,eval=T>>= %chunk 20
+<<echo=FALSE,eval=TRUE>>= %chunk 20
 data(Munich)
 g = system.file("demodata/munich.graph", package="INLA")
 
@@ -545,7 +544,7 @@ func.munich <- function(a,b,option)
 }
 @
 
-<<echo=FALSE,eval=T>>=%chunk 21
+<<echo=FALSE,eval=TRUE>>=%chunk 21
 a=1
 b=0.01
 u.munich=func.u(a,b,alpha,1)
@@ -568,14 +567,14 @@ shown).
 \centering
 \mbox{
 \makebox[0.45\textwidth][c]{
-<<fig=TRUE,echo=FALSE,eval=T>>= %chunk 22
+<<fig.keep='high',echo=FALSE,eval=TRUE>>= %chunk 22
 mat=cbind(mod$summary.random$year$mean,mod.scaled$summary.random$year$mean)
 matplot(mod$summary.random$year$ID,mat,type="ll",lty=c(2,1),col=c(2,1),xlab="Year of construction",ylab="",lwd=2.5)
 @
 }
 \makebox[\MyFigureSpacing][c]{}
 \makebox[0.45\textwidth][c]{
-<<fig=TRUE,echo=FALSE,eval=T>>= %chunk 23
+<<fig.keep='high',echo=FALSE,eval=TRUE>>= %chunk 23
 mat=cbind(mod$summary.random$floor.size$mean,mod.scaled$summary.random$floor.size$mean)
 matplot(mod$summary.random$floor.size$ID,mat,type="ll",lty=c(2,1),col=c(2,1),xlab="Floor size",ylab="",lwd=2.5)
 @
@@ -591,7 +590,7 @@ matplot(mod$summary.random$floor.size$ID,mat,type="ll",lty=c(2,1),col=c(2,1),xla
 \label{fig:munich}
 \end{figure}
 
-<<echo=FALSE,eval=T>>= %chunk 24
+<<echo=FALSE,eval=TRUE>>= %chunk 24
 alpha=0.001
 #u.vec=c(0.01,1,10,100)
 u.vec=c(0.001,0.1,10,30)
@@ -625,7 +624,7 @@ not change significantly for these different parameter choices
 \centering
 \mbox{
 \makebox[0.45\textwidth][c]{
-<<fig=TRUE,echo=FALSE,eval=T>>= %chunk 25
+<<fig.keep='high',echo=FALSE,eval=TRUE>>= %chunk 25
 mat=cbind(c1$summary.random$year$mean,c2$summary.random$year$mean,c3$summary.random$year$mean,c4$summary.random$year$mean)
 matplot(mod$summary.random$year$ID,mat,type="llll",lty=c(1,2,3,4),col=c(1,2,3,4),xlab="Year of construction",ylab="",lwd=2.5)
 legend("topleft",paste("U= ",u.vec),lty=1:4,col=1:4,lwd=2.5)
@@ -633,7 +632,7 @@ legend("topleft",paste("U= ",u.vec),lty=1:4,col=1:4,lwd=2.5)
 }
 \makebox[\MyFigureSpacing][c]{}
 \makebox[0.45\textwidth][c]{
-<<fig=TRUE,echo=FALSE,eval=T>>= %chunk 26
+<<fig.keep='high',echo=FALSE,eval=TRUE>>= %chunk 26
 mat=cbind(c1$summary.random$floor.size$mean,c2$summary.random$floor.size$mean,c3$summary.random$floor.size$mean,c4$summary.random$floor.size$mean)
 matplot(mod$summary.random$floor.size$ID,mat,type="llll",lty=c(1,2,3,4),col=c(1,2,3,4),xlab="Floor size",ylab="",lwd=2.5)
 legend("topright",paste("U= ",u.vec),lty=1:4,col=1:4,lwd=2.5)
@@ -661,7 +660,7 @@ model. We simply set the \texttt{scale.model}-option equal to
 If you are now convinced that all IGMRF-models should in fact be
 scaled, you can do this in an even simpler way than already
 described. By specifying the following global option
-<<echo=T,eval=F>>= %chunk 27
+<<echo=TRUE,eval=FALSE>>= %chunk 27
 inla.setOption(scale.model.default = TRUE)
 @ 
 all the IGMRF-models are scaled automatically. This also includes the
