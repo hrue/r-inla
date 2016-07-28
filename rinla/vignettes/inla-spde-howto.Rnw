@@ -1,0 +1,298 @@
+\documentclass[a4paper,11pt]{article} 
+
+\usepackage[margin={2cm,2cm}]{geometry} 
+\usepackage{multicol} 
+
+\title{\vspace{-2cm}
+  A short introduction on how to fit a \textbf{SPDE} model 
+  with \textbf{\textsf{INLA}}}
+\author{Elias T. Krainski and H{\aa}vard Rue} 
+
+%\VignetteEngine{knitr::knitr} 
+%\VignetteIndexEntry{SPDEhowto}
+\begin{document} 
+
+\maketitle 
+
+\vspace{-1cm}
+\begin{center}\begin{minipage}[c]{0.9\textwidth}\centering
+This document ilustrates how to do a 
+geostatistical fully Bayesian analysis
+through the \textbf{S}tochastic \textbf{P}artial 
+\textbf{D}iferential \textbf{E}quation 
+approach, \cite{lindgrenRL:2011}, 
+with \textbf{I}ntegrated \textbf{N}ested 
+\textbf{L}aplace \textbf{A}proximation, 
+\cite{rueMC:2009}, 
+using the \textbf{\textsf{INLA}} package, 
+\texttt{http://www.r-inla.org}.
+\end{minipage}\end{center}
+
+<<setting,include=FALSE>>= 
+set.seed(1) 
+require(knitr)
+knit_hooks$set(pars = function(before, options, envir) {
+    if (before) graphics::par(options$pars)
+}) 
+library(lattice);   library(gridExtra);  library(INLA);  library(plyr) 
+inla.setOption(inla.call='remote') 
+@ 
+
+\begin{multicols}{2} 
+
+\section{Data simulation} 
+
+\textbf{Locations} and the Random 
+Field (RF) \textbf{covariance} matrix, 
+exponential correlation function 
+
+<<locations,tidy=FALSE>>=
+n = 200; coo = matrix(runif(2*n), n) 
+k <- 10;   s2s <- 0.7 ## RF params.
+R <- s2s*exp(-k*as.matrix(dist(coo))) 
+@ 
+
+\textbf{RF} sample, a multivariate Normal realization 
+  
+<<rmvnorm,tidy=FALSE>>=
+s <- drop(rnorm(n)%*%chol(R)) 
+@ 
+
+A \textbf{covariate} effect and a noise can be added
+
+<<noise,tidy=FALSE>>=
+x <- runif(n);  beta <- 1:2;  s2e <- 0.3
+lin.pred <- beta[1] + beta[2]*x + s 
+y <- lin.pred + rnorm(n, 0, sqrt(s2e)) 
+@ 
+
+\section{Model fitting: steps} 
+
+1. \textbf{Mesh:} 
+a triangulation to discretize the 
+random field (RF) at $m$ nodes. 
+
+<<fmesh, tidy=FALSE, pars=list(mar=c(0,0,0.7,0)), out.width='0.45\\textwidth', fig.align='center'>>= 
+mesh <- inla.mesh.2d(
+    coo, ## provide locations or domain
+    max.edge=c(1/k, 2/k), ## mandatory 
+    cutoff=0.1/k) ## good to have >0
+plot(mesh, asp=1);  points(coo, col='red')
+@ 
+
+A little warning about the mesh. 
+The additional triangles outer domain 
+is to avoid boundary effects. 
+Is good to have aproximately 
+isosceles triangles. 
+And, to avoid tiny triangles. 
+We need to have edges lengths 
+of the inner mesh triangles 
+less than the range of the process. 
+Of course, if it is too small, there 
+might not be any spatial effect. 
+
+2. \textbf{Define the $n\times m$ projector matrix} to project 
+ the process at the mesh nodes to locations 
+<<projector, tidy=FALSE>>=
+dim(A <- inla.spde.make.A(
+    mesh=mesh, loc=coo)) ## 'n' by 'm'
+@ 
+
+3. \textbf{Build the SPDE model} on the mesh.
+Exponential correlation function, $\alpha=3/2$ 
+
+<<spde,tidy=FALSE>>=
+spde <- inla.spde2.matern(
+    mesh=mesh, alpha=1.5) 
+@ 
+
+4. \textbf{Create a stack data} for the estimation. 
+This is a way to allow models with complex 
+linear predictors. In our case, we have a SPDE 
+model defined on $m$ nodes. It must be combined 
+with the covariate (and the intercept) 
+effect at $n$ locations. 
+We do it using different projector matrices. 
+
+<<stack-estimation,tidy=FALSE>>=
+stk.e <- inla.stack(tag='est', ## tag
+    data=list(y=y),  ## response
+    A=list(A, 1), ## two projector matrix
+    effects=list(## two elements:
+        s=1:spde$n.spde, ## RF index
+        data.frame(b0=1, x=x)))
+@ 
+
+5. \textbf{Fit} the posterior marginal distributions
+  for all model parameters 
+
+<<fitting>>= 
+formula <- y ~ 0 + b0 + x + ## fixed part
+    f(s, model=spde) ## RF term
+res <- inla(formula, 
+            data=inla.stack.data(stk.e), 
+    control.predictor=list(A = 
+        inla.stack.A(stk.e)))# projector
+@ 
+
+\end{multicols} 
+
+\section{Posterior marginal distributions - PMDs} 
+
+Summary of the regression coefficients PMDs
+
+<<fixed-summary>>=
+round(res$summary.fixed, 4) 
+@ 
+
+\hrulefill
+
+\begin{multicols}{2} 
+
+\textbf{\textsf{INLA}} works with precisions. 
+We have to transform the precision PMD to have 
+the variance PMD. It can be done and visialized by
+
+<<fvar, tidy=FALSE, pars=list(mar=c(2.5,2.5,0.1,0.1), mgp=c(1.7,0.5,0)), fig.width=3.5, fig.height=3.5, out.width='0.35\\textwidth', fig.align='center', fig.pos='h'>>=
+post.s2e <- 
+  inla.tmarginal(# tranformation function
+  function(x) 1/x, ## inverse transf. 
+  res$marginals.hyperpar$
+'Precision for the Gaussian observations')
+plot(post.s2e, type='l', ylab='Density', 
+     xlab=expression(sigma[e]^2))
+abline(v=s2e, col=2) ## add true value
+@ 
+
+\end{multicols} 
+
+\hrulefill
+
+\begin{multicols}{2} 
+
+The SPDE approach uses a local variance, $\tau^2$, 
+such that $\sigma_{s}^2=1/(2\pi\kappa^2\tau^2)$. 
+On \textbf{\textsf{INLA}} we work log($\tau^2$)
+and log($\kappa$). So, especially for 
+$\sigma_{s}^2$, we have to do 
+an additional computation. 
+The PMDs for all RF parameters on 
+user scale are computed by
+
+<<rf>>=
+rf <- inla.spde.result(
+    inla=res, ## the inla() output
+    name='s', ## name of RF index set
+    spde=spde, ## SPDE model object
+    do.transf=TRUE) ## to user scale
+@ 
+
+\end{multicols} 
+
+It can be visualized by 
+
+<<rfpars, pars=list(mfrow=c(1,3), mar=c(3,3,0.3,0.3), mgp=c(2,0.5,0)), fig.width=7.5, fig.height=2.5, out.width='0.99\\textwidth', out.height='0.33\\textwidth', fig.align='center', fig.pos='h', fig.keep='last'>>=
+plot(rf$marginals.var[[1]], ty='l', 
+     xlab=expression(sigma[s]^2), yla='Density')
+abline(v=s2s, col=2) ## add the true value
+plot(rf$marginals.kap[[1]], type='l',
+     xlab=expression(kappa), ylab='Density')
+abline(v=k, col=2) ## add the true value
+plot(rf$marginals.range[[1]], type='l', 
+     xlab='range nominal', ylab='Density')
+abline(v=sqrt(4)/k, col=2) ## add the 'true' value
+@
+
+\section{Projection on a grid}
+
+An interesting result is the map of the RF on a grid. 
+The simplest way to have it is by projection. 
+We just have to define the projector matrix 
+and project, for example, the posterior 
+mean and posterior standard deviation on the grid. 
+
+<<project-grid>>=
+gproj <- inla.mesh.projector(mesh,  xlim=0:1, ylim=0:1, dims=c(300,300))
+g.mean <- inla.mesh.project(gproj, res$summary.random$s$mean)
+g.sd <- inla.mesh.project(gproj, res$summary.random$s$sd)
+@ 
+
+We can visualize it by 
+
+<<fgrid, tidy=FALSE, fig.width=9.7, fig.height=4.5, out.width='0.97\\textwidth', out.height='0.45\\textwidth', fig.pos='h'>>=
+library(lattice);     library(gridExtra) 
+trellis.par.set(regions=list(col=terrain.colors(16))) 
+grid.arrange(levelplot(g.mean, scales=list(draw=F), xlab='', ylab='', main='mean'), 
+             levelplot(g.sd, scal=list(draw=F), xla='', yla='', main='sd'), nrow=1)
+@ 
+
+\section{Prediction} 
+
+Define target locations, the corresponding projector 
+matrix and covariate values at target locations 
+
+<<target-loc>>=
+tcoo <- rbind(c(0.3,0.3), c(0.5,0.5), c(0.7,0.7))
+dim(Ap <- inla.spde.make.A(mesh=mesh, loc=tcoo)) 
+x0 <- c(0.5, 0.5, 0.5)
+@ 
+
+To do a fully Bayesian analysis, 
+we include the target locations on the 
+estimation process by assigning NA 
+for the response at these locations. 
+Defining the prediction stack 
+
+<<prediction-stack>>=
+stk.pred <- inla.stack(tag='pred', A=list(Ap, 1), data=list(y=NA), ## response as NA
+                       effects=list(s=1:spde$n.spde, data.frame(x=x0, b0=1)))
+@ 
+
+Fit the model again with the full stack 
+
+<<refit-predict>>=
+stk.full <- inla.stack(stk.e, stk.pred) 
+p.res <- inla(formula, data=inla.stack.data(stk.full), ## full stack
+              control.predictor=list(compute=TRUE, ## compute the predictor
+                  A=inla.stack.A(stk.full))) ## using full stack data
+@ 
+
+Get the prediction data index and collect the 
+linear predictor PMDs  to work with 
+
+<<ypost>>=
+pred.ind <- inla.stack.index(stk.full, tag='pred')$data
+ypost <- p.res$marginals.fitted.values[pred.ind]
+@ 
+
+Visualize with commands bellow
+
+<<ppred, tidy=FALSE, fig.width=9.9, fig.height=3.5, out.width='0.99\\textwidth', out.height='0.35\\textwidth', fig.pos='h', fig.keep='last'>>=
+names(ypost) <- paste('y', seq_along(ypost), sep='_');     library(plyr) 
+xyplot(y~x | .id, ldply(ypost), panel='llines', xlab='y', ylab='Density')
+@ 
+
+In \textbf{\textsf{INLA}} we have some functions to work 
+with marginals distributions 
+
+<<marginals-funcs>>=
+apropos('marginal')
+@ 
+
+\begin{multicols}{2} 
+
+<<marginals-examples>>=
+inla.mmarginal(ypost[[1]]) ## mode
+inla.qmarginal(c(0.15, 0.7), ## quantiles
+               ypost[[1]]) 
+inla.pmarginal(inla.qmarginal(
+    0.3, ypost[[1]]), ypost[[1]]) 
+@ 
+
+\bibliographystyle{apalike}
+\bibliography{spde-tutorial}
+
+\end{multicols} 
+
+\end{document} 
