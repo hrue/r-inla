@@ -724,7 +724,7 @@ inla.spde2.pcmatern =
   is.fixed.range <- is.na(prior.range[2])
   if (is.fixed.range) {
     lam1 <- 0
-    initial.range <- log(fixed.rho)
+    initial.range <- log(prior.range[1])
   } else {
     lam1 <- -log(prior.range[2])*prior.range[1]^(d/2)
     initial.range <- log(prior.range[1]) + 1
@@ -733,7 +733,7 @@ inla.spde2.pcmatern =
   is.fixed.sigma <- is.na(prior.sigma[2])
   if (is.fixed.sigma){
     lam2 <- 0
-    initial.sigma <- log(fixed.sigma)
+    initial.sigma <- log(prior.sigma[1])
   } else{
     lam2 <- -log(prior.sigma[2])/prior.sigma[1]
     initial.sigma <- log(prior.sigma[1]) - 1
