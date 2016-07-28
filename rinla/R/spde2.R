@@ -660,8 +660,10 @@ inla.spde2.pcmatern =
              extraconstr = NULL,
              fractional.method = c("parsimonious", "null"),
              n.iid.group = 1,
-             prior.rho,
-             prior.sigma)
+             prior.rho = NULL,
+             prior.sigma = NULL,
+             fixed.rho = NULL,
+             fixed.sigma = NULL)
 {
   ## Implementation of PC prior for standard deviation and range
   ##    - Sets the parametrization to range and standard deviation
@@ -680,11 +682,24 @@ inla.spde2.pcmatern =
 
   if (missing(prior.rho) || is.null(prior.rho) ||
       !is.vector(prior.rho) || (length(prior.rho) != 2)) {
-    stop("'prior.rho' should be a length 2 vector 'c(rho0,tailprob)'.")
+    if (is.null(fixed.rho))
+      stop("'prior.rho' should be a length 2 vector 'c(rho0,tailprob)' or range must be fixed with 'fixed.rho'.")
   }
   if (missing(prior.sigma) || is.null(prior.sigma) ||
       !is.vector(prior.sigma) || (length(prior.sigma) != 2)) {
-    stop("'prior.sigma' should be a length 2 vector 'c(sigma0,tailprob)'.")
+    if (is.null(fixed.sigma))
+      stop("'prior.sigma' should be a length 2 vector 'c(sigma0,tailprob)' or sigma must be fixed with 'fixed.sigma'.")
+  }
+
+  if (!is.null(fixed.rho)){
+    if (!is.numeric(fixed.rho) || (fixed.rho <= 0)){
+        stop("'fixed.rho' must be a number greater than 0 specifying which value to fix the range at")
+    }
+  }
+  if (!is.null(fixed.sigma)){
+    if (!is.numeric(fixed.sigma) || (fixed.sigma <= 0)){
+        stop("'fixed.sigma' must be a number greater than 0 specifying which value to fix the standard deviation at")
+    }
   }
 
   nu <- alpha-d/2
@@ -705,13 +720,37 @@ inla.spde2.pcmatern =
                               extraconstr = extraconstr,
                               fractional.method = fractional.method,
                               n.iid.group = 1)
+  
+  ## Calculate hyperparameters
+  is.fixed.range = FALSE
+  if (is.null(fixed.rho)){
+    lam1 = -log(prior.rho[2])*prior.rho[1]^(d/2)
+    initial.range = log(prior.rho[1])+1
+  } else {
+    lam1 = 0
+    is.fixed.range = TRUE
+    initial.range = log(fixed.rho)
+  }
+
+  is.fixed.sigma = FALSE
+  if (is.null(fixed.sigma)){
+    lam2 = -log(prior.sigma[2])/prior.sigma[1]
+    initial.sigma = log(prior.sigma[1])-1
+  } else{
+    lam2 = 0
+    is.fixed.sigma = TRUE
+    initial.sigma = log(fixed.sigma)
+  }
+  pVec = c(lam1, lam2, d)
 
   ## Change prior information
   spde$f$hyper.default <-
-    list(theta1=list(prior="pcspdega",
-                     param=c(prior.rho, prior.sigma),
-                     initial=log(prior.rho[1])+1),
-         theta2=list(initial=log(prior.sigma[1])-1))
+    list(theta1=list(prior="pcmatern",
+                     param=pVec,
+                     initial=initial.range,
+                     fixed=is.fixed.range),
+         theta2=list(initial=initial.sigma,
+                     fixed=is.fixed.sigma))
 
   ## Change the model descriptor
   spde$model = "pcmatern"

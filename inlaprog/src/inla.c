@@ -1924,8 +1924,8 @@ double mfunc_rgeneric(int i, void *arg)
 	}
 
 	if (rebuild) {
-		int n, len, k = 0, n_out, jj;
-		double *mu = NULL, *x_out = NULL;
+		int n, k = 0, n_out, jj;
+		double *x_out = NULL;
 #pragma omp critical
 		{
 			if (debug) {
@@ -2027,7 +2027,7 @@ double mfunc_revsigm(int i, void *arg)
 double mfunc_log1exp(int i, void *arg)
 {
 	inla_log1exp_tp *a = (inla_log1exp_tp *) arg;
-	double beta, alpha, gama, x, xx;
+	double beta, alpha, gama, x;
 
 	beta = a->beta[GMRFLib_thread_id][0];
 	alpha = a->alpha[GMRFLib_thread_id][0];
@@ -2343,7 +2343,15 @@ double priorfunc_pc_matern(double *x, double *parameters)
 	lam2 = parameters[1];
 	dHalf = parameters[2] / 2.0;
 
-	ldens = (log(lam1 * dHalf) - dHalf * theta1 - lam1 * exp(-dHalf * theta1)) + (log(lam2) + theta2 - lam2 * exp(theta2));
+	ldens = 0.0;
+
+	// Check if range is fixed
+	if (!ISNAN(theta1))
+		ldens += log(lam1 * dHalf) - dHalf * theta1 - lam1 * exp(-dHalf * theta1);
+
+	// Check if standard deviation is fixed
+	if (!ISNAN(theta2))
+		ldens += log(lam2) + theta2 - lam2 * exp(theta2);
 
 	if (debug) {
 		fprintf(stderr, "pc_matern: x = %g %g\n", x[0], x[1]);
@@ -2643,7 +2651,7 @@ double priorfunc_pc_ar(double *x, double *parameters)
 double priorfunc_ref_ar(double *x, double *parameters)
 {
 	int i, p;
-	double pacf[3], ldens, logjac;
+	double pacf[3], ldens;
 
 	p = (int) parameters[0];
 	assert(p >= 0 && p <= 3);
@@ -14905,17 +14913,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		char *spde2_prefix, *transform;
 
 		spde2_prefix = GMRFLib_strdup(".");
-		spde2_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE2_PREFIX"), spde2_prefix);
 		spde2_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE2.PREFIX"), spde2_prefix);
-		spde2_prefix = iniparser_getstring(ini, inla_string_join(secname, "SPDE2PREFIX"), spde2_prefix);
 		if (mb->verbose) {
 			printf("\t\tspde2.prefix = [%s]\n", spde2_prefix);
 		}
 
 		transform = GMRFLib_strdup("logit");
-		transform = iniparser_getstring(ini, inla_string_join(secname, "SPDE2_TRANSFORM"), transform);
 		transform = iniparser_getstring(ini, inla_string_join(secname, "SPDE2.TRANSFORM"), transform);
-		transform = iniparser_getstring(ini, inla_string_join(secname, "SPDE2TRANSFORM"), transform);
 		if (mb->verbose) {
 			printf("\t\tspde2.transform = [%s]\n", transform);
 		}
@@ -14945,31 +14949,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_ai_INLA_userfunc2_tag[GMRFLib_ai_INLA_userfunc2_n - 1] = ltag;
 
 		/*
-		 * now we know the number of hyperparameters ;-) 
+		 * we know the number of maximum number of hyperparameters
 		 */
-		int ntheta;
-
-		mb->f_ntheta[mb->nf] = ntheta = spde2_model->ntheta;
-		mb->f_initial[mb->nf] = Calloc(mb->f_ntheta[mb->nf], double);	/* need to do this here as we do not know n_theta upfront */
+		int ntheta = spde2_model->ntheta;
+		mb->f_initial[mb->nf] = Calloc(ntheta, double);	/* need to do this here as we do not know n_theta upfront */
 		if (mb->verbose) {
-			printf("\t\tntheta = [%1d]\n", ntheta);
+			printf("\t\tntheta (max) = [%1d]\n", ntheta);
 		}
-
-		if (!strcasecmp(mb->f_prior[mb->nf][0].name, "MVNORM")) {
-			if ((int) mb->f_prior[mb->nf][0].parameters[0] != ntheta) {
-				GMRFLib_sprintf(&ptmp, "Dimension of the MVNORM prior is not equal to number of hyperparameters: %1d != %1d\n",
-						(int) mb->f_prior[mb->nf][0].parameters[0], ntheta);
-				inla_error_general(ptmp);
-				exit(EXIT_FAILURE);
-			}
-		} else if (!strcasecmp(mb->f_prior[mb->nf][0].name, "PCSPDEGA")) {
-			assert(ntheta == 2);		       /* requirement... */
-		} else if (!strcasecmp(mb->f_prior[mb->nf][0].name, "PCMATERN")) {
-			assert(ntheta == 2);		       /* requirement... */
-		} else {
-			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
-		}
-
 
 		mb->f_fixed[mb->nf] = Calloc(ntheta, int);
 		mb->f_theta[mb->nf] = Calloc(ntheta, double **);
@@ -15001,22 +14987,19 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		/*
-		 * need to know where in the theta-list the spde2 parameters are 
+		 * need to store where in the theta-list the spde2 parameters are 
 		 */
 		spde2_model->theta_first_idx = mb->ntheta;
 
 		/*
 		 * then read those we need 
 		 */
+		mb->f_ntheta[mb->nf] = 0;		       /* and then we count */
 		for (i = 0; i < ntheta; i++) {
 			double theta_initial = 0.0;
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			mb->f_fixed[mb->nf][i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (mb->f_fixed[mb->nf][i]) {
-				inla_error_general("Fixed hyperparmaters is not allowed in the SPDE2 model.");
-				exit(EXIT_FAILURE);
-			}
 
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
 			theta_initial = iniparser_getdouble(ini, inla_string_join(secname, ctmp), theta_initial);
@@ -15025,7 +15008,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 
 			HYPER_INIT(spde2_model->theta[i], theta_initial);
-
 			if (mb->verbose) {
 				printf("\t\tinitialise theta[%1d]=[%g]\n", i, theta_initial);
 				printf("\t\tfixed[%1d]=[%1d]\n", i, mb->f_fixed[mb->nf][i]);
@@ -15036,33 +15018,89 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			GMRFLib_sprintf(&hid, "%s|%s", cctmp, secname);
 
 			/*
-			 * add this \theta 
+			 * add this \theta. make spesific names for the pcmatern-case
 			 */
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = hid;
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Theta%1d for %s", i + 1, (secname ? secname : mb->f_tag[mb->nf]));
-			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "Theta%1d for %s", i + 1, (secname ? secname : mb->f_tag[mb->nf]));
-			mb->theta_tag_userscale[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], i + 1);
-			mb->theta_dir[mb->ntheta] = msg;
+			if (!mb->f_fixed[mb->nf][i]) {
+				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+				mb->theta_hyperid[mb->ntheta] = hid;
+				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 
-			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);	/* YES, use prior0 */
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);	/* YES, use prior0 */
-
-			mb->theta[mb->ntheta] = spde2_model->theta[i];
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_identity;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
+				if (mb->f_prior[mb->nf][0].id == P_PC_MATERN && (i == 0 || i == 1)) {
+					GMRFLib_sprintf(&msg, "%s for %s", (i == 0 ? "log(Range)" : "log(Stdev)"),
+							(secname ? secname : mb->f_tag[mb->nf]));
+					mb->theta_tag[mb->ntheta] = msg;
+					GMRFLib_sprintf(&msg, "%s for %s", (i == 0 ? "Range" : "Stdev"),
+							(secname ? secname : mb->f_tag[mb->nf]));
+					mb->theta_tag_userscale[mb->ntheta] = msg;
+					GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], i + 1);
+					mb->theta_dir[mb->ntheta] = msg;
+					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+					mb->theta_from[mb->ntheta] = GMRFLib_strdup("function (x) <<NEWLINE>>log(x)"); /* they are not there... */
+					mb->theta_to[mb->ntheta] = GMRFLib_strdup("function (x) <<NEWLINE>>exp(x)");   /* .... */
+					mb->theta[mb->ntheta] = spde2_model->theta[i];
+					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+					mb->theta_map[mb->ntheta] = map_exp;
+				} else {
+					GMRFLib_sprintf(&msg, "Theta%1d for %s", i + 1, (secname ? secname : mb->f_tag[mb->nf]));
+					mb->theta_tag[mb->ntheta] = msg;
+					GMRFLib_sprintf(&msg, "Theta%1d for %s", i + 1, (secname ? secname : mb->f_tag[mb->nf]));
+					mb->theta_tag_userscale[mb->ntheta] = msg;
+					GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], i + 1);
+					mb->theta_dir[mb->ntheta] = msg;
+					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+					mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);	/* YES, use prior0, which is a joint prior */
+					mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);	/* YES, use prior0, which is a joint prior */
+					mb->theta[mb->ntheta] = spde2_model->theta[i];
+					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+					mb->theta_map[mb->ntheta] = map_identity;
+				}
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL;
+				mb->ntheta++;
+				mb->f_ntheta[mb->nf]++;
+			}
 		}
+		
+		if (mb->verbose) {
+			printf("\t\tntheta (used) = [%1d]\n", mb->f_ntheta[mb->nf]);
+		}
+		spde2_model->ntheta_used = mb->f_ntheta[mb->nf];
+		spde2_model->fixed = Calloc(ntheta, int);
+		spde2_model->fixed_values = Calloc(ntheta, double);
+		for (i = 0; i < ntheta; i++) {
+			spde2_model->fixed[i] = mb->f_fixed[mb->nf][i];
+			if (spde2_model->fixed[i]){
+				spde2_model->fixed_values[i] = spde2_model->theta[i][0][0];
+			} else {
+				spde2_model->fixed_values[i] = NAN;
+			}
+		}
+		spde2_model_orig->ntheta_used = mb->f_ntheta[mb->nf];
+		spde2_model_orig->fixed = Calloc(ntheta, int);
+		spde2_model_orig->fixed_values = Calloc(ntheta, double);
+		memcpy(spde2_model_orig->fixed, spde2_model->fixed, ntheta * sizeof(int));
+		memcpy(spde2_model_orig->fixed_values, spde2_model->fixed_values, ntheta * sizeof(double));
+		
+		if (mb->f_prior[mb->nf][0].id == P_MVNORM) {
+			if ((int) mb->f_prior[mb->nf][0].parameters[0] != mb->f_ntheta[mb->nf]) {
+				GMRFLib_sprintf(&ptmp, "Dimension of the MVNORM prior is not equal to number of used hyperparameters: %1d != %1d\n",
+						(int) mb->f_prior[mb->nf][0].parameters[0], mb->f_ntheta[mb->nf]);
+				inla_error_general(ptmp);
+				exit(EXIT_FAILURE);
+			}
+		} else if (!strcasecmp(mb->f_prior[mb->nf][0].name, "PCSPDEGA")) {
+			assert(mb->f_ntheta[mb->nf] == 2);		       /* requirement... */
+		} else if (mb->f_prior[mb->nf][0].id == P_PC_MATERN) {
+			assert(mb->f_ntheta[mb->nf] <= 2);		       /* requirement... */
+		} else {
+			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
+		}
+
 		break;
 	}
 
@@ -21680,25 +21718,30 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_SPDE2:
 		{
-			int k, spde2_ntheta;
+			int k, kk;
 			inla_spde2_tp *spde2;
 
 			spde2 = (inla_spde2_tp *) mb->f_model[i];
 			assert(spde2->Qfunc_arg == spde2);
 
+			// if there is nothting to do, then break,
+			if (spde2->ntheta_used == 0)
+				break;
+			// ...so we can assume from here on, that ntheta_used > 0.
+
 			spde2->debug = 0;
-			spde2_ntheta = spde2->ntheta;
 			if (!mb->fixed_mode) {
-				for (k = 0; k < spde2_ntheta; k++) {
-					spde2->theta[k][GMRFLib_thread_id][0] = theta[count + k];
+				for (k = kk = 0; k < spde2->ntheta_used; k++, kk++) {
+					while(mb->f_fixed[i][kk]) kk++;
+					spde2->theta[kk][GMRFLib_thread_id][0] = theta[count + k];
 				}
 			}
 			int count_ref = count;
 
 			if (!mb->fixed_mode) {
-				count += spde2_ntheta;	       /* as SET_GROUP_RHO need 'count' */
+				count += mb->f_ntheta[i];      /* as SET_GROUP_RHO need 'count' */
 			}
-			SET_GROUP_RHO(spde2_ntheta);
+			SET_GROUP_RHO(mb->f_ntheta[i]);
 
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
@@ -21769,10 +21812,24 @@ double extra(double *theta, int ntheta, void *argument)
 			val += mb->f_nrep[i] * (problem[i]->sub_logdens * (ngroup - grankdef) + normc_g);
 
 			/*
-			 * this is the mvnormal prior...  'count_ref' is the 'first theta as this is a mutivariate prior.
+			 * this is a multivariate prior...  'count_ref' is the 'first theta'
 			 */
 			if (!mb->fixed_mode) {
-				val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
+				if (mb->f_prior[i][0].id == P_PC_MATERN) {
+					/*
+					 *  This is a special case: the pc_matern prior. pass NAN for fixed values and the prior will do the correct thing.
+					 */
+					double local_theta[2];
+					int local_count = 0;
+
+					local_theta[0] = (NOT_FIXED(f_fixed[i][0]) ? theta[count_ref + local_count++] : NAN);
+					local_theta[1] = (NOT_FIXED(f_fixed[i][1]) ? theta[count_ref + local_count++] : NAN);
+					assert(local_count == mb->f_ntheta[i]);
+					val += PRIOR_EVAL(mb->f_prior[i][0], local_theta);
+				} else {
+					// normally, the mvnorm prior, defined on the  _USED_ thetas!
+					val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
+				}
 			}
 			break;
 		}
