@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
+myself=${0##*/}
 
 logit() {
-    echo "$myself: $*"
+    echo -e "$myself: $*"
 }
 
 fixpermissions () {
@@ -21,63 +22,78 @@ fixpermissions () {
     done
 }
 
-myself=${0##*/}
-logit "Check the build directory and make sure its empty"
+OPTIND=1 
+OPTERR=1        
 
-TDIR=$(echo ~/tmp)
-test -d $TDIR || mkdir -p $TDIR
+TDIR=$(echo ~/tmp/R-INLA)
+while getopts d:h arg; do
+    case "$arg" in 
+        d) 
+	    TDIR="$OPTARG"
+	    ;;
+	h)
+	    logit "Usage:"
+	    logit "\t-d WORK_DIRECTORY"
+	    exit
+	    ;;
+    esac
+done
 
-TMPDIR=$(echo $TDIR/.BuildINLA)
-test -d $TMPDIR && rm -rf $TMPDIR
-mkdir -p $TMPDIR
-
-LOGFILE=$TMPDIR/LOG
-
-logit "Logfile for the installation is $LOGFILE"
-
-logit "Define version number and find the hgid"
 epoch=$(date +%s)
+logit "TDIR=$TDIR"
+mkdir -p "$TDIR"
+
+TMPDIR="$TDIR/BuildINLA-$epoch"
+logit "TMPDIR=$TMPDIR"
+mkdir -p "$TMPDIR"
+
+HGROOT=$(hg root)
+test -d "$HGROOT" || exit 1
+logit "HGROOT=$HGROOT"
+
+LOGFILE="$TMPDIR/LOGFILE"
+logit "LOGFILE=$LOGFILE"
+echo $(date) >> "$LOGFILE"
 VERSION=0.0-$epoch
-logit "    VERSION=$VERSION"
+logit "Version is '$VERSION' on branch '$(hg branch)'"
 bdate=$(date -d @$epoch +%Y%m%d%H%M)
 date=$(date -d @$epoch)
-hg=$(hg parents --template 'hgid: {node|short}  date: {date|date}')
+hg=$(hg parents --template 'hgid: {node|short} branch: {branch}  date: {date|date}')
 
-logit "rsync r-inla.org to get the doc-files"
-rsync -auv --delete r-inla.org $TMPDIR >> $LOGFILE 2>&1 || exit 1
+RINLA=$TMPDIR/r-inla
+mkdir -p "$RINLA"
+logit "Sync files"
+rsync -auv --delete "$HGROOT/." "$RINLA/." >> $LOGFILE 2>&1 || exit 1
 
-logit "rsync rinla/. to the build directory"
-mkdir -p $TMPDIR/INLA
-rsync -auv --exclude '/*~' --exclude '/bin' --exclude TAGS  rinla/. $TMPDIR/INLA >> $LOGFILE 2>&1 || exit 1
+INLA="$RINLA/rinla"
+D="$INLA/R"
+tt="$TMPDIR/.tt"
 
-cd $TMPDIR
-tt=$TMPDIR/.tt
-
-logit "remove the bin-directory"
-rm -rf INLA/inst/bin
-
-logit "Modify the inla.version-function"
-cat INLA/R/version.R | \
+logit "Update inla.version()"
+cat $D/version.R | \
     awk '/^[ \t]*rinla[.]hgid *=/{ print "    rinla.hgid = ", "inla.trim(\"" hg      "\")"; next;}
-         /^[ \t]*inla[.]hgid *=/{  print "    inla.hgid  = ", "inla.trim(\"" hg "\")"; next;}
+         /^[ \t]*inla[.]hgid *=/{  print "    inla.hgid  = ", "inla.trim(\"" inlahg "\")"; next;}
          /^[ \t]*date *=/{       print "    date       = ", "inla.trim(\"" date    "\")"; next;}
          /^[ \t]*bdate *=/{      print "    bdate      = ", "inla.trim(\"" bdate   "\")"; next;}
-         /^[ \t]*version *=/{      print "    version      = ", "inla.trim(\"" version   "\")"; next;}
-	 {print}' hg="$hg" hg="$hg" bdate="$bdate" date="$date" version="$VERSION" > $tt && \
-	     mv -f $tt INLA/R/version.R
+        /^[ \t]*version *=/{      print "    version      = ", "inla.trim(\"" version   "\")"; next;}
+	 {print}' hg="$hg" inlahg="$inlahg" bdate="$bdate" date="$date" version="$VERSION" > $tt
+mv -f $tt $D/version.R
 
-logit "Modify the DESCRIPTION file"
-## Modify the DESCRIPTION file
-desc="INLA/DESCRIPTION"
+logit Make help-pages
+( 
+    cd "$D"
+    ./make-man-pages 2>&1
+) >> $LOGFILE
+
+logit "Update DESCRIPTION file"
+desc="$INLA/DESCRIPTION"
 {
-    egrep -v '^(Version:|Date:)' INLA/DESCRIPTION
+    egrep -v '^(Version:|Date:)' "$desc"
     echo "Version: $VERSION"
     echo "Date: $(date '+%Y-%m-%d') ($hg)"
 } > $tt && mv -f $tt $desc
 
-
-logit "Generate the NAMESPACE file"
-## generate the exports defined in the R-files
+logit "Update the NAMESPACE file"
 {
     echo ""
     echo "# The functions to be exported are defined in the R-code with"
@@ -86,39 +102,32 @@ logit "Generate the NAMESPACE file"
     echo "# ## Export: func1 func2"
     echo "# etc..."
 
-    find INLA/R -name \*.R | while read f; do
-	egrep "^## *Export *:" $f | while read ff; do
-	    echo "$ff" | awk -F: '{print $2}' | awk '{for(i=1;i<=NF;i++) print $i}' | \
-		awk '{nf = split($0, a, /!/)
+    find $INLA/R -name \*.R | while read f; do
+        egrep "^## *Export *:" $f | while read ff; do
+            echo "$ff" | awk -F: '{print $2}' | awk '{for(i=1;i<=NF;i++) print $i}' | \
+                awk '{nf = split($0, a, /!/)
                       if (nf == 2) print "S3method(" a[1] ", "  a[2] ")"
                       if (nf == 1) print "export(" a[1] ")" }'
-	done
+        done
     done
-} >> INLA/NAMESPACE || exit 1
+} >> $INLA/NAMESPACE || exit 1
 
-logit "Fix file-permissions"
-fixpermissions INLA >> $LOGFILE 2>&1
-
-logit "Compile the INLA manual"
-R --vanilla CMD Rd2pdf --no-preview --batch INLA >> $LOGFILE 2>&1 || exit 1
-md="INLA/inst/doc/manual"
-test -d $md || mkdir $md
-cp INLA.pdf $md
+logit "Check file permissions"
+fixpermissions "$INLA" >> "$LOGFILE" 2>&1
 
 logit "Build the INLA package"
-R --vanilla CMD build --resave-data INLA >> $LOGFILE 2>&1 || exit 1
+(
+    cd "$TMPDIR"
+    R --vanilla CMD build --resave-data --keep-empty-dirs --no-build-vignettes --no-manual "$INLA" >> "$LOGFILE" 2>&1 || exit 1
+    INLApkg=$(echo INLA_*.tar.gz)
+    tgzINLApkg=${INLApkg%%.tar.gz}.tgz
+    mv $INLApkg $tgzINLApkg
+    mv $tgzINLApkg $TDIR
+    logit "Install with 'R --vanilla CMD INSTALL $TDIR/$tgzINLApkg'"
+)
 
-INLA=$(echo INLA_*.tar.gz)
-tgzINLA=${INLA%%.tar.gz}.tgz
-mv $INLA $tgzINLA 
-
-logit "Package built!"
-
-package=$(echo $TMPDIR/INLA*tgz)
-logit "You can install it using 'R --vanilla CMD INSTALL $package'"
-logit "The binaries are not included. Use:"
-logit "    library(INLA)"
-logit "    inla.setOption(inla.call=...)"
-logit "    inla.setOption(fmesher.call=...)"
+logit "Binaries are not included. Use:"
+logit "\tlibrary(INLA)"
+logit "\tinla.setOption(inla.call=...)"
+logit "\tinla.setOption(fmesher.call=...)"
 logit "to define the path to your binaries."
-
