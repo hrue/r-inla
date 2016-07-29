@@ -146,6 +146,5 @@ taucs : sync-taucs
 package :
 	@rm -f inla/INLA_*.tgz
 	cd inla ; utils/build-package-bin $(PREFIX)/bin $(MAINDIR)/tmp
-	@mv inla/INLA_*.tgz .
 
 .PHONY: all inla GMRFLib taucs download download-update update fmesher bin init download-jss2014 sync-taucs package
