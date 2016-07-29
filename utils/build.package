@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash 
 myself=${0##*/}
 
 logit() {
@@ -25,15 +25,26 @@ fixpermissions () {
 OPTIND=1 
 OPTERR=1        
 
-TDIR=$(echo ~/tmp/R-INLA)
-while getopts d:h arg; do
+TDIR=$(echo ~/tmp/RINLA)
+BDIR=""
+Bsuffix="64"
+
+while getopts d:b:s:h arg; do
     case "$arg" in 
         d) 
 	    TDIR="$OPTARG"
 	    ;;
+        b) 
+	    BDIR="$OPTARG"
+	    ;;
+        s) 
+	    Bsuffix="$OPTARG"
+	    ;;
 	h)
 	    logit "Usage:"
-	    logit "\t-d WORK_DIRECTORY"
+	    logit "\t-d WORK_DIRECTORY  ($TDIR)"
+	    logit "\t-b BIN_DIRECTORY   ($BDIR)"
+	    logit "\t-s BINARY_SUFFIX   ($Bsuffix)"
 	    exit
 	    ;;
     esac
@@ -112,22 +123,44 @@ logit "Update the NAMESPACE file"
     done
 } >> $INLA/NAMESPACE || exit 1
 
+if [ "xx$BDIR" != "xx" ]; then
+    ## add also binaries
+    error=0
+    for ff in inla fmesher; do
+	b=$BDIR/$ff$Bsuffix
+	d=$INLA/inst/bin/linux/64bit/${ff}.run
+	if [ -f "$b" ]; then
+	    cp "$b" "$d"
+	    chmod a+rx "$d"
+	else
+	    logit "ERROR: Cannot find binary [$b]"
+	    logit "ERROR: I will proceed without it..."
+	    error=1
+	fi
+    done
+    if [ $error -eq 1 ]; then
+	BDIR=""
+    fi
+fi
+
 logit "Check file permissions"
 fixpermissions "$INLA" >> "$LOGFILE" 2>&1
 
 logit "Build the INLA package"
 (
-    cd "$TMPDIR"
+    cd "$TDIR"
     R --vanilla CMD build --resave-data --keep-empty-dirs --no-build-vignettes --no-manual "$INLA" >> "$LOGFILE" 2>&1 || exit 1
     INLApkg=$(echo INLA_*.tar.gz)
     tgzINLApkg=${INLApkg%%.tar.gz}.tgz
-    mv $INLApkg $tgzINLApkg
-    mv $tgzINLApkg $TDIR
+    mv "$INLApkg" "$tgzINLApkg"
     logit "Install with 'R --vanilla CMD INSTALL $TDIR/$tgzINLApkg'"
 )
 
-logit "Binaries are not included. Use:"
-logit "\tlibrary(INLA)"
-logit "\tinla.setOption(inla.call=...)"
-logit "\tinla.setOption(fmesher.call=...)"
-logit "to define the path to your binaries."
+if [ "xx$BDIR" == "xx" ]; then
+   logit "Binaries are not included. Use:"
+   logit "\tlibrary(INLA)"
+   logit "\tinla.setOption(inla.call=...)"
+   logit "\tinla.setOption(fmesher.call=...)"
+   logit "to define the path to your binaries."
+fi 
+
