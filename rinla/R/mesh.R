@@ -36,13 +36,23 @@ inla.mesh.segment <- function(...) {
 }
 
 inla.mesh.segment.default <-
-    function(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE, ...)
+  function(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE,
+           crs=NULL, ...)
 {
     if ((missing(loc) || is.null(loc)) &&
         (missing(idx) || is.null(idx))) {
         stop("At most one of 'loc' and 'idx' may be missing or null.")
     }
     if (!missing(loc) && !is.null(loc)) {
+      ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
+      if (inherits(loc, "SpatialPoints") ||
+          inherits(loc, "SpatialPointsDataFrame")) {
+        loc <- inla.spTransform(coordinates(loc),
+                                CRS(proj4string(loc)),
+                                crs,
+                                passthrough=TRUE)
+      }
+
         if (!is.matrix(loc)) {
             loc = as.matrix(loc)
         }
@@ -123,9 +133,9 @@ inla.mesh.segment.default <-
                       ncol=ncol(idx)))
     }
 
-    ret = list(loc=loc, idx=idx, grp=grp, is.bnd=is.bnd)
+    ret = list(loc=loc, idx=idx, grp=grp, is.bnd=is.bnd, crs=crs)
     class(ret) <- "inla.mesh.segment"
-    return(ret)
+    return(invisible(ret))
 }
 
 inla.mesh.segment.inla.mesh.segment <- function(..., grp.default=0) {
@@ -151,15 +161,35 @@ inla.mesh.segment.inla.mesh.segment <- function(..., grp.default=0) {
                              }
                          }))
     is.bnd <- unlist(lapply(segm, function(x) x$is.bnd))
-    if (!all(is.bnd) || all(!is.bnd)) {
+    if (!all(is.bnd) || !all(!is.bnd)) {
         warning("Inconsistent 'is.bnd' attributes.  Setting 'is.bnd=FALSE'.")
         is.bnd <- FALSE
     } else {
         is.bnd <- all(is.bnd)
     }
 
-    inla.mesh.segment(loc=loc, idx=idx, grp=grp, is.bnd=is.bnd)
+    crs <- lapply(segm, function(x) x$crs)
+    if (!is.null(crs)) {
+      crs <- crs[unlist(lapply(crs,
+                               function(x) !is.null(x)))]
+      if (length(crs) > 0) {
+        if (!all(unlist(lapply(crs,
+                               function(x) identical(crs[[1]], x))))) {
+          lapply(crs, function(x) show(x))
+          stop("Inconsistent 'crs' attributes.")
+        } else {
+          crs <- crs[[1]]
+        }
+      } else {
+        crs <- NULL
+      }
+    }
+
+    invisible(inla.mesh.segment(loc=loc, idx=idx, grp=grp, is.bnd=is.bnd,
+                                crs=crs))
 }
+
+
 
 
 lines.inla.mesh.segment <- function(x, loc=NULL, col=NULL,
@@ -550,13 +580,23 @@ inla.mesh.lattice <- function(x=seq(0, 1, length.out=2),
                               } else {
                                   c(length(x), length(y))
                               },
-                              units = NULL)
+                              units = NULL,
+                              crs = NULL)
 {
+  if (is.null(crs)) {
     units = match.arg(units, c("default", "longlat", "longsinlat", "mollweide"))
 
     lim = inla.mesh.map.lim(projection=units)
     xlim = lim$xlim
     ylim = lim$ylim
+  } else { ## !is.null(crs)
+    if (!is.null(units)) {
+      stop("Only one of 'units' and 'crs' can be non-null.")
+    }
+    bounds <- inla.spTransformBounds(crs)
+    xlim = bounds$xlim
+    ylim = bounds$ylim
+  }
 
     if (missing(x) && !missing(dims)) {
       x = seq(xlim[1], xlim[2], length.out=dims[1])
@@ -587,7 +627,9 @@ inla.mesh.lattice <- function(x=seq(0, 1, length.out=2),
     if (!is.double(loc))
         storage.mode(loc) = "double"
 
+  if (is.null(crs)) {
     loc = inla.mesh.map(loc=loc, projection=units, inverse=TRUE)
+  }
 
     ## Construct lattice boundary
     segm.idx = (c(1:(dims[1]-1),
@@ -601,9 +643,10 @@ inla.mesh.lattice <- function(x=seq(0, 1, length.out=2),
 
     segm = (inla.mesh.segment(loc=loc[segm.idx,, drop=FALSE],
                               grp=segm.grp,
-                              is.bnd=TRUE))
+                              is.bnd=TRUE,
+                              crs=crs))
 
-    lattice = list(dims=dims, x=x, y=y, loc=loc, segm=segm)
+    lattice = list(dims=dims, x=x, y=y, loc=loc, segm=segm, crs=crs)
     class(lattice) = "inla.mesh.lattice"
     return(lattice)
 }
@@ -641,7 +684,8 @@ extract.groups.inla.mesh.segment <- function(segm,
     return(inla.mesh.segment(loc=segm$loc,
                              idx=segm.idx,
                              grp=segm.grp,
-                             segm$is.bnd))
+                             segm$is.bnd,
+                             crs=segm$crs))
 }
 
 
@@ -649,24 +693,34 @@ extract.groups.inla.mesh.segment <- function(segm,
 inla.mesh.parse.segm.input <- function(boundary=NULL,
                                        interior=NULL,
                                        segm.offset=0L,
-                                       loc.offset=0L)
+                                       loc.offset=0L,
+                                       crs=NULL)
 {
 ###########################################
-    homogenise.segm.input <- function(x, is.bnd)
+    homogenise.segm.input <- function(x, is.bnd, crs=NULL)
     {
         if (is.matrix(x) || is.vector(x)) { ## Coordinates or indices
             x = (inla.ifelse(is.matrix(x),x,
                              as.matrix(x,nrow=length(x),ncol=1)))
             if (is.integer(x)) { ## Indices
-                ret = inla.mesh.segment(NULL, x, NULL, is.bnd)
+                ret = inla.mesh.segment(NULL, x, NULL, is.bnd, crs=crs)
             } else if (is.numeric(x)) { ## Coordinates
-                ret = inla.mesh.segment(x, NULL, NULL, is.bnd)
+                ret = inla.mesh.segment(x, NULL, NULL, is.bnd, crs=crs)
             } else {
                 stop("Segment info matrix must be numeric or integer.")
             }
         } else if (inherits(x, "inla.mesh.segment")) {
             ## Override x$is.bnd:
-            ret = inla.mesh.segment(x$loc, x$idx, x$grp, is.bnd)
+            ret = inla.mesh.segment(x$loc, x$idx, x$grp, is.bnd, x$crs)
+        } else if (inherits(x, c("SpatialPoints", "SpatialPointsDataFrame",
+                                 "Line", "Lines",
+                                 "SpatialLines", "SpatialLinesDataFrame",
+                                 "Polygon", "Polygons",
+                                 "SpatialPolygons",
+                                 "SpatialPolygonsDataFrame"))) {
+            x <- as.inla.mesh.segment(x)
+            ## Override x$is.bnd:
+            ret <- inla.mesh.segment(x$loc, x$idx, x$grp, is.bnd, x$crs)
         } else if (!is.null(x)) {
             inla.require.inherits(NULL,
                                   c("matrix", "inla.mesh.segment"),
@@ -674,7 +728,7 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
         } else {
             ret = NULL
         }
-        return(ret)
+        ret
     }
 ##################################################
     homogenise.segm.grp <- function(input) {
@@ -685,10 +739,11 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
                                   "Segment info list members ")
             if (is.null(input[[k]]$grp)) {
                 grp.idx = grp.idx+1L
-                input[[k]] = (inla.mesh.segment(input[[k]][[1]],
-                                                input[[k]][[2]],
+                input[[k]] = (inla.mesh.segment(input[[k]]$loc,
+                                                input[[k]]$idx,
                                                 grp.idx,
-                                                input[[k]][[4]]))
+                                                input[[k]]$id.bnd,
+                                                input[[k]]$crs))
             } else {
                 grp.idx = max(grp.idx, input[[k]]$grp, na.rm=TRUE)
             }
@@ -696,7 +751,8 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
         return(input)
     }
 ##################################################
-    parse.segm.input <- function(input, segm.offset=0L, loc.offset=0L)
+  join.segm.input <- function(segm, segm.offset=0L, loc.offset=0L,
+                              crs=NULL)
     {
         loc = NULL
         bnd = list(loc=NULL, idx = matrix(,0,2), grp = matrix(,0,1))
@@ -705,26 +761,28 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
         storage.mode(bnd$grp) <- "integer"
         storage.mode(int$idx) <- "integer"
         storage.mode(int$grp) <- "integer"
-        for (k in 1:length(input)) if (!is.null(input[[k]])) {
-            inla.require.inherits(input[[k]],
+        for (k in seq_along(segm)) if (!is.null(segm[[k]])) {
+            inla.require.inherits(segm[[k]],
                                   "inla.mesh.segment",
                                   "Segment info list members ")
-            if (!is.null(input[[k]]$loc)) {
-                extra.loc.n = nrow(input[[k]]$loc)
-                idx.offset = segm.offset
-                segm.offset = segm.offset + extra.loc.n
-                loc = (inla.ifelse(is.null(loc),
-                                   input[[k]]$loc,
-                                   rbind(loc, input[[k]]$loc)))
+            if (!is.null(segm[[k]]$loc)) {
+              local.loc <- inla.spTransform(segm[[k]], crs,
+                                            passthrough=TRUE)$loc
+              extra.loc.n = nrow(local.loc)
+              idx.offset = segm.offset
+              segm.offset = segm.offset + extra.loc.n
+              loc = (inla.ifelse(is.null(loc),
+                                 local.loc,
+                                 rbind(loc, local.loc)))
             } else {
                 idx.offset = loc.offset
             }
-            if (input[[k]]$is.bnd) {
-                bnd$idx = rbind(bnd$idx, input[[k]]$idx+idx.offset)
-                bnd$grp = rbind(bnd$grp, input[[k]]$grp)
+            if (segm[[k]]$is.bnd) {
+                bnd$idx = rbind(bnd$idx, segm[[k]]$idx+idx.offset)
+                bnd$grp = rbind(bnd$grp, segm[[k]]$grp)
             } else {
-                int$idx = rbind(int$idx, input[[k]]$idx+idx.offset)
-                int$grp = rbind(int$grp, input[[k]]$grp)
+                int$idx = rbind(int$idx, segm[[k]]$idx+idx.offset)
+                int$grp = rbind(int$grp, segm[[k]]$grp)
             }
         }
         if (nrow(bnd$idx)==0)
@@ -737,25 +795,31 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
                                        inla.mesh.segment(bnd$loc,
                                                          bnd$idx,
                                                          bnd$grp,
-                                                         TRUE))),
+                                                         TRUE,
+                                                         crs))),
                     int = (inla.ifelse(is.null(int),
                                        NULL,
                                        inla.mesh.segment(int$loc,
                                                          int$idx,
                                                          int$grp,
-                                                         FALSE)))))
+                                                         FALSE,
+                                                         crs)))))
     }
 ###########################
 
     segm = (c(lapply(inla.ifelse(inherits(boundary, "list"),
                                  boundary, list(boundary)),
-                     function(x){homogenise.segm.input(x, TRUE)}),
+                     function(x){homogenise.segm.input(x, TRUE, crs=crs)}),
               lapply(inla.ifelse(inherits(interior, "list"),
                                  interior, list(interior)),
-                     function(x){homogenise.segm.input(x, FALSE)})))
+                     function(x){homogenise.segm.input(x, FALSE, crs=crs)})))
     segm = homogenise.segm.grp(segm)
-    return(parse.segm.input(segm, segm.offset, loc.offset))
+
+  join.segm.input(segm=segm, segm.offset=segm.offset, loc.offset=loc.offset,
+                  crs=crs)
 }
+
+
 
 
 
@@ -817,6 +881,9 @@ inla.mesh.filter.locations <- function(loc, cutoff)
 
 
 
+
+
+
 inla.mesh <- function(...)
 {
     args = list(...)
@@ -842,7 +909,8 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
                              data.dir,
                              keep = (!missing(data.dir) && !is.null(data.dir)),
                              timings = FALSE,
-                             quality.spec=NULL)
+                             quality.spec=NULL,
+                             crs=NULL)
 {
     if (!timings) {
         system.time <- function(expr) {
@@ -857,21 +925,20 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
       ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
       if (inherits(loc, "SpatialPoints") ||
           inherits(loc, "SpatialPointsDataFrame")) {
-        p4s = CRS(proj4string(loc))
-        loc = coordinates(loc)
-      } else {
-        p4s = NULL
+        loc <- inla.spTransform(coordinates(loc),
+                                CRS(proj4string(loc)),
+                                crs,
+                                passthrough=TRUE)
       }
 
       if (!is.matrix(loc)) {
-            loc = as.matrix(loc)
-        }
-        if (!is.double(loc)) {
-            storage.mode(loc) = "double"
-        }
-    } else {
-        p4s <- NULL
+        loc = as.matrix(loc)
+      }
+      if (!is.double(loc)) {
+        storage.mode(loc) = "double"
+      }
     }
+    loc.n = max(0L,nrow(loc))
 
     if (is.logical(extend) && extend) extend = list()
     if (is.logical(refine) && refine) refine = list()
@@ -890,20 +957,35 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
                                       boundary, list(boundary)),
                           list(lattice$segm)))
         }
-        lattice.n = max(0L,nrow(lattice$loc))
+
+        if (!is.null(lattice[["crs"]])) {
+          lattice$loc <- inla.spTransform(lattice$loc,
+                                          lattice$crs,
+                                          crs,
+                                          passthrough=TRUE)
+        }
+
+        if (!is.matrix(lattice$loc)) {
+          lattice$loc = as.matrix(lattice$loc)
+        }
+        if (!is.double(lattice$loc)) {
+          storage.mode(lattice$loc) = "double"
+        }
     }
-    loc.n = max(0L,nrow(loc))
+      lattice.n = max(0L,nrow(lattice$loc))
 
     segm = (inla.mesh.parse.segm.input(boundary,
                                        interior,
                                        loc.n,
-                                       0L))
+                                       0L,
+                                       crs=crs))
     segm.n = max(0,nrow(segm$loc))
     ## Run parse again now that we know where the indices should point:
     segm = (inla.mesh.parse.segm.input(boundary,
                                        interior,
                                        0L,
-                                       segm.n+lattice.n))
+                                       segm.n+lattice.n,
+                                       crs=crs))
 
     loc0 = rbind(segm$loc, lattice$loc, loc)
     if ((!is.null(loc0)) && (nrow(loc0)>0))
@@ -989,6 +1071,8 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
     }
     if (inherits(refine,"list")) {
         rcdt = c(0,0,0)
+        rcdt_max_n0 = -1
+        rcdt_max_n1 = -1
         if (!missing(globe) && !is.null(globe)) {
             max.edge.default=10
         } else {
@@ -1019,6 +1103,16 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
                                rcdt[3], refine$max.edge.data))
         all.args = (paste(all.args," --rcdt=",
                           rcdt[1],",", rcdt[2],",", rcdt[3], sep=""))
+        if (!is.null(refine$max.n0)) {
+          rcdt_max_n0 <- inla.ifelse(is.na(refine$max.n0), -1, refine$max.n0)
+        }
+        if (!is.null(refine$max.n1)) {
+          rcdt_max_n1 <- inla.ifelse(is.na(refine$max.n1), -1, refine$max.n1)
+        }
+        all.args = (paste(all.args,
+                          " --max_n0=", rcdt_max_n0,
+                          " --max_n1=", rcdt_max_n1,
+                          sep=""))
         is.refined = TRUE
 
         if (!is.null(quality)) {
@@ -1134,7 +1228,7 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
                  graph = graph,
                  segm = list(bnd=segm.bnd, int=segm.int),
                  idx = idx,
-                 proj4string = p4s))
+                 crs = crs))
     class(mesh) <- "inla.mesh"
 
     }) ## Object construction timing end
@@ -1162,7 +1256,8 @@ inla.mesh.extract.segments <- function(mesh.loc,
                                        mesh.idx,
                                        mesh.grp,
                                        grp=NULL,
-                                       is.bnd)
+                                       is.bnd,
+                                       crs=NULL)
 {
     segments = list()
     if (nrow(mesh.idx)>0) {
@@ -1176,7 +1271,8 @@ inla.mesh.extract.segments <- function(mesh.loc,
                   list(inla.mesh.segment(mesh.loc,
                                          idx=mesh.idx[extract,,drop=FALSE],
                                          grp=mesh.grp[extract,drop=FALSE],
-                                         is.bnd=is.bnd)) )
+                                         is.bnd=is.bnd,
+                                         crs=crs)) )
         }
     }
     if (length(segments)>0)
@@ -1193,7 +1289,8 @@ inla.mesh.boundary <- function(mesh, grp=NULL)
                                       mesh$segm$bnd$idx,
                                       mesh$segm$bnd$grp,
                                       grp,
-                                      TRUE))
+                                      TRUE,
+                                      mesh$crs))
 }
 
 inla.mesh.interior <- function(mesh, grp=NULL)
@@ -1204,7 +1301,8 @@ inla.mesh.interior <- function(mesh, grp=NULL)
                                       mesh$segm$int$idx,
                                       mesh$segm$int$grp,
                                       grp,
-                                      FALSE))
+                                      FALSE,
+                                      mesh$crs))
 }
 
 
@@ -1224,25 +1322,43 @@ inla.mesh.2d <-
              max.edge,
              min.angle=NULL, ## Angle constraint for the entire domain
              cutoff=1e-12, ## Only add input points further apart than this
-             plot.delay=NULL)
+             plot.delay=NULL,
+             crs=NULL, ## Coordinate Reference System
+             max.n0=NULL,
+             max.n1=NULL)
     ## plot.delay: Do plotting.
     ## NULL --> No plotting
     ## <0  --> Intermediate meshes displayed at the end
     ## >0   --> Dynamical fmesher plotting
 {
-  update.p4s <- function(p4s, newp4s) {
-    if (is.null(p4s)) {
-      newp4s
+###########################
+  unify.one.segm <- function(segm, crs=NULL) {
+    if (inherits(segm, "inla.mesh.segment")) {
+      segm <- inla.spTransform(segm, crs, passthrough=TRUE)
+    } else if (inherits("matrix")) {
+      segm <- inla.mesh.segment(loc=segm, crs=crs)
     } else {
-      if (identicalCRS(p4s, newp4s)) {
-        show(p4s)
-        show(newp4s)
-        error("Projection mismatch.")
-      }
-      p4s
+      segm <- inla.spTransform(as.inla.mesh.segment(segm), crs,
+                               passthrough=TRUE)
     }
+    if (ncol(segm$loc)==2) {
+      segm$loc = cbind(segm$loc, 0.0)
+    }
+    segm
   }
-
+  unify.segm.coords <- function(segm, crs=NULL) {
+    if (!is.null(segm)) {
+      if (inherits(segm, "list")) {
+        for (j in seq_along(segm)) {
+          segm[[j]] <- unify.one.segm(segm[[j]], crs=crs)
+        }
+      } else {
+        segm <- unify.one.segm(segm, crs=crs)
+      }
+    }
+    segm
+  }
+###########################
 
   if (missing(max.edge) || is.null(max.edge)) {
     stop("max.edge must be specified")
@@ -1252,16 +1368,18 @@ inla.mesh.2d <-
   if (!(missing(loc) || is.null(loc)) &&
       (inherits(loc, "SpatialPoints") ||
        inherits(loc, "SpatialPointsDataFrame"))) {
-    p4s = CRS(proj4string(loc))
-    loc = coordinates(loc)
-  } else {
-    p4s = NULL
+    loc = inla.spTransform(coordinates(loc),
+                           CRS(proj4string(loc)),
+                           crs,
+                           passthrough=TRUE)
   }
   if (!(missing(loc.domain) || is.null(loc.domain)) &&
       (inherits(loc.domain, "SpatialPoints") ||
        inherits(loc.domain, "SpatialPointsDataFrame"))) {
-    p4s = update.p4s(p4s, CRS(proj4string(loc.domain)))
-    loc = coordinates(loc.domain)
+    loc.domain = inla.spTransform(coordinates(loc.domain),
+                                  CRS(proj4string(loc.domain)),
+                                  crs,
+                                  passthrough=TRUE)
   }
 
     if (missing(loc) || is.null(loc)) {
@@ -1292,6 +1410,10 @@ inla.mesh.2d <-
         n = c(8)
     if (missing(min.angle) || is.null(min.angle))
         min.angle = c(21)
+    if (missing(max.n0) || is.null(max.n0))
+        max.n0 = c(NA)
+    if (missing(max.n1) || is.null(max.n1))
+        max.n1 = c(NA)
     if (missing(cutoff) || is.null(cutoff))
         cutoff = 1e-12
     if (missing(plot.delay) || is.null(plot.delay))
@@ -1299,7 +1421,8 @@ inla.mesh.2d <-
 
     num.layers =
         max(c(length(boundary), length(offset), length(n),
-              length(min.angle), length(max.edge)))
+              length(min.angle), length(max.edge),
+              length(max.n0), length(max.n1)))
     if (num.layers > 2) {
         warning(paste("num.layers=", num.layers, " > 2 detected.  ",
                       "Excess information ignored.", sep=""))
@@ -1310,10 +1433,16 @@ inla.mesh.2d <-
         boundary = c(boundary, list(NULL))
     if (length(min.angle) < num.layers)
         min.angle = c(min.angle, min.angle)
+    if (length(max.n0) < num.layers)
+        max.n0 = c(max.n0, max.n0)
+    if (length(max.n1) < num.layers)
+        max.n1 = c(max.n1, max.n1)
     if (length(max.edge) < num.layers)
         max.edge = c(max.edge, max.edge)
     if (length(offset) < num.layers)
         offset = c(offset, -0.15)
+    if (length(n) < num.layers)
+        n = c(n, 16)
     if (length(n) < num.layers)
         n = c(n, 16)
 
@@ -1322,32 +1451,14 @@ inla.mesh.2d <-
         loc = cbind(loc, 0.0)
     if (!is.null(loc.domain) && (ncol(loc.domain)==2))
         loc.domain = cbind(loc.domain, 0.0)
-    ## Unify the dimensionality of the boundary&interior segments input.
+    ## Unify the dimensionality of the boundary&interior segments input
+    ## and optionally transform coordinates.
     for (k in seq_len(num.layers)) {
-        if (!is.null(boundary[[k]])) {
-            if (inherits(boundary[[k]], "list")) {
-                for (j in seq_along(boundary[[k]])) {
-                    if (ncol(boundary[[k]][[j]]$loc)==2) {
-                        boundary[[k]][[j]]$loc =
-                            cbind(boundary[[k]][[j]]$loc, 0.0)
-                    }
-                }
-            } else if (ncol(boundary[[k]]$loc)==2) {
-                boundary[[k]]$loc = cbind(boundary[[k]]$loc, 0.0)
-            }
-        }
+      if (!is.null(boundary[[k]])) {
+        boundary[[k]] <- unify.segm.coords(boundary[[k]], crs=crs)
+      }
     }
-    if (!is.null(interior)) {
-        if (inherits(interior, "list")) {
-            for (j in seq_along(interior)) {
-                if (ncol(interior[[j]]$loc)==2) {
-                    interior[[j]]$loc = cbind(interior[[j]]$loc, 0.0)
-                }
-            }
-        } else if (ncol(interior$loc)==2) {
-            interior$loc = cbind(interior$loc, 0.0)
-        }
-    }
+    interior <- unify.segm.coords(interior, crs=crs)
 
     ## Triangulate to get inner domain boundary
     ## Constraints included only to get proper domain extent
@@ -1362,7 +1473,8 @@ inla.mesh.2d <-
                          cutoff=cutoff,
                          extend=list(n=n[1], offset=offset[1]),
                          refine=FALSE,
-                         plot.delay=plot.delay)
+                         plot.delay=plot.delay,
+                         crs=crs)
 
     ## Save the resulting boundary
     boundary1 = inla.mesh.boundary(mesh1)
@@ -1383,8 +1495,11 @@ inla.mesh.2d <-
                          refine=
                              list(min.angle=min.angle[1],
                                   max.edge=max.edge[1],
-                                  max.edge.extra=max.edge[1]),
-                         plot.delay=plot.delay)
+                                  max.edge.extra=max.edge[1],
+                                  max.n0=max.n0[1],
+                                  max.n1=max.n1[1]),
+                         plot.delay=plot.delay,
+                         crs=crs)
 
     boundary2 = inla.mesh.boundary(mesh2)
     interior2 = inla.mesh.interior(mesh2)
@@ -1396,8 +1511,8 @@ inla.mesh.2d <-
 
     if (num.layers == 1) {
 
-        ## Attach proj4string
-        mesh2$proj4string = p4s
+        ## Attach crs
+        mesh2$crs = crs
 
         return(invisible(mesh2))
     }
@@ -1412,8 +1527,11 @@ inla.mesh.2d <-
                          refine=
                              list(min.angle=min.angle[2],
                                   max.edge=max.edge[2],
-                                  max.edge.extra=max.edge[2]),
-                         plot.delay=plot.delay)
+                                  max.edge.extra=max.edge[2],
+                                  max.n0=mesh2$n + max.n0[2],
+                                  max.n1=mesh2$n + max.n1[2]),
+                         plot.delay=plot.delay,
+                         crs=crs)
 
     ## Hide generated points, to match regular inla.mesh.create output
     mesh3$idx$loc = mesh3$idx$loc[seq_len(nrow(loc))]
@@ -1449,9 +1567,6 @@ inla.mesh.2d <-
         plot(mesh3)
     }
 
-    ## Attach proj4string
-    mesh3$proj4string = p4s
-
     return(invisible(mesh3))
 }
 
@@ -1482,10 +1597,10 @@ inla.delaunay <- function(loc, ...)
     if (!(missing(loc) || is.null(loc)) &&
         (inherits(loc, "SpatialPoints") ||
          inherits(loc, "SpatialPointsDataFrame"))) {
-      p4s = CRS(proj4string(loc))
+      crs = CRS(proj4string(loc))
       loc = coordinates(loc)
     } else {
-      p4s = NULL
+      crs = NULL
     }
 
     hull = chull(loc[,1],loc[,2])
@@ -1495,9 +1610,8 @@ inla.delaunay <- function(loc, ...)
                          boundary=bnd,
                          extend=list(n=3),
                          refine=FALSE,
+                         crs=crs,
                          ...)
-
-    mesh$proj4string <- p4s;
 
     return(invisible(mesh))
 }
@@ -1640,6 +1754,11 @@ summary.inla.mesh <- function(object, verbose=FALSE, ...)
                        xlim=range(x$loc[,1]),
                        ylim=range(x$loc[,2]),
                        zlim=range(x$loc[,3]))))
+    if (is.null(x$crs) || is.na(CRSargs(x$crs))) {
+      ret <- c(ret, list(crs="N/A"))
+    } else {
+      ret <- c(ret, list(crs=CRSargs(x$crs)))
+    }
 
     my.segm <- function(x) {
         if (is.null(x))
@@ -1700,6 +1819,7 @@ print.summary.inla.mesh <- function(x, ...)
     }
 
     cat("\nManifold:\t", x$manifold, "\n", sep="")
+    cat("CRS:\t", x$crs, "\n", sep="")
     if (x$verbose) {
         cat("Refined:\t", x$is.refined, "\n", sep="")
     }
@@ -1740,7 +1860,7 @@ inla.mesh.project <- function(...)
     UseMethod("inla.mesh.project")
 }
 
-inla.mesh.project.inla.mesh <- function(mesh, loc, field=NULL, ...)
+inla.mesh.project.inla.mesh <- function(mesh, loc=NULL, field=NULL, ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
@@ -1748,14 +1868,19 @@ inla.mesh.project.inla.mesh <- function(mesh, loc, field=NULL, ...)
     if (!(missing(loc) || is.null(loc)) &&
         (inherits(loc, "SpatialPoints") ||
          inherits(loc, "SpatialPointsDataFrame"))) {
-      if (is.null(mesh$proj4string))
-        error("'mesh$proj4string' is NULL and SpatialPoints were provided.'")
-      loc = coordinates(spTransform(loc, mesh$proj4string))
+      if (is.null(mesh$crs)) {
+        loc <- coordinates(loc)
+      } else {
+        loc = inla.spTransform(coordinates(loc),
+                               CRS(proj4string(loc)),
+                               mesh$crs,
+                               passthrough=FALSE)
+      }
     }
 
     if (!missing(field) && !is.null(field)) {
-        proj = inla.mesh.projector(mesh, loc, ...)
-        return(inla.mesh.project(proj, field))
+      proj <- inla.mesh.projector(mesh, loc=loc, ...)
+      return(inla.mesh.project(proj, field=field))
     }
 
     jj =
@@ -1779,7 +1904,7 @@ inla.mesh.project.inla.mesh <- function(mesh, loc, field=NULL, ...)
                       j = as.vector(mesh$graph$tv[ti[ii,1L],]),
                       x = as.vector(b[ii,]) ))
 
-    return (list(t=ti, bary=b, A=A, ok=ok))
+    list(t=ti, bary=b, A=A, ok=ok)
 }
 
 inla.mesh.project.inla.mesh.1d <- function(mesh, loc, field=NULL, ...)
@@ -1840,50 +1965,61 @@ inla.mesh.projector.inla.mesh <-
              ylim=range(mesh$loc[,2]),
              dims=c(100,100),
              projection=NULL,
+             crs=NULL,
              ...)
 {
-    inla.require.inherits(mesh, "inla.mesh", "'mesh'")
+  inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
-    if (missing(loc) || is.null(loc)) {
-        if (missing(lattice) || is.null(lattice)) {
-            if (identical(mesh$manifold, "R2")) {
-                units = "default"
-                x = seq(xlim[1], xlim[2], length.out=dims[1])
-                y = seq(ylim[1], ylim[2], length.out=dims[2])
-            } else if (identical(mesh$manifold, "S2")) {
-                projection =
-                    match.arg(projection, c("longlat", "longsinlat", "mollweide"))
-                units = projection
-                lim = inla.mesh.map.lim(loc=mesh$loc, projection=projection)
-                if (missing(xlim) || is.null(xlim)) {
-                    xlim = lim$xlim
-                }
-                if (missing(ylim) || is.null(ylim)) {
-                    ylim = lim$ylim
-                }
-                x = seq(xlim[1], xlim[2], length.out=dims[1])
-                y = seq(ylim[1], ylim[2], length.out=dims[2])
-            }
-
-            lattice = (inla.mesh.lattice(x=x, y=y, units = units))
-        } else {
-            dims = lattice$dims
-            x = lattice$x
-            y = lattice$y
-        }
-
-        proj = inla.mesh.project(mesh, lattice$loc)
-        projector = list(x=x, y=y, lattice=lattice, loc=NULL, proj=proj)
-        class(projector) = "inla.mesh.projector"
+  if (missing(loc) || is.null(loc)) {
+    if (missing(lattice) || is.null(lattice)) {
+      if (identical(mesh$manifold, "R2") &&
+          (is.null(mesh$crs) || is.null(crs))) {
+        units = "default"
+      } else if (identical(mesh$manifold, "S2") &&
+                 (is.null(mesh$crs) || is.null(crs))) {
+        projection =
+          match.arg(projection, c("longlat", "longsinlat",
+                                  "mollweide"))
+        units = projection
+        lim = inla.mesh.map.lim(loc=mesh$loc, projection=projection)
+      } else {
+        lim <- inla.spTransformBounds(crs)
+      }
+      if (missing(xlim) || is.null(xlim)) {
+        xlim = lim$xlim
+      }
+      if (missing(ylim) || is.null(ylim)) {
+        ylim = lim$ylim
+      }
+      x = seq(xlim[1], xlim[2], length.out=dims[1])
+      y = seq(ylim[1], ylim[2], length.out=dims[2])
+      if (is.null(mesh$crs) || is.null(crs)) {
+        lattice <- inla.mesh.lattice(x=x, y=y, units = units)
+      } else {
+        lattice <- inla.mesh.lattice(x=x, y=y, crs=crs)
+      }
     } else {
-      proj = inla.mesh.project(mesh, loc)
-      ## TODO: Check usage of projector$loc for compatibility or not
-      ##       with SpatialPoints objects
-      projector = list(x=NULL, y=NULL, lattice=NULL, loc=loc, proj=proj)
-      class(projector) = "inla.mesh.projector"
+      dims = lattice$dims
+      x = lattice$x
+      y = lattice$y
     }
 
-    return (projector)
+    if (is.null(mesh$crs) || is.null(lattice$crs)) {
+      proj = inla.mesh.project(mesh, lattice$loc)
+    } else {
+      proj <- inla.mesh.project(mesh,
+                                loc=SpatialPoints(lattice$loc,
+                                                  proj4string=lattice$crs))
+    }
+    projector = list(x=x, y=y, lattice=lattice, loc=NULL, proj=proj)
+    class(projector) = "inla.mesh.projector"
+  } else {
+    proj = inla.mesh.project(mesh, loc=loc)
+    projector = list(x=NULL, y=NULL, lattice=NULL, loc=loc, proj=proj)
+    class(projector) = "inla.mesh.projector"
+  }
+
+  return (projector)
 }
 
 
@@ -1893,7 +2029,7 @@ inla.mesh.projector.inla.mesh.1d <-
              xlim=mesh$interval,
              dims=100,
              ...)
-{
+  {
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
 
     if (missing(loc) || is.null(loc)) {
@@ -1905,7 +2041,7 @@ inla.mesh.projector.inla.mesh.1d <-
     class(projector) = "inla.mesh.projector"
 
     return (projector)
-}
+  }
 
 
 
@@ -2856,7 +2992,8 @@ inla.mesh.fem <- function(mesh, order=2)
         return(inla.mesh.1d.fem(mesh))
     } else {
         ## output name list:
-        output = c("c0", "c1", paste("g", seq_len(order), sep=""))
+        output = c("c0", "c1", paste("g", seq_len(order), sep=""),
+                   "va", "ta")
         return(inla.fmesher.smorg(mesh$loc, mesh$graph$tv,
                                   fem=order, output=output))
     }
@@ -3078,12 +3215,22 @@ inla.contour.segment <-
 ## Based on an idea from Elias Teixeira Krainski
 ## Requires  splancs::nndistF
 inla.nonconvex.hull.basic <-
-    function(points, convex=-0.15, resolution=40, eps=NULL)
+    function(points, convex=-0.15, resolution=40, eps=NULL, crs=NULL)
 {
-    if (length(convex)==1)
-        convex = rep(convex,2)
-    if (length(resolution)==1)
-        resolution = rep(resolution,2)
+  if (!(mising(points) || is.null(points)) &&
+      (inherits(points, "SpatialPoints") ||
+       inherits(points, "SpatialPointsDataFrame"))) {
+    points <- inla.spTransform(coordinates(points),
+                               CRS(proj4string(points)),
+                               crs,
+                               passthrough=TRUE)
+  }
+
+  if (length(convex)==1)
+    convex = rep(convex,2)
+  if (length(resolution)==1)
+    resolution = rep(resolution,2)
+
     lim = rbind(range(points[,1]), range(points[,2]))
     ex = convex
     if (convex[1]<0) {ex[1] = -convex[1]*diff(lim[1,])}
@@ -3113,7 +3260,7 @@ inla.nonconvex.hull.basic <-
     z = (matrix(splancs::nndistF(points%*%tr, xy%*%tr),
                 resolution[1], resolution[2]))
     segm = inla.contour.segment(ax[[1]], ax[[2]], z,
-        levels=c(1), positive=FALSE, eps=eps)
+        levels=c(1), positive=FALSE, eps=eps, crs=crs)
     return(segm)
 }
 
@@ -3133,13 +3280,17 @@ inla.nonconvex.hull.basic <-
 ##   dilation(a) & closing(b) = dilation(a+b) & erosion(b)
 ## where all operations are with respect to disks with the specified radii.
 inla.nonconvex.hull <-
-    function(points, convex=-0.15, concave=convex, resolution=40, eps=NULL)
+  function(points, convex=-0.15, concave=convex, resolution=40, eps=NULL,
+           crs=NULL)
 {
-    if (!(missing(points) || is.null(points)) &&
-        (inherits(points, "SpatialPoints") ||
-         inherits(points, "SpatialPointsDataFrame"))) {
-        points = coordinates(points)
-    }
+  if (!(missing(points) || is.null(points)) &&
+      (inherits(points, "SpatialPoints") ||
+       inherits(points, "SpatialPointsDataFrame"))) {
+    points <- inla.spTransform(coordinates(points),
+                               CRS(proj4string(points)),
+                               crs,
+                               passthrough=TRUE)
+  }
 
     if (length(resolution)==1)
         resolution = rep(resolution,2)
@@ -3149,7 +3300,8 @@ inla.nonconvex.hull <-
     if (convex<0) {convex = -convex*approx.diam}
     if (concave<0) {concave = -concave*approx.diam}
     if (concave==0) {
-        return(inla.nonconvex.hull.basic(points, convex, resolution, eps))
+      return(inla.nonconvex.hull.basic(points, convex, resolution, eps,
+                                       crs=crs))
     }
 
     ex = convex+concave
@@ -3204,5 +3356,7 @@ inla.nonconvex.hull <-
                              positive=TRUE,
                              eps=eps)
 
-    return(segm.closing)
+    segm.closing$crs <- crs
+
+    segm.closing
 }
