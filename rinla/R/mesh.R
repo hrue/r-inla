@@ -1754,7 +1754,7 @@ summary.inla.mesh <- function(object, verbose=FALSE, ...)
                        xlim=range(x$loc[,1]),
                        ylim=range(x$loc[,2]),
                        zlim=range(x$loc[,3]))))
-    if (is.na(inla.CRSargs(x$crs)))
+    if (is.na(inla.CRSargs(x$crs))) {
       ret <- c(ret, list(crs="N/A"))
     } else {
       ret <- c(ret, list(crs=inla.CRSargs(x$crs)))
