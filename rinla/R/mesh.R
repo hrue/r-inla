@@ -1754,10 +1754,10 @@ summary.inla.mesh <- function(object, verbose=FALSE, ...)
                        xlim=range(x$loc[,1]),
                        ylim=range(x$loc[,2]),
                        zlim=range(x$loc[,3]))))
-    if (is.null(x$crs) || is.na(CRSargs(x$crs))) {
+    if (is.na(inla.CRSargs(x$crs)))
       ret <- c(ret, list(crs="N/A"))
     } else {
-      ret <- c(ret, list(crs=CRSargs(x$crs)))
+      ret <- c(ret, list(crs=inla.CRSargs(x$crs)))
     }
 
     my.segm <- function(x) {

@@ -797,13 +797,14 @@ inla.spde2.iheat =
     inla.require.inherits(mesh.time, c("inla.mesh.1d"),
                           "'mesh.time'")
 
-    if (is.null(param)) {
-        param =
-            param2.iheat(
-                mesh.space, mesh.time,
-                theta.prior.mean,
-                theta.prior.prec)
-    }
+  if (is.null(param)) {
+    stop("Use param2.iheat() to construct the prior parameter settings")
+    ##        param =
+    ##            param2.iheat(
+    ##                mesh.space, mesh.time,
+    ##                theta.prior.mean,
+    ##                theta.prior.prec)
+  }
 
     d.space = inla.ifelse(inherits(mesh.space, "inla.mesh.1d"), 1, 2)
     d.time = 1
