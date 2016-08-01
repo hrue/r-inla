@@ -38,7 +38,9 @@ inla.CRSargs(crs)
 \code{\link{inla.CRS}}
 }
 \examples{
-inla.CRSargs(inla.CRS("longlat"))
+if (require(rgdal)) {
+  inla.CRSargs(inla.CRS("longlat"))
+}
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
