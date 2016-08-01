@@ -1,5 +1,5 @@
 ## 'spde2' model functions
-## Export: inla.spde.precision.inla.spde2
+## Export: inla.spde.precision!inla.spde2
 ## Export: inla.spde.result!inla.spde2 inla.spde2.generic
 ## Export: inla.spde2.matern param2.matern.orig
 ## Export: inla.spde2.matern.sd.basis inla.spde2.models
