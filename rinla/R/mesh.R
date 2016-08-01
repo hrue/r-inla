@@ -6,7 +6,7 @@
 ## Export: inla.mesh.interior inla.mesh.lattice inla.mesh.map
 ## Export: inla.mesh.map.lim inla.mesh.query
 ## Export: inla.nonconvex.hull inla.nonconvex.hull.basic
-## Export: inla.simplify.curve plot.inla.trimesh
+## Export: inla.simplify.curve plot.inla.trimesh plot!inla.trimesh
 ## Internal: inla.mesh.filter.locations
 ## Internal: inla.mesh.parse.segm.input inla.mesh.extract.segments
 ##
@@ -311,6 +311,8 @@ lines.inla.mesh.segment <- function(x, loc=NULL, col=NULL,
   }
 
 
+## Export as plot!inla.trimesh as well as plot.inla.trimesh,
+## even though it's not actually an S3 method.
 `plot.inla.trimesh` <- function(x, S, color = NULL, color.axis = NULL,
                                 color.n=512, color.palette = cm.colors,
                                 color.truncate=FALSE, alpha=NULL,
