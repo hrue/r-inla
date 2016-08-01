@@ -1,5 +1,6 @@
 \name{inla.spde2.pcmatern}
 \alias{inla.spde2.pcmatern}
+\encoding{utf8}
 \title{
   Matern SPDE model object with PC prior for INLA
 }

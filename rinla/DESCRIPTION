@@ -6,7 +6,7 @@ Maintainer: Havard Rue <hrue@math.ntnu.no>, Finn Lindgren <finn.lindgren@gmail.c
 Description: This package contains functions which allow to perform full Bayesian analysis of latent Gaussian models using Integrated Nested Laplace Approximaxion, and is a front-end to the inla-program.
 Depends: sp, Matrix, splines
 Suggests: mvtnorm, numDeriv, Rgraphviz, graph, fields, rgl, parallel, pixmap, splancs, orthopolynom, compiler, devtools, knitr, markdown, shiny
-Imports: methods
+Imports: methods, rgdal
 VignetteBuilder: knitr
 BuildVignettes: true
 ByteCompile: no

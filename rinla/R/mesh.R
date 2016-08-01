@@ -3104,7 +3104,8 @@ inla.contour.segment <-
              levels = pretty(range(z, na.rm=TRUE), nlevels),
              groups = seq_len(length(levels)),
              positive = TRUE,
-             eps = NULL)
+             eps = NULL,
+             crs = NULL)
 {
     ## Input checking from contourLines:
     if (missing(z)) {
@@ -3209,8 +3210,8 @@ inla.contour.segment <-
         idx = rbind(idx, curve.idx+offset)
         grp = c(grp, rep(level2grp(curves[[k]]$level), curve.n-1L))
     }
-    segm = inla.mesh.segment(loc=loc, idx=idx, grp=grp, is.bnd=FALSE)
-    return(segm)
+
+  inla.mesh.segment(loc=loc, idx=idx, grp=grp, is.bnd=FALSE, crs=crs)
 }
 
 
@@ -3219,7 +3220,7 @@ inla.contour.segment <-
 inla.nonconvex.hull.basic <-
     function(points, convex=-0.15, resolution=40, eps=NULL, crs=NULL)
 {
-  if (!(mising(points) || is.null(points)) &&
+  if (!(missing(points) || is.null(points)) &&
       (inherits(points, "SpatialPoints") ||
        inherits(points, "SpatialPointsDataFrame"))) {
     points <- inla.spTransform(coordinates(points),
