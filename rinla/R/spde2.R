@@ -826,7 +826,8 @@ inla.spde2.iheat =
         fem.time$c0 = fem.time$c1 ## Use higher order matrix.
     }
 
-    ## TODO: the rest
+  ## TODO: the rest
+  if (FALSE) {
 
     if (alpha==2) {
         B.phi0 = param$B.tau
@@ -919,6 +920,9 @@ inla.spde2.iheat =
     }
 
     return(invisible(spde))
+  }
+
+  invisible(NULL)
 }
 
 
