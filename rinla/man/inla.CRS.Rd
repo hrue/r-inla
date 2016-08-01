@@ -54,18 +54,18 @@ inla.CRS(projargs = NA_character_, doCheckCRSArgs = TRUE,
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-  \code{\link{sp:CRS}}, \code{\link{inla.CRSargs}}
+  \code{\link[sp]{CRS}}, \code{\link{inla.CRSargs}}
 }
 \examples{
 crs1 <- inla.CRS("+proj=longlat +ellps=sphere +a=1 +b=1")
-crs2 <- inla.CRS("+proj=geocent +ellps=sphere +a=1 +b=1 +units=m", 
-crs3 <- inla.CRS("+proj=moll +ellps=sphere +units=m +a=0.7071067811865476 +b=0.7071067811865476", 
+crs2 <- inla.CRS("+proj=geocent +ellps=sphere +a=1 +b=1 +units=m")
+crs3 <- inla.CRS("+proj=moll +ellps=sphere +units=m +a=0.7071067811865476 +b=0.7071067811865476")
 crs4 <- inla.CRS("+proj=cea +ellps=sphere +lat_ts=0 +units=m +a=1 +b=1")
 ## Shortcuts:
-crs1 <- inla.CRS("longlat"), 
-crs2 <- inla.CRS("sphere"), 
-crs3 <- inla.CRS("mollwide"), 
-crs4 <- inla.CRS("lambert"), 
+crs1 <- inla.CRS("longlat")
+crs2 <- inla.CRS("sphere")
+crs3 <- inla.CRS("mollwide")
+crs4 <- inla.CRS("lambert")
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
