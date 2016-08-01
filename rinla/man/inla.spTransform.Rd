@@ -68,12 +68,14 @@ inla.spTransform(x, ...)
   \code{\link{inla.CRS}}
 }
 \examples{
-latt <- inla.mesh.lattice(-10:10, 40:60)
-mesh1 <- inla.mesh.create(lattice=latt, extend=FALSE, refine=FALSE,
-                          crs=inla.CRS("longlat"))
-mesh2 <- inla.spTransform(mesh1, inla.CRS("lambert"))
-summary(mesh1)
-summary(mesh2)
+if (require(rgdal)) {
+  latt <- inla.mesh.lattice(-10:10, 40:60)
+  mesh1 <- inla.mesh.create(lattice=latt, extend=FALSE, refine=FALSE,
+                            crs=inla.CRS("longlat"))
+  mesh2 <- inla.spTransform(mesh1, inla.CRS("lambert"))
+  summary(mesh1)
+  summary(mesh2)
+}
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
