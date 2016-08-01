@@ -54,7 +54,7 @@ inla.CRS(projargs = NA_character_, doCheckCRSArgs = TRUE,
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-  \code{\link{sp::CRS}}, \code{\link{inla.CRSargs}}
+  \code{\link{sp:CRS}}, \code{\link{inla.CRSargs}}
 }
 \examples{
 crs1 <- inla.CRS("+proj=longlat +ellps=sphere +a=1 +b=1")

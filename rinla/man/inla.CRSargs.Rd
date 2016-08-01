@@ -34,7 +34,7 @@ inla.CRSargs(crs)
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-\code{\link{rgdal::CRSargs}},
+\code{\link{rgdal:CRSargs}},
 \code{\link{inla.CRS}}
 }
 \examples{
