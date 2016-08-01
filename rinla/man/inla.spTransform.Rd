@@ -41,11 +41,11 @@ inla.spTransform(x, ...)
   Potential additional arguments
 }
 }
-\details{
-  
+%\details{ 
 %%  ~~ If necessary, more details than the description above ~~
-}
+%}
 \value{
+  The object is returned with its coordinates transformed
 %%  ~Describe the value returned
 %%  If it is a LIST, use
 %%  \item{comp1 }{Description of 'comp1'}
