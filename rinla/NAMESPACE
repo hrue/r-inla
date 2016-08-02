@@ -1,25 +1,13 @@
-importFrom(graphics, plot, image)
+importFrom("methods", "as", "existsFunction", "is", "new")
 import(Matrix)
 import(sp)
-import(splines)
-importFrom("grDevices", "chull", "cm.colors", "contourLines",
-           "dev.cur", "dev.new", "dev.off", "gray", "rgb")
-importFrom("graphics", "axis", "barplot", "box", "hist", "legend",
-           "lines", "par", "plot.new", "plot.window", "points",
-           "polygon", "text", "title")
-importFrom("methods", "as", "existsFunction", "is", "new")
-importFrom("stats", "D", "as.formula", "dbeta", "density", "dexp",
-           "dgamma", "dnorm", "ecdf", "fft", "ks.test", "median",
-           "model.frame", "model.matrix", "na.pass", "optimise",
-           "optimize", "pexp", "pnorm", "ppoints", "qexp", "qnorm",
-           "quantile", "rchisq", "reformulate", "rexp", "rnorm",
-           "runif", "sd", "spline", "splinefun", "terms",
-           "terms.formula", "update.formula", "var")
+import(stats)
+import(grDevices)
+import(graphics)
 importFrom("utils", "RShowDoc", "assignInNamespace", "browseURL",
            "capture.output", "install.packages", "installed.packages",
            "read.table", "sessionInfo", "update.packages")
+import(splines)
 
 # Export all names
 # exportPattern(".")
-
-
