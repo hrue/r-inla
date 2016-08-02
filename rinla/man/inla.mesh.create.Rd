@@ -22,7 +22,8 @@ inla.mesh.create(loc = NULL,
                  data.dir,
                  keep = (!missing(data.dir) && !is.null(data.dir)),
                  timings = FALSE,
-                 quality.spec = NULL)
+                 quality.spec = NULL,
+                 crs=NULL)
 
 inla.delaunay(loc, ...)
 }
@@ -103,6 +104,9 @@ inla.delaunay(loc, ...)
     List of vectors of per vertex \code{max.edge} target specification
     for each location in \code{loc}, \code{boundary/interior}
     (\code{segm}), and \code{lattice}.  Only used if refining the mesh.
+  }
+  \item{crs}{
+    An optional \code{CRS} or \code{inla.CRS} object
   }
   \item{...}{
     Optional parameters passed on to \code{inla.mesh.create}.

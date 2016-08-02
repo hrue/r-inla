@@ -1,5 +1,10 @@
 \name{inla.spTransform}
 \alias{inla.spTransform}
+\alias{inla.spTransform.default}
+\alias{inla.spTransform.SpatialPoints}
+\alias{inla.spTransform.inla.mesh.lattice}
+\alias{inla.spTransform.inla.mesh.segment}
+\alias{inla.spTransform.inla.mesh}
 \title{
   Wrapper method for \code{sp::spTransform}
 }
@@ -9,15 +14,15 @@
 }
 \usage{
 inla.spTransform(x, ...)
-\method{inla.spTransform.default}{inla.spTransform}(x, crs0, crs1,
+\method{inla.spTransform}{default}(x, crs0, crs1,
   passthrough=FALSE, ...)
-\method{inla.spTransform.SpatialPoints}{inla.spTransform}(x, CRSobj,
+\method{inla.spTransform}{SpatialPoints}(x, CRSobj,
   passthrough=FALSE, ...)
-\method{inla.spTransform.inla.mesh.lattice}{inla.spTransform}(x, CRSobj,
+\method{inla.spTransform}{inla.mesh.lattice}(x, CRSobj,
   passthrough=FALSE, ...)
-\method{inla.spTransform.inla.mesh.segment}{inla.spTransform}(x, CRSobj,
+\method{inla.spTransform}{inla.mesh.segment}(x, CRSobj,
   passthrough=FALSE, ...)
-\method{inla.spTransform.inla.mesh}{inla.spTransform}(x, CRSobj,
+\method{inla.spTransform}{inla.mesh}(x, CRSobj,
   passthrough=FALSE, ...)
 }
 \arguments{

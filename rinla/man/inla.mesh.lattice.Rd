@@ -15,7 +15,8 @@ inla.mesh.lattice(x = seq(0, 1, length.out=2),
                  } else {
                    c(length(x), length(y))
                  },
-          units = NULL)
+          units = NULL,
+          crs = NULL)
 }
 \arguments{
   \item{x}{
@@ -28,6 +29,9 @@ inla.mesh.lattice(x = seq(0, 1, length.out=2),
   }
   \item{units}{
     One of \code{c("default", "longlat", "longsinlat")}.
+  }
+  \item{crs}{
+    An optional \code{CRS} or \code{inla.CRS} object
   }
 }
 %\details{
