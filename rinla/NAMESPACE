@@ -1,12 +1,10 @@
-importFrom("methods", "as", "existsFunction", "is", "new")
+import(stats)
+import(graphics)
+import(grDevices)
+import(utils)
+import(methods)
 import(Matrix)
 import(sp)
-import(stats)
-import(grDevices)
-import(graphics)
-importFrom("utils", "RShowDoc", "assignInNamespace", "browseURL",
-           "capture.output", "install.packages", "installed.packages",
-           "read.table", "sessionInfo", "update.packages")
 import(splines)
 
 # Export all names
