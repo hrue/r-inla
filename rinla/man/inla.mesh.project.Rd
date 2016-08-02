@@ -23,6 +23,7 @@ inla.mesh.projector(...)
              ylim = range(mesh$loc[,2]),
              dims = c(100,100),
              projection = NULL,
+             crs = NULL,
              ...)
 
 \method{inla.mesh.projector}{inla.mesh.1d}(mesh,

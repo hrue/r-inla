@@ -17,7 +17,8 @@ inla.mesh.2d(loc = NULL,
              max.edge,
              min.angle = NULL,
              cutoff = 1e-12,
-             plot.delay = NULL)
+             plot.delay = NULL,
+             crs = NULL)
 }
 \arguments{
   \item{loc}{
@@ -65,6 +66,9 @@ inla.mesh.2d(loc = NULL,
     On all systems, specifying any negative value activates displaying
     the result after each step of the multi-step domain extension
     algorithm.
+  }
+  \item{crs}{
+    An optional \code{CRS} or \code{inla.CRS} object
   }
 }
 %\details{

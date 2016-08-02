@@ -1963,8 +1963,8 @@ inla.mesh.projector.inla.mesh <-
     function(mesh,
              loc=NULL,
              lattice=NULL,
-             xlim=range(mesh$loc[,1]),
-             ylim=range(mesh$loc[,2]),
+             xlim=NULL,
+             ylim=NULL,
              dims=c(100,100),
              projection=NULL,
              crs=NULL,
@@ -1977,6 +1977,8 @@ inla.mesh.projector.inla.mesh <-
       if (identical(mesh$manifold, "R2") &&
           (is.null(mesh$crs) || is.null(crs))) {
         units = "default"
+        lim <- list(xlim=range(mesh$loc[,1]),
+                    ylim=range(mesh$loc[,2]))
       } else if (identical(mesh$manifold, "S2") &&
                  (is.null(mesh$crs) || is.null(crs))) {
         projection =
@@ -1986,11 +1988,19 @@ inla.mesh.projector.inla.mesh <-
         lim = inla.mesh.map.lim(loc=mesh$loc, projection=projection)
       } else {
         lim <- inla.spTransformBounds(crs)
+        if (identical(mesh$manifold, "R2")) {
+          lim0 <- list(xlim=range(mesh$loc[,1]),
+                       ylim=range(mesh$loc[,2]))
+          lim$xlim[1] <- max(lim$xlim[1], lim0$xlim[1])
+          lim$xlim[2] <- min(lim$xlim[2], lim0$xlim[2])
+          lim$ylim[1] <- max(lim$ylim[1], lim0$ylim[1])
+          lim$ylim[2] <- min(lim$ylim[2], lim0$ylim[2])
+        }
       }
-      if (missing(xlim) || is.null(xlim)) {
+      if (missing(xlim) && is.null(xlim)) {
         xlim = lim$xlim
       }
-      if (missing(ylim) || is.null(ylim)) {
+      if (missing(ylim) && is.null(ylim)) {
         ylim = lim$ylim
       }
       x = seq(xlim[1], xlim[2], length.out=dims[1])
