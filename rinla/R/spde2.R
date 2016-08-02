@@ -437,15 +437,17 @@ inla.spde2.matern =
              theta.prior.mean = NULL,
              theta.prior.prec = 0.1,
              n.iid.group = 1,
-             prior.pc.rho = NULL,
-             prior.pc.sig = NULL)
+             ...)
 {
-    if(!is.null(prior.pc.rho) && !is.null(prior.pc.sig)){
+  if(!is.null(list(...)[["prior.pc.rho"]]) &&
+     !is.null(list(...)[["prior.pc.sig"]])){
       ## Temporary implementation of PC prior for standard deviation and range
       ##    - Changes parametrization to range and standard deviation
       ##    - Sets prior according to hyperparameters for range   : prior.pc.rho
       ##                                              and std.dev.: prior.pc.sig
       warning("You're using a deprecated experimental PC prior matern model that will be removed in a future version of the package. Use 'inla.spde2.pcmatern' instead.")
+      prior.pc.rho <- list(...)[["prior.pc.rho"]]
+      prior.pc.sig <- list(...)[["prior.pc.sig"]]
 
       ## Call inla.spde2.matern with range and standard deviation parametrization
       d = inla.ifelse(inherits(mesh, "inla.mesh"), 2, 1)

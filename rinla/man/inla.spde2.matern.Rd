@@ -23,7 +23,8 @@ inla.spde2.matern(mesh,
                   prior.kappa = NULL,
                   theta.prior.mean = NULL,
                   theta.prior.prec = 0.1,
-                  n.iid.group = 1)
+                  n.iid.group = 1,
+                  ...)
 }
 \arguments{
   \item{mesh}{
@@ -59,6 +60,7 @@ inla.spde2.matern(mesh,
     \code{mesh$m} for 1D), or as general constraints on the collection
     of replicates (\code{ncol(A)} should be \code{mesh$n * n.iid.group}
     for 2D meshes, \code{mesh$m * n.iid.group} for 1D).}
+  \item{\dots}{Additional parameters for special uses.}
 }
 \details{
   This method constructs a Matern SPDE model, with spatial scale
