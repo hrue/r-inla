@@ -290,6 +290,12 @@ inla.spTransform.inla.mesh.segment <- function(x, CRSobj, passthrough=FALSE, ...
 
 inla.spTransform.inla.mesh <- function(x, CRSobj, passthrough=FALSE, ...) {
   x$loc <- inla.spTransform(x$loc, x$crs, CRSobj, passthrough=passthrough)
+  args <- inla.proj4string2list(inla.CRSargs(CRSobj))
+  if (identical(args[["proj"]], "geocent")) {
+    x$manifold <- "S2"
+  } else {
+    x$manifold <- "R2"
+  }
   x$crs <- CRSobj
   invisible(x)
 }
