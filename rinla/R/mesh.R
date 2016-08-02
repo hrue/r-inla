@@ -744,7 +744,7 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
                 input[[k]] = (inla.mesh.segment(input[[k]]$loc,
                                                 input[[k]]$idx,
                                                 grp.idx,
-                                                input[[k]]$id.bnd,
+                                                input[[k]]$is.bnd,
                                                 input[[k]]$crs))
             } else {
                 grp.idx = max(grp.idx, input[[k]]$grp, na.rm=TRUE)
@@ -763,7 +763,8 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
         storage.mode(bnd$grp) <- "integer"
         storage.mode(int$idx) <- "integer"
         storage.mode(int$grp) <- "integer"
-        for (k in seq_along(segm)) if (!is.null(segm[[k]])) {
+        for (k in seq_along(segm)) {
+          if (!is.null(segm[[k]])) {
             inla.require.inherits(segm[[k]],
                                   "inla.mesh.segment",
                                   "Segment info list members ")
@@ -777,7 +778,7 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
                                  local.loc,
                                  rbind(loc, local.loc)))
             } else {
-                idx.offset = loc.offset
+              idx.offset = loc.offset
             }
             if (segm[[k]]$is.bnd) {
                 bnd$idx = rbind(bnd$idx, segm[[k]]$idx+idx.offset)
@@ -786,6 +787,7 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
                 int$idx = rbind(int$idx, segm[[k]]$idx+idx.offset)
                 int$grp = rbind(int$grp, segm[[k]]$grp)
             }
+          }
         }
         if (nrow(bnd$idx)==0)
             bnd = NULL
