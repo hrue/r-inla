@@ -66,6 +66,11 @@ inla.delaunay(loc, ...)
       \item{\code{max.edge}}{the maximum allowed edge length in any
 	triangle.  If negative, interpreted as a relative factor in an
 	ad hoc formula depending on the data density (default=\code{Inf})}
+      \item{\code{max.n.strict}}{the maximum number of vertices allowed,
+	overriding \code{min.angle} and \code{max.edge}
+	(default=-1, meaning no limit)}
+      \item{\code{max.n}}{the maximum number of vertices allowed,
+	overriding \code{max.edge} only (default=-1, meaning no limit)}
     }
   }
   \item{lattice}{

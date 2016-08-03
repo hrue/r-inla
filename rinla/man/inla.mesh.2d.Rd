@@ -17,6 +17,8 @@ inla.mesh.2d(loc = NULL,
              max.edge,
              min.angle = NULL,
              cutoff = 1e-12,
+             max.n.strict = NULL,
+             max.n = NULL,
              plot.delay = NULL,
              crs = NULL)
 }
@@ -55,6 +57,17 @@ inla.mesh.2d(loc = NULL,
     The minimum allowed distance between points.  Point at most as far
     apart as this are replaced by a single vertex prior to the mesh
     refinement step.
+  }
+  \item{max.n.strict}{The maximum number of vertices allowed,
+    overriding \code{min.angle} and \code{max.edge}
+    (default=-1, meaning no limit).
+    One or two values, where the second value gives the number of
+    additional vertices allowed for the extension.
+  }
+  \item{max.n}{The maximum number of vertices allowed,
+    overriding \code{max.edge} only (default=-1, meaning no limit).
+    One or two values, where the second value gives the number of
+    additional vertices allowed for the extension.
   }
   \item{plot.delay}{
     On Linux (and Mac if appropriate X11 libraries are installed),
