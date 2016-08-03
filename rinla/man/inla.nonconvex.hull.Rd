@@ -13,12 +13,14 @@ inla.nonconvex.hull(points,
                     convex = -0.15,
                     concave = convex,
                     resolution = 40,
-                    eps = NULL)
+                    eps = NULL,
+                    crs = NULL)
 
 inla.nonconvex.hull.basic(points,
                           convex = -0.15,
                           resolution = 40,
-                          eps = NULL)
+                          eps = NULL,
+                          crs = NULL)
 }
 \arguments{
   \item{points}{
@@ -43,6 +45,9 @@ inla.nonconvex.hull.basic(points,
   The polygonal curve simplification tolerance used for simplifying the
   resulting boundary curve.  See \code{\link{inla.simplify.curve}} for
   details.
+}
+\item{crs}{
+  An optional \code{CRS} or \code{inla.CRS} object
 }
 }
 \details{

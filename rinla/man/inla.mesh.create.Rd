@@ -22,7 +22,8 @@ inla.mesh.create(loc = NULL,
                  data.dir,
                  keep = (!missing(data.dir) && !is.null(data.dir)),
                  timings = FALSE,
-                 quality.spec = NULL)
+                 quality.spec = NULL,
+                 crs=NULL)
 
 inla.delaunay(loc, ...)
 }
@@ -65,6 +66,11 @@ inla.delaunay(loc, ...)
       \item{\code{max.edge}}{the maximum allowed edge length in any
 	triangle.  If negative, interpreted as a relative factor in an
 	ad hoc formula depending on the data density (default=\code{Inf})}
+      \item{\code{max.n.strict}}{the maximum number of vertices allowed,
+	overriding \code{min.angle} and \code{max.edge}
+	(default=-1, meaning no limit)}
+      \item{\code{max.n}}{the maximum number of vertices allowed,
+	overriding \code{max.edge} only (default=-1, meaning no limit)}
     }
   }
   \item{lattice}{
@@ -103,6 +109,9 @@ inla.delaunay(loc, ...)
     List of vectors of per vertex \code{max.edge} target specification
     for each location in \code{loc}, \code{boundary/interior}
     (\code{segm}), and \code{lattice}.  Only used if refining the mesh.
+  }
+  \item{crs}{
+    An optional \code{CRS} or \code{inla.CRS} object
   }
   \item{...}{
     Optional parameters passed on to \code{inla.mesh.create}.
