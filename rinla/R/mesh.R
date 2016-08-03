@@ -3015,7 +3015,7 @@ inla.diameter.default <- function(x, manifold="", ...) {
   if (nrow(x) <= 1) {
     0
   } else {
-    if (manifold == "S2") {
+    if (identical(manifold, "S2")) {
       distance <- function(u,v) {
         2*asin(pmin(1,
           ((u[1]-v[,1])^2 + (u[2]-v[,2])^2 + (u[3]-v[,3])^2)^0.5 / 2))
@@ -3050,7 +3050,7 @@ inla.diameter.inla.mesh.1d <- function(x, ...) {
 }
 
 inla.diameter.inla.mesh <- function(x, ...) {
-  inla.diameter(x$loc, manifold=x$manifold...)
+  inla.diameter(x$loc, manifold=x$manifold, ...)
 }
 
 inla.diameter.inla.mesh.segment <- function(x, ...) {
