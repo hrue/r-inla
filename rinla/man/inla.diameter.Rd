@@ -4,6 +4,7 @@
 \alias{inla.diameter.inla.mesh}
 \alias{inla.diameter.inla.mesh.segment}
 \alias{inla.diameter.inla.mesh.lattice}
+\alias{inla.diameter.inla.mesh.1d}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
   Diameter of a point set
