@@ -3011,7 +3011,7 @@ inla.diameter <- function(x, ...) {
 
 ## Calculate upper bound for the diameter of a point set,
 ## by encapsulating in a circular domain.
-inla.diameter.default <- function(x, manifold="R2", ...) {
+inla.diameter.default <- function(x, manifold="", ...) {
   if (nrow(x) <= 1) {
     0
   } else {
