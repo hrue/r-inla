@@ -28,6 +28,12 @@
 ## Export: print.summary.inla.mesh summary.inla.mesh
 ## Export: lines!inla.mesh.segment plot!inla.mesh
 ## Export: print!summary.inla.mesh summary!inla.mesh
+## Export: inla.diameter
+## Export: inla.diameter!default
+## Export: inla.diameter!inla.mesh.1d
+## Export: inla.diameter!inla.mesh
+## Export: inla.diameter!inla.mesh.segment
+## Export: inla.diameter!inla.mesh.lattice
 
 
 
@@ -1075,17 +1081,11 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
     }
     if (inherits(refine,"list")) {
         rcdt = c(0,0,0)
-        rcdt_max_n0 = -1
-        rcdt_max_n1 = -1
         if (!missing(globe) && !is.null(globe)) {
-            max.edge.default=10
+          max.edge.default <- pi
         } else {
-            max.edge.default = (sqrt(diff(range(loc0[,1]))^2+
-                                     diff(range(loc0[,2]))^2+
-                                     inla.ifelse(ncol(loc0)<3,
-                                                 0,
-                                                 diff(range(loc0[,3]))^2)
-                                     ))
+          ## Multiply by to ensure cover S2 domains
+          max.edge.default <- inla.diameter(loc0) * 2
         }
         if ((inherits(extend,"list")) && (!is.null(extend$offset))) {
             max.edge.default = (max.edge.default +
@@ -1093,25 +1093,35 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
             max.edge.default = (max.edge.default *
                                 (1+max(0,-2*extend$offset)))
         }
-        max.edge.default = max.edge.default*10 ## "*10": Better to be safe.
         rcdt[1] = inla.ifelse(is.null(refine$min.angle), 21, refine$min.angle)
-        rcdt[2] = (inla.ifelse(is.null(refine$max.edge),
+        rcdt[2] = (inla.ifelse(is.null(refine$max.edge) ||
+                               is.na(refine$max.edge),
                                max.edge.default,
                                refine$max.edge))
-        rcdt[3] = (inla.ifelse(is.null(refine$max.edge),
+        rcdt[3] = (inla.ifelse(is.null(refine$max.edge) ||
+                               is.na(refine$max.edge),
                                max.edge.default,
                                refine$max.edge))
-        rcdt[2] = (inla.ifelse(is.null(refine$max.edge.extra),
+        rcdt[2] = (inla.ifelse(is.null(refine$max.edge.extra) ||
+                               is.na(refine$max.edge.extra),
                                rcdt[2], refine$max.edge.extra))
-        rcdt[3] = (inla.ifelse(is.null(refine$max.edge.data),
+        rcdt[3] = (inla.ifelse(is.null(refine$max.edge.data) ||
+                               is.na(refine$max.edge.date),
                                rcdt[3], refine$max.edge.data))
         all.args = (paste(all.args," --rcdt=",
                           rcdt[1],",", rcdt[2],",", rcdt[3], sep=""))
-        if (!is.null(refine$max.n0)) {
-          rcdt_max_n0 <- inla.ifelse(is.na(refine$max.n0), -1, refine$max.n0)
+
+        if (!is.null(refine[["max.n.strict"]]) &&
+            !is.na(refine$max.n.strict)) {
+          rcdt_max_n0 <- refine$max.n.strict
+        } else {
+          rcdt_max_n0 <- -1
         }
-        if (!is.null(refine$max.n1)) {
-          rcdt_max_n1 <- inla.ifelse(is.na(refine$max.n1), -1, refine$max.n1)
+        if (!is.null(refine[["max.n"]]) &&
+            !is.na(refine$max.n)) {
+          rcdt_max_n1 <- refine$max.n
+        } else {
+          rcdt_max_n1 <- -1
         }
         all.args = (paste(all.args,
                           " --max_n0=", rcdt_max_n0,
@@ -1323,13 +1333,13 @@ inla.mesh.2d <-
              n=NULL, ## Sides of automatic extension polygons
              boundary=NULL, ## User-specified domains (list of length 2)
              interior=NULL, ## User-specified constraints for the inner domain
-             max.edge,
+             max.edge=NULL,
              min.angle=NULL, ## Angle constraint for the entire domain
              cutoff=1e-12, ## Only add input points further apart than this
+             max.n.strict=NULL,
+             max.n=NULL,
              plot.delay=NULL,
-             crs=NULL, ## Coordinate Reference System
-             max.n0=NULL,
-             max.n1=NULL)
+             crs=NULL) ## Coordinate Reference System
     ## plot.delay: Do plotting.
     ## NULL --> No plotting
     ## <0  --> Intermediate meshes displayed at the end
@@ -1364,8 +1374,10 @@ inla.mesh.2d <-
   }
 ###########################
 
-  if (missing(max.edge) || is.null(max.edge)) {
-    stop("max.edge must be specified")
+  if ((missing(max.edge) || is.null(max.edge)) &&
+      (missing(max.n.strict) || is.null(max.n.strict)) &&
+      (missing(max.n) || is.null(max.n))) {
+    stop("At least one of max.edge, max.n.strict, and max.n must be specified")
   }
 
   ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
@@ -1412,12 +1424,14 @@ inla.mesh.2d <-
     }
     if (missing(n) || is.null(n))
         n = c(8)
+    if (missing(max.edge) || is.null(max.edge))
+        max.edge = c(NA)
     if (missing(min.angle) || is.null(min.angle))
         min.angle = c(21)
-    if (missing(max.n0) || is.null(max.n0))
-        max.n0 = c(NA)
-    if (missing(max.n1) || is.null(max.n1))
-        max.n1 = c(NA)
+    if (missing(max.n.strict) || is.null(max.n.strict))
+        max.n.strict = c(NA)
+    if (missing(max.n) || is.null(max.n))
+        max.n = c(NA)
     if (missing(cutoff) || is.null(cutoff))
         cutoff = 1e-12
     if (missing(plot.delay) || is.null(plot.delay))
@@ -1426,7 +1440,7 @@ inla.mesh.2d <-
     num.layers =
         max(c(length(boundary), length(offset), length(n),
               length(min.angle), length(max.edge),
-              length(max.n0), length(max.n1)))
+              length(max.n.strict), length(max.n)))
     if (num.layers > 2) {
         warning(paste("num.layers=", num.layers, " > 2 detected.  ",
                       "Excess information ignored.", sep=""))
@@ -1437,10 +1451,10 @@ inla.mesh.2d <-
         boundary = c(boundary, list(NULL))
     if (length(min.angle) < num.layers)
         min.angle = c(min.angle, min.angle)
-    if (length(max.n0) < num.layers)
-        max.n0 = c(max.n0, max.n0)
-    if (length(max.n1) < num.layers)
-        max.n1 = c(max.n1, max.n1)
+    if (length(max.n.strict) < num.layers)
+        max.n0 = c(max.n.strict, max.n.strict)
+    if (length(max.n) < num.layers)
+        max.n = c(max.n, max.n)
     if (length(max.edge) < num.layers)
         max.edge = c(max.edge, max.edge)
     if (length(offset) < num.layers)
@@ -1500,8 +1514,8 @@ inla.mesh.2d <-
                              list(min.angle=min.angle[1],
                                   max.edge=max.edge[1],
                                   max.edge.extra=max.edge[1],
-                                  max.n0=max.n0[1],
-                                  max.n1=max.n1[1]),
+                                  max.n.strict=max.n.strict[1],
+                                  max.n=max.n[1]),
                          plot.delay=plot.delay,
                          crs=crs)
 
@@ -1532,8 +1546,8 @@ inla.mesh.2d <-
                              list(min.angle=min.angle[2],
                                   max.edge=max.edge[2],
                                   max.edge.extra=max.edge[2],
-                                  max.n0=mesh2$n + max.n0[2],
-                                  max.n1=mesh2$n + max.n1[2]),
+                                  max.n.strict=mesh2$n + max.n.strict[2],
+                                  max.n=mesh2$n + max.n[2]),
                          plot.delay=plot.delay,
                          crs=crs)
 
@@ -2991,8 +3005,61 @@ inla.mesh.1d.fem <- function(mesh)
 
 
 
+inla.diameter <- function(x, ...) {
+  UseMethod("inla.diameter")
+}
 
+## Calculate upper bound for the diameter of a point set,
+## by encapsulating in a circular domain.
+inla.diameter.default <- function(x, manifold="R2", ...) {
+  if (nrow(x) <= 1) {
+    0
+  } else {
+    if (manifold == "S2") {
+      distance <- function(u,v) {
+        2*asin(pmin(1,
+          ((u[1]-v[,1])^2 + (u[2]-v[,2])^2 + (u[3]-v[,3])^2)^0.5 / 2))
+      }
+      center <- colMeans(x)
+      tmp <- sqrt(sum(center^2))
+      if (tmp < 1e-6) {
+        pi
+      } else {
+        center <- center/tmp
+        min(pi, 2 * max(distance(center, x)))
+      }
+    } else {
+      distance <- function(u,v) {
+        d <- 0
+        for (k in seq_len(ncol(v))) {
+          d <- d + (u[k]-v[,k])^2
+        }
+        d^0.5
+      }
+      center <- rep(0, ncol(x))
+      for (k in seq_len(ncol(x))) {
+        center[k] <- mean(range(x[,k]))
+      }
+      2 * max(distance(center, x))
+    }
+  }
+}
 
+inla.diameter.inla.mesh.1d <- function(x, ...) {
+  diff(x$interval)
+}
+
+inla.diameter.inla.mesh <- function(x, ...) {
+  inla.diameter(x$loc, manifold=x$manifold...)
+}
+
+inla.diameter.inla.mesh.segment <- function(x, ...) {
+  inla.diameter(x$loc, ...)
+}
+
+inla.diameter.inla.mesh.lattice <- function(x, ...) {
+  inla.diameter(x$loc, ...)
+}
 
 
 inla.mesh.fem <- function(mesh, order=2)
