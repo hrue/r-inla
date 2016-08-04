@@ -50,6 +50,7 @@ all :;
 	echo "Edit this Makefile, especially the 'FLAGS' variable,";\
 	echo "check if you need to run 'sudo $(MAKE) lib-install', then do";\
 	echo "";\
+	echo "	$(MAKE) lib-install";\
 	echo "	$(MAKE) download";\
 	echo "	$(MAKE) bin";\
 	echo "	$(MAKE) package";\
@@ -77,9 +78,10 @@ all :;
 	echo "";)
 
 ## Package list updated 2014-08-23
-LIBPKG = liblapack-dev libgsl0-dev zlib1g-dev libsuitesparse-metis-dev \
+LIBPKG = liblapack-dev libgsl0-dev zlib1g-dev libsuitesparse-dev \
 	libmetis-dev libxdmcp-dev libx11-dev libc6-dev libatlas-dev \
-	libblas-dev libmuparser-dev libsuitesparse-dev
+	libblas-dev libmuparser-dev 
+
 lib-install :
 	$(APT) install $(LIBPKG)
 
