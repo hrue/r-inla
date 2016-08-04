@@ -79,7 +79,7 @@ all :;
 ## Package list updated 2014-08-23
 LIBPKG = liblapack-dev libgsl0-dev zlib1g-dev libsuitesparse-metis-dev \
 	libmetis-dev libxdmcp-dev libx11-dev libc6-dev libatlas-dev \
-	libblas-dev libmuparser-dev
+	libblas-dev libmuparser-dev libsuitesparse-dev
 lib-install :
 	$(APT) install $(LIBPKG)
 
