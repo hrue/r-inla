@@ -29,8 +29,24 @@ stage can include fixed effects for covariates, unstructured random
 effects, such as individual or group effects, or structured random
 effects, such as an autoregressive model of order 1 or a smoothing
 random effect over space. It is crucial that the second stage, the
-so-called latent
-which controls the
+so-called latent level, is Gaussian
+distributed in order to apply INLA. In matrix notation we have,
+\begin{list}{\labelitemi}{\leftmargin=5em}
+\item[\textbf{Stage 2.}] $\bs{\eta} = \bs{X} \bs{\beta} + \bs{w} f(\bs{c}, \bs{\theta}_2) + \ldots, \quad
+\bs{\beta} \sim N(\bs{\mu}, \text{diag}(\bs{\tau}^{-1}))$,
+\end{list}
+where $\bs{X}$ is a ($n_d \times p$) design matrix which has the $p$
+covariate vectors as its columns and $\bs{\beta}$ is a ($p \times 1$)
+vector of regression coefficients, i.e. fixed effects. INLA attributes independent
+Gaussian priors with mean $\mu _i$ and precision $\tau_i$ for each of
+the regressor coefficients $\beta_i$, $i = 1,...,p$. The term $\bs{w}
+f(\bs{c}, \bs{\theta}_2)$ specifies a non-linear/smooth Gaussian effect of
+covariate $\bs{c}$  weighted with a vector of known weights $\bs{w}$
+and $\bs{\theta}_2$ represent the hyperparameters for this Gaussian
+model. The hierarchical
+model is then completed with an appropriate prior distribution for the
+possible vector of hyperparameters $\bs{\theta} = (\bs{\theta}_1,
+\bs{\theta}_2)$ which controls the
 single model components
 \begin{list}{\labelitemi}{\leftmargin=5em}
   \item[\textbf{Stage 3.}] $\bs{\theta} \sim \pi(\bs{\theta})$.
