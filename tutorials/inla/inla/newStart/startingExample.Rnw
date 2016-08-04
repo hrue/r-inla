@@ -289,7 +289,7 @@ The corresponding documentation of the Poisson likelihood, say, can
 be obtained from R using
 
 <<eval=FALSE>>=
-names(inla.doc("poisson"))
+inla.doc("poisson")
 @
 
 which opens all documentation files for a topic including the string
