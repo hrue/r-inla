@@ -93,6 +93,12 @@ struct gengetopt_args_info
   unsigned int rcdt_min; /**< @brief Generate RCDT, with optional quality parameters's minimum occurreces */
   unsigned int rcdt_max; /**< @brief Generate RCDT, with optional quality parameters's maximum occurreces */
   const char *rcdt_help; /**< @brief Generate RCDT, with optional quality parameters help description.  */
+  int max_n0_arg;	/**< @brief The desired maximal number of vertices, terminating angle checks (default='-1').  */
+  char * max_n0_orig;	/**< @brief The desired maximal number of vertices, terminating angle checks original value given at command line.  */
+  const char *max_n0_help; /**< @brief The desired maximal number of vertices, terminating angle checks help description.  */
+  int max_n1_arg;	/**< @brief The desired maximal number of vertices, terminating edge length checks (default='-1').  */
+  char * max_n1_orig;	/**< @brief The desired maximal number of vertices, terminating edge length checks original value given at command line.  */
+  const char *max_n1_help; /**< @brief The desired maximal number of vertices, terminating edge length checks help description.  */
   char ** quality_arg;	/**< @brief Per vertex RCDT parameters, as one or more one-column matrices with minimum edge lengths for the points specified with -T|--input.  */
   char ** quality_orig;	/**< @brief Per vertex RCDT parameters, as one or more one-column matrices with minimum edge lengths for the points specified with -T|--input original value given at command line.  */
   unsigned int quality_min; /**< @brief Per vertex RCDT parameters, as one or more one-column matrices with minimum edge lengths for the points specified with -T|--input's minimum occurreces */
@@ -176,6 +182,8 @@ struct gengetopt_args_info
   unsigned int spheretolerance_given ;	/**< @brief Whether spheretolerance was given.  */
   unsigned int cet_given ;	/**< @brief Whether cet was given.  */
   unsigned int rcdt_given ;	/**< @brief Whether rcdt was given.  */
+  unsigned int max_n0_given ;	/**< @brief Whether max_n0 was given.  */
+  unsigned int max_n1_given ;	/**< @brief Whether max_n1 was given.  */
   unsigned int quality_given ;	/**< @brief Whether quality was given.  */
   unsigned int boundary_given ;	/**< @brief Whether boundary was given.  */
   unsigned int interior_given ;	/**< @brief Whether interior was given.  */
