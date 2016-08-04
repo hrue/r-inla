@@ -27,7 +27,7 @@
 
 const char *gengetopt_args_info_purpose = "Generate triangular meshes and prepare finite element calculations";
 
-const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version]\n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC]\n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all]\n         [--ir=SPEC] [-TNAME|--input=NAME] [--cutoff=DISTANCE]\n         [--spheretolerance=DISTANCE] [-EPARAM|--cet=PARAM]\n         [-RPARAM|--rcdt=PARAM] [-QNAME|--quality=NAME]\n         [-BNAME|--boundary=NAME] [-INAME|--interior=NAME] [--boundarygrp=NAME]\n         [--interiorgrp=NAME] [--globe=SUBSEGMENTS] [--smorg] [--fem=ORDER]\n         [--aniso=NAME] [--grad] [--sph0=ORDER] [--sph=ORDER] [--bspline=PARAM]\n         [--points2mesh=NAME] [--splitlines=NAME] [-xDELAY|--x11=DELAY]\n         [PREFIX]...";
+const char *gengetopt_args_info_usage = "Usage: fmesher [-h|--help] [--detailed-help] [--full-help] [-V|--version]\n         [-CFILE|--config=FILE] [--dump-config=FILE] [--io=SPEC]\n         [-iFILE|--ic=FILE] [-oFILE|--oc=FILE] [--collect=NAME] [--collect-all]\n         [--ir=SPEC] [-TNAME|--input=NAME] [--cutoff=DISTANCE]\n         [--spheretolerance=DISTANCE] [-EPARAM|--cet=PARAM]\n         [-RPARAM|--rcdt=PARAM] [--max_n0=PARAM] [--max_n1=PARAM]\n         [-QNAME|--quality=NAME] [-BNAME|--boundary=NAME]\n         [-INAME|--interior=NAME] [--boundarygrp=NAME] [--interiorgrp=NAME]\n         [--globe=SUBSEGMENTS] [--smorg] [--fem=ORDER] [--aniso=NAME] [--grad]\n         [--sph0=ORDER] [--sph=ORDER] [--bspline=PARAM] [--points2mesh=NAME]\n         [--splitlines=NAME] [-xDELAY|--x11=DELAY] [PREFIX]...";
 
 const char *gengetopt_args_info_versiontext = "";
 
@@ -57,6 +57,8 @@ const char *gengetopt_args_info_detailed_help[] = {
   "  \n  \tThe parameters are n,m, where n is the number of sides of the\n  encapsulation, and m is the margin.\n  \tFor m>0, the margins are set to m.\n  \tFor m<0, the margins are set to approximately -m*diam.\n  \tDefaults are 8,-0.1, adding 10% on all sides\n",
   "  -R, --rcdt[=PARAM]            Generate RCDT, with optional quality parameters\n                                  (default=`21')",
   "  \n  \tThe parameter order is min_angle, max_edge_length for added points,\n  max_edge_length for data points. Further values apply to data points added by\n  extra matrices specified with -T|--input\n  \tWhen negative values for the edge_length-parameters, a rudimentary\n  scaling with respect to the initial point density is used.\n  \tPositive values are absolute.\n  \tThe algorithm is only guaranteed to converge for min_angle<=21, but values\n  as high as 34 often work in practice.\n  \tDefaults are 21,-1.,-0.5\n",
+  "      --max_n0=PARAM            The desired maximal number of vertices,\n                                  terminating angle checks  (default=`-1')",
+  "      --max_n1=PARAM            The desired maximal number of vertices,\n                                  terminating edge length checks\n                                  (default=`-1')",
   "  -Q, --quality=NAME            Per vertex RCDT parameters, as one or more\n                                  one-column matrices with minimum edge lengths\n                                  for the points specified with -T|--input",
   "  -B, --boundary=NAME           Handle triangulation boundary\n                                  (default=`boundary0')",
   "  -I, --interior=NAME           Handle interior constraints\n                                  (default=`interior0')",
@@ -119,11 +121,13 @@ init_full_help_array(void)
   gengetopt_args_info_full_help[35] = gengetopt_args_info_detailed_help[39];
   gengetopt_args_info_full_help[36] = gengetopt_args_info_detailed_help[40];
   gengetopt_args_info_full_help[37] = gengetopt_args_info_detailed_help[41];
-  gengetopt_args_info_full_help[38] = 0; 
+  gengetopt_args_info_full_help[38] = gengetopt_args_info_detailed_help[42];
+  gengetopt_args_info_full_help[39] = gengetopt_args_info_detailed_help[43];
+  gengetopt_args_info_full_help[40] = 0; 
   
 }
 
-const char *gengetopt_args_info_full_help[39];
+const char *gengetopt_args_info_full_help[41];
 
 static void
 init_help_array(void)
@@ -165,11 +169,13 @@ init_help_array(void)
   gengetopt_args_info_help[34] = gengetopt_args_info_detailed_help[38];
   gengetopt_args_info_help[35] = gengetopt_args_info_detailed_help[39];
   gengetopt_args_info_help[36] = gengetopt_args_info_detailed_help[40];
-  gengetopt_args_info_help[37] = 0; 
+  gengetopt_args_info_help[37] = gengetopt_args_info_detailed_help[41];
+  gengetopt_args_info_help[38] = gengetopt_args_info_detailed_help[42];
+  gengetopt_args_info_help[39] = 0; 
   
 }
 
-const char *gengetopt_args_info_help[38];
+const char *gengetopt_args_info_help[40];
 
 typedef enum {ARG_NO
   , ARG_FLAG
@@ -240,6 +246,8 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->spheretolerance_given = 0 ;
   args_info->cet_given = 0 ;
   args_info->rcdt_given = 0 ;
+  args_info->max_n0_given = 0 ;
+  args_info->max_n1_given = 0 ;
   args_info->quality_given = 0 ;
   args_info->boundary_given = 0 ;
   args_info->interior_given = 0 ;
@@ -288,6 +296,10 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->cet_orig = NULL;
   args_info->rcdt_arg = NULL;
   args_info->rcdt_orig = NULL;
+  args_info->max_n0_arg = -1;
+  args_info->max_n0_orig = NULL;
+  args_info->max_n1_arg = -1;
+  args_info->max_n1_orig = NULL;
   args_info->quality_arg = NULL;
   args_info->quality_orig = NULL;
   args_info->boundary_arg = NULL;
@@ -354,39 +366,41 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->rcdt_help = gengetopt_args_info_detailed_help[21] ;
   args_info->rcdt_min = 0;
   args_info->rcdt_max = 0;
-  args_info->quality_help = gengetopt_args_info_detailed_help[23] ;
+  args_info->max_n0_help = gengetopt_args_info_detailed_help[23] ;
+  args_info->max_n1_help = gengetopt_args_info_detailed_help[24] ;
+  args_info->quality_help = gengetopt_args_info_detailed_help[25] ;
   args_info->quality_min = 0;
   args_info->quality_max = 0;
-  args_info->boundary_help = gengetopt_args_info_detailed_help[24] ;
+  args_info->boundary_help = gengetopt_args_info_detailed_help[26] ;
   args_info->boundary_min = 0;
   args_info->boundary_max = 0;
-  args_info->interior_help = gengetopt_args_info_detailed_help[25] ;
+  args_info->interior_help = gengetopt_args_info_detailed_help[27] ;
   args_info->interior_min = 0;
   args_info->interior_max = 0;
-  args_info->boundarygrp_help = gengetopt_args_info_detailed_help[26] ;
+  args_info->boundarygrp_help = gengetopt_args_info_detailed_help[28] ;
   args_info->boundarygrp_min = 0;
   args_info->boundarygrp_max = 0;
-  args_info->interiorgrp_help = gengetopt_args_info_detailed_help[27] ;
+  args_info->interiorgrp_help = gengetopt_args_info_detailed_help[29] ;
   args_info->interiorgrp_min = 0;
   args_info->interiorgrp_max = 0;
-  args_info->globe_help = gengetopt_args_info_detailed_help[28] ;
-  args_info->smorg_help = gengetopt_args_info_detailed_help[30] ;
-  args_info->fem_help = gengetopt_args_info_detailed_help[31] ;
-  args_info->aniso_help = gengetopt_args_info_detailed_help[32] ;
+  args_info->globe_help = gengetopt_args_info_detailed_help[30] ;
+  args_info->smorg_help = gengetopt_args_info_detailed_help[32] ;
+  args_info->fem_help = gengetopt_args_info_detailed_help[33] ;
+  args_info->aniso_help = gengetopt_args_info_detailed_help[34] ;
   args_info->aniso_min = 2;
   args_info->aniso_max = 2;
-  args_info->grad_help = gengetopt_args_info_detailed_help[33] ;
-  args_info->sph0_help = gengetopt_args_info_detailed_help[34] ;
-  args_info->sph_help = gengetopt_args_info_detailed_help[35] ;
-  args_info->bspline_help = gengetopt_args_info_detailed_help[36] ;
+  args_info->grad_help = gengetopt_args_info_detailed_help[35] ;
+  args_info->sph0_help = gengetopt_args_info_detailed_help[36] ;
+  args_info->sph_help = gengetopt_args_info_detailed_help[37] ;
+  args_info->bspline_help = gengetopt_args_info_detailed_help[38] ;
   args_info->bspline_min = 1;
   args_info->bspline_max = 3;
-  args_info->points2mesh_help = gengetopt_args_info_detailed_help[37] ;
-  args_info->splitlines_help = gengetopt_args_info_detailed_help[38] ;
+  args_info->points2mesh_help = gengetopt_args_info_detailed_help[39] ;
+  args_info->splitlines_help = gengetopt_args_info_detailed_help[40] ;
   args_info->splitlines_min = 2;
   args_info->splitlines_max = 2;
-  args_info->x11_help = gengetopt_args_info_detailed_help[40] ;
-  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[41] ;
+  args_info->x11_help = gengetopt_args_info_detailed_help[42] ;
+  args_info->x11_zoom_help = gengetopt_args_info_detailed_help[43] ;
   args_info->x11_zoom_min = 3;
   args_info->x11_zoom_max = 4;
   
@@ -574,6 +588,8 @@ cmdline_release (struct gengetopt_args_info *args_info)
   args_info->cet_arg = 0;
   free_multiple_field (args_info->rcdt_given, (void *)(args_info->rcdt_arg), &(args_info->rcdt_orig));
   args_info->rcdt_arg = 0;
+  free_string_field (&(args_info->max_n0_orig));
+  free_string_field (&(args_info->max_n1_orig));
   free_multiple_string_field (args_info->quality_given, &(args_info->quality_arg), &(args_info->quality_orig));
   free_multiple_string_field (args_info->boundary_given, &(args_info->boundary_arg), &(args_info->boundary_orig));
   free_multiple_string_field (args_info->interior_given, &(args_info->interior_arg), &(args_info->interior_orig));
@@ -704,6 +720,10 @@ cmdline_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "spheretolerance", args_info->spheretolerance_orig, 0);
   write_multiple_into_file(outfile, args_info->cet_given, "cet", args_info->cet_orig, 0);
   write_multiple_into_file(outfile, args_info->rcdt_given, "rcdt", args_info->rcdt_orig, 0);
+  if (args_info->max_n0_given)
+    write_into_file(outfile, "max_n0", args_info->max_n0_orig, 0);
+  if (args_info->max_n1_given)
+    write_into_file(outfile, "max_n1", args_info->max_n1_orig, 0);
   write_multiple_into_file(outfile, args_info->quality_given, "quality", args_info->quality_orig, 0);
   write_multiple_into_file(outfile, args_info->boundary_given, "boundary", args_info->boundary_orig, 0);
   write_multiple_into_file(outfile, args_info->interior_given, "interior", args_info->interior_orig, 0);
@@ -1396,6 +1416,8 @@ cmdline_internal (
         { "spheretolerance",	1, NULL, 0 },
         { "cet",	1, NULL, 'E' },
         { "rcdt",	2, NULL, 'R' },
+        { "max_n0",	1, NULL, 0 },
+        { "max_n1",	1, NULL, 0 },
         { "quality",	1, NULL, 'Q' },
         { "boundary",	1, NULL, 'B' },
         { "interior",	1, NULL, 'I' },
@@ -1631,6 +1653,34 @@ cmdline_internal (
                 &(local_args_info.spheretolerance_given), optarg, 0, "1.0e-7", ARG_DOUBLE,
                 check_ambiguity, override, 0, 0,
                 "spheretolerance", '-',
+                additional_error))
+              goto failure;
+          
+          }
+          /* The desired maximal number of vertices, terminating angle checks.  */
+          else if (strcmp (long_options[option_index].name, "max_n0") == 0)
+          {
+          
+          
+            if (update_arg( (void *)&(args_info->max_n0_arg), 
+                 &(args_info->max_n0_orig), &(args_info->max_n0_given),
+                &(local_args_info.max_n0_given), optarg, 0, "-1", ARG_INT,
+                check_ambiguity, override, 0, 0,
+                "max_n0", '-',
+                additional_error))
+              goto failure;
+          
+          }
+          /* The desired maximal number of vertices, terminating edge length checks.  */
+          else if (strcmp (long_options[option_index].name, "max_n1") == 0)
+          {
+          
+          
+            if (update_arg( (void *)&(args_info->max_n1_arg), 
+                 &(args_info->max_n1_orig), &(args_info->max_n1_given),
+                &(local_args_info.max_n1_given), optarg, 0, "-1", ARG_INT,
+                check_ambiguity, override, 0, 0,
+                "max_n1", '-',
                 additional_error))
               goto failure;
           
