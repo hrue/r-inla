@@ -14959,6 +14959,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		mb->f_fixed[mb->nf] = Calloc(ntheta, int);
 		mb->f_theta[mb->nf] = Calloc(ntheta, double **);
+		mb->f_ntheta[mb->nf] = ntheta;
 
 		/*
 		 * mark all possible as read 
@@ -14994,7 +14995,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * then read those we need 
 		 */
-		mb->f_ntheta[mb->nf] = 0;		       /* and then we count */
+		int ntheta_used = 0;			       /* then we count */
 		for (i = 0; i < ntheta; i++) {
 			double theta_initial = 0.0;
 
@@ -15029,18 +15030,16 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 
 				if (mb->f_prior[mb->nf][0].id == P_PC_MATERN && (i == 0 || i == 1)) {
-					GMRFLib_sprintf(&msg, "%s for %s", (i == 0 ? "log(Range)" : "log(Stdev)"),
-							(secname ? secname : mb->f_tag[mb->nf]));
+					GMRFLib_sprintf(&msg, "%s for %s", (i == 0 ? "log(Range)" : "log(Stdev)"), (secname ? secname : mb->f_tag[mb->nf]));
 					mb->theta_tag[mb->ntheta] = msg;
-					GMRFLib_sprintf(&msg, "%s for %s", (i == 0 ? "Range" : "Stdev"),
-							(secname ? secname : mb->f_tag[mb->nf]));
+					GMRFLib_sprintf(&msg, "%s for %s", (i == 0 ? "Range" : "Stdev"), (secname ? secname : mb->f_tag[mb->nf]));
 					mb->theta_tag_userscale[mb->ntheta] = msg;
 					GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], i + 1);
 					mb->theta_dir[mb->ntheta] = msg;
 					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-					mb->theta_from[mb->ntheta] = GMRFLib_strdup("function (x) <<NEWLINE>>log(x)"); /* they are not there... */
-					mb->theta_to[mb->ntheta] = GMRFLib_strdup("function (x) <<NEWLINE>>exp(x)");   /* .... */
+					mb->theta_from[mb->ntheta] = GMRFLib_strdup("function (x) <<NEWLINE>>log(x)");	/* they are not there... */
+					mb->theta_to[mb->ntheta] = GMRFLib_strdup("function (x) <<NEWLINE>>exp(x)");	/* .... */
 					mb->theta[mb->ntheta] = spde2_model->theta[i];
 					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 					mb->theta_map[mb->ntheta] = map_exp;
@@ -15062,41 +15061,41 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 				mb->theta_map_arg[mb->ntheta] = NULL;
 				mb->ntheta++;
-				mb->f_ntheta[mb->nf]++;
+				ntheta_used++;
 			}
 		}
-		
+
+		spde2_model->ntheta_used = ntheta_used;
 		if (mb->verbose) {
-			printf("\t\tntheta (used) = [%1d]\n", mb->f_ntheta[mb->nf]);
+			printf("\t\tntheta (used) = [%1d]\n", spde2_model->ntheta_used);
 		}
-		spde2_model->ntheta_used = mb->f_ntheta[mb->nf];
 		spde2_model->fixed = Calloc(ntheta, int);
 		spde2_model->fixed_values = Calloc(ntheta, double);
 		for (i = 0; i < ntheta; i++) {
 			spde2_model->fixed[i] = mb->f_fixed[mb->nf][i];
-			if (spde2_model->fixed[i]){
+			if (spde2_model->fixed[i]) {
 				spde2_model->fixed_values[i] = spde2_model->theta[i][0][0];
 			} else {
-				spde2_model->fixed_values[i] = NAN;
+				spde2_model->fixed_values[i] = NAN;	/* so that we get an error if used wrongly */
 			}
 		}
-		spde2_model_orig->ntheta_used = mb->f_ntheta[mb->nf];
+		spde2_model_orig->ntheta_used = spde2_model->ntheta_used;
 		spde2_model_orig->fixed = Calloc(ntheta, int);
 		spde2_model_orig->fixed_values = Calloc(ntheta, double);
 		memcpy(spde2_model_orig->fixed, spde2_model->fixed, ntheta * sizeof(int));
 		memcpy(spde2_model_orig->fixed_values, spde2_model->fixed_values, ntheta * sizeof(double));
-		
+
 		if (mb->f_prior[mb->nf][0].id == P_MVNORM) {
-			if ((int) mb->f_prior[mb->nf][0].parameters[0] != mb->f_ntheta[mb->nf]) {
+			if ((int) mb->f_prior[mb->nf][0].parameters[0] != ntheta_used) {
 				GMRFLib_sprintf(&ptmp, "Dimension of the MVNORM prior is not equal to number of used hyperparameters: %1d != %1d\n",
-						(int) mb->f_prior[mb->nf][0].parameters[0], mb->f_ntheta[mb->nf]);
+						(int) mb->f_prior[mb->nf][0].parameters[0], ntheta_used);
 				inla_error_general(ptmp);
 				exit(EXIT_FAILURE);
 			}
 		} else if (!strcasecmp(mb->f_prior[mb->nf][0].name, "PCSPDEGA")) {
-			assert(mb->f_ntheta[mb->nf] == 2);		       /* requirement... */
+			assert(ntheta_used == 2);	       /* requirement... */
 		} else if (mb->f_prior[mb->nf][0].id == P_PC_MATERN) {
-			assert(mb->f_ntheta[mb->nf] <= 2);		       /* requirement... */
+			assert(ntheta_used <= 2);	       /* requirement... */
 		} else {
 			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 		}
@@ -21718,12 +21717,21 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_SPDE2:
 		{
-			int k, kk;
+			int k, kk, debug = 0;
 			inla_spde2_tp *spde2;
 
 			spde2 = (inla_spde2_tp *) mb->f_model[i];
 			assert(spde2->Qfunc_arg == spde2);
 
+			if (debug) {
+				static int first = 1;
+				if (first) {
+					P(spde2->ntheta_used);
+					P(spde2->ntheta);
+					P(mb->f_ntheta[i]);
+					first = 0;
+				}
+			}
 			// if there is nothting to do, then break,
 			if (spde2->ntheta_used == 0)
 				break;
@@ -21732,16 +21740,17 @@ double extra(double *theta, int ntheta, void *argument)
 			spde2->debug = 0;
 			if (!mb->fixed_mode) {
 				for (k = kk = 0; k < spde2->ntheta_used; k++, kk++) {
-					while(mb->f_fixed[i][kk]) kk++;
+					while (mb->f_fixed[i][kk])
+						kk++;
 					spde2->theta[kk][GMRFLib_thread_id][0] = theta[count + k];
 				}
 			}
 			int count_ref = count;
 
 			if (!mb->fixed_mode) {
-				count += mb->f_ntheta[i];      /* as SET_GROUP_RHO need 'count' */
+				count += spde2->ntheta_used;   /* as SET_GROUP_RHO need 'count' */
 			}
-			SET_GROUP_RHO(mb->f_ntheta[i]);
+			SET_GROUP_RHO(spde2->ntheta);
 
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
@@ -21827,7 +21836,7 @@ double extra(double *theta, int ntheta, void *argument)
 					assert(local_count == mb->f_ntheta[i]);
 					val += PRIOR_EVAL(mb->f_prior[i][0], local_theta);
 				} else {
-					// normally, the mvnorm prior, defined on the  _USED_ thetas!
+					// normally, the mvnorm prior, defined on the _USED_ thetas!
 					val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
 				}
 			}
