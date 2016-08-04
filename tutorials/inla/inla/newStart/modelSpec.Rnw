@@ -29,25 +29,7 @@ stage can include fixed effects for covariates, unstructured random
 effects, such as individual or group effects, or structured random
 effects, such as an autoregressive model of order 1 or a smoothing
 random effect over space. It is crucial that the second stage, the
-so-called latent level, is Gaussian
-distributed in order to apply INLA. In matrix notation we have,
-\begin{list}{\labelitemi}{\leftmargin=5em}
-\item[\textbf{Stage 2.}] $\bs{\eta} = \bs{X} \bs{\beta} + \bs{w}
-  f(\bs{c}, \bs{\theta}_2) + \ldots, \quad
-    \bs{\beta} \sim N(\bs{\mu}, \text{diag}(\bs{\tau}^{-1}))$,
-\end{list}
-where $\bs{X}$ is a ($n_d \times p$) design matrix which has the $p$
-covariate vectors as its columns and $\bs{\beta}$ is a ($p \times 1$)
-vector of regression coefficients, i.e. fixed effects. INLA attributes independent
-Gaussian priors with mean $\mu _i$ and precision $\tau_i$ for each of
-the regressor coefficients $\beta_i$, $i = 1,...,p$. The term $\bs{w}
-f(\bs{c}, \bs{\theta}_2)$ specifies a non-linear/smooth Gaussian effect of
-covariate $\bs{c}$  weighted with a vector of known weights $\bs{w}$
-and $\bs{\theta}_2$ represent the hyperparameters for this Gaussian
-model. The hierarchical
-model is then completed with an appropriate prior distribution for the
-possible vector of hyperparameters $\bs{\theta} = (\bs{\theta}_1,
-\bs{\theta}_2)$
+so-called latent
 which controls the
 single model components
 \begin{list}{\labelitemi}{\leftmargin=5em}
@@ -863,19 +845,176 @@ $\mathbf{V} = \mathbf{1}$, we can scale the structure matrix using
 
 \section{Define the observation model and run the model}
 
+\subsection{Data organisation}
+
+All data, covariates, indices used in a {\tt formula} object need to
+be collected in either a {\tt list} or {\tt data.frame} object. For
+example, if we have the following hierarchical model:
+\begin{itemize}
+  \item Stage 1:  $y_i\mid \eta_i \sim \mathcal{N}(\eta_i,
+    \sigma_0^2)$, $i = 1, \ldots, n$.
+  \item Stage 2: The linear predictor $\eta_i$ depends on one
+    covariate $\bm{x}$ and a random effect $\bm{a}$ assumed to follow an
+    autoregressive model of first order, i.e.
+    \begin{equation*}
+      \eta_i = \beta_0 + \beta_1 x_i + a_i
+    \end{equation*}
+  \item Stage 3: We have three hyperparameters the variance of the
+    observation noise $\sigma_0^2$, the correlation parameter of the
+    AR1 process $\rho$ and the variance of the innovations in the AR1
+    process $\sigma_2$ to which hyperprior distributions are assigned.
+\end{itemize}
+We can simulate data from this model as follows:
+<<echo=TRUE>>=
+# Generate AR(1) sequence
+set.seed(580258)
+t = 1:100
+ar = rep(0,100)
+for(i in 2:100)
+  ar[i] = 0.8*ar[i-1]+rnorm(n = 1, sd = 0.1)
+
+# Generate data with AR(1) component
+x = runif(100)
+y = 1 + 2*x + ar + rnorm(n = 100, sd = 0.2)
+@
+The formula needed to specify this model in INLA (assuming default
+priors for fixed and random effects) would be as follows
+<<>>=
+formula = y ~ 1 + x + f(t, model="ar1")
+@
+To estimate the model in INLA we need to provide a data-object which
+can be defined using either
+<<>>=
+   data = data.frame(x = x, y = y, t = t)
+@
+or
+<<>>=
+   data = list(x = x, y = y, t = t)
+@
+Of note the names used in the list or data.frame, here indicated in
+green, need to correspond exactly, i.e.~also lower/uppercase writing,
+to the variable names used in the formula. For example using
+<<>>=
+   data = list(x = x, Y = y, t = t)
+@
+will result in an error as {\tt Y} is not used in the formula, and
+{\tt y} that is used in the formula is not defined in the data object.
+Furthermore variable names can only used once in the formula
+object.
+
+Then the final step would be to call the inla-function
+<<>>=
+result = inla(formula,
+     data = data,
+     family = "gaussian")
+@
+If there are for example two random effects defined for time
+$t=1, \ldots, 100$ we need two time indices as each {\tt f}-function
+needs its own index. The data object would then be
+<<>>=
+   data = data.frame(x = x, y = y, t = t, t2=t)
+@
+or
+<<>>=
+   data = list(x = x, y = y, t = t, t2=t)
+@
+
+
+
+\subsection{Likelihood function}
+
+For Bayesian GLMs, the likelihood function belongs to the exponential family,
+as for example the Gaussian and Poisson case. Likelihood functions are
+one of the few things that cannot be defined or added by the
+user. However, there is already a wide range of likelihood functions
+available, see \url{http://www.r-inla.org/models/likelihoods}, which
+provides detailed information. Within {\tt R} all likelihood functions
+can be listed using
+
+<<>>=
+  names(inla.models()$likelihood)
+@
+Detailed documentation can be found for the binomial likelihood using
+<<eval=FALSE>>=
+  inla.doc("binomial")
+@
+which will opens all documentation files for keywords including the
+term "binomial",  here the beta-binomial distribution, the binomial
+distribution, the negative binomial distribution, the zero-inflated
+binomial distribution and the clustered binomial distribution. These
+documentation files include information about parameterisation, link
+functions, hyperparameters and often give an example illustrating its
+usage, which we will discuss shortly in the following.
+
+\begin{enumerate}
+\item \textbf{Parameterization}: It is important to be aware of the
+  parameterisation INLA uses. For example, in the Gaussian case, the
+    parameterization used by INLA is mean $\mu_i$, precision $\tau$
+    (i.e.~inverse variance), and
+    a possible (known) scale parameter $s_i$ for each observation $y_i$, so
+    that for data point $y_i$, we have a mean $\mu_i$ and variance
+    $\sigma^2_i = \frac{1}{s_i\tau}$
+
+\item \textbf{Link function}: Check how the linear predictor is
+    connected to a specific parameter of the likelihood function. In
+    the Gaussian case, the linear predictor $\eta$ is connected to the
+    mean $\mu$ through an identity link function, while for the
+    Poisson case, the linear predictor is connected to the mean
+    $\lambda$ through $\eta = \log (\lambda)$.
+
+\item \label{bglm:enum:hyper} \textbf{Hyperparameters}: Every unknown
+    likelihood parameter that is not connected to the linear predictor
+    is considered to be a hyperparameter. For the Gaussian likelihood,
+    the precision parameter $\tau$ is considered a
+    hyperparameter. Every hyperparameter has an internal
+    parameterization. For example, the internal parameterization of the
+    precision parameter $\tau$ in the Gaussian case is $\theta = \log
+    (\tau)$, and the prior specification is done using the
+    $\theta$-parameterization.
+
+\item \textbf{Prior for hyperparameters}: As mentioned on item
+    \ref{bglm:enum:hyper}, the priors for the hyperparameters are
+    defined using the internal parameterization. For example, in the
+    Gaussian case the prior is defined for $\theta$, where $\theta =
+    \log (\tau)$.
+
+    The prior specification for the hyperparameters of the likelihood
+    function should be defined using the \texttt{control.family}
+    argument of the \tv{inla} function, using the following format
+
+    \begin{center}
+        \tv{inla(..., control.family = list(hyper = hyper.lik), ...)}
+    \end{center}
+
+    where \texttt{hyper.lik} is a list with one component for each
+    hyperparameter in the likelihood. This is analogous to the
+    specification of hyperpriors for random effects, see
+    Section~\ref{sec:prior}. Each hyperparameters represents one entry
+    of this list and should be a list itself with information about
+    the  prior distribution for that specific hyperparameter.
+
+    For the Gaussian case, we would have only one hyperparameter:
+
+\begin{verbatim}
+  hyper.lik = list(prec = prec) # There is only one
+                                # hyperparameter
+
+  prec = list(prior = "loggamma", # name of the prior
+              param = c(2,0.01),  # parameters of the prior
+              initial = log(200)) # initial value for
+                                  # optmization algorithm.
+\end{verbatim}
+
+    % This might seem a little complicated now but will become clearer
+    % when we go through several examples later in Section
+    % \ref{bglm:sec:examples}.
+
+\end{enumerate}
+
+
 \subsection{The inla-call}
 What can be specified.
 
-\subsection{Data structure and available likelihoods}
-\begin{itemize}
-\item Say something about how data need to be organised what needs
-to be provided.
-
-\item Table about likelihoods. Comment that likelihoods cannot be
-defined manually.
-
-\item Mention how to set priors for hyperparameters in the likelihood.
-\end{itemize}
 
 \subsection{Control arguments}
 Write about
