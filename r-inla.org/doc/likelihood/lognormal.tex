@@ -38,13 +38,16 @@ and the prior is defined on $\theta$.
 \subsection*{Specification}
 
 \begin{itemize}
-\item $\text{family}=\texttt{lognormal}$
-\item Required arguments: $y$ (to be given in a format by using
-    $\texttt{inla.surv()}$ function )
+\item $\text{family}=\texttt{lognormal}$ for regression models and
+    $\text{family}=\text{lognormalsurv}$ for survival models.
+\item Required arguments: $y$ Given in a format by using
+    $\texttt{inla.surv()}$ function for
+    $\text{family}=\text{lognormal.surv}$
 \end{itemize}
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/likelihood/lognormal.tex}
+\input{../hyper/likelihood/lognormalsurv.tex}
 
 
 \subsection*{Example}
@@ -55,21 +58,12 @@ case \verbatiminput{example-lognormal.R}
 \subsection*{Notes}
 
 \begin{itemize}
-\item Lognormal model can be used for right censored, left censored,
-    interval censored data.
-\item A general frame work to represent time is given by
-    $\texttt{inla.surv}$
-\item If the observed times $y$ are large/huge, then this can cause
-    numerical overflow in the likelihood routines giving error
-    messages like
-\begin{verbatim}
-        file: smtp-taucs.c  hgid: 891deb69ae0c  date: Tue Nov 09 22:34:28 2010 +0100
-        Function: GMRFLib_build_sparse_matrix_TAUCS(), Line: 611, Thread: 0
-        Variable evaluates to NAN/INF. This does not make sense. Abort...
-\end{verbatim}
-    If you encounter this problem, try to scale the observatios,
-    \verb|time = time / max(time)| or similar, before running
-    \verb|inla()|. 
+\item lognormalsurv can be used for right censored, left censored,
+    interval censored data. A general framework to represent time is
+    given by $\texttt{inla.surv}$. If the observed times $y$ are
+    large/huge, then this can cause numerical overflow, and if you
+    encounter this problem, try to scale the observatios, like
+    \verb|time = time / max(time)|.
 \end{itemize}
 
 
