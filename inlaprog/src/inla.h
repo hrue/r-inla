@@ -427,6 +427,7 @@ typedef enum {
 	L_WEIBULL,
 	L_LOGLOGISTIC,
 	L_LOGNORMAL,
+	L_LOGNORMALSURV,
 	L_ZEROINFLATEDPOISSON0,
 	L_ZEROINFLATEDPOISSON1,
 	L_ZEROINFLATEDPOISSON2,
@@ -1562,6 +1563,7 @@ int loglikelihood_loggamma_frailty(double *logll, double *x, int m, int idx, dou
 int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
