@@ -191,7 +191,7 @@ internal.update.crs <- function(crs, newcrs, mismatch.allowed) {
 
 inla.identical.CRS <- function(crs0, crs1, crsonly=FALSE) {
   if (!crsonly) {
-    stop("'crsonly=FALSE' not implemented.")
+    identical(crs0, crs1)
   } else {
     if (inherits(crs0, "inla.CRS")) {
       crs0 <- crs0$crs
