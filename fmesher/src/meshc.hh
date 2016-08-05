@@ -253,6 +253,8 @@ namespace fmesh {
     MCQskinny skinny_; /*!< Skinny triangles. */
     MCQbig big_; /*!< Big triangles. */
     double* big_limits_; /*!< Big triangle limits. */
+    int max_n0_; /*!< Target number of vertices, overriding skinny triangles. */
+    int max_n1_; /*!< Target number of vertices, overriding big triangles. */
     /* State variables: */
     State state_; /*!< The current MeshC::State */
     bool is_pruned_; /*!< True if the mesh is a pruned mesh. */
@@ -311,7 +313,9 @@ namespace fmesh {
     bool prepareRCDT(double skinny_limit,
 		     double big_limit,
 		     const double* big_limits = NULL,
-		     size_t nQL = 0);
+		     size_t nQL = 0,
+		     int max_n0 = -1,
+		     int max_n1 = -1);
     /*!
       \brief Build a RCDT.
     */
@@ -320,11 +324,13 @@ namespace fmesh {
   public:
     MeshC() : M_(NULL), boundary_(this), interior_(this),
 	      skinny_(this), big_(this), big_limits_(NULL),
+	      max_n0_(-1), max_n1_(-1),
 	      state_(State_noT), is_pruned_(false),
 	      options_(Option_null) {};
     MeshC(Mesh* M)
       : M_(M), boundary_(this), interior_(this),
 	skinny_(this), big_(this), big_limits_(NULL),
+	max_n0_(-1), max_n1_(-1),
 	state_(State_noT), is_pruned_(false),
 	options_(Option_null) {
       if (M_->nT()>0)
@@ -467,7 +473,9 @@ namespace fmesh {
     bool RCDT(double angle_limit,
 	      double big_limit,
 	      const double* big_limits = NULL,
-	      size_t nQL = 0);
+	      size_t nQL = 0,
+	      int max_n0 = -1,
+	      int max_n1 = -1);
 
     friend std::ostream& operator<<(std::ostream& output, const MeshC& MC);
   };
