@@ -349,21 +349,19 @@
     ## is also used in the inla() function itself.
     if (any(inherits(model, inla.model.object.classes()))) {
         if (any(inherits(model, inla.spde.object.classes()))) {
-            ## Write specific spde models to disk. These files should be
-            ## move/removed later in the code instead of copied.
-            ## Perhaps in section.R, since that where the copy now takes
-            ## place?
+            ## Write specific spde models to disk. These files are
+            ## removed later in inla.copy.dir.for.section.spde, in section.R
             my.spde.prefix <- inla.fmesher.make.prefix(NULL, NULL)
             if (any(inherits(model, "inla.spde1"))) {
                 spde.prefix <- my.spde.prefix
                 ## inla checks PREFIX valididy by looking for "s"
                 model$param.inla <- list(
-                    s=spde$mesh$loc,
-                    c0=internal$c0,
-                    g1=internal$g1,
-                    g2=internal$g2,
-                    basis.T=internal$basis.T,
-                    basis.K=internal$basis.K)
+                    s=model$mesh$loc,
+                    c0=model$internal$c0,
+                    g1=model$internal$g1,
+                    g2=model$internal$g2,
+                    basis.T=model$internal$basis.T,
+                    basis.K=model$internal$basis.K)
                 spde.matrices <- names(model$param.inla)
             } else if (any(inherits(model, "inla.spde2"))) {
                 spde2.prefix <- my.spde.prefix
