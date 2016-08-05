@@ -27,7 +27,7 @@ inla.as.CRSargs.list(x, ...)
 %%  ~~ If necessary, more details than the description above ~~
 %}
 \value{
-  For \code{inla.CRSargs} and \codeinla.as.CRSargs.list}, a character string with PROJ.4 arguments.
+  For \code{inla.CRSargs} and \code{inla.as.CRSargs.list}, a character string with PROJ.4 arguments.
 
   For \code{inla.as.list.CRS} and \code{inla.as.list.CRSargs}, a list of
   name/value pairs.
