@@ -149,6 +149,8 @@ inla.spTransformBounds <- function(crs) {
     bounds <- list(type="ellipse", axis=axis, center=center,
                    xlim=center[1]+c(-1,1)*axis[1],
                    ylim=center[2]+c(-1,1)*axis[2])
+  } else if (args[["proj"]] == "geocent") {
+    bounds <- list(type="rectangle", xlim=c(-Inf, Inf), ylim=c(-Inf, Inf))
   } else {
     warning("Could not identify transformation shape.")
     bounds <- list(type="rectangle", xlim=c(-Inf, Inf), ylim=c(-Inf, Inf))
@@ -216,7 +218,8 @@ inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
       x <- cbind(x, 0)
     }
     onsphere <- inla.identical.CRS(crs0, inla.CRS("sphere"), crsonly=TRUE)
-    if (onsphere) {
+    isgeocentric <- identical(inla.as.list.CRS(crs0)[["proj"]], "geocent")
+    if (isgeocentric) {
       ok <- TRUE
     } else {
       bounds <- inla.spTransformBounds(crs0)
