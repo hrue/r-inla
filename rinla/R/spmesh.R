@@ -37,7 +37,7 @@ inla.CRS <- function(projargs = NA_character_, doCheckCRSArgs = TRUE,
     mollweide = "+proj=moll +ellps=sphere +units=m +a=0.7071067811865476 +b=0.7071067811865476",
     lambert = "+proj=cea +ellps=sphere +lat_ts=0 +units=m +a=1 +b=1")
   if (projargs %in% names(predef)) {
-    predef[[projargs]] <- projargs
+    projargs <- predef[[projargs]]
   }
   if (!is.null(args)) {
     if (typeof(args) != "list") {
