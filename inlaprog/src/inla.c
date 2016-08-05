@@ -3209,6 +3209,11 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[0] = ds->data_observations.weight_gaussian = Calloc(mb->predictor_ndata, double);
 		break;
 
+	case L_LOGNORMAL:
+		idiv = 3;
+		a[0] = ds->data_observations.weight_gaussian = Calloc(mb->predictor_ndata, double);
+		break;
+
 	case L_SIMPLEX:
 		idiv = 3;
 		a[0] = ds->data_observations.weight_simplex = Calloc(mb->predictor_ndata, double);
@@ -3427,7 +3432,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	case L_WEIBULL:
 	case L_WEIBULL_CURE:
 	case L_LOGLOGISTIC:
-	case L_LOGNORMAL:
+	case L_LOGNORMALSURV:
 		idiv = 6;
 		a[0] = ds->data_observations.event = Calloc(mb->predictor_ndata, double);	/* the failure code */
 		a[1] = ds->data_observations.truncation = Calloc(mb->predictor_ndata, double);
@@ -3773,6 +3778,39 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_v
 		for (i = 0; i < -m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			logll[i] = inla_Phi((y - ypred) * sqrt(prec));
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * y ~ LogNormal. This is similar to the normal
+	 */
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double ly, lprec, prec, w, lypred;
+
+	ly = log(ds->data_observations.y[idx]);
+	w = ds->data_observations.weight_gaussian[idx];
+	lprec = ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0] + log(w);
+	prec = map_precision(ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
+
+	LINK_INIT;
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			lypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)); 
+			logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(lypred - ly) * prec)) - ly;
+		}
+	} else {
+		for (i = 0; i < -m; i++) {
+			lypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			logll[i] = inla_Phi((ly - lypred) * sqrt(prec));
 		}
 	}
 
@@ -6584,10 +6622,10 @@ int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *
 #undef FF
 	return GMRFLib_SUCCESS;
 }
-int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
 	/*
-	 * y ~ LOGNORMAL
+	 * y ~ LOGNORMALSURV
 	 */
 #define logf(_y, _eta) (LOG_NORMC_GAUSSIAN -log(_y) + 0.5*lprec - 0.5*prec*SQR( log(_y) - (_eta) ))
 #define F(_y, _eta) ((_y) <= 0.0 ? 0.0 : inla_Phi((log(_y)-(_eta))*sprec))
@@ -9014,6 +9052,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "LOGLOGISTIC")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_loglogistic;
 		ds->data_id = L_LOGLOGISTIC;
+	} else if (!strcasecmp(ds->data_likelihood, "LOGNORMALSURV")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_lognormalsurv;
+		ds->data_id = L_LOGNORMALSURV;
 	} else if (!strcasecmp(ds->data_likelihood, "LOGNORMAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_lognormal;
 		ds->data_id = L_LOGNORMAL;
@@ -9046,6 +9087,21 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_gaussian[i] <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Gaussian weight[%1d] = %g is void\n", secname, i, ds->data_observations.weight_gaussian[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+		break;
+
+	case L_LOGNORMAL:
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.weight_gaussian[i] <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: LogNormal weight[%1d] = %g is void\n", secname, i, ds->data_observations.weight_gaussian[i]);
+					inla_error_general(msg);
+				}
+				if (ds->data_observations.y[i] <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: LogNormal y[%1d] = %g is < 0\n", secname, i, ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -9351,7 +9407,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_WEIBULL:
 	case L_WEIBULL_CURE:
 	case L_LOGLOGISTIC:
-	case L_LOGNORMAL:
+	case L_LOGNORMALSURV:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				int event;
@@ -9439,6 +9495,52 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the Gaussian observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the Gaussian observations", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.log_prec_gaussian;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+		break;
+
+	case L_LOGNORMAL:
+		/*
+		 * get options related to the lognormal
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
+		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
+		if (!ds->data_fixed && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.log_prec_gaussian, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.log_prec_gaussian[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+		}
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior.hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the lognormal observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the lognormal observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -10018,7 +10120,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
-	case L_LOGNORMAL:
+	case L_LOGNORMALSURV:
 		/*
 		 * get options related to the lognormal 
 		 */
@@ -10044,8 +10146,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("log precision for the lognormal observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("precision for the lognormal observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the lognormal observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the lognormal observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -20602,6 +20704,18 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				break;
 
+			case L_LOGNORMAL:
+				if (!ds->data_fixed) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					log_precision = theta[count];
+					val += PRIOR_EVAL(ds->data_prior, &log_precision);
+					count++;
+				}
+				break;
+
 			case L_SIMPLEX:
 				if (!ds->data_fixed) {
 					/*
@@ -20734,7 +20848,7 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				break;
 
-			case L_LOGNORMAL:
+			case L_LOGNORMALSURV:
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
