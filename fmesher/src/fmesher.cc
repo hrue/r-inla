@@ -798,6 +798,13 @@ int main(int argc, char* argv[])
     rcdt_big_limit_defaults(i,0) = args_info.rcdt_arg[i+2];
   }
 
+  int rcdt_max_n0 = -1;
+  int rcdt_max_n1 = -1;
+  if (args_info.max_n0_given > 0)
+    rcdt_max_n0 = args_info.max_n0_arg;
+  if (args_info.max_n1_given > 0)
+    rcdt_max_n1 = args_info.max_n1_arg;
+
   useX11 = (args_info.x11_given>0) && (args_info.x11_arg>=0);
   x11_delay_factor = args_info.x11_arg;
   if (args_info.x11_zoom_given==4) {
@@ -839,6 +846,8 @@ int main(int argc, char* argv[])
   cout << "RCDT mininmum angle:\t" << rcdt_min_angle << endl;
   cout << "RCDT maximum edge length:\t" << rcdt_big_limit << endl;
   cout << "RCDT maximum edge lengths:\t" << rcdt_big_limits << endl;
+  cout << "RCDT maximum n0:\t" << rcdt_max_n0 << endl;
+  cout << "RCDT maximum n1:\t" << rcdt_max_n1 << endl;
   cout << "X11 delay factor:\t" << x11_delay_factor << endl;
   */
 
@@ -1196,7 +1205,8 @@ int main(int argc, char* argv[])
 	if (args_info.rcdt_given) {
 	  /* Calculate the RCDT: */
 	  MC.RCDT(rcdt_min_angle,rcdt_big_limit_auto_default,
-		  Quality0.raw(),Quality0.rows());
+		  Quality0.raw(),Quality0.rows(),
+		  rcdt_max_n0, rcdt_max_n1);
 	  LOG(MC << endl);
 	}
 	/* Done constructing the triangulation. */
