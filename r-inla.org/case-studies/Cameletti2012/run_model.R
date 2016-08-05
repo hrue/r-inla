@@ -10,6 +10,7 @@
 ## Updated: 16.01.2012 /FL
 ## Updated: 27.04.2012 /FL
 ## Updated: 23.10.2013 /FL
+## Updated: 05.08.2016 /FL Add missing library(lattice)
 ##################################
 
 ## User-overrideable configuration:
@@ -28,12 +29,13 @@ if (!exists("do.print")) { do.print = FALSE }
 ## Path for the Covariates directory
 if (!exists("pm10.path")) { pm10.path = "Covariates/" }
 
+library(INLA)
+library(fields)
+library(abind)
+library(lattice)
+
 graphics.off()
 if (force.rerun || !exists("result")) {
-
-    require(INLA)
-    require(fields)
-    require(abind)
 
     ##--- Source the function for selecting the covariates for a given day
     source(paste(pm10.path,"Covariates_selector.R",sep=""))
@@ -377,7 +379,6 @@ for (b in c(2,5:9)) {
     grid_var = grid_var + covariate_array_std[,,b-1]^2*beta_sd[b]^2
 }
 grid_sd = grid_var^0.5
-
 
 
 
