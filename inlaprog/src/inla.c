@@ -15258,8 +15258,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	case F_AR:
 	{
-		int ntheta;
+		int ntheta, order;
 
+		order = mb->f_order[mb->nf]; 
 		ntheta = mb->f_ntheta[mb->nf] = mb->f_order[mb->nf] + 1;
 		assert(ntheta <= AR_MAXTHETA + 1);
 		mb->f_initial[mb->nf] = Calloc(ntheta, double);
@@ -15309,12 +15310,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		mb->f_fixed[mb->nf] = Calloc(ntheta, int);
-		mb->f_theta[mb->nf] = Calloc(AR_MAXTHETA + 1, double **);
+		mb->f_theta[mb->nf] = Calloc(ntheta, double **);
 
 		HYPER_NEW(log_prec, 0.0);
 		mb->f_theta[mb->nf][0] = log_prec;
-		pacf_intern = Calloc(AR_MAXTHETA, double **);
-		for (i = 0; i < AR_MAXTHETA; i++) {
+		pacf_intern = Calloc(order, double **);
+		for (i = 0; i < order; i++) {
 			HYPER_NEW(pacf_intern[i], 0.0);
 			mb->f_theta[mb->nf][i + 1] = pacf_intern[i];
 		}
@@ -21945,30 +21946,29 @@ double extra(double *theta, int ntheta, void *argument)
 		case F_AR:
 		{
 			double log_precision, *pacf, *pacf_intern;
-			int p;
+			int p, ntheta_used = 0;
 
 			p = mb->f_order[i];
-			assert(mb->f_ntheta[i] == p + 1);
-
 			if (NOT_FIXED(f_fixed[i][0])) {
 				log_precision = theta[count];
 				count++;
+				ntheta_used++;
 			} else {
 				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
-
 			pacf = Calloc(p, double);
 			pacf_intern = Calloc(p, double);
 			for (j = 0; j < p; j++) {
 				if (NOT_FIXED(f_fixed[i][j + 1])) {
 					pacf_intern[j] = theta[count];
 					count++;
+					ntheta_used++;
 				} else {
 					pacf_intern[j] = mb->f_theta[i][j + 1][GMRFLib_thread_id][0];
 				}
 				pacf[j] = ar_map_pacf(pacf_intern[j], MAP_FORWARD, NULL);
 			}
-			SET_GROUP_RHO(mb->f_ntheta[i]);
+			SET_GROUP_RHO(ntheta_used);
 
 			int n_ar;
 			double marginal_prec, conditional_prec, *marginal_Q, *param, *zero, ldens;
