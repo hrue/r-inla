@@ -1899,6 +1899,17 @@ inla.mesh.project.inla.mesh <- function(mesh, loc=NULL, field=NULL, ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
+    if (!is.null(mesh$crs) &&
+        identical(inla.as.list.CRS(mesh$crs)[["proj"]], "geocent")) {
+      crs.sphere <- inla.CRS("sphere")
+      if (!inla.identical.CRS(mesh$crs, crs.sphere)) {
+        ## Convert the mesh to a perfect sphere.
+        mesh$loc <- inla.spTransform(mesh$loc, mesh$crs, crs.sphere)
+        mesh$manifold <- "S2"
+        mesh$crs <- crs.sphere
+      }
+    }
+
     ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
     if (!(missing(loc) || is.null(loc)) &&
         (inherits(loc, "SpatialPoints") ||
