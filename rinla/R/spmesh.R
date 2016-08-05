@@ -30,7 +30,7 @@
 
 
 inla.CRS <- function(projargs = NA_character_, doCheckCRSArgs = TRUE,
-                     args=NULL, orient=NULL) {
+                     args=NULL, orient=NULL, ...) {
   predef <- list(
     longlat = "+proj=longlat +ellps=sphere +a=1 +b=1",
     sphere = "+proj=geocent +ellps=sphere +a=1 +b=1 +units=m",
@@ -80,7 +80,7 @@ inla.CRSargs <- function(x, ...) {
 
 
 ## CRS proj4 string for name=value pair list
-inla.as.CRSargs.list <- function(x) {
+inla.as.CRSargs.list <- function(x, ...) {
   paste(lapply(names(x),
                function(xx) {
     if (is.na(x[[xx]])) {
@@ -93,7 +93,7 @@ inla.as.CRSargs.list <- function(x) {
 }
 
 ## List of name=value pairs from CRS proj4 string
-inla.as.list.CRSargs <- function(x) {
+inla.as.list.CRSargs <- function(x, ...) {
   if (is.na(x)) {
     return(list())
   }
