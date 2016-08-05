@@ -1,8 +1,6 @@
-## Internal: update.crs
+## Internal: internal.update.crs
 ## Internal: inla.internal.sp2segment.join
 ## Internal: inla.identical.CRS
-## Internal: inla.proj4string2list
-## Internal: inla.list2proj4string
 ##
 ## S3methods; also export some methods explicitly
 ## Export: inla.sp2segment
@@ -19,6 +17,10 @@
 ## Export: as.inla.mesh.segment!SpatialPointsDataFrame
 ## Export: inla.CRS
 ## Export: inla.CRSargs
+## Export: inla.as.list.CRSargs
+## Export: inla.as.CRSargs.list
+## Export: inla.as.list.CRS
+## Export: inla.as.CRS.list
 ## Export: inla.spTransform
 ## Export: inla.spTransform!SpatialPoints
 ## Export: inla.spTransform!inla.mesh
@@ -28,17 +30,27 @@
 
 
 inla.CRS <- function(projargs = NA_character_, doCheckCRSArgs = TRUE,
-                     params=NULL, orient=NULL) {
+                     args=NULL, orient=NULL) {
   predef <- list(
     longlat = "+proj=longlat +ellps=sphere +a=1 +b=1",
     sphere = "+proj=geocent +ellps=sphere +a=1 +b=1 +units=m",
     mollweide = "+proj=moll +ellps=sphere +units=m +a=0.7071067811865476 +b=0.7071067811865476",
     lambert = "+proj=cea +ellps=sphere +lat_ts=0 +units=m +a=1 +b=1")
   if (projargs %in% names(predef)) {
-    x <- CRS(predef[[projargs]], doCheckCRSArgs=doCheckCRSArgs)
-  } else {
-    x <- CRS(projargs, doCheckCRSArgs=doCheckCRSArgs)
+    predef[[projargs]] <- projargs
   }
+  if (!is.null(args)) {
+    if (typeof(args) != "list") {
+      stop("'args' must be NULL or a list of name=value pairs.")
+    }
+    projargs <- inla.as.list.CRSargs(projargs)
+    for (name in names(args)) {
+      projargs[[name]] <- args[[name]]
+    }
+    projargs <- inla.as.CRSargs.list(projargs)
+  }
+  x <- CRS(projargs, doCheckCRSArgs=doCheckCRSArgs)
+
   if (!is.null(orient)) {
     x <- list(crs=x, orient=orient)
     class(x) <- "inla.CRS"
@@ -46,27 +58,29 @@ inla.CRS <- function(projargs = NA_character_, doCheckCRSArgs = TRUE,
   x
 }
 
-inla.CRSargs <- function(crs) {
-  if (inherits(crs, "inla.CRS")) {
-    crs <- crs[["crs"]]
-  }
-  if (is.null(crs)) {
-    NA
-  } else {
-    stopifnot(inla.require("rgdal"))
-    rgdal::CRSargs(crs)
-  }
+inla.as.list.CRS <- function(x, ...) {
+  inla.as.list.CRSargs(inla.CRSargs(x))
 }
 
+inla.as.CRS.list <- function(x, ...) {
+  inla.CRS(args=x)
+}
 
-inla.crs.transform.orient <- function(x, orient, inverse) {
-  warning("inla.crs.transform.orient NOT IMPLEMENTED")
-  x
+inla.CRSargs <- function(x, ...) {
+  if (inherits(x, "inla.CRS")) {
+    x <- x[["crs"]]
+  }
+  if (is.null(x)) {
+    as.character(NA)
+  } else {
+    stopifnot(inla.require("rgdal"))
+    rgdal::CRSargs(x)
+  }
 }
 
 
 ## CRS proj4 string for name=value pair list
-inla.list2proj4string <- function(x) {
+inla.as.CRSargs.list <- function(x) {
   paste(lapply(names(x),
                function(xx) {
     if (is.na(x[[xx]])) {
@@ -79,7 +93,7 @@ inla.list2proj4string <- function(x) {
 }
 
 ## List of name=value pairs from CRS proj4 string
-inla.proj4string2list <- function(x) {
+inla.as.list.CRSargs <- function(x) {
   if (is.na(x)) {
     return(list())
   }
@@ -97,11 +111,18 @@ inla.proj4string2list <- function(x) {
 }
 
 
+inla.crs.transform.orient <- function(x, orient, inverse) {
+  warning("inla.crs.transform.orient NOT IMPLEMENTED")
+  x
+}
+
+
+
 ## +proj=longlat in (-180,360)x(-90,90)
 ## +proj=moll in (-2,2)x(-1,1) scaled by +a and +b, and +units
 ## +proj=lambert in (-2,2)x(-1,1) scaled by +a and +b, and +units
 inla.spTransformBounds <- function(crs) {
-  args <- inla.proj4string2list(inla.CRSargs(crs))
+  args <- inla.as.list.CRS(crs)
   if (args[["proj"]] == "longlat") {
     bounds <- list(type="rectangle", xlim=c(-180,360), ylim=c(-90,90))
   } else if (args[["proj"]] == "cea") {
@@ -154,7 +175,7 @@ inla.spTransformBounds.ok <- function(x, bounds) {
 
 
 
-update.crs <- function(crs, newcrs, mismatch.allowed) {
+internal.update.crs <- function(crs, newcrs, mismatch.allowed) {
   if (is.null(crs)) {
     newcrs
   } else {
@@ -290,7 +311,7 @@ inla.spTransform.inla.mesh.segment <- function(x, CRSobj, passthrough=FALSE, ...
 
 inla.spTransform.inla.mesh <- function(x, CRSobj, passthrough=FALSE, ...) {
   x$loc <- inla.spTransform(x$loc, x$crs, CRSobj, passthrough=passthrough)
-  args <- inla.proj4string2list(inla.CRSargs(CRSobj))
+  args <- inla.as.list.CRS(CRSobj)
   if (identical(args[["proj"]], "geocent")) {
     x$manifold <- "S2"
   } else {
@@ -311,7 +332,7 @@ inla.internal.sp2segment.join <- function(inp, grp=NULL, closed=TRUE) {
     if (length(inp) > 0) {
       out.loc = matrix(0,0,ncol(inp[[1]]$loc))
       for (k in seq_along(inp)) {
-        crs <- update.crs(crs, inp[[k]]$loc, mismatch.allowed=FALSE)
+        crs <- internal.update.crs(crs, inp[[k]]$loc, mismatch.allowed=FALSE)
       }
     } else {
         out.loc = matrix(0,0,2)
