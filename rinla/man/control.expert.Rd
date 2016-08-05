@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.expert} for use in \code{inla}}
 \usage{
 inla.set.control.expert.default(...)
-control.expert(cpo.idx, cpo.manual, disable.gaussian.check, jp.RData, jp.Rfile, jp.func)
+control.expert(cpo.idx, cpo.manual, disable.gaussian.check, jp.func, jp.RData, jp.Rfile)
 }
 \arguments{
 \item{...}{Possible arguments}
