@@ -58,9 +58,9 @@ if (require(rgdal)) {
   crs1 <- inla.as.CRS.list(lst)
   lst$a <- 2
   crs2 <- inla.CRS(p4s, args=lst)
-  inla.CRSargs(crs0)
-  inla.CRSargs(crs1)
-  inla.CRSargs(crs2)
+  print(inla.CRSargs(crs0))
+  print(inla.CRSargs(crs1))
+  print(inla.CRSargs(crs2))
 }
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
