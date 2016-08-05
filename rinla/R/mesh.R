@@ -1554,11 +1554,11 @@ inla.mesh.2d <-
     }
 
     if (num.layers == 1) {
-
-        ## Attach crs
-        mesh2$crs = crs
-
-        return(invisible(mesh2))
+      if (isgeocentric && !issphere) {
+        mesh2$loc <- inla.spTransform(mesh2$loc, mesh2$crs, crs.target)
+        mesh2$crs <- crs.target
+      }
+      return(invisible(mesh2))
     }
 
     ## Triangulate inner+outer domain
