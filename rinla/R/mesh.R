@@ -1554,7 +1554,7 @@ inla.mesh.2d <-
     }
 
     if (num.layers == 1) {
-      if (isgeocentric && !issphere) {
+      if (!is.null(crs) && isgeocentric && !issphere) {
         mesh2$loc <- inla.spTransform(mesh2$loc, mesh2$crs, crs.target)
         mesh2$crs <- crs.target
       }
@@ -1606,7 +1606,7 @@ inla.mesh.2d <-
         mesh3$idx$segm = NULL
     }
 
-    if (isgeocentric && !issphere) {
+    if (!is.null(crs) && isgeocentric && !issphere) {
       mesh3$loc <- inla.spTransform(mesh3$loc, mesh3$crs, crs.target)
       mesh3$crs <- crs.target
     }
