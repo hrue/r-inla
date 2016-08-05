@@ -1,19 +1,19 @@
-\chapter{Output processing}
+\chapter{Output processing} \label{sec:output}
 <<echo=FALSE>>=
 rm(list=ls())
 library(INLA)
 formula=y~x
 result=inla(formula, family='gaussian', data=data.frame(y=rnorm(100), x=1:00))
-@ 
+@
 
 
-Before we illustrate ways to access input of interest we would like to describe the general organization of an object returned by the function \tv{inla}. 
+Before we illustrate ways to access input of interest we would like to describe the general organization of an object returned by the function \tv{inla}.
 
 <<>>=
 length(result)
 names(result)
-@ 
-The object obtained after running \tv{inla} is a list of length 
+@
+The object obtained after running \tv{inla} is a list of length
 $\Sexpr{length(result)}$. However, not all entries are filled by default.
 
 \section{Access the output and plotting}
@@ -22,7 +22,7 @@ In this section we will discuss how to access the output of the
 Bayesian analysis and how to perform operations on posterior
 marginals. To fix ideas, we will study a simple example which
 implements this model
-  
+
 \begin{displaymath}
     y_i = \mu + \beta x_i + u_{j_i} + \epsilon_i
 \end{displaymath}
@@ -39,8 +39,8 @@ y = eta + rnorm(n, sd = 0.1)
 formula = y ~ 1 + x + f(idx, model="iid")
 my.data = data.frame(y, x, idx)
 result = inla(formula,  data = my.data)
-@ 
-This model has two fixed effects ($\mu$ and $\beta$), 
+@
+This model has two fixed effects ($\mu$ and $\beta$),
 one random effect (component) $u$, and two hyperparameters: the
 precisions for the Gaussian noise and the random effect $u$.
 
@@ -49,9 +49,9 @@ precisions for the Gaussian noise and the random effect $u$.
 The usual procedure after an \verb|inla()|-call, is to call \verb|summary|
 <<>>=
 summary(result)
-@ 
+@
 As the name suggest, this will provide us with a summary of the
-results. The interpretation of the output is as follows. 
+results. The interpretation of the output is as follows.
 \begin{itemize}
 \item The \verb|Call:| entry, is a copy of the arguments to the
     \verb|inla()|-call.
@@ -77,21 +77,21 @@ results. The interpretation of the output is as follows.
     observations divided by the expectated number of effective parameters.
 \item The \verb|Marginal Likelihood| is the estimate of the log
     marginal likelihood, computed from the normalizing constant for
-    the posterior of the hyperparameters. 
+    the posterior of the hyperparameters.
 \end{itemize}
 
 To get a visual presentation of the results, we can use the
-\verb|plot()|-function 
+\verb|plot()|-function
 <<eval=FALSE>>=
 plot(result)
-@ 
+@
 Non-standard options to the \verb|plot|-command, includes (see
 \verb|?plot.inla| for the full list)
 \begin{description}
 \item[single$=$FALSE] Produce more than one figure for each page
     (FALSE) or one figure for each page (TRUE)
 \item[pdf$=$FALSE] If TRUE, only produce pdf-files of each plot and return
-    the list of files produced.  
+    the list of files produced.
 \item[postscript$=$FALSE] If TRUE, only produce postscript-files of
     each plot and return the list of files produced.
 \end{description}
@@ -105,21 +105,21 @@ If the use of \verb|plot| is required from within
 <<results='asis', echo=FALSE>>=
 figs = plot(result, pdf=TRUE, single=TRUE)
 cat("\\begin{figure}[htb]\n\\label{output:fig1}\n")
-for(fig in figs) 
-    cat("\t\\subfigure[]{\\includegraphics[height=0.45\\linewidth]{", 
+for(fig in figs)
+    cat("\t\\subfigure[]{\\includegraphics[height=0.45\\linewidth]{",
         fig, "}}\n", sep="")
 cat("\t\\caption{The results from the inla-call}\n")
 cat("\\end{figure}\n")
-@ 
+@
 <<echo=TRUE, eval=FALSE>>=
 figs = plot(result, pdf=TRUE, single=TRUE)
 cat("\\begin{figure}[htb]\n\\label{output:fig1}\n")
-for(fig in figs) 
-    cat("\t\\subfigure[]{\\includegraphics[height=0.45\\linewidth]{", 
+for(fig in figs)
+    cat("\t\\subfigure[]{\\includegraphics[height=0.45\\linewidth]{",
         fig, "}}\n", sep="")
 cat("\t\\caption{The results from the inla-call}\n")
 cat("\\end{figure}\n")
-@ 
+@
 %%
 using \verb|results='asis',echo=FALSE| options for this chunk.  This
 will produce all the plots in~\Fig{output:fig1}.  Figures~(a) and (b)
@@ -138,7 +138,7 @@ with one row for each variable and each statistics in each column.
 <<>>=
 str(result$summary.fixed)
 result$summary.fixed
-@ 
+@
 For the random effects, the summary statistics are stored as a list of
 data.frames
 <<>>=
@@ -146,13 +146,13 @@ length(result$summary.random)
 names(result$summary.random)
 str(result$summary.random[[1]])
 result$summary.random[[1]]
-@ 
-For the hyperparameters, the summary statistics are stored as a 
+@
+For the hyperparameters, the summary statistics are stored as a
 data.frame
 <<>>=
 str(result$summary.hyperpar)
 result$summary.hyperpar
-@ 
+@
 
 
 \section{Posteriors Marginals}
@@ -160,12 +160,12 @@ result$summary.hyperpar
 The \verb|INLA|-approach to Bayesian approximate inference, computes
 posterior marginals for each variable in the model. In this section we
 will see how these posterior marginals are stored and represented
-in the output from the \verb|inla()|-call. 
+in the output from the \verb|inla()|-call.
 
-There are several sections of posterior marginals, 
+There are several sections of posterior marginals,
 <<>>=
 names(result)[grep("marginals.", names(result))]
-@ 
+@
 %%
 and they are all treated the same way. To simplify the discussion, we
 will look at the posterior marginal for the effect of \verb|x| in the
@@ -174,39 +174,39 @@ the entry in the list with this name
 <<>>=
 length(result$marginals.fixed)
 names(result$marginals.fixed)
-@ 
+@
 and then
 <<>>=
 pm = result$marginals.fixed$x
 str(pm)
-@ 
+@
 The posterior marginal is stored in a matrix with ``x''-values and
 ``y''-values. Their meaning should be obvious if we plot ``x'' against ``y''
-\begin{center} 
+\begin{center}
 <<out.height='8cm',out.width='8cm'>>=
 plot(pm[,"x"], pm[,"y"])
-@ 
+@
 \end{center}
 so the ``x''s are the abscissa values and the ``y''s are the values
 for the posterior marginal.  The abscissa values are chosen
 ``intelligently'' as will be clear later. The current number of points
 used to represent each posterior marginal is $\Sexpr{dim(pm)[1]}$, but
-this might change. 
+this might change.
 
 In order to produce nice-looking posterior marginals, we will draw it
 with lines instead of points, like
-\begin{center} 
+\begin{center}
 <<out.height='8cm',out.width='8cm'>>=
 plot(pm[,"x"], pm[,"y"])
 lines(pm[,"x"], pm[,"y"])
-@ 
+@
 \end{center}
 but this produces not very visually pleasing plots. The way out is to
 interpolate in log-scale instead, like
-\begin{center} 
+\begin{center}
 <<out.height='8cm',out.width='8cm'>>=
 plot(inla.smarginal(pm), type="l")
-@ 
+@
 \end{center}
 Here we use the function \verb|inla.smarginal| which ``spline'' a
 marginal distribution by doing spline interpolation in log-scale.
@@ -216,39 +216,39 @@ corresponding posterior marginals.
 
 \subsection{Deriving posterior quantitites}
 
-Table~\ref{tab:margFunc} gives a short overview of tasks and arguments of 
-different functions that use a posterior marginal, as returend by \tv{inla} for 
-example, to derive different quantities of interest. Here, we illustrate the 
-use of some of the functions using the standard normal distribution as an 
+Table~\ref{tab:margFunc} gives a short overview of tasks and arguments of
+different functions that use a posterior marginal, as returend by \tv{inla} for
+example, to derive different quantities of interest. Here, we illustrate the
+use of some of the functions using the standard normal distribution as an
 example for a potentially returned marginal density.
 \begin{table}
-\begin{center} 
+\begin{center}
 \begin{tabular}{lp{8cm}}
 \toprule
-\tv{inla.dmarginal(x, marginal, ...)} & Density at a vector of 
+\tv{inla.dmarginal(x, marginal, ...)} & Density at a vector of
 evaluation points $x$ \\
-\tv{inla.pmarginal(q, marginal, ...)} & Distribution function at a vector of 
+\tv{inla.pmarginal(q, marginal, ...)} & Distribution function at a vector of
 quantiles $q$ \\
-\tv{inla.qmarginal(p, marginal, ...)} & Quantile function at a vector of 
+\tv{inla.qmarginal(p, marginal, ...)} & Quantile function at a vector of
 probabilities $p$.\\
 \tv{inla.rmarginal(n, marginal)} & Generate $n$ random deviates \\
-\tv{inla.hpdmarginal(p, marginal, ...)} & Compute the highest posterior denisty 
+\tv{inla.hpdmarginal(p, marginal, ...)} & Compute the highest posterior denisty
 interval at level $p$\\
-\tv{inla.emarginal(fun, marginal, ...)} & Compute the expected value of the 
+\tv{inla.emarginal(fun, marginal, ...)} & Compute the expected value of the
 marginal assuming the transformation given by fun\\
 \tv{inla.mmarginal(marginal)} & Computes the mode\\
-\tv{inla.smarginal(marginal, ...)} & Smoothed density in 
-form of a list of length two. The first entry contains the x-values, the second 
+\tv{inla.smarginal(marginal, ...)} & Smoothed density in
+form of a list of length two. The first entry contains the x-values, the second
 entry includes the interpolated y-values\\
-\tv{inla.tmarginal(fun, marginal, ...)} & Transform the marginal using the 
+\tv{inla.tmarginal(fun, marginal, ...)} & Transform the marginal using the
 function fun.\\
 \tv{inla.zmarginal(marginal)} & Summary statistics for the marginal\\
 \bottomrule
 \end{tabular}
-\caption{Functions which use a posterior marginal density to derive some 
-information of interest. The \tv{marginal} is thereby given 
-in form of a matrix with two columns where the first column 
-represents the location points and the second column the density 
+\caption{Functions which use a posterior marginal density to derive some
+information of interest. The \tv{marginal} is thereby given
+in form of a matrix with two columns where the first column
+represents the location points and the second column the density
 values at those location points. \label{tab:margFunc}}
 \end{center}
 \end{table}
@@ -267,7 +267,7 @@ inla.mmarginal(smarginal)
 inla.dmarginal(c(0.5,1), smarginal)
 # sample 5 values from the density
 inla.rmarginal(5, smarginal)
-# compute the 95% HPD interval. Since we have as symmetric density. 
+# compute the 95% HPD interval. Since we have as symmetric density.
 # This corresponds to the 95% quantile-based interval.
 inla.hpdmarginal(0.95, marginal)
 # compute the 2.5% and 97.5% quantile
@@ -303,42 +303,42 @@ All standard operations can be excecuted on a marginal, like computing
 the density at some locations
 <<>>=
 inla.dmarginal(c(0.98, 1.0, 1.02), pm)
-@ 
+@
 and often better done i log-scale
 <<>>=
 inla.dmarginal(c(0.98, 1.0, 1.02), pm, log=TRUE)
-@ 
+@
 Computing percentiles
 <<>>=
 perc = inla.pmarginal(c(0.98, 1.0, 1.02), pm)
 perc
-@ 
+@
 and quantiles
 <<>>=
 inla.qmarginal(perc, pm)
-@ 
+@
 and producing random samples
 <<>>=
 x = inla.rmarginal(1000, pm)
 print(c(mean(x), sd(x)))
-@ 
+@
 and $z$ummary-statistics
 <<>>=
 inla.zmarginal(pm)
-@ 
+@
 and computing expected values with respect to the marginal
 <<>>=
 inla.emarginal(function(x) return(x), pm)
-@ 
+@
 or a vector version
 <<>>=
 mom = inla.emarginal(function(x) return(c(x, x^2)), pm)
 print(c(mean = mom[1], sd = sqrt(max(0, mom[2] - mom[1]^2))))
-@ 
+@
 and a  $95\%$-HPD-interval can be computed with
 <<>>=
 inla.hpdmarginal(0.95, pm)
-@ 
+@
 
 An annoying task is to transforming posterior marginal, like we know
 the posterior for $x$ but we want the posterior for $\exp(x)$. To do
@@ -348,21 +348,21 @@ this change-of-variable excersize, we can use the
 <<out.width='8cm', out.height='8cm'>>=
 t.pm = inla.tmarginal(function(x) return(exp(x)), pm)
 plot(inla.smarginal(pm),  type="l")
-@ 
+@
 \end{center}
 as long as the continous function is monoton increasing or
 decreasing. The transformed density \verb|t.sm| is just another
-density, hence we can do 
+density, hence we can do
 <<>>=
 inla.zmarginal(t.pm)
-@ 
-and so on. 
+@
+and so on.
 
 
 As a final check, we can compute the percentiles of the abscissa values
 <<>>=
 round(inla.pmarginal(pm[,"x"], pm), 4)
-@ 
+@
 %%
 and they ``almost'' correspond to intuitive numbers. The reason
 these numbers are not exact, is the down-sampling into
@@ -389,7 +389,7 @@ To sample from $\mm{\theta}|\mm{y}$ we use
 <<>>=
 theta.sample = inla.hyperpar.sample(10^4, result)
 head(str(theta.sample))
-@ 
+@
 %%
 and get a matrix where each row is one sample, and the column-names
 gives the interpretation of the hyperparameters. Note that ``in
@@ -397,20 +397,20 @@ user-scale'' is added to the names to indicate that the values are in
 ``user-scale'', ie precisions, correlation, and so on, and not
 log-precision and transformed correlation, etc.  We can compare these
 samples with the marginals found already, using
-\begin{center} 
+\begin{center}
 <<out.height='8cm',out.width='8cm'>>=
-hist(theta.sample[, 1], prob = TRUE, n = 100, 
+hist(theta.sample[, 1], prob = TRUE, n = 100,
      main = colnames(theta.sample)[1])
 lines(inla.smarginal(result$marginals.hyperpar[[1]]), lwd=2)
-@ 
+@
 \end{center}
 and
-\begin{center} 
+\begin{center}
 <<out.height='8cm',out.width='8cm'>>=
-hist(theta.sample[, 2], prob = TRUE, n = 100, 
+hist(theta.sample[, 2], prob = TRUE, n = 100,
      main = colnames(theta.sample)[2])
 lines(inla.smarginal(result$marginals.hyperpar[[2]]), lwd=2)
-@ 
+@
 \end{center}
 For more information which approximation that is behind this function,
 see \citet{art522}.
@@ -419,49 +419,49 @@ see \citet{art522}.
 
 \verb|inla.posterior.sample| can be used to generate samples from
 $(\mm{x}, \mm{\theta})|\mm{y}$ using the \emph{integration points} for
-$\mm{\theta}$ only. Again, refer to \citet{art522} for details. 
+$\mm{\theta}$ only. Again, refer to \citet{art522} for details.
 
 In order to use this function, then the inla-call must have set option
 \verb|config=TRUE| in control \verb|control.compute|. So we need to
 recompute \verb|result| with this option set
 <<>>=
 siz.before = object.size(result)
-result = inla(formula,  data = my.data, 
+result = inla(formula,  data = my.data,
     control.compute = list(config = TRUE))
 siz.after = object.size(result)
 ratio = siz.after/siz.before
 print(ratio)
-@ 
+@
 %%
 and we see that the result-object has increased its size.  The reason
 is that intermediate results need to be stored in the
-result-object. 
+result-object.
 
 We can now generate joint samples using
 <<>>=
 samples = inla.posterior.sample(1000, result)
-@ 
+@
 %%
 The structure of \verb|samples| is a bit more complicated in this
 case. It is a list of length $\Sexpr{length(samples)}$, one for each sample,
 <<>>=
 length(samples)
-@ 
+@
 %%
 and each element consists of sublists
 <<>>=
 names(samples[[1]])
-@ 
+@
 %%
-Here, 
+Here,
 <<>>=
 samples[[1]]$hyperpar
-@ 
+@
 %%
-are the sampled values of the hyperparameters, 
+are the sampled values of the hyperparameters,
 <<>>=
 samples[[1]]$logdens
-@ 
+@
 %%
 are the posterior densities with contribution from the
 hyperparameters, the latent field and their sum (the
@@ -469,40 +469,40 @@ joint). \verb|samples[[1]]$latent| is a matrix with the sampled values of
 the latent field, named by \verb|<name>|\verb|<index.number>|, like
 <<>>=
 rownames(samples[[1]]$latent)
-@ 
+@
 %%
 From these names we can extract what we require from each sample.
 
 Note that only the integration points are used for the
 hyperparameters, which we can see from a plot
-\begin{center} 
+\begin{center}
 <<out.width='8cm',out.height='8cm'>>=
 xy.mat = matrix(NA, nrow = length(samples), ncol = length(samples[[1]]$hyperpar))
 for(i in 1:length(samples))
     xy.mat[i, ] = samples[[i]]$hyperpar
-plot(xy.mat[, 1], xy.mat[, 2], 
-     xlab = names(samples[[1]]$hyperpar)[1], 
+plot(xy.mat[, 1], xy.mat[, 2],
+     xlab = names(samples[[1]]$hyperpar)[1],
      ylab = names(samples[[1]]$hyperpar)[2])
-@ 
+@
 %%
 If we need a better resolution in the $\mm{\theta}$-space, we have to
 change the integration-scheme, to, for example,
-\begin{center} 
+\begin{center}
 <<out.width='8cm',out.height='8cm'>>=
-result = inla(formula,  data = my.data, 
+result = inla(formula,  data = my.data,
     control.compute = list(config = TRUE),
     control.inla = list(
-        int.strategy = "grid", 
-        dz = 0.5, 
+        int.strategy = "grid",
+        dz = 0.5,
         diff.logdens = 10))
 samples = inla.posterior.sample(1000, result)
 xy.mat = matrix(NA, nrow = length(samples), ncol = length(samples[[1]]$hyperpar))
 for(i in 1:length(samples))
     xy.mat[i, ] = samples[[i]]$hyperpar
-plot(xy.mat[, 1], xy.mat[, 2], 
-     xlab = names(samples[[1]]$hyperpar)[1], 
+plot(xy.mat[, 1], xy.mat[, 2],
+     xlab = names(samples[[1]]$hyperpar)[1],
      ylab = names(samples[[1]]$hyperpar)[2])
-@ 
+@
 \end{center}
 which gives a higher resolution of in the $\mm{\theta}$-space.
 
