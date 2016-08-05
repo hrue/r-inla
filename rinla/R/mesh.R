@@ -1397,6 +1397,15 @@ inla.mesh.2d <-
     stop("At least one of max.edge, max.n.strict, and max.n must be specified")
   }
 
+  if (!is.null(crs)) {
+    issphere <- inla.identical.CRS(crs, inla.CRS("sphere"))
+    isgeocentric <- identical(inla.as.list.CRS(crs)[["proj"]], "geocent")
+    if (isgeocentric) {
+      crs.target <- crs
+      crs <- inla.CRS("sphere")
+    }
+  }
+
   ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
   if (!(missing(loc) || is.null(loc)) &&
       (inherits(loc, "SpatialPoints") ||
@@ -1595,6 +1604,11 @@ inla.mesh.2d <-
         }
     } else {
         mesh3$idx$segm = NULL
+    }
+
+    if (isgeocentric && !issphere) {
+      mesh3$loc <- inla.spTransform(mesh3$loc, mesh3$crs, crs.target)
+      mesh3$crs <- crs.target
     }
 
     if (!is.null(plot.delay) && (plot.delay<0)) {
