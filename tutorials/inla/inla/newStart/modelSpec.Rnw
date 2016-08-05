@@ -915,8 +915,6 @@ to the variable names used in the formula. For example using
 @
 will result in an error as {\tt Y} is not used in the formula, and
 {\tt y} that is used in the formula is not defined in the data object.
-Furthermore variable names can only used once in the formula
-object.
 
 Then the final step would be to call the inla-function
 <<>>=
@@ -924,6 +922,9 @@ result = inla(formula,
      data = data,
      family = "gaussian")
 @
+
+Furthermore variable names can only used once in the formula
+object.
 If there are for example two random effects defined for time
 $t=1, \ldots, 100$ we need two time indices as each {\tt f}-function
 needs its own index. The data object would then be
@@ -944,7 +945,8 @@ as for example the Gaussian and Poisson case. Likelihood functions are
 one of the few things that cannot be defined or added by the
 user. However, there is already a wide range of likelihood functions
 available, see \url{http://www.r-inla.org/models/likelihoods}, which
-provides detailed information. Within {\tt R} all likelihood functions
+provides detailed information.
+ Within {\tt R} all likelihood functions
 can be listed using
 
 <<>>=
@@ -1027,10 +1029,113 @@ usage, which we will discuss shortly in the following.
 
 \end{enumerate}
 
+If you should need a likelihood
+function that is not yet available, please contact the INLA-team.
 
 \subsection{The inla-call}
-What can be specified.
 
+Up til now we have learned how to set up a model, where the linear
+predictor includes fixed and random effects, how to choose the family
+of the likelihood function, and how to setup priors for
+the fixed effects and hyperparameters in the model.
+The final step to start the INLA machinery is the {\tt
+  inla}-call. Here, the user transfers the model formula, the dataset,
+settings specifying details in the numerical optimisation etc. The
+basic {\tt inla}-call is:
+<<eval=FALSE>>=
+result = inla(#formula for the linear predictor
+    formula,
+     # family distribution
+    family,
+    # dataset
+    data,
+    # more optional entries specifying the prior for the fixed effects,
+    control.fixed,
+    # or hyperpriors for hyperparameters in the likelihood function,
+    control.family,
+    # a vector of quantiles that should be computed for each posterior marginal
+    quantiles,
+    # whether model choice criteria should be computed
+    control.compute,
+    # whether marginals for the linear predictor should be computed
+    control.predictor,
+    # details of the numerical optimisation,
+    control.inla,
+    # linear combinations of components of the latent field for
+    # which posterior marginal are desired
+    lincomb,
+    # details regarding the linear combinations,
+    control.lincomb,
+    # how many threads should be used
+    num.threads,
+    ...)
+@
+You find a complete list of arguments when typing {\tt ?inla} in your
+R-session.
+
+After you have run your model with INLA using the above function,
+the resulting object of class {\tt inla} will be stored in the {\tt result} variable. This
+will be a S3 object with several attributes:
+<<>>=
+  class(result)
+  names(result)
+@
+This list of entries seems overwhelming and not all of the contents
+are of interest for the typical user. Here, we will highlight
+the most important entries. How to inspect the output in detail will be
+discussed in Section~\ref{sec:output}.
+
+Posterior summary information, such as mean, sd, quantiles, mode, for the
+specific parameters are saved in {\tt result\$summary.*} where the
+{\tt *} refers to the parameter of interest, as shown in the following:
+<<eval=FALSE>>=
+# for the fixed effects
+result$summary.fixed
+# for the random effects
+result$summary.random
+# for all hyperparameters
+result$summary.hyperpar
+# for the linear predictor
+# (if you specified control.predictor = list(compute=TRUE) in the inla-call)
+result$summary.linpred
+# for requested linear combinations
+result$summary.lincomb
+# or
+results$summary.lincomb.derived
+@
+For example, the summary information for the fixed values of the AR
+model used in this section is as follows:
+<<>>=
+result$summary.fixed
+@
+Here, the first row provides information about the intercept
+$\beta_0$ and the
+second row for the regression coefficient $\beta_1$ corresponding to
+the covariate $\bm{x}$.
+
+If you are interested in the summary information of the
+hyperparameters on the internal scale used by INLA, then you find this
+information in
+<<eval=FALSE>>=
+result$internal.summary.hyperpar
+@
+
+
+With {\tt result\$summary.fixed} one can access the summary matrix for
+the fixed effects which contains by default the mean, standard
+deviation, and the $(0.025, 0.5, 0.975)$ quantiles. Similarly, we use
+{\tt result\$summary.hyper} to obtain the summary matrix for the
+hyperparameters in the model.
+
+In some applications we need to go beyond point estimates and have
+access to the posterior distributions of the fixed effects and
+hyperparameters.  We can access those with
+{\tt result\$marginals.fixed} and {\tt result\$marginals.hyper},
+respectively. Those objects are a named list with one element for each
+parameter, and each of these elements are a matrix with two columns
+where the first column hold the x-axis and the second column hold the
+y-axis of the marginal posterior distribution. As an example, if we
+fit a model where the linear predictor is defined by
 
 \subsection{Control arguments}
 Write about

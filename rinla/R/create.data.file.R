@@ -42,6 +42,7 @@
 
     if (inla.one.of(family, c("gaussian",
                               "normal",
+                              "lognormal",
                               "t",
                               "laplace",
                               "sn",
@@ -206,7 +207,7 @@
         null.dat = is.na(response[, 4L])
         response = response[!null.dat,]
 
-    } else if (inla.one.of(family, c("exponential", "weibull", "weibullcure", "loglogistic",  "lognormal"))) {
+    } else if (inla.one.of(family, c("exponential", "weibull", "weibullcure", "loglogistic",  "lognormalsurv"))) {
 
         if (!inla.model.properties(family, "likelihood")$survival) {
             file.remove(file)
