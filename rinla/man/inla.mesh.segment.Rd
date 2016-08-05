@@ -14,7 +14,8 @@
 \usage{
 ## Create or join inla.mesh.segment objects.
 inla.mesh.segment(...)
-\method{inla.mesh.segment}{default}(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE, ...)
+\method{inla.mesh.segment}{default}(loc = NULL, idx = NULL, grp = NULL,
+  is.bnd = TRUE, crs = NULL, ...)
 \method{inla.mesh.segment}{inla.mesh.segment}(..., grp.default = 0)
 
 inla.contour.segment(x = seq(0, 1, length.out = nrow(z)),
@@ -24,7 +25,8 @@ inla.contour.segment(x = seq(0, 1, length.out = nrow(z)),
                      levels = pretty(range(z, na.rm = TRUE), nlevels),
                      groups = seq_len(length(levels)),
                      positive = TRUE,
-                     eps = NULL)
+                     eps = NULL,
+                     crs = NULL)
 
 }
 \arguments{
@@ -61,6 +63,9 @@ inla.contour.segment(x = seq(0, 1, length.out = nrow(z)),
 }
 \item{eps}{
   Tolerance for \code{\link{inla.simplify.curve}}.
+}
+\item{crs}{
+  An optional \code{CRS} or \code{inla.CRS} object
 }
 \item{...}{
   Additional parameters.  When joining segments, a list of

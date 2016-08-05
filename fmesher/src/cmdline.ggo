@@ -96,6 +96,8 @@ scaling with respect to the initial point density is used.
 \tPositive values are absolute.
 \tThe algorithm is only guaranteed to converge for min_angle<=21, but values as high as 34 often work in practice.
 \tDefaults are 21,-1.,-0.5\n"
+option "max_n0" - "The desired maximal number of vertices, terminating angle checks" int typestr="PARAM" default="-1" optional
+option "max_n1" - "The desired maximal number of vertices, terminating edge length checks" int typestr="PARAM" default="-1" optional
 option "quality" Q "Per vertex RCDT parameters, as one or more one-column matrices with minimum edge lengths for the points specified with -T|--input" string
        typestr="NAME"
        multiple optional dependon="rcdt"
