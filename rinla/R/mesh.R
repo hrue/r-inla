@@ -931,6 +931,14 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
 
     time.pre = system.time({ ## Pre-processing timing start
 
+    if (!is.null(crs) &&
+        identical(inla.as.list.CRS(crs)$proj, "geocent")) {
+      ## Build all geocentric meshes on a sphere, and transform afterwards,
+      ## to allow general geoids.
+      crs.target <- crs
+      crs <- inla.CRS("sphere")
+    }
+
     if (!(missing(loc) || is.null(loc))) {
       ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
       if (inherits(loc, "SpatialPoints") ||
@@ -1221,9 +1229,18 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
 
 
     if (!keep)
-        unlink(paste(prefix, "*", sep=""), recursive=FALSE)
+      unlink(paste(prefix, "*", sep=""), recursive=FALSE)
     if (!keep.dir) {
         unlink(dirname(prefix), recursive=TRUE)
+    }
+
+    if (!is.null(crs) &&
+        identical(inla.as.list.CRS(crs)$proj, "geocent")) {
+      if (!inla.identical.CRS(crs, crs.target)) {
+        ## Target is a non-spherical geoid
+        loc <- inla.spTransform(loc, crs, crs.target)
+        crs <- crs.target
+      }
     }
 
     }) ## Post-processing timing end
