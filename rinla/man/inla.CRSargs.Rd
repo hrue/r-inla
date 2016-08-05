@@ -1,5 +1,9 @@
 \name{inla.CRSargs}
 \alias{inla.CRSargs}
+\alias{inla.as.list.CRS}
+\alias{inla.as.list.CRSargs}
+\alias{inla.as.CRS.list}
+\alias{inla.as.CRSargs.list}
 \title{
   Show expanded CRS arguments
 }
