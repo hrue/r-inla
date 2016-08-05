@@ -9,7 +9,7 @@
 }
 \usage{
 inla.CRS(projargs = NA_character_, doCheckCRSArgs = TRUE,
-         params = NULL, orient = NULL)
+         args = NULL, orient = NULL, ...)
 }
 \arguments{
   \item{projargs}{
@@ -22,13 +22,17 @@ inla.CRS(projargs = NA_character_, doCheckCRSArgs = TRUE,
   developers including \code{CRS} in an S4 class definition to avoid
   uncontrolable loading of the \code{rgdal} namespace.
 }
-\item{params}{
-  Projection parameters. Not currently in use.
+\item{args}{
+  An optional list of name/value pairs to add to and/or override the
+  PROJ4 arguments in \code{projargs}.  \code{name=value} is converted to
+  \code{"+name=value"}, and \code{name=NA} is converted to
+  \code{"+name"}.
 }
 \item{orient}{
   Vector of length 4 of rotation angles for an oblique projection.
-  Not currently in use.
+  Not yet implemented.
 }
+\item{\dots}{Additional parameters. Not currently in use.}
 }
 %\details{
 %%  ~~ If necessary, more details than the description above ~~
