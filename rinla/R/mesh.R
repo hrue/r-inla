@@ -1261,7 +1261,7 @@ inla.mesh.2d <-
       (inherits(loc.domain, "SpatialPoints") ||
        inherits(loc.domain, "SpatialPointsDataFrame"))) {
     p4s = update.p4s(p4s, CRS(proj4string(loc.domain)))
-    loc = coordinates(loc.domain)
+    loc.domain = coordinates(loc.domain)
   }
 
     if (missing(loc) || is.null(loc)) {
