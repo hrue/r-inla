@@ -133,7 +133,7 @@
         null.dat = is.na(response[, 3L])
         response = response[!null.dat,]
 
-    } else if (inla.one.of(family, c("gammacount"))) {
+    } else if (inla.one.of(family, c("gammacount", "exponential"))) {
 
         response = cbind(ind, y.orig)
         null.dat = is.na(response[, 2L])
@@ -207,7 +207,7 @@
         null.dat = is.na(response[, 4L])
         response = response[!null.dat,]
 
-    } else if (inla.one.of(family, c("exponential", "weibull", "weibullcure", "loglogistic",  "lognormalsurv"))) {
+    } else if (inla.one.of(family, c("exponentialsurv", "weibull", "weibullcure", "loglogistic",  "lognormalsurv"))) {
 
         if (!inla.model.properties(family, "likelihood")$survival) {
             file.remove(file)

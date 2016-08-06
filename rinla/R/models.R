@@ -5389,6 +5389,15 @@
                  exponential = list(
                      hyper = list(
                          ),
+                     survival = FALSE,
+                     discrete = FALSE,
+                     link = c("default", "log"),
+                     pdf = "exponential"
+                     ),
+
+                 exponentialsurv = list(
+                     hyper = list(
+                         ),
                      survival = TRUE,
                      discrete = FALSE,
                      link = c("default", "log"),

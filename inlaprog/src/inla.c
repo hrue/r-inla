@@ -3326,6 +3326,11 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[0] = NULL;
 		break;
 
+	case L_EXPONENTIAL:
+		idiv = 2;
+		a[0] = NULL;
+		break;
+
 	case L_KUMAR:
 		idiv = 2;
 		a[0] = NULL;
@@ -3428,7 +3433,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[0] = NULL;
 		break;
 
-	case L_EXPONENTIAL:
+	case L_EXPONENTIALSURV:
 	case L_WEIBULL:
 	case L_WEIBULL_CURE:
 	case L_LOGLOGISTIC:
@@ -6427,6 +6432,37 @@ int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, v
 	 * y ~ Exponential
 	 */
 	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	int i;
+	double y, lambda;
+
+	y = ds->data_observations.y[idx];
+
+	LINK_INIT;
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			logll[i] = log(lambda) - lambda * y;
+		}
+	} else {
+		for (i = 0; i < -m; i++) {
+			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			logll[i] = 1.0 - exp(-lambda * y);
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_expsurv(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * y ~ Exponential
+	 */
+	if (m == 0) {
 		return GMRFLib_SUCCESS;
 	}
 
@@ -9046,6 +9082,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "EXPONENTIAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_exp;
 		ds->data_id = L_EXPONENTIAL;
+	} else if (!strcasecmp(ds->data_likelihood, "EXPONENTIALSURV")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_expsurv;
+		ds->data_id = L_EXPONENTIALSURV;
 	} else if (!strcasecmp(ds->data_likelihood, "WEIBULL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_weibull;
 		ds->data_id = L_WEIBULL;
@@ -9284,6 +9323,17 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
+	case L_EXPONENTIAL:
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Exponential data[%1d] (y) = (%g) is void\n", secname, i, ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+		break;
+
 	case L_GPOISSON:
 	case L_ZEROINFLATEDPOISSON0:
 	case L_ZEROINFLATEDPOISSON1:
@@ -9403,7 +9453,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
-	case L_EXPONENTIAL:
+	case L_EXPONENTIALSURV:
 	case L_WEIBULL:
 	case L_WEIBULL_CURE:
 	case L_LOGLOGISTIC:
@@ -21404,6 +21454,13 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				break;
 
+			case L_EXPONENTIAL: 
+			case L_EXPONENTIALSURV:
+				/*
+				 * nothing to do
+				 */
+				break;
+				
 			default:
 				/*
 				 * nothing to do

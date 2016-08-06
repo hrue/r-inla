@@ -6471,6 +6471,8 @@ inla.models()
 				 }
 				\item{Model `exponential'.}{Number of hyperparmeters are 0.
 				 }
+				\item{Model `exponentialsurv'.}{Number of hyperparmeters are 0.
+				 }
 				\item{Model `coxph'.}{Number of hyperparmeters are 0.
 				 }
 				\item{Model `weibull'.}{Number of hyperparmeters are 1.
