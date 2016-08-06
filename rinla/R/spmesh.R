@@ -445,7 +445,7 @@ inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
       if (!is.null(crs0$orient)) {
         x <- SpatialPoints(inla.crs.transform.orient(coordinates(x),
                                                      crs0$orient,
-                                                     to.oblique=TRUE),
+                                                     to.oblique=FALSE),
                            proj4string=inla.CRS("sphere"))
       }
       onshpere <- TRUE
@@ -459,7 +459,7 @@ inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
       if (!is.null(crs1$orient)) {
         x <- SpatialPoints(inla.crs.transform.orient(coordinates(x),
                                                      crs1$orient,
-                                                     to.oblique=FALSE),
+                                                     to.oblique=TRUE),
                            proj4string=inla.CRS("sphere"))
       }
       x <- spTransform(x, crs1$crs)
