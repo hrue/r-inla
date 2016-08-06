@@ -19,12 +19,12 @@
 as.inla.mesh.segment(sp, ...)
 inla.sp2segment(sp, ...) ## For backwards compatibility
 
-\method{as.inla.mesh.segment}{Line}(sp, reverse=FALSE, ...)
-\method{as.inla.mesh.segment}{Lines}(sp, join=TRUE, ...)
+\method{as.inla.mesh.segment}{Line}(sp, reverse=FALSE, crs=NULL, ...)
+\method{as.inla.mesh.segment}{Lines}(sp, join=TRUE, crs=NULL, ...)
 \method{as.inla.mesh.segment}{SpatialLines}(sp, join=TRUE, grp=NULL, ...)
 \method{as.inla.mesh.segment}{SpatialLinesDataFrame}(sp, ...)
-\method{as.inla.mesh.segment}{Polygon}(sp, ...)
-\method{as.inla.mesh.segment}{Polygons}(sp, join=TRUE, ...)
+\method{as.inla.mesh.segment}{Polygon}(sp, crs=NULL, ...)
+\method{as.inla.mesh.segment}{Polygons}(sp, join=TRUE, crs=NULL, ...)
 \method{as.inla.mesh.segment}{SpatialPolygons}(sp, join=TRUE, grp=NULL, ...)
 \method{as.inla.mesh.segment}{SpatialPolygonsDataFrame}(sp, ...)
 }
@@ -46,6 +46,9 @@ inla.sp2segment(sp, ...) ## For backwards compatibility
   \item{reverse}{
     Logical, indicating if the line sequence should be traversed backwards.
   }
+  \item{crs}{
+    An optional \code{CRS} or \code{inla.CRS} object
+    }
   \item{\dots}{
     Additional arguments passed on to other methods.
   }
