@@ -49,9 +49,11 @@ internal.clip <- function(bounds, coords) {
   start <- toolong[-length(toolong)]
   ending <- toolong[-1] - 1
   for (i in seq_along(start)) {
-    thelines <-
-      c(thelines,
-        list(sp::Line(coords[start[i]:ending[i], 1:2])))
+    if (start[i] < ending[i]) {
+      thelines <-
+        c(thelines,
+          list(sp::Line(coords[start[i]:ending[i], 1:2])))
+    }
   }
   thelines
 }
@@ -68,7 +70,7 @@ inla.crs.graticule <- function(x, n=c(24, 12), add=FALSE, do.plot=TRUE,
   if (n[1] > 0) {
     graticule1 <- floor(n[1]/2)
     lon <- ((-graticule1):graticule1) * 2/n[1]*180
-    lat <- seq( -90,  90, by=2)
+    lat <- seq( -90+1e-6,  90-1e-6, by=2)
     meridians <- as.matrix(expand.grid(lat, lon)[,2:1])
     proj.mer.coords <- inla.spTransform(meridians, inla.CRS("longlat"), x)
     proj.mer.coords1 <- matrix(proj.mer.coords[,1], length(lat),
@@ -98,8 +100,8 @@ inla.crs.graticule <- function(x, n=c(24, 12), add=FALSE, do.plot=TRUE,
     proj.mer <- NULL
   }
   if (n[2] > 1) {
-    lon <- seq(-180, 180, by=2)
-    lat <- seq( -90,  90, length=1+n[2])[-c(1,1+n[2])]
+    lon <- seq(-180+1e-6, 180-1e-6, by=2)
+    lat <- seq( -90+1e-6,  90-1e-6, length=1+n[2])[-c(1,1+n[2])]
     parallels <- as.matrix(expand.grid(lon, lat))
     proj.par.coords <- inla.spTransform(parallels, inla.CRS("longlat"), x)
     proj.par.coords1 <- matrix(proj.par.coords[,1], length(lon),
@@ -141,7 +143,6 @@ plot.inla.CRS <- function(x, xlim=NULL, ylim=NULL,
   if (is.null(xlim)) xlim <- bounds$xlim
   if (is.null(ylim)) ylim <- bounds$ylim
   if (!add) {
-    plot.new()
     plot(NA, type="n", xlim=xlim, ylim=ylim, asp=asp, ...)
   }
   ## Outline
@@ -340,7 +341,7 @@ inla.spTransformBounds <- function(crs) {
       axis[1] <- axis[1] * as.numeric(args$a)
     }
     if (!is.null(args[["b"]])) {
-      axis[2] <- axis[2] * as.numeric(args$b)
+      axis[2] <- axis[2] * as.numeric(args$a)^0.5 * as.numeric(args$b)^0.5
     }
     ## TODO: Handle "lat_ts" and "units"
     bounds <- list(type="rectangle",
@@ -350,9 +351,7 @@ inla.spTransformBounds <- function(crs) {
     center <- c(0,0)
     if (!is.null(args[["a"]])) {
       axis[1] <- axis[1] * as.numeric(args$a) / sqrt(1/2)
-    }
-    if (!is.null(args[["b"]])) {
-      axis[2] <- axis[2] * as.numeric(args$b) / sqrt(1/2)
+      axis[2] <- axis[2] * as.numeric(args$a) / sqrt(1/2)
     }
     ## TODO: Handle "units"
     bounds <- list(type="ellipse", axis=axis, center=center,

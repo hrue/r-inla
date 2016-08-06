@@ -15,15 +15,15 @@
 \usage{
 inla.spTransform(x, ...)
 \method{inla.spTransform}{default}(x, crs0, crs1,
-  passthrough=FALSE, ...)
+                 passthrough=FALSE, ...)
 \method{inla.spTransform}{SpatialPoints}(x, CRSobj,
-  passthrough=FALSE, ...)
+                 passthrough=FALSE, ...)
 \method{inla.spTransform}{inla.mesh.lattice}(x, CRSobj,
-  passthrough=FALSE, ...)
+                 passthrough=FALSE, ...)
 \method{inla.spTransform}{inla.mesh.segment}(x, CRSobj,
-  passthrough=FALSE, ...)
+                 passthrough=FALSE, ...)
 \method{inla.spTransform}{inla.mesh}(x, CRSobj,
-  passthrough=FALSE, ...)
+                 passthrough=FALSE, ...)
 }
 \arguments{
   \item{x}{
