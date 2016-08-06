@@ -35,9 +35,10 @@ None.
 \subsection*{Specification}
 
 \begin{itemize}
-\item $\text{family}=\texttt{Exponential}$
+\item $\text{family}=\texttt{exponential}$ for regression models and 
+ $\text{family}=\texttt{exponential.surv}$ for survival models.
 \item Required arguments: $y$ (to be given in a format by using
-    $\texttt{inla.surv()}$ function )
+    $\texttt{inla.surv()}$ for survival models )
 \end{itemize}
 
 \subsubsection*{Hyperparameter spesification and default values}
@@ -47,15 +48,10 @@ None.
 \subsection*{Example}
 
 In the following example we estimate the parameters in a simulated
-case \verbatiminput{example-exponential.R}
+case%%
+\verbatiminput{example-exponential.R}
 
 \subsection*{Notes}
-\begin{itemize}
-\item Exponential model can be used for right censored, left censored and interval censored data.\\
-\item A general frame work to represent time is given by
-    $\texttt{inla.surv()}$
-\end{itemize}
-
 
 \end{document}
 
