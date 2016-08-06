@@ -173,9 +173,11 @@ inla.CRS <- function(projargs = NA_character_, doCheckCRSArgs = TRUE,
                      args=NULL, orient=NULL, ...) {
   predef <- list(
     longlat = "+proj=longlat +ellps=sphere +a=1 +b=1",
-    sphere = "+proj=geocent +ellps=sphere +a=1 +b=1 +units=m",
+    hammer = "+proj=hammer +ellps=sphere +units=m +a=0.7071067811865476 +b=0.7071067811865476",
+    lambert = "+proj=cea +ellps=sphere +lat_ts=0 +units=m +a=1 +b=1",
     mollweide = "+proj=moll +ellps=sphere +units=m +a=0.7071067811865476 +b=0.7071067811865476",
-    lambert = "+proj=cea +ellps=sphere +lat_ts=0 +units=m +a=1 +b=1")
+    sphere = "+proj=geocent +ellps=sphere +a=1 +b=1 +units=m",
+)
   if (projargs %in% names(predef)) {
     projargs <- predef[[projargs]]
   }
@@ -328,13 +330,13 @@ inla.crs.transform.orient <- function(x, orient, to.oblique=TRUE) {
 
 ## +proj=longlat in (-180,360)x(-90,90)
 ## +proj=moll in (-2,2)x(-1,1) scaled by +a and +b, and +units
-## +proj=lambert in (-2,2)x(-1,1) scaled by +a and +b, and +units
+## +proj=lambert in (-pi,pi)x(-1,1) scaled by +a and +b, and +units
 inla.spTransformBounds <- function(crs) {
   args <- inla.as.list.CRS(crs)
   if (args[["proj"]] == "longlat") {
     bounds <- list(type="rectangle", xlim=c(-180,360), ylim=c(-90,90))
   } else if (args[["proj"]] == "cea") {
-    axis <- c(2, 1)
+    axis <- c(pi, 1)
     if (!is.null(args[["a"]])) {
       axis[1] <- axis[1] * as.numeric(args$a)
     }
@@ -344,7 +346,7 @@ inla.spTransformBounds <- function(crs) {
     ## TODO: Handle "lat_ts" and "units"
     bounds <- list(type="rectangle",
                    xlim=c(-1,1)*axis[1], ylim=c(-1,1)*axis[2])
-  } else if (args[["proj"]] == "moll") {
+  } else if (args[["proj"]] %in% c("moll", "hammer")) {
     axis <- c(2, 1)
     center <- c(0,0)
     if (!is.null(args[["a"]])) {
