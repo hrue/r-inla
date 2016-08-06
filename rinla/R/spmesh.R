@@ -3,6 +3,8 @@
 ## Internal: inla.crs.transform.orient
 ## Internal: inla.rotmat3213
 ## Internal: inla.rotmat3123
+## Internal: inla.crs.graticule
+## Internal: internal.clip
 ##
 ## S3methods; also export some methods explicitly
 ## Export: inla.sp2segment
@@ -30,7 +32,6 @@
 ## Export: inla.spTransform!inla.mesh.segment
 ## Export: inla.spTransform!inla.mesh.lattice
 ## Export: inla.spTransform!default
-## Export: inla.crs.graticule
 ## Export: plot!CRS plot!inla.CRS
 
 
