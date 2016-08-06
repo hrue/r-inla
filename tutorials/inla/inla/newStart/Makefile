@@ -18,6 +18,6 @@ $(DEPS_DIR) :
 
 
 %.tex : %.Rnw
-	R -e 'library(INLA); INLA:::inla.my.update();library(knitr); knit("'$<'")'
+	R -e 'library(INLA); library(knitr); knit("'$<'")'
 
 clean :; latexmk -CA
