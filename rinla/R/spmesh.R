@@ -1,6 +1,8 @@
 ## Internal: internal.update.crs
 ## Internal: inla.internal.sp2segment.join
-## Internal: inla.identical.CRS
+## Internal: inla.crs.transform.orient
+## Internal: inla.rotmat3213
+## Internal: inla.rotmat3123
 ##
 ## S3methods; also export some methods explicitly
 ## Export: inla.sp2segment
@@ -21,12 +23,149 @@
 ## Export: inla.as.CRSargs.list
 ## Export: inla.as.list.CRS
 ## Export: inla.as.CRS.list
+## Export: inla.identical.CRS
 ## Export: inla.spTransform
 ## Export: inla.spTransform!SpatialPoints
 ## Export: inla.spTransform!inla.mesh
 ## Export: inla.spTransform!inla.mesh.segment
 ## Export: inla.spTransform!inla.mesh.lattice
 ## Export: inla.spTransform!default
+## Export: inla.crs.graticule
+## Export: plot!CRS plot!inla.CRS
+
+
+internal.clip <- function(bounds, coords) {
+  ## Clip 2D coordinate matrix of polylines and generate a list of Line objects
+  ## bounds is from inla.spTransformBounds
+  ## This implementation only removes "long" line segments.
+  thelines <- list()
+  ## Rudimentary cutting:
+  toolong <-
+    which(c(TRUE,
+            (diff(coords[,1]) / diff(bounds$xlim))^2
+            + (diff(coords[,2]) / diff(bounds$ylim))^2
+            > 0.1^2,
+            TRUE))
+  start <- toolong[-length(toolong)]
+  ending <- toolong[-1] - 1
+  for (i in seq_along(start)) {
+    thelines <-
+      c(thelines,
+        list(sp::Line(coords[start[i]:ending[i], 1:2])))
+  }
+  thelines
+}
+
+
+inla.crs.graticule <- function(x, n=c(24, 12), add=FALSE, do.plot=TRUE,
+                               ...)
+{
+  ## Graticule
+  if (is.null(n)) {
+    return(invisible(list()))
+  }
+  if (n[1] > 0) {
+    graticule1 <- floor(n[1]/2)
+    lon <- ((-graticule1):graticule1) * 2/n[1]*180
+    lat <- seq( -90,  90, by=2)
+    meridians <- expand.grid(lat, lon)[,2:1]
+    proj.mer.coords <- inla.spTransform(meridians, inla.CRS("longlat"), x)
+    proj.mer.coords1 <- matrix(proj.mer.coords[,1], length(lat),
+                               length(lon))
+    proj.mer.coords2 <- matrix(proj.mer.coords[,2], length(lat),
+                               length(lon))
+
+    proj.mer <-
+      sp::SpatialLines(list(sp::Lines(
+        unlist(lapply(seq_along(lon),
+                      function(k) {
+          internal.clip(x, cbind(proj.mer.coords1[,k],
+                                 proj.mer.coords2[,k]))
+        }),
+        recursive=FALSE),
+        ID="meridians")),
+        proj4string=CRS(inla.CRSargs(x)))
+    if (do.plot) {
+      if (add) {
+        plot(proj.mer, add=TRUE, ...)
+      } else {
+        plot(proj.mer, ...)
+        add <- TRUE
+      }
+    }
+  } else {
+    proj.mer <- NULL
+  }
+  if (n[2] > 1) {
+    lon <- seq(-180, 180, by=2)
+    lat <- seq( -90,  90, length=1+n[2])[-c(1,1+n[2])]
+    parallels <- expand.grid(lon, lat)
+    proj.par.coords <- inla.spTransform(parallels, inla.CRS("longlat"), x)
+    proj.par.coords1 <- matrix(proj.par.coords[,1], length(lon),
+                               length(lat))
+    proj.par.coords2 <- matrix(proj.par.coords[,2], length(lon),
+                               length(lat))
+    proj.par <-
+      sp::SpatialLines(list(sp::Lines(
+        unlist(lapply(seq_along(lat),
+                      function(k) {
+          .clip(x, cbind(proj.par.coords1[,k],
+                         proj.par.coords2[,k]))
+        }),
+        recursive=FALSE),
+        ID="parallels")),
+        proj4string=CRS(inla.CRSargs(x)))
+    if (do.plot) {
+      if (add) {
+        plot(proj.par, add=TRUE, ...)
+      } else {
+        plot(proj.par, ...)
+      }
+    }
+  } else {
+    proj.par <- NULL
+  }
+  invisible(list(meridians=proj.mer, parallels=proj.par))
+}
+
+plot.inla.CRS <- function(x, xlim=NULL, ylim=NULL,
+                          outline=TRUE,
+                          graticule=c(24, 12),
+                          tissot=c(12,6),
+                          asp=1,
+                          add=FALSE,
+                          ...)
+{
+  bounds <- inla.spTransformBounds(x)
+  if (is.null(xlim)) xlim <- bounds$xlim
+  if (is.null(ylim)) ylim <- bounds$ylim
+  if (!add) {
+    plot.new()
+    plot(NA, type="n", xlim=xlim, ylim=ylim, asp=asp, ...)
+  }
+  ## Outline
+  if (outline) {
+    lines(bounds$polygon, ...)
+  }
+  ## Graticule
+  inla.crs.graticule(x, n=graticule, add=TRUE, do.plot=TRUE, ...)
+  ## Tissot
+  ##      tissot(x, n=tissot, add=TRUE, asp=asp, ...)
+  invisible(NULL)
+}
+
+plot.CRS <- function(x, xlim=NULL, ylim=NULL,
+                     outline=TRUE,
+                     graticule=c(24, 12),
+                     tissot=c(12,6),
+                     asp=1,
+                     add=FALSE,
+                     ...) {
+  invisible(plot.inla.CRS(x, xlim=xlim, ylim=ylim,
+                          outline=outline, graticule=graticule, tissot=tissot,
+                          asp=asp, add=add, ...))
+}
+
 
 
 inla.CRS <- function(projargs = NA_character_, doCheckCRSArgs = TRUE,
@@ -52,6 +191,10 @@ inla.CRS <- function(projargs = NA_character_, doCheckCRSArgs = TRUE,
   x <- CRS(projargs, doCheckCRSArgs=doCheckCRSArgs)
 
   if (!is.null(orient)) {
+    stopifnot(is.vector(orient))
+    if (length(orient) < 4) {
+      orient <- c(orient, rep(0, 4-length(orient)))
+    }
     x <- list(crs=x, orient=orient)
     class(x) <- "inla.CRS"
   }
@@ -111,9 +254,73 @@ inla.as.list.CRSargs <- function(x, ...) {
 }
 
 
-inla.crs.transform.orient <- function(x, orient, inverse) {
-  warning("inla.crs.transform.orient NOT IMPLEMENTED")
-  x
+inla.rotmat3213 <- function(rot)
+{
+  cs <- cos(rot[1])
+  sn <- sin(rot[1])
+  R <- matrix(c(cs, -sn, 0,
+                sn, cs, 0,
+                0, 0, 1), 3, 3)
+  cs <- cos(rot[2])
+  sn <- sin(rot[2])
+  R <- R %*% matrix(c(cs, 0, sn,
+                      0, 1, 0,
+                      -sn, 0, cs), 3, 3)
+  cs <- cos(rot[3])
+  sn <- sin(rot[3])
+  R <- R %*% matrix(c(1, 0, 0,
+                      0, cs, -sn,
+                      0, sn, cs), 3, 3)
+  cs <- cos(rot[4])
+  sn <- sin(rot[4])
+  R <- R %*% matrix(c(cs, -sn, 0,
+                      sn, cs, 0,
+                      0, 0, 1), 3, 3)
+  R
+}
+
+inla.rotmat3123 <- function(rot)
+{
+  cs <- cos(rot[4])
+  sn <- sin(rot[4])
+  R <- matrix(c(cs, -sn, 0,
+                sn, cs, 0,
+                0, 0, 1), 3, 3)
+  cs <- cos(rot[3])
+  sn <- sin(rot[3])
+  R <- R %*% matrix(c(1, 0, 0,
+                      0, cs, -sn,
+                      0, sn, cs), 3, 3)
+  cs <- cos(rot[2])
+  sn <- sin(rot[2])
+  R <- R %*% matrix(c(cs, 0, sn,
+                      0, 1, 0,
+                      -sn, 0, cs), 3, 3)
+  cs <- cos(rot[1])
+  sn <- sin(rot[1])
+  R <- R %*% matrix(c(cs, -sn, 0,
+                      sn, cs, 0,
+                      0, 0, 1), 3, 3)
+  R
+}
+
+
+inla.crs.transform.orient <- function(x, orient, to.oblique=TRUE) {
+  if (to.oblique) {
+    ## Transform to oblique orientation
+    ## 1) Rotate -orient[1] around (0,0,1)
+    ## 2) Rotate +orient[2] around (0,1,0)
+    ## 3) Rotate -orient[3] around (1,0,0)
+    ## 3) Rotate -orient[4] around (0,0,1)
+    x %*% rotmat3213(c(-1,1,-1,-1) * orient * pi/180)
+  } else {
+    ## Transform back from oblique orientation
+    ## 1) Rotate +orient[4] around (0,0,1)
+    ## 2) Rotate +orient[3] around (1,0,0)
+    ## 3) Rotate -orient[2] around (0,1,0)
+    ## 4) Rotate +orient[1] around (0,0,1)
+    x %*% rotmat3123(c(1,-1,1,1) *orient * pi/180)
+  }
 }
 
 
@@ -236,7 +443,7 @@ inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
       if (!is.null(crs0$orient)) {
         x <- SpatialPoints(inla.crs.transform.orient(coordinates(x),
                                                      crs0$orient,
-                                                     inverse=TRUE),
+                                                     to.oblique=TRUE),
                            proj4string=inla.CRS("sphere"))
       }
       onshpere <- TRUE
@@ -250,7 +457,7 @@ inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
       if (!is.null(crs1$orient)) {
         x <- SpatialPoints(inla.crs.transform.orient(coordinates(x),
                                                      crs1$orient,
-                                                     inverse=FALSE),
+                                                     to.oblique=FALSE),
                            proj4string=inla.CRS("sphere"))
       }
       x <- spTransform(x, crs1$crs)
