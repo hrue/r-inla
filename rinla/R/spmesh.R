@@ -35,7 +35,7 @@
 ## Export: plot!CRS plot!inla.CRS
 
 
-internal.clip <- function(bounds, coords) {
+internal.clip <- function(bounds, coords, eps=0.05) {
   ## Clip 2D coordinate matrix of polylines and generate a list of Line objects
   ## bounds is from inla.spTransformBounds
   ## This implementation only removes "long" line segments.
@@ -45,7 +45,7 @@ internal.clip <- function(bounds, coords) {
     which(c(TRUE,
             (diff(coords[,1]) / diff(bounds$xlim))^2
             + (diff(coords[,2]) / diff(bounds$ylim))^2
-            > 0.1^2,
+            > eps^2,
             TRUE))
   start <- toolong[-length(toolong)]
   ending <- toolong[-1] - 1
@@ -60,18 +60,18 @@ internal.clip <- function(bounds, coords) {
 }
 
 
-inla.crs.graticule <- function(x, n=c(24, 12), add=FALSE, do.plot=TRUE,
-                               ...)
+inla.crs.graticule <- function(x, by=c(15, 15), add=FALSE, do.plot=TRUE,
+                               eps=0.05, ...)
 {
   ## Graticule
-  if (is.null(n)) {
+  if (is.null(by)) {
     return(invisible(list()))
   }
   bounds <- inla.spTransformBounds(x)
-  if (n[1] > 0) {
-    graticule1 <- floor(n[1]/2)
-    lon <- ((-graticule1):graticule1) * 2/n[1]*180
-    lat <- seq( -90+1e-6,  90-1e-6, by=2)
+  if (by[1] > 0) {
+    n <- floor(180/by[1])
+    lon <- ((1-n):n) * by[1]
+    lat <- seq( -90+1e-6,  90-1e-6, length=91)
     meridians <- as.matrix(expand.grid(lat, lon)[,2:1])
     proj.mer.coords <- inla.spTransform(meridians, inla.CRS("longlat"), x)
     proj.mer.coords1 <- matrix(proj.mer.coords[,1], length(lat),
@@ -84,25 +84,33 @@ inla.crs.graticule <- function(x, n=c(24, 12), add=FALSE, do.plot=TRUE,
         unlist(lapply(seq_along(lon),
                       function(k) {
           internal.clip(bounds, cbind(proj.mer.coords1[,k],
-                                      proj.mer.coords2[,k]))
+                                      proj.mer.coords2[,k]),
+                        eps=eps)
         }),
         recursive=FALSE),
         ID="meridians")),
         proj4string=CRS(inla.CRSargs(x)))
     if (do.plot) {
+      args <- list(x=proj.mer, ...)
+      args <- args[intersect(names(args),
+                             union(names(formals(plot.default)),
+                                   union(names(formals(sp:::plot.Spatial)),
+                                         names(formals(sp:::plotSpatialLines)))
+                                   ))]
       if (add) {
-        plot(proj.mer, add=TRUE, ...)
+        do.call(plot, c(list(add=TRUE), args))
       } else {
-        plot(proj.mer, ...)
+        do.call(plot, args)
         add <- TRUE
       }
     }
   } else {
     proj.mer <- NULL
   }
-  if (n[2] > 1) {
-    lon <- seq(-180+1e-6, 180-1e-6, by=2)
-    lat <- seq( -90+1e-6,  90-1e-6, length=1+n[2])[-c(1,1+n[2])]
+  if (by[2] > 0) {
+    n <- ceiling(90/by[2])-1
+    lon <- seq(-180+1e-6, 180-1e-6, length=181)
+    lat <- ((-n):n) * by[2]
     parallels <- as.matrix(expand.grid(lon, lat))
     proj.par.coords <- inla.spTransform(parallels, inla.CRS("longlat"), x)
     proj.par.coords1 <- matrix(proj.par.coords[,1], length(lon),
@@ -120,10 +128,16 @@ inla.crs.graticule <- function(x, n=c(24, 12), add=FALSE, do.plot=TRUE,
         ID="parallels")),
         proj4string=CRS(inla.CRSargs(x)))
     if (do.plot) {
+      args <- list(x=proj.par, ...)
+      args <- args[intersect(names(args),
+                             union(names(formals(plot.default)),
+                                   union(names(formals(sp:::plot.Spatial)),
+                                         names(formals(sp:::plotSpatialLines)))
+                                   ))]
       if (add) {
-        plot(proj.par, add=TRUE, ...)
+        do.call(plot, c(list(add=TRUE), args))
       } else {
-        plot(proj.par, ...)
+        do.call(plot, args)
       }
     }
   } else {
@@ -134,35 +148,42 @@ inla.crs.graticule <- function(x, n=c(24, 12), add=FALSE, do.plot=TRUE,
 
 plot.inla.CRS <- function(x, xlim=NULL, ylim=NULL,
                           outline=TRUE,
-                          graticule=c(24, 12),
-                          tissot=c(12,6),
+                          graticule=c(15, 15),
+                          tissot=c(30,30),
                           asp=1,
                           add=FALSE,
+                          eps=0.05,
                           ...)
 {
   bounds <- inla.spTransformBounds(x)
   if (is.null(xlim)) xlim <- bounds$xlim
   if (is.null(ylim)) ylim <- bounds$ylim
   if (!add) {
-    plot(NA, type="n", xlim=xlim, ylim=ylim, asp=asp, ...)
+    args <- list(x=NA, type="n", xlim=xlim, ylim=ylim, asp=asp, ...)
+    args <- args[intersect(names(args), names(formals(plot.default)))]
+    do.call(plot, args)
   }
   ## Outline
   if (outline) {
-    lines(bounds$polygon, ...)
+    args <- list(x=bounds$polygon, ...)
+    args <- args[intersect(names(args), union(names(formals(lines.default)),
+                                              names(formals(plot.xy))))]
+    do.call(lines, args)
   }
   ## Graticule
-  inla.crs.graticule(x, n=graticule, add=TRUE, do.plot=TRUE, ...)
+  inla.crs.graticule(x, by=graticule, add=TRUE, do.plot=TRUE, eps=eps, ...)
   ## Tissot
-  ##      tissot(x, n=tissot, add=TRUE, asp=asp, ...)
+  ##      tissot(x, by=tissot, add=TRUE, asp=asp, ...)
   invisible(NULL)
 }
 
 plot.CRS <- function(x, xlim=NULL, ylim=NULL,
                      outline=TRUE,
-                     graticule=c(24, 12),
-                     tissot=c(12,6),
+                     graticule=c(15, 15),
+                     tissot=c(30,30),
                      asp=1,
                      add=FALSE,
+                     eps=0.05,
                      ...) {
   invisible(plot.inla.CRS(x, xlim=xlim, ylim=ylim,
                           outline=outline, graticule=graticule, tissot=tissot,
