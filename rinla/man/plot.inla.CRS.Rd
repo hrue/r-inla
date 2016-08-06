@@ -11,11 +11,11 @@
 \usage{
 \method{plot}{inla.CRS}(x,
      xlim = NULL, ylim = NULL,
-     outline = TRUE, graticule = c(24, 12), tissot = c(12, 6),
+     outline = TRUE, graticule = c(15, 15), tissot = c(30, 30),
      asp = 1, add = FALSE, ...)
 \method{plot}{CRS}(x,
      xlim = NULL, ylim = NULL,
-     outline = TRUE, graticule = c(24, 12), tissot = c(12, 6),
+     outline = TRUE, graticule = c(15, 15), tissot = c(30, 30),
      asp = 1, add = FALSE, ...)
 }
 \arguments{
@@ -32,9 +32,11 @@
   Logical, if \code{TRUE}, draw the outline of the projection.
 }
 \item{graticule}{
-  If a length 2 vector is given, plot meridians (spacing
-  \code{360/n[1]}) and parallels (spacing \code{180/n[2]}). Set
-  \code{graticule=NULL} to skip drawing graticules.
+  If a length 2 vector is given, plot meridians with spacing
+  \code{graticule[1]} degrees and parallels with spacing
+  \code{graticule[2]} degrees. When \code{graticule[1]==0} no meridians
+  are drawn, and when \code{graticule[2]==0} no parallels are drawn. Use
+  \code{graticule=NULL} to skip drawing a graticule.
 }
 \item{tissot}{
   Not yet implemented.
