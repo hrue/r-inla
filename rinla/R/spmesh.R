@@ -172,12 +172,11 @@ plot.CRS <- function(x, xlim=NULL, ylim=NULL,
 inla.CRS <- function(projargs = NA_character_, doCheckCRSArgs = TRUE,
                      args=NULL, orient=NULL, ...) {
   predef <- list(
-    longlat = "+proj=longlat +ellps=sphere +a=1 +b=1",
     hammer = "+proj=hammer +ellps=sphere +units=m +a=0.7071067811865476 +b=0.7071067811865476",
     lambert = "+proj=cea +ellps=sphere +lat_ts=0 +units=m +a=1 +b=1",
+    longlat = "+proj=longlat +ellps=sphere +a=1 +b=1",
     mollweide = "+proj=moll +ellps=sphere +units=m +a=0.7071067811865476 +b=0.7071067811865476",
-    sphere = "+proj=geocent +ellps=sphere +a=1 +b=1 +units=m",
-)
+    sphere = "+proj=geocent +ellps=sphere +a=1 +b=1 +units=m")
   if (projargs %in% names(predef)) {
     projargs <- predef[[projargs]]
   }
@@ -315,14 +314,14 @@ inla.crs.transform.orient <- function(x, orient, to.oblique=TRUE) {
     ## 2) Rotate +orient[2] around (0,1,0)
     ## 3) Rotate -orient[3] around (1,0,0)
     ## 3) Rotate -orient[4] around (0,0,1)
-    x %*% rotmat3213(c(-1,1,-1,-1) * orient * pi/180)
+    x %*% inla.rotmat3213(c(-1,1,-1,-1) * orient * pi/180)
   } else {
     ## Transform back from oblique orientation
     ## 1) Rotate +orient[4] around (0,0,1)
     ## 2) Rotate +orient[3] around (1,0,0)
     ## 3) Rotate -orient[2] around (0,1,0)
     ## 4) Rotate +orient[1] around (0,0,1)
-    x %*% rotmat3123(c(1,-1,1,1) *orient * pi/180)
+    x %*% inla.rotmat3123(c(1,-1,1,1) *orient * pi/180)
   }
 }
 
