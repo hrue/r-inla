@@ -64,11 +64,12 @@ inla.crs.graticule <- function(x, n=c(24, 12), add=FALSE, do.plot=TRUE,
   if (is.null(n)) {
     return(invisible(list()))
   }
+  bounds <- inla.spTransformBounds(x)
   if (n[1] > 0) {
     graticule1 <- floor(n[1]/2)
     lon <- ((-graticule1):graticule1) * 2/n[1]*180
     lat <- seq( -90,  90, by=2)
-    meridians <- expand.grid(lat, lon)[,2:1]
+    meridians <- as.matrix(expand.grid(lat, lon)[,2:1])
     proj.mer.coords <- inla.spTransform(meridians, inla.CRS("longlat"), x)
     proj.mer.coords1 <- matrix(proj.mer.coords[,1], length(lat),
                                length(lon))
@@ -79,8 +80,8 @@ inla.crs.graticule <- function(x, n=c(24, 12), add=FALSE, do.plot=TRUE,
       sp::SpatialLines(list(sp::Lines(
         unlist(lapply(seq_along(lon),
                       function(k) {
-          internal.clip(x, cbind(proj.mer.coords1[,k],
-                                 proj.mer.coords2[,k]))
+          internal.clip(bounds, cbind(proj.mer.coords1[,k],
+                                      proj.mer.coords2[,k]))
         }),
         recursive=FALSE),
         ID="meridians")),
@@ -99,7 +100,7 @@ inla.crs.graticule <- function(x, n=c(24, 12), add=FALSE, do.plot=TRUE,
   if (n[2] > 1) {
     lon <- seq(-180, 180, by=2)
     lat <- seq( -90,  90, length=1+n[2])[-c(1,1+n[2])]
-    parallels <- expand.grid(lon, lat)
+    parallels <- as.matrix(expand.grid(lon, lat))
     proj.par.coords <- inla.spTransform(parallels, inla.CRS("longlat"), x)
     proj.par.coords1 <- matrix(proj.par.coords[,1], length(lon),
                                length(lat))
@@ -109,8 +110,8 @@ inla.crs.graticule <- function(x, n=c(24, 12), add=FALSE, do.plot=TRUE,
       sp::SpatialLines(list(sp::Lines(
         unlist(lapply(seq_along(lat),
                       function(k) {
-          .clip(x, cbind(proj.par.coords1[,k],
-                         proj.par.coords2[,k]))
+          internal.clip(bounds, cbind(proj.par.coords1[,k],
+                                      proj.par.coords2[,k]))
         }),
         recursive=FALSE),
         ID="parallels")),
