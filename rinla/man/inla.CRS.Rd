@@ -15,7 +15,8 @@ inla.CRS(projargs = NA_character_, doCheckCRSArgs = TRUE,
   \item{projargs}{
     Either a projection argument string suitable as input to
     \code{sp::CRS}, or a shortcut reference string to a predefined projection
-    (\code{longlat}, \code{sphere}, \code{mollweide}, \code{lambert}).
+    (\code{longlat}, \code{lambert}, \code{mollweide},
+    \code{hammer}, and \code{sphere}).
 }
 \item{doCheckCRSArgs}{
   default TRUE, must be set to FALSE by package
@@ -58,19 +59,21 @@ inla.CRS(projargs = NA_character_, doCheckCRSArgs = TRUE,
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-  \code{\link[sp]{CRS}}, \code{\link{inla.CRSargs}}
+  \code{\link[sp]{CRS}}, \code{\link{inla.CRSargs}}, \code{\link{plot.CRS}}
 }
 \examples{
 if (require(rgdal)) {
   crs1 <- inla.CRS("+proj=longlat +ellps=sphere +a=1 +b=1")
-  crs2 <- inla.CRS("+proj=geocent +ellps=sphere +a=1 +b=1 +units=m")
+  crs2 <- inla.CRS("+proj=cea +ellps=sphere +lat_ts=0 +units=m +a=1 +b=1")
   crs3 <- inla.CRS("+proj=moll +ellps=sphere +units=m +a=0.7071067811865476 +b=0.7071067811865476")
-  crs4 <- inla.CRS("+proj=cea +ellps=sphere +lat_ts=0 +units=m +a=1 +b=1")
+  crs4 <- inla.CRS("+proj=hammer +ellps=sphere +units=m +a=0.7071067811865476 +b=0.7071067811865476")
+  crs5 <- inla.CRS("+proj=geocent +ellps=sphere +a=1 +b=1 +units=m")
   ## Shortcuts:
   crs1 <- inla.CRS("longlat")
-  crs2 <- inla.CRS("sphere")
+  crs2 <- inla.CRS("lambert")
   crs3 <- inla.CRS("mollweide")
-  crs4 <- inla.CRS("lambert")
+  crs4 <- inla.CRS("hammer")
+  crs5 <- inla.CRS("sphere")
 }
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
