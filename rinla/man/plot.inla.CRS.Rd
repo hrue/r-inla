@@ -13,7 +13,10 @@
      xlim = NULL, ylim = NULL,
      outline = TRUE, graticule = c(24, 12), tissot = c(12, 6),
      asp = 1, add = FALSE, ...)
-\method{plot}{CRS}(x, ...)
+\method{plot}{CRS}(x,
+     xlim = NULL, ylim = NULL,
+     outline = TRUE, graticule = c(24, 12), tissot = c(12, 6),
+     asp = 1, add = FALSE, ...)
 }
 \arguments{
   \item{x}{
