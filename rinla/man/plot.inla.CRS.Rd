@@ -11,11 +11,15 @@
 \usage{
 \method{plot}{inla.CRS}(x,
      xlim = NULL, ylim = NULL,
-     outline = TRUE, graticule = c(15, 15), tissot = c(30, 30),
+     outline = TRUE,
+     graticule = c(15, 15, 45),
+     tissot = c(30, 30, 30),
      asp = 1, add = FALSE, ...)
 \method{plot}{CRS}(x,
      xlim = NULL, ylim = NULL,
-     outline = TRUE, graticule = c(15, 15), tissot = c(30, 30),
+     outline = TRUE,
+     graticule = c(15, 15, 45),
+     tissot = c(30, 30, 30),
      asp = 1, add = FALSE, ...)
 }
 \arguments{
@@ -32,14 +36,20 @@
   Logical, if \code{TRUE}, draw the outline of the projection.
 }
 \item{graticule}{
-  If a length 2 vector is given, plot meridians with spacing
+  Vector of length at most 3, to plot meridians with spacing
   \code{graticule[1]} degrees and parallels with spacing
-  \code{graticule[2]} degrees. When \code{graticule[1]==0} no meridians
+  \code{graticule[2]} degrees. \code{graticule[3]} optionally specifies
+  the spacing above and below the first and last parallel.
+  When \code{graticule[1]==0} no meridians
   are drawn, and when \code{graticule[2]==0} no parallels are drawn. Use
   \code{graticule=NULL} to skip drawing a graticule.
 }
 \item{tissot}{
-  Not yet implemented.
+  Vector of length at most 3, to plot Tissot's indicatrices with spacing
+  \code{tissot[1]} degrees and parallels with spacing
+  \code{tissot[2]} degrees. \code{tissot[3]} specifices a scaling
+  factor.
+  Use \code{tissot=NULL} to skip drawing a Tissot's indicatrices.
 }
 \item{asp}{
   The aspect ratio for the plot, default 1.
