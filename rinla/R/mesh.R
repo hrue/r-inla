@@ -601,7 +601,7 @@ inla.mesh.lattice <- function(x=seq(0, 1, length.out=2),
     if (!is.null(units)) {
       stop("Only one of 'units' and 'crs' can be non-null.")
     }
-    bounds <- inla.spTransformBounds(crs)
+    bounds <- inla.crs.bounds(crs)
     xlim = bounds$xlim
     ylim = bounds$ylim
   }
@@ -2045,7 +2045,7 @@ inla.mesh.projector.inla.mesh <-
         units = projection
         lim = inla.mesh.map.lim(loc=mesh$loc, projection=projection)
       } else {
-        lim <- inla.spTransformBounds(crs)
+        lim <- inla.crs.bounds(crs)
         if (identical(mesh$manifold, "R2")) {
           lim0 <- list(xlim=range(mesh$loc[,1]),
                        ylim=range(mesh$loc[,2]))
