@@ -9,7 +9,7 @@
 }
 \usage{
 inla.CRS(projargs = NA_character_, doCheckCRSArgs = TRUE,
-         args = NULL, orient = NULL, ...)
+         args = NULL, oblique = NULL, ...)
 }
 \arguments{
   \item{projargs}{
@@ -29,9 +29,16 @@ inla.CRS(projargs = NA_character_, doCheckCRSArgs = TRUE,
   \code{"+name=value"}, and \code{name=NA} is converted to
   \code{"+name"}.
 }
-\item{orient}{
-  Vector of length 4 of rotation angles for an oblique projection.
-  Not yet implemented.
+\item{oblique}{
+  Vector of length at most 4 of rotation angles for an oblique
+  projection, all values defaulting to zero. The first two elements are
+  the (longitude, latitude) coordinates for the oblique centre
+  point. The third value is a counterclockwise rotation angle for an
+  observer looking at the centre point from outside the sphere. The
+  fourth value is the quasi-longitude for of a rotation along the
+  oblique observers equator.  When \code{oblique[2]} or
+  \code{oblique[3]} are non-zero, the resulting projection is only
+  correct for perfect spheres.
 }
 \item{\dots}{Additional parameters. Not currently in use.}
 }
