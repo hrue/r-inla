@@ -14,13 +14,15 @@
      outline = TRUE,
      graticule = c(15, 15, 45),
      tissot = c(30, 30, 30),
-     asp = 1, add = FALSE, ...)
+     asp = 1, add = FALSE,
+     eps=0.05, ...)
 \method{plot}{CRS}(x,
      xlim = NULL, ylim = NULL,
      outline = TRUE,
      graticule = c(15, 15, 45),
      tissot = c(30, 30, 30),
-     asp = 1, add = FALSE, ...)
+     asp = 1, add = FALSE,
+     eps=0.05, ...)
 }
 \arguments{
   \item{x}{
@@ -56,6 +58,9 @@
 }
 \item{add}{
   If \code{TRUE}, add the projecton plot to an existing plot.
+}
+\item{eps}{
+  Clipping tolerance for rudimentary boundary clipping
 }
 \item{\dots}{
   Additional arguments passed on to the internal calls to \code{plot}
