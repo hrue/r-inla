@@ -198,15 +198,78 @@ inla.crs.graticule <- function(x, by=c(15, 15, 45), add=FALSE, do.plot=TRUE,
   invisible(list(meridians=proj.mer, parallels=proj.par))
 }
 
-inla.crs.tissot <- function(x, by=c(15, 15), add=FALSE, do.plot=TRUE, ...)
+inla.crs.tissot <- function(x, by=c(30, 30, 30), add=FALSE, do.plot=TRUE,
+                            eps=0.05, diff.eps=1e-2, ...)
 {
-  invisible(NULL)
+  if (is.null(by)) {
+    return(invisible(list()))
+  }
+  if (length(by) < 2) {
+    by <- c(by[1], by[1], 30)
+  } else if (length(by) < 3) {
+    by <- c(by[1:2], 30)
+  }
+  bounds <- inla.crs.bounds(x)
+  n <- c(floor(180/by[1]), ceiling(90/by[2])-1)
+  lon <- ((1-n[1]):n[1]) * by[1]
+  lat <- ((-n[2]):n[2]) * by[2]
+  loc0.lon <- loc0.lat <- loc0 <-
+    cbind(as.matrix(expand.grid(lat, lon)[,2:1]), 0)
+  loc0.lon[,1] <- loc0.lon[,1] + diff.eps / cos(loc0.lat[,2]*pi/180)
+  loc0.lat[,2] <- loc0.lat[,2] + diff.eps
+  crs.longlat <- inla.CRS("longlat")
+
+  loc1 <- inla.spTransform(loc0, crs.longlat, x)
+  loc1.lon <- inla.spTransform(loc0.lon, crs.longlat, x)
+  loc1.lat <- inla.spTransform(loc0.lat, crs.longlat, x)
+  ok <- (rowSums(is.na(loc1)) +
+         rowSums(is.na(loc1.lon)) +
+         rowSums(is.na(loc1.lat)) == 0)
+  loc1 <- loc1[ok,,drop=FALSE]
+  loc1.lon <- loc1.lon[ok,,drop=FALSE]
+  loc1.lat <- loc1.lat[ok,,drop=FALSE]
+
+  diff.lon <- (loc1.lon - loc1)/eps
+  diff.lat <- (loc1.lat - loc1)/eps
+
+  scale <- by[3]
+  theta <- seq(0, 2*pi, length=181)
+  ct <- cos(theta) * scale
+  st <- sin(theta) * scale
+
+  collection <-
+      sp::SpatialLines(list(sp::Lines(
+        unlist(lapply(seq_len(nrow(loc1)),
+                      function(k) {
+          loc1.ellipse <-
+            cbind(loc1[k,1] + diff.lon[k,1] * ct + diff.lat[k,1] * st,
+                  loc1[k,2] + diff.lon[k,2] * ct + diff.lat[k,2] * st)
+          internal.clip(bounds, loc1.ellipse, eps=eps)
+        }),
+        recursive=FALSE),
+        ID="parallels")),
+        proj4string=CRS(inla.CRSargs(x)))
+  if (do.plot) {
+    args <- list(x=collection, ...)
+    args <- args[intersect(names(args),
+                           union(names(formals(plot.default)),
+                                 union(names(formals(sp:::plot.Spatial)),
+                                       names(formals(sp:::plotSpatialLines)))
+                                 ))]
+    if (add) {
+      do.call(plot, c(list(add=TRUE), args))
+    } else {
+      do.call(plot, args)
+    }
+  }
+
+  invisible(list(tissot=collection))
 }
 
 plot.inla.CRS <- function(x, xlim=NULL, ylim=NULL,
                           outline=TRUE,
                           graticule=c(15, 15, 45),
-                          tissot=c(30,30),
+                          tissot=c(30,30,30),
                           asp=1,
                           add=FALSE,
                           eps=0.05,
@@ -230,14 +293,14 @@ plot.inla.CRS <- function(x, xlim=NULL, ylim=NULL,
   ## Graticule
   inla.crs.graticule(x, by=graticule, add=TRUE, do.plot=TRUE, eps=eps, ...)
   ## Tissot
-  inla.crs.tissot(x, by=tissot, add=TRUE, ...)
+  inla.crs.tissot(x, by=tissot, add=TRUE, do.plot=TRUE, eps=eps, ...)
   invisible(NULL)
 }
 
 plot.CRS <- function(x, xlim=NULL, ylim=NULL,
                      outline=TRUE,
                      graticule=c(15, 15, 45),
-                     tissot=c(30,30),
+                     tissot=c(30,30,30),
                      asp=1,
                      add=FALSE,
                      eps=0.05,
@@ -407,13 +470,13 @@ inla.crs.transform.oblique <- function(x, oblique, to.oblique=TRUE) {
 
 
 
-## +proj=longlat in (-180,360)x(-90,90)
+## +proj=longlat in (-180,180)x(-90,90)
 ## +proj=moll in (-2,2)x(-1,1) scaled by +a and +b, and +units
 ## +proj=lambert in (-pi,pi)x(-1,1) scaled by +a and +b, and +units
 inla.crs.bounds <- function(crs) {
   args <- inla.as.list.CRS(crs)
   if (args[["proj"]] == "longlat") {
-    bounds <- list(type="rectangle", xlim=c(-180,360), ylim=c(-90,90))
+    bounds <- list(type="rectangle", xlim=c(-180,180), ylim=c(-90,90))
   } else if (args[["proj"]] == "cea") {
     axis <- c(pi, 1)
     if (!is.null(args[["a"]])) {
@@ -510,6 +573,10 @@ inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
       ok <- TRUE
     } else {
       bounds <- inla.crs.bounds(crs0)
+      if (identical(inla.as.list.CRS(crs0)[["proj"]], "longlat")) {
+        ## Wrap longitudes to [-180,180)
+        x[,1] <- ((x[,1] + 180) %% 360) - 180
+      }
       ok <- inla.crs.bounds.check(x, bounds)
       if (!all(ok)) {
         xx <- x
