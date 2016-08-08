@@ -16,7 +16,7 @@
  \value{
    None
  }
- \description{
+ \details{
    Try to \code{load} the file into the global environment,
    if that fail,  try to \code{source} the file into the
    global environment.

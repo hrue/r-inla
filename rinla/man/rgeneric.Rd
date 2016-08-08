@@ -10,13 +10,15 @@
 \alias{inla.rgeneric.ar1.model}
 \alias{rgeneric.iid.model}
 \alias{inla.rgeneric.iid.model}
+\alias{rgeneric.wrapper}
+\alias{inla.rgeneric.wrapper}
 
 \title{rgeneric models}
 
 \description{A framework for defining latent models in R}
 
 \usage{
-inla.rgeneric.define(model = NULL, debug = TRUE, R.init = NULL, ...)
+inla.rgeneric.define(model = NULL, debug = FALSE, R.init = NULL, ...)
 inla.rgeneric.iid.model(
         cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
         theta = NULL, args = NULL)

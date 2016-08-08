@@ -15,13 +15,15 @@
  \description{A function to evaluate the PC-prior for the degrees of freedom
               in a standarized Student-t distribution}
  \usage{
- inla.pc.ddof(dof, lambda, u, alpha, log=FALSE)
+     inla.pc.ddof(dof, lambda, u, alpha, log=FALSE)
  }
  \arguments{
    \item{dof}{Degrees of freedom}
    \item{log}{Logical. Return the density or the log-density}
+   \item{lambda}{The optional value of \code{lambda},  instead of defining it implicitely
+                 through \code{u} and \code{alpha}}
    \item{u}{The upper value of dof used to elicitate \code{lambda},  \code{Prob(dof < u) = alpha}}
-   \item{u}{The probability \code{alpha} used to elicitate \code{lambda}}
+   \item{alpha}{The probability \code{alpha} used to elicitate \code{lambda}}
 }
  \details{
    These functions implements the PC-prior for the dof in a standarized Student-t

@@ -1,8 +1,8 @@
-## Export: inla.sens
-## Export: inla.sens.distance
-## Export: inla.sens.distance.skew
-## Export: inla.sens.skewMap
-## Export: inla.sens.post
+## NoExport: inla.sens
+## NoExport: inla.sens.distance
+## NoExport: inla.sens.distance.skew
+## NoExport: inla.sens.skewMap
+## NoExport: inla.sens.post
 
 ##!\name{inla.sens}
 ##!
