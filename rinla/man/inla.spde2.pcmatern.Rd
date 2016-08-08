@@ -10,6 +10,7 @@
 \usage{
 inla.spde2.pcmatern(mesh,
                     alpha = 2,
+                    param = NULL,
                     constr = FALSE,
                     extraconstr.int = NULL,
                     extraconstr = NULL,
@@ -25,6 +26,8 @@ inla.spde2.pcmatern(mesh,
   }
   \item{alpha}{Fractional operator order, \eqn{0<\alpha\leq 2}{0 < alpha
       <= 2}
+    supported, for \eqn{\nu=\alpha-d/2>0}.}
+  \item{param}{TODO}
     supported, for \eqn{\nu=\alpha-d/2>0}.}
   \item{constr}{If \code{TRUE}, apply an integrate-to-zero constraint.
     Default \code{FALSE}.}
