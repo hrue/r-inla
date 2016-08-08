@@ -197,7 +197,6 @@
 
         ##:ARGUMENT: jp.func The R-function which returns the joint prior,  to be defined in \code{jp.Rfile} 
         jp.func = NULL
-
         )
 
     ##:SEEALSO: inla
