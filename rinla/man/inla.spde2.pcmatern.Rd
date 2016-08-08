@@ -25,10 +25,8 @@ inla.spde2.pcmatern(mesh,
     \code{\link{inla.mesh.1d}} object.
   }
   \item{alpha}{Fractional operator order, \eqn{0<\alpha\leq 2}{0 < alpha
-      <= 2}
-    supported, for \eqn{\nu=\alpha-d/2>0}.}
+      <= 2} supported, for \eqn{\nu=\alpha-d/2>0}.}
   \item{param}{TODO}
-    supported, for \eqn{\nu=\alpha-d/2>0}.}
   \item{constr}{If \code{TRUE}, apply an integrate-to-zero constraint.
     Default \code{FALSE}.}
   \item{extraconstr.int}{Field integral constraints.}
