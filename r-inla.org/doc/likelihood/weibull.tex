@@ -42,14 +42,21 @@ and the prior is defined on $\theta$.
 \subsection*{Specification}
 
 \begin{itemize}
-\item $\text{family}=\texttt{weibull}$
-\item Required arguments: $y$ (to be given in a format by using
-    $\texttt{inla.surv()}$ function )
+\item $\text{family}=\texttt{weibull}$ for regression and
+ $\text{family}=\texttt{weibullsurv}$ for survival
+\item Required arguments: $y$ (to be given using
+    $\texttt{inla.surv()}$ for survival models)
 \end{itemize}
 
 \subsubsection*{Hyperparameter spesification and default values}
-\input{../hyper/likelihood/weibull.tex}
-
+\paragraph{weibull}
+\begin{quote}
+    \input{../hyper/likelihood/weibull.tex}
+\end{quote}
+\paragraph{weibullsurv}
+\begin{quote}
+    \input{../hyper/likelihood/weibullsurv.tex}
+\end{quote}
 
 \subsection*{Example}
 
@@ -60,20 +67,11 @@ case \verbatiminput{example-weibull.R}
 
 \begin{itemize}
 \item Weibull model can be used for right censored, left censored,
-    interval censored data.
-\item A general frame work to represent time is given by
-    $\texttt{inla.surv}$
-\item If the observed times $y$ are large/huge, then this can cause
-    numerical overflow in the likelihood routines giving error
-    messages like
-\begin{verbatim}
-        file: smtp-taucs.c  hgid: 891deb69ae0c  date: Tue Nov 09 22:34:28 2010 +0100
-        Function: GMRFLib_build_sparse_matrix_TAUCS(), Line: 611, Thread: 0
-        Variable evaluates to NAN/INF. This does not make sense. Abort...
-\end{verbatim}
+    interval censored data. If the observed times $y$ are large/huge,
+    then this can cause numerical overflow in the likelihood routine.
     If you encounter this problem, try to scale the observatios,
     \verb|time = time / max(time)| or similar, before running
-    \verb|inla()|. 
+    \verb|inla()|.
 \end{itemize}
 
 

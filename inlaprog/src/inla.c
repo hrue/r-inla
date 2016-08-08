@@ -3331,6 +3331,12 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[0] = NULL;
 		break;
 
+	case L_WEIBULL:
+		idiv = 2;
+		a[0] = NULL;
+		break;
+
+
 	case L_KUMAR:
 		idiv = 2;
 		a[0] = NULL;
@@ -3434,7 +3440,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_EXPONENTIALSURV:
-	case L_WEIBULL:
+	case L_WEIBULLSURV:
 	case L_WEIBULL_CURE:
 	case L_LOGLOGISTIC:
 	case L_LOGNORMALSURV:
@@ -6524,6 +6530,42 @@ int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_ve
 	 * y ~ Weibull.
 	 */
 	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	int i, ievent;
+	double y, alpha, lalpha, lambda, ypow;
+
+	y = ds->data_observations.y[idx];
+	alpha = map_alpha_weibull(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	ypow = pow(y, alpha);
+
+	LINK_INIT;
+	if (m > 0) {
+		lalpha = log(alpha);
+		for (i = 0; i < m; i++) {
+			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			logll[i] = log(lambda) + lalpha + (alpha - 1.0) * log(y) - lambda * ypow;
+		}
+	} else {
+		ypow = pow(y, alpha);
+		for (i = 0; i < -m; i++) {
+			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			logll[i] = 1.0 - exp(-lambda * ypow);
+		}
+
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_weibullsurv(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * y ~ Weibull.
+	 */
+	if (m == 0) {
 		return GMRFLib_SUCCESS;
 	}
 
@@ -9088,6 +9130,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "WEIBULL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_weibull;
 		ds->data_id = L_WEIBULL;
+	} else if (!strcasecmp(ds->data_likelihood, "WEIBULLSURV")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_weibullsurv;
+		ds->data_id = L_WEIBULLSURV;
 	} else if (!strcasecmp(ds->data_likelihood, "LOGLOGISTIC")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_loglogistic;
 		ds->data_id = L_LOGLOGISTIC;
@@ -9334,6 +9379,17 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
+	case L_WEIBULL:
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Weibull data[%1d] (y) = (%g) is void\n", secname, i, ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+		break;
+
 	case L_GPOISSON:
 	case L_ZEROINFLATEDPOISSON0:
 	case L_ZEROINFLATEDPOISSON1:
@@ -9454,7 +9510,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_EXPONENTIALSURV:
-	case L_WEIBULL:
+	case L_WEIBULLSURV:
 	case L_WEIBULL_CURE:
 	case L_LOGLOGISTIC:
 	case L_LOGNORMALSURV:
@@ -11929,6 +11985,56 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("alpha_intern for weibull", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("alpha parameter for weibull", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.alpha_intern;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_alpha_weibull;	/* alpha = exp(alpha.intern) */
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+		break;
+	}
+
+	case L_WEIBULLSURV:
+	{
+		/*
+		 * get options related to the weibullsurv
+		 */
+		double initial_value = 0.0;
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
+		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
+		if (!ds->data_fixed && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.alpha_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise alpha_intern[%g]\n", ds->data_observations.alpha_intern[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+		}
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA-ALPHA");
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior.hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("alpha_intern for weibullsurv", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("alpha parameter for weibullsurv", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -21342,6 +21448,18 @@ double extra(double *theta, int ntheta, void *argument)
 				if (!ds->data_fixed) {
 					/*
 					 * this is the alpha-parameter in the Weibull 
+					 */
+					double alpha_intern = theta[count];
+
+					val += PRIOR_EVAL(ds->data_prior, &alpha_intern);
+					count++;
+				}
+				break;
+
+			case L_WEIBULLSURV:
+				if (!ds->data_fixed) {
+					/*
+					 * this is the alpha-parameter in the WeibullSurv
 					 */
 					double alpha_intern = theta[count];
 
