@@ -8253,7 +8253,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 				/*
 				 * should not happen
 				 */
-				GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
+				GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, NULL);
 			}
 			Free(secname);
 			Free(sectype);
