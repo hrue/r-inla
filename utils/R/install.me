@@ -107,7 +107,7 @@ zipINLA=${tgzINLA%%.tgz}.zip
 DD=$(echo ~/R/x86_64-redhat-linux-gnu-library/default)
 test -d $DD || mkdir -p $DD
 ##export R_ENABLE_JIT=3
-##export R_COMPILE_PKGS=1
+export R_COMPILE_PKGS=1
 R --vanilla CMD INSTALL --library=$DD $tgzINLA || exit 1
 
 ~/bin/fix-permissions $DD
