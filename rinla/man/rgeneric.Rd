@@ -36,7 +36,7 @@ inla.rgeneric.wrapper(
   \item{cmd}{An allowed request}
   \item{theta}{Values of theta}
   \item{debug}{Logical. Turn on/off debugging}
-  \item{R.init}{An R-file to be loaded or sourced, when the R-engine starts. See \code{inla.load}.}
+  \item{R.init}{An R-file to be loaded or sourced, when the R-engine starts. See \code{inla.load}}
   \item{args}{A list. A list of further args}
   \item{...}{Further args}
   \item{debug}{Logical. Enable debug output}
