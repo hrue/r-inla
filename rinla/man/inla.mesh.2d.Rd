@@ -17,7 +17,10 @@ inla.mesh.2d(loc = NULL,
              max.edge,
              min.angle = NULL,
              cutoff = 1e-12,
-             plot.delay = NULL)
+             max.n.strict = NULL,
+             max.n = NULL,
+             plot.delay = NULL,
+             crs = NULL)
 }
 \arguments{
   \item{loc}{
@@ -55,6 +58,17 @@ inla.mesh.2d(loc = NULL,
     apart as this are replaced by a single vertex prior to the mesh
     refinement step.
   }
+  \item{max.n.strict}{The maximum number of vertices allowed,
+    overriding \code{min.angle} and \code{max.edge}
+    (default=-1, meaning no limit).
+    One or two values, where the second value gives the number of
+    additional vertices allowed for the extension.
+  }
+  \item{max.n}{The maximum number of vertices allowed,
+    overriding \code{max.edge} only (default=-1, meaning no limit).
+    One or two values, where the second value gives the number of
+    additional vertices allowed for the extension.
+  }
   \item{plot.delay}{
     On Linux (and Mac if appropriate X11 libraries are installed),
     specifying a nonnegative numeric value activates a rudimentary
@@ -65,6 +79,9 @@ inla.mesh.2d(loc = NULL,
     On all systems, specifying any negative value activates displaying
     the result after each step of the multi-step domain extension
     algorithm.
+  }
+  \item{crs}{
+    An optional \code{CRS} or \code{inla.CRS} object
   }
 }
 %\details{
