@@ -13,8 +13,9 @@ inla.CRS(projargs = NA_character_, doCheckCRSArgs = TRUE,
 }
 \arguments{
   \item{projargs}{
-    Either a projection argument string suitable as input to
-    \code{sp::CRS}, or a shortcut reference string to a predefined projection
+    Either 1) a projection argument string suitable as input to
+    \code{sp::CRS}, or 2) an existing \code{CRS} object,
+    or 3) a shortcut reference string to a predefined projection
     (\code{longlat}, \code{lambert}, \code{mollweide},
     \code{hammer}, and \code{sphere}).
 }
@@ -30,27 +31,50 @@ inla.CRS(projargs = NA_character_, doCheckCRSArgs = TRUE,
   \code{"+name"}.
 }
 \item{oblique}{
-  Vector of length at most 4 of rotation angles for an oblique
-  projection, all values defaulting to zero. The first two elements are
-  the (longitude, latitude) coordinates for the oblique centre
-  point. The third value is a counterclockwise rotation angle for an
-  observer looking at the centre point from outside the sphere. The
-  fourth value is the quasi-longitude for of a rotation along the
-  oblique observers equator.  When \code{oblique[2]} or
-  \code{oblique[3]} are non-zero, the resulting projection is only
-  correct for perfect spheres.
+  Vector of length at most 4 of rotation angles (in degrees) for an oblique
+  projection, all values defaulting to zero. The values indicate
+  (longitude, latitude, orientation, orbit), as explained in the Details
+  section below.
 }
 \item{\dots}{Additional parameters. Not currently in use.}
 }
-%\details{
-%%  ~~ If necessary, more details than the description above ~~
-%}
+\details{
+  %  ~~ If necessary, more details than the description above ~~
+  The first two elements of the \code{oblique} vector are
+  the (longitude, latitude) coordinates for the oblique centre
+  point. The third value (orientation) is a counterclockwise rotation
+  angle for an observer looking at the centre point from outside the
+  sphere. The fourth value is the quasi-longitude (orbit angle) for
+  a rotation along the oblique observers equator.
+
+  Simple oblique: \code{oblique=c(0, 45)}
+
+  Polar: \code{oblique=c(0, 90)}
+
+  Quasi-transversal: \code{oblique=c(0, 0, 90)}
+
+  Satellite orbit viewpoint:
+  \code{oblique=c(lon0-time*v1, 0, orbitangle, orbit0+time*v2)},
+  where \code{lon0} is the longitude at which a
+  satellite orbit crosses the equator at \code{time=0}, when the
+  satellite is at an angle \code{orbit0} further along in its orbit.
+  The orbital angle relative to the equatorial plane is
+  \code{orbitangle}, and \code{v1} and \code{v2} are the angular
+  velocities of the planet and the satellite, respectively.
+  Note that "forward" from the satellite's point of view is
+  "to the right" in the projection.
+
+  When \code{oblique[2]} or
+  \code{oblique[3]} are non-zero, the resulting projection is only
+  correct for perfect spheres.
+}
 \value{
   Either an \code{sp::CRS} object or an \code{inla.CRS} object,
   depending on if the coordinate reference system described by the
   parameters can be expressed with a pure \code{sp::CRS} object or not.
 
-  An S3 \code{inla.CRS} object is a list containing at least one element: 
+  An S3 \code{inla.CRS} object is a list, usually (but not necessarily)
+  containing at least one element:
   \item{crs }{The basic \code{sp::CRS} object}
 }
 %\references{
