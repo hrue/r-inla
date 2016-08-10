@@ -1084,9 +1084,37 @@
                 stopifnot(length(yy) == MPredictor)
             }
         }
-        
+
         if (!is.null(yy) && !(is.numeric(yy) || is.list(yy) || is.matrix(yy) || inla.is.matrix(yy) || all(is.na(yy)))) {
             stop(paste("The response for family[", i.family, "] is not of type 'numeric|list|matrix'; don't know what to do.", sep=""))
+        }
+
+        ## we can check for 'survial' here, either if data is and family isn'y,  or the oposite
+        if (is.list(yy) &&
+            all(is.element(names(yy), names(inla.surv(1, 1))))) {
+            ## check if family is of survival type. if not, check if appending 'surv' is.
+            if (!inla.model.properties(family[i.family], "likelihood")$survival) {
+                new.fam = paste0(family[i.family], "surv")
+                ok = inla.model.properties(new.fam, "likelihood", stop.on.error=FALSE)$survival
+                if (!is.null(ok) && ok) {
+                    stop(paste0("*** ERROR *** Input family is '", family[i.family],
+                                "' but input data is of 'inla.surv(...)' type\n",
+                                "  *** ERROR *** Do you ment to use family '", new.fam,
+                                "' ?"))
+                }
+            }
+        }
+        if (inla.model.properties(family[i.family], "likelihood")$survival && !is.list(yy)) {
+            ## check if removing 'surv' makes a valid family
+            new.fam = gsub("surv$", "", family[i.family])
+            ok = inla.model.properties(new.fam, "likelihood",
+                                       stop.on.error=FALSE)$survival
+            if (!is.null(ok) && !ok) {
+                stop(paste0("*** ERROR *** Input family is '", family[i.family],
+                            "' and require input of type 'inla.surv(...)'\n",
+                            "  *** ERROR *** Do you ment to use family '", new.fam,
+                            "' ?"))
+            }
         }
 
         files = inla.create.data.file(y.orig= yy, mf=mf, E=E, scale=scale, 
