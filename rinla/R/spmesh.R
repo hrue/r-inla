@@ -314,26 +314,34 @@ plot.CRS <- function(x, xlim=NULL, ylim=NULL,
 
 inla.CRS <- function(projargs = NA_character_, doCheckCRSArgs = TRUE,
                      args=NULL, oblique=NULL, ...) {
+  halfroot <- "+a=0.7071067811865476 +b=0.7071067811865476"
   predef <- list(
-    hammer = "+proj=hammer +ellps=sphere +units=m +a=0.7071067811865476 +b=0.7071067811865476",
+    hammer = paste("+proj=hammer +ellps=sphere +units=m", halfroot),
     lambert = "+proj=cea +ellps=sphere +lat_ts=0 +units=m +a=1 +b=1",
     longlat = "+proj=longlat +ellps=sphere +a=1 +b=1",
-    mollweide = "+proj=moll +ellps=sphere +units=m +a=0.7071067811865476 +b=0.7071067811865476",
+    mollweide = paste("+proj=moll +ellps=sphere +units=m", halfroot),
     sphere = "+proj=geocent +ellps=sphere +a=1 +b=1 +units=m")
-  if (projargs %in% names(predef)) {
-    projargs <- predef[[projargs]]
+  if (is.character(projargs)) {
+    if (projargs %in% names(predef)) {
+      projargs <- predef[[projargs]]
+    }
+    x <- CRS(projargs, doCheckCRSArgs=doCheckCRSArgs)
+  } else if (inherits(projargs, "CRS")) {
+    x <- projargs
+  } else {
+    stop(paste("Unsupported projargs input class",
+               paste(class(projargs), collapse=",")))
   }
   if (!is.null(args)) {
     if (typeof(args) != "list") {
       stop("'args' must be NULL or a list of name=value pairs.")
     }
-    projargs <- inla.as.list.CRSargs(projargs)
+    xargs <- inla.as.list.CRSargs(x)
     for (name in names(args)) {
-      projargs[[name]] <- args[[name]]
+      xargs[[name]] <- args[[name]]
     }
-    projargs <- inla.as.CRSargs.list(projargs)
+    x <- CRS(inla.as.CRSargs.list(xargs), doCheckCRSArgs=doCheckCRSArgs)
   }
-  x <- CRS(projargs, doCheckCRSArgs=doCheckCRSArgs)
 
   if (!is.null(oblique)) {
     stopifnot(is.vector(oblique))
