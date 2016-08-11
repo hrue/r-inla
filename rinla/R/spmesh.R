@@ -697,7 +697,7 @@ inla.internal.sp2segment.join <- function(inp, grp=NULL, closed=TRUE) {
     if (length(inp) > 0) {
       out.loc = matrix(0,0,ncol(inp[[1]]$loc))
       for (k in seq_along(inp)) {
-        crs <- internal.update.crs(crs, inp[[k]]$loc, mismatch.allowed=FALSE)
+        crs <- internal.update.crs(crs, inp[[k]]$crs, mismatch.allowed=FALSE)
       }
     } else {
         out.loc = matrix(0,0,2)
