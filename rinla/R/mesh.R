@@ -1366,7 +1366,7 @@ inla.mesh.2d <-
   unify.one.segm <- function(segm, crs=NULL) {
     if (inherits(segm, "inla.mesh.segment")) {
       segm <- inla.spTransform(segm, crs, passthrough=TRUE)
-    } else if (inherits("matrix")) {
+    } else if (inherits(segm, "matrix")) {
       segm <- inla.mesh.segment(loc=segm, crs=crs)
     } else {
       segm <- inla.spTransform(as.inla.mesh.segment(segm), crs,
