@@ -849,7 +849,6 @@ as.inla.mesh.segment.SpatialPolygonsDataFrame <-
 as.inla.mesh.segment.Polygons <-
     function(sp, join=TRUE, crs=NULL, ...)
 {
-    crs <- CRS(proj4string(sp))
     segm = as.list(lapply(sp@Polygons,
                           function (x) as.inla.mesh.segment(x, crs=crs)))
     if (join)
