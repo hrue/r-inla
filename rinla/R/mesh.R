@@ -1909,7 +1909,8 @@ inla.mesh.project <- function(...)
     UseMethod("inla.mesh.project")
 }
 
-inla.mesh.project.inla.mesh <- function(mesh, loc=NULL, field=NULL, ...)
+inla.mesh.project.inla.mesh <- function(mesh, loc=NULL, field=NULL,
+                                        crs=NULL, ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
@@ -1925,16 +1926,25 @@ inla.mesh.project.inla.mesh <- function(mesh, loc=NULL, field=NULL, ...)
     }
 
     ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
-    if (!(missing(loc) || is.null(loc)) &&
-        (inherits(loc, "SpatialPoints") ||
-         inherits(loc, "SpatialPointsDataFrame"))) {
-      if (is.null(mesh$crs)) {
-        loc <- coordinates(loc)
-      } else {
-        loc = inla.spTransform(coordinates(loc),
-                               CRS(proj4string(loc)),
-                               mesh$crs,
-                               passthrough=FALSE)
+    ## or an explicit crs
+    if (!(missing(loc) || is.null(loc))) {
+      if (inherits(loc, "SpatialPoints") ||
+          inherits(loc, "SpatialPointsDataFrame")) {
+        if (is.null(mesh$crs)) {
+          loc <- coordinates(loc)
+        } else {
+          loc = inla.spTransform(coordinates(loc),
+                                 CRS(proj4string(loc)),
+                                 mesh$crs,
+                                 passthrough=FALSE)
+        }
+      } else if (!is.null(crs)) {
+        if (!is.null(mesh$crs)) {
+          loc = inla.spTransform(loc,
+                                 crs,
+                                 mesh$crs,
+                                 passthrough=FALSE)
+        }
       }
     }
 
@@ -2078,14 +2088,14 @@ inla.mesh.projector.inla.mesh <-
       proj = inla.mesh.project(mesh, lattice$loc)
     } else {
       proj <- inla.mesh.project(mesh,
-                                loc=SpatialPoints(lattice$loc,
-                                                  proj4string=lattice$crs))
+                                loc=lattice$loc,
+                                crs=lattice$crs)
     }
-    projector = list(x=x, y=y, lattice=lattice, loc=NULL, proj=proj)
+    projector = list(x=x, y=y, lattice=lattice, loc=NULL, proj=proj, crs=crs)
     class(projector) = "inla.mesh.projector"
   } else {
-    proj = inla.mesh.project(mesh, loc=loc)
-    projector = list(x=NULL, y=NULL, lattice=NULL, loc=loc, proj=proj)
+    proj = inla.mesh.project(mesh, loc=loc, crs=crs)
+    projector = list(x=NULL, y=NULL, lattice=NULL, loc=loc, proj=proj, crs=crs)
     class(projector) = "inla.mesh.projector"
   }
 
