@@ -33,7 +33,9 @@ inla.mesh.projector(...)
 
 \method{inla.mesh.project}{inla.mesh.projector}(projector, field, ...)
 
-\method{inla.mesh.project}{inla.mesh}(mesh, loc, field = NULL, ...)
+\method{inla.mesh.project}{inla.mesh}(mesh, loc, field = NULL,
+                  crs=NULL,
+...)
 \method{inla.mesh.project}{inla.mesh.1d}(mesh, loc, field = NULL, ...)
 }
 \arguments{
@@ -65,7 +67,8 @@ inla.mesh.projector(...)
     One of \code{c("default", "longlat", "longsinlat", "mollweide")}.
   }
   \item{crs}{
-    An optional CRS or inla.CRS object.
+    An optional CRS or inla.CRS object associated with \code{loc} and/or
+    \code{lattice}.
   }
   \item{\dots}{Additional arguments passed on to methods.}
 }
