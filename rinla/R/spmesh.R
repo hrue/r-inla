@@ -507,6 +507,8 @@ inla.crs.bounds <- function(crs) {
     bounds <- list(type="ellipse", axis=axis, center=center,
                    xlim=center[1]+c(-1,1)*axis[1],
                    ylim=center[2]+c(-1,1)*axis[2])
+  } else if (args[["proj"]] == "tmerc") {
+    bounds <- list(type="rectangle", xlim=c(-Inf, Inf), ylim=c(-Inf, Inf))
   } else if (args[["proj"]] == "geocent") {
     bounds <- list(type="rectangle", xlim=c(-Inf, Inf), ylim=c(-Inf, Inf))
   } else {
@@ -528,9 +530,13 @@ inla.crs.bounds <- function(crs) {
 ## TRUE/FALSE for points inside/outside projection domain.
 inla.crs.bounds.check <- function(x, bounds) {
   inla.require.inherits(x, "matrix")
-  (sp::point.in.polygon(x[,1], x[,2],
-                        bounds$polygon[,1], bounds$polygon[,2])
-    > 0)
+  if (all(is.finite(bounds$xlim)) && all(is.finite(bounds$ylim))) {
+    (sp::point.in.polygon(x[,1], x[,2],
+                          bounds$polygon[,1], bounds$polygon[,2])
+      > 0)
+  } else {
+    ok <- rep(TRUE, nrow(x))
+  }
 }
 
 
@@ -582,8 +588,11 @@ inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
     } else {
       bounds <- inla.crs.bounds(crs0)
       if (identical(inla.as.list.CRS(crs0)[["proj"]], "longlat")) {
-        ## Wrap longitudes to [-180,180)
-        x[,1] <- ((x[,1] + 180) %% 360) - 180
+        ## Wrap longitudes to [-180,180]
+        needswrap <- (x[,1] < -180) | (x[,1] > 180)
+        if (any(needswrap)) {
+          x[needswrap,1] <- ((x[needswrap,1] + 180) %% 360) - 180
+        }
       }
       ok <- inla.crs.bounds.check(x, bounds)
       if (!all(ok)) {
