@@ -336,7 +336,7 @@ inla.CRS <- function(projargs = NA_character_, doCheckCRSArgs = TRUE,
     if (typeof(args) != "list") {
       stop("'args' must be NULL or a list of name=value pairs.")
     }
-    xargs <- inla.as.list.CRSargs(x)
+    xargs <- inla.as.list.CRS(x)
     for (name in names(args)) {
       xargs[[name]] <- args[[name]]
     }
