@@ -54,7 +54,7 @@
 ##! inla.emarginal(fun, marginal, ...)
 ##! inla.mmarginal(marginal)
 ##! inla.tmarginal(fun, marginal, n=1024L, h.diff = .Machine$double.eps^(1/3),
-##!                method = c("quantile", "linear"),  disable.numDeriv = FALSE, ...) 
+##!                method = c("quantile", "linear")) 
 ##! inla.zmarginal(marginal, silent = FALSE)
 ##! }
 ##! \arguments{
@@ -103,8 +103,6 @@
 ##!                 which is argument \code{n} in \code{spline}}
 ##!   
 ##!    \item{method}{Which method should be used to layout points for where the transformation is computed.}
-##!
-##!    \item{disable.numDeriv}{Disable the use of library \code{numDeriv}.}
 ##!
 ##!    \item{silent}{Output the result visually (TRUE) or just through the call.}
 ##! }
@@ -425,16 +423,35 @@
 }
 
 `inla.marginal.transform` = function(fun, marginal, n=1024L, h.diff = .Machine$double.eps^(1/3),
-        method = c("quantile", "linear"),  ...)
+        method = c("quantile", "linear"))
 {
-    return (inla.tmarginal(fun, marginal, n, h.diff, method = method, ...))
+    return (inla.tmarginal(fun, marginal, n, h.diff, method = method))
+}
+
+`inla.deriv.func` = function(fun, step.size = .Machine$double.eps^(1/4))
+{
+    ## return a function computing the derivatives to 'fun = function(x)' which must
+    ## vectorize
+    func = match.fun(fun)
+    if (inla.require("Deriv")) {
+        fd = try(Deriv::Deriv(func, names(formals(func))[1]), silent=TRUE)
+        if (!inherits(fd, "try-error"))
+            return (fd)
+    }
+    if (inla.require("numDeriv")) {
+        fd = function(x) unlist(lapply(x, function(xi) numDeriv::grad(func, xi)))
+    } else {
+        fd = function(x) ((-func(x + 2*step.size) + 8*func(x + step.size) -
+                           8*func(x - step.size) + func(x - 2*step.size))/(12*step.size))
+    }
+    
+    return(fd)
 }
 
 `inla.tmarginal` = function(fun, marginal, n=1024L, h.diff = .Machine$double.eps^(1/3),
-        method = c("quantile", "linear"), disable.numDeriv = FALSE, ...) 
+        method = c("quantile", "linear")) 
 {
-    f = match.fun(fun)
-    ff = function(x) f(x, ...)
+    ff = match.fun(fun)
 
     is.mat = is.matrix(marginal)
     m = inla.smarginal(marginal)
@@ -450,16 +467,9 @@
     }
     xx = ff(x)
 
-    if (inla.require("numDeriv") && !disable.numDeriv) {
-        dif = numeric(length(x))
-        for(i in 1:length(x)) {
-            dif[i] = numDeriv::grad(ff, x[i])
-        }
-        log.dens = inla.dmarginal(x, marginal, log=FALSE)/ abs(dif)
-    } else {
-        log.dens = inla.dmarginal(x, marginal, log=FALSE)/
-            abs((ff(x + h.diff) - ff(x-h.diff))/(2*h.diff))
-    }
+    fd = inla.deriv.func(ff)
+    log.dens = inla.dmarginal(x, marginal, log=FALSE)/abs(fd(x))
+
     ## if decreasing function, then reverse
     if (xx[1] > xx[n]) {
         xx[1:n] = xx[n:1]
