@@ -6134,7 +6134,7 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 	double y = ds->data_observations.y[idx];
 	double w = ds->data_observations.weight_beta[idx];
 	double phi = map_exp(ds->data_observations.beta_precision_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
-	double a, b, mu;
+	double a, b, mu, lbeta;
 
 	LINK_INIT;
 	if (m > 0) {
@@ -6142,7 +6142,9 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			a = mu * phi;
 			b = -mu * phi + phi;
-			logll[i] = -gsl_sf_lnbeta(a, b) + (a - 1.0) * log(y) + (b - 1.0) * log(1.0 - y);
+			// use the asymptotic expansion from `asympt(log(Beta(a,1/bb)), bb, 1)', if 'b=1/bb' is very small
+			lbeta = (b < DBL_EPSILON ? -log(b) : gsl_sf_lnbeta(a, b));
+			logll[i] = -lbeta + (a - 1.0) * log(y) + (b - 1.0) * log(1.0 - y);
 		}
 	} else {
 		for (i = 0; i < -m; i++) {
