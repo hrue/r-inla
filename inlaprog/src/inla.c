@@ -6142,8 +6142,13 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			a = mu * phi;
 			b = -mu * phi + phi;
-			// use the asymptotic expansion from `asympt(log(Beta(a,1/bb)), bb, 1)', if 'b=1/bb' is very small
-			lbeta = (b < DBL_EPSILON ? -log(b) : gsl_sf_lnbeta(a, b));
+			// If y is close to 0 then 'b' is tiny. Use the asymptotic expansion from `asympt(log(Beta(a,1/bb)), bb, 1)'. If y is close to 1 then 'a' is
+			// tiny, do similarly
+			if (DMIN(a, b) < DBL_EPSILON) {
+				lbeta = -log(DMIN(a, b));
+			} else {
+				lbeta = gsl_sf_lnbeta(a, b);
+			}
 			logll[i] = -lbeta + (a - 1.0) * log(y) + (b - 1.0) * log(1.0 - y);
 		}
 	} else {
