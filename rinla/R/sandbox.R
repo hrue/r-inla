@@ -12,18 +12,29 @@ inla.extract.Q = function(what, formula,  data, ...)
     i = which(names(data) == y.name)
     stopifnot(length(i) == 1L)
     if (is.matrix(data[[i]])) {
-        data[[i]] = matrix(NA, nrow = nrow(data[[i]]), ncol = ncol(data[[i]]))
+        data[[i]] = rep(0, nrow = nrow(data[[i]]))
     } else if (is.vector(data[[i]])) {
-        data[[i]] = rep(NA, length(data[[i]]))
+        data[[i]] = rep(0, length(data[[i]]))
     } else if (is.list(data[[i]])) {
         stop("data as list, is not yet implemented")
     }
 
-    if (any(names(list(...)) == "control.compute")) {
-        stop("You cannot pass a 'control.compute' argument")
-    }
-    result = inla(formula, data = data, control.compute = list(config=TRUE), ...)
+    log.prec = 0  ## the fixed noise level
+    args = list(...)
+    args$control.compute = list(config=TRUE)
+    args$control.fixed = list(prec = exp(log.prec), prec.intercept = exp(log.prec))
+    args$family = "gaussian"
+    args$control.family = list(hyper = list(
+                                   prec = list(
+                                       initial = log.prec,
+                                       fixed=TRUE)),
+                               variant = 1, 
+                               control.link = list(
+                                   model = "identity"))
+    args$formula = formula
+    args$data = data
 
+    result = do.call("inla", args)
     conf = result$misc$configs
     cont = conf$contents
     i = which(cont$tag == what)
@@ -44,7 +55,7 @@ inla.extract.Q = function(what, formula,  data, ...)
     Q = conf$config[[k]]$Q
     d = diag(Q)
     for(i in i.start:(i.start + i.len - 1L)) {
-        Q[i, i] = Q[i, i] - sum(Q[1:p.len, i]^2 / d[1:p.len])
+        Q[i, i] = Q[i, i] - sum(Q[1:p.len, i]^2 / (d[1:p.len] - exp(log.prec)))
     }
     Q = Q[i.start:(i.start + i.len -1), i.start:(i.start + i.len -1)]
     Q = Q + t(Q)
