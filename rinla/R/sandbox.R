@@ -46,7 +46,7 @@ inla.extract.Q = function(what, formula,  data, ...)
 
     k = NA
     for (j in seq_along(conf$config)) {
-        if (conf$config[[j]]$log.posterior == 0.0) {
+        if (conf$config[[j]]$log.posterior.orig == 0.0) {
             k = j
             break
         }
