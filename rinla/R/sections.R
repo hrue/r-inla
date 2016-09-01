@@ -28,6 +28,8 @@
         tmp.prior = gsub("^[ \t]+", "", tmp.prior)
         ## if the expression ends with a ";" with or without spaces, remove it
         tmp.prior = gsub(";*[ \t]*$", "", tmp.prior)
+        ## if there is a 'return (' replace it with 'return('
+        tmp.prior = gsub("return[ \t]+\\(", "return(", tmp.prior)
         ## for all priors except the "expression:" one,  then trim the name
         if (length(grep("^(expression|table)[ \t]*:", tolower(tmp.prior))) == 0L) {
             tmp.prior = inla.trim.family(tmp.prior)
