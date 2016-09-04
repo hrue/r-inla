@@ -23949,6 +23949,7 @@ int inla_INLA(inla_tp * mb)
 		}
 	}
 	if (mb->verbose) {
+		printf("\tGaussian case [%s]\n", (mb->ai_par->gaussian_data ? "YES" : "NO"));
 		if (mb->ntheta) {
 			printf("\tList of hyperparameters: \n");
 			for (i = 0; i < mb->ntheta; i++) {
