@@ -23949,7 +23949,6 @@ int inla_INLA(inla_tp * mb)
 		}
 	}
 	if (mb->verbose) {
-		printf("\tGaussian case [%s]\n", (mb->ai_par->gaussian_data ? "YES" : "NO"));
 		if (mb->ntheta) {
 			printf("\tList of hyperparameters: \n");
 			for (i = 0; i < mb->ntheta; i++) {
@@ -24047,6 +24046,12 @@ int inla_INLA(inla_tp * mb)
 			mb->transform_funcs[i]->cov = NULL;
 		}
 	}
+
+	/* 
+	 * If Gaussian data, then force the strategy to be Gaussian  
+	 */
+	if (mb->gaussian_data)
+		mb->ai_par->strategy = GMRFLib_AI_STRATEGY_GAUSSIAN;
 
 	/*
 	 * Finally, let us do the job...
