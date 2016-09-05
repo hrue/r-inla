@@ -24050,8 +24050,10 @@ int inla_INLA(inla_tp * mb)
 	/* 
 	 * If Gaussian data, then force the strategy to be Gaussian  
 	 */
-	if (mb->gaussian_data)
+	if (mb->gaussian_data) {
 		mb->ai_par->strategy = GMRFLib_AI_STRATEGY_GAUSSIAN;
+		mb->ai_par->gaussian_data = mb->gaussian_data;
+	}
 
 	/*
 	 * Finally, let us do the job...
