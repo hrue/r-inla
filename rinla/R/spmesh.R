@@ -509,6 +509,14 @@ inla.crs.bounds <- function(crs) {
                    ylim=center[2]+c(-1,1)*axis[2])
   } else if (args[["proj"]] == "tmerc") {
     bounds <- list(type="rectangle", xlim=c(-Inf, Inf), ylim=c(-Inf, Inf))
+  } else if (args[["proj"]] == "sterea") {
+    ## Cuts at a point opposite the oblique reference point.
+    axis <- c(1, 1)*1e8
+    center <- c(0,0)
+    ## TODO: Handle "units" etc
+    bounds <- list(type="ellipse", axis=axis, center=center,
+                   xlim=center[1]+c(-1,1)*axis[1],
+                   ylim=center[2]+c(-1,1)*axis[2])
   } else if (args[["proj"]] == "geocent") {
     bounds <- list(type="rectangle", xlim=c(-Inf, Inf), ylim=c(-Inf, Inf))
   } else {
