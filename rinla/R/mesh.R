@@ -53,10 +53,7 @@ inla.mesh.segment.default <-
       ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
       if (inherits(loc, "SpatialPoints") ||
           inherits(loc, "SpatialPointsDataFrame")) {
-        loc <- inla.spTransform(coordinates(loc),
-                                CRS(proj4string(loc)),
-                                crs,
-                                passthrough=TRUE)
+        loc <- coordinates(inla.spTransform(loc, crs, passthrough=TRUE))
       }
 
         if (!is.matrix(loc)) {
@@ -943,10 +940,7 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
       ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
       if (inherits(loc, "SpatialPoints") ||
           inherits(loc, "SpatialPointsDataFrame")) {
-        loc <- inla.spTransform(coordinates(loc),
-                                CRS(proj4string(loc)),
-                                crs,
-                                passthrough=TRUE)
+        loc <- coordinates(inla.spTransform(loc, crs, passthrough=TRUE))
       }
 
       if (!is.matrix(loc)) {
@@ -977,10 +971,7 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
         }
 
         if (!is.null(lattice[["crs"]])) {
-          lattice$loc <- inla.spTransform(lattice$loc,
-                                          lattice$crs,
-                                          crs,
-                                          passthrough=TRUE)
+          lattice <- inla.spTransform(lattice, crs, passthrough=TRUE)
         }
 
         if (!is.matrix(lattice$loc)) {
@@ -1410,18 +1401,13 @@ inla.mesh.2d <-
   if (!(missing(loc) || is.null(loc)) &&
       (inherits(loc, "SpatialPoints") ||
        inherits(loc, "SpatialPointsDataFrame"))) {
-    loc = inla.spTransform(coordinates(loc),
-                           CRS(proj4string(loc)),
-                           crs,
-                           passthrough=TRUE)
+    loc = coordinates(inla.spTransform(loc, crs, passthrough=TRUE))
   }
   if (!(missing(loc.domain) || is.null(loc.domain)) &&
       (inherits(loc.domain, "SpatialPoints") ||
        inherits(loc.domain, "SpatialPointsDataFrame"))) {
-    loc.domain = inla.spTransform(coordinates(loc.domain),
-                                  CRS(proj4string(loc.domain)),
-                                  crs,
-                                  passthrough=TRUE)
+    loc.domain = coordinates(inla.spTransform(loc.domain, crs,
+                                              passthrough=TRUE))
   }
 
     if (missing(loc) || is.null(loc)) {
@@ -1646,7 +1632,7 @@ inla.delaunay <- function(loc, ...)
     if (!(missing(loc) || is.null(loc)) &&
         (inherits(loc, "SpatialPoints") ||
          inherits(loc, "SpatialPointsDataFrame"))) {
-      crs = CRS(proj4string(loc))
+      crs = loc@proj4string
       loc = coordinates(loc)
     } else {
       crs = NULL
@@ -1933,10 +1919,7 @@ inla.mesh.project.inla.mesh <- function(mesh, loc=NULL, field=NULL,
         if (is.null(mesh$crs)) {
           loc <- coordinates(loc)
         } else {
-          loc = inla.spTransform(coordinates(loc),
-                                 CRS(proj4string(loc)),
-                                 mesh$crs,
-                                 passthrough=FALSE)
+          loc = coordinates(inla.spTransform(loc, mesh$crs, passthrough=FALSE))
         }
       } else if (!is.null(crs)) {
         if (!is.null(mesh$crs)) {
@@ -3354,10 +3337,7 @@ inla.nonconvex.hull.basic <-
   if (!(missing(points) || is.null(points)) &&
       (inherits(points, "SpatialPoints") ||
        inherits(points, "SpatialPointsDataFrame"))) {
-    points <- inla.spTransform(coordinates(points),
-                               CRS(proj4string(points)),
-                               crs,
-                               passthrough=TRUE)
+    points <- coordinates(inla.spTransform(points, crs, passthrough=TRUE))
   }
 
   if (length(convex)==1)
@@ -3420,10 +3400,7 @@ inla.nonconvex.hull <-
   if (!(missing(points) || is.null(points)) &&
       (inherits(points, "SpatialPoints") ||
        inherits(points, "SpatialPointsDataFrame"))) {
-    points <- inla.spTransform(coordinates(points),
-                               CRS(proj4string(points)),
-                               crs,
-                               passthrough=TRUE)
+    points <- coordinates(inla.spTransform(points, crs, passthrough=TRUE))
   }
 
     if (length(resolution)==1)
