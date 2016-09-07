@@ -1231,6 +1231,10 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
         ## Target is a non-spherical geoid
         loc <- inla.spTransform(loc, crs, crs.target)
         crs <- crs.target
+        ## Spherical topology by not a sphere;
+        ## need to review other code before changing to "M",
+        ## such as inla.mesh.projector
+        ## manifold <- "M"
       }
     }
 
