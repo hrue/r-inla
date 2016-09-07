@@ -518,8 +518,12 @@ inla.crs.bounds <- function(crs) {
     bounds <- list(type="rectangle", xlim=c(-Inf, Inf), ylim=c(-Inf, Inf))
   } else if (args[["proj"]] == "sterea") {
     ## Cuts at a point opposite the oblique reference point.
-    axis <- c(1, 1)*1e8
-    center <- c(0,0)
+    axis <- c(1, 1)*1e9
+    ## False Easting & Northing are measured in m always,
+    ## so need to check units:
+    scale <- ifelse(!is.null(args[["units"]]) &&
+                    identical(args[["units"]], "km"), 1/1000, 1)
+    center <- c(as.numeric(args[["x_0"]]), as.numeric(args[["y_0"]])) * scale
     ## TODO: Handle "units" etc
     bounds <- list(type="ellipse", axis=axis, center=center,
                    xlim=center[1]+c(-1,1)*axis[1],
