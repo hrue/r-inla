@@ -142,7 +142,7 @@ inla.crs.graticule <- function(x, by=c(15, 15, 45), add=FALSE, do.plot=TRUE,
 
     proj.mer <-
       sp::SpatialLines(list(sp::Lines(mer.coords, ID="meridians")),
-                       proj4string=CRS(inla.CRSargs(x)))
+                       proj4string=x)
     if (do.plot) {
       args <- list(x=proj.mer, ...)
       args <- args[intersect(names(args),
@@ -178,7 +178,7 @@ inla.crs.graticule <- function(x, by=c(15, 15, 45), add=FALSE, do.plot=TRUE,
         }),
         recursive=FALSE),
         ID="parallels")),
-        proj4string=CRS(inla.CRSargs(x)))
+        proj4string=x)
     if (do.plot) {
       args <- list(x=proj.par, ...)
       args <- args[intersect(names(args),
@@ -248,7 +248,7 @@ inla.crs.tissot <- function(x, by=c(30, 30, 30), add=FALSE, do.plot=TRUE,
         }),
         recursive=FALSE),
         ID="parallels")),
-        proj4string=CRS(inla.CRSargs(x)))
+        proj4string=x)
   if (do.plot) {
     args <- list(x=collection, ...)
     args <- args[intersect(names(args),
@@ -307,10 +307,22 @@ plot.CRS <- function(x, xlim=NULL, ylim=NULL,
                      ...) {
   invisible(plot.inla.CRS(x, xlim=xlim, ylim=ylim,
                           outline=outline, graticule=graticule, tissot=tissot,
-                          asp=asp, add=add, ...))
+                          asp=asp, add=add, eps=eps, ...))
 }
 
 
+get.extended.CRS <- function(x) {
+  attr(x, "inlacrs")
+}
+
+set.extended.CRS <- function(x, inlacrs) {
+  attr(x, "inlacrs") <- inlacrs
+  x
+}
+
+is.extended.CRS <- function(x) {
+  !is.null(get.extended.CRS(x))
+}
 
 inla.CRS <- function(projargs = NA_character_, doCheckCRSArgs = TRUE,
                      args=NULL, oblique=NULL, ...) {
@@ -348,8 +360,7 @@ inla.CRS <- function(projargs = NA_character_, doCheckCRSArgs = TRUE,
     if (length(oblique) < 4) {
       oblique <- c(oblique, rep(0, 4-length(oblique)))
     }
-    x <- list(crs=x, oblique=oblique)
-    class(x) <- "inla.CRS"
+    x <- set.extended.CRS(x, inlacrs=list(oblique=oblique))
   }
   x
 }
@@ -363,14 +374,10 @@ inla.as.CRS.list <- function(x, ...) {
 }
 
 inla.CRSargs <- function(x, ...) {
-  if (inherits(x, "inla.CRS")) {
-    x <- x[["crs"]]
-  }
   if (is.null(x)) {
     as.character(NA)
   } else {
-    stopifnot(inla.require("rgdal"))
-    rgdal::CRSargs(x)
+    set.extended.CRS(rgdal::CRSargs(x), inlacrs=get.extended.CRS(x))
   }
 }
 
@@ -509,6 +516,18 @@ inla.crs.bounds <- function(crs) {
                    ylim=center[2]+c(-1,1)*axis[2])
   } else if (args[["proj"]] == "tmerc") {
     bounds <- list(type="rectangle", xlim=c(-Inf, Inf), ylim=c(-Inf, Inf))
+  } else if (args[["proj"]] == "sterea") {
+    ## Cuts at a point opposite the oblique reference point.
+    axis <- c(1, 1)*1e9
+    ## False Easting & Northing are measured in m always,
+    ## so need to check units:
+    scale <- ifelse(!is.null(args[["units"]]) &&
+                    identical(args[["units"]], "km"), 1/1000, 1)
+    center <- c(as.numeric(args[["x_0"]]), as.numeric(args[["y_0"]])) * scale
+    ## TODO: Handle "units" etc
+    bounds <- list(type="ellipse", axis=axis, center=center,
+                   xlim=center[1]+c(-1,1)*axis[1],
+                   ylim=center[2]+c(-1,1)*axis[2])
   } else if (args[["proj"]] == "geocent") {
     bounds <- list(type="rectangle", xlim=c(-Inf, Inf), ylim=c(-Inf, Inf))
   } else {
@@ -556,27 +575,17 @@ internal.update.crs <- function(crs, newcrs, mismatch.allowed) {
 
 
 inla.identical.CRS <- function(crs0, crs1, crsonly=FALSE) {
-  if (!crsonly) {
-    identical(crs0, crs1)
-  } else {
-    if (inherits(crs0, "inla.CRS")) {
-      crs0 <- crs0$crs
-    }
-    if (inherits(crs1, "inla.CRS")) {
-      crs1 <- crs1$crs
-    }
-    identical(crs0, crs1)
+  if (crsonly) {
+    set.extended.CRS(crs0, inlacrs=NULL)
+    set.extended.CRS(crs1, inlacrs=NULL)
   }
+  identical(crs0, crs1)
 }
 
 ## Low level transformation of raw coordinates.
 inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
-  ok0 <- (!is.null(crs0) &&
-          ((inherits(crs0, "CRS") && !is.na(inla.CRSargs(crs0))) ||
-           (inherits(crs0, "inla.CRS"))))
-  ok1 <- (!is.null(crs1) &&
-          ((inherits(crs1, "CRS") && !is.na(inla.CRSargs(crs1))) ||
-           (inherits(crs1, "inla.CRS"))))
+  ok0 <- (!is.null(crs0) && !is.na(inla.CRSargs(crs0)))
+  ok1 <- (!is.null(crs1) && !is.na(inla.CRSargs(crs1)))
   if (ok0 && ok1) {
     if (ncol(x) == 2) {
       x <- cbind(x, 0)
@@ -599,35 +608,38 @@ inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
         xx <- x
       }
     }
-    if (inherits(crs0, "inla.CRS")) {
+
+    x <- SpatialPoints(x[ok,,drop=FALSE], proj4string=crs0)
+
+    ext0 <- get.extended.CRS(crs0)
+    if (!is.null(ext0)) {
       if (!onsphere) {
-        x <- spTransform(SpatialPoints(x[ok,,drop=FALSE], proj4string=crs0$crs),
-                         inla.CRS("sphere"))
+        x <- spTransform(x, inla.CRS("sphere"))
       }
-      if (!is.null(crs0$oblique)) {
+      if (!is.null(ext0$oblique)) {
         x <- SpatialPoints(inla.crs.transform.oblique(coordinates(x),
-                                                      crs0$oblique,
+                                                      ext0$oblique,
                                                       to.oblique=FALSE),
                            proj4string=inla.CRS("sphere"))
       }
       onshpere <- TRUE
-    } else {
-      x <- SpatialPoints(x[ok,,drop=FALSE], proj4string=crs0)
     }
-    if (inherits(crs1, "inla.CRS")) {
+
+    ext1 <- get.extended.CRS(crs1)
+    if (!is.null(ext1)) {
       if (!onsphere) {
         x <- spTransform(x, inla.CRS("sphere"))
       }
-      if (!is.null(crs1$oblique)) {
+      if (!is.null(ext1$oblique)) {
         x <- SpatialPoints(inla.crs.transform.oblique(coordinates(x),
-                                                      crs1$oblique,
+                                                      ext1$oblique,
                                                       to.oblique=TRUE),
                            proj4string=inla.CRS("sphere"))
       }
-      x <- spTransform(x, crs1$crs)
-    } else {
-      x <- spTransform(x, crs1)
     }
+
+    x <- spTransform(x, crs1)
+
     if (!all(ok)) {
       xx[ok,] <- coordinates(x)
       xx[!ok,] <- NA
@@ -654,7 +666,7 @@ inla.spTransform.SpatialPoints <- function(x, CRSobj, passthrough=FALSE, ...) {
           (inherits(CRSobj, "CRS") && !is.na(inla.CRSargs(CRSobj))))
   if (ok0 && ok1) {
     invisible(SpatialPoints(inla.spTransform(coordinates(x),
-                                             CRS(proj4string(x)),
+                                             x@proj4string,
                                              CRSobj),
                             proj4string=CRSobj))
   } else if (ok1) { ## Know: !ok0 && ok1
@@ -766,7 +778,7 @@ inla.sp2segment <-
 as.inla.mesh.segment.SpatialPoints <-
     function (sp, reverse=FALSE, grp = NULL, is.bnd=TRUE, ...)
   {
-    crs <- CRS(proj4string(sp))
+    crs <- sp@proj4string
     loc <- coordinates(sp)
 
     n = dim(loc)[1L]
@@ -813,7 +825,7 @@ as.inla.mesh.segment.Lines <-
 as.inla.mesh.segment.SpatialLines <-
     function (sp, join = TRUE, grp = NULL, ...)
   {
-    crs <- CRS(proj4string(sp))
+    crs <- sp@proj4string
     segm = list()
     for (k in 1:length(sp@lines))
       segm[[k]] = as.inla.mesh.segment(sp@lines[[k]], join = TRUE,
@@ -836,7 +848,7 @@ as.inla.mesh.segment.SpatialLinesDataFrame <-
 as.inla.mesh.segment.SpatialPolygons <-
     function(sp, join=TRUE, grp=NULL, ...)
 {
-    crs <- CRS(proj4string(sp))
+    crs <- sp@proj4string
     segm = list()
     for (k in 1:length(sp@polygons))
         segm[[k]] = as.inla.mesh.segment(sp@polygons[[k]], join=TRUE, crs=crs)
