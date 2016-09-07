@@ -662,7 +662,7 @@ inla.spTransform.SpatialPoints <- function(x, CRSobj, passthrough=FALSE, ...) {
           (inherits(CRSobj, "CRS") && !is.na(inla.CRSargs(CRSobj))))
   if (ok0 && ok1) {
     invisible(SpatialPoints(inla.spTransform(coordinates(x),
-                                             x@proj4string),
+                                             x@proj4string,
                                              CRSobj),
                             proj4string=CRSobj))
   } else if (ok1) { ## Know: !ok0 && ok1
