@@ -3070,6 +3070,7 @@ double Qfunc_besag(int i, int j, void *arg)
 			assert(0 == 1);
 		}
 	} 
+
 	return prec * (i == j ? a->graph->nnbs[i] : -1.0);
 }
 double Qfunc_besag2(int i, int j, void *arg)
