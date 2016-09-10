@@ -3076,30 +3076,22 @@ double Qfunc_besag(int i, int j, void *arg)
 double Qfunc_besag2(int i, int j, void *arg)
 {
 	inla_besag2_Qfunc_arg_tp *aa;
-	double prec, a;
+	double a;
 
 	aa = (inla_besag2_Qfunc_arg_tp *) arg;
-
-	if (aa->log_prec) {
-		prec = map_precision(aa->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	} else { 
-		prec = 1.0;
-	}
-	prec *= (aa->prec_scale ? aa->prec_scale[0] : 1.0);
-
 	if (aa->log_a) {
 		a = map_exp(aa->log_a[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	} else {
 		a = 1.0;
 	}
-
-	if (IMAX(i, j) < aa->graph->n) {
+	
+	if (IMAX(i, j) < aa->besag_arg->graph->n) {
 		if (i == j) {
-			return (prec * aa->graph->nnbs[i] + aa->precision) / SQR(a);
+			return (Qfunc_besag(i, j, (void *) aa->besag_arg) + aa->precision) / SQR(a);
 		} else {
-			return -prec / SQR(a);
+			return -Qfunc_besag(i, j, (void *) aa->besag_arg) / SQR(a);
 		}
-	} else if (IMIN(i, j) >= aa->graph->n) {
+	} else if (IMIN(i, j) >= aa->besag_arg->graph->n) {
 		return aa->precision * SQR(a);
 	} else {
 		return -aa->precision;
@@ -16410,9 +16402,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "a_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "Scale parameter a_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "a for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "Scale paramter a for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "%s-parameter1", mb->f_dir[mb->nf]);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -18177,28 +18169,25 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		mb->f_Qfunc[mb->nf] = Qfunc_besag2;
 		arg = Calloc(1, inla_besag2_Qfunc_arg_tp);
-		arg->graph = mb->f_graph[mb->nf];
+		arg->besag_arg = Calloc(1, inla_besag_Qfunc_arg_tp);
+		arg->besag_arg->graph = mb->f_graph[mb->nf];
 
 		int adj = iniparser_getint(ini, inla_string_join(secname, "ADJUST.FOR.CON.COMP"), 1);
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
 		if (std) {
-			inla_besag_Qfunc_arg_tp *besag_arg = Calloc(1, inla_besag_Qfunc_arg_tp);
-			besag_arg->graph = arg->graph;
-			inla_besag_scale(besag_arg, adj);
-			arg->prec_scale = besag_arg->prec_scale;	/* yes, steal that pointer */
-			Free(besag_arg);
+			inla_besag_scale(arg->besag_arg, adj);
 		}
 		if (mb->verbose) {
 			printf("\t\tadjust.for.con.comp[%1d]\n", adj);
 			printf("\t\tscale.model[%1d]\n", std);
 			if (std) {
-				printf("\t\tscale.model: prec_scale[%g]\n", arg->prec_scale[0]);
+				printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
 			}
 		}
 
-		inla_make_besag2_graph(&(mb->f_graph[mb->nf]), arg->graph);
+		inla_make_besag2_graph(&(mb->f_graph[mb->nf]), arg->besag_arg->graph);
 		arg->precision = mb->f_precision[mb->nf];
-		arg->log_prec = log_prec;
+		arg->besag_arg->log_prec = log_prec;
 		arg->log_a = a_intern;
 
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
@@ -27925,7 +27914,7 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 	inla_besag_Qfunc_arg_tp *def = Calloc(1, inla_besag_Qfunc_arg_tp);
 	GMRFLib_copy_graph(&(def->graph), arg->graph);
 
-	int i, j, k, debug = 1, *cc = NULL, n = def->graph->n;
+	int i, j, k, debug = 0, *cc = NULL, n = def->graph->n;
 	arg->prec_scale = Calloc(def->graph->n, double);
 
 	if (debug) P(adj);
