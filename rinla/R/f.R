@@ -787,10 +787,10 @@
 
     ## if diagonal is not set, the set this depending on the constr
     if (is.null(diagonal)) {
-        if (constr) {
+        if (constr || !empty.extraconstr(extraconstr)) {
             diagonal = inla.set.f.default()$diagonal
         } else {
-            diagonal = 0
+            diagonal = 0.0
         }
     }
 
@@ -805,111 +805,114 @@
                 stop("Dimension of A and e do not correspond")
             }
         }
-
-        ##print.extraconstr = paste("list(A=", deparse(extraconstr$A, backtick = TRUE, width.cutoff = 500),",",
-        ##    "e=", deparse(extraconstr$e, backtick = TRUE, width.cutoff = 500),")")
     }
 
-    if (adjust.for.con.comp && inla.one.of(model, c("besag", "besag2", "bym", "bym2"))) {
-
-        ## I am not sure if this is the best place to do this, but for
-        ## the time being I'll do this here.
-
-        ## For the model = "besag", "bym", "bym2" and "besag2", we need to
-        ## check if the graph contains more than 1 connected
-        ## components. If so, we need to modify the meaning of
-        ## constr=TRUE, and set the correct value of rankdef.
-
-        ## However, although this is the correct way to do this, it is
-        ## not common to do it like this, so therefore, I issue a
-        ## warning.
-
+    if (inla.one.of(model, c("besag", "besag2", "bym", "bym2"))) {
+        ## this is a somewhat complicated case
         g = inla.read.graph(graph)
-        if (g$cc$n == 1) {
-            ## hole graph is just one connected component. all is
-            ## fine, no need to do anything
-            if (is.null(rankdef)) {
-                rankdef = 1L
-            }
-        } else {
+        cc.n = sapply(g$cc$nodes, length)
+        cc.n1 = sum(cc.n == 1L)
+        cc.n2 = sum(cc.n >= 2L)
 
-            ## issue a warning, as the model has 'changed' compared to earlier versions.
-            warning(paste("The graph for the model", model, "has", g$cc$n,
-                          "connected components!!! Model is revised accordingly.", sep= " "))
-
-            cc.n = sapply(g$cc$nodes, length)
-            cc.n2 = sum(cc.n >= 2L)
-            dimA = 0
-
-            if (debug) {
-                print(paste("modify model", model))
-                print(paste("number of connected components", inla.paste(cc.n)))
-                print(paste("number of connected components of size >= 2L", cc.n2))
-            }
-
-            if (constr) {
-                ## need to redefine the meaning of constr = TRUE to mean
-                ## constr=TRUE for all connected components with size > 1
-
-                ## like bym/bym2 place the constr on the second half
-                m = inla.model.properties(model, "latent")
-                if (m$augmented) {
-                    N = m$aug.factor * n
-                    offset = (m$aug.constr -1L) * n
-                    stopifnot(length(offset) == 1)
-                } else {
-                    N = n
-                    offset = 0
-                }
-                constr = FALSE
-                AA = matrix(0, cc.n2, N)
-                ee = rep(0, cc.n2)
-
-                if (debug) {
-                    print(paste("add new extraconstr, dim = ", cc.n2, "x", n))
-                }
-
-                k = 1L
-                for(i in 1L:length(cc.n)) {
-                    if (cc.n[i] >= 2L) {
-                        AA[k, offset + g$cc$nodes[[i]]] = 1
-                        k = k + 1L
-                    }
-                }
-                stopifnot(k-1L == cc.n2)
-
-                if (!empty.extraconstr(extraconstr)) {
-                    dimA = dim(extraconstr$A)[1] ## need to remember this one for the 'rankdef'
-                    extraconstr$A = rbind(AA, extraconstr$A)
-                    extraconstr$e = c(ee, extraconstr$e)
-                } else {
-                    extraconstr = list(A = AA, e = ee)
+        if (adjust.for.con.comp) {
+            ## we need to check if the graph contains more than 1 connected components. If so,
+            ## we need to modify the meaning of constr=TRUE, and set the correct value of
+            ## rankdef.
+            if (g$cc$n == 1) {
+                ## the whole graph is just one connected component. all is fine
+                if (is.null(rankdef)) {
+                    rankdef = 0
+                    if (constr)
+                        rankdef = rankdef + 1
+                    if (!empty.extraconstr(extraconstraint))
+                        rankdef = rankdef + dim(extraconstraint$A)[1]
                 }
             } else {
-                if (!missing(adjust.for.con.comp)) {
-                    stop("The option 'adjust.for.con.comp' is only used for models 'besag', 'besag2', 'bym' and 'bym2'.")
+                if (debug) {
+                    print(paste("modify model", model))
+                    print(paste("number of connected components", inla.paste(cc.n)))
+                    print(paste("number of connected components of size >= 2L", cc.n2))
+                }
+                if (constr) {
+                    ## need to redefine the meaning of constr = TRUE to mean
+                    ## constr=TRUE for all connected components with size >= 2L
+
+                    ## like bym/bym2 place the constr on the second half
+                    m = inla.model.properties(model, "latent")
+                    if (m$augmented) {
+                        N = m$aug.factor * n
+                        offset = (m$aug.constr -1L) * n
+                        stopifnot(length(offset) == 1)
+                    } else {
+                        N = n
+                        offset = 0
+                    }
+                    constr = FALSE
+                    AA = matrix(0, cc.n2, N)
+                    ee = rep(0, cc.n2)
+
+                    if (debug) {
+                        print(paste("add new extraconstr, dim = ", cc.n2, "x", n))
+                    }
+
+                    k = 1L
+                    for(i in 1L:length(cc.n)) {
+                        if (cc.n[i] >= 2L) {
+                            AA[k, offset + g$cc$nodes[[i]]] = 1
+                            k = k + 1L
+                        }
+                    }
+                    stopifnot(k-1L == cc.n2)
+
+                    if (!empty.extraconstr(extraconstr)) {
+                        extraconstr$A = rbind(AA, extraconstr$A)
+                        extraconstr$e = c(ee, extraconstr$e)
+                    } else {
+                        extraconstr = list(A = AA, e = ee)
+                    }
+
+                    if (debug) {
+                        print(AA)
+                        print(ee)
+                    }
+                } else {
+                    if (!missing(adjust.for.con.comp)) {
+                        stop("The option 'adjust.for.con.comp' is only used for models 'besag', 'besag2', 'bym' and 'bym2'.")
+                    }
+                }
+
+                ## set correct rankdef if not set already
+                if (is.null(rankdef)) {
+                    if (!scale.model) {
+                        rankdef = cc.n1
+                        if (!empty.extraconstr(extraconstr))
+                            rankdef = rankdef + dim(extraconstr$A)[1]
+                    } else {
+                        rankdef = 0
+                        if (!empty.extraconstr(extraconstr))
+                            rankdef = dim(extraconstr$A)[1]
+                    }
+                }
+
+                if (is.null(diagonal)) {
+                    diagonal = inla.set.f.default()$diagonal
+                    if (debug) {
+                        print(paste("set diagonal = ", diagonal))
+                    }
                 }
             }
-
-            ## set correct rankdef if not set manually. well, this is
-            ## not failsafe without detailed analysis, but then we
-            ## asssume that the user knows the correct rankdef (s)he
-            ## will set it correctly. Note that regions with no
-            ## neigbours only reduce 'n' as they do not contribute to the rankdef.
+        } else {
             if (is.null(rankdef)) {
-                cc.n1 = sum(cc.n == 1)
-                rankdef = cc.n1 + dimA + (g$n - sum(cc.n[ cc.n >= 2L ] -1L))
-                if (debug) {
-                    print(paste("redefine rankdef = ", rankdef))
-                }
-            }
-
-            ## need this, either if there is extraconstr or if there
-            ## are regions without neighbours.
-            if (is.null(diagonal) && (!empty.extraconstr(extraconstr) || any(cc.n == 1))) {
-                diagonal = inla.set.f.default()$diagonal
-                if (debug) {
-                    print(paste("set diagonal = ", diagonal))
+                rankdef = 0
+                if (scale.model) {
+                    if (constr) rankdef = rankdef + 1
+                    if (!empty.extraconstr(extraconstr)) 
+                        rankdef = rankdef + dim(extraconstr$A)[1]
+                } else {
+                    if (constr) rankdef = rankdef + 1
+                    rankdef = rankdef + cc.n1
+                    if (!empty.extraconstr(extraconstr)) 
+                        rankdef = rankdef + dim(extraconstr$A)[1]
                 }
             }
         }
@@ -987,6 +990,7 @@
         correct = correct
         )
 
+    if (debug) print(ret)
     return (ret)
 }
 
