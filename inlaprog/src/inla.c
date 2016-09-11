@@ -3070,7 +3070,7 @@ double Qfunc_besag(int i, int j, void *arg)
 			assert(0 == 1);
 		}
 	} 
-
+	// ``classical model''
 	return prec * (i == j ? a->graph->nnbs[i] : -1.0);
 }
 double Qfunc_besag2(int i, int j, void *arg)
@@ -27928,19 +27928,18 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 	}
 
 	if (!adj) {
-		// then we cannot do the case where nnbs=0.
-		for(i = 0; i<n; i++)
-			if (arg->graph->nnbs[i] == 0){
-			char *msg;
-			GMRFLib_sprintf(&msg,
-					"Node[%1d] in the graph for the Besag model has zero neighbours; set 'adjust.for.con.comp=TRUE'",
-					i);
-			inla_error_general(msg);
-			exit(1);
+		// special for nnbs=0
+		for(i = 0; i<n; i++) {
+			if (arg->graph->nnbs[i] == 0) {
+				cc[i] = 1;		       // so it will be disabled in the computations below
+			}
 		}
 	}
 
-	int ncc = 1 + GMRFLib_imax_value(cc, def->graph->n, NULL);	/* number of the connected components */
+	// if !adj, then we will not use the nodes where nnbs=0, and we do this by forcing ncc=0,
+	// since cc[i]=1 for those nodes as set above.
+	int ncc;
+	ncc = (adj ? 1 + GMRFLib_imax_value(cc, def->graph->n, NULL) : 1);
 	if (debug) P(ncc);
 	
 	// work with each cc at the time
@@ -28036,6 +28035,15 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 			GMRFLib_free_problem(problem);
 			GMRFLib_free_constr(constr);
 			Free(c);
+		}
+	}
+
+	if (!adj) {
+		for(i = 0; i < n; i++) {
+			if (cc[i] > 0) {
+				assert(arg->graph->nnbs[i] == 0);
+				arg->prec_scale[i] = -1.0; /* this is code for treating this case specially */
+			}
 		}
 	}
 
