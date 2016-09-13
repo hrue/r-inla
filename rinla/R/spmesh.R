@@ -333,34 +333,47 @@ inla.CRS <- function(projargs = NA_character_, doCheckCRSArgs = TRUE,
     longlat = "+proj=longlat +ellps=sphere +a=1 +b=1",
     mollweide = paste("+proj=moll +ellps=sphere +units=m", halfroot),
     sphere = "+proj=geocent +ellps=sphere +a=1 +b=1 +units=m")
+
   if (is.character(projargs)) {
     if (projargs %in% names(predef)) {
       projargs <- predef[[projargs]]
     }
-    x <- CRS(projargs, doCheckCRSArgs=doCheckCRSArgs)
-  } else if (inherits(projargs, "CRS")) {
-    x <- projargs
   } else {
-    stop(paste("Unsupported projargs input class",
-               paste(class(projargs), collapse=",")))
+    if (inherits(projargs, "CRS")) {
+      projargs <- inla.CRSargs(projargs)
+    } else {
+      projargs <- inla.proj4string(projargs)
+    }
   }
+
+  inlacrs <- list()
+  if (is.extended.CRS(projargs)) {
+    inlacrs <- c(inlacrs, get.extended.CRS(projargs))
+    projargs <- set.extended.CRS(projargs, inlacrs=NULL)
+  }
+  if (!missing(oblique)) {
+    inlacrs[["oblique"]] <- oblique
+  }
+
   if (!is.null(args)) {
     if (typeof(args) != "list") {
       stop("'args' must be NULL or a list of name=value pairs.")
     }
-    xargs <- inla.as.list.CRS(x)
+    xargs <- inla.as.list.CRSargs(projargs)
     for (name in names(args)) {
       xargs[[name]] <- args[[name]]
     }
-    x <- CRS(inla.as.CRSargs.list(xargs), doCheckCRSArgs=doCheckCRSArgs)
+    projargs <- inla.as.CRSargs.list(xargs)
   }
+  x <- CRS(projargs, doCheckCRSArgs=doCheckCRSArgs)
 
-  if (!is.null(oblique)) {
-    stopifnot(is.vector(oblique))
-    if (length(oblique) < 4) {
-      oblique <- c(oblique, rep(0, 4-length(oblique)))
+  if (length(inlacrs) > 0) {
+    stopifnot(is.vector(inlacrs[["oblique"]]))
+    if (length(inlacrs[["oblique"]]) < 4) {
+      inlacrs[["oblique"]] <- c(inlacrs[["oblique"]],
+                                rep(0, 4-length(inlacrs[["oblique"]])))
     }
-    x <- set.extended.CRS(x, inlacrs=list(oblique=oblique))
+    x <- set.extended.CRS(x, inlacrs=inlacrs)
   }
   x
 }
@@ -370,7 +383,7 @@ inla.as.list.CRS <- function(x, ...) {
 }
 
 inla.as.CRS.list <- function(x, ...) {
-  inla.CRS(args=x)
+  do.call(inla.CRS, c(list(args=x), get.extended.CRS(x)))
 }
 
 inla.CRSargs <- function(x, ...) {
@@ -381,11 +394,20 @@ inla.CRSargs <- function(x, ...) {
   }
 }
 
+inla.proj4string <- function(obj) {
+  p4s <- proj4string(obj)
+  if (!is.na(p4s) && ("proj4string" %in% slotNames(obj))) {
+    p4s <- set.extended.CRS(p4s,
+                            inlacrs=get.extended.CRS(obj@proj4string))
+  }
+  p4s
+}
+
 
 ## CRS proj4 string for name=value pair list
 inla.as.CRSargs.list <- function(x, ...) {
-  paste(lapply(names(x),
-               function(xx) {
+  tmp <- paste(lapply(names(x),
+                      function(xx) {
     if (is.na(x[[xx]])) {
       paste("+", xx, sep="")
     } else {
@@ -393,6 +415,7 @@ inla.as.CRSargs.list <- function(x, ...) {
     }
   }),
   collapse=" ")
+  set.extended.CRS(tmp, inlacrs=get.extended.CRS(x))
 }
 
 ## List of name=value pairs from CRS proj4 string
@@ -401,16 +424,17 @@ inla.as.list.CRSargs <- function(x, ...) {
     return(list())
   }
   if (!is.character(x)) {
-    stop("proj4string must be of class character")
+    stop("x must be a proj4string of class character")
   }
-  do.call(c, lapply(strsplit(x=strsplit(x=paste(" ", x, sep=""),
-                                        split=" \\+")[[1]][-1],
-                             split="="),
-                    function(x) {
-               xx <- list(x[2])
-               names(xx) <- x[1]
-               xx
-             }))
+  tmp <- do.call(c, lapply(strsplit(x=strsplit(x=paste(" ", x, sep=""),
+                                               split=" \\+")[[1]][-1],
+                                    split="="),
+                           function(x) {
+                      xx <- list(x[2])
+                      names(xx) <- x[1]
+                      xx
+                    }))
+  set.extended.CRS(tmp, inlacrs=get.extended.CRS(x))
 }
 
 
@@ -496,13 +520,28 @@ inla.crs.bounds <- function(crs) {
     axis <- c(pi, 1)
     if (!is.null(args[["a"]])) {
       axis[1] <- axis[1] * as.numeric(args$a)
+      axis[2] <- axis[2] * as.numeric(args$a)
     }
     if (!is.null(args[["b"]])) {
-      axis[2] <- axis[2] * as.numeric(args$a)^0.5 * as.numeric(args$b)^0.5
+      axis[2] <- axis[2] * (as.numeric(args$b)/as.numeric(args$a))^0.5
     }
     ## TODO: Handle "lat_ts" and "units"
     bounds <- list(type="rectangle",
                    xlim=c(-1,1)*axis[1], ylim=c(-1,1)*axis[2])
+  } else if (args[["proj"]] == "laea") {
+    axis <- c(2, 2)
+    center <- c(0, 0)
+    if (!is.null(args[["a"]])) {
+      axis[1] <- axis[1] * as.numeric(args$a)
+      axis[2] <- axis[2] * as.numeric(args$a)
+    }
+    if (!is.null(args[["b"]])) {
+      axis[2] <- axis[2] * (as.numeric(args$b)/as.numeric(args$a))^0.5
+    }
+    ## TODO: Handle "units"
+    bounds <- list(type="ellipse", axis=axis, center=center,
+                   xlim=center[1]+c(-1,1)*axis[1],
+                   ylim=center[2]+c(-1,1)*axis[2])
   } else if (args[["proj"]] %in% c("moll", "hammer")) {
     axis <- c(2, 1)
     center <- c(0,0)
@@ -661,12 +700,12 @@ inla.spTransform.default <- function(x, crs0, crs1, passthrough=FALSE, ...) {
 }
 
 inla.spTransform.SpatialPoints <- function(x, CRSobj, passthrough=FALSE, ...) {
-  ok0 <- !is.na(proj4string(x))
+  ok0 <- !is.na(inla.proj4string(x))
   ok1 <- (!missing(CRSobj) && !is.null(CRSobj) &&
           (inherits(CRSobj, "CRS") && !is.na(inla.CRSargs(CRSobj))))
   if (ok0 && ok1) {
     invisible(SpatialPoints(inla.spTransform(coordinates(x),
-                                             x@proj4string,
+                                             inla.CRS(x),
                                              CRSobj),
                             proj4string=CRSobj))
   } else if (ok1) { ## Know: !ok0 && ok1
@@ -778,7 +817,7 @@ inla.sp2segment <-
 as.inla.mesh.segment.SpatialPoints <-
     function (sp, reverse=FALSE, grp = NULL, is.bnd=TRUE, ...)
   {
-    crs <- sp@proj4string
+    crs <- inla.CRS(sp)
     loc <- coordinates(sp)
 
     n = dim(loc)[1L]
@@ -825,7 +864,7 @@ as.inla.mesh.segment.Lines <-
 as.inla.mesh.segment.SpatialLines <-
     function (sp, join = TRUE, grp = NULL, ...)
   {
-    crs <- sp@proj4string
+    crs <- inla.CRS(sp)
     segm = list()
     for (k in 1:length(sp@lines))
       segm[[k]] = as.inla.mesh.segment(sp@lines[[k]], join = TRUE,
@@ -848,7 +887,7 @@ as.inla.mesh.segment.SpatialLinesDataFrame <-
 as.inla.mesh.segment.SpatialPolygons <-
     function(sp, join=TRUE, grp=NULL, ...)
 {
-    crs <- sp@proj4string
+    crs <- inla.CRS(sp)
     segm = list()
     for (k in 1:length(sp@polygons))
         segm[[k]] = as.inla.mesh.segment(sp@polygons[[k]], join=TRUE, crs=crs)
