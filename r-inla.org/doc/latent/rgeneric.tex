@@ -83,10 +83,15 @@ and
 \end{displaymath}
 It is required that the parameters $\theta = (\theta_{1}, \theta_{2})$
 have support on $\Re$ and the priors for $\tau$ and $\rho$ are given
-as the corresponding priors for $\theta_{1}$ and $\theta_{2}$. Note
-that \texttt{INLA} only provide the marginal posteriors for $\theta$,
-but you can use \texttt{inla.tmarginal} to convert it to the
-appropriate marginals for $\rho$ and $\tau$.
+as the corresponding priors for $\theta_{1}$ and $\theta_{2}$.
+\textbf{IMPORTANT: A good re-parametersation is required for INLA to
+    work well. A good parmeterisation makes, ideally, the ``Fisher
+    information matrix'' of $\theta$ constant (wrt to $\theta$). It is
+    sufficient to check this in a frequentistic setting with data
+    directly from the AR$(1)$ model, in this case.} Note that
+\texttt{INLA} only provide the marginal posteriors for $\theta$, but
+you can use \texttt{inla.tmarginal} to convert it to the appropriate
+marginals for $\rho$ and $\tau$.
 
 We assign a (Gamma) $\Gamma(.; a,b)$ prior (with mean $a/b$ and
 variance $a/b^{2}$) for $\tau$ and a Gaussian prior
