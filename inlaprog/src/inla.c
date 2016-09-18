@@ -92,6 +92,7 @@ static const char RCSId[] = HGVERSION;
 #include "ar.h"
 #include "pc-priors.h"
 #include "R-interface.h"
+#include "fgn.h"
 
 #define PREVIEW (20)
 #define MODEFILENAME ".inla-mode"
@@ -28067,6 +28068,22 @@ int inla_R(char **argv)
 
 int testit(int argc, char **argv)
 {
+	if (1) {
+		inla_fgn_arg_tp *arg = Calloc(1, inla_fgn_arg_tp);
+
+		arg->n = 10;
+		arg->k = 3;
+		arg->N = arg->n * (arg->k + 1);
+
+		GMRFLib_graph_tp *g;
+		inla_make_fgn_graph(&g, arg);
+
+		GMRFLib_print_graph(stdout, g);
+
+		exit(0);
+	}
+		
+
 	if (0) {
 #pragma omp critical
 		{
