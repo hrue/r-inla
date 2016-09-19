@@ -1,3 +1,4 @@
+
 /* fgn.c
  * 
  * Copyright (C) 2016 Havard Rue
@@ -36,9 +37,9 @@ static const char RCSId[] = HGVERSION;
 
 #include "fgn.h"
 
-#define KMAX 6L
+#define KMAX (6L)
 
-int inla_make_fgn_graph(GMRFLib_graph_tp **graph, inla_fgn_arg_tp *def) 
+int inla_make_fgn_graph(GMRFLib_graph_tp ** graph, inla_fgn_arg_tp * def)
 {
 	int i, j;
 	GMRFLib_graph_tp *g_ar1 = NULL, *g_I = 0;
@@ -49,16 +50,16 @@ int inla_make_fgn_graph(GMRFLib_graph_tp **graph, inla_fgn_arg_tp *def)
 	GMRFLib_ged_init(&ged, NULL);
 
 	GMRFLib_ged_insert_graph2(ged, g_I, 0, 0);
-	for(i = 0; i<def->k; i++) {
-		GMRFLib_ged_insert_graph2(ged, g_I, 0, (1+i)*def->n);
+	for (i = 0; i < def->k; i++) {
+		GMRFLib_ged_insert_graph2(ged, g_I, 0, (1 + i) * def->n);
 	}
-	for(i = 0; i < def->k; i++) {
-		GMRFLib_ged_insert_graph2(ged, g_ar1, (i+1)*def->n, (i+1)*def->n);
-		for(j = 1; j<def->k-i; j++) {
-			GMRFLib_ged_insert_graph2(ged, g_I, (1+i)*def->n, (1+i+j)*def->n);
+	for (i = 0; i < def->k; i++) {
+		GMRFLib_ged_insert_graph2(ged, g_ar1, (i + 1) * def->n, (i + 1) * def->n);
+		for (j = 1; j < def->k - i; j++) {
+			GMRFLib_ged_insert_graph2(ged, g_I, (1 + i) * def->n, (1 + i + j) * def->n);
 		}
 	}
-	assert(GMRFLib_ged_max_node(ged) == def->N-1);
+	assert(GMRFLib_ged_max_node(ged) == def->N - 1);
 	GMRFLib_ged_build(graph, ged);
 
 	GMRFLib_ged_free(ged);
@@ -70,15 +71,23 @@ int inla_make_fgn_graph(GMRFLib_graph_tp **graph, inla_fgn_arg_tp *def)
 
 double Qfunc_fgn(int i, int j, void *arg)
 {
-	static double phi[2L*KMAX-1L], w[2L*KMAX-1L], H_ref = -1.0;
+	// the model (z,x1,x2,x3,...), where z = 1/\sqrt{prec} * \sum_i \sqrt{w_i} x_i + tiny.noise,
+	// where each x is standard AR1
+
+	static double phi[2L * KMAX - 1L], w[2L * KMAX - 1L], H_ref = -1.0;
 #pragma omp threadprivate(phi, w, H_ref)
 
 	inla_fgn_arg_tp *a = (inla_fgn_arg_tp *) arg;
 	double H = 0.7888, prec = 1.0, val = 0.0;
 
 	if (!ISEQUAL(H, H_ref)) {
-		inla_fng_get(phi, w, H);
+		inla_fng_get(phi, w, H, a->k);
 		H_ref = H;
+	}
+
+	if (0) {
+		for (int k = 0; k < a->k; k++)
+			printf("\t phi[%1d] = %f   w[%1d] = %f\n", k, phi[k], k, w[k]);
 	}
 
 	div_t ii, jj;
@@ -86,66 +95,66 @@ double Qfunc_fgn(int i, int j, void *arg)
 	jj = div(IMAX(i, j), a->n);
 
 	if (ii.quot == 0) {
-		// the sum
-
-		assert(ii.rem == 0);
-		assert(jj.rem == 0);
-		
-		if (jj.quot == 0) {
-			return a->prec_eps;
-		} else {
-			return (-sqrt(a->w[jj.quot-1] / prec) * a->prec_eps);
-		}
+		val = (jj.quot == 0 ? a->prec_eps : -sqrt(w[jj.quot - 1L] / prec) * a->prec_eps);
 	} else {
 		if (ii.quot == jj.quot) {
-			// this is the ar1
+			// this is the AR1
+			double prec_cond = 1.0 / (1.0 - SQR(phi[ii.quot - 1L]));
+			if (ii.rem != jj.rem) {
+				// off-diagonal
+				val = -prec_cond * phi[ii.quot - 1L];
+			} else {
+				// diagonal
+				val = prec_cond * ((ii.rem == 0 || ii.rem == a->n - 1L) ? 1.0 : (1.0 + SQR(phi[ii.quot - 1L])));
+				val += a->prec_eps * w[ii.quot - 1L] / prec;
+			}
 		} else {
-			//
+			val = sqrt(w[ii.quot - 1L] * w[jj.quot - 1L]) * a->prec_eps / prec;
 		}
 	}
 
 	return val;
 }
 
-int inla_fng_get(double *phi, double *w, double H) 
+int inla_fng_get(double *phi, double *w, double H, int k)
 {
-	// return the weights and the phi for a given H
+	// fill in the weights and the phis for a given H
 #include "fgn-tables.h"
 
 	int idx, i, len_par;
 	double weight, tmp;
 
+	assert(k == K);
 	assert(H >= H_start && H <= H_end);
-	idx = floor((H - H_start) / H_by);		       /* idx is the block-index */
+	idx = (int) floor((H - H_start) / H_by);	       /* idx is the block-index */
 	weight = (H - (H_start + idx * H_by)) / H_by;
-	len_par = 2*K-1;
+	len_par = 2 * K - 1;
 	idx *= len_par;					       /* and now the index in the table */
 
-	P(H);
-	P(idx);
-	P(weight);
-
-	double fit_par[KMAX];
-	for(i = 0; i< len_par; i++){
-		fit_par[i] = (1.0-weight) * param[idx + i] + weight * param[idx + len_par + i];
+	double *fit_par = Calloc(len_par, double);
+	for (i = 0; i < len_par; i++) {
+		fit_par[i] = (1.0 - weight) * param[idx + i] + weight * param[idx + len_par + i];
 	}
 
 	// the first K are phi
-	for(i=0, tmp = 0.0; i < K; i++) {
-		tmp += exp(-fit_par[idx + i]);
-		phi[i] = 1.0/(1.0 + tmp);
+	for (i = 0, tmp = 0.0; i < K; i++) {
+		tmp += exp(-fit_par[i]);
+		phi[i] = 1.0 / (1.0 + tmp);
 	}
-	
+
 	// the remaining K-1 are the weights
-	double par[KMAX], psum;
+	double psum, *par = Calloc(len_par, double);
 	par[0] = psum = 1;
-	for(i=1; i < K; i++) {
-		par[i] = exp(fit_par[idx + K + i - 1]);
+	for (i = 1; i < K; i++) {
+		par[i] = exp(fit_par[K + (i - 1)]);
 		psum += par[i];
 	}
-	for(i=0; i<K; i++){
+	for (i = 0; i < K; i++) {
 		w[i] = par[i] / psum;
 	}
+
+	Free(fit_par);
+	Free(par);
 
 	return GMRFLib_SUCCESS;
 }

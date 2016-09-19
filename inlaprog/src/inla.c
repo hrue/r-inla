@@ -3816,7 +3816,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
-			lypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)); 
+			lypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(lypred - ly) * prec)) - ly;
 		}
 	} else {
@@ -6143,7 +6143,8 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			a = mu * phi;
 			b = -mu * phi + phi;
-			// If y is close to 0 then 'b' is tiny. Use the asymptotic expansion from `asympt(log(Beta(a,1/bb)), bb, 1)'. If y is close to 1 then 'a' is
+			// If y is close to 0 then 'b' is tiny. Use the asymptotic expansion from `asympt(log(Beta(a,1/bb)), bb, 1)'. If y is close to 1 then 'a'
+			// is
 			// tiny, do similarly
 			if (DMIN(a, b) < DBL_EPSILON) {
 				lbeta = -log(DMIN(a, b));
@@ -15526,7 +15527,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	{
 		int ntheta, order;
 
-		order = mb->f_order[mb->nf]; 
+		order = mb->f_order[mb->nf];
 		ntheta = mb->f_ntheta[mb->nf] = mb->f_order[mb->nf] + 1;
 		assert(ntheta <= AR_MAXTHETA + 1);
 		mb->f_initial[mb->nf] = Calloc(ntheta, double);
@@ -21580,13 +21581,13 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				break;
 
-			case L_EXPONENTIAL: 
+			case L_EXPONENTIAL:
 			case L_EXPONENTIALSURV:
 				/*
 				 * nothing to do
 				 */
 				break;
-				
+
 			default:
 				/*
 				 * nothing to do
@@ -24048,7 +24049,7 @@ int inla_INLA(inla_tp * mb)
 		}
 	}
 
-	/* 
+	/*
 	 * If Gaussian data, then force the strategy to be Gaussian  
 	 */
 	if (mb->gaussian_data) {
@@ -28074,15 +28075,16 @@ int testit(int argc, char **argv)
 		arg->n = 10;
 		arg->k = 3;
 		arg->N = arg->n * (arg->k + 1);
-
+		arg->prec_eps = 100;
 		GMRFLib_graph_tp *g;
 		inla_make_fgn_graph(&g, arg);
 
 		GMRFLib_print_graph(stdout, g);
+		GMRFLib_print_Qfunc(stdout, g, Qfunc_fgn, (void *) arg);
 
 		exit(0);
 	}
-		
+
 
 	if (0) {
 #pragma omp critical
