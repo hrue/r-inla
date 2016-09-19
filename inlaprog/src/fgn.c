@@ -79,15 +79,24 @@ double Qfunc_fgn(int i, int j, void *arg)
 
 	inla_fgn_arg_tp *a = (inla_fgn_arg_tp *) arg;
 	double H = 0.7888, prec = 1.0, val = 0.0;
+	int debug = 0;
 
 	if (!ISEQUAL(H, H_ref)) {
-		inla_fng_get(phi, w, H, a->k);
-		H_ref = H;
+#pragma omp critical
+		{
+			if (!ISEQUAL(H, H_ref)) {
+				inla_fng_get(phi, w, H, a->k);
+				H_ref = H;
+			}
+		}
 	}
 
-	if (0) {
-		for (int k = 0; k < a->k; k++)
-			printf("\t phi[%1d] = %f   w[%1d] = %f\n", k, phi[k], k, w[k]);
+	if (debug) {
+#pragma omp critical
+		{
+			for (int k = 0; k < a->k; k++)
+				printf("\t phi[%1d] = %f   w[%1d] = %f\n", k, phi[k], k, w[k]);
+		}
 	}
 
 	div_t ii, jj;
