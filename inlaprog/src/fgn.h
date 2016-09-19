@@ -43,27 +43,20 @@ __BEGIN_DECLS
 /* 
  *
  */
-
 #include "inla.h"
-
-typedef struct
-{
-	int N;					               /* total size = (k+1)*n */
+    typedef struct {
+	int N;						       /* total size = (k+1)*n */
 	int n;						       /* size of each component */
 	int k;						       /* number of components */
 
 	double prec_eps;				       /* fixed tiny noise */
 	double **log_prec;				       /* theta[0] */
 	double **H_intern;				       /* theta[1] */
+} inla_fgn_arg_tp;
 
-	double *w;					       /* the weights for the k components */
-	double *phi;					       /* the phi's for the k components */
-}
-	inla_fgn_arg_tp;
-
-int inla_make_fgn_graph(GMRFLib_graph_tp **graph, inla_fgn_arg_tp *def);
+int inla_make_fgn_graph(GMRFLib_graph_tp ** graph, inla_fgn_arg_tp * def);
 double Qfunc_fgn(int i, int j, void *arg);
-int inla_fng_get(double *phi, double *w, double H);
+int inla_fng_get(double *phi, double *w, double H, int k);
 
 
 __END_DECLS
