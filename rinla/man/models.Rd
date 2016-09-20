@@ -563,6 +563,53 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `fgn'.}{Number of hyperparmeters are 2.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{hyperid = }{`13101'}
+							\item{name = }{`log precision'}
+							\item{short.name = }{`prec'}
+							\item{prior = }{`pc.prec'}
+							\item{param = }{`3 0.01'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{hyperid = }{`13102'}
+							\item{name = }{`logit H'}
+							\item{short.name = }{`H'}
+							\item{prior = }{`normal'}
+							\item{param = }{`-2 0.25'}
+							\item{initial = }{`2'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{function(x) log((2*x-1)/(2*(1-x)))}'}
+							\item{from.theta = }{`\code{function(x) 0.5 + 0.5*exp(x)/(1+exp(x))}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{constr = }{`FALSE'}
+								\item{nrow.ncol = }{`FALSE'}
+								\item{augmented = }{`TRUE'}
+								\item{aug.factor = }{`4'}
+								\item{aug.constr = }{`1'}
+								\item{n.div.by = }{`NULL'}
+								\item{n.required = }{`FALSE'}
+								\item{set.default.values = }{`TRUE'}
+								\item{order.default = }{`3'}
+								\item{order.defined = }{`3'}
+								\item{pdf = }{`fgn'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `ar1'.}{Number of hyperparmeters are 2.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
