@@ -13,6 +13,7 @@ syntax: glob
 *.bbl
 *.blg
 *.fls
+*.synctex.gz
 
 # switch to regexp syntax.
 syntax: regexp

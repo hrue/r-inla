@@ -519,6 +519,7 @@ typedef enum {
 	P_PC_MATERN,
 	P_PC_RANGE,
 	P_PC_AR,
+	P_PC_FGN_H, 
 	P_REF_AR,					       /* Reference prior for AR(p) for p=1,2,3 */
 	P_INVALID,
 	G_EXCHANGEABLE = 3000,				       /* group models */
