@@ -466,6 +466,44 @@
                      pdf = "besagproper2"
                      ),
 
+                 fgn = list(
+                     hyper = list(
+                         theta1 = list(
+                             hyperid =  13101,
+                             name = "log precision",
+                             short.name = "prec",
+                             prior = "loggamma",
+                             param = c(1, 0.00005),
+                             initial = 4,
+                             fixed = FALSE,
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                             ),
+                         theta2 = list(
+                             hyperid =  13102,
+                             name = "logit H",
+                             short.name = "H",
+                             prior = "normal",
+                             param = c(-2, 0.25),
+                             initial = 2,
+                             fixed = FALSE,
+                             to.theta = function(x) log((2*x-1)/(2*(1-x))), 
+                             from.theta = function(x) 0.5 + 0.5*exp(x)/(1+exp(x))
+                             )
+                         ),
+                     constr = FALSE,
+                     nrow.ncol = FALSE,
+                     augmented = TRUE,
+                     aug.factor = 4L,
+                     aug.constr = 1L,
+                     n.div.by = NULL,
+                     n.required = FALSE,
+                     set.default.values = TRUE,
+                     order.default = 3L,      ## default order for approximation
+                     order.defined = 3L:3L,   ## the list of orders which are implemented
+                     pdf = "fgn"
+                     ),
+
                  ar1 = list(
                      hyper = list(
                          theta1 = list(

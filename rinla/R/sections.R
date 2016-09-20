@@ -270,7 +270,7 @@
             cat("of =", random.spec$of, "\n", sep = " ", file = file,  append = TRUE)
         }
     }
-    if (inla.one.of(random.spec$model, c("copy", "sigm", "revsigm", "log1exp"))) {
+    if (inla.one.of(random.spec$model, c("copy", "sigm", "revsigm", "log1exp", "fgn"))) {
         if (!is.null(random.spec$precision)) {
             cat("precision =", random.spec$precision, "\n", sep = " ", file = file,  append = TRUE)
         }
@@ -620,7 +620,7 @@
         }
     }
 
-    if (random.spec$model == "ar") {
+    if (inla.one.of(random.spec$model, c("ar", "fgn"))) {
         cat("order = ", random.spec$order, "\n", append=TRUE, sep = " ", file = file)
     }
 
