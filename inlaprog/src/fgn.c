@@ -36,6 +36,7 @@ static const char RCSId[] = HGVERSION;
 #include "GMRFLib/GMRFLibP.h"
 
 #include "fgn.h"
+#include "interpol.h"
 
 int inla_make_fgn_graph(GMRFLib_graph_tp ** graph, inla_fgn_arg_tp * def)
 {
@@ -184,4 +185,32 @@ int inla_fng_get(double *phi, double *w, double H_intern, int k)
 	Free(par);
 
 	return GMRFLib_SUCCESS;
+}
+
+double priorfunc_fgn_priorH(double *H_intern, double *param) 
+{
+	// return the log-prior for H_intern
+	double lprior;
+#include "fgn-prior-tables.h"
+#pragma omp critical 
+	{
+		static GMRFLib_spline_tp *dist_spline = NULL;
+		if (!dist_spline) {
+			dist_spline = inla_spline_create(H_int, Dist, sizeof(H_int)/sizeof(double));
+		}
+
+		double U_intern, lambda;
+		U_intern = map_H(param[0], MAP_BACKWARD, NULL);
+		lambda = -log(param[1])/inla_spline_eval(U_intern, dist_spline);
+		lprior = log(lambda) - lambda * inla_spline_eval(*H_intern, dist_spline) + 
+			log(fabs(inla_spline_eval_deriv(*H_intern, dist_spline)));
+		if (0) {
+			P(*H_intern);
+			P(lambda);
+			P(inla_spline_eval(*H_intern, dist_spline));
+			P(inla_spline_eval_deriv(*H_intern, dist_spline));
+			P(lprior);
+		}
+	}
+	return lprior;
 }
