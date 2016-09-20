@@ -47,6 +47,7 @@ __BEGIN_DECLS
 #include "dictionary.h"
 #include "strlib.h"
 #include "ar.h"
+#include "fgn.h"
 #define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560)	/* -1/2 * log(2*pi) */
 #define INLA_FAIL  1
 #define INLA_OK    0
@@ -490,6 +491,7 @@ typedef enum {
 	F_LOG1EXP,
 	F_LOGDIST,
 	F_R_GENERIC,
+	F_FGN, 
 	P_LOGGAMMA = 2000,				       /* priors */
 	P_GAUSSIAN,
 	P_MVGAUSSIAN,
@@ -1353,6 +1355,7 @@ double map_p_weibull_cure(double arg, map_arg_tp typ, void *param);
 double map_phi(double arg, map_arg_tp typ, void *param);
 double map_precision(double arg, map_arg_tp typ, void *param);
 double map_probability(double x, map_arg_tp typ, void *param);
+double map_H(double x, map_arg_tp typ, void *param);
 double map_range(double arg, map_arg_tp typ, void *param);
 double map_rho(double arg, map_arg_tp typ, void *param);
 double map_shape_svnig(double arg, map_arg_tp typ, void *param);

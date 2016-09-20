@@ -37,8 +37,6 @@ static const char RCSId[] = HGVERSION;
 
 #include "fgn.h"
 
-#define KMAX (6L)
-
 int inla_make_fgn_graph(GMRFLib_graph_tp ** graph, inla_fgn_arg_tp * def)
 {
 	int i, j;
@@ -74,28 +72,44 @@ double Qfunc_fgn(int i, int j, void *arg)
 	// the model (z,x1,x2,x3,...), where z = 1/\sqrt{prec} * \sum_i \sqrt{w_i} x_i + tiny.noise,
 	// where each x is standard AR1
 
-	static double phi[2L * KMAX - 1L], w[2L * KMAX - 1L], H_ref = -1.0;
-#pragma omp threadprivate(phi, w, H_ref)
+	int debug = 1;
+	static double **phi_cache = NULL, **w_cache = NULL, *H_cache = NULL;
 
-	inla_fgn_arg_tp *a = (inla_fgn_arg_tp *) arg;
-	double H = 0.7888, prec = 1.0, val = 0.0;
-	int debug = 0;
-
-	if (!ISEQUAL(H, H_ref)) {
-#pragma omp critical
-		{
-			if (!ISEQUAL(H, H_ref)) {
-				inla_fng_get(phi, w, H, a->k);
-				H_ref = H;
-			}
+	if (!arg) {
+		assert(phi_cache == NULL);		       /* do not initialize twice */
+		phi_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		w_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		H_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double);
+		
+		for(int j = 0; j < ISQR(GMRFLib_MAX_THREADS); j++) {
+			phi_cache[j] = Calloc(2*FGN_KMAX-1, double);
+			w_cache[j] = Calloc(2*FGN_KMAX-1, double);
 		}
+		if (debug) {
+			printf("Qfunc_fgn: initialize cache\n");
+		}
+		return NAN;
 	}
 
-	if (debug) {
-#pragma omp critical
-		{
+	inla_fgn_arg_tp *a = (inla_fgn_arg_tp *) arg;
+	double H, prec, val = 0.0, *phi, *w;
+	int id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
+	
+	phi = phi_cache[id];
+	w = w_cache[id];
+
+	H = map_H(a->H_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+
+	if (!ISEQUAL(H, H_cache[id])) {
+		if (debug){
+			printf("Qfunc_fgn: update cache H[%1d]= %f\n", id, H);
+		}
+		inla_fng_get(phi, w, H, a->k);
+		H_cache[id] = H;
+		if (debug) {
 			for (int k = 0; k < a->k; k++)
-				printf("\t phi[%1d] = %f   w[%1d] = %f\n", k, phi[k], k, w[k]);
+				printf("\tphi[%1d]= %f   w[%1d]= %f\n", k, phi[k], k, w[k]);
 		}
 	}
 
