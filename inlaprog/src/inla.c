@@ -19013,8 +19013,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			memcpy(&t[mb->f_n[mb->nf]], mb->f_locations[mb->nf], mb->f_n[mb->nf] * sizeof(double));
 
 			double start = floor(GMRFLib_max_value(t, mb->f_n[mb->nf], NULL) + 1.0);
-			for (int ii = mb->f_n[mb->nf]; ii < (def->k + 1) * mb->f_n[mb->nf]; ii++) {
-				t[ii] = start + ii;
+			for (int ii = 0; ii < def->k * mb->f_n[mb->nf]; ii++) {
+				t[ii + mb->f_n[mb->nf]] = start + ii;
 			}
 			mb->f_locations[mb->nf] = t;
 		}

@@ -72,14 +72,14 @@ double Qfunc_fgn(int i, int j, void *arg)
 	// the model (z,x1,x2,x3,...), where z = 1/\sqrt{prec} * \sum_i \sqrt{w_i} x_i + tiny.noise,
 	// where each x is standard AR1
 
-	int debug = 1;
-	static double **phi_cache = NULL, **w_cache = NULL, *H_cache = NULL;
+	int debug = 0;
+	static double **phi_cache = NULL, **w_cache = NULL, *H_intern_cache = NULL;
 
 	if (!arg) {
 		assert(phi_cache == NULL);		       /* do not initialize twice */
 		phi_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
 		w_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		H_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double);
+		H_intern_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double);
 		
 		for(int j = 0; j < ISQR(GMRFLib_MAX_THREADS); j++) {
 			phi_cache[j] = Calloc(2*FGN_KMAX-1, double);
@@ -92,21 +92,21 @@ double Qfunc_fgn(int i, int j, void *arg)
 	}
 
 	inla_fgn_arg_tp *a = (inla_fgn_arg_tp *) arg;
-	double H, prec, val = 0.0, *phi, *w;
+	double H_intern, prec, val = 0.0, *phi, *w;
 	int id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
 	
 	phi = phi_cache[id];
 	w = w_cache[id];
 
-	H = map_H(a->H_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	H_intern = a->H_intern[GMRFLib_thread_id][0];
 	prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
-	if (!ISEQUAL(H, H_cache[id])) {
+	if (!ISEQUAL(H_intern, H_intern_cache[id])) {
 		if (debug){
-			printf("Qfunc_fgn: update cache H[%1d]= %f\n", id, H);
+			printf("Qfunc_fgn: update cache H_intern[%1d]= %f\n", id, H_intern);
 		}
-		inla_fng_get(phi, w, H, a->k);
-		H_cache[id] = H;
+		inla_fng_get(phi, w, H_intern, a->k);
+		H_intern_cache[id] = H_intern;
 		if (debug) {
 			for (int k = 0; k < a->k; k++)
 				printf("\tphi[%1d]= %f   w[%1d]= %f\n", k, phi[k], k, w[k]);
@@ -139,18 +139,22 @@ double Qfunc_fgn(int i, int j, void *arg)
 	return val;
 }
 
-int inla_fng_get(double *phi, double *w, double H, int k)
+int inla_fng_get(double *phi, double *w, double H_intern, int k)
 {
-	// fill in the weights and the phis for a given H
+	// fill in the weights and the phis for a given H_intern
 #include "fgn-tables.h"
 
 	int idx, i, len_par;
 	double weight, tmp;
 
 	assert(k == K);
-	assert(H >= H_start && H <= H_end);
-	idx = (int) floor((H - H_start) / H_by);	       /* idx is the block-index */
-	weight = (H - (H_start + idx * H_by)) / H_by;
+	// make sure its in the range. Hack...
+	H_intern = DMAX(H_intern, H_intern_start + H_intern_by);
+	H_intern = DMIN(H_intern, H_intern_end - H_intern_by);
+
+	assert(H_intern >= H_intern_start && H_intern <= H_intern_end);
+	idx = (int) floor((H_intern - H_intern_start) / H_intern_by);	       /* idx is the block-index */
+	weight = (H_intern - (H_intern_start + idx * H_intern_by)) / H_intern_by;
 	len_par = 2 * K - 1;
 	idx *= len_par;					       /* and now the index in the table */
 

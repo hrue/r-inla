@@ -472,9 +472,9 @@
                              hyperid =  13101,
                              name = "log precision",
                              short.name = "prec",
-                             prior = "loggamma",
-                             param = c(1, 0.00005),
-                             initial = 4,
+                             prior = "pc.prec",
+                             param = c(3, 0.01),
+                             initial = 1,
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
