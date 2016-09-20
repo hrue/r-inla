@@ -61,7 +61,7 @@ typedef struct {
 int inla_make_fgn_graph(GMRFLib_graph_tp ** graph, inla_fgn_arg_tp * def);
 double Qfunc_fgn(int i, int j, void *arg);
 int inla_fng_get(double *phi, double *w, double H_intern, int k);
-
+double priorfunc_fgn_priorH(double *H_intern, double *param);
 
 __END_DECLS
 #endif
