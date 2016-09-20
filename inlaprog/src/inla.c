@@ -7765,6 +7765,22 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[]\n", prior_tag, param_tag);
 		}
+	} else if (!strcasecmp(prior->name, "PCFGNH")) {
+		prior->id = P_PC_FGN_H;
+		prior->priorfunc = priorfunc_fgn_priorH;
+		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
+			prior->parameters = Calloc(2, double);
+			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
+			}
+		} else {
+			prior->parameters = Calloc(2, double);
+			prior->parameters[0] = 0.9;
+			prior->parameters[1] = 0.1;
+		}
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
+		}
 	} else if (!strcasecmp(prior->name, "BETACORRELATION")) {
 		prior->id = P_BETACORRELATION;
 		prior->priorfunc = priorfunc_betacorrelation;

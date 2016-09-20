@@ -483,8 +483,8 @@
                              hyperid =  13102,
                              name = "logit H",
                              short.name = "H",
-                             prior = "normal",
-                             param = c(-2, 0.25),
+                             prior = "pcfgnh",
+                             param = c(0.9, 0.1),
                              initial = 2,
                              fixed = FALSE,
                              to.theta = function(x) log((2*x-1)/(2*(1-x))), 
@@ -6249,69 +6249,67 @@
                  normal = list(
                      nparameters = 2L,
                      pdf = "gaussian"
-                     ),
+                 ),
                  gaussian = list(
                      nparameters = 2L,
                      pdf = "gaussian"
-                     ),
+                 ),
                  wishart1d = list(
                      nparameters = 2L,
                      pdf = "iid123d"
-                     ),
+                 ),
                  wishart2d = list(
                      nparameters = 4L,
                      pdf = "iid123d"
-                     ),
+                 ),
                  wishart3d = list(
                      nparameters = 7L,
                      pdf = "iid123d"
-                     ),
+                 ),
                  wishart4d = list(
                      nparameters = 11L,
                      pdf = "iid123d"
-                     ),
+                 ),
                  wishart5d = list(
                      nparameters = 16L,
                      pdf = "iid123d"
-                     ),
+                 ),
                  loggamma = list(
                      nparameters = 2L,
                      pdf = "prior-loggamma"
-                     ),
+                 ),
                  minuslogsqrtruncnormal = list(
                      nparameters = 2L,
                      pdf = "prior-logtnorm"
-                     ),
+                 ),
                  logtnormal = list(
                      nparameters = 2L,
                      pdf = "prior-logtnorm"
-                     ),
+                 ),
                  logtgaussian = list(
                      nparameters = 2L,
                      pdf = "prior-logtnorm"
-                     ),
+                 ),
                  flat=list(
                      nparameters = 0L,
                      pdf = "various-flat"
-                     ),
+                 ),
                  logflat=list(
                      nparameters = 0L,
                      pdf = "various-flat"
-                     ),
+                 ),
                  logiflat=list(
                      nparameters = 0L,
                      pdf = "various-flat"
-                     ),
-
+                 ),
                  mvnorm = list(
                      nparameters = -1L,
                      pdf = "mvnorm"
-                     ),
-
+                 ),
                  pc.ar = list(
                      nparameters = 1L,
                      pdf = "pc.ar"
-                     ),
+                 ),
 
                  ## this is the 'no prior needed' prior
                  none = list(nparameters = 0L),
@@ -6322,75 +6320,79 @@
                  betacorrelation = list(
                      nparameters = 2L,
                      pdf = "betacorrelation"
-                     ),
+                 ),
 
                  logitbeta = list(
                      nparameters = 2L,
                      pdf = "logitbeta"
-                     ),
+                 ),
 
                  pc.prec = list(
                      nparameters = 2L,
                      pdf = "pc.prec"
-                     ),
+                 ),
                  
                  pc.dof = list(
                      nparameters = 2L,
                      pdf = "pc.dof"
-                     ),
+                 ),
                  
                  pc.cor0 = list(
                      nparameters = 2L,
                      pdf = "pc.cor0"
-                     ),
+                 ),
                  
                  pc.cor1 = list(
                      nparameters = 2L,
                      pdf = "pc.cor1"
-                     ),
+                 ),
                  
+                 pc.fgnh = list(
+                     nparameters = 2L,
+                     pdf = "pc.fgnh"
+                 ), 
                  ## experimental prior from GA
                  pc.spde.GA = list(
                      nparameters = 4L,
                      pdf = NA
-                     ), 
-                
+                 ), 
+                 
 		 pc.matern = list(
                      nparameters = 3L,
                      pdf = NA
-                     ), 
-		
+                 ), 
+                 
 		 pc.range = list(
                      nparameters = 2L,
                      pdf = NA
-                     ), 
+                 ), 
 
                  ## this is the generic one,  which is case-spesific and possibly adaptive
                  pc = list(
                      nparameters = 2L,
                      pdf = NA
-                     ), 
+                 ), 
 
                  ref.ar = list(
                      nparameters = 0L,
                      pdf = NA
-                     ),
+                 ),
                  
                  jeffreystdf = list(
                      nparameters = 0L,
                      pdf = "jeffreystdf"
-                     ),
+                 ),
 
                  "expression:" = list(
                      nparameters = -1L,
                      pdf = "expression"
-                     ), 
+                 ), 
 
                  "table:" = list(
                      nparameters = -1L,
                      pdf = "table"
-                     )
                  )
+             )
          )
 }
 
