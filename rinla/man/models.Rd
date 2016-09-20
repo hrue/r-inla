@@ -583,8 +583,8 @@ inla.models()
 							\item{hyperid = }{`13102'}
 							\item{name = }{`logit H'}
 							\item{short.name = }{`H'}
-							\item{prior = }{`normal'}
-							\item{param = }{`-2 0.25'}
+							\item{prior = }{`pcfgnh'}
+							\item{param = }{`0.9 0.1'}
 							\item{initial = }{`2'}
 							\item{fixed = }{`FALSE'}
 							\item{to.theta = }{`\code{function(x) log((2*x-1)/(2*(1-x)))}'}
@@ -7579,6 +7579,8 @@ inla.models()
 				\item{Model `pc.cor0'.}{					 Number of parameters in the prior = 2 
 				 }
 				\item{Model `pc.cor1'.}{					 Number of parameters in the prior = 2 
+				 }
+				\item{Model `pc.fgnh'.}{					 Number of parameters in the prior = 2 
 				 }
 				\item{Model `pc.spde.GA'.}{					 Number of parameters in the prior = 4 
 				 }
