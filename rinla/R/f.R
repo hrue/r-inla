@@ -517,8 +517,8 @@
         }
     }
 
-    ## check that 'order' is define only for model AR (at this moment)
-    if (inla.one.of(model, "ar")) {
+    ## check that 'order' is defined
+    if (inla.one.of(model, c("ar"))) {
         if (is.null(order) || missing(order) || order < 1L) {
             stop("Model 'ar' needs 'order' to be defined as an integer > 0.")
         }
@@ -527,6 +527,15 @@
         if (order > max.order) {
             stop(paste("Model 'ar': order=", order, ", is to large. max.order =", max.order, sep=""))
         }
+    }
+    if (inla.one.of(model, "fgn")) {
+        if (is.null(order) || missing(order)) {
+            ## which is 3L for the moment
+            order = inla.models()$latent$fgn$order.default
+        } else {
+            order = as.integer(order)
+        }
+        stopifnot(any(order == inla.models()$latent$fgn$order.defined))
     }
 
     ## Check that the Cmatrix is defined for those models needing it, and oposite.
