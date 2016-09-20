@@ -65,7 +65,11 @@ print(c(MLE=FitFGN(y, demean=TRUE)$H,
 
 \subsection*{Notes}
 
-None
+In the example above, then the \texttt{f(idx,model="fgn")} object will
+expand into a Gaussian of length \texttt{(order + 1)*n}. The first $n$
+elements is the FGN model (which is of interrest), then there are
+\texttt{order} vector of AR1 processes each of length $n$ which are
+used to create a more efficient representation of the FGN.
 
 \end{document}
 
@@ -76,10 +80,3 @@ None
 %%% TeX-master: t
 %%% End: 
 
-
-
-% LocalWords: 
-
-%%% Local Variables: 
-%%% TeX-master: t
-%%% End: 
