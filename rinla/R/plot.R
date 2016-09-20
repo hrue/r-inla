@@ -914,6 +914,43 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
         return (if (log) ld else exp(ld))
     }
 
+    my.pcfgnh = function(theta, param, log=FALSE) 
+    {
+        ## we compute the PC-prior on the fly using these two packages. Its somewhat quick.
+        inla.require("HKprocess")
+        inla.require("FGN")
+        
+        to.theta = inla.models()$latent$fgn$hyper$theta2$to.theta
+        from.theta = inla.models()$latent$fgn$hyper$theta2$from.theta
+
+        logdet.FGN = function(H, n) {
+            ans = c()
+            Hseq = H
+            for(H in Hseq) {
+                r = FGN::acvfFGN(H, n-1)
+                res = HKprocess::ltzc(r, rep(0, n))
+                ans = c(ans,  as.numeric(res[2]))
+            }
+            return (ans)
+        }
+        d = function(H, n) return (sqrt(-logdet.FGN(H, n)))
+        H.intern = seq(-10, 19, by = 0.1)
+        dist = d(from.theta(H.intern), 100)
+        log.d = log(dist/max(dist))
+        res = cbind(H.intern = H.intern, log.d = log.d)
+        log.d.spline = splinefun(res[, 1], res[, 2])
+        d.spline = function(H.intern, ...) return (exp(log.d.spline(H.intern, ...)))
+        d.spline.deriv = function(H.intern, ...) return (d.spline(H.intern, ...) * log.d.spline(H.intern, deriv=1L))
+
+        U = param[1]
+        alpha = param[2]
+        lambda = -log(alpha)/d.spline(to.theta(U))
+        ld = dexp(d.spline(theta), rate = lambda, log=TRUE) + log(abs(d.spline.deriv(theta)))
+        ##print(cbind(theta = theta,  ld = ld))
+        
+        return (if (log) ld else exp(ld))
+    }
+
     my.pc.prec = function(theta, param, log=FALSE)
     {
         ## sigma = exp(-theta/2)

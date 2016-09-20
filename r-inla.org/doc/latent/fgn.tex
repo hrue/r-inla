@@ -1,0 +1,85 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Fractional Gaussian Noise (FGN)}
+
+\subsection*{Parametrization}
+
+The (stationary) FGN (Gaussian) process has correlation function  at
+lag $k$
+\begin{displaymath}
+    \rho(k) = |k+1|^{2H} -2|k|^{2H} + |k-1|^{2H}
+\end{displaymath}
+where $H$ is the Hurst parameter or self-similarity parameter, which
+we assume to be
+\begin{displaymath}
+    1/2 \le H < 1.
+\end{displaymath}
+so the process has long range properties for $H>1/2$. The locations of
+the the process is fixed to $1, 2, \ldots, n$, where $n$ is the
+dimension of the finite representation of the FGN process.
+
+\subsection*{Hyperparameters}
+
+The marginal precision, $\tau$, of the process is represented as
+\begin{displaymath}
+    \tau = \exp(\theta_1)
+\end{displaymath}
+The Hurst parameter $H$ is represented as
+\[
+    H = \frac{1}{2} + \frac{1}{2} \frac{\exp(\theta_2)}{1+\exp(\theta_2)}
+\]
+and the prior is defined on $\mathbf{\theta}=(\theta_1,\theta_2)$. 
+
+\subsection*{Specification}
+
+The FGN model is specified as
+\begin{verbatim}
+ f(<whatever>, model="fgn", order=<order>, hyper = <hyper>)
+\end{verbatim}
+The parmeter \texttt{order} gives the order of the Markov
+approximation. Currently, only \texttt{order=3} is implemented.
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/latent/fgn.tex}
+
+\subsection*{Example}
+
+\begin{verbatim}
+library(FGN)
+n = 1000
+H = 0.77
+y = SimulateFGN(n, H)
+y = y - mean(y)
+r = inla(y ~ -1 + f(idx, model="fgn"), 
+         data = data.frame(y, idx=1:n),
+         control.family =list(hyper = list(prec = list(initial = 12, fixed=TRUE))))
+print(c(MLE=FitFGN(y, demean=TRUE)$H,
+        Post.mean=r$summary.hyperpar[2,"mean"],
+        Post.mode=r$summary.hyperpar[2,"mode"]))
+\end{verbatim}
+
+
+\subsection*{Notes}
+
+In the example above, then the \texttt{f(idx,model="fgn")} object will
+expand into a Gaussian of length \texttt{(order + 1)*n}. The first $n$
+elements is the FGN model (which is of interrest), then there are
+\texttt{order} vector of AR1 processes each of length $n$ which are
+used to create a more efficient representation of the FGN.
+
+The PC-prior for $H$ take two arguments $(U, \alpha)$ where
+$\text{Prob}(U < H < 1) = \alpha$.
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
+
