@@ -957,11 +957,9 @@ typedef struct {
 } inla_besag_Qfunc_arg_tp;
 
 typedef struct {
-	GMRFLib_graph_tp *graph;
-	double **log_prec;
+	inla_besag_Qfunc_arg_tp *besag_arg;
 	double **log_a;					       /* the parameter a */
 	double precision;				       /* the copy precision */
-	double *prec_scale;
 } inla_besag2_Qfunc_arg_tp;
 
 typedef struct {
