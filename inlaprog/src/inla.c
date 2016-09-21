@@ -3072,41 +3072,46 @@ double Qfunc_besag(int i, int j, void *arg)
 	double prec;
 
 	a = (inla_besag_Qfunc_arg_tp *) arg;
-	if (a->log_prec) {
-		prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	} else {
-		prec = 1.0;
-	}
-	prec *= (a->prec_scale ? a->prec_scale[0] : 1.0);
+	prec = (a->log_prec ? map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL) : 1.0);
+	
+	if (a->prec_scale) {
+		if (a->prec_scale[i] > 0.0) {
+			prec *= a->prec_scale[i];
+			// normal return
+			return prec * (i == j ? a->graph->nnbs[i] : -1.0);
+		} else if (a->prec_scale[i] < 0.0) {
+			// node with no neibours and marg variance = 1
+			assert((i == j) && a->graph->nnbs[i] == 0);
+			return (prec);
+		} else if (a->prec_scale[i] == 0.0) {
+			// uniform
+			return 0.0;
+		} else {
+			assert(0 == 1);
+		}
+	} 
+	// ``classical model''
 	return prec * (i == j ? a->graph->nnbs[i] : -1.0);
 }
 double Qfunc_besag2(int i, int j, void *arg)
 {
 	inla_besag2_Qfunc_arg_tp *aa;
-	double prec, a;
+	double a;
 
 	aa = (inla_besag2_Qfunc_arg_tp *) arg;
-
-	if (aa->log_prec) {
-		prec = map_precision(aa->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	} else {
-		prec = 1.0;
-	}
-	prec *= (aa->prec_scale ? aa->prec_scale[0] : 1.0);
-
 	if (aa->log_a) {
 		a = map_exp(aa->log_a[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	} else {
 		a = 1.0;
 	}
-
-	if (IMAX(i, j) < aa->graph->n) {
+	
+	if (IMAX(i, j) < aa->besag_arg->graph->n) {
 		if (i == j) {
-			return (prec * aa->graph->nnbs[i] + aa->precision) / SQR(a);
+			return (Qfunc_besag(i, j, (void *) aa->besag_arg) + aa->precision) / SQR(a);
 		} else {
-			return -prec / SQR(a);
+			return -Qfunc_besag(i, j, (void *) aa->besag_arg) / SQR(a);
 		}
-	} else if (IMIN(i, j) >= aa->graph->n) {
+	} else if (IMIN(i, j) >= aa->besag_arg->graph->n) {
 		return aa->precision * SQR(a);
 	} else {
 		return -aa->precision;
@@ -16560,9 +16565,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "a_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "Scale parameter a_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "a for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "Scale paramter a for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "%s-parameter1", mb->f_dir[mb->nf]);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -18327,28 +18332,25 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		mb->f_Qfunc[mb->nf] = Qfunc_besag2;
 		arg = Calloc(1, inla_besag2_Qfunc_arg_tp);
-		arg->graph = mb->f_graph[mb->nf];
+		arg->besag_arg = Calloc(1, inla_besag_Qfunc_arg_tp);
+		arg->besag_arg->graph = mb->f_graph[mb->nf];
 
 		int adj = iniparser_getint(ini, inla_string_join(secname, "ADJUST.FOR.CON.COMP"), 1);
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
 		if (std) {
-			inla_besag_Qfunc_arg_tp *besag_arg = Calloc(1, inla_besag_Qfunc_arg_tp);
-			besag_arg->graph = arg->graph;
-			inla_besag_scale(besag_arg, adj);
-			arg->prec_scale = besag_arg->prec_scale;	/* yes, steal that pointer */
-			Free(besag_arg);
+			inla_besag_scale(arg->besag_arg, adj);
 		}
 		if (mb->verbose) {
 			printf("\t\tadjust.for.con.comp[%1d]\n", adj);
 			printf("\t\tscale.model[%1d]\n", std);
 			if (std) {
-				printf("\t\tscale.model: prec_scale[%g]\n", arg->prec_scale[0]);
+				printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
 			}
 		}
 
-		inla_make_besag2_graph(&(mb->f_graph[mb->nf]), arg->graph);
+		inla_make_besag2_graph(&(mb->f_graph[mb->nf]), arg->besag_arg->graph);
 		arg->precision = mb->f_precision[mb->nf];
-		arg->log_prec = log_prec;
+		arg->besag_arg->log_prec = log_prec;
 		arg->log_a = a_intern;
 
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
@@ -28230,102 +28232,147 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc)
 int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 {
 	inla_besag_Qfunc_arg_tp *def = Calloc(1, inla_besag_Qfunc_arg_tp);
-	inla_besag_Qfunc_arg_tp *odef = arg;
+	GMRFLib_copy_graph(&(def->graph), arg->graph);
 
-	GMRFLib_copy_graph(&(def->graph), odef->graph);
-	def->log_prec = NULL;
-	def->prec_scale = NULL;
+	int i, j, k, debug = 0, *cc = NULL, n = def->graph->n;
+	arg->prec_scale = Calloc(def->graph->n, double);
 
-	int i, j, *cc = NULL, n = def->graph->n;
+	if (debug) P(adj);
+	
 	if (adj) {
+		// use the cc in the graph
 		cc = GMRFLib_connected_components(def->graph);
 	} else {
+		// treat the whole graph as one cc
 		cc = Calloc(n, int);
 	}
 
-	double *c = Calloc(def->graph->n, double), eps = GMRFLib_eps(0.75);
-	for (i = 0; i < n; i++) {
-		c[i] = eps;
-	}
-
-	GMRFLib_constr_tp *constr = NULL;
-	GMRFLib_make_empty_constr(&constr);
-
-	int ncc = 1 + GMRFLib_imax_value(cc, def->graph->n, NULL);	/* number of the connected components */
-	int *c_cc = Calloc(ncc, int);			       /* the number of nodes in each group */
-
-	// check that we have at least two in each group
-	for (i = 0; i < n; i++) {
-		c_cc[cc[i]]++;
-	}
-	for (j = 0; j < ncc; j++) {
-		assert(c_cc[j] > 0);			       /* this should not happend */
-		if (c_cc[j] == 1) {
-			char *msg;
-			GMRFLib_sprintf(&msg,
-					"One of the %1d connected components in the graph for the Besag model, has only 1 element; fail to apply scale.model=TRUE",
-					ncc);
-			inla_error_general(msg);
-			exit(1);
-		}
-	}
-	Free(c_cc);
-
-	constr->nc = ncc;
-	constr->a_matrix = Calloc(n * constr->nc, double);
-	for (i = 0; i < n; i++) {
-		j = cc[i];
-		constr->a_matrix[i * constr->nc + j] = 1.0;
-	}
-	constr->e_vector = Calloc(constr->nc, double);
-	GMRFLib_prepare_constr(constr, def->graph, GMRFLib_TRUE);
-	// GMRFLib_print_constr(stdout, constr, def->graph);
-
-	GMRFLib_problem_tp *problem;
-
-	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
-	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-
-	while (!ok) {
-		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, def->graph, Qfunc_besag, (void *) def, NULL, constr, GMRFLib_NEW_PROBLEM);
-		switch (retval) {
-		case GMRFLib_EPOSDEF:
-		{
-			for (i = 0; i < n; i++) {
-				c[i] *= 10.0;
+	if (!adj) {
+		// special for nnbs=0
+		for(i = 0; i<n; i++) {
+			if (arg->graph->nnbs[i] == 0) {
+				cc[i] = 1;		       // so it will be disabled in the computations below
 			}
-			problem = NULL;
-			break;
 		}
-		case GMRFLib_SUCCESS:
-			ok = 1;
-			break;
-		default:
+	}
+
+	// if !adj, then we will not use the nodes where nnbs=0, and we do this by forcing ncc=0,
+	// since cc[i]=1 for those nodes as set above.
+	int ncc;
+	ncc = (adj ? 1 + GMRFLib_imax_value(cc, def->graph->n, NULL) : 1);
+	if (debug) P(ncc);
+	
+	// work with each cc at the time
+	for(k = 0; k < ncc; k++) {
+		if (debug) P(k);
+		GMRFLib_constr_tp *constr = NULL;
+		GMRFLib_make_empty_constr(&constr);
+
+		char *remove = Calloc(n, char);
+		int num = 0;
+		for(i = num = 0; i < n; i++) {
+			if (cc[i] == k) {
+				remove[i] = 0;
+				num++;
+			} else {
+				remove[i] = 1;
+			}
+		}
+		if (debug) P(num);
+		if (num == 1) {
+			// only one node in this component. then we know that the precision i 1.
+			for(i = 0; i < n; i++) {
+				if (cc[i] == k) {
+					arg->prec_scale[i] = -1.0; /* this is code for treating this case specially */
+				}
+			}
+		} else {
+			// compute the subgraph and find the scaling for this connected component
+			GMRFLib_graph_tp *sgraph;
+			GMRFLib_compute_subgraph(&sgraph, def->graph, remove);
+
+			constr->nc = 1;
+			constr->a_matrix = Calloc(sgraph->n, double);
+			for (i = 0; i < sgraph->n; i++) {
+				constr->a_matrix[i] = 1.0;
+			}
+			constr->e_vector = Calloc(1, double);
+			GMRFLib_prepare_constr(constr, sgraph, GMRFLib_TRUE);
+			
+			GMRFLib_problem_tp *problem;
+			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
+			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+
+			double *c = Calloc(sgraph->n, double), eps = GMRFLib_eps(0.75);
+			for (i = 0; i < sgraph->n; i++) {
+				c[i] = eps;
+			}
+			
+			while (!ok) {
+				retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, sgraph, Qfunc_besag, (void *) def, NULL, constr,
+							      GMRFLib_NEW_PROBLEM);
+				switch (retval) {
+				case GMRFLib_EPOSDEF:
+				{
+					for (i = 0; i < sgraph->n; i++) {
+						c[i] *= 10.0;
+					}
+					problem = NULL;
+					break;
+				}
+				case GMRFLib_SUCCESS:
+					ok = 1;
+					break;
+				default:
+					GMRFLib_set_error_handler(old_handler);
+					GMRFLib_ERROR(retval);
+					abort();
+					break;
+				}
+				if (++num_try >= num_try_max) {
+					FIXME("This should not happen. Contact developers...");
+					abort();
+				}
+			}
 			GMRFLib_set_error_handler(old_handler);
-			GMRFLib_ERROR(retval);
-			abort();
-			break;
-		}
-		if (++num_try >= num_try_max) {
-			FIXME("This should not happen. Contact developers...");
-			abort();
+			GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
+			
+			if (debug) P(sgraph->n);
+			double sum = 0.0, value;
+
+			for (i = 0; i < sgraph->n; i++) {
+				sum += log(*(GMRFLib_Qinv_get(problem, i, i)));
+			}
+			value = exp(sum / sgraph->n);
+			if (debug) P(value);
+			for(i = 0; i < n; i++) {
+				if (cc[i] == k) {
+					arg->prec_scale[i] = value;
+				}
+			}
+			
+			GMRFLib_free_graph(sgraph);
+			GMRFLib_free_problem(problem);
+			GMRFLib_free_constr(constr);
+			Free(c);
 		}
 	}
-	GMRFLib_set_error_handler(old_handler);
 
-	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
-
-	double sum = 0.0;
-	for (i = 0; i < n; i++) {
-		sum += log(*(GMRFLib_Qinv_get(problem, i, i)));
+	if (!adj) {
+		for(i = 0; i < n; i++) {
+			if (cc[i] > 0) {
+				assert(arg->graph->nnbs[i] == 0);
+				arg->prec_scale[i] = -1.0; /* this is code for treating this case specially */
+			}
+		}
 	}
 
-	arg->prec_scale = Calloc(1, double);
-	arg->prec_scale[0] = exp(sum / def->graph->n);
+	if (debug){
+		for(i=0; i<n; i++)
+			printf("\targ->prec_scale[%1d] = %f\n", i, arg->prec_scale[i]);
+	}
 
-	GMRFLib_free_problem(problem);
 	GMRFLib_free_graph(def->graph);
-	GMRFLib_free_constr(constr);
 	Free(def);
 	Free(cc);
 
