@@ -118,25 +118,51 @@ double Qfunc_fgn(int i, int j, void *arg)
 	ii = div(IMIN(i, j), a->n);
 	jj = div(IMAX(i, j), a->n);
 
-	if (ii.quot == 0) {
-		val = (jj.quot == 0 ? a->prec_eps : -sqrt(w[jj.quot - 1L] / prec) * a->prec_eps);
-	} else {
-		if (ii.quot == jj.quot) {
-			// this is the AR1
-			double prec_cond = 1.0 / (1.0 - SQR(phi[ii.quot - 1L]));
-			if (ii.rem != jj.rem) {
-				// off-diagonal
-				val = -prec_cond * phi[ii.quot - 1L];
-			} else {
-				// diagonal
-				val = prec_cond * ((ii.rem == 0 || ii.rem == a->n - 1L) ? 1.0 : (1.0 + SQR(phi[ii.quot - 1L])));
-				val += a->prec_eps * w[ii.quot - 1L] / prec;
-			}
+	if (0) {
+		// this is the old-style where the x^i's are standard AR1's, and the FNG is a scaled and weighted sum of the
+		// components.
+		if (ii.quot == 0) {
+			val = (jj.quot == 0 ? a->prec_eps : -sqrt(w[jj.quot - 1L] / prec) * a->prec_eps);
 		} else {
-			val = sqrt(w[ii.quot - 1L] * w[jj.quot - 1L]) * a->prec_eps / prec;
+			if (ii.quot == jj.quot) {
+				// this is the AR1
+				double prec_cond = 1.0 / (1.0 - SQR(phi[ii.quot - 1L]));
+				if (ii.rem != jj.rem) {
+					// off-diagonal
+					val = -prec_cond * phi[ii.quot - 1L];
+				} else {
+					// diagonal
+					val = prec_cond * ((ii.rem == 0 || ii.rem == a->n - 1L) ? 1.0 : (1.0 + SQR(phi[ii.quot - 1L])));
+					val += a->prec_eps * w[ii.quot - 1L] / prec;
+				}
+			} else {
+				val = sqrt(w[ii.quot - 1L] * w[jj.quot - 1L]) * a->prec_eps / prec;
+			}
+		}
+	} else {
+		// this is the new style where the x^i's are the scaled AR1's, and the FGN is then just the sum of the
+		// components.
+		if (ii.quot == 0) {
+			val = a->prec_eps * (jj.quot == 0 ? 1.0 : -1.0);
+		} else {
+			if (ii.quot == jj.quot) {
+				// this is the AR1
+				double prec_cond = 1.0 / (1.0 - SQR(phi[ii.quot - 1L]));
+				double scale = prec / w[ii.quot -1L];
+				if (ii.rem != jj.rem) {
+					// off-diagonal
+					val = - scale * prec_cond * phi[ii.quot - 1L];
+				} else {
+					// diagonal
+					val = scale * prec_cond * ((ii.rem == 0 || ii.rem == a->n - 1L) ? 1.0 : (1.0 + SQR(phi[ii.quot - 1L])));
+					val += a->prec_eps;
+				}
+			} else {
+				val = a->prec_eps;
+			}
 		}
 	}
-
+	
 	return val;
 }
 
