@@ -68,8 +68,8 @@ print(c(MLE=FitFGN(y, demean=TRUE)$H,
 In the example above, then the \texttt{f(idx,model="fgn")} object will
 expand into a Gaussian of length \texttt{(order + 1)*n}. The first $n$
 elements is the FGN model (which is of interrest), then there are
-\texttt{order} vector of AR1 processes each of length $n$ which are
-used to create a more efficient representation of the FGN.
+\texttt{order} vector of AR1 processes each of length $n$, and the sum
+of these AR1 processes is used to represent the FGN.
 
 The PC-prior for $H$ take two arguments $(U, \alpha)$ where
 $\text{Prob}(U < H < 1) = \alpha$.
