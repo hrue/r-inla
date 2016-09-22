@@ -86,14 +86,71 @@ lines( r$summary.random$x$ID, r$summary.random$x$"0.975quant", lty=3, lwd=2)
 
 \section{Replicate}
 
-
-
-
-
 \section{Group}
 
 \section{Linear combinations}
 
 \section{Copy}
 
-\section{Running \tv{R-INLA} remotely}
+\section{Running \tv{inla()} remotely}
+
+A really useful feature is the option to run \tv{inla()} remotely on a
+different machine. If you have access to a computational server
+somewhere of \tv{Linux} or \tv{MaxOSX} type, you can make use of this.
+
+After a the setup, we can do like this
+<<echo=TRUE, eval=FALSE>>=
+n = 1000
+x = runif(n)
+y = x + rnorm(n)
+r = inla(y ~ 1 + x,  data = data.frame(y, x), inla.call = "remote")
+@ 
+which will run the computations on a different server. The name of the
+server is defined in the file \tv{$\sim$/.inlarc}, which for me, reads
+\begin{verbatim}
+### The name of the remote host.
+RemoteHost="inla.math.ntnu.no"
+
+### The username on the remote host
+RemoteUser="hrue"
+
+### Full path to the inla-program on the remote host
+RemoteINLA="/usr/local/bin/inla"
+
+### Arguments to ssh. Usually no need to change this
+sshArguments="-x -o BatchMode=yes -o TCPKeepAlive=yes -e none"
+
+### Port number
+Port=22
+\end{verbatim}
+All these options are the default values, so you can also comment them
+out using a '\#' or just leave them out. The options means, that I run
+on the host \tv{inla.math.ntnu.no} using the account with usename
+\tv{hrue} and the path to the \tv{inla}-binary is
+\tv{/usr/local/bin/inla}. The easy way to install the
+\tv{inla}-binary, is to have \tv{R} and \tv{R-INLA} installed and use
+the \tv{inla}-binary in the \tv{R-INLA} package. You can find its path
+by
+<<echo=FALSE>>=
+inla.setOption(inla.call=NULL)
+@ 
+<<echo=TRUE>>=
+inla.getOption("inla.call")
+@ 
+
+The \tv{remote}-feature is made possible by using \tv{ssh} tools and
+friends, which explains why you need to install \tv{Cygwin} on Windows
+to make it work. The setup is easy enough but you need to doit correct
+and every little detail is important; if in doubt seek help, upfont,
+from a computer-wizard, and follow closely the details on this issue
+in the \tv{FAQ} section on \tv{www.r-inla.org}.
+
+There is more. You do not have to wait and sit for the job to be done.
+You can submit the job or many, close the wifi-connection and shutdown
+your laptop, and check and fetch the results when you get home. For
+this use the argument \tv{inla.call="submit"} instead, and follow the
+guidelines in the manual page \tv{?inla.qget}. You can check the
+status of a job, fetch results, stop them, and clean up temporary
+files, using \tv{inla.qstat}, \tv{inla.qget}, \tv{inla.qdel},
+\tv{inla.qnuke}, respectively. This is a really useful feature
+especially running larger models.
