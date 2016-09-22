@@ -808,7 +808,7 @@
         A=extraconstr$A
         e=extraconstr$e
         if (!is.matrix(A)) {
-            stop("A(extraconstraint) has to be a matrix")
+            stop("A(extraconstr) has to be a matrix")
         } else {
             if (nrow(A)!=length(e)) {
                 stop("Dimension of A and e do not correspond")
@@ -833,8 +833,8 @@
                     rankdef = 0
                     if (constr)
                         rankdef = rankdef + 1
-                    if (!empty.extraconstr(extraconstraint))
-                        rankdef = rankdef + dim(extraconstraint$A)[1]
+                    if (!empty.extraconstr(extraconstr))
+                        rankdef = rankdef + dim(extraconstr$A)[1]
                 }
             } else {
                 if (debug) {
