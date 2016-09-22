@@ -4,7 +4,91 @@ library(INLA)
 @ 
 \section{Values}
 
+In the definition of a model component in a formula
+<<eval=FALSE>>=
+... + f(idx, model="rw2") 
+@
+%%
+then \tv{f} defines a \tv{RW2} model, say, and implicitely through the
+variable \tv{idx} for which \emph{locations} the RW2 model should be
+defined at, like
+<<eval=FALSE>>=
+sort(unique(idx))
+@ 
+%%
+for a numerical \tv{idx}. Usually, this is what we want, but not
+always. It does not happen often, but in some cases we need use the
+argument \tv{values}, which defines the location for which the model
+should be defined at, and we need to define this explicitely.
+\footnote{Note that some models, like \tv{besag} for example, you
+    cannot change the locations as for this model is defined through a
+    \tv{graph} which defines the locations as
+    $1, 2, \ldots, $\tv{graph->n}.}
+
+All this is easier to explain all this through an example. We have
+three points,
+\begin{center}
+<<dev='pdf', out.height='8cm', out.width='8cm'>>=
+x = c(1, 2, 4)
+y = c(2, 1, 10)
+plot(x, y, pch=19, bty="l")
+@ 
+\end{center}
+and we want to fit a spline through these points. We can then do
+\begin{center}
+<<dev='pdf', out.height='8cm', out.width='8cm'>>=
+r = inla(y ~ -1 + f(x, model="rw2", constr=FALSE),  
+         data = data.frame(y, x), 
+         control.family = list(
+             hyper = list(prec = list(initial=12, fixed=TRUE))))
+plot(r$summary.random$x$ID, r$summary.random$x$mean, pch=19, bty="l")
+lines( r$summary.random$x$ID, r$summary.random$x$mean)
+@ 
+\end{center}
+which seems just like drawing a straight line between the observation,
+and is indeed true. This is not what we wanted!
+The reason is that \tv{x} defines the locations of
+the spline, which is just at the locations \tv{x}. We want the spline to
+be define also inbetween and even (maybe) outside this regions. For
+this we need to pass a properly defined \tv{values} argument.
+\begin{center}
+<<dev='pdf', out.height='8cm', out.width='8cm'>>=
+v = seq(0, 6, by = 0.2)
+r = inla(y ~ -1 + f(x, model="rw2", constr=FALSE, values = v),  
+         data = list(y=y, x=x, v=v), 
+         control.family = list(
+             hyper = list(prec = list(initial=12, fixed=TRUE))))
+plot(r$summary.random$x$ID, r$summary.random$x$mean, pch=19, bty="l")
+lines( r$summary.random$x$ID, r$summary.random$x$mean)
+@ 
+\end{center}
+Note that \tv{x} must be a subset of \tv{v}, otherwise an error will
+occure
+<<errors=TRUE>>=
+v = 10:20
+r = inla(y ~ -1 + f(x, model="rw2", constr=FALSE, values = v),  
+         data = list(y=y, x=x, v=v))
+@ 
+%%
+The argument \tv{values} also allow us to produce credibility bounds
+wherever we want, like
+\begin{center}
+<<dev='pdf', out.height='8cm', out.width='8cm'>>=
+plot(r$summary.random$x$ID, r$summary.random$x$mean, pch=19, bty="l", 
+     ylim = c(-5, 45))
+lines( r$summary.random$x$ID, r$summary.random$x$mean, lwd=2)
+lines( r$summary.random$x$ID, r$summary.random$x$"0.025quant", lty=2, lwd=2)
+lines( r$summary.random$x$ID, r$summary.random$x$"0.975quant", lty=3, lwd=2)
+@ 
+\end{center}
+
+
+
 \section{Replicate}
+
+
+
+
 
 \section{Group}
 
