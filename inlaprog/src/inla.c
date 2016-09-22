@@ -28264,7 +28264,10 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 	
 	// work with each cc at the time
 	for(k = 0; k < ncc; k++) {
-		if (debug) P(k);
+		if (debug) {
+			printf("Working with cc %d\n", k);
+		}
+
 		GMRFLib_constr_tp *constr = NULL;
 		GMRFLib_make_empty_constr(&constr);
 
@@ -28278,7 +28281,10 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 				remove[i] = 1;
 			}
 		}
-		if (debug) P(num);
+		if (debug) {
+			printf("\tsize is %d\n", num);
+		}
+
 		if (num == 1) {
 			// only one node in this component. then we know that the precision i 1.
 			for(i = 0; i < n; i++) {
@@ -28344,7 +28350,9 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 				sum += log(*(GMRFLib_Qinv_get(problem, i, i)));
 			}
 			value = exp(sum / sgraph->n);
-			if (debug) P(value);
+			if (debug) {
+				printf("\tprec_scale is %f\n", value);
+			}
 			for(i = 0; i < n; i++) {
 				if (cc[i] == k) {
 					arg->prec_scale[i] = value;
@@ -28365,11 +28373,6 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 				arg->prec_scale[i] = -1.0; /* this is code for treating this case specially */
 			}
 		}
-	}
-
-	if (debug){
-		for(i=0; i<n; i++)
-			printf("\targ->prec_scale[%1d] = %f\n", i, arg->prec_scale[i]);
 	}
 
 	GMRFLib_free_graph(def->graph);

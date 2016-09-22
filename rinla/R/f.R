@@ -911,6 +911,7 @@
                 }
             }
         } else {
+            ## adjust.for.con.comp == FALSE
             if (is.null(rankdef)) {
                 rankdef = 0
                 if (scale.model) {
