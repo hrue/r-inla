@@ -1662,7 +1662,7 @@
                                 ncol = dim(gp$random.spec[[r]]$extraconstr$A)[2]
 
                                 if (ncol != fac*n)
-                                    stop(paste("Wrong dimension for the extraconstraint: ncol", ncol, "n", n))
+                                    stop(paste("Wrong dimension for the extraconstr: ncol", ncol, "n", n))
                                 
                                 A = matrix(0, nrow+1, ncol)
                                 e = c(gp$random.spec[[r]]$extraconstr$e, 0)
@@ -1696,7 +1696,7 @@
                                 ncol = dim(gp$random.spec[[r]]$extraconstr$A)[2]
 
                                 if (ncol != n)
-                                    stop(paste("Wrong dimension for the extraconstraint: ncol", ncol, "n", n))
+                                    stop(paste("Wrong dimension for the extraconstr: ncol", ncol, "n", n))
                                 
                                 A = matrix(0, nrow+length(con), ncol)
                                 e = c(gp$random.spec[[r]]$extraconstr$e, rep(0, length(con)))
@@ -1717,13 +1717,13 @@
                 ##print(gp$random.spec[[r]]$extraconstr$A)
                 ##print(gp$random.spec[[r]]$extraconstr$e)
                 
-                ##and in case a file for the extraconstraint
+                ##and in case a file for the extraconstr
                 if (!is.null(gp$random.spec[[r]]$extraconstr)) {
                     A=gp$random.spec[[r]]$extraconstr$A
                     e=gp$random.spec[[r]]$extraconstr$e
 
                     if (ncol(A) != inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor*n)
-                        stop(paste("\n\tncol in matrix A(extraconstraint) does not correspont to the length of f:",
+                        stop(paste("\n\tncol in matrix A(extraconstr) does not correspont to the length of f:",
                                    ncol(A),
                                    inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor*n))
 
