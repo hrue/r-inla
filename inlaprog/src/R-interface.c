@@ -101,7 +101,7 @@ int inla_R_init(void)
 			Free(rhome);
 		}
 		// char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--silent", "--no-save" };
-		char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--no-save", "--no-restore", "--verbose" };
+		char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--no-save", "--no-restore" };
 		int Rargc = sizeof(Rargv) / sizeof(Rargv[0]);
 		Rf_initEmbeddedR(Rargc, Rargv);
 
