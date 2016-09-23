@@ -597,6 +597,7 @@
         fnm = gsub(data.dir, "$inladatadir", file.rgeneric, fixed=TRUE)
         cat("rgeneric.file =", fnm, "\n", file=file, append = TRUE)
         cat("rgeneric.model =", model, "\n", file=file, append = TRUE)
+        cat("rgeneric.R_HOME =", Sys.getenv("R_HOME"), "\n", file=file, append = TRUE)
         rm(model) ## do not need it anymore
 
         if (!is.null(random.spec$rgeneric$R.init)) {

@@ -13609,7 +13609,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	 */
 	int i, j, k, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg = NULL, default_tag[100], *file_loc,
-	    *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL, *rgeneric_Rinit = NULL;
+		*ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL, *rgeneric_Rinit = NULL, *rgeneric_R_HOME = NULL;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern = NULL, **group_rho_intern = NULL,
 	    **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 = NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp,
 	    **beta_intern = NULL, **beta = NULL, **h2_intern = NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd,
@@ -16048,11 +16048,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		rgeneric_filename = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC.FILE"), NULL);
 		rgeneric_model = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC.MODEL"), NULL);
 		rgeneric_Rinit = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC.RINIT"), NULL);
+		rgeneric_R_HOME = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC.R_HOME"), NULL);
 
 		if (mb->verbose) {
-			printf("\t\trgeneric.file  [%s]\n", rgeneric_filename);
-			printf("\t\trgeneric.Rinit [%s]\n", rgeneric_Rinit);
-			printf("\t\trgeneric.model [%s]\n", rgeneric_model);
+			printf("\t\trgeneric.R_HOME [%s]\n", rgeneric_R_HOME);
+			printf("\t\trgeneric.file   [%s]\n", rgeneric_filename);
+			printf("\t\trgeneric.Rinit  [%s]\n", rgeneric_Rinit);
+			printf("\t\trgeneric.model  [%s]\n", rgeneric_model);
 		}
 
 		/*
@@ -16060,6 +16062,17 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 */
 #pragma omp critical
 		{
+			static int first_time = 1;
+			if (first_time) {
+				// the first time only, set the R_HOME variable, if available
+				if (rgeneric_R_HOME) {
+					char *env = NULL;
+					GMRFLib_sprintf(&env, "R_HOME=%s", rgeneric_R_HOME);
+					my_setenv(env, 0);
+					Free(env);
+				}
+				first_time = 0;
+			}
 			inla_R_library("INLA");
 			inla_R_inlaload(rgeneric_Rinit);
 			inla_R_load(rgeneric_filename);
