@@ -54,7 +54,7 @@
 ##!         prec.linear = inla.set.control.fixed.default()$prec,
 ##!         compute = TRUE,
 ##!         of=NULL,
-##!         precision = 1.0e9,
+##!         precision = exp(14),
 ##!         range = NULL,
 ##!         adjust.for.con.comp = TRUE,
 ##!         order = NULL,
@@ -279,7 +279,7 @@
     of=NULL,
 
     ##!\item{precision}{The precision for the artifical noise added when creating a copy of a model and others.}
-    precision = 1.0e9,
+    precision = exp(14),
 
     ##!\item{range}{A vector of size two giving the lower and
     ##!upper range for the scaling parameter \code{beta} in the
