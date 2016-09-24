@@ -4745,7 +4745,7 @@
                              hyperid =  53001,
                              name = "log precision",
                              short.name = "prec",
-                             initial = 11,
+                             initial = 14,
                              fixed = TRUE,
                              prior = "loggamma",
                              param = c(1, 0.00001),
