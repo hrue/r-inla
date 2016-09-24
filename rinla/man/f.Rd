@@ -56,7 +56,7 @@
          prec.linear = inla.set.control.fixed.default()$prec,
          compute = TRUE,
          of=NULL,
-         precision = 1.0e9,
+         precision = exp(14),
          range = NULL,
          adjust.for.con.comp = TRUE,
          order = NULL,
