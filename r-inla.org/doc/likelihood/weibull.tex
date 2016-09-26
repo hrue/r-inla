@@ -9,33 +9,34 @@
 
 \subsection*{Parametrisation}
 
-The Weibull distribution is
+The Weibull distribution is (\texttt{variant=0})
 \begin{displaymath}
     f(y) = \alpha y^{\alpha-1}
     \lambda\exp( - \lambda  y^{\alpha}),
+    \qquad \alpha>0, \qquad \lambda>0
+\end{displaymath}
+and (\texttt{variant=1})
+\begin{displaymath}
+    f(y) = \alpha y^{\alpha-1}
+    \lambda^{\alpha}\exp( - (\lambda  y)^{\alpha}),
     \qquad \alpha>0, \qquad \lambda>0
 \end{displaymath}
 where
 \begin{description}
 \item[$\alpha$:] shape parameter.
 \end{description}
-In survival analysis, models are generally specified through the
-hazard function. For Weibull model the hazard function is:
-\begin{displaymath}
-    h(y)  = \alpha y^{\alpha-1} \lambda
-\end{displaymath}
 
 \subsection*{Link-function}
 
 The parameter $\lambda$ is linked to the linear predictor as:
 \[
-\lambda = \exp(\eta)
+    \lambda = \exp(\eta)
 \]
 \subsection*{Hyperparameters}
 
 The $\alpha$ parameter is represented as
 \[
-\theta = \log\alpha
+    \theta = \log\alpha
 \]
 and the prior is defined on $\theta$.
 
@@ -45,7 +46,9 @@ and the prior is defined on $\theta$.
 \item $\text{family}=\texttt{weibull}$ for regression and
  $\text{family}=\texttt{weibullsurv}$ for survival
 \item Required arguments: $y$ (to be given using
-    $\texttt{inla.surv()}$ for survival models)
+    $\texttt{inla.surv()}$ for survival models), and
+    \texttt{variant=}$0$ (default) or $1$ to define the
+    parameterisation.
 \end{itemize}
 
 \subsubsection*{Hyperparameter spesification and default values}
@@ -70,8 +73,7 @@ case \verbatiminput{example-weibull.R}
     interval censored data. If the observed times $y$ are large/huge,
     then this can cause numerical overflow in the likelihood routine.
     If you encounter this problem, try to scale the observatios,
-    \verb|time = time / max(time)| or similar, before running
-    \verb|inla()|.
+    \verb|time = time / max(time)| or similar.
 \end{itemize}
 
 
