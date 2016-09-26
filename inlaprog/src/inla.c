@@ -6568,26 +6568,53 @@ int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_ve
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i, ievent;
-	double y, alpha, lalpha, lambda, ypow;
+	double y, alpha, lalpha, lambda, ypow, ly;
 
 	y = ds->data_observations.y[idx];
+	ly = log(y);
 	alpha = map_alpha_weibull(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	ypow = pow(y, alpha);
-
+	lalpha = log(alpha);
 	LINK_INIT;
-	if (m > 0) {
-		lalpha = log(alpha);
-		for (i = 0; i < m; i++) {
-			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = log(lambda) + lalpha + (alpha - 1.0) * log(y) - lambda * ypow;
-		}
-	} else {
-		ypow = pow(y, alpha);
-		for (i = 0; i < -m; i++) {
-			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = 1.0 - exp(-lambda * ypow);
-		}
 
+	switch(ds->variant){
+	case 0: 
+	{
+		ypow = pow(y, alpha);
+		if (m > 0) {
+			lalpha = log(alpha);
+			for (i = 0; i < m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				logll[i] = log(lambda) + lalpha + (alpha - 1.0) * ly - lambda * ypow;
+			}
+		} else {
+			for (i = 0; i < -m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				logll[i] = 1.0 - exp(-lambda * ypow);
+			}
+			
+		}
+		break;
+	}
+	case 1: 
+	{
+		if (m > 0) {
+			for (i = 0; i < m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				ypow = pow(lambda * y,  alpha);
+				logll[i] = log(ypow)  + lalpha - ly - ypow;
+			}
+		} else {
+			for (i = 0; i < -m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				ypow = pow(lambda * y,  alpha);
+				logll[i] = 1.0 - exp(-ypow);
+			}
+			
+		}
+		break;
+	}
+	default: 
+		assert(0 == 1);
 	}
 
 	LINK_END;
@@ -6604,7 +6631,7 @@ int loglikelihood_weibullsurv(double *logll, double *x, int m, int idx, double *
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i, ievent;
-	double y, event, truncation, lower, upper, alpha, gama, ypow, lowerpow, upperpow, truncationpow;
+	double y, event, truncation, lower, upper, alpha, lalpha, lambda, gama, ypow, lowerpow, upperpow, truncationpow;
 
 	y = ds->data_observations.y[idx];
 	event = ds->data_observations.event[idx];
@@ -6613,50 +6640,110 @@ int loglikelihood_weibullsurv(double *logll, double *x, int m, int idx, double *
 	lower = ds->data_observations.lower[idx];
 	upper = ds->data_observations.upper[idx];
 	alpha = map_alpha_weibull(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	lalpha = log(alpha);
 	truncationpow = pow(truncation, alpha);
 
 	LINK_INIT;
-	if (m > 0) {
-		switch (ievent) {
-		case SURV_EVENT_FAILURE:
-			ypow = pow(y, alpha);
-			for (i = 0; i < m; i++) {
-				gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log(gama) + log(alpha) + (alpha - 1.0) * log(y) - gama * (ypow - truncationpow);
-			}
-			break;
+	switch(ds->variant) {
+	case 0: 
+	{
+		if (m > 0) {
+			switch (ievent) {
+			case SURV_EVENT_FAILURE:
+				ypow = pow(y, alpha);
+				for (i = 0; i < m; i++) {
+					gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+					logll[i] = log(gama) + lalpha + (alpha - 1.0) * log(y) - gama * (ypow - truncationpow);
+				}
+				break;
 
-		case SURV_EVENT_RIGHT:
-			lowerpow = pow(lower, alpha);
-			for (i = 0; i < m; i++) {
-				gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = -gama * (lowerpow - truncationpow);
-			}
-			break;
+			case SURV_EVENT_RIGHT:
+				lowerpow = pow(lower, alpha);
+				for (i = 0; i < m; i++) {
+					gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+					logll[i] = -gama * (lowerpow - truncationpow);
+				}
+				break;
 
-		case SURV_EVENT_LEFT:
-			upperpow = pow(upper, alpha);
-			for (i = 0; i < m; i++) {
-				gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log(1.0 - exp(-gama * (upperpow - truncationpow)));
-			}
-			break;
+			case SURV_EVENT_LEFT:
+				upperpow = pow(upper, alpha);
+				for (i = 0; i < m; i++) {
+					gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+					logll[i] = log(1.0 - exp(-gama * (upperpow - truncationpow)));
+				}
+				break;
 
-		case SURV_EVENT_INTERVAL:
-			lowerpow = pow(lower, alpha);
-			upperpow = pow(upper, alpha);
-			for (i = 0; i < m; i++) {
-				gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = -gama * (lowerpow - truncationpow) + log(1.0 - exp(-gama * (upperpow - lowerpow)));
+			case SURV_EVENT_INTERVAL:
+				lowerpow = pow(lower, alpha);
+				upperpow = pow(upper, alpha);
+				for (i = 0; i < m; i++) {
+					gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+					logll[i] = -gama * (lowerpow - truncationpow) + log(1.0 - exp(-gama * (upperpow - lowerpow)));
+				}
+				break;
+			default:
+				GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 			}
-			break;
-		default:
+		} else {
 			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 		}
-		return GMRFLib_SUCCESS;
-	} else {
-		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
+		break;
 	}
+
+#define logf(_y, _lambda) (alpha*(log((_y) * (_lambda))) + lalpha - log(_y) - pow((_y) * (_lambda), alpha))
+#define F(_y, _lambda) (1.0 - exp(-pow((_y) * (_lambda), alpha)))
+		
+#define logff(_y, _lambda) (logf(_y, _lambda) - log(1.0 - F(truncation, _lambda)))
+#define FF(_y, _lambda)    ((F(_y, _lambda) - F(truncation, _lambda))/(1.0 - F(truncation, _lambda)))
+
+	case 1: 
+	{
+		if (m > 0) {
+			switch (ievent) {
+			case SURV_EVENT_FAILURE:
+				for (i = 0; i < m; i++) {
+					lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+					logll[i] = logff(y, lambda);
+				}
+				break;
+				
+			case SURV_EVENT_RIGHT:
+				for (i = 0; i < m; i++) {
+					lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+					logll[i] = log(1.0 - FF(lower, lambda));
+				}
+				break;
+				
+			case SURV_EVENT_LEFT:
+				for (i = 0; i < m; i++) {
+					lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+					logll[i] = log(FF(upper, lambda));
+				}
+				break;
+				
+			case SURV_EVENT_INTERVAL:
+				for (i = 0; i < m; i++) {
+					lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+					logll[i] = log(FF(upper, lambda) - FF(lower, lambda));
+				}
+				break;
+			default:
+				GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
+			}
+		} else {
+			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
+		}
+		break;
+	}
+	default:
+		assert(0 == 1);
+	}
+
+#undef logf
+#undef F
+#undef logff
+#undef FF			
+
 
 	LINK_END;
 	return GMRFLib_SUCCESS;
@@ -12010,6 +12097,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		double initial_value = 0.0;
 
+		GMRFLib_ASSERT(ds->variant == 0 || ds->variant ==1,  GMRFLib_EPARAMETER);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
 		if (!ds->data_fixed && mb->reuse_mode) {
@@ -12060,6 +12148,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		double initial_value = 0.0;
 
+		GMRFLib_ASSERT(ds->variant == 0 || ds->variant ==1,  GMRFLib_EPARAMETER);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
 		if (!ds->data_fixed && mb->reuse_mode) {
