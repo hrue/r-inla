@@ -5452,6 +5452,8 @@
                      ),
 
                  weibull = list(
+                     ## variant=0: lambda*y^alpha
+                     ## variant=1: (lambda*y)^alpha
                      hyper = list(
                          theta = list(
                              hyperid =  79001,
@@ -5472,6 +5474,8 @@
                      ),
 
                  weibullsurv = list(
+                     ## variant=0: lambda*y^alpha
+                     ## variant=1: (lambda*y)^alpha
                      hyper = list(
                          theta = list(
                              hyperid =  79101,
