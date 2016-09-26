@@ -56,8 +56,11 @@ However, it still need some pre-processing.
 
 We do not consider it and just read the web page as a text
 and play with the text and its structure directly. 
-<<read>>=
+<<read,eval=FALSE>>=
 d0 <- readLines(u0) ### read it as text (Done at 26 September 2016)
+@ 
+<<echo=FALSE,results='hide'>>=
+load('data/TRD20160926weather.RData')
 @ 
 
 First, we have to find the index for each table line 
