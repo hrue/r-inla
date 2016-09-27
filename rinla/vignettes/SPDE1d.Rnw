@@ -60,7 +60,7 @@ and play with the text and its structure directly.
 d0 <- readLines(u0) ### read it as text (Done at 26 September 2016)
 @ 
 <<echo=FALSE,results='hide'>>=
-load(system.file("data/vignettes/TRD20160926weather.RData", package="INLA"))
+load('TRD20160926weather.RData')
 @ 
 
 First, we have to find the index for each table line 
