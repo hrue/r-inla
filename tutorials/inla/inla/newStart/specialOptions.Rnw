@@ -194,6 +194,67 @@ regions, subjects, persons or time.
 
 \section{Group}
 
+The grouping option has a similar concept as the replicate option
+presented in the previous section. Now, however we assume a dependence
+structure for the replicates, for example rw1, rw2, ar1, besag or
+exchangeable.
+
+The option is implemented as a Kronecker product.
+Let $\tilde{\bm{x}} = (x_{11}, \ldots, x_{n1}, \ldots,
+x_{1R}, \ldots, x_{nR})^\top$ be a random vector with zero-mean, say, ``precision''
+matrix $\mathbf{Q} = \mathbf{Q}_1\otimes \mathbf{Q}_2$ and density
+\begin{equation*} \pi(\tilde{\bm{x}}) \propto
+(|{\mathbf{Q_1}\otimes\mathbf{Q_2}}|^\star)^{1/2}
+\exp\left(-\frac{1}{2} \tilde{\bm{x}}^\top\{{\mathbf{Q}_1\otimes
+\mathbf{Q}_2}\}\tilde{\bm{x}}\right)
+\end{equation*}
+where $Q_{ij} = 0$ $\longleftrightarrow$ $x_i \bot x_j|\bm{x}_{-ij}$.
+We call $\tilde{\bm{x}}$ a Gaussian Kronecker product Markov random field.
+Here,  $\mathbf{Q}_1$ and $\mathbf{Q}_2$ are two lower-dimensional
+precision matrices, which can be either regular or singular. The
+Kronecker product $\otimes$ defines the interaction of  $\mathbf{Q}_1$ and $\mathbf{Q}_2$.
+
+As an example consider $R$ random walks of second order with
+$\mm{\alpha}_i = (\alpha_{i,1}, \ldots, \alpha_{i,R})^T$ and where
+$\tilde{\mm{\alpha}} = (\alpha_{1,1}, \ldots, \alpha_{I,1}, \ldots,
+\alpha_{1,R}, \ldots, \alpha_{I,R})^T$ denotes the stacked
+vector. Then, the joint distribution is given by:
+	\begin{align*}
+		f(\tilde{\mm{\alpha}}|\mm{\Sigma}, \kappa) &\propto
+		%   |\kappa\mm{\Sigma}^{-1}|^{(I-2)/2} \exp\Biggl( -\frac{1}{2}
+		%   \sum_{i=3}^I \left ( \mm{\alpha}_i - 2\mm{\alpha}_{i-1} + \mm{\alpha}_{i-2} \right)^T \cdot \\
+		%   & \qquad \qquad \kappa\mm{\Sigma}^{-1}
+		% \left ( \mm{\alpha}_i - 2\mm{\alpha}_{i-1} + \mm{\alpha}_{i-2}\right)
+		%   \Biggr)\\
+		%   &=
+			|\kappa\mm{\Sigma}^{-1}|^{(I-2)/2}
+			\exp\left( -\frac{1}{2} \tilde{\mm{\alpha}}^T
+				\left\{{\mm{\Sigma}^{-1} \otimes \mm{Q}} \right \}
+				\tilde{\mm{\alpha}} \right),
+	\end{align*}
+with
+		\begin{equation*}
+			\mm{Q} = \kappa \left(
+				\begin{array}{rrrrrrr}
+					1 & -2 & 1 &&&&\\
+					-2& 5 & -4 & 1&&&\\
+					1& -4 & 6& -4 &1 &&\\
+					&\ddots&\ddots&\ddots&\ddots&\ddots&\\
+					&&1& -4& 6& -4 &1\\
+					&&&1&  -4 & 5 & -2\\
+					&&&&1&-2&1
+				\end{array}
+				\right)
+		\end{equation*}
+and where $\mm{\Sigma}$ represents the correlation structure, for
+example an exchangeable correlation structure of for example a spatial
+neighbourhood structure as given by the Besag model. Of note, there is
+only one precision parameter in the model and one correlation
+parameter $\rho$. Furthermore, grouping $a$ with $b$ should lead to
+the same result as grouping $b$ with $a$. That means correlating an
+RW2 over space using a Besag dependence structure, is the same as
+correlating a Besag model in time using a RW2 dependence structure.
+
 \section{Linear combinations}
 
 \section{Copy}
