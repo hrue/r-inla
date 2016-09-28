@@ -1,12 +1,12 @@
 \chapter{Extended options for the latent field}
 <<echo=FALSE>>=
 library(INLA)
-@ 
+@
 \section{Values}
 
 In the definition of a model component in a formula
 <<eval=FALSE>>=
-... + f(idx, model="rw2") 
+... + f(idx, model="rw2")
 @
 %%
 then \tv{f} defines a \tv{RW2} model, say, and implicitely through the
@@ -14,7 +14,7 @@ variable \tv{idx} for which \emph{locations} the RW2 model should be
 defined at, like
 <<eval=FALSE>>=
 sort(unique(idx))
-@ 
+@
 %%
 for a numerical \tv{idx}. Usually, this is what we want, but not
 always. It does not happen often, but in some cases we need use the
@@ -32,18 +32,18 @@ three points,
 x = c(1, 2, 4)
 y = c(2, 1, 10)
 plot(x, y, pch=19, bty="l")
-@ 
+@
 \end{center}
 and we want to fit a spline through these points. We can then do
 \begin{center}
 <<dev='pdf', out.height='8cm', out.width='8cm'>>=
-r = inla(y ~ -1 + f(x, model="rw2", constr=FALSE),  
-         data = data.frame(y, x), 
+r = inla(y ~ -1 + f(x, model="rw2", constr=FALSE),
+         data = data.frame(y, x),
          control.family = list(
              hyper = list(prec = list(initial=12, fixed=TRUE))))
 plot(r$summary.random$x$ID, r$summary.random$x$mean, pch=19, bty="l")
 lines( r$summary.random$x$ID, r$summary.random$x$mean)
-@ 
+@
 \end{center}
 which seems just like drawing a straight line between the observation,
 and is indeed true. This is not what we wanted!
@@ -54,32 +54,32 @@ this we need to pass a properly defined \tv{values} argument.
 \begin{center}
 <<dev='pdf', out.height='8cm', out.width='8cm'>>=
 v = seq(0, 6, by = 0.2)
-r = inla(y ~ -1 + f(x, model="rw2", constr=FALSE, values = v),  
-         data = list(y=y, x=x, v=v), 
+r = inla(y ~ -1 + f(x, model="rw2", constr=FALSE, values = v),
+         data = list(y=y, x=x, v=v),
          control.family = list(
              hyper = list(prec = list(initial=12, fixed=TRUE))))
 plot(r$summary.random$x$ID, r$summary.random$x$mean, pch=19, bty="l")
 lines( r$summary.random$x$ID, r$summary.random$x$mean)
-@ 
+@
 \end{center}
 Note that \tv{x} must be a subset of \tv{v}, otherwise an error will
 occure
 <<errors=TRUE>>=
 v = 10:20
-r = inla(y ~ -1 + f(x, model="rw2", constr=FALSE, values = v),  
+r = inla(y ~ -1 + f(x, model="rw2", constr=FALSE, values = v),
          data = list(y=y, x=x, v=v))
-@ 
+@
 %%
 The argument \tv{values} also allow us to produce credibility bounds
 wherever we want, like
 \begin{center}
 <<dev='pdf', out.height='8cm', out.width='8cm'>>=
-plot(r$summary.random$x$ID, r$summary.random$x$mean, pch=19, bty="l", 
+plot(r$summary.random$x$ID, r$summary.random$x$mean, pch=19, bty="l",
      ylim = c(-5, 45))
 lines( r$summary.random$x$ID, r$summary.random$x$mean, lwd=2)
 lines( r$summary.random$x$ID, r$summary.random$x$"0.025quant", lty=2, lwd=2)
 lines( r$summary.random$x$ID, r$summary.random$x$"0.975quant", lty=3, lwd=2)
-@ 
+@
 \end{center}
 
 
@@ -109,35 +109,35 @@ precision $\tau$.
 <<echo=TRUE>>=
 n = 10
 y = rnorm(n)
-r = inla(y ~ -1 + f(idx, model="iid"), 
-         data = data.frame(y, idx = 1:n), 
-         control.family = list(hyper = list(prec = list(initial = 12, 
+r = inla(y ~ -1 + f(idx, model="iid"),
+         data = data.frame(y, idx = 1:n),
+         control.family = list(hyper = list(prec = list(initial = 12,
                                                         fixed=TRUE))))
 print(r$summary.hyperpar)
 print(r$mlik)
-@ 
+@
 We can reinterpret this model, as a one-dimensional zero-mean
 Gaussian, which is then replicated $n$ times. In this case, \tv{idx}
 is just $1$, as we have moved the indexing into the replicate argument.
 <<echo=TRUE>>=
-r = inla(y ~ -1 + f(idx, model="iid", replicate = r), 
+r = inla(y ~ -1 + f(idx, model="iid", replicate = r),
          data = data.frame(y, idx = rep(1,n), r = 1:n),
-         control.family = list(hyper = list(prec = list(initial = 12, 
+         control.family = list(hyper = list(prec = list(initial = 12,
                                                         fixed=TRUE))))
 print(r$summary.hyperpar)
 print(r$mlik)
-@ 
+@
 %%
 We can also do $n/2$ replicates of size 2 (assuming $n=\Sexpr{n}$ is a
 multiple of 2)
 <<echo=TRUE>>=
-r = inla(y ~ -1 + f(idx, model="iid", replicate = r), 
-         data = data.frame(y, idx = rep(1:2,n/2), r = rep(1:(n/2), each=2)), 
-         control.family = list(hyper = list(prec = list(initial = 12, 
+r = inla(y ~ -1 + f(idx, model="iid", replicate = r),
+         data = data.frame(y, idx = rep(1:2,n/2), r = rep(1:(n/2), each=2)),
+         control.family = list(hyper = list(prec = list(initial = 12,
                                                         fixed=TRUE))))
 print(r$summary.hyperpar)
 print(r$mlik)
-@ 
+@
 All these results are the same (except, maybe, in the last digits due to the
 parallelisation, which cannot control at that level).
 
@@ -149,38 +149,38 @@ The results of the analysis are stored $\mm{x}_1, \mm{x}_2, \ldots$.
 In the last example, then its stored in this order
 <<echo=T>>=
 index = cbind(idx = rep(1:2,n/2), r = rep(1:(n/2), each=2))
-@ 
+@
 There is a function which compute the index for where a particular
 combination is stored, \tv{inla.idx}, so we can can request the index for
 \tv{idx=2,r=3}, as
 <<echo=TRUE>>=
 inla.idx(idx = 2,  n = 2, replicate = 3, nrep = n/2)
-@ 
+@
 when we know the size of the model (2 in this case) and the number of
 replications, which agree with the \tv{index} above
 <<echo=TRUE>>=
-which(apply(index, 1, 
+which(apply(index, 1,
             function(v) {
                 v = as.list(v)
-                return (v$idx == 2 && v$r == 3) 
+                return (v$idx == 2 && v$r == 3)
             }))
-@ 
+@
 
 If you do not make use of all the replicates, they are still there in
-the model. If we add the option 
+the model. If we add the option
 <<echo=TRUE>>=
 nrep=1000
-@ 
+@
 %%
 but only use the first \Sexpr{n} then the length is \Sexpr{nrep} and
 not \Sexpr{n}
 <<echo=TRUE>>=
-r = inla(y ~ -1 + f(idx, model="iid", replicate = r, nrep = nrep), 
+r = inla(y ~ -1 + f(idx, model="iid", replicate = r, nrep = nrep),
          data = data.frame(y, idx = rep(1,n), r = 1:n),
-         control.family = list(hyper = list(prec = list(initial = 12, 
+         control.family = list(hyper = list(prec = list(initial = 12,
                                                         fixed=TRUE))))
 print(length(r$marginals.random$idx))
-@ 
+@
 %%
 A common mistake is to replicate over \tv{year} instead of
 \tv{year.shifted = year-min(year)+1}.
@@ -201,7 +201,10 @@ regions, subjects, persons or time.
 \section{Running \tv{inla()} remotely}
 
 A really useful feature is the option to run \tv{inla()} remotely on a
-different machine. If you have access to a computational server
+different machine. This means the {\tt R} session still runs locally
+on your machine but the INLA computations are done on a remote
+server.
+If you have access to a computational server
 somewhere of \tv{Linux} or \tv{MaxOSX} type, you can make use of this.
 
 After a the setup, we can do like this
@@ -210,7 +213,7 @@ n = 1000
 x = runif(n)
 y = x + rnorm(n)
 r = inla(y ~ 1 + x,  data = data.frame(y, x), inla.call = "remote")
-@ 
+@
 which will run the computations on a different server. The name of the
 server is defined in the file \tv{$\sim$/.inlarc}, which for me, reads
 \begin{verbatim}
@@ -239,10 +242,10 @@ the \tv{inla}-binary in the \tv{R-INLA} package. You can find its path
 by
 <<echo=FALSE>>=
 inla.setOption(inla.call=NULL)
-@ 
+@
 <<echo=TRUE>>=
 inla.getOption("inla.call")
-@ 
+@
 
 The \tv{remote}-feature is made possible by using \tv{ssh} tools and
 friends, which explains why you need to install \tv{Cygwin} on Windows
@@ -259,4 +262,78 @@ guidelines in the manual page \tv{?inla.qget}. You can check the
 status of a job, fetch results, stop them, and clean up temporary
 files, using \tv{inla.qstat}, \tv{inla.qget}, \tv{inla.qdel},
 \tv{inla.qnuke}, respectively. This is a really useful feature
-especially running larger models.
+especially running larger models. Here is an example:\\
+
+% <<echo=TRUE>>=
+% n = 1000
+% x = runif(n)
+% y = x + rnorm(n)
+% # submit the job to the remote server
+% result = inla(y ~ 1 + x,  data = data.frame(y, x), inla.call = "submit")
+
+% # check the status of the job
+% inla.qstat()
+
+% # if you are still in the R-session you can get the results using
+% result= inla.qget(result, remove=FALSE)
+% # after logging out the object result is not known anymore,
+% # so you need to know the job id which you would like to get
+% result= inla.qget(inla.qstat()[[1]]$id, remove=FALSE)
+% summary(result)
+% # if you have all results remove all jobs from the remote server
+% inla.qnuke()
+% @
+
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{n} \hlkwb{=} \hlnum{1000}
+\hlstd{x} \hlkwb{=} \hlkwd{runif}\hlstd{(n)}
+\hlstd{y} \hlkwb{=} \hlstd{x} \hlopt{+} \hlkwd{rnorm}\hlstd{(n)}
+\hlcom{# submit the job to the remote server}
+\hlstd{result} \hlkwb{=} \hlkwd{inla}\hlstd{(y} \hlopt{~} \hlnum{1} \hlopt{+} \hlstd{x,}  \hlkwc{data} \hlstd{=} \hlkwd{data.frame}\hlstd{(y, x),} \hlkwc{inla.call} \hlstd{=} \hlstr{"submit"}\hlstd{)}
+
+\hlcom{# check the status of the job}
+\hlkwd{inla.qstat}\hlstd{()}
+\end{alltt}
+\begin{verbatim}
+## Job: 1   Id: Wed-Sep-28-12-48-03-2016---898959884   Size: 1Mb   Status: Finished
+\end{verbatim}
+\begin{alltt}
+\hlcom{# if you are still in the R-session you can get the results using}
+\hlstd{result}\hlkwb{=} \hlkwd{inla.qget}\hlstd{(result,} \hlkwc{remove}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+\hlcom{# after logging out the object result is not known anymore,}
+\hlcom{# so you need to know the job id which you would like to get}
+\hlstd{result}\hlkwb{=} \hlkwd{inla.qget}\hlstd{(}\hlkwd{inla.qstat}\hlstd{()[[}\hlnum{1}\hlstd{]]}\hlopt{$}\hlstd{id,} \hlkwc{remove}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+\hlkwd{summary}\hlstd{(result)}
+\end{alltt}
+\begin{verbatim}
+##
+## Call:
+## NULL
+##
+## Fixed effects:
+##                mean     sd 0.025quant 0.5quant 0.975quant    mode kld
+## (Intercept) -0.0986 0.0630    -0.2223  -0.0986     0.0251 -0.0986   0
+## x            1.1351 0.1107     0.9177   1.1351     1.3524  1.1351   0
+##
+## The model has no random effects
+##
+## Model hyperparameters:
+##                                         mean     sd 0.025quant 0.5quant
+## Precision for the Gaussian observations 1.02 0.0421     0.9408     1.02
+##                                         0.975quant  mode
+## Precision for the Gaussian observations      1.104 1.018
+##
+## Expected number of effective parameters(std dev): 2.017(8e-04)
+## Number of equivalent replicates : 495.79
+##
+## Marginal log-Likelihood:  -1429.27
+\end{verbatim}
+\begin{alltt}
+\hlcom{# if you have all results remove all jobs from the remote server}
+\hlkwd{inla.qnuke}\hlstd{()}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
