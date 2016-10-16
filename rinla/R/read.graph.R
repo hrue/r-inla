@@ -145,7 +145,7 @@
         
         cc$id = s
         cc$n = max(s)
-        cc$nodes = lapply(1L:cc$n, function(cc.id, cs) which(cc.id == cs), cs = s)
+        cc$nodes = lapply(1L:cc$n, function(cc.id, cs) sort(which(cc.id == cs)), cs = s)
     }
 
     graph$cc = cc
