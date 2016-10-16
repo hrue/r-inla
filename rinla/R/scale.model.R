@@ -35,7 +35,7 @@
 ##! diag(Q) = -rowSums(Q)
 ##! n = dim(Q)[1]
 ##! Q.scaled = inla.scale.model(Q, constr = list(A = matrix(1, 1, n), e=0))
-##! print(diag(inla.ginv(Q.scaled)))
+##! print(diag(INLA:::inla.ginv(Q.scaled)))
 ##!
 ##! ## Q is singular with 3 connected components
 ##! g = inla.read.graph("6 1 2 2 3 2 2 1 3 3 2 1 2 4 1 5 5 1 4 6 0")
@@ -45,12 +45,12 @@
 ##! diag(Q) = -rowSums(Q)
 ##! n = dim(Q)[1]
 ##! Q.scaled = inla.scale.model(Q, constr = list(A = matrix(1, 1, n), e=0))
-##! print(diag(inla.ginv(Q.scaled)))
+##! print(diag(INLA:::inla.ginv(Q.scaled)))
 ##!
 ##! ## Q is non-singular with 3 connected components. no constraints needed
 ##! diag(Q) = diag(Q) + 1
 ##! Q.scaled = inla.scale.model(Q)
-##! print(diag(inla.ginv(Q.scaled)))
+##! print(diag(INLA:::inla.ginv(Q.scaled)))
 ##! }
 
 inla.scale.model = function(Q, constr = NULL, eps = sqrt(.Machine$double.eps))
