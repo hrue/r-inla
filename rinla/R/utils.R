@@ -867,10 +867,10 @@
 `inla.ginv` = function(x, tol = sqrt(.Machine$double.eps), rankdef = NULL)
 {
     ## from MASS:::ginv, but with added option 'rankdef'.
-    if (length(dim(x)) > 2 || !(is.numeric(x) || is.complex(x)))
-        stop("'x' must be a numeric or complex matrix")
     if (!is.matrix(x))
         x <- as.matrix(x)
+    if (length(dim(x)) > 2 || !(is.numeric(x) || is.complex(x)))
+        stop("'x' must be a numeric or complex matrix")
     xsvd <- svd(x)
     if (is.complex(x))
         xsvd$u <- Conj(xsvd$u)
