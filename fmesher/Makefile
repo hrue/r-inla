@@ -48,6 +48,10 @@ src/$(FMESHER) :
 debug :
 ##	make clean
 	CXX="\"$(CXX) -DDEBUG\"" make $(FMESHER)
+## Detailed debugging:
+debugd :
+##	make clean
+	CXX="\"$(CXX) -DDEBUG -DDEBUGD\"" make $(FMESHER)
 
 $(FMESHER_TEST) : src/$(FMESHER_TEST)
 	cp src/$(FMESHER_TEST) .
