@@ -666,6 +666,13 @@ namespace fmesh {
   */
   void MeshC::calcSteinerPoint(const Dart& d, Point& c)
   {
+    MESHC_LOG("Steiner:");
+    MESHC_LOG("Triangle dart " << d
+	      << "\n\t S[t]=("
+	      << M_->S(M_->TV(d.t())[0]) << ",\n\t       "
+	      << M_->S(M_->TV(d.t())[1]) << ",\n\t       "
+	      << M_->S(M_->TV(d.t())[2]) << ")"
+	      << endl);
     M_->triangleCircumcenter(d.t(),c);
     if ((M_->type() != Mesh::Mtype_sphere) &&
 	(options_ & Option_offcenter_steiner)) {
@@ -748,9 +755,9 @@ namespace fmesh {
     td = Dart(*M_,td.t());
     Point bary;
     M_->barycentric(td,M_->S(v),bary);
-    if ((bary[0]<-1000*MESH_EPSILON) ||
-	(bary[0]<-1000*MESH_EPSILON) ||
-	(bary[0]<-1000*MESH_EPSILON)) {
+    if ((bary[0] < -1000*MESH_EPSILON) ||
+	(bary[1] < -1000*MESH_EPSILON) ||
+	(bary[2] < -1000*MESH_EPSILON)) {
       MESHC_LOG("Triangle dart " << td
 		<< "\n\t S[t]=("
 		<< M_->S(M_->TV(td.t())[0]) << ",\n\t       "
@@ -762,9 +769,9 @@ namespace fmesh {
       MESHC_LOG("ERROR: locate_point returned triangle with bad barycentric coordinates for point.");
       return Dart();
     }
-    size_t pattern(size_t(bary[0]>MESH_EPSILON)*1+
-		   size_t(bary[1]>MESH_EPSILON)*2+
-		   size_t(bary[2]>MESH_EPSILON)*4);
+    size_t pattern(size_t(bary[0] > MESH_EPSILON)*1+
+		   size_t(bary[1] > MESH_EPSILON)*2+
+		   size_t(bary[2] > MESH_EPSILON)*4);
     MESHC_LOG("Triangle dart " << td
 	      << "\n\t S[t]=("
 	      << M_->S(M_->TV(td.t())[0]) << ",\n\t       "
