@@ -5884,9 +5884,9 @@ inla.models()
 						 }
 					 }
 				 }
-				\item{Model `kumar'.}{Number of hyperparmeters are 2.
+				\item{Model `qkumar'.}{Number of hyperparmeters are 1.
 					 \describe{
-						\item{Hyperparameter `theta1'}{
+						\item{Hyperparameter `theta'}{
 							 \describe{
 							\item{hyperid = }{`60001'}
 							\item{name = }{`precision parameter'}
@@ -5899,17 +5899,31 @@ inla.models()
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
-						\item{Hyperparameter `theta2'}{
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default logit cauchit'}
+								\item{pdf = }{`qkumar'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `qloglogistic'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
 							 \describe{
-							\item{hyperid = }{`60002'}
-							\item{name = }{`quantile'}
-							\item{short.name = }{`q'}
-							\item{initial = }{`0.5'}
-							\item{fixed = }{`TRUE'}
-							\item{prior = }{`invalid'}
-							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) x}'}
-							\item{from.theta = }{`\code{function(x) x}'}
+							\item{hyperid = }{`60011'}
+							\item{name = }{`precision parameter'}
+							\item{short.name = }{`prec'}
+							\item{initial = }{`2'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 0.001'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 					 }
@@ -5918,8 +5932,8 @@ inla.models()
 							\describe{
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit cauchit'}
-								\item{pdf = }{`kumar'}
+								\item{link = }{`default log'}
+								\item{pdf = }{`qloglogistic'}
 							 }
 						 }
 					 }

@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.family} for use in \code{inla}}
 \usage{
 inla.set.control.family.default(...)
-control.family(alpha, cenpoisson.I, control.link, control.mix, epsilon, fixed, gamma, gev.scale.xi, hyper, initial, link, param, prior, sn.shape.max, variant)
+control.family(alpha, cenpoisson.I, control.link, control.mix, epsilon, fixed, gamma, gev.scale.xi, hyper, initial, link, param, prior, quantile, sn.shape.max, variant)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -28,6 +28,7 @@ control.family(alpha, cenpoisson.I, control.link, control.mix, epsilon, fixed, g
 \item{sn.shape.max}{  Maximum value for the shape-parameter for Skew Normal observations}
 \item{gev.scale.xi}{  The internal scaling of the shape-parameter for the GEV distribution. (default 0.01)}
 \item{cenpoisson.I}{  The censoring interval for the censored Poisson}
+\item{quantile}{  The quantile to be used for the quantile parameterised likelihoods (default 0.5)}
 \item{variant}{  This variable is used to give options for various variants of the likelihood, like chosing different parameterisations for example. See the relevant likelihood documentations for options (does only apply to some likelihoods).}
 \item{control.mix}{  See \code{?control.mix}}
 \item{control.link}{  See \code{?control.link}}

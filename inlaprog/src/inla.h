@@ -136,6 +136,7 @@ typedef struct {
 	double *d;					       /* the d-array */
 	int ndata;					       /* length of data (from file) */
 	double *y;					       /* general responce */
+	double quantile;				       /* value of the quantile for quantile parameterised likelihoods */
 
 	/*
 	 * y ~ Poisson(E*exp(x)) 
@@ -372,10 +373,15 @@ typedef struct {
 	double **gammacount_log_alpha;
 
 	/*
-	 * The Kumar... distribution  
+	 * The qKumar likelihood
 	 */
-	double **kumar_log_prec;
-	double **kumar_q;
+	double **qkumar_log_prec;
+
+	/*
+	 * The qloglogistic likelihood
+	 */
+	double **qloglogistic_log_prec;
+
 } Data_tp;
 
 typedef struct {
@@ -447,7 +453,8 @@ typedef enum {
 	L_SIMPLEX,
 	L_GAMMACOUNT,
 	L_SKEWNORMAL2,
-	L_KUMAR,
+	L_QKUMAR,
+	L_QLOGLOGISTIC,
 	L_CENPOISSON,					       /* cencored poisson */
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
@@ -1562,7 +1569,6 @@ int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_v
 int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_inla(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
-int loglikelihood_kumar(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_laplace(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_loggamma_frailty(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
@@ -1572,6 +1578,8 @@ int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_qkumar(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_qloglogistic(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_simplex(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_skew_normal2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
@@ -1582,8 +1590,8 @@ int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, voi
 int loglikelihood_test_binomial_1(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
-int loglikelihood_weibullsurv(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_weibullsurv(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_wrapped_cauchy(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_zero_n_inflated_binomial3(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
