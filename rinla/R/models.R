@@ -4938,9 +4938,9 @@
                      pdf = "gammacount"
                      ),
 
-                 kumar = list(
+                 qkumar = list(
                      hyper = list(
-                         theta1 = list(
+                         theta = list(
                              hyperid =  60001,
                              name = "precision parameter",
                              short.name = "prec",
@@ -4950,24 +4950,33 @@
                              param = c(1, 0.001),
                              to.theta = function(x) log(x), 
                              from.theta = function(x) exp(x)
-                             ), 
-                         theta2 = list(
-                             hyperid =  60002,
-                             name = "quantile",
-                             short.name = "q",
-                             initial = 0.5,
-                             fixed = TRUE,
-                             prior = "invalid",
-                             param = numeric(0),
-                             to.theta = function(x) x, 
-                             from.theta = function(x) x
-                             )
-                         ),
+                         )
+                     ), 
                      survival = FALSE,
                      discrete = FALSE,
                      link = c("default", "logit", "cauchit"),
-                     pdf = "kumar"
-                     ),
+                     pdf = "qkumar"
+                 ),
+
+                 qloglogistic = list(
+                     hyper = list(
+                         theta = list(
+                             hyperid =  60011,
+                             name = "precision parameter",
+                             short.name = "prec",
+                             initial = 2,
+                             fixed = FALSE,
+                             prior = "loggamma",
+                             param = c(1, 0.001),
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x)
+                         )
+                     ), 
+                     survival = FALSE,
+                     discrete = FALSE,
+                     link = c("default", "log"), 
+                     pdf = "qloglogistic"
+                 ),
 
                  beta = list(
                      hyper = list(
