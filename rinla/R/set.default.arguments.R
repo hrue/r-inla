@@ -275,15 +275,6 @@
         ##:ARGUMENT: link (OBSOLETE! Use \code{control.link=list(model=)} instead.) The link function to use.
         link= "default",
 
-        ##:ARGUMENT: alpha The parameter 'alpha' for the asymmetric Laplace likelihood  (default 0.5)
-        alpha=0.5,
-
-        ##:ARGUMENT: epsilon The parameter 'epsilon' for the asymmetric Laplace likelihood (default 0.01)
-        epsilon = 0.01,
-
-        ##:ARGUMENT: gamma The parameter 'gamma' for the asymmetric Laplace likelihood (default 1.0)
-        gamma = 1.0,
-
         ##:ARGUMENT: sn.shape.max Maximum value for the shape-parameter for Skew Normal observations
         sn.shape.max = 5.0,
 

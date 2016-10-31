@@ -6448,34 +6448,6 @@ inla.models()
 						 }
 					 }
 				 }
-				\item{Model `laplace'.}{Number of hyperparmeters are 1.
-					 \describe{
-						\item{Hyperparameter `theta'}{
-							 \describe{
-							\item{hyperid = }{`77001'}
-							\item{name = }{`log precision'}
-							\item{short.name = }{`prec'}
-							\item{initial = }{`4'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`1 5e-05'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
-							}
-						}
-					 }
-					 \describe{
-						\item{Properties:}{
-							\describe{
-								\item{survival = }{`FALSE'}
-								\item{discrete = }{`FALSE'}
-								\item{link = }{`default identity'}
-								\item{status = }{`disabled'}
-								\item{pdf = }{`laplace'}
-							 }
-						 }
-					 }
-				 }
 				\item{Model `lognormal'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{
