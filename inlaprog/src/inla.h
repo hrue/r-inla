@@ -271,15 +271,6 @@ typedef struct {
 	double **beta_precision_intern;
 
 	/*
-	 * for the (asymmetric) laplace
-	 */
-	double **log_tau_laplace;
-	double *weight_laplace;
-	double alpha_laplace;
-	double epsilon_laplace;
-	double gamma_laplace;
-
-	/*
 	 * Skew-Normal
 	 */
 	double **shape_skew_normal;
@@ -443,7 +434,6 @@ typedef enum {
 	L_ZERO_N_INFLATEDBINOMIAL2,
 	L_ZERO_N_INFLATEDBINOMIAL3,
 	L_WEIBULL_CURE,					       /* Patrick and Silvia's model */
-	L_LAPLACE,
 	L_LOGGAMMA_FRAILTY,
 	L_IID_GAMMA,
 	L_IID_LOGITBETA,
@@ -1324,7 +1314,6 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec
 double inla_log_Phi(double x);
 double inla_log_Phi_fast(double x);
 double inla_update_density(double *theta, inla_update_tp * arg);
-double laplace_likelihood_normalising_constant(double alpha, double gamma, double tau);
 double link_cauchit(double x, map_arg_tp typ, void *param, double *cov);
 double link_cloglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_identity(double x, map_arg_tp typ, void *param, double *cov);
@@ -1366,7 +1355,6 @@ double map_range(double arg, map_arg_tp typ, void *param);
 double map_rho(double arg, map_arg_tp typ, void *param);
 double map_shape_svnig(double arg, map_arg_tp typ, void *param);
 double map_sqrt1exp(double arg, map_arg_tp typ, void *param);
-double map_tau_laplace(double arg, map_arg_tp typ, void *param);
 double mfunc_clinear(int i, void *arg);
 double mfunc_log1exp(int i, void *arg);
 double mfunc_logdist(int i, void *arg);
@@ -1569,7 +1557,6 @@ int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_v
 int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_inla(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
-int loglikelihood_laplace(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_loggamma_frailty(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *x_vec, void *arg);

@@ -44,7 +44,6 @@
                               "normal",
                               "lognormal",
                               "t",
-                              "laplace",
                               "sn",
                               "sn2",
                               "skewnormal",
