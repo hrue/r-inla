@@ -5372,27 +5372,6 @@
                      pdf = "gev"
                      ),
 
-                 laplace = list(
-                     hyper = list(
-                         theta = list(
-                             hyperid =  77001,
-                             name = "log precision",
-                             short.name = "prec",
-                             initial = 4,
-                             fixed = FALSE,
-                             prior = "loggamma",
-                             param = c(1, 0.00005),
-                             to.theta = function(x) log(x),
-                             from.theta = function(x) exp(x)
-                             )
-                         ),
-                     survival = FALSE,
-                     discrete = FALSE,
-                     link = c("default", "identity"),
-                     status = "disabled", 
-                     pdf = "laplace"
-                     ),
-
                  lognormal = list(
                      hyper = list(
                          theta = list(

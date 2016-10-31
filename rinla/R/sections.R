@@ -137,16 +137,6 @@
         cat("quantile = ", control$quantile, "\n", sep="", file=file, append=TRUE)
     }
 
-    if (inla.one.of(family, "laplace")) {
-        ## two parameters, alpha and epsilon is require for LAPLACE
-        cat("alpha = ", inla.ifelse(is.null(control$alpha), 0.5, control$alpha), "\n",
-            sep="", file=file, append=TRUE)
-        cat("epsilon = ", inla.ifelse(is.null(control$epsilon), 0.01, control$epsilon), "\n",
-            sep="", file=file, append=TRUE)
-        cat("gamma = ", inla.ifelse(is.null(control$gamma), 1.0, control$gamma), "\n",
-            sep="", file=file, append=TRUE)
-    }
-
     if (inla.one.of(family, c("sn", "skewnormal"))) {
         cat("sn.shape.max = ", inla.ifelse(is.null(control$sn.shape.max), 5.0, control$sn.shape.max), "\n",
             sep="", file=file, append=TRUE)
