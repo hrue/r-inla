@@ -910,13 +910,6 @@ double map_precision(double arg, map_arg_tp typ, void *param)
 	 */
 	return map_exp(arg, typ, param);
 }
-double map_tau_laplace(double arg, map_arg_tp typ, void *param)
-{
-	/*
-	 * the map-function for the tau variable for the laplace likelihood
-	 */
-	return map_exp(arg, typ, param);
-}
 double map_range(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -3279,11 +3272,6 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[0] = ds->data_observations.weight_gev = Calloc(mb->predictor_ndata, double);
 		break;
 
-	case L_LAPLACE:
-		idiv = 3;
-		a[0] = ds->data_observations.weight_laplace = Calloc(mb->predictor_ndata, double);
-		break;
-
 	case L_T:
 		idiv = 3;
 		a[0] = ds->data_observations.weight_t = Calloc(mb->predictor_ndata, double);
@@ -3695,101 +3683,6 @@ double inla_log_Phi_fast(double x)
 			return (log(1.0 / 4.0) - sqrt(M_PI / 8.0) * SQR(x));
 		}
 	}
-}
-double laplace_likelihood_normalising_constant(double alpha, double ggamma, double tau)
-{
-#define N 200
-#define f_positive(x) exp(-tau*log(cosh(alpha*ggamma*x))/ggamma)
-#define f_negative(x) exp(-tau*log(cosh((1.0-alpha)*ggamma*x))/ggamma)
-
-	static double alpha_save = -1.0, ggamma_save = -1.0, tau_save = -1.0, norm_const_save = 1.0;
-#pragma omp threadprivate(alpha_save, ggamma_save, tau_save, norm_const_save)
-
-	if (!ISZERO(alpha - alpha_save) || !ISZERO(ggamma - ggamma_save) || !ISZERO(tau - tau_save)) {
-
-		alpha_save = alpha;
-		ggamma_save = ggamma;
-		tau_save = tau;
-
-		int i, k;
-		double limit = 1.0e-10, x_upper, x_lower, xx[N], w[2] = { 4.0, 2.0 }, integral_positive = 0.0, integral_negative = 0.0, dx;
-
-		for (x_upper = 0.0;; x_upper += 1.0 / (tau * alpha)) {
-			if (f_positive(x_upper) < limit)
-				break;
-		}
-
-		dx = x_upper / (N - 1.0);
-		for (i = 0; i < N; i++)
-			xx[i] = dx * i;
-
-		integral_positive = f_positive(xx[0]) + f_positive(xx[N - 1]);
-		for (i = 1, k = 0; i < N - 1; i++, k = (k + 1) % 2) {
-			integral_positive += f_positive(xx[i]) * w[k];
-		}
-		integral_positive *= dx / 3.0;
-
-		for (x_lower = 0.0;; x_lower -= 1.0 / ((1.0 - alpha) * tau)) {
-			if (f_negative(x_lower) < limit)
-				break;
-		}
-		dx = -x_lower / (N - 1.0);
-		for (i = 0; i < N; i++)
-			xx[i] = -dx * i;
-
-		integral_negative = f_negative(xx[0]) + f_negative(xx[N - 1]);
-		for (i = 1, k = 0; i < N - 1; i++, k = (k + 1) % 2) {
-			integral_negative += f_negative(xx[i]) * w[k];
-		}
-		integral_negative *= dx / 3.0;
-
-		norm_const_save = 1.0 / (integral_negative + integral_positive);
-	}
-#undef N
-#undef f_postive
-#undef f_negative
-
-	return norm_const_save;
-}
-int loglikelihood_laplace(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
-{
-	/*
-	 * asymmetric Laplace: f(u) = prec*alpha*(1-alpha)*exp(-prec*g(u)) where g(u) = -alpha*u, if u > 0, and g(u) = -(1-alpha)*|u|, if u < 0. we approximate this
-	 * using -log(cosh(ggamma*u))/ggamma, where the approximation improves for increasing ggamma. ggamma=1 by default.
-	 */
-
-	if (m == 0) {
-		return GMRFLib_SUCCESS;
-	}
-
-	int i;
-	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, tau, w, alpha, u, lnc, epsilon, ggamma, a, ypred;
-
-	y = ds->data_observations.y[idx];
-	w = ds->data_observations.weight_laplace[idx];
-	tau = map_tau_laplace(ds->data_observations.log_tau_laplace[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
-	alpha = ds->data_observations.alpha_laplace;
-	epsilon = ds->data_observations.epsilon_laplace;
-	ggamma = ds->data_observations.gamma_laplace;
-	lnc = log(laplace_likelihood_normalising_constant(alpha, ggamma, tau));
-
-	LINK_INIT;
-	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			u = y - ypred;
-			if (u > 0) {
-				a = alpha;
-			} else {
-				a = 1.0 - alpha;
-				u = ABS(u);
-			}
-			logll[i] = lnc - tau / ggamma * (-M_LN2 + ggamma * a * u + log(1.0 + exp(-2.0 * ggamma * a * u))) - 0.5 * tau * epsilon * SQR(a * u);
-		}
-	}
-	LINK_END;
-	return GMRFLib_SUCCESS;
 }
 int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
@@ -9199,9 +9092,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "GEV")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gev;
 		ds->data_id = L_GEV;
-	} else if (!strcasecmp(ds->data_likelihood, "LAPLACE")) {
-		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_laplace;
-		ds->data_id = L_LAPLACE;
 	} else if (!strcasecmp(ds->data_likelihood, "T")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_t;
 		ds->data_id = L_T;
@@ -9502,17 +9392,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 				if ((int) (ds->data_observations.strata_tstrata[i]) < 0) {
 					GMRFLib_sprintf(&msg, "%s: tstrata strata[%1d] = %g is void\n", secname, i, ds->data_observations.strata_tstrata[i]);
-					inla_error_general(msg);
-				}
-			}
-		}
-		break;
-
-	case L_LAPLACE:
-		for (i = 0; i < mb->predictor_ndata; i++) {
-			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.weight_laplace[i] <= 0.0) {
-					GMRFLib_sprintf(&msg, "%s: Laplace weight[%1d] = %g is void\n", secname, i, ds->data_observations.weight_laplace[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -11679,62 +11558,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta[mb->ntheta] = ds->data_observations.zeroinflated_alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_exp;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-			ds->data_ntheta++;
-		}
-		break;
-
-	case L_LAPLACE:
-		/*
-		 * get options related to the laplace. the specials are alpha, determining the asymmetry, and epsilon, determine the area which is approximated with
-		 * a gaussian
-		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
-		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		HYPER_NEW(ds->data_observations.log_tau_laplace, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise log_tau[%g]\n", ds->data_observations.log_tau_laplace[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
-		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
-
-		ds->data_observations.alpha_laplace = iniparser_getdouble(ini, inla_string_join(secname, "alpha"), 0.5);
-		ds->data_observations.epsilon_laplace = iniparser_getdouble(ini, inla_string_join(secname, "epsilon"), 0.01);
-		ds->data_observations.gamma_laplace = iniparser_getdouble(ini, inla_string_join(secname, "gamma"), 1.0);
-		if (mb->verbose) {
-			printf("\t\talpha=[%g]\n", ds->data_observations.alpha_laplace);
-			printf("\t\tepsilon=[%g]\n", ds->data_observations.epsilon_laplace);
-			printf("\t\tgamma=[%g]\n", ds->data_observations.gamma_laplace);
-		}
-
-		/*
-		 * add theta 
-		 */
-		if (!ds->data_fixed) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = ds->data_prior.hyperid;
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("log tau for laplace observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("tau for laplace observations", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter", secname);
-			mb->theta_dir[mb->ntheta] = msg;
-
-			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
-
-			mb->theta[mb->ntheta] = ds->data_observations.log_tau_laplace;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_tau_laplace;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -21753,18 +21576,6 @@ double extra(double *theta, int ntheta, void *argument)
 					double log_alphaN = theta[count];
 
 					val += PRIOR_EVAL(ds->data_prior1, &log_alphaN);
-					count++;
-				}
-				break;
-
-			case L_LAPLACE:
-				if (!ds->data_fixed) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
-					log_precision = theta[count];
-					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
 				}
 				break;
