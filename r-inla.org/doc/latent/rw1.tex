@@ -51,6 +51,14 @@ scaled to have an average variance (the diagonal of the generalized
 inverse) equal to 1. This makes prior spesification much
 easier. Default is \verb|FALSE| so that the model is not scaled.
 
+\subsubsection*{Current recommended prior}
+If you do not know which prior to use, the current recommendation is
+\begin{verbatim}
+ u = 1
+ hyper = list(theta = list(prior="pc.prec", param=c(u,0.5)))
+ inla.doc("pc.prec")
+\end{verbatim}
+where {\tt u} can be set to the typical standard deviation in your data.
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/rw1.tex}
