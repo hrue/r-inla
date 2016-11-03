@@ -54,17 +54,19 @@ easier. Default is \verb|FALSE| so that the model is not scaled.
 \subsubsection*{Current recommended prior}
 If you do not know which prior to use, the current recommendation is
 \begin{verbatim}
- u = 3
+ u = 1
  f(<whatever>, model="rw1", scale.model = TRUE
                hyper = list(theta = list(prior="pc.prec", param=c(u,0.01))))
  inla.doc("pc.prec")
 \end{verbatim}
-where {\tt u} can be set to a value appropriate for your case.
+where {\tt u} should be set to a value appropriate for your case:
 \begin{description}
-\item[Gaussian likelihood] Set u to the empirical standard deviation of your data
-\item[Poisson likelihood and log link] Set u to 3
-\item[Logit/Probit link] Set u to 1.5
+\item[Gaussian likelihood (no link)] Set {\tt u} to be the empirical standard deviation of your data
+\item[Poisson likelihood and log link] Set {\tt u} to 1
+\item[Binomial and logit link] Set {\tt u} to 0.5
+\item[Binomial and probit link] Set {\tt u} to 0.33
 \end{description}
+Increasing {\tt u} gives a weaker prior, decreasing {\tt u} gives a stronger prior.
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/rw1.tex}
