@@ -245,8 +245,7 @@ typedef struct {
 	double **zeroinflated_delta_intern;		       /* delta = exp(delta_intern) */
 	double **zeroinflated_rho_intern;		       /* rho = exp(rho_intern)/(1+exp(rho_intern)) */
 
-	double **prob1_intern;				       /* for the strata2 */
-	double **prob2_intern;				       /* for the strata2 */
+	double ***probN_intern;				       /* the new for strata2 */
 
 	/*
 	 * the zero-n-inflated binomial 2 
