@@ -6004,7 +6004,7 @@ inla.models()
 							\item{initial = }{`2.30258509299405'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`1 1'}
+							\item{param = }{`1 0.1'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
@@ -7166,7 +7166,7 @@ inla.models()
 						 }
 					 }
 				 }
-				\item{Model `zeroinflatednbinomial1strata2'.}{Number of hyperparmeters are 3.
+				\item{Model `zeroinflatednbinomial1strata2'.}{Number of hyperparmeters are 11.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
@@ -7176,7 +7176,7 @@ inla.models()
 							\item{initial = }{`2.30258509299405'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`1 1'}
+							\item{param = }{`1 0.1'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
@@ -7207,6 +7207,110 @@ inla.models()
 							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
 							}
 						}
+						\item{Hyperparameter `theta4'}{
+							 \describe{
+							\item{hyperid = }{`97004'}
+							\item{name = }{`logit probability 3'}
+							\item{short.name = }{`prob3'}
+							\item{initial = }{`-1'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`-1 0.2'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							}
+						}
+						\item{Hyperparameter `theta5'}{
+							 \describe{
+							\item{hyperid = }{`97005'}
+							\item{name = }{`logit probability 4'}
+							\item{short.name = }{`prob4'}
+							\item{initial = }{`-1'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`-1 0.2'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							}
+						}
+						\item{Hyperparameter `theta6'}{
+							 \describe{
+							\item{hyperid = }{`97006'}
+							\item{name = }{`logit probability 5'}
+							\item{short.name = }{`prob5'}
+							\item{initial = }{`-1'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`-1 0.2'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							}
+						}
+						\item{Hyperparameter `theta7'}{
+							 \describe{
+							\item{hyperid = }{`97007'}
+							\item{name = }{`logit probability 6'}
+							\item{short.name = }{`prob6'}
+							\item{initial = }{`-1'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`-1 0.2'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							}
+						}
+						\item{Hyperparameter `theta8'}{
+							 \describe{
+							\item{hyperid = }{`97008'}
+							\item{name = }{`logit probability 7'}
+							\item{short.name = }{`prob7'}
+							\item{initial = }{`-1'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`-1 0.2'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							}
+						}
+						\item{Hyperparameter `theta9'}{
+							 \describe{
+							\item{hyperid = }{`97009'}
+							\item{name = }{`logit probability 8'}
+							\item{short.name = }{`prob8'}
+							\item{initial = }{`-1'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`-1 0.2'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							}
+						}
+						\item{Hyperparameter `theta10'}{
+							 \describe{
+							\item{hyperid = }{`97010'}
+							\item{name = }{`logit probability 9'}
+							\item{short.name = }{`prob9'}
+							\item{initial = }{`-1'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`-1 0.2'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							}
+						}
+						\item{Hyperparameter `theta11'}{
+							 \describe{
+							\item{hyperid = }{`97011'}
+							\item{name = }{`logit probability 10'}
+							\item{short.name = }{`prob10'}
+							\item{initial = }{`-1'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`-1 0.2'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							}
+						}
 					 }
 					 \describe{
 						\item{Properties:}{
@@ -7220,37 +7324,11 @@ inla.models()
 						 }
 					 }
 				 }
-				\item{Model `zeroinflatednbinomial1strata3'.}{Number of hyperparmeters are 3.
+				\item{Model `zeroinflatednbinomial1strata3'.}{Number of hyperparmeters are 11.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
 							\item{hyperid = }{`98001'}
-							\item{name = }{`log size 1'}
-							\item{short.name = }{`size1'}
-							\item{initial = }{`2.30258509299405'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`1 1'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
-							}
-						}
-						\item{Hyperparameter `theta2'}{
-							 \describe{
-							\item{hyperid = }{`98002'}
-							\item{name = }{`log size 2'}
-							\item{short.name = }{`size2'}
-							\item{initial = }{`2.30258509299405'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`1 1'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
-							}
-						}
-						\item{Hyperparameter `theta3'}{
-							 \describe{
-							\item{hyperid = }{`98003'}
 							\item{name = }{`logit probability'}
 							\item{short.name = }{`prob'}
 							\item{initial = }{`-1'}
@@ -7259,6 +7337,136 @@ inla.models()
 							\item{param = }{`-1 0.2'}
 							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{hyperid = }{`98002'}
+							\item{name = }{`log size 1'}
+							\item{short.name = }{`size1'}
+							\item{initial = }{`2.30258509299405'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 0.1'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta3'}{
+							 \describe{
+							\item{hyperid = }{`98003'}
+							\item{name = }{`log size 2'}
+							\item{short.name = }{`size2'}
+							\item{initial = }{`2.30258509299405'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 0.1'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta4'}{
+							 \describe{
+							\item{hyperid = }{`98004'}
+							\item{name = }{`log size 3'}
+							\item{short.name = }{`size3'}
+							\item{initial = }{`2.30258509299405'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 0.1'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta5'}{
+							 \describe{
+							\item{hyperid = }{`98005'}
+							\item{name = }{`log size 4'}
+							\item{short.name = }{`size4'}
+							\item{initial = }{`2.30258509299405'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 0.1'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta6'}{
+							 \describe{
+							\item{hyperid = }{`98006'}
+							\item{name = }{`log size 5'}
+							\item{short.name = }{`size5'}
+							\item{initial = }{`2.30258509299405'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 0.1'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta7'}{
+							 \describe{
+							\item{hyperid = }{`98007'}
+							\item{name = }{`log size 6'}
+							\item{short.name = }{`size6'}
+							\item{initial = }{`2.30258509299405'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 0.1'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta8'}{
+							 \describe{
+							\item{hyperid = }{`98008'}
+							\item{name = }{`log size 7'}
+							\item{short.name = }{`size7'}
+							\item{initial = }{`2.30258509299405'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 0.1'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta9'}{
+							 \describe{
+							\item{hyperid = }{`98009'}
+							\item{name = }{`log size 8'}
+							\item{short.name = }{`size8'}
+							\item{initial = }{`2.30258509299405'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 0.1'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta10'}{
+							 \describe{
+							\item{hyperid = }{`98010'}
+							\item{name = }{`log size 9'}
+							\item{short.name = }{`size9'}
+							\item{initial = }{`2.30258509299405'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 0.1'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta11'}{
+							 \describe{
+							\item{hyperid = }{`98011'}
+							\item{name = }{`log size 10'}
+							\item{short.name = }{`size10'}
+							\item{initial = }{`2.30258509299405'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 0.1'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 					 }
@@ -7284,7 +7492,7 @@ inla.models()
 							\item{initial = }{`2.30258509299405'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`1 1'}
+							\item{param = }{`1 0.1'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
