@@ -104,6 +104,7 @@ static const char RCSId[] = HGVERSION;
 #define GENERIC3_MAXTHETA (11)				       /* as given in models.R */
 #define AR_MAXTHETA   (10)				       /* as given in models.R */
 #define LINK_MAXTHETA (10)				       /* as given in models.R */
+#define STRATA_MAXTHETA (10)				       /* as given in models.R */
 
 G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 
@@ -5044,21 +5045,13 @@ int loglikelihood_zeroinflated_negative_binomial1_strata2(double *logll, double 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i, strata = (int) ds->data_observations.strata[idx];
 	double size = exp(ds->data_observations.log_size[GMRFLib_thread_id][0]);
-	double p_zeroinflated;
 	double y = ds->data_observations.y[idx];
 	double E = ds->data_observations.E[idx];
 	double lnorm, mu, p, lambda;
 	double cutoff = 1.0e-4;				       /* switch to Poisson if mu/size < cutoff */
+	double p_zeroinflated;
 
-	if (strata == 0) {
-		p_zeroinflated = map_probability(ds->data_observations.prob1_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	} else {
-		p_zeroinflated = map_probability(ds->data_observations.prob2_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	}
-
-	/*
-	 * THE REST IS THE SAME AS FOR STRATA3 
-	 */
+	p_zeroinflated = map_probability(ds->data_observations.probN_intern[strata][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
 	LINK_INIT;
 	if (m > 0) {
@@ -5145,17 +5138,8 @@ int loglikelihood_zeroinflated_negative_binomial1_strata3(double *logll, double 
 	double cutoff = 1.0e-4;				       /* switch to Poisson if mu/size < cutoff */
 
 	p_zeroinflated = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	if (strata == 0) {
-		size = exp(ds->data_observations.log_sizes[0][GMRFLib_thread_id][0]);
-	} else {
-		size = exp(ds->data_observations.log_sizes[1][GMRFLib_thread_id][0]);
-	}
-
-	/*
-	 * THE REST IS THE SAME AS FOR STRATA2 
-	 */
-
-
+	size = exp(ds->data_observations.log_sizes[strata][GMRFLib_thread_id][0]);
+	
 	LINK_INIT;
 	if (m > 0) {
 		/*
@@ -11233,8 +11217,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("log size for nbinomial zero-inflated observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("size for nbinomial zero-inflated observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("log size for zero-inflated nbinomial_strata2", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("size for zero-inflated nbinomial_strata2", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -11252,112 +11236,84 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->data_ntheta++;
 		}
 
-		/*
-		 * the zeroinflation parameter 1
+		/* 
+		   THERE are up to STRATA_MAXTHETA of the probs, called prob 1... 10
 		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), -1.0);
-		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		HYPER_NEW(ds->data_observations.prob1_intern, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise prob1_intern[%g]\n", ds->data_observations.prob1_intern[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
-		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
+		ds->data_observations.probN_intern = Calloc(STRATA_MAXTHETA, double **);
+		ds->data_nfixed = Calloc(STRATA_MAXTHETA, int);
+		ds->data_nprior = Calloc(STRATA_MAXTHETA, Prior_tp);
 
-		/*
-		 * add theta 
-		 */
-		if (!ds->data_fixed1) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = ds->data_prior1.hyperid;
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("intern zero-probability parameter1 for zero-inflated nbinomial_1_strata2", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("zero-probability parameter1 for zero-inflated nbinomial_1_strata2", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
-			mb->theta_dir[mb->ntheta] = msg;
+		for(int count = 0; count < STRATA_MAXTHETA; count++) {
+			char *ctmp = NULL;
 
-			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			/*
+			 * the zeroinflation prob-parameter
+			 */
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", count+1);
+			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), -1.0);
+			
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", count+1);
+			ds->data_nfixed[count] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+			if (!ds->data_nfixed[count] && mb->reuse_mode) {
+				tmp = mb->theta_file[mb->theta_counter_file++];
+			}
+			HYPER_NEW(ds->data_observations.probN_intern[count], tmp);
+			
+			if (mb->verbose) {
+				printf("\t\tinitialise prob%1d_intern[%g]\n", count+1, ds->data_observations.probN_intern[count][0][0]);
+				printf("\t\tfixed%1d=[%1d]\n", count+1, ds->data_nfixed[count]);
+			}
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "GAUSSIAN-std", count+1);
 
-			mb->theta[mb->ntheta] = ds->data_observations.prob1_intern;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_probability;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-			ds->data_ntheta++;
-		}
+			/*
+			 * add theta 
+			 */
+			if (!ds->data_nfixed[count]) {
+				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+				mb->theta_hyperid[mb->ntheta] = ds->data_nprior[count].hyperid;
+				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 
-		/*
-		 * the zeroinflation parameter 2
-		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), -1.0);
-		ds->data_fixed2 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED2"), 0);
-		if (!ds->data_fixed2 && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		HYPER_NEW(ds->data_observations.prob2_intern, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise prob2_intern[%g]\n", ds->data_observations.prob2_intern[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed2);
-		}
-		inla_read_prior2(mb, ini, sec, &(ds->data_prior2), "GAUSSIAN-std");
+				GMRFLib_sprintf(&ctmp, "intern zero-probability%1d for zero-inflated nbinomial_strata2", count+1);
+				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				GMRFLib_sprintf(&ctmp, "zero-probability%1d for zero-inflated nbinomial_strata2", count+1);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, count+1);
+				mb->theta_dir[mb->ntheta] = msg;
 
-		/*
-		 * add theta 
-		 */
-		if (!ds->data_fixed2) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = ds->data_prior2.hyperid;
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("intern zero-probability parameter2 for zero-inflated nbinomial1_strata2", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("zero-probability parameter2 for zero-inflated nbinomial1_strata2", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter2", secname);
-			mb->theta_dir[mb->ntheta] = msg;
+				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].from_theta);
+				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].to_theta);
 
-			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
-
-			mb->theta[mb->ntheta] = ds->data_observations.prob2_intern;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_probability;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-			ds->data_ntheta++;
+				mb->theta[mb->ntheta] = ds->data_observations.probN_intern[count];
+				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+				mb->theta_map[mb->ntheta] = map_probability;
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL;
+				mb->ntheta++;
+				ds->data_ntheta++;
+			}
 		}
 		break;
 
 	case L_ZEROINFLATEDNBINOMIAL1STRATA3:
 		/*
-		 * get options related to the zeroinflated negative binomial1, strata3
+		 * get options related to the zeroinflated negative binomial_0/1, strata3
 		 */
-		ds->data_observations.log_sizes = Calloc(2, double **);
-
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), log(10.0));
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
 		if (!ds->data_fixed0 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->data_observations.log_sizes[0], tmp);
+		HYPER_NEW(ds->data_observations.prob_intern, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise log_size[0][%g]\n", ds->data_observations.log_sizes[0][0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
+			printf("\t\tinitialise prob_intern[%g]\n", ds->data_observations.prob_intern[0][0]);
+			printf("\t\tfixed0=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN-std"); 
 
 		/*
 		 * add theta 
@@ -11369,8 +11325,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("log size1 for nbinomial zero-inflated observations strata3", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("size1 for nbinomial zero-inflated observations strata3", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("intern zero-probability for zero-inflated nbinomial_strata3", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("zero-probability for zero-inflated nbinomial_strata3", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -11379,91 +11335,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
 
-			mb->theta[mb->ntheta] = ds->data_observations.log_sizes[0];
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_exp;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-			ds->data_ntheta++;
-		}
-
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), log(10.0));
-		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		HYPER_NEW(ds->data_observations.log_sizes[1], tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise log_size[1][%g]\n", ds->data_observations.log_sizes[1][0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
-		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "LOGGAMMA");
-
-		/*
-		 * add theta 
-		 */
-		if (!ds->data_fixed1) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = ds->data_prior1.hyperid;
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("log size2 for nbinomial zero-inflated observations strata3", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("size2 for nbinomial zero-inflated observations strata3", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
-			mb->theta_dir[mb->ntheta] = msg;
-
-			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
-
-			mb->theta[mb->ntheta] = ds->data_observations.log_sizes[1];
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_exp;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-			ds->data_ntheta++;
-		}
-
-		/*
-		 * the zeroinflation parameter 
-		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), -1.0);
-		ds->data_fixed2 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED2"), 0);
-		if (!ds->data_fixed2 && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		HYPER_NEW(ds->data_observations.prob_intern, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise prob_intern[%g]\n", ds->data_observations.prob_intern[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed2);
-		}
-		inla_read_prior2(mb, ini, sec, &(ds->data_prior2), "GAUSSIAN-std");
-
-		/*
-		 * add theta 
-		 */
-		if (!ds->data_fixed2) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = ds->data_prior2.hyperid;
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("intern zero-probability parameter for zero-inflated nbinomial 1 strata3", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("zero-probability parameter for zero-inflated nbinomial 1 strata3", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter2", secname);
-			mb->theta_dir[mb->ntheta] = msg;
-
-			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior2.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior2.to_theta);
-
 			mb->theta[mb->ntheta] = ds->data_observations.prob_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_probability;
@@ -11471,6 +11342,68 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 			ds->data_ntheta++;
+		}
+
+		/* 
+		   THERE are up to STRATA_MAXTHETA of the probs, called prob 1... 10
+		 */
+		ds->data_observations.log_sizes = Calloc(STRATA_MAXTHETA, double **);
+		ds->data_nfixed = Calloc(STRATA_MAXTHETA, int);
+		ds->data_nprior = Calloc(STRATA_MAXTHETA, Prior_tp);
+
+		for(int count = 0; count < STRATA_MAXTHETA; count++) {
+			char *ctmp = NULL;
+
+			/*
+			 * the zeroinflation prob-parameter
+			 */
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", count+1);
+			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), -1.0);
+			
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", count+1);
+			ds->data_nfixed[count] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+			if (!ds->data_nfixed[count] && mb->reuse_mode) {
+				tmp = mb->theta_file[mb->theta_counter_file++];
+			}
+			HYPER_NEW(ds->data_observations.log_sizes[count], tmp);
+			
+			if (mb->verbose) {
+				printf("\t\tinitialise log_size%1d[%g]\n", count+1, ds->data_observations.log_sizes[count][0][0]);
+				printf("\t\tfixed%1d=[%1d]\n", count+1, ds->data_nfixed[count]);
+			}
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "LOGGAMMA", count+1);
+
+			/*
+			 * add theta 
+			 */
+			if (!ds->data_nfixed[count]) {
+				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+				mb->theta_hyperid[mb->ntheta] = ds->data_nprior[count].hyperid;
+				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+
+				GMRFLib_sprintf(&ctmp, "log_size%1d for zero-inflated nbinomial_strata3", count+1);
+				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				GMRFLib_sprintf(&ctmp, "size%1d for zero-inflated nbinomial_strata3", count+1);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, count+1);
+				mb->theta_dir[mb->ntheta] = msg;
+
+				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].from_theta);
+				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].to_theta);
+
+				mb->theta[mb->ntheta] = ds->data_observations.log_sizes[count];
+				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+				mb->theta_map[mb->ntheta] = map_exp;
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL;
+				mb->ntheta++;
+				ds->data_ntheta++;
+			}
 		}
 		break;
 
@@ -21485,27 +21418,18 @@ double extra(double *theta, int ntheta, void *argument)
 					 * function.
 					 */
 					double log_size = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior0, &log_size);
 					count++;
 				}
-				if (!ds->data_fixed1) {
-					/*
-					 * this is the probability-parameter1 in the zero-inflated nbinomial_0/1
-					 */
-					double prob_intern = theta[count];
-
-					val += PRIOR_EVAL(ds->data_prior1, &prob_intern);
-					count++;
-				}
-				if (!ds->data_fixed2) {
-					/*
-					 * this is the probability-parameter2 in the zero-inflated nbinomial_0/1
-					 */
-					double prob_intern = theta[count];
-
-					val += PRIOR_EVAL(ds->data_prior2, &prob_intern);
-					count++;
+				for(int icount = 0; icount < STRATA_MAXTHETA; icount++) {
+					if (!ds->data_nfixed[icount]){
+						/*
+						 * this is the probability-parameter in the zero-inflated nbinomial_strata2
+						 */
+						double prob_intern = theta[count];
+						val += PRIOR_EVAL(ds->data_nprior[icount], &prob_intern);
+						count++;
+					}
 				}
 				break;
 
@@ -21515,30 +21439,19 @@ double extra(double *theta, int ntheta, void *argument)
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
 					 * function.
 					 */
-					double log_size = theta[count];
-
-					val += PRIOR_EVAL(ds->data_prior0, &log_size);
-					count++;
-				}
-
-				if (!ds->data_fixed1) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
-					double log_size = theta[count];
-
-					val += PRIOR_EVAL(ds->data_prior1, &log_size);
-					count++;
-				}
-				if (!ds->data_fixed2) {
-					/*
-					 * this is the probability-parameter2 in the zero-inflated nbinomial_0/1
-					 */
 					double prob_intern = theta[count];
-
-					val += PRIOR_EVAL(ds->data_prior2, &prob_intern);
+					val += PRIOR_EVAL(ds->data_prior0, &prob_intern);
 					count++;
+				}
+				for(int icount = 0; icount < STRATA_MAXTHETA; icount++) {
+					if (!ds->data_nfixed[icount]){
+						/*
+						 * this is the size-parameter in the zero-inflated nbinomial_strata2
+						 */
+						double log_size = theta[count];
+						val += PRIOR_EVAL(ds->data_nprior[icount], &log_size);
+						count++;
+					}
 				}
 				break;
 
