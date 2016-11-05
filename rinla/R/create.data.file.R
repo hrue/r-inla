@@ -154,7 +154,7 @@
         }
 
         stopifnot(all(!is.na(strata)))
-        stopifnot(all(strata %in% c(1, 2)))
+        stopifnot(all(strata %in% 1:10))
 
         response = cbind(ind, E, strata-1L, y.orig)
 
