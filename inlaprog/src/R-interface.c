@@ -220,7 +220,8 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 	inla_R_init();
 
 	if (R_debug)
-		fprintf(stderr, "R-interface[%1d]: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag, n);
+		fprintf(stderr, "R-interface[%1d]: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag,
+			n);
 
 	int error, i;
 	SEXP xx, result, e;
