@@ -11,7 +11,7 @@
 	 	 	\item[initial] 2.30258509299405
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 1
+	 	 	\item[param] 1 0.1
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
@@ -34,6 +34,102 @@
 	 	 	\item[short.name] prob2
 	 	 	\item[initial] -1
 	 	 	\item[fixed] FALSE
+	 	 	\item[prior] gaussian
+	 	 	\item[param] -1 0.2
+	 	 	\item[to.theta] \verb!function(x) log(x/(1-x))!
+	 	 	\item[from.theta] \verb!function(x) exp(x)/(1+exp(x))!
+	 	 \end{description}
+	 	\item[theta4]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 97004
+	 	 	\item[name] logit probability 3
+	 	 	\item[short.name] prob3
+	 	 	\item[initial] -1
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] gaussian
+	 	 	\item[param] -1 0.2
+	 	 	\item[to.theta] \verb!function(x) log(x/(1-x))!
+	 	 	\item[from.theta] \verb!function(x) exp(x)/(1+exp(x))!
+	 	 \end{description}
+	 	\item[theta5]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 97005
+	 	 	\item[name] logit probability 4
+	 	 	\item[short.name] prob4
+	 	 	\item[initial] -1
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] gaussian
+	 	 	\item[param] -1 0.2
+	 	 	\item[to.theta] \verb!function(x) log(x/(1-x))!
+	 	 	\item[from.theta] \verb!function(x) exp(x)/(1+exp(x))!
+	 	 \end{description}
+	 	\item[theta6]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 97006
+	 	 	\item[name] logit probability 5
+	 	 	\item[short.name] prob5
+	 	 	\item[initial] -1
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] gaussian
+	 	 	\item[param] -1 0.2
+	 	 	\item[to.theta] \verb!function(x) log(x/(1-x))!
+	 	 	\item[from.theta] \verb!function(x) exp(x)/(1+exp(x))!
+	 	 \end{description}
+	 	\item[theta7]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 97007
+	 	 	\item[name] logit probability 6
+	 	 	\item[short.name] prob6
+	 	 	\item[initial] -1
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] gaussian
+	 	 	\item[param] -1 0.2
+	 	 	\item[to.theta] \verb!function(x) log(x/(1-x))!
+	 	 	\item[from.theta] \verb!function(x) exp(x)/(1+exp(x))!
+	 	 \end{description}
+	 	\item[theta8]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 97008
+	 	 	\item[name] logit probability 7
+	 	 	\item[short.name] prob7
+	 	 	\item[initial] -1
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] gaussian
+	 	 	\item[param] -1 0.2
+	 	 	\item[to.theta] \verb!function(x) log(x/(1-x))!
+	 	 	\item[from.theta] \verb!function(x) exp(x)/(1+exp(x))!
+	 	 \end{description}
+	 	\item[theta9]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 97009
+	 	 	\item[name] logit probability 8
+	 	 	\item[short.name] prob8
+	 	 	\item[initial] -1
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] gaussian
+	 	 	\item[param] -1 0.2
+	 	 	\item[to.theta] \verb!function(x) log(x/(1-x))!
+	 	 	\item[from.theta] \verb!function(x) exp(x)/(1+exp(x))!
+	 	 \end{description}
+	 	\item[theta10]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 97010
+	 	 	\item[name] logit probability 9
+	 	 	\item[short.name] prob9
+	 	 	\item[initial] -1
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] gaussian
+	 	 	\item[param] -1 0.2
+	 	 	\item[to.theta] \verb!function(x) log(x/(1-x))!
+	 	 	\item[from.theta] \verb!function(x) exp(x)/(1+exp(x))!
+	 	 \end{description}
+	 	\item[theta11]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 97011
+	 	 	\item[name] logit probability 10
+	 	 	\item[short.name] prob10
+	 	 	\item[initial] -1
+	 	 	\item[fixed] TRUE
 	 	 	\item[prior] gaussian
 	 	 	\item[param] -1 0.2
 	 	 	\item[to.theta] \verb!function(x) log(x/(1-x))!

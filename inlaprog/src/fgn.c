@@ -81,10 +81,10 @@ double Qfunc_fgn(int i, int j, void *arg)
 		phi_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
 		w_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
 		H_intern_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double);
-		
-		for(int j = 0; j < ISQR(GMRFLib_MAX_THREADS); j++) {
-			phi_cache[j] = Calloc(2*FGN_KMAX-1, double);
-			w_cache[j] = Calloc(2*FGN_KMAX-1, double);
+
+		for (int j = 0; j < ISQR(GMRFLib_MAX_THREADS); j++) {
+			phi_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
+			w_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
 		}
 		if (debug) {
 			printf("Qfunc_fgn: initialize cache\n");
@@ -95,7 +95,7 @@ double Qfunc_fgn(int i, int j, void *arg)
 	inla_fgn_arg_tp *a = (inla_fgn_arg_tp *) arg;
 	double H_intern, prec, val = 0.0, *phi, *w;
 	int id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
-	
+
 	phi = phi_cache[id];
 	w = w_cache[id];
 
@@ -103,7 +103,7 @@ double Qfunc_fgn(int i, int j, void *arg)
 	prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
 	if (!ISEQUAL(H_intern, H_intern_cache[id])) {
-		if (debug){
+		if (debug) {
 			printf("Qfunc_fgn: update cache H_intern[%1d]= %f\n", id, H_intern);
 		}
 		inla_fng_get(phi, w, H_intern, a->k);
@@ -126,20 +126,22 @@ double Qfunc_fgn(int i, int j, void *arg)
 		if (ii.quot == jj.quot) {
 			// this is the AR1
 			double prec_cond = 1.0 / (1.0 - SQR(phi[ii.quot - 1L]));
-			double scale = prec / w[ii.quot -1L];
+			double scale = prec / w[ii.quot - 1L];
 			if (ii.rem != jj.rem) {
 				// off-diagonal
-				val = - scale * prec_cond * phi[ii.quot - 1L];
+				val = -scale * prec_cond * phi[ii.quot - 1L];
 			} else {
 				// diagonal
-				val = scale * prec_cond * ((ii.rem == 0 || ii.rem == a->n - 1L) ? 1.0 : (1.0 + SQR(phi[ii.quot - 1L])));
+				val =
+				    scale * prec_cond *
+				    ((ii.rem == 0 || ii.rem == a->n - 1L) ? 1.0 : (1.0 + SQR(phi[ii.quot - 1L])));
 				val += a->prec_eps;
 			}
 		} else {
 			val = a->prec_eps;
 		}
 	}
-	
+
 	return val;
 }
 
@@ -157,7 +159,7 @@ int inla_fng_get(double *phi, double *w, double H_intern, int k)
 	H_intern = DMIN(H_intern, H_intern_end - H_intern_by);
 
 	assert(H_intern >= H_intern_start && H_intern <= H_intern_end);
-	idx = (int) floor((H_intern - H_intern_start) / H_intern_by);	       /* idx is the block-index */
+	idx = (int) floor((H_intern - H_intern_start) / H_intern_by);	/* idx is the block-index */
 	weight = (H_intern - (H_intern_start + idx * H_intern_by)) / H_intern_by;
 	len_par = 2 * K - 1;
 	idx *= len_par;					       /* and now the index in the table */
@@ -190,23 +192,23 @@ int inla_fng_get(double *phi, double *w, double H_intern, int k)
 	return GMRFLib_SUCCESS;
 }
 
-double priorfunc_fgn_priorH(double *H_intern, double *param) 
+double priorfunc_fgn_priorH(double *H_intern, double *param)
 {
 	// return the log-prior for H_intern
 	double lprior;
 #include "fgn-prior-tables.h"
-#pragma omp critical 
+#pragma omp critical
 	{
 		static GMRFLib_spline_tp *dist_spline = NULL;
 		if (!dist_spline) {
-			dist_spline = inla_spline_create(H_int, Dist, sizeof(H_int)/sizeof(double));
+			dist_spline = inla_spline_create(H_int, Dist, sizeof(H_int) / sizeof(double));
 		}
 
 		double U_intern, lambda;
 		U_intern = map_H(param[0], MAP_BACKWARD, NULL);
-		lambda = -log(param[1])/inla_spline_eval(U_intern, dist_spline);
-		lprior = log(lambda) - lambda * inla_spline_eval(*H_intern, dist_spline) + 
-			log(fabs(inla_spline_eval_deriv(*H_intern, dist_spline)));
+		lambda = -log(param[1]) / inla_spline_eval(U_intern, dist_spline);
+		lprior = log(lambda) - lambda * inla_spline_eval(*H_intern, dist_spline) +
+		    log(fabs(inla_spline_eval_deriv(*H_intern, dist_spline)));
 		if (0) {
 			P(*H_intern);
 			P(lambda);

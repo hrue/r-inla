@@ -1,7 +1,7 @@
 
-/* R-interface.h
+/* quantile-regression.h
  * 
- * Copyright (C) 2014 Havard Rue
+ * Copyright (C) 2016 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,8 +27,8 @@
  *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
  *
  */
-#ifndef __INLA_R_INTERFACE_H__
-#define __INLA_R_INTERFACE_H__
+#ifndef __INLA_QUANTILE_REGRESSION_H__
+#define __INLA_QUANTILE_REGRESSION_H__
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
@@ -38,23 +38,16 @@
 #define __BEGIN_DECLS					       /* empty */
 #define __END_DECLS					       /* empty */
 #endif
-
 __BEGIN_DECLS
 
-/*
+/* 
  *
  */
-int inla_R_assign(const char *variable, int n, double *x);
-int inla_R_funcall1(int *n_out, double **x_out, const char *function, int n, double *x);
-int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char *tag, int n, double *x);
-int inla_R_get(int *n_out, double **x_out, const char *variable);
-int inla_R_init(void);
-int inla_R_inlaload(const char *filename);
-int inla_R_library(const char *library);
-int inla_R_load(const char *filename);
-int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *model, int n, double *theta);
-int inla_R_source(const char *filename);
-void inla_R_exit(void);
+double inla_pcontpois(double y, double lambda);
+double inla_pcontpois_deriv(double y, double lambda);
+double inla_qcontpois(double quantile, double alpha, double *initial_guess);
+double inla_qcontpois_eta(double quantile, double alpha, double *initial_guess);
+GMRFLib_spline_tp *inla_qcontpois_func(double alpha);
 
 __END_DECLS
 #endif
