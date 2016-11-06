@@ -66,6 +66,7 @@ inla.qcontpois.approx = function(q, lambda) {
 inla.qcontpois = function(quantile, alpha, iter.max = 1000, max.step = 2,
                           tol = sqrt(.Machine$double.eps), verbose=FALSE)
 {
+    stopifnot(length(quantile) == 1 && length(alpha) == 1)
     return(exp(inla.qcontpois.eta(quantile, alpha, iter.max, max.step, tol, verbose)))
 }
 
@@ -73,6 +74,7 @@ inla.qcontpois.eta = function(quantile, alpha, iter.max = 1000, max.step = 2,
                               tol = sqrt(.Machine$double.eps), verbose=FALSE) 
 {
     ## solve quantile=inla.pcontpois(lambda=exp(eta), alpha),  for eta
+    stopifnot(length(quantile) == 1 && length(alpha) == 1)
     eta.0 = log((sqrt(quantile) - qnorm(alpha,  sd = 0.5))^2)
     for(i in 1:iter.max) {
         f = inla.pcontpois(quantile, lambda = exp(eta.0)) - alpha

@@ -4811,6 +4811,15 @@
                      link = c("default", "log", "logoffset", "test1", "special1", "special2"),
                      pdf = "poisson"
                      ),
+                 
+                 qpoisson = list(
+                     hyper = list(
+                         ),
+                     survival = FALSE,
+                     discrete = TRUE,
+                     link = c("default", "log"), 
+                     pdf = "qpoisson"
+                     ),
 
                  cenpoisson = list(
                      hyper = list(
