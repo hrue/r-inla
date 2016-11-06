@@ -48,6 +48,7 @@ __BEGIN_DECLS
 #include "strlib.h"
 #include "ar.h"
 #include "fgn.h"
+#include "quantile-regression.h"
 #define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560)	/* -1/2 * log(2*pi) */
 #define INLA_FAIL  1
 #define INLA_OK    0
@@ -372,6 +373,11 @@ typedef struct {
 	 */
 	double **qloglogistic_log_prec;
 
+	/* 
+	 * qpoisson. Hold the solution to ``quantile=pcontpois(exp(eta),alpha)'' for all (quantile,eta)
+	 */
+	GMRFLib_spline_tp *qpoisson_solve;
+	
 } Data_tp;
 
 typedef struct {
@@ -444,6 +450,7 @@ typedef enum {
 	L_SKEWNORMAL2,
 	L_QKUMAR,
 	L_QLOGLOGISTIC,
+	L_QPOISSON,
 	L_CENPOISSON,					       /* cencored poisson */
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
@@ -1566,6 +1573,7 @@ int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, do
 int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_qkumar(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_qloglogistic(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_qpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_simplex(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_skew_normal2(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
