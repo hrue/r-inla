@@ -44,7 +44,6 @@
                               "normal",
                               "lognormal",
                               "t",
-                              "laplace",
                               "sn",
                               "sn2",
                               "skewnormal",
@@ -105,6 +104,7 @@
         response = response[!null.dat,]
 
     } else if (inla.one.of(family, c("poisson",
+                                     "qpoisson", 
                                      "cenpoisson", 
                                      "gpoisson", 
                                      "zeroinflatedpoisson0",
@@ -155,7 +155,7 @@
         }
 
         stopifnot(all(!is.na(strata)))
-        stopifnot(all(strata %in% c(1, 2)))
+        stopifnot(all(strata %in% 1:10))
 
         response = cbind(ind, E, strata-1L, y.orig)
 

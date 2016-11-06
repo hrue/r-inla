@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.family} for use in \code{inla}}
 \usage{
 inla.set.control.family.default(...)
-control.family(alpha, cenpoisson.I, control.link, control.mix, epsilon, fixed, gamma, gev.scale.xi, hyper, initial, link, param, prior, quantile, sn.shape.max, variant)
+control.family(cenpoisson.I, control.link, control.mix, fixed, gev.scale.xi, hyper, initial, link, param, prior, quantile, sn.shape.max, variant)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -22,9 +22,6 @@ control.family(alpha, cenpoisson.I, control.link, control.mix, epsilon, fixed, g
 \item{param}{  (OBSOLETE!) The parameters for the prior distribution}
 \item{fixed}{  (OBSOLETE!) Boolean variable(s) to say if the hyperparameter(s) is fixed or random.}
 \item{link}{  (OBSOLETE! Use \code{control.link=list(model=)} instead.) The link function to use.}
-\item{alpha}{  The parameter 'alpha' for the asymmetric Laplace likelihood (default 0.5)}
-\item{epsilon}{  The parameter 'epsilon' for the asymmetric Laplace likelihood (default 0.01)}
-\item{gamma}{  The parameter 'gamma' for the asymmetric Laplace likelihood (default 1.0)}
 \item{sn.shape.max}{  Maximum value for the shape-parameter for Skew Normal observations}
 \item{gev.scale.xi}{  The internal scaling of the shape-parameter for the GEV distribution. (default 0.01)}
 \item{cenpoisson.I}{  The censoring interval for the censored Poisson}

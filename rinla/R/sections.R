@@ -130,21 +130,11 @@
         cat("cenpoisson.I = ", interval[1], " ",  interval[2], "\n", sep="", file=file, append=TRUE)
     }
 
-    if (inla.one.of(family, c("qloglogistic", "qkumar"))) {
+    if (inla.one.of(family, c("qloglogistic", "qkumar", "qpoisson"))) {
         if (!(is.numeric(control$quantile) && (control$quantile > 0) && (control$quantile < 1))) {
             stop(paste("quantile: Must be a numeric in the interval (0, 1)"))
         }
         cat("quantile = ", control$quantile, "\n", sep="", file=file, append=TRUE)
-    }
-
-    if (inla.one.of(family, "laplace")) {
-        ## two parameters, alpha and epsilon is require for LAPLACE
-        cat("alpha = ", inla.ifelse(is.null(control$alpha), 0.5, control$alpha), "\n",
-            sep="", file=file, append=TRUE)
-        cat("epsilon = ", inla.ifelse(is.null(control$epsilon), 0.01, control$epsilon), "\n",
-            sep="", file=file, append=TRUE)
-        cat("gamma = ", inla.ifelse(is.null(control$gamma), 1.0, control$gamma), "\n",
-            sep="", file=file, append=TRUE)
     }
 
     if (inla.one.of(family, c("sn", "skewnormal"))) {
