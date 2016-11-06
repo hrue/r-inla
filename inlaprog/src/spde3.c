@@ -111,7 +111,8 @@ int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const ch
 		GMRFLib_matrix_free(model->M[3]);
 		model->M[3] = NULL;
 	}
-	// since this matrix is non-symmetric, we need the graph for for the transpose as well. the graph gives the entries for for each row.
+	// since this matrix is non-symmetric, we need the graph for for the transpose as well. the graph gives the entries for for 
+	// each row.
 	if (model->M[3]) {
 		model->M3transpose = GMRFLib_matrix_transpose(model->M[3]);
 	} else {
@@ -355,7 +356,8 @@ double inla_spde3_Qfunction(int i, int j, void *arg)
 				}
 			}
 		}
-		// For the M3-term, it is easier to work with M3transpose. We need to be careful since M3 is generally not symmetric.
+		// For the M3-term, it is easier to work with M3transpose. We need to be careful since M3 is generally not
+		// symmetric.
 		double m3_value = 0.0, d3 = NAN, tmp;
 		GMRFLib_graph_tp *g = model->M3transpose->graph;
 		double *m3t_row_i = Calloc(2 * g->n, double);
@@ -491,7 +493,8 @@ int inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, 
 			iarg->interpolator = GMRFLib_AI_INTERPOLATOR_CCD;
 
 			int npoints = 51;
-			double *x = Calloc(nhyper, double), *xx = NULL, *xxx = Calloc(npoints, double), *ldens_values = Calloc(npoints, double);
+			double *x = Calloc(nhyper, double), *xx = NULL, *xxx = Calloc(npoints, double), *ldens_values =
+			    Calloc(npoints, double);
 
 			GMRFLib_ghq_abscissas(&xx, npoints);
 			memcpy(xxx, xx, npoints * sizeof(double));
@@ -505,7 +508,8 @@ int inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, 
 				ldens_values[ii] = GMRFLib_ai_integrator_func(nhyper, x, iarg);
 			}
 			GMRFLib_density_create(&(GMRFLib_ai_INLA_userfunc3_density[number][i]),
-					       GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, xxx, ldens_values, mean, sqrt(var), GMRFLib_TRUE);
+					       GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, xxx, ldens_values, mean, sqrt(var),
+					       GMRFLib_TRUE);
 
 			Free(Sigma_a);
 			Free(x);
@@ -524,10 +528,13 @@ int inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, 
 			for (ii = 0; ii < model->ntheta; ii++) {
 				mean += Theta_spde3(ii) * row_spde3[1 + ii];
 				for (jj = 0; jj < model->ntheta; jj++) {
-					var += row_spde3[1 + ii] * row_spde3[1 + jj] * Cov_spde3(ii, jj);	/* yes the first column is a constant offset */
+					var += row_spde3[1 + ii] * row_spde3[1 + jj] * Cov_spde3(ii, jj);	/* yes the first
+														 * column is a
+														 * constant offset */
 				}
 			}
-			GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc3_density[number][i]), 0.0, 1.0, mean, (var > 0 ? sqrt(var) : DBL_EPSILON));
+			GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc3_density[number][i]), 0.0, 1.0, mean,
+						      (var > 0 ? sqrt(var) : DBL_EPSILON));
 		}
 	}
 
