@@ -130,7 +130,7 @@
         cat("cenpoisson.I = ", interval[1], " ",  interval[2], "\n", sep="", file=file, append=TRUE)
     }
 
-    if (inla.one.of(family, c("qloglogistic", "qkumar"))) {
+    if (inla.one.of(family, c("qloglogistic", "qkumar", "qpoisson"))) {
         if (!(is.numeric(control$quantile) && (control$quantile > 0) && (control$quantile < 1))) {
             stop(paste("quantile: Must be a numeric in the interval (0, 1)"))
         }

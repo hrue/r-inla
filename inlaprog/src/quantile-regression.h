@@ -46,8 +46,9 @@ __BEGIN_DECLS
 
 double inla_pcontpois(double y, double lambda);
 double inla_pcontpois_deriv(double y, double lambda);
-double inla_qcontpois(double quantile, double alpha);
-double inla_qcontpois_eta(double quantile, double alpha);
+double inla_qcontpois(double quantile, double alpha, double *initial_guess);
+double inla_qcontpois_eta(double quantile, double alpha, double *initial_guess);
+GMRFLib_spline_tp *inla_qcontpois_func(double alpha);
 
 __END_DECLS
 #endif

@@ -374,9 +374,9 @@ typedef struct {
 	double **qloglogistic_log_prec;
 
 	/* 
-	 * qpoisson. Hold the solution to ``quantile=pcontpois(exp(eta),alpha)'' for all (quantile,eta)
+	 * qpoisson. Hold the solution to ``exp(lquantile)=pcontpois(exp(eta),alpha)'' for all (lquantile,eta)
 	 */
-	GMRFLib_spline_tp *qpoisson_solve;
+	GMRFLib_spline_tp *qpoisson_func;
 	
 } Data_tp;
 
@@ -1571,6 +1571,7 @@ int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_qpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_qkumar(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_qloglogistic(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_qpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
