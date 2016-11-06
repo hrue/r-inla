@@ -44,7 +44,6 @@ __BEGIN_DECLS
 /*
  *
  */
-
 int inla_R_assign(const char *variable, int n, double *x);
 int inla_R_funcall1(int *n_out, double **x_out, const char *function, int n, double *x);
 int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char *tag, int n, double *x);
