@@ -43,7 +43,6 @@ __BEGIN_DECLS
 /* 
  *
  */
-
 double inla_pcontpois(double y, double lambda);
 double inla_pcontpois_deriv(double y, double lambda);
 double inla_qcontpois(double quantile, double alpha, double *initial_guess);
