@@ -4818,6 +4818,7 @@
                      survival = FALSE,
                      discrete = TRUE,
                      link = c("default", "log"), 
+                     status = "experimental", 
                      pdf = "qpoisson"
                      ),
 
