@@ -252,7 +252,8 @@ double inla_eval_table(char *expression, double *xval)
 
 	if (ISNAN(value)) {
 		char *msg;
-		GMRFLib_sprintf(&msg, "table-prior returns NAN. Argument is %g but prior is defined on [%g,%g] only.", *xval, s->xmin, s->xmax);
+		GMRFLib_sprintf(&msg, "table-prior returns NAN. Argument is %g but prior is defined on [%g,%g] only.", *xval,
+				s->xmin, s->xmax);
 		inla_error_general(msg);
 		exit(1);
 	}
