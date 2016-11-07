@@ -8514,10 +8514,13 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		 * if the test fail, its a good idea to provide some debug information which might be helpful to help what is wrong in the spesification. 
 		 */
 		if (mb->theta_counter_file != mb->ntheta_file) {
-			P(mb->theta_counter_file);
-			P(mb->ntheta_file);
+			char *ctmp = NULL;
+			GMRFLib_sprintf(&ctmp,
+					"Your model has %1d hyperparameter(s) which is different from the %1d hyperparameter(s) given in 'control.mode'",
+					mb->theta_counter_file, mb->ntheta_file);
+			inla_error_general(ctmp);
+			assert(mb->theta_counter_file == mb->ntheta_file);
 		}
-		assert(mb->theta_counter_file == mb->ntheta_file);
 	}
 
 	/*
