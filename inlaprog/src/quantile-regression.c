@@ -94,7 +94,7 @@ GMRFLib_spline_tp *inla_qcontpois_func(double alpha)
 	 */
 
 	int n = 1024;
-	double lq_min = -10, lq_max = 25, lq_delta = (lq_max - lq_min) / n;
+	double lq_min = -10, lq_max = 13.5, lq_delta = (lq_max - lq_min) / n;
 	double *lquantile, *eta;
 	GMRFLib_spline_tp *spline;
 
