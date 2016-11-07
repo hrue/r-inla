@@ -1,6 +1,6 @@
-PWD /home/hrue/p/inla/google-code/inla/r-inla.org/examples/kidney
+PWD /home/hrue/p/inla/r-inla/r-inla.org/examples/kidney
 INPUT /usr/share/texlive/texmf-dist/web2c/texmf.cnf
-INPUT /usr/share/texlive/texmf-var/web2c/pdftex/pdflatex.fmt
+INPUT /home/hrue/.texlive2015/texmf-var/web2c/pdftex/pdflatex.fmt
 INPUT Kidney-infec.Model.tex
 OUTPUT Kidney-infec.Model.log
 INPUT /usr/share/texlive/texmf-dist/tex/latex/base/article.cls
@@ -25,6 +25,7 @@ INPUT /usr/share/texlive/texmf-dist/tex/latex/pgf/basiclayer/pgf.sty
 INPUT /usr/share/texlive/texmf-dist/tex/latex/pgf/utilities/pgfrcs.sty
 INPUT /usr/share/texlive/texmf-dist/tex/latex/pgf/utilities/pgfrcs.sty
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/utilities/pgfutil-common.tex
+INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/utilities/pgfutil-common-lists.tex
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/utilities/pgfutil-latex.def
 INPUT /usr/share/texlive/texmf-dist/tex/latex/ms/everyshi.sty
 INPUT /usr/share/texlive/texmf-dist/tex/latex/ms/everyshi.sty
@@ -78,6 +79,7 @@ INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.compar
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.base.code.tex
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.round.code.tex
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.misc.code.tex
+INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.integerarithmetics.code.tex
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfloat.code.tex
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepoints.code.tex
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathconstruct.code.tex
