@@ -4534,22 +4534,22 @@ int loglikelihood_qpoisson(double *logll, double *x, int m, int idx, double *x_v
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	int i;
+	int i, id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc =
-	    gsl_sf_lnfact((unsigned int) y), lambda, q;
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx];
+	double normc = gsl_sf_lnfact((unsigned int) y), lambda, q;
 
 	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			q = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			lambda = E * exp(inla_spline_eval(log(q), ds->data_observations.qpoisson_func));
+			lambda = E * exp(inla_spline_eval(log(q), ds->data_observations.qpoisson_func[id]));
 			logll[i] = y * log(lambda) - lambda - normc;
 		}
 	} else {
 		for (i = 0; i < -m; i++) {
 			q = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			lambda = E * exp(inla_spline_eval(log(q), ds->data_observations.qpoisson_func));
+			lambda = E * exp(inla_spline_eval(log(q), ds->data_observations.qpoisson_func[id]));
 			if (ISZERO(lambda)) {
 				if (ISZERO(y)) {
 					logll[i] = 1.0;
@@ -9990,7 +9990,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tquantile = [%g]\n", ds->data_observations.quantile);
 		}
-		ds->data_observations.qpoisson_func = inla_qcontpois_func(ds->data_observations.quantile);
+		ds->data_observations.qpoisson_func = inla_qcontpois_func(ds->data_observations.quantile, ISQR(GMRFLib_MAX_THREADS));
 		break;
 
 
@@ -28890,11 +28890,13 @@ int inla_R(char **argv)
 int testit(int argc, char **argv)
 {
 	if (0) {
-		GMRFLib_spline_tp *spline;
-		spline = inla_qcontpois_func(0.9);
-
-		for (double lq = -5; lq < 10; lq += 0.001) {
-			printf("quantile %f  eta %f\n", exp(lq), inla_spline_eval(lq, spline));
+		GMRFLib_spline_tp **spline;
+		spline = inla_qcontpois_func(0.9, GMRFLib_MAX_THREADS);
+		double lq;
+#pragma omp parallel for
+		for (int i = 0; i < 10000;  i++){
+			lq = -5 + i*0.001;
+			printf("%1d quantile %f  eta %f\n", omp_get_thread_num(), exp(lq), inla_spline_eval(lq, spline[omp_get_thread_num()]));
 		}
 		exit(0);
 	}
