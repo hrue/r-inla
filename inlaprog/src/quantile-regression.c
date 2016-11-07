@@ -59,14 +59,15 @@ double inla_qcontpois(double quantile, double alpha, double *initial_guess)
 double inla_qcontpois_eta(double quantile, double alpha, double *initial_guess)
 {
 	int iter_max = 1000, verbose = 0, first_hit = 0;
-	double eta_0, eta, max_step = 1.0, max_step_f = 0.8 * max_step, tol = GMRFLib_eps(0.5);
-	double d, f, fd, lambda;
+	double eta_0, eta, max_step = 0.5, max_step_f = 0.8 * max_step, tol = GMRFLib_eps(0.5);
+	double d, f, fd, lambda, fac;
 
 	if (initial_guess) {
 		eta_0 = *initial_guess;
 	} else {
 		eta_0 = log(SQR(sqrt(quantile) - gsl_cdf_ugaussian_Pinv(alpha) / 2.0));
 	}
+	eta_0 = log(quantile);
 	for (int i = 0; i < iter_max; i++) {
 		lambda = exp(eta_0);
 		f = inla_pcontpois(quantile, lambda) - alpha;
@@ -94,7 +95,7 @@ GMRFLib_spline_tp *inla_qcontpois_func(double alpha)
 	 */
 
 	int n = 1024;
-	double lq_min = -10, lq_max = 13.5, lq_delta = (lq_max - lq_min) / n;
+	double lq_min = -10, lq_max = 13.0, lq_delta = (lq_max - lq_min) / n;
 	double *lquantile, *eta;
 	GMRFLib_spline_tp *spline;
 
