@@ -86,7 +86,7 @@ double inla_qcontpois_eta(double quantile, double alpha, double *initial_guess)
 	return eta;
 }
 
-GMRFLib_spline_tp *inla_qcontpois_func(double alpha)
+GMRFLib_spline_tp **inla_qcontpois_func(double alpha, int num)
 {
 	/*
 	 * return a spline function solving eta for a given log_quantile:
@@ -97,7 +97,7 @@ GMRFLib_spline_tp *inla_qcontpois_func(double alpha)
 	int n = 1024;
 	double lq_min = -10, lq_max = 13.0, lq_delta = (lq_max - lq_min) / n;
 	double *lquantile, *eta;
-	GMRFLib_spline_tp *spline;
+	GMRFLib_spline_tp **spline;
 
 	eta = Calloc(n, double);
 	lquantile = Calloc(n, double);
@@ -105,7 +105,10 @@ GMRFLib_spline_tp *inla_qcontpois_func(double alpha)
 		lquantile[i] = lq_min + i * lq_delta;
 		eta[i] = inla_qcontpois_eta(exp(lquantile[i]), alpha, (i && lquantile[i] < 5.0 ? &eta[i - 1] : NULL));
 	}
-	spline = inla_spline_create(lquantile, eta, n);
+	spline = Calloc(num, GMRFLib_spline_tp *);
+	for(int i = 0; i < num; i++){
+		spline[i] = inla_spline_create(lquantile, eta, n);
+	}
 
 	Free(eta);
 	Free(lquantile);
