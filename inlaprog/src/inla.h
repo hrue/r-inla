@@ -375,9 +375,10 @@ typedef struct {
 	double **qloglogistic_log_prec;
 
 	/*
-	 * qpoisson. Hold the solution to ``exp(lquantile)=pcontpois(exp(eta),alpha)'' for all (lquantile,eta)
+	 * qpoisson. Hold the solution to ``exp(lquantile)=pcontpois(exp(eta),alpha)'' for all (lquantile,eta),
+	 * one for each thread
 	 */
-	GMRFLib_spline_tp *qpoisson_func;
+	GMRFLib_spline_tp **qpoisson_func;
 
 } Data_tp;
 
