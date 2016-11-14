@@ -1487,7 +1487,7 @@ double Qfunc_group(int i, int j, void *arg)
 		ardef = a->ardef;
 		break;
 
-	case G_I:
+	case G_IID:
 	case G_RW1:
 	case G_RW2:
 	case G_BESAG:
@@ -1540,7 +1540,7 @@ double Qfunc_group(int i, int j, void *arg)
 			fac = prec * Qfunc_besag(igroup, jgroup, (void *) (a->besagdef));
 			break;
 
-		case G_I:
+		case G_IID:
 			fac = prec;
 			break;
 
@@ -1578,7 +1578,7 @@ double Qfunc_group(int i, int j, void *arg)
 			fac = prec * Qfunc_besag(igroup, jgroup, (void *) (a->besagdef));
 			break;
 
-		case G_I:
+		case G_IID:
 			fac = prec * 0.0;
 			break;
 
@@ -1681,7 +1681,7 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 		}
 		break;
 
-	case G_I:
+	case G_IID:
 		assert(ngroup >= 1);
 		for (i = 0; i < ngroup; i++) {
 			GMRFLib_ged_insert_graph2(ged, graph, i * n, i * n);
@@ -19680,8 +19680,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				mb->f_group_model[mb->nf] = G_RW2;
 			} else if (!strcasecmp(ptmp, "BESAG")) {
 				mb->f_group_model[mb->nf] = G_BESAG;
-			} else if (!strcasecmp(ptmp, "I")) {
-				mb->f_group_model[mb->nf] = G_I;
+			} else if (!strcasecmp(ptmp, "IID")) {
+				mb->f_group_model[mb->nf] = G_IID;
 			} else {
 				GMRFLib_sprintf(&msg, "%s: Unknown GROUP.MODEL: %s\n", secname, ptmp);
 				inla_error_general(msg);
@@ -19718,7 +19718,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			case G_RW1:
 			case G_RW2:
 			case G_BESAG:
-			case G_I:
+			case G_IID:
 				fixed = iniparser_getboolean(ini, inla_string_join(secname, "GROUP.FIXED"), 0);
 				tmp = iniparser_getdouble(ini, inla_string_join(secname, "GROUP.INITIAL"), 0.0);
 				if (!fixed && mb->reuse_mode) {
@@ -19771,7 +19771,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					mb->f_ntheta[mb->nf]++;
 					break;
 
-				case G_I:
+				case G_IID:
 				case G_RW1:
 				case G_RW2:
 				case G_BESAG:
@@ -19846,7 +19846,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 						mb->theta_map_arg[mb->ntheta] = NULL;
 						break;
 
-					case G_I:
+					case G_IID:
 					case G_RW1:
 					case G_RW2:
 					case G_BESAG:
@@ -21371,7 +21371,7 @@ double extra(double *theta, int ntheta, void *argument)
 				if (NOT_FIXED(f_fixed[i][(_nt_)])) {	\
 					val += PRIOR_EVAL(mb->f_prior[i][(_nt_)], &group_prec_intern); \
 				}					\
-			} else if (mb->f_group_model[i] == G_I) {	\
+			} else if (mb->f_group_model[i] == G_IID) {	\
 				grankdef = 0.0;				\
 				group_prec = map_precision(group_prec_intern, MAP_FORWARD, NULL); \
 				normc_g = 0.5 * (ngroup - grankdef) * log(group_prec); \

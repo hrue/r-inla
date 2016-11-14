@@ -534,7 +534,7 @@ typedef enum {
 	G_RW2,
 	G_AR,
 	G_BESAG,
-	G_I,
+	G_IID,
 	MIX_GAUSSIAN = 4000,				       /* mix-models */
 	LINK_IDENTITY = 5000,				       /* link-models */
 	LINK_LOG,
