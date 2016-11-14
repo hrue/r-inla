@@ -28262,11 +28262,13 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 }
 int my_file_exists(const char *filename)
 {
-	if (access(filename, F_OK) != -1) {
-		return (INLA_OK);
-	} else {
-		return (!INLA_OK);
-	}
+	struct stat sb;
+	return ((stat(filename, &sb) == 0 && S_ISREG(sb.st_mode)) ? INLA_OK : !INLA_OK);
+}
+int my_dir_exists(const char *dirname)
+{
+	struct stat sb;
+	return ((stat(dirname, &sb) == 0 && S_ISDIR(sb.st_mode)) ? INLA_OK : !INLA_OK);
 }
 int my_setenv(char *str, int prefix)
 {

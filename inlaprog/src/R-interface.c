@@ -77,29 +77,26 @@ int inla_R_init(void)
 		 * Check if R_HOME is set. If not, try to guess it, otherwise fail.
 		 */
 		char *rhome = getenv((const char *) "R_HOME");
-		struct stat sb;
-		int rhome_exist;
 
-		rhome_exist = (rhome ? (stat(rhome, &sb) == 0 && S_ISDIR(sb.st_mode)) : 0);
-		if (!rhome || !rhome_exist) {
-			if (my_file_exists("/Library/Frameworks/R.framework/Resources") == INLA_OK) {
+		if (!rhome || (rhome && !my_dir_exists(rhome))) {
+			if (my_dir_exists("/Library/Frameworks/R.framework/Resources") == INLA_OK) {
 				GMRFLib_sprintf(&rhome, "R_HOME=/Library/Frameworks/R.framework/Resources");
-			} else if (my_file_exists("/usr/lib64/R") == INLA_OK) {
+			} else if (my_dir_exists("/usr/lib64/R") == INLA_OK) {
 				GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib64/R");
-			} else if (my_file_exists("/usr/lib/R") == INLA_OK) {
+			} else if (my_dir_exists("/usr/lib/R") == INLA_OK) {
 				GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib/R");
-			} else if (my_file_exists("/usr/lib32/R") == INLA_OK) {
+			} else if (my_dir_exists("/usr/lib32/R") == INLA_OK) {
 				GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib32/R");
 			} else {
 				fprintf(stderr, "\n\n");
-				fprintf(stderr, "*** R-interface  ERROR: Environment variable R_HOME is not set.\n");
+				fprintf(stderr, "*** R-interface  ERROR: Environment variable R_HOME is not set or invalid.\n");
 				fprintf(stderr, "*** R_interface  ERROR: Evaluate this in R:  Sys.getenv(\"R_HOME\")\n");
 				fprintf(stderr, "\n\n");
 				fflush(stderr);
 				exit(1);
 			}
 			fprintf(stderr, "\n\n");
-			fprintf(stderr, "*** R-interface WARNING: Environment variable R_HOME is not set.\n");
+			fprintf(stderr, "*** R-interface WARNING: Environment variable R_HOME is not set or invalid.\n");
 			fprintf(stderr, "*** R-interface WARNING: Set it to a _GUESSED_ value [%s]\n\n", rhome);
 			fflush(stderr);
 			my_setenv(rhome, 0);
@@ -122,7 +119,7 @@ int inla_R_init(void)
 
 int inla_R_library(const char *library)
 {
-	if (!library)
+	if (!library) 
 		return (INLA_OK);
 	inla_R_init();
 
