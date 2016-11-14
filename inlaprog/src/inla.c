@@ -83,6 +83,7 @@ static const char RCSId[] = HGVERSION;
 #endif
 
 #include "inla.h"
+#include "my.h"
 #include "spde.h"
 #include "spde2.h"
 #include "spde3.h"
@@ -5823,6 +5824,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 						// logll[i] = log(pzero + (1.0 - pzero) * gsl_ran_binomial_pdf((unsigned int) y, p, 
 						// 
 						// 
+						// 
 						// (unsigned int) n));
 						logll[i] = eval_logsum_safe(logA, logB);
 					}
@@ -9990,7 +9992,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tquantile = [%g]\n", ds->data_observations.quantile);
 		}
-		ds->data_observations.qpoisson_func = inla_qcontpois_func(ds->data_observations.quantile, ISQR(GMRFLib_MAX_THREADS));
+		ds->data_observations.qpoisson_func =
+		    inla_qcontpois_func(ds->data_observations.quantile, ISQR(GMRFLib_MAX_THREADS));
 		break;
 
 
@@ -19208,22 +19211,22 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def->file_init = GMRFLib_strdup(rgeneric_Rinit);
 		def->filename = GMRFLib_strdup(rgeneric_filename);
 		def->model = GMRFLib_strdup(rgeneric_model);
-		def->mu = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	     /* easier if we do this here */
-		def->mu_param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *); /* easier if we do this here */
+		def->mu = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
+		def->mu_param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
 		def->ntheta = mb->f_ntheta[mb->nf];
-		def->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *); /* easier if we do this here */
+		def->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
 		def->theta = mb->f_theta[mb->nf];
-		def->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_tabulate_Qfunc_tp *); /* easier if we do this here */
+		def->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_tabulate_Qfunc_tp *);	/* easier if we do this here */
 
 		def_orig->file_init = GMRFLib_strdup(rgeneric_Rinit);
 		def_orig->filename = GMRFLib_strdup(rgeneric_filename);
 		def_orig->model = GMRFLib_strdup(rgeneric_model);
-		def_orig->mu = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	  /* easier if we do this here */
-		def_orig->mu_param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *); /* easier if we do this here */
+		def_orig->mu = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
+		def_orig->mu_param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
 		def_orig->ntheta = mb->f_ntheta[mb->nf];
-		def_orig->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *); /* easier if we do this here */
+		def_orig->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
 		def_orig->theta = mb->f_theta[mb->nf];
-		def_orig->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_tabulate_Qfunc_tp *); /* easier if we do this here */
+		def_orig->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_tabulate_Qfunc_tp *);	/* easier if we do this here */
 
 		int n_out;
 		double *x_out;
@@ -19879,51 +19882,17 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				assert(11 == AR_MAXTHETA + 1);
 
 				mb->f_prior[mb->nf] = Realloc(mb->f_prior[mb->nf], ntheta_orig + AR_MAXTHETA + 1, Prior_tp);
-				inla_read_prior_group0(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 0]), "LOGGAMMA");	// log 
-																// 
-				// 
-				// precision
-				inla_read_prior_group1(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 1]), "PCRHO0");	// the 
-																// 
-				// 
-				// pacf
-				inla_read_prior_group2(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 2]), "PCRHO0");	// the 
-																// 
-				// 
-				// pacf
-				inla_read_prior_group3(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 3]), "PCRHO0");	// the 
-																// 
-				// 
-				// pacf
-				inla_read_prior_group4(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 4]), "PCRHO0");	// the 
-																// 
-				// 
-				// pacf
-				inla_read_prior_group5(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 5]), "PCRHO0");	// the 
-																// 
-				// 
-				// pacf
-				inla_read_prior_group6(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 6]), "PCRHO0");	// the 
-																// 
-				// 
-				// pacf
-				inla_read_prior_group7(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 7]), "PCRHO0");	// the 
-																// 
-				// 
-				// pacf
-				inla_read_prior_group8(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 8]), "PCRHO0");	// the 
-																// 
-				// 
-				// pacf
-				inla_read_prior_group9(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 9]), "PCRHO0");	// the 
-																// 
-				// 
-				// pacf
-				inla_read_prior_group10(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 10]), "PCRHO0");	// the 
-																// 
-				// 
-				// pacf
-
+				inla_read_prior_group0(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 0]), "LOGGAMMA");
+				inla_read_prior_group1(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 1]), "PCRHO0");
+				inla_read_prior_group2(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 2]), "PCRHO0");
+				inla_read_prior_group3(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 3]), "PCRHO0");
+				inla_read_prior_group4(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 4]), "PCRHO0");
+				inla_read_prior_group5(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 5]), "PCRHO0");
+				inla_read_prior_group6(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 6]), "PCRHO0");
+				inla_read_prior_group7(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 7]), "PCRHO0");
+				inla_read_prior_group8(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 8]), "PCRHO0");
+				inla_read_prior_group9(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 9]), "PCRHO0");
+				inla_read_prior_group10(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 10]), "PCRHO0");
 
 				mb->f_initial[mb->nf] = Realloc(mb->f_initial[mb->nf], ntheta_orig + AR_MAXTHETA + 1, double);
 				if (mb->verbose) {
@@ -28260,55 +28229,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 #undef FUNC_ARG
 	return INLA_OK;
 }
-int my_file_exists(const char *filename)
-{
-	struct stat sb;
-	return ((stat(filename, &sb) == 0 && S_ISREG(sb.st_mode)) ? INLA_OK : !INLA_OK);
-}
-int my_dir_exists(const char *dirname)
-{
-	struct stat sb;
-	return ((stat(dirname, &sb) == 0 && S_ISDIR(sb.st_mode)) ? INLA_OK : !INLA_OK);
-}
-int my_setenv(char *str, int prefix)
-{
-	/*
-	 * set a variable in the enviroment; if PREFIX prepend with inla_, so that a=b yields inla_a=b. 
-	 */
-	char *p = NULL, *var = NULL;
-	int debug = 0;
-
-	if (debug)
-		printf("enter my_setenv with [%s]\n", str);
-
-	p = strchr(str, '=');
-	if (!p) {
-		fprintf(stderr, "*** Error: Argument is void [%s]\n", str);
-		exit(EXIT_FAILURE);
-	}
-	*p = '\0';
-#if defined(WINDOWS)
-	if (prefix) {
-		GMRFLib_sprintf(&var, "inla_%s=%s", str, p + 1);
-	} else {
-		GMRFLib_sprintf(&var, "%s=%s", str, p + 1);
-	}
-	putenv(var);
-	if (debug)
-		printf("putenv \t%s\n", var);
-#else
-	if (prefix) {
-		GMRFLib_sprintf(&var, "inla_%s", str);
-	} else {
-		GMRFLib_sprintf(&var, "%s", str);
-	}
-	setenv(var, p + 1, 1);
-	if (debug)
-		printf("\tsetenv %s=%s\n", var, p + 1);
-#endif
-	Free(var);
-	return INLA_OK;
-}
 void inla_signal(int sig)
 {
 #if !defined(WINDOWS)
@@ -28910,9 +28830,10 @@ int testit(int argc, char **argv)
 		spline = inla_qcontpois_func(0.9, GMRFLib_MAX_THREADS);
 		double lq;
 #pragma omp parallel for
-		for (int i = 0; i < 10000;  i++){
-			lq = -5 + i*0.001;
-			printf("%1d quantile %f  eta %f\n", omp_get_thread_num(), exp(lq), inla_spline_eval(lq, spline[omp_get_thread_num()]));
+		for (int i = 0; i < 10000; i++) {
+			lq = -5 + i * 0.001;
+			printf("%1d quantile %f  eta %f\n", omp_get_thread_num(), exp(lq),
+			       inla_spline_eval(lq, spline[omp_get_thread_num()]));
 		}
 		exit(0);
 	}
