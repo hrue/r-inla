@@ -40,8 +40,13 @@
         INLA = paste("https://www.math.ntnu.no/inla/R/",
             (if (testing) "testing" else "stable"),  sep=""))
     if (require("INLA", quietly = TRUE, lib.loc = lib, character.only=TRUE)) {
-        update.packages(repos = repo, oldPkgs = "INLA", ask = ask)
-        cat("\n *** Please restart R to load package 'INLA'\n\n")
+        suppressWarnings(new.pack <- any(old.packages(repos = repo)[,1] == "INLA"))
+        if (new.pack) {
+            suppressWarnings(update.packages(repos = repo, oldPkgs = "INLA", ask = ask))
+            cat("\n *** If the INLA-package was updated, you need to restart R and load it again.\n\n")
+        } else {
+            cat("\n *** You already have the latest version.\n\n")
+        }
     } else {
         install.packages(pkgs = "INLA", lib = lib, repos = repo,
                          dependencies = TRUE)
