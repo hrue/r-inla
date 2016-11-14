@@ -42,6 +42,7 @@
 #endif
 #include <stdlib.h>
 #include <omp.h>
+#include <sys/stat.h>
 
 #define CSTACK_DEFNS 1
 #include <R.h>
@@ -76,7 +77,11 @@ int inla_R_init(void)
 		 * Check if R_HOME is set. If not, try to guess it, otherwise fail.
 		 */
 		char *rhome = getenv((const char *) "R_HOME");
-		if (!rhome) {
+		struct stat sb;
+		int rhome_exist;
+
+		rhome_exist = (rhome ? (stat(rhome, &sb) == 0 && S_ISDIR(sb.st_mode)) : 0);
+		if (!rhome || !rhome_exist) {
 			if (my_file_exists("/Library/Frameworks/R.framework/Resources") == INLA_OK) {
 				GMRFLib_sprintf(&rhome, "R_HOME=/Library/Frameworks/R.framework/Resources");
 			} else if (my_file_exists("/usr/lib64/R") == INLA_OK) {
