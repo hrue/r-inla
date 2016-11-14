@@ -5295,7 +5295,7 @@ inla.models()
 						 }
 					 }
 				 }
-				\item{Model `I'.}{Number of hyperparmeters are 1.
+				\item{Model `iid'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
