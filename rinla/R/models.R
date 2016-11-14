@@ -4453,7 +4453,7 @@
                              )
                          )
                      ),
-                 I = list(
+                 iid = list(
                      hyper = list(
                          theta = list(
                              hyperid =  46001,
