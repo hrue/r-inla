@@ -55,6 +55,7 @@
 #define R_GENERIC_WRAPPER "inla.rgeneric.wrapper"
 #define INLA_OK (0)
 int my_file_exists(const char *filename);
+int my_dir_exists(const char *filename);
 int my_setenv(char *str, int prefix);
 int GMRFLib_sprintf(char **ptr, const char *fmt, ...);
 
@@ -78,7 +79,7 @@ int inla_R_init(void)
 		 */
 		char *rhome = getenv((const char *) "R_HOME");
 
-		if (!rhome || (rhome && !my_dir_exists(rhome))) {
+		if (!rhome || (rhome && (my_dir_exists(rhome) != INLA_OK))) {
 			if (my_dir_exists("/Library/Frameworks/R.framework/Resources") == INLA_OK) {
 				GMRFLib_sprintf(&rhome, "R_HOME=/Library/Frameworks/R.framework/Resources");
 			} else if (my_dir_exists("/usr/lib64/R") == INLA_OK) {
