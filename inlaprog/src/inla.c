@@ -16333,11 +16333,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		ntheta = (int) x_out[0];
 		if (ntheta) {
-			initial = &(x_out[1]);
+			initial = Calloc(ntheta, double);
+			memcpy(initial, &(x_out[1]), ntheta * sizeof(double));
 		}
 
 		mb->f_ntheta[mb->nf] = ntheta;
 		mb->f_initial[mb->nf] = initial;
+
 		if (mb->verbose) {
 			int ii;
 
@@ -19207,27 +19209,42 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 * R_GENERIC
 		 */
 		inla_rgeneric_tp *def = Calloc(1, inla_rgeneric_tp), *def_orig = Calloc(1, inla_rgeneric_tp);
-
+		double ***tptr;
+		
 		def->file_init = GMRFLib_strdup(rgeneric_Rinit);
 		def->filename = GMRFLib_strdup(rgeneric_filename);
 		def->model = GMRFLib_strdup(rgeneric_model);
-		def->mu = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
-		def->mu_param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
+		def->mu = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	
+		def->mu_param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
 		def->ntheta = mb->f_ntheta[mb->nf];
-		def->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
-		def->theta = mb->f_theta[mb->nf];
-		def->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_tabulate_Qfunc_tp *);	/* easier if we do this here */
+		def->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		def->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_tabulate_Qfunc_tp *);
+		if (def->ntheta) {
+			tptr = Calloc(def->ntheta, double **);
+			for(j=0; j<def->ntheta; j++) 
+				tptr[j] = mb->f_theta[mb->nf][j];
+			def->theta = tptr;
+		} else {
+			def->theta = NULL;
+		}
 
 		def_orig->file_init = GMRFLib_strdup(rgeneric_Rinit);
 		def_orig->filename = GMRFLib_strdup(rgeneric_filename);
 		def_orig->model = GMRFLib_strdup(rgeneric_model);
-		def_orig->mu = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
-		def_orig->mu_param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
+		def_orig->mu = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	
+		def_orig->mu_param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	
 		def_orig->ntheta = mb->f_ntheta[mb->nf];
-		def_orig->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	/* easier if we do this here */
-		def_orig->theta = mb->f_theta[mb->nf];
-		def_orig->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_tabulate_Qfunc_tp *);	/* easier if we do this here */
-
+		def_orig->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);	
+		def_orig->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_tabulate_Qfunc_tp *);	
+		if (def_orig->ntheta) {
+			tptr = Calloc(def_orig->ntheta, double **);
+			for(j=0; j<def_orig->ntheta; j++) 
+				tptr[j] = mb->f_theta[mb->nf][j];
+			def_orig->theta = tptr;
+		} else {
+			def_orig->theta = NULL;
+		}
+		
 		int n_out;
 		double *x_out;
 #pragma omp critical
@@ -19697,16 +19714,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 
 			mb->f_group_cyclic[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "GROUP.CYCLIC"), 0);
-			mb->f_group_order[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "GROUP.ORDER"), -1);	/* will 
-																 * force 
-																 * an 
-																 * error 
-																 * if 
-																 * not 
-																 * set
-																 * and
-																 * used 
-																 */
+			mb->f_group_order[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "GROUP.ORDER"), -1);
 			if (mb->verbose) {
 				printf("\t\tgroup.model = %s\n", ptmp);
 				printf("\t\tgroup.graph = %s\n", (ptmp2 ? ptmp2 : "<NONE>"));
@@ -23488,11 +23496,12 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_R_GENERIC:
 		{
-			int ntheta = mb->f_ntheta[i], ii;
+			int n_out, nn_out, ii, ntheta;
+			double *x_out = NULL, *xx_out = NULL, *initial = NULL, *param = NULL, log_norm_const = 0.0, log_prior = 0.0;
 			inla_rgeneric_tp *def = NULL;
-			double *param = NULL, log_norm_const = 0.0, log_prior = 0.0;
-
 			def = (inla_rgeneric_tp *) mb->f_Qfunc_arg_orig[i];
+
+			ntheta = def->ntheta;
 			if (ntheta) {
 				param = Calloc(ntheta, double);
 				for (ii = 0; ii < ntheta; ii++) {
@@ -23500,9 +23509,6 @@ double extra(double *theta, int ntheta, void *argument)
 					count++;
 				}
 			}
-
-			int n_out, nn_out;
-			double *x_out = NULL, *xx_out = NULL;
 
 #pragma omp critical
 			{
@@ -23602,20 +23608,19 @@ double extra(double *theta, int ntheta, void *argument)
 							FIXME("This should not happen. Contact developers...");
 							abort();
 						}
-
-						Free(cc_add);
-						GMRFLib_set_error_handler(old_handler);
-						GMRFLib_evaluate(problem);
-						log_norm_const = problem->sub_logdens;
-
-						GMRFLib_free_problem(problem);
-						GMRFLib_free_tabulate_Qfunc(Qf);
-						GMRFLib_free_graph(graph);
-						Free(xx_out);
-						Free(ilist);
-						Free(jlist);
-						Free(Qijlist);
 					}
+					Free(cc_add);
+					GMRFLib_set_error_handler(old_handler);
+					GMRFLib_evaluate(problem);
+					log_norm_const = problem->sub_logdens;
+					
+					GMRFLib_free_problem(problem);
+					GMRFLib_free_tabulate_Qfunc(Qf);
+					GMRFLib_free_graph(graph);
+					Free(xx_out);
+					Free(ilist);
+					Free(jlist);
+					Free(Qijlist);
 				}
 				break;
 			}
