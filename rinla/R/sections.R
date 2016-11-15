@@ -930,17 +930,12 @@
         return (NULL)
     } else if (is.numeric(prior)) {
         return (prior)
-    } else {
-        if (is.null(inla.eval(paste("prior$", name, sep="")))) {
-            if (!is.null(prior$default)) {
-                return (prior$default)
-            } else {
-                return (NULL)
-            }
-        } else {
-            return (inla.eval(paste("prior$", name, sep="")))
-        }
-    }
+    } else if (any(name == names(prior))) {
+        return (prior[[which(name == names(prior))]])
+    } else if (any("default" == names(prior))) {
+        return (prior[[which("default" == names(prior))]])
+    } 
+    return (NULL)
 }
 
 `inla.linear.section` = function(file, file.fixed, label, results.dir, control.fixed, only.hyperparam)
