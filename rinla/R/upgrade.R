@@ -39,11 +39,27 @@
     repo=c(CRAN = "https://cran.rstudio.com",
         INLA = paste("https://www.math.ntnu.no/inla/R/",
             (if (testing) "testing" else "stable"),  sep=""))
-    if (require("INLA", quietly = TRUE, lib.loc = lib, character.only=TRUE)) {
+    if (require("INLA", quietly = TRUE, lib.loc = lib,
+                character.only=TRUE, warn.conflicts=FALSE)) {
         suppressWarnings(new.pack <- any(old.packages(repos = repo)[,1] == "INLA"))
         if (new.pack) {
-            suppressWarnings(update.packages(repos = repo, oldPkgs = "INLA", ask = ask))
-            cat("\n *** If the INLA-package was updated, you need to restart R and load it again.\n\n")
+            if (.Platform$OS.type == "windows") {
+                cat(sep="", 
+                    "\n *** Windows locks the INLA-package's DLL when its loaded, see",
+                    "\n ***     https://cran.r-project.org/bin/windows/base/rw-FAQ.html",
+                    "\n *** Section 4.8,  so you cannot update a package that is in use.",
+                    "\n *** We recommend to remove the INLA-package and then reinstall, like",
+                    "\n     remove.packages(\"INLA\")")
+                if (testing) {
+                    cat("\n     install.packages(\"INLA\", repos=\"https://www.math.ntnu.no/inla/R/testing\")")
+                } else {
+                    cat("\n     install.packages(\"INLA\", repos=\"https://www.math.ntnu.no/inla/R/stable\")")
+                }
+                cat("\n *** and then restart R.", "\n")
+            } else {
+                suppressWarnings(update.packages(repos = repo, oldPkgs = "INLA", ask = ask))
+                cat("\n *** If the INLA-package was updated, you need to restart R and load it again.\n\n")
+            }
         } else {
             cat("\n *** You already have the latest version.\n\n")
         }
