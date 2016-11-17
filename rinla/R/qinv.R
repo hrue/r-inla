@@ -52,7 +52,7 @@
 ##! unlink(filename)
 ##! }
 
-`inla.qinv` = function(Q, constr, reordering = inla.reorderings())
+`inla.qinv` = function(Q, constr, reordering = INLA::inla.reorderings())
 {
     Q = inla.sparse.check(Q)
     if (is(Q, "dgTMatrix")) {
