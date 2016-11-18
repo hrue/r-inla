@@ -1419,7 +1419,7 @@ int inla_INLA(inla_tp * mb);
 int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new);
 int inla_R(char **argv);
 int inla_add_copyof(inla_tp * mb);
-int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj);
+int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose);
 int inla_computed(GMRFLib_density_tp ** d, int n);
 int inla_divisible(int n, int by);
 int inla_endian(void);
