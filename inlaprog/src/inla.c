@@ -11218,9 +11218,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] =
-			    inla_make_tag("log size for the nbinomial observations (overdispersion)", mb->ds);
+			    inla_make_tag("log size for the nbinomial observations (1/overdispersion)", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] =
-			    inla_make_tag("size for the nbinomial observations (overdispersion)", mb->ds);
+			    inla_make_tag("size for the nbinomial observations (1/overdispersion)", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
