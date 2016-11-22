@@ -5669,7 +5669,7 @@ inla.models()
 							\item{hyperid = }{`53001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
-							\item{initial = }{`11'}
+							\item{initial = }{`12'}
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 1e-05'}
