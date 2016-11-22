@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.hazard} for use in \code{inla}}
 \usage{
 inla.set.control.hazard.default(...)
-control.hazard(constr, cutpoints, fixed, hyper, initial, model, n.intervals, param, prior, scale.model, strata.name)
+control.hazard(constr, cutpoints, diagonal, fixed, hyper, initial, model, n.intervals, param, prior, scale.model, strata.name)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -23,6 +23,7 @@ control.hazard(constr, cutpoints, fixed, hyper, initial, model, n.intervals, par
 \item{prior}{  (OBSOLETE!) The prior distribution for the precision for 'model'}
 \item{param}{  (OBSOLETE!) The parameters in the prior distribution}
 \item{constr}{  A boolean variable; shall the 'model' be constrained to sum to zero?}
+\item{diagonal}{  An extra constant added to the diagonal of the precision matrix}
 \item{n.intervals}{  Number of intervals in the baseline hazard. (Default 15)}
 \item{cutpoints}{  The cutpoints to use. If not specified the they are compute from 'n.intervals' and the maximum length of the interval. (Default NULL)}
 \item{strata.name}{  The name of the stratefication variable for the baseline hazard in the data.frame}
