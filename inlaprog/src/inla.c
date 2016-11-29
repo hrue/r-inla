@@ -22701,7 +22701,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 					local_theta[0] = (NOT_FIXED(f_fixed[i][0]) ? theta[count_ref + local_count++] : NAN);
 					local_theta[1] = (NOT_FIXED(f_fixed[i][1]) ? theta[count_ref + local_count++] : NAN);
-					assert(local_count == mb->f_ntheta[i]);
+					assert(local_count == spde2->ntheta_used);
 					val += PRIOR_EVAL(mb->f_prior[i][0], local_theta);
 				} else {
 					// normally, the mvnorm prior, defined on the _USED_ thetas!
