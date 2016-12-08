@@ -610,7 +610,7 @@ inla.models()
 						 }
 					 }
 				 }
-				\item{Model `ar1'.}{Number of hyperparmeters are 2.
+				\item{Model `ar1'.}{Number of hyperparmeters are 3.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
@@ -636,6 +636,19 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
 							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							}
+						}
+						\item{Hyperparameter `theta3'}{
+							 \describe{
+							\item{hyperid = }{`14003'}
+							\item{name = }{`mean'}
+							\item{short.name = }{`mean'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 1'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`TRUE'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
 							}
 						}
 					 }
