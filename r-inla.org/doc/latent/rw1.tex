@@ -83,11 +83,6 @@ data=data.frame(y=y,z=z)
 formula=y~f(z,model="rw1",
             hyper = list(prec = list(prior="loggamma",param=c(1,0.01))))
 result=inla(formula,data=data,family="gaussian")
-
-#here we estimate the effect only for some of the values in z
-formula1=y~f(z,model="rw1",
-             hyper = list(prec = list(prior="loggamma",param=c(1,0.01))))
-result1=inla(formula1,data=data,family="gaussian")
 \end{verbatim}
 
 
