@@ -714,11 +714,15 @@
             stop(paste("Unknown value for flag 'expand.factor.strategy' in 'control.fixed':",
                        cont.fixed$expand.factor.strategy))
         }
-
-        gp$model.matrix = model.matrix(new.fix.formula,
-            data=model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
-            contrasts.arg = contrasts)
-        
+        if (inla.require("MatrixModels")) {
+            gp$model.matrix = model.Matrix(new.fix.formula,
+                                           data = model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
+                                           contrasts.arg = contrasts, sparse=TRUE)
+        } else {
+            gp$model.matrix = model.matrix(new.fix.formula,
+                                           data = model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
+                                           contrasts.arg = contrasts)
+        }
         ## as NA's in factors are not set to zero in
         ## 'inla.na.action'. Do that here if the strategy is 'inla',
         ## otherwise signal an error.
