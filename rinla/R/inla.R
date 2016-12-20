@@ -715,13 +715,15 @@
                        cont.fixed$expand.factor.strategy))
         }
         if (inla.require("MatrixModels")) {
-            gp$model.matrix = model.Matrix(new.fix.formula,
-                                           data = model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
-                                           contrasts.arg = contrasts, sparse=TRUE)
+            gp$model.matrix = MatrixModels::model.Matrix(
+                new.fix.formula,
+                data = model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
+                contrasts.arg = contrasts, sparse=TRUE)
         } else {
-            gp$model.matrix = model.matrix(new.fix.formula,
-                                           data = model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
-                                           contrasts.arg = contrasts)
+            gp$model.matrix = model.matrix(
+                new.fix.formula,
+                data = model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
+                contrasts.arg = contrasts)
         }
         ## as NA's in factors are not set to zero in
         ## 'inla.na.action'. Do that here if the strategy is 'inla',
