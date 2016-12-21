@@ -126,9 +126,9 @@ convert_to_mac_binary () {
     host=hruemac.math.ntnu.no
     for f in "$@"; do
 	ff=$(basename $f)
-	scp $f $host:$ff
+	scp -v $f $host:$ff
 	ssh $host R CMD INSTALL --build --library=./tmp $ff
-	scp $host:$ff $f
+	scp -v $host:$ff $f
     done
 }
 
