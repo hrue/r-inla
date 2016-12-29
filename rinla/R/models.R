@@ -527,6 +527,17 @@
                              fixed = FALSE,
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
+                             ), 
+                         theta3 = list(
+                             hyperid =  14003,
+                             name = "mean",
+                             short.name = "mean",
+                             prior = "normal",
+                             param = c(0, 1),
+                             initial = 0,
+                             fixed = TRUE,
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
                              )
                          ),
                      constr = FALSE,
@@ -4745,7 +4756,7 @@
                              hyperid =  53001,
                              name = "log precision",
                              short.name = "prec",
-                             initial = 14,
+                             initial = 12,
                              fixed = TRUE,
                              prior = "loggamma",
                              param = c(1, 0.00001),

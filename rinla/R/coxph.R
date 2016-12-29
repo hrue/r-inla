@@ -152,32 +152,34 @@
     intercept = inla.ifelse(attr(terms(formula), "intercept") == 0, FALSE, TRUE)
 
     f.hazard = paste(
-            "~",
-            inla.ifelse(intercept, "1 +", "-1 +"), 
-            ". + f(baseline.hazard, model=\"", cont.hazard$model,"\"",
-            ", values = baseline.hazard.values", 
-            ", hyper = ", enquote(cont.hazard$hyper),
-            ", scale.model = ", inla.ifelse(is.null(cont.hazard$scale.model),
-                                            inla.getOption("scale.model.default"),
-                                            cont.hazard$scale.model), 
-            ", constr = ", cont.hazard$constr,
-            inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
-            ")", sep="")[2L]
-    
-    new.formula = update(update(formula, as.formula(f.hazard)), y..coxph ~ .)
-    
-    data.list = c(res$data.list, data.l)
-    if (!is.null(strata.tmp)) {
-        data.list = c(data.list, list(baseline.hazard.strata.coding = strata.tmp$coding))
-    }
+        "~",
+        inla.ifelse(intercept, "1 +", "-1 +"), 
+        ". + f(baseline.hazard, model=\"", cont.hazard$model,"\"",
+        ", values = baseline.hazard.values", 
+        ", hyper = ", enquote(cont.hazard$hyper),
+        ", constr = ", cont.hazard$constr,
+        ", diagonal = ", inla.ifelse((is.null(cont.hazard$diagonal) && cont.hazard$constr),
+                                     inla.set.f.default()$diagonal, cont.hazard$diagonal), 
+        ", scale.model = ", inla.ifelse(is.null(cont.hazard$scale.model),
+                                        inla.getOption("scale.model.default"),
+                                        cont.hazard$scale.model), 
+        inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
+        ")", sep="")[2L]
+        
+        new.formula = update(update(formula, as.formula(f.hazard)), y..coxph ~ .)
+        
+        data.list = c(res$data.list, data.l)
+        if (!is.null(strata.tmp)) {
+            data.list = c(data.list, list(baseline.hazard.strata.coding = strata.tmp$coding))
+        }
 
-    return (list(formula = new.formula, 
-                 data = res$data,
-                 data.list = data.list, 
-                 family = "poisson", 
-                 E = res$data$E..coxph,
-                 control.hazard = cont.hazard))
-}
+        return (list(formula = new.formula, 
+                     data = res$data,
+                     data.list = data.list, 
+                     family = "poisson", 
+                     E = res$data$E..coxph,
+                     control.hazard = cont.hazard))
+    }
 
 `inla.rbind.data.frames` = function(...)
 {

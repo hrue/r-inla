@@ -1007,12 +1007,13 @@ typedef struct {
 typedef struct {
 	/*
 	 * the AR(1) model: X_t = phi * X_t-1 + Z_t. The arguments are Var(Z_t) = 1/exp(log_precision), and phi_intern =
-	 * logit((phi+1)/2). 
+	 * logit((phi+1)/2). experimental is the mean theta[2].
 	 */
 	int n;
 	int cyclic;
 	double **log_prec;				       /* theta[0] */
 	double **phi_intern;				       /* theta[1] */
+	double **mean;					       /* theta[2] */
 } inla_ar1_arg_tp;
 
 typedef struct {
@@ -1364,6 +1365,7 @@ double map_range(double arg, map_arg_tp typ, void *param);
 double map_rho(double arg, map_arg_tp typ, void *param);
 double map_shape_svnig(double arg, map_arg_tp typ, void *param);
 double map_sqrt1exp(double arg, map_arg_tp typ, void *param);
+double mfunc_ar1(int i, void *arg);
 double mfunc_clinear(int i, void *arg);
 double mfunc_log1exp(int i, void *arg);
 double mfunc_logdist(int i, void *arg);
@@ -1419,7 +1421,7 @@ int inla_INLA(inla_tp * mb);
 int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new);
 int inla_R(char **argv);
 int inla_add_copyof(inla_tp * mb);
-int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj);
+int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose);
 int inla_computed(GMRFLib_density_tp ** d, int n);
 int inla_divisible(int n, int by);
 int inla_endian(void);
