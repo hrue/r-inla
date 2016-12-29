@@ -1929,6 +1929,11 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 
 	return (a->Q[id]->Qfunc(i, j, a->Q[id]->Qfunc_arg));
 }
+double mfunc_ar1(int i, void *arg)
+{
+	inla_ar1_arg_tp *a = (inla_ar1_arg_tp *) arg;
+	return (a->mean[GMRFLib_thread_id][0]);
+}
 double mfunc_rgeneric(int i, void *arg)
 {
 	inla_rgeneric_tp *a = (inla_rgeneric_tp *) arg;
@@ -3075,7 +3080,7 @@ double Qfunc_besag(int i, int j, void *arg)
 
 	a = (inla_besag_Qfunc_arg_tp *) arg;
 	prec = (a->log_prec ? map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL) : 1.0);
-
+	
 	if (a->prec_scale) {
 		if (a->prec_scale[i] > 0.0) {
 			prec *= a->prec_scale[i];
@@ -11218,9 +11223,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] =
-			    inla_make_tag("log size for the nbinomial observations (overdispersion)", mb->ds);
+			    inla_make_tag("log size for the nbinomial observations (1/overdispersion)", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] =
-			    inla_make_tag("size for the nbinomial observations (overdispersion)", mb->ds);
+			    inla_make_tag("size for the nbinomial observations (1/overdispersion)", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -14090,7 +14095,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("CRW2 model");
 	} else if (OneOf("AR1")) {
 		mb->f_id[mb->nf] = F_AR1;
-		mb->f_ntheta[mb->nf] = 2;
+		mb->f_ntheta[mb->nf] = 3;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("AR1 model");
 	} else if (OneOf("FGN")) {
 		mb->f_id[mb->nf] = F_FGN;
@@ -14320,7 +14325,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	case F_AR1:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* marginal precision */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN-rho");	/* phi (lag-1 correlation) */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN-rho"); /* phi (lag-1 correlation) */
+		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "GAUSSIAN");	/* mean */
 		break;
 
 	case F_FGN:
@@ -16578,6 +16584,48 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), 0.0);
+		if (!mb->f_fixed[mb->nf][2] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		SetInitial(2, tmp);
+		HYPER_INIT(mean_x, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise mean[%g]\n", tmp);
+			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][2]);
+		}
+		mb->f_theta[mb->nf][2] = mean_x;
+		if (!mb->f_fixed[mb->nf][2]) {
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = mb->f_prior[mb->nf][1].hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			GMRFLib_sprintf(&msg, "Mean for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "Mean for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter1", mb->f_dir[mb->nf]);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+
+			mb->theta[mb->ntheta] = mean_x;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+		}
+
 		break;
 	}
 
@@ -18570,21 +18618,21 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		int adj = iniparser_getint(ini, inla_string_join(secname, "ADJUST.FOR.CON.COMP"), 1);
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
-		if (std) {
-			inla_besag_scale(arg, adj);
-		}
 		if (mb->verbose) {
 			printf("\t\tadjust.for.con.comp[%1d]\n", adj);
 			printf("\t\tscale.model[%1d]\n", std);
-			if (std) {
-				printf("\t\tscale.model: prec_scale[%g]\n", arg->prec_scale[0]);
-			}
+		}
+		if (std) {
+			inla_besag_scale(arg, adj, mb->verbose);
 		}
 
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_rankdef[mb->nf] = 1.0;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		mb->f_id[mb->nf] = F_BESAG;
+
+		//arg->log_prec[0][0] = 0;
+		//GMRFLib_print_Qfunc(stderr, mb->f_graph[mb->nf], mb->f_Qfunc[mb->nf], mb->f_Qfunc_arg[mb->nf]);
 		break;
 	}
 
@@ -18599,15 +18647,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		int adj = iniparser_getint(ini, inla_string_join(secname, "ADJUST.FOR.CON.COMP"), 1);
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
-		if (std) {
-			inla_besag_scale(arg->besag_arg, adj);
-		}
 		if (mb->verbose) {
 			printf("\t\tadjust.for.con.comp[%1d]\n", adj);
 			printf("\t\tscale.model[%1d]\n", std);
-			if (std) {
-				printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
-			}
+		}
+		if (std) {
+			inla_besag_scale(arg->besag_arg, adj, mb->verbose);
 		}
 
 		inla_make_besag2_graph(&(mb->f_graph[mb->nf]), arg->besag_arg->graph);
@@ -18644,14 +18689,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		int adj = iniparser_getint(ini, inla_string_join(secname, "ADJUST.FOR.CON.COMP"), 1);
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
-		if (std) {
-			inla_besag_scale(arg->besag_arg, adj);
-		}
 		if (mb->verbose) {
 			printf("\t\tadjust.for.con.comp[%1d]\n", adj);
 			printf("\t\tscale.model[%1d]\n", std);
-			if (std)
-				printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
+		}
+		if (std) {
+			inla_besag_scale(arg->besag_arg, adj, mb->verbose);
 		}
 
 		/*
@@ -18728,20 +18771,23 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		int adj = iniparser_getint(ini, inla_string_join(secname, "ADJUST.FOR.CON.COMP"), 1);
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 1);
-		if (std) {
-			inla_besag_scale(arg->besag_arg, adj);
-		} else {
-			fprintf(stderr,
-				"\n\n*** Warning ***\tModel[%s] in Section[%s] set scale.model=FALSE which is NOT recommended!\n\n",
-				model, secname);
-			arg->besag_arg->prec_scale = Calloc(1, double);
-			arg->besag_arg->prec_scale[0] = 1.0;
-		}
 
 		if (mb->verbose) {
 			printf("\t\tadjust.for.con.comp[%1d]\n", adj);
 			printf("\t\tscale.model[%1d]\n", std);
 			printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
+		}
+
+		if (std) {
+			inla_besag_scale(arg->besag_arg, adj, mb->verbose);
+		} else {
+			fprintf(stderr,
+				"\n\n*** Warning ***\tModel[%s] in Section[%s] use scale.model=FALSE which is NOT recommended!!!\n\n",
+				model, secname);
+			arg->besag_arg->prec_scale = Calloc(arg->besag_arg->graph->n, double);
+			for(k = 0; k < arg->besag_arg->graph->n; k++) {
+				arg->besag_arg->prec_scale[k] = 1.0;
+			}
 		}
 
 		/*
@@ -19379,11 +19425,24 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def->cyclic = mb->f_cyclic[mb->nf];
 		def->log_prec = log_prec;
 		def->phi_intern = phi_intern;
+		def->mean = mean_x;
 		inla_make_ar1_graph(&(mb->f_graph[mb->nf]), def);
 		mb->f_Qfunc[mb->nf] = Qfunc_ar1;
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		mb->f_rankdef[mb->nf] = 0.0;
+
+		mb->f_bfunc2[mb->nf] = Calloc(1, GMRFLib_bfunc2_tp);
+		mb->f_bfunc2[mb->nf]->graph = mb->f_graph[mb->nf];
+		mb->f_bfunc2[mb->nf]->Qfunc = mb->f_Qfunc[mb->nf];
+		mb->f_bfunc2[mb->nf]->Qfunc_arg = mb->f_Qfunc_arg[mb->nf];
+		mb->f_bfunc2[mb->nf]->diagonal = mb->f_diag[mb->nf];
+		mb->f_bfunc2[mb->nf]->mfunc = mfunc_ar1;
+		mb->f_bfunc2[mb->nf]->mfunc_arg = mb->f_Qfunc_arg[mb->nf];
+		mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
+		mb->f_bfunc2[mb->nf]->nreplicate = 1;
+		mb->f_bfunc2[mb->nf]->ngroup = 1;
+
 		break;
 	}
 
@@ -20182,16 +20241,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			} else if (mb->f_group_model[mb->nf] == G_BESAG) {
 				def->besagdef = Calloc(1, inla_besag_Qfunc_arg_tp);
 				def->besagdef->graph = mb->f_group_graph[mb->nf];
-				if (std) {
-					inla_besag_scale((void *) def->besagdef, adj);
-				}
 				if (mb->verbose) {
 					printf("\t\tgroup.scale.model[%1d]\n", std);
 					printf("\t\tgroup.adjust.for.con.comp[%1d]\n", std);
-					if (std) {
-						printf("\t\tgroup.scale.model: prec_scale[%g]\n", def->besagdef->prec_scale[0]);
-					}
 				}
+				if (std) {
+					inla_besag_scale((void *) def->besagdef, adj, mb->verbose);
+				}
+
 			} else {
 				def->rwdef = NULL;
 				def->crwdef = NULL;
@@ -21240,7 +21297,7 @@ double extra(double *theta, int ntheta, void *argument)
 	double val = 0.0, log_precision, log_precision0, log_precision1, rho, rho_intern, beta, beta_intern, logit_rho,
 	    group_rho = NAN, group_rho_intern = NAN, ngroup = NAN, normc_g = 0.0, n_orig = NAN, N_orig = NAN, rankdef_orig = NAN,
 	    h2_intern, phi, phi_intern, a_intern, dof_intern, logdet, group_prec = NAN, group_prec_intern = NAN, grankdef =
-	    0.0, gcorr = 1.0, log_halflife, log_shape, alpha, gama, alpha1, alpha2;
+            0.0, gcorr = 1.0, log_halflife, log_shape, alpha, gama, alpha1, alpha2;
 
 
 	inla_tp *mb = NULL;
@@ -22705,7 +22762,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 					local_theta[0] = (NOT_FIXED(f_fixed[i][0]) ? theta[count_ref + local_count++] : NAN);
 					local_theta[1] = (NOT_FIXED(f_fixed[i][1]) ? theta[count_ref + local_count++] : NAN);
-					assert(local_count == mb->f_ntheta[i]);
+					assert(local_count == spde2->ntheta_used);
 					val += PRIOR_EVAL(mb->f_prior[i][0], local_theta);
 				} else {
 					// normally, the mvnorm prior, defined on the _USED_ thetas!
@@ -23652,20 +23709,31 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_AR1:
 		{
+			double mean_x;
+			
 			if (NOT_FIXED(f_fixed[i][0])) {
 				log_precision = theta[count];
 				count++;
 			} else {
 				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
+
 			if (NOT_FIXED(f_fixed[i][1])) {
 				phi_intern = theta[count];
 				count++;
 			} else {
 				phi_intern = mb->f_theta[i][1][GMRFLib_thread_id][0];
 			}
+
+			if (NOT_FIXED(f_fixed[i][2])) {
+				mean_x = theta[count];
+				count++;
+			} else {
+				mean_x = mb->f_theta[i][2][GMRFLib_thread_id][0];
+			}
+
 			phi = map_phi(phi_intern, MAP_FORWARD, NULL);
-			SET_GROUP_RHO(2);
+			SET_GROUP_RHO(3);
 
 			double log_precision_noise = log_precision - log(1.0 - SQR(phi));
 
@@ -23686,6 +23754,9 @@ double extra(double *theta, int ntheta, void *argument)
 			}
 			if (NOT_FIXED(f_fixed[i][1])) {
 				val += PRIOR_EVAL(mb->f_prior[i][1], &phi_intern);
+			}
+			if (NOT_FIXED(f_fixed[i][2])) {
+				val += PRIOR_EVAL(mb->f_prior[i][2], &mean_x);
 			}
 			break;
 		}
@@ -28620,22 +28691,21 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc)
 	fclose(fp);
 	return INLA_OK;
 }
-int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
+int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose)
 {
+	// if VERBOSE, write out the scalings.
 	inla_besag_Qfunc_arg_tp *def = Calloc(1, inla_besag_Qfunc_arg_tp);
-	GMRFLib_copy_graph(&(def->graph), arg->graph);
-
-	int i, j, k, debug = 0, *cc = NULL, n = def->graph->n;
-	arg->prec_scale = Calloc(def->graph->n, double);
+	int i, j, k, debug = 0, *cc = NULL, n = arg->graph->n;
+	arg->prec_scale = Calloc(arg->graph->n, double);
 
 	if (debug)
 		P(adj);
 
 	if (adj) {
 		// use the cc in the graph
-		cc = GMRFLib_connected_components(def->graph);
+		cc = GMRFLib_connected_components(arg->graph);
 	} else {
-		// treat the whole graph as one cc
+		// treat the whole graph as one cc, with index 0
 		cc = Calloc(n, int);
 	}
 
@@ -28650,7 +28720,7 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 	// if !adj, then we will not use the nodes where nnbs=0, and we do this by forcing ncc=0,
 	// since cc[i]=1 for those nodes as set above.
 	int ncc;
-	ncc = (adj ? 1 + GMRFLib_imax_value(cc, def->graph->n, NULL) : 1);
+	ncc = (adj ? 1 + GMRFLib_imax_value(cc, arg->graph->n, NULL) : 1);
 	if (debug)
 		P(ncc);
 
@@ -28684,36 +28754,37 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 					arg->prec_scale[i] = -1.0;	/* this is code for treating this case specially */
 				}
 			}
+			if (verbose)
+				printf("\t\tconnected component[%1d] size[%1d] scale[%.6g]\n", k, num, -1.0);
 		} else {
 			// compute the subgraph and find the scaling for this connected component
-			GMRFLib_graph_tp *sgraph;
-			GMRFLib_compute_subgraph(&sgraph, def->graph, remove);
+			GMRFLib_compute_subgraph(&(def->graph), arg->graph, remove);
 
 			constr->nc = 1;
-			constr->a_matrix = Calloc(sgraph->n, double);
-			for (i = 0; i < sgraph->n; i++) {
+			constr->a_matrix = Calloc(def->graph->n, double);
+			for (i = 0; i < def->graph->n; i++) {
 				constr->a_matrix[i] = 1.0;
 			}
 			constr->e_vector = Calloc(1, double);
-			GMRFLib_prepare_constr(constr, sgraph, GMRFLib_TRUE);
+			GMRFLib_prepare_constr(constr, def->graph, GMRFLib_TRUE);
 
 			GMRFLib_problem_tp *problem;
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 
-			double *c = Calloc(sgraph->n, double), eps = GMRFLib_eps(0.75);
-			for (i = 0; i < sgraph->n; i++) {
+			double *c = Calloc(def->graph->n, double), eps = GMRFLib_eps(0.75);
+			for (i = 0; i < def->graph->n; i++) {
 				c[i] = eps;
 			}
 
 			while (!ok) {
-				retval =
-				    GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, sgraph, Qfunc_besag, (void *) def, NULL,
-							 constr, GMRFLib_NEW_PROBLEM);
+				retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, def->graph,
+							      Qfunc_besag, (void *) def, NULL,
+							      constr, GMRFLib_NEW_PROBLEM);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
-					for (i = 0; i < sgraph->n; i++) {
+					for (i = 0; i < def->graph->n; i++) {
 						c[i] *= 10.0;
 					}
 					problem = NULL;
@@ -28737,13 +28808,13 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 			GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
 
 			if (debug)
-				P(sgraph->n);
+				P(def->graph->n);
 			double sum = 0.0, value;
 
-			for (i = 0; i < sgraph->n; i++) {
+			for (i = 0; i < def->graph->n; i++) {
 				sum += log(*(GMRFLib_Qinv_get(problem, i, i)));
 			}
-			value = exp(sum / sgraph->n);
+			value = exp(sum / def->graph->n);
 			if (debug) {
 				printf("\tprec_scale is %f\n", value);
 			}
@@ -28752,8 +28823,10 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 					arg->prec_scale[i] = value;
 				}
 			}
+			if (verbose)
+				printf("\t\tconnected component[%1d] size[%1d] scale[%.6g]\n", k, def->graph->n, value);
 
-			GMRFLib_free_graph(sgraph);
+			GMRFLib_free_graph(def->graph);
 			GMRFLib_free_problem(problem);
 			GMRFLib_free_constr(constr);
 			Free(c);
@@ -28769,7 +28842,6 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj)
 		}
 	}
 
-	GMRFLib_free_graph(def->graph);
 	Free(def);
 	Free(cc);
 

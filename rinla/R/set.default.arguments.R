@@ -170,7 +170,7 @@
 `inla.set.f.default` =
     function(...)
 {
-    list(diagonal = .Machine$double.eps^0.3833) ## almost 1e-6 on my computer
+    list(diagonal = .Machine$double.eps^0.319) ## almost 1e-5 on my computer
 }
 
 
@@ -607,6 +607,9 @@
 
         ##:ARGUMENT: constr A boolean variable; shall the  'model' be constrained to sum to zero?
         constr = TRUE,
+
+        ##:ARGUMENT: diagonal An extra constant added to the diagonal of the precision matrix
+        diagonal = NULL,
 
         ##:ARGUMENT: n.intervals Number of intervals in the baseline hazard. (Default 15)
         n.intervals = 15,
