@@ -16512,7 +16512,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
 		}
 
-		mb->f_theta[mb->nf] = Calloc(2, double **);
+		mb->f_theta[mb->nf] = Calloc(3, double **);
 		mb->f_theta[mb->nf][0] = log_prec;
 		if (!mb->f_fixed[mb->nf][0]) {
 			/*
