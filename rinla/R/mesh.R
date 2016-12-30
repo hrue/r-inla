@@ -167,7 +167,7 @@ inla.mesh.segment.inla.mesh.segment <- function(..., grp.default=0) {
                              }
                          }))
     is.bnd <- unlist(lapply(segm, function(x) x$is.bnd))
-    if (!all(is.bnd) || (any(!is.bnd) && !all(!is.bnd)) {
+    if (!all(is.bnd) || (any(!is.bnd) && !all(!is.bnd))) {
         warning("Inconsistent 'is.bnd' attributes.  Setting 'is.bnd=FALSE'.")
         is.bnd <- FALSE
     } else {
