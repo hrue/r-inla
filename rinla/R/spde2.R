@@ -720,7 +720,7 @@ inla.spde2.pcmatern =
                               extraconstr.int = extraconstr.int,
                               extraconstr = extraconstr,
                               fractional.method = fractional.method,
-                              n.iid.group = 1)
+                              n.iid.group = n.iid.group)
 
   ## Calculate hyperparameters
   is.fixed.range <- is.na(prior.range[2])
