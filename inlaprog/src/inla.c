@@ -21296,15 +21296,16 @@ int inla_parse_libR(inla_tp * mb, dictionary * ini, int sec)
 	}
 
 	mb->libR_R_HOME = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "R_HOME"), NULL));
-	assert(mb->libR_R_HOME != NULL);
 	if (mb->verbose) {
 		printf("\t\t\tR_HOME=[%s]\n", mb->libR_R_HOME);
 	}
 
-	// set the R_HOME variable
-	GMRFLib_sprintf(&env, "R_HOME=%s", mb->libR_R_HOME);
-	my_setenv(env, 0);
-	Free(env);
+	if (mb->libR_R_HOME) {
+		// set the R_HOME variable
+		GMRFLib_sprintf(&env, "R_HOME=%s", mb->libR_R_HOME);
+		my_setenv(env, 0);
+		Free(env);
+	}
 
 	return INLA_OK;
 }
@@ -21470,13 +21471,11 @@ double extra(double *theta, int ntheta, void *argument)
 		evaluate_hyper_prior = 0;
 	}
 	// joint prior evaluated in R
+	static int jp_first_time = 1;
 	if (mb->jp) {
 #pragma omp critical
 		{
-			static int first_time = 1;
-			assert(!(mb->update));		       /* only one at the time... */
-			evaluate_hyper_prior = 0;
-			if (first_time) {
+			if (jp_first_time) {
 				// Load data
 				if (mb->jp->RData != NULL)
 					inla_R_load(mb->jp->RData);
@@ -21484,8 +21483,10 @@ double extra(double *theta, int ntheta, void *argument)
 				// Source file with functions
 				inla_R_source(mb->jp->Rfile);
 
-				first_time = 0;
+				jp_first_time = 0;
 			}
+			assert(!(mb->update));		       /* only one at the time... */
+			evaluate_hyper_prior = 0;
 
 			int verbose = 0;
 			double *lprior = NULL;
