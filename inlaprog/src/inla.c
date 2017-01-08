@@ -8185,11 +8185,29 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	}
 
 	/*
-	 * ...then parse the sections in this order: EXPERT, MODE, PROBLEM, PREDICTOR, DATA, FFIELD, LINEAR, INLA, UPDATE, LINCOMB, OUTPUT
+	 * ...then parse the sections in this order: RLIB, EXPERT, MODE, PROBLEM, PREDICTOR, DATA, FFIELD, LINEAR, INLA, UPDATE, LINCOMB, OUTPUT
 	 * 
 	 * it is easier to do it like this, instead of insisting the user to write the section in a spesific order.
 	 * 
 	 */
+	for (sec = found = 0; sec < nsec; sec++) {
+		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		if (!strcmp(sectype, "LIBR")) {
+			if (mb->verbose) {
+				printf("\tparse section=[%1d] name=[%s] type=[LIBR]\n", sec, iniparser_getsecname(ini, sec));
+			}
+			if (found++) {
+				GMRFLib_sprintf(&msg, "%s: two or more sections of type = [LIBR]. Exit.\n", __GMRFLib_FuncName);
+				inla_error_general(msg);
+			}
+			sec_read[sec] = 1;
+			inla_parse_libR(mb, ini, sec);
+		}
+		Free(secname);
+		Free(sectype);
+	}
+
 	for (sec = found = 0; sec < nsec; sec++) {
 		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
@@ -13816,7 +13834,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	int i, j, k, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg =
 	    NULL, default_tag[100], *file_loc, *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL, *rgeneric_Rinit =
-	    NULL, *rgeneric_R_HOME = NULL;
+		NULL; 
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern =
 	    NULL, **group_rho_intern = NULL, **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 =
 	    NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL, **h2_intern =
@@ -16296,10 +16314,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		rgeneric_filename = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC.FILE"), NULL);
 		rgeneric_model = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC.MODEL"), NULL);
 		rgeneric_Rinit = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC.RINIT"), NULL);
-		rgeneric_R_HOME = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC.R_HOME"), NULL);
 
 		if (mb->verbose) {
-			printf("\t\trgeneric.R_HOME [%s]\n", rgeneric_R_HOME);
 			printf("\t\trgeneric.file   [%s]\n", rgeneric_filename);
 			printf("\t\trgeneric.Rinit  [%s]\n", rgeneric_Rinit);
 			printf("\t\trgeneric.model  [%s]\n", rgeneric_model);
@@ -16310,17 +16326,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 */
 #pragma omp critical
 		{
-			static int first_time = 1;
-			if (first_time) {
-				// the first time only, set the R_HOME variable, if available
-				if (rgeneric_R_HOME) {
-					char *env = NULL;
-					GMRFLib_sprintf(&env, "R_HOME=%s", rgeneric_R_HOME);
-					my_setenv(env, 0);
-					Free(env);
-				}
-				first_time = 0;
-			}
 			inla_R_library("INLA");
 			inla_R_inlaload(rgeneric_Rinit);
 			inla_R_load(rgeneric_filename);
@@ -21249,14 +21254,12 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * joint prior?
 	 */
-	char *R_HOME = NULL, *Rfile = NULL, *RData = NULL, *func = NULL;
+	char *Rfile = NULL, *RData = NULL, *func = NULL;
 
-	R_HOME = iniparser_getstring(ini, inla_string_join(secname, "JP.R_HOME"), R_HOME);
 	Rfile = iniparser_getstring(ini, inla_string_join(secname, "JP.RFILE"), Rfile);
 	RData = iniparser_getstring(ini, inla_string_join(secname, "JP.RDATA"), RData);
 	func = iniparser_getstring(ini, inla_string_join(secname, "JP.FUNC"), func);
 	if (mb->verbose) {
-		printf("\t\t\tjp.R_HOME=[%s]\n", R_HOME);
 		printf("\t\t\tjp.Rfile=[%s]\n", Rfile);
 		if (RData != NULL)
 			printf("\t\t\tjp.RData=[%s]\n", RData);
@@ -21265,9 +21268,8 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 		printf("\t\t\tjp.func=[%s]\n", func);
 	}
 	if (func) {
-		GMRFLib_ASSERT(Rfile && R_HOME, GMRFLib_EPARAMETER);
+		GMRFLib_ASSERT(Rfile, GMRFLib_EPARAMETER);
 		mb->jp = Calloc(1, inla_jp_tp);
-		mb->jp->R_HOME = GMRFLib_strdup(R_HOME);
 		mb->jp->Rfile = GMRFLib_strdup(Rfile);
 		mb->jp->RData = GMRFLib_strdup(RData);
 		mb->jp->func = GMRFLib_strdup(func);
@@ -21275,6 +21277,34 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 	} else {
 		mb->jp = NULL;
 	}
+
+	return INLA_OK;
+}
+int inla_parse_libR(inla_tp * mb, dictionary * ini, int sec)
+{
+	/*
+	 * parse section = libR
+	 */
+	char *secname = NULL, *env = NULL;
+
+	if (mb->verbose) {
+		printf("\tinla_parse_libR...\n");
+	}
+	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+	if (mb->verbose) {
+		printf("\t\tsection[%s]\n", secname);
+	}
+
+	mb->libR_R_HOME = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "R_HOME"), NULL));
+	assert(mb->libR_R_HOME != NULL);
+	if (mb->verbose) {
+		printf("\t\t\tR_HOME=[%s]\n", mb->libR_R_HOME);
+	}
+
+	// set the R_HOME variable
+	GMRFLib_sprintf(&env, "R_HOME=%s", mb->libR_R_HOME);
+	my_setenv(env, 0);
+	Free(env);
 
 	return INLA_OK;
 }
@@ -21447,12 +21477,6 @@ double extra(double *theta, int ntheta, void *argument)
 			assert(!(mb->update));		       /* only one at the time... */
 			evaluate_hyper_prior = 0;
 			if (first_time) {
-				// the first time only, set the R_HOME variable
-				char *env = NULL;
-				GMRFLib_sprintf(&env, "R_HOME=%s", mb->jp->R_HOME);
-				my_setenv(env, 0);
-				Free(env);
-
 				// Load data
 				if (mb->jp->RData != NULL)
 					inla_R_load(mb->jp->RData);
