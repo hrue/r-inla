@@ -594,7 +594,6 @@
         fnm = gsub(data.dir, "$inladatadir", file.rgeneric, fixed=TRUE)
         cat("rgeneric.file =", fnm, "\n", file=file, append = TRUE)
         cat("rgeneric.model =", model, "\n", file=file, append = TRUE)
-        cat("rgeneric.R_HOME =", Sys.getenv("R_HOME"), "\n", file=file, append = TRUE)
         rm(model) ## do not need it anymore
 
         if (!is.null(random.spec$rgeneric$R.init)) {
@@ -898,6 +897,11 @@
     cat("##inladatadir = ", gsub("^.*/","", data.dir), "\n", sep = "", file = file,  append = TRUE) #
     cat("##inlaresdir = ", gsub("^.*/","", result.dir), "-%d\n", sep = "", file = file,  append = TRUE) #
 
+    ## libR-stuff
+    cat("\n", sep = " ", file = file,  append = TRUE)
+    cat("[INLA.libR]\n", sep = " ", file = file,  append = TRUE)
+    cat("type = libR\n", sep = " ", file = file,  append = TRUE)
+    cat("R_HOME = ", Sys.getenv("R_HOME"), "\n", sep = "", file = file,  append = TRUE)
 
     cat("\n", sep = " ", file = file,  append = TRUE)
     cat("[INLA.Model]\n", sep = " ", file = file,  append = TRUE)
@@ -1044,7 +1048,6 @@
         cat("cpo.idx = ", args$cpo.idx -1,"\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(args$jp.func)) {
-        cat("jp.R_HOME = ", Sys.getenv("R_HOME"), "\n", sep = " ", file = file, append = TRUE)
         cat("jp.func = ", args$jp.func, "\n", sep = " ", file = file, append = TRUE)
         if (!is.null(args$jp.Rfile)) {
             fnm = inla.copy.file.for.section(args$jp.Rfile, data.dir)
