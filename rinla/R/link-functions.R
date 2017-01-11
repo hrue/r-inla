@@ -1,4 +1,6 @@
-## Export: inla.link.log inla.link.invlog inla.link.logit inla.link.invlogit inla.link.probit
+## Export: inla.link.log inla.link.invlog
+## Export: inla.link.neglog inla.link.invneglog
+## Export: inla.link.logit inla.link.invlogit inla.link.probit
 ## Export: inla.link.invprobit inla.link.cloglog inla.link.invcloglog 
 ## Export: inla.link.loglog inla.link.invloglog inla.link.tan inla.link.invtan
 ## Export: inla.link.identity inla.link.invidentity inla.link.invalid
@@ -9,6 +11,8 @@
 ##! \alias{inla.link}
 ##! \alias{inla.link.log}
 ##! \alias{inla.link.invlog}
+##! \alias{inla.link.neglog}
+##! \alias{inla.link.invneglog}
 ##! \alias{inla.link.logit}
 ##! \alias{inla.link.invlogit}
 ##! \alias{inla.link.probit}
@@ -33,6 +37,8 @@
 ##! \usage{
 ##! inla.link.log(x, inverse=FALSE)
 ##! inla.link.invlog(x, inverse=FALSE)
+##! inla.link.neglog(x, inverse=FALSE)
+##! inla.link.invneglog(x, inverse=FALSE)
 ##! inla.link.logit(x, inverse=FALSE)
 ##! inla.link.invlogit(x, inverse=FALSE)
 ##! inla.link.probit(x, inverse=FALSE)
@@ -89,6 +95,19 @@
 `inla.link.invlog` = function(x, inverse = FALSE)
 {
     return (inla.link.log(x, inverse = !inverse))
+}
+
+`inla.link.neglog` = function(x, inverse = FALSE)
+{
+    if (!inverse) {
+        return (-log(x))
+    } else {
+        return (exp(-x))
+    }
+}
+`inla.link.invneglog` = function(x, inverse = FALSE)
+{
+    return (inla.link.neglog(x, inverse = !inverse))
 }
 
 `inla.link.logit` = function(x, inverse = FALSE)
