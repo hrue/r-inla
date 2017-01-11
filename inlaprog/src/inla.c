@@ -511,6 +511,38 @@ double map_exp(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
+double map_negexp(double arg, map_arg_tp typ, void *param)
+{
+	/*
+	 * the negexp-map-function
+	 */
+	switch (typ) {
+	case MAP_FORWARD:
+		/*
+		 * extern = func(local) 
+		 */
+		return exp(-arg);
+	case MAP_BACKWARD:
+		/*
+		 * local = func(extern) 
+		 */
+		return -log(arg);
+	case MAP_DFORWARD:
+		/*
+		 * d_extern / d_local 
+		 */
+		return -exp(-arg);
+	case MAP_INCREASING:
+		/*
+		 * return 1.0 if montone increasing and 0.0 otherwise 
+		 */
+		return 0.0;
+	default:
+		abort();
+	}
+	abort();
+	return 0.0;
+}
 double map_invprobit(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -1097,6 +1129,13 @@ double link_log(double x, map_arg_tp typ, void *param, double *cov)
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_exp(x, typ, param);
+}
+double link_neglog(double x, map_arg_tp typ, void *param, double *cov)
+{
+	/*
+	 * the link-functions calls the inverse map-function 
+	 */
+	return map_negexp(x, typ, param);
 }
 double link_logit(double x, map_arg_tp typ, void *param, double *cov)
 {
@@ -12968,6 +13007,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_ntheta = 0;
 		ds->predictor_invlinkfunc = link_log;
 		ds->predictor_invlinkfunc_arg = NULL;
+	} else if (!strcasecmp(ds->link_model, "NEGLOG")) {
+		ds->link_id = LINK_NEGLOG;
+		ds->link_ntheta = 0;
+		ds->predictor_invlinkfunc = link_neglog;
+		ds->predictor_invlinkfunc_arg = NULL;
 	} else if (!strcasecmp(ds->link_model, "PROBIT")) {
 		ds->link_id = LINK_PROBIT;
 		ds->link_ntheta = 0;
@@ -13087,6 +13131,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	switch (ds->link_id) {
 	case LINK_IDENTITY:
 	case LINK_LOG:
+	case LINK_NEGLOG:
 	case LINK_PROBIT:
 	case LINK_CLOGLOG:
 	case LINK_LOGLOG:
@@ -22256,6 +22301,7 @@ double extra(double *theta, int ntheta, void *argument)
 			switch (ds->link_id) {
 			case LINK_IDENTITY:
 			case LINK_LOG:
+			case LINK_NEGLOG:
 			case LINK_PROBIT:
 			case LINK_CLOGLOG:
 			case LINK_LOGLOG:
@@ -28720,7 +28766,7 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose)
 {
 	// if VERBOSE, write out the scalings.
 	inla_besag_Qfunc_arg_tp *def = Calloc(1, inla_besag_Qfunc_arg_tp);
-	int i, j, k, debug = 0, *cc = NULL, n = arg->graph->n;
+	int i, k, debug = 0, *cc = NULL, n = arg->graph->n;
 	arg->prec_scale = Calloc(arg->graph->n, double);
 
 	if (debug)
