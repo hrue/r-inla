@@ -5374,6 +5374,8 @@ inla.models()
 				 }
 				\item{Model `log'.}{Number of hyperparmeters are 0.
 				 }
+				\item{Model `neglog'.}{Number of hyperparmeters are 0.
+				 }
 				\item{Model `logit'.}{Number of hyperparmeters are 0.
 				 }
 				\item{Model `probit'.}{Number of hyperparmeters are 0.
@@ -6571,7 +6573,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default log'}
+								\item{link = }{`default log neglog'}
 								\item{pdf = }{`weibull'}
 							 }
 						 }
@@ -6598,7 +6600,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default log'}
+								\item{link = }{`default log neglog'}
 								\item{pdf = }{`loglogistic'}
 							 }
 						 }
@@ -6638,7 +6640,7 @@ inla.models()
 							\describe{
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default log'}
+								\item{link = }{`default log neglog'}
 								\item{pdf = }{`NA'}
 							 }
 						 }
