@@ -4517,6 +4517,7 @@
                  loglog = list(hyper = list()), 
                  identity = list(hyper = list()), 
                  log = list(hyper = list()), 
+                 neglog = list(hyper = list()), 
                  logit = list(hyper = list()), 
                  probit = list(hyper = list()), 
                  cauchit = list(hyper = list()), 
@@ -5447,7 +5448,7 @@
                          ),
                      survival = TRUE,
                      discrete = FALSE,
-                     link = c("default", "log"),
+                     link = c("default", "log", "neglog"),
                      pdf = "exponential"
                      ),
 
@@ -5456,7 +5457,7 @@
                          ),
                      survival = TRUE,
                      discrete = TRUE,
-                     link = c("default", "log"),
+                     link = c("default", "log", "neglog"),
                      pdf = "coxph"
                      ),
 
@@ -5500,7 +5501,7 @@
                          ),
                      survival = TRUE,
                      discrete = FALSE,
-                     link = c("default", "log"),
+                     link = c("default", "log", "neglog"),
                      pdf = "weibull"
                      ),
 
@@ -5520,7 +5521,7 @@
                          ),
                      survival = TRUE,
                      discrete = FALSE,
-                     link = c("default", "log"),
+                     link = c("default", "log", "neglog"),
                      pdf = "loglogistic"
                      ),
 
@@ -5551,7 +5552,7 @@
                          ),
                      survival = TRUE,
                      discrete = FALSE,
-                     link = c("default", "log"),
+                     link = c("default", "log", "neglog"),
                      pdf = NA
                      ),
 
