@@ -29691,6 +29691,7 @@ int main(int argc, char **argv)
 			fprintf(stderr, "\nRun in mode=[%s]\n", "MCMC");
 		}
 	}
+
 	if (G.mode == INLA_MODE_DEFAULT || G.mode == INLA_MODE_HYPER) {
 		for (arg = optind; arg < argc; arg++) {
 			if (verbose) {

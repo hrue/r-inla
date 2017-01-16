@@ -309,7 +309,7 @@ const char *GMRFLib_timer_strip(const char *name)
 
 int GMRFLib_timer_print_entry(FILE * ffp, GMRFLib_timer_hashval_tp * p)
 {
-	fprintf(ffp, "%-41s %10.6f %6d %10.6f %10.6f %10.6f %10.6f\n",
+	fprintf(ffp, "%-41s %10.3f %6d %8.3f %8.3f %8.3f %8.3f\n",
 		p->name, (p->ntimes ? p->ctime_acc / p->ntimes : 0.0),
 		(int) p->ntimes, p->ctime_acc,
 		(p->ntimes ? sqrt(DMAX(0.0, p->ctime_acc2 / p->ntimes - SQR(p->ctime_acc / p->ntimes))) : 0.0), p->ctime_min, p->ctime_max);
@@ -331,7 +331,7 @@ int GMRFLib_timer_report(FILE * fp, const char *name)
 	GMRFLib_timer_hashval_tp *p;
 	void *vpp;
 	FILE *ffp;
-	const char *sep = "-------------------------------------------------------------------------------------------------------";
+	const char *sep = "-----------------------------------------------------------------------------------------------";
 	char *cname;
 	int k;
 
@@ -341,7 +341,7 @@ int GMRFLib_timer_report(FILE * fp, const char *name)
 	ffp = (fp ? fp : stdout);
 
 	for (k = 0; k < GMRFLib_MAX_THREADS; k++) {
-		fprintf(ffp, "\n\nGMRFLib report on time usage for thread %1d\n%-41s %10s %6s %10s %10s %10s %10s\n%s\n",
+		fprintf(ffp, "\n\nGMRFLib report on time usage for thread %1d\n%-41s %10s %6s %8s %8s %8s %8s\n%s\n",
 			k, "Function", "Mean", "N", "Total", "Stdev", "Min", "Max", sep);
 		if (name) {
 			cname = GMRFLib_strdup(name);
