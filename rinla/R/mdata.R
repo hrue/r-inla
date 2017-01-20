@@ -1,0 +1,75 @@
+## Export: inla.mdata is.inla.mdata  as.inla.mdata
+## Export: print!inla.mdata
+
+##!\name{inla.mdata}
+##!\alias{inla.mdata}
+##!\alias{is.inla.mdata}
+##!\alias{as.inla.mdata}
+##!\alias{print.inla.mdata}
+##!
+##!\title{
+##!Create a mdata Object for INLA
+##!}
+##!
+##!\description{
+##!This defines an mdata object for matrix valued response-families
+##!}
+##!\usage{
+##!inla.mdata(...)
+##!\method{print}{inla.mdata}(x, ...)
+##!is.inla.mdata(object)
+##!as.inla.mdata(object)
+##!}
+##!
+##!\arguments{
+##!  \item{...}{Data vectors of same length which are put together into a mdata object,
+##!             or additional arguments}
+##!  \item{object}{Any \code{R}-object}
+##!  \item{x}{An mdata object}
+##!  }
+##!
+##!\value{
+##!     An object of class \code{inla.mdata}.  There is method for \code{print}.
+##!
+##!     \code{is.inla.mdata} returns \code{TRUE} if \code{object}
+##!     inherits from class \code{inla.mdata}, otherwise \code{FALSE}.
+##!
+##!     \code{as.inla.mdata} returns an object of class \code{inla.mdata}
+##!}
+##!
+##!\author{
+##! Havard Rue
+##!}
+##!
+##!\seealso{
+##!\code{\link{inla}}
+##!}
+
+`inla.mdata` = function(...)
+{
+    obj = as.list(as.data.frame(list(...)))
+    names(obj) = paste("y", 1:length(obj), sep="")
+    class(obj) = "inla.mdata"
+    return (obj)
+}
+
+`print.inla.mdata` = function(object, ...)
+{
+    print(as.data.frame(unclass(object)), ...)
+}
+
+`as.inla.mdata` = function(object)
+{
+    if (is.inla.mdata(object)) {
+        object = unclass(object)
+    }
+    object = as.list(as.data.frame(object))
+    names(object) = paste("y", 1:length(object), sep="")
+    class(object) = "inla.mdata"
+    return (object)
+}
+
+`is.inla.mdata` = function(object)
+{
+    return (inherits(object, "inla.mdata"))
+}

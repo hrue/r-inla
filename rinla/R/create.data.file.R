@@ -19,6 +19,8 @@
         y.orig = c(mf[, 1L])
     } else if (inherits(y.orig, "inla.surv")) {
         y.orig = as.data.frame(unclass(y.orig))
+    } else if (inherits(y.orig, "inla.mdata")) {
+        y.orig = as.data.frame(unclass(y.orig))
     } else {
         y.orig = as.data.frame(y.orig)
     }
@@ -253,6 +255,21 @@
         response = cbind(ind, y.orig)
         null.dat = is.na(response[, 2L])
         response = response[!null.dat,]
+
+    } else if (inla.one.of(family, c("nmix"))) {
+
+        mmax = length(inla.model.properties(model="nmix", section="likelihood")$hyper)
+        response = cbind(ind, as.data.frame(unclass(y.orig)))
+        null.dat = is.na(response[, 2L])
+        response = response[!null.dat,]
+        response[is.na(response)] = 0 ## allow NA's in the covariates which is translated into 0's
+        m = ncol(response) -2L
+        stopifnot(m >= 1 && m <= mmax)
+        if (m < mmax) {
+            response = cbind(response, matrix(NA, nrow = nrow(response), ncol = mmax -m))
+        }
+        ## move the response to the last col
+        response = cbind(response[, -2L],  response[, 2L])
 
     } else {
 

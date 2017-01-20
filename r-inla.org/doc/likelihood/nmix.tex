@@ -1,0 +1,77 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+\def\mmax{5}
+\begin{document}
+\section*{NMix}
+
+\subsection*{Parametrisation}
+
+The N-Mixture distribution is a Poisson mixture of the Binomials, as
+\begin{displaymath}
+    \text{Prob}(y) = \sum_{n=y}^{\infty} {n \choose y} \ p^n
+    (1-p)^{n-y} \times \frac{\lambda^{n}}{n!}\exp(-\lambda)
+\end{displaymath}
+for responses $y=0, 1, 2, \ldots,n$, where $n$ is Poisson number of
+trials, and $p$ is probability of success.
+
+\subsection*{Link-function}
+
+The probability $p$ is linked to the linear predictor by
+\begin{displaymath}
+    p(\eta) = \frac{\exp(\eta)}{1+\exp(\eta)}
+\end{displaymath}
+for the default logit link, while $\lambda$ depends on fixed
+covariates
+\begin{displaymath}
+    \log(\lambda) = \sum_{j=1}^{m} \beta_j x_j
+\end{displaymath}
+with one vector of covariates for each observation. $m$ can be maximum
+$\mmax$ and minimum $1$.
+
+\subsubsection*{Hyperparameters}
+The parameters $\beta_1, \beta_2, \ldots, \beta_m$
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/nmix.tex}
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{nmix}$
+\item Required arguments: the response and covariates as\\
+    \verb|inla.mdata(response, covariates [, covariates])|
+\end{itemize}
+The response is a vector, and the covariates is a vector, matrix or
+data.frame. Each row of the covariates, is
+$(x_{i1}, x_{i2}, \ldots, x_{im})$, and the covariates used for the
+$i$'th response. By convension, $\beta_{m+1}, \ldots, \beta_{\mmax}$
+are fixed to zero.
+
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example with binomial responses.
+\verbatiminput{example-nmix.R}
+
+\subsection*{Notes}
+
+\end{document}
+
+
+% LocalWords:  np Hyperparameters Ntrials
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
+
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
