@@ -15,7 +15,15 @@ The N-Mixture distribution is a Poisson mixture of the Binomials, as
     (1-p)^{n-y} \times \frac{\lambda^{n}}{n!}\exp(-\lambda)
 \end{displaymath}
 for responses $y=0, 1, 2, \ldots,n$, where $n$ is Poisson number of
-trials, and $p$ is probability of success.
+trials, and $p$ is probability of success. Replicated reponses
+$y_1, y_2, \ldots, y_r$, are iid from the Binomial, given (a common)
+$n$ from the Poisson,
+\begin{displaymath}
+    \text{Prob}(y_1, \ldots, y_r) = \sum_{n=\max\{y_1, \ldots,
+        y_r\}}^{\infty} \left\{\prod_{i=1}^{r}
+    {n \choose y_i} \ p^n
+    (1-p)^{n-y_i}\right\} \times \frac{\lambda^{n}}{n!}\exp(-\lambda)
+\end{displaymath}
 
 \subsection*{Link-function}
 
@@ -41,14 +49,15 @@ The parameters $\beta_1, \beta_2, \ldots, \beta_m$
 
 \begin{itemize}
 \item $\text{family}=\texttt{nmix}$
-\item Required arguments: the response and covariates as\\
-    \verb|inla.mdata(response, covariates [, covariates])|
+\item Required arguments: the response $Y$ and covariates $X$ as\\
+    \verb|inla.mdata(Y, X [, additional.covariates])|
 \end{itemize}
-The response is a vector, and the covariates is a vector, matrix or
-data.frame. Each row of the covariates, is
-$(x_{i1}, x_{i2}, \ldots, x_{im})$, and the covariates used for the
-$i$'th response. By convension, $\beta_{m+1}, \ldots, \beta_{\mmax}$
-are fixed to zero.
+The response is a matrix where each row are replicates, where
+responses that are \texttt{NA}'s are ignored. The covariates is one or
+many vectors, matrices or data.frames. Each row of the covariates
+$(x_{i1}, x_{i2}, \ldots, x_{im})$ defines the covariates used for the
+$i$'th response(s) (the $i$'th row of \texttt{Y}). Note that 
+$\beta_{m+1}, \ldots, \beta_{\mmax}$ are fixed to zero.
 
 
 \subsection*{Example}
