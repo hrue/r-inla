@@ -69,10 +69,10 @@ stk <- inla.stack(data=list(time=Leuk$time, cens=Leuk$cens),
 @ 
 
 Now, we just had to fit the model. In this example we use 
-the 'weibull' likelihood. Hovewer, other parametric 
+the 'weibullsurv' likelihood. Hovewer, other parametric 
 likelihoods can be used as well. 
 <<res,results=hide>>=
-r <- inla(formula, family="weibull", data=inla.stack.data(stk), 
+r <- inla(formula, family="weibullsurv", data=inla.stack.data(stk), 
           control.predictor=list(A=inla.stack.A(stk)))
 @ 
 

@@ -1,4 +1,4 @@
-\chapter{Space-time coregionalization model}\label{ch:coreg}
+\chapter{Space-time coregionalization model}\label{ch:coreg} 
 
 \SweaveOpts{prefix.string=figs/correg} 
 <<sett,echo=F,results=hide>>=

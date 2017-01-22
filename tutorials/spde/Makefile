@@ -1,11 +1,15 @@
 RnwSOURCES = $(wildcard *.Rnw)
 texDepends = updates.tex spde-tutorial.tex spde-tutorial-introduction.tex spde-tutorial-spde-results.tex $(RnwSOURCES:.Rnw=.tex) spde-tutorial.bib 
 
-all : spde-tutorial.pdf
+all : pdf html
 
-spde-tutorial.pdf : $(texDepends)
+pdf : $(texDepends)
 	@echo generating spde-tutorial.pdf
 	latexmk spde-tutorial.tex -pdf -recorder -bibtex </dev/null
+
+html : $(texDepends)
+	@echo generating the html output
+	htlatex spde-tutorial.tex "html,frames,2"
 
 %.tex : %.Rnw 
 	@echo generating file $@
