@@ -266,21 +266,26 @@
         m.y = length(col.y)
         stopifnot(m.x >= 1 && m.x <= mmax)
 
-        ## remove entries with NA in the FIRST response
-        na.y = is.na(response[, min(col.y)])
-        response = response[!na.y,]
-        ## replace NA's in the covariates with 0'sa
-        X = response[, col.x]
-        X[is.na(X)] = 0
-        response[, col.x] = X
+        ## remove entries with NA's in all responses
+        na.y = apply(response[, col.y, drop=FALSE], 1, function(x) all(is.na(x)))
+        response = response[!na.y,, drop=FALSE]
 
+        X = response[, col.x, drop=FALSE]
+        Y = response[, col.y, drop=FALSE]
+        idx = response[, col.idx, drop=FALSE]
+        yfake = rep(-1, nrow(Y))
+
+        ## replace NA's in the covariates with 0's
+        X[is.na(X)] = 0
         ## augment X til the maximum allowed,  padding with NA's
-        X = cbind(response[, col.x], matrix(NA, nrow = nrow(response), ncol = mmax -m.x)) 
-        ## build the final response
-        Y = response[, col.y]
-        idx = response[, col.idx]
-        yfake = -1L
+        X = cbind(X, matrix(NA, nrow = nrow(response), ncol = mmax -m.x)) 
+
+        ## sort each row so that the NA's are at the end. Sort numerically the non-NA's as well
+        ## although it is not required
+        Y = t(apply(Y, 1, function(x) c(sort(x[!is.na(x)]), x[is.na(x)])))
         response = cbind(idx, X, Y, yfake)
+        print(response)
+        
     } else {
 
         file.remove(file)
