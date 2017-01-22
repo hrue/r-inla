@@ -3,7 +3,7 @@
 \SweaveOpts{prefix.string=figs/stpp} 
 <<opts,echo=F,results=hide>>=
 options(width=75, prompt = " ", continue = "   ")
-require(INLA)
+library(INLA)
 lcall <- inla.getOption('inla.call')
 inla.setOption(inla.call='remote')
 inla.setOption(num.threads=7)
@@ -28,14 +28,14 @@ domain$y <- c(sin(x0/2)-2, sin(rev(x0/2))+2, sin(0)-2)
 @ 
 and convert it into the \texttt{SpatialPolygons} class
 <<sp>>=
-require(sp)
+library(sp)
 domainSP <- SpatialPolygons(list(Polygons(list(Polygon(domain)), '0')))
 @ 
 
 We choose to sample a dataset using the \textbf{\textsf{lgcp}}, 
 \cite{taylorDRD:2013}, package as follows
 <<lgcp,results=hide>>=
-require(lgcp)
+library(lgcp)
 ndays <- 15
 n <- (xyt <- lgcpSim(
     owin=spatstat:::owin(poly=domain), tlim=c(0,ndays), 
@@ -88,7 +88,7 @@ So, this approach really makes sence when $n>>m*k$.
 We choose to aggregate the data in accord to the integration points to make the fitting process easier. 
 So, firt we find the Voronoi polygons for the mesh nodes
 <<voronoi>>=
-require(deldir)
+library(deldir)
 dd <- deldir(smesh$loc[,1], smesh$loc[,2])
 tiles <- tile.list(dd)
 @ 
@@ -124,7 +124,7 @@ str(agg.dat)
 We need to define the expected number of cases (at least) proportional to the area of the Polygons times the width length of the time knots. 
 Compute the intersection area of each polygon with the domain (show the sum). 
 <<intersect>>=
-require(rgeos)
+library(rgeos)
 sum(w.areas <- sapply(1:length(tiles), function(i)
     { p <- cbind(tiles[[i]]$x, tiles[[i]]$y)
       n <- nrow(p)
@@ -215,7 +215,7 @@ t.mean <- lapply(1:k, function(j) {
 and is visualized in Figure~\ref{fig:lstppsres} is visualized by
 <<lstsresp,eval=FALSE>>=
 zlims <- range(unlist(t.mean), na.rm=TRUE)
-require(fields)
+library(fields)
 par(mfrow=c(4,2), mar=c(0.1,0.1,0.1,0.1))
 for (j in 1:k) {
     image(prj$x, prj$y, t.mean[[j]], 
