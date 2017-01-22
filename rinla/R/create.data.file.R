@@ -17,9 +17,9 @@
 {
     if (is.null(y.orig)) {
         y.orig = c(mf[, 1L])
-    } else if (inherits(y.orig, "inla.surv")) {
+    } else if (is.inla.surv(y.orig)) {
         y.orig = as.data.frame(unclass(y.orig))
-    } else if (inherits(y.orig, "inla.mdata")) {
+    } else if (is.inla.mdata(y.orig)) {
         y.orig = as.data.frame(unclass(y.orig))
     } else {
         y.orig = as.data.frame(y.orig)
@@ -251,7 +251,6 @@
 
     } else if (inla.one.of(family, c("stochvol", "stochvolt", "stochvolnig", "loggammafrailty",
                                      "iidlogitbeta", "qkumar", "qloglogistic"))) {
-
         response = cbind(ind, y.orig)
         null.dat = is.na(response[, 2L])
         response = response[!null.dat,]
@@ -259,18 +258,29 @@
     } else if (inla.one.of(family, c("nmix"))) {
 
         mmax = length(inla.model.properties(model="nmix", section="likelihood")$hyper)
-        response = cbind(ind, as.data.frame(unclass(y.orig)))
-        null.dat = is.na(response[, 2L])
-        response = response[!null.dat,]
-        response[is.na(response)] = 0 ## allow NA's in the covariates which is translated into 0's
-        m = ncol(response) -2L
-        stopifnot(m >= 1 && m <= mmax)
-        if (m < mmax) {
-            response = cbind(response, matrix(NA, nrow = nrow(response), ncol = mmax -m))
-        }
-        ## move the response to the last col
-        response = cbind(response[, -2L],  response[, 2L])
+        response = cbind(IDX=ind, y.orig)
+        col.idx = grep("^IDX", names(response))
+        col.x = grep("^X[0-9]", names(response))
+        col.y = grep("^Y[0-9]", names(response))
+        m.x = length(col.x)
+        m.y = length(col.y)
+        stopifnot(m.x >= 1 && m.x <= mmax)
 
+        ## remove entries with NA in the FIRST response
+        na.y = is.na(response[, min(col.y)])
+        response = response[!na.y,]
+        ## replace NA's in the covariates with 0'sa
+        X = response[, col.x]
+        X[is.na(X)] = 0
+        response[, col.x] = X
+
+        ## augment X til the maximum allowed,  padding with NA's
+        X = cbind(response[, col.x], matrix(NA, nrow = nrow(response), ncol = mmax -m.x)) 
+        ## build the final response
+        Y = response[, col.y]
+        idx = response[, col.idx]
+        yfake = -1L
+        response = cbind(idx, X, Y, yfake)
     } else {
 
         file.remove(file)
