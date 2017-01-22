@@ -81,13 +81,66 @@ sigma2x <- 0.2;      kappa <- 2
 @ 
 
 Doing the simulation
-<<simulapp>>=
+<<temporal,echo=FALSE>>=
+myrLGCP <- function (model = "exponential", mu = 0, param = NULL, ..., win = NULL) 
+{
+    if (!missing(mu)) {
+        if (!(is.numeric(mu) || is.function(mu) || is.im(mu))) 
+            stop(paste(sQuote("mu"), "must be a constant, a function or an image"))
+        if (is.numeric(mu) && !(length(mu) == 1)) 
+            stop(paste(sQuote("mu"), "must be a single number"))
+    }
+    if (!require(RandomFields)) 
+        stop("Simulation of log-Gaussian Cox process requires the package RandomFields")
+    win.given <- !is.null(win)
+    mu.image <- is.im(mu)
+    win <- if (win.given) 
+        as.owin(win)
+    else if (mu.image) 
+        as.owin(mu)
+    else owin()
+    if (win.given && mu.image && !is.subset.owin(win, as.owin(mu))) 
+        stop(paste("The spatial domain of the pixel image", sQuote("mu"), 
+            "does not cover the simulation window", sQuote("win")))
+    w <- as.mask(win)
+    x <- w$xcol
+    y <- w$yrow
+    dim <- w$dim
+    xy <- expand.grid(x = x, y = y)
+    xx <- xy$x
+    yy <- xy$y
+    muxy <- if (is.numeric(mu)) 
+        mu
+    else if (is.function(mu)) 
+        mu(xx, yy)
+    else lookup.im(mu, xx, yy, naok = TRUE, strict = TRUE)
+    muxy[is.na(muxy)] <- -Inf
+    xgrid <- c(x[1], x[length(x)], w$xstep)
+    ygrid <- c(y[1], y[length(y)], w$ystep)
+    z <- RandomFields::RFsimulate(x=xgrid, y=ygrid, grid = TRUE, 
+        model = model, ...)
+    logLambda <- muxy + z
+    Lambda <- matrix(exp(logLambda), nrow = dim[1], ncol = dim[2], 
+        byrow = TRUE)
+    Lambda <- as.im(Lambda, W = w)
+    X <- rpoispp(Lambda)[win]
+    attr(X, "Lambda") <- Lambda
+    return(X)
+}
+require(RandomFields)
+set.seed(1)
+lg.s <- myrLGCP('matern', beta0, 
+##              c(0, variance=sigma2x, nugget=0, scale=1/kappa, nu=1), win=win)
+              var=sigma2x, scale=1/kappa, nu=1, win=win)
+@ 
+<<simulapp,eval=FALSE>>=
 require(RandomFields)
 set.seed(1)
 lg.s <- rLGCP('matern', beta0, 
 ##              c(0, variance=sigma2x, nugget=0, scale=1/kappa, nu=1), win=win)
               var=sigma2x, scale=1/kappa, nu=1, win=win)
 @ 
+
 
 Both, the LGRF and the point pattern, are returned. 
 The point pattern locations are 
