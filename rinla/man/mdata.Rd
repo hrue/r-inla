@@ -16,15 +16,15 @@ Create a mdata Object for INLA
 This defines an mdata object for matrix valued response-families
 }
 \usage{
-inla.mdata(...)
+inla.mdata(y, ...)
 \method{print}{inla.mdata}(x, ...)
 is.inla.mdata(object)
 as.inla.mdata(object)
 }
 
 \arguments{
-  \item{...}{Data vectors of same length which are put together into a mdata object,
-             or additional arguments}
+  \item{y}{The response vector/matrix}
+  \item{...}{Additional vectors/matrics of same length as \code{y}}
   \item{object}{Any \code{R}-object}
   \item{x}{An mdata object}
   }
