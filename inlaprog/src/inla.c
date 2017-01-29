@@ -13125,7 +13125,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		found = 0;
 		ds->data_observations.nmix_m = L_NMIX_MMAX;
 		for (i = 0; i < L_NMIX_MMAX && !found; i++) {
-			printf("\n\nnmix_x[%1d][%1d] = %g\n", i, 0, ds->data_observations.nmix_x[i][0]);
 			for (int j = 0; j < mb->predictor_ndata; j++) {
 				if (gsl_isnan(ds->data_observations.nmix_x[i][j])) {
 					found = 1;
