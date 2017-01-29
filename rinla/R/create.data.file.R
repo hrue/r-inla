@@ -282,7 +282,7 @@
 
         ## sort each row so that the NA's are at the end. Sort numerically the non-NA's as well
         ## although it is not required
-        Y = apply(Y, 1, function(x) c(sort(x[!is.na(x)]), x[is.na(x)]))
+        Y = matrix(c(apply(Y, 1, function(x) c(sort(x[!is.na(x)]), x[is.na(x)]))), ncol = ncol(Y), byrow=TRUE)
         response = cbind(idx, X, Y, yfake)
         
     } else {
