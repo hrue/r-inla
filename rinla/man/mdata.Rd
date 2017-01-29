@@ -9,11 +9,11 @@
 \alias{print.inla.mdata}
 
 \title{
-Create a mdata Object for INLA
+Create an mdata-object for INLA
 }
 
 \description{
-This defines an mdata object for matrix valued response-families
+This defines an mdata-object for matrix valued response-families
 }
 \usage{
 inla.mdata(y, ...)
