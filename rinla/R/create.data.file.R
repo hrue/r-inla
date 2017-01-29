@@ -259,9 +259,9 @@
 
         mmax = length(inla.model.properties(model="nmix", section="likelihood")$hyper)
         response = cbind(IDX=ind, y.orig)
-        col.idx = grep("^IDX", names(response))
-        col.x = grep("^X[0-9]", names(response))
-        col.y = grep("^Y[0-9]", names(response))
+        col.idx = grep("^IDX$", names(response))
+        col.x = grep("^X[0-9]+", names(response))
+        col.y = grep("^Y[0-9]+", names(response))
         m.x = length(col.x)
         m.y = length(col.y)
         stopifnot(m.x >= 1 && m.x <= mmax)
@@ -284,7 +284,6 @@
         ## although it is not required
         Y = t(apply(Y, 1, function(x) c(sort(x[!is.na(x)]), x[is.na(x)])))
         response = cbind(idx, X, Y, yfake)
-        print(response)
         
     } else {
 

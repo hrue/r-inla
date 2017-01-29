@@ -5591,6 +5591,7 @@ int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *x_vec, 
 	int n, nmax, ny;
 	double *y, log_lambda, lambda, normc_poisson, fac, tt, tmp, p;
 
+	assert(ds->data_observations.nmix_m > 0);
 	for (i = 0, log_lambda = 0.0; i < ds->data_observations.nmix_m; i++) {
 		log_lambda += ds->data_observations.nmix_beta[i][GMRFLib_thread_id][0] * ds->data_observations.nmix_x[i][idx];
 	}
@@ -5599,6 +5600,7 @@ int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *x_vec, 
 	LINK_INIT;
 	if (m > 0) {
 		n = ds->data_observations.nmix_y[0][idx];
+		assert(!gsl_isnan(ds->data_observations.nmix_y[0][idx]));
 		ny = 1;
 		for (i = 1; i > -1; i++) {
 			if (gsl_isnan(ds->data_observations.nmix_y[i][idx]))
@@ -5623,7 +5625,7 @@ int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *x_vec, 
 				logll[i] += res.val + y[j] * log(p) + (n - y[j]) * log(1.0 - p);
 			}
 			tt = lambda * pow(1.0 - p, (double) ny);
-			nmax = (int) DMAX(n + 10.0, DMIN(n + tt / 0.01, n + 100.0));	/* just to be sure */
+			nmax = (int) DMAX(n + 10.0, DMIN(n + tt / 0.01, n + 200.0));	/* just to be sure */
 			for (k = nmax, fac = 1.0; k > n; k--) {
 				double kd = (double) k;
 				for (j = 0, tmp = 1.0; j < ny; j++) {
