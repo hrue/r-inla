@@ -6419,6 +6419,74 @@
                      pdf = "tstrata"
                      ),
 
+                 nmix = list(
+                     hyper = list(
+                         theta1 = list(
+                             hyperid =  101101,
+                             name = "beta1",
+                             short.name = "beta1",
+                             initial = log(10),
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 0.5),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                             ),
+
+                         theta2 = list(
+                             hyperid =  101102,
+                             name = "beta2",
+                             short.name = "beta2",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                             ),
+                         
+                         theta3 = list(
+                             hyperid =  101103,
+                             name = "beta3",
+                             short.name = "beta3",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                         ),
+                         
+                         theta4 = list(
+                             hyperid =  101104,
+                             name = "beta4",
+                             short.name = "beta4",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                             ),
+                         theta5 = list(
+                             hyperid =  101105,
+                             name = "beta5",
+                             short.name = "beta5",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                             )
+                         ),
+                     status = "experimental", 
+                     survival = FALSE,
+                     discrete = TRUE,
+                     link = c("default", "logit", "probit"),
+                     pdf = "nmix"
+                     ),
+
                  logperiodogram = list(
                      hyper = list(
                          ),

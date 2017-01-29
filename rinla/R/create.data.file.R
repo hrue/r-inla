@@ -17,7 +17,9 @@
 {
     if (is.null(y.orig)) {
         y.orig = c(mf[, 1L])
-    } else if (inherits(y.orig, "inla.surv")) {
+    } else if (is.inla.surv(y.orig)) {
+        y.orig = as.data.frame(unclass(y.orig))
+    } else if (is.inla.mdata(y.orig)) {
         y.orig = as.data.frame(unclass(y.orig))
     } else {
         y.orig = as.data.frame(y.orig)
@@ -249,11 +251,40 @@
 
     } else if (inla.one.of(family, c("stochvol", "stochvolt", "stochvolnig", "loggammafrailty",
                                      "iidlogitbeta", "qkumar", "qloglogistic"))) {
-
         response = cbind(ind, y.orig)
         null.dat = is.na(response[, 2L])
         response = response[!null.dat,]
 
+    } else if (inla.one.of(family, c("nmix"))) {
+
+        mmax = length(inla.model.properties(model="nmix", section="likelihood")$hyper)
+        response = cbind(IDX=ind, y.orig)
+        col.idx = grep("^IDX$", names(response))
+        col.x = grep("^X[0-9]+", names(response))
+        col.y = grep("^Y[0-9]+", names(response))
+        m.x = length(col.x)
+        m.y = length(col.y)
+        stopifnot(m.x >= 1 && m.x <= mmax)
+
+        ## remove entries with NA's in all responses
+        na.y = apply(response[, col.y, drop=FALSE], 1, function(x) all(is.na(x)))
+        response = response[!na.y,, drop=FALSE]
+
+        X = response[, col.x, drop=FALSE]
+        Y = response[, col.y, drop=FALSE]
+        idx = response[, col.idx, drop=FALSE]
+        yfake = rep(-1, nrow(Y))
+
+        ## replace NA's in the covariates with 0's
+        X[is.na(X)] = 0
+        ## augment X til the maximum allowed,  padding with NA's
+        X = cbind(X, matrix(NA, nrow = nrow(response), ncol = mmax -m.x)) 
+
+        ## sort each row so that the NA's are at the end. Sort numerically the non-NA's as well
+        ## although it is not required
+        Y = t(apply(Y, 1, function(x) c(sort(x[!is.na(x)]), x[is.na(x)])))
+        response = cbind(idx, X, Y, yfake)
+        
     } else {
 
         file.remove(file)
