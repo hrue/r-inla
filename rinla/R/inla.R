@@ -587,6 +587,9 @@
         if (inherits(y...orig, "inla.surv")) {
             class(y...orig) = NULL
             ny = max(sapply(y...orig, length))
+        } else if (inherits(y...orig, "inla.mdata")) {
+            class(y...orig) = NULL
+            ny = max(sapply(y...orig, length))
         } else {
             if (length(dim(y...orig)) == 2) {
                 ## some matrix type, could be a sparse matrix
