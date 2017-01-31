@@ -101,7 +101,7 @@ citEntry(
     url          = "http://arxiv.org/abs/1604.00860",
 
     textVersion  = paste(
-        "H. Rue, A. Riebler, S. H. Sørbye, J. B. Illian, D. P. Simpson, and F. K. Lindgren.",
+        "H. Rue, A. Riebler, S. H. Sorbye, J. B. Illian, D. P. Simpson, and F. K. Lindgren.",
         "Bayesian computing with INLA: A review.",
         "Annual Reviews of Statistics and Its Applications, xx(xx):xx-xx, 2017. (to appear).",
         "URL http://arxiv.org/abs/1604.00860")
