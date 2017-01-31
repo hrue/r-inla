@@ -83,3 +83,26 @@ citEntry(
             "Journal of Statistical Software, 63(19), 1-25. ",
             "URL http://www.jstatsoft.org/v63/i19/.")
 )
+
+citEntry(
+    entry = "Article",
+    title        = "Bayesian computing with {INLA}: {A} review}",
+    author       = personList(as.person("H{\\aa}vard Rue"),
+                              as.person("Andrea I. Riebler"), 
+                              as.person("Sigrunn H. S{\\o}rbye"), 
+                              as.person("Janine B. Illian"),
+                              as.person("Daniel P. Simpson"),
+                              as.person("Finn K. Lindgren")), 
+    journal      = "Annual Reviews of Statistics and Its Applications",
+    year         = "2017",
+    volume       = "xx",
+    number       = "xx",
+    pages        = "xx--xx",
+    url          = "http://arxiv.org/abs/1604.00860",
+
+    textVersion  = paste(
+        "H. Rue, A. Riebler, S. H. Sørbye, J. B. Illian, D. P. Simpson, and F. K. Lindgren.",
+        "Bayesian computing with INLA: A review.",
+        "Annual Reviews of Statistics and Its Applications, xx(xx):xx-xx, 2017. (to appear).",
+        "URL http://arxiv.org/abs/1604.00860")
+)
