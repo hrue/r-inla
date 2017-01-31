@@ -20,7 +20,7 @@ for(i in 1:n) {
 }
 
 Y = inla.mdata(y, 1, x)
-r = inla(Y ~ -1 + offset(off) + xx,
+r = inla(Y ~ 1 + xx,
          data = list(Y=Y, xx=xx, off=rep(intercept, n)),
          family = "nmix",
          control.fixed = list(prec.intercept=1,  prec=1))
