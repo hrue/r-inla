@@ -4,26 +4,35 @@
 \usepackage{amsmath}
 \usepackage{verbatim}
 \def\mmax{5}
+\def\mmaxp1{6}
+
 \begin{document}
-\section*{NMix}
+\section*{NMixNB}
 
 \subsection*{Parametrisation}
 
-The N-Mixture distribution is a Poisson mixture of the Binomials, as
+The N-MixtureNB distribution is a negative Binomial mixture of the Binomials, as
 \begin{displaymath}
     \text{Prob}(y) = \sum_{n=y}^{\infty} {n \choose y} \ p^n
-    (1-p)^{n-y} \times \frac{\lambda^{n}}{n!}\exp(-\lambda)
+    (1-p)^{n-y} \times \frac{\Gamma(n + \delta)}{\Gamma(\delta) n!}
+    q^{\delta}(1-q)^{n}
 \end{displaymath}
 for responses $y=0, 1, 2, \ldots,n$, where $n$ is Poisson number of
-trials, and $p$ is probability of success. Replicated reponses
+trials, and $p$ is probability of success. For $\delta$ and $q$, see below.
+Replicated reponses
 $y_1, y_2, \ldots, y_r$, are iid from the Binomial, given (a common)
-$n$ from the Poisson,
+$n$ from the negative Binomial,
 \begin{displaymath}
     \text{Prob}(y_1, \ldots, y_r) = \sum_{n=\max\{y_1, \ldots,
         y_r\}}^{\infty} \left\{\prod_{i=1}^{r}
     {n \choose y_i} \ p^n
-    (1-p)^{n-y_i}\right\} \times \frac{\lambda^{n}}{n!}\exp(-\lambda)
+    (1-p)^{n-y_i}\right\} \times \frac{\Gamma(n + \delta)}{\Gamma(\delta) n!}
+    q^{\delta}(1-q)^{n}
 \end{displaymath}
+The negative binomial is parameterisized in terms of the mean
+$\lambda$ and overdispersion $1/\delta$, where
+$q = \delta/(\delta + \mu)$; see the \texttt{R} documentation
+\texttt{?dnbinom} for this parameterisation (where $\delta=\texttt{size}$).
 
 \subsection*{Link-function}
 
@@ -41,15 +50,16 @@ $\mmax$ and minimum $1$.
 
 \subsubsection*{Hyperparameters}
 The parameters
-$\theta_1=\beta_1, \theta_2=\beta_2, \ldots, \theta_m=\beta_m$.
+$\theta_1=\beta_1, \theta_2=\beta_2, \ldots, \theta_m=\beta_m$, and
+overdispersion $\theta_{\mmaxp1} = \log(1/\delta)$.
 
 \subsubsection*{Hyperparameter spesification and default values}
-\input{../hyper/likelihood/nmix.tex}
+\input{../hyper/likelihood/nmixnb.tex}
 
 \subsection*{Specification}
 
 \begin{itemize}
-\item $\text{family}=\texttt{nmix}$
+\item $\text{family}=\texttt{nmixnb}$
 \item Required arguments: the response $Y$ and covariates $X$ as\\
     \verb|inla.mdata(Y, X [, additional.covariates])|
 \end{itemize}
@@ -65,7 +75,8 @@ $\beta_{m+1}, \ldots, \beta_{\mmax}$ are fixed to zero.
 
 In the following example we estimate the parameters in a simulated
 example with replications.
-\verbatiminput{example-nmix.R}
+
+\verbatiminput{example-nmixnb.R}
 
 \subsection*{Notes}
 

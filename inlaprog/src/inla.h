@@ -56,7 +56,6 @@ __BEGIN_DECLS
 #define FIFO_PUT "inla-mcmc-fifo-put"
 #define FIFO_GET_DATA "inla-mcmc-fifo-get-data"
 #define FIFO_PUT_DATA "inla-mcmc-fifo-put-data"
-
 #define L_NMIX_MMAX  (5L)				       /* the same number is in models.R */
 
 /* 
@@ -382,11 +381,14 @@ typedef struct {
 	 */
 	GMRFLib_spline_tp **qpoisson_func;
 
+	/*
+	 * For both modelx nmix and nmixnb
+	 */
 	int nmix_m;
 	double **nmix_y;				       /* vector of data */
 	double **nmix_x;				       /* matrix of covariates */
 	double ***nmix_beta;				       /* vector of betas */
-
+	double **nmix_log_overdispersion;		       /* only for model nmixnb */
 } Data_tp;
 
 typedef struct {
@@ -461,7 +463,8 @@ typedef enum {
 	L_QLOGLOGISTIC,
 	L_QPOISSON,
 	L_CENPOISSON,					       /* cencored poisson */
-	L_NMIX, 
+	L_NMIX,
+	L_NMIXNB,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -759,7 +762,7 @@ struct inla_tp_struct {
 	 * libR options
 	 */
 	char *libR_R_HOME;
-	
+
 	/*
 	 * Expert options 
 	 */
@@ -1596,6 +1599,7 @@ int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_qpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_qkumar(double *logll, double *x, int m, int idx, double *x_vec, void *arg);

@@ -3542,6 +3542,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_NMIX:
+	case L_NMIXNB:
 	{
 		int dim_y;
 		// this case is a bit special, as the real data 'y' is fake, and the list
@@ -5625,13 +5626,82 @@ int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *x_vec, 
 				logll[i] += res.val + y[j] * log(p) + (n - y[j]) * log(1.0 - p);
 			}
 			tt = lambda * pow(1.0 - p, (double) ny);
-			nmax = (int) DMAX(n + 10.0, DMIN(n + tt / 0.01, n + 200.0));	/* just to be sure */
+			nmax = (int) DMAX(n + 50.0, DMIN(n + tt / 0.01, n + 500.0));	/* just to be sure */
 			for (k = nmax, fac = 1.0; k > n; k--) {
 				double kd = (double) k;
 				for (j = 0, tmp = 1.0; j < ny; j++) {
 					tmp *= kd / (kd - y[j]);
 				}
 				fac = 1.0 + fac * tt * tmp / kd;
+			}
+			logll[i] += log(fac);
+		}
+		Free(y);
+	} else {
+		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * y ~ Binomial(n, p) * NegBinom(n, mu=lambda, size=1/overdispersion), log(lambda) = X'beta
+	 */
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+
+	int i, j, k, status;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	int n, nmax, ny;
+	double *y, log_lambda, lambda, normc_nb, fac, tt, tmp, p, q, size;
+
+	assert(ds->data_observations.nmix_m > 0);
+	for (i = 0, log_lambda = 0.0; i < ds->data_observations.nmix_m; i++) {
+		log_lambda += ds->data_observations.nmix_beta[i][GMRFLib_thread_id][0] * ds->data_observations.nmix_x[i][idx];
+	}
+	lambda = exp(log_lambda);
+	size = 1.0 / map_exp(ds->data_observations.nmix_log_overdispersion[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+
+	LINK_INIT;
+	if (m > 0) {
+		n = ds->data_observations.nmix_y[0][idx];
+		assert(!gsl_isnan(ds->data_observations.nmix_y[0][idx]));
+		ny = 1;
+		for (i = 1; i > -1; i++) {
+			if (gsl_isnan(ds->data_observations.nmix_y[i][idx]))
+				break;
+			ny++;
+			n = IMAX(n, ds->data_observations.nmix_y[i][idx]);
+		}
+		normc_nb = gsl_sf_lngamma(n + size) - gsl_sf_lngamma(size) - gsl_sf_lnfact((unsigned int) n);
+		y = Calloc(ny, double);
+		for (i = 0; i < ny; i++) {
+			y[i] = ds->data_observations.nmix_y[i][idx];
+		}
+
+		for (i = 0; i < m; i++) {
+			gsl_sf_result res;
+
+			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			p = DMAX(0.0, DMIN(1.0, p));
+			q = size / (size + lambda);
+			logll[i] = normc_nb + size * log(q) + n * log(1.0 - q);
+			for (j = 0; j < ny; j++) {
+				status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y[j], &res);
+				logll[i] += res.val + y[j] * log(p) + (n - y[j]) * log(1.0 - p);
+			}
+			tt = lambda * sqrt(1.0 + lambda / size) * pow(1.0 - p, (double) ny);
+			nmax = (int) DMAX(n + 50.0, DMIN(n + tt / 0.01, n + 500.0));	/* just to be sure */
+			tt = (1.0 - q) * pow(1.0 - p, ny);
+			for (k = nmax, fac = 1.0; k > n; k--) {
+				double kd = (double) k;
+				for (j = 0, tmp = 1.0; j < ny; j++) {
+					tmp *= kd / (kd - y[j]);
+				}
+				fac = 1.0 + fac * (kd + size - 1.0) * tt * tmp / kd;
 			}
 			logll[i] += log(fac);
 		}
@@ -5976,6 +6046,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 						logA = log(pzero);
 						logB = log(1.0 - pzero) + res.val + y * log(p) + (n - y) * log(1.0 - p);
 						// logll[i] = log(pzero + (1.0 - pzero) * gsl_ran_binomial_pdf((unsigned int) y, p, 
+						// 
 						// 
 						// 
 						// 
@@ -9578,6 +9649,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "NMIX")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_nmix;
 		ds->data_id = L_NMIX;
+	} else if (!strcasecmp(ds->data_likelihood, "NMIXNB")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_nmixnb;
+		ds->data_id = L_NMIXNB;
 	} else {
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, "LIKELIHOOD", ds->data_likelihood);
 	}
@@ -9924,6 +9998,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_NMIX:
+	case L_NMIXNB:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				for (j = 0; j > -1; j++) {
@@ -9936,7 +10011,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 						inla_error_general(msg);
 					}
 				}
-				assert(ds->data_observations.y[i] < 0); /* have to be void */
+				assert(ds->data_observations.y[i] < 0);	/* have to be void */
 			}
 		}
 		break;
@@ -13116,10 +13191,13 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	}
 
 	case L_NMIX:
+	case L_NMIXNB:
 		/*
-		 * get options related to the nmix
+		 * get options related to the nmix and nmixnb
 		 */
-
+		if (mb->verbose) {
+			printf("\t\tmodel for N in the mixture[%s]\n", (ds->data_id == L_NMIX ? "Poisson" : "NegativeBinomial"));
+		}
 		// first we need to know 'm'. 
 
 		found = 0;
@@ -13137,9 +13215,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tnmix.m=[%1d]\n", ds->data_observations.nmix_m);
 		}
 		assert(ds->data_observations.nmix_m > 0 && ds->data_observations.nmix_m <= L_NMIX_MMAX);
-		ds->data_observations.nmix_beta = Calloc(L_NMIX_MMAX, double **);
-		ds->data_nprior = Calloc(L_NMIX_MMAX, Prior_tp);
-		ds->data_nfixed = Calloc(L_NMIX_MMAX, int);
+		ds->data_observations.nmix_beta = Calloc(L_NMIX_MMAX + 1, double **);	/* yes, its +1 to cover the NB case */
+		ds->data_nprior = Calloc(L_NMIX_MMAX + 1, Prior_tp);
+		ds->data_nfixed = Calloc(L_NMIX_MMAX + 1, int);
 
 		int k;
 		for (k = 0; k < L_NMIX_MMAX; k++) {
@@ -13176,8 +13254,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 		}
 
-
-
 		for (int k = 0; k < ds->data_observations.nmix_m; k++) {
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", k);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);
@@ -13190,7 +13266,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				tmp = mb->theta_file[mb->theta_counter_file++];
 			}
 			HYPER_NEW(ds->data_observations.nmix_beta[k], tmp);
-
 			if (mb->verbose) {
 				printf("\t\tinitialise nmix.beta[%1d] = %g\n", k, ds->data_observations.nmix_beta[k][0][0]);
 				printf("\t\tfixed = %1d\n", ds->data_nfixed[k]);
@@ -13220,6 +13295,60 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta[mb->ntheta] = ds->data_observations.nmix_beta[k];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 				mb->theta_map[mb->ntheta] = map_identity;
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL;
+				mb->ntheta++;
+				ds->data_ntheta++;
+			}
+		}
+
+		if (ds->data_id == L_NMIXNB) {
+			k = L_NMIX_MMAX;		       /* this the overdisperson */
+
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", k);
+			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);
+			HYPER_NEW(ds->data_observations.nmix_log_overdispersion, tmp);
+
+			Free(ctmp);
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", k);
+			ds->data_nfixed[k] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+
+			if (!(ds->data_nfixed[k]) && mb->reuse_mode) {
+				tmp = mb->theta_file[mb->theta_counter_file++];
+			}
+
+			if (mb->verbose) {
+				printf("\t\tinitialise nmix.log_overdispersion = %g\n",
+				       ds->data_observations.nmix_log_overdispersion[0][0]);
+				printf("\t\tfixed = %1d\n", ds->data_nfixed[k]);
+			}
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[k]), "LOGGAMMA", k);
+
+			if (!ds->data_nfixed[k]) {
+				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+				mb->theta_hyperid[mb->ntheta] = ds->data_nprior[k].hyperid;
+				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+
+				Free(ctmp);
+				GMRFLib_sprintf(&ctmp, "log_overdispersion for NMix observations");
+				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				Free(ctmp);
+				GMRFLib_sprintf(&ctmp, "overdispersion for NMix observations");
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				GMRFLib_sprintf(&msg, "%s-parameter", secname);
+				mb->theta_dir[mb->ntheta] = msg;
+
+				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[k].from_theta);
+				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[k].to_theta);
+
+				mb->theta[mb->ntheta] = ds->data_observations.nmix_log_overdispersion;
+				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+				mb->theta_map[mb->ntheta] = map_exp;
 				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 				mb->theta_map_arg[mb->ntheta] = NULL;
 				mb->ntheta++;
@@ -22520,7 +22649,20 @@ double extra(double *theta, int ntheta, void *argument)
 				break;
 
 			case L_NMIX:
-				for (int k = 0; k < ds->data_observations.nmix_m; k++) {
+				for (int k = 0; k < L_NMIX_MMAX; k++) {
+					if (!ds->data_nfixed[k]) {
+						beta = theta[count];
+						val += PRIOR_EVAL(ds->data_nprior[k], &beta);
+						count++;
+					}
+				}
+				break;
+
+			case L_NMIXNB:
+				/*
+				 *  the last one here is the log_overdispersion, which I do not rename to, for simplicity
+				 */
+				for (int k = 0; k < L_NMIX_MMAX + 1; k++) {
 					if (!ds->data_nfixed[k]) {
 						beta = theta[count];
 						val += PRIOR_EVAL(ds->data_nprior[k], &beta);
