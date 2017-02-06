@@ -6487,6 +6487,87 @@
                      pdf = "nmix"
                      ),
 
+                 nmixnb = list(
+                     hyper = list(
+                         theta1 = list(
+                             hyperid =  101121,
+                             name = "beta1",
+                             short.name = "beta1",
+                             initial = log(10),
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 0.5),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                             ),
+
+                         theta2 = list(
+                             hyperid =  101122,
+                             name = "beta2",
+                             short.name = "beta2",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                             ),
+                         
+                         theta3 = list(
+                             hyperid =  101123,
+                             name = "beta3",
+                             short.name = "beta3",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                         ),
+                         
+                         theta4 = list(
+                             hyperid =  101124,
+                             name = "beta4",
+                             short.name = "beta4",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                             ),
+
+                         theta5 = list(
+                             hyperid =  101125,
+                             name = "beta5",
+                             short.name = "beta5",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                             ), 
+                         
+                         theta6 = list(
+                             hyperid =  101126,
+                             name = "overdispersion",
+                             short.name = "overdispersion",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "loggamma",
+                             param = c(1, 0.5),
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x)
+                             )
+                         ),
+                     status = "experimental", 
+                     survival = FALSE,
+                     discrete = TRUE,
+                     link = c("default", "logit", "probit"),
+                     pdf = "nmixnb"
+                     ),
+
                  logperiodogram = list(
                      hyper = list(
                          ),
