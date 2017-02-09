@@ -7040,7 +7040,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 		arg->dz = dz;
 		arg->interpolator = interpolator;
 
-		npoints = 51;
+		npoints = 71;
 		double theta_fixed, *x = Calloc(nhyper, double), *xx = NULL, *xxx = Calloc(npoints, double);
 
 		GMRFLib_ghq_abscissas(&xx, npoints);
