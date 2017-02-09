@@ -684,7 +684,6 @@
                      n.div.by = NULL,
                      n.required = FALSE,
                      set.default.values = FALSE,
-                     status = "experimental", 
                      pdf = "ar"
                      ),
 
@@ -6704,6 +6703,16 @@
 		 pc.range = list(
                      nparameters = 2L,
                      pdf = NA
+                 ), 
+
+		 pc.gamma = list(
+                     nparameters = 1L,
+                     pdf = "pc.gamma"
+                 ), 
+
+		 pc.mgamma = list(
+                     nparameters = 1L,
+                     pdf = "pc.gamma"
                  ), 
 
                  ## this is the generic one,  which is case-spesific and possibly adaptive

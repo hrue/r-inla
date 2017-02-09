@@ -536,6 +536,8 @@ typedef enum {
 	P_PC_RANGE,
 	P_PC_AR,
 	P_PC_FGN_H,
+	P_PC_GAMMA, 
+	P_PC_MGAMMA, 
 	P_REF_AR,					       /* Reference prior for AR(p) for p=1,2,3 */
 	P_INVALID,
 	G_EXCHANGEABLE = 3000,				       /* group models */
@@ -1413,6 +1415,8 @@ double priorfunc_pc_prec(double *x, double *parameters);
 double priorfunc_pc_spde_ga(double *x, double *parameters);
 double priorfunc_pc_matern(double *x, double *parameters);
 double priorfunc_pc_range(double *x, double *parameters);
+double priorfunc_pc_gamma(double *x, double *parameters);
+double priorfunc_pc_mgamma(double *x, double *parameters);
 double priorfunc_ref_ar(double *x, double *parameters);
 double priorfunc_wishart(int dim, double *x, double *parameters);
 double priorfunc_wishart1d(double *x, double *parameters);
