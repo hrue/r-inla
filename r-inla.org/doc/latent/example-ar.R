@@ -23,10 +23,9 @@ r = inla(y ~ -1 + f(
         family = "gaussian", 
         data = data.frame(y, idx))
 
-## we will now estimate the posterior marginals of the phi-parameters
-## using the (experimental) function 'inla.hyperpar.sampler', which
-## creates samples from the approximated joint distribution for the
-## hyperparameters.
+## we will now estimate the posterior marginals of the phi-parameters using
+## 'inla.hyperpar.sampler', which creates samples from the approximated joint distribution for
+## the hyperparameters.
 nsamples = 100000
 pacfs = inla.hyperpar.sampler(nsamples, r)[, 3L:(3L+(p-1L))]
 phis = apply(pacfs, 1L, inla.ar.pacf2phi)
