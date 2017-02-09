@@ -6706,6 +6706,16 @@
                      pdf = NA
                  ), 
 
+		 pc.gamma = list(
+                     nparameters = 1L,
+                     pdf = "pc.gamma"
+                 ), 
+
+		 pc.mgamma = list(
+                     nparameters = 1L,
+                     pdf = "pc.gamma"
+                 ), 
+
                  ## this is the generic one,  which is case-spesific and possibly adaptive
                  pc = list(
                      nparameters = 2L,
