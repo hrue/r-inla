@@ -7889,8 +7889,8 @@ inla.models()
 							\item{short.name = }{`overdispersion'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`1 0.5'}
+							\item{prior = }{`pc.gamma'}
+							\item{param = }{`7'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
