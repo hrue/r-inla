@@ -1,6 +1,6 @@
 library(gsl)
 
-inla.pc.ar.lambda = function(a = 0.5, gamma = 0.8, p = 4)
+inla.pc.ar.lambda = function(a = 0.5, b = 0.8, p = 4)
 {
     inla.pc.ar.solve.lambda = function(pred.err.factors, nseq = 1000L) {
         ## pred.err.factor = E(1-rho^2)
@@ -26,7 +26,7 @@ inla.pc.ar.lambda = function(a = 0.5, gamma = 0.8, p = 4)
         return (lambdas)
     }
 
-    pred.err.factors = 1.0 - (1.0-a)*gamma^(0:(p-1))
+    pred.err.factors = 1.0 - (1.0-a)*b^(0:(p-1))
     lambda = inla.pc.ar.solve.lambda(pred.err.factors)
 
     return (lambda)
@@ -38,7 +38,7 @@ inla.pc.ar.test1 = function(p=1, p.est = p+1, n = 100)
     phi = inla.ar.pacf2phi(pacf)
     sd.x = sqrt(1/prod(1-pacf^2))
     x = arima.sim(n = n, model = list(ar = phi))/sd.x
-    lambda = c(inla.pc.ar.lambda(p = p.est, gamma = 0.5), rep(1, 10))
+    lambda = c(inla.pc.ar.lambda(p = p.est, b = 0.5), rep(1, 10))
     initial = c(inla.models()$latent$ar$hyper$theta2$to.theta(pacf), rep(0, 10))
     r = (inla(
         x ~ -1 +
