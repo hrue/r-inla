@@ -1,0 +1,47 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{The PC prior for $\pm\log(a)$ in $\Gamma(1/a,1/a)$ with base model $a=0$}
+
+\subsection*{Parametrization}
+This is the PC prior for $\pm\log(a)$ in $\Gamma(1/a,1/a)$ (with mean
+$1$ and variance $a$), distribution where $a=0$ is the base model.
+
+\subsection*{Specification}
+This prior for the hyperparameters is specified in the-
+\texttt{hyper}-spesification, for $+\log(a)$ it is
+\begin{center}
+    \texttt{hyper = list(<theta> = list(prior="pc.gamma", param=c(<lambda>)))}
+\end{center}
+and for $-\log(a)$ it is
+\begin{center}
+    \texttt{hyper = list(<theta> = list(prior="pc.mgamma", param=c(<lambda>)))}
+\end{center}
+
+\subsection*{Example}
+
+\subsection*{Notes}
+See also functions \texttt{inla.pc.\{d,p,q,r\}gamma} which gives the
+same PC prior, but for $a$.
+
+\noindent\textbf{This function is experimental.}
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
+
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

@@ -684,7 +684,6 @@
                      n.div.by = NULL,
                      n.required = FALSE,
                      set.default.values = FALSE,
-                     status = "experimental", 
                      pdf = "ar"
                      ),
 
@@ -6555,8 +6554,8 @@
                              short.name = "overdispersion",
                              initial = 0,
                              fixed = FALSE,
-                             prior = "loggamma",
-                             param = c(1, 0.5),
+                             prior = "pc.gamma",
+                             param = 7,
                              to.theta = function(x) log(x), 
                              from.theta = function(x) exp(x)
                              )
@@ -6704,6 +6703,16 @@
 		 pc.range = list(
                      nparameters = 2L,
                      pdf = NA
+                 ), 
+
+		 pc.gamma = list(
+                     nparameters = 1L,
+                     pdf = "pc.gamma"
+                 ), 
+
+		 pc.mgamma = list(
+                     nparameters = 1L,
+                     pdf = "pc.gamma"
                  ), 
 
                  ## this is the generic one,  which is case-spesific and possibly adaptive
