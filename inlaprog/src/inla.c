@@ -2442,6 +2442,29 @@ double priorfunc_pc_range(double *x, double *parameters)
 
 	return ldens;
 }
+double priorfunc_pc_gamma(double *x, double *parameters)
+{
+	// the inla.pc.dgamma prior, which is the prior for 'a' in Gamma(1/a, 1/a) where a=0 is the base model. Here we have the
+	// argument log(a). Almost the same function as priorfunc_pc_mgamma
+	double ldens, d, a, a_inv, lambda;
+
+	lambda = parameters[0];
+	a = exp(x[0]);
+	a_inv = 1.0 / a;
+	d = sqrt(2.0 * (log(a_inv) - gsl_sf_psi(a_inv)));
+	ldens = log(lambda) - lambda * d - 2.0 * log(a) - log(d) + log(gsl_sf_psi_1(a_inv) - a) + x[0];
+
+	return ldens;
+}
+double priorfunc_pc_mgamma(double *x, double *parameters)
+{
+	// the inla.pc.dgamma prior, which is the prior for 'a' in Gamma(1/a, 1/a) where a=0 is the base model. Here we have the
+	// argument log(a). this function is the pc_gamma prior for 'x' when a=exp(-x). Almost the same function as
+	// priorfunc_pc_gamma
+	double xx = -x[0];
+
+	return (priorfunc_pc_gamma(&xx, parameters));
+}
 double priorfunc_pc_dof(double *x, double *parameters)
 {
 #define NP 5
@@ -3270,7 +3293,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * read data from file 
 	 */
-#define DIM_A  (2048L)
+#define DIM_A  (4096L)
 
 	double *x = NULL, *a[DIM_A];
 	int n, na, i, j, ii, idiv = 0, k, ncol_data_all = -1;
@@ -3547,7 +3570,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		int dim_y;
 		// this case is a bit special, as the real data 'y' is fake, and the list
 		// of replicated data is in the 'a' below.
-		assert(ncol_data_all >= 3L + L_NMIX_MMAX < DIM_A);
+		assert(ncol_data_all >= 3L + L_NMIX_MMAX && ncol_data_all < DIM_A);
 		idiv = ncol_data_all;
 		ds->data_observations.nmix_x = Calloc(L_NMIX_MMAX, double *);
 		dim_y = ncol_data_all - L_NMIX_MMAX - 2L;
@@ -6052,6 +6075,8 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 						// 
 						// 
 						// 
+						// 
+						// 
 						// (unsigned int) n));
 						logll[i] = eval_logsum_safe(logA, logB);
 					}
@@ -8067,6 +8092,30 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		prior->priorfunc = priorfunc_pc_range;
 		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
 		assert(nparam == 2);
+		if (mb->verbose) {
+			for (i = 0; i < nparam; i++) {
+				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "PCGAMMA")) {
+		int nparam, i;
+
+		prior->id = P_PC_GAMMA;
+		prior->priorfunc = priorfunc_pc_gamma;
+		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
+		assert(nparam == 1);
+		if (mb->verbose) {
+			for (i = 0; i < nparam; i++) {
+				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "PCMGAMMA")) {
+		int nparam, i;
+
+		prior->id = P_PC_MGAMMA;
+		prior->priorfunc = priorfunc_pc_mgamma;
+		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
+		assert(nparam == 1);
 		if (mb->verbose) {
 			for (i = 0; i < nparam; i++) {
 				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
@@ -11469,7 +11518,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
 		HYPER_NEW(ds->data_observations.log_size, tmp);
-		assert(ds->variant == 0 || ds->variant == 1);
+		assert(ds->variant == 0 || ds->variant == 1 || ds->variant == 2);
 		if (mb->verbose) {
 			printf("\t\tinitialise log_size[%g]\n", ds->data_observations.log_size[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
@@ -11487,10 +11536,19 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] =
-			    inla_make_tag("log size for the nbinomial observations (1/overdispersion)", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] =
-			    inla_make_tag("size for the nbinomial observations (1/overdispersion)", mb->ds);
+			if (ds->variant == 0 || ds->variant == 1) {
+				mb->theta_tag[mb->ntheta] =
+				    inla_make_tag("log size for the nbinomial observations (1/overdispersion)", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] =
+				    inla_make_tag("size for the nbinomial observations (1/overdispersion)", mb->ds);
+			} else if (ds->variant == 2) {
+				mb->theta_tag[mb->ntheta] =
+				    inla_make_tag("minus log size for the nbinomial observations (overdispersion)", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] =
+				    inla_make_tag("1/size for the nbinomial observations (overdispersion)", mb->ds);
+			} else {
+				assert(0 == 1);
+			}
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
