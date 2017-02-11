@@ -825,7 +825,6 @@ inla.models()
 								\item{n.div.by = }{`NULL'}
 								\item{n.required = }{`FALSE'}
 								\item{set.default.values = }{`FALSE'}
-								\item{status = }{`experimental'}
 								\item{pdf = }{`ar'}
 							 }
 						 }
@@ -7890,8 +7889,8 @@ inla.models()
 							\item{short.name = }{`overdispersion'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`1 0.5'}
+							\item{prior = }{`pc.gamma'}
+							\item{param = }{`7'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
@@ -7971,6 +7970,10 @@ inla.models()
 				\item{Model `pc.matern'.}{					 Number of parameters in the prior = 3 
 				 }
 				\item{Model `pc.range'.}{					 Number of parameters in the prior = 2 
+				 }
+				\item{Model `pc.gamma'.}{					 Number of parameters in the prior = 1 
+				 }
+				\item{Model `pc.mgamma'.}{					 Number of parameters in the prior = 1 
 				 }
 				\item{Model `pc'.}{					 Number of parameters in the prior = 2 
 				 }
