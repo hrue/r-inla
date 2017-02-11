@@ -1024,7 +1024,7 @@
                    "Locations are too close for f(",
                    term, ", model=\"",
                    model, "\", ...): ",
-                   " min(diff(sort(x)))/diff(range(x)) = ",
+                   " min(diff(sort(x)))/diff(range(x)) = ", 
                    format(min.diff, scientific=TRUE, digits=4),
                    " < ", format(lim, scientific=TRUE, digits=4), "\n",
                    "  You can fix this by some kind of binning, see ?inla.group", "\n",
@@ -1039,9 +1039,11 @@
 
 `inla.dynload.workaround` = function()
 {
-    ## setup the static builds instead
-    d = dirname(inla.call.builtin())
-    inla.setOption(inla.call = paste(d,"/inla.static", sep=""))
-    inla.setOption(fmesher.call = paste(d,"/fmesher.static", sep=""))
+    if (inla.os("linux")) {
+        ## setup the static builds instead
+        d = dirname(inla.call.builtin())
+        inla.setOption(inla.call = paste(d,"/inla.static", sep=""))
+        inla.setOption(fmesher.call = paste(d,"/fmesher.static", sep=""))
+    }
     return (invisible())
 }
