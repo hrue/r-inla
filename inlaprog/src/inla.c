@@ -19259,11 +19259,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tadjust.for.con.comp[%1d]\n", adj);
 			printf("\t\tscale.model[%1d]\n", std);
-			printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
 		}
 
 		if (std) {
 			inla_besag_scale(arg->besag_arg, adj, mb->verbose);
+			if (mb->verbose) {
+				printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
+			}
 		} else {
 			fprintf(stderr,
 				"\n\n*** Warning ***\tModel[%s] in Section[%s] use scale.model=FALSE which is NOT recommended!!!\n\n",
