@@ -1,7 +1,7 @@
 ## NOT-YET-Export: 
 
 inla.sparse.det.bym = function(Q, rankdef,
-        adjust.for.con.comp = TRUE, log=TRUE, eps = sqrt(.Machine$double.eps))
+                               adjust.for.con.comp = TRUE, log=TRUE, eps = sqrt(.Machine$double.eps))
 {
     ## compute the (log-)determinant. If rankdef > 0, then assume a
     ## sum to zero constraint on each connected component.
@@ -23,8 +23,7 @@ inla.sparse.det.bym = function(Q, rankdef,
     if (missing(rankdef)) {
         rankdef = nc
     }
-    d = diag(Q)
-    diag(Q) = d + max(d) * eps
+    diag(Q) = diag(Q) + n * max(d) * eps
     res = inla.qsample(n=1, Q=Q, sample = matrix(0, n, 1), constr = constr)
     logdet = 2.0 * (res$logdens + (n-rankdef)/2.0*log(2.0*pi))
     return (if (log) logdet else exp(logdet))
@@ -32,27 +31,25 @@ inla.sparse.det.bym = function(Q, rankdef,
 
 inla.scale.model.bym = function(Q, eps = sqrt(.Machine$double.eps), adjust.for.con.comp = TRUE)
 {
-    Q = inla.as.sparse(Q)
     n = dim(Q)[1]
-    constr = NULL
+    constr = list(A = matrix(1, nrow=1, ncol=n), e=0)
 
-    g = inla.read.graph(Q)
     if (adjust.for.con.comp) {
-        nc = g$cc$n
-        constr = list(A = matrix(0, nc, n), e = rep(0, nc))
-        for(k in 1:nc) {
-            constr$A[k, g$cc$nodes[[k]]] = 1
-        }
+        Q = inla.scale.model(Q, constr = constr, eps = eps)
     } else {
-        nc = 1
-        constr = list(A = matrix(1, nc, n), e = rep(0, nc))
+        idx = which(diag(Q) > 0)
+        QQ = Q[idx, idx, drop=FALSE]
+        QQ = inla.as.sparse(QQ)
+        n = dim(QQ)[1]
+        constr = list(A = matrix(1, nrow=1, ncol=n), e=0)
+        res = inla.qinv(QQ + Diagonal(n) * max(diag(QQ)) * eps, constr = constr)
+        fac = exp(mean(log(diag(res))))
+        QQ = fac * QQ
+        Q[idx, idx] = QQ
     }
-    res = inla.qinv(Q + Diagonal(n) * max(diag(Q)) * eps, constr = constr)
-    fac = exp(mean(log(diag(res))))
-    Q = fac * Q
-
-    return (Q)
+    return (Q)        
 }
+
 inla.pc.bym.Q = function(graph)
 {
     Q = -inla.graph2matrix(graph)
@@ -63,25 +60,24 @@ inla.pc.bym.Q = function(graph)
 
 ## also used for the rw2d+iid model (eigenvalues/marginal.variances
 ## arguments...)
-inla.pc.bym.phi = function(
-        graph,
-        Q, 
-        eigenvalues = NULL,
-        marginal.variances = NULL, 
-        rankdef,
-        ## if alpha is not set,  it will be computed from alpha.min
-        alpha,
-        u = 1/2,
-        lambda,
-        ## use this option with care, as this only applied to the case
-        ## where Q is already scaled.
-        scale.model = TRUE,
-        return.as.table = FALSE, 
-        adjust.for.con.comp = TRUE, 
-        ## where to switch to alternative strategy
-        dim.limit = 1000L, 
-        eps = sqrt(.Machine$double.eps), 
-        debug = FALSE)
+inla.pc.bym.phi = function(graph,
+                           Q, 
+                           eigenvalues = NULL,
+                           marginal.variances = NULL, 
+                           rankdef,
+                           ## if alpha is not set,  it will be computed from alpha.min
+                           alpha,
+                           u = 1/2,
+                           lambda,
+                           ## use this option with care, as this only applied to the case
+                           ## where Q is already scaled.
+                           scale.model = TRUE,
+                           return.as.table = FALSE, 
+                           adjust.for.con.comp = TRUE, 
+                           ## where to switch to alternative strategy
+                           dim.limit = 1024L, 
+                           eps = sqrt(.Machine$double.eps), 
+                           debug = FALSE)
 {
     my.debug = function(...) if (debug) cat("*** debug *** inla.pc.bym.phi: ", ... , "\n")
     
@@ -109,40 +105,27 @@ inla.pc.bym.phi = function(
         }
 
         n = dim(Q)[1]
-        if (n >= dim.limit) {
-            if (scale.model) {
-                Q = inla.scale.model.bym(Q, adjust.for.con.comp = adjust.for.con.comp)
-            }
-            if (rankdef > 0) {
-                if (adjust.for.con.comp) {
-                    if (is.null(g)) g = inla.read.graph(Q) ## if 'g' exists...
-                    nc = g$cc$n
-                    constr = list(A = matrix(0, nc, n), e = rep(0, nc))
-                    for(k in 1:nc) {
-                        constr$A[k, g$cc$nodes[[k]]] = 1
-                    }
-                } else {
-                    nc = 1
-                    constr = list(A = matrix(1, nc, n), e = rep(0, nc))
-                }
-                Qinv.d = diag(inla.qinv(Q + Diagonal(n) * max(diag(Q)) * eps, constr))
-            } else {
-                Qinv.d = diag(inla.qinv(Q))
-            }
-            f = mean(Qinv.d) - 1.0
-            use.eigenvalues = FALSE
-        } else {
-            if (scale.model) {
-                fac = exp(mean(log(diag(inla.ginv(x=as.matrix(Q), rankdef=rankdef)))))
-                Q = fac * Q
-            }
-            e = eigen(as.matrix(Q))
-            gamma.inv = c(1/e$values[1:(n-rankdef)], rep(0, rankdef))
-            gamma.invm1 = gamma.inv - 1.0
-            Qinv.d = c(diag(e$vectors %*% diag(gamma.inv) %*% t(e$vectors)))
-            f = mean(Qinv.d) - 1.0
-            use.eigenvalues = TRUE
+        if (scale.model) {
+            Q = inla.scale.model.bym(Q, adjust.for.con.comp = adjust.for.con.comp)
         }
+        if (rankdef > 0) {
+            if (adjust.for.con.comp) {
+                if (is.null(g)) g = inla.read.graph(Q) ## if 'g' exists...
+                nc = g$cc$n
+                constr = list(A = matrix(0, nc, n), e = rep(0, nc))
+                for(k in 1:nc) {
+                    constr$A[k, g$cc$nodes[[k]]] = 1
+                }
+            } else {
+                nc = 1
+                constr = list(A = matrix(1, nc, n), e = rep(0, nc))
+            }
+            Qinv.d = diag(inla.qinv(Q + Diagonal(n) * max(diag(Q)) * eps, constr))
+        } else {
+            Qinv.d = diag(inla.qinv(Q))
+        }
+        f = mean(Qinv.d) - 1.0
+        use.eigenvalues = FALSE
     } else {
         n = length(eigenvalues)
         eigenvalues = pmax(0, sort(eigenvalues, decreasing=TRUE))
@@ -176,8 +159,9 @@ inla.pc.bym.phi = function(
         phi.s = 1/(1+exp(-seq(-12, 12, len=40)))
         d = numeric(length(phi.s))
         log.q1.det = inla.sparse.det.bym(Q, adjust.for.con.comp = adjust.for.con.comp)
-        d = unlist(inla.mclapply(phi.s, 
-            function(phi) {
+        d = unlist(
+            inla.mclapply(phi.s, 
+                          function(phi) {
                 aa = n*phi*f
                 ## add eps for stability for small phi. This is
                 ## hack to get it close to the eigenvalue
@@ -192,11 +176,13 @@ inla.pc.bym.phi = function(
                 bb = n * log((1.0 - phi)/phi) +
                     inla.sparse.det.bym(Q + (phi/(1-phi) + eps) * Diagonal(n), rankdef = rdef,
                                         adjust.for.con.comp = adjust.for.con.comp) -
-                                            (log.q1.det - (n-rankdef) * log(phi))
+                (log.q1.det - (n-rankdef) * log(phi))
                 return (if (aa >= bb) sqrt(aa-bb) else NA)
-            }))
+            }
+            )
+        )
     }
-            
+    
     ## remove phi's that failed, if any
     remove = is.na(d)
     d = d[!remove]
@@ -249,8 +235,8 @@ inla.pc.bym.phi = function(
             idx = which.min(f.target(lam, alpha, f.d(u), d.max))
             ## then call the optimiser...
             r = optimise(f.target, interval = c(lam[idx-1], lam[idx+1]),
-                maximum = FALSE,
-                alpha = alpha, d.u = f.d(u), d.max = d.max)
+                         maximum = FALSE,
+                         alpha = alpha, d.u = f.d(u), d.max = d.max)
             stopifnot(abs(r$objective) < 1e-3)
             lambda = r$minimum
         }
@@ -270,7 +256,7 @@ inla.pc.bym.phi = function(
         theta = log(phi.s/(1-phi.s))
         log.prior.theta = log.prior + log(exp(-theta)/(1+exp(-theta))^2)
         theta.prior.table = paste(c("table:", cbind(theta, log.prior.theta)),
-            sep = "", collapse = " ")
+                                  sep = "", collapse = " ")
         return (theta.prior.table)
     } else {
         ## return a function which evaluates the log-prior as a
