@@ -23,7 +23,8 @@ inla.sparse.det.bym = function(Q, rankdef,
     if (missing(rankdef)) {
         rankdef = nc
     }
-    diag(Q) = diag(Q) + n * max(d) * eps
+    d = diag(Q)
+    diag(Q) = d + n * max(d) * eps
     res = inla.qsample(n=1, Q=Q, sample = matrix(0, n, 1), constr = constr)
     logdet = 2.0 * (res$logdens + (n-rankdef)/2.0*log(2.0*pi))
     return (if (log) logdet else exp(logdet))
