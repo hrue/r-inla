@@ -6567,6 +6567,27 @@
                      pdf = "nmixnb"
                      ),
 
+                 gp = list(
+                     hyper = list(
+                         theta = list(
+                             hyperid =  101201,
+                             name = "shape",
+                             short.name = "xi",
+                             initial = log(0.1),
+                             fixed = FALSE,
+                             prior = "loggamma",
+                             param = c(1, 15), 
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x)
+                         )
+                     ),
+                     status = "experimental", 
+                     survival = FALSE,
+                     discrete = TRUE,
+                     link = c("default", "log"), 
+                     pdf = "genPareto"
+                 ),
+
                  logperiodogram = list(
                      hyper = list(
                          ),

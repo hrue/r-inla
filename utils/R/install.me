@@ -37,6 +37,14 @@ if [ -d $D/../inst/bin/linux/64bit/first ]; then
 fi
 ./updateBin
 
+## move stdc++  into first/
+if [ -d $DD/../inst/bin/linux/64bit/first ]; then
+    f=$(echo $DD/../inst/bin/linux/64bit/libstdc++.so*)
+    if [ -f "$f" ]; then
+	mv -v -f "$f" $DD/../inst/bin/linux/64bit/first
+    fi
+fi
+
 ## generate the exports defined in the R-files
 {
     echo ""
