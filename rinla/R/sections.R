@@ -130,7 +130,7 @@
         cat("cenpoisson.I = ", interval[1], " ",  interval[2], "\n", sep="", file=file, append=TRUE)
     }
 
-    if (inla.one.of(family, c("qloglogistic", "qkumar", "qpoisson"))) {
+    if (inla.one.of(family, c("qloglogistic", "qkumar", "qpoisson", "gp"))) {
         if (!(is.numeric(control$quantile) && (control$quantile > 0) && (control$quantile < 1))) {
             stop(paste("quantile: Must be a numeric in the interval (0, 1)"))
         }
@@ -311,7 +311,8 @@
             if (inla.one.of(random.spec$model, "bym2")) {
                 random.spec$hyper$theta2$prior = inla.pc.bym.phi(
                     graph = random.spec$graph,
-                    rankdef = random.spec$rankdef,
+                    ## have to do this automatic
+                    ## rankdef = random.spec$rankdef,
                     u = random.spec$hyper$theta2$param[1L],
                     alpha = random.spec$hyper$theta2$param[2L],
                     scale.model = TRUE,
