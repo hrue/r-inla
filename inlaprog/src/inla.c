@@ -8703,7 +8703,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	}
 	mb->idx_tag[j] = GMRFLib_strdup(mb->predictor_tag);
 	mb->idx_start[j] = idx;
-	mb->idx_n[j] = mb->predictor_m;
+	mb->idx_n[j] = mb->predictor_n;
 	idx += mb->idx_n[j++];
 	for (i = 0; i < mb->nf; i++) {
 		mb->idx_tag[j] = GMRFLib_strdup(mb->f_tag[i]);
