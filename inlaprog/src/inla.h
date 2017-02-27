@@ -814,6 +814,7 @@ struct inla_tp_struct {
 
 	char *predictor_Aext_fnm;			       /* extension: filename for the Amatrix */
 	double predictor_Aext_precision;		       /* extension: precision for the Amatrix */
+	char *Apredictor_tag;				       /* the tag */
 
 	GMRFLib_transform_array_func_tp **transform_funcs;     /* for the fitted values */
 
