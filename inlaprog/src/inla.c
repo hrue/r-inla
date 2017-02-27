@@ -8689,16 +8689,21 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	/*
 	 * build the index table and the hash; need this before reading the lincomb sections
 	 */
-	len = 1 + mb->nf + mb->nlinear;
+	len = 1 + (mb->predictor_m > 0 ? 1 : 0) + mb->nf + mb->nlinear;
 	mb->idx_tag = Calloc(len, char *);
 	mb->idx_start = Calloc(len, int);
 	mb->idx_n = Calloc(len, int);
 
 	j = idx = 0;
+	if (mb->predictor_m > 0) {
+		mb->idx_tag[j] = GMRFLib_strdup(mb->Apredictor_tag);
+		mb->idx_start[j] = idx;
+		mb->idx_n[j] = mb->predictor_m;
+		idx += mb->idx_n[j++];
+	}
 	mb->idx_tag[j] = GMRFLib_strdup(mb->predictor_tag);
 	mb->idx_start[j] = idx;
-	mb->idx_n[j] = mb->predictor_n + mb->predictor_m;
-
+	mb->idx_n[j] = mb->predictor_m;
 	idx += mb->idx_n[j++];
 	for (i = 0; i < mb->nf; i++) {
 		mb->idx_tag[j] = GMRFLib_strdup(mb->f_tag[i]);
@@ -9236,10 +9241,10 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	int i, ok;
 	char *secname = NULL, *tmp = NULL, *tmpp = NULL, *smtp = NULL, *openmp_strategy = NULL;
 
-	mb->predictor_tag = secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
 		printf("\tinla_parse_problem...\n");
 	}
+	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 	mb->name = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "NAME"), NULL));
 	if (!mb->name) {
 		mb->name = GMRFLib_strdup(secname);
@@ -9337,10 +9342,10 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 	if (mb->verbose) {
 		printf("\tinla_parse_predictor ...\n");
 	}
-	mb->predictor_tag = secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-	if (!mb->predictor_tag) {
-		mb->predictor_tag = GMRFLib_strdup("predictor");
-	}
+	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+	mb->predictor_tag = GMRFLib_strdup("Predictor");
+	GMRFLib_sprintf(&(mb->Apredictor_tag), "A%s", mb->predictor_tag);
+
 	if (mb->verbose) {
 		printf("\t\tsection=[%s]\n", secname);
 	}
