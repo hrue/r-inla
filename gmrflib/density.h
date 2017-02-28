@@ -61,7 +61,7 @@ __BEGIN_DECLS
 /*
  * do not integrate beyond +- GMRFLib_DENSITY_INTEGRATION_LIMIT stdev's, unless requested to do so.
  */
-#define GMRFLib_DENSITY_INTEGRATION_LIMIT (8.0)
+#define GMRFLib_DENSITY_INTEGRATION_LIMIT (10.0)
 
 /* 
  *  length of work the GSL-integration routine
