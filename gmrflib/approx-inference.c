@@ -4440,7 +4440,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						log_dens *= -1.0;
 
 						val = log_dens - log_dens_mode;
-						if (-val > ai_par->diff_log_dens) {
+						if ((ISINF(val) || ISNAN(val)) || -val > ai_par->diff_log_dens) {
 							GMRFLib_ai_pool_set(pool, idx, val);
 							if (ai_par->fp_log) {
 #pragma omp critical
@@ -7843,7 +7843,7 @@ int GMRFLib_ai_pool_intern(GMRFLib_ai_pool_tp * pool, int *iz, size_t * idx, dou
 				}
 			}
 		} else if (action == GMRFLib_AI_POOL_SET) {
-			if (-logdens > pool->diff_log_dens) {
+			if ((ISNAN(logdens) || ISINF(logdens)) || -logdens > pool->diff_log_dens) {
 				int *izz = NULL, *izz_local = NULL, larger;
 
 				izz = Calloc(pool->nhyper, int);
