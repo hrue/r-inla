@@ -36,8 +36,7 @@ inla.rgeneric.wrapper(
   \item{debug}{Logical. Turn on/off debugging}
   \item{cmd}{An allowed request}
   \item{theta}{Values of theta}
-  \item{...}{Named list of variables or environments,
-             that defines the environment of \code{model}}
+  \item{...}{Named list of variables that defines the environment of \code{model}}
   \item{debug}{Logical. Enable debug output}
 }
 
