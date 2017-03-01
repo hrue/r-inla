@@ -55,7 +55,7 @@ rgeneric.linear.regression =
         return(invisible())
     }
 
-    val = do.call(match.arg(cmd))
+    val = do.call(match.arg(cmd), args = list())
     return(val)
 }
 

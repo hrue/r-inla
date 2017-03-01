@@ -136,7 +136,7 @@ are fixed.  The skeleton-function for defining a model is
     initial = function() { <to be completed> }
     quit = function() { <to be completed> }
 
-    val = do.call(match.arg(cmd))
+    val = do.call(match.arg(cmd), args = list())
     return (val)
 }
 \end{verbatim}
@@ -480,7 +480,7 @@ predefined in the \texttt{INLA}-library.
         return (invisible())
     }
 
-    val = do.call(match.arg(cmd))
+    val = do.call(match.arg(cmd), args = list())
     return (val)
 }
 \end{verbatim}
@@ -557,7 +557,7 @@ run this model in \texttt{R}, you may do \texttt{demo(rgeneric)}.
         return (invisible())
     }
 
-    val = do.call(match.arg(cmd))
+    val = do.call(match.arg(cmd), args = list())
     return (val)
 }
 \end{verbatim}
