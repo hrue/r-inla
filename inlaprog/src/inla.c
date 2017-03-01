@@ -14428,8 +14428,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	 */
 	int i, j, k, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg =
-	    NULL, default_tag[100], *file_loc, *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL, *rgeneric_Rinit =
-	    NULL;
+		NULL, default_tag[100], *file_loc, *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL; 
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern =
 	    NULL, **group_rho_intern = NULL, **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 =
 	    NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL, **h2_intern =
@@ -16908,11 +16907,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	{
 		rgeneric_filename = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC.FILE"), NULL);
 		rgeneric_model = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC.MODEL"), NULL);
-		rgeneric_Rinit = iniparser_getstring(ini, inla_string_join(secname, "RGENERIC.RINIT"), NULL);
 
 		if (mb->verbose) {
 			printf("\t\trgeneric.file   [%s]\n", rgeneric_filename);
-			printf("\t\trgeneric.Rinit  [%s]\n", rgeneric_Rinit);
 			printf("\t\trgeneric.model  [%s]\n", rgeneric_model);
 		}
 
@@ -16922,7 +16919,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 #pragma omp critical
 		{
 			inla_R_library("INLA");
-			inla_R_inlaload(rgeneric_Rinit);
 			inla_R_load(rgeneric_filename);
 		}
 
@@ -19859,7 +19855,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		inla_rgeneric_tp *def = Calloc(1, inla_rgeneric_tp), *def_orig = Calloc(1, inla_rgeneric_tp);
 		double ***tptr;
 
-		def->file_init = GMRFLib_strdup(rgeneric_Rinit);
 		def->filename = GMRFLib_strdup(rgeneric_filename);
 		def->model = GMRFLib_strdup(rgeneric_model);
 		def->mu = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
@@ -19876,7 +19871,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			def->theta = NULL;
 		}
 
-		def_orig->file_init = GMRFLib_strdup(rgeneric_Rinit);
 		def_orig->filename = GMRFLib_strdup(rgeneric_filename);
 		def_orig->model = GMRFLib_strdup(rgeneric_model);
 		def_orig->mu = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
