@@ -63,7 +63,7 @@
          scale = NULL,
          strata = NULL,
          rgeneric = NULL,
-         scale.model = NULL,
+         scale.model = FALSE,
          args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL),
          correct = NULL,
          debug = FALSE)
