@@ -1,4 +1,3 @@
-
 ## Export: inla.rgeneric.ar1.model 
 ## Export: inla.rgeneric.iid.model 
 ## Export: inla.rgeneric.define
@@ -235,7 +234,7 @@
     if (any(names(args) == "")) {
         stop("The '...' argument in 'inla.rgeneric.define()' needs *named* arguments.")
     }
-    environment(model) = if (length(args) > 0) as.environment(args) else new.env()
+    environment(model) = if (length(args) > 0) as.environment(args) else NULL
     rmodel = list(
         f = list(
             model = "rgeneric", 
