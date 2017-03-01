@@ -38,8 +38,7 @@
 ##!  \item{debug}{Logical. Turn on/off debugging}
 ##!  \item{cmd}{An allowed request}
 ##!  \item{theta}{Values of theta}
-##!  \item{...}{Named list of variables or environments,
-##!             that defines the environment of \code{model}}
+##!  \item{...}{Named list of variables that defines the environment of \code{model}}
 ##!  \item{debug}{Logical. Enable debug output}
 ##!}
 ##!
@@ -64,7 +63,7 @@
     ## the lag-1 correlation and 'prec' is the *marginal* (not
     ## conditional) precision.
     
-    interpret.theta = function(theta)
+    interpret.theta = function()
     {
         ## internal helper-function to map the parameters from the internal-scale to the
         ## user-scale
@@ -72,7 +71,7 @@
                      rho = 2*exp(theta[2L])/(1+exp(theta[2L])) - 1.0))
     }
 
-    graph = function(theta)
+    graph = function()
     {
         ## return the graph of the model. the values of Q is only interpreted as zero or
         ## non-zero. return a sparse.matrix
@@ -98,10 +97,10 @@
         return (G)
     }
 
-    Q = function(theta)
+    Q = function()
     {
         ## returns the precision matrix for given parameters
-        param = interpret.theta(theta)
+        param = interpret.theta()
         if (FALSE) {
             ## slow and easy: dense-matrices
             Q = param$prec/(1-param$rho^2) * toeplitz(c(1+param$rho^2, -param$rho, rep(0, n-2L)))
@@ -129,45 +128,44 @@
         return (Q)
     }
 
-    mu = function(theta)
+    mu = function()
     {
         return (numeric(0))
     }
         
-    log.norm.const = function(theta)
+    log.norm.const = function()
     {
         ## return the log(normalising constant) for the model
-        param = interpret.theta(theta)
+        param = interpret.theta()
         prec.innovation  = param$prec / (1.0 - param$rho^2)
         val = n * (- 0.5 * log(2*pi) + 0.5 * log(prec.innovation)) + 0.5 * log(1.0 - param$rho^2)
         return (val)
     }
 
-    log.prior = function(theta)
+    log.prior = function()
     {
         ## return the log-prior for the hyperparameters. the '+theta[1L]' is the log(Jacobian)
         ## for having a gamma prior on the precision and convert it into the prior for the
         ## log(precision).
-        param = interpret.theta(theta)
+        param = interpret.theta()
         val = (dgamma(param$prec, shape = 1, rate = 1, log=TRUE) + theta[1L] + 
                    dnorm(theta[2L], mean = 0, sd = 1, log=TRUE))
         return (val)
     }
 
-    initial = function(theta)
+    initial = function()
     {
         ## return initial values
         ntheta = 2
         return (rep(1, ntheta))
     }
 
-    quit = function(theta)
+    quit = function()
     {
         return (invisible())
     }
 
-    cmd = match.arg(cmd)
-    val = do.call(cmd, args = list(theta = theta))
+    val = do.call(match.arg(cmd))
     return (val)
 }
 
@@ -178,63 +176,66 @@
     ## this is an example of the 'rgeneric' model. here we implement the iid model as described
     ## in inla.doc("iid"), without the scaling-option
 
-    interpret.theta = function(theta)
+    interpret.theta = function()
     {
         return (list(prec = exp(theta[1L])))
     }
 
-    graph = function(theta)
+    graph = function()
     {
         G = Diagonal(n, x= rep(1, n))
         return (G)
     }
 
-    Q = function(theta)
+    Q = function()
     {
-        prec = interpret.theta(theta)$prec
+        prec = interpret.theta()$prec
         Q = Diagonal(n, x= rep(prec, n))
         return (Q)
     }
 
-    mu = function(theta)
+    mu = function()
     {
         return (numeric(0))
     }
     
-    log.norm.const = function(theta)
+    log.norm.const = function()
     {
-        prec = interpret.theta(theta)$prec
+        prec = interpret.theta()$prec
         val = sum(dnorm(rep(0, n), sd = 1/sqrt(prec), log=TRUE))
         return (val)
     }
 
-    log.prior = function(theta)
+    log.prior = function()
     {
-        prec = interpret.theta(theta)$prec
+        prec = interpret.theta()$prec
         val = dgamma(prec, shape = 1, rate = 1, log=TRUE) + theta[1L]
         return (val)
     }
 
-    initial = function(theta)
+    initial = function()
     {
         ntheta = 1
         return (rep(1, ntheta))
     }
 
-    quit = function(theta)
+    quit = function()
     {
         return (invisible())
     }
 
-    cmd = match.arg(cmd)
-    val = do.call(cmd, args = list(theta = theta))
+    val = do.call(match.arg(cmd))
     return (val)
 }
 
 `inla.rgeneric.define` = function(model = NULL, debug = FALSE, ...)
 {
     stopifnot(!missing(model))
-    environment(model) = as.environment(as.list(...))
+    args = list(...)
+    if (any(names(args) == "")) {
+        stop("The '...' argument in 'inla.rgeneric.define()' needs *named* arguments.")
+    }
+    environment(model) = if (length(args) > 0) as.environment(args) else new.env()
     rmodel = list(
         f = list(
             model = "rgeneric", 
