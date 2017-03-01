@@ -18,7 +18,7 @@
 \description{A framework for defining latent models in R}
 
 \usage{
-inla.rgeneric.define(model = NULL, debug = FALSE, R.init = NULL, ...)
+inla.rgeneric.define(model = NULL, debug = FALSE, allow.GlobalEnv = FALSE, ...)
 inla.rgeneric.iid.model(
         cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
         theta = NULL, args = NULL)
@@ -33,10 +33,11 @@ inla.rgeneric.wrapper(
 \arguments{
 
   \item{model}{The definition of the model; see \code{inla.rgeneric.ar1.model}}
+  \item{debug}{Logical. Turn on/off debugging}
+  \item{allow.GlobalEnv}{Logical. Allow to pass the GlobalEnv as the environment to \code{model}, 
+                         otherwise it is replaced with an empty environment}
   \item{cmd}{An allowed request}
   \item{theta}{Values of theta}
-  \item{debug}{Logical. Turn on/off debugging}
-  \item{R.init}{An R-file to be loaded or sourced, when the R-engine starts. See \code{inla.load}}
   \item{args}{A list. A list of further args}
   \item{...}{Further args}
   \item{debug}{Logical. Enable debug output}
