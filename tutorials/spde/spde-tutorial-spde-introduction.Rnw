@@ -3,14 +3,24 @@
 
 \section{The projector matrix}\label{sec:projmat} 
 
-\SweaveOpts{prefix.string=figs/mesh}
-<<sett,echo=F,results=hide>>=
+The R source for this example is available at
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-spde-introduction.R}
+
+
+<<include=FALSE>>=
+library(knitr)
+opts_chunk$set(
+fig.path='figs/mesh'
+)
+@
+
+<<sett,echo=F,results='hide'>>=
 options(width=75, prompt = " ", continue = "   ")
-require(INLA) 
+library(INLA) 
 data(SPDEtoy)
 load('mesh1.RData')
 load('mesh5.RData')
-source('spde-tutorial-functions.R') 
+source('R/spde-tutorial-functions.R') 
 @ 
 
 Because the SPDE model is defined on the 
@@ -163,157 +173,3 @@ dim(attr(x1, 'A'))
 @ 
 
 This function is used in some of next Chapters.
-
-\section{Maximum likelihood inference}
-
-We have that the latent random field $x$ 
-is distributed as 
-\[ x|\bQ \sim N(0, \bQ^{-1})\;\]
-where $\bQ = \bQ(\theta)$, 
-$\theta=\{\theta_1, \theta_2\}$ with 
-
-$\theta_1$=log($\tau$) and $\theta_2$=log($\kappa$). 
-Under the toy model, whe have an GF plus noise 
-for the observation data. So, we have 
-\[y|\mu_y,x,\bA,\bQ,\sigma_y^2 \sim N(\mu_y + \bA x, \bI \sigma^2_y)\;.\]
-Integrating out $x$, we have that 
-\[ y | \mu_y, \bQ, \bA, \sigma_y^2 \sim 
-N(\mu_y, (\bA \bQ \bA' + \bI\sigma_y^2)^{-1}) \;.\]
-
-The log-likelihood function, 
-marginalized with respect $x$, becomes 
-\[
--\frac{n}{2}\log(2\pi)-|\Sigma|-
-\frac{1}{2}(y-\bF\beta)^{'}\Sigma^{-1}(y-\bF\beta) 
-\]
-where 
-$\Sigma = (\bA \bQ \bA' + \bI\sigma_y^2)^{-1}$ 
-and $\bQ=\bQ(\theta) = \bQ(\tau,\kappa)$. 
-We choose $\tau^{'}$ to have marginal variance of $x$ equal 1, 
-$\bQ(\tau^{'}, \kappa))$ = $\bQ^{'}$. 
-In this case we write 
-$\bW = (r\bI + Q(\tau^{'}, \kappa))$ 
-where $r=\frac{\sigma^2_e}{\sigma^2_x}$ and 
-\[
-\Sigma = \sigma^2_x\bW\;.
-\] 
-
-Now, we can write a concentrated likelihood deriving 
-the likelihood with respect to $\sigma^2_x$ and $\beta$. 
-We have that 
-\[ (\bF^{'}\bW\bF)\hat{\beta} = \bF^{'}\bW\by \;.\] 
-and 
-\[
-\hat{\sigma}^2_x = (y_i-\bF\hat{\beta})^{'}\bW(y_i-\bF\hat{\beta})/n
-\] 
-
-Now, we can work with the log-likelihood 
-as a function of a relative variance, instead of the noise variance, 
-and the scale parameter $\kappa$. 
-The concentrated log-likelihood can be writed as 
-\[
--\frac{1}{2}\{|\bW| + n[\log(2\pi\hat{\sigma}^2_x)+1]\}
-\]
-And we can use a quasi-Newton 
-optimization algorithim to find the maximum 
-likelihood estimate of each the two parameters 
-in the concentrated likelihood. 
-These parameters are the ones in the $\bW$ matrix and 
-are parametrized as log($r$) and log($\kappa$). 
-
-To evaluate the likelihood function efficiently 
-we need to compute the determinant $|\bW|$ 
-and $\bW$ itself. Both computations needs care. 
-We have that 
-$\bW = (r\bI + Q(\tau^{'}, \kappa))$. 
-
-To evaluate the determinant, we use a 
-matrix determinant lemma such that we have 
-\[\det(r\bI + \bA \bQ \bA^{'}) = 
-  \det(\bQ + \bA^{'}r\bA) \det(\bQ) \det(r\bI)\;.
-  \]
-We implement the following function to compute it 
-<<precdetf,echo=F>>=
-precDetFun
-@ 
-
-The precision matrix can be evaluated 
-using the Woodbury matrix identity. 
-It says that for $\bC$ and $\bW$ invertible 
-matrices we have  
-\[(r\bI + \bA \bQ \bA^{'})^{-1} = 
- r^{-1}\bI - r^{-1}\bI\bA(\bQ + 
-  \bA r^{-1}\bA)^{-1}\bA r^{-1}\;.\]
-We implement it with the following function
-<<precf,echo=F>>=
-precFun
-@ 
-
-Considering $\theta$ and log($\sigma_y^2$) as a 
-three parameter vetor, we have the following 
-negative of the log likelihood function 
-<<nllf,echo=F>>=
-negLogLikFun
-@ 
-
-We proceed the maximum likelihood estimation, 
-for the toy example dataset and compare with 
-the results from \pkg{geoR} package of previous Chapter. 
-We remember also the true parameter values
-<<true>>=
-beta0 <- 10; sigma2e <- 0.3; sigma2x <- 5; kappa <- 7; nu <- 1
-@ 
-
-We call the data
-<<spdetoydata>>=
-data(SPDEtoy)
-@ 
-build the mesh (using the true scale parameter to 
-determine the edge lengths and \code{cutoff}), 
-SPDE model (with $\alpha=2$) 
-and the projector matrix
-<<dprep>>=
-xy <- as.matrix(SPDEtoy[,1:2])
-(mesh <- inla.mesh.2d(xy, max.edge=c(0.5, 1)/kappa, 
-                      cutoff=0.1/kappa))$n 
-spde <- inla.spde2.matern(mesh)
-A <- inla.mesh.project(mesh, loc=xy)$A
-@
-
-The maximum likelihood estimation is done 
-using the \code{optim()} function. 
-Using the default Nelder-Mead method
-<<nm>>= 
-opt <- optim(log(c(sigma2e/sigma2x, kappa)), 
-             negLogLikFun, hessian=TRUE,
-             X=matrix(1,nrow(xy)), A=A, 
-             y=SPDEtoy[,3], spde=spde)
-@ 
-
-We also define a function to map the 
-SPDE model parameters to the 
-$\sigma_x^2$ and $\kappa$ user parameters. 
-The function below recieves $\theta$, 
-log($\sigma_y^2$) and $\beta$ (regression 
-parameters) and returns $\sigma_x^2$, $\kappa$, 
-$\sigma_y^2$ and $\beta$. 
-<<par2user,echo=F>>=
-par2user
-@ 
-
-We use this function to compare the results with 
-the results from the \code{geoR} package 
-<<lkfgeoR>>=
-require(geoR)
-lkf <- likfit(as.geodata(SPDEtoy),
-              ini=c(sigma2x, 1/kappa), 
-              kappa=1, ### kappa in geoR is nu 
-              nugget=sigma2e, messages=FALSE)
-@ 
-and have similar results 
-<<compare>>=
-rbind(spde=par2user(opt$par, matrix(1, nrow(A)), A, SPDEtoy[,3], spde),
-      geoR=c(lkf$beta, lkf$nugget, lkf$sigmasq, 1/lkf$phi), 
-      true=c(beta0, sigma2e, sigma2x, kappa)) 
-@ 
-

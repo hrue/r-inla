@@ -1,0 +1,381 @@
+\chapter{Likelihood estimation via SPDE}\label{ch:likelihood}
+
+The R source for this example is available at
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-likelihood.R}
+
+
+<<settings,include=FALSE>>=
+library(knitr)
+opts_chunk$set(
+fig.path='figs/lik',
+message=FALSE, warning=FALSE
+)
+options(width=75, prompt = " ", continue = "   ")
+library(INLA)
+source('R/spde-tutorial-functions.R')
+@ 
+
+We will perform maximum likelihood estimation
+for the model parameters for the toy example 
+dataset in Section~\ref{sec:simulatoy}. 
+We can load this dataset by 
+<<spdetoy>>=
+data(SPDEtoy)
+@ 
+
+\subsection{The toy model}
+
+The model for the toy dataset simulated in 
+Section~\ref{sec:simulatoy} considers that 
+\[y_i = \beta_0 + x_i + e_i\] 
+where $\beta_0$ is the overall mean, 
+$x_i$ is the random field at location $i$ 
+and $e_i$ is an independent error.
+We have that the latent random field $\bx$ 
+is distributed as 
+\[ \bx|\bQ \sim N(0, \bQ^{-1})\;\]
+where $\bQ = \bQ(\theta)$, 
+$\theta=\{\theta_1, \theta_2\}$ with 
+$\theta_1$=log($\tau$) and $\theta_2$=log($\kappa$). 
+
+When considering the SPDE approach, 
+the model for the toy example is written as 
+\[y_i = \beta_0 + \bA_i x_i + e_i\]
+where $\bA_i$ is the line $i$ of the projector matrix 
+defined in Section~\ref{sec:projector}. 
+Them we have that 
+\[\by|\mu_y,x,\bA,\bQ,\sigma_y^2 \sim 
+N(\mu_y + \bA x, \bI \sigma^2_e)\;.\]
+where $\mu_y=\bF\beta$ is the fixed effect part. 
+
+We can consider the parameter values used to 
+simulate the \texttt{SPDEtoy} dataset
+<<true>>=
+beta0 <- 10; sigma2e <- 0.3; sigma2x <- 5; kappa <- 7; nu <- 1
+@ 
+
+We build the mesh (using the true scale parameter to 
+determine the edge lengths and \code{cutoff})
+and the projector matrix
+<<dprep>>=
+(n <- nrow(coords <- as.matrix(SPDEtoy[,1:2])))
+p.range <- sqrt(8)/kappa
+(mesh <- inla.mesh.2d(coords, max.edge=c(0.2, 0.7)*p.range, 
+                      cutoff=0.01*p.range, offset=c(0.2,1)*p.range))$n
+A <- inla.mesh.project(mesh, loc=coords)$A
+@
+
+To define the SPDE model we can define it as 
+range and marginal standard deviation. 
+It can be done following the equations (4) to (7) 
+in \cite{lindgrenR:2013}. 
+That is, the parameters are the practical range 
+and the marginal standard deviation.
+As we have $\alpha=2$ them $\nu=1$ and we have
+<<spde>>=
+k0 <- log(8)/2
+t0 <- 0.5*(lgamma(1) -lgamma(2) -log(4*pi)) -k0
+spde <- inla.spde2.matern(
+    mesh, B.tau=cbind(t0, 1, -1), B.kappa=cbind(k0, -1, 0))
+@ 
+
+\subsection{Marginal integrated likelihood}\label{sec:marginallik}
+
+It is useful to use the partial 
+derivatives with respect to each parameter to 
+compute the Fisher information matrix. 
+We can then use it in the Newton-Raphson algorithm 
+or in the Fisher scoring algorithm. 
+It is even better if there exists closed form 
+expressions for the maximum likelihood estimators 
+to some of the parameters. 
+
+Under a Gaussian likelihood we have that the
+mean is orthogonal to the variance. 
+This implies we can use closed form expressions to estimate the mean, 
+or (in general) the regression parameters. 
+Additionally, we can re-write the covariance and 
+derive a closed form expression to estimate $\sigma_x^2$. 
+Then an optimization algorithm can be used for the 
+remaining parameters. 
+
+Integrating out $x$, we have that 
+\[ y | \mu_y, \bQ, \bA, \sigma_y^2 \sim 
+N(\mu_y, (\bA \bQ \bA' + \bI\sigma_y^2)^{-1}) \;.\]
+This can also be seen just considering 
+\[\textrm{E}(\by) = \mu_y + \bA \textrm{E}(\bx) = \mu_y = \bF\beta\]
+and 
+\[\textrm{Var}(\by) = \bA \textrm{Var}(\bx) \bA' + \textrm{Var}(\bepsilon) = \bA\bQ\bA' + \sigma^2_e\bI \;.\]
+Them consider the fact that $\by$ follows a 
+Multivariage Normal distribution 
+with mean and covariance as just computed. 
+
+The log-likelihood function can them written as 
+\[
+-\frac{n}{2}\log(2\pi)+|\bQ_y|-
+\frac{1}{2}(y-\bF\beta)^{'}\bQ_y(y-\bF\beta) 
+\]
+where 
+$\bQ_y = \bA \bQ \bA' + \bI\sigma_y^2$ 
+and $\bQ=\bQ(\theta) = \bQ(\tau,\kappa)$. 
+
+The task is to find $\sigma_y$, $\tau$ and $\kappa$ 
+that maximizes the likelihood. 
+It can be done using a quasi-Newton optimization algorithm. 
+In this particular problem it is usual to reduce 
+from three to two the number of parameters in the 
+optimization procedure. 
+
+First, we choose $\tau^{*}$ that corresponts to have marginal 
+variance equals to one for $x$, using the relationship
+$\tau = 1/\sqrt(4\pi\kappa^2\sigma_x^2)$, so 
+$\tau^{*} = 1/\sqrt(4\pi\kappa^2)$ and, 
+in the log scale, 
+\[\log(\tau^{*}) = 
+-\log(\kappa) - 2*\sqrt(\pi) = 
+-\log(\kappa) - 3.544908\]. 
+
+We then have 
+\begin{eqnarray}
+ \bQ_y & = & \sigma^2_e(\bI + \frac{1}{\sigma^2_e}\bA \bQ \bA') \nonumber \\
+  & = & \sigma^2_e(r\bI + \bA \bQ^{*} \bA) \nonumber     
+  & = & \sigma^2_e\bW \nonumber     
+\end{eqnarray}\]
+where $\bQ^{*}=\bQ(\tau^{*}, \kappa))$ and 
+$r=\frac{\sigma^2_e}{\sigma^2_x}$. 
+
+We can derive the likelihood with respect to 
+$\sigma^2_x$ and $\beta$ in order to have  
+analytic expressions for both 
+$\hat{\beta}$ and $\hat{\sigma^2_x}$. 
+For $\beta$ we have 
+\[ (\bF^{'}\bW\bF)\hat{\beta} = \bF^{'}\bW\by \;.\] 
+For $\sigma^2_x$ we have 
+\begin{eqnarray}
+\hat{\sigma}^2_x & = & (y-\bF\hat{\beta})^{'}\bW(y-\bF\hat{\beta})/n \nonumber \\ 
+  & = & z'(r\bI + \bA \bQ^{*} \bA) z \nonumber \\
+  & = & r z'z + z'\bA \bQ^{*} \bA z \nonumber 
+\end{eqnarray} 
+where $z = y - \bF \hat{\beta} $ and $z'\bA$ can 
+be evaluated first them multiplied by $\bQ^{*}$. 
+Notice that is computed $\hat{\beta}$ first 
+and then $\hat{\sigma}^2_x$.
+Both have to be computed for each evaluation of the 
+concentrated likelihood in the optimization process. 
+
+We can plug-in $\hat{\beta}$ and $\hat{\sigma^2_x}$ in 
+the likelihood having a concentrated 
+log-likelihood as follows 
+\begin{eqnarray}
+  l(r,\kappa) & = & -\frac{1}{2}[\log(2\pi) -\log(|\bQ_y|) + 
+  (y-\bF\beta)'\bQ_y(y-\bF\beta)] \nonumber \\
+ & = & -\frac{1}{2}[\log(2\pi) + log(\hat{\sigma}^2_x) - \log(|\bQ^{*}_y|) + 
+       \frac{z'(n\hat{\sigma}^2_x)z}{\hat{\sigma}^2_x} \nonumber \\
+ & = & -\frac{1}{2}\{|\bW| + n[\log(2\pi\hat{\sigma}^2_x)+1]\}\;. 
+\end{eqnarray} 
+A quasi-Newton optimization algorithim 
+can be used to find the maximum 
+likelihood estimate for $r$ and $\kappa$ 
+in the concentrated likelihood. 
+In order to avoid numerical problems we consider 
+log($r$) and log($\kappa$). 
+
+The two costly tasks is the evaluation of $|\bW|$ and $bQ_y$. 
+An efficient way is to use the 
+matrix determinant lemma where 
+\[\det(r\bI + \bA (\bQ^{*})^{-1} \bA^{'}) = 
+  \det(\bQ + \frac{1}{r}\bA^{'}\bA) \det((\bQ^{*})^{-1}) \det(r\bI)\;.
+  \]
+The precision matrix can be evaluated 
+using the Woodbury matrix identity as follows 
+\[(r\bI + \bA (\bQ^{*})^{-1} \bA^{'})^{-1} = 
+ r^{-1}\bI - r^{-1}\bI\bA(\bQ^{*} + 
+  \bA r^{-1}\bA)^{-1}\bA r^{-1}\;.\]
+We have the \texttt{negLogLikFun()} function 
+in the file at 
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}.
+This function considers 'pars' as the log($r$) and 
+log of the practical range $\sqrt(8)/\kappa$. 
+
+We will use this function to proceed the 
+maximum likelihood estimation 
+for the toy example dataset. 
+Both parameters are considered in log scale for the 
+optimization algorithm 
+<<integrated>>=
+system.time(
+    opt.i <- optim(
+        log(c(sigma2e/sigma2x, sqrt(8)/kappa)), 
+        negLogLikFun, X=matrix(1, n), A=A, 
+        y=SPDEtoy[,3], spde=spde, method='BFGS'))
+@ 
+
+
+We have to compute it back in the user scale and to 
+compute $\hat{\beta}$ and $\hat{\sigma}^2_e$ as well. 
+We can just use the \texttt{negLogLikFun()} function as follows
+<<userpar1>>=
+r1 <- negLogLikFun(opt.i$par, matrix(1, n), A, SPDEtoy[,3], spde)
+(est.i <- attr(r1, 'params'))
+@ 
+
+
+\section{Conditional likelihood}\label{sec:condlik}
+
+One problem with the computation of the 
+marginal likelihood is the need of 
+computing the marginal precision. 
+This can have a not nice structure if $n$ grows 
+and can be a big matrix. 
+We can avoid it by considering 
+\[p(y|\theta) = \frac{p(y|x,\theta)p(x|\theta)}{p(x|y,\theta)}\]
+were $p(y|x,\theta$ is the product of univariate densities 
+following the conditionl independency property. 
+
+Considering the toy model we have 
+
+We can define a function to build the entire Q matrix
+<<qfunction>>=
+qf <- function(theta) {
+    qs <- inla.spde2.precision(spde, theta[-1])
+    rBind(cBind(qs, 
+                sparseMatrix(i=NULL, j=NULL, dims=c(nrow(qs),1))), 
+          sparseMatrix(i=1, j=ncol(qs)+1, x=0.01))
+}
+@ 
+
+The maximum likelihood estimation can be done 
+using the \code{optim()} function with 
+the 'BFGS' optimization algorithm 
+<<optc,results='hide'>>=
+system.time(
+    opt.m <- optim(
+        log(c(sigma2e, sqrt(8)/kappa, sqrt(sigma2x))),
+        negLogLikFunGA, A=cBind(A, 1), 
+        y=SPDEtoy[,3], qfun=qf, method='BFGS'))
+@ 
+
+We can have 'x' at the modal theta evaluating the 
+\texttt{negLogLikFunGA()} at the model configuration 
+of the hyperparameters and asking it to return it, 
+as follows
+<<xmode>>=
+x.res <- negLogLikFunGA(opt.m$par, A=cBind(A, 1), 
+        y=SPDEtoy[,3], qfun=qf, only.value=FALSE)
+(est.m <- c(attr(x.res, 'x')[ncol(A)+1], exp(opt.m$par[1]), 
+            exp(2*opt.m$par[3]), exp(opt.m$par[2])))
+@ 
+
+We can compare the results with 
+the results from the \code{geoR} package 
+<<lkfgeoR>>=
+library(geoR)
+lkf <- likfit(as.geodata(SPDEtoy),
+              ini=c(sigma2x, 1/kappa), 
+              kappa=1, ### kappa in geoR is nu 
+              nugget=sigma2e, messages=FALSE)
+@ 
+in order to show that we have similar results 
+<<compare>>=
+rbind(est.i=est.i, true=c(beta0, sigma2e, sigma2x, sqrt(8)/kappa), 
+      geoR=c(lkf$beta, lkf$nugget, lkf$sigmasq, sqrt(8)*lkf$phi),
+      est.m=est.m)[c(2:3,1,4),]
+@ 
+
+\section{Likelihood through data cloning}\label{sec:datacloning}
+
+The data clone algorithm for spatial models is described in 
+\url{http://www.sciencedirect.com/science/article/pii/S0167947310004329}. 
+In the \pkg{INLA} package we have an example 
+with the hybrid data clone when the 
+random effect are 'iid' on 
+\url{http://www.math.ntnu.no/inla/r-inla.org/papers/FS8-2010-R.pdf}
+
+We consider a set of values for the 
+number of clones. 
+By cloning we use the \code{replica} 
+option on the latent field definition 
+function \code{f()}. 
+The \code{inla.spde.make.index} function 
+allow us to make the replica index. 
+
+The following code loops on the number of clones an fit the model 
+with replications 
+<<dclonerun>>=
+k <- c(1,2,3,5,10); names(k) <- k
+resk <- list()
+for (i in 1:length(k)) {
+  kk <- k[i]
+  A <- inla.spde.make.A(mesh, loc=coords, 
+                        index=rep(1:n, kk), repl=rep(1:kk, each=n))
+  ind <- inla.spde.make.index(name='i', n.spde=spde$n.spde, n.repl=kk)
+  st.dat <- inla.stack(data=list(resp=rep(SPDEtoy[,3], kk)),
+                       A=list(A,1),
+                       effects=list(ind, list(m=rep(1,n*kk))), tag='est')
+  resk[[i]] <- inla(resp ~ 0 + m + f(i, model=spde, replicate=i.repl),
+                    data=inla.stack.data(st.dat),
+                    control.predictor=list(A=inla.stack.A(st.dat),
+                      compute=TRUE))
+}
+@ 
+
+Collecting the results of the posterior mean 
+and posterior variance of each parameter:
+<<>>=
+r.dc <- list()
+r.dc$Intercept <- sapply(resk, function(x)
+                     c(x$summary.fix[1,1], x$summary.fix[1,2]^2))
+r.dc$Likelihood.Variance <- sapply(resk, function(x) {
+  d <- inla.tmarginal(function(x) 1/x, 
+                      x$marginals.hyperpar[[1]]) 
+  m <- inla.emarginal(function(x) x, d)
+  c(m, inla.emarginal(function(x) (x-m)^2, d))
+})
+r.dc$RF.StdDev <- sapply(resk, function(x) {
+    d <- inla.tmarginal(function(x) exp(2*x), 
+                        x$marginals.hyperpar[[3]])
+    m <- inla.emarginal(function(x) x, d)
+    c(m, inla.emarginal(function(x) (x-m)^2, d))
+}) 
+r.dc$RF.range <- sapply(resk, function(x) {
+    d <- inla.tmarginal(function(x) exp(x), 
+                        x$marginals.hyperpar[[2]])
+    m <- inla.emarginal(function(x) x, d)
+    c(m, inla.emarginal(function(x) (x-m)^2, d))
+})
+@ 
+
+As a result from the data clone strategy, 
+the behaviour of the posterior mean and 
+posterior variance for the the parameters 
+tells about identificability. 
+When we don't have identificability 
+problem we see that the mean converges to the 
+likelihood estimate and the posterior variance 
+converges to zero. 
+
+We visualize the posterior mean and posterior 
+variance of each parameter ($\beta_0$, $\sigma_y^2$, 
+$\sigma_x^2$ and $\kappa$) relative to 
+the result without clone ($k=1$). 
+Also, to compare, we visualize the 
+likelihood estimate. These plots are shown in 
+Figure~\ref{fig:dclon} with following commands
+<<dcloneplot, eval=F>>=
+par(mfrow=c(2, 2), mar=c(3,3,2,1), mgp=c(1.5,.5,0)) 
+for (i in 1:length(r.dc)) { 
+  plot(k, r.dc[[i]][2, ]/r.dc[[i]][2,1], type='o', ylim=c(0, 1.2), 
+       ylab='relative to k=1', main=names(r)[i]) 
+  lines(k, r.dc[[i]][1, ]/r.dc[[i]][1,1], type='o', lty=2, col=2) 
+  abline(h=est.i[i]/r.dc[[i]][1,1], col=3, lty=3, lwd=2) 
+  abline(h=est.i[i]/r.dc[[i]][1,1], col=4, lty=3, lwd=2) 
+}
+@ 
+\begin{figure}\centering 
+<<dclonevis,echo=FALSE,fig.width=5.5,fig.height=5.5,out.width='0.7\\textwidth'>>=
+<<dcloneplot>>
+@ 
+\caption{Likelihood estimate (blue), 
+  posterior mean (red) and posterior variance (black), 
+  relative to the respective value for $k=1$.} 
+\end{figure}\label{fig:dclon}
