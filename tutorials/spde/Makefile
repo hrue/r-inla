@@ -1,13 +1,14 @@
 RnwSOURCES = $(wildcard *.Rnw)
 texDepends = updates.tex spde-tutorial.tex $(RnwSOURCES:.Rnw=.tex) spde-tutorial.bib 
+Rdepends = $(RnwSOURCES:.Rnw=.R) 
 
 all : pdf html 
 
-pdf : $(texDepends)
+pdf : $(texDepends) $(Rdepends)
 	@echo generating spde-tutorial.pdf
 	latexmk spde-tutorial.tex -pdf -recorder -bibtex </dev/null
 
-html : $(texDepends)
+html : $(texDepends) $(Rdepends)
 	@echo generating the html output
 	./pdfepsconv.sh
 	make4ht -d html spde-tutorial.tex 'html,frames,2'
