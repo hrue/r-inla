@@ -384,7 +384,7 @@ that will be not smooth anymore.
 \subsection{Simulation of a toy data set}\label{sec:simulatoy} 
 
 We will now draw a sample from the model in Eq.~\ref{eq:toy0} 
-and will use in Section~\ref{sec:toy}. 
+and will use in Section~\ref{sec:toyexample}. 
 We consider a set of $n=100$ locations 
 on a square with area one with bottom left and 
 top right limits: (0,0) and (1,1). 
