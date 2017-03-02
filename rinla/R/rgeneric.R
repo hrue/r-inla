@@ -234,7 +234,7 @@
     if (any(names(args) == "")) {
         stop("The '...' argument in 'inla.rgeneric.define()' needs *named* arguments.")
     }
-    env = if (length(args) > 0) as.environment(args) else NULL
+    env = if (length(args) > 0) as.environment(args) else new.env()
     parent.env(env) = .GlobalEnv
     environment(model) = env
     
