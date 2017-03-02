@@ -55,7 +55,7 @@ Suggestions are welcome to \texttt{elias@r-inla.org}}
 \input{spde-tutorial-nonstationar} 
 
 \chapter{Manipulating the random field and more than one likelihood}\label{ch:manipula}
-\input{spde-tutorial-measurement_error} 
+\input{spde-tutorial-measurement-error} 
 \input{spde-tutorial-coregionalization}
 \input{spde-tutorial-linear-predictor-copy}
 

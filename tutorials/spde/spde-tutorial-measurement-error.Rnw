@@ -8,7 +8,7 @@ a spatially structured error.
 We also have a response $y$ and a covariate $c$ 
 and the misalignment. 
 The R source for this file is available at
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-measurement\_error.R}
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-measurement-error.R}
 
 <<settings,include=FALSE,message=FALSE, warning=FALSE>>=
 library(knitr)
@@ -47,7 +47,7 @@ predicted value for $c$
 $x_j$ is an zero mean random field 
 and $e_i$ is a error that remains 
 unexplained on $y$ such that 
-$e_i \~ N(0, \sigma_y^2)$ measures the. 
+$e_i \sim N(0, \sigma_y^2)$ measures the. 
 
 A particular case is when we don't have 
 the $x$ term in the model for $y$. 

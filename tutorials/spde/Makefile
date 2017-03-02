@@ -2,7 +2,13 @@ RnwSOURCES = $(wildcard *.Rnw)
 texDepends = updates.tex spde-tutorial.tex $(RnwSOURCES:.Rnw=.tex) spde-tutorial.bib 
 Rdepends = $(RnwSOURCES:.Rnw=.R) 
 
-all : pdf html 
+all : pdf html install
+
+install: spde-tutorial.pdf html/index.html
+	@echo coping the files to r-inla.org
+	cp spde-tutorial.pdf ~/bitbucket/r-inla/r-inla.org/tutorials/spde/
+	cp html/* ~/bitbucket/r-inla/r-inla.org/tutorials/spde/html/
+	cp R/* ~/bitbucket/r-inla/r-inla.org/tutorials/spde/R/
 
 pdf : $(texDepends) $(Rdepends)
 	@echo generating spde-tutorial.pdf
