@@ -136,7 +136,7 @@ round(cbind(true=sqrt(8)/kappa, result$summary.hy[c(4, 7, 10),]), 3)
 ## ----rfvar---------------------------------------------------------------
 round(cbind(true=m.var^0.5, result$summary.hy[c(5, 8, 11),]), 3)
 
-## ----zfit,eval=FALSE-----------------------------------------------------
+## ----stzfit,eval=FALSE---------------------------------------------------
 ## par(mfrow=c(1,3), mar=c(2,2,0.5,0.5), mgp=c(1.5,0.5,0))
 ## plot(drop(A%*%result$summary.ran$s1$mean), as.vector(z1),
 ##      xlab='', ylab='', asp=1); abline(0:1)
@@ -145,7 +145,7 @@ round(cbind(true=m.var^0.5, result$summary.hy[c(5, 8, 11),]), 3)
 ## plot(drop(A%*%result$summary.ran$s3$mean), as.vector(z3),
 ##      xlab='', ylab='', asp=1); abline(0:1)
 
-## ----zfitplot,echo=FALSE,fig.width=15,heigh=3,out.width='0.97\\textwidth'----
+## ----stzfitplot,echo=FALSE,fig.width=15,heigh=3,out.width='0.97\\textwidth'----
 par(mfrow=c(1,3), mar=c(2,2,0.5,0.5), mgp=c(1.5,0.5,0))
 plot(drop(A%*%result$summary.ran$s1$mean), as.vector(z1),
      xlab='', ylab='', asp=1); abline(0:1)

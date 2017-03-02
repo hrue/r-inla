@@ -10,7 +10,7 @@
 <meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)" /> 
 <!-- xhtml,html,frames,2 --> 
 <meta name="src" content="spde-tutorial.tex" /> 
-<meta name="date" content="2017-03-02 09:58:00" /> 
+<meta name="date" content="2017-03-02 11:33:00" /> 
 <link rel="stylesheet" type="text/css" href="spde-tutorial.css" /> 
 </head><body 
 >
@@ -5208,8 +5208,8 @@ class="centerline"><span
 class="colorbox" id="colorbox14565"></div></div>                                                                          </span></div>-
 <!--l. 205--><p class="indent" >   Prior for <span 
 class="cmmi-10x-x-109">&#x03C1;</span><sub><span 
-class="cmmi-8">j</span></sub> is chosen as the Penalized Complexity prior, <span class="cite">[<span 
-class="aebx-10x-x-109">?</span>]</span>  
+class="cmmi-8">j</span></sub> is chosen as the Penalized Complexity prior, <span class="cite">[<a 
+href="spde-tutorialli2.html#Xsimpsonetal:2017">Simspon et&#x00A0;al., 2017</a>]</span>
    <div  
 class="centerline"><span 
 class="colorbox" id="colorbox14598"></p>     
@@ -5522,9 +5522,9 @@ class="aett-10x-x-109">each</span></span><span id="textcolor14744"><span
 class="aett-10x-x-109">=n))</span></span>
 </div>
 </div>                                                                          </span></div>-
+                                                                                 
+                                                                                 
 <!--l. 255--><p class="indent" >   Organize the data in three data stack and join it  
-                                                                                 
-                                                                                 
    <div  
 class="centerline"><span 
 class="colorbox" id="colorbox14873"></p>     
@@ -6109,7 +6109,7 @@ class="aeitt-10x-x-109">&#x00A0;"TsparseMatrix#ANY" would also be valid</span>  
 class="centerline"><span 
 class="colorbox" id="colorbox15003">     <div class="verbatim" id="verbatim-133">
 ##&#x00A0;&#x00A0;Pre-processing&#x00A0;&#x00A0;&#x00A0;&#x00A0;Running&#x00A0;inla&#x00A0;Post-processing&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;Total
-&#x00A0;<br />##&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;1.2908297&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;298.8296235&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.7182829&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;300.8387361
+&#x00A0;<br />##&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;1.2817590&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;275.5530427&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.7301118&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;277.5649135
 </div>
 <!--l. 329--><p class="nopar" >                                                                          </span></div>-
 </p>
@@ -6428,9 +6428,13 @@ class="colorbox" id="colorbox15158">   <div class="verbatim" id="verbatim-141">
 &#x00A0;<br />##&#x00A0;Stdev&#x00A0;for&#x00A0;s3&#x00A0;0.707&#x00A0;0.647&#x00A0;0.065&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.533&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.642&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.788&#x00A0;0.630
 </div>
 <!--l. 464--><p class="nopar" >                                                                          </span></div>-
+<!--l. 468--><p class="indent" >   The posterior mean for each random field is projected to the observation locations and
+shown against the simulated correspondent fields in Figure&#x00A0;<a 
+href="#x9-1010005.4.3">5.4.3<!--tex4ht:ref: fig:stzfit --></a> with the code bellow.
    <div  
 class="centerline"><span 
-class="colorbox" id="colorbox15289">     <div class="alltt">
+class="colorbox" id="colorbox15289"></p>     
+<div class="alltt">
 <div class="obeylines-v">
 <span id="textcolor15160"><span 
 class="aett-10x-x-109">par</span></span><span id="textcolor15161"><span 
@@ -6606,9 +6610,9 @@ class="aett-10x-x-109">)</span></span>
  id="x9-1010017"></a>
                                                                                  
                                                                                  
-<!--l. 484--><p class="noindent" ><img 
+<!--l. 488--><p class="noindent" ><img 
 src="spde-tutorial102x.png" alt="PIC" class="graphics" width="413.99164pt" height="193.19785pt"  /><!--tex4ht:graphics  
-name="spde-tutorial102x.png" src="figs/stcoregzfitplot-1.eps"  
+name="spde-tutorial102x.png" src="figs/stcoregstzfitplot-1.eps"  
 -->
 <br /> </p><div class="caption" 
 ><span class="id">Figure&#x00A0;5.7: </span><span  
@@ -6616,7 +6620,7 @@ class="content">True and fitted random field values.</span></div><!--tex4ht:labe
                                                                                  
                                                                                  
    </div><hr class="endfigure" />
-<!--l. 490--><p class="indent" >   Remember that the crude approximation for the covariance and the simplifications on the
+<!--l. 494--><p class="indent" >   Remember that the crude approximation for the covariance and the simplifications on the
 inference procedure is not recommended to use in practice. It can be considered for having initial
 results. Even thou, it seems that the method was reazonable well having covered the parameter
 values used to simulate the data.
