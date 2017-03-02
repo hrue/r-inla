@@ -63,6 +63,7 @@ Suggestions are welcome to \texttt{elias@r-inla.org}}
 
 \input{spde-tutorial-spacetime}
 \input{spde-tutorial-lower-spatio-temporal}
+\input{spde-tutorial-stcoregionalization}
 \input{spde-tutorial-dynamic}
 \input{spde-tutorial-stpp}
 
