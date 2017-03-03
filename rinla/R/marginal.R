@@ -224,7 +224,7 @@
         xx = m$x
     }
     nx = length(xx)
-    dx = nx * diff(xx) / median(diff(xx))
+    dx = nx * diff(xx) / mean(diff(xx))
     xnew = c(0, cumsum(sqrt(dx)))
     xnew = xmin + (xmax - xmin) * ((xnew - min(xnew))/(max(xnew) - min(xnew)))
     fun = splinefun(xnew, xx, method = "hyman")
