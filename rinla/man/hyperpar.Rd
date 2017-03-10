@@ -18,7 +18,7 @@
          skip.configurations = TRUE,
          verbose = FALSE,
          dz = 0.75,
-         diff.logdens = 10,
+         diff.logdens = 15,
          h = NULL,
          restart = FALSE,
          quantiles = NULL, 
@@ -38,7 +38,7 @@ program should run in a verbose mode.}
 in the construction of the grid, default 0.75.}
 \item{diff.logdens}{The difference of the
 log.density for the hyperpameters to stop numerical
-integration using int.strategy='grid'.  Default 10}
+integration using int.strategy='grid'.  Default 15}
 \item{h}{The step-length for the gradient
 calculations for the hyperparameters. Default 0.01.}
 \item{restart}{A boolean defining wheather the

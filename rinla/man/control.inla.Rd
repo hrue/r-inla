@@ -23,7 +23,7 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 \item{linear.correction}{  Logical Default TRUE for the 'strategy = laplace' option.}
 \item{h}{  Numerical The step-length for the gradient calculations for the hyperparameters. Default 0.01.}
 \item{dz}{  Numerical The step-length in the standarised scale for the integration of the hyperparameters. Default 0.75.}
-\item{diff.logdens}{  Numerical The difference of the log.density for the hyperpameters to stop numerical integration using int.strategy='grid'. Default 4.}
+\item{diff.logdens}{  Numerical The difference of the log.density for the hyperpameters to stop numerical integration using int.strategy='grid'. Default 6.}
 \item{print.joint.hyper}{  Logical If TRUE, the store also the joint distribution of the hyperparameters (without any costs). Default TRUE.}
 \item{force.diagonal}{  Logical If TRUE, then force the Hessian to be diagonal. (Default FALSE.)}
 \item{skip.configurations}{  Logical Skip configurations if the values at the main axis are to small. (Default TRUE.)}
