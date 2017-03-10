@@ -56,7 +56,7 @@ __BEGIN_DECLS
 #define FIFO_PUT "inla-mcmc-fifo-put"
 #define FIFO_GET_DATA "inla-mcmc-fifo-get-data"
 #define FIFO_PUT_DATA "inla-mcmc-fifo-put-data"
-#define L_NMIX_MMAX  (5L)				       /* the same number is in models.R */
+#define L_NMIX_MMAX  (10L)				       /* the same number is in models.R */
 
 /* 
  *
