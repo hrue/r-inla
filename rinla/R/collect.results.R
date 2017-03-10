@@ -1419,10 +1419,10 @@ inla.internal.experimental.mode = FALSE
         summary.linear.predictor = as.data.frame(dd)
 
         if (A) {
-            rownames(summary.linear.predictor) = c(inla.namefix(paste("Apredictor.", inla.num(1L:nA), sep="")),
-                            inla.namefix(paste("predictor.", inla.num(1:n), sep="")))
+            rownames(summary.linear.predictor) = c(inla.namefix(paste("APredictor.", inla.num(1L:nA), sep="")),
+                            inla.namefix(paste("Predictor.", inla.num(1:n), sep="")))
         } else {
-            rownames(summary.linear.predictor) = inla.namefix(paste("predictor.", inla.num(1L:size.info$Ntotal), sep=""))
+            rownames(summary.linear.predictor) = inla.namefix(paste("Predictor.", inla.num(1L:size.info$Ntotal), sep=""))
         }
         
         if (return.marginals.predictor) {
@@ -1434,10 +1434,10 @@ inla.internal.experimental.mode = FALSE
             rm(xx)
             if (!is.null(rr)) {
                 if (A) {
-                    names(rr) = c(inla.namefix(paste("Apredictor.", inla.num(1L:nA), sep="")),
-                                 inla.namefix(paste("predictor.", inla.num(1L:n), sep="")))
+                    names(rr) = c(inla.namefix(paste("APredictor.", inla.num(1L:nA), sep="")),
+                                 inla.namefix(paste("Predictor.", inla.num(1L:n), sep="")))
                 } else {
-                    names(rr) = inla.namefix(paste("predictor.", as.character(1L:length(rr)), sep=""))
+                    names(rr) = inla.namefix(paste("Predictor.", as.character(1L:length(rr)), sep=""))
                 }
                 names.rr = names(rr)
                 for(i in 1L:length(rr)) {
@@ -1509,10 +1509,10 @@ inla.internal.experimental.mode = FALSE
        
             colnames(dd) = inla.namefix(col.nam)
             if (A) {
-                rownames(dd) = c(inla.namefix(paste("fitted.Apredictor.", inla.num(1L:nA), sep="")),
-                                inla.namefix(paste("fitted.predictor.", inla.num(1L:n), sep="")))
+                rownames(dd) = c(inla.namefix(paste("fitted.APredictor.", inla.num(1L:nA), sep="")),
+                                inla.namefix(paste("fitted.Predictor.", inla.num(1L:n), sep="")))
             } else {
-                rownames(dd) = inla.namefix(paste("fitted.predictor.", inla.num(1L:n), sep=""))
+                rownames(dd) = inla.namefix(paste("fitted.Predictor.", inla.num(1L:n), sep=""))
             }
             summary.fitted.values = as.data.frame(dd)
 
@@ -1523,10 +1523,10 @@ inla.internal.experimental.mode = FALSE
                 rm(xx)
                 if (!is.null(rr)) {
                     if (A) {
-                        names(rr) = c(inla.namefix(paste("fitted.Apredictor.", inla.num(1L:nA), sep="")),
-                                     inla.namefix(paste("fitted.predictor.", inla.num(1:n), sep="")))
+                        names(rr) = c(inla.namefix(paste("fitted.APredictor.", inla.num(1L:nA), sep="")),
+                                     inla.namefix(paste("fitted.Predictor.", inla.num(1:n), sep="")))
                     } else {
-                        names(rr) = inla.namefix(paste("fitted.predictor.", inla.num(1L:length(rr)), sep=""))
+                        names(rr) = inla.namefix(paste("fitted.Predictor.", inla.num(1L:length(rr)), sep=""))
                     }
                     names.rr = names(rr)
                     for(i in 1L:length(rr)) {

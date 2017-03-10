@@ -867,27 +867,34 @@
 `inla.ginv` = function(x, tol = sqrt(.Machine$double.eps), rankdef = NULL)
 {
     ## from MASS:::ginv, but with added option 'rankdef'.
-    if (!is.matrix(x))
+    if (!is.matrix(x)) {
         x <- as.matrix(x)
-    if (length(dim(x)) > 2 || !(is.numeric(x) || is.complex(x)))
+    }
+    if (length(dim(x)) > 2 || !(is.numeric(x) || is.complex(x))) {
         stop("'x' must be a numeric or complex matrix")
+    }
+
     xsvd <- svd(x)
-    if (is.complex(x))
+    if (is.complex(x)) {
         xsvd$u <- Conj(xsvd$u)
+    }
+
     if (is.null(rankdef) || rankdef == 0) {
         Positive <- xsvd$d > max(tol * xsvd$d[1], 0)
-    }
-    else {
+    } else {
         n = length(xsvd$d)
         stopifnot(rankdef >= 1 && rankdef <= n)
         Positive <- c(rep(TRUE, n - rankdef), rep(FALSE, rankdef))
     }
-    if (all(Positive))
+
+    if (all(Positive)) {
         xsvd$v %*% (1/xsvd$d * t(xsvd$u))
-    else if (!any(Positive))
+    } else if (!any(Positive)) {
         array(0, dim(x)[2:1])
-    else xsvd$v[, Positive, drop = FALSE] %*% ((1/xsvd$d[Positive]) *
-        t(xsvd$u[, Positive, drop = FALSE]))
+    } else {
+        xsvd$v[, Positive, drop = FALSE] %*% ((1/xsvd$d[Positive]) *
+                                              t(xsvd$u[, Positive, drop = FALSE]))
+    }
 }
 `inla.gdet` = function(x, tol = sqrt(.Machine$double.eps), rankdef = NULL, log=TRUE)
 {
@@ -1024,7 +1031,7 @@
                    "Locations are too close for f(",
                    term, ", model=\"",
                    model, "\", ...): ",
-                   " min(diff(sort(x)))/diff(range(x)) = ",
+                   " min(diff(sort(x)))/diff(range(x)) = ", 
                    format(min.diff, scientific=TRUE, digits=4),
                    " < ", format(lim, scientific=TRUE, digits=4), "\n",
                    "  You can fix this by some kind of binning, see ?inla.group", "\n",
@@ -1039,9 +1046,11 @@
 
 `inla.dynload.workaround` = function()
 {
-    ## setup the static builds instead
-    d = dirname(inla.call.builtin())
-    inla.setOption(inla.call = paste(d,"/inla.static", sep=""))
-    inla.setOption(fmesher.call = paste(d,"/fmesher.static", sep=""))
+    if (inla.os("linux")) {
+        ## setup the static builds instead
+        d = dirname(inla.call.builtin())
+        inla.setOption(inla.call = paste(d,"/inla.static", sep=""))
+        inla.setOption(fmesher.call = paste(d,"/fmesher.static", sep=""))
+    }
     return (invisible())
 }

@@ -816,6 +816,21 @@
         }
     }
 
+    if (!missing(scale.model) && !inla.one.of(model, c("rw1", "rw2", "besag", "bym", "bym2", "besag2", "rw2d", "rw2diid"))) {
+        stop(paste("Option 'scale.model' is not used for model:", model))
+    }
+    if (missing(scale.model) || is.null(scale.model)) {
+        ## must doit like this otherwise we run into problems when
+        ## compiling the package
+        scale.model = inla.getOption("scale.model.default")
+        if (inla.one.of(model, c("bym2", "rw2diid"))) {
+            scale.model = TRUE
+        }
+    }
+    if (inla.one.of(model, c("bym2", "rw2diid")) && !scale.model) {
+        stop("Model 'bym2' and 'rw2diid' require scale.model=TRUE or 'missing(scale.model)'")
+    }
+
     if (inla.one.of(model, c("besag", "besag2", "bym", "bym2"))) {
         ## this is a somewhat complicated case
         g = inla.read.graph(graph)
@@ -938,18 +953,6 @@
         rgeneric = list(model = rgeneric, Id = vars[[1]], R.init = R.init)
     }
 
-
-    if (!missing(scale.model) && !inla.one.of(model, c("rw1", "rw2", "besag", "bym", "bym2", "besag2", "rw2d", "rw2diid"))) {
-        stop("Option 'scale.model' is only used for models RW1 and RW2 and BESAG and BYM and BYM2 andBESAG2 and RW2D and RW2DIID.")
-    }
-    if (missing(scale.model) || is.null(scale.model)) {
-        ## must doit like this otherwise we run into problems when
-        ## compiling the package
-        scale.model = inla.getOption("scale.model.default")
-        if (inla.one.of(model, c("bym2", "rw2diid"))) {
-            scale.model = TRUE
-        }
-    }
 
     ret=list(
         Cmatrix = Cmatrix,
