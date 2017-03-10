@@ -1,7 +1,7 @@
 
 /* inla.h
  * 
- * Copyright (C) 2007-2015 Havard Rue
+ * Copyright (C) 2007-2017 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -389,6 +389,12 @@ typedef struct {
 	double **nmix_x;				       /* matrix of covariates */
 	double ***nmix_beta;				       /* vector of betas */
 	double **nmix_log_overdispersion;		       /* only for model nmixnb */
+
+	/*
+	 * generalized Pareto
+	 */
+	double **gp_log_shape;				       /* log(shape) [or log(xi)] parameter */
+	
 } Data_tp;
 
 typedef struct {
@@ -465,6 +471,7 @@ typedef enum {
 	L_CENPOISSON,					       /* cencored poisson */
 	L_NMIX,
 	L_NMIXNB,
+	L_GP, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -807,6 +814,7 @@ struct inla_tp_struct {
 
 	char *predictor_Aext_fnm;			       /* extension: filename for the Amatrix */
 	double predictor_Aext_precision;		       /* extension: precision for the Amatrix */
+	char *Apredictor_tag;				       /* the tag */
 
 	GMRFLib_transform_array_func_tp **transform_funcs;     /* for the fitted values */
 
@@ -1218,7 +1226,6 @@ typedef struct {
 
 typedef struct {
 	int Id;
-	char *file_init;				       /* source this file once in the beginning, if any */
 	char *filename;					       /* file to load containing the model definition */
 	char *model;					       /* the variable name that contains the model definition */
 	int ntheta;
@@ -1591,6 +1598,7 @@ int loglikelihood_expsurv(double *logll, double *x, int m, int idx, double *x_ve
 int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_gp(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
@@ -1605,8 +1613,8 @@ int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, do
 int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
-int loglikelihood_qpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_qkumar(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_qpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_qloglogistic(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_qpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_simplex(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
