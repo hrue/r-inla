@@ -5881,8 +5881,8 @@ inla.models()
 							\item{short.name = }{`alpha'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`10 10'}
+							\item{prior = }{`pc.gammacount'}
+							\item{param = }{`3'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
@@ -8132,6 +8132,8 @@ inla.models()
 				\item{Model `pc.gamma'.}{					 Number of parameters in the prior = 1 
 				 }
 				\item{Model `pc.mgamma'.}{					 Number of parameters in the prior = 1 
+				 }
+				\item{Model `pc.gammacount'.}{					 Number of parameters in the prior = 1 
 				 }
 				\item{Model `pc'.}{					 Number of parameters in the prior = 2 
 				 }

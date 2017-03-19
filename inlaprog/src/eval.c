@@ -71,6 +71,7 @@ double inla_eval_Return(double v);
 double inla_eval_Not(double v);
 void inla_eval_OnError(muParserHandle_t hParser);
 muFloat_t *inla_eval_AddVariable(const muChar_t * a_szName, void *pUserData);
+double inla_eval_lgamma(double arg);
 double inla_eval_digamma(double arg);
 double inla_eval_trigamma(double arg);
 
@@ -79,6 +80,10 @@ double inla_eval_Gamma(double arg)
 	return exp(gsl_sf_lngamma(arg));
 }
 double inla_eval_LogGamma(double arg)
+{
+	return gsl_sf_lngamma(arg);
+}
+double inla_eval_lgamma(double arg)
 {
 	return gsl_sf_lngamma(arg);
 }

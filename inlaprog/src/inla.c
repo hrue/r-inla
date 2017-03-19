@@ -2465,6 +2465,31 @@ double priorfunc_pc_mgamma(double *x, double *parameters)
 
 	return (priorfunc_pc_gamma(&xx, parameters));
 }
+double priorfunc_pc_gammacount(double *x, double *parameters)
+{
+	// the inla.pc.dgammacount prior, which is the prior for 'a' in Gamma(a, 1) where a=1 is the base model.
+	// argument is theta=log(a), so the its the density for log(a) and not a
+
+	double lambda = parameters[0], xx, ldens, t1, t3, t4, t5, t8, t12, t14, t15, t16;
+
+	if (ISZERO(x[0])) {
+		xx = exp(DBL_EPSILON);
+	} else {
+		xx = exp(x[0]);
+	}
+	t1 = log(lambda);
+	t3 = gsl_sf_lngamma(xx);
+	t4 = xx - 1.0;
+	t5 = gsl_sf_psi(xx);
+	t8 = sqrt(2.0) * sqrt(t5 * t4 - t3);
+	t12 = gsl_sf_psi_1(xx);
+	t14 = ABS(t12 * t4 / t8);
+	t15 = log(t14);
+	t16 = -t8 * lambda + t1 + t15;
+	ldens = t16 - log(2.0) + log(xx);
+
+	return ldens;
+}
 double priorfunc_pc_dof(double *x, double *parameters)
 {
 #define NP 5
@@ -8157,6 +8182,18 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 
 		prior->id = P_PC_MGAMMA;
 		prior->priorfunc = priorfunc_pc_mgamma;
+		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
+		assert(nparam == 1);
+		if (mb->verbose) {
+			for (i = 0; i < nparam; i++) {
+				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "PCGAMMACOUNT")) {
+		int nparam, i;
+
+		prior->id = P_PC_GAMMACOUNT;
+		prior->priorfunc = priorfunc_pc_gammacount;
 		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
 		assert(nparam == 1);
 		if (mb->verbose) {
@@ -29551,6 +29588,16 @@ int inla_R(char **argv)
 }
 int testit(int argc, char **argv)
 {
+	if (1) {
+		double lambda = 1.234;
+		double x;
+		for(x = -5; x < 5; x+=0.1){
+			printf("%f %f\n", x, priorfunc_pc_gammacount(&x, &lambda));
+		}
+		exit(0);
+	}
+	
+
 	if (0) {
 		GMRFLib_spline_tp **spline;
 		spline = inla_qcontpois_func(0.9, GMRFLib_MAX_THREADS);
