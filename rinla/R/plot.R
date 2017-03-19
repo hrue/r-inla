@@ -881,6 +881,14 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
         return (my.pc.gamma(-theta, param, log=log))
     }
 
+    my.pc.gammacount = function(theta, param, log=FALSE) 
+    {
+        ## see ?inla.pc.dgammacount. this is the same prior, but for theta where x=exp(theta)
+        x = exp(theta)
+        ld = inla.pc.dgammacount(x, lambda = param[1], log=TRUE) + theta
+        return (if (log) ld else exp(ld))
+    }
+
     my.pc.cor0 = function(theta, param, log = FALSE)
     {
         e.theta = exp(theta)

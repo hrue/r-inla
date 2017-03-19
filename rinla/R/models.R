@@ -4944,10 +4944,10 @@
                              hyperid =  59001,
                              name = "log alpha",
                              short.name = "alpha",
-                             initial = log(1),
+                             initial = log(1.0),
                              fixed = FALSE,
-                             prior = "loggamma",
-                             param = c(10, 10),
+                             prior = "pc.gammacount",
+                             param = 3,
                              to.theta = function(x) log(x), 
                              from.theta = function(x) exp(x)
                              )
@@ -6836,6 +6836,11 @@
 		 pc.mgamma = list(
                      nparameters = 1L,
                      pdf = "pc.gamma"
+                 ), 
+
+		 pc.gammacount = list(
+                     nparameters = 1L,
+                     pdf = "pc.gammacount"
                  ), 
 
                  ## this is the generic one,  which is case-spesific and possibly adaptive
