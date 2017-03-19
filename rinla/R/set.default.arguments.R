@@ -370,8 +370,8 @@
         ##:ARGUMENT: dz Numerical The step-length in the standarised scale for the integration of the hyperparameters. Default 0.75.
         dz=0.75,
 
-        ##:ARGUMENT: diff.logdens Numerical The difference of the log.density for the hyperpameters to stop numerical integration using int.strategy='grid'. Default 4.
-        diff.logdens=4,
+        ##:ARGUMENT: diff.logdens Numerical The difference of the log.density for the hyperpameters to stop numerical integration using int.strategy='grid'. Default 6.
+        diff.logdens=6,
 
         ##:ARGUMENT: print.joint.hyper Logical If TRUE, the store also the joint distribution of the hyperparameters (without any costs). Default TRUE.
         print.joint.hyper=TRUE,

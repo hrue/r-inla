@@ -4,19 +4,23 @@
 \usepackage{listings}
 \begin{document}
 
-\section*{The PC prior for $\pm\log(a)$ in $\Gamma(1/a,1/a)$ with base model $a=0$}
+\section*{The PC prior for $\theta = \pm\log(a)$ in the
+    $\Gamma(1/a,1/a)$ distribution with base model $a=0$}
 
 \subsection*{Parametrization}
-This is the PC prior for $\pm\log(a)$ in $\Gamma(1/a,1/a)$ (with mean
-$1$ and variance $a$), distribution where $a=0$ is the base model.
+
+This is the PC prior for $\theta = \pm\log(a)$ in the
+$\Gamma(1/a,1/a)$ distribution\footnote{Gamma distribution with mean
+    $1$ and variance $a$, or shape$=1/a$ and rate$=1/a$} distribution
+where $a=0$ is the base model.
 
 \subsection*{Specification}
-This prior for the hyperparameters is specified in the-
-\texttt{hyper}-spesification, for $+\log(a)$ it is
+This prior for the hyperparameter is specified in the
+\texttt{hyper}-spesification, for $\theta = +\log(a)$ it is
 \begin{center}
     \texttt{hyper = list(<theta> = list(prior="pc.gamma", param=c(<lambda>)))}
 \end{center}
-and for $-\log(a)$ it is
+and for $\theta = -\log(a)$ it is
 \begin{center}
     \texttt{hyper = list(<theta> = list(prior="pc.mgamma", param=c(<lambda>)))}
 \end{center}
@@ -24,8 +28,9 @@ and for $-\log(a)$ it is
 \subsection*{Example}
 
 \subsection*{Notes}
+
 See also functions \texttt{inla.pc.\{d,p,q,r\}gamma} which gives the
-same PC prior, but for $a$.
+same PC prior, but for $\theta = a$ instead of $\theta = \pm\log(a)$.
 
 \noindent\textbf{This function is experimental.}
 

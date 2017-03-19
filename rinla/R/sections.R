@@ -130,7 +130,7 @@
         cat("cenpoisson.I = ", interval[1], " ",  interval[2], "\n", sep="", file=file, append=TRUE)
     }
 
-    if (inla.one.of(family, c("qloglogistic", "qkumar", "qpoisson"))) {
+    if (inla.one.of(family, c("qloglogistic", "qkumar", "qpoisson", "gp"))) {
         if (!(is.numeric(control$quantile) && (control$quantile > 0) && (control$quantile < 1))) {
             stop(paste("quantile: Must be a numeric in the interval (0, 1)"))
         }
@@ -596,26 +596,6 @@
         cat("rgeneric.file =", fnm, "\n", file=file, append = TRUE)
         cat("rgeneric.model =", model, "\n", file=file, append = TRUE)
         rm(model) ## do not need it anymore
-
-        if (!is.null(random.spec$rgeneric$R.init)) {
-            ## if the file exists, try to inla.load it. if its = save.image,  then save the
-            ## image and load it (later). otherwise,  interpret it as R-commands.
-            if (is.function(random.spec$rgeneric$R.init) &&
-                identical(random.spec$rgeneric$R.init, save.image)) {
-                tfile = tempfile()
-                save.image(file=tfile)
-                fnm = inla.copy.file.for.section(tfile, data.dir)
-                unlink(tfile)
-            } else if (file.exists(random.spec$rgeneric$R.init)) {
-                fnm = inla.copy.file.for.section(random.spec$rgeneric$R.init, data.dir)
-            } else {
-                tfile = tempfile()
-                cat(random.spec$rgeneric$R.init, "\n", file = tfile)
-                fnm = inla.copy.file.for.section(tfile, data.dir)
-                unlink(tfile)
-            }
-            cat("rgeneric.Rinit =", fnm, "\n", file=file, append = TRUE)
-        }
     }
 
     if (inla.one.of(random.spec$model, c("ar", "fgn"))) {
