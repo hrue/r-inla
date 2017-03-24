@@ -1,27 +1,40 @@
 ## NOT-YET-Export: 
 
 inla.sparse.det.bym = function(Q, rankdef,
-                               adjust.for.con.comp = TRUE, log=TRUE, eps = sqrt(.Machine$double.eps))
+                               adjust.for.con.comp = TRUE, log=TRUE,
+                               constr = NULL, 
+                               eps = sqrt(.Machine$double.eps))
 {
-    ## compute the (log-)determinant. If rankdef > 0, then assume a
-    ## sum to zero constraint on each connected component.
+    ## compute the (log-)determinant. Assume a sum to zero constraint on each connected
+    ## component >1
 
     Q = inla.as.sparse(Q)
     n = dim(Q)[1]
-    constr = NULL
-    if (adjust.for.con.comp) {
-        g = inla.read.graph(Q)
-        nc = g$cc$n
-        constr = list(A = matrix(0, nc, n), e = rep(0, nc))
-        for(k in 1:nc) {
-            constr$A[k, g$cc$nodes[[k]]] = 1
+
+    if (is.null(constr)) {
+        if (adjust.for.con.comp) {
+            g = inla.read.graph(Q)
+            cc.n = sapply(g$cc$nodes, length)
+            cc.n1 = sum(cc.n == 1L)
+            cc.n2 = sum(cc.n >= 2L)
+            constr = list(A = matrix(0, cc.n2, n), e = rep(0, cc.n2))
+            kk = 0
+            for(k in which(cc.n >= 2L)) {
+                kk = kk + 1
+                constr$A[kk, g$cc$nodes[[k]]] = 1
+            }
+            stopifnot(kk == cc.n2)
+        } else {
+            nc = 1
+            constr = list(A = matrix(1, nc, n), e = rep(1, nc))
         }
-    } else {
-        nc = 1
-        constr = list(A = matrix(1, nc, n), e = rep(1, nc))
     }
     if (missing(rankdef)) {
-        rankdef = nc
+        if (!is.null(constr)) {
+            rankdef = nrow(constr$A)
+        } else {
+            rankdef = 0
+        }
     }
     d = diag(Q)
     diag(Q) = d + n * max(d) * eps
@@ -30,14 +43,24 @@ inla.sparse.det.bym = function(Q, rankdef,
     return (if (log) logdet else exp(logdet))
 }
 
-inla.scale.model.bym = function(Q, eps = sqrt(.Machine$double.eps), adjust.for.con.comp = TRUE)
+inla.scale.model.bym = function(Q, eps = sqrt(.Machine$double.eps), adjust.for.con.comp = TRUE) 
 {
+    ## the old version
+    res = inla.scale.model.bym.internal(Q=Q, adjust.for.con.comp = adjust.for.con.comp, eps = eps)
+    return (res$Q)
+
+}
+
+inla.scale.model.bym.internal = function(Q, eps = sqrt(.Machine$double.eps), adjust.for.con.comp = TRUE) 
+{
+    ## the new one which also return the (scaled) marginal variances
     n = dim(Q)[1]
     constr = list(A = matrix(1, nrow=1, ncol=n), e=0)
 
     if (adjust.for.con.comp) {
-        Q = inla.scale.model(Q, constr = constr, eps = eps)
+        res = inla.scale.model.internal(Q, constr = constr, eps = eps)
     } else {
+        mvar = rep(NA, n)
         idx = which(diag(Q) > 0)
         QQ = Q[idx, idx, drop=FALSE]
         QQ = inla.as.sparse(QQ)
@@ -47,8 +70,10 @@ inla.scale.model.bym = function(Q, eps = sqrt(.Machine$double.eps), adjust.for.c
         fac = exp(mean(log(diag(res))))
         QQ = fac * QQ
         Q[idx, idx] = QQ
+        mvar[idx] = diag(res)/fac
+        res = list(Q=Q, var = mvar)
     }
-    return (Q)        
+    return (res)        
 }
 
 inla.pc.bym.Q = function(graph)
@@ -59,8 +84,7 @@ inla.pc.bym.Q = function(graph)
     return (Q)
 }
 
-## also used for the rw2d+iid model (eigenvalues/marginal.variances
-## arguments...)
+## also used for the rw2d+iid model (eigenvalues/marginal.variances arguments...)
 inla.pc.bym.phi = function(graph,
                            Q, 
                            eigenvalues = NULL,
@@ -70,17 +94,17 @@ inla.pc.bym.phi = function(graph,
                            alpha,
                            u = 1/2,
                            lambda,
-                           ## use this option with care, as this only applied to the case
-                           ## where Q is already scaled.
                            scale.model = TRUE,
                            return.as.table = FALSE, 
                            adjust.for.con.comp = TRUE, 
                            ## where to switch to alternative strategy
-                           dim.limit = 1024L, 
                            eps = sqrt(.Machine$double.eps), 
                            debug = FALSE)
 {
     my.debug = function(...) if (debug) cat("*** debug *** inla.pc.bym.phi: ", ... , "\n")
+
+    ## I must assume this!!!
+    stopifnot(scale.model == TRUE)
     
     if (missing(eigenvalues) && missing(marginal.variances)) {
         ## computes the prior for the mixing parameter `phi'.
@@ -94,38 +118,19 @@ inla.pc.bym.phi = function(graph,
             stop("Only one of <Q> and <graph> can be given.")
         }
         
-        g = NULL
+        g = inla.read.graph(Q)
+        cc.n = sapply(g$cc$nodes, length)
+        cc.n1 = sum(cc.n == 1L)
+        cc.n2 = sum(cc.n >= 2L)
+
         if (missing(rankdef)) {
-            if (adjust.for.con.comp) {
-                g = inla.read.graph(Q)
-                nc = g$cc$n
-            } else {
-                nc = 1
-            }
-            rankdef = nc
+            rankdef = if (adjust.for.con.comp) cc.n2 else cc.n1+1
         }
 
         n = dim(Q)[1]
-        if (scale.model) {
-            Q = inla.scale.model.bym(Q, adjust.for.con.comp = adjust.for.con.comp)
-        }
-        if (rankdef > 0) {
-            if (adjust.for.con.comp) {
-                if (is.null(g)) g = inla.read.graph(Q) ## if 'g' exists...
-                nc = g$cc$n
-                constr = list(A = matrix(0, nc, n), e = rep(0, nc))
-                for(k in 1:nc) {
-                    constr$A[k, g$cc$nodes[[k]]] = 1
-                }
-            } else {
-                nc = 1
-                constr = list(A = matrix(1, nc, n), e = rep(0, nc))
-            }
-            Qinv.d = diag(inla.qinv(Q + Diagonal(n) * max(diag(Q)) * eps, constr))
-        } else {
-            Qinv.d = diag(inla.qinv(Q))
-        }
-        f = mean(Qinv.d) - 1.0
+        res = inla.scale.model.bym.internal(Q, adjust.for.con.comp = adjust.for.con.comp)
+        Q = res$Q
+        f = mean(res$var, na.rm=TRUE) - 1.0 
         use.eigenvalues = FALSE
     } else {
         n = length(eigenvalues)
@@ -157,28 +162,39 @@ inla.pc.bym.phi = function(graph,
         }
     } else {
         ## alternative strategy for larger matrices
-        phi.s = 1/(1+exp(-seq(-12, 12, len=40)))
+        phi.s = 1/(1+exp(-seq(-12, 12, len=50)))
         d = numeric(length(phi.s))
-        log.q1.det = inla.sparse.det.bym(Q, adjust.for.con.comp = adjust.for.con.comp)
+
+        ## save time by doing this once only...
+        if (adjust.for.con.comp) {
+            g = inla.read.graph(Q)
+            cc.n = sapply(g$cc$nodes, length)
+            cc.n1 = sum(cc.n == 1L)
+            cc.n2 = sum(cc.n >= 2L)
+            constr = list(A = matrix(0, cc.n2, n), e = rep(0, cc.n2))
+            kk = 0
+            for(k in which(cc.n >= 2L)) {
+                kk = kk + 1
+                constr$A[kk, g$cc$nodes[[k]]] = 1
+            }
+            stopifnot(kk == cc.n2)
+        } else {
+            nc = 1
+            constr = list(A = matrix(1, nc, n), e = rep(1, nc))
+        }
+        
+        log.q1.det = inla.sparse.det.bym(Q, adjust.for.con.comp = adjust.for.con.comp,
+                                         constr = constr)
         d = unlist(
             inla.mclapply(phi.s, 
                           function(phi) {
                 aa = n*phi*f
-                ## add eps for stability for small phi. This is
-                ## hack to get it close to the eigenvalue
-                ## solution...
-                if (phi <= 0.5) {
-                    eps = sqrt(.Machine$double.eps)
-                    rdef = 0
-                } else {
-                    eps = 0
-                    rdef = 1
-                }
-                bb = n * log((1.0 - phi)/phi) +
-                    inla.sparse.det.bym(Q + (phi/(1-phi) + eps) * Diagonal(n), rankdef = rdef,
-                                        adjust.for.con.comp = adjust.for.con.comp) -
-                (log.q1.det - (n-rankdef) * log(phi))
-                return (if (aa >= bb) sqrt(aa-bb) else NA)
+                bb = ((n-rankdef) * log((1.0 - phi)/phi) +
+                      inla.sparse.det.bym(Q + phi/(1-phi) * Diagonal(n),  
+                                          adjust.for.con.comp = adjust.for.con.comp,
+                                          constr = constr) -
+                      (log.q1.det - (n-rankdef) * log(phi)))
+            return (if (aa >= bb) sqrt(aa-bb) else NA)
             }
             )
         )
@@ -186,12 +202,12 @@ inla.pc.bym.phi = function(graph,
     
     ## remove phi's that failed, if any
     remove = is.na(d)
+    my.debug(paste(sum(remove), "out of", length(remove), "removed"))
     d = d[!remove]
     phi.s = phi.s[!remove]
     ##
     phi.intern = log(phi.s/(1-phi.s))
     ff.d = splinefun(phi.intern, d)
-    f.d = splinefun(phi.s, d)
     if (length(phi.s) < 1000) {
         ## short lengths needs more care
         phi.intern = seq(min(phi.intern), max(phi.intern), len = 1000)
@@ -199,9 +215,8 @@ inla.pc.bym.phi = function(graph,
     phi.s = 1/(1+exp(-phi.intern))
     f.d = splinefun(c(0, phi.s), c(0, ff.d(phi.intern)))
     d = f.d(phi.s)
-    ## use the theoretical limit
     d.max = f.d(1.0)
-    d.max = Inf ## theoretical limit
+    fac = 0.95
 
     if (missing(lambda)) {
         ## Prob(phi < u) = alpha
@@ -209,14 +224,12 @@ inla.pc.bym.phi = function(graph,
         my.debug("compute alpha.min = ", alpha.min)
         if (missing(alpha) || (alpha <= 0.0 || alpha >= 1.0)) {
             ## set the default value a little over the minimum one.
-            fac = 0.975
             alpha = alpha.min * fac + 1 * (1-fac)
             my.debug("missing(alpha) == TRUE. set alpha = ", alpha, "using u=", u)
         }
-        ## initial value
         if (!(alpha > alpha.min)) {
-            my.debug("This must be true: alpha > ", alpha.min)
-            stopifnot(alpha > alpha.min)
+            alpha = alpha.min * fac + 1 * (1-fac)
+            warning(paste("alpha increased to", alpha))
         }
 
         f.target = function(lam, alpha, d.u, d.max) {
@@ -246,22 +259,23 @@ inla.pc.bym.phi = function(graph,
     
     ## do the derivative wrt the internal scale, phi.intern, and add
     ## the kernel-term '-log(phi.s*(1-phi.s))'
-    h = 1e-5
-    log.jac = log(abs(ff.d(phi.intern + h) - ff.d(phi.intern - h))/(2*h)) - log(phi.s*(1-phi.s))
+    log.jac = log(abs(ff.d(phi.intern, deriv=1)))- log(phi.s*(1-phi.s))
     log.prior = log(lambda) - lambda * d + log.jac - log(1-exp(-lambda * d.max))
+    ## scale also numerically
+    ssum = sum(exp(log.prior) * (c(0, diff(phi.s)) + c(diff(phi.s), 0)))/2.0
+    my.debug("empirical integral of the prior = ", ssum, ". correct it.")
+    log.prior = log.prior - log(ssum)
     
     if (return.as.table) {
-        ## return this prior as a "table:" converted to the internal
-        ## scale for phi.
+        ## return this prior as a "table:" converted to the internal scale for phi.
         my.debug("return prior as a table on phi.internal")
         theta = log(phi.s/(1-phi.s))
-        log.prior.theta = log.prior + log(exp(-theta)/(1+exp(-theta))^2)
+        log.prior.theta = log.prior + log(exp(theta)/(1+exp(theta))^2)
         theta.prior.table = paste(c("table:", cbind(theta, log.prior.theta)),
                                   sep = "", collapse = " ")
         return (theta.prior.table)
     } else {
-        ## return a function which evaluates the log-prior as a
-        ## function of phi.
+        ## return a function which evaluates the log-prior as a function of phi.
         my.debug("return prior as a function of phi")
         ## do the interpolation in the internal scale
         theta = log(phi.s/(1-phi.s))
