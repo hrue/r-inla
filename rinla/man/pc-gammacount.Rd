@@ -14,10 +14,10 @@
  \alias{pc.qgammacount}
  \alias{inla.pc.qgammacount}
  
- \title{Utility functions for the PC prior for the \texttt{gammacount} likelihood}
+ \title{Utility functions for the PC prior for the \code{gammacount} likelihood}
  
  \description{Functions to evaluate, sample, compute quantiles and
-              percentiles of the PC prior for the \texttt{gammacount} likelihood}
+              percentiles of the PC prior for the \code{gammacount} likelihood}
  \usage{
  inla.pc.rgammacount(n, lambda = 1)
  inla.pc.dgammacount(x, lambda = 1, = FALSE)
