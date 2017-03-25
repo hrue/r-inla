@@ -1,33 +1,58 @@
 ## NOT-YET-Export: 
 
-inla.sparse.det.bym = function(Q, rankdef,
-                               adjust.for.con.comp = TRUE, log=TRUE,
+
+inla.bym.constr.internal = function(Q, adjust.for.con.comp = TRUE)
+{
+    ## return the rankdef and the constr for the BYM model given in Q
+
+    n = dim(Q)[1]
+    g = inla.read.graph(Q)
+    cc.n = sapply(g$cc$nodes, length)
+    cc.n1 = sum(cc.n == 1L)
+    cc.n2 = sum(cc.n >= 2L)
+
+    if (adjust.for.con.comp) {
+        constr = list(A = matrix(0, cc.n2, n), e = rep(0, cc.n2))
+        kk = 0
+        for(k in which(cc.n >= 2L)) {
+            kk = kk + 1
+            constr$A[kk, g$cc$nodes[[k]]] = 1
+        }
+        stopifnot(kk == cc.n2)
+        rankdef = cc.n2
+    } else {
+        nc = 1
+        constr = list(A = matrix(1, nc, n), e = rep(1, nc))
+        rankdef = cc.n1 + 1
+    }
+
+    return (list(rankdef = nrow(constr$A),
+                 constr = constr, 
+                 rankdef = rankdef,
+                 cc.n = cc.n,
+                 cc.n1 = cc.n1,
+                 cc.n2 = cc.n2))
+}
+
+inla.sparse.det.bym = function(Q,
+                               rankdef,
+                               adjust.for.con.comp = TRUE,
+                               log=TRUE,
                                constr = NULL, 
                                eps = sqrt(.Machine$double.eps))
 {
     ## compute the (log-)determinant. Assume a sum to zero constraint on each connected
-    ## component >1
+    ## component >1. if 'constr' is given,  it is supposed to be the 'constr' that is
+    ## constructed below.
 
+    stopifnot(adjust.for.con.comp == TRUE)
     Q = inla.as.sparse(Q)
     n = dim(Q)[1]
-
+    res = NULL
+    
     if (is.null(constr)) {
-        if (adjust.for.con.comp) {
-            g = inla.read.graph(Q)
-            cc.n = sapply(g$cc$nodes, length)
-            cc.n1 = sum(cc.n == 1L)
-            cc.n2 = sum(cc.n >= 2L)
-            constr = list(A = matrix(0, cc.n2, n), e = rep(0, cc.n2))
-            kk = 0
-            for(k in which(cc.n >= 2L)) {
-                kk = kk + 1
-                constr$A[kk, g$cc$nodes[[k]]] = 1
-            }
-            stopifnot(kk == cc.n2)
-        } else {
-            nc = 1
-            constr = list(A = matrix(1, nc, n), e = rep(1, nc))
-        }
+        res = inla.bym.constr.internal(Q, adjust.for.con.comp = adjust.for.con.comp)
+        constr = res$constr
     }
     if (missing(rankdef)) {
         if (!is.null(constr)) {
@@ -37,7 +62,7 @@ inla.sparse.det.bym = function(Q, rankdef,
         }
     }
     d = diag(Q)
-    diag(Q) = d + n * max(d) * eps
+    diag(Q) = d + mean(d) * eps
     res = inla.qsample(n=1, Q=Q, sample = matrix(0, n, 1), constr = constr)
     logdet = 2.0 * (res$logdens + (n-rankdef)/2.0*log(2.0*pi))
     return (if (log) logdet else exp(logdet))
@@ -66,7 +91,7 @@ inla.scale.model.bym.internal = function(Q, eps = sqrt(.Machine$double.eps), adj
         QQ = inla.as.sparse(QQ)
         n = dim(QQ)[1]
         constr = list(A = matrix(1, nrow=1, ncol=n), e=0)
-        res = inla.qinv(QQ + Diagonal(n) * max(diag(QQ)) * eps, constr = constr)
+        res = inla.qinv(QQ + Diagonal(n) * mean(diag(QQ)) * eps, constr = constr)
         fac = exp(mean(log(diag(res))))
         QQ = fac * QQ
         Q[idx, idx] = QQ
@@ -105,6 +130,8 @@ inla.pc.bym.phi = function(graph,
 
     ## I must assume this!!!
     stopifnot(scale.model == TRUE)
+    stopifnot(adjust.for.con.comp == TRUE)
+    res = NULL
     
     if (missing(eigenvalues) && missing(marginal.variances)) {
         ## computes the prior for the mixing parameter `phi'.
@@ -118,13 +145,9 @@ inla.pc.bym.phi = function(graph,
             stop("Only one of <Q> and <graph> can be given.")
         }
         
-        g = inla.read.graph(Q)
-        cc.n = sapply(g$cc$nodes, length)
-        cc.n1 = sum(cc.n == 1L)
-        cc.n2 = sum(cc.n >= 2L)
-
+        res = inla.bym.constr.internal(Q, adjust.for.con.comp = adjust.for.con.comp)
         if (missing(rankdef)) {
-            rankdef = if (adjust.for.con.comp) cc.n2 else cc.n1+1
+            rankdef = res$rankdef
         }
 
         n = dim(Q)[1]
@@ -164,36 +187,20 @@ inla.pc.bym.phi = function(graph,
         ## alternative strategy for larger matrices
         phi.s = 1/(1+exp(-seq(-12, 12, len=50)))
         d = numeric(length(phi.s))
-
-        ## save time by doing this once only...
-        if (adjust.for.con.comp) {
-            g = inla.read.graph(Q)
-            cc.n = sapply(g$cc$nodes, length)
-            cc.n1 = sum(cc.n == 1L)
-            cc.n2 = sum(cc.n >= 2L)
-            constr = list(A = matrix(0, cc.n2, n), e = rep(0, cc.n2))
-            kk = 0
-            for(k in which(cc.n >= 2L)) {
-                kk = kk + 1
-                constr$A[kk, g$cc$nodes[[k]]] = 1
-            }
-            stopifnot(kk == cc.n2)
-        } else {
-            nc = 1
-            constr = list(A = matrix(1, nc, n), e = rep(1, nc))
-        }
-        
         log.q1.det = inla.sparse.det.bym(Q, adjust.for.con.comp = adjust.for.con.comp,
-                                         constr = constr)
+                                         constr = res$constr, rankdef = rankdef)
         d = unlist(
             inla.mclapply(phi.s, 
                           function(phi) {
-                aa = n*phi*f
-                bb = ((n-rankdef) * log((1.0 - phi)/phi) +
+                ## this is an empircal correction instead of rdef=rankdef
+                rdef = (1-phi)* rankdef 
+                aa = (n-rdef)*phi*f
+                bb = ((n-rdef) * log((1.0 - phi)/phi) +
                       inla.sparse.det.bym(Q + phi/(1-phi) * Diagonal(n),  
                                           adjust.for.con.comp = adjust.for.con.comp,
-                                          constr = constr) -
-                      (log.q1.det - (n-rankdef) * log(phi)))
+                                          constr = res$constr, rankdef = rdef) -
+                      (log.q1.det - (n-rdef) * log(phi)))
+                my.debug("aa=", aa, " bb=", bb, " sqrt(", aa-bb, ")")
             return (if (aa >= bb) sqrt(aa-bb) else NA)
             }
             )
