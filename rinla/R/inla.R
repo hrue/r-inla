@@ -466,7 +466,7 @@
     control.predictor = inla.check.control(control.predictor, data)
     ## I need to check for NA's already here.
     if (!is.null(control.predictor$A)) {
-        control.predictor$A[ is.na(control.predictor$A) ] = 0
+        control.predictor$A@x[is.na(control.predictor$A@x)] = 0
         control.predictor$A = inla.as.sparse(control.predictor$A)
     }
     ## do not check control.family here, as we need to know n.family
