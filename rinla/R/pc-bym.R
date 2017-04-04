@@ -39,7 +39,7 @@ inla.sparse.det.bym = function(Q,
                                adjust.for.con.comp = TRUE,
                                log=TRUE,
                                constr = NULL, 
-                               eps = sqrt(.Machine$double.eps))
+                               eps = 0.01 * sqrt(.Machine$double.eps))
 {
     ## compute the (log-)determinant. Assume a sum to zero constraint on each connected
     ## component >1. if 'constr' is given,  it is supposed to be the 'constr' that is
@@ -176,11 +176,7 @@ inla.pc.bym.phi = function(graph,
             ##bb = sum(log(1+phi*gamma.invm1))
             ## sometimes we *might* experience numerical problems, so we need
             ## to remove (if any) small phi's.
-            if (aa >= bb) {
-                d[k] = sqrt(aa - bb)
-            } else {
-                d[k] = NA
-            }
+            d[k] = (if (aa >= bb) sqrt(aa -bb) else NA)
             k = k + 1
         }
     } else {
@@ -189,104 +185,75 @@ inla.pc.bym.phi = function(graph,
         d = numeric(length(phi.s))
         log.q1.det = inla.sparse.det.bym(Q, adjust.for.con.comp = adjust.for.con.comp,
                                          constr = res$constr, rankdef = rankdef)
-        d = unlist(
+        d = c(unlist(
             inla.mclapply(phi.s, 
                           function(phi) {
-                ## this is an empircal correction instead of rdef=rankdef
-                rdef = (1-phi)* rankdef 
-                aa = (n-rdef)*phi*f
-                bb = ((n-rdef) * log((1.0 - phi)/phi) +
+                aa = n*phi*f
+                bb = (n * log((1.0 - phi)/phi) +
                       inla.sparse.det.bym(Q + phi/(1-phi) * Diagonal(n),  
                                           adjust.for.con.comp = adjust.for.con.comp,
-                                          constr = res$constr, rankdef = rdef) -
-                      (log.q1.det - (n-rdef) * log(phi)))
+                                          constr = res$constr, rankdef = rankdef) -
+                      (log.q1.det - n * log(phi)))
                 my.debug("aa=", aa, " bb=", bb, " sqrt(", aa-bb, ")")
-            return (if (aa >= bb) sqrt(aa-bb) else NA)
+                return (if (aa >= bb) sqrt(aa -bb) else NA)
             }
             )
-        )
+        ))
     }
-    
+    names(d) = NULL
+
     ## remove phi's that failed, if any
     remove = is.na(d)
     my.debug(paste(sum(remove), "out of", length(remove), "removed"))
     d = d[!remove]
     phi.s = phi.s[!remove]
-    ##
+    remove = 1:6
+    d = d[-remove]
+    phi.s = phi.s[-remove]
     phi.intern = log(phi.s/(1-phi.s))
-    ff.d = splinefun(phi.intern, d)
-    if (length(phi.s) < 1000) {
-        ## short lengths needs more care
-        phi.intern = seq(min(phi.intern), max(phi.intern), len = 1000)
-    }
+    ff.d = splinefun(phi.intern, log(d))
+    phi.intern = seq(min(phi.intern)-0, max(phi.intern), len = 10000)
     phi.s = 1/(1+exp(-phi.intern))
-    f.d = splinefun(c(0, phi.s), c(0, ff.d(phi.intern)))
-    d = f.d(phi.s)
-    d.max = f.d(1.0)
-    fac = 0.95
-
-    if (missing(lambda)) {
-        ## Prob(phi < u) = alpha
-        alpha.min = f.d(u)/d.max
-        my.debug("compute alpha.min = ", alpha.min)
-        if (missing(alpha) || (alpha <= 0.0 || alpha >= 1.0)) {
-            ## set the default value a little over the minimum one.
-            alpha = alpha.min * fac + 1 * (1-fac)
-            my.debug("missing(alpha) == TRUE. set alpha = ", alpha, "using u=", u)
-        }
-        if (!(alpha > alpha.min)) {
-            alpha = alpha.min * fac + 1 * (1-fac)
-            warning(paste("alpha increased to", alpha))
-        }
-
-        f.target = function(lam, alpha, d.u, d.max) {
-            value = ((1-exp(-lam*d.u)/(1-exp(-lam*d.max)) - alpha)^2)
-            ##my.debug("lam=", lam, "value=", value)
-            return (value)
-        }
-
-        if (is.infinite(d.max)) {
-            ## analytical solution
-            lambda = -log(1-alpha)/f.d(u)
-        } else {
-            ## do the screning in two rounds
-            lam = exp(seq(-10, 3, len=25))
-            idx = which.min(f.target(lam, alpha, f.d(u), d.max))
-            lam = exp(seq(log(lam[idx-1]), log(lam[idx+1]), len=25))
-            idx = which.min(f.target(lam, alpha, f.d(u), d.max))
-            ## then call the optimiser...
-            r = optimise(f.target, interval = c(lam[idx-1], lam[idx+1]),
-                         maximum = FALSE,
-                         alpha = alpha, d.u = f.d(u), d.max = d.max)
-            stopifnot(abs(r$objective) < 1e-3)
-            lambda = r$minimum
-        }
-        my.debug("found lambda = ", lambda)
-    }
+    d = exp(ff.d(phi.intern))
     
-    ## do the derivative wrt the internal scale, phi.intern, and add
-    ## the kernel-term '-log(phi.s*(1-phi.s))'
-    log.jac = log(abs(ff.d(phi.intern, deriv=1)))- log(phi.s*(1-phi.s))
-    log.prior = log(lambda) - lambda * d + log.jac - log(1-exp(-lambda * d.max))
-    ## scale also numerically
-    ssum = sum(exp(log.prior) * (c(0, diff(phi.s)) + c(diff(phi.s), 0)))/2.0
+    ## ff.d:  return distance as a function of phi.intern
+    ff.d.core = splinefun(phi.intern, log(d))
+    ff.d = function(phi.intern, deriv=0) {
+        if (deriv == 0) {
+            return (exp(ff.d.core(phi.intern)))
+        } else if (deriv == 1) {
+            return (exp(ff.d.core(phi.intern)) * ff.d.core(phi.intern,  deriv=1))
+        } else {
+            stop("ERROR")
+        }
+    }
+    ## f.d: return distance as a function of phi
+    f.d = function(phi.s) ff.d(log(phi.s/(1-phi.s)))
+    d = f.d(phi.s)
+    stopifnot(alpha > 0.0 && alpha < 1.0)
+    if (missing(lambda)) {
+        ## Prob(phi < u) = alpha gives an analytical solution
+        lambda = -log(1-alpha)/f.d(u)
+    }
+
+    ## this is the log.prior wrt phi.intern
+    log.jac = log(abs(ff.d(phi.intern, deriv=1))) 
+    log.prior = log(lambda) - lambda * d + log.jac
+    ssum = sum(exp(log.prior) * (c(0, diff(phi.intern)) + c(diff(phi.intern), 0)))/2.0
     my.debug("empirical integral of the prior = ", ssum, ". correct it.")
     log.prior = log.prior - log(ssum)
-    
+
     if (return.as.table) {
-        ## return this prior as a "table:" converted to the internal scale for phi.
-        my.debug("return prior as a table on phi.internal")
-        theta = log(phi.s/(1-phi.s))
-        log.prior.theta = log.prior + log(exp(theta)/(1+exp(theta))^2)
-        theta.prior.table = paste(c("table:", cbind(theta, log.prior.theta)),
+        ## return this prior as a "table:" converted to the intern scale for phi.
+        my.debug("return prior as a table on phi.intern")
+        theta.prior.table = paste(c("table:", cbind(phi.intern, log.prior)),
                                   sep = "", collapse = " ")
         return (theta.prior.table)
     } else {
         ## return a function which evaluates the log-prior as a function of phi.
         my.debug("return prior as a function of phi")
-        ## do the interpolation in the internal scale
-        theta = log(phi.s/(1-phi.s))
-        prior.theta.1 = splinefun(theta, log.prior)
+        ## do the interpolation in the intern scale
+        prior.theta.1 = splinefun(phi.intern, log.prior +phi.intern +2*log(1+exp(-phi.intern)))
         prior.phi = function(phi) prior.theta.1(log(phi/(1.0-phi)))
         return (prior.phi)
     }
@@ -436,3 +403,5 @@ inla.pc.rw2diid.phi = function(
         lambda = lambda, 
         rankdef = 1L))
 }
+
+
