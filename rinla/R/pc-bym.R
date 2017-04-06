@@ -115,7 +115,6 @@ inla.pc.bym.phi = function(graph,
                            eigenvalues = NULL,
                            marginal.variances = NULL, 
                            rankdef,
-                           ## if alpha is not set,  it will be computed from alpha.min
                            alpha,
                            u = 1/2,
                            lambda,
@@ -232,7 +231,7 @@ inla.pc.bym.phi = function(graph,
     d = f.d(phi.s)
     if (missing(lambda)) {
         ## Prob(phi < u) = alpha gives an analytical solution
-        stopifnot(alpha > 0.0 && alpha < 1.0)
+        stopifnot(alpha > 0.0 && alpha < 1.0 && u > 0)
         lambda = -log(1-alpha)/f.d(u)
     }
 
