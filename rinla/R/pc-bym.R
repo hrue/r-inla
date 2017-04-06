@@ -230,9 +230,9 @@ inla.pc.bym.phi = function(graph,
     ## f.d: return distance as a function of phi
     f.d = function(phi.s) ff.d(log(phi.s/(1-phi.s)))
     d = f.d(phi.s)
-    stopifnot(alpha > 0.0 && alpha < 1.0)
     if (missing(lambda)) {
         ## Prob(phi < u) = alpha gives an analytical solution
+        stopifnot(alpha > 0.0 && alpha < 1.0)
         lambda = -log(1-alpha)/f.d(u)
     }
 
