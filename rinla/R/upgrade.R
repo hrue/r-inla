@@ -24,7 +24,7 @@
 ##! and \code{inla.update} do the same 
 ##!  for backward compatibility. This function is simple wrapper for
 ##!  \code{update.packages} using the INLA repository.}
-##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!\author{Havard Rue \email{hrue@r-inla.org}}
 ##!\seealso{\code{update.packages}}
 
 ### The upgrade utility
