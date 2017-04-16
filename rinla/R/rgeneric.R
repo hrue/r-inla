@@ -50,7 +50,7 @@
 ##!  This will be somewhat slow and is intended for special cases and
 ##!  protyping. The function \code{inla.rgeneric.wrapper} is for
 ##!  internal use only.}
-##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!\author{Havard Rue \email{hrue@r-inla.org}}
 
 
 `inla.rgeneric.ar1.model` = function(
