@@ -68,7 +68,7 @@
 ##!       \code{inla.link.invlog(x) = inla.link.log(x, inverse=TRUE)}
 ##!       and so on,  but they are simpler to use a arguments
 ##!       to other functions.}
-##! \author{Havard Rue \email{hrue@math.ntnu.no}}
+##! \author{Havard Rue \email{hrue@r-inla.org}}
 
 `inla.link.cauchit` = function(x, inverse = FALSE)
 {

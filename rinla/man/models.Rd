@@ -39,6 +39,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Gaussian random effects in dim=1'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -110,6 +111,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Classical measurement error model'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -156,6 +158,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Berkson measurement error model'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -191,6 +194,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Random walk of order 1'}
 								\item{constr = }{`TRUE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -224,6 +228,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Random walk of order 2'}
 								\item{constr = }{`TRUE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -257,6 +262,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Exact solution to the random walk of order 2'}
 								\item{constr = }{`TRUE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -290,6 +296,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Seasonal model for time series'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -322,6 +329,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The Besag area model (CAR-model)'}
 								\item{constr = }{`TRUE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -367,6 +375,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The shared Besag model'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -412,6 +421,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The BYM-model (Besag-York-Mollier model)'}
 								\item{constr = }{`TRUE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`TRUE'}
@@ -457,6 +467,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The BYM-model with the PC priors'}
 								\item{constr = }{`TRUE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`TRUE'}
@@ -503,6 +514,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A proper version of the Besag model'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -549,6 +561,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`An alternative proper version of the Besag model'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -595,6 +608,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Fractional Gaussian noise model'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`TRUE'}
@@ -655,6 +669,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Auto-regressive model of order 1 (AR(1))'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -817,6 +832,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Auto-regressive model of order p (AR(p))'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -862,6 +878,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The Ornstein-Uhlenbeck process'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -894,6 +911,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A generic model'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -926,6 +944,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A generic model (type 0)'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -971,6 +990,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A generic model (type 1)'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -1016,6 +1036,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A generic model (type 2)'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -1178,6 +1199,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A generic model (type 3)'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -1250,6 +1272,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A SPDE model'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -2569,6 +2592,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A SPDE2 model'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -3888,6 +3912,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A SPDE3 model'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -3920,6 +3945,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Gaussian random effect in dim=1 with Wishart prior'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -3978,6 +4004,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Gaussian random effect in dim=2 with Wishart prior'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`TRUE'}
@@ -4075,6 +4102,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Gaussian random effect in dim=3 with Wishart prior'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`TRUE'}
@@ -4224,6 +4252,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Gaussian random effect in dim=4 with Wishart prior'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`TRUE'}
@@ -4438,6 +4467,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Gaussian random effect in dim=5 with Wishart prior'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`TRUE'}
@@ -4496,6 +4526,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`(This model is obsolute)'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -4528,6 +4559,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The z-model in a classical mixed model formulation'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -4561,6 +4593,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Thin-plate spline model'}
 								\item{constr = }{`TRUE'}
 								\item{nrow.ncol = }{`TRUE'}
 								\item{augmented = }{`FALSE'}
@@ -4606,6 +4639,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Thin-plate spline with iid noise'}
 								\item{constr = }{`TRUE'}
 								\item{nrow.ncol = }{`TRUE'}
 								\item{augmented = }{`TRUE'}
@@ -4652,6 +4686,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Spatial lag model'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -4698,6 +4733,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Matern covariance function on a regular grid'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`TRUE'}
 								\item{augmented = }{`FALSE'}
@@ -4730,6 +4766,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Create a copy of a model component'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -4762,6 +4799,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Constrained linear effect'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -4820,6 +4858,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Sigmoidal effect of a covariate'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -4879,6 +4918,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Reverse sigmoidal effect of a covariate'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -4938,6 +4978,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A nonlinear model of a covariate'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -4997,6 +5038,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A nonlinear model of a covariate'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -5035,6 +5077,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Exchangeable correlations'}
 							 }
 						 }
 					 }
@@ -5058,6 +5101,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Exchangeable positive correlations'}
 							 }
 						 }
 					 }
@@ -5081,6 +5125,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`AR(1) correlations'}
 							 }
 						 }
 					 }
@@ -5234,6 +5279,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`AR(p) correlations'}
 							 }
 						 }
 					 }
@@ -5257,6 +5303,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Random walk of order 1'}
 							 }
 						 }
 					 }
@@ -5280,6 +5327,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Random walk of order 2'}
 							 }
 						 }
 					 }
@@ -5303,6 +5351,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Besag model'}
 							 }
 						 }
 					 }
@@ -5326,6 +5375,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Independent model'}
 							 }
 						 }
 					 }
@@ -5354,6 +5404,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Gaussian mixture'}
 							 }
 						 }
 					 }
@@ -5415,6 +5466,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Logit link with sensitivity and specificity'}
 								\item{pdf = }{`NA'}
 							 }
 						 }
@@ -5439,6 +5491,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Log-link with an offset'}
 								\item{pdf = }{`logoffset'}
 							 }
 						 }
@@ -5463,6 +5516,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Logit-link with an offset'}
 								\item{status = }{`experimental'}
 								\item{pdf = }{`logitoffset'}
 							 }
@@ -5488,6 +5542,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A test1-link function (experimental)'}
 								\item{pdf = }{`NA'}
 							 }
 						 }
@@ -5642,6 +5697,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A special1-link function (experimental)'}
 								\item{pdf = }{`NA'}
 							 }
 						 }
@@ -5666,6 +5722,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A special2-link function (experimental)'}
 								\item{pdf = }{`NA'}
 							 }
 						 }
@@ -5695,6 +5752,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`(not used)'}
 							 }
 						 }
 					 }
@@ -5723,6 +5781,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A random walk of order 1 for the log-hazard'}
 							 }
 						 }
 					 }
@@ -5746,6 +5805,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A random walk of order 2 for the log-hazard'}
 							 }
 						 }
 					 }
@@ -5793,6 +5853,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The generalized Poisson likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
 								\item{link = }{`default log logoffset'}
@@ -5836,6 +5897,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`(experimental)'}
 								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
@@ -5864,6 +5926,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The Gamma likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log'}
@@ -5891,6 +5954,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A Gamma generalisation of the Poisson likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log'}
@@ -5919,6 +5983,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A quantile version of the Kumar likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default logit cauchit'}
@@ -5946,6 +6011,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A quantile version of the logistic likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log'}
@@ -5973,6 +6039,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The Beta likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default logit cauchit probit cloglog loglog'}
@@ -6000,6 +6067,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The Beta-Binomial likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
 								\item{link = }{`default logit cauchit probit cloglog loglog'}
@@ -6029,6 +6097,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The negBinomial likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
 								\item{link = }{`default log logoffset'}
@@ -6056,6 +6125,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The simplex likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default logit cauchit probit cloglog loglog'}
@@ -6083,6 +6153,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The Gaussian likelihoood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity logit cauchit log logoffset'}
@@ -6110,6 +6181,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The Gaussian likelihoood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
@@ -6137,6 +6209,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The circular Gaussian likelihoood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default tan'}
@@ -6165,6 +6238,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The wrapped Cauchy likelihoood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default tan'}
@@ -6206,6 +6280,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`(experimental)'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
@@ -6247,6 +6322,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`(experimental)'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default logit'}
@@ -6275,10 +6351,12 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`(experimental)'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
 								\item{pdf = }{`loggammafrailty'}
+								\item{status = }{`experimental'}
 							 }
 						 }
 					 }
@@ -6302,6 +6380,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The Logistic likelihoood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
@@ -6338,6 +6417,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The Skew-Normal likelihoood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
@@ -6376,6 +6456,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The Skew-Normal likelihoood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
@@ -6414,6 +6495,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The Skew-Normal likelihoood (alt param)'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
@@ -6455,6 +6537,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The Generalized Extreme Value likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
@@ -6483,6 +6566,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The log-Normal likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
@@ -6510,6 +6594,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The log-Normal likelihood (survival version)'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
@@ -6543,6 +6628,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The Weibull likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log'}
@@ -6570,6 +6656,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The Weibull likelihood (survival version)'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}
@@ -6597,6 +6684,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The log-logistic likelihood (survival version)'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}
@@ -6637,6 +6725,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The Weibull-cure likelihood (survival version)'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}
@@ -6664,6 +6753,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The Gaussian stochvol likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log'}
@@ -6691,6 +6781,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The Student-t stochvol likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log'}
@@ -6731,6 +6822,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`The Normal inverse Gaussian stochvol likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log'}
@@ -6758,6 +6850,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Zero-inflated Poisson, type 0'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log'}
@@ -6785,6 +6878,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Zero-inflated Poisson, type 1'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log'}
@@ -6812,6 +6906,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Zero-inflated Poisson, type 2'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log'}
@@ -6852,6 +6947,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Zero-inflated Beta-Binomial, type 0'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
 								\item{link = }{`default logit cauchit probit cloglog loglog'}
@@ -6892,6 +6988,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Zero-inflated Beta-Binomial, type 1'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
 								\item{link = }{`default logit cauchit probit cloglog loglog'}
@@ -6919,6 +7016,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Zero-inflated Binomial, type 0'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default logit cauchit probit cloglog loglog'}
@@ -6946,6 +7044,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Zero-inflated Binomial, type 1'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default logit cauchit probit cloglog loglog'}
@@ -6973,6 +7072,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Zero-inflated Binomial, type 2'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default logit cauchit probit cloglog loglog'}
@@ -7013,6 +7113,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Zero and N inflated binomial, type 2'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default logit cauchit probit cloglog loglog'}
@@ -7053,6 +7154,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Zero and N inflated binomial, type 3'}
 								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
@@ -7094,6 +7196,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Zero inflated Beta-Binomial, type 2'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default logit cauchit probit cloglog loglog'}
@@ -7134,6 +7237,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Zero inflated negBinomial, type 0'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log'}
@@ -7174,6 +7278,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Zero inflated negBinomial, type 1'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log'}
@@ -7331,6 +7436,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Zero inflated negBinomial, type 1, strata 2'}
 								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
@@ -7489,6 +7595,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Zero inflated negBinomial, type 1, strata 3'}
 								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
@@ -7530,6 +7637,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Zero inflated negBinomial, type 2'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log'}
@@ -7570,6 +7678,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Student-t likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
@@ -7727,6 +7836,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`A stratified version of the Student-t likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
@@ -7871,6 +7981,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Binomial-Poisson mixture'}
 								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
@@ -8029,6 +8140,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`NegBinomial-Poisson mixture'}
 								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
@@ -8057,6 +8169,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`Generalized Pareto likelihood'}
 								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
@@ -8169,6 +8282,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
+								\item{doc = }{`(experimental)'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}

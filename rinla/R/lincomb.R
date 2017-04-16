@@ -18,7 +18,7 @@
 ##!\value{
 ##! A structure to be passed on to \code{\link{inla}} argument \code{lincomb} 
 ##!}
-##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!\author{Havard Rue \email{hrue@r-inla.org}}
 ##!\seealso{TODO}
 ##!\examples{
 ##!##See the worked out examples and description in the FAQ

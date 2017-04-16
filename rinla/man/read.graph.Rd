@@ -51,7 +51,7 @@ inla.write.graph(graph, filename = "graph.dat", mode = c("binary", "ascii"), ...
     The method \code{plot} require the libraries \code{Rgraphviz} and \code{graph} from the Bioconductor-project,
     see \url{https://www.bioconductor.org}.
 }
-\author{Havard Rue \email{hrue@math.ntnu.no}}
+\author{Havard Rue \email{hrue@r-inla.org}}
 \seealso{
     \code{\link{inla.spy}}
 }

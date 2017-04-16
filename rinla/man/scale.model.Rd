@@ -26,7 +26,7 @@
    scaled so the geometric mean of the marginal variances (of the possible
    non-singular part of \code{Q}) is one,  for each connected component of the matrix.
  }
- \author{Havard Rue \email{hrue@math.ntnu.no}}
+ \author{Havard Rue \email{hrue@r-inla.org}}
 
  \examples{
  ## Q is singular

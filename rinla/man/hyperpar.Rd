@@ -55,7 +55,7 @@ The object returned is the same as  \code{object} but the
 estimates of the hyperparameters are replaced by improved estimates.}
 \references{
 See the references in \code{inla}}
-\author{Havard Rue \email{hrue@math.ntnu.no}}
+\author{Havard Rue \email{hrue@r-inla.org}}
 \note{This function might take a long time or if the number of
 hyperparameters in the model is large. If it complains and says \code{I cannot get enough memory},
 try to increase the value of the argument \code{dz} or decrease \code{diff.logdens}.}
