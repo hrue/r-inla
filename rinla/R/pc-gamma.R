@@ -41,7 +41,7 @@
 ##!  \code{inla.pc.rgamma} generates random deviates.
 ##! }
 ##! \seealso{inla.doc("pc.gamma")}
-##! \author{Havard Rue \email{hrue@math.ntnu.no}}
+##! \author{Havard Rue \email{hrue@r-inla.org}}
 ##! \examples{
 ##! x = inla.pc.rgamma(100,  lambda = 1)
 ##! d = inla.pc.dgamma(x, lambda = 1)

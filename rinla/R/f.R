@@ -330,7 +330,7 @@
     ##!prior model is proper, plus the number of extra
     ##!constraints. \bold{Oops:} This can be wrong, and then the user
     ##!must define the \code{rankdef} explicitely.}
-    ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+    ##!\author{Havard Rue \email{hrue@r-inla.org}}
     ##!\seealso{\code{\link{inla}}, \code{\link{hyperpar.inla}}}
 
     ## this is required. the hyper.defaults can only be changed in the
