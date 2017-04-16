@@ -31,7 +31,7 @@
 }
 %%
 
-\author{Havard Rue \email{hrue@math.ntnu.no}}
+\author{Havard Rue \email{hrue@r-inla.org}}
 
 \examples{
  A = matrix(1:9, 3, 3)

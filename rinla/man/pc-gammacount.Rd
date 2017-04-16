@@ -43,7 +43,7 @@
   \code{inla.pc.rgammacount} generates random deviates.
  }
  \seealso{inla.doc("pc.gammacount")}
- \author{Havard Rue \email{hrue@math.ntnu.no}}
+ \author{Havard Rue \email{hrue@r-inla.org}}
  \examples{
  x = inla.pc.rgammacount(100,  lambda = 1)
  d = inla.pc.dgammacount(x, lambda = 1)

@@ -113,7 +113,7 @@
 ##!   and the remaining function returns what they say they should do.  }
 ##! %%
 ##! 
-##! \author{Havard Rue \email{hrue@math.ntnu.no}}
+##! \author{Havard Rue \email{hrue@r-inla.org}}
 ##! 
 ##! \seealso{\code{\link{inla}}, \code{\link{inla.hyperpar}}}
 ##! 
