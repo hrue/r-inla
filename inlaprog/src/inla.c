@@ -30256,28 +30256,36 @@ int main(int argc, char **argv)
 	 */
 	if (G.mode == INLA_MODE_QINV) {
 		inla_qinv(argv[optind], argv[optind + 1], argv[optind + 2]);
+		if (report) GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_QSOLVE) {
 		inla_qsolve(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3]);
+		if (report) GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_QREORDERING) {
 		inla_qreordering(argv[optind]);
+		if (report) GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_QSAMPLE) {
 		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5],
 			     argv[optind + 6], argv[optind + 7], argv[optind + 8]);
+		if (report) GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_FINN) {
 		inla_finn(argv[optind]);
+		if (report) GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_GRAPH) {
 		inla_read_graph(argv[optind]);
+		if (report) GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_R) {
 		inla_R(&(argv[optind]));
+		if (report) GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_TESTIT) {
 		testit(argc, &(argv[optind]));
+		if (report) GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else {
 		/*
