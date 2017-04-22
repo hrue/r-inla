@@ -25,14 +25,19 @@
 ##!\arguments{
 ##!    \item{filename}{The filename of the graph.}
 ##!    \item{graph}{An \code{inla.graph}-object, a (sparse) symmetric matrix, a filename containing the graph,
-##!                 or a list or collection of characters and/or numbers defining the graph.}
+##!                 a list or collection of characters and/or numbers defining the graph, 
+##!                 or a neighbours list with class \code{nb} (see \code{spdep::card} and
+##!                 \code{spdep::poly2nb} for for details of \code{nb} and an example a function
+##!                 returning an \code{nb} object}
 ##!    \item{mode}{The mode of the file; ascii-file or a (gzip-compressed) binary. Default value depends on 
 ##!                the inla.option \code{internal.binary.mode} which is default \code{TRUE}; see \code{inla.setOption}.}
 ##!    \item{object}{An \code{inla.graph} -object} 
 ##!    \item{x}{An \code{inla.graph} -object} 
 ##!    \item{y}{Not used}
 ##!    \item{size.only}{Only read the size of the graph}
-##!    \item{...}{Additional arguments. In \code{inla.read.graph},  then it is the graph definition (object, character, filename),  plus extra arguments. In \code{inla.write.graph} it is extra arguments to \code{inla.read.graph}.}
+##!    \item{...}{Additional arguments. In \code{inla.read.graph},
+##!               then it is the graph definition (object, character, filename),  plus extra arguments.
+##!               In \code{inla.write.graph} it is extra arguments to \code{inla.read.graph}.}
 ##!}
 ##!\value{
 ##!    The output of \code{inla.read.graph}, is an \code{inla.graph} object, with elements
@@ -381,7 +386,7 @@
     args = list(...)
     graph = args[[1L]]
 
-    if (is.character(graph) || length(args) > 1L) {
+    if (is.character(graph) || length(args) > 1L || is.numeric(graph)) {
         graph = paste(as.character(graph))
 
         ## if the file exists, its a file
@@ -401,13 +406,40 @@
             unlink(tfile)
             return (g)
         }
-    } else if (class(graph) == "inla.graph") {
+    } else if (inherits(graph, "inla.graph")) {
         ## no need to do anything. 
         if (size.only) {
             return (graph$n)
         } else {
             return (graph)
         }
+    } else if (inherits(graph, "nb")) {
+        ## a neigbour-graph from spdep with class="nb". this can replace spdep::nb2INLA
+        nb2sparseM = function(nb) {
+            n <- length(nb)
+            ## its faster to pre-allocate instead of doing ii=c(ii, ...) all the time
+            len.tot = n + sum(unlist(lapply(graph, length)))
+            ii = numeric(len.tot)
+            jj = numeric(len.tot)
+            idxs = 1:n
+            idx = n+1
+            ii[idxs] = idxs
+            jj[idxs] = idxs
+            for (i in 1:n) {
+                nneig = length(nb[[i]])
+                if (nneig > 0) {
+                    idxs = idx:(idx + nneig -1)
+                    idx = idx + nneig
+                    ii[idxs] = i
+                    jj[idxs] = nb[[i]]
+                }
+            } 
+            ## just check that we have counted correcly
+            stopifnot(idx == length(ii) + 1)
+            return (sparseMatrix(dims = c(n, n), index1 = TRUE, 
+                                 i=ii, j=jj, x = rep(1, length(ii))))
+        }
+        return (inla.matrix2graph.internal(nb2sparseM(graph), size.only = size.only))
     } else {
         return (inla.matrix2graph.internal(..., size.only = size.only))
     }
