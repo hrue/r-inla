@@ -5713,8 +5713,8 @@
                              short.name = "dof",
                              initial = 4,
                              fixed = FALSE,
-                             prior = "loggamma",
-                             param = c(1, 0.5),
+                             prior = "pc.dof",
+                             param = c(15, 0.5),
                              to.theta = function(x) log(x-2),
                              from.theta = function(x) 2+exp(x)
                              )
@@ -6424,8 +6424,8 @@
                              short.name = "dof",
                              initial = 5,
                              fixed = FALSE,
-                             prior = "loggamma",
-                             param = c(1, 0.5),
+                             prior = "pc.dof",
+                             param = c(15, 0.5),
                              to.theta = function(x) log(x-2),
                              from.theta = function(x) 2+exp(x)
                              )
@@ -6445,8 +6445,8 @@
                              short.name = "dof",
                              initial = 4,
                              fixed = FALSE,
-                             prior = "loggamma",
-                             param = c(1, 0.01),
+                             prior = "pc.dof",
+                             param = c(15, 0.5),
                              to.theta = function(x) log(x-5),
                              from.theta = function(x) 5+exp(x)
                              ),

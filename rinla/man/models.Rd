@@ -6771,8 +6771,8 @@ inla.models()
 							\item{short.name = }{`dof'}
 							\item{initial = }{`4'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`1 0.5'}
+							\item{prior = }{`pc.dof'}
+							\item{param = }{`15 0.5'}
 							\item{to.theta = }{`\code{function(x) log(x-2)}'}
 							\item{from.theta = }{`\code{function(x) 2+exp(x)}'}
 							}
@@ -7668,8 +7668,8 @@ inla.models()
 							\item{short.name = }{`dof'}
 							\item{initial = }{`5'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`1 0.5'}
+							\item{prior = }{`pc.dof'}
+							\item{param = }{`15 0.5'}
 							\item{to.theta = }{`\code{function(x) log(x-2)}'}
 							\item{from.theta = }{`\code{function(x) 2+exp(x)}'}
 							}
@@ -7696,8 +7696,8 @@ inla.models()
 							\item{short.name = }{`dof'}
 							\item{initial = }{`4'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`1 0.01'}
+							\item{prior = }{`pc.dof'}
+							\item{param = }{`15 0.5'}
 							\item{to.theta = }{`\code{function(x) log(x-5)}'}
 							\item{from.theta = }{`\code{function(x) 5+exp(x)}'}
 							}
