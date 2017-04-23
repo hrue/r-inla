@@ -838,19 +838,21 @@
         cc.n1 = sum(cc.n == 1L)
         cc.n2 = sum(cc.n >= 2L)
 
+        if (is.null(rankdef)) {
+            if (scale.model) {
+                rankdef = cc.n2
+            } else {
+                rankdef = cc.n2 + cc.n1
+            }
+            if (!(empty.extraconstr(extraconstr))) {
+                rankdef = rankdef + dim(extraconstr$A)[1]
+            }
+        }
+            
         if (adjust.for.con.comp) {
-            ## we need to check if the graph contains more than 1 connected components. If so,
-            ## we need to modify the meaning of constr=TRUE, and set the correct value of
-            ## rankdef.
+            ## we need to check if the graph contains more than 1 connected components. 
             if (g$cc$n == 1) {
-                ## the whole graph is just one connected component. all is fine
-                if (is.null(rankdef)) {
-                    rankdef = 0
-                    if (constr)
-                        rankdef = rankdef + 1
-                    if (!empty.extraconstr(extraconstr))
-                        rankdef = rankdef + dim(extraconstr$A)[1]
-                }
+                ## nothing to do 
             } else {
                 if (debug) {
                     print(paste("modify model", model))
@@ -904,20 +906,6 @@
                         stop("The option 'adjust.for.con.comp' is only used for models 'besag', 'besag2', 'bym' and 'bym2'.")
                     }
                 }
-
-                ## set correct rankdef if not set already
-                if (is.null(rankdef)) {
-                    if (!scale.model) {
-                        rankdef = cc.n1
-                        if (!empty.extraconstr(extraconstr))
-                            rankdef = rankdef + dim(extraconstr$A)[1]
-                    } else {
-                        rankdef = 0
-                        if (!empty.extraconstr(extraconstr))
-                            rankdef = dim(extraconstr$A)[1]
-                    }
-                }
-
                 if (is.null(diagonal)) {
                     diagonal = inla.set.f.default()$diagonal
                     if (debug) {
@@ -926,20 +914,7 @@
                 }
             }
         } else {
-            ## adjust.for.con.comp == FALSE
-            if (is.null(rankdef)) {
-                rankdef = 0
-                if (scale.model) {
-                    if (constr) rankdef = rankdef + 1
-                    if (!empty.extraconstr(extraconstr)) 
-                        rankdef = rankdef + dim(extraconstr$A)[1]
-                } else {
-                    if (constr) rankdef = rankdef + 1
-                    rankdef = rankdef + cc.n1
-                    if (!empty.extraconstr(extraconstr)) 
-                        rankdef = rankdef + dim(extraconstr$A)[1]
-                }
-            }
+            ## nothing to do
         }
     }
 
