@@ -414,32 +414,12 @@
             return (graph)
         }
     } else if (inherits(graph, "nb")) {
-        ## a neigbour-graph from spdep with class="nb". this can replace spdep::nb2INLA
-        nb2sparseM = function(nb) {
-            n <- length(nb)
-            ## its faster to pre-allocate instead of doing ii=c(ii, ...) all the time
-            len.tot = n + sum(unlist(lapply(graph, length)))
-            ii = numeric(len.tot)
-            jj = numeric(len.tot)
-            idxs = 1:n
-            idx = n+1
-            ii[idxs] = idxs
-            jj[idxs] = idxs
-            for (i in 1:n) {
-                nneig = length(nb[[i]])
-                if (nneig > 0) {
-                    idxs = idx:(idx + nneig -1)
-                    idx = idx + nneig
-                    ii[idxs] = i
-                    jj[idxs] = nb[[i]]
-                }
-            } 
-            ## just check that we have counted correcly
-            stopifnot(idx == length(ii) + 1)
-            return (sparseMatrix(dims = c(n, n), index1 = TRUE, 
-                                 i=ii, j=jj, x = rep(1, length(ii))))
-        }
-        return (inla.matrix2graph.internal(nb2sparseM(graph), size.only = size.only))
+        ## a neigbour-graph from spdep with class="nb".
+        ## this can replace spdep::nb2INLA.
+        ## call spdep::nb2listw and use spdep coercion.
+        Q = nb2listw(graph, style="B", zero.policy=TRUE)
+        Q = inla.as.sparse(as(Q, "symmetricMatrix"))
+        return (inla.matrix2graph.internal(Q, size.only = size.only))
     } else {
         return (inla.matrix2graph.internal(..., size.only = size.only))
     }
