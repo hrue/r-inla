@@ -1,3 +1,34 @@
+## Export: inla.cut
+
+##! \name{cut}
+##! \alias{inla.cut}
+##! \alias{cut}
+##!
+##! \title{Lookup coefficients in the 3-component AR(1) mixture representing CUT(H)}
+##!
+##! \description{This function will lookup the coefficients in the 3-component AR(1)
+##!              mixture representing CUT(H)}
+##!
+##! \usage{
+##!     inla.cut(H)
+##! } 
+##!
+##! \arguments{
+##!   \item{H}{The Hurst coeffcient (0<H<1)}
+##!  }
+##! \value{
+##!  A named vector of length 7, where the first element is \code{H},
+##!  the next three are the lag one correlations (or phi's),
+##!  and the last three are the weights.
+##!
+##!  This function is EXPERIMENTAL!!!
+##! }
+##! \author{Egil Ferkingstad \email{egil@hi.is} and Havard Rue \email{hrue@r-inla.org}}
+##!
+##! \examples{
+##!     
+##! } 
+
 inla.cut = function(formula, data, split.by, correct=FALSE, debug=FALSE, ...)
 {
     my.debug = function(...) if (debug) cat("*** inla.cut: ", ... , "\n")
@@ -32,7 +63,7 @@ inla.cut = function(formula, data, split.by, correct=FALSE, debug=FALSE, ...)
     
     ## extract the variable which define how to split
     n = dim(data)[1]
-    split.val = data[, split.by == names(data), drop=FALSE]
+    split.val = data[, split.by == names(data)]
     split.uval = sort(unique(split.val))
     split.len = length(split.uval)
     stopifnot(split.len > 0)
@@ -45,7 +76,6 @@ inla.cut = function(formula, data, split.by, correct=FALSE, debug=FALSE, ...)
     r = NULL
     p.linpred = numeric(split.len)
     for(split.idx in seq_len(split.len)) {
-        my.debug(split.idx)
         idx = (split.val == split.uval[split.idx])
         idx.num = which(idx)
         
@@ -108,7 +138,7 @@ inla.cut = function(formula, data, split.by, correct=FALSE, debug=FALSE, ...)
         args$data = data.lik
         lc.lik = c()
         ## make new linear combinations:
-        lc.names = paste0("lc.pred", inla.num(1:n.pred))
+        lc.names = paste0("lc.pred", INLA:::inla.num(1:n.pred))
         for (i in 1:n.pred) {
             pred.idx = rep(NA, nrow(data.lik))
             pred.idx[i] = 1
@@ -146,14 +176,14 @@ inla.cut = function(formula, data, split.by, correct=FALSE, debug=FALSE, ...)
         }
         
         ## Calculate p-values from linear predictor:
+        min.eigen.value = 1E-3
         lin.pred.mu = mu.diff
         lin.pred.sigma = sigma.diff
-        lin.pred.df = sum(eigen(lin.pred.sigma)$values > 1e-3)
-        lin.pred.Delta = t(lin.pred.mu) %*% inla.ginv(lin.pred.sigma, tol=1e-3) %*% lin.pred.mu
+        lin.pred.df = sum(eigen(lin.pred.sigma)$values > min.eigen.value)
+        lin.pred.Delta = t(lin.pred.mu) %*% INLA:::inla.ginv(lin.pred.sigma, tol=1e-3) %*% lin.pred.mu
         p.linpred[split.idx] = 1 - pchisq(as.numeric(lin.pred.Delta), df=lin.pred.df) 
         my.debug(split.idx, "of", split.len,": p-value:", round(p.linpred[split.idx],4),
                  "df:", lin.pred.df)
     }
-
     return(p.linpred)
 }
