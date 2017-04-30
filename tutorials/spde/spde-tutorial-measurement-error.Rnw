@@ -1,25 +1,29 @@
-\chapter{Measurement error model}\label{ch:me}
+\section{Measurement error model}\label{sec:me}
 
-\SweaveOpts{prefix.string=figs/me}
-\setkeys{Gin}{width=0.99\textwidth}
-<<sett,echo=F,results=hide>>=
+Here we focus on a similar situation of the 
+misalignement model example in the last Chapter of 
+\cite{blangiardoC:2015}. 
+Here we extend the model to consider a 
+a spatially structured error. 
+We also have a response $y$ and a covariate $c$ 
+and the misalignment. 
+The R source for this file is available at
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-measurement-error.R}
+
+<<settings,include=FALSE,message=FALSE, warning=FALSE>>=
+library(knitr)
+opts_chunk$set(
+fig.path='figs/me',
+message=FALSE, warning=FALSE
+)
 options(width=75, prompt = " ", continue = "   ")
-require(INLA)
+library(INLA)
 loc.call <- inla.getOption('inla.call')
 inla.setOption(inla.call='remote')
-source('spde-tutorial-functions.R')
+source('R/spde-tutorial-functions.R')
 @ 
 
-Here we focus on a similar situation than the 
-one on Chapter~\ref{ch:jcovar}. 
-We also have a response $y$ and a covariate $c$ 
-and the misalignment. But, now we have that 
-the covariate is observed on 
-both $c$ and $y$ locations and also 
-has a error measure that is spatially 
-structured. 
-
-\section{The model}
+\subsection{The model}
 
 We consider the following model $c$ 
 \[
@@ -43,7 +47,7 @@ predicted value for $c$
 $x_j$ is an zero mean random field 
 and $e_i$ is a error that remains 
 unexplained on $y$ such that 
-$e_i \~ N(0, \sigma_y^2)$ measures the. 
+$e_i \sim N(0, \sigma_y^2)$ measures the. 
 
 A particular case is when we don't have 
 the $x$ term in the model for $y$. 
@@ -52,8 +56,8 @@ we don't have white noise in the covariate,
 i. e., the covariate is considered 
 just a realization of a random field. 
 
-Differently than the joint model on 
-Chapter~\ref{ch:jcovar}, here we need 
+Differently than the joint model in Chapter 8 
+of \cite{blangiardoC:2015} we do need  
 to define a term that express the linear predictor 
 of $c$ and then copy it on the response 
 linear predictor. 
@@ -71,12 +75,10 @@ So, we rewrite this as
 and define a Gaussian likelihood 
 with fixed high precision to fit it. 
 
-\section{Simulation from the model}
+\subsection{Simulation from the model}
 
-In this section 
-we do a simulation from this model.
-
-First, we do the simulation of the locations 
+We now draw a sample from this model.
+First, we simulate a set of locations 
 <<simloc>>=
 n.y <- 123;         n.c <- 234
 set.seed(1)
@@ -86,32 +88,22 @@ loc.y <- cbind(runif(n.y), runif(n.y))
 
 Let the parameters of both random fields $m$ and $x$:
 <<rfparms>>=
-kappa.m <- 7;          sigma2.m <- 3
-kappa.x <- 10;         sigma2.x <- 2
-@ 
-and we use the \code{rspde} function from Chapter~\ref{ch:spde}. 
-This function is available in the file at                      
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/spde-tutorial-functions.R}.
-This function need a mesh to do simulation. 
-We can provide the mesh or it is builded automatically. 
-We build a mesh to provide taking into account the 
-true value of the smaller range process 
-<<mesh>>=
-maxk <- max(kappa.m, kappa.x)
-(mesh <- inla.mesh.2d(rbind(loc.c, loc.y), max.edge=c(1,2)/maxk, 
-                      cutoff=0.1/maxk, offset=c(1,2)/maxk))$n
+kappa.m <- 7;           sigma2.m <- 3
+kappa.x <- 10;          sigma2.x <- 2
 @ 
 
-<<oldcall,echo=F,results=hide>>=
-inla.setOption(inla.call=loc.call)
-@ 
 We need the simulation of $m$ in both set of locations. 
+To do that we use the \code{rMatern} function available in 
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}.
 <<simula>>=
 set.seed(2)
-mm <- rspde(coords=rbind(loc.c, loc.y), 
-            kappa=kappa.m, variance=sigma2.m, mesh=mesh)
-xx <- rspde(coords=loc.y, kappa=kappa.x, 
-            variance=sigma2.x, mesh=mesh)
+mm <- rMatern(n=1, coords=rbind(loc.c, loc.y), 
+            kappa=kappa.m, variance=sigma2.m, nu=1)
+xx <- rMatern(n=1, coords=loc.y, kappa=kappa.x, 
+              variance=sigma2.x, nu=1)
+### center it to avoid confounding 
+mm <- mm-mean(mm)
+xx <- xx-mean(xx)
 @ 
 and with the following parameters 
 <<params>>=
@@ -128,13 +120,17 @@ yy <- alpha.y + beta.c*cc[n.c+1:n.y] + xx +
     rnorm(n.y, 0, sqrt(sigma2.y))
 @ 
 
-\section{Fitting the model}
+\subsection{Fitting the model}
 
-Here we use the same mesh for both 
-random fields on the model that is 
-the same one used on simulation.
-So, the both index set based on the mesh 
-have the same values. 
+First we build a mesh taking into account the 
+true value of the smaller range process 
+<<mesh>>=
+(rmin <- min(sqrt(8)/c(kappa.m, kappa.x)))
+(mesh <- inla.mesh.2d(rbind(loc.c, loc.y), max.edge=rmin/c(5, 2), 
+                      cutoff=rmin/10, offset=rmin*c(1/2,3)))$n 
+@ 
+We will use the same mesh and the index vectors for both 
+spatial effects will have the same values. 
 
 We do simulations of the covariate 
 on the locations of the response 
@@ -174,83 +170,64 @@ stk.0 <- inla.stack(data=list(y=cbind(NA, NA, rep(0, n.c + n.y))),
 stk <- inla.stack(stk.c, stk.y, stk.0) 
 @ 
 
-Define the spde model 
+
+Defining the SPDE model considering the PC-prior 
+derived in \cite{fuglstadetal:2017} for the 
+model parameters as the practical range, $\sqrt{8\nu}/\kappa$, 
+and the marginal standard deviation.  
 <<spde>>=
-spde <- inla.spde2.matern(mesh)
+spde <- inla.spde2.pcmatern(
+    mesh=mesh, alpha=2, ### mesh and smoothness parameter
+    prior.range=c(0.05, 0.01), ### P(practic.range<0.05)=0.01
+    prior.sigma=c(1, 0.01)) ### P(sigma>1)=0.01
 @ 
 
-The estimation of the regression coefficient 
+For the estimation of the regression coefficient 
 of $c$ on $y$ we use the copy feature. 
-In this case, we need to do a good prior specification. 
-For example, is possible to know, a priori, the signal. 
-We set a $N(2, 25)$ prior to $\beta_c$. 
-Also, we define the formulae for the model. 
+%%In this case, we need to do a good prior specification. 
+%%For example, is possible to know, a priori, the signal. 
+We set a $N(0, 5)$ prior to $\beta_c$ 
+when defining the model as 
 <<formula>>=
 form <- y ~  0 + a.c + a.y + w + 
     f(m, model=spde) + f(x, model=spde) + 
     f(o, o.weig, model='iid', 
       hyper=list(theta=list(initial=-20, fixed=TRUE))) + 
-    f(o.c, copy='o',  fixed=FALSE, 
-      hyper=list(theta=list(param=c(2,25), initial=2))) 
+    f(o.c, copy='o', fixed=FALSE,  
+      hyper=list(theta=list(param=c(0,5)))) 
 @ 
 and fit the model with 
-<<callremote,echo=F,results=hide>>=
-inla.setOption(inla.call='remote')
-@ 
 <<fit>>=
+pcprec <- list(prior='pcprec', param=c(1, 0.01))
 res <- inla(form, data=inla.stack.data(stk), family=rep('gaussian',3), 
             control.predictor=list(compute=TRUE, A=inla.stack.A(stk)), 
-            control.family=list(list(), 
+            control.family=list(list(hyper=list(theta=pcprec)), 
                 list(hyper=list(theta=list(initial=20, fixed=TRUE))), 
                 list(hyper=list(theta=list(initial=20, fixed=TRUE))))) 
 @ 
 
-\section{The results}
+\subsection{The results}
 
 The true values of the intercepts and 
 the regression coefficient of $w$ on $c$ and 
 the summary of its posterior marginal distributions 
 <<resfix>>=
-round(cbind(True=c(alpha.c, alpha.y, beta.w), res$summary.fix), 4)
+round(cbind(True=c(alpha.c, alpha.y, beta.w), 
+            res$summary.fix), 4)
 @ 
 
 The true values of the precision of $y$ and 
 the summary of the posterior marginal distribution  
 <<reshyl>>=
-round(cbind(True=1/sigma2.y, res$summary.hy[1,]), 4)
+round(c(True=1/sigma2.y, unlist(res$summary.hy[1,])), 4)
 @ 
 
-The true value of the regression coefficient 
-of $c$ on $y$ and the summary of its 
-posterior marginal distribution 
-<<reshyb>>=
-round(cbind(True=beta.c, res$summary.hy[6,]), 4)
-@ 
-
-The true values for the scale parameter $\kappa$ 
-the mean of the posterior marginals and the 
-95\% HPD credibility interval. 
-<<kappa>>=
-post.k <- lapply(res$marginals.hy[c(3,5)], function(y) 
-                 inla.tmarginal(function(x) exp(x), y))
-round(cbind(True=c(kappa.m=kappa.m, kappa.x=kappa.x), 
-            t(sapply(post.k, function(x) 
-                     c(mean=inla.emarginal(function(y) y, x), 
-                       CI=inla.hpdmarginal(.95, x))))), 4)
-@ 
-
-The true values for the precision of the both random 
-fields and the summary of the posterior marginals 
+The summary for the random field parameters and 
+the regression parameter of $c$ on $y$ is shown by 
 <<rf>>=
-m.rf <- inla.spde2.result(res, 'm', spde)
-x.rf <- inla.spde2.result(res, 'x', spde)
-round(cbind(True=c(s2m=sigma2.m, s2x=sigma2.x), 
-            mean=c(inla.emarginal(function(x) x, 
-              m.rf$marginals.variance.n[[1]]), 
-              inla.emarginal(function(x) x, 
-                             x.rf$marginals.variance.n[[1]])), 
-            rbind(inla.hpdmarginal(.95, m.rf$marginals.variance.n[[1]]), 
-                  inla.hpdmarginal(.95, x.rf$marginals.variance.n[[1]]))), 4)
+round(cbind(True=c(sqrt(8)/kappa.m, sigma2.m, 
+                   sqrt(8)/kappa.x, sigma2.x, beta.c), 
+            res$summary.hyperpar[-1,]), 3)
 @ 
 
 We see the posterior distribution of 
@@ -273,52 +250,37 @@ abline(v=beta.c, col=4)
 @ 
 \setkeys{Gin}{width=0.75\textwidth}
 \begin{figure}\centering
-<<vlikeparsme,echo=F,fig=T,eps=F,width=7,height=3.5>>=
+<<vlikeparsme,echo=FALSE,fig.width=7,fig.height=3.5>>=
 <<likeparsme>>
 @ 
 \caption{Posterior distribution of the likelihood parameters.}
-\label{fig:regparsme}
-\end{figure}
+\end{figure}\label{fig:regparsme}
+
 We see on the Figure~\ref{fig:regparsme} that 
 the posterior distribution covers the true values 
 of all the parameters. 
 
-Now we want to see the posterior distribution of 
-the both random fields. 
-The practical range of the process is
-$sqrt(8\nu)/\kappa$, where $\nu=1$ 
-on this analisys.
-We see these parameters 
-on Figure~\ref{fig:rfparsme} 
+The posterior marginals for the random fields is shown in 
+Figure~\ref{fig:rfparsme} 
 generated with comands below 
 <<rfparsme,eval=F>>=
-par(mfcol=c(2,3), mar=c(3,3,.1,.3), mgp=c(1.5,.5,0), las=1)
-plot.default(post.k[[1]], type='l', xlab=expression(kappa[m]), ylab='')
-abline(v=kappa.m, col=4)
-plot.default(post.k[[2]], type='l', xlab=expression(kappa[x]), ylab='')
-abline(v=kappa.x, col=4)
-plot.default(m.rf$marginals.variance.n[[1]], type='l', 
-             xlab=expression(sigma[m]^2), ylab='')
-abline(v=sigma2.m, col=4)
-plot.default(x.rf$marginals.variance.n[[1]], type='l', 
-             xlab=expression(sigma[x]^2), ylab='')
-abline(v=sigma2.x, col=4)
-plot.default(m.rf$marginals.range.n[[1]], type='l', 
-             xlab='practical range of m', ylab='')
-abline(v=sqrt(8)/kappa.m, col=4)
-plot.default(x.rf$marginals.range.n[[1]], type='l', 
-             xlab='practical range of x', ylab='')
-abline(v=sqrt(8)/kappa.x, col=4)
+par(mfcol=c(2,2), mar=c(3,3,.1,.3), mgp=c(1.5,.5,0), las=1)
+for (j in 2:5) {
+    plot(res$marginals.hyperpar[[j]], type='l', 
+         xlab=names(res$marginals.hyperpar)[j], ylab='Density')
+    abline(v=c(sqrt(8)/kappa.m, sqrt(sigma2.m), 
+               sqrt(8)/kappa.x, sqrt(sigma2.x), beta.c)[j-1], col=4)
+}
 @ 
 \setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
-<<vrfparsme,echo=F,fig=T,eps=F,width=12,height=4>>=
+<<vrfparsme,echo=FALSE,fig.width=8,fig.height=4>>=
 <<rfparsme>>
 @ 
-\caption{Posterior distribution of all the 
-  parameters of both random field.}
-\label{fig:rfparsme}
-\end{figure}
+\caption{Posterior marginal distributions the hyperparameters 
+  parameters of both random fields.}
+\end{figure}\label{fig:rfparsme}
+
 We see on Figure~\ref{fig:rfparsme}  
 that the posterior marginal distribution 
 of the all parameters of both spatial 
@@ -370,13 +332,13 @@ abline(c(0,1), col=4); points(m.mprd, mm, pch=3, cex=.5)
 @ 
 \setkeys{Gin}{width=0.5\textwidth}
 \begin{figure}\centering
-<<visprdplotme,echo=F,fig=T,eps=F,width=7,height=5>>=
+<<visprdplotme,echo=FALSE,fig.width=7,fig.height=5>>=
 <<prdplotme>>
 @ 
 \caption{Simulated versus predicted values of $m$ ($+$) 
   and the approximated credibility intervals.}
-\label{fig:prdplotme}
-\end{figure}
+\end{figure}\label{fig:prdplotme}
+
 on the Figure~\ref{fig:prdplotme}. 
 The blue line represents the situation where 
 predicted is equal to simulated. 

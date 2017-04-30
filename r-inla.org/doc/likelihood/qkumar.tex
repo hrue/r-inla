@@ -40,33 +40,26 @@ using the default logit link-function.
 
 The hyperparameter is
 \begin{displaymath}
-    \theta_1 = log(\phi)
+    \theta = log(\phi)
 \end{displaymath}
-and the prior is given for $\theta_1$.
-
-For technical reasons, the fixed value of the quantile $q$ is given as
-a second hyperparameter,
-\begin{displaymath}
-    \theta_2 = q
-\end{displaymath}
-for which its initial value must be given. 
-
+and the prior is given for $\theta$.
 
 \subsection*{Specification}
 
 \begin{itemize}
-\item $\text{family}=\texttt{kumar}$
-\item Required arguments: $y$ 
+\item $\text{family}=\texttt{qkumar}$
+\item Required arguments: $y$ and the quantile $q$. 
 \end{itemize}
+The quantile is given as \texttt{control.family=list(quantile=$q$)}.
 
 \subsubsection*{Hyperparameter spesification and default values}
-\input{../hyper/likelihood/kumar.tex}
+\input{../hyper/likelihood/qkumar.tex}
 
 
 
 \subsection*{Example}
 
-\verbatiminput{example-kumar.R}
+\verbatiminput{example-qkumar.R}
 
 \subsection*{Notes}
 

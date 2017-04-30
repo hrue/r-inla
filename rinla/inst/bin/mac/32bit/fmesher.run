@@ -18,8 +18,8 @@ myreadlink () {
 }
 
 DIR=$(dirname "$(myreadlink "$0")")
-export DYLD_LIBRARY_PATH=$DIR:/usr/lib:$DYLD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$DIR:/usr/lib:$LD_LIBRARY_PATH
+export DYLD_LIBRARY_PATH=$DIR:/usr/lib:/opt/local/lib:$DYLD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$DYLD_LIBRARY_PATH
 exec "$DIR/fmesher" "$@"
 
 

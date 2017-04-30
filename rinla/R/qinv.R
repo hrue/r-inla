@@ -26,7 +26,7 @@
 ##!   \code{inla.qinv} returns a \code{sparseMatrix} of type \code{dgTMatrix} with the
 ##!   diagonal and values for the neigbours in the inverse. Note that the full inverse is NOT provided!
 ##! }
-##! \author{Havard Rue \email{hrue@math.ntnu.no}}
+##! \author{Havard Rue \email{hrue@r-inla.org}}
 ##!
 ##! \examples{
 ##!
@@ -52,7 +52,7 @@
 ##! unlink(filename)
 ##! }
 
-`inla.qinv` = function(Q, constr, reordering = inla.reorderings())
+`inla.qinv` = function(Q, constr, reordering = INLA::inla.reorderings())
 {
     Q = inla.sparse.check(Q)
     if (is(Q, "dgTMatrix")) {

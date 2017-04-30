@@ -15,3 +15,19 @@ summary(model)
 formula= y ~ x
 model=inla(formula, family ="weibull", data=data)
 summary(model)
+
+## variant 1
+y = rweibull(n, shape= alpha, scale= 1/lambda)
+event = rep(1,n)
+data = list(y=y, event=event, x=x)
+
+formula=inla.surv(y,event)~ x
+model=inla(formula, family ="weibullsurv", data=data,
+           control.family = list(variant=1))
+summary(model)
+
+formula= y ~ x
+model=inla(formula, family ="weibull", data=data,
+           control.family = list(variant=1))
+summary(model)
+
