@@ -56,7 +56,7 @@
          prec.linear = inla.set.control.fixed.default()$prec,
          compute = TRUE,
          of=NULL,
-         precision = 1.0e9,
+         precision = exp(14),
          range = NULL,
          adjust.for.con.comp = TRUE,
          order = NULL,
@@ -225,5 +225,5 @@ default is zero), plus 1 for the sum-to-zero constraint if the
 prior model is proper, plus the number of extra
 constraints. \bold{Oops:} This can be wrong, and then the user
 must define the \code{rankdef} explicitely.}
-\author{Havard Rue \email{hrue@math.ntnu.no}}
+\author{Havard Rue \email{hrue@r-inla.org}}
 \seealso{\code{\link{inla}}, \code{\link{hyperpar.inla}}}

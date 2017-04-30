@@ -33,7 +33,7 @@
   \code{inla.qsolve} returns a matrix \code{X},  which is the solution of \code{Q X = B},  \code{L X = B} or \code{L^T X = B} 
   depending on the value of \code{method}.                      
 }
-\author{Havard Rue \email{hrue@math.ntnu.no}}
+\author{Havard Rue \email{hrue@r-inla.org}}
  
 \examples{
 n = 10

@@ -36,7 +36,7 @@ knit_hooks$set(pars = function(before, options, envir) {
 }) 
 library(lattice);   library(gridExtra);  library(INLA);  library(plyr) 
 lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote') 
+##inla.setOption(inla.call='remote') 
 @ 
 
 \begin{multicols}{2} 

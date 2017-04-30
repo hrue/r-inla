@@ -4440,7 +4440,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						log_dens *= -1.0;
 
 						val = log_dens - log_dens_mode;
-						if (-val > ai_par->diff_log_dens) {
+						if ((ISINF(val) || ISNAN(val)) || -val > ai_par->diff_log_dens) {
 							GMRFLib_ai_pool_set(pool, idx, val);
 							if (ai_par->fp_log) {
 #pragma omp critical
@@ -6941,13 +6941,14 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 					      GMRFLib_ai_param_tp * ai_par, double *covmat)
 {
 #define COV(i, j)  covmat[ (i) + (j)*nhyper ]
-#define NEXTRA 15
+#define NEXTRA 19
 	int i, j;
 	double *points = NULL, *ldens_values, *theta_max, *theta_min, sd;
-	double extra_points[NEXTRA] = { -7.0, -5.0, -3.0, -2.0, -1.0, -0.5, -0.25, 0.0, 0.25, 0.5, 1.0, 2.0, 3.0, 5.0, 7.0 };
+	double extra_points[] = {-15.0, -10.0, -7.0, -5.0, -3.0, -2.0, -1.0, -0.5, -0.25, 0.0, 0.25, 0.5, 1.0, 2.0, 3.0, 5.0, 7.0, 10.0, 15.0 };
 	int npoints;
 
 	GMRFLib_ENTER_ROUTINE;
+	assert(sizeof(extra_points)/sizeof(double) == NEXTRA);
 
 	// 
 	// Do not use this option, better off just doing what's done below. This is especially bad if the int_strategy = CCD.
@@ -7012,7 +7013,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 		for (i = 0; i < npoints; i++) {
 			ldens_values[i] = log(dens[i]);
 			points[i] = (points[i] - theta_mode[idx]) / sd;
-			// printf("points[%1d] = %f ldens %f \n", i, points[i], ldens_values[i]);
+			//printf("points[%1d] = %f ldens %f \n", i, points[i], ldens_values[i]);
 		}
 		GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, points, ldens_values,
 				       theta_mode[idx], std_stdev_theta[idx], GMRFLib_TRUE);
@@ -7040,13 +7041,19 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 		arg->dz = dz;
 		arg->interpolator = interpolator;
 
-		npoints = 51;
-		double theta_fixed, *x = Calloc(nhyper, double), *xx = NULL, *xxx = Calloc(npoints, double);
+		npoints = 71;
+		double theta_fixed, *x = NULL, *xx = NULL, *xxx = NULL;
 
 		GMRFLib_ghq_abscissas(&xx, npoints);
+		xxx = Calloc(npoints + NEXTRA, double);
 		memcpy(xxx, xx, npoints * sizeof(double));
+		memcpy(xxx + npoints, extra_points, NEXTRA * sizeof(double));
+
+		npoints += NEXTRA;
+		qsort((void *) xxx, (size_t) npoints, sizeof(double), GMRFLib_dcmp);
 		xxx[0] = DMIN(xxx[0], -GMRFLib_DENSITY_INTEGRATION_LIMIT);
 		xxx[npoints - 1] = DMAX(xxx[npoints - 1], GMRFLib_DENSITY_INTEGRATION_LIMIT);
+		x = Calloc(nhyper, double);
 		ldens_values = Calloc(npoints, double);
 
 		for (i = 0; i < npoints; i++) {
@@ -7059,6 +7066,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 				}
 			}
 			ldens_values[i] = GMRFLib_ai_integrator_func(nhyper, x, arg);
+			// printf("i %d  x %g ldens %g\n", i, x[idx], ldens_values[i]);
 		}
 
 		GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, xxx, ldens_values, theta_mode[idx], std_stdev_theta[idx], GMRFLib_TRUE);
@@ -7636,8 +7644,9 @@ int GMRFLib_ai_pool_init(GMRFLib_ai_pool_tp ** pool, GMRFLib_ai_param_tp * ai_pa
 	p->nhyper = nhyper;
 	p->diff_log_dens = ai_par->diff_log_dens;
 	p->all_out = 0;
-	half_len = (int) ((sqrt(2.0 * p->diff_log_dens) + 1.0) / ai_par->dz + 2.0);
-	len = 2 * half_len + 1;
+	half_len = (int) (((sqrt(2.0 * p->diff_log_dens) + 1.0) / ai_par->dz + 2.0) *
+			  (nhyper == 1 ? 6.0 : (nhyper == 2 ? 4.0 : (nhyper == 3 ? 2.0 : 1.0))));
+	len = (2 * half_len + 1);
 	p->nconfig = (size_t) pow((double) len, (double) p->nhyper);
 	p->configurations = Calloc((size_t) (p->nconfig * p->nhyper), GMRFLib_int8);
 	p->idx_mapping = Calloc(p->nconfig, size_t);
@@ -7834,7 +7843,7 @@ int GMRFLib_ai_pool_intern(GMRFLib_ai_pool_tp * pool, int *iz, size_t * idx, dou
 				}
 			}
 		} else if (action == GMRFLib_AI_POOL_SET) {
-			if (-logdens > pool->diff_log_dens) {
+			if ((ISNAN(logdens) || ISINF(logdens)) || -logdens > pool->diff_log_dens) {
 				int *izz = NULL, *izz_local = NULL, larger;
 
 				izz = Calloc(pool->nhyper, int);

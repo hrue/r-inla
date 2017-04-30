@@ -31,7 +31,7 @@
  \value{ The function returns an object of class \code{"inla"}, see the
  help file for \code{inla} for details.}
  
- \details{This function is mainly used inside \code{inla} and
-  \code{inla.surv} to collect results after running the inla
+ \details{This function is mainly used inside \code{inla} 
+  to collect results after running the inla
   function. It can also be used to collect results into R after having
   runned a inla section outside R.  }

@@ -16,7 +16,7 @@ control.group(adjust.for.con.comp, cyclic, fixed, graph, hyper, initial, model, 
 }
 \arguments{
 \item{...}{Possible arguments}
-\item{model}{  Group model (one of 'exchangable', 'exchangablepos', 'ar1', 'ar', 'rw1', 'rw2', 'besag', or 'I')}
+\item{model}{  Group model (one of 'exchangable', 'exchangablepos', 'ar1', 'ar', 'rw1', 'rw2', 'besag', or 'iid')}
 \item{order}{  Defines the \code{order} of the model: for model \code{ar} this defines the order p, in AR(p). Not used for other models at the time being.}
 \item{cyclic}{  Make the group model cyclic? (Only applies to models 'ar1', 'rw1' and 'rw2')}
 \item{graph}{  The graph spesification (Only applies to model 'besag')}

@@ -31,7 +31,7 @@
 ##!}
 ##!%%
 ##!
-##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!\author{Havard Rue \email{hrue@r-inla.org}}
 ##!
 ##!\examples{
 ##!## Summary of all
@@ -63,7 +63,7 @@
         cat(paste(  "\tINLA date ...............: ",  date, "\n",  sep=""))
         cat(paste(  "\tINLA hgid ...............: ", rinla.hgid, "\n", sep=""))
         cat(paste(  "\tINLA-program hgid .......: ", inla.hgid, "\n", sep=""))
-        cat(        "\tMaintainers .............: Havard Rue <hrue@math.ntnu.no>\n")
+        cat(        "\tMaintainers .............: Havard Rue <hrue@r-inla.org>\n")
         cat(        "\t                         : Finn Lindgren <finn.lindgren@gmail.com>\n")
         cat(        "\t                         : Daniel Simpson <dp.simpson@gmail.com>\n")
         cat(        "\t                         : Andrea Riebler <andrea.riebler@math.ntnu.no>\n")

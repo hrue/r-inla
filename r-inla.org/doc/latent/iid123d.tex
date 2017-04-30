@@ -117,16 +117,8 @@ For this model the argument \texttt{constr=TRUE} is interpreted as
 
 
 \subsection*{Example}
-In this example we implement the model
-\begin{displaymath}
-    y|\eta\sim\mbox{Pois}(\exp(\eta))
-\end{displaymath}
-where
-\begin{displaymath}
-    \eta=a+b+1
-\end{displaymath}
-and $a$ and $b$ are correlated as described above.
-
+In these examples we demonstrate the use of the iid2d-model, with
+observations that are without noise (essentially).
 \begin{verbatim}
 n = 1000
 N = 2*n

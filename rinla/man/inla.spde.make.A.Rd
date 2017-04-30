@@ -23,7 +23,9 @@ inla.spde.make.A(mesh = NULL, loc = NULL, index = NULL,
   \item{mesh}{
     An \code{\link{inla.mesh}} or \code{\link{inla.mesh.1d}} object
     specifying a function basis on a mesh domain.
-}
+    Alternatively, an
+    \code{inla.spde} object that includes a mesh (e.g. from
+    \code{\link{inla.spde2.matern}}).}
 \item{loc}{
   Observation/prediction coordinates.  \code{mesh} and \code{loc}
   defines a matrix \code{A.loc} of mapping weights between basis

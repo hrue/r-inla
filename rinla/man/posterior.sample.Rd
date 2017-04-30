@@ -51,7 +51,7 @@
      densities in \code{logdens$hyperpar} and \code{logdens$latent}
      and the joint density is in \code{logdens$joint}.
 }
-\author{Havard Rue \email{hrue@math.ntnu.no}}
+\author{Havard Rue \email{hrue@r-inla.org}}
  
 \examples{
   r = inla(y ~ 1 ,data = data.frame(y=rnorm(1)), control.compute = list(config=TRUE))

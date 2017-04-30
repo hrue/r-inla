@@ -42,6 +42,7 @@
 #endif
 #include <stdlib.h>
 #include <omp.h>
+#include <sys/stat.h>
 
 #define CSTACK_DEFNS 1
 #include <R.h>
@@ -54,6 +55,7 @@
 #define R_GENERIC_WRAPPER "inla.rgeneric.wrapper"
 #define INLA_OK (0)
 int my_file_exists(const char *filename);
+int my_dir_exists(const char *filename);
 int my_setenv(char *str, int prefix);
 int GMRFLib_sprintf(char **ptr, const char *fmt, ...);
 
@@ -76,32 +78,33 @@ int inla_R_init(void)
 		 * Check if R_HOME is set. If not, try to guess it, otherwise fail.
 		 */
 		char *rhome = getenv((const char *) "R_HOME");
-		if (!rhome) {
-			if (my_file_exists("/Library/Frameworks/R.framework/Resources") == INLA_OK) {
+
+		if (!rhome || (rhome && (my_dir_exists(rhome) != INLA_OK))) {
+			if (my_dir_exists("/Library/Frameworks/R.framework/Resources") == INLA_OK) {
 				GMRFLib_sprintf(&rhome, "R_HOME=/Library/Frameworks/R.framework/Resources");
-			} else if (my_file_exists("/usr/lib64/R") == INLA_OK) {
+			} else if (my_dir_exists("/usr/lib64/R") == INLA_OK) {
 				GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib64/R");
-			} else if (my_file_exists("/usr/lib/R") == INLA_OK) {
+			} else if (my_dir_exists("/usr/lib/R") == INLA_OK) {
 				GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib/R");
-			} else if (my_file_exists("/usr/lib32/R") == INLA_OK) {
+			} else if (my_dir_exists("/usr/lib32/R") == INLA_OK) {
 				GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib32/R");
 			} else {
 				fprintf(stderr, "\n\n");
-				fprintf(stderr, "*** R-interface  ERROR: Environment variable R_HOME is not set.\n");
+				fprintf(stderr, "*** R-interface  ERROR: Environment variable R_HOME is not set or invalid.\n");
 				fprintf(stderr, "*** R_interface  ERROR: Evaluate this in R:  Sys.getenv(\"R_HOME\")\n");
 				fprintf(stderr, "\n\n");
 				fflush(stderr);
 				exit(1);
 			}
 			fprintf(stderr, "\n\n");
-			fprintf(stderr, "*** R-interface WARNING: Environment variable R_HOME is not set.\n");
+			fprintf(stderr, "*** R-interface WARNING: Environment variable R_HOME is not set or invalid.\n");
 			fprintf(stderr, "*** R-interface WARNING: Set it to a _GUESSED_ value [%s]\n\n", rhome);
 			fflush(stderr);
 			my_setenv(rhome, 0);
 			Free(rhome);
 		}
 		// char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--silent", "--no-save" };
-		char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--no-save" };
+		char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--no-save", "--no-restore" };
 		int Rargc = sizeof(Rargv) / sizeof(Rargv[0]);
 		Rf_initEmbeddedR(Rargc, Rargv);
 
@@ -117,7 +120,7 @@ int inla_R_init(void)
 
 int inla_R_library(const char *library)
 {
-	if (!library)
+	if (!library) 
 		return (INLA_OK);
 	inla_R_init();
 
@@ -220,7 +223,8 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 	inla_R_init();
 
 	if (R_debug)
-		fprintf(stderr, "R-interface[%1d]: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag, n);
+		fprintf(stderr, "R-interface[%1d]: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag,
+			n);
 
 	int error, i;
 	SEXP xx, result, e;

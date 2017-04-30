@@ -52,7 +52,7 @@
    \item{...}{Additional arguments to \code{postscript()}, \code{pdf()} or \code{dev.new()}.}
  }
  \value{The return value is a list of the files created (if any).}
- \author{Havard Rue \email{hrue@math.ntnu.no} }
+ \author{Havard Rue \email{hrue@r-inla.org} }
  \seealso{\code{\link{inla}}}
  \examples{
 \dontrun{

@@ -44,11 +44,9 @@ __BEGIN_DECLS
  *
  */
 #include "inla.h"
-
 #define FGN_KMAX (6L)					       /* maximum K in the tables */
-
 //
-typedef struct {
+    typedef struct {
 	int N;						       /* total size = (k+1)*n */
 	int n;						       /* size of each component */
 	int k;						       /* number of components */

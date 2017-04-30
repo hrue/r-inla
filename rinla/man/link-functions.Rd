@@ -7,6 +7,8 @@
  \alias{inla.link}
  \alias{inla.link.log}
  \alias{inla.link.invlog}
+ \alias{inla.link.neglog}
+ \alias{inla.link.invneglog}
  \alias{inla.link.logit}
  \alias{inla.link.invlogit}
  \alias{inla.link.probit}
@@ -31,6 +33,8 @@
  \usage{
  inla.link.log(x, inverse=FALSE)
  inla.link.invlog(x, inverse=FALSE)
+ inla.link.neglog(x, inverse=FALSE)
+ inla.link.invneglog(x, inverse=FALSE)
  inla.link.logit(x, inverse=FALSE)
  inla.link.invlogit(x, inverse=FALSE)
  inla.link.probit(x, inverse=FALSE)
@@ -60,4 +64,4 @@
        \code{inla.link.invlog(x) = inla.link.log(x, inverse=TRUE)}
        and so on,  but they are simpler to use a arguments
        to other functions.}
- \author{Havard Rue \email{hrue@math.ntnu.no}}
+ \author{Havard Rue \email{hrue@r-inla.org}}

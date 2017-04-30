@@ -1,35 +1,12 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
+	\item[doc] Zero inflated negBinomial, type 1, strata 3
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
 	 	 	\item[hyperid] 98001
-	 	 	\item[name] log size 1
-	 	 	\item[short.name] size1
-	 	 	\item[initial] 2.30258509299405
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 1
-	 	 	\item[to.theta] \verb!function(x) log(x)!
-	 	 	\item[from.theta] \verb!function(x) exp(x)!
-	 	 \end{description}
-	 	\item[theta2]\ 
-	 	 \begin{description}
-	 	 	\item[hyperid] 98002
-	 	 	\item[name] log size 2
-	 	 	\item[short.name] size2
-	 	 	\item[initial] 2.30258509299405
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 1
-	 	 	\item[to.theta] \verb!function(x) log(x)!
-	 	 	\item[from.theta] \verb!function(x) exp(x)!
-	 	 \end{description}
-	 	\item[theta3]\ 
-	 	 \begin{description}
-	 	 	\item[hyperid] 98003
 	 	 	\item[name] logit probability
 	 	 	\item[short.name] prob
 	 	 	\item[initial] -1
@@ -38,6 +15,126 @@
 	 	 	\item[param] -1 0.2
 	 	 	\item[to.theta] \verb!function(x) log(x/(1-x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x)/(1+exp(x))!
+	 	 \end{description}
+	 	\item[theta2]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 98002
+	 	 	\item[name] log size 1
+	 	 	\item[short.name] size1
+	 	 	\item[initial] 2.30258509299405
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] pc.mgamma
+	 	 	\item[param] 7
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 	\item[theta3]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 98003
+	 	 	\item[name] log size 2
+	 	 	\item[short.name] size2
+	 	 	\item[initial] 2.30258509299405
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] pc.mgamma
+	 	 	\item[param] 7
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 	\item[theta4]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 98004
+	 	 	\item[name] log size 3
+	 	 	\item[short.name] size3
+	 	 	\item[initial] 2.30258509299405
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] pc.mgamma
+	 	 	\item[param] 7
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 	\item[theta5]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 98005
+	 	 	\item[name] log size 4
+	 	 	\item[short.name] size4
+	 	 	\item[initial] 2.30258509299405
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] pc.mgamma
+	 	 	\item[param] 7
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 	\item[theta6]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 98006
+	 	 	\item[name] log size 5
+	 	 	\item[short.name] size5
+	 	 	\item[initial] 2.30258509299405
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] pc.mgamma
+	 	 	\item[param] 7
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 	\item[theta7]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 98007
+	 	 	\item[name] log size 6
+	 	 	\item[short.name] size6
+	 	 	\item[initial] 2.30258509299405
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] pc.mgamma
+	 	 	\item[param] 7
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 	\item[theta8]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 98008
+	 	 	\item[name] log size 7
+	 	 	\item[short.name] size7
+	 	 	\item[initial] 2.30258509299405
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] pc.mgamma
+	 	 	\item[param] 7
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 	\item[theta9]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 98009
+	 	 	\item[name] log size 8
+	 	 	\item[short.name] size8
+	 	 	\item[initial] 2.30258509299405
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] pc.mgamma
+	 	 	\item[param] 7
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 	\item[theta10]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 98010
+	 	 	\item[name] log size 9
+	 	 	\item[short.name] size9
+	 	 	\item[initial] 2.30258509299405
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] pc.mgamma
+	 	 	\item[param] 7
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 	\item[theta11]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 98011
+	 	 	\item[name] log size 10
+	 	 	\item[short.name] size10
+	 	 	\item[initial] 2.30258509299405
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] pc.mgamma
+	 	 	\item[param] 7
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 \end{description}
 	\item[status] experimental
