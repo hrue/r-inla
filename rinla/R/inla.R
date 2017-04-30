@@ -394,7 +394,7 @@
     ##!(with discussion)}, vol 71, no 2, pp 319-392.
     ##!Rue, H and Held, L. (2005) \emph{Gaussian Markov Random Fields
     ##!- Theory and Applications} Chapman and Hall}
-    ##!\author{Havard Rue \email{hrue@math.ntnu.no} and Sara Martino}
+    ##!\author{Havard Rue \email{hrue@r-inla.org} and Sara Martino}
     ##!\seealso{\code{\link{f}}, 
     ##!\code{\link{inla.hyperpar}} }
     ##!\examples{
@@ -466,8 +466,7 @@
     control.predictor = inla.check.control(control.predictor, data)
     ## I need to check for NA's already here.
     if (!is.null(control.predictor$A)) {
-        control.predictor$A[ is.na(control.predictor$A) ] = 0
-        control.predictor$A = inla.as.sparse(control.predictor$A)
+        control.predictor$A = inla.as.sparse(control.predictor$A, na.rm=TRUE, zeros.rm=TRUE)
     }
     ## do not check control.family here, as we need to know n.family
     control.inla = inla.check.control(control.inla, data)
@@ -585,6 +584,9 @@
     } else {
         nc = NULL ## not in use
         if (inherits(y...orig, "inla.surv")) {
+            class(y...orig) = NULL
+            ny = max(sapply(y...orig, length))
+        } else if (inherits(y...orig, "inla.mdata")) {
             class(y...orig) = NULL
             ny = max(sapply(y...orig, length))
         } else {
@@ -714,11 +716,17 @@
             stop(paste("Unknown value for flag 'expand.factor.strategy' in 'control.fixed':",
                        cont.fixed$expand.factor.strategy))
         }
-
-        gp$model.matrix = model.matrix(new.fix.formula,
-            data=model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
-            contrasts.arg = contrasts)
-        
+        if (inla.require("MatrixModels")) {
+            gp$model.matrix = MatrixModels::model.Matrix(
+                new.fix.formula,
+                data = model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
+                contrasts.arg = contrasts, sparse=TRUE)
+        } else {
+            gp$model.matrix = model.matrix(
+                new.fix.formula,
+                data = model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
+                contrasts.arg = contrasts)
+        }
         ## as NA's in factors are not set to zero in
         ## 'inla.na.action'. Do that here if the strategy is 'inla',
         ## otherwise signal an error.
@@ -1662,7 +1670,7 @@
                                 ncol = dim(gp$random.spec[[r]]$extraconstr$A)[2]
 
                                 if (ncol != fac*n)
-                                    stop(paste("Wrong dimension for the extraconstraint: ncol", ncol, "n", n))
+                                    stop(paste("Wrong dimension for the extraconstr: ncol", ncol, "n", n))
                                 
                                 A = matrix(0, nrow+1, ncol)
                                 e = c(gp$random.spec[[r]]$extraconstr$e, 0)
@@ -1696,7 +1704,7 @@
                                 ncol = dim(gp$random.spec[[r]]$extraconstr$A)[2]
 
                                 if (ncol != n)
-                                    stop(paste("Wrong dimension for the extraconstraint: ncol", ncol, "n", n))
+                                    stop(paste("Wrong dimension for the extraconstr: ncol", ncol, "n", n))
                                 
                                 A = matrix(0, nrow+length(con), ncol)
                                 e = c(gp$random.spec[[r]]$extraconstr$e, rep(0, length(con)))
@@ -1717,13 +1725,13 @@
                 ##print(gp$random.spec[[r]]$extraconstr$A)
                 ##print(gp$random.spec[[r]]$extraconstr$e)
                 
-                ##and in case a file for the extraconstraint
+                ##and in case a file for the extraconstr
                 if (!is.null(gp$random.spec[[r]]$extraconstr)) {
                     A=gp$random.spec[[r]]$extraconstr$A
                     e=gp$random.spec[[r]]$extraconstr$e
 
                     if (ncol(A) != inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor*n)
-                        stop(paste("\n\tncol in matrix A(extraconstraint) does not correspont to the length of f:",
+                        stop(paste("\n\tncol in matrix A(extraconstr) does not correspont to the length of f:",
                                    ncol(A),
                                    inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor*n))
 

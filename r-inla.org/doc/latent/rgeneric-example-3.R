@@ -8,55 +8,54 @@
 ## model for the 'mean' only.
 
 rgeneric.linear.regression =
-    function (cmd = c("graph", "Q", "mu", "initial", "log.norm.const", 
-                      "log.prior", "quit"),
-              theta = NULL, args = NULL)
+    function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", 
+                     "log.prior", "quit"),
+             theta = NULL)
 {
     
     ## artifical high precision to be added to the mean-model
     prec.high = exp(15)
     
-    interpret.theta = function(theta) {
+    interpret.theta = function() {
         return(list(a = theta[1L], b = theta[2L]))
     }
     
-    graph = function(theta, x) {
+    graph = function() {
         G = Diagonal(n = length(x), x=1)
         return(G)
     } 
     
-    Q = function(theta, x) {
-        Q = prec.high * graph(theta, x)
+    Q = function() {
+        Q = prec.high * graph()
         return(Q)
     }
     
-    mu = function(theta, x) {
-        par = interpret.theta(theta)
+    mu = function() {
+        par = interpret.theta()
         return(par$a + par$b * x)
     }
 
-    log.norm.const = function(theta, x) {
+    log.norm.const = function() {
         ## the easiest is to let INLA compute this
         return(numeric(0))
     }
 
-    log.prior = function(theta, x) {
-        par = interpret.theta(theta)
+    log.prior = function() {
+        par = interpret.theta()
         val = (dnorm(par$a, mean=0, sd = sqrt(1/0.001), log=TRUE) +
                dnorm(par$b, mean = 0, sd = sqrt(1/0.001), log=TRUE))
         return(val)
     }
 
-    initial = function(theta, x) {
+    initial = function() {
         return(rep(0, 2))
     }
    
-    quit = function(theta, x) {
+    quit = function() {
         return(invisible())
     }
 
-    cmd = match.arg(cmd)
-    val = do.call(cmd, args = list(theta = theta, x = args$x))
+    val = do.call(match.arg(cmd), args = list())
     return(val)
 }
 

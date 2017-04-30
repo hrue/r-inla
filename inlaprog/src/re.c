@@ -124,7 +124,8 @@ int re_sas_skew_kurt(double *skew, double *kurt, double epsilon, double delta)
 		*skew = (m3 - 3.0 * m1 * m2 + 3.0 * gsl_pow_3(m1) - gsl_pow_3(m1)) / gsl_pow_3(sqrt(m2 - SQR(m1)));
 	}
 	if (kurt) {
-		*kurt = (m4 - 4.0 * m1 * m3 + 6.0 * SQR(m1) * m2 - 4.0 * gsl_pow_4(m1) + gsl_pow_4(m1)) / gsl_pow_4(sqrt(m2 - SQR(m1)));
+		*kurt =
+		    (m4 - 4.0 * m1 * m3 + 6.0 * SQR(m1) * m2 - 4.0 * gsl_pow_4(m1) + gsl_pow_4(m1)) / gsl_pow_4(sqrt(m2 - SQR(m1)));
 	}
 
 	return GMRFLib_SUCCESS;
@@ -223,7 +224,8 @@ int re_sas_fit_parameters(re_sas_param_tp * param, double *mean, double *prec, d
 			}
 			if (debug) {
 				printf("status = %s\n", gsl_strerror(status));
-				printf("iter %1d: x %g %g |f| = %g\n", iter, gsl_vector_get(s->x, 0), gsl_vector_get(s->x, 1), gsl_blas_dnrm2(s->f));
+				printf("iter %1d: x %g %g |f| = %g\n", iter, gsl_vector_get(s->x, 0), gsl_vector_get(s->x, 1),
+				       gsl_blas_dnrm2(s->f));
 			}
 			status = gsl_multifit_test_delta(s->dx, s->x, eps, eps);
 		}
@@ -232,7 +234,8 @@ int re_sas_fit_parameters(re_sas_param_tp * param, double *mean, double *prec, d
 		err = (gsl_blas_dnrm2(s->f) > 1e-5);
 		if (err) {
 			if (re_valid_skew_kurt(NULL, target[0], target[1]) == GMRFLib_TRUE) {
-				fprintf(stderr, "SHASH fail to fit target skew=%g kurt=%g err=%g, but VALID FAIL!\n", target[0], target[1], gsl_blas_dnrm2(s->f));
+				fprintf(stderr, "SHASH fail to fit target skew=%g kurt=%g err=%g, but VALID FAIL!\n", target[0],
+					target[1], gsl_blas_dnrm2(s->f));
 			}
 		}
 
@@ -781,7 +784,8 @@ int re_join_contourLines(re_contour_tp * c)
 		 * force them to be cyclic if close
 		 */
 		if ((c->x[0][0] != c->x[0][c->ns[0]] ||
-		     c->y[0][0] != c->y[0][c->ns[0]]) && (ABS(c->x[0][0] - c->x[0][c->ns[0]]) < cyclic_eps && ABS(c->y[0][0] - c->y[0][c->ns[0]]) < cyclic_eps)) {
+		     c->y[0][0] != c->y[0][c->ns[0]]) && (ABS(c->x[0][0] - c->x[0][c->ns[0]]) < cyclic_eps
+							  && ABS(c->y[0][0] - c->y[0][c->ns[0]]) < cyclic_eps)) {
 			c->x[0] = Realloc(c->x[0], c->ns[0] + 2, double);
 			c->y[0] = Realloc(c->y[0], c->ns[0] + 2, double);
 			c->x[0][c->ns[0] + 1] = c->x[0][0];
@@ -932,7 +936,8 @@ int re_join_contourLines(re_contour_tp * c)
 	for (i = 0; i < c->ns[imin]; i++) {
 		c->length[imin] += sqrt(SQR(c->x[imin][i] - c->x[imin][i + 1]) + SQR(c->y[imin][i] - c->y[imin][i + 1]));
 	}
-	c->cyclic[imin] = (ABS(c->x[imin][0] - c->x[imin][c->ns[imin]]) < cyclic_eps && ABS(c->y[imin][0] - c->y[imin][c->ns[imin]]) < cyclic_eps);
+	c->cyclic[imin] = (ABS(c->x[imin][0] - c->x[imin][c->ns[imin]]) < cyclic_eps
+			   && ABS(c->y[imin][0] - c->y[imin][c->ns[imin]]) < cyclic_eps);
 	c->nc--;
 
 	Free(dists);
@@ -989,11 +994,14 @@ double re_point_on_contour(re_contour_tp * c, double skew, double kurt)
 
 	len = 0.0;
 	for (i = start_idx, j = 0; j < c->ns[ic] + 1; i = WRAPIT(i + direction), j++) {
-		if (INBETWEEN(skew, c->x[ic][i], c->x[ic][WRAPIT(i + direction)]) && INBETWEEN(kurt, c->y[ic][i], c->y[ic][WRAPIT(i + direction)])) {
+		if (INBETWEEN(skew, c->x[ic][i], c->x[ic][WRAPIT(i + direction)])
+		    && INBETWEEN(kurt, c->y[ic][i], c->y[ic][WRAPIT(i + direction)])) {
 			len += sqrt(SQR(c->x[ic][i] - skew) + SQR(c->y[ic][i] - kurt));
 			break;
 		} else {
-			len += sqrt(SQR(c->x[ic][i] - c->x[ic][WRAPIT(i + direction)]) + SQR(c->y[ic][i] - c->y[ic][WRAPIT(i + direction)]));
+			len +=
+			    sqrt(SQR(c->x[ic][i] - c->x[ic][WRAPIT(i + direction)]) +
+				 SQR(c->y[ic][i] - c->y[ic][WRAPIT(i + direction)]));
 		}
 	}
 	if (!(len <= 1.1 * c->length[0])) {
@@ -1001,7 +1009,8 @@ double re_point_on_contour(re_contour_tp * c, double skew, double kurt)
 		printf("SOMETHING WRONG\n");
 		for (i = 0; i < c->ns[ic] + 1; i++) {
 			printf("i,x,y %d %.12g %.12g BETWEEN %d\n", i, c->x[ic][i], c->y[ic][i],
-			       (INBETWEEN(skew, c->x[ic][i], c->x[ic][WRAPIT(i + direction)]) && INBETWEEN(kurt, c->y[ic][i], c->y[ic][WRAPIT(i + direction)])));
+			       (INBETWEEN(skew, c->x[ic][i], c->x[ic][WRAPIT(i + direction)])
+				&& INBETWEEN(kurt, c->y[ic][i], c->y[ic][WRAPIT(i + direction)])));
 		}
 		P(start_idx);
 		P(direction);
@@ -1169,7 +1178,8 @@ int re_sas_table_add_logjac(int debug)
 					dkurt = 2 * ddefault;
 				}
 
-				if (skew + dskew > SKEW_MIN && skew + dskew < SKEW_MAX && kurt + dkurt > KURT_MIN && kurt + dkurt < KURT_MAX) {
+				if (skew + dskew > SKEW_MIN && skew + dskew < SKEW_MAX && kurt + dkurt > KURT_MIN
+				    && kurt + dkurt < KURT_MAX) {
 
 					do {
 						re_find_in_sas_prior_table(output, skew + dskew, kurt);
@@ -1180,7 +1190,9 @@ int re_sas_table_add_logjac(int debug)
 
 					if (adaptive) {
 						for (iter = 0; iter < iter_max; iter++) {
-							double f = (iter < iter_max / 2 ? 0.9 : (iter < (iter_max * 3) / 4 ? 0.99 : 0.999));
+							double f =
+							    (iter <
+							     iter_max / 2 ? 0.9 : (iter < (iter_max * 3) / 4 ? 0.99 : 0.999));
 							re_find_in_sas_prior_table(output, skew + dskew, kurt);
 							if (ISNAN(output[0])) {
 								dskew /= f;
@@ -1210,7 +1222,8 @@ int re_sas_table_add_logjac(int debug)
 
 					if (adaptive) {
 						for (iter = 0; iter < iter_max; iter++) {
-							double f = (iter < iter_max / 2 ? 0.9 : (iter < iter_max * 3 / 4 ? 0.99 : 0.999));
+							double f =
+							    (iter < iter_max / 2 ? 0.9 : (iter < iter_max * 3 / 4 ? 0.99 : 0.999));
 							re_find_in_sas_prior_table(output, skew, kurt + dkurt);
 							if (ISNAN(output[0])) {
 								dkurt /= f;
@@ -1245,8 +1258,8 @@ int re_sas_table_add_logjac(int debug)
 						printf("\tkurt:  lev %g len %g point %g\n", lev[2], len[2], poi[2]);
 						printf("\tdskew: lev %g point %g\n", dlevel_dskew, dpoint_dskew);
 						printf("\tdkurt: lev %g point %g\n", dlevel_dkurt, dpoint_dkurt);
-						printf("\tlog(a x b) = log(Jac) %g %g = %g\n", dlevel_dskew * dpoint_dkurt, dpoint_dskew * dlevel_dkurt,
-						       log(Jacobian));
+						printf("\tlog(a x b) = log(Jac) %g %g = %g\n", dlevel_dskew * dpoint_dkurt,
+						       dpoint_dskew * dlevel_dkurt, log(Jacobian));
 					}
 				}
 			}
@@ -1482,7 +1495,8 @@ int re_sas_prior_table_core(int read_only, int add_logjac, int debug, double *pa
 
 		sas_prior_table_log_integral = re_sas_table_log_integral(param);
 		if (debug) {
-			fprintf(stderr, "sas_prior_table: log(integral) = %g for param = %g\n", sas_prior_table_log_integral, param[0]);
+			fprintf(stderr, "sas_prior_table: log(integral) = %g for param = %g\n", sas_prior_table_log_integral,
+				param[0]);
 		}
 
 		return GMRFLib_SUCCESS;
@@ -1525,7 +1539,9 @@ int re_sas_prior_table_core(int read_only, int add_logjac, int debug, double *pa
 				for (i = 0; i < s->nx; i++) {
 					int k = i + j * s->nx;
 					if (re_valid_skew_kurt(NULL, s->skew[i], s->kurt[j])) {
-						s->level[k] = re_intrinsic_discrepancy_distance_map(re_intrinsic_discrepancy_distance(s->skew[i], s->kurt[j]));
+						s->level[k] =
+						    re_intrinsic_discrepancy_distance_map(re_intrinsic_discrepancy_distance
+											  (s->skew[i], s->kurt[j]));
 						assert(!ISNAN(s->level[k]));
 					} else {
 						s->level[k] = NAN;

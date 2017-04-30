@@ -16,9 +16,8 @@ eta = inla.link.invlogit(1 + x)
 y = rkumar(n, eta, phi, q)
 r = inla(y ~ 1 + x,
     data = data.frame(y, x),
-    family = "kumar",
-    control.family = list(
-        hyper = list(q = list(initial = q))))
+    family = "qkumar",
+    control.family = list(quantile = q))
 summary(r)
 
 

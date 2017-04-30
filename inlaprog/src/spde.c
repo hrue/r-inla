@@ -366,7 +366,8 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 			GMRFLib_problem_tp *problem;
 			GMRFLib_reorder = k;
 			// GMRFLib_optimize_reorder(model->graph, NULL);
-			GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, model->graph, model->Qfunc, model->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
+			GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, model->graph, model->Qfunc, model->Qfunc_arg, NULL,
+					     NULL, GMRFLib_NEW_PROBLEM);
 			char *nm;
 			GMRFLib_sprintf(&nm, "Qspde%1d", k);
 			GMRFLib_bitmap_problem(nm, problem);

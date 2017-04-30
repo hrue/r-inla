@@ -646,6 +646,9 @@ inla.spde2.matern =
       spde$f$extraconstr = list(A=A.constr, e=e.constr)
     }
 
+    ## Attach the mesh, so downstream code can have access
+    spde$mesh <- mesh
+
     return(invisible(spde))
 }
 
@@ -720,7 +723,7 @@ inla.spde2.pcmatern =
                               extraconstr.int = extraconstr.int,
                               extraconstr = extraconstr,
                               fractional.method = fractional.method,
-                              n.iid.group = 1)
+                              n.iid.group = n.iid.group)
 
   ## Calculate hyperparameters
   is.fixed.range <- is.na(prior.range[2])
