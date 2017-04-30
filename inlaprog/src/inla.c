@@ -29586,6 +29586,29 @@ int inla_R(char **argv)
 
 	return GMRFLib_SUCCESS;
 }
+int inla_fgn(char *H_arg, char *outfile)
+{
+#define K 3	
+	double H, res[2*K+1], H_intern;
+
+	if (inla_sread_doubles(&H, 1, H_arg) != INLA_OK) {
+		fprintf(stderr, "Fail to read H from %s\n", H_arg);
+		exit(EXIT_SUCCESS);
+	}
+
+	H_intern = map_H(H, MAP_BACKWARD, NULL);
+	inla_fgn_get(&res[1], &res[K+1], H_intern, K);
+	res[0] = H;
+	
+	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp);
+	M->nrow = 2*K+1;
+	M->ncol = 1;
+	M->elems = M->nrow * M->ncol;
+	M->A = res;
+	GMRFLib_write_fmesher_file(M, outfile, 0L, -1);
+#undef K
+	return GMRFLib_SUCCESS;
+}
 int testit(int argc, char **argv)
 {
 	if (1) {
@@ -30095,6 +30118,8 @@ int main(int argc, char **argv)
 				G.mode = INLA_MODE_GRAPH;
 			} else if (!strncasecmp(optarg, "R", 1)) {
 				G.mode = INLA_MODE_R;
+			} else if (!strncasecmp(optarg, "FGN", 3)) {
+				G.mode = INLA_MODE_FGN;
 			} else if (!strncasecmp(optarg, "TESTIT", 6)) {
 				G.mode = INLA_MODE_TESTIT;
 			} else {
@@ -30281,6 +30306,10 @@ int main(int argc, char **argv)
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_R) {
 		inla_R(&(argv[optind]));
+		if (report) GMRFLib_timer_full_report(NULL);
+		exit(EXIT_SUCCESS);
+	} else if (G.mode == INLA_MODE_FGN) {
+		inla_fgn(argv[optind], argv[optind+1]);
 		if (report) GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_TESTIT) {
