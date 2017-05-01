@@ -33,7 +33,7 @@
                    the same value of \code{split.by} are in the same group.}
    \item{debug}{Print debugging information if \code{TRUE}, default is \code{FALSE}}
    \item{...}{Other arguments passed to \code{\link{inla}}}
-  }
+ }
 
  \value{
   A numeric vector of p-values, corresponding to a test
@@ -47,7 +47,7 @@
  \author{Egil Ferkingstad \email{egil@hi.is} and Havard Rue \email{hrue@r-inla.org}}
 
  \examples{
-     See Ferkingstad et al (2017).
+ ## See Ferkingstad et al (2017).
  }
 
  \references{
