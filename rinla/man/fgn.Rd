@@ -6,27 +6,28 @@
  \alias{inla.fgn}
  \alias{fgn}
 
- \title{Extract coefficients of the 3-component AR(1) mixture representing FGN}
+ \title{Lookup coefficients in the 3-component AR(1) mixture representing FGN(H)}
 
- \description{Extract coefficients of the 3-component AR(1) mixture representing FGN}
+ \description{This function will lookup the coefficients in the 3-component AR(1)
+              mixture representing FGN(H)}
 
  \usage{
      inla.fgn(H)
  } 
 
  \arguments{
-   \item{H}{The Hurst coeffcient (0<H<1)}
+   \item{H}{The Hurst coeffcient (0<H<1),  or a vector of those}
   }
  \value{
-  A named vector of length 7, where the first element is \code{H},
-  the next three are the lag one
-  correlations (or phi's),
-  and the last three are the weights.
+  A named matrix with 7 columns, where the first column is \code{H},
+  column 2,  3 and 4 are lag one correlations (or phi's),
+  and column 5,  6 and 7 are the weights.
 
   This function is EXPERIMENTAL!!!
  }
  \author{Havard Rue \email{hrue@r-inla.org}}
 
  \examples{
-     inla.fgn(0.7)
+     r = c(inla.fgn(0.7))
+     r_m = inla.fgn(seq(0.6, 0.8, by=0.01))
  } 
