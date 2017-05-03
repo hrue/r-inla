@@ -12,7 +12,8 @@
  model assessment for an INLA model using so-called node-splitting
  (Marshall and Spiegelhalter, 2007; Presanis et al, 2013).
  The user inputs \code{formula}, \code{data}, etc, just as in an \code{inla} call,
- but additionally inputs an index \code{split.by} specifying a grouping.
+ but additionally inputs a variable name (\code{split.by}) specifying a grouping:
+ Data points that share the same value of \code{split.by} are in the same group.
  The function then checks whether each group is an "outlier", or in conflict with
  the remaining groups, using the methodology described in Ferkingstad et al (2017).
  The result is a vector containing a p-value for each group, corresponding to a test
@@ -28,8 +29,7 @@
  \arguments{
    \item{formula}{An \code{inla} formula, see \code{\link{inla}} for details.}
    \item{data}{A data frame or list containing the variables in the model.}
-   \item{split.by}{An index specifying the grouping. The length of \code{split.by} 
-                   must equal the number of data points. Data points that have
+   \item{split.by}{The name of the variable to group by. Data points that have
                    the same value of \code{split.by} are in the same group.}
    \item{debug}{Print debugging information if \code{TRUE}, default is \code{FALSE}}
    \item{...}{Other arguments passed to \code{\link{inla}}}
