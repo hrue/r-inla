@@ -9,29 +9,27 @@
 ##! \description{This function performs group-wise, cross-validatory
 ##! model assessment for an INLA model using so-called node-splitting
 ##! (Marshall and Spiegelhalter, 2007; Presanis et al, 2013).
-##! The user inputs \code{formula}, \code{data}, etc, just as in an \code{inla} call,
-##! but additionally inputs a variable name (\code{split.by}) specifying a grouping:
+##! The user inputs an object of class \code{inla} (i.e. a result
+##! of a call to \code{inla()}}) as well as  a variable name (\code{split.by}) specifying a grouping:
 ##! Data points that share the same value of \code{split.by} are in the same group.
 ##! The function then checks whether each group is an "outlier", or in conflict with
 ##! the remaining groups, using the methodology described in Ferkingstad et al (2017).
 ##! The result is a vector containing a p-value for each group, corresponding to a test
-##! for each group \code{i} where the null hypothesis is that group \code{i} is
+##! for each group \code{i}, where the null hypothesis is that group \code{i} is
 ##! consistent with the other groups except \code{i} (so a small p-value is evidence
 ##! that the group is an "outlier"). See Ferkingstad et al (2017) for further details.
 ##! }
 ##! 
 ##! \usage{
-##!     inla.cut(formula, data, split.by, debug=FALSE, ...)
+##!     inla.cut(result, split.by, debug=FALSE)
 ##! } 
 ##!
 ##! \arguments{
-##!   \item{formula}{An \code{inla} formula, see \code{\link{inla}} for details.}
-##!   \item{data}{A data frame or list containing the variables in the model.}
+##!   \item{result}{An object of class \code{inla}, i.e. a result of a call to \code{inla()}}
 ##!   \item{split.by}{The name of the variable to group by. Data points that have
 ##!                   the same value of \code{split.by} are in the same group.}
 ##!   \item{debug}{Print debugging information if \code{TRUE}, default is \code{FALSE}}
-##!   \item{...}{Other arguments passed to \code{\link{inla}}}
-##! }
+##!  }
 ##!
 ##! \value{
 ##!  A numeric vector of p-values, corresponding to a test
@@ -59,14 +57,15 @@
 ##! with applications in Bayesian evidence synthesis. Statistical Science, 28(3):376–397.
 ##! }
 
-inla.cut = function(formula, data, split.by, debug=FALSE, ...)
+inla.cut = function(result, split.by, debug=FALSE)
 {
     my.debug = function(...) if (debug) cat("*** inla.cut: ", ... , "\n")
 
-    stopifnot(!missing(formula))
-    stopifnot(!missing(data))
+    stopifnot(!missing(result))
+    stopifnot(class(result) == "inla")
     stopifnot(!missing(split.by))
-
+    formula <- result$.args$formula
+    data <- result$.args$data
     ## use an INLA internal to get the variable names of the whole model, ie, the fixed effects
     ## + f(idx)'s
     intf = INLA:::inla.interpret.formula(formula)
@@ -98,9 +97,6 @@ inla.cut = function(formula, data, split.by, debug=FALSE, ...)
     split.len = length(split.uval)
     stopifnot(split.len > 0)
     
-    ## store the results, 
-    result = rep(list(list()), split.len)
-
     ## store inla-results
     res = list()
     r = NULL
@@ -114,7 +110,7 @@ inla.cut = function(formula, data, split.by, debug=FALSE, ...)
         data.rep[idx.num, resp] = NA
         
         ## prepare the arguments for inla()
-        args = list(...)
+        args = result$.args
         args$data = data.rep
         args$formula = formula
         cont.compute = args$control.compute
@@ -196,3 +192,4 @@ inla.cut = function(formula, data, split.by, debug=FALSE, ...)
     }
     return(p.linpred)
 }
+
