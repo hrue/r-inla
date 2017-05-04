@@ -131,7 +131,7 @@ OldDir=$(echo ~hrue/www/www.inla/binaries/testing/Old)
 old="$tgzINLA-$bdate"
 
 convert_to_mac_binary () {
-    host=hruemac.math.ntnu.no
+    host=kw-16659.kaust.edu.sa
     for f in "$@"; do
 	ff=$(basename $f)
 	scp -v $f $host:$ff
