@@ -136,7 +136,7 @@ convert_to_mac_binary () {
 	ff=$(basename $f)
 	scp -v $f $host:$ff
 	##ssh $host R CMD INSTALL --build --library=./tmp $ff
-	ssh $host R CMD INSTALL --build  $ff
+	ssh $host /usr/local/bin/R CMD INSTALL --build  $ff
 	scp -v $host:$ff $f
     done
 }
