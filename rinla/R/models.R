@@ -5658,7 +5658,7 @@
                              hyperid =  81001,
                              name = "log alpha",
                              short.name = "a",
-                             initial = 4,
+                             initial = 0,
                              fixed = FALSE,
                              prior = "loggamma",
                              param = c(25, 25),
@@ -5680,7 +5680,7 @@
                      survival = TRUE,
                      discrete = FALSE,
                      link = c("default", "log", "neglog"),
-                     pdf = NA
+                     pdf = "weibullcure"
                      ),
 
                  stochvol = list(
