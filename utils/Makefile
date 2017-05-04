@@ -1,5 +1,5 @@
 SHELL = /bin/bash
-MAC = kw-16659.kaust.edu.sa
+MAC = rueh@kw-16659.kaust.edu.sa
 
 
 default:;
@@ -15,8 +15,8 @@ update-inla :;
 	-gnome-terminal --title="LAPTOP"       -e 'nice make -C /home/hrue/p/inla/builds/my-laptop update'
 	-gnome-terminal --title="LAPTOP-g"     -e 'nice make -C /home/hrue/p/inla/builds/my-laptop-g update'
 	-gnome-terminal --title="LAPTOP-O2"    -e 'nice make -C /home/hrue/p/inla/builds/my-laptop-O2 update'
-	-gnome-terminal --title="MAC32"        -e 'ssh -x -t hrue@$(MAC) make -C builds/build32 update'
-	-gnome-terminal --title="MAC64"        -e 'ssh -x -t hrue@$(MAC) make -C builds/build64 update'
+	-gnome-terminal --title="MAC32"        -e 'ssh -x -t $(MAC) make -C builds/build32 update'
+	-gnome-terminal --title="MAC64"        -e 'ssh -x -t $(MAC) make -C builds/build64 update'
 	-gnome-terminal --title="INLA32"       -e 'ssh -x -t hrue@inla.math.ntnu.no make -C builds/build32 update'
 	-gnome-terminal --title="INLA64"       -e 'ssh -x -t hrue@inla.math.ntnu.no make -C builds/build64 update'
 	-gnome-terminal --title="INLA-O2"      -e 'ssh -x -t hrue@inla.math.ntnu.no make -C builds/build.O2 update'
