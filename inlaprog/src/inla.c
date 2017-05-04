@@ -29586,6 +29586,33 @@ int inla_R(char **argv)
 
 	return GMRFLib_SUCCESS;
 }
+int inla_fgn(char *infile, char *outfile)
+{
+#define K 3	
+	double H, H_intern, *res;
+	int i, k, len=2*K+1;
+	
+	GMRFLib_matrix_tp *Hm = GMRFLib_read_fmesher_file(infile, 0, -1);
+	assert(Hm->ncol == 1 && Hm->nrow >= 1);
+	
+	res = Calloc(Hm->nrow * len, double);
+	for(i = k = 0; i < Hm->nrow; i++, k += len){
+		H = res[k] = GMRFLib_matrix_get(i, 0, Hm);
+		H_intern = map_H(H, MAP_BACKWARD, NULL);
+		inla_fgn_get(&res[k+1], &res[k+1+K], H_intern, K);
+	}
+	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp), *M_t;
+	M->ncol = Hm->nrow;
+	M->nrow = len;
+	M->elems = M->nrow * M->ncol;
+	M->A = res;
+	M_t = GMRFLib_matrix_transpose(M);
+	GMRFLib_write_fmesher_file(M_t, outfile, 0L, -1);
+	GMRFLib_matrix_free(M);
+	GMRFLib_matrix_free(M_t);
+#undef K
+	return GMRFLib_SUCCESS;
+}
 int testit(int argc, char **argv)
 {
 	if (1) {
@@ -29600,7 +29627,7 @@ int testit(int argc, char **argv)
 
 	if (0) {
 		GMRFLib_spline_tp **spline;
-		spline = inla_qcontpois_func(0.9, GMRFLib_MAX_THREADS);
+
 		double lq;
 #pragma omp parallel for
 		for (int i = 0; i < 10000; i++) {
@@ -30095,6 +30122,8 @@ int main(int argc, char **argv)
 				G.mode = INLA_MODE_GRAPH;
 			} else if (!strncasecmp(optarg, "R", 1)) {
 				G.mode = INLA_MODE_R;
+			} else if (!strncasecmp(optarg, "FGN", 3)) {
+				G.mode = INLA_MODE_FGN;
 			} else if (!strncasecmp(optarg, "TESTIT", 6)) {
 				G.mode = INLA_MODE_TESTIT;
 			} else {
@@ -30281,6 +30310,10 @@ int main(int argc, char **argv)
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_R) {
 		inla_R(&(argv[optind]));
+		if (report) GMRFLib_timer_full_report(NULL);
+		exit(EXIT_SUCCESS);
+	} else if (G.mode == INLA_MODE_FGN) {
+		inla_fgn(argv[optind], argv[optind+1]);
 		if (report) GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_TESTIT) {
