@@ -4,39 +4,68 @@
 ##! \alias{inla.cut}
 ##! \alias{cut}
 ##!
-##! \title{Lookup coefficients in the 3-component AR(1) mixture representing CUT(H)}
+##! \title{Group-wise model criticism using node-splitting}
 ##!
-##! \description{This function will lookup the coefficients in the 3-component AR(1)
-##!              mixture representing CUT(H)}
-##!
+##! \description{This function performs group-wise, cross-validatory
+##! model assessment for an INLA model using so-called node-splitting
+##! (Marshall and Spiegelhalter, 2007; Presanis et al, 2013).
+##! The user inputs an object of class \code{inla} (i.e. a result
+##! of a call to \code{inla()}) as well as  a variable name (\code{split.by}) specifying a grouping:
+##! Data points that share the same value of \code{split.by} are in the same group.
+##! The function then checks whether each group is an "outlier", or in conflict with
+##! the remaining groups, using the methodology described in Ferkingstad et al (2017).
+##! The result is a vector containing a p-value for each group, corresponding to a test
+##! for each group \code{i}, where the null hypothesis is that group \code{i} is
+##! consistent with the other groups except \code{i} (so a small p-value is evidence
+##! that the group is an "outlier"). See Ferkingstad et al (2017) for further details.
+##! }
+##! 
 ##! \usage{
-##!     inla.cut(H)
+##!     inla.cut(result, split.by, debug=FALSE)
 ##! } 
 ##!
 ##! \arguments{
-##!   \item{H}{The Hurst coeffcient (0<H<1)}
+##!   \item{result}{An object of class \code{inla}, i.e. a result of a call to \code{inla()}}
+##!   \item{split.by}{The name of the variable to group by. Data points that have
+##!                   the same value of \code{split.by} are in the same group.}
+##!   \item{debug}{Print debugging information if \code{TRUE}, default is \code{FALSE}}
 ##!  }
+##!
 ##! \value{
-##!  A named vector of length 7, where the first element is \code{H},
-##!  the next three are the lag one correlations (or phi's),
-##!  and the last three are the weights.
+##!  A numeric vector of p-values, corresponding to a test
+##! for each group \code{i} where the null hypothesis is that group \code{i} is
+##! consistent with the other groups except \code{i}. A small p-value for a group
+##! indicates that the group is an "outlier" (in conflict with remaining groups).
 ##!
 ##!  This function is EXPERIMENTAL!!!
 ##! }
+##!
 ##! \author{Egil Ferkingstad \email{egil@hi.is} and Havard Rue \email{hrue@r-inla.org}}
 ##!
 ##! \examples{
-##!     
-##! } 
+##! ## See Ferkingstad et al (2017).
+##! }
+##!
+##! \references{
+##! Ferkingstad, E., Held, L. and Rue, H. (2017). Fast and accurate Bayesian model criticism and conflict diagnostics using R-INLA.
+##! Unpublished manuscript, to appear on arXiv
+##! 
+##! Marshall, E. C. and Spiegelhalter, D. J. (2007). Identifying outliers in Bayesian hierarchical models: a simulation-based approach.
+##! Bayesian Analysis, 2(2):409– 444.
+##! 
+##! Presanis, A. M., Ohlssen, D., Spiegelhalter, D. J., De Angelis, D., et al. (2013). Conflict diagnostics in directed acyclic graphs,
+##! with applications in Bayesian evidence synthesis. Statistical Science, 28(3):376–397.
+##! }
 
-inla.cut = function(formula, data, split.by, correct=FALSE, debug=FALSE, ...)
+inla.cut = function(result, split.by, debug=FALSE)
 {
     my.debug = function(...) if (debug) cat("*** inla.cut: ", ... , "\n")
 
-    stopifnot(!missing(formula))
-    stopifnot(!missing(data))
+    stopifnot(!missing(result))
+    stopifnot(class(result) == "inla")
     stopifnot(!missing(split.by))
-
+    formula <- result$.args$formula
+    data <- result$.args$data
     ## use an INLA internal to get the variable names of the whole model, ie, the fixed effects
     ## + f(idx)'s
     intf = INLA:::inla.interpret.formula(formula)
@@ -68,9 +97,6 @@ inla.cut = function(formula, data, split.by, correct=FALSE, debug=FALSE, ...)
     split.len = length(split.uval)
     stopifnot(split.len > 0)
     
-    ## store the results, 
-    result = rep(list(list()), split.len)
-
     ## store inla-results
     res = list()
     r = NULL
@@ -84,7 +110,7 @@ inla.cut = function(formula, data, split.by, correct=FALSE, debug=FALSE, ...)
         data.rep[idx.num, resp] = NA
         
         ## prepare the arguments for inla()
-        args = list(...)
+        args = result$.args
         args$data = data.rep
         args$formula = formula
         cont.compute = args$control.compute
@@ -112,19 +138,8 @@ inla.cut = function(formula, data, split.by, correct=FALSE, debug=FALSE, ...)
         if (!is.null(r.rep$.args$control.predictor$A)) {
             stop("A-matrix in the linear predictor is not supported")
         }
-
-        if (correct) {
-            mu.rep =  r.rep$summary.linear.predictor$mean[idx.num]
-            for (j in 1:length(mu.rep)) {
-                mu.rep[j] = qnorm(inla.pmarginal(mu.rep[j],
-                                                 r.rep$marginals.linear.predictor[[idx.num[j]]]))
-            }
-            sigma.rep = r.rep$misc$lincomb.derived.correlation.matrix
-        } else {
-            mu.rep = r.rep$summary.lincomb.derived$mean
-            sigma.rep = r.rep$misc$lincomb.derived.covariance.matrix
-        }
-        
+        mu.rep = r.rep$summary.lincomb.derived$mean
+        sigma.rep = r.rep$misc$lincomb.derived.covariance.matrix
         ## Then run LIK version, group i, within-group:
         data.lik = data[idx.num,]
         if (!is.null(args$E)) args$E = args$E[idx.num]
@@ -151,18 +166,8 @@ inla.cut = function(formula, data, split.by, correct=FALSE, debug=FALSE, ...)
         ## set prior of hyperpar to posterior from REP version:
         args$control.update = list(result = r.rep)
         r.lik = do.call("inla", args = args)
-
-        if (correct) {
-            mu.lik = r.lik$summary.linear.predictor$mean
-            for (j in 1:length(mu.lik)) {
-                mu.lik[j] = qnorm(inla.pmarginal(mu.lik[j],
-                                                 r.lik$marginals.linear.predictor[[j]]))
-            }
-            sigma.lik = r.lik$misc$lincomb.derived.correlation.matrix
-        } else {
-            mu.lik = r.lik$summary.lincomb.derived$mean
-            sigma.lik = r.lik$misc$lincomb.derived.covariance.matrix
-        }
+        mu.lik = r.lik$summary.lincomb.derived$mean
+        sigma.lik = r.lik$misc$lincomb.derived.covariance.matrix
         mu.diff = mu.rep - mu.lik
         sigma.diff = sigma.rep + sigma.lik
         respIdx = which(names(data.lik)==resp)
@@ -180,10 +185,11 @@ inla.cut = function(formula, data, split.by, correct=FALSE, debug=FALSE, ...)
         lin.pred.mu = mu.diff
         lin.pred.sigma = sigma.diff
         lin.pred.df = sum(eigen(lin.pred.sigma)$values > min.eigen.value)
-        lin.pred.Delta = t(lin.pred.mu) %*% INLA:::inla.ginv(lin.pred.sigma, tol=1e-3) %*% lin.pred.mu
+        lin.pred.Delta = t(lin.pred.mu) %*% INLA:::inla.ginv(lin.pred.sigma, tol=min.eigen.value) %*% lin.pred.mu
         p.linpred[split.idx] = 1 - pchisq(as.numeric(lin.pred.Delta), df=lin.pred.df) 
         my.debug(split.idx, "of", split.len,": p-value:", round(p.linpred[split.idx],4),
                  "df:", lin.pred.df)
     }
     return(p.linpred)
 }
+

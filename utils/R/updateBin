@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 d="INLA/inst/bin"
-MAC="hrue@hruemac.math.ntnu.no"
+MAC="rueh@kw-16659.kaust.edu.sa"
 LINUX="hrue@inla.math.ntnu.no"
 WINDOWS=$(echo ~/p/inla/builds/windows)
 
