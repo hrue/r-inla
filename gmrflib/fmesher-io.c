@@ -774,7 +774,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp * M)
 		int i, j, idx, idx_transpose;
 
 		if (M->A) {
-			N->A = Calloc(M->nrow * N->ncol, double);
+			N->A = Calloc(N->nrow * N->ncol, double);
 			for (i = 0; i < M->nrow; i++) {
 				for (j = 0; j < M->ncol; j++) {
 					idx = i + j * M->nrow;
@@ -784,7 +784,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp * M)
 			}
 		}
 		if (M->iA) {
-			N->iA = Calloc(M->nrow * N->ncol, int);
+			N->iA = Calloc(N->nrow * N->ncol, int);
 			for (i = 0; i < M->nrow; i++) {
 				for (j = 0; j < M->ncol; j++) {
 					idx = i + j * M->nrow;

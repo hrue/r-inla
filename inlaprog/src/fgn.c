@@ -1,7 +1,7 @@
 
 /* fgn.c
  * 
- * Copyright (C) 2016 Havard Rue
+ * Copyright (C) 2016-17 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,7 +106,7 @@ double Qfunc_fgn(int i, int j, void *arg)
 		if (debug) {
 			printf("Qfunc_fgn: update cache H_intern[%1d]= %f\n", id, H_intern);
 		}
-		inla_fng_get(phi, w, H_intern, a->k);
+		inla_fgn_get(phi, w, H_intern, a->k);
 		H_intern_cache[id] = H_intern;
 		if (debug) {
 			for (int k = 0; k < a->k; k++)
@@ -145,7 +145,7 @@ double Qfunc_fgn(int i, int j, void *arg)
 	return val;
 }
 
-int inla_fng_get(double *phi, double *w, double H_intern, int k)
+int inla_fgn_get(double *phi, double *w, double H_intern, int k)
 {
 	// fill in the weights and the phis for a given H_intern
 #include "fgn-tables.h"
