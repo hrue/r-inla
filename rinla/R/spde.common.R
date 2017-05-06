@@ -520,6 +520,11 @@ inla.spde.make.A =
         if (!is.null(A.loc)) {
             n.spde = ncol(A.loc)
         }
+    } else if (inherits(mesh, "inla.spde")) {
+        spde <- mesh
+        mesh <- spde$mesh
+        inla.require.inherits(spde$mesh, c("inla.mesh", "inla.mesh.1d"), "'spde$mesh'")
+        n.spde = spde$n.spde
     } else {
         inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
         if (inherits(mesh, "inla.mesh.1d")) {

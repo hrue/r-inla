@@ -1,6 +1,7 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
+	\item[doc] Student-t likelihood
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
@@ -22,8 +23,8 @@
 	 	 	\item[short.name] dof
 	 	 	\item[initial] 5
 	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 0.5
+	 	 	\item[prior] pc.dof
+	 	 	\item[param] 15 0.5
 	 	 	\item[to.theta] \verb!function(x) log(x-2)!
 	 	 	\item[from.theta] \verb!function(x) 2+exp(x)!
 	 	 \end{description}

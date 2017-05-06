@@ -304,7 +304,7 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 	*ierr = 0;
 	G.f_count[omp_get_thread_num()]++;
 
-	if (B.f_best == 0.0 || fx_local < B.f_best) {
+	if (B.f_best == 0.0 || (!(ISNAN(fx_local) || ISINF(fx_local)) && (fx_local < B.f_best))) {
 #pragma omp critical
 		{
 			if (B.f_best == 0.0 || fx_local < B.f_best) {
