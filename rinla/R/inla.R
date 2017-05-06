@@ -394,7 +394,7 @@
     ##!(with discussion)}, vol 71, no 2, pp 319-392.
     ##!Rue, H and Held, L. (2005) \emph{Gaussian Markov Random Fields
     ##!- Theory and Applications} Chapman and Hall}
-    ##!\author{Havard Rue \email{hrue@math.ntnu.no} and Sara Martino}
+    ##!\author{Havard Rue \email{hrue@r-inla.org} and Sara Martino}
     ##!\seealso{\code{\link{f}}, 
     ##!\code{\link{inla.hyperpar}} }
     ##!\examples{
@@ -466,8 +466,7 @@
     control.predictor = inla.check.control(control.predictor, data)
     ## I need to check for NA's already here.
     if (!is.null(control.predictor$A)) {
-        control.predictor$A[ is.na(control.predictor$A) ] = 0
-        control.predictor$A = inla.as.sparse(control.predictor$A)
+        control.predictor$A = inla.as.sparse(control.predictor$A, na.rm=TRUE, zeros.rm=TRUE)
     }
     ## do not check control.family here, as we need to know n.family
     control.inla = inla.check.control(control.inla, data)

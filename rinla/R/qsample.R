@@ -51,7 +51,7 @@
 ##!  The mean (include corrections for the constraints,  if any) is store in
 ##!  the vector \code{mean}. 
 ##!}
-##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!\author{Havard Rue \email{hrue@r-inla.org}}
 ##! 
 ##!\examples{
 ##! g = system.file("demodata/germany.graph", package="INLA")

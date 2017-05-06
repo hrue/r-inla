@@ -42,7 +42,7 @@
 ##!  \code{inla.ar.phi2acf}  returns \code{acf} for given \code{phi}.
 ##!  \code{inla.ar.pacf2acf}  returns \code{acf} for given \code{pacf}.
 ##!}
-##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!\author{Havard Rue \email{hrue@r-inla.org}}
 ##!\examples{
 ##! pac = runif(5)
 ##! phi = inla.ar.pacf2phi(pac)

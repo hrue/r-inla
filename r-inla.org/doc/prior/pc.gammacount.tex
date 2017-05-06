@@ -1,0 +1,47 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{\texttt{pc.gammacount}: The PC prior for $\theta = \log(a)$
+    in the $\Gamma(a,1)$ distribution with base model $a=1$}
+
+\subsection*{Parametrization}
+
+This is the PC prior for $\theta = \log(a)$ in the $\Gamma(a,1)$
+distribution\footnote{Where $\Gamma(a,b)$ has mean $a/b$ and variance
+    $a/b^{2}$.} distribution where $a=1$ is the base model.
+
+\subsection*{Specification}
+This prior for the hyperparameter is specified in the
+\texttt{hyper}-spesification, for $\theta = \log(a)$ it is
+\begin{center}
+    \texttt{hyper = list(<theta> = list(prior="pc.gammacount", param=c(<lambda>)))}
+\end{center}
+
+\subsection*{Example}
+
+\subsection*{Notes}
+
+See also functions \texttt{inla.pc.\{d,p,q,r\}gammacount} which gives the
+same PC prior, but for $a$ instead of $\theta = \log(a)$.
+
+\noindent\textbf{This function is experimental.}
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
+
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

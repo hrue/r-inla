@@ -35,7 +35,7 @@
 
 \note{These are all the same function,  and the two different names are due to backward-compatibility}
 
-\author{Havard Rue \email{hrue@math.ntnu.no}}
+\author{Havard Rue \email{hrue@r-inla.org}}
 
 \seealso{\code{\link{inla}}, \code{\link{inla.surv}}, \code{\link{hyperpar.inla}}}
 
