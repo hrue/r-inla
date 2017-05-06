@@ -70,7 +70,7 @@
         cat(        "\t                         : Elias Teixeira Krainski <elias.krainski@math.ntnu.no>\n")
         cat(        "\t                         : Geir-Arne Fuglstad <fulgstad@math.ntnu.no>\n")
         cat(        "\tMain web-page ...........: www.r-inla.org\n")
-        cat(        "\tDownload-page ...........: www.r-inla-download.org\n")
+        cat(        "\tDownload-page ...........: inla.r-inla-download.org\n")
         cat(        "\tEmail support ...........: help@r-inla.org\n")
         cat(        "\t                         : r-inla-discussion-group@googlegroups.com\n")
         cat(        "\tSource-code .............: bitbucket.org/hrue/r-inla\n")
