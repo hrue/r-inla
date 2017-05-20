@@ -515,7 +515,7 @@
                      n.required = FALSE,
                      set.default.values = TRUE,
                      order.default = 3L,     ## default order for approximation
-                     order.defined = 3L:3L,  ## the list of orders which are implemented
+                     order.defined = 3L:4L,  ## the list of orders which are implemented
                      pdf = "fgn"
                      ),
 
