@@ -2,7 +2,7 @@
 set -u
 
 epoch=$(date +%s)
-VERSION=0.0-$epoch
+VERSION=$INLA_VERSION
 
 rm INLA*tar.gz INLA*tgz INLA*zip
 
@@ -12,9 +12,10 @@ D=r-inla/rinla/R
 DD=INLA/R
 
 ##(cd $D; hg update; )
-hg=$(cd $D >/dev/null 2>/dev/null; hg parents --template 'hgid: {node|short}  date: {date|date}')
+##hg=$(cd $D >/dev/null 2>/dev/null; hg parents --template 'hgid: {node|short}  date: {date|date}')
 ##inlahg=$(extern/inla64.linux -V 2>&1 | grep hgid:|head -n1)
-inlahg=$hg
+hg=$INLA_TAG
+inlahg=$INLA_TAG
 
 echo "epoch=$epoch"
 echo "date=$date"
@@ -37,11 +38,13 @@ if [ -d $D/../inst/bin/linux/64bit/first ]; then
 fi
 ./updateBin
 
-## move stdc++  into first/
-if [ -d $DD/../inst/bin/linux/64bit/first ]; then
-    f=$(echo $DD/../inst/bin/linux/64bit/libstdc++.so*)
-    if [ -f "$f" ]; then
-	mv -v -f "$f" $DD/../inst/bin/linux/64bit/first
+if false; then
+    ## move stdc++  into first/
+    if [ -d $DD/../inst/bin/linux/64bit/first ]; then
+	f=$(echo $DD/../inst/bin/linux/64bit/libstdc++.so*)
+	if [ -f "$f" ]; then
+	    mv -v -f "$f" $DD/../inst/bin/linux/64bit/first
+	fi
     fi
 fi
 
@@ -131,13 +134,11 @@ OldDir=$(echo ~hrue/www/www.inla/binaries/testing/Old)
 old="$tgzINLA-$bdate"
 
 convert_to_mac_binary () {
-    host=rueh@kw-16659.kaust.edu.sa
     for f in "$@"; do
 	ff=$(basename $f)
-	scp -v $f $host:$ff
-	##ssh $host R CMD INSTALL --build --library=./tmp $ff
-	ssh $host /usr/local/bin/R CMD INSTALL --build  $ff
-	scp -v $host:$ff $f
+	scp -v $f $INLA_MAC:$ff
+	ssh $INLA_MAC R CMD INSTALL --build  $ff
+	scp -v $INLA_MAC:$ff $f
     done
 }
 

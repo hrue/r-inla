@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 d="INLA/inst/bin"
-MAC="rueh@kw-16659.kaust.edu.sa"
-LINUX="hrue@inla.math.ntnu.no"
-WINDOWS=$(echo ~/p/inla/builds/windows)
 
 fix-perm () {
     local d
@@ -20,9 +17,9 @@ fix-perm () {
 
 for m in 32 64; do
     for p in inla fmesher; do 
-	for f in $(ssh $MAC bin/my.otool builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
+	for f in $(ssh $INLA_MAC bin/my.otool builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
-	    rsync -auvL $MAC:$f $d/mac/${m}bit/.
+	    rsync -auvL $INLA_MAC:$f $d/mac/${m}bit/.
 	done
     done
     fix-perm $d/mac/${m}bit
@@ -30,9 +27,9 @@ done
 
 for m in 32 64; do
     for p in inla fmesher; do 
-	for f in $(ssh $LINUX bin/my.ldd builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
+	for f in $(ssh $INLA_LINUX bin/my.ldd builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
-	    rsync -auvL $LINUX:$f $d/linux/${m}bit/.
+	    rsync -auvL $INLA_LINUX:$f $d/linux/${m}bit/.
 	done
     done
     fix-perm $d/linux/${m}bit
@@ -40,7 +37,7 @@ done
 
 for m in 32 64; do
     for p in inla fmesher; do 
-	for f in $($WINDOWS$m/bin/my.objdump $WINDOWS$m/local/bin/$p.exe) $WINDOWS$m/local/bin/$p.exe; do
+	for f in $($INLA_WINDOWS$m/bin/my.objdump $INLA_WINDOWS$m/local/bin/$p.exe) $INLA_WINDOWS$m/local/bin/$p.exe; do
 	    echo sync $f
 	    rsync -auvL $f $d/windows/${m}bit/.
 	done
@@ -48,7 +45,5 @@ for m in 32 64; do
     fix-perm $d/windows/${m}bit
 done
 
-rsync -auv $LINUX:builds/build.static/local/bin/inla $d/linux/64bit/inla.static
-rsync -auv $LINUX:builds/build.static/local/bin/fmesher $d/linux/64bit/fmesher.static
-
-
+rsync -auv $INLA_LINUX:builds/build.static/local/bin/inla $d/linux/64bit/inla.static
+rsync -auv $INLA_LINUX:builds/build.static/local/bin/fmesher $d/linux/64bit/fmesher.static

@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+export INLA_MAC=hrue@hruemac.math.ntnu.no
+export INLA_MAC=rueh@kw-16659.kaust.edu.sa
+
+export INLA_LINUX=hrue@inla.math.ntnu.no ## ubuntu
+export INLA_LINUX=hrue@192.168.124.165   ## centos
+
+export INLA_WINDOWS=$(echo ~/p/inla/builds/windows)
+
+
+output () {
+    echo "$0: $@"
+}
+
+if [ $# -eq 0 ]; then
+    echo $0: TAG
+    exit 1
+else 
+    r=$( hg -R r-inla tags | awk '$1==TAG { print 1 }' TAG="$1" )
+    if [ -n "$r" ]; then
+	output "TAG [$1] is present"
+    else
+	output "unknown TAG [$1]. exit"
+	exit 1
+    fi
+fi
+export INLA_TAG="$1"
+export INLA_VERSION=$(echo $INLA_TAG | awk -F_ '{if (NF > 1) print $2; else print $1}')
+
+output INLA_MAC=$INLA_MAC
+output INLA_LINUX=$INLA_LINUX
+output INLA_WINDOWS=$INLA_WINDOWS
+output INLA_TAG=$INLA_TAG
+output INLA_VERSION=$INLA_VERSION
+
+shift 1
+exec make -f Makefile "$@"
