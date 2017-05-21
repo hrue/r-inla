@@ -148,48 +148,16 @@ double Qfunc_fgn(int i, int j, void *arg)
 int inla_fgn_get(double *phi, double *w, double H_intern, int k)
 {
 	// fill in the weights and the phis for a given H_intern
-#include "fgn-tables.h"
-
-	int idx, i, len_par;
-	double weight, tmp;
-
-	assert(k == K);
-	// make sure its in the range. Hack...
-	H_intern = DMAX(H_intern, H_intern_start + H_intern_by);
-	H_intern = DMIN(H_intern, H_intern_end - H_intern_by);
-
-	assert(H_intern >= H_intern_start && H_intern <= H_intern_end);
-	idx = (int) floor((H_intern - H_intern_start) / H_intern_by);	/* idx is the block-index */
-	weight = (H_intern - (H_intern_start + idx * H_intern_by)) / H_intern_by;
-	len_par = 2 * K - 1;
-	idx *= len_par;					       /* and now the index in the table */
-
-	double *fit_par = Calloc(len_par, double);
-	for (i = 0; i < len_par; i++) {
-		fit_par[i] = (1.0 - weight) * param[idx + i] + weight * param[idx + len_par + i];
+	if (k == 3) {
+#include "fgn-tables-3.h"
+#include "fgn-code.h"
+	} else if (k == 4) {
+#include "fgn-tables-4.h"
+#include "fgn-code.h"
+	} else {
+		GMRFLib_ASSERT(k == 3 || k == 4, GMRFLib_EPARAMETER);
 	}
-
-	// the first K are phi
-	for (i = 0, tmp = 0.0; i < K; i++) {
-		tmp += exp(-fit_par[i]);
-		phi[i] = 1.0 / (1.0 + tmp);
-	}
-
-	// the remaining K-1 are the weights
-	double psum, *par = Calloc(len_par, double);
-	par[0] = psum = 1;
-	for (i = 1; i < K; i++) {
-		par[i] = exp(fit_par[K + (i - 1)]);
-		psum += par[i];
-	}
-	for (i = 0; i < K; i++) {
-		w[i] = par[i] / psum;
-	}
-
-	Free(fit_par);
-	Free(par);
-
-	return GMRFLib_SUCCESS;
+	abort();
 }
 
 double priorfunc_fgn_priorH(double *H_intern, double *param)
@@ -209,6 +177,7 @@ double priorfunc_fgn_priorH(double *H_intern, double *param)
 		lambda = -log(param[1]) / inla_spline_eval(U_intern, dist_spline);
 		lprior = log(lambda) - lambda * inla_spline_eval(*H_intern, dist_spline) +
 		    log(fabs(inla_spline_eval_deriv(*H_intern, dist_spline)));
+
 		if (0) {
 			P(*H_intern);
 			P(lambda);

@@ -12,11 +12,12 @@
               mixture representing FGN(H)}
 
  \usage{
-     inla.fgn(H)
+     inla.fgn(H, K=3L)
  } 
 
  \arguments{
    \item{H}{The Hurst coeffcient (0<H<1),  or a vector of those}
+   \item{K}{The number of components in representation,  must be 3L or 4L}
   }
  \value{
   A named matrix with 7 columns, where the first column is \code{H},
