@@ -137,7 +137,7 @@ convert_to_mac_binary () {
     for f in "$@"; do
 	ff=$(basename $f)
 	scp -v $f $INLA_MAC:$ff
-	ssh $INLA_MAC R CMD INSTALL --build  $ff
+	ssh $INLA_MAC /usr/local/bin/R CMD INSTALL --build  $ff
 	scp -v $INLA_MAC:$ff $f
     done
 }
