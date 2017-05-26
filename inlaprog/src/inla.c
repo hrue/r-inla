@@ -6109,6 +6109,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 						// 
 						// 
 						// 
+						// 
 						// (unsigned int) n));
 						logll[i] = eval_logsum_safe(logA, logB);
 					}
@@ -21540,6 +21541,11 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_GRID;
 		} else if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_CCD") || !strcasecmp(opt, "CCD")) {
 			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_CCD;
+		} else if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_USER") || !strcasecmp(opt, "USER")) {
+			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_USER;
+		} else if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_USER_STD") || !strcasecmp(opt, "USERSTD")
+			   || !strcasecmp(opt, "USER.STD")) {
+			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_USER_STD;
 		} else if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES")
 			   || !strcasecmp(opt, "EMPIRICAL_BAYES") || !strcasecmp(opt, "EB")) {
 			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES;
@@ -21553,6 +21559,22 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		}
 		mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_GRID;
 	}
+
+	if (mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER ||
+	    mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD) {
+		GMRFLib_matrix_tp *D = NULL;
+		filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "INT.DESIGN"), NULL));
+		if (my_file_exists(filename) != INLA_OK)
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "int.design", filename);
+		D = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
+		GMRFLib_read_design(&(mb->ai_par->int_design), D,
+				    (mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD ? 1 : 0));
+		GMRFLib_matrix_free(D);
+	} else {
+		// Just mark it as read
+		iniparser_getstring(ini, inla_string_join(secname, "INT.DESIGN"), NULL);
+	}
+
 
 	mb->ai_par->f0 = iniparser_getdouble(ini, inla_string_join(secname, "F0"), mb->ai_par->f0);
 	tmp = iniparser_getdouble(ini, inla_string_join(secname, "DZ"), mb->ai_par->dz);
@@ -25518,6 +25540,16 @@ int inla_INLA(inla_tp * mb)
 			mb->transform_funcs[i]->func = (GMRFLib_transform_func_tp *) link_identity;
 			mb->transform_funcs[i]->arg = NULL;
 			mb->transform_funcs[i]->cov = NULL;
+		}
+	}
+
+	if (mb->ai_par->int_design) {
+		// make sure the dimensions are right
+		if (mb->ntheta != mb->ai_par->int_design->nfactors) {
+			char *msg;
+			GMRFLib_sprintf(&msg, "ntheta = %1d but int.design says %1d\n", mb->ntheta,
+					mb->ai_par->int_design->nfactors);
+			inla_error_general(msg);
 		}
 	}
 
