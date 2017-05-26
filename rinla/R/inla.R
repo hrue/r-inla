@@ -1822,7 +1822,7 @@
         stop("\n\tSomething strange with weights in the covariate...")
 
     ## the inla section
-    inla.inla.section(file=file.ini, inla.spec=cont.inla)
+    inla.inla.section(file=file.ini, inla.spec=cont.inla, data.dir)
 
     ## create mode section
     cont.mode = inla.set.control.mode.default()
