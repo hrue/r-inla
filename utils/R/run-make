@@ -6,6 +6,8 @@ export INLA_MAC=rueh@kw-16659.kaust.edu.sa
 export INLA_LINUX=hrue@inla.math.ntnu.no ## ubuntu
 export INLA_LINUX=hrue@192.168.124.165   ## centos
 
+export INLA_INLA=hrue@inla.math.ntnu.no
+
 export INLA_WINDOWS=$(echo ~/p/inla/builds/windows)
 
 
