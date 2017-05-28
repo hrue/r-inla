@@ -1,15 +1,27 @@
 #!/usr/bin/env bash
 
-export INLA_MAC=hrue@hruemac.math.ntnu.no
-export INLA_MAC=rueh@kw-16659.kaust.edu.sa
+is_set() {
+    [[ -n "${1}" ]] && [[ ${!1+x} ]]
+}
 
-export INLA_LINUX=hrue@inla.math.ntnu.no ## ubuntu
-export INLA_LINUX=hrue@192.168.124.165   ## centos
-export INLA_LINUX=hrue@192.168.124.126   ## centos
 
-export INLA_INLA=hrue@inla.math.ntnu.no
+if ! $(is_set INLA_MAC); then
+    export INLA_MAC=hrue@hruemac.math.ntnu.no
+    export INLA_MAC=rueh@kw-16659.kaust.edu.sa
+fi
 
-export INLA_WINDOWS=$(echo ~/p/inla/builds/windows)
+if ! $(is_set INLA_LINUX); then
+    export INLA_LINUX=hrue@inla.math.ntnu.no ## ubuntu
+    export INLA_LINUX=hrue@192.168.124.20   ## centos
+fi
+
+if ! $(is_set INLA_INLA); then
+    export INLA_INLA=hrue@inla.math.ntnu.no
+fi
+
+if ! $(is_set INLA_WINDOWS); then
+    export INLA_WINDOWS=$(echo ~/p/inla/builds/windows)
+fi
 
 
 output () {
