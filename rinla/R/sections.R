@@ -625,11 +625,8 @@
         if (is.null(inla.spec$int.design)) {
             stop(paste0("int.strategy = 'user' or 'user.std' require the integration design in 'int.design'"))
         }
-    }
-
-    if (!is.null(inla.spec$int.design)) {
         file.A = inla.tempfile(tmpdir=data.dir)
-        inla.write.fmesher.file(inla.spec$int.design, filename = file.A)
+        inla.write.fmesher.file(as.matrix(inla.spec$int.design), filename = file.A)
         file.A = gsub(data.dir, "$inladatadir", file.A, fixed=TRUE)
         cat("int.design = ", file.A, "\n", sep = " ", file = file,  append = TRUE)
     }
