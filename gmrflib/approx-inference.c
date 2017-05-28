@@ -4222,7 +4222,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					z_local = Calloc(nhyper, double);
 					theta_local = Calloc(nhyper, double);
 
-
 					if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD) {
 						for (i = 0; i < nhyper; i++) {
 							z_local[i] = f * design->experiment[k][i]
@@ -4255,7 +4254,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					log_dens *= -1.0;
 					log_dens_orig = log_dens;
 
-					/*
+					// make sure z_local's are aligned with theta_local's, for later usage.
+					GMRFLib_ai_theta2z(z_local, nhyper, theta_mode, theta_local, sqrt_eigen_values, eigen_vectors);
+					
+                                        /*
 					 * correct the log_dens due to the integration weights which is special for the CCD
 					 * integration and the deterministic integration points
 					 * 
@@ -4293,7 +4295,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					for (i = 0; i < nhyper; i++) {
 						hyper_z[hyper_count * nhyper + i] = z_local[i];
 					}
-					hyper_ldens[hyper_count] = log_dens - log_dens_mode;
+					hyper_ldens[hyper_count] = log_dens_orig - log_dens_mode;
 
 					/*
 					 * compute the marginals for this point. check storage 
@@ -4381,13 +4383,39 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					double *bnew = NULL;
 					double log_dens_orig;
 
-					for (i = 0; i < nhyper; i++) {
-						z[i] = f * design->experiment[k][i]
-						    * (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
+					if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD) {
+						for (i = 0; i < nhyper; i++) {
+							z[i] = f * design->experiment[k][i]
+								* (design->experiment[k][i] >
+								   0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
+						}
+					} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD) {
+						for (i = 0; i < nhyper; i++) {
+							z[i] = design->experiment[k][i]
+								* (design->experiment[k][i] >
+								   0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
+						}
+					} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER) {
+						for (i = 0; i < nhyper; i++) {
+							z[i] = design->experiment[k][i];
+						}
+					} else {
+						assert(0 == 1);
 					}
-					GMRFLib_ai_z2theta(theta, nhyper, theta_mode, z, sqrt_eigen_values, eigen_vectors);
+
+					if (design->std_scale) {
+						// convert to theta
+						GMRFLib_ai_z2theta(theta, nhyper, theta_mode, z, sqrt_eigen_values, eigen_vectors);
+					} else {
+						// theta is, by request, the same as z
+						memcpy(theta, z, nhyper * sizeof(double));
+					}
+					// make sure z's are aligned with theta's, for later usage.
+					GMRFLib_ai_theta2z(z, nhyper, theta_mode, theta, sqrt_eigen_values, eigen_vectors);
+
 					GMRFLib_domin_f(theta, &log_dens, &ierr, &tabQfunc, &bnew);
 					log_dens *= -1.0;
+					log_dens_orig = log_dens;
 
 					if (ai_par->fp_log) {
 						fprintf(ai_par->fp_log, "\tconfig %2d=[", config_count++);
@@ -4402,25 +4430,31 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					 * correct the log_dens due to the integration weights which is special for the CCD integration:
 					 * double the weights for the points not in the center
 					 */
-					log_dens_orig = log_dens;
-					if (nhyper > 1) {
-						/*
-						 * the weight formula is only valid for nhyper > 1. 
-						 */
-						int origo = 1;
+					if (ISNAN(design->int_weight[k])) {
+						// integration weights are undefined. use these for the CCD design (as it _IS_
+						// the CCD design in this case
+						if (nhyper > 1) {
+							/*
+							 * the weight formula is only valid for nhyper > 1. 
+							 */
+							int origo = 1;
 
-						for (i = 0; i < nhyper; i++) {
-							origo = (origo && ISZERO(z[i]));
-						}
-						if (origo) {
-							if (ISZERO(w_origo)) {
-								log_dens += -DBL_MAX;
-							} else {
-								log_dens += log(w_origo);
+							for (i = 0; i < nhyper; i++) {
+								origo = (origo && ISZERO(z[i]));
 							}
-						} else {
-							log_dens += log(w);
+							if (origo) {
+								if (ISZERO(w_origo)) {
+									log_dens += -DBL_MAX;
+								} else {
+									log_dens += log(w_origo);
+								}
+							} else {
+								log_dens += log(w);
+							}
 						}
+					} else {
+						// integration weights are _given_. this is the deterministic integration points
+						log_dens += log(design->int_weight[k]);
 					}
 
 					/*
@@ -4430,7 +4464,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					for (i = 0; i < nhyper; i++) {
 						hyper_z[hyper_count * nhyper + i] = z[i];
 					}
-					hyper_ldens[hyper_count] = log_dens - log_dens_mode;
+					hyper_ldens[hyper_count] = log_dens_orig - log_dens_mode;
 					hyper_count++;
 
 					/*
@@ -4522,7 +4556,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 
 			/*
-			 * END OF GMRFLib_AI_INT_STRATEGY_CCD 
+			 * END OF GMRFLib_AI_INT_STRATEGY_CCD / USER / USER_STD
 			 */
 		} else {
 			/*
