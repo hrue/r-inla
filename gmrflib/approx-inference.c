@@ -4178,9 +4178,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				design = ai_par->int_design;
 			}
 
-			/*
-			 * this is for the CCD
-			 */
 			f = DMAX(ai_par->f0, 1.0) * sqrt((double) nhyper);
 			w = 1.0 / ((design->nexperiments - 1.0) * (1.0 + exp(-0.5 * SQR(f)) * (SQR(f) / nhyper - 1.0)));
 			w_origo = 1.0 - (design->nexperiments - 1.0) * w;
