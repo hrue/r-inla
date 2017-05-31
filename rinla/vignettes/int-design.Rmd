@@ -6,6 +6,10 @@ output:
   pdf_document:
     keep_md: TRUE
     keep_tex: TRUE 
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8} 
 ---
 
 ```{r setup, include=FALSE}
