@@ -69,11 +69,12 @@ already provided.
 ## Example 
 
 In this artificial example, we want to compute the change of the
-marginal variance of one component, $x_1$, of a hidden AR$(1)$ process, with
-respect to lag one correlation $\rho$. So we want to compute
-\[
-\frac{\partial{$\mbox{SD}$(x_1|y)}}{\partial \rho}
-\]
+marginal variance of one component, $x_1$, of a hidden AR$(1)$
+process, with respect to lag one correlation $\rho$. So we want to
+compute
+$$
+\frac{\partial \mbox{SD}(x_1|y)}{\partial \rho}
+$$
 for a fixed value of $\rho = \rho_0$.
 We have to compute a numerical approximation, using finite difference.
 While doing this, it is a good idea to keep the design fixed, to avoid
