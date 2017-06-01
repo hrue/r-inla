@@ -140,6 +140,41 @@ typedef struct {
 } GMRFLib_graph_tp;
 
 typedef struct {
+
+	/**
+	 *  \brief Number of nodes in the graph. 
+	 */
+	int n;
+
+	/**
+	 *  \brief Number of neighbours for each node.
+	 * 
+	 * A length \em n array, where <em>nnbs[i]</em> contains the number of neighbours of node <em>i; i = 0,..., n-1.</em>
+	 * \n\n 
+	 */
+	int *nnbs;
+
+	/**
+	 *  \brief For each node: node numbers for neighbours
+	 * 
+	 * A length \em n array of arrays, where <em>nbs[i][j]</em> contains the node numbers <em>j; j = 0,..., nnbs[j]-1</em>
+	 * for the neighbours of node \em i. \n\n 
+	 */
+	int **nbs;
+
+	/**
+	 *  \brief For node \em i in graph, then <em>mothergraph_idx[i]</em> is the corresponding node in the mother graph.
+	 * 
+	 * If the graph is a subgraph, <em>mothergraph_idx[i]</em> is the index of node \em i in the mothergraph of the current 
+	 * graph. \n\n 
+	 */
+	int *mothergraph_idx;
+
+	double *Qii;
+	double **Qij;
+} GMRFLib_Graph_tp;
+
+typedef struct {
 	/*
 	 * object to return when shifting a problem, containing a new graph, Qfunc and Qfunc_arg which work on the shifted
 	 * graph
@@ -202,6 +237,8 @@ int GMRFLib_write_graph_binary(const char *filename, GMRFLib_graph_tp * graph);
 int GMRFLib_xQx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_print_Qfunc(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 GMRFLib_sizeof_tp GMRFLib_sizeof_graph(GMRFLib_graph_tp * graph);
+int GMRFLib_make_empty_graph2(GMRFLib_Graph_tp ** graph);
+int GMRFLib_copy_graph2(GMRFLib_Graph_tp ** graph_new, GMRFLib_graph_tp * graph_old);
 
 int *GMRFLib_connected_components(GMRFLib_graph_tp * g);
 int GMRFLib_connected_components_do(int node, GMRFLib_graph_tp * g, int *cc, char *visited, int *ccc);

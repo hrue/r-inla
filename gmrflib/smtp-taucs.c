@@ -660,9 +660,12 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 {
 	int i, j, k, ic, ne, n, nnz, *perm = NULL, *iperm = NULL, id, nan_error = 0;
 	taucs_ccs_matrix *Q = NULL;
-
+	static double tref_acc = 0.0;
+	static int tref_count = 0;
+		
+	double tref = GMRFLib_cpu_default();
 	id = GMRFLib_thread_id;
-
+	
 	if (!graph || graph->n == 0) {
 		*L = NULL;
 		return GMRFLib_SUCCESS;
@@ -683,7 +686,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 	 * first, do a first pass to set the indices; then fill the matrix using omp 
 	 */
 	int *ic_idx = Calloc(n, int);
-
+	
 	for (i = 0, ic = 0; i < n; i++) {
 		Q->rowind[ic] = i;
 		ic_idx[i] = ic;
@@ -702,22 +705,22 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 		Q->colptr[i + 1] = Q->colptr[i] + ne;
 	}
 #pragma omp parallel for private(i, ic, k, j)
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)   { 
 		double val;
-
+		
 		ic = ic_idx[i];
 		GMRFLib_thread_id = id;
-
+		
 		val = Qfunc(i, i, Qfunc_arg);
 		GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);
 		Q->values.d[ic++] = val;
-
+			
 		for (k = 0; k < graph->nnbs[i]; k++) {
 			j = graph->nbs[i][k];
 			if (j > i) {
 				break;
 			}
-
+				
 			val = Qfunc(i, j, Qfunc_arg);
 			GMRFLib_STOP_IF_NAN_OR_INF(val, i, j);
 			Q->values.d[ic++] = val;
@@ -766,6 +769,13 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 		}
 	}
 #endif
+	int free_remap = 0;
+	if (!remap){
+		remap = Calloc(n, int);
+		for(i = 0; i<n; i++) remap[i] = n-i-1;
+		free_remap = 1;
+	}
+
 	iperm = remap;					       /* yes, this is correct */
 	perm = Calloc(n, int);
 
@@ -776,7 +786,8 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 
 	taucs_ccs_free(Q);
 	Free(perm);
-
+	if (free_remap) Free(remap);
+	
 	if (0) {
 		static int count = 0;
 		char *fnm;
@@ -799,6 +810,172 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 			Free(fnm);
 		}
 	}
+
+	tref_acc += GMRFLib_cpu_default() - tref;
+	tref_count++;
+	P(tref_acc/tref_count);
+	
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_build_sparse_matrix_TAUCS2(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_Graph_tp * graph, int *remap)
+{
+	int i, j, k, ic, ne, n, nnz, *perm = NULL, *iperm = NULL, id, nan_error = 0;
+	taucs_ccs_matrix *Q = NULL;
+	static double tref_acc = 0;
+	static int tref_count = 0;
+	double tref = GMRFLib_cpu_default();
+	id = GMRFLib_thread_id;
+	
+	if (!graph || graph->n == 0) {
+		*L = NULL;
+		return GMRFLib_SUCCESS;
+	}
+
+	n = graph->n;
+	P(n);
+	for (i = 0, nnz = n; i < n; i++) {
+		nnz += graph->nnbs[i];
+	}
+
+	Q = taucs_ccs_create(n, n, nnz, TAUCS_DOUBLE);
+	GMRFLib_ASSERT(Q, GMRFLib_EMEMORY);
+	Q->flags = (TAUCS_DOUBLE | TAUCS_SYMMETRIC | TAUCS_TRIANGULAR | TAUCS_LOWER);
+	Q->colptr[0] = 0;
+
+#if defined(_OPENMP)
+	/*
+	 * first, do a first pass to set the indices; then fill the matrix using omp 
+	 */
+	int *ic_idx = Calloc(n, int);
+	
+	for (i = 0, ic = 0; i < n; i++) {
+		Q->rowind[ic] = i;
+		ic_idx[i] = ic;
+		ic++;
+		ne = 1;
+
+		for (k = 0; k < graph->nnbs[i]; k++) {
+			j = graph->nbs[i][k];
+			if (j > i) {
+				break;
+			}
+			Q->rowind[ic] = j;
+			ic++;
+			ne++;
+		}
+		Q->colptr[i + 1] = Q->colptr[i] + ne;
+	}
+#pragma omp parallel for private(i, ic, k, j)
+	for (i = 0; i < n; i++)   { 
+		double val;
+		
+		ic = ic_idx[i];
+		GMRFLib_thread_id = id;
+		
+		val = graph->Qii[i]; 
+		GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);
+		Q->values.d[ic++] = val;
+		
+		for (k = 0; k < graph->nnbs[i]; k++) {
+			j = graph->nbs[i][k];
+			if (j > i) {
+				break;
+			}
+			
+			val = graph->Qij[i][j]; 
+			GMRFLib_STOP_IF_NAN_OR_INF(val, i, j);
+			Q->values.d[ic++] = val;
+		}
+	}
+	GMRFLib_thread_id = id;
+	Free(ic_idx);
+
+	if (GMRFLib_catch_error_for_inla) {
+		if (nan_error) {
+			return !GMRFLib_SUCCESS;
+		}
+	}
+#else
+	for (i = 0, ic = 0; i < n; i++) {
+		double val;
+
+		Q->rowind[ic] = i;
+
+		val = graph->Qii[i];
+		GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);
+		Q->values.d[ic] = val;
+
+		ic++;
+		ne = 1;
+
+		for (k = 0; k < graph->nnbs[i]; k++) {
+			j = graph->nbs[i][k];
+			if (j > i) {
+				break;
+			}
+			Q->rowind[ic] = j;
+
+			val = graph->Qij[i][j];
+			GMRFLib_STOP_IF_NAN_OR_INF(val, i, j);
+			Q->values.d[ic] = val;
+
+			ic++;
+			ne++;
+		}
+		Q->colptr[i + 1] = Q->colptr[i] + ne;
+	}
+	if (GMRFLib_catch_error_for_inla) {
+		if (nan_error) {
+			return !GMRFLib_SUCCESS;
+		}
+	}
+#endif
+	int free_remap = 0;
+	if (!remap){
+		remap = Calloc(n, int);
+		for(i = 0; i<n; i++) remap[i] = n-i-1;
+		free_remap = 1;
+	}
+
+	iperm = remap;					       /* yes, this is correct */
+	perm = Calloc(n, int);
+
+	for (i = 0; i < n; i++) {
+		perm[iperm[i]] = i;
+	}
+	*L = taucs_ccs_permute_symmetrically(Q, perm, iperm);  /* permute the matrix */
+
+	taucs_ccs_free(Q);
+	Free(perm);
+	if (free_remap) Free(remap);
+	
+	if (0) {
+		static int count = 0;
+		char *fnm;
+#pragma omp critical
+		{
+			GMRFLib_sprintf(&fnm, "sparse-matrix-%1d-thread-%1d.txt", count++, omp_get_thread_num());
+			FILE *fp = fopen(fnm, "w");
+			fprintf(stderr, "write %s\n", fnm);
+			for (i = 0; i < n; i++) {
+				double qq = Qfunc(i, i, Qfunc_arg);
+				fprintf(fp, "%d %d %.16g\n", i, i, qq);
+				for (k = 0; k < graph->nnbs[i]; k++) {
+					j = graph->nbs[i][k];
+					if (i < j) {
+						fprintf(fp, "%d %d %.20g\n", i, j, Qfunc(i, j, Qfunc_arg));
+					}
+				}
+			}
+			fclose(fp);
+			Free(fnm);
+		}
+	}
+
+	tref_acc += GMRFLib_cpu_default() - tref;
+	tref_count++;
+	P(tref_acc/tref_count);
 
 	return GMRFLib_SUCCESS;
 }

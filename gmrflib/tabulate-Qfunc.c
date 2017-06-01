@@ -196,6 +196,31 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_tabulate_Qfunc2(GMRFLib_Graph_tp ** ngraph, GMRFLib_graph_tp * graph,
+			    GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+{
+	int i, j, m;
+
+	GMRFLib_copy_graph2(ngraph, graph);
+	(*ngraph)->Qii = Calloc((*ngraph)->n, double);
+
+	for(i = 0, m = 0; i < (*ngraph)->n; i++) {
+		m += (*ngraph)->nnbs[i];
+	}
+	double *hold = Calloc(m, double);
+	(*ngraph)->Qij = Calloc((*ngraph)->n, double *);
+	for(i = 0, j = 0; i < (*ngraph)->n; j += (*ngraph)->nnbs[i], i++){
+		(*ngraph)->Qij[i] = hold + j;
+	}
+	for(i = 0; i < (*ngraph)->n; i++){
+		(*ngraph)->Qii[i] = (*Qfunc)(i, i, Qfunc_arg);
+		for(j = 0; j < (*ngraph)->nnbs[i]; j++)
+			(*ngraph)->Qij[i][j] = (*Qfunc)(i, j, Qfunc_arg);
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_tabulate_Qfunc_from_file_OLD(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
 					 const char *filename, double *prec, double *log_prec, double **log_prec_omp)
 {

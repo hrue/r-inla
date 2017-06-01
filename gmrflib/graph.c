@@ -123,6 +123,30 @@ int GMRFLib_make_empty_graph(GMRFLib_graph_tp ** graph)
 
 	return GMRFLib_SUCCESS;
 }
+int GMRFLib_make_empty_graph2(GMRFLib_Graph_tp ** graph)
+{
+	/*
+	 * this function creates an empty graph 
+	 */
+
+	*graph = Calloc(1, GMRFLib_Graph_tp);
+
+	/*
+	 * user variables 
+	 */
+	(*graph)->n = 0;
+	(*graph)->nbs = NULL;
+	(*graph)->nnbs = NULL;
+	(*graph)->Qii = NULL;
+	(*graph)->Qij = NULL;
+
+	/*
+	 * private variables 
+	 */
+	(*graph)->mothergraph_idx = NULL;
+
+	return GMRFLib_SUCCESS;
+}
 
 /*!
   \brief Reads a graph from a file
@@ -971,6 +995,56 @@ int GMRFLib_copy_graph(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * graph_o
 		}
 		*graph_new = g;
 	}
+
+	GMRFLib_LEAVE_ROUTINE;
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_copy_graph2(GMRFLib_Graph_tp ** graph_new, GMRFLib_graph_tp * graph_old)
+{
+	/*
+	 * there is no need to do call _prepare_graph is the old graph is assumed to be ok. 
+	 */
+	int m, i, n, *hold = NULL, hold_idx;
+	GMRFLib_Graph_tp *g = NULL;
+
+	GMRFLib_ENTER_ROUTINE;
+	if (!graph_old) {
+		*graph_new = NULL;
+		GMRFLib_LEAVE_ROUTINE;
+		return GMRFLib_SUCCESS;
+	}
+
+	/*
+	 * new and better code 
+	 */
+	GMRFLib_make_empty_graph2(&g);
+	g->n = n = graph_old->n;
+	g->nnbs = Calloc(n, int);
+	memcpy(g->nnbs, graph_old->nnbs, (size_t) (n * sizeof(int)));
+
+	for (i = m = 0; i < n; i++) {
+		m += g->nnbs[i];
+	}
+	if (m) {
+		hold = Calloc(m, int);
+		g->nbs = Calloc(n, int *);
+
+		for (i = hold_idx = 0; i < n; i++) {
+			if (g->nnbs[i]) {
+				g->nbs[i] = &hold[hold_idx];
+				memcpy(g->nbs[i], graph_old->nbs[i], (size_t) (g->nnbs[i] * sizeof(int)));
+				hold_idx += g->nnbs[i];
+			}
+		}
+	}
+	if (graph_old->mothergraph_idx) {
+		if (!g->mothergraph_idx) {
+			g->mothergraph_idx = Calloc(n, int);
+		}
+		memcpy(g->mothergraph_idx, graph_old->mothergraph_idx, (size_t) (n * sizeof(int)));
+	}
+	*graph_new = g;
 
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
