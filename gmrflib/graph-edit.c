@@ -514,7 +514,7 @@ int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 	g->nnbs = nnbs;
 	g->nbs = nbs;
 	g->mothergraph_idx = imap;			       /* preserve the mapping */
-
+	
 	GMRFLib_copy_graph(graph, g);
 	GMRFLib_prepare_graph(*graph);
 

@@ -97,6 +97,8 @@ int GMRFLib_print_ccs_matrix(FILE *fp, taucs_ccs_matrix * L);
 supernodal_factor_matrix *GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(supernodal_factor_matrix * L);
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL);
 
+int GMRFLib_build_sparse_matrix_TAUCS2(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_Graph_tp * graph, int *remap);
+
 /* 
    internal functions here, not documented
 */

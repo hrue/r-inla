@@ -98,5 +98,9 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 				     double *prec, double *log_prec, double **log_prec_omp);
 int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph, int ntriples,
 				     int *ilist, int *jlist, double *Qijlist, int dim, double *prec, double *log_prec, double **log_prec_omp);
+
+int GMRFLib_tabulate_Qfunc2(GMRFLib_Graph_tp ** ngraph, GMRFLib_graph_tp * graph,
+			    GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
+
 __END_DECLS
 #endif

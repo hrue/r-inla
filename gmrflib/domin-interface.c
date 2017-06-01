@@ -243,6 +243,25 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 			GMRFLib_tabulate_Qfunc((tabQfunc ? tabQfunc : &(tabQfunc_local[GMRFLib_thread_id])), G.graph,
 					       G.Qfunc[GMRFLib_thread_id], G.Qfunc_arg[GMRFLib_thread_id], NULL, NULL, NULL);
 
+			if (1) {
+				GMRFLib_Graph_tp *ngraph;
+				GMRFLib_tabulate_Qfunc2(&ngraph,  G.graph, G.Qfunc[GMRFLib_thread_id], G.Qfunc_arg[GMRFLib_thread_id]);
+				P(ngraph->n);
+
+				taucs_ccs_matrix  *L;
+				L = Calloc(1, taucs_ccs_matrix);
+				GMRFLib_build_sparse_matrix_TAUCS2(&L, G.Qfunc[GMRFLib_thread_id], G.Qfunc_arg[GMRFLib_thread_id], ngraph, NULL);
+				GMRFLib_free_fact_sparse_matrix_TAUCS_OLD(L);
+				GMRFLib_free_graph(ngraph);
+
+				L = Calloc(1, taucs_ccs_matrix);
+				GMRFLib_build_sparse_matrix_TAUCS(&L, 
+								  (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local[GMRFLib_thread_id]->Qfunc),
+								  (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[GMRFLib_thread_id]->Qfunc_arg), G.graph, NULL);
+				GMRFLib_free_fact_sparse_matrix_TAUCS_OLD(L);
+			}
+
+
 			double con, *bnew_ptr = NULL;
 
 			GMRFLib_bnew(&bnew_ptr, &con, G.graph->n, G.b, G.bfunc);
