@@ -6108,6 +6108,8 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 						// 
 						// 
 						// 
+						// 
+						// 
 						// (unsigned int) n));
 						logll[i] = eval_logsum_safe(logA, logB);
 					}
@@ -14465,7 +14467,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	 */
 	int i, j, k, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg =
-		NULL, default_tag[100], *file_loc, *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL; 
+	    NULL, default_tag[100], *file_loc, *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern =
 	    NULL, **group_rho_intern = NULL, **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 =
 	    NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL, **h2_intern =
@@ -21539,6 +21541,11 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_GRID;
 		} else if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_CCD") || !strcasecmp(opt, "CCD")) {
 			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_CCD;
+		} else if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_USER") || !strcasecmp(opt, "USER")) {
+			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_USER;
+		} else if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_USER_STD") || !strcasecmp(opt, "USERSTD")
+			   || !strcasecmp(opt, "USER.STD")) {
+			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_USER_STD;
 		} else if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES")
 			   || !strcasecmp(opt, "EMPIRICAL_BAYES") || !strcasecmp(opt, "EB")) {
 			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES;
@@ -21552,6 +21559,22 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		}
 		mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_GRID;
 	}
+
+	if (mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER ||
+	    mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD) {
+		GMRFLib_matrix_tp *D = NULL;
+		filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "INT.DESIGN"), NULL));
+		if (my_file_exists(filename) != INLA_OK)
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "int.design", filename);
+		D = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
+		GMRFLib_read_design(&(mb->ai_par->int_design), D,
+				    (mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD ? 1 : 0));
+		GMRFLib_matrix_free(D);
+	} else {
+		// Just mark it as read
+		iniparser_getstring(ini, inla_string_join(secname, "INT.DESIGN"), NULL);
+	}
+
 
 	mb->ai_par->f0 = iniparser_getdouble(ini, inla_string_join(secname, "F0"), mb->ai_par->f0);
 	tmp = iniparser_getdouble(ini, inla_string_join(secname, "DZ"), mb->ai_par->dz);
@@ -25517,6 +25540,16 @@ int inla_INLA(inla_tp * mb)
 			mb->transform_funcs[i]->func = (GMRFLib_transform_func_tp *) link_identity;
 			mb->transform_funcs[i]->arg = NULL;
 			mb->transform_funcs[i]->cov = NULL;
+		}
+	}
+
+	if (mb->ai_par->int_design) {
+		// make sure the dimensions are right
+		if (mb->ntheta != mb->ai_par->int_design->nfactors) {
+			char *msg;
+			GMRFLib_sprintf(&msg, "ntheta = %1d but int.design says %1d\n", mb->ntheta,
+					mb->ai_par->int_design->nfactors);
+			inla_error_general(msg);
 		}
 	}
 
@@ -29586,21 +29619,50 @@ int inla_R(char **argv)
 
 	return GMRFLib_SUCCESS;
 }
+int inla_fgn(char *infile, char *outfile)
+{
+	double H, H_intern, *res;
+	int i, k, len, K, nH;
+
+	GMRFLib_matrix_tp *Hm = GMRFLib_read_fmesher_file(infile, 0, -1);
+	assert(Hm->ncol == 1);
+	nH = Hm->nrow - 1;
+	assert(nH >= 1);
+	K = (int) GMRFLib_matrix_get(0, 0, Hm);		       // first element is K, then H's.
+	len = 2 * K + 1;
+	res = Calloc(nH * len, double);
+	for (i = k = 0; i < nH; i++, k += len) {
+		H = res[k] = GMRFLib_matrix_get(i + 1, 0, Hm);
+		H_intern = map_H(H, MAP_BACKWARD, NULL);
+		inla_fgn_get(&res[k + 1], &res[k + 1 + K], H_intern, K);
+	}
+	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp), *M_t;
+	M->ncol = nH;
+	M->nrow = len;
+	M->elems = M->nrow * M->ncol;
+	M->A = res;
+	M_t = GMRFLib_matrix_transpose(M);
+	GMRFLib_write_fmesher_file(M_t, outfile, 0L, -1);
+	GMRFLib_matrix_free(M);
+	GMRFLib_matrix_free(M_t);
+
+	return GMRFLib_SUCCESS;
+}
 int testit(int argc, char **argv)
 {
 	if (1) {
 		double lambda = 1.234;
 		double x;
-		for(x = -5; x < 5; x+=0.1){
+		for (x = -5; x < 5; x += 0.1) {
 			printf("%f %f\n", x, priorfunc_pc_gammacount(&x, &lambda));
 		}
 		exit(0);
 	}
-	
+
 
 	if (0) {
 		GMRFLib_spline_tp **spline;
-		spline = inla_qcontpois_func(0.9, GMRFLib_MAX_THREADS);
+
 		double lq;
 #pragma omp parallel for
 		for (int i = 0; i < 10000; i++) {
@@ -30095,6 +30157,8 @@ int main(int argc, char **argv)
 				G.mode = INLA_MODE_GRAPH;
 			} else if (!strncasecmp(optarg, "R", 1)) {
 				G.mode = INLA_MODE_R;
+			} else if (!strncasecmp(optarg, "FGN", 3)) {
+				G.mode = INLA_MODE_FGN;
 			} else if (!strncasecmp(optarg, "TESTIT", 6)) {
 				G.mode = INLA_MODE_TESTIT;
 			} else {
@@ -30256,36 +30320,49 @@ int main(int argc, char **argv)
 	 */
 	if (G.mode == INLA_MODE_QINV) {
 		inla_qinv(argv[optind], argv[optind + 1], argv[optind + 2]);
-		if (report) GMRFLib_timer_full_report(NULL);
+		if (report)
+			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_QSOLVE) {
 		inla_qsolve(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3]);
-		if (report) GMRFLib_timer_full_report(NULL);
+		if (report)
+			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_QREORDERING) {
 		inla_qreordering(argv[optind]);
-		if (report) GMRFLib_timer_full_report(NULL);
+		if (report)
+			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_QSAMPLE) {
 		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5],
 			     argv[optind + 6], argv[optind + 7], argv[optind + 8]);
-		if (report) GMRFLib_timer_full_report(NULL);
+		if (report)
+			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_FINN) {
 		inla_finn(argv[optind]);
-		if (report) GMRFLib_timer_full_report(NULL);
+		if (report)
+			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_GRAPH) {
 		inla_read_graph(argv[optind]);
-		if (report) GMRFLib_timer_full_report(NULL);
+		if (report)
+			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_R) {
 		inla_R(&(argv[optind]));
-		if (report) GMRFLib_timer_full_report(NULL);
+		if (report)
+			GMRFLib_timer_full_report(NULL);
+		exit(EXIT_SUCCESS);
+	} else if (G.mode == INLA_MODE_FGN) {
+		inla_fgn(argv[optind], argv[optind + 1]);
+		if (report)
+			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_TESTIT) {
 		testit(argc, &(argv[optind]));
-		if (report) GMRFLib_timer_full_report(NULL);
+		if (report)
+			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else {
 		/*
