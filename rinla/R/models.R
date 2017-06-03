@@ -515,7 +515,7 @@
                      n.required = FALSE,
                      set.default.values = TRUE,
                      order.default = 3L,     ## default order for approximation
-                     order.defined = 3L:3L,  ## the list of orders which are implemented
+                     order.defined = 3L:4L,  ## the list of orders which are implemented
                      pdf = "fgn"
                      ),
 
@@ -5658,7 +5658,7 @@
                              hyperid =  81001,
                              name = "log alpha",
                              short.name = "a",
-                             initial = 4,
+                             initial = 0,
                              fixed = FALSE,
                              prior = "loggamma",
                              param = c(25, 25),
@@ -5680,7 +5680,7 @@
                      survival = TRUE,
                      discrete = FALSE,
                      link = c("default", "log", "neglog"),
-                     pdf = NA
+                     pdf = "weibullcure"
                      ),
 
                  stochvol = list(
