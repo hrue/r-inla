@@ -16961,12 +16961,23 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			inla_R_load(rgeneric_filename);
 		}
 
-		int n_out;
-		double *x_out = NULL;
+		int n_out, nn_out, nn;
+		double *x_out = NULL, *xx_out = NULL;
 
 #pragma omp critical
 		{
 			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_INITIAL, rgeneric_model, 0, NULL);
+			inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_GRAPH, rgeneric_model, 0, NULL); /* need graph->n */
+		}
+		nn = (int) xx_out[0];
+		
+		if (mb->f_n[mb->nf] != nn) {
+			Free(mb->f_locations[mb->nf]);
+			mb->f_locations[mb->nf] = Calloc(nn, double);
+			for(i=0; i < nn; i++) {
+				mb->f_locations[mb->nf][i] = i+1; /* set default ones */
+			}
+			mb->f_n[mb->nf] = mb->f_N[mb->nf] = nn;
 		}
 
 		int ntheta;
@@ -16978,6 +16989,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			memcpy(initial, &(x_out[1]), ntheta * sizeof(double));
 		}
 
+		Free(x_out);
+		Free(xx_out);
+		
 		mb->f_ntheta[mb->nf] = ntheta;
 		mb->f_initial[mb->nf] = initial;
 
