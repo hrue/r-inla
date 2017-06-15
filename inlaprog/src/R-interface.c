@@ -120,7 +120,7 @@ int inla_R_init(void)
 
 int inla_R_library(const char *library)
 {
-	if (!library) 
+	if (!library)
 		return (INLA_OK);
 	inla_R_init();
 
