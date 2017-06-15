@@ -16970,8 +16970,25 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_GRAPH, rgeneric_model, 0, NULL); /* need graph->n */
 		}
 		nn = (int) xx_out[0];
-		
 		if (mb->f_n[mb->nf] != nn) {
+			int err = 0;
+			for(i = 0; i < mb->f_n[mb->nf]; i++)
+			{
+				// provide a warning if something could be wrong in the input
+				if (mb->f_locations[mb->nf][i] != i+1) err++;
+			}
+			if (err) {
+				char *msg;
+				GMRFLib_sprintf(&msg, "%s\n\t\t%s, %1d != %1d, \n\t\t%s\n\t\t%s%1d%s",
+						"There is a potential issue with the 'rgeneric' model and the indices used:",
+						"the dimension of the model is different from expected",  mb->f_n[mb->nf], nn,
+						"and correctness cannot be verified.", 
+						"Please use argument n=", nn, ", f.ex, to *define* the dimension of the rgeneric model.");
+				inla_error_general(msg);
+				assert(0 != 1);
+				exit(1);
+			}
+
 			Free(mb->f_locations[mb->nf]);
 			mb->f_locations[mb->nf] = Calloc(nn, double);
 			for(i=0; i < nn; i++) {
