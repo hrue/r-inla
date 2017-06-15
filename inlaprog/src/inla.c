@@ -6099,20 +6099,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 						logA = log(pzero);
 						logB = log(1.0 - pzero) + res.val + y * log(p) + (n - y) * log(1.0 - p);
 						// logll[i] = log(pzero + (1.0 - pzero) * gsl_ran_binomial_pdf((unsigned int) y, p, 
-						// 
-						// 
-						// 
-						// 
-						// 
-						// 
-						// 
-						// 
-						// 
-						// 
-						// 
-						// 
-						// 
-						// (unsigned int) n));
+						//                (unsigned int) n));
 						logll[i] = eval_logsum_safe(logA, logB);
 					}
 				}

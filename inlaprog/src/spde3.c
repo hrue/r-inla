@@ -111,9 +111,8 @@ int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const ch
 		GMRFLib_matrix_free(model->M[3]);
 		model->M[3] = NULL;
 	}
-	// since this matrix is non-symmetric, we need the graph for for the transpose as well. the graph gives the entries for for 
-	// 
-	// each row.
+	// since this matrix is non-symmetric, we need the graph for for the transpose as well. the
+	// graph gives the entries for for each row.
 	if (model->M[3]) {
 		model->M3transpose = GMRFLib_matrix_transpose(model->M[3]);
 	} else {
