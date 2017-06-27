@@ -128,7 +128,17 @@ typedef enum {
 	/**
 	 * \brief Auto 
 	 */
-	GMRFLib_AI_INT_STRATEGY_AUTO
+	GMRFLib_AI_INT_STRATEGY_AUTO, 
+
+	/**
+	 * \brief USER (real scale)
+	 */
+	GMRFLib_AI_INT_STRATEGY_USER, 
+
+	/**
+	 * \brief USER_STD (std scale)
+	 */
+	GMRFLib_AI_INT_STRATEGY_USER_STD
 } GMRFLib_ai_int_strategy_tp;
 
 /** 
@@ -303,6 +313,11 @@ typedef struct {
 	 * \brief  The integration strategy.
 	 */
 	GMRFLib_ai_int_strategy_tp int_strategy;
+
+	/**
+	 * \brief  The design, if strategy is _USER or _USER_STD
+	 */
+	GMRFLib_design_tp *int_design;
 
 	/**
 	 * \brief The scaling for \c GMRFLib_AI_INT_STRATEGY_CCD, must be > 1.

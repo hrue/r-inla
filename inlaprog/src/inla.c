@@ -6099,17 +6099,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 						logA = log(pzero);
 						logB = log(1.0 - pzero) + res.val + y * log(p) + (n - y) * log(1.0 - p);
 						// logll[i] = log(pzero + (1.0 - pzero) * gsl_ran_binomial_pdf((unsigned int) y, p, 
-						// 
-						// 
-						// 
-						// 
-						// 
-						// 
-						// 
-						// 
-						// 
-						// 
-						// (unsigned int) n));
+						//                (unsigned int) n));
 						logll[i] = eval_logsum_safe(logA, logB);
 					}
 				}
@@ -16960,12 +16950,41 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			inla_R_load(rgeneric_filename);
 		}
 
-		int n_out;
-		double *x_out = NULL;
+		int n_out, nn_out, nn;
+		double *x_out = NULL, *xx_out = NULL;
 
 #pragma omp critical
 		{
 			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_INITIAL, rgeneric_model, 0, NULL);
+			inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_GRAPH, rgeneric_model, 0, NULL);	/* need graph->n */
+		}
+		nn = (int) xx_out[0];
+		if (mb->f_n[mb->nf] != nn) {
+			int err = 0;
+			for (i = 0; i < mb->f_n[mb->nf]; i++) {
+				// provide a warning if something could be wrong in the input
+				if (mb->f_locations[mb->nf][i] != i + 1)
+					err++;
+			}
+			if (err) {
+				char *msg;
+				GMRFLib_sprintf(&msg, "%s\n\t\t%s, %1d != %1d, \n\t\t%s\n\t\t%s%1d%s",
+						"There is a potential issue with the 'rgeneric' model and the indices used:",
+						"the dimension of the model is different from expected", mb->f_n[mb->nf], nn,
+						"and correctness cannot be verified.",
+						"Please use argument n=", nn,
+						", f.ex, to *define* the dimension of the rgeneric model.");
+				inla_error_general(msg);
+				assert(0 != 1);
+				exit(1);
+			}
+
+			Free(mb->f_locations[mb->nf]);
+			mb->f_locations[mb->nf] = Calloc(nn, double);
+			for (i = 0; i < nn; i++) {
+				mb->f_locations[mb->nf][i] = i + 1;	/* set default ones */
+			}
+			mb->f_n[mb->nf] = mb->f_N[mb->nf] = nn;
 		}
 
 		int ntheta;
@@ -16976,6 +16995,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			initial = Calloc(ntheta, double);
 			memcpy(initial, &(x_out[1]), ntheta * sizeof(double));
 		}
+
+		Free(x_out);
+		Free(xx_out);
 
 		mb->f_ntheta[mb->nf] = ntheta;
 		mb->f_initial[mb->nf] = initial;
@@ -21540,6 +21562,11 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_GRID;
 		} else if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_CCD") || !strcasecmp(opt, "CCD")) {
 			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_CCD;
+		} else if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_USER") || !strcasecmp(opt, "USER")) {
+			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_USER;
+		} else if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_USER_STD") || !strcasecmp(opt, "USERSTD")
+			   || !strcasecmp(opt, "USER.STD")) {
+			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_USER_STD;
 		} else if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES")
 			   || !strcasecmp(opt, "EMPIRICAL_BAYES") || !strcasecmp(opt, "EB")) {
 			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES;
@@ -21553,6 +21580,22 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		}
 		mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_GRID;
 	}
+
+	if (mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER ||
+	    mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD) {
+		GMRFLib_matrix_tp *D = NULL;
+		filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "INT.DESIGN"), NULL));
+		if (my_file_exists(filename) != INLA_OK)
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "int.design", filename);
+		D = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
+		GMRFLib_read_design(&(mb->ai_par->int_design), D,
+				    (mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD ? 1 : 0));
+		GMRFLib_matrix_free(D);
+	} else {
+		// Just mark it as read
+		iniparser_getstring(ini, inla_string_join(secname, "INT.DESIGN"), NULL);
+	}
+
 
 	mb->ai_par->f0 = iniparser_getdouble(ini, inla_string_join(secname, "F0"), mb->ai_par->f0);
 	tmp = iniparser_getdouble(ini, inla_string_join(secname, "DZ"), mb->ai_par->dz);
@@ -25518,6 +25561,16 @@ int inla_INLA(inla_tp * mb)
 			mb->transform_funcs[i]->func = (GMRFLib_transform_func_tp *) link_identity;
 			mb->transform_funcs[i]->arg = NULL;
 			mb->transform_funcs[i]->cov = NULL;
+		}
+	}
+
+	if (mb->ai_par->int_design) {
+		// make sure the dimensions are right
+		if (mb->ntheta != mb->ai_par->int_design->nfactors) {
+			char *msg;
+			GMRFLib_sprintf(&msg, "ntheta = %1d but int.design says %1d\n", mb->ntheta,
+					mb->ai_par->int_design->nfactors);
+			inla_error_general(msg);
 		}
 	}
 
