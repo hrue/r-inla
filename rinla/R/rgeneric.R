@@ -62,6 +62,10 @@
     ## the lag-1 correlation and 'prec' is the *marginal* (not
     ## conditional) precision.
     
+    ## variables defined the in the define-call, are stored here
+    ## (which is in the path)
+    envir = environment(sys.call()[[1]]) 
+
     interpret.theta = function()
     {
         ## internal helper-function to map the parameters from the internal-scale to the
@@ -72,27 +76,33 @@
 
     graph = function()
     {
-        ## return the graph of the model. the values of Q is only interpreted as zero or
-        ## non-zero. return a sparse.matrix
-        if (FALSE) {
-            ## slow and easy: dense-matrices
-            G = toeplitz(c(1, 1, rep(0, n-2L)))
-            G = inla.as.sparse(G)
+        if (TRUE) {
+            ## we can also use this easy solution, since we know that Q[i, j] is not 0 by
+            ## accident... this require that 'theta' is set; see 'theta = initial()' below.
+            G = Q()
         } else {
-            ## faster. we only need to define the lower-triangular of G
-            i = c(
-                ## diagonal
-                1L, n, 2L:(n-1L),
-                ## off-diagonal
-                1L:(n-1L))
-            j = c(
-                ## diagonal
-                1L, n, 2L:(n-1L),
-                ## off-diagonal
-                2L:n)
-            x = 1 ## meaning that all are 1
-            G = sparseMatrix(i=i, j=j, x=x, giveCsparse = FALSE)
-        }            
+            ## return the graph of the model. the values of Q is only interpreted as zero or
+            ## non-zero. return a sparse.matrix
+            if (FALSE) {
+                ## slow and easy: dense-matrices
+                G = toeplitz(c(1, 1, rep(0, n-2L)))
+                G = inla.as.sparse(G)
+            } else {
+                ## faster. we only need to define the lower-triangular of G
+                i = c(
+                    ## diagonal
+                    1L, n, 2L:(n-1L),
+                    ## off-diagonal
+                    1L:(n-1L))
+                j = c(
+                    ## diagonal
+                    1L, n, 2L:(n-1L),
+                    ## off-diagonal
+                    2L:n)
+                x = 1 ## meaning that all are 1
+                G = sparseMatrix(i=i, j=j, x=x, giveCsparse = FALSE)
+            }
+        }
         return (G)
     }
 
@@ -164,6 +174,11 @@
         return (invisible())
     }
 
+    ## if theta is not required, it is not set. we set it here, for convenience.
+    ## (see the graph() function)
+    if (is.null(theta))
+        theta = initial()
+    
     val = do.call(match.arg(cmd), args = list())
     return (val)
 }
@@ -175,6 +190,10 @@
     ## this is an example of the 'rgeneric' model. here we implement the iid model as described
     ## in inla.doc("iid"), without the scaling-option
 
+    ## variables defined the in the define-call, are stored here
+    ## (which is in the path)
+    envir = environment(sys.call()[[1]]) 
+    
     interpret.theta = function()
     {
         return (list(prec = exp(theta[1L])))
@@ -223,6 +242,10 @@
         return (invisible())
     }
 
+    ## if theta is not required, it is not set. we set it here, for convenience.
+    if (is.null(theta))
+        theta = initial()
+    
     val = do.call(match.arg(cmd), args = list())
     return (val)
 }
