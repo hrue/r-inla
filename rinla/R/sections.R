@@ -612,7 +612,7 @@
     return (random.spec)
 }
 
-`inla.inla.section` = function(file, inla.spec)
+`inla.inla.section` = function(file, inla.spec, data.dir)
 {
     cat("[INLA.Parameters]\n", sep = " ", file = file,  append = TRUE)
     cat("type = inla\n", sep = " ", file = file,  append = TRUE)
@@ -620,6 +620,17 @@
     if (!is.null(inla.spec$int.strategy)) {
         cat("int.strategy = ", inla.spec$int.strategy,"\n", sep = " ", file = file,  append = TRUE)
     }
+
+    if (inla.one.of(inla.spec$int.strategy, c("user", "user.std"))) {
+        if (is.null(inla.spec$int.design)) {
+            stop(paste0("int.strategy = 'user' or 'user.std' require the integration design in 'int.design'"))
+        }
+        file.A = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(as.matrix(inla.spec$int.design), filename = file.A)
+        file.A = gsub(data.dir, "$inladatadir", file.A, fixed=TRUE)
+        cat("int.design = ", file.A, "\n", sep = " ", file = file,  append = TRUE)
+    }
+
     if (!is.null(inla.spec$strategy)) {
         cat("strategy = ", inla.spec$strategy,"\n", sep = " ", file = file,  append = TRUE)
     }
@@ -849,7 +860,6 @@
 
         file.A=inla.tempfile(tmpdir=data.dir)
         inla.write.fmesher.file(Aext, filename = file.A)
-
         file.A = gsub(data.dir, "$inladatadir", file.A, fixed=TRUE)
         cat("Aext = ", file.A, "\n", append=TRUE, sep = " ", file = file)
         cat("AextPrecision = ", predictor.spec$precision, "\n", append=TRUE, sep = " ", file = file)

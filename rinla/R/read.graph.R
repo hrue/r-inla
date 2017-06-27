@@ -386,7 +386,8 @@
     args = list(...)
     graph = args[[1L]]
 
-    if (is.character(graph) || length(args) > 1L || is.numeric(graph)) {
+    if (is.character(graph) || length(args) > 1L ||
+        (is.numeric(graph) && !(is.matrix(graph) || is(graph, "Matrix")))) {
         graph = paste(as.character(graph))
 
         ## if the file exists, its a file
