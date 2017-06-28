@@ -22,12 +22,13 @@
                   from 0 to \code{lag.max}}
   }
  \value{
-  If \code{is.null(lag.max)},  then return a
-  named matrix with 2*K+1 columns, where the first column is \code{H},
+  \code{inla.fgn} returns a named matrix. 
+  If \code{is.null(lag.max)},  then 
+  first column is \code{H},
   columns \code{1+1:K} are lag one correlations (or phi's),
   and columns \code{1+K+1:K} are the weights.
-  If \code{lag.max > 0},  return a matrix with the ACFs. One row
-  for each H.
+  If \code{lag.max > 0},  then return the ACFs in columns \code{2+(0:lag.max)},
+  for the H in column 1.
 
   This function is EXPERIMENTAL!!!
  }
