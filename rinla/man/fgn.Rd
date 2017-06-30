@@ -12,14 +12,16 @@
               mixture representing FGN(H)}
 
  \usage{
-     inla.fgn(H, K=3L, lag.max = NULL)
+     inla.fgn(H, K=3L, lag.max = NULL, approx = TRUE)
  } 
 
  \arguments{
    \item{H}{The Hurst coeffcient (0<H<1),  or a vector of those}
    \item{K}{The number of components in representation,  must be 3L or 4L}
-   \item{lag.max}{If positive integer, return the coeffcients implicitely as the ACF
+   \item{lag.max}{Integer. If positive integer, return the coeffcients implicitely as the ACF
                   from 0 to \code{lag.max}}
+   \item{approx}{Logical. If \code{lag.max} is an positive integer and \code{approx} is \code{FALSE},
+                   then return the true ACF instead of the approximated one.}
   }
  \value{
   \code{inla.fgn} returns a named matrix. 
@@ -28,7 +30,7 @@
   columns \code{1+1:K} are lag one correlations (or phi's),
   and columns \code{1+K+1:K} are the weights.
   If \code{lag.max > 0},  then return the ACFs in columns \code{2+(0:lag.max)},
-  for the H in column 1.
+  for the H in column 1,  either the approximated ones or the the true ones.
 
   This function is EXPERIMENTAL!!!
  }
