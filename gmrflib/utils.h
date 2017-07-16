@@ -80,6 +80,7 @@ double GMRFLib_log_apbex(double a, double b);
 int GMRFLib_2order_poleq(double *sol1, double *sol2, double a, double b, double c);
 int GMRFLib_adjust_vector(double *x, int n);
 int GMRFLib_dcmp(const void *a, const void *b);
+int GMRFLib_dcmp_r(const void *a, const void *b);
 int GMRFLib_dcmp_abs(const void *a, const void *b);
 int GMRFLib_find_nonzero(double *array, int len, int direction);
 int GMRFLib_fpe(void);
