@@ -96,7 +96,8 @@ int GMRFLib_memcheck_register(void *p, size_t size, const char *file, const char
 int GMRFLib_memcheck_remove(void *p, const char *file, const char *funcname, int lineno, const char *id);
 int GMRFLib_print_darray(FILE * fp, double *x, int n, const char *desc);
 int GMRFLib_print_iarray(FILE * fp, int *x, int n, const char *desc);
-int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z, int (*compar) (const void *, const void *));
+int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z,
+		   int (*compar) (const void *, const void *));
 int GMRFLib_scale_vector(double *x, int n);
 int GMRFLib_unique_additive(int *n, double *x, double eps);
 int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps);
