@@ -96,9 +96,47 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-static double weight_eps = 1.0e-12;
+static double WEIGHT_PROB = 0.98;
 
+#define CONST_1 0.6266570686577500604 // sqrt(M_PI/8.0);
+#define CONST_2 (-0.69314718055994528623) // log(0.5);
 
+int GMRFLib_density_prune_weights(int *n_idx, int *idx, double *weights, int n)
+{
+	// make a list of the largest scaled weights so that the cummulative sum is at least WEIGHT_PROB
+	
+	int i, debug = 0;
+	double w_sum = 0.0;
+	double *ww = Calloc(n, double);
+	
+	memcpy(ww, weights, n*sizeof(double));
+	for(i = 0, w_sum = 0.0; i < n; i++) {
+		w_sum += ww[i];
+	}
+	w_sum = 1.0/w_sum;
+	for(i = 0; i < n; i++) {
+		ww[i] *= w_sum;
+		idx[i] = i;
+	}
+	GMRFLib_qsorts((void *) ww, (size_t) n, sizeof(double), (void *) idx, sizeof(int), NULL, NULL,  GMRFLib_dcmp_r);
+	for(i=0, *n_idx = 0, w_sum = 0.0; i<n; i++){
+		w_sum += ww[i];
+		(*n_idx)++;
+		if (w_sum > WEIGHT_PROB)
+			break;
+	}
+
+	if (debug) {
+		w_sum=0.0;
+		for(i=0; i< *n_idx; i++) {
+			w_sum += ww[i];
+			printf("i %1d idx %1d n_idx %1d n %1d ww %g w_sum %g\n", i, idx[i], *n_idx, n, ww[i], w_sum);
+		}
+	}
+	Free(ww);
+
+	return GMRFLib_SUCCESS;
+}
 int GMRFLib_sn_density(double *dens, double x, void *param)
 {
 	/*
@@ -116,12 +154,22 @@ double GMRFLib_log_gsl_cdf_ugaussian_P(double z)
 	/*
 	 * compute log(gsl_cdf_ugaussian_P(z)) for large |z| as well 
 	 */
-
 	if (ABS(z) < 8.0) {
-		return log(gsl_cdf_ugaussian_P(z));
+		if (0) {
+			// faster option. see also the code with some doc in inla.c. I havn't yet merged these functions
+			double val;
+			if (z > 0.0) {
+				//val = 0.5 + 0.5 * sqrt(1.0 - exp(-sqrt(M_PI / 8.0) * SQR(z)));
+				val = 0.5 + 0.5 * sqrt(1.0 - exp(- CONST_1 * SQR(z)));
+			} else {
+				val = 1.0 - (0.5 + 0.5 * sqrt(1.0 - exp(- CONST_1 * SQR(z))));
+			}
+			return (log(val)); 
+		} else {
+			return log(gsl_cdf_ugaussian_P(z));
+		}
 	} else {
 		if (z > 0) {
-
 			if (z > 37.0) {
 				return 0.0;
 			} else {
@@ -759,11 +807,36 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 		 */
 
 		GMRFLib_sn_param_tp *p = density->sn_param;
+		double local_const_1 = M_LN2 + log_norm_const_gaussian - log(p->omega);
+		double a = 1.0 / p->omega;
+		double b = - p->xi / p->omega;
+		double z, zz, val;
 
 		for (i = 0; i < n; i++) {
-			double z = (x[i] - p->xi) / p->omega;
-
-			logdens[i] = M_LN2 + log_norm_const_gaussian - 0.5 * SQR(z) + GMRFLib_log_gsl_cdf_ugaussian_P(p->alpha * z) - log(p->omega);
+			// inline the most important case of log(Phi(...)) and use a very good approximation
+			z = a*x[i] + b;
+			zz = p->alpha * z;
+			if (ABS(zz) < 8.0) {
+				if (zz > 0.0) {
+					//val = log(0.5 + 0.5 * sqrt(1.0 - exp(- CONST_1 * SQR(zz))));
+					val = CONST_2 + log(1.0 + sqrt(1.0 - exp(- CONST_1 * SQR(zz))));
+				} else {
+					//val = log(0.5 - 0.5 * sqrt(1.0 - exp(- CONST_1 * SQR(zz))));
+					val = CONST_2 + log(1.0 - sqrt(1.0 - exp(- CONST_1 * SQR(zz))));
+				}
+			} else {
+				// use the more complitated asympt expression, which we do here (for which the code in
+				// the prev {} is a copy of
+				val = GMRFLib_log_gsl_cdf_ugaussian_P(zz);
+			}
+			logdens[i] = local_const_1 - 0.5 * SQR(z) + val;
+		}
+		if (0) {
+			// OLD code
+			for (i = 0; i < n; i++) {
+				z = (x[i] - p->xi) / p->omega;
+				logdens[i] = M_LN2 + log_norm_const_gaussian - 0.5 * SQR(z) + GMRFLib_log_gsl_cdf_ugaussian_P(p->alpha * z) - log(p->omega);
+			}
 		}
 		break;
 	}
@@ -1031,23 +1104,21 @@ int GMRFLib_evaluate_densities(double *dens, double x_user, int n, GMRFLib_densi
 	 * 
 	 * the weights need not to be scaled. 
 	 */
-	int i;
-	double w_sum = 0.0, d_tmp = 0.0, d = 0.0, x_std, w_eps = 0.0;
+	int i, j, *idx = NULL, n_idx;
+	double w_sum = 0.0, d_tmp = 0.0, d = 0.0, x_std;
 
-	for (i = 0; i < n; i++) {
-		w_eps += weights[i];
-	}
-	w_eps = weight_eps / w_eps;
+	idx = Calloc(n, int);
+	GMRFLib_density_prune_weights(&n_idx, idx, weights, n);
 
-	for (i = 0; i < n; i++) {
-		if (weights[i] > w_eps) {
-			x_std = GMRFLib_density_user2std(x_user, densities[i]);
-			GMRFLib_evaluate_density(&d_tmp, x_std, densities[i]);
-			d += weights[i] * d_tmp / densities[i]->std_stdev;
-			w_sum += weights[i];
-		}
+	for (j = 0; j < n_idx; j++) {
+		i = idx[j];
+		x_std = GMRFLib_density_user2std(x_user, densities[i]);
+		GMRFLib_evaluate_density(&d_tmp, x_std, densities[i]);
+		d += weights[i] * d_tmp / densities[i]->std_stdev;
+		w_sum += weights[i];
 	}
 	*dens = d / w_sum;
+	Free(idx);
 
 	return GMRFLib_SUCCESS;
 }
@@ -1060,35 +1131,35 @@ int GMRFLib_evaluate_ndensities(double *dens, int nd, double *x_user, int nx, GM
 	 * 
 	 * the weights need not to be scaled. 
 	 */
-	int i, j;
-	double w_sum = 0.0, *d_tmp, *d = NULL, *x_std, w_eps = 0.0;
+	int i, j, k, n_idx, *idx = NULL;
+	double w_sum = 0.0, *d_tmp, *d = NULL, *x_std;
 
-	d = Calloc(3 * nx, double);
-	d_tmp = &d[nx];					       /* reduce the ammount of alloc */
-	x_std = &d[2 * nx];				       /* reduce the ammount of alloc */
+	d = Calloc(4 * nx, double);
+	d_tmp = &d[nx];				
+	x_std = &d[2 * nx];			
+	idx = (int *) &d[3 * nx];
+	
+	GMRFLib_density_prune_weights(&n_idx, idx, weights, nd);
 
-	for (i = 0; i < nd; i++) {
-		w_eps += weights[i];
-	}
-	w_eps = weight_eps / w_eps;
+	for (k = 0; k < n_idx; k++) {
+		i = idx[k];
+		w_sum += weights[i];
 
-	for (i = 0; i < nd; i++) {
-		if (weights[i] > w_eps) {
-			w_sum += weights[i];
-
-			for (j = 0; j < nx; j++) {
+		GMRFLib_density_user2std_n(x_std, x_user, densities[i], nx);
+		if (0) {
+			// Old code
+			for (j = 0; j < nx; j++) 
 				x_std[j] = GMRFLib_density_user2std(x_user[j], densities[i]);
-			}
-			GMRFLib_evaluate_ndensity(d_tmp, x_std, nx, densities[i]);
-
-			for (j = 0; j < nx; j++) {
-				d[j] += weights[i] * d_tmp[j] / densities[i]->std_stdev;
-			}
 		}
-	}
+		GMRFLib_evaluate_ndensity(d_tmp, x_std, nx, densities[i]);
+		for (j = 0; j < nx; j++) {
+			d[j] += weights[i] * d_tmp[j] / densities[i]->std_stdev;
+		}
+	} 
 
+	w_sum /= w_sum;
 	for (j = 0; j < nx; j++) {
-		dens[j] = d[j] / w_sum;
+		dens[j] = d[j] * w_sum;
 	}
 
 	Free(d);
@@ -1104,23 +1175,21 @@ int GMRFLib_evaluate_gdensities(double *dens, double x_user, int n, GMRFLib_dens
 	 * 
 	 * the weights need not to be scaled. 
 	 */
-	int i;
+	int i, j, *idx = NULL, n_idx;
 	double w_sum = 0.0, d_tmp = 0.0, d = 0.0, x_std, w_eps = 0.0;
 
-	for (i = 0; i < n; i++) {
-		w_eps += weights[i];
-	}
-	w_eps = weight_eps / w_eps;
+	idx = Calloc(n, int);
+	GMRFLib_density_prune_weights(&n_idx, idx, weights, n);
 
-	for (i = 0; i < n; i++) {
-		if (weights[i] > w_eps) {
-			x_std = GMRFLib_density_user2std(x_user, densities[i]);
-			d_tmp = exp(-0.5 * SQR(x_std));
-			d += weights[i] * d_tmp / densities[i]->std_stdev;
-			w_sum += weights[i];
-		}
+	for (j = 0; j < n_idx; j++) {
+		i = idx[j];
+		x_std = GMRFLib_density_user2std(x_user, densities[i]);
+		d_tmp = exp(-0.5 * SQR(x_std));
+		d += weights[i] * d_tmp / densities[i]->std_stdev;
+		w_sum += weights[i];
 	}
 	*dens = d / w_sum;
+	Free(idx);
 
 	return GMRFLib_SUCCESS;
 }
@@ -1304,10 +1373,9 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 		 * new improved code; use inline 
 		 */
 		double *xx_real = NULL, *ddens = NULL;
+
 		xx_real = Calloc(2 * np, double);
-
 		ddens = &xx_real[np];
-
 		for (i = 0; i < np; i++) {
 			xx_real[i] = x_points[i] * stdev + mean;
 		}
@@ -1771,6 +1839,17 @@ double GMRFLib_density_user2std(double x, GMRFLib_density_tp * density)
 {
 	return (x - density->std_mean) / density->std_stdev;
 }
+int GMRFLib_density_user2std_n(double *x_std, double *x, GMRFLib_density_tp * density, int n)
+{
+	// the vectorised version
+	int i;
+	double a = 1.0 / density->std_stdev;
+	double b = - density->std_mean / density->std_stdev;
+	for(i = 0; i < n; i++) {
+		x_std[i] =  a*x[i] + b;
+	}
+	return GMRFLib_SUCCESS;
+}
 int GMRFLib_gsl_integration_fix_limits(double *new_lower, double *new_upper, gsl_function * F, double lower, double upper)
 {
 	/*
@@ -2009,3 +2088,4 @@ int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * de
 
 	return GMRFLib_SUCCESS;
 }
+
