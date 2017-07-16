@@ -357,6 +357,22 @@ int GMRFLib_dcmp(const void *a, const void *b)
 
 	return 0;
 }
+int GMRFLib_dcmp_r(const void *a, const void *b)
+{
+	const double *da = NULL, *db = NULL;
+
+	da = (const double *) a;
+	db = (const double *) b;
+
+	if (*da > *db) {
+		return -1;
+	}
+	if (*da < *db) {
+		return 1;
+	}
+
+	return 0;
+}
 int GMRFLib_dcmp_abs(const void *a, const void *b)
 {
 	const double *da = NULL, *db = NULL;
