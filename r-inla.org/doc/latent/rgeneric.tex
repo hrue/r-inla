@@ -570,6 +570,36 @@ run this model in \texttt{R}, you may do \texttt{demo(rgeneric)}.
 \verbatiminput{rgeneric-example-3.R}
 }
 
+\section*{Example: Getting access to external functions}
+
+In the case you need to user external functions/variables within the rgeneric
+definition, you can either
+\begin{itemize}
+\item define them when calling \verb|inla.rgeneric.define|, like
+    \begin{quote}
+        \verb|inla.rgeneric.define(..., my.fun = my.fun)|
+    \end{quote}
+    and then \verb|my.fun| will be defined in the environment of the
+    rgeneric definition.
+\item pass  the variable \verb|first.time|
+    \begin{quote}
+        \verb|inla.rgeneric.define(..., first.time = TRUE)|
+    \end{quote}
+    and in the rgeneric definition, add
+\begin{verbatim}
+    if (first.time) {
+        ## do stuff here, like
+        source("my-external-funcs.R")
+
+        ## no need to do this more than once
+        first.time <<- FALSE
+    }
+\end{verbatim}
+before evaluating any of the internal functions. Here you can f.ex
+source code setting up the functions you like, or something similar. 
+\end{itemize}
+
+
 
 \end{document}
 

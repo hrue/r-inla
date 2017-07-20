@@ -106,7 +106,7 @@ GMRFLib_spline_tp **inla_qcontpois_func(double alpha, int num)
 		eta[i] = inla_qcontpois_eta(exp(lquantile[i]), alpha, (i && lquantile[i] < 5.0 ? &eta[i - 1] : NULL));
 	}
 	spline = Calloc(num, GMRFLib_spline_tp *);
-	for(int i = 0; i < num; i++){
+	for (int i = 0; i < num; i++) {
 		spline[i] = inla_spline_create(lquantile, eta, n);
 	}
 
