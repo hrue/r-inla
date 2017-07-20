@@ -45,6 +45,8 @@
 #include <malloc.h>
 #endif
 
+#include "GMRFLib/fmesher-io.h"
+
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
@@ -55,13 +57,21 @@
 #define __END_DECLS					       /* empty */
 #endif
 
-__BEGIN_DECLS typedef struct {
+__BEGIN_DECLS 
+
+//
+
+typedef struct {
 	double **experiment;
+	double *int_weight;
 	int nexperiments;
 	int nfactors;
+	int std_scale;					       /* if true, then the weights are on a standardized scale. this
+								* is the normal case */
 } GMRFLib_design_tp;
 
 int GMRFLib_get_design(GMRFLib_design_tp ** design, int nfactors);
+int GMRFLib_read_design(GMRFLib_design_tp ** design, GMRFLib_matrix_tp *D, int std_scale);
 int GMRFLib_free_design(GMRFLib_design_tp * design);
 int GMRFLib_print_design(FILE * fp, GMRFLib_design_tp * design);
 

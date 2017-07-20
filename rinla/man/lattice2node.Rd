@@ -66,7 +66,7 @@ inla.vector2matrix(a.vector, nrow, ncol)
   
 %%
 
-\author{Havard Rue \email{hrue@math.ntnu.no}}
+\author{Havard Rue \email{hrue@r-inla.org}}
 
 \seealso{\link{inla}}
 

@@ -1,0 +1,1770 @@
+<?xml version="1.0" encoding="iso-8859-1" ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
+<!--http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd-->  
+<html xmlns="http://www.w3.org/1999/xhtml"  
+> 
+<head><title>9 Dynamic regression example</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" /> 
+<meta name="generator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)" /> 
+<meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)" /> 
+<!-- xhtml,html,frames,2 --> 
+<meta name="src" content="spde-tutorial.tex" /> 
+<meta name="date" content="2017-02-24 10:55:00" /> 
+<link rel="stylesheet" type="text/css" href="spde-tutorial.css" /> 
+</head><body 
+>
+   <!--l. 1--><div class="crosslinks"><p class="noindent">[<a 
+href="spde-tutorialch10.html" >next</a>] [<a 
+href="spde-tutorialch8.html" >prev</a>] [<a 
+href="spde-tutorialch8.html#tailspde-tutorialch8.html" >prev-tail</a>] [<a 
+href="#tailspde-tutorialch9.html">tail</a>] [<a 
+href="spde-tutorial3.html#spde-tutorialch9.html" >up</a>] </p></div>
+   <h2 class="chapterHead"><span class="titlemark">Chapter&#x00A0;9</span><br /><a 
+ id="x13-830009"></a>Dynamic regression example</h2>
+<!--l. 3--><p class="noindent" >The  R  source  for  this  file  is  available  at
+<a 
+href="http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-dynamic.R" class="url" ><span 
+class="aett-10x-x-109">http://www.math.ntnu.no/inla/r-_inla.org/tutorials/spde/R/spde-_tutorial-_dynamic.R</span></a>
+</p><!--l. 9--><p class="indent" >   There is a large literature about dynamic models with also some books about it, from <span class="cite">[<a 
+href="spde-tutorialli2.html#XwestH:1997">West
+and Harrison, 1997</a>]</span> to <span class="cite">[<a 
+href="spde-tutorialli2.html#XPetrisPC:2009">Petris et&#x00A0;al., 2009</a>]</span>. These models basically defines an hierarchical
+framework for a class of time series models. A particular case is the dynamic regression model,
+were the regression coefficients are modeled as time series. That is the case when the regression
+coefficients vary smoothly over time.
+</p>
+   <h3 class="sectionHead"><span class="titlemark">9.1   </span> <a 
+ id="x13-840009.1"></a>Dynamic space-time regression</h3>
+<!--l. 21--><p class="noindent" >The specific class of models for spatially structured time series was proposed by <span class="cite">[<a 
+href="spde-tutorialli2.html#XgelfandKSB:2003">Gelfand et&#x00A0;al.,
+2003</a>]</span>, where the regression coefficients varies smoothly over time and space. For the
+areal data case, the use of proper Gaussian Markov random fields (PGMRF) over
+space as proposed by <span class="cite">[<a 
+href="spde-tutorialli2.html#XvivarF:2009">Vivar and Ferreira, 2009</a>]</span>. There exists a particular class of such
+models called &#8220;spatially varying coefficient models&#8221; were the regression coefficients
+veries over space, <span class="cite">[<a 
+href="spde-tutorialli2.html#XassuncaoGA:1999">Assunção et&#x00A0;al., 1999</a>]</span>, <span class="cite">[<a 
+href="spde-tutorialli2.html#XassuncaoPC:2002">Assunção et&#x00A0;al., 2002</a>]</span>, <span class="cite">[<a 
+href="spde-tutorialli2.html#XgamermanMR:2003">Gamerman et&#x00A0;al.,
+2003</a>]</span>.
+</p><!--l. 31--><p class="indent" >   In <span class="cite">[<a 
+href="spde-tutorialli2.html#XgelfandKSB:2003">Gelfand et&#x00A0;al., 2003</a>]</span> the Gibbs sampler were used for inference and it was claimed that
+better algorithms is needed due to strong autocorrelations. In <span class="cite">[<a 
+href="spde-tutorialli2.html#XvivarF:2009">Vivar and Ferreira, 2009</a>]</span> the use
+of forward information filtering and backward sampling (FIFBS) recursions were proposed. Both
+MCMC algorithms are computationally expensive.
+</p><!--l. 37--><p class="indent" >   One can avoid the FFBS algorithm as a relation between the Kalman-filter and the Cholesky
+factorization is provided in <span class="cite">[<a 
+href="spde-tutorialli2.html#XknorrheldR:2002">Knorr-Held and Rue, 2002</a>]</span>. The Cholesky fator is more general and
+has superior performance when using sparse matrix methods, <span class="cite">[<a 
+href="spde-tutorialli2.html#XRueHeld:2005">Rue and Held, 2005</a>, p. 149]</span>.
+Additionally, the restriction that the prior for the latent field has to be proper can be
+avoided.
+</p><!--l. 43--><p class="indent" >   When the likelihood is Gaussian, there is no approximation needed in the inference process
+since the distribution of the latent field given the data and the hyperparameters is Gaussian.
+So, the main task is to perform inference for the hyperparameters in the model. For
+this, the mode and curvature around can be found without any sampling method.
+For the class of models in&#x00A0;<span class="cite">[<a 
+href="spde-tutorialli2.html#XvivarF:2009">Vivar and Ferreira, 2009</a>]</span> it is natural to use INLA, as
+shown in <span class="cite">[<a 
+href="spde-tutorialli2.html#XcardenasKR:2012">Ruiz-Cárdenas et&#x00A0;al., 2012</a>]</span>, and for the models in&#x00A0;<span class="cite">[<a 
+href="spde-tutorialli2.html#XgelfandKSB:2003">Gelfand et&#x00A0;al., 2003</a>]</span> we
+can use the SPDE approach when considering the Matérn covariance for the spatial
+part.
+</p><!--l. 51--><p class="indent" >   In this section we show how to fit the space-time dynamic regression model as in <span class="cite">[<a 
+href="spde-tutorialli2.html#XgelfandKSB:2003">Gelfand
+et&#x00A0;al., 2003</a>]</span>, considering the Matérn spatial covariance and the AR(1) model for time which
+corresponds to the exponential correlation function. This particular covariance choise correspond
+to the model in <span class="cite">[<a 
+href="spde-tutorialli2.html#Xcameletti:2012">Cameletti et&#x00A0;al., 2012</a>]</span>, where only the intercept is dynamic. Here, we show the
+case when we have a dynamic intercept and a dynamic regression coefficient for an harmonic
+over time.
+</p><!--l. 59--><p class="noindent" >
+</p>
+   <h3 class="sectionHead"><span class="titlemark">9.2   </span> <a 
+ id="x13-850009.2"></a>Simulation from the model</h3>
+<!--l. 61--><p class="noindent" >We can start on defining the spatial locations:  
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12395"></p>     
+<div class="alltt">                                                                                                                </span></div>
+                                                                                 
+                                                                                 
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12397"><div class="obeylines-v">
+<span id="textcolor12377"><span 
+class="aett-10x-x-109">n</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12378"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12379"><span 
+class="aett-10x-x-109">150</span></span><span id="textcolor12380"><span 
+class="aett-10x-x-109">;</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12381"><span 
+class="aett-10x-x-109">set.seed</span></span><span id="textcolor12382"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12383"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12384"><span 
+class="aett-10x-x-109">);</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;coo</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12385"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12386"><span 
+class="aett-10x-x-109">matrix</span></span><span id="textcolor12387"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12388"><span 
+class="aett-10x-x-109">runif</span></span><span id="textcolor12389"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12390"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12391"><span 
+class="aett-10x-x-109">*</span></span><span id="textcolor12392"><span 
+class="aett-10x-x-109">n),</span><span 
+class="aett-10x-x-109">&#x00A0;n)</span></span>
+</div>
+</div>                                                                          </span></div>-
+<!--l. 70--><p class="indent" >   To sample from a random field on a set of location, we can use the
+<span 
+class="aett-10x-x-109">rMatern() </span>function defined in the section&#x00A0;<span 
+class="aebx-10x-x-109">??</span> to simulate independent random
+field realizations for each time. This function is available in the file at
+<a 
+href="http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R" class="url" ><span 
+class="aett-10x-x-109">http://www.math.ntnu.no/inla/r-_inla.org/tutorials/spde/R/spde-_tutorial-_functions.R</span></a>
+</p><!--l. 77--><p class="indent" >   We draw <span 
+class="cmmi-10x-x-109">k </span>(number of time points) samples from the random field. Then, we make it
+temporally correlated considering the time autoregression  
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12537"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor12399"><span 
+class="aett-10x-x-109">kappa</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12400"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12401"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor12402"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12403"><span 
+class="aett-10x-x-109">10</span></span><span id="textcolor12404"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12405"><span 
+class="aett-10x-x-109">12</span></span><span id="textcolor12406"><span 
+class="aett-10x-x-109">);</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;sigma2</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12407"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12408"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor12409"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12410"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12411"><span 
+class="aett-10x-x-109">/</span></span><span id="textcolor12412"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12413"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12414"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12415"><span 
+class="aett-10x-x-109">/</span></span><span id="textcolor12416"><span 
+class="aett-10x-x-109">4</span></span><span id="textcolor12417"><span 
+class="aett-10x-x-109">)</span></span>
+<br /><span id="textcolor12418"><span 
+class="aett-10x-x-109">k</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12419"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12420"><span 
+class="aett-10x-x-109">15</span></span><span id="textcolor12421"><span 
+class="aett-10x-x-109">;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;rho</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12422"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12423"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor12424"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12425"><span 
+class="aett-10x-x-109">0.7</span></span><span id="textcolor12426"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12427"><span 
+class="aett-10x-x-109">0.5</span></span><span id="textcolor12428"><span 
+class="aett-10x-x-109">)</span></span>
+<br /><span id="textcolor12429"><span 
+class="aett-10x-x-109">set.seed</span></span><span id="textcolor12430"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12431"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12432"><span 
+class="aett-10x-x-109">);</span><span 
+class="aett-10x-x-109">&#x00A0;beta0</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12433"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12434"><span 
+class="aett-10x-x-109">rMatern</span></span><span id="textcolor12435"><span 
+class="aett-10x-x-109">(k,</span><span 
+class="aett-10x-x-109">&#x00A0;coo,</span><span 
+class="aett-10x-x-109">&#x00A0;kappa[</span></span><span id="textcolor12436"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12437"><span 
+class="aett-10x-x-109">],</span><span 
+class="aett-10x-x-109">&#x00A0;sigma2[</span></span><span id="textcolor12438"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12439"><span 
+class="aett-10x-x-109">])</span></span>
+<br /><span id="textcolor12440"><span 
+class="aett-10x-x-109">set.seed</span></span><span id="textcolor12441"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12442"><span 
+class="aett-10x-x-109">3</span></span><span id="textcolor12443"><span 
+class="aett-10x-x-109">);</span><span 
+class="aett-10x-x-109">&#x00A0;beta1</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12444"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12445"><span 
+class="aett-10x-x-109">rMatern</span></span><span id="textcolor12446"><span 
+class="aett-10x-x-109">(k,</span><span 
+class="aett-10x-x-109">&#x00A0;coo,</span><span 
+class="aett-10x-x-109">&#x00A0;kappa[</span></span><span id="textcolor12447"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12448"><span 
+class="aett-10x-x-109">],</span><span 
+class="aett-10x-x-109">&#x00A0;sigma2[</span></span><span id="textcolor12449"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12450"><span 
+class="aett-10x-x-109">])</span></span>
+<br /><span id="textcolor12451"><span 
+class="aett-10x-x-109">beta0[,</span></span><span id="textcolor12452"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12453"><span 
+class="aett-10x-x-109">]</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12454"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12455"><span 
+class="aett-10x-x-109">beta0[,</span></span><span id="textcolor12456"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12457"><span 
+class="aett-10x-x-109">]</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12458"><span 
+class="aett-10x-x-109">/</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12459"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12460"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12461"><span 
+class="aett-10x-x-109">-</span></span><span id="textcolor12462"><span 
+class="aett-10x-x-109">rho[</span></span><span id="textcolor12463"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12464"><span 
+class="aett-10x-x-109">]</span></span><span id="textcolor12465"><span 
+class="aett-10x-x-109">^</span></span><span id="textcolor12466"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12467"><span 
+class="aett-10x-x-109">)</span></span>
+<br /><span id="textcolor12468"><span 
+class="aett-10x-x-109">beta1[,</span></span><span id="textcolor12469"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12470"><span 
+class="aett-10x-x-109">]</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12471"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12472"><span 
+class="aett-10x-x-109">beta1[,</span></span><span id="textcolor12473"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12474"><span 
+class="aett-10x-x-109">]</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12475"><span 
+class="aett-10x-x-109">/</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12476"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12477"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12478"><span 
+class="aett-10x-x-109">-</span></span><span id="textcolor12479"><span 
+class="aett-10x-x-109">rho[</span></span><span id="textcolor12480"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12481"><span 
+class="aett-10x-x-109">]</span></span><span id="textcolor12482"><span 
+class="aett-10x-x-109">^</span></span><span id="textcolor12483"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12484"><span 
+class="aett-10x-x-109">)</span></span>
+<br /><span id="textcolor12485"><span 
+class="aett-10x-x-109">for</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12486"><span 
+class="aett-10x-x-109">(j</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12487"><span 
+class="aett-10x-x-109">in</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12488"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12489"><span 
+class="aett-10x-x-109">:</span></span><span id="textcolor12490"><span 
+class="aett-10x-x-109">k)</span><span 
+class="aett-10x-x-109">&#x00A0;{</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12491"><span 
+class="aett-10x-x-109">beta0[,</span><span 
+class="aett-10x-x-109">&#x00A0;j]</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12492"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12493"><span 
+class="aett-10x-x-109">beta0[,j</span></span><span id="textcolor12494"><span 
+class="aett-10x-x-109">-</span></span><span id="textcolor12495"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12496"><span 
+class="aett-10x-x-109">]</span></span><span id="textcolor12497"><span 
+class="aett-10x-x-109">*</span></span><span id="textcolor12498"><span 
+class="aett-10x-x-109">rho[</span></span><span id="textcolor12499"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12500"><span 
+class="aett-10x-x-109">]</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12501"><span 
+class="aett-10x-x-109">+</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12502"><span 
+class="aett-10x-x-109">beta0[,j]</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12503"><span 
+class="aett-10x-x-109">*</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12504"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12505"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12506"><span 
+class="aett-10x-x-109">-</span></span><span id="textcolor12507"><span 
+class="aett-10x-x-109">rho[</span></span><span id="textcolor12508"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12509"><span 
+class="aett-10x-x-109">]</span></span><span id="textcolor12510"><span 
+class="aett-10x-x-109">^</span></span><span id="textcolor12511"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12512"><span 
+class="aett-10x-x-109">)</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12513"><span 
+class="aett-10x-x-109">beta1[,</span><span 
+class="aett-10x-x-109">&#x00A0;j]</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12514"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12515"><span 
+class="aett-10x-x-109">beta1[,j</span></span><span id="textcolor12516"><span 
+class="aett-10x-x-109">-</span></span><span id="textcolor12517"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12518"><span 
+class="aett-10x-x-109">]</span></span><span id="textcolor12519"><span 
+class="aett-10x-x-109">*</span></span><span id="textcolor12520"><span 
+class="aett-10x-x-109">rho[</span></span><span id="textcolor12521"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12522"><span 
+class="aett-10x-x-109">]</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12523"><span 
+class="aett-10x-x-109">+</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12524"><span 
+class="aett-10x-x-109">beta1[,j]</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12525"><span 
+class="aett-10x-x-109">*</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12526"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12527"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12528"><span 
+class="aett-10x-x-109">-</span></span><span id="textcolor12529"><span 
+class="aett-10x-x-109">rho[</span></span><span id="textcolor12530"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12531"><span 
+class="aett-10x-x-109">]</span></span><span id="textcolor12532"><span 
+class="aett-10x-x-109">^</span></span><span id="textcolor12533"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12534"><span 
+class="aett-10x-x-109">)</span></span>
+<br /><span id="textcolor12535"><span 
+class="aett-10x-x-109">}</span></span>
+</div>
+</div>                                                                          </span></div>-
+<!--l. 95--><p class="indent" >   where the <span 
+class="cmr-10x-x-109">(1 </span><span 
+class="cmsy-10x-x-109">- </span><span 
+class="cmmi-10x-x-109">&#x03C1;</span><sub><span 
+class="cmmi-8">j</span></sub><sup><span 
+class="cmr-8">2</span></sup><span 
+class="cmr-10x-x-109">) </span>term is in accord to the parametrization of the AR(<span 
+class="cmr-10x-x-109">1</span>) model in
+INLA.
+</p><!--l. 98--><p class="indent" >   To get the response, we define the harmonic as a function over time, compute the mean and
+add an error term  
+</p>
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12597"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor12539"><span 
+class="aett-10x-x-109">set.seed</span></span><span id="textcolor12540"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12541"><span 
+class="aett-10x-x-109">4</span></span><span id="textcolor12542"><span 
+class="aett-10x-x-109">);</span><span 
+class="aett-10x-x-109">&#x00A0;hh</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12543"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12544"><span 
+class="aett-10x-x-109">runif</span></span><span id="textcolor12545"><span 
+class="aett-10x-x-109">(n</span></span><span id="textcolor12546"><span 
+class="aett-10x-x-109">*</span></span><span id="textcolor12547"><span 
+class="aett-10x-x-109">k)</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12548"><span 
+class="aeitt-10x-x-109">###</span><span 
+class="aeitt-10x-x-109">&#x00A0;simlate</span><span 
+class="aeitt-10x-x-109">&#x00A0;the</span><span 
+class="aeitt-10x-x-109">&#x00A0;covariate</span><span 
+class="aeitt-10x-x-109">&#x00A0;values</span></span>
+<br /><span id="textcolor12549"><span 
+class="aett-10x-x-109">mu.beta</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12550"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12551"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor12552"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12553"><span 
+class="aett-10x-x-109">-</span></span><span id="textcolor12554"><span 
+class="aett-10x-x-109">5</span></span><span id="textcolor12555"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12556"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12557"><span 
+class="aett-10x-x-109">);</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;taue</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12558"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12559"><span 
+class="aett-10x-x-109">20</span></span>
+<br /><span id="textcolor12560"><span 
+class="aett-10x-x-109">set.seed</span></span><span id="textcolor12561"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12562"><span 
+class="aett-10x-x-109">5</span></span><span id="textcolor12563"><span 
+class="aett-10x-x-109">);</span><span 
+class="aett-10x-x-109">&#x00A0;error</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12564"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12565"><span 
+class="aett-10x-x-109">rnorm</span></span><span id="textcolor12566"><span 
+class="aett-10x-x-109">(n</span></span><span id="textcolor12567"><span 
+class="aett-10x-x-109">*</span></span><span id="textcolor12568"><span 
+class="aett-10x-x-109">k,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12569"><span 
+class="aett-10x-x-109">0</span></span><span id="textcolor12570"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12571"><span 
+class="aett-10x-x-109">sqrt</span></span><span id="textcolor12572"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12573"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12574"><span 
+class="aett-10x-x-109">/</span></span><span id="textcolor12575"><span 
+class="aett-10x-x-109">taue))</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12576"><span 
+class="aeitt-10x-x-109">###</span><span 
+class="aeitt-10x-x-109">&#x00A0;error</span><span 
+class="aeitt-10x-x-109">&#x00A0;in</span><span 
+class="aeitt-10x-x-109">&#x00A0;the</span><span 
+class="aeitt-10x-x-109">&#x00A0;observation</span></span>
+<br /><span id="textcolor12577"><span 
+class="aett-10x-x-109">length</span></span><span id="textcolor12578"><span 
+class="aett-10x-x-109">(y</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12579"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12580"><span 
+class="aett-10x-x-109">(mu.beta[</span></span><span id="textcolor12581"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12582"><span 
+class="aett-10x-x-109">]</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12583"><span 
+class="aett-10x-x-109">+</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12584"><span 
+class="aett-10x-x-109">beta0)</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12585"><span 
+class="aett-10x-x-109">+</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12586"><span 
+class="aett-10x-x-109">(mu.beta[</span></span><span id="textcolor12587"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12588"><span 
+class="aett-10x-x-109">]</span></span><span id="textcolor12589"><span 
+class="aett-10x-x-109">+</span></span><span id="textcolor12590"><span 
+class="aett-10x-x-109">beta1)</span></span><span id="textcolor12591"><span 
+class="aett-10x-x-109">*</span></span><span id="textcolor12592"><span 
+class="aett-10x-x-109">hh</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12593"><span 
+class="aett-10x-x-109">+</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12594"><span 
+class="aeitt-10x-x-109">###</span><span 
+class="aeitt-10x-x-109">&#x00A0;dynamic</span><span 
+class="aeitt-10x-x-109">&#x00A0;regression</span><span 
+class="aeitt-10x-x-109">&#x00A0;part</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12595"><span 
+class="aett-10x-x-109">error)</span></span>
+</div>
+</div>   
+<div class="verbatim" id="verbatim-112">
+##&#x00A0;[1]&#x00A0;2250
+</div>
+<!--l. 111--><p class="nopar" >                                                                          </span></div>-
+                                                                                 
+                                                                                 
+<!--l. 115--><p class="noindent" >
+</p>
+   <h3 class="sectionHead"><span class="titlemark">9.3   </span> <a 
+ id="x13-860009.3"></a>Fitting the model</h3>
+<!--l. 117--><p class="noindent" >We have two space-time terms on the model, each one with three hyperparameters: precision,
+spatial scale, temporal scale (or temporal correlation). So, considering the likelihood, <span 
+class="cmr-10x-x-109">7</span>
+hyperparameters in total. To perform fast inference, we choose to have a crude mesh with with
+small number of vertices.  
+</p>
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12623"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor12599"><span 
+class="aett-10x-x-109">(mesh</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12600"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12601"><span 
+class="aett-10x-x-109">inla.mesh.2d</span></span><span id="textcolor12602"><span 
+class="aett-10x-x-109">(coo,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12603"><span 
+class="aett-10x-x-109">max.edge</span></span><span id="textcolor12604"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12605"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor12606"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12607"><span 
+class="aett-10x-x-109">0.25</span></span><span id="textcolor12608"><span 
+class="aett-10x-x-109">),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12609"><span 
+class="aeitt-10x-x-109">###</span><span 
+class="aeitt-10x-x-109">&#x00A0;coarse</span><span 
+class="aeitt-10x-x-109">&#x00A0;mesh</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12610"><span 
+class="aett-10x-x-109">offset</span></span><span id="textcolor12611"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12612"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor12613"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12614"><span 
+class="aett-10x-x-109">0.15</span></span><span id="textcolor12615"><span 
+class="aett-10x-x-109">),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12616"><span 
+class="aett-10x-x-109">cutoff</span></span><span id="textcolor12617"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12618"><span 
+class="aett-10x-x-109">0.05</span></span><span id="textcolor12619"><span 
+class="aett-10x-x-109">))</span></span><span id="textcolor12620"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12621"><span 
+class="aett-10x-x-109">n</span></span>
+</div>
+</div>   
+<div class="verbatim" id="verbatim-113">
+##&#x00A0;[1]&#x00A0;142
+</div>
+<!--l. 131--><p class="nopar" >                                                                          </span></div>-
+<!--l. 136--><p class="indent" >   Defining the SPDE model considering the PC-prior derived in <span class="cite">[<a 
+href="spde-tutorialli2.html#Xfuglstadetal:2017">Fuglstad et&#x00A0;al., 2017</a>]</span> for the
+model parameters as the practical range, <img 
+src="spde-tutorial81x.png" alt="&#x221A; ---
+  8&#x03BD;"  class="sqrt"  /><span 
+class="cmmi-10x-x-109">&#x2215;&#x03BA;</span>, and the marginal standard deviation.
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12655"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor12625"><span 
+class="aett-10x-x-109">spde</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12626"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12627"><span 
+class="aett-10x-x-109">inla.spde2.pcmatern</span></span><span id="textcolor12628"><span 
+class="aett-10x-x-109">(</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12629"><span 
+class="aett-10x-x-109">mesh</span></span><span id="textcolor12630"><span 
+class="aett-10x-x-109">=mesh,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12631"><span 
+class="aett-10x-x-109">alpha</span></span><span id="textcolor12632"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12633"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12634"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12635"><span 
+class="aeitt-10x-x-109">###</span><span 
+class="aeitt-10x-x-109">&#x00A0;mesh</span><span 
+class="aeitt-10x-x-109">&#x00A0;and</span><span 
+class="aeitt-10x-x-109">&#x00A0;smoothness</span><span 
+class="aeitt-10x-x-109">&#x00A0;parameter</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12636"><span 
+class="aett-10x-x-109">prior.range</span></span><span id="textcolor12637"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12638"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor12639"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12640"><span 
+class="aett-10x-x-109">0.05</span></span><span id="textcolor12641"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12642"><span 
+class="aett-10x-x-109">0.01</span></span><span id="textcolor12643"><span 
+class="aett-10x-x-109">),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12644"><span 
+class="aeitt-10x-x-109">###</span><span 
+class="aeitt-10x-x-109">&#x00A0;P(practic.range&#x003C;0.05)=0.01</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12645"><span 
+class="aett-10x-x-109">prior.sigma</span></span><span id="textcolor12646"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12647"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor12648"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12649"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12650"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12651"><span 
+class="aett-10x-x-109">0.01</span></span><span id="textcolor12652"><span 
+class="aett-10x-x-109">))</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12653"><span 
+class="aeitt-10x-x-109">###</span><span 
+class="aeitt-10x-x-109">&#x00A0;P(sigma&#x003E;1)=0.01</span></span>
+</div>
+</div>                                                                          </span></div>-
+<!--l. 151--><p class="indent" >   We do need one set of index for each call of the <span 
+class="aett-10x-x-109">f() </span>function, no matter if they are the same,
+so:  
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12678"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor12657"><span 
+class="aett-10x-x-109">i0</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12658"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12659"><span 
+class="aett-10x-x-109">inla.spde.make.index</span></span><span id="textcolor12660"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12661"><span 
+class="tctt-1095">'</span><span 
+class="aett-10x-x-109">i0</span><span 
+class="tctt-1095">'</span></span><span id="textcolor12662"><span 
+class="aett-10x-x-109">,</span><span 
+class="aett-10x-x-109">&#x00A0;spde</span></span><span id="textcolor12663"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12664"><span 
+class="aett-10x-x-109">n.spde,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12665"><span 
+class="aett-10x-x-109">n.group</span></span><span id="textcolor12666"><span 
+class="aett-10x-x-109">=k)</span></span>
+<br /><span id="textcolor12667"><span 
+class="aett-10x-x-109">i1</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12668"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12669"><span 
+class="aett-10x-x-109">inla.spde.make.index</span></span><span id="textcolor12670"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12671"><span 
+class="tctt-1095">'</span><span 
+class="aett-10x-x-109">i1</span><span 
+class="tctt-1095">'</span></span><span id="textcolor12672"><span 
+class="aett-10x-x-109">,</span><span 
+class="aett-10x-x-109">&#x00A0;spde</span></span><span id="textcolor12673"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12674"><span 
+class="aett-10x-x-109">n.spde,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12675"><span 
+class="aett-10x-x-109">n.group</span></span><span id="textcolor12676"><span 
+class="aett-10x-x-109">=k)</span></span>
+</div>
+</div>                                                                          </span></div>-
+<!--l. 162--><p class="indent" >   In the SPDE approach, the space-time model is defined in a set of mesh nodes. As we have
+considered continuous time, it is also defined on a set of time knots. So, we have to deal with the
+projection from the model domain (nodes, knots) to the space-time data locations. For the
+                                                                                 
+                                                                                 
+intercept it is the same way as in the other examples. For the regression coefficients, we need to
+account for the covariate value in the projection matrix. It can be seen as follows
+</p><div class="eqnarray">
+   <center class="math-display" >
+<img 
+src="spde-tutorial82x.png" alt="&#x03B7;  =   &#x03BC;&#x03B2;0 + &#x03BC; &#x03B2;2h + A &#x03B2;0 + (A &#x03B2;1)h
+                                   &#x2032;
+   =   &#x03BC;&#x03B2;0 + &#x03BC; &#x03B2;1h + A &#x03B2;0 + (A &#x2295; (h1 ))&#x03B2;1                (9.1)
+" class="math-display"  /><a 
+ id="x13-86001r9.1"></a></center>
+</div>where <span 
+class="cmmib-10x-x-109">A</span><span 
+class="cmsy-10x-x-109">&#x2295; </span><span 
+class="cmr-10x-x-109">(</span><span 
+class="cmmib-10x-x-109">h</span><span 
+class="cmbx-10x-x-109">1</span><sup><span 
+class="cmsy-8">&#x2032;</span></sup><span 
+class="cmr-10x-x-109">) </span>is the row-wise Kronecker product between <span 
+class="cmmib-10x-x-109">A </span>and a the vector <span 
+class="cmmib-10x-x-109">h </span>(with
+length equal the number of rows in <span 
+class="cmmib-10x-x-109">A</span>) expressed as the Kronecker sum of <span 
+class="cmmib-10x-x-109">A </span>and <span 
+class="cmmib-10x-x-109">h</span><span 
+class="cmbx-10x-x-109">1</span><sup><span 
+class="cmr-8">1</span></sup>.
+This operation can be performed usind the <span 
+class="aett-10x-x-109">inla.row.kron() </span>function and is done
+internally in the function <span 
+class="aett-10x-x-109">inla.spde.make.A() </span>when supplying a vector in the <span 
+class="aett-10x-x-109">weights</span>
+argument.
+<!--l. 183--><p class="indent" >   The space-time projector matrix <span 
+class="cmmib-10x-x-109">A </span>is defined as follows:  
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12729"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor12680"><span 
+class="aett-10x-x-109">A0</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12681"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12682"><span 
+class="aett-10x-x-109">inla.spde.make.A</span></span><span id="textcolor12683"><span 
+class="aett-10x-x-109">(mesh,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12684"><span 
+class="aett-10x-x-109">cbind</span></span><span id="textcolor12685"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12686"><span 
+class="aett-10x-x-109">rep</span></span><span id="textcolor12687"><span 
+class="aett-10x-x-109">(coo[,</span></span><span id="textcolor12688"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12689"><span 
+class="aett-10x-x-109">],</span><span 
+class="aett-10x-x-109">&#x00A0;k),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12690"><span 
+class="aett-10x-x-109">rep</span></span><span id="textcolor12691"><span 
+class="aett-10x-x-109">(coo[,</span></span><span id="textcolor12692"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12693"><span 
+class="aett-10x-x-109">],</span><span 
+class="aett-10x-x-109">&#x00A0;k)),</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12694"><span 
+class="aett-10x-x-109">group</span></span><span id="textcolor12695"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12696"><span 
+class="aett-10x-x-109">rep</span></span><span id="textcolor12697"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12698"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12699"><span 
+class="aett-10x-x-109">:</span></span><span id="textcolor12700"><span 
+class="aett-10x-x-109">k,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12701"><span 
+class="aett-10x-x-109">each</span></span><span id="textcolor12702"><span 
+class="aett-10x-x-109">=n))</span></span>
+<br /><span id="textcolor12703"><span 
+class="aett-10x-x-109">A1</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12704"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12705"><span 
+class="aett-10x-x-109">inla.spde.make.A</span></span><span id="textcolor12706"><span 
+class="aett-10x-x-109">(mesh,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12707"><span 
+class="aett-10x-x-109">cbind</span></span><span id="textcolor12708"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12709"><span 
+class="aett-10x-x-109">rep</span></span><span id="textcolor12710"><span 
+class="aett-10x-x-109">(coo[,</span></span><span id="textcolor12711"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12712"><span 
+class="aett-10x-x-109">],</span><span 
+class="aett-10x-x-109">&#x00A0;k),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12713"><span 
+class="aett-10x-x-109">rep</span></span><span id="textcolor12714"><span 
+class="aett-10x-x-109">(coo[,</span></span><span id="textcolor12715"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12716"><span 
+class="aett-10x-x-109">],</span><span 
+class="aett-10x-x-109">&#x00A0;k)),</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12717"><span 
+class="aett-10x-x-109">group</span></span><span id="textcolor12718"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12719"><span 
+class="aett-10x-x-109">rep</span></span><span id="textcolor12720"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12721"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12722"><span 
+class="aett-10x-x-109">:</span></span><span id="textcolor12723"><span 
+class="aett-10x-x-109">k,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12724"><span 
+class="aett-10x-x-109">each</span></span><span id="textcolor12725"><span 
+class="aett-10x-x-109">=n),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12726"><span 
+class="aett-10x-x-109">weights</span></span><span id="textcolor12727"><span 
+class="aett-10x-x-109">=hh)</span></span>
+</div>
+</div>                                                                          </span></div>-
+<!--l. 195--><p class="indent" >   The data stack is as follows  
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12766"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor12731"><span 
+class="aett-10x-x-109">stk.y</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12732"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12733"><span 
+class="aett-10x-x-109">inla.stack</span></span><span id="textcolor12734"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12735"><span 
+class="aett-10x-x-109">data</span></span><span id="textcolor12736"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12737"><span 
+class="aett-10x-x-109">list</span></span><span id="textcolor12738"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12739"><span 
+class="aett-10x-x-109">y</span></span><span id="textcolor12740"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12741"><span 
+class="aett-10x-x-109">as.vector</span></span><span id="textcolor12742"><span 
+class="aett-10x-x-109">(y)),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12743"><span 
+class="aett-10x-x-109">tag</span></span><span id="textcolor12744"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12745"><span 
+class="tctt-1095">'</span><span 
+class="aett-10x-x-109">y</span><span 
+class="tctt-1095">'</span></span><span id="textcolor12746"><span 
+class="aett-10x-x-109">,</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12747"><span 
+class="aett-10x-x-109">A</span></span><span id="textcolor12748"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12749"><span 
+class="aett-10x-x-109">list</span></span><span id="textcolor12750"><span 
+class="aett-10x-x-109">(A0,</span><span 
+class="aett-10x-x-109">&#x00A0;A1,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12751"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12752"><span 
+class="aett-10x-x-109">),</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12753"><span 
+class="aett-10x-x-109">effects</span></span><span id="textcolor12754"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12755"><span 
+class="aett-10x-x-109">list</span></span><span id="textcolor12756"><span 
+class="aett-10x-x-109">(i0,</span><span 
+class="aett-10x-x-109">&#x00A0;i1,</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12757"><span 
+class="aett-10x-x-109">data.frame</span></span><span id="textcolor12758"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12759"><span 
+class="aett-10x-x-109">mu1</span></span><span id="textcolor12760"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12761"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12762"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12763"><span 
+class="aett-10x-x-109">h</span></span><span id="textcolor12764"><span 
+class="aett-10x-x-109">=hh)))</span></span>
+</div>
+</div>                                                                          </span></div>-
+<!--l. 206--><p class="indent" >   where <span 
+class="aett-10x-x-109">i0 </span>is similar to <span 
+class="aett-10x-x-109">i1 </span>and the elements <span 
+class="aett-10x-x-109">mu1 </span>and <span 
+class="aett-10x-x-109">h </span>in the second element of the effects
+<span 
+class="aett-10x-x-109">data.frame </span>is for <span 
+class="cmmib-10x-x-109">&#x03BC;</span><sub><span 
+class="cmmi-8">&#x03BE;</span></sub>.
+</p><!--l. 209--><p class="indent" >   The formula take these things into account  
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12810"></p>     
+<div class="alltt">                                                                                                                </span></div>
+                                                                                 
+                                                                                 
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12812"><div class="obeylines-v">
+<span id="textcolor12768"><span 
+class="aett-10x-x-109">form</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12769"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12770"><span 
+class="aett-10x-x-109">y</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12771"><span 
+class="aett-10x-x-109">~</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12772"><span 
+class="aett-10x-x-109">0</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12773"><span 
+class="aett-10x-x-109">+</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12774"><span 
+class="aett-10x-x-109">mu1</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12775"><span 
+class="aett-10x-x-109">+</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12776"><span 
+class="aett-10x-x-109">h</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12777"><span 
+class="aett-10x-x-109">+</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12778"><span 
+class="aeitt-10x-x-109">###</span><span 
+class="aeitt-10x-x-109">&#x00A0;to</span><span 
+class="aeitt-10x-x-109">&#x00A0;fit</span><span 
+class="aeitt-10x-x-109">&#x00A0;mu_beta</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12779"><span 
+class="aett-10x-x-109">f</span></span><span id="textcolor12780"><span 
+class="aett-10x-x-109">(i0,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12781"><span 
+class="aett-10x-x-109">model</span></span><span id="textcolor12782"><span 
+class="aett-10x-x-109">=spde,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12783"><span 
+class="aett-10x-x-109">group</span></span><span id="textcolor12784"><span 
+class="aett-10x-x-109">=i0.group,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12785"><span 
+class="aett-10x-x-109">control.group</span></span><span id="textcolor12786"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12787"><span 
+class="aett-10x-x-109">list</span></span><span id="textcolor12788"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12789"><span 
+class="aett-10x-x-109">model</span></span><span id="textcolor12790"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12791"><span 
+class="tctt-1095">'</span><span 
+class="aett-10x-x-109">ar1</span><span 
+class="tctt-1095">'</span></span><span id="textcolor12792"><span 
+class="aett-10x-x-109">))</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12793"><span 
+class="aett-10x-x-109">+</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12794"><span 
+class="aett-10x-x-109">f</span></span><span id="textcolor12795"><span 
+class="aett-10x-x-109">(i1,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12796"><span 
+class="aett-10x-x-109">model</span></span><span id="textcolor12797"><span 
+class="aett-10x-x-109">=spde,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12798"><span 
+class="aett-10x-x-109">group</span></span><span id="textcolor12799"><span 
+class="aett-10x-x-109">=i1.group,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12800"><span 
+class="aett-10x-x-109">control.group</span></span><span id="textcolor12801"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12802"><span 
+class="aett-10x-x-109">list</span></span><span id="textcolor12803"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12804"><span 
+class="aett-10x-x-109">model</span></span><span id="textcolor12805"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12806"><span 
+class="tctt-1095">'</span><span 
+class="aett-10x-x-109">ar1</span><span 
+class="tctt-1095">'</span></span><span id="textcolor12807"><span 
+class="aett-10x-x-109">))</span></span>
+</div>
+</div>                                                                          </span></div>-
+<!--l. 220--><p class="indent" >   As we have Gaussian likelihood there is no approximation in the fitting process.
+The first step of the INLA algorithm is the optimization to find the mode of the <span 
+class="cmr-10x-x-109">7</span>
+hyperparameters in the model. By choosing good starting values it will be needed
+less iteractions in this optimization process. Below, we define starting values for the
+hyperparameters in the internal scale considering the values used to simute the data
+</p>
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12888"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor12814"><span 
+class="aett-10x-x-109">(theta.ini</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12815"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12816"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor12817"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12818"><span 
+class="aett-10x-x-109">log</span></span><span id="textcolor12819"><span 
+class="aett-10x-x-109">(taue),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12820"><span 
+class="aeitt-10x-x-109">##</span><span 
+class="aeitt-10x-x-109">&#x00A0;likelihood</span><span 
+class="aeitt-10x-x-109">&#x00A0;log</span><span 
+class="aeitt-10x-x-109">&#x00A0;precision</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12821"><span 
+class="aett-10x-x-109">log</span></span><span id="textcolor12822"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12823"><span 
+class="aett-10x-x-109">sqrt</span></span><span id="textcolor12824"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12825"><span 
+class="aett-10x-x-109">8</span></span><span id="textcolor12826"><span 
+class="aett-10x-x-109">)</span></span><span id="textcolor12827"><span 
+class="aett-10x-x-109">/</span></span><span id="textcolor12828"><span 
+class="aett-10x-x-109">kappa[</span></span><span id="textcolor12829"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12830"><span 
+class="aett-10x-x-109">]),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12831"><span 
+class="aeitt-10x-x-109">##</span><span 
+class="aeitt-10x-x-109">&#x00A0;log</span><span 
+class="aeitt-10x-x-109">&#x00A0;range</span><span 
+class="aeitt-10x-x-109">&#x00A0;1</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12832"><span 
+class="aett-10x-x-109">log</span></span><span id="textcolor12833"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12834"><span 
+class="aett-10x-x-109">sqrt</span></span><span id="textcolor12835"><span 
+class="aett-10x-x-109">(sigma2[</span></span><span id="textcolor12836"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12837"><span 
+class="aett-10x-x-109">])),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12838"><span 
+class="aeitt-10x-x-109">##</span><span 
+class="aeitt-10x-x-109">&#x00A0;log</span><span 
+class="aeitt-10x-x-109">&#x00A0;stdev</span><span 
+class="aeitt-10x-x-109">&#x00A0;1</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12839"><span 
+class="aett-10x-x-109">log</span></span><span id="textcolor12840"><span 
+class="aett-10x-x-109">((</span></span><span id="textcolor12841"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12842"><span 
+class="aett-10x-x-109">+</span></span><span id="textcolor12843"><span 
+class="aett-10x-x-109">rho[</span></span><span id="textcolor12844"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12845"><span 
+class="aett-10x-x-109">])</span></span><span id="textcolor12846"><span 
+class="aett-10x-x-109">/</span></span><span id="textcolor12847"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12848"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12849"><span 
+class="aett-10x-x-109">-</span></span><span id="textcolor12850"><span 
+class="aett-10x-x-109">rho[</span></span><span id="textcolor12851"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12852"><span 
+class="aett-10x-x-109">])),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12853"><span 
+class="aeitt-10x-x-109">##</span><span 
+class="aeitt-10x-x-109">&#x00A0;inv.logit</span><span 
+class="aeitt-10x-x-109">&#x00A0;rho</span><span 
+class="aeitt-10x-x-109">&#x00A0;1</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12854"><span 
+class="aett-10x-x-109">log</span></span><span id="textcolor12855"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12856"><span 
+class="aett-10x-x-109">sqrt</span></span><span id="textcolor12857"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12858"><span 
+class="aett-10x-x-109">8</span></span><span id="textcolor12859"><span 
+class="aett-10x-x-109">)</span></span><span id="textcolor12860"><span 
+class="aett-10x-x-109">/</span></span><span id="textcolor12861"><span 
+class="aett-10x-x-109">kappa[</span></span><span id="textcolor12862"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12863"><span 
+class="aett-10x-x-109">]),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12864"><span 
+class="aeitt-10x-x-109">##</span><span 
+class="aeitt-10x-x-109">&#x00A0;log</span><span 
+class="aeitt-10x-x-109">&#x00A0;range</span><span 
+class="aeitt-10x-x-109">&#x00A0;1</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12865"><span 
+class="aett-10x-x-109">log</span></span><span id="textcolor12866"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12867"><span 
+class="aett-10x-x-109">sqrt</span></span><span id="textcolor12868"><span 
+class="aett-10x-x-109">(sigma2[</span></span><span id="textcolor12869"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12870"><span 
+class="aett-10x-x-109">])),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12871"><span 
+class="aeitt-10x-x-109">##</span><span 
+class="aeitt-10x-x-109">&#x00A0;log</span><span 
+class="aeitt-10x-x-109">&#x00A0;stdev</span><span 
+class="aeitt-10x-x-109">&#x00A0;1</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12872"><span 
+class="aett-10x-x-109">log</span></span><span id="textcolor12873"><span 
+class="aett-10x-x-109">((</span></span><span id="textcolor12874"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12875"><span 
+class="aett-10x-x-109">+</span></span><span id="textcolor12876"><span 
+class="aett-10x-x-109">rho[</span></span><span id="textcolor12877"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12878"><span 
+class="aett-10x-x-109">])</span></span><span id="textcolor12879"><span 
+class="aett-10x-x-109">/</span></span><span id="textcolor12880"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12881"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12882"><span 
+class="aett-10x-x-109">-</span></span><span id="textcolor12883"><span 
+class="aett-10x-x-109">rho[</span></span><span id="textcolor12884"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12885"><span 
+class="aett-10x-x-109">]))))</span></span><span id="textcolor12886"><span 
+class="aeitt-10x-x-109">##</span><span 
+class="aeitt-10x-x-109">&#x00A0;inv.logit</span><span 
+class="aeitt-10x-x-109">&#x00A0;rho</span><span 
+class="aeitt-10x-x-109">&#x00A0;2</span></span>
+</div>
+</div>   
+<div class="verbatim" id="verbatim-114">
+##&#x00A0;[1]&#x00A0;&#x00A0;2.9957323&#x00A0;-1.2628643&#x00A0;-0.3465736&#x00A0;&#x00A0;1.7346011&#x00A0;-1.4451859&#x00A0;-0.6931472
+&#x00A0;<br />##&#x00A0;[7]&#x00A0;&#x00A0;1.0986123
+</div>
+<!--l. 238--><p class="nopar" >                                                                          </span></div>-
+<!--l. 241--><p class="indent" >   This step takes around few minutes to fit, and with bigger <span 
+class="aett-10x-x-109">tolerance </span>value in
+<span 
+class="aett-10x-x-109">inla.control</span>, it will makes fewer posterior evaluations.
+</p><!--l. 245--><p class="indent" >   The integration step when using the CCD strategy, will integrates over 79 hyperparameter
+configurations, as we have <span 
+class="cmr-10x-x-109">7 </span>hyperparameters. However, in the following <span 
+class="aett-10x-x-109">inla() </span>call we avoid
+it.
+</p><!--l. 249--><p class="indent" >   Fitting the model considering the initial values defined above  
+</p>
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12934"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor12890"><span 
+class="aett-10x-x-109">(res</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12891"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12892"><span 
+class="aett-10x-x-109">inla</span></span><span id="textcolor12893"><span 
+class="aett-10x-x-109">(form,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12894"><span 
+class="aett-10x-x-109">family</span></span><span id="textcolor12895"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12896"><span 
+class="tctt-1095">'</span><span 
+class="aett-10x-x-109">gaussian</span><span 
+class="tctt-1095">'</span></span><span id="textcolor12897"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12898"><span 
+class="aett-10x-x-109">data</span></span><span id="textcolor12899"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12900"><span 
+class="aett-10x-x-109">inla.stack.data</span></span><span id="textcolor12901"><span 
+class="aett-10x-x-109">(stk.y),</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12902"><span 
+class="aett-10x-x-109">control.predictor</span></span><span id="textcolor12903"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12904"><span 
+class="aett-10x-x-109">list</span></span><span id="textcolor12905"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12906"><span 
+class="aett-10x-x-109">A</span></span><span id="textcolor12907"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12908"><span 
+class="aett-10x-x-109">inla.stack.A</span></span><span id="textcolor12909"><span 
+class="aett-10x-x-109">(stk.y)),</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12910"><span 
+class="aett-10x-x-109">control.inla</span></span><span id="textcolor12911"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12912"><span 
+class="aett-10x-x-109">list</span></span><span id="textcolor12913"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12914"><span 
+class="aett-10x-x-109">int.strategy</span></span><span id="textcolor12915"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12916"><span 
+class="tctt-1095">'</span><span 
+class="aett-10x-x-109">eb</span><span 
+class="tctt-1095">'</span></span><span id="textcolor12917"><span 
+class="aett-10x-x-109">),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12918"><span 
+class="aeitt-10x-x-109">###</span><span 
+class="aeitt-10x-x-109">&#x00A0;no</span><span 
+class="aeitt-10x-x-109">&#x00A0;integration</span><span 
+class="aeitt-10x-x-109">&#x00A0;wr</span><span 
+class="aeitt-10x-x-109">&#x00A0;theta</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12919"><span 
+class="aett-10x-x-109">control.mode</span></span><span id="textcolor12920"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12921"><span 
+class="aett-10x-x-109">list</span></span><span id="textcolor12922"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12923"><span 
+class="aett-10x-x-109">theta</span></span><span id="textcolor12924"><span 
+class="aett-10x-x-109">=theta.ini,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12925"><span 
+class="aeitt-10x-x-109">###</span><span 
+class="aeitt-10x-x-109">&#x00A0;initial</span><span 
+class="aeitt-10x-x-109">&#x00A0;theta</span><span 
+class="aeitt-10x-x-109">&#x00A0;value</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12926"><span 
+class="aett-10x-x-109">restart</span></span><span id="textcolor12927"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12928"><span 
+class="aett-10x-x-109">TRUE</span></span><span id="textcolor12929"><span 
+class="aett-10x-x-109">)))</span></span><span id="textcolor12930"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12931"><span 
+class="aett-10x-x-109">cpu</span></span>
+</div>
+</div>                                                                          </span></div>
+                                                                                 
+                                                                                 
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12936">   <div class="verbatim" id="verbatim-115">
+##&#x00A0;&#x00A0;Pre-processing&#x00A0;&#x00A0;&#x00A0;&#x00A0;Running&#x00A0;inla&#x00A0;Post-processing&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;Total
+&#x00A0;<br />##&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.7048581&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;111.2241402&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.3150597&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;112.2440579
+</div>
+<!--l. 262--><p class="nopar" >                                                                          </span></div>-
+<!--l. 266--><p class="indent" >   Summary of the <span 
+class="cmmi-10x-x-109">&#x03BC;</span><sub><span 
+class="cmmi-8">&#x03B2;</span></sub>:  
+</p>
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12949"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor12938"><span 
+class="aett-10x-x-109">round</span></span><span id="textcolor12939"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12940"><span 
+class="aett-10x-x-109">cbind</span></span><span id="textcolor12941"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12942"><span 
+class="aett-10x-x-109">true</span></span><span id="textcolor12943"><span 
+class="aett-10x-x-109">=mu.beta,</span><span 
+class="aett-10x-x-109">&#x00A0;res</span></span><span id="textcolor12944"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12945"><span 
+class="aett-10x-x-109">summary.fix),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12946"><span 
+class="aett-10x-x-109">4</span></span><span id="textcolor12947"><span 
+class="aett-10x-x-109">)</span></span>
+</div>
+</div>   
+<div class="verbatim" id="verbatim-116">
+##&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;true&#x00A0;&#x00A0;&#x00A0;&#x00A0;mean&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;sd&#x00A0;0.025quant&#x00A0;0.5quant&#x00A0;0.975quant&#x00A0;&#x00A0;&#x00A0;&#x00A0;mode&#x00A0;kld
+&#x00A0;<br />##&#x00A0;mu1&#x00A0;&#x00A0;&#x00A0;-5&#x00A0;-4.7481&#x00A0;0.1818&#x00A0;&#x00A0;&#x00A0;&#x00A0;-5.1050&#x00A0;&#x00A0;-4.7481&#x00A0;&#x00A0;&#x00A0;&#x00A0;-4.3915&#x00A0;-4.7481&#x00A0;&#x00A0;&#x00A0;0
+&#x00A0;<br />##&#x00A0;h&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;1&#x00A0;&#x00A0;0.9428&#x00A0;0.0531&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.8386&#x00A0;&#x00A0;&#x00A0;0.9428&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;1.0469&#x00A0;&#x00A0;0.9428&#x00A0;&#x00A0;&#x00A0;0
+</div>
+<!--l. 276--><p class="nopar" >                                                                          </span></div>-
+<!--l. 280--><p class="indent" >   Summary for the likelihood precision  
+</p>
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12966"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor12951"><span 
+class="aett-10x-x-109">round</span></span><span id="textcolor12952"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12953"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor12954"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12955"><span 
+class="aett-10x-x-109">true</span></span><span id="textcolor12956"><span 
+class="aett-10x-x-109">=taue,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12957"><span 
+class="aett-10x-x-109">unlist</span></span><span id="textcolor12958"><span 
+class="aett-10x-x-109">(res</span></span><span id="textcolor12959"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12960"><span 
+class="aett-10x-x-109">summary.hy[</span></span><span id="textcolor12961"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12962"><span 
+class="aett-10x-x-109">,])),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12963"><span 
+class="aett-10x-x-109">3</span></span><span id="textcolor12964"><span 
+class="aett-10x-x-109">)</span></span>
+</div>
+</div>   
+<div class="verbatim" id="verbatim-117">
+##&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;true&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;mean&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;sd&#x00A0;0.025quant&#x00A0;&#x00A0;&#x00A0;0.5quant&#x00A0;0.975quant
+&#x00A0;<br />##&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;20.000&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;11.484&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.536&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;10.458&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;11.474&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;12.569
+&#x00A0;<br />##&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;mode
+&#x00A0;<br />##&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;11.458
+</div>
+<!--l. 291--><p class="nopar" >                                                                          </span></div>-
+<!--l. 295--><p class="indent" >   We can see the posterior marginal distributions for the range and standard deviation for each
+spatio-temporal process in Figure&#x00A0;<a 
+href="#x13-860009.3">9.3<!--tex4ht:ref: fig:hd3pmds --></a>.  
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox13067"></p>     
+<div class="alltt">
+                                                                                                                     </span></div>
+                                                                                 
+                                                                                 
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox13069"><div class="obeylines-v">
+<span id="textcolor12968"><span 
+class="aett-10x-x-109">par</span></span><span id="textcolor12969"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12970"><span 
+class="aett-10x-x-109">mfrow</span></span><span id="textcolor12971"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12972"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor12973"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12974"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12975"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12976"><span 
+class="aett-10x-x-109">3</span></span><span id="textcolor12977"><span 
+class="aett-10x-x-109">),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12978"><span 
+class="aett-10x-x-109">mar</span></span><span id="textcolor12979"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12980"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor12981"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12982"><span 
+class="aett-10x-x-109">2.5</span></span><span id="textcolor12983"><span 
+class="aett-10x-x-109">,</span></span><span id="textcolor12984"><span 
+class="aett-10x-x-109">2.5</span></span><span id="textcolor12985"><span 
+class="aett-10x-x-109">,</span></span><span id="textcolor12986"><span 
+class="aett-10x-x-109">0.3</span></span><span id="textcolor12987"><span 
+class="aett-10x-x-109">,</span></span><span id="textcolor12988"><span 
+class="aett-10x-x-109">0.3</span></span><span id="textcolor12989"><span 
+class="aett-10x-x-109">),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12990"><span 
+class="aett-10x-x-109">mgp</span></span><span id="textcolor12991"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12992"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor12993"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12994"><span 
+class="aett-10x-x-109">1.5</span></span><span id="textcolor12995"><span 
+class="aett-10x-x-109">,</span></span><span id="textcolor12996"><span 
+class="aett-10x-x-109">0.5</span></span><span id="textcolor12997"><span 
+class="aett-10x-x-109">,</span></span><span id="textcolor12998"><span 
+class="aett-10x-x-109">0</span></span><span id="textcolor12999"><span 
+class="aett-10x-x-109">))</span></span>
+<br /><span id="textcolor13000"><span 
+class="aett-10x-x-109">for</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor13001"><span 
+class="aett-10x-x-109">(j</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor13002"><span 
+class="aett-10x-x-109">in</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor13003"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor13004"><span 
+class="aett-10x-x-109">:</span></span><span id="textcolor13005"><span 
+class="aett-10x-x-109">7</span></span><span id="textcolor13006"><span 
+class="aett-10x-x-109">)</span><span 
+class="aett-10x-x-109">&#x00A0;{</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor13007"><span 
+class="aett-10x-x-109">plot</span></span><span id="textcolor13008"><span 
+class="aett-10x-x-109">(res</span></span><span id="textcolor13009"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor13010"><span 
+class="aett-10x-x-109">marginals.hy[[j]],</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor13011"><span 
+class="aett-10x-x-109">type</span></span><span id="textcolor13012"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor13013"><span 
+class="tctt-1095">'</span><span 
+class="aett-10x-x-109">l</span><span 
+class="tctt-1095">'</span></span><span id="textcolor13014"><span 
+class="aett-10x-x-109">,</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor13015"><span 
+class="aett-10x-x-109">xlab</span></span><span id="textcolor13016"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor13017"><span 
+class="aett-10x-x-109">names</span></span><span id="textcolor13018"><span 
+class="aett-10x-x-109">(res</span></span><span id="textcolor13019"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor13020"><span 
+class="aett-10x-x-109">marginals.hyperpar)[j],</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor13021"><span 
+class="aett-10x-x-109">ylab</span></span><span id="textcolor13022"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor13023"><span 
+class="tctt-1095">'</span><span 
+class="aett-10x-x-109">Density</span><span 
+class="tctt-1095">'</span></span><span id="textcolor13024"><span 
+class="aett-10x-x-109">)</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor13025"><span 
+class="aett-10x-x-109">abline</span></span><span id="textcolor13026"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor13027"><span 
+class="aett-10x-x-109">v</span></span><span id="textcolor13028"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor13029"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor13030"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor13031"><span 
+class="aett-10x-x-109">sqrt</span></span><span id="textcolor13032"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor13033"><span 
+class="aett-10x-x-109">8</span></span><span id="textcolor13034"><span 
+class="aett-10x-x-109">)</span></span><span id="textcolor13035"><span 
+class="aett-10x-x-109">/</span></span><span id="textcolor13036"><span 
+class="aett-10x-x-109">kappa[</span></span><span id="textcolor13037"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor13038"><span 
+class="aett-10x-x-109">],</span><span 
+class="aett-10x-x-109">&#x00A0;sigma2[</span></span><span id="textcolor13039"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor13040"><span 
+class="aett-10x-x-109">]</span></span><span id="textcolor13041"><span 
+class="aett-10x-x-109">^</span></span><span id="textcolor13042"><span 
+class="aett-10x-x-109">0.5</span></span><span id="textcolor13043"><span 
+class="aett-10x-x-109">,</span><span 
+class="aett-10x-x-109">&#x00A0;rho[</span></span><span id="textcolor13044"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor13045"><span 
+class="aett-10x-x-109">],</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor13046"><span 
+class="aett-10x-x-109">sqrt</span></span><span id="textcolor13047"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor13048"><span 
+class="aett-10x-x-109">8</span></span><span id="textcolor13049"><span 
+class="aett-10x-x-109">)</span></span><span id="textcolor13050"><span 
+class="aett-10x-x-109">/</span></span><span id="textcolor13051"><span 
+class="aett-10x-x-109">kappa[</span></span><span id="textcolor13052"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor13053"><span 
+class="aett-10x-x-109">],</span><span 
+class="aett-10x-x-109">&#x00A0;sigma2[</span></span><span id="textcolor13054"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor13055"><span 
+class="aett-10x-x-109">]</span></span><span id="textcolor13056"><span 
+class="aett-10x-x-109">^</span></span><span id="textcolor13057"><span 
+class="aett-10x-x-109">0.5</span></span><span id="textcolor13058"><span 
+class="aett-10x-x-109">,</span><span 
+class="aett-10x-x-109">&#x00A0;rho[</span></span><span id="textcolor13059"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor13060"><span 
+class="aett-10x-x-109">])[j</span></span><span id="textcolor13061"><span 
+class="aett-10x-x-109">-</span></span><span id="textcolor13062"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor13063"><span 
+class="aett-10x-x-109">])</span></span>
+<br /><span id="textcolor13064"><span 
+class="aett-10x-x-109">}</span></span>
+</div>
+</div>                                                                          </span></div>-
+   <hr class="figure" /><div class="figure" 
+>
+                                                                                 
+                                                                                 
+<a 
+ id="x13-860021"></a>
+                                                                                 
+                                                                                 
+<!--l. 314--><p class="noindent" ><img 
+src="spde-tutorial83x.png" alt="PIC" class="graphics" width="413.99164pt" height="220.80194pt"  /><!--tex4ht:graphics  
+name="spde-tutorial83x.png" src="figs/dynamichd3pmdsf-1.eps"  
+-->
+<br /> </p><div class="caption" 
+><span class="id">Figure&#x00A0;9.1: </span><span  
+class="content">Posterior marginal distributions for the hyperparameters of the spacetime
+fields.</span></div><!--tex4ht:label?: x13-860021 -->
+                                                                                 
+                                                                                 
+   </div><hr class="endfigure" />
+<!--l. 321--><p class="indent" >   We can have a look over the posterior mean of the dynamic coefficients. We compute the
+correlation between the simulated and the posterior mean ones by  
+</p>
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox13107"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor13071"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor13072"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor13073"><span 
+class="aett-10x-x-109">beta0</span></span><span id="textcolor13074"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor13075"><span 
+class="aett-10x-x-109">cor</span></span><span id="textcolor13076"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor13077"><span 
+class="aett-10x-x-109">as.vector</span></span><span id="textcolor13078"><span 
+class="aett-10x-x-109">(beta0),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor13079"><span 
+class="aett-10x-x-109">drop</span></span><span id="textcolor13080"><span 
+class="aett-10x-x-109">(A0</span></span><span id="textcolor13081"><span 
+class="aett-10x-x-109">%*%</span></span><span id="textcolor13082"><span 
+class="aett-10x-x-109">res</span></span><span id="textcolor13083"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor13084"><span 
+class="aett-10x-x-109">summary.ran</span></span><span id="textcolor13085"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor13086"><span 
+class="aett-10x-x-109">i0</span></span><span id="textcolor13087"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor13088"><span 
+class="aett-10x-x-109">mean)),</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor13089"><span 
+class="aett-10x-x-109">beta1</span></span><span id="textcolor13090"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor13091"><span 
+class="aett-10x-x-109">cor</span></span><span id="textcolor13092"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor13093"><span 
+class="aett-10x-x-109">as.vector</span></span><span id="textcolor13094"><span 
+class="aett-10x-x-109">(beta1),</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor13095"><span 
+class="aett-10x-x-109">drop</span></span><span id="textcolor13096"><span 
+class="aett-10x-x-109">(A0</span></span><span id="textcolor13097"><span 
+class="aett-10x-x-109">%*%</span></span><span id="textcolor13098"><span 
+class="aett-10x-x-109">res</span></span><span id="textcolor13099"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor13100"><span 
+class="aett-10x-x-109">summary.ran</span></span><span id="textcolor13101"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor13102"><span 
+class="aett-10x-x-109">i1</span></span><span id="textcolor13103"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor13104"><span 
+class="aett-10x-x-109">mean)))</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor13105"><span 
+class="aeitt-10x-x-109">##</span><span 
+class="aeitt-10x-x-109">&#x00A0;using</span><span 
+class="aeitt-10x-x-109">&#x00A0;A0</span><span 
+class="aeitt-10x-x-109">&#x00A0;to</span><span 
+class="aeitt-10x-x-109">&#x00A0;account</span><span 
+class="aeitt-10x-x-109">&#x00A0;only</span><span 
+class="aeitt-10x-x-109">&#x00A0;for</span><span 
+class="aeitt-10x-x-109">&#x00A0;the</span><span 
+class="aeitt-10x-x-109">&#x00A0;coeff.</span></span>
+</div>
+</div>   
+<div class="verbatim" id="verbatim-118">
+##&#x00A0;&#x00A0;&#x00A0;&#x00A0;beta0&#x00A0;&#x00A0;&#x00A0;&#x00A0;beta1
+&#x00A0;<br />##&#x00A0;0.945299&#x00A0;0.616335
+</div>
+<!--l. 333--><p class="nopar" >                                                                          </span></div>-
+                                                                                 
+                                                                                 
+   <!--l. 1--><div class="crosslinks"><p class="noindent">[<a 
+href="spde-tutorialch10.html" >next</a>] [<a 
+href="spde-tutorialch8.html" >prev</a>] [<a 
+href="spde-tutorialch8.html#tailspde-tutorialch8.html" >prev-tail</a>] [<a 
+href="spde-tutorialch9.html" >front</a>] [<a 
+href="spde-tutorial3.html#spde-tutorialch9.html" >up</a>] </p></div>
+<!--l. 1--><p class="indent" >   <a 
+ id="tailspde-tutorialch9.html"></a>  </p> 
+</body></html> 

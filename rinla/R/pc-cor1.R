@@ -47,7 +47,7 @@
 ##!  \code{inla.pc.rcor1} generates random deviates.
 ##! }
 ##! \seealso{inla.doc("pc.rho1")}
-##! \author{Havard Rue \email{hrue@math.ntnu.no}}
+##! \author{Havard Rue \email{hrue@r-inla.org}}
 ##! \examples{
 ##! cor = inla.pc.rcor1(100,  lambda = 1)
 ##! d = inla.pc.dcor1(cor, lambda = 1)

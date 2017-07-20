@@ -25,14 +25,19 @@
 ##!\arguments{
 ##!    \item{filename}{The filename of the graph.}
 ##!    \item{graph}{An \code{inla.graph}-object, a (sparse) symmetric matrix, a filename containing the graph,
-##!                 or a list or collection of characters and/or numbers defining the graph.}
+##!                 a list or collection of characters and/or numbers defining the graph, 
+##!                 or a neighbours list with class \code{nb} (see \code{spdep::card} and
+##!                 \code{spdep::poly2nb} for for details of \code{nb} and an example a function
+##!                 returning an \code{nb} object}
 ##!    \item{mode}{The mode of the file; ascii-file or a (gzip-compressed) binary. Default value depends on 
 ##!                the inla.option \code{internal.binary.mode} which is default \code{TRUE}; see \code{inla.setOption}.}
 ##!    \item{object}{An \code{inla.graph} -object} 
 ##!    \item{x}{An \code{inla.graph} -object} 
 ##!    \item{y}{Not used}
 ##!    \item{size.only}{Only read the size of the graph}
-##!    \item{...}{Additional arguments. In \code{inla.read.graph},  then it is the graph definition (object, character, filename),  plus extra arguments. In \code{inla.write.graph} it is extra arguments to \code{inla.read.graph}.}
+##!    \item{...}{Additional arguments. In \code{inla.read.graph},
+##!               then it is the graph definition (object, character, filename),  plus extra arguments.
+##!               In \code{inla.write.graph} it is extra arguments to \code{inla.read.graph}.}
 ##!}
 ##!\value{
 ##!    The output of \code{inla.read.graph}, is an \code{inla.graph} object, with elements
@@ -52,7 +57,7 @@
 ##!    The method \code{plot} require the libraries \code{Rgraphviz} and \code{graph} from the Bioconductor-project,
 ##!    see \url{https://www.bioconductor.org}.
 ##!}
-##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!\author{Havard Rue \email{hrue@r-inla.org}}
 ##!\seealso{
 ##!    \code{\link{inla.spy}}
 ##!}
@@ -381,7 +386,8 @@
     args = list(...)
     graph = args[[1L]]
 
-    if (is.character(graph) || length(args) > 1L) {
+    if (is.character(graph) || length(args) > 1L ||
+        (is.numeric(graph) && !(is.matrix(graph) || is(graph, "Matrix")))) {
         graph = paste(as.character(graph))
 
         ## if the file exists, its a file
@@ -401,13 +407,20 @@
             unlink(tfile)
             return (g)
         }
-    } else if (class(graph) == "inla.graph") {
+    } else if (inherits(graph, "inla.graph")) {
         ## no need to do anything. 
         if (size.only) {
             return (graph$n)
         } else {
             return (graph)
         }
+    } else if (inherits(graph, "nb")) {
+        ## a neigbour-graph from spdep with class="nb".
+        ## this can replace spdep::nb2INLA.
+        ## call spdep::nb2listw and use spdep coercion.
+        Q = nb2listw(graph, style="B", zero.policy=TRUE)
+        Q = inla.as.sparse(as(Q, "symmetricMatrix"))
+        return (inla.matrix2graph.internal(Q, size.only = size.only))
     } else {
         return (inla.matrix2graph.internal(..., size.only = size.only))
     }

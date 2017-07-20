@@ -60,7 +60,7 @@ double inla_qcontpois_eta(double quantile, double alpha, double *initial_guess)
 {
 	int iter_max = 1000, verbose = 0, first_hit = 0;
 	double eta_0, eta, max_step = 0.5, max_step_f = 0.8 * max_step, tol = GMRFLib_eps(0.5);
-	double d, f, fd, lambda, fac;
+	double d, f, fd, lambda;
 
 	if (initial_guess) {
 		eta_0 = *initial_guess;
@@ -106,7 +106,7 @@ GMRFLib_spline_tp **inla_qcontpois_func(double alpha, int num)
 		eta[i] = inla_qcontpois_eta(exp(lquantile[i]), alpha, (i && lquantile[i] < 5.0 ? &eta[i - 1] : NULL));
 	}
 	spline = Calloc(num, GMRFLib_spline_tp *);
-	for(int i = 0; i < num; i++){
+	for (int i = 0; i < num; i++) {
 		spline[i] = inla_spline_create(lquantile, eta, n);
 	}
 

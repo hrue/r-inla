@@ -46,14 +46,14 @@
  
  \usage{
  inla.dmarginal(x, marginal, log = FALSE)
- inla.pmarginal(q, marginal, normalize = TRUE, len = 1024L)
- inla.qmarginal(p, marginal, len = 1024L)
+ inla.pmarginal(q, marginal, normalize = TRUE, len = 2048L)
+ inla.qmarginal(p, marginal, len = 2048L)
  inla.rmarginal(n, marginal)
- inla.hpdmarginal(p, marginal, len = 1024L)
+ inla.hpdmarginal(p, marginal, len = 2048L)
  inla.smarginal(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE, factor=15L)
  inla.emarginal(fun, marginal, ...)
  inla.mmarginal(marginal)
- inla.tmarginal(fun, marginal, n=1024L, h.diff = .Machine$double.eps^(1/3),
+ inla.tmarginal(fun, marginal, n=2048L, h.diff = .Machine$double.eps^(1/3),
                 method = c("quantile", "linear")) 
  inla.zmarginal(marginal, silent = FALSE)
  }
@@ -113,7 +113,7 @@
    and the remaining function returns what they say they should do.  }
  %%
  
- \author{Havard Rue \email{hrue@math.ntnu.no}}
+ \author{Havard Rue \email{hrue@r-inla.org}}
  
  \seealso{\code{\link{inla}}, \code{\link{inla.hyperpar}}}
  
