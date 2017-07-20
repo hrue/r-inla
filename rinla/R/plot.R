@@ -50,7 +50,7 @@
 ##!   \item{...}{Additional arguments to \code{postscript()}, \code{pdf()} or \code{dev.new()}.}
 ##! }
 ##! \value{The return value is a list of the files created (if any).}
-##! \author{Havard Rue \email{hrue@math.ntnu.no} }
+##! \author{Havard Rue \email{hrue@r-inla.org} }
 ##! \seealso{\code{\link{inla}}}
 ##! \examples{
 ##!\dontrun{
@@ -866,6 +866,28 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
     ## THETA (which is a vector), and the prior has parameters PARAM (which is the same ones as
     ## specified from within the R-interface and argument 'hyper'. the conversion to the prior
     ## density for the user-scale is done automatically.
+
+    my.pc.gamma = function(theta, param, log=FALSE) 
+    {
+        ## see ?inla.pc.dgamma. this is the same prior, but for theta where x=exp(theta)
+        x = exp(theta)
+        ld = inla.pc.dgamma(x, lambda = param[1], log=TRUE) + theta
+        return (if (log) ld else exp(ld))
+    }
+
+    my.pc.mgamma = function(theta, param, log=FALSE) 
+    {
+        ## see ?inla.pc.dgamma. this is the same prior, but for theta where x=exp(-theta)
+        return (my.pc.gamma(-theta, param, log=log))
+    }
+
+    my.pc.gammacount = function(theta, param, log=FALSE) 
+    {
+        ## see ?inla.pc.dgammacount. this is the same prior, but for theta where x=exp(theta)
+        x = exp(theta)
+        ld = inla.pc.dgammacount(x, lambda = param[1], log=TRUE) + theta
+        return (if (log) ld else exp(ld))
+    }
 
     my.pc.cor0 = function(theta, param, log = FALSE)
     {
