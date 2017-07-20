@@ -37,7 +37,7 @@
 `inla.upgrade` = function(lib = NULL, testing = FALSE, ask = TRUE)
 {
     repo=c(CRAN = "https://cran.rstudio.com",
-        INLA = paste("https://www.math.ntnu.no/inla/R/",
+        INLA = paste("https://inla.r-inla-download.org/R/",
             (if (testing) "testing" else "stable"),  sep=""))
     if (require("INLA", quietly = TRUE, lib.loc = lib,
                 character.only=TRUE, warn.conflicts=FALSE)) {
@@ -51,9 +51,9 @@
                     "\n *** We recommend to remove the INLA-package and then reinstall, like",
                     "\n     remove.packages(\"INLA\")")
                 if (testing) {
-                    cat("\n     install.packages(\"INLA\", repos=\"https://www.math.ntnu.no/inla/R/testing\")")
+                    cat("\n     install.packages(\"INLA\", repos=\"https://inla.r-inla-download.org/R/testing\")")
                 } else {
-                    cat("\n     install.packages(\"INLA\", repos=\"https://www.math.ntnu.no/inla/R/stable\")")
+                    cat("\n     install.packages(\"INLA\", repos=\"https://inla.r-inla-download.org/R/stable\")")
                 }
                 cat("\n *** and then restart R.", "\n")
             } else {

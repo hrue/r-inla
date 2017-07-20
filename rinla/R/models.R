@@ -515,7 +515,7 @@
                      n.required = FALSE,
                      set.default.values = TRUE,
                      order.default = 3L,     ## default order for approximation
-                     order.defined = 3L:3L,  ## the list of orders which are implemented
+                     order.defined = 3L:4L,  ## the list of orders which are implemented
                      pdf = "fgn"
                      ),
 
@@ -5658,7 +5658,7 @@
                              hyperid =  81001,
                              name = "log alpha",
                              short.name = "a",
-                             initial = 4,
+                             initial = 0,
                              fixed = FALSE,
                              prior = "loggamma",
                              param = c(25, 25),
@@ -5680,7 +5680,7 @@
                      survival = TRUE,
                      discrete = FALSE,
                      link = c("default", "log", "neglog"),
-                     pdf = NA
+                     pdf = "weibullcure"
                      ),
 
                  stochvol = list(
@@ -5713,8 +5713,8 @@
                              short.name = "dof",
                              initial = 4,
                              fixed = FALSE,
-                             prior = "loggamma",
-                             param = c(1, 0.5),
+                             prior = "pc.dof",
+                             param = c(15, 0.5),
                              to.theta = function(x) log(x-2),
                              from.theta = function(x) 2+exp(x)
                              )
@@ -6424,8 +6424,8 @@
                              short.name = "dof",
                              initial = 5,
                              fixed = FALSE,
-                             prior = "loggamma",
-                             param = c(1, 0.5),
+                             prior = "pc.dof",
+                             param = c(15, 0.5),
                              to.theta = function(x) log(x-2),
                              from.theta = function(x) 2+exp(x)
                              )
@@ -6445,8 +6445,8 @@
                              short.name = "dof",
                              initial = 4,
                              fixed = FALSE,
-                             prior = "loggamma",
-                             param = c(1, 0.01),
+                             prior = "pc.dof",
+                             param = c(15, 0.5),
                              to.theta = function(x) log(x-5),
                              from.theta = function(x) 5+exp(x)
                              ),

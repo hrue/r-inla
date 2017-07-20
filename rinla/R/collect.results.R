@@ -1592,7 +1592,6 @@ inla.internal.experimental.mode = FALSE
             else
                 model.random[i] = inla.trim(readLines(modelname, n=1L))
         }
-        
 
         summary.random = list()
         summary.random[[n.random]] = NA
@@ -1613,7 +1612,7 @@ inla.internal.experimental.mode = FALSE
             file= paste(results.dir, .Platform$file.sep, random[i], sep="")
             dir.random = dir(file)
 
-            if (length(dir.random) > 4L) {
+            if (length(dir.random) > 5L) {
                 dd = matrix(inla.read.binary.file(file=paste(file, .Platform$file.sep,"summary.dat", sep="")), ncol=3L, byrow=TRUE)
                 col.nam = c("ID","mean","sd")
                 ##read quantiles if existing

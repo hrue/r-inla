@@ -352,15 +352,18 @@
         ##:ARGUMENT: strategy  Character The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default) or 'laplace'
         strategy="simplified.laplace",
 
-        ##:ARGUMENT: int.strategy  Character The integration strategy to use; one of 'auto' (default),  'ccd', 'grid' or 'eb' (empirical bayes)
+        ##:ARGUMENT: int.strategy  Character The integration strategy to use; one of 'auto' (default),  'ccd', 'grid', 'eb' (empirical bayes),  'user' or 'user.std'
         int.strategy="auto",
+
+        ##:ARGUMENT: int.design  Matrix Matrix of user-defined integration points and weights. Each row consists theta values and the integration weight. (EXPERIMENTAL!)
+        int.design=NULL,
 
         ##:ARGUMENT: interpolator  Character The interpolator used to compute the marginals for the hyperparameters. One of 'auto', 'nearest', 'quadratic', 'weighted.distance', 'ccd', 'ccdintegrate', 'gridsum', 'gaussian'. Default is 'auto'.
         interpolator="auto",
 
         ##:ARGUMENT: fast Logical If TRUE, then replace conditional modes in the Laplace approximation with conditional expectation (default TRUE)
         fast = TRUE,
-            
+
         ##:ARGUMENT: linear.correction Logical Default TRUE for the 'strategy = laplace' option.
         linear.correction=NULL,
 
