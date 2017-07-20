@@ -4922,7 +4922,7 @@
                      survival = FALSE,
                      discrete = TRUE,
                      link = c("default", "log"), 
-                     status = "experimental", 
+                     status = "disabled", 
                      pdf = "qpoisson"
                      ),
 
