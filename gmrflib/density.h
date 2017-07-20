@@ -57,11 +57,10 @@
 
 __BEGIN_DECLS
 
-
 /*
  * do not integrate beyond +- GMRFLib_DENSITY_INTEGRATION_LIMIT stdev's, unless requested to do so.
  */
-#define GMRFLib_DENSITY_INTEGRATION_LIMIT (8.0)
+#define GMRFLib_DENSITY_INTEGRATION_LIMIT (10.0)
 
 /* 
  *  length of work the GSL-integration routine
@@ -249,7 +248,8 @@ typedef struct {
 	/*
 	 * params for the GMRFLib_DENSITY_TYPE_SCGAUSSIAN 
 	 */
-	double log_norm_const;				       /* log(norm_const), divide by norm_const to get the normalised density.  */
+	double log_norm_const;				       /* log(norm_const), divide by norm_const to get the normalised
+							        * density.  */
 	GMRFLib_spline_tp *log_correction;
 
 	GMRFLib_spline_tp *P;
@@ -264,17 +264,17 @@ typedef enum {
 } GMRFLib_density_flag_tp;
 
 typedef enum {
-	
+
 	/**
 	 * \brief Default storage strategy
 	 */
-	GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT = 0, 
-	
+	GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT = 0,
+
 	/**
 	 * \brief Low storage strategy
 	 */
-	GMRFLib_DENSITY_STORAGE_STRATEGY_LOW, 
-	
+	GMRFLib_DENSITY_STORAGE_STRATEGY_LOW,
+
 	/**
 	 * \brief High storage strategy
 	 */
@@ -307,12 +307,20 @@ double GMRFLib_sn_logdensity_diff_omega(double x, void *param);
 double GMRFLib_sn_logdensity_diff_xi(double x, void *param);
 int GMRFLib_density_P(double *px, double x, GMRFLib_density_tp * density);
 int GMRFLib_density_Pinv(double *xp, double p, GMRFLib_density_tp * density);
-int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, int n, GMRFLib_density_tp ** densities, double *weights);
-int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, double *x, double *logdens, double std_mean, double std_stdev, int lookup_tables);
+int GMRFLib_density_adjust_vector(double *ldens, int n);
+int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, int n, GMRFLib_density_tp ** densities,
+			    double *weights);
+int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, double *x, double *logdens, double std_mean,
+			   double std_stdev, int lookup_tables);
 int GMRFLib_density_create_normal(GMRFLib_density_tp ** density, double mean, double stdev, double std_mean, double std_stdev);
-int GMRFLib_density_create_sn(GMRFLib_density_tp ** density, GMRFLib_sn_param_tp sn_param, double std_mean, double std_stdev, int lookup_tables);
-int GMRFLib_density_printf(FILE * fp, GMRFLib_density_tp * density);
+int GMRFLib_density_create_sn(GMRFLib_density_tp ** density, GMRFLib_sn_param_tp sn_param, double std_mean, double std_stdev,
+			      int lookup_tables);
+int GMRFLib_density_duplicate(GMRFLib_density_tp ** density_to, GMRFLib_density_tp * density_from);
+int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * density);
 int GMRFLib_density_new_mean(GMRFLib_density_tp ** new_density, GMRFLib_density_tp * density, double new_mean);
+int GMRFLib_density_printf(FILE * fp, GMRFLib_density_tp * density);
+int GMRFLib_density_prune_weights(int *n_idx, int *idx, double *weights, int n);
+int GMRFLib_density_user2std_n(double *x_std, double *x, GMRFLib_density_tp * density, int n);
 int GMRFLib_evaluate_densities(double *dens, double x_user, int n, GMRFLib_density_tp ** densities, double *weights);
 int GMRFLib_evaluate_density(double *dens, double x, GMRFLib_density_tp * density);
 int GMRFLib_evaluate_gdensities(double *dens, double x_user, int n, GMRFLib_density_tp ** densities, double *weights);
@@ -336,10 +344,7 @@ int GMRFLib_sn_fit_f(const gsl_vector * param, void *data, gsl_vector * f);
 int GMRFLib_sn_fit_fdf(const gsl_vector * param, void *data, gsl_vector * f, gsl_matrix * J);
 int GMRFLib_sn_logdensity(double *ldens, double x, void *param);
 int GMRFLib_sn_moments(double *mean, double *stdev, double *skewness, GMRFLib_sn_param_tp * p);
-int GMRFLib_density_adjust_vector(double *ldens, int n);
 void GMRFLib_density_Pinv_fdf(double x, void *param, double *f, double *df);
-int GMRFLib_density_duplicate(GMRFLib_density_tp ** density_to, GMRFLib_density_tp * density_from);
-int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * density);
 
 __END_DECLS
 #endif

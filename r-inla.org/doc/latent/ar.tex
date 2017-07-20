@@ -7,9 +7,6 @@
 
 \section*{Autoregressive model of order $p$ (AR$(p)$)}
 
-WE ARE EXPERIMENTING CURRENTLY WITH A NEW (JOINT) PRIOR FOR THE PACF's...
-
-
 \subsection*{Parametrization}
 
 The autoregressive model of order $p$ (AR1$(p)$) for the Gaussian vector
@@ -24,16 +21,16 @@ $\{\epsilon_{t}\}$ has fixed precision.
 The AR$(p)$ process has an awkward parameterisation, as there are
 severe non-linear constraints on the $\phi_{\cdot}$-parameters for it
 to define a stationary model. Therefore we re-parameterized using the
-partial autocorrelation autocorrelation function, $\{\psi_{k}, k=1,
-\ldots, p\}$, where $|\psi_{k}|< 1$ for all $k$ \footnote{See for
-    example
+partial autocorrelation autocorrelation function,
+$\{\psi_{k}, k=1, \ldots, p\}$, where $|\psi_{k}|< 1$ for all $k$
+\footnote{See for example
     \texttt{https://en.wikipedia.org/wiki/Partial\_autocorrelation\_function}.
     For $p=1$, then $\psi_{1} = \phi_{1}$, and for $p=2$, then
-    $\psi_{1} = \phi_{1}/(1-\phi_{2})$ and $\psi_{2} = \phi_{2}$.}
-and its \emph{marginal (NOT conditional) precision}
-$\tau$. Furthermore, the joint distribution for $\{x_{t}, t=1, \ldots,
-p\}$, is set to the stationary distribution for the process, hence
-there are no boundary issues.
+    $\psi_{1} = \phi_{1}/(1-\phi_{2})$ and $\psi_{2} = \phi_{2}$.} and
+its \emph{marginal (NOT conditional) precision} $\tau$. Furthermore,
+the joint distribution for $\{x_{t}, t=1, \ldots, p\}$, is set to the
+stationary distribution for the process, hence there are no boundary
+issues.
 
 \subsection*{Hyperparameters}
 
@@ -66,10 +63,22 @@ pacf-parameter), and the parameters to the multivariate normal prior
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/ar.tex}
 
-\subsection*{Example}
-
+\clearpage
+\subsection*{Example I}
 \verbatiminput{example-ar.R}
 
+\clearpage
+\subsection*{Example II}
+
+I this example we demonstrate how the parameters in the PC-prior for
+AR$(p)$ can be set using the idea in {S.~H.~S{\o}erbye and H.~Rue
+    (2016)}\footnote{Penalised complexity priors for stationary
+    autoregressive processes. arXiv preprint arXiv:1608.08941, UiT The
+    Artic University of Norway, 2016}.
+    
+\verbatiminput{ar-demo.R}
+
+\clearpage
 \subsection*{Notes}
 
 \begin{itemize}
@@ -90,7 +99,6 @@ pacf-parameter), and the parameters to the multivariate normal prior
 \item The prior spesification for the multivariate normal is a bit
     awkward. Hopefully, we will come up with a better way to do this
     in the future.
-\item This model is currently marked as experimental.
 \end{itemize}
 
 \end{document}
