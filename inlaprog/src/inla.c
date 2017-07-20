@@ -445,6 +445,38 @@ double map_identity(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
+double map_inverse(double arg, map_arg_tp typ, void *param)
+{
+	/*
+	 * the inverse map-function, assuming > 0
+	 */
+	switch (typ) {
+	case MAP_FORWARD:
+		/*
+		 * extern = func(local) 
+		 */
+		return 1.0/arg;
+	case MAP_BACKWARD:
+		/*
+		 * local = func(extern) 
+		 */
+		return 1.0/arg;
+	case MAP_DFORWARD:
+		/*
+		 * d_extern / d_local 
+		 */
+		return -1.0/SQR(arg);
+	case MAP_INCREASING:
+		/*
+		 * return 1.0 if montone increasing and 0.0 otherwise. assuming positive...
+		 */
+		return 0.0;
+	default:
+		abort();
+	}
+	abort();
+	return 0.0;
+}
 double map_identity_scale(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -1150,6 +1182,13 @@ double link_identity(double x, map_arg_tp typ, void *param, double *cov)
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_identity(x, typ, param);
+}
+double link_inverse(double x, map_arg_tp typ, void *param, double *cov)
+{
+	/*
+	 * the link-functions calls the inverse map-function 
+	 */
+	return map_inverse(x, typ, param);
 }
 double link_logoffset(double x, map_arg_tp typ, void *param, double *cov)
 {
@@ -13580,6 +13619,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_ntheta = 0;
 		ds->predictor_invlinkfunc = link_identity;
 		ds->predictor_invlinkfunc_arg = NULL;
+	} else if (!strcasecmp(ds->link_model, "inverse")) {
+		ds->link_id = LINK_INVERSE;
+		ds->link_ntheta = 0;
+		ds->predictor_invlinkfunc = link_inverse;
+		ds->predictor_invlinkfunc_arg = NULL;
 	} else if (!strcasecmp(ds->link_model, "LOG")) {
 		ds->link_id = LINK_LOG;
 		ds->link_ntheta = 0;
@@ -13708,6 +13752,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	 */
 	switch (ds->link_id) {
 	case LINK_IDENTITY:
+	case LINK_INVERSE:
 	case LINK_LOG:
 	case LINK_NEGLOG:
 	case LINK_PROBIT:
@@ -22961,6 +23006,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 			switch (ds->link_id) {
 			case LINK_IDENTITY:
+			case LINK_INVERSE:
 			case LINK_LOG:
 			case LINK_NEGLOG:
 			case LINK_PROBIT:
@@ -27782,6 +27828,8 @@ int inla_output_linkfunctions(const char *dir, inla_tp * mb)
 			fprintf(fp, "logit\n");
 		} else if (lf == link_identity) {
 			fprintf(fp, "identity\n");
+		} else if (lf == link_inverse) {
+			fprintf(fp, "inverse\n");
 		} else if (lf == link_sslogit) {
 			fprintf(fp, "sslogit\n");
 		} else if (lf == link_logoffset) {

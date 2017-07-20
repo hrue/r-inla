@@ -572,7 +572,8 @@ typedef enum {
 	LINK_SSLOGIT,
 	LINK_LOGLOG,
 	LINK_CAUCHIT,
-	LINK_LOGITOFFSET
+	LINK_LOGITOFFSET,
+	LINK_INVERSE
 } inla_component_tp;
 
 
@@ -1354,6 +1355,7 @@ double inla_update_density(double *theta, inla_update_tp * arg);
 double link_cauchit(double x, map_arg_tp typ, void *param, double *cov);
 double link_cloglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_identity(double x, map_arg_tp typ, void *param, double *cov);
+double link_inverse(double x, map_arg_tp typ, void *param, double *cov);
 double link_log(double x, map_arg_tp typ, void *param, double *cov);
 double link_neglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_logit(double x, map_arg_tp typ, void *param, double *cov);
@@ -1378,6 +1380,7 @@ double map_exp(double arg, map_arg_tp typ, void *param);
 double map_negexp(double arg, map_arg_tp typ, void *param);
 double map_group_rho(double x, map_arg_tp typ, void *param);
 double map_identity(double arg, map_arg_tp typ, void *param);
+double map_inverse(double arg, map_arg_tp typ, void *param);
 double map_identity_scale(double arg, map_arg_tp typ, void *param);
 double map_invcauchit(double arg, map_arg_tp typ, void *param);
 double map_invcloglog(double arg, map_arg_tp typ, void *param);
