@@ -4579,6 +4579,10 @@
                      doc = "The identity link", 
                      hyper = list()
                  ), 
+                 inverse = list(
+                     doc = "The inverse link", 
+                     hyper = list()
+                 ), 
                  log = list(
                      doc = "The log-link", 
                      hyper = list()

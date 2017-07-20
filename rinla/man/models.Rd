@@ -5422,6 +5422,8 @@ inla.models()
 				 }
 				\item{Model `identity'.}{Number of hyperparmeters are 0.
 				 }
+				\item{Model `inverse'.}{Number of hyperparmeters are 0.
+				 }
 				\item{Model `log'.}{Number of hyperparmeters are 0.
 				 }
 				\item{Model `neglog'.}{Number of hyperparmeters are 0.
