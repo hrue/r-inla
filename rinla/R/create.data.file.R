@@ -108,6 +108,7 @@
     } else if (inla.one.of(family, c("poisson",
                                      "qpoisson", 
                                      "cenpoisson", 
+                                     "contpoisson", 
                                      "gpoisson", 
                                      "zeroinflatedpoisson0",
                                      "zeroinflatedpoisson1", 

@@ -473,6 +473,7 @@ typedef enum {
 	L_NMIX,
 	L_NMIXNB,
 	L_GP, 
+	L_CONT_POISSON, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1341,6 +1342,7 @@ double Qfunc_z(int i, int j, void *arg);
 double ar_map_pacf(double arg, map_arg_tp typ, void *param);
 double ddexp_taylor(double x, double x0, int order);
 double dexp_taylor(double x, double x0, int order);
+double eval_log_cont_poisson(double y, double lambda);
 double eval_logsum_safe(double lA, double lB);
 double exp_taylor(double x, double x0, int order);
 double extra(double *theta, int ntheta, void *argument);
@@ -1357,11 +1359,11 @@ double link_cloglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_identity(double x, map_arg_tp typ, void *param, double *cov);
 double link_inverse(double x, map_arg_tp typ, void *param, double *cov);
 double link_log(double x, map_arg_tp typ, void *param, double *cov);
-double link_neglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_logit(double x, map_arg_tp typ, void *param, double *cov);
 double link_logitoffset(double x, map_arg_tp typ, void *param, double *cov);
 double link_loglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_logoffset(double x, map_arg_tp typ, void *param, double *cov);
+double link_neglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_probit(double x, map_arg_tp typ, void *param, double *cov);
 double link_special1(double x, map_arg_tp typ, void *param, double *cov);
 double link_special2(double x, map_arg_tp typ, void *param, double *cov);
@@ -1370,6 +1372,7 @@ double link_tan(double x, map_arg_tp typ, void *param, double *cov);
 double link_test1(double x, map_arg_tp typ, void *param, double *cov);
 double link_this_should_not_happen(double x, map_arg_tp typ, void *param, double *cov);
 double map_1exp(double arg, map_arg_tp typ, void *param);
+double map_H(double x, map_arg_tp typ, void *param);
 double map_alpha_loglogistic(double arg, map_arg_tp typ, void *param);
 double map_alpha_weibull(double arg, map_arg_tp typ, void *param);
 double map_alpha_weibull_cure(double arg, map_arg_tp typ, void *param);
@@ -1377,22 +1380,21 @@ double map_beta(double arg, map_arg_tp typ, void *param);
 double map_dof(double arg, map_arg_tp typ, void *param);
 double map_dof5(double arg, map_arg_tp typ, void *param);
 double map_exp(double arg, map_arg_tp typ, void *param);
-double map_negexp(double arg, map_arg_tp typ, void *param);
 double map_group_rho(double x, map_arg_tp typ, void *param);
 double map_identity(double arg, map_arg_tp typ, void *param);
-double map_inverse(double arg, map_arg_tp typ, void *param);
 double map_identity_scale(double arg, map_arg_tp typ, void *param);
 double map_invcauchit(double arg, map_arg_tp typ, void *param);
 double map_invcloglog(double arg, map_arg_tp typ, void *param);
+double map_inverse(double arg, map_arg_tp typ, void *param);
 double map_invlogit(double x, map_arg_tp typ, void *param);
 double map_invloglog(double arg, map_arg_tp typ, void *param);
 double map_invprobit(double arg, map_arg_tp typ, void *param);
 double map_invtan(double arg, map_arg_tp typ, void *param);
+double map_negexp(double arg, map_arg_tp typ, void *param);
 double map_p_weibull_cure(double arg, map_arg_tp typ, void *param);
 double map_phi(double arg, map_arg_tp typ, void *param);
 double map_precision(double arg, map_arg_tp typ, void *param);
 double map_probability(double x, map_arg_tp typ, void *param);
-double map_H(double x, map_arg_tp typ, void *param);
 double map_range(double arg, map_arg_tp typ, void *param);
 double map_rho(double arg, map_arg_tp typ, void *param);
 double map_shape_svnig(double arg, map_arg_tp typ, void *param);
@@ -1423,13 +1425,13 @@ double priorfunc_pc_ar(double *x, double *parameters);
 double priorfunc_pc_cor0(double *x, double *parameters);
 double priorfunc_pc_cor1(double *x, double *parameters);
 double priorfunc_pc_dof(double *x, double *parameters);
-double priorfunc_pc_prec(double *x, double *parameters);
-double priorfunc_pc_spde_ga(double *x, double *parameters);
-double priorfunc_pc_matern(double *x, double *parameters);
-double priorfunc_pc_range(double *x, double *parameters);
 double priorfunc_pc_gamma(double *x, double *parameters);
-double priorfunc_pc_mgamma(double *x, double *parameters);
 double priorfunc_pc_gammacount(double *x, double *parameters);
+double priorfunc_pc_matern(double *x, double *parameters);
+double priorfunc_pc_mgamma(double *x, double *parameters);
+double priorfunc_pc_prec(double *x, double *parameters);
+double priorfunc_pc_range(double *x, double *parameters);
+double priorfunc_pc_spde_ga(double *x, double *parameters);
 double priorfunc_ref_ar(double *x, double *parameters);
 double priorfunc_wishart(int dim, double *x, double *parameters);
 double priorfunc_wishart1d(double *x, double *parameters);
@@ -1600,6 +1602,7 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int loglikelihood_cont_poisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_expsurv(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
 int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
