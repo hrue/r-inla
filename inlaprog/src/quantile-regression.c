@@ -1,7 +1,7 @@
 
 /* quantile-regression.c
  * 
- * Copyright (C) 2016 Havard Rue
+ * Copyright (C) 2016-7 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,12 +41,12 @@ static const char RCSId[] = HGVERSION;
 double inla_pcontpois(double y, double lambda)
 {
 	// the cdf for the continous poisson
-	return gsl_sf_gamma_inc_Q(y + 1.0, lambda);
+	return gsl_sf_gamma_inc_Q(y, lambda);
 }
 double inla_pcontpois_deriv(double y, double lambda)
 {
 	// the derivative of the cdf for the continous poisson, wrt lambda
-	return (-exp(y * log(lambda) - lambda - gsl_sf_lngamma(y + 1.0)));
+	return (-exp((y-1.0) * log(lambda) - lambda - gsl_sf_lngamma(y)));
 }
 double inla_qcontpois(double quantile, double alpha, double *initial_guess)
 {
