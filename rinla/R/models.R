@@ -4930,6 +4930,16 @@
                      pdf = "qpoisson"
                      ),
 
+                 contpoisson = list(
+                     doc = "The Cont Poisson likelihood", 
+                     hyper = list(
+                         ),
+                     survival = FALSE,
+                     discrete = TRUE,
+                     link = c("default", "log"), 
+                     pdf = "contpoisson"
+                     ),
+                 
                  cenpoisson = list(
                      doc = "Then censored Poisson likelihood", 
                      hyper = list(
