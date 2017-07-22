@@ -4723,40 +4723,32 @@ double eval_log_contpoisson(double y, double lambda)
 #define R 3
 #define L 5
 #define LEN (R+L+2)
-	int i, iy, low, high, len;
-	double work[2*LEN], *xx, *yy, normc, lval;
+	int i, istart, iy, low, high, len;
+	double work[2*LEN], *xx, *yy, lnormc, lval;
 	GMRFLib_spline_tp *spline;
 	
-	normc = gsl_sf_lnfact((unsigned int) y);
+	lnormc = gsl_sf_lnfact((unsigned int) y);
 	low = IMAX(0, (int)y - L);
 	high = (int)y + R;
 	len = high - low + 1;
 	xx = work;
 	yy = work + LEN;
 
-	if (low > 0) {
-		/* 
-		 *  do this in log-scale
-		 */
-		for(iy = low, i=0;  iy <= high; iy++, i++) {
-			xx[i] = iy + 0.5;
-			yy[i] = iy * log(lambda) - lambda - normc;
-		}
-		spline = inla_spline_create(xx, yy, len);
-		lval = inla_spline_eval(y, spline);
+	if (low == 0) {
+		xx[0] = 0.0;
+		yy[0] = log(DBL_EPSILON);
+		istart = 1;
+		len++;
 	} else {
-		/* 
-		 * do this in normal scale adding an extra point f(0)=0 manually
-		 */
-		xx[0] = yy[0] = 0.0; len++;
-		for(iy = low, i=1;  iy <= high; iy++, i++) {
-			xx[i] = iy + 0.5;
-			yy[i] = exp(iy * log(lambda) - lambda - normc);
-		}
-		spline = inla_spline_create(xx, yy, len);
-		lval = log(inla_spline_eval(y, spline));
+		istart = 0;
 	}
-
+	
+	for(iy = low, i=istart;  iy <= high; iy++, i++) {
+		xx[i] = iy + 0.5;
+		yy[i] = iy * log(lambda) - lambda - lnormc;
+	}
+	spline = inla_spline_create(xx, yy, len);
+	lval = inla_spline_eval(y, spline);
 	inla_spline_free(spline);
 #undef L
 #undef R
@@ -4767,7 +4759,7 @@ double eval_log_contpoisson(double y, double lambda)
 int loglikelihood_contpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
 	/* 
-	 * y ~ ContPoisson(E*exp(x)), also accept E=0, giving the likelihood y * x.
+	 * y ~ ContPoisson(E*exp(x))
 	 */
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -10542,7 +10534,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->data_observations.qcontpoisson_func =
 		    inla_qcontpois_func(ds->data_observations.quantile, ISQR(GMRFLib_MAX_THREADS));
 		break;
-
 
 	case L_CENPOISSON:
 		/*
