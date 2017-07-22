@@ -7,6 +7,18 @@ inla.incGamma = function(x, lambda=0, log=FALSE) {
     return (if (log) lres else exp(lres))
 }
 
+inla.qcontpoisson = function(p, lambda, print.level = 0) {
+    fun.min = function(log.x, lambda, prob) {
+        p.est = inla.pcontpoisson(exp(log.x), lambda)
+        eps = 1E-12
+        p.est = max(eps, min(p.est, 1 - eps))
+        return ((inla.link.logit(p.est) - inla.link.logit(prob))^2)
+    }
+    initial.value = log(qpois(p, lambda) + 0.5)
+    return (exp(nlm(fun.min, p = initial.value, print.level = print.level,
+                    lambda = lambda, prob = p)$estimate))
+}
+
 inla.pcontpoisson = function(x, lambda, log=FALSE, deriv=0) {
     ## > F := (x, lambda) -> GAMMA(x, lambda) / GAMMA(x);
     ##                                     GAMMA(x, lambda)
@@ -26,6 +38,7 @@ inla.pcontpoisson = function(x, lambda, log=FALSE, deriv=0) {
     ##                               GAMMA(x)
     ##
     if (deriv == 0) {
+        ## can use gsl::gamma_inc_Q() instead
         lres = inla.incGamma(x, lambda, log=TRUE) - inla.incGamma(x, log=TRUE)
         return (if (log) lres else exp(lres))
     } else if (deriv == 1) {
@@ -56,25 +69,16 @@ inla.pcontpoisson.eta = function(x, eta, deriv = 0, log=FALSE) {
     }
 }
 
-inla.qcontpoisson.approx = function(q, lambda) {
-    ##return ( (sqrt(lambda) + qnorm(q, sd = 0.5))^2)
-    m = sqrt(1+lambda)
-    s = 1/(2 + 1/lambda)
-    qq = qnorm(q, mean = m, sd = s)
-    qq2 = qq^2
-    res = qq2-1
-    return (res)
-}
-
-inla.qcontpoisson = function(quantile, alpha, iter.max = 1000, max.step = 2,
-                          tol = sqrt(.Machine$double.eps), verbose=FALSE)
+inla.contpoisson.solve.lambda = function(quantile, alpha, iter.max = 1000, max.step = 3,
+                                           tol = sqrt(.Machine$double.eps), verbose=FALSE)
 {
+    ## solve quantile=inla.pcontpoisson(lambda, alpha),  for lambda
     stopifnot(length(quantile) == 1 && length(alpha) == 1)
-    return(exp(inla.qcontpoisson.eta(quantile, alpha, iter.max, max.step, tol, verbose)))
+    return(exp(inla.contpoisson.solve.eta(quantile, alpha, iter.max, max.step, tol, verbose)))
 }
 
-inla.qcontpoisson.eta = function(quantile, alpha, iter.max = 1000, max.step = 2,
-                              tol = sqrt(.Machine$double.eps), verbose=FALSE) 
+inla.contpoisson.solve.eta = function(quantile, alpha, iter.max = 1000, max.step = 3,
+                                               tol = sqrt(.Machine$double.eps), verbose=FALSE) 
 {
     ## solve quantile=inla.pcontpoisson(lambda=exp(eta), alpha),  for eta
     stopifnot(length(quantile) == 1 && length(alpha) == 1)
