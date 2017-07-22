@@ -4919,17 +4919,6 @@
                      pdf = "poisson"
                      ),
                  
-                 qpoisson = list(
-                     doc = "The quantile Poisson likelihood", 
-                     hyper = list(
-                         ),
-                     survival = FALSE,
-                     discrete = TRUE,
-                     link = c("default", "log"), 
-                     status = "disabled", 
-                     pdf = "qpoisson"
-                     ),
-
                  contpoisson = list(
                      doc = "The Cont Poisson likelihood", 
                      hyper = list(
@@ -4938,6 +4927,16 @@
                      discrete = TRUE,
                      link = c("default", "log"), 
                      pdf = "contpoisson"
+                     ),
+                 
+                 qcontpoisson = list(
+                     doc = "The quantile Cont Poisson likelihood", 
+                     hyper = list(
+                         ),
+                     survival = FALSE,
+                     discrete = TRUE,
+                     link = c("default", "log"), 
+                     pdf = "qcontpoisson"
                      ),
                  
                  cenpoisson = list(
