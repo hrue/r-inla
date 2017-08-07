@@ -3,7 +3,7 @@ title: "Avoiding trouble with factors in _inla.stack()_"
 author: "Elias T. Krainski `(elias@r-inla.org)`"
 date: "Aug 7th 2017"
 output: rmarkdown::pdf_document
-bibliography: spde.bib
+bibliography: spde-tutorial.bib
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
@@ -20,7 +20,7 @@ library(INLA)
 
 This short note describe a way to work with factor covariates
 when working with _inla.stack()_. 
-You can skip the next section if already know how to work with 
+You can skip the next section if you already know how to work with 
 factors in functions such as _lm()_ or _glm()_.
 
 ### Working with factors in **R**
@@ -84,7 +84,8 @@ When there is no intercept this happens to be the case
 for the first factor in the formula. 
 
 When the '(Intercept)' is in the model, changing the order 
-of the terms does not affects anything 
+of the terms in the formula does effect what is being 
+fitted, only the order 
 ```{r, orderi}
 	coef(lm(y ~ b + a + d + x, dat))
 	coef(lm(y ~ d + a + b + x, dat))
@@ -94,7 +95,7 @@ The covariates with only two levels encoded as "0" or "1"
 can be encoded as factor assuming any two labels 
 ```{r, factor2}
 dat$a <- factor(dat$a, levels=0:1, labels=c('1st', '2nd'))
-dat$b <- factor(dat$b, levels=1:0, labels=c('2nd', '1st'))
+dat$b <- factor(dat$b, levels=1:0, labels=c('2nd', '1st')) ## OBS: reference level changed
 ```
 and we will have the same coefficients as when not having 
 it as factors only when '0' is the reference level
@@ -102,9 +103,9 @@ it as factors only when '0' is the reference level
 coef(lm(y ~ a + b + d + x, dat))
 ```
 
-We can now show that when the intercept is not in the formula 
-it will takes the first level of the first factor covariate 
-in the formula and the oder now matters
+When the intercept is not in the formula it will be 
+the reference level of the first factor and 
+the order matters
 ```{r orderf}
 	coef(lm(y ~ 0 + a + b + d + x, dat))
 	coef(lm(y ~ 0 + b + a + d + x, dat))
@@ -203,7 +204,6 @@ pred.sc <- expand.grid(a1=0:1, b1=0:1, b2=0, x=c(0.5))
 pred.sc
 ```
 
-The above scenario was for the fixed effects. 
 For the random effect, over time, we do need 
 to build a projection as well. 
 ```{r predt}
