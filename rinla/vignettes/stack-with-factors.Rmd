@@ -5,7 +5,7 @@ date: "Aug 7th 2017"
 output: rmarkdown::pdf_document
 bibliography: spde-tutorial.bib
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{stack-with-factors}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8} 
 ---
