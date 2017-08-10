@@ -5,6 +5,7 @@
 ## Export: inla.link.loglog inla.link.invloglog inla.link.tan inla.link.invtan
 ## Export: inla.link.identity inla.link.invidentity inla.link.invalid
 ## Export: inla.link.cauchit inla.link.invcauchit
+## Export: inla.link.inverse inla.link.invinverse
 
 ##! \name{link}
 ##! \alias{link}
@@ -29,6 +30,8 @@
 ##! \alias{inla.link.invinvalid}
 ##! \alias{inla.link.cauchit}
 ##! \alias{inla.link.invcauchit}
+##! \alias{inla.link.inverse}
+##! \alias{inla.link.invinverse}
 ##! 
 ##! \title{Link functions in INLA}
 ##! 
@@ -53,6 +56,8 @@
 ##! inla.link.invcauchit(x, inverse=FALSE)
 ##! inla.link.identity(x, inverse=FALSE)
 ##! inla.link.invidentity(x, inverse=FALSE)
+##! inla.link.inverse(x, inverse=FALSE)
+##! inla.link.invinverse(x, inverse=FALSE)
 ##! inla.link.invalid(x, inverse=FALSE)
 ##! inla.link.invinvalid(x, inverse=FALSE)
 ##! }
@@ -184,8 +189,17 @@
     return (x)
 }
 
+`inla.link.inverse` = function(x, inverse = FALSE)
+{
+    return (1/x)
+}
+`inla.link.invinverse` = function(x, inverse = FALSE)
+{
+    return (1/x)
+}
 
-## These are the invalid ones
+
+## These are the invalid one
 `inla.link.invalid` = function(x, inverse = FALSE)
 {
     stop("The invalid link-function is used.")
