@@ -1730,7 +1730,8 @@
                     A=gp$random.spec[[r]]$extraconstr$A
                     e=gp$random.spec[[r]]$extraconstr$e
 
-                    if (ncol(A) != inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor*n)
+                    if ((gp$random.spec[[r]]$model != "rgeneric") &&
+                        (ncol(A) != inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor*n))
                         stop(paste("\n\tncol in matrix A(extraconstr) does not correspont to the length of f:",
                                    ncol(A),
                                    inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor*n))
@@ -1822,7 +1823,7 @@
         stop("\n\tSomething strange with weights in the covariate...")
 
     ## the inla section
-    inla.inla.section(file=file.ini, inla.spec=cont.inla)
+    inla.inla.section(file=file.ini, inla.spec=cont.inla, data.dir)
 
     ## create mode section
     cont.mode = inla.set.control.mode.default()
