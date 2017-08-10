@@ -515,7 +515,7 @@
                      n.required = FALSE,
                      set.default.values = TRUE,
                      order.default = 3L,     ## default order for approximation
-                     order.defined = 3L:3L,  ## the list of orders which are implemented
+                     order.defined = 3L:4L,  ## the list of orders which are implemented
                      pdf = "fgn"
                      ),
 
@@ -4579,6 +4579,10 @@
                      doc = "The identity link", 
                      hyper = list()
                  ), 
+                 inverse = list(
+                     doc = "The inverse link", 
+                     hyper = list()
+                 ), 
                  log = list(
                      doc = "The log-link", 
                      hyper = list()
@@ -4915,17 +4919,26 @@
                      pdf = "poisson"
                      ),
                  
-                 qpoisson = list(
-                     doc = "The quantile Poisson likelihood", 
+                 contpoisson = list(
+                     doc = "The Cont Poisson likelihood", 
                      hyper = list(
                          ),
                      survival = FALSE,
                      discrete = TRUE,
                      link = c("default", "log"), 
-                     status = "experimental", 
-                     pdf = "qpoisson"
+                     pdf = "contpoisson"
                      ),
-
+                 
+                 qcontpoisson = list(
+                     doc = "The quantile Cont Poisson likelihood", 
+                     hyper = list(
+                         ),
+                     survival = FALSE,
+                     discrete = TRUE,
+                     link = c("default", "log"), 
+                     pdf = "qcontpoisson"
+                     ),
+                 
                  cenpoisson = list(
                      doc = "Then censored Poisson likelihood", 
                      hyper = list(
@@ -5658,7 +5671,7 @@
                              hyperid =  81001,
                              name = "log alpha",
                              short.name = "a",
-                             initial = 4,
+                             initial = 0,
                              fixed = FALSE,
                              prior = "loggamma",
                              param = c(25, 25),
@@ -5680,7 +5693,7 @@
                      survival = TRUE,
                      discrete = FALSE,
                      link = c("default", "log", "neglog"),
-                     pdf = NA
+                     pdf = "weibullcure"
                      ),
 
                  stochvol = list(

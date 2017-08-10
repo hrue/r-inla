@@ -10,7 +10,7 @@
 ##! model assessment for an INLA model using so-called node-splitting
 ##! (Marshall and Spiegelhalter, 2007; Presanis et al, 2013).
 ##! The user inputs an object of class \code{inla} (i.e. a result
-##! of a call to \code{inla()}}) as well as  a variable name (\code{split.by}) specifying a grouping:
+##! of a call to \code{inla()}) as well as  a variable name (\code{split.by}) specifying a grouping:
 ##! Data points that share the same value of \code{split.by} are in the same group.
 ##! The function then checks whether each group is an "outlier", or in conflict with
 ##! the remaining groups, using the methodology described in Ferkingstad et al (2017).
@@ -192,4 +192,4 @@ inla.cut = function(result, split.by, debug=FALSE)
     }
     return(p.linpred)
 }
-
+

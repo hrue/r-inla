@@ -357,6 +357,22 @@ int GMRFLib_dcmp(const void *a, const void *b)
 
 	return 0;
 }
+int GMRFLib_dcmp_r(const void *a, const void *b)
+{
+	const double *da = NULL, *db = NULL;
+
+	da = (const double *) a;
+	db = (const double *) b;
+
+	if (*da > *db) {
+		return -1;
+	}
+	if (*da < *db) {
+		return 1;
+	}
+
+	return 0;
+}
 int GMRFLib_dcmp_abs(const void *a, const void *b)
 {
 	const double *da = NULL, *db = NULL;
@@ -389,7 +405,8 @@ int GMRFLib_dcmp_abs(const void *a, const void *b)
 	 */
 	return 0;
 }
-int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z, int (*compar) (const void *, const void *))
+int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z,
+		   int (*compar) (const void *, const void *))
 {
 	/*
 	 * sort x and optionally sort y and z along
@@ -459,20 +476,20 @@ int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y,
 }
 double GMRFLib_log_apbex(double a, double b)
 {
-        /*
-         * try to evaluate log(a + exp(b)) safely 
-         */
+	/*
+	 * try to evaluate log(a + exp(b)) safely 
+	 */
 
-        if (a == 0.0)
-                return b;
+	if (a == 0.0)
+		return b;
 
-        double B = exp(b);
+	double B = exp(b);
 
-        if (B > a) {
-                return b + log(1.0 + a / B);
-        } else {
-                return log(a) + log(1.0 + B / a);
-        }
+	if (B > a) {
+		return b + log(1.0 + a / B);
+	} else {
+		return log(a) + log(1.0 + B / a);
+	}
 }
 
 void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id)
@@ -711,7 +728,8 @@ int GMRFLib_memcheck_printf(FILE * fp)
 	fp = (fp ? fp : stdout);
 	if (!memcheck_first) {
 		for (i = -1; (i = map_vpvp_next(&memcheck_hash_table, i)) != -1;) {
-			fprintf(fp, "0x%x %s\n", (size_t) memcheck_hash_table.contents[i].key, (char *) memcheck_hash_table.contents[i].value);
+			fprintf(fp, "0x%x %s\n", (size_t) memcheck_hash_table.contents[i].key,
+				(char *) memcheck_hash_table.contents[i].value);
 		}
 	}
 #endif
