@@ -133,6 +133,9 @@ inla.cut = function(result, split.by, debug=FALSE)
             lc.rep = c(lc.rep, lci)
         }
         args$lincomb = lc.rep
+        cont.pred <- args$control.predictor
+        cont.pred$link = 1
+        args$control.predictor = cont.pred
         r.rep = do.call("inla", args = args)
         ## this case we do not do
         if (!is.null(r.rep$.args$control.predictor$A)) {
@@ -192,4 +195,4 @@ inla.cut = function(result, split.by, debug=FALSE)
     }
     return(p.linpred)
 }
-
+
