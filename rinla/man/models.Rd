@@ -5422,6 +5422,8 @@ inla.models()
 				 }
 				\item{Model `identity'.}{Number of hyperparmeters are 0.
 				 }
+				\item{Model `inverse'.}{Number of hyperparmeters are 0.
+				 }
 				\item{Model `log'.}{Number of hyperparmeters are 0.
 				 }
 				\item{Model `neglog'.}{Number of hyperparmeters are 0.
@@ -5817,7 +5819,9 @@ inla.models()
 			 \describe{
 				\item{Model `poisson'.}{Number of hyperparmeters are 0.
 				 }
-				\item{Model `qpoisson'.}{Number of hyperparmeters are 0.
+				\item{Model `contpoisson'.}{Number of hyperparmeters are 0.
+				 }
+				\item{Model `qcontpoisson'.}{Number of hyperparmeters are 0.
 				 }
 				\item{Model `cenpoisson'.}{Number of hyperparmeters are 0.
 				 }

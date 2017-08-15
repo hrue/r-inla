@@ -7,78 +7,85 @@ inla.incGamma = function(x, lambda=0, log=FALSE) {
     return (if (log) lres else exp(lres))
 }
 
-inla.pcontpois = function(x, lambda, log=FALSE, deriv=0) {
-    ## compute also the deriv wrt lambda
-    ## > F := (x, lambda) -> GAMMA(x+1, lambda) / GAMMA(x+1);
-    ## > simplify(diff(F(x, lambda), lambda));
-    ##                                      x
-    ##                                lambda  exp(-lambda)
-    ##                              - --------------------
-    ##                                    GAMMA(x + 1)
-    ## 
-    ## > simplify(diff(F(x, lambda), lambda$2));
-    ##                           (x - 1)
-    ##                     lambda        exp(-lambda) (lambda - x)
-    ##                     ---------------------------------------
-    ##                                 GAMMA(x + 1)
-    ##  
+inla.qcontpoisson = function(p, lambda, print.level = 0) {
+    fun.min = function(log.x, lambda, prob) {
+        p.est = inla.pcontpoisson(exp(log.x), lambda)
+        eps = 1E-12
+        p.est = max(eps, min(p.est, 1 - eps))
+        return ((inla.link.logit(p.est) - inla.link.logit(prob))^2)
+    }
+    initial.value = log(qpois(p, lambda) + 0.5)
+    return (exp(nlm(fun.min, p = initial.value, print.level = print.level,
+                    lambda = lambda, prob = p)$estimate))
+}
+
+inla.pcontpoisson = function(x, lambda, log=FALSE, deriv=0) {
+    ## > F := (x, lambda) -> GAMMA(x, lambda) / GAMMA(x);
+    ##                                     GAMMA(x, lambda)
+    ##                F := (x, lambda) -> ----------------
+    ##                                         GAMMA(x)
+    ##
+    ## > simplify(diff(F(x, lambda), lambda));           
+    ##                             (x - 1)
+    ##                       lambda        exp(-lambda)
+    ##                     - --------------------------
+    ##                                GAMMA(x)
+    ##
+    ## > simplify(diff(F(x, lambda), lambda$2));         
+    ##                   (x - 2)
+    ##             lambda        exp(-lambda) (-x + 1 + lambda)
+    ##             --------------------------------------------
+    ##                               GAMMA(x)
+    ##
     if (deriv == 0) {
-        lres = inla.incGamma(x+1, lambda, log=TRUE) - inla.incGamma(x+1, log=TRUE)
+        ## can use gsl::gamma_inc_Q() instead
+        lres = inla.incGamma(x, lambda, log=TRUE) - inla.incGamma(x, log=TRUE)
         return (if (log) lres else exp(lres))
     } else if (deriv == 1) {
         stopifnot(!log)
-        return (-exp(x*log(lambda) -lambda -inla.incGamma(x+1, log=TRUE)))
+        return (-exp((x-1)*log(lambda) -lambda -inla.incGamma(x, log=TRUE)))
     } else if (deriv == 2) {
         stopifnot(!log)
-        return ((lambda-x) * exp((x-1)*log(lambda)-lambda -inla.incGamma(x+1, log=TRUE)))
+        return ((lambda-x+1) * exp((x-2)*log(lambda) -lambda -inla.incGamma(x, log=TRUE)))
     } else {
         stop("deriv != 0, 1, 2")
     }
 }
 
-inla.pcontpois.eta = function(x, eta, deriv = 0, log=FALSE) {
-    ## the cdf of the contpois parameterised by the linear predictor and the log-link
+inla.pcontpoisson.eta = function(x, eta, deriv = 0, log=FALSE) {
+    ## the cdf of the contpoisson parameterised by the linear predictor and the log-link
     lambda = exp(eta)
     if (deriv == 0) {
-        return (inla.pcontpois(x, lambda, log=log))
+        return (inla.pcontpoisson(x, lambda, log=log))
     } else if (deriv == 1) {
         stopifnot(!log)
-        return (inla.pcontpois(x, lambda, deriv=1) * lambda)
+        return (inla.pcontpoisson(x, lambda, deriv=1) * lambda)
     } else if (deriv == 2) {
         stopifnot(!log)
-        return (lambda * (inla.pcontpois(x, lambda, deriv=1) +
-                          inla.pcontpois(x, lambda, deriv=2) * lambda))
+        return (lambda * (inla.pcontpoisson(x, lambda, deriv=1) +
+                          inla.pcontpoisson(x, lambda, deriv=2) * lambda))
     } else {
         stop("deriv != 0, 1, 2")
     }
 }
 
-inla.qcontpois.approx = function(q, lambda) {
-    ##return ( (sqrt(lambda) + qnorm(q, sd = 0.5))^2)
-    m = sqrt(1+lambda)
-    s = 1/(2 + 1/lambda)
-    qq = qnorm(q, mean = m, sd = s)
-    qq2 = qq^2
-    res = qq2-1
-    return (res)
-}
-
-inla.qcontpois = function(quantile, alpha, iter.max = 1000, max.step = 2,
-                          tol = sqrt(.Machine$double.eps), verbose=FALSE)
+inla.contpoisson.solve.lambda = function(quantile, alpha, iter.max = 1000, max.step = 3,
+                                           tol = sqrt(.Machine$double.eps), verbose=FALSE)
 {
+    ## solve quantile=inla.pcontpoisson(lambda, alpha),  for lambda
     stopifnot(length(quantile) == 1 && length(alpha) == 1)
-    return(exp(inla.qcontpois.eta(quantile, alpha, iter.max, max.step, tol, verbose)))
+    return(exp(inla.contpoisson.solve.eta(quantile, alpha, iter.max, max.step, tol, verbose)))
 }
 
-inla.qcontpois.eta = function(quantile, alpha, iter.max = 1000, max.step = 2,
-                              tol = sqrt(.Machine$double.eps), verbose=FALSE) 
+inla.contpoisson.solve.eta = function(quantile, alpha, iter.max = 1000, max.step = 3,
+                                               tol = sqrt(.Machine$double.eps), verbose=FALSE) 
 {
-    ## solve quantile=inla.pcontpois(lambda=exp(eta), alpha),  for eta
+    ## solve quantile=inla.pcontpoisson(lambda=exp(eta), alpha),  for eta
     stopifnot(length(quantile) == 1 && length(alpha) == 1)
     eta.0 = log((sqrt(quantile) - qnorm(alpha,  sd = 0.5))^2)
     for(i in 1:iter.max) {
-        f = inla.pcontpois(quantile, lambda = exp(eta.0)) - alpha
-        fd = inla.pcontpois.eta(quantile, eta.0, deriv=1)
+        f = inla.pcontpoisson(quantile, lambda = exp(eta.0)) - alpha
+        fd = inla.pcontpoisson.eta(quantile, eta.0, deriv=1)
         d = -min(max.step, max(-max.step, f/fd))
         eta = eta.0 = eta.0 + d
         if (verbose)
