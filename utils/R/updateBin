@@ -27,9 +27,9 @@ done
 
 for m in 32 64; do
     for p in inla fmesher; do 
-	for f in $(ssh $INLA_LINUX bin/my.ldd builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
+	for f in $(ssh -p $INLA_LINUX_PORT $INLA_LINUX bin/my.ldd builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
-	    rsync -auvL $INLA_LINUX:$f $d/linux/${m}bit/.
+	    rsync --rsh="ssh -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:$f $d/linux/${m}bit/.
 	done
     done
     fix-perm $d/linux/${m}bit
