@@ -4579,6 +4579,10 @@
                      doc = "The identity link", 
                      hyper = list()
                  ), 
+                 inverse = list(
+                     doc = "The inverse link", 
+                     hyper = list()
+                 ), 
                  log = list(
                      doc = "The log-link", 
                      hyper = list()
@@ -4915,17 +4919,26 @@
                      pdf = "poisson"
                      ),
                  
-                 qpoisson = list(
-                     doc = "The quantile Poisson likelihood", 
+                 contpoisson = list(
+                     doc = "The Cont Poisson likelihood", 
                      hyper = list(
                          ),
                      survival = FALSE,
                      discrete = TRUE,
                      link = c("default", "log"), 
-                     status = "experimental", 
-                     pdf = "qpoisson"
+                     pdf = "contpoisson"
                      ),
-
+                 
+                 qcontpoisson = list(
+                     doc = "The quantile Cont Poisson likelihood", 
+                     hyper = list(
+                         ),
+                     survival = FALSE,
+                     discrete = TRUE,
+                     link = c("default", "log"), 
+                     pdf = "qcontpoisson"
+                     ),
+                 
                  cenpoisson = list(
                      doc = "Then censored Poisson likelihood", 
                      hyper = list(

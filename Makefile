@@ -27,9 +27,9 @@ doc-links:
 	@for dir in prior latent likelihood link; do \
 	  find "r-inla.org/doc/$$dir" -name \*.tex | \
 		sed "s!r-inla.org/doc/\(.*\)\.tex!ln -sf ../../../../r-inla.org/doc/\1.pdf rinla/inst/doc/\1.pdf!" | sh -e ;\
-	  hg status r-inla.org/doc/$$dir/*.tex ;\
+	  hg status r-inla.org/doc/$$dir/*.tex | cat;\
 	done
-	hg status rinla/inst/doc/
+	hg status rinla/inst/doc/ | cat
 	@echo "Documentation link building finished."
 
 ## Build a INLA-package without the binaries
