@@ -66,6 +66,10 @@ inla.cut = function(result, split.by, debug=FALSE)
     stopifnot(!missing(split.by))
     formula <- result$.args$formula
     data <- result$.args$data
+    if (!is.data.frame(data)) {
+        stop(paste(match.call()[[1]], "is not yet implemented when 'data' is not a data.frame"))
+    }
+
     ## use an INLA internal to get the variable names of the whole model, ie, the fixed effects
     ## + f(idx)'s
     intf = INLA:::inla.interpret.formula(formula)
@@ -133,6 +137,9 @@ inla.cut = function(result, split.by, debug=FALSE)
             lc.rep = c(lc.rep, lci)
         }
         args$lincomb = lc.rep
+        cont.pred <- args$control.predictor
+        cont.pred$link = 1
+        args$control.predictor = cont.pred
         r.rep = do.call("inla", args = args)
         ## this case we do not do
         if (!is.null(r.rep$.args$control.predictor$A)) {
