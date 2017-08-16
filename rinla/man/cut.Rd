@@ -49,12 +49,16 @@
  }
 
  \references{
- Ferkingstad, E., Held, L. and Rue, H. (2017). Fast and accurate Bayesian model criticism and conflict diagnostics using R-INLA.
- Unpublished manuscript, to appear on arXiv
+ Ferkingstad, E., Held, L. and Rue, H. (2017). Fast and accurate Bayesian
+ model criticism and conflict diagnostics using R-INLA. arXiv preprint
+ arXiv:1708.03272, available at http://arxiv.org/abs/1708.03272
  
- Marshall, E. C. and Spiegelhalter, D. J. (2007). Identifying outliers in Bayesian hierarchical models: a simulation-based approach.
+ Marshall, E. C. and Spiegelhalter, D. J. (2007). Identifying outliers
+ in Bayesian hierarchical models: a simulation-based approach.
  Bayesian Analysis, 2(2):409– 444.
  
- Presanis, A. M., Ohlssen, D., Spiegelhalter, D. J., De Angelis, D., et al. (2013). Conflict diagnostics in directed acyclic graphs,
- with applications in Bayesian evidence synthesis. Statistical Science, 28(3):376–397.
+ Presanis, A. M., Ohlssen, D., Spiegelhalter,
+ D. J., De Angelis, D., et al. (2013). Conflict diagnostics
+ in directed acyclic graphs, with applications in Bayesian evidence synthesis. 
+ Statistical Science, 28(3):376–397.
  }
