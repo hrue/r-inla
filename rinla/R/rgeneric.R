@@ -19,13 +19,13 @@
 ##!\description{A framework for defining latent models in R}
 ##!
 ##!\usage{
-##!inla.rgeneric.define(model = NULL, debug = FALSE, R.init = NULL, ...)
+##!inla.rgeneric.define(model = NULL, debug = FALSE, ...)
 ##!inla.rgeneric.iid.model(
 ##!        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
-##!        theta = NULL, args = NULL)
+##!        theta = NULL)
 ##!inla.rgeneric.ar1.model(
 ##!        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
-##!        theta = NULL, args = NULL)
+##!        theta = NULL)
 ##!inla.rgeneric.wrapper(
 ##!        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
 ##!        model, theta = NULL)
@@ -34,12 +34,10 @@
 ##!\arguments{
 ##!
 ##!  \item{model}{The definition of the model; see \code{inla.rgeneric.ar1.model}}
+##!  \item{debug}{Logical. Turn on/off debugging}
 ##!  \item{cmd}{An allowed request}
 ##!  \item{theta}{Values of theta}
-##!  \item{debug}{Logical. Turn on/off debugging}
-##!  \item{R.init}{An R-file to be loaded or sourced, when the R-engine starts. See \code{inla.load}}
-##!  \item{args}{A list. A list of further args}
-##!  \item{...}{Further args}
+##!  \item{...}{Named list of variables that defines the environment of \code{model}}
 ##!  \item{debug}{Logical. Enable debug output}
 ##!}
 ##!
@@ -52,19 +50,23 @@
 ##!  This will be somewhat slow and is intended for special cases and
 ##!  protyping. The function \code{inla.rgeneric.wrapper} is for
 ##!  internal use only.}
-##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!\author{Havard Rue \email{hrue@r-inla.org}}
 
 
 `inla.rgeneric.ar1.model` = function(
     cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
-    theta = NULL, args = NULL)
+    theta = NULL)
 {
     ## this is an example of the 'rgeneric' model. here we implement
     ## the AR-1 model as described in inla.doc("ar1"), where 'rho' is
     ## the lag-1 correlation and 'prec' is the *marginal* (not
     ## conditional) precision.
     
-    interpret.theta = function(n, theta)
+    ## variables defined the in the define-call, are stored here
+    ## (which is in the path)
+    envir = environment(sys.call()[[1]]) 
+
+    interpret.theta = function()
     {
         ## internal helper-function to map the parameters from the internal-scale to the
         ## user-scale
@@ -72,36 +74,42 @@
                      rho = 2*exp(theta[2L])/(1+exp(theta[2L])) - 1.0))
     }
 
-    graph = function(n, theta)
+    graph = function()
     {
-        ## return the graph of the model. the values of Q is only interpreted as zero or
-        ## non-zero. return a sparse.matrix
-        if (FALSE) {
-            ## slow and easy: dense-matrices
-            G = toeplitz(c(1, 1, rep(0, n-2L)))
-            G = inla.as.sparse(G)
+        if (TRUE) {
+            ## we can also use this easy solution, since we know that Q[i, j] is not 0 by
+            ## accident... this require that 'theta' is set; see 'theta = initial()' below.
+            G = Q()
         } else {
-            ## faster. we only need to define the lower-triangular of G
-            i = c(
-                ## diagonal
-                1L, n, 2L:(n-1L),
-                ## off-diagonal
-                1L:(n-1L))
-            j = c(
-                ## diagonal
-                1L, n, 2L:(n-1L),
-                ## off-diagonal
-                2L:n)
-            x = 1 ## meaning that all are 1
-            G = sparseMatrix(i=i, j=j, x=x, giveCsparse = FALSE)
-        }            
+            ## return the graph of the model. the values of Q is only interpreted as zero or
+            ## non-zero. return a sparse.matrix
+            if (FALSE) {
+                ## slow and easy: dense-matrices
+                G = toeplitz(c(1, 1, rep(0, n-2L)))
+                G = inla.as.sparse(G)
+            } else {
+                ## faster. we only need to define the lower-triangular of G
+                i = c(
+                    ## diagonal
+                    1L, n, 2L:(n-1L),
+                    ## off-diagonal
+                    1L:(n-1L))
+                j = c(
+                    ## diagonal
+                    1L, n, 2L:(n-1L),
+                    ## off-diagonal
+                    2L:n)
+                x = 1 ## meaning that all are 1
+                G = sparseMatrix(i=i, j=j, x=x, giveCsparse = FALSE)
+            }
+        }
         return (G)
     }
 
-    Q = function(n, theta)
+    Q = function()
     {
         ## returns the precision matrix for given parameters
-        param = interpret.theta(n, theta)
+        param = interpret.theta()
         if (FALSE) {
             ## slow and easy: dense-matrices
             Q = param$prec/(1-param$rho^2) * toeplitz(c(1+param$rho^2, -param$rho, rep(0, n-2L)))
@@ -129,119 +137,136 @@
         return (Q)
     }
 
-    mu = function(n, theta)
+    mu = function()
     {
         return (numeric(0))
     }
         
-    log.norm.const = function(n, theta)
+    log.norm.const = function()
     {
         ## return the log(normalising constant) for the model
-        param = interpret.theta(n, theta)
+        param = interpret.theta()
         prec.innovation  = param$prec / (1.0 - param$rho^2)
         val = n * (- 0.5 * log(2*pi) + 0.5 * log(prec.innovation)) + 0.5 * log(1.0 - param$rho^2)
         return (val)
     }
 
-    log.prior = function(n, theta)
+    log.prior = function()
     {
         ## return the log-prior for the hyperparameters. the '+theta[1L]' is the log(Jacobian)
         ## for having a gamma prior on the precision and convert it into the prior for the
         ## log(precision).
-        param = interpret.theta(n, theta)
+        param = interpret.theta()
         val = (dgamma(param$prec, shape = 1, rate = 1, log=TRUE) + theta[1L] + 
                    dnorm(theta[2L], mean = 0, sd = 1, log=TRUE))
         return (val)
     }
 
-    initial = function(n, theta)
+    initial = function()
     {
         ## return initial values
         ntheta = 2
         return (rep(1, ntheta))
     }
 
-    quit = function(n, theta)
+    quit = function()
     {
         return (invisible())
     }
 
-    cmd = match.arg(cmd)
-    val = do.call(cmd, args = list(n = as.integer(args$n), theta = theta))
+    ## if theta is not required, it is not set. we set it here, for convenience.
+    ## (see the graph() function)
+    if (is.null(theta))
+        theta = initial()
+    
+    val = do.call(match.arg(cmd), args = list())
     return (val)
 }
 
 `inla.rgeneric.iid.model` = function(
     cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
-    theta = NULL, args = NULL)
+    theta = NULL)
 {
     ## this is an example of the 'rgeneric' model. here we implement the iid model as described
     ## in inla.doc("iid"), without the scaling-option
 
-    interpret.theta = function(n, theta)
+    ## variables defined the in the define-call, are stored here
+    ## (which is in the path)
+    envir = environment(sys.call()[[1]]) 
+    
+    interpret.theta = function()
     {
         return (list(prec = exp(theta[1L])))
     }
 
-    graph = function(n, theta)
+    graph = function()
     {
         G = Diagonal(n, x= rep(1, n))
         return (G)
     }
 
-    Q = function(n, theta)
+    Q = function()
     {
-        prec = interpret.theta(n, theta)$prec
+        prec = interpret.theta()$prec
         Q = Diagonal(n, x= rep(prec, n))
         return (Q)
     }
 
-    mu = function(n, theta)
+    mu = function()
     {
         return (numeric(0))
     }
     
-    log.norm.const = function(n, theta)
+    log.norm.const = function()
     {
-        prec = interpret.theta(n, theta)$prec
+        prec = interpret.theta()$prec
         val = sum(dnorm(rep(0, n), sd = 1/sqrt(prec), log=TRUE))
         return (val)
     }
 
-    log.prior = function(n, theta)
+    log.prior = function()
     {
-        prec = interpret.theta(n, theta)$prec
+        prec = interpret.theta()$prec
         val = dgamma(prec, shape = 1, rate = 1, log=TRUE) + theta[1L]
         return (val)
     }
 
-    initial = function(n, theta)
+    initial = function()
     {
         ntheta = 1
         return (rep(1, ntheta))
     }
 
-    quit = function(n, theta)
+    quit = function()
     {
         return (invisible())
     }
 
-    cmd = match.arg(cmd)
-    val = do.call(cmd, args = list(n = as.integer(args$n), theta = theta))
+    ## if theta is not required, it is not set. we set it here, for convenience.
+    if (is.null(theta))
+        theta = initial()
+    
+    val = do.call(match.arg(cmd), args = list())
     return (val)
 }
 
-`inla.rgeneric.define` = function(model = NULL, debug = FALSE, R.init = NULL, ...)
+`inla.rgeneric.define` = function(model = NULL, debug = FALSE, ...)
 {
     stopifnot(!missing(model))
+    args = list(...)
+    if (any(names(args) == "")) {
+        stop("The '...' argument in 'inla.rgeneric.define()' needs *named* arguments.")
+    }
+    env = if (length(args) > 0) as.environment(args) else new.env()
+    parent.env(env) = .GlobalEnv
+    environment(model) = env
+    
     rmodel = list(
         f = list(
             model = "rgeneric", 
             rgeneric = list(
                 definition = model,
-                debug = debug, 
-                args = list(...), 
-                R.init = R.init
+                debug = debug
                 )
             )
         )
@@ -252,8 +277,7 @@
 
 `inla.rgeneric.wrapper` = function(
     cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
-    model,
-    theta = NULL)
+    model, theta = NULL)
 {
     debug.cat = function(...) {
         if (debug)
@@ -275,7 +299,7 @@
 
     result = NULL
     cmd = match.arg(cmd)
-    res = do.call(model$definition, args = list(cmd = cmd, theta = theta, args = model$args))
+    res = do.call(model$definition, args = list(cmd = cmd, theta = theta))
     if (cmd %in% "Q") {
         Q = inla.as.sparse(res)
         debug.cat("dim(Q)", dim(Q))

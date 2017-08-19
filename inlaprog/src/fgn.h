@@ -44,11 +44,9 @@ __BEGIN_DECLS
  *
  */
 #include "inla.h"
-
 #define FGN_KMAX (6L)					       /* maximum K in the tables */
-
 //
-typedef struct {
+    typedef struct {
 	int N;						       /* total size = (k+1)*n */
 	int n;						       /* size of each component */
 	int k;						       /* number of components */
@@ -60,7 +58,7 @@ typedef struct {
 
 int inla_make_fgn_graph(GMRFLib_graph_tp ** graph, inla_fgn_arg_tp * def);
 double Qfunc_fgn(int i, int j, void *arg);
-int inla_fng_get(double *phi, double *w, double H_intern, int k);
+int inla_fgn_get(double *phi, double *w, double H_intern, int k);
 double priorfunc_fgn_priorH(double *H_intern, double *param);
 
 __END_DECLS

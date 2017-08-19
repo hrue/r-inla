@@ -66,7 +66,7 @@
     ##:EXTRA: 
     ##:NAME: control.group
     list(
-        ##:ARGUMENT: model Group model (one of 'exchangable', 'exchangablepos', 'ar1',  'ar', 'rw1', 'rw2', 'besag', or 'I')
+        ##:ARGUMENT: model Group model (one of 'exchangable', 'exchangablepos', 'ar1',  'ar', 'rw1', 'rw2', 'besag', or 'iid')
         model = "exchangeable",
         
         ##:ARGUMENT: order Defines the \code{order} of the model: for model \code{ar} this defines the order p, in AR(p). Not used for other models at the time being.
@@ -170,7 +170,7 @@
 `inla.set.f.default` =
     function(...)
 {
-    list(diagonal = .Machine$double.eps^0.3833) ## almost 1e-6 on my computer
+    list(diagonal = .Machine$double.eps^0.319) ## almost 1e-5 on my computer
 }
 
 
@@ -275,15 +275,6 @@
         ##:ARGUMENT: link (OBSOLETE! Use \code{control.link=list(model=)} instead.) The link function to use.
         link= "default",
 
-        ##:ARGUMENT: alpha The parameter 'alpha' for the asymmetric Laplace likelihood  (default 0.5)
-        alpha=0.5,
-
-        ##:ARGUMENT: epsilon The parameter 'epsilon' for the asymmetric Laplace likelihood (default 0.01)
-        epsilon = 0.01,
-
-        ##:ARGUMENT: gamma The parameter 'gamma' for the asymmetric Laplace likelihood (default 1.0)
-        gamma = 1.0,
-
         ##:ARGUMENT: sn.shape.max Maximum value for the shape-parameter for Skew Normal observations
         sn.shape.max = 5.0,
 
@@ -292,6 +283,9 @@
 
         ##:ARGUMENT: cenpoisson.I The censoring interval for the censored Poisson
         cenpoisson.I = c(-1L, -1L),
+
+        ##:ARGUMENT: quantile The quantile to be used for the quantile parameterised likelihoods (default 0.5)
+        quantile = 0.5, 
 
         ##:ARGUMENT: variant This variable is used to give options for various variants of the likelihood,  like chosing different parameterisations for example. See the relevant likelihood documentations for options (does only apply to some likelihoods).
         variant = 0L,
@@ -358,15 +352,18 @@
         ##:ARGUMENT: strategy  Character The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default) or 'laplace'
         strategy="simplified.laplace",
 
-        ##:ARGUMENT: int.strategy  Character The integration strategy to use; one of 'auto' (default),  'ccd', 'grid' or 'eb' (empirical bayes)
+        ##:ARGUMENT: int.strategy  Character The integration strategy to use; one of 'auto' (default),  'ccd', 'grid', 'eb' (empirical bayes),  'user' or 'user.std'
         int.strategy="auto",
+
+        ##:ARGUMENT: int.design  Matrix Matrix of user-defined integration points and weights. Each row consists theta values and the integration weight. (EXPERIMENTAL!)
+        int.design=NULL,
 
         ##:ARGUMENT: interpolator  Character The interpolator used to compute the marginals for the hyperparameters. One of 'auto', 'nearest', 'quadratic', 'weighted.distance', 'ccd', 'ccdintegrate', 'gridsum', 'gaussian'. Default is 'auto'.
         interpolator="auto",
 
         ##:ARGUMENT: fast Logical If TRUE, then replace conditional modes in the Laplace approximation with conditional expectation (default TRUE)
         fast = TRUE,
-            
+
         ##:ARGUMENT: linear.correction Logical Default TRUE for the 'strategy = laplace' option.
         linear.correction=NULL,
 
@@ -376,8 +373,8 @@
         ##:ARGUMENT: dz Numerical The step-length in the standarised scale for the integration of the hyperparameters. Default 0.75.
         dz=0.75,
 
-        ##:ARGUMENT: diff.logdens Numerical The difference of the log.density for the hyperpameters to stop numerical integration using int.strategy='grid'. Default 4.
-        diff.logdens=4,
+        ##:ARGUMENT: diff.logdens Numerical The difference of the log.density for the hyperpameters to stop numerical integration using int.strategy='grid'. Default 6.
+        diff.logdens=6,
 
         ##:ARGUMENT: print.joint.hyper Logical If TRUE, the store also the joint distribution of the hyperparameters (without any costs). Default TRUE.
         print.joint.hyper=TRUE,
@@ -613,6 +610,9 @@
 
         ##:ARGUMENT: constr A boolean variable; shall the  'model' be constrained to sum to zero?
         constr = TRUE,
+
+        ##:ARGUMENT: diagonal An extra constant added to the diagonal of the precision matrix
+        diagonal = NULL,
 
         ##:ARGUMENT: n.intervals Number of intervals in the baseline hazard. (Default 15)
         n.intervals = 15,
