@@ -1,0 +1,76 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{The Kumaraswamy distribution}
+
+\subsection*{Parametrisation}
+
+The Kumaraswamy distribution is
+\begin{displaymath}
+    f(y) = \alpha \beta y^{\alpha-1}(1-y^{\alpha})^{\beta-1}
+\end{displaymath}
+for $0<y<1$ and $\alpha, \beta > 0$. The cummulative distribution
+function is
+\begin{displaymath}
+    F(y) = 1-(1-y^{\alpha})^{\beta}.
+\end{displaymath}
+The parametrisation is given in terms of the quantile function
+\begin{displaymath}
+    \kappa(q) = \left(1-(1-q)^{1/\beta}\right)^{1/\alpha}
+\end{displaymath}
+and the precision parameter $\phi$,
+\begin{displaymath}
+    \phi(q) = -\ln\left(1-(1-q)^{1/\beta}\right)
+\end{displaymath}
+for \emph{fixed} value of $0<q<1$.
+
+\subsection*{Link-function}
+
+The quantile $\kappa$ to the linear predictor by
+\begin{displaymath}
+    \text{logit}(\kappa) = \eta
+\end{displaymath}
+using the default logit link-function. 
+
+\subsection*{Hyperparameters}
+
+The hyperparameter is
+\begin{displaymath}
+    \theta = log(\phi)
+\end{displaymath}
+and the prior is given for $\theta$.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{qkumar}$
+\item Required arguments: $y$ and the quantile $q$. 
+\end{itemize}
+The quantile is given as \texttt{control.family=list(quantile=$q$)}.
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/qkumar.tex}
+
+
+
+\subsection*{Example}
+
+\verbatiminput{example-qkumar.R}
+
+\subsection*{Notes}
+
+None.
+
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

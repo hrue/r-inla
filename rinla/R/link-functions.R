@@ -1,14 +1,19 @@
-## Export: inla.link.log inla.link.invlog inla.link.logit inla.link.invlogit inla.link.probit
+## Export: inla.link.log inla.link.invlog
+## Export: inla.link.neglog inla.link.invneglog
+## Export: inla.link.logit inla.link.invlogit inla.link.probit
 ## Export: inla.link.invprobit inla.link.cloglog inla.link.invcloglog 
 ## Export: inla.link.loglog inla.link.invloglog inla.link.tan inla.link.invtan
 ## Export: inla.link.identity inla.link.invidentity inla.link.invalid
 ## Export: inla.link.cauchit inla.link.invcauchit
+## Export: inla.link.inverse inla.link.invinverse
 
 ##! \name{link}
 ##! \alias{link}
 ##! \alias{inla.link}
 ##! \alias{inla.link.log}
 ##! \alias{inla.link.invlog}
+##! \alias{inla.link.neglog}
+##! \alias{inla.link.invneglog}
 ##! \alias{inla.link.logit}
 ##! \alias{inla.link.invlogit}
 ##! \alias{inla.link.probit}
@@ -25,6 +30,8 @@
 ##! \alias{inla.link.invinvalid}
 ##! \alias{inla.link.cauchit}
 ##! \alias{inla.link.invcauchit}
+##! \alias{inla.link.inverse}
+##! \alias{inla.link.invinverse}
 ##! 
 ##! \title{Link functions in INLA}
 ##! 
@@ -33,6 +40,8 @@
 ##! \usage{
 ##! inla.link.log(x, inverse=FALSE)
 ##! inla.link.invlog(x, inverse=FALSE)
+##! inla.link.neglog(x, inverse=FALSE)
+##! inla.link.invneglog(x, inverse=FALSE)
 ##! inla.link.logit(x, inverse=FALSE)
 ##! inla.link.invlogit(x, inverse=FALSE)
 ##! inla.link.probit(x, inverse=FALSE)
@@ -47,6 +56,8 @@
 ##! inla.link.invcauchit(x, inverse=FALSE)
 ##! inla.link.identity(x, inverse=FALSE)
 ##! inla.link.invidentity(x, inverse=FALSE)
+##! inla.link.inverse(x, inverse=FALSE)
+##! inla.link.invinverse(x, inverse=FALSE)
 ##! inla.link.invalid(x, inverse=FALSE)
 ##! inla.link.invinvalid(x, inverse=FALSE)
 ##! }
@@ -62,7 +73,7 @@
 ##!       \code{inla.link.invlog(x) = inla.link.log(x, inverse=TRUE)}
 ##!       and so on,  but they are simpler to use a arguments
 ##!       to other functions.}
-##! \author{Havard Rue \email{hrue@math.ntnu.no}}
+##! \author{Havard Rue \email{hrue@r-inla.org}}
 
 `inla.link.cauchit` = function(x, inverse = FALSE)
 {
@@ -89,6 +100,19 @@
 `inla.link.invlog` = function(x, inverse = FALSE)
 {
     return (inla.link.log(x, inverse = !inverse))
+}
+
+`inla.link.neglog` = function(x, inverse = FALSE)
+{
+    if (!inverse) {
+        return (-log(x))
+    } else {
+        return (exp(-x))
+    }
+}
+`inla.link.invneglog` = function(x, inverse = FALSE)
+{
+    return (inla.link.neglog(x, inverse = !inverse))
 }
 
 `inla.link.logit` = function(x, inverse = FALSE)
@@ -165,8 +189,17 @@
     return (x)
 }
 
+`inla.link.inverse` = function(x, inverse = FALSE)
+{
+    return (1/x)
+}
+`inla.link.invinverse` = function(x, inverse = FALSE)
+{
+    return (1/x)
+}
 
-## These are the invalid ones
+
+## These are the invalid one
 `inla.link.invalid` = function(x, inverse = FALSE)
 {
     stop("The invalid link-function is used.")

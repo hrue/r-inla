@@ -1,43 +1,16 @@
+##Code for Exponential Model 
+data=read.table("Kidney-infec.txt", header = T)
 
-
- Code for Exponential Model 
-
- #Load the data set
- data=read.table("Kidney-infec.txt", header = T)
-
- #The routines in R-INLA work with objects of class "inla.surv", which is a data structure that   
- #combines times, censoring and truncation information
- #Here we have right censored data and thus the time is represented in this way 
-
-  inla.surv(data$time, data$event)
+## The routines in R-INLA work with objects of class "inla.surv",
+## which is a data structure that combines times, censoring and
+## truncation information Here we have right censored data and thus
+## the time is represented in this way
+inla.surv(data$time, data$event)
+formula = inla.surv(time, event) ~ placement
+model = inla(formula,family="exponentialsurv", data= data, verbose=TRUE)
  
- #The formula for the model
-  
- formula = inla.surv(time, event) ~ placement
- 
- #The prior assume for intercept and regression coefficient are same as by default
- #Exponential model is given by
-  
- model=inla(formula,family="exponential", data= data, verbose=TRUE)
- 
-
- Code for Weibull Model example
-
- #Load the data set
- data=read.table("Kideny-infec.txt", header = T)
-
- #The routines in R-INLA work with objects of class "inla.surv", which is a data structure that   
- #combines times, censoring and truncation information
- #Here we have right censored data and thus the time is represented in this way 
-
-  inla.surv(data$time, data$event)
- 
- #The formula for the model
-  
- formula = inla.surv(time, event) ~ placement
- 
- #The prior assume for intercept and regression coefficient and for the shape parameter are  
- #same as by default,so no need to mention about them in model
- #The weibull model is given by
-  
- model=inla(formula,family="weibull", data= data, verbose=TRUE )
+## Code for Weibull Model example
+data=read.table("Kideny-infec.txt", header = T)
+inla.surv(data$time, data$event)
+formula = inla.surv(time, event) ~ placement
+model = inla(formula,family="weibullsurv", data= data, verbose=TRUE )

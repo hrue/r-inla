@@ -44,6 +44,11 @@ inla.set.hyper = function(
     }
 
     if (nhyper == 0L) {
+        if (!is.null(hyper) && !identical(hyper,  list())) {
+            stop(inla.paste(c("Model", model, "[", section,
+                              "], has none hyperparameters, but 'hyper' is ",
+                              inla.paste(list(hyper))), sep = " "))
+        }
         if (!is.null(initial) && length(initial) > 0L) {
             stop(inla.paste(c("Model", model, "[", section, "], has none hyperparameters, but 'initial' is ",
                               initial), sep=" "))

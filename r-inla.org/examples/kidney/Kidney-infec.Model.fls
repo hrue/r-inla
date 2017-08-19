@@ -1,6 +1,7 @@
-PWD /home/hrue/p/inla/google-code/inla/r-inla.org/examples/kidney
+PWD /home/hrue/p/inla/r-inla/r-inla.org/examples/kidney
 INPUT /usr/share/texlive/texmf-dist/web2c/texmf.cnf
-INPUT /usr/share/texlive/texmf-var/web2c/pdftex/pdflatex.fmt
+INPUT /usr/share/texlive/texmf-dist/web2c/texmf.cnf
+INPUT /home/hrue/.cache/texlive/texmf-var/web2c/pdftex/pdflatex.fmt
 INPUT Kidney-infec.Model.tex
 OUTPUT Kidney-infec.Model.log
 INPUT /usr/share/texlive/texmf-dist/tex/latex/base/article.cls
@@ -25,6 +26,7 @@ INPUT /usr/share/texlive/texmf-dist/tex/latex/pgf/basiclayer/pgf.sty
 INPUT /usr/share/texlive/texmf-dist/tex/latex/pgf/utilities/pgfrcs.sty
 INPUT /usr/share/texlive/texmf-dist/tex/latex/pgf/utilities/pgfrcs.sty
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/utilities/pgfutil-common.tex
+INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/utilities/pgfutil-common-lists.tex
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/utilities/pgfutil-latex.def
 INPUT /usr/share/texlive/texmf-dist/tex/latex/ms/everyshi.sty
 INPUT /usr/share/texlive/texmf-dist/tex/latex/ms/everyshi.sty
@@ -38,10 +40,10 @@ INPUT /usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
 INPUT /usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
 INPUT /usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty
 INPUT /usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty
-INPUT /usr/share/texlive/texmf-dist/tex/latex/latexconfig/graphics.cfg
-INPUT /usr/share/texlive/texmf-dist/tex/latex/latexconfig/graphics.cfg
-INPUT /usr/share/texlive/texmf-dist/tex/latex/pdftex-def/pdftex.def
-INPUT /usr/share/texlive/texmf-dist/tex/latex/pdftex-def/pdftex.def
+INPUT /usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+INPUT /usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+INPUT /usr/share/texlive/texmf-dist/tex/latex/graphics-def/pdftex.def
+INPUT /usr/share/texlive/texmf-dist/tex/latex/graphics-def/pdftex.def
 INPUT /usr/share/texlive/texmf-dist/tex/generic/oberdiek/infwarerr.sty
 INPUT /usr/share/texlive/texmf-dist/tex/generic/oberdiek/infwarerr.sty
 INPUT /usr/share/texlive/texmf-dist/tex/generic/oberdiek/ltxcmds.sty
@@ -62,8 +64,8 @@ INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/systemlayer/pgfsysprotocol.c
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/systemlayer/pgfsysprotocol.code.tex
 INPUT /usr/share/texlive/texmf-dist/tex/latex/xcolor/xcolor.sty
 INPUT /usr/share/texlive/texmf-dist/tex/latex/xcolor/xcolor.sty
-INPUT /usr/share/texlive/texmf-dist/tex/latex/latexconfig/color.cfg
-INPUT /usr/share/texlive/texmf-dist/tex/latex/latexconfig/color.cfg
+INPUT /usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/color.cfg
+INPUT /usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/color.cfg
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/basiclayer/pgfcore.code.tex
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/basiclayer/pgfcore.code.tex
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex
@@ -78,6 +80,7 @@ INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.compar
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.base.code.tex
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.round.code.tex
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.misc.code.tex
+INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.integerarithmetics.code.tex
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfloat.code.tex
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepoints.code.tex
 INPUT /usr/share/texlive/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathconstruct.code.tex
@@ -135,8 +138,8 @@ OUTPUT Kidney-infec.Model.aux
 INPUT /usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1ptm.fd
 INPUT /usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1ptm.fd
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/adobe/times/ptmr7t.tfm
-INPUT /usr/share/texlive/texmf-dist/tex/context/base/supp-pdf.mkii
-INPUT /usr/share/texlive/texmf-dist/tex/context/base/supp-pdf.mkii
+INPUT /usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+INPUT /usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 INPUT /usr/share/texlive/texmf-dist/tex/generic/oberdiek/pdftexcmds.sty
 INPUT /usr/share/texlive/texmf-dist/tex/generic/oberdiek/pdftexcmds.sty
 INPUT /usr/share/texlive/texmf-dist/tex/generic/oberdiek/ifluatex.sty

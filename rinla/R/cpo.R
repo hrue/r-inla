@@ -36,7 +36,7 @@
     ##!\value{
     ##!The object returned is the same as  \code{result} but the
     ##!new improved estimates of the CPO/PIT values replaced.}
-    ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+    ##!\author{Havard Rue \email{hrue@r-inla.org}}
     ##!\examples{
     ##!n = 10
     ##!y = rnorm(n)

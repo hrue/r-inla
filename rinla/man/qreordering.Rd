@@ -23,7 +23,7 @@
   \code{inla.qreordering} returns a list with the name of the reordering algorithm used or found, the reordering code for the reordering algorithm,
                           the actual reordering and its inverse.
 }
-\author{Havard Rue \email{hrue@math.ntnu.no}}
+\author{Havard Rue \email{hrue@r-inla.org}}
  
 \examples{
  g = system.file("demodata/germany.graph", package="INLA")
