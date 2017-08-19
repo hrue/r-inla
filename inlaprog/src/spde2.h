@@ -61,7 +61,7 @@ typedef struct {
 
 	int *fixed;
 	double *fixed_values;
-	
+
 	spde2_transform_tp transform;
 
 	GMRFLib_matrix_tp **B;

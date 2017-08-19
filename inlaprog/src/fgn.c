@@ -1,7 +1,7 @@
 
 /* fgn.c
  * 
- * Copyright (C) 2016 Havard Rue
+ * Copyright (C) 2016-17 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -81,10 +81,10 @@ double Qfunc_fgn(int i, int j, void *arg)
 		phi_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
 		w_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
 		H_intern_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double);
-		
-		for(int j = 0; j < ISQR(GMRFLib_MAX_THREADS); j++) {
-			phi_cache[j] = Calloc(2*FGN_KMAX-1, double);
-			w_cache[j] = Calloc(2*FGN_KMAX-1, double);
+
+		for (int j = 0; j < ISQR(GMRFLib_MAX_THREADS); j++) {
+			phi_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
+			w_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
 		}
 		if (debug) {
 			printf("Qfunc_fgn: initialize cache\n");
@@ -95,7 +95,7 @@ double Qfunc_fgn(int i, int j, void *arg)
 	inla_fgn_arg_tp *a = (inla_fgn_arg_tp *) arg;
 	double H_intern, prec, val = 0.0, *phi, *w;
 	int id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
-	
+
 	phi = phi_cache[id];
 	w = w_cache[id];
 
@@ -103,10 +103,10 @@ double Qfunc_fgn(int i, int j, void *arg)
 	prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
 	if (!ISEQUAL(H_intern, H_intern_cache[id])) {
-		if (debug){
+		if (debug) {
 			printf("Qfunc_fgn: update cache H_intern[%1d]= %f\n", id, H_intern);
 		}
-		inla_fng_get(phi, w, H_intern, a->k);
+		inla_fgn_get(phi, w, H_intern, a->k);
 		H_intern_cache[id] = H_intern;
 		if (debug) {
 			for (int k = 0; k < a->k; k++)
@@ -126,87 +126,58 @@ double Qfunc_fgn(int i, int j, void *arg)
 		if (ii.quot == jj.quot) {
 			// this is the AR1
 			double prec_cond = 1.0 / (1.0 - SQR(phi[ii.quot - 1L]));
-			double scale = prec / w[ii.quot -1L];
+			double scale = prec / w[ii.quot - 1L];
 			if (ii.rem != jj.rem) {
 				// off-diagonal
-				val = - scale * prec_cond * phi[ii.quot - 1L];
+				val = -scale * prec_cond * phi[ii.quot - 1L];
 			} else {
 				// diagonal
-				val = scale * prec_cond * ((ii.rem == 0 || ii.rem == a->n - 1L) ? 1.0 : (1.0 + SQR(phi[ii.quot - 1L])));
+				val =
+				    scale * prec_cond *
+				    ((ii.rem == 0 || ii.rem == a->n - 1L) ? 1.0 : (1.0 + SQR(phi[ii.quot - 1L])));
 				val += a->prec_eps;
 			}
 		} else {
 			val = a->prec_eps;
 		}
 	}
-	
+
 	return val;
 }
 
-int inla_fng_get(double *phi, double *w, double H_intern, int k)
+int inla_fgn_get(double *phi, double *w, double H_intern, int k)
 {
 	// fill in the weights and the phis for a given H_intern
-#include "fgn-tables.h"
-
-	int idx, i, len_par;
-	double weight, tmp;
-
-	assert(k == K);
-	// make sure its in the range. Hack...
-	H_intern = DMAX(H_intern, H_intern_start + H_intern_by);
-	H_intern = DMIN(H_intern, H_intern_end - H_intern_by);
-
-	assert(H_intern >= H_intern_start && H_intern <= H_intern_end);
-	idx = (int) floor((H_intern - H_intern_start) / H_intern_by);	       /* idx is the block-index */
-	weight = (H_intern - (H_intern_start + idx * H_intern_by)) / H_intern_by;
-	len_par = 2 * K - 1;
-	idx *= len_par;					       /* and now the index in the table */
-
-	double *fit_par = Calloc(len_par, double);
-	for (i = 0; i < len_par; i++) {
-		fit_par[i] = (1.0 - weight) * param[idx + i] + weight * param[idx + len_par + i];
+	if (k == 3) {
+#include "fgn-tables-3.h"
+#include "fgn-code.h"
+	} else if (k == 4) {
+#include "fgn-tables-4.h"
+#include "fgn-code.h"
+	} else {
+		GMRFLib_ASSERT(k == 3 || k == 4, GMRFLib_EPARAMETER);
 	}
-
-	// the first K are phi
-	for (i = 0, tmp = 0.0; i < K; i++) {
-		tmp += exp(-fit_par[i]);
-		phi[i] = 1.0 / (1.0 + tmp);
-	}
-
-	// the remaining K-1 are the weights
-	double psum, *par = Calloc(len_par, double);
-	par[0] = psum = 1;
-	for (i = 1; i < K; i++) {
-		par[i] = exp(fit_par[K + (i - 1)]);
-		psum += par[i];
-	}
-	for (i = 0; i < K; i++) {
-		w[i] = par[i] / psum;
-	}
-
-	Free(fit_par);
-	Free(par);
-
-	return GMRFLib_SUCCESS;
+	abort();
 }
 
-double priorfunc_fgn_priorH(double *H_intern, double *param) 
+double priorfunc_fgn_priorH(double *H_intern, double *param)
 {
 	// return the log-prior for H_intern
 	double lprior;
 #include "fgn-prior-tables.h"
-#pragma omp critical 
+#pragma omp critical
 	{
 		static GMRFLib_spline_tp *dist_spline = NULL;
 		if (!dist_spline) {
-			dist_spline = inla_spline_create(H_int, Dist, sizeof(H_int)/sizeof(double));
+			dist_spline = inla_spline_create(H_int, Dist, sizeof(H_int) / sizeof(double));
 		}
 
 		double U_intern, lambda;
 		U_intern = map_H(param[0], MAP_BACKWARD, NULL);
-		lambda = -log(param[1])/inla_spline_eval(U_intern, dist_spline);
-		lprior = log(lambda) - lambda * inla_spline_eval(*H_intern, dist_spline) + 
-			log(fabs(inla_spline_eval_deriv(*H_intern, dist_spline)));
+		lambda = -log(param[1]) / inla_spline_eval(U_intern, dist_spline);
+		lprior = log(lambda) - lambda * inla_spline_eval(*H_intern, dist_spline) +
+		    log(fabs(inla_spline_eval_deriv(*H_intern, dist_spline)));
+
 		if (0) {
 			P(*H_intern);
 			P(lambda);

@@ -330,7 +330,7 @@
     ##!prior model is proper, plus the number of extra
     ##!constraints. \bold{Oops:} This can be wrong, and then the user
     ##!must define the \code{rankdef} explicitely.}
-    ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+    ##!\author{Havard Rue \email{hrue@r-inla.org}}
     ##!\seealso{\code{\link{inla}}, \code{\link{hyperpar.inla}}}
 
     ## this is required. the hyper.defaults can only be changed in the
@@ -816,6 +816,21 @@
         }
     }
 
+    if (!missing(scale.model) && !inla.one.of(model, c("rw1", "rw2", "besag", "bym", "bym2", "besag2", "rw2d", "rw2diid"))) {
+        stop(paste("Option 'scale.model' is not used for model:", model))
+    }
+    if (missing(scale.model) || is.null(scale.model)) {
+        ## must doit like this otherwise we run into problems when
+        ## compiling the package
+        scale.model = inla.getOption("scale.model.default")
+        if (inla.one.of(model, c("bym2", "rw2diid"))) {
+            scale.model = TRUE
+        }
+    }
+    if (inla.one.of(model, c("bym2", "rw2diid")) && !scale.model) {
+        stop("Model 'bym2' and 'rw2diid' require scale.model=TRUE or 'missing(scale.model)'")
+    }
+
     if (inla.one.of(model, c("besag", "besag2", "bym", "bym2"))) {
         ## this is a somewhat complicated case
         g = inla.read.graph(graph)
@@ -823,19 +838,21 @@
         cc.n1 = sum(cc.n == 1L)
         cc.n2 = sum(cc.n >= 2L)
 
+        if (is.null(rankdef)) {
+            if (scale.model) {
+                rankdef = cc.n2
+            } else {
+                rankdef = cc.n2 + cc.n1
+            }
+            if (!(empty.extraconstr(extraconstr))) {
+                rankdef = rankdef + dim(extraconstr$A)[1]
+            }
+        }
+            
         if (adjust.for.con.comp) {
-            ## we need to check if the graph contains more than 1 connected components. If so,
-            ## we need to modify the meaning of constr=TRUE, and set the correct value of
-            ## rankdef.
+            ## we need to check if the graph contains more than 1 connected components. 
             if (g$cc$n == 1) {
-                ## the whole graph is just one connected component. all is fine
-                if (is.null(rankdef)) {
-                    rankdef = 0
-                    if (constr)
-                        rankdef = rankdef + 1
-                    if (!empty.extraconstr(extraconstr))
-                        rankdef = rankdef + dim(extraconstr$A)[1]
-                }
+                ## nothing to do 
             } else {
                 if (debug) {
                     print(paste("modify model", model))
@@ -889,20 +906,6 @@
                         stop("The option 'adjust.for.con.comp' is only used for models 'besag', 'besag2', 'bym' and 'bym2'.")
                     }
                 }
-
-                ## set correct rankdef if not set already
-                if (is.null(rankdef)) {
-                    if (!scale.model) {
-                        rankdef = cc.n1
-                        if (!empty.extraconstr(extraconstr))
-                            rankdef = rankdef + dim(extraconstr$A)[1]
-                    } else {
-                        rankdef = 0
-                        if (!empty.extraconstr(extraconstr))
-                            rankdef = dim(extraconstr$A)[1]
-                    }
-                }
-
                 if (is.null(diagonal)) {
                     diagonal = inla.set.f.default()$diagonal
                     if (debug) {
@@ -911,20 +914,7 @@
                 }
             }
         } else {
-            ## adjust.for.con.comp == FALSE
-            if (is.null(rankdef)) {
-                rankdef = 0
-                if (scale.model) {
-                    if (constr) rankdef = rankdef + 1
-                    if (!empty.extraconstr(extraconstr)) 
-                        rankdef = rankdef + dim(extraconstr$A)[1]
-                } else {
-                    if (constr) rankdef = rankdef + 1
-                    rankdef = rankdef + cc.n1
-                    if (!empty.extraconstr(extraconstr)) 
-                        rankdef = rankdef + dim(extraconstr$A)[1]
-                }
-            }
+            ## nothing to do
         }
     }
 
@@ -938,18 +928,6 @@
         rgeneric = list(model = rgeneric, Id = vars[[1]], R.init = R.init)
     }
 
-
-    if (!missing(scale.model) && !inla.one.of(model, c("rw1", "rw2", "besag", "bym", "bym2", "besag2", "rw2d", "rw2diid"))) {
-        stop("Option 'scale.model' is only used for models RW1 and RW2 and BESAG and BYM and BYM2 andBESAG2 and RW2D and RW2DIID.")
-    }
-    if (missing(scale.model) || is.null(scale.model)) {
-        ## must doit like this otherwise we run into problems when
-        ## compiling the package
-        scale.model = inla.getOption("scale.model.default")
-        if (inla.one.of(model, c("bym2", "rw2diid"))) {
-            scale.model = TRUE
-        }
-    }
 
     ret=list(
         Cmatrix = Cmatrix,

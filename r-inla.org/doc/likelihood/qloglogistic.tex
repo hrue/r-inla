@@ -1,0 +1,84 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{The quantile log-logistics distribution}
+
+\subsection*{Parametrisation}
+
+The loglogistic distribution has cdf
+\begin{displaymath} 
+    F(y) = \frac{y^{\beta}}{\alpha^{\beta} + y^{\beta}}, \qquad y\ge
+    0, \quad \alpha, \beta > 0
+\end{displaymath}
+The quantile function is given by
+\begin{displaymath}
+    \kappa(q) = F^{-1}(q) = \alpha
+    \left(\frac{q}{1-q}\right)^{1/\beta}, \qquad 0 < q < 1.
+\end{displaymath}
+The median is $\kappa(0.5)$ and equals $\alpha$.
+We will use a quantile parameterisation. Define for fixed $q$, 
+\begin{displaymath}
+    \kappa = \alpha \left(\frac{q}{1-q}\right)^{1/\beta}
+\end{displaymath}
+and
+\begin{displaymath}
+    s = 1/\beta.
+\end{displaymath}
+Then $0<\kappa<1$ is the $q$-quantile, and $s>0$ is a scaling parameter.
+The cdf and the density are now
+\begin{displaymath}
+    F(y) = \frac{q^{*}y^{1/s}}{\kappa^{1/s} + q^{*} y^{1/s}}
+\end{displaymath}
+and 
+\begin{displaymath}
+    f(y) = \frac{q^{*} \kappa^{1/s} y^{1/s-1}}{s(\kappa^{1/s}+q^{*}y^{1/s})^{2}}
+\end{displaymath}
+where $q^{*} = q/(1-q)$.
+
+\subsection*{Link-function}
+
+The quantile $\kappa$ relates to the linear predictor,
+\begin{displaymath}
+    \log(\kappa) = \eta
+\end{displaymath}
+using the default log link-function.
+
+\subsection*{Hyperparameters}
+
+The hyperparameter is
+\begin{displaymath}
+    \theta = \log(s)
+\end{displaymath}
+and the prior is given for $\theta$.
+
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{qloglogistic}$
+\item Required arguments: Observations $y$ and the value of $q$.
+\end{itemize}
+The quantile is given as \texttt{control.family=list(quantile=$q$)}.
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/qloglogistic.tex}
+
+\subsection*{Example}
+
+\verbatiminput{example-qloglogistic.R}
+
+\subsection*{Notes}
+
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
