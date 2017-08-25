@@ -509,7 +509,7 @@
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = TRUE,
-                     aug.factor = 4L,
+                     aug.factor = 5L,
                      aug.constr = 1L,
                      n.div.by = NULL,
                      n.required = FALSE,
