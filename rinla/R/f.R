@@ -530,7 +530,6 @@
     }
     if (inla.one.of(model, "fgn")) {
         if (is.null(order) || missing(order)) {
-            ## which is 3L for the moment
             order = inla.models()$latent$fgn$order.default
         } else {
             order = as.integer(order)
