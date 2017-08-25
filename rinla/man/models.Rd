@@ -617,7 +617,7 @@ inla.models()
 								\item{n.div.by = }{`NULL'}
 								\item{n.required = }{`FALSE'}
 								\item{set.default.values = }{`TRUE'}
-								\item{order.default = }{`3'}
+								\item{order.default = }{`4'}
 								\item{order.defined = }{`3 4'}
 								\item{pdf = }{`fgn'}
 							 }
