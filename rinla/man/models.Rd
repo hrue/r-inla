@@ -612,7 +612,7 @@ inla.models()
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`TRUE'}
-								\item{aug.factor = }{`4'}
+								\item{aug.factor = }{`5'}
 								\item{aug.constr = }{`1'}
 								\item{n.div.by = }{`NULL'}
 								\item{n.required = }{`FALSE'}
