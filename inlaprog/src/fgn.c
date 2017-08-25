@@ -93,7 +93,7 @@ double Qfunc_fgn(int i, int j, void *arg)
 	}
 
 	inla_fgn_arg_tp *a = (inla_fgn_arg_tp *) arg;
-	double H_intern, prec, val = 0.0, *phi, *w;
+	double H_intern, prec, val = 0.0, *phi, *w, kappa;
 	int id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
 
 	phi = phi_cache[id];
@@ -101,7 +101,8 @@ double Qfunc_fgn(int i, int j, void *arg)
 
 	H_intern = a->H_intern[GMRFLib_thread_id][0];
 	prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-
+	kappa = a->prec_eps * prec;
+	
 	if (!ISEQUAL(H_intern, H_intern_cache[id])) {
 		if (debug) {
 			printf("Qfunc_fgn: update cache H_intern[%1d]= %f\n", id, H_intern);
@@ -121,7 +122,7 @@ double Qfunc_fgn(int i, int j, void *arg)
 	// the x^i's are the scaled AR1's, and the FGN is then just the sum of the
 	// components.
 	if (ii.quot == 0) {
-		val = a->prec_eps * (jj.quot == 0 ? 1.0 : -1.0);
+		val = kappa * (jj.quot == 0 ? 1.0 : -1.0);
 	} else {
 		if (ii.quot == jj.quot) {
 			// this is the AR1
@@ -135,10 +136,10 @@ double Qfunc_fgn(int i, int j, void *arg)
 				val =
 				    scale * prec_cond *
 				    ((ii.rem == 0 || ii.rem == a->n - 1L) ? 1.0 : (1.0 + SQR(phi[ii.quot - 1L])));
-				val += a->prec_eps;
+				val += kappa;
 			}
 		} else {
-			val = a->prec_eps;
+			val = kappa;
 		}
 	}
 
