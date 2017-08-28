@@ -62,6 +62,28 @@ int GMRFLib_sprintf(char **ptr, const char *fmt, ...);
 #include "R-interface.h"
 static int R_init = 1;
 static int R_debug = 0;
+static int R_busy = 0;
+
+#define CHECK_IN if (1) {			\
+	while(R_busy) delay(100);		\
+	R_busy = 1;				\
+	}
+#define CHECK_OUT R_busy=0
+#define ONE_AT_THE_TIME(expr) CHECK_IN;		\
+	{ expr };				\
+	CHECK_OUT
+
+// this function is from http://c-for-dummies.com/blog/?p=69
+void delay(int milliseconds);
+void delay(int milliseconds)
+{
+	long pause;
+	clock_t now,then;
+	pause = milliseconds*(CLOCKS_PER_SEC/1000);
+	now = then = clock();
+	while ((now-then) < pause)
+		now = clock();
+}
 
 void inla_R_exit(void)
 {
@@ -123,7 +145,7 @@ int inla_R_library(const char *library)
 	if (!library)
 		return (INLA_OK);
 	inla_R_init();
-
+	CHECK_IN;
 	SEXP e, result, yy;
 	int error;
 
@@ -137,6 +159,7 @@ int inla_R_library(const char *library)
 		exit(1);
 	}
 	UNPROTECT(3);
+	CHECK_OUT;
 
 	return (INLA_OK);
 }
@@ -146,7 +169,8 @@ int inla_R_source(const char *filename)
 	if (!filename)
 		return (INLA_OK);
 	inla_R_init();
-
+	CHECK_IN;
+	
 	SEXP e, result, yy, false, true;
 	int error;
 
@@ -162,7 +186,7 @@ int inla_R_source(const char *filename)
 		exit(1);
 	}
 	UNPROTECT(5);
-
+	CHECK_OUT;
 
 	return (INLA_OK);
 }
@@ -171,7 +195,8 @@ int inla_R_load(const char *filename)
 	if (!filename)
 		return (INLA_OK);
 	inla_R_init();
-
+	CHECK_IN;
+	
 	SEXP e, result, yy;
 	int error;
 
@@ -186,7 +211,8 @@ int inla_R_load(const char *filename)
 		exit(1);
 	}
 	UNPROTECT(3);
-
+	CHECK_OUT;
+	
 	return (INLA_OK);
 }
 
@@ -195,7 +221,8 @@ int inla_R_inlaload(const char *filename)
 	if (!filename)
 		return (INLA_OK);
 	inla_R_init();
-
+	CHECK_IN;
+	
 	SEXP e, result, yy;
 	int error;
 
@@ -210,7 +237,8 @@ int inla_R_inlaload(const char *filename)
 		exit(1);
 	}
 	UNPROTECT(3);
-
+	CHECK_OUT;
+	
 	return (INLA_OK);
 }
 
@@ -221,7 +249,8 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 	 */
 
 	inla_R_init();
-
+	CHECK_IN;
+	
 	if (R_debug)
 		fprintf(stderr, "R-interface[%1d]: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag,
 			n);
@@ -256,6 +285,8 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 	}
 
 	UNPROTECT((tag ? 4 : 3));
+	CHECK_OUT;
+	
 	return (INLA_OK);
 }
 
@@ -271,6 +302,8 @@ int inla_R_assign(const char *variable, int n, double *x)
 	 */
 
 	inla_R_init();
+	CHECK_IN;
+	
 	if (R_debug)
 		fprintf(stderr, "R-interface[%1d]: assign: [%s] n [%1d]\n", omp_get_thread_num(), variable, n);
 
@@ -289,7 +322,8 @@ int inla_R_assign(const char *variable, int n, double *x)
 		exit(1);
 	}
 	UNPROTECT(4);
-
+	CHECK_OUT;
+	
 	return (INLA_OK);
 }
 
@@ -300,6 +334,8 @@ int inla_R_get(int *n_out, double **x_out, const char *variable)
 	 */
 
 	inla_R_init();
+	CHECK_IN;
+	
 	if (R_debug)
 		fprintf(stderr, "R-interface[%1d]: get: [%s]\n", omp_get_thread_num(), variable);
 
@@ -325,7 +361,8 @@ int inla_R_get(int *n_out, double **x_out, const char *variable)
 	}
 
 	UNPROTECT(3);
-
+	CHECK_OUT;
+	
 	return (INLA_OK);
 }
 
@@ -336,6 +373,8 @@ int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *mod
 	 */
 
 	inla_R_init();
+	CHECK_IN;
+	
 	if (R_debug)
 		fprintf(stderr, "R-interface[%1d]: rgeneric: [%s] model [%s]\n", omp_get_thread_num(), cmd, model);
 
@@ -367,7 +406,8 @@ int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *mod
 	}
 
 	UNPROTECT(5);
-
+	CHECK_OUT;
+	
 	return (INLA_OK);
 }
 

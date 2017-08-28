@@ -1038,17 +1038,23 @@
         ## recall to convert to 0-based index'ing
         cat("cpo.idx = ", args$cpo.idx -1,"\n", sep = " ", file = file,  append = TRUE)
     }
-    if (!is.null(args$jp.func)) {
-        cat("jp.func = ", args$jp.func, "\n", sep = " ", file = file, append = TRUE)
-        if (!is.null(args$jp.Rfile)) {
-            fnm = inla.copy.file.for.section(args$jp.Rfile, data.dir)
-            cat("jp.Rfile = ", fnm, "\n", sep = " ", file = file,  append = TRUE)
-        }
-        if (!is.null(args$jp.RData)) {
-            fnm = inla.copy.file.for.section(args$jp.RData, data.dir)
-            cat("jp.RData = ", fnm, "\n", sep = " ", file = file,  append = TRUE)
-        }
+
+    if (!is.null(args$jp)) {
+        stopifnot(inherits(args$jp, "inla.jp"))
+        file.jp = inla.tempfile(tmpdir=data.dir)
+        ## this must be the same name as R_JP_MODEL in inla.h
+        model = ".inla.jp.model"
+        assign(model, args$jp$model)
+        ## save model, or the object that 'model' expands to
+        inla.eval(paste("save(", model,
+                        ", file = ", "\"", file.jp, "\"",
+                        ", ascii = FALSE, compress = TRUE)",  sep=""))
+        fnm = gsub(data.dir, "$inladatadir", file.jp, fixed=TRUE)
+        cat("jp.file =", fnm, "\n", file=file, append = TRUE)
+        cat("jp.model =", model, "\n", file=file, append = TRUE)
+        rm(model) ## do not need it anymore
     }
+
     if (is.null(args$disable.gaussian.check)) {
         args$disable.gaussian.check = FALSE
     }
