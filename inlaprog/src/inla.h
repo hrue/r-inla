@@ -738,9 +738,8 @@ typedef struct {
 } inla_update_tp;
 
 typedef struct {
-	char *Rfile;					       /* filename to be sourced */
-	char *RData;					       /* filename to be loaded */
-	char *func;					       /* function to be called: fun(theta) */
+	char *file;	
+	char *model;					       /* function to be called: fun(theta) */
 } inla_jp_tp;
 
 
@@ -1277,6 +1276,7 @@ typedef struct {
 
 #define R_GENERIC_MODEL ".inla.rgeneric.model"
 #define R_GENERIC_WRAPPER "inla.rgeneric.wrapper"
+#define R_JP_MODEL ".inla.jp.model"
 
 #define INLA_LITTLE_ENDIAN 1
 #define INLA_BIG_ENDIAN    2
