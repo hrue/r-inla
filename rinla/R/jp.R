@@ -1,3 +1,5 @@
+## Export: inla.jp.define
+
 ##!\name{jp.define}
 ##!\alias{jp}
 ##!\alias{jp.define}
