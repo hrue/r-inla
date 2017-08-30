@@ -1,3 +1,4 @@
+
 /* inla.c
  * 
  * Copyright (C) 2007-2017 Havard Rue
@@ -454,17 +455,17 @@ double map_inverse(double arg, map_arg_tp typ, void *param)
 		/*
 		 * extern = func(local) 
 		 */
-		return 1.0/arg;
+		return 1.0 / arg;
 	case MAP_BACKWARD:
 		/*
 		 * local = func(extern) 
 		 */
-		return 1.0/arg;
+		return 1.0 / arg;
 	case MAP_DFORWARD:
 		/*
 		 * d_extern / d_local 
 		 */
-		return -1.0/SQR(arg);
+		return -1.0 / SQR(arg);
 	case MAP_INCREASING:
 		/*
 		 * return 1.0 if montone increasing and 0.0 otherwise. assuming positive...
@@ -4724,12 +4725,12 @@ double eval_log_contpoisson(double y, double lambda)
 #define L 5
 #define LEN (R+L+2)
 	int i, istart, iy, low, high, len;
-	double work[2*LEN], *xx, *yy, lnormc, lval;
+	double work[2 * LEN], *xx, *yy, lnormc, lval;
 	GMRFLib_spline_tp *spline;
-	
+
 	lnormc = gsl_sf_lnfact((unsigned int) y);
-	low = IMAX(0, (int)y - L);
-	high = (int)y + R;
+	low = IMAX(0, (int) y - L);
+	high = (int) y + R;
 	len = high - low + 1;
 	xx = work;
 	yy = work + LEN;
@@ -4742,8 +4743,8 @@ double eval_log_contpoisson(double y, double lambda)
 	} else {
 		istart = 0;
 	}
-	
-	for(iy = low, i=istart;  iy <= high; iy++, i++) {
+
+	for (iy = low, i = istart; iy <= high; iy++, i++) {
 		xx[i] = iy + 0.5;
 		yy[i] = iy * log(lambda) - lambda - lnormc;
 	}
@@ -4752,13 +4753,13 @@ double eval_log_contpoisson(double y, double lambda)
 	inla_spline_free(spline);
 #undef L
 #undef R
-#undef LEN	
+#undef LEN
 
 	return (lval);
 }
 int loglikelihood_contpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
-	/* 
+	/*
 	 * y ~ ContPoisson(E*exp(x))
 	 */
 	if (m == 0) {
@@ -4780,7 +4781,7 @@ int loglikelihood_contpoisson(double *logll, double *x, int m, int idx, double *
 		double normc = exp(gsl_sf_lngamma(y));
 		for (i = 0; i < -m; i++) {
 			lambda = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = gsl_sf_gamma_inc(y, lambda)/normc;
+			logll[i] = gsl_sf_gamma_inc(y, lambda) / normc;
 		}
 	}
 
@@ -4789,7 +4790,7 @@ int loglikelihood_contpoisson(double *logll, double *x, int m, int idx, double *
 }
 int loglikelihood_qcontpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
-	/* 
+	/*
 	 * y ~ ContPoisson(E*exp(x)), also accept E=0, giving the likelihood y * x.  quantile version
 	 */
 	if (m == 0) {
@@ -4813,7 +4814,7 @@ int loglikelihood_qcontpoisson(double *logll, double *x, int m, int idx, double 
 		for (i = 0; i < -m; i++) {
 			q = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			lambda = E * exp(inla_spline_eval(log(q), ds->data_observations.qcontpoisson_func[id]));
-			logll[i] = gsl_sf_gamma_inc(y, lambda)/normc;
+			logll[i] = gsl_sf_gamma_inc(y, lambda) / normc;
 		}
 	}
 
@@ -6210,7 +6211,8 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 						logA = log(pzero);
 						logB = log(1.0 - pzero) + res.val + y * log(p) + (n - y) * log(1.0 - p);
 						// logll[i] = log(pzero + (1.0 - pzero) * gsl_ran_binomial_pdf((unsigned int) y, p, 
-						//                (unsigned int) n));
+						// 
+						// (unsigned int) n));
 						logll[i] = eval_logsum_safe(logA, logB);
 					}
 				}
@@ -10522,7 +10524,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_POISSON:
 		break;
-		
+
 	case L_CONTPOISSON:
 		break;
 
@@ -22060,25 +22062,18 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * joint prior?
 	 */
-	char *Rfile = NULL, *RData = NULL, *func = NULL;
+	char *file = NULL, *model = NULL;
 
-	Rfile = iniparser_getstring(ini, inla_string_join(secname, "JP.RFILE"), Rfile);
-	RData = iniparser_getstring(ini, inla_string_join(secname, "JP.RDATA"), RData);
-	func = iniparser_getstring(ini, inla_string_join(secname, "JP.FUNC"), func);
+	file = iniparser_getstring(ini, inla_string_join(secname, "JP.FILE"), file);
+	model = iniparser_getstring(ini, inla_string_join(secname, "JP.MODEL"), model);
 	if (mb->verbose) {
-		printf("\t\t\tjp.Rfile=[%s]\n", Rfile);
-		if (RData != NULL)
-			printf("\t\t\tjp.RData=[%s]\n", RData);
-		else
-			printf("\t\t\tjp.RData=NULL\n");
-		printf("\t\t\tjp.func=[%s]\n", func);
+		printf("\t\t\tjp.file=[%s]\n", file);
+		printf("\t\t\tjp.model=[%s]\n", model);
 	}
-	if (func) {
-		GMRFLib_ASSERT(Rfile, GMRFLib_EPARAMETER);
+	if (model) {
 		mb->jp = Calloc(1, inla_jp_tp);
-		mb->jp->Rfile = GMRFLib_strdup(Rfile);
-		mb->jp->RData = GMRFLib_strdup(RData);
-		mb->jp->func = GMRFLib_strdup(func);
+		mb->jp->file = GMRFLib_strdup(file);
+		mb->jp->model = GMRFLib_strdup(model);
 
 	} else {
 		mb->jp = NULL;
@@ -22281,13 +22276,8 @@ double extra(double *theta, int ntheta, void *argument)
 #pragma omp critical
 		{
 			if (jp_first_time) {
-				// Load data
-				if (mb->jp->RData != NULL)
-					inla_R_load(mb->jp->RData);
-
-				// Source file with functions
-				inla_R_source(mb->jp->Rfile);
-
+				// inla_R_library("INLA");
+				inla_R_load(mb->jp->file);
 				jp_first_time = 0;
 			}
 			assert(!(mb->update));		       /* only one at the time... */
@@ -22297,7 +22287,7 @@ double extra(double *theta, int ntheta, void *argument)
 			double *lprior = NULL;
 			int n_out;
 
-			inla_R_funcall1(&n_out, &lprior, (const char *) mb->jp->func, ntheta, theta);
+			inla_R_funcall1(&n_out, &lprior, (const char *) mb->jp->model, ntheta, theta);
 			assert(n_out == 1);
 			assert(lprior);
 			val += *lprior;
@@ -24445,7 +24435,7 @@ double extra(double *theta, int ntheta, void *argument)
 				log_prior = 0.0;
 				break;
 			case 1:
-				log_prior = xx_out[0];
+				log_prior = (evaluate_hyper_prior ? xx_out[0] : 0.0);
 				break;
 			default:
 				assert(0 == 1);
@@ -29813,15 +29803,14 @@ int testit(int argc, char **argv)
 		double x;
 		double lambda = 1.2345;
 		P(lambda);
-		for(x = 0.1; x < 10;  x += 0.1)
-		{
+		for (x = 0.1; x < 10; x += 0.1) {
 			printf("F(%g) = %.12g\n", x, gsl_sf_gamma_inc_Q(x, lambda));
-			printf("F(%g) = %.12g\n", x, gsl_sf_gamma_inc(x, lambda)/gsl_sf_gamma(x));
-			printf("F(%g) = %.12g\n", x, gsl_sf_gamma_inc(x, lambda)/exp(gsl_sf_lngamma(x)));
+			printf("F(%g) = %.12g\n", x, gsl_sf_gamma_inc(x, lambda) / gsl_sf_gamma(x));
+			printf("F(%g) = %.12g\n", x, gsl_sf_gamma_inc(x, lambda) / exp(gsl_sf_lngamma(x)));
 		}
 		exit(0);
 	}
-	
+
 
 	if (0) {
 		double lambda = 1.234;
