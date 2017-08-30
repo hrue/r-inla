@@ -624,6 +624,54 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `fgn2'.}{Number of hyperparmeters are 2.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{hyperid = }{`13101'}
+							\item{name = }{`log precision'}
+							\item{short.name = }{`prec'}
+							\item{prior = }{`pc.prec'}
+							\item{param = }{`3 0.01'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{hyperid = }{`13102'}
+							\item{name = }{`logit H'}
+							\item{short.name = }{`H'}
+							\item{prior = }{`pcfgnh'}
+							\item{param = }{`0.9 0.1'}
+							\item{initial = }{`2'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{function(x) log((2*x-1)/(2*(1-x)))}'}
+							\item{from.theta = }{`\code{function(x) 0.5 + 0.5*exp(x)/(1+exp(x))}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`Fractional Gaussian noise model (alt 2)'}
+								\item{constr = }{`FALSE'}
+								\item{nrow.ncol = }{`FALSE'}
+								\item{augmented = }{`TRUE'}
+								\item{aug.factor = }{`4'}
+								\item{aug.constr = }{`1'}
+								\item{n.div.by = }{`NULL'}
+								\item{n.required = }{`FALSE'}
+								\item{set.default.values = }{`TRUE'}
+								\item{order.default = }{`4'}
+								\item{order.defined = }{`3 4'}
+								\item{pdf = }{`fgn'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `ar1'.}{Number of hyperparmeters are 3.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
@@ -4758,8 +4806,8 @@ inla.models()
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`1 10'}
-							\item{to.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                 if (all(is.infinite(c(low, high))) || low == high) {} \code{                                     return (x)} \code{                                 } else if (all(is.finite(c(low, high)))) {} \code{                                     stopifnot(low < high)} \code{                                     return (log( - (low - x)/(high -x)))} \code{                                 } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                     return (log(x-low))} \code{                                 } else {} \code{                                     stop("Condition not yet implemented")} \code{                                 }} \code{                             }}'}
-							\item{from.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                 if (all(is.infinite(c(low, high))) || low == high) {} \code{                                     return (x)} \code{                                 } else if (all(is.finite(c(low, high)))) {} \code{                                     stopifnot(low < high)} \code{                                     return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                                 } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                     return (low + exp(x))} \code{                                 } else {} \code{                                     stop("Condition not yet implemented")} \code{                                 }} \code{                             }}'}
+							\item{to.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                             if (all(is.infinite(c(low, high))) || low == high) {} \code{                                 return (x)} \code{                             } else if (all(is.finite(c(low, high)))) {} \code{                                 stopifnot(low < high)} \code{                                 return (log( - (low - x)/(high -x)))} \code{                             } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                 return (log(x-low))} \code{                             } else {} \code{                                 stop("Condition not yet implemented")} \code{                             }} \code{                         }}'}
+							\item{from.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                             if (all(is.infinite(c(low, high))) || low == high) {} \code{                                 return (x)} \code{                             } else if (all(is.finite(c(low, high)))) {} \code{                                 stopifnot(low < high)} \code{                                 return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                             } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                 return (low + exp(x))} \code{                             } else {} \code{                                 stop("Condition not yet implemented")} \code{                             }} \code{                         }}'}
 							}
 						}
 					 }
@@ -4791,8 +4839,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`1 10'}
-							\item{to.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                 if (all(is.infinite(c(low, high))) || low == high) {} \code{                                     stopifnot(low < high)} \code{                                     return (x)} \code{                                 } else if (all(is.finite(c(low, high)))) {} \code{                                     stopifnot(low < high)} \code{                                     return (log( - (low - x)/(high -x)))} \code{                                 } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                     return (log(x-low))} \code{                                 } else {} \code{                                     stop("Condition not yet implemented")} \code{                                 }} \code{                             }}'}
-							\item{from.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                 if (all(is.infinite(c(low, high))) || low == high) {} \code{                                     stopifnot(low < high)} \code{                                     return (x)} \code{                                 } else if (all(is.finite(c(low, high)))) {} \code{                                     stopifnot(low < high)} \code{                                     return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                                 } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                     return (low + exp(x))} \code{                                 } else {} \code{                                     stop("Condition not yet implemented")} \code{                                 }} \code{                             }}'}
+							\item{to.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                             if (all(is.infinite(c(low, high))) || low == high) {} \code{                                 stopifnot(low < high)} \code{                                 return (x)} \code{                             } else if (all(is.finite(c(low, high)))) {} \code{                                 stopifnot(low < high)} \code{                                 return (log( - (low - x)/(high -x)))} \code{                             } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                 return (log(x-low))} \code{                             } else {} \code{                                 stop("Condition not yet implemented")} \code{                             }} \code{                         }}'}
+							\item{from.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                             if (all(is.infinite(c(low, high))) || low == high) {} \code{                                 stopifnot(low < high)} \code{                                 return (x)} \code{                             } else if (all(is.finite(c(low, high)))) {} \code{                                 stopifnot(low < high)} \code{                                 return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                             } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                 return (low + exp(x))} \code{                             } else {} \code{                                 stop("Condition not yet implemented")} \code{                             }} \code{                         }}'}
 							}
 						}
 					 }
