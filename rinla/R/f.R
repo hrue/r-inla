@@ -528,7 +528,7 @@
             stop(paste("Model 'ar': order=", order, ", is to large. max.order =", max.order, sep=""))
         }
     }
-    if (inla.one.of(model, "fgn")) {
+    if (inla.one.of(model, c("fgn", "fgn2"))) {
         if (is.null(order) || missing(order)) {
             order = inla.models()$latent$fgn$order.default
         } else {
