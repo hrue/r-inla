@@ -94,7 +94,7 @@ typedef enum {
 	INLA_MODE_FINN,
 	INLA_MODE_GRAPH,
 	INLA_MODE_R,
-	INLA_MODE_FGN, 
+	INLA_MODE_FGN,
 	INLA_MODE_TESTIT = 999
 } inla_mode_tp;
 
@@ -395,7 +395,7 @@ typedef struct {
 	 * generalized Pareto
 	 */
 	double **gp_log_shape;				       /* log(shape) [or log(xi)] parameter */
-	
+
 } Data_tp;
 
 typedef struct {
@@ -472,8 +472,8 @@ typedef enum {
 	L_CENPOISSON,					       /* cencored poisson */
 	L_NMIX,
 	L_NMIXNB,
-	L_GP, 
-	L_CONTPOISSON, 
+	L_GP,
+	L_CONTPOISSON,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -517,6 +517,7 @@ typedef enum {
 	F_LOGDIST,
 	F_R_GENERIC,
 	F_FGN,
+	F_FGN2,
 	P_LOGGAMMA = 2000,				       /* priors */
 	P_GAUSSIAN,
 	P_MVGAUSSIAN,
@@ -545,9 +546,9 @@ typedef enum {
 	P_PC_RANGE,
 	P_PC_AR,
 	P_PC_FGN_H,
-	P_PC_GAMMA, 
-	P_PC_MGAMMA, 
-	P_PC_GAMMACOUNT, 
+	P_PC_GAMMA,
+	P_PC_MGAMMA,
+	P_PC_GAMMACOUNT,
 	P_REF_AR,					       /* Reference prior for AR(p) for p=1,2,3 */
 	P_INVALID,
 	G_EXCHANGEABLE = 3000,				       /* group models */
@@ -738,9 +739,8 @@ typedef struct {
 } inla_update_tp;
 
 typedef struct {
-	char *Rfile;					       /* filename to be sourced */
-	char *RData;					       /* filename to be loaded */
-	char *func;					       /* function to be called: fun(theta) */
+	char *file;
+	char *model;					       /* function to be called: fun(theta) */
 } inla_jp_tp;
 
 
@@ -1277,6 +1277,7 @@ typedef struct {
 
 #define R_GENERIC_MODEL ".inla.rgeneric.model"
 #define R_GENERIC_WRAPPER "inla.rgeneric.wrapper"
+#define R_JP_MODEL ".inla.jp.model"
 
 #define INLA_LITTLE_ENDIAN 1
 #define INLA_BIG_ENDIAN    2

@@ -10,7 +10,7 @@
 ##!              mixture representing FGN(H)}
 ##!
 ##! \usage{
-##!     inla.fgn(H, K=3L, lag.max = NULL, approx = TRUE)
+##!     inla.fgn(H, K=4L, lag.max = NULL, approx = TRUE)
 ##! } 
 ##!
 ##! \arguments{
@@ -39,7 +39,7 @@
 ##!     r_m = inla.fgn(seq(0.6, 0.8, by=0.01))
 ##! } 
 
-`inla.fgn` = function(H, K=3L, lag.max = NULL, approx = TRUE)
+`inla.fgn` = function(H, K=4L, lag.max = NULL, approx = TRUE)
 {
     if (!any(K == c(3L, 4L))) {
         stop(paste0("Number of components 'K' must be 3 or 4,  not ",  K))
