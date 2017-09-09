@@ -491,8 +491,13 @@
     ## use the internal inlaprogram
     remote = FALSE
     submit = FALSE
+    ownfun = FALSE
     submit.id = ""
-    if (inla.strcasecmp(inla.call, "remote") ||
+
+    if (is.function(inla.call)) {
+        ## in this case, the responsibility is with the user
+        ownfun = TRUE
+    } else if (inla.strcasecmp(inla.call, "remote") ||
         inla.strcasecmp(inla.call, "inla.remote") ||
         length(grep("/inla.remote$", inla.call)) > 0 ||
         length(grep("/inla.remote.cygwin$", inla.call)) > 0) {
@@ -1907,8 +1912,14 @@
 
     my.time.used[2] = Sys.time()
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
-    if (nchar(inla.call) > 0) {
-        if (inla.os("linux") || inla.os("mac")) {
+    if (ownfun || nchar(inla.call) > 0) {
+        if (ownfun) {
+            ## undocumented feature for PB
+            echoc = inla.call(file.ini = file.ini,
+                              file.log = if (verbose) NULL else file.log,
+                              results.dir = results.dir,
+                              inla.call.args = all.args)
+        } else if (inla.os("linux") || inla.os("mac")) {
             if (verbose) {
                 echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
             } else {
