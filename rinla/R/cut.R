@@ -74,24 +74,6 @@ inla.cut = function(result, split.by, debug=FALSE)
         stop(paste(match.call()[[1]], "is not yet implemented when 'data' is not a data.frame"))
     }
 
-    ## use an INLA internal to get the variable names of the whole model, ie, the fixed effects
-    ## + f(idx)'s
-    intf = INLA:::inla.interpret.formula(formula)
-
-    ## check that fixed/random effects exists, otherwise you can get an error e.g.
-    ## for a model with only fixed effects:
-    if (!is.null(intf$fixf)) {
-        fixf = as.character(attr(terms.formula(intf$fixf), "variables"))[-c(1:2)]
-    } else {
-        fixf = NULL
-    }
-    if (!is.null(intf$randf)) {
-        randf = as.character(attr(terms.formula(intf$randf), "variables"))[-c(1:2)]
-    } else {
-        randf = NULL
-    }
-    vars = c(fixf, randf)
-    
     ## find the name of the response, store the response and remove it from the data.frame.
     ## merge the two dataframes and add the reponse back in
     resp = formula[[2]]
