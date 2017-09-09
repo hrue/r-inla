@@ -1,3 +1,4 @@
+
 /* inla.c
  * 
  * Copyright (C) 2007-2017 Havard Rue
@@ -454,17 +455,17 @@ double map_inverse(double arg, map_arg_tp typ, void *param)
 		/*
 		 * extern = func(local) 
 		 */
-		return 1.0/arg;
+		return 1.0 / arg;
 	case MAP_BACKWARD:
 		/*
 		 * local = func(extern) 
 		 */
-		return 1.0/arg;
+		return 1.0 / arg;
 	case MAP_DFORWARD:
 		/*
 		 * d_extern / d_local 
 		 */
-		return -1.0/SQR(arg);
+		return -1.0 / SQR(arg);
 	case MAP_INCREASING:
 		/*
 		 * return 1.0 if montone increasing and 0.0 otherwise. assuming positive...
@@ -4724,12 +4725,12 @@ double eval_log_contpoisson(double y, double lambda)
 #define L 5
 #define LEN (R+L+2)
 	int i, istart, iy, low, high, len;
-	double work[2*LEN], *xx, *yy, lnormc, lval;
+	double work[2 * LEN], *xx, *yy, lnormc, lval;
 	GMRFLib_spline_tp *spline;
-	
+
 	lnormc = gsl_sf_lnfact((unsigned int) y);
-	low = IMAX(0, (int)y - L);
-	high = (int)y + R;
+	low = IMAX(0, (int) y - L);
+	high = (int) y + R;
 	len = high - low + 1;
 	xx = work;
 	yy = work + LEN;
@@ -4742,8 +4743,8 @@ double eval_log_contpoisson(double y, double lambda)
 	} else {
 		istart = 0;
 	}
-	
-	for(iy = low, i=istart;  iy <= high; iy++, i++) {
+
+	for (iy = low, i = istart; iy <= high; iy++, i++) {
 		xx[i] = iy + 0.5;
 		yy[i] = iy * log(lambda) - lambda - lnormc;
 	}
@@ -4752,13 +4753,13 @@ double eval_log_contpoisson(double y, double lambda)
 	inla_spline_free(spline);
 #undef L
 #undef R
-#undef LEN	
+#undef LEN
 
 	return (lval);
 }
 int loglikelihood_contpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
-	/* 
+	/*
 	 * y ~ ContPoisson(E*exp(x))
 	 */
 	if (m == 0) {
@@ -4780,7 +4781,7 @@ int loglikelihood_contpoisson(double *logll, double *x, int m, int idx, double *
 		double normc = exp(gsl_sf_lngamma(y));
 		for (i = 0; i < -m; i++) {
 			lambda = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = gsl_sf_gamma_inc(y, lambda)/normc;
+			logll[i] = gsl_sf_gamma_inc(y, lambda) / normc;
 		}
 	}
 
@@ -4789,7 +4790,7 @@ int loglikelihood_contpoisson(double *logll, double *x, int m, int idx, double *
 }
 int loglikelihood_qcontpoisson(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
 {
-	/* 
+	/*
 	 * y ~ ContPoisson(E*exp(x)), also accept E=0, giving the likelihood y * x.  quantile version
 	 */
 	if (m == 0) {
@@ -4813,7 +4814,7 @@ int loglikelihood_qcontpoisson(double *logll, double *x, int m, int idx, double 
 		for (i = 0; i < -m; i++) {
 			q = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			lambda = E * exp(inla_spline_eval(log(q), ds->data_observations.qcontpoisson_func[id]));
-			logll[i] = gsl_sf_gamma_inc(y, lambda)/normc;
+			logll[i] = gsl_sf_gamma_inc(y, lambda) / normc;
 		}
 	}
 
@@ -6210,7 +6211,9 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 						logA = log(pzero);
 						logB = log(1.0 - pzero) + res.val + y * log(p) + (n - y) * log(1.0 - p);
 						// logll[i] = log(pzero + (1.0 - pzero) * gsl_ran_binomial_pdf((unsigned int) y, p, 
-						//                (unsigned int) n));
+						// 
+						// 
+						// (unsigned int) n));
 						logll[i] = eval_logsum_safe(logA, logB);
 					}
 				}
@@ -10522,7 +10525,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_POISSON:
 		break;
-		
+
 	case L_CONTPOISSON:
 		break;
 
@@ -14875,6 +14878,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_FGN;
 		mb->f_ntheta[mb->nf] = 2;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("FGN model");
+	} else if (OneOf("FGN2")) {
+		mb->f_id[mb->nf] = F_FGN2;
+		mb->f_ntheta[mb->nf] = 2;
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("FGN2 model");
 	} else if (OneOf("OU")) {
 		mb->f_id[mb->nf] = F_OU;
 		mb->f_ntheta[mb->nf] = 2;
@@ -15104,6 +15111,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case F_FGN:
+	case F_FGN2:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* marginal precision */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN");	/* H */
 		break;
@@ -15655,8 +15663,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			break;
 
 		case F_FGN:
+		case F_FGN2:
 			/*
-			 * FGN-model; need length N 
+			 * FGN/FGN2-model; need length N 
 			 */
 			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
 			if (!ptmp) {
@@ -15670,12 +15679,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\tn=[%1d]\n", n);
 			}
 			Free(ptmp);
+			// even though we do not need the precision of the FGN2.
 			mb->f_precision[mb->nf] =
 			    iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), mb->f_precision[mb->nf]);
 			if (mb->verbose) {
 				printf("\t\tprecision=[%f]\n", mb->f_precision[mb->nf]);
 			}
-			mb->f_order[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "ORDER"), 3);
+			mb->f_order[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "ORDER"), 4);
 			if (mb->verbose) {
 				printf("\t\torder=[%1d]\n", mb->f_order[mb->nf]);
 			}
@@ -17202,6 +17212,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 
 	case F_FGN:
+	case F_FGN2:
 	{
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
 		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
@@ -20201,6 +20212,59 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
+	case F_FGN2:
+	{
+		inla_fgn2_arg_tp *def = NULL, *def_orig = NULL;
+
+		def = Calloc(1, inla_fgn2_arg_tp);
+		def->n = mb->f_n[mb->nf];
+		assert(def->n > 1);
+		def->k = mb->f_order[mb->nf];
+		def->N = def->n * def->k;
+		def->log_prec = log_prec;
+		def->H_intern = H_intern;
+
+		if (mb->f_locations[mb->nf]) {
+			double *t = Calloc((def->k + 1) * mb->f_n[mb->nf], double);
+			memcpy(&t[0], mb->f_locations[mb->nf], mb->f_n[mb->nf] * sizeof(double));
+			memcpy(&t[mb->f_n[mb->nf]], mb->f_locations[mb->nf], mb->f_n[mb->nf] * sizeof(double));
+
+			double start = floor(GMRFLib_max_value(t, mb->f_n[mb->nf], NULL) + 1.0);
+			for (int ii = 0; ii < def->k * mb->f_n[mb->nf]; ii++) {
+				t[ii + mb->f_n[mb->nf]] = start + ii;
+			}
+			mb->f_locations[mb->nf] = t;
+		}
+
+		double **log_prec_orig = NULL, **H_intern_orig = NULL;
+		HYPER_NEW(log_prec_orig, log_prec[0][0]);
+		HYPER_NEW(H_intern_orig, H_intern[0][0]);
+
+		def_orig = Calloc(1, inla_fgn2_arg_tp);
+		def_orig->n = def->n;
+		def_orig->k = def->k;
+		def_orig->N = def->N;
+		def_orig->log_prec = log_prec_orig;
+		def_orig->H_intern = H_intern_orig;
+
+		inla_make_fgn2_graph(&(mb->f_graph[mb->nf]), def);
+		mb->f_Qfunc[mb->nf] = Qfunc_fgn2;
+		mb->f_Qfunc_arg[mb->nf] = (void *) def;
+
+		inla_make_fgn2_graph(&(mb->f_graph_orig[mb->nf]), def_orig);
+		mb->f_Qfunc_orig[mb->nf] = Qfunc_fgn2;
+		mb->f_Qfunc_arg_orig[mb->nf] = (void *) def_orig;
+
+		mb->f_N[mb->nf] = mb->f_n[mb->nf] = mb->f_graph[mb->nf]->n;
+		assert(mb->f_N[mb->nf] == def->N);
+		mb->f_rankdef[mb->nf] = 0.0;
+
+		// initialize the cache
+		Qfunc_fgn2(NAN, NAN, NULL);
+
+		break;
+	}
+
 
 	case F_AR1:
 	{
@@ -22060,25 +22124,18 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * joint prior?
 	 */
-	char *Rfile = NULL, *RData = NULL, *func = NULL;
+	char *file = NULL, *model = NULL;
 
-	Rfile = iniparser_getstring(ini, inla_string_join(secname, "JP.RFILE"), Rfile);
-	RData = iniparser_getstring(ini, inla_string_join(secname, "JP.RDATA"), RData);
-	func = iniparser_getstring(ini, inla_string_join(secname, "JP.FUNC"), func);
+	file = iniparser_getstring(ini, inla_string_join(secname, "JP.FILE"), file);
+	model = iniparser_getstring(ini, inla_string_join(secname, "JP.MODEL"), model);
 	if (mb->verbose) {
-		printf("\t\t\tjp.Rfile=[%s]\n", Rfile);
-		if (RData != NULL)
-			printf("\t\t\tjp.RData=[%s]\n", RData);
-		else
-			printf("\t\t\tjp.RData=NULL\n");
-		printf("\t\t\tjp.func=[%s]\n", func);
+		printf("\t\t\tjp.file=[%s]\n", file);
+		printf("\t\t\tjp.model=[%s]\n", model);
 	}
-	if (func) {
-		GMRFLib_ASSERT(Rfile, GMRFLib_EPARAMETER);
+	if (model) {
 		mb->jp = Calloc(1, inla_jp_tp);
-		mb->jp->Rfile = GMRFLib_strdup(Rfile);
-		mb->jp->RData = GMRFLib_strdup(RData);
-		mb->jp->func = GMRFLib_strdup(func);
+		mb->jp->file = GMRFLib_strdup(file);
+		mb->jp->model = GMRFLib_strdup(model);
 
 	} else {
 		mb->jp = NULL;
@@ -22281,13 +22338,8 @@ double extra(double *theta, int ntheta, void *argument)
 #pragma omp critical
 		{
 			if (jp_first_time) {
-				// Load data
-				if (mb->jp->RData != NULL)
-					inla_R_load(mb->jp->RData);
-
-				// Source file with functions
-				inla_R_source(mb->jp->Rfile);
-
+				// inla_R_library("INLA");
+				inla_R_load(mb->jp->file);
 				jp_first_time = 0;
 			}
 			assert(!(mb->update));		       /* only one at the time... */
@@ -22297,7 +22349,7 @@ double extra(double *theta, int ntheta, void *argument)
 			double *lprior = NULL;
 			int n_out;
 
-			inla_R_funcall1(&n_out, &lprior, (const char *) mb->jp->func, ntheta, theta);
+			inla_R_funcall1(&n_out, &lprior, (const char *) mb->jp->model, ntheta, theta);
 			assert(n_out == 1);
 			assert(lprior);
 			val += *lprior;
@@ -23999,6 +24051,113 @@ double extra(double *theta, int ntheta, void *argument)
 			break;
 		}
 
+		case F_FGN2:
+		{
+			double H_intern;
+
+			if (NOT_FIXED(f_fixed[i][0])) {
+				log_precision = theta[count];
+				count++;
+			} else {
+				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
+			}
+			if (NOT_FIXED(f_fixed[i][1])) {
+				H_intern = theta[count];
+				count++;
+			} else {
+				H_intern = mb->f_theta[i][1][GMRFLib_thread_id][0];
+			}
+			SET_GROUP_RHO(2);
+
+			inla_fgn2_arg_tp *arg = (inla_fgn2_arg_tp *) mb->f_Qfunc_arg_orig[i];
+
+			arg->log_prec[GMRFLib_thread_id][0] = log_precision;
+			arg->H_intern[GMRFLib_thread_id][0] = H_intern;
+
+			int n = mb->f_graph_orig[i]->n;
+
+			static GMRFLib_problem_tp **problem = NULL;
+#pragma omp threadprivate(problem)
+#pragma omp critical
+			{
+				if (problem == NULL) {
+					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+				}
+
+				/*
+				 * do a check for numerical not pos def matrix here, as it may be close to being singular 
+				 */
+				int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
+				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+				double *cc_add = Calloc(n, double);
+
+				if (mb->f_diag[i]) {
+					int ii;
+					for (ii = 0; ii < n; ii++) {
+						cc_add[ii] = mb->f_diag[i];
+					}
+				}
+
+				while (!ok) {
+					retval =
+					    GMRFLib_init_problem(&problem[i], NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
+								 mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], NULL,
+								 mb->f_constr_orig[i],
+								 (problem[i] ==
+								  NULL ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph |
+								  GMRFLib_KEEP_mean));
+					switch (retval) {
+					case GMRFLib_EPOSDEF:
+					{
+						int ii;
+						double eps = GMRFLib_eps(0.75);
+
+						for (ii = 0; ii < arg->n; ii++) {
+							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
+						}
+
+						/*
+						 * possible memory leak here, by purpose. if it fail, the internal structure might be incomplete and unsafe to free.
+						 */
+						problem[i] = NULL;
+						break;
+					}
+
+					case GMRFLib_SUCCESS:
+						ok = 1;
+						break;
+
+					default:
+						/*
+						 * some other error 
+						 */
+						GMRFLib_set_error_handler(old_handler);
+						abort();
+						break;
+					}
+
+					if (++num_try >= num_try_max) {
+						FIXME("This should not happen. Contact developers...");
+						abort();
+					}
+				}
+				Free(cc_add);
+				GMRFLib_set_error_handler(old_handler);
+			}
+
+			GMRFLib_evaluate(problem[i]);
+			val += mb->f_nrep[i] * (problem[i]->sub_logdens * (ngroup - grankdef) + normc_g);
+
+			if (NOT_FIXED(f_fixed[i][0])) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+			}
+			if (NOT_FIXED(f_fixed[i][1])) {
+				val += PRIOR_EVAL(mb->f_prior[i][1], &H_intern);
+			}
+			break;
+		}
+
+
 		case F_Z:
 		{
 			if (NOT_FIXED(f_fixed[i][0])) {
@@ -24445,7 +24604,7 @@ double extra(double *theta, int ntheta, void *argument)
 				log_prior = 0.0;
 				break;
 			case 1:
-				log_prior = xx_out[0];
+				log_prior = (evaluate_hyper_prior ? xx_out[0] : 0.0);
 				break;
 			default:
 				assert(0 == 1);
@@ -29813,15 +29972,14 @@ int testit(int argc, char **argv)
 		double x;
 		double lambda = 1.2345;
 		P(lambda);
-		for(x = 0.1; x < 10;  x += 0.1)
-		{
+		for (x = 0.1; x < 10; x += 0.1) {
 			printf("F(%g) = %.12g\n", x, gsl_sf_gamma_inc_Q(x, lambda));
-			printf("F(%g) = %.12g\n", x, gsl_sf_gamma_inc(x, lambda)/gsl_sf_gamma(x));
-			printf("F(%g) = %.12g\n", x, gsl_sf_gamma_inc(x, lambda)/exp(gsl_sf_lngamma(x)));
+			printf("F(%g) = %.12g\n", x, gsl_sf_gamma_inc(x, lambda) / gsl_sf_gamma(x));
+			printf("F(%g) = %.12g\n", x, gsl_sf_gamma_inc(x, lambda) / exp(gsl_sf_lngamma(x)));
 		}
 		exit(0);
 	}
-	
+
 
 	if (0) {
 		double lambda = 1.234;

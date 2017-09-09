@@ -189,15 +189,9 @@
         ##:ARGUMENT: disable.gaussian.check Disable the check for fast computations with a Gaussian likelihood and identity link
         disable.gaussian.check = FALSE, 
 
-        ##:ARGUMENT: jp.RData The R-data file that contains global variables to be used by \code{jp.func}
-        jp.RData = NULL,
-
-        ##:ARGUMENT: jp.Rfile The R-file to be sourced to set up a joint prior for the hyperparameters to be evaluated by \code{jp.func} 
-        jp.Rfile = NULL, 
-
-        ##:ARGUMENT: jp.func The R-function which returns the joint prior,  to be defined in \code{jp.Rfile} 
-        jp.func = NULL
-        )
+        ##:ARGUMENT: jp An object of class \code{inla.jp} defining a joint prior
+        jp = NULL
+    )
 
     ##:SEEALSO: inla
 }
