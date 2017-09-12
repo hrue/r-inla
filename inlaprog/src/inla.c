@@ -74,7 +74,7 @@ static const char RCSId[] = HGVERSION;
 
 //#include <openssl/sha.h>                                     /* Would also work with this library... */
 #include "sha1.h"					       /* instead of this one */
-#define INLA_SHA1					       /* use SHA1 check to reuse the mode */
+#undef INLA_SHA1
 
 #include <unistd.h>
 #include <stdlib.h>
