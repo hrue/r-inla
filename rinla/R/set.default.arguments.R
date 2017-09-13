@@ -78,8 +78,8 @@
         ##:ARGUMENT: graph The graph spesification (Only applies to model 'besag')
         graph = NULL, 
 
-        ##:ARGUMENT: scale.model Scale the intrinsic model (RW1, RW2, BESAG) so the generalized variance is 1. (Default \code{inla.getOption("scale.model.default")}.)
-        scale.model = NULL, 
+        ##:ARGUMENT: scale.model Scale the intrinsic model (RW1, RW2, BESAG) so the generalized variance is 1. (Default \code{TRUE})
+        scale.model = TRUE, 
 
         ##:ARGUMENT: adjust.for.con.comp Adjust for connected components when \code{scale.model=TRUE}?
         adjust.for.con.comp = TRUE, 
