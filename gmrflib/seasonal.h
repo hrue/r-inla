@@ -98,10 +98,14 @@ __BEGIN_DECLS
 	 * if \c log_prec_omp is \c NULL, then a unit precision is used.
 	 */
 	double **log_prec_omp;
+
+
+	double *prec_scale;				       /* scaling of the precision for scale.model=TRUE */
 } GMRFLib_seasonaldef_tp;
 
 double GMRFLib_seasonal(int node, int nnode, void *seasonal_def);
 int GMRFLib_make_seasonal_graph(GMRFLib_graph_tp ** graph, GMRFLib_seasonaldef_tp * def);
+int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp *def);
 
 __END_DECLS
 #endif
