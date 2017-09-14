@@ -19899,6 +19899,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_SEASONAL:
 	{
 		GMRFLib_seasonaldef_tp *sdef = NULL;
+		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
 
 		mb->f_Qfunc[mb->nf] = GMRFLib_seasonal;
 		sdef = Calloc(1, GMRFLib_seasonaldef_tp);
@@ -19910,6 +19911,16 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		sdef->log_prec_omp = log_prec;
 		GMRFLib_make_seasonal_graph(&(mb->f_graph[mb->nf]), sdef);
 		mb->f_Qfunc_arg[mb->nf] = (void *) sdef;
+
+		if (std) {
+			GMRFLib_seasonal_scale(sdef);
+		}
+		if (mb->verbose) {
+			printf("\t\tscale.model[%1d]\n", std);
+			if (std)
+				printf("\t\tscale.model: prec_scale[%g]\n", sdef->prec_scale[0]);
+		}
+
 		/*
 		 * for the rank-deficieny, we know the result for CYCLIC=FALSE, but we need to compute it for CYCLIC=TRUE 
 		 */

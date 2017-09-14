@@ -815,7 +815,7 @@
         }
     }
 
-    if (!missing(scale.model) && !inla.one.of(model, c("rw1", "rw2", "besag", "bym", "bym2", "besag2", "rw2d", "rw2diid"))) {
+    if (!missing(scale.model) && !inla.one.of(model, c("rw1", "rw2", "besag", "bym", "bym2", "besag2", "rw2d", "rw2diid", "seasonal"))) {
         stop(paste("Option 'scale.model' is not used for model:", model))
     }
     if (missing(scale.model) || is.null(scale.model)) {

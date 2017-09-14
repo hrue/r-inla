@@ -168,9 +168,9 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 supernodal_factor_matrix *GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(supernodal_factor_matrix * L)
 {
 #define DUPLICATE(name,len,type) if (1) {					\
-		if (L->name && len) {					\
-			LL->name = (type *)Calloc(len, type); \
-			memcpy(LL->name,L->name,(size_t)len*sizeof(type)); \
+		if (L->name && ((len) > 0)) {				\
+			LL->name = (type *)Calloc((len), type);		\
+			memcpy(LL->name,L->name,(size_t)(len)*sizeof(type)); \
 		} else {						\
 			LL->name = (type *)NULL;			\
 		}							\
