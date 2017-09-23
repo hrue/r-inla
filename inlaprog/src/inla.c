@@ -25493,7 +25493,7 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp * loglfunc, double *x
 	 * solve arg min logl(x[i]) - prec * 0.5*x[i]^2. But we have no option of what PREC is, so I set it to 10.0
 	 */
 	double prec = 10.0, x, xnew, f, deriv, dderiv, arr[3], xarr[3], eps = 1.0e-4, steplen = 1.0e-4;
-	int niter = 0, compute_deriv, retval, niter_max = 100, debug = 0, stencil = 7;
+	int niter = 0, compute_deriv, retval, niter_max = 100, debug = 0, stencil = 3;
 
 	GMRFLib_thread_id = 0;				       /* yes, this is what we want! */
 	x = xnew = 0.0;
@@ -25502,7 +25502,6 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp * loglfunc, double *x
 	compute_deriv = (retval == GMRFLib_LOGL_COMPUTE_DERIVATIES || retval == GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF);
 
 	while (1) {
-
 		if (compute_deriv) {
 			xarr[0] = xarr[1] = xarr[2] = x;
 			loglfunc(arr, xarr, 3, idx, x_vec, arg);
@@ -25513,7 +25512,7 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp * loglfunc, double *x
 		deriv = arr[1] - prec * x;
 		dderiv = DMIN(0.0, arr[2]) - prec;
 
-		xnew = x - DMIN(0.1 + niter * 0.1, 1.0) * deriv / dderiv;
+		xnew = x - DMIN(0.25 + niter * 0.25, 1.0) * deriv / dderiv;
 		if (debug) {
 			printf("idx %d x %.10g xnew %.10g f %.10g deriv %.10g dderiv %.10g\n", idx, x, xnew, f, deriv, dderiv);
 		}
@@ -25529,6 +25528,82 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp * loglfunc, double *x
 	}
 
 	return x;
+}
+
+double inla_compute_saturated_loglik(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg)
+{
+	inla_tp *a = (inla_tp *) arg;
+	assert(loglfunc == loglikelihood_inla);
+	return inla_compute_saturated_loglik_core(idx, a->loglikelihood[idx], x_vec, a->loglikelihood_arg[idx]);
+}
+
+double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg)
+{
+	double prec = 1.0, x, xnew, xinit, f, deriv, dderiv, arr[3], xarr[3], eps = 1.0e-4, steplen = 1.0e-4;
+	int niter = 0, compute_deriv, retval, niter_max = 100, debug = 1, stencil = 5;
+
+	x = xnew = xinit = (x_vec ? x_vec[idx] : 0.0);
+	retval = loglfunc(NULL, NULL, 0, 0, NULL, NULL);
+	compute_deriv = (retval == GMRFLib_LOGL_COMPUTE_DERIVATIES || retval == GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF);
+
+	while (1) {
+
+		if (compute_deriv) {
+			xarr[0] = xarr[1] = xarr[2] = x;
+			loglfunc(arr, xarr, 3, idx, x_vec, arg);
+		} else {
+			GMRFLib_2order_taylor(&arr[0], &arr[1], &arr[2], 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
+		}
+		f = arr[0] - 0.5 * prec * SQR(x);
+		deriv = arr[1] - prec * x;
+		dderiv = DMIN(0.0, arr[2]) - prec;
+
+		xnew = x - DMIN(0.25 + niter * 0.25, 1.0) * deriv / dderiv;
+		if (debug) {
+			printf("PHASE1: idx %d x %.10g xnew %.10g f %.10g deriv %.10g dderiv %.10g\n", idx, x, xnew, f, deriv, dderiv);
+		}
+		x = xnew;
+
+		if (ABS(deriv / dderiv) < eps) {
+			break;
+		}
+		if (++niter > niter_max) {
+			x = xinit;
+			break;
+		}
+	}
+	xinit = x;
+
+	prec = SQR(0.0001);
+	niter = 0;
+	while (1) {
+		if (compute_deriv) {
+			xarr[0] = xarr[1] = xarr[2] = x;
+			loglfunc(arr, xarr, 3, idx, x_vec, arg);
+		} else {
+			GMRFLib_2order_taylor(&arr[0], &arr[1], &arr[2], 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
+		}
+		f = arr[0] - 0.5 * prec * SQR(x);
+		deriv = arr[1] - prec * x;
+		dderiv = DMIN(0.0, arr[2]) - prec;
+
+		xnew = x - DMIN(0.25 + niter * 0.25, 1.0) * deriv / dderiv;
+		if (debug) {
+			printf("PHASE2: idx %d x %.10g xnew %.10g f %.10g deriv %.10g dderiv %.10g\n", idx, x, xnew, f, deriv, dderiv);
+		}
+		x = xnew;
+
+		if (ABS(deriv / dderiv) < eps) {
+			break;
+		}
+		if (++niter > niter_max) {
+			x = xinit;
+			break;
+		}
+	}
+	P(arr[0]);
+	
+	return arr[0];
 }
 int inla_INLA(inla_tp * mb)
 {
@@ -27596,11 +27671,17 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 	}
 	if (G.binary) {
 		D4W(dic->mean_of_deviance, dic->deviance_of_mean, dic->p, dic->dic);
+		D4W(dic->mean_of_deviance_sat, dic->deviance_of_mean_sat, dic->p, dic->dic_sat);
 	} else {
 		fprintf(fp, "mean of the deviance: %g\n", dic->mean_of_deviance);
 		fprintf(fp, "deviance of the mean: %g\n", dic->deviance_of_mean);
 		fprintf(fp, "effective number of parameters: %g\n", dic->p);
 		fprintf(fp, "dic: %g\n", dic->dic);
+		fprintf(fp, "\n");
+		fprintf(fp, "mean of the deviance (saturated): %g\n", dic->mean_of_deviance_sat);
+		fprintf(fp, "deviance of the mean (saturated): %g\n", dic->deviance_of_mean_sat);
+		fprintf(fp, "effective number of parameters: %g\n", dic->p);
+		fprintf(fp, "dic (saturated): %g\n", dic->dic_sat);
 	}
 	fclose(fp);
 
@@ -27619,9 +27700,23 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
 		Free(tmp);
 
+		PAD_WITH_NA(dic->e_deviance_sat);
+		M->A = tmp;
+		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "e_deviance_sat.dat");
+		inla_fnmfix(nndir);
+		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
+		Free(tmp);
+
 		PAD_WITH_NA(dic->deviance_e);
 		M->A = tmp;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "deviance_e.dat");
+		inla_fnmfix(nndir);
+		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
+		Free(tmp);
+
+		PAD_WITH_NA(dic->deviance_e_sat);
+		M->A = tmp;
+		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "deviance_e_sat.dat");
 		inla_fnmfix(nndir);
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
 		Free(tmp);
