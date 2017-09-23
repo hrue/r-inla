@@ -637,9 +637,19 @@ typedef struct {
 	double mean_of_deviance;
 
 	/**
+	 * \brief Mean of the devianace  (saturated)
+	 */
+	double mean_of_deviance_sat;
+
+	/**
 	 * \brief Devianace of the mean  
 	 */
 	double deviance_of_mean;
+
+	/**
+	 * \brief Devianace of the mean  (saturated)
+	 */
+	double deviance_of_mean_sat;
 
 	/**
 	 * \brief The effective number of parameters
@@ -652,6 +662,11 @@ typedef struct {
 	double dic;
 
 	/**
+	 * \brief The DIC value (saturated)
+	 */
+	double dic_sat;
+
+	/**
 	 * \brief The length of the E(Deviance) contribution
 	 */
 	int n_deviance;
@@ -662,9 +677,19 @@ typedef struct {
 	double *e_deviance;
 
 	/**
+	 * \brief The E(deviance) contribution (saturated)
+	 */
+	double *e_deviance_sat;
+
+	/**
 	 * \brief The deviance(E) contribution
 	 */
 	double *deviance_e;
+
+	/**
+	 * \brief The deviance(E) contribution (saturated)
+	 */
+	double *deviance_e_sat;
 
 
 } GMRFLib_ai_dic_tp;
