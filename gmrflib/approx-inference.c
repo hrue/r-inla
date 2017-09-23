@@ -80,6 +80,7 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 int domin_(void);
 int domin_get_results_(double *theta, double *log_dens, int *ierr);
 int domin_seteps_(double *epsx, double *epsf, double *epsg);
+double inla_compute_saturated_loglik(int, GMRFLib_logl_tp * , double *, void *);
 
 static int pool_nhyper = -1;
 
@@ -5663,7 +5664,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	}
 
 	if (dic) {
-		double mean_deviance = 0.0, deviance_mean = 0.0, *x_vec = NULL;
+		double mean_deviance = 0.0, mean_deviance_sat = 0.0, deviance_mean = 0.0, deviance_mean_sat = 0.0, *x_vec = NULL;
 
 		SET_THETA_MODE;
 
@@ -5689,15 +5690,19 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}
 		ndev++;
 		double *e_deviance = Calloc(ndev, double);
+		double *e_deviance_sat = Calloc(ndev, double);
 		double *deviance_e = Calloc(ndev, double);
+		double *deviance_e_sat = Calloc(ndev, double);
 
 		for (j = 0; j < ndev; j++) {
 			e_deviance[j] = NAN;
+			e_deviance_sat[j] = NAN;
 			deviance_e[j] = NAN;
+			deviance_e_sat[j] = NAN;
 		}
 
 		for (j = 0; j < compute_n; j++) {
-			double md, dm;
+			double md, md_sat, dm, dm_sat, logl_saturated;
 			int ii = compute_idx[j];
 
 			if (d[ii]) {
@@ -5709,7 +5714,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					sum += adj_weights[jj];
 				}
 				md = evalue / sum;
-				e_deviance[ii] = md;
 
 				if (!(density && (*density)[ii])) {
 					fprintf(stderr, "\n\n\nFIXME FIXME!!!!!!!!\n\n\n");
@@ -5718,31 +5722,49 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				double double_tmp = (double) ((*density)[ii]->user_mean);
 				loglFunc(&logll, &double_tmp, 1, ii, x_vec, loglFunc_arg);
 				logll *= d[ii];
+				logl_saturated = d[ii] * inla_compute_saturated_loglik(ii, loglFunc, x_vec, loglFunc_arg);
 				dm = -2.0 * logll;
+				dm_sat = -2.0 * (logll - logl_saturated);
+				md_sat = md + 2.0 * logl_saturated;
+				e_deviance[ii] = md;
+				e_deviance_sat[ii] = md_sat;
 				deviance_e[ii] = dm;
+				deviance_e_sat[ii] = dm_sat;
 			} else {
-				dm = md = 0.0;
+				dm = md = dm_sat = md_sat = 0.0;
 			}
 
 			deviance_mean += dm;
+			deviance_mean_sat += dm_sat;
 			mean_deviance += md;
+			mean_deviance_sat += md_sat;
 		}
 		Free(x_vec);
 
 		dic->mean_of_deviance = mean_deviance;
+		dic->mean_of_deviance_sat = mean_deviance_sat;
 		dic->deviance_of_mean = deviance_mean;
+		dic->deviance_of_mean_sat = deviance_mean_sat;
 		dic->p = mean_deviance - deviance_mean;
 		dic->dic = dic->p + mean_deviance;
+		dic->dic_sat = dic->p + mean_deviance_sat;
 		dic->n_deviance = ndev;
 		dic->e_deviance = e_deviance;
+		dic->e_deviance_sat = e_deviance_sat;
 		dic->deviance_e = deviance_e;
+		dic->deviance_e_sat = deviance_e_sat;
 
 		if (ai_par->fp_log) {
 			fprintf(ai_par->fp_log, "DIC:\n");
-			fprintf(ai_par->fp_log, "\tMean of Deviance................. %g\n", dic->mean_of_deviance);
-			fprintf(ai_par->fp_log, "\tDeviance at Mean................. %g\n", dic->deviance_of_mean);
-			fprintf(ai_par->fp_log, "\tEffective number of parameters... %g\n", dic->p);
-			fprintf(ai_par->fp_log, "\tDIC.............................. %g\n", dic->dic);
+			fprintf(ai_par->fp_log, "\tMean of Deviance ................. %g\n", dic->mean_of_deviance);
+			fprintf(ai_par->fp_log, "\tDeviance at Mean ................. %g\n", dic->deviance_of_mean);
+			fprintf(ai_par->fp_log, "\tEffective number of parameters ... %g\n", dic->p);
+			fprintf(ai_par->fp_log, "\tDIC .............................. %g\n", dic->dic);
+			fprintf(ai_par->fp_log, "DIC (Saturated):\n");
+			fprintf(ai_par->fp_log, "\tMean of Deviance ................. %g\n", dic->mean_of_deviance_sat);
+			fprintf(ai_par->fp_log, "\tDeviance at Mean ................. %g\n", dic->deviance_of_mean_sat);
+			fprintf(ai_par->fp_log, "\tEffective number of parameters ... %g\n", dic->p);
+			fprintf(ai_par->fp_log, "\tDIC .............................. %g\n", dic->dic_sat);
 		}
 	}
 	if (GMRFLib_ai_INLA_userfunc0 && GMRFLib_ai_INLA_userfunc0_dim > 0) {
@@ -7027,9 +7049,11 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 	/*
 	 * compute the integral of -2*loglikelihood * density(x), wrt x
 	 */
+	double inla_compute_saturated_loglik();
+
 	int i, k, np = GMRFLib_faster_integration_np;
 	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *loglik = NULL, *work = NULL, integral = 0.0, w[2] =
-	    { 4.0, 2.0 }, integral_one;
+		{ 4.0, 2.0 }, integral_one, logl_saturated;
 
 	GMRFLib_ASSERT_RETVAL(np > 3, GMRFLib_ESNH, 0.0);
 
@@ -7055,14 +7079,16 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 	for (i = 0; i < np; i++) {
 		loglik[i] *= d;
 	}
-
+	//logl_saturated = d * inla_compute_saturated_loglik(idx, loglFunc, x_vec, loglFunc_arg);
+	logl_saturated = 0.0;
+	
 	integral = loglik[0] * dens[0] + loglik[np - 1] * dens[np - 1];
 	integral_one = dens[0] + dens[np - 1];
 	for (i = 1, k = 0; i < np - 1; i++, k = (k + 1) % 2) {
 		integral += w[k] * loglik[i] * dens[i];
 		integral_one += w[k] * dens[i];
 	}
-	integral = -2.0 * integral / integral_one;
+	integral = -2.0 * (integral / integral_one - logl_saturated);
 
 	Free(work);
 
