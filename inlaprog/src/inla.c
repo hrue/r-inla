@@ -2570,7 +2570,6 @@ double priorfunc_pc_dof(double *x, double *parameters)
 double priorfunc_pc_prec(double *x, double *parameters)
 {
 	double u = parameters[0], alpha = parameters[1], theta, val, xx2;
-
 	theta = -log(alpha) / u;
 	xx2 = (*x) / 2.0;
 	val = log(theta / 2.0) - theta * exp(-xx2) - xx2;
@@ -30075,6 +30074,14 @@ int inla_fgn(char *infile, char *outfile)
 int testit(int argc, char **argv)
 {
 	if (1) {
+		double par[] = {0.8, 0.5};
+		double theta = 1.234;
+		
+		P(priorfunc_pc_cor1(&theta, par));
+		exit(0);
+	}
+	
+	if (0) {
 		double x;
 		double lambda = 1.2345;
 		P(lambda);
