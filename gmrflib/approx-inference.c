@@ -5689,16 +5689,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 		}
 		ndev++;
-		double *e_deviance = Calloc(ndev, double);
-		double *e_deviance_sat = Calloc(ndev, double);
-		double *deviance_e = Calloc(ndev, double);
-		double *deviance_e_sat = Calloc(ndev, double);
+
+		double *e_deviance = Calloc(ndev, double), *e_deviance_sat = Calloc(ndev, double),
+			*deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double);
 
 		for (j = 0; j < ndev; j++) {
-			e_deviance[j] = NAN;
-			e_deviance_sat[j] = NAN;
-			deviance_e[j] = NAN;
-			deviance_e_sat[j] = NAN;
+			e_deviance[j] = e_deviance_sat[j] = deviance_e[j] = deviance_e_sat[j] = NAN;
 		}
 
 		for (j = 0; j < compute_n; j++) {
