@@ -531,7 +531,35 @@
         cat("slm.Cmatrix = ", file.C, "\n", append=TRUE, sep = " ", file = file)
     }
 
-    ## if the Cmatrix is defined we need to process it except if its
+    if (inla.one.of(random.spec$model, "ar1c")) {
+        Z = random.spec$args.ar1c$Z
+        Q.beta = random.spec$args.ar1c$Q.beta
+        ar1c.n = dim(Z)[1L]
+        ar1c.m = dim(Z)[2L]
+
+        cat("ar1c.n = ", ar1c.n,"\n", append=TRUE, sep = " ", file = file)
+        cat("ar1c.m = ", ar1c.m,"\n", append=TRUE, sep = " ", file = file)
+
+        ## matrix Z
+        Z[ar1c.n, ] = 0  ## not used
+        file.Z = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(Z, filename = file.Z)
+        file.Z = gsub(data.dir, "$inladatadir", file.Z, fixed=TRUE)
+        cat("ar1c.Z = ", file.Z, "\n", append=TRUE, sep = " ", file = file)
+
+        ## matrix t(Z) %*% Z (makes my life simpler)
+        ZZ = t(Z) %*% Z
+        file.ZZ = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(ZZ, filename = file.ZZ)
+        file.ZZ = gsub(data.dir, "$inladatadir", file.ZZ, fixed=TRUE)
+        cat("ar1c.ZZ = ", file.ZZ, "\n", append=TRUE, sep = " ", file = file)
+
+        file.Qbeta = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(Q.beta, filename = file.Qbeta)
+        file.Qbeta = gsub(data.dir, "$inladatadir", file.Qbeta, fixed=TRUE)
+        cat("ar1c.Qbeta = ", file.Qbeta, "\n", append=TRUE, sep = " ", file = file)
+    }
+
     ## the z-model for which this has already been done.
     if (!inla.one.of(random.spec$model, c("z", "generic3")) && !is.null(random.spec$Cmatrix)) {
         if (is.character(random.spec$Cmatrix)) {
