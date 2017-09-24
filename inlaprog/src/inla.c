@@ -1374,6 +1374,32 @@ double link_special1(double x, map_arg_tp typ, void *param, double *cov)
 	abort();
 	return 0.0;
 }
+int inla_make_ar1c_graph(GMRFLib_graph_tp ** graph_out, inla_ar1c_arg_tp * def)
+{
+	int i, j;
+	GMRFLib_ged_tp *ged = NULL;
+
+	GMRFLib_ged_init(&ged, NULL);
+	for (i = 0; i < def->n - 1; i++) {		       /* this is the AR1 part */
+		GMRFLib_ged_add(ged, i, i + 1);		       /* diag is added in _ged_add() */
+	}
+	for (i = 0; i < def->m; i++) {			       /* fill the dense beta-block */
+		for (j = i + 1; j < def->m; j++) {
+			GMRFLib_ged_add(ged, def->n + i, def->n + j);
+		}
+	}
+	for (i = 0; i < def->n; i++) {			       /* the interaction */
+		for (j = 0; j < def->m; j++) {
+			GMRFLib_ged_add(ged, i, def->n + j);
+		}
+	}
+	assert(GMRFLib_ged_max_node(ged) == def->N - 1);
+	GMRFLib_ged_build(graph_out, ged);
+	GMRFLib_ged_free(ged);
+
+	return GMRFLib_SUCCESS;
+}
+
 int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp * graph)
 {
 	int i;
@@ -2374,6 +2400,51 @@ double Qfunc_ar1(int i, int j, void *arg)
 				val = prec * (1.0 + SQR(phi));
 			}
 		}
+	}
+
+	return val;
+}
+double Qfunc_ar1c(int i, int j, void *arg)
+{
+	inla_ar1c_arg_tp *a = (inla_ar1c_arg_tp *) arg;
+	double phi, prec_marginal, prec, val;
+	int ii, jj, m;
+
+	/*
+	 * the log_prec is the log precision for the *marginal*; so we need to compute the log_prec for the innovations
+	 */
+	phi = map_phi(a->phi_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	prec_marginal = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	prec = prec_marginal / (1.0 - SQR(phi));
+
+	ii = IMIN(i, j);
+	jj = IMAX(i, j);
+
+	if (jj < a->n) {
+		// the AR1 part
+		if (ii != jj) {
+			val = -prec * phi;
+		} else {
+			if (ii == 0 || ii == a->n - 1) {
+				val = prec;
+			} else {
+				val = prec * (1.0 + SQR(phi));
+			}
+		}
+	} else if (ii < a->n) {
+		// the interaction
+		m = jj - a->n;
+		if (ii == 0) {
+			val = prec * phi * GMRFLib_matrix_get(ii, m, a->Z);
+		} else if (ii == a->n - 1) {
+			val = -prec * GMRFLib_matrix_get(ii - 1, m, a->Z);
+		} else {
+			val = prec * (phi * GMRFLib_matrix_get(ii, m, a->Z) - GMRFLib_matrix_get(ii - 1, m, a->Z));
+		}
+	} else {
+		// the beta-block
+		int iii = ii - a->n, jjj = jj - a->n;
+		val = GMRFLib_matrix_get(iii, jjj, a->Qbeta) + prec * GMRFLib_matrix_get(iii, jjj, a->ZZ);
 	}
 
 	return val;
@@ -6325,6 +6396,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 						logA = log(pzero);
 						logB = log(1.0 - pzero) + res.val + y * log(p) + (n - y) * log(1.0 - p);
 						// logll[i] = log(pzero + (1.0 - pzero) * gsl_ran_binomial_pdf((unsigned int) y, p, 
+						// 
 						// 
 						// 
 						// (unsigned int) n));
@@ -14875,6 +14947,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_AR1;
 		mb->f_ntheta[mb->nf] = 3;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("AR1 model");
+	} else if (OneOf("AR1C")) {
+		mb->f_id[mb->nf] = F_AR1C;
+		mb->f_ntheta[mb->nf] = 2;
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("AR1C model");
 	} else if (OneOf("FGN")) {
 		mb->f_id[mb->nf] = F_FGN;
 		mb->f_ntheta[mb->nf] = 2;
@@ -15109,6 +15185,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* marginal precision */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN-rho");	/* phi (lag-1 correlation) */
 		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "GAUSSIAN");	/* mean */
+		break;
+
+	case F_AR1C:
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* marginal precision */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN-rho");	/* phi (lag-1 correlation) */
 		break;
 
 	case F_FGN:
@@ -15739,6 +15820,31 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\torder=[%1d]\n", order);
 			}
 			mb->f_order[mb->nf] = order;
+			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
+			break;
+
+		case F_AR1C:
+			/*
+			 * AR1-model; need length N and a boolean CYCLIC
+			 */
+			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
+			if (!ptmp) {
+				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "N");
+			}
+			n = iniparser_getint(ini, inla_string_join(secname, "N"), 0);
+			if (n <= 0) {
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, "N", ptmp);
+			}
+			if (mb->verbose) {
+				printf("\t\tn=[%1d]\n", n);
+			}
+			Free(ptmp);
+			mb->f_cyclic[mb->nf] = iniparser_getboolean(ini, inla_string_join(secname, "CYCLIC"), 0);
+			if (mb->verbose) {
+				printf("\t\tcyclic=[%1d]\n", mb->f_cyclic[mb->nf]);
+			}
+			assert(mb->f_cyclic[mb->nf] == 0);     /* not implemented */
+
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
 			break;
 
@@ -17430,6 +17536,95 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		break;
 	}
+
+	case F_AR1C:
+	{
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
+		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		SetInitial(0, tmp);
+		HYPER_INIT(log_prec, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_precision[%g]\n", tmp);
+			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
+		}
+
+		mb->f_theta[mb->nf] = Calloc(2, double **);
+		mb->f_theta[mb->nf][0] = log_prec;
+		if (!mb->f_fixed[mb->nf][0]) {
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = mb->f_prior[mb->nf][0].hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			GMRFLib_sprintf(&msg, "Log precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "Precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter0", mb->f_dir[mb->nf]);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+
+			mb->theta[mb->ntheta] = log_prec;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+		}
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
+		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		SetInitial(1, tmp);
+		HYPER_INIT(phi_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise phi_intern[%g]\n", tmp);
+			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][1]);
+		}
+		mb->f_theta[mb->nf][1] = phi_intern;
+		if (!mb->f_fixed[mb->nf][1]) {
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = mb->f_prior[mb->nf][1].hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			GMRFLib_sprintf(&msg, "Rho_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "Rho for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter1", mb->f_dir[mb->nf]);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+
+			mb->theta[mb->ntheta] = phi_intern;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_rho;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+		}
+		break;
+	}
+
 
 	case F_SLM:
 	{
@@ -20309,6 +20504,81 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_bfunc2[mb->nf]->nreplicate = 1;
 		mb->f_bfunc2[mb->nf]->ngroup = 1;
 
+		break;
+	}
+
+
+	case F_AR1C:
+	{
+		/*
+		 * AR1C
+		 */
+		inla_ar1c_arg_tp *def = NULL, *def_orig = NULL;
+		char *filename;
+
+		def = Calloc(1, inla_ar1c_arg_tp);
+		def_orig = Calloc(1, inla_ar1c_arg_tp);
+
+		def->n = iniparser_getint(ini, inla_string_join(secname, "ar1c.n"), -1);
+		def->m = iniparser_getint(ini, inla_string_join(secname, "ar1c.m"), -1);
+		def->N = def->n + def->m;
+		assert(def->N == mb->f_n[mb->nf]);
+		if (mb->verbose) {
+			printf("\t\tn.ar1=[%1d]\n", def->n);
+			printf("\t\tm.beta=[%1d]\n", def->m);
+			printf("\t\tN=[%1d]\n", def->N);
+		}
+		if (def->m > 0) {
+			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "ar1c.Z"), NULL));
+			def->Z = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
+			Free(filename);
+
+			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "ar1c.ZZ"), NULL));
+			def->ZZ = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
+			Free(filename);
+
+			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "ar1c.Qbeta"), NULL));
+			def->Qbeta = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
+			Free(filename);
+			{
+				// compute the log|Qbeta| for the normalizing constant
+				int i, j;
+				gsl_matrix *QQ = gsl_matrix_alloc(def->m, def->m);
+				for (i = 0; i < def->m; i++) {
+					for (j = 0; j < def->m; j++) {
+						gsl_matrix_set(QQ, i, j, GMRFLib_matrix_get(i, j, def->Qbeta));
+					}
+				}
+				def->logdet_Qbeta = GMRFLib_gsl_spd_logdet(QQ);
+				gsl_matrix_free(QQ);
+				if (mb->verbose) {
+					printf("\t\tlog(det(Q.beta))=[%.4g]\n", def->logdet_Qbeta);
+				}
+			}
+		} else {
+			filename = iniparser_getstring(ini, inla_string_join(secname, "ar1c.Z"), NULL);	/* in case they are there */
+			filename = iniparser_getstring(ini, inla_string_join(secname, "ar1c.ZZ"), NULL);
+			filename = iniparser_getstring(ini, inla_string_join(secname, "ar1c.Qbeta"), NULL);
+
+			def->Z = NULL;
+			def->ZZ = NULL;
+			def->Qbeta = NULL;
+			def->logdet_Qbeta = 0.0;
+		}
+
+		def->log_prec = log_prec;
+		def->phi_intern = phi_intern;
+
+		def_orig->n = def->n;			       /* these are the ones I need in extra() */
+		def_orig->m = def->m;
+		def_orig->logdet_Qbeta = def->logdet_Qbeta;
+
+		inla_make_ar1c_graph(&(mb->f_graph[mb->nf]), def);
+		mb->f_Qfunc[mb->nf] = Qfunc_ar1c;
+		mb->f_Qfunc_arg[mb->nf] = (void *) def;
+		mb->f_Qfunc_arg_orig[mb->nf] = (void *) def_orig;
+		mb->f_N[mb->nf] = mb->f_n[mb->nf];
+		mb->f_rankdef[mb->nf] = 0.0;
 		break;
 	}
 
@@ -24799,6 +25069,42 @@ double extra(double *theta, int ntheta, void *argument)
 			break;
 		}
 
+		case F_AR1C:
+		{
+			inla_ar1c_arg_tp *a = (inla_ar1c_arg_tp *) mb->f_Qfunc_arg_orig[i];
+
+			if (NOT_FIXED(f_fixed[i][0])) {
+				log_precision = theta[count];
+				count++;
+			} else {
+				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
+			}
+
+			if (NOT_FIXED(f_fixed[i][1])) {
+				phi_intern = theta[count];
+				count++;
+			} else {
+				phi_intern = mb->f_theta[i][1][GMRFLib_thread_id][0];
+			}
+
+			phi = map_phi(phi_intern, MAP_FORWARD, NULL);
+			SET_GROUP_RHO(2);
+
+			double log_precision_noise = log_precision - log(1.0 - SQR(phi));
+			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
+								   + ((mb->f_N[i] - a->m * ngroup) -
+								      mb->f_rankdef[i]) / 2.0 * log_precision_noise +
+								   ngroup * 0.5 * log(1.0 - SQR(phi))
+								   + ngroup * 0.5 * a->logdet_Qbeta));
+			if (NOT_FIXED(f_fixed[i][0])) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+			}
+			if (NOT_FIXED(f_fixed[i][1])) {
+				val += PRIOR_EVAL(mb->f_prior[i][1], &phi_intern);
+			}
+			break;
+		}
+
 		case F_OU:
 		{
 			if (NOT_FIXED(f_fixed[i][0])) {
@@ -25561,7 +25867,8 @@ double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, d
 
 		xnew = x - DMIN(0.25 + niter * 0.25, 1.0) * deriv / dderiv;
 		if (debug) {
-			printf("PHASE1: idx %d x %.10g xnew %.10g f %.10g deriv %.10g dderiv %.10g\n", idx, x, xnew, f, deriv, dderiv);
+			printf("PHASE1: idx %d x %.10g xnew %.10g f %.10g deriv %.10g dderiv %.10g\n", idx, x, xnew, f, deriv,
+			       dderiv);
 		}
 		x = xnew;
 
@@ -25590,7 +25897,8 @@ double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, d
 
 		xnew = x - DMIN(0.25 + niter * 0.25, 1.0) * deriv / dderiv;
 		if (debug) {
-			printf("PHASE2: idx %d x %.10g xnew %.10g f %.10g deriv %.10g dderiv %.10g\n", idx, x, xnew, f, deriv, dderiv);
+			printf("PHASE2: idx %d x %.10g xnew %.10g f %.10g deriv %.10g dderiv %.10g\n", idx, x, xnew, f, deriv,
+			       dderiv);
 		}
 		x = xnew;
 
@@ -25603,7 +25911,7 @@ double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, d
 		}
 	}
 	P(arr[0]);
-	
+
 	return arr[0];
 }
 int inla_INLA(inla_tp * mb)
@@ -30076,13 +30384,13 @@ int inla_fgn(char *infile, char *outfile)
 int testit(int argc, char **argv)
 {
 	if (1) {
-		double par[] = {0.8, 0.5};
+		double par[] = { 0.8, 0.5 };
 		double theta = 1.234;
-		
+
 		P(priorfunc_pc_cor1(&theta, par));
 		exit(0);
 	}
-	
+
 	if (0) {
 		double x;
 		double lambda = 1.2345;
