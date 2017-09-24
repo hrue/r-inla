@@ -43,8 +43,11 @@ __BEGIN_DECLS
 /* 
  *
  */
+#include "GMRFLib/GMRFLib.h"
+#include "GMRFLib/GMRFLibP.h"
 #include "inla.h"
 #define FGN_KMAX (4L)					       /* maximum K in the tables */
+
 //
     typedef struct {
 	int N;						       /* total size = (k+1)*n */
