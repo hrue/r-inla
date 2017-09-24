@@ -19,7 +19,7 @@
  *
  * The author's contact information:
  *
- *        H{a}vard Rue
+ *        Haavard Rue
  *        CEMSE Division
  *        King Abdullah University of Science and Technology
  *        Thuwal 23955-6900, Saudi Arabia
