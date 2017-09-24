@@ -1374,29 +1374,29 @@ double link_special1(double x, map_arg_tp typ, void *param, double *cov)
 	abort();
 	return 0.0;
 }
-int inla_make_ar1c_graph(GMRFLib_graph_tp ** graph_out, inla_ar1c_arg_tp *def) 
+int inla_make_ar1c_graph(GMRFLib_graph_tp ** graph_out, inla_ar1c_arg_tp * def)
 {
 	int i, j;
 	GMRFLib_ged_tp *ged = NULL;
-	
+
 	GMRFLib_ged_init(&ged, NULL);
-	for (i = 0; i < def->n -1; i++) {		       /* this is the AR1 part */
-		GMRFLib_ged_add(ged, i, i+1);		       /* diag is added in _ged_add() */
+	for (i = 0; i < def->n - 1; i++) {		       /* this is the AR1 part */
+		GMRFLib_ged_add(ged, i, i + 1);		       /* diag is added in _ged_add() */
 	}
-	for(i = 0; i < def->m; i++) {			       /* fill the dense beta-block */
-		for(j = i + 1; j < def->m; j++) {
+	for (i = 0; i < def->m; i++) {			       /* fill the dense beta-block */
+		for (j = i + 1; j < def->m; j++) {
 			GMRFLib_ged_add(ged, def->n + i, def->n + j);
 		}
 	}
-	for(i = 0; i < def->n; i++) {			       /* the interaction */
-		for(j = 0; j < def->m; j++) {
+	for (i = 0; i < def->n; i++) {			       /* the interaction */
+		for (j = 0; j < def->m; j++) {
 			GMRFLib_ged_add(ged, i, def->n + j);
 		}
 	}
-	assert(GMRFLib_ged_max_node(ged) == def->N -1);
+	assert(GMRFLib_ged_max_node(ged) == def->N - 1);
 	GMRFLib_ged_build(graph_out, ged);
 	GMRFLib_ged_free(ged);
-	
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -2434,12 +2434,12 @@ double Qfunc_ar1c(int i, int j, void *arg)
 	} else if (ii < a->n) {
 		// the interaction
 		m = jj - a->n;
-		if (ii == 0){
+		if (ii == 0) {
 			val = prec * phi * GMRFLib_matrix_get(ii, m, a->Z);
 		} else if (ii == a->n - 1) {
-			val = -prec * GMRFLib_matrix_get(ii-1, m, a->Z);
+			val = -prec * GMRFLib_matrix_get(ii - 1, m, a->Z);
 		} else {
-			val = prec * (phi * GMRFLib_matrix_get(ii, m, a->Z) - GMRFLib_matrix_get(ii-1, m, a->Z));
+			val = prec * (phi * GMRFLib_matrix_get(ii, m, a->Z) - GMRFLib_matrix_get(ii - 1, m, a->Z));
 		}
 	} else {
 		// the beta-block
@@ -6396,6 +6396,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 						logA = log(pzero);
 						logB = log(1.0 - pzero) + res.val + y * log(p) + (n - y) * log(1.0 - p);
 						// logll[i] = log(pzero + (1.0 - pzero) * gsl_ran_binomial_pdf((unsigned int) y, p, 
+						// 
 						// 
 						// 
 						// (unsigned int) n));
@@ -20531,11 +20532,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "ar1c.Z"), NULL));
 			def->Z = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
 			Free(filename);
-			
+
 			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "ar1c.ZZ"), NULL));
 			def->ZZ = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
 			Free(filename);
-			
+
 			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "ar1c.Qbeta"), NULL));
 			def->Qbeta = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
 			Free(filename);
@@ -20543,8 +20544,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				// compute the log|Qbeta| for the normalizing constant
 				int i, j;
 				gsl_matrix *QQ = gsl_matrix_alloc(def->m, def->m);
-				for(i = 0; i < def->m; i++){
-					for(j = 0; j < def->m; j++){
+				for (i = 0; i < def->m; i++) {
+					for (j = 0; j < def->m; j++) {
 						gsl_matrix_set(QQ, i, j, GMRFLib_matrix_get(i, j, def->Qbeta));
 					}
 				}
@@ -20555,7 +20556,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		} else {
-			filename = iniparser_getstring(ini, inla_string_join(secname, "ar1c.Z"), NULL); /* in case they are there */
+			filename = iniparser_getstring(ini, inla_string_join(secname, "ar1c.Z"), NULL);	/* in case they are there */
 			filename = iniparser_getstring(ini, inla_string_join(secname, "ar1c.ZZ"), NULL);
 			filename = iniparser_getstring(ini, inla_string_join(secname, "ar1c.Qbeta"), NULL);
 
@@ -20571,7 +20572,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def_orig->n = def->n;			       /* these are the ones I need in extra() */
 		def_orig->m = def->m;
 		def_orig->logdet_Qbeta = def->logdet_Qbeta;
-		
+
 		inla_make_ar1c_graph(&(mb->f_graph[mb->nf]), def);
 		mb->f_Qfunc[mb->nf] = Qfunc_ar1c;
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
@@ -25070,8 +25071,8 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_AR1C:
 		{
-			inla_ar1c_arg_tp * a = (inla_ar1c_arg_tp *) mb->f_Qfunc_arg_orig[i];
-			
+			inla_ar1c_arg_tp *a = (inla_ar1c_arg_tp *) mb->f_Qfunc_arg_orig[i];
+
 			if (NOT_FIXED(f_fixed[i][0])) {
 				log_precision = theta[count];
 				count++;
@@ -25091,8 +25092,9 @@ double extra(double *theta, int ntheta, void *argument)
 
 			double log_precision_noise = log_precision - log(1.0 - SQR(phi));
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
-								   + ((mb->f_N[i] - a->m * ngroup) - mb->f_rankdef[i]) / 2.0 * log_precision_noise
-								   + ngroup * 0.5 * log(1.0 - SQR(phi))
+								   + ((mb->f_N[i] - a->m * ngroup) -
+								      mb->f_rankdef[i]) / 2.0 * log_precision_noise +
+								   ngroup * 0.5 * log(1.0 - SQR(phi))
 								   + ngroup * 0.5 * a->logdet_Qbeta));
 			if (NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
@@ -25865,7 +25867,8 @@ double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, d
 
 		xnew = x - DMIN(0.25 + niter * 0.25, 1.0) * deriv / dderiv;
 		if (debug) {
-			printf("PHASE1: idx %d x %.10g xnew %.10g f %.10g deriv %.10g dderiv %.10g\n", idx, x, xnew, f, deriv, dderiv);
+			printf("PHASE1: idx %d x %.10g xnew %.10g f %.10g deriv %.10g dderiv %.10g\n", idx, x, xnew, f, deriv,
+			       dderiv);
 		}
 		x = xnew;
 
@@ -25894,7 +25897,8 @@ double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, d
 
 		xnew = x - DMIN(0.25 + niter * 0.25, 1.0) * deriv / dderiv;
 		if (debug) {
-			printf("PHASE2: idx %d x %.10g xnew %.10g f %.10g deriv %.10g dderiv %.10g\n", idx, x, xnew, f, deriv, dderiv);
+			printf("PHASE2: idx %d x %.10g xnew %.10g f %.10g deriv %.10g dderiv %.10g\n", idx, x, xnew, f, deriv,
+			       dderiv);
 		}
 		x = xnew;
 
@@ -25907,7 +25911,7 @@ double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, d
 		}
 	}
 	P(arr[0]);
-	
+
 	return arr[0];
 }
 int inla_INLA(inla_tp * mb)
@@ -30380,13 +30384,13 @@ int inla_fgn(char *infile, char *outfile)
 int testit(int argc, char **argv)
 {
 	if (1) {
-		double par[] = {0.8, 0.5};
+		double par[] = { 0.8, 0.5 };
 		double theta = 1.234;
-		
+
 		P(priorfunc_pc_cor1(&theta, par));
 		exit(0);
 	}
-	
+
 	if (0) {
 		double x;
 		double lambda = 1.2345;
