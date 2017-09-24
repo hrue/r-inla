@@ -48,6 +48,7 @@ __BEGIN_DECLS
 #include "strlib.h"
 #include "ar.h"
 #include "fgn.h"
+#include "stochvol.h"
 #include "quantile-regression.h"
 #define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560)	/* -1/2 * log(2*pi) */
 #define INLA_FAIL  1

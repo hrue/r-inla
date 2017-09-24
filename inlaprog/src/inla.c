@@ -834,38 +834,6 @@ double map_sqrt1exp(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
-double map_shape_svnig(double arg, map_arg_tp typ, void *param)
-{
-	/*
-	 * the mapping for the shape-parameters in the stochvol-nig model. shape = 1 + exp(shape_intern)
-	 */
-	switch (typ) {
-	case MAP_FORWARD:
-		/*
-		 * extern = func(local) 
-		 */
-		return 1.0 + exp(arg);
-	case MAP_BACKWARD:
-		/*
-		 * local = func(extern) 
-		 */
-		return log(arg - 1.0);
-	case MAP_DFORWARD:
-		/*
-		 * d_extern / d_local 
-		 */
-		return exp(arg);
-	case MAP_INCREASING:
-		/*
-		 * return 1.0 if montone increasing and 0.0 otherwise 
-		 */
-		return 1.0;
-	default:
-		abort();
-	}
-	abort();
-	return 0.0;
-}
 double map_dof(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -1047,6 +1015,38 @@ double map_probability(double x, map_arg_tp typ, void *param)
 	default:
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
+	return 0.0;
+}
+double map_shape_svnig(double arg, map_arg_tp typ, void *param)
+{
+	/*
+	 * the mapping for the shape-parameters in the stochvol-nig model. shape = 1 + exp(shape_intern)
+	 */
+	switch (typ) {
+	case MAP_FORWARD:
+		/*
+		 * extern = func(local) 
+		 */
+		return 1.0 + exp(arg);
+	case MAP_BACKWARD:
+		/*
+		 * local = func(extern) 
+		 */
+		return log(arg - 1.0);
+	case MAP_DFORWARD:
+		/*
+		 * d_extern / d_local 
+		 */
+		return exp(arg);
+	case MAP_INCREASING:
+		/*
+		 * return 1.0 if montone increasing and 0.0 otherwise 
+		 */
+		return 1.0;
+	default:
+		abort();
+	}
+	abort();
 	return 0.0;
 }
 double map_H(double x, map_arg_tp typ, void *param)
@@ -4080,6 +4080,121 @@ int loglikelihood_wrapped_cauchy(double *logll, double *x, int m, int idx, doubl
 				logll[i] = mlog2pi + log(1.0 - rho2) - log(1.0 + rho2 - 2.0 * rho * cos(-M_PI))
 				    - penalty / 2.0 * SQR(y - ypred + M_PI);
 			}
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * y ~ N(0, var = exp(x) + 1/tau) 
+	 */
+	int i;
+
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx], var;
+	double tau = map_precision(ds->data_observations.log_offset_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double var_offset;
+
+	LINK_INIT;
+	var_offset = ((ISINF(tau) || ISNAN(tau)) ? 0.0 : 1.0 / tau);
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)) + var_offset;
+			logll[i] = LOG_NORMC_GAUSSIAN - 0.5 * log(var) - 0.5 * SQR(y) / var;
+		}
+	} else {
+		for (i = 0; i < -m; i++) {
+			var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)) + var_offset;
+			logll[i] = 1.0 - 2.0 * (1.0 - inla_Phi(ABS(y) / sqrt(var)));
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * y / exp(x/2)  ~ Student-t_dof(0, ***var = 1***)
+	 *
+	 * Note that Student-t_dof has variance dof/(dof-2), so we need to scale it.
+	 */
+	int i;
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double dof, y, sd, sd2, obs, var_u;
+
+	dof = map_dof(ds->data_observations.dof_intern_svt[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	y = ds->data_observations.y[idx];
+	sd2 = dof / (dof - 2.0);
+	sd = sqrt(sd2);
+	LINK_INIT;
+	if (m > 0) {
+		double lg1, lg2, f;
+
+		lg1 = gsl_sf_lngamma(dof / 2.0);
+		lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
+		for (i = 0; i < m; i++) {
+			var_u = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			f = sqrt(var_u) / sd;
+			obs = y / f;
+			logll[i] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(obs) / dof) - log(f);
+		}
+	} else {
+		for (i = 0; i < -m; i++) {
+			var_u = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			logll[i] = 1.0 - 2.0 * gsl_cdf_tdist_Q(ABS(y) * sd / sqrt(var_u), dof);
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_stochvol_nig(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+{
+	/*
+	 * y / exp(x/2)  ~ NIG with skew and shape parameter. beta = skew, psi = shape. Note that E=1 and Var=1.
+	 *
+	 *
+	 * density: gamma
+	 *          * exp[ psi^2 + beta*(gamma*x + beta) ]
+	 *          * K_1[sqrt(beta^2+psi^2)*sqrt((gamma*x+beta)^2 + psi^2)]
+	 *
+	 */
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double skew, skew2, shape, shape2, y, gam, gam2, tmp, obs, a, var_u;
+
+	skew = ds->data_observations.skew_intern_svnig[GMRFLib_thread_id][0];
+	skew2 = SQR(skew);
+	shape = map_shape_svnig(ds->data_observations.shape_intern_svnig[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	shape2 = SQR(shape);
+	gam2 = 1.0 + SQR(skew) / SQR(shape);
+	gam = sqrt(gam2);
+	y = ds->data_observations.y[idx];
+	a = log(gam * shape / M_PI) + 0.5 * log(skew2 + shape2) + shape2;
+
+	LINK_INIT;
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			var_u = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			obs = y / sqrt(var_u);
+			tmp = SQR(gam * obs + skew) + shape2;
+			logll[i] = a - 0.5 * log(tmp) + skew * (gam * obs + skew)
+			    + gsl_sf_bessel_lnKnu(1.0, sqrt((skew2 + shape2) * tmp)) - log(var_u) / 2.0;
 		}
 	}
 
@@ -7465,119 +7580,6 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
-{
-	/*
-	 * y ~ N(0, var = exp(x) + 1/tau) 
-	 */
-	int i;
-
-	if (m == 0) {
-		return GMRFLib_LOGL_COMPUTE_CDF;
-	}
-	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], var;
-	double tau = map_precision(ds->data_observations.log_offset_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double var_offset;
-
-	LINK_INIT;
-	var_offset = ((ISINF(tau) || ISNAN(tau)) ? 0.0 : 1.0 / tau);
-	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)) + var_offset;
-			logll[i] = LOG_NORMC_GAUSSIAN - 0.5 * log(var) - 0.5 * SQR(y) / var;
-		}
-	} else {
-		for (i = 0; i < -m; i++) {
-			var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)) + var_offset;
-			logll[i] = 1.0 - 2.0 * (1.0 - inla_Phi(ABS(y) / sqrt(var)));
-		}
-	}
-
-	LINK_END;
-	return GMRFLib_SUCCESS;
-}
-int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
-{
-	/*
-	 * y / exp(x/2)  ~ Student-t_dof(0, ***var = 1***)
-	 *
-	 * Note that Student-t_dof has variance dof/(dof-2), so we need to scale it.
-	 */
-	int i;
-	if (m == 0) {
-		return GMRFLib_LOGL_COMPUTE_CDF;
-	}
-	Data_section_tp *ds = (Data_section_tp *) arg;
-	double dof, y, sd, sd2, obs, var_u;
-
-	dof = map_dof(ds->data_observations.dof_intern_svt[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	y = ds->data_observations.y[idx];
-	sd2 = dof / (dof - 2.0);
-	sd = sqrt(sd2);
-	LINK_INIT;
-	if (m > 0) {
-		double lg1, lg2, f;
-
-		lg1 = gsl_sf_lngamma(dof / 2.0);
-		lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
-		for (i = 0; i < m; i++) {
-			var_u = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			f = sqrt(var_u) / sd;
-			obs = y / f;
-			logll[i] = lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log(1.0 + SQR(obs) / dof) - log(f);
-		}
-	} else {
-		for (i = 0; i < -m; i++) {
-			var_u = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = 1.0 - 2.0 * gsl_cdf_tdist_Q(ABS(y) * sd / sqrt(var_u), dof);
-		}
-	}
-
-	LINK_END;
-	return GMRFLib_SUCCESS;
-}
-int loglikelihood_stochvol_nig(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
-{
-	/*
-	 * y / exp(x/2)  ~ NIG with skew and shape parameter. beta = skew, psi = shape. Note that E=1 and Var=1.
-	 *
-	 *
-	 * density: gamma
-	 *          * exp[ psi^2 + beta*(gamma*x + beta) ]
-	 *          * K_1[sqrt(beta^2+psi^2)*sqrt((gamma*x+beta)^2 + psi^2)]
-	 *
-	 */
-	if (m == 0) {
-		return GMRFLib_SUCCESS;
-	}
-	int i;
-	Data_section_tp *ds = (Data_section_tp *) arg;
-	double skew, skew2, shape, shape2, y, gam, gam2, tmp, obs, a, var_u;
-
-	skew = ds->data_observations.skew_intern_svnig[GMRFLib_thread_id][0];
-	skew2 = SQR(skew);
-	shape = map_shape_svnig(ds->data_observations.shape_intern_svnig[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	shape2 = SQR(shape);
-	gam2 = 1.0 + SQR(skew) / SQR(shape);
-	gam = sqrt(gam2);
-	y = ds->data_observations.y[idx];
-	a = log(gam * shape / M_PI) + 0.5 * log(skew2 + shape2) + shape2;
-
-	LINK_INIT;
-	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			var_u = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			obs = y / sqrt(var_u);
-			tmp = SQR(gam * obs + skew) + shape2;
-			logll[i] = a - 0.5 * log(tmp) + skew * (gam * obs + skew)
-			    + gsl_sf_bessel_lnKnu(1.0, sqrt((skew2 + shape2) * tmp)) - log(var_u) / 2.0;
-		}
-	}
-
-	LINK_END;
-	return GMRFLib_SUCCESS;
-}
 int inla_sread_colon_ints(int *i, int *j, const char *str)
 {
 	/*
