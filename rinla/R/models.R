@@ -640,6 +640,7 @@
                      n.div.by = NULL,
                      n.required = FALSE,
                      set.default.values = TRUE,
+                     status = "experimental", 
                      pdf = "ar1c"
                  ),
 
