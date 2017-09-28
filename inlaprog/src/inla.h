@@ -19,14 +19,13 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
- * RCSId: $Id: inla.h,v 1.238 2010/04/03 12:33:29 hrue Exp $
  *
  */
 #ifndef __INLA_H__
@@ -48,6 +47,7 @@ __BEGIN_DECLS
 #include "strlib.h"
 #include "ar.h"
 #include "fgn.h"
+#include "stochvol.h"
 #include "quantile-regression.h"
 #define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560)	/* -1/2 * log(2*pi) */
 #define INLA_FAIL  1
@@ -518,6 +518,7 @@ typedef enum {
 	F_R_GENERIC,
 	F_FGN,
 	F_FGN2,
+	F_AR1C,
 	P_LOGGAMMA = 2000,				       /* priors */
 	P_GAUSSIAN,
 	P_MVGAUSSIAN,
@@ -1058,6 +1059,26 @@ typedef struct {
 
 typedef struct {
 	/*
+	 * the AR(1) model with covariates: X_t = phi * X_t-1 + beta'* Z_{t-1} + eps_t
+	 * Prec(eps_t) = exp(log_precision)/(1-phi^2), and phi_intern =
+	 * logit((phi+1)/2). 
+	 *
+	 * total internal length, is N = n+m = AR1 + beta's
+	 */
+	int N;
+	int n;						       /* length of AR1 */
+	int m;						       /* number of covariates Z */
+	double **log_prec;				       /* theta[0] (marginal precision)*/
+	double **phi_intern;				       /* theta[1] */
+	GMRFLib_matrix_tp *Z;
+	GMRFLib_matrix_tp *ZZ;
+	GMRFLib_matrix_tp *Qbeta;
+	double logdet_Qbeta;
+} inla_ar1c_arg_tp;
+
+
+typedef struct {
+	/*
 	 * 2D iid random effects. The coding is (x0,y0,x1,y1,...,xn-1,yn-1), so the total length is N=2*n. For the 2DIIDWISHART the coding is (x,y).
 	 */
 	int n;
@@ -1314,6 +1335,7 @@ double Qfunc_2diid(int i, int j, void *arg);
 double Qfunc_2diid_wishart(int i, int j, void *arg);
 double Qfunc_ar(int i, int j, void *arg);
 double Qfunc_ar1(int i, int j, void *arg);
+double Qfunc_ar1c(int i, int j, void *arg);
 double Qfunc_besag(int i, int j, void *arg);
 double Qfunc_besag2(int i, int j, void *arg);
 double Qfunc_besagproper(int i, int j, void *arg);
@@ -1492,6 +1514,7 @@ int inla_make_2diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_2diid_arg_tp *
 int inla_make_3diid_graph(GMRFLib_graph_tp ** graph, inla_3diid_arg_tp * arg);
 int inla_make_3diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_3diid_arg_tp * arg);
 int inla_make_ar1_graph(GMRFLib_graph_tp ** graph, inla_ar1_arg_tp * arg);
+int inla_make_ar1c_graph(GMRFLib_graph_tp ** graph, inla_ar1c_arg_tp * arg);
 int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp * graph);
 int inla_make_bym_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph);
 int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type, int cyclic, int order,

@@ -63,6 +63,7 @@
 ##!         rgeneric = NULL,
 ##!         scale.model = NULL,
 ##!         args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL),
+##!         args.ar1c = list(Z = NULL, Q.beta = NULL),
 ##!         correct = NULL,
 ##!         debug = FALSE)
 ##!}
@@ -313,6 +314,9 @@
 
     ##!\item{args.slm}{Required arguments to the model="slm"; see the documentation for further details.},
     args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL),
+
+    ##!\item{args.ar1c}{Required arguments to the model="ar1c"; see the documentation for further details.},
+    args.ar1c = list(Z = NULL, Q.beta = NULL),
 
     ##!\item{correct}{Add this model component to the list of variables to be used in the corrected Laplace approximation? If \code{NULL} use default choice,  otherwise correct if \code{TRUE} and do not if \code{FALSE}. (This option is currently experimental.)},
     correct = NULL,
@@ -672,6 +676,26 @@
         }
     }
 
+    if (inla.one.of(model, c("ar1c"))) {
+        stopifnot(!is.null(args.ar1c))
+        stopifnot(!is.null(args.ar1c$Z) && inla.is.matrix(args.ar1c$Z))
+        stopifnot(!is.null(args.ar1c$Q.beta) && inla.is.matrix(args.ar1c$Q.beta))
+
+        args.ar1c$Z = as.matrix(args.ar1c$Z)           ## is dense
+        args.ar1c$Q.beta = as.matrix(args.ar1c$Q.beta) ## is dense
+
+        ar1c.n = dim(args.ar1c$Z)[1L]
+        ar1c.m = dim(args.ar1c$Z)[2L]
+        stopifnot(all(dim(args.ar1c$Z) == c(ar1c.n, ar1c.m)))
+        stopifnot(all(dim(args.ar1c$Q.beta) == c(ar1c.m, ar1c.m)))
+
+        if (missing(n) || is.null(n)) {
+            n = ar1c.n + ar1c.m
+        } else {
+            stopifnot(n == ar1c.n + ar1c.m)
+        }
+    }
+
     ## is N required?
     if (is.null(n) && (!is.null(inla.model.properties(model, "latent")$n.required)
                        && inla.model.properties(model, "latent")$n.required)) {
@@ -974,6 +998,7 @@
         scale.model = as.logical(scale.model),
         adjust.for.con.comp = as.logical(adjust.for.con.comp),
         args.slm = args.slm,
+        args.ar1c = args.ar1c,
         correct = correct
         )
 

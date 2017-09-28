@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 
@@ -80,7 +80,7 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 int domin_(void);
 int domin_get_results_(double *theta, double *log_dens, int *ierr);
 int domin_seteps_(double *epsx, double *epsf, double *epsg);
-double inla_compute_saturated_loglik(int, GMRFLib_logl_tp * , double *, void *);
+double inla_compute_saturated_loglik(int, GMRFLib_logl_tp *, double *, void *);
 
 static int pool_nhyper = -1;
 
@@ -4112,12 +4112,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					GMRFLib_density_tp *cpodens = NULL;
 
 					GMRFLib_thread_id = 0;
-					GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
-								   (cpo
-								    && (d[ii]
-									|| ai_par->cpo_manual) ? &cpodens : NULL), ii, x, b, c,
-								   mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc,
-								   Qfunc_arg, constr, ai_par, ai_store_id, marginal_hidden_store);
+					GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
+												   || ai_par->
+												   cpo_manual) ? &cpodens : NULL),
+								   ii, x, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph,
+								   Qfunc, Qfunc_arg, constr, ai_par, ai_store_id,
+								   marginal_hidden_store);
 					if (tfunc && tfunc[ii]) {
 						GMRFLib_transform_density(&dens_transform[ii][dens_count], dens[ii][dens_count],
 									  tfunc[ii]);
@@ -4133,12 +4133,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					GMRFLib_density_tp *cpodens = NULL;
 
 					GMRFLib_thread_id = 0;
-					GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
-								   (cpo
-								    && (d[ii]
-									|| ai_par->cpo_manual) ? &cpodens : NULL), ii, x, b, c,
-								   mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc,
-								   Qfunc_arg, constr, ai_par, ai_store, marginal_hidden_store);
+					GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
+												   || ai_par->
+												   cpo_manual) ? &cpodens : NULL),
+								   ii, x, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph,
+								   Qfunc, Qfunc_arg, constr, ai_par, ai_store,
+								   marginal_hidden_store);
 					if (tfunc && tfunc[ii]) {
 						GMRFLib_transform_density(&dens_transform[ii][dens_count], dens[ii][dens_count],
 									  tfunc[ii]);
@@ -4253,9 +4253,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					log_dens_orig = log_dens;
 
 					// make sure z_local's are aligned with theta_local's, for later usage.
-					GMRFLib_ai_theta2z(z_local, nhyper, theta_mode, theta_local, sqrt_eigen_values, eigen_vectors);
-					
-                                        /*
+					GMRFLib_ai_theta2z(z_local, nhyper, theta_mode, theta_local, sqrt_eigen_values,
+							   eigen_vectors);
+
+					/*
 					 * correct the log_dens due to the integration weights which is special for the CCD
 					 * integration and the deterministic integration points
 					 * 
@@ -4384,14 +4385,14 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD) {
 						for (i = 0; i < nhyper; i++) {
 							z[i] = f * design->experiment[k][i]
-								* (design->experiment[k][i] >
-								   0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
+							    * (design->experiment[k][i] >
+							       0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
 						}
 					} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD) {
 						for (i = 0; i < nhyper; i++) {
 							z[i] = design->experiment[k][i]
-								* (design->experiment[k][i] >
-								   0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
+							    * (design->experiment[k][i] >
+							       0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
 						}
 					} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER) {
 						for (i = 0; i < nhyper; i++) {
@@ -4496,11 +4497,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							GMRFLib_density_tp *cpodens = NULL;
 
 							GMRFLib_thread_id = 0;
-							GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
-										   (cpo
-										    && (d[ii]
-											|| ai_par->cpo_manual) ? &cpodens : NULL),
-										   ii, x, bnew, c, mean, d, loglFunc, loglFunc_arg,
+							GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
+														   || ai_par->
+														   cpo_manual) ?
+													   &cpodens : NULL), ii, x,
+										   bnew, c, mean, d, loglFunc, loglFunc_arg,
 										   fixed_value, graph, tabQfunc->Qfunc,
 										   tabQfunc->Qfunc_arg, constr, ai_par, ai_store_id,
 										   marginal_hidden_store);
@@ -4519,11 +4520,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							GMRFLib_density_tp *cpodens = NULL;
 
 							GMRFLib_thread_id = 0;
-							GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
-										   (cpo
-										    && (d[ii]
-											|| ai_par->cpo_manual) ? &cpodens : NULL),
-										   ii, x, bnew, c, mean, d, loglFunc, loglFunc_arg,
+							GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
+														   || ai_par->
+														   cpo_manual) ?
+													   &cpodens : NULL), ii, x,
+										   bnew, c, mean, d, loglFunc, loglFunc_arg,
 										   fixed_value, graph, tabQfunc->Qfunc,
 										   tabQfunc->Qfunc_arg, constr, ai_par, ai_store,
 										   marginal_hidden_store);
@@ -4663,11 +4664,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 								double *xx_mode = NULL;
 
 								ii = compute_idx[i];
-								GMRFLib_ai_marginal_hidden(&dens_local[ii],
-											   (cpo
-											    && (d[ii]
-												|| ai_par->
-												cpo_manual) ? &cpodens : NULL), ii,
+								GMRFLib_ai_marginal_hidden(&dens_local[ii], (cpo && (d[ii]
+														     ||
+														     ai_par->cpo_manual)
+													     ? &cpodens : NULL), ii,
 											   x, bnew, c, mean, d, loglFunc,
 											   loglFunc_arg, fixed_value, graph,
 											   tabQfunc->Qfunc, tabQfunc->Qfunc_arg,
@@ -4883,13 +4883,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
-												   (cpo
-												    && (d[ii]
-													|| ai_par->
-													cpo_manual) ? &cpodens :
-												    NULL), ii, x, bnew, c, mean, d,
-												   loglFunc, loglFunc_arg,
-												   fixed_value, graph,
+												   (cpo && (d[ii]
+													    || ai_par->cpo_manual) ?
+												    &cpodens : NULL), ii, x, bnew,
+												   c, mean, d, loglFunc,
+												   loglFunc_arg, fixed_value, graph,
 												   tabQfunc->Qfunc,
 												   tabQfunc->Qfunc_arg, constr,
 												   ai_par, ai_store_id,
@@ -4912,13 +4910,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
-												   (cpo
-												    && (d[ii]
-													|| ai_par->
-													cpo_manual) ? &cpodens :
-												    NULL), ii, x, bnew, c, mean, d,
-												   loglFunc, loglFunc_arg,
-												   fixed_value, graph,
+												   (cpo && (d[ii]
+													    || ai_par->cpo_manual) ?
+												    &cpodens : NULL), ii, x, bnew,
+												   c, mean, d, loglFunc,
+												   loglFunc_arg, fixed_value, graph,
 												   tabQfunc->Qfunc,
 												   tabQfunc->Qfunc_arg, constr,
 												   ai_par, ai_store,
@@ -5054,13 +5050,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
-												   (cpo
-												    && (d[ii]
-													|| ai_par->
-													cpo_manual) ? &cpodens :
-												    NULL), ii, x, bnew, c, mean, d,
-												   loglFunc, loglFunc_arg,
-												   fixed_value, graph,
+												   (cpo && (d[ii]
+													    || ai_par->cpo_manual) ?
+												    &cpodens : NULL), ii, x, bnew,
+												   c, mean, d, loglFunc,
+												   loglFunc_arg, fixed_value, graph,
 												   tabQfunc->Qfunc,
 												   tabQfunc->Qfunc_arg, constr,
 												   ai_par, ai_store_id,
@@ -5083,13 +5077,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
-												   (cpo
-												    && (d[ii]
-													|| ai_par->
-													cpo_manual) ? &cpodens :
-												    NULL), ii, x, bnew, c, mean, d,
-												   loglFunc, loglFunc_arg,
-												   fixed_value, graph,
+												   (cpo && (d[ii]
+													    || ai_par->cpo_manual) ?
+												    &cpodens : NULL), ii, x, bnew,
+												   c, mean, d, loglFunc,
+												   loglFunc_arg, fixed_value, graph,
 												   tabQfunc->Qfunc,
 												   tabQfunc->Qfunc_arg, constr,
 												   ai_par, ai_store,
@@ -5194,12 +5186,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					ai_store_id[id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
 
 				GMRFLib_thread_id = 0;
-				GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
-							   (cpo
-							    && (d[ii]
-								|| ai_par->cpo_manual) ? &cpodens : NULL), ii, x, bnew, c, mean, d,
-							   loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr,
-							   ai_par, ai_store_id[id], marginal_hidden_store);
+				GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
+											   || ai_par->
+											   cpo_manual) ? &cpodens : NULL), ii, x,
+							   bnew, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc,
+							   Qfunc_arg, constr, ai_par, ai_store_id[id], marginal_hidden_store);
 				if (tfunc && tfunc[ii]) {
 					GMRFLib_transform_density(&dens_transform[ii][dens_count], dens[ii][dens_count], tfunc[ii]);
 				}
@@ -5236,12 +5227,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 				GMRFLib_thread_id = 0;
 
-				GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
-							   (cpo
-							    && (d[ii]
-								|| ai_par->cpo_manual) ? &cpodens : NULL), ii, x, bnew, c, mean, d,
-							   loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr,
-							   ai_par, ai_store, marginal_hidden_store);
+				GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
+											   || ai_par->
+											   cpo_manual) ? &cpodens : NULL), ii, x,
+							   bnew, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc,
+							   Qfunc_arg, constr, ai_par, ai_store, marginal_hidden_store);
 				if (tfunc && tfunc[ii]) {
 					GMRFLib_transform_density(&dens_transform[ii][dens_count], dens[ii][dens_count], tfunc[ii]);
 				}
@@ -5691,7 +5681,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		ndev++;
 
 		double *e_deviance = Calloc(ndev, double), *e_deviance_sat = Calloc(ndev, double),
-			*deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double);
+		    *deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double);
 
 		for (j = 0; j < ndev; j++) {
 			e_deviance[j] = e_deviance_sat[j] = deviance_e[j] = deviance_e_sat[j] = NAN;
@@ -7049,7 +7039,7 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 
 	int i, k, np = GMRFLib_faster_integration_np;
 	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *loglik = NULL, *work = NULL, integral = 0.0, w[2] =
-		{ 4.0, 2.0 }, integral_one, logl_saturated;
+	    { 4.0, 2.0 }, integral_one, logl_saturated;
 
 	GMRFLib_ASSERT_RETVAL(np > 3, GMRFLib_ESNH, 0.0);
 
@@ -7075,9 +7065,9 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 	for (i = 0; i < np; i++) {
 		loglik[i] *= d;
 	}
-	//logl_saturated = d * inla_compute_saturated_loglik(idx, loglFunc, x_vec, loglFunc_arg);
+	// logl_saturated = d * inla_compute_saturated_loglik(idx, loglFunc, x_vec, loglFunc_arg);
 	logl_saturated = 0.0;
-	
+
 	integral = loglik[0] * dens[0] + loglik[np - 1] * dens[np - 1];
 	integral_one = dens[0] + dens[np - 1];
 	for (i = 1, k = 0; i < np - 1; i++, k = (k + 1) % 2) {
@@ -7235,6 +7225,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 	// if (idx == 0 && nhyper == 1) 
 	// sd = std_stdev_theta[idx];
 	// GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, hyper_count, hyper_z, hyper_ldens, theta_mode[idx], sd, 
+	// 
 	// GMRFLib_TRUE);
 	// 
 

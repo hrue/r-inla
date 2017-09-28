@@ -1,7 +1,7 @@
 
-/* pc-priors.h
+/* stochvol.h
  * 
- * Copyright (C) 2014 Havard Rue
+ * Copyright (C) 2017 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,8 +27,9 @@
  *        Office: +966 (0)12 808 0640
  *
  */
-#ifndef __INLA_PC_PRIORS_H__
-#define __INLA_PC_PRIORS_H__
+
+#ifndef __INLA_STOCHVOL_H__
+#define __INLA_STOCHVOL_H__
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
@@ -43,14 +44,11 @@ __BEGIN_DECLS
 /* 
  *
  */
-double inla_pc_h_default(double x, int inverse, int derivative);
-double inla_pc_simplex_core_d(double *x, int p, double lambda);
-double inla_pc_simplex_d(double *x, double *b, int p, double lambda);
 
-GMRFLib_spline_tp *inla_pcp_dof_create_spline(void);
-double inla_pcp_dof_dof(double d);
-double inla_pcp_dof_kld_approx(double dof);
-double inla_pcp_dof_d(double dof);
+#include "GMRFLib/GMRFLib.h"
+#include "GMRFLib/GMRFLibP.h"
+#include "inla.h"
+
 
 
 

@@ -606,6 +606,44 @@
                      pdf = "ar1"
                  ),
 
+                 ar1c = list(
+                     doc = "Auto-regressive model of order 1 w/covariates", 
+                     hyper = list(
+                         theta1 = list(
+                             hyperid =  14101,
+                             name = "log precision",
+                             short.name = "prec",
+                             prior = "pc.prec",
+                             param = c(1, 0.01),
+                             initial = 4,
+                             fixed = FALSE,
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         ),
+                         theta2 = list(
+                             hyperid =  14102,
+                             name = "logit lag one correlation",
+                             short.name = "rho",
+                             prior = "pc.cor0",
+                             param = c(0.5, 0.5),
+                             initial = 2,
+                             fixed = FALSE,
+                             to.theta = function(x) log((1+x)/(1-x)),
+                             from.theta = function(x) 2*exp(x)/(1+exp(x))-1
+                         )
+                     ),
+                     constr = FALSE,
+                     nrow.ncol = FALSE,
+                     augmented = FALSE,
+                     aug.factor = 1L,
+                     aug.constr = NULL,
+                     n.div.by = NULL,
+                     n.required = FALSE,
+                     set.default.values = TRUE,
+                     status = "experimental", 
+                     pdf = "ar1c"
+                 ),
+
                  ar = list(
                      doc = "Auto-regressive model of order p (AR(p))", 
                      ## to many parameters here, but ...
