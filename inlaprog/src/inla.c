@@ -25847,7 +25847,7 @@ double inla_compute_saturated_loglik(int idx, GMRFLib_logl_tp * loglfunc, double
 double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg)
 {
 	double prec = 1.0, x, xnew, xinit, f, deriv, dderiv, arr[3], xarr[3], eps = 1.0e-4, steplen = 1.0e-4;
-	int niter = 0, compute_deriv, retval, niter_max = 100, debug = 1, stencil = 5;
+	int niter = 0, compute_deriv, retval, niter_max = 100, debug = 0, stencil = 5;
 
 	x = xnew = xinit = (x_vec ? x_vec[idx] : 0.0);
 	retval = loglfunc(NULL, NULL, 0, 0, NULL, NULL);
@@ -25910,7 +25910,6 @@ double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, d
 			break;
 		}
 	}
-	P(arr[0]);
 
 	return arr[0];
 }
