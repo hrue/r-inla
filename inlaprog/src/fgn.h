@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 #ifndef __INLA_FGN_H__
@@ -43,8 +43,11 @@ __BEGIN_DECLS
 /* 
  *
  */
+#include "GMRFLib/GMRFLib.h"
+#include "GMRFLib/GMRFLibP.h"
 #include "inla.h"
 #define FGN_KMAX (4L)					       /* maximum K in the tables */
+
 //
     typedef struct {
 	int N;						       /* total size = (k+1)*n */
