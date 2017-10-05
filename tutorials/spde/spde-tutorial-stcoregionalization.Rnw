@@ -177,7 +177,7 @@ s1 = s2 = s3 = s12 = s13 = s23 = rep(1:spde$n.spde, times=k)
 g1 = g2 = g3 = g12 = g13 = g23 = rep(1:k, each=spde$n.spde)
 @ 
 
-Prior for $\rho_j$ is chosen as the Penalized Complexity prior, \cite{simpsonMRFRS:2015}
+Prior for $\rho_j$ is chosen as the Penalized Complexity prior, \cite{simpsonetal:2017}
 <<pbeta>>=
 rho1p <- list(theta=list(prior='pccor1', param=c(0, 0.9))) 
 ctr.g <- list(model='ar1', hyper=rho1p)
@@ -189,9 +189,6 @@ Priors for each of the the copy parameters $N(0, 10)$
 <<pcopy>>=
 hc3 <- hc2 <- hc1 <- list(theta=list(prior='normal', param=c(0,10)))
 @ 
-
-The priors for the fields are the default ones, 
-described in~\cite{lindgrenR:2013}. 
 
 Define the formula including all the terms in the model. 
 <<form>>=
@@ -296,7 +293,11 @@ The standard deviation for each random field
 round(cbind(true=m.var^0.5, result$summary.hy[c(5, 8, 11),]), 3)
 @ 
 
-<<zfit,eval=FALSE>>=
+The posterior mean for each random field is projected to 
+the observation locations and shown against the 
+simulated correspondent fields in Figure~\ref{fig:stzfit} 
+with the code bellow. 
+<<stzfit,eval=FALSE>>=
 par(mfrow=c(1,3), mar=c(2,2,0.5,0.5), mgp=c(1.5,0.5,0))
 plot(drop(A%*%result$summary.ran$s1$mean), as.vector(z1),
      xlab='', ylab='', asp=1); abline(0:1)
@@ -306,11 +307,11 @@ plot(drop(A%*%result$summary.ran$s3$mean), as.vector(z3),
      xlab='', ylab='', asp=1); abline(0:1)
 @ 
 \begin{figure}\centering
-<<zfitplot,echo=FALSE,fig.width=15,heigh=3,out.width='0.97\\textwidth'>>=
-<<zfit>> 
+<<stzfitplot,echo=FALSE,fig.width=15,heigh=3,out.width='0.97\\textwidth'>>=
+<<stzfit>> 
 @ 
 \caption{True and fitted random field values.}
-\end{figure}\label{fig:zfit}
+\end{figure}\label{fig:stzfit}
 
 Remember that the crude approximation for the 
 covariance and the simplifications on the inference 
