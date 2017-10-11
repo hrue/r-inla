@@ -2,6 +2,16 @@
 
 ### Functions to write the different sections in the .ini-file
 
+`inla.secsep` = function(secname) 
+{
+    sep = "$"
+    if (missing(secname)) {
+        return (sep)
+    } else {
+        return (paste0(sep, inla.namefix(secname), sep))
+    }
+}
+    
 `inla.write.hyper` = function(hyper, file, prefix="", data.dir, ngroup = -1L, low = -Inf, high = Inf)
 {
     stopifnot(!missing(hyper))
@@ -104,7 +114,7 @@
         link.covariates = link.covariates, data.dir)
 {
     ## this function is called from 'inla.family.section' only.
-    cat("[INLA.Data", i.family, "]\n", sep = "", file = file,  append = TRUE)
+    cat(inla.secsep(), "INLA.Data", i.family, inla.secsep(), "\n", sep = "", file = file,  append = TRUE)
     cat("type = data\n", sep = " ", file = file,  append = TRUE)
     cat("likelihood = ", family,"\n", sep = " ", file = file,  append = TRUE)
     cat("filename = ", file.data,"\n", sep = " ", file = file,  append = TRUE)
@@ -220,10 +230,10 @@
 `inla.ffield.section` = function(file, file.loc, file.cov, file.id.names = NULL,  n, nrep, ngroup,
         file.extraconstr, file.weights, random.spec, results.dir, only.hyperparam, data.dir)
 {
-    label= inla.namefix(random.spec$term)
+    label= random.spec$term
     prop = inla.model.properties(random.spec$model, "latent", stop.on.error=TRUE)
 
-    cat("[", label,"]\n", sep = "", file = file,  append = TRUE)
+    cat(inla.secsep(label), "\n", sep = "", file = file,  append = TRUE)
     cat("dir = ", results.dir,"\n", sep = " ", file = file,  append = TRUE)
     cat("type = ffield\n", sep = " ", file = file,  append = TRUE)
     cat("model = ", random.spec$model,"\n", sep = " ", file = file,  append = TRUE)
@@ -642,7 +652,7 @@
 
 `inla.inla.section` = function(file, inla.spec, data.dir)
 {
-    cat("[INLA.Parameters]\n", sep = " ", file = file,  append = TRUE)
+    cat(inla.secsep("INLA.Parameters"), "\n", sep = " ", file = file,  append = TRUE)
     cat("type = inla\n", sep = " ", file = file,  append = TRUE)
 
     if (!is.null(inla.spec$int.strategy)) {
@@ -817,7 +827,7 @@
     ## n = NPredictor
     ## m = MPredictor
 
-    cat("[Predictor]\n", sep = " ", file = file,  append = TRUE)
+    cat(inla.secsep("Predictor"), "\n", sep = " ", file = file,  append = TRUE)
     cat("type = predictor\n", sep = " ", file = file,  append = TRUE)
     cat("dir = predictor\n", sep = " ", file = file, append = TRUE)
     cat("n = ", n, "\n", sep = " ", file = file,  append = TRUE)
@@ -918,12 +928,12 @@
 
     ## libR-stuff
     cat("\n", sep = " ", file = file,  append = TRUE)
-    cat("[INLA.libR]\n", sep = " ", file = file,  append = TRUE)
+    cat(inla.secsep("INLA.libR"), "\n", sep = " ", file = file,  append = TRUE)
     cat("type = libR\n", sep = " ", file = file,  append = TRUE)
     cat("R_HOME = ", Sys.getenv("R_HOME"), "\n", sep = "", file = file,  append = TRUE)
 
     cat("\n", sep = " ", file = file,  append = TRUE)
-    cat("[INLA.Model]\n", sep = " ", file = file,  append = TRUE)
+    cat(inla.secsep("INLA.Model"), "\n", sep = " ", file = file,  append = TRUE)
     cat("type = problem\n", sep = " ", file = file,  append = TRUE)
     cat("dir = $inlaresdir\n", sep = " ", file = file,  append = TRUE)
     cat("openmp.strategy = ", openmp.strategy, "\n", sep = " ", file = file,  append = TRUE)
@@ -963,7 +973,7 @@
 
 `inla.linear.section` = function(file, file.fixed, label, results.dir, control.fixed, only.hyperparam)
 {
-    cat("[", inla.namefix(label), "]\n", sep = "", file = file,  append = TRUE)
+    cat(inla.secsep(label), "\n", sep = "", file = file,  append = TRUE)
     cat("dir = ", results.dir,"\n", sep = " ", file = file,  append = TRUE)
     cat("type = linear\n", sep = " ", file = file,  append = TRUE)
     cat("covariates = ", file.fixed,"\n", sep = " ", file = file,  append = TRUE)
@@ -1003,14 +1013,14 @@
     cat("precision = ", prec, "\n", sep = " ", file = file,  append = TRUE)
     cat("\n", sep = " ", file = file,  append = TRUE)
 
-    return (list(label = inla.namefix(label), prior.mean = mean, prior.prec = prec))
+    return (list(label = label, prior.mean = mean, prior.prec = prec))
 }
 
 `inla.mode.section` = function(file, args, data.dir)
 {
     if (!is.null(args$result) || !is.null(args$theta) || !is.null(args$x)) {
 
-        cat("[INLA.Control.Mode]\n", sep = " ", file = file,  append = TRUE)
+        cat(inla.secsep("INLA.Control.Mode"), "\n", sep = " ", file = file,  append = TRUE)
         cat("type = mode\n", sep = " ", file = file,  append = TRUE)
 
         ## use default the mode in result if given
@@ -1058,7 +1068,7 @@
 
 `inla.expert.section` = function(file, args, data.dir)
 {
-    cat("[INLA.Expert]\n", sep = " ", file = file,  append = TRUE)
+    cat(inla.secsep("INLA.Expert"), "\n", sep = " ", file = file,  append = TRUE)
     cat("type = expert\n", sep = " ", file = file,  append = TRUE)
 
     if (!is.null(args$cpo.manual) && args$cpo.manual) {
@@ -1094,7 +1104,7 @@
     if (!is.null(contr$result) && length(contr$result$mode$theta) > 0L)
     {
         file.update = inla.tempfile(tmpdir=data.dir)
-        cat("[INLA.update]\n", sep = " ", file = file,  append = TRUE)
+        cat(inla.secsep("INLA.update"), "\n", sep = " ", file = file,  append = TRUE)
         cat("type = update\n", sep = " ", file = file,  append = TRUE)
         x = c(
             length(contr$result$mode$theta),
@@ -1161,7 +1171,7 @@
                 prev.secnames = c(secname, prev.secnames)
             }
 
-            cat("\n[", secname, "]\n", sep = "", file = file,  append = TRUE)
+            cat("\n", inla.secsep(secname), "\n", sep = "", file = file,  append = TRUE)
             cat("type = lincomb\n", sep = " ", file = file,  append = TRUE)
             cat("lincomb.order = ", i, "\n", sep = " ", file = file,  append = TRUE)
             if (!is.null(contr$precision)) {
