@@ -9068,6 +9068,11 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		exit(EXIT_FAILURE);
 	}
 
+	if (0) {
+		dictionary_dump(ini, stdout);
+		exit(0);
+	}
+	
 	if (mb->reuse_mode) {
 		/*
 		 * if the test fail, its a good idea to provide some debug information which might be helpful to help what is wrong in the spesification. 
