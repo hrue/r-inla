@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 
@@ -168,9 +168,9 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 supernodal_factor_matrix *GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(supernodal_factor_matrix * L)
 {
 #define DUPLICATE(name,len,type) if (1) {					\
-		if (L->name && len) {					\
-			LL->name = (type *)Calloc(len, type); \
-			memcpy(LL->name,L->name,(size_t)len*sizeof(type)); \
+		if (L->name && ((len) > 0)) {				\
+			LL->name = (type *)Calloc((len), type);		\
+			memcpy(LL->name,L->name,(size_t)(len)*sizeof(type)); \
 		} else {						\
 			LL->name = (type *)NULL;			\
 		}							\

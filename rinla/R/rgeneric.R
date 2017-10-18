@@ -265,7 +265,16 @@
         f = list(
             model = "rgeneric", 
             rgeneric = list(
-                definition = model,
+                definition = if (TRUE) {
+                                 model
+                             } else {
+                                 ## did not see any speedup. maybe revisit this issue later...
+                                 inla.require("compiler")
+                                 compiler::cmpfun(model,
+                                                  options = list(
+                                                      optimize=3L,
+                                                      suppressUndefined=TRUE))
+                             }, 
                 debug = debug
                 )
             )
