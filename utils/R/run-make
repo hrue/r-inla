@@ -11,10 +11,12 @@ if ! $(is_set INLA_MAC); then
 fi
 
 if ! $(is_set INLA_LINUX); then
-    export INLA_LINUX=hrue@inla.math.ntnu.no ## ubuntu
+    ##export INLA_LINUX=hrue@inla.math.ntnu.no ## ubuntu
+    export INLA_LINUX=hrue@192.168.124.71
     export INLA_LINUX_PORT=22
-    export INLA_LINUX=hrue@localhost.localdomain ## centos
-    export INLA_LINUX_PORT=19999
+
+    ##export INLA_LINUX=hrue@localhost.localdomain ## centos
+    ##export INLA_LINUX_PORT=19999
 fi
 
 if ! $(is_set INLA_INLA); then
