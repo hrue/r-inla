@@ -842,7 +842,7 @@ int GMRFLib_ai_log_posterior(double *logdens,
 						for (iii = 0; iii < nidx; iii++) {
 							GMRFLib_thread_id = id;
 							ii = idxs[iii];
-							loglFunc(&logll, &x[ii], 1, ii, x, loglFunc_arg);
+							loglFunc(&logll, &x[ii], 1, ii, x, NULL, loglFunc_arg);
 							tmp2 += d[ii] * logll;
 						}
 						GMRFLib_thread_id = id;
@@ -856,7 +856,7 @@ int GMRFLib_ai_log_posterior(double *logdens,
 						for (iii = 0; iii < nidx; iii++) {
 							GMRFLib_thread_id = id;
 							ii = idxs[iii];
-							loglFunc(&logll, &x[ii], 1, ii, x, loglFunc_arg);
+							loglFunc(&logll, &x[ii], 1, ii, x, NULL, loglFunc_arg);
 							tmp2 += d[ii] * logll;
 						}
 						GMRFLib_thread_id = id;
@@ -870,14 +870,14 @@ int GMRFLib_ai_log_posterior(double *logdens,
 					if (fixed_value) {
 						for (ii = 0; ii < n; ii++) {
 							if (d[ii] && !fixed_value[ii]) {
-								loglFunc(&logll, &x[ii], 1, ii, x, loglFunc_arg);
+								loglFunc(&logll, &x[ii], 1, ii, x, NULL, loglFunc_arg);
 								tmp2 += d[ii] * logll;
 							}
 						}
 					} else {
 						for (ii = 0; ii < n; ii++) {
 							if (d[ii]) {
-								loglFunc(&logll, &x[ii], 1, ii, x, loglFunc_arg);
+								loglFunc(&logll, &x[ii], 1, ii, x, NULL, loglFunc_arg);
 								tmp2 += d[ii] * logll;
 							}
 						}
@@ -931,14 +931,14 @@ int GMRFLib_ai_log_posterior(double *logdens,
 			if (fixed_value) {
 				for (i = 0; i < n; i++) {
 					if (d[i] && !fixed_value[i]) {
-						loglFunc(&logll, &x[i], 1, i, x, loglFunc_arg);
+						loglFunc(&logll, &x[i], 1, i, x, NULL, loglFunc_arg);
 						tmp += d[i] * logll;
 					}
 				}
 			} else {
 				for (i = 0; i < n; i++) {
 					if (d[i]) {
-						loglFunc(&logll, &x[i], 1, i, x, loglFunc_arg);
+						loglFunc(&logll, &x[i], 1, i, x, NULL, loglFunc_arg);
 						tmp += d[i] * logll;
 					}
 				}
@@ -1065,7 +1065,7 @@ int GMRFLib_ai_log_posterior_restricted_OLD(double *logdens, double *x, double *
 				tmp = 0.0;
 				for (ii = 0; ii < ai_store->nd; ii++) {
 					i = ai_store->d_idx[ii];
-					loglFunc(&logll, &x[i], 1, i, x, loglFunc_arg);
+					loglFunc(&logll, &x[i], 1, i, x, NULL, loglFunc_arg);
 					tmp += d[i] * logll;
 				}
 				val += tmp;
@@ -1077,7 +1077,7 @@ int GMRFLib_ai_log_posterior_restricted_OLD(double *logdens, double *x, double *
 					// i = subgraph->mothergraph_idx[ii];
 					i = ii;
 					if (d[i]) {
-						loglFunc(&logll, &x[i], 1, i, x, loglFunc_arg);
+						loglFunc(&logll, &x[i], 1, i, x, NULL, loglFunc_arg);
 						tmp += d[i] * logll;
 					}
 				}
@@ -1187,7 +1187,7 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 			for (ii = 0; ii < ns; ii++) {
 				i = subgraph->mothergraph_idx[ii];
 				if (d[i]) {
-					loglFunc(&logll, &x[i], 1, i, x, loglFunc_arg);
+					loglFunc(&logll, &x[i], 1, i, x, NULL, loglFunc_arg);
 					tmp += d[i] * logll;
 				}
 			}
@@ -1311,7 +1311,7 @@ int GMRFLib_ai_do_MC_error_check(double *err, GMRFLib_problem_tp * problem, doub
 				i = problem->map[ii];
 				if (d && d[i]) {
 					xval = problem->sample[i];
-					loglFunc(&loglikelihood, &xval, 1, i, problem->sample, loglFunc_arg);
+					loglFunc(&loglikelihood, &xval, 1, i, problem->sample, NULL, loglFunc_arg);
 					diff += a[i] + (b[i] - 0.5 * c[i] * xval) * xval - d[i] * loglikelihood;
 				}
 			}
@@ -1407,7 +1407,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 				}					\
 				GMRFLib_evaluate_nlogdensity(ld, xp, np, *density); \
 				GMRFLib_density_std2user_n(x_user, xp, np, *density); \
-				loglFunc(logcor, x_user, np, idx, fixed_mode, loglFunc_arg); \
+				loglFunc(logcor, x_user, np, idx, fixed_mode, NULL, loglFunc_arg); \
 				for(_i=0; _i < np; _i++) {		\
 					logcor[_i] *= d[idx];		\
 				}					\
@@ -5706,7 +5706,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					abort();
 				}
 				double double_tmp = (double) ((*density)[ii]->user_mean);
-				loglFunc(&logll, &double_tmp, 1, ii, x_vec, loglFunc_arg);
+				loglFunc(&logll, &double_tmp, 1, ii, x_vec, NULL, loglFunc_arg);
 				logll *= d[ii];
 				logl_saturated = d[ii] * inla_compute_saturated_loglik(ii, loglFunc, x_vec, loglFunc_arg);
 				dm = -2.0 * logll;
@@ -6855,7 +6855,7 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 		return fail;
 	}
 
-	retval = loglFunc(NULL, NULL, 0, idx, x_vec, loglFunc_arg);
+	retval = loglFunc(NULL, NULL, 0, idx, x_vec, NULL, loglFunc_arg);
 	if (!(retval == GMRFLib_LOGL_COMPUTE_CDF || retval == GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF)) {
 		compute_cpo = 0;
 	}
@@ -6882,11 +6882,11 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 	GMRFLib_evaluate_ndensity(dens, xpi, np, cpo_density);
 
 	if (compute_cpo) {
-		loglFunc(prob, xp, -np, idx, x_vec, loglFunc_arg);	/* no correction for 'd' here; should we? */
+		loglFunc(prob, xp, -np, idx, x_vec, NULL, loglFunc_arg);	/* no correction for 'd' here; should we? */
 	} else {
 		memset(prob, 0, np * sizeof(double));
 	}
-	loglFunc(loglik, xp, np, idx, x_vec, loglFunc_arg);
+	loglFunc(loglik, xp, np, idx, x_vec, NULL, loglFunc_arg);
 	for (i = 0; i < np; i++) {
 		loglik[i] *= d;
 	}
@@ -6986,7 +6986,7 @@ double GMRFLib_ai_po_integrate(double *po, double *po2, double *po3, int idx, GM
 	}
 	GMRFLib_evaluate_ndensity(dens, xpi, np, po_density);
 
-	loglFunc(loglik, xp, np, idx, x_vec, loglFunc_arg);
+	loglFunc(loglik, xp, np, idx, x_vec, NULL, loglFunc_arg);
 	for (i = 0; i < np; i++) {
 		loglik[i] *= d;
 	}
@@ -7061,11 +7061,11 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 		xpi[i] = xpi[0] + i * dxi;
 	}
 	GMRFLib_evaluate_ndensity(dens, xpi, np, density);
-	loglFunc(loglik, xp, np, idx, x_vec, loglFunc_arg);
+	loglFunc(loglik, xp, np, idx, x_vec, NULL, loglFunc_arg);
 	for (i = 0; i < np; i++) {
 		loglik[i] *= d;
 	}
-	// logl_saturated = d * inla_compute_saturated_loglik(idx, loglFunc, x_vec, loglFunc_arg);
+	// logl_saturated = d * inla_compute_saturated_loglik(idx, loglFunc, x_vec, NULL, loglFunc_arg);
 	logl_saturated = 0.0;
 
 	integral = loglik[0] * dens[0] + loglik[np - 1] * dens[np - 1];
