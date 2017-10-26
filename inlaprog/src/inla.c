@@ -958,13 +958,6 @@ double map_alpha_weibull(double arg, map_arg_tp typ, void *param)
 	 */
 	return map_exp(arg, typ, param);
 }
-double map_alpha_loglogistic(double arg, map_arg_tp typ, void *param)
-{
-	/*
-	 * the map-function for the range
-	 */
-	return map_exp(arg, typ, param);
-}
 double map_alpha_weibull_cure(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -3583,6 +3576,11 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[0] = NULL;
 		break;
 
+	case L_LOGLOGISTIC:
+		idiv = 2;
+		a[0] = NULL;
+		break;
+
 	case L_QLOGLOGISTIC:
 		idiv = 2;
 		a[0] = NULL;
@@ -3688,7 +3686,8 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	case L_EXPONENTIALSURV:
 	case L_WEIBULLSURV:
 	case L_WEIBULL_CURE:
-	case L_LOGLOGISTIC:
+	case L_LOGLOGISTICSURV:
+	case L_QLOGLOGISTICSURV:
 	case L_LOGNORMALSURV:
 		idiv = 6;
 		a[0] = ds->data_observations.event = Calloc(mb->predictor_ndata, double);	/* the failure code */
@@ -6853,50 +6852,6 @@ int loglikelihood_gp(double *logll, double *x, int m, int idx, double *x_vec, do
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_qloglogistic(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
-{
-	/*
-	 * qloglogistic-distr
-	 */
-
-	if (m == 0) {
-		return GMRFLib_LOGL_COMPUTE_CDF;
-	}
-
-	int i;
-	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx];
-	double q = ds->data_observations.quantile;
-	double prec = map_exp(ds->data_observations.qloglogistic_log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double s = 1.0 / sqrt(prec);
-	double log_s = log(s);
-	double ss = 1.0 / s;
-	double qstar = q / (1.0 - q);
-	double log_qstar = log(qstar);
-	double y_ss = pow(y, ss);
-	double log_y_ss1 = (ss - 1.0) * log(y);
-	double kappa, kappa_ss;
-
-	LINK_INIT;
-	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			kappa = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			kappa_ss = pow(kappa, ss);
-			logll[i] = log_qstar + log(kappa_ss) + log_y_ss1 - (log_s + 2.0 * log(kappa_ss + qstar * y_ss));
-		}
-	} else {
-		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
-		for (i = 0; i < -m; i++) {
-			kappa = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			kappa_ss = pow(kappa, ss);
-			logll[i] = qstar * y_ss / (kappa_ss + qstar * y_ss);
-		}
-	}
-
-	LINK_END;
-	return GMRFLib_SUCCESS;
-}
-
 int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	/*
@@ -7442,67 +7397,60 @@ int loglikelihood_weibullsurv(double *logll, double *x, int m, int idx, double *
 
 int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
-	/*
-	 * y ~ LOGLOGISTIC. cdf is 1/(1 + (y/eta)^-alpha); see http://en.wikipedia.org/wiki/Log-logistic_distribution
-	 */
-#define logf(_y, _eta) (log(alpha/(_eta)) + (alpha-1.0)*log((_y)/(_eta)) - 2.0*log(1.0 + pow((_y)/(_eta), alpha)))
-#define F(_y, _eta) ((_y) <= 0.0 ? 0.0 : (1.0/(1.0 + pow((_y)/(_eta), -alpha))))
-
-#define logff(_y, _eta) (logf(_y, _eta) - log(1.0 - F(truncation, _eta)))
-#define FF(_y, _eta)  ((F(_y, _eta) -F(truncation, _eta))/(1.0 - F(truncation, _eta)))
-
 	if (m == 0) {
-		return GMRFLib_SUCCESS;
+		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i, ievent;
-	double y, event, truncation, lower, upper, alpha, eta;
+	double y, ly=0, lambda, alpha, lalpha=0;
 
 	y = ds->data_observations.y[idx];
-	event = ds->data_observations.event[idx];
-	ievent = (int) event;
-	truncation = ds->data_observations.truncation[idx];
-	lower = ds->data_observations.lower[idx];
-	upper = ds->data_observations.upper[idx];
-	alpha = map_alpha_loglogistic(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	alpha = map_exp(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	LINK_INIT;
 
 	if (m > 0) {
-		switch (ievent) {
-		case SURV_EVENT_FAILURE:
-			for (i = 0; i < m; i++) {
-				eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = logff(y, eta);
-			}
-			break;
+		ly = log(y);
+		lalpha = log(alpha);
+	}
 
-		case SURV_EVENT_RIGHT:
+	switch(ds->variant) {
+	case 0: 
+		if (m > 0) {
 			for (i = 0; i < m; i++) {
-				eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log(1.0 - FF(lower, eta));
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				logll[i] = log(lambda) + (-alpha - 1.0) * ly + lalpha
+					- 2.0*log(1.0 + lambda * pow(y, -alpha));
 			}
-			break;
-
-		case SURV_EVENT_LEFT:
-			for (i = 0; i < m; i++) {
-				eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log(FF(upper, eta));
+		} else {
+			double yy = (y_cdf ? *y_cdf : y);
+			for (i = 0; i < -m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				logll[i] = 1.0/(1.0 + lambda * pow(yy, -alpha));
 			}
-			break;
-
-		case SURV_EVENT_INTERVAL:
-			for (i = 0; i < m; i++) {
-				eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log(FF(upper, eta) - FF(lower, eta));
-			}
-			break;
-		default:
-			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 		}
-		return GMRFLib_SUCCESS;
-	} else {
-		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
+		break;
+
+	case 1: 
+		if (m > 0) {
+			double lam_y;
+			for (i = 0; i < m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				lam_y = lambda * y;
+				logll[i] = -alpha * log(lam_y) + lalpha - ly
+					- 2.0 * log(1.0 + pow(lam_y, -alpha));
+			}
+		} else {
+			double yy = (y_cdf ? *y_cdf : y);
+			for (i = 0; i < -m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				logll[i] = 1.0/(1.0 + pow(lambda * yy, -alpha));
+			}
+		}
+		break;
+		
+	default: 
+		assert(0 == 1);
 	}
 
 	LINK_END;
@@ -7512,6 +7460,23 @@ int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *
 #undef FF
 	return GMRFLib_SUCCESS;
 }
+
+int loglikelihood_loglogisticsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+{
+	return (m == 0 ? GMRFLib_SUCCESS :
+		loglikelihood_generic_surv(logll, x, m, idx, x_vec, arg, loglikelihood_loglogistic));
+}	
+
+int loglikelihood_qloglogistic(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+{
+	assert(0 == 1);
+}
+
+int loglikelihood_qloglogisticsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+{
+	return (m == 0 ? GMRFLib_SUCCESS :
+		loglikelihood_generic_surv(logll, x, m, idx, x_vec, arg, loglikelihood_qloglogistic));
+}	
 
 int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
@@ -9827,6 +9792,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "qloglogistic")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_qloglogistic;
 		ds->data_id = L_QLOGLOGISTIC;
+	} else if (!strcasecmp(ds->data_likelihood, "qloglogisticsurv")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_qloglogisticsurv;
+		ds->data_id = L_QLOGLOGISTICSURV;
 	} else if (!strcasecmp(ds->data_likelihood, "BETA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_beta;
 		ds->data_id = L_BETA;
@@ -9902,6 +9870,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "LOGLOGISTIC")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_loglogistic;
 		ds->data_id = L_LOGLOGISTIC;
+	} else if (!strcasecmp(ds->data_likelihood, "LOGLOGISTICSURV")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_loglogisticsurv;
+		ds->data_id = L_LOGLOGISTICSURV;
 	} else if (!strcasecmp(ds->data_likelihood, "LOGNORMALSURV")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_lognormalsurv;
 		ds->data_id = L_LOGNORMALSURV;
@@ -10252,11 +10223,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
+	case L_LOGLOGISTIC:
 	case L_QLOGLOGISTIC:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.y[i] <= 0.0) {
-					GMRFLib_sprintf(&msg, "%s: qloglogistic data[%1d] (y) = (%g) is void\n", secname, i,
+					GMRFLib_sprintf(&msg, "%s: log-logistic/normal data[%1d] (y) = (%g) is void\n", secname, i,
 							ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
@@ -10353,7 +10325,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_EXPONENTIALSURV:
 	case L_WEIBULLSURV:
 	case L_WEIBULL_CURE:
-	case L_LOGLOGISTIC:
+	case L_LOGLOGISTICSURV:
+	case L_QLOGLOGISTICSURV:
 	case L_LOGNORMALSURV:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
@@ -10366,7 +10339,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				ttime = ds->data_observations.y[i];
 				event = (int) (ds->data_observations.event[i]);
 
-#define SERR { GMRFLib_sprintf(&msg, "%s: ps survival data[%1d] (event,trunc,lower,upper,y) = (%g,%g,%g,%g,%g) is void\n", \
+#define SERR { GMRFLib_sprintf(&msg, "%s: survival data[%1d] (event,trunc,lower,upper,y) = (%g,%g,%g,%g,%g) is void\n", \
 			       secname, i, (double)event, truncation, lower,  upper,  ttime); inla_error_general(msg); }
 
 				if (truncation < 0.0 || lower < 0.0 || upper < 0.0 || ttime < 0.0)
@@ -11626,27 +11599,27 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
+		// we can merge all the loglogistic ones into one
 	case L_QLOGLOGISTIC:
-		/*
-		 * get options related to the qloglogistic-distribution
-		 */
-
+	case L_QLOGLOGISTICSURV:
 		ds->data_observations.quantile = iniparser_getdouble(ini, inla_string_join(secname, "QUANTILE"), 0.5);
 		if (mb->verbose) {
 			printf("\t\tquantile = [%g]\n", ds->data_observations.quantile);
 		}
+	case L_LOGLOGISTIC:
+	case L_LOGLOGISTICSURV:
+		assert(ds->variant == 0 || ds->variant == 1);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);	/* yes! */
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
 		if (!ds->data_fixed && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->data_observations.qloglogistic_log_prec, tmp);
+		HYPER_NEW(ds->data_observations.alpha_intern, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.qloglogistic_log_prec[0][0]);
+			printf("\t\tinitialise log(alpha) [%g]\n", ds->data_observations.alpha_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
 		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
-
 		/*
 		 * add theta 
 		 */
@@ -11657,8 +11630,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("log precision for qloglogistic observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("precision for qloglogistic observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("log alpha for loglogistic observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("alpha for loglogistic observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -11667,9 +11640,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
 
-			mb->theta[mb->ntheta] = ds->data_observations.qloglogistic_log_prec;
+			mb->theta[mb->ntheta] = ds->data_observations.alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -12817,56 +12790,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta[mb->ntheta] = ds->data_observations.alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_alpha_weibull;	/* alpha = exp(alpha.intern) */
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-			ds->data_ntheta++;
-		}
-		break;
-	}
-
-	case L_LOGLOGISTIC:
-	{
-		/*
-		 * get options related to the loglogistic
-		 */
-		double initial_value = 0.0;
-
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
-		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		HYPER_NEW(ds->data_observations.alpha_intern, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise alpha_intern[%g]\n", ds->data_observations.alpha_intern[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
-		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA-ALPHA");
-
-		/*
-		 * add theta 
-		 */
-		if (!ds->data_fixed) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = ds->data_prior.hyperid;
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("alpha_intern for loglogistic", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("alpha parameter for loglogistic", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter", secname);
-			mb->theta_dir[mb->ntheta] = msg;
-
-			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
-
-			mb->theta[mb->ntheta] = ds->data_observations.alpha_intern;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_alpha_loglogistic;	/* alpha = exp(alpha.intern) */
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -22830,15 +22753,13 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				break;
 
+			case L_LOGLOGISTIC:
+			case L_LOGLOGISTICSURV:
 			case L_QLOGLOGISTIC:
+			case L_QLOGLOGISTICSURV:
 				if (!ds->data_fixed) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
-					double precision_intern = theta[count];
-
-					val += PRIOR_EVAL(ds->data_prior, &precision_intern);
+					double alpha_intern = theta[count];
+					val += PRIOR_EVAL(ds->data_prior, &alpha_intern);
 					count++;
 				}
 				break;
@@ -23116,18 +23037,6 @@ double extra(double *theta, int ntheta, void *argument)
 				if (!ds->data_fixed) {
 					/*
 					 * this is the alpha-parameter in the Weibull 
-					 */
-					double alpha_intern = theta[count];
-
-					val += PRIOR_EVAL(ds->data_prior, &alpha_intern);
-					count++;
-				}
-				break;
-
-			case L_LOGLOGISTIC:
-				if (!ds->data_fixed) {
-					/*
-					 * this is the alpha-parameter in the LogLogistic
 					 */
 					double alpha_intern = theta[count];
 

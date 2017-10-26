@@ -5,26 +5,34 @@
 \usepackage{verbatim}
 \newcommand{\vect}[1]{\boldsymbol{#1}}
 \begin{document}
-\section*{LogLogistic}
+
+\section*{LogLogistic likelihoods}
 
 \subsection*{Parametrisation}
 
 The LogLogistic distribution has cumulative distribution function
 \begin{displaymath}
-    F(y) = \frac{1}{1 + (y/\beta)^{-\alpha}}
+    F_0(y) = \frac{1}{1 + \lambda y^{-\alpha}}, \qquad y > 0
+\end{displaymath}
+or 
+\begin{displaymath}
+    F_1(y) = \frac{1}{1 + (\lambda y)^{-\alpha}}, \qquad y > 0
 \end{displaymath}
 where
 \begin{description}
-\item[$\alpha > 0$] is the shape parameter.
-\item[$\beta > 0$] is the scale parameter.
+\item[$\alpha > 0$] is a shape parameter, and
+\item[$\lambda > 0$] is a scale parameter.
 \end{description}
+The subscript indicated variant 0 and 1. 
 
-\subsection*{Link-function}
 
-The parameter $\beta$ is linked to the linear predictor as:
+\subsection*{Link-functions}
+
+The parameter $\lambda$ is linked to the linear predictor, by default as
 \[
-\beta = \exp(\eta)
+\lambda = \exp(\eta)
 \]
+
 \subsection*{Hyperparameters}
 
 The $\alpha$ parameter is represented as
@@ -36,13 +44,20 @@ and the prior is defined on $\theta$.
 \subsection*{Specification}
 
 \begin{itemize}
-\item $\text{family}=\texttt{loglogistic}$
-\item Required arguments: $y$ (to be given in a format by using
-    $\texttt{inla.surv()}$ function )
+\item \texttt{family} equals \texttt{loglogistic} (regression) or
+    \texttt{loglogisticsurv} (survival)
+\item \texttt{variant=0} (default) or 1 (chosing between parameterisation $F_0$
+    or $F_1$).
+\item Required arguments: $y$ (regression) or an
+    \texttt{inla.surv}-object using \texttt{inla.surv()}
 \end{itemize}
 
 \subsubsection*{Hyperparameter spesification and default values}
+\textbf{Regression:}
 \input{../hyper/likelihood/loglogistic.tex}
+
+\textbf{Survival:}
+\input{../hyper/likelihood/loglogisticsurv.tex}
 
 
 \subsection*{Example}
@@ -51,25 +66,6 @@ In the following example we estimate the parameters in a simulated
 case \verbatiminput{example-loglogistic.R}
 
 \subsection*{Notes}
-
-\begin{itemize}
-\item Loglogistic model can be used for right censored, left censored,
-    interval censored data.
-\item A general frame work to represent time is given by
-    $\texttt{inla.surv}$
-\item If the observed times $y$ are large/huge, then this can cause
-    numerical overflow in the likelihood routines giving error
-    messages like
-\begin{verbatim}
-        file: smtp-taucs.c  hgid: 891deb69ae0c  date: Tue Nov 09 22:34:28 2010 +0100
-        Function: GMRFLib_build_sparse_matrix_TAUCS(), Line: 611, Thread: 0
-        Variable evaluates to NAN/INF. This does not make sense. Abort...
-\end{verbatim}
-    If you encounter this problem, try to scale the observatios,
-    \verb|time = time / max(time)| or similar, before running
-    \verb|inla()|. 
-\end{itemize}
-
 
 \end{document}
 
