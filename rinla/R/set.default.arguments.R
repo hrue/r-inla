@@ -81,7 +81,7 @@
         ##:ARGUMENT: scale.model Scale the intrinsic model (RW1, RW2, BESAG) so the generalized variance is 1. (Default \code{TRUE})
         scale.model = TRUE, 
 
-        ##:ARGUMENT: adjust.for.con.comp Adjust for connected components when \code{scale.model=TRUE}?
+        ##:ARGUMENT: adjust.for.con.comp Adjust for connected components when \code{scale.model=TRUE}? (default \code{TRUE})
         adjust.for.con.comp = TRUE, 
 
         ##:ARGUMENT: hyper Definition of the hyperparameter(s)
@@ -145,7 +145,7 @@
         ##:ARGUMENT: variant The \code{variant} of the link function, where the interpretation of \code{variant} is model-dependent.
         variant = NULL, 
 
-        ##:ARGUMENT: nq Number of quadrature-points used to do the numerical integration
+        ##:ARGUMENT: nq Number of quadrature-points used to do the numerical integration (default 15)
         nq = 15, 
 
         ##:ARGUMENT: hyper Definition of the hyperparameter(s) for the link model chosen
@@ -186,7 +186,7 @@
         ##:ARGUMENT: cpo.idx  The index/indices of the data point(s) to remove. (EXPERT OPTION: DO NOT USE)
         cpo.idx = -1,
 
-        ##:ARGUMENT: disable.gaussian.check Disable the check for fast computations with a Gaussian likelihood and identity link
+        ##:ARGUMENT: disable.gaussian.check Disable the check for fast computations with a Gaussian likelihood and identity link (default \code{FALSE})
         disable.gaussian.check = FALSE, 
 
         ##:ARGUMENT: jp An object of class \code{inla.jp} defining a joint prior
@@ -215,16 +215,16 @@
         ##:ARGUMENT: dic A boolean variable if the DIC-value should be computed. Default FALSE.
         dic=FALSE,
 
-        ##:ARGUMENT: mlik A boolean variable if the marginal likelihood should be computed. Default FALSE.
+        ##:ARGUMENT: mlik A boolean variable if the marginal likelihood should be computed. Default \code{TRUE}.
         mlik=TRUE,
 
-        ##:ARGUMENT: cpo A boolean variable if the cross-validated predictive measures (cpo, pit) should be computed
+        ##:ARGUMENT: cpo A boolean variable if the cross-validated predictive measures (cpo, pit) should be computed (default \code{FALSE})
         cpo=FALSE,
 
-        ##:ARGUMENT: po A boolean variable if the predictive ordinate should be computed
+        ##:ARGUMENT: po A boolean variable if the predictive ordinate should be computed (default \code{FALSE})
         po=FALSE,
         
-        ##:ARGUMENT: waic A boolean variable if the Watanabe-Akaike information criteria should be computed
+        ##:ARGUMENT: waic A boolean variable if the Watanabe-Akaike information criteria should be computed (default \code{FALSE})
         waic=FALSE,
         
         ##:ARGUMENT: q A boolean variable if binary images of the precision matrix, the reordered precision matrix and the Cholesky triangle should be generated. (Default FALSE.)
@@ -269,7 +269,7 @@
         ##:ARGUMENT: link (OBSOLETE! Use \code{control.link=list(model=)} instead.) The link function to use.
         link= "default",
 
-        ##:ARGUMENT: sn.shape.max Maximum value for the shape-parameter for Skew Normal observations
+        ##:ARGUMENT: sn.shape.max Maximum value for the shape-parameter for Skew Normal observations (default 5.0)
         sn.shape.max = 5.0,
 
         ##:ARGUMENT: gev.scale.xi The internal scaling of the shape-parameter for the GEV distribution. (default 0.01)
@@ -309,13 +309,13 @@
         ##:ARGUMENT: expand.factor.strategy The strategy used to expand factors into fixed effects based on their levels. The default strategy is us use the \code{model.matrix}-function for which NA's are not allowed (\code{expand.factor.strategy="model.matrix"}) and levels are possible removed. The alternative option (\code{expand.factor.strategy="inla"}) use an \code{inla}-spesific expansion which expand a factor into one fixed effects for each level, do allow for NA's and all levels are present in the model. In this case, factors MUST BE factors in the data.frame/list and NOT added as \code{.+factor(x1)+.} in the formula only.
         expand.factor.strategy = "model.matrix", 
 
-        ##:ARGUMENT: mean Prior mean for all fixed effects except the intercept. Alternatively, a named list with specific means where name=default applies to unmatched names. For example \code{control.fixed=list(mean=list(a=1, b=2, default=0))} assign 'mean=1' to fixed effect 'a' , 'mean=2' to effect 'b' and 'mean=0' to all others.
+        ##:ARGUMENT: mean Prior mean for all fixed effects except the intercept. Alternatively, a named list with specific means where name=default applies to unmatched names. For example \code{control.fixed=list(mean=list(a=1, b=2, default=0))} assign 'mean=1' to fixed effect 'a' , 'mean=2' to effect 'b' and 'mean=0' to all others. (default 0.0)
         mean = 0.0,
 
-        ##:ARGUMENT: mean.intercept Prior mean for the intercept
+        ##:ARGUMENT: mean.intercept Prior mean for the intercept (default 0.0)
         mean.intercept = 0.0,
 
-        ##:ARGUMENT: prec  Default precision for all fixed effects except the intercept. Alternatively, a named list with specific means where name=default applies to unmatched names.  For example \code{control.fixed=list(prec=list(a=1, b=2, default=0.01))} assign 'prec=1' to fixed effect 'a' , 'prec=2' to effect 'b' and 'prec=0.01' to all others.
+        ##:ARGUMENT: prec  Default precision for all fixed effects except the intercept. Alternatively, a named list with specific means where name=default applies to unmatched names.  For example \code{control.fixed=list(prec=list(a=1, b=2, default=0.01))} assign 'prec=1' to fixed effect 'a' , 'prec=2' to effect 'b' and 'prec=0.01' to all others. (default 0.001)
         prec= 0.001,
 
         ##:ARGUMENT: prec.intercept  Default precision the intercept (default 0.0)
@@ -373,10 +373,10 @@
         ##:ARGUMENT: print.joint.hyper Logical If TRUE, the store also the joint distribution of the hyperparameters (without any costs). Default TRUE.
         print.joint.hyper=TRUE,
 
-        ##:ARGUMENT: force.diagonal Logical If TRUE, then force the Hessian to be diagonal. (Default FALSE.)
+        ##:ARGUMENT: force.diagonal Logical If TRUE, then force the Hessian to be diagonal. (Default \code{FALSE})
         force.diagonal=FALSE,
 
-        ##:ARGUMENT: skip.configurations Logical Skip configurations if the values at the main axis are to small. (Default TRUE.)
+        ##:ARGUMENT: skip.configurations Logical Skip configurations if the values at the main axis are to small. (Default \code{TRUE})
         skip.configurations=TRUE,
 
         ##:ARGUMENT: mode.known Logical If TRUE then no optimisation is done. (Default FALSE.)
@@ -406,16 +406,16 @@
         ##:ARGUMENT: verbose Logical Run in verbose mode? (Default FALSE)
         verbose = NULL,
 
-        ##:ARGUMENT: reordering Character Type of reordering to use. (EXPERT OPTION; one of "AUTO", "DEFAULT", "IDENTITY", "REVERSEIDENTITY",  "BAND", "METIS", "GENMMD", "AMD", "MD", "MMD", "AMDBAR", "AMDC", "AMDBARC",  or the output from \code{inla.qreordering}.)
+        ##:ARGUMENT: reordering Character Type of reordering to use. (EXPERT OPTION; one of "AUTO", "DEFAULT", "IDENTITY", "REVERSEIDENTITY",  "BAND", "METIS", "GENMMD", "AMD", "MD", "MMD", "AMDBAR", "AMDC", "AMDBARC",  or the output from \code{inla.qreordering}. Default is 'auto'.)
         reordering = "auto",
 
         ##:ARGUMENT: cpo.diff Numerical Threshold to define when the cpo-calculations are inaccurate. (EXPERT OPTION.)
         cpo.diff = NULL,
 
-        ##:ARGUMENT: npoints Numerical Number of points to use in the 'stratey=laplace' approximation
+        ##:ARGUMENT: npoints Numerical Number of points to use in the 'stratey=laplace' approximation (default 9)
         npoints = 9,
 
-        ##:ARGUMENT: cutoff Numerical The cutoff used in the 'stratey=laplace' approximation. (Smaller value is more accurate and more slow.)
+        ##:ARGUMENT: cutoff Numerical The cutoff used in the 'stratey=laplace' approximation. (Smaller value is more accurate and more slow.) (default 1e-4)
         cutoff = 1e-4,
 
         ##:ARGUMENT: adapt.hessian.mode Logical Should optimisation be continued if the Hessian estimate is void? (Default TRUE)
@@ -433,7 +433,7 @@
         ##:ARGUMENT: step.len Numerical The step-length used to compute numerical derivaties of the log-likelihood
         step.len = .Machine$double.eps^(1.0/3.9134),
 
-        ##:ARGUMENT: stencil Numerical Number of points in the stencil used to compute the numerical derivaties of the log-likelihood (3, 5, 7 or 9).
+        ##:ARGUMENT: stencil Numerical Number of points in the stencil used to compute the numerical derivaties of the log-likelihood (3, 5, 7 or 9). (default 5)
         stencil = 5L, 
 
         ##:ARGUMENT: lincomb.derived.only Logical If TRUE the only compute the marginals for the derived linear combinations and if FALSE, the and also the linear combinations to the graph (Default TRUE)
@@ -442,10 +442,10 @@
         ##:ARGUMENT: lincomb.derived.correlation.matrix Logical If TRUE compute also the correlations for the derived linear combinations, if FALSE do not (Default FALSE)
         lincomb.derived.correlation.matrix = FALSE,
 
-        ##:ARGUMENT: diagonal Numerical Expert use only! Add a this value on the diagonal of the joint precision matrix.
+        ##:ARGUMENT: diagonal Numerical Expert use only! Add a this value on the diagonal of the joint precision matrix. (default 0.0)
         diagonal = 0.0,
 
-        ##:ARGUMENT: numint.maxfeval Numerical Maximum number of function evaluations in the the numerical integration for the hyperparameters. (Default 10000.)
+        ##:ARGUMENT: numint.maxfeval Numerical Maximum number of function evaluations in the the numerical integration for the hyperparameters. (Default 100000.)
         numint.maxfeval = 100000,
 
         ##:ARGUMENT: numint.relerr Numerical Relative error requirement in the the numerical integration for the hyperparameters. (Default 1e-5)
@@ -462,22 +462,22 @@
         ## This is an hidden option.
         step.factor = -0.1,
 
-        ##:ARGUMENT: global.node.factor Numerical The factor which defines the degree required (how many neighbors), as a fraction of n-1, that is required to be classified as a global node and numbered last (whatever the reordering routine says). Here,  n,  is the size of the graph. (Disabled if larger than 1.)
+        ##:ARGUMENT: global.node.factor Numerical The factor which defines the degree required (how many neighbors), as a fraction of n-1, that is required to be classified as a global node and numbered last (whatever the reordering routine says). Here,  n,  is the size of the graph. (Disabled if larger than 1.) (default 2.0)
         global.node.factor = 2.0, 
 
-        ##:ARGUMENT: global.node.degree Numerical The degree required (number of neighbors) to be classified as a global node and numbered last (whatever the reordering routine says).
+        ##:ARGUMENT: global.node.degree Numerical The degree required (number of neighbors) to be classified as a global node and numbered last (whatever the reordering routine says). (default \code{.Machine$integer.max})
         global.node.degree = .Machine$integer.max,
 
         ##:ARGUMENT: stupid.search Logical Enable or disable the stupid-search-algorithm, if the Hessian calculations reveals that the mode is not found. (Default \code{TRUE}.)
         stupid.search = TRUE,
             
-        ##:ARGUMENT: stupid.search.max.iter Numerical Maximum number of iterations allowed for the stupid-search-algorithm.
+        ##:ARGUMENT: stupid.search.max.iter Numerical Maximum number of iterations allowed for the stupid-search-algorithm. (default 1000)
         stupid.search.max.iter = 1000L, 
 
-        ##:ARGUMENT: stupid.search.factor Numerical Factor (>=1) to increase the step-length with after each new interation.
+        ##:ARGUMENT: stupid.search.factor Numerical Factor (>=1) to increase the step-length with after each new interation. (default 1.05)
         stupid.search.factor = 1.05,
         
-        ##:ARGUMENT: correct Logical Add correction for the Laplace approximation.
+        ##:ARGUMENT: correct Logical Add correction for the Laplace approximation. (default \code{FALSE})
         correct = FALSE,
 
         ##:ARGUMENT: correct.factor Numerical Factor used in adjusting the correction factor (default=10) if correct=TRUE
@@ -486,7 +486,7 @@
         ##:ARGUMENT: correct.strategy  Character The strategy used to compute the correction; one of 'simplified.laplace' (default) or 'laplace'
         correct.strategy = "simplified.laplace", 
 
-        ##:ARGUMENT: correct.verbose  Logical Be verbose when computing the correction?
+        ##:ARGUMENT: correct.verbose  Logical Be verbose when computing the correction? (default \code{FALSE})
         correct.verbose = FALSE)
  
     ##:SEEALSO: inla
@@ -531,7 +531,7 @@
         ##:ARGUMENT: A The observation matrix (matrix or Matrix::sparseMatrix).
         A = NULL,
 
-        ##:ARGUMENT: precision The precision for eta* - A*eta,
+        ##:ARGUMENT: precision The precision for eta* - A*eta, (default \code{exp(15)})
         precision = exp(15),
 
         ##:ARGUMENT: link Define the family-connection for unobserved observations (\code{NA}). \code{link} is integer values which defines the family connection; \code{family[link[idx]]} unless \code{is.na(link[idx])} for which the identity-link is used. The \code{link}-argument only influence the \code{fitted.values} in the \code{result}-object. If \code{is.null(link)} (default) then the identity-link is used for all missing observations. If the length of \code{link} is 1, then this value is replicated with the length of the responce vector. If an element of the responce vector is \code{!NA} then the corresponding entry in \code{link} is not used (but must still be a legal value). Setting this variable implies \code{compute=TRUE}.
