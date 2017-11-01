@@ -16,11 +16,12 @@ inla.print.version <- function()
     um <- strsplit(date," ")[[1]]
     date <- um[nchar(um)>0]
 
-    hello <- paste("This is INLA_", version, 
-                   " built ", built, ".", "\n",
-                   "See www.r-inla.org/contact-us for how to get help.", 
-                   sep="")
+    hello <- paste0("This is INLA_", version, 
+                    " built ", built, ".", "\n",
+                    "See www.r-inla.org/contact-us for how to get help.")
     packageStartupMessage(hello)
+    if (inla.os.is.32bit())
+        warning(paste0("INLA_",  version, ": 32bit binaries are no longer supported!"))
 }
 
 .onLoad <- function(...)
