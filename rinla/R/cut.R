@@ -40,7 +40,7 @@
 ##!  This function is EXPERIMENTAL!!!
 ##! }
 ##!
-##! \author{Egil Ferkingstad \email{egil@hi.is} and Havard Rue \email{hrue@r-inla.org}}
+##! \author{Egil Ferkingstad \email{egil.ferkingstad@gmail.com} and Havard Rue \email{hrue@r-inla.org}}
 ##!
 ##! \examples{
 ##! ## See Ferkingstad et al (2017).
@@ -49,7 +49,8 @@
 ##! \references{
 ##! Ferkingstad, E., Held, L. and Rue, H. (2017). Fast and accurate Bayesian
 ##! model criticism and conflict diagnostics using R-INLA. arXiv preprint
-##! arXiv:1708.03272, available at http://arxiv.org/abs/1708.03272
+##! arXiv:1708.03272, available at http://arxiv.org/abs/1708.03272.
+##! Published in Stat(2017).
 ##! 
 ##! Marshall, E. C. and Spiegelhalter, D. J. (2007). Identifying outliers
 ##! in Bayesian hierarchical models: a simulation-based approach.
