@@ -722,7 +722,7 @@ double GMRFLib_linesearch_func(double length, double *dir, GMRFLib_optimize_prob
 			GMRFLib_thread_id = id;
 			sum += (-0.5 * v[i] + opt_problem->b[i]) * u[i];
 			if (opt_problem->d[i]) {
-				(*(opt_problem->loglFunc)) (&logll, &u[i], 1, opt_problem->map[i], opt_problem->x_vec, opt_problem->loglFunc_arg);
+				(*(opt_problem->loglFunc)) (&logll, &u[i], 1, opt_problem->map[i], opt_problem->x_vec, NULL, opt_problem->loglFunc_arg);
 				sum += opt_problem->d[i] * logll;
 			}
 		}
@@ -736,7 +736,7 @@ double GMRFLib_linesearch_func(double length, double *dir, GMRFLib_optimize_prob
 		GMRFLib_thread_id = id;
 		fval += (-0.5 * v[i] + opt_problem->b[i]) * u[i];
 		if (opt_problem->d[i]) {
-			(*(opt_problem->loglFunc)) (&logll, &u[i], 1, opt_problem->map[i], opt_problem->x_vec, opt_problem->loglFunc_arg);
+			(*(opt_problem->loglFunc)) (&logll, &u[i], 1, opt_problem->map[i], opt_problem->x_vec, NULL, opt_problem->loglFunc_arg);
 			fval += opt_problem->d[i] * logll;
 		}
 	}
