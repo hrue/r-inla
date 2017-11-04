@@ -10,7 +10,7 @@ rloglogistic = function(n,  lambda,  alpha, variant=0)
     }
 }
     
-n = 10000
+n = 1000
 alpha = 2.1
 x = c(scale(runif(n)))
 eta = 1.1+2.2*x
