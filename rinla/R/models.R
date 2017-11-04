@@ -5188,7 +5188,7 @@
                      survival = FALSE,
                      discrete = FALSE,
                      link = c("default", "log", "neglog"), 
-                     pdf = "loglogistic"
+                     pdf = "qloglogistic"
                  ),
 
                  qloglogisticsurv = list(
@@ -5210,7 +5210,7 @@
                      survival = TRUE,
                      discrete = FALSE,
                      link = c("default", "log", "neglog"), 
-                     pdf = "loglogistic"
+                     pdf = "qloglogistic"
                  ),
 
                  beta = list(
@@ -5759,7 +5759,7 @@
                              )
                          ),
                      status = "changed:Oct.25.2017", 
-                     survival = TRUE,
+                     survival = FALSE,
                      discrete = FALSE,
                      link = c("default", "log", "neglog"),
                      pdf = "loglogistic"
@@ -7426,11 +7426,11 @@
                 assign(var, TRUE, envir = envir)
                 msg = paste0("Model '", model, "' in section '", section, "' is marked as '",
                             status, ".\n",
-                            "There have been a change in the model definition, which is not backward compatible.\n",
-                            "Please refer to the documentation before proceeeding.")
+                            "  There have been a change in the model definition, which is not backward compatible.\n",
+                            "  Please refer to the documentation before proceeeding.")
                 var = paste("enable.model.", section, ".", model, sep="")
                 if (!(exists(var, envir = envir) && get(var, envir = envir))) {
-                    msg = paste0(c(msg, paste("  You can bypass this check setting variable '", var,
+                    msg = paste0(c(msg, paste0("\n  You can bypass this check setting variable '", var,
                         "'\n  to 'TRUE' in environment INLA:::inla.get.inlaEnv().\n")))
                     stop(msg)
                 }
