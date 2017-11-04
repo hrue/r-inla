@@ -7377,7 +7377,6 @@ int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_ve
 				ypow = pow(lambda * (y_cdf ? *y_cdf : y), alpha);
 				logll[i] = 1.0 - exp(-ypow);
 			}
-
 		}
 		break;
 	}
@@ -7402,7 +7401,7 @@ int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *
 	}
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	int i, ievent;
+	int i;
 	double y, ly=0, lambda, alpha, lalpha=0;
 
 	y = ds->data_observations.y[idx];
@@ -7454,13 +7453,8 @@ int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *
 	}
 
 	LINK_END;
-#undef logf
-#undef F
-#undef logff
-#undef FF
 	return GMRFLib_SUCCESS;
 }
-
 int loglikelihood_loglogisticsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	return (m == 0 ? GMRFLib_SUCCESS :
@@ -7469,7 +7463,70 @@ int loglikelihood_loglogisticsurv(double *logll, double *x, int m, int idx, doub
 
 int loglikelihood_qloglogistic(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
-	assert(0 == 1);
+	if (m == 0) {
+	        return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+	
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	int i;
+	double y, yq, ly=0, lambda, alpha, lalpha=0, q, qq;
+	
+	y = ds->data_observations.y[idx];
+	alpha = map_exp(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	q = ds->data_observations.quantile;
+	qq = 1.0/q - 1.0;
+	LINK_INIT;
+	
+	if (m > 0) {
+		ly = log(y);
+		lalpha = log(alpha);
+	}
+
+	switch(ds->variant) {
+	case 0: 
+		if (m > 0) {
+			for (i = 0; i < m; i++) {
+				yq = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				lambda = qq * pow(yq, alpha);
+				logll[i] = log(lambda) + (-alpha - 1.0) * ly + lalpha
+					- 2.0*log(1.0 + lambda * pow(y, -alpha));
+			}
+		} else {
+			double yy = (y_cdf ? *y_cdf : y);
+			for (i = 0; i < -m; i++) {
+				yq = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				lambda = qq * pow(yq, alpha);
+				logll[i] = 1.0/(1.0 + lambda * pow(yy, -alpha));
+			}
+		}
+		break;
+
+	case 1: 
+		if (m > 0) {
+			double lam_y, qqinv = 1.0/qq;
+			for (i = 0; i < m; i++) {
+				yq = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				lambda = 1.0/yq * pow(qqinv, 1.0/alpha);
+				lam_y = lambda * y;
+				logll[i] = -alpha * log(lam_y) + lalpha - ly
+					- 2.0 * log(1.0 + pow(lam_y, -alpha));
+			}
+		} else {
+			double yy = (y_cdf ? *y_cdf : y), qqinv = 1.0/qq;
+			for (i = 0; i < -m; i++) {
+				yq = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				lambda = 1.0/yq * pow(qqinv, 1.0/alpha);
+				logll[i] = 1.0/(1.0 + pow(lambda * yy, -alpha));
+			}
+		}
+		break;
+		
+	default: 
+		assert(0 == 1);
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
 }
 
 int loglikelihood_qloglogisticsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
