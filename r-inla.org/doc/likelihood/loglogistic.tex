@@ -6,7 +6,7 @@
 \newcommand{\vect}[1]{\boldsymbol{#1}}
 \begin{document}
 
-\section*{LogLogistic likelihoods}
+\section*{LogLogistic likelihood}
 
 \subsection*{Parametrisation}
 
@@ -14,30 +14,29 @@ The LogLogistic distribution has cumulative distribution function
 \begin{displaymath}
     F_0(y) = \frac{1}{1 + \lambda y^{-\alpha}}, \qquad y > 0
 \end{displaymath}
-or 
+if \texttt{variant=0}, or
 \begin{displaymath}
     F_1(y) = \frac{1}{1 + (\lambda y)^{-\alpha}}, \qquad y > 0
 \end{displaymath}
-where
+if \texttt{variant=1}, where
 \begin{description}
 \item[$\alpha > 0$] is a shape parameter, and
 \item[$\lambda > 0$] is a scale parameter.
 \end{description}
-The subscript indicated variant 0 and 1. 
-
 
 \subsection*{Link-functions}
 
-The parameter $\lambda$ is linked to the linear predictor, by default as
+The parameter $\lambda$ is linked to the linear predictor, by default
+as
 \[
-\lambda = \exp(\eta)
+    \lambda = \exp(\eta)
 \]
 
 \subsection*{Hyperparameters}
 
 The $\alpha$ parameter is represented as
 \[
-\theta = \log\alpha
+    \theta = \log\alpha
 \]
 and the prior is defined on $\theta$.
 
@@ -46,18 +45,17 @@ and the prior is defined on $\theta$.
 \begin{itemize}
 \item \texttt{family} equals \texttt{loglogistic} (regression) or
     \texttt{loglogisticsurv} (survival)
-\item \texttt{variant=0} (default) or 1 (chosing between parameterisation $F_0$
-    or $F_1$).
+\item \texttt{variant=0} (default) or 1, chosing between
+    parameterisation $F_0$ or $F_1$.
 \item Required arguments: $y$ (regression) or an
-    \texttt{inla.surv}-object using \texttt{inla.surv()}
+    \texttt{inla.surv}-object using \texttt{inla.surv()} (for survival
+    data)
 \end{itemize}
 
 \subsubsection*{Hyperparameter spesification and default values}
-\textbf{Regression:}
-\input{../hyper/likelihood/loglogistic.tex}
+\textbf{Regression:} \input{../hyper/likelihood/loglogistic.tex}
 
-\textbf{Survival:}
-\input{../hyper/likelihood/loglogisticsurv.tex}
+\textbf{Survival:} \input{../hyper/likelihood/loglogisticsurv.tex}
 
 
 \subsection*{Example}
@@ -67,6 +65,14 @@ case \verbatiminput{example-loglogistic.R}
 
 \subsection*{Notes}
 
+\begin{itemize}
+\item Loglogisticsurv model can be used for right censored, left
+    censored, interval censored data. If the observed times $y$ are
+    large/huge, then this can cause numerical overflow in the
+    likelihood routine. If you encounter this problem, try to scale
+    the observatios, \verb|time = time / max(time)| or similar.
+\end{itemize}
+
 \end{document}
 
 
@@ -74,4 +80,3 @@ case \verbatiminput{example-loglogistic.R}
 %%% Local Variables: 
 %%% TeX-master: t
 %%% End: 
-
