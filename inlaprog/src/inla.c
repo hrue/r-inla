@@ -7469,7 +7469,7 @@ int loglikelihood_qloglogistic(double *logll, double *x, int m, int idx, double 
 	
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i;
-	double y, yq, ly=0, lambda, alpha, lalpha=0, q, qq;
+	double y, yq, ly=NAN, lambda, alpha, lalpha=NAN, q, qq;
 	
 	y = ds->data_observations.y[idx];
 	alpha = map_exp(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
