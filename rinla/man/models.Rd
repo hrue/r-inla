@@ -6098,7 +6098,7 @@ inla.models()
 							\item{hyperid = }{`60011'}
 							\item{name = }{`log alpha'}
 							\item{short.name = }{`alpha'}
-							\item{initial = }{`2'}
+							\item{initial = }{`1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`25 25'}
@@ -6115,7 +6115,7 @@ inla.models()
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}
-								\item{pdf = }{`loglogistic'}
+								\item{pdf = }{`qloglogistic'}
 							 }
 						 }
 					 }
@@ -6127,7 +6127,7 @@ inla.models()
 							\item{hyperid = }{`60021'}
 							\item{name = }{`log alpha'}
 							\item{short.name = }{`alpha'}
-							\item{initial = }{`2'}
+							\item{initial = }{`1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`25 25'}
@@ -6144,7 +6144,7 @@ inla.models()
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}
-								\item{pdf = }{`loglogistic'}
+								\item{pdf = }{`qloglogistic'}
 							 }
 						 }
 					 }
@@ -6815,7 +6815,7 @@ inla.models()
 							\describe{
 								\item{doc = }{`The loglogistic likelihood'}
 								\item{status = }{`changed:Oct.25.2017'}
-								\item{survival = }{`TRUE'}
+								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}
 								\item{pdf = }{`loglogistic'}

@@ -4036,7 +4036,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	return (m == 0 ? GMRFLib_SUCCESS :
-		loglikelihood_generic_surv(logll, x, m, idx, x_vec, arg, loglikelihood_lognormal));
+		loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_lognormal));
 }	
 
 int loglikelihood_simplex(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
@@ -7238,10 +7238,10 @@ int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, d
 int loglikelihood_expsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	return (m == 0 ? GMRFLib_SUCCESS :
-		loglikelihood_generic_surv(logll, x, m, idx, x_vec, arg, loglikelihood_exp));
+		loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_exp));
 }
-int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double *x_vec, void *arg, 
-			       GMRFLib_logl_tp *loglfun)
+int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+			       void *arg, GMRFLib_logl_tp *loglfun)
 
 {
 	// this function makes a survival likelihood out of a regression likelihood
@@ -7250,7 +7250,9 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 	int i, ievent;
 	double y, event, truncation, lower, upper, gama;
 
-	y = ds->data_observations.y[idx];
+	assert(y_cdf == NULL); // I do not think this should be used. 
+	
+	y = (y_cdf ? *y_cdf : ds->data_observations.y[idx]);
 	event = ds->data_observations.event[idx];
 	ievent = (int) event;
 	truncation = ds->data_observations.truncation[idx];
@@ -7391,7 +7393,7 @@ int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_ve
 int loglikelihood_weibullsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	return (m == 0 ? GMRFLib_SUCCESS :
-		loglikelihood_generic_surv(logll, x, m, idx, x_vec, arg, loglikelihood_weibull));
+		loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_weibull));
 }	
 
 int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
@@ -7458,7 +7460,7 @@ int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *
 int loglikelihood_loglogisticsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	return (m == 0 ? GMRFLib_SUCCESS :
-		loglikelihood_generic_surv(logll, x, m, idx, x_vec, arg, loglikelihood_loglogistic));
+		loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_loglogistic));
 }	
 
 int loglikelihood_qloglogistic(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
@@ -7467,8 +7469,8 @@ int loglikelihood_qloglogistic(double *logll, double *x, int m, int idx, double 
 	        return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 	
-	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, yq, ly=NAN, lambda, alpha, lalpha=NAN, q, qq;
 	
 	y = ds->data_observations.y[idx];
@@ -7532,7 +7534,7 @@ int loglikelihood_qloglogistic(double *logll, double *x, int m, int idx, double 
 int loglikelihood_qloglogisticsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	return (m == 0 ? GMRFLib_SUCCESS :
-		loglikelihood_generic_surv(logll, x, m, idx, x_vec, arg, loglikelihood_qloglogistic));
+		loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_qloglogistic));
 }	
 
 int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
@@ -10596,10 +10598,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_QCONTPOISSON:
-		ds->data_observations.quantile = iniparser_getdouble(ini, inla_string_join(secname, "QUANTILE"), 0.5);
+		ds->data_observations.quantile = iniparser_getdouble(ini, inla_string_join(secname, "QUANTILE"), -1.0);
 		if (mb->verbose) {
 			printf("\t\tquantile = [%g]\n", ds->data_observations.quantile);
 		}
+		GMRFLib_ASSERT(ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0, GMRFLib_EPARAMETER);
 		ds->data_observations.qcontpoisson_func =
 			inla_qcontpois_func(ds->data_observations.quantile, ISQR(GMRFLib_MAX_THREADS));
 		break;
@@ -11610,10 +11613,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 * get options related to the qkumar-distribution
 		 */
 
-		ds->data_observations.quantile = iniparser_getdouble(ini, inla_string_join(secname, "QUANTILE"), 0.5);
+		ds->data_observations.quantile = iniparser_getdouble(ini, inla_string_join(secname, "QUANTILE"), -1.0);
 		if (mb->verbose) {
 			printf("\t\tquantile = [%g]\n", ds->data_observations.quantile);
 		}
+		GMRFLib_ASSERT(ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0, GMRFLib_EPARAMETER);
+
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);	/* yes! */
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
 		if (!ds->data_fixed && mb->reuse_mode) {
@@ -11659,10 +11664,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		// we can merge all the loglogistic ones into one
 	case L_QLOGLOGISTIC:
 	case L_QLOGLOGISTICSURV:
-		ds->data_observations.quantile = iniparser_getdouble(ini, inla_string_join(secname, "QUANTILE"), 0.5);
+		ds->data_observations.quantile = iniparser_getdouble(ini, inla_string_join(secname, "QUANTILE"), -1.0);
 		if (mb->verbose) {
 			printf("\t\tquantile = [%g]\n", ds->data_observations.quantile);
 		}
+		GMRFLib_ASSERT(ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0, GMRFLib_EPARAMETER);
+
 	case L_LOGLOGISTIC:
 	case L_LOGLOGISTICSURV:
 		assert(ds->variant == 0 || ds->variant == 1);

@@ -1679,7 +1679,7 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 int loglikelihood_zeroinflated_poisson0(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double *x_vec, void *arg, GMRFLib_logl_tp *loglfun);
+int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, GMRFLib_logl_tp *loglfun);
 int my_file_exists(const char *filename);
 int my_dir_exists(const char *dirname);
 int my_setenv(char *str, int prefix);
