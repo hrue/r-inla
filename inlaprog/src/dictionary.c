@@ -423,7 +423,7 @@ void dictionary_dump(dictionary * d, FILE * out)
 	}
 	for (i = 0; i < d->size; i++) {
 		if (d->key[i]) {
-			fprintf(out, "%20s\t[%s]\n", d->key[i], d->val[i] ? d->val[i] : "NULL");
+			fprintf(out, "%-40s\t[%s]\n", d->key[i], d->val[i] ? d->val[i] : "NULL");
 		}
 	}
 	return;

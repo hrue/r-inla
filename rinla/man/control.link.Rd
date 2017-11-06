@@ -19,7 +19,7 @@ control.link(fixed, hyper, initial, model, nq, order, param, prior, variant)
 \item{model}{  The name of the link function/model}
 \item{order}{  The \code{order} of the link function, where the interpretation of \code{order} is model-dependent.}
 \item{variant}{  The \code{variant} of the link function, where the interpretation of \code{variant} is model-dependent.}
-\item{nq}{  Number of quadrature-points used to do the numerical integration}
+\item{nq}{  Number of quadrature-points used to do the numerical integration (default 15)}
 \item{hyper}{  Definition of the hyperparameter(s) for the link model chosen}
 \item{initial}{  (OBSOLETE!) The initial value(s) for the hyperparameter(s)}
 \item{fixed}{  (OBSOLETE!) A boolean variable if hyperparmater(s) is/are fixed or random}

@@ -1,3 +1,8 @@
+##  http://jfly.iam.u-tokyo.ac.jp/color/
+c7rgb <- rgb(c(80, 80, 90, 95, 35,0, 0)/100, 
+             c(60, 40, 60, 90, 70, 45, 0)/100, 
+             c(70, 0, 0, 25, 90, 70, 0)/100)
+
 rMatern <- function(n, coords, kappa, variance, nu=1) {
     m <- as.matrix(dist(coords))
     m <- exp((1-nu)*log(2) + nu*log(kappa*m)-
@@ -117,7 +122,8 @@ inla.mesh.dual <- function(mesh) {
     if (mesh$manifold=='R2') {
         ce <- t(sapply(1:nrow(mesh$graph$tv), function(i)
             colMeans(mesh$loc[mesh$graph$tv[i, ], 1:2])))
-        pls <- lapply(1:mesh$n, function(i) {
+        library(parallel)
+        pls <- mclapply(1:mesh$n, function(i) {
             p <- unique(Reduce('rbind', lapply(1:3, function(k) {
                 j <- which(mesh$graph$tv[,k]==i)
                 if (length(j)>0) 

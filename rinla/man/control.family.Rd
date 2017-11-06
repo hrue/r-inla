@@ -22,7 +22,7 @@ control.family(cenpoisson.I, control.link, control.mix, fixed, gev.scale.xi, hyp
 \item{param}{  (OBSOLETE!) The parameters for the prior distribution}
 \item{fixed}{  (OBSOLETE!) Boolean variable(s) to say if the hyperparameter(s) is fixed or random.}
 \item{link}{  (OBSOLETE! Use \code{control.link=list(model=)} instead.) The link function to use.}
-\item{sn.shape.max}{  Maximum value for the shape-parameter for Skew Normal observations}
+\item{sn.shape.max}{  Maximum value for the shape-parameter for Skew Normal observations (default 5.0)}
 \item{gev.scale.xi}{  The internal scaling of the shape-parameter for the GEV distribution. (default 0.01)}
 \item{cenpoisson.I}{  The censoring interval for the censored Poisson}
 \item{quantile}{  The quantile to be used for the quantile parameterised likelihoods (default 0.5)}

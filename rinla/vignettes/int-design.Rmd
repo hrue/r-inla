@@ -4,7 +4,7 @@ author: "Haavard Rue `(hrue@r-inla.org)`"
 date: "May 29th 2017"
 output: rmarkdown::pdf_document
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{User defined integration points}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8} 
 ---

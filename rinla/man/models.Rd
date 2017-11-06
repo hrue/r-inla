@@ -612,12 +612,60 @@ inla.models()
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`TRUE'}
+								\item{aug.factor = }{`5'}
+								\item{aug.constr = }{`1'}
+								\item{n.div.by = }{`NULL'}
+								\item{n.required = }{`FALSE'}
+								\item{set.default.values = }{`TRUE'}
+								\item{order.default = }{`4'}
+								\item{order.defined = }{`3 4'}
+								\item{pdf = }{`fgn'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `fgn2'.}{Number of hyperparmeters are 2.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{hyperid = }{`13101'}
+							\item{name = }{`log precision'}
+							\item{short.name = }{`prec'}
+							\item{prior = }{`pc.prec'}
+							\item{param = }{`3 0.01'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{hyperid = }{`13102'}
+							\item{name = }{`logit H'}
+							\item{short.name = }{`H'}
+							\item{prior = }{`pcfgnh'}
+							\item{param = }{`0.9 0.1'}
+							\item{initial = }{`2'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{function(x) log((2*x-1)/(2*(1-x)))}'}
+							\item{from.theta = }{`\code{function(x) 0.5 + 0.5*exp(x)/(1+exp(x))}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`Fractional Gaussian noise model (alt 2)'}
+								\item{constr = }{`FALSE'}
+								\item{nrow.ncol = }{`FALSE'}
+								\item{augmented = }{`TRUE'}
 								\item{aug.factor = }{`4'}
 								\item{aug.constr = }{`1'}
 								\item{n.div.by = }{`NULL'}
 								\item{n.required = }{`FALSE'}
 								\item{set.default.values = }{`TRUE'}
-								\item{order.default = }{`3'}
+								\item{order.default = }{`4'}
 								\item{order.defined = }{`3 4'}
 								\item{pdf = }{`fgn'}
 							 }
@@ -679,6 +727,53 @@ inla.models()
 								\item{n.required = }{`FALSE'}
 								\item{set.default.values = }{`FALSE'}
 								\item{pdf = }{`ar1'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `ar1c'.}{Number of hyperparmeters are 2.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{hyperid = }{`14101'}
+							\item{name = }{`log precision'}
+							\item{short.name = }{`prec'}
+							\item{prior = }{`pc.prec'}
+							\item{param = }{`1 0.01'}
+							\item{initial = }{`4'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{hyperid = }{`14102'}
+							\item{name = }{`logit lag one correlation'}
+							\item{short.name = }{`rho'}
+							\item{prior = }{`pc.cor0'}
+							\item{param = }{`0.5 0.5'}
+							\item{initial = }{`2'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`Auto-regressive model of order 1 w/covariates'}
+								\item{constr = }{`FALSE'}
+								\item{nrow.ncol = }{`FALSE'}
+								\item{augmented = }{`FALSE'}
+								\item{aug.factor = }{`1'}
+								\item{aug.constr = }{`NULL'}
+								\item{n.div.by = }{`NULL'}
+								\item{n.required = }{`FALSE'}
+								\item{set.default.values = }{`TRUE'}
+								\item{status = }{`experimental'}
+								\item{pdf = }{`ar1c'}
 							 }
 						 }
 					 }
@@ -4758,8 +4853,8 @@ inla.models()
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`1 10'}
-							\item{to.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                 if (all(is.infinite(c(low, high))) || low == high) {} \code{                                     return (x)} \code{                                 } else if (all(is.finite(c(low, high)))) {} \code{                                     stopifnot(low < high)} \code{                                     return (log( - (low - x)/(high -x)))} \code{                                 } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                     return (log(x-low))} \code{                                 } else {} \code{                                     stop("Condition not yet implemented")} \code{                                 }} \code{                             }}'}
-							\item{from.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                 if (all(is.infinite(c(low, high))) || low == high) {} \code{                                     return (x)} \code{                                 } else if (all(is.finite(c(low, high)))) {} \code{                                     stopifnot(low < high)} \code{                                     return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                                 } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                     return (low + exp(x))} \code{                                 } else {} \code{                                     stop("Condition not yet implemented")} \code{                                 }} \code{                             }}'}
+							\item{to.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                             if (all(is.infinite(c(low, high))) || low == high) {} \code{                                 return (x)} \code{                             } else if (all(is.finite(c(low, high)))) {} \code{                                 stopifnot(low < high)} \code{                                 return (log( - (low - x)/(high -x)))} \code{                             } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                 return (log(x-low))} \code{                             } else {} \code{                                 stop("Condition not yet implemented")} \code{                             }} \code{                         }}'}
+							\item{from.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                             if (all(is.infinite(c(low, high))) || low == high) {} \code{                                 return (x)} \code{                             } else if (all(is.finite(c(low, high)))) {} \code{                                 stopifnot(low < high)} \code{                                 return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                             } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                 return (low + exp(x))} \code{                             } else {} \code{                                 stop("Condition not yet implemented")} \code{                             }} \code{                         }}'}
 							}
 						}
 					 }
@@ -4791,8 +4886,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`1 10'}
-							\item{to.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                 if (all(is.infinite(c(low, high))) || low == high) {} \code{                                     stopifnot(low < high)} \code{                                     return (x)} \code{                                 } else if (all(is.finite(c(low, high)))) {} \code{                                     stopifnot(low < high)} \code{                                     return (log( - (low - x)/(high -x)))} \code{                                 } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                     return (log(x-low))} \code{                                 } else {} \code{                                     stop("Condition not yet implemented")} \code{                                 }} \code{                             }}'}
-							\item{from.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                 if (all(is.infinite(c(low, high))) || low == high) {} \code{                                     stopifnot(low < high)} \code{                                     return (x)} \code{                                 } else if (all(is.finite(c(low, high)))) {} \code{                                     stopifnot(low < high)} \code{                                     return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                                 } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                     return (low + exp(x))} \code{                                 } else {} \code{                                     stop("Condition not yet implemented")} \code{                                 }} \code{                             }}'}
+							\item{to.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                             if (all(is.infinite(c(low, high))) || low == high) {} \code{                                 stopifnot(low < high)} \code{                                 return (x)} \code{                             } else if (all(is.finite(c(low, high)))) {} \code{                                 stopifnot(low < high)} \code{                                 return (log( - (low - x)/(high -x)))} \code{                             } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                 return (log(x-low))} \code{                             } else {} \code{                                 stop("Condition not yet implemented")} \code{                             }} \code{                         }}'}
+							\item{from.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                             if (all(is.infinite(c(low, high))) || low == high) {} \code{                                 stopifnot(low < high)} \code{                                 return (x)} \code{                             } else if (all(is.finite(c(low, high)))) {} \code{                                 stopifnot(low < high)} \code{                                 return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                             } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                 return (low + exp(x))} \code{                             } else {} \code{                                 stop("Condition not yet implemented")} \code{                             }} \code{                         }}'}
 							}
 						}
 					 }
@@ -5819,7 +5914,9 @@ inla.models()
 			 \describe{
 				\item{Model `poisson'.}{Number of hyperparmeters are 0.
 				 }
-				\item{Model `qpoisson'.}{Number of hyperparmeters are 0.
+				\item{Model `contpoisson'.}{Number of hyperparmeters are 0.
+				 }
+				\item{Model `qcontpoisson'.}{Number of hyperparmeters are 0.
 				 }
 				\item{Model `cenpoisson'.}{Number of hyperparmeters are 0.
 				 }
@@ -5999,12 +6096,12 @@ inla.models()
 						\item{Hyperparameter `theta'}{
 							 \describe{
 							\item{hyperid = }{`60011'}
-							\item{name = }{`precision parameter'}
-							\item{short.name = }{`prec'}
-							\item{initial = }{`2'}
+							\item{name = }{`log alpha'}
+							\item{short.name = }{`alpha'}
+							\item{initial = }{`1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`1 0.001'}
+							\item{param = }{`25 25'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
@@ -6013,10 +6110,40 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
-								\item{doc = }{`A quantile version of the logistic likelihood'}
+								\item{doc = }{`A quantile loglogistic likelihood'}
+								\item{status = }{`changed:Oct.25.2017'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default log'}
+								\item{link = }{`default log neglog'}
+								\item{pdf = }{`qloglogistic'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `qloglogisticsurv'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{hyperid = }{`60021'}
+							\item{name = }{`log alpha'}
+							\item{short.name = }{`alpha'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`25 25'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`A quantile loglogistic likelihood (survival)'}
+								\item{status = }{`changed:Oct.25.2017'}
+								\item{survival = }{`TRUE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default log neglog'}
 								\item{pdf = }{`qloglogistic'}
 							 }
 						 }
@@ -6556,7 +6683,7 @@ inla.models()
 							\item{hyperid = }{`77101'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
-							\item{initial = }{`4'}
+							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
@@ -6584,7 +6711,7 @@ inla.models()
 							\item{hyperid = }{`78001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
-							\item{initial = }{`2'}
+							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
@@ -6596,7 +6723,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
-								\item{doc = }{`The log-Normal likelihood (survival version)'}
+								\item{doc = }{`The log-Normal likelihood (survival)'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
@@ -6658,7 +6785,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
-								\item{doc = }{`The Weibull likelihood (survival version)'}
+								\item{doc = }{`The Weibull likelihood (survival)'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}
@@ -6686,7 +6813,37 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
-								\item{doc = }{`The log-logistic likelihood (survival version)'}
+								\item{doc = }{`The loglogistic likelihood'}
+								\item{status = }{`changed:Oct.25.2017'}
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default log neglog'}
+								\item{pdf = }{`loglogistic'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `loglogisticsurv'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{hyperid = }{`80011'}
+							\item{name = }{`log alpha'}
+							\item{short.name = }{`alpha'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`25 25'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`The loglogistic likelihood (survival)'}
+								\item{status = }{`changed:Oct.25.2017'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}
@@ -6727,7 +6884,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
-								\item{doc = }{`The Weibull-cure likelihood (survival version)'}
+								\item{doc = }{`The Weibull-cure likelihood (survival)'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}

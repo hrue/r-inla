@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 
@@ -794,7 +794,7 @@ int GMRFLib_blockupdate_store(double *laccept,
 		for (i = 0; i < n; i++) {
 			GMRFLib_thread_id = id;
 			if (d_new[i]) {
-				loglFunc_new(&logll, &x_new[i], 1, i, x_new, loglFunc_arg_new);
+				loglFunc_new(&logll, &x_new[i], 1, i, x_new, NULL, loglFunc_arg_new);
 				sum += d_new[i] * logll;
 			}
 		}
@@ -853,7 +853,7 @@ int GMRFLib_blockupdate_store(double *laccept,
 			for (i = 0; i < n; i++) {
 				GMRFLib_thread_id = id;
 				if (d_old[i]) {
-					loglFunc_old(&logll, &x_old[i], 1, i, x_old, loglFunc_arg_old);
+					loglFunc_old(&logll, &x_old[i], 1, i, x_old, NULL, loglFunc_arg_old);
 					sum += d_old[i] * logll;
 				}
 			}
@@ -1183,7 +1183,7 @@ int GMRFLib_2order_approx_core(double *a, double *b, double *c, double x0, int i
 			       double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {
 	double step, df, ddf, xx[9], f[9], f0;
-	int code = loglFunc(f, &x0, 0, indx, x_vec, loglFunc_arg);
+	int code = loglFunc(f, &x0, 0, indx, x_vec, NULL, loglFunc_arg);
 
 	if (step_len && *step_len < 0.0) {
 		/*
@@ -1195,9 +1195,9 @@ int GMRFLib_2order_approx_core(double *a, double *b, double *c, double x0, int i
 		xx[1] = x0;
 		xx[2] = x0 + step;
 
-		loglFunc(&f[0], &xx[0], 1, indx, x_vec, loglFunc_arg);
-		loglFunc(&f[1], &xx[1], 1, indx, x_vec, loglFunc_arg);
-		loglFunc(&f[2], &xx[2], 1, indx, x_vec, loglFunc_arg);
+		loglFunc(&f[0], &xx[0], 1, indx, x_vec, NULL, loglFunc_arg);
+		loglFunc(&f[1], &xx[1], 1, indx, x_vec, NULL, loglFunc_arg);
+		loglFunc(&f[2], &xx[2], 1, indx, x_vec, NULL, loglFunc_arg);
 
 		f0 = f[1];
 		df = 0.5 * (f[2] - f[0]) / step;
@@ -1211,7 +1211,7 @@ int GMRFLib_2order_approx_core(double *a, double *b, double *c, double x0, int i
 		 * this indicate that exact calculations can and are carried out in loglFunc 
 		 */
 		xx[0] = xx[1] = xx[2] = x0;
-		loglFunc(f, xx, 3, indx, x_vec, loglFunc_arg);
+		loglFunc(f, xx, 3, indx, x_vec, NULL, loglFunc_arg);
 
 		f0 = f[0];
 		df = f[1];
@@ -1230,7 +1230,7 @@ int GMRFLib_2order_approx_core(double *a, double *b, double *c, double x0, int i
 			xx[1] = x0;
 			xx[2] = x0 + step;
 
-			loglFunc(f, xx, 3, indx, x_vec, loglFunc_arg);
+			loglFunc(f, xx, 3, indx, x_vec, NULL, loglFunc_arg);
 			f0 = f[1];
 			df = 0.5 * (f[2] - f[0]) / step;
 			ddf = (f[2] - 2.0 * f[1] + f[0]) / (step * step);
@@ -1248,7 +1248,7 @@ int GMRFLib_2order_approx_core(double *a, double *b, double *c, double x0, int i
 			xx[3] = x0 + step;
 			xx[4] = x0 + 2.0 * step;
 
-			loglFunc(f, xx, 5, indx, x_vec, loglFunc_arg);
+			loglFunc(f, xx, 5, indx, x_vec, NULL, loglFunc_arg);
 			f0 = f[2];
 			df = (wf[0] * f[0] + wf[1] * f[1] + wf[2] * f[2] + wf[3] * f[3] + wf[4] * f[4]) / step;
 			ddf = (wff[0] * f[0] + wff[1] * f[1] + wff[2] * f[2] + wff[3] * f[3] + wff[4] * f[4]) / step / step;
@@ -1268,7 +1268,7 @@ int GMRFLib_2order_approx_core(double *a, double *b, double *c, double x0, int i
 			xx[5] = x0 + 2.0 * step;
 			xx[6] = x0 + 3.0 * step;
 
-			loglFunc(f, xx, 7, indx, x_vec, loglFunc_arg);
+			loglFunc(f, xx, 7, indx, x_vec, NULL, loglFunc_arg);
 			f0 = f[3];
 			df = (wf[0] * f[0] + wf[1] * f[1] + wf[2] * f[2] + wf[3] * f[3] + wf[4] * f[4] + wf[5] * f[5] + wf[6] * f[6]) / step;
 			ddf = (wff[0] * f[0] + wff[1] * f[1] + wff[2] * f[2] + wff[3] * f[3] + wff[4] * f[4] + wff[5] * f[5] + wff[6] * f[6]) / step / step;
@@ -1290,7 +1290,7 @@ int GMRFLib_2order_approx_core(double *a, double *b, double *c, double x0, int i
 			xx[7] = x0 + 3.0 * step;
 			xx[8] = x0 + 4.0 * step;
 
-			loglFunc(f, xx, 9, indx, x_vec, loglFunc_arg);
+			loglFunc(f, xx, 9, indx, x_vec, NULL, loglFunc_arg);
 			f0 = f[4];
 			df = (wf[0] * f[0] + wf[1] * f[1] + wf[2] * f[2] + wf[3] * f[3] + wf[4] * f[4] + wf[5] * f[5] + wf[6] * f[6] + wf[7] * f[7] + wf[8] * f[8]) / step;
 			ddf = (wff[0] * f[0] + wff[1] * f[1] + wff[2] * f[2] + wff[3] * f[3] + wff[4] * f[4] + wff[5] * f[5] + wff[6] * f[6] + wff[7] * f[7] + wff[8] * f[8]) / step / step;
@@ -1509,7 +1509,7 @@ int GMRFLib_blockupdate_hidden_store(double *laccept,
 	if (d_new) {
 		for (i = 0; i < n; i++) {
 			if (d_new[i]) {
-				loglFunc_new(&logll, &x_new[i], 1, i, x_new, loglFunc_arg_new);
+				loglFunc_new(&logll, &x_new[i], 1, i, x_new, NULL, loglFunc_arg_new);
 				neww += d_new[i] * logll;
 			}
 		}
@@ -1542,7 +1542,7 @@ int GMRFLib_blockupdate_hidden_store(double *laccept,
 	if (d_old) {
 		for (i = 0; i < n; i++) {
 			if (d_old[i]) {
-				loglFunc_old(&logll, &x_old[i], 1, i, x_old, loglFunc_arg_old);
+				loglFunc_old(&logll, &x_old[i], 1, i, x_old, NULL, loglFunc_arg_old);
 				old += d_old[i] * logll;
 			}
 		}
