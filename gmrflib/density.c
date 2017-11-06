@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 
@@ -1145,13 +1145,13 @@ int GMRFLib_evaluate_ndensities(double *dens, int nd, double *x_user, int nx, GM
 	 * 
 	 * the weights need not to be scaled. 
 	 */
-	int i, j, k, n_idx, *idx = NULL;
+	int i, j, k, n_idx, *idx = NULL, n_alloc = IMAX(nd, nx);
 	double w_sum = 0.0, *d_tmp, *d = NULL, *x_std;
 
-	d = Calloc(4 * nx, double);
-	d_tmp = &d[nx];
-	x_std = &d[2 * nx];
-	idx = (int *) &d[3 * nx];
+	d = Calloc(4 * n_alloc, double);
+	d_tmp = &d[n_alloc];
+	x_std = &d[2 * n_alloc];
+	idx = (int *) &d[3 * n_alloc];
 
 	GMRFLib_density_prune_weights(&n_idx, idx, weights, nd);
 
@@ -1190,7 +1190,7 @@ int GMRFLib_evaluate_gdensities(double *dens, double x_user, int n, GMRFLib_dens
 	 * the weights need not to be scaled. 
 	 */
 	int i, j, *idx = NULL, n_idx;
-	double w_sum = 0.0, d_tmp = 0.0, d = 0.0, x_std, w_eps = 0.0;
+	double w_sum = 0.0, d_tmp = 0.0, d = 0.0, x_std; 
 
 	idx = Calloc(n, int);
 	GMRFLib_density_prune_weights(&n_idx, idx, weights, n);

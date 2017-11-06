@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 
@@ -158,7 +158,7 @@ int GMRFLib_loglFunc_wrapper(double *logll, double *x, int m, int idx, double *x
 	mean = args->sub_mean[idx];
 	for (i = 0; i < m; i++)
 		xx[i] = x[i] + mean;
-	(*args->loglFunc) (ff, xx, m, args->map[idx], x_vec, args->loglFunc_arg);
+	(*args->loglFunc) (ff, xx, m, args->map[idx], x_vec, NULL, args->loglFunc_arg);
 
 	a = args->acoof[idx];
 	b = args->bcoof[idx];
@@ -1037,7 +1037,7 @@ int GMRFLib_locate_cmode(double *cmode, int idx, GMRFLib_hidden_problem_tp * h, 
 		xx[1] = xopt;
 		xx[2] = xopt + step;
 		if (h->sub_d[idx])
-			(*(h->loglFunc)) (f, xx, 3, idx, NULL, h->loglFunc_arg);
+			(*(h->loglFunc)) (f, xx, 3, idx, NULL, NULL, h->loglFunc_arg);
 		else
 			f[0] = f[1] = f[2] = 0.0;
 
@@ -1191,7 +1191,7 @@ double GMRFLib_ConditionalFunc(double xn, void *arg)
 					}
 				}
 
-				(*(a->h->loglFunc)) (ff, xx, a->h->hidden_par->nsample * ns, node, NULL, a->h->loglFunc_arg);
+				(*(a->h->loglFunc)) (ff, xx, a->h->hidden_par->nsample * ns, node, NULL, NULL, a->h->loglFunc_arg);
 				for (k = 0, kk = 0; k < a->h->hidden_par->nsample; k++)
 					for (jj = 0; jj < ns; jj++) {
 						ldens_f[kk] += d_s * ff[kk];
@@ -1217,7 +1217,7 @@ double GMRFLib_ConditionalFunc(double xn, void *arg)
 	 * then at last, add the contribs at idx, if there is any 
 	 */
 	if (a->h->sub_d[a->idx])
-		(*(a->h->loglFunc)) (&tmp, &xn, 1, a->idx, NULL, a->h->loglFunc_arg);
+		(*(a->h->loglFunc)) (&tmp, &xn, 1, a->idx, NULL, NULL, a->h->loglFunc_arg);
 	else
 		tmp = 0.0;
 
