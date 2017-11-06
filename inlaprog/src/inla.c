@@ -4990,16 +4990,16 @@ int loglikelihood_contpoisson(double *logll, double *x, int m, int idx, double *
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			lambda = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = eval_log_contpoisson(y, lambda);
+			logll[i] = eval_log_contpoisson(y + 1.0, lambda);
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 
 		// slight inconsistency, as we use the 'exact' expression here, and an (good) approximation above.
-		double normc = exp(gsl_sf_lngamma(y));
+		double normc = exp(gsl_sf_lngamma(y + 1.0));
 		for (i = 0; i < -m; i++) {
 			lambda = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = gsl_sf_gamma_inc(y, lambda) / normc;
+			logll[i] = gsl_sf_gamma_inc(y + 1.0, lambda) / normc;
 		}
 	}
 
@@ -5025,17 +5025,17 @@ int loglikelihood_qcontpoisson(double *logll, double *x, int m, int idx, double 
 		for (i = 0; i < m; i++) {
 			q = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			lambda = E * exp(inla_spline_eval(log(q), ds->data_observations.qcontpoisson_func[id]));
-			logll[i] = eval_log_contpoisson(y, lambda);
+			logll[i] = eval_log_contpoisson(y + 1.0, lambda);
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 
 		// slight inconsistency, as we use the 'exact' expression here, and an (good) approximation above.
-		double normc = exp(gsl_sf_lngamma(y));
+		double normc = exp(gsl_sf_lngamma(y + 1.0));
 		for (i = 0; i < -m; i++) {
 			q = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			lambda = E * exp(inla_spline_eval(log(q), ds->data_observations.qcontpoisson_func[id]));
-			logll[i] = gsl_sf_gamma_inc(y, lambda) / normc;
+			logll[i] = gsl_sf_gamma_inc(y + 1.0, lambda) / normc;
 		}
 	}
 
