@@ -11,18 +11,13 @@ if ! $(is_set INLA_MAC); then
 fi
 
 if ! $(is_set INLA_LINUX); then
-    export INLA_LINUX=hrue@inla.math.ntnu.no ## ubuntu
-    export INLA_LINUX=hrue@192.168.124.20   ## centos
+    export INLA_LINUX=hrue@192.168.124.71
+    export INLA_LINUX_PORT=22
 fi
 
 if ! $(is_set INLA_INLA); then
     export INLA_INLA=hrue@inla.math.ntnu.no
 fi
-
-if ! $(is_set INLA_WINDOWS); then
-    export INLA_WINDOWS=$(echo ~/p/inla/builds/windows)
-fi
-
 
 output () {
     echo "$0: $@"
