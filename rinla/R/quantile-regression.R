@@ -1,25 +1,30 @@
 ## utility function for quantile-regression.
-##     - continous Poisson and quantile regression for Poisson
+## Continous Poisson and quantile regression for Poisson 
 
-inla.incGamma = function(x, lambda=0, log=FALSE) {
+
+inla.incGamma = function(x, lambda=0, log=FALSE)
+{
     ##library(gsl); return (gamma_inc(x, lambda))
     lres = lgamma(x) + pgamma(lambda, x, lower = FALSE, log.p=TRUE)
     return (if (log) lres else exp(lres))
 }
 
-inla.qcontpoisson = function(p, lambda, print.level = 0) {
-    fun.min = function(log.x, lambda, prob) {
-        p.est = inla.pcontpoisson(exp(log.x), lambda)
+inla.qcontpoisson = function(p, lambda, print.level = 0) 
+{
+    fun.min = function(x, lambda, prob) {
+        log.x = log(x+1)
+        p.est = inla.pcontpoisson(exp(log.x)-1, lambda)
         eps = 1E-12
         p.est = max(eps, min(p.est, 1 - eps))
         return ((inla.link.logit(p.est) - inla.link.logit(prob))^2)
     }
-    initial.value = log(qpois(p, lambda) + 0.5)
-    return (exp(nlm(fun.min, p = initial.value, print.level = print.level,
-                    lambda = lambda, prob = p)$estimate))
+    initial.value = qpois(p, lambda)-0.5
+    return ((nlm(fun.min, p = initial.value, print.level = print.level,
+                 lambda = lambda, prob = p)$estimate))
 }
 
-inla.pcontpoisson = function(x, lambda, log=FALSE, deriv=0) {
+inla.pcontpoisson = function(x, lambda, log=FALSE, deriv=0) 
+{
     ## > F := (x, lambda) -> GAMMA(x, lambda) / GAMMA(x);
     ##                                     GAMMA(x, lambda)
     ##                F := (x, lambda) -> ----------------
@@ -37,7 +42,9 @@ inla.pcontpoisson = function(x, lambda, log=FALSE, deriv=0) {
     ##             --------------------------------------------
     ##                               GAMMA(x)
     ##
-    if (deriv == 0) {
+
+    x = x + 1
+    if(deriv ==0){
         ## can use gsl::gamma_inc_Q() instead
         lres = inla.incGamma(x, lambda, log=TRUE) - inla.incGamma(x, log=TRUE)
         return (if (log) lres else exp(lres))
@@ -52,7 +59,8 @@ inla.pcontpoisson = function(x, lambda, log=FALSE, deriv=0) {
     }
 }
 
-inla.pcontpoisson.eta = function(x, eta, deriv = 0, log=FALSE) {
+inla.pcontpoisson.eta = function(x, eta, deriv = 0, log=FALSE) 
+{
     ## the cdf of the contpoisson parameterised by the linear predictor and the log-link
     lambda = exp(eta)
     if (deriv == 0) {
@@ -70,7 +78,7 @@ inla.pcontpoisson.eta = function(x, eta, deriv = 0, log=FALSE) {
 }
 
 inla.contpoisson.solve.lambda = function(quantile, alpha, iter.max = 1000, max.step = 3,
-                                           tol = sqrt(.Machine$double.eps), verbose=FALSE)
+                                         tol = sqrt(.Machine$double.eps), verbose=FALSE)
 {
     ## solve quantile=inla.pcontpoisson(lambda, alpha),  for lambda
     stopifnot(length(quantile) == 1 && length(alpha) == 1)
@@ -78,7 +86,7 @@ inla.contpoisson.solve.lambda = function(quantile, alpha, iter.max = 1000, max.s
 }
 
 inla.contpoisson.solve.eta = function(quantile, alpha, iter.max = 1000, max.step = 3,
-                                               tol = sqrt(.Machine$double.eps), verbose=FALSE) 
+                                      tol = sqrt(.Machine$double.eps), verbose=FALSE) 
 {
     ## solve quantile=inla.pcontpoisson(lambda=exp(eta), alpha),  for eta
     stopifnot(length(quantile) == 1 && length(alpha) == 1)
