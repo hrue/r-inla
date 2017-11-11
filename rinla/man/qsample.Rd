@@ -43,6 +43,7 @@
    \item{num.threads}{The number of threads that can be used. \code{num.threads>1L} requires
        \code{seed = 0L}. Only use \code{num.threads > 1L} for large problems/number of
        samples. This option does currently NOT use the default one set by \code{inla.setOption()}. }
+ }
 \value{
       The log-density has form {-1/2(x-mu)^T Q (x-mu) + b^T x}
 
