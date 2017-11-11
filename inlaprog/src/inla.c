@@ -30206,6 +30206,10 @@ int inla_fgn(char *infile, char *outfile)
 int testit(int argc, char **argv)
 {
 	if (1) {
+		P(GMRFLib_rng_uniform());
+		P(GMRFLib_rng_uniform());
+	}
+	if (0) {
 		double par[] = { 0.8, 0.5 };
 		double theta = 1.234;
 
