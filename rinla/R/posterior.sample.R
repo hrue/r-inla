@@ -96,8 +96,11 @@
         if (n.idx[k] > 0) {
             ## then the latent field
             xx = inla.qsample(n=n.idx[k], Q=cs$config[[k]]$Q,
-                    mu = inla.ifelse(use.improved.mean, cs$config[[k]]$improved.mean, cs$config[[k]]$mean), 
-                    constr = cs$constr, logdens = TRUE, seed = seed)
+                              mu = inla.ifelse(use.improved.mean, cs$config[[k]]$improved.mean, cs$config[[k]]$mean), 
+                              constr = cs$constr, logdens = TRUE, seed = seed)
+            ## if user set seed,  then just continue this rng-stream
+            if (seed > 0L) seed = -1L
+
             nm = c()
             ld.theta = cs$max.log.posterior + cs$config[[k]]$log.posterior
             for(j in 1:length(cs$contents$tag)) {
@@ -179,21 +182,21 @@
             for(i in 1:n.idx[k]) {
                 if (is.null(theta)) {
                     a.sample = list(
+                        hyperpar = NULL,
+                        latent = xx$sample[ , i, drop=FALSE],
+                        logdens = list(
                             hyperpar = NULL,
-                            latent = xx$sample[ , i, drop=FALSE],
-                            logdens = list(
-                                    hyperpar = NULL,
-                                    latent = as.numeric(xx$logdens[i]),
-                                    joint = as.numeric(xx$logdens[i])))
+                            latent = as.numeric(xx$logdens[i]),
+                            joint = as.numeric(xx$logdens[i])))
                 } else {
                     ld.h = as.numeric(ld.theta - result$mlik[1, 1] + log.J)
                     a.sample = list(
-                            hyperpar = theta,
-                            latent = xx$sample[ , i, drop=FALSE],
-                            logdens = list(
-                                    hyperpar = ld.h,
-                                    latent = as.numeric(xx$logdens[i]),
-                                    joint = as.numeric(ld.h + xx$logdens[i])))
+                        hyperpar = theta,
+                        latent = xx$sample[ , i, drop=FALSE],
+                        logdens = list(
+                            hyperpar = ld.h,
+                            latent = as.numeric(xx$logdens[i]),
+                            joint = as.numeric(ld.h + xx$logdens[i])))
                 }
                 rownames(a.sample$latent) = if (add.names || i.sample == 1L) nm else NULL
                 all.samples[[i.sample]] = a.sample
