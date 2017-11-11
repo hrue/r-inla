@@ -10,7 +10,7 @@
 ##!              of a fitted model (an inla-object}
 ##! \usage{
 ##!     inla.posterior.sample(n = 1L, result, intern = FALSE, use.improved.mean = TRUE,
-##!                           add.names = TRUE, seed = 0L)
+##!                           add.names = TRUE, seed = 0L, num.threads = 1L)
 ##! }
 ##! 
 ##! \arguments{
@@ -37,6 +37,9 @@
 ##!       If you want reproducible results,  you ALSO need to control the seed for the RNG in R by
 ##!       controlling the variable \code{.Random.seed} or using the function \code{set.seed},
 ##!       the example for how this can be done. }
+##!   \item{num.threads}{The number of threads that can be used. \code{num.threads>1L} requires
+##!       \code{seed = 0L}. Only use \code{num.threads > 1L} for large problems/number of
+##!       samples. This option does currently NOT use the default one set by \code{inla.setOption()}. }
 ##!}
 ##!\details{The hyperparameters are sampled from the configurations used to do the
 ##!       numerical integration,  hence if you want a higher resolution,  you need to
@@ -66,12 +69,23 @@
 
 
 `inla.posterior.sample` = function(n = 1, result, intern = FALSE,
-    use.improved.mean = TRUE, add.names = TRUE, seed = 0L)
+    use.improved.mean = TRUE, add.names = TRUE, seed = 0L, num.threads = 1L)
 {
     stopifnot(!missing(result) && any(class(result) == "inla"))
     if (is.null(result$misc$configs)) {
         stop("You need an inla-object computed with option 'control.compute=list(config = TRUE)'.")
     }
+
+    if (is.null(num.threads)) {
+        num.threads = 1L
+    }
+    num.threads = max(num.threads, 1L)
+    if (num.threads > 1L) {
+        if (seed != 0L) {
+            stop("num.threads > 1L require seed = 0L")
+        }
+    }
+
     n = as.integer(n)
     stopifnot(is.integer(n) && n > 0L)
     
@@ -97,7 +111,7 @@
             ## then the latent field
             xx = inla.qsample(n=n.idx[k], Q=cs$config[[k]]$Q,
                               mu = inla.ifelse(use.improved.mean, cs$config[[k]]$improved.mean, cs$config[[k]]$mean), 
-                              constr = cs$constr, logdens = TRUE, seed = seed)
+                              constr = cs$constr, logdens = TRUE, seed = seed, num.threads = num.threads)
             ## if user set seed,  then just continue this rng-stream
             if (seed > 0L) seed = -1L
 

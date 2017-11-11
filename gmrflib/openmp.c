@@ -145,6 +145,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
 			nt = ntmax;
 			nested = 0;
 			break;
+		case GMRFLib_OPENMP_STRATEGY_NONE: 
 		default:
 			assert(0 == 1);
 		}
@@ -169,6 +170,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
 			nt = IMIN(*nhyper + 1, ntmax);
 			nested = 0;
 			break;
+		case GMRFLib_OPENMP_STRATEGY_NONE: 
 		default:
 			assert(0 == 1);
 		}
@@ -193,6 +195,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
 			nt = ntmax;
 			nested = 0;
 			break;
+		case GMRFLib_OPENMP_STRATEGY_NONE: 
 		default:
 			assert(0 == 1);
 		}
@@ -217,6 +220,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
 			nt = ntmax;
 			nested = 0;
 			break;
+		case GMRFLib_OPENMP_STRATEGY_NONE: 
 		default:
 			assert(0 == 1);
 		}
@@ -241,6 +245,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
 			nt = ntmax;
 			nested = 0;
 			break;
+		case GMRFLib_OPENMP_STRATEGY_NONE: 
 		default:
 			assert(0 == 1);
 		}
@@ -265,6 +270,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
 			nt = *nhyper;
 			nested = 0;
 			break;
+		case GMRFLib_OPENMP_STRATEGY_NONE: 
 		default:
 			assert(0 == 1);
 		}
@@ -280,6 +286,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
 			nt = ntmax;
 			nested = 0;
 			break;
+		case GMRFLib_OPENMP_STRATEGY_NONE: 
 		default:
 			assert(0 == 1);
 		}
@@ -304,16 +311,29 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
 			nt = ntmax;
 			nested = 0;
 			break;
+		case GMRFLib_OPENMP_STRATEGY_NONE: 
 		default:
 			assert(0 == 1);
 		}
 		break;
 
-	default:
-		assert(0 == 1);
+	case GMRFLib_OPENMP_PLACES_NONE:
+		switch (strategy) {
+		case GMRFLib_OPENMP_STRATEGY_NONE:	       /* only one option allowed */
+			nt = ntmax;
+			nested = 0;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_SMALL:
+		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
+		case GMRFLib_OPENMP_STRATEGY_LARGE:
+		case GMRFLib_OPENMP_STRATEGY_DEFAULT:
+		case GMRFLib_OPENMP_STRATEGY_HUGE:
+		default:
+			assert(0 == 1);
+		}
 	}
 
-	nt = IMAX(0, IMIN(ntmax, nt));
+	nt = IMAX(1, IMIN(ntmax, nt));
 	omp_set_num_threads(nt);
 	omp_set_nested(nested);
 
