@@ -99,8 +99,9 @@ int GMRFLib_rng_set_default_seed(void)
 				if (!CryptGenRandom(prov, (DWORD) len, (BYTE *)&seed)) {
 					// error: fall back to default
 					seed = seed_default;
+				} else {
+					CryptReleaseContext(prov, 0);
 				}
-				CryptReleaseContext(prov, 0);
 			} else {
 				// error: fall back to default
 				seed = seed_default;
