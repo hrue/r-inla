@@ -289,7 +289,7 @@ cor(dat$y, res$summary.linear.predictor$mean[idat])
 @ 
 
 We also can do prediction for each time and visualize it. 
-First, we define the projection grid in the same way that 
+First, we define the grid in the same way as 
 in the rainfall example in Section~\ref{sec:prprec}. 
 <<projgrid>>=
 stepsize <- 4*1/111
