@@ -375,9 +375,9 @@ set.seed(2);     n <- 100
 loc <- cbind(runif(n), runif(n))
 @ 
 
-Now, we project the data simulated 
-at the mesh vertices to this locations. 
-To do it, we need a projection matrix
+Now, we do the projection of the simulated data 
+from the mesh vertices to these locations. 
+To do it, we need a projector matrix
 <<projloc>>=
 projloc <- inla.mesh.projector(mesh, loc)
 @ 

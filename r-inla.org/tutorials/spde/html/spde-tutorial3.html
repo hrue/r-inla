@@ -10,7 +10,7 @@
 <meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)" /> 
 <!-- xhtml,html,frames,2 --> 
 <meta name="src" content="spde-tutorial.tex" /> 
-<meta name="date" content="2017-10-05 18:07:00" /> 
+<meta name="date" content="2017-11-14 12:23:00" /> 
 <link rel="stylesheet" type="text/css" href="spde-tutorial.css" /> 
 </head><body 
 id="tex4ht-main">
@@ -25,13 +25,147 @@ Suggestions to elias@r-inla.org are welcome</h2>
 <div class="author" ><span 
 class="aer12-">Elias T. Krainski, Finn Lindgren, Daniel Simpson and Håvard Rue</span></div><br />
 <div class="date" ><span 
-class="aer12-">October 5, 2017</span></div>
+class="aer12-">November 14, 2017</span></div>
                                                                                  
                                                                                  
    </div>
+   <div 
+class="abstract" 
+>
+<!--l. 2--><p class="indent" >
                                                                                  
                                                                                  
-
+</p>
+<div class="center" 
+>
+<!--l. 2--><p class="noindent" >
+</p><!--l. 2--><p class="noindent" ><span 
+class="aebx-10x-x-109">Abstract</span></p></div>
+<!--l. 3--><p class="noindent" >This tutorial will show you how to fit models that contains at least one effect specified from an
+SPDE using the &#8216;R-INLA&#8216;. Up to now, it can an SPDE based model can be applied to
+model random effects over continuous one- or two- dimensional domains. However,
+the theory works for higher dimensional cases. The usual application is data whose
+geographical location is explicitly considered in the analysis. This tutorial explores
+&#8217;R-INLA&#8217; functionalities by using examples. It starts with simple models and increases in
+complexity.
+</p><!--l. 14--><p class="indent" >   In Chapter&#x00A0;<a 
+href="spde-tutorialch1.html#x5-40001">1<!--tex4ht:ref: ch:intro --></a> we will introduce the Gaussian random fields and the SPDE framework. We
+consider the Matérn random fields characteristics and introduce the main results in <span class="cite">[<a 
+href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren
+et&#x00A0;al., 2011</a>]</span> intuitively linking to images of the matrices involved. We work with a toy example
+and work through some examples of building a mesh.
+</p><!--l. 22--><p class="indent" >   We consider three detailed examples in Chapter&#x00A0;<a 
+href="spde-tutorialch2.html#x6-340002">2<!--tex4ht:ref: ch:ngns --></a>. They address non-Gaussian data, survival
+analysis and inclusion of covariates in the covariance parameters. The example on
+accumulated rainfall includes code to compute geographical covariates and also include
+smoothed effect. The example case we consider the parametric Weibull case and also
+the non-parametric Cox proportional hazard case where it can be seen as a Poisson
+regression. The example on covariates in the covariance shows how it works in a simulated
+example.
+</p><!--l. 33--><p class="indent" >   In Chapter&#x00A0;<a 
+href="spde-tutorialch3.html#x7-560003">3<!--tex4ht:ref: ch:manipula --></a> we have a collection of examples were copy random fields to model two or more
+outcomes jointly. It includes a measurement error model in order to account for joint model of a
+covariate which can be misaligned over space. A coregionalization model consider the case for
+three outcomes were the fist outcome is in the linear predictor for the second one and both are
+in the predictor for the third outcome. A example considering part or the entire linear
+predictor from one outcome in a linear predictor to another one is also considered in this
+chapter.
+</p><!--l. 44--><p class="indent" >   The log Cox point process model is considered in Chapter&#x00A0;<a 
+href="spde-tutorialch4.html#x8-710004">4<!--tex4ht:ref: ch:lcox --></a>. In this case we show how to fit
+a Log-cox point process using the direct approximation for the likelihood. We also take the
+opportunity to show how to consider the preferential sampling modelling the locations
+jointly.
+</p><!--l. 50--><p class="indent" >   Finally, Chapter&#x00A0;<a 
+href="spde-tutorialch5.html#x9-840005">5<!--tex4ht:ref: ch:spacetime --></a> presents several cases to example analysis of space-time data. We start by
+an example having discrete time domain and an example having continuous time domain and
+consider the case where the temporal domain can be lowered by having temporal knots and
+temporal function basis. We have the space-time version of the coregionalization model
+to model three outcomes jointly. The space-time model is also applied for modeling
+regression coefficients in a dynamic regression example having the regression coefficients
+varying over space-time. We consider the space-time version of the log-Cox point
+process model for a dataset and also consider it for the case of a large point process
+data.
+</p><!--l. 62--><p class="indent" >   Since this tutorial is more a collection of examples, one should start with the tutorial marked as
+<span 
+class="aebx-10x-x-109">Read this first! </span>at the tutorials link in the R-INLA web page, <a 
+href="http://www.r-inla.org" class="url" ><span 
+class="aett-10x-x-109">http://www.r-_inla.org</span></a>, more
+precisely at <a 
+href="http://www.r-inla.org/examples/tutorials/spde-tutorial-from-jss" class="url" ><span 
+class="aett-10x-x-109">http://www.r-_inla.org/examples/tutorials/spde-_tutorial-_from-_jss</span></a>. If
+you are in a rush to fit a simple geostatistical model, we made a short tutorial without the
+details as a vignette in the <span 
+class="aessbx-10x-x-109">INLA</span>. Thus one can have it just typing <span 
+class="aett-10x-x-109">vignette(SPDEhowto) </span>for a
+two dimensional example or <span 
+class="aett-10x-x-109">vignette(SPDE1d) </span>for a one dimensional example. We built a Shiny
+application to help one to understand the mesh building. It depends on the <span 
+class="aessbx-10x-x-109">shiny </span>package. This
+application opens by typing <span 
+class="aett-10x-x-109">demo(mesh2d)</span>.
+                                                                                 
+                                                                                 
+                                                                                 
+                                                                                 
+</p>
+   </div>
+<!--l. 100--><p class="noindent" ><span class="paragraphHead"><a 
+ id="x3-1000"></a><span 
+class="aebx-10x-x-109">Acknowledgments</span></span>
+   To Sarah Gallup and Helen Sofaer for valuable English review in the text. To several people
+who brought cool problems to the discussion forum <a 
+href="http://www.r-inla.org/comments-1" class="url" ><span 
+class="aett-10x-x-109">http://www.r-_inla.org/comments-_1</span></a>
+and to me individually.
+</p>
+<!--l. 1--><p class="noindent" ><span class="paragraphHead"><a 
+ id="x3-2000"></a><span 
+class="aebx-10x-x-109">Updates</span></span>
+                                                                                 
+                                                                                 
+</p>
+   <div class="verbatim" id="verbatim-1">
+2017&#x00A0;Oct&#x00A0;05:&#x00A0;English&#x00A0;review&#x00A0;(thanks&#x00A0;to&#x00A0;SG)
+&#x00A0;<br />2017&#x00A0;Mar&#x00A0;01:&#x00A0;revision&#x00A0;and&#x00A0;new&#x00A0;organization
+&#x00A0;<br />2017&#x00A0;Feb&#x00A0;15:&#x00A0;started&#x00A0;a&#x00A0;major&#x00A0;revision/organization
+&#x00A0;<br />2017&#x00A0;Jan&#x00A0;23:&#x00A0;compile&#x00A0;to&#x00A0;html&#x00A0;and&#x00A0;small&#x00A0;fixes
+&#x00A0;<br />2016&#x00A0;May&#x00A0;17:&#x00A0;fix&#x00A0;names&#x00A0;in&#x00A0;copy&#x00A0;lin.&#x00A0;pred.&#x00A0;example&#x00A0;(Thx&#x00A0;to&#x00A0;MC)&#x00A0;and&#x00A0;improve&#x00A0;text
+&#x00A0;<br />2016&#x00A0;May&#x00A0;09:&#x00A0;copy&#x00A0;linear&#x00A0;predictor&#x00A0;example
+&#x00A0;<br />2016&#x00A0;Mar&#x00A0;22:&#x00A0;tiny&#x00A0;fix&#x00A0;of&#x00A0;survival&#x00A0;ex.:&#x00A0;cor(log(sd),&#x00A0;...).&#x00A0;Thx&#x00A0;HR
+&#x00A0;<br />2016&#x00A0;Feb&#x00A0;26:&#x00A0;space-time&#x00A0;(small&#x00A0;fix)&#x00A0;and&#x00A0;non-stationary&#x00A0;(s.&#x00A0;improv.)
+&#x00A0;<br />2016&#x00A0;Feb&#x00A0;03:&#x00A0;small&#x00A0;changes&#x00A0;in&#x00A0;dynamic&#x00A0;and&#x00A0;space-time&#x00A0;simulation
+&#x00A0;<br />2016&#x00A0;Feb&#x00A0;01:&#x00A0;tiny&#x00A0;fix&#x00A0;in&#x00A0;the&#x00A0;rainfall&#x00A0;example&#x00A0;model&#x00A0;description
+&#x00A0;<br />2015&#x00A0;Dec&#x00A0;30:&#x00A0;measurement&#x00A0;error&#x00A0;example&#x00A0;added
+&#x00A0;<br />2015&#x00A0;Sep&#x00A0;25:&#x00A0;small&#x00A0;fixes,&#x00A0;improve&#x00A0;dynamic&#x00A0;example
+&#x00A0;<br />2015&#x00A0;Sep&#x00A0;24:&#x00A0;1)&#x00A0;include&#x00A0;hyperref&#x00A0;package.&#x00A0;2)&#x00A0;improve&#x00A0;dynamic&#x00A0;example
+&#x00A0;<br />2015&#x00A0;Sep&#x00A0;23:&#x00A0;small&#x00A0;fix&#x00A0;on&#x00A0;likelihood&#x00A0;equations,
+&#x00A0;<br />&#x00A0;&#x00A0;space-time&#x00A0;with&#x00A0;continuous&#x00A0;time&#x00A0;and&#x00A0;dynamic&#x00A0;regression&#x00A0;model&#x00A0;example
+&#x00A0;<br />2015&#x00A0;Aug&#x00A0;31:&#x00A0;aproach&#x00A0;for&#x00A0;large&#x00A0;spacetime&#x00A0;point&#x00A0;process
+&#x00A0;<br />2015&#x00A0;Aug&#x00A0;26:&#x00A0;fix&#x00A0;the&#x00A0;spacetime&#x00A0;point&#x00A0;process&#x00A0;example
+&#x00A0;<br />2015&#x00A0;Jul&#x00A0;17:&#x00A0;small&#x00A0;fixes&#x00A0;and&#x00A0;interpolate&#x00A0;lin.&#x00A0;pred.&#x00A0;samples&#x00A0;(Non-Gaus.)
+&#x00A0;<br />2015&#x00A0;May&#x00A0;25:&#x00A0;include&#x00A0;space-time&#x00A0;coregionalization&#x00A0;model&#x00A0;and&#x00A0;tiny&#x00A0;fix
+&#x00A0;<br />2015&#x00A0;May&#x00A0;7:&#x00A0;English&#x00A0;review&#x00A0;in&#x00A0;Chapters&#x00A0;1&#x00A0;and&#x00A0;2&#x00A0;(thanks&#x00A0;to&#x00A0;HS)&#x00A0;and
+&#x00A0;<br />&#x00A0;&#x00A0;space-time&#x00A0;point&#x00A0;process,&#x00A0;space&#x00A0;time&#x00A0;lowering&#x00A0;dimension&#x00A0;and&#x00A0;survival
+&#x00A0;<br />2014&#x00A0;March&#x00A0;15:&#x00A0;log-Cox&#x00A0;example:&#x00A0;fix&#x00A0;weights,&#x00A0;add&#x00A0;covariate&#x00A0;example
+&#x00A0;<br />2013&#x00A0;December&#x00A0;21:
+&#x00A0;<br />&#x00A0;*&#x00A0;fix&#x00A0;several&#x00A0;missprints
+&#x00A0;<br />&#x00A0;*&#x00A0;add&#x00A0;details&#x00A0;on:&#x00A0;likelihood,&#x00A0;semicontinuous&#x00A0;and&#x00A0;spacetime&#x00A0;examples
+&#x00A0;<br />2013&#x00A0;October&#x00A0;08:
+&#x00A0;<br />&#x00A0;*&#x00A0;Finn's&#x00A0;suggestions&#x00A0;on&#x00A0;two&#x00A0;likelihood&#x00A0;examples
+&#x00A0;<br />2013&#x00A0;October&#x00A0;02:
+&#x00A0;<br />&#x00A0;*&#x00A0;mesh&#x00A0;news:&#x00A0;inla.mesh.2d,&#x00A0;inla.noncovexhull,&#x00A0;SpatialPolygons
+&#x00A0;<br />&#x00A0;*&#x00A0;toy-example&#x00A0;improved&#x00A0;(maybe&#x00A0;more&#x00A0;clear...)
+&#x00A0;<br />&#x00A0;*&#x00A0;new&#x00A0;chapters:&#x00A0;likelihood&#x00A0;through&#x00A0;SPDE,&#x00A0;point&#x00A0;process,
+&#x00A0;<br />&#x00A0;&#x00A0;preferential&#x00A0;sampling,&#x00A0;spatio&#x00A0;temporal,&#x00A0;data&#x00A0;cloning
+&#x00A0;<br />2013&#x00A0;March&#x00A0;21:
+&#x00A0;<br />&#x00A0;*&#x00A0;non-stationary&#x00A0;example&#x00A0;and&#x00A0;joint&#x00A0;covariate&#x00A0;modelling
+&#x00A0;<br />2013&#x00A0;March&#x00A0;01:
+&#x00A0;<br />&#x00A0;*&#x00A0;first&#x00A0;draft:&#x00A0;introduction,&#x00A0;toy&#x00A0;example,&#x00A0;rainfall&#x00A0;on&#x00A0;Parana&#x00A0;State
+</div>
+<!--l. 40--><p class="nopar" >
+                                                                                 
+                                                                                 
+</p>
                                                                                  
                                                                                  
 

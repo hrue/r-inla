@@ -8,8 +8,8 @@ options(width=75, prompt = " ", continue = "   ")
 library(lattice) 
 library(INLA)
 lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
-inla.setOption(num.threads=7)
+##inla.setOption(inla.call='remote')
+##inla.setOption(num.threads=7)
 
 ## ----datatoy-------------------------------------------------------------
 data(SPDEtoy)
