@@ -1,3 +1,5 @@
+%%% OOPS: change .Rnw, not .tex 
+
 \section{Triangulation details and examples}\label{sec:mesh}
 
 The R source for this file is available at 

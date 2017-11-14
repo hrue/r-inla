@@ -1,0 +1,75 @@
+
+\begin{abstract}
+This tutorial will show you how to fit models 
+that contains at least one effect specified 
+from an SPDE using the `R-INLA`. 
+Up to now, it can an SPDE based model can be applied to model 
+random effects over continuous one- or two- dimensional domains. 
+However, the theory works for higher dimensional cases. 
+The usual application is data whose geographical 
+location is explicitly considered in the analysis. 
+This tutorial explores 'R-INLA' functionalities by using examples. 
+It starts with simple models and increases in complexity. 
+
+In Chapter~\ref{ch:intro} we will introduce 
+the Gaussian random fields and the SPDE framework. 
+We consider the Mat\'{e}rn random fields characteristics and 
+introduce the main results in \cite{lindgrenRL:2011} 
+intuitively linking to images of the matrices involved. 
+We work with a toy example and work through 
+some examples of building a mesh. 
+
+We consider three detailed examples in Chapter~\ref{ch:ngns}. 
+They address non-Gaussian data, survival analysis and 
+inclusion of covariates in the covariance parameters. 
+The example on accumulated rainfall includes code to compute 
+geographical covariates and also include smoothed effect. 
+The example case we consider the parametric Weibull case and 
+also the non-parametric Cox proportional hazard case where it 
+can be seen as a Poisson regression. 
+The example on covariates in the covariance shows how 
+it works in a simulated example. 
+
+In Chapter~\ref{ch:manipula} we have a collection of examples 
+were copy random fields to model two or more outcomes jointly. 
+It includes a measurement error model in order to account for 
+joint model of a covariate which can be misaligned over space. 
+A coregionalization model consider the case for three outcomes 
+were the fist outcome is in the linear predictor for the second 
+one and both are in the predictor for the third outcome. 
+A example considering part or the entire linear predictor from one 
+outcome in a linear predictor to another one is also considered 
+in this chapter.  
+
+The log Cox point process model is considered in Chapter~\ref{ch:lcox}. 
+In this case we show how to fit a Log-cox point process using 
+the direct approximation for the likelihood. 
+We also take the opportunity to show how to consider the 
+preferential sampling modelling the locations jointly. 
+
+Finally, Chapter~\ref{ch:spacetime} presents several cases to 
+example analysis of space-time data. 
+We start by an example having discrete time domain and an example 
+having continuous time domain and consider the case where the temporal 
+domain can be lowered by having temporal knots and temporal function basis. 
+We have the space-time version of the coregionalization model to 
+model three outcomes jointly. 
+The space-time model is also applied for modeling regression coefficients 
+in a dynamic regression example having the regression coefficients varying over space-time. 
+We consider the space-time version of the log-Cox point process model for 
+a dataset and also consider it for the case of a large point process data.
+
+Since this tutorial is more a collection of examples, one should 
+start with the tutorial marked as \textbf{Read this first!} at the 
+tutorials link in the R-INLA web page, \url{http://www.r-inla.org}, 
+more precisely at  
+\url{http://www.r-inla.org/examples/tutorials/spde-tutorial-from-jss}.
+If you are in a rush to fit a simple geostatistical model, 
+we made a short tutorial without the details as a vignette in the \textbf{\textsf{INLA}}. Thus one can have it just typing   
+\texttt{vignette(SPDEhowto)} for a two dimensional example 
+or \texttt{vignette(SPDE1d)} for a one dimensional example. 
+We built a Shiny application to help one to understand the mesh building. 
+It depends on the \textbf{\textsf{shiny}} package. 
+This application opens by typing \texttt{demo(mesh2d)}. 
+
+\end{abstract}

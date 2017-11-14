@@ -143,7 +143,7 @@ One can also use only the domain to build the mesh.
 However, since the sparsity of the resulting 
 total precision matrix also depends on the sparsity of 
 the projector matrices, having the points as nodes in the 
-mesh will makes the projector sparser.
+mesh will gives a projector matrix a bit sparser.
 
 <<eval=F,echo=F,results='hide'>>=
 mesh$n
