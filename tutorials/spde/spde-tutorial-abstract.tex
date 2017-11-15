@@ -11,53 +11,72 @@ location is explicitly considered in the analysis.
 This tutorial explores 'R-INLA' functionalities by using examples. 
 It starts with simple models and increases in complexity. 
 
-In Chapter~\ref{ch:intro} we will introduce 
-the Gaussian random fields and the SPDE framework. 
-We consider the Mat\'{e}rn random fields characteristics and 
-introduce the main results in \cite{lindgrenRL:2011} 
-intuitively linking to images of the matrices involved. 
-We work with a toy example and work through 
-some examples of building a mesh. 
+In Chapter~\ref{ch:intro} includes a section introducing the 
+random field models and the Mat\'{e}rn class. 
+We illustrate some features of this class in figures. 
+The we introduce the main results in \cite{lindgrenRL:2011}
+intuitively linking to images of the matrices involved being 
+computed for a illustrative small case with few spatial locations.
+We show how to fit a geostatistical model for a simulated data, 
+the toy example, covering from the mesh building, model definition, 
+data preparation, showing results, doing predictions and 
+considering results from different meshes. 
+We also show how to build a mesh considering non-convex domains, 
+spatial polygons objects and domains with holes or physical boundaries. 
 
-We consider three detailed examples in Chapter~\ref{ch:ngns}. 
-They address non-Gaussian data, survival analysis and 
-inclusion of covariates in the covariance parameters. 
-The example on accumulated rainfall includes code to compute 
-geographical covariates and also include smoothed effect. 
-The example case we consider the parametric Weibull case and 
-also the non-parametric Cox proportional hazard case where it 
-can be seen as a Poisson regression. 
-The example on covariates in the covariance shows how 
-it works in a simulated example. 
+In Chapter~\ref{ch:ngns} we consider three examples. 
+We consider the daily average rainfall from rainfall collected at 
+616 gauge stations in the Paran\'{a} state in Brasil over year 2011. 
+For this data we show a detailed analysis including code to compute 
+geographical covariates, smoothed regression an prediction. 
+The second example in this Chapter consider survival analysis for 
+the Leukaemia dataset, analysed in \cite{hendersonSG:2003}. 
+We show how to consider the parametric Weibull case and 
+also the non-parametric Cox proportional hazard case. 
+For this case we have the implementation internally considers 
+a new structure of the data in order to perform a Poisson regression. 
+The last example in this Chapter considers simulated data to 
+illustrate the approach of modeling 
+the SPDE model parameters by a regression which is the 
+case of having covariates in the covariance, 
+proposed in \cite{ingebrigtsenLS:2013}. 
 
 In Chapter~\ref{ch:manipula} we have a collection of examples 
 were copy random fields to model two or more outcomes jointly. 
 It includes a measurement error model in order to account for 
-joint model of a covariate which can be misaligned over space. 
+spatially structured measurement error in a covariate. 
 A coregionalization model consider the case for three outcomes 
 were the fist outcome is in the linear predictor for the second 
-one and both are in the predictor for the third outcome. 
-A example considering part or the entire linear predictor from one 
-outcome in a linear predictor to another one is also considered 
-in this chapter.  
+one and both are in the predictor for the third outcome, 
+as proposed in \cite{schmidtG:2003}. 
+An example considering copying a part or the entire 
+linear predictor from one outcome in a linear predictor 
+to another one ends this chapter. 
+It shows a slight different way from the coregionalization model 
+to jointly model three outcomes. 
 
 The log Cox point process model is considered in Chapter~\ref{ch:lcox}. 
 In this case we show how to fit a Log-cox point process using 
-the direct approximation for the likelihood. 
+the direct approximation for the likelihood as proposed 
+in \cite{simpsonetal:2016}. 
 We also take the opportunity to show how to consider the 
-preferential sampling modelling the locations jointly. 
+joint modeling of the process and the locations, 
+under the preferential sampling as proposed in \cite{diggleetal:2010}. 
 
 Finally, Chapter~\ref{ch:spacetime} presents several cases to 
 example analysis of space-time data. 
-We start by an example having discrete time domain and an example 
-having continuous time domain and consider the case where the temporal 
-domain can be lowered by having temporal knots and temporal function basis. 
-We have the space-time version of the coregionalization model to 
-model three outcomes jointly. 
+We start by an example having discrete time domain as in 
+\cite{camelettietal:2012}. 
+We extend this example considering the time as continuous 
+by considering time knots along with temporal function basis 
+functions for projection. 
+We also extend the coregionalization example for the 
+space-time in this Chapter. 
 The space-time model is also applied for modeling regression coefficients 
 in a dynamic regression example having the regression coefficients varying over space-time. 
 We consider the space-time version of the log-Cox point process model for 
-a dataset and also consider it for the case of a large point process data.
+a dataset and also illustrates an approach to deal whit the case of having 
+a large space-time point process data.
 
 Since this tutorial is more a collection of examples, one should 
 start with the tutorial marked as \textbf{Read this first!} at the 
