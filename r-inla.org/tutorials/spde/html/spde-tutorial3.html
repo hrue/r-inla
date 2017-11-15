@@ -10,7 +10,7 @@
 <meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)" /> 
 <!-- xhtml,html,frames,2 --> 
 <meta name="src" content="spde-tutorial.tex" /> 
-<meta name="date" content="2017-11-14 12:23:00" /> 
+<meta name="date" content="2017-11-15 12:46:00" /> 
 <link rel="stylesheet" type="text/css" href="spde-tutorial.css" /> 
 </head><body 
 id="tex4ht-main">
@@ -25,7 +25,7 @@ Suggestions to elias@r-inla.org are welcome</h2>
 <div class="author" ><span 
 class="aer12-">Elias T. Krainski, Finn Lindgren, Daniel Simpson and Håvard Rue</span></div><br />
 <div class="date" ><span 
-class="aer12-">November 14, 2017</span></div>
+class="aer12-">November 15, 2017</span></div>
                                                                                  
                                                                                  
    </div>
@@ -49,43 +49,63 @@ geographical location is explicitly considered in the analysis. This tutorial ex
 &#8217;R-INLA&#8217; functionalities by using examples. It starts with simple models and increases in
 complexity.
 </p><!--l. 14--><p class="indent" >   In Chapter&#x00A0;<a 
-href="spde-tutorialch1.html#x5-40001">1<!--tex4ht:ref: ch:intro --></a> we will introduce the Gaussian random fields and the SPDE framework. We
-consider the Matérn random fields characteristics and introduce the main results in <span class="cite">[<a 
-href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren
-et&#x00A0;al., 2011</a>]</span> intuitively linking to images of the matrices involved. We work with a toy example
-and work through some examples of building a mesh.
-</p><!--l. 22--><p class="indent" >   We consider three detailed examples in Chapter&#x00A0;<a 
-href="spde-tutorialch2.html#x6-340002">2<!--tex4ht:ref: ch:ngns --></a>. They address non-Gaussian data, survival
-analysis and inclusion of covariates in the covariance parameters. The example on
-accumulated rainfall includes code to compute geographical covariates and also include
-smoothed effect. The example case we consider the parametric Weibull case and also
-the non-parametric Cox proportional hazard case where it can be seen as a Poisson
-regression. The example on covariates in the covariance shows how it works in a simulated
-example.
-</p><!--l. 33--><p class="indent" >   In Chapter&#x00A0;<a 
-href="spde-tutorialch3.html#x7-560003">3<!--tex4ht:ref: ch:manipula --></a> we have a collection of examples were copy random fields to model two or more
-outcomes jointly. It includes a measurement error model in order to account for joint model of a
-covariate which can be misaligned over space. A coregionalization model consider the case for
-three outcomes were the fist outcome is in the linear predictor for the second one and both are
-in the predictor for the third outcome. A example considering part or the entire linear
-predictor from one outcome in a linear predictor to another one is also considered in this
-chapter.
-</p><!--l. 44--><p class="indent" >   The log Cox point process model is considered in Chapter&#x00A0;<a 
+href="spde-tutorialch1.html#x5-40001">1<!--tex4ht:ref: ch:intro --></a> includes a section introducing the random field models and the Matérn class.
+We illustrate some features of this class in figures. The we introduce the main results in
+<span class="cite">[<a 
+href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren et&#x00A0;al., 2011</a>]</span> intuitively linking to images of the matrices involved being
+computed for a illustrative small case with few spatial locations. We show how to fit a
+geostatistical model for a simulated data, the toy example, covering from the mesh
+building, model definition, data preparation, showing results, doing predictions and
+considering results from different meshes. We also show how to build a mesh considering
+non-convex domains, spatial polygons objects and domains with holes or physical
+boundaries.
+</p><!--l. 27--><p class="indent" >   In Chapter&#x00A0;<a 
+href="spde-tutorialch2.html#x6-340002">2<!--tex4ht:ref: ch:ngns --></a> we consider three examples. We consider the daily average rainfall from rainfall
+collected at 616 gauge stations in the Paraná state in Brasil over year 2011. For this data we
+show a detailed analysis including code to compute geographical covariates, smoothed regression
+an prediction. The second example in this Chapter consider survival analysis for the Leukaemia
+dataset, analysed in <span class="cite">[<a 
+href="spde-tutorialli2.html#XhendersonSG:2003">Henderson et&#x00A0;al., 2003</a>]</span>. We show how to consider the parametric Weibull
+case and also the non-parametric Cox proportional hazard case. For this case we have the
+implementation internally considers a new structure of the data in order to perform a
+Poisson regression. The last example in this Chapter considers simulated data to
+illustrate the approach of modeling the SPDE model parameters by a regression which
+is the case of having covariates in the covariance, proposed in <span class="cite">[<a 
+href="spde-tutorialli2.html#XingebrigtsenLS:2013">Ingebrigtsen et&#x00A0;al.,
+2014</a>]</span>.
+</p><!--l. 44--><p class="indent" >   In Chapter&#x00A0;<a 
+href="spde-tutorialch3.html#x7-560003">3<!--tex4ht:ref: ch:manipula --></a> we have a collection of examples were copy random fields to model two or
+more outcomes jointly. It includes a measurement error model in order to account
+for spatially structured measurement error in a covariate. A coregionalization model
+consider the case for three outcomes were the fist outcome is in the linear predictor for
+the second one and both are in the predictor for the third outcome, as proposed in
+<span class="cite">[<a 
+href="spde-tutorialli2.html#XschmidtG:2003">Schimdt and Gelfand, 2003</a>]</span>. An example considering copying a part or the entire linear
+predictor from one outcome in a linear predictor to another one ends this chapter. It
+shows a slight different way from the coregionalization model to jointly model three
+outcomes.
+</p><!--l. 58--><p class="indent" >   The log Cox point process model is considered in Chapter&#x00A0;<a 
 href="spde-tutorialch4.html#x8-710004">4<!--tex4ht:ref: ch:lcox --></a>. In this case we show how to fit
-a Log-cox point process using the direct approximation for the likelihood. We also take the
-opportunity to show how to consider the preferential sampling modelling the locations
-jointly.
-</p><!--l. 50--><p class="indent" >   Finally, Chapter&#x00A0;<a 
+a Log-cox point process using the direct approximation for the likelihood as proposed in
+<span class="cite">[<a 
+href="spde-tutorialli2.html#Xsimpsonetal:2016">Simpson et&#x00A0;al., 2016</a>]</span>. We also take the opportunity to show how to consider the joint modeling
+of the process and the locations, under the preferential sampling as proposed in <span class="cite">[<a 
+href="spde-tutorialli2.html#Xdiggleetal:2010">Diggle et&#x00A0;al.,
+2010</a>]</span>.
+                                                                                 
+                                                                                 
+</p><!--l. 66--><p class="indent" >   Finally, Chapter&#x00A0;<a 
 href="spde-tutorialch5.html#x9-840005">5<!--tex4ht:ref: ch:spacetime --></a> presents several cases to example analysis of space-time data. We start by
-an example having discrete time domain and an example having continuous time domain and
-consider the case where the temporal domain can be lowered by having temporal knots and
-temporal function basis. We have the space-time version of the coregionalization model
-to model three outcomes jointly. The space-time model is also applied for modeling
-regression coefficients in a dynamic regression example having the regression coefficients
-varying over space-time. We consider the space-time version of the log-Cox point
-process model for a dataset and also consider it for the case of a large point process
+an example having discrete time domain as in <span class="cite">[<a 
+href="spde-tutorialli2.html#Xcamelettietal:2012">Cameletti et&#x00A0;al., 2012</a>]</span>. We extend this example
+considering the time as continuous by considering time knots along with temporal function basis
+functions for projection. We also extend the coregionalization example for the space-time in this
+Chapter. The space-time model is also applied for modeling regression coefficients in a dynamic
+regression example having the regression coefficients varying over space-time. We
+consider the space-time version of the log-Cox point process model for a dataset and also
+illustrates an approach to deal whit the case of having a large space-time point process
 data.
-</p><!--l. 62--><p class="indent" >   Since this tutorial is more a collection of examples, one should start with the tutorial marked as
+</p><!--l. 81--><p class="indent" >   Since this tutorial is more a collection of examples, one should start with the tutorial marked as
 <span 
 class="aebx-10x-x-109">Read this first! </span>at the tutorials link in the R-INLA web page, <a 
 href="http://www.r-inla.org" class="url" ><span 
@@ -103,8 +123,6 @@ application to help one to understand the mesh building. It depends on the <span
 class="aessbx-10x-x-109">shiny </span>package. This
 application opens by typing <span 
 class="aett-10x-x-109">demo(mesh2d)</span>.
-                                                                                 
-                                                                                 
                                                                                  
                                                                                  
 </p>
