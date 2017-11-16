@@ -621,7 +621,10 @@ When it is along an edge, we have two non-zeros
 and when the point is on top of a triangle vertex 
 we have only one non-zero which equals one. 
 
-<<mesh0, echo=FALSE, results='hide'>>=
+The following code creates a set of six points, 
+builds a mesh around them and extracts the FEM 
+matrices ($\mathbf{C}$, $\mathbf{G}$ and $\mathbf{A}$):
+<<mesh0, echo=TRUE, results='hide'>>=
 s <- 3 ### this factor will only changes C, not G
 pts <- rbind(c(1,1), c(2,1), 
              c(2.6, 1), c(0.7,1.7), 4:5/3, c(2,1.7))*s
