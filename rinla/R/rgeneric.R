@@ -366,6 +366,9 @@
                                      "log.prior", "quit"),
                              theta = NULL) 
 {
+    if (missing(cmd)) {
+        stop("A value for argument 'cmd' is required.")
+    }
     cmd = match.arg(cmd)
     rmodel.orig = rmodel
     if (is.character(rmodel)) {
