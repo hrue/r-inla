@@ -10,11 +10,11 @@
 <meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)" /> 
 <!-- xhtml,html,frames,2 --> 
 <meta name="src" content="spde-tutorial.tex" /> 
-<meta name="date" content="2017-11-17 17:47:00" /> 
+<meta name="date" content="2017-11-20 17:19:00" /> 
 <link rel="stylesheet" type="text/css" href="spde-tutorial.css" /> 
 </head><body 
 >
-   <!--l. 2--><div class="crosslinks"><p class="noindent">[<a 
+   <!--l. 1--><div class="crosslinks"><p class="noindent">[<a 
 href="spde-tutorialli2.html" >next</a>] [<a 
 href="spde-tutorialch4.html" >prev</a>] [<a 
 href="spde-tutorialch4.html#tailspde-tutorialch4.html" >prev-tail</a>] [<a 
@@ -22,18 +22,18 @@ href="#tailspde-tutorialch5.html">tail</a>] [<a
 href="spde-tutorial3.html#spde-tutorialch5.html" >up</a>] </p></div>
    <h2 class="chapterHead"><span class="titlemark">Chapter&#x00A0;5</span><br /><a 
  id="x9-840005"></a>Space-time examples</h2>
-<!--l. 4--><p class="noindent" >The  R  source  for  this  file  is  available  at
+<!--l. 3--><p class="noindent" >The  R  source  for  this  file  is  available  at
 <a 
 href="http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-spacetime.R" class="url" ><span 
 class="aett-10x-x-109">http://www.math.ntnu.no/inla/r-_inla.org/tutorials/spde/R/spde-_tutorial-_spacetime.R</span></a>
-</p><!--l. 9--><p class="indent" >   In this chapter we show an example on fitting a space-time model. This model is a separable
+</p><!--l. 8--><p class="indent" >   In this chapter we show an example on fitting a space-time model. This model is a separable
 one described on <span class="cite">[<a 
 href="spde-tutorialli2.html#Xcamelettietal:2012">Cameletti et&#x00A0;al., 2012</a>]</span>. Basically the model is defined as a SPDE model
 for the spatial domain and an AR(<span 
 class="cmr-10x-x-109">1</span>) model for the time dimention. The space-time
 separable model is defined by the kronecker product between the precision of these two
 models.
-</p><!--l. 17--><p class="indent" >   We provide two examples, one for discrete time domain and another when the
+</p><!--l. 16--><p class="indent" >   We provide two examples, one for discrete time domain and another when the
 time is discretized over a set of knots. Basically the difference appears only in the
 simulation process, wich is not that important. The main difference in the fitting process is
 that in the continuous time case we have to select time knots and build the projector
@@ -42,14 +42,14 @@ times.
 </p>
    <h3 class="sectionHead"><span class="titlemark">5.1   </span> <a 
  id="x9-850005.1"></a>Discrete time domain</h3>
-<!--l. 26--><p class="noindent" >In this section we show how to fit a space-time separable model, as in <span class="cite">[<a 
+<!--l. 25--><p class="noindent" >In this section we show how to fit a space-time separable model, as in <span class="cite">[<a 
 href="spde-tutorialli2.html#Xcamelettietal:2012">Cameletti et&#x00A0;al., 2012</a>]</span>.
 Additionally, we show the use of a categorical covariate.
-</p><!--l. 30--><p class="noindent" >
+</p><!--l. 29--><p class="noindent" >
 </p>
    <h4 class="subsectionHead"><span class="titlemark">5.1.1   </span> <a 
  id="x9-860005.1.1"></a>Data simulation</h4>
-<!--l. 32--><p class="noindent" >We use the Paraná state border, available on <span 
+<!--l. 31--><p class="noindent" >We use the Paraná state border, available on <span 
 class="aeb10-x-x-109">INLA </span>package, as the domain.  
    <div  
 class="centerline"><span 
@@ -61,14 +61,14 @@ class="aett-10x-x-109">data</span></span><span id="textcolor12412"><span
 class="aett-10x-x-109">(PRborder)</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 41--><p class="indent" >   We start by defining the spatial model. Because we need that the example run faster, we use
+<!--l. 40--><p class="indent" >   We start by defining the spatial model. Because we need that the example run faster, we use
 the low resolution mesh for Paraná state border created in Section&#x00A0;<a 
 href="spde-tutorialch1.html#x5-270001.3">1.3<!--tex4ht:ref: sec:mesh --></a>.
-</p><!--l. 47--><p class="indent" >   There is two options to simulate from Cameletti&#8217;s model. One is based on the marginal
+</p><!--l. 46--><p class="indent" >   There is two options to simulate from Cameletti&#8217;s model. One is based on the marginal
 distribution of the latent field and another is on the conditional distribution at each time. This
 last option is easy as we can simulate one realization of a spatial random field for each
 time.
-</p><!--l. 56--><p class="indent" >   First we set <span 
+</p><!--l. 55--><p class="indent" >   First we set <span 
 class="cmmi-10x-x-109">k </span><span 
 class="cmr-10x-x-109">= 12</span>, the time dimention  
    <div  
@@ -84,7 +84,7 @@ class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12418"><span
 class="aett-10x-x-109">12</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 64--><p class="indent" >   and consider the location points from the <span 
+<!--l. 63--><p class="indent" >   and consider the location points from the <span 
 class="aett-10x-x-109">PRprec </span>data in a random order  
                                                                                  
                                                                                  
@@ -116,12 +116,12 @@ class="aett-10x-x-109">2</span></span><span id="textcolor12437"><span
 class="aett-10x-x-109">])</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 75--><p class="indent" >   In the following simulation step we will use the <span 
+<!--l. 74--><p class="indent" >   In the following simulation step we will use the <span 
 class="aett-10x-x-109">rspde() </span>function available in the file at
 <a 
 href="http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R" class="url" ><span 
 class="aett-10x-x-109">http://www.math.ntnu.no/inla/r-_inla.org/tutorials/spde/R/spde-_tutorial-_functions.R</span></a>.
-</p><!--l. 79--><p class="indent" >   The <span 
+</p><!--l. 78--><p class="indent" >   The <span 
 class="cmmi-10x-x-109">k </span>independent realizations can be done by  
 </p>
    <div  
@@ -199,8 +199,8 @@ class="aett-10x-x-109">(x.k)</span></span>
 <div class="verbatim" id="verbatim-117">
 ##&#x00A0;[1]&#x00A0;616&#x00A0;&#x00A0;12
 </div>
-<!--l. 91--><p class="nopar" >                                                                          </span></div>-
-<!--l. 95--><p class="indent" >   Now, we define the autoregressive parameter <span 
+<!--l. 90--><p class="nopar" >                                                                          </span></div>-
+<!--l. 94--><p class="indent" >   Now, we define the autoregressive parameter <span 
 class="cmmi-10x-x-109">&#x03C1;  </span>
    <div  
 class="centerline"><span 
@@ -215,7 +215,7 @@ class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12484"><span
 class="aett-10x-x-109">0.7</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 103--><p class="indent" >   and get the correlated sample over time using  
+<!--l. 102--><p class="indent" >   and get the correlated sample over time using  
    <div  
 class="centerline"><span 
 class="colorbox" id="colorbox12517"></p>     
@@ -269,7 +269,7 @@ class="aett-10x-x-109">x.k[,j]</span></span>
 </div>                                                                          </span></div>-
                                                                                  
                                                                                  
-<!--l. 113--><p class="indent" >   where the <img 
+<!--l. 112--><p class="indent" >   where the <img 
 src="spde-tutorial86x.png" alt="&#x2218; ("  class="sqrt"  /><span 
 class="cmr-10x-x-109">1 </span><span 
 class="cmsy-10x-x-109">- </span><span 
@@ -280,7 +280,7 @@ follows the stationary distribution, see <span class="cite">[<a
 href="spde-tutorialli2.html#XRueHeld:2005">Rue and Held, 2005</a>]</span> and <span class="cite">[<a 
 href="spde-tutorialli2.html#Xcamelettietal:2012">Cameletti et&#x00A0;al.,
 2012</a>]</span>.
-</p><!--l. 118--><p class="indent" >   We can visualize the realization at the figure&#x00A0;<a 
+</p><!--l. 117--><p class="indent" >   We can visualize the realization at the figure&#x00A0;<a 
 href="#x9-860005.1.1">5.1.1<!--tex4ht:ref: fig:timevisual --></a> with commands bellow  
    <div  
 class="centerline"><span 
@@ -388,7 +388,7 @@ class="aett-10x-x-109">)</span></span>
  id="x9-860011"></a>
                                                                                  
                                                                                  
-<!--l. 136--><p class="noindent" ><img 
+<!--l. 135--><p class="noindent" ><img 
 src="spde-tutorial87x.png" alt="PIC" class="graphics" width="426.79497pt" height="398.35286pt"  /><!--tex4ht:graphics  
 name="spde-tutorial87x.png" src="figs/spacetimeftimevisual-1.eps"  
 -->
@@ -398,7 +398,7 @@ class="content">Realization of the space-time random field.</span></div><!--tex4
                                                                                  
                                                                                  
    </div><hr class="endfigure" />
-<!--l. 142--><p class="indent" >   In this example we need to show the use of a categorical covariate. First we do the simulation
+<!--l. 141--><p class="indent" >   In this example we need to show the use of a categorical covariate. First we do the simulation
 of the covariate as  
 </p>
    <div  
@@ -448,8 +448,8 @@ class="aett-10x-x-109">&#x00A0;)</span></span>
 &#x00A0;<br />##&#x00A0;&#x00A0;&#x00A0;&#x00A0;A&#x00A0;&#x00A0;&#x00A0;&#x00A0;B&#x00A0;&#x00A0;&#x00A0;&#x00A0;C
 &#x00A0;<br />##&#x00A0;2458&#x00A0;2438&#x00A0;2496
 </div>
-<!--l. 156--><p class="nopar" >                                                                          </span></div>-
-<!--l. 159--><p class="indent" >   and the regression parameters as  
+<!--l. 155--><p class="nopar" >                                                                          </span></div>-
+<!--l. 158--><p class="indent" >   and the regression parameters as  
    <div  
 class="centerline"><span 
 class="colorbox" id="colorbox12624"></p>     
@@ -466,7 +466,7 @@ class="aett-10x-x-109">:</span></span><span id="textcolor12622"><span
 class="aett-10x-x-109">1</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 168--><p class="indent" >   The response is  
+<!--l. 167--><p class="indent" >   The response is  
 </p>
    <div  
 class="centerline"><span 
@@ -511,10 +511,10 @@ class="aett-10x-x-109">&#x00A0;mean)</span></span>
 </div>   
 <div class="verbatim" id="verbatim-119">
 ##&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;A&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;B&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;C
-&#x00A0;<br />##&#x00A0;-1.4042972&#x00A0;-0.4275658&#x00A0;&#x00A0;0.5918728
+&#x00A0;<br />##&#x00A0;-1.3980571&#x00A0;-0.3849220&#x00A0;&#x00A0;0.6361106
 </div>
-<!--l. 179--><p class="nopar" >                                                                          </span></div>-
-<!--l. 183--><p class="indent" >   To show that is allowed to have different locations on different times, we drop some of the
+<!--l. 178--><p class="nopar" >                                                                          </span></div>-
+<!--l. 182--><p class="indent" >   To show that is allowed to have different locations on different times, we drop some of the
 observations. We do it by just selecting a half of the simulated data. We do it by creating a
 index for the selected observations  
                                                                                  
@@ -544,7 +544,7 @@ class="aett-10x-x-109">2</span></span><span id="textcolor12661"><span
 class="aett-10x-x-109">)</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 196--><p class="indent" >   and we organize the data on a <span 
+<!--l. 195--><p class="indent" >   and we organize the data on a <span 
 class="aett-10x-x-109">data.frame </span>
    <div  
 class="centerline"><span 
@@ -649,12 +649,12 @@ class="aett-10x-x-109">&#x00A0;k))[isel,</span><span
 class="aett-10x-x-109">&#x00A0;]</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 208--><p class="indent" >   In real applications some times we have completely missaligned locations between different
+<!--l. 207--><p class="indent" >   In real applications some times we have completely missaligned locations between different
 times. The code provided here to fit the model still work on this situation.
 </p>
    <h4 class="subsectionHead"><span class="titlemark">5.1.2   </span> <a 
  id="x9-870005.1.2"></a>Data stack preparation</h4>
-<!--l. 215--><p class="noindent" >Defining the SPDE model considering the PC-prior derived in <span class="cite">[<a 
+<!--l. 214--><p class="noindent" >Defining the SPDE model considering the PC-prior derived in <span class="cite">[<a 
 href="spde-tutorialli2.html#Xfuglstadetal:2017">Fuglstad et&#x00A0;al., 2017</a>]</span> for the
 model parameters as the practical range, <img 
 src="spde-tutorial88x.png" alt="&#x221A; ---
@@ -726,7 +726,7 @@ class="aeitt-10x-x-109">###</span><span
 class="aeitt-10x-x-109">&#x00A0;P(sigma&#x003E;1)=0.01</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 230--><p class="indent" >   Now, we need the data preparation to build the space-time model. The index set is made
+<!--l. 229--><p class="indent" >   Now, we need the data preparation to build the space-time model. The index set is made
 taking into account the number of weights on the SPDE model and the number of groups
    <div  
 class="centerline"><span 
@@ -756,9 +756,9 @@ class="aett-10x-x-109">=k)</span></span>
 </div>                                                                          </span></div>-
                                                                                  
                                                                                  
-<!--l. 242--><p class="indent" >   Notice that the index set for the latent field is not depending on the data set locations. It
+<!--l. 241--><p class="indent" >   Notice that the index set for the latent field is not depending on the data set locations. It
 only depends on the SPDE model size and on the time dimention.
-</p><!--l. 247--><p class="indent" >   The projector matrix must be defined considering the coordinates of the observed data. We
+</p><!--l. 246--><p class="indent" >   The projector matrix must be defined considering the coordinates of the observed data. We
 have to inform the time index for the group to build the projector matrix. This also must be
 defined on the <span 
 class="aett-10x-x-109">inla.spde.make.A() </span>function  
@@ -837,7 +837,7 @@ class="aett-10x-x-109">$</span></span><span id="textcolor12763"><span
 class="aett-10x-x-109">time)</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 263--><p class="indent" >   The effects on the stack are a list with two elements, one is the index set and another the
+<!--l. 262--><p class="indent" >   The effects on the stack are a list with two elements, one is the index set and another the
 categorical covariate. The stack data is defined as  
    <div  
 class="centerline"><span 
@@ -905,11 +905,11 @@ class="aett-10x-x-109">$</span></span><span id="textcolor12796"><span
 class="aett-10x-x-109">w))</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 275--><p class="noindent" >
+<!--l. 274--><p class="noindent" >
 </p>
    <h4 class="subsectionHead"><span class="titlemark">5.1.3   </span> <a 
  id="x9-880005.1.3"></a>Fitting the model and some results</h4>
-<!--l. 277--><p class="noindent" >We set the PC-prior for the temporal autoregressive parameter with <span 
+<!--l. 276--><p class="noindent" >We set the PC-prior for the temporal autoregressive parameter with <span 
 class="cmmi-10x-x-109">P</span><span 
 class="cmr-10x-x-109">(</span><span 
 class="cmmi-10x-x-109">cor &#x003E; </span><span 
@@ -950,7 +950,7 @@ class="aett-10x-x-109">0.9</span></span><span id="textcolor12819"><span
 class="aett-10x-x-109">)))</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 287--><p class="indent" >   The likelihood hyperparameter is fixed on a hight precision, just because we haven&#8217;t noise.
+<!--l. 286--><p class="indent" >   The likelihood hyperparameter is fixed on a hight precision, just because we haven&#8217;t noise.
 To deal with the categorical covariate we need to set <span 
 class="aett-10x-x-109">expand.factor.strategy=</span><span 
 class="tctt-1095">'</span><span 
@@ -1127,7 +1127,7 @@ class="tctt-1095">'</span></span><span id="textcolor12900"><span
 class="aett-10x-x-109">))</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 308--><p class="indent" >   Summary for the trhee intercepts (and the observed mean for each covariate level)
+<!--l. 307--><p class="indent" >   Summary for the trhee intercepts (and the observed mean for each covariate level)
 </p>
    <div  
 class="centerline"><span 
@@ -1159,12 +1159,12 @@ class="aett-10x-x-109">)</span></span>
 </div>   
 <div class="verbatim" id="verbatim-120">
 ##&#x00A0;&#x00A0;&#x00A0;observed&#x00A0;&#x00A0;&#x00A0;&#x00A0;mean&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;sd&#x00A0;0.025quant&#x00A0;0.5quant&#x00A0;0.975quant&#x00A0;&#x00A0;&#x00A0;&#x00A0;mode&#x00A0;kld
-&#x00A0;<br />##&#x00A0;A&#x00A0;&#x00A0;-1.4466&#x00A0;-1.4423&#x00A0;0.4908&#x00A0;&#x00A0;&#x00A0;&#x00A0;-2.4140&#x00A0;&#x00A0;-1.4420&#x00A0;&#x00A0;&#x00A0;&#x00A0;-0.4740&#x00A0;-1.4413&#x00A0;&#x00A0;&#x00A0;0
-&#x00A0;<br />##&#x00A0;B&#x00A0;&#x00A0;-0.4021&#x00A0;-0.4386&#x00A0;0.4908&#x00A0;&#x00A0;&#x00A0;&#x00A0;-1.4104&#x00A0;&#x00A0;-0.4383&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.5297&#x00A0;-0.4376&#x00A0;&#x00A0;&#x00A0;0
-&#x00A0;<br />##&#x00A0;C&#x00A0;&#x00A0;&#x00A0;0.6265&#x00A0;&#x00A0;0.5643&#x00A0;0.4908&#x00A0;&#x00A0;&#x00A0;&#x00A0;-0.4075&#x00A0;&#x00A0;&#x00A0;0.5646&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;1.5326&#x00A0;&#x00A0;0.5653&#x00A0;&#x00A0;&#x00A0;0
+&#x00A0;<br />##&#x00A0;A&#x00A0;&#x00A0;-1.3925&#x00A0;-1.3185&#x00A0;0.3921&#x00A0;&#x00A0;&#x00A0;&#x00A0;-2.0928&#x00A0;&#x00A0;-1.3188&#x00A0;&#x00A0;&#x00A0;&#x00A0;-0.5438&#x00A0;-1.3193&#x00A0;&#x00A0;&#x00A0;0
+&#x00A0;<br />##&#x00A0;B&#x00A0;&#x00A0;-0.3822&#x00A0;-0.3129&#x00A0;0.3921&#x00A0;&#x00A0;&#x00A0;&#x00A0;-1.0873&#x00A0;&#x00A0;-0.3132&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.4618&#x00A0;-0.3137&#x00A0;&#x00A0;&#x00A0;0
+&#x00A0;<br />##&#x00A0;C&#x00A0;&#x00A0;&#x00A0;0.6730&#x00A0;&#x00A0;0.6914&#x00A0;0.3921&#x00A0;&#x00A0;&#x00A0;&#x00A0;-0.0829&#x00A0;&#x00A0;&#x00A0;0.6911&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;1.4661&#x00A0;&#x00A0;0.6906&#x00A0;&#x00A0;&#x00A0;0
 </div>
-<!--l. 320--><p class="nopar" >                                                                          </span></div>-
-<!--l. 324--><p class="indent" >   Look a the posterior marginal distributions for the random field parameters and the marginal
+<!--l. 319--><p class="nopar" >                                                                          </span></div>-
+<!--l. 323--><p class="indent" >   Look a the posterior marginal distributions for the random field parameters and the marginal
 ditribution for the temporal correlation, on the Figure&#x00A0;<a 
 href="#x9-880005.1.3">5.1.3<!--tex4ht:ref: fig:rfst --></a> with the commands bellow
    <div  
@@ -1320,7 +1320,7 @@ class="aett-10x-x-109">}</span></span>
  id="x9-880012"></a>
                                                                                  
                                                                                  
-<!--l. 345--><p class="noindent" ><img 
+<!--l. 344--><p class="noindent" ><img 
 src="spde-tutorial89x.png" alt="PIC" class="graphics" width="397.48499pt" height="397.4971pt"  /><!--tex4ht:graphics  
 name="spde-tutorial89x.png" src="figs/spacetimeunnamed-chunk-2-1.eps"  
 -->
@@ -1334,9 +1334,9 @@ placed at true value.</span></div><!--tex4ht:label?: x9-880012 -->
    </div><hr class="endfigure" />
    <h4 class="subsectionHead"><span class="titlemark">5.1.4   </span> <a 
  id="x9-890005.1.4"></a>A look at the posterior random field</h4>
-<!--l. 358--><p class="noindent" >The first look at the random field posterior distribution is to compare the realized random field
+<!--l. 357--><p class="noindent" >The first look at the random field posterior distribution is to compare the realized random field
 with the posterior mean, median or/and mode and any quantile.
-</p><!--l. 363--><p class="indent" >   First, we found the index for the random field at data locations  
+</p><!--l. 362--><p class="indent" >   First, we found the index for the random field at data locations  
 </p>
    <div  
 class="centerline"><span 
@@ -1363,8 +1363,8 @@ class="aett-10x-x-109">data)</span></span>
 <div class="verbatim" id="verbatim-121">
 ##&#x00A0;&#x00A0;int&#x00A0;[1:3696]&#x00A0;1&#x00A0;2&#x00A0;3&#x00A0;4&#x00A0;5&#x00A0;6&#x00A0;7&#x00A0;8&#x00A0;9&#x00A0;10&#x00A0;...
 </div>
-<!--l. 372--><p class="nopar" >                                                                          </span></div>-
-<!--l. 376--><p class="indent" >   The correlation between the simulated data response and the posterior mean of the predicted
+<!--l. 371--><p class="nopar" >                                                                          </span></div>-
+<!--l. 375--><p class="indent" >   The correlation between the simulated data response and the posterior mean of the predicted
 values (there is no error term in the model):  
 </p>
    <div  
@@ -1385,10 +1385,10 @@ class="aett-10x-x-109">mean[idat])</span></span>
 </div>
 </div>   
 <div class="verbatim" id="verbatim-122">
-##&#x00A0;[1]&#x00A0;0.998647
+##&#x00A0;[1]&#x00A0;0.9980284
 </div>
-<!--l. 386--><p class="nopar" >                                                                          </span></div>-
-<!--l. 390--><p class="indent" >   We also can do prediction for each time and visualize it. First, we define the grid in the same
+<!--l. 385--><p class="nopar" >                                                                          </span></div>-
+<!--l. 389--><p class="indent" >   We also can do prediction for each time and visualize it. First, we define the grid in the same
 way as in the rainfall example in Section&#x00A0;<a 
 href="spde-tutorialch2.html#x6-350002.1">2.1<!--tex4ht:ref: sec:prprec --></a>.  
    <div  
@@ -1490,7 +1490,7 @@ class="aett-10x-x-109">=nxy)</span></span>
 </div>                                                                          </span></div>-
                                                                                  
                                                                                  
-<!--l. 404--><p class="indent" >   The prediction for each time can be done by  
+<!--l. 403--><p class="indent" >   The prediction for each time can be done by  
    <div  
 class="centerline"><span 
 class="colorbox" id="colorbox13110"></p>     
@@ -1541,7 +1541,7 @@ class="aett-10x-x-109">==</span></span><span id="textcolor13108"><span
 class="aett-10x-x-109">j])</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 416--><p class="indent" >   We found what points of the grid are inside the Paraná state border.  
+<!--l. 415--><p class="indent" >   We found what points of the grid are inside the Paraná state border.  
    <div  
 class="centerline"><span 
 class="colorbox" id="colorbox13129"></p>     
@@ -1571,7 +1571,7 @@ class="aett-10x-x-109">2</span></span><span id="textcolor13127"><span
 class="aett-10x-x-109">]))</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 426--><p class="indent" >   To plot, we set NA to the points of the grid out of the Paraná border.  
+<!--l. 425--><p class="indent" >   To plot, we set NA to the points of the grid out of the Paraná border.  
    <div  
 class="centerline"><span 
 class="colorbox" id="colorbox13142"></p>     
@@ -1598,7 +1598,7 @@ class="aett-10x-x-109">&#x00A0;</span><span id="textcolor13140"><span
 class="aett-10x-x-109">NA</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 435--><p class="indent" >   The visualization at Figure&#x00A0;<a 
+<!--l. 434--><p class="indent" >   The visualization at Figure&#x00A0;<a 
 href="#x9-890005.1.4">5.1.4<!--tex4ht:ref: fig:strf --></a> can be made by the comands bellow  
    <div  
 class="centerline"><span 
@@ -1687,7 +1687,7 @@ class="aett-10x-x-109">)))</span></span>
  id="x9-890013"></a>
                                                                                  
                                                                                  
-<!--l. 451--><p class="noindent" ><img 
+<!--l. 450--><p class="noindent" ><img 
 src="spde-tutorial90x.png" alt="PIC" class="graphics" width="426.79497pt" height="371.07745pt"  /><!--tex4ht:graphics  
 name="spde-tutorial90x.png" src="figs/spacetimevstrf-1.eps"  
 -->
@@ -1699,7 +1699,7 @@ class="content">Visualization of the posterior mean of the space-time random fie
    </div><hr class="endfigure" />
    <h4 class="subsectionHead"><span class="titlemark">5.1.5   </span> <a 
  id="x9-900005.1.5"></a>Validation</h4>
-<!--l. 460--><p class="noindent" >The results on previous section are done using part of the simulated data. This part of the
+<!--l. 459--><p class="noindent" >The results on previous section are done using part of the simulated data. This part of the
 simulated data is now used as a validation data. So, we prepare another data stack to compute
 posterior distributions to this part of the data:  
    <div  
@@ -1862,7 +1862,7 @@ class="aett-10x-x-109">$</span></span><span id="textcolor13264"><span
 class="aett-10x-x-109">w))</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 475--><p class="indent" >   Now, we just use a full data stack to fit the model and consider the hyperparameters values
+<!--l. 474--><p class="indent" >   Now, we just use a full data stack to fit the model and consider the hyperparameters values
 fitted before  
    <div  
 class="centerline"><span 
@@ -1996,7 +1996,7 @@ class="aett-10x-x-109">FALSE</span></span><span id="textcolor13323"><span
 class="aett-10x-x-109">))</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 490--><p class="indent" >   We can plot the predicted versus observed values to look at goodness of fit. First, we found
+<!--l. 489--><p class="indent" >   We can plot the predicted versus observed values to look at goodness of fit. First, we found
 the index for this data from full stack data.  
    <div  
 class="centerline"><span 
@@ -2019,7 +2019,7 @@ class="aett-10x-x-109">$</span></span><span id="textcolor13334"><span
 class="aett-10x-x-109">data</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 499--><p class="indent" >   We plot it with following commands and visualize at Figure&#x00A0;<a 
+<!--l. 498--><p class="indent" >   We plot it with following commands and visualize at Figure&#x00A0;<a 
 href="#x9-900005.1.5">5.1.5<!--tex4ht:ref: fig:stval --></a>.  
    <div  
 class="centerline"><span 
@@ -2125,7 +2125,7 @@ class="aett-10x-x-109">))</span></span>
  id="x9-900014"></a>
                                                                                  
                                                                                  
-<!--l. 514--><p class="noindent" ><img 
+<!--l. 513--><p class="noindent" ><img 
 src="spde-tutorial91x.png" alt="PIC" class="graphics" width="397.48499pt" height="361.36101pt"  /><!--tex4ht:graphics  
 name="spde-tutorial91x.png" src="figs/spacetimevstval-1.eps"  
 -->
@@ -2137,15 +2137,15 @@ class="content">Validation: Observed versus posterior mean.</span></div><!--tex4
    </div><hr class="endfigure" />
    <h3 class="sectionHead"><span class="titlemark">5.2   </span> <a 
  id="x9-910005.2"></a>Continuous time domain</h3>
-<!--l. 522--><p class="noindent" >We now suppose that we have that the observations are not collected over discrete time points.
+<!--l. 521--><p class="noindent" >We now suppose that we have that the observations are not collected over discrete time points.
 This is the case for fishing data and space-time point process in general. Similar to the Finite
 Method approach for the space, we can use piecewise linear basis function at a set of time knots,
 as we have in some other spacetime examples.
-</p><!--l. 528--><p class="noindent" >
+</p><!--l. 527--><p class="noindent" >
 </p>
    <h4 class="subsectionHead"><span class="titlemark">5.2.1   </span> <a 
  id="x9-920005.2.1"></a>Data simulation</h4>
-<!--l. 530--><p class="noindent" >We now sample some locations over space and time points as well.  
+<!--l. 529--><p class="noindent" >We now sample some locations over space and time points as well.  
    <div  
 class="centerline"><span 
 class="colorbox" id="colorbox13432"></p>     
@@ -2186,7 +2186,7 @@ class="aett-10x-x-109">1</span></span><span id="textcolor13430"><span
 class="aett-10x-x-109">))</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 540--><p class="indent" >   To sample from the model, we define a space-time separable covariance function, which is
+<!--l. 539--><p class="indent" >   To sample from the model, we define a space-time separable covariance function, which is
 Matérn in space and Exponential over time:  
    <div  
 class="centerline"><span 
@@ -2332,7 +2332,7 @@ class="aett-10x-x-109">kappa.t))</span></span>
 class="aett-10x-x-109">}</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 556--><p class="indent" >   and use it to sample from the model  
+<!--l. 555--><p class="indent" >   and use it to sample from the model  
    <div  
 class="centerline"><span 
 class="colorbox" id="colorbox13557"></p>     
@@ -2434,11 +2434,11 @@ class="aett-10x-x-109">tau.error))</span></span>                          </span
    <div  
 class="centerline"><span 
 class="colorbox" id="colorbox13559"></div></div>                                                                          </span></div>-
-<!--l. 569--><p class="noindent" >
+<!--l. 568--><p class="noindent" >
 </p>
    <h4 class="subsectionHead"><span class="titlemark">5.2.2   </span> <a 
  id="x9-930005.2.2"></a>Data stack preparation</h4>
-<!--l. 571--><p class="noindent" >To fit the space-time continuous model we need to determine the time knots and the temporal
+<!--l. 570--><p class="noindent" >To fit the space-time continuous model we need to determine the time knots and the temporal
 mesh  
 </p>
    <div  
@@ -2482,11 +2482,11 @@ class="aett-10x-x-109">loc</span></span>
 <div class="verbatim" id="verbatim-123">
 ##&#x00A0;&#x00A0;[1]&#x00A0;0.05&#x00A0;0.15&#x00A0;0.25&#x00A0;0.35&#x00A0;0.45&#x00A0;0.55&#x00A0;0.65&#x00A0;0.75&#x00A0;0.85&#x00A0;0.95
 </div>
-<!--l. 580--><p class="nopar" >                                                                          </span></div>-
-<!--l. 584--><p class="indent" >   Consider the the low resolution mesh for Paraná state border created in Section&#x00A0;<a 
+<!--l. 579--><p class="nopar" >                                                                          </span></div>-
+<!--l. 583--><p class="indent" >   Consider the the low resolution mesh for Paraná state border created in Section&#x00A0;<a 
 href="spde-tutorialch1.html#x5-270001.3">1.3<!--tex4ht:ref: sec:mesh --></a>, used in
 the previous example and the SPDE model also defined in the previous example.
-</p><!--l. 589--><p class="indent" >   Building the index set  
+</p><!--l. 588--><p class="indent" >   Building the index set  
    <div  
 class="centerline"><span 
 class="colorbox" id="colorbox13600"></p>     
@@ -2513,7 +2513,7 @@ class="aett-10x-x-109">n.group</span></span><span id="textcolor13598"><span
 class="aett-10x-x-109">=k)</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 598--><p class="indent" >   The projector matrix consider the spatial and time projection. So, it needs the spatial mesh
+<!--l. 597--><p class="indent" >   The projector matrix consider the spatial and time projection. So, it needs the spatial mesh
 and the spatial locations, the time points and the temporal mesh  
    <div  
 class="centerline"><span 
@@ -2562,7 +2562,7 @@ class="aett-10x-x-109">group.mesh</span></span><span id="textcolor13613"><span
 class="aett-10x-x-109">=mesh.t)</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 610--><p class="indent" >   The effects on the stack are a list with two elements, one is the index set and another the
+<!--l. 609--><p class="indent" >   The effects on the stack are a list with two elements, one is the index set and another the
 categorical covariate. The stack data is defined as  
                                                                                  
                                                                                  
@@ -2634,11 +2634,11 @@ class="aett-10x-x-109">1</span></span><span id="textcolor13648"><span
 class="aett-10x-x-109">,n))))</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 622--><p class="noindent" >
+<!--l. 621--><p class="noindent" >
 </p>
    <h4 class="subsectionHead"><span class="titlemark">5.2.3   </span> <a 
  id="x9-940005.2.3"></a>Fitting the model and some results</h4>
-<!--l. 624--><p class="noindent" >We used an Exponential correlation function for time with parameter <span 
+<!--l. 623--><p class="noindent" >We used an Exponential correlation function for time with parameter <span 
 class="cmmi-10x-x-109">&#x03BA; </span>as the inverse range
 parameter. It gives a correlation between time knots equals to  
 </p>
@@ -2666,8 +2666,8 @@ class="aett-10x-x-109">]))</span></span>
 <div class="verbatim" id="verbatim-124">
 ##&#x00A0;[1]&#x00A0;0.6065307
 </div>
-<!--l. 633--><p class="nopar" >                                                                          </span></div>-
-<!--l. 637--><p class="indent" >   Fitting the model considering a AR1 temporal correlation over the time knots
+<!--l. 632--><p class="nopar" >                                                                          </span></div>-
+<!--l. 636--><p class="indent" >   Fitting the model considering a AR1 temporal correlation over the time knots
    <div  
 class="centerline"><span 
 class="colorbox" id="colorbox13723"></p>     
@@ -2785,7 +2785,7 @@ class="aett-10x-x-109">inla.stack.A</span></span><span id="textcolor13721"><span
 class="aett-10x-x-109">(sdat)))</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 652--><p class="indent" >   Look at the summary of the posterior marginal distributions for the likelihood precision and
+<!--l. 651--><p class="indent" >   Look at the summary of the posterior marginal distributions for the likelihood precision and
 the random field parameters:  
                                                                                  
                                                                                  
@@ -2808,17 +2808,17 @@ class="aett-10x-x-109">)</span></span>
 <div class="verbatim" id="verbatim-125">
 ##&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;mean&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;sd&#x00A0;0.025quant&#x00A0;0.5quant
 &#x00A0;<br />##&#x00A0;Precision&#x00A0;for&#x00A0;the&#x00A0;Gaussian&#x00A0;observations&#x00A0;2.8535&#x00A0;0.1903&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;2.4917&#x00A0;&#x00A0;&#x00A0;2.8496
-&#x00A0;<br />##&#x00A0;Range&#x00A0;for&#x00A0;i&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;2.4527&#x00A0;0.4363&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;1.7246&#x00A0;&#x00A0;&#x00A0;2.4070
+&#x00A0;<br />##&#x00A0;Range&#x00A0;for&#x00A0;i&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;2.4526&#x00A0;0.4363&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;1.7246&#x00A0;&#x00A0;&#x00A0;2.4069
 &#x00A0;<br />##&#x00A0;Stdev&#x00A0;for&#x00A0;i&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.6753&#x00A0;0.0725&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.5423&#x00A0;&#x00A0;&#x00A0;0.6721
 &#x00A0;<br />##&#x00A0;GroupRho&#x00A0;for&#x00A0;i&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.5124&#x00A0;0.1464&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.1879&#x00A0;&#x00A0;&#x00A0;0.5270
 &#x00A0;<br />##&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.975quant&#x00A0;&#x00A0;&#x00A0;mode
 &#x00A0;<br />##&#x00A0;Precision&#x00A0;for&#x00A0;the&#x00A0;Gaussian&#x00A0;observations&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;3.2401&#x00A0;2.8449
-&#x00A0;<br />##&#x00A0;Range&#x00A0;for&#x00A0;i&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;3.4360&#x00A0;2.3133
+&#x00A0;<br />##&#x00A0;Range&#x00A0;for&#x00A0;i&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;3.4360&#x00A0;2.3132
 &#x00A0;<br />##&#x00A0;Stdev&#x00A0;for&#x00A0;i&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.8274&#x00A0;0.6664
-&#x00A0;<br />##&#x00A0;GroupRho&#x00A0;for&#x00A0;i&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.7559&#x00A0;0.5585
+&#x00A0;<br />##&#x00A0;GroupRho&#x00A0;for&#x00A0;i&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.7559&#x00A0;0.5584
 </div>
-<!--l. 670--><p class="nopar" >                                                                          </span></div>-
-<!--l. 674--><p class="indent" >   These distributions are showed in Figure&#x00A0;<a 
+<!--l. 669--><p class="nopar" >                                                                          </span></div>-
+<!--l. 673--><p class="indent" >   These distributions are showed in Figure&#x00A0;<a 
 href="#x9-940005.2.3">5.2.3<!--tex4ht:ref: fig:stcpost --></a>, as well also the marginal ditribution for the
 intercept, error precision, spatial range, standard deviation and temporal correlation in the
 spacetime field with the commands bellow  
@@ -3017,7 +3017,7 @@ class="aett-10x-x-109">}</span></span>
  id="x9-940015"></a>
                                                                                  
                                                                                  
-<!--l. 699--><p class="noindent" ><img 
+<!--l. 698--><p class="noindent" ><img 
 src="spde-tutorial92x.png" alt="PIC" class="graphics" width="426.79497pt" height="284.53775pt"  /><!--tex4ht:graphics  
 name="spde-tutorial92x.png" src="figs/spacetimeunnamed-chunk-3-1.eps"  
 -->

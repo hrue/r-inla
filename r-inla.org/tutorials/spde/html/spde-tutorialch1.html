@@ -10,11 +10,11 @@
 <meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)" /> 
 <!-- xhtml,html,frames,2 --> 
 <meta name="src" content="spde-tutorial.tex" /> 
-<meta name="date" content="2017-11-17 17:47:00" /> 
+<meta name="date" content="2017-11-20 17:19:00" /> 
 <link rel="stylesheet" type="text/css" href="spde-tutorial.css" /> 
 </head><body 
 >
-   <!--l. 5--><div class="crosslinks"><p class="noindent">[<a 
+   <!--l. 4--><div class="crosslinks"><p class="noindent">[<a 
 href="spde-tutorialch2.html" >next</a>] [<a 
 href="spde-tutorialli1.html" >prev</a>] [<a 
 href="spde-tutorialli1.html#tailspde-tutorialli1.html" >prev-tail</a>] [<a 
@@ -25,26 +25,26 @@ href="spde-tutorial3.html#spde-tutorialch1.html" >up</a>] </p></div>
    <h3 class="sectionHead"><span class="titlemark">1.1   </span> <a 
  id="x5-50001.1"></a>Introduction and main results from <span class="cite">[<a 
 href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren et&#x00A0;al., 2011</a>]</span></h3>
-<!--l. 9--><p class="noindent" >The R source code for this introduction is available at
+<!--l. 8--><p class="noindent" >The R source code for this introduction is available at
 <a 
 href="http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-introduction.R" class="url" ><span 
 class="aett-10x-x-109">http://www.math.ntnu.no/inla/r-_inla.org/tutorials/spde/R/spde-_tutorial-_introduction.R</span></a>
-</p><!--l. 12--><p class="noindent" >
+</p><!--l. 11--><p class="noindent" >
 </p>
    <h4 class="subsectionHead"><span class="titlemark">1.1.1   </span> <a 
  id="x5-60001.1.1"></a>Spatial variation</h4>
-<!--l. 14--><p class="noindent" >A point-referenced dataset is made up of any data measured at known locations. These
+<!--l. 13--><p class="noindent" >A point-referenced dataset is made up of any data measured at known locations. These
 locations may be in any coordinate reference system, most often longitude and latitude.
 Point-referenced data are common in many areas of science. This type of data appears in
 mining, climate modeling, ecology, agriculture and elsewhere. If we want to incorporate
 the influence of location in a model for the data we need a model for geo-referenced
 data.
-</p><!--l. 26--><p class="indent" >   A regression model can be built using the location&#8217;s coordinates as a covariates. In some
+</p><!--l. 25--><p class="indent" >   A regression model can be built using the location&#8217;s coordinates as a covariates. In some
 cases it will be necessary a complicated function based on the coordinates to adequately describe
 the effect of the location. For example, we can consider basis functions on the coordinates and
 use it as covariates in order to build a complex function. This model explictly the trend on the
 mean.
-</p><!--l. 36--><p class="indent" >   Alternatively, it may be more natural to model explictly the variations of the outcome
+</p><!--l. 35--><p class="indent" >   Alternatively, it may be more natural to model explictly the variations of the outcome
 considering that it maybe similar at nearby locations. The first law of geography asserts:
 &#8220;Everything is related to everything else, but near things are more related than distant things&#8221;,
 <span class="cite">[<a 
@@ -54,16 +54,16 @@ another observation that is collected from farther away. A spatially-structured 
 effects model incorporates such spatial dependency rather than simply one consistent
 spatial trend across a domain. Sometimes it is appropriate to include both terms in a
 model.
-</p><!--l. 52--><p class="indent" >   The models that accounts for spatial dependency may be defined depending whether the
+</p><!--l. 51--><p class="indent" >   The models that accounts for spatial dependency may be defined depending whether the
 locations are areas (cities for example) or points. The latter case is usually divided when
 considering the locations as fixed (geostatistics or point-referenced data) or random (point
 process), <span class="cite">[<a 
 href="spde-tutorialli2.html#Xcressie:1993">Cressie, 1993</a>]</span>.
-</p><!--l. 60--><p class="noindent" >
+</p><!--l. 59--><p class="noindent" >
 </p>
    <h4 class="subsectionHead"><span class="titlemark">1.1.2   </span> <a 
  id="x5-70001.1.2"></a>The Gaussian random field</h4>
-<!--l. 62--><p class="noindent" >To introduce some notation, let <span 
+<!--l. 61--><p class="noindent" >To introduce some notation, let <span 
 class="cmmi-10x-x-109">s </span>be any location in a study area and let <span 
 class="cmmi-10x-x-109">U</span><span 
 class="cmr-10x-x-109">(</span><span 
@@ -87,7 +87,7 @@ we have data measured at geographical locations, over <span
 class="cmmi-10x-x-109">d </span><span 
 class="cmr-10x-x-109">= 2 </span>dimensions within this
 country.
-</p><!--l. 71--><p class="indent" >   Suppose we assume that we have a realization of <span 
+</p><!--l. 70--><p class="indent" >   Suppose we assume that we have a realization of <span 
 class="cmmi-10x-x-109">u</span><span 
 class="cmr-10x-x-109">(</span><span 
 class="aebx-10x-x-109">s</span><sub><span 
@@ -122,7 +122,7 @@ class="cmr-10x-x-109">)</span>, it is necessary to define its mean
 and covariance.
                                                                                  
                                                                                  
-</p><!--l. 83--><p class="indent" >   A very simple option is to define a correlation function based only on the Euclidean distance
+</p><!--l. 82--><p class="indent" >   A very simple option is to define a correlation function based only on the Euclidean distance
 between locations. This assumes that if we have two pairs of points separated by the same
 distance <span 
 class="cmmi-10x-x-109">h</span>, both pairs have same degree of correlation. It is intuitive to choose a function that
@@ -130,7 +130,7 @@ decrease with distance, <span
 class="cmmi-10x-x-109">h</span>. <span class="cite">[<a 
 href="spde-tutorialli2.html#Xabrahamsen:1997">Abrahamsen, 1997</a>]</span> presents Gaussian random fields and correlation
 functions.
-</p><!--l. 94--><p class="indent" >   Now suppose that we have data <span 
+</p><!--l. 93--><p class="indent" >   Now suppose that we have data <span 
 class="cmmi-10x-x-109">y</span><sub><span 
 class="cmmi-8">i</span></sub> observed at locations <span 
 class="aebx-10x-x-109">s</span><sub><span 
@@ -178,7 +178,7 @@ class="cmr-10x-x-109">) </span>at a finite number of points is considered a real
 distribution. In this case, the likelihood function is the multivariate distribution with covariance
 <span 
 class="cmr-10x-x-109">&#x03A3;</span>.
-</p><!--l. 110--><p class="indent" >   In many situations we assume that there is an underlying GF but we cannot observe direclty.
+</p><!--l. 109--><p class="indent" >   In many situations we assume that there is an underlying GF but we cannot observe direclty.
 Instead we observe data with a measurement error
 </p><table 
 class="align">
@@ -235,7 +235,7 @@ class="cmbx-10x-x-109">I</span>. This is a short extension of the basic GF model
 additional parameter to estimate. For more about this model see <span class="cite">[<a 
 href="spde-tutorialli2.html#Xdiggleribeiro:2007">Diggle and Ribeiro Jr,
 2007</a>]</span>.
-<!--l. 129--><p class="indent" >   To usual way to evaluate the likelihood function, which is just a multivariate Gaussian
+<!--l. 128--><p class="indent" >   To usual way to evaluate the likelihood function, which is just a multivariate Gaussian
 density for the model in Eq.&#x00A0;<a 
 href="#x5-7001r1">1.1<!--tex4ht:ref: eq:toy0 --></a>, usually considers a Cholesky factorization of the covariance
 matrix. Because this matrix is a dense, this is a operation of order <span 
@@ -250,7 +250,7 @@ about a likelihood function for the data or uses a multivariate Gaussian distrib
 spatially structured random effect. A good description of these techniques is available in <span class="cite">[<a 
 href="spde-tutorialli2.html#Xcressie:1993">Cressie,
 1993</a>]</span>.
-</p><!--l. 146--><p class="indent" >   When extending the model to deal with non-Gaussian data, it is usual to assume a likelihood
+</p><!--l. 145--><p class="indent" >   When extending the model to deal with non-Gaussian data, it is usual to assume a likelihood
 for the data conditional on an unobserved random effect, which is GF to model the spatial
 dependence. Such spatial mixed effects model is under the the model based geostatistics
 approach, citediggleribeiro:2007. It is possible to describe the model in Eq.&#x00A0;<a 
@@ -275,7 +275,7 @@ class="equation"><tr><td><a
 src="spde-tutorial0x.png" alt="yi|&#x03B8;,&#x03B2;,ui,Fi ~ P(yi|&#x03BC;i,&#x03D5; )
      u ~ GF  (0,&#x03A3; )
 " class="math-display"  /></center></td><td class="equation-label">(1.2)</td></tr></table>
-<!--l. 160--><p class="nopar" >
+<!--l. 159--><p class="nopar" >
  where <span 
 class="cmmi-10x-x-109">&#x03BC;</span><sub><span 
 class="cmmi-8">i</span></sub> <span 
@@ -331,7 +331,7 @@ class="cmbx-10x-x-109">u </span>as a
 GF. However, at times one does consider a multivariate Gaussian distribution for
 the random effect, it becomes impractical to use covariance directly for model-based
 inference.
-</p><!--l. 179--><p class="indent" >   In another area of spatial statistics, the analysis of areal data, there are models specified by
+</p><!--l. 178--><p class="indent" >   In another area of spatial statistics, the analysis of areal data, there are models specified by
 conditional distributions that imply a joint distribution with a sparse precision matrix. These
 models are called Gaussian Markov random fields (GMRF) and a good reference is <span class="cite">[<a 
 href="spde-tutorialli2.html#XRueHeld:2005">Rue and
@@ -346,14 +346,14 @@ class="cmmi-8">&#x2215;</span><span
 class="cmr-8">2</span></sup><span 
 class="cmr-10x-x-109">)</span>. This makes it easier to conduct analyses with big
 &#8217;n&#8217;.
-</p><!--l. 194--><p class="indent" >   We can extend this basic hierarchical model in many ways, and we return to some extensions
+</p><!--l. 193--><p class="indent" >   We can extend this basic hierarchical model in many ways, and we return to some extensions
 later. If we know the properties of the GF, we can study all the practical models that contain or
 are based on, this random effect.
-</p><!--l. 200--><p class="noindent" >
+</p><!--l. 199--><p class="noindent" >
 </p>
    <h4 class="subsectionHead"><span class="titlemark">1.1.3   </span> <a 
  id="x5-80001.1.3"></a>The Matérn covariance</h4>
-<!--l. 202--><p class="noindent" >A very popular correlation function is the Matérn correlation function. It has a scale parameter
+<!--l. 201--><p class="noindent" >A very popular correlation function is the Matérn correlation function. It has a scale parameter
 <span 
 class="cmmi-10x-x-109">&#x03BA; &#x003E; </span><span 
 class="cmr-10x-x-109">0 </span>and a smoothness parameter <span 
@@ -373,7 +373,7 @@ class="equation"><tr><td><a
 src="spde-tutorial1x.png" alt="                     21-&#x03BD;-            &#x03BD;
 CorM  (U(si),U (sj)) = &#x0393; (&#x03BD; )(&#x03BA; &#x2225; si - sj &#x2225;) K &#x03BD;(&#x03BA; &#x2225; si - sj &#x2225;)
 " class="math-display"  /></center></td><td class="equation-label">(1.3)</td></tr></table>
-<!--l. 213--><p class="nopar" >
+<!--l. 212--><p class="nopar" >
 where <span 
 class="cmsy-10x-x-109">&#x2225; </span><span 
 class="cmmi-10x-x-109">. </span><span 
@@ -400,7 +400,7 @@ class="cmmi-8">u</span></sub> is the marginal variance
 of the process.
                                                                                  
                                                                                  
-</p><!--l. 221--><p class="indent" >   If we have a realization <span 
+</p><!--l. 220--><p class="indent" >   If we have a realization <span 
 class="cmmi-10x-x-109">u</span><span 
 class="cmr-10x-x-109">(</span><span 
 class="cmmi-10x-x-109">s</span><span 
@@ -445,7 +445,7 @@ class="cmmi-10x-x-109">u</span><span
 class="cmr-10x-x-109">(</span><span 
 class="cmmi-10x-x-109">s</span><span 
 class="cmr-10x-x-109">)</span>.
-</p><!--l. 230--><p class="indent" >   To gain a better feel about the Matérn correlation we can drawn samples from the RF
+</p><!--l. 229--><p class="indent" >   To gain a better feel about the Matérn correlation we can drawn samples from the RF
 process and look at it. A sample <span 
 class="cmbx-10x-x-109">u </span>is drawn considering <span 
 class="cmbx-10x-x-109">u </span><span 
@@ -617,12 +617,12 @@ class="aett-10x-x-109">(L))))</span></span>
 class="aett-10x-x-109">}</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 258--><p class="indent" >   These steps are collected into the function <span 
+<!--l. 257--><p class="indent" >   These steps are collected into the function <span 
 class="aett-10x-x-109">rMatern </span>that is available at
 <a 
 href="http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R" class="url" ><span 
 class="aett-10x-x-109">http://www.math.ntnu.no/inla/r-_inla.org/tutorials/spde/R/spde-_tutorial-_functions.R</span></a>
-</p><!--l. 263--><p class="indent" >   In order to simplify the visualization of the properties, we consider a set of <span 
+</p><!--l. 262--><p class="indent" >   In order to simplify the visualization of the properties, we consider a set of <span 
 class="cmmi-10x-x-109">n </span><span 
 class="cmr-10x-x-109">= 249 </span>locations
 in the one-dimensional space from 0 to <span 
@@ -660,7 +660,7 @@ class="aett-10x-x-109">dist</span></span><span id="textcolor84"><span
 class="aett-10x-x-109">(loc))</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 276--><p class="indent" >   We consider four values for the smoothness parameter <span 
+<!--l. 275--><p class="indent" >   We consider four values for the smoothness parameter <span 
 class="cmmi-10x-x-109">&#x03BD;</span>. The values for the <span 
 class="cmmi-10x-x-109">&#x03BA; </span>parameter was
 determined from the practical range expression <img 
@@ -814,7 +814,7 @@ class="aett-10x-x-109">length</span></span><span id="textcolor151"><span
 class="aett-10x-x-109">(nu)))</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 301--><p class="indent" >   The sample value depends on the covariance matrix and on the noise considered from the
+<!--l. 300--><p class="indent" >   The sample value depends on the covariance matrix and on the noise considered from the
 standard Gaussian distribution, <span 
 class="cmmi-10x-x-109">z</span>. We consider a set of five vectors of size <span 
 class="cmmi-10x-x-109">n </span>drawn from the
@@ -856,7 +856,7 @@ class="aett-10x-x-109">5</span></span><span id="textcolor177"><span
 class="aett-10x-x-109">)</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 320--><p class="indent" >   Therefore, we have a set of <span 
+<!--l. 319--><p class="indent" >   Therefore, we have a set of <span 
 class="cmr-10x-x-109">40 </span>different realizations, five for each parameter configuration
    <div  
 class="centerline"><span 
@@ -968,7 +968,7 @@ class="aeitt-10x-x-109">&#x00A0;sample</span></span>
 class="aett-10x-x-109">})</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 336--><p class="indent" >   These samples are shown in the eight plots in Figure&#x00A0;<a 
+<!--l. 335--><p class="indent" >   These samples are shown in the eight plots in Figure&#x00A0;<a 
 href="#x5-80001.1.3">1.1.3<!--tex4ht:ref: fig:maternsamples --></a>.
    <div  
 class="centerline"><span 
@@ -1243,7 +1243,7 @@ class="aett-10x-x-109">}</span></span>
  id="x5-80021"></a>
                                                                                  
                                                                                  
-<!--l. 361--><p class="noindent" ><img 
+<!--l. 360--><p class="noindent" ><img 
 src="spde-tutorial3x.png" alt="PIC" class="graphics" width="413.99164pt" height="579.59357pt"  /><!--tex4ht:graphics  
 name="spde-tutorial3x.png" src="figs/intromaternsamplesfig-1.eps"  
 -->
@@ -1255,7 +1255,7 @@ parameter (each line of plots).</span></div><!--tex4ht:label?: x5-80021 -->
                                                                                  
                                                                                  
    </div><hr class="endfigure" />
-<!--l. 370--><p class="indent" >   One important point to observe in Figure&#x00A0;<a 
+<!--l. 369--><p class="indent" >   One important point to observe in Figure&#x00A0;<a 
 href="#x5-80001.1.3">1.1.3<!--tex4ht:ref: fig:maternsamples --></a> is the main feature on the samples. It almost
 does not depends on the smoothness parameter. To see it consider one of the five samples (one of
 the colors) and compare it for different smoothness. Also, image if we add a noise on a smooth
@@ -1265,7 +1265,7 @@ term.
 </p>
    <h4 class="subsectionHead"><span class="titlemark">1.1.4   </span> <a 
  id="x5-90001.1.4"></a>Simulation of a toy data set</h4>
-<!--l. 385--><p class="noindent" >We will now draw a sample from the model in Eq.&#x00A0;<a 
+<!--l. 384--><p class="noindent" >We will now draw a sample from the model in Eq.&#x00A0;<a 
 href="#x5-7001r1">1.1<!--tex4ht:ref: eq:toy0 --></a> and use in Section&#x00A0;<a 
 href="#x5-130001.2">1.2<!--tex4ht:ref: sec:toyexample --></a>. We consider a set
 of <span 
@@ -1334,7 +1334,7 @@ class="aett-10x-x-109">2</span></span><span id="textcolor406"><span
 class="aett-10x-x-109">)</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 401--><p class="indent" >   To get a (lower triangle) matrix of distances we call  
+<!--l. 400--><p class="indent" >   To get a (lower triangle) matrix of distances we call  
    <div  
 class="centerline"><span 
 class="colorbox" id="colorbox415"></p>     
@@ -1349,7 +1349,7 @@ class="aett-10x-x-109">dist</span></span><span id="textcolor413"><span
 class="aett-10x-x-109">(pts)</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 410--><p class="indent" >   We choose parameter values for the Matérn as <span 
+<!--l. 409--><p class="indent" >   We choose parameter values for the Matérn as <span 
 class="cmmi-10x-x-109">&#x03C3;</span><sub><span 
 class="cmmi-8">u</span></sub><sup><span 
 class="cmr-8">2</span></sup> <span 
@@ -1405,7 +1405,7 @@ class="aett-10x-x-109">&#x00A0;</span><span id="textcolor431"><span
 class="aett-10x-x-109">1</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 423--><p class="indent" >   Now we need to sample from a multivariate distribution with constant mean equals
+<!--l. 422--><p class="indent" >   Now we need to sample from a multivariate distribution with constant mean equals
 <span 
 class="cmmi-10x-x-109">&#x03B2;</span><sub><span 
 class="cmr-8">0</span></sub> and covariance <span 
@@ -1494,7 +1494,7 @@ class="aett-10x-x-109">*</span></span><span id="textcolor472"><span
 class="aett-10x-x-109">mcor</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 436--><p class="indent" >   We can now sample considering the Cholesky factor times a unit variance noise and add the
+<!--l. 435--><p class="indent" >   We can now sample considering the Cholesky factor times a unit variance noise and add the
 mean  
    <div  
 class="centerline"><span 
@@ -1533,7 +1533,7 @@ class="aett-10x-x-109">rnorm</span></span><span id="textcolor493"><span
 class="aett-10x-x-109">(n)))</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 447--><p class="indent" >   We show these simulated data in a graph of the locations where the size of the points is
+<!--l. 446--><p class="indent" >   We show these simulated data in a graph of the locations where the size of the points is
 proportional to the simulated values. Figure&#x00A0;<a 
 href="#x5-90001.1.4">1.1.4<!--tex4ht:ref: fig:grf1 --></a> was produced with the code below
    <div  
@@ -1647,7 +1647,7 @@ class="aett-10x-x-109">)</span></span>
  id="x5-90012"></a>
                                                                                  
                                                                                  
-<!--l. 465--><p class="noindent" ><img 
+<!--l. 464--><p class="noindent" ><img 
 src="spde-tutorial4x.png" alt="PIC" class="graphics" width="397.48499pt" height="339.27783pt"  /><!--tex4ht:graphics  
 name="spde-tutorial4x.png" src="figs/introplot1-1.eps"  
 -->
@@ -1657,7 +1657,7 @@ class="content">The simulated toy example data.</span></div><!--tex4ht:label?: x
                                                                                  
                                                                                  
    </div><hr class="endfigure" />
-<!--l. 471--><p class="indent" >   This data will be used as a toy example in this tutorial. It is available in the <span 
+<!--l. 470--><p class="indent" >   This data will be used as a toy example in this tutorial. It is available in the <span 
 class="aett-10x-x-109">R-INLA </span>package
 and can be loaded by  
    <div  
@@ -1672,13 +1672,13 @@ class="aett-10x-x-109">(SPDEtoy)</span></span>
 </div>                                                                          </span></div>-
    <h4 class="subsectionHead"><span class="titlemark">1.1.5   </span> <a 
  id="x5-100001.1.5"></a>The SPDE approach</h4>
-<!--l. 484--><p class="noindent" >In this section we summarizes the main results in <span class="cite">[<a 
+<!--l. 483--><p class="noindent" >In this section we summarizes the main results in <span class="cite">[<a 
 href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren et&#x00A0;al., 2011</a>]</span>. If your purpose does
 not includes understanding the methodology, you can skip this section. If you keep
 reading this section and have difficulty, do not be discouraged. You may still be able
 to use INLA effectively even if you have only a limited grasp of what&#8217;s &#8217;under the
 hood.&#8217;
-</p><!--l. 493--><p class="indent" >   <span class="cite">[<a 
+</p><!--l. 492--><p class="indent" >   <span class="cite">[<a 
 href="spde-tutorialli2.html#XrueT:2002">Rue and Tjelmeland, 2002</a>]</span> proposed to approximate a continuous field using a Gaussian
 Markov Random Field - GMRF. This idea is not so strange since there are continuous random
 fields that are Markov. This is the case when the continuous field is a solution of a linear
@@ -1687,7 +1687,7 @@ href="spde-tutorialli2.html#Xrozanov:1977">Rozanov, 1977</a>]</span>. <span clas
 href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren et&#x00A0;al., 2011</a>]</span> provided that
 the GRF with Matérn correlation is a solution for an stochastic partial differential equation
 (SPDE).
-</p><!--l. 504--><p class="indent" >   If you want to get an intuition about the approach, we tried to provide it in this section.
+</p><!--l. 503--><p class="indent" >   If you want to get an intuition about the approach, we tried to provide it in this section.
 However, if you want to know all the details, they are in the Appendix of <span class="cite">[<a 
 href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren
 et&#x00A0;al., 2011</a>]</span>. In few words it uses the Finite Element Method (FEM) along with basis
@@ -1695,11 +1695,11 @@ functions carefully chosen to preserve the sparse structure of the resulting pre
 matrix for the random field at a set of mesh nodes. This provides an explicit link
 between a continuous random field and a GMRF representation, which allows efficient
 computations.
-</p><!--l. 516--><p class="noindent" >
+</p><!--l. 515--><p class="noindent" >
 </p>
    <h5 class="subsubsectionHead"><a 
  id="x5-110001.1.5"></a>First result</h5>
-<!--l. 518--><p class="noindent" >Lindgren&#8217;s first main provided that a GF with a generalized covariance function, obtained when
+<!--l. 517--><p class="noindent" >Lindgren&#8217;s first main provided that a GF with a generalized covariance function, obtained when
 <span 
 class="cmmi-10x-x-109">&#x03BD; </span><span 
 class="cmsy-10x-x-109">&#x2192; </span><span 
@@ -1718,7 +1718,7 @@ class="equation"><tr><td><a
 src="spde-tutorial5x.png" alt="              1-
 E (uij|u-ij) = a(ui-1,j + ui+1,j + ui,j-1 + ui,j+1)
 " class="math-display"  /></center></td><td class="equation-label">(1.4)</td></tr></table>
-<!--l. 528--><p class="nopar" >
+<!--l. 527--><p class="nopar" >
 and <span 
 class="cmmi-10x-x-109">V ar</span><span 
 class="cmr-10x-x-109">(</span><span 
@@ -1749,8 +1749,8 @@ src="spde-tutorial6x.png" alt="|
 |-a----1--
 |
 " class="math-display"  /></center></td><td class="equation-label">(1.5)</td></tr></table>
-<!--l. 539--><p class="nopar" >
-</p><!--l. 541--><p class="indent" >   A GF <span 
+<!--l. 538--><p class="nopar" >
+</p><!--l. 540--><p class="indent" >   A GF <span 
 class="cmmi-10x-x-109">U</span><span 
 class="cmr-10x-x-109">(</span><span 
 class="cmmi-10x-x-109">s</span><span 
@@ -1765,7 +1765,7 @@ class="equation"><tr><td><a
 src="spde-tutorial7x.png" alt="  2     &#x03B1;&#x2215;2                  d
 (&#x03BA;  - &#x0394; )  u(s) = W (s),s &#x2208; &#x211D; ,&#x03B1; = &#x03BD; + d&#x2215;2,&#x03BA; &#x003E; 0,&#x03BD; &#x003E; 0,
 " class="math-display"  /></center></td><td class="equation-label">(1.6)</td></tr></table>
-<!--l. 546--><p class="nopar" >
+<!--l. 545--><p class="nopar" >
 <span class="cite">[<a 
 href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren et&#x00A0;al., 2011</a>]</span> show that for <span 
 class="cmmi-10x-x-109">&#x03BD; </span><span 
@@ -1788,7 +1788,7 @@ src="spde-tutorial8x.png" alt="|  1
 |4+a-----2a--1--
 |
 " class="math-display"  /></center></td><td class="equation-label">(1.7)</td></tr></table>
-<!--l. 557--><p class="nopar" >
+<!--l. 556--><p class="nopar" >
  and, for <span 
 class="cmmi-10x-x-109">&#x03BD; </span><span 
 class="cmr-10x-x-109">= 2</span>:
@@ -1806,8 +1806,8 @@ src="spde-tutorial9x.png" alt="|
 |-----------------------------
 |
 " class="math-display"  /></center></td><td class="equation-label">(1.8)</td></tr></table>
-<!--l. 567--><p class="nopar" >
-</p><!--l. 569--><p class="indent" >   Interpreting the result intuitively, as the smoothness parameter <span 
+<!--l. 566--><p class="nopar" >
+</p><!--l. 568--><p class="indent" >   Interpreting the result intuitively, as the smoothness parameter <span 
 class="cmmi-10x-x-109">&#x03BD; </span>increases the precision
 matrix in the GMRF representation becomes less sparse. Greater density of the matrix is
 because the conditional distributions depend on a wider neighborhood. The precision matrix for
@@ -1829,7 +1829,7 @@ class="cmr-10x-x-109">= 1</span>,
 <span 
 class="cmmib-10x-x-109">Q</span><sub><span 
 class="cmr-8">1</span></sub>.
-</p><!--l. 580--><p class="indent" >   However, the denser matrix does not imply that the conditional mean is an average over a
+</p><!--l. 579--><p class="indent" >   However, the denser matrix does not imply that the conditional mean is an average over a
 wider neighborhood. The conceptual parallel is going from a first order random walk to a second
 order one. To understand this point let us consider the precision matrix for the first order
 random walk, its square and the precision matrix for the second order random walk.
@@ -1867,7 +1867,7 @@ class="colorbox" id="colorbox606">   <div class="verbatim" id="verbatim-2">
 &#x00A0;<br />##&#x00A0;[4,]&#x00A0;&#x00A0;.&#x00A0;&#x00A0;.&#x00A0;-1&#x00A0;&#x00A0;2&#x00A0;-1
 &#x00A0;<br />##&#x00A0;[5,]&#x00A0;&#x00A0;.&#x00A0;&#x00A0;.&#x00A0;&#x00A0;.&#x00A0;-1&#x00A0;&#x00A0;1
 </div>
-<!--l. 601--><p class="nopar" ></p><div class="alltt">
+<!--l. 600--><p class="nopar" ></p><div class="alltt">
 <div class="obeylines-v">
 <span id="textcolor591"><span 
 class="aett-10x-x-109">crossprod</span></span><span id="textcolor592"><span 
@@ -1891,7 +1891,7 @@ class="aeitt-10x-x-109">&#x00A0;RW2</span></span>
 &#x00A0;<br />##&#x00A0;[4,]&#x00A0;&#x00A0;.&#x00A0;&#x00A0;1&#x00A0;-4&#x00A0;&#x00A0;6&#x00A0;-3
 &#x00A0;<br />##&#x00A0;[5,]&#x00A0;&#x00A0;.&#x00A0;&#x00A0;.&#x00A0;&#x00A0;1&#x00A0;-3&#x00A0;&#x00A0;2
 </div>
-<!--l. 613--><p class="nopar" ></p><div class="alltt">
+<!--l. 612--><p class="nopar" ></p><div class="alltt">
 <div class="obeylines-v">
 <span id="textcolor594"><span 
 class="aett-10x-x-109">INLA</span></span><span id="textcolor595"><span 
@@ -1913,27 +1913,27 @@ class="aett-10x-x-109">)</span></span>
 &#x00A0;<br />##&#x00A0;[4,]&#x00A0;&#x00A0;.&#x00A0;&#x00A0;1&#x00A0;-4&#x00A0;&#x00A0;5&#x00A0;-2
 &#x00A0;<br />##&#x00A0;[5,]&#x00A0;&#x00A0;.&#x00A0;&#x00A0;.&#x00A0;&#x00A0;1&#x00A0;-2&#x00A0;&#x00A0;1
 </div>
-<!--l. 625--><p class="nopar" >                                                                          </span></div>-
-<!--l. 628--><p class="indent" >   We can see that the difference is only in the corners.
-</p><!--l. 631--><p class="noindent" >
+<!--l. 624--><p class="nopar" >                                                                          </span></div>-
+<!--l. 627--><p class="indent" >   We can see that the difference is only in the corners.
+</p><!--l. 630--><p class="noindent" >
                                                                                  
                                                                                  
 </p>
    <h5 class="subsubsectionHead"><a 
  id="x5-120001.1.5"></a>Second result</h5>
-<!--l. 633--><p class="noindent" >It is common point data are not located on a grid, but instead are distributed irregularly.
+<!--l. 632--><p class="noindent" >It is common point data are not located on a grid, but instead are distributed irregularly.
 <span class="cite">[<a 
 href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren et&#x00A0;al., 2011</a>]</span> provide a second set of results that provide a solution for the case
 irregular grids. They use the finite element method technique (FEM), a tool that is used widely
 in engineering and applied mathematics to solve differential equations.
-</p><!--l. 642--><p class="indent" >   The domain can be divided into a set of non-intersecting triangles, which may be
+</p><!--l. 641--><p class="indent" >   The domain can be divided into a set of non-intersecting triangles, which may be
 irregular, where any two triangles meet in at most a common edge or corner. The three
 corners of a triangle are named vertices or nodes. The solution for the SPDE and its
 properties will depend on the basis functions used. <span class="cite">[<a 
 href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren et&#x00A0;al., 2011</a>]</span> choose basis
 functions carefully in order to preserve the sparse structure of the resulting precision
 matrix.
-</p><!--l. 654--><p class="indent" >   The approximation is
+</p><!--l. 653--><p class="indent" >   The approximation is
 </p>
    <center class="math-display" >
 <img 
@@ -1941,7 +1941,7 @@ src="spde-tutorial10x.png" alt="      &#x2211;m
 u(s) =    &#x03C8;k(s)wk
       k=1
 " class="math-display"  /></center>
-<!--l. 655--><p class="nopar" > where <span 
+<!--l. 654--><p class="nopar" > where <span 
 class="cmmi-10x-x-109">&#x03C8;</span><sub><span 
 class="cmmi-8">k</span></sub> are basis functions, <span 
 class="cmmi-10x-x-109">w</span><sub><span 
@@ -1964,7 +1964,7 @@ class="cmmi-10x-x-109">k</span>. A stochastic weak solution was considered to
 show that the joint distribution for the weights determines the full distribution in the
 continuous domain. These weights can be interpolated for any point inside the triangulated
 domain.
-</p><!--l. 669--><p class="indent" >   We will now focus on the resulting precision matrix. It does consider the triangulation and
+</p><!--l. 668--><p class="indent" >   We will now focus on the resulting precision matrix. It does consider the triangulation and
 the basis functions. It matches the first result when applying for a regular grid. Consider the set
 of <span 
 class="cmmi-10x-x-109">m </span><span 
@@ -1982,7 +1982,7 @@ class="equation"><tr><td><a
 <img 
 src="spde-tutorial11x.png" alt="Ci,j = &#x27E8;&#x03C8;i,&#x03C8;j&#x27E9;,Gi,j = &#x27E8;&#x2207; &#x03C8;i,&#x2207; &#x03C8;j&#x27E9;,(K &#x03BA;)i,j = &#x03BA;2Ci,j + Gi,j.
 " class="math-display"  /></center></td><td class="equation-label">(1.9)</td></tr></table>
-<!--l. 678--><p class="nopar" >
+<!--l. 677--><p class="nopar" >
 The precision matrix <span 
 class="cmmib-10x-x-109">Q</span><sub><span 
 class="cmmi-8">&#x03B1;,&#x03BA;</span></sub> as a function of <span 
@@ -2002,7 +2002,7 @@ src="spde-tutorial12x.png" alt="               Q    = K  ,
             Q-21,&#x03BA; = K &#x03BA;C-1  K &#x03BA;,
 Q &#x03B1;,&#x03BA; = K &#x03BA;C   Q &#x03B1;-2,&#x03BA;C   K &#x03BA;,for&#x03B1; = 3,4,....
 " class="math-display"  /></center></td><td class="equation-label">(1.10)</td></tr></table>
-<!--l. 686--><p class="nopar" >
+<!--l. 685--><p class="nopar" >
 The actual <span 
 class="cmmib-10x-x-109">K</span><sub><span 
 class="cmmi-8">&#x03BA;</span></sub> matrix consider
@@ -2011,13 +2011,13 @@ class="cmmi-8">&#x03BA;</span></sub> matrix consider
 <img 
 src="spde-tutorial13x.png" alt="C&#x02DC;i,j = &#x27E8;&#x03C8;i,1&#x27E9;
 " class="math-display"  /></center>
-<!--l. 688--><p class="nopar" > instead, which is common when working with FEM. Since <img 
+<!--l. 687--><p class="nopar" > instead, which is common when working with FEM. Since <img 
 src="spde-tutorial14x.png" alt="C&#x02DC;"  class="tilde"  /> is diagonal <span 
 class="cmmib-10x-x-109">K</span><sub><span 
 class="cmmi-8">&#x03BA;</span></sub> is as sparse as
 <span 
 class="cmmib-10x-x-109">G</span>.
-</p><!--l. 693--><p class="indent" >   The projection of the weight for any location inside the mesh domain considers a linear
+</p><!--l. 692--><p class="indent" >   The projection of the weight for any location inside the mesh domain considers a linear
 interpolation in 2D. It uses the barycentric coordinates of the point with respect to the
 coordinates of the triangle vertices. For this particular case they are known also as
 areal coordinates. When a point is inside a triangle we have three non-zero values in
@@ -2025,7 +2025,7 @@ the corresponding line of <span
 class="cmmib-10x-x-109">A</span>. When it is along an edge, we have two non-zeros and
 when the point is on top of a triangle vertex we have only one non-zero which equals
 one.
-</p><!--l. 706--><p class="indent" >   The following code creates a set of six points, builds a mesh around them and extracts the
+</p><!--l. 705--><p class="indent" >   The following code creates a set of six points, builds a mesh around them and extracts the
 FEM matrices (<span 
 class="cmbx-10x-x-109">C</span>, <span 
 class="cmbx-10x-x-109">G </span>and <span 
@@ -2330,7 +2330,7 @@ class="aett-10x-x-109">(mesh,</span><span
 class="aett-10x-x-109">&#x00A0;pts)</span></span>
 </div>
 </div>                                                                          </span></div>-
-<!--l. 729--><p class="indent" >   We can gain intuition about this result by considering the structure of each matrix which is
+<!--l. 728--><p class="indent" >   We can gain intuition about this result by considering the structure of each matrix which is
 detailed in Appendix A.2 in <span class="cite">[<a 
 href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren et&#x00A0;al., 2011</a>]</span>. It may be easier to understand it by
 considering the plots in Figure&#x00A0;<a 
@@ -2944,11 +2944,11 @@ class="aett-10x-x-109">)</span></span>
  id="x5-120033"></a>
                                                                                  
                                                                                  
-<!--l. 785--><p class="noindent" ><img 
+<!--l. 784--><p class="noindent" ><img 
 src="spde-tutorial15x.png" alt="PIC" class="graphics" width="422.52936pt" height="140.84355pt"  /><!--tex4ht:graphics  
 name="spde-tutorial15x.png" src="figs/intromesh0fig-1.eps"  
 -->
-</p><!--l. 787--><p class="noindent" ><img 
+</p><!--l. 786--><p class="noindent" ><img 
 src="spde-tutorial16x.png" alt="PIC" class="graphics" width="422.52936pt" height="140.84355pt"  /><!--tex4ht:graphics  
 name="spde-tutorial16x.png" src="figs/intromesh0fig-2.eps"  
 -->
@@ -2963,7 +2963,7 @@ class="cmmib-10x-x-109">A</span> matrix (bottom right).</span></div><!--tex4ht:l
                                                                                  
                                                                                  
    </div><hr class="endfigure" />
-<!--l. 797--><p class="indent" >   The <img 
+<!--l. 796--><p class="indent" >   The <img 
 src="spde-tutorial17x.png" alt="&#x02DC;C"  class="tilde"  /> matrix is diagonal for <img 
 src="spde-tutorial18x.png" alt="C&#x02DC;"  class="tilde"  /><sub><span 
 class="cmmi-8">ii</span></sub> equals the area of the polygons formed from the dual mesh.
@@ -2974,13 +2974,13 @@ class="cmmi-8">ii</span></sub> is equal the sum of one third the area of each tr
 class="cmmi-10x-x-109">i </span>is part of.
 Notice that each polygon around each mesh node is formed by one third of the triangles that it
 is part of.
-</p><!--l. 804--><p class="indent" >   The <span 
+</p><!--l. 803--><p class="indent" >   The <span 
 class="cmmib-10x-x-109">G</span> matrix reflects the connectivity of the mesh nodes. Nodes not connected by edges
 have corresponding entry as zero. The values do not depend on the size of the triangles as they
 are scaled by the area of the triangles. For more detailed information, see A.2 in <span class="cite">[<a 
 href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren
 et&#x00A0;al., 2011</a>]</span>.
-</p><!--l. 811--><p class="indent" >   We have seen that the resulting precision matrix for increasing <span 
+</p><!--l. 810--><p class="indent" >   We have seen that the resulting precision matrix for increasing <span 
 class="cmmi-10x-x-109">&#x03BD; </span>is a convolution of the
 precision matrix for <span 
 class="cmmi-10x-x-109">&#x03BD; </span><span 
@@ -2993,7 +2993,7 @@ class="cmmi-10x-x-109">&#x03BA;</span><span
 class="cmmib-10x-x-109">C</span> <span 
 class="cmr-10x-x-109">+</span> <span 
 class="cmmib-10x-x-109">G</span>.
-</p><!--l. 819--><p class="indent" >   The <span 
+</p><!--l. 818--><p class="indent" >   The <span 
 class="cmmib-10x-x-109">Q</span> precision matrix is generalized for a fractional values of <span 
 class="cmmi-10x-x-109">&#x03B1; </span>(or <span 
 class="cmmi-10x-x-109">&#x03BD;</span>) using a
@@ -3016,7 +3016,7 @@ src="spde-tutorial20x.png" alt="     &#x2211;p       - 1  i
 Q  =    biC (C   G) .
      i=0
 " class="math-display"  /></center></td><td class="equation-label">(1.11)</td></tr></table>
-<!--l. 826--><p class="nopar" >
+<!--l. 825--><p class="nopar" >
 For <span 
 class="cmmi-10x-x-109">&#x03B1; </span><span 
 class="cmr-10x-x-109">= 1 </span>and <span 
@@ -3177,8 +3177,8 @@ triangles, formed by <span
 class="cmmi-10x-x-109">m </span>vertices and the edges connecting them. This mesh has to cover
 the entire spatial domain of interest. More details on the mesh building are given in
 section&#x00A0;<a 
-href="#x5-270001.3">1.3<!--tex4ht:ref: sec:mesh --></a>. Here we will use the fifth mesh built in Section&#x00A0;<span 
-class="aebx-10x-x-109">??</span> using the following code
+href="#x5-270001.3">1.3<!--tex4ht:ref: sec:mesh --></a>. Here we will use the fifth mesh built in Section&#x00A0;<a 
+href="#x5-300001.3.3">1.3.3<!--tex4ht:ref: sec:meshestoy --></a> using the following code
    <div  
 class="centerline"><span 
 class="colorbox" id="colorbox1218"></p>     
@@ -3513,8 +3513,8 @@ href="#x5-160001.2.3">1.2.3<!--tex4ht:ref: sec:stack --></a>) does this automati
 </p><!--l. 206--><p class="indent" >   When we have a mesh where every pont location is on a mesh vertex, each line on the
 projector matrix has exacty one nonzero element. This is the case for the <span 
 class="aett-10x-x-109">mesh1 </span>built in section
-<span 
-class="aebx-10x-x-109">??</span>.
+<a 
+href="#x5-300001.3.3">1.3.3<!--tex4ht:ref: sec:meshestoy --></a>.
                                                                                  
                                                                                  
 </p>
