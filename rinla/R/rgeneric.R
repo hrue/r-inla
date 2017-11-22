@@ -271,6 +271,7 @@
     rmodel = list(
         f = list(
             model = "rgeneric", 
+            n = dim(model(cmd="graph", theta = NULL))[1], 
             rgeneric = list(
                 definition = if (TRUE) {
                                  model
