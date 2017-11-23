@@ -327,9 +327,9 @@
         len = length(Q@i[idx])
         result = c(n, len, Q@i[idx], Q@j[idx], Q@x[idx])
     } else if (cmd %in% "graph") {
-        G = inla.as.sparse(res)
+        diag(res) = 1
+        G = inla.as.sparse(res, zeros.rm = TRUE)
         stopifnot(dim(G)[1L] == dim(G)[2L])
-        diag(G) = 1
         n = dim(G)[1L]
         idx = which(G@i <= G@j)
         len = length(G@i[idx])
@@ -396,7 +396,25 @@
 
     res = do.call(what = func, args = list(cmd = cmd, theta = theta))
     if (cmd %in% c("Q", "graph")) {
-        return (inla.as.sparse(res))
+        ## since only the upper triangular matrix is required return from 'do.call', then make
+        ## sure its symmetric and that diag(Graph) = 1
+        if (cmd %in% "Q") {
+            Q = inla.as.sparse(res)
+        } else {
+            diag(res) = 1
+            Q = inla.as.sparse(res, zeros.rm = TRUE)
+            Q[Q != 0] = 1
+        }
+        n = dim(Q)[1]
+        idx.eq = which(Q@i == Q@j)
+        idx.gt = which(Q@i < Q@j)
+        Q = sparseMatrix(i = c(Q@i[idx.eq], Q@i[idx.gt], Q@j[idx.gt]),
+                         j = c(Q@j[idx.eq], Q@j[idx.gt], Q@i[idx.gt]),
+                         x = c(Q@x[idx.eq], Q@x[idx.gt], Q@x[idx.gt]),
+                         index1 = FALSE, 
+                         dims = c(n, n),
+                         giveCsparse = FALSE)
+        return (Q)
     } else if (cmd %in% c("mu", "initial", "log.norm.const", "log.prior")) {
         return (c(as.numeric(res)))
     } else if (cmd %in% "quit") {
