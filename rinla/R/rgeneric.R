@@ -327,7 +327,7 @@
         len = length(Q@i[idx])
         result = c(n, len, Q@i[idx], Q@j[idx], Q@x[idx])
     } else if (cmd %in% "graph") {
-        G = inla.as.sparse(res, zeros.rm = FALSE)
+        G = inla.as.sparse(res, zeros.rm = TRUE)
         diag(G) = 1
         stopifnot(dim(G)[1L] == dim(G)[2L])
         n = dim(G)[1L]
