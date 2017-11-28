@@ -573,7 +573,8 @@ typedef enum {
 	LINK_LOGLOG,
 	LINK_CAUCHIT,
 	LINK_LOGITOFFSET,
-	LINK_INVERSE
+	LINK_INVERSE,
+	LINK_QPOISSON
 } inla_component_tp;
 
 
@@ -1392,6 +1393,7 @@ double link_special2(double x, map_arg_tp typ, void *param, double *cov);
 double link_sslogit(double x, map_arg_tp typ, void *param, double *cov);
 double link_tan(double x, map_arg_tp typ, void *param, double *cov);
 double link_test1(double x, map_arg_tp typ, void *param, double *cov);
+double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov);
 double link_this_should_not_happen(double x, map_arg_tp typ, void *param, double *cov);
 double map_1exp(double arg, map_arg_tp typ, void *param);
 double map_H(double x, map_arg_tp typ, void *param);
