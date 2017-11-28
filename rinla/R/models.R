@@ -153,7 +153,7 @@
                      aug.factor = 1L,
                      aug.constr = NULL,
                      n.div.by = NULL,
-                     n.required = FALSE,
+                     n.required = TRUE,
                      set.default.values = TRUE,
                      status = "experimental", 
                      pdf = "rgeneric"

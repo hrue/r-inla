@@ -11668,7 +11668,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tquantile = [%g]\n", ds->data_observations.quantile);
 		}
-		GMRFLib_ASSERT(ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0, GMRFLib_EPARAMETER);
+		GMRFLib_ASSERT((ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0), GMRFLib_EPARAMETER);
 
 	case L_LOGLOGISTIC:
 	case L_LOGLOGISTICSURV:
@@ -29807,17 +29807,37 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	M->elems = M->ncol * M->nrow;
 	M->A = Calloc(M->nrow * M->ncol, double);
 
-	for (i = 0; i < ns; i++) {
-		if (!S) {
-			GMRFLib_sample(problem);
-		} else {
-			memcpy(problem->sample, &(S->A[i * S->nrow]), S->nrow * sizeof(double));
+	if (GMRFLib_MAX_THREADS == 1) {
+		// serial version
+		for (i = 0; i < ns; i++) {
+			if (!S) {
+				GMRFLib_sample(problem);
+			} else {
+				memcpy(problem->sample, &(S->A[i * S->nrow]), S->nrow * sizeof(double));
+			}
+			GMRFLib_evaluate(problem);
+			memcpy(&(M->A[i * M->nrow]), problem->sample, M->nrow * sizeof(double));
+			M->A[(i + 1) * M->nrow - 1] = problem->sub_logdens;
 		}
-		GMRFLib_evaluate(problem);
-		memcpy(&(M->A[i * M->nrow]), problem->sample, M->nrow * sizeof(double));
-		M->A[(i + 1) * M->nrow - 1] = problem->sub_logdens;
+	} else {
+		GMRFLib_problem_tp **problems = Calloc(GMRFLib_MAX_THREADS, GMRFLib_problem_tp *);
+#pragma omp parallel for private(i)
+		for (i = 0; i < ns; i++) {
+			int thread = omp_get_thread_num();
+			if (problems[thread] == NULL) {
+				problems[thread] = GMRFLib_duplicate_problem(problem, 0);
+			}
+			if (!S) {
+				GMRFLib_sample(problems[thread]);
+			} else {
+				memcpy(problems[thread]->sample, &(S->A[i * S->nrow]), S->nrow * sizeof(double));
+			}
+			GMRFLib_evaluate(problems[thread]);
+			memcpy(&(M->A[i * M->nrow]), problems[thread]->sample, M->nrow * sizeof(double));
+			M->A[(i + 1) * M->nrow - 1] = problems[thread]->sub_logdens;
+		}
 	}
-
+	
 	GMRFLib_write_fmesher_file(M, outfile, (long int) 0, -1);
 
 	GMRFLib_matrix_tp *CM = Calloc(1, GMRFLib_matrix_tp);
@@ -30206,6 +30226,10 @@ int inla_fgn(char *infile, char *outfile)
 int testit(int argc, char **argv)
 {
 	if (1) {
+		P(GMRFLib_rng_uniform());
+		P(GMRFLib_rng_uniform());
+	}
+	if (0) {
 		double par[] = { 0.8, 0.5 };
 		double theta = 1.234;
 
@@ -30240,7 +30264,7 @@ int testit(int argc, char **argv)
 		GMRFLib_spline_tp **spline;
 
 		double lq;
-#pragma omp parallel for
+#pragma omp parallel for 
 		for (int i = 0; i < 10000; i++) {
 			lq = -5 + i * 0.001;
 			printf("%1d quantile %f  eta %f\n", omp_get_thread_num(), exp(lq),
@@ -30706,7 +30730,7 @@ int main(int argc, char **argv)
 
 		case 't':
 			if (inla_sread_ints(&nt, 1, optarg) == INLA_OK) {
-				GMRFLib_openmp->max_threads = IMAX(0, nt);
+				GMRFLib_openmp->max_threads = IMAX(1, nt);
 				omp_set_num_threads(GMRFLib_openmp->max_threads);
 			} else {
 				fprintf(stderr, "Fail to read MAX_THREADS from %s\n", optarg);
@@ -30900,6 +30924,8 @@ int main(int argc, char **argv)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_QSOLVE) {
+		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL);
 		inla_qsolve(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
@@ -30910,12 +30936,16 @@ int main(int argc, char **argv)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_QSAMPLE) {
+		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL);
 		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5],
 			     argv[optind + 6], argv[optind + 7], argv[optind + 8]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 	} else if (G.mode == INLA_MODE_FINN) {
+		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL);
 		inla_finn(argv[optind]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
