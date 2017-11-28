@@ -20,7 +20,8 @@
         reordering = inla.reorderings(),
         seed = 0L,
         logdens = ifelse(missing(sample), FALSE, TRUE),
-        compute.mean = ifelse(missing(sample), FALSE, TRUE))
+        compute.mean = ifelse(missing(sample), FALSE, TRUE)),
+        num.threads = 1L)
  }
  
  \arguments{
@@ -39,7 +40,10 @@
                If \code{seed > 0L} then this value is used as the seed for the RNG.}
    \item{logdens}{If \code{TRUE}, compute also the log-density of each sample. Note that the output format then change.}
    \item{compute.mean}{If \code{TRUE}, compute also the (constrained) mean. Note that the output format then change.}
-}
+   \item{num.threads}{The number of threads that can be used. \code{num.threads>1L} requires
+       \code{seed = 0L}. Only use \code{num.threads > 1L} for large problems/number of
+       samples. This option does currently NOT use the default one set by \code{inla.setOption()}. }
+ }
 \value{
       The log-density has form {-1/2(x-mu)^T Q (x-mu) + b^T x}
 

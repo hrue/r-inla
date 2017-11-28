@@ -10,62 +10,6 @@ options(width=75, prompt = " ", continue = "   ")
 library(INLA)
 source('R/spde-tutorial-functions.R')
 @
-
-\begin{abstract}
-This tutorial will show you how to fit models 
-that contains at least one effect specified 
-from an SPDE using the `R-INLA`. 
-We will use an SPDE based model here to define 
-random effects over continuous 
-one- or two- dimensional domains.
-The usual application is data whose geographical 
-location is explicitly considered in the analysis. 
-This tutorial explores 'R-INLA' functionalities by using examples. 
-It starts with simple models and increases in complexity. 
-
-In Chapter~\ref{ch:intro} we will introduce 
-the Gaussian random fields and the SPDE framework, 
-work with a toy example and work through 
-some examples of building a mesh. 
-Then we consider three detailed 
-examples in Chapter~\ref{ch:ngns}. 
-They address non-Gaussian data, survival analysis and
-inclusion of covariates in the covariance parameters.
-In Chapter~\ref{ch:manipula} we copy random fields 
-to model two or more outcomes jointly. 
-It includes a measurement error model, 
-a coregionalization model and 
-considering part or the entire linear predictor from one 
-outcome in a linear predictor to another one. 
-The log Cox point process model is considered in 
-Chapter~\ref{ch:lcox}. 
-Finally, Chapter~\ref{ch:spacetime} 
-presents example analysis of spacetime data. 
-
-To get started you **must first read** the tutorial at
-\url{http://www.r-inla.org/examples/tutorials/spde-tutorial-from-jss}.
-If you are in a rush to fit a simple geostatistical model, 
-please see 
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/inla-spde-howto.pdf}. 
-Or you can type  
-\texttt{vignette(SPDEhowto)} for a two dimensional example 
-or \texttt{vignette(SPDE1d)} for a one dimensional example. 
-To understand mesh building you may find it helpful to 
-play with the mesh building demonstration in Shiny 
-which you can open by typing \texttt{demo(mesh2d)}. 
-
-\end{abstract}
-
-\section{Acknowledgments}
-To Sarah Gallup and Helen Sofaer for valuable 
-English review in the text. 
-To several people who brought cool problems to 
-the discussion forum 
-\url{http://www.r-inla.org/comments-1} 
-and to me individually. 
-
-\input{updates} 
-
 \chapter{Introduction}\label{ch:intro}
 
 \section{Introduction and main results from \cite{lindgrenRL:2011}}\label{sec:intro}
@@ -676,7 +620,10 @@ When it is along an edge, we have two non-zeros
 and when the point is on top of a triangle vertex 
 we have only one non-zero which equals one. 
 
-<<mesh0, echo=FALSE, results='hide'>>=
+The following code creates a set of six points, 
+builds a mesh around them and extracts the FEM 
+matrices ($\mathbf{C}$, $\mathbf{G}$ and $\mathbf{A}$):
+<<mesh0, echo=TRUE, results='hide'>>=
 s <- 3 ### this factor will only changes C, not G
 pts <- rbind(c(1,1), c(2,1), 
              c(2.6, 1), c(0.7,1.7), 4:5/3, c(2,1.7))*s
