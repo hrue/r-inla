@@ -4684,6 +4684,10 @@
                      doc = "The tan-link", 
                      hyper = list()
                  ), 
+                 quantile = list(
+                     doc = "The quantile-link", 
+                     hyper = list()
+                 ), 
                  sslogit = list(
                      doc = "Logit link with sensitivity and specificity", 
                      hyper = list(
@@ -4992,7 +4996,7 @@
                          ),
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "log", "logoffset", "test1", "special1", "special2"),
+                     link = c("default", "log", "logoffset", "quantile", "test1", "special1", "special2"),
                      pdf = "poisson"
                      ),
                  

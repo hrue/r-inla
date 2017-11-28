@@ -1321,6 +1321,22 @@ double link_special2(double x, map_arg_tp typ, void *param, double *cov)
 	return NAN;
 
 }
+double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov)
+{
+	assert(typ == MAP_FORWARD);
+
+	double shape, ret;
+	double alpha = *((double *)param);
+
+	shape = exp(x) + 1.0;
+	if (shape > 400.0) {
+		ret = SQR(sqrt(shape) + sqrt(0.25) * gsl_cdf_ugaussian_Pinv(1.0-alpha));
+	} else {
+		ret = gsl_cdf_gamma_Pinv(1.0 - alpha, shape, 1.0);
+	}
+	
+	return (ret);
+}
 double link_test1(double x, map_arg_tp typ, void *param, double *cov)
 {
 	/*
@@ -10441,6 +10457,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	if (mb->verbose) {
 		printf("\t\tlikelihood.variant=[%1d]\n", ds->variant);
 	}
+	ds->data_observations.quantile = iniparser_getdouble(ini, inla_string_join(secname, "QUANTILE"), -1.0);
+	if (mb->verbose) {
+		if (ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0) {
+			printf("\t\tlikelihood.quantile=[%g]\n", ds->data_observations.quantile);
+		}
+	}
 
 	/*
 	 * read spesific options and define hyperparameters, if any.
@@ -10598,10 +10620,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_QCONTPOISSON:
-		ds->data_observations.quantile = iniparser_getdouble(ini, inla_string_join(secname, "QUANTILE"), -1.0);
-		if (mb->verbose) {
-			printf("\t\tquantile = [%g]\n", ds->data_observations.quantile);
-		}
 		GMRFLib_ASSERT(ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0, GMRFLib_EPARAMETER);
 		ds->data_observations.qcontpoisson_func =
 			inla_qcontpois_func(ds->data_observations.quantile, ISQR(GMRFLib_MAX_THREADS));
@@ -10814,12 +10832,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * get options related to the genPareto
 		 */
-		ds->data_observations.quantile = iniparser_getdouble(ini, inla_string_join(secname, "QUANTILE"), -1.0);
-		if (mb->verbose) {
-			printf("\t\tquantile = [%g]\n", ds->data_observations.quantile);
-		}
-		assert(ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0);
-
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), -3.0);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
 		if (!ds->data_fixed && mb->reuse_mode) {
@@ -11612,11 +11624,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * get options related to the qkumar-distribution
 		 */
-
-		ds->data_observations.quantile = iniparser_getdouble(ini, inla_string_join(secname, "QUANTILE"), -1.0);
-		if (mb->verbose) {
-			printf("\t\tquantile = [%g]\n", ds->data_observations.quantile);
-		}
 		GMRFLib_ASSERT(ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0, GMRFLib_EPARAMETER);
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);	/* yes! */
@@ -11664,12 +11671,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		// we can merge all the loglogistic ones into one
 	case L_QLOGLOGISTIC:
 	case L_QLOGLOGISTICSURV:
-		ds->data_observations.quantile = iniparser_getdouble(ini, inla_string_join(secname, "QUANTILE"), -1.0);
-		if (mb->verbose) {
-			printf("\t\tquantile = [%g]\n", ds->data_observations.quantile);
-		}
-		GMRFLib_ASSERT((ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0), GMRFLib_EPARAMETER);
-
+		GMRFLib_ASSERT(ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0, GMRFLib_EPARAMETER);
+		break;
+		
 	case L_LOGLOGISTIC:
 	case L_LOGLOGISTICSURV:
 		assert(ds->variant == 0 || ds->variant == 1);
@@ -13718,6 +13722,18 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_ntheta = 1;
 		ds->predictor_invlinkfunc = link_special2;
 		ds->predictor_invlinkfunc_arg = NULL;	       /* to be completed */
+	} else if (!strcasecmp(ds->link_model, "QUANTILE")) {
+		GMRFLib_ASSERT((ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0), GMRFLib_EPARAMETER);
+		switch (ds->data_id) {
+		case L_POISSON:
+			ds->link_id = LINK_QPOISSON;
+			ds->link_ntheta = 0;
+			ds->predictor_invlinkfunc = link_qpoisson;
+			ds->predictor_invlinkfunc_arg = (void *) &(ds->data_observations.quantile);
+			break;
+		default:
+			assert(0 == 1);
+		}
 	} else {
 		char *msg;
 		GMRFLib_sprintf(&msg, "Unknown link-model [%s]\n", ds->link_model);
@@ -13785,6 +13801,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case LINK_CAUCHIT:
 	case LINK_LOGIT:
 	case LINK_TAN:
+	case LINK_QPOISSON:
 		/*
 		 * no parameters
 		 */
@@ -28322,6 +28339,8 @@ int inla_output_linkfunctions(const char *dir, inla_tp * mb)
 			fprintf(fp, "logoffset\n");
 		} else if (lf == link_logitoffset) {
 			fprintf(fp, "logitoffset\n");
+		} else if (lf == link_qpoisson) {
+			fprintf(fp, "quantile\n");
 		} else if (lf == NULL) {
 			fprintf(fp, "invalid\n");
 		} else {
