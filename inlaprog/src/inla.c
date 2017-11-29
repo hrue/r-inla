@@ -172,6 +172,13 @@ G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 	}
 
 
+#define CODE_NEEDED \
+	if (1) {							\
+		fprintf(stderr, "\n\n%s: %d  CODE NEEDED HERE!\n\n", __FILE__, __LINE__); \
+		exit(1);						\
+		assert(0==1);						\
+	}
+
 int inla_ncpu(void)
 {
 #if defined(_SC_NPROCESSORS_ONLN)			       /* Linux, Solaris, AIX */
@@ -1323,19 +1330,70 @@ double link_special2(double x, map_arg_tp typ, void *param, double *cov)
 }
 double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov)
 {
-	assert(typ == MAP_FORWARD);
-
-	double shape, ret;
+	double shape, ret, dx;
 	double alpha = *((double *)param);
 
-	shape = exp(x) + 1.0;
-	if (shape > 400.0) {
-		ret = SQR(sqrt(shape) + sqrt(0.25) * gsl_cdf_ugaussian_Pinv(1.0-alpha));
-	} else {
-		ret = gsl_cdf_gamma_Pinv(1.0 - alpha, shape, 1.0);
+	switch(typ) {
+	case INVLINK: 
+	{
+		shape = exp(x) + 1.0;
+		if (shape > 400.0) {
+			ret = SQR(sqrt(shape) + sqrt(0.25) * gsl_cdf_ugaussian_Qinv(alpha));
+		} else {
+			ret = gsl_cdf_gamma_Qinv(alpha, shape, 1.0);
+		}
 	}
-	
+	break;
+
+	case LINK:
+	{
+		CODE_NEEDED;
+	}
+	break;
+
+	case DINVLINK: 
+	{
+		double dx = GMRFLib_eps(1.0/3.9134); // about 0.0001 on my laptop
+		double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
+		double wf_sum = 0.0;
+		int i, nwf = sizeof(wf)/sizeof(double), nwf2 = (nwf-1)/2; /* gives 5 and 2 */
+
+		for(i = 0; i < nwf; i++) {
+			wf_sum += wf[i] * link_qpoisson(x + (i-nwf2)*dx, INVLINK, param, cov);
+		}
+		return (wf_sum / dx);
+	}
+	break;
+
+	case LINKINCREASING:
+	{
+		return 1.0;
+	}
+	break;
+
+	default:
+	{
+		assert(0==1);
+	}
+	break;
+
+	}
+
 	return (ret);
+}
+double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
+{
+	assert(typ == MAP_FORWARD);
+
+	double *par = ((double *)param);
+	double alpha = par[0], n = par[1], p, q;
+
+	q = 2.0/(1.0 + exp(-x)) - 1.0;
+	p = gsl_cdf_beta_Pinv(1.0 - alpha, q + 1.0, n - q);
+
+	printf("alpha %g n %g q %g p %g\n", alpha, n, q, p);
+	
+	return (p);
 }
 double link_test1(double x, map_arg_tp typ, void *param, double *cov)
 {
@@ -5945,8 +6003,13 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 	}
 	int status;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], p;
+	double y = ds->data_observations.y[idx];
+	double n = ds->data_observations.nb[idx], p;
+	double q = ds->data_observations.quantile;
+	double link_args[2] = { q, n };
 
+	ds->predictor_invlinkfunc_arg = (void *) link_args;
+	
 	/*
 	 * this is a special case that should just return 0 or 1
 	 */
@@ -11672,8 +11735,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_QLOGLOGISTIC:
 	case L_QLOGLOGISTICSURV:
 		GMRFLib_ASSERT(ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0, GMRFLib_EPARAMETER);
-		break;
-		
 	case L_LOGLOGISTIC:
 	case L_LOGLOGISTICSURV:
 		assert(ds->variant == 0 || ds->variant == 1);
@@ -13731,6 +13792,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->predictor_invlinkfunc = link_qpoisson;
 			ds->predictor_invlinkfunc_arg = (void *) &(ds->data_observations.quantile);
 			break;
+		case L_BINOMIAL:
+			ds->link_id = LINK_QBINOMIAL;
+			ds->link_ntheta = 0;
+			ds->predictor_invlinkfunc = link_qbinomial;
+			ds->predictor_invlinkfunc_arg = NULL; // add this in the likelihood function
+			break;
 		default:
 			assert(0 == 1);
 		}
@@ -13802,6 +13869,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case LINK_LOGIT:
 	case LINK_TAN:
 	case LINK_QPOISSON:
+	case LINK_QBINOMIAL:
 		/*
 		 * no parameters
 		 */
