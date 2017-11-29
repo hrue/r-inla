@@ -140,7 +140,7 @@
         cat("cenpoisson.I = ", interval[1], " ",  interval[2], "\n", sep="", file=file, append=TRUE)
     }
     
-    {
+    if (TRUE) {
         if (!is.null(control$quantile))
             stop("control.family=list(quantile=...) is disabled. Use control.family=list(control.link=list(quantile=...)) instead")
         quantile = control$control.link$quantile
@@ -149,7 +149,7 @@
                 stop(paste("quantile: Must be a numeric in the interval (0, 1)"))
             }
         } else {
-            quantile = -1
+            quantile = -1  ## so we get an error if used.
         }
         cat("quantile = ", quantile, "\n", sep="", file=file, append=TRUE)
     }
