@@ -5072,7 +5072,7 @@
                      survival = FALSE,
                      discrete = TRUE,
                      link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog",
-                              "log", "sslogit", "logitoffset"),
+                              "log", "sslogit", "logitoffset", "quantile"),
                      pdf = "binomial"
                      ),
 

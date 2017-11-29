@@ -118,7 +118,8 @@ typedef enum {
 	/*
 	 * return 1 is monotone increasing and 0 otherwise
 	 */
-	MAP_INCREASING = GMRFLib_TRANSFORM_INCREASING	       /* = 4 */
+	MAP_INCREASING = GMRFLib_TRANSFORM_INCREASING, 	       /* = 4 */
+	LINKINCREASING = GMRFLib_TRANSFORM_INCREASING
 } map_arg_tp;
 
 typedef double map_func_tp(double arg, map_arg_tp typ, void *param);
@@ -574,7 +575,8 @@ typedef enum {
 	LINK_CAUCHIT,
 	LINK_LOGITOFFSET,
 	LINK_INVERSE,
-	LINK_QPOISSON
+	LINK_QPOISSON,
+	LINK_QBINOMIAL
 } inla_component_tp;
 
 
@@ -1388,12 +1390,13 @@ double link_loglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_logoffset(double x, map_arg_tp typ, void *param, double *cov);
 double link_neglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_probit(double x, map_arg_tp typ, void *param, double *cov);
+double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov);
+double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov);
 double link_special1(double x, map_arg_tp typ, void *param, double *cov);
 double link_special2(double x, map_arg_tp typ, void *param, double *cov);
 double link_sslogit(double x, map_arg_tp typ, void *param, double *cov);
 double link_tan(double x, map_arg_tp typ, void *param, double *cov);
 double link_test1(double x, map_arg_tp typ, void *param, double *cov);
-double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov);
 double link_this_should_not_happen(double x, map_arg_tp typ, void *param, double *cov);
 double map_1exp(double arg, map_arg_tp typ, void *param);
 double map_H(double x, map_arg_tp typ, void *param);
