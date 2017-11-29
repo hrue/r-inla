@@ -69,6 +69,9 @@ static const char RCSId[] = HGVERSION;
 #include <sys/sysctl.h>
 #endif
 
+#define MATHLIB_STANDALONE 
+#include <Rmath.h>
+
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
@@ -1388,11 +1391,9 @@ double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
 	double *par = ((double *)param);
 	double alpha = par[0], n = par[1], p, q;
 
-	q = 2.0/(1.0 + exp(-x)) - 1.0;
-	p = gsl_cdf_beta_Pinv(1.0 - alpha, q + 1.0, n - q);
+	q = 1.0/(1.0 + exp(-x));
+	p = qbeta(alpha, n*q + 1.0, n * (1.0 - q), 0, 0);
 
-	printf("alpha %g n %g q %g p %g\n", alpha, n, q, p);
-	
 	return (p);
 }
 double link_test1(double x, map_arg_tp typ, void *param, double *cov)
