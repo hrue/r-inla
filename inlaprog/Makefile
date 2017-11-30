@@ -21,7 +21,7 @@ LEXTPREFIX = $(PREFIX)
 
 # The external libraries to link with
 EXTLIBS1 = -L$(PREFIX)/lib -lGMRFLib -L$(LEXTPREFIX)/lib 
-EXTLIBS2 = -lgsl -ltaucs -lmetis -llapack -lblas -lgslcblas -lamd -lmuparser -lz -lgfortran
+EXTLIBS2 = -lRmath -lgsl -ltaucs -lmetis -llapack -lblas -lgslcblas -lamd -lmuparser -lz -lgfortran
 EXTLIBS3 = -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -lm
 
 EXTLIBS = $(EXTLIBS1) $(EXTLIBS2) $(EXTLIBS3)
@@ -47,7 +47,7 @@ FFLAGS  = $(FLAGS) $(FCEXTRAFLAGS) $(INCL)
 CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DHGVERSION="\"${HGVERSION}\""
 
 INLA = inla
-OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/sha1.o src/spde.o src/spde2.o src/spde3.o src/eval.o src/interpol.o src/re.o src/ar.o src/bessel.o src/pc-priors.o src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o
+OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/sha1.o src/spde.o src/spde2.o src/spde3.o src/eval.o src/interpol.o src/re.o src/ar.o src/bessel.o src/pc-priors.o src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o src/from-R.o
 all: $(INLA)
 
 $(INLA) : $(OBJ)
