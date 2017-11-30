@@ -69,7 +69,7 @@ static const char RCSId[] = HGVERSION;
 #include <sys/sysctl.h>
 #endif
 
-#define MATHLIB_STANDALONE 
+//#define MATHLIB_STANDALONE 
 #include <Rmath.h>
 
 #include "GMRFLib/GMRFLib.h"
