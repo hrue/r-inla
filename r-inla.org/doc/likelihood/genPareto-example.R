@@ -17,7 +17,7 @@ y = rgp(n, eta = eta, alpha = alpha, xi=xi)
 r = inla(y ~ 1+x,
          data = data.frame(y, x), 
          family = "gp",
-         control.family = list(quantile = alpha), 
+         control.family = list(control.link = list(quantile = alpha)), 
          control.predictor = list(compute=TRUE),
          verbose=TRUE)
 
