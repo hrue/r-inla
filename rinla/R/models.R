@@ -5287,7 +5287,7 @@
                          ),
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "log", "logoffset"),
+                     link = c("default", "log", "logoffset", "quantile"),
                      pdf = "nbinomial"
                      ),
 
