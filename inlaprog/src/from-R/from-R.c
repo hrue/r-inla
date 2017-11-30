@@ -5475,3 +5475,8 @@ double F77_NAME(d1mach)(int *i)
 {
     return Rf_d1mach(*i);
 }
+#include "from-R.h"
+int R_finite(double x)
+{
+	return R_FINITE(x);
+}
