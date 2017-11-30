@@ -94,7 +94,6 @@ __BEGIN_DECLS
 #include <float.h> /* DBL_MIN etc */
 
 #include <Rconfig.h>
-#include <Rmath.h>
 
 /* Used internally only */
 double  Rf_d1mach(int);
@@ -162,16 +161,7 @@ void R_CheckUserInterrupt(void);
 #define MATHLIB_WARNING5(fmt,x,x2,x3,x4,x5) printf(fmt,x,x2,x3,x4,x5)
 
 #define ISNAN(x) (isnan(x)!=0)
-// Arith.h defines it
-#ifndef R_FINITE
-#ifdef HAVE_WORKING_ISFINITE
-/* isfinite is defined in <math.h> according to C99 */
-# define R_FINITE(x)    isfinite(x)
-#else
-# define R_FINITE(x)    R_finite(x)
-#endif
-#endif
-int R_finite(double);
+
 
 #define ML_POSINF	(1.0 / 0.0)
 #define ML_NEGINF	((-1.0) / 0.0)
@@ -413,8 +403,14 @@ double bd0(double x, double np);
 double stirlerr(double n);
 
 //#define R_D_nonint_check(x) assert((int)(x) == (x))
-//#undef R_FINITE
-//#define R_FINITE(x) (!gsl_isinf(x))
+
+#undef R_FINITE
+#define R_FINITE(x) (!gsl_isinf(x))
+#undef R_INFINITE
+#define R_INFINITE(x) (gsl_isinf(x))
+#define R_pow_di(x, y) pow((x), (double)(y))
 
 __END_DECLS
 #endif
+
+
