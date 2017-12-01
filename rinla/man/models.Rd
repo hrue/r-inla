@@ -6231,7 +6231,7 @@ inla.models()
 								\item{doc = }{`The negBinomial likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default log logoffset'}
+								\item{link = }{`default log logoffset quantile'}
 								\item{pdf = }{`nbinomial'}
 							 }
 						 }
