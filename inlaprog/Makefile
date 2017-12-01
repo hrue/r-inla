@@ -7,10 +7,11 @@ VERSION=snapshot
 # if you use a relative path, you have to modify the Makefile in the
 # $(PREFIX)/doc/examples yourself.
 PREFIX = /usr/local
-RLIB_INC = -I/usr/include -I/usr/include/R
 
 ## *** chose either one of these ***
+RLIB_INC = -DINLA_LIBR -I/usr/include -I/usr/include/R
 RLIB_LIB = -L/usr/lib/R/lib -lR
+##RLIB_INC = -I/usr/include -I/usr/include/R
 ##RLIB_LIB = -L/usr/lib -lRmath
 
 # select compilers and optimized compiler-options, add -fopenmp or similar to use OpenMP
