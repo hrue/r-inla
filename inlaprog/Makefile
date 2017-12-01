@@ -9,9 +9,9 @@ VERSION=snapshot
 PREFIX = /usr/local
 
 ## *** chose either one of these ***
-RLIB_INC = -DINLA_LIBR -I/usr/include -I/usr/include/R
+RLIB_INC = -DINLA_LIBR -I/usr/include -I/usr/include/R -I/usr/share/R/include
 RLIB_LIB = -L/usr/lib/R/lib -lR
-##RLIB_INC = -I/usr/include -I/usr/include/R
+##RLIB_INC = -I/usr/include -I/usr/include/R -I/usr/share/R/include
 ##RLIB_LIB = -L/usr/lib -lRmath
 
 # select compilers and optimized compiler-options, add -fopenmp or similar to use OpenMP
