@@ -5531,6 +5531,8 @@ inla.models()
 				 }
 				\item{Model `tan'.}{Number of hyperparmeters are 0.
 				 }
+				\item{Model `quantile'.}{Number of hyperparmeters are 0.
+				 }
 				\item{Model `sslogit'.}{Number of hyperparmeters are 2.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
@@ -6096,12 +6098,12 @@ inla.models()
 						\item{Hyperparameter `theta'}{
 							 \describe{
 							\item{hyperid = }{`60011'}
-							\item{name = }{`precision parameter'}
-							\item{short.name = }{`prec'}
-							\item{initial = }{`2'}
+							\item{name = }{`log alpha'}
+							\item{short.name = }{`alpha'}
+							\item{initial = }{`1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`1 0.001'}
+							\item{param = }{`25 25'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
@@ -6110,10 +6112,40 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
-								\item{doc = }{`A quantile version of the logistic likelihood'}
+								\item{doc = }{`A quantile loglogistic likelihood'}
+								\item{status = }{`changed:Oct.25.2017'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default log'}
+								\item{link = }{`default log neglog'}
+								\item{pdf = }{`qloglogistic'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `qloglogisticsurv'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{hyperid = }{`60021'}
+							\item{name = }{`log alpha'}
+							\item{short.name = }{`alpha'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`25 25'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`A quantile loglogistic likelihood (survival)'}
+								\item{status = }{`changed:Oct.25.2017'}
+								\item{survival = }{`TRUE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default log neglog'}
 								\item{pdf = }{`qloglogistic'}
 							 }
 						 }
@@ -6199,7 +6231,7 @@ inla.models()
 								\item{doc = }{`The negBinomial likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default log logoffset'}
+								\item{link = }{`default log logoffset quantile'}
 								\item{pdf = }{`nbinomial'}
 							 }
 						 }
@@ -6653,7 +6685,7 @@ inla.models()
 							\item{hyperid = }{`77101'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
-							\item{initial = }{`4'}
+							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
@@ -6681,7 +6713,7 @@ inla.models()
 							\item{hyperid = }{`78001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
-							\item{initial = }{`2'}
+							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
@@ -6693,7 +6725,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
-								\item{doc = }{`The log-Normal likelihood (survival version)'}
+								\item{doc = }{`The log-Normal likelihood (survival)'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
@@ -6755,7 +6787,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
-								\item{doc = }{`The Weibull likelihood (survival version)'}
+								\item{doc = }{`The Weibull likelihood (survival)'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}
@@ -6783,7 +6815,37 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
-								\item{doc = }{`The log-logistic likelihood (survival version)'}
+								\item{doc = }{`The loglogistic likelihood'}
+								\item{status = }{`changed:Oct.25.2017'}
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default log neglog'}
+								\item{pdf = }{`loglogistic'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `loglogisticsurv'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{hyperid = }{`80011'}
+							\item{name = }{`log alpha'}
+							\item{short.name = }{`alpha'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`25 25'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`The loglogistic likelihood (survival)'}
+								\item{status = }{`changed:Oct.25.2017'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}
@@ -6824,7 +6886,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
-								\item{doc = }{`The Weibull-cure likelihood (survival version)'}
+								\item{doc = }{`The Weibull-cure likelihood (survival)'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}
