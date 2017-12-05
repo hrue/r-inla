@@ -3,9 +3,9 @@
 ## function for group-wise model criticism; see ?inla.cut for documentation.          ## 
 ##                                                                                    ##
 ## For details see Section 4.2 of the following paper:                                ##
-## Egil Ferkingstad, Leonhard Held and Håvard Rue.                                    ##
+## Egil Ferkingstad, Leonhard Held and Havard Rue.                                    ##
 ## Fast and accurate Bayesian model criticism and conflict diagnostics using R-INLA.  ##
-## Published in Stat, doi: 10.1002/sta4.163, 2017.                                    ##     
+## Published in Stat, 6:331-344, 2017, doi: 10.1002/sta4.163.                         ##     
 ## Available as arXiv preprint arXiv:1708.03272: http://arxiv.org/abs/1708.03272      ##
 ########################################################################################
 
@@ -17,13 +17,17 @@ library(maptools)
 library(sp)
 library(spdep)
 georgia <- readShapePoly("co13_d00.shp")
+## Need to drop extra polygons 98 (Macon county polygon), 100, 105 (Taylor county polygons) + 137 (Lee county polygon)
+## These are very small and always adjacent to "main" polygon, so we can base neighborhood structure on "main" polygon:
+rmIdx <- c(98, 100, 105, 137)
+georgia <- georgia[-rmIdx,]
 data.georgia = attr(georgia, "data")
 #################################################
 #Create the graph for adjacencies in INLA
 #Need the non thinned sph file to do the adjacency matrix!!!
 zzz <- poly2nb(georgia)
 nb2INLA("Georgia.graph", zzz)
-#this creates a file called "LDN-INLA.adj" with the graph for INLA
+#this creates a file called "Georgia.graph" with the graph for INLA
 Georgia.adj <<- paste(getwd(),"/Georgia.graph",sep="")
 
 #Order based on the map
@@ -110,3 +114,4 @@ spplot(g)
 
 ## P-values for the two divergent counties:
 print(sort(p)[1:2])
+
