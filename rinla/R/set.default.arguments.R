@@ -151,6 +151,9 @@
         ##:ARGUMENT: hyper Definition of the hyperparameter(s) for the link model chosen
         hyper = NULL,
 
+        ##:ARGUMENT: quantile The quantile for quantile link function
+        quantile = NULL,
+
         ##:ARGUMENT: initial (OBSOLETE!) The initial value(s) for the hyperparameter(s)
         initial = NULL,
 
@@ -277,9 +280,6 @@
 
         ##:ARGUMENT: cenpoisson.I The censoring interval for the censored Poisson
         cenpoisson.I = c(-1L, -1L),
-
-        ##:ARGUMENT: quantile The quantile to be used for the quantile parameterised likelihoods (default 0.5)
-        quantile = 0.5, 
 
         ##:ARGUMENT: variant This variable is used to give options for various variants of the likelihood,  like chosing different parameterisations for example. See the relevant likelihood documentations for options (does only apply to some likelihoods).
         variant = 0L,

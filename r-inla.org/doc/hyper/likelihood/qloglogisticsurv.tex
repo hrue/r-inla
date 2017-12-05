@@ -1,15 +1,15 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] The Weibull likelihood (survival)
+	\item[doc] A quantile loglogistic likelihood (survival)
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 79101
+	 	 	\item[hyperid] 60021
 	 	 	\item[name] log alpha
 	 	 	\item[short.name] alpha
-	 	 	\item[initial] 0
+	 	 	\item[initial] 1
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] loggamma
 	 	 	\item[param] 25 25
@@ -17,8 +17,9 @@
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 \end{description}
+	\item[status] changed:Oct.25.2017
 	\item[survival] TRUE
 	\item[discrete] FALSE
 	\item[link] default log neglog
-	\item[pdf] weibull
+	\item[pdf] qloglogistic
 \end{description}
