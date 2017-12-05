@@ -403,6 +403,12 @@
     ##!}
     ##!}
 {
+    ## This will prevent values of 'OutDec' not '.' to cause error, as we create the Model.ini
+    ## file with cat().
+    old.options = options()
+    on.exit(options(old.options))
+    options(OutDec=".")
+    
     my.time.used = numeric(4)
     my.time.used[1] = Sys.time()
 

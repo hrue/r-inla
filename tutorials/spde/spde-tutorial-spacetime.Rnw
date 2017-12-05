@@ -13,15 +13,15 @@ options(width=75, prompt = " ", continue = "   ")
 library(lattice) 
 library(INLA)
 lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
-inla.setOption(num.threads=8)
+#inla.setOption(inla.call='remote')
+inla.setOption(num.threads=4)
 source('R/spde-tutorial-functions.R')
 load('prmesh1.RData')
 @ 
 
 In this chapter we show an example on fitting 
 a space-time model. This model is a separable 
-one described on \cite{cameletti:2012}. 
+one described on \cite{camelettietal:2012}. 
 Basically the model is defined as a SPDE 
 model for the spatial domain and an AR($1$) model for the time dimention. 
 The space-time separable model is defined 
@@ -37,7 +37,7 @@ However, both cases allows to have different locations at different times.
 \section{Discrete time domain}
 
 In this section we show how to fit a space-time separable model, 
-as in \cite{cameletti:2012}. 
+as in \cite{camelettietal:2012}. 
 Additionally, we show the use of a categorical covariate. 
 
 \subsection{Data simulation} 
@@ -101,7 +101,7 @@ for (j in 2:k)
 where the $\sqrt(1-\rho^2)$ term is added as we 
 would like to consider that the innovation noise 
 follows the stationary distribution, 
-see \cite{RueHeld:2005} and \cite{cameletti:2012}.
+see \cite{RueHeld:2005} and \cite{camelettietal:2012}.
 
 We can visualize the realization 
 at the figure~\ref{fig:timevisual} 
@@ -223,7 +223,7 @@ To deal with the categorical covariate we need
 to set \code{expand.factor.strategy='inla'} 
 on the \code{control.fixed} argument list. 
 <<remote,echo=FALSE>>=
-inla.setOption(inla.call='remote')
+##inla.setOption(inla.call='remote')
 @ 
 <<ft>>=
 formulae <- y ~ 0 + w + 
@@ -289,7 +289,7 @@ cor(dat$y, res$summary.linear.predictor$mean[idat])
 @ 
 
 We also can do prediction for each time and visualize it. 
-First, we define the projection grid in the same way that 
+First, we define the grid in the same way as 
 in the rainfall example in Section~\ref{sec:prprec}. 
 <<projgrid>>=
 stepsize <- 4*1/111

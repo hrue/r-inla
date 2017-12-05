@@ -84,6 +84,7 @@
                                     theta = result$mode$theta,
                                     x = result$mode$x,
                                     restart = recompute.mode)
+                            result$.args$control.compute$dic = result$.args$control.compute$waic = FALSE
                             rr = inla.rerun(result, plain = TRUE)$cpo
                             return (list(cpo = rr$cpo[idx], pit = rr$pit[idx], failure = rr$failure[idx]))
                         },  result = result, mc.cores = result$.args$num.threads)
