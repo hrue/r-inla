@@ -1,23 +1,25 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
+	\item[doc] A quantile loglogistic likelihood
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta]\ 
 	 	 \begin{description}
 	 	 	\item[hyperid] 60011
-	 	 	\item[name] precision parameter
-	 	 	\item[short.name] prec
-	 	 	\item[initial] 2
+	 	 	\item[name] log alpha
+	 	 	\item[short.name] alpha
+	 	 	\item[initial] 1
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 0.001
+	 	 	\item[param] 25 25
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 \end{description}
+	\item[status] changed:Oct.25.2017
 	\item[survival] FALSE
 	\item[discrete] FALSE
-	\item[link] default log
+	\item[link] default log neglog
 	\item[pdf] qloglogistic
 \end{description}

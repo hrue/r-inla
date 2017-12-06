@@ -32,7 +32,13 @@ else
     RHOME_LIB="$INLA_RHOME/lib"
 fi
 
-export DYLD_LIBRARY_PATH="$RHOME_LIB:$DIR:/usr/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
+## this is the system path for libPng.dylib needed by grDevices.so
+## when loadlib libR.dylib using rgeneric.
+pathA="/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources"
+pathB="/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries"
+LIBPNGPATH=$pathA:$pathB
+
+export DYLD_LIBRARY_PATH="$RHOME_LIB:$DIR:$LIBPNGPATH:/usr/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
 export LD_LIBRARY_PATH="$DYLD_LIBRARY_PATH"
 
 if [ "${INLA_DEBUG}XX" != "XX" ]; then

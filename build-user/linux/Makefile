@@ -80,7 +80,7 @@ all :;
 ## Package list updated 2014-08-23
 LIBPKG = liblapack-dev libgsl0-dev zlib1g-dev libsuitesparse-dev \
 	libmetis-dev libxdmcp-dev libx11-dev libc6-dev libatlas-dev \
-	libblas-dev libmuparser-dev 
+	libblas-dev libmuparser-dev r-mathlib
 
 lib-install :
 	$(APT) install $(LIBPKG)
