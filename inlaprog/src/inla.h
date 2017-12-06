@@ -602,7 +602,7 @@ typedef struct {
 #define PRIOR_EVAL(p_, arg_) (evaluate_hyper_prior? \
 			      ((p_).priorfunc ?				\
 			       (p_).priorfunc(arg_, (p_).parameters)  : \
-			       inla_eval((p_).expression, arg_)) \
+			       inla_eval((p_).expression, arg_, theta, ntheta)) \
 			      : 0.0)
 
 typedef struct {
