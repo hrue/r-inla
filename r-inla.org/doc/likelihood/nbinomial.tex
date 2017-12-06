@@ -31,22 +31,22 @@ and the mean is linked to the linear predictor by
     \mu = E \exp(\eta)
 \end{displaymath}
 where the hyperparameter $n$ (\emph{size}) plays the role of an
-overdispersion parameter. $E$ represents knows constant and $\log(E)$
+dispersion parameter. $E$ represents knows constant and $\log(E)$
 is the offset of $\eta$.
 
 \subsection*{Hyperparameters}
 
 The default parameterization (\verb|variant=0|) is that the
-overdispersion parameter $n$ (\emph{size}) is represented as
+dispersion parameter $n$ (\emph{size}) is represented as
 \begin{displaymath}
-    \theta = \log(n)
+    n = \exp(\theta)
 \end{displaymath}
 and the prior is defined on $\theta$. 
 
-An alternative parameterization (\verb|variant=1|) is that the
-overdispersion parameter $n$ (\emph{size}) is represented as
+If \verb|variant=1|, then
+dispersion parameter $n$ (\emph{size}) is represented as
 \begin{displaymath}
-    \theta = \log(n) - \log(E)
+    n = E\exp(\theta)
 \end{displaymath}
 and the prior is defined on $\theta$. 
 
@@ -57,7 +57,7 @@ and the prior is defined on $\theta$.
 \item Required arguments: $y$ and $E$ (default $E=1$).
 \item Chose variant with either
     \verb|control.family = list(variant=0)| (default) or\\
-    \verb|control.family = list(variant=1)|
+    \verb|control.family = list(variant=1)|.
 \end{itemize}
 
 \subsubsection*{Hyperparameter spesification and default values}
@@ -80,11 +80,12 @@ Poisson distribution. For numerical reasons, if $n$ is too large:
 \end{displaymath}
 then the Poisson limit is used.
 
+The PC-prior is available for \verb|variant=1|, see \verb|inla.doc("pc.gamma")|.
 
 \end{document}
 
 
-% LocalWords:  hyperparameter overdispersion Hyperparameters nbinomial
+% LocalWords:  hyperparameter dispersion Hyperparameters nbinomial
 
 %%% Local Variables: 
 %%% TeX-master: t

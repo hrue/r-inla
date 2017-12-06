@@ -17,7 +17,9 @@
 {
     if (is.null(y.orig)) {
         y.orig = c(mf[, 1L])
-    } else if (inherits(y.orig, "inla.surv")) {
+    } else if (is.inla.surv(y.orig)) {
+        y.orig = as.data.frame(unclass(y.orig))
+    } else if (is.inla.mdata(y.orig)) {
         y.orig = as.data.frame(unclass(y.orig))
     } else {
         y.orig = as.data.frame(y.orig)
@@ -104,8 +106,9 @@
         response = response[!null.dat,]
 
     } else if (inla.one.of(family, c("poisson",
-                                     "qpoisson", 
                                      "cenpoisson", 
+                                     "contpoisson", 
+                                     "qcontpoisson", 
                                      "gpoisson", 
                                      "zeroinflatedpoisson0",
                                      "zeroinflatedpoisson1", 
@@ -133,7 +136,7 @@
         null.dat = is.na(response[, 3L])
         response = response[!null.dat,]
 
-    } else if (inla.one.of(family, c("gammacount", "exponential", "weibull"))) {
+    } else if (inla.one.of(family, c("gammacount", "exponential", "weibull", "loglogistic"))) {
 
         response = cbind(ind, y.orig)
         null.dat = is.na(response[, 2L])
@@ -207,7 +210,8 @@
         null.dat = is.na(response[, 4L])
         response = response[!null.dat,]
 
-    } else if (inla.one.of(family, c("exponentialsurv", "weibullsurv", "weibullcure", "loglogistic",  "lognormalsurv"))) {
+    } else if (inla.one.of(family, c("exponentialsurv", "weibullsurv", "weibullcure",
+                                     "loglogisticsurv",  "qloglogisticsurv", "lognormalsurv"))) {
 
         if (!inla.model.properties(family, "likelihood")$survival) {
             file.remove(file)
@@ -248,12 +252,43 @@
         }
 
     } else if (inla.one.of(family, c("stochvol", "stochvolt", "stochvolnig", "loggammafrailty",
-                                     "iidlogitbeta", "qkumar", "qloglogistic"))) {
-
+                                     "iidlogitbeta", "qkumar", "qloglogistic", "gp"))) {
         response = cbind(ind, y.orig)
         null.dat = is.na(response[, 2L])
         response = response[!null.dat,]
 
+    } else if (inla.one.of(family, c("nmix", "nmixnb"))) {
+
+        ## yes. it must be the same for both model nmix and nmixnb
+        mmax = length(inla.model.properties(model="nmix", section="likelihood")$hyper)
+
+        response = cbind(IDX=ind, y.orig)
+        col.idx = grep("^IDX$", names(response))
+        col.x = grep("^X[0-9]+", names(response))
+        col.y = grep("^Y[0-9]+", names(response))
+        m.x = length(col.x)
+        m.y = length(col.y)
+        stopifnot(m.x >= 1 && m.x <= mmax)
+
+        ## remove entries with NA's in all responses
+        na.y = apply(response[, col.y, drop=FALSE], 1, function(x) all(is.na(x)))
+        response = response[!na.y,, drop=FALSE]
+
+        X = response[, col.x, drop=FALSE]
+        Y = response[, col.y, drop=FALSE]
+        idx = response[, col.idx, drop=FALSE]
+        yfake = rep(-1, nrow(Y))
+
+        ## replace NA's in the covariates with 0's
+        X[is.na(X)] = 0
+        ## augment X til the maximum allowed,  padding with NA's
+        X = cbind(X, matrix(NA, nrow = nrow(response), ncol = mmax -m.x)) 
+
+        ## sort each row so that the NA's are at the end. Sort numerically the non-NA's as well
+        ## although it is not required
+        Y = matrix(c(apply(Y, 1, function(x) c(sort(x[!is.na(x)]), x[is.na(x)]))), ncol = ncol(Y), byrow=TRUE)
+        response = cbind(idx, X, Y, yfake)
+        
     } else {
 
         file.remove(file)

@@ -1,0 +1,90 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+\newcommand{\vect}[1]{\boldsymbol{#1}}
+\begin{document}
+\section*{Weibull With Cure Fraction}
+
+\subsection*{Background}
+
+
+\begin{align*}
+Z_i & \sim \text{Bernoulli}(\rho)\\
+[Y_i | Z_i = 0] &\sim \text{Weibull}(\lambda_i, \alpha)\\
+[Y_i | Z_i = 1] & = \infty
+\end{align*}
+
+\subsection*{Parametrisation}
+
+
+
+The Weibull is parametrized as \texttt{variant=0} of the \texttt{weibull} family.
+\begin{displaymath}
+    f(y) = 
+    (1-\rho) \alpha y^{\alpha-1}
+    \lambda\exp( - \lambda  y^{\alpha}), 
+    \qquad  0 \leq y < \infty,
+    \qquad \alpha>0, \qquad \lambda>0
+\end{displaymath}
+
+\begin{description}
+\item[$\alpha$:] shape parameter.
+\item[$\rho$:] the cure fraction parameter
+\end{description}
+
+\subsection*{Link-function}
+
+The parameter $\lambda$ is linked to the linear predictor as:
+\[
+    \lambda = \exp(\eta)
+\]
+
+\subsection*{Hyperparameters}
+
+The $\alpha$ parameter is represented as
+\[
+    \theta_1 = \log\alpha
+\]
+and $\rho$ is transformed to
+\[
+\theta_2 = \log[\rho / (1-\rho)].
+\]
+The priors are defined on $\theta$.
+
+\subsection*{Specification}
+
+Response variable $y$ must be given using $\texttt{inla.surv()}$ 
+
+
+\subsubsection*{Hyperparameter spesification and default values}
+
+\begin{quote}
+    \input{../hyper/likelihood/weibullcure.tex}
+\end{quote}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+case \verbatiminput{example-weibullcure.R}
+
+\subsection*{Notes}
+
+\begin{itemize}
+\item Weibull model can be used for right censored, left censored,
+    interval censored data. If the observed times $y$ are large/huge,
+    then this can cause numerical overflow in the likelihood routine.
+    If you encounter this problem, try to scale the observatios,
+    \verb|time = time / max(time)| or similar.
+\end{itemize}
+
+
+\end{document}
+
+
+% LocalWords:  np Hyperparameters Ntrials
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

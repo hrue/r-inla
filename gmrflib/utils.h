@@ -19,14 +19,13 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
- * RCSId: $Id: utils.h,v 1.40 2009/07/08 22:57:26 hrue Exp $
  *
  */
 
@@ -80,6 +79,7 @@ double GMRFLib_log_apbex(double a, double b);
 int GMRFLib_2order_poleq(double *sol1, double *sol2, double a, double b, double c);
 int GMRFLib_adjust_vector(double *x, int n);
 int GMRFLib_dcmp(const void *a, const void *b);
+int GMRFLib_dcmp_r(const void *a, const void *b);
 int GMRFLib_dcmp_abs(const void *a, const void *b);
 int GMRFLib_find_nonzero(double *array, int len, int direction);
 int GMRFLib_fpe(void);
@@ -95,7 +95,8 @@ int GMRFLib_memcheck_register(void *p, size_t size, const char *file, const char
 int GMRFLib_memcheck_remove(void *p, const char *file, const char *funcname, int lineno, const char *id);
 int GMRFLib_print_darray(FILE * fp, double *x, int n, const char *desc);
 int GMRFLib_print_iarray(FILE * fp, int *x, int n, const char *desc);
-int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z, int (*compar) (const void *, const void *));
+int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z,
+		   int (*compar) (const void *, const void *));
 int GMRFLib_scale_vector(double *x, int n);
 int GMRFLib_unique_additive(int *n, double *x, double eps);
 int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps);

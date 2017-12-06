@@ -28,23 +28,26 @@
 
 `inla.trim` = function(string)
 {
-    ## trim leading and trailing whitespaces and dots. there is a
-    ## function in R.oo called `trim' that do this, but I don't want
-    ## INLA to be dependent on R.oo. This function also works the
-    ## string is a list of strings.
+    ## trim leading and trailing whitespaces. there is a function in R.oo called `trim' that do
+    ## this, but I don't want INLA to be dependent on R.oo. This function also works the string
+    ## is a list of strings.
 
-    string = gsub("^[ \t.]+", "", string)
-    string = gsub("[ \t.]+$", "", string)
+    string = gsub("^[ \t]+", "", string)
+    string = gsub("[ \t]+$", "", string)
     return (string)
 }
 
 `inla.namefix` = function(string)
 {
-    ## makes inla-name from string
-    if (FALSE) {
-        string = inla.trim(string)
-        string = gsub("[^A-Za-z0-9.*]+", ".", string)
-        string = gsub("[.]+", ".", string)
+    ## must be the same as in iniparser.h
+    re = "[$]" 
+    re.to = "|S|"
+    old.string = inla.trim(string)
+    ## special characters, need to do something
+    while(TRUE) {
+        string = gsub(re, re.to, old.string)
+        if (string == old.string) break
+        old.string = string
     }
     return (string)
 }
@@ -867,27 +870,34 @@
 `inla.ginv` = function(x, tol = sqrt(.Machine$double.eps), rankdef = NULL)
 {
     ## from MASS:::ginv, but with added option 'rankdef'.
-    if (!is.matrix(x))
+    if (!is.matrix(x)) {
         x <- as.matrix(x)
-    if (length(dim(x)) > 2 || !(is.numeric(x) || is.complex(x)))
+    }
+    if (length(dim(x)) > 2 || !(is.numeric(x) || is.complex(x))) {
         stop("'x' must be a numeric or complex matrix")
+    }
+
     xsvd <- svd(x)
-    if (is.complex(x))
+    if (is.complex(x)) {
         xsvd$u <- Conj(xsvd$u)
+    }
+
     if (is.null(rankdef) || rankdef == 0) {
         Positive <- xsvd$d > max(tol * xsvd$d[1], 0)
-    }
-    else {
+    } else {
         n = length(xsvd$d)
         stopifnot(rankdef >= 1 && rankdef <= n)
         Positive <- c(rep(TRUE, n - rankdef), rep(FALSE, rankdef))
     }
-    if (all(Positive))
+
+    if (all(Positive)) {
         xsvd$v %*% (1/xsvd$d * t(xsvd$u))
-    else if (!any(Positive))
+    } else if (!any(Positive)) {
         array(0, dim(x)[2:1])
-    else xsvd$v[, Positive, drop = FALSE] %*% ((1/xsvd$d[Positive]) *
-        t(xsvd$u[, Positive, drop = FALSE]))
+    } else {
+        xsvd$v[, Positive, drop = FALSE] %*% ((1/xsvd$d[Positive]) *
+                                              t(xsvd$u[, Positive, drop = FALSE]))
+    }
 }
 `inla.gdet` = function(x, tol = sqrt(.Machine$double.eps), rankdef = NULL, log=TRUE)
 {
@@ -1024,7 +1034,7 @@
                    "Locations are too close for f(",
                    term, ", model=\"",
                    model, "\", ...): ",
-                   " min(diff(sort(x)))/diff(range(x)) = ",
+                   " min(diff(sort(x)))/diff(range(x)) = ", 
                    format(min.diff, scientific=TRUE, digits=4),
                    " < ", format(lim, scientific=TRUE, digits=4), "\n",
                    "  You can fix this by some kind of binning, see ?inla.group", "\n",
@@ -1039,9 +1049,11 @@
 
 `inla.dynload.workaround` = function()
 {
-    ## setup the static builds instead
-    d = dirname(inla.call.builtin())
-    inla.setOption(inla.call = paste(d,"/inla.static", sep=""))
-    inla.setOption(fmesher.call = paste(d,"/fmesher.static", sep=""))
+    if (inla.os("linux")) {
+        ## setup the static builds instead
+        d = dirname(inla.call.builtin())
+        inla.setOption(inla.call = paste(d,"/inla.static", sep=""))
+        inla.setOption(fmesher.call = paste(d,"/fmesher.static", sep=""))
+    }
     return (invisible())
 }

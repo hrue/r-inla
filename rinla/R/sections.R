@@ -2,6 +2,16 @@
 
 ### Functions to write the different sections in the .ini-file
 
+`inla.secsep` = function(secname) 
+{
+    sep = "$"
+    if (missing(secname)) {
+        return (sep)
+    } else {
+        return (paste0(sep, inla.namefix(secname), sep))
+    }
+}
+    
 `inla.write.hyper` = function(hyper, file, prefix="", data.dir, ngroup = -1L, low = -Inf, high = Inf)
 {
     stopifnot(!missing(hyper))
@@ -104,7 +114,7 @@
         link.covariates = link.covariates, data.dir)
 {
     ## this function is called from 'inla.family.section' only.
-    cat("[INLA.Data", i.family, "]\n", sep = "", file = file,  append = TRUE)
+    cat(inla.secsep(), "INLA.Data", i.family, inla.secsep(), "\n", sep = "", file = file,  append = TRUE)
     cat("type = data\n", sep = " ", file = file,  append = TRUE)
     cat("likelihood = ", family,"\n", sep = " ", file = file,  append = TRUE)
     cat("filename = ", file.data,"\n", sep = " ", file = file,  append = TRUE)
@@ -129,12 +139,19 @@
         }
         cat("cenpoisson.I = ", interval[1], " ",  interval[2], "\n", sep="", file=file, append=TRUE)
     }
-
-    if (inla.one.of(family, c("qloglogistic", "qkumar", "qpoisson"))) {
-        if (!(is.numeric(control$quantile) && (control$quantile > 0) && (control$quantile < 1))) {
-            stop(paste("quantile: Must be a numeric in the interval (0, 1)"))
+    
+    if (TRUE) {
+        if (!is.null(control$quantile))
+            stop("control.family=list(quantile=...) is disabled. Use control.family=list(control.link=list(quantile=...)) instead")
+        quantile = control$control.link$quantile
+        if (is.numeric(quantile)) {
+            if ((quantile <= 0.0) || (quantile >= 1.0)) {
+                stop(paste("quantile: Must be a numeric in the interval (0, 1)"))
+            }
+        } else {
+            quantile = -1  ## so we get an error if used.
         }
-        cat("quantile = ", control$quantile, "\n", sep="", file=file, append=TRUE)
+        cat("quantile = ", quantile, "\n", sep="", file=file, append=TRUE)
     }
 
     if (inla.one.of(family, c("sn", "skewnormal"))) {
@@ -220,10 +237,10 @@
 `inla.ffield.section` = function(file, file.loc, file.cov, file.id.names = NULL,  n, nrep, ngroup,
         file.extraconstr, file.weights, random.spec, results.dir, only.hyperparam, data.dir)
 {
-    label= inla.namefix(random.spec$term)
+    label= random.spec$term
     prop = inla.model.properties(random.spec$model, "latent", stop.on.error=TRUE)
 
-    cat("[", label,"]\n", sep = "", file = file,  append = TRUE)
+    cat(inla.secsep(label), "\n", sep = "", file = file,  append = TRUE)
     cat("dir = ", results.dir,"\n", sep = " ", file = file,  append = TRUE)
     cat("type = ffield\n", sep = " ", file = file,  append = TRUE)
     cat("model = ", random.spec$model,"\n", sep = " ", file = file,  append = TRUE)
@@ -281,7 +298,7 @@
         cat("range.low  =", random.spec$range[1], "\n", sep = " ", file = file, append = TRUE)
         cat("range.high =", random.spec$range[2], "\n", sep = " ", file = file, append = TRUE)
     }
-    if (inla.one.of(random.spec$model, c("rw1", "rw2", "besag", "bym", "bym2", "besag2", "rw2d", "rw2diid"))) {
+    if (inla.one.of(random.spec$model, c("rw1", "rw2", "besag", "bym", "bym2", "besag2", "rw2d", "rw2diid", "seasonal"))) {
         if (is.null(random.spec$scale.model)) {
             random.spec$scale.model = inla.getOption("scale.model.default")
         }
@@ -311,7 +328,8 @@
             if (inla.one.of(random.spec$model, "bym2")) {
                 random.spec$hyper$theta2$prior = inla.pc.bym.phi(
                     graph = random.spec$graph,
-                    rankdef = random.spec$rankdef,
+                    ## have to do this automatic
+                    ## rankdef = random.spec$rankdef,
                     u = random.spec$hyper$theta2$param[1L],
                     alpha = random.spec$hyper$theta2$param[2L],
                     scale.model = TRUE,
@@ -530,7 +548,35 @@
         cat("slm.Cmatrix = ", file.C, "\n", append=TRUE, sep = " ", file = file)
     }
 
-    ## if the Cmatrix is defined we need to process it except if its
+    if (inla.one.of(random.spec$model, "ar1c")) {
+        Z = random.spec$args.ar1c$Z
+        Q.beta = random.spec$args.ar1c$Q.beta
+        ar1c.n = dim(Z)[1L]
+        ar1c.m = dim(Z)[2L]
+
+        cat("ar1c.n = ", ar1c.n,"\n", append=TRUE, sep = " ", file = file)
+        cat("ar1c.m = ", ar1c.m,"\n", append=TRUE, sep = " ", file = file)
+
+        ## matrix Z
+        Z[ar1c.n, ] = 0  ## not used
+        file.Z = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(Z, filename = file.Z)
+        file.Z = gsub(data.dir, "$inladatadir", file.Z, fixed=TRUE)
+        cat("ar1c.Z = ", file.Z, "\n", append=TRUE, sep = " ", file = file)
+
+        ## matrix t(Z) %*% Z (makes my life simpler)
+        ZZ = t(Z) %*% Z
+        file.ZZ = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(ZZ, filename = file.ZZ)
+        file.ZZ = gsub(data.dir, "$inladatadir", file.ZZ, fixed=TRUE)
+        cat("ar1c.ZZ = ", file.ZZ, "\n", append=TRUE, sep = " ", file = file)
+
+        file.Qbeta = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(Q.beta, filename = file.Qbeta)
+        file.Qbeta = gsub(data.dir, "$inladatadir", file.Qbeta, fixed=TRUE)
+        cat("ar1c.Qbeta = ", file.Qbeta, "\n", append=TRUE, sep = " ", file = file)
+    }
+
     ## the z-model for which this has already been done.
     if (!inla.one.of(random.spec$model, c("z", "generic3")) && !is.null(random.spec$Cmatrix)) {
         if (is.character(random.spec$Cmatrix)) {
@@ -595,29 +641,9 @@
         cat("rgeneric.file =", fnm, "\n", file=file, append = TRUE)
         cat("rgeneric.model =", model, "\n", file=file, append = TRUE)
         rm(model) ## do not need it anymore
-
-        if (!is.null(random.spec$rgeneric$R.init)) {
-            ## if the file exists, try to inla.load it. if its = save.image,  then save the
-            ## image and load it (later). otherwise,  interpret it as R-commands.
-            if (is.function(random.spec$rgeneric$R.init) &&
-                identical(random.spec$rgeneric$R.init, save.image)) {
-                tfile = tempfile()
-                save.image(file=tfile)
-                fnm = inla.copy.file.for.section(tfile, data.dir)
-                unlink(tfile)
-            } else if (file.exists(random.spec$rgeneric$R.init)) {
-                fnm = inla.copy.file.for.section(random.spec$rgeneric$R.init, data.dir)
-            } else {
-                tfile = tempfile()
-                cat(random.spec$rgeneric$R.init, "\n", file = tfile)
-                fnm = inla.copy.file.for.section(tfile, data.dir)
-                unlink(tfile)
-            }
-            cat("rgeneric.Rinit =", fnm, "\n", file=file, append = TRUE)
-        }
     }
 
-    if (inla.one.of(random.spec$model, c("ar", "fgn"))) {
+    if (inla.one.of(random.spec$model, c("ar", "fgn", "fgn2"))) {
         cat("order = ", random.spec$order, "\n", append=TRUE, sep = " ", file = file)
     }
 
@@ -631,14 +657,25 @@
     return (random.spec)
 }
 
-`inla.inla.section` = function(file, inla.spec)
+`inla.inla.section` = function(file, inla.spec, data.dir)
 {
-    cat("[INLA.Parameters]\n", sep = " ", file = file,  append = TRUE)
+    cat(inla.secsep("INLA.Parameters"), "\n", sep = " ", file = file,  append = TRUE)
     cat("type = inla\n", sep = " ", file = file,  append = TRUE)
 
     if (!is.null(inla.spec$int.strategy)) {
         cat("int.strategy = ", inla.spec$int.strategy,"\n", sep = " ", file = file,  append = TRUE)
     }
+
+    if (inla.one.of(inla.spec$int.strategy, c("user", "user.std"))) {
+        if (is.null(inla.spec$int.design)) {
+            stop(paste0("int.strategy = 'user' or 'user.std' require the integration design in 'int.design'"))
+        }
+        file.A = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(as.matrix(inla.spec$int.design), filename = file.A)
+        file.A = gsub(data.dir, "$inladatadir", file.A, fixed=TRUE)
+        cat("int.design = ", file.A, "\n", sep = " ", file = file,  append = TRUE)
+    }
+
     if (!is.null(inla.spec$strategy)) {
         cat("strategy = ", inla.spec$strategy,"\n", sep = " ", file = file,  append = TRUE)
     }
@@ -797,7 +834,7 @@
     ## n = NPredictor
     ## m = MPredictor
 
-    cat("[Predictor]\n", sep = " ", file = file,  append = TRUE)
+    cat(inla.secsep("Predictor"), "\n", sep = " ", file = file,  append = TRUE)
     cat("type = predictor\n", sep = " ", file = file,  append = TRUE)
     cat("dir = predictor\n", sep = " ", file = file, append = TRUE)
     cat("n = ", n, "\n", sep = " ", file = file,  append = TRUE)
@@ -868,7 +905,6 @@
 
         file.A=inla.tempfile(tmpdir=data.dir)
         inla.write.fmesher.file(Aext, filename = file.A)
-
         file.A = gsub(data.dir, "$inladatadir", file.A, fixed=TRUE)
         cat("Aext = ", file.A, "\n", append=TRUE, sep = " ", file = file)
         cat("AextPrecision = ", predictor.spec$precision, "\n", append=TRUE, sep = " ", file = file)
@@ -899,12 +935,12 @@
 
     ## libR-stuff
     cat("\n", sep = " ", file = file,  append = TRUE)
-    cat("[INLA.libR]\n", sep = " ", file = file,  append = TRUE)
+    cat(inla.secsep("INLA.libR"), "\n", sep = " ", file = file,  append = TRUE)
     cat("type = libR\n", sep = " ", file = file,  append = TRUE)
     cat("R_HOME = ", Sys.getenv("R_HOME"), "\n", sep = "", file = file,  append = TRUE)
 
     cat("\n", sep = " ", file = file,  append = TRUE)
-    cat("[INLA.Model]\n", sep = " ", file = file,  append = TRUE)
+    cat(inla.secsep("INLA.Model"), "\n", sep = " ", file = file,  append = TRUE)
     cat("type = problem\n", sep = " ", file = file,  append = TRUE)
     cat("dir = $inlaresdir\n", sep = " ", file = file,  append = TRUE)
     cat("openmp.strategy = ", openmp.strategy, "\n", sep = " ", file = file,  append = TRUE)
@@ -944,7 +980,7 @@
 
 `inla.linear.section` = function(file, file.fixed, label, results.dir, control.fixed, only.hyperparam)
 {
-    cat("[", inla.namefix(label), "]\n", sep = "", file = file,  append = TRUE)
+    cat(inla.secsep(label), "\n", sep = "", file = file,  append = TRUE)
     cat("dir = ", results.dir,"\n", sep = " ", file = file,  append = TRUE)
     cat("type = linear\n", sep = " ", file = file,  append = TRUE)
     cat("covariates = ", file.fixed,"\n", sep = " ", file = file,  append = TRUE)
@@ -984,14 +1020,14 @@
     cat("precision = ", prec, "\n", sep = " ", file = file,  append = TRUE)
     cat("\n", sep = " ", file = file,  append = TRUE)
 
-    return (list(label = inla.namefix(label), prior.mean = mean, prior.prec = prec))
+    return (list(label = label, prior.mean = mean, prior.prec = prec))
 }
 
 `inla.mode.section` = function(file, args, data.dir)
 {
     if (!is.null(args$result) || !is.null(args$theta) || !is.null(args$x)) {
 
-        cat("[INLA.Control.Mode]\n", sep = " ", file = file,  append = TRUE)
+        cat(inla.secsep("INLA.Control.Mode"), "\n", sep = " ", file = file,  append = TRUE)
         cat("type = mode\n", sep = " ", file = file,  append = TRUE)
 
         ## use default the mode in result if given
@@ -1039,7 +1075,7 @@
 
 `inla.expert.section` = function(file, args, data.dir)
 {
-    cat("[INLA.Expert]\n", sep = " ", file = file,  append = TRUE)
+    cat(inla.secsep("INLA.Expert"), "\n", sep = " ", file = file,  append = TRUE)
     cat("type = expert\n", sep = " ", file = file,  append = TRUE)
 
     if (!is.null(args$cpo.manual) && args$cpo.manual) {
@@ -1047,17 +1083,23 @@
         ## recall to convert to 0-based index'ing
         cat("cpo.idx = ", args$cpo.idx -1,"\n", sep = " ", file = file,  append = TRUE)
     }
-    if (!is.null(args$jp.func)) {
-        cat("jp.func = ", args$jp.func, "\n", sep = " ", file = file, append = TRUE)
-        if (!is.null(args$jp.Rfile)) {
-            fnm = inla.copy.file.for.section(args$jp.Rfile, data.dir)
-            cat("jp.Rfile = ", fnm, "\n", sep = " ", file = file,  append = TRUE)
-        }
-        if (!is.null(args$jp.RData)) {
-            fnm = inla.copy.file.for.section(args$jp.RData, data.dir)
-            cat("jp.RData = ", fnm, "\n", sep = " ", file = file,  append = TRUE)
-        }
+
+    if (!is.null(args$jp)) {
+        stopifnot(inherits(args$jp, "inla.jp"))
+        file.jp = inla.tempfile(tmpdir=data.dir)
+        ## this must be the same name as R_JP_MODEL in inla.h
+        model = ".inla.jp.model"
+        assign(model, args$jp$model)
+        ## save model, or the object that 'model' expands to
+        inla.eval(paste("save(", model,
+                        ", file = ", "\"", file.jp, "\"",
+                        ", ascii = FALSE, compress = TRUE)",  sep=""))
+        fnm = gsub(data.dir, "$inladatadir", file.jp, fixed=TRUE)
+        cat("jp.file =", fnm, "\n", file=file, append = TRUE)
+        cat("jp.model =", model, "\n", file=file, append = TRUE)
+        rm(model) ## do not need it anymore
     }
+
     if (is.null(args$disable.gaussian.check)) {
         args$disable.gaussian.check = FALSE
     }
@@ -1069,7 +1111,7 @@
     if (!is.null(contr$result) && length(contr$result$mode$theta) > 0L)
     {
         file.update = inla.tempfile(tmpdir=data.dir)
-        cat("[INLA.update]\n", sep = " ", file = file,  append = TRUE)
+        cat(inla.secsep("INLA.update"), "\n", sep = " ", file = file,  append = TRUE)
         cat("type = update\n", sep = " ", file = file,  append = TRUE)
         x = c(
             length(contr$result$mode$theta),
@@ -1136,7 +1178,7 @@
                 prev.secnames = c(secname, prev.secnames)
             }
 
-            cat("\n[", secname, "]\n", sep = "", file = file,  append = TRUE)
+            cat("\n", inla.secsep(secname), "\n", sep = "", file = file,  append = TRUE)
             cat("type = lincomb\n", sep = " ", file = file,  append = TRUE)
             cat("lincomb.order = ", i, "\n", sep = " ", file = file,  append = TRUE)
             if (!is.null(contr$precision)) {
