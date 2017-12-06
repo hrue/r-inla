@@ -15,7 +15,7 @@
 ##!\item{sec}{An optional section to look for the documentation. If missing, all sections are used.}
 ##!\item{verbose}{Logical if \code{TRUE} then run in verbose mode}
 ##!}
-##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!\author{Havard Rue \email{hrue@r-inla.org}}
 ##!\seealso{\code{www.r-inla.org}}
 ##!\examples{
 ##!\dontrun{inla.doc("rw2")}

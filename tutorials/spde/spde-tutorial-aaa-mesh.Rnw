@@ -1,10 +1,23 @@
-\section{The triangulation}\label{ch:mesh} 
+%%% OOPS: change .Rnw, not .tex 
 
-\SweaveOpts{prefix.string=figs/mesh} 
-<<sett,echo=F,results=hide>>=
+\section{Triangulation details and examples}\label{sec:mesh}
+
+The R source for this file is available at 
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-aaa-mesh.R}
+You can play with the shiny app typing 
+\texttt{
+demo(mesh2d)
+}
+
+<<sett,include=FALSE,message=FALSE,warning=FALSE>>=
+library(knitr)
+opts_chunk$set(
+fig.path='figs/mesh',
+message=FALSE, warning=FALSE
+)
 options(width=75, prompt = " ", continue = "   ")
-require(INLA)
-@ 
+library(INLA)
+@
 
 The first step to fit the model is 
 the construction of the 'mesh'. 
@@ -21,7 +34,7 @@ This is necessary to avoid a
 boundary effect where we have a variance 
 twice as larger at the border than within the domain 
 \cite{lindgren:2012}. 
-For more about it please see \cite{lindgrenR:2013}. 
+For more about it please see \cite{lindgrenR:2015}. 
 
 \subsection{Getting started}
 
@@ -102,7 +115,7 @@ coords <- as.matrix(SPDEtoy[,1:2]) ;   p5 <- coords[1:5,]
 @ 
 We also build some meshes using the domain and not 
 the points and we define the domain with
-<<domain>>= 
+<<domain>>=
 pl.dom <- cbind(c(0,1,1,0.7,0), c(0,0,0.7,1,1))
 @ 
 
@@ -129,14 +142,12 @@ for (i in 1:9) {
   points(p5, pch=19, col=2)
 }
 @ 
-\setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
-<<vvizmesh,echo=F,results=hide,fig=TRUE,eps=FALSE,width=5.5,height=5.5>>=
+<<vvizmesh,echo=F,results='hide',fig.width=5.5,fig.height=5.5,out.width='0.97\\textwidth'>>=
 <<vizmesh>>
 @ 
 \caption{Triangulation with different restrictions.}
-\label{fig:meshtest}
-\end{figure}
+\end{figure}\label{fig:meshtest}
 
 The \code{m1} mesh has two main problems: 
 1) some triangles with small inner angles, 
@@ -247,21 +258,19 @@ m13 <- inla.mesh.2d(boundary=bound4, cutoff=0.05, max.edge=c(.1,.2))
 
 These meshes are visualized in 
 Figure~\ref{fig:nonconmesh} by commands bellow 
-<<nonconmeshv,eval=F>>=
+<<nonconmeshv,eval=FALSE>>=
 par(mfrow=c(2,2), mar=c(0,0,1,0))
 for (i in 10:13) { 
    plot(get(paste('m', i, sep='')), asp=1, main='') 
    points(p5, pch=19, col=2); title(main=paste('m', i, sep=''))
 }
 @ 
-\setkeys{Gin}{width=0.7\textwidth}
 \begin{figure}\centering
-<<vnonconmeshv,echo=F,results=hide,fig=TRUE,eps=FALSE,width=5.5,height=5.5>>=
+<<vnonconmeshv,echo=F,results='hide',fig.width=5.5,fig.height=5.5,out.width='0.7\\textwidth'>>=
 <<nonconmeshv>>
 @ 
 \caption{Non-convex meshes with different boundaries.}
-\label{fig:nonconmesh}
-\end{figure}
+\end{figure}\label{fig:nonconmesh}
 
 The \code{m10} mesh is built with a boundary 
 that we got using default arguments in the 
@@ -286,7 +295,7 @@ we get a boundary with small resolution
 (in terms of number of points), for example, 
 comparing the \code{m12} and \code{m13} meshes. 
 
-\subsection{Meshes for the toy example}
+\subsection{Meshes for the toy example}\label{sec:meshestoy}
 
 To analyze the toy data set, we use 
 six triangulation options to make 
@@ -323,19 +332,17 @@ c(mesh1$n, mesh2$n, mesh3$n, mesh4$n, mesh5$n, mesh6$n)
 
 These six meshes are shown in Figure \ref{fig:crdt1} 
 with code below 
-<<plotmesh1,eval=F>>=
+<<plotmesh1,eval=FALSE>>=
 par(mfrow=c(2,3), mar=c(0,0,0,0)) 
 for (i in 1:6) 
   plot(get(paste('mesh',i,sep='')), asp=1, main='')
 @ 
-\setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
-<<vplotmesh1,fig=T,eps=F,width=7.5,height=5,echo=F,results=hide>>=
+<<vplotmesh1,fig.width=7.5,fig.height=5,echo=F,results='hide',out.width='0.97\\textwidth'>>=
 <<plotmesh1>>
 @ 
 \caption{Six triangulation options for the toy example.}
-\label{fig:crdt1}
-\end{figure}
+\end{figure}\label{fig:crdt1}
 
 \subsection{Meshes for Paran\'a state}
 
@@ -364,7 +371,7 @@ points on the latlong projection.
 
 In this case is best to use a non-convex hull mesh. 
 We start by building a non-convex domain with
-<<prmesh>>=
+<<prmeshnch>>=
 prdomain <- inla.nonconvex.hull(as.matrix(PRprec[,1:2]), 
                                 -0.03, -0.05, resolution=c(100,100))
 @ 
@@ -378,19 +385,17 @@ resolution (max edge length) on the inner domain
 
 We can visualize both meshes on the 
 Figure~\ref{fig:prmesh} with commands below 
-<<prmesh,eval=F>>=
+<<prmesh,eval=FALSE>>=
 par(mfrow=c(1,2), mar=c(0,0,0,0))
 plot(prmesh1, asp=1, main='');   lines(PRborder, col=3)
 plot(prmesh2, asp=1, main='');   lines(PRborder, col=3)
 @ 
-\setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
-<<vprmesh,echo=F,results=hide,fig=TRUE,eps=FALSE,width=7.5,height=3.5>>=
+<<vprmesh,echo=F,results='hide',fig.width=7.5,fig.height=3.5,out.width='0.97\\textwidth'>>=
 <<prmesh>>
 @ 
 \caption{Mesh for Paran\'a state}
-\label{fig:prmesh}
-\end{figure}
+\end{figure}\label{fig:prmesh}
 
 \subsection{Triangulation with a SpatialPolygonsDataFrame}
 
@@ -403,7 +408,7 @@ the North Carolina map, in package \pkg{spdep},
 \cite{spdep}. 
 
 <<ncmap>>=
-require(maptools)
+library(maptools)
 nc.fl <- system.file("etc/shapes/sids.shp", package="spdep")[1]
 nc.sids <- readShapePoly(nc.fl, ID="FIPSNO", 
                          proj4string=CRS("+proj=longlat +ellps=clrk66"))
@@ -415,7 +420,7 @@ To do it, we use the \code{unionSpatialPolygons()}
 package~\cite{rgeos}. If we don't have the \pkg{rgeos} 
 we can use the \pkg{gpclib} package instead, 
 but the we do need to set a permission 
-<<uionsp,results=hide,eval=F>>=
+<<uionsp,results='hide',eval=FALSE>>=
 gpclibPermit()
 @ 
 before working with this library 
@@ -436,20 +441,19 @@ and creates the mesh
 @ 
 that is visualized on Figure~\ref{fig:ncmesh} 
 with the commands bellow. 
-<<ncmeshplot,eval=F>>=
+<<ncmeshplot,eval=FALSE>>=
 par(mar=c(0,0,0,0)) 
 plot(nc.mesh, asp=1, main='')
 @ 
 \begin{figure}\centering
-<<ncmeshv,echo=F,fig=T,eps=F,width=8,height=3>>=
+<<ncmeshv,echo=FALSE,fig.width=8,fig.height=3>>=
 <<ncmeshplot>>
 @ 
 \caption{Mesh constructed using the North Carolina map}
-\label{fig:ncmesh}
-\end{figure}
+\end{figure}\label{fig:ncmesh}
 
 
-<<savemesh,echo=F,results=hide>>=
+<<savemesh,echo=F,results='hide'>>=
 save('mesh1', file='mesh1.RData')
 save('mesh2', file='mesh2.RData')
 save('mesh3', file='mesh3.RData')
@@ -460,7 +464,7 @@ save('prmesh1', file='prmesh1.RData')
 save('prmesh2', file='prmesh2.RData')
 @ 
 
-\section{Mesh with holes and physical boundaries}
+\subsection{Mesh with holes and physical boundaries}
 
 Sometimes we need to deal with physical boundaries. 
 It can be when there is a hole inside the domain or when the domain shape is not convex. 
@@ -476,14 +480,12 @@ sp <- SpatialPolygons(list(Polygons(list(pl1, h1), '0'), Polygons(list(pl2), '1'
 par(mar=c(0,0,0,0)); plot(sp) ### to visualize it
 text(c(13, 17, 23), c(3, 12, 3), LETTERS[1:3], cex=3)
 @ 
-\setkeys{Gin}{width=0.7\textwidth}
 \begin{figure}\centering
-<<plotlake,echo=F,results=hide,fig=TRUE,eps=FALSE,width=7,height=5>>=
+<<plotlake,echo=F,results='hide',fig.width=7,fig.height=5>>=
 <<hexample>>
 @ 
 \caption{Region with a hole and non convex domain.}
-\label{fig:lakehole}
-\end{figure}
+\end{figure}\label{fig:lakehole}
 
 We have two neighbour regions, 
 one with a hole and one with no convex shape.
@@ -503,20 +505,16 @@ mesh <- inla.mesh.2d(boundary=bound, max.edge=2)
 
 The mesh is displayed in the Figure~\ref{fig:meshhole} 
 using the commands below:
-<<holeexample,eval=FALSE>>=
+\begin{figure}\centering 
+<<plothex,echo=F,results='hide',fig.width=7,fig.height=5,out.width='0.7\\textwidth'>>=
 par(mar=c(0,0,0,0), bg=rgb(.7,.5,.5))
 plot(sp, col=rgb(.3,.7,.9))
 plot(mesh, add=TRUE, lwd=2)
 text(c(13, 17, 23), c(3, 12, 3), LETTERS[1:3], cex=3)
 @ 
-\setkeys{Gin}{width=0.7\textwidth}
-\begin{figure}\centering
-<<plothex,echo=F,results=hide,fig=TRUE,eps=FALSE,width=7,height=5>>=
-<<holeexample>>
-@ 
 \caption{Triangulation with hole and non convex shaped region}
-\label{fig:meshhole}
-\end{figure}
+\end{figure}\label{fig:meshhole}
 
 Notice that when building the SPDE model, the neighborhood structure of the mesh is taken into account. 
 So, it is easier to reach B from A than C on the related graph.
+

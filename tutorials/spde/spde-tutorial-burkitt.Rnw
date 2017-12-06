@@ -1,15 +1,24 @@
-\SweaveOpts{prefix.string=figs/burkitt} 
-<<opts,echo=F,results=hide>>=
+\section{Space-time point process: Burkitt example}\label{sec:burkitt}
+
+In this example we show hot to fit a space-time point process 
+using the \texttt{burkitt} dataset from the \pkg{splancs} \pkg{R} package. 
+The R source for this file is available at
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-burkitt.R}
+
+<<opts,echo=F,results='hide',message=FALSE,warning=FALSE>>=
+library(knitr)
+opts_chunk$set(
+fig.path='figs/stpp',
+message=FALSE, warning=FALSE
+)
 options(width=75, prompt = " ", continue = "   ")
-require(sp) 
-require(INLA)
-require(fields)
+library(sp)
+library(INLA)
+library(fields)
 lcall <- inla.getOption('inla.call')
 inla.setOption(inla.call='remote')
 inla.setOption(num.threads=7)
-@ 
-
-\section{Burkitt example}\label{sec:burkitt}
+@
 
 We use the \texttt{burkitt} data set from the \pkg{splancs} package. 
 
@@ -38,43 +47,45 @@ mesh.t <- inla.mesh.1d(tknots)
 
 \setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}[h]\centering 
-<<timeplot,echo=F,fig=T,eps=F,width=10,height=2>>=
+<<timeplot,echo=FALSE,fig.width=10,fig.height=2>>=
 <<timeshow>>
 <<tmesh>>
 @ 
 \caption{Time when each event occurred (black) and knots used for inference (blue).}
-\label{fig:timeshow}
-\end{figure}
+\end{figure}\label{fig:timeshow}
 
-To work with the space, we first define a function to convert a polygon defined from a set of coordinates to an \texttt{SpatialPolygons} object:
-<<coo2SP>>=
-coo2sp <- function(coo) {
-    n <- nrow(coo)
-    if (any(coo[1,]!=coo[n,]))
-        coo <- coo[c(1:n,1),]
-    SpatialPolygons(list(Polygons(list(Polygon(coo)), '0')))
-}
+The spatial mesh can be done using the polygon of the region as a boundary. 
+We can convert the domain polygon into a 
+\texttt{SpatialPolygons} class with 
+<<splocd>>=
+domainSP <- SpatialPolygons(list(Polygons(
+    list(Polygon(burbdy)), '0')))
 @ 
-
-The spatial mesh can be done using the polygon of the region as a boundary
+and the use it as a boundary
 <<bound>>=
-domainSP <- coo2sp(burbdy)
 mesh.s <- inla.mesh.2d(burpts, boundary=inla.sp2segment(domainSP), 
-                       max.edge=c(25, 50), cutoff=10) ### just a crude mesh
+                       max.edge=c(10, 25), cutoff=3) ### just a crude mesh
 @ 
 
-The SPDE model is defined using the spatial mesh as usual
+Defining the SPDE model considering the PC-prior 
+derived in \cite{fuglstadetal:2017} for the 
+model parameters as the practical range, $\sqrt{8\nu}/\kappa$, 
+and the marginal standard deviation.  
 <<spde>>=
-m <- (spde <- inla.spde2.matern(mesh.s))$n.spde
+spde <- inla.spde2.pcmatern(
+    mesh=mesh.s, alpha=2, ### mesh and smoothness parameter
+    prior.range=c(0.05, 0.01), ### P(practic.range<0.05)=0.01
+    prior.sigma=c(1, 0.01)) ### P(sigma>1)=0.01
+m <- spde$n.spde
 @ 
 
-The spatio temporal projector matrix is made considering 
+The spatio temporal projection matrix is made considering 
 both spatial and temporal locations and both spatial and temporal meshes. 
 <<Ast>>=
 dim(Ast <- inla.spde.make.A(mesh=mesh.s, loc=burpts, n.group=length(mesh.t$n), 
                             group=burkitt$t, group.mesh=mesh.t))
 @ 
-Internally \texttt{inla.spde.make.A} function makes a row Kronecker product (see \texttt{inla.row.kron}) between the spatial projector and the group (temporal in our case) projector.  
+Internally \texttt{inla.spde.make.A} function makes a row Kronecker product (see \texttt{inla.row.kron}) between the spatial projector matrix and the group (temporal in our case) projector one. 
 This matrix has number of columns equals to the number 
 of nodes in the mesh times the number of groups. 
 
@@ -86,34 +97,36 @@ idx <- inla.spde.make.index('s', spde$n.spde, n.group=mesh.t$n)
 The data stack can be made considering the ideas for the purerly spatial model. 
 So, we do need to consider the expected number of cases at the 
 1) integration points and 2) data locations. 
-The first is now the spacetime volume at the mesh node and time knot, 
-which is the area of each Voronoi polygon around the mesh location kronecker 
+For the integration points it is the spacetime volume computed 
+for each mesh node and time knot, 
+considering the spatial area of the dual mesh polygons, 
+as in Chapter~\ref{ch:lcox}, times the 
 the length of the time window at each time point. 
-The second is zero as for a point the expectation is zero, 
-in accord to the likelihood approximation proposed by \cite{simpsonetal:2011}. 
+For the data locations it is zero as for a point the expectation is zero, 
+in accord to the likelihood approximation proposed by \cite{simpsonetal:2016}. 
 
-We need to build the Voronoi polygons. 
-Using a function from the \textbf{\textsf{deldir}} package: 
-<<voronoi>>=
-require(deldir)
-dd <- deldir(mesh.s$loc[,1], mesh.s$loc[,2])
-tiles <- tile.list(dd)
+The dual mesh is extracted considering the function 
+\texttt{inla.mesh.dual()}, 
+available in 
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}
+<<dualmesh>>=
+source('R/spde-tutorial-functions.R') 
+dmesh <- inla.mesh.dual(mesh.s)
 @ 
 
-The area of the intersection between each Voronoi polygons and the domain region 
-can be done using the \texttt{gIntersects} function from \textsf{\textbf{rgeos}} package. 
-To use it we define a function to convert each Voronoi polygon into a \texttt{SpatialPolygons} and use the \texttt{gIntersects} function. 
-It is done in the code below 
+Them, we compute the intersection with each 
+polygon from the mesh dual using the functions 
+\texttt{gIntersection()} from the 
+\textbf{\textsf{rgeos}} package
 (show the sum of the intersection polygons areas):
-<<i.pl.areas>>=
-require(rgeos)
-sum(w <- sapply(tiles, function(p) {
-                    pl <- coo2sp(cbind(p$x, p$y))
-                    if (gIntersects(pl, domainSP))
-                        return(gArea(gIntersection(pl, domainSP)))
-                    else return(0)
-                }))
-@ 
+<<pols>>=
+library(rgeos)
+sum(w <- sapply(1:length(dmesh), function(i) {
+    if (gIntersects(dmesh[i,], domainSP))
+        return(gArea(gIntersection(dmesh[i,], domainSP)))
+    else return(0)
+}))
+@  
 We can see that it sum up the same as the domain area:
 <<areapl>>=
 gArea(domainSP)
@@ -134,9 +147,11 @@ stk <- inla.stack(data=list(y=y, expect=expected),
 @ 
 
 Model fitting (using the cruder approximation: 'gaussian')
-<<fit,results=hide>>=
+<<fit,results='hide'>>=
+pcrho <- list(prior='pccor1', param=c(0.7, 0.7))
 form <- y ~ 0 + a0 + 
-    f(s, model=spde, group=s.group, control.group=list(model='ar1'))
+    f(s, model=spde, group=s.group, 
+      control.group=list(model='ar1', hyper=list(theta=pcrho)))
 burk.res <- inla(form, family='poisson', 
                  data=inla.stack.data(stk), E=expect,
                  control.predictor=list(A=inla.stack.A(stk)),
@@ -151,23 +166,23 @@ eta.at.integration.points <- burk.res$summary.fix[1,1] + burk.res$summary.ran$s$
 c(n=n, 'E(n)'=sum(st.vol*exp(eta.at.integration.points)))
 @ 
 
-%We can plot the posterior marginal distributions for the intercept and parameters, in Figure~\ref{fig:irf}, with
-%<<irf,eval=FALSE>>=
-%rf <- inla.spde2.result(burk.res, 's', spde)
-%par(mfrow=c(2,3), mar=c(3,3,1,1), mgp=c(1.7,0.7,0))
-%plot(burk.res$marginals.fix[[1]], type='l', xlab='Intercept')
-%plot(burk.res$marginals.hy[[3]], type='l', xlab='time correlation')
-%for (j in 15:17)
-%    plot(rf[[j]][[1]], type='l', xlab=substring(names(rf)[j], 11))
-%@ 
-%\setkeys{Gin}{width=0.99\textwidth}
-%\begin{figure}[h]\centering
-%<<parsfig,echo=F,fig=T,eps=F,width=7,height=5>>=
-%<<irf>>
-%@ 
-%\caption{Intercept and Random Field parameters posterior marginal distributions.}
-%\label{fig:irf}
-%\end{figure}
+We can plot the posterior marginal distributions for the intercept and parameters, in Figure~\ref{fig:irf}, with
+<<irf,eval=FALSE>>=
+par(mfrow=c(2,2), mar=c(3,3,1,1), mgp=c(1.7,0.7,0))
+plot(burk.res$marginals.fix[[1]], type='l', xlab='Intercept')
+plot(burk.res$marginals.hy[[1]], type='l', 
+     xlim=c(0, 10), xlab='Practical range')
+plot(burk.res$marginals.hy[[2]], type='l', 
+     xlim=c(0, 3), xlab='Standard deviation')
+plot(burk.res$marginals.hy[[3]], type='l', 
+     xlim=c(0, 1), xlab='time correlation')
+@ 
+\begin{figure}[h]\centering
+<<parsfig,echo=FALSE,fig.width=7,fig.height=5,out.width='0.97\\textwidth'>>=
+<<irf>>
+@ 
+\caption{Intercept and Random Field parameters posterior marginal distributions.}
+\end{figure}\label{fig:irf}
 
 The projection over a grid for each time knot can be done with
 <<>>=
@@ -194,12 +209,11 @@ for (j in 1:k) {
     points(burkitt[igr==j, 1:2], pch=19)
 }; image.plot(legend.only=TRUE, zlim=zlm, legend.mar=5)
 @ 
-\setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
-<<stppres,echo=F,fig=T,eps=F,width=5,height=7>>=
+<<stppres,echo=FALSE,fig.width=5,fig.height=7,out.width='0.97\\textwidth'>>=
 <<plotstpp>>
 @ 
 \caption{Fitted latent field at each time knot 
 overlayed by the points closer in time.}
-\label{fig:stppres}
-\end{figure}
+\end{figure}\label{fig:stppres}
+

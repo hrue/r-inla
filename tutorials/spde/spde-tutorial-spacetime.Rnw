@@ -1,20 +1,27 @@
 \chapter{Space-time examples}\label{ch:spacetime}
 
-\SweaveOpts{prefix.string=figs/spacetime} 
-<<sett,echo=F,results=hide>>=
+The R source for this file is available at
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-spacetime.R}
+
+<<sett,echo=FALSE,results='hide',message=FALSE,warning=FALSE>>=
+library(knitr)
+opts_chunk$set(
+fig.path='figs/spacetime',
+message=FALSE, warning=FALSE
+)
 options(width=75, prompt = " ", continue = "   ")
-require(lattice) 
-require(INLA)
+library(lattice) 
+library(INLA)
 lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
-inla.setOption(num.threads=8)
-source('spde-tutorial-functions.R')
+#inla.setOption(inla.call='remote')
+inla.setOption(num.threads=4)
+source('R/spde-tutorial-functions.R')
 load('prmesh1.RData')
 @ 
 
 In this chapter we show an example on fitting 
 a space-time model. This model is a separable 
-one described on \cite{cameletti:2012}. 
+one described on \cite{camelettietal:2012}. 
 Basically the model is defined as a SPDE 
 model for the spatial domain and an AR($1$) model for the time dimention. 
 The space-time separable model is defined 
@@ -30,7 +37,7 @@ However, both cases allows to have different locations at different times.
 \section{Discrete time domain}
 
 In this section we show how to fit a space-time separable model, 
-as in \cite{cameletti:2012}. 
+as in \cite{camelettietal:2012}. 
 Additionally, we show the use of a categorical covariate. 
 
 \subsection{Data simulation} 
@@ -43,18 +50,17 @@ data(PRborder)
 We start by defining the spatial model. 
 Because we need that the example run faster, 
 we use the low resolution mesh for 
-Paran\'a state border created on the 
-section~\ref{ch:mesh}.
+Paran\'a state border created in 
+Section~\ref{sec:mesh}.
 
 There is two options to simulate from 
 Cameletti's model. One is based on the 
 marginal distribution of the latent field 
 and another is on the conditional 
 distribution at each time. 
-The second one is easy for us by 
-use the function defined on the 
-section~\ref{sec:simula} to simulate an 
-independent random field realization each time. 
+This last option is easy as we can simulate 
+one realization of a spatial random field 
+for each time. 
 
 First we set $k=12$, the time dimention 
 <<k>>=
@@ -66,23 +72,20 @@ data(PRprec)
 coords <- as.matrix(PRprec[sample(1:nrow(PRprec)), 1:2])
 @ 
 
+
 In the following simulation step we will use the \texttt{rspde()} 
-function defined in Section~\ref{sec:simula}. 
-This function is available in the file at
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/spde-tutorial-functions.R}.
-<<echo=F,results=hide>>=
+function available in the file at
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}.
+<<echo=FALSE,results='hide'>>=
 inla.setOption(inla.call=lcall)
 @ 
 The $k$ independent realizations can be done by 
 <<rk>>=
-params <- c(variance=1, kappa=1/2) 
+params <- c(variance=1, kappa=1) 
 set.seed(1)
-x.k <- rspde(coords, kappa=1/2, n=k, 
+x.k <- rspde(coords, kappa=params[2], variance=params[1], n=k, 
              mesh=prmesh1, return.attributes=TRUE)
 dim(x.k)
-@ 
-<<echo=F,results=hide>>=
-#inla.setOption(inla.call='remote')
 @ 
 
 Now, we define the autoregressive parameter $\rho$ 
@@ -98,12 +101,12 @@ for (j in 2:k)
 where the $\sqrt(1-\rho^2)$ term is added as we 
 would like to consider that the innovation noise 
 follows the stationary distribution, 
-see \cite{RueHeld:2005} and \cite{cameletti:2012}.
+see \cite{RueHeld:2005} and \cite{camelettietal:2012}.
 
 We can visualize the realization 
 at the figure~\ref{fig:timevisual} 
 with commands bellow 
-<<timevisual>>=
+<<timevisual,eval=FALSE>>=
 c100 <- rainbow(101)
 par(mfrow=c(4,3), mar=c(0,0,0,0))
 for (j in 1:k)
@@ -112,12 +115,11 @@ for (j in 1:k)
 @ 
 \setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
-<<ftimevisual,echo=F,fig=TRUE,eps=FALSE,width=7.5,height=7>>=
+<<ftimevisual,echo=FALSE,eval=TRUE,fig.width=7.5,fig.height=7>>=
 <<timevisual>>
 @ 
 \caption{Realization of the space-time random field.} 
-\label{fig:timevisual}
-\end{figure}
+\end{figure}\label{fig:timevisual}
 
 In this example we need to show the use 
 of a categorical covariate. 
@@ -134,7 +136,8 @@ beta <- -1:1
 
 The response is 
 <<respst>>=
-y <- beta[unclass(ccov)] + x
+sd.y <- 0.1
+y <- beta[unclass(ccov)] + x + rnorm(n*k, 0, sd.y)
 tapply(y, ccov, mean)
 @ 
 
@@ -162,13 +165,23 @@ to fit the model still work on this situation.
 
 \subsection{Data stack preparation} 
 
+Defining the SPDE model considering the PC-prior 
+derived in \cite{fuglstadetal:2017} for the 
+model parameters as the practical range, $\sqrt{8\nu}/\kappa$, 
+and the marginal standard deviation.  
+<<spde>>=
+spde <- inla.spde2.pcmatern(
+    mesh=prmesh1, alpha=2, ### mesh and smoothness parameter
+    prior.range=c(0.5, 0.01), ### P(practic.range<0.05)=0.01
+    prior.sigma=c(1, 0.01)) ### P(sigma>1)=0.01
+@ 
+
 Now, we need the data preparation to build the 
 space-time model. 
 The index set is made taking into account 
 the number of weights on the SPDE model 
 and the number of groups
-<<rfind>>=
-spde <- attr(x.k, 'spde')
+<<rfindex>>=
 iset <- inla.spde.make.index('i', n.spde=spde$n.spde, n.group=k)
 @ 
 Notice that the index set for the latent field 
@@ -198,11 +211,10 @@ sdat <- inla.stack(tag='stdata', data=list(y=dat$y),
 
 \subsection{Fitting the model and some results}
 
-We set the prior on the temporal autoregressive 
-parameter with zero mean and variance equals 5, 
-and define the initial value equals the true with 
+We set the PC-prior for the temporal autoregressive 
+parameter with $P(cor>0)=0.9$ 
 <<hbeta>>=
-h.spec <- list(theta=list(initial=0.7, param=c(0, 5)))
+h.spec <- list(theta=list(prior='pccor1', param=c(0, 0.9)))
 @ 
 
 The likelihood hyperparameter is fixed on a 
@@ -210,16 +222,17 @@ hight precision, just because we haven't noise.
 To deal with the categorical covariate we need 
 to set \code{expand.factor.strategy='inla'} 
 on the \code{control.fixed} argument list. 
-<<remote,echo=F>>=
-#inla.setOption(inla.call='remote')
+<<remote,echo=FALSE>>=
+##inla.setOption(inla.call='remote')
 @ 
 <<ft>>=
 formulae <- y ~ 0 + w + 
     f(i, model=spde, group=i.group, 
       control.group=list(model='ar1', hyper=h.spec)) 
+prec.prior <- list(prior='pc.prec', param=c(1, 0.01))
 res <- inla(formulae,  data=inla.stack.data(sdat), 
             control.predictor=list(compute=TRUE, A=inla.stack.A(sdat)), 
-            control.family=list(initial=10, fixed=TRUE), 
+            control.family=list(hyper=list(theta=prec.prior)), 
             control.fixed=list(expand.factor.strategy='inla'))
 @ 
 
@@ -229,47 +242,31 @@ Summary for the trhee intercepts
 round(cbind(observed=tapply(dat$y, dat$w, mean), res$summary.fixed), 4) 
 @ 
 
-The summary for the posterior marginal distribution 
-of the temporal correlation 
-<<hy1>>=
-round(res$summary.hy[3,], 5)
-@ 
-
-Getting the marginals distributions 
-for random field parameters on the user scale
-<<userrf>>=
-rf <- inla.spde2.result(res, 'i', attr(x.k, 'spde'), do.transf=TRUE) 
-@ 
-and we see these distributions, also the 
+Look a the posterior marginal distributions 
+for the random field parameters and the 
 marginal ditribution for the temporal correlation, 
 on the Figure~\ref{fig:rfst} with the commands bellow 
 <<rfst,eval=F>>=
 par(mfrow=c(2,2), mar=c(3,3,1,0.1), mgp=2:0)
-plot(res$marginals.hyper[[3]], type='l', 
-     xlab=expression(beta), ylab='Density')
-abline(v=rho, col=2)
-plot(rf$marginals.variance.nominal[[1]], type='l', 
-     xlab=expression(sigma[x]), ylab='Density')
-abline(v=params[1], col=2)
-plot(rf$marginals.kappa[[1]], type='l',
-     xlab=expression(kappa), ylab='Density')
-abline(v=params[2], col=2)
-plot(rf$marginals.range.nominal[[1]], type='l', 
-     xlab='range nominal', ylab='Density')
-abline(v=sqrt(8)/params[2], col=2)
+for (j in 1:4) {
+    plot(res$marginals.hyper[[j]], type='l', 
+         xlab=names(res$marginals.hyper)[j], ylab='Density')
+    abline(v=c(1/sd.y^2, sqrt(8)/params[1], 
+               params[2]^0.5, rho)[j], col=2)
+}
 @ 
 \setkeys{Gin}{width=0.75\textwidth}
 \begin{figure}\centering
-<<echo=F,fig=TRUE,eps=FALSE,width=5.5,height=5>>=
+<<echo=FALSE,fig.width=5.5,fig.height=5.5>>=
 <<rfst>>
 @ 
 \caption{Marginal posterior distribution for 
-  $\beta$ (top left),  $\sigma_x$ (top right), 
-  $\kappa$ (bottom left) and the nominal 
-  range (bottom right). The red vertical lines
+  the practical range (left), 
+  standard deviation of the field (mid) and 
+  the temporal corrlation (right). 
+  The red vertical lines
   are placed at true value.}
-\label{fig:rfst}
-\end{figure}
+\end{figure}\label{fig:rfst}
 
 \subsection{A look at the posterior random field} 
 
@@ -280,7 +277,7 @@ and any quantile.
 
 First, we found the index for the random field 
 at data locations 
-<<rfind>>=
+<<rfidx>>=
 str(idat <- inla.stack.index(sdat, 'stdata')$data) 
 @ 
 
@@ -292,8 +289,8 @@ cor(dat$y, res$summary.linear.predictor$mean[idat])
 @ 
 
 We also can do prediction for each time and visualize it. 
-First, we define the projection grid in the same way that 
-on the example on Chapter~\ref{ch:prprec}. 
+First, we define the grid in the same way as 
+in the rainfall example in Section~\ref{sec:prprec}. 
 <<projgrid>>=
 stepsize <- 4*1/111
 nxy <- round(c(diff(range(coords[,1])), diff(range(coords[,2])))/stepsize)
@@ -302,7 +299,7 @@ projgrid <- inla.mesh.projector(prmesh1, xlim=range(coords[,1]),
 @ 
 
 The prediction for each time can be done by
-<<projpmean>>= 
+<<projpmean>>=
 xmean <- list()
 for (j in 1:k)
   xmean[[j]] <- inla.mesh.project(
@@ -312,7 +309,7 @@ for (j in 1:k)
 We found what points of the grid are inside the 
 Paran\'a state border. 
 <<inout>>=
-require(splancs)
+library(splancs)
 xy.in <- inout(projgrid$lattice$loc, cbind(PRborder[,1], PRborder[,2]))
 @ 
 To plot, we set NA to the points of the grid out of the Paran\'a border. 
@@ -322,21 +319,20 @@ for (j in 1:k)   xmean[[j]][!xy.in] <- NA
 
 The visualization at Figure~\ref{fig:strf} 
 can be made by the comands bellow
-<<strf>>= 
-require(gridExtra)
+<<strf,eval=FALSE>>=
+library(gridExtra)
 do.call(function(...) grid.arrange(..., nrow=4), 
         lapply(xmean, levelplot,  xlab='', ylab='',
                col.regions=topo.colors(16), scale=list(draw=FALSE)))
 @ 
 \setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
-<<vstrf,echo=F,fig=TRUE,eps=FALSE,width=10,height=8.7>>=
+<<vstrf,eval=TRUE,echo=FALSE,fig.width=10,fig.height=8.7>>=
 <<strf>>
 @ 
 \caption{Visualization of the posterior mean of the 
   space-time random field.} 
-\label{fig:strf}
-\end{figure}
+\end{figure}\label{fig:strf}
 
 \subsection{Validation} 
 
@@ -357,7 +353,7 @@ and consider the hyperparameters values fitted before
 stfull <- inla.stack(sdat, stval) 
 vres <- inla(formulae,  data=inla.stack.data(stfull), 
              control.predictor=list(compute=TRUE, A=inla.stack.A(stfull)), 
-             control.family=list(initial=10, fixed=TRUE), 
+             control.family=list(hyper=list(theta=prec.prior)), 
              control.fixed=list(expand.factor.strategy='inla'), 
              control.mode=list(theta=res$mode$theta, restart=FALSE))
 @ 
@@ -368,7 +364,7 @@ First, we found the index for this data from full stack data.
 ival <- inla.stack.index(stfull, 'stval')$data 
 @ 
 We plot it with following commands and visualize at Figure~\ref{fig:stval}. 
-<<stvalplot>>=
+<<stvalplot,eval=FALSE>>=
 par(mfrow=c(1,1), mar=c(3,3,0.5,0.5), mgp=c(1.75,0.5,0))
 plot(vres$summary.fitted.values$mean[ival], vdat$r, 
      asp=1, xlab='Posterior mean', ylab='Observed') 
@@ -376,11 +372,11 @@ abline(0:1, col=gray(.7))
 @ 
 \setkeys{Gin}{width=0.45\textwidth}
 \begin{figure}\centering
-<<vstval,echo=FALSE,fig=TRUE,eps=FALSE,width=5.5,height=5>>=
+<<vstval,echo=FALSE,fig.width=5.5,fig.height=5>>=
 <<stvalplot>>
 @
 \caption{Validation: Observed versus posterior mean.}
-\label{fig:stval}\end{figure}
+\end{figure}\label{fig:stval}
 
 \section{Continuous time domain}\label{sec:stcont}
 
@@ -388,7 +384,7 @@ We now suppose that we have that the observations are not collected over discret
 This is the case for fishing data and space-time point process in general. 
 Similar to the Finite Method approach for the space, 
 we can use piecewise linear basis function at a set of time knots, 
-as we have in some other examples in Chapters \ref{ch:lowst} and \ref{ch:stpp}. 
+as we have in some other spacetime examples. 
 
 \subsection{Data simulation}\label{sec:stcsim} 
 
@@ -412,9 +408,11 @@ stcov <- function(coords, time, kappa.s, kappa.t, variance=1, nu=1) {
 @ 
 and use it to sample from the model
 <<sample>>=
-kappa.s <- 3; kappa.t <- 5; s2 <- 1/2; taue <- 3
-y <- crossprod(chol(stcov(loc, time, kappa.s, kappa.t, s2)), rnorm(n)) + 
-    rnorm(n, 0, sqrt(1/taue))
+kappa.s <- 1; kappa.t <- 5; s2 <- 1/2
+xx <- crossprod(chol(stcov(loc, time, kappa.s, kappa.t, s2)), 
+                rnorm(n))  
+beta0 <- -3; tau.error <- 3
+y <- beta0 + xx + rnorm(n, 0, sqrt(1/tau.error))
 @ 
 
 \subsection{Data stack preparation} 
@@ -425,19 +423,10 @@ k <- 10
 (mesh.t <- inla.mesh.1d(seq(0+0.5/k, 1-0.5/k, length=k)))$loc
 @ 
 
-We build the mesh based in the domain and points
-<<cmesh>>=
-(mesh.s <- inla.mesh.2d(loc, max.edge=1.5, cutoff=0.25, offset=1.5))$n
-@ 
-We use the spatial mesh built in Chapter~\ref{ch:mesh}  
-%<<prmesh1>>=
-%load('prmesh1.RData') 
-%plot(mesh.s, asp=1); points(loc, pch=19, cex=0.5)
-%@ 
-and define the SPDE model object 
-<<cspde>>=
-spde <- inla.spde2.matern(mesh.s)
-@ 
+Consider the the low resolution mesh for 
+Paran\'a state border created in Section~\ref{sec:mesh}, 
+used in the previous example and 
+the SPDE model also defined in the previous example.
 
 Building the index set
 <<rfind>>=
@@ -447,15 +436,15 @@ iset <- inla.spde.make.index('i', n.spde=spde$n.spde, n.group=k)
 The projector matrix consider the spatial and time projection. 
 So, it needs the spatial mesh and the spatial locations, 
 the time points and the temporal mesh
-<<apred>>=
-A <- inla.spde.make.A(mesh=mesh.s, loc=loc, 
+<<apredt>>=
+A <- inla.spde.make.A(mesh=prmesh1, loc=loc, 
                       group=time, group.mesh=mesh.t) 
 @ 
 
 The effects on the stack are a list with two elements, 
 one is the index set and another the categorical covariate. 
 The stack data is defined as 
-<<stack>>=
+<<stackst>>=
 sdat <- inla.stack(tag='stdata', data=list(y=y), 
                    A=list(A,1),  effects=list(iset, list(b0=rep(1,n))))
 @ 
@@ -468,46 +457,45 @@ It gives a correlation between time knots equals to
 exp(-kappa.t*diff(mesh.t$loc[1:2]))
 @ 
 
-Fitting the model
+Fitting the model considering a AR1 temporal correlation 
+over the time knots
 <<cfit>>=
 formulae <- y ~ 0 + b0 + 
     f(i, model=spde, group=i.group, 
-      control.group=list(model='ar1')) 
+      control.group=list(model='ar1', hyper=h.spec)) 
 res <- inla(formulae, data=inla.stack.data(sdat), 
+            control.family=list(hyper=list(theta=prec.prior)), 
             control.predictor=list(compute=TRUE, A=inla.stack.A(sdat)))
 @ 
 
-Getting the marginals distributions for random field parameters in the user scale:
-<<userrfc>>=
-rf <- inla.spde2.result(res, 'i', spde, do.transf=TRUE) 
+Look at the summary of the posterior marginal distributions 
+for the likelihood precision and the random field parameters:
+<<rfpars>>=
+round(res$summary.hyper, 4)
 @ 
 
 These distributions are showed in Figure~\ref{fig:stcpost}, 
-as well also the marginal ditribution for the intercept, error precision and the temporal correlation, 
+as well also the marginal ditribution for the intercept, 
+error precision, spatial range, standard deviation and 
+temporal correlation in the spacetime field 
 with the commands bellow 
 <<stcpost,eval=F>>=
 par(mfrow=c(2,3), mar=c(3,3,1,0.1), mgp=2:0)
 plot(res$marginals.fixed[[1]], type='l', 
      xlab=expression(beta[0]), ylab='Density')
-abline(v=0, col=2)
-plot(res$marginals.hyper[[1]], type='l', 
-     xlab=expression(tau[e]), ylab='Density')
-abline(v=taue, col=2)
-plot(res$marginals.hyper[[4]], type='l', 
-     xlab=expression(beta), ylab='Density')
-abline(v=exp(-kappa.t*diff(mesh.t$loc[1:2])), col=2)
-for (j in 15:17) {
-    plot(rf[[j]][[1]], type='l', ylab='Density', 
-         xlab=substring(names(rf)[j],11))
-    abline(v=c(kappa.s,s2,sqrt(8)/kappa.s)[j-14], col=2)
+abline(v=beta0, col=2)
+for (j in 1:4) {
+    plot(res$marginals.hyper[[j]], type='l', 
+         xlab=names(res$marginals.hyper)[j], ylab='Density')
+    abline(v=c(tau.error, sqrt(8)/kappa.s, sqrt(s2), 
+             exp(-kappa.t*diff(mesh.t$loc[1:2])))[j], col=2)
 }
 @ 
 \setkeys{Gin}{width=0.9\textwidth}
 \begin{figure}\centering
-<<echo=F,fig=TRUE,eps=FALSE,width=7.5,height=5>>=
+<<echo=FALSE,fig.width=7.5,fig.height=5>>=
 <<stcpost>>
 @ 
 \caption{Marginal posterior distribution for the intercept, 
   likelihood precision and the parameters in the space-time process.}
-\label{fig:stcpost}
-\end{figure}
+\end{figure}\label{fig:stcpost}

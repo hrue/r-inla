@@ -61,7 +61,7 @@
 ##!     \code{inla.pc.multvar.h.default} implements the default h()-function and illustrate how
 ##!     to code your own spesific one, if needed. 
 ##! }
-##! \author{Havard Rue \email{hrue@math.ntnu.no}}
+##! \author{Havard Rue \email{hrue@r-inla.org}}
 ##! \examples{
 ##! }
 

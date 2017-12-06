@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 #ifndef HGVERSION
@@ -71,6 +71,7 @@ double inla_eval_Return(double v);
 double inla_eval_Not(double v);
 void inla_eval_OnError(muParserHandle_t hParser);
 muFloat_t *inla_eval_AddVariable(const muChar_t * a_szName, void *pUserData);
+double inla_eval_lgamma(double arg);
 double inla_eval_digamma(double arg);
 double inla_eval_trigamma(double arg);
 
@@ -79,6 +80,10 @@ double inla_eval_Gamma(double arg)
 	return exp(gsl_sf_lngamma(arg));
 }
 double inla_eval_LogGamma(double arg)
+{
+	return gsl_sf_lngamma(arg);
+}
+double inla_eval_lgamma(double arg)
 {
 	return gsl_sf_lngamma(arg);
 }

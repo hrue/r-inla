@@ -19,14 +19,13 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
- * RCSId: $Id: approx-inference.h,v 1.223 2010/03/19 19:52:19 hrue Exp $
  *
  */
 
@@ -128,7 +127,17 @@ typedef enum {
 	/**
 	 * \brief Auto 
 	 */
-	GMRFLib_AI_INT_STRATEGY_AUTO
+	GMRFLib_AI_INT_STRATEGY_AUTO, 
+
+	/**
+	 * \brief USER (real scale)
+	 */
+	GMRFLib_AI_INT_STRATEGY_USER, 
+
+	/**
+	 * \brief USER_STD (std scale)
+	 */
+	GMRFLib_AI_INT_STRATEGY_USER_STD
 } GMRFLib_ai_int_strategy_tp;
 
 /** 
@@ -303,6 +312,11 @@ typedef struct {
 	 * \brief  The integration strategy.
 	 */
 	GMRFLib_ai_int_strategy_tp int_strategy;
+
+	/**
+	 * \brief  The design, if strategy is _USER or _USER_STD
+	 */
+	GMRFLib_design_tp *int_design;
 
 	/**
 	 * \brief The scaling for \c GMRFLib_AI_INT_STRATEGY_CCD, must be > 1.
@@ -622,9 +636,19 @@ typedef struct {
 	double mean_of_deviance;
 
 	/**
+	 * \brief Mean of the devianace  (saturated)
+	 */
+	double mean_of_deviance_sat;
+
+	/**
 	 * \brief Devianace of the mean  
 	 */
 	double deviance_of_mean;
+
+	/**
+	 * \brief Devianace of the mean  (saturated)
+	 */
+	double deviance_of_mean_sat;
 
 	/**
 	 * \brief The effective number of parameters
@@ -637,6 +661,11 @@ typedef struct {
 	double dic;
 
 	/**
+	 * \brief The DIC value (saturated)
+	 */
+	double dic_sat;
+
+	/**
 	 * \brief The length of the E(Deviance) contribution
 	 */
 	int n_deviance;
@@ -647,9 +676,19 @@ typedef struct {
 	double *e_deviance;
 
 	/**
+	 * \brief The E(deviance) contribution (saturated)
+	 */
+	double *e_deviance_sat;
+
+	/**
 	 * \brief The deviance(E) contribution
 	 */
 	double *deviance_e;
+
+	/**
+	 * \brief The deviance(E) contribution (saturated)
+	 */
+	double *deviance_e_sat;
 
 
 } GMRFLib_ai_dic_tp;

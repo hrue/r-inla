@@ -1,74 +1,61 @@
-\chapter{A toy example} 
+\section{A toy example}\label{sec:toyexample} 
 
-\SweaveOpts{prefix.string=figs/toy} 
-<<sett,echo=F,results=hide>>=
+The R source for this file is available at
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-toy.R}
+
+<<sett,echo=F,results='hide',message=FALSE,warning=FALSE>>=
+library(knitr)
+opts_chunk$set(
+fig.path='figs/toy',
+message=FALSE, warning=FALSE
+)
 options(width=75, prompt = " ", continue = "   ")
-require(lattice) 
-require(INLA)
+library(lattice) 
+library(INLA)
 lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
-inla.setOption(num.threads=7)
+##inla.setOption(inla.call='remote')
+##inla.setOption(num.threads=7)
 @ 
 
-In this section we start to show the fitting process 
-using the SPDE approach, \cite{lindgrenRL:2011}. 
-This starter is by fitting a toy geostatistical model: 
-Gaussian response without covariate. 
-We use the Bayesian approach and found the posterior 
-marginal distributions using the Integrated Nested Laplace 
-Approximation - INLA, \cite{rueMC:2009} implemented 
-on the \pkg{INLA} \pkg{R} package. 
-The ideas for application of the SPDE approach 
-using the \pkg{INLA} package are well described on 
-\cite{lindgren:2012} and on \cite{lindgrenR:2013}. 
-
-The dataset used are a tree column \code{data.frame} 
-simulated on the previous section and 
-provided on \pkg{INLA} package. 
-It can be called by 
-<<callSPDEtoy>>=
+In this example we will fit a simple geostatistical model
+for the toy dataset simulated in Section~\ref{sec:simulatoy}. 
+<<datatoy>>=
 data(SPDEtoy)
 @ 
-this is a \code{data.frame} where the two first columns 
-are the coordinates and the third is the response 
-simulated at this locations 
+This dataset is a three-column \code{data.frame}. 
+Coordinates are in the first two clomuns and the 
+response is in the third column. 
 <<strdata>>=
 str(SPDEtoy)
 @ 
 
-We consider the $n$ observations $y_i$ on 
-locations the $s_i$, $i=1,...,n$, and we 
-define the model 
+\subsection{SPDE model definition}
+
+We have $n$ observations $y_i$, $i=1,...,n$, 
+at locations $s_i$ and we define the following model 
 \begin{equation}\begin{array}{c}
-y_i|\beta_0,x_i,\sigma_e^2 \sim N(\beta_0 + x_i, \sigma_e^2) \\
-\bx \sim GF(0, \Sigma)
+\mathbf{y}|\beta_0,\mathbf{u},\sigma_e^2 \sim 
+N(\beta_0 + \mathbf{A} \mathbf{u}, \sigma_e^2) \\
+\mathbf{u} \sim GF(0, \Sigma)
 \end{array}\end{equation}
-We consider that $x$ is a realization of 
-a Gaussian Field, with Mat\'ern correlation 
-function parametrized by the smoothness 
-parameter $\nu$ and the scale $\kappa$, 
-such the parametrization 
-in~\cite{lindgrenRL:2011}. 
+where $\beta_0$ is the intercept, 
+$\bA$ is the projector matrix and 
+$x$ is a spatial Gaussian random field. 
 
-With this toy example we show with details 
-how we make a good triangulation, 
-prepare the data, fit the model, 
-extract the results from output and 
-make predictions on locations where 
-we don't have observed the response. 
-In this section we use the default 
-priors for all the parameters. 
+The first step in working with SPDE is to build a mesh. 
+We will use as a mesh a collection of triangles, 
+formed by $m$ vertices and the edges connecting them. 
+This mesh has to cover the entire spatial domain of interest. 
+More details on the mesh building are given in 
+section~\ref{sec:mesh}. 
+Here we will use the fifth mesh built in Section~\ref{sec:meshestoy} 
+using the following code 
+<<buildmesh5>>=
+pl.dom <- cbind(c(0,1,1,0.7,0), c(0,0,0.7,1,1))
+mesh5 <- inla.mesh.2d(, pl.dom, max.e=c(0.092, 0.2))
+@
 
-To the estimation mesh we need to define the mesh. 
-We show it on Chapter~\ref{ch:mesh} and here 
-we use the fift mesh builded 
-for the toy example on Chapter~\ref{ch:mesh}
-<<loadmeshes,echo=F>>=
-for (i in 1:6)
-  load(paste('mesh', i, '.RData', sep=''))
-@ 
-
-With that mesh, we define the SPDE model 
+The SPDE model in the original parameterization can be built 
 using the function \code{inla.spde2.matern()} 
 <<spde2matern>>=
 args(inla.spde2.matern)
@@ -77,137 +64,213 @@ The principal arguments are the mesh
 object and the $\alpha$ parameter, related 
 to the smoothness parameter of the process.  
 
+We will choose our parameters based instead on  
+the marginal variance and the practical range, 
+$\sqrt{8\nu}/\kappa$. 
+For details on this parameterization see
+\cite{lindgren:2012}. 
+When defining the SPDE model we will need also to 
+set priors for both the parameters.  
+The smoothness parameter $\nu$ is fixed  
+as $\alpha=\nu+d/2 \in [1,2]$. 
+The \texttt{inla.spde2.pcmatern()} 
+uses this parameterization to set the 
+Penealized Complexity prior, PC-prior, as 
+derived in \cite{fuglstadetal:2017}. 
+
+Our example domain is the $[0,1]\times [0,1]$ square. 
+We set the prior median to $0.3$. 
+We set the probability that the 
+marginal standard deviation exceeds 1 to 1\%. 
 The toy dataset was simulated with $\alpha=2$ 
-and we use this value here (with the mesh five) 
-<<spdedef>>=
-spde5 <- inla.spde2.matern(mesh5, alpha=2)
+and it is considered to fit the model as well. 
+<<spde5def>>=
+spde5 <- inla.spde2.pcmatern(
+    mesh=mesh5, alpha=2, ### mesh and smoothness parameter
+    prior.range=c(0.3, 0.5), ### P(practic.range<0.3)=0.5
+    prior.sigma=c(1, 0.01)) ### P(sigma>1)=0.01
 @ 
 
-Also, from section~\ref{sec:projmat} 
-we define the projector matrix 
-<<a5>>=
+\subsection{Projector matrix}
+
+The second step in preparing to use SPDE 
+is to build a projector matrix. 
+This will project the random field modeled at the 
+mesh nodes. For details, see section~\ref{sec:secres}. 
+The projector matrix can be built with 
+the \code{inla.spde.make.A} function. 
+Considering that each mesh vertex has a weight, 
+the value for one point within one triangle is 
+the projection of the plane (formed by these 
+three weights) at this point location. 
+The projection is a weighted average 
+using weights computed by the 
+\code{inla.spde.make.A()} function. 
+Using the toy data set and example mesh number five, we have
+<<proj2>>=
 coords <- as.matrix(SPDEtoy[,1:2])
 A5 <- inla.spde.make.A(mesh5, loc=coords)
 @ 
 
-\section{The stack functionality}\label{sec:stack}
+This matrix has dimension equal to the number of data 
+locations times the number of vertices in the mesh 
+<<dima1>>=
+dim(A5)
+@ 
+Because each point location is inside one of the triangles 
+there are exactly three non-zero elements on each line 
+<<a5lines>>=
+table(rowSums(A5>0))
+@ 
+because each point location is inside one of the triangles. 
+These three elements on each line sum to one.
+<<rsum>>=
+table(rowSums(A5))
+@ 
+The reason they sum to one is that multiplication with 
+any vector of weights at mesh nodes times this matrix 
+is the projection of these weights at the point locations. 
 
-The stack functionality is a very useful 
-functionality to work with SPDE on \pkg{INLA} package. 
-This allow to fit more general SPDE models, 
-such as replicated or correlated ones, 
-or more general models that includes 
-more than one projector matrix. 
-Using it we avoid errors in the index 
-construction, \cite{lindgren:2012}. 
-Examples on more complex models, with the details, 
-can be found on \cite{lindgren:2012}, 
-\cite{cameletti:2012} and \cite{lindgrenR:2013}. 
+There are some columns in the projector 
+matrix all of whose elements equal zero. 
+<<colsA>>=
+table(colSums(A5)>0)
+@ 
+These columns correspond to triangles 
+with no point location inside.
+These columns can be dropped. 
+The \texttt{inla.stack()} function (section~\ref{sec:stack}) 
+does this automatically. 
 
-In a section on the previous Chapter we define the 
-projector matrix to project the latent field on the 
-response locations. 
-If we have have covariates measured 
-at same locations (with same dimention of the 
-response), we need a more general definition 
-of the linear predictor. 
-On the toy example, we have to include the 
-effect of the random field and the intercept 
-that is treated as a covariate. 
-So, we define the new intercept $\eta^{*}$ as 
+When we have a mesh where every pont location is on 
+a mesh vertex, each line on the projector matrix has 
+exacty one nonzero element. 
+This is the case for the \code{mesh1} built in 
+section \ref{sec:meshestoy}. 
+<<loadmeshes, echo=FALSE>>=
+for (i in 1:6)
+  load(paste('mesh', i, '.RData', sep=''))
+@
+<<eacha1>>=
+A1 <- inla.spde.make.A(mesh1, loc=coords)
+table(rowSums(A1>0))
+@
+and all these elements are equal to one 
+<<summarya1>>=
+table(rowSums(A1))
+@ 
+Each element equals one because in this 
+instance the projections to the location points 
+are equal to the weight at the corresponding node 
+(at the same location) of the mesh. 
+
+\subsection{The data stack}\label{sec:stack}
+
+The \texttt{inla.stack()} function is usefull for 
+organizing data, covariates, indices and projector matrices. 
+All are relevant to SPDE models. 
+\texttt{inla.stack()} helps to control the way 
+effects are projected in the linear predictor. 
+Detailed examples including one dimensional, 
+replicated random field and spacetime models
+are presented in \cite{lindgren:2012}. 
+
+In the toy example we have a linear predictor 
+that can be written as 
 \[
-\eta^{*} = \bA\bx + \b1\beta_0
+\mathbf{\eta}^{*} = \mathbf{1}\beta_0 + \mathbf{A}\mathbf{u} \;.
 \]
-that is a sum of two components each one 
-can be represented as a product of a projector 
+The first half of the right side represents the intercept. 
+The term on the far right represents the spatial effect. 
+Each component is represented as a product of a projector 
 matrix and an effect. 
 
-We have that the SPDE approach defines 
-a model on the mesh nodes, and usually the number 
-of nodes are not equal to the number of locations 
-where we have data observed. 
-The \code{inla.stack} function allow us to 
+The Finite Element Method solution considered for 
+implementing the SPDE models build the model over 
+the mesh nodes. 
+Usually the number of nodes is not equal to the number 
+of locations for which we have observations. 
+The \code{inla.stack} function allows us to 
 work with predictors that includes terms with 
-different dimentions. 
+different dimensions. 
 The three main \code{inla.stack()} arguments 
 are the \code{data} vectors list, a list of 
-projector matrices (each one related to one 
+projector matrices (each related to one 
 block effect) and the effects. 
 
-We need two projector matrices, the projector matrix 
-for the latend field and a matrix to map one-to-one 
-the 'covariate' and the response. This last one can 
-be just a constant instead a diagonal matrix. 
-So, we have 
+We need two projector matrices: the projector matrix 
+for the latent field and a matrix that is a 
+one-to-one map of the covariate and the response. 
+The latter matrix can simply be a constant 
+rather than a diagonal matrix. Thus we have 
 <<stackdata1b>>=
 stk5 <- inla.stack(data=list(resp=SPDEtoy$y), A=list(A5,1), 
                    effects=list(i=1:spde5$n.spde, 
                      m=rep(1,nrow(SPDEtoy))), tag='est')
 @ 
 
-The \code{inla.stack()} function automatically 
-eliminates the elements when any column of 
-each projector matrix has zero sum, generating 
-a correspondent simplified projector matrix. 
+The \code{inla.stack()} function automatically eliminates 
+the any column in a projector matrix that has a zero sum. 
+It generates a new and simplified matrix. 
 The \code{inla.stack.A()} extracts 
 a simplified predictor matrix to use 
-on the \code{inla()} function and 
+with the \code{inla()} function, while 
 the \code{inla.stack.data()} function 
-extract the correspondent organized data. 
+extracts the corresponding data. 
 
 The simplified projector matrix from the stack 
-is the binded by column the simplified 
-projectors matrices from each effect block. 
-So, in this case we have 
+consists of the simplified projector matrices, 
+where each column holds one effect block. 
 <<dimA>>=
 dim(inla.stack.A(stk5))
 @ 
-one columns more than the number of columns with 
-non null elements of the projector matrix.
+In the toy example we have one column more than the number 
+of columns with non-null elements in the projector matrix. 
 
-\section{Model fitting and some results}
+\subsection{Model fitting and some results}
 
-To fit the model need to remove the intercept from 
-the formulae and add it as a covariate term, 
-because we a have projector matrix 
-that allows it as a covariate effect. 
-Of course, we must have to pass these predictor 
-matrix on \code{control.predictor} argument of the 
-\code{inla} function
+To fit the model, we need to remove the intercept from 
+the formula and add it as a covariate term, so that 
+all the formula's covariate terms can be captured in a 
+projector matrix. 
+Them the matrix of predictors is passed to the \code{inla()} 
+function in its \code{control.predictor} argument 
 <<modelfit>>=
 res5 <- inla(resp ~ 0 + m + f(i, model=spde5), 
              data=inla.stack.data(stk5), 
              control.predictor=list(A=inla.stack.A(stk5)))
 @ 
 
-An object from \code{inla()} function 
-has a set of several results. 
-These includes summaries, marginal posterior densities of 
-each parameter on the model: the regression parameters, 
-each element of the latent field and all the hyperparameters. 
+The \code{inla()} function returns an 
+object that is a set of several results. 
+It includes summaries, marginal posterior densities of each 
+parameter in the model, the regression parameters, each 
+element that is a latent field, and all the hyperparameters. 
 
 The summary of $\beta_0$ is obtained by 
-<<beta0summary>>= 
+<<beta0summary>>=
 res5$summary.fix
 @ 
-
-The summary of $1/\sigma_e^2$ is obtained by 
-<<invnuggetsummary>>= 
+and the summary of $1/\sigma_e^2$ by 
+<<invnuggetsummary>>=
 res5$summary.hy[1,]
 @ 
 
-A marginal distribution on \code{inla()} output 
-is just two vector, where one represents the 
-parameter values and another the density. 
+A marginal distribution in \code{inla()} output 
+consists of two vectors. 
+One is a set of values on the range of the parameter 
+space with posterior marginal density bigger than zero 
+and another is the posterior marginal density 
+at each one of these values. 
 Any posterior marginal can be transformed.
 If we want the posterior marginal for 
-$\sigma_e$, the square root of the $\sigma_e^2$, 
-we use 
+$\sigma_e$, the square root of $\sigma_e^2$, 
+for example, we use 
 <<postnugget>>=
 post.se <- inla.tmarginal(function(x) sqrt(1/x), 
                           res5$marginals.hy[[1]])
 @ 
-and now we are able to summarize this distribution
+Now we are able to summarize this distribution.
 <<summarypostnu>>=
 inla.emarginal(function(x) x, post.se)
 inla.qmarginal(c(0.025, 0.5, 0.975), post.se)
@@ -236,12 +299,12 @@ inla.emarginal(function(x) x, res5.field$marginals.range.nominal[[1]])
 also we can get other summary statistics, 
 HPD interval and visualize it. 
 
-\section{Prediction of the random field}
+\subsection{Prediction of the random field}
 
 A very common objective when we have spatial 
 data collected on some locations is the prediction 
 on a fine grid to get hight resolution maps. 
-In this section we show two approaches to make 
+In this subsection we show two approaches to make 
 prediction of the random field, one is after 
 the estimation process 
 and other is jointly on estimation process. 
@@ -251,7 +314,7 @@ on three target locations: (0.1,0.1), (0.5,0.55), (0.7,0.9).
 pts3 <- rbind(c(.1,.1), c(.5,.55), c(.7,.9))
 @ 
 
-\subsection{Jointly with the estimation process} 
+\subsubsection{Jointly with the estimation process} 
 
 The prediction of the random field joint 
 the parameter estimation process in 
@@ -300,12 +363,12 @@ To access the posterior marginal distribution
 of the random field at the target locations, 
 we extract the index from the full stack 
 using the adequate \code{tag}.
-<<indd>>=
+<<inddp>>=
 (indd5p <- inla.stack.index(stk5.jp, tag='prd5r')$data)
 @ 
 The summary of the posterior distributions 
 of the random field on the target locations is 
-<<postd>>=
+<<postp>>=
 round(res5p$summary.linear.pred[indd5p,], 4)
 @ 
 that includes the posterior mean, 
@@ -314,18 +377,18 @@ standard deviation, quantiles and mode.
 Because it is a full bayesian analysis, we 
 also we have the marginal distributions. 
 We extract the marginals posterior distributions with
-<<margp,results=hide>>=
+<<marg3p,results='hide'>>=
 marg3 <- res5p$marginals.linear[indd5p]
 @ 
 and get the 95\% HPD interval for the random 
 field at the second target location by 
-<<hpdp>>=
+<<hpdp3>>=
 inla.hpdmarginal(0.95, marg3[[2]])
 @ 
 and see that around the point (0.5,0.5) the random field 
 has positive values, see Figure~\ref{fig:pgrid}. 
 
-\subsection{After the estimation process}
+\subsubsection{After the estimation process}
 
 If we need just the prediction we can do 
 the prediction after the estimation process 
@@ -347,7 +410,7 @@ inla.mesh.project(inla.mesh.projector(mesh5, loc=pts3),
                   res5$summary.random$i$mean)
 @ 
 and see that for the mean we have similar values 
-than those on previous section. 
+than those on previous subsection. 
 
 Also, we can get the standard deviation 
 <<sdproj3>>=
@@ -358,7 +421,7 @@ and we have a little difference.
 sqrt(drop((A5pts3^2)%*%(res5$summary.random$i$sd^2)))
 @  
 
-\subsection{Projection on a grid}
+\subsubsection{Projection on a grid}
 
 The approach by the projection of the posterior 
 mean random field is computationaly cheap. 
@@ -382,17 +445,17 @@ prd0.s <- inla.mesh.project(pgrid0,  res5$summary.ran$i$s)
 We visualize this values projected on the grid on 
 Figure~\ref{fig:pgrid}. 
 
-\section{Prediction of the response}
+\subsection{Prediction of the response}
 
 Another commom result that we want on 
 spatially continuous modelling is the 
 prediction of the response on a target 
 locations that we don't have data observed. 
-In similar way that on past section, it is possible 
+In similar way that on past subsection, it is possible 
 to find the marginal distribution or to make 
 a projection of some functional of the response. 
 
-\subsection{By the posterior distribution}
+\subsubsection{By the posterior distribution}
 
 In this case, we want to define a adequate 
 predictor of the response and build the model again. 
@@ -428,7 +491,7 @@ round(r5presp$summary.fitted.values[indd3r,], 3)
 @ 
 Also, we extract the marginals posterior 
 distributions with
-<<margp,results=hide>>=
+<<margp,results='hide'>>=
 marg3r <- r5presp$marginals.fitted.values[indd3r]
 @ 
 and get the 95\% HPD interval for the response 
@@ -440,7 +503,7 @@ and see that around the point (0.5,0.5) we have the
 values of the response significantly larger 
 than $\beta_0$, see Figure~\ref{fig:pgrid}. 
 
-\subsection{By sum of linear predictor components}
+\subsubsection{By sum of linear predictor components}
 
 A computational cheap approach is to (naively) 
 sum the projected posterior mean to the 
@@ -463,7 +526,7 @@ regression coefficients.
 <<optlcall,echo=F>>=
 inla.setOption(inla.call=lcall)
 @ 
-<<cov,results=hide,echo=F>>=
+<<cov,results='hide',echo=F>>=
 q <- inla.spde2.precision(spde5, theta=res5$summary.hyper[2:3,1])
 rf.cov <- inla.qinv(q)
 dim(rf.cov)
@@ -475,7 +538,7 @@ summary(rvar <- res5$summary.random$i$sd^2)
 sqrt(1^2+res5$summary.fix[1,2]^2 + drop(A5pts3%*%rvar))
 @ 
 
-\subsection{Response on a grid}
+\subsubsection{Response on a grid}
 
 The computation of all marginal posterior 
 distributions on a grid is computationally expensive. 
@@ -513,10 +576,10 @@ We get the indexes
 igr <- inla.stack.index(stk.all, 'prd.gr')$data
 @ 
 and use it to visualize, together the prediction  
-of the random field on previous section,
+of the random field on previous subsection,
 on Figure~\ref{fig:pgrid} with the commands bellow
 <<pgrid,eval=F>>=
-require(gridExtra)
+library(gridExtra)
 grid.arrange(levelplot(prd0.m, col.regions=topo.colors(99), main='latent field mean',
                        xlab='', ylab='', scales=list(draw=FALSE)), 
              levelplot(matrix(res5g$summary.fitt[igr,1], 101), 
@@ -529,17 +592,15 @@ grid.arrange(levelplot(prd0.m, col.regions=topo.colors(99), main='latent field m
                        col.regions=topo.colors(99), scales=list(draw=FALSE)), 
              nrow=2)
 @ 
-\setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering 
-<<echo=F,fig=TRUE,eps=F,width=7.5,height=7>>=
+<<echo=FALSE,fig.width=7.5,fig.height=7,out.width='0.97\\textwidth'>>=
 <<pgrid>>
 @ 
 \caption{The mean and standard deviation of the random field 
   (top left and bottom left) 
   and the mean and standard variation of the 
   response (top right and bottom right)}
-\label{fig:pgrid}
-\end{figure}
+\end{figure}\label{fig:pgrid}
 
 We see on Figure~\ref{fig:pgrid} that we have a 
 variation from -4 to 4 on the spatial effect. 
@@ -553,11 +614,11 @@ are less near the corner (0, 0) and greater
 near the corner (1,1). 
 This is just proportional to the locations density. 
 
-\section{Results from different meshes}\label{sec:meshcompare}
+\subsection{Results from different meshes}\label{sec:meshcompare}
 
-In this section we compare six results for 
+In this subsection we compare six results for 
 the toy dataset based on the six different 
-meshs builded on section~\ref{ch:mesh}. 
+meshs builded on Section~\ref{sec:mesh}. 
 To do this comparison, we just plot the posterior 
 marginal distributions of the model parameters. 
 We evaluate the meshes by the addiction of 
@@ -602,20 +663,12 @@ $\sigma_x^2=5$, $\kappa=7$ and $\nu=1$.
 The $\nu$ parameter is fixed on the true value when 
 we define $\alpha=2$ on definition of the SPDE model. 
 <<truepars>>=
-beta0 <- 10; sigma2e <- 0.3; sigma2x <- 5; kappa <- 7; nu <- 1
+beta0 <- 10; sigma2e <- 0.3; sigma2u <- 5; kappa <- 7; nu <- 1
 @ 
-and the maximum likelihood estimates are 
-<<likfit,echo=F,results=hide>>=
-source('spde-tutorial-functions.R')
-inla.setOption(inla.call=lcall)
-system.time(opt.b <- optim(
-    c(-1,2), negLogLikFun, hessian=TRUE, method='BFGS',
-    X=matrix(1,nrow(coords)), A=A5, y=SPDEtoy[,3], spde=spde5)) 
-lk.est <- par2user(opt.b$par, matrix(1,nrow(coords),1), A5, SPDEtoy[,3], spde5) 
-@ 
-
+and the maximum likelihood one can have using the 
+\textbf{\textsf{geoR}} package, \cite{geoR}, are 
 <<lkv>>=
-lk.est
+lk.est <- c(beta=9.54, s2e=0.374, s2u=3.32, range=0.336)
 @ 
 
 We want to visualize the posterior marginal 
@@ -651,7 +704,7 @@ plot(lrf[[1]]$marginals.variance.nominal[[1]], type='l',
      xlim=xrange, ylim=yrange, xlab=expression(sigma[x]^2), ylab='Density')
 for (k in 1:6)
   lines(lrf[[k]]$marginals.variance.nominal[[1]], col=rcols[k], lwd=2)
-abline(v=sigma2x, lty=2, lwd=2, col=3) 
+abline(v=sigma2u, lty=2, lwd=2, col=3) 
 abline(v=lk.est[3], lty=3, lwd=2, col=3)
 
 xrange <- range(sapply(lrf, function(r) range(r$marginals.kappa[[1]][,1])))
@@ -715,15 +768,14 @@ and that the mode from third mesh are the less.
 For the practical range the opposite happens. 
 
 \begin{figure}\centering
-<<echo=F,fig=TRUE,eps=FALSE,width=7.5,height=5>>=
+<<echo=F,fig.width=7.5,fig.height=5>>=
 <<compare>>
 @ 
 \caption{Marginal posterior distribution for 
 $\beta_0$ (top left), $\sigma_e^2$ (top mid), 
  $\sigma_x^2$ (top right), $\kappa$ (bottom left), 
  nominal range (bottom mid) and $\tau$ (bottom right).}
-\label{fig:margposttoy}
-\end{figure}
+\end{figure}\label{fig:margposttoy}
 
 These results are not conclusive, but a general 
 comment is that is good to have a mesh with some 

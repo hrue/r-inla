@@ -14,7 +14,7 @@ for(i in 1:n) {
 r = inla(y ~ 1 + x,
          data = data.frame(y, x, E),
          family = "qpoisson",
-         control.family = list(quantile = alpha),
+         control.family = list(control.link=list(quantile = alpha)),
          E =E)
 summary(r)
 
