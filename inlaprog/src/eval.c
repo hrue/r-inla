@@ -199,7 +199,6 @@ double inla_eval_expression(char *expression, double *x, double *theta, int nthe
 			char *var = NULL;
 			GMRFLib_sprintf(&var, "THETA%1d", i);
 			mupDefineConst(hParser, var, theta[i]);
-			printf("define %s as %g\n", var,  theta[i]);
 			Free(var);
 		}
 		eval_keep_vars_tp *keep_vars = NULL;
