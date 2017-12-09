@@ -95,7 +95,7 @@
                 G = toeplitz(c(1, 1, rep(0, n-2L)))
                 G = inla.as.sparse(G)
             } else {
-                ## faster. we only need to define the lower-triangular of G
+                ## faster. we only need to define the upper-triangular of G
                 i = c(
                     ## diagonal
                     1L, n, 2L:(n-1L),
@@ -123,7 +123,7 @@
             Q[1, 1] = Q[n, n] = param$prec/(1-param$rho^2)
             Q = inla.as.sparse(Q)
         } else {
-            ## faster. we only need to define the lower-triangular Q!
+            ## faster. we only need to define the upper-triangular Q!
             i = c(
                 ## diagonal
                 1L, n, 2L:(n-1L),
@@ -172,8 +172,7 @@
     initial = function()
     {
         ## return initial values
-        ntheta = 2
-        return (rep(1, ntheta))
+        return (rep(1, 2))
     }
 
     quit = function()
@@ -322,14 +321,12 @@
         debug.cat("dim(Q)", dim(Q))
         n = dim(Q)[1L]
         stopifnot(dim(Q)[1L] == dim(Q)[2L])
-        stopifnot(dim(Q)[1L] == n && dim(Q)[2L] == n)
         idx = which(Q@i <= Q@j)
         len = length(Q@i[idx])
         result = c(n, len, Q@i[idx], Q@j[idx], Q@x[idx])
     } else if (cmd %in% "graph") {
         diag(res) = 1
-print(res)
-        G = inla.as.sparse(res, zeros.rm = TRUE)
+        G = inla.as.sparse(res)
         stopifnot(dim(G)[1L] == dim(G)[2L])
         n = dim(G)[1L]
         idx = which(G@i <= G@j)
@@ -397,13 +394,13 @@ print(res)
 
     res = do.call(what = func, args = list(cmd = cmd, theta = theta))
     if (cmd %in% c("Q", "graph")) {
-        ## since only the upper triangular matrix is required return from 'do.call', then make
-        ## sure its symmetric and that diag(Graph) = 1
+        ## since only the upper triangular matrix (diagonal included) is required return from
+        ## 'do.call', then make sure its symmetric and that diag(Graph) = 1
         if (cmd %in% "Q") {
             Q = inla.as.sparse(res)
         } else {
             diag(res) = 1
-            Q = inla.as.sparse(res, zeros.rm = TRUE)
+            Q = inla.as.sparse(res, na.rm = TRUE, zeros.rm = TRUE)
             Q[Q != 0] = 1
         }
         n = dim(Q)[1]

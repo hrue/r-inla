@@ -50,7 +50,7 @@ and the prior is given for $\theta$.
 \item $\text{family}=\texttt{qkumar}$
 \item Required arguments: $y$ and the quantile $q$. 
 \end{itemize}
-The quantile is given as \texttt{control.family=list(quantile=$q$)}.
+The quantile is given as \texttt{control.family=list(control.link = list(quantile=$q$))}.
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/likelihood/qkumar.tex}
