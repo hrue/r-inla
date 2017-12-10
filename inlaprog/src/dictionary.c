@@ -272,7 +272,7 @@ void dictionary_set(dictionary * d, char *key, char *val)
 		if (d->val[i] != NULL)
 			free(d->val[i]);
 		d->val[i] = val ? strdup(val) : NULL;
-		map_stri_set(&(d->strihash), d->val[i], 1);
+		map_stri_set(&(d->strihash), key, d->val[i]);
 	} else {
 		/*
 		 * Add a new value 

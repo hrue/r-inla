@@ -4,7 +4,7 @@
 
 `inla.secsep` = function(secname) 
 {
-    sep = "$"
+    sep = "!"
     if (missing(secname)) {
         return (sep)
     } else {
