@@ -2109,7 +2109,7 @@
             if (!(names(data)[k] %in% exclude.names)) {
                 formula = as.formula(paste("~ -1 + ",  names(data)[k]))
                 tmp = model.matrix(formula, model.frame(formula,  data, na.action = na.pass))
-                colnames(tmp) = levels(data[[k]])
+                colnames(tmp) = paste0(names(data)[k], levels(data[[k]]))
                 data[[k]] = tmp
             }
         }
