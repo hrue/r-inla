@@ -159,3 +159,39 @@
         return (list(i = A@i[idx]+1, j = col, values = A@x[idx]))
     }
 }
+
+inla.sm.write = function(A, filename = "SparseMatrix.dat")
+{
+    stopifnot(!missing(A))
+    A = inla.as.sparse(A)
+
+    xx = c(dim(A)[1],
+           dim(A)[2],
+           length(A@i), 
+           A@i + 1, 
+           A@j + 1, 
+           A@x)
+    fp = file(filename, "wb")
+    writeBin(xx, fp)
+    close(fp)
+    
+    return (filename)
+}
+    
+inla.sm.read = function(filename = "SparseMatrix.dat")
+{
+    fp = file(filename, "rb")
+    nn = readBin(fp, double(), n=3L)
+    nx = nn[3]
+    x = readBin(fp, double(), n = 3*nx)
+    close(fp)
+
+    M = inla.as.sparse(sparseMatrix(i = x[1:nx] -1L,
+                                    j = x[nx + 1:nx] -1L,
+                                    x = x[2*nx + 1:nx],
+                                    dims = nn[1:2],
+                                    index1 = FALSE,
+                                    giveCsparse = FALSE))
+    return (M)
+}
+    
