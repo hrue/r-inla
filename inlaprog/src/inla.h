@@ -576,7 +576,8 @@ typedef enum {
 	LINK_LOGITOFFSET,
 	LINK_INVERSE,
 	LINK_QPOISSON,
-	LINK_QBINOMIAL
+	LINK_QBINOMIAL,
+	LINK_QWEIBULL
 } inla_component_tp;
 
 
@@ -1287,6 +1288,24 @@ typedef struct {
 	inla_besag_Qfunc_arg_tp *besagdef;
 } inla_group_def_tp;
 
+typedef struct {
+	int variant;
+	double quantile;
+	double theta_alpha;
+}
+	inla_qweibull_arg_tp;
+
+typedef struct {
+	double n;
+	double quantile;
+}
+	inla_qbinomial_arg_tp;
+	
+typedef struct {
+	double quantile;
+}
+	inla_qpoisson_arg_tp;
+	
 
 #define R_GENERIC_Q "Q"
 #define R_GENERIC_GRAPH "graph"
@@ -1392,6 +1411,7 @@ double link_neglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_probit(double x, map_arg_tp typ, void *param, double *cov);
 double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov);
 double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov);
+double link_qweibull(double x, map_arg_tp typ, void *param, double *cov);
 double link_special1(double x, map_arg_tp typ, void *param, double *cov);
 double link_special2(double x, map_arg_tp typ, void *param, double *cov);
 double link_sslogit(double x, map_arg_tp typ, void *param, double *cov);
