@@ -34,13 +34,13 @@ static const char RCSId[] = HGVERSION;
 // if we are linking with libR and not libRmath, then MATHLIB_STANDALONE should NOT BE SET.
 // if we are linking with libRmath and not libR, then MATHLIB_STANDALONE should BE SET.
 #if defined(INLA_EXPERIMENTAL) || defined(INLA_LIBR)
-#  if defined(MATHLIB_STANDALONE)
-#    undef MATHLIB_STANDALONE
-#  endif  
+#if defined(MATHLIB_STANDALONE)
+#undef MATHLIB_STANDALONE
+#endif
 #else
-#  if !defined(MATHLIB_STANDALONE)
-#    define MATHLIB_STANDALONE
-#  endif
+#if !defined(MATHLIB_STANDALONE)
+#define MATHLIB_STANDALONE
+#endif
 #endif
 
 #if defined(__sun__)
@@ -1348,10 +1348,10 @@ double link_special2(double x, map_arg_tp typ, void *param, double *cov)
 double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov)
 {
 	double shape, ret;
-	double alpha = *((double *)param);
+	double alpha = *((double *) param);
 
-	switch(typ) {
-	case INVLINK: 
+	switch (typ) {
+	case INVLINK:
 	{
 		shape = exp(x) + 1.0;
 		if (shape > 400.0) {
@@ -1360,39 +1360,39 @@ double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov)
 			ret = gsl_cdf_gamma_Qinv(alpha, shape, 1.0);
 		}
 	}
-	break;
+		break;
 
 	case LINK:
 	{
 		CODE_NEEDED;
 	}
-	break;
+		break;
 
-	case DINVLINK: 
+	case DINVLINK:
 	{
-		double dx = GMRFLib_eps(1.0/3.9134); // about 0.0001 on my laptop
+		double dx = GMRFLib_eps(1.0 / 3.9134);	       // about 0.0001 on my laptop
 		double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
 		double wf_sum = 0.0;
-		int i, nwf = sizeof(wf)/sizeof(double), nwf2 = (nwf-1)/2; /* gives 5 and 2 */
+		int i, nwf = sizeof(wf) / sizeof(double), nwf2 = (nwf - 1) / 2;	/* gives 5 and 2 */
 
-		for(i = 0; i < nwf; i++) {
-			wf_sum += wf[i] * link_qpoisson(x + (i-nwf2)*dx, INVLINK, param, cov);
+		for (i = 0; i < nwf; i++) {
+			wf_sum += wf[i] * link_qpoisson(x + (i - nwf2) * dx, INVLINK, param, cov);
 		}
 		ret = wf_sum / dx;
 	}
-	break;
+		break;
 
 	case LINKINCREASING:
 	{
 		return 1.0;
 	}
-	break;
+		break;
 
 	default:
 	{
-		assert(0==1);
+		assert(0 == 1);
 	}
-	break;
+		break;
 
 	}
 
@@ -1402,7 +1402,7 @@ double link_qweibull(double x, map_arg_tp typ, void *param, double *cov)
 {
 	if (param == NULL) {
 		static int first = 1;
-		if (first){
+		if (first) {
 			fprintf(stderr, "\n*** WARNING *** quantile-link for Weibull cannot compute fitted values.\n");
 			fprintf(stderr, "*** WARNING *** the identity link is used instead\n\n");
 			fflush(stderr);
@@ -1413,54 +1413,54 @@ double link_qweibull(double x, map_arg_tp typ, void *param, double *cov)
 
 	double ret;
 	inla_qweibull_arg_tp *arg = (inla_qweibull_arg_tp *) param;
-	
-	switch(typ) {
-	case INVLINK: 
+
+	switch (typ) {
+	case INVLINK:
 	{
-		switch(arg->variant){
+		switch (arg->variant) {
 		case 0:
 			ret = -1.0 / pow(exp(x), arg->theta_alpha) * log(1.0 - arg->quantile);
 			break;
 		case 1:
-			ret = 1.0 / exp(x) * pow(-log(1.0 - arg->quantile), 1.0/arg->theta_alpha);
+			ret = 1.0 / exp(x) * pow(-log(1.0 - arg->quantile), 1.0 / arg->theta_alpha);
 			break;
 		default:
 			assert(0 == 1);
 		}
 	}
-	break;
+		break;
 
 	case LINK:
 	{
 		CODE_NEEDED;
 	}
-	break;
+		break;
 
-	case DINVLINK: 
+	case DINVLINK:
 	{
-		double dx = GMRFLib_eps(1.0/3.9134); // about 0.0001 on my laptop
+		double dx = GMRFLib_eps(1.0 / 3.9134);	       // about 0.0001 on my laptop
 		double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
 		double wf_sum = 0.0;
-		int i, nwf = sizeof(wf)/sizeof(double), nwf2 = (nwf-1)/2; /* gives 5 and 2 */
+		int i, nwf = sizeof(wf) / sizeof(double), nwf2 = (nwf - 1) / 2;	/* gives 5 and 2 */
 
-		for(i = 0; i < nwf; i++) {
-			wf_sum += wf[i] * link_qweibull(x + (i-nwf2)*dx, INVLINK, param, cov);
+		for (i = 0; i < nwf; i++) {
+			wf_sum += wf[i] * link_qweibull(x + (i - nwf2) * dx, INVLINK, param, cov);
 		}
 		ret = wf_sum / dx;
 	}
-	break;
+		break;
 
 	case LINKINCREASING:
 	{
 		return 1.0;
 	}
-	break;
+		break;
 
 	default:
 	{
-		assert(0==1);
+		assert(0 == 1);
 	}
-	break;
+		break;
 
 	}
 
@@ -1470,7 +1470,7 @@ double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
 {
 	if (param == NULL) {
 		static int first = 1;
-		if (first){
+		if (first) {
 			fprintf(stderr, "\n*** WARNING *** quantile-link for Binomial cannot compute fitted values.\n");
 			fprintf(stderr, "*** WARNING *** the identity link is used instead\n\n");
 			fflush(stderr);
@@ -1484,45 +1484,45 @@ double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
 	inla_qbinomial_arg_tp *arg = (inla_qbinomial_arg_tp *) param;
 	double q, ret;
 
-	switch(typ) {
-	case INVLINK: 
+	switch (typ) {
+	case INVLINK:
 	{
-		q = 1.0/(1.0 + exp(-x));
-		ret = qbeta(arg->quantile, arg->n*q + 1.0, arg->n * (1.0 - q), 0, 0);
+		q = 1.0 / (1.0 + exp(-x));
+		ret = qbeta(arg->quantile, arg->n * q + 1.0, arg->n * (1.0 - q), 0, 0);
 	}
-	break;
+		break;
 
 	case LINK:
 	{
 		CODE_NEEDED;
 	}
-	break;
+		break;
 
-	case DINVLINK: 
+	case DINVLINK:
 	{
-		double dx = GMRFLib_eps(1.0/3.9134); // about 0.0001 on my laptop
+		double dx = GMRFLib_eps(1.0 / 3.9134);	       // about 0.0001 on my laptop
 		double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
 		double wf_sum = 0.0;
-		int i, nwf = sizeof(wf)/sizeof(double), nwf2 = (nwf-1)/2; /* gives 5 and 2 */
+		int i, nwf = sizeof(wf) / sizeof(double), nwf2 = (nwf - 1) / 2;	/* gives 5 and 2 */
 
-		for(i = 0; i < nwf; i++) {
-			wf_sum += wf[i] * link_qbinomial(x + (i-nwf2)*dx, INVLINK, param, cov);
+		for (i = 0; i < nwf; i++) {
+			wf_sum += wf[i] * link_qbinomial(x + (i - nwf2) * dx, INVLINK, param, cov);
 		}
 		ret = wf_sum / dx;
 	}
-	break;
+		break;
 
 	case LINKINCREASING:
 	{
 		return 1.0;
 	}
-	break;
+		break;
 
 	default:
 	{
-		assert(0==1);
+		assert(0 == 1);
 	}
-	break;
+		break;
 
 	}
 
@@ -4229,7 +4229,8 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 			logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(lypred - ly) * prec)) - ly;
 		}
 	} else {
-		if (y_cdf) ly = log(*y_cdf);
+		if (y_cdf)
+			ly = log(*y_cdf);
 		for (i = 0; i < -m; i++) {
 			lypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			logll[i] = inla_Phi((ly - lypred) * sqrt(prec));
@@ -4244,7 +4245,7 @@ int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double
 {
 	return (m == 0 ? GMRFLib_SUCCESS :
 		loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_lognormal));
-}	
+}
 
 int loglikelihood_simplex(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
@@ -5112,7 +5113,7 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_ve
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y), lambda;
 	inla_qpoisson_arg_tp qarg;
-	
+
 	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
@@ -5824,7 +5825,8 @@ int loglikelihood_zeroinflated_negative_binomial1(double *logll, double *x, int 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_negative_binomial1_strata2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zeroinflated_negative_binomial1_strata2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+							  void *arg)
 {
 	/*
 	 * y ~ NegativeBinomial(size, p) where E(y) = E*exp(x); same definition as in R and GSL, similar parameterisation as for the Poisson.  This version is
@@ -5918,7 +5920,8 @@ int loglikelihood_zeroinflated_negative_binomial1_strata2(double *logll, double 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_negative_binomial1_strata3(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zeroinflated_negative_binomial1_strata3(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+							  void *arg)
 {
 	/*
 	 * y ~ NegativeBinomial(size, p) where E(y) = E*exp(x); same definition as in R and GSL, similar parameterisation as for the Poisson.  This version is
@@ -6140,7 +6143,7 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 	double y = ds->data_observations.y[idx];
 	double n = ds->data_observations.nb[idx], p;
 	inla_qbinomial_arg_tp qarg;
-	
+
 	/*
 	 * this is a special case that should just return 0 or 1
 	 */
@@ -6692,6 +6695,8 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 						logA = log(pzero);
 						logB = log(1.0 - pzero) + res.val + y * log(p) + (n - y) * log(1.0 - p);
 						// logll[i] = log(pzero + (1.0 - pzero) * gsl_ran_binomial_pdf((unsigned int) y, p, 
+						// 
+						// 
 						// 
 						// 
 						// 
@@ -7454,12 +7459,10 @@ int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, d
 }
 int loglikelihood_expsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
-	return (m == 0 ? GMRFLib_SUCCESS :
-		loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_exp));
+	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_exp));
 }
 int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
-			       void *arg, GMRFLib_logl_tp *loglfun)
-
+			       void *arg, GMRFLib_logl_tp * loglfun)
 {
 	// this function makes a survival likelihood out of a regression likelihood
 
@@ -7467,8 +7470,8 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 	int i, ievent;
 	double y, event, truncation, lower, upper, gama;
 
-	assert(y_cdf == NULL); // I do not think this should be used. 
-	
+	assert(y_cdf == NULL);				       // I do not think this should be used. 
+
 	y = (y_cdf ? *y_cdf : ds->data_observations.y[idx]);
 	event = ds->data_observations.event[idx];
 	ievent = (int) event;
@@ -7477,14 +7480,14 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 	upper = ds->data_observations.upper[idx];
 
 	if (m > 0) {
-		double *work = Calloc(4*m, double);
-		double *log_dens = &work[0], *prob_lower = &work[m], *prob_upper = &work[2*m], *prob_truncation = &work[3*m];
+		double *work = Calloc(4 * m, double);
+		double *log_dens = &work[0], *prob_lower = &work[m], *prob_upper = &work[2 * m], *prob_truncation = &work[3 * m];
 
 		if (!ISZERO(truncation)) {
 			// no need to consider the case truncation = 0 as prob_truncation is already set to zero using Calloc
 			loglfun(prob_truncation, x, -m, idx, x_vec, &truncation, arg);
-		} 
-		
+		}
+
 		switch (ievent) {
 		case SURV_EVENT_FAILURE:
 			loglfun(log_dens, x, m, idx, x_vec, NULL, arg);
@@ -7496,19 +7499,15 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 		case SURV_EVENT_RIGHT:
 			loglfun(prob_lower, x, -m, idx, x_vec, &lower, arg);
 			for (i = 0; i < m; i++) {
-				logll[i] = log(
-					1.0
-					-
-					((prob_lower[i] - prob_truncation[i])/(1.0 - prob_truncation[i])));
+				logll[i] = log(1.0 - ((prob_lower[i] - prob_truncation[i]) / (1.0 - prob_truncation[i])));
 			}
 			break;
 
 		case SURV_EVENT_LEFT:
 			loglfun(prob_upper, x, -m, idx, x_vec, &upper, arg);
 			for (i = 0; i < m; i++) {
-				logll[i] = log(
-					((prob_upper[i] - prob_truncation[i])/(1.0 - prob_truncation[i]))
-					);
+				logll[i] = log(((prob_upper[i] - prob_truncation[i]) / (1.0 - prob_truncation[i]))
+				    );
 			}
 			break;
 
@@ -7516,11 +7515,9 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 			loglfun(prob_lower, x, -m, idx, x_vec, &lower, arg);
 			loglfun(prob_upper, x, -m, idx, x_vec, &upper, arg);
 			for (i = 0; i < m; i++) {
-				logll[i] = log(
-					((prob_upper[i] - prob_truncation[i])/(1.0 - prob_truncation[i]))
-					-
-					((prob_lower[i] - prob_truncation[i])/(1.0 - prob_truncation[i]))
-					);
+				logll[i] = log(((prob_upper[i] - prob_truncation[i]) / (1.0 - prob_truncation[i]))
+					       - ((prob_lower[i] - prob_truncation[i]) / (1.0 - prob_truncation[i]))
+				    );
 			}
 
 			break;
@@ -7531,9 +7528,10 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 		if (0) {
 			P(ievent);
 			P(idx);
-			for(i=0; i<m; i++) printf("\tx[%1d] = %g ll = %g\n", i, x[i], logll[i]);
+			for (i = 0; i < m; i++)
+				printf("\tx[%1d] = %g ll = %g\n", i, x[i], logll[i]);
 		}
-			
+
 		Free(work);
 		return GMRFLib_SUCCESS;
 	} else {
@@ -7556,12 +7554,12 @@ int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_ve
 	int i;
 	double y, alpha, lalpha, lambda, ypow, ly;
 	inla_qweibull_arg_tp qarg;
-	
+
 	y = ds->data_observations.y[idx];
 	ly = log(y);
 	alpha = map_alpha_weibull(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	lalpha = log(alpha);
-	
+
 	LINK_INIT;
 	if (ds->predictor_invlinkfunc == link_qweibull) {
 		// need local arguments in this case
@@ -7618,9 +7616,8 @@ int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_ve
 
 int loglikelihood_weibullsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
-	return (m == 0 ? GMRFLib_SUCCESS :
-		loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_weibull));
-}	
+	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_weibull));
+}
 
 int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
@@ -7630,7 +7627,7 @@ int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i;
-	double y, ly=0, lambda, alpha, lalpha=0;
+	double y, ly = 0, lambda, alpha, lalpha = 0;
 
 	y = ds->data_observations.y[idx];
 	alpha = map_exp(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -7641,42 +7638,40 @@ int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *
 		lalpha = log(alpha);
 	}
 
-	switch(ds->variant) {
-	case 0: 
+	switch (ds->variant) {
+	case 0:
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
 				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log(lambda) + (-alpha - 1.0) * ly + lalpha
-					- 2.0*log(1.0 + lambda * pow(y, -alpha));
+				logll[i] = log(lambda) + (-alpha - 1.0) * ly + lalpha - 2.0 * log(1.0 + lambda * pow(y, -alpha));
 			}
 		} else {
 			double yy = (y_cdf ? *y_cdf : y);
 			for (i = 0; i < -m; i++) {
 				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = 1.0/(1.0 + lambda * pow(yy, -alpha));
+				logll[i] = 1.0 / (1.0 + lambda * pow(yy, -alpha));
 			}
 		}
 		break;
 
-	case 1: 
+	case 1:
 		if (m > 0) {
 			double lam_y;
 			for (i = 0; i < m; i++) {
 				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				lam_y = lambda * y;
-				logll[i] = -alpha * log(lam_y) + lalpha - ly
-					- 2.0 * log(1.0 + pow(lam_y, -alpha));
+				logll[i] = -alpha * log(lam_y) + lalpha - ly - 2.0 * log(1.0 + pow(lam_y, -alpha));
 			}
 		} else {
 			double yy = (y_cdf ? *y_cdf : y);
 			for (i = 0; i < -m; i++) {
 				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = 1.0/(1.0 + pow(lambda * yy, -alpha));
+				logll[i] = 1.0 / (1.0 + pow(lambda * yy, -alpha));
 			}
 		}
 		break;
-		
-	default: 
+
+	default:
 		assert(0 == 1);
 	}
 
@@ -7687,69 +7682,67 @@ int loglikelihood_loglogisticsurv(double *logll, double *x, int m, int idx, doub
 {
 	return (m == 0 ? GMRFLib_SUCCESS :
 		loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_loglogistic));
-}	
+}
 
 int loglikelihood_qloglogistic(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	if (m == 0) {
-	        return GMRFLib_LOGL_COMPUTE_CDF;
+		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
-	
+
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, yq, ly=NAN, lambda, alpha, lalpha=NAN, q, qq;
-	
+	double y, yq, ly = NAN, lambda, alpha, lalpha = NAN, q, qq;
+
 	y = ds->data_observations.y[idx];
 	alpha = map_exp(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	q = ds->data_observations.quantile;
-	qq = 1.0/q - 1.0;
+	qq = 1.0 / q - 1.0;
 	LINK_INIT;
-	
+
 	if (m > 0) {
 		ly = log(y);
 		lalpha = log(alpha);
 	}
 
-	switch(ds->variant) {
-	case 0: 
+	switch (ds->variant) {
+	case 0:
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
 				yq = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				lambda = qq * pow(yq, alpha);
-				logll[i] = log(lambda) + (-alpha - 1.0) * ly + lalpha
-					- 2.0*log(1.0 + lambda * pow(y, -alpha));
+				logll[i] = log(lambda) + (-alpha - 1.0) * ly + lalpha - 2.0 * log(1.0 + lambda * pow(y, -alpha));
 			}
 		} else {
 			double yy = (y_cdf ? *y_cdf : y);
 			for (i = 0; i < -m; i++) {
 				yq = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				lambda = qq * pow(yq, alpha);
-				logll[i] = 1.0/(1.0 + lambda * pow(yy, -alpha));
+				logll[i] = 1.0 / (1.0 + lambda * pow(yy, -alpha));
 			}
 		}
 		break;
 
-	case 1: 
+	case 1:
 		if (m > 0) {
-			double lam_y, qqinv = 1.0/qq;
+			double lam_y, qqinv = 1.0 / qq;
 			for (i = 0; i < m; i++) {
 				yq = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				lambda = 1.0/yq * pow(qqinv, 1.0/alpha);
+				lambda = 1.0 / yq * pow(qqinv, 1.0 / alpha);
 				lam_y = lambda * y;
-				logll[i] = -alpha * log(lam_y) + lalpha - ly
-					- 2.0 * log(1.0 + pow(lam_y, -alpha));
+				logll[i] = -alpha * log(lam_y) + lalpha - ly - 2.0 * log(1.0 + pow(lam_y, -alpha));
 			}
 		} else {
-			double yy = (y_cdf ? *y_cdf : y), qqinv = 1.0/qq;
+			double yy = (y_cdf ? *y_cdf : y), qqinv = 1.0 / qq;
 			for (i = 0; i < -m; i++) {
 				yq = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				lambda = 1.0/yq * pow(qqinv, 1.0/alpha);
-				logll[i] = 1.0/(1.0 + pow(lambda * yy, -alpha));
+				lambda = 1.0 / yq * pow(qqinv, 1.0 / alpha);
+				logll[i] = 1.0 / (1.0 + pow(lambda * yy, -alpha));
 			}
 		}
 		break;
-		
-	default: 
+
+	default:
 		assert(0 == 1);
 	}
 
@@ -7761,7 +7754,7 @@ int loglikelihood_qloglogisticsurv(double *logll, double *x, int m, int idx, dou
 {
 	return (m == 0 ? GMRFLib_SUCCESS :
 		loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_qloglogistic));
-}	
+}
 
 int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
@@ -9273,7 +9266,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		dictionary_dump(ini, stdout);
 		exit(0);
 	}
-	
+
 	if (mb->reuse_mode) {
 		/*
 		 * if the test fail, its a good idea to provide some debug information which might be helpful to help what is wrong in the spesification. 
@@ -10754,10 +10747,13 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 			if (ds->data_id == L_LOGNORMAL) {
 				mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the lognormal observations", mb->ds);
-				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the lognormal observations", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] =
+				    inla_make_tag("Precision for the lognormal observations", mb->ds);
 			} else {
-				mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the lognormalsurv observations", mb->ds);
-				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the lognormalsurv observations", mb->ds);
+				mb->theta_tag[mb->ntheta] =
+				    inla_make_tag("Log precision for the lognormalsurv observations", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] =
+				    inla_make_tag("Precision for the lognormalsurv observations", mb->ds);
 			}
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -10832,7 +10828,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_QCONTPOISSON:
 		GMRFLib_ASSERT(ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0, GMRFLib_EPARAMETER);
 		ds->data_observations.qcontpoisson_func =
-			inla_qcontpois_func(ds->data_observations.quantile, ISQR(GMRFLib_MAX_THREADS));
+		    inla_qcontpois_func(ds->data_observations.quantile, ISQR(GMRFLib_MAX_THREADS));
 		break;
 
 	case L_CENPOISSON:
@@ -10969,9 +10965,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] =
-				inla_make_tag("Log precision parameter for the Circular Normal observations", mb->ds);
+			    inla_make_tag("Log precision parameter for the Circular Normal observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] =
-				inla_make_tag("Precision parameter for the Circular Normal observations", mb->ds);
+			    inla_make_tag("Precision parameter for the Circular Normal observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -13057,7 +13053,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
-			
+
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
@@ -13947,14 +13943,14 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->link_id = LINK_QBINOMIAL;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_qbinomial;
-			ds->predictor_invlinkfunc_arg = NULL; // add this in the likelihood function
+			ds->predictor_invlinkfunc_arg = NULL;  // add this in the likelihood function
 			break;
 		case L_WEIBULL:
 		case L_WEIBULLSURV:
 			ds->link_id = LINK_QWEIBULL;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_qweibull;
-			ds->predictor_invlinkfunc_arg = NULL; // add this in the likelihood function
+			ds->predictor_invlinkfunc_arg = NULL;  // add this in the likelihood function
 			break;
 		default:
 			assert(0 == 1);
@@ -30090,7 +30086,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 			M->A[(i + 1) * M->nrow - 1] = problems[thread]->sub_logdens;
 		}
 	}
-	
+
 	GMRFLib_write_fmesher_file(M, outfile, (long int) 0, -1);
 
 	GMRFLib_matrix_tp *CM = Calloc(1, GMRFLib_matrix_tp);
@@ -30517,7 +30513,7 @@ int testit(int argc, char **argv)
 		GMRFLib_spline_tp **spline;
 
 		double lq;
-#pragma omp parallel for 
+#pragma omp parallel for
 		for (int i = 0; i < 10000; i++) {
 			lq = -5 + i * 0.001;
 			printf("%1d quantile %f  eta %f\n", omp_get_thread_num(), exp(lq),
