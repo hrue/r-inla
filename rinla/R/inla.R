@@ -211,9 +211,7 @@
         inla.arg = inla.getOption("inla.arg"),
         
         ##!\item{num.threads}{ Maximum number of threads the
-        ##!\code{inla}-program will use. xFor Windows this
-        ##!defaults to 1, otherwise its defaults to \code{NULL}
-        ##!(for which the system takes over control).}
+        ##!\code{inla}-program will use}
         num.threads = inla.getOption("num.threads"),
         
         ##!\item{keep}{ A boolean variable indicating that the

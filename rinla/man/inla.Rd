@@ -154,9 +154,7 @@ improve the performance.}
 the 'inla' program and do not include default
 arguments. (OOPS: This is an expert option!)}
 \item{num.threads}{ Maximum number of threads the
-\code{inla}-program will use. xFor Windows this
-defaults to 1, otherwise its defaults to \code{NULL}
-(for which the system takes over control).}
+\code{inla}-program will use}
 \item{keep}{ A boolean variable indicating that the
 working files (ini file, data files and results
 files) should be kept. If TRUE and no
