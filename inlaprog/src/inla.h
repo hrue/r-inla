@@ -118,7 +118,7 @@ typedef enum {
 	/*
 	 * return 1 is monotone increasing and 0 otherwise
 	 */
-	MAP_INCREASING = GMRFLib_TRANSFORM_INCREASING, 	       /* = 4 */
+	MAP_INCREASING = GMRFLib_TRANSFORM_INCREASING,	       /* = 4 */
 	LINKINCREASING = GMRFLib_TRANSFORM_INCREASING
 } map_arg_tp;
 
@@ -468,10 +468,10 @@ typedef enum {
 	L_NMIXNB,
 	L_GP,
 	L_CONTPOISSON,
-	L_LOGLOGISTIC, 
-	L_LOGLOGISTICSURV, 
-	L_QLOGLOGISTIC, 
-	L_QLOGLOGISTICSURV, 
+	L_LOGLOGISTIC,
+	L_LOGLOGISTICSURV,
+	L_QLOGLOGISTIC,
+	L_QLOGLOGISTICSURV,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1069,7 +1069,7 @@ typedef struct {
 	int N;
 	int n;						       /* length of AR1 */
 	int m;						       /* number of covariates Z */
-	double **log_prec;				       /* theta[0] (marginal precision)*/
+	double **log_prec;				       /* theta[0] (marginal precision) */
 	double **phi_intern;				       /* theta[1] */
 	GMRFLib_matrix_tp *Z;
 	GMRFLib_matrix_tp *ZZ;
@@ -1292,20 +1292,17 @@ typedef struct {
 	int variant;
 	double quantile;
 	double theta_alpha;
-}
-	inla_qweibull_arg_tp;
+} inla_qweibull_arg_tp;
 
 typedef struct {
 	double n;
 	double quantile;
-}
-	inla_qbinomial_arg_tp;
-	
+} inla_qbinomial_arg_tp;
+
 typedef struct {
 	double quantile;
-}
-	inla_qpoisson_arg_tp;
-	
+} inla_qpoisson_arg_tp;
+
 
 #define R_GENERIC_Q "Q"
 #define R_GENERIC_GRAPH "graph"
@@ -1393,7 +1390,7 @@ double inla_Phi(double x);
 double inla_Phi_fast(double x);
 double inla_ar1_cyclic_logdet(int N_orig, double phi);
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec, void *arg);
-double inla_compute_saturated_loglik(int idx, GMRFLib_logl_tp *loglfunc, double *x_vec, void *arg);
+double inla_compute_saturated_loglik(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
 double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
 double inla_log_Phi(double x);
 double inla_log_Phi_fast(double x);
@@ -1696,15 +1693,21 @@ int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, in
 int loglikelihood_zeroinflated_binomial0(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_zeroinflated_binomial1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zeroinflated_negative_binomial0(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zeroinflated_negative_binomial1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zeroinflated_negative_binomial1_strata2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zeroinflated_negative_binomial1_strata3(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_zeroinflated_negative_binomial0(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+						  void *arg);
+int loglikelihood_zeroinflated_negative_binomial1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+						  void *arg);
+int loglikelihood_zeroinflated_negative_binomial1_strata2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+							  void *arg);
+int loglikelihood_zeroinflated_negative_binomial1_strata3(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+							  void *arg);
+int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
+						  void *arg);
 int loglikelihood_zeroinflated_poisson0(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, GMRFLib_logl_tp *loglfun);
+int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			       GMRFLib_logl_tp * loglfun);
 int my_file_exists(const char *filename);
 int my_dir_exists(const char *dirname);
 int my_setenv(char *str, int prefix);
