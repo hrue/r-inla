@@ -138,23 +138,25 @@ G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 #define OFFSET2(idx_) mb_old->offset[idx_]
 #define OFFSET3(idx_) mb->offset[idx_]
 
-#define LINK_INIT \
+#define LINK_INIT							\
 	double *_link_covariates = NULL;				\
+	void *predictor_invlinkfunc_arg = ds->predictor_invlinkfunc_arg; \
 	if (ds->link_covariates) {					\
 		_link_covariates = Calloc(ds->link_covariates->ncol, double); \
 		GMRFLib_matrix_get_row(_link_covariates, idx, ds->link_covariates); \
 	}
-#define LINK_END  \
+
+#define LINK_END				\
 	Free(_link_covariates)
 
-#define PREDICTOR_INVERSE_LINK(xx_)  \
-	ds->predictor_invlinkfunc(xx_, MAP_FORWARD, ds->predictor_invlinkfunc_arg, _link_covariates)
+#define PREDICTOR_INVERSE_LINK(xx_)					\
+	ds->predictor_invlinkfunc(xx_, MAP_FORWARD, predictor_invlinkfunc_arg, _link_covariates)
 
-#define PREDICTOR_LINK(xx_)  \
-	ds->predictor_invlinkfunc(xx_, MAP_BACKWARD, ds->predictor_invlinkfunc_arg, _link_covariates)
+#define PREDICTOR_LINK(xx_)						\
+	ds->predictor_invlinkfunc(xx_, MAP_BACKWARD, predictor_invlinkfunc_arg, _link_covariates)
 
 #define PREDICTOR_INVERSE_LINK_LOGJACOBIAN(xx_)  \
-	log(ABS(ds->predictor_invlinkfunc(xx_, MAP_DFORWARD, ds->predictor_invlinkfunc_arg, _link_covariates)))
+	log(ABS(ds->predictor_invlinkfunc(xx_, MAP_DFORWARD, predictor_invlinkfunc_arg, _link_covariates)))
 
 #define PENALTY (-100.0)				       /* wishart3d: going over limit... */
 
@@ -1345,7 +1347,7 @@ double link_special2(double x, map_arg_tp typ, void *param, double *cov)
 }
 double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov)
 {
-	double shape, ret, dx;
+	double shape, ret;
 	double alpha = *((double *)param);
 
 	switch(typ) {
@@ -1376,7 +1378,75 @@ double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov)
 		for(i = 0; i < nwf; i++) {
 			wf_sum += wf[i] * link_qpoisson(x + (i-nwf2)*dx, INVLINK, param, cov);
 		}
-		return (wf_sum / dx);
+		ret = wf_sum / dx;
+	}
+	break;
+
+	case LINKINCREASING:
+	{
+		return 1.0;
+	}
+	break;
+
+	default:
+	{
+		assert(0==1);
+	}
+	break;
+
+	}
+
+	return (ret);
+}
+double link_qweibull(double x, map_arg_tp typ, void *param, double *cov)
+{
+	if (param == NULL) {
+		static int first = 1;
+		if (first){
+			fprintf(stderr, "\n*** WARNING *** quantile-link for Weibull cannot compute fitted values.\n");
+			fprintf(stderr, "*** WARNING *** the identity link is used instead\n\n");
+			fflush(stderr);
+			first = 0;
+		}
+		return (link_identity(x, typ, param, cov));
+	}
+
+	double ret;
+	inla_qweibull_arg_tp *arg = (inla_qweibull_arg_tp *) param;
+	
+	switch(typ) {
+	case INVLINK: 
+	{
+		switch(arg->variant){
+		case 0:
+			ret = -1.0 / pow(exp(x), arg->theta_alpha) * log(1.0 - arg->quantile);
+			break;
+		case 1:
+			ret = 1.0 / exp(x) * pow(-log(1.0 - arg->quantile), 1.0/arg->theta_alpha);
+			break;
+		default:
+			assert(0 == 1);
+		}
+	}
+	break;
+
+	case LINK:
+	{
+		CODE_NEEDED;
+	}
+	break;
+
+	case DINVLINK: 
+	{
+		double dx = GMRFLib_eps(1.0/3.9134); // about 0.0001 on my laptop
+		double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
+		double wf_sum = 0.0;
+		int i, nwf = sizeof(wf)/sizeof(double), nwf2 = (nwf-1)/2; /* gives 5 and 2 */
+
+		for(i = 0; i < nwf; i++) {
+			wf_sum += wf[i] * link_qweibull(x + (i-nwf2)*dx, INVLINK, param, cov);
+		}
+		ret = wf_sum / dx;
 	}
 	break;
 
@@ -1398,15 +1468,65 @@ double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov)
 }
 double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
 {
+	if (param == NULL) {
+		static int first = 1;
+		if (first){
+			fprintf(stderr, "\n*** WARNING *** quantile-link for Binomial cannot compute fitted values.\n");
+			fprintf(stderr, "*** WARNING *** the identity link is used instead\n\n");
+			fflush(stderr);
+			first = 0;
+		}
+		return (link_identity(x, typ, param, cov));
+	}
+
 	assert(typ == MAP_FORWARD);
 
-	double *par = ((double *)param);
-	double alpha = par[0], n = par[1], p, q;
+	inla_qbinomial_arg_tp *arg = (inla_qbinomial_arg_tp *) param;
+	double q, ret;
 
-	q = 1.0/(1.0 + exp(-x));
-	p = qbeta(alpha, n*q + 1.0, n * (1.0 - q), 0, 0);
+	switch(typ) {
+	case INVLINK: 
+	{
+		q = 1.0/(1.0 + exp(-x));
+		ret = qbeta(arg->quantile, arg->n*q + 1.0, arg->n * (1.0 - q), 0, 0);
+	}
+	break;
 
-	return (p);
+	case LINK:
+	{
+		CODE_NEEDED;
+	}
+	break;
+
+	case DINVLINK: 
+	{
+		double dx = GMRFLib_eps(1.0/3.9134); // about 0.0001 on my laptop
+		double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
+		double wf_sum = 0.0;
+		int i, nwf = sizeof(wf)/sizeof(double), nwf2 = (nwf-1)/2; /* gives 5 and 2 */
+
+		for(i = 0; i < nwf; i++) {
+			wf_sum += wf[i] * link_qbinomial(x + (i-nwf2)*dx, INVLINK, param, cov);
+		}
+		ret = wf_sum / dx;
+	}
+	break;
+
+	case LINKINCREASING:
+	{
+		return 1.0;
+	}
+	break;
+
+	default:
+	{
+		assert(0==1);
+	}
+	break;
+
+	}
+
+	return (ret);
 }
 double link_test1(double x, map_arg_tp typ, void *param, double *cov)
 {
@@ -4991,7 +5111,8 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_ve
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y), lambda;
-
+	inla_qpoisson_arg_tp qarg;
+	
 	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
@@ -6018,10 +6139,7 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
 	double n = ds->data_observations.nb[idx], p;
-	double q = ds->data_observations.quantile;
-	double link_args[2] = { q, n };
-
-	ds->predictor_invlinkfunc_arg = (void *) link_args;
+	inla_qbinomial_arg_tp qarg;
 	
 	/*
 	 * this is a special case that should just return 0 or 1
@@ -6043,6 +6161,13 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 	 * this is the normal case...
 	 */
 	LINK_INIT;
+	if (ds->predictor_invlinkfunc == link_qbinomial) {
+		// need local arguments in this case
+		qarg.n = n;
+		qarg.quantile = ds->data_observations.quantile;
+		predictor_invlinkfunc_arg = (void *) &qarg;
+	}
+
 	if (m > 0) {
 		gsl_sf_result res;
 		status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
@@ -7430,12 +7555,21 @@ int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_ve
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i;
 	double y, alpha, lalpha, lambda, ypow, ly;
-
+	inla_qweibull_arg_tp qarg;
+	
 	y = ds->data_observations.y[idx];
 	ly = log(y);
 	alpha = map_alpha_weibull(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	lalpha = log(alpha);
+	
 	LINK_INIT;
+	if (ds->predictor_invlinkfunc == link_qweibull) {
+		// need local arguments in this case
+		qarg.variant = ds->variant;
+		qarg.quantile = ds->data_observations.quantile;
+		qarg.theta_alpha = alpha;
+		predictor_invlinkfunc_arg = (void *) &qarg;
+	}
 
 	switch (ds->variant) {
 	case 0:
@@ -13797,18 +13931,29 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->predictor_invlinkfunc = link_special2;
 		ds->predictor_invlinkfunc_arg = NULL;	       /* to be completed */
 	} else if (!strcasecmp(ds->link_model, "QUANTILE")) {
+		inla_qpoisson_arg_tp *qp_arg = NULL;
+
 		GMRFLib_ASSERT((ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0), GMRFLib_EPARAMETER);
 		switch (ds->data_id) {
 		case L_POISSON:
 			ds->link_id = LINK_QPOISSON;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_qpoisson;
-			ds->predictor_invlinkfunc_arg = (void *) &(ds->data_observations.quantile);
+			qp_arg = Calloc(1, inla_qpoisson_arg_tp);
+			qp_arg->quantile = ds->data_observations.quantile;
+			ds->predictor_invlinkfunc_arg = qp_arg;
 			break;
 		case L_BINOMIAL:
 			ds->link_id = LINK_QBINOMIAL;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_qbinomial;
+			ds->predictor_invlinkfunc_arg = NULL; // add this in the likelihood function
+			break;
+		case L_WEIBULL:
+		case L_WEIBULLSURV:
+			ds->link_id = LINK_QWEIBULL;
+			ds->link_ntheta = 0;
+			ds->predictor_invlinkfunc = link_qweibull;
 			ds->predictor_invlinkfunc_arg = NULL; // add this in the likelihood function
 			break;
 		default:
@@ -13883,6 +14028,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case LINK_TAN:
 	case LINK_QPOISSON:
 	case LINK_QBINOMIAL:
+	case LINK_QWEIBULL:
 		/*
 		 * no parameters
 		 */
@@ -23360,6 +23506,9 @@ double extra(double *theta, int ntheta, void *argument)
 			case LINK_CAUCHIT:
 			case LINK_LOGIT:
 			case LINK_TAN:
+			case LINK_QPOISSON:
+			case LINK_QBINOMIAL:
+			case LINK_QWEIBULL:
 				break;
 
 			case LINK_LOGOFFSET:
@@ -28422,10 +28571,14 @@ int inla_output_linkfunctions(const char *dir, inla_tp * mb)
 			fprintf(fp, "logitoffset\n");
 		} else if (lf == link_qpoisson) {
 			fprintf(fp, "quantile\n");
+		} else if (lf == link_qbinomial) {
+			fprintf(fp, "quantile\n");
+		} else if (lf == link_qweibull) {
+			fprintf(fp, "quantile\n");
 		} else if (lf == NULL) {
-			fprintf(fp, "invalid\n");
+			fprintf(fp, "invalid-linkfunction\n");
 		} else {
-			fprintf(fp, "invalid\n");
+			fprintf(fp, "invalid-linkfunction\n");
 		}
 	}
 	fclose(fp);

@@ -5720,7 +5720,7 @@
                          ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "log"),
+                     link = c("default", "log", "neglog", "quantile"),
                      pdf = "weibull"
                      ),
 
@@ -5743,7 +5743,7 @@
                          ),
                      survival = TRUE,
                      discrete = FALSE,
-                     link = c("default", "log", "neglog"),
+                     link = c("default", "log", "neglog", "quantile"),
                      pdf = "weibull"
                      ),
 
