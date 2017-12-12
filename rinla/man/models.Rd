@@ -6762,7 +6762,7 @@ inla.models()
 								\item{doc = }{`The Weibull likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default log'}
+								\item{link = }{`default log neglog quantile'}
 								\item{pdf = }{`weibull'}
 							 }
 						 }
@@ -6790,7 +6790,7 @@ inla.models()
 								\item{doc = }{`The Weibull likelihood (survival)'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default log neglog'}
+								\item{link = }{`default log neglog quantile'}
 								\item{pdf = }{`weibull'}
 							 }
 						 }
