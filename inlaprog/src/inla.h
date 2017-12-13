@@ -397,6 +397,9 @@ typedef struct {
 typedef struct {
 	int order;					       /* a copy of ds->link_order */
 	int variant;					       /* a copy of ds->link_variant */
+	int Ntrial;
+	double quantile;
+	double **alpha_intern;
 	double **log_prec;
 	double **beta;					       /* one covariate */
 	double **beta_intern;				       /* one covariate */
@@ -689,7 +692,7 @@ typedef struct {
 	Prior_tp *link_prior;
 	inla_component_tp link_id;
 	link_func_tp *predictor_invlinkfunc;
-	void *predictor_invlinkfunc_arg;
+	void **predictor_invlinkfunc_arg;
 
 	/*
 	 * the re-extention
