@@ -1401,7 +1401,6 @@ double link_qweibull(double x, map_arg_tp typ, void *param, double *cov)
 	Link_param_tp *lparam = (Link_param_tp *) param;
 	double alpha = map_alpha_weibull(lparam->alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double ret;
-	inla_qweibull_arg_tp *arg = (inla_qweibull_arg_tp *) param;
 
 	switch (typ) {
 	case INVLINK:
@@ -13738,14 +13737,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->link_id = LINK_QBINOMIAL;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_qbinomial;
-			ds->predictor_invlinkfunc_arg = NULL; // add this in the likelihood function
 			break;
 		case L_WEIBULL:
 		case L_WEIBULLSURV:
 			ds->link_id = LINK_QWEIBULL;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_qweibull;
-			ds->predictor_invlinkfunc_arg = NULL; // add this in the likelihood function
 			break;
 		default:
 			assert(0 == 1);
