@@ -5077,7 +5077,6 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_ve
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y), lambda;
-	inla_qpoisson_arg_tp qarg;
 
 	LINK_INIT;
 	if (m > 0) {
@@ -6080,7 +6079,6 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
 	double n = ds->data_observations.nb[idx], p;
-	inla_qbinomial_arg_tp qarg;
 
 	/*
 	 * this is a special case that should just return 0 or 1
@@ -7375,11 +7373,10 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i, ievent;
-	double y, event, truncation, lower, upper, gama;
+	double event, truncation, lower, upper;
 
 	assert(y_cdf == NULL);				       // I do not think this should be used. 
 
-	y = (y_cdf ? *y_cdf : ds->data_observations.y[idx]);
 	event = ds->data_observations.event[idx];
 	ievent = (int) event;
 	truncation = ds->data_observations.truncation[idx];
@@ -7460,7 +7457,6 @@ int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_ve
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i;
 	double y, alpha, lalpha, lambda, ypow, ly;
-	inla_qweibull_arg_tp qarg;
 
 	y = ds->data_observations.y[idx];
 	ly = log(y);
@@ -9207,7 +9203,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 */
 	int need_link = 0;
 	mb->predictor_invlinkfunc = Calloc(mb->predictor_n + mb->predictor_m, link_func_tp *);
-	mb->predictor_invlinkfunc_arg = Calloc(mb->predictor_ndata, void *);
+	mb->predictor_invlinkfunc_arg = Calloc(mb->predictor_n + mb->predictor_m, void *);
 	mb->predictor_invlinkfunc_covariates = Calloc(mb->predictor_n + mb->predictor_m, GMRFLib_matrix_tp *);
 	for (i = 0; i < mb->predictor_ndata; i++) {
 		for (j = found = 0; j < mb->nds; j++) {
