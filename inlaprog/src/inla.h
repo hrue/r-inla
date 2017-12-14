@@ -1291,25 +1291,6 @@ typedef struct {
 	inla_besag_Qfunc_arg_tp *besagdef;
 } inla_group_def_tp;
 
-typedef struct {
-	int variant;
-	double quantile;
-	double theta_alpha;
-}
-	inla_qweibull_arg_tp;
-
-typedef struct {
-	double n;
-	double quantile;
-}
-	inla_qbinomial_arg_tp;
-	
-typedef struct {
-	double quantile;
-}
-	inla_qpoisson_arg_tp;
-	
-
 #define R_GENERIC_Q "Q"
 #define R_GENERIC_GRAPH "graph"
 #define R_GENERIC_MU "mu"
