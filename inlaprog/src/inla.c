@@ -25174,7 +25174,7 @@ double extra(double *theta, int ntheta, void *argument)
 			 * n is the small length 
 			 */
 			double n = (double) (mb->f_n[i] / dim);	/* YES! */
-			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * dim * (n - mb->f_rankdef[i])	/* yes, the * total *
+			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * dim * (n - mb->f_rankdef[i])	/* yes, the * total * *
 															 * length * is * N=dim*n */
 								   +(n - mb->f_rankdef[i]) / 2.0 * logdet));
 			if (fail) {
