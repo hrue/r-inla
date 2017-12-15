@@ -25171,12 +25171,11 @@ double extra(double *theta, int ntheta, void *argument)
 			SET_GROUP_RHO(nt);
 
 			/*
-			 * n is the small length 
+			 * n is the small length. yes, the total length is N=dim*n
 			 */
 			double n = (double) (mb->f_n[i] / dim);	/* YES! */
-			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * dim * (n - mb->f_rankdef[i])	/* yes, the * total * *
-															 * length * is * N=dim*n */
-								   +(n - mb->f_rankdef[i]) / 2.0 * logdet));
+			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * dim * (n - mb->f_rankdef[i])
+								   + (n - mb->f_rankdef[i]) / 2.0 * logdet));
 			if (fail) {
 				val += PENALTY;
 			}
