@@ -118,7 +118,7 @@ typedef enum {
 	/*
 	 * return 1 is monotone increasing and 0 otherwise
 	 */
-	MAP_INCREASING = GMRFLib_TRANSFORM_INCREASING, 	       /* = 4 */
+	MAP_INCREASING = GMRFLib_TRANSFORM_INCREASING,	       /* = 4 */
 	LINKINCREASING = GMRFLib_TRANSFORM_INCREASING
 } map_arg_tp;
 
@@ -279,8 +279,7 @@ typedef struct {
 	double **shape_skew_normal;
 	double shape_max_skew_normal;			       /* maximum value for |shape| allowed */
 	double **log_prec_skew_normal;
-	double *weight_skew_normal;			       /* weights for the skew_normal: Variance = 1/(weight*prec) [for a=0] 
-							        */
+	double *weight_skew_normal;			       /* weights for the skew_normal: Variance = 1/(weight*prec) [for a=0] */
 
 	/*
 	 * Skew-Normal2
@@ -397,6 +396,9 @@ typedef struct {
 typedef struct {
 	int order;					       /* a copy of ds->link_order */
 	int variant;					       /* a copy of ds->link_variant */
+	int Ntrial;
+	double quantile;
+	double **alpha_intern;
 	double **log_prec;
 	double **beta;					       /* one covariate */
 	double **beta_intern;				       /* one covariate */
@@ -468,10 +470,10 @@ typedef enum {
 	L_NMIXNB,
 	L_GP,
 	L_CONTPOISSON,
-	L_LOGLOGISTIC, 
-	L_LOGLOGISTICSURV, 
-	L_QLOGLOGISTIC, 
-	L_QLOGLOGISTICSURV, 
+	L_LOGLOGISTIC,
+	L_LOGLOGISTICSURV,
+	L_QLOGLOGISTIC,
+	L_QLOGLOGISTICSURV,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -576,7 +578,8 @@ typedef enum {
 	LINK_LOGITOFFSET,
 	LINK_INVERSE,
 	LINK_QPOISSON,
-	LINK_QBINOMIAL
+	LINK_QBINOMIAL,
+	LINK_QWEIBULL
 } inla_component_tp;
 
 
@@ -688,7 +691,7 @@ typedef struct {
 	Prior_tp *link_prior;
 	inla_component_tp link_id;
 	link_func_tp *predictor_invlinkfunc;
-	void *predictor_invlinkfunc_arg;
+	void **predictor_invlinkfunc_arg;
 
 	/*
 	 * the re-extention
@@ -766,8 +769,7 @@ struct inla_tp_struct {
 	int theta_counter_file;
 	int reuse_mode;
 	int reuse_mode_but_restart;
-	int fixed_mode;					       /* if TRUE, then treat all thetas as known and fixed, otherwise, do
-							        * as usual... */
+	int fixed_mode;					       /* if TRUE, then treat all thetas as known and fixed, otherwise, do as usual... */
 	double *theta_file;
 	double *x_file;
 	int nx_file;
@@ -1068,7 +1070,7 @@ typedef struct {
 	int N;
 	int n;						       /* length of AR1 */
 	int m;						       /* number of covariates Z */
-	double **log_prec;				       /* theta[0] (marginal precision)*/
+	double **log_prec;				       /* theta[0] (marginal precision) */
 	double **phi_intern;				       /* theta[1] */
 	GMRFLib_matrix_tp *Z;
 	GMRFLib_matrix_tp *ZZ;
@@ -1287,7 +1289,6 @@ typedef struct {
 	inla_besag_Qfunc_arg_tp *besagdef;
 } inla_group_def_tp;
 
-
 #define R_GENERIC_Q "Q"
 #define R_GENERIC_GRAPH "graph"
 #define R_GENERIC_MU "mu"
@@ -1374,7 +1375,7 @@ double inla_Phi(double x);
 double inla_Phi_fast(double x);
 double inla_ar1_cyclic_logdet(int N_orig, double phi);
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec, void *arg);
-double inla_compute_saturated_loglik(int idx, GMRFLib_logl_tp *loglfunc, double *x_vec, void *arg);
+double inla_compute_saturated_loglik(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
 double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
 double inla_log_Phi(double x);
 double inla_log_Phi_fast(double x);
@@ -1392,6 +1393,7 @@ double link_neglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_probit(double x, map_arg_tp typ, void *param, double *cov);
 double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov);
 double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov);
+double link_qweibull(double x, map_arg_tp typ, void *param, double *cov);
 double link_special1(double x, map_arg_tp typ, void *param, double *cov);
 double link_special2(double x, map_arg_tp typ, void *param, double *cov);
 double link_sslogit(double x, map_arg_tp typ, void *param, double *cov);
@@ -1491,8 +1493,7 @@ int inla_divisible(int n, int by);
 int inla_endian(void);
 int inla_error_field_is_void(const char *funcname, const char *secname, const char *field, const char *value);
 int inla_error_file_error(const char *funcname, const char *filename, int n, int element_number, double val);
-int inla_error_file_error2(const char *funcname, const char *filename, int n, int element_number, double val, int element_number2,
-			   double val2);
+int inla_error_file_error2(const char *funcname, const char *filename, int n, int element_number, double val, int element_number2, double val2);
 int inla_error_file_error_sorted(const char *funcname, const char *filename, int n, int element_number, double val);
 int inla_error_file_numelm(const char *funcname, const char *filename, int n, int div);
 int inla_error_file_totnumelm(const char *funcname, const char *filename, int n, int total);
@@ -1589,8 +1590,7 @@ int inla_read_prior8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 int inla_read_prior9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N);
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag,
-			    const char *param_tag, const char *from_theta, const char *to_theta, const char *hyperid,
-			    const char *default_prior);
+			    const char *param_tag, const char *from_theta, const char *to_theta, const char *hyperid, const char *default_prior);
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
@@ -1684,7 +1684,7 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 int loglikelihood_zeroinflated_poisson0(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, GMRFLib_logl_tp *loglfun);
+int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, GMRFLib_logl_tp * loglfun);
 int my_file_exists(const char *filename);
 int my_dir_exists(const char *dirname);
 int my_setenv(char *str, int prefix);
