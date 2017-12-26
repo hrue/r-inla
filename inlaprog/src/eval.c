@@ -163,7 +163,7 @@ double inla_eval_expression(char *expression, double *x, double *theta, int nthe
 {
 	double value;
 	int i;
-	
+
 	/*
 	 * I need this until the muparser-library is thread-safe....
 	 */
@@ -195,7 +195,7 @@ double inla_eval_expression(char *expression, double *x, double *theta, int nthe
 		mupDefineFun2(hParser, "pow", pow, 1);
 
 		// add constants like THETA0, THETA1, THETA2, ...
-		for(i = 0; i < ntheta; i++){
+		for (i = 0; i < ntheta; i++) {
 			char *var = NULL;
 			GMRFLib_sprintf(&var, "THETA%1d", i);
 			mupDefineConst(hParser, var, theta[i]);
