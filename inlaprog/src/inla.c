@@ -6151,7 +6151,7 @@ int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *x_vec, 
 		return GMRFLib_SUCCESS;
 	}
 
-	int i, j, k, status;
+	int i, j, k;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int n, nmax, ny;
 	double *y, log_lambda, lambda, normc_poisson, fac, tt, tmp, p;
@@ -6186,7 +6186,7 @@ int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *x_vec, 
 			p = DMAX(0.0, DMIN(1.0, p));
 			logll[i] = n * log_lambda - lambda - normc_poisson;
 			for (j = 0; j < ny; j++) {
-				status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y[j], &res);
+				int status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y[j], &res);
 				logll[i] += res.val + y[j] * log(p) + (n - y[j]) * log(1.0 - p);
 			}
 			tt = lambda * pow(1.0 - p, (double) ny);
@@ -6218,7 +6218,7 @@ int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *x_vec
 		return GMRFLib_SUCCESS;
 	}
 
-	int i, j, k, status;
+	int i, j, k;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int n, nmax, ny;
 	double *y, log_lambda, lambda, normc_nb, fac, tt, tmp, p, q, size;
@@ -6255,7 +6255,7 @@ int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *x_vec
 			q = size / (size + lambda);
 			logll[i] = normc_nb + size * log(q) + n * log(1.0 - q);
 			for (j = 0; j < ny; j++) {
-				status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y[j], &res);
+				int status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y[j], &res);
 				logll[i] += res.val + y[j] * log(p) + (n - y[j]) * log(1.0 - p);
 			}
 			tt = lambda * sqrt(1.0 + lambda / size) * pow(1.0 - p, (double) ny);
