@@ -467,14 +467,15 @@ typedef struct {
   \brief The structure to store intermediate calculations
 */
 typedef struct GMRFLib_store_struct GMRFLib_store_tp;	       /* used recursively */
-
+							       
 struct GMRFLib_store_struct {
 	GMRFLib_smtp_tp smtp;				       /* sparse matrix type */
 	int bandwidth;					       /* for GMRFLib_smtp == GMRFLib_SMTP_BAND */
 	int *remap;
 	int copy_ptr;
 	GMRFLib_graph_tp *sub_graph;
-	supernodal_factor_matrix *symb_fact;		       /* for GMRFLIb_smtp == GMRFLib_SMTP_TAUCS */
+
+	supernodal_factor_matrix *TAUCS_symb_fact;	       /* for GMRFLib_smtp == GMRFLib_SMTP_TAUCS */
 
 	GMRFLib_store_tp *diag_store;			       /* store SAFE-optims in optimize */
 	GMRFLib_store_tp *sub_store;			       /* store the same if fixed values in optimize */

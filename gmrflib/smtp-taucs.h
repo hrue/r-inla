@@ -63,10 +63,8 @@ int GMRFLib_compute_reordering_TAUCS_orig(int **remap, GMRFLib_graph_tp * graph)
 int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRFLib_reorder_tp reorder,
 				     GMRFLib_global_node_tp *gn_ptr);
 int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap);
-int GMRFLib_factorise_sparse_matrix_TAUCS_OLD(taucs_ccs_matrix ** L, GMRFLib_fact_info_tp * finfo);
 int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, supernodal_factor_matrix ** symb_fact, GMRFLib_fact_info_tp * finfo, double **L_inv_diag);
 int GMRFLib_free_fact_sparse_matrix_TAUCS(taucs_ccs_matrix * L, double *L_inv_diag, supernodal_factor_matrix * symb_fact);
-int GMRFLib_free_fact_sparse_matrix_TAUCS_OLD(taucs_ccs_matrix * L);
 int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int findx, int toindx, int remapped);
