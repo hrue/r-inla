@@ -148,7 +148,7 @@ int GMRFLib_optimize_set_store_flags(GMRFLib_store_tp * store)
 			store_smtp = GMRFLib_smtp;
 		}
 		if (store_smtp == GMRFLib_SMTP_TAUCS) {
-			store_store_symb_fact = (store->symb_fact ? 0 : 1);
+			store_store_symb_fact = (store->TAUCS_symb_fact ? 0 : 1);
 			store_use_symb_fact = !store_store_symb_fact;
 		} else {
 			store_store_symb_fact = 0;

@@ -6555,18 +6555,18 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 			/*
 			 * solve L v = b, using the index-range computed.
 			 */
-			taucs_ccs_matrix *L = (taucs_ccs_matrix *) (problem->sub_sm_fact.L);
+			taucs_ccs_matrix *TAUCS_L = (taucs_ccs_matrix *) (problem->sub_sm_fact.TAUCS_L);
 			int ip, ii, jj;
 			double Aij, Ajj;
 
 			for (jj = 0; jj < len; jj++) {
-				ip = L->colptr[jj + from_idx];
-				Ajj = L->values.d[ip];
+				ip = TAUCS_L->colptr[jj + from_idx];
+				Ajj = TAUCS_L->values.d[ip];
 				v[jj] = b[jj] / Ajj;
 
-				for (ip = L->colptr[jj + from_idx] + 1; ip < L->colptr[jj + from_idx + 1]; ip++) {
-					ii = L->rowind[ip] - from_idx;
-					Aij = L->values.d[ip];
+				for (ip = TAUCS_L->colptr[jj + from_idx] + 1; ip < TAUCS_L->colptr[jj + from_idx + 1]; ip++) {
+					ii = TAUCS_L->rowind[ip] - from_idx;
+					Aij = TAUCS_L->values.d[ip];
 					b[ii] -= v[jj] * Aij;
 				}
 			}
