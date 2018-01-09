@@ -869,74 +869,6 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, supernodal_fact
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_factorise_sparse_matrix_TAUCS_OLD(taucs_ccs_matrix ** L, GMRFLib_fact_info_tp * finfo)
-{
-	taucs_ccs_matrix *L_fact = NULL;
-	int flags;
-	int solver_option = 0;				       /* chose the solver here */
-	int k;
-
-	if (!L)
-		return GMRFLib_SUCCESS;
-
-	/*
-	 * compute some info about the factorization 
-	 */
-	k = (*L)->colptr[(*L)->n] - (*L)->n;
-	finfo->n = (*L)->n;
-	finfo->nnzero = 2 * k + (*L)->n;
-
-	flags = (*L)->flags;
-
-	switch (solver_option) {
-	case 0:					       /* fastest */
-		L_fact = (taucs_ccs_matrix *) taucs_ccs_factor_llt_mf(*L);
-		taucs_ccs_free(*L);
-		if (!L_fact) {
-			GMRFLib_ERROR(GMRFLib_EPOSDEF);
-		}
-		*L = L_fact;
-		L_fact = taucs_supernodal_factor_to_ccs(*L);
-		taucs_supernodal_factor_free(*L);
-		*L = L_fact;
-		(*L)->flags = flags & ~TAUCS_SYMMETRIC;
-		break;
-
-	case 1:					       /* less fast, but less memory */
-		L_fact = (taucs_ccs_matrix *) taucs_ccs_factor_llt_ll(*L);
-		taucs_ccs_free(*L);
-		if (!L_fact) {
-			GMRFLib_ERROR(GMRFLib_EPOSDEF);
-		}
-		*L = L_fact;
-		L_fact = taucs_supernodal_factor_to_ccs(*L);
-		taucs_supernodal_factor_free(*L);
-		*L = L_fact;
-		(*L)->flags = flags & ~TAUCS_SYMMETRIC;
-		break;
-
-	case 2:					       /* slower */
-		L_fact = taucs_ccs_factor_llt(*L, 0.0, 0);
-		if (!L_fact) {
-			GMRFLib_ERROR(GMRFLib_EPOSDEF);
-		}
-		taucs_ccs_free(*L);
-		*L = L_fact;
-		break;
-
-	default:
-		abort();
-	}
-
-	/*
-	 * some last info 
-	 */
-	k = (*L)->colptr[(*L)->n] - (*L)->n;
-	finfo->nfillin = k - (finfo->nnzero - finfo->n) / 2;
-
-	return GMRFLib_SUCCESS;
-}
-
 int GMRFLib_free_fact_sparse_matrix_TAUCS(taucs_ccs_matrix * L, double *L_inv_diag, supernodal_factor_matrix * symb_fact)
 {
 	if (L) {
@@ -949,13 +881,6 @@ int GMRFLib_free_fact_sparse_matrix_TAUCS(taucs_ccs_matrix * L, double *L_inv_di
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_free_fact_sparse_matrix_TAUCS_OLD(taucs_ccs_matrix * L)
-{
-	if (L) {
-		taucs_ccs_free(L);
-	}
-	return GMRFLib_SUCCESS;
-}
 int GMRFLib_solve_l_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap)
 {
 	GMRFLib_EWRAP0(GMRFLib_convert_to_mapped(rhs, NULL, graph, remap));
@@ -1196,7 +1121,7 @@ int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp * problem, int storage)
 		taucs_ccs_matrix *L = NULL, *LL = NULL;	       /* to hold L matrices if new ones are built */
 		map_ii **mis_elm = NULL;
 
-		n = problem->sub_sm_fact.L->n;
+		n = problem->sub_sm_fact.TAUCS_L->n;
 
 		/*
 		 * no-check, check-once or failsafe? 
@@ -1207,7 +1132,7 @@ int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp * problem, int storage)
 			/*
 			 * do some checking 
 			 */
-			L = GMRFLib_my_taucs_dccs_duplicate(problem->sub_sm_fact.L, TAUCS_DOUBLE | TAUCS_LOWER | TAUCS_TRIANGULAR);
+			L = GMRFLib_my_taucs_dccs_duplicate(problem->sub_sm_fact.TAUCS_L, TAUCS_DOUBLE | TAUCS_LOWER | TAUCS_TRIANGULAR);
 			while ((mis_elm = GMRFLib_compute_Qinv_TAUCS_check(L))) {
 				LL = L;
 				L = GMRFLib_compute_Qinv_TAUCS_add_elements(LL, mis_elm);
@@ -1503,7 +1428,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage
 	map_ii *mapping = NULL;
 	map_id **Qinv_L = NULL, *q = NULL;
 
-	L = (Lmatrix ? Lmatrix : problem->sub_sm_fact.L);      /* chose matrix to use */
+	L = (Lmatrix ? Lmatrix : problem->sub_sm_fact.TAUCS_L);      /* chose matrix to use */
 	n = L->n;
 
 	/*
