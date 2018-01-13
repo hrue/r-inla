@@ -6465,7 +6465,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 
 	GMRFLib_problem_tp *problem = ai_store->problem;
 	int *remap = problem->sub_sm_fact.remap;
-	int i, j, k, n, nc = 0, one = 1, use_new_version = 1, id;
+	int i, j, k, n, nc = 0, one = 1, id;
 	GMRFLib_density_tp **d;
 
 	typedef struct {
@@ -6484,68 +6484,65 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 
 	n = problem->n;
 	d = Calloc(nlin, GMRFLib_density_tp *);
-
 	nc = (problem->sub_constr ? problem->sub_constr->nc : 0);
 
-	if (use_new_version && (problem->sub_sm_fact.smtp == GMRFLib_SMTP_TAUCS)) {
+	if (cross) {
+		cross_store = Calloc(nlin, cross_tp);
+	}
+
+#pragma omp parallel for private(i, j, k)
+	for (i = 0; i < nlin; i++) {
+
+		int from_idx, to_idx, len, from_idx_a, to_idx_a, len_a, ip, ii, jj;
+		double var, mean, imean, *a = NULL, *b = NULL, *v = NULL, *vv = NULL, var_corr, weight, Aij, Ajj;
+
+		if (Alin[i]->tinfo[id].first_nonzero < 0) {
+			/*
+			 * we know that the idx's are sorted, so its easier to find the first and last non-zero 
+			 */
+			// Alin[i]->tinfo[id].first_nonzero = GMRFLib_imin_value(Alin[i]->idx, Alin[i]->n);
+			Alin[i]->tinfo[id].first_nonzero = Alin[i]->idx[0];
+		}
+
+		if (Alin[i]->tinfo[id].last_nonzero < 0) {
+			/*
+			 * we know that the idx's are sorted, so its easier to find the first and last non-zero 
+			 */
+			// Alin[i]->tinfo[id].last_nonzero = GMRFLib_imax_value(Alin[i]->idx, Alin[i]->n);
+			Alin[i]->tinfo[id].last_nonzero = Alin[i]->idx[Alin[i]->n - 1];
+		}
+
+		from_idx_a = Alin[i]->tinfo[id].first_nonzero;
+		to_idx_a = Alin[i]->tinfo[id].last_nonzero;
+		assert(LEGAL(from_idx_a, n));
+		assert(LEGAL(to_idx_a, n));
+		len_a = to_idx_a - from_idx_a + 1;
+
+		a = Calloc(len_a, double);
+		for (j = 0; j < Alin[i]->n; j++) {
+			a[Alin[i]->idx[j] - from_idx_a] = (double) Alin[i]->weight[j];
+		}
 
 		/*
-		 * this version require TAUCS. 
+		 * compute the first non-zero index (mapped) if not already there
 		 */
+		if (Alin[i]->tinfo[id].first_nonzero_mapped < 0) {
+			int findx = n;
 
-		if (cross) {
-			cross_store = Calloc(nlin, cross_tp);
-		}
-#pragma omp parallel for private(i, j, k)
-		for (i = 0; i < nlin; i++) {
-
-			int from_idx, to_idx, len, from_idx_a, to_idx_a, len_a;
-			double var, mean, imean, *a = NULL, *b = NULL, *v = NULL, var_corr, weight;
-
-			if (Alin[i]->tinfo[id].first_nonzero < 0) {
-				/*
-				 * we know that the idx's are sorted, so its easier to find the first and last non-zero 
-				 */
-				// Alin[i]->tinfo[id].first_nonzero = GMRFLib_imin_value(Alin[i]->idx, Alin[i]->n);
-				Alin[i]->tinfo[id].first_nonzero = Alin[i]->idx[0];
-			}
-
-			if (Alin[i]->tinfo[id].last_nonzero < 0) {
-				/*
-				 * we know that the idx's are sorted, so its easier to find the first and last non-zero 
-				 */
-				// Alin[i]->tinfo[id].last_nonzero = GMRFLib_imax_value(Alin[i]->idx, Alin[i]->n);
-				Alin[i]->tinfo[id].last_nonzero = Alin[i]->idx[Alin[i]->n - 1];
-			}
-
-			from_idx_a = Alin[i]->tinfo[id].first_nonzero;
-			to_idx_a = Alin[i]->tinfo[id].last_nonzero;
-			assert(LEGAL(from_idx_a, n));
-			assert(LEGAL(to_idx_a, n));
-			len_a = to_idx_a - from_idx_a + 1;
-
-			a = Calloc(len_a, double);
 			for (j = 0; j < Alin[i]->n; j++) {
-				a[Alin[i]->idx[j] - from_idx_a] = (double) Alin[i]->weight[j];
+				k = remap[Alin[i]->idx[j]];
+				findx = IMIN(findx, k);
 			}
+			Alin[i]->tinfo[id].first_nonzero_mapped = findx;
+			Alin[i]->tinfo[id].last_nonzero_mapped = -1;
+		}
 
-			/*
-			 * compute the first non-zero index (mapped) if not already there
-			 */
-			if (Alin[i]->tinfo[id].first_nonzero_mapped < 0) {
-				int findx = n;
-
-				for (j = 0; j < Alin[i]->n; j++) {
-					k = remap[Alin[i]->idx[j]];
-					findx = IMIN(findx, k);
-				}
-				Alin[i]->tinfo[id].first_nonzero_mapped = findx;
-				Alin[i]->tinfo[id].last_nonzero_mapped = -1;
-			}
-
-			from_idx = Alin[i]->tinfo[id].first_nonzero_mapped;
-			to_idx = (Alin[i]->tinfo[id].last_nonzero_mapped < 0 ? n - 1 : Alin[i]->tinfo[id].last_nonzero_mapped);
-			len = to_idx - from_idx + 1;
+		from_idx = Alin[i]->tinfo[id].first_nonzero_mapped;
+		to_idx = (Alin[i]->tinfo[id].last_nonzero_mapped < 0 ? n - 1 : Alin[i]->tinfo[id].last_nonzero_mapped);
+		len = to_idx - from_idx + 1;
+			
+		if (0) {
+			// old code for TAUCS ONLY
 			b = Calloc(2 * len, double);	       /* workaround.... do not know what is happening sometimes */
 			v = Calloc(len, double);
 			for (j = 0; j < Alin[i]->n; j++) {
@@ -6556,8 +6553,6 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 			 * solve L v = b, using the index-range computed.
 			 */
 			taucs_ccs_matrix *TAUCS_L = (taucs_ccs_matrix *) (problem->sub_sm_fact.TAUCS_L);
-			int ip, ii, jj;
-			double Aij, Ajj;
 
 			for (jj = 0; jj < len; jj++) {
 				ip = TAUCS_L->colptr[jj + from_idx];
@@ -6570,211 +6565,166 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 					b[ii] -= v[jj] * Aij;
 				}
 			}
-
-			/*
-			 * compute the last non-zero index (mapped) if not already there
-			 */
-			if (Alin[i]->tinfo[id].last_nonzero_mapped < 0) {
-				Alin[i]->tinfo[id].last_nonzero_mapped = GMRFLib_find_nonzero(v, len, -1) + from_idx;
-			}
-
-			/*
-			 * we do not need to map back since the innerproduct is the same in any case. It is here possible to store only the non-zero indices of v,
-			 * and do the inner product over those, as they will remain the same for various calls to this function, but I don't think this is worth it.
-			 */
-			var = ddot_(&len, v, &one, v, &one);
-			if (cross) {
-				cross_store[i].from_idx = from_idx;
-				cross_store[i].to_idx = to_idx;
-				cross_store[i].v = v;
-				v = NULL;
-			} else {
-				Free(v);
-			}
-			Free(b);
-
-			/*
-			 * the correction matrix due to linear constraints 
-			 */
-			var_corr = 0.0;
-			if (nc) {
-				for (j = 0; j < nc; j++) {
-					/*
-					 * w = AA^T CONSTR_M 
-					 */
-					double *p, *pp, w, ww;
-
-					w = ww = 0.0;
-					p = &(problem->constr_m[j * n]);
-					pp = &(problem->qi_at_m[j * n]);
-
-					for (jj = 0; jj < Alin[i]->n; jj++) {
-						k = Alin[i]->idx[jj];
-						weight = (double) Alin[i]->weight[jj];
-
-						w += weight * p[k];
-						ww += weight * pp[k];
-					}
-					var_corr += w * ww;
-				}
-			}
-
-			mean = imean = 0.0;
+		} else {
+			// new, possible little slower code but general
+			vv = Calloc(n, double);
 			for (j = 0; j < Alin[i]->n; j++) {
-				k = Alin[i]->idx[j];
-				weight = (double) Alin[i]->weight[j];
-
-				mean += weight * problem->mean_constr[k];
-				imean += weight * improved_mean[k];
+				vv[remap[Alin[i]->idx[j]]] = (double) Alin[i]->weight[j];
 			}
-			var = DMAX(DBL_EPSILON, var - var_corr);
-			GMRFLib_density_create_normal(&d[i], (imean - mean) / sqrt(var), 1.0, mean, sqrt(var));
-
-			Free(a);
+				
+			GMRFLib_solve_l_sparse_matrix_special(vv, &(problem->sub_sm_fact), problem->sub_graph, from_idx, from_idx + len -1, 1);
+			v = Calloc(len, double);
+			memcpy(v, vv + from_idx,  len*sizeof(double));
+			Free(vv);
 		}
 
-
-		if (cross) {
-			/*
-			 * do calculations for the E(xi*x_j) 
-			 */
-
-			*cross = Calloc(ISQR(nlin), double);
-
-			/*
-			 * need this table for OPENMP 
-			 */
-			int klen = (ISQR(nlin) + nlin) / 2;
-			GMRFLib_lc_ij_tp *arr = Calloc(klen, GMRFLib_lc_ij_tp);
-			for (k = 0, i = 0; i < nlin; i++) {
-				for (j = i; j < nlin; j++) {
-					arr[k].i = i;
-					arr[k].j = j;
-					k++;
-				}
-			}
-			assert(k == klen);
-
-			/*
-			 * this loop is quick in any case, so no need to make do it in parallel unless we have constraints ? 
-			 */
-#pragma omp parallel for private(i, j, k) if(nc)
-			for (k = 0; k < klen; k++) {
-				i = arr[k].i;
-				j = arr[k].j;
-
-				int ij_from, ij_to;
-
-				ij_from = IMAX(cross_store[i].from_idx, cross_store[j].from_idx);
-				ij_to = IMIN(cross_store[i].to_idx, cross_store[j].to_idx);
-				if (ij_from <= ij_to) {
-					double *v_i = NULL, *v_j = NULL;
-					int ij_len = 0;
-
-					v_i = &(cross_store[i].v[ij_from - cross_store[i].from_idx]);
-					v_j = &(cross_store[j].v[ij_from - cross_store[j].from_idx]);
-					ij_len = ij_to - ij_from + 1;
-
-					(*cross)[i + j * nlin] = ddot_(&ij_len, v_i, &one, v_j, &one);
-				} else {
-					(*cross)[i + j * nlin] = 0.0;
-				}
-
-				if (nc) {
-					/*
-					 * the correction matrix due to linear constraints 
-					 */
-					double correction = 0.0;
-					int kk;
-
-					for (kk = 0; kk < nc; kk++) {
-						/*
-						 * w = AA^T CONSTR_M 
-						 */
-						double *p = NULL, *pp = NULL, w, ww, weight;
-						int jj, idx;
-
-						w = ww = 0.0;
-						p = &(problem->constr_m[kk * n]);
-						pp = &(problem->qi_at_m[kk * n]);
-
-						for (jj = 0; jj < Alin[i]->n; jj++) {
-							idx = Alin[i]->idx[jj];
-							weight = (double) Alin[i]->weight[jj];
-							w += weight * p[idx];
-						}
-						for (jj = 0; jj < Alin[j]->n; jj++) {
-							idx = Alin[j]->idx[jj];
-							weight = (double) Alin[j]->weight[jj];
-							ww += weight * pp[idx];
-						}
-						correction += w * ww;
-					}
-					(*cross)[i + j * nlin] += -correction;
-				}
-				(*cross)[j + i * nlin] = (*cross)[i + j * nlin];
-			}
-
-			Free(arr);
-			for (i = 0; i < nlin; i++) {
-				Free(cross_store[i].v);
-			}
-		}
-	} else {
 		/*
-		 * SLOW AND OLD VERSION!!!
+		 * compute the last non-zero index (mapped) if not already there
+		 */
+		if (Alin[i]->tinfo[id].last_nonzero_mapped < 0) {
+			Alin[i]->tinfo[id].last_nonzero_mapped = GMRFLib_find_nonzero(v, len, -1) + from_idx;
+		}
+
+		/*
+		 * we do not need to map back since the innerproduct is the same in any case. It is here possible to store only the non-zero indices of v,
+		 * and do the inner product over those, as they will remain the same for various calls to this function, but I don't think this is worth it.
+		 */
+		var = ddot_(&len, v, &one, v, &one);
+		if (cross) {
+			cross_store[i].from_idx = from_idx;
+			cross_store[i].to_idx = to_idx;
+			cross_store[i].v = v;
+			v = NULL;
+		} else {
+			Free(v);
+		}
+		Free(b);
+
+		/*
+		 * the correction matrix due to linear constraints 
+		 */
+		var_corr = 0.0;
+		if (nc) {
+			for (j = 0; j < nc; j++) {
+				/*
+				 * w = AA^T CONSTR_M 
+				 */
+				double *p, *pp, w, ww;
+
+				w = ww = 0.0;
+				p = &(problem->constr_m[j * n]);
+				pp = &(problem->qi_at_m[j * n]);
+
+				for (jj = 0; jj < Alin[i]->n; jj++) {
+					k = Alin[i]->idx[jj];
+					weight = (double) Alin[i]->weight[jj];
+
+					w += weight * p[k];
+					ww += weight * pp[k];
+				}
+				var_corr += w * ww;
+			}
+		}
+
+		mean = imean = 0.0;
+		for (j = 0; j < Alin[i]->n; j++) {
+			k = Alin[i]->idx[j];
+			weight = (double) Alin[i]->weight[j];
+
+			mean += weight * problem->mean_constr[k];
+			imean += weight * improved_mean[k];
+		}
+		var = DMAX(DBL_EPSILON, var - var_corr);
+		GMRFLib_density_create_normal(&d[i], (imean - mean) / sqrt(var), 1.0, mean, sqrt(var));
+
+		Free(a);
+	}
+
+
+	if (cross) {
+		/*
+		 * do calculations for the E(xi*x_j) 
 		 */
 
-		if (cross) {
-			FIXME("CROSS IS NOT SUPPORTED FOR THE SLOW/OLD VERSION.");
-		}
-#pragma omp parallel for private(i, j)
-		for (i = 0; i < nlin; i++) {
+		*cross = Calloc(ISQR(nlin), double);
 
-			double *v = NULL, var, mean, imean, *a = NULL, w, ww, var_corr, *p;
-
-			v = Calloc(n, double);
-			a = Calloc(n, double);
-
-			memset(a, 0, n * sizeof(double));
-			for (j = 0; j < Alin[i]->n; j++) {
-				a[Alin[i]->idx[j]] = (double) Alin[i]->weight[j];
+		/*
+		 * need this table for OPENMP 
+		 */
+		int klen = (ISQR(nlin) + nlin) / 2;
+		GMRFLib_lc_ij_tp *arr = Calloc(klen, GMRFLib_lc_ij_tp);
+		for (k = 0, i = 0; i < nlin; i++) {
+			for (j = i; j < nlin; j++) {
+				arr[k].i = i;
+				arr[k].j = j;
+				k++;
 			}
-			memcpy(v, a, n * sizeof(double));
+		}
+		assert(k == klen);
 
-			GMRFLib_solve_l_sparse_matrix(v, &(problem->sub_sm_fact), problem->sub_graph);
+		/*
+		 * this loop is quick in any case, so no need to make do it in parallel unless we have constraints ? 
+		 */
+#pragma omp parallel for private(i, j, k) if(nc)
+		for (k = 0; k < klen; k++) {
+			i = arr[k].i;
+			j = arr[k].j;
 
-			/*
-			 * the correction matrix due to linear constraints 
-			 */
-			var_corr = 0.0;
+			int ij_from, ij_to;
+
+			ij_from = IMAX(cross_store[i].from_idx, cross_store[j].from_idx);
+			ij_to = IMIN(cross_store[i].to_idx, cross_store[j].to_idx);
+			if (ij_from <= ij_to) {
+				double *v_i = NULL, *v_j = NULL;
+				int ij_len = 0;
+
+				v_i = &(cross_store[i].v[ij_from - cross_store[i].from_idx]);
+				v_j = &(cross_store[j].v[ij_from - cross_store[j].from_idx]);
+				ij_len = ij_to - ij_from + 1;
+
+				(*cross)[i + j * nlin] = ddot_(&ij_len, v_i, &one, v_j, &one);
+			} else {
+				(*cross)[i + j * nlin] = 0.0;
+			}
+
 			if (nc) {
-				for (j = 0; j < nc; j++) {
+				/*
+				 * the correction matrix due to linear constraints 
+				 */
+				double correction = 0.0;
+				int kk;
+
+				for (kk = 0; kk < nc; kk++) {
 					/*
 					 * w = AA^T CONSTR_M 
 					 */
-					p = &(problem->constr_m[j * n]);
-					w = ddot_(&n, a, &one, p, &one);
+					double *p = NULL, *pp = NULL, w, ww, weight;
+					int jj, idx;
 
-					/*
-					 * ww = AA * QI_AT 
-					 */
-					p = &(problem->qi_at_m[j * n]);
-					ww = ddot_(&n, a, &one, p, &one);
+					w = ww = 0.0;
+					p = &(problem->constr_m[kk * n]);
+					pp = &(problem->qi_at_m[kk * n]);
 
-					var_corr += w * ww;
+					for (jj = 0; jj < Alin[i]->n; jj++) {
+						idx = Alin[i]->idx[jj];
+						weight = (double) Alin[i]->weight[jj];
+						w += weight * p[idx];
+					}
+					for (jj = 0; jj < Alin[j]->n; jj++) {
+						idx = Alin[j]->idx[jj];
+						weight = (double) Alin[j]->weight[jj];
+						ww += weight * pp[idx];
+					}
+					correction += w * ww;
 				}
+				(*cross)[i + j * nlin] += -correction;
 			}
+			(*cross)[j + i * nlin] = (*cross)[i + j * nlin];
+		}
 
-			var = ddot_(&n, v, &one, v, &one);
-			mean = ddot_(&n, a, &one, problem->mean_constr, &one);
-			imean = ddot_(&n, a, &one, improved_mean, &one);
-
-			var = DMAX(DBL_EPSILON, var - var_corr);
-			GMRFLib_density_create_normal(&d[i], (imean - mean) / sqrt(var), 1.0, mean, sqrt(var));
-
-			Free(v);
-			Free(a);
+		Free(arr);
+		for (i = 0; i < nlin; i++) {
+			Free(cross_store[i].v);
 		}
 	}
 
