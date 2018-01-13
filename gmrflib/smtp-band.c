@@ -374,8 +374,7 @@ int GMRFLib_solve_l_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFL
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_solve_llt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth,
-						 int idx)
+int GMRFLib_solve_llt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth, int idx)
 {
 	/*
 	 * rhs in real world, bchol in mapped word
@@ -402,8 +401,8 @@ int GMRFLib_solve_llt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMR
 		double *rrhs = Calloc(graph->n, double);
 		rrhs[idx] = 1.0;
 		GMRFLib_solve_llt_sparse_matrix_BAND(rrhs, bchol, graph, remap, bandwidth);
-		for(int i = 0; i < graph->n; i++)
-			fprintf(stderr, "%d %g %g %g\n", i, rhs[i], rrhs[i], rhs[i]-rrhs[i]);
+		for (int i = 0; i < graph->n; i++)
+			fprintf(stderr, "%d %g %g %g\n", i, rhs[i], rrhs[i], rhs[i] - rrhs[i]);
 	}
 
 	return GMRFLib_SUCCESS;
