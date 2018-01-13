@@ -132,7 +132,8 @@ int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_build_sparse_matrix_BAND(double **bandmatrix, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap, int bandwidth)
+int GMRFLib_build_sparse_matrix_BAND(double **bandmatrix, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap,
+				     int bandwidth)
 {
 #define BIDX(i,j) ((i)+(j)*nrow)			       /* band index'ing */
 
@@ -347,7 +348,8 @@ int GMRFLib_solve_lt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRF
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_solve_l_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth, int findx, int toindx, int remapped)
+int GMRFLib_solve_l_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth, int findx,
+					       int toindx, int remapped)
 {
 	/*
 	 * rhs in real world, bchol in mapped world.  solve Lx=b backward only from rhs[findx] up to rhs[toindx].  note that
@@ -372,7 +374,8 @@ int GMRFLib_solve_l_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFL
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_comp_cond_meansd_BAND(double *cmean, double *csd, int indx, double *x, int remapped, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth)
+int GMRFLib_comp_cond_meansd_BAND(double *cmean, double *csd, int indx, double *x, int remapped, double *bchol, GMRFLib_graph_tp * graph,
+				  int *remap, int bandwidth)
 {
 	/*
 	 * compute the conditonal mean and stdev for x[indx]|x[indx+1]...x[n-1] for the current value of x. if `remapped', then 
