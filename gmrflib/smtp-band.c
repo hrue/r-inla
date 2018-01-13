@@ -374,6 +374,42 @@ int GMRFLib_solve_l_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFL
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_solve_llt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth,
+						 int idx)
+{
+	/*
+	 * rhs in real world, bchol in mapped word
+	 * 
+	 * solve Q x=rhs, where Q=L L^T 
+	 */
+	GMRFLib_ASSERT(rhs[idx] == 1.0, GMRFLib_ESNH);
+
+	int nband, ldim, stride = 1, idxnew, from, to;
+
+	nband = bandwidth;
+	ldim = nband + 1;
+	idxnew = remap[idx];
+	rhs[idx] = 0.0;
+	rhs[idxnew] = 1.0;
+	from = idxnew + 1;
+	to = graph->n;
+
+	dtbsvspecial_("L", "N", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, &from, &to, 1, 1, 1);
+	dtbsv_("L", "T", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, 1, 1, 1);
+	GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
+
+	if (0) {
+		double *rrhs = Calloc(graph->n, double);
+		rrhs[idx] = 1.0;
+		GMRFLib_solve_llt_sparse_matrix_BAND(rrhs, bchol, graph, remap, bandwidth);
+		for(int i = 0; i < graph->n; i++)
+			fprintf(stderr, "%d %g %g %g\n", i, rhs[i], rrhs[i], rhs[i]-rrhs[i]);
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
+
 int GMRFLib_comp_cond_meansd_BAND(double *cmean, double *csd, int indx, double *x, int remapped, double *bchol, GMRFLib_graph_tp * graph,
 				  int *remap, int bandwidth)
 {
