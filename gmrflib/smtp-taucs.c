@@ -165,7 +165,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 /* 
    copy a supernodal_factor_matrix
 */
-supernodal_factor_matrix *GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(supernodal_factor_matrix * L)
+supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matrix * L)
 {
 #define DUPLICATE(name,len,type) if (1) {					\
 		if (L->name && ((len) > 0)) {				\
@@ -228,7 +228,7 @@ supernodal_factor_matrix *GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(su
 	return LL;
 }
 
-GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_nnz(supernodal_factor_matrix * L)
+GMRFLib_sizeof_tp GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L)
 {
 	/*
 	 * return the number of non-zeros in the matrix 
@@ -245,28 +245,7 @@ GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_nnz(supernodal_facto
 	return (nnz);
 }
 
-GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_computing_time(supernodal_factor_matrix * L)
-{
-	/*
-	 * return, approximately, the computing time for factorising L up to the constant of proportionality
-	 */
-	GMRFLib_sizeof_tp siz = 0;
-
-	if (!L) {
-		return siz;
-	}
-
-	int sn, jp;
-
-	for (sn = 0; sn < L->n_sn; sn++) {
-		for (jp = 0; jp < L->sn_size[sn]; jp++) {
-			siz += ISQR(L->sn_size[sn] - jp + 1);
-			siz += ISQR(L->sn_up_size[sn] - L->sn_size[sn] + 1);	/* HOW CAN THIS BE CORRECT ???? */
-		}
-	}
-	return siz;
-}
-GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_sizeof(supernodal_factor_matrix * L)
+GMRFLib_sizeof_tp GMRFLib_sm_fact_sizeof_TAUCS(supernodal_factor_matrix * L)
 {
 	/*
 	 * return, approximately, the size of L 
@@ -310,7 +289,7 @@ GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_sizeof(supernodal_fa
 /* 
    make a copy of a ccs-matrix
 */
-taucs_ccs_matrix *GMRFLib_my_taucs_dccs_duplicate(taucs_ccs_matrix * L, int flags)
+taucs_ccs_matrix *GMRFLib_L_duplicate_TAUCS(taucs_ccs_matrix * L, int flags)
 {
 	/*
 	 * copy a square matrix 
@@ -333,6 +312,7 @@ taucs_ccs_matrix *GMRFLib_my_taucs_dccs_duplicate(taucs_ccs_matrix * L, int flag
 
 	return LL;
 }
+
 int GMRFLib_print_ccs_matrix(FILE *fp, taucs_ccs_matrix * L)
 {
 	if (!L) {
@@ -356,7 +336,8 @@ int GMRFLib_print_ccs_matrix(FILE *fp, taucs_ccs_matrix * L)
 
 	return GMRFLib_SUCCESS;
 }
-GMRFLib_sizeof_tp GMRFLib_my_taucs_dccs_sizeof(taucs_ccs_matrix * L)
+
+GMRFLib_sizeof_tp GMRFLib_L_sizeof_TAUCS(taucs_ccs_matrix * L)
 {
 	/*
 	 * return, approximately, the sizeof L 
@@ -375,63 +356,7 @@ GMRFLib_sizeof_tp GMRFLib_my_taucs_dccs_sizeof(taucs_ccs_matrix * L)
 
 	return siz;
 }
-int GMRFLib_compute_reordering_TAUCS_orig(int **remap, GMRFLib_graph_tp * graph)
-{
-	/*
-	 * this is the original version without treating global nodes spesifically. 
-	 */
 
-	int i, j, k, ic, ne, n, nnz, *perm = NULL, *iperm = NULL;
-	taucs_ccs_matrix *Q = NULL;
-	char *p = NULL;
-
-	FIXME("THIS NEEDS TO BE FIXED FOR GMRFLib_reorder");
-	abort();
-
-	if (!graph || graph->n == 0) {
-		return GMRFLib_SUCCESS;
-	}
-	n = graph->n;
-	for (i = 0, nnz = n; i < n; i++) {
-		nnz += graph->nnbs[i];
-	}
-	Q = taucs_ccs_create(n, n, nnz, TAUCS_DOUBLE);
-	Q->flags = (TAUCS_PATTERN | TAUCS_SYMMETRIC | TAUCS_TRIANGULAR | TAUCS_LOWER);
-	Q->colptr[0] = 0;
-
-	for (i = 0, ic = 0; i < n; i++) {
-		Q->rowind[ic++] = i;
-		for (k = 0, ne = 1; k < graph->nnbs[i]; k++) {
-			j = graph->nbs[i][k];
-			if (j > i) {
-				break;
-			}
-			Q->rowind[ic++] = j;
-			ne++;
-		}
-		Q->colptr[i + 1] = Q->colptr[i] + ne;
-	}
-
-	if (1) {
-		p = GMRFLib_strdup("metis");
-		taucs_ccs_order(Q, &perm, &iperm, p);	       /* use the metis library */
-	} else {
-		FIXME("use identity reordering");
-		p = GMRFLib_strdup("identity");
-		taucs_ccs_order(Q, &perm, &iperm, p);	       /* use the identity mapping */
-	}
-
-	*remap = iperm;					       /* yes, this is correct */
-	Free(perm);
-	Free(p);
-	taucs_ccs_free(Q);
-
-	if (!*remap) {
-		GMRFLib_ERROR(GMRFLib_EREORDER);
-	}
-
-	return GMRFLib_SUCCESS;
-}
 int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRFLib_reorder_tp reorder, GMRFLib_global_node_tp * gn_ptr)
 {
 	/*
@@ -656,6 +581,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap)
 {
 	int i, j, k, ic, ne, n, nnz, *perm = NULL, *iperm = NULL, id, nan_error = 0;
@@ -888,6 +814,7 @@ int GMRFLib_solve_l_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFL
 	GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap)
 {
 	double *b = NULL;
@@ -903,6 +830,7 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRF
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap)
 {
 	GMRFLib_EWRAP0(GMRFLib_convert_to_mapped(rhs, NULL, graph, remap));
@@ -938,6 +866,7 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMR
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int findx, int toindx, int remapped)
 {
 	/*
@@ -961,6 +890,7 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int findx, int toindx, int remapped)
 {
 	/*
@@ -983,6 +913,7 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * 
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * L, double *L_inv_diag, GMRFLib_graph_tp * graph, int *remap, int idx)
 {
 	/*
@@ -1069,6 +1000,7 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * 
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_comp_cond_meansd_TAUCS(double *cmean, double *csd, int indx, double *x, int remapped, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap)
 {
 	/*
@@ -1087,6 +1019,7 @@ int GMRFLib_comp_cond_meansd_TAUCS(double *cmean, double *csd, int indx, double 
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_log_determinant_TAUCS(double *logdet, taucs_ccs_matrix * L)
 {
 	int i;
@@ -1099,6 +1032,7 @@ int GMRFLib_log_determinant_TAUCS(double *logdet, taucs_ccs_matrix * L)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp * problem, int storage)
 {
 	if (!problem) {
@@ -1132,7 +1066,7 @@ int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp * problem, int storage)
 			/*
 			 * do some checking 
 			 */
-			L = GMRFLib_my_taucs_dccs_duplicate(problem->sub_sm_fact.TAUCS_L, TAUCS_DOUBLE | TAUCS_LOWER | TAUCS_TRIANGULAR);
+			L = GMRFLib_L_duplicate_TAUCS(problem->sub_sm_fact.TAUCS_L, TAUCS_DOUBLE | TAUCS_LOWER | TAUCS_TRIANGULAR);
 			while ((mis_elm = GMRFLib_compute_Qinv_TAUCS_check(L))) {
 				LL = L;
 				L = GMRFLib_compute_Qinv_TAUCS_add_elements(LL, mis_elm);
@@ -1632,6 +1566,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_my_taucs_dccs_solve_lt(void *vL, double *x, double *b)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
@@ -1653,6 +1588,7 @@ int GMRFLib_my_taucs_dccs_solve_lt(void *vL, double *x, double *b)
 
 	return 0;
 }
+
 int GMRFLib_my_taucs_dccs_solve_lt_special(void *vL, double *x, double *b, int from_idx, int to_idx)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
@@ -1674,6 +1610,7 @@ int GMRFLib_my_taucs_dccs_solve_lt_special(void *vL, double *x, double *b, int f
 
 	return 0;
 }
+
 int GMRFLib_my_taucs_dccs_solve_l_special(void *vL, double *x, double *b, int from_idx, int to_idx)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
@@ -1693,6 +1630,7 @@ int GMRFLib_my_taucs_dccs_solve_l_special(void *vL, double *x, double *b, int fr
 	}
 	return 0;
 }
+
 int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
@@ -1746,6 +1684,7 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 	}
 	return 0;
 }
+
 int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
@@ -1781,6 +1720,7 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 	}
 	return 0;
 }
+
 int GMRFLib_my_taucs_cmsd(double *cmean, double *csd, int idx, taucs_ccs_matrix * L, double *x)
 {
 	int j, jp;
@@ -1799,6 +1739,7 @@ int GMRFLib_my_taucs_cmsd(double *cmean, double *csd, int idx, taucs_ccs_matrix 
 
 	return 0;
 }
+
 int GMRFLib_my_taucs_check_flags(int flags)
 {
 #define CheckFLAGS(X) if (flags & X) printf(#X " is ON\n");if (!(flags & X)) printf(#X " is OFF\n")
@@ -1816,6 +1757,7 @@ int GMRFLib_my_taucs_check_flags(int flags)
 #undef CheckFLAGS
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix * L, const char *filename)
 {
 #define ROUND(_i) ((int) ((_i) * reduce_factor))
@@ -1847,6 +1789,7 @@ int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix * L, const char 
 
 	return err;
 }
+
 int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matrix * L)
 {
 	/*
@@ -1860,6 +1803,7 @@ int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matr
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_amdc(int n, int *pe, int *iw, int *len, int iwlen, int pfree,
 		 int *nv, int *next, int *last, int *head, int *elen, int *degree, int ncmpa, int *w)
 {
@@ -1876,6 +1820,7 @@ int GMRFLib_amdc(int n, int *pe, int *iw, int *len, int iwlen, int pfree,
 
 	return (result == AMD_OK ? GMRFLib_SUCCESS :  !GMRFLib_SUCCESS);
 }
+
 int GMRFLib_amdbarc(int n, int *pe, int *iw, int *len, int iwlen, int pfree,
 		 int *nv, int *next, int *last, int *head, int *elen, int *degree, int ncmpa, int *w)
 {
