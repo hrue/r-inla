@@ -89,9 +89,9 @@ map_ii **GMRFLib_compute_Qinv_TAUCS_check(taucs_ccs_matrix * L);
 taucs_ccs_matrix *GMRFLib_compute_Qinv_TAUCS_add_elements(taucs_ccs_matrix * L, map_ii ** missing_elements);
 int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage, taucs_ccs_matrix * Lmatrix);
 
-taucs_ccs_matrix *GMRFLib_my_taucs_dccs_duplicate(taucs_ccs_matrix * L, int flags);
+taucs_ccs_matrix *GMRFLib_L_duplicate_TAUCS(taucs_ccs_matrix * L, int flags);
 int GMRFLib_print_ccs_matrix(FILE *fp, taucs_ccs_matrix * L);
-supernodal_factor_matrix *GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(supernodal_factor_matrix * L);
+supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matrix * L);
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL);
 
 /* 
@@ -99,10 +99,9 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL);
 */
 int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix * L, const char *filename);
 int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matrix * L);
-GMRFLib_sizeof_tp GMRFLib_my_taucs_dccs_sizeof(taucs_ccs_matrix * L);
-GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_sizeof(supernodal_factor_matrix * L);
-GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_computing_time(supernodal_factor_matrix * L);
-GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_nnz(supernodal_factor_matrix * L);
+GMRFLib_sizeof_tp GMRFLib_L_sizeof_TAUCS(taucs_ccs_matrix * L);
+GMRFLib_sizeof_tp GMRFLib_sm_fact_sizeof_TAUCS(supernodal_factor_matrix * L);
+GMRFLib_sizeof_tp GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L);
 
 __END_DECLS
 #endif
