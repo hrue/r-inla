@@ -44,6 +44,8 @@ c/*!
       csd = 1/a(1,indx)
       return
       end
+
+
       subroutine dtbsvSpecial(uplo,trans,diag,n,k,a,lda,x,incx,
      $     findx,toindx)
       integer            incx, k, lda, n,findx,toindx

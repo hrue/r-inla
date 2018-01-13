@@ -336,19 +336,40 @@ int GMRFLib_solve_lt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRF
 	nband = bandwidth;
 	ldim = nband + 1;
 
-	if (!remapped)
+	if (!remapped) {
 		GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
+	}
 	dtbsvspecial_("L", "T", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, &from, &to, 1, 1, 1);
-	if (!remapped)
+	if (!remapped) {
 		GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
+	}
 
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_solve_l_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth, int findx, int toindx, int remapped)
 {
-	fprintf(stderr, "\n\nGMRFLib_solve_l_sparse_matrix_special_BAND is not yet written.\n");
-	exit(1);
+	/*
+	 * rhs in real world, bchol in mapped world.  solve Lx=b backward only from rhs[findx] up to rhs[toindx].  note that
+	 * findx and toindx is in mapped world.  if remapped, do not remap/remap-back the rhs before solving.
+	 * 
+	 */
+	int nband, ldim, stride = 1, from, to;
+
+	from = findx + 1;				       /* convert to fortran indxing */
+	to = toindx + 1;				       /* convert to fortran indxing */
+	nband = bandwidth;
+	ldim = nband + 1;
+
+	if (!remapped) {
+		GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
+	}
+	dtbsvspecial_("L", "N", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, &from, &to, 1, 1, 1);
+	if (!remapped) {
+		GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
+	}
+
+	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_comp_cond_meansd_BAND(double *cmean, double *csd, int indx, double *x, int remapped, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth)
