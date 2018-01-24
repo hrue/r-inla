@@ -2407,7 +2407,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 		*nnz_opt = 0;
 	} else {
 		GMRFLib_sizeof_tp *nnzs = NULL, nnz_best;
-		int k, debug = 1, n = -1, nk, r, i, ne = 0, use_global_nodes;
+		int k, debug = 0, n = -1, nk, r, i, ne = 0, use_global_nodes;
 		GMRFLib_reorder_tp rs[] = { GMRFLib_REORDER_METIS, GMRFLib_REORDER_AMDC };
 		taucs_ccs_matrix *Q = NULL;
 		char *fixed = NULL;
