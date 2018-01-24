@@ -47,6 +47,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "amd.h"
+#include "metis.h"
 
 #ifndef HGVERSION
 #define HGVERSION
@@ -227,6 +228,115 @@ supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matr
 #undef DUPLICATE
 	return LL;
 }
+
+void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *which)
+{
+	// this for metis version 5
+
+	int n, nnz, i, j, ip;
+	int *xadj;
+	int *adj;
+	int *len;
+	int *ptr;
+
+	P(sizeof(idx_t));
+	P(sizeof(int));
+	
+	assert(sizeof(idx_t) == sizeof(int));
+
+	FIXME("USING METIS5");
+
+	if (!(m->flags & TAUCS_SYMMETRIC) && !(m->flags & TAUCS_HERMITIAN)) {
+		taucs_printf("taucs_ccs_treeorder: METIS ordering only works on symmetric matrices.\n");
+		*perm = NULL;
+		*invperm = NULL;
+		return;
+	}
+	/*
+	 * this routine may actually work on UPPER as well 
+	 */
+	if (!(m->flags & TAUCS_LOWER)) {
+		taucs_printf("taucs_ccs_metis: the lower part of the matrix must be represented.\n");
+		*perm = NULL;
+		*invperm = NULL;
+		return;
+	}
+
+	n = m->n;
+	nnz = (m->colptr)[n];
+
+	*perm = Calloc(n, int);
+	*invperm = Calloc(n, int);
+
+	xadj = Calloc(n+1, int);
+	adj = Calloc(2*nnz, int);
+	
+
+	if (!(*perm) || !(*invperm) || !xadj || !adj) {
+		Free(*perm);
+		Free(*invperm);
+		Free(xadj);
+		Free(adj);
+		*perm = *invperm = NULL;
+		return;
+	}
+
+	ptr = len = *perm;
+	for (i = 0; i < n; i++)
+		len[i] = 0;
+
+	for (j = 0; j < n; j++) {
+		for (ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
+			/*
+			 * i = (m->rowind)[ip] - (m->indshift);
+			 */
+			i = (m->rowind)[ip];
+			if (i != j) {
+				len[i]++;
+				len[j]++;
+			}
+		}
+	}
+
+	xadj[0] = 0;
+	for (i = 1; i <= n; i++)
+		xadj[i] = xadj[i - 1] + len[i - 1];
+
+	for (i = 0; i < n; i++)
+		ptr[i] = xadj[i];
+
+	for (j = 0; j < n; j++) {
+		for (ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
+			/*
+			 * i = (m->rowind)[ip] - (m->indshift);
+			 */
+			i = (m->rowind)[ip];
+			if (i != j) {
+				adj[ptr[i]] = j;
+				adj[ptr[j]] = i;
+				ptr[i]++;
+				ptr[j]++;
+			}
+		}
+	}
+	idx_t options[METIS_NOPTIONS];
+	METIS_SetDefaultOptions(options);
+
+	//options[METIS_OPTION_PTYPE] = METIS_PTYPE_RB;
+	options[METIS_OPTION_OBJTYPE] = METIS_OBJTYPE_NODE;
+	options[METIS_OPTION_NUMBERING] = 0;
+	options[METIS_OPTION_NSEPS] = 3;
+	options[METIS_OPTION_COMPRESS] = 0;
+	options[METIS_OPTION_PFACTOR] = 100;
+	//options[METIS_OPTION_DBGLVL] = (METIS_DBG_INFO | METIS_DBG_TIME | METIS_DBG_COARSEN | METIS_DBG_REFINE | 
+	//METIS_DBG_IPART | METIS_DBG_MOVEINFO | METIS_DBG_SEPINFO | METIS_DBG_CONNINFO | METIS_DBG_CONTIGINFO) ;
+
+	METIS_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
+
+	Free(xadj);
+	Free(adj);
+}
+
 
 GMRFLib_sizeof_tp GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L)
 {
