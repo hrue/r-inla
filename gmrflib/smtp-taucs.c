@@ -238,13 +238,9 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *whi
 	int *adj;
 	int *len;
 	int *ptr;
+	int ret;
 
-	P(sizeof(idx_t));
-	P(sizeof(int));
-	
 	assert(sizeof(idx_t) == sizeof(int));
-
-	FIXME("USING METIS5");
 
 	if (!(m->flags & TAUCS_SYMMETRIC) && !(m->flags & TAUCS_HERMITIAN)) {
 		taucs_printf("taucs_ccs_treeorder: METIS ordering only works on symmetric matrices.\n");
@@ -322,21 +318,18 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *whi
 	idx_t options[METIS_NOPTIONS];
 	METIS_SetDefaultOptions(options);
 
-	//options[METIS_OPTION_PTYPE] = METIS_PTYPE_RB;
-	options[METIS_OPTION_OBJTYPE] = METIS_OBJTYPE_NODE;
 	options[METIS_OPTION_NUMBERING] = 0;
-	options[METIS_OPTION_NSEPS] = 3;
+	options[METIS_OPTION_NSEPS] = 5;
 	options[METIS_OPTION_COMPRESS] = 0;
 	options[METIS_OPTION_PFACTOR] = 100;
-	//options[METIS_OPTION_DBGLVL] = (METIS_DBG_INFO | METIS_DBG_TIME | METIS_DBG_COARSEN | METIS_DBG_REFINE | 
-	//METIS_DBG_IPART | METIS_DBG_MOVEINFO | METIS_DBG_SEPINFO | METIS_DBG_CONNINFO | METIS_DBG_CONTIGINFO) ;
 
-	METIS_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
+	ret = METIS_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
+	if (ret != METIS_OK)
+		GMRFLib_ERROR(GMRFLib_EREORDER);
 
 	Free(xadj);
 	Free(adj);
 }
-
 
 GMRFLib_sizeof_tp GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L)
 {
