@@ -3,8 +3,8 @@
 ##
 ## Run 'make' with no arguments for usage instructions
 ##
-## This Makefile has been tested under Debian GNU/Linux, but should
-## also work under Ubuntu.
+## This Makefile has been tested under Ubuntu 17.10
+##
 ## Requirements:
 ##   mercurial
 ##   A full gcc/g++/gfortran installation
@@ -15,6 +15,7 @@
 ##   make -f inla/build-user/linux/Makefile
 ##
 ## Finn Lindgren, 2014-08-24, finn.lindgren@gmail.com
+## Finn Lindgren, 2018-01-30, finn.lindgren@gmail.com
 
 SHELL = /bin/bash
 
@@ -138,8 +139,8 @@ GMRFLib :
 
 sync-taucs :
 	mkdir -p $(MAINDIR)/tmp
-	-rm -r $(MAINDIR)/tmp/taucs-2.2--my-fix
-	cd  inla/extlibs/taucs-2.2--my-fix.tgz $(MAINDIR)/tmp/
+	-rm -rf $(MAINDIR)/tmp/taucs-2.2--my-fix
+	cp inla/extlibs/taucs-2.2--my-fix.tgz $(MAINDIR)/tmp/
 	cd $(MAINDIR)/tmp ; tar -zxf taucs-2.2--my-fix.tgz
 
 taucs : sync-taucs
