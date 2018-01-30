@@ -139,7 +139,8 @@ GMRFLib :
 sync-taucs :
 	mkdir -p $(MAINDIR)/tmp
 	-rm -r $(MAINDIR)/tmp/taucs-2.2--my-fix
-	cd $(MAINDIR)/tmp ; tar -zxf inla/extlibs/taucs-2.2--my-fix.tgz
+	cd  inla/extlibs/taucs-2.2--my-fix.tgz $(MAINDIR)/tmp/
+	cd $(MAINDIR)/tmp ; tar -zxf taucs-2.2--my-fix.tgz
 
 taucs : sync-taucs
 	$(MAKE) -C $(MAINDIR)/tmp/taucs-2.2--my-fix CFLAGS="$(FLAGS)" FFLAGS="$(FLAGS)" $(ARGS) -k clean
