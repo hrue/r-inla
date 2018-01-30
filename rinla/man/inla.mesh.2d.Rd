@@ -109,7 +109,8 @@ Finn Lindgren \email{finn.lindgren@gmail.com}
 
 \seealso{
 \code{\link{inla.mesh.create}},
-\code{\link{inla.delaunay}}
+\code{\link{inla.delaunay}},
+\code{\link{inla.nonconvex.hull}}
 }
 \examples{
 loc <- matrix(runif(10*2),10,2)
