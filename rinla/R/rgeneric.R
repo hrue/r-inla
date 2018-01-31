@@ -35,7 +35,7 @@
 ##!inla.rgeneric.q(
 ##!        rmodel, 
 ##!        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
-##!        model, theta = NULL)
+##!        theta = NULL)
 ##!}
 ##!
 ##!\arguments{
