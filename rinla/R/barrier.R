@@ -17,7 +17,8 @@
 ##! \description{Functions for defining Barrier models as an \code{inla rgeneric} model}
 ##!
 ##! \usage{
-##! inla.barrier.pcmatern(mesh, barrier.triangles, prior.range, prior.sigma, range.fraction=0.2)
+##! inla.barrier.pcmatern(mesh, barrier.triangles, prior.range,
+##!                       prior.sigma, range.fraction=0.2)
 ##! inla.barrier.polygon(mesh, barrier.triangles, Omega=NULL)
 ##! inla.barrier.q(fem, ranges, sigma=1)
 ##! inla.barrier.fem(mesh, barrier.triangles, Omega=NULL)
@@ -157,7 +158,8 @@ inla.barrier.pcmatern = function(mesh, barrier.triangles, prior.range, prior.sig
         ## - the first is log(prob)/exceed, the second log(prob)*exceed
         ## - the second is exponential for inverse range, therefore multiplication!
         fem = inla.barrier.fem(mesh, barrier.triangles = barrier.triangles)
-        barrier.model = inla.rgeneric.define(model = barrier.rgeneric.model, log.prior=log.prior, inla.barrier.q=inla.barrier.q, 
+        barrier.model = inla.rgeneric.define(model = barrier.rgeneric.model,
+                                             log.prior=log.prior, inla.barrier.q=inla.barrier.q, 
                                              fem=fem, range.fraction = range.fraction)
     } else if (!is.na(prior.sigma[2]) && is.na(prior.range[2])) {
         stop("Input not supported (TODO)")
@@ -249,7 +251,7 @@ inla.barrier.q <- function(fem, ranges, sigma=1)
 }
 
 
-inla.barrier.fem = function(mesh, barrier.triangles, Omega = NULL)
+`inla.barrier.fem` = function(mesh, barrier.triangles, Omega = NULL)
 {
     stopifnot(class(mesh) == 'inla.mesh')
     
