@@ -16,7 +16,6 @@
 ##!}
 ##!\usage{
 ##!inla.mdata(y, ...)
-##!\method{print}{inla.mdata}(x, ...)
 ##!is.inla.mdata(object)
 ##!as.inla.mdata(object)
 ##!}

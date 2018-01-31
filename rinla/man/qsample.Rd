@@ -17,7 +17,7 @@
         mu, 
         sample,
         constr,
-        reordering = inla.reorderings(),
+        reordering = INLA::inla.reorderings(),
         seed = 0L,
         logdens = ifelse(missing(sample), FALSE, TRUE),
         compute.mean = ifelse(missing(sample), FALSE, TRUE)),

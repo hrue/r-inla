@@ -17,7 +17,6 @@ This defines an mdata-object for matrix valued response-families
 }
 \usage{
 inla.mdata(y, ...)
-\method{print}{inla.mdata}(x, ...)
 is.inla.mdata(object)
 as.inla.mdata(object)
 }
