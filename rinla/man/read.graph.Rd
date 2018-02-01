@@ -69,11 +69,15 @@ g.file = inla.write.graph(g, mode="binary")
 ## re-reading it from that file
 gg = inla.read.graph(g.file)
 summary(g)
+##
+Not run:
 plot(g)
 inla.spy(g)
-## when defining the graph directly in the call, we can use a mix of character and numbers
+## when defining the graph directly in the call, 
+## we can use a mix of character and numbers
 g = inla.read.graph(c(3, 1, "1 2 2 1 1 3", 0))
 inla.spy(c(3, 1, "1 2 2 1 1 3 0"))
 inla.spy(c(3, 1, "1 2 2 1 1 3 0"),  reordering=3:1)
 inla.write.graph(c(3, 1, "1 2 2 1 1 3 0"))
+End(Not run)
 }
