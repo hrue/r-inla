@@ -8,6 +8,12 @@ VERSION=snapshot
 # $(PREFIX)/doc/examples yourself.
 PREFIX = /usr/local
 
+## *** chose either one of these ***
+RLIB_INC = -DINLA_LIBR -I/usr/include/R -I/usr/share/R/include
+RLIB_LIB = -L/usr/lib/R/lib -lR
+##RLIB_INC = -I/usr/include -I/usr/include/R -I/usr/share/R/include
+##RLIB_LIB = -L/usr/lib -lRmath
+
 # select compilers and optimized compiler-options, add -fopenmp or similar to use OpenMP
 CC = gcc
 CXX = g++
@@ -24,8 +30,6 @@ EXTLIBS1 = -L$(PREFIX)/lib -lGMRFLib -L$(LEXTPREFIX)/lib
 EXTLIBS2 = -lgsl -ltaucs -lmetis -llapack -lblas -lgslcblas -lamd -lmuparser -lz -lgfortran
 EXTLIBS3 = -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -lm
 
-EXTLIBS = $(EXTLIBS1) $(EXTLIBS2) $(EXTLIBS3)
-
 ################################################################################
 #
 # no changes usually needed below this point
@@ -41,13 +45,14 @@ SHELL   = /bin/sh
 HG:= $(shell which hg)
 HGVERSION:= $(shell if [ -x "$(HG)" ]; then $(HG) parents --template 'hgid: {node|short}  date: {date|date}'; elif [ -e hgstamp ]; then cat hgstamp; else echo 'hgid: unknown  date: unknown' ; fi)
 
-INCL    = -Isrc -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
+EXTLIBS = $(RLIB_LIB) $(EXTLIBS1) $(EXTLIBS2) $(EXTLIBS3)
+INCL    = $(RLIB_INC) -Isrc -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
 LDFLAGS = $(FLAGS) 
 FFLAGS  = $(FLAGS) $(FCEXTRAFLAGS) $(INCL)
 CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DHGVERSION="\"${HGVERSION}\""
 
 INLA = inla
-OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/sha1.o src/spde.o src/spde2.o src/spde3.o src/eval.o src/interpol.o src/re.o src/ar.o src/bessel.o src/pc-priors.o src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o
+OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/sha1.o src/spde.o src/spde2.o src/spde3.o src/eval.o src/interpol.o src/re.o src/ar.o src/bessel.o src/pc-priors.o src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o 
 all: $(INLA)
 
 $(INLA) : $(OBJ)

@@ -19,14 +19,13 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
- * RCSId: $Id: openmp.h,v 1.4 2007/05/27 13:44:55 hrue Exp $
  *
  */
 
@@ -73,7 +72,8 @@ typedef enum {
 	GMRFLib_OPENMP_STRATEGY_MEDIUM,
 	GMRFLib_OPENMP_STRATEGY_LARGE,
 	GMRFLib_OPENMP_STRATEGY_HUGE,
-	GMRFLib_OPENMP_STRATEGY_DEFAULT
+	GMRFLib_OPENMP_STRATEGY_DEFAULT, 
+	GMRFLib_OPENMP_STRATEGY_NONE
 } GMRFLib_openmp_strategy_tp;
 
 typedef enum {
@@ -84,7 +84,8 @@ typedef enum {
 	GMRFLib_OPENMP_PLACES_INTEGRATE,
 	GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR,
 	GMRFLib_OPENMP_PLACES_COMBINE,
-	GMRFLib_OPENMP_PLACES_DEFAULT
+	GMRFLib_OPENMP_PLACES_DEFAULT, 
+	GMRFLib_OPENMP_PLACES_NONE
 } GMRFLib_openmp_place_tp;
 
 typedef struct {

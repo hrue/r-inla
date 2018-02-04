@@ -19,14 +19,13 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
- * RCSId: $Id: seasonal.h,v 1.14 2008/10/26 03:21:48 hrue Exp $
  *
  */
 
@@ -98,10 +97,14 @@ __BEGIN_DECLS
 	 * if \c log_prec_omp is \c NULL, then a unit precision is used.
 	 */
 	double **log_prec_omp;
+
+
+	double *prec_scale;				       /* scaling of the precision for scale.model=TRUE */
 } GMRFLib_seasonaldef_tp;
 
 double GMRFLib_seasonal(int node, int nnode, void *seasonal_def);
 int GMRFLib_make_seasonal_graph(GMRFLib_graph_tp ** graph, GMRFLib_seasonaldef_tp * def);
+int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp *def);
 
 __END_DECLS
 #endif

@@ -211,9 +211,7 @@
         inla.arg = inla.getOption("inla.arg"),
         
         ##!\item{num.threads}{ Maximum number of threads the
-        ##!\code{inla}-program will use. xFor Windows this
-        ##!defaults to 1, otherwise its defaults to \code{NULL}
-        ##!(for which the system takes over control).}
+        ##!\code{inla}-program will use}
         num.threads = inla.getOption("num.threads"),
         
         ##!\item{keep}{ A boolean variable indicating that the
@@ -394,7 +392,7 @@
     ##!(with discussion)}, vol 71, no 2, pp 319-392.
     ##!Rue, H and Held, L. (2005) \emph{Gaussian Markov Random Fields
     ##!- Theory and Applications} Chapman and Hall}
-    ##!\author{Havard Rue \email{hrue@math.ntnu.no} and Sara Martino}
+    ##!\author{Havard Rue \email{hrue@r-inla.org} and Sara Martino}
     ##!\seealso{\code{\link{f}}, 
     ##!\code{\link{inla.hyperpar}} }
     ##!\examples{
@@ -403,6 +401,12 @@
     ##!}
     ##!}
 {
+    ## This will prevent values of 'OutDec' not '.' to cause error, as we create the Model.ini
+    ## file with cat().
+    old.options = options()
+    on.exit(options(old.options))
+    options(OutDec=".")
+    
     my.time.used = numeric(4)
     my.time.used[1] = Sys.time()
 
@@ -466,8 +470,7 @@
     control.predictor = inla.check.control(control.predictor, data)
     ## I need to check for NA's already here.
     if (!is.null(control.predictor$A)) {
-        control.predictor$A[ is.na(control.predictor$A) ] = 0
-        control.predictor$A = inla.as.sparse(control.predictor$A)
+        control.predictor$A = inla.as.sparse(control.predictor$A, na.rm=TRUE, zeros.rm=TRUE)
     }
     ## do not check control.family here, as we need to know n.family
     control.inla = inla.check.control(control.inla, data)
@@ -492,8 +495,13 @@
     ## use the internal inlaprogram
     remote = FALSE
     submit = FALSE
+    ownfun = FALSE
     submit.id = ""
-    if (inla.strcasecmp(inla.call, "remote") ||
+
+    if (is.function(inla.call)) {
+        ## in this case, the responsibility is with the user
+        ownfun = TRUE
+    } else if (inla.strcasecmp(inla.call, "remote") ||
         inla.strcasecmp(inla.call, "inla.remote") ||
         length(grep("/inla.remote$", inla.call)) > 0 ||
         length(grep("/inla.remote.cygwin$", inla.call)) > 0) {
@@ -1731,7 +1739,8 @@
                     A=gp$random.spec[[r]]$extraconstr$A
                     e=gp$random.spec[[r]]$extraconstr$e
 
-                    if (ncol(A) != inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor*n)
+                    if ((gp$random.spec[[r]]$model != "rgeneric") &&
+                        (ncol(A) != inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor*n))
                         stop(paste("\n\tncol in matrix A(extraconstr) does not correspont to the length of f:",
                                    ncol(A),
                                    inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor*n))
@@ -1823,7 +1832,7 @@
         stop("\n\tSomething strange with weights in the covariate...")
 
     ## the inla section
-    inla.inla.section(file=file.ini, inla.spec=cont.inla)
+    inla.inla.section(file=file.ini, inla.spec=cont.inla, data.dir)
 
     ## create mode section
     cont.mode = inla.set.control.mode.default()
@@ -1907,8 +1916,14 @@
 
     my.time.used[2] = Sys.time()
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
-    if (nchar(inla.call) > 0) {
-        if (inla.os("linux") || inla.os("mac")) {
+    if (ownfun || nchar(inla.call) > 0) {
+        if (ownfun) {
+            ## undocumented feature for PB
+            echoc = inla.call(file.ini = file.ini,
+                              file.log = if (verbose) NULL else file.log,
+                              results.dir = results.dir,
+                              inla.call.args = all.args)
+        } else if (inla.os("linux") || inla.os("mac")) {
             if (verbose) {
                 echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
             } else {
@@ -2092,7 +2107,7 @@
             if (!(names(data)[k] %in% exclude.names)) {
                 formula = as.formula(paste("~ -1 + ",  names(data)[k]))
                 tmp = model.matrix(formula, model.frame(formula,  data, na.action = na.pass))
-                colnames(tmp) = levels(data[[k]])
+                colnames(tmp) = paste0(names(data)[k], levels(data[[k]]))
                 data[[k]] = tmp
             }
         }
