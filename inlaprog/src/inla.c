@@ -6992,11 +6992,11 @@ int loglikelihood_gp(double *logll, double *x, int m, int idx, double *x_vec, do
 			logll[i] = -log(sigma) - (1.0 / xi + 1.0) * log(1.0 + xi * y / sigma);
 		}
 	} else {
-		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+		double yy = (y_cdf ? *y_cdf : y);
 		for (i = 0; i < -m; i++) {
 			q = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			sigma = q * fac;
-			logll[i] = 1.0 - pow(1.0 + xi * y / sigma, -1.0 / xi);
+			logll[i] = 1.0 - pow(1.0 + xi * yy / sigma, -1.0 / xi);
 		}
 	}
 
@@ -10898,6 +10898,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * get options related to the genPareto
 		 */
+		GMRFLib_ASSERT(ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0, GMRFLib_EPARAMETER);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), -3.0);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
 		if (!ds->data_fixed && mb->reuse_mode) {
@@ -13756,6 +13757,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->link_id = LINK_QWEIBULL;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_qweibull;
+			break;
+		case L_GP:
+			ds->link_id = LINK_LOG;
+			ds->link_ntheta = 0;
+			ds->predictor_invlinkfunc = link_log;
 			break;
 		default:
 			assert(0 == 1);
