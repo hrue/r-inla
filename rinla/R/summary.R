@@ -186,9 +186,11 @@
     }
 
     if (inla.is.element("dic", x)) 
-        cat(paste("Deviance Information Criterion (DIC) ...: ",
+        cat(paste("Deviance Information Criterion (DIC) ...............: ",
                   format(x$dic$dic, digits=digits, nsmall=2), "\n", 
-                  "Effective number of parameters .........: ",
+                  "Deviance Information Criterion (DIC, saturated) ....: ",
+                  format(x$dic$dic.sat, digits=digits, nsmall=2), "\n", 
+                  "Effective number of parameters .....................: ",
                   format(x$dic$p.eff, digits=digits, nsmall=2), "\n\n", sep=""))
 
     if (inla.is.element("waic", x)) 

@@ -10,23 +10,26 @@
 ##!
 ##!\usage{
 ##! inla.as.sparse(...)
-##! inla.as.dgTMatrix(A, unique = TRUE)
+##! inla.as.dgTMatrix(A, unique = TRUE, na.rm = FALSE, zeros.rm = FALSE)
 ##!}
 ##!
 ##!\arguments{
 ##!  \item{...}{The arguments. The matrix or sparse matrix,  and the additonal arguments}
 ##!  \item{A}{The matrix}
-##!  \item{unique}{If the internal representation needs to be unique or can have duplicated entries.
-##!                Do not use this option unless you know what you are doing.}
+##!  \item{unique}{Logical. If \code{TRUE}, then ensure that the internal representation is unique and
+##!                there are no duplicated entries.
+##!                (Do not change this unless you know what you are doing.)}
+##!  \item{na.rm}{Replace \code{NA}'s in the matrix with zeros.}
+##!  \item{zeros.rm}{Remove zeros in the matrix.}
 ##!}
 ##!
 ##!\value{%%
 ##!  \code{inla.as.sparse} and \code{inla.as.dgTMatrix} is the same function.
-##!  The returned value is a sparse matrix in the sparse-format used by INLA
+##!  The returned value is a sparse matrix in the \code{dgTMatrix}-format.
 ##!}
 ##!%%
 ##!
-##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!\author{Havard Rue \email{hrue@r-inla.org}}
 ##!
 ##!\examples{
 ##! A = matrix(1:9, 3, 3)
@@ -38,6 +41,44 @@
     return (inla.as.dgTMatrix(...))
 }
 
+`inla.as.dgTMatrix` = function(A, unique = TRUE, na.rm = FALSE, zeros.rm = FALSE)
+{
+    ## convert into dgTMatrix format of Matrix. Argument A is any
+    ## matrix.  make sure the representation is unique if the UNIQUE
+    ## flag it TRUE. (ie no double triplets etc).
+    ## if na.rm then replace NA's with zeros.
+    ## if zeros.rm then remove zeros.
+    
+    if (unique) {
+        ## convert through the 'dgCMatrix'-class to make it unique;
+        A = as(as(as(A, "CsparseMatrix"), "dgCMatrix"), "dgTMatrix")
+    } else {
+        if (!is(A, "dgTMatrix")) {
+            ## Convert via virtual class TsparseMatrix; this allows more general conversions
+            ## than direct conversion.
+            A = as(as(A, "TsparseMatrix"), "dgTMatrix")
+        }
+    }
+
+    if (na.rm) {
+        idx.na = is.na(A@x)
+        if (any(idx.na)) {
+            A@x[idx.na] = 0.0
+        }
+    }
+
+    if (zeros.rm) {
+        x.zero = (A@x == 0.0)
+        if (any(x.zero)) {
+            idx.zero = which(x.zero)
+            A@x = A@x[-idx.zero]
+            A@i = A@i[-idx.zero]
+            A@j = A@j[-idx.zero]
+        }
+    }
+    
+    return (A)
+}
 
 
 ### Some utilities for sparse matrices using the `Matrix' library
@@ -83,28 +124,6 @@
     return (inla.as.dgTMatrix(A))
 }
 
-`inla.as.dgTMatrix` = function(A, unique = TRUE)
-{
-    ## convert into dgTMatrix format of Matrix. Argument A is any
-    ## matrix.  make sure the representation is unique if the UNIQUE
-    ## flag it TRUE. (ie no double triplets etc)
-
-    if (unique) {
-        ## convert through the 'dgCMatrix'-class to make it unique;
-        ## (there is no method or default for coercing "dtTMatrix" to
-        ## "dgCMatrix"). Yes: its 'CsparseMatrix'.
-        return (as(as(as(A, "CsparseMatrix"), "dgCMatrix"), "dgTMatrix"))
-    } else {
-        if (is(A, "dgTMatrix")) {
-            return (A)
-        } else {
-            ## Convert via virtual class TsparseMatrix;
-            ## this allows more general conversions than direct conversion.
-            return (as(as(A, "TsparseMatrix"), "dgTMatrix"))
-        }
-    }
-}
-
 `inla.sparse.get` = function(A, row, col)
 {
     ## extract a list of the a specific row or col of a dgTMatrix
@@ -140,3 +159,37 @@
         return (list(i = A@i[idx]+1, j = col, values = A@x[idx]))
     }
 }
+
+inla.sm.write = function(A, filename = "SparseMatrix.dat")
+{
+    stopifnot(!missing(A))
+    A = inla.as.sparse(A)
+
+    x.int = as.integer(c(dim(A)[1], dim(A)[2], length(A@i), A@i + 1, A@j + 1))
+    fp = file(filename, "wb")
+    writeBin(x.int, fp)
+    writeBin(A@x, fp)
+    close(fp)
+    
+    return (filename)
+}
+    
+inla.sm.read = function(filename = "SparseMatrix.dat")
+{
+    fp = file(filename, "rb")
+    nn = readBin(fp, integer(), n=3L)
+    nx = nn[3]
+    ii = readBin(fp, integer(), n = nx)
+    jj = readBin(fp, integer(), n = nx)
+    xx = readBin(fp, double(),  n = nx)
+    close(fp)
+
+    M = inla.as.sparse(sparseMatrix(i = ii -1L,
+                                    j = jj -1L,
+                                    x = xx, 
+                                    dims = nn[1:2],
+                                    index1 = FALSE,
+                                    giveCsparse = FALSE))
+    return (M)
+}
+    

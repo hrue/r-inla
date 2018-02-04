@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 #ifndef HGVERSION
@@ -68,6 +68,7 @@ int GMRFLib_is_fmesher_file(const char *filename, long int offset, int whence)
 		return !GMRFLib_SUCCESS;
 	}
 }
+
 GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offset, int whence)
 {
 	/*
@@ -275,7 +276,8 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 				M->j[k] = IMAX(ij[0], ij[1]);
 			}
 			if ((all_i_st_j && all_j_st_i) || (!all_i_st_j && !all_j_st_i)) {
-				ERROR("Not all entries satisfy all i >= j, or all j <= i, in the symmetric case. Do not know what to do...");
+				ERROR
+				    ("Not all entries satisfy all i >= j, or all j <= i, in the symmetric case. Do not know what to do...");
 			}
 
 			int nneq = 0;
@@ -397,7 +399,7 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long
 		nwrite = fwrite((const void *)ptr, sizeof(type), (size_t) n, (FILE *) fp); \
 		if (nwrite != (size_t) n) {				\
 			char *m;					\
-			GMRFLib_sprintf(&m, "Fail to write [%1u] elems of size [%1u] from file [%s], at position %ld\n", \
+			GMRFLib_sprintf(&m, "Fail to write [%1u] elems of size [%1u] to file [%s], at position %ld\n", \
 					n, sizeof(type), filename, ftell(fp)); \
 			ERROR(m);					\
 		}							\
@@ -585,7 +587,8 @@ double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp * M)
 
 	if (M) {
 		if (M->nrow != M->ncol) {
-			fprintf(stderr, "*** %s:%1d ***  Not a diagonal matrix: %1d != %1d\n", __FILE__, __LINE__, M->nrow, M->ncol);
+			fprintf(stderr, "*** %s:%1d ***  Not a diagonal matrix: %1d != %1d\n", __FILE__, __LINE__, M->nrow,
+				M->ncol);
 			exit(1);
 		}
 
@@ -656,7 +659,7 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 
 		if (M->A) {
 			for (j = 0; j < M->ncol; j++, idx += M->nrow) {
-				//printf("nrow %d ncol %d j %d idx %d\n", M->nrow, M->ncol, j, idx);
+				// printf("nrow %d ncol %d j %d idx %d\n", M->nrow, M->ncol, j, idx);
 				values[j] = M->A[idx];
 			}
 		} else {
@@ -774,7 +777,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp * M)
 		int i, j, idx, idx_transpose;
 
 		if (M->A) {
-			N->A = Calloc(M->nrow * N->ncol, double);
+			N->A = Calloc(N->nrow * N->ncol, double);
 			for (i = 0; i < M->nrow; i++) {
 				for (j = 0; j < M->ncol; j++) {
 					idx = i + j * M->nrow;
@@ -784,7 +787,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp * M)
 			}
 		}
 		if (M->iA) {
-			N->iA = Calloc(M->nrow * N->ncol, int);
+			N->iA = Calloc(N->nrow * N->ncol, int);
 			for (i = 0; i < M->nrow; i++) {
 				for (j = 0; j < M->ncol; j++) {
 					idx = i + j * M->nrow;

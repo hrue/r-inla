@@ -1,24 +1,32 @@
 RnwSOURCES = $(wildcard *.Rnw)
-texDepends = updates.tex spde-tutorial.tex spde-tutorial-introduction.tex spde-tutorial-spde-results.tex $(RnwSOURCES:.Rnw=.tex) spde-tutorial.bib 
+texDepends = updates.tex spde-tutorial.tex $(RnwSOURCES:.Rnw=.tex) spde-tutorial.bib 
+Rdepends = $(RnwSOURCES:.Rnw=.R) 
 
-all : pdf html
+all : pdf html install
 
-pdf : $(texDepends)
+install: spde-tutorial.pdf html/index.html
+	@echo coping the files to r-inla.org
+	@cp spde-tutorial.pdf ~/bitbucket/r-inla/r-inla.org/tutorials/spde/
+	@cp html/* ~/bitbucket/r-inla/r-inla.org/tutorials/spde/html/
+	@cp R/* ~/bitbucket/r-inla/r-inla.org/tutorials/spde/R/
+
+pdf : $(texDepends) ##$(Rdepends)
 	@echo generating spde-tutorial.pdf
-	latexmk spde-tutorial.tex -pdf -recorder -bibtex </dev/null
+	@latexmk spde-tutorial.tex -pdf -recorder -bibtex </dev/null
 
-html : $(texDepends)
+html : $(texDepends) ## $(Rdepends)
 	@echo generating the html output
-	htlatex spde-tutorial.tex "html,frames,2"
+	@./pdfepsconv.sh
+	@make4ht -d html spde-tutorial.tex 'html,frames,2'
+	@mv html/spde-tutorial.html html/index.html
+	@rm *.html *.png
 
-%.tex : %.Rnw 
+%.tex : %.Rnw
+	@echo generating file $(@:.tex=.R)
+	@R --vanilla -e 'knitr::purl("$^")' </dev/null   
+	@mv $(@:.tex=.R) R/
 	@echo generating file $@
-	@R --vanilla -e 'Sweave("$^")' </dev/null
-
-spde-tutorial-spde-introduction.tex : spde-tutorial-functions.R spde-tutorial-spde-introduction.Rnw
-	@echo generating file spde-tutorial-spde-introduction.Rnw
-	@R --vanilla -e 'Sweave("spde-tutorial-spde-introduction.Rnw")' </dev/null
-
+	@R --vanilla -e 'library(knitr); knit("$^")' </dev/null
 
 clean :; latexmk -C
 

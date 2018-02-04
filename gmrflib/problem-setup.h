@@ -19,14 +19,13 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
- * RCSId: $Id: problem-setup.h,v 1.73 2009/05/23 06:16:16 hrue Exp $
  *
  */
 
@@ -468,14 +467,15 @@ typedef struct {
   \brief The structure to store intermediate calculations
 */
 typedef struct GMRFLib_store_struct GMRFLib_store_tp;	       /* used recursively */
-
+							       
 struct GMRFLib_store_struct {
 	GMRFLib_smtp_tp smtp;				       /* sparse matrix type */
 	int bandwidth;					       /* for GMRFLib_smtp == GMRFLib_SMTP_BAND */
 	int *remap;
 	int copy_ptr;
 	GMRFLib_graph_tp *sub_graph;
-	supernodal_factor_matrix *symb_fact;		       /* for GMRFLIb_smtp == GMRFLib_SMTP_TAUCS */
+
+	supernodal_factor_matrix *TAUCS_symb_fact;	       /* for GMRFLib_smtp == GMRFLib_SMTP_TAUCS */
 
 	GMRFLib_store_tp *diag_store;			       /* store SAFE-optims in optimize */
 	GMRFLib_store_tp *sub_store;			       /* store the same if fixed values in optimize */

@@ -1,6 +1,7 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
+	\item[doc] A stratified version of the Student-t likelihood
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
@@ -10,8 +11,8 @@
 	 	 	\item[short.name] dof
 	 	 	\item[initial] 4
 	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 0.01
+	 	 	\item[prior] pc.dof
+	 	 	\item[param] 15 0.5
 	 	 	\item[to.theta] \verb!function(x) log(x-5)!
 	 	 	\item[from.theta] \verb!function(x) 5+exp(x)!
 	 	 \end{description}

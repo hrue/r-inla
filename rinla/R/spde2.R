@@ -646,6 +646,9 @@ inla.spde2.matern =
       spde$f$extraconstr = list(A=A.constr, e=e.constr)
     }
 
+    ## Attach the mesh, so downstream code can have access
+    spde$mesh <- mesh
+
     return(invisible(spde))
 }
 
