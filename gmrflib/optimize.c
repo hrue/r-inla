@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 
@@ -148,7 +148,7 @@ int GMRFLib_optimize_set_store_flags(GMRFLib_store_tp * store)
 			store_smtp = GMRFLib_smtp;
 		}
 		if (store_smtp == GMRFLib_SMTP_TAUCS) {
-			store_store_symb_fact = (store->symb_fact ? 0 : 1);
+			store_store_symb_fact = (store->TAUCS_symb_fact ? 0 : 1);
 			store_use_symb_fact = !store_store_symb_fact;
 		} else {
 			store_store_symb_fact = 0;
@@ -722,7 +722,7 @@ double GMRFLib_linesearch_func(double length, double *dir, GMRFLib_optimize_prob
 			GMRFLib_thread_id = id;
 			sum += (-0.5 * v[i] + opt_problem->b[i]) * u[i];
 			if (opt_problem->d[i]) {
-				(*(opt_problem->loglFunc)) (&logll, &u[i], 1, opt_problem->map[i], opt_problem->x_vec, opt_problem->loglFunc_arg);
+				(*(opt_problem->loglFunc)) (&logll, &u[i], 1, opt_problem->map[i], opt_problem->x_vec, NULL, opt_problem->loglFunc_arg);
 				sum += opt_problem->d[i] * logll;
 			}
 		}
@@ -736,7 +736,7 @@ double GMRFLib_linesearch_func(double length, double *dir, GMRFLib_optimize_prob
 		GMRFLib_thread_id = id;
 		fval += (-0.5 * v[i] + opt_problem->b[i]) * u[i];
 		if (opt_problem->d[i]) {
-			(*(opt_problem->loglFunc)) (&logll, &u[i], 1, opt_problem->map[i], opt_problem->x_vec, opt_problem->loglFunc_arg);
+			(*(opt_problem->loglFunc)) (&logll, &u[i], 1, opt_problem->map[i], opt_problem->x_vec, NULL, opt_problem->loglFunc_arg);
 			fval += opt_problem->d[i] * logll;
 		}
 	}

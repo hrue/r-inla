@@ -6,6 +6,11 @@
 \usepackage{verbatim}
 \begin{document}
 
+This page have moved to a vignette, and can be viewed with
+\begin{center}
+    \texttt{vignette("rgeneric", package="INLA")}
+\end{center}
+\end{document}
 
 \section*{Model \textbf{rgeneric}}
 
@@ -22,14 +27,13 @@ definition of the model \texttt{rmodel}, to define a
 \texttt{inla-rgeneric} object,
 {\small
 \begin{verbatim}
-    model = inla.rgeneric.define(rmodel, debug, R.init, <args>)
+    model = inla.rgeneric.define(rmodel, debug, ...)
 \end{verbatim}
 } Here, \texttt{rmodel} is model definition encoded as an
 \texttt{R}-function, \texttt{debug} is a logical parameter if debug
-information should be printed, \texttt{R.init} is a \texttt{R}-file
-which is \texttt{sourced} or \texttt{loaded} before the model is
-defined, and \texttt{<args>} are further parameters to the model (like
-dimension, prior-settings, etc).  Then the model can used as {\small
+information should be printed, and \texttt{...} are further named
+variables that goes into the environment of \texttt{rmodel} (like
+dimension, prior-settings, etc). Then the model can used as {\small
 \begin{verbatim}
     y ~ ... + f(i, model=model)
 \end{verbatim}
@@ -120,27 +124,24 @@ the request from the C-program. The list of commands and its names
 \begin{verbatim}
         cmd = c("Q", "graph", "mu", "initial", "log.norm.const",
                 "log.prior", "quit"),
-\end{verbatim}
-}
+\end{verbatim}}
 are fixed.  The skeleton-function for defining a model is 
 {\small
 \begin{verbatim}
 `inla.rgeneric.ar1.model` = function(
         cmd = c("graph", "Q", "mu", "initial", "log.norm.const",
                 "log.prior", "quit"),
-        theta = NULL,
-        args = NULL)
+        theta = NULL)
 {
-    graph = function(n, theta){ <to be completed> }
-    Q = function(n, theta) { <to be completed> }
-    mu = function(n, theta) { <to be completed> }
-    log.norm.const = function(n, theta) { <to be completed> }
-    log.prior = function(n, theta) { <to be completed> }
-    initial = function(n, theta) { <to be completed> }
-    quit = function(n, theta) { <to be completed> }
+    graph = function(){ <to be completed> }
+    Q = function() { <to be completed> }
+    mu = function() { <to be completed> }
+    log.norm.const = function() { <to be completed> }
+    log.prior = function() { <to be completed> }
+    initial = function() { <to be completed> }
+    quit = function() { <to be completed> }
 
-    cmd = match.arg(cmd)
-    val = do.call(cmd, args = list(n = as.integer(args$n), theta = theta))
+    val = do.call(match.arg(cmd), args = list())
     return (val)
 }
 \end{verbatim}
@@ -149,19 +150,18 @@ The input parameters are
 \begin{description}
 \item[cmd] What to return
 \item[theta] The values of the $\theta$-parameters
-\item[args] User-defined argument(s) from the
-    \texttt{inla.rgeneric.define()}-call; all arguments in
-    \texttt{<args>} as a list. In this example we use \texttt{n} as
-    the user-defined argument and pass it to every function. We then
-    need to pass \texttt{n} when we define the model {\small
+\end{description}
+Other parameters in the model definition, like $n$ and possibly the
+parameters of the prior, goes into the ``...'' part of
+\texttt{inla.rgeneric.define}, like
 \begin{verbatim}
         model = inla.rgeneric.define(inla.rgeneric.ar1.model, n = 100)
 \end{verbatim}
-}
-    This is just an example, and you may chose to do this differently.
-\end{description}
-Our next task, is the ``fill in the blanks'' in this function.
+and is assigned in the environment to
+\texttt{inla.rgeneric.ar1.model}. This is because several instances of
+\texttt{rgeneric} models will share the same \texttt{.GlobalEnv}.
 
+Our next task, is the ``fill in the blanks'' in this function.
 
 \subsection*{Function \texttt{graph}}
 
@@ -170,7 +170,7 @@ of the precision matrix. Only the lower-triangular part of the matrix
 is used. 
 {\small
 \begin{verbatim}
-    graph = function(n, theta)
+    graph = function()
     {
         ## return the graph of the model. the values of Q is only interpreted as zero or
         ## non-zero. return a sparse.matrix
@@ -206,7 +206,7 @@ lower-triangular part of the matrix is used. We will make use of the
 helper function
 {\small
 \begin{verbatim}
-    interpret.theta = function(n, theta)
+    interpret.theta = function()
     {
         ## internal helper-function to map the parameters from the internal-scale to the
         ## user-scale
@@ -219,10 +219,10 @@ to convert from $\theta_{1}$ to $\tau$, and from $\theta_{2}$ to
 $\rho$.  The \texttt{Q}-function can then be implemented as follows.
 {\small
 \begin{verbatim}
-    Q = function(n, theta)
+    Q = function()
     {
         ## returns the precision matrix for given parameters
-        param = interpret.theta(n, theta)
+        param = interpret.theta()
         if (FALSE) {
             ## slow and easy: dense-matrices
             Q = param$prec/(1-param$rho^2) * toeplitz(c(1+param$rho^2, -param$rho, rep(0, n-2L)))
@@ -262,7 +262,7 @@ is zero. An alternative in this example, would be to return
 
 {\small
 \begin{verbatim}
-    mu = function(n, theta)
+    mu = function()
     {
         return(numeric(0))
     }
@@ -284,10 +284,10 @@ where
 The function can then be implemented as
 {\small
 \begin{verbatim}
-    log.norm.const = function(n, theta)
+    log.norm.const = function()
     {
         ## return the log(normalising constant) for the model
-        param = interpret.theta(n, theta)
+        param = interpret.theta()
         prec.innovation  = param$prec / (1.0 - param$rho^2)
         val = n * (- 0.5 * log(2*pi) + 0.5 * log(prec.innovation)) + 0.5 * log(1.0 - param$rho^2)
         return (val)
@@ -300,7 +300,7 @@ computed from scratch as $$-\frac{n}{2}\log(2\pi) +
 \frac{1}{2} \log(|{Q}|),$$ then \texttt{INLA} will compute this if
 \texttt{numeric(0)} is returned, like {\small
 \begin{verbatim}
-    log.norm.const = function(n, theta)
+    log.norm.const = function()
     {
         ## let INLA compute it
         return (numeric(0))
@@ -318,29 +318,31 @@ $\theta$. For the AR1-model, we have for simplicity chosen this prior
     {\mathcal N}(\theta_{2}; \mu, \kappa)
 \end{displaymath}
 so we can implement this as with our choices $a=b=1$, $\mu=0$ and
-$\kappa=1$. 
+$\kappa=1$ as
 {\small
 \begin{verbatim}
-   log.prior = function(n, theta)
+   log.prior = function()
     {
         ## return the log-prior for the hyperparameters. the '+theta[1L]' is the log(Jacobian)
         ## for having a gamma prior on the precision and convert it into the prior for the
         ## log(precision).
-        param = interpret.theta(n, theta)
+        param = interpret.theta()
         val = (dgamma(param$prec, shape = 1, rate = 1, log=TRUE) + theta[1L] + 
                    dnorm(theta[2L], mean = 0, sd = 1, log=TRUE))
         return (val)
     }
 \end{verbatim}
 }
-
+An alternative, is to pass the parameters of the these priors as when
+defining the model using \texttt{inla.rgeneric.define} in the
+\texttt{...} argument.
 
 \subsection*{Function \texttt{initial}}
 
 This function returns the initial values for $\theta$.
 {\small
 \begin{verbatim}
-    initial = function(n, theta)
+    initial = function()
     {
         ## return initial values
         ntheta = 2
@@ -357,7 +359,7 @@ particular to do, but if there is something that should be done, you
 can do this here.
 {\small
 \begin{verbatim}
-    quit = function(n, theta)
+    quit = function()
     {
         return (invisible())
     }
@@ -374,14 +376,14 @@ predefined in the \texttt{INLA}-library.
 \begin{verbatim}
 `inla.rgeneric.ar1.model` = function(cmd = c("graph", "Q", "mu", "initial",
                                              "log.norm.const", "log.prior", "quit"),
-                                     theta = NULL, args = NULL)
+                                     theta = NULL)
 {
     ## this is an example of the 'rgeneric' model. here we implement
     ## the AR-1 model as described in inla.doc("ar1"), where 'rho' is
     ## the lag-1 correlation and 'prec' is the *marginal* (not
     ## conditional) precision.
     
-    interpret.theta = function(n, theta)
+    interpret.theta = function()
     {
         ## internal helper-function to map the parameters from the internal-scale to the
         ## user-scale
@@ -389,7 +391,7 @@ predefined in the \texttt{INLA}-library.
                      rho = 2*exp(theta[2L])/(1+exp(theta[2L])) - 1.0))
     }
 
-    graph = function(n, theta)
+    graph = function()
     {
         ## return the graph of the model. the values of Q is only interpreted as zero or
         ## non-zero. return a sparse.matrix
@@ -415,10 +417,10 @@ predefined in the \texttt{INLA}-library.
         return (G)
     }
 
-    Q = function(n, theta)
+    Q = function()
     {
         ## returns the precision matrix for given parameters
-        param = interpret.theta(n, theta)
+        param = interpret.theta()
         if (FALSE) {
             ## slow and easy: dense-matrices
             Q = param$prec/(1-param$rho^2) * toeplitz(c(1+param$rho^2, -param$rho, rep(0, n-2L)))
@@ -446,45 +448,44 @@ predefined in the \texttt{INLA}-library.
         return (Q)
     }
 
-    mu = function(n, theta)
+    mu = function()
     {
         return(numeric(0))
     }
 
-    log.norm.const = function(n, theta)
+    log.norm.const = function()
     {
         ## return the log(normalising constant) for the model
-        param = interpret.theta(n, theta)
+        param = interpret.theta()
         prec.innovation  = param$prec / (1.0 - param$rho^2)
         val = n * (- 0.5 * log(2*pi) + 0.5 * log(prec.innovation)) + 0.5 * log(1.0 - param$rho^2)
         return (val)
     }
 
-    log.prior = function(n, theta)
+    log.prior = function()
     {
         ## return the log-prior for the hyperparameters. the '+theta[1L]' is the log(Jacobian)
         ## for having a gamma prior on the precision and convert it into the prior for the
         ## log(precision).
-        param = interpret.theta(n, theta)
+        param = interpret.theta()
         val = (dgamma(param$prec, shape = 1, rate = 1, log=TRUE) + theta[1L] + 
                    dnorm(theta[2L], mean = 0, sd = 1, log=TRUE))
         return (val)
     }
 
-    initial = function(n, theta)
+    initial = function()
     {
         ## return initial values
         ntheta = 2
         return (rep(1, ntheta))
     }
 
-    quit = function(n, theta)
+    quit = function()
     {
         return (invisible())
     }
 
-    cmd = match.arg(cmd)
-    val = do.call(cmd, args = list(n = as.integer(args$n), theta = theta))
+    val = do.call(match.arg(cmd), args = list())
     return (val)
 }
 \end{verbatim}
@@ -508,61 +509,60 @@ run this model in \texttt{R}, you may do \texttt{demo(rgeneric)}.
 \begin{verbatim}
 `inla.rgeneric.iid.model` = function(cmd = c("graph", "Q", "mu", "initial",
                                              "log.norm.const", "log.prior", "quit"),
-                                     theta = NULL, args = NULL)
+                                     theta = NULL)
 {
     ## this is an example of the 'rgeneric' model. here we implement the iid model as described
     ## in inla.doc("iid"), without the scaling-option
 
-    interpret.theta = function(n, theta)
+    interpret.theta = function()
     {
         return (list(prec = exp(theta[1L])))
     }
 
-    graph = function(n, theta)
+    graph = function()
     {
         G = Diagonal(n, x= rep(1, n))
         return (G)
     }
 
-    Q = function(n, theta)
+    Q = function()
     {
-        prec = interpret.theta(n, theta)$prec
+        prec = interpret.theta()$prec
         Q = Diagonal(n, x= rep(prec, n))
         return (Q)
     }
 
-    mu = function(n, theta)
+    mu = function()
     {
         return(numeric(0))
     }
 
-    log.norm.const = function(n, theta)
+    log.norm.const = function()
     {
-        prec = interpret.theta(n, theta)$prec
+        prec = interpret.theta()$prec
         val = sum(dnorm(rep(0, n), sd = 1/sqrt(prec), log=TRUE))
         return (val)
     }
 
-    log.prior = function(n, theta)
+    log.prior = function()
     {
-        prec = interpret.theta(n, theta)$prec
+        prec = interpret.theta()$prec
         val = dgamma(prec, shape = 1, rate = 1, log=TRUE) + theta[1L]
         return (val)
     }
 
-    initial = function(n, theta)
+    initial = function()
     {
         ntheta = 1
         return (rep(1, ntheta))
     }
 
-    quit = function(n, theta)
+    quit = function()
     {
         return (invisible())
     }
 
-    cmd = match.arg(cmd)
-    val = do.call(cmd, args = list(n = as.integer(args$n), theta = theta))
+    val = do.call(match.arg(cmd), args = list())
     return (val)
 }
 \end{verbatim}
@@ -574,6 +574,36 @@ run this model in \texttt{R}, you may do \texttt{demo(rgeneric)}.
 {\small
 \verbatiminput{rgeneric-example-3.R}
 }
+
+\section*{Example: Getting access to external functions}
+
+In the case you need to user external functions/variables within the rgeneric
+definition, you can either
+\begin{itemize}
+\item define them when calling \verb|inla.rgeneric.define|, like
+    \begin{quote}
+        \verb|inla.rgeneric.define(..., my.fun = my.fun)|
+    \end{quote}
+    and then \verb|my.fun| will be defined in the environment of the
+    rgeneric definition.
+\item pass  the variable \verb|first.time|
+    \begin{quote}
+        \verb|inla.rgeneric.define(..., first.time = TRUE)|
+    \end{quote}
+    and in the rgeneric definition, add
+\begin{verbatim}
+    if (first.time) {
+        ## do stuff here, like
+        source("my-external-funcs.R")
+
+        ## no need to do this more than once
+        first.time <<- FALSE
+    }
+\end{verbatim}
+before evaluating any of the internal functions. Here you can f.ex
+source code setting up the functions you like, or something similar. 
+\end{itemize}
+
 
 
 \end{document}

@@ -19,14 +19,13 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
- * RCSId: $Id: smtp-band.h,v 1.26 2010/02/27 08:32:23 hrue Exp $
  *
  */
 
@@ -62,11 +61,13 @@ void dtbsvspecial_(const char *, const char *, const char *, int *, int *, doubl
 int cmsd_(double *, double *, int *, int *, int *, double *, int *, double *);
 
 int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp * graph);
-int GMRFLib_build_sparse_matrix_BAND(double **bandmatrix, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap, int bandwidth);
+int GMRFLib_build_sparse_matrix_BAND(double **bandmatrix, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap,
+				     int bandwidth);
 int GMRFLib_factorise_sparse_matrix_BAND(double *band, GMRFLib_fact_info_tp * finfo, GMRFLib_graph_tp * graph, int bandwidth);
 int GMRFLib_free_fact_sparse_matrix_BAND(double *bchol);
 int GMRFLib_solve_lt_sparse_matrix_BAND(double *rhs, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth);
 int GMRFLib_solve_llt_sparse_matrix_BAND(double *rhs, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth);
+int GMRFLib_solve_llt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth, int idx);
 int GMRFLib_solve_lt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth,
 						int findx, int toindx, int remapped);
 int GMRFLib_solve_l_sparse_matrix_BAND(double *rhs, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth);

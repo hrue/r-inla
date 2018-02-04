@@ -64,7 +64,9 @@
          strata = NULL,
          rgeneric = NULL,
          scale.model = NULL,
-         args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL),
+         args.slm = list(rho.min = NULL, rho.max = NULL, 
+                         X = NULL, W = NULL, Q.beta = NULL),
+         args.ar1c = list(Z = NULL, Q.beta = NULL),
          correct = NULL,
          debug = FALSE)
 }
@@ -214,6 +216,7 @@ used for other models at the time being.}
 \item{rgeneric}{A object of class \code{inla.rgeneric} which defines the model. (EXPERIMENTAL!)}
 \item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default value is \code{inla.getOption("scale.model.default")}}
 \item{args.slm}{Required arguments to the model="slm"; see the documentation for further details.},
+\item{args.ar1c}{Required arguments to the model="ar1c"; see the documentation for further details.},
 \item{correct}{Add this model component to the list of variables to be used in the corrected Laplace approximation? If \code{NULL} use default choice,  otherwise correct if \code{TRUE} and do not if \code{FALSE}. (This option is currently experimental.)},
 \item{debug}{Enable local debug output}
 }
@@ -225,5 +228,5 @@ default is zero), plus 1 for the sum-to-zero constraint if the
 prior model is proper, plus the number of extra
 constraints. \bold{Oops:} This can be wrong, and then the user
 must define the \code{rankdef} explicitely.}
-\author{Havard Rue \email{hrue@math.ntnu.no}}
+\author{Havard Rue \email{hrue@r-inla.org}}
 \seealso{\code{\link{inla}}, \code{\link{hyperpar.inla}}}

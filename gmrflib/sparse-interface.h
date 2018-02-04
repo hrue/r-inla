@@ -1,7 +1,7 @@
 
 /* GMRFLib-sparse-interface.h
  * 
- * Copyright (C) 2001-2006 Havard Rue
+ * Copyright (C) 2001-2018 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,14 +19,13 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
- * RCSId: $Id: sparse-interface.h,v 1.29 2010/02/27 08:32:07 hrue Exp $
  *
  */
 
@@ -78,12 +77,7 @@ typedef enum {
 	/**
 	 * \brief The solver in the TAUCS-library
 	 */
-	GMRFLib_SMTP_TAUCS = 2,
-
-	/**
-	 * \brief An empty template. Not in use.
-	 */
-	GMRFLib_SMTP_PROFILE = 3
+	GMRFLib_SMTP_TAUCS = 2
 } GMRFLib_smtp_tp;
 
 typedef enum {
@@ -198,17 +192,17 @@ typedef struct {
 	/**
 	 *  \brief The Cholesky factorisation (smtp == TAUCS)
 	 */
-	taucs_ccs_matrix *L;
+	taucs_ccs_matrix *TAUCS_L;
 
 	/**
 	 *  \brief The symbolic factorisation (smtp == TAUCS)
 	 */
-	supernodal_factor_matrix *symb_fact;
+	supernodal_factor_matrix *TAUCS_symb_fact;
 
 	/**
 	 *  \brief The inverse of the diagonal of L (smtp = TAUCS)
 	 */
-	double *L_inv_diag;
+	double *TAUCS_L_inv_diag;
 
 	 /**
 	 *  \brief Info about the factorization 

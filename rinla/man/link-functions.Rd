@@ -25,6 +25,8 @@
  \alias{inla.link.invinvalid}
  \alias{inla.link.cauchit}
  \alias{inla.link.invcauchit}
+ \alias{inla.link.inverse}
+ \alias{inla.link.invinverse}
  
  \title{Link functions in INLA}
  
@@ -49,6 +51,8 @@
  inla.link.invcauchit(x, inverse=FALSE)
  inla.link.identity(x, inverse=FALSE)
  inla.link.invidentity(x, inverse=FALSE)
+ inla.link.inverse(x, inverse=FALSE)
+ inla.link.invinverse(x, inverse=FALSE)
  inla.link.invalid(x, inverse=FALSE)
  inla.link.invinvalid(x, inverse=FALSE)
  }
@@ -64,4 +68,4 @@
        \code{inla.link.invlog(x) = inla.link.log(x, inverse=TRUE)}
        and so on,  but they are simpler to use a arguments
        to other functions.}
- \author{Havard Rue \email{hrue@math.ntnu.no}}
+ \author{Havard Rue \email{hrue@r-inla.org}}

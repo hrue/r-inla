@@ -154,9 +154,7 @@ improve the performance.}
 the 'inla' program and do not include default
 arguments. (OOPS: This is an expert option!)}
 \item{num.threads}{ Maximum number of threads the
-\code{inla}-program will use. xFor Windows this
-defaults to 1, otherwise its defaults to \code{NULL}
-(for which the system takes over control).}
+\code{inla}-program will use}
 \item{keep}{ A boolean variable indicating that the
 working files (ini file, data files and results
 files) should be kept. If TRUE and no
@@ -296,7 +294,7 @@ using Integrated Nested Laplace Approximations, JRSS-series B
 (with discussion)}, vol 71, no 2, pp 319-392.
 Rue, H and Held, L. (2005) \emph{Gaussian Markov Random Fields
 - Theory and Applications} Chapman and Hall}
-\author{Havard Rue \email{hrue@math.ntnu.no} and Sara Martino}
+\author{Havard Rue \email{hrue@r-inla.org} and Sara Martino}
 \seealso{\code{\link{f}}, 
 \code{\link{inla.hyperpar}} }
 \examples{

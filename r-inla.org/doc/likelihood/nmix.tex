@@ -3,7 +3,7 @@
 \usepackage{amstext}
 \usepackage{amsmath}
 \usepackage{verbatim}
-\def\mmax{5}
+\def\mmax{10}
 \begin{document}
 \section*{NMix}
 
@@ -16,8 +16,8 @@ The N-Mixture distribution is a Poisson mixture of the Binomials, as
 \end{displaymath}
 for responses $y=0, 1, 2, \ldots,n$, where $n$ is Poisson number of
 trials, and $p$ is probability of success. Replicated reponses
-$y_1, y_2, \ldots, y_r$, are iid from the Binomial, given (a common)
-$n$ from the Poisson,
+$y_1, y_2, \ldots, y_r$, are iid from the Binomial with the same $p$,
+conditioned on the same $n$ from the Poisson,
 \begin{displaymath}
     \text{Prob}(y_1, \ldots, y_r) = \sum_{n=\max\{y_1, \ldots,
         y_r\}}^{\infty} \left\{\prod_{i=1}^{r}
