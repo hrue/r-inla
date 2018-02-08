@@ -52,6 +52,16 @@
 static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 
+int GMRFLib_free_csr(GMRFLib_csr_tp *csr)
+{
+	if (csr) {
+		FREE(csr->ia);
+		FREE(csr->ja);
+		FREE(csr->a);
+		FREE(csr);
+	}
+	return GMRFLib_SUCCESS;
+}
 
 int GMRFLib_duplicate_csr(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp *csr_from)
 {
