@@ -74,6 +74,7 @@ int GMRFLib_duplicate_csr(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp *csr_from)
 	*csr_to = Calloc(1, GMRFLib_csr_tp);
 	(*csr_to)->n = csr_from->n;
 	(*csr_to)->na = csr_from->na;
+	(*csr_to)->nnz = csr_from->nnz;
 
 	(*csr_to)->ia = Calloc(csr_from->n + 1, int);
 	memcpy((void *)((*csr_to)->ia), (void *)(csr_from->ia), (size_t) (csr_from->n+1) * sizeof(int));
@@ -91,12 +92,13 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 {
 	// create a upper triangular csr matrix from Q
 #define M (*csr)
-	int i, j, jj, k, n, na;
+	int i, j, jj, k, n, na, nnz;
 
 	M = Calloc(1, GMRFLib_csr_tp);
 	n = graph->n;
-	GMRFLib_nQelm(&na, graph);			       // symmetric
-	na = (na - n) / 2 + n;				       // only upper triangular. yes, integer division
+	GMRFLib_nQelm(&nnz, graph);			       // symmetric
+	M->nnz = nnz;
+	na = (nnz - n) / 2 + n;				       // only upper triangular. yes, integer division
 	M->na = na;
 	M->n = n;
 	M->a = Calloc(na, double);
@@ -136,7 +138,7 @@ int GMRFLib_print_csr(FILE * fp, GMRFLib_csr_tp * csr)
 	int i, j, k, jj, nnb;
 	double value;
 
-	fprintf(fp, "Q->n = %1d, Q->na = %1d\n", csr->n, csr->na);
+	fprintf(fp, "Q->n = %1d, Q->na = %1d, Q->nnz = %1d\n", csr->n, csr->na, csr->nnz);
 	for (i = k = 0; i < csr->n; i++) {
 		nnb = csr->ia[i + 1] - csr->ia[i];
 		for (jj = 0; jj < nnb; jj++) {
