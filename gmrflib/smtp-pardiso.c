@@ -52,6 +52,31 @@
 static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 
+
+int GMRFLib_duplicate_csr(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp *csr_from)
+{
+	if (csr_from == NULL)
+	{
+		*csr_to = NULL;
+		return GMRFLib_SUCCESS;
+	}
+
+	*csr_to = Calloc(1, GMRFLib_csr_tp);
+	(*csr_to)->n = csr_from->n;
+	(*csr_to)->na = csr_from->na;
+
+	(*csr_to)->ia = Calloc(csr_from->n + 1, int);
+	memcpy((void *)((*csr_to)->ia), (void *)(csr_from->ia), (size_t) (csr_from->n+1) * sizeof(int));
+
+	(*csr_to)->ja = Calloc(csr_from->na, int);
+	memcpy((void *)((*csr_to)->ja), (void *)(csr_from->ja), (size_t) (csr_from->na) * sizeof(int));
+
+	(*csr_to)->a = Calloc(csr_from->na, double);
+	memcpy((void *)((*csr_to)->a), (void *)(csr_from->a), (size_t) (csr_from->na) * sizeof(double));
+	
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	// create a upper triangular csr matrix from Q
@@ -61,7 +86,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 	M = Calloc(1, GMRFLib_csr_tp);
 	n = graph->n;
 	GMRFLib_nQelm(&na, graph);			       // symmetric
-	na = (na - n + 1) / 2 + n;			       // only upper triangular. yes, integer division
+	na = (na - n) / 2 + n;				       // only upper triangular. yes, integer division
 	M->na = na;
 	M->n = n;
 	M->a = Calloc(na, double);
@@ -145,12 +170,15 @@ int pardiso_test()
 
 	GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q.txt", -1, NULL, NULL, NULL);
 
-	GMRFLib_csr_tp *csr;
+	GMRFLib_csr_tp *csr, *csr2;
 
 	GMRFLib_Q2csr(&csr, g, Qtab->Qfunc, Qtab->Qfunc_arg);
 	GMRFLib_print_csr(stdout, csr);
 
-	GMRFLib_csr2Q(&Qtab, &g, csr);
+	GMRFLib_duplicate_csr(&csr2, csr);
+	GMRFLib_print_csr(stdout, csr2);
+
+	GMRFLib_csr2Q(&Qtab, &g, csr2);
 	GMRFLib_print_Qfunc(stdout, g, Qtab->Qfunc, Qtab->Qfunc_arg);
 
 	exit(0);
