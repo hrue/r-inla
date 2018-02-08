@@ -57,6 +57,7 @@ typedef struct
 {
 	int n;
 	int na;
+	int nnz;
 	int *ia;
 	int *ja;
 	double *a;
