@@ -66,6 +66,7 @@ typedef struct
 int GMRFLib_Q2csr(GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg);
 int GMRFLib_print_csr(FILE *fp, GMRFLib_csr_tp *csr);
 int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp **Qtab, GMRFLib_graph_tp **graph, GMRFLib_csr_tp *csr);
+int GMRFLib_duplicate_csr(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp *csr_from);
 
 int pardiso_test();
 
