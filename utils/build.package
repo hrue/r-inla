@@ -113,7 +113,7 @@ logit "Update the NAMESPACE file"
     echo "# ## Export: func1 func2"
     echo "# etc..."
 
-    find $INLA/R -name \*.R | while read f; do
+    ls -1 $INLA/R/*.R | while read f; do
         egrep "^## *Export *:" $f | while read ff; do
             echo "$ff" | awk -F: '{print $2}' | awk '{for(i=1;i<=NF;i++) print $i}' | \
                 awk '{nf = split($0, a, /!/)
