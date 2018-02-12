@@ -30186,6 +30186,9 @@ int inla_fgn(char *infile, char *outfile)
 int testit(int argc, char **argv)
 {
 	if (1) {
+		pardiso_test();
+	}
+	if (0) {
 		P(GMRFLib_rng_uniform());
 		P(GMRFLib_rng_uniform());
 	}
