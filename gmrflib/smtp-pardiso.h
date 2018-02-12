@@ -71,8 +71,10 @@ typedef enum {
 	GMRFLib_PARDISO_FLAG_REORDER=1,
 	GMRFLib_PARDISO_FLAG_SYMFACT,
 	GMRFLib_PARDISO_FLAG_CHOL,
-	GMRFLib_PARDISO_FLAG_INV,
-	GMRFLib_PARDISO_FLAG_SOLVE
+	GMRFLib_PARDISO_FLAG_QINV,
+	GMRFLib_PARDISO_FLAG_SOLVE_L, 
+	GMRFLib_PARDISO_FLAG_SOLVE_LT, 
+	GMRFLib_PARDISO_FLAG_SOLVE_LLT
 } GMRFLib_pardiso_flag_tp;
 
 
@@ -80,7 +82,6 @@ typedef struct {
 	void *pt[64];
 	int iparm[64];
 	double dparm[64];
-
 	int init_done;
 	
 	char *var;					       /* Auxiliary variables. */
@@ -138,6 +139,12 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp *store);
 int GMRFLib_pardiso_symfact(GMRFLib_pardiso_store_tp *store);
 int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp *store, GMRFLib_graph_tp *graph,
 			 GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg);
+
+int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp *store,  GMRFLib_pardiso_flag_tp flag, double *x, double *b);
+int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp *store, double *x, double *b);
+int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp *store, double *x, double *b);
+int GMRFLib_pardiso_solve_LLT(GMRFLib_pardiso_store_tp *store, double *x, double *b);
+double GMRFLib_pardiso_logdet(GMRFLib_pardiso_store_tp *store);
 
 double GMRFLib_pardiso_Qfunc_default(int i, int j, void *arg);
 int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp *store, GMRFLib_graph_tp *graph, int *reordering);
