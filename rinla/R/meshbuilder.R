@@ -2026,9 +2026,11 @@ meshbuilder.app <- function() {
 
 
 meshbuilder <- function() {
-  library(shiny)
-  requireNamespace("INLA")
-  requireNamespace("fields")
+  ## Running shiny apps within imported namespaces doesn't work properly, 2018-02-12,
+  ## so explicitly load them instead.
+  library("shiny")
+  library("INLA")
+  library("fields")
   
   runApp(meshbuilder.app())
 }
