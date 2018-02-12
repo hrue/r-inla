@@ -2026,7 +2026,8 @@ meshbuilder.app <- function() {
 
 
 meshbuilder <- function() {
-  requireNamespace("shiny")
+  library(shiny)
+  requireNamespace("INLA")
   requireNamespace("fields")
   
   runApp(meshbuilder.app())
