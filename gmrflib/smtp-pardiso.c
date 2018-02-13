@@ -227,6 +227,26 @@ int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp ** Qtab, GMRFLib_graph_tp ** graph, 
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp * store)
+{
+	assert(store->init_done == 0);
+
+	int error = 0, solver = 0;
+	store->mtype = MTYPE;
+	store->init_done = 1;
+	store->iparm[0] = 0;				       /* use default values */
+	store->iparm[2] = 4;				       /* num_proc: FIXME LATER */
+
+	pardisoinit(store->pt, &(store->mtype), &solver, store->iparm, store->dparm, &error);
+	memcpy((void *)(store->iparm_default), (void *)(store->iparm_default), PARDISO_PARM_LEN*sizeof(int));
+	if (error != 0) {
+		P(error);
+		exit(1);
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store_tp * store)
 {
 	static int check_install = 1;
@@ -237,6 +257,7 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 	}
 
 	assert(store->init_done == 1);
+	memcpy((void *)(store->iparm), (void *)(store->iparm_default), PARDISO_PARM_LEN*sizeof(int));
 
 	store->mtype = MTYPE;
 	store->maxfct = 1;				       /* Maximum number of numerical factorizations.  */
@@ -247,9 +268,6 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 
 	switch (flag) {
 	case GMRFLib_PARDISO_FLAG_REORDER:
-		if (store->Q)
-			WARN("->Q exists");
-		store->Q = Calloc(1, GMRFLib_csr_tp);
 		store->phase = 11;			       // analysis
 		store->iparm[4] = 0;			       /* compute the permutation */
 		break;
@@ -265,22 +283,22 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 		store->iparm[35] = 1;			       /* do not overwrite internal factor L with selected inversion */
 		break;
 	case GMRFLib_PARDISO_FLAG_SOLVE_L:
+		store->phase = 33;			       // solve
+		store->nrhs = 1;
 		store->iparm[7] = 0;			       /* Max numbers of iterative refinement steps. */
 		store->iparm[25] = 1;
-		store->phase = 33;			       // solve
-		store->nrhs = 1;
 		break;
 	case GMRFLib_PARDISO_FLAG_SOLVE_LT:
+		store->phase = 33;			       // solve
+		store->nrhs = 1;
 		store->iparm[7] = 0;			       /* Max numbers of iterative refinement steps. */
 		store->iparm[25] = 2;
-		store->phase = 33;			       // solve
-		store->nrhs = 1;
 		break;
 	case GMRFLib_PARDISO_FLAG_SOLVE_LLT:
-		store->iparm[7] = 0;			       /* Max numbers of iterative refinement steps. */
-		store->iparm[25] = 0;
 		store->phase = 33;			       // solve
 		store->nrhs = 1;
+		store->iparm[7] = 0;			       /* Max numbers of iterative refinement steps. */
+		store->iparm[25] = 0;
 		break;
 	default:
 		GMRFLib_ERROR(GMRFLib_ESNH);
@@ -290,9 +308,9 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 
 int GMRFLib_pardiso_check_install(int quiet)
 {
-	void **pt = Calloc(64, void *);
-	double *dparm = Calloc(64, double);
-	int *iparm = Calloc(64, int);
+	void **pt = Calloc(PARDISO_PARM_LEN, void *);
+	double *dparm = Calloc(PARDISO_PARM_LEN, double);
+	int *iparm = Calloc(PARDISO_PARM_LEN, int);
 	int mtype = MTYPE, err_code = 0, solver = 0;
 
 	STDOUT_TO_DEV_NULL_START(1);
@@ -329,23 +347,6 @@ double GMRFLib_pardiso_Qfunc_default(int i, int j, void *arg)
 	return (i == j ? g->n + 2.0 * g->nnbs[i] : -1.0);
 }
 
-int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp * store)
-{
-	assert(store->init_done == 0);
-
-	int error = 0, solver = 0;
-	store->mtype = MTYPE;
-	store->init_done = 1;
-
-	store->iparm[2] = 4;				       /* num_proc: FIXME LATER */
-	pardisoinit(store->pt, &(store->mtype), &solver, store->iparm, store->dparm, &error);
-	if (error != 0) {
-		P(error);
-		exit(1);
-	}
-
-	return GMRFLib_SUCCESS;
-}
 
 int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph, int *reordering)
 {
@@ -504,7 +505,7 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 
 
 //
-int pardiso_test()
+int pardiso_test(void)
 {
 	int err = 0;
 
