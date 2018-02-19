@@ -49,7 +49,7 @@
 ##!
 ##!  \item{scale}{A character string, where the default string, \code{"exp"}, causes values from
 ##!  the linear predictor to be exponentiated before being returned. The string, \code{"log"},
-##!  causes values to be returned on the log(lambda) scale.} 
+##!  causes values to be returned on the \code{log(lambda)} scale.} 
 ##!}
 ##!
 ##!\value{
@@ -66,7 +66,7 @@
 ##!}
 ##!
 ##!\references{
-##!    See documentation for family "nmix" and "nmixmb": inla.doc("nmix")
+##!    See documentation for families "nmix" and "nmixmb": \code{inla.doc("nmix")}
 ##!\author{
 ##!    Tim Meehan <tmeehan@audubon.org>
 ##!}
@@ -75,8 +75,8 @@
 ##!}
 ##!
 ##!\examples{
-##!# an example analysis of an N-mixture model using simulated data
-##!# set parameters
+##!## an example analysis of an N-mixture model using simulated data
+##!## set parameters
 ##!n <- 75                       # number of study sites
 ##!nrep.max <- 5                 # number of surveys per site
 ##!b0 <- 0.5                     # lambda intercept, expected abundance
@@ -86,12 +86,12 @@
 ##!size <- 3.0                   # size of theta
 ##!overdispersion <- 1 / size    # for negative binomial distribution
 ##!
-##!# make empty vectors and matrix
+##!## make empty vectors and matrix
 ##!x1 <- c(); x2 <- c()
 ##!lambdas <- c(); Ns <- c()
 ##!y <- matrix(NA, n, nrep.max)
 ##!
-##!# fill vectors and matrix
+##!## fill vectors and matrix
 ##!for(i in 1:n) {
 ##!    x1.i <- runif(1) - 0.5
 ##!    lambda <- exp(b0 + b1 * x1.i)
@@ -105,10 +105,10 @@
 ##!    lambdas <- c(lambdas, lambda); Ns <- c(Ns, N)
 ##!}
 ##!
-##!# bundle counts, lambda intercept, and lambda covariates
+##!## bundle counts, lambda intercept, and lambda covariates
 ##!Y <- inla.mdata(y, 1, x1)
 ##!
-##!# run inla and summarize output
+##!## run inla and summarize output
 ##!result <- inla(Y ~ 1 + x2,
 ##!  data = list(Y=Y, x2=x2),
 ##!  family = "nmixnb",
@@ -121,7 +121,7 @@
 ##!  control.compute=list(config = TRUE)) # important argument
 ##!summary(result)
 ##!
-##!# get and evaluate fitted values
+##!## get and evaluate fitted values
 ##!lam.fits <- inla.nmix.lambda.fitted(result, 5000)$fitted.summary
 ##!plot(lam.fits$median.lambda, lambdas)
 ##!round(sum(lam.fits$median.lambda), 0); sum(Ns)
@@ -136,10 +136,13 @@ inla.nmix.lambda.fitted <- function(result, sample.size=1000,
     if (length(grep(pattern = "nmix", x = fam)) == 0) {
         stop("This function is only for models with 'nmix' or 'nmixnb' likelihoods")
     }
-    if (missing(result)) stop("Please specify a model result")
+    if (missing(result)) 
+        stop("Please specify a model result")
     s.check <- as.numeric(scale == "exp") + as.numeric(scale == "log")
-    if (s.check == 0) stop("Scale must be set to 'exp' or 'log'")
-    if (sample.size < 500) warning("Please increase the sample size")
+    if (s.check == 0) 
+        stop("Scale must be set to 'exp' or 'log'")
+    if (sample.size < 500) 
+        warning("Please increase the sample size")
 
     ## Get counts and lambda covariates from 'inla.mdata' object
     mdata.obj <- result$.args$data[[1]]
