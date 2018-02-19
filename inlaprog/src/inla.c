@@ -9216,6 +9216,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	mb->predictor_invlinkfunc = Calloc(mb->predictor_n + mb->predictor_m, link_func_tp *);
 	mb->predictor_invlinkfunc_arg = Calloc(mb->predictor_n + mb->predictor_m, void *);
 	mb->predictor_invlinkfunc_covariates = Calloc(mb->predictor_n + mb->predictor_m, GMRFLib_matrix_tp *);
+	mb->predictor_family = Calloc(mb->predictor_n + mb->predictor_m, double); /* as we use NAN */
 	for (i = 0; i < mb->predictor_ndata; i++) {
 		for (j = found = 0; j < mb->nds; j++) {
 			if (mb->data_sections[j].data_observations.d[i]) {
@@ -9228,6 +9229,9 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 			inla_error_general(msg);
 			exit(EXIT_FAILURE);
 		}
+		mb->predictor_family[i] = (found == 1 ? (double) k :
+					   ((mb->link_fitted_values && !gsl_isnan(mb->link_fitted_values[i])) ?
+					    mb->link_fitted_values[i] : NAN));
 		mb->predictor_invlinkfunc[i] = (found == 1 ? mb->data_sections[k].predictor_invlinkfunc :
 						((mb->link_fitted_values && !gsl_isnan(mb->link_fitted_values[i])) ?
 						 mb->data_sections[(int) (mb->link_fitted_values[i])].predictor_invlinkfunc : NULL));
@@ -28307,11 +28311,15 @@ int inla_output_linkfunctions(const char *dir, inla_tp * mb)
 	for (i = 0; i < mb->predictor_ndata; i++) {
 		int found;
 
-		idx[i] = NAN;
-		for (j = found = 0; j < mb->nds && !found; j++) {
-			if (mb->data_sections[j].predictor_invlinkfunc == mb->predictor_invlinkfunc[i]) {
-				found = 1;
-				idx[i] = j;
+		if (!ISNAN(mb->predictor_family[i])) {
+			idx[i] = (int) mb->predictor_family[i];
+		} else {
+			idx[i] = NAN;
+			for (j = found = 0; j < mb->nds && !found; j++) {
+				if (mb->data_sections[j].predictor_invlinkfunc == mb->predictor_invlinkfunc[i]) {
+					found = 1;
+					idx[i] = j;
+				}
 			}
 		}
 	}
