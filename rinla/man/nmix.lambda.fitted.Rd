@@ -37,7 +37,7 @@ inla.nmix.lambda.fitted(result, sample.size = 1000,
 
   \item{scale}{A character string, where the default string, \code{"exp"}, causes values from
   the linear predictor to be exponentiated before being returned. The string, \code{"log"},
-  causes values to be returned on the log(lambda) scale.} 
+  causes values to be returned on the \code{log(lambda)} scale.} 
 }
 
 \value{
@@ -54,7 +54,7 @@ inla.nmix.lambda.fitted(result, sample.size = 1000,
 }
 
 \references{
-    See documentation for family "nmix" and "nmixmb": inla.doc("nmix")
+    See documentation for families "nmix" and "nmixmb": \code{inla.doc("nmix")}
 \author{
     Tim Meehan <tmeehan@audubon.org>
 }
@@ -63,8 +63,8 @@ inla.nmix.lambda.fitted(result, sample.size = 1000,
 }
 
 \examples{
-# an example analysis of an N-mixture model using simulated data
-# set parameters
+## an example analysis of an N-mixture model using simulated data
+## set parameters
 n <- 75                       # number of study sites
 nrep.max <- 5                 # number of surveys per site
 b0 <- 0.5                     # lambda intercept, expected abundance
@@ -74,12 +74,12 @@ a2 <- 0.5                     # effect of x2 on p
 size <- 3.0                   # size of theta
 overdispersion <- 1 / size    # for negative binomial distribution
 
-# make empty vectors and matrix
+## make empty vectors and matrix
 x1 <- c(); x2 <- c()
 lambdas <- c(); Ns <- c()
 y <- matrix(NA, n, nrep.max)
 
-# fill vectors and matrix
+## fill vectors and matrix
 for(i in 1:n) {
     x1.i <- runif(1) - 0.5
     lambda <- exp(b0 + b1 * x1.i)
@@ -93,10 +93,10 @@ for(i in 1:n) {
     lambdas <- c(lambdas, lambda); Ns <- c(Ns, N)
 }
 
-# bundle counts, lambda intercept, and lambda covariates
+## bundle counts, lambda intercept, and lambda covariates
 Y <- inla.mdata(y, 1, x1)
 
-# run inla and summarize output
+## run inla and summarize output
 result <- inla(Y ~ 1 + x2,
   data = list(Y=Y, x2=x2),
   family = "nmixnb",
@@ -109,7 +109,7 @@ result <- inla(Y ~ 1 + x2,
   control.compute=list(config = TRUE)) # important argument
 summary(result)
 
-# get and evaluate fitted values
+## get and evaluate fitted values
 lam.fits <- inla.nmix.lambda.fitted(result, 5000)$fitted.summary
 plot(lam.fits$median.lambda, lambdas)
 round(sum(lam.fits$median.lambda), 0); sum(Ns)
