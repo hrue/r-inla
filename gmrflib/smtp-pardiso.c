@@ -221,8 +221,12 @@ int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp ** Qtab, GMRFLib_graph_tp ** graph, 
 		}
 	}
 	assert(k == csr->na);
-
 	GMRFLib_tabulate_Qfunc_from_list(Qtab, graph, csr->na, iarr, jarr, arr, csr->n, NULL, NULL, NULL);
+
+	Free(iarr);
+	Free(jarr);
+	Free(arr);
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -270,36 +274,43 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 		store->phase = 11;			       // analysis
 		store->iparm[4] = 0;			       /* compute the permutation */
 		break;
+
 	case GMRFLib_PARDISO_FLAG_SYMFACT:
 		store->phase = 11;			       // analysis
 		break;
+
 	case GMRFLib_PARDISO_FLAG_CHOL:
 		store->phase = 12;			       // Analysis, numerical factorization
 		store->iparm[32] = 1;			       /* determinant */
 		break;
+
 	case GMRFLib_PARDISO_FLAG_QINV:
 		store->phase = -22;
 		store->iparm[35] = 1;			       /* do not overwrite internal factor L with selected inversion */
 		store->iparm[36] = 0;			       /* return upper triangular Qinv */
 		break;
+
 	case GMRFLib_PARDISO_FLAG_SOLVE_L:
 		store->phase = 33;			       // solve
 		store->nrhs = 1;
 		store->iparm[7] = 0;			       /* Max numbers of iterative refinement steps. */
 		store->iparm[25] = 1;
 		break;
+
 	case GMRFLib_PARDISO_FLAG_SOLVE_LT:
 		store->phase = 33;			       // solve
 		store->nrhs = 1;
 		store->iparm[7] = 0;			       /* Max numbers of iterative refinement steps. */
 		store->iparm[25] = 2;
 		break;
+
 	case GMRFLib_PARDISO_FLAG_SOLVE_LLT:
 		store->phase = 33;			       // solve
 		store->nrhs = 1;
 		store->iparm[7] = 0;			       /* Max numbers of iterative refinement steps. */
 		store->iparm[25] = 0;
 		break;
+
 	default:
 		GMRFLib_ERROR(GMRFLib_ESNH);
 	}
@@ -385,7 +396,6 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 
 	GMRFLib_free_csr(&(store->Q));
 
-
 	return GMRFLib_SUCCESS;
 }
 
@@ -460,28 +470,9 @@ double GMRFLib_pardiso_logdet(GMRFLib_pardiso_store_tp * store)
 int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 {
 	int n = store->Q->n;
-	GMRFLib_csr_tp *Qinv = Calloc(1, GMRFLib_csr_tp);
 
-	if (store->Qinv) {
-		GMRFLib_free_csr(&Qinv);
-	}
-
-	if (0) {
-		P(n);
-		P(store->L_nnz);
-
-		// have to do this manually...
-		Qinv->n = n;
-		Qinv->na = store->L_nnz;
-		Qinv->base = 1;
-		Qinv->ia = Calloc(n + 1, int);
-		Qinv->ja = Calloc(store->L_nnz, int);
-		Qinv->a = Calloc(store->L_nnz, double);
-		store->Qinv = Qinv;
-	} else {
-		GMRFLib_duplicate_csr(&(store->Qinv), store->Q);
-		GMRFLib_csr_base(1, store->Qinv);
-	}
+	GMRFLib_duplicate_csr(&(store->Qinv), store->Q);
+	GMRFLib_csr_base(1, store->Qinv);
 
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_QINV, store);
 	pardiso(store->pt, &(store->maxfct), &(store->mnum), &(store->mtype), &(store->phase),
@@ -500,6 +491,22 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
+{
+	(*store)->phase = -1;
+	pardiso((*store)->pt, &((*store)->maxfct), &((*store)->mnum), &((*store)->mtype), &((*store)->phase),
+		&((*store)->idummy), &((*store)->dummy), &((*store)->idummy), &((*store)->idummy), &((*store)->idummy), 
+		&((*store)->nrhs), (*store)->iparm, &((*store)->msglvl), NULL, NULL, &((*store)->err_code), (*store)->dparm);
+
+	Free((*store)->perm);
+	Free((*store)->my_perm);
+	GMRFLib_free_csr(&((*store)->Q));
+	GMRFLib_free_csr(&((*store)->Qinv));
+	Free(*store);
+
+	return GMRFLib_SUCCESS;
+}
+
 
 
 
@@ -509,13 +516,15 @@ int pardiso_test(void)
 {
 	int err = 0;
 
-	err = GMRFLib_pardiso_check_install(1);
-	if (err == GMRFLib_SUCCESS) {
-		printf("PARDISO OK\n");
-	} else {
-		printf("PARDISO FAIL\n");
+	if (0) {
+		err = GMRFLib_pardiso_check_install(1);
+		if (err == GMRFLib_SUCCESS) {
+			printf("PARDISO OK\n");
+		} else {
+			printf("PARDISO FAIL\n");
+		}
 	}
-
+	
 	GMRFLib_tabulate_Qfunc_tp *Qtab;
 	GMRFLib_graph_tp *g;
 
@@ -578,7 +587,16 @@ int pardiso_test(void)
 	printf("call Qinv\n");
 	GMRFLib_pardiso_Qinv(store);
 
-
+	printf("call free\n");
+	GMRFLib_free_tabulate_Qfunc(Qtab);
+	GMRFLib_pardiso_free(&store);
+	GMRFLib_free_csr(&csr);
+	GMRFLib_free_csr(&csr2);
+	GMRFLib_free_graph(g);
+	Free(perm);
+	Free(x);
+	Free(b);
+	
 	exit(0);
 }
 
