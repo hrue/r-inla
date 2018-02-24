@@ -81,7 +81,7 @@ typedef enum {
 
 
 typedef struct {
-	void *pt[64];
+	void *pt[PARDISO_PARM_LEN];
 	int iparm[PARDISO_PARM_LEN];
 	int iparm_default[PARDISO_PARM_LEN];
 	double dparm[PARDISO_PARM_LEN];
@@ -138,6 +138,7 @@ int GMRFLib_duplicate_csr(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from);
 int GMRFLib_free_csr(GMRFLib_csr_tp ** csr);
 int GMRFLib_pardiso_check_install(int quiet);
 int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
+int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store);
 int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp * store);
 int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph, int *reordering);
 int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store_tp * store);
