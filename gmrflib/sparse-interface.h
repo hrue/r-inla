@@ -75,9 +75,14 @@ typedef enum {
 	GMRFLib_SMTP_BAND = 1,
 
 	/**
-	 * \brief The solver in the TAUCS-library
+	 * \brief The TAUCS solver
 	 */
-	GMRFLib_SMTP_TAUCS = 2
+	GMRFLib_SMTP_TAUCS = 2, 
+
+	/**
+	 * \brief The PARDISO solver
+	 */
+	GMRFLib_SMTP_PARDISO = 3
 } GMRFLib_smtp_tp;
 
 typedef enum {
@@ -142,7 +147,12 @@ typedef enum {
 	/**
 	 * \brief Reverse identity 
 	 */
-	GMRFLib_REORDER_REVERSE_IDENTITY
+	GMRFLib_REORDER_REVERSE_IDENTITY, 
+
+	/**
+	 * \brief PARDISO reordering
+	 */
+	GMRFLib_REORDER_PARDISO
 } GMRFLib_reorder_tp;
 
 /*! 
@@ -209,7 +219,10 @@ typedef struct {
 	 */
 	GMRFLib_fact_info_tp finfo;
 
-
+	 /**
+	 *  \brief The factorisation of PARDISO
+	 */
+	GMRFLib_pardiso_store_tp *PARDISO_fact;
 
 } GMRFLib_sm_fact_tp;
 
