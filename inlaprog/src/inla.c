@@ -9580,6 +9580,9 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			GMRFLib_smtp = GMRFLib_SMTP_BAND;
 		} else if (!strcasecmp(smtp, "GMRFLib_SMTP_TAUCS") || !strcasecmp(smtp, "TAUCS")) {
 			GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
+		} else if (!strcasecmp(smtp, "GMRFLib_SMTP_PARDISO") || !strcasecmp(smtp, "PARDISO")) {
+			GMRFLib_pardiso_check_install(0);
+			GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
 		} else {
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "smtp", smtp);
 		}

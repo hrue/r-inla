@@ -237,6 +237,9 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		if (smtp == GMRFLib_SMTP_TAUCS) {
 			store_store_symb_fact = (store->TAUCS_symb_fact ? 0 : 1);
 			store_use_symb_fact = !store_store_symb_fact;
+		} else if (smtp == GMRFLib_SMTP_PARDISO) {
+			store_store_symb_fact = 0;
+			store_use_symb_fact = !store_store_symb_fact;
 		} else {
 			store_store_symb_fact = 0;
 			store_use_symb_fact = 0;
@@ -520,7 +523,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			GMRFLib_free_fact_sparse_matrix(&((*problem)->sub_sm_fact));
 		}
 
-		if (store_use_symb_fact) {
+		if (store_use_symb_fact && (smtp == GMRFLib_SMTP_TAUCS)) {
 			(*problem)->sub_sm_fact.TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(store->TAUCS_symb_fact);
 		}
 
@@ -549,7 +552,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			GMRFLib_EWRAP1(GMRFLib_factorise_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->sub_graph));
 		}
 
-		if (store_store_symb_fact) {
+		if (store_store_symb_fact && (smtp == GMRFLib_SMTP_TAUCS)) {
 			store->TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS((*problem)->sub_sm_fact.TAUCS_symb_fact);
 		}
 	}
@@ -1260,7 +1263,12 @@ int GMRFLib_free_store(GMRFLib_store_tp * store)
 		if (store->TAUCS_symb_fact) {
 			taucs_supernodal_factor_free(store->TAUCS_symb_fact);
 		}
+		if (store->PARDISO_fact) {
+			GMRFLib_pardiso_free(&(store->PARDISO_fact));
+		}
 	}
+	// always free
+	GMRFLib_pardiso_free(&(store->PARDISO_fact));
 
 	store->sub_graph = NULL;
 	store->TAUCS_symb_fact = NULL;
@@ -2096,6 +2104,8 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 	np->sub_sm_fact.TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(problem->sub_sm_fact.TAUCS_symb_fact);
 	COPY(sub_sm_fact.finfo);
 
+	GMRFLib_duplicate_pardiso_store(&(np->sub_sm_fact.PARDISO_fact), problem->sub_sm_fact.PARDISO_fact);
+
 	/*
 	 * then the constraint 
 	 */
@@ -2348,6 +2358,8 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 		new_store->TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(store->TAUCS_symb_fact);
 	}
 	new_store->copy_ptr = copy_ptr;
+	// always copy
+	GMRFLib_duplicate_pardiso_store(&(new_store->PARDISO_fact), store->PARDISO_fact);
 
 	GMRFLib_meminfo_thread_id *= -1;
 	char *tmp = Calloc(1, char);
@@ -2403,6 +2415,9 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
+		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
+		*nnz_opt = 0;
+	} else if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
 		*nnz_opt = 0;
 	} else {

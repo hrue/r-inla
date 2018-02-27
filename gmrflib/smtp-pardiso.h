@@ -89,6 +89,7 @@ typedef struct {
 	double dparm[GMRFLib_PARDISO_PLEN];
 	int done_with_init;
 	int done_with_reorder;
+	int done_with_build;
 	int done_with_chol;
 
 	double dummy;
@@ -103,7 +104,7 @@ typedef struct {
 	int phase;
 	int solver;
 	int L_nnz;
-	int *my_perm;
+	int *reordering;
 	double log_det_Q;
 	GMRFLib_graph_tp *graph;
 	GMRFLib_csr_tp *Q;
@@ -138,20 +139,22 @@ int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp ** Qtab, GMRFLib_graph_tp ** graph, 
 int GMRFLib_csr_base(int base, GMRFLib_csr_tp * M);
 int GMRFLib_csr_convert(GMRFLib_csr_tp * M);
 int GMRFLib_duplicate_csr(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from);
+int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **new, GMRFLib_pardiso_store_tp *old);
 int GMRFLib_free_csr(GMRFLib_csr_tp ** csr);
+int GMRFLib_pardiso_build(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_pardiso_check_install(int quiet);
-int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
+int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store);
 int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store);
 int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store);
-int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph, int *reordering);
+int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph, int **reordering);
 int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store_tp * store);
 int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp * store, double *x, double *b);
 int GMRFLib_pardiso_solve_LLT(GMRFLib_pardiso_store_tp * store, double *x, double *b);
 int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double *b);
 int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso_flag_tp flag, double *x, double *b);
 int GMRFLib_pardiso_symfact(GMRFLib_pardiso_store_tp * store);
-int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **new, GMRFLib_pardiso_store_tp *old);
 int GMRFLib_print_csr(FILE * fp, GMRFLib_csr_tp * csr);
+int GMRFLib_pardiso_bitmap(void);
 int pardiso_test();
 
 void pardisoinit(void *, int *, int *, int *, double *, int *);
