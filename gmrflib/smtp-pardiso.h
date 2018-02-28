@@ -141,6 +141,8 @@ int GMRFLib_csr_convert(GMRFLib_csr_tp * M);
 int GMRFLib_duplicate_csr(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from);
 int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **new, GMRFLib_pardiso_store_tp *old);
 int GMRFLib_free_csr(GMRFLib_csr_tp ** csr);
+int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store);
+//int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem);
 int GMRFLib_pardiso_bitmap(void);
 int GMRFLib_pardiso_build(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_pardiso_check_install(int quiet);
