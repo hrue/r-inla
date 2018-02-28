@@ -768,6 +768,9 @@ int GMRFLib_ai_log_posterior(double *logdens,
 	GMRFLib_ENTER_ROUTINE;
 
 	run_with_omp = (GMRFLib_MAX_THREADS > 1 ? 1 : 0);
+	FIXME1("TESTING");
+	run_with_omp = (GMRFLib_openmp->max_threads_outer > 1 ? 1 : 0);
+
 	n = graph->n;
 	xx = Calloc(n, double);				       /* xx = x - mean */
 
@@ -835,7 +838,7 @@ int GMRFLib_ai_log_posterior(double *logdens,
 								idxs[nidx++] = ii;
 							}
 						}
-#pragma omp parallel for private(ii, iii, logll) reduction(+: tmp2) schedule(static)
+
 						for (iii = 0; iii < nidx; iii++) {
 							GMRFLib_thread_id = id;
 							ii = idxs[iii];
@@ -3381,6 +3384,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	tmax = GMRFLib_MAX_THREADS;
 	run_with_omp = (GMRFLib_MAX_THREADS > 1 ? 1 : 0);
 
+	FIXME("TESTING!");
+	run_with_omp = (GMRFLib_openmp->max_threads_outer > 1 ? 1 : 0);
+
+
 	if (!ai_par) {
 		GMRFLib_default_ai_param(&ai_par);
 		free_ai_par = 1;
@@ -3912,8 +3919,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			/*
 			 * two versions: 1. a nhyper loop, 2. a 2*nhyper loop. 
 			 */
-			if (IMIN(omp_get_max_threads(), GMRFLib_openmp->max_threads_outer) > nhyper) {
-#pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
+			if (omp_get_max_threads() > nhyper) {
+#pragma omp parallel for private(k) 
 				for (k = 0; k < 2 * nhyper; k++) {
 					double f0, *zz = NULL, *ttheta = NULL, llog_dens;
 					int kk, opt;
@@ -3960,7 +3967,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					Free(ttheta);
 				}
 			} else {
-#pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_inner)
 				for (k = 0; k < nhyper; k++) {
 					double f0, *zz = NULL, *ttheta = NULL, llog_dens;
 					GMRFLib_ai_store_tp *s = NULL;
@@ -4074,7 +4081,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			if (run_with_omp) {
 				// FIX THIS LATER
 				GMRFLib_ai_store_tp *ai_store_id = ai_store;
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
 				for (i = 0; i < compute_n; i++) {
 					int ii = compute_idx[i];
 					GMRFLib_density_tp *cpodens = NULL;
@@ -4156,7 +4163,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				CHECK_DENS_STORAGE_FORCE(design->nexperiments);
 				CHECK_HYPER_STORAGE_FORCE(design->nexperiments);
 
-#pragma omp parallel for private(k, i, log_dens, dens_count, hyper_count, tref, tu, ierr) num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for private(k, i, log_dens, dens_count, hyper_count, tref, tu, ierr) num_threads(GMRFLib_openmp->max_threads_inner)
 				for (k = 0; k < design->nexperiments; k++) {
 
 					double *z_local, *theta_local, log_dens_orig;
@@ -4442,7 +4449,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					// GMRFLib_ai_store_config(misc_output, nhyper, theta, log_dens, ai_store->problem);
 					if (run_with_omp) {
 						GMRFLib_ai_store_tp *ai_store_id = ai_store;
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
 						for (i = 0; i < compute_n; i++) {
 							int ii = compute_idx[i];
 							GMRFLib_density_tp *cpodens = NULL;
@@ -4521,9 +4528,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				GMRFLib_ASSERT(dens_count == 0, GMRFLib_ESNH);
 				GMRFLib_ASSERT(hyper_count == 0, GMRFLib_ESNH);
 
-#pragma omp parallel for private(i, log_dens, tref, tu, ierr, kk) num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for private(i, log_dens, tref, tu, ierr, kk) num_threads(GMRFLib_openmp->max_threads_inner)
 				for (kk = 0; kk < pool->nconfig; kk++) {
-printf("We are here...\n");
                                         GMRFLib_ai_store_tp *ai_store_id = NULL;
 					GMRFLib_density_tp **dens_local = NULL;
 					GMRFLib_density_tp **dens_local_transform = NULL;
@@ -4807,7 +4813,7 @@ printf("We are here...\n");
 							// ai_store->problem);
 							if (run_with_omp) {
 								GMRFLib_ai_store_tp *ai_store_id = ai_store;
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
 								for (i = 0; i < compute_n; i++) {
 									int ii = compute_idx[i];
 									GMRFLib_density_tp *cpodens = NULL;
@@ -4968,7 +4974,7 @@ printf("We are here...\n");
 							// ai_store->problem);
 							if (run_with_omp) {
 								GMRFLib_ai_store_tp *ai_store_id = ai_store;
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
 								for (i = 0; i < compute_n; i++) {
 									int ii = compute_idx[i];
 									GMRFLib_density_tp *cpodens = NULL;
@@ -5093,7 +5099,7 @@ printf("We are here...\n");
 			GMRFLib_ai_store_tp **ai_store_id = Calloc(GMRFLib_MAX_THREADS, GMRFLib_ai_store_tp *);
 			double *bnew = NULL, con = 0.0;
 			GMRFLib_bnew(&bnew, &con, graph->n, b, bfunc);
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
 			for (i = 0; i < compute_n; i++) {
 				int id = omp_get_thread_num();
 				int ii = compute_idx[i];
@@ -5270,7 +5276,7 @@ printf("We are here...\n");
 		 * num_threads.
 		 */
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_COMBINE, NULL);
-#pragma omp parallel for private(j)
+#pragma omp parallel for private(j) 
 		for (j = 0; j < compute_n; j++) {
 			int ii = compute_idx[j];
 			// fprintf(stderr, "thead %d ii %d\n", omp_get_thread_num(), ii);
@@ -5877,7 +5883,7 @@ printf("We are here...\n");
 						0, nhyper - 1);
 				}
 			}
-#pragma omp parallel for private(k)
+#pragma omp parallel for private(k) 
 			for (k = 0; k < nhyper; k++) {
 				if (!run_with_omp) {
 					if (ai_par->fp_log) {
@@ -6395,7 +6401,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	if (cross) {
 		cross_store = Calloc(nlin, cross_tp);
 	}
-#pragma omp parallel for private(i, j, k)
+#pragma omp parallel for private(i, j, k) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < nlin; i++) {
 
 		int from_idx, to_idx, len, from_idx_a, to_idx_a, len_a, ip, ii, jj;
@@ -6570,7 +6576,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 		/*
 		 * this loop is quick in any case, so no need to make do it in parallel unless we have constraints ? 
 		 */
-#pragma omp parallel for private(i, j, k) if(nc)
+#pragma omp parallel for private(i, j, k) if(nc) 
 		for (k = 0; k < klen; k++) {
 			i = arr[k].i;
 			j = arr[k].j;
@@ -7258,7 +7264,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 		 */
 		unsigned int max_eval = (unsigned int) ai_par->numint_max_fn_eval;
 
-#pragma omp parallel for private(i)
+#pragma omp parallel for private(i) 
 		for (i = 0; i < npoints + NEXTRA; i++) {
 			int retval;
 			double abs_err = ai_par->numint_abs_err, rel_err = ai_par->numint_rel_err, value, err;
