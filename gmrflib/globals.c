@@ -203,6 +203,7 @@ int GMRFLib_faster_integration_np = 80;
 int GMRFLib_thread_id = 0;
 #pragma omp threadprivate(GMRFLib_thread_id)
 
+
 /*
   Signal USR2: Stop optimiser and present results
 */

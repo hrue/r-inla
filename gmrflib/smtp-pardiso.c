@@ -240,7 +240,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 
 	s->mtype = GMRFLib_PARDISO_MTYPE;
 	s->iparm[0] = 0;				       /* use default values */
-	s->iparm[2] = 4;				       /* num_proc: FIXME LATER */
+	s->iparm[2] = GMRFLib_openmp->max_threads_inner;       /* num_proc */
 	s->iparm[4] = 0;				       /* use internal reordering */
 
 	pardisoinit(s->pt, &(s->mtype), &solver, s->iparm, s->dparm, &error);
@@ -536,7 +536,7 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 	if (problem == NULL) {
 		return GMRFLib_SUCCESS;
 	}
-
+	GMRFLib_ENTER_ROUTINE;
 	GMRFLib_pardiso_Qinv(problem->sub_sm_fact.PARDISO_fact);
 
 	GMRFLib_csr_tp *Qi = problem->sub_sm_fact.PARDISO_fact->Qinv;
@@ -585,7 +585,7 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 	}
 
 	problem->sub_inverse = subQinv;
-
+	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -597,7 +597,6 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 	assert(store->done_with_chol == GMRFLib_TRUE);
 
 	GMRFLib_ENTER_ROUTINE;
-
 	int n = store->Q->n;
 
 	GMRFLib_duplicate_csr(&(store->Qinv), store->Q);
@@ -625,6 +624,7 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 	if (*store == NULL) {
 		return GMRFLib_SUCCESS;
 	}
+	GMRFLib_ENTER_ROUTINE;
 	(*store)->phase = -1;
 	pardiso((*store)->pt, &((*store)->maxfct), &((*store)->mnum), &((*store)->mtype), &((*store)->phase),
 		&((*store)->idummy), &((*store)->dummy), &((*store)->idummy), &((*store)->idummy), &((*store)->idummy),
@@ -635,6 +635,7 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 	GMRFLib_free_csr(&((*store)->Qinv));
 	Free((*store)->reordering);
 	Free(*store);
+	GMRFLib_LEAVE_ROUTINE;
 
 	return GMRFLib_SUCCESS;
 }
@@ -660,7 +661,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 }
 
 //
-int pardiso_test(void)
+int my_pardiso_test(void)
 {
 	int err = 0;
 

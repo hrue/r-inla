@@ -230,24 +230,24 @@ typedef struct {
    
  */
 
-int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, GMRFLib_global_node_tp *gn);
-int GMRFLib_free_reordering(GMRFLib_sm_fact_tp * sm_fact);
+const char *GMRFLib_reorder_name(GMRFLib_reorder_tp r);
+int GMRFLib_bitmap_factorisation(const char *filename_body, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph);
 int GMRFLib_build_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph);
+int GMRFLib_comp_cond_meansd(double *cmean, double *csd, int indx, double *x, int remapped, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph);
+int GMRFLib_compute_Qinv(void *problem, int storage);
+int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, GMRFLib_global_node_tp *gn);
 int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph);
 int GMRFLib_free_fact_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact);
-int GMRFLib_solve_lt_sparse_matrix(double *rhs, GMRFLib_sm_fact_tp * fact_tp, GMRFLib_graph_tp * graph);
-int GMRFLib_solve_llt_sparse_matrix(double *rhs, GMRFLib_sm_fact_tp * fact_tp, GMRFLib_graph_tp * graph);
-int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * fact_tp, GMRFLib_graph_tp * graph, int idx);
-int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, int findx, int toindx, int remapped);
+int GMRFLib_free_reordering(GMRFLib_sm_fact_tp * sm_fact);
+int GMRFLib_log_determinant(double *logdet, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph);
+int GMRFLib_reorder_id(const char *name);
 int GMRFLib_solve_l_sparse_matrix(double *rhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph);
 int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, int findx, int toindx, int remapped);
-int GMRFLib_comp_cond_meansd(double *cmean, double *csd, int indx, double *x, int remapped, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph);
-int GMRFLib_log_determinant(double *logdet, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph);
-int GMRFLib_compute_Qinv(void *problem, int storage);
+int GMRFLib_solve_llt_sparse_matrix(double *rhs, GMRFLib_sm_fact_tp * fact_tp, GMRFLib_graph_tp * graph);
+int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * fact_tp, GMRFLib_graph_tp * graph, int idx);
+int GMRFLib_solve_lt_sparse_matrix(double *rhs, GMRFLib_sm_fact_tp * fact_tp, GMRFLib_graph_tp * graph);
+int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, int findx, int toindx, int remapped);
 int GMRFLib_valid_smtp(int smtp);
-int GMRFLib_bitmap_factorisation(const char *filename_body, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph);
-const char *GMRFLib_reorder_name(GMRFLib_reorder_tp r);
-int GMRFLib_reorder_id(const char *name);
 
 __END_DECLS
 #endif

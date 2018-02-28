@@ -72,6 +72,7 @@ typedef enum {
 	GMRFLib_OPENMP_STRATEGY_MEDIUM,
 	GMRFLib_OPENMP_STRATEGY_LARGE,
 	GMRFLib_OPENMP_STRATEGY_HUGE,
+	GMRFLib_OPENMP_STRATEGY_PARDISO,
 	GMRFLib_OPENMP_STRATEGY_DEFAULT, 
 	GMRFLib_OPENMP_STRATEGY_NONE
 } GMRFLib_openmp_strategy_tp;
@@ -90,6 +91,11 @@ typedef enum {
 
 typedef struct {
 	int max_threads;
+	// for PARDISO, like _outer is the number of threads in the outer loop, while _inner is the number of threads for
+	// pardiso. the _inner is only relevant if nested=1.
+	int max_threads_outer;
+	int max_threads_inner;
+
 	GMRFLib_openmp_strategy_tp strategy;
 } GMRFLib_openmp_tp;
 
