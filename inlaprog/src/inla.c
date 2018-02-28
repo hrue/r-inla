@@ -3465,7 +3465,7 @@ double Qfunc_besag(int i, int j, void *arg)
 
 	a = (inla_besag_Qfunc_arg_tp *) arg;
 	prec = (a->log_prec ? map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL) : 1.0);
-
+	
 	if (a->prec_scale) {
 		if (a->prec_scale[i] > 0.0) {
 			prec *= a->prec_scale[i];
@@ -9568,6 +9568,8 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_LARGE;
 	} else if (!strcasecmp(openmp_strategy, "HUGE")) {
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_HUGE;
+	} else if (!strcasecmp(openmp_strategy, "PARDISO")) {
+		mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
 	} else {
 		GMRFLib_sprintf(&tmp, "Unknown openmp.strategy [%s]", openmp_strategy);
 		inla_error_general(tmp);
@@ -25783,6 +25785,8 @@ int inla_INLA(inla_tp * mb)
 		GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH;
 		break;
 	case GMRFLib_OPENMP_STRATEGY_HUGE:
+	case GMRFLib_OPENMP_STRATEGY_PARDISO:
+		FIXME1("Maybe change this");
 		GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_LOW;
 		break;
 	default:
@@ -30705,6 +30709,7 @@ int main(int argc, char **argv)
 			if (inla_sread_ints(&nt, 1, optarg) == INLA_OK) {
 				GMRFLib_openmp->max_threads = IMAX(1, nt);
 				omp_set_num_threads(GMRFLib_openmp->max_threads);
+				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL);
 			} else {
 				fprintf(stderr, "Fail to read MAX_THREADS from %s\n", optarg);
 				exit(EXIT_SUCCESS);
