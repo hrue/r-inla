@@ -1,7 +1,7 @@
 
 /* approx-inference.c
  * 
- * Copyright (C) 2006-2013 Havard Rue
+ * Copyright (C) 2006-2018 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -769,7 +769,7 @@ int GMRFLib_ai_log_posterior(double *logdens,
 
 	run_with_omp = (GMRFLib_MAX_THREADS > 1 ? 1 : 0);
 	FIXME1("TESTING");
-	run_with_omp = (GMRFLib_openmp->max_threads_outer > 1 ? 1 : 0);
+	run_with_omp = (GMRFLib_openmp->max_threads_inner > 1 ? 1 : 0);
 
 	n = graph->n;
 	xx = Calloc(n, double);				       /* xx = x - mean */
@@ -5926,11 +5926,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		 * store the reordering as well. 
 		 */
 		if (ai_store) {
-			assert(ai_store->problem->sub_sm_fact.remap != NULL);
-
-			misc_output->len_reordering = ai_store->problem->sub_graph->n;
-			misc_output->reordering = Calloc(misc_output->len_reordering, int);
-			memcpy(misc_output->reordering, ai_store->problem->sub_sm_fact.remap, misc_output->len_reordering * sizeof(int));
+			if (ai_store->problem->sub_sm_fact.remap != NULL) {
+				misc_output->len_reordering = ai_store->problem->sub_graph->n;
+				misc_output->reordering = Calloc(misc_output->len_reordering, int);
+				memcpy(misc_output->reordering, ai_store->problem->sub_sm_fact.remap, misc_output->len_reordering * sizeof(int));
+			}
 		}
 	}
 
@@ -6401,7 +6401,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	if (cross) {
 		cross_store = Calloc(nlin, cross_tp);
 	}
-#pragma omp parallel for private(i, j, k) num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for private(i, j, k) num_threads(GMRFLib_openmp->max_threads_inner)
 	for (i = 0; i < nlin; i++) {
 
 		int from_idx, to_idx, len, from_idx_a, to_idx_a, len_a, ip, ii, jj;
