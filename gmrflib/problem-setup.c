@@ -357,10 +357,14 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			 * store a copy, if requested 
 			 */
 			if (store_store_remap) {
-				store->remap = Calloc(sub_n, int);
-				memcpy(store->remap, (*problem)->sub_sm_fact.remap, sub_n * sizeof(int));
-				if (smtp == GMRFLib_SMTP_BAND) {
-					store->bandwidth = (*problem)->sub_sm_fact.bandwidth;
+				if ((*problem)->sub_sm_fact.remap != NULL) {
+					store->remap = Calloc(sub_n, int);
+					memcpy(store->remap, (*problem)->sub_sm_fact.remap, sub_n * sizeof(int));
+					if (smtp == GMRFLib_SMTP_BAND) {
+						store->bandwidth = (*problem)->sub_sm_fact.bandwidth;
+					}
+				} else {
+					store->remap = NULL;
 				}
 			}
 		}
@@ -2359,8 +2363,9 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 		new_store->TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(store->TAUCS_symb_fact);
 	}
 	new_store->copy_ptr = copy_ptr;
-	// always copy
-	GMRFLib_duplicate_pardiso_store(&(new_store->PARDISO_fact), store->PARDISO_fact);
+	if (store->PARDISO_fact) {
+		GMRFLib_duplicate_pardiso_store(&(new_store->PARDISO_fact), store->PARDISO_fact);
+	}
 
 	GMRFLib_meminfo_thread_id *= -1;
 	char *tmp = Calloc(1, char);
