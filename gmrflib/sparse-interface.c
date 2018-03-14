@@ -43,8 +43,6 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 /* Pre-hg-Id: $Id: sparse-interface.c,v 1.41 2010/02/27 08:32:02 hrue Exp $ */
 
-int MNUM = 0;
-
 /*!
   \brief Compute the reordering
 */
@@ -179,12 +177,12 @@ int GMRFLib_build_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_Qfunc_tp *
 				GMRFLib_pardiso_init(&(sm_fact->PARDISO_fact));
 				GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph);
 			}
-			ret = GMRFLib_pardiso_build(sm_fact->PARDISO_fact, MNUM, graph, Qfunc, Qfunc_arg);
+			ret = GMRFLib_pardiso_build(sm_fact->PARDISO_fact, graph, Qfunc, Qfunc_arg);
 			if (ret != GMRFLib_SUCCESS) {
 				return ret;
 			}
 		} else {
-			GMRFLib_EWRAP1(GMRFLib_pardiso_build(sm_fact->PARDISO_fact, MNUM, graph, Qfunc, Qfunc_arg));
+			GMRFLib_EWRAP1(GMRFLib_pardiso_build(sm_fact->PARDISO_fact, graph, Qfunc, Qfunc_arg));
 		}
 		break;
 
@@ -232,12 +230,12 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_
 
 	case GMRFLib_SMTP_PARDISO:
 		if (GMRFLib_catch_error_for_inla) {
-			ret = GMRFLib_pardiso_chol(sm_fact->PARDISO_fact, MNUM);
+			ret = GMRFLib_pardiso_chol(sm_fact->PARDISO_fact);
 			if (ret != GMRFLib_SUCCESS) {
 				return ret;
 			}
 		} else {
-			GMRFLib_EWRAP1(GMRFLib_pardiso_chol(sm_fact->PARDISO_fact, MNUM));
+			GMRFLib_EWRAP1(GMRFLib_pardiso_chol(sm_fact->PARDISO_fact));
 		}
 		break;
 
@@ -272,7 +270,9 @@ int GMRFLib_free_fact_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact)
 			break;
 
 		case GMRFLib_SMTP_PARDISO:
-			GMRFLib_EWRAP1(GMRFLib_pardiso_free(&(sm_fact->PARDISO_fact)));
+			if (sm_fact->PARDISO_fact) {
+				GMRFLib_EWRAP1(GMRFLib_pardiso_free(&(sm_fact->PARDISO_fact)));
+			}
 			break;
 
 		default:
@@ -304,7 +304,7 @@ int GMRFLib_solve_l_sparse_matrix(double *rhs, GMRFLib_sm_fact_tp * sm_fact, GMR
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
-		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_L(sm_fact->PARDISO_fact, MNUM, rhs, rhs));
+		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_L(sm_fact->PARDISO_fact, rhs, rhs));
 		break;
 
 	default:
@@ -337,7 +337,7 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, GMRFLib_sm_fact_tp * sm_fact, GM
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
-		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_LT(sm_fact->PARDISO_fact, MNUM, rhs, rhs));
+		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_LT(sm_fact->PARDISO_fact, rhs, rhs));
 		break;
 
 	default:
@@ -370,7 +370,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, GMRFLib_sm_fact_tp * sm_fact, G
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
-		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, MNUM, rhs, rhs));
+		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs));
 		break;
 
 	default:
@@ -400,7 +400,7 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm
 
 	case GMRFLib_SMTP_PARDISO:
 		// not yet implemented
-		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, MNUM, rhs, rhs));
+		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs));
 		break;
 
 	default:
@@ -436,7 +436,7 @@ int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_
 
 	case GMRFLib_SMTP_PARDISO:
 		// not yet implemented
-		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_LT(sm_fact->PARDISO_fact, MNUM, rhs, rhs));
+		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_LT(sm_fact->PARDISO_fact, rhs, rhs));
 		break;
 
 	default:
@@ -470,7 +470,7 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_f
 
 	case GMRFLib_SMTP_PARDISO:
 		// not yet implemented
-		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_L(sm_fact->PARDISO_fact, MNUM, rhs, rhs));
+		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_L(sm_fact->PARDISO_fact, rhs, rhs));
 		break;
 
 	default:
@@ -496,7 +496,7 @@ int GMRFLib_log_determinant(double *logdet, GMRFLib_sm_fact_tp * sm_fact, GMRFLi
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
-		*logdet = GMRFLib_pardiso_logdet(sm_fact->PARDISO_fact, MNUM);
+		*logdet = GMRFLib_pardiso_logdet(sm_fact->PARDISO_fact);
 		break;
 
 	default:
@@ -576,7 +576,7 @@ int GMRFLib_compute_Qinv(void *problem, int storage)
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
-		GMRFLib_EWRAP0(GMRFLib_pardiso_Qinv_INLA(p, MNUM));
+		GMRFLib_EWRAP0(GMRFLib_pardiso_Qinv_INLA(p));
 		break;
 
 	default:

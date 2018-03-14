@@ -166,7 +166,7 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 	 * This is the copy that is to be copied 
 	 */
 	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
 	for (i = 0; i < nx; i++) {
 		int local_err;
 		GMRFLib_ai_store_tp *ais = NULL;
@@ -836,7 +836,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 					fprintf(G.ai_par->fp_log, "\nEstimate Hessian Part II (%1d) ", nn);
 				}
 			}
-#pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_inner)
+#pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (k = 0; k < nn; k++) {
 				int ii, jj;
 				double f11, fm11, f1m1, fm1m1;
@@ -988,7 +988,7 @@ int GMRFLib_test_something____omp(void)
 
 		GMRFLib_free_ai_store(ais);
 	}
-#pragma omp parallel for private(i, x, fx) num_threads(GMRFLib_openmp->max_threads_inner)
+#pragma omp parallel for private(i, x, fx) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < 10; i++) {
 		GMRFLib_ai_store_tp *ais = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
 
