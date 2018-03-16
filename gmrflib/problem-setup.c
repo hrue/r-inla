@@ -1268,12 +1268,11 @@ int GMRFLib_free_store(GMRFLib_store_tp * store)
 		if (store->TAUCS_symb_fact) {
 			taucs_supernodal_factor_free(store->TAUCS_symb_fact);
 		}
-		if (store->PARDISO_fact) {
-			GMRFLib_pardiso_free(&(store->PARDISO_fact));
-		}
 	}
 	// always free
-	GMRFLib_pardiso_free(&(store->PARDISO_fact));
+	if (store->PARDISO_fact) {
+		GMRFLib_pardiso_free(&(store->PARDISO_fact));
+	}
 
 	store->sub_graph = NULL;
 	store->TAUCS_symb_fact = NULL;
@@ -2109,7 +2108,9 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 	np->sub_sm_fact.TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(problem->sub_sm_fact.TAUCS_symb_fact);
 	COPY(sub_sm_fact.finfo);
 
-	GMRFLib_duplicate_pardiso_store(&(np->sub_sm_fact.PARDISO_fact), problem->sub_sm_fact.PARDISO_fact);
+	if (problem->sub_sm_fact.PARDISO_fact) {
+		GMRFLib_duplicate_pardiso_store(&(np->sub_sm_fact.PARDISO_fact), problem->sub_sm_fact.PARDISO_fact);
+	}
 
 	/*
 	 * then the constraint 

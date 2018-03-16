@@ -4555,7 +4555,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						if (omp_in_parallel()) {
 							if (!ais[GMRFLib_thread_id]) {
 								ais[GMRFLib_thread_id] =
-								    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
+									GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE);
 							}
 							ai_store_id = ais[GMRFLib_thread_id];
 						} else {
@@ -7689,14 +7689,14 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, 
 	int n = (ai_store->problem ? ai_store->problem->n : 0);
 	int nd = ai_store->nd;
 
-#pragma omp parallel sections
+//#pragma omp parallel sections
 	{
-#pragma omp section
+//#pragma omp section
 		{
 			GMRFLib_meminfo_thread_id = id;
 			new_ai_store->store = GMRFLib_duplicate_store(ai_store->store, skeleton, copy_ptr);
 		}
-#pragma omp section
+//#pragma omp section
 		{
 			GMRFLib_meminfo_thread_id = id;
 			new_ai_store->problem = GMRFLib_duplicate_problem(ai_store->problem, skeleton);

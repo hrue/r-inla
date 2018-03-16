@@ -60,7 +60,7 @@ __BEGIN_DECLS
 
 #define GMRFLib_PARDISO_PLEN (64)
 #define GMRFLib_PARDISO_MTYPE (-2)
-#define GMRFLib_PARDISO_NUM_PROC_DEFAULT (4)
+#define GMRFLib_PARDISO_NUM_PROC_DEFAULT (2)
 //
 typedef struct {
 	int base;					       /* 0 or 1 */
