@@ -77,10 +77,13 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 			break;
 
 		case GMRFLib_SMTP_PARDISO:
-			if (sm_fact->PARDISO_fact == NULL) {
-				GMRFLib_EWRAP1(GMRFLib_pardiso_init(&(sm_fact->PARDISO_fact)));
+			FIXME1("TURN OFF REORDERING HERE FOR PARDISO");
+			if (0) {
+				if (sm_fact->PARDISO_fact == NULL) {
+					GMRFLib_EWRAP1(GMRFLib_pardiso_init(&(sm_fact->PARDISO_fact)));
+				}
+				GMRFLib_EWRAP1(GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph));
 			}
-			GMRFLib_EWRAP1(GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph));
 			sm_fact->remap = NULL;
 			break;
 
