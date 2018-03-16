@@ -166,7 +166,7 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 	 * This is the copy that is to be copied 
 	 */
 	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < nx; i++) {
 		int local_err;
 		GMRFLib_ai_store_tp *ais = NULL;
