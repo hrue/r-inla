@@ -678,6 +678,7 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 
 int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_pardiso_store_tp * old)
 {
+	FIXME("-->duplicate");
 	GMRFLib_pardiso_init(new);
 	GMRFLib_pardiso_reorder(*new, old->graph);
 
@@ -726,13 +727,14 @@ int my_pardiso_test(void)
 	GMRFLib_pardiso_chol(store);
 	GMRFLib_pardiso_Qinv(store);
 
-#pragma omp parallel for private(j) num_threads(4)
+#pragma omp parallel for private(j) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (j = 0; j < 100; j++) {
 		printf("this is j= %d from thread %d\n", j, omp_get_thread_num());
 		GMRFLib_pardiso_store_tp *store2 = NULL;
 
-		GMRFLib_pardiso_init(&store2);
-		GMRFLib_pardiso_reorder(store2, g);
+		//GMRFLib_pardiso_init(&store2);
+		//GMRFLib_pardiso_reorder(store2, g);
+		GMRFLib_duplicate_pardiso_store(&store2, store);
 		GMRFLib_pardiso_build(store2, g, Qtab->Qfunc, Qtab->Qfunc_arg);
 
 		GMRFLib_pardiso_chol(store2);
