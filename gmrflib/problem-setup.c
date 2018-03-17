@@ -723,7 +723,6 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					/*
 					 * as usual 
 					 */
-					FIXME("STUFF ADDED HERE: CHECK!");
 #pragma omp parallel for private(k, kk, i) num_threads(GMRFLib_openmp->max_threads_outer)
 					for (k = 0; k < nc; k++) {
 						kk = k * sub_n;
