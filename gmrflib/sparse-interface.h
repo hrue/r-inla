@@ -82,7 +82,13 @@ typedef enum {
 	/**
 	 * \brief The PARDISO solver
 	 */
-	GMRFLib_SMTP_PARDISO = 3
+	GMRFLib_SMTP_PARDISO = 3,
+
+	/**
+	 * \brief The default solver
+	 */
+	GMRFLib_SMTP_DEFAULT = 2
+
 } GMRFLib_smtp_tp;
 
 typedef enum {

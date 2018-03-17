@@ -699,8 +699,6 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 			}
 		}
 
-		P(omp_in_parallel());
-
 		GMRFLib_thread_id = omp_get_thread_num();
 		if (omp_in_parallel()) {
 			if (!ai_store[GMRFLib_thread_id]) {

@@ -60,7 +60,7 @@ __BEGIN_DECLS
 
 #define GMRFLib_PARDISO_PLEN (64)
 #define GMRFLib_PARDISO_MTYPE (-2)
-#define GMRFLib_PARDISO_NUM_PROC_DEFAULT (2)
+#define GMRFLib_PARDISO_NUM_PROC_DEFAULT (4)
 //
 typedef struct {
 	int base;					       /* 0 or 1 */
@@ -153,7 +153,7 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store);
 //int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem);
 int GMRFLib_pardiso_bitmap(void);
 int GMRFLib_pardiso_build(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
-int GMRFLib_pardiso_check_install(int quiet);
+int GMRFLib_pardiso_check_install(int quiet, int no_err);
 int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store);
 int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store);
 int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store);
