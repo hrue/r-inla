@@ -117,7 +117,7 @@ double omp_get_wtick(void)
 
 #endif
 
-int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
+int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, GMRFLib_smtp_tp *smtp)
 {
 	int nt;
 	int ntmax = GMRFLib_MAX_THREADS;
@@ -126,9 +126,33 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
 	int nested = -1;
 	int *nhyper = (int *) arg;
 
-	if (strategy == GMRFLib_OPENMP_STRATEGY_PARDISO) {
+	// once only
+	static int pardiso_ok = -2;
+	if (pardiso_ok < 0) {
+		pardiso_ok = (GMRFLib_pardiso_check_install(1, 1) == GMRFLib_SUCCESS ? 1 : 0);
+		P(pardiso_ok);
+	}
+
+	static int smtp_store = -1;
+	if (smtp_store < 0) {
+		smtp_store = (pardiso_ok ? GMRFLib_SMTP_PARDISO : GMRFLib_SMTP_TAUCS);
+	}
+	if (smtp) {
+		smtp_store = *smtp;
+	}
+
+	if (pardiso_ok &&  smtp_store == GMRFLib_SMTP_PARDISO) {
+		FIXME1("PARDISO is installed and working, set openmp->strategy = 'PARDISO'");
+		strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
+	} else {
+		FIXME1("smtp_store is taucs, continue with default strategy");
+	}
+		
+	if (strategy == GMRFLib_OPENMP_STRATEGY_PARDISO && smtp_store == GMRFLib_SMTP_PARDISO) {
 		ntmax_outer = IMAX(1, ntmax / GMRFLib_PARDISO_NUM_PROC_DEFAULT);
 		ntmax_inner = IMAX(1, ntmax - ntmax_outer);
+		ntmax_outer = 1;
+		ntmax_inner = 1;
 	} else {
 		ntmax_outer = ntmax;
 		ntmax_inner = 1;
@@ -183,7 +207,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
 			nested = 0;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO:
-			nt = ntmax;
+			nt = GMRFLib_openmp->max_threads_outer;
 			nested = 0;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE: 
@@ -212,7 +236,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
 			nested = 0;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO:
-			nt = ntmax;
+			nt = GMRFLib_openmp->max_threads_outer;
 			nested = 0;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE: 
@@ -241,7 +265,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
 			nested = 0;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO:
-			nt = ntmax;
+			nt = GMRFLib_openmp->max_threads_outer;
 			nested = 0;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE: 
@@ -270,7 +294,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
 			nested = 0;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO:
-			nt = ntmax;
+			nt = GMRFLib_openmp->max_threads_outer = 1;
 			nested = 0;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE: 
@@ -296,7 +320,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
 			break;
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
 		case GMRFLib_OPENMP_STRATEGY_PARDISO:
-			nt = *nhyper;
+			nt = GMRFLib_openmp->max_threads_outer = *nhyper;
 			nested = 0;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE: 
@@ -313,7 +337,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
 		case GMRFLib_OPENMP_STRATEGY_DEFAULT:
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
 		case GMRFLib_OPENMP_STRATEGY_PARDISO:
-			nt = ntmax;
+			nt = GMRFLib_openmp->max_threads_outer = ntmax;
 			nested = 0;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE: 
@@ -342,7 +366,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
 			nested = 0;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO:
-			nt = ntmax;
+			nt = 1;
 			nested = 0;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE: 
@@ -369,16 +393,18 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg)
 		break;
 	}
 
-
-
 	nt = IMAX(1, IMIN(ntmax, nt));
 	omp_set_num_threads(nt);
 	omp_set_nested(nested);
 
-	P1(GMRFLib_openmp->max_threads_outer);
-	P1(GMRFLib_openmp->max_threads_inner);
-	P1(nt);
-	P1(nested);
-
+	omp_set_num_threads(ntmax);
+	FIXME1("omp_set_num_threads(ntmax);");
+	P(smtp_store);
+	P(strategy);
+	P(GMRFLib_openmp->max_threads_inner);
+	P(GMRFLib_openmp->max_threads_outer);
+	P(nt);
+	P(nested);
+	
 	return GMRFLib_SUCCESS;
 }

@@ -95,13 +95,12 @@ typedef struct {
 	// pardiso. the _inner is only relevant if nested=1.
 	int max_threads_outer;
 	int max_threads_inner;
-
 	GMRFLib_openmp_strategy_tp strategy;
 } GMRFLib_openmp_tp;
 
 #define GMRFLib_MAX_THREADS (GMRFLib_openmp ? GMRFLib_openmp->max_threads : omp_get_max_threads())
 
-int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg);
+int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, GMRFLib_smtp_tp *smtp);
 
 __END_DECLS
 #endif

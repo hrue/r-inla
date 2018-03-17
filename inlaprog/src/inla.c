@@ -9550,7 +9550,8 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	if (mb->verbose) {
 		printf("\t\tname=[%s]\n", mb->name);
 	}
-	openmp_strategy = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"), GMRFLib_strdup("DEFAULT")));
+	openmp_strategy = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"),
+							     GMRFLib_strdup("DEFAULT"))); 
 	if (mb->verbose) {
 		printf("\t\topenmp.strategy=[%s]\n", openmp_strategy);
 	}
@@ -9576,14 +9577,15 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		exit(EXIT_FAILURE);
 	}
 
-	smtp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SMTP"), NULL));
+	smtp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SMTP"),
+						  (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO ?
+						   GMRFLib_strdup("PARDISO") : GMRFLib_strdup("TAUCS")))); 
 	if (smtp) {
 		if (!strcasecmp(smtp, "GMRFLib_SMTP_BAND") || !strcasecmp(smtp, "BAND")) {
 			GMRFLib_smtp = GMRFLib_SMTP_BAND;
 		} else if (!strcasecmp(smtp, "GMRFLib_SMTP_TAUCS") || !strcasecmp(smtp, "TAUCS")) {
 			GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
 		} else if (!strcasecmp(smtp, "GMRFLib_SMTP_PARDISO") || !strcasecmp(smtp, "PARDISO")) {
-			GMRFLib_pardiso_check_install(0);
 			GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
 		} else {
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "smtp", smtp);
@@ -9592,6 +9594,10 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			printf("\t\tsmtp=[%s]\n", smtp);
 		}
 	}
+	mb->smtp = GMRFLib_strdup(smtp);
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, &GMRFLib_smtp);
+	
+
 	mb->dir = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup("results-%1d")));
 	ok = 0;
 	int accept_argument = 0;
@@ -25797,6 +25803,9 @@ int inla_INLA(inla_tp * mb)
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT ?
 			"DEFAULT" : (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "LOW" : "HIGH")));
 	}
+	if (mb->verbose) {
+		printf("\tSparse-matrix library = [%s]\n", mb->smtp);
+	}
 
 	GMRFLib_init_hgmrfm(&(mb->hgmrfm), mb->predictor_n, mb->predictor_m,
 			    mb->predictor_cross_sumzero, NULL, mb->predictor_log_prec,
@@ -30662,7 +30671,7 @@ int main(int argc, char **argv)
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = IMAX(ncpu, omp_get_max_threads());
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL);
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
 	GMRFLib_collect_timer_statistics = GMRFLib_FALSE;
@@ -30709,7 +30718,7 @@ int main(int argc, char **argv)
 			if (inla_sread_ints(&nt, 1, optarg) == INLA_OK) {
 				GMRFLib_openmp->max_threads = IMAX(1, nt);
 				omp_set_num_threads(GMRFLib_openmp->max_threads);
-				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL);
+				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 			} else {
 				fprintf(stderr, "Fail to read MAX_THREADS from %s\n", optarg);
 				exit(EXIT_SUCCESS);
@@ -30896,62 +30905,81 @@ int main(int argc, char **argv)
 	/*
 	 * these options does not belong here in this program, but it makes all easier... and its undocumented.
 	 */
-	if (G.mode == INLA_MODE_QINV) {
+	switch (G.mode) {
+	case INLA_MODE_QINV: 
 		inla_qinv(argv[optind], argv[optind + 1], argv[optind + 2]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
-	} else if (G.mode == INLA_MODE_QSOLVE) {
+		break;
+
+	case INLA_MODE_QSOLVE: 
 		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
-		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL);
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		inla_qsolve(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
-	} else if (G.mode == INLA_MODE_QREORDERING) {
+		break;
+
+	case INLA_MODE_QREORDERING: 
 		inla_qreordering(argv[optind]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
-	} else if (G.mode == INLA_MODE_QSAMPLE) {
+		break;
+
+	case INLA_MODE_QSAMPLE: 
 		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
-		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL);
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5],
 			     argv[optind + 6], argv[optind + 7], argv[optind + 8]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
-	} else if (G.mode == INLA_MODE_FINN) {
+		break;
+
+	case INLA_MODE_FINN: 
 		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
-		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL);
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		inla_finn(argv[optind]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
-	} else if (G.mode == INLA_MODE_GRAPH) {
+		break;
+
+	case INLA_MODE_GRAPH: 
 		inla_read_graph(argv[optind]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
-	} else if (G.mode == INLA_MODE_R) {
+		break;
+		
+	case INLA_MODE_R: 
 		inla_R(&(argv[optind]));
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
-	} else if (G.mode == INLA_MODE_FGN) {
+		break;
+		
+	case INLA_MODE_FGN: 
 		inla_fgn(argv[optind], argv[optind + 1]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
-	} else if (G.mode == INLA_MODE_TESTIT) {
+		break;
+		
+	case INLA_MODE_TESTIT: 
 		testit(argc, &(argv[optind]));
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
-	} else {
-		/*
-		 * DO AS NORMAL...
-		 */
+		break;
+
+	case INLA_MODE_MCMC:
+	case INLA_MODE_HYPER:
+	case INLA_MODE_DEFAULT:
+		break;
 	}
 
 	if (!silent || verbose) {
