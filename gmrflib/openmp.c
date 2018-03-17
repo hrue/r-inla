@@ -394,11 +394,16 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	}
 
 	nt = IMAX(1, IMIN(ntmax, nt));
+
+	FIXME("SET NT=ntmax!");
+	nt = GMRFLib_openmp->max_threads_outer = ntmax;
+
 	omp_set_num_threads(nt);
 	omp_set_nested(nested);
 
 	omp_set_num_threads(ntmax);
-	FIXME1("omp_set_num_threads(ntmax);");
+	FIXME("omp_set_num_threads(ntmax);");
+	P(ntmax);
 	P(smtp_store);
 	P(strategy);
 	P(GMRFLib_openmp->max_threads_inner);

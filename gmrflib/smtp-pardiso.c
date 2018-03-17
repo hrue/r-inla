@@ -804,7 +804,7 @@ int my_pardiso_test(void)
 	GMRFLib_tabulate_Qfunc_tp *Qtab;
 	GMRFLib_graph_tp *g;
 
-	GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q.txt", -1, NULL, NULL, NULL);
+	GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Qdense.txt", -1, NULL, NULL, NULL);
 
 	GMRFLib_csr_tp *csr, *csr2;
 
@@ -832,7 +832,8 @@ int my_pardiso_test(void)
 	P(GMRFLib_openmp->max_threads_outer);
 	P(GMRFLib_openmp->max_threads_inner);
 	
-#pragma omp parallel for private(j) num_threads(GMRFLib_openmp->max_threads_outer)
+	//S.s_verbose=1;
+#pragma omp parallel for private(j) num_threads(2)
 	for (j = 0; j < 100; j++) {
 		printf("this is j= %d from thread %d\n", j, omp_get_thread_num());
 
