@@ -57,12 +57,8 @@ __BEGIN_DECLS
 /* 
    
  */
-
 #define GMRFLib_PARDISO_PLEN (64)
-#define GMRFLib_PARDISO_MTYPE (-2)
-#define GMRFLib_PARDISO_NUM_PROC_DEFAULT (4)
-//
-typedef struct {
+    typedef struct {
 	int base;					       /* 0 or 1 */
 	int n;
 	int na;
@@ -82,8 +78,7 @@ typedef enum {
 } GMRFLib_pardiso_flag_tp;
 
 
-typedef struct
-{
+typedef struct {
 	int iparm[GMRFLib_PARDISO_PLEN];
 	double dparm[GMRFLib_PARDISO_PLEN];
 	int done_with_build;
@@ -98,8 +93,7 @@ typedef struct
 	double log_det_Q;
 	GMRFLib_csr_tp *Q;
 	GMRFLib_csr_tp *Qinv;
-}
-	GMRFLib_pardiso_store_pr_thread_tp;
+} GMRFLib_pardiso_store_pr_thread_tp;
 
 typedef struct {
 	void *pt[GMRFLib_PARDISO_PLEN];
@@ -116,8 +110,7 @@ typedef struct {
 	GMRFLib_graph_tp *graph;
 
 	GMRFLib_pardiso_store_pr_thread_tp **pstore;
-}
-	GMRFLib_pardiso_store_tp;
+} GMRFLib_pardiso_store_tp;
 
 #define STDOUT_TO_DEV_NULL_START(_silent)			\
 	int XX_stdout_dupfd;					\
@@ -141,22 +134,23 @@ typedef struct {
 
 double GMRFLib_pardiso_Qfunc_default(int i, int j, void *arg);
 double GMRFLib_pardiso_logdet(GMRFLib_pardiso_store_tp * store);
+//int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem);
 int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
-int GMRFLib_csr_check(GMRFLib_csr_tp * M);
 int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp ** Qtab, GMRFLib_graph_tp ** graph, GMRFLib_csr_tp * csr);
 int GMRFLib_csr_base(int base, GMRFLib_csr_tp * M);
+int GMRFLib_csr_check(GMRFLib_csr_tp * M);
 int GMRFLib_csr_convert(GMRFLib_csr_tp * M);
 int GMRFLib_duplicate_csr(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from);
-int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **new, GMRFLib_pardiso_store_tp *old);
+int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_pardiso_store_tp * old);
 int GMRFLib_free_csr(GMRFLib_csr_tp ** csr);
 int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store);
-//int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem);
 int GMRFLib_pardiso_bitmap(void);
 int GMRFLib_pardiso_build(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_pardiso_check_install(int quiet, int no_err);
 int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store);
 int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store);
 int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store);
+int GMRFLib_pardiso_num_proc();
 int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph);
 int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store_tp * store);
 int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp * store, double *x, double *b);
@@ -165,6 +159,7 @@ int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double
 int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso_flag_tp flag, double *x, double *b);
 int GMRFLib_pardiso_symfact(GMRFLib_pardiso_store_tp * store);
 int GMRFLib_print_csr(FILE * fp, GMRFLib_csr_tp * csr);
+
 int my_pardiso_test();
 
 void pardisoinit(void *, int *, int *, int *, double *, int *);
