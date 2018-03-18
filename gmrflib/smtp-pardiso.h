@@ -60,7 +60,7 @@ __BEGIN_DECLS
 
 #define GMRFLib_PARDISO_PLEN (64)
 #define GMRFLib_PARDISO_MTYPE (-2)
-#define GMRFLib_PARDISO_NUM_PROC_DEFAULT (2)
+#define GMRFLib_PARDISO_NUM_PROC_DEFAULT (4)
 //
 typedef struct {
 	int base;					       /* 0 or 1 */
@@ -142,7 +142,7 @@ typedef struct {
 double GMRFLib_pardiso_Qfunc_default(int i, int j, void *arg);
 double GMRFLib_pardiso_logdet(GMRFLib_pardiso_store_tp * store);
 int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
-int GMRFLib_Q2csr_check(GMRFLib_csr_tp * M);
+int GMRFLib_csr_check(GMRFLib_csr_tp * M);
 int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp ** Qtab, GMRFLib_graph_tp ** graph, GMRFLib_csr_tp * csr);
 int GMRFLib_csr_base(int base, GMRFLib_csr_tp * M);
 int GMRFLib_csr_convert(GMRFLib_csr_tp * M);
