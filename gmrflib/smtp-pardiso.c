@@ -64,13 +64,13 @@ static struct {
 	GMRFLib_pardiso_store_tp **static_pstores;
 } S = {
 	0,						       // verbose
-	    0,						       // s_verbose
-	    0,						       // csr_check
-	    0,						       // mnum (do not change)
-	    -2,						       // mtype (-2 = sym, 2 = sym pos def)
-	    4,						       // num_proc (1, 2, 4, or 8)
-	    NULL,					       // busy
-NULL};
+	1,						       // s_verbose
+	0,						       // csr_check
+	0,						       // mnum (do not change)
+	-2,						       // mtype (-2 = sym, 2 = sym pos def)
+	4,						       // num_proc (1, 2, 4, or 8)
+	NULL,						       // busy
+	NULL};
 
 //#define PSTORES_NUM() ISQR(GMRFLib_MAX_THREADS)
 #define PSTORES_NUM() 1024
@@ -168,7 +168,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 {
 	// create a upper triangular csr matrix from Q
 #define M (*csr)
-	int i, j, jj, k, n, na, nnz;
+	int i, j, jj, k, n, na, nnz, nan_error = 0;
 
 	M = Calloc(1, GMRFLib_csr_tp);
 	M->base = 0;
@@ -195,16 +195,25 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 	for (i = k = 0; i < n; i++) {
 		M->ja[k] = i;
 		M->a[k] = Qfunc(i, i, Qfunc_arg);
+		GMRFLib_STOP_IF_NAN_OR_INF(M->a[k], i, i);
 		k++;
 		for (jj = 0; jj < graph->nnbs[i]; jj++) {
 			j = graph->nbs[i][jj];
 			if (j > i) {
 				M->ja[k] = j;
 				M->a[k] = Qfunc(i, j, Qfunc_arg);
+				GMRFLib_STOP_IF_NAN_OR_INF(M->a[k], i, j);
 				k++;
 			}
 		}
 	}
+
+	if (GMRFLib_catch_error_for_inla) {
+		if (nan_error) {
+			return !GMRFLib_SUCCESS;
+		}
+	}
+
 #undef M
 
 	return GMRFLib_SUCCESS;
@@ -281,8 +290,8 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default[0] = 0;			       /* use default values */
 	s->iparm_default[2] = S.num_proc;
 	s->iparm_default[4] = 0;			       /* user internal reordering */
-
 	pardisoinit(s->pt, &(s->mtype), &(s->solver), s->iparm_default, s->dparm_default, &error);
+	
 	if (error != 0) {
 		P(error);
 		GMRFLib_ERROR(GMRFLib_EPARDISO_INTERNAL_ERROR);
@@ -297,21 +306,15 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 
 int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store_tp * store)
 {
-	static int check_install = GMRFLib_TRUE;
-	if (check_install == GMRFLib_TRUE) {
-#pragma omp critical
-		if (check_install == GMRFLib_TRUE) {
-			GMRFLib_pardiso_check_install(1, 0);
-			check_install = GMRFLib_FALSE;
-		}
-	}
-
 	assert(store->done_with_init == GMRFLib_TRUE);
 	memcpy((void *) (store->pstore[S.mnum]->iparm), (void *) (store->iparm_default), GMRFLib_PARDISO_PLEN * sizeof(int));
 	memcpy((void *) (store->pstore[S.mnum]->dparm), (void *) (store->dparm_default), GMRFLib_PARDISO_PLEN * sizeof(double));
 
 	store->pstore[S.mnum]->nrhs = 0;
 	store->pstore[S.mnum]->err_code = 0;
+	store->pstore[S.mnum]->iparm[10] = 1;		       /* scaling vectors */
+	store->pstore[S.mnum]->iparm[12] = 1;		       /* symmetric weighted matching */
+
 
 	switch (flag) {
 	case GMRFLib_PARDISO_FLAG_REORDER:
@@ -455,6 +458,7 @@ int GMRFLib_pardiso_build(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * g
 {
 	GMRFLib_ENTER_ROUTINE;
 
+	assert(store != NULL);
 	assert(store->done_with_init == GMRFLib_TRUE);
 	assert(store->done_with_reorder == GMRFLib_TRUE);
 
@@ -487,7 +491,6 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	assert(store->pstore[S.mnum]->Q != NULL);
 
 	int mnum1 = S.mnum + 1;
-
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_CHOL, store);
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore[S.mnum]->phase),
 		&(store->pstore[S.mnum]->Q->n),
@@ -495,12 +498,10 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 		&(store->pstore[S.mnum]->idummy), &(store->pstore[S.mnum]->nrhs),
 		store->pstore[S.mnum]->iparm, &(store->msglvl), NULL, NULL, &(store->pstore[S.mnum]->err_code), store->pstore[S.mnum]->dparm);
 
-	if (store->pstore[S.mnum]->err_code != 0) {
-		GMRFLib_ERROR(GMRFLib_EPOSDEF);
-	}
-
-	if (store->pstore[S.mnum]->iparm[22] > 0) {
-		printf("\nERROR not pos def matrix, #neg.eigen %d", store->pstore[S.mnum]->iparm[22]);
+	if (store->pstore[S.mnum]->err_code != 0 || store->pstore[S.mnum]->iparm[22] > 0) {
+		printf("\nERROR not pos def matrix, #neg.eigen %d, err-code %d", store->pstore[S.mnum]->iparm[22],
+		       store->pstore[S.mnum]->err_code);
+		fflush(stdout);
 		GMRFLib_ERROR(GMRFLib_EPOSDEF);
 	}
 
@@ -686,7 +687,7 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 	if (S.s_verbose)
 		PP("free: old=", *store);
 
-#pragma omp critical
+//#pragma omp critical
 	{
 		int found = 0, i;
 		if (S.static_pstores != NULL) {
@@ -762,19 +763,23 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 	}
 	GMRFLib_ENTER_ROUTINE;
 
+	int i;
+	if (S.static_pstores == NULL) {
+#pragma omp critical
+		{
+			if (S.static_pstores == NULL) {
+				S.static_pstores = Calloc(PSTORES_NUM(), GMRFLib_pardiso_store_tp *);
+				S.busy = Calloc(PSTORES_NUM(), int);
+				if (S.s_verbose)
+					printf("==> init static_pstores\n");
+			}
+		}
+	}
+	
+	int found = 0;
 #pragma omp critical
 	{
-
-		int i;
-		if (S.static_pstores == NULL) {
-			S.static_pstores = Calloc(PSTORES_NUM(), GMRFLib_pardiso_store_tp *);
-			S.busy = Calloc(PSTORES_NUM(), int);
-			if (S.s_verbose)
-				printf("==> init static_pstores\n");
-		}
-
-		int found;
-		for (i = 0, found = 0; i < PSTORES_NUM() && !found; i++) {
+		for (i = 0; i < PSTORES_NUM() && !found; i++) {
 			if (!S.busy[i]) {
 				if (S.static_pstores[i]) {
 					*new = S.static_pstores[i];
@@ -791,12 +796,11 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 				S.busy[i] = 1;
 			}
 		}
-		assert(found == 1);
-		if (S.s_verbose) {
-			printf("duplicate: new=%x old=%x i=%1d\n", *((void **) new), ((void *) old), i);
-		}
 	}
-
+	assert(found == 1);
+	if (S.s_verbose) {
+		printf("duplicate: new=%x old=%x i=%1d\n", *((void **) new), ((void *) old), i);
+	}
 
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;

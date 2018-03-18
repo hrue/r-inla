@@ -19560,6 +19560,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		if (std) {
 			inla_besag_scale(arg, adj, mb->verbose);
+			if (mb->verbose) {
+				printf("\t\tscale.model: prec_scale[%g]\n", arg->prec_scale[0]);
+			}
 		}
 
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
@@ -19589,6 +19592,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		if (std) {
 			inla_besag_scale(arg->besag_arg, adj, mb->verbose);
+			if (mb->verbose) {
+				printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
+			}
 		}
 
 		inla_make_besag2_graph(&(mb->f_graph[mb->nf]), arg->besag_arg->graph);
@@ -19631,6 +19637,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		if (std) {
 			inla_besag_scale(arg->besag_arg, adj, mb->verbose);
+			if (mb->verbose) {
+				printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
+			}
 		}
 
 		/*
@@ -23639,7 +23648,7 @@ double extra(double *theta, int ntheta, void *argument)
 					case GMRFLib_EPOSDEF:
 					{
 						int ii;
-						double eps = GMRFLib_eps(0.75);
+						double eps = GMRFLib_eps(0.5);
 
 						for (ii = 0; ii < spde->graph->n; ii++) {
 							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -23758,7 +23767,7 @@ double extra(double *theta, int ntheta, void *argument)
 					case GMRFLib_EPOSDEF:
 					{
 						int ii;
-						double eps = GMRFLib_eps(0.75);
+						double eps = GMRFLib_eps(0.5);
 
 						for (ii = 0; ii < spde2->graph->n; ii++) {
 							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -23873,7 +23882,7 @@ double extra(double *theta, int ntheta, void *argument)
 					case GMRFLib_EPOSDEF:
 					{
 						int ii;
-						double eps = GMRFLib_eps(0.75);
+						double eps = GMRFLib_eps(0.5);
 
 						for (ii = 0; ii < spde3->graph->n; ii++) {
 							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -24126,7 +24135,7 @@ double extra(double *theta, int ntheta, void *argument)
 					case GMRFLib_EPOSDEF:
 					{
 						int ii;
-						double eps = GMRFLib_eps(0.75);
+						double eps = GMRFLib_eps(0.5);
 
 						for (ii = 0; ii < arg->n; ii++) {
 							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -24231,7 +24240,7 @@ double extra(double *theta, int ntheta, void *argument)
 					case GMRFLib_EPOSDEF:
 					{
 						int ii;
-						double eps = GMRFLib_eps(0.75);
+						double eps = GMRFLib_eps(0.5);
 
 						for (ii = 0; ii < arg->n; ii++) {
 							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -24328,7 +24337,7 @@ double extra(double *theta, int ntheta, void *argument)
 					case GMRFLib_EPOSDEF:
 					{
 						int ii;
-						double eps = GMRFLib_eps(0.75);
+						double eps = GMRFLib_eps(0.5);
 
 						/*
 						 * only need to add for the z-part; the last m components.
@@ -24427,7 +24436,7 @@ double extra(double *theta, int ntheta, void *argument)
 					case GMRFLib_EPOSDEF:
 					{
 						int ii;
-						double eps = GMRFLib_eps(0.75);
+						double eps = GMRFLib_eps(0.5);
 
 						/*
 						 * only need to add for the z-part; the last m components.
@@ -24547,7 +24556,7 @@ double extra(double *theta, int ntheta, void *argument)
 					case GMRFLib_EPOSDEF:
 					{
 						int ii;
-						double eps = GMRFLib_eps(0.75);
+						double eps = GMRFLib_eps(0.5);
 						for (ii = 0; ii < mb->f_graph_orig[i]->n; ii++) {
 							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
 						}
@@ -24777,7 +24786,7 @@ double extra(double *theta, int ntheta, void *argument)
 						switch (retval) {
 						case GMRFLib_EPOSDEF:
 						{
-							double eps = GMRFLib_eps(0.75);
+							double eps = GMRFLib_eps(0.5);
 							for (jj = 0; jj < n; jj++) {
 								cc_add[jj] = (cc_add[jj] == 0.0 ? eps : cc_add[jj] * 10.0);
 							}
@@ -30051,7 +30060,7 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose)
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 
-			double *c = Calloc(def->graph->n, double), eps = GMRFLib_eps(0.75);
+			double *c = Calloc(def->graph->n, double), eps = GMRFLib_eps(0.5);
 			for (i = 0; i < def->graph->n; i++) {
 				c[i] = eps;
 			}

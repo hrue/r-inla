@@ -2732,8 +2732,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		if (!lproblem) {
 			if (GMRFLib_catch_error_for_inla) {
 				int ret;
-				ret =
-				    GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value,
+				ret = GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value,
 							       constr, GMRFLib_NEW_PROBLEM, store);
 				if (ret != GMRFLib_SUCCESS) {
 					catch_error = 1;

@@ -531,6 +531,15 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			(*problem)->sub_sm_fact.TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(store->TAUCS_symb_fact);
 		}
 
+		if (store_use_symb_fact && (smtp == GMRFLib_SMTP_PARDISO)) {
+			FIXME("ADDED NEW EXPERIMENTAL CODE");
+			GMRFLib_pardiso_store_tp *s = Calloc(1, GMRFLib_pardiso_store_tp);
+			s->graph = (*problem)->sub_graph;
+			// use the internal cached storage
+			GMRFLib_duplicate_pardiso_store(&((*problem)->sub_sm_fact.PARDISO_fact), s);
+			Free(s);
+		}
+
 		if (GMRFLib_catch_error_for_inla) {
 			/*
 			 * special version for INLA 
