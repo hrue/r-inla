@@ -77,7 +77,6 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 			break;
 
 		case GMRFLib_SMTP_PARDISO:
-			FIXME1("TURN OFF REORDERING HERE FOR PARDISO");
 			if (0) {
 				if (sm_fact->PARDISO_fact == NULL) {
 					GMRFLib_EWRAP1(GMRFLib_pardiso_init(&(sm_fact->PARDISO_fact)));
@@ -176,7 +175,7 @@ int GMRFLib_build_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_Qfunc_tp *
 
 	case GMRFLib_SMTP_PARDISO:
 		if (GMRFLib_catch_error_for_inla) {
-			if (sm_fact->PARDISO_fact == NULL){
+			if (sm_fact->PARDISO_fact == NULL) {
 				GMRFLib_pardiso_init(&(sm_fact->PARDISO_fact));
 				GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph);
 			}
@@ -221,7 +220,8 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_
 	case GMRFLib_SMTP_TAUCS:
 		if (GMRFLib_catch_error_for_inla) {
 			ret =
-			    GMRFLib_factorise_sparse_matrix_TAUCS(&(sm_fact->TAUCS_L), &(sm_fact->TAUCS_symb_fact), &(sm_fact->finfo), &(sm_fact->TAUCS_L_inv_diag));
+			    GMRFLib_factorise_sparse_matrix_TAUCS(&(sm_fact->TAUCS_L), &(sm_fact->TAUCS_symb_fact), &(sm_fact->finfo),
+								  &(sm_fact->TAUCS_L_inv_diag));
 			if (ret != GMRFLib_SUCCESS) {
 				return ret;
 			}
@@ -267,7 +267,8 @@ int GMRFLib_free_fact_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact)
 			break;
 
 		case GMRFLib_SMTP_TAUCS:
-			GMRFLib_EWRAP1(GMRFLib_free_fact_sparse_matrix_TAUCS(sm_fact->TAUCS_L, sm_fact->TAUCS_L_inv_diag, sm_fact->TAUCS_symb_fact));
+			GMRFLib_EWRAP1(GMRFLib_free_fact_sparse_matrix_TAUCS
+				       (sm_fact->TAUCS_L, sm_fact->TAUCS_L_inv_diag, sm_fact->TAUCS_symb_fact));
 			sm_fact->TAUCS_L = NULL;
 			sm_fact->TAUCS_symb_fact = NULL;
 			break;
@@ -398,7 +399,8 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm
 		break;
 
 	case GMRFLib_SMTP_TAUCS:
-		GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix_special_TAUCS(rhs, sm_fact->TAUCS_L, sm_fact->TAUCS_L_inv_diag, graph, sm_fact->remap, idx));
+		GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix_special_TAUCS
+			       (rhs, sm_fact->TAUCS_L, sm_fact->TAUCS_L_inv_diag, graph, sm_fact->remap, idx));
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
@@ -554,7 +556,7 @@ int GMRFLib_bitmap_factorisation(const char *filename_body, GMRFLib_sm_fact_tp *
 	case GMRFLib_SMTP_PARDISO:
 		GMRFLib_EWRAP1(GMRFLib_pardiso_bitmap());
 		break;
-		
+
 	default:
 		GMRFLib_ERROR(GMRFLib_ESNH);
 		break;
