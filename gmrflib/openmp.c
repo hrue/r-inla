@@ -160,6 +160,9 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	GMRFLib_openmp->max_threads_inner = ntmax_inner;
 	GMRFLib_openmp->max_threads_outer = ntmax_outer;
 
+	P1(ntmax_inner);
+	P1(ntmax_outer);
+
 	switch (place) {
 	case GMRFLib_OPENMP_PLACES_BUILD_MODEL:
 		switch (strategy) {
@@ -395,19 +398,8 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 	nt = IMAX(1, IMIN(ntmax, nt));
 
-	FIXME("SET NT=ntmax=1!");
-	nt = GMRFLib_openmp->max_threads_outer = 1;
-
 	omp_set_num_threads(ntmax);
 	omp_set_nested(nested);
-
-	P(ntmax);
-	P(smtp_store);
-	P(strategy);
-	P(GMRFLib_openmp->max_threads_inner);
-	P(GMRFLib_openmp->max_threads_outer);
-	P(nt);
-	P(nested);
 
 	return GMRFLib_SUCCESS;
 }

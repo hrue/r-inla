@@ -29707,10 +29707,11 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	assert(B->i == NULL);				       /* I want B as dense matrix */
 	assert(problem->n == B->nrow);
 
+	FIXME1("PARDISO: this can be improved");
 #pragma omp parallel for private(i)
 	for (i = 0; i < B->ncol; i++) {
 		if (!strcasecmp(method, "solve")) {
-			GMRFLib_solve_llt_sparse_matrix(&(B->A[i * B->nrow]), &(problem->sub_sm_fact), problem->sub_graph);
+			GMRFLib_solve_llt_sparse_matrix(&(B->A[i * B->nrow]), 1, &(problem->sub_sm_fact), problem->sub_graph);
 		} else if (!strcasecmp(method, "forward")) {
 			GMRFLib_solve_l_sparse_matrix(&(B->A[i * B->nrow]), &(problem->sub_sm_fact), problem->sub_graph);
 		} else if (!strcasecmp(method, "backward")) {
