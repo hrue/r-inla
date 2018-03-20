@@ -2083,7 +2083,7 @@ int GMRFLib_ai_update_conditional_mean(GMRFLib_problem_tp * pproblem, double *x,
 			 * or solve as usual 
 			 */
 			GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix
-				       (&((*problem)->qi_at_m[kk]), &((*problem)->sub_sm_fact), (*problem)->sub_graph));
+				       (&((*problem)->qi_at_m[kk]), 1, &((*problem)->sub_sm_fact), (*problem)->sub_graph));
 		}
 
 		if (covariances) {
