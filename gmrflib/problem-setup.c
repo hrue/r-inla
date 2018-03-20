@@ -732,29 +732,53 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					/*
 					 * as usual 
 					 */
+					if (0) {
 #pragma omp parallel for private(k, kk, i) num_threads(GMRFLib_openmp->max_threads_outer)
-					for (k = 0; k < nc; k++) {
-						kk = k * sub_n;
-						for (i = 0; i < sub_n; i++) {
-							(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
+						for (k = 0; k < nc; k++) {
+							kk = k * sub_n;
+							for (i = 0; i < sub_n; i++) {
+								(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
+							}
+							GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[kk]), 1, 
+											&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 						}
-						GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[kk]),
+					} else {
+						FIXME("NEW CODE HERE");
+						for (k = 0; k < nc; k++) {
+							kk = k * sub_n;
+							for (i = 0; i < sub_n; i++) {
+								(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
+							}
+						}
+						GMRFLib_solve_llt_sparse_matrix((*problem)->qi_at_m, nc, 
 										&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 					}
 				} else {
 					/*
 					 * reuse 
 					 */
-					memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
+					if (0) {
+						memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
 #pragma omp parallel for private(k, kk, i) num_threads(GMRFLib_openmp->max_threads_outer)
-					for (k = nc - 2; k < nc; k++) {
-						kk = k * sub_n;
-						for (i = 0; i < sub_n; i++) {
-							(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
+						for (k = nc - 2; k < nc; k++) {
+							kk = k * sub_n;
+							for (i = 0; i < sub_n; i++) {
+								(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
+							}
+							GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[kk]), 1, 
+											&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 						}
-						GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[kk]),
-										&((*problem)->sub_sm_fact), (*problem)->sub_graph);
+					} else {
+						FIXME("NEW CODE HERE");
+						for (k = nc - 2; k < nc; k++) {
+							kk = k * sub_n;
+							for (i = 0; i < sub_n; i++) {
+								(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
+							}
+						}
 					}
+					GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[(nc-2)*sub_n]), 2, 
+									&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 					Free(qi_at_m_store);
 				}
 
@@ -844,7 +868,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 
 	if (!(keep & GMRFLib_KEEP_mean)) {
 		GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix
-			       ((*problem)->sub_mean, &((*problem)->sub_sm_fact), (*problem)->sub_graph));
+			       ((*problem)->sub_mean, 1, &((*problem)->sub_sm_fact), (*problem)->sub_graph));
 
 		if (!((*problem)->sub_mean_constr)) {
 			(*problem)->sub_mean_constr = Calloc(sub_n, double);

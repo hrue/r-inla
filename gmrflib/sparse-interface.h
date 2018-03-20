@@ -249,7 +249,7 @@ int GMRFLib_log_determinant(double *logdet, GMRFLib_sm_fact_tp * sm_fact, GMRFLi
 int GMRFLib_reorder_id(const char *name);
 int GMRFLib_solve_l_sparse_matrix(double *rhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph);
 int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, int findx, int toindx, int remapped);
-int GMRFLib_solve_llt_sparse_matrix(double *rhs, GMRFLib_sm_fact_tp * fact_tp, GMRFLib_graph_tp * graph);
+int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * fact_tp, GMRFLib_graph_tp * graph);
 int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * fact_tp, GMRFLib_graph_tp * graph, int idx);
 int GMRFLib_solve_lt_sparse_matrix(double *rhs, GMRFLib_sm_fact_tp * fact_tp, GMRFLib_graph_tp * graph);
 int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, int findx, int toindx, int remapped);
