@@ -532,7 +532,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		}
 
 		if (store_use_symb_fact && (smtp == GMRFLib_SMTP_PARDISO)) {
-			FIXME("ADDED NEW EXPERIMENTAL CODE");
+			FIXME1("ADDED NEW EXPERIMENTAL CODE");
 			GMRFLib_pardiso_store_tp *s = Calloc(1, GMRFLib_pardiso_store_tp);
 			s->graph = (*problem)->sub_graph;
 			// use the internal cached storage
@@ -743,7 +743,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 											&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 						}
 					} else {
-						FIXME("NEW CODE HERE");
+						FIXME1("NEW CODE HERE");
 						for (k = 0; k < nc; k++) {
 							kk = k * sub_n;
 							for (i = 0; i < sub_n; i++) {
@@ -769,7 +769,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 											&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 						}
 					} else {
-						FIXME("NEW CODE HERE");
+						FIXME1("NEW CODE HERE");
 						for (k = nc - 2; k < nc; k++) {
 							kk = k * sub_n;
 							for (i = 0; i < sub_n; i++) {
