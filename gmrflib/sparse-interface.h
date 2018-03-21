@@ -87,7 +87,12 @@ typedef enum {
 	/**
 	 * \brief The default solver
 	 */
-	GMRFLib_SMTP_DEFAULT = 2
+	GMRFLib_SMTP_DEFAULT = 2,
+
+	/**
+	 * \brief The invalid choice
+	 */
+	GMRFLib_SMTP_INVALID = -1
 
 } GMRFLib_smtp_tp;
 
