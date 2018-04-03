@@ -72,11 +72,11 @@ inla.mesh.components <- function(mesh) {
     vtx <- sort(unique(as.vector(mesh$graph$tv[tri > 0, ])))
     if (any(vertex[vtx] > 0)) {
       warning(paste0("Corner-only connected triangles detected.\n",
-                     "Vertices = ", paste0(vtx[vertex[vtx] > 0], collapse = ", "), "\n",
-                     "Components = ", paste0(vertex[vtx[vertex[vtx] > 0]], collapse = ", "), "\n",
-                     "New component = ", component, "\n",
-                     "Vertex component information will be inconsistent.", "\n",
-                     "Triangle component information will ignore corner-only connections."))
+                     "  Vertices = ", paste0(vtx[vertex[vtx] > 0], collapse = ", "), "\n",
+                     "  Components = ", paste0(vertex[vtx[vertex[vtx] > 0]], collapse = ", "), "\n",
+                     "  New component = ", component, "\n",
+                     "  Vertex component information will be inconsistent.", "\n",
+                     "  Triangle component information will ignore corner-only connections."))
     }
     vertex[vtx] <- component
   }
