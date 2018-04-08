@@ -20,10 +20,10 @@ control.compute(config, cpo, dic, gdensity, graph, hyperpar, mlik, openmp.strate
 \item{hyperpar}{  A boolean variable if the marginal for the hyperparameters should be computed. Default TRUE.}
 \item{return.marginals}{  A boolean variable if the marginals for the latent field should be returned (although it is computed). Default TRUE}
 \item{dic}{  A boolean variable if the DIC-value should be computed. Default FALSE.}
-\item{mlik}{  A boolean variable if the marginal likelihood should be computed. Default FALSE.}
-\item{cpo}{  A boolean variable if the cross-validated predictive measures (cpo, pit) should be computed}
-\item{po}{  A boolean variable if the predictive ordinate should be computed}
-\item{waic}{  A boolean variable if the Watanabe-Akaike information criteria should be computed}
+\item{mlik}{  A boolean variable if the marginal likelihood should be computed. Default \code{TRUE}.}
+\item{cpo}{  A boolean variable if the cross-validated predictive measures (cpo, pit) should be computed (default \code{FALSE})}
+\item{po}{  A boolean variable if the predictive ordinate should be computed (default \code{FALSE})}
+\item{waic}{  A boolean variable if the Watanabe-Akaike information criteria should be computed (default \code{FALSE})}
 \item{q}{  A boolean variable if binary images of the precision matrix, the reordered precision matrix and the Cholesky triangle should be generated. (Default FALSE.)}
 \item{config}{  A boolean variable if the internal GMRF approximations be stored. (Default FALSE. EXPERIMENTAL)}
 \item{smtp}{  The sparse-matrix solver, one of 'smtp' (default) or 'band'}

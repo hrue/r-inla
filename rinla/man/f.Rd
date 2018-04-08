@@ -64,7 +64,8 @@
          strata = NULL,
          rgeneric = NULL,
          scale.model = NULL,
-         args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL),
+         args.slm = list(rho.min = NULL, rho.max = NULL, 
+                         X = NULL, W = NULL, Q.beta = NULL),
          args.ar1c = list(Z = NULL, Q.beta = NULL),
          correct = NULL,
          debug = FALSE)

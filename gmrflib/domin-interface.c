@@ -261,7 +261,8 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 			GMRFLib_ai_marginal_hyperparam(fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg, G.fixed_value,
 						       G.graph,
 						       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local[GMRFLib_thread_id]->Qfunc),
-						       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[GMRFLib_thread_id]->Qfunc_arg), G.constr, G.ai_par, ais);
+						       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[GMRFLib_thread_id]->Qfunc_arg), G.constr,
+						       G.ai_par, ais);
 			*fx += con;			       /* add missing constant due to b = b(theta) */
 		}
 
@@ -299,7 +300,8 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 	fx_local = *fx;
 
 	if (debug)
-		printf("\t%d: fx_local %.12g where f_best %.12g (%s)\n", omp_get_thread_num(), fx_local, B.f_best, (fx_local < B.f_best ? "BETTER!" : ""));
+		printf("\t%d: fx_local %.12g where f_best %.12g (%s)\n", omp_get_thread_num(), fx_local, B.f_best,
+		       (fx_local < B.f_best ? "BETTER!" : ""));
 
 	*ierr = 0;
 	G.f_count[omp_get_thread_num()]++;
@@ -321,13 +323,12 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 				if (debug)
 					printf("\t%d: set: B.f_best %.12g fx %.12g\n", omp_get_thread_num(), B.f_best, fx_local);
 				if (G.ai_par->fp_log) {
-					fprintf(G.ai_par->fp_log, "max.logdens= %.6f fn= %1d theta=", -fx_local,
-						GMRFLib_domin_get_f_count());
+					fprintf(G.ai_par->fp_log, "max.logdens= %.4f fn= %1d theta=", -fx_local, GMRFLib_domin_get_f_count());
 					for (i = 0; i < G.nhyper; i++) {
-						fprintf(G.ai_par->fp_log, " %.6f", x[i]);
+						fprintf(G.ai_par->fp_log, " %.4f", x[i]);
 					}
-					fprintf(G.ai_par->fp_log, "  range=[%.3f", GMRFLib_min_value(ais->mode, G.graph->n, NULL));
-					fprintf(G.ai_par->fp_log, " %.3f]", GMRFLib_max_value(ais->mode, G.graph->n, NULL));
+					fprintf(G.ai_par->fp_log, "  range=[%.2f", GMRFLib_min_value(ais->mode, G.graph->n, NULL));
+					fprintf(G.ai_par->fp_log, " %.2f]", GMRFLib_max_value(ais->mode, G.graph->n, NULL));
 					fprintf(G.ai_par->fp_log, "\n");
 					fflush(G.ai_par->fp_log);
 					fflush(stdout);	       /* helps for remote inla */
@@ -408,7 +409,8 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 					ais = G.ai_store;
 				} else {
 					if (!ai_store[GMRFLib_thread_id]) {
-						ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE);
+						ai_store[GMRFLib_thread_id] =
+						    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE);
 					}
 					ais = ai_store[GMRFLib_thread_id];
 				}
@@ -476,7 +478,8 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 					ais = G.ai_store;
 				} else {
 					if (!ai_store[GMRFLib_thread_id]) {
-						ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE);
+						ai_store[GMRFLib_thread_id] =
+						    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE);
 					}
 					ais = ai_store[GMRFLib_thread_id];
 				}
@@ -686,7 +689,6 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 			fprintf(G.ai_par->fp_log, "Estimate Hessian Part I (%1d) ", 2 * n + 1);
 		}
 	}
-
 #pragma omp parallel for private(i)
 	for (i = 0; i < 2 * n + 1; i++) {
 		int j;
@@ -1187,7 +1189,8 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 			status_g = status_f = status_x = GSL_SUCCESS;
 			break;
 		}
-	} while ((status_g == GSL_CONTINUE) && (status_f == GSL_CONTINUE) && (status_x == GSL_CONTINUE) && (status == GSL_SUCCESS) && (iter < iter_max));
+	} while ((status_g == GSL_CONTINUE) && (status_f == GSL_CONTINUE) && (status_x == GSL_CONTINUE) && (status == GSL_SUCCESS)
+		 && (iter < iter_max));
 
 	xx = gsl_multimin_fdfminimizer_x(s);
 	G.fvalue = -gsl_multimin_fdfminimizer_minimum(s);

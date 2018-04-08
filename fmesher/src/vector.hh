@@ -834,7 +834,7 @@ namespace fmesh {
   double Vector3<T>::length() const
   {
     return (std::sqrt(s[0]*s[0]+s[1]*s[1]+s[2]*s[2]));
-  };
+  }
 
 
 
