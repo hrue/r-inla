@@ -23,7 +23,7 @@
 ##!\title{Interactive mesh building and diagnostics}
 ##!\description{Assess the finite element
 ##!  approximation errors in a mesh for interactive R sessions.
-##!  More detailed assessment tools are in \link{\code{meshbuilder}}.
+##!  More detailed assessment tools are in \code{\link{meshbuilder}}.
 ##!}
 ##!\usage{
 ##!inla.mesh.assessment(mesh)
