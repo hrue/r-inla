@@ -72,6 +72,7 @@ typedef enum {
 	GMRFLib_PARDISO_FLAG_SYMFACT,
 	GMRFLib_PARDISO_FLAG_CHOL,
 	GMRFLib_PARDISO_FLAG_QINV,
+	GMRFLib_PARDISO_FLAG_SOLVE_D,
 	GMRFLib_PARDISO_FLAG_SOLVE_L,
 	GMRFLib_PARDISO_FLAG_SOLVE_LT,
 	GMRFLib_PARDISO_FLAG_SOLVE_LLT
@@ -91,6 +92,7 @@ typedef struct {
 	int phase;
 	int L_nnz;
 	double log_det_Q;
+	double *inv_sqrt_D;
 	GMRFLib_csr_tp *Q;
 	GMRFLib_csr_tp *Qinv;
 } GMRFLib_pardiso_store_pr_thread_tp;
@@ -158,6 +160,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store);
 int GMRFLib_pardiso_num_proc();
 int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph);
 int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store_tp * store);
+int GMRFLib_pardiso_solve_D(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs);
 int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs);
 int GMRFLib_pardiso_solve_LLT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs);
 int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs);

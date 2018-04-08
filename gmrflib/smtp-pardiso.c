@@ -292,6 +292,9 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default[4] = 0;			       /* use internal reordering */
 	pardisoinit(s->pt, &(s->mtype), &(s->solver), s->iparm_default, s->dparm_default, &error);
 	
+	s->iparm_default[10] = 0;			       /* I think these are the defaults, but */
+	s->iparm_default[12] = 0;			       /* we need these for the LDL^Tx=b solver to work */
+	
 	if (error != 0) {
 		P(error);
 		GMRFLib_ERROR(GMRFLib_EPARDISO_INTERNAL_ERROR);
@@ -334,18 +337,25 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 		store->pstore[S.mnum]->iparm[36] = 0;	       /* return upper triangular Qinv */
 		break;
 
+	case GMRFLib_PARDISO_FLAG_SOLVE_D:
+		store->pstore[S.mnum]->phase = 33;	       // solve
+		store->pstore[S.mnum]->nrhs = 1;
+		store->pstore[S.mnum]->iparm[7] = 0;	       /* Max numbers of iterative refinement steps. */
+		store->pstore[S.mnum]->iparm[25] = -3;
+		break;
+
 	case GMRFLib_PARDISO_FLAG_SOLVE_L:
 		store->pstore[S.mnum]->phase = 33;	       // solve
 		store->pstore[S.mnum]->nrhs = 1;
 		store->pstore[S.mnum]->iparm[7] = 0;	       /* Max numbers of iterative refinement steps. */
-		store->pstore[S.mnum]->iparm[25] = 1;
+		store->pstore[S.mnum]->iparm[25] = -1;
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_LT:
 		store->pstore[S.mnum]->phase = 33;	       // solve
 		store->pstore[S.mnum]->nrhs = 1;
 		store->pstore[S.mnum]->iparm[7] = 0;	       /* Max numbers of iterative refinement steps. */
-		store->pstore[S.mnum]->iparm[25] = 2;
+		store->pstore[S.mnum]->iparm[25] = -2;
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_LLT:
@@ -487,11 +497,10 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	assert(store->pstore[S.mnum]->done_with_build == GMRFLib_TRUE);
 	assert(store->pstore[S.mnum]->Q != NULL);
 
-	int mnum1 = S.mnum + 1;
+	int mnum1 = S.mnum + 1, n = store->pstore[S.mnum]->Q->n, i;
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_CHOL, store);
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore[S.mnum]->phase),
-		&(store->pstore[S.mnum]->Q->n),
-		store->pstore[S.mnum]->Q->a, store->pstore[S.mnum]->Q->ia, store->pstore[S.mnum]->Q->ja,
+		&n, store->pstore[S.mnum]->Q->a, store->pstore[S.mnum]->Q->ia, store->pstore[S.mnum]->Q->ja,
 		&(store->pstore[S.mnum]->idummy), &(store->pstore[S.mnum]->nrhs),
 		store->pstore[S.mnum]->iparm, &(store->msglvl), NULL, NULL, &(store->pstore[S.mnum]->err_code), store->pstore[S.mnum]->dparm);
 
@@ -504,6 +513,14 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 
 	store->pstore[S.mnum]->log_det_Q = store->pstore[S.mnum]->dparm[32];
 	store->pstore[S.mnum]->done_with_chol = GMRFLib_TRUE;
+
+	double *D = Calloc(n, double);
+	GMRFLib_pardiso_solve_D(store, D, NULL, 1);
+	for(i = 0; i < n; i++) {
+		D[i] = 1.0/sqrt(D[i]);
+	}
+	store->pstore[S.mnum]->inv_sqrt_D = D;
+	
 	GMRFLib_LEAVE_ROUTINE;
 
 	return GMRFLib_SUCCESS;
@@ -539,10 +556,51 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_pardiso_solve_D(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs)
+{
+	GMRFLib_ENTER_ROUTINE;
+
+	double *bb = NULL;
+	int free_bb = 0, res;
+
+	if (b == NULL) {
+		int n = store->pstore[S.mnum]->Q->n, i;
+		bb = Calloc(n, double);
+		for(i = 0; i < n; i++) {
+			bb[i] = 1.0;
+		}
+		free_bb = 1;
+		nrhs = 1;
+	} else {
+		bb = b;
+	}
+	
+	res = GMRFLib_pardiso_solve_core(store, GMRFLib_PARDISO_FLAG_SOLVE_D, x, bb, nrhs);
+	if (free_bb) {
+		Free(bb);
+	}
+	GMRFLib_LEAVE_ROUTINE;
+
+	return res;
+}
+
+
+#define SCALE_FOR_D  if (1) {						\
+		int n = store->pstore[S.mnum]->Q->n, i, j, k;		\
+		for(int j = 0; j < nrhs; j++) {				\
+			int k = j * n;					\
+			for(i = 0; i < n; i++){				\
+				x[k + i] *= store->pstore[S.mnum]->inv_sqrt_D[i]; \
+			}						\
+		}							\
+	}
+
 int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs)
 {
 	GMRFLib_ENTER_ROUTINE;
+	assert(store->pstore[S.mnum]->inv_sqrt_D);
 	int res = GMRFLib_pardiso_solve_core(store, GMRFLib_PARDISO_FLAG_SOLVE_L, x, b, nrhs);
+	SCALE_FOR_D;
 	GMRFLib_LEAVE_ROUTINE;
 
 	return res;
@@ -551,12 +609,16 @@ int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp * store, double *x, double 
 int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs)
 {
 	GMRFLib_ENTER_ROUTINE;
+	assert(store->pstore[S.mnum]->inv_sqrt_D);
 	int res = GMRFLib_pardiso_solve_core(store, GMRFLib_PARDISO_FLAG_SOLVE_LT, x, b, nrhs);
+	SCALE_FOR_D;
 	GMRFLib_LEAVE_ROUTINE;
 
 	return res;
 }
+#undef SCALE_FOR_D
 
+	
 int GMRFLib_pardiso_solve_LLT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs)
 {
 	GMRFLib_ENTER_ROUTINE;
@@ -646,7 +708,8 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 	assert(store->done_with_reorder == GMRFLib_TRUE);
 	assert(store->pstore[S.mnum]->done_with_build == GMRFLib_TRUE);
 	assert(store->pstore[S.mnum]->done_with_chol == GMRFLib_TRUE);
-
+	assert(store->pstore[S.mnum]->inv_sqrt_D);
+	
 	if (store->pstore[S.mnum]->Qinv) {
 		GMRFLib_free_csr(&(store->pstore[S.mnum]->Qinv));
 	}
@@ -827,7 +890,7 @@ int my_pardiso_test(void)
 	GMRFLib_csr_tp *csr, *csr2;
 
 	GMRFLib_Q2csr(&csr, g, Qtab->Qfunc, Qtab->Qfunc_arg);
-	// GMRFLib_print_csr(stdout, csr);
+	GMRFLib_print_csr(stdout, csr);
 	P(csr->n);
 
 	GMRFLib_duplicate_csr(&csr2, csr);
@@ -850,12 +913,12 @@ int my_pardiso_test(void)
 	P(GMRFLib_openmp->max_threads_outer);
 	P(GMRFLib_openmp->max_threads_inner);
 
-	nrhs = 3;
+	nrhs = 1;
 
 	// S.s_verbose=1;
 //#pragma omp parallel for private(j) num_threads(GMRFLib_openmp->max_threads_outer)
 #pragma omp parallel for private(j) num_threads(2)
-	for (j = 0; j < 100; j++) {
+	for (j = 0; j < 1; j++) {
 		printf("this is j= %d from thread %d\n", j, omp_get_thread_num());
 
 		GMRFLib_pardiso_store_tp *store2 = NULL;
