@@ -16674,7 +16674,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	case F_AR:
 	{
-		int ntheta, order;
+		int ntheta, order, ntheta_ref = mb->ntheta;
 
 		order = mb->f_order[mb->nf];
 		ntheta = mb->f_ntheta[mb->nf] = mb->f_order[mb->nf] + 1;
@@ -16830,6 +16830,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+		mb->f_ntheta[mb->nf] = mb->ntheta - ntheta_ref;
 		break;
 	}
 
