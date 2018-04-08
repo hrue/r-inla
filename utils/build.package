@@ -65,7 +65,7 @@ logit "HGROOT=$HGROOT"
 LOGFILE="$TMPDIR/LOGFILE"
 logit "LOGFILE=$LOGFILE"
 echo $(date) >> "$LOGFILE"
-VERSION=0.0-$epoch
+VERSION="$(date +%y.%m.%d).9000"
 logit "Version is '$VERSION' on branch '$(hg branch)'"
 bdate=$(date -d @$epoch +%Y%m%d%H%M)
 date=$(date -d @$epoch)
@@ -113,7 +113,7 @@ logit "Update the NAMESPACE file"
     echo "# ## Export: func1 func2"
     echo "# etc..."
 
-    find $INLA/R -name \*.R | while read f; do
+    ls -1 $INLA/R/*.R | while read f; do
         egrep "^## *Export *:" $f | while read ff; do
             echo "$ff" | awk -F: '{print $2}' | awk '{for(i=1;i<=NF;i++) print $i}' | \
                 awk '{nf = split($0, a, /!/)

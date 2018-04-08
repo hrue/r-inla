@@ -1,4 +1,4 @@
-%%% OOOPS: modify the .Rnw and not the .tex\
+%%% OOOPS: modify the .Rnw and not the .tex 
 
 <<sett,echo=FALSE,results='hide',message=FALSE,warning=FALSE>>=
 library(knitr)
@@ -10,65 +10,9 @@ options(width=75, prompt = " ", continue = "   ")
 library(INLA)
 source('R/spde-tutorial-functions.R')
 @
-
-\begin{abstract}
-This tutorial will show you how to fit models 
-that contains at least one effect specified 
-throught an SPDE model using the `R-INLA`. 
-We will use an SPDE based model here to define 
-random effects over continuous 
-one- or two- dimensional domains.
-The usual application is data whose geographical 
-location is explicitly considered in the analysis. 
-This tutorial explores 'R-INLA' functionalities by using examples. 
-It starts with simple models and increases in complexity. 
-
-In Chapter~\ref{ch:intro} we will introduce 
-the Gaussian random fields and the SPDE framework, 
-work with a toy example and work through 
-some examples of building a mesh. 
-Then we consider three detailed 
-examples in Chapter~\ref{ch:ngns}. 
-They address non-Gaussian data, survival analysis and
-inclusion of covariates in the covariance parameters.
-In Chapter~\ref{ch:manipula} we copy random fields 
-to model two or more outcomes jointly. 
-It includes a measurement error model, 
-a coregionalization model and 
-considering part or the entire linear predictor from one 
-outcome in a linear predictor to another one. 
-The log Cox point process model is considered in 
-Chapter~\ref{ch:lcox}. 
-Finally, Chapter~\ref{ch:spacetime} 
-presents example analysis of spacetime data. 
-
-To get started you **must first read** the tutorial at
-\url{http://www.r-inla.org/examples/tutorials/spde-tutorial-from-jss}.
-If you are in a rush to fit a simple geostatistical model, 
-please see 
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/inla-spde-howto.pdf}. 
-Or you can type  
-\texttt{vignette(SPDEhowto)} for a two dimensional example 
-or \texttt{vignette(SPDE1d)} for a one dimensional example. 
-To understand mesh building you may find it helpful to 
-play with the mesh building demonstration in Shiny 
-which you can open by typing \texttt{demo(mesh2d)}. 
-
-\end{abstract}
-
-\section{Acknowledgments}
-To Sarah Gallup and Helen Sofaer for valuable 
-English review in the text. 
-To several people who brought cool problems to 
-the discussion forum 
-\url{http://www.r-inla.org/comments-1} 
-and to me individually. 
-
-\input{updates} 
-
 \chapter{Introduction}\label{ch:intro}
 
-\section{Introduction and the \cite{lindgrenRL:2011} results}\label{sec:intro}
+\section{Introduction and main results from \cite{lindgrenRL:2011}}\label{sec:intro}
 
 The R source code for this introduction is available at  
 \url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-introduction.R}
@@ -99,7 +43,7 @@ This model explictly the trend on the mean.
 
 Alternatively, it may be more natural to model 
 explictly the variations of the outcome considering 
-that it maybe similar at narby locations. 
+that it maybe similar at nearby locations. 
 The first law of geography asserts: 
 ``Everything is related to everything else, 
 but near things are more related than distant things'', 
@@ -114,253 +58,282 @@ simply one consistent spatial trend across a domain.
 Sometimes it is appropriate to include both terms in a model. 
 
 The models that accounts for spatial dependency 
-usually are definede dependin whether the locations 
+may be defined depending whether the locations 
 are areas (cities for example) or points. 
-The latter case is usually subdivided when 
-considering the locations as fixed (point-referenced data) 
-or random (point process). 
-See \cite{cressie:1993} for an introduction to spatial statistics. 
-Recently, some connections were made between 
-models for the three kind of georeferenced data, 
-\cite{diggleMRT:2013}. 
+The latter case is usually divided when 
+considering the locations as fixed 
+(geostatistics or point-referenced data) 
+or random (point process), \cite{cressie:1993}. 
 
 \subsection{The Gaussian random field}
 
 To introduce some notation, let $s$ be any 
-location in the study area and let $X(s)$ be 
-the random effect at that location. 
-$X(s)$ is a stochastic process, with $s\in \bD$, 
+location in a study area and let $U(s)$ be 
+the random (spatial) effect at that location. 
+$U(s)$ is a stochastic process, with $s\in \bD$, 
 where $\bD$ is the domain of the study area and $\bD\in \Re^d$. 
-Suppose, for example, that $\bD$ is a specific country 
+Suppose, for example, that $\bD$ is one country 
 and we have data measured at geographical 
-locations, over $d=2$ dimensions, within this country. 
+locations, over $d=2$ dimensions within this country. 
 
 Suppose we assume that we have a realization 
-of $x(s_i)$, $i=1,2,...,n$, a realization of $X(s)$ 
-in $n$ locations. It is commonlly assumed that 
-$x(s)$ has a multivariate Gaussian distribution. 
-Also, if we assume that $X(s)$ is continuous over space, 
-we have a continuously indexed Gaussian field (GF). 
+of $u(\textbf{s}_i)$, $i=1,2,...,n$, a realization of $U(s)$ 
+in $n$ locations. It is commonly assumed that 
+$u(s)$ has a multivariate Gaussian distribution. 
+If we assume that $U(s)$ is continuous over space, 
+we have a continuously-indexed Gaussian field (GF). 
 This implies that it is possible to collect these 
-data at any location within the study region. 
+data at any finite set of locations within the 
+study region. 
 To complete the specification of the distribution of 
-$x(s)$, is necessary to define its mean and covariance. 
+$u(s)$, it is necessary to define its mean and covariance. 
 
 A very simple option is to define a 
-correlation function based only on euclidean 
+correlation function based only on the Euclidean 
 distance between locations. 
 This assumes that if we have two pairs of 
-points separated by the same distance $h$, both pairs 
-have same correlation. 
-It is intuitive to choose any function 
-decreasing with $h$. 
-There is some work about the GF and correlation 
-functions in \cite{abrahamsen:1997}. 
+points separated by the same distance $h$, 
+both pairs have same degree of correlation. 
+It is intuitive to choose a function that 
+decrease with distance, $h$. 
+\cite{abrahamsen:1997} presents Gaussian 
+random fields and correlation functions. 
 
-Now, suppose that we have data $y_i$ observed at 
-locations $s_i$, $i=1,...,n$. 
-If an underlying GF generated these data, we can fit the 
-parameters of this process, based on the identity 
-$y(s_i) = x(s_i)$, where $y(s_i)$ is a 
-realization of the GF. 
+Now suppose that we have data $y_i$ observed 
+at locations $\textbf{s}_i$, $i=1,...,n$. 
+If an underlying GF generated these data, 
+we can fit the parameters of this process 
+considering $y(\textbf{s}_i) = u(\textbf{s}_i)$, where the 
+observation $y(\textbf{s}_i)$ is assumed to be a 
+realization of the GF at the location $\textbf{s}_i$. 
+If we assume $y(\textbf{s}_i) = \mu + u(\textbf{s}_i)$, 
+we have one more parameter to estimate. 
+It is worth mentioning that the distribution for 
+$u(s)$ at a finite number of points is considered 
+a realization of a multivariate distribution. 
 In this case, the likelihood function 
 is the multivariate distribution with 
-mean $\mu_x$ and covariance $\Sigma$. 
-If we assume $\mu_x = \beta_0$, 
-we have four parameters to estimate. 
+covariance $\Sigma$. 
 
-In many situations we assume that we have an underlying 
-GF but cannot directly observe it and instead observe 
-data with a measurement error 
+In many situations we assume that there is an 
+underlying GF but we cannot observe direclty. 
+Instead we observe data with a measurement error 
 \begin{align}\label{eq:toy0}
-  y(s_i) = x(s_i) + e_i\;.
+y(\textbf{s}_i) = u(\textbf{s}_i) + e_i .
 \end{align}
 It is common to assume that $e_i$ is 
 independent of $e_j$ for all $i\neq j$ and 
 $e_i \sim N(0, \sigma_e)$. 
 This additional parameter, $\sigma_e$, measures 
-the noise, called the nugget effect. 
-In this case the covariance of the marginal distribution 
-of $y(s)$ is $\sigma^2_eI + \Sigma$. 
-This model is a short extension of the basic GF model, 
-and in this case, we have one additional parameter 
-to estimate. 
-To look more about this model 
-see \cite{diggleribeiro:2007}. 
+the remaining noise and is called the nugget effect. 
+The covariance of the marginal distribution 
+of $y(s)$ at a finite number of locations 
+is $\Sigma_y = \Sigma + \sigma^2_e\mathbf{I}$.
+This is a short extension of the basic GF model,
+and gives one additional parameter to estimate.    
+For more about this model see 
+\cite{diggleribeiro:2007}. 
 
-It is worth mentioning that the data, or the random effect,  
-on a finite number of $n$ points where we have observed 
-data are considered a realization of a 
-multivariate Gaussian distribution. 
-Therefore, to evaluate the likelihood function, or the random 
-effect distribution, we need to compute the 
-multivariate Gaussian density. 
-So, we have, in the log scale, the expression 
-\begin{equation}
--\frac{1}{2}\left(n\log(2\pi) + \log(|\Sigma|) 
-+ [x(s) - \mu_x]^{T}\Sigma^{-1}[x(s)-\mu_x]\right)
-\end{equation}\label{eq:dmvnorm}
-where $\Sigma$ is a dense $n\times n$. 
-To compute this, we need a factorization of this matrix. 
-Because this matrix is a dense, this is a operation of 
-order $O(n^3)$, so this is a 'big n problem'. 
+To usual way to evaluate the likelihood function, 
+which is just a multivariate Gaussian density for 
+the model in Eq.~\ref{eq:toy0}, usually considers 
+a Cholesky factorization of the covariance matrix. 
+Because this matrix is a dense, 
+this is a operation of order $O(n^3)$, 
+so this is a 'big n problem'. 
+Some software for geostatistical analysis 
+uses an empirical variogram to fit the 
+parameters of the correlation function. 
+However, this option does not make any 
+assumption about a likelihood function for the 
+data or uses a multivariate Gaussian distribution 
+for the spatially structured random effect. 
+A good description of these techniques is 
+available in \cite{cressie:1993}. 
 
-An alternative used in some software for 
-geostatistical analysis is to use the empirical 
-variogram to fit the parameters of the correlation 
-function. This option does not use any likelihood for 
-the data or uses a multivariate Gaussian 
-distribution for the spatially structured random effect. 
-A good description of these techniques is made 
-in \cite{cressie:1993}. 
+When extending the model to deal with non-Gaussian 
+data, it is usual to assume a likelihood for the 
+data conditional on an unobserved random effect, 
+which is GF to model the spatial dependence. 
+Such spatial mixed effects model is under the 
+the model based geostatistics approach, 
+cite{diggleribeiro:2007}. 
+It is possible to describe the model in Eq.~\ref{eq:toy0}
+within a larger class of models, hierarchical models.
+Suppose that we have observations $y_i$ for locations 
+$\textbf{s}_i$, $i=1,...,n$. We start with 
+\begin{equation}\begin{array}{c} 
+y_i|\theta,\beta,u_i,\mathbf{F}_i \sim P(y_i|\mu_i,\phi) \\ 
+\mathbf{u} \sim GF(0, \Sigma) 
+\end{array}\end{equation}\label{eq:hm0} 
+where $\mu_i = h(\mathbf{F}_i^{T}\beta + u_i)$, 
+$\mathbf{F}$ is a matrix of covariates, 
+$\mathbf{u}$ is the random effect, 
+$\theta$ are parameters for the random effect, 
+$\beta$ are covariate coefficients, 
+$h()$ is a function mapping the linear predictor 
+$\mathbf{F}_i^{T}\beta + u_i$ to E$(y_i) = \mu_i$ and 
+$\phi$ is a dispersion parameter of the distribution, 
+in the exponential family, which is assumed for $y_i$. 
+To write the GF with a nugget effect, 
+we replace $\beta_0$ with $\mathbf{F}_i^{T}\beta$, 
+assume a Gaussian distribution for $y_i$, with 
+variance $\sigma_e^2$ and $\mathbf{u}$ as a GF. 
+However, at times one does consider a multivariate 
+Gaussian distribution for the random effect, 
+it becomes impractical to use covariance directly 
+for model-based inference. 
 
-However, it is adequate to assume a likelihood for the 
-data and a GF for the spatial dependence as in the model 
-based approach proposed for geostatistics, \cite{diggleribeiro:2007}. 
-At times we need to use the multivariate 
-Gaussian distribution for the random effect. 
-But, if the dimension of the GF is big, 
-it becomes impractical for model-based inference 
-to directy use the covariance as defined previously. 
-
-In another area of the spatial statistics, the 
+In another area of spatial statistics, the 
 analysis of areal data, there are models specified 
 by conditional distributions that imply a joint 
 distribution with a sparse precision matrix. 
 These models are called Gaussian Markov random 
-fields (GMRF), \cite{RueHeld:2005}. 
-It is easier to make Bayesian inference when we use a GMRF 
-than when we use the GF, because to work with two dimensional 
-GMRF models we have a cost of $O(n^{3/2})$ 
-on the computations with its precision matrix. 
-This makes it easier to conduct analyses with big 'n'. 
-
-It is possible to describe the model in Eq.~\ref{eq:toy0} 
-within a larger class of models, the hierarchical models. 
-Suppose that we have observations $y_i$ on locations 
-$s_i$, $i=1,...,n$. We start with 
-\begin{equation}\begin{array}{c}
-y_i|\theta,\beta,x_i,F_i \sim P(y_i|\mu_i,\phi) \\
-\bx \sim GF(0, \Sigma)
-\end{array}\end{equation}\label{eq:hm0}
-where $\mu_i = h(F_i^{T}\beta + x_i)$, 
-$F$ is a matrix of covariates, 
-$x$ is the random effect, 
-$\theta$ are parameters of the random effect, 
-$\beta$ are covariate coefficients, 
-$h()$ is a function mapping the linear predictor 
-$F_i^{T}\beta + x_i$ to $E(y_i) = \mu_i$ and 
-$\phi$ is a dispersion parameter of the distribution, 
-in the exponential family, which is assumed for $y_i$. 
-To write the GF with a nugget effect, 
-we replace $\beta_0$ with $F_i^{T}\beta$, 
-assume a Gaussian distribution for $y_i$, with 
-variance $\sigma_e^2$ and $x$ as a GF.
+fields (GMRF) and a good reference is 
+\cite{RueHeld:2005}. 
+It is computationally easier to make Bayesian 
+inference when we use a GMRF than when we use a 
+GF, because the cost in computation of working 
+with a sparse precision matrix in GMRF models is 
+$O(n^{3/2})$.  
+This makes it easier to conduct analyses 
+with big 'n'. 
 
 We can extend this basic hierarchical model in many ways,
 and we return to some extensions later. 
 If we know the properties of the GF, 
 we can study all the practical models 
-that contain, or are based on, this random effect. 
+that contain or are based on, this random effect. 
 
 \subsection{The Mat\'{e}rn covariance}\label{sec:matern} 
 
 A very popular correlation function is the 
-Mat\'ern correlation function, which depends 
-on a scale parameter $\kappa>0$ and a smoothness 
-parameter $\nu>0$. 
-Considering two locations $s_i$ and $s_j$, the 
-stationary and isotropic Mat\'ern correlation function is: 
+Mat\'ern correlation function. 
+It has a scale parameter $\kappa>0$ 
+and a smoothness parameter $\nu>0$. 
+For two locations $\textbf{s}_i$ and $\textbf{s}_j$, the stationary 
+and isotropic Mat\'ern correlation function is: 
 \begin{equation}
-Cor_M(X(s_i), X(s_j)) = 
+Cor_M(U(\textbf{s}_i), U(\textbf{s}_j)) = 
 \frac{2^{1-\nu}}{\Gamma(\nu)}
-(\kappa \parallel s_i - s_j\parallel)^\nu 
-K_\nu(\kappa \parallel s_i - s_j \parallel)
+(\kappa \parallel \textbf{s}_i - \textbf{s}_j\parallel)^\nu 
+K_\nu(\kappa \parallel \textbf{s}_i - \textbf{s}_j \parallel)
 \end{equation}
 where $\parallel . \parallel$ denotes 
 the Euclidean distance and $K_\nu$ is the modified 
 Bessel function of the second order. 
 The Mat\'ern covariance function is
-$\sigma_x Cor(X(s_i), X(s_j))$, where 
-$\sigma_x$ is the marginal variance of the process. 
+$\sigma_u Cor(U(\textbf{s}_i), U(\textbf{s}_j))$, where 
+$\sigma_u$ is the marginal variance of the process. 
 
-If we have a realization $x(s)$ at $n$ locations, 
+If we have a realization $u(s)$ from $U(s)$ 
+at $n$ locations, $\textbf{s}_1, ..., \textbf{s}_n$, 
 we can define its joint covariance matrix. 
 Each entry of this joint covariance matrix $\Sigma$ is 
-$\Sigma_{i,j} = \sigma_xCor_M(X(s_i), X(s_j))$. 
-It is common to assume that $X(x)$ has a zero mean. 
+$\Sigma_{i,j} = \sigma_uCor_M(u(\textbf{s}_i), u(\textbf{s}_j))$. 
+It is common to assume that $U(.)$ has a zero mean. 
 We have now completely defined a multivariate 
-distribution for $x(s)$. 
+distribution for $u(s)$. 
 
-To have a better feeling how the Mat\'{e}rn 
-correlation works we have five samples drawn. 
-A $x$ sample is drawn considering 
-$x = Lz$
-where $L$ is the Cholesky decomposition 
-of the covariance and 
-$z$ is a vector with $n$ samples 
-of the standard Gaussian distribution. 
-It implies that $E(x) = E(Lz) = LE(z)=0$ 
-and $Var(X)=L'Var(z)L=L'L$. 
+To gain a better feel about the Mat\'{e}rn 
+correlation we can drawn samples from the 
+RF process and look at it. 
+A sample $\mathbf{u}$ is drawn considering 
+$\mathbf{u} = \mathbf{Lz}$
+where $\mathbf{L}$ is the Cholesky decomposition 
+of the covariance at $n$ locations and 
+$z$ is a vector with $n$ samples drawn from a 
+standard Gaussian distribution. 
+It implies that 
+$\textrm{E}(\mathbf{u}) = 
+\textrm{E}(\mathbf{Lz}) = \mathbf{L}\textrm{E}(\mathbf{z})=0$ 
+and $Var(\mathbf{u}) = \mathbf{L}'\textrm{Var}(\mathbf{z})\mathbf{L}=\mathbf{L}'\mathbf{L}$. 
 We define functions to do the sampling bellow 
 <<maternsamplefunc,results='hide'>>=
-cMatern <- function(x, nu, kappa) ### Matern correlation
-    besselK(x * kappa, nu) *
-        (x*kappa)^nu / (gamma(nu) * 2^(nu-1))
+cMatern <- function(h, nu, kappa) ### Matern correlation
+    besselK(h * kappa, nu) *
+        (h*kappa)^nu / (gamma(nu) * 2^(nu-1))
 ### function to sample from zero mean multivariate normal
 rmvnorm0 <- function(n, cov, L=NULL) { 
     if (is.null(L)) L <- chol(cov)
     return(crossprod(L, matrix(rnorm(n*ncol(L)), ncol(L))))
 }
 @ 
-These steps are collected into the function \texttt{rMatern} 
-available in the file at 
+These steps are collected into the function 
+\texttt{rMatern} that is available at 
 \url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}
 
-Eight different parameter configurations were 
-considered with the same set of five $z$'s.  
-Each of theses five samples are shown in the 
-eigh plots in Figure~\ref{fig:maternsamples}.  
+
+In order to simplify the visualization of the 
+properties, we consider a set of $n=249$ locations 
+in the one-dimensional space from 0 to $25$. 
+<<loc1>>=
+### define locations and distance matrix
+loc <- 1:249/25 
+mdist <- as.matrix(dist(loc))
+@
+
+We consider four values for the 
+smoothness parameter $\nu$. 
+The values for the $\kappa$ parameter 
+was determined from the practical range 
+expression $\sqrt{8\nu}/\kappa$, which is the 
+distance that gives correlation near $0.13$. 
+By combining the four values for $\nu$ with two 
+values for the practical range we have 
+eight parameter configurations. 
+<<param>>=
+### define parameters
+nu <- c(0.5,1,2,5)
+pract.range = c(1,4) 
+kappa <- c(sqrt(8*nu)/pract.range[1], 
+           sqrt(8*nu)/pract.range[2]) 
+### covariance parameter scenarios
+params <- cbind(nu=rep(nu, length(pract.range)),
+                kappa=kappa,
+                r=rep(pract.range, each=length(nu)))
+@
+
+The sample value depends on the covariance  
+matrix and on the noise considered 
+from the standard Gaussian distribution, $z$. 
+We consider a set of five vectors of size $n$ 
+drawn from the standard Gaussian distribution. 
 These five standard Gaussian were the same 
 among the eight parameter configurations 
 in order to keep track what the different 
 parameter configuration are doing. 
-
-<<maternsamples,eval=FALSE,results='hide'>>=
-### define parameters
-nu <- c(0.5,1,2,5)
-pract.range = c(1,4)
-kappa <- round(t(t(sqrt(8*nu))) %*% t(1/pract.range), 2)
-
-### define locations and distance matrix
-loc <- 1:249/25 
-mdist <- as.matrix(dist(loc))
-
-### sample the error
+<<error>>=
+### sample error
 set.seed(123)
-z <- matrix(rnorm(length(loc)*5), ncol=5)
+z <- matrix(rnorm(nrow(mdist)*5), ncol=5)
+@
 
-### compute covariance scenarios
-params <- cbind(nu=rep(nu, each=length(pract.range)),
-                kappa=as.vector(t(kappa)),
-                r=rep(pract.range, length(nu))) 
+Therefore, we have a set of $40$ different 
+realizations, five for each parameter configuration 
+<<samples>>=
 ### compute the correlated samples
 yy <- lapply(1:nrow(params), function(j) { ## scenarios
     v <- cMatern(mdist, params[j,1], params[j,2])
-    diag(v) <- 1+1e-10
+    diag(v) <- 1 + 1e-10
     return(list(params=params[j,], ### parameter scenario
                 y=crossprod(chol(v), z))) ### compute sample
 })
+@
 
+These samples are shown in the eight
+plots in Figure~\ref{fig:maternsamples}.       
+
+<<maternsamples,eval=FALSE,results='hide'>>=
 ### visualize
 (ry <- range(unlist(lapply(yy, tail, 1))))
-par(mfrow=c(4,2), mar=c(2,2,1,.1), mgp=c(1.5,0.7,0), las=1)
+par(mfcol=c(4,2), mar=c(2,2,1,.1), mgp=c(1.5,0.7,0), las=1)
 for (i in 1:length(yy)) { ### each scenario
     plot(loc, yy[[i]]$y[,1], ylim=ry, 
          xlab='', ylab='', type='n',
          main=as.expression(bquote(paste(
              nu==.(yy[[i]]$params[1]), ', ',
-             kappa==.(yy[[i]]$params[2]), ', ',
+             kappa==.(round(yy[[i]]$params[2],2)), ', ',
              r==.(yy[[i]]$params[3])))))
     for (k in 1:5) 
         lines(loc, yy[[i]]$y[,k], col=k) ### each sample 
@@ -376,50 +349,55 @@ for (i in 1:length(yy)) { ### each scenario
   value for the smoothness parameter (each line of plots).}
 \end{figure}\label{fig:maternsamples}
 
-One important point one can learn from the 
-plots in Figure~\ref{fig:maternsamples} 
-is that the main feature on the samples does 
-not depends on the smoothness parameter. 
-Additionally, if we add a noise term to a 
-smooth process it will give an obervation 
-that will be not smooth anymore. 
+One important point to observe 
+in Figure~\ref{fig:maternsamples} 
+is the main feature on the samples. 
+It almost does not depends on the smoothness parameter. 
+To see it consider one of the five samples 
+(one of the colors) and compare it for 
+different smoothness. 
+Also, image if we add a noise on a smooth process, 
+it will becomes hard them to distinguish what is 
+due to noise from what is due to smoothness. 
+Therefore, in practice we usually fix the 
+smoothness parameter and add a noise term. 
 
 \subsection{Simulation of a toy data set}\label{sec:simulatoy} 
 
 We will now draw a sample from the model in Eq.~\ref{eq:toy0} 
-and will use in Section~\ref{sec:toyexample}. 
+and use in Section~\ref{sec:toyexample}. 
 We consider a set of $n=100$ locations 
-on a square with area one with bottom left and 
-top right limits: (0,0) and (1,1). 
-We choose these locations with a higher density in 
+within a square of area one and bottom left and 
+top right limits of (0,0) and (1,1). 
+We choose a higher density of locations in 
 the bottom left corner than in the top right corner. 
 The \pkg{R} code to do this is:
 <<rpts>>=
 n <- 200;  set.seed(123) 
 pts <- cbind(s1=sample(1:n/n-0.5/n)^2, s2=sample(1:n/n-0.5/n)^2)
 @ 
-and to get the (lower triangle) matrix of distances we do
+To get a (lower triangle) matrix of distances we call
 <<distpts>>=
 dmat <- dist(pts)
 @ 
 
-We choose parameter values for the Mat\'ern covariance, 
-$\sigma^2_x=5$, $\kappa=7$ and $\nu=1$. 
-Additionally, define the mean $\beta_0=10$  and 
+We choose parameter values for the Mat\'ern as 
+$\sigma^2_u=5$, $\kappa=7$ and $\nu=1$. 
+We define the mean $\beta_0=10$  and 
 the nugget parameter $\sigma^2_e=0.3$. 
-We declare values to these parameters using
+We declare values for these parameters using
 <<params>>=
-beta0 <- 10; sigma2e <- 0.3; sigma2x <- 5; kappa <- 7; nu <- 1
+beta0 <- 10; sigma2e <- 0.3; sigma2u <- 5; kappa <- 7; nu <- 1
 @ 
 
-We just need to sample from a multivariate distribution 
+Now we need to sample from a multivariate distribution 
 with constant mean equals $\beta_0$ and 
-with covariance $\sigma^2_eI + \Sigma$, that is the 
-marginal covariance for the observations. 
+covariance $\sigma^2_eI + \Sigma$, which is the 
+marginal covariance of the observations. 
 <<covMatm>>=
 mcor <- as.matrix(2^(1-nu)*(kappa*dmat)^nu * 
                   besselK(dmat*kappa,nu)/gamma(nu)) 
-diag(mcor) <- 1;   mcov <- sigma2e*diag(n) + sigma2x*mcor 
+diag(mcor) <- 1;   mcov <- sigma2e*diag(n) + sigma2u*mcor 
 @ 
 We can now sample considering the Cholesky factor times 
 a unit variance noise and add the mean 
@@ -428,9 +406,10 @@ L <- chol(mcov);   set.seed(234)
 y1 <- beta0 + drop(crossprod(L, rnorm(n))) 
 @ 
 
-We show these simulated data in a graph of the locations 
-where the size of the points is proportional to the simulated values
-in Figure~\ref{fig:grf1}, produced with the code below 
+We show these simulated data in a graph of 
+the locations where the size of the points 
+is proportional to the simulated values. 
+Figure~\ref{fig:grf1} was produced with the code below 
 <<plot1c,eval=FALSE>>=
 par(mar=c(3,3,1,1), mgp=c(1.7, 0.7, 0), las=1)
 plot(pts, asp=1, xlim=c(0,1.2), cex=y1/10)
@@ -442,156 +421,171 @@ legend('topright', format(q, dig=2), pch=1, pt.cex=q/10)
 <<plot1,echo=FALSE,fig.width=5.5,fig.height=4.7>>=
 <<plot1c>>
 @ 
-\caption{Visualization of the simulated data}
+\caption{The simulated toy example data.}
 \end{figure}\label{fig:grf1}
 
-This data will considered as a toy example in this tutorial 
-and is available in the \texttt{R-INLA} package. 
-It can be loaded by 
+This data will be used as a toy example in this tutorial. 
+It is available in the \texttt{R-INLA} package and 
+can be loaded by 
 <<datatoy>>=
 data(SPDEtoy)
 @ 
 
 \subsection{The SPDE approach}\label{sec:spde} 
 
-There are some ideas in the literature to 
-approximate an continous field by a 
-Gaussian Markov Random Field - GMRF, 
-such the one in \cite{rueT:2002}. 
-However, there are continuous indexed random fields 
-that are Markov, \cite{rozanov:1977}. 
-For a set of Mat\'{e}rn random fields, 
-those with $\alpha=\nu+d/2$ integer, 
-it turns out to fall in these class of 
-continuous Markovian random fields and 
-an explicit link between 
-the Mat\'ern Gaussian random fields and 
-a stochastic partial differential equation (SPDE) 
-was shown in \cite{lindgrenRL:2011}. 
-The solution found consider the Finite Element Method (FEM)
-along with basis functions carefully considered to 
-preserve the sparse structure of the resulting 
-precision matrix. 
-We will summarize the \cite{lindgrenRL:2011} 
-results bellow. 
+In this section we summarizes the main results 
+in \cite{lindgrenRL:2011}. 
+If your purpose does not includes understanding 
+the methodology, you can skip this section. 
+If you keep reading this section and have difficulty, 
+do not be discouraged. You may still be able to use 
+INLA effectively even if you have only a limited 
+grasp of what's 'under the hood.' 
+
+\cite{rueT:2002} proposed to approximate a continuous 
+field using a Gaussian Markov Random Field - GMRF. 
+This idea is not so strange since there are 
+continuous random fields that are Markov. 
+This is the case when the continuous field is a 
+solution of a linear stochastic partial 
+differential equation, see \cite{rozanov:1977}. 
+\cite{lindgrenRL:2011} provided that the 
+GRF with Mat\'{e}rn correlation is a solution 
+for an stochastic partial differential equation (SPDE). 
+
+If you want to get an intuition about the approach, 
+we tried to provide it in this section. 
+However, if you want to know all the details, 
+they are in the Appendix of \cite{lindgrenRL:2011}. 
+In few words it uses the Finite Element Method (FEM)
+along with basis functions carefully chosen to 
+preserve the sparse structure of the resulting precision 
+matrix for the random field at a set of mesh nodes. 
+This provides an explicit link between a 
+continuous random field and a GMRF representation, 
+which allows efficient computations. 
 
 \subsubsection{First result}\label{sec:firstres}
 
-The first result extends the result obtained by \cite{besag:1981}. 
-This result is to approximate a GF with a generalized 
-covariance function, obtained when $\nu \rightarrow 0$ 
-in the Mat\'ern correlation function. 
-This approximation, considering a regular two-dimensional 
-lattice with number of sites tending to infinite, 
-is that the full conditional has 
+Lindgren's first main provided that a GF with a generalized 
+covariance function, obtained when $\nu \rightarrow 0$ in 
+the Mat\'ern correlation function, is a solution of a SPDE. 
+This extends the result obtained by \cite{besag:1981}. 
+A more statistical way of considering this result is when 
+taking a regular two-dimensional lattice with number of 
+sites tending to infinity. 
+In this case the full conditional at the site $ij$ has 
 \begin{equation}
-E(x_{ij}|x_{-ij}) = \frac{1}{a}(x_{i-1,j}+x_{i+1,j}+x_{i,j-1}+x_{i,j+1})
+E(u_{ij}|u_{-ij}) = \frac{1}{a}(u_{i-1,j}+u_{i+1,j}+u_{i,j-1}+u_{i,j+1})
 \end{equation}
-and $Var(x_{ij}|x_{-ij}) = 1/a$ for $|a|>4$. 
+and $Var(u_{ij}|u_{-ij}) = 1/a$ for $|a|>4$. 
 In the representation using a precision matrix, 
-we have, for one single site, just the upper right 
-quadrant and with $a$ as the central element, that 
+we have, for a single site, only the upper right 
+quadrant and with $a$ as the central element, such that 
 \begin{equation}\label{eq:q0}
-\begin{matrix}
+\begin{tabular}{|cc} 
 -1  & \\
-a & -1
-\end{matrix}
+$a$ & -1 \\
+\hline
+\end{tabular}
 \end{equation}
 
-Considering a GF $x(\bu)$ with the Mat\'ern 
-covariance is a solution to the linear fractional SPDE 
+A GF $U(s)$ with Mat\'ern covariance is a solution 
+to the following linear fractional SPDE 
 \begin{equation}
-(\kappa^2 - \Delta )^{\alpha/2}x(\bu) = \bW (\bu ),\;\;\;
-\bu \in \Re^d,\;\;\;\alpha=\nu+d/2,\;\;\kappa>0,\;\;\nu>0,
+(\kappa^2 - \Delta )^{\alpha/2}u(\mathbf{s}) = \bW(\mathbf{s}),\;\;\;
+\mathbf{s} \in \mathbb{R}^d,\;\;\;\alpha=\nu+d/2,\;\;\kappa>0,\;\;\nu>0,
 \end{equation}
-\cite{lindgrenRL:2011} show that for $\nu=1$ and $\nu=2$ 
+\cite{lindgrenRL:2011} show that for $\nu=1$ and $\nu=2$, 
 the GMRF representations are convolutions of (\ref{eq:q0}). 
-So, for $\nu=1$, in that representation we have:
+So, for $\nu=1$ in that representation we have:
 \begin{equation}
-\begin{matrix}
+\begin{tabular}{|ccc} 
 1  & & \\
--2a & 2 & \\
-4+a^2 & -2a & 1
-\end{matrix}
+-2$a$ & 2 & \\
+4+$a^2$ & -2$a$ & 1 \\
+\hline
+\end{tabular}
 \end{equation}\label{eq:q1}
 and, for $\nu=2$:
 \begin{equation}
-\begin{matrix}
--1  & & &\\
-3a & -3 & &\\
--3(a^2+3) & 6a & 3 & \\
-a(a^2+12) & -3(a^2+3) & 3a & -1
-\end{matrix}
+\begin{tabular}{|cccc} 
+-1  & & & \\
+3$a$ & -3 & & \\
+-3($a^2$+3) & 6$a$ & -3 & \\
+$a$($a^2$+12) & -3($a^2$+3) & 3$a$ & -1 \\
+\hline 
+\end{tabular}
 \end{equation}\label{eq:q2}
 
-This is an intuitive result, because for as 
-the smoothness parameter, $\nu$, 
+Interpreting the result intuitively, as 
+the smoothness parameter $\nu$ 
 increases the precision matrix in the GMRF 
-representation becomes less sparse, 
-implying in conditional distributions depending 
-in a wider neighbourhood. 
+representation becomes less sparse. 
+Greater density of the matrix is because the conditional 
+distributions depend on a wider neighborhood. 
 The precision matrix for $\alpha=2$, 
-$\bQ_2=\bQ_1\bC^{-1}\bQ_1$, is an standardized  
+$\bQ_2=\bQ_1\bC^{-1}\bQ_1$, is a standardized  
 square of the precision matrix for 
 $\alpha=1$, $\bQ_1$. 
 
-However, it does not implies that the conditional 
-mean is an average over a wider neighbourhood areas. 
-This is like when going from first order random walk to 
-the second order one, wich can be seen as follows 
+However, the denser matrix does not imply that the 
+conditional mean is an average over a wider neighborhood. 
+The conceptual parallel is going from a 
+first order random walk to a second order one. 
 To understand this point let us consider the precision 
 matrix for the first order random walk, 
 its square and the precision matrix for the 
-second order random walk
+second order random walk. 
 <<rw1rw2>>=
 (q1 <- INLA:::inla.rw1(n=5))
 crossprod(q1) ### same inner pattern as for RW2
 INLA:::inla.rw2(n=5)
 @ 
-where we can see that the difference 
+We can see that the difference 
 is only in the corners.
 
 \subsubsection{Second result}\label{sec:secres}
 
-It is common that the data locations are not on a grid 
-rather on a set of irregularly distributed set of points. 
-Then, a second set of results was shown in 
-\cite{lindgrenRL:2011} in order to provide a 
-solution for the case of dealing with irregular grids. 
-This uses the finite element method thechnique - FEM, 
-which is standard in engineeering and applied mathematics 
+It is common point data are not located on a grid, 
+but instead are distributed irregularly.  
+\cite{lindgrenRL:2011} provide a second set of results 
+that provide a solution for the case irregular grids. 
+They use the finite element method technique (FEM), 
+a tool that is used widely in 
+engineering and applied mathematics 
 to solve differential equations. 
 
-The domain can be divided into a set o 
-non-intersecting triangles, 
-that can be irregular, where any two
-triangles meet in at most a common edge or corner. 
+The domain can be divided into a set of 
+non-intersecting triangles, which may be 
+irregular, where any two triangles meet 
+in at most a common edge or corner. 
 The three corners of a triangle are named 
 vertices or nodes. 
 The solution for the SPDE and its properties 
-will depends on the basis functions considered. 
-In \cite{lindgrenRL:2011} the choise was carefully 
-considered in order to preserve the sparse structure 
+will depend on the basis functions used. 
+\cite{lindgrenRL:2011} choose basis functions 
+carefully in order to preserve the sparse structure 
 of the resulting precision matrix. 
 
-The approximation is considered as  
-\[x(\bu) = \sum_{k=1}^{m}\psi_k(\bu)w_k\]
-where $\psi_k$, $k=1,...,m$ are basis functions, 
-$w_k$ Gaussian distributed weights $w_k$ whith 
-$m$ the number of vertices in the triangulation.
-By the choise of $\psi_k$ to be piecewise linear in each triangle, 
-with $\psi_k$ is 1 at vertices $k$ and 0 at all other vertices, 
-we have that $w_k$ is the value of the field at the vertice $k$. 
+The approximation is 
+\[u(\mathbf{s}) = \sum_{k=1}^{m}\psi_k(\mathbf{s})w_k\]
+where $\psi_k$ are basis functions, 
+$w_k$ are Gaussian distributed weights, 
+$k=1,...,m$ with $m$ the number of vertices in the triangulation.
+Because $\psi_k$ is piecewise linear within each triangle, 
+with $\psi_k$ is equal to 1 at vertices $k$ 
+and 0 at all other vertices, 
+we $w_k$ is the value of the field at the vertex $k$. 
 A stochastic weak solution was considered to show that 
 the joint distribution for the weights determines 
 the full distribution in the continuous domain. 
-These weighs can them be interpolated for 
+These weights can be interpolated for 
 any point inside the triangulated domain. 
 
-Without more details we will focus in the resulting precision matrix. 
-It does considers the triangulation and the basis functions. 
-It is very intuitive and matches the first result when 
-applying for a regular grid. 
+We will now focus on the resulting precision matrix. 
+It does consider the triangulation and the basis functions. 
+It matches the first result when applying for a regular grid. 
 Consider the set of $m\times m$ matrices 
 $\bC$, $\bG$ and $\bK_{\kappa}$ with entries 
 \begin{equation}
@@ -607,25 +601,29 @@ as a function of $\kappa^2$ and $\alpha$ can be written as
 \bQ_{\alpha,\kappa} = \bK_{\kappa}\bC^{-1}Q_{\alpha-2,\kappa}\bC^{-1}\bK_{\kappa}, 
 \;\;\;\mbox{for} \;\;\alpha = 3,4,...\;.
 \end{array}\end{equation}
-The actual $\bK_{\kappa}$ matrix does consider 
+The actual $\bK_{\kappa}$ matrix consider 
 \[\tilde{\bC}_{i,j} = \langle \psi_i, 1 \rangle\]
 instead, which is common when working with FEM.
 Since $\tilde{\bC}$ is diagonal  
 $\bK_{\kappa}$ is as sparse as $\bG$. 
 
-The projection of the weight for any location iside the mesh domain 
+The projection of the weight for any 
+location inside the mesh domain 
 considers a linear interpolation in 2D. 
-It is done considering the barycentric coordinates of the point 
+It uses the barycentric coordinates of the point 
 with respect to the coordinates of the triangle vertices. 
-For this particular case it is also known as 
+For this particular case they are known also as 
 areal coordinates. 
-As a result, when a point is inside a triangle 
+When a point is inside a triangle 
 we have three non-zero values in the corresponding line of $\bA$. 
 When it is along an edge, we have two non-zeros 
 and when the point is on top of a triangle vertex 
-we have only one non-zero which is equals to one. 
+we have only one non-zero which equals one. 
 
-<<mesh0, echo=FALSE, results='hide'>>=
+The following code creates a set of six points, 
+builds a mesh around them and extracts the FEM 
+matrices ($\mathbf{C}$, $\mathbf{G}$ and $\mathbf{A}$):
+<<mesh0, echo=TRUE, results='hide'>>=
 s <- 3 ### this factor will only changes C, not G
 pts <- rbind(c(1,1), c(2,1), 
              c(2.6, 1), c(0.7,1.7), 4:5/3, c(2,1.7))*s
@@ -641,17 +639,17 @@ fem <- inla.mesh.fem(mesh, order=1)
 A <- inla.spde.make.A(mesh, pts)
 @ 
 
-We can see how intuitive is this result when 
-considering the structure of each one of these matrices, 
-which are detailed in Appendix A.2 in \cite{lindgrenRL:2011}. 
-It may be easier to understand it when considering 
+We can gain intuition about this result by 
+considering the structure of each matrix 
+which is detailed in Appendix A.2 in \cite{lindgrenRL:2011}. 
+It may be easier to understand it by considering 
 the plots in Figure~\ref{fig:mesh0}. 
 In this figure we have a mesh
 with \Sexpr{format(m)} nodes,
-shown in thicker border lines, 
-and the corresponding dual mesh, 
-which form a colection of polygons 
-around each mesh vertice. 
+shown in thicker border lines. 
+The corresponding dual mesh form 
+a collection of polygons 
+around each mesh vertex. 
 
 <<mesh0plot,eval=FALSE>>=
 par(mfrow=c(1,3), mar=c(2,2,1,1))
@@ -702,16 +700,17 @@ grid.arrange(
 \end{figure}\label{fig:mesh0}
 
 The $\tilde{\bC}$ matrix is diagonal for $\tilde{\bC}_{ii}$ 
-equals area of the polygons formed from the dual mesh. 
+equals the area of the polygons formed from the dual mesh. 
 The $\tilde{\bC}_{ii}$ is equal the sum of one third 
 the area of each triangle that the vertice $i$ is part of. 
 Notice that each polygon around each mesh node is formed 
 by one third of the triangles that it is part of. 
 
 The $\bG$ matrix reflects the connectivity of the mesh nodes. 
-That is nodes note conected by edges has corresponding entry as zero. 
-The values does not depends on the size of the triangles as 
-it is scaled by the area of the triangles, 
+Nodes not connected by edges have corresponding entry as zero. 
+The values do not depend on the size of the triangles as 
+they are scaled by the area of the triangles. 
+For more detailed information, 
 see A.2 in \cite{lindgrenRL:2011}. 
 
 We have seen that the resulting precision matrix for 
@@ -728,15 +727,15 @@ persp(proj$x, proj$y, z, xlab='x', ylab='y', theta=10, phi=80, col=gray(1), bord
 @ 
 
 The $\bQ$ precision matrix is generalized for a fractional values 
-of $\alpha$ (or $\nu$) using a Taylor approximation, 
-see the author's discussion response in \cite{lindgrenRL:2011}. 
+of $\alpha$ (or $\nu$) using a Taylor approximation. 
+See the author's discussion response in \cite{lindgrenRL:2011}. 
 From this approximation, we have the polynomial of 
 order $p=\lceil \alpha \rceil$ for the precision matrix 
 \begin{equation}\label{eq:Qfrac}
 \bQ = \sum_{i=0}^p b_i \bC(\bC^{-1}\bG)^i.
 \end{equation}
-For $\alpha=1$ and $\alpha=2$ we have the (\ref{eq:Qalpha}). 
-Because for $\alpha=1$, we have $b_0=\kappa^2$ and $b_1=1$, 
+For $\alpha=1$ and $\alpha=2$ we have (\ref{eq:Qalpha}). 
+For $\alpha=1$, we have $b_0=\kappa^2$ and $b_1=1$, 
 and for $\alpha=2$, we have $b_0=\kappa^4$, 
 $b_1=\alpha\kappa^4$ and $b_2=1$. 
 For fractional $\alpha=1/2$, 
