@@ -10,23 +10,16 @@ if ! $(is_set INLA_MAC); then
     export INLA_MAC=rueh@kw-16659.kaust.edu.sa
 fi
 
-if ! $(is_set INLA_LINUX); then
-    ##export INLA_LINUX=hrue@inla.math.ntnu.no ## ubuntu
-    export INLA_LINUX=hrue@192.168.124.71
+IP=$(~/bin/my-vm-addr)
+if [ -n "$IP" ]; then
+    export INLA_LINUX=hrue@$IP
     export INLA_LINUX_PORT=22
-
-    ##export INLA_LINUX=hrue@localhost.localdomain ## centos
-    ##export INLA_LINUX_PORT=19999
+    yes yes | ssh hrue@$IP echo Testing connection
 fi
 
 if ! $(is_set INLA_INLA); then
     export INLA_INLA=hrue@inla.math.ntnu.no
 fi
-
-if ! $(is_set INLA_WINDOWS); then
-    export INLA_WINDOWS=$(echo ~/p/inla/builds/windows)
-fi
-
 
 output () {
     echo "$0: $@"

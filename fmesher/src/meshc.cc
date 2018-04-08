@@ -4,6 +4,7 @@
 #include <map>
 #include <sstream>
 #include <cmath>
+#include <vector>
 
 #include "predicates.hh"
 #include "meshc.hh"
@@ -36,7 +37,7 @@ namespace fmesh {
 	    darts_quality_.end());
   }
 
-  const double MCQ::quality(const Dart& d) const
+  double MCQ::quality(const Dart& d) const
   {
     if (empty())
       return 0.0;
@@ -88,7 +89,7 @@ namespace fmesh {
       quality_limits_(NULL),
       quality_limits_cap_(0)
   {
-    setQ(quality_limit,quality_limits);
+    setQ(quality_limit, quality_limits, nQL);
   }
 
   void MCQtri::setQ(double quality_limit,
@@ -150,7 +151,7 @@ namespace fmesh {
 
   double MCQtri::calcQ(const Dart& d) const {
     return (calcQtri(d) - getQ(d.t()));
-  };
+  }
 
   double MCQskinny::calcQtri(const Dart& d) const
   {
@@ -195,7 +196,7 @@ namespace fmesh {
     }
   }
 
-  const MCQsegm::meta_type MCQsegm::meta(const Dart& d) const
+  MCQsegm::meta_type MCQsegm::meta(const Dart& d) const
   {
     if (MCQ::empty())
       return meta_type();
@@ -258,7 +259,7 @@ namespace fmesh {
     return false;
   }
 
-  const double MCQswapable::quality(const Dart& d) const
+  double MCQswapable::quality(const Dart& d) const
   {
     if (MCQ::foundQ(d)) return MCQ::quality(d);
     Dart dh(d);
@@ -1183,7 +1184,9 @@ namespace fmesh {
     }
     
     MESHC_LOG("CET finished" << endl << *this);
+#ifndef FMESHER_NO_X
     M_->redrawX11("CET finished");
+#endif
     
     state_ = State_CET;
     return true;
@@ -1240,7 +1243,7 @@ namespace fmesh {
     int i;
 
     /* Construct interior boundary normals. */
-    Point n[sides]; /* Normal vectors. */
+    std::vector<Point> n(sides); /* Normal vectors. */
     double th;
     for (i=0;i<sides;i++) {
       th = 2.0*M_PI*double(i)/double(sides);
@@ -1250,7 +1253,7 @@ namespace fmesh {
     }
     
     /* Initialise enclosure. */
-    double d[sides]; /* Distances from origin for boundary. */
+    std::vector<double> d(sides); /* Distances from origin for boundary. */
     for (i=0;i<sides;i++) {
       d[i] = Vec::scalar(n[i],M_->S(0));
     }
@@ -1298,7 +1301,7 @@ namespace fmesh {
 
     MESHC_LOG("Calculate enclosure boundary." << endl);
 
-    Point S[sides];
+    std::vector<Point> S(sides);
     double a0, a1, n01;
     int j;
     for (i=0;i<sides;i++) {
@@ -1313,19 +1316,21 @@ namespace fmesh {
 
     /* Add enclosure triangles. */
     MESHC_LOG("Add enclosure triangles." << endl);
-    Int3 TV[sides-2];
+    std::vector<Int3> TV(sides-2);
     for (i=0;i<sides-2;i++) {
       TV[i][0] = nV+(0);
       TV[i][1] = nV+(i+1);
       TV[i][2] = nV+((i+2)%sides);
     }
 
-    M_->S_append(Matrix3double(sides,S));
-    M_->TV_append(Matrix3int(sides-2,TV));
+    M_->S_append(Matrix3double(sides,S.data()));
+    M_->TV_append(Matrix3int(sides-2,TV.data()));
 
     MESHC_LOG("CET finished" << endl << *this);
+#ifndef FMESHER_NO_X
     M_->redrawX11("CET finished");
-
+#endif
+    
     state_ = State_CET;
     return true;
   }
@@ -1383,7 +1388,9 @@ namespace fmesh {
     }
       
     MESHC_LOG("DT finished" << endl << *this);
+#ifndef FMESHER_NO_X
     M_->redrawX11("DT finished");
+#endif
 
     return true;
   }
@@ -1463,7 +1470,7 @@ namespace fmesh {
     constr_boundary_ = constrListT(constr.begin(),constr.end());
     
     return buildCDT();
-  };
+  }
 
   bool MeshC::CDTInterior(const constrListT& constr)
   {
@@ -1472,7 +1479,7 @@ namespace fmesh {
     constr_interior_ = constrListT(constr.begin(),constr.end());
     
     return buildCDT();
-  };
+  }
 
   bool MeshC::CDT(const constrListT& boundary, const constrListT& interior)
   {
@@ -1482,7 +1489,7 @@ namespace fmesh {
     constr_interior_ = constrListT(interior.begin(),interior.end());
     
     return buildCDT();
-  };
+  }
 
 
 
@@ -1658,8 +1665,10 @@ namespace fmesh {
       dh = *i;
       triangles.insert(dh.t());
 
+#ifndef FMESHER_NO_X
       if (M_->useX11())
 	M_->drawX11triangle(dh.t(),true);
+#endif
 
       if (v0 == dh.v()) {
 	boundary0.rbegin()->second++;
@@ -1677,8 +1686,10 @@ namespace fmesh {
     dh.alpha2();
     triangles.insert(dh.t());
 
+#ifndef FMESHER_NO_X
     if (M_->useX11())
       M_->drawX11triangle(dh.t(),true);
+#endif
 
     v0 = d0.v();
     v1 = d1.v();
@@ -2129,10 +2140,12 @@ namespace fmesh {
     MESHC_LOG("Interior segments after CDT:" << endl << interior_);
 
     MESHC_LOG("CDT finished" << endl << *this);
+#ifndef FMESHER_NO_X
     M_->redrawX11("CDT finished");
+#endif
 
     return (constr_boundary_.empty() && constr_interior_.empty());
-  };
+  }
 
 
 
@@ -2216,7 +2229,7 @@ namespace fmesh {
 	continue;
       }
 
-      if ((max_n0_ >= 0) & (max_n0_ <= M_->nV())) {
+      if ((max_n0_ >= 0) & (max_n0_ <= int(M_->nV()))) {
 	MESHC_LOG("Max vertex count reached: max_n0 = "
 		  << max_n0_ << " <= nV = "
 		  << M_->nV() << endl);
@@ -2249,7 +2262,7 @@ namespace fmesh {
 	continue;
       }
       
-      if ((max_n1_ >= 0) & (max_n1_ <= M_->nV())) {
+      if ((max_n1_ >= 0) & (max_n1_ <= int(M_->nV()))) {
 	MESHC_LOG("Max vertex count reached: max_n1 = "
 		  << max_n1_ << " <= nV = "
 		  << M_->nV() << endl);
@@ -2280,10 +2293,12 @@ namespace fmesh {
     }
 
     MESHC_LOG("RCDT finished" << endl << *this);
+#ifndef FMESHER_NO_X
     M_->redrawX11("RCDT finished");
+#endif
 
     return true;
-  };
+  }
 
   bool MeshC::RCDT(double angle_limit,
 		   double big_limit,
@@ -2295,7 +2310,7 @@ namespace fmesh {
     if (!prepareRCDT(1./std::sin(M_PI/180.*angle_limit)/2.,
 		     big_limit,big_limits,nQL,max_n0,max_n1)) return false;
     return buildRCDT();
-  };
+  }
 
 
   /*!
@@ -2383,10 +2398,12 @@ namespace fmesh {
 	      << boundary_);
 
     MESHC_LOG("PruneExterior finished" << endl << *this);
+#ifndef FMESHER_NO_X
     M_->redrawX11("PruneExterior finished");
+#endif
 
     return true;
-  };
+  }
 
 
 
@@ -2401,7 +2418,7 @@ namespace fmesh {
       big_.setQv(nVorig,big_.getQ());
     }
     return M_->nV()-1;
-  };
+  }
 
   int MeshC::addVertices(const Matrix3double& S)
   {
@@ -2412,7 +2429,7 @@ namespace fmesh {
 	big_.setQv(v,big_.getQ());
     }
     return M_->nV()-S.rows();
-  };
+  }
 
 
   Dart MeshC::swapEdge(const Dart& d, MCQswapable& swapable)

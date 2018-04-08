@@ -15,10 +15,11 @@
 ##!        mu, 
 ##!        sample,
 ##!        constr,
-##!        reordering = inla.reorderings(),
+##!        reordering = INLA::inla.reorderings(),
 ##!        seed = 0L,
 ##!        logdens = ifelse(missing(sample), FALSE, TRUE),
-##!        compute.mean = ifelse(missing(sample), FALSE, TRUE))
+##!        compute.mean = ifelse(missing(sample), FALSE, TRUE)),
+##!        num.threads = 1L)
 ##! }
 ##! 
 ##! \arguments{
@@ -37,7 +38,10 @@
 ##!               If \code{seed > 0L} then this value is used as the seed for the RNG.}
 ##!   \item{logdens}{If \code{TRUE}, compute also the log-density of each sample. Note that the output format then change.}
 ##!   \item{compute.mean}{If \code{TRUE}, compute also the (constrained) mean. Note that the output format then change.}
-##!}
+##!   \item{num.threads}{The number of threads that can be used. \code{num.threads>1L} requires
+##!       \code{seed = 0L}. Only use \code{num.threads > 1L} for large problems/number of
+##!       samples. This option does currently NOT use the default one set by \code{inla.setOption()}. }
+##! }
 ##!\value{
 ##!      The log-density has form {-1/2(x-mu)^T Q (x-mu) + b^T x}
 ##!
@@ -93,13 +97,24 @@
         mu, 
         sample,
         constr,
-        reordering = inla.reorderings(),
+        reordering = INLA::inla.reorderings(),
         seed = 0L,
         logdens = ifelse(missing(sample), FALSE, TRUE), 
-        compute.mean = ifelse(missing(sample), FALSE, TRUE))
+        compute.mean = ifelse(missing(sample), FALSE, TRUE),
+        num.threads = 1L)
 {
     stopifnot(!missing(Q))
     stopifnot(n >= 1L)
+
+    if (is.null(num.threads)) {
+        num.threads = 1L
+    }
+    num.threads = max(num.threads, 1L)
+    if (num.threads > 1L) {
+        if (seed != 0L) {
+            stop("num.threads > 1L require seed = 0L")
+        }
+    }
 
     if (is.list(reordering)) {
         ## argument is the output from inla.qreordering()
@@ -169,13 +184,15 @@
     }
 
     if (inla.os("linux") || inla.os("mac")) {
-        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample", 
-            "-r", reordering, "-z", seed, Q.file, x.file, as.integer(n), rng.file,
-            sample.file, b.file, mu.file, constr.file, cmean.file), intern=TRUE)
+        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample",
+                         "-t", num.threads, 
+                         "-r", reordering, "-z", seed, Q.file, x.file, as.integer(n), rng.file,
+                         sample.file, b.file, mu.file, constr.file, cmean.file), intern=TRUE)
     } else if(inla.os("windows")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample",
-            "-r", reordering, "-z", seed, Q.file, x.file, as.integer(n), rng.file,
-            sample.file, b.file, mu.file, constr.file, cmean.file), intern=TRUE)
+                         "-t", num.threads, 
+                         "-r", reordering, "-z", seed, Q.file, x.file, as.integer(n), rng.file,
+                         sample.file, b.file, mu.file, constr.file, cmean.file), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }

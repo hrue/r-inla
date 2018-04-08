@@ -211,9 +211,7 @@
         inla.arg = inla.getOption("inla.arg"),
         
         ##!\item{num.threads}{ Maximum number of threads the
-        ##!\code{inla}-program will use. xFor Windows this
-        ##!defaults to 1, otherwise its defaults to \code{NULL}
-        ##!(for which the system takes over control).}
+        ##!\code{inla}-program will use}
         num.threads = inla.getOption("num.threads"),
         
         ##!\item{keep}{ A boolean variable indicating that the
@@ -403,6 +401,12 @@
     ##!}
     ##!}
 {
+    ## This will prevent values of 'OutDec' not '.' to cause error, as we create the Model.ini
+    ## file with cat().
+    old.options = options()
+    on.exit(options(old.options))
+    options(OutDec=".")
+    
     my.time.used = numeric(4)
     my.time.used[1] = Sys.time()
 
@@ -413,20 +417,21 @@
     if (missing(formula)) {
         stop("Usage: inla(formula, family, data, ...); see ?inla\n")
     }
+
     if (missing(data)) {
         stop("Missing data.frame/list `data'. Leaving `data' empty might lead to\n\t\tuncontrolled behaviour, therefore is it required.")
     }
     if (!is.data.frame(data) && !is.list(data)) {
         stop("\n\tArgument `data' must be a data.frame or a list.")
     }
-    if (!missing(weights)) {
-        if (!is.null(weights)) {
-            if (!inla.getOption("enable.inla.argument.weights")) {
-                stop(paste("Argument 'weights' must be enabled before use due to the risk of mis-interpreting the results.\n",
-                           "\tUse 'inla.setOption(\"enable.inla.argument.weights\", TRUE)' to enable it; see ?inla"))
-            }
+
+    if (!missing(weights) && !is.null(weights)) {
+        if (!inla.getOption("enable.inla.argument.weights")) {
+            stop(paste("Argument 'weights' must be enabled before use due to the risk of mis-interpreting the results.\n",
+                       "\tUse 'inla.setOption(\"enable.inla.argument.weights\", TRUE)' to enable it; see ?inla"))
         }
     }
+
 
     ## if data is a list, then it can contain elements that defines a
     ## model, like f(idx, model = model.objects). These objects crash
@@ -528,12 +533,14 @@
     ##
     have.surv = FALSE
     cont.hazard = NULL
-    for(i in 1:n.family)
+    for(i in 1:n.family) {
         have.surv = have.surv || inla.model.properties(family[i], "likelihood")$survival
+    }
 
     if (have.surv && (inla.one.of(family, c("coxph")))) {
         ## This is not supported yet. 
         stopifnot(is.null(control.predictor$A))
+
         cph = inla.coxph(formula, data, control.hazard, debug = debug)
         result = inla(
             cph$formula,
@@ -542,11 +549,9 @@
             contrasts = contrasts, 
             quantiles=quantiles,
             E = cph$E,
-            ## these should be expanded as well???  Will give an error...
-            offset= offset,
-            scale = scale,
-            weights = inla.ifelse(missing(weights) || (exists("weights") && is.function(weights)), NULL, weights), 
-            ## 
+            offset= offset, 
+            scale= scale, 
+            weights= weights, 
             Ntrials = NULL,             # Not used for the poisson
             strata = NULL,              # Not used for the poisson
             lincomb = lincomb,
@@ -584,8 +589,10 @@
         y...orig = inla.as.list.of.lists(y...orig)
         ny = max(sapply(y...orig, function(xx) if (is.list(xx)) max(sapply(xx, length)) else length(xx)))
         nc = length(y...orig)
-        if (n.family != nc)
-            stop(paste("Number of families", n.family, "does not match number of response variables", nc))
+        if (n.family != nc) {
+            stop(paste("Number of families", n.family,
+                       "does not match number of response variables", nc))
+        }
     } else {
         nc = NULL ## not in use
         if (inherits(y...orig, "inla.surv")) {
@@ -2103,7 +2110,7 @@
             if (!(names(data)[k] %in% exclude.names)) {
                 formula = as.formula(paste("~ -1 + ",  names(data)[k]))
                 tmp = model.matrix(formula, model.frame(formula,  data, na.action = na.pass))
-                colnames(tmp) = levels(data[[k]])
+                colnames(tmp) = paste0(names(data)[k], levels(data[[k]]))
                 data[[k]] = tmp
             }
         }

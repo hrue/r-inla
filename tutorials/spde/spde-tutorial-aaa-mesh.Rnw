@@ -1,3 +1,5 @@
+%%% OOPS: change .Rnw, not .tex 
+
 \section{Triangulation details and examples}\label{sec:mesh}
 
 The R source for this file is available at 
@@ -32,7 +34,7 @@ This is necessary to avoid a
 boundary effect where we have a variance 
 twice as larger at the border than within the domain 
 \cite{lindgren:2012}. 
-For more about it please see \cite{lindgrenR:2013}. 
+For more about it please see \cite{lindgrenR:2015}. 
 
 \subsection{Getting started}
 
@@ -293,7 +295,7 @@ we get a boundary with small resolution
 (in terms of number of points), for example, 
 comparing the \code{m12} and \code{m13} meshes. 
 
-\subsection{Meshes for the toy example}
+\subsection{Meshes for the toy example}\label{sec:meshestoy}
 
 To analyze the toy data set, we use 
 six triangulation options to make 
