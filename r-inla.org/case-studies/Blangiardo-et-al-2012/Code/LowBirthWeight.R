@@ -10,6 +10,10 @@ library(maptools)
 library(sp)
 library(spdep)
 georgia <- readShapePoly("co13_d00.shp")
+## Need to drop extra polygons 98 (Macon county polygon), 100, 105 (Taylor county polygons) + 137 (Lee county polygon)
+## These are very small and always adjacent to "main" polygon, so we can base neighborhood structure on "main" polygon:
+rmIdx <- c(98, 100, 105, 137)
+georgia <- georgia[-rmIdx,]
 data.georgia = attr(georgia, "data")
 #################################################
 #Create the graph for adjacencies in INLA
@@ -153,3 +157,4 @@ spplot(obj=georgia, zcol="X2007", col.regions=gray(2.5:0.5/3),main="",par.settin
 trellis.par.set(axis.line=list(col=NA))
 spplot(obj=georgia, zcol="X2010", col.regions=gray(2:0/2),main="",par.settings=list(fontsize=list(text=17)))
 #############################################################
+

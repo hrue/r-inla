@@ -272,7 +272,7 @@ void dictionary_set(dictionary * d, char *key, char *val)
 		if (d->val[i] != NULL)
 			free(d->val[i]);
 		d->val[i] = val ? strdup(val) : NULL;
-		map_stri_set(&(d->strihash), d->val[i], 1);
+		map_stri_set(&(d->strihash), d->val[i], 0);
 	} else {
 		/*
 		 * Add a new value 
@@ -324,6 +324,13 @@ void dictionary_set(dictionary * d, char *key, char *val)
 		// printf("ADD VALUE [%s] = [%s]\n", d->key[i], d->val[i]);
 		d->n++;
 	}
+
+	if (0) {
+		printf("\n");
+		dictionary_dump(d, stdout);
+		printf("\n");
+	}
+
 	return;
 }
 

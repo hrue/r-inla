@@ -42,7 +42,7 @@ for(variant in 0:1) {
         rr=inla(formula,
                family ="qloglogistic",
                data=data.frame(y, x), 
-               control.family = list(list(variant = variant, quantile = q)))
+               control.family = list(list(variant = variant, control.link = list(quantile = q))))
         print("REGRESSION")
         print(summary(rr))
                
@@ -51,7 +51,7 @@ for(variant in 0:1) {
         r=inla(formula,
                family ="qloglogisticsurv",
                data = list(y=y, event=event, x=x), 
-               control.family = list(list(variant = variant, quantile = q)))
+               control.family = list(list(variant = variant, control.link = list(quantile = q))))
         print("SURVIVAL")
         print(summary(r))
     }

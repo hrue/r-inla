@@ -19,7 +19,8 @@
  \description{Functions for defining Barrier models as an \code{inla rgeneric} model}
 
  \usage{
- inla.barrier.pcmatern(mesh, barrier.triangles, prior.range, prior.sigma, range.fraction=0.2)
+ inla.barrier.pcmatern(mesh, barrier.triangles, prior.range,
+                       prior.sigma, range.fraction=0.2)
  inla.barrier.polygon(mesh, barrier.triangles, Omega=NULL)
  inla.barrier.q(fem, ranges, sigma=1)
  inla.barrier.fem(mesh, barrier.triangles, Omega=NULL)

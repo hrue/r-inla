@@ -4,7 +4,10 @@
 #include <map>
 #include <sstream>
 #include <cmath>
+#include <vector>
+#ifndef NO_SPHERICAL_HARMONICS
 #include "gsl/gsl_sf_legendre.h"
+#endif
 
 #include "vector.hh"
 #include "ioutils.hh"
@@ -45,6 +48,8 @@ namespace fmesh {
 				     bool rotationally_symmetric)
   {
     Matrix<double> sph(sph_basis_n(max_order,rotationally_symmetric));
+
+#ifndef NO_SPHERICAL_HARMONICS
     size_t i, k, m;
     size_t GSL_res_n = gsl_sf_legendre_array_n(max_order);
     double* GSL_res_array = new double[GSL_res_n];
@@ -61,7 +66,7 @@ namespace fmesh {
     } else {
         double phi, scaling_sin, scaling_cos;
 
-	size_t Idxs2[max_order + 1];
+	std::vector<size_t> Idxs2(max_order + 1);
 	// 0, 2, 6, 12, 20, 30, 42, 56, 72, 90, 110, 132, 156, 182, 210, 240
 	for (k = 0; k <= max_order; k++) {
 	  Idxs2[k] = k*(k+1);
@@ -91,6 +96,7 @@ namespace fmesh {
    }
 
     delete[] GSL_res_array;
+#endif
 
     return sph;
   }
@@ -102,10 +108,10 @@ namespace fmesh {
 				    bool uniform_knot_angle_spacing)
   {
     Matrix<double> basis(n_basis);
-    double knots[n_basis+degree+1];
+    std::vector<double> knots(n_basis+degree+1);
     double s,s1,s2;
-    Matrix<double> control[n_basis];
-    Matrix<double> control_work[degree+1];
+    std::vector< Matrix<double> > control(n_basis);
+    std::vector< Matrix<double> > control_work(degree+1);
     size_t interval;
 
     for (size_t i=0; i<=degree; i++) {

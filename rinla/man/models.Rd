@@ -5531,6 +5531,8 @@ inla.models()
 				 }
 				\item{Model `tan'.}{Number of hyperparmeters are 0.
 				 }
+				\item{Model `quantile'.}{Number of hyperparmeters are 0.
+				 }
 				\item{Model `sslogit'.}{Number of hyperparmeters are 2.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
@@ -6229,7 +6231,7 @@ inla.models()
 								\item{doc = }{`The negBinomial likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default log logoffset'}
+								\item{link = }{`default log logoffset quantile'}
 								\item{pdf = }{`nbinomial'}
 							 }
 						 }
@@ -6760,7 +6762,7 @@ inla.models()
 								\item{doc = }{`The Weibull likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default log'}
+								\item{link = }{`default log neglog quantile'}
 								\item{pdf = }{`weibull'}
 							 }
 						 }
@@ -6788,7 +6790,7 @@ inla.models()
 								\item{doc = }{`The Weibull likelihood (survival)'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default log neglog'}
+								\item{link = }{`default log neglog quantile'}
 								\item{pdf = }{`weibull'}
 							 }
 						 }
@@ -8332,7 +8334,7 @@ inla.models()
 								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default log'}
+								\item{link = }{`default quantile'}
 								\item{pdf = }{`genPareto'}
 							 }
 						 }

@@ -4684,6 +4684,10 @@
                      doc = "The tan-link", 
                      hyper = list()
                  ), 
+                 quantile = list(
+                     doc = "The quantile-link", 
+                     hyper = list()
+                 ), 
                  sslogit = list(
                      doc = "Logit link with sensitivity and specificity", 
                      hyper = list(
@@ -4992,7 +4996,7 @@
                          ),
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "log", "logoffset", "test1", "special1", "special2"),
+                     link = c("default", "log", "logoffset", "quantile", "test1", "special1", "special2"),
                      pdf = "poisson"
                      ),
                  
@@ -5068,7 +5072,7 @@
                      survival = FALSE,
                      discrete = TRUE,
                      link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog",
-                              "log", "sslogit", "logitoffset"),
+                              "log", "sslogit", "logitoffset", "quantile"),
                      pdf = "binomial"
                      ),
 
@@ -5283,7 +5287,7 @@
                          ),
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "log", "logoffset"),
+                     link = c("default", "log", "logoffset", "quantile"),
                      pdf = "nbinomial"
                      ),
 
@@ -5716,7 +5720,7 @@
                          ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "log"),
+                     link = c("default", "log", "neglog", "quantile"),
                      pdf = "weibull"
                      ),
 
@@ -5739,7 +5743,7 @@
                          ),
                      survival = TRUE,
                      discrete = FALSE,
-                     link = c("default", "log", "neglog"),
+                     link = c("default", "log", "neglog", "quantile"),
                      pdf = "weibull"
                      ),
 
@@ -6974,7 +6978,7 @@
                      status = "experimental", 
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "log"), 
+                     link = c("default", "quantile"), 
                      pdf = "genPareto"
                  ),
 
