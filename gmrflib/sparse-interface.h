@@ -1,7 +1,7 @@
 
 /* GMRFLib-sparse-interface.h
  * 
- * Copyright (C) 2001-2006 Havard Rue
+ * Copyright (C) 2001-2018 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,12 +77,7 @@ typedef enum {
 	/**
 	 * \brief The solver in the TAUCS-library
 	 */
-	GMRFLib_SMTP_TAUCS = 2,
-
-	/**
-	 * \brief An empty template. Not in use.
-	 */
-	GMRFLib_SMTP_PROFILE = 3
+	GMRFLib_SMTP_TAUCS = 2
 } GMRFLib_smtp_tp;
 
 typedef enum {
@@ -197,17 +192,17 @@ typedef struct {
 	/**
 	 *  \brief The Cholesky factorisation (smtp == TAUCS)
 	 */
-	taucs_ccs_matrix *L;
+	taucs_ccs_matrix *TAUCS_L;
 
 	/**
 	 *  \brief The symbolic factorisation (smtp == TAUCS)
 	 */
-	supernodal_factor_matrix *symb_fact;
+	supernodal_factor_matrix *TAUCS_symb_fact;
 
 	/**
 	 *  \brief The inverse of the diagonal of L (smtp = TAUCS)
 	 */
-	double *L_inv_diag;
+	double *TAUCS_L_inv_diag;
 
 	 /**
 	 *  \brief Info about the factorization 
