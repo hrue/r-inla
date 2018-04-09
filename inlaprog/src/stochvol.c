@@ -33,5 +33,3 @@
 static const char RCSId[] = HGVERSION;
 
 #include "stochvol.h"
-
-

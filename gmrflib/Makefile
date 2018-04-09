@@ -53,7 +53,7 @@ SED   = sed
 LIBOBJ = problem-setup.o lapack-interface.o graph.o error-handler.o acm582.o \
 	GMRFLib-fortran.o optimize.o blockupdate.o gdens.o hidden-approx.o \
 	distributions.o globals.o wa.o random.o timer.o hash.o density.o \
-	smtp-band.o smtp-profile.o smtp-taucs.o sparse-interface.o rw.o \
+	smtp-band.o smtp-taucs.o sparse-interface.o rw.o \
 	bitmap.o tabulate-Qfunc.o sphere.o io.o approx-inference.o ghq.o \
 	utils.o experimental.o graph-edit.o domin.o domin-interface.o auxvar.o \
 	design.o version.o integrator.o openmp.o hgmrfm.o seasonal.o matern.o \
@@ -62,7 +62,7 @@ LIBOBJG = geo.o
 HEADERS = blockupdate.h GMRFLib.h  hidden-approx.h optimize.h hash.h \
 	distributions.h gdens.h GMRFLibP.h lapack-interface.h timer.h \
 	problem-setup.h error-handler.h globals.h graph.h wa.h random.h \
-	smtp-band.h smtp-profile.h smtp-taucs.h sparse-interface.h rw.h \
+	smtp-band.h smtp-taucs.h sparse-interface.h rw.h \
 	bitmap.h hashP.h compatibility.h taucs.h taucs_private.h ghq.h \
 	tabulate-Qfunc.h geo.h geo-coefs2.h geo-coefs3.h sphere.h io.h \
 	approx-inference.h density.h utils.h experimental.h graph-edit.h \

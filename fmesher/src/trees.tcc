@@ -27,7 +27,7 @@ namespace fmesh {
     while (i.left_idx()>=0)
       i = i.left();
     return i;
-  };
+  }
   
   
   template < class ValueType >
@@ -38,7 +38,7 @@ namespace fmesh {
     while (i.right_idx()>=0)
       i = i.right();
     return i;
-  };
+  }
   template < class ValueType >
   template < class RefValueType, class TreeRefType >
   SBBTree<ValueType>::Iterator<RefValueType,TreeRefType>
@@ -51,7 +51,7 @@ namespace fmesh {
 	i = i.parent();
       return i.parent();
     }
-  };
+  }
   template < class ValueType >
   template < class RefValueType, class TreeRefType >
   SBBTree<ValueType>::Iterator<RefValueType,TreeRefType>
@@ -64,7 +64,7 @@ namespace fmesh {
 	i = i.parent();
       return i.parent();
     }
-  };
+  }
   
   template < class ValueType >
   template < class RefValueType, class TreeRefType >
@@ -75,14 +75,14 @@ namespace fmesh {
     } else
       *this = prev();
     return *this;
-  };
+  }
   template < class ValueType >
   template < class RefValueType, class TreeRefType >
   SBBTree<ValueType>::Iterator<RefValueType,TreeRefType>&
   SBBTree<ValueType>::Iterator<RefValueType,TreeRefType>::operator++() {
     *this = next();
     return *this;
-  };
+  }
   
   
 
@@ -100,7 +100,7 @@ namespace fmesh {
       this->is_null_ = (i_ == this->C_->data_.end());
     }
     return *this;
-  };
+  }
 
   template < class T >
   template <class map_type, class Compare >
@@ -114,7 +114,7 @@ namespace fmesh {
       this->is_null_ = (i_ == the_end_);
     }
     return *this;
-  };
+  }
 
 
 
@@ -257,7 +257,7 @@ namespace fmesh {
       this->is_null_ = (i_ == this->C_->tree_->end());
     }
     return *this;
-  };
+  }
   
   template < class T >
   typename IntervalTree<T>::search_iterator& IntervalTree<T>::search_iterator::operator++() {
@@ -309,7 +309,7 @@ namespace fmesh {
       this->is_null_ = (i_ == this->C_->tree_->end());
     }
     return *this;
-  };
+  }
   
   template < class T, class SubTreeType >
   typename SegmentTree<T,SubTreeType>::search_iterator& SegmentTree<T,SubTreeType>::search_iterator::operator++() {
