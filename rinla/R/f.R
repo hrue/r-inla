@@ -109,7 +109,7 @@
     ##!\item{control.group}{TODO}
     control.group = inla.set.control.group.default(),
 
-    ##!\item{hyper}{Spesification of the hyperparameter, fixed or
+    ##!\item{hyper}{Specification of the hyperparameter, fixed or
     ##!random, initial values, priors and its parameters. See
     ##!\code{?inla.models} for the list of hyparameters for each
     ##!model and its default options.}
