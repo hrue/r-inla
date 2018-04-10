@@ -89,7 +89,7 @@ of the model if this is different from
 \item{ngroup}{TODO}
 \item{group}{TODO}
 \item{control.group}{TODO}
-\item{hyper}{Spesification of the hyperparameter, fixed or
+\item{hyper}{Specification of the hyperparameter, fixed or
 random, initial values, priors and its parameters. See
 \code{?inla.models} for the list of hyparameters for each
 model and its default options.}
