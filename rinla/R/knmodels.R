@@ -52,7 +52,7 @@
        ##!   interaction term. The data MUST be provided.}
        data,
        ##! \item{graph}{The graph for the spatial neighbor 
-       ##!   structure to be used in a \code{\ink{f}} term 
+       ##!   structure to be used in a \code{\link{f}} term 
        ##!   for the main spatial random effect term or for 
        ##!   building the spacetime interaction model.}
        graph=NULL,
@@ -69,7 +69,7 @@
        ##!   or space constrained to be equal to zero. 
        ##!   \code{2d}, \code{3d} and \code{4d} are the 
        ##!   corresponding versions when considering the 
-       ##!   diagonal add approach.  
+       ##!   diagonal add approach.}  
        type=c(paste(1:4), paste0(2:4, 'c'), paste0(2:4, 'd')), 
        ##! \item{diagonal}{The value to be added to the 
        ##!   diagonal when using the diagonal add approach.}
