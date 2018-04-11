@@ -14,11 +14,15 @@
 ##!inla.knmodels(
 ##! formula,
 ##! data,
-##! graph=NULL,
 ##! progress=FALSE, 
-##! type=c(paste(1:4), paste0(2:4, 'c'), paste0(2:4, 'd')), 
-##! control.prec,
-##! ...) 
+##! control.st=list(
+##!   t=NULL, 
+##!   s=NULL,
+##!   st=NULL,
+##!   graph=NULL,
+##!   type=c(paste(1:4), paste0(2:4, 'c'), paste0(2:4, 'd')), 
+##!   diagonal=1e-5, 
+##!   ...) 
 ##!}
 ##! \usage{
 ##!inla.knmodels.sample(
@@ -43,51 +47,51 @@
        ##!   will be added accordly to the specification in 
        ##!   the \code{type} argument. See \code{inla}}
        formula, 
-       ##! \item{data}{A data frame or list containing all 
-       ##!   the variables in the model. It has to contain 
-       ##!   an index named \code{st} for the spacetime 
-       ##!   interaction term. The data MUST be provided.}
-       data,
-       ##! \item{graph}{The graph for the spatial neighbor 
-       ##!   structure to be used in a \code{\link{f}} term 
-       ##!   for the main spatial random effect term or for 
-       ##!   building the spacetime interaction model.}
-       graph=NULL,
        ##! \item{progress}{If it is to be shown the model 
        ##!   fitting progress. Useful if more than one 
        ##!   interaction type is being fitted.}
        progress=FALSE, 
-       ##! \item{type}{The spacetime interaction type.  
-       ##!   \code{0} to \code{4} corresponds to the four 
-       ##!   interaction types in Knorr-Held, L. (2000) with 
-       ##!   all the needed sum-to-zero constraints. 
-       ##!   \code{2c}, \code{3c} and \code{4c} are 
-       ##!   the contrast version considering the first time  
-       ##!   or space constrained to be equal to zero. 
-       ##!   \code{2d}, \code{3d} and \code{4d} are the 
-       ##!   corresponding versions when considering the 
-       ##!   diagonal add approach.}  
-       type=c(paste(1:4), paste0(2:4, 'c'), paste0(2:4, 'd')), 
-       ##! \item{diagonal}{The value to be added to the 
-       ##!   diagonal when using the diagonal add approach.}
-       diagonal=1e-5, 
        ##! \item{control.st}{Named list of arguments to control
        ##!   the spacetime interaction. It contains
-       ##!  \item{t.main}{Name of the index set for the
-       ##!   main temporal effect.}
-       ##!  \item{t.spatial}{Name of the index set for the
-       ##!   main spatial effect.}
-       ##!  \item{st}{Name of the index set for the
-       ##!   spacetime interaction effect.}
-       ##!  \item{...}{Specification of the hyperparameter, 
-       ##!   fixed or random, initial value, prior and its 
-       ##!   parameters for the spacetime interaction. See 
-       ##!   \code{?inla.models} and look for \code{generic0}. 
-       ##!   By default we scale it and use the PC-prior to set 
-       ##!   the prior using the \code{pc.prec} prior with 
-       ##!   \code{param = c(0.5, 0.5)}. See documentation with 
-       ##!   \code{?inla.doc("pc.prec")}}}
-       control.st=list(t.main=NULL, t.space=NULL, st=NULL, ...),
+       control.st=list(
+           ##!  \item{t}{Name of the index set for the
+           ##!   main temporal effect.}
+           t=NULL,
+           ##!  \item{s}{Name of the index set for the
+           ##!   main spatial effect.}
+           t=NULL,
+           ##!  \item{st}{Name of the index set for the
+           ##!   spacetime interaction effect.}
+           st=NULL,
+           ##! \item{graph}{The graph for the spatial neighbor 
+           ##!   structure to be used in a \code{\link{f}} term 
+           ##!   for the main spatial random effect term or for 
+           ##!   building the spacetime interaction model.}
+           graph=NULL,
+           ##! \item{type}{The spacetime interaction type.  
+           ##!   \code{1} to \code{4} corresponds to the four 
+           ##!   interaction types in Knorr-Held, L. (2000) with 
+           ##!   all the needed sum-to-zero constraints. 
+           ##!   \code{2c}, \code{3c} and \code{4c} are 
+           ##!   the contrast version considering the first time  
+           ##!   or space constrained to be equal to zero. 
+           ##!   \code{2d}, \code{3d} and \code{4d} are the 
+           ##!   corresponding versions when considering the 
+           ##!   diagonal add approach.}  
+           type=c(paste(1:4), paste0(2:4, 'c'), paste0(2:4, 'd')), 
+           ##! \item{diagonal}{The value to be added to the 
+           ##!   diagonal when using the diagonal add approach.}
+           diagonal=1e-5, 
+           ##!  \item{...}{Specification of the hyperparameter, 
+           ##!   fixed or random, initial value, prior and its 
+           ##!   parameters for the spacetime interaction. See 
+           ##!   \code{?inla.models} and look for \code{generic0}. 
+           ##!   By default we scale it and use the PC-prior to set 
+           ##!   the prior using the \code{pc.prec} prior with 
+           ##!   \code{param = c(0.5, 0.5)}. See documentation with 
+           ##!   \code{?inla.doc("pc.prec")}}
+           ...),
+       ##!}
        ##! \item{...}{Arguments to be passed to the 
        ##!   \code{\link{inla}} function.}
        ...)
@@ -128,21 +132,25 @@
 ##!summary(dat$y)
 ##!
 ##!### fit the type 4 considering three different approaches 
-##!res <- inla.knmodels(y~1, dat, graph=graph,
-##!                     type=c(4, '4c', '4d'), control.st=list(), progress=TRUE,
+##!res <- inla.knmodels(y~1, dat, progress=TRUE,
+##!                     control.st=list(t=t, s=s, st=st,
+##!                                     graph=graph, type=c(4, '4c', '4d')), 
 ##!                     control.compute=list(dic=TRUE, waic=TRUE, cpo=TRUE))
-##!sapply(res, function(x) c(dic=x$dic$dic, waic=x$waic$waic, cpo=-sum(log(x$cpo$cpo))))
+##!sapply(res, function(x)
+##!       c(dic=x$dic$dic, waic=x$waic$waic, cpo=-sum(log(x$cpo$cpo))))
 ##!}
     type <- match.arg(type, several.ok=TRUE)
     if (length(type)==0) return(NULL)
     else res <- list()
-    if (!is.null(graph)) {
+    if (!is.null(control.st$graph)) {
         n <- nrow(graph <- inla.graph2matrix(graph)) 
         R.s <- inla.scale.model(Diagonal(n, colSums(graph)) - graph,
                                 constr=list(A=matrix(1, 1, n), e=0))
     } else {
         if (any(substr(type)%in%c(3,4)))
             stop("'graph' must be provided to build the spacetime interaction model!")
+        m <- length(unique(control.st$t))
+        n <- length(unique(control.st$s))
     }
     if (FALSE) { ## working in progress here
         etemp <- INLA:::inla.interpret.formula(formula, data)
@@ -173,7 +181,7 @@
                          hyper=control.st$s, scale.model=TRUE) + 
                        f(st, model='iid', hyper=control.st$st)), 
             data=data, ...)
-    if (progress & length(res)>0)
+    if (progress & tail(names(res),1)=='1') 
         cat('type = ', tail(names(res),1), ', cpu = ',  res[[length(res)]]$cpu[4], '\n', sep='')
     if (any(type%in%'2')) 
         res$'2' <- inla(
@@ -187,7 +195,7 @@
                          extraconstr=list(A=M2, e=rep(0, n)),
                          hyper=control.st$st)), 
             data=data, ...)
-    if (progress & length(res)>0)
+    if (progress & tail(names(res),1)=='2') 
         cat('type = ', tail(names(res),1), ', cpu = ',  res[[length(res)]]$cpu[4], '\n', sep='')
     if (any(type%in%'3')) 
         res$'3' <- inla(
@@ -201,7 +209,7 @@
                          extraconstr=list(A=M3, e=rep(0, m)),
                          hyper=control.st$st)), 
             data=data, ...)
-    if (progress & length(res)>0)
+    if (progress & tail(names(res),1)=='3') 
         cat('type = ', tail(names(res),1), ', cpu = ',  res[[length(res)]]$cpu[4], '\n', sep='')
     if (any(type%in%'4')) 
         res$'4' <- inla(
@@ -214,7 +222,7 @@
                          extraconstr=list(A=rbind(M2, M3), e=rep(0, n+m)), 
                          Cmatrix=kronecker(Rt, R.s), hyper=control.st$st)), 
             data=data, ...)
-    if (progress & length(res)>0)
+    if (progress & tail(names(res),1)=='4') 
         cat('type = ', tail(names(res),1), ', cpu = ',  res[[length(res)]]$cpu[4], '\n', sep='')
     if (any(type%in%'2c')) {
         data$st2 <- data$s + ifelse(data$t==1, NA, data$t-2)*n
@@ -235,7 +243,7 @@
                          hyper=control.st$st)),
             data=data, lincomb=c(lcc2, lcc), ...)
     }
-    if (progress & length(res)>0)
+    if (progress & tail(names(res),1)=='2c') 
         cat('type = ', tail(names(res),1), ', cpu = ',  res[[length(res)]]$cpu[4], '\n', sep='')
     if (any(type%in%'3c')) {
         data$st3 <- data$s-1 + ifelse(data$s==1, NA, data$t-1)*(n-1)
@@ -255,7 +263,7 @@
                          hyper=control.st$st)),
             data=data, lincomb=c(lcc3, lcc), ...)
     }
-    if (progress & length(res)>0)
+    if (progress & tail(names(res),1)=='3c') 
         cat('type = ', tail(names(res),1), ', cpu = ',  res[[length(res)]]$cpu[4], '\n', sep='')
     if (any(type%in%'4c')) {
         data$st4 <- data$s-1 +
@@ -279,7 +287,7 @@
                          hyper=control.st$st)),
             data=data, lincomb=c(lcc2, lcc3, lcc), ...)
     }
-    if (progress & length(res)>0)
+    if (progress & tail(names(res),1)=='4c') 
         cat('type = ', tail(names(res),1), ', cpu = ',  res[[length(res)]]$cpu[4], '\n', sep='')
     if (any(type%in%c('2d', '3d', '4d'))) {
         lcd2 <- inla.make.lincombs(s=cBind(Diagonal(n), Diagonal(n,0)), st=M2)
@@ -302,7 +310,7 @@
                          hyper=control.st$st)),
             data=data, lincomb=c(lcd2, lcd), ...)
     }
-    if (progress & length(res)>0)
+    if (progress & tail(names(res),1)=='2d') 
         cat('type = ', tail(names(res),1), ', cpu = ',  res[[length(res)]]$cpu[4], '\n', sep='')
     if (any(type%in%'3d')) {
         lcd <- inla.make.lincombs(
@@ -318,7 +326,7 @@
                          hyper=control.st$st)),
             data=data, lincomb=c(lcd3, lcd), ...)
     }
-    if (progress & length(res)>0)
+    if (progress & tail(names(res),1)=='3d') 
         cat('type = ', tail(names(res),1), ', cpu = ',  res[[length(res)]]$cpu[4], '\n', sep='')
     if (any(type%in%'4d')) {
         lcd2 <- inla.make.lincombs(s=cBind(Diagonal(n), Diagonal(n,0)), st=M2)
@@ -338,6 +346,9 @@
                          hyper=control.st$st)),
             data=data, lincomb=c(lcd2, lcd3, lcd), ...)
     }
+    if (progress & tail(names(res),1)=='4d') 
+        cat('type = ', tail(names(res),1), ', cpu = ',  res[[length(res)]]$cpu[4], '\n', sep='')
+    if (length(res)==1) return(res[[1]]) 
     return(res) 
 }
 
