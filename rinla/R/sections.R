@@ -75,17 +75,17 @@
         ## do a second replacement so that we replace the functions with actual functions after
         ## the replacement of REPLACE.ME.....
         hyper[[k]]$from.theta = eval(parse(text = gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""),
-                                               inla.function2source(hyper[[k]]$from.theta, newline = ""))))
+                                               inla.function2source(hyper[[k]]$from.theta, newline = "\n"))))
         hyper[[k]]$from.theta = eval(parse(text = gsub("REPLACE.ME.low", paste("low=", as.numeric(low), sep=""),
-                                               inla.function2source(hyper[[k]]$from.theta, newline = ""))))
+                                               inla.function2source(hyper[[k]]$from.theta, newline = "\n"))))
         hyper[[k]]$from.theta = eval(parse(text = gsub("REPLACE.ME.high", paste("high=", as.numeric(high), sep=""),
-                                               inla.function2source(hyper[[k]]$from.theta, newline = ""))))
+                                               inla.function2source(hyper[[k]]$from.theta, newline = "\n"))))
         hyper[[k]]$to.theta = eval(parse(text= gsub("REPLACE.ME.low", paste("low=", as.numeric(low), sep=""),
-                                             inla.function2source(hyper[[k]]$to.theta, newline = ""))))
+                                             inla.function2source(hyper[[k]]$to.theta, newline = "\n"))))
         hyper[[k]]$to.theta = eval(parse(text= gsub("REPLACE.ME.high", paste("high=", as.numeric(high), sep=""),
-                                             inla.function2source(hyper[[k]]$to.theta, newline = ""))))
+                                             inla.function2source(hyper[[k]]$to.theta, newline = "\n"))))
         hyper[[k]]$to.theta = eval(parse(text= gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""),
-                                             inla.function2source(hyper[[k]]$to.theta, newline = ""))))
+                                             inla.function2source(hyper[[k]]$to.theta, newline = "\n"))))
     }
 
     return (hyper)
@@ -432,17 +432,17 @@
         tZ = t(Z)
         Z.n = dim(Z)[1]
         Z.m = dim(Z)[2]
-        A = inla.as.sparse(random.spec$precision * cBind(rBind(Diagonal(Z.n), -tZ), rBind(-Z, tZ %*% Z)))
+        A = inla.as.sparse(random.spec$precision * cbind(rbind(Diagonal(Z.n), -tZ), rbind(-Z, tZ %*% Z)))
         if (is.null(random.spec$Cmatrix)) {
             Cm = inla.as.sparse(Diagonal(Z.m))
         } else {
             Cm = inla.as.sparse(random.spec$Cmatrix)
         }
         stopifnot(all(Z.m == dim(Cm)))
-        B = inla.as.sparse(cBind(
-            rBind(Diagonal(Z.n, 0.0),                                     # n x n zero-matrix
+        B = inla.as.sparse(cbind(
+            rbind(Diagonal(Z.n, 0.0),                                     # n x n zero-matrix
                   sparseMatrix(dims = c(Z.m, Z.n), i = 1, j = 1, x = 0)), # m x n zero-matrix
-            rBind(sparseMatrix(dims = c(Z.n, Z.m), i = 1, j = 1, x = 0),  # n x m zero-matrix
+            rbind(sparseMatrix(dims = c(Z.n, Z.m), i = 1, j = 1, x = 0),  # n x m zero-matrix
                   Cm)))
 
         ## dimensions
@@ -504,10 +504,10 @@
         cat("slm.rho.max = ", random.spec$args.slm$rho.max,"\n", append=TRUE, sep = " ", file = file)
 
         ## matrix A1
-        A1 = cBind(
-            rBind(Diagonal(slm.n),
+        A1 = cbind(
+            rbind(Diagonal(slm.n),
                   -t(X)),
-            rBind(-X,
+            rbind(-X,
                   t(X) %*% X))
         file.A1 = inla.tempfile(tmpdir=data.dir)
         inla.write.fmesher.file(A1, filename = file.A1)
@@ -515,10 +515,10 @@
         cat("slm.A1matrix = ", file.A1, "\n", append=TRUE, sep = " ", file = file)
 
         ## matrix A2
-        A2 = cBind(
-            rBind(Matrix(0, slm.n, slm.n),
+        A2 = cbind(
+            rbind(Matrix(0, slm.n, slm.n),
                   Matrix(0, slm.m, slm.n)),
-            rBind(Matrix(0, slm.n, slm.m),
+            rbind(Matrix(0, slm.n, slm.m),
                   Q))
         file.A2 = inla.tempfile(tmpdir=data.dir)
         inla.write.fmesher.file(A2, filename = file.A2)
@@ -526,10 +526,10 @@
         cat("slm.A2matrix = ", file.A2, "\n", append=TRUE, sep = " ", file = file)
 
         ## matrix B
-        B = cBind(
-            rBind(-(t(W) + W),
+        B = cbind(
+            rbind(-(t(W) + W),
                   t(X) %*% W),
-            rBind(t(W) %*% X,
+            rbind(t(W) %*% X,
                   Matrix(0, slm.m, slm.m)))
         file.B = inla.tempfile(tmpdir=data.dir)
         inla.write.fmesher.file(B, filename = file.B)
@@ -537,10 +537,10 @@
         cat("slm.Bmatrix = ", file.B, "\n", append=TRUE, sep = " ", file = file)
 
         ## matrix C
-        C = cBind(
-            rBind(t(W) %*% W,
+        C = cbind(
+            rbind(t(W) %*% W,
                   Matrix(0, slm.m, slm.n)),
-            rBind(Matrix(0, slm.n, slm.m),
+            rbind(Matrix(0, slm.n, slm.m),
                   Matrix(0, slm.m, slm.m)))
         file.C = inla.tempfile(tmpdir=data.dir)
         inla.write.fmesher.file(C, filename = file.C)
@@ -899,7 +899,7 @@
         ## A[ is.na(A) ] = 0.0
 
         ## Aext = [ I, -A; -A^T, A^T A ] ((n+m) x (n+m))
-        Aext = rBind(cBind(Diagonal(m), -A), cBind(-t(A), t(A) %*% A))
+        Aext = rbind(cbind(Diagonal(m), -A), cbind(-t(A), t(A) %*% A))
         stopifnot(dim(Aext)[1] == m+n)
         stopifnot(dim(Aext)[2] == m+n)
 
