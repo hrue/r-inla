@@ -9,9 +9,44 @@ Authors@R: c(
     person("Elias", "Teixeira Krainski", email = "elias.krainski@math.ntnu.no", role = "aut"),
     person("Geir-Arne", "Fuglstad", email = "fulgstad@math.ntnu.no", role = "aut"))
 Description: Full Bayesian analysis of latent Gaussian models using Integrated Nested Laplace Approximaxion. It is a front-end to the inla-program.
-Depends: sp, Matrix
-Suggests: mvtnorm, numDeriv, Rgraphviz, graph, fields, rgl, parallel, pixmap, splancs, orthopolynom, compiler, devtools, knitr, markdown, rmarkdown, rgdal, Deriv, HKprocess, FGN, MatrixModels, gridExtra, foreach, doParallel, sn, matrixStats
-Imports: stats, graphics, grDevices, utils, methods, splines, shiny
+Depends:
+    R (>= 3.2)
+    Matrix,
+    sp
+Suggests:
+    compiler,
+    Deriv,
+    devtools,
+    doParallel,
+    FGN,
+    fields,
+    foreach,
+    graph,
+    gridExtra,
+    HKprocess,
+    knitr,
+    markdown,
+    MatrixModels,
+    matrixStats,
+    mvtnorm,
+    numDeriv,
+    orthopolynom,
+    parallel,
+    pixmap,
+    rgdal,
+    rgl,
+    Rgraphviz,
+    rmarkdown,
+    sn,
+    splancs
+Imports:
+    graphics,
+    grDevices,
+    methods,
+    shiny,
+    splines,
+    stats,
+    utils
 VignetteBuilder: knitr
 BuildVignettes: true
 ByteCompile: no
