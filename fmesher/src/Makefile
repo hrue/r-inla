@@ -43,6 +43,10 @@ ifeq ($(OS_TYPE), Windows)
   OS_LDFLAGS=
 endif
 
+# Only activate X if specifically asked for:
+ifneq ($(FMESHER_USE_X), 1)
+  OS_FLAGS:=$(OS_FLAGS) -DFMESHER_NO_X
+endif
 ifeq ($(FMESHER_NO_X), 1)
   OS_FLAGS:=$(OS_FLAGS) -DFMESHER_NO_X
 endif
@@ -101,13 +105,13 @@ $(DEPDIR):
 
 
 $(FMESHER) : $(OBJ) fmesher.o
-	$(LD) $(LDFLAGSXX) -o $@ $^ -L$(PREFIX)/lib  $(EXTLIBS)
+	$(LD) -o $@ $^ $(LDFLAGSXX) -L$(PREFIX)/lib  $(EXTLIBS)
 
 $(FMESHER_TEST) : $(OBJ) fmesher_test.o
-	$(LD) $(LDFLAGSXX) -o $@ $^ -L$(PREFIX)/lib  $(EXTLIBS)
+	$(LD) -o $@ $^ $(LDFLAGSXX) -L$(PREFIX)/lib  $(EXTLIBS)
 
 $(FMESHER_TEST2) : $(OBJ) treetest.o
-	$(LD) $(LDFLAGSXX) -o $@ $^ -L$(PREFIX)/lib  $(EXTLIBS)
+	$(LD) -o $@ $^ $(LDFLAGSXX) -L$(PREFIX)/lib  $(EXTLIBS)
 
 cmdline:
 	gengetopt --file-name=cmdline --conf-parser --unamed-opts=PREFIX \

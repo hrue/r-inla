@@ -491,7 +491,7 @@
 `plot.inla.graph` = function(x, y, ...)
 {
     ## these are default options to plot for class inla.graph
-    filter = filter.args = c("neato", "fdp")
+    filter = filter.args = c("neato", "dot", "fdp", "twopi")
     attrs = NULL
     scale = 0.5
     node.names = NULL
