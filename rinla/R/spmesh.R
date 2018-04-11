@@ -481,7 +481,7 @@ inla.crs.transform.oblique <- function(x, oblique, to.oblique=TRUE) {
 ## +proj=longlat in (-180,180)x(-90,90)
 ## +proj=moll in (-2,2)x(-1,1) scaled by +a and +b, and +units
 ## +proj=lambert in (-pi,pi)x(-1,1) scaled by +a and +b, and +units
-inla.crs.bounds <- function(crs) {
+inla.crs.bounds <- function(crs, warn.unknown = FALSE) {
   args <- inla.as.list.CRS(crs)
   if (args[["proj"]] == "longlat") {
     bounds <- list(type="rectangle", xlim=c(-180,180), ylim=c(-90,90))
@@ -512,7 +512,9 @@ inla.crs.bounds <- function(crs) {
   } else if (args[["proj"]] == "geocent") {
     bounds <- list(type="rectangle", xlim=c(-Inf, Inf), ylim=c(-Inf, Inf))
   } else {
-    warning("Could not identify transformation shape.")
+    if (warn.unknown) {
+      warning("Could not determine shape of transformation bounds. Using infinite rectangle.")
+    }
     bounds <- list(type="rectangle", xlim=c(-Inf, Inf), ylim=c(-Inf, Inf))
   }
   if (bounds$type == "rectangle") {
