@@ -20,7 +20,6 @@
 ##! control.prec,
 ##! ...) 
 ##!}
-
 ##! \usage{
 ##!inla.knmodels.sample(
 ##!  graph,
@@ -35,9 +34,7 @@
 ##!  ev.t=NULL,
 ##!  ev.s=NULL)
 ##!}
-
 ##! \arguments{
-
 `inla.knmodels` =
     function(
        ##! \item{formula}{The formula specifying the other 
@@ -74,15 +71,23 @@
        ##! \item{diagonal}{The value to be added to the 
        ##!   diagonal when using the diagonal add approach.}
        diagonal=1e-5, 
-       ##! \item{control.st}{Specification of the hyperparameter, 
+       ##! \item{control.st}{Named list of arguments to control
+       ##!   the spacetime interaction. It contains
+       ##!  \item{t.main}{Name of the index set for the
+       ##!   main temporal effect.}
+       ##!  \item{t.spatial}{Name of the index set for the
+       ##!   main spatial effect.}
+       ##!  \item{st}{Name of the index set for the
+       ##!   spacetime interaction effect.}
+       ##!  \item{...}{Specification of the hyperparameter, 
        ##!   fixed or random, initial value, prior and its 
        ##!   parameters for the spacetime interaction. See 
        ##!   \code{?inla.models} and look for \code{generic0}. 
        ##!   By default we scale it and use the PC-prior to set 
        ##!   the prior using the \code{pc.prec} prior with 
        ##!   \code{param = c(0.5, 0.5)}. See documentation with 
-       ##!   \code{?inla.doc("pc.prec")}}
-       control.st,
+       ##!   \code{?inla.doc("pc.prec")}}}
+       control.st=list(t.main=NULL, t.space=NULL, st=NULL, ...),
        ##! \item{...}{Arguments to be passed to the 
        ##!   \code{\link{inla}} function.}
        ...)
@@ -100,27 +105,20 @@
 ##!     \code{\link{inla}}
 ##! }
 ##! \examples{
-##!### space
-##!n2 <- n1 <- 5
-##!grid <- SpatialGrid(GridTopology(c(0,0), c(1, 1), c(n1, n2)))
+##!### define space domain as a grid
+##!grid <- SpatialGrid(GridTopology(c(0,0), c(1, 1), c(4, 5)))
 ##!(n <- nrow(xy <- coordinates(grid)))
 ##!
-##!if (FALSE)
-##!    plot(grid)
-##!  
-### which are spatial neighbors
+##!### build a spatial neighborhood list
 ##!jj <- lapply(1:n, function(i) 
 ##!    which(sqrt((xy[i,1]-xy[,1])^2 + (xy[i,2]-xy[,2])^2)==1))
 ##!
-##!### the spatial adjacency matrix
+##!### build the spatial adjacency matrix
 ##!graph <- sparseMatrix(rep(1:n, sapply(jj, length)),
 ##!                      unlist(jj), x=1, dims=c(n, n))
 ##!
-##!### time
-##!m <- 10 
-##!
-##!### some random data
-##!dat <- inla.knmodels.sample(graph=graph, m=m, type=4, tau.t=2, tau.s=2, tau.st=3)
+##!### some random data at 10 time points
+##!dat <- inla.knmodels.sample(graph, m=10, tau.t=2, tau.s=2, tau.st=3)
 ##!str(dat)
 ##!sapply(dat$x, summary)
 ##!
@@ -129,12 +127,11 @@
 ##!dat$y <- rpois(nd, dat$e*exp(dat$x$eta-3))
 ##!summary(dat$y)
 ##!
-##!### fit the models
+##!### fit the type 4 considering three different approaches 
 ##!res <- inla.knmodels(y~1, dat, graph=graph,
 ##!                     type=c(4, '4c', '4d'), control.st=list(), progress=TRUE,
 ##!                     control.compute=list(dic=TRUE, waic=TRUE, cpo=TRUE))
-##!tab <- sapply(res, function(x) c(dic=x$dic$dic, waic=x$waic$waic, cpo=-sum(log(x$cpo$cpo))))
-##!round(tab-apply(tab, 1, min), 1)
+##!sapply(res, function(x) c(dic=x$dic$dic, waic=x$waic$waic, cpo=-sum(log(x$cpo$cpo))))
 ##!}
     type <- match.arg(type, several.ok=TRUE)
     if (length(type)==0) return(NULL)
@@ -143,13 +140,15 @@
         n <- nrow(graph <- inla.graph2matrix(graph)) 
         R.s <- inla.scale.model(Diagonal(n, colSums(graph)) - graph,
                                 constr=list(A=matrix(1, 1, n), e=0))
+    } else {
+        if (any(substr(type)%in%c(3,4)))
+            stop("'graph' must be provided to build the spacetime interaction model!")
     }
     if (FALSE) { ## working in progress here
         etemp <- INLA:::inla.interpret.formula(formula, data)
         rterms <- attr(terms(etemp[[1]]), 'term.labels')
-        r.w <- sapply(etemp$random.spec, function(x) is.null(x$weights))
-        if (sum(r.w)>0) {
-            id.r <- which(r.w)
+        id.r <- which(sapply(etemp$random.spec, function(x) is.null(x$weights)))
+        if (length(id.r)>0) {
             r.rankdef <- which(sapply(etemp$random.spec[id.r], function(x) x$rankdef))
             if (length(r.rankdef)>0) {
                 r.size <- sapply(etemp$random.spec[id.r[r.rankdef]], function(x) x$n)
@@ -343,7 +342,6 @@
 }
 
 ##! \arguments{
-
 `inla.knmodels.sample` =
     function(
         ##! \item{graph}{}
@@ -422,7 +420,7 @@
     }
     n <- length(ev.s$values)
     dat <- list(t=rep(1:m, each=n), s=rep(1:n, m), st=1:(m*n), x=list()) 
-    ### AR(1), used before:
+    ### AR(1), as used before:
     ##    dat$x$t <- arima.sim(model=list(ar=rho), n=m, ### sample with marginal variance = 1/tau.t
     ##                         rand.gen=function(leng) rnorm(leng, 0, sqrt((1-rho^2)/tau.t)))
     dat$x$t.str <- qsample(ev=ev.t)
