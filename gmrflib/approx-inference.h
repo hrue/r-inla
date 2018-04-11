@@ -856,7 +856,7 @@ typedef struct {
 	size_t nconfig;
 	size_t *idx_mapping;
 	size_t idx_next;
-	GMRFLib_int8 *configurations;
+	GMRFLib_short_int *configurations;
 
 	char all_out;
 	char *out;

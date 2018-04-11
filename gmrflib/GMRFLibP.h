@@ -62,7 +62,7 @@ __BEGIN_DECLS
 
 /* 
  */
-typedef signed char GMRFLib_int8;
+typedef short int GMRFLib_short_int;
 typedef long unsigned int GMRFLib_sizeof_tp;
 
 
