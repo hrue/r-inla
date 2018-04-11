@@ -4298,12 +4298,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						{
 							fprintf(ai_par->fp_log, "\tconfig %2d/%1d=[", config_count++, design->nexperiments);
 							for (i = 0; i < nhyper; i++) {
-								fprintf(ai_par->fp_log, " %5.2f", z_local[i]);
+								fprintf(ai_par->fp_log, " %5.3f", z_local[i]);
 							}
 							/*
 							 * we need to use the log_dens_orig as the other one is also included the integration weights. 
 							 */
-							fprintf(ai_par->fp_log, "] log(rel.dens)=%5.2f, [%1d] accept, compute,",
+							fprintf(ai_par->fp_log, "] log(rel.dens)=%5.3f, [%1d] accept, compute,",
 								log_dens_orig - log_dens_mode, omp_get_thread_num());
 							fprintf(ai_par->fp_log, " %.2fs\n", tu);
 						}
@@ -4366,9 +4366,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					if (ai_par->fp_log) {
 						fprintf(ai_par->fp_log, "\tconfig %2d=[", config_count++);
 						for (i = 0; i < nhyper; i++) {
-							fprintf(ai_par->fp_log, " %5.2f", z[i]);
+							fprintf(ai_par->fp_log, " %5.3f", z[i]);
 						}
-						fprintf(ai_par->fp_log, "] log(rel.dens)=%5.2f, [%1d] accept, compute,",
+						fprintf(ai_par->fp_log, "] log(rel.dens)=%5.3f, [%1d] accept, compute,",
 							log_dens - log_dens_mode, omp_get_thread_num());
 					}
 
@@ -4568,10 +4568,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 								{
 									fprintf(ai_par->fp_log, "\tconfig %2d=[", config_count++);
 									for (i = 0; i < nhyper; i++) {
-										fprintf(ai_par->fp_log, " %5.2f", z_local[i]);
+										fprintf(ai_par->fp_log, " %5.3f", z_local[i]);
 									}
 									fprintf(ai_par->fp_log,
-										"] log(rel.dens)=%5.2f, reject, %.2fs\n", val,
+										"] log(rel.dens)=%5.3f, reject, %.2fs\n", val,
 										GMRFLib_cpu() - tref);
 								}
 							}
@@ -4634,10 +4634,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									{
 										fprintf(ai_par->fp_log, "\tconfig %2d=[", config_count++);
 										for (i = 0; i < nhyper; i++) {
-											fprintf(ai_par->fp_log, " %5.2f", z_local[i]);
+											fprintf(ai_par->fp_log, " %5.3f", z_local[i]);
 										}
 										fprintf(ai_par->fp_log,
-											"] log(rel.dens)=%5.2f, [%1d] accept, compute,",
+											"] log(rel.dens)=%5.3f, [%1d] accept, compute,",
 											val, omp_get_thread_num());
 										fprintf(ai_par->fp_log, " %.2fs\n", tu);
 									}
@@ -5230,7 +5230,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		for (j = 0; j < dens_count; j++) {
 			fprintf(ai_par->fp_log, "\tconfig %2d/%2d=[", j, dens_count);
 			for (k = 0; k < nhyper; k++) {
-				fprintf(ai_par->fp_log, " %5.2f", izs[j][k]);
+				fprintf(ai_par->fp_log, " %5.3f", izs[j][k]);
 			}
 			fprintf(ai_par->fp_log, "] weight = %.3f", weights[j]);
 			if (ai_par->adjust_weights && (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID)) {
@@ -7768,7 +7768,7 @@ int GMRFLib_ai_pool_init(GMRFLib_ai_pool_tp ** pool, GMRFLib_ai_param_tp * ai_pa
 			  (nhyper == 1 ? 6.0 : (nhyper == 2 ? 4.0 : (nhyper == 3 ? 2.0 : 1.0))));
 	len = (2 * half_len + 1);
 	p->nconfig = (size_t) pow((double) len, (double) p->nhyper);
-	p->configurations = Calloc((size_t) (p->nconfig * p->nhyper), GMRFLib_int8);
+	p->configurations = Calloc((size_t) (p->nconfig * p->nhyper), GMRFLib_short_int);
 	p->idx_mapping = Calloc(p->nconfig, size_t);
 	p->out = Calloc(p->nconfig, char);
 	p->idx_next = 0;
@@ -7791,7 +7791,7 @@ int GMRFLib_ai_pool_init(GMRFLib_ai_pool_tp ** pool, GMRFLib_ai_param_tp * ai_pa
 			printf(" ]\n");
 		}
 		for (j = 0; j < p->nhyper; j++) {
-			p->configurations[k + j] = (GMRFLib_int8) izz[j];
+			p->configurations[k + j] = (GMRFLib_short_int) izz[j];
 		}
 		k += p->nhyper;
 
@@ -7808,12 +7808,12 @@ int GMRFLib_ai_pool_init(GMRFLib_ai_pool_tp ** pool, GMRFLib_ai_param_tp * ai_pa
 	 */
 	pool_nhyper = (int) p->nhyper;
 	if (GMRFLib_MAX_THREADS > 1) {
-		qsort(p->configurations, p->nconfig, p->nhyper * sizeof(GMRFLib_int8), GMRFLib_pool_cmp);
+		qsort(p->configurations, p->nconfig, p->nhyper * sizeof(GMRFLib_short_int), GMRFLib_pool_cmp);
 	} else {
 		/*
 		 * alternative sorting: _pool_cmp1: seems like _pool_cmp runs faster (better wrt 'reject') 
 		 */
-		qsort(p->configurations, p->nconfig, p->nhyper * sizeof(GMRFLib_int8), GMRFLib_pool_cmp);
+		qsort(p->configurations, p->nconfig, p->nhyper * sizeof(GMRFLib_short_int), GMRFLib_pool_cmp);
 	}
 	pool_nhyper = -1;
 
@@ -7840,13 +7840,13 @@ int GMRFLib_pool_cmp(const void *a, const void *b)
 	 * 
 	 * Note that pool_hyper must be set properly. 
 	 */
-	const GMRFLib_int8 *ia, *ib;
+	const GMRFLib_short_int *ia, *ib;
 	int i, larger, dist_a, dist_b;
 
 	GMRFLib_ASSERT(pool_nhyper > 0, GMRFLib_ESNH);
 
-	ia = (const GMRFLib_int8 *) a;
-	ib = (const GMRFLib_int8 *) b;
+	ia = (const GMRFLib_short_int *) a;
+	ib = (const GMRFLib_short_int *) b;
 	dist_a = dist_b = 0.0;
 	for (i = 0; i < pool_nhyper; i++) {
 		dist_a += ISQR((int) ia[i]);
@@ -7875,13 +7875,13 @@ int GMRFLib_pool_cmp1(const void *a, const void *b)
 	 * 
 	 * Note that pool_hyper must be set properly. 
 	 */
-	const GMRFLib_int8 *ia, *ib;
+	const GMRFLib_short_int *ia, *ib;
 	int i, larger, eq;
 
 	GMRFLib_ASSERT(pool_nhyper > 0, GMRFLib_ESNH);
 
-	ia = (const GMRFLib_int8 *) a;
-	ib = (const GMRFLib_int8 *) b;
+	ia = (const GMRFLib_short_int *) a;
+	ib = (const GMRFLib_short_int *) b;
 	larger = 1;
 	eq = 1;
 	for (i = 0; i < pool_nhyper; i++) {
