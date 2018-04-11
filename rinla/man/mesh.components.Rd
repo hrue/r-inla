@@ -6,7 +6,7 @@
 \alias{inla.mesh.components}
 \title{Compute connected mesh subsets}
 \description{Compute subsets of vertices and triangles in an inla.mesh object
-  that are connected by edges.}.
+  that are connected by edges.
 }
 \usage{
 inla.mesh.components(mesh)
