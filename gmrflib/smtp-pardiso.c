@@ -337,30 +337,26 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 		store->pstore[S.mnum]->iparm[36] = 0;	       /* return upper triangular Qinv */
 		break;
 
-	case GMRFLib_PARDISO_FLAG_SOLVE_D:
-		store->pstore[S.mnum]->phase = 33;	       // solve
-		store->pstore[S.mnum]->nrhs = 1;
-		store->pstore[S.mnum]->iparm[7] = 0;	       /* Max numbers of iterative refinement steps. */
-		store->pstore[S.mnum]->iparm[25] = -3;
-		break;
-
 	case GMRFLib_PARDISO_FLAG_SOLVE_L:
 		store->pstore[S.mnum]->phase = 33;	       // solve
-		store->pstore[S.mnum]->nrhs = 1;
 		store->pstore[S.mnum]->iparm[7] = 0;	       /* Max numbers of iterative refinement steps. */
 		store->pstore[S.mnum]->iparm[25] = -1;
 		break;
 
-	case GMRFLib_PARDISO_FLAG_SOLVE_LT:
+	case GMRFLib_PARDISO_FLAG_SOLVE_D:
 		store->pstore[S.mnum]->phase = 33;	       // solve
-		store->pstore[S.mnum]->nrhs = 1;
 		store->pstore[S.mnum]->iparm[7] = 0;	       /* Max numbers of iterative refinement steps. */
 		store->pstore[S.mnum]->iparm[25] = -2;
 		break;
 
+	case GMRFLib_PARDISO_FLAG_SOLVE_LT:
+		store->pstore[S.mnum]->phase = 33;	       // solve
+		store->pstore[S.mnum]->iparm[7] = 0;	       /* Max numbers of iterative refinement steps. */
+		store->pstore[S.mnum]->iparm[25] = -3;
+		break;
+
 	case GMRFLib_PARDISO_FLAG_SOLVE_LLT:
 		store->pstore[S.mnum]->phase = 33;	       // solve
-		store->pstore[S.mnum]->nrhs = 1;
 		store->pstore[S.mnum]->iparm[7] = 0;	       /* Max numbers of iterative refinement steps. */
 		store->pstore[S.mnum]->iparm[25] = 0;
 		break;
@@ -514,9 +510,12 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	store->pstore[S.mnum]->log_det_Q = store->pstore[S.mnum]->dparm[32];
 	store->pstore[S.mnum]->done_with_chol = GMRFLib_TRUE;
 
-	double *D = Calloc(n, double);
+	double *D = Calloc(n, double), *DD = D;
 	GMRFLib_pardiso_solve_D(store, D, NULL, 1);
 	for(i = 0; i < n; i++) {
+		D[i] = 1.0/D[i];
+		printf("i %d D %g\n", i, D[i]);
+
 		D[i] = 1.0/sqrt(D[i]);
 	}
 	store->pstore[S.mnum]->inv_sqrt_D = D;
@@ -535,22 +534,25 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	assert(nrhs > 0);
 
 	// this is so that the RHS can be overwritten
-	double *xx = Calloc(store->pstore[S.mnum]->Q->n * nrhs, double);
+	int n = store->pstore[S.mnum]->Q->n;
+	double *xx = Calloc(n * nrhs, double);
 
 	GMRFLib_pardiso_setparam(flag, store);
+
+	P(store->pstore[S.mnum]->phase);
+	P(store->pstore[S.mnum]->iparm[25]);
+
 	int mnum1 = S.mnum + 1;
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore[S.mnum]->phase),
-		&(store->pstore[S.mnum]->Q->n),
-		store->pstore[S.mnum]->Q->a, store->pstore[S.mnum]->Q->ia, store->pstore[S.mnum]->Q->ja,
-		NULL,
-		&nrhs, store->pstore[S.mnum]->iparm, &(store->msglvl), b, xx,
+		&n, store->pstore[S.mnum]->Q->a, store->pstore[S.mnum]->Q->ia, store->pstore[S.mnum]->Q->ja,
+		NULL, &nrhs, store->pstore[S.mnum]->iparm, &(store->msglvl), b, xx,
 		&(store->pstore[S.mnum]->err_code), store->pstore[S.mnum]->dparm);
 
 	if (store->pstore[S.mnum]->err_code != 0) {
 		GMRFLib_ERROR(GMRFLib_EPARDISO_INTERNAL_ERROR);
 	}
 
-	memcpy((void *) x, (void *) xx, store->pstore[S.mnum]->Q->n * nrhs * sizeof(double));
+	memcpy((void *) x, (void *) xx, n * nrhs * sizeof(double));
 	Free(xx);
 
 	return GMRFLib_SUCCESS;
@@ -585,18 +587,22 @@ int GMRFLib_pardiso_solve_D(GMRFLib_pardiso_store_tp * store, double *x, double 
 }
 
 
-#define SCALE_FOR_D  if (1) {						\
+#define SCALE_FOR_D  \
+	if (1) {							\
 		int n = store->pstore[S.mnum]->Q->n, i, j, k;		\
-		for(int j = 0; j < nrhs; j++) {				\
+		for(j = 0; j < nrhs; j++) {				\
 			int k = j * n;					\
 			for(i = 0; i < n; i++){				\
 				x[k + i] *= store->pstore[S.mnum]->inv_sqrt_D[i]; \
 			}						\
 		}							\
-	}
+	} else {							\
+		printf(stderr, "************ no scaling with D\n");	\
+	}	
 
 int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs)
 {
+	// this is L, as in Q = LL'
 	GMRFLib_ENTER_ROUTINE;
 	assert(store->pstore[S.mnum]->inv_sqrt_D);
 	int res = GMRFLib_pardiso_solve_core(store, GMRFLib_PARDISO_FLAG_SOLVE_L, x, b, nrhs);
@@ -608,6 +614,7 @@ int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp * store, double *x, double 
 
 int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs)
 {
+	// this is L, as in Q = LL'
 	GMRFLib_ENTER_ROUTINE;
 	assert(store->pstore[S.mnum]->inv_sqrt_D);
 	int res = GMRFLib_pardiso_solve_core(store, GMRFLib_PARDISO_FLAG_SOLVE_LT, x, b, nrhs);
@@ -621,6 +628,7 @@ int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double
 	
 int GMRFLib_pardiso_solve_LLT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs)
 {
+	// this is L, as in Q = LL'
 	GMRFLib_ENTER_ROUTINE;
 	int res = GMRFLib_pardiso_solve_core(store, GMRFLib_PARDISO_FLAG_SOLVE_LLT, x, b, nrhs);
 	GMRFLib_LEAVE_ROUTINE;
@@ -885,7 +893,8 @@ int my_pardiso_test(void)
 	GMRFLib_graph_tp *g;
 
 	//GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Qdense.txt", -1, NULL, NULL, NULL);
-	GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q.txt", -1, NULL, NULL, NULL);
+	//GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q.txt", -1, NULL, NULL, NULL);
+	GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "I5.txt", -1, NULL, NULL, NULL);
 
 	GMRFLib_csr_tp *csr, *csr2;
 
@@ -948,19 +957,43 @@ int my_pardiso_test(void)
 			}
 		}
 
-		for(j = 0;  j< nrhs; j++) {
-			GMRFLib_pardiso_solve_LLT(store2, &x[j * g->n], &b[j * g->n], 1);
+		if (0) {
+			for (i = 0; i < g->n; i++) {
+				b[i] = ISQR(i + 1);
+				x[i] = 0.0;
+			}
+
+			double *x2 = Calloc(g->n, double);
+			double *x3 = Calloc(g->n, double);
+		
+			GMRFLib_pardiso_solve_L(store2, x2, b, 1);
+			GMRFLib_pardiso_solve_D(store2, x3, x2, 1);
+			GMRFLib_pardiso_solve_LT(store2, x, x3, 1);
 			if (view) {
-				printf("solve LLT\n");
+				printf("solve L D LT\n");
 				for (i = 0; i < g->n; i++) {
-					printf("j %d i %d  x= %f  b=%f\n", j, i, x[i + j*g->n], b[i+j*g->n]);
+					printf("i %d  x= %f  b=%f\n", i, x[i], b[i]);
 				}
 			}
 		}
-		exit(0);
+		
 		
 		for (i = 0; i < g->n; i++) {
+			b[i] = ISQR(i+1);
+			x[i] = 0.0;
+		}
+
+		GMRFLib_pardiso_solve_D(store2, x, b, 1);
+		if (view) {
+			printf("solve D\n");
+			for (i = 0; i < g->n; i++) {
+				printf("i %d  x= %f  b=%f\n", i, x[i], b[i]);
+			}
+		}
+
+		for (i = 0; i < g->n; i++) {
 			b[i] = ISQR(i + 1);
+			x[i] = 0.0;
 		}
 		GMRFLib_pardiso_solve_LT(store2, x, b, 1);
 		if (view) {
@@ -972,6 +1005,7 @@ int my_pardiso_test(void)
 
 		for (i = 0; i < g->n; i++) {
 			b[i] = ISQR(i + 1);
+			x[i] = 0.0;
 		}
 		GMRFLib_pardiso_solve_L(store2, x, b, 1);
 		if (view) {
@@ -980,6 +1014,8 @@ int my_pardiso_test(void)
 				printf("i %d  x= %f  b=%f\n", i, x[i], b[i]);
 			}
 		}
+
+		exit(0);
 
 		GMRFLib_pardiso_Qinv(store2);
 		GMRFLib_pardiso_free(&store2);
