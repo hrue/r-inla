@@ -692,7 +692,7 @@ typedef struct {
 	inla_component_tp link_id;
 	link_func_tp *predictor_invlinkfunc;
 	void **predictor_invlinkfunc_arg;
-
+	
 	/*
 	 * the re-extention
 	 */
@@ -816,6 +816,7 @@ struct inla_tp_struct {
 	void **predictor_invlinkfunc_arg;		       /* these are rebuilt */
 	GMRFLib_matrix_tp **predictor_invlinkfunc_covariates;
 	Output_tp *predictor_output;
+	double *predictor_family;
 	double *offset;					       /* the offset y ~ f(eta + offset) */
 	double *link_fitted_values;			       /* the index for the link function for missing observations */
 
