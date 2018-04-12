@@ -45,29 +45,30 @@
        ##!   model components, without the spacetime 
        ##!   interaction term. The spacetime interaction term 
        ##!   will be added accordly to the specification in 
-       ##!   the \code{type} argument. See \code{inla}}
+       ##!   the \code{control.st} argument. See \code{inla}}
        formula, 
-       ##! \item{progress}{If it is to be shown the model 
-       ##!   fitting progress. Useful if more than one 
-       ##!   interaction type is being fitted.}
-       progress=FALSE, 
+       ##! \item{control.t}{Named list of arguments to control
+       ##!   the spacetime interaction. It contains
        ##! \item{control.st}{Named list of arguments to control
        ##!   the spacetime interaction. It contains
+       ##!}
        control.st=list(
-           ##!  \item{t}{Name of the index set for the
-           ##!   main temporal effect.}
-           t=NULL,
-           ##!  \item{s}{Name of the index set for the
-           ##!   main spatial effect.}
-           t=NULL,
-           ##!  \item{st}{Name of the index set for the
+           ##!  \item{time}{Name of the index set for the
+           ##!   main temporal effect which will be considered
+           ##!   for the constraints when it is the case.}
+           time,
+           ##!  \item{space}{Name of the index set for the
+           ##!   main spatial effect which will be considered
+           ##!   for the constraints when it is the case.}
+           space,
+           ##!  \item{spacetime}{Name of the index set for the
            ##!   spacetime interaction effect.}
-           st=NULL,
+           spacetime,
            ##! \item{graph}{The graph for the spatial neighbor 
            ##!   structure to be used in a \code{\link{f}} term 
            ##!   for the main spatial random effect term or for 
            ##!   building the spacetime interaction model.}
-           graph=NULL,
+           graph,
            ##! \item{type}{The spacetime interaction type.  
            ##!   \code{1} to \code{4} corresponds to the four 
            ##!   interaction types in Knorr-Held, L. (2000) with 
@@ -82,7 +83,8 @@
            ##! \item{diagonal}{The value to be added to the 
            ##!   diagonal when using the diagonal add approach.}
            diagonal=1e-5, 
-           ##!  \item{...}{Specification of the hyperparameter, 
+           ##!  \item{...}{Passed to \code{\link{f}} function.
+           ##!   Specification of the hyperparameter, 
            ##!   fixed or random, initial value, prior and its 
            ##!   parameters for the spacetime interaction. See 
            ##!   \code{?inla.models} and look for \code{generic0}. 
@@ -92,6 +94,10 @@
            ##!   \code{?inla.doc("pc.prec")}}
            ...),
        ##!}
+       ##! \item{progress}{If it is to be shown the model 
+       ##!   fitting progress. Useful if more than one 
+       ##!   interaction type is being fitted.}
+       progress=FALSE, 
        ##! \item{...}{Arguments to be passed to the 
        ##!   \code{\link{inla}} function.}
        ...)
@@ -139,99 +145,118 @@
 ##!sapply(res, function(x)
 ##!       c(dic=x$dic$dic, waic=x$waic$waic, cpo=-sum(log(x$cpo$cpo))))
 ##!}
-    type <- match.arg(type, several.ok=TRUE)
+###    mcall <- match.call(expand.dots=TRUE)
+    mcall <- match.call(expand.dots=TRUE)
+    ft <- paste('~', mcall$control.st$time)
+    if (ft=='~ ') time <- NULL
+    else time <- model.frame(as.formula(ft), data=eval(mcall$data))[,1]
+    fs <- paste('~', mcall$control.st$space)
+    if (fs=='~ ') space <- NULL
+    else space <- model.frame(as.formula(fs), data=eval(mcall$data))[,1]
+    fst <- paste('~', mcall$control.st$spacetime)
+    if (fst=='~ ') spacetime <- NULL
+    else spacetime <- model.frame(as.formula(fst), data=eval(mcall$data))[,1]
+    print(mcall$control.st$type)
+    print(type <- as.character(unique(eval(mcall$control.st$type))))
+    types <- c(1:4, paste0(2:4, 'c'), paste0(2:4, 'd'))
+    type <- types[which(type%in%types)]
+    print(type)
     if (length(type)==0) return(NULL)
     else res <- list()
-    if (!is.null(control.st$graph)) {
-        n <- nrow(graph <- inla.graph2matrix(graph)) 
+    m <- n <- NULL
+    nst <- length(unique(spacetime))
+    if (!is.null(mcall$control.st$graph)) {
+        graph <- eval(mcall$control.st$graph)
+        n <- nrow(graph <- inla.graph2matrix(graph))
         R.s <- inla.scale.model(Diagonal(n, colSums(graph)) - graph,
                                 constr=list(A=matrix(1, 1, n), e=0))
     } else {
-        if (any(substr(type)%in%c(3,4)))
+        if (any(substr(type,1,1)%in%c('3', '4')))
             stop("'graph' must be provided to build the spacetime interaction model!")
-        m <- length(unique(control.st$t))
-        n <- length(unique(control.st$s))
     }
-    if (FALSE) { ## working in progress here
-        etemp <- INLA:::inla.interpret.formula(formula, data)
-        rterms <- attr(terms(etemp[[1]]), 'term.labels')
-        id.r <- which(sapply(etemp$random.spec, function(x) is.null(x$weights)))
-        if (length(id.r)>0) {
-            r.rankdef <- which(sapply(etemp$random.spec[id.r], function(x) x$rankdef))
-            if (length(r.rankdef)>0) {
-                r.size <- sapply(etemp$random.spec[id.r[r.rankdef]], function(x) x$n)
-                if (length(r.size)>2)
-                    stop('There are too many effects with rankdef>0 related to space or time') 
-                s.s <- which(r.size==n)
+    if (!is.null(space)) {
+        if (!is.null(mcall$control.st$graph))
+            if(n!=length(unique(space)))
+                stop("Size of 'space' is not equal to the size of 'graph'!")
+        n <- length(unique(space))
+    }
+    if (!is.null(time)) {
+        m <- length(unique(time))
+        if (any(substr(type,1,1)%in%c('2', '4')))
+            R.t <- inla.scale.model(crossprod(diff(Diagonal(m))),
+                                   constr=list(A=matrix(1,1,m), e=0))
+    }
+    if (is.null(m)) m <- nst/n
+    if (is.null(n)) n <- nst/m
+    cat('m = ', m, ', n = ', n, ', nst = ', nst, '\n', sep='')
+    if (FALSE) { ## working in progress: identify need of constraints from the formula
+        etemp <- INLA:::inla.interpret.formula(formula, data) 
+        rterms <- attr(terms(etemp[[1]]), 'term.labels') 
+        id.r <- which(sapply(etemp$random.spec, function(x) is.null(x$weights))) 
+        if (length(id.r)>0) { 
+            r.rankdef <- which(sapply(etemp$random.spec[id.r], function(x) x$rankdef)) 
+            if (length(r.rankdef)>0) { 
+                r.size <- sapply(etemp$random.spec[id.r[r.rankdef]], function(x) x$n) 
+                j.s <- which(r.size==n) 
+                j.t <- which(r.size==m) 
+                if (length(j.s)>1) 
+                    stop('Too many spatial effects with rank deficiency.') 
+                if (length(j.t)>1) 
+                    stop('Too many temporal effects with rank deficiency.') 
             }
         }
     }
-    m <- max(length(unique(data$t)), max(unclass(factor(data$t))))
-    Rt <- inla.scale.model(crossprod(diff(Diagonal(m))),
-                           constr=list(A=matrix(1,1,m), e=0))
-    m <- nrow(Rt)
     M2 <- kronecker(matrix(1/m,1,m), diag(n)) 
-    M3 <- kronecker(diag(m), matrix(1/n,1,n)) 
-    if (any(type%in%'1')) 
-        res$'1' <- inla(
-            update(formula,
-                   .~. + f(t, model='ar1', constr=TRUE,
-                           hyper=control.st$t) +
-                       f(s, model='bym2', graph=graph,
-                         hyper=control.st$s, scale.model=TRUE) + 
-                       f(st, model='iid', hyper=control.st$st)), 
-            data=data, ...)
+    M3 <- kronecker(diag(m), matrix(1/n,1,n))
+    dotdot <- mcall$control.st[which(!is.element(names(mcall$control.st),
+                                                 c('time', 'space', 'graph', 'type')))]
+    if (any(type%in%'1')) {
+        add1 <- paste0('f(', dotdot[2], ', model="iid", ',
+                       names(dotdot)[3], '=', dotdot[3], ')')
+        res$'1' <- inla(update(formula, paste('.~.+', add1)), ...)
+    }
     if (progress & tail(names(res),1)=='1') 
         cat('type = ', tail(names(res),1), ', cpu = ',  res[[length(res)]]$cpu[4], '\n', sep='')
-    if (any(type%in%'2')) 
-        res$'2' <- inla(
-            update(formula,
-                   .~. + f(t, model='ar1', constr=TRUE,
-                           hyper=control.st$t) +
-                       f(s, model='bym2', graph=graph,
-                         hyper=control.st$s, scale.model=TRUE) + 
-                       f(st, model='generic0', constr=FALSE, 
-                         Cmatrix=kronecker(Rt, Diagonal(n)), 
-                         extraconstr=list(A=M2, e=rep(0, n)),
-                         hyper=control.st$st)), 
-            data=data, ...)
+    if (any(type%in%'2')) {
+        add2 <- paste0('f(', dotdot[2], ', model="generic0", constr=FALSE, ',
+                       'Cmatrix=kronecker(R.t, Diagonal(n)), ',
+                       'extraconstr=list(A=M2, e=rep(0,n)), ',
+                       names(dotdot)[3], '=', dotdot[3], ')')
+        res$'2' <- inla(update(formula, paste('.~.+', add2)), ...)
+    }
     if (progress & tail(names(res),1)=='2') 
         cat('type = ', tail(names(res),1), ', cpu = ',  res[[length(res)]]$cpu[4], '\n', sep='')
-    if (any(type%in%'3')) 
-        res$'3' <- inla(
-            update(formula,
-                   .~. + f(t, model='ar1', constr=TRUE,
-                           hyper=control.st$t) +
-                       f(s, model='bym2', graph=graph,
-                         hyper=control.st$s, scale.model=TRUE) + 
-                       f(st, model='generic0', constr=FALSE, 
-                         Cmatrix=kronecker(Diagonal(m), R.s), 
-                         extraconstr=list(A=M3, e=rep(0, m)),
-                         hyper=control.st$st)), 
-            data=data, ...)
+    if (any(type%in%'3')) {
+        add3 <- paste0('f(', dotdot[2], ', model="generic0", constr=FALSE, ',
+                       'Cmatrix=kronecker(Diagonal(m), R.s), ',
+                       'extraconstr=list(A=M3, e=rep(0,m)), ',
+                       names(dotdot)[3], '=', dotdot[3], ')')
+        res$'3' <- inla(update(formula, paste('.~.+', add3)), ...)
+    }
     if (progress & tail(names(res),1)=='3') 
         cat('type = ', tail(names(res),1), ', cpu = ',  res[[length(res)]]$cpu[4], '\n', sep='')
-    if (any(type%in%'4')) 
-        res$'4' <- inla(
-            update(formula, 
-                   .~. + f(t, model='ar1', constr=TRUE,
-                           hyper=control.st$t) +
-                       f(s, model='bym2', graph=graph,
-                         hyper=control.st$s, scale.model=TRUE) + 
-                       f(st, model='generic0', constr=FALSE,
-                         extraconstr=list(A=rbind(M2, M3), e=rep(0, n+m)), 
-                         Cmatrix=kronecker(Rt, R.s), hyper=control.st$st)), 
-            data=data, ...)
+    if (any(type%in%'4')) {
+        add4 <- paste0('f(', dotdot[2], ', model="generic0", constr=FALSE, ',
+                       'Cmatrix=kronecker(R.t, R.s), ',
+                       'extraconstr=list(A=rbind(M2,M3), e=rep(0,n+m)), ',
+                       names(dotdot)[3], '=', dotdot[3], ')')
+        res$'4' <- inla(update(formula, paste('.~.+', add4)), ...)
+    }
     if (progress & tail(names(res),1)=='4') 
         cat('type = ', tail(names(res),1), ', cpu = ',  res[[length(res)]]$cpu[4], '\n', sep='')
     if (any(type%in%'2c')) {
-        data$st2 <- data$s + ifelse(data$t==1, NA, data$t-2)*n
-        id2 <- which(!is.na(data$st2)) 
+        st2 <- space + ifelse(time==1, NA, time-2)*n
+        id2 <- which(!is.na(st2)) 
         lcc2 <- inla.make.lincombs(s=cBind(Diagonal(n), Diagonal(n,0)),
                                    st2=M2[,id2] -1/(n*m))
         names(lcc2) <- gsub('lc', 's', names(lcc2))
         lcc <- inla.make.lincombs(
             st2=Diagonal(n*m)[,id2] - M2[data$s, id2])
+        add2c <- paste0('f(', dotdot[2], ', model="generic0", constr=FALSE, ',
+                        'Cmatrix=kronecker(R.t, R.s), ',
+                        'extraconstr=list(A=rbind(M2,M3), e=rep(0,n+m)), ',
+                        names(dotdot)[3], '=', dotdot[3], ')')
+        res$'4' <- inla(update(formula, paste('.~.+', add4)), ...)
         res$'2c' <- inla(
             update(formula,
                    .~. + f(t, model='ar1', constr=TRUE,
@@ -239,7 +264,7 @@
                        f(s, model='bym2', graph=graph, constr=TRUE, 
                          hyper=control.st$s, scale.model=TRUE) + 
                        f(st2, model='generic0', constr=FALSE, 
-                         Cmatrix=kronecker(Rt[-1,-1], Diagonal(n)), 
+                         Cmatrix=kronecker(R.t[-1,-1], Diagonal(n)), 
                          hyper=control.st$st)),
             data=data, lincomb=c(lcc2, lcc), ...)
     }
@@ -283,7 +308,7 @@
                        f(s, model='bym2', graph=graph, constr=TRUE, 
                          hyper=control.st$s, scale.model=TRUE) + 
                        f(st4, model='generic0', constr=FALSE, 
-                         Cmatrix=kronecker(Rt[-1,-1], R.s[-1,-1]),
+                         Cmatrix=kronecker(R.t[-1,-1], R.s[-1,-1]),
                          hyper=control.st$st)),
             data=data, lincomb=c(lcc2, lcc3, lcc), ...)
     }
@@ -306,7 +331,7 @@
                        f(s, model='bym2', graph=graph, constr=TRUE,
                          hyper=control.st$s, scale.model=TRUE) + 
                        f(st, model='generic0', constr=TRUE, rankdef=n, 
-                         Cmatrix=kronecker(Rt, Diagonal(n)) + dd, 
+                         Cmatrix=kronecker(R.t, Diagonal(n)) + dd, 
                          hyper=control.st$st)),
             data=data, lincomb=c(lcd2, lcd), ...)
     }
@@ -342,7 +367,7 @@
                        f(s, model='bym2', graph=graph, constr=TRUE, 
                          hyper=control.st$s, scale.model=TRUE) + 
                        f(st, model='generic0', constr=TRUE, rankdef=n+m, 
-                         Cmatrix=kronecker(Rt, R.s) + dd,
+                         Cmatrix=kronecker(R.t, R.s) + dd,
                          hyper=control.st$st)),
             data=data, lincomb=c(lcd2, lcd3, lcd), ...)
     }
