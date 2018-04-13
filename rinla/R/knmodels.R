@@ -138,11 +138,12 @@
 ##!summary(dat$y)
 ##!
 ##!### fit the type 4 considering three different approaches 
-##!res <- inla.knmodels(
-##!  y~f(s, model='bym2', graph=graph) + f(t, model='bym2'), 
-##!    dat, progress=TRUE, control.st=list(t=t, s=s, st=st,
-##!                   graph=graph, type=c(4, '4c', '4d')), 
-##!  control.compute=list(dic=TRUE, waic=TRUE, cpo=TRUE))
+##!tgraph <- sparseMatrix(i=c(2:10, 1:9), j=c(1:9, 2:10), x=-1)
+##!res <- testfit(y~f(t, model='bym2', graph=tgraph) +
+##!     f(s, model='bym2', graph=graph),
+##!     data=dat, family='poisson', E=dat$E, progress=TRUE, 
+##!     control.st=list(t=t, s=s, st=st, graph=graph, type=c(4, '4c', '4d')), 
+##!     control.compute=list(dic=TRUE, waic=TRUE, cpo=TRUE))
 ##!sapply(res, function(x)
 ##!       c(dic=x$dic$dic, waic=x$waic$waic, cpo=-sum(log(x$cpo$cpo))))
 ##!}
