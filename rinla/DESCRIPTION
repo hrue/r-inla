@@ -10,7 +10,7 @@ Authors@R: c(
     person("Geir-Arne", "Fuglstad", email = "fulgstad@math.ntnu.no", role = "aut"))
 Description: Full Bayesian analysis of latent Gaussian models using Integrated Nested Laplace Approximaxion. It is a front-end to the inla-program.
 Depends:
-    R (>= 3.2)
+    R (>= 3.2),
     Matrix,
     sp
 Suggests:
