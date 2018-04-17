@@ -83,6 +83,12 @@
            ##! \item{diagonal}{The value to be added to the 
            ##!   diagonal when using the diagonal add approach.}
            diagonal=1e-5, 
+           ##! \item{timeref}{The time point considered to be the 
+           ##!   reference for the contrast parametrization.}
+           timeref=1, 
+           ##! \item{spaceref}{The are considered to be the 
+           ##!   reference for the contrast parametrization.}
+           spaceref=1, 
            ##!  \item{...}{Passed to \code{\link{f}} function.
            ##!   Specification of the hyperparameter, 
            ##!   fixed or random, initial value, prior and its 
@@ -154,6 +160,10 @@
     } else {
         tname <- substring(ft, 3)
         time <- model.frame(as.formula(ft), data=eval(mcall$data))[,1]
+        timeref <- unique(eval(mcall$control.st$timeref))
+        if (length(timeref)>1)
+            stop("length(timeref)>1")
+        if (length(timeref)==0) timeref <- 1
     }
     fs <- paste('~', mcall$control.st$space)
     if (fs=='~ ') {
@@ -161,6 +171,11 @@
     } else {
         sname <- substring(fs, 3)
         space <- model.frame(as.formula(fs), data=eval(mcall$data))[,1]
+        spaceref <- 1
+        spaceref <- unique(eval(mcall$control.st$spaceref))
+        if (length(spaceref)>1)
+            stop("length(spaceref)>1")
+        if (length(spaceref)==0) spaceref <- 1
     }
     fst <- paste('~', mcall$control.st$spacetime)
     if (fst=='~ ') {
@@ -227,37 +242,39 @@
     M2 <- kronecker(matrix(1/m,1,m), diag(n)) 
     M3 <- kronecker(diag(m), matrix(1/n,1,n))
     dotdot <- mcall$control.st[which(!is.element(names(mcall$control.st),
-                                                 c('time', 'space', 'graph', 'type')))]
+                                                 c('time', 'space', 'graph', 'type',
+                                                   'timeref', 'spaceref')))]
+
+    add0 <- ''
+    if(length(names(dotdot))>2) {
+        add0 <- paste0(', ', names(dotdot)[3], '=', dotdot[3])
+    }
     if (any(type%in%'1')) {
-        add1 <- paste0('f(', dotdot[2], ', model="iid", ',
-                       names(dotdot)[3], '=', dotdot[3], ')')
+        add1 <- paste0('f(', stname, ', model="iid"', add0, ')')
         res$'1' <- inla(update(formula, paste('.~.+', add1)), ...)
     }
     if(progress && (length(res)>0) && tail(names(res),1)=='1') 
         cat('type = ', tail(names(res),1), ', cpu = ',  res[[length(res)]]$cpu[4], '\n', sep='')
     if (any(type%in%'2')) {
-        add2 <- paste0('f(', dotdot[2], ', model="generic0", constr=FALSE, ',
+        add2 <- paste0('f(', stname, ', model="generic0", constr=FALSE, ',
                        'Cmatrix=kronecker(R.t, Diagonal(n)), ',
-                       'extraconstr=list(A=M2, e=rep(0,n)), ',
-                       names(dotdot)[3], '=', dotdot[3], ')')
+                       'extraconstr=list(A=M2, e=rep(0,n))', add0, ')')
         res$'2' <- inla(update(formula, paste('.~.+', add2)), ...)
     }
     if(progress && (length(res)>0) && tail(names(res),1)=='2') 
         cat('type = ', tail(names(res),1), ', cpu = ',  res[[length(res)]]$cpu[4], '\n', sep='')
     if (any(type%in%'3')) {
-        add3 <- paste0('f(', dotdot[2], ', model="generic0", constr=FALSE, ',
+        add3 <- paste0('f(', stname, ', model="generic0", constr=FALSE, ',
                        'Cmatrix=kronecker(Diagonal(m), R.s), ',
-                       'extraconstr=list(A=M3, e=rep(0,m)), ',
-                       names(dotdot)[3], '=', dotdot[3], ')')
+                       'extraconstr=list(A=M3, e=rep(0,m))', add0, ')')
         res$'3' <- inla(update(formula, paste('.~.+', add3)), ...)
     }
     if(progress && (length(res)>0) && tail(names(res),1)=='3') 
         cat('type = ', tail(names(res),1), ', cpu = ',  res[[length(res)]]$cpu[4], '\n', sep='')
     if (any(type%in%'4')) {
-        add4 <- paste0('f(', dotdot[2], ', model="generic0", constr=FALSE, ',
+        add4 <- paste0('f(', stname, ', model="generic0", constr=FALSE, ',
                        'Cmatrix=kronecker(R.t, R.s), ',
-                       'extraconstr=list(A=rbind(M2,M3), e=rep(0,n+m)), ',
-                       names(dotdot)[3], '=', dotdot[3], ')')
+                       'extraconstr=list(A=rbind(M2,M3), e=rep(0,n+m))', add0, ')')
         res$'4' <- inla(update(formula, paste('.~.+', add4)), ...)
     }
     if(progress && (length(res)>0) && tail(names(res),1)=='4') 
@@ -265,16 +282,11 @@
     if (any(type%in%'2c')) {
         add2c <- paste0('f(st2, model="generic0", constr=FALSE, ',
                         'Cmatrix=kronecker(R.t, Diagonal(n)), ',
-                        'extraconstr=list(A=M2, e=rep(0,n)), ',
-                        names(dotdot)[3], '=', dotdot[3], ')')
+                        'extraconstr=list(A=M2, e=rep(0,n))', add0, ')')
         if(is.null(time)) {
             st2 <- spacetime
         } else {
-            if(is.null(space)) {
-                st2 <- ifelse(time==1, NA, time-2)*n + spacetime[1:n]
-            } else {
-            st2 <- space + ifelse(time==1, NA, time-2)*n
-            }
+            st2 <- ifelse(time==timeref, NA, spacetime-cumsum(time==timeref)) 
         }
         id2 <- which(!is.na(st2))
         lc2 <- inla.make.lincombs(
@@ -295,16 +307,11 @@
     if (any(type%in%'3c')) {
         add3c <- paste0('f(st3, model="generic0", constr=FALSE, ',
                         'Cmatrix=kronecker(Diagonal(m), R.s), ',
-                        'extraconstr=list(A=M3, e=rep(0,m)), ',
-                        names(dotdot)[3], '=', dotdot[3], ')')
+                        'extraconstr=list(A=M3, e=rep(0,m))', add0, ')')
         if(is.null(space)) {
             st3 <- spacetime
         } else {
-            if(is.null(time)) {
-                st3 <- ifelse(space==1, NA, spacetime-1 -(spacetime-1)%/%n)
-            } else {
-                st3 <- ifelse(space==1, NA, time-1)*(n-1) + space-1 
-            }
+            st3 <- ifelse(space==spaceref, NA, spacetime-cumsum(space==spaceref)) 
         }
         id3 <- which(!is.na(st3))
         lc3 <- inla.make.lincombs(
@@ -325,9 +332,13 @@
     if (any(type%in%'4c')) {
         add4c <- paste0('f(st4, model="generic0", constr=FALSE, ',
                         'Cmatrix=kronecker(R.t, R.s), ',
-                        'extraconstr=list(A=rbind(M2, M3), e=rep(0,n+m)), ',
-                        names(dotdot)[3], '=', dotdot[3], ')')
-        st4 <- space-1 + ifelse((space==1) | (time==1), NA, time-2)*(n-1)
+                        'extraconstr=list(A=rbind(M2, M3), e=rep(0,n+m))', add0, ')')
+        aux4 <- logical(n*m) 
+        if (is.null(time)) 
+            aux4 <- aux4|(time==timeref)
+        if (is.null(space))
+            aux4 <- aux4|(space==spaceref)
+        st4 <- ifelse(aux4, NA, spacetime-cumsum(aux4)) 
         id4 <- which(!is.na(st4))
         lc4 <- inla.make.lincombs(
             st4=(Diagonal(n*m)[,id4] - M2[space,id4] -M3[time,id4] +1/(n*m)))
@@ -372,8 +383,7 @@
         lcd <- do.call('inla.make.lincombs', lcd2args) 
         add2d <- paste0('f(', stname, ', model="generic0", ',
                         'constr=TRUE, rankdef=n, ',
-                        'Cmatrix=kronecker(R.t, Diagonal(n)) + dd, ',
-                        names(dotdot)[3], '=', dotdot[3], ')')
+                        'Cmatrix=kronecker(R.t, Diagonal(n)) + dd', add0, ')')
         res$'2d' <- inla(update(formula, paste('.~.+', add2d)),
                          lincomb=c(lcd2, lcd), ...)
     }
@@ -386,8 +396,7 @@
         names(lcd) <- gsub('lc', 'st', names(lcd))
         add3d <- paste0('f(', stname, ', model="generic0", ',
                         'constr=TRUE, rankdef=m, ',
-                        'Cmatrix=kronecker(Diagonal(m), R.s) + dd, ',
-                        names(dotdot)[3], '=', dotdot[3], ')')
+                        'Cmatrix=kronecker(Diagonal(m), R.s) + dd', add0, ')')
         res$'3d' <- inla(update(formula, paste('.~.+', add3d)), 
                          lincomb=c(lcd3, lcd), ...)
     }
@@ -413,8 +422,7 @@
         names(lcd) <- gsub('lc', 'st', names(lcd))
         add4d <- paste0('f(', stname, ', model="generic0", ', 
                         'constr=TRUE, rankdef=n+m, ', 
-                        'Cmatrix=kronecker(R.t, R.s) + dd, ', 
-                        names(dotdot)[3], '=', dotdot[3], ')')
+                        'Cmatrix=kronecker(R.t, R.s) + dd', add0, ')')
         res$'4d' <- inla(update(formula, paste('.~.+', add4d)),
                          lincomb=c(lcd2, lcd3, lcd), ...)
     }
@@ -502,18 +510,18 @@
         ev.s <- eigen(as.matrix(R.s))
     }
     n <- length(ev.s$values)
-    dat <- list(t=rep(1:m, each=n), s=rep(1:n, m), st=1:(m*n), x=list()) 
+    dat <- list(time=rep(1:m, each=n), space=rep(1:n, m), spacetime=1:(m*n), x=list()) 
     ### AR(1), as used before:
     ##    dat$x$t <- arima.sim(model=list(ar=rho), n=m, ### sample with marginal variance = 1/tau.t
     ##                         rand.gen=function(leng) rnorm(leng, 0, sqrt((1-rho^2)/tau.t)))
     dat$x$t.str <- qsample(ev=ev.t)
     dat$x$t.iid <- rnorm(m, 0.0, 1.0)
-    dat$x$t <- c((sqrt(phi.t)*dat$x$t.str + sqrt(1-phi.t)*dat$x$t.iid)/sqrt(tau.t),
-                   dat$x$t.str)
+    dat$x$time <- c((sqrt(phi.t)*dat$x$t.str + sqrt(1-phi.t)*dat$x$t.iid)/sqrt(tau.t),
+                    dat$x$t.str)
     dat$x$s.iid <- rnorm(length(ev.s$value), 0, 1) 
     dat$x$s.str <- qsample(ev=ev.s)
-    dat$x$s <- c((sqrt(phi.s)*dat$x$s.str + sqrt(1-phi.s)*dat$x$s.iid)/sqrt(tau.s),
-                   dat$x$s.str)
+    dat$x$space <- c((sqrt(phi.s)*dat$x$s.str + sqrt(1-phi.s)*dat$x$s.iid)/sqrt(tau.s),
+                     dat$x$s.str)
     if (type==1) 
         ev.st <- list(values=rep(1, m*n), vectors=diag(m*n)) 
     if (type==2)
@@ -525,8 +533,9 @@
     if (type==4) 
         ev.st <- list(values=rep(ev.t$values, each=n)*rep(ev.s$values, m),  
                       vectors=kronecker(ev.t$vectors, ev.s$vectors))
-    dat$x$st <- qsample(ev=ev.st)/sqrt(tau.st)
-    dat$x$eta <- intercept + dat$x$t[dat$t] + dat$x$s[dat$s] + dat$x$st[dat$st]
+    dat$x$spacetime <- qsample(ev=ev.st)/sqrt(tau.st)
+    dat$x$eta <- intercept + dat$x$time[dat$time] +
+        dat$x$space[dat$space] + dat$x$spacetime[dat$spacetime]
     return(dat)
 }
 
