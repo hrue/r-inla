@@ -961,9 +961,8 @@
     inla.write.boolean.field("config", config, file)
     inla.write.boolean.field("gdensity", gdensity, file)
 
-    if (!is.null(smtp)) {
-        cat("smtp = ", smtp, "\n", sep = " ", file = file,  append = TRUE)
-    }
+    cat("smtp = ", if (is.null(smtp)) "taucs" else smtp, "\n", sep = " ", file = file,  append = TRUE)
+
     if (!is.null(quantiles)) {
         cat("quantiles = ", quantiles, "\n", sep = " ", file = file,  append = TRUE)
     }

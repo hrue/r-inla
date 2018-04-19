@@ -476,7 +476,8 @@ struct GMRFLib_store_struct {
 	GMRFLib_graph_tp *sub_graph;
 
 	supernodal_factor_matrix *TAUCS_symb_fact;	       /* for GMRFLib_smtp == GMRFLib_SMTP_TAUCS */
-
+	GMRFLib_pardiso_store_tp *PARDISO_fact;
+	
 	GMRFLib_store_tp *diag_store;			       /* store SAFE-optims in optimize */
 	GMRFLib_store_tp *sub_store;			       /* store the same if fixed values in optimize */
 

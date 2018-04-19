@@ -192,7 +192,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		return GMRFLib_SUCCESS;
 	}
 
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL);
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 
 	*hgmrfm = Calloc(1, GMRFLib_hgmrfm_tp);
 	arg = Calloc(1, GMRFLib_hgmrfm_arg_tp);
@@ -865,7 +865,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		GMRFLib_print_Qfunc(stdout, h->graph, h->Qfunc, h->Qfunc_arg);
 	}
 
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL);
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	return GMRFLib_SUCCESS;
 }

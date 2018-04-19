@@ -195,6 +195,7 @@ typedef long unsigned int GMRFLib_sizeof_tp;
 #define FIXMEE( msg) if (1) { fprintf(stderr, "\n[%1d]:%s:%1d:%s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
 #define FIXMEE1(msg) if (1) { static int first=1; if (first) { first=0; FIXMEE(msg); }}
 #define P(x)        if (1) { printf("line[%1d] " #x " = [ %.12f ]\n",__LINE__,(double)x); }
+#define P1(x)        if (1) { static int first=1;  if (first) { printf("line[%1d] " #x " = [ %.12f ]\n",__LINE__,(double)x); first=0; }}
 #define PP(msg,pt)  if (1) { printf("%d: %s ptr " #pt " = 0x%x\n",__LINE__,msg,pt); }
 #define ISINF(x) gsl_isinf(x)
 #define ISNAN(x) gsl_isnan(x)
