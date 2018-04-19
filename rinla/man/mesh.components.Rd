@@ -17,7 +17,7 @@ inla.mesh.components(mesh)
   \item{component}{Connected component integer label.} 
   \item{nV}{The number of vertices in the component.}
   \item{nT}{The number of triangles in the component.}
-  \item{area}{The surface area associated with the component.}
+  \item{area}{The surface area associated with the component.
   Component lables are not comparable across different meshes, but
   some ordering stability is guaranteed by initiating each component
   from the lowest numbered triangle whenever a new component is initiated.}
