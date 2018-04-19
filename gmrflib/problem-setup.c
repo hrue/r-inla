@@ -237,6 +237,9 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		if (smtp == GMRFLib_SMTP_TAUCS) {
 			store_store_symb_fact = (store->TAUCS_symb_fact ? 0 : 1);
 			store_use_symb_fact = !store_store_symb_fact;
+		} else if (smtp == GMRFLib_SMTP_PARDISO) {
+			store_store_symb_fact = 0;
+			store_use_symb_fact = !store_store_symb_fact;
 		} else {
 			store_store_symb_fact = 0;
 			store_use_symb_fact = 0;
@@ -354,10 +357,14 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			 * store a copy, if requested 
 			 */
 			if (store_store_remap) {
-				store->remap = Calloc(sub_n, int);
-				memcpy(store->remap, (*problem)->sub_sm_fact.remap, sub_n * sizeof(int));
-				if (smtp == GMRFLib_SMTP_BAND) {
-					store->bandwidth = (*problem)->sub_sm_fact.bandwidth;
+				if ((*problem)->sub_sm_fact.remap != NULL) {
+					store->remap = Calloc(sub_n, int);
+					memcpy(store->remap, (*problem)->sub_sm_fact.remap, sub_n * sizeof(int));
+					if (smtp == GMRFLib_SMTP_BAND) {
+						store->bandwidth = (*problem)->sub_sm_fact.bandwidth;
+					}
+				} else {
+					store->remap = NULL;
 				}
 			}
 		}
@@ -520,8 +527,17 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			GMRFLib_free_fact_sparse_matrix(&((*problem)->sub_sm_fact));
 		}
 
-		if (store_use_symb_fact) {
+		if (store_use_symb_fact && (smtp == GMRFLib_SMTP_TAUCS)) {
 			(*problem)->sub_sm_fact.TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(store->TAUCS_symb_fact);
+		}
+
+		if (store_use_symb_fact && (smtp == GMRFLib_SMTP_PARDISO)) {
+			FIXME1("ADDED NEW EXPERIMENTAL CODE");
+			GMRFLib_pardiso_store_tp *s = Calloc(1, GMRFLib_pardiso_store_tp);
+			s->graph = (*problem)->sub_graph;
+			// use the internal cached storage
+			GMRFLib_duplicate_pardiso_store(&((*problem)->sub_sm_fact.PARDISO_fact), s);
+			Free(s);
 		}
 
 		if (GMRFLib_catch_error_for_inla) {
@@ -549,7 +565,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			GMRFLib_EWRAP1(GMRFLib_factorise_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->sub_graph));
 		}
 
-		if (store_store_symb_fact) {
+		if (store_store_symb_fact && (smtp == GMRFLib_SMTP_TAUCS)) {
 			store->TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS((*problem)->sub_sm_fact.TAUCS_symb_fact);
 		}
 	}
@@ -716,29 +732,53 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					/*
 					 * as usual 
 					 */
-#pragma omp parallel for private(k, kk, i)
-					for (k = 0; k < nc; k++) {
-						kk = k * sub_n;
-						for (i = 0; i < sub_n; i++) {
-							(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
+					if (0) {
+#pragma omp parallel for private(k, kk, i) num_threads(GMRFLib_openmp->max_threads_outer)
+						for (k = 0; k < nc; k++) {
+							kk = k * sub_n;
+							for (i = 0; i < sub_n; i++) {
+								(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
+							}
+							GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[kk]), 1, 
+											&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 						}
-						GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[kk]),
+					} else {
+						FIXME1("NEW CODE HERE");
+						for (k = 0; k < nc; k++) {
+							kk = k * sub_n;
+							for (i = 0; i < sub_n; i++) {
+								(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
+							}
+						}
+						GMRFLib_solve_llt_sparse_matrix((*problem)->qi_at_m, nc, 
 										&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 					}
 				} else {
 					/*
 					 * reuse 
 					 */
-					memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
-#pragma omp parallel for private(k, kk, i)
-					for (k = nc - 2; k < nc; k++) {
-						kk = k * sub_n;
-						for (i = 0; i < sub_n; i++) {
-							(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
+					if (0) {
+						memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
+#pragma omp parallel for private(k, kk, i) num_threads(GMRFLib_openmp->max_threads_outer)
+						for (k = nc - 2; k < nc; k++) {
+							kk = k * sub_n;
+							for (i = 0; i < sub_n; i++) {
+								(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
+							}
+							GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[kk]), 1, 
+											&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 						}
-						GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[kk]),
-										&((*problem)->sub_sm_fact), (*problem)->sub_graph);
+					} else {
+						FIXME1("NEW CODE HERE");
+						for (k = nc - 2; k < nc; k++) {
+							kk = k * sub_n;
+							for (i = 0; i < sub_n; i++) {
+								(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
+							}
+						}
 					}
+					GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[(nc-2)*sub_n]), 2, 
+									&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 					Free(qi_at_m_store);
 				}
 
@@ -828,7 +868,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 
 	if (!(keep & GMRFLib_KEEP_mean)) {
 		GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix
-			       ((*problem)->sub_mean, &((*problem)->sub_sm_fact), (*problem)->sub_graph));
+			       ((*problem)->sub_mean, 1, &((*problem)->sub_sm_fact), (*problem)->sub_graph));
 
 		if (!((*problem)->sub_mean_constr)) {
 			(*problem)->sub_mean_constr = Calloc(sub_n, double);
@@ -1260,6 +1300,10 @@ int GMRFLib_free_store(GMRFLib_store_tp * store)
 		if (store->TAUCS_symb_fact) {
 			taucs_supernodal_factor_free(store->TAUCS_symb_fact);
 		}
+	}
+	// always free
+	if (store->PARDISO_fact) {
+		GMRFLib_pardiso_free(&(store->PARDISO_fact));
 	}
 
 	store->sub_graph = NULL;
@@ -2096,6 +2140,10 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 	np->sub_sm_fact.TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(problem->sub_sm_fact.TAUCS_symb_fact);
 	COPY(sub_sm_fact.finfo);
 
+	if (problem->sub_sm_fact.PARDISO_fact) {
+		GMRFLib_duplicate_pardiso_store(&(np->sub_sm_fact.PARDISO_fact), problem->sub_sm_fact.PARDISO_fact);
+	}
+
 	/*
 	 * then the constraint 
 	 */
@@ -2348,6 +2396,9 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 		new_store->TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(store->TAUCS_symb_fact);
 	}
 	new_store->copy_ptr = copy_ptr;
+	if (store->PARDISO_fact) {
+		GMRFLib_duplicate_pardiso_store(&(new_store->PARDISO_fact), store->PARDISO_fact);
+	}
 
 	GMRFLib_meminfo_thread_id *= -1;
 	char *tmp = Calloc(1, char);
@@ -2403,6 +2454,9 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
+		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
+		*nnz_opt = 0;
+	} else if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
 		*nnz_opt = 0;
 	} else {

@@ -534,8 +534,6 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		return GMRFLib_SUCCESS;
 	}
 
-	GMRFLib_ENTER_ROUTINE;
-
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		density->mean = density->mean_gaussian;
 		density->stdev = density->stdev_gaussian;
@@ -771,7 +769,6 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 
 	Free(xpm);
 
-	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -1039,7 +1036,6 @@ int GMRFLib_density_Pinv(double *xp, double p, GMRFLib_density_tp * density)
 	 * 
 	 * NOTE that 'xp' is in standarized scale. 
 	 */
-	GMRFLib_ENTER_ROUTINE;
 	GMRFLib_ASSERT(p >= 0 && p <= 1, GMRFLib_EPARAMETER);
 
 	/*
@@ -1055,7 +1051,6 @@ int GMRFLib_density_Pinv(double *xp, double p, GMRFLib_density_tp * density)
 			GMRFLib_ASSERT(density->Pinv->spline != NULL, GMRFLib_ESNH);
 		}
 	}
-	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -1505,8 +1500,6 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	double *xx = NULL, *ldens = NULL, g_mean, g_var;
 	GMRFLib_sn_param_tp sn_param;
 
-	GMRFLib_ENTER_ROUTINE;
-
 	xx = Calloc(n, double);
 	ldens = Calloc(n, double);
 	memcpy(xx, x, (size_t) n * sizeof(double));
@@ -1589,7 +1582,6 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	Free(xx);
 	Free(ldens);
 
-	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_density_new_mean(GMRFLib_density_tp ** new_density, GMRFLib_density_tp * density, double new_mean)
