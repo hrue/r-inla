@@ -488,7 +488,7 @@ int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_proble
 	GMRFLib_EWRAP1(GMRFLib_factorise_sparse_matrix(&((*hidden_problem)->sub_sm_fact), (*hidden_problem)->sub_graph));
 
 	memcpy((*hidden_problem)->sub_mean, (*hidden_problem)->sub_b, sub_n * sizeof(double));
-	GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix((*hidden_problem)->sub_mean, &((*hidden_problem)->sub_sm_fact), (*hidden_problem)->sub_graph));
+	GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix((*hidden_problem)->sub_mean, 1, &((*hidden_problem)->sub_sm_fact), (*hidden_problem)->sub_graph));
 
 	/*
 	 * determine the neighbor-graph 
@@ -871,7 +871,7 @@ int GMRFLib_doit_hidden_i(GMRFLib_hidden_problem_tp * h, int sample_flag, int id
 				for (j = 0; j < ndim; j++) {
 					memset(sol, 0, sub_n * sizeof(double));
 					sol[indexs[j]] = 1.0;
-					GMRFLib_EWRAP0(GMRFLib_solve_llt_sparse_matrix(sol, &(h->sub_sm_fact), h->sub_graph));
+					GMRFLib_EWRAP0(GMRFLib_solve_llt_sparse_matrix(sol, 1, &(h->sub_sm_fact), h->sub_graph));
 					for (i = 0; i < ndim; i++)
 						cov[j + i * ndim] = cov[i + j * ndim] = sol[indexs[i]];
 				}

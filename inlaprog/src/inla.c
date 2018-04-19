@@ -3465,7 +3465,7 @@ double Qfunc_besag(int i, int j, void *arg)
 
 	a = (inla_besag_Qfunc_arg_tp *) arg;
 	prec = (a->log_prec ? map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL) : 1.0);
-
+	
 	if (a->prec_scale) {
 		if (a->prec_scale[i] > 0.0) {
 			prec *= a->prec_scale[i];
@@ -9550,7 +9550,8 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	if (mb->verbose) {
 		printf("\t\tname=[%s]\n", mb->name);
 	}
-	openmp_strategy = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"), GMRFLib_strdup("DEFAULT")));
+	openmp_strategy = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"),
+							     GMRFLib_strdup("DEFAULT"))); 
 	if (mb->verbose) {
 		printf("\t\topenmp.strategy=[%s]\n", openmp_strategy);
 	}
@@ -9568,18 +9569,24 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_LARGE;
 	} else if (!strcasecmp(openmp_strategy, "HUGE")) {
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_HUGE;
+	} else if (!strcasecmp(openmp_strategy, "PARDISO")) {
+		mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
 	} else {
 		GMRFLib_sprintf(&tmp, "Unknown openmp.strategy [%s]", openmp_strategy);
 		inla_error_general(tmp);
 		exit(EXIT_FAILURE);
 	}
 
-	smtp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SMTP"), NULL));
+	smtp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SMTP"),
+						  (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO ?
+						   GMRFLib_strdup("PARDISO") : GMRFLib_strdup("TAUCS")))); 
 	if (smtp) {
 		if (!strcasecmp(smtp, "GMRFLib_SMTP_BAND") || !strcasecmp(smtp, "BAND")) {
 			GMRFLib_smtp = GMRFLib_SMTP_BAND;
 		} else if (!strcasecmp(smtp, "GMRFLib_SMTP_TAUCS") || !strcasecmp(smtp, "TAUCS")) {
 			GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
+		} else if (!strcasecmp(smtp, "GMRFLib_SMTP_PARDISO") || !strcasecmp(smtp, "PARDISO")) {
+			GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
 		} else {
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "smtp", smtp);
 		}
@@ -9587,6 +9594,10 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			printf("\t\tsmtp=[%s]\n", smtp);
 		}
 	}
+	mb->smtp = GMRFLib_strdup(smtp);
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, &GMRFLib_smtp);
+	
+
 	mb->dir = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup("results-%1d")));
 	ok = 0;
 	int accept_argument = 0;
@@ -19550,6 +19561,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		if (std) {
 			inla_besag_scale(arg, adj, mb->verbose);
+			if (mb->verbose) {
+				printf("\t\tscale.model: prec_scale[%g]\n", arg->prec_scale[0]);
+			}
 		}
 
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
@@ -19579,6 +19593,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		if (std) {
 			inla_besag_scale(arg->besag_arg, adj, mb->verbose);
+			if (mb->verbose) {
+				printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
+			}
 		}
 
 		inla_make_besag2_graph(&(mb->f_graph[mb->nf]), arg->besag_arg->graph);
@@ -19621,6 +19638,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		if (std) {
 			inla_besag_scale(arg->besag_arg, adj, mb->verbose);
+			if (mb->verbose) {
+				printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
+			}
 		}
 
 		/*
@@ -23629,7 +23649,7 @@ double extra(double *theta, int ntheta, void *argument)
 					case GMRFLib_EPOSDEF:
 					{
 						int ii;
-						double eps = GMRFLib_eps(0.75);
+						double eps = GMRFLib_eps(0.5);
 
 						for (ii = 0; ii < spde->graph->n; ii++) {
 							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -23748,7 +23768,7 @@ double extra(double *theta, int ntheta, void *argument)
 					case GMRFLib_EPOSDEF:
 					{
 						int ii;
-						double eps = GMRFLib_eps(0.75);
+						double eps = GMRFLib_eps(0.5);
 
 						for (ii = 0; ii < spde2->graph->n; ii++) {
 							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -23863,7 +23883,7 @@ double extra(double *theta, int ntheta, void *argument)
 					case GMRFLib_EPOSDEF:
 					{
 						int ii;
-						double eps = GMRFLib_eps(0.75);
+						double eps = GMRFLib_eps(0.5);
 
 						for (ii = 0; ii < spde3->graph->n; ii++) {
 							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -24116,7 +24136,7 @@ double extra(double *theta, int ntheta, void *argument)
 					case GMRFLib_EPOSDEF:
 					{
 						int ii;
-						double eps = GMRFLib_eps(0.75);
+						double eps = GMRFLib_eps(0.5);
 
 						for (ii = 0; ii < arg->n; ii++) {
 							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -24221,7 +24241,7 @@ double extra(double *theta, int ntheta, void *argument)
 					case GMRFLib_EPOSDEF:
 					{
 						int ii;
-						double eps = GMRFLib_eps(0.75);
+						double eps = GMRFLib_eps(0.5);
 
 						for (ii = 0; ii < arg->n; ii++) {
 							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -24318,7 +24338,7 @@ double extra(double *theta, int ntheta, void *argument)
 					case GMRFLib_EPOSDEF:
 					{
 						int ii;
-						double eps = GMRFLib_eps(0.75);
+						double eps = GMRFLib_eps(0.5);
 
 						/*
 						 * only need to add for the z-part; the last m components.
@@ -24417,7 +24437,7 @@ double extra(double *theta, int ntheta, void *argument)
 					case GMRFLib_EPOSDEF:
 					{
 						int ii;
-						double eps = GMRFLib_eps(0.75);
+						double eps = GMRFLib_eps(0.5);
 
 						/*
 						 * only need to add for the z-part; the last m components.
@@ -24537,7 +24557,7 @@ double extra(double *theta, int ntheta, void *argument)
 					case GMRFLib_EPOSDEF:
 					{
 						int ii;
-						double eps = GMRFLib_eps(0.75);
+						double eps = GMRFLib_eps(0.5);
 						for (ii = 0; ii < mb->f_graph_orig[i]->n; ii++) {
 							cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
 						}
@@ -24767,7 +24787,7 @@ double extra(double *theta, int ntheta, void *argument)
 						switch (retval) {
 						case GMRFLib_EPOSDEF:
 						{
-							double eps = GMRFLib_eps(0.75);
+							double eps = GMRFLib_eps(0.5);
 							for (jj = 0; jj < n; jj++) {
 								cc_add[jj] = (cc_add[jj] == 0.0 ? eps : cc_add[jj] * 10.0);
 							}
@@ -25781,6 +25801,8 @@ int inla_INLA(inla_tp * mb)
 		GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH;
 		break;
 	case GMRFLib_OPENMP_STRATEGY_HUGE:
+	case GMRFLib_OPENMP_STRATEGY_PARDISO:
+		FIXME1("Maybe change this");
 		GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_LOW;
 		break;
 	default:
@@ -25790,6 +25812,9 @@ int inla_INLA(inla_tp * mb)
 		printf("\tChose density-strategy [%s]\n",
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT ?
 			"DEFAULT" : (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "LOW" : "HIGH")));
+	}
+	if (mb->verbose) {
+		printf("\tSparse-matrix library = [%s]\n", mb->smtp);
 	}
 
 	GMRFLib_init_hgmrfm(&(mb->hgmrfm), mb->predictor_n, mb->predictor_m,
@@ -29683,10 +29708,11 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	assert(B->i == NULL);				       /* I want B as dense matrix */
 	assert(problem->n == B->nrow);
 
+	FIXME1("PARDISO: this can be improved");
 #pragma omp parallel for private(i)
 	for (i = 0; i < B->ncol; i++) {
 		if (!strcasecmp(method, "solve")) {
-			GMRFLib_solve_llt_sparse_matrix(&(B->A[i * B->nrow]), &(problem->sub_sm_fact), problem->sub_graph);
+			GMRFLib_solve_llt_sparse_matrix(&(B->A[i * B->nrow]), 1, &(problem->sub_sm_fact), problem->sub_graph);
 		} else if (!strcasecmp(method, "forward")) {
 			GMRFLib_solve_l_sparse_matrix(&(B->A[i * B->nrow]), &(problem->sub_sm_fact), problem->sub_graph);
 		} else if (!strcasecmp(method, "backward")) {
@@ -30036,7 +30062,7 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose)
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 
-			double *c = Calloc(def->graph->n, double), eps = GMRFLib_eps(0.75);
+			double *c = Calloc(def->graph->n, double), eps = GMRFLib_eps(0.5);
 			for (i = 0; i < def->graph->n; i++) {
 				c[i] = eps;
 			}
@@ -30195,6 +30221,9 @@ int inla_fgn(char *infile, char *outfile)
 int testit(int argc, char **argv)
 {
 	if (1) {
+		my_pardiso_test();
+	}
+	if (0) {
 		P(GMRFLib_rng_uniform());
 		P(GMRFLib_rng_uniform());
 	}
@@ -30647,7 +30676,7 @@ int main(int argc, char **argv)
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = omp_get_max_threads();
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL);
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
 	GMRFLib_collect_timer_statistics = GMRFLib_FALSE;
@@ -30694,6 +30723,7 @@ int main(int argc, char **argv)
 			if (inla_sread_ints(&nt, 1, optarg) == INLA_OK) {
 				GMRFLib_openmp->max_threads = IMAX(1, nt);
 				omp_set_num_threads(GMRFLib_openmp->max_threads);
+				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 			} else {
 				fprintf(stderr, "Fail to read MAX_THREADS from %s\n", optarg);
 				exit(EXIT_SUCCESS);
@@ -30880,62 +30910,81 @@ int main(int argc, char **argv)
 	/*
 	 * these options does not belong here in this program, but it makes all easier... and its undocumented.
 	 */
-	if (G.mode == INLA_MODE_QINV) {
+	switch (G.mode) {
+	case INLA_MODE_QINV: 
 		inla_qinv(argv[optind], argv[optind + 1], argv[optind + 2]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
-	} else if (G.mode == INLA_MODE_QSOLVE) {
+		break;
+
+	case INLA_MODE_QSOLVE: 
 		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
-		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL);
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		inla_qsolve(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
-	} else if (G.mode == INLA_MODE_QREORDERING) {
+		break;
+
+	case INLA_MODE_QREORDERING: 
 		inla_qreordering(argv[optind]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
-	} else if (G.mode == INLA_MODE_QSAMPLE) {
+		break;
+
+	case INLA_MODE_QSAMPLE: 
 		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
-		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL);
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5],
 			     argv[optind + 6], argv[optind + 7], argv[optind + 8]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
-	} else if (G.mode == INLA_MODE_FINN) {
+		break;
+
+	case INLA_MODE_FINN: 
 		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
-		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL);
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		inla_finn(argv[optind]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
-	} else if (G.mode == INLA_MODE_GRAPH) {
+		break;
+
+	case INLA_MODE_GRAPH: 
 		inla_read_graph(argv[optind]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
-	} else if (G.mode == INLA_MODE_R) {
+		break;
+		
+	case INLA_MODE_R: 
 		inla_R(&(argv[optind]));
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
-	} else if (G.mode == INLA_MODE_FGN) {
+		break;
+		
+	case INLA_MODE_FGN: 
 		inla_fgn(argv[optind], argv[optind + 1]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
-	} else if (G.mode == INLA_MODE_TESTIT) {
+		break;
+		
+	case INLA_MODE_TESTIT: 
 		testit(argc, &(argv[optind]));
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
-	} else {
-		/*
-		 * DO AS NORMAL...
-		 */
+		break;
+
+	case INLA_MODE_MCMC:
+	case INLA_MODE_HYPER:
+	case INLA_MODE_DEFAULT:
+		break;
 	}
 
 	if (!silent || verbose) {
