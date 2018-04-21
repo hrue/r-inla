@@ -50,6 +50,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 {
 	GMRFLib_ENTER_ROUTINE;
 
+	int i;
 	GMRFLib_global_node_tp lgn, *gn_ptr = NULL;
 
 	if (gn) {
@@ -78,6 +79,8 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 
 		case GMRFLib_SMTP_PARDISO:
 			sm_fact->remap = Calloc(graph->n, int);
+			for(i = 0; i < graph->n; i++)
+				sm_fact->remap[i] = i;
 			break;
 
 		default:
