@@ -13,7 +13,8 @@
 
 inla.dBind <- function(...)
 {
-    return(.bdiag(list(...)))
+    .Deprecated("Matrix::bdiag")
+    return(bdiag(...))
 }
 
 inla.extract.el <- function(M, ...)
@@ -1088,7 +1089,7 @@ inla.stack.sum <- function(data, A, effects,
 
     effects = do.call(rbind.inla.data.stack.info, eff)
 
-    A.matrix = do.call(cBind, A)
+    A.matrix = do.call(cbind, A)
     A.nrow = nrow(A.matrix)
     A.ncol = ncol(A.matrix)
 
@@ -1123,8 +1124,8 @@ inla.stack.join <- function(..., compress=TRUE, remove.unused=TRUE)
                     lapply(S.input, function(x) x$data))
     effects <- do.call(rbind.inla.data.stack.info,
                        lapply(S.input, function(x) x$effects))
-    A <- do.call(inla.dBind,
-                 lapply(S.input, function(x) x$A))
+    ## The .bdiag form of bdiag takes a list as input.
+    A <- .bdiag(lapply(S.input, function(x) x$A))
 
     S.output = list(A=A, data=data, effects=effects)
     class(S.output) = "inla.data.stack"
