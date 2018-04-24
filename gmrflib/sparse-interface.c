@@ -78,9 +78,14 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 			break;
 
 		case GMRFLib_SMTP_PARDISO:
+			if (sm_fact->PARDISO_fact == NULL) {
+				FIXME("PARDISO_fact == NULL");
+				GMRFLib_pardiso_init(&(sm_fact->PARDISO_fact));
+			}
+			GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph);
 			sm_fact->remap = Calloc(graph->n, int);
-			for(i = 0; i < graph->n; i++)
-				sm_fact->remap[i] = i;
+			memcpy((void *) sm_fact->remap, (void *) sm_fact->PARDISO_fact->pstore[0]->perm,
+			       graph->n * sizeof(int));
 			break;
 
 		default:
@@ -437,7 +442,6 @@ int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
-		// not yet implemented
 		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_LT(sm_fact->PARDISO_fact, rhs, rhs, 1));
 		break;
 
@@ -471,7 +475,9 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_f
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
-		// not yet implemented
+		if (remapped) {
+			GMRFLib_pardiso_perm(rhs, 1, sm_fact->PARDISO_fact);
+		}
 		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_L(sm_fact->PARDISO_fact, rhs, rhs, 1));
 		break;
 

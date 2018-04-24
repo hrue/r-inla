@@ -90,6 +90,8 @@ typedef struct {
 	int nrhs;
 	int phase;
 	int L_nnz;
+	int *perm;
+	int *iperm;
 	double log_det_Q;
 	GMRFLib_csr_tp *Q;
 	GMRFLib_csr_tp *Qinv;
@@ -164,6 +166,10 @@ int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double
 int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso_flag_tp flag, double *x, double *b, int nrhs);
 int GMRFLib_pardiso_symfact(GMRFLib_pardiso_store_tp * store);
 int GMRFLib_print_csr(FILE * fp, GMRFLib_csr_tp * csr);
+
+int GMRFLib_pardiso_perm(double *x, int m, GMRFLib_pardiso_store_tp * store);
+int GMRFLib_pardiso_iperm(double *x, int m, GMRFLib_pardiso_store_tp * store);
+int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store, int direction);
 
 int my_pardiso_test();
 

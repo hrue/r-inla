@@ -66,7 +66,7 @@ static struct {
 	0,						       // s_verbose
 	0,						       // csr_check
 	0,						       // mnum (do not change)
-	-2,						       // mtype (-2 = sym, 2 = sym pos def)
+	2,						       // mtype (-2 = sym, 2 = sym pos def)
 	4,						       // num_proc (1, 2, 4, or 8)
 	NULL,						       // busy
 	NULL};
@@ -320,6 +320,7 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 	case GMRFLib_PARDISO_FLAG_REORDER:
 		store->pstore[S.mnum]->phase = 11;	       // analysis
 		store->pstore[S.mnum]->iparm[4] = 0;	       /* 0 = compute the permutation */
+		store->pstore[S.mnum]->iparm[39] = 1;	       /* 1 = return the permutation */
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SYMFACT:
@@ -401,6 +402,8 @@ double GMRFLib_pardiso_Qfunc_default(int i, int j, void *arg)
 
 int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph)
 {
+	int debug = 1;
+
 	assert(store != NULL);
 	assert(store->done_with_init == GMRFLib_TRUE);
 
@@ -409,7 +412,7 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 	}
 	GMRFLib_ENTER_ROUTINE;
 
-	int i, mnum1 = 1;
+	int i, n, mnum1 = 1;
 	GMRFLib_csr_tp *Q = NULL;
 
 	GMRFLib_copy_graph(&(store->graph), graph);
@@ -424,13 +427,29 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 		GMRFLib_print_csr(stdout, Q);
 	}
 
+	n = Q->n;
+	store->pstore[S.mnum]->perm = Calloc(n, int);
+	store->pstore[S.mnum]->iperm = Calloc(n, int);
+
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype),
 		&(store->pstore[S.mnum]->phase),
-		&(Q->n), Q->a, Q->ia, Q->ja, NULL,
+		&(Q->n), Q->a, Q->ia, Q->ja, store->pstore[S.mnum]->perm,
 		&(store->pstore[S.mnum]->nrhs), store->pstore[S.mnum]->iparm,
 		&(store->msglvl), &(store->pstore[S.mnum]->dummy), &(store->pstore[S.mnum]->dummy),
 		&(store->pstore[S.mnum]->err_code), store->pstore[S.mnum]->dparm);
 
+	for(i=0; i<n; i++){
+		store->pstore[S.mnum]->perm[i]--;	       /* back to C indexing */
+		store->pstore[S.mnum]->iperm[store->pstore[S.mnum]->perm[i]] = i;
+	}
+	
+	if (debug) {
+		for(i=0; i<n; i++){
+			printf("perm[%1d] = %1d | iperm[%1d] = %1d\n", i, store->pstore[S.mnum]->perm[i],
+			       i, store->pstore[S.mnum]->iperm[i]);
+		}
+	}
+	
 	if (store->pstore[S.mnum]->err_code) {
 		GMRFLib_ERROR(GMRFLib_EPARDISO_INTERNAL_ERROR);
 	}
@@ -443,6 +462,36 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_pardiso_perm(double *x, int m, GMRFLib_pardiso_store_tp * store) 
+{
+	return GMRFLib_pardiso_perm_core(x, m, store, 1);
+}
+int GMRFLib_pardiso_iperm(double *x, int m, GMRFLib_pardiso_store_tp * store) 
+{
+	return GMRFLib_pardiso_perm_core(x, m, store, 0);
+}
+int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store, int direction) 
+{
+	int i, j, k, n, *permutation;
+	double *xx;
+
+	n = store->pstore[S.mnum]->Q->n;
+	xx = Calloc(n * m, double);
+	memcpy(xx, x, n * m * sizeof(double));
+	permutation = (direction ? store->pstore[S.mnum]->perm : store->pstore[S.mnum]->iperm);
+	assert(permutation);
+	assert(m > 0);
+
+	for(j = 0; j < m; j++ ) {
+		k = j * n;
+		for(i = 0; i < n; i++) {
+			x[k + i] = xx[k + permutation[i]];
+		}
+	}
+	Free(xx);
+
+	return GMRFLib_SUCCESS;
+}
 int GMRFLib_pardiso_symfact(GMRFLib_pardiso_store_tp * store)
 {
 	assert(store->done_with_init == GMRFLib_TRUE);
@@ -521,9 +570,10 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	double *xx = Calloc(n * nrhs, double);
 
 	GMRFLib_pardiso_setparam(flag, store);
-
-	P(store->pstore[S.mnum]->phase);
-	P(store->pstore[S.mnum]->iparm[25]);
+	if (0)
+	for(int i = 0; i < n; i++) {
+		printf("b[%1d] = %g\n", i, b[i]);
+	}
 
 	int mnum1 = S.mnum + 1;
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore[S.mnum]->phase),
@@ -546,6 +596,7 @@ int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp * store, double *x, double 
 	// this is L, as in Q = LL'
 	GMRFLib_ENTER_ROUTINE;
 	int res = GMRFLib_pardiso_solve_core(store, GMRFLib_PARDISO_FLAG_SOLVE_L, x, b, nrhs);
+	GMRFLib_pardiso_iperm(x, nrhs, store);
 	GMRFLib_LEAVE_ROUTINE;
 
 	return res;
@@ -555,7 +606,9 @@ int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double
 {
 	// this is L, as in Q = LL'
 	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_pardiso_perm(b, nrhs, store);
 	int res = GMRFLib_pardiso_solve_core(store, GMRFLib_PARDISO_FLAG_SOLVE_LT, x, b, nrhs);
+	GMRFLib_pardiso_iperm(b, nrhs, store);
 	GMRFLib_LEAVE_ROUTINE;
 
 	return res;
