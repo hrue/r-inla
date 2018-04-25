@@ -2060,12 +2060,10 @@ int GMRFLib_ai_update_conditional_mean(GMRFLib_problem_tp * pproblem, double *x,
 
 		(*problem)->qi_at_m = Calloc(nc * sub_n, double);
 		memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
-		Free(qi_at_m_store)
+		Free(qi_at_m_store);
 
-		    /*
-		     * this solves the equation for the last constraint only... 
-		     */
-		    k = nc - 1;
+		// this solves the equation for the last constraint only... 
+		k = nc - 1;
 		kk = k * sub_n;
 		for (i = 0; i < sub_n; i++) {
 			(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];

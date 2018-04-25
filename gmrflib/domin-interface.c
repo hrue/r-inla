@@ -205,7 +205,7 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 	/*
 	 * this version controls AI_STORE 
 	 */
-	int i, debug = 0;
+	int i, debug = 1;
 	double ffx, fx_local;
 
 	/*

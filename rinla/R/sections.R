@@ -961,7 +961,11 @@
     inla.write.boolean.field("config", config, file)
     inla.write.boolean.field("gdensity", gdensity, file)
 
-    cat("smtp = ", if (is.null(smtp)) "taucs" else smtp, "\n", sep = " ", file = file,  append = TRUE)
+    if (is.null(smtp) || !(is.character(smtp) && (nchar(smtp) > 0))) {
+        smtp = inla.getOption("smtp")
+    }
+    smtp = match.arg(tolower(smtp), c("band", "taucs", "pardiso"))
+    cat("smtp = ", smtp, "\n", sep = " ", file = file,  append = TRUE)
 
     if (!is.null(quantiles)) {
         cat("quantiles = ", quantiles, "\n", sep = " ", file = file,  append = TRUE)
