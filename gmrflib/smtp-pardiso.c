@@ -290,16 +290,25 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default[0] = 0;			       /* use default values */
 	s->iparm_default[2] = S.num_proc;
 	s->iparm_default[4] = 0;			       /* use internal reordering */
+
+	printf("********* %s\n",  getenv("PARDISO_LIC_PATH")); fflush(stdout);
+	
 	pardisoinit(s->pt, &(s->mtype), &(s->solver), s->iparm_default, s->dparm_default, &error);
 	
 	s->iparm_default[10] = 0;			       /* I think these are the defaults, but */
 	s->iparm_default[12] = 0;			       /* we need these for the LDL^Tx=b solver to work */
 	
 	if (error != 0) {
-		P(error);
-		GMRFLib_ERROR(GMRFLib_EPARDISO_INTERNAL_ERROR);
+		if (error == -10) {
+			GMRFLib_ERROR(GMRFLib_EPARDISO_LICENSE_NOTFOUND);
+		} else if (error == -11) {
+			GMRFLib_ERROR(GMRFLib_EPARDISO_LICENSE_EXPIRED);
+		} else if (error == -12) {
+			GMRFLib_ERROR(GMRFLib_EPARDISO_LICENSE_ERR_USERNAME);
+		} else {
+			GMRFLib_ERROR(GMRFLib_EPARDISO_INTERNAL_ERROR);
+		}
 	}
-
 	s->done_with_init = GMRFLib_TRUE;
 	*store = s;
 
@@ -402,7 +411,7 @@ double GMRFLib_pardiso_Qfunc_default(int i, int j, void *arg)
 
 int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph)
 {
-	int debug = 1;
+	int debug = 0;
 
 	assert(store != NULL);
 	assert(store->done_with_init == GMRFLib_TRUE);
@@ -862,7 +871,7 @@ int my_pardiso_test(void)
 {
 	int err = 0;
 
-	if (0) {
+	if (1) {
 		err = GMRFLib_pardiso_check_install(1, 0);
 		if (err == GMRFLib_SUCCESS) {
 			printf("PARDISO OK\n");

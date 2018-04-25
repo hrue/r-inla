@@ -516,6 +516,9 @@ int GMRFLib_log_determinant(double *logdet, GMRFLib_sm_fact_tp * sm_fact, GMRFLi
 		GMRFLib_ERROR(GMRFLib_ESNH);
 		break;
 	}
+
+	P(*logdet);
+
 	return GMRFLib_SUCCESS;
 }
 
