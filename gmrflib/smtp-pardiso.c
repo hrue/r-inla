@@ -570,12 +570,8 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	double *xx = Calloc(n * nrhs, double);
 
 	GMRFLib_pardiso_setparam(flag, store);
-	if (0)
-	for(int i = 0; i < n; i++) {
-		printf("b[%1d] = %g\n", i, b[i]);
-	}
-
 	int mnum1 = S.mnum + 1;
+
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore[S.mnum]->phase),
 		&n, store->pstore[S.mnum]->Q->a, store->pstore[S.mnum]->Q->ia, store->pstore[S.mnum]->Q->ja,
 		NULL, &nrhs, store->pstore[S.mnum]->iparm, &(store->msglvl), b, xx,
@@ -593,8 +589,8 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 
 int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs)
 {
-	// this is L, as in Q = LL'
 	GMRFLib_ENTER_ROUTINE;
+	assert(x != b);
 	int res = GMRFLib_pardiso_solve_core(store, GMRFLib_PARDISO_FLAG_SOLVE_L, x, b, nrhs);
 	GMRFLib_pardiso_iperm(x, nrhs, store);
 	GMRFLib_LEAVE_ROUTINE;
@@ -604,8 +600,8 @@ int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp * store, double *x, double 
 
 int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs)
 {
-	// this is L, as in Q = LL'
 	GMRFLib_ENTER_ROUTINE;
+	assert(x != b);
 	GMRFLib_pardiso_perm(b, nrhs, store);
 	int res = GMRFLib_pardiso_solve_core(store, GMRFLib_PARDISO_FLAG_SOLVE_LT, x, b, nrhs);
 	GMRFLib_pardiso_iperm(b, nrhs, store);
@@ -616,7 +612,6 @@ int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double
 
 int GMRFLib_pardiso_solve_LLT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs)
 {
-	// this is L, as in Q = LL'
 	GMRFLib_ENTER_ROUTINE;
 	int res = GMRFLib_pardiso_solve_core(store, GMRFLib_PARDISO_FLAG_SOLVE_LLT, x, b, nrhs);
 	GMRFLib_LEAVE_ROUTINE;
