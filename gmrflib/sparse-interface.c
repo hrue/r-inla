@@ -406,7 +406,6 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
-		// not yet implemented
 		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, 1));
 		break;
 
@@ -475,10 +474,16 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_f
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
+	{
+		// _solve_L()'arguments cannot take x and b to be the same
+		double *xx = Calloc(graph->n, double);
 		if (remapped) {
 			GMRFLib_pardiso_perm(rhs, 1, sm_fact->PARDISO_fact);
 		}
-		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_L(sm_fact->PARDISO_fact, rhs, rhs, 1));
+		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_L(sm_fact->PARDISO_fact, xx, rhs, 1));
+		memcpy(rhs, xx, graph->n * sizeof(double));
+		Free(xx);
+	}
 		break;
 
 	default:
