@@ -1895,6 +1895,17 @@
     rversion = paste(R.Version()$major, ".", strsplit(R.Version()$minor,"[.]")[[1]][1], sep="")
     inla.eval(paste("Sys.setenv(", "\"INLA_RVERSION\"", "=\"", rversion , "\"", ")", sep=""))
     inla.eval(paste("Sys.setenv(", "\"INLA_RHOME\"", "=\"", Sys.getenv("R_HOME") , "\"", ")", sep=""))
+
+    ## environment variables for PARDISO: set variables unless they already exists
+    if (nchar(Sys.getenv("PARDISO_LIC_PATH")) == 0) {
+        inla.eval(paste("Sys.setenv(", "\"PARDISO_LIC_PATH\"", "=\"",
+                        dirname(path.expand(inla.getOption("pardiso.license"))), "\"", ")", sep=""))
+        print(Sys.getenv("PARDISO_LIC_PATH"))
+    }
+    if (nchar(Sys.getenv("PARDISOLICMESSAGE")) == 0) {
+        Sys.setenv(PARDISOLICMESSAGE=1)
+    }
+
     if (debug) {
         inla.eval(paste("Sys.setenv(", "\"INLA_DEBUG=\"", "=\"", 1, "\"", ")", sep=""))
     }
