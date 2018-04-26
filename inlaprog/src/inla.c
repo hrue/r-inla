@@ -23417,7 +23417,6 @@ double extra(double *theta, int ntheta, void *argument)
 			if (NOT_FIXED(f_fixed[i][0])) {
 				log_precision = theta[count];
 				count++;
-				P(log_precision);
 			} else {
 				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}

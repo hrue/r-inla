@@ -66,7 +66,7 @@ static struct {
 	0,						       // s_verbose
 	0,						       // csr_check
 	0,						       // mnum (do not change)
-	2,						       // mtype (-2 = sym, 2 = sym pos def)
+	-2,						       // mtype (-2 = sym, 2 = sym pos def)
 	4,						       // num_proc (1, 2, 4, or 8)
 	NULL,						       // busy
 	NULL};
@@ -291,10 +291,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default[2] = S.num_proc;
 	s->iparm_default[4] = 0;			       /* use internal reordering */
 
-	printf("********* %s\n",  getenv("PARDISO_LIC_PATH")); fflush(stdout);
-	
 	pardisoinit(s->pt, &(s->mtype), &(s->solver), s->iparm_default, s->dparm_default, &error);
-	
 	s->iparm_default[10] = 0;			       /* I think these are the defaults, but */
 	s->iparm_default[12] = 0;			       /* we need these for the LDL^Tx=b solver to work */
 	
@@ -647,6 +644,8 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 		return GMRFLib_SUCCESS;
 	}
 
+	FIXME("ENTER Qinv...");
+	
 	GMRFLib_ENTER_ROUTINE;
 	GMRFLib_pardiso_Qinv(problem->sub_sm_fact.PARDISO_fact);
 
@@ -654,6 +653,9 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 	int n = Qi->n, i, j, jj, k, kk;
 	double value;
 	map_id **Qinv = Calloc(n, map_id *);
+
+	//GMRFLib_print_csr(stdout, Qi);
+	//exit(1);
 
 	assert(Qi->base == 0);
 
@@ -865,6 +867,36 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
+
+
+// we can define 'NO_PARDISO_LIB' if we want to compile without the pardiso library
+
+#if defined(NO_PARDISO_LIB)
+#define NO_PARDISO_LIB						\
+	{							\
+		GMRFLib_ERROR(GMRFLib_EPARDISO_NO_LIBRARY);	\
+		exit(1);					\
+	}
+void pardisoinit(void *a, int *b, int *c, int *d, double *e, int *f)
+	NO_PARDISO_LIB;
+void pardiso(void *a, int *b, int *c, int *d, int *e, int *f, double *g,
+		     int *h, int *i, int *j, int *k, int *l, int *m, double *n, double *o, int *p, double *q)
+	NO_PARDISO_LIB;
+void pardiso_chkmatrix(int *a, int *s, double *d, int *f, int *g, int *h)
+	NO_PARDISO_LIB;
+void pardiso_chkvec(int *a, int *s, double *d, int *f)
+	NO_PARDISO_LIB;
+void pardiso_printstats(int *a, int *s, double *d, int *f, int *g, int *h, double *j, int *k)
+	NO_PARDISO_LIB;
+void pardiso_get_factor_csc(void **a, double *s, int *d, int *f, double *g, int *h, int *j, int *k, int l)
+	NO_PARDISO_LIB;
+void pardiso_get_inverse_factor_csc(void **a, double *s, int *d, int *f, int *g, int h)
+	NO_PARDISO_LIB;
+#undef NO_PARDISO_LIB
+#endif
+
+
+
 
 //
 int my_pardiso_test(void)
