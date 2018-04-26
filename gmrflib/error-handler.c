@@ -104,7 +104,8 @@ static GMRFLib_error_handler_tp *handler = NULL;
   25 :   PARDISO License file: expired\n
   26 :   PARDISO License file: wrong username\
   27 :   PARDISO: Internal error\
-  28 :   (this is an unknown error code) \n
+  28 :   PARDISO: Library not available\
+  29 :   (this is an unknown error code) \n
 
   \remarks This function is used within the library generating the \a reason argument 
   in the default error handling function \c GMRFLib_error_handler().
@@ -115,7 +116,7 @@ const char *GMRFLib_error_reason(int errorno)
 	/*
 	 * return a pointer to the reason for error=errorno 
 	 */
-#define NMSG 28
+#define NMSG 30
 	static const char *reasons[NMSG] = { 
 		"No error, please ignore",
 		"Alloc failed",
@@ -145,6 +146,7 @@ const char *GMRFLib_error_reason(int errorno)
 		"License file for PARDISO: Expired",
 		"License file for PARDISO: Wrong username",
 		"PARDISO: Internal error",
+		"PARDISO: Library not available",
 		"(((this is an unknown errorcode)))"
 	};
 	if (errorno < 0 || errorno >= NMSG - 1)

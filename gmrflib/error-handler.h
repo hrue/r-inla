@@ -87,6 +87,7 @@ __BEGIN_DECLS
 #define  GMRFLib_EPARDISO_LICENSE_EXPIRED  (25)		       /*  */
 #define  GMRFLib_EPARDISO_LICENSE_ERR_USERNAME  (26)	       /*  */
 #define  GMRFLib_EPARDISO_INTERNAL_ERROR  (27)		       /*  */
+#define  GMRFLib_EPARDISO_NO_LIBRARY  (28)		       /*  */
 
 
 /**

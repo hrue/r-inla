@@ -949,6 +949,7 @@
         inla.dir.create(inla.dir)
     }
     ## Create a directory where to store data and results
+    inla.dir = normalizePath(inla.dir)
     data.dir=paste(inla.dir, "/data.files", sep="")
     results.dir = paste(inla.dir, "/results.files", sep="")
     inla.dir.create(data.dir)
@@ -1895,17 +1896,30 @@
     rversion = paste(R.Version()$major, ".", strsplit(R.Version()$minor,"[.]")[[1]][1], sep="")
     inla.eval(paste("Sys.setenv(", "\"INLA_RVERSION\"", "=\"", rversion , "\"", ")", sep=""))
     inla.eval(paste("Sys.setenv(", "\"INLA_RHOME\"", "=\"", Sys.getenv("R_HOME") , "\"", ")", sep=""))
-
-    ## environment variables for PARDISO: set variables unless they already exists
-    if (nchar(Sys.getenv("PARDISO_LIC_PATH")) == 0) {
-        inla.eval(paste("Sys.setenv(", "\"PARDISO_LIC_PATH\"", "=\"",
-                        dirname(path.expand(inla.getOption("pardiso.license"))), "\"", ")", sep=""))
-        print(Sys.getenv("PARDISO_LIC_PATH"))
+    
+    ## environment variables for PARDISO
+    lic.filename = "pardiso.lic" ## do not change
+    lic.file = normalizePath(inla.getOption("pardiso.license"))
+    lic.path = NA
+    if (file.exists(lic.file)) {
+        info = file.info(lic.file)
+        if (!is.na(info$isdir)) {
+            if (info$isdir) {
+                lic.path = lic.file
+            } else {
+                file.copy(lic.file, paste0(inla.dir, "/", lic.filename))
+                lic.path = inla.dir
+            }
+        } else {
+            lic.path = lic.file
+        }
+    } else {
+        lic.path = lic.file
     }
-    if (nchar(Sys.getenv("PARDISOLICMESSAGE")) == 0) {
-        Sys.setenv(PARDISOLICMESSAGE=1)
-    }
-
+    inla.eval(paste("Sys.setenv(", "\"PARDISO_LIC_PATH\"", "=\"", normalizePath(lic.path), "\"", ")", sep=""))
+    Sys.setenv(PARDISOLICMESSAGE=1)
+    Sys.setenv(OPENBLAS_NUM_THREADS=1)
+    
     if (debug) {
         inla.eval(paste("Sys.setenv(", "\"INLA_DEBUG=\"", "=\"", 1, "\"", ")", sep=""))
     }
