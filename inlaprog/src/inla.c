@@ -9569,8 +9569,10 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_LARGE;
 	} else if (!strcasecmp(openmp_strategy, "HUGE")) {
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_HUGE;
-	} else if (!strcasecmp(openmp_strategy, "PARDISO")) {
-		mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
+	} else if (!strcasecmp(openmp_strategy, "PARDISO.SERIAL")) {
+		mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
+	} else if (!strcasecmp(openmp_strategy, "PARDISO.PARALLEL")) {
+		mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
 	} else {
 		GMRFLib_sprintf(&tmp, "Unknown openmp.strategy [%s]", openmp_strategy);
 		inla_error_general(tmp);
@@ -9578,8 +9580,9 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	}
 
 	smtp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SMTP"),
-						  (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO ?
-						   GMRFLib_strdup("PARDISO") : GMRFLib_strdup("TAUCS")))); 
+						  (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ||
+						   GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL) ?
+						  GMRFLib_strdup("PARDISO") : GMRFLib_strdup("TAUCS")));
 	if (smtp) {
 		if (!strcasecmp(smtp, "GMRFLib_SMTP_BAND") || !strcasecmp(smtp, "BAND")) {
 			GMRFLib_smtp = GMRFLib_SMTP_BAND;
@@ -25797,12 +25800,12 @@ int inla_INLA(inla_tp * mb)
 	case GMRFLib_OPENMP_STRATEGY_SMALL:
 	case GMRFLib_OPENMP_STRATEGY_MEDIUM:
 	case GMRFLib_OPENMP_STRATEGY_LARGE:
+	case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL:
 	case GMRFLib_OPENMP_STRATEGY_DEFAULT:
 		GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH;
 		break;
 	case GMRFLib_OPENMP_STRATEGY_HUGE:
-	case GMRFLib_OPENMP_STRATEGY_PARDISO:
-		FIXME1("Maybe change this");
+	case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL:
 		GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_LOW;
 		break;
 	default:
