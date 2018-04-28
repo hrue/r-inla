@@ -137,6 +137,8 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		smtp_store = *smtp;
 	}
 
+	P(ntmax);
+	
 	if (pardiso_ok && smtp_store == GMRFLib_SMTP_PARDISO) {
 		FIXME1("PARDISO is installed and working, set openmp->strategy = 'PARDISO'");
 		if (strategy == GMRFLib_OPENMP_STRATEGY_DEFAULT) {
@@ -146,7 +148,6 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 			       strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL);
 		}
 	}
-
 
 	if (smtp_store == GMRFLib_SMTP_PARDISO) {
 		switch(strategy) {
@@ -364,10 +365,15 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		break;
 	}
 
+	FIXME("SET nt = inla_ncpu()");
 	nt = IMAX(1, IMIN(ntmax, nt));
-
+	nt = inla_ncpu();
+	
 	omp_set_num_threads(nt);
 	omp_set_nested(nested);
+
+	P(GMRFLib_openmp->max_threads_inner);
+	P(GMRFLib_openmp->max_threads_outer);
 
 	return GMRFLib_SUCCESS;
 }

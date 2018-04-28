@@ -68,17 +68,12 @@ static struct {
 	0,						       // csr_check
 	0,						       // mnum (do not change)
 	-2,						       // mtype (-2 = sym, 2 = sym pos def)
-	0,						       // msg-level (0: no, 1: yes)
+	1,						       // msg-level (0: no, 1: yes)
 	4,						       // num_proc (1, 2, 4, or 8)
 	NULL,						       // busy
 	NULL};
 
 #define PSTORES_NUM() (2048)
-
-int GMRFLib_pardiso_num_proc()
-{
-	return S.num_proc;
-}
 
 int GMRFLib_free_csr(GMRFLib_csr_tp ** csr)
 {
@@ -271,6 +266,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	GMRFLib_ENTER_ROUTINE;
 
 	int error = 0;
+	int inla_ncpu(void);				       /* external function */
 	GMRFLib_pardiso_store_tp *s = Calloc(1, GMRFLib_pardiso_store_tp);
 
 	if (S.s_verbose)
@@ -285,7 +281,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default = Calloc(GMRFLib_PARDISO_PLEN, int);
 	s->dparm_default = Calloc(GMRFLib_PARDISO_PLEN, double);
 	s->iparm_default[0] = 0;			       /* use default values */
-	s->iparm_default[2] = S.num_proc;
+	s->iparm_default[2] = inla_ncpu();		       /* number of procs */
 	s->iparm_default[4] = 0;			       /* use internal reordering */
 
 	pardisoinit(s->pt, &(s->mtype), &(s->solver), s->iparm_default, s->dparm_default, &error);
@@ -442,18 +438,18 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 		&(store->msglvl), &(store->pstore->dummy), &(store->pstore->dummy),
 		&(store->pstore->err_code), store->pstore->dparm);
 
-	FIXME1("XXX");
+	FIXME1("I am not sure if the reordering is returned here");
 	if (0) {
 		for(i=0; i<n; i++){
 			store->pstore->perm[i]--;	       /* back to C indexing */
 			store->pstore->iperm[store->pstore->perm[i]] = i;
 		}
+	}
 	
-		if (debug) {
-			for(i=0; i<n; i++){
-				printf("perm[%1d] = %1d | iperm[%1d] = %1d\n", i, store->pstore->perm[i],
-				       i, store->pstore->iperm[i]);
-			}
+	if (debug) {
+		for(i=0; i<n; i++){
+			printf("perm[%1d] = %1d | iperm[%1d] = %1d\n", i, store->pstore->perm[i],
+			       i, store->pstore->iperm[i]);
 		}
 	}
 	
