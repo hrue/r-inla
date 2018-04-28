@@ -1280,98 +1280,168 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 	mean_g = m1 / sum_w;
 	stdev_g = sqrt(DMAX(0.0, m2 / sum_w - SQR(mean_g)));
 
-	/*
-	 * chose abscissas as for the GHQ + the mean +/- 0, 0.25, 0.5 and 1.0*stdev, for each density in the mixture 
-	 */
-	nf = sizeof(f) / sizeof(double);
-	np_max = n_points + nf * n;			       /* maximum value of np */
-	x_points = Calloc(np_max, double);
-	x_points_g = (gdensity ? Calloc(np_max, double) : NULL);
+	if (1) {
+		// new code. only use the mean/stdev to layout points
+		FIXME1("COMBINE USING NEW CODE");
+		n_points = 30;
+		np_max = n_points + nf;	
+		x_points = Calloc(np_max, double);
+		x_points_g = (gdensity ? Calloc(np_max, double) : NULL);
 
-	GMRFLib_ghq_abscissas(&ptr, n_points);
-	memcpy(x_points, ptr, n_points * sizeof(double));
-	if (gdensity) {
-		memcpy(x_points_g, ptr, n_points * sizeof(double));
-	}
-
-	/*
-	 * compute the new points. it is required that the new points are within the INTEGRATION_LIMIT, otherwise its density
-	 * is essentially zero. this loop also determine `np' 
-	 */
-	np = n_points;
-	for (i = 0; i < n; i++) {
-		m = densities[i]->user_mean;
-		sd = densities[i]->user_stdev;
-		for (j = 0; j < nf; j++) {
-			xx = (m + f[j] * sd - mean) / stdev;
-			if (ABS(xx) < GMRFLib_DENSITY_INTEGRATION_LIMIT) {
-				x_points[np++] = xx;
-			}
+		GMRFLib_ghq_abscissas(&ptr, n_points);
+		memcpy(x_points, ptr, n_points * sizeof(double));
+		memcpy(x_points + n_points, f, nf * sizeof(double));
+		np = np_max;
+		if (gdensity) {
+			memcpy(x_points_g, ptr, n_points * sizeof(double));
+			memcpy(x_points_g + n_points, f, nf * sizeof(double));
+			np_g = np_max;
+		} else {
+			np_g = 0;
 		}
-	}
-	if (gdensity) {
-		np_g = n_points;
-		for (i = 0; i < n; i++) {
-			m = densities[i]->std_mean;
-			sd = densities[i]->std_stdev;
-			for (j = 0; j < nf; j++) {
-				xx = (m + f[j] * sd - mean_g) / stdev_g;
-				if (ABS(xx) < GMRFLib_DENSITY_INTEGRATION_LIMIT) {
-					x_points_g[np_g++] = xx;
-				}
-			}
+
+		/*
+		 * sort and remove ties or points to close. the _additive option is more 'pratical', whereas the _relative option is
+		 * very conservative. We need to ensure that we are not ending up with fewer than minp points which is minimum for the
+		 * spline-interpolant (or 5 for the akima-interpolant).
+		 */
+		qsort(x_points, (size_t) np, sizeof(double), GMRFLib_dcmp);
+		if (gdensity) {
+			qsort(x_points_g, (size_t) np_g, sizeof(double), GMRFLib_dcmp);
 		}
-	} else {
-		np_g = 0;
-	}
 
-	/*
-	 * sort and remove ties or points to close. the _additive option is more 'pratical', whereas the _relative option is
-	 * very conservative. We need to ensure that we are not ending up with fewer than minp points which is minimum for the
-	 * spline-interpolant (or 5 for the akima-interpolant).
-	 */
-	qsort(x_points, (size_t) np, sizeof(double), GMRFLib_dcmp);
-	if (gdensity) {
-		qsort(x_points_g, (size_t) np_g, sizeof(double), GMRFLib_dcmp);
-	}
+		double *x_points_tmp = NULL;
+		int np_tmp;
 
-	double *x_points_tmp = NULL;
-	int np_tmp;
-
-	x_points_tmp = Calloc(np, double);
-	np_tmp = np;
-	memcpy(x_points_tmp, x_points, np * sizeof(double));
-	GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 4.0));
-	if (np_tmp >= minp) {				       /* then its ok */
-		np = np_tmp;
-		memcpy(x_points, x_points_tmp, np * sizeof(double));
-	} else {
-		GMRFLib_unique_relative(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 3.0));
-		if (np_tmp >= minp) {			       /* then its ok */
+		x_points_tmp = Calloc(np, double);
+		np_tmp = np;
+		memcpy(x_points_tmp, x_points, np * sizeof(double));
+		GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 4.0));
+		if (np_tmp >= minp) {				       /* then its ok */
 			np = np_tmp;
 			memcpy(x_points, x_points_tmp, np * sizeof(double));
-		}
-	}
-	Free(x_points_tmp);
-
-	if (gdensity) {
-		x_points_tmp = Calloc(np_g, double);
-		np_tmp = np_g;
-		memcpy(x_points_tmp, x_points_g, np_g * sizeof(double));
-		GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 4.0));
-		if (np_tmp >= minp) {			       /* then its ok */
-			np_g = np_tmp;
-			memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
 		} else {
 			GMRFLib_unique_relative(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 3.0));
-			if (np_tmp >= minp) {		       /* then its ok */
-				np_g = np_tmp;
-				memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
+			if (np_tmp >= minp) {			       /* then its ok */
+				np = np_tmp;
+				memcpy(x_points, x_points_tmp, np * sizeof(double));
 			}
 		}
 		Free(x_points_tmp);
-	}
 
+		if (gdensity) {
+			x_points_tmp = Calloc(np_g, double);
+			np_tmp = np_g;
+			memcpy(x_points_tmp, x_points_g, np_g * sizeof(double));
+			GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 4.0));
+			if (np_tmp >= minp) {			       /* then its ok */
+				np_g = np_tmp;
+				memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
+			} else {
+				GMRFLib_unique_relative(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 3.0));
+				if (np_tmp >= minp) {		       /* then its ok */
+					np_g = np_tmp;
+					memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
+				}
+			}
+			Free(x_points_tmp);
+		}
+	} else {
+		// old code
+
+		/*
+		 * chose abscissas as for the GHQ + the mean +/- 0, 0.25, 0.5 and 1.0*stdev, for each density in the mixture 
+		 */
+		nf = sizeof(f) / sizeof(double);
+		np_max = n_points + nf * n;			       /* maximum value of np */
+		x_points = Calloc(np_max, double);
+		x_points_g = (gdensity ? Calloc(np_max, double) : NULL);
+
+		GMRFLib_ghq_abscissas(&ptr, n_points);
+		memcpy(x_points, ptr, n_points * sizeof(double));
+		if (gdensity) {
+			memcpy(x_points_g, ptr, n_points * sizeof(double));
+		}
+
+		/*
+		 * compute the new points. it is required that the new points are within the INTEGRATION_LIMIT, otherwise its density
+		 * is essentially zero. this loop also determine `np' 
+		 */
+		np = n_points;
+		for (i = 0; i < n; i++) {
+			m = densities[i]->user_mean;
+			sd = densities[i]->user_stdev;
+			for (j = 0; j < nf; j++) {
+				xx = (m + f[j] * sd - mean) / stdev;
+				if (ABS(xx) < GMRFLib_DENSITY_INTEGRATION_LIMIT) {
+					x_points[np++] = xx;
+				}
+			}
+		}
+		if (gdensity) {
+			np_g = n_points;
+			for (i = 0; i < n; i++) {
+				m = densities[i]->std_mean;
+				sd = densities[i]->std_stdev;
+				for (j = 0; j < nf; j++) {
+					xx = (m + f[j] * sd - mean_g) / stdev_g;
+					if (ABS(xx) < GMRFLib_DENSITY_INTEGRATION_LIMIT) {
+						x_points_g[np_g++] = xx;
+					}
+				}
+			}
+		} else {
+			np_g = 0;
+		}
+
+		/*
+		 * sort and remove ties or points to close. the _additive option is more 'pratical', whereas the _relative option is
+		 * very conservative. We need to ensure that we are not ending up with fewer than minp points which is minimum for the
+		 * spline-interpolant (or 5 for the akima-interpolant).
+		 */
+		qsort(x_points, (size_t) np, sizeof(double), GMRFLib_dcmp);
+		if (gdensity) {
+			qsort(x_points_g, (size_t) np_g, sizeof(double), GMRFLib_dcmp);
+		}
+
+		double *x_points_tmp = NULL;
+		int np_tmp;
+
+		x_points_tmp = Calloc(np, double);
+		np_tmp = np;
+		memcpy(x_points_tmp, x_points, np * sizeof(double));
+		GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 4.0));
+		if (np_tmp >= minp) {				       /* then its ok */
+			np = np_tmp;
+			memcpy(x_points, x_points_tmp, np * sizeof(double));
+		} else {
+			GMRFLib_unique_relative(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 3.0));
+			if (np_tmp >= minp) {			       /* then its ok */
+				np = np_tmp;
+				memcpy(x_points, x_points_tmp, np * sizeof(double));
+			}
+		}
+		Free(x_points_tmp);
+
+		if (gdensity) {
+			x_points_tmp = Calloc(np_g, double);
+			np_tmp = np_g;
+			memcpy(x_points_tmp, x_points_g, np_g * sizeof(double));
+			GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 4.0));
+			if (np_tmp >= minp) {			       /* then its ok */
+				np_g = np_tmp;
+				memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
+			} else {
+				GMRFLib_unique_relative(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 3.0));
+				if (np_tmp >= minp) {		       /* then its ok */
+					np_g = np_tmp;
+					memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
+				}
+			}
+			Free(x_points_tmp);
+		}
+	}
+	
 	log_dens = Calloc(np, double);
 	log_dens_g = (gdensity ? Calloc(np_g, double) : NULL);
 

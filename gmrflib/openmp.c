@@ -139,15 +139,28 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 	if (pardiso_ok && smtp_store == GMRFLib_SMTP_PARDISO) {
 		FIXME1("PARDISO is installed and working, set openmp->strategy = 'PARDISO'");
-		strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
+		if (strategy == GMRFLib_OPENMP_STRATEGY_DEFAULT) {
+			strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
+		} else {
+			assert(strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ||
+			       strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL);
+		}
 	}
 
 
-	if (strategy == GMRFLib_OPENMP_STRATEGY_PARDISO && smtp_store == GMRFLib_SMTP_PARDISO) {
-		//ntmax_outer = IMAX(1, ntmax / GMRFLib_pardiso_num_proc());
-		//ntmax_inner = IMAX(1, ntmax - ntmax_outer);
-		ntmax_outer = 1;
-		ntmax_inner = 1;
+	if (smtp_store == GMRFLib_SMTP_PARDISO) {
+		switch(strategy) {
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL:
+			ntmax_outer = ntmax;
+			ntmax_inner = 1;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL:
+			ntmax_outer = 1;
+			ntmax_inner = ntmax;
+			break;
+		default:
+			assert(0 == 1);
+		}
 	} else {
 		ntmax_outer = ntmax;
 		ntmax_inner = 1;
@@ -172,7 +185,8 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		case GMRFLib_OPENMP_STRATEGY_DEFAULT:
 			break;
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
-		case GMRFLib_OPENMP_STRATEGY_PARDISO:
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
 			GMRFLib_openmp->max_threads_outer = ntmax;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
@@ -196,7 +210,8 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
 			nt = IMIN(*nhyper + 1, ntmax);
 			break;
-		case GMRFLib_OPENMP_STRATEGY_PARDISO:
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
 			nt = ntmax;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
@@ -220,7 +235,8 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
 			nt = ntmax;
 			break;
-		case GMRFLib_OPENMP_STRATEGY_PARDISO:
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
@@ -240,7 +256,8 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 			break;
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
 			break;
-		case GMRFLib_OPENMP_STRATEGY_PARDISO:
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
@@ -259,7 +276,8 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 			break;
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
 			break;
-		case GMRFLib_OPENMP_STRATEGY_PARDISO:
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
@@ -280,7 +298,8 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 			nt = *nhyper;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
-		case GMRFLib_OPENMP_STRATEGY_PARDISO:
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
 			GMRFLib_openmp->max_threads_outer = ntmax;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
@@ -296,7 +315,8 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		case GMRFLib_OPENMP_STRATEGY_LARGE:
 		case GMRFLib_OPENMP_STRATEGY_DEFAULT:
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
-		case GMRFLib_OPENMP_STRATEGY_PARDISO:
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
 			GMRFLib_openmp->max_threads_outer = ntmax;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
@@ -318,7 +338,8 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 			break;
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
 			break;
-		case GMRFLib_OPENMP_STRATEGY_PARDISO:
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
@@ -335,7 +356,8 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		case GMRFLib_OPENMP_STRATEGY_LARGE:
 		case GMRFLib_OPENMP_STRATEGY_DEFAULT:
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
-		case GMRFLib_OPENMP_STRATEGY_PARDISO:
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
 		default:
 			assert(0 == 1);
 		}
@@ -344,8 +366,6 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 	nt = IMAX(1, IMIN(ntmax, nt));
 
-	P(nt);
-	P(GMRFLib_openmp->max_threads_outer);
 	omp_set_num_threads(nt);
 	omp_set_nested(nested);
 

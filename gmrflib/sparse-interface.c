@@ -84,7 +84,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 			}
 			GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph);
 			sm_fact->remap = Calloc(graph->n, int);
-			memcpy((void *) sm_fact->remap, (void *) sm_fact->PARDISO_fact->pstore[0]->perm,
+			memcpy((void *) sm_fact->remap, (void *) sm_fact->PARDISO_fact->pstore->perm,
 			       graph->n * sizeof(int));
 			break;
 
