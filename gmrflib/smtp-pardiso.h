@@ -111,7 +111,7 @@ typedef struct {
 
 	GMRFLib_graph_tp *graph;
 
-	GMRFLib_pardiso_store_pr_thread_tp **pstore;
+	GMRFLib_pardiso_store_pr_thread_tp *pstore;
 } GMRFLib_pardiso_store_tp;
 
 #define STDOUT_TO_DEV_NULL_START(_silent)			\
