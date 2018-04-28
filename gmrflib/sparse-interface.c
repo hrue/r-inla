@@ -79,7 +79,6 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 
 		case GMRFLib_SMTP_PARDISO:
 			if (sm_fact->PARDISO_fact == NULL) {
-				FIXME("PARDISO_fact == NULL");
 				GMRFLib_pardiso_init(&(sm_fact->PARDISO_fact));
 			}
 			GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph);

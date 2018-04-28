@@ -767,8 +767,6 @@ int GMRFLib_ai_log_posterior(double *logdens,
 
 	GMRFLib_ENTER_ROUTINE;
 
-	run_with_omp = (GMRFLib_MAX_THREADS > 1 ? 1 : 0);
-	FIXME1("TESTING");
 	run_with_omp = (GMRFLib_openmp->max_threads_inner > 1 ? 1 : 0);
 
 	n = graph->n;
@@ -3379,11 +3377,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	}
 
 	tmax = GMRFLib_MAX_THREADS;
-	run_with_omp = (GMRFLib_MAX_THREADS > 1 ? 1 : 0);
-
 	FIXME("TESTING!");
-	run_with_omp = (GMRFLib_openmp->max_threads_outer > 1 ? 1 : 0);
-
+	run_with_omp = (IMAX(GMRFLib_openmp->max_threads_outer, GMRFLib_openmp->max_threads_inner) > 1 ? 1 : 0);
 
 	if (!ai_par) {
 		GMRFLib_default_ai_param(&ai_par);
