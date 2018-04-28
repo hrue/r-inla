@@ -1898,28 +1898,30 @@
     inla.eval(paste("Sys.setenv(", "\"INLA_RHOME\"", "=\"", Sys.getenv("R_HOME") , "\"", ")", sep=""))
     
     ## environment variables for PARDISO
-    lic.filename = "pardiso.lic" ## do not change
-    lic.file = normalizePath(inla.getOption("pardiso.license"))
-    lic.path = NA
-    if (file.exists(lic.file)) {
-        info = file.info(lic.file)
-        if (!is.na(info$isdir)) {
-            if (info$isdir) {
-                lic.path = lic.file
+    if (!is.null(inla.getOption("pardiso.license"))) {
+        lic.filename = "pardiso.lic" ## do not change
+        lic.file = normalizePath(inla.getOption("pardiso.license"))
+        lic.path = NA
+        if (file.exists(lic.file)) {
+            info = file.info(lic.file)
+            if (!is.na(info$isdir)) {
+                if (info$isdir) {
+                    lic.path = lic.file
+                } else {
+                    file.copy(lic.file, paste0(inla.dir, "/", lic.filename))
+                    lic.path = inla.dir
+                }
             } else {
-                file.copy(lic.file, paste0(inla.dir, "/", lic.filename))
-                lic.path = inla.dir
+                lic.path = lic.file
             }
         } else {
             lic.path = lic.file
         }
-    } else {
-        lic.path = lic.file
-    }
-    inla.eval(paste("Sys.setenv(", "\"PARDISO_LIC_PATH\"", "=\"", normalizePath(lic.path), "\"", ")", sep=""))
-    Sys.setenv(PARDISOLICMESSAGE=1)
+        inla.eval(paste("Sys.setenv(", "\"PARDISO_LIC_PATH\"", "=\"", normalizePath(lic.path), "\"", ")", sep=""))
+        Sys.setenv(PARDISOLICMESSAGE=1)
+    }    
     Sys.setenv(OPENBLAS_NUM_THREADS=1)
-    
+
     if (debug) {
         inla.eval(paste("Sys.setenv(", "\"INLA_DEBUG=\"", "=\"", 1, "\"", ")", sep=""))
     }
