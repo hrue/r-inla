@@ -137,8 +137,6 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		smtp_store = *smtp;
 	}
 
-	P(ntmax);
-	
 	if (pardiso_ok && smtp_store == GMRFLib_SMTP_PARDISO) {
 		FIXME1("PARDISO is installed and working, set openmp->strategy = 'PARDISO'");
 		if (strategy == GMRFLib_OPENMP_STRATEGY_DEFAULT) {
