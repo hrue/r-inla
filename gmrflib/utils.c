@@ -839,6 +839,25 @@ int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps)
 
 	return GMRFLib_SUCCESS;
 }
+
+int GMRFLib_matrix_fprintf(FILE *fp, double *A, int m, int n)
+{
+	// A is m x n matrix
+#pragma omp critial 
+	{
+		fprintf(fp, "\n");
+		for (int i = 0; i < m; i++) {
+			fprintf(fp, "\t");
+			for (int j = 0; j < n; j++)
+				fprintf(fp, " %10.6f", A[i + j * m]);
+			fprintf(fp, "\n");
+		}
+		fflush(fp);
+	}
+	return 0;
+}
+
+
 int GMRFLib_gsl_matrix_fprintf(FILE * fp, gsl_matrix * matrix, const char *format)
 {
 	size_t i, j;

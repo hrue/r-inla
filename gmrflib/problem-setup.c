@@ -753,14 +753,17 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 						GMRFLib_solve_llt_sparse_matrix((*problem)->qi_at_m, nc, 
 										&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 					}
+
+					//FIXME("qi_at_m  1");
+					//GMRFLib_matrix_fprintf(stdout, (*problem)->qi_at_m, (*problem)->sub_graph->n, nc);
 				} else {
 					/*
 					 * reuse 
 					 */
+					FIXME("CHECK THIS!!!!!!!!!!!!");
 					if (0) {
 						memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
-#pragma omp parallel for private(k, kk, i) num_threads(GMRFLib_openmp->max_threads_outer)
-						for (k = nc - 2; k < nc; k++) {
+						for (k = nc - 1; k < nc; k++) {
 							kk = k * sub_n;
 							for (i = 0; i < sub_n; i++) {
 								(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
@@ -770,15 +773,18 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 						}
 					} else {
 						FIXME1("NEW CODE HERE");
-						for (k = nc - 2; k < nc; k++) {
+						for (k = nc - 1; k < nc; k++) {
 							kk = k * sub_n;
 							for (i = 0; i < sub_n; i++) {
 								(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
 							}
 						}
+						GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[(nc-1)*sub_n]), 1, 
+										&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 					}
-					GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[(nc-2)*sub_n]), 2, 
-									&((*problem)->sub_sm_fact), (*problem)->sub_graph);
+					//FIXME("qi_at_m  2");
+					//GMRFLib_matrix_fprintf(stdout, (*problem)->qi_at_m, (*problem)->sub_graph->n, nc);
+
 					Free(qi_at_m_store);
 				}
 

@@ -31,7 +31,7 @@
 ##!     
 ##!     num.threads: Number of threads to use.
 ##!     
-##!     smtp: sparse matrix library,  one of \code{band}, \code{taucs} or \code{pardiso}
+##!     smtp: sparse matrix library,  one of \code{band}, \code{taucs} (default) or \code{pardiso}
 ##!
 ##!     pardiso.license: The full path to the PARDISO license file
 ##!     
@@ -106,7 +106,7 @@
         inla.arg = NULL,
         fmesher.arg = "", 
         num.threads = NULL, 
-        smtp = "taucs", 
+        smtp = "default", 
         pardiso.license = NULL, 
         keep = FALSE, 
         working.directory = NULL, 

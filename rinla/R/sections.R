@@ -964,7 +964,7 @@
     if (is.null(smtp) || !(is.character(smtp) && (nchar(smtp) > 0))) {
         smtp = inla.getOption("smtp")
     }
-    smtp = match.arg(tolower(smtp), c("band", "taucs", "pardiso"))
+    smtp = match.arg(tolower(smtp), c("band", "taucs", "pardiso", "default"))
     cat("smtp = ", smtp, "\n", sep = " ", file = file,  append = TRUE)
 
     if (!is.null(quantiles)) {

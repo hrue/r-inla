@@ -368,12 +368,12 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * 
 	GMRFLib_ENTER_ROUTINE;
 
 	if (sm_fact->smtp == GMRFLib_SMTP_BAND) {
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
 		for(i = 0; i < nrhs; i++) {
 			GMRFLib_solve_llt_sparse_matrix_BAND(&rhs[i * graph->n], sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth);
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_TAUCS) {
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
 		for(i = 0; i < nrhs; i++) {
 			GMRFLib_solve_llt_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
 		}
