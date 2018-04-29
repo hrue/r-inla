@@ -733,7 +733,6 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					 * as usual 
 					 */
 					if (0) {
-#pragma omp parallel for private(k, kk, i) num_threads(GMRFLib_openmp->max_threads_outer)
 						for (k = 0; k < nc; k++) {
 							kk = k * sub_n;
 							for (i = 0; i < sub_n; i++) {
@@ -743,7 +742,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 											&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 						}
 					} else {
-						FIXME1("NEW CODE HERE");
+						FIXME("NEW CODE HERE");
 						for (k = 0; k < nc; k++) {
 							kk = k * sub_n;
 							for (i = 0; i < sub_n; i++) {
@@ -753,14 +752,10 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 						GMRFLib_solve_llt_sparse_matrix((*problem)->qi_at_m, nc, 
 										&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 					}
-
-					//FIXME("qi_at_m  1");
-					//GMRFLib_matrix_fprintf(stdout, (*problem)->qi_at_m, (*problem)->sub_graph->n, nc);
 				} else {
 					/*
 					 * reuse 
 					 */
-					FIXME("CHECK THIS!!!!!!!!!!!!");
 					if (0) {
 						memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
 						for (k = nc - 1; k < nc; k++) {
@@ -773,6 +768,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 						}
 					} else {
 						FIXME1("NEW CODE HERE");
+						memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
 						for (k = nc - 1; k < nc; k++) {
 							kk = k * sub_n;
 							for (i = 0; i < sub_n; i++) {
@@ -782,11 +778,8 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 						GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[(nc-1)*sub_n]), 1, 
 										&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 					}
-					//FIXME("qi_at_m  2");
-					//GMRFLib_matrix_fprintf(stdout, (*problem)->qi_at_m, (*problem)->sub_graph->n, nc);
-
-					Free(qi_at_m_store);
 				}
+				Free(qi_at_m_store);
 
 				/*
 				 * compute l_aqat_m = chol(AQ^{-1}A^T)^{-1}) = chol(A qi_at_m)^{-1}, size = nc x nc 
@@ -797,6 +790,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				beta = 0.0;
 				dgemm_("N", "N", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix, &nc,
 				       (*problem)->qi_at_m, &sub_n, &beta, aqat_m, &nc, 1, 1);
+
 				if (STOCHASTIC_CONSTR((*problem)->sub_constr)) {
 					/*
 					 * add the covariance matrix, AQ^-1A^t + \Sigma 
@@ -830,7 +824,6 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				GMRFLib_EWRAP1(GMRFLib_comp_chol_general
 					       (&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat),
 						GMRFLib_ESINGCONSTR));
-
 				Free(aqat_m);
 
 				/*

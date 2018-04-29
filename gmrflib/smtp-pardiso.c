@@ -64,7 +64,7 @@ static struct {
 	0,						       // verbose
 	0,						       // s_verbose
 	0,						       // csr_check
-	-2,						       // mtype (-2 = sym, 2 = sym pos def)
+	2,						       // mtype (-2 = sym, 2 = sym pos def)
 	0,						       // msg-level (0: no, 1: yes)
 	NULL,						       // busy
 	NULL};
@@ -268,6 +268,8 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	if (S.s_verbose)
 		PP("_pardiso_init()", s);
 
+	FIXME1("CHECK MTYPE");
+
 	s->maxfct = ISQR(GMRFLib_MAX_THREADS);
 	s->pstore = Calloc(1, GMRFLib_pardiso_store_pr_thread_tp);
 	assert(S.mtype == -2 || S.mtype == 2);
@@ -336,19 +338,19 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_L:
 		store->pstore->phase = 33;	       // solve
-		store->pstore->iparm[7] = 0;	       /* Max numbers of iterative refinement steps. */
+		store->pstore->iparm[7] = 1;	       /* Max numbers of iterative refinement steps. */
 		store->pstore->iparm[25] = (S.mtype == 2 ? 1 : -12);
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_LT:
 		store->pstore->phase = 33;	       // solve
-		store->pstore->iparm[7] = 0;	       /* Max numbers of iterative refinement steps. */
+		store->pstore->iparm[7] = 1;	       /* Max numbers of iterative refinement steps. */
 		store->pstore->iparm[25] = (S.mtype == 2 ? 2 :  -23);
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_LLT:
 		store->pstore->phase = 33;	       // solve
-		store->pstore->iparm[7] = 0;	       /* Max numbers of iterative refinement steps. */
+		store->pstore->iparm[7] = 1;	       /* Max numbers of iterative refinement steps. */
 		store->pstore->iparm[25] = 0;
 		break;
 
@@ -437,11 +439,11 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 		&(store->pstore->err_code), store->pstore->dparm);
 
 	FIXME1("I am not sure if the reordering is returned here");
-	if (0) {
-		for(i=0; i<n; i++){
-			store->pstore->perm[i]--;	       /* back to C indexing */
-			store->pstore->iperm[store->pstore->perm[i]] = i;
-		}
+	for(i=0; i<n; i++){
+		store->pstore->perm[i]--;	       /* back to C indexing */
+		FIXME1("temporary hack");
+		if (store->pstore->perm[i] < 0) store->pstore->perm[i] = i;
+		store->pstore->iperm[store->pstore->perm[i]] = i;
 	}
 	
 	if (debug) {
