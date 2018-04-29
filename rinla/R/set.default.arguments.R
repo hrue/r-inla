@@ -236,7 +236,7 @@
         ##:ARGUMENT: config A boolean variable if the internal GMRF approximations be stored. (Default FALSE. EXPERIMENTAL)
         config=FALSE,
 
-        ##:ARGUMENT: smtp The sparse-matrix solver, one of 'smtp' (default), 'band' or 'pardiso' (default \code{inla.getoption("smtp")})
+        ##:ARGUMENT: smtp The sparse-matrix solver, one of 'default', 'taucs', 'band' or 'pardiso' (default \code{inla.getoption("smtp")})
         smtp = NULL,
 
         ##:ARGUMENT: graph A boolean variable if the graph itself should be returned. (Default FALSE.)

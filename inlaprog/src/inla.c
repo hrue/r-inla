@@ -9590,6 +9590,13 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
 		} else if (!strcasecmp(smtp, "GMRFLib_SMTP_PARDISO") || !strcasecmp(smtp, "PARDISO")) {
 			GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
+		} else if (!strcasecmp(smtp, "auto") || !strcasecmp(smtp, "default")) {
+			if (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ||
+			    GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL) {
+				GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
+			} else {
+				GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
+			}
 		} else {
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "smtp", smtp);
 		}
@@ -9597,9 +9604,12 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			printf("\t\tsmtp=[%s]\n", smtp);
 		}
 	}
-	mb->smtp = GMRFLib_strdup(smtp);
+	mb->smtp = SMTP_NAME(GMRFLib_smtp);
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, &GMRFLib_smtp);
 	
+
+
+
 
 	mb->dir = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup("results-%1d")));
 	ok = 0;

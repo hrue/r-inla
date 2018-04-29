@@ -56,20 +56,16 @@ static struct {
 	int verbose;
 	int s_verbose;
 	int csr_check;
-	int mnum;
 	int mtype;
 	int msglvl;
-	int num_proc;
 	int *busy;
 	GMRFLib_pardiso_store_tp **static_pstores;
 } S = {
 	0,						       // verbose
 	0,						       // s_verbose
 	0,						       // csr_check
-	0,						       // mnum (do not change)
 	-2,						       // mtype (-2 = sym, 2 = sym pos def)
-	1,						       // msg-level (0: no, 1: yes)
-	4,						       // num_proc (1, 2, 4, or 8)
+	0,						       // msg-level (0: no, 1: yes)
 	NULL,						       // busy
 	NULL};
 
@@ -281,7 +277,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default = Calloc(GMRFLib_PARDISO_PLEN, int);
 	s->dparm_default = Calloc(GMRFLib_PARDISO_PLEN, double);
 	s->iparm_default[0] = 0;			       /* use default values */
-	s->iparm_default[2] = inla_ncpu();		       /* number of procs */
+	s->iparm_default[2] = GMRFLib_openmp->max_threads_inner;
 	s->iparm_default[4] = 0;			       /* use internal reordering */
 
 	pardisoinit(s->pt, &(s->mtype), &(s->solver), s->iparm_default, s->dparm_default, &error);
@@ -412,6 +408,8 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 	}
 	GMRFLib_ENTER_ROUTINE;
 
+	FIXME("pardiso_reorder");
+	
 	int i, n, mnum1 = 1;
 	GMRFLib_csr_tp *Q = NULL;
 
@@ -541,7 +539,7 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	assert(store->pstore->done_with_build == GMRFLib_TRUE);
 	assert(store->pstore->Q != NULL);
 
-	int mnum1 = S.mnum + 1, n = store->pstore->Q->n, i;
+	int mnum1 = 1, n = store->pstore->Q->n, i;
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_CHOL, store);
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore->phase),
 		&n, store->pstore->Q->a, store->pstore->Q->ia, store->pstore->Q->ja,
@@ -583,12 +581,10 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	assert(nrhs > 0);
 
 	// this is so that the RHS can be overwritten
-	int n = store->pstore->Q->n;
+	int n = store->pstore->Q->n, mnum1 = 1;
 	double *xx = Calloc(n * nrhs, double);
 
 	GMRFLib_pardiso_setparam(flag, store);
-	int mnum1 = S.mnum + 1;
-
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore->phase),
 		&n, store->pstore->Q->a, store->pstore->Q->ia, store->pstore->Q->ja,
 		NULL, &nrhs, store->pstore->iparm, &(store->msglvl), b, xx,
@@ -730,7 +726,7 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 	GMRFLib_csr_base(1, store->pstore->Qinv);
 
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_QINV, store);
-	int mnum1 = S.mnum + 1;
+	int mnum1 = 1;
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore->phase),
 		&(store->pstore->Qinv->n),
 		store->pstore->Qinv->a, store->pstore->Qinv->ia, store->pstore->Qinv->ja,
@@ -764,9 +760,11 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 	{
 		int found = 0, i;
 		if (S.static_pstores != NULL) {
-			for (i = 0; i < PSTORES_NUM(); i++) {
-				if (S.busy[i] && S.s_verbose) {
-					printf("in store: i=%1d s=%lx\n", i, (unsigned long int) ((void *) S.static_pstores[i]));
+			if (S.s_verbose) {
+				for (i = 0; i < PSTORES_NUM(); i++) {
+					if (S.busy[i]) {
+						printf("in store: i=%1d s=%lx\n", i, (unsigned long int) ((void *) S.static_pstores[i]));
+					}
 				}
 			}
 			for (i = 0; i < PSTORES_NUM() && !found; i++) {
@@ -793,7 +791,7 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 			int mnums1 = 0;
 			if ((*store)->pstore) {
 				(*store)->pstore->phase = -1;
-				int mnum1 = S.mnum + 1;
+				int mnum1 = 1;
 				pardiso((*store)->pt, &((*store)->maxfct), &mnum1, &((*store)->mtype),
 					&((*store)->pstore->phase),
 					&((*store)->pstore->idummy),

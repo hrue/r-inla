@@ -96,6 +96,12 @@ typedef enum {
 
 } GMRFLib_smtp_tp;
 
+#define SMTP_NAME(smtp) \
+	(smtp == GMRFLib_SMTP_BAND ? GMRFLib_strdup("band") :	  \
+	 (smtp == GMRFLib_SMTP_TAUCS ? GMRFLib_strdup("taucs") : \
+	  (smtp == GMRFLib_SMTP_PARDISO ? GMRFLib_strdup("pardiso") : \
+	   (smtp == GMRFLib_SMTP_DEFAULT ? GMRFLib_strdup("default") : NULL))))
+
 typedef enum {
 
 	/**

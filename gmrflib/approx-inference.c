@@ -3912,7 +3912,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			 * two versions: 1. a nhyper loop, 2. a 2*nhyper loop. 
 			 */
 			if (omp_get_max_threads() > nhyper) {
-#pragma omp parallel for private(k) 
+#pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer) 
 				for (k = 0; k < 2 * nhyper; k++) {
 					double f0, *zz = NULL, *ttheta = NULL, llog_dens;
 					int kk, opt;
@@ -5265,7 +5265,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		 * num_threads.
 		 */
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_COMBINE, NULL, NULL);
-#pragma omp parallel for private(j) 
+#pragma omp parallel for private(j) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (j = 0; j < compute_n; j++) {
 			int ii = compute_idx[j];
 			// fprintf(stderr, "thead %d ii %d\n", omp_get_thread_num(), ii);
@@ -5872,7 +5872,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						0, nhyper - 1);
 				}
 			}
-#pragma omp parallel for private(k) 
+#pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (k = 0; k < nhyper; k++) {
 				if (!run_with_omp) {
 					if (ai_par->fp_log) {
@@ -6565,7 +6565,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 		/*
 		 * this loop is quick in any case, so no need to make do it in parallel unless we have constraints ? 
 		 */
-#pragma omp parallel for private(i, j, k) if(nc) 
+#pragma omp parallel for private(i, j, k) if(nc) num_threads(GMRFLib_openmp->max_threads_inner)
 		for (k = 0; k < klen; k++) {
 			i = arr[k].i;
 			j = arr[k].j;
@@ -7253,7 +7253,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 		 */
 		unsigned int max_eval = (unsigned int) ai_par->numint_max_fn_eval;
 
-#pragma omp parallel for private(i) 
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < npoints + NEXTRA; i++) {
 			int retval;
 			double abs_err = ai_par->numint_abs_err, rel_err = ai_par->numint_rel_err, value, err;
