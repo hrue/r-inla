@@ -845,13 +845,14 @@ int GMRFLib_matrix_fprintf(FILE *fp, double *A, int m, int n)
 	// A is m x n matrix
 #pragma omp critial 
 	{
-		fprintf(fp, "\n");
+		fprintf(fp, "\n\n");
 		for (int i = 0; i < m; i++) {
 			fprintf(fp, "\t");
 			for (int j = 0; j < n; j++)
 				fprintf(fp, " %10.6f", A[i + j * m]);
 			fprintf(fp, "\n");
 		}
+		fprintf(fp, "\n");
 		fflush(fp);
 	}
 	return 0;
