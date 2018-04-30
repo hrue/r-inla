@@ -9584,15 +9584,15 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 						   GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL) ?
 						  GMRFLib_strdup("PARDISO") : GMRFLib_strdup("TAUCS")));
 	if (smtp) {
-		if (!strcasecmp(smtp, "GMRFLib_SMTP_BAND") || !strcasecmp(smtp, "BAND")) {
+		if (!strcasecmp(smtp, "BAND")) {
 			GMRFLib_smtp = GMRFLib_SMTP_BAND;
-		} else if (!strcasecmp(smtp, "GMRFLib_SMTP_TAUCS") || !strcasecmp(smtp, "TAUCS")) {
+		} else if (!strcasecmp(smtp, "TAUCS")) {
 			GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
-		} else if (!strcasecmp(smtp, "GMRFLib_SMTP_PARDISO") || !strcasecmp(smtp, "PARDISO")) {
+		} else if (!strcasecmp(smtp, "PARDISO")) {
 			GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
-		} else if (!strcasecmp(smtp, "auto") || !strcasecmp(smtp, "default")) {
-			if (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ||
-			    GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL) {
+		} else if (!strcasecmp(smtp, "AUTO") || !strcasecmp(smtp, "DEFAULT")) {
+			if (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ||
+			    mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL) {
 				GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
 			} else {
 				GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
@@ -9600,15 +9600,15 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		} else {
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "smtp", smtp);
 		}
-		if (mb->verbose) {
-			printf("\t\tsmtp=[%s]\n", smtp);
-		}
 	}
 	mb->smtp = SMTP_NAME(GMRFLib_smtp);
+	if (mb->verbose) {
+		printf("%s\n", smtp);
+		P(mb->strategy);
+		P(GMRFLib_smtp);
+		printf("\t\tsmtp=[%s]\n", mb->smtp);
+	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, &GMRFLib_smtp);
-	
-
-
 
 
 	mb->dir = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup("results-%1d")));
