@@ -64,7 +64,7 @@ static struct {
 	0,						       // verbose
 	0,						       // s_verbose
 	0,						       // csr_check
-	2,						       // mtype (-2 = sym, 2 = sym pos def)
+	-2,						       // mtype (-2 = sym, 2 = sym pos def)
 	0,						       // msg-level (0: no, 1: yes)
 	NULL,						       // busy
 	NULL};
@@ -268,8 +268,6 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	if (S.s_verbose)
 		PP("_pardiso_init()", s);
 
-	FIXME1("CHECK MTYPE");
-
 	s->maxfct = ISQR(GMRFLib_MAX_THREADS);
 	s->pstore = Calloc(1, GMRFLib_pardiso_store_pr_thread_tp);
 	assert(S.mtype == -2 || S.mtype == 2);
@@ -280,6 +278,8 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->dparm_default = Calloc(GMRFLib_PARDISO_PLEN, double);
 	s->iparm_default[0] = 0;			       /* use default values */
 	s->iparm_default[2] = GMRFLib_openmp->max_threads_inner;
+	P(s->iparm_default[2]);
+	
 	s->iparm_default[4] = 0;			       /* use internal reordering */
 
 	pardisoinit(s->pt, &(s->mtype), &(s->solver), s->iparm_default, s->dparm_default, &error);
@@ -535,7 +535,6 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	int debug=0;
 	
 	GMRFLib_ENTER_ROUTINE;
-
 	assert(store->done_with_init == GMRFLib_TRUE);
 	assert(store->done_with_reorder == GMRFLib_TRUE);
 	assert(store->pstore->done_with_build == GMRFLib_TRUE);
@@ -663,9 +662,6 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 	double value;
 	map_id **Qinv = Calloc(n, map_id *);
 
-	//GMRFLib_print_csr(stdout, Qi);
-	//exit(1);
-
 	assert(Qi->base == 0);
 
 	for (i = k = 0; i < n; i++) {
@@ -715,6 +711,9 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 {
 	GMRFLib_ENTER_ROUTINE;
 
+	FIXME("enter _pardiso_Qinv");
+	printf("NUM THREADS %d\n", omp_get_num_threads());
+	
 	assert(store->done_with_init == GMRFLib_TRUE);
 	assert(store->done_with_reorder == GMRFLib_TRUE);
 	assert(store->pstore->done_with_build == GMRFLib_TRUE);
