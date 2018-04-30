@@ -8,7 +8,7 @@
 ##!  Function used for defining of smooth and spatial terms within \code{inla} model
 ##!  formulae. The function does not evaluate anything - it
 ##!  exists purely to help set up a model. The function specifies one
-##!  smooth function in the linear predictor (see \code{\link{inla.models}}) as
+##!  smooth function in the linear predictor (see \code{\link{inla.list.models}}) as
 ##!  \deqn{w\ f(x)}{weight*f(var)}
 ##!
 ##!}
@@ -79,7 +79,7 @@
     ##!\item{model}{ A string indicating the choosen model. The
     ##! default is \code{iid}. See
     ##! \code{names(inla.models()$latent)} for a list of possible
-    ##! alternatives.}
+    ##! alternatives and \code{\link{inla.doc}} for detailed docs.}
     model = "iid",
 
     ##!\item{copy}{TODO}
@@ -112,7 +112,10 @@
     ##!\item{hyper}{Specification of the hyperparameter, fixed or
     ##!random, initial values, priors and its parameters. See
     ##!\code{?inla.models} for the list of hyparameters for each
-    ##!model and its default options.}
+    ##!model and its default options or
+	##!use \code{inla.doc()} for
+	##!detailed info on the family and
+	##!supported prior distributions.}
     hyper = NULL,
 
     ##!\item{initial}{THIS OPTION IS OBSOLETE; use
