@@ -121,11 +121,15 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 {
 	int nt;
 	int ntmax = GMRFLib_MAX_THREADS;
-	int ntmax_inner, ntmax_outer;
 	int strategy = (GMRFLib_openmp ? GMRFLib_openmp->strategy : GMRFLib_OPENMP_STRATEGY_MEDIUM);
 	int nested = 0;
 	int *nhyper = (int *) arg;
-
+	int nhyper_def = 5;
+	
+	if (nhyper == NULL) {
+		nhyper = &nhyper_def;
+	}
+	
 	// once only
 	static int pardiso_ok = -1;
 	if (pardiso_ok < 0) {
@@ -147,46 +151,32 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		}
 	}
 
-	if (smtp_store == GMRFLib_SMTP_PARDISO) {
-		switch(strategy) {
-		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL:
-			ntmax_outer = ntmax;
-			ntmax_inner = 1;
-			break;
-		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL:
-			ntmax_outer = 1;
-			ntmax_inner = ntmax;
-			break;
-		default:
-			assert(0 == 1);
-		}
-	} else {
-		ntmax_outer = ntmax;
-		ntmax_inner = 1;
-	}
-
 	// default values
 	nt = ntmax;
 	nested = 0;
-	GMRFLib_openmp->max_threads_inner = ntmax_inner;
-	GMRFLib_openmp->max_threads_outer = ntmax_outer;
 
 	switch (place) {
 	case GMRFLib_OPENMP_PLACES_BUILD_MODEL:
 		switch (strategy) {
 		case GMRFLib_OPENMP_STRATEGY_SMALL:
 			nt = 1;
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
 			nt = 1;
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_LARGE:
 		case GMRFLib_OPENMP_STRATEGY_DEFAULT:
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
-			GMRFLib_openmp->max_threads_outer = ntmax;
+			GMRFLib_openmp->max_threads_outer = nt;
 			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
@@ -199,19 +189,32 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		switch (strategy) {
 		case GMRFLib_OPENMP_STRATEGY_SMALL:
 			nt = 1;
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
 			nt = 1;
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_LARGE:
 		case GMRFLib_OPENMP_STRATEGY_DEFAULT:
 			nt = IMIN(*nhyper + 1, ntmax);
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
 			nt = IMIN(*nhyper + 1, ntmax);
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
+			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
+			GMRFLib_openmp->max_threads_outer = 1;
+			GMRFLib_openmp->max_threads_inner = nt;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
@@ -222,20 +225,30 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	case GMRFLib_OPENMP_PLACES_HESSIAN:
 		switch (strategy) {
 		case GMRFLib_OPENMP_STRATEGY_SMALL:
+			GMRFLib_openmp->max_threads_outer = 1;
+			GMRFLib_openmp->max_threads_inner = 1;
 			nt = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
-			nt = ntmax;
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_LARGE:
 		case GMRFLib_OPENMP_STRATEGY_DEFAULT:
-			nt = ntmax;
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
-			nt = ntmax;
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
+			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
+			GMRFLib_openmp->max_threads_outer = 1;
+			GMRFLib_openmp->max_threads_inner = nt;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
@@ -246,17 +259,30 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	case GMRFLib_OPENMP_PLACES_HESSIAN_SCALE:
 		switch (strategy) {
 		case GMRFLib_OPENMP_STRATEGY_SMALL:
+			GMRFLib_openmp->max_threads_outer = 1;
+			GMRFLib_openmp->max_threads_inner = 1;
 			nt = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_LARGE:
 		case GMRFLib_OPENMP_STRATEGY_DEFAULT:
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
+			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
+			GMRFLib_openmp->max_threads_outer = 1;
+			GMRFLib_openmp->max_threads_inner = nt;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
@@ -267,16 +293,17 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	case GMRFLib_OPENMP_PLACES_INTEGRATE:
 		switch (strategy) {
 		case GMRFLib_OPENMP_STRATEGY_SMALL:
-			break;
 		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
-			break;
 		case GMRFLib_OPENMP_STRATEGY_LARGE:
 		case GMRFLib_OPENMP_STRATEGY_DEFAULT:
-			break;
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
-			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
+			break;
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
@@ -287,19 +314,25 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	case GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR:
 		switch (strategy) {
 		case GMRFLib_OPENMP_STRATEGY_SMALL:
-			nt = (*nhyper > 2 ? ntmax : 1);
+			nt = (*nhyper > 2 ? nt : 1);
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
 			nt = *nhyper;
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_LARGE:
 		case GMRFLib_OPENMP_STRATEGY_DEFAULT:
 			nt = *nhyper;
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
-			GMRFLib_openmp->max_threads_outer = ntmax;
+			GMRFLib_openmp->max_threads_outer = nt;
 			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
@@ -317,7 +350,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
-			GMRFLib_openmp->max_threads_outer = ntmax;
+			GMRFLib_openmp->max_threads_outer = nt;
 			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
@@ -329,18 +362,27 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	case GMRFLib_OPENMP_PLACES_DEFAULT:
 		switch (strategy) {
 		case GMRFLib_OPENMP_STRATEGY_SMALL:
-			nt = 1;
-			break;
 		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
 			nt = 1;
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_LARGE:
 		case GMRFLib_OPENMP_STRATEGY_DEFAULT:
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
+			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
+			GMRFLib_openmp->max_threads_outer = 1;
+			GMRFLib_openmp->max_threads_inner = nt;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
