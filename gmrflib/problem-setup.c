@@ -728,6 +728,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 
 				(*problem)->qi_at_m = Calloc(nc * sub_n, double);
 
+				FIXME1("DO A FINAL CHECK THAT THIS IS CORRECT: OLD AND NEW VERSION");
 				if (qi_at_m_store == NULL) {
 					/*
 					 * as usual 
@@ -742,7 +743,6 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 											&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 						}
 					} else {
-						FIXME("NEW CODE HERE");
 						for (k = 0; k < nc; k++) {
 							kk = k * sub_n;
 							for (i = 0; i < sub_n; i++) {
@@ -756,7 +756,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					/*
 					 * reuse 
 					 */
-					if (0) {
+					if (1) {
 						memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
 						for (k = nc - 1; k < nc; k++) {
 							kk = k * sub_n;
@@ -767,7 +767,6 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 											&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 						}
 					} else {
-						FIXME1("NEW CODE HERE");
 						memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
 						for (k = nc - 1; k < nc; k++) {
 							kk = k * sub_n;

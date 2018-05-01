@@ -268,7 +268,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	if (S.s_verbose)
 		PP("_pardiso_init()", s);
 
-	s->maxfct = ISQR(GMRFLib_MAX_THREADS);
+	s->maxfct = 1;
 	s->pstore = Calloc(1, GMRFLib_pardiso_store_pr_thread_tp);
 	assert(S.mtype == -2 || S.mtype == 2);
 	s->mtype = S.mtype; 
@@ -278,14 +278,11 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->dparm_default = Calloc(GMRFLib_PARDISO_PLEN, double);
 	s->iparm_default[0] = 0;			       /* use default values */
 	s->iparm_default[2] = GMRFLib_openmp->max_threads_inner;
-	P(s->iparm_default[2]);
-	
 	s->iparm_default[4] = 0;			       /* use internal reordering */
 
 	pardisoinit(s->pt, &(s->mtype), &(s->solver), s->iparm_default, s->dparm_default, &error);
 	s->iparm_default[10] = 0;			       /* I think these are the defaults, but */
 	s->iparm_default[12] = 0;			       /* we need these for the LDL^Tx=b solver to work */
-	
 	if (error != 0) {
 		if (error == -10) {
 			GMRFLib_ERROR(GMRFLib_EPARDISO_LICENSE_NOTFOUND);
@@ -338,19 +335,19 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_L:
 		store->pstore->phase = 33;	       // solve
-		store->pstore->iparm[7] = 1;	       /* Max numbers of iterative refinement steps. */
+		store->pstore->iparm[7] = 0;	       /* Max numbers of iterative refinement steps. */
 		store->pstore->iparm[25] = (S.mtype == 2 ? 1 : -12);
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_LT:
 		store->pstore->phase = 33;	       // solve
-		store->pstore->iparm[7] = 1;	       /* Max numbers of iterative refinement steps. */
+		store->pstore->iparm[7] = 0;	       /* Max numbers of iterative refinement steps. */
 		store->pstore->iparm[25] = (S.mtype == 2 ? 2 :  -23);
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_LLT:
 		store->pstore->phase = 33;	       // solve
-		store->pstore->iparm[7] = 1;	       /* Max numbers of iterative refinement steps. */
+		store->pstore->iparm[7] = 0;	       /* Max numbers of iterative refinement steps. */
 		store->pstore->iparm[25] = 0;
 		break;
 
@@ -542,6 +539,9 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 
 	int mnum1 = 1, n = store->pstore->Q->n, i;
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_CHOL, store);
+
+	printf("CHOL: NUM_THREADS %d iparm[2] %d\n", omp_get_num_threads(),  store->pstore->iparm[2]);
+
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore->phase),
 		&n, store->pstore->Q->a, store->pstore->Q->ia, store->pstore->Q->ja,
 		store->pstore->perm, &(store->pstore->nrhs),
@@ -711,8 +711,7 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 {
 	GMRFLib_ENTER_ROUTINE;
 
-	FIXME("enter _pardiso_Qinv");
-	printf("NUM THREADS %d\n", omp_get_num_threads());
+	printf("QINV: NUM_THREADS %d iparm[2] %d\n", omp_get_num_threads(),  store->pstore->iparm[2]);
 	
 	assert(store->done_with_init == GMRFLib_TRUE);
 	assert(store->done_with_reorder == GMRFLib_TRUE);

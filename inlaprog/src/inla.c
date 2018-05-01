@@ -110,7 +110,7 @@ static const char RCSId[] = HGVERSION;
 #include "R-interface.h"
 #include "fgn.h"
 
-#define PREVIEW (20)
+#define PREVIEW (10)
 #define MODEFILENAME ".inla-mode"
 #define MODEFILENAME_FMT "%02x"
 
@@ -19690,6 +19690,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 1);
 		assert(std == 1);			       /* this has to be true for this model */
 		GMRFLib_rw2d_scale(arg->rw2ddef);
+
 		if (mb->verbose) {
 			printf("\t\tscale.model[%1d]\n", std);
 			printf("\t\tscale.model: prec_scale[%g]\n", arg->rw2ddef->prec_scale[0]);
@@ -21320,7 +21321,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				if (std) {
 					inla_besag_scale((void *) def->besagdef, adj, mb->verbose);
 				}
-
 			} else {
 				def->rwdef = NULL;
 				def->crwdef = NULL;
@@ -30689,7 +30689,6 @@ int main(int argc, char **argv)
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = omp_get_max_threads();
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
 	GMRFLib_collect_timer_statistics = GMRFLib_FALSE;
@@ -30711,7 +30710,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR1, inla_signal);
 	signal(SIGUSR2, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:T:N:r:FYz:cp")) != -1) {
+	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:Z:T:N:r:FYz:cp")) != -1) {
 		switch (opt) {
 		case 'b':
 			G.binary = 1;
@@ -30773,6 +30772,24 @@ int main(int argc, char **argv)
 			break;
 
 		case 'S':
+		{
+			optarg = inla_tolower(optarg);
+			if (!strcasecmp(optarg, "taucs")) {
+				GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
+			} else if (!strcasecmp(optarg, "band")) {
+				GMRFLib_smtp = GMRFLib_SMTP_BAND;
+			} else if (!strcasecmp(optarg, "pardiso.serial")) {
+				GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
+				GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
+				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_EXTERNAL, NULL, NULL);
+			} else if (!strcasecmp(optarg, "pardiso.parallel")) {
+				GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
+				GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
+				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_EXTERNAL, NULL, NULL);
+			}
+		}
+
+		case 'Z':
 			if (G.mode != INLA_MODE_MCMC) {
 				fprintf(stderr, "\n *** ERROR *** Option `-S scale' only available in MCMC mode\n");
 				exit(EXIT_FAILURE);
@@ -30923,8 +30940,13 @@ int main(int argc, char **argv)
 	/*
 	 * these options does not belong here in this program, but it makes all easier... and its undocumented.
 	 */
+
+	FIXME1("Need to add proper strategies to inla.qinv, sample, etc...");
+
 	switch (G.mode) {
 	case INLA_MODE_QINV: 
+		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		inla_qinv(argv[optind], argv[optind + 1], argv[optind + 2]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
@@ -30941,6 +30963,8 @@ int main(int argc, char **argv)
 		break;
 
 	case INLA_MODE_QREORDERING: 
+		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		inla_qreordering(argv[optind]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
@@ -30967,6 +30991,8 @@ int main(int argc, char **argv)
 		break;
 
 	case INLA_MODE_GRAPH: 
+		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		inla_read_graph(argv[optind]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
@@ -30974,6 +31000,8 @@ int main(int argc, char **argv)
 		break;
 		
 	case INLA_MODE_R: 
+		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		inla_R(&(argv[optind]));
 		if (report)
 			GMRFLib_timer_full_report(NULL);
@@ -30981,6 +31009,8 @@ int main(int argc, char **argv)
 		break;
 		
 	case INLA_MODE_FGN: 
+		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		inla_fgn(argv[optind], argv[optind + 1]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
@@ -30988,6 +31018,8 @@ int main(int argc, char **argv)
 		break;
 		
 	case INLA_MODE_TESTIT: 
+		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		testit(argc, &(argv[optind]));
 		if (report)
 			GMRFLib_timer_full_report(NULL);
@@ -31041,6 +31073,7 @@ int main(int argc, char **argv)
 				printf("\nWall-clock time used on [%s] max_threads=[%1d]\n", argv[arg], GMRFLib_MAX_THREADS);
 			}
 			time_used[0] = GMRFLib_cpu();
+			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 			mb = inla_build(argv[arg], verbose, 1);
 			time_used[0] = GMRFLib_cpu() - time_used[0];
 			if (!silent) {
