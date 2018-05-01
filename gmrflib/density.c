@@ -1248,6 +1248,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 	    f[] = { 0, 0.1, -0.1, 0.25, -0.25, 0.5, -0.5, 0.75, -0.75, 1.0, -1.0 };
 
 	GMRFLib_ENTER_ROUTINE;
+	nf = sizeof(f)/sizeof(double);
 	if (n == 0) {
 		if (density) {
 			*density = NULL;

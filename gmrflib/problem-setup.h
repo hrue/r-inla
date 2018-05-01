@@ -43,7 +43,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "GMRFLib/hashP.h"				       /* use hash */
+#include "GMRFLib/hashP.h"
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS
@@ -282,6 +282,7 @@ typedef struct {
   \par Examples:
   See \ref ex_problem-setup
 */
+
 typedef struct {
 
 	/**

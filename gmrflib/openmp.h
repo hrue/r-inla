@@ -64,8 +64,8 @@ extern void omp_set_nested(int);
 extern int omp_get_nested(void);
 extern double omp_get_wtime(void);
 extern double omp_get_wtick(void);
-
 #endif
+
 
 typedef enum {
 	GMRFLib_OPENMP_STRATEGY_SMALL = 1,
@@ -86,11 +86,13 @@ typedef enum {
 	GMRFLib_OPENMP_PLACES_INTEGRATE,
 	GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR,
 	GMRFLib_OPENMP_PLACES_COMBINE,
+	GMRFLib_OPENMP_PLACES_EXTERNAL,
 	GMRFLib_OPENMP_PLACES_DEFAULT, 
 	GMRFLib_OPENMP_PLACES_NONE
 } GMRFLib_openmp_place_tp;
 
 typedef struct {
+	GMRFLib_openmp_place_tp place;
 	int max_threads;
 	// for PARDISO, like _outer is the number of threads in the outer loop, while _inner is the number of threads for
 	// pardiso. the _inner is only relevant if nested=1.
