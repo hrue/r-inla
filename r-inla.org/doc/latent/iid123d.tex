@@ -122,18 +122,20 @@ observations that are without noise (essentially).
 \begin{verbatim}
 n = 1000
 N = 2*n
-rho = 0.5
-## set variances
-Sigma = matrix(c(1/1, NA, NA, 1/2), 2, 2)
-## and the correlation
-Sigma[1,2] = Sigma[2,1] = rho*sqrt(Sigma[1,1]*Sigma[2,2])
 
 ## need it to simulate data
 library(mvtnorm)
 
 if (TRUE)
 {
-    ## first example
+    ## first example - each variable in the correlated pair has its own row in data 
+  
+    #Using fixed covariance matrix
+    rho = 0.5
+    ## set variances
+    Sigma = matrix(c(1/1, NA, NA, 1/2), 2, 2)
+    ## and the correlation
+    Sigma[1,2] = Sigma[2,1] = rho*sqrt(Sigma[1,1]*Sigma[2,2])
     
     y = yy = rmvnorm(n, sigma=Sigma)
     y = c(y[,1], y[,2])
@@ -151,7 +153,20 @@ if (TRUE)
 
 if (TRUE)
 {
-    ## second example
+    ## second example - both correlated variables occur in the same row of data
+  
+    #drawing covariance matrix from hyperprior
+    #Let's specify non-default values, expecting strong covariance
+    r = 4
+    R11 = 5
+    R22 = 4
+    R12 = 3
+
+    R = matrix(c(R11,R12,R12,R22), 2, 2)
+    #Take a single sample from wishart_2(r,R^-1)
+    W = rWishart(1,r,solve(R))[,,1]
+    Sigma = solve(W) #Compute the covariance matrix
+  
 
     y = yy = rmvnorm(n, sigma=Sigma)
     z = rnorm(n)
@@ -164,6 +179,12 @@ if (TRUE)
     r = inla(formula, data = data.frame(i,j,y,z,zz),
             control.family=list(initial=10,fixed=TRUE),keep=T)
     print(summary(r))
+    
+    #The params as in the Sigma matrix
+    print(1/diag(Sigma))
+    print(cov2cor(Sigma)[1,2])
+    
+    #The params as seen in data
     print(1/diag(cov(yy)))
     print(cor(yy)[1,2])
 }
