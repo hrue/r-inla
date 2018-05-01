@@ -71,7 +71,8 @@
         ##!\item{family}{ A string indicating the likelihood
         ##! family. The default is \code{gaussian} with identity
         ##! link. See \code{names(inla.models()$likelihood)} for a
-        ##! list of possible alternatives.}
+        ##! list of possible alternatives and use \code{\link{inla.doc}}
+		##! for detailed docs for individual families.}
         family = "gaussian", 
         
         ##!\item{contrasts}{Optional contrasts for the fixed
