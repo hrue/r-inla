@@ -103,6 +103,7 @@
         compute.mean = ifelse(missing(sample), FALSE, TRUE),
         num.threads = 1L)
 {
+    smtp = match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "pardiso"))
     stopifnot(!missing(Q))
     stopifnot(n >= 1L)
 
@@ -183,15 +184,16 @@
         }
     }
 
+    inla.set.pardiso.env(NULL)
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample",
-                         "-t", num.threads, 
-                         "-r", reordering, "-z", seed, Q.file, x.file, as.integer(n), rng.file,
+                         "-t", num.threads, "-r", reordering, "-z", seed, "-S", smtp,
+                         Q.file, x.file, as.integer(n), rng.file,
                          sample.file, b.file, mu.file, constr.file, cmean.file), intern=TRUE)
     } else if(inla.os("windows")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample",
-                         "-t", num.threads, 
-                         "-r", reordering, "-z", seed, Q.file, x.file, as.integer(n), rng.file,
+                         "-t", num.threads, "-r", reordering, "-z", seed, "-S", smtp,
+                         Q.file, x.file, as.integer(n), rng.file,
                          sample.file, b.file, mu.file, constr.file, cmean.file), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
