@@ -31,7 +31,7 @@
 ##!     
 ##!     num.threads: Number of threads to use.
 ##!     
-##!     smtp: sparse matrix library,  one of \code{band}, \code{taucs} (default) or \code{pardiso}
+##!     smtp: sparse matrix library,  one of \code{band}, \code{taucs} (\code{default}) or \code{pardiso}
 ##!
 ##!     pardiso.license: The full path to the PARDISO license file
 ##!     

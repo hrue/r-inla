@@ -59,6 +59,7 @@
 
 `inla.qsolve` = function(Q, B, reordering = inla.reorderings(), method = c("solve", "forward", "backward"))
 {
+    smtp = match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "pardiso"))
     Q = inla.sparse.check(Q)
     if (is(Q, "dgTMatrix")) {
         Qfile = inla.write.fmesher.file(Q)
@@ -94,10 +95,10 @@
     Xfile = inla.tempfile()
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsolve", "-r",
-                reordering, Qfile, Xfile, Bfile, method), intern=TRUE)
+                reordering, "-S", smtp, Qfile, Xfile, Bfile, method), intern=TRUE)
     } else if(inla.os("windows")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsolve", "-r",
-                reordering, Qfile, Xfile, Bfile, method), intern=TRUE)
+                reordering, "-S", smtp, Qfile, Xfile, Bfile, method), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }
