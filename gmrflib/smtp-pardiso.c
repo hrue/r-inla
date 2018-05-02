@@ -604,7 +604,6 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs)
 {
 	GMRFLib_ENTER_ROUTINE;
-	assert(x != b);
 	int res = GMRFLib_pardiso_solve_core(store, GMRFLib_PARDISO_FLAG_SOLVE_L, x, b, nrhs);
 	GMRFLib_pardiso_iperm(x, nrhs, store);
 	GMRFLib_LEAVE_ROUTINE;
@@ -615,10 +614,11 @@ int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp * store, double *x, double 
 int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs)
 {
 	GMRFLib_ENTER_ROUTINE;
-	assert(x != b);
 	GMRFLib_pardiso_perm(b, nrhs, store);
 	int res = GMRFLib_pardiso_solve_core(store, GMRFLib_PARDISO_FLAG_SOLVE_LT, x, b, nrhs);
-	GMRFLib_pardiso_iperm(b, nrhs, store);
+	if (x != b) {
+		GMRFLib_pardiso_iperm(b, nrhs, store);
+	}
 	GMRFLib_LEAVE_ROUTINE;
 
 	return res;

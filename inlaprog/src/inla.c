@@ -29804,8 +29804,12 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		}
 	}
 
-	if (G.reorder < 0) {
+	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
+		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
+	} else if (G.reorder < 0) {
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
+	} else {
+		assert(0 == 1);
 	}
 	GMRFLib_init_problem(&problem, NULL, (b ? b->A : NULL), NULL, (mu ? mu->A : NULL), graph, tab->Qfunc, tab->Qfunc_arg, NULL,
 			     constr, GMRFLib_NEW_PROBLEM);
@@ -29845,7 +29849,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 			M->A[(i + 1) * M->nrow - 1] = problems[thread]->sub_logdens;
 		}
 	}
-
+	
 	GMRFLib_write_fmesher_file(M, outfile, (long int) 0, -1);
 
 	GMRFLib_matrix_tp *CM = Calloc(1, GMRFLib_matrix_tp);
@@ -30689,6 +30693,7 @@ int main(int argc, char **argv)
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = omp_get_max_threads();
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
 	GMRFLib_collect_timer_statistics = GMRFLib_FALSE;
@@ -30710,7 +30715,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR1, inla_signal);
 	signal(SIGUSR2, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:Z:T:N:r:FYz:cp")) != -1) {
+	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:T:N:r:FYz:cp")) != -1) {
 		switch (opt) {
 		case 'b':
 			G.binary = 1;
@@ -30772,51 +30777,19 @@ int main(int argc, char **argv)
 			break;
 
 		case 'S':
-		{
-			optarg = inla_tolower(optarg);
-			if (!strcasecmp(optarg, "taucs")) {
+			// this is only for the other modes
+			inla_tolower(optarg);
+			if (!strcasecmp(optarg, "taucs") || !strcasecmp(optarg, "default")) {
 				GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
 			} else if (!strcasecmp(optarg, "band")) {
 				GMRFLib_smtp = GMRFLib_SMTP_BAND;
-			} else if (!strcasecmp(optarg, "pardiso.serial")) {
-				GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
-				GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
-				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_EXTERNAL, NULL, NULL);
-			} else if (!strcasecmp(optarg, "pardiso.parallel")) {
+			} else if (!strcasecmp(optarg, "pardiso")) {
 				GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
 				GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
 				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_EXTERNAL, NULL, NULL);
 			}
-		}
-
-		case 'Z':
-			if (G.mode != INLA_MODE_MCMC) {
-				fprintf(stderr, "\n *** ERROR *** Option `-S scale' only available in MCMC mode\n");
-				exit(EXIT_FAILURE);
-			} else {
-				if (inla_sread_doubles(&G.mcmc_scale, 1, optarg) == INLA_OK) {
-					;
-				} else {
-					fprintf(stderr, "Fail to read MCMC_SCALE from %s\n", optarg);
-					exit(EXIT_SUCCESS);
-				}
-			}
 			break;
-
-		case 'T':
-			if (G.mode != INLA_MODE_MCMC) {
-				fprintf(stderr, "\n *** ERROR *** Option `-T thining' only available in MCMC mode\n");
-				exit(EXIT_FAILURE);
-			} else {
-				if (inla_sread_ints(&G.mcmc_thinning, 1, optarg) == INLA_OK) {
-					;
-				} else {
-					fprintf(stderr, "Fail to read MCMC_THINNING from %s\n", optarg);
-					exit(EXIT_SUCCESS);
-				}
-			}
-			break;
-
+		
 		case 'z':
 			if (G.mode != INLA_MODE_FINN && G.mode != INLA_MODE_QSAMPLE) {
 				fprintf(stderr, "\n *** ERROR *** Option `-z seed' only available in FINN mode\n");
@@ -30837,6 +30810,21 @@ int main(int argc, char **argv)
 				}
 			}
 			break;
+ 
+		case 'T':
+			if (G.mode != INLA_MODE_MCMC) {
+				fprintf(stderr, "\n *** ERROR *** Option `-T thining' only available in MCMC mode\n");
+				exit(EXIT_FAILURE);
+			} else {
+				if (inla_sread_ints(&G.mcmc_thinning, 1, optarg) == INLA_OK) {
+					;
+				} else {
+					fprintf(stderr, "Fail to read MCMC_THINNING from %s\n", optarg);
+					exit(EXIT_SUCCESS);
+				}
+			}
+			break;
+
 
 		case 'F':
 			if (G.mode != INLA_MODE_MCMC) {
@@ -30882,6 +30870,7 @@ int main(int argc, char **argv)
 			verbose = 0;
 			silent = 1;
 			break;
+
 		case 'f':
 			GMRFLib_fpe();
 			break;
@@ -30945,8 +30934,6 @@ int main(int argc, char **argv)
 
 	switch (G.mode) {
 	case INLA_MODE_QINV: 
-		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
-		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		inla_qinv(argv[optind], argv[optind + 1], argv[optind + 2]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
@@ -30954,8 +30941,6 @@ int main(int argc, char **argv)
 		break;
 
 	case INLA_MODE_QSOLVE: 
-		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
-		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		inla_qsolve(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
@@ -30963,8 +30948,6 @@ int main(int argc, char **argv)
 		break;
 
 	case INLA_MODE_QREORDERING: 
-		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
-		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		inla_qreordering(argv[optind]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
@@ -30972,8 +30955,6 @@ int main(int argc, char **argv)
 		break;
 
 	case INLA_MODE_QSAMPLE: 
-		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
-		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5],
 			     argv[optind + 6], argv[optind + 7], argv[optind + 8]);
 		if (report)
@@ -30982,8 +30963,6 @@ int main(int argc, char **argv)
 		break;
 
 	case INLA_MODE_FINN: 
-		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
-		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		inla_finn(argv[optind]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
@@ -30991,8 +30970,6 @@ int main(int argc, char **argv)
 		break;
 
 	case INLA_MODE_GRAPH: 
-		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
-		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		inla_read_graph(argv[optind]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
@@ -31000,8 +30977,6 @@ int main(int argc, char **argv)
 		break;
 		
 	case INLA_MODE_R: 
-		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
-		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		inla_R(&(argv[optind]));
 		if (report)
 			GMRFLib_timer_full_report(NULL);
@@ -31009,8 +30984,6 @@ int main(int argc, char **argv)
 		break;
 		
 	case INLA_MODE_FGN: 
-		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
-		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		inla_fgn(argv[optind], argv[optind + 1]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
@@ -31018,8 +30991,6 @@ int main(int argc, char **argv)
 		break;
 		
 	case INLA_MODE_TESTIT: 
-		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_NONE;
-		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_NONE, NULL, NULL);
 		testit(argc, &(argv[optind]));
 		if (report)
 			GMRFLib_timer_full_report(NULL);
