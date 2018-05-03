@@ -83,8 +83,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 			}
 			GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph);
 			sm_fact->remap = Calloc(graph->n, int);
-			memcpy((void *) sm_fact->remap, (void *) sm_fact->PARDISO_fact->pstore->perm,
-			       graph->n * sizeof(int));
+			memcpy((void *) sm_fact->remap, (void *) sm_fact->PARDISO_fact->pstore->perm, graph->n * sizeof(int));
 			break;
 
 		default:
@@ -369,12 +368,12 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * 
 
 	if (sm_fact->smtp == GMRFLib_SMTP_BAND) {
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
-		for(i = 0; i < nrhs; i++) {
+		for (i = 0; i < nrhs; i++) {
 			GMRFLib_solve_llt_sparse_matrix_BAND(&rhs[i * graph->n], sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth);
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_TAUCS) {
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
-		for(i = 0; i < nrhs; i++) {
+		for (i = 0; i < nrhs; i++) {
 			GMRFLib_solve_llt_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_PARDISO) {
