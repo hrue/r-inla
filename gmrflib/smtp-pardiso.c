@@ -53,7 +53,7 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 #define WARNING(_msg) fprintf(stderr, "\n\n%s:%1d: %s\n\n", __FILE__, __LINE__, _msg)
 
-static struct {
+typedef struct {
 	int verbose;
 	int s_verbose;
 	int csr_check;
@@ -61,14 +61,16 @@ static struct {
 	int msglvl;
 	int *busy;
 	GMRFLib_pardiso_store_tp **static_pstores;
-} S = {
+} GMRFLib_static_pardiso_tp;
+
+GMRFLib_static_pardiso_tp S = {
 	0,						       // verbose
-	    0,						       // s_verbose
-	    0,						       // csr_check
-	    -2,						       // mtype (-2 = sym, 2 = sym pos def)
-	    0,						       // msg-level (0: no, 1: yes)
-	    NULL,					       // busy
-NULL};
+	0,						       // s_verbose
+	0,						       // csr_check
+	-2,						       // mtype (-2 = sym, 2 = sym pos def)
+	0,						       // msg-level (0: no, 1: yes)
+	NULL,						       // busy
+	NULL};
 
 #define PSTORES_NUM() (2048)
 
@@ -176,8 +178,9 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 	for (i = 0; i < n; i++) {
 		k = 1;
 		for (jj = 0; jj < graph->nnbs[i]; jj++) {
-			if (graph->nbs[i][jj] > i)
+			if (graph->nbs[i][jj] > i) {
 				k++;
+			}
 		}
 		M->ia[i + 1] = M->ia[i] + k;
 	}
@@ -265,8 +268,9 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	int inla_ncpu(void);				       /* external function */
 	GMRFLib_pardiso_store_tp *s = Calloc(1, GMRFLib_pardiso_store_tp);
 
-	if (S.s_verbose)
+	if (S.s_verbose) {
 		PP("_pardiso_init()", s);
+	}
 
 	s->maxfct = 1;
 	s->pstore = Calloc(1, GMRFLib_pardiso_store_pr_thread_tp);
@@ -283,6 +287,8 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	pardisoinit(s->pt, &(s->mtype), &(s->solver), s->iparm_default, s->dparm_default, &error);
 	s->iparm_default[10] = 0;			       /* I think these are the defaults, but */
 	s->iparm_default[12] = 0;			       /* we need these for the LDL^Tx=b solver to work */
+	s->iparm_default[20] = 0;			       /* diagonal pivoting */
+
 	if (error != 0) {
 		if (error == -10) {
 			GMRFLib_ERROR(GMRFLib_EPARDISO_LICENSE_NOTFOUND);
@@ -407,8 +413,6 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 	}
 	GMRFLib_ENTER_ROUTINE;
 
-	FIXME("pardiso_reorder");
-
 	int i, n, mnum1 = 1;
 	GMRFLib_csr_tp *Q = NULL;
 
@@ -471,7 +475,7 @@ int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store
 	int i, j, k, n, *permutation;
 	double *xx;
 
-	n = store->pstore->Q->n;
+	n = store->graph->n;
 	xx = Calloc(n * m, double);
 	memcpy(xx, x, n * m * sizeof(double));
 	permutation = (direction ? store->pstore->perm : store->pstore->iperm);
@@ -536,7 +540,9 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	int mnum1 = 1, n = store->pstore->Q->n, i;
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_CHOL, store);
 
-	printf("CHOL: NUM_THREADS %d iparm[2] %d\n", omp_get_num_threads(), store->pstore->iparm[2]);
+	if (debug) {
+		printf("CHOL: NUM_THREADS %d iparm[2] %d\n", omp_get_num_threads(), store->pstore->iparm[2]);
+	}
 
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore->phase),
 		&n, store->pstore->Q->a, store->pstore->Q->ia, store->pstore->Q->ja,
@@ -576,7 +582,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	assert(nrhs > 0);
 
 	// this is so that the RHS can be overwritten
-	int n = store->pstore->Q->n, mnum1 = 1;
+	int n = store->graph->n, mnum1 = 1;
 	double *xx = Calloc(n * nrhs, double);
 
 	GMRFLib_pardiso_setparam(flag, store);
@@ -644,8 +650,6 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 	if (problem == NULL) {
 		return GMRFLib_SUCCESS;
 	}
-
-	FIXME("ENTER Qinv...");
 
 	GMRFLib_ENTER_ROUTINE;
 	GMRFLib_pardiso_Qinv(problem->sub_sm_fact.PARDISO_fact);
@@ -745,10 +749,12 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 	}
 	GMRFLib_ENTER_ROUTINE;
 
-	if (S.s_verbose)
+	if (S.s_verbose) {
 		PP("free: old=", *store);
+	}
 
-//#pragma omp critical
+//
+#pragma omp critical
 	{
 		int found = 0, i;
 		if (S.static_pstores != NULL) {
@@ -761,24 +767,24 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 			}
 			for (i = 0; i < PSTORES_NUM() && !found; i++) {
 				if (S.busy[i] && (S.static_pstores[i] == *store)) {
-
 					if (S.s_verbose) {
 						P(S.busy[i]);
 						PP("S.static_pstores[i]", S.static_pstores[i]);
 						PP("*store", *store);
 					}
-
 					found = 1;
 					S.busy[i] = 0;
-					if (S.s_verbose)
+					if (S.s_verbose) {
 						printf("==> free store[%1d]\n", i);
+					}
 				}
 			}
 		}
 
 		if (!found) {
-			if (S.s_verbose)
+			if (S.s_verbose) {
 				printf("==> free manually as not found\n");
+			}
 
 			int mnums1 = 0;
 			if ((*store)->pstore) {
@@ -816,7 +822,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 		return GMRFLib_SUCCESS;
 	}
 
-	if (0) {
+	if (S.s_verbose) {
 		FIXME("-->duplicate by creating a new one each time");
 		GMRFLib_pardiso_init(new);
 		GMRFLib_pardiso_reorder(*new, old->graph);
@@ -831,8 +837,9 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 			if (S.static_pstores == NULL) {
 				S.static_pstores = Calloc(PSTORES_NUM(), GMRFLib_pardiso_store_tp *);
 				S.busy = Calloc(PSTORES_NUM(), int);
-				if (S.s_verbose)
+				if (S.s_verbose) {
 					printf("==> init static_pstores\n");
+				}
 			}
 		}
 	}
@@ -844,14 +851,16 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 			if (!S.busy[i]) {
 				if (S.static_pstores[i]) {
 					*new = S.static_pstores[i];
-					if (S.s_verbose)
+					if (S.s_verbose) {
 						printf("==> reuse store[%1d]\n", i);
+					}
 				} else {
 					GMRFLib_pardiso_init(&(S.static_pstores[i]));
 					GMRFLib_pardiso_reorder(S.static_pstores[i], old->graph);
 					*new = S.static_pstores[i];
-					if (S.s_verbose)
+					if (S.s_verbose) {
 						printf("==> new store[%1d]\n", i);
+					}
 				}
 				found = 1;
 				S.busy[i] = 1;
@@ -868,7 +877,8 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 }
 
 
-// we can define 'NO_PARDISO_LIB' if we want to compile without the pardiso library
+// we can define 'NO_PARDISO_LIB' if we want to compile without the pardiso library.
+// define fake functions, that err if called, here
 
 #if defined(NO_PARDISO_LIB)
 #define NO_PARDISO_LIB						\
@@ -888,9 +898,7 @@ void pardiso_get_inverse_factor_csc(void **a, double *s, int *d, int *f, int *g,
 #endif
 
 
-
-
-//
+// this is just an internal test program to be called from testit(), -m testit
 int my_pardiso_test(void)
 {
 	int err = 0;
@@ -940,7 +948,7 @@ int my_pardiso_test(void)
 	P(GMRFLib_openmp->max_threads_outer);
 	P(GMRFLib_openmp->max_threads_inner);
 
-	nrhs = 1;
+	nrhs = 2;
 
 	// S.s_verbose=1;
 #pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
@@ -987,34 +995,38 @@ int my_pardiso_test(void)
 			GMRFLib_pardiso_solve_LT(store2, x, x3, 1);
 			if (view) {
 				printf("solve L D LT\n");
-				for (i = 0; i < g->n; i++) {
-					printf("i %d  x= %f  b=%f\n", i, x[i], b[i]);
+				for (int ii = 0; ii < nrhs; ii++) {
+					for (i = 0; i < g->n; i++) {
+						printf("ii %d i %d  x= %f  b=%f\n", ii, i, x[i + ii * g->n], b[i + ii * g->n]);
+					}
 				}
 			}
 		}
 
 
-		for (i = 0; i < g->n; i++) {
+		for (i = 0; i < g->n * nrhs; i++) {
 			b[i] = ISQR(i + 1);
-			x[i] = 0.0;
 		}
 		GMRFLib_pardiso_solve_LT(store2, x, b, 1);
 		if (view) {
 			printf("solve LT\n");
-			for (i = 0; i < g->n; i++) {
-				printf("i %d  x= %f  b=%f\n", i, x[i], b[i]);
+			for (int ii = 0; ii < nrhs; ii++) {
+				for (i = 0; i < g->n; i++) {
+					printf("ii %d i %d  x= %f  b=%f\n", ii, i, x[i + ii * g->n], b[i + ii * g->n]);
+				}
 			}
 		}
 
-		for (i = 0; i < g->n; i++) {
+		for (i = 0; i < g->n * nrhs; i++) {
 			b[i] = ISQR(i + 1);
-			x[i] = 0.0;
 		}
 		GMRFLib_pardiso_solve_L(store2, x, b, 1);
 		if (view) {
 			printf("solve L\n");
-			for (i = 0; i < g->n; i++) {
-				printf("i %d  x= %f  b=%f\n", i, x[i], b[i]);
+			for (int ii = 0; ii < nrhs; ii++) {
+				for (i = 0; i < g->n; i++) {
+					printf("ii %d i %d  x= %f  b=%f\n", ii, i, x[i + ii * g->n], b[i + ii * g->n]);
+				}
 			}
 		}
 

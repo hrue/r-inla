@@ -29,7 +29,8 @@
 ##!   \item{mu}{The mu term}
 ##!   \item{sample}{A matrix of optional samples where each column is a sample. If set, then evaluate the log-density for each sample only.}
 ##!   \item{constr}{Optional linear constraints; see \code{?INLA::f} and argument \code{extraconstr}}
-##!   \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()}
+##!   \item{reordering}{The type of reordering algorithm to be used for \code{TAUCS};
+##!        either one of the names listed in \code{inla.reorderings()} 
 ##!        or the output from \code{inla.qreordering(Q)}.
 ##!        The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
 ##!   \item{seed}{Control the RNG. If \code{seed=0L} then GMRFLib will set the seed intelligently/at 'random'.
@@ -187,9 +188,9 @@
     inla.set.pardiso.env(NULL)
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample",
-                         "-t", num.threads, "-r", reordering, "-z", seed, "-S", smtp,
+                         "-t", num.threads, "-r", reordering, "-z", seed, "-S", smtp, 
                          Q.file, x.file, as.integer(n), rng.file,
-                         sample.file, b.file, mu.file, constr.file, cmean.file), intern=TRUE)
+                         sample.file, b.file, mu.file, constr.file, cmean.file), intern=FALSE)
     } else if(inla.os("windows")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample",
                          "-t", num.threads, "-r", reordering, "-z", seed, "-S", smtp,
