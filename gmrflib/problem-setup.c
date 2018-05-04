@@ -994,7 +994,7 @@ int GMRFLib_sample(GMRFLib_problem_tp * problem)
 		problem->sub_sample[i] = z;
 	}
 
-	GMRFLib_EWRAP1(GMRFLib_solve_lt_sparse_matrix(problem->sub_sample, &(problem->sub_sm_fact), problem->sub_graph));
+	GMRFLib_EWRAP1(GMRFLib_solve_lt_sparse_matrix(problem->sub_sample, 1, &(problem->sub_sm_fact), problem->sub_graph));
 	for (i = 0; i < n; i++) {
 		problem->sub_sample[i] += problem->sub_mean[i];
 		problem->sample[problem->map[i]] = problem->sub_sample[i];	/* will be modified later if constraints */
