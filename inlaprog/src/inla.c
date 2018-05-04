@@ -29654,7 +29654,11 @@ int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 		}
 	}
 
-	if (G.reorder < 0) {
+	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
+		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
+	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
+		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
+	} else {
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, constr, GMRFLib_NEW_PROBLEM);
@@ -29709,7 +29713,11 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	int i;
 
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, Qfilename, -1, NULL, NULL, NULL);
-	if (G.reorder < 0) {
+	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
+		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
+	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
+		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
+	} else {
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
@@ -29721,18 +29729,14 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	assert(B->i == NULL);				       /* I want B as dense matrix */
 	assert(problem->n == B->nrow);
 
-	FIXME1("PARDISO: this can be improved");
-#pragma omp parallel for private(i)
-	for (i = 0; i < B->ncol; i++) {
-		if (!strcasecmp(method, "solve")) {
-			GMRFLib_solve_llt_sparse_matrix(&(B->A[i * B->nrow]), 1, &(problem->sub_sm_fact), problem->sub_graph);
-		} else if (!strcasecmp(method, "forward")) {
-			GMRFLib_solve_l_sparse_matrix(&(B->A[i * B->nrow]), &(problem->sub_sm_fact), problem->sub_graph);
-		} else if (!strcasecmp(method, "backward")) {
-			GMRFLib_solve_lt_sparse_matrix(&(B->A[i * B->nrow]), &(problem->sub_sm_fact), problem->sub_graph);
-		} else {
-			assert(0 == 1);
-		}
+	if (!strcasecmp(method, "solve")) {
+		GMRFLib_solve_llt_sparse_matrix(B->A, B->ncol, &(problem->sub_sm_fact), problem->sub_graph);
+	} else if (!strcasecmp(method, "forward")) {
+		GMRFLib_solve_l_sparse_matrix(B->A, B->ncol, &(problem->sub_sm_fact), problem->sub_graph);
+	} else if (!strcasecmp(method, "backward")) {
+		GMRFLib_solve_lt_sparse_matrix(B->A, B->ncol, &(problem->sub_sm_fact), problem->sub_graph);
+	} else {
+		assert(0 == 1);
 	}
 
 	B->iA = NULL;
@@ -29806,21 +29810,20 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
-	} else if (G.reorder < 0) {
-		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
+	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
+		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
 	} else {
-		assert(0 == 1);
+		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 	GMRFLib_init_problem(&problem, NULL, (b ? b->A : NULL), NULL, (mu ? mu->A : NULL), graph, tab->Qfunc, tab->Qfunc_arg, NULL,
 			     constr, GMRFLib_NEW_PROBLEM);
-
 	M->nrow = graph->n + 1;
 	M->ncol = ns;
 	M->elems = M->ncol * M->nrow;
 	M->A = Calloc(M->nrow * M->ncol, double);
 
-	if (GMRFLib_MAX_THREADS == 1) {
-		// serial version
+	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
+		// as we do not want to factorize it again...
 		for (i = 0; i < ns; i++) {
 			if (!S) {
 				GMRFLib_sample(problem);
@@ -29828,12 +29831,12 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 				memcpy(problem->sample, &(S->A[i * S->nrow]), S->nrow * sizeof(double));
 			}
 			GMRFLib_evaluate(problem);
-			memcpy(&(M->A[i * M->nrow]), problem->sample, M->nrow * sizeof(double));
+			memcpy(&(M->A[i * M->nrow]), problem->sample, graph->n * sizeof(double));
 			M->A[(i + 1) * M->nrow - 1] = problem->sub_logdens;
 		}
 	} else {
-		GMRFLib_problem_tp **problems = Calloc(GMRFLib_MAX_THREADS, GMRFLib_problem_tp *);
-#pragma omp parallel for private(i)
+		GMRFLib_problem_tp **problems = Calloc(GMRFLib_openmp->max_threads_outer, GMRFLib_problem_tp *);
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < ns; i++) {
 			int thread = omp_get_thread_num();
 			if (problems[thread] == NULL) {
@@ -30777,7 +30780,7 @@ int main(int argc, char **argv)
 			break;
 
 		case 'S':
-			// this is only for the other modes
+			// this is only for other models than INLA
 			inla_tolower(optarg);
 			if (!strcasecmp(optarg, "taucs") || !strcasecmp(optarg, "default")) {
 				GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
@@ -30929,9 +30932,6 @@ int main(int argc, char **argv)
 	/*
 	 * these options does not belong here in this program, but it makes all easier... and its undocumented.
 	 */
-
-	FIXME1("Need to add proper strategies to inla.qinv, sample, etc...");
-
 	switch (G.mode) {
 	case INLA_MODE_QINV: 
 		inla_qinv(argv[optind], argv[optind + 1], argv[optind + 2]);
