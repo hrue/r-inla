@@ -708,7 +708,9 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 {
 	GMRFLib_ENTER_ROUTINE;
 
-	printf("QINV: NUM_THREADS %d iparm[2] %d\n", omp_get_num_threads(), store->pstore->iparm[2]);
+	if (omp_get_num_threads() > store->pstore->iparm[2]) {
+		omp_set_num_threads(store->pstore->iparm[2]);
+	}
 
 	assert(store->done_with_init == GMRFLib_TRUE);
 	assert(store->done_with_reorder == GMRFLib_TRUE);
@@ -724,10 +726,12 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_QINV, store);
 	int mnum1 = 1;
+
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore->phase),
 		&(store->pstore->Qinv->n),
 		store->pstore->Qinv->a, store->pstore->Qinv->ia, store->pstore->Qinv->ja,
-		NULL, &(store->pstore->nrhs), store->pstore->iparm, &(store->msglvl), NULL, NULL, &(store->pstore->err_code), store->pstore->dparm);
+		NULL, &(store->pstore->nrhs), store->pstore->iparm, &(store->msglvl), NULL, NULL,
+		&(store->pstore->err_code), store->pstore->dparm);
 
 	if (store->pstore->err_code != 0) {
 		GMRFLib_ERROR(GMRFLib_EPARDISO_INTERNAL_ERROR);
@@ -753,8 +757,7 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 		PP("free: old=", *store);
 	}
 
-//
-#pragma omp critical
+//#pragma omp critical
 	{
 		int found = 0, i;
 		if (S.static_pstores != NULL) {
@@ -766,6 +769,7 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 				}
 			}
 			for (i = 0; i < PSTORES_NUM() && !found; i++) {
+
 				if (S.busy[i] && (S.static_pstores[i] == *store)) {
 					if (S.s_verbose) {
 						P(S.busy[i]);
@@ -786,7 +790,6 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 				printf("==> free manually as not found\n");
 			}
 
-			int mnums1 = 0;
 			if ((*store)->pstore) {
 				(*store)->pstore->phase = -1;
 				int mnum1 = 1;
@@ -849,7 +852,9 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 	{
 		for (i = 0; i < PSTORES_NUM() && !found; i++) {
 			if (!S.busy[i]) {
-				if (S.static_pstores[i]) {
+				if (S.static_pstores[i] && 
+				    (S.static_pstores[i]->pstore->iparm[2] >= IMAX(omp_get_num_threads(),
+										   GMRFLib_openmp->max_threads_inner))) {
 					*new = S.static_pstores[i];
 					if (S.s_verbose) {
 						printf("==> reuse store[%1d]\n", i);
@@ -898,8 +903,75 @@ void pardiso_get_inverse_factor_csc(void **a, double *s, int *d, int *f, int *g,
 #endif
 
 
+
+#define TEST_PROGRAM 1
+
+#if defined(TEST_PROGRAM)
+
 // this is just an internal test program to be called from testit(), -m testit
 int my_pardiso_test(void)
+{
+	//my_pardiso_test1();
+	my_pardiso_test2();
+
+	return 0;
+}
+double my_Q(int i, int j, void *arg) 
+{
+	GMRFLib_graph_tp * graph = (GMRFLib_graph_tp *) arg;
+	return (i == j ? graph->n  + i : -1.0);
+}
+int my_pardiso_test2(void) 
+{
+	int n = 5, m = 1, nc = 1, i;
+	double *var;
+	
+	GMRFLib_graph_tp * graph = NULL;
+	GMRFLib_make_linear_graph(&graph, n, m, 0);
+	GMRFLib_problem_tp *problem = NULL;
+	GMRFLib_constr_tp *constr = NULL;
+	GMRFLib_make_empty_constr(&constr);
+
+	constr->nc = nc;
+	constr->a_matrix = Calloc(n * nc, double);
+	for(i = 0; i < n * nc;  i++)
+		constr->a_matrix[i] = GMRFLib_uniform();
+	constr->e_vector = Calloc(nc, double);
+	for(i = 0; i < nc; i++)
+		constr->e_vector[i] = GMRFLib_uniform();
+	GMRFLib_prepare_constr(constr, graph, 1);
+
+	//GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
+	//GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
+	//GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
+
+	double *x = Calloc(n, double);
+	double *b = Calloc(n, double);
+	double *c = Calloc(n, double);
+	double *mean = Calloc(n, double);
+	for(i = 0; i<n; i++) {
+		x[i] = GMRFLib_uniform();
+		b[i] = GMRFLib_uniform();
+		c[i] = exp(GMRFLib_uniform());
+		mean[i] = GMRFLib_uniform();
+	}
+
+	GMRFLib_init_problem(&problem, x, b, c, mean, graph, my_Q, (void *) graph, NULL, constr,
+			     GMRFLib_NEW_PROBLEM);
+	GMRFLib_evaluate(problem);
+	GMRFLib_Qinv(problem, GMRFLib_QINV_ALL);
+
+	if (0)
+	for(i=0; i<n; i++){
+		var = GMRFLib_Qinv_get(problem, i, i);
+		printf("Qinv[%1d,%1d] = %g\n", i, i, *var);
+	}
+	GMRFLib_free_problem(problem);
+
+	return 0;
+}
+int my_pardiso_test1(void)
 {
 	int err = 0;
 
@@ -948,7 +1020,7 @@ int my_pardiso_test(void)
 	P(GMRFLib_openmp->max_threads_outer);
 	P(GMRFLib_openmp->max_threads_inner);
 
-	nrhs = 2;
+	nrhs = 1;
 
 	// S.s_verbose=1;
 #pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
@@ -1030,6 +1102,7 @@ int my_pardiso_test(void)
 			}
 		}
 
+		printf("call Qinv\n");
 		GMRFLib_pardiso_Qinv(store2);
 		GMRFLib_pardiso_free(&store2);
 		Free(x);
@@ -1049,5 +1122,9 @@ int my_pardiso_test(void)
 
 	exit(0);
 }
+
+#endif
+
+#undef TEST_PROGRAM
 
 #undef WARNING

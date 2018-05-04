@@ -130,6 +130,8 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		nhyper = &nhyper_def;
 	}
 	
+	P(GMRFLib_MAX_THREADS);
+
 	// once only
 	static int pardiso_ok = -1;
 	if (pardiso_ok < 0) {
@@ -145,6 +147,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		FIXME1("PARDISO is installed and working, set openmp->strategy = 'PARDISO'");
 		if (strategy == GMRFLib_OPENMP_STRATEGY_DEFAULT) {
 			strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
+			FIXME("set strategy = pardiso.serial");
 		} else {
 			assert(strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ||
 			       strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL);
@@ -175,7 +178,12 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 			break;
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
+			FIXME("CHANGE HERE");
+			GMRFLib_openmp->max_threads_outer = nt; /* YES */
+			GMRFLib_openmp->max_threads_inner = nt; /* YES */
+			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
+			FIXME("CHANGE HERE");
 			GMRFLib_openmp->max_threads_outer = nt; /* YES */
 			GMRFLib_openmp->max_threads_inner = nt; /* YES */
 			break;
