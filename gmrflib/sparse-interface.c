@@ -202,12 +202,13 @@ int GMRFLib_build_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_Qfunc_tp *
 */
 int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph)
 {
-	int ret;
+	int ret, debug = 0;
 	GMRFLib_ENTER_ROUTINE;
 
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
-		fprintf(stderr, "BAND\n");
+		if (debug)
+			fprintf(stderr, "BAND\n");
 		if (GMRFLib_catch_error_for_inla) {
 			ret = GMRFLib_factorise_sparse_matrix_BAND(sm_fact->bchol, &(sm_fact->finfo), graph, sm_fact->bandwidth);
 			if (ret != GMRFLib_SUCCESS) {
@@ -219,7 +220,8 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_
 		break;
 
 	case GMRFLib_SMTP_TAUCS:
-		fprintf(stderr, "TAUCS\n");
+		if (debug)
+			fprintf(stderr, "TAUCS\n");
 		if (GMRFLib_catch_error_for_inla) {
 			ret =
 			    GMRFLib_factorise_sparse_matrix_TAUCS(&(sm_fact->TAUCS_L), &(sm_fact->TAUCS_symb_fact), &(sm_fact->finfo),
@@ -234,7 +236,8 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
-		fprintf(stderr, "PARDISO\n");
+		if (debug)
+			fprintf(stderr, "PARDISO\n");
 		if (GMRFLib_catch_error_for_inla) {
 			ret = GMRFLib_pardiso_chol(sm_fact->PARDISO_fact);
 			if (ret != GMRFLib_SUCCESS) {
@@ -279,6 +282,7 @@ int GMRFLib_free_fact_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact)
 		case GMRFLib_SMTP_PARDISO:
 			if (sm_fact->PARDISO_fact) {
 				GMRFLib_EWRAP1(GMRFLib_pardiso_free(&(sm_fact->PARDISO_fact)));
+				sm_fact->PARDISO_fact = NULL;
 			}
 			break;
 

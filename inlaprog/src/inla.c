@@ -9608,8 +9608,8 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		P(GMRFLib_smtp);
 		printf("\t\tsmtp=[%s]\n", mb->smtp);
 	}
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, &GMRFLib_smtp);
-
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, &GMRFLib_smtp);
+	FIXME("ADD FIX HERE");
 
 	mb->dir = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup("results-%1d")));
 	ok = 0;
@@ -19573,6 +19573,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tscale.model[%1d]\n", std);
 		}
 		if (std) {
+			//FIXME("ADD DUMMY CALL"); my_pardiso_test2();
 			inla_besag_scale(arg, adj, mb->verbose);
 			if (mb->verbose) {
 				printf("\t\tscale.model: prec_scale[%g]\n", arg->prec_scale[0]);
@@ -29635,7 +29636,7 @@ int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 
 	GMRFLib_tabulate_Qfunc_tp *tab;
 	GMRFLib_graph_tp *graph;
-	GMRFLib_problem_tp *problem;
+	GMRFLib_problem_tp *problem = NULL;
 	GMRFLib_constr_tp *constr = NULL;
 	GMRFLib_matrix_tp *constr_x = NULL;
 	FILE *fp;
@@ -29709,7 +29710,7 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 
 	GMRFLib_tabulate_Qfunc_tp *tab;
 	GMRFLib_graph_tp *graph;
-	GMRFLib_problem_tp *problem;
+	GMRFLib_problem_tp *problem = NULL;
 	int i;
 
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, Qfilename, -1, NULL, NULL, NULL);
@@ -29769,7 +29770,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	int i, ns;
 	GMRFLib_tabulate_Qfunc_tp *tab;
 	GMRFLib_graph_tp *graph;
-	GMRFLib_problem_tp *problem;
+	GMRFLib_problem_tp *problem = NULL;
 
 	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp), *S = NULL, *b = NULL, *mu = NULL, *constr_x = NULL;
 	GMRFLib_constr_tp *constr = NULL;
@@ -29879,7 +29880,7 @@ int inla_finn(const char *filename)
 	int i;
 	GMRFLib_tabulate_Qfunc_tp *tab;
 	GMRFLib_graph_tp *graph;
-	GMRFLib_problem_tp *problem;
+	GMRFLib_problem_tp *problem = NULL;
 
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL, NULL, NULL);
 
@@ -30018,7 +30019,6 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose)
 		// treat the whole graph as one cc, with index 0
 		cc = Calloc(n, int);
 	}
-
 	if (!adj) {
 		// special for nnbs=0
 		for (i = 0; i < n; i++) {
@@ -30078,7 +30078,7 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose)
 			constr->e_vector = Calloc(1, double);
 			GMRFLib_prepare_constr(constr, def->graph, GMRFLib_TRUE);
 
-			GMRFLib_problem_tp *problem;
+			GMRFLib_problem_tp *problem = NULL;
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 
@@ -30086,7 +30086,6 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose)
 			for (i = 0; i < def->graph->n; i++) {
 				c[i] = eps;
 			}
-
 			while (!ok) {
 				retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, def->graph,
 							      Qfunc_besag, (void *) def, NULL, constr, GMRFLib_NEW_PROBLEM);
@@ -31044,6 +31043,14 @@ int main(int argc, char **argv)
 				printf("\nWall-clock time used on [%s] max_threads=[%1d]\n", argv[arg], GMRFLib_MAX_THREADS);
 			}
 			time_used[0] = GMRFLib_cpu();
+			
+			P(GMRFLib_openmp->strategy);
+			P(GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL);
+			P(GMRFLib_smtp == GMRFLib_SMTP_PARDISO);
+			//GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
+			//GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_EXTERNAL, NULL, NULL);
+			//FIXME("ADD DUMMY CALL"); my_pardiso_test2();
+
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 			mb = inla_build(argv[arg], verbose, 1);
 			time_used[0] = GMRFLib_cpu() - time_used[0];
