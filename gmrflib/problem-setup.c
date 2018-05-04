@@ -204,6 +204,11 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	GMRFLib_ASSERT(graph, GMRFLib_EINVARG);
 	GMRFLib_ASSERT(Qfunc, GMRFLib_EINVARG);
 
+	FIXME("ADD HERE");
+	if (keep == GMRFLib_NEW_PROBLEM) {
+		*problem = Calloc(1, GMRFLib_problem_tp);
+	}
+
 	/*
 	 * whatever to be stored, the Qinv is no longer valid. 
 	 */
@@ -280,7 +285,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	 * this is the sparse-matrix method 
 	 */
 	(*problem)->sub_sm_fact.smtp = smtp;
-
+	
 	/*
 	 * compute the internal stuff if needed 
 	 */
@@ -867,7 +872,6 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	if (!(keep & GMRFLib_KEEP_mean)) {
 		GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix
 			       ((*problem)->sub_mean, 1, &((*problem)->sub_sm_fact), (*problem)->sub_graph));
-
 		if (!((*problem)->sub_mean_constr)) {
 			(*problem)->sub_mean_constr = Calloc(sub_n, double);
 		}
@@ -1302,6 +1306,7 @@ int GMRFLib_free_store(GMRFLib_store_tp * store)
 	// always free
 	if (store->PARDISO_fact) {
 		GMRFLib_pardiso_free(&(store->PARDISO_fact));
+		store->PARDISO_fact = NULL;
 	}
 
 	store->sub_graph = NULL;

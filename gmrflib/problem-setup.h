@@ -380,6 +380,7 @@ typedef struct {
 	/**
 	 *  \brief The Choleskty triangle of Q for the subgraph 
 	 */
+
 	GMRFLib_sm_fact_tp sub_sm_fact;
 
 	/**
