@@ -121,33 +121,47 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 {
 	int nt;
 	int ntmax = GMRFLib_MAX_THREADS;
-	int strategy = (GMRFLib_openmp ? GMRFLib_openmp->strategy : GMRFLib_OPENMP_STRATEGY_MEDIUM);
+	int strategy = GMRFLib_openmp->strategy;
 	int nested = 0;
 	int *nhyper = (int *) arg;
 	int nhyper_def = 5;
+	int debug = 1;
+	static int pardiso_ok = -1;
 	
 	if (nhyper == NULL) {
 		nhyper = &nhyper_def;
 	}
 	
-	P(GMRFLib_MAX_THREADS);
-
-	// once only
-	static int pardiso_ok = -1;
+	// this check is done once only
 	if (pardiso_ok < 0) {
 		pardiso_ok = (GMRFLib_pardiso_check_install(1, 1) == GMRFLib_SUCCESS ? 1 : 0);
+		if (debug) {
+			printf("%s:%1d: PARDISO installed and working? [%s]\n", __FILE__, __LINE__, 
+			       (pardiso_ok ? "YES" : "NO"));
+		}
 	}
 
-	static GMRFLib_smtp_tp smtp_store = GMRFLib_SMTP_INVALID;
+	static GMRFLib_smtp_tp smtp_store = GMRFLib_SMTP_DEFAULT;
 	if (smtp) {
 		smtp_store = *smtp;
 	}
 
-	if (pardiso_ok && smtp_store == GMRFLib_SMTP_PARDISO) {
-		FIXME1("PARDISO is installed and working, set openmp->strategy = 'PARDISO'");
+	FIXME("REMOVE THIS");
+	if (smtp) P(*smtp);
+	P(smtp_store);
+	printf("smtp %s\n", GMRFLib_SMTP_NAME(smtp_store));
+	printf("strategy %s\n", GMRFLib_OPENMP_STRATEGY_NAME(strategy));
+	P(pardiso_ok);
+	P((smtp_store == GMRFLib_SMTP_PARDISO || smtp_store == GMRFLib_SMTP_DEFAULT));
+	P(pardiso_ok && (smtp_store == GMRFLib_SMTP_PARDISO || smtp_store == GMRFLib_SMTP_DEFAULT));
+	
+	if (pardiso_ok && (smtp_store == GMRFLib_SMTP_PARDISO || smtp_store == GMRFLib_SMTP_DEFAULT)) {
 		if (strategy == GMRFLib_OPENMP_STRATEGY_DEFAULT) {
 			strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
-			FIXME("set strategy = pardiso.serial");
+			if (debug) {
+				printf("%s:%1d: Switch to PARDISO with strategy [%s]\n", __FILE__, __LINE__, 
+				       GMRFLib_OPENMP_STRATEGY_NAME(strategy));
+			}
 		} else {
 			assert(strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ||
 			       strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL);
@@ -178,12 +192,10 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 			break;
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
-			FIXME("CHANGE HERE");
 			GMRFLib_openmp->max_threads_outer = nt; /* YES */
 			GMRFLib_openmp->max_threads_inner = nt; /* YES */
 			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
-			FIXME("CHANGE HERE");
 			GMRFLib_openmp->max_threads_outer = nt; /* YES */
 			GMRFLib_openmp->max_threads_inner = nt; /* YES */
 			break;
@@ -404,10 +416,10 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL: 
 			GMRFLib_openmp->max_threads_outer = nt;
-			GMRFLib_openmp->max_threads_inner = 1;
+			GMRFLib_openmp->max_threads_inner = nt;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL: 
-			GMRFLib_openmp->max_threads_outer = 1;
+			GMRFLib_openmp->max_threads_outer = nt;
 			GMRFLib_openmp->max_threads_inner = nt;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
@@ -436,10 +448,12 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	omp_set_num_threads(nt);
 	omp_set_nested(nested);
 
-	P(GMRFLib_MAX_THREADS);
-	P(nt);
-	P(GMRFLib_openmp->max_threads_inner);
-	P(GMRFLib_openmp->max_threads_outer);
+	if (debug) {
+		printf("%s:%1d: smtp[%s] strategy[%s] place[%s]\n", __FILE__, __LINE__,
+		       GMRFLib_SMTP_NAME(smtp_store), GMRFLib_OPENMP_STRATEGY_NAME(strategy), GMRFLib_OPENMP_PLACE_NAME(place));
+		printf("%s:%1d: max.threads[%1d] num.threads[%1d] max.inner[%1d] max.outer[%1d]\n", __FILE__, __LINE__, 
+		       GMRFLib_MAX_THREADS, nt, GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer);
+	}
 
 	return GMRFLib_SUCCESS;
 }

@@ -78,6 +78,16 @@ typedef enum {
 	GMRFLib_OPENMP_STRATEGY_NONE
 } GMRFLib_openmp_strategy_tp;
 
+#define GMRFLib_OPENMP_STRATEGY_NAME(num) \
+	((num) == GMRFLib_OPENMP_STRATEGY_SMALL ? "small" :		\
+	 ((num) == GMRFLib_OPENMP_STRATEGY_MEDIUM ? "medium" :	\
+	  ((num) == GMRFLib_OPENMP_STRATEGY_LARGE ? "large" :		\
+	   ((num) == GMRFLib_OPENMP_STRATEGY_HUGE ? "huge" :		\
+	    ((num) == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ? "pardiso.serial" : \
+	     ((num) == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ? "pardiso.parallel" : \
+	      ((num) == GMRFLib_OPENMP_STRATEGY_DEFAULT ? "default" :	\
+	       ((num) == GMRFLib_OPENMP_STRATEGY_NONE ? "none" : "THIS SHOULD NOT HAPPEN"))))))))
+
 typedef enum {
 	GMRFLib_OPENMP_PLACES_BUILD_MODEL = 1,
 	GMRFLib_OPENMP_PLACES_OPTIMIZE,
@@ -90,6 +100,18 @@ typedef enum {
 	GMRFLib_OPENMP_PLACES_DEFAULT, 
 	GMRFLib_OPENMP_PLACES_NONE
 } GMRFLib_openmp_place_tp;
+
+#define GMRFLib_OPENMP_PLACE_NAME(num) \
+	((num) == GMRFLib_OPENMP_PLACES_BUILD_MODEL ? "build.model" :	\
+	 ((num) == GMRFLib_OPENMP_PLACES_OPTIMIZE ? "optimize" :	\
+	  ((num) == GMRFLib_OPENMP_PLACES_HESSIAN ? "hessian" :		\
+	   ((num) == GMRFLib_OPENMP_PLACES_HESSIAN_SCALE ? "hessian.scale" : \
+	    ((num) == GMRFLib_OPENMP_PLACES_INTEGRATE ? "integrate" :	\
+	     ((num) == GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR ? "integrate.hyperpar" : \
+	      ((num) == GMRFLib_OPENMP_PLACES_COMBINE ? "combine" : \
+	       ((num) == GMRFLib_OPENMP_PLACES_EXTERNAL ? "external" : \
+		((num) == GMRFLib_OPENMP_PLACES_DEFAULT ? "default" : \
+		 ((num) == GMRFLib_OPENMP_PLACES_NONE ? "none" : "THIS SHOULD NOT HAPPEN"))))))))))
 
 typedef struct {
 	GMRFLib_openmp_place_tp place;

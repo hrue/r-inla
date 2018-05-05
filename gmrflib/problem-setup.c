@@ -204,7 +204,6 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	GMRFLib_ASSERT(graph, GMRFLib_EINVARG);
 	GMRFLib_ASSERT(Qfunc, GMRFLib_EINVARG);
 
-	FIXME("ADD HERE");
 	if (keep == GMRFLib_NEW_PROBLEM) {
 		*problem = Calloc(1, GMRFLib_problem_tp);
 	}
@@ -537,7 +536,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		}
 
 		if (store_use_symb_fact && (smtp == GMRFLib_SMTP_PARDISO)) {
-			FIXME1("ADDED NEW EXPERIMENTAL CODE");
+			//FIXME1("ADDED NEW EXPERIMENTAL CODE");
 			GMRFLib_pardiso_store_tp *s = Calloc(1, GMRFLib_pardiso_store_tp);
 			s->graph = (*problem)->sub_graph;
 			// use the internal cached storage
@@ -761,7 +760,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					/*
 					 * reuse 
 					 */
-					if (1) {
+					if (0) {
 						memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
 						for (k = nc - 1; k < nc; k++) {
 							kk = k * sub_n;
