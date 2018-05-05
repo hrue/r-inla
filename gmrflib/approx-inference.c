@@ -6374,6 +6374,13 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	} cross_tp;
 	cross_tp *cross_store = NULL;
 
+	if (GMRFLib_smtp == GMRFLib_SMTP_TAUCS || GMRFLib_smtp == GMRFLib_SMTP_BAND) {
+		remap = problem->sub_sm_fact.remap;
+	} else {
+		// pardiso
+		remap = problem->sub_sm_fact.PARDISO_fact->pstore->perm;
+	}
+
 	// id = GMRFLib_thread_id;
 	id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
 	assert(problem != NULL);
@@ -6388,26 +6395,31 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	if (cross) {
 		cross_store = Calloc(nlin, cross_tp);
 	}
+
 #pragma omp parallel for private(i, j, k) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < nlin; i++) {
 
 		int from_idx, to_idx, len, from_idx_a, to_idx_a, len_a, ip, ii, jj;
 		double var, mean, imean, *a = NULL, *b = NULL, *v = NULL, *vv = NULL, var_corr, weight, Aij, Ajj;
 
-		if (Alin[i]->tinfo[id].first_nonzero < 0) {
-			/*
-			 * we know that the idx's are sorted, so its easier to find the first and last non-zero 
-			 */
-			// Alin[i]->tinfo[id].first_nonzero = GMRFLib_imin_value(Alin[i]->idx, Alin[i]->n);
-			Alin[i]->tinfo[id].first_nonzero = Alin[i]->idx[0];
-		}
-
-		if (Alin[i]->tinfo[id].last_nonzero < 0) {
-			/*
-			 * we know that the idx's are sorted, so its easier to find the first and last non-zero 
-			 */
-			// Alin[i]->tinfo[id].last_nonzero = GMRFLib_imax_value(Alin[i]->idx, Alin[i]->n);
-			Alin[i]->tinfo[id].last_nonzero = Alin[i]->idx[Alin[i]->n - 1];
+		if (GMRFLib_smtp == GMRFLib_SMTP_TAUCS || GMRFLib_smtp == GMRFLib_SMTP_BAND) {
+			if (Alin[i]->tinfo[id].first_nonzero < 0) {
+				/*
+				 * we know that the idx's are sorted, so its easier to find the first and last non-zero 
+				 */
+				// Alin[i]->tinfo[id].first_nonzero = GMRFLib_imin_value(Alin[i]->idx, Alin[i]->n);
+				Alin[i]->tinfo[id].first_nonzero = Alin[i]->idx[0];
+			}
+			if (Alin[i]->tinfo[id].last_nonzero < 0) {
+				/*
+				 * we know that the idx's are sorted, so its easier to find the first and last non-zero 
+				 */
+				// Alin[i]->tinfo[id].last_nonzero = GMRFLib_imax_value(Alin[i]->idx, Alin[i]->n);
+				Alin[i]->tinfo[id].last_nonzero = Alin[i]->idx[Alin[i]->n - 1];
+			}
+		} else {
+			Alin[i]->tinfo[id].first_nonzero = Alin[i]->tinfo[id].first_nonzero_mapped = 0;
+			Alin[i]->tinfo[id].last_nonzero = Alin[i]->tinfo[id].last_nonzero_mapped = n-1;
 		}
 
 		from_idx_a = Alin[i]->tinfo[id].first_nonzero;
@@ -6439,42 +6451,14 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 		to_idx = (Alin[i]->tinfo[id].last_nonzero_mapped < 0 ? n - 1 : Alin[i]->tinfo[id].last_nonzero_mapped);
 		len = to_idx - from_idx + 1;
 
-		if (0) {
-			// old code for TAUCS ONLY
-			b = Calloc(2 * len, double);	       /* workaround.... do not know what is happening sometimes */
-			v = Calloc(len, double);
-			for (j = 0; j < Alin[i]->n; j++) {
-				b[remap[Alin[i]->idx[j]] - from_idx] = (double) Alin[i]->weight[j];
-			}
-
-			/*
-			 * solve L v = b, using the index-range computed.
-			 */
-			taucs_ccs_matrix *TAUCS_L = (taucs_ccs_matrix *) (problem->sub_sm_fact.TAUCS_L);
-
-			for (jj = 0; jj < len; jj++) {
-				ip = TAUCS_L->colptr[jj + from_idx];
-				Ajj = TAUCS_L->values.d[ip];
-				v[jj] = b[jj] / Ajj;
-
-				for (ip = TAUCS_L->colptr[jj + from_idx] + 1; ip < TAUCS_L->colptr[jj + from_idx + 1]; ip++) {
-					ii = TAUCS_L->rowind[ip] - from_idx;
-					Aij = TAUCS_L->values.d[ip];
-					b[ii] -= v[jj] * Aij;
-				}
-			}
-		} else {
-			// new, possible little slower code but general
-			vv = Calloc(n, double);
-			for (j = 0; j < Alin[i]->n; j++) {
-				vv[remap[Alin[i]->idx[j]]] = (double) Alin[i]->weight[j];
-			}
-
-			GMRFLib_solve_l_sparse_matrix_special(vv, &(problem->sub_sm_fact), problem->sub_graph, from_idx, from_idx + len - 1, 1);
-			v = Calloc(len, double);
-			memcpy(v, vv + from_idx, len * sizeof(double));
-			Free(vv);
+		vv = Calloc(n, double);
+		for (j = 0; j < Alin[i]->n; j++) {
+			vv[remap[Alin[i]->idx[j]]] = (double) Alin[i]->weight[j];
 		}
+		GMRFLib_solve_l_sparse_matrix_special(vv, &(problem->sub_sm_fact), problem->sub_graph, from_idx, from_idx + len - 1, 1);
+		v = Calloc(len, double);
+		memcpy(v, vv + from_idx, len * sizeof(double));
+		Free(vv);
 
 		/*
 		 * compute the last non-zero index (mapped) if not already there
@@ -6534,7 +6518,6 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 		}
 		var = DMAX(DBL_EPSILON, var - var_corr);
 		GMRFLib_density_create_normal(&d[i], (imean - mean) / sqrt(var), 1.0, mean, sqrt(var));
-
 		Free(a);
 	}
 
@@ -6572,6 +6555,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 
 			ij_from = IMAX(cross_store[i].from_idx, cross_store[j].from_idx);
 			ij_to = IMIN(cross_store[i].to_idx, cross_store[j].to_idx);
+
 			if (ij_from <= ij_to) {
 				double *v_i = NULL, *v_j = NULL;
 				int ij_len = 0;
