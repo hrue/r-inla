@@ -87,7 +87,7 @@ typedef enum {
 	/**
 	 * \brief The default solver
 	 */
-	GMRFLib_SMTP_DEFAULT = 2,
+	GMRFLib_SMTP_DEFAULT = 4,
 
 	/**
 	 * \brief The invalid choice
@@ -96,11 +96,11 @@ typedef enum {
 
 } GMRFLib_smtp_tp;
 
-#define SMTP_NAME(smtp) \
-	(smtp == GMRFLib_SMTP_BAND ? GMRFLib_strdup("band") :	  \
-	 (smtp == GMRFLib_SMTP_TAUCS ? GMRFLib_strdup("taucs") : \
-	  (smtp == GMRFLib_SMTP_PARDISO ? GMRFLib_strdup("pardiso") : \
-	   (smtp == GMRFLib_SMTP_DEFAULT ? GMRFLib_strdup("default") : NULL))))
+#define GMRFLib_SMTP_NAME(smtp)			     \
+	((smtp) == GMRFLib_SMTP_BAND ? "band" :    \
+	 ((smtp) == GMRFLib_SMTP_TAUCS ? "taucs" :	  \
+	  ((smtp) == GMRFLib_SMTP_PARDISO ? "pardiso" :		\
+	   ((smtp) == GMRFLib_SMTP_DEFAULT ? "default" : "THIS SHOULD NOT HAPPEN"))))
 
 typedef enum {
 

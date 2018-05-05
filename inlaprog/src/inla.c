@@ -9601,15 +9601,11 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "smtp", smtp);
 		}
 	}
-	mb->smtp = SMTP_NAME(GMRFLib_smtp);
+	mb->smtp = GMRFLib_SMTP_NAME(GMRFLib_smtp);
 	if (mb->verbose) {
-		printf("%s\n", smtp);
-		P(mb->strategy);
-		P(GMRFLib_smtp);
-		printf("\t\tsmtp=[%s]\n", mb->smtp);
+		printf("smtp = [%s]\nstrategy = [%s]", smtp, openmp_strategy);
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, &GMRFLib_smtp);
-	FIXME("ADD FIX HERE");
 
 	mb->dir = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup("results-%1d")));
 	ok = 0;
@@ -29711,7 +29707,6 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	GMRFLib_tabulate_Qfunc_tp *tab;
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem = NULL;
-	int i;
 
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, Qfilename, -1, NULL, NULL, NULL);
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
@@ -30779,7 +30774,7 @@ int main(int argc, char **argv)
 			break;
 
 		case 'S':
-			// this is only for other models than INLA
+			// this option is only used for other MODES than INLA
 			inla_tolower(optarg);
 			if (!strcasecmp(optarg, "taucs") || !strcasecmp(optarg, "default")) {
 				GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
@@ -31044,13 +31039,6 @@ int main(int argc, char **argv)
 			}
 			time_used[0] = GMRFLib_cpu();
 			
-			P(GMRFLib_openmp->strategy);
-			P(GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL);
-			P(GMRFLib_smtp == GMRFLib_SMTP_PARDISO);
-			//GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
-			//GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_EXTERNAL, NULL, NULL);
-			//FIXME("ADD DUMMY CALL"); my_pardiso_test2();
-
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 			mb = inla_build(argv[arg], verbose, 1);
 			time_used[0] = GMRFLib_cpu() - time_used[0];
