@@ -125,7 +125,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	int nested = 0;
 	int *nhyper = (int *) arg;
 	int nhyper_def = 5;
-	int debug = 1;
+	int debug = 0;
 	static int pardiso_ok = -1;
 	
 	if (nhyper == NULL) {
@@ -146,15 +146,6 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		smtp_store = *smtp;
 	}
 
-	FIXME("REMOVE THIS");
-	if (smtp) P(*smtp);
-	P(smtp_store);
-	printf("smtp %s\n", GMRFLib_SMTP_NAME(smtp_store));
-	printf("strategy %s\n", GMRFLib_OPENMP_STRATEGY_NAME(strategy));
-	P(pardiso_ok);
-	P((smtp_store == GMRFLib_SMTP_PARDISO || smtp_store == GMRFLib_SMTP_DEFAULT));
-	P(pardiso_ok && (smtp_store == GMRFLib_SMTP_PARDISO || smtp_store == GMRFLib_SMTP_DEFAULT));
-	
 	if (pardiso_ok && (smtp_store == GMRFLib_SMTP_PARDISO || smtp_store == GMRFLib_SMTP_DEFAULT)) {
 		if (strategy == GMRFLib_OPENMP_STRATEGY_DEFAULT) {
 			strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
