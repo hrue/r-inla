@@ -6377,7 +6377,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	if (GMRFLib_smtp == GMRFLib_SMTP_TAUCS || GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		remap = problem->sub_sm_fact.remap;
 	} else {
-		// pardiso
+		// pardiso has a dynamic permutation...
 		remap = problem->sub_sm_fact.PARDISO_fact->pstore->perm;
 	}
 
@@ -6402,26 +6402,20 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 		int from_idx, to_idx, len, from_idx_a, to_idx_a, len_a, ip, ii, jj;
 		double var, mean, imean, *a = NULL, *b = NULL, *v = NULL, *vv = NULL, var_corr, weight, Aij, Ajj;
 
-		if (GMRFLib_smtp == GMRFLib_SMTP_TAUCS || GMRFLib_smtp == GMRFLib_SMTP_BAND) {
-			if (Alin[i]->tinfo[id].first_nonzero < 0) {
-				/*
-				 * we know that the idx's are sorted, so its easier to find the first and last non-zero 
-				 */
-				// Alin[i]->tinfo[id].first_nonzero = GMRFLib_imin_value(Alin[i]->idx, Alin[i]->n);
-				Alin[i]->tinfo[id].first_nonzero = Alin[i]->idx[0];
-			}
-			if (Alin[i]->tinfo[id].last_nonzero < 0) {
-				/*
-				 * we know that the idx's are sorted, so its easier to find the first and last non-zero 
-				 */
-				// Alin[i]->tinfo[id].last_nonzero = GMRFLib_imax_value(Alin[i]->idx, Alin[i]->n);
-				Alin[i]->tinfo[id].last_nonzero = Alin[i]->idx[Alin[i]->n - 1];
-			}
-		} else {
-			Alin[i]->tinfo[id].first_nonzero = Alin[i]->tinfo[id].first_nonzero_mapped = 0;
-			Alin[i]->tinfo[id].last_nonzero = Alin[i]->tinfo[id].last_nonzero_mapped = n-1;
+		if (Alin[i]->tinfo[id].first_nonzero < 0) {
+			/*
+			 * we know that the idx's are sorted, so its easier to find the first and last non-zero 
+			 */
+			// Alin[i]->tinfo[id].first_nonzero = GMRFLib_imin_value(Alin[i]->idx, Alin[i]->n);
+			Alin[i]->tinfo[id].first_nonzero = Alin[i]->idx[0];
 		}
-
+		if (Alin[i]->tinfo[id].last_nonzero < 0) {
+			/*
+			 * we know that the idx's are sorted, so its easier to find the first and last non-zero 
+			 */
+			// Alin[i]->tinfo[id].last_nonzero = GMRFLib_imax_value(Alin[i]->idx, Alin[i]->n);
+			Alin[i]->tinfo[id].last_nonzero = Alin[i]->idx[Alin[i]->n - 1];
+		}
 		from_idx_a = Alin[i]->tinfo[id].first_nonzero;
 		to_idx_a = Alin[i]->tinfo[id].last_nonzero;
 		assert(LEGAL(from_idx_a, n));
