@@ -2923,29 +2923,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				if (stop) {
 					assert(stop && retval == GMRFLib_SUCCESS);
 				}
-
-				if (0) {
-					/*
-					 * NOT NEEDED ANYMORE: do not need this as we go on with the corrected 'c'
-					 */
-					FIXME("NOT NEEDED");
-					abort();
-					if (retval == GMRFLib_SUCCESS) {
-						/*
-						 * should we go on using 'c' or 'c_new' here??? 
-						 */
-						retval =
-						    GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c_new, mean, d,
-												  loglFunc, loglFunc_arg,
-												  fixed_value, graph, Qfunc,
-												  Qfunc_arg, constr, &new_optpar,
-												  blockupdate_par, store, aa, bb,
-												  cc, gaussian_data, cmin, 1);
-					} else {
-						*problem = NULL;
-						return retval;
-					}
-				}
 				Free(c_new);
 			}
 		}
@@ -3377,7 +3354,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	}
 
 	tmax = GMRFLib_MAX_THREADS;
-	FIXME("TESTING!");
 	run_with_omp = (IMAX(GMRFLib_openmp->max_threads_outer, GMRFLib_openmp->max_threads_inner) > 1 ? 1 : 0);
 
 	if (!ai_par) {
