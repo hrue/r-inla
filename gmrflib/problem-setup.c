@@ -731,8 +731,6 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				}
 
 				(*problem)->qi_at_m = Calloc(nc * sub_n, double);
-
-				FIXME1("DO A FINAL CHECK THAT THIS IS CORRECT: OLD AND NEW VERSION");
 				if (qi_at_m_store == NULL) {
 					/*
 					 * as usual 
