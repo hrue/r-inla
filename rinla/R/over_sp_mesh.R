@@ -46,7 +46,7 @@
 inla.over_sp_mesh <- function(x, y, type = c("centroid", "vertex"), ignore.CRS=FALSE) {
   if (!inherits(y, "inla.mesh")) {
     stop(paste0(
-      "'y' bust be an 'inla.mesh' object, not '",
+      "'y' must be an 'inla.mesh' object, not '",
       paste0(class(y), collapse = ", "),
       "'."
     ))
