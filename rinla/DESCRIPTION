@@ -56,3 +56,4 @@ LazyData: true
 License: GPL (>= 2)
 Version: TO BE SET DURING BUILD
 Date: TO BE SET DURING BUILD
+RoxygenNote: 6.0.1
