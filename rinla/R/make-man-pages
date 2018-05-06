@@ -104,5 +104,7 @@ for f in *.R; do
     fi
 done
 
-	
-	
+echo '
+## Finally, extract roxygen documentation
+devtools::document()
+' | R --vanilla
