@@ -96,17 +96,13 @@ logit Make help-pages
     ./make-man-pages 2>&1
 ) >> $LOGFILE
 
-logit "Update DESCRIPTION file"
-desc="$INLA/DESCRIPTION"
+logit "Build the NAMESPACE file"
+tt=$(mktemp)
 {
-    egrep -v '^(Version:|Date:)' "$desc"
-    echo "Version: $VERSION"
-    echo "Date: $(date '+%Y-%m-%d') ($hg)"
-} > $tt && mv -f $tt $desc
+    echo "# *** NAMESPACE.init"
+    cat $INLA/NAMESPACE.init
 
-logit "Update the NAMESPACE file"
-{
-    echo ""
+    echo "# *** NAMESPACE contributions from our system"
     echo "# The functions to be exported are defined in the R-code with"
     echo "# lines as:"
     echo "# ## Export: func1"
@@ -121,7 +117,22 @@ logit "Update the NAMESPACE file"
                       if (nf == 1) print "export(" a[1] ")" }'
         done
     done
-} >> $INLA/NAMESPACE || exit 1
+
+    echo "# *** NAMESPACE contributions from roxygen2"
+    if [ -f $INLA/NAMESPACE ]; then
+	cat $INLA/NAMESPACE
+    fi
+
+} > $tt && mv -f $tt $INLA/NAMESPACE
+
+logit "Update DESCRIPTION file"
+desc="$INLA/DESCRIPTION"
+{
+    egrep -v '^(Version:|Date:)' "$desc"
+    echo "Version: $VERSION"
+    echo "Date: $(date '+%Y-%m-%d') ($hg)"
+} > $tt && mv -f $tt $desc
+
 
 if [ "xx$BDIR" != "xx" ]; then
     ## add also binaries
