@@ -104,9 +104,13 @@ desc="$INLA/DESCRIPTION"
     echo "Date: $(date '+%Y-%m-%d') ($hg)"
 } > $tt && mv -f $tt $desc
 
-logit "Update the NAMESPACE file"
+logit "Build the NAMESPACE file"
+tt=$(mktemp)
 {
-    echo ""
+    echo "# *** NAMESPACE.init"
+    cat $INLA/NAMESPACE.init
+
+    echo "# *** NAMESPACE contributions from our system"
     echo "# The functions to be exported are defined in the R-code with"
     echo "# lines as:"
     echo "# ## Export: func1"
@@ -121,7 +125,13 @@ logit "Update the NAMESPACE file"
                       if (nf == 1) print "export(" a[1] ")" }'
         done
     done
-} >> $INLA/NAMESPACE || exit 1
+
+    if [ -f $INLA/NAMESPACE ]; then
+	echo "# *** NAMESPACE contributions from roxygen2"
+	cat $INLA/NAMESPACE
+    fi
+
+} > $tt && mv -f $tt $INLA/NAMESPACE
 
 if [ "xx$BDIR" != "xx" ]; then
     ## add also binaries
