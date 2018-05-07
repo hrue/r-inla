@@ -48,11 +48,14 @@ if false; then
     fi
 fi
 
+## make man-pages and run roxygen
+( cd $D; ./make-man-pages; )
+
 ## generate the exports defined in the R-files
 tt=$(mktemp)
 {
     echo "# *** NAMESPACE.init"
-    cat $INLA/NAMESPACE.init
+    cat INLA/NAMESPACE.init
 
     echo "# *** NAMESPACE contributions from our system"
     echo "# The functions to be exported are defined in the R-code with"
@@ -61,7 +64,7 @@ tt=$(mktemp)
     echo "# ## Export: func1 func2"
     echo "# etc..."
 
-    ls -1 $INLA/R/*.R | while read f; do
+    ls -1 INLA/R/*.R | while read f; do
         egrep "^## *Export *:" $f | while read ff; do
             echo "$ff" | awk -F: '{print $2}' | awk '{for(i=1;i<=NF;i++) print $i}' | \
                 awk '{nf = split($0, a, /!/)
@@ -71,11 +74,11 @@ tt=$(mktemp)
     done
 
     echo "# *** NAMESPACE contributions from roxygen2"
-    if [ -f $INLA/NAMESPACE ]; then
-	cat $INLA/NAMESPACE
+    if [ -f INLA/NAMESPACE ]; then
+	cat INLA/NAMESPACE
     fi
 
-} > $tt && mv -f $tt $INLA/NAMESPACE
+} > $tt && mv -f $tt INLA/NAMESPACE
 
 
 rm -f $tt 2>/dev/null
@@ -92,11 +95,6 @@ mv -f $tt $DD/version.R
 echo "bdate: $bdate"
 cat $D/version.R
 cat $DD/version.R
-##exit
-
-( cd $D; ./make-man-pages; )
-
-test -d INLA || mkdir INLA
 
 ## Modify the DESCRIPTION file
 desc="INLA/DESCRIPTION"
