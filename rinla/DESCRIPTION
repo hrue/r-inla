@@ -54,6 +54,6 @@ BuildVignettes: true
 ByteCompile: no
 LazyData: true
 License: GPL (>= 2)
-Version: TO BE SET DURING BUILD
-Date: TO BE SET DURING BUILD
+Version: 99.99.9999
+Date: 9999-99-99
 RoxygenNote: 6.0.1
