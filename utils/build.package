@@ -96,14 +96,6 @@ logit Make help-pages
     ./make-man-pages 2>&1
 ) >> $LOGFILE
 
-logit "Update DESCRIPTION file"
-desc="$INLA/DESCRIPTION"
-{
-    egrep -v '^(Version:|Date:)' "$desc"
-    echo "Version: $VERSION"
-    echo "Date: $(date '+%Y-%m-%d') ($hg)"
-} > $tt && mv -f $tt $desc
-
 logit "Build the NAMESPACE file"
 tt=$(mktemp)
 {
@@ -126,12 +118,21 @@ tt=$(mktemp)
         done
     done
 
+    echo "# *** NAMESPACE contributions from roxygen2"
     if [ -f $INLA/NAMESPACE ]; then
-	echo "# *** NAMESPACE contributions from roxygen2"
 	cat $INLA/NAMESPACE
     fi
 
 } > $tt && mv -f $tt $INLA/NAMESPACE
+
+logit "Update DESCRIPTION file"
+desc="$INLA/DESCRIPTION"
+{
+    egrep -v '^(Version:|Date:)' "$desc"
+    echo "Version: $VERSION"
+    echo "Date: $(date '+%Y-%m-%d') ($hg)"
+} > $tt && mv -f $tt $desc
+
 
 if [ "xx$BDIR" != "xx" ]; then
     ## add also binaries
