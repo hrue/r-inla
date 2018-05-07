@@ -104,5 +104,16 @@ for f in *.R; do
     fi
 done
 
-	
-	
+
+
+## creating roxygen documentation also create the NAMESPACE file,
+## which is no longer part of the repo, but created by concat
+##   - NAMESPACE.init
+##   - NAMESPACE created by roxygen3
+##   - NAMESPACE created by our system
+## at build time
+
+echo '
+## Finally, extract roxygen documentation
+devtools::document()
+' | R --vanilla
