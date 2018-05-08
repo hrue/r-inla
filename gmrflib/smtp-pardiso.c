@@ -342,19 +342,19 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_L:
 		store->pstore->phase = 33;		       // solve
-		store->pstore->iparm[7] = 0;		       /* Max numbers of iterative refinement steps. */
+		store->pstore->iparm[7] = 8;		       /* Max numbers of iterative refinement steps. */
 		store->pstore->iparm[25] = (S.mtype == 2 ? 1 : -12);
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_LT:
 		store->pstore->phase = 33;		       // solve
-		store->pstore->iparm[7] = 0;		       /* Max numbers of iterative refinement steps. */
+		store->pstore->iparm[7] = 8;		       /* Max numbers of iterative refinement steps. */
 		store->pstore->iparm[25] = (S.mtype == 2 ? 2 : -23);
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_LLT:
 		store->pstore->phase = 33;		       // solve
-		store->pstore->iparm[7] = 0;		       /* Max numbers of iterative refinement steps. */
+		store->pstore->iparm[7] = 8;		       /* Max numbers of iterative refinement steps. */
 		store->pstore->iparm[25] = 0;
 		break;
 
