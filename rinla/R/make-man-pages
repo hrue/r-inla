@@ -110,11 +110,11 @@ done
 ##   - NAMESPACE.roxygen created by roxygen2
 ##   - NAMESPACE.ours created by our (old) system
 
-test -f NAMESPACE && mv -f NAMESPACE NAMESPACE.backup
+test -f ../NAMESPACE && mv -f ../NAMESPACE ../NAMESPACE.backup
 
 echo 'devtools::document()' | R --vanilla 
-test -f NAMESPACE && mv -f NAMESPACE NAMESPACE.roxygen
-test -f NAMESPACE.ours && rm -f NAMESPACE.ours
+test -f ../NAMESPACE && mv -f ../NAMESPACE ../NAMESPACE.roxygen
+test -f ../NAMESPACE.ours && rm -f ../NAMESPACE.ours
 {
     echo "# *** NAMESPACE contributions from our old system"
     echo "# The functions to be exported are defined in the R-code with"
@@ -131,16 +131,20 @@ test -f NAMESPACE.ours && rm -f NAMESPACE.ours
                       if (nf == 1) print "export(" a[1] ")" }'
         done
     done
-} > NAMESPACE.ours
+} > ../NAMESPACE.ours
 
 {
-    echo "File created: $(date)"
-    echo -e "\n\n## contribution from NAMESPACE.init"
-    cat NAMESPACE.init
-    echo -e "\n\n## contribution from NAMESPACE.ours"
-    cat NAMESPACE.ours 
-    echo -e "\n\n## contribution from NAMESPACE.roxygen"
-    cat NAMESPACE.roxygen 
-} > NAMESPACE
+    echo "## File created: $(date)"
+    for f in NAMESPACE.{init,ours,roxygen}; do
+	echo -e "\n\n## contributions from $f"
+	cat ../$f
+    done
+} > ../NAMESPACE
+
+for f in NAMESPACE.{ours,roxygen}; do 
+    if [ -f ../$f ]; then
+	rm -f ../$f
+    fi
+done
 
 
