@@ -54,6 +54,7 @@
 
 __BEGIN_DECLS
 
+
 /*!
   \struct GMRFLib_rwdef_tp rw.h
   \brief The typedef used to define RW1 and RW2 models with regular locations.
