@@ -1028,7 +1028,7 @@ int GMRFLib_crw_scale(void *def)
 	constr->e_vector = Calloc(constr->nc, double);
 	GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
 
-	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(.75);
+	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(0.5);
 	GMRFLib_problem_tp *problem;
 
 	for (i = 0; i < graph->n; i++) {
@@ -1154,7 +1154,7 @@ int GMRFLib_rw_scale(void *def)
 		constr = NULL;
 	}
 
-	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(.75);
+	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(0.5);
 	GMRFLib_problem_tp *problem;
 
 	for (i = 0; i < graph->n; i++) {
@@ -1254,7 +1254,7 @@ int GMRFLib_rw2d_scale(void *def)
 		constr->e_vector = Calloc(constr->nc, double);
 		GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
 
-		double eps = GMRFLib_eps(.75);
+		double eps = GMRFLib_eps(0.5);
 		c = Calloc(graph->n, double);
 		for (i = 0; i < graph->n; i++) {
 			c[i] = eps;
