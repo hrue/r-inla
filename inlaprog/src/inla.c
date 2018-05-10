@@ -29836,7 +29836,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		for (i = 0; i < ns; i++) {
 			int thread = omp_get_thread_num();
 			if (problems[thread] == NULL) {
-				problems[thread] = GMRFLib_duplicate_problem(problem, 0);
+				problems[thread] = GMRFLib_duplicate_problem(problem, 0, 1, 1);
 			}
 			if (!S) {
 				GMRFLib_sample(problems[thread]);

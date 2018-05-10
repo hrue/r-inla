@@ -540,7 +540,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			GMRFLib_pardiso_store_tp *s = Calloc(1, GMRFLib_pardiso_store_tp);
 			s->graph = (*problem)->sub_graph;
 			// use the internal cached storage
-			GMRFLib_duplicate_pardiso_store(&((*problem)->sub_sm_fact.PARDISO_fact), s);
+			GMRFLib_duplicate_pardiso_store(&((*problem)->sub_sm_fact.PARDISO_fact), s, GMRFLib_FALSE, GMRFLib_FALSE);
 			Free(s);
 		}
 
@@ -807,7 +807,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					}
 				}
 
-				if (0) {
+				if (1) {
 					int iii, jjj;
 
 					FIXME("print aqat_m");
@@ -1300,10 +1300,16 @@ int GMRFLib_free_store(GMRFLib_store_tp * store)
 			taucs_supernodal_factor_free(store->TAUCS_symb_fact);
 		}
 	}
-	// always free
-	if (store->PARDISO_fact) {
-		GMRFLib_pardiso_free(&(store->PARDISO_fact));
-		store->PARDISO_fact = NULL;
+
+	if (store->copy_pardiso_ptr) {
+		/* 
+		   do nothing
+		 */
+	} else {
+		if (store->PARDISO_fact) {
+			GMRFLib_pardiso_free(&(store->PARDISO_fact));
+			store->PARDISO_fact = NULL;
+		}
 	}
 
 	store->sub_graph = NULL;
@@ -1412,7 +1418,6 @@ double *GMRFLib_Qinv_get(GMRFLib_problem_tp * problem, int i, int j)
 	if (!jj) {
 		return NULL;
 	}
-
 	return map_id_ptr(problem->sub_inverse->Qinv[IMIN(*ii, *jj)], IMAX(*ii, *jj));
 }
 
@@ -2078,7 +2083,7 @@ int GMRFLib_print_problem(FILE * fp, GMRFLib_problem_tp * problem)
 	return GMRFLib_SUCCESS;
 }
 
-GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int skeleton)
+GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int skeleton, int copy_ptr, int copy_pardiso_ptr)
 {
 	/*
 	 * duplicate a problem 
@@ -2125,7 +2130,6 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 	COPY(sub_sm_fact.bandwidth);
 	COPY(sub_sm_fact.smtp);
 
-	// FIXME("Duplicate L");
 	if (problem->sub_sm_fact.TAUCS_L && !skeleton) {
 		np->sub_sm_fact.TAUCS_L = GMRFLib_L_duplicate_TAUCS(problem->sub_sm_fact.TAUCS_L, problem->sub_sm_fact.TAUCS_L->flags);
 	} else {
@@ -2141,7 +2145,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 	COPY(sub_sm_fact.finfo);
 
 	if (problem->sub_sm_fact.PARDISO_fact) {
-		GMRFLib_duplicate_pardiso_store(&(np->sub_sm_fact.PARDISO_fact), problem->sub_sm_fact.PARDISO_fact);
+		GMRFLib_duplicate_pardiso_store(&(np->sub_sm_fact.PARDISO_fact), problem->sub_sm_fact.PARDISO_fact, copy_ptr, copy_pardiso_ptr);
 	}
 
 	/*
@@ -2356,7 +2360,7 @@ GMRFLib_sizeof_tp GMRFLib_sizeof_store(GMRFLib_store_tp * store)
 	return siz;
 }
 
-GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton, int copy_ptr)
+GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton, int copy_ptr, int copy_pardiso_ptr)
 {
 	/*
 	 * duplicate STORE 
@@ -2396,8 +2400,9 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 		new_store->TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(store->TAUCS_symb_fact);
 	}
 	new_store->copy_ptr = copy_ptr;
+	new_store->copy_pardiso_ptr = copy_pardiso_ptr;
 	if (store->PARDISO_fact) {
-		GMRFLib_duplicate_pardiso_store(&(new_store->PARDISO_fact), store->PARDISO_fact);
+		GMRFLib_duplicate_pardiso_store(&(new_store->PARDISO_fact), store->PARDISO_fact, copy_ptr, copy_pardiso_ptr);
 	}
 
 	GMRFLib_meminfo_thread_id *= -1;
@@ -2412,18 +2417,18 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 	DUPLICATE(new_logdens, 1, double, skeleton);
 
 	if (!skeleton) {
-		new_store->problem_old2new = GMRFLib_duplicate_problem(store->problem_old2new, skeleton);
-		new_store->problem_new2old = GMRFLib_duplicate_problem(store->problem_new2old, skeleton);
+		new_store->problem_old2new = GMRFLib_duplicate_problem(store->problem_old2new, skeleton, copy_ptr, copy_pardiso_ptr);
+		new_store->problem_new2old = GMRFLib_duplicate_problem(store->problem_new2old, skeleton, copy_ptr, copy_pardiso_ptr);
 	} else {
 		new_store->problem_new2old = NULL;
 		new_store->problem_old2new = NULL;
 	}
 
 	if (store->diag_store) {
-		new_store->diag_store = GMRFLib_duplicate_store(store->diag_store, skeleton, copy_ptr);
+		new_store->diag_store = GMRFLib_duplicate_store(store->diag_store, skeleton, copy_ptr, copy_pardiso_ptr);
 	}
 	if (store->sub_store) {
-		new_store->sub_store = GMRFLib_duplicate_store(store->sub_store, skeleton, copy_ptr);
+		new_store->sub_store = GMRFLib_duplicate_store(store->sub_store, skeleton, copy_ptr, copy_pardiso_ptr);
 	}
 #undef DUPLICATE
 #undef COPY
