@@ -316,7 +316,11 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *whi
 		}
 	}
 	idx_t options[METIS_NOPTIONS];
-	METIS_SetDefaultOptions(options);
+	// Have to adapt to the PARDISO metis libs
+	// METIS_SetDefaultOptions(options);
+	for(i = 0; i < METIS_NOPTIONS; i++) {
+		options[i] = -1;
+	}
 
 	options[METIS_OPTION_NUMBERING] = 0;
 	options[METIS_OPTION_NSEPS] = 5;
