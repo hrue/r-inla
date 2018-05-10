@@ -49,7 +49,6 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
  *  \brief This file contains support for a seasonal component in a time-series model.
  */
 
-int print_matrix(double *A, int m, int n);
 
 /*!
  * \brief This function returns element Q(i,j), with i=node and j=nnode, of the precision matrix for the seasonal component
@@ -101,17 +100,6 @@ double GMRFLib_seasonal(int node, int nnode, void *def)
 	return val * prec;
 };
 
-//int print_matrix(double *A, int m, int n)
-//{
-//	// A is m x n matrix
-//	for (int i = 0; i < m; i++) {
-//		printf("\t");
-//		for (int j = 0; j < n; j++)
-//			printf(" %.5g", A[i + j * m]);
-//		printf("\n");
-//	}
-//	return 0;
-//}
 
 int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp *def)
 {
