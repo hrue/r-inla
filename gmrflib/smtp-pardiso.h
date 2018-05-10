@@ -98,6 +98,8 @@ typedef struct {
 } GMRFLib_pardiso_store_pr_thread_tp;
 
 typedef struct {
+	int copy_pardiso_ptr;				       /* set this if the contents is just a copy_ptr */
+
 	void *pt[GMRFLib_PARDISO_PLEN];
 	int *iparm_default;
 	double *dparm_default;
@@ -108,7 +110,6 @@ typedef struct {
 	int msglvl;
 	int mtype;
 	int solver;
-
 	GMRFLib_graph_tp *graph;
 
 	GMRFLib_pardiso_store_pr_thread_tp *pstore;
@@ -143,7 +144,7 @@ int GMRFLib_csr_base(int base, GMRFLib_csr_tp * M);
 int GMRFLib_csr_check(GMRFLib_csr_tp * M);
 int GMRFLib_csr_convert(GMRFLib_csr_tp * M);
 int GMRFLib_duplicate_csr(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from);
-int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_pardiso_store_tp * old);
+int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_pardiso_store_tp * old, int copy_ptr, int copy_pardiso_ptr);
 int GMRFLib_free_csr(GMRFLib_csr_tp ** csr);
 int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store);
 
@@ -174,6 +175,7 @@ int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store
 int my_pardiso_test(void);
 int my_pardiso_test1(void);
 int my_pardiso_test2(void);
+int my_pardiso_test3(void);
 double my_Q(int i, int j, void *arg);
 
 void pardisoinit(void *, int *, int *, int *, double *, int *);
