@@ -609,10 +609,9 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 		pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore->phase),
 			&n, store->pstore->Q->a, store->pstore->Q->ia, store->pstore->Q->ja,
 			NULL, &S.nrhs_max, store->pstore->iparm, &(store->msglvl), b + offset, xx + offset, &(store->pstore->err_code), store->pstore->dparm);
-	}
-
-	if (store->pstore->err_code != 0) {
-		GMRFLib_ERROR(GMRFLib_EPARDISO_INTERNAL_ERROR);
+		if (store->pstore->err_code != 0) {
+			GMRFLib_ERROR(GMRFLib_EPARDISO_INTERNAL_ERROR);
+		}
 	}
 
 	memcpy((void *) x, (void *) xx, n * nrhs * sizeof(double));
