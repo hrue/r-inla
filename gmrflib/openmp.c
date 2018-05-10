@@ -147,15 +147,13 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	}
 
 	if (pardiso_ok && (smtp_store == GMRFLib_SMTP_PARDISO || smtp_store == GMRFLib_SMTP_DEFAULT)) {
-		if (strategy == GMRFLib_OPENMP_STRATEGY_DEFAULT) {
+		if (!(strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ||
+		      strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL)) {
 			strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
 			if (debug) {
 				printf("%s:%1d: Switch to PARDISO with strategy [%s]\n", __FILE__, __LINE__, 
 				       GMRFLib_OPENMP_STRATEGY_NAME(strategy));
 			}
-		} else {
-			assert(strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ||
-			       strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL);
 		}
 	}
 

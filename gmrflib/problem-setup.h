@@ -475,6 +475,7 @@ struct GMRFLib_store_struct {
 	int bandwidth;					       /* for GMRFLib_smtp == GMRFLib_SMTP_BAND */
 	int *remap;
 	int copy_ptr;
+	int copy_pardiso_ptr;
 	GMRFLib_graph_tp *sub_graph;
 
 	supernodal_factor_matrix *TAUCS_symb_fact;	       /* for GMRFLib_smtp == GMRFLib_SMTP_TAUCS */
@@ -521,8 +522,8 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * c
 			  GMRFLib_graph_tp * graph, GMRFLib_graph_tp * sub_graph);
 int GMRFLib_sample(GMRFLib_problem_tp * problem);
 
-GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int skeleton);
-GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton, int copy_ptr);
+GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int skeleton, int copy_ptr, int copy_pardiso_ptr);
+GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton, int copy_ptr, int copy_pardiso_ptr);
 double GMRFLib_Qfunc_generic(int i, int j, void *arg);
 int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_opt, int *use_global, GMRFLib_global_node_tp *gn);
 GMRFLib_sizeof_tp GMRFLib_sizeof_store(GMRFLib_store_tp * store);
