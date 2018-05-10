@@ -192,7 +192,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		return GMRFLib_SUCCESS;
 	}
 
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL);
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 
 	*hgmrfm = Calloc(1, GMRFLib_hgmrfm_tp);
 	arg = Calloc(1, GMRFLib_hgmrfm_arg_tp);
@@ -382,7 +382,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			}
 		}
 	}
-#pragma omp parallel sections
+#pragma omp parallel sections num_threads(GMRFLib_openmp->max_threads_outer)
 	{
 #pragma omp section
 		{
@@ -518,7 +518,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 				j = j_idx[jm_idx];
 				m = m_idx[jm_idx];
 
-#pragma omp parallel for private(k, l, value, ii, i)
+#pragma omp parallel for private(k, l, value, ii, i) num_threads(GMRFLib_openmp->max_threads_outer)
 				for (k = 0; k < f_graph[j]->n; k++) {
 					int thread = omp_get_thread_num();
 					for (l = 0; l < f_graph[m]->n; l++) {
@@ -549,7 +549,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 
 			// FIXME("*****************OLD");
 
-#pragma omp parallel for private(jm_idx, j, k, m, l, value, ii, i)
+#pragma omp parallel for private(jm_idx, j, k, m, l, value, ii, i) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (jm_idx = 0; jm_idx < jm; jm_idx++) {
 				int thread = omp_get_thread_num();
 
@@ -865,7 +865,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		GMRFLib_print_Qfunc(stdout, h->graph, h->Qfunc, h->Qfunc_arg);
 	}
 
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL);
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	return GMRFLib_SUCCESS;
 }
