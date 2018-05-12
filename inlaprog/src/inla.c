@@ -9592,7 +9592,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
 		} else if (!strcasecmp(smtp, "AUTO") || !strcasecmp(smtp, "DEFAULT")) {
 			if (GMRFLib_pardiso_check_install(1, 1) == GMRFLib_SUCCESS) {
-				mb->strcasecmp = (mb->strategy != GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ?
+				mb->strategy = (mb->strategy != GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ?
 						  GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL : 
 						  GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL);
 			} else {
