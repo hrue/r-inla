@@ -503,7 +503,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	 */
 
 	double ldens;
-	int n, free_ai_par = 0, idum;
+	int n, free_ai_par = 0;
 
 	/*
 	 * this is a special option for _INLA(), so it works only when calling it the first time 
@@ -2350,7 +2350,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
    this one is FIXED by design and such that A[IDX(i,j,n)] = A_ij, i=0...n-1, j = 0..k-1 for n x k matrix A 
  */
 #define IDX(i, j, n) ((i) + (j)*(n))
-#define WORK(n) &work[work_p]; work_p += (n)
+#define WORK(n) &(work[work_p]); work_p += (n)
 
 	int i, k, n, nc, ncc, one = 1, work_p, work_size, ndiv;
 	double *c = NULL, *v = NULL, *w = NULL, *z = NULL, alpha = 0.0, beta = 0.0, b22 = 0.0, *constr_m_new = NULL, *t_vec =
@@ -2437,9 +2437,8 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 			double sum = 0.0;
 			for(i=0; i<nc; i++) {
 				sum += v[i] * w[i];
-				printf("i %d v %f w %f\n", i, v[i], w[i]);
+				printf("idx %d c %f i %d v %f w %f\n", idx, c[idx], i, v[i], w[i]);
 			}
-			printf("sum = %.12g\n", sum);
 		}
 		
 		
@@ -2734,27 +2733,32 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		 * I thought this was quicker without store, as there is just reuse and no copy... but not.  I free lproblem below and set it to NULL, so
 		 * it will always be lproblem = NULL 
 		 */
-		if (!lproblem) {
-			if (GMRFLib_catch_error_for_inla) {
-				int ret;
-				ret = GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value,
-							       constr, GMRFLib_NEW_PROBLEM, store);
-				if (ret != GMRFLib_SUCCESS) {
-					catch_error = 1;
+		int idum;
+#pragma omp parallel for private(idum) num_threads(1)
+		for(idum=0; idum<1; idum++)
+		{
+			if (!lproblem) {
+				if (GMRFLib_catch_error_for_inla) {
+					int ret;
+					ret = GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value,
+									 constr, GMRFLib_NEW_PROBLEM, store);
+					if (ret != GMRFLib_SUCCESS) {
+						catch_error = 1;
+					}
+				} else {
+					GMRFLib_init_problem_store
+						(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr,
+						 GMRFLib_NEW_PROBLEM, store);
 				}
 			} else {
-				GMRFLib_EWRAP1(GMRFLib_init_problem_store
-					       (&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr,
-						GMRFLib_NEW_PROBLEM, store));
+				/*
+				 * store could be NULL here I presume...? 
+				 */
+				GMRFLib_init_problem_store
+					(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr, GMRFLib_KEEP_graph, store);
 			}
-		} else {
-			/*
-			 * store could be NULL here I presume...? 
-			 */
-			GMRFLib_EWRAP1(GMRFLib_init_problem_store
-				       (&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr, GMRFLib_KEEP_graph, store));
 		}
-
+		
 		if (catch_error) {
 			lproblem = NULL;
 			break;
