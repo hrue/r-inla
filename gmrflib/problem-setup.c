@@ -733,7 +733,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				(*problem)->qi_at_m = Calloc(nc * sub_n, double);
 				if (qi_at_m_store == NULL) {
 					/*
-					 * as usual 
+					 * compute it as usual 
 					 */
 					if (0) {
 						for (k = 0; k < nc; k++) {
@@ -807,9 +807,8 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					}
 				}
 
-				if (1) {
+				if (0) {
 					int iii, jjj;
-
 					FIXME("print aqat_m");
 					for (iii = 0; iii < nc; iii++) {
 						for (jjj = 0; jjj < nc; jjj++) {

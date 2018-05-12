@@ -70,7 +70,7 @@ GMRFLib_static_pardiso_tp S = {
 	0,						       // csr_check
 	-2,						       // mtype (-2 = sym, 2 = sym pos def)
 	0,						       // msg-level (0: no, 1: yes)
-	10,						       // maximum number of rhs
+	1,						       // maximum number of rhs
 	NULL,						       // busy
 	NULL
 };
@@ -284,16 +284,17 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default = Calloc(GMRFLib_PARDISO_PLEN, int);
 	s->dparm_default = Calloc(GMRFLib_PARDISO_PLEN, double);
 	s->iparm_default[0] = 0;			       /* use default values */
+	s->iparm_default[1] = 1;			       /* use metis (v4 I think) so we can have identical solutions */
 	s->iparm_default[2] = GMRFLib_openmp->max_threads_inner;
-	P(s->iparm_default[2]);
 	s->iparm_default[4] = 0;			       /* use internal reordering */
 
 	pardisoinit(s->pt, &(s->mtype), &(s->solver), s->iparm_default, s->dparm_default, &error);
-	s->iparm_default[10] = 0;			       /* I think these are the defaults, but */
-	s->iparm_default[12] = 0;			       /* we need these for the LDL^Tx=b solver to work */
+	s->iparm_default[10] = 0;			       /* I think these are the defaults, but... */
+	s->iparm_default[12] = 0;			       /* ...we need these for the divided LDL^Tx=b solver to work */
 	s->iparm_default[20] = 0;			       /* diagonal pivoting */
-	s->iparm_default[29] = 1;			       /* (max) size of the supernodes (default 80) */
-	FIXME1("ADD HERE");
+	s->iparm_default[23] = 1;			       /* two level scheduling, as... */
+	s->iparm_default[33] = 1;			       /* ...I want identical solutions (require on ipar..[1]=1 above)*/
+	s->iparm_default[24] = (s->iparm_default[2] == 1 ? 0 : 1); /* use parallel solve only if we use parallel chol */
 	
 	if (error != 0) {
 		if (error == -10) {
@@ -320,7 +321,7 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 	assert(store->done_with_init == GMRFLib_TRUE);
 	memcpy((void *) (store->pstore->iparm), (void *) (store->iparm_default), GMRFLib_PARDISO_PLEN * sizeof(int));
 	memcpy((void *) (store->pstore->dparm), (void *) (store->dparm_default), GMRFLib_PARDISO_PLEN * sizeof(double));
-	ival7 = (store->pstore->iparm[2] == 1 ? 1 : 1);
+	ival7 = (store->pstore->iparm[2] == 1 ? 0 : 0);	       /* 0 is the default value */
 	store->pstore->nrhs = 0;
 	store->pstore->err_code = 0;
 
@@ -332,6 +333,7 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 		store->pstore->iparm[39] = 1;		       /* 1 = return the permutation */
 		store->pstore->nrhs = S.nrhs_max;	       /* this is how it is, apparently */
 		break;
+
 	case GMRFLib_PARDISO_FLAG_CHOL:
 		store->pstore->phase = 22;		       // numerical factorization
 		store->pstore->iparm[32] = 1;		       /* determinant */
@@ -371,12 +373,15 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 int GMRFLib_pardiso_check_install(int quiet, int no_err)
 {
 	int *iparm = Calloc(GMRFLib_PARDISO_PLEN, int);
-	int mtype = S.mtype, err_code = 0, solver = 0;
+	int mtype = S.mtype, err_code = 0, solver = 0, idum;
 	double *dparm = Calloc(GMRFLib_PARDISO_PLEN, double);
 	void **pt = Calloc(GMRFLib_PARDISO_PLEN, void *);
 
 	STDOUT_TO_DEV_NULL_START(quiet);
-	pardisoinit(pt, &mtype, &solver, iparm, dparm, &err_code);
+#pragma omp parallel for private(idum) num_threads(1)
+	for(idum = 0; idum < 1; idum++) {
+		pardisoinit(pt, &mtype, &solver, iparm, dparm, &err_code);
+	}
 	STDOUT_TO_DEV_NULL_END;
 
 	Free(pt);
@@ -592,7 +597,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	div_t d;
 	double *xx = NULL, *bb = NULL;
 
-	d = div(nrhs, S.nrhs_max-1);
+	d = div(nrhs, S.nrhs_max);
 	if (d.rem == 0) {
 		nblock = d.quot;
 	} else {
@@ -608,7 +613,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 		offset = i * n * S.nrhs_max;
 		pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore->phase),
 			&n, store->pstore->Q->a, store->pstore->Q->ia, store->pstore->Q->ja,
-			NULL, &S.nrhs_max, store->pstore->iparm, &(store->msglvl), b + offset, xx + offset, &(store->pstore->err_code), store->pstore->dparm);
+			NULL, &S.nrhs_max, store->pstore->iparm, &(store->msglvl), bb + offset, xx + offset, &(store->pstore->err_code), store->pstore->dparm);
 		if (store->pstore->err_code != 0) {
 			GMRFLib_ERROR(GMRFLib_EPARDISO_INTERNAL_ERROR);
 		}
