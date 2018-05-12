@@ -123,7 +123,7 @@ typedef struct {
 	GMRFLib_openmp_strategy_tp strategy;
 } GMRFLib_openmp_tp;
 
-#define GMRFLib_MAX_THREADS (GMRFLib_openmp ? GMRFLib_openmp->max_threads : omp_get_max_threads())
+#define GMRFLib_MAX_THREADS (GMRFLib_openmp ? GMRFLib_openmp->max_threads : IMIN(omp_get_max_threads(), omp_get_num_procs()))
 
 int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, GMRFLib_smtp_tp *smtp);
 

@@ -19569,8 +19569,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tscale.model[%1d]\n", std);
 		}
 		if (std) {
-			//FIXME("ADD DUMMY CALL"); my_pardiso_test2();
-			inla_besag_scale(arg, adj, mb->verbose);
+			int idum;
+#pragma omp parallel for private(idum) num_threads(1)
+			for(idum = 0; idum < 1; idum++) {
+				inla_besag_scale(arg, adj, mb->verbose);
+			}
 			if (mb->verbose) {
 				printf("\t\tscale.model: prec_scale[%g]\n", arg->prec_scale[0]);
 			}
@@ -19585,7 +19588,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		// GMRFLib_print_Qfunc(stderr, mb->f_graph[mb->nf], mb->f_Qfunc[mb->nf], mb->f_Qfunc_arg[mb->nf]);
 		break;
 	}
-
+	
 	case F_BESAG2:
 	{
 		inla_besag2_Qfunc_arg_tp *arg = NULL;
@@ -19602,7 +19605,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tscale.model[%1d]\n", std);
 		}
 		if (std) {
-			inla_besag_scale(arg->besag_arg, adj, mb->verbose);
+			int idum;
+#pragma omp parallel for private(idum) num_threads(1)
+			for(idum = 0; idum < 1; idum++) {
+				inla_besag_scale(arg->besag_arg, adj, mb->verbose);
+			}
 			if (mb->verbose) {
 				printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
 			}
@@ -19647,7 +19654,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tscale.model[%1d]\n", std);
 		}
 		if (std) {
-			inla_besag_scale(arg->besag_arg, adj, mb->verbose);
+			int idum;
+#pragma omp parallel for private(idum) num_threads(1)
+			for(idum = 0; idum < 1; idum++) {
+				inla_besag_scale(arg->besag_arg, adj, mb->verbose);
+			}
 			if (mb->verbose) {
 				printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
 			}
@@ -19686,8 +19697,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		inla_make_rw2diid_graph(&(mb->f_graph[mb->nf]), arg->rw2ddef);
 		std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 1);
 		assert(std == 1);			       /* this has to be true for this model */
-		GMRFLib_rw2d_scale(arg->rw2ddef);
-
+		if (1) {
+			int idum;
+#pragma omp parallel for private(idum) num_threads(1)
+			for(idum = 0; idum < 1; idum++) {
+				GMRFLib_rw2d_scale(arg->rw2ddef);
+			}
+		}
 		if (mb->verbose) {
 			printf("\t\tscale.model[%1d]\n", std);
 			printf("\t\tscale.model: prec_scale[%g]\n", arg->rw2ddef->prec_scale[0]);
@@ -19735,7 +19751,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		if (std) {
-			inla_besag_scale(arg->besag_arg, adj, mb->verbose);
+			int idum;
+#pragma omp parallel for private(idum) num_threads(1)
+			for(idum = 0; idum < 1; idum++) {
+				inla_besag_scale(arg->besag_arg, adj, mb->verbose);
+			}
 			if (mb->verbose) {
 				printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
 			}
@@ -19882,7 +19902,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
 		if (std) {
-			GMRFLib_rw2d_scale((void *) arg);
+			int idum;
+#pragma omp parallel for private(idum) num_threads(1)
+			for(idum = 0; idum < 1; idum++) {
+				GMRFLib_rw2d_scale((void *) arg);
+			}
 		}
 		if (mb->verbose) {
 			printf("\t\tscale.model[%1d]\n", std);
@@ -20069,7 +20093,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc_arg[mb->nf] = (void *) sdef;
 
 		if (std) {
-			GMRFLib_seasonal_scale(sdef);
+			int idum;
+#pragma omp parallel for private(idum) num_threads(1)
+			for(idum = 0; idum < 1; idum++) {
+				GMRFLib_seasonal_scale(sdef);
+			}
 		}
 		if (mb->verbose) {
 			printf("\t\tscale.model[%1d]\n", std);
@@ -20659,13 +20687,16 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				abort();
 			}
 			GMRFLib_make_rw_graph(&(mb->f_graph[mb->nf]), rwdef);
-			if (std) {
-				GMRFLib_rw_scale((void *) rwdef);
-			}
 			if (mb->verbose) {
 				printf("\t\tscale.model[%1d]\n", std);
-				if (std)
-					printf("\t\tscale.model: prec_scale[%g]\n", rwdef->prec_scale[0]);
+			}
+			if (std) {
+				int idum;
+#pragma omp parallel for private(idum) num_threads(1)
+				for(idum = 0; idum < 1; idum++) {
+					GMRFLib_rw_scale((void *) rwdef);
+				}
+				printf("\t\tscale.model: prec_scale[%g]\n", rwdef->prec_scale[0]);
 			}
 
 			mb->f_Qfunc[mb->nf] = GMRFLib_rw;
@@ -20732,7 +20763,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
 			if (mb->f_id[mb->nf] == F_RW1 || mb->f_id[mb->nf] == F_RW2 || mb->f_id[mb->nf] == F_CRW2) {
 				if (std) {
-					GMRFLib_crw_scale((void *) crwdef);
+					int idum;
+#pragma omp parallel for private(idum) num_threads(1)
+					for(idum = 0; idum < 1; idum++) {
+						GMRFLib_crw_scale((void *) crwdef);
+					}
 				}
 				if (mb->verbose) {
 					printf("\t\tscale.model[%1d]\n", std);
@@ -21283,7 +21318,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 						def->crwdef->position[kk] = (double) kk;
 					}
 					if (std) {
-						GMRFLib_crw_scale((void *) def->crwdef);
+						int idum;
+#pragma omp parallel for private(idum) num_threads(1)
+						for(idum = 0; idum < 1; idum++) {
+							GMRFLib_crw_scale((void *) def->crwdef);
+						}
 					}
 					if (mb->verbose) {
 						printf("\t\tgroup.scale.model[%1d]\n", std);
@@ -21316,7 +21355,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					printf("\t\tgroup.adjust.for.con.comp[%1d]\n", std);
 				}
 				if (std) {
-					inla_besag_scale((void *) def->besagdef, adj, mb->verbose);
+					int idum;
+#pragma omp parallel for private(idum) num_threads(1)
+					for(idum = 0; idum < 1; idum++) {
+						inla_besag_scale((void *) def->besagdef, adj, mb->verbose);
+					}
 				}
 			} else {
 				def->rwdef = NULL;
@@ -30687,8 +30730,9 @@ int main(int argc, char **argv)
 	double time_used[3];
 	inla_tp *mb = NULL;
 
+	nt = GMRFLib_MAX_THREADS;
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
-	GMRFLib_openmp->max_threads = omp_get_max_threads();
+	GMRFLib_openmp->max_threads = nt;
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
@@ -30735,7 +30779,7 @@ int main(int argc, char **argv)
 
 		case 't':
 			if (inla_sread_ints(&nt, 1, optarg) == INLA_OK) {
-				GMRFLib_openmp->max_threads = IMAX(1, nt);
+				GMRFLib_openmp->max_threads = IMIN(GMRFLib_openmp->max_threads, IMAX(1, nt));
 				omp_set_num_threads(GMRFLib_openmp->max_threads);
 				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 			} else {
