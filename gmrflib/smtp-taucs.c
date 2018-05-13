@@ -327,7 +327,13 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *whi
 	options[METIS_OPTION_COMPRESS] = 0;
 	options[METIS_OPTION_PFACTOR] = 100;
 
+#if defined(NO_PARDISO_LIB)
+	// this the metis5 lib
 	ret = METIS_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
+#else
+	// this is defined in the pardiso libs
+	ret = METIS51_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
+#endif	
 	if (ret != METIS_OK)
 		GMRFLib_ERROR(GMRFLib_EREORDER);
 
