@@ -3368,7 +3368,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 	tmax = GMRFLib_MAX_THREADS;
 	run_with_omp = (IMAX(GMRFLib_openmp->max_threads_outer, GMRFLib_openmp->max_threads_inner) > 1 ? 1 : 0);
-
+	
 	if (!ai_par) {
 		GMRFLib_default_ai_param(&ai_par);
 		free_ai_par = 1;

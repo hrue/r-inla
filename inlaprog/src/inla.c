@@ -30834,8 +30834,8 @@ int main(int argc, char **argv)
 			} else if (!strcasecmp(optarg, "pardiso")) {
 				GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
 				GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
-				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_EXTERNAL, NULL, NULL);
 			}
+			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_EXTERNAL, NULL, &GMRFLib_smtp);
 			break;
 		
 		case 'z':
