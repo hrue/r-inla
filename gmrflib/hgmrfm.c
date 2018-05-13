@@ -935,7 +935,8 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
 			return value;
 		}
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
-
+		break;
+		
 	case GMRFLib_HGMRFM_TP_F:
 		switch (jt.tp) {
 		case GMRFLib_HGMRFM_TP_F:
@@ -968,7 +969,8 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
 			GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
 		}
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
-
+		break;
+		
 	case GMRFLib_HGMRFM_TP_BETA:
 		switch (jt.tp) {
 		case GMRFLib_HGMRFM_TP_BETA:
@@ -982,12 +984,15 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
 			GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
 		}
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
-
+		break;
+		
 	case GMRFLib_HGMRFM_TP_LC:
 		return value;
-
+		break;
+		
 	default:
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
+		break;
 	}
 
 	return value;
