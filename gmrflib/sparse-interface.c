@@ -45,9 +45,9 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 
 /* 
-   NEED TO CHANGE THIS LATER
+   NEED TO CHANGE/REVISE THIS LATER
  */
-#define RUN_SAFE(_expr) if ((GMRFLib_openmp->max_threads_inner == 1) && omp_in_parallel()) \
+#define RUN_SAFE(_expr) if (!GMRFLib_pardiso_thread_safe && omp_in_parallel()) \
 	{								\
 		_Pragma("omp critical")				\
 		{							\

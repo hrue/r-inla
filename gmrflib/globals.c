@@ -253,3 +253,8 @@ GMRFLib_density_storage_strategy_tp GMRFLib_density_storage_strategy = GMRFLib_D
    internal use only; for debugging
  */
 int GMRFLib_debug_code = 0;
+
+/* 
+   tell the pardiso-interface that we're in a thread-safe area
+ */
+int GMRFLib_pardiso_thread_safe = 1;
