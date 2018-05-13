@@ -4053,6 +4053,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			// GMRFLib_ai_store_config(misc_output, nhyper, theta_mode, 0.0, ai_store->problem);
 			if (run_with_omp) {
 				GMRFLib_ai_store_tp **ai_store_id = Calloc(GMRFLib_MAX_THREADS, GMRFLib_ai_store_tp *);
+				GMRFLib_pardiso_thread_safe = GMRFLib_FALSE;
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 				for (i = 0; i < compute_n; i++) {
 					int ii = compute_idx[i];
@@ -4073,6 +4074,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					COMPUTE2;
 					GMRFLib_free_density(cpodens);
 				}
+				GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
 				for (i = 0; i < GMRFLib_MAX_THREADS; i++) { 
 					if (!ai_store_id[i]) {
 						GMRFLib_free_ai_store(ai_store_id[i]);
@@ -4431,6 +4433,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					// GMRFLib_ai_store_config(misc_output, nhyper, theta, log_dens, ai_store->problem);
 					if (run_with_omp) {
 						GMRFLib_ai_store_tp **ai_store_id = Calloc(GMRFLib_MAX_THREADS, GMRFLib_ai_store_tp *);
+						GMRFLib_pardiso_thread_safe = GMRFLib_FALSE;
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 						for (i = 0; i < compute_n; i++) {
 							int ii = compute_idx[i];
@@ -4455,6 +4458,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							COMPUTE2;
 							GMRFLib_free_density(cpodens);
 						}
+						GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
 						for (i = 0; i < GMRFLib_MAX_THREADS; i++) { 
 							if (!ai_store_id[i]) {
 								GMRFLib_free_ai_store(ai_store_id[i]);
@@ -4806,6 +4810,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							// ai_store->problem);
 							if (run_with_omp) {
 								GMRFLib_ai_store_tp **ai_store_id = Calloc(GMRFLib_MAX_THREADS, GMRFLib_ai_store_tp *);
+								GMRFLib_pardiso_thread_safe = GMRFLib_FALSE;
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 								for (i = 0; i < compute_n; i++) {
 									int ii = compute_idx[i];
@@ -4833,6 +4838,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									COMPUTE2;
 									GMRFLib_free_density(cpodens);
 								}
+								GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
 								for (i = 0; i < GMRFLib_MAX_THREADS; i++) { 
 									if (!ai_store_id[i]) {
 										GMRFLib_free_ai_store(ai_store_id[i]);
@@ -4979,6 +4985,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							// ai_store->problem);
 							if (run_with_omp) {
 								GMRFLib_ai_store_tp **ai_store_id = Calloc(GMRFLib_MAX_THREADS, GMRFLib_ai_store_tp *);
+								GMRFLib_pardiso_thread_safe = GMRFLib_FALSE;
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 								for (i = 0; i < compute_n; i++) {
 									int ii = compute_idx[i];
@@ -5006,6 +5013,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									COMPUTE2;
 									GMRFLib_free_density(cpodens);
 								}
+								GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
 								for (i = 0; i < GMRFLib_MAX_THREADS; i++) { 
 									if (!ai_store_id[i]) {
 										GMRFLib_free_ai_store(ai_store_id[i]);
@@ -5114,6 +5122,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			GMRFLib_ai_store_tp **ai_store_id = Calloc(GMRFLib_MAX_THREADS, GMRFLib_ai_store_tp *);
 			double *bnew = NULL, con = 0.0;
 			GMRFLib_bnew(&bnew, &con, graph->n, b, bfunc);
+			GMRFLib_pardiso_thread_safe = GMRFLib_FALSE;
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (i = 0; i < compute_n; i++) {
 				int id = omp_get_thread_num();
@@ -5135,6 +5144,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				COMPUTE2;
 				GMRFLib_free_density(cpodens);
 			}
+			GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
 			for (i = 0; i < GMRFLib_MAX_THREADS; i++) { 
 				if (!ai_store_id[i]) {
 					GMRFLib_free_ai_store(ai_store_id[i]);
