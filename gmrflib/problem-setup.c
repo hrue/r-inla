@@ -1,7 +1,7 @@
 
 /* problem-setup.c
  * 
- * Copyright (C) 2001-2006 Havard Rue
+ * Copyright (C) 2001-2018 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -521,7 +521,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		}
 
 		if (store_use_symb_fact) {
-			(*problem)->sub_sm_fact.TAUCS_symb_fact = GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(store->TAUCS_symb_fact);
+			(*problem)->sub_sm_fact.TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(store->TAUCS_symb_fact);
 		}
 
 		if (GMRFLib_catch_error_for_inla) {
@@ -550,7 +550,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		}
 
 		if (store_store_symb_fact) {
-			store->TAUCS_symb_fact = GMRFLib_my_taucs_supernodal_factor_matrix_duplicate((*problem)->sub_sm_fact.TAUCS_symb_fact);
+			store->TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS((*problem)->sub_sm_fact.TAUCS_symb_fact);
 		}
 	}
 
@@ -2083,7 +2083,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 
 	// FIXME("Duplicate L");
 	if (problem->sub_sm_fact.TAUCS_L && !skeleton) {
-		np->sub_sm_fact.TAUCS_L = GMRFLib_my_taucs_dccs_duplicate(problem->sub_sm_fact.TAUCS_L, problem->sub_sm_fact.TAUCS_L->flags);
+		np->sub_sm_fact.TAUCS_L = GMRFLib_L_duplicate_TAUCS(problem->sub_sm_fact.TAUCS_L, problem->sub_sm_fact.TAUCS_L->flags);
 	} else {
 		np->sub_sm_fact.TAUCS_L = NULL;
 	}
@@ -2093,7 +2093,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 	} else {
 		np->sub_sm_fact.TAUCS_L_inv_diag = NULL;
 	}
-	np->sub_sm_fact.TAUCS_symb_fact = GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(problem->sub_sm_fact.TAUCS_symb_fact);
+	np->sub_sm_fact.TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(problem->sub_sm_fact.TAUCS_symb_fact);
 	COPY(sub_sm_fact.finfo);
 
 	/*
@@ -2217,13 +2217,13 @@ GMRFLib_sizeof_tp GMRFLib_sizeof_problem(GMRFLib_problem_tp * problem)
 	DUPLICATE(sub_sm_fact.bchol, ns * (problem->sub_sm_fact.bandwidth + 1), double);
 
 	if (problem->sub_sm_fact.TAUCS_L) {
-		siz += GMRFLib_my_taucs_dccs_sizeof(problem->sub_sm_fact.TAUCS_L);
+		siz += GMRFLib_L_sizeof_TAUCS(problem->sub_sm_fact.TAUCS_L);
 	}
 
 	if (problem->sub_sm_fact.TAUCS_L_inv_diag) {
 		DUPLICATE(sub_sm_fact.TAUCS_L_inv_diag, ns, double);
 	}
-	siz += GMRFLib_my_taucs_supernodal_factor_matrix_sizeof(problem->sub_sm_fact.TAUCS_symb_fact);
+	siz += GMRFLib_sm_fact_sizeof_TAUCS(problem->sub_sm_fact.TAUCS_symb_fact);
 
 	/*
 	 * then the constraint 
@@ -2293,7 +2293,7 @@ GMRFLib_sizeof_tp GMRFLib_sizeof_store(GMRFLib_store_tp * store)
 	siz += sizeof(double);
 	siz += ns * sizeof(int);
 	siz += GMRFLib_sizeof_graph(store->sub_graph);
-	siz += GMRFLib_my_taucs_supernodal_factor_matrix_sizeof(store->TAUCS_symb_fact);
+	siz += GMRFLib_sm_fact_sizeof_TAUCS(store->TAUCS_symb_fact);
 	siz += 5 * sizeof(double);
 	siz += GMRFLib_sizeof_problem(store->problem_old2new);
 	siz += GMRFLib_sizeof_problem(store->problem_new2old);
@@ -2345,7 +2345,7 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 		new_store->TAUCS_symb_fact = store->TAUCS_symb_fact;
 	} else {
 		GMRFLib_copy_graph(&(new_store->sub_graph), store->sub_graph);
-		new_store->TAUCS_symb_fact = GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(store->TAUCS_symb_fact);
+		new_store->TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(store->TAUCS_symb_fact);
 	}
 	new_store->copy_ptr = copy_ptr;
 
@@ -2408,7 +2408,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 	} else {
 		GMRFLib_sizeof_tp *nnzs = NULL, nnz_best;
 		int k, debug = 0, n = -1, nk, r, i, ne = 0, use_global_nodes;
-		GMRFLib_reorder_tp rs[] = { GMRFLib_REORDER_AMDC, GMRFLib_REORDER_AMDBARC };
+		GMRFLib_reorder_tp rs[] = { GMRFLib_REORDER_METIS, GMRFLib_REORDER_AMDC };
 		taucs_ccs_matrix *Q = NULL;
 		char *fixed = NULL;
 		double *cputime = NULL;
@@ -2498,7 +2498,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 
 				L = taucs_ccs_permute_symmetrically(Q, perm, iperm);	/* permute the matrix */
 				TAUCS_symb_fact = (supernodal_factor_matrix *) taucs_ccs_factor_llt_symbolic(L);
-				nnzs[k] = GMRFLib_my_taucs_supernodal_factor_matrix_nnz(TAUCS_symb_fact);
+				nnzs[k] = GMRFLib_sm_fact_nnz_TAUCS(TAUCS_symb_fact);
 				Free(perm);
 				Free(iperm);
 				taucs_ccs_free(L);

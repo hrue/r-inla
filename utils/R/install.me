@@ -48,24 +48,9 @@ if false; then
     fi
 fi
 
-## generate the exports defined in the R-files
-{
-    echo ""
-    echo "# The functions to be exported are defined in the R-code with"
-    echo "# lines as:"
-    echo "# ## Export: func1"
-    echo "# ## Export: func1 func2"
-    echo "# etc..."
+## make man-pages and run roxygen
+( cd $D; ./make-man-pages; )
 
-    find INLA/R -name \*.R | while read f; do
-        egrep "^## *Export *:" $f | while read ff; do
-            echo "$ff" | awk -F: '{print $2}' | awk '{for(i=1;i<=NF;i++) print $i}' | \
-                awk '{nf = split($0, a, /!/)
-                      if (nf == 2) print "S3method(" a[1] ", "  a[2] ")"
-                      if (nf == 1) print "export(" a[1] ")" }'
-        done
-    done
-} >> INLA/NAMESPACE || exit 1
 
 rm -f $tt 2>/dev/null
 cat $D/version.R | \
@@ -81,11 +66,6 @@ mv -f $tt $DD/version.R
 echo "bdate: $bdate"
 cat $D/version.R
 cat $DD/version.R
-##exit
-
-( cd $D; ./make-man-pages; )
-
-test -d INLA || mkdir INLA
 
 ## Modify the DESCRIPTION file
 desc="INLA/DESCRIPTION"

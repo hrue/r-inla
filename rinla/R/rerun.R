@@ -33,6 +33,9 @@
 
     stopifnot(any(inherits(object, "inla")))
 
+    ## need to do this, as if its true it will regenerate the linear combinations
+    object$.args$control.fixed$correlation.matrix = FALSE
+    
     if (!plain) {
         object$.args$control.mode$result = NULL
         object$.args$control.mode$restart = TRUE
