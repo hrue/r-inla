@@ -1,4 +1,4 @@
-#if defined(INLA_EXPERIMENTAL) || defined(INLA_LIBR)
+#if defined(INLA_LIBR)
 
 /* R-interface.c
  * 
