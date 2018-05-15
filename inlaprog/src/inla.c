@@ -33,17 +33,17 @@ static const char RCSId[] = HGVERSION;
 
 // if we are linking with libRmath and libR, then MATHLIB_STANDALONE should NOT be set
 // if we are linking with libRmath and _NOT_ libR, then MATHLIB_STANDALONE should be set
-#if defined(INLA_LIBR)
-#    define MATHLIB_FUN(_fun) Rf_##_fun
-#    if defined(MATHLIB_STANDALONE)
-#        undef MATHLIB_STANDALONE
-#    endif
-#else
+//#if defined(INLA_LIBR)
+//#    define MATHLIB_FUN(_fun) Rf_##_fun
+//#    if defined(MATHLIB_STANDALONE)
+//#        undef MATHLIB_STANDALONE
+//#    endif
+//#else
 #    define MATHLIB_FUN(_fun) _fun
-#    if !defined(MATHLIB_STANDALONE)
-#        define MATHLIB_STANDALONE
-#    endif
-#endif
+//#    if !defined(MATHLIB_STANDALONE)
+//#        define MATHLIB_STANDALONE
+//#    endif
+//#endif
 
 
 #if defined(__sun__)
