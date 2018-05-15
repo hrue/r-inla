@@ -35,7 +35,7 @@
 ##!inla.rgeneric.q(
 ##!        rmodel, 
 ##!        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
-##!        model, theta = NULL)
+##!        theta = NULL)
 ##!}
 ##!
 ##!\arguments{
@@ -324,6 +324,7 @@
         idx = which(Q@i <= Q@j)
         len = length(Q@i[idx])
         result = c(n, len, Q@i[idx], Q@j[idx], Q@x[idx])
+        Q = NULL
     } else if (cmd %in% "graph") {
         diag(res) = 1
         G = inla.as.sparse(res)
@@ -333,6 +334,7 @@
         len = length(G@i[idx])
         debug.cat("n", n, "len", len)
         result = c(n, len, G@i[idx], G@j[idx])
+        G = NULL
     } else if (cmd %in% "mu") {
         mu = res
         debug.cat("length(mu)", length(mu))
@@ -355,7 +357,8 @@
     } else {
         stop(paste("Unknown command", cmd))
     }
-
+    res = NULL
+    
     return (as.numeric(result))
 }
 

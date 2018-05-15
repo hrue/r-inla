@@ -10,7 +10,7 @@ rgp = function(n, sigma, eta, alpha, xi = 0.001)
 n = 300
 x = runif(n)-0.5
 eta = 1+x
-alpha = 0.99
+alpha = 0.95
 xi = 0.3
 y = rgp(n, eta = eta, alpha = alpha, xi=xi)
 

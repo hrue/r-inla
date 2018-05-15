@@ -3306,7 +3306,7 @@ inla.contour.segment <-
         A = inla.mesh.deriv(mesh, loc=curve.mid)
         ## Gradients rotated 90 degrees CW, i.e. to the direction
         ## of CCW curves around positive excursions:
-        grid.diff = cBind(A$dy %*% zz, -A$dx %*% zz)
+        grid.diff = cbind(A$dy %*% zz, -A$dx %*% zz)
 
         ## Determine the CCW/CW orientation
         curve.diff = diff(curve.loc)
