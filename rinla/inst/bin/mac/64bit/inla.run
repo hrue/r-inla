@@ -39,11 +39,10 @@ pathB="/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries"
 LIBPNGPATH=$pathA:$pathB
 
 export DYLD_LIBRARY_PATH="$RHOME_LIB:$DIR:$LIBPNGPATH:/usr/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
-export LD_LIBRARY_PATH="$DYLD_LIBRARY_PATH"
-
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
     echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
     otool -L "$DIR/$prog"
+    export DYLD_PRINT_LIBRARIES=YES
 fi
 
 exec "$DIR/$prog" "$@"
