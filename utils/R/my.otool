@@ -30,6 +30,9 @@ Xfun () {
 	    /opt/*) 
 		test -f "$lib" && otool -l $lib | grep .dylib | grep /opt
 		;;
+	    /System/Library/Frameworks/Accelerate.framework/*)
+		test -f "$lib" && otool -l $lib | grep .dylib | grep /Accelerate.framework
+		;;
 	esac
     done
 }
