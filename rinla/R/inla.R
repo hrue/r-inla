@@ -71,7 +71,8 @@
         ##!\item{family}{ A string indicating the likelihood
         ##! family. The default is \code{gaussian} with identity
         ##! link. See \code{names(inla.models()$likelihood)} for a
-        ##! list of possible alternatives.}
+        ##! list of possible alternatives and use \code{\link{inla.doc}}
+		##! for detailed docs for individual families.}
         family = "gaussian", 
         
         ##!\item{contrasts}{Optional contrasts for the fixed
@@ -417,20 +418,21 @@
     if (missing(formula)) {
         stop("Usage: inla(formula, family, data, ...); see ?inla\n")
     }
+
     if (missing(data)) {
         stop("Missing data.frame/list `data'. Leaving `data' empty might lead to\n\t\tuncontrolled behaviour, therefore is it required.")
     }
     if (!is.data.frame(data) && !is.list(data)) {
         stop("\n\tArgument `data' must be a data.frame or a list.")
     }
-    if (!missing(weights)) {
-        if (!is.null(weights)) {
-            if (!inla.getOption("enable.inla.argument.weights")) {
-                stop(paste("Argument 'weights' must be enabled before use due to the risk of mis-interpreting the results.\n",
-                           "\tUse 'inla.setOption(\"enable.inla.argument.weights\", TRUE)' to enable it; see ?inla"))
-            }
+
+    if (!missing(weights) && !is.null(weights)) {
+        if (!inla.getOption("enable.inla.argument.weights")) {
+            stop(paste("Argument 'weights' must be enabled before use due to the risk of mis-interpreting the results.\n",
+                       "\tUse 'inla.setOption(\"enable.inla.argument.weights\", TRUE)' to enable it; see ?inla"))
         }
     }
+
 
     ## if data is a list, then it can contain elements that defines a
     ## model, like f(idx, model = model.objects). These objects crash
@@ -532,12 +534,14 @@
     ##
     have.surv = FALSE
     cont.hazard = NULL
-    for(i in 1:n.family)
+    for(i in 1:n.family) {
         have.surv = have.surv || inla.model.properties(family[i], "likelihood")$survival
+    }
 
     if (have.surv && (inla.one.of(family, c("coxph")))) {
         ## This is not supported yet. 
         stopifnot(is.null(control.predictor$A))
+
         cph = inla.coxph(formula, data, control.hazard, debug = debug)
         result = inla(
             cph$formula,
@@ -546,11 +550,9 @@
             contrasts = contrasts, 
             quantiles=quantiles,
             E = cph$E,
-            ## these should be expanded as well???  Will give an error...
-            offset= offset,
-            scale = scale,
-            weights = inla.ifelse(missing(weights) || (exists("weights") && is.function(weights)), NULL, weights), 
-            ## 
+            offset= offset, 
+            scale= scale, 
+            weights= weights, 
             Ntrials = NULL,             # Not used for the poisson
             strata = NULL,              # Not used for the poisson
             lincomb = lincomb,
@@ -588,8 +590,10 @@
         y...orig = inla.as.list.of.lists(y...orig)
         ny = max(sapply(y...orig, function(xx) if (is.list(xx)) max(sapply(xx, length)) else length(xx)))
         nc = length(y...orig)
-        if (n.family != nc)
-            stop(paste("Number of families", n.family, "does not match number of response variables", nc))
+        if (n.family != nc) {
+            stop(paste("Number of families", n.family,
+                       "does not match number of response variables", nc))
+        }
     } else {
         nc = NULL ## not in use
         if (inherits(y...orig, "inla.surv")) {

@@ -8334,7 +8334,7 @@ inla.models()
 								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default log'}
+								\item{link = }{`default quantile'}
 								\item{pdf = }{`genPareto'}
 							 }
 						 }

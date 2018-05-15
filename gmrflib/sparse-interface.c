@@ -339,16 +339,10 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm
 
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
-		/*
-		 * not implemented yet, so we're using the default (and fail-safe) version 
-		 */
-		GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix_BAND(rhs, sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth));
+		GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix_special_BAND(rhs, sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth, idx));
 		break;
 
 	case GMRFLib_SMTP_TAUCS:
-		/*
-		 * use this special version 
-		 */
 		GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix_special_TAUCS(rhs, sm_fact->TAUCS_L, sm_fact->TAUCS_L_inv_diag, graph, sm_fact->remap, idx));
 		break;
 

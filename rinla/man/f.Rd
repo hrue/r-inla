@@ -10,7 +10,7 @@
   Function used for defining of smooth and spatial terms within \code{inla} model
   formulae. The function does not evaluate anything - it
   exists purely to help set up a model. The function specifies one
-  smooth function in the linear predictor (see \code{\link{inla.models}}) as
+  smooth function in the linear predictor (see \code{\link{inla.list.models}}) as
   \deqn{w\ f(x)}{weight*f(var)}
 
 }
@@ -64,7 +64,8 @@
          strata = NULL,
          rgeneric = NULL,
          scale.model = NULL,
-         args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL),
+         args.slm = list(rho.min = NULL, rho.max = NULL, 
+                         X = NULL, W = NULL, Q.beta = NULL),
          args.ar1c = list(Z = NULL, Q.beta = NULL),
          correct = NULL,
          debug = FALSE)
@@ -77,7 +78,7 @@ weights (which can be negative).}
 \item{model}{ A string indicating the choosen model. The
  default is \code{iid}. See
  \code{names(inla.models()$latent)} for a list of possible
- alternatives.}
+ alternatives and \code{\link{inla.doc}} for detailed docs.}
 \item{copy}{TODO}
 \item{same.as}{TODO}
 \item{n}{An optional argument which defines the dimension
@@ -88,10 +89,13 @@ of the model if this is different from
 \item{ngroup}{TODO}
 \item{group}{TODO}
 \item{control.group}{TODO}
-\item{hyper}{Spesification of the hyperparameter, fixed or
+\item{hyper}{Specification of the hyperparameter, fixed or
 random, initial values, priors and its parameters. See
 \code{?inla.models} for the list of hyparameters for each
-model and its default options.}
+model and its default options or
+use \code{inla.doc()} for
+detailed info on the family and
+supported prior distributions.}
 \item{initial}{THIS OPTION IS OBSOLETE; use
 \code{hyper}!!! Vector indicating the starting values for
 the optimization algorithm. The length of the vector
