@@ -1898,7 +1898,7 @@
     inla.eval(paste("Sys.setenv(", "\"INLA_RVERSION\"", "=\"", rversion , "\"", ")", sep=""))
     inla.eval(paste("Sys.setenv(", "\"INLA_RHOME\"", "=\"", Sys.getenv("R_HOME") , "\"", ")", sep=""))
     
-    inla.set.pardiso.env(inla.dir)
+    inla.set.sparselib.env(inla.dir, blas.num.threads = 2L)
 
     if (debug) {
         inla.eval(paste("Sys.setenv(", "\"INLA_DEBUG=\"", "=\"", 1, "\"", ")", sep=""))
@@ -2123,9 +2123,9 @@
     return (data)
 }
 
-`inla.set.pardiso.env` = function(inla.dir = NULL) 
+`inla.set.sparselib.env` = function(inla.dir = NULL, blas.num.threads = 2L) 
 {
-    ## environment variables for PARDISO
+    ## environment variables for sparse libraries
     if (is.null(inla.dir)) {
         inla.dir = inla.tempdir()
     }
@@ -2153,6 +2153,9 @@
         inla.eval(paste("Sys.setenv(", "\"PARDISO_LIC_PATH\"", "=\"", normalizePath(lic.path), "\"", ")", sep=""))
     }    
     Sys.setenv(PARDISOLICMESSAGE=1)
-    Sys.setenv(OPENBLAS_NUM_THREADS=1)
+
+    inla.eval(paste0("Sys.setenv(", "OPENBLAS_NUM_THREADS=", blas.num.threads, ")"))
+    inla.eval(paste0("Sys.setenv(", "MKL_NUM_THREADS=", blas.num.threads, ")"))
+
     return (invisible())
 }    
