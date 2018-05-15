@@ -46,7 +46,7 @@ inla.knmodels.sample(
    an index named \code{st} for the spacetime 
    interaction term. The data MUST be provided.}
  \item{graph}{The graph for the spatial neighbor 
-   structure to be used in a \code{\ink{f}} term 
+   structure to be used in a \code{\link{f}} term 
    for the main spatial random effect term or for 
    building the spacetime interaction model.}
  \item{progress}{If it is to be shown the model 
@@ -61,7 +61,7 @@ inla.knmodels.sample(
    or space constrained to be equal to zero. 
    \code{2d}, \code{3d} and \code{4d} are the 
    corresponding versions when considering the 
-   diagonal add approach.  
+   diagonal add approach.}  
  \item{diagonal}{The value to be added to the 
    diagonal when using the diagonal add approach.}
  \item{control.st}{Specification of the hyperparameter, 
