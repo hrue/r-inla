@@ -33,7 +33,7 @@ FLAGS = -m64 -std=gnu99 -Wall -O2 -mtune=generic -mfpmath=sse \
 APT=aptitude
 
 ## Path configuration:
-MAINDIR=$(PWD)
+MAINDIR=`pwd`
 PREFIX = $(MAINDIR)/local
 BINPREFIX = $(PREFIX)/bin/$(PLATFORM)
 LIBPREFIX = $(PREFIX)/lib

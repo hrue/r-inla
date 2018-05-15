@@ -304,7 +304,7 @@ typedef struct {
 	/*
 	 * iid gamma 
 	 */
-	double *iid_gamma_weight;
+	double *iid_gamma_scale;
 	double **iid_gamma_log_shape;
 	double **iid_gamma_log_rate;
 
@@ -354,7 +354,7 @@ typedef struct {
 	 * Gamma 
 	 */
 	double **gamma_log_prec;
-	double *gamma_weight;				       /* the scalings 's' */
+	double *gamma_scale;				       /* the scalings 's' */
 
 	/*
 	 * MIX ~ Normal(x, 1/prec)
@@ -394,6 +394,7 @@ typedef struct {
 } Data_tp;
 
 typedef struct {
+	int idx;
 	int order;					       /* a copy of ds->link_order */
 	int variant;					       /* a copy of ds->link_variant */
 	int Ntrial;
@@ -406,6 +407,7 @@ typedef struct {
 	double **sensitivity_intern;
 	double **specificity_intern;
 	double **prob_intern;
+	double *scale;
 } Link_param_tp;
 
 /* 
@@ -579,7 +581,8 @@ typedef enum {
 	LINK_INVERSE,
 	LINK_QPOISSON,
 	LINK_QBINOMIAL,
-	LINK_QWEIBULL
+	LINK_QWEIBULL,
+	LINK_QGAMMA
 } inla_component_tp;
 
 
