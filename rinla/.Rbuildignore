@@ -1,0 +1,12 @@
+^.*\.Rhistory$
+^.*\.Rproj$
+^\.Rproj\.user$
+^NAMESPACE\.init$
+^NAMESPACE\.backup$
+^NAMESPACE\.new$
+^DESCRIPTION\.backup$
+^DESCRIPTION\.new$
+^R/Makefile$
+^R/make-man-pages$
+^R/make-man-pages\.timestamp$
+^R/TAGS$
