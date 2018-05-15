@@ -26,6 +26,7 @@
  *        Office: +966 (0)12 808 0640
  *
  */
+
 #ifndef HGVERSION
 #define HGVERSION
 #endif
