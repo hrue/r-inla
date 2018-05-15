@@ -31,21 +31,6 @@
 #endif
 static const char RCSId[] = HGVERSION;
 
-// if we are linking with libRmath and libR, then MATHLIB_STANDALONE should NOT be set
-// if we are linking with libRmath and _NOT_ libR, then MATHLIB_STANDALONE should be set
-//#if defined(INLA_LIBR)
-//#    define MATHLIB_FUN(_fun) Rf_##_fun
-//#    if defined(MATHLIB_STANDALONE)
-//#        undef MATHLIB_STANDALONE
-//#    endif
-//#else
-#    define MATHLIB_FUN(_fun) _fun
-//#    if !defined(MATHLIB_STANDALONE)
-//#        define MATHLIB_STANDALONE
-//#    endif
-//#endif
-
-
 #if defined(__sun__)
 #include <stdlib.h>
 #endif
@@ -84,7 +69,8 @@ static const char RCSId[] = HGVERSION;
 #include <sys/sysctl.h>
 #endif
 
-//#define MATHLIB_STANDALONE 
+#define MATHLIB_STANDALONE 
+#define MATHLIB_FUN(_fun) _fun
 #include <Rmath.h>
 
 #include "GMRFLib/GMRFLib.h"
@@ -1482,7 +1468,7 @@ double link_qgamma(double x, map_arg_tp typ, void *param, double *cov)
 
 	switch (typ) {
 	case INVLINK:
-		ret = exp(x) * shape / gsl_cdf_gamma_Pinv(lparam->quantile, shape, 1.0);
+		ret = exp(x) * shape / MATHLIB_FUN(qgamma)(lparam->quantile, shape, 1.0, 1, 0);
 		break;
 
 	case LINK:
