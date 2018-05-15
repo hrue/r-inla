@@ -3125,7 +3125,12 @@ inla.mesh.fem <- function(mesh, order=2)
         return(inla.mesh.1d.fem(mesh))
     } else {
         ## output name list:
-        output = c("c0", "c1", paste("g", seq_len(order), sep=""),
+        if (order > 0) {
+          output <- paste("g", seq_len(order), sep="")
+        } else {
+          output <- NULL
+        }
+        output = c("c0", "c1", output,
                    "va", "ta")
         return(inla.fmesher.smorg(mesh$loc, mesh$graph$tv,
                                   fem=order, output=output))
