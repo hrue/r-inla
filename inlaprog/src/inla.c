@@ -1,7 +1,7 @@
 
 /* inla.c
  * 
- * Copyright (C) 2007-2017 Havard Rue
+ * Copyright (C) 2007-2018 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1482,7 +1482,7 @@ double link_qgamma(double x, map_arg_tp typ, void *param, double *cov)
 
 	switch (typ) {
 	case INVLINK:
-		ret = exp(x) * shape / MATHLIB_FUN(qgamma)(lparam->quantile, shape, 1.0, 1, 0);
+		ret = exp(x) * shape / gsl_cdf_gamma_Pinv(lparam->quantile, shape, 1.0);
 		break;
 
 	case LINK:
@@ -30317,6 +30317,12 @@ int testit(int argc, char **argv)
 		q = MATHLIB_FUN(qgamma)(alpha, shape, 1.0, 1, 0);
 		mmu = y * s * phi / q;
 		printf("alpha %f q %f mu %f mmu %f diff %f\n", alpha, q, mu, mmu, mu-mmu);
+
+		P(MATHLIB_FUN(pgamma)(y, shape, scale, 1, 0));
+		P(MATHLIB_FUN(qgamma)(alpha, shape, 1.0, 1, 0));
+		P(gsl_cdf_gamma_P(y, shape, scale));
+		P(gsl_cdf_gamma_Pinv(alpha, shape, 1.0));
+
 		exit(0);
 	}
 
