@@ -1,7 +1,7 @@
 
 /* inla.c
  * 
- * Copyright (C) 2007-2017 Havard Rue
+ * Copyright (C) 2007-2018 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,17 +31,7 @@
 #endif
 static const char RCSId[] = HGVERSION;
 
-// if we are linking with libR and not libRmath, then MATHLIB_STANDALONE should NOT BE SET.
-// if we are linking with libRmath and not libR, then MATHLIB_STANDALONE should BE SET.
-#if defined(INLA_EXPERIMENTAL) || defined(INLA_LIBR)
-#if defined(MATHLIB_STANDALONE)
-#undef MATHLIB_STANDALONE
-#endif
-#else
-#if !defined(MATHLIB_STANDALONE)
-#define MATHLIB_STANDALONE
-#endif
-#endif
+
 
 #if defined(__sun__)
 #include <stdlib.h>
@@ -81,7 +71,8 @@ static const char RCSId[] = HGVERSION;
 #include <sys/sysctl.h>
 #endif
 
-//#define MATHLIB_STANDALONE 
+#define MATHLIB_STANDALONE 
+#define MATHLIB_FUN(_fun) _fun
 #include <Rmath.h>
 
 #include "GMRFLib/GMRFLib.h"
@@ -140,7 +131,7 @@ G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 
 #define LINK_INIT							\
 	double *_link_covariates = NULL;				\
-	void *predictor_invlinkfunc_arg = ds->predictor_invlinkfunc_arg[idx]; \
+	Link_param_tp *predictor_invlinkfunc_arg = ds->predictor_invlinkfunc_arg[idx]; \
 	if (ds->link_covariates) {					\
 		_link_covariates = Calloc(ds->link_covariates->ncol, double); \
 		GMRFLib_matrix_get_row(_link_covariates, idx, ds->link_covariates); \
@@ -150,13 +141,13 @@ G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 	Free(_link_covariates)
 
 #define PREDICTOR_INVERSE_LINK(xx_)					\
-	ds->predictor_invlinkfunc(xx_, MAP_FORWARD, predictor_invlinkfunc_arg, _link_covariates)
+	ds->predictor_invlinkfunc(xx_, MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
 
 #define PREDICTOR_LINK(xx_)						\
-	ds->predictor_invlinkfunc(xx_, MAP_BACKWARD, predictor_invlinkfunc_arg, _link_covariates)
+	ds->predictor_invlinkfunc(xx_, MAP_BACKWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
 
 #define PREDICTOR_INVERSE_LINK_LOGJACOBIAN(xx_)  \
-	log(ABS(ds->predictor_invlinkfunc(xx_, MAP_DFORWARD, predictor_invlinkfunc_arg, _link_covariates)))
+	log(ABS(ds->predictor_invlinkfunc(xx_, MAP_DFORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)))
 
 #define PENALTY (-100.0)				       /* wishart3d: going over limit... */
 
@@ -1470,6 +1461,67 @@ double link_qweibull(double x, map_arg_tp typ, void *param, double *cov)
 
 	return (ret);
 }
+double link_qgamma(double x, map_arg_tp typ, void *param, double *cov)
+{
+	Link_param_tp *lparam = (Link_param_tp *) param;
+	double s = lparam->scale[lparam->idx];
+	double phi_param = map_exp(lparam->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double shape = phi_param * s;
+	double ret;
+
+	switch (typ) {
+	case INVLINK:
+		ret = exp(x) * shape / MATHLIB_FUN(qgamma)(lparam->quantile, shape, 1.0, 1, 0);
+		break;
+
+	case LINK:
+		CODE_NEEDED;
+		break;
+
+	case DINVLINK:
+	{
+		double dx = GMRFLib_eps(1.0 / 3.9134);	       // about 0.0001 on my laptop
+		double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
+		double wf_sum = 0.0;
+		int i, nwf = sizeof(wf) / sizeof(double), nwf2 = (nwf - 1) / 2;	/* gives 5 and 2 */
+
+		for (i = 0; i < nwf; i++) {
+			wf_sum += wf[i] * link_qgamma(x + (i - nwf2) * dx, INVLINK, param, cov);
+		}
+		ret = wf_sum / dx;
+	}
+		break;
+
+	case LINKINCREASING:
+	{
+		ret = 1;
+		static int do_check = 1;
+		if (do_check) {
+#pragma omp critical 
+			if (do_check) {
+				if ((int) ret !=
+				    (link_qgamma(x + 1.0, INVLINK, param, cov) >
+				     link_qgamma(x, INVLINK, param, cov) ? 1 : 0)) {
+					FIXME("LINKINCREASING has error in link_qgamma");
+					exit(EXIT_FAILURE);
+				}
+				do_check = 0;
+			}
+		}
+		return (ret);
+	}
+		break;
+
+	default:
+	{
+		assert(0 == 1);
+	}
+		break;
+
+	}
+
+	return (ret);
+}
 double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
 {
 	Link_param_tp *lparam = (Link_param_tp *) param;
@@ -1479,7 +1531,7 @@ double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
 	case INVLINK:
 	{
 		q = 1.0 / (1.0 + exp(-x));
-		ret = qbeta(lparam->quantile, lparam->Ntrial * q + 1.0, lparam->Ntrial * (1.0 - q), 0, 0);
+		ret = MATHLIB_FUN(qbeta)(lparam->quantile, lparam->Ntrial * q + 1.0, lparam->Ntrial * (1.0 - q), 0, 0);
 	}
 		break;
 
@@ -2914,6 +2966,7 @@ double priorfunc_pc_cor1(double *x, double *parameters)
 	if (debug)
 		printf("priorfunc_pc_cor1: function value %g\n", _Fsolve(lambda));
 
+#undef Fsolve
 	rho = map_rho(*x, MAP_FORWARD, NULL);
 	mu = sqrt(1.0 - rho);
 	ldens = log(lambda) - lambda * mu - log(1.0 - exp(-lambda * M_SQRT2)) - log(2.0 * mu);
@@ -3648,7 +3701,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_IID_GAMMA:
 		idiv = 3;
-		a[0] = ds->data_observations.iid_gamma_weight = Calloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.iid_gamma_scale = Calloc(mb->predictor_ndata, double);
 		break;
 
 	case L_IID_LOGITBETA:
@@ -3750,7 +3803,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_GAMMA:
 		idiv = 3;
-		a[0] = ds->data_observations.gamma_weight = Calloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.gamma_scale = Calloc(mb->predictor_ndata, double);
 		break;
 
 	case L_GAMMACOUNT:
@@ -4494,7 +4547,7 @@ int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_
 	double shape, rate, w, xx, penalty = 1.0 / FLT_EPSILON, cons;
 
 	LINK_INIT;
-	w = ds->data_observations.iid_gamma_weight[idx];
+	w = ds->data_observations.iid_gamma_scale[idx];
 	shape = map_exp(ds->data_observations.iid_gamma_log_shape[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	rate = map_exp(ds->data_observations.iid_gamma_log_rate[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
 	cons = -shape * log(rate) - gsl_sf_lngamma(shape);
@@ -6854,7 +6907,7 @@ int loglikelihood_gamma(double *logll, double *x, int m, int idx, double *x_vec,
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
-	double s = ds->data_observations.gamma_weight[idx];
+	double s = ds->data_observations.gamma_scale[idx];
 	double phi_param = map_exp(ds->data_observations.gamma_log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double phi, mu, a, b, c;
 
@@ -7308,6 +7361,7 @@ int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, in
 			if (gsl_isinf(pzero) || gsl_isinf(p)) {
 				logll[i] = -DBL_MAX;
 			} else {
+	
 				logA = log(pzero);
 				logB = log(1.0 - pzero) + (_LOGGAMMA_INT(n + 1) - _LOGGAMMA_INT(y + 1) - _LOGGAMMA_INT(n - y + 1)
 							   + _LOGGAMMA(delta * p + y) + _LOGGAMMA(n + delta * (1.0 - p) - y) - _LOGGAMMA(delta + n)
@@ -10376,9 +10430,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_GAMMA:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.y[i] <= 0.0 || ds->data_observations.gamma_weight[i] <= 0.0) {
+				if (ds->data_observations.y[i] <= 0.0 || ds->data_observations.gamma_scale[i] <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Gamma data[%1d] (y) = %g or weight %g is void\n", secname, i,
-							ds->data_observations.y[i], ds->data_observations.gamma_weight[i]);
+							ds->data_observations.y[i], ds->data_observations.gamma_scale[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -13783,6 +13837,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_qweibull;
 			break;
+		case L_GAMMA:
+			ds->link_id = LINK_QGAMMA;
+			ds->link_ntheta = 0;
+			ds->predictor_invlinkfunc = link_qgamma;
+			break;
 		case L_GP:
 			ds->link_id = LINK_LOG;
 			ds->link_ntheta = 0;
@@ -13865,6 +13924,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case LINK_QPOISSON:
 	{
 		Link_param_tp *link_param = Calloc(1, Link_param_tp);
+		link_param->idx = -1;
 		link_param->quantile = ds->data_observations.quantile;
 		for (i = 0; i < n_data; i++) {
 			ds->predictor_invlinkfunc_arg[i] = (void *) link_param;
@@ -13876,6 +13936,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	{
 		for (i = 0; i < n_data; i++) {
 			Link_param_tp *link_param = Calloc(1, Link_param_tp);
+			link_param->idx = i;
 			link_param->quantile = ds->data_observations.quantile;
 			link_param->Ntrial = ds->data_observations.nb[i];
 			ds->predictor_invlinkfunc_arg[i] = (void *) link_param;
@@ -13886,10 +13947,24 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case LINK_QWEIBULL:
 	{
 		Link_param_tp *link_param = Calloc(1, Link_param_tp);
+		link_param->idx = -1;
 		link_param->quantile = ds->data_observations.quantile;
 		link_param->alpha_intern = ds->data_observations.alpha_intern;
 		link_param->variant = ds->variant;
 		for (i = 0; i < n_data; i++) {
+			ds->predictor_invlinkfunc_arg[i] = (void *) link_param;
+		}
+	}
+		break;
+
+	case LINK_QGAMMA:
+	{
+		for (i = 0; i < n_data; i++) {
+			Link_param_tp *link_param = Calloc(1, Link_param_tp);
+			link_param->idx = i;
+			link_param->quantile = ds->data_observations.quantile;
+			link_param->scale = ds->data_observations.gamma_scale;
+			link_param->log_prec = ds->data_observations.gamma_log_prec;
 			ds->predictor_invlinkfunc_arg[i] = (void *) link_param;
 		}
 	}
@@ -13907,6 +13982,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
 		ds->link_parameters = Calloc(1, Link_param_tp);
+		ds->link_parameters->idx = -1;
 		ds->link_parameters->order = -1;
 		for (i = 0; i < n_data; i++) {
 			ds->predictor_invlinkfunc_arg[i] = (void *) (ds->link_parameters);
@@ -13999,6 +14075,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
 		ds->link_parameters = Calloc(1, Link_param_tp);
+		ds->link_parameters->idx = -1;
 		ds->link_parameters->order = ds->link_order;
 		ds->link_parameters->variant = ds->link_variant;
 		for (i = 0; i < n_data; i++) {
@@ -14055,6 +14132,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
 		ds->link_parameters = Calloc(1, Link_param_tp);
+		ds->link_parameters->idx = -1;
 		ds->link_parameters->order = ds->link_order;
 		ds->link_parameters->variant = ds->link_variant;
 		for (i = 0; i < n_data; i++) {
@@ -14111,6 +14189,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
 		ds->link_parameters = Calloc(1, Link_param_tp);
+		ds->link_parameters->idx = -1;
 		ds->link_parameters->order = ds->link_order;
 		for (i = 0; i < n_data; i++) {
 			ds->predictor_invlinkfunc_arg[i] = (void *) (ds->link_parameters);
@@ -14166,6 +14245,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
 		ds->link_parameters = Calloc(1, Link_param_tp);
+		ds->link_parameters->idx = -1;
 		ds->link_parameters->order = ds->link_order;
 		for (i = 0; i < n_data; i++) {
 			ds->predictor_invlinkfunc_arg[i] = (void *) (ds->link_parameters);
@@ -14267,6 +14347,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_fixed = Calloc(ds->link_ntheta, int);
 		ds->link_initial = Calloc(ds->link_ntheta, double);
 		ds->link_parameters = Calloc(1, Link_param_tp);
+		ds->link_parameters->idx = -1;
 		ds->link_parameters->order = ds->link_order;
 		for (i = 0; i < n_data; i++) {
 			ds->predictor_invlinkfunc_arg = (void *) (ds->link_parameters);
@@ -23350,6 +23431,7 @@ double extra(double *theta, int ntheta, void *argument)
 			case LINK_QPOISSON:
 			case LINK_QBINOMIAL:
 			case LINK_QWEIBULL:
+			case LINK_QGAMMA:
 				break;
 
 			case LINK_LOGOFFSET:
@@ -29860,6 +29942,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	}
 	GMRFLib_init_problem(&problem, NULL, (b ? b->A : NULL), NULL, (mu ? mu->A : NULL), graph, tab->Qfunc, tab->Qfunc_arg, NULL,
 			     constr, GMRFLib_NEW_PROBLEM);
+
 	M->nrow = graph->n + 1;
 	M->ncol = ns;
 	M->elems = M->ncol * M->nrow;
@@ -30061,6 +30144,7 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose)
 		// treat the whole graph as one cc, with index 0
 		cc = Calloc(n, int);
 	}
+
 	if (!adj) {
 		// special for nnbs=0
 		for (i = 0; i < n; i++) {
@@ -30128,6 +30212,7 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose)
 			for (i = 0; i < def->graph->n; i++) {
 				c[i] = eps;
 			}
+
 			while (!ok) {
 				retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, def->graph,
 							      Qfunc_besag, (void *) def, NULL, constr, GMRFLib_NEW_PROBLEM);
@@ -30281,9 +30366,47 @@ int inla_fgn(char *infile, char *outfile)
 }
 int testit(int argc, char **argv)
 {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	if (1) {
-		my_pardiso_test();
+		double s, phi,  mu,  y, shape, rate, q, mmu, scale, alpha;
+		s = 1.2;
+		phi = 2.3;
+		mu = 3.4;
+		y = 4.5; 
+		shape = s * phi;
+		rate = s * phi / mu;
+		scale = 1.0/rate;
+		alpha = 0.5;
+		alpha = MATHLIB_FUN(pgamma)(y, shape, scale, 1, 0);
+		q = MATHLIB_FUN(qgamma)(alpha, shape, 1.0, 1, 0);
+		mmu = y * s * phi / q;
+		printf("alpha %f q %f mu %f mmu %f diff %f\n", alpha, q, mu, mmu, mu-mmu);
+
+		P(MATHLIB_FUN(pgamma)(y, shape, scale, 1, 0));
+		P(MATHLIB_FUN(qgamma)(alpha, shape, 1.0, 1, 0));
+		P(gsl_cdf_gamma_P(y, shape, scale));
+		P(gsl_cdf_gamma_Pinv(alpha, shape, 1.0));
+
+		exit(0);
 	}
+
+
 	if (0) {
 		P(GMRFLib_rng_uniform());
 		P(GMRFLib_rng_uniform());
