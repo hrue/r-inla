@@ -1,7 +1,7 @@
 
 /* inla.c
  * 
- * Copyright (C) 2007-2017 Havard Rue
+ * Copyright (C) 2007-2018 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,21 +30,6 @@
 #define HGVERSION
 #endif
 static const char RCSId[] = HGVERSION;
-
-// if we are linking with libRmath and libR, then MATHLIB_STANDALONE should NOT be set
-// if we are linking with libRmath and _NOT_ libR, then MATHLIB_STANDALONE should be set
-#if defined(INLA_LIBR)
-#    define MATHLIB_FUN(_fun) Rf_##_fun
-#    if defined(MATHLIB_STANDALONE)
-#        undef MATHLIB_STANDALONE
-#    endif
-#else
-#    define MATHLIB_FUN(_fun) _fun
-#    if !defined(MATHLIB_STANDALONE)
-#        define MATHLIB_STANDALONE
-#    endif
-#endif
-
 
 #if defined(__sun__)
 #include <stdlib.h>
@@ -84,7 +69,8 @@ static const char RCSId[] = HGVERSION;
 #include <sys/sysctl.h>
 #endif
 
-//#define MATHLIB_STANDALONE 
+#define MATHLIB_STANDALONE 
+#define MATHLIB_FUN(_fun) _fun
 #include <Rmath.h>
 
 #include "GMRFLib/GMRFLib.h"
@@ -30317,6 +30303,12 @@ int testit(int argc, char **argv)
 		q = MATHLIB_FUN(qgamma)(alpha, shape, 1.0, 1, 0);
 		mmu = y * s * phi / q;
 		printf("alpha %f q %f mu %f mmu %f diff %f\n", alpha, q, mu, mmu, mu-mmu);
+
+		P(MATHLIB_FUN(pgamma)(y, shape, scale, 1, 0));
+		P(MATHLIB_FUN(qgamma)(alpha, shape, 1.0, 1, 0));
+		P(gsl_cdf_gamma_P(y, shape, scale));
+		P(gsl_cdf_gamma_Pinv(alpha, shape, 1.0));
+
 		exit(0);
 	}
 
