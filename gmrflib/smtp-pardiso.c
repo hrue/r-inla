@@ -983,25 +983,6 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 }
 
 
-
-// we can define 'NO_PARDISO_LIB' if we want to compile without the pardiso library.
-// define fake functions, that err if called, here
-#if defined(NO_PARDISO_LIB)
-#define NO_PARDISO_LIB						\
-	{							\
-		GMRFLib_ERROR(GMRFLib_EPARDISO_NO_LIBRARY);	\
-		exit(1);					\
-	}
-void pardisoinit(void *a, int *b, int *c, int *d, double *e, int *f) NO_PARDISO_LIB;
-void pardiso(void *a, int *b, int *c, int *d, int *e, int *f, double *g,
-	     int *h, int *i, int *j, int *k, int *l, int *m, double *n, double *o, int *p, double *q) NO_PARDISO_LIB;
-void pardiso_chkmatrix(int *a, int *s, double *d, int *f, int *g, int *h) NO_PARDISO_LIB;
-void pardiso_chkvec(int *a, int *s, double *d, int *f) NO_PARDISO_LIB;
-void pardiso_printstats(int *a, int *s, double *d, int *f, int *g, int *h, double *j, int *k) NO_PARDISO_LIB;
-void pardiso_get_factor_csc(void **a, double *s, int *d, int *f, double *g, int *h, int *j, int *k, int l) NO_PARDISO_LIB;
-void pardiso_get_inverse_factor_csc(void **a, double *s, int *d, int *f, int *g, int h) NO_PARDISO_LIB;
-#endif
-
 #define COMPILE_WITH_TEST_PROGRAM 1
 #if defined(COMPILE_WITH_TEST_PROGRAM)
 // this is just an internal test program to be called from testit(), -m testit
