@@ -1,5 +1,4 @@
 VERSION=snapshot
-# $Id: inla-Makefile,v 1.21 2009/09/06 16:40:13 hrue Exp $
 
 # USER OPTIONS
 
@@ -53,7 +52,46 @@ CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DHGVERSION="\"${HGVERSION}\"
 
 INLA = inla
 OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/sha1.o src/spde.o src/spde2.o src/spde3.o src/eval.o src/interpol.o src/re.o src/ar.o src/bessel.o src/pc-priors.o src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o 
-all: $(INLA)
+
+## different...
+ifeq ($(INLA_OS),Darwin)
+  NOPARDISO_LIB = src/libpardiso.dylib
+  NOPARDISO_SRC = src/libpardiso.c
+  NOPARDISO_CFLAGS = -Wall -dynamiclib
+
+  $(NOPARDISO_LIB) : $(NOPARDISO_SRC)
+	$(CC) $(NOPARDISO_LDFLAGS) -o $@ $^
+
+else ifeq ($(INLA_OS), Windows)
+  NOPARDISO_LIB = src/libpardiso.dll
+  NOPARDISO_SRC = src/libpardiso.c
+  NOPARDISO_OBJ = $(NOPARDISO_SRC:.c=.o)
+  NOPARDISO_CFLAGS = -c
+  NOPARDISO_LDFLAGS = -shared
+
+  $(NOPARDISO_LIB) : $(NOPARDISO_OBJ)
+	$(CC) $(NOPARDISO_LDFLAGS) -o $@ $^
+
+  $(NOPARDISO_OBJ) : $(NOPARDISO_SRC)
+	$(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^
+
+else ## ifeq ($(INLA_OS),Linux)
+  NOPARDISO_LIB = src/libpardiso.so
+  NOPARDISO_SRC = src/libpardiso.c
+  NOPARDISO_OBJ = $(NOPARDISO_SRC:.c=.o)
+  NOPARDISO_CFLAGS = -fPIC -Wall
+  NOPARDISO_LDFLAGS = -shared
+
+  $(NOPARDISO_LIB) : $(NOPARDISO_OBJ)
+	$(CC) $(NOPARDISO_LDFLAGS) -o $@ $^
+
+  $(NOPARDISO_OBJ) : $(NOPARDISO_SRC)
+	$(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^
+
+endif
+
+
+all: $(INLA)  $(NOPARDISO_LIB)
 
 $(INLA) : $(OBJ)
 	$(LD) $(LDFLAGS) -o $@ $^ -L$(PREFIX)/lib  $(EXTLIBS)
@@ -75,7 +113,3 @@ src/TAGS : $(wildcard src/*.c src/*.h)
 clean:; -$(RM) $(OBJ) $(INLA)
 
 .PHONY: depend clean uninstall install 
-
-
-
-
