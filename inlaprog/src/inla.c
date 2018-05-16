@@ -75,6 +75,10 @@ static const char RCSId[] = HGVERSION;
 #define MATHLIB_STANDALONE 
 #define MATHLIB_FUN(_fun) _fun
 #include <Rmath.h>
+#ifdef ISNAN
+#  undef ISNAN
+#endif
+
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
@@ -4684,13 +4688,40 @@ int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_v
 	return GMRFLib_SUCCESS;
 }
 
+double inla_sn_Phi(double x, double xi, double omega, double alpha) 
+{
+	// density = 2/omega * phi((x - xi)/omega) * Phi(alpha * ((x-xi)/omega))
+
+	if (alpha == 0.0) {
+		return inla_Phi((x-xi)/omega);
+	} else {
+		double xx = (x - xi)/omega;
+		double integral = 0.0;
+		double dx = 0.1;
+		double w = 0.0;
+		double xval;
+		int i, np;
+
+		np = (int) ((x - (-7.0)) / dx);
+		np = IMAX(9, np);
+		np = (np/2) * 2 + 1;
+
+		for (i = 0; i < np; i++) {
+			w = ((i == 0 || i == np-1) ? 1.0 : (w == 2.0 ? 4.0 : 2.0));
+			xval = xx - i * dx;
+			integral += w * exp(LOG_NORMC_GAUSSIAN + M_LN2 - 0.5 * SQR(xval) + inla_log_Phi_fast(alpha * xval));
+		}
+		return (DMAX(0.0, DMIN(1.0, integral * dx / 3.0)));
+	}
+}
+
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ Skew_Normal(x, stdev)
 	 */
 	if (m == 0) {
-		return 0;				       /* no features available for now */
+		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
@@ -4705,15 +4736,21 @@ int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *
 	shape = map_rho(ds->data_observations.shape_skew_normal[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * shape_max;
 
 	if (m > 0) {
-		for (i = 0; i < m; i++) {
+		for(i = 0; i < m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			xarg = (y - ypred) * sprec;
-			logll[i] = LOG_NORMC_GAUSSIAN + M_LOG2E + 0.5 * (lprec - SQR(xarg)) + inla_log_Phi_fast(shape * xarg);
+			logll[i] = LOG_NORMC_GAUSSIAN + M_LN2 + 0.5 * (lprec - SQR(xarg)) + inla_log_Phi_fast(shape * xarg);
 		}
 	} else {
-		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
-	}
+		double yy = (y_cdf ? *y_cdf : y);
 
+#pragma omp parallel for private(i, ypred, xarg)
+		for(i = 0; i < -m; i++) {
+			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			xarg = (yy - ypred) * sprec;
+			logll[i] = inla_sn_Phi(xarg, 0.0, 1.0, shape);
+		}
+	}
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
@@ -4729,7 +4766,7 @@ int loglikelihood_skew_normal2(double *logll, double *x, int m, int idx, double 
 #define _SIGN(_x) ((_x) >= 0.0 ? 1.0 : -1.0)
 
 	if (m == 0) {
-		return 0;				       /* no features available for now */
+		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
@@ -4757,10 +4794,28 @@ int loglikelihood_skew_normal2(double *logll, double *x, int m, int idx, double 
 			xi = ypred - omega * delta * sqrt(2.0 / M_PI);
 			// xi = ypred;
 			xarg = (y - xi) / omega;
-			logll[i] = LOG_NORMC_GAUSSIAN + M_LOG2E - log(omega) - 0.5 * SQR(xarg) + inla_log_Phi_fast(alpha * xarg);
+			logll[i] = LOG_NORMC_GAUSSIAN + M_LN2 - log(omega) - 0.5 * SQR(xarg) + inla_log_Phi_fast(alpha * xarg);
 		}
 	} else {
-		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
+		double yy = (y_cdf ? *y_cdf : y);
+
+#pragma omp parallel for private(i, ypred, g, alpha, delta, omega, xi, xarg)
+		for(i = 0; i < -m; i++) {
+			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			if (ISZERO(skewness)) {
+				g = 0.0;
+			} else {
+				g = M_PI / (2.0 * (1.0 + pow((4.0 - M_PI) / (2.0 * ABS(skewness)), 2.0 / 3.0)));
+				g = DMIN(SKEW_MAX - GMRFLib_eps(0.75), g);
+				g = DMAX(-(SKEW_MAX - GMRFLib_eps(0.75)), g);
+			}
+			alpha = SIGN(skewness) * sqrt(g / (1.0 - g));
+			delta = alpha / sqrt(1.0 + SQR(alpha));
+			omega = sqrt(variance / (1.0 - 2.0 * SQR(delta) / M_PI));
+			xi = ypred - omega * delta * sqrt(2.0 / M_PI);
+			xarg = (yy - xi) / omega;
+			logll[i] = inla_sn_Phi(xarg, 0.0, 1.0, alpha);
+		}
 	}
 
 #undef _SKEW_MAX
@@ -5593,8 +5648,8 @@ int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, doubl
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			v = y - ypred + M_LOG2E;
-			logll[i] = -M_LOG2E + v - 0.5 * exp_taylor(v, x0, order);
+			v = y - ypred + M_LN2;
+			logll[i] = -M_LN2 + v - 0.5 * exp_taylor(v, x0, order);
 		}
 	}
 
