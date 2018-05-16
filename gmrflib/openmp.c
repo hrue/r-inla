@@ -125,7 +125,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	int nested = 0;
 	int *nhyper = (int *) arg;
 	int nhyper_def = 5;
-	int debug = 1;
+	int debug = 0;
 	static int pardiso_ok = -1;
 	
 	if (nhyper == NULL) {
