@@ -32,12 +32,13 @@
 #endif
 #include <stdlib.h>
 
+int METIS_NodeND(int *, int *, int *,  int *,  int *,  int *,  int *);
+
 #define NO_PARDISO_LIB						\
 	{							\
 		fprintf(stderr, "\n\n\t*** No PARDISO library is loaded. Exit.\n\n");	\
 		exit(1);						\
 	}
-
 
 void pardisoinit(void *a, int *b, int *c, int *d, double *e, int *f) NO_PARDISO_LIB;
 void pardiso(void *a, int *b, int *c, int *d, int *e, int *f, double *g,
@@ -47,3 +48,8 @@ void pardiso_chkvec(int *a, int *s, double *d, int *f) NO_PARDISO_LIB;
 void pardiso_printstats(int *a, int *s, double *d, int *f, int *g, int *h, double *j, int *k) NO_PARDISO_LIB;
 void pardiso_get_factor_csc(void **a, double *s, int *d, int *f, double *g, int *h, int *j, int *k, int l) NO_PARDISO_LIB;
 void pardiso_get_inverse_factor_csc(void **a, double *s, int *d, int *f, int *g, int h) NO_PARDISO_LIB;
+
+int METIS51_NodeND(int *nvtxs, int *xadj, int *adjncy, int *vwgt, int *options, int *perm, int *iperm) 
+{
+	return METIS_NodeND(nvtxs, xadj, adjncy, vwgt, options, perm, iperm);
+}
