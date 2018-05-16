@@ -53,19 +53,18 @@ CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DHGVERSION="\"${HGVERSION}\"
 INLA = inla
 OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/sha1.o src/spde.o src/spde2.o src/spde3.o src/eval.o src/interpol.o src/re.o src/ar.o src/bessel.o src/pc-priors.o src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o 
 
-## different...
+## this for building the empty libpardiso.{so,ddl,dylib}
+NOPARDISO_SRC = src/libpardiso.c
+NOPARDISO_OBJ = $(NOPARDISO_SRC:.c=.o)
 ifeq ($(INLA_OS),Darwin)
   NOPARDISO_LIB = src/libpardiso.dylib
-  NOPARDISO_SRC = src/libpardiso.c
-  NOPARDISO_LDFLAGS = -Wall -dynamiclib
+  NOPARDISO_LDFLAGS = -Wall -dynamiclib -undefined suppress -flat_namespace 
 
   $(NOPARDISO_LIB) : $(NOPARDISO_SRC)
 	$(CC) $(NOPARDISO_LDFLAGS) -o $@ $^
 
 else ifeq ($(INLA_OS), Windows)
   NOPARDISO_LIB = src/libpardiso.dll
-  NOPARDISO_SRC = src/libpardiso.c
-  NOPARDISO_OBJ = $(NOPARDISO_SRC:.c=.o)
   NOPARDISO_CFLAGS = -c
   NOPARDISO_LDFLAGS = -shared
 
@@ -75,10 +74,8 @@ else ifeq ($(INLA_OS), Windows)
   $(NOPARDISO_OBJ) : $(NOPARDISO_SRC)
 	$(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^
 
-else ## ifeq ($(INLA_OS),Linux)
+else ifeq ($(INLA_OS),Linux)
   NOPARDISO_LIB = src/libpardiso.so
-  NOPARDISO_SRC = src/libpardiso.c
-  NOPARDISO_OBJ = $(NOPARDISO_SRC:.c=.o)
   NOPARDISO_CFLAGS = -fPIC -Wall
   NOPARDISO_LDFLAGS = -shared
 
@@ -87,7 +84,6 @@ else ## ifeq ($(INLA_OS),Linux)
 
   $(NOPARDISO_OBJ) : $(NOPARDISO_SRC)
 	$(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^
-
 endif
 
 
