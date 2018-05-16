@@ -57,7 +57,7 @@ OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o sr
 ifeq ($(INLA_OS),Darwin)
   NOPARDISO_LIB = src/libpardiso.dylib
   NOPARDISO_SRC = src/libpardiso.c
-  NOPARDISO_CFLAGS = -Wall -dynamiclib
+  NOPARDISO_LDFLAGS = -Wall -dynamiclib
 
   $(NOPARDISO_LIB) : $(NOPARDISO_SRC)
 	$(CC) $(NOPARDISO_LDFLAGS) -o $@ $^
