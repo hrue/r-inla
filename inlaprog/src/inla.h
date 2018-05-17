@@ -1377,6 +1377,7 @@ double extra(double *theta, int ntheta, void *argument);
 double iid_mfunc(int idx, void *arg);
 double inla_Phi(double x);
 double inla_Phi_fast(double x);
+double inla_sn_Phi(double x, double xi, double omega, double alpha);
 double inla_ar1_cyclic_logdet(int N_orig, double phi);
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec, void *arg);
 double inla_compute_saturated_loglik(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
