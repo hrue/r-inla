@@ -20,6 +20,7 @@ FC = gfortran
 FCEXTRAFLAGS = -fno-second-underscore
 FLAGS= -std=gnu99 -O3 -march=native -mfpmath=sse -msse2 -funroll-loops -ftracer -fopenmp -pipe
 LD = $(CXX)
+INLA_OS = $(shell uname)
 
 # The path to the external libraries: metis, taucs, lapack, blas and zlib, often the same as $(PREFIX)
 LEXTPREFIX = $(PREFIX)
@@ -42,7 +43,7 @@ SHELL   = /bin/sh
 # To use existing HG file, use "make HG= target"
 # Would be prettier and more robust with a mercurial update hook.
 HG:= $(shell which hg)
-HGVERSION:= $(shell if [ -x "$(HG)" ]; then $(HG) parents --template 'hgid: {node|short}  date: {date|date}'; elif [ -e hgstamp ]; then cat hgstamp; else echo 'hgid: unknown  date: unknown' ; fi)
+HGVERSION:= $(shell if [ -x "$(HG)" -a -d ../.hg ]; then $(HG) parents --template 'hgid: {node|short}  date: {date|date}'; elif [ -e hgstamp ]; then cat hgstamp; else echo 'hgid: unknown  date: unknown' ; fi)
 
 EXTLIBS = $(RLIB_LIB) $(EXTLIBS1) $(EXTLIBS2) $(EXTLIBS3)
 INCL    = $(RLIB_INC) -Isrc -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
@@ -50,20 +51,20 @@ LDFLAGS = $(FLAGS)
 FFLAGS  = $(FLAGS) $(FCEXTRAFLAGS) $(INCL)
 CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DHGVERSION="\"${HGVERSION}\""
 
-INLA = inla
-OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/sha1.o src/spde.o src/spde2.o src/spde3.o src/eval.o src/interpol.o src/re.o src/ar.o src/bessel.o src/pc-priors.o src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o 
-
 ## this for building the empty libpardiso.{so,ddl,dylib}
 NOPARDISO_SRC = src/libpardiso.c
 NOPARDISO_OBJ = $(NOPARDISO_SRC:.c=.o)
+
 ifeq ($(INLA_OS),Darwin)
+
   NOPARDISO_LIB = src/libpardiso.dylib
   NOPARDISO_LDFLAGS = -Wall -dynamiclib -undefined suppress -flat_namespace 
 
   $(NOPARDISO_LIB) : $(NOPARDISO_SRC)
 	$(CC) $(NOPARDISO_LDFLAGS) -o $@ $^
 
-else ifeq ($(INLA_OS), Windows)
+else ifeq ($(INLA_OS),Windows)
+
   NOPARDISO_LIB = src/libpardiso.dll
   NOPARDISO_CFLAGS = -c
   NOPARDISO_LDFLAGS = -shared
@@ -75,6 +76,7 @@ else ifeq ($(INLA_OS), Windows)
 	$(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^
 
 else ifeq ($(INLA_OS),Linux)
+
   NOPARDISO_LIB = src/libpardiso.so
   NOPARDISO_CFLAGS = -fPIC -Wall
   NOPARDISO_LDFLAGS = -shared
@@ -86,11 +88,12 @@ else ifeq ($(INLA_OS),Linux)
 	$(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^
 endif
 
+INLA = inla
+OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/sha1.o src/spde.o src/spde2.o src/spde3.o src/eval.o src/interpol.o src/re.o src/ar.o src/bessel.o src/pc-priors.o src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o
 
-all: $(INLA)  $(NOPARDISO_LIB)
+$(INLA) : $(OBJ) $(NOPARDISO_LIB)
+	$(LD) $(LDFLAGS) -o $@ $(OBJ) -Lsrc -lpardiso -L$(PREFIX)/lib  $(EXTLIBS)
 
-$(INLA) : $(OBJ)
-	$(LD) $(LDFLAGS) -o $@ $^ -L$(PREFIX)/lib  $(EXTLIBS)
 
 install: $(INLA)
 	 @umask 022;\

@@ -104,7 +104,7 @@ static GMRFLib_error_handler_tp *handler = NULL;
   25 :   PARDISO License file: expired\n
   26 :   PARDISO License file: wrong username\
   27 :   PARDISO: Internal error\
-  28 :   PARDISO: Library not available\
+  28 :   PARDISO: Library not loaded or available\
   29 :   (this is an unknown error code) \n
 
   \remarks This function is used within the library generating the \a reason argument 
