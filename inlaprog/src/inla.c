@@ -4806,10 +4806,10 @@ int loglikelihood_skew_normal2(double *logll, double *x, int m, int idx, double 
 				g = 0.0;
 			} else {
 				g = M_PI / (2.0 * (1.0 + pow((4.0 - M_PI) / (2.0 * ABS(skewness)), 2.0 / 3.0)));
-				g = DMIN(SKEW_MAX - GMRFLib_eps(0.75), g);
-				g = DMAX(-(SKEW_MAX - GMRFLib_eps(0.75)), g);
+				g = DMIN(_SKEW_MAX - GMRFLib_eps(0.75), g);
+				g = DMAX(-(_SKEW_MAX - GMRFLib_eps(0.75)), g);
 			}
-			alpha = SIGN(skewness) * sqrt(g / (1.0 - g));
+			alpha = _SIGN(skewness) * sqrt(g / (1.0 - g));
 			delta = alpha / sqrt(1.0 + SQR(alpha));
 			omega = sqrt(variance / (1.0 - 2.0 * SQR(delta) / M_PI));
 			xi = ypred - omega * delta * sqrt(2.0 / M_PI);
