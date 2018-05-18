@@ -53,6 +53,9 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 #define WARNING(_msg) fprintf(stderr, "\n\n%s:%1d: %s\n\n", __FILE__, __LINE__, _msg)
 
+// do not change: also inlaprog/src/libpardiso.c uses this code
+#define NOLIB_ECODE (270465)  
+
 typedef struct {
 	int verbose;
 	int s_verbose;
@@ -297,7 +300,9 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default[24] = (s->iparm_default[2] == 1 ? 0 : 1); /* use parallel solve only if we use parallel chol */
 	
 	if (error != 0) {
-		if (error == -10) {
+		if (error == NOLIB_ECODE) {
+			GMRFLib_ERROR(GMRFLib_EPARDISO_NO_LIBRARY);
+		} else if (error == -10) {
 			GMRFLib_ERROR(GMRFLib_EPARDISO_LICENSE_NOTFOUND);
 		} else if (error == -11) {
 			GMRFLib_ERROR(GMRFLib_EPARDISO_LICENSE_EXPIRED);
@@ -390,7 +395,9 @@ int GMRFLib_pardiso_check_install(int quiet, int no_err)
 
 	if (!no_err) {
 		if (err_code != 0) {
-			if (err_code == -10) {
+			if (err_code == NOLIB_ECODE) {
+				GMRFLib_ERROR(GMRFLib_EPARDISO_NO_LIBRARY);
+			} else if (err_code == -10) {
 				GMRFLib_ERROR(GMRFLib_EPARDISO_LICENSE_NOTFOUND);
 			} else if (err_code == -11) {
 				GMRFLib_ERROR(GMRFLib_EPARDISO_LICENSE_EXPIRED);
