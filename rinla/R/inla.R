@@ -1922,6 +1922,17 @@
         }
     }
 
+    ## write the list of environment variables set, so they can be reset if needed
+    env = Sys.getenv()
+    env.n = names(env)
+    idx = grep("^(INLA_|(OPENBLAS|MKL)_NUM_THREADS|PARDISOLICMESSAGE)", env.n)
+    env.list = env[idx]
+    file.env = paste0(inla.dir, "/environment")
+    cat(file=file.env)
+    for(i in seq_along(env.list)) {
+        cat(names(env.list[i]), "=\"", env.list[i], "\"\n", sep="", file=file.env, append=TRUE)
+    }
+
     my.time.used[2] = Sys.time()
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
     if (ownfun || nchar(inla.call) > 0) {
@@ -2152,10 +2163,16 @@
         }
         inla.eval(paste("Sys.setenv(", "\"PARDISO_LIC_PATH\"", "=\"", normalizePath(lic.path), "\"", ")", sep=""))
     }    
-    Sys.setenv(PARDISOLICMESSAGE=1)
 
-    inla.eval(paste0("Sys.setenv(", "OPENBLAS_NUM_THREADS=", blas.num.threads, ")"))
-    inla.eval(paste0("Sys.setenv(", "MKL_NUM_THREADS=", blas.num.threads, ")"))
-
+    for(e in "PARDISOLICMESSAGE") {
+        if (Sys.getenv(e) == "") {
+            inla.eval(paste0("Sys.setenv(", e, "=", 1, ")"))
+        }
+    }
+    for (e in c("OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS")) {
+        if (Sys.getenv(e) == "") {
+            inla.eval(paste0("Sys.setenv(", e, "=", blas.num.threads, ")"))
+        }
+    }
     return (invisible())
 }    
