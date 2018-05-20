@@ -53,76 +53,76 @@ CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DHGVERSION="\"${HGVERSION}\"
 
 ## this for building the empty libpardiso.{so,ddl,dylib} and libmetis
 NOPARDISOMETISLINK = -Lsrc -lpardiso -lmetis
-NOPARDISO_SRC = src/libpardiso.c
+NOPARDISO_SRC = libpardiso.c
 NOPARDISO_OBJ = $(NOPARDISO_SRC:.c=.o)
 
 ifeq ($(INLA_OS),Darwin)
 
-  NOPARDISO_LIB = src/libpardiso.dylib
+  NOPARDISO_LIB = libpardiso.dylib
   NOPARDISO_LDFLAGS = -Wall -dynamiclib -undefined suppress -flat_namespace 
 
   $(NOPARDISO_LIB) : $(NOPARDISO_SRC)
-	$(CC) $(NOPARDISO_LDFLAGS) -o $@ $^
+	( cd src; $(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ )
 
 else ifeq ($(INLA_OS),Windows)
 
-  NOPARDISO_LIB = src/libpardiso.dll
+  NOPARDISO_LIB = libpardiso.dll
   NOPARDISO_CFLAGS = -c
   NOPARDISO_LDFLAGS = -shared
 
   $(NOPARDISO_LIB) : $(NOPARDISO_OBJ)
-	$(CC) $(NOPARDISO_LDFLAGS) -o $@ $^
+	( cd src; $(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ )
 
   $(NOPARDISO_OBJ) : $(NOPARDISO_SRC)
-	$(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^
+	(cd src; $(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^ )
 
 else ifeq ($(INLA_OS),Linux)
 
-  NOPARDISO_LIB = src/libpardiso.so
+  NOPARDISO_LIB = libpardiso.so
   NOPARDISO_CFLAGS = -fPIC -Wall
   NOPARDISO_LDFLAGS = -shared
 
   $(NOPARDISO_LIB) : $(NOPARDISO_OBJ)
-	$(CC) $(NOPARDISO_LDFLAGS) -o $@ $^
+	( cd src; $(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ )
 
   $(NOPARDISO_OBJ) : $(NOPARDISO_SRC)
-	$(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^
+	(cd src; $(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^ )
 endif
 
-NOMETIS_SRC = src/libmetis.c
+NOMETIS_SRC = libmetis.c
 NOMETIS_OBJ = $(NOMETIS_SRC:.c=.o)
 
 ifeq ($(INLA_OS),Darwin)
 
-  NOMETIS_LIB = src/libmetis.dylib
+  NOMETIS_LIB = libmetis.dylib
   NOMETIS_LDFLAGS = -Wall -dynamiclib -undefined suppress -flat_namespace 
 
   $(NOMETIS_LIB) : $(NOMETIS_SRC)
-	$(CC) $(NOMETIS_LDFLAGS) -o $@ $^
+	( cd src; $(CC) $(NOMETIS_LDFLAGS) -o $@ $^ )
 
 else ifeq ($(INLA_OS),Windows)
 
-  NOMETIS_LIB = src/libmetis.dll
+  NOMETIS_LIB = libmetis.dll
   NOMETIS_CFLAGS = -c
   NOMETIS_LDFLAGS = -shared
 
   $(NOMETIS_LIB) : $(NOMETIS_OBJ)
-	$(CC) $(NOMETIS_LDFLAGS) -o $@ $^
+	( cd src; $(CC) $(NOMETIS_LDFLAGS) -o $@ $^ )
 
   $(NOMETIS_OBJ) : $(NOMETIS_SRC)
-	$(CC) $(NOMETIS_CFLAGS) -c -o $@ $^
+	( cd src; $(CC) $(NOMETIS_CFLAGS) -c -o $@ $^ )
 
 else ifeq ($(INLA_OS),Linux)
 
-  NOMETIS_LIB = src/libmetis.so
+  NOMETIS_LIB = libmetis.so
   NOMETIS_CFLAGS = -fPIC -Wall
   NOMETIS_LDFLAGS = -shared
 
   $(NOMETIS_LIB) : $(NOMETIS_OBJ)
-	$(CC) $(NOMETIS_LDFLAGS) -o $@ $^
+	( cd src; $(CC) $(NOMETIS_LDFLAGS) -o $@ $^ )
 
   $(NOMETIS_OBJ) : $(NOMETIS_SRC)
-	$(CC) $(NOMETIS_CFLAGS) -c -o $@ $^
+	( cd src; $(CC) $(NOMETIS_CFLAGS) -c -o $@ $^ )
 endif
 
 
