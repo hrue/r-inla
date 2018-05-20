@@ -405,8 +405,7 @@ int GMRFLib_dcmp_abs(const void *a, const void *b)
 	 */
 	return 0;
 }
-int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z,
-		   int (*compar) (const void *, const void *))
+int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z, int (*compar) (const void *, const void *))
 {
 	/*
 	 * sort x and optionally sort y and z along
@@ -728,8 +727,7 @@ int GMRFLib_memcheck_printf(FILE * fp)
 	fp = (fp ? fp : stdout);
 	if (!memcheck_first) {
 		for (i = -1; (i = map_vpvp_next(&memcheck_hash_table, i)) != -1;) {
-			fprintf(fp, "0x%x %s\n", (size_t) memcheck_hash_table.contents[i].key,
-				(char *) memcheck_hash_table.contents[i].value);
+			fprintf(fp, "0x%x %s\n", (size_t) memcheck_hash_table.contents[i].key, (char *) memcheck_hash_table.contents[i].value);
 		}
 	}
 #endif
@@ -840,10 +838,10 @@ int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_matrix_fprintf(FILE *fp, double *A, int m, int n)
+int GMRFLib_matrix_fprintf(FILE * fp, double *A, int m, int n)
 {
 	// A is m x n matrix
-#pragma omp critial 
+#pragma omp critial
 	{
 		fprintf(fp, "\n\n");
 		for (int i = 0; i < m; i++) {

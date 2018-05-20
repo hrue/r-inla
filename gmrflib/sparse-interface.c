@@ -55,8 +55,8 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 		}							\
 	} else {							\
 		_expr;							\
-	}	
-		
+	}
+
 
 /*!
   \brief Compute the reordering
@@ -429,7 +429,7 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm
 	 */
 	GMRFLib_ENTER_ROUTINE;
 	int idum;
-	
+
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
 		GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix_special_BAND(rhs, sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth, idx));
@@ -466,7 +466,7 @@ int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_
 	 * this routine is called to many times and the work is not that much, to justify GMRFLib_ENTER_ROUTINE; 
 	 */
 	int idum;
-	
+
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
 		GMRFLib_EWRAP0(GMRFLib_solve_lt_sparse_matrix_special_BAND

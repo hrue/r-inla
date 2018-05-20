@@ -70,11 +70,11 @@ static const char RCSId[] = HGVERSION;
 #include <sys/sysctl.h>
 #endif
 
-#define MATHLIB_STANDALONE 
+#define MATHLIB_STANDALONE
 #define MATHLIB_FUN(_fun) _fun
 #include <Rmath.h>
 #ifdef ISNAN
-#  undef ISNAN
+#undef ISNAN
 #endif
 
 
@@ -1437,13 +1437,11 @@ double link_qweibull(double x, map_arg_tp typ, void *param, double *cov)
 	{
 		int ret_val = 0;
 		static int do_check[2] = { 1, 1 };
-			
+
 		if (do_check[lparam->variant]) {
-#pragma omp critical 
+#pragma omp critical
 			if (do_check[lparam->variant]) {
-				if (ret_val !=
-				    (link_qweibull(x + 1.0, INVLINK, param, cov) >
-				     link_qweibull(x, INVLINK, param, cov) ? 1 : 0)) {
+				if (ret_val != (link_qweibull(x + 1.0, INVLINK, param, cov) > link_qweibull(x, INVLINK, param, cov) ? 1 : 0)) {
 					FIXME("LINKINCREASING has error in link_qweibull");
 					exit(EXIT_FAILURE);
 				}
@@ -1474,7 +1472,7 @@ double link_qgamma(double x, map_arg_tp typ, void *param, double *cov)
 
 	switch (typ) {
 	case INVLINK:
-		ret = exp(x) * shape / MATHLIB_FUN(qgamma)(lparam->quantile, shape, 1.0, 1, 0);
+		ret = exp(x) * shape / MATHLIB_FUN(qgamma) (lparam->quantile, shape, 1.0, 1, 0);
 		break;
 
 	case LINK:
@@ -1496,7 +1494,7 @@ double link_qgamma(double x, map_arg_tp typ, void *param, double *cov)
 		break;
 
 	case LINKINCREASING:
-	        ret = 1;
+		ret = 1;
 		break;
 
 	default:
@@ -1518,7 +1516,7 @@ double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
 	case INVLINK:
 	{
 		q = 1.0 / (1.0 + exp(-x));
-		ret = MATHLIB_FUN(qbeta)(lparam->quantile, lparam->Ntrial * q + 1.0, lparam->Ntrial * (1.0 - q), 0, 0);
+		ret = MATHLIB_FUN(qbeta) (lparam->quantile, lparam->Ntrial * q + 1.0, lparam->Ntrial * (1.0 - q), 0, 0);
 	}
 		break;
 
@@ -3506,7 +3504,7 @@ double Qfunc_besag(int i, int j, void *arg)
 
 	a = (inla_besag_Qfunc_arg_tp *) arg;
 	prec = (a->log_prec ? map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL) : 1.0);
-	
+
 	if (a->prec_scale) {
 		if (a->prec_scale[i] > 0.0) {
 			prec *= a->prec_scale[i];
@@ -4670,14 +4668,14 @@ int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_v
 	return GMRFLib_SUCCESS;
 }
 
-double inla_sn_Phi(double x, double xi, double omega, double alpha) 
+double inla_sn_Phi(double x, double xi, double omega, double alpha)
 {
 	// density = 2/omega * phi((x - xi)/omega) * Phi(alpha * ((x-xi)/omega))
 
 	if (alpha == 0.0) {
-		return inla_Phi((x-xi)/omega);
+		return inla_Phi((x - xi) / omega);
 	} else {
-		double xx = (x - xi)/omega;
+		double xx = (x - xi) / omega;
 		double integral = 0.0;
 		double dx = 0.1;
 		double w = 0.0;
@@ -4686,9 +4684,9 @@ double inla_sn_Phi(double x, double xi, double omega, double alpha)
 
 		np = (int) ((x - (-7.0)) / dx);
 		np = IMAX(9, np);
-		np = (np/2) * 2 + 1;			       /* make sure its an odd number */
+		np = (np / 2) * 2 + 1;			       /* make sure its an odd number */
 		for (i = 0; i < np; i++) {
-			w = ((i == 0 || i == np-1) ? 1.0 : (w == 2.0 ? 4.0 : 2.0));
+			w = ((i == 0 || i == np - 1) ? 1.0 : (w == 2.0 ? 4.0 : 2.0));
 			xval = xx - i * dx;
 			integral += w * exp(LOG_NORMC_GAUSSIAN + M_LN2 - 0.5 * SQR(xval) + inla_log_Phi(alpha * xval));
 		}
@@ -4718,7 +4716,7 @@ int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *
 	shape = map_rho(ds->data_observations.shape_skew_normal[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * shape_max;
 
 	if (m > 0) {
-		for(i = 0; i < m; i++) {
+		for (i = 0; i < m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			xarg = (y - ypred) * sprec;
 			logll[i] = LOG_NORMC_GAUSSIAN + M_LN2 + 0.5 * (lprec - SQR(xarg)) + inla_log_Phi_fast(shape * xarg);
@@ -4727,7 +4725,7 @@ int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *
 		double yy = (y_cdf ? *y_cdf : y);
 
 #pragma omp parallel for private(i, ypred, xarg)
-		for(i = 0; i < -m; i++) {
+		for (i = 0; i < -m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			xarg = (yy - ypred) * sprec;
 			logll[i] = inla_sn_Phi(xarg, 0.0, 1.0, shape);
@@ -4782,7 +4780,7 @@ int loglikelihood_skew_normal2(double *logll, double *x, int m, int idx, double 
 		double yy = (y_cdf ? *y_cdf : y);
 
 #pragma omp parallel for private(i, ypred, g, alpha, delta, omega, xi, xarg)
-		for(i = 0; i < -m; i++) {
+		for (i = 0; i < -m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			if (ISZERO(skewness)) {
 				g = 0.0;
@@ -7399,7 +7397,7 @@ int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, in
 			if (gsl_isinf(pzero) || gsl_isinf(p)) {
 				logll[i] = -DBL_MAX;
 			} else {
-	
+
 				logA = log(pzero);
 				logB = log(1.0 - pzero) + (_LOGGAMMA_INT(n + 1) - _LOGGAMMA_INT(y + 1) - _LOGGAMMA_INT(n - y + 1)
 							   + _LOGGAMMA(delta * p + y) + _LOGGAMMA(n + delta * (1.0 - p) - y) - _LOGGAMMA(delta + n)
@@ -7415,7 +7413,8 @@ int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, in
 				logll[i] = -DBL_MAX;
 			} else {
 				logll[i] = log(1.0 - pzero) + (_LOGGAMMA_INT(n + 1) - _LOGGAMMA_INT(y + 1) - _LOGGAMMA_INT(n - y + 1)
-							       + _LOGGAMMA(delta * p + y) + _LOGGAMMA(n + delta * (1.0 - p) - y) - _LOGGAMMA(delta + n)
+							       + _LOGGAMMA(delta * p + y) + _LOGGAMMA(n + delta * (1.0 - p) - y) - _LOGGAMMA(delta +
+																	     n)
 							       + _LOGGAMMA(delta) - _LOGGAMMA(delta * p) - _LOGGAMMA(delta * (1.0 - p)));
 			}
 		}
@@ -9304,7 +9303,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	mb->predictor_invlinkfunc = Calloc(mb->predictor_n + mb->predictor_m, link_func_tp *);
 	mb->predictor_invlinkfunc_arg = Calloc(mb->predictor_n + mb->predictor_m, void *);
 	mb->predictor_invlinkfunc_covariates = Calloc(mb->predictor_n + mb->predictor_m, GMRFLib_matrix_tp *);
-	mb->predictor_family = Calloc(mb->predictor_n + mb->predictor_m, double); /* as we use NAN */
+	mb->predictor_family = Calloc(mb->predictor_n + mb->predictor_m, double);	/* as we use NAN */
 	for (i = 0; i < mb->predictor_ndata; i++) {
 		for (j = found = 0; j < mb->nds; j++) {
 			if (mb->data_sections[j].data_observations.d[i]) {
@@ -9318,8 +9317,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 			exit(EXIT_FAILURE);
 		}
 		mb->predictor_family[i] = (found == 1 ? (double) k :
-					   ((mb->link_fitted_values && !gsl_isnan(mb->link_fitted_values[i])) ?
-					    mb->link_fitted_values[i] : NAN));
+					   ((mb->link_fitted_values && !gsl_isnan(mb->link_fitted_values[i])) ? mb->link_fitted_values[i] : NAN));
 		mb->predictor_invlinkfunc[i] = (found == 1 ? mb->data_sections[k].predictor_invlinkfunc :
 						((mb->link_fitted_values && !gsl_isnan(mb->link_fitted_values[i])) ?
 						 mb->data_sections[(int) (mb->link_fitted_values[i])].predictor_invlinkfunc : NULL));
@@ -9638,8 +9636,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	if (mb->verbose) {
 		printf("\t\tname=[%s]\n", mb->name);
 	}
-	openmp_strategy = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"),
-							     GMRFLib_strdup("DEFAULT"))); 
+	openmp_strategy = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"), GMRFLib_strdup("DEFAULT")));
 	if (mb->verbose) {
 		printf("\t\topenmp.strategy=[%s]\n", openmp_strategy);
 	}
@@ -9681,8 +9678,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		} else if (!strcasecmp(smtp, "AUTO") || !strcasecmp(smtp, "DEFAULT")) {
 			if (GMRFLib_pardiso_check_install(1, 1) == GMRFLib_SUCCESS) {
 				mb->strategy = (mb->strategy != GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ?
-						  GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL : 
-						  GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL);
+						GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL : GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL);
 			} else {
 				if (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ||
 				    mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL) {
@@ -19691,7 +19687,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (std) {
 			int idum;
 #pragma omp parallel for private(idum) num_threads(1)
-			for(idum = 0; idum < 1; idum++) {
+			for (idum = 0; idum < 1; idum++) {
 				inla_besag_scale(arg, adj, mb->verbose);
 			}
 			if (mb->verbose) {
@@ -19708,7 +19704,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		// GMRFLib_print_Qfunc(stderr, mb->f_graph[mb->nf], mb->f_Qfunc[mb->nf], mb->f_Qfunc_arg[mb->nf]);
 		break;
 	}
-	
+
 	case F_BESAG2:
 	{
 		inla_besag2_Qfunc_arg_tp *arg = NULL;
@@ -19727,7 +19723,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (std) {
 			int idum;
 #pragma omp parallel for private(idum) num_threads(1)
-			for(idum = 0; idum < 1; idum++) {
+			for (idum = 0; idum < 1; idum++) {
 				inla_besag_scale(arg->besag_arg, adj, mb->verbose);
 			}
 			if (mb->verbose) {
@@ -19776,7 +19772,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (std) {
 			int idum;
 #pragma omp parallel for private(idum) num_threads(1)
-			for(idum = 0; idum < 1; idum++) {
+			for (idum = 0; idum < 1; idum++) {
 				inla_besag_scale(arg->besag_arg, adj, mb->verbose);
 			}
 			if (mb->verbose) {
@@ -19820,7 +19816,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (1) {
 			int idum;
 #pragma omp parallel for private(idum) num_threads(1)
-			for(idum = 0; idum < 1; idum++) {
+			for (idum = 0; idum < 1; idum++) {
 				GMRFLib_rw2d_scale(arg->rw2ddef);
 			}
 		}
@@ -19873,7 +19869,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (std) {
 			int idum;
 #pragma omp parallel for private(idum) num_threads(1)
-			for(idum = 0; idum < 1; idum++) {
+			for (idum = 0; idum < 1; idum++) {
 				inla_besag_scale(arg->besag_arg, adj, mb->verbose);
 			}
 			if (mb->verbose) {
@@ -20024,7 +20020,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (std) {
 			int idum;
 #pragma omp parallel for private(idum) num_threads(1)
-			for(idum = 0; idum < 1; idum++) {
+			for (idum = 0; idum < 1; idum++) {
 				GMRFLib_rw2d_scale((void *) arg);
 			}
 		}
@@ -20215,7 +20211,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (std) {
 			int idum;
 #pragma omp parallel for private(idum) num_threads(1)
-			for(idum = 0; idum < 1; idum++) {
+			for (idum = 0; idum < 1; idum++) {
 				GMRFLib_seasonal_scale(sdef);
 			}
 		}
@@ -20813,7 +20809,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			if (std) {
 				int idum;
 #pragma omp parallel for private(idum) num_threads(1)
-				for(idum = 0; idum < 1; idum++) {
+				for (idum = 0; idum < 1; idum++) {
 					GMRFLib_rw_scale((void *) rwdef);
 				}
 				printf("\t\tscale.model: prec_scale[%g]\n", rwdef->prec_scale[0]);
@@ -20885,7 +20881,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				if (std) {
 					int idum;
 #pragma omp parallel for private(idum) num_threads(1)
-					for(idum = 0; idum < 1; idum++) {
+					for (idum = 0; idum < 1; idum++) {
 						GMRFLib_crw_scale((void *) crwdef);
 					}
 				}
@@ -21440,7 +21436,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					if (std) {
 						int idum;
 #pragma omp parallel for private(idum) num_threads(1)
-						for(idum = 0; idum < 1; idum++) {
+						for (idum = 0; idum < 1; idum++) {
 							GMRFLib_crw_scale((void *) def->crwdef);
 						}
 					}
@@ -21477,7 +21473,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				if (std) {
 					int idum;
 #pragma omp parallel for private(idum) num_threads(1)
-					for(idum = 0; idum < 1; idum++) {
+					for (idum = 0; idum < 1; idum++) {
 						inla_besag_scale((void *) def->besagdef, adj, mb->verbose);
 					}
 				}
@@ -25187,13 +25183,13 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_BYM:
 		{
-			if (_NOT_FIXED(f_fixed[i][0])) {	       /* iid */
+			if (_NOT_FIXED(f_fixed[i][0])) {       /* iid */
 				log_precision0 = theta[count];
 				count++;
 			} else {
 				log_precision0 = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
-			if (_NOT_FIXED(f_fixed[i][1])) {	       /* spatial */
+			if (_NOT_FIXED(f_fixed[i][1])) {       /* spatial */
 				log_precision1 = theta[count];
 				count++;
 			} else {
@@ -30016,7 +30012,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 			M->A[(i + 1) * M->nrow - 1] = problems[thread]->sub_logdens;
 		}
 	}
-	
+
 	GMRFLib_write_fmesher_file(M, outfile, (long int) 0, -1);
 
 	GMRFLib_matrix_tp *CM = Calloc(1, GMRFLib_matrix_tp);
@@ -30404,42 +30400,42 @@ int inla_fgn(char *infile, char *outfile)
 }
 int testit(int argc, char **argv)
 {
-	
-	switch(test_no) {
+
+	switch (test_no) {
 	case -1:
-	case 0: 
+	case 0:
 	{
-		double s, phi,  mu,  y, shape, rate, q, mmu, scale, alpha;
+		double s, phi, mu, y, shape, rate, q, mmu, scale, alpha;
 		s = 1.2;
 		phi = 2.3;
 		mu = 3.4;
-		y = 4.5; 
+		y = 4.5;
 		shape = s * phi;
 		rate = s * phi / mu;
-		scale = 1.0/rate;
+		scale = 1.0 / rate;
 		alpha = 0.5;
-		alpha = MATHLIB_FUN(pgamma)(y, shape, scale, 1, 0);
-		q = MATHLIB_FUN(qgamma)(alpha, shape, 1.0, 1, 0);
+		alpha = MATHLIB_FUN(pgamma) (y, shape, scale, 1, 0);
+		q = MATHLIB_FUN(qgamma) (alpha, shape, 1.0, 1, 0);
 		mmu = y * s * phi / q;
-		printf("alpha %f q %f mu %f mmu %f diff %f\n", alpha, q, mu, mmu, mu-mmu);
+		printf("alpha %f q %f mu %f mmu %f diff %f\n", alpha, q, mu, mmu, mu - mmu);
 
-		P(MATHLIB_FUN(pgamma)(y, shape, scale, 1, 0));
-		P(MATHLIB_FUN(qgamma)(alpha, shape, 1.0, 1, 0));
+		P(MATHLIB_FUN(pgamma) (y, shape, scale, 1, 0));
+		P(MATHLIB_FUN(qgamma) (alpha, shape, 1.0, 1, 0));
 		P(gsl_cdf_gamma_P(y, shape, scale));
 		P(gsl_cdf_gamma_Pinv(alpha, shape, 1.0));
 
 		exit(0);
 	}
-	break;
+		break;
 
-	case 1: 
+	case 1:
 	{
 		P(GMRFLib_rng_uniform());
 		P(GMRFLib_rng_uniform());
 	}
-	break;
+		break;
 
-	case 2: 
+	case 2:
 	{
 		double par[] = { 0.8, 0.5 };
 		double theta = 1.234;
@@ -30447,9 +30443,9 @@ int testit(int argc, char **argv)
 		P(priorfunc_pc_cor1(&theta, par));
 		exit(0);
 	}
-	break;
-		
-	case 3: 
+		break;
+
+	case 3:
 	{
 		double x;
 		double lambda = 1.2345;
@@ -30461,7 +30457,7 @@ int testit(int argc, char **argv)
 		}
 		exit(0);
 	}
-	break;
+		break;
 
 	case 4:
 	{
@@ -30472,8 +30468,8 @@ int testit(int argc, char **argv)
 		}
 		exit(0);
 	}
-	break;
-	
+		break;
+
 
 	case 5:
 	{
@@ -30487,8 +30483,8 @@ int testit(int argc, char **argv)
 		}
 		exit(0);
 	}
-	break;
-	
+		break;
+
 	case 6:
 	{
 		double y, lambda;
@@ -30508,8 +30504,8 @@ int testit(int argc, char **argv)
 
 		exit(0);
 	}
-	break;
-	
+		break;
+
 	case 7:
 	{
 		inla_fgn_arg_tp *arg = Calloc(1, inla_fgn_arg_tp);
@@ -30526,8 +30522,8 @@ int testit(int argc, char **argv)
 
 		exit(0);
 	}
-	break;
-	
+		break;
+
 
 	case 8:
 	{
@@ -30576,7 +30572,7 @@ int testit(int argc, char **argv)
 #undef _MODEL
 #undef _PPP
 	}
-	break;
+		break;
 
 	case 9:
 	{
@@ -30598,9 +30594,9 @@ int testit(int argc, char **argv)
 
 		exit(0);
 	}
-	break;
+		break;
 
-	case 10: 
+	case 10:
 	{
 		// checking the expression and the jacobian for this prior
 		double x, xx, xxx, dx = 0.01, sum = 0.0, parameters[2], low = -4.001, high = 4.0;
@@ -30652,8 +30648,8 @@ int testit(int argc, char **argv)
 		}
 		P(sum * pow(dx, 3.0));
 	}
-	break;
-		
+		break;
+
 	case 11:
 	{
 		// test the new R-interface
@@ -30678,9 +30674,9 @@ int testit(int argc, char **argv)
 
 		exit(0);
 	}
-	break;
+		break;
 
-	case 12: 
+	case 12:
 	{
 		// testing spde3
 
@@ -30720,23 +30716,23 @@ int testit(int argc, char **argv)
 		}
 		GMRFLib_write_fmesher_file(Q, "Q", 0, -1);
 	}
-	break;
-		
-	case 13: 
+		break;
+
+	case 13:
 	{
 		GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
 		GMRFLib_graph_tp *graph;
 		GMRFLib_read_graph_ascii(&graph, "zones.graph");
 		exit(0);
 	}
-	break;
+		break;
 
-	case 14: 
+	case 14:
 	{
 		double a_data[] = { 0.18, 0.41, 0.14, 0.51,
-				    0.60, 0.24, 0.30, 0.13,
-				    0.57, 0.99, 0.97, 0.19,
-				    0.96, 0.58, 0.66, 0.85
+			0.60, 0.24, 0.30, 0.13,
+			0.57, 0.99, 0.97, 0.19,
+			0.96, 0.58, 0.66, 0.85
 		};
 
 		gsl_matrix_view m = gsl_matrix_view_array(a_data, 4, 4);
@@ -30749,39 +30745,39 @@ int testit(int argc, char **argv)
 
 		exit(EXIT_SUCCESS);
 	}
-	break;
-		
+		break;
+
 	case 15:
 	{
 		double lambda = 10;
 		re_init(&lambda);
 	}
-	break;
+		break;
 
-	case 16: 
+	case 16:
 	{
 		ar_test1();
 		exit(EXIT_SUCCESS);
 	}
-	break;
+		break;
 
-	case 17: 
+	case 17:
 	{
 		P(bessel_Knu(0.25, 0.2));
 		P(gsl_sf_bessel_Knu(0.25, 0.2));
 		exit(EXIT_SUCCESS);
 	}
-	break;
-		
+		break;
+
 	case 18:
 	{
 		P(re_intrinsic_discrepancy_distance_map(re_intrinsic_discrepancy_distance(0.1, 3.2)));
 		P(re_intrinsic_discrepancy_distance_map(re_intrinsic_discrepancy_distance(0.5, 3.2)));
 		exit(EXIT_SUCCESS);
 	}
-	break;
+		break;
 
-	case 19: 
+	case 19:
 	{
 #define GET(_int) fscanf(fp, "%d\n", &_int)
 #define GETV(_vec, _len)						\
@@ -30823,11 +30819,11 @@ int testit(int argc, char **argv)
 			re_print_contourLines(NULL, c);
 		}
 #undef _GET
-#undef _GETV		
+#undef _GETV
 	}
-	break;
+		break;
 
-	case 20: 
+	case 20:
 	{
 		inla_file_contents_tp *fc;
 
@@ -30835,9 +30831,9 @@ int testit(int argc, char **argv)
 		inla_write_file_contents("bb.dat", fc);
 		exit(EXIT_SUCCESS);
 	}
-	break;
+		break;
 
-	case 21: 
+	case 21:
 	{
 		GMRFLib_matrix_tp *M = NULL;
 
@@ -30889,9 +30885,9 @@ int testit(int argc, char **argv)
 		GMRFLib_matrix_free(M);
 		GMRFLib_matrix_free(N);
 	}
-	break;
+		break;
 
-	case 22: 
+	case 22:
 	{
 		double x;
 		for (x = -100.0; x < 100.0; x = x + 0.01) {
@@ -30899,9 +30895,9 @@ int testit(int argc, char **argv)
 		}
 		exit(0);
 	}
-	break;
+		break;
 
-	case 23: 
+	case 23:
 	{
 		// test ghq
 #define FUN2(x) SQR(x)
@@ -30910,7 +30906,7 @@ int testit(int argc, char **argv)
 		double *xp, *wp, integral = 0, integral2 = 0, integral4 = 0.0;
 		int np = 150, i;
 		GMRFLib_ghq(&xp, &wp, np);
-		for(i=0; i<np; i++){
+		for (i = 0; i < np; i++) {
 			integral2 += wp[i] * FUN2(xp[i]);
 			integral4 += wp[i] * FUN4(xp[i]);
 			P(xp[i]);
@@ -30918,16 +30914,16 @@ int testit(int argc, char **argv)
 		printf("integral of x^2 = 1 ?  %.12f\n", integral2);
 		printf("integral of x^4 = 3 ?  %.12f\n", integral4);
 
-		double xx = 2*(GMRFLib_uniform()-0.5);
+		double xx = 2 * (GMRFLib_uniform() - 0.5);
 
 		printf("compute CDF xx=%f true = %.12f\n", xx, inla_Phi(xx));
 
 		integral = 0.0;
-		for(i=0; i < np; i++) {
+		for (i = 0; i < np; i++) {
 			if (xp[i] < xx) {
 				integral += wp[i];
 			} else {
-				integral += wp[i] * (1.0 - (xx - xp[i-1])/(xp[i] - xp[i-1]));
+				integral += wp[i] * (1.0 - (xx - xp[i - 1]) / (xp[i] - xp[i - 1]));
 				break;
 			}
 		}
@@ -30937,12 +30933,12 @@ int testit(int argc, char **argv)
 #undef FUN2
 #undef FUN4
 	}
-	break;
+		break;
 
 	default:
 		exit(0);
 	}
-	
+
 
 	exit(EXIT_SUCCESS);
 }
@@ -30983,7 +30979,7 @@ int main(int argc, char **argv)
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_catch_error_for_inla = GMRFLib_TRUE;
 	GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
-	
+
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 
 	 */
@@ -31072,7 +31068,7 @@ int main(int argc, char **argv)
 			}
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_EXTERNAL, NULL, &GMRFLib_smtp);
 			break;
-		
+
 		case 'z':
 			if (G.mode != INLA_MODE_FINN && G.mode != INLA_MODE_QSAMPLE) {
 				fprintf(stderr, "\n *** ERROR *** Option `-z seed' only available in FINN mode\n");
@@ -31198,28 +31194,28 @@ int main(int argc, char **argv)
 	 * these options does not belong here in this program, but it makes all easier... and its undocumented.
 	 */
 	switch (G.mode) {
-	case INLA_MODE_QINV: 
+	case INLA_MODE_QINV:
 		inla_qinv(argv[optind], argv[optind + 1], argv[optind + 2]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
-	case INLA_MODE_QSOLVE: 
+	case INLA_MODE_QSOLVE:
 		inla_qsolve(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
-	case INLA_MODE_QREORDERING: 
+	case INLA_MODE_QREORDERING:
 		inla_qreordering(argv[optind]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
-	case INLA_MODE_QSAMPLE: 
+	case INLA_MODE_QSAMPLE:
 		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5],
 			     argv[optind + 6], argv[optind + 7], argv[optind + 8]);
 		if (report)
@@ -31227,35 +31223,35 @@ int main(int argc, char **argv)
 		exit(EXIT_SUCCESS);
 		break;
 
-	case INLA_MODE_FINN: 
+	case INLA_MODE_FINN:
 		inla_finn(argv[optind]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
-	case INLA_MODE_GRAPH: 
+	case INLA_MODE_GRAPH:
 		inla_read_graph(argv[optind]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
-		
-	case INLA_MODE_R: 
+
+	case INLA_MODE_R:
 		inla_R(&(argv[optind]));
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
-		
-	case INLA_MODE_FGN: 
+
+	case INLA_MODE_FGN:
 		inla_fgn(argv[optind], argv[optind + 1]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
-		
-	case INLA_MODE_TESTIT: 
+
+	case INLA_MODE_TESTIT:
 		testit(argc, &(argv[optind]));
 		if (report)
 			GMRFLib_timer_full_report(NULL);
@@ -31309,7 +31305,7 @@ int main(int argc, char **argv)
 				printf("\nWall-clock time used on [%s] max_threads=[%1d]\n", argv[arg], GMRFLib_MAX_THREADS);
 			}
 			time_used[0] = GMRFLib_cpu();
-			
+
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 			mb = inla_build(argv[arg], verbose, 1);
 			time_used[0] = GMRFLib_cpu() - time_used[0];

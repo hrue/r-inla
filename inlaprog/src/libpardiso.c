@@ -1,3 +1,4 @@
+
 /* libpardiso.c
  * 
  * Copyright (C) 2018 Havard Rue
@@ -33,7 +34,7 @@
 #include <stdlib.h>
 
 // do not change: also GMRFLib/smtp-pardiso.c uses this code
-#define NOLIB_ECODE (270465)  
+#define NOLIB_ECODE (270465)
 
 #define NO_PARDISO_LIB						\
 	{							\
@@ -41,7 +42,7 @@
 		exit(1);						\
 	}
 
-void pardisoinit(void *a, int *b, int *c, int *d, double *e, int *f) 
+void pardisoinit(void *a, int *b, int *c, int *d, double *e, int *f)
 {
 	*f = NOLIB_ECODE;
 	return;

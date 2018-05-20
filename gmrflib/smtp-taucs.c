@@ -264,9 +264,9 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *whi
 	*perm = Calloc(n, int);
 	*invperm = Calloc(n, int);
 
-	xadj = Calloc(n+1, int);
-	adj = Calloc(2*nnz, int);
-	
+	xadj = Calloc(n + 1, int);
+	adj = Calloc(2 * nnz, int);
+
 
 	if (!(*perm) || !(*invperm) || !xadj || !adj) {
 		Free(*perm);
@@ -318,7 +318,7 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *whi
 	idx_t options[METIS_NOPTIONS];
 	// Have to adapt to the PARDISO metis libs
 	// METIS_SetDefaultOptions(options);
-	for(i = 0; i < METIS_NOPTIONS; i++) {
+	for (i = 0; i < METIS_NOPTIONS; i++) {
 		options[i] = -1;
 	}
 
@@ -333,7 +333,7 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *whi
 #else
 	// this is defined in the pardiso libs
 	ret = METIS51_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
-#endif	
+#endif
 	if (ret != METIS_OK)
 		GMRFLib_ERROR(GMRFLib_EREORDER);
 
