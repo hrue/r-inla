@@ -757,7 +757,8 @@ struct inla_tp_struct {
 	 */
 	int verbose;
 	int strategy;
-
+	char *smtp;
+	
 	/*
 	 * parameters for global_nodes
 	 */
