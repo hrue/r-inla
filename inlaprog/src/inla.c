@@ -1495,29 +1495,11 @@ double link_qgamma(double x, map_arg_tp typ, void *param, double *cov)
 		break;
 
 	case LINKINCREASING:
-	{
 		ret = 1;
-		static int do_check = 1;
-		if (do_check) {
-#pragma omp critical 
-			if (do_check) {
-				if ((int) ret !=
-				    (link_qgamma(x, INVLINK, param, cov) >
-				     link_qgamma(x - 0.01, INVLINK, param, cov) ? 1 : 0)) {
-					FIXME("LINKINCREASING has error in link_qgamma");
-					exit(EXIT_FAILURE);
-				}
-				do_check = 0;
-			}
-		}
-		return (ret);
-	}
 		break;
 
 	default:
-	{
 		assert(0 == 1);
-	}
 		break;
 
 	}
