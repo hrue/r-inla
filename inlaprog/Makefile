@@ -52,7 +52,7 @@ FFLAGS  = $(FLAGS) $(FCEXTRAFLAGS) $(INCL)
 CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DHGVERSION="\"${HGVERSION}\""
 
 ## this for building the empty libpardiso.{so,ddl,dylib} and libmetis
-NOPARDISOMETISLINK = -Lsrc -lpardiso -lmetis
+NOPARDISOMETISLINK = -L. -lpardiso -lmetis
 NOPARDISO_SRC = libpardiso.c
 NOPARDISO_OBJ = $(NOPARDISO_SRC:.c=.o)
 
@@ -62,7 +62,7 @@ ifeq ($(INLA_OS),Darwin)
   NOPARDISO_LDFLAGS = -Wall -dynamiclib -undefined suppress -flat_namespace 
 
   $(NOPARDISO_LIB) : $(NOPARDISO_SRC)
-	( cd src; $(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ )
+	$(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ 
 
 else ifeq ($(INLA_OS),Windows)
 
@@ -71,10 +71,10 @@ else ifeq ($(INLA_OS),Windows)
   NOPARDISO_LDFLAGS = -shared
 
   $(NOPARDISO_LIB) : $(NOPARDISO_OBJ)
-	( cd src; $(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ )
+	$(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ 
 
   $(NOPARDISO_OBJ) : $(NOPARDISO_SRC)
-	(cd src; $(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^ )
+	$(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^
 
 else ifeq ($(INLA_OS),Linux)
 
@@ -83,10 +83,10 @@ else ifeq ($(INLA_OS),Linux)
   NOPARDISO_LDFLAGS = -shared
 
   $(NOPARDISO_LIB) : $(NOPARDISO_OBJ)
-	( cd src; $(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ )
+	$(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ 
 
   $(NOPARDISO_OBJ) : $(NOPARDISO_SRC)
-	(cd src; $(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^ )
+	$(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^ 
 endif
 
 NOMETIS_SRC = libmetis.c
@@ -98,7 +98,7 @@ ifeq ($(INLA_OS),Darwin)
   NOMETIS_LDFLAGS = -Wall -dynamiclib -undefined suppress -flat_namespace 
 
   $(NOMETIS_LIB) : $(NOMETIS_SRC)
-	( cd src; $(CC) $(NOMETIS_LDFLAGS) -o $@ $^ )
+	$(CC) $(NOMETIS_LDFLAGS) -o $@ $^ 
 
 else ifeq ($(INLA_OS),Windows)
 
@@ -107,10 +107,10 @@ else ifeq ($(INLA_OS),Windows)
   NOMETIS_LDFLAGS = -shared
 
   $(NOMETIS_LIB) : $(NOMETIS_OBJ)
-	( cd src; $(CC) $(NOMETIS_LDFLAGS) -o $@ $^ )
+	$(CC) $(NOMETIS_LDFLAGS) -o $@ $^
 
   $(NOMETIS_OBJ) : $(NOMETIS_SRC)
-	( cd src; $(CC) $(NOMETIS_CFLAGS) -c -o $@ $^ )
+	$(CC) $(NOMETIS_CFLAGS) -c -o $@ $^ 
 
 else ifeq ($(INLA_OS),Linux)
 
@@ -119,10 +119,10 @@ else ifeq ($(INLA_OS),Linux)
   NOMETIS_LDFLAGS = -shared
 
   $(NOMETIS_LIB) : $(NOMETIS_OBJ)
-	( cd src; $(CC) $(NOMETIS_LDFLAGS) -o $@ $^ )
+	$(CC) $(NOMETIS_LDFLAGS) -o $@ $^ 
 
   $(NOMETIS_OBJ) : $(NOMETIS_SRC)
-	( cd src; $(CC) $(NOMETIS_CFLAGS) -c -o $@ $^ )
+	$(CC) $(NOMETIS_CFLAGS) -c -o $@ $^ 
 endif
 
 
