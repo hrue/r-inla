@@ -101,7 +101,7 @@ double GMRFLib_seasonal(int node, int nnode, void *def)
 };
 
 
-int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp *def)
+int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp * def)
 {
 	GMRFLib_seasonaldef_tp *sdef = Calloc(1, GMRFLib_seasonaldef_tp);
 
@@ -186,7 +186,7 @@ int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp *def)
 	}
 	def->prec_scale = Calloc(1, double);
 	def->prec_scale[0] = exp(sum / n);
-	
+
 	Free(c);
 	Free(sdef);
 	GMRFLib_free_constr(constr);

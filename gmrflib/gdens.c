@@ -205,7 +205,8 @@ int GMRFLib_gdens_2Update(GMRFLib_gdens_tp * ptr)
 	 * compute various constants 
 	 */
 	for (i = 0; i < n; i++) {
-		double s, x0 = ptr->elm[i].xl, x1 = ptr->elm[i].xm, x2 = ptr->elm[i].xr, f0 = ptr->elm[i].lfl, f1 = ptr->elm[i].lfm, f2 = ptr->elm[i].lfr;
+		double s, x0 = ptr->elm[i].xl, x1 = ptr->elm[i].xm, x2 = ptr->elm[i].xr, f0 = ptr->elm[i].lfl, f1 = ptr->elm[i].lfm, f2 =
+		    ptr->elm[i].lfr;
 
 		ptr->elm[i].lfmax = f0;			       /* scale and shift */
 		f1 -= f0;

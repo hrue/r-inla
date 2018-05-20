@@ -157,9 +157,7 @@ double Qfunc_fgn(int i, int j, void *arg)
 				val = -scale * prec_cond * phi[ii.quot - 1L];
 			} else {
 				// diagonal
-				val =
-				    scale * prec_cond *
-				    ((ii.rem == 0 || ii.rem == a->n - 1L) ? 1.0 : (1.0 + SQR(phi[ii.quot - 1L])));
+				val = scale * prec_cond * ((ii.rem == 0 || ii.rem == a->n - 1L) ? 1.0 : (1.0 + SQR(phi[ii.quot - 1L])));
 				val += kappa;
 			}
 		} else {

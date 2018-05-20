@@ -171,8 +171,7 @@ int GMRFLib_init_problem(GMRFLib_problem_tp ** problem,
 			 GMRFLib_constr_tp * constr, unsigned int keep)
 {
 	GMRFLib_ENTER_ROUTINE;
-	GMRFLib_EWRAP1(GMRFLib_init_problem_store
-		       (problem, x, b, c, mean, graph, Qfunc, Qfunc_args, fixed_value, constr, keep, NULL));
+	GMRFLib_EWRAP1(GMRFLib_init_problem_store(problem, x, b, c, mean, graph, Qfunc, Qfunc_args, fixed_value, constr, keep, NULL));
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
@@ -183,8 +182,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			       double *mean,
 			       GMRFLib_graph_tp * graph,
 			       GMRFLib_Qfunc_tp * Qfunc,
-			       void *Qfunc_args, char *fixed_value, GMRFLib_constr_tp * constr, unsigned int keep,
-			       GMRFLib_store_tp * store)
+			       void *Qfunc_args, char *fixed_value, GMRFLib_constr_tp * constr, unsigned int keep, GMRFLib_store_tp * store)
 {
 	double *bb = NULL;
 	int i, j, sub_n, node, nnode, free_x = 0, id;
@@ -284,7 +282,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	 * this is the sparse-matrix method 
 	 */
 	(*problem)->sub_sm_fact.smtp = smtp;
-	
+
 	/*
 	 * compute the internal stuff if needed 
 	 */
@@ -526,7 +524,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			(*problem)->sub_sm_fact.TAUCS_symb_fact = NULL;
 
 			GMRFLib_free_fact_sparse_matrix(&((*problem)->sub_sm_fact));
-			(*problem)->sub_sm_fact.TAUCS_symb_fact = (supernodal_factor_matrix *)hold;
+			(*problem)->sub_sm_fact.TAUCS_symb_fact = (supernodal_factor_matrix *) hold;
 		} else {
 			GMRFLib_free_fact_sparse_matrix(&((*problem)->sub_sm_fact));
 		}
@@ -536,7 +534,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		}
 
 		if (store_use_symb_fact && (smtp == GMRFLib_SMTP_PARDISO)) {
-			//FIXME1("ADDED NEW EXPERIMENTAL CODE");
+			// FIXME1("ADDED NEW EXPERIMENTAL CODE");
 			GMRFLib_pardiso_store_tp *s = Calloc(1, GMRFLib_pardiso_store_tp);
 			s->graph = (*problem)->sub_graph;
 			// use the internal cached storage
@@ -687,8 +685,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 							for (jj = 0; jj < rank; jj++) {
 								kk = map[jj];
 								for (ii = 0; ii < sub_n; ii++) {
-									a[ii * rank + jj] =
-									    (*problem)->sub_constr->a_matrix[ii * nc + kk];
+									a[ii * rank + jj] = (*problem)->sub_constr->a_matrix[ii * nc + kk];
 								}
 								e[jj] = (*problem)->sub_constr->e_vector[kk];
 							}
@@ -703,8 +700,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 							(*problem)->sub_constr->nc = rank;
 
 							if (debug) {
-								GMRFLib_print_constr(stdout, (*problem)->sub_constr,
-										     (*problem)->sub_graph);
+								GMRFLib_print_constr(stdout, (*problem)->sub_constr, (*problem)->sub_graph);
 							}
 						}
 						Free(map);
@@ -741,7 +737,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 							for (i = 0; i < sub_n; i++) {
 								(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
 							}
-							GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[kk]), 1, 
+							GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[kk]), 1,
 											&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 						}
 					} else {
@@ -751,7 +747,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 								(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
 							}
 						}
-						GMRFLib_solve_llt_sparse_matrix((*problem)->qi_at_m, nc, 
+						GMRFLib_solve_llt_sparse_matrix((*problem)->qi_at_m, nc,
 										&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 					}
 				} else {
@@ -765,7 +761,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 							for (i = 0; i < sub_n; i++) {
 								(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
 							}
-							GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[kk]), 1, 
+							GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[kk]), 1,
 											&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 						}
 					} else {
@@ -776,7 +772,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 								(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
 							}
 						}
-						GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[(nc-1)*sub_n]), 1, 
+						GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[(nc - 1) * sub_n]), 1,
 										&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 					}
 				}
@@ -822,8 +818,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				 * compute chol(aqat_m), recall that GMRFLib_comp_chol_general returns a new malloced L 
 				 */
 				GMRFLib_EWRAP1(GMRFLib_comp_chol_general
-					       (&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat),
-						GMRFLib_ESINGCONSTR));
+					       (&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR));
 				Free(aqat_m);
 
 				/*
@@ -866,8 +861,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	}
 
 	if (!(keep & GMRFLib_KEEP_mean)) {
-		GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix
-			       ((*problem)->sub_mean, 1, &((*problem)->sub_sm_fact), (*problem)->sub_graph));
+		GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix((*problem)->sub_mean, 1, &((*problem)->sub_sm_fact), (*problem)->sub_graph));
 		if (!((*problem)->sub_mean_constr)) {
 			(*problem)->sub_mean_constr = Calloc(sub_n, double);
 		}
@@ -890,8 +884,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			Free((*problem)->sub_constr_value);
 			(*problem)->sub_constr_value = t_vector = Calloc(nc, double);
 
-			GMRFLib_EWRAP1(GMRFLib_eval_constr
-				       (t_vector, NULL, (*problem)->sub_mean, (*problem)->sub_constr, (*problem)->sub_graph));
+			GMRFLib_EWRAP1(GMRFLib_eval_constr(t_vector, NULL, (*problem)->sub_mean, (*problem)->sub_constr, (*problem)->sub_graph));
 
 			/*
 			 * sub_mean_constr is pr.default equal to sub_mean 
@@ -1023,8 +1016,7 @@ int GMRFLib_sample(GMRFLib_problem_tp * problem)
 		problem->sub_constr_value = Calloc(nc, double);
 		t_vector = Calloc(nc, double);		       /* t_vector = Ax-e */
 
-		GMRFLib_EWRAP1(GMRFLib_eval_constr
-			       (problem->sub_constr_value, NULL, problem->sub_sample, problem->sub_constr, problem->sub_graph));
+		GMRFLib_EWRAP1(GMRFLib_eval_constr(problem->sub_constr_value, NULL, problem->sub_sample, problem->sub_constr, problem->sub_graph));
 		memcpy(t_vector, problem->sub_constr_value, nc * sizeof(double));
 
 		if (STOCHASTIC_CONSTR(problem->sub_constr)) {
@@ -1160,8 +1152,7 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp * problem, int compute_const)
 			problem->sub_constr_value = t_vector = Calloc(nc, double);
 			tt_vector = Calloc(nc, double);
 
-			GMRFLib_EWRAP0(GMRFLib_eval_constr
-				       (t_vector, NULL, problem->sub_mean, problem->sub_constr, problem->sub_graph));
+			GMRFLib_EWRAP0(GMRFLib_eval_constr(t_vector, NULL, problem->sub_mean, problem->sub_constr, problem->sub_graph));
 
 
 			GMRFLib_EWRAP0(GMRFLib_solveAxb_posdef(tt_vector, problem->l_aqat_m, t_vector, nc, 1));
@@ -1195,8 +1186,7 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp * problem, int compute_const)
 			problem->sub_constr_value = t_vector = Calloc(nc, double);
 			tt_vector = Calloc(nc, double);
 
-			GMRFLib_EWRAP0(GMRFLib_eval_constr
-				       (t_vector, NULL, problem->sub_mean, problem->sub_constr, problem->sub_graph));
+			GMRFLib_EWRAP0(GMRFLib_eval_constr(t_vector, NULL, problem->sub_mean, problem->sub_constr, problem->sub_graph));
 			GMRFLib_EWRAP0(GMRFLib_solveAxb_posdef(tt_vector, problem->l_aqat_m, t_vector, nc, 1));
 			for (i = 0, exp_corr = 0.0; i < nc; i++) {
 				exp_corr += t_vector[i] * tt_vector[i];
@@ -1301,8 +1291,8 @@ int GMRFLib_free_store(GMRFLib_store_tp * store)
 	}
 
 	if (store->copy_pardiso_ptr) {
-		/* 
-		   do nothing
+		/*
+		 * do nothing 
 		 */
 	} else {
 		if (store->PARDISO_fact) {
@@ -1951,8 +1941,7 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * c
 			for (i = 0; i < nc; i++) {
 				ii = cmap[i];
 				for (j = 0; j < nc; j++) {
-					(*new_constr)->errcov_general[i + j * nc] =
-					    constr->errcov_general[ii + cmap[j] * constr->nc];
+					(*new_constr)->errcov_general[i + j * nc] = constr->errcov_general[ii + cmap[j] * constr->nc];
 				}
 			}
 		}
@@ -2568,8 +2557,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 #pragma omp critical
 					{
 						printf("%s: reorder=[%s] \tnnz=%lu \tUseGlobalNodes=%1d cpu=%.4f\n",
-						       __GMRFLib_FuncName, GMRFLib_reorder_name(rs[kkk]), nnzs[k], use_global_nodes,
-						       cputime[k]);
+						       __GMRFLib_FuncName, GMRFLib_reorder_name(rs[kkk]), nnzs[k], use_global_nodes, cputime[k]);
 					}
 				}
 

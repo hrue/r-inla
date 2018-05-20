@@ -117,7 +117,7 @@ const char *GMRFLib_error_reason(int errorno)
 	 * return a pointer to the reason for error=errorno 
 	 */
 #define NMSG 30
-	static const char *reasons[NMSG] = { 
+	static const char *reasons[NMSG] = {
 		"No error, please ignore",
 		"Alloc failed",
 		"Matrix is not (numerical) positive definite",
