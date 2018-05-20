@@ -2,8 +2,8 @@ n = 100L
 p = 2L
 pacf = runif(p)
 phi = inla.ar.pacf2phi(pacf)
-y = arima.sim(n, model = list(ar = phi)) +
-    rnorm(n, sd=sd(y)/100.0)
+y = c(scale(arima.sim(n, model = list(ar = phi)))) +
+    rnorm(n, sd=1/100.0)
 idx = 1L:n
 
 param.prec = c(1, 0.01)
