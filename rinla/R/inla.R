@@ -950,6 +950,7 @@
         inla.dir.create(inla.dir)
     }
     ## Create a directory where to store data and results
+    inla.dir = normalizePath(inla.dir)
     data.dir=paste(inla.dir, "/data.files", sep="")
     results.dir = paste(inla.dir, "/results.files", sep="")
     inla.dir.create(data.dir)
@@ -1896,6 +1897,9 @@
     rversion = paste(R.Version()$major, ".", strsplit(R.Version()$minor,"[.]")[[1]][1], sep="")
     inla.eval(paste("Sys.setenv(", "\"INLA_RVERSION\"", "=\"", rversion , "\"", ")", sep=""))
     inla.eval(paste("Sys.setenv(", "\"INLA_RHOME\"", "=\"", Sys.getenv("R_HOME") , "\"", ")", sep=""))
+    
+    inla.set.sparselib.env(inla.dir, blas.num.threads = 2L)
+
     if (debug) {
         inla.eval(paste("Sys.setenv(", "\"INLA_DEBUG=\"", "=\"", 1, "\"", ")", sep=""))
     }
@@ -1916,6 +1920,17 @@
                 inla.eval(paste("Sys.setenv(", "\"INLA_SSH_AUTH_SOCK\"", "=\"", inla.getOption("ssh.auth.sock"), "\"", ")", sep=""))
             }
         }
+    }
+
+    ## write the list of environment variables set, so they can be reset if needed
+    env = Sys.getenv()
+    env.n = names(env)
+    idx = grep("^(INLA_|(OPENBLAS|MKL)_NUM_THREADS|PARDISOLICMESSAGE)", env.n)
+    env.list = env[idx]
+    file.env = paste0(inla.dir, "/environment")
+    cat(file=file.env)
+    for(i in seq_along(env.list)) {
+        cat(names(env.list[i]), "=\"", env.list[i], "\"\n", sep="", file=file.env, append=TRUE)
     }
 
     my.time.used[2] = Sys.time()
@@ -2118,3 +2133,46 @@
     }
     return (data)
 }
+
+`inla.set.sparselib.env` = function(inla.dir = NULL, blas.num.threads = 2L) 
+{
+    ## environment variables for sparse libraries
+    if (is.null(inla.dir)) {
+        inla.dir = inla.tempdir()
+    }
+    if (!is.null(inla.getOption("pardiso.license"))) {
+        lic.filename = "pardiso.lic" ## do not change
+        lic.file = normalizePath(inla.getOption("pardiso.license"))
+        lic.path = NA
+        if (file.exists(lic.file)) {
+            info = file.info(lic.file)
+            if (!is.na(info$isdir)) {
+                if (info$isdir) {
+                    lic.path = lic.file
+                } else if (!is.null(inla.dir)) {
+                    file.copy(lic.file, paste0(inla.dir, "/", lic.filename))
+                    lic.path = inla.dir
+                } else {
+                    stop("This should not happen")
+                }
+            } else {
+                lic.path = lic.file
+            }
+        } else {
+            lic.path = lic.file
+        }
+        inla.eval(paste("Sys.setenv(", "\"PARDISO_LIC_PATH\"", "=\"", normalizePath(lic.path), "\"", ")", sep=""))
+    }    
+
+    for(e in "PARDISOLICMESSAGE") {
+        if (Sys.getenv(e) == "") {
+            inla.eval(paste0("Sys.setenv(", e, "=", 1, ")"))
+        }
+    }
+    for (e in c("OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS")) {
+        if (Sys.getenv(e) == "") {
+            inla.eval(paste0("Sys.setenv(", e, "=", blas.num.threads, ")"))
+        }
+    }
+    return (invisible())
+}    

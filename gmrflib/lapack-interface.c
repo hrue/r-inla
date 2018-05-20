@@ -133,6 +133,13 @@ int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *lo
 	int info = 0, i, j;
 	double *a = NULL, det;
 
+	if (0) {
+		P(dim);
+		for(i=0;  i < dim; i++)
+			for(j=0; j<dim; j++)
+				printf("i %d j %d matrix %.12g\n", i, j, matrix[i + dim*j]);
+	}
+
 	if (dim == 0) {
 		*chol = NULL;
 		return GMRFLib_SUCCESS;
