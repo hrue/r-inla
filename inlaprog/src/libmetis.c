@@ -1,3 +1,4 @@
+
 /* libmetis.c
  *
  * A 'fake' metis library
@@ -34,8 +35,8 @@
 #endif
 #include <stdlib.h>
 
-int METIS_NodeND(int *, int *, int *,  int *,  int *,  int *,  int *);
-int METIS51_NodeND(int *nvtxs, int *xadj, int *adjncy, int *vwgt, int *options, int *perm, int *iperm) 
+int METIS_NodeND(int *, int *, int *, int *, int *, int *, int *);
+int METIS51_NodeND(int *nvtxs, int *xadj, int *adjncy, int *vwgt, int *options, int *perm, int *iperm)
 {
 	return METIS_NodeND(nvtxs, xadj, adjncy, vwgt, options, perm, iperm);
 }
@@ -44,5 +45,3 @@ int METIS_NodeND(int *nvtxs, int *xadj, int *adjncy, int *vwgt, int *options, in
 	fprintf(stderr, "\n\n\t*** No METIS library is loaded. Exit.\n\n");
 	exit(1);
 }
-
-	

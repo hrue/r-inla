@@ -124,8 +124,7 @@ int re_sas_skew_kurt(double *skew, double *kurt, double epsilon, double delta)
 		*skew = (m3 - 3.0 * m1 * m2 + 3.0 * gsl_pow_3(m1) - gsl_pow_3(m1)) / gsl_pow_3(sqrt(m2 - SQR(m1)));
 	}
 	if (kurt) {
-		*kurt =
-		    (m4 - 4.0 * m1 * m3 + 6.0 * SQR(m1) * m2 - 4.0 * gsl_pow_4(m1) + gsl_pow_4(m1)) / gsl_pow_4(sqrt(m2 - SQR(m1)));
+		*kurt = (m4 - 4.0 * m1 * m3 + 6.0 * SQR(m1) * m2 - 4.0 * gsl_pow_4(m1) + gsl_pow_4(m1)) / gsl_pow_4(sqrt(m2 - SQR(m1)));
 	}
 
 	return GMRFLib_SUCCESS;
@@ -936,8 +935,7 @@ int re_join_contourLines(re_contour_tp * c)
 	for (i = 0; i < c->ns[imin]; i++) {
 		c->length[imin] += sqrt(SQR(c->x[imin][i] - c->x[imin][i + 1]) + SQR(c->y[imin][i] - c->y[imin][i + 1]));
 	}
-	c->cyclic[imin] = (ABS(c->x[imin][0] - c->x[imin][c->ns[imin]]) < cyclic_eps
-			   && ABS(c->y[imin][0] - c->y[imin][c->ns[imin]]) < cyclic_eps);
+	c->cyclic[imin] = (ABS(c->x[imin][0] - c->x[imin][c->ns[imin]]) < cyclic_eps && ABS(c->y[imin][0] - c->y[imin][c->ns[imin]]) < cyclic_eps);
 	c->nc--;
 
 	Free(dists);
@@ -999,9 +997,7 @@ double re_point_on_contour(re_contour_tp * c, double skew, double kurt)
 			len += sqrt(SQR(c->x[ic][i] - skew) + SQR(c->y[ic][i] - kurt));
 			break;
 		} else {
-			len +=
-			    sqrt(SQR(c->x[ic][i] - c->x[ic][WRAPIT(i + direction)]) +
-				 SQR(c->y[ic][i] - c->y[ic][WRAPIT(i + direction)]));
+			len += sqrt(SQR(c->x[ic][i] - c->x[ic][WRAPIT(i + direction)]) + SQR(c->y[ic][i] - c->y[ic][WRAPIT(i + direction)]));
 		}
 	}
 	if (!(len <= 1.1 * c->length[0])) {
@@ -1178,8 +1174,7 @@ int re_sas_table_add_logjac(int debug)
 					dkurt = 2 * ddefault;
 				}
 
-				if (skew + dskew > SKEW_MIN && skew + dskew < SKEW_MAX && kurt + dkurt > KURT_MIN
-				    && kurt + dkurt < KURT_MAX) {
+				if (skew + dskew > SKEW_MIN && skew + dskew < SKEW_MAX && kurt + dkurt > KURT_MIN && kurt + dkurt < KURT_MAX) {
 
 					do {
 						re_find_in_sas_prior_table(output, skew + dskew, kurt);
@@ -1190,9 +1185,7 @@ int re_sas_table_add_logjac(int debug)
 
 					if (adaptive) {
 						for (iter = 0; iter < iter_max; iter++) {
-							double f =
-							    (iter <
-							     iter_max / 2 ? 0.9 : (iter < (iter_max * 3) / 4 ? 0.99 : 0.999));
+							double f = (iter < iter_max / 2 ? 0.9 : (iter < (iter_max * 3) / 4 ? 0.99 : 0.999));
 							re_find_in_sas_prior_table(output, skew + dskew, kurt);
 							if (ISNAN(output[0])) {
 								dskew /= f;
@@ -1222,8 +1215,7 @@ int re_sas_table_add_logjac(int debug)
 
 					if (adaptive) {
 						for (iter = 0; iter < iter_max; iter++) {
-							double f =
-							    (iter < iter_max / 2 ? 0.9 : (iter < iter_max * 3 / 4 ? 0.99 : 0.999));
+							double f = (iter < iter_max / 2 ? 0.9 : (iter < iter_max * 3 / 4 ? 0.99 : 0.999));
 							re_find_in_sas_prior_table(output, skew, kurt + dkurt);
 							if (ISNAN(output[0])) {
 								dkurt /= f;
@@ -1495,8 +1487,7 @@ int re_sas_prior_table_core(int read_only, int add_logjac, int debug, double *pa
 
 		sas_prior_table_log_integral = re_sas_table_log_integral(param);
 		if (debug) {
-			fprintf(stderr, "sas_prior_table: log(integral) = %g for param = %g\n", sas_prior_table_log_integral,
-				param[0]);
+			fprintf(stderr, "sas_prior_table: log(integral) = %g for param = %g\n", sas_prior_table_log_integral, param[0]);
 		}
 
 		return GMRFLib_SUCCESS;
