@@ -4,7 +4,6 @@
 %%
  \name{inla.knmodels}
  \alias{inla.knmodels}
- \alias{inla.knmodels.sample}
  \title{Spacetime interaction models}
  \description{
     It implements the models in Knorr-Held, L. (2000) 
@@ -15,45 +14,40 @@
 inla.knmodels(
  formula,
  data,
- graph=NULL,
  progress=FALSE, 
- type=c(paste(1:4), paste0(2:4, 'c'), paste0(2:4, 'd')), 
- control.prec,
- ...) 
-}
- \usage{
-inla.knmodels.sample(
-  graph,
-  m,
-  type=4,
-  intercept=0, 
-  tau.t=1,
-  phi.t=0.7,
-  tau.s=1,
-  phi.s=0.7,
-  tau.st=1,
-  ev.t=NULL,
-  ev.s=NULL)
-}
+ control.st=list(
+   t=NULL, 
+   s=NULL,
+   st=NULL,
+   graph=NULL,
+   type=c(paste(1:4), paste0(2:4, 'c'), paste0(2:4, 'd')), 
+   diagonal=1e-5, 
+   ...) 
  \arguments{
  \item{formula}{The formula specifying the other 
    model components, without the spacetime 
    interaction term. The spacetime interaction term 
    will be added accordly to the specification in 
-   the \code{type} argument. See \code{inla}}
- \item{data}{A data frame or list containing all 
-   the variables in the model. It has to contain 
-   an index named \code{st} for the spacetime 
-   interaction term. The data MUST be provided.}
+   the \code{control.st} argument. See \code{inla}}
+ \item{control.t}{Named list of arguments to control
+   the spacetime interaction. It contains
+ \item{control.st}{Named list of arguments to control
+   the spacetime interaction. It contains
+}
+  \item{time}{Name of the index set for the
+   main temporal effect which will be considered
+   for the constraints when it is the case.}
+  \item{space}{Name of the index set for the
+   main spatial effect which will be considered
+   for the constraints when it is the case.}
+  \item{spacetime}{Name of the index set for the
+   spacetime interaction effect.}
  \item{graph}{The graph for the spatial neighbor 
    structure to be used in a \code{\link{f}} term 
    for the main spatial random effect term or for 
    building the spacetime interaction model.}
- \item{progress}{If it is to be shown the model 
-   fitting progress. Useful if more than one 
-   interaction type is being fitted.}
  \item{type}{The spacetime interaction type.  
-   \code{0} to \code{4} corresponds to the four 
+   \code{1} to \code{4} corresponds to the four 
    interaction types in Knorr-Held, L. (2000) with 
    all the needed sum-to-zero constraints. 
    \code{2c}, \code{3c} and \code{4c} are 
@@ -64,7 +58,12 @@ inla.knmodels.sample(
    diagonal add approach.}  
  \item{diagonal}{The value to be added to the 
    diagonal when using the diagonal add approach.}
- \item{control.st}{Specification of the hyperparameter, 
+ \item{timeref}{The time point considered to be the 
+   reference for the contrast parametrization.}
+ \item{spaceref}{The are considered to be the 
+   reference for the contrast parametrization.}
+  \item{...}{Passed to \code{\link{f}} function.
+   Specification of the hyperparameter, 
    fixed or random, initial value, prior and its 
    parameters for the spacetime interaction. See 
    \code{?inla.models} and look for \code{generic0}. 
@@ -72,6 +71,10 @@ inla.knmodels.sample(
    the prior using the \code{pc.prec} prior with 
    \code{param = c(0.5, 0.5)}. See documentation with 
    \code{?inla.doc("pc.prec")}}
+}
+ \item{progress}{If it is to be shown the model 
+   fitting progress. Useful if more than one 
+   interaction type is being fitted.}
  \item{...}{Arguments to be passed to the 
    \code{\link{inla}} function.}
  }
@@ -84,29 +87,23 @@ inla.knmodels.sample(
  }
  \author{Elias T. Krainski}
  \seealso{
-     \code{\link{inla}}
+     \code{\link{inla.knmodels.sample}} to sample from
  }
  \examples{
-### space
-n2 <- n1 <- 5
-grid <- SpatialGrid(GridTopology(c(0,0), c(1, 1), c(n1, n2)))
+### define space domain as a grid
+grid <- SpatialGrid(GridTopology(c(0,0), c(1, 1), c(4, 5)))
 (n <- nrow(xy <- coordinates(grid)))
 
-if (FALSE)
-    plot(grid)
-  
+### build a spatial neighborhood list
 jj <- lapply(1:n, function(i) 
     which(sqrt((xy[i,1]-xy[,1])^2 + (xy[i,2]-xy[,2])^2)==1))
 
-### the spatial adjacency matrix
+### build the spatial adjacency matrix
 graph <- sparseMatrix(rep(1:n, sapply(jj, length)),
                       unlist(jj), x=1, dims=c(n, n))
 
-### time
-m <- 10 
-
-### some random data
-dat <- inla.knmodels.sample(graph=graph, m=m, type=4, tau.t=2, tau.s=2, tau.st=3)
+### some random data at 10 time points
+dat <- inla.knmodels.sample(graph, m=10, tau.t=2, tau.s=2, tau.st=3)
 str(dat)
 sapply(dat$x, summary)
 
@@ -115,47 +112,13 @@ dat$e <- runif(nd, 0.9, 1.1)*rgamma(n, 40, 2)
 dat$y <- rpois(nd, dat$e*exp(dat$x$eta-3))
 summary(dat$y)
 
-### fit the models
-res <- inla.knmodels(y~1, dat, graph=graph,
-                     type=c(4, '4c', '4d'), control.st=list(), progress=TRUE,
-                     control.compute=list(dic=TRUE, waic=TRUE, cpo=TRUE))
-tab <- sapply(res, function(x) c(dic=x$dic$dic, waic=x$waic$waic, cpo=-sum(log(x$cpo$cpo))))
-round(tab-apply(tab, 1, min), 1)
+### fit the type 4 considering three different approaches 
+tgraph <- sparseMatrix(i=c(2:10, 1:9), j=c(1:9, 2:10), x=-1)
+res <- testfit(y~f(t, model='bym2', graph=tgraph) +
+     f(s, model='bym2', graph=graph),
+     data=dat, family='poisson', E=dat$E, progress=TRUE, 
+     control.st=list(t=t, s=s, st=st, graph=graph, type=c(4, '4c', '4d')), 
+     control.compute=list(dic=TRUE, waic=TRUE, cpo=TRUE))
+sapply(res, function(x)
+       c(dic=x$dic$dic, waic=x$waic$waic, cpo=-sum(log(x$cpo$cpo))))
 }
- \arguments{
- \item{graph}{}
- \item{m}{Time dimention.}
- \item{type}{Integer from 1 to 4 to identify one
-    of the four interaction type.}
- \item{intercept}{A constant to be added to the linear predictor}
- \item{tau.t}{Precision parameter for the main temporal effect.}
- \item{phi.t}{Mixing parameter in the \code{bym2} model 
-    assumed for the main temporal effect.}
- \item{tau.s}{Precision parameter for the main spatial effect.}
- \item{phi.s}{Mixing parameter in the \code{bym2} model
-    assumed for the main spatial effect.}
- \item{tau.st}{Precision parameter for the spacetime effect.}
- \item{ev.t}{Eigenvalues and eigenvectors of the temporal
-    precision matrix structure.}
- \item{ev.s}{Eigenvalues and eigenvectors of the spatial 
-    precision matrix structure.}
- }
- \value{
-  A list with the following elements
-   \item{t}{The time index for each obervation, with length equals m*n.} 
-   \item{s}{The spatial index for each obervation, with length equals m*n.} 
-   \item{st}{The spacetime index for each obervation, with length equals m*n.} 
-   \item{x}{A list with the following elements}
-   \item{t.iid}{The unstructured main temporal effect part.}
-   \item{t.str}{The structured main temporal effect part.}
-   \item{t}{The main temporal effect with length equals 2m.}
-   \item{s.iid}{The unstructured main spatial effect part.}
-   \item{s.str}{The structured main spatial effect part.}
-   \item{s}{The main spatial effect with length equals 2n.}
-   \item{st}{The spacetime interaction effect with length equals m*n.}
-   \item{eta}{The linear predictor with length equals n*m.}
- }
- \author{Elias T. Krainski}
- \seealso{
-     \code{\link{inla.qsample}}
- }
