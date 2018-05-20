@@ -1502,8 +1502,8 @@ double link_qgamma(double x, map_arg_tp typ, void *param, double *cov)
 #pragma omp critical 
 			if (do_check) {
 				if ((int) ret !=
-				    (link_qgamma(x + 1.0, INVLINK, param, cov) >
-				     link_qgamma(x, INVLINK, param, cov) ? 1 : 0)) {
+				    (link_qgamma(x, INVLINK, param, cov) >
+				     link_qgamma(x - 0.01, INVLINK, param, cov) ? 1 : 0)) {
 					FIXME("LINKINCREASING has error in link_qgamma");
 					exit(EXIT_FAILURE);
 				}
