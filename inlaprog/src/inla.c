@@ -30400,7 +30400,19 @@ int inla_fgn(char *infile, char *outfile)
 }
 int testit(int argc, char **argv)
 {
-
+        int test_no = -1;
+        char **args = NULL;
+        int nargs = 0, i;
+        
+        if (argc > 0) {
+                test_no = atoi(argv[0]);
+                nargs = argc -1;
+                args = &(argv[1]);
+                printf("test_no = %1d  nargs = %1d\n", test_no, nargs);
+                for(i = 0; i < nargs; i++)
+                        printf("\targs[%d] = %s\n", i, args[i]);
+        }
+   
 	switch (test_no) {
 	case -1:
 	case 0:
@@ -30529,7 +30541,7 @@ int testit(int argc, char **argv)
 	{
 #pragma omp critical
 		{
-#define MODEL "rgeneric.model"
+#define _MODEL "rgeneric.model"
 			printf("test rgeneric\n");
 			inla_R_library("INLA");
 			inla_R_load("rgeneric.RData");
@@ -30779,8 +30791,8 @@ int testit(int argc, char **argv)
 
 	case 19:
 	{
-#define GET(_int) fscanf(fp, "%d\n", &_int)
-#define GETV(_vec, _len)						\
+#define _GET(_int) fscanf(fp, "%d\n", &_int)
+#define _GETV(_vec, _len)						\
 		if (1) {						\
 			_vec = Calloc(_len, double);			\
 			int _i;						\
@@ -30967,11 +30979,10 @@ int main(int argc, char **argv)
 	double time_used[3];
 	inla_tp *mb = NULL;
 
-	nt = GMRFLib_MAX_THREADS;
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = omp_get_max_threads();
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL);
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
 	GMRFLib_collect_timer_statistics = GMRFLib_FALSE;
