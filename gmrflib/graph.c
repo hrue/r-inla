@@ -807,7 +807,8 @@ int GMRFLib_validate_graph(FILE * fp, GMRFLib_graph_tp * graph)
 			if (graph->nbs[i][j] < 0 || graph->nbs[i][j] >= graph->n) {
 				error++;
 				if (fp) {
-					fprintf(fp, "\n\n%s: error: nbs[%1d][%1d]=[%1d] is out of range\n", __GMRFLib_FuncName, i, j, graph->nbs[i][j]);
+					fprintf(fp, "\n\n%s: error: nbs[%1d][%1d]=[%1d] is out of range\n", __GMRFLib_FuncName, i, j,
+						graph->nbs[i][j]);
 				}
 			}
 			if (graph->nbs[i][j] == i) {
@@ -829,7 +830,8 @@ int GMRFLib_validate_graph(FILE * fp, GMRFLib_graph_tp * graph)
 			jj = graph->nbs[i][j];
 			if (GMRFLib_find_idx(NULL, graph->nnbs[jj], graph->nbs[jj], i) != GMRFLib_SUCCESS) {
 				if (fp) {
-					fprintf(fp, "\n\n%s: error: node[%1d] has neighbor node[%1d], but not oposite\n", __GMRFLib_FuncName, i, jj);
+					fprintf(fp, "\n\n%s: error: node[%1d] has neighbor node[%1d], but not oposite\n", __GMRFLib_FuncName, i,
+						jj);
 				}
 				error++;
 			}
