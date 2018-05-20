@@ -104,6 +104,7 @@ __BEGIN_DECLS
 #include "GMRFLib/seasonal.h"
 #include "GMRFLib/rw.h"
 #include "GMRFLib/tabulate-Qfunc.h"
+#include "GMRFLib/smtp-pardiso.h"
 #include "GMRFLib/sparse-interface.h"
 #include "GMRFLib/problem-setup.h"
 #include "GMRFLib/openmp.h"
