@@ -52,6 +52,7 @@ FFLAGS  = $(FLAGS) $(FCEXTRAFLAGS) $(INCL)
 CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DHGVERSION="\"${HGVERSION}\""
 
 ## this for building the empty libpardiso.{so,ddl,dylib} and libmetis
+NOPARDISOMETISLINK = -Lsrc -lpardiso -lmetis
 NOPARDISO_SRC = src/libpardiso.c
 NOPARDISO_OBJ = $(NOPARDISO_SRC:.c=.o)
 
@@ -129,7 +130,7 @@ INLA = inla
 OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/sha1.o src/spde.o src/spde2.o src/spde3.o src/eval.o src/interpol.o src/re.o src/ar.o src/bessel.o src/pc-priors.o src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o
 
 $(INLA) : $(OBJ) $(NOPARDISO_LIB) $(NOMETIS_LIB)
-	$(LD) $(LDFLAGS) -o $@ $(OBJ) -Lsrc -lpardiso -lmetis -L$(PREFIX)/lib  $(EXTLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(OBJ) $(NOPARDISOMETISLINK) -L$(PREFIX)/lib  $(EXTLIBS)
 
 
 install: $(INLA)
