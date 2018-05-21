@@ -1891,36 +1891,40 @@
     all.args = paste(arg.arg, arg.b, arg.s, arg.v, arg.nt, sep=" ")
 
     ## define some environment variables for remote computing
-    inla.eval(paste("Sys.setenv(", "\"INLA_PATH\"", "=\"", system.file("bin", package="INLA"), "\"", ")", sep=""))
-    inla.eval(paste("Sys.setenv(", "\"INLA_OS\"", "=\"", inla.os.type() , "\"", ")", sep=""))
-    inla.eval(paste("Sys.setenv(", "\"INLA_HGVERSION\"", "=\"", inla.version("hgid") , "\"", ")", sep=""))
-    rversion = paste(R.Version()$major, ".", strsplit(R.Version()$minor,"[.]")[[1]][1], sep="")
-    inla.eval(paste("Sys.setenv(", "\"INLA_RVERSION\"", "=\"", rversion , "\"", ")", sep=""))
-    inla.eval(paste("Sys.setenv(", "\"INLA_RHOME\"", "=\"", Sys.getenv("R_HOME") , "\"", ")", sep=""))
-    
+    vars = list(INLA_PATH = system.file("bin", package="INLA"),
+                INLA_OS = inla.os.type(), 
+                INLA_HGVERSION = inla.version("hgid"), 
+                INLA_RVERSION = paste0(R.Version()$major, ".",
+                                       strsplit(R.Version()$minor,"[.]")[[1]][1]),
+                INLA_RHOME = Sys.getenv("R_HOME"))
+    do.call("Sys.setenv", vars)
     inla.set.sparselib.env(inla.dir, blas.num.threads = 2L)
 
+    vars = NULL
     if (debug) {
-        inla.eval(paste("Sys.setenv(", "\"INLA_DEBUG=\"", "=\"", 1, "\"", ")", sep=""))
+        vars = c(vars, INLA_DEBUG=1)
     }
     if (remote || submit) {
         if (submit) {
             all.args = paste(all.args,  "-p") ## need this option
-            inla.eval(paste("Sys.setenv(", "\"INLA_SUBMIT_ID\"", "=\"", submit.id, "\"", ")", sep=""))
+            vars = c(vars,
+                     INLA_SUBMIT_ID = submit.id)
         }
         if (inla.os("windows")) {
-            inla.eval(paste("Sys.setenv(", "\"INLA_SSH_AUTH_SOCK\"", "=\"", inla.getOption("ssh.auth.sock"), "\"", ")", sep=""))
-            inla.eval(paste("Sys.setenv(", "\"INLA_CYGWIN_HOME\"", "=\"", inla.getOption("cygwin.home"), "\"", ")", sep=""))
-            inla.eval(paste("Sys.setenv(", "\"INLA_HOME\"", "=\"",
-                            inla.cygwin.map.filename(gsub("\\\\", "/", inla.get.HOME())), "\"", ")", sep=""))
+            vars = c(vars, 
+                     INLA_SSH_AUTH_SOCK = inla.getOption("ssh.auth.sock"), 
+                     INLA_CYGWIN_HOME = inla.getOption("cygwin.home"), 
+                     INLA_HOME = inla.cygwin.map.filename(gsub("\\\\", "/", inla.get.HOME())))
         } else {
-            inla.eval(paste("Sys.setenv(", "\"INLA_HOME\"", "=\"", inla.get.HOME(), "\"", ")", sep=""))
-            ## if SSH_AUTH_SOCK is not set, then we can pass it to the remote computing script
+            vars = c(vars,
+                     INLA_HOME = inla.get.HOME())
             if (Sys.getenv("SSH_AUTH_SOCK") == "") {
-                inla.eval(paste("Sys.setenv(", "\"INLA_SSH_AUTH_SOCK\"", "=\"", inla.getOption("ssh.auth.sock"), "\"", ")", sep=""))
+                vars = c(vars,
+                         INLA_SSH_AUTH_SOCK = inla.getOption("ssh.auth.sock"))
             }
         }
     }
+    do.call("Sys.setenv", as.list(vars))
 
     ## write the list of environment variables set, so they can be reset if needed
     env = Sys.getenv()
@@ -2161,21 +2165,18 @@
         } else {
             lic.path = lic.file
         }
-        inla.eval(paste("Sys.setenv(", "\"PARDISO_LIC_PATH\"", "=\"", normalizePath(lic.path), "\"", ")", sep=""))
-        Sys.setenv(INLA_LOAD_PARDISO=1)
+        do.call("Sys.setenv", list(PARDISO_LIC_PATH = normalizePath(lic.path), 
+                                   INLA_LOAD_PARDISO = 1))
     } else {
         Sys.unsetenv("INLA_LOAD_PARDISO")
     }
 
-    for(e in "PARDISOLICMESSAGE") {
-        if (Sys.getenv(e) == "") {
-            inla.eval(paste0("Sys.setenv(", e, "=", 1, ")"))
-        }
-    }
-    for (e in c("OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS")) {
-        if (Sys.getenv(e) == "") {
-            inla.eval(paste0("Sys.setenv(", e, "=", blas.num.threads, ")"))
-        }
-    }
+    if (Sys.getenv("PARDISOLICMESSAGE") == "")
+        Sys.setenv(PARDISOLICMESSAGE=1)
+    if (Sys.getenv("OPENBLAS_NUM_THREADS") == "")
+        Sys.setenv(OPENBLAS_NUM_THREADS = blas.num.threads)
+    if (Sys.getenv("MKL_NUM_THREADS") == "")
+        Sys.setenv(MKL_NUM_THREADS = blas.num.threads)
+
     return (invisible())
 }    
