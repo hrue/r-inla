@@ -36,7 +36,7 @@ EXTLIBS3 = -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -lm
 #
 ################################################################################
 
-SHELL = /bin/sh
+SHELL   = /bin/sh
 
 # Only try to update the hgstamp if hg is available.
 # Should also check if we are in a repository.
@@ -88,6 +88,7 @@ else ifeq ($(INLA_OS),Linux)
   $(NOPARDISO_OBJ) : $(NOPARDISO_SRC)
 	( cd src; $(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^ )
 endif
+
 
 INLA = inla
 OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/sha1.o src/spde.o src/spde2.o src/spde3.o src/eval.o src/interpol.o src/re.o src/ar.o src/bessel.o src/pc-priors.o src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o
