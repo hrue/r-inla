@@ -16,5 +16,7 @@ meshbuilder()
 \author{Finn Lindgren \email{finn.lindgren@gmail.com}}
 \seealso{inla.mesh.2d, inla.mesh.create}
 \examples{
+\dontrun{
 meshbuilder()
+}
 }
