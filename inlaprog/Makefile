@@ -36,7 +36,7 @@ EXTLIBS3 = -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -lm
 #
 ################################################################################
 
-SHELL   = /bin/sh
+SHELL = /bin/sh
 
 # Only try to update the hgstamp if hg is available.
 # Should also check if we are in a repository.
@@ -51,8 +51,8 @@ LDFLAGS = $(FLAGS)
 FFLAGS  = $(FLAGS) $(FCEXTRAFLAGS) $(INCL)
 CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DHGVERSION="\"${HGVERSION}\""
 
-## this for building the empty libpardiso.{so,ddl,dylib} and libmetis
-NOPARDISOMETISLINK = -Lsrc -lpardiso -lmetis
+## this for building the empty libpardiso.{so,ddl,dylib}
+NOPARDISOLINK = -Lsrc -lpardiso
 NOPARDISO_SRC = libpardiso.c
 NOPARDISO_OBJ = $(NOPARDISO_SRC:.c=.o)
 
@@ -74,7 +74,7 @@ else ifeq ($(INLA_OS),Windows)
 	( cd src; $(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ )
 
   $(NOPARDISO_OBJ) : $(NOPARDISO_SRC)
-	(cd src; $(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^ )
+	( cd src; $(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^ )
 
 else ifeq ($(INLA_OS),Linux)
 
@@ -86,52 +86,14 @@ else ifeq ($(INLA_OS),Linux)
 	( cd src; $(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ )
 
   $(NOPARDISO_OBJ) : $(NOPARDISO_SRC)
-	(cd src; $(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^ )
+	( cd src; $(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^ )
 endif
-
-NOMETIS_SRC = libmetis.c
-NOMETIS_OBJ = $(NOMETIS_SRC:.c=.o)
-
-ifeq ($(INLA_OS),Darwin)
-
-  NOMETIS_LIB = libmetis.dylib
-  NOMETIS_LDFLAGS = -Wall -dynamiclib -undefined suppress -flat_namespace 
-
-  $(NOMETIS_LIB) : $(NOMETIS_SRC)
-	( cd src; $(CC) $(NOMETIS_LDFLAGS) -o $@ $^ )
-
-else ifeq ($(INLA_OS),Windows)
-
-  NOMETIS_LIB = libmetis.dll
-  NOMETIS_CFLAGS = -c
-  NOMETIS_LDFLAGS = -shared
-
-  $(NOMETIS_LIB) : $(NOMETIS_OBJ)
-	( cd src; $(CC) $(NOMETIS_LDFLAGS) -o $@ $^ )
-
-  $(NOMETIS_OBJ) : $(NOMETIS_SRC)
-	( cd src; $(CC) $(NOMETIS_CFLAGS) -c -o $@ $^ )
-
-else ifeq ($(INLA_OS),Linux)
-
-  NOMETIS_LIB = libmetis.so
-  NOMETIS_CFLAGS = -fPIC -Wall
-  NOMETIS_LDFLAGS = -shared
-
-  $(NOMETIS_LIB) : $(NOMETIS_OBJ)
-	( cd src; $(CC) $(NOMETIS_LDFLAGS) -o $@ $^ )
-
-  $(NOMETIS_OBJ) : $(NOMETIS_SRC)
-	( cd src; $(CC) $(NOMETIS_CFLAGS) -c -o $@ $^ )
-endif
-
 
 INLA = inla
 OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/sha1.o src/spde.o src/spde2.o src/spde3.o src/eval.o src/interpol.o src/re.o src/ar.o src/bessel.o src/pc-priors.o src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o
 
-$(INLA) : $(OBJ) $(NOPARDISO_LIB) $(NOMETIS_LIB)
-	$(LD) $(LDFLAGS) -o $@ $(OBJ) $(NOPARDISOMETISLINK) -L$(PREFIX)/lib  $(EXTLIBS)
-
+$(INLA) : $(OBJ) $(NOPARDISO_LIB)
+	$(LD) $(LDFLAGS) -o $@ $(OBJ) $(NOPARDISOLINK) -L$(PREFIX)/lib  $(EXTLIBS)
 
 install: $(INLA)
 	 @umask 022;\

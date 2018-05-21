@@ -1,4 +1,3 @@
-
 /* libpardiso.c
  * 
  * Copyright (C) 2018 Havard Rue
@@ -33,6 +32,13 @@
 #endif
 #include <stdlib.h>
 
+/* 
+   this creates an empty version of the pardiso functions with an appropriate wrapper to the relevant original metis function.
+   Since the (pardiso modified) metis library is bundled into the libpardiso.so, I have to do the same.
+ */
+
+
+
 // do not change: also GMRFLib/smtp-pardiso.c uses this code
 #define NOLIB_ECODE (270465)
 
@@ -54,3 +60,9 @@ void pardiso_chkvec(int *a, int *s, double *d, int *f) NO_PARDISO_LIB;
 void pardiso_printstats(int *a, int *s, double *d, int *f, int *g, int *h, double *j, int *k) NO_PARDISO_LIB;
 void pardiso_get_factor_csc(void **a, double *s, int *d, int *f, double *g, int *h, int *j, int *k, int l) NO_PARDISO_LIB;
 void pardiso_get_inverse_factor_csc(void **a, double *s, int *d, int *f, int *g, int h) NO_PARDISO_LIB;
+
+int METIS_NodeND(int *, int *, int *, int *, int *, int *, int *);
+int METIS51_NodeND(int *nvtxs, int *xadj, int *adjncy, int *vwgt, int *options, int *perm, int *iperm)
+{
+	return METIS_NodeND(nvtxs, xadj, adjncy, vwgt, options, perm, iperm);
+}
