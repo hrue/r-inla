@@ -1233,7 +1233,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 	int i, j, n_points = 30, np, np_g, np_max, nf, minp = 3;
 	double mean, stdev, mean_g, stdev_g, *x_points = NULL, *x_points_g = NULL,
 	    *log_dens = NULL, *log_dens_g = NULL, dens, x_real, m1, m2, sum_w, *ptr = NULL, m, sd, xx,
-	    f[] = { 0, 0.1, -0.1, 0.25, -0.25, 0.5, -0.5, 0.75, -0.75, 1.0, -1.0 };
+		f[] = { 0, 0.1, -0.1, 0.25, -0.25, 0.5, -0.5, 0.75, -0.75, 1.0, -1.0, 1.5, -1.5, 2.0, -2.0, 3.0, -3.0 };
 
 	GMRFLib_ENTER_ROUTINE;
 	nf = sizeof(f) / sizeof(double);
@@ -1271,8 +1271,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 
 	if (1) {
 		// new code. only use the mean/stdev to layout points
-		FIXME1("COMBINE USING NEW CODE");
-		n_points = 30;
+		// FIXME1("COMBINE USING NEW CODE");
 		np_max = n_points + nf;
 		x_points = Calloc(np_max, double);
 		x_points_g = (gdensity ? Calloc(np_max, double) : NULL);

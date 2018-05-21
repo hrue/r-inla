@@ -174,11 +174,10 @@ int GMRFLib_pardiso_perm(double *x, int m, GMRFLib_pardiso_store_tp * store);
 int GMRFLib_pardiso_iperm(double *x, int m, GMRFLib_pardiso_store_tp * store);
 int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store, int direction);
 
-int my_pardiso_test(void);
 int my_pardiso_test1(void);
 int my_pardiso_test2(void);
 int my_pardiso_test3(void);
-double my_Q(int i, int j, void *arg);
+double my_test_program_Q(int i, int j, void *arg);
 
 void pardisoinit(void *, int *, int *, int *, double *, int *);
 void pardiso(void *, int *, int *, int *, int *, int *, double *, int *, int *, int *, int *, int *, int *, double *, double *, int *, double *);
