@@ -21,7 +21,7 @@
 ##!   type=c(paste(1:4), paste0(2:4, 'c'), paste0(2:4, 'd')), 
 ##!   diagonal=1e-5, 
 ##!   ...) 
-##!  )
+##! )
 ##!}
 ##! \arguments{
 `inla.knmodels` =

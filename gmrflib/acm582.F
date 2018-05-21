@@ -1137,6 +1137,7 @@ c
 
           if (revers) xlevel = plstrt
           lstart = lvlptr (plstrt)
+#define HRUE_FIX 1
 #ifdef HRUE_FIX
           if (plstrt-1 .le. 0) then
              lend = active
