@@ -1925,7 +1925,7 @@
     ## write the list of environment variables set, so they can be reset if needed
     env = Sys.getenv()
     env.n = names(env)
-    idx = grep("^(INLA_|(OPENBLAS|MKL)_NUM_THREADS|PARDISOLICMESSAGE)", env.n)
+    idx = grep("^(INLA_|(OPENBLAS|MKL)_NUM_THREADS|PARDISO)", env.n)
     env.list = env[idx]
     file.env = paste0(inla.dir, "/environment")
     cat(file=file.env)
@@ -2162,7 +2162,10 @@
             lic.path = lic.file
         }
         inla.eval(paste("Sys.setenv(", "\"PARDISO_LIC_PATH\"", "=\"", normalizePath(lic.path), "\"", ")", sep=""))
-    }    
+        Sys.setenv(INLA_LOAD_PARDISO=1)
+    } else {
+        Sys.unsetenv("INLA_LOAD_PARDISO")
+    }
 
     for(e in "PARDISOLICMESSAGE") {
         if (Sys.getenv(e) == "") {
