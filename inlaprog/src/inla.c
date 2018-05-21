@@ -9659,7 +9659,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	} else if (!strcasecmp(openmp_strategy, "PARDISO.PARALLEL")) {
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
 	} else {
-		GMRFLib_sprintf(&tmp, "Unknown openmp.strategy [%s]", openmp_strategy);
+		GMRFLib_sprintf(&tmp, "Unknown openmp.strategy [%s]\n", openmp_strategy);
 		inla_error_general(tmp);
 		exit(EXIT_FAILURE);
 	}
@@ -9667,7 +9667,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	smtp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SMTP"),
 						  (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ||
 						   GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL) ?
-						  GMRFLib_strdup("PARDISO") : GMRFLib_strdup("TAUCS")));
+						  GMRFLib_strdup("PARDISO") : GMRFLib_strdup("DEFAULT")));
 	if (smtp) {
 		if (!strcasecmp(smtp, "BAND")) {
 			GMRFLib_smtp = GMRFLib_SMTP_BAND;
@@ -9675,11 +9675,17 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
 		} else if (!strcasecmp(smtp, "PARDISO")) {
 			GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
-		} else if (!strcasecmp(smtp, "AUTO") || !strcasecmp(smtp, "DEFAULT")) {
+		} else if (!strcasecmp(smtp, "DEFAULT")) {
 			if (GMRFLib_pardiso_check_install(1, 1) == GMRFLib_SUCCESS) {
+				if (mb->verbose) {
+					printf("\tpardiso-library installed and working? = [%s]\n", "yes");
+				}
 				mb->strategy = (mb->strategy != GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ?
 						GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL : GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL);
 			} else {
+				if (mb->verbose) {
+					printf("\tpardiso-library installed and working? = [%s]\n", "no");
+				}
 				if (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ||
 				    mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL) {
 					mb->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
@@ -9692,7 +9698,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	}
 	mb->smtp = GMRFLib_SMTP_NAME(GMRFLib_smtp);
 	if (mb->verbose) {
-		printf("\tsmtp = [%s]\n\tstrategy = [%s]", smtp, openmp_strategy);
+		printf("\tsmtp = [%s]\n\tstrategy = [%s]\n", smtp, openmp_strategy);
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, &GMRFLib_smtp);
 
