@@ -31,8 +31,6 @@ inla.knmodels(
    interaction term. The spacetime interaction term 
    will be added accordly to the specification in 
    the \code{control.st} argument. See \code{inla}}
- \item{control.t}{Named list of arguments to control
-   the spacetime interaction. It contains
  \item{control.st}{Named list of arguments to control
    the spacetime interaction. It contains
 }
