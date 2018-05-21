@@ -30408,10 +30408,11 @@ int testit(int argc, char **argv)
                 test_no = atoi(argv[0]);
                 nargs = argc -1;
                 args = &(argv[1]);
-                printf("test_no = %1d  nargs = %1d\n", test_no, nargs);
-                for(i = 0; i < nargs; i++)
-                        printf("\targs[%d] = %s\n", i, args[i]);
-        }
+        } 
+	printf("test_no = %1d  nargs = %1d\n", test_no, nargs);
+	for(i = 0; i < nargs; i++) {
+		printf("\targs[%d] = %s\n", i, args[i]);
+	}
    
 	switch (test_no) {
 	case -1:
@@ -31263,7 +31264,7 @@ int main(int argc, char **argv)
 		break;
 
 	case INLA_MODE_TESTIT:
-		testit(argc, &(argv[optind]));
+		testit(argc-optind, &(argv[optind]));
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
