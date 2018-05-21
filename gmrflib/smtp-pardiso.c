@@ -51,8 +51,6 @@
 #endif
 static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
-#define WARNING(_msg) fprintf(stderr, "\n\n%s:%1d: %s\n\n", __FILE__, __LINE__, _msg)
-
 // do not change: also inlaprog/src/libpardiso.c uses this code
 #define NOLIB_ECODE (270465)
 
@@ -990,74 +988,23 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 }
 
 
-#define COMPILE_WITH_TEST_PROGRAM 1
-#if defined(COMPILE_WITH_TEST_PROGRAM)
-// this is just an internal test program to be called from testit(), -m testit
-int my_pardiso_test(void)
-{
-	my_pardiso_test1();
-	// my_pardiso_test2();
-	// my_pardiso_test3();
 
-	return 0;
-}
-double my_Q(int i, int j, void *arg)
+// **********************************************************************
+// **********************************************************************
+// **********************************************************************
+// *** 
+// *** test-programs
+// *** 
+// **********************************************************************
+// **********************************************************************
+// **********************************************************************
+
+
+double my_test_program_Q(int i, int j, void *arg)
 {
 	GMRFLib_graph_tp *graph = (GMRFLib_graph_tp *) arg;
 	return (i == j ? graph->n + i : -1.0);
 }
-int my_pardiso_test2(void)
-{
-	int n = 5, m = 1, nc = 1, i, idum;
-	double *var;
-
-	GMRFLib_graph_tp *graph = NULL;
-	GMRFLib_make_linear_graph(&graph, n, m, 0);
-	GMRFLib_problem_tp *problem = NULL;
-	GMRFLib_constr_tp *constr = NULL;
-	GMRFLib_make_empty_constr(&constr);
-
-	constr->nc = nc;
-	constr->a_matrix = Calloc(n * nc, double);
-	for (i = 0; i < n * nc; i++)
-		constr->a_matrix[i] = GMRFLib_uniform();
-	constr->e_vector = Calloc(nc, double);
-	for (i = 0; i < nc; i++)
-		constr->e_vector[i] = GMRFLib_uniform();
-	GMRFLib_prepare_constr(constr, graph, 1);
-
-	// GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
-	// GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
-	// GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
-
-	double *x = Calloc(n, double);
-	double *b = Calloc(n, double);
-	double *c = Calloc(n, double);
-	double *mean = Calloc(n, double);
-	for (i = 0; i < n; i++) {
-		x[i] = GMRFLib_uniform();
-		b[i] = GMRFLib_uniform();
-		c[i] = exp(GMRFLib_uniform());
-		mean[i] = GMRFLib_uniform();
-	}
-
-	GMRFLib_init_problem(&problem, x, b, c, mean, graph, my_Q, (void *) graph, NULL, constr, GMRFLib_NEW_PROBLEM);
-	GMRFLib_evaluate(problem);
-#pragma omp parallel for private(idum) num_threads(GMRFLib_openmp->max_threads_outer)
-	for (idum = 0; idum < 1; idum++) {
-		GMRFLib_Qinv(problem, GMRFLib_QINV_ALL);
-	}
-
-	for (i = 0; i < n; i++) {
-		var = GMRFLib_Qinv_get(problem, i, i);
-		printf("Qinv[%1d,%1d] = %g\n", i, i, *var);
-	}
-	GMRFLib_free_problem(problem);
-
-	return 0;
-}
-
 int my_pardiso_test1(void)
 {
 	int err = 0, idum;
@@ -1185,6 +1132,58 @@ int my_pardiso_test1(void)
 
 	exit(0);
 }
+int my_pardiso_test2(void)
+{
+	int n = 5, m = 1, nc = 1, i, idum;
+	double *var;
+
+	GMRFLib_graph_tp *graph = NULL;
+	GMRFLib_make_linear_graph(&graph, n, m, 0);
+	GMRFLib_problem_tp *problem = NULL;
+	GMRFLib_constr_tp *constr = NULL;
+	GMRFLib_make_empty_constr(&constr);
+
+	constr->nc = nc;
+	constr->a_matrix = Calloc(n * nc, double);
+	for (i = 0; i < n * nc; i++)
+		constr->a_matrix[i] = GMRFLib_uniform();
+	constr->e_vector = Calloc(nc, double);
+	for (i = 0; i < nc; i++)
+		constr->e_vector[i] = GMRFLib_uniform();
+	GMRFLib_prepare_constr(constr, graph, 1);
+
+	// GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
+	// GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
+	// GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
+
+	double *x = Calloc(n, double);
+	double *b = Calloc(n, double);
+	double *c = Calloc(n, double);
+	double *mean = Calloc(n, double);
+	for (i = 0; i < n; i++) {
+		x[i] = GMRFLib_uniform();
+		b[i] = GMRFLib_uniform();
+		c[i] = exp(GMRFLib_uniform());
+		mean[i] = GMRFLib_uniform();
+	}
+
+	GMRFLib_init_problem(&problem, x, b, c, mean, graph, my_test_program_Q, (void *) graph, NULL, constr, GMRFLib_NEW_PROBLEM);
+	GMRFLib_evaluate(problem);
+#pragma omp parallel for private(idum) num_threads(GMRFLib_openmp->max_threads_outer)
+	for (idum = 0; idum < 1; idum++) {
+		GMRFLib_Qinv(problem, GMRFLib_QINV_ALL);
+	}
+
+	for (i = 0; i < n; i++) {
+		var = GMRFLib_Qinv_get(problem, i, i);
+		printf("Qinv[%1d,%1d] = %g\n", i, i, *var);
+	}
+	GMRFLib_free_problem(problem);
+
+	return 0;
+}
+
 
 int my_pardiso_test3(void)
 {
@@ -1316,6 +1315,3 @@ int my_pardiso_test3(void)
 	return GMRFLib_SUCCESS;
 }
 
-#endif
-#undef COMPILE_WITH_TEST_PROGRAM
-#undef WARNING

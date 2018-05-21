@@ -51,50 +51,35 @@ LDFLAGS = $(FLAGS)
 FFLAGS  = $(FLAGS) $(FCEXTRAFLAGS) $(INCL)
 CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DHGVERSION="\"${HGVERSION}\""
 
-## this for building the empty libpardiso.{so,ddl,dylib}
-NOPARDISOLINK = -Lsrc -lpardiso
-NOPARDISO_SRC = libpardiso.c
-NOPARDISO_OBJ = $(NOPARDISO_SRC:.c=.o)
-
-ifeq ($(INLA_OS),Darwin)
-
-  NOPARDISO_LIB = libpardiso.dylib
-  NOPARDISO_LDFLAGS = -Wall -dynamiclib -undefined suppress -flat_namespace 
-
-  $(NOPARDISO_LIB) : $(NOPARDISO_SRC)
-	( cd src; $(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ )
-
-else ifeq ($(INLA_OS),Windows)
-
-  NOPARDISO_LIB = libpardiso.dll
-  NOPARDISO_CFLAGS = -c
-  NOPARDISO_LDFLAGS = -shared
-
-  $(NOPARDISO_LIB) : $(NOPARDISO_OBJ)
-	( cd src; $(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ )
-
-  $(NOPARDISO_OBJ) : $(NOPARDISO_SRC)
-	( cd src; $(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^ )
-
-else ifeq ($(INLA_OS),Linux)
-
-  NOPARDISO_LIB = libpardiso.so
-  NOPARDISO_CFLAGS = -fPIC -Wall
-  NOPARDISO_LDFLAGS = -shared
-
-  $(NOPARDISO_LIB) : $(NOPARDISO_OBJ)
-	( cd src; $(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ )
-
-  $(NOPARDISO_OBJ) : $(NOPARDISO_SRC)
-	( cd src; $(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^ )
-endif
+#ifeq ($(INLA_OS),Darwin)
+#  NOPARDISO_LIB = libpardiso.dylib
+#  NOPARDISO_LDFLAGS = -Wall -dynamiclib -undefined suppress -flat_namespace 
+#  $(NOPARDISO_LIB) : $(NOPARDISO_SRC)
+#	( cd src; $(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ )
+#else ifeq ($(INLA_OS),Windows)
+#  NOPARDISO_LIB = libpardiso.dll
+#  NOPARDISO_CFLAGS = -c
+#  NOPARDISO_LDFLAGS = -shared
+#  $(NOPARDISO_LIB) : $(NOPARDISO_OBJ)
+#	( cd src; $(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ )
+#  $(NOPARDISO_OBJ) : $(NOPARDISO_SRC)
+#	( cd src; $(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^ )
+#else ifeq ($(INLA_OS),Linux)
+#  NOPARDISO_LIB = libpardiso.so
+#  NOPARDISO_CFLAGS = -fPIC -Wall
+#  NOPARDISO_LDFLAGS = -shared
+#  $(NOPARDISO_LIB) : $(NOPARDISO_OBJ)
+#	( cd src; $(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ )
+#  $(NOPARDISO_OBJ) : $(NOPARDISO_SRC)
+#	( cd src; $(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^ )
+#endif
 
 
 INLA = inla
 OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/sha1.o src/spde.o src/spde2.o src/spde3.o src/eval.o src/interpol.o src/re.o src/ar.o src/bessel.o src/pc-priors.o src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o
 
-$(INLA) : $(OBJ) $(NOPARDISO_LIB)
-	$(LD) $(LDFLAGS) -o $@ $(OBJ) $(NOPARDISOLINK) -L$(PREFIX)/lib  $(EXTLIBS)
+$(INLA) : $(OBJ)
+	$(LD) $(LDFLAGS) -o $@ $(OBJ) -L$(PREFIX)/lib  $(EXTLIBS)
 
 install: $(INLA)
 	 @umask 022;\
