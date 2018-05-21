@@ -15,6 +15,10 @@ fix-perm () {
     done
 }
 
+## Maybe put them somewhere else, but for the moment, its here
+rsync -auv ~/p/inla/pardiso $d
+fix-perm $d/pardiso
+
 for m in 64; do
     for p in inla fmesher; do 
 	for f in $(ssh $INLA_MAC bin/my.otool builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do

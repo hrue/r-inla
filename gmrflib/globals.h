@@ -259,6 +259,11 @@ extern GMRFLib_density_storage_strategy_tp GMRFLib_density_storage_strategy;
  */
 extern int GMRFLib_debug_code;
 
+/* 
+   tell the pardiso-interface that we're in a thread-safe area
+ */
+extern int GMRFLib_pardiso_thread_safe;
+
 
 #endif
 __END_DECLS
