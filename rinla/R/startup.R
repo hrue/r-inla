@@ -20,6 +20,11 @@ inla.print.version <- function()
         hello <- paste0("This is INLA_", version, 
                         " built ", built, ".", "\n",
                         "See www.r-inla.org/contact-us for how to get help.")
+        if (!inla.os("windows")) {
+            hello = paste0(hello,
+                           "\n",
+                           "To enable PARDISO-6.0 support; see inla.pardiso()")
+        }
         packageStartupMessage(hello)
         if (inla.os.is.32bit())
             warning(paste0("INLA_",  version,
