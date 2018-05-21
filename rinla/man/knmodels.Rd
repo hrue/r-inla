@@ -4,6 +4,7 @@
 %%
  \name{inla.knmodels}
  \alias{inla.knmodels}
+ \alias{knmodels}
  \title{Spacetime interaction models}
  \description{
     It implements the models in Knorr-Held, L. (2000) 
@@ -32,7 +33,8 @@ inla.knmodels(
    will be added accordly to the specification in 
    the \code{control.st} argument. See \code{inla}}
  \item{control.st}{Named list of arguments to control
-   the spacetime interaction. It contains
+   the spacetime interaction. It contains ...SOMETHING
+   IS MISSING HERE
 }
   \item{time}{Name of the index set for the
    main temporal effect which will be considered
@@ -71,7 +73,7 @@ inla.knmodels(
    the prior using the \code{pc.prec} prior with 
    \code{param = c(0.5, 0.5)}. See documentation with 
    \code{?inla.doc("pc.prec")}}
-}
+
  \item{progress}{If it is to be shown the model 
    fitting progress. Useful if more than one 
    interaction type is being fitted.}
