@@ -66,3 +66,4 @@ int METIS51_NodeND(int *nvtxs, int *xadj, int *adjncy, int *vwgt, int *options, 
 {
 	return METIS_NodeND(nvtxs, xadj, adjncy, vwgt, options, perm, iperm);
 }
+
