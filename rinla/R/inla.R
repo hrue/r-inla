@@ -1924,7 +1924,8 @@
             }
         }
     }
-    do.call("Sys.setenv", as.list(vars))
+    if (!is.null(vars))
+        do.call("Sys.setenv", as.list(vars))
 
     ## write the list of environment variables set, so they can be reset if needed
     env = Sys.getenv()
