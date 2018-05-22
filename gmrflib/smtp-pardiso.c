@@ -576,9 +576,15 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	}
 
 	if (store->pstore->err_code != 0 || store->pstore->iparm[22] > 0) {
-		printf("\nERROR not pos def matrix, #neg.eigen %d, err-code %d", store->pstore->iparm[22], store->pstore->err_code);
+		printf("\n");
+		if (store->pstore->iparm[22] > 1) {
+			printf("*** PARDISO ERROR: not pos.def matrix: %1d eigenvalues are negative.\n", store->pstore->iparm[22]);
+		} else {
+			printf("*** PARDISO ERROR: not pos.def matrix: %1d eigenvalue is negative.\n", store->pstore->iparm[22]);
+		}
+		printf("*** PARDISO ERROR: I will try to work around the problem...\n\n");
 		fflush(stdout);
-		GMRFLib_ERROR(GMRFLib_EPOSDEF);
+		return !GMRFLib_SUCCESS;
 	}
 
 	store->pstore->log_det_Q = store->pstore->dparm[32];
