@@ -9678,19 +9678,26 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		} else if (!strcasecmp(smtp, "DEFAULT")) {
 			if (GMRFLib_pardiso_check_install(1, 1) == GMRFLib_SUCCESS) {
 				if (mb->verbose) {
-					printf("\tpardiso-library installed and working? = [%s]\n", "yes");
+					printf("\t\tpardiso-library installed and working? = [%s]\n", "yes");
 				}
 				mb->strategy = (mb->strategy != GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ?
 						GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL : GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL);
+				openmp_strategy = (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ?
+						   "pardiso.parallel" : "pardiso.serial");
+				GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
+				smtp = GMRFLib_strdup("pardiso");
 			} else {
 				if (mb->verbose) {
-					printf("\tpardiso-library installed and working? = [%s]\n", "no");
+					printf("\t\tpardiso-library installed and working? = [%s]\n", "no");
 				}
 				if (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ||
 				    mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL) {
 					mb->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
+					openmp_strategy = GMRFLib_strdup("default");
 				}
+				
 				GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
+				smtp = GMRFLib_strdup("taucs");
 			}
 		} else {
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "smtp", smtp);
@@ -9698,7 +9705,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	}
 	mb->smtp = GMRFLib_SMTP_NAME(GMRFLib_smtp);
 	if (mb->verbose) {
-		printf("\tsmtp = [%s]\n\tstrategy = [%s]\n", smtp, openmp_strategy);
+		printf("\t\tsmtp = [%s]\n\t\tstrategy = [%s]\n", smtp, openmp_strategy);
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, &GMRFLib_smtp);
 
