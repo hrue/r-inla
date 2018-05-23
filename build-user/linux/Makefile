@@ -24,8 +24,11 @@ PLATFORM = linux
 ## Must match the machine architecture (32 or 64):
 BITS = 64
 ## Compiler flags
-FLAGS = -m64 -std=gnu99 -Wall -O2 -mtune=generic -mfpmath=sse \
-	-msse2 -funroll-loops -ftracer -fopenmp -pipe
+FLAGS_COMMON = \
+	-m64 -Wall -O2 -mtune=generic -mfpmath=sse \
+	-msse2 -funroll-loops -ftracer -pipe
+FLAGS_INLA = $(FLAGS_COMMON) -std=gnu99 -fopenmp
+FLAGS_FMESHER = $(FLAGS_COMMON) -std=c++11
 
 ## You probably don't need to edit anything below this line
 
@@ -48,7 +51,7 @@ ARGS = CC="$(CC)" CXX="$(CXX)" FC="$(FC)" LD="$(LD)"
 
 all :;
 	@(echo "";\
-	echo "Edit this Makefile, especially the 'FLAGS' variable,";\
+	echo "Edit this Makefile, especially the 'FLAGS_*' variables,";\
 	echo "check if you need to run 'sudo $(MAKE) lib-install', then do";\
 	echo "";\
 	echo "	$(MAKE) lib-install";\
@@ -78,9 +81,11 @@ all :;
 	echo "It's possible to link to both lapack and lapack_atlas.";\
 	echo "";)
 
-## Package list updated 2014-08-23
+## Package list
+##  updated 2014-08-23
+##  updated 2018-05-23: removed optional fmesher libx11-dev (default fmesher builds without x11)
 LIBPKG = liblapack-dev libgsl0-dev zlib1g-dev libsuitesparse-dev \
-	libmetis-dev libxdmcp-dev libx11-dev libc6-dev libatlas-dev \
+	libmetis-dev libxdmcp-dev libc6-dev libatlas-dev \
 	libblas-dev libmuparser-dev r-mathlib
 
 lib-install :
@@ -117,25 +122,27 @@ update :
 	$(MAKE) package
 
 
+fmesher-x11:
+
 fmesher :
 	$(MAKE) -C inla/fmesher PREFIX=$(PREFIX) $(ARGS) -k clean
-	$(MAKE) -C inla/fmesher PREFIX=$(PREFIX) FLAGS="$(FLAGS)" $(ARGS) EXTLIBS="-lX11 -lgsl -lgslcblas -lxcb -lpthread -lXau -lXdmcp"
+	$(MAKE) -C inla/fmesher PREFIX=$(PREFIX) FLAGS="$(FLAGS_FMESHER)" $(ARGS)
 	$(MAKE) -C inla/fmesher PREFIX=$(PREFIX) $(ARGS) install
 	@rsync -a $(PREFIX)/bin/fmesher $(BINPREFIX)/fmesher$(BITS)
 	@rm $(PREFIX)/bin/fmesher
 
 inla :
 	ln -sTf /usr/include $(INCPREFIX)/muParser
-	$(MAKE) -C inla/inlaprog PREFIX=$(PREFIX) FLAGS="$(FLAGS) -fopenmp" $(ARGS) -k clean
-	$(MAKE) -C inla/inlaprog PREFIX=$(PREFIX) FLAGS="$(FLAGS) -fopenmp" $(ARGS)
-	$(MAKE) -C inla/inlaprog PREFIX=$(PREFIX) FLAGS="$(FLAGS) -fopenmp" $(ARGS) install
+	$(MAKE) -C inla/inlaprog PREFIX=$(PREFIX) FLAGS="$(FLAGS_INLA)" $(ARGS) -k clean
+	$(MAKE) -C inla/inlaprog PREFIX=$(PREFIX) FLAGS="$(FLAGS_INLA)" $(ARGS)
+	$(MAKE) -C inla/inlaprog PREFIX=$(PREFIX) FLAGS="$(FLAGS_INLA)" $(ARGS) install
 	@rsync -a $(PREFIX)/bin/inla $(BINPREFIX)/inla$(BITS)
 	@rm $(PREFIX)/bin/inla $(PREFIX)/bin/inla-snapshot
 
 GMRFLib :
-	$(MAKE) -C inla/gmrflib PREFIX=$(PREFIX) FLAGS="$(FLAGS) -fopenmp" $(ARGS) -k clean
-	$(MAKE) -C inla/gmrflib PREFIX=$(PREFIX) FLAGS="$(FLAGS) -fopenmp" $(ARGS)
-	$(MAKE) -C inla/gmrflib PREFIX=$(PREFIX) FLAGS="$(FLAGS) -fopenmp" $(ARGS) install
+	$(MAKE) -C inla/gmrflib PREFIX=$(PREFIX) FLAGS="$(FLAGS_INLA)" $(ARGS) -k clean
+	$(MAKE) -C inla/gmrflib PREFIX=$(PREFIX) FLAGS="$(FLAGS_INLA)" $(ARGS)
+	$(MAKE) -C inla/gmrflib PREFIX=$(PREFIX) FLAGS="$(FLAGS_INLA)" $(ARGS) install
 
 sync-taucs :
 	mkdir -p $(MAINDIR)/tmp
@@ -144,8 +151,8 @@ sync-taucs :
 	cd $(MAINDIR)/tmp ; tar -zxf taucs-2.2--my-fix.tgz
 
 taucs : sync-taucs
-	$(MAKE) -C $(MAINDIR)/tmp/taucs-2.2--my-fix CFLAGS="$(FLAGS)" FFLAGS="$(FLAGS)" $(ARGS) -k clean
-	$(MAKE) -C $(MAINDIR)/tmp/taucs-2.2--my-fix CFLAGS="$(FLAGS)" FFLAGS="$(FLAGS)" $(ARGS)
+	$(MAKE) -C $(MAINDIR)/tmp/taucs-2.2--my-fix CFLAGS="$(FLAGS_INLA)" FFLAGS="$(FLAGS_INLA)" $(ARGS) -k clean
+	$(MAKE) -C $(MAINDIR)/tmp/taucs-2.2--my-fix CFLAGS="$(FLAGS_INLA)" FFLAGS="$(FLAGS_INLA)" $(ARGS)
 	@cp -v -f $(MAINDIR)/tmp/taucs-2.2--my-fix/lib/linux/libtaucs.a $(PREFIX)/lib
 
 package :
