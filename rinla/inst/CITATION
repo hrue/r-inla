@@ -139,7 +139,7 @@ citEntry(
     textVersion = paste(
         "A. De Coninck, B. De Baets, D. Kourounis, F. Verbosio, O. Schenk, S. Maenhout, and J. Fostier, ",
         "Needles: Toward large-scale genomic prediction with marker-by-environment interaction, ",
-        "Genetics, vol. 203, no. 1, pp. 543–555, 2016."))
+        "Genetics, vol. 203, no. 1, pp. 543-555, 2016."))
 
 citEntry(
     entry = "Article",
@@ -151,14 +151,14 @@ citEntry(
     journal = "Journal of Computational Science",
     volume = "22",
     number = "Supplement C",
-    pages = "99 - 108",
+    pages = "99-108",
     year = "2017",
     issn = "1877-7503",
     url = "https://doi.org/10.1016/j.jocs.2017.08.013",
     textVersion = paste(
         "F. Verbosio, A. D. Coninck, D. Kourounis, and O. Schenk,",
         "Enhancing the scalability of selected inversion factorization algorithms in genomic predictions,",
-        "Journal of Computational Science, vol. 22, no. Supplement C, pp. 99 – 108, 2017."))
+        "Journal of Computational Science, vol. 22, no. Supplement C, pp. 99-108, 2017."))
 
 
 citEntry(
@@ -176,5 +176,5 @@ citEntry(
     textVersion = paste(
         "D. Kourounis, A. Fuchs, and O. Schenk,",
         "Towards the next generation of multiperiod optimal power flow solvers,",
-        "IEEE Transactions on Power Systems, vol. PP, no. 99, pp. 1–10, 2018."))
+        "IEEE Transactions on Power Systems, vol. PP, no. 99, pp. 1-10, 2018."))
 

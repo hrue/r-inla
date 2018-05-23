@@ -9676,7 +9676,10 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		} else if (!strcasecmp(smtp, "PARDISO")) {
 			GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
 		} else if (!strcasecmp(smtp, "DEFAULT")) {
-			if (GMRFLib_pardiso_check_install(1, 1) == GMRFLib_SUCCESS) {
+			if (GMRFLib_pardiso_ok < 0) {
+				GMRFLib_pardiso_ok = (GMRFLib_pardiso_check_install(0, 1) == GMRFLib_SUCCESS ? 1 : 0);
+			}
+			if (GMRFLib_pardiso_ok) {
 				if (mb->verbose) {
 					printf("\t\tpardiso-library installed and working? = [%s]\n", "yes");
 				}
