@@ -30971,6 +30971,18 @@ int testit(int argc, char **argv)
 
 	exit(EXIT_SUCCESS);
 }
+
+int inla_check_pardiso(void)
+{
+	// check if PARDISO-lib is installed and working
+	if (GMRFLib_pardiso_check_install(1, 1) == GMRFLib_SUCCESS) {
+		printf("PARDISO IS ALIVE AND WORKING\n");
+	} else {
+		printf("NO PARDISO\n");
+	}
+	return GMRFLib_SUCCESS;
+}
+
 int main(int argc, char **argv)
 {
 #define _USAGE_intern(fp)  fprintf(fp, "\nUsage: %s [-v] [-V] [-h] [-f] [-e var=value] [-t MAX_THREADS] [-m MODE] FILE.INI\n", program)
@@ -31075,6 +31087,8 @@ int main(int argc, char **argv)
 				G.mode = INLA_MODE_R;
 			} else if (!strncasecmp(optarg, "FGN", 3)) {
 				G.mode = INLA_MODE_FGN;
+			} else if (!strncasecmp(optarg, "PARDISO", 7)) {
+				G.mode = INLA_MODE_PARDISO;
 			} else if (!strncasecmp(optarg, "TESTIT", 6)) {
 				G.mode = INLA_MODE_TESTIT;
 			} else {
@@ -31276,6 +31290,11 @@ int main(int argc, char **argv)
 		inla_fgn(argv[optind], argv[optind + 1]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
+		exit(EXIT_SUCCESS);
+		break;
+
+	case INLA_MODE_PARDISO:
+		inla_check_pardiso();
 		exit(EXIT_SUCCESS);
 		break;
 
