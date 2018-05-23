@@ -123,6 +123,11 @@ update :
 
 
 fmesher-x11:
+	$(MAKE) -C inla/fmesher PREFIX=$(PREFIX) $(ARGS) -k clean
+	$(MAKE) -C inla/fmesher PREFIX=$(PREFIX) FMESHER_USE_X=1 FLAGS="$(FLAGS_FMESHER)" $(ARGS)
+	$(MAKE) -C inla/fmesher PREFIX=$(PREFIX) $(ARGS) install
+	@rsync -a $(PREFIX)/bin/fmesher $(BINPREFIX)/fmesher$(BITS)
+	@rm $(PREFIX)/bin/fmesher
 
 fmesher :
 	$(MAKE) -C inla/fmesher PREFIX=$(PREFIX) $(ARGS) -k clean
