@@ -30,6 +30,8 @@
 ##!     fmesher.arg: Additional arguments to \code{fmesher.call}
 ##!     
 ##!     num.threads: Number of threads to use.
+##!
+##!     blas.num.threads: Number of threads to use for openblas and mklblas (see \code{inla} for details)
 ##!     
 ##!     smtp: sparse matrix library,  one of \code{band}, \code{taucs} (\code{default}) or \code{pardiso}
 ##!
@@ -85,6 +87,7 @@
         "fmesher.call",
         "fmesher.arg",
         "num.threads",
+        "blas.num.threads",
         "smtp", 
         "pardiso.license", 
         "keep",
@@ -106,6 +109,7 @@
         inla.arg = NULL,
         fmesher.arg = "", 
         num.threads = NULL, 
+        blas.num.threads = 1L, 
         smtp = "default", 
         pardiso.license = NULL, 
         keep = FALSE, 
@@ -171,6 +175,7 @@
             "fmesher.call",
             "fmesher.arg",
             "num.threads",
+            "blas.num.threads",
             "smtp",
             "pardiso.license", 
             "keep",

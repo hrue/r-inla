@@ -32,6 +32,8 @@
      fmesher.arg: Additional arguments to \code{fmesher.call}
      
      num.threads: Number of threads to use.
+
+     blas.num.threads: Number of threads to use for openblas and mklblas (see \code{inla} for details)
      
      smtp: sparse matrix library,  one of \code{band}, \code{taucs} (\code{default}) or \code{pardiso}
 
