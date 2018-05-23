@@ -40,6 +40,7 @@
 ##!    inla.call = inla.getOption("inla.call"),
 ##!    inla.arg = inla.getOption("inla.arg"),
 ##!    num.threads = inla.getOption("num.threads"),
+##!    blas.num.threads = inla.getOption("blas.num.threads"),
 ##!    keep = inla.getOption("keep"),
 ##!    working.directory = inla.getOption("working.directory"),
 ##!    silent = inla.getOption("silent"),
@@ -214,6 +215,16 @@
         ##!\item{num.threads}{ Maximum number of threads the
         ##!\code{inla}-program will use}
         num.threads = inla.getOption("num.threads"),
+        
+        ##!\item{blas.num.threads}{The absolute value of \code{blas.num.threads} is the maximum
+        ##!number of threads the the \code{openblas}/\code{mklblas} will use. If
+        ##!\code{blas.num.threads} > 0, then the environment variables
+        ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned, unless they
+        ##!are already defined. If \code{blas.num.threads} < 0, then the environment variables
+        ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be (possibly re)-assigned.
+        ##!If \code{blas.num.threads} = 0,  then variables \code{OPENBLAS_NUM_THREADS} and
+        ##!\code{MKL_NUM_THREADS} will be removed.}
+        blas.num.threads = inla.getOption("blas.num.threads"),
         
         ##!\item{keep}{ A boolean variable indicating that the
         ##!working files (ini file, data files and results
@@ -572,6 +583,7 @@
             inla.call = inla.call,
             inla.arg = inla.arg,
             num.threads = num.threads,
+            blas.num.threads = blas.num.threads,
             keep = keep,
             working.directory = working.directory,
             silent = silent,
@@ -981,10 +993,12 @@
     ## copy the argument-lists
     mf = match.call(expand.dots = FALSE)
     mf$family = NULL; mf$quantiles=NULL; 
-    mf$verbose = NULL; mf$control.compute = NULL; mf$control.predictor = NULL; mf$silent = NULL; mf$control.hazard=NULL;
+    mf$verbose = NULL; mf$control.compute = NULL; mf$control.predictor = NULL;
+    mf$silent = NULL; mf$control.hazard=NULL;
     mf$control.family = NULL;  mf$control.update = NULL;
     mf$control.inla = NULL; mf$control.results = NULL; mf$control.fixed = NULL; mf$control.lincomb=NULL;
-    mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL; mf$num.threads = NULL; mf$keep = NULL;
+    mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL;
+    mf$num.threads = NULL; mf$blas.num.threads = NULL; mf$keep = NULL;
     mf$working.directory = NULL; mf$only.hyperparam = NULL; mf$debug = NULL; mf$contrasts = NULL; 
     mf$inla.arg = NULL; mf$lincomb=NULL; mf$.parent.frame = NULL;
     mf$data = data.same.len
@@ -1898,7 +1912,7 @@
                                        strsplit(R.Version()$minor,"[.]")[[1]][1]),
                 INLA_RHOME = Sys.getenv("R_HOME"))
     do.call("Sys.setenv", vars)
-    inla.set.sparselib.env(inla.dir, blas.num.threads = 2L)
+    inla.set.sparselib.env(inla.dir, blas.num.threads = blas.num.threads)
 
     vars = NULL
     if (debug) {
@@ -2139,7 +2153,7 @@
     return (data)
 }
 
-`inla.set.sparselib.env` = function(inla.dir = NULL, blas.num.threads = 2L) 
+`inla.set.sparselib.env` = function(inla.dir = NULL, blas.num.threads = 1L) 
 {
     ## environment variables for sparse libraries
     if (is.null(inla.dir)) {
@@ -2174,10 +2188,20 @@
 
     if (Sys.getenv("PARDISOLICMESSAGE") == "")
         Sys.setenv(PARDISOLICMESSAGE=1)
-    if (Sys.getenv("OPENBLAS_NUM_THREADS") == "")
-        Sys.setenv(OPENBLAS_NUM_THREADS = blas.num.threads)
-    if (Sys.getenv("MKL_NUM_THREADS") == "")
-        Sys.setenv(MKL_NUM_THREADS = blas.num.threads)
-
+    
+    blas.num.threads = as.integer(blas.num.threads)
+    if (blas.num.threads == 0) {
+        Sys.unsetenv("OPENBLAS_NUM_THREADS")
+        Sys.unsetenv("MKL_NUM_THREADS")
+    } else if (blas.num.threads > 0) {
+        if (Sys.getenv("OPENBLAS_NUM_THREADS") == "")
+            Sys.setenv(OPENBLAS_NUM_THREADS = blas.num.threads)
+        if (Sys.getenv("MKL_NUM_THREADS") == "")
+            Sys.setenv(MKL_NUM_THREADS = blas.num.threads)
+    } else {
+        Sys.setenv(OPENBLAS_NUM_THREADS = abs(blas.num.threads))
+        Sys.setenv(MKL_NUM_THREADS = abs(blas.num.threads))
+    }
+        
     return (invisible())
 }    
