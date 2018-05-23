@@ -23,7 +23,7 @@ inla.print.version <- function()
         if (!inla.os("windows")) {
             hello = paste0(hello,
                            "\n",
-                           "To enable PARDISO-6.0 support; see inla.pardiso()")
+                           "To enable PARDISO sparse library; see inla.pardiso()")
         }
         packageStartupMessage(hello)
         if (inla.os.is.32bit())
