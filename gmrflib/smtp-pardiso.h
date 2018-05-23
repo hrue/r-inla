@@ -122,9 +122,9 @@ typedef struct {
 	int XX_silent = _silent;				\
 	FILE *XX_temp_out;					\
 	if (XX_silent) {					\
-		XX_stdout_dupfd = dup(1);			\
+		XX_stdout_dupfd = dup(fileno(stdout));		\
 		XX_temp_out = fopen("/dev/null", "w");		\
-		dup2(fileno(XX_temp_out), 1);			\
+		dup2(fileno(XX_temp_out), fileno(stdout));	\
 	}
 
 
@@ -132,7 +132,7 @@ typedef struct {
 	if (XX_silent) {				\
 		fflush(stdout);				\
 		fclose(XX_temp_out);			\
-		dup2(XX_stdout_dupfd, 1);		\
+		dup2(XX_stdout_dupfd, fileno(stdout));	\
 		close(XX_stdout_dupfd);			\
 	}
 
