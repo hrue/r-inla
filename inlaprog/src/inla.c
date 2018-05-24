@@ -2248,7 +2248,8 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 				Qijlist[jj] = x_out[k++];
 			}
 			assert(k == n_out);
-
+			Free(x_out);
+			
 			GMRFLib_tabulate_Qfunc_from_list(&(a->Q[id]), &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
 			assert(graph->n == a->n);
 		}
