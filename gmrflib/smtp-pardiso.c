@@ -584,7 +584,7 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 		}
 		printf("*** PARDISO ERROR: I will try to work around the problem...\n\n");
 		fflush(stdout);
-		return !GMRFLib_SUCCESS;
+		return GMRFLib_EPOSDEF;
 	}
 
 	store->pstore->log_det_Q = store->pstore->dparm[32];
