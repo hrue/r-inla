@@ -168,7 +168,8 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 
 	arg->values = Calloc(graph->n, map_id *);
 
-#pragma omp parallel for private(i)
+// creates a dead-lock using pardiso.parallel
+//#pragma omp parallel for private(i)
 	for (i = 0; i < graph->n; i++) {
 		int j, k, count;
 
