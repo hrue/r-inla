@@ -2450,7 +2450,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
 		*nnz_opt = 0;
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
+		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
 		*nnz_opt = 0;
 	} else {
 		GMRFLib_sizeof_tp *nnzs = NULL, nnz_best;
