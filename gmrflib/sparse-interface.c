@@ -107,6 +107,23 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 		}
 		break;
 
+	case GMRFLib_REORDER_PARDISO:
+		switch (sm_fact->smtp) {
+		case GMRFLib_SMTP_PARDISO:		       /*  same code as above */
+			if (sm_fact->PARDISO_fact == NULL) {
+				GMRFLib_pardiso_init(&(sm_fact->PARDISO_fact));
+			}
+			GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph);
+			sm_fact->remap = Calloc(graph->n, int);
+			memcpy((void *) sm_fact->remap, (void *) sm_fact->PARDISO_fact->pstore->perm, graph->n * sizeof(int));
+			break;
+
+		default:
+			GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);
+			break;
+		}
+		break;
+
 	case GMRFLib_REORDER_BAND:
 		GMRFLib_EWRAP1(GMRFLib_compute_reordering_BAND(&(sm_fact->remap), graph));
 		break;

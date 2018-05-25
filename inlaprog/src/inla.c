@@ -9707,6 +9707,9 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "smtp", smtp);
 		}
 	}
+	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
+		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_PARDISO;
+	}
 	mb->smtp = GMRFLib_SMTP_NAME(GMRFLib_smtp);
 	if (mb->verbose) {
 		printf("\t\tsmtp = [%s]\n\t\tstrategy = [%s]\n", smtp, openmp_strategy);
@@ -25971,7 +25974,7 @@ int inla_INLA(inla_tp * mb)
 				mb->strategy = GMRFLib_OPENMP_STRATEGY_HUGE;
 				sname = GMRFLib_strdup("HUGE");
 			}
-			printf("\tSize is [%1d]\n\tChose OpenMP-strategy [%s]\n", ntot, sname);
+			// printf("\tSize is [%1d]\n\tChose OpenMP-strategy [%s]\n", ntot, sname);
 		}
 	}
 	GMRFLib_openmp->strategy = mb->strategy;
@@ -25995,12 +25998,11 @@ int inla_INLA(inla_tp * mb)
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
 	if (mb->verbose) {
-		printf("\tChose density-strategy [%s]\n",
+		printf("\tSparse-matrix library... = [%s]\n", mb->smtp);
+		printf("\tOpenMP strategy......... = [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
+		printf("\tDensity-strategy........ = [%s]\n",
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT ?
-			"DEFAULT" : (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "LOW" : "HIGH")));
-	}
-	if (mb->verbose) {
-		printf("\tSparse-matrix library = [%s]\n", mb->smtp);
+			"Default" : (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High")));
 	}
 
 	GMRFLib_init_hgmrfm(&(mb->hgmrfm), mb->predictor_n, mb->predictor_m,
@@ -26011,7 +26013,8 @@ int inla_INLA(inla_tp * mb)
 			    (mb->lc_derived_only ? 0 : mb->nlc), mb->lc_lc, mb->lc_prec, mb->ai_par);
 	N = ((GMRFLib_hgmrfm_arg_tp *) mb->hgmrfm->Qfunc_arg)->N;
 	if (mb->verbose) {
-		printf("\tSize of graph=[%1d] constraints=[%1d]\n", N, (mb->hgmrfm->constr ? mb->hgmrfm->constr->nc : 0));
+		printf("\tSize of graph........... = [%d]\n", N);
+		printf("\tNumber of constraints... = [%d]\n", (mb->hgmrfm->constr ? mb->hgmrfm->constr->nc : 0));
 	}
 
 	mb->d = Realloc(mb->d, N, double);
@@ -26172,9 +26175,11 @@ int inla_INLA(inla_tp * mb)
 		GMRFLib_sizeof_tp nnz = 0;
 		int use_g = 0;
 		GMRFLib_optimize_reorder(mb->hgmrfm->graph, &nnz, &use_g, &(mb->gn));
-		if (mb->verbose) {
-			printf("\tFound optimal reordering=[%s] nnz(L)=[%lu] and use_global_nodes(user)=[%s]\n",
-			       GMRFLib_reorder_name(GMRFLib_reorder), nnz, (use_g ? "yes" : "no"));
+		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {		
+			if (mb->verbose) {
+				printf("\tFound optimal reordering=[%s] nnz(L)=[%lu] and use_global_nodes(user)=[%s]\n",
+				       GMRFLib_reorder_name(GMRFLib_reorder), nnz, (use_g ? "yes" : "no"));
+			}
 		}
 	}
 	if (mb->verbose) {
@@ -26459,8 +26464,10 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 
 	if (G.reorder < 0) {
 		GMRFLib_optimize_reorder(mb_new->hgmrfm->graph, NULL, NULL, &(mb_new->gn));
-		if (mb_new->verbose) {
-			printf("\tFound optimal reordering=[%s]\n", GMRFLib_reorder_name(GMRFLib_reorder));
+		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
+			if (mb_new->verbose) {
+				printf("\tFound optimal reordering=[%s]\n", GMRFLib_reorder_name(GMRFLib_reorder));
+			}
 		}
 	}
 	if (mb_new->verbose) {
@@ -29832,7 +29839,7 @@ int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
+		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_PARDISO;
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
 	} else {
