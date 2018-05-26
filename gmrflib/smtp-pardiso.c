@@ -298,6 +298,8 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default[23] = 1;			       /* two level scheduling, and... */
 	s->iparm_default[24] = 1; 			       /* use parallel solve, as... */
 	s->iparm_default[33] = 1;			       /* I want identical solutions (require ipar[1]=2 above) */
+	FIXME1stderr("set iparm[33]=0");
+	s->iparm_default[33] = 0;			       /* I want identical solutions (require ipar[1]=2 above) */
 
 	if (error != 0) {
 		if (error == NOLIB_ECODE) {
@@ -325,7 +327,8 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 	memcpy((void *) (store->pstore->iparm), (void *) (store->iparm_default), GMRFLib_PARDISO_PLEN * sizeof(int));
 	memcpy((void *) (store->pstore->dparm), (void *) (store->dparm_default), GMRFLib_PARDISO_PLEN * sizeof(double));
 
-	int ival7 = 4;					       // iterative improvements? #iterations
+	FIXME1stderr("SET ival7=0");
+	int ival7 = (store->pstore->iparm[2] > 1 ? 0 : 0);    // iterative improvements? #iterations
 	store->pstore->nrhs = 0;
 	store->pstore->err_code = 0;
 
