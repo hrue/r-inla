@@ -1,7 +1,7 @@
 
 /* domin-interface.c
  * 
- * Copyright (C) 2006-2008 Havard Rue
+ * Copyright (C) 2006-2018 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,8 +32,6 @@
 #define HGVERSION
 #endif
 static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
-
-/* Pre-hg-Id: $Id: domin-interface.c,v 1.93 2010/04/08 05:09:40 hrue Exp $ */
 
 #include <float.h>
 #include <math.h>
@@ -206,7 +204,7 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 	/*
 	 * this version controls AI_STORE 
 	 */
-	int i, debug = 0;
+	int i, debug = 0, idum;
 	double ffx, fx_local;
 
 	/*
@@ -224,55 +222,33 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 		bnew_local = Calloc(GMRFLib_MAX_THREADS, double *);
 	}
 
-
-	/*
-	 * don't run in parallel if tabQfunc is given!!! 
-	 */
-#pragma omp parallel sections if (((!tabQfunc && (GMRFLib_openmp && GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_HUGE) ? 1 : 0)))
-	{
-		/*
-		 * if huge, then do this in parallel; the normaising contstant may be needed to compute like the matern... 
-		 */
-#pragma omp section
-		{
-			GMRFLib_thread_id = id;
-			for (i = 0; i < G.nhyper; i++) {
-				G.hyperparam[i][GMRFLib_thread_id][0] = x[i];
-			}
-
-			GMRFLib_tabulate_Qfunc((tabQfunc ? tabQfunc : &(tabQfunc_local[GMRFLib_thread_id])), G.graph,
-					       G.Qfunc[GMRFLib_thread_id], G.Qfunc_arg[GMRFLib_thread_id], NULL, NULL, NULL);
-
-			double con, *bnew_ptr = NULL;
-
-			GMRFLib_bnew(&bnew_ptr, &con, G.graph->n, G.b, G.bfunc);
-			if (bnew) {
-				*bnew = bnew_ptr;
-			} else {
-				bnew_local[GMRFLib_thread_id] = bnew_ptr;
-			}
-
-			if (0) {
-				FIXME1("FIX");
-				for (i = 0; i < G.graph->n; i++)
-					printf("bnew[%d] = %g\n", i, bnew_ptr[i]);
-			}
-
-			GMRFLib_ai_marginal_hyperparam(fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg, G.fixed_value,
-						       G.graph,
-						       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local[GMRFLib_thread_id]->Qfunc),
-						       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[GMRFLib_thread_id]->Qfunc_arg), G.constr,
-						       G.ai_par, ais);
-			*fx += con;			       /* add missing constant due to b = b(theta) */
-		}
-
-#pragma omp section
-		{
-			GMRFLib_thread_id = id;
-			ffx = G.log_extra(x, G.nhyper, G.log_extra_arg);
-		}
-	}
 	GMRFLib_thread_id = id;
+	for (i = 0; i < G.nhyper; i++) {
+		G.hyperparam[i][GMRFLib_thread_id][0] = x[i];
+	}
+
+	GMRFLib_tabulate_Qfunc((tabQfunc ? tabQfunc : &(tabQfunc_local[GMRFLib_thread_id])), G.graph,
+			       G.Qfunc[GMRFLib_thread_id], G.Qfunc_arg[GMRFLib_thread_id], NULL, NULL, NULL);
+
+	double con, *bnew_ptr = NULL;
+
+	GMRFLib_bnew(&bnew_ptr, &con, G.graph->n, G.b, G.bfunc);
+	if (bnew) {
+		*bnew = bnew_ptr;
+	} else {
+		bnew_local[GMRFLib_thread_id] = bnew_ptr;
+	}
+
+#pragma omp parallel for private(idum) num_threads(GMRFLib_openmp->max_threads_outer)
+	for (idum = 0; idum < 1; idum++) {
+		GMRFLib_ai_marginal_hyperparam(fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg, G.fixed_value,
+					       G.graph,
+					       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local[GMRFLib_thread_id]->Qfunc),
+					       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[GMRFLib_thread_id]->Qfunc_arg), G.constr,
+					       G.ai_par, ais);
+	}
+	*fx += con;					       /* add missing constant due to b = b(theta) */
+	ffx = G.log_extra(x, G.nhyper, G.log_extra_arg);
 
 	if (tabQfunc_local) {
 		for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
@@ -285,14 +261,6 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 			Free(bnew_local[i]);
 		}
 		Free(bnew_local);
-	}
-
-	if (0) {
-		FIXME1("FIX");
-		for (i = 0; i < G.nhyper; i++) {
-			printf("theta%1d = %.12f ", i, x[i]);
-		}
-		printf(" %.12f %.12f\n", -*fx, -ffx);
 	}
 
 	*fx += ffx;					       /* add contributions */
@@ -337,20 +305,6 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 			}
 		}
 	}
-	if (G.ai_par->fp_hyperparam) {
-		// FIXME1("I do not longer write hyperparamters and density in the optimisation step");
-		if (0) {
-#pragma omp critical
-			{
-				// fprintf(G.ai_par->fp_hyperparam, "%s: ", __GMRFLib_FuncName);
-				for (i = 0; i < G.nhyper; i++) {
-					fprintf(G.ai_par->fp_hyperparam, " %.10g", x[i]);
-				}
-				fprintf(G.ai_par->fp_hyperparam, " %.10g\n", -fx_local);
-				fflush(G.ai_par->fp_hyperparam);
-			}
-		}
-	}
 
 	return GMRFLib_SUCCESS;
 }
@@ -369,7 +323,7 @@ int GMRFLib_domin_gradf(double *x, double *gradx, int *ierr)
 int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 {
 	/*
-	 * new implementation more suited for OpenMP. return also, optionally, also f0.
+	 * new implementation more suited for OpenMP. return also, optionally, also a better estimate for f0.
 	 */
 
 	int i, tmax, id, debug = 0, id_save;
@@ -386,7 +340,10 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	/*
 	 * this is the one to be copied 
 	 */
-	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+
+	if (GMRFLib_openmp->max_threads_outer > 1) {
+		ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+	}
 
 	if (G.ai_par->gradient_forward_finite_difference) {
 		/*
@@ -548,7 +505,6 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		}
 	}
 	Free(ai_store);
-
 	*ierr = 0;
 
 	if (debug) {
