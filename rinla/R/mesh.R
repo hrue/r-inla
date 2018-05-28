@@ -3125,7 +3125,12 @@ inla.mesh.fem <- function(mesh, order=2)
         return(inla.mesh.1d.fem(mesh))
     } else {
         ## output name list:
-        output = c("c0", "c1", paste("g", seq_len(order), sep=""),
+        if (order > 0) {
+          output <- paste("g", seq_len(order), sep="")
+        } else {
+          output <- NULL
+        }
+        output = c("c0", "c1", output,
                    "va", "ta")
         return(inla.fmesher.smorg(mesh$loc, mesh$graph$tv,
                                   fem=order, output=output))
@@ -3306,7 +3311,7 @@ inla.contour.segment <-
         A = inla.mesh.deriv(mesh, loc=curve.mid)
         ## Gradients rotated 90 degrees CW, i.e. to the direction
         ## of CCW curves around positive excursions:
-        grid.diff = cBind(A$dy %*% zz, -A$dx %*% zz)
+        grid.diff = cbind(A$dy %*% zz, -A$dx %*% zz)
 
         ## Determine the CCW/CW orientation
         curve.diff = diff(curve.loc)
