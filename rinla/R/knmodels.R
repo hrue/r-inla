@@ -32,27 +32,30 @@
        ##!   will be added accordly to the specification in 
        ##!   the \code{control.st} argument. See \code{inla}}
        formula, 
+       ##! \item{progress}{If it is to be shown the model 
+       ##!   fitting progress. Useful if more than one 
+       ##!   interaction type is being fitted.}
+       progress=FALSE,
        ##! \item{control.st}{Named list of arguments to control
-       ##!   the spacetime interaction. It contains
-       ##!}
+       ##!   the spacetime interaction. It should contains: 
        control.st=list(
-           ##!  \item{time}{Name of the index set for the
+           ##!  \code{time} to be used as the index set for the
            ##!   main temporal effect which will be considered
-           ##!   for the constraints when it is the case.}
+           ##!   for the constraints when it is the case.
            time,
-           ##!  \item{space}{Name of the index set for the
+           ##!  \code{space} to be used as the index set for the
            ##!   main spatial effect which will be considered
-           ##!   for the constraints when it is the case.}
+           ##!   for the constraints when it is the case.
            space,
-           ##!  \item{spacetime}{Name of the index set for the
-           ##!   spacetime interaction effect.}
+           ##!  \code{spacetime} to be the index set for the
+           ##!   spacetime interaction effect.
            spacetime,
-           ##! \item{graph}{The graph for the spatial neighbor 
+           ##! \code{graph} to be the graph for the spatial neighbor 
            ##!   structure to be used in a \code{\link{f}} term 
            ##!   for the main spatial random effect term or for 
-           ##!   building the spacetime interaction model.}
+           ##!   building the spacetime interaction model.
            graph,
-           ##! \item{type}{The spacetime interaction type.  
+           ##! \code{type} to specify the spacetime interaction type.  
            ##!   \code{1} to \code{4} corresponds to the four 
            ##!   interaction types in Knorr-Held, L. (2000) with 
            ##!   all the needed sum-to-zero constraints. 
@@ -61,18 +64,19 @@
            ##!   or space constrained to be equal to zero. 
            ##!   \code{2d}, \code{3d} and \code{4d} are the 
            ##!   corresponding versions when considering the 
-           ##!   diagonal add approach.}  
+           ##!   diagonal add approach.  
            type=c(paste(1:4), paste0(2:4, 'c'), paste0(2:4, 'd')), 
-           ##! \item{diagonal}{The value to be added to the 
-           ##!   diagonal when using the diagonal add approach.}
+           ##! \code{diagonal} to be the value to be added to the 
+           ##!   diagonal when using the diagonal add approach.
            diagonal=1e-5, 
-           ##! \item{timeref}{The time point considered to be the 
-           ##!   reference for the contrast parametrization.}
+           ##! \code{timeref} to specify the time point to be the
+           ##!   reference time in the contrast parametrization.
            timeref=1, 
-           ##! \item{spaceref}{The are considered to be the 
-           ##!   reference for the contrast parametrization.}
+           ##! \item{spaceref} to specify the area to be the
+           ##!   reference for the contrast parametrization.
            spaceref=1, 
-           ##!  \item{...}{Passed to \code{\link{f}} function.
+           ##!  \code{...} where additional arguments can be 
+           ##!   passed to \code{\link{f}} function.
            ##!   Specification of the hyperparameter, 
            ##!   fixed or random, initial value, prior and its 
            ##!   parameters for the spacetime interaction. See 
@@ -80,13 +84,9 @@
            ##!   By default we scale it and use the PC-prior to set 
            ##!   the prior using the \code{pc.prec} prior with 
            ##!   \code{param = c(0.5, 0.5)}. See documentation with 
-           ##!   \code{?inla.doc("pc.prec")}}
+           ##!   \code{?inla.doc("pc.prec")}.
            ...),
        ##!}
-       ##! \item{progress}{If it is to be shown the model 
-       ##!   fitting progress. Useful if more than one 
-       ##!   interaction type is being fitted.}
-       progress=FALSE, 
        ##! \item{...}{Arguments to be passed to the 
        ##!   \code{\link{inla}} function.}
        ...)
@@ -128,10 +128,11 @@
 ##!
 ##!### fit the type 4 considering three different approaches 
 ##!tgraph <- sparseMatrix(i=c(2:10, 1:9), j=c(1:9, 2:10), x=-1)
-##!res <- testfit(y~f(t, model='bym2', graph=tgraph) +
-##!     f(s, model='bym2', graph=graph),
+##!res <- inla.knmodels(y ~ f(time, model='bym2', graph=tgraph) +
+##!     f(space, model='bym2', graph=graph),
 ##!     data=dat, family='poisson', E=dat$E, progress=TRUE, 
-##!     control.st=list(t=t, s=s, st=st, graph=graph, type=c(4, '4c', '4d')), 
+##!     control.st=list(time=time, space=space, 
+##!        spacetime=spacetime, graph=graph, type=c(4, '4c', '4d')), 
 ##!     control.compute=list(dic=TRUE, waic=TRUE, cpo=TRUE))
 ##!sapply(res, function(x)
 ##!       c(dic=x$dic$dic, waic=x$waic$waic, cpo=-sum(log(x$cpo$cpo))))
