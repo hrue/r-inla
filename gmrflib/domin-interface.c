@@ -165,9 +165,8 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 	/*
 	 * This is the copy that is to be copied 
 	 */
-	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
-
-#pragma omp parallel for private(i)
+	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < nx; i++) {
 		int local_err;
 		GMRFLib_ai_store_tp *ais = NULL;
@@ -177,7 +176,8 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 			ais = G.ai_store;
 		} else {
 			if (!ai_store[GMRFLib_thread_id]) {
-				ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE);
+				ai_store[GMRFLib_thread_id] =
+				    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 			}
 			ais = ai_store[GMRFLib_thread_id];
 		}
@@ -386,7 +386,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	/*
 	 * this is the one to be copied 
 	 */
-	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
+	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 
 	if (G.ai_par->gradient_forward_finite_difference) {
 		/*
@@ -394,7 +394,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		 */
 		double *f = Calloc(G.nhyper + 1, double);
 
-#pragma omp parallel for private(i)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < G.nhyper + 1; i++) {
 			double *xx = NULL;
 			int j, err;
@@ -410,7 +410,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 				} else {
 					if (!ai_store[GMRFLib_thread_id]) {
 						ai_store[GMRFLib_thread_id] =
-						    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE);
+						    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 					}
 					ais = ai_store[GMRFLib_thread_id];
 				}
@@ -461,7 +461,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			ff = Calloc(G.nhyper, double);
 			ffm = Calloc(G.nhyper, double);
 		}
-#pragma omp parallel for private(i)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < 2 * G.nhyper; i++) {
 			int j, err;
 			double *xx = NULL;
@@ -479,7 +479,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 				} else {
 					if (!ai_store[GMRFLib_thread_id]) {
 						ai_store[GMRFLib_thread_id] =
-						    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE);
+						    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 					}
 					ais = ai_store[GMRFLib_thread_id];
 				}
@@ -689,7 +689,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 			fprintf(G.ai_par->fp_log, "Estimate Hessian Part I (%1d) ", 2 * n + 1);
 		}
 	}
-#pragma omp parallel for private(i)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < 2 * n + 1; i++) {
 		int j;
 		GMRFLib_ai_store_tp *ais = NULL;
@@ -703,7 +703,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 		GMRFLib_thread_id = omp_get_thread_num();
 		if (omp_in_parallel()) {
 			if (!ai_store[GMRFLib_thread_id]) {
-				ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
+				ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 			}
 			ais = ai_store[GMRFLib_thread_id];
 			i2thread[i] = GMRFLib_thread_id;
@@ -767,11 +767,6 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 	 * this is a problem, thread_min might not point to G.ai_store, which is used later in the main code. we would like to do a similar thing as below, but
 	 * cannot since G.ai_store is pointing to a storage in INLA() which cannot be changed. therefore the optimiser has to be restarted to set things straight!
 	 */
-	// if (thread_min > 0)
-	// {
-	// GMRFLib_free_ai_store(G.ai_store);
-	// G.ai_store = GMRFLib_duplicate_ai_store(ai_store[thread_min], GMRFLib_TRUE);
-	// }
 
 	if (G.ai_par->stupid_search_mode && !G.ai_par->mode_known && !ISEQUAL(f0, f0min)) {
 		if (debug)
@@ -835,7 +830,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 					fprintf(G.ai_par->fp_log, "\nEstimate Hessian Part II (%1d) ", nn);
 				}
 			}
-#pragma omp parallel for private(k)
+#pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (k = 0; k < nn; k++) {
 				int ii, jj;
 				double f11, fm11, f1m1, fm1m1;
@@ -850,7 +845,8 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 				GMRFLib_thread_id = omp_get_thread_num();
 				if (omp_in_parallel()) {
 					if (!ai_store[GMRFLib_thread_id]) {
-						ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
+						ai_store[GMRFLib_thread_id] =
+						    GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 					}
 					ais = ai_store[GMRFLib_thread_id];
 				} else {
@@ -978,7 +974,7 @@ int GMRFLib_test_something____omp(void)
 	printf("x %g %g f %.12f\n", x[0], x[1], fx[0]);
 
 	for (i = 0; i < 10; i++) {
-		GMRFLib_ai_store_tp *ais = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
+		GMRFLib_ai_store_tp *ais = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 
 		x[0] = 3.0 - (i + 1) * 0.1;
 		x[1] = 3.0 + (i + 1) * 0.1;
@@ -987,9 +983,9 @@ int GMRFLib_test_something____omp(void)
 
 		GMRFLib_free_ai_store(ais);
 	}
-#pragma omp parallel for private(i, x, fx)
+#pragma omp parallel for private(i, x, fx) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < 10; i++) {
-		GMRFLib_ai_store_tp *ais = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
+		GMRFLib_ai_store_tp *ais = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 
 		x[0] = 3.0 - (i + 1) * 0.1;
 		x[1] = 3.0 + (i + 1) * 0.1;

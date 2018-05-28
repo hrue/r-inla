@@ -304,7 +304,7 @@ typedef struct {
 	/*
 	 * iid gamma 
 	 */
-	double *iid_gamma_weight;
+	double *iid_gamma_scale;
 	double **iid_gamma_log_shape;
 	double **iid_gamma_log_rate;
 
@@ -354,7 +354,7 @@ typedef struct {
 	 * Gamma 
 	 */
 	double **gamma_log_prec;
-	double *gamma_weight;				       /* the scalings 's' */
+	double *gamma_scale;				       /* the scalings 's' */
 
 	/*
 	 * MIX ~ Normal(x, 1/prec)
@@ -394,6 +394,7 @@ typedef struct {
 } Data_tp;
 
 typedef struct {
+	int idx;
 	int order;					       /* a copy of ds->link_order */
 	int variant;					       /* a copy of ds->link_variant */
 	int Ntrial;
@@ -406,6 +407,7 @@ typedef struct {
 	double **sensitivity_intern;
 	double **specificity_intern;
 	double **prob_intern;
+	double *scale;
 } Link_param_tp;
 
 /* 
@@ -579,7 +581,8 @@ typedef enum {
 	LINK_INVERSE,
 	LINK_QPOISSON,
 	LINK_QBINOMIAL,
-	LINK_QWEIBULL
+	LINK_QWEIBULL,
+	LINK_QGAMMA
 } inla_component_tp;
 
 
@@ -754,7 +757,8 @@ struct inla_tp_struct {
 	 */
 	int verbose;
 	int strategy;
-
+	char *smtp;
+	
 	/*
 	 * parameters for global_nodes
 	 */
@@ -1374,6 +1378,7 @@ double extra(double *theta, int ntheta, void *argument);
 double iid_mfunc(int idx, void *arg);
 double inla_Phi(double x);
 double inla_Phi_fast(double x);
+double inla_sn_Phi(double x, double xi, double omega, double alpha);
 double inla_ar1_cyclic_logdet(int N_orig, double phi);
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec, void *arg);
 double inla_compute_saturated_loglik(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
