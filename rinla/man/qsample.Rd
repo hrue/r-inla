@@ -20,7 +20,7 @@
         reordering = INLA::inla.reorderings(),
         seed = 0L,
         logdens = ifelse(missing(sample), FALSE, TRUE),
-        compute.mean = ifelse(missing(sample), FALSE, TRUE)),
+        compute.mean = ifelse(missing(sample), FALSE, TRUE),
         num.threads = 1L)
  }
  
@@ -31,7 +31,8 @@
    \item{mu}{The mu term}
    \item{sample}{A matrix of optional samples where each column is a sample. If set, then evaluate the log-density for each sample only.}
    \item{constr}{Optional linear constraints; see \code{?INLA::f} and argument \code{extraconstr}}
-   \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()}
+   \item{reordering}{The type of reordering algorithm to be used for \code{TAUCS};
+        either one of the names listed in \code{inla.reorderings()} 
         or the output from \code{inla.qreordering(Q)}.
         The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
    \item{seed}{Control the RNG. If \code{seed=0L} then GMRFLib will set the seed intelligently/at 'random'.

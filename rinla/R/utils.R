@@ -249,9 +249,9 @@
     cat("Source files in ", dir, ". Loaded ", length(files), " files and replaced ", nfuncs, " functions.\n", sep="")
 
     if (binaries) {
-        inla.setOption("inla.call", paste(bin.path, "/", "inla", sep=""))
-        inla.setOption("fmesher.call", paste(bin.path, "/", "fmesher", sep=""))
-        cat("Define new values for 'inla.call' and 'fmesher.call': ", bin.path, "/{inla,fmesher}\n", sep="")
+        inla.setOption("inla.call", path.expand(paste(bin.path, "/", "inla", sep="")))
+        inla.setOption("fmesher.call", path.expand(paste(bin.path, "/", "fmesher", sep="")))
+        cat("Define new values for 'inla.call' and 'fmesher.call'\n", sep="")
     }
 
     ## hash the models again
