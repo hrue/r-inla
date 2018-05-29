@@ -4,7 +4,6 @@
 %%
  \name{inla.knmodels}
  \alias{inla.knmodels}
- \alias{knmodels}
  \title{Spacetime interaction models}
  \description{
     It implements the models in Knorr-Held, L. (2000) 
@@ -24,7 +23,7 @@ inla.knmodels(
    type=c(paste(1:4), paste0(2:4, 'c'), paste0(2:4, 'd')), 
    diagonal=1e-5, 
    ...) 
- )
+  )
 }
  \arguments{
  \item{formula}{The formula specifying the other 
@@ -32,23 +31,24 @@ inla.knmodels(
    interaction term. The spacetime interaction term 
    will be added accordly to the specification in 
    the \code{control.st} argument. See \code{inla}}
+ \item{progress}{If it is to be shown the model 
+   fitting progress. Useful if more than one 
+   interaction type is being fitted.}
  \item{control.st}{Named list of arguments to control
-   the spacetime interaction. It contains ...SOMETHING
-   IS MISSING HERE
-}
-  \item{time}{Name of the index set for the
+   the spacetime interaction. It should contains: 
+  \code{time} to be used as the index set for the
    main temporal effect which will be considered
-   for the constraints when it is the case.}
-  \item{space}{Name of the index set for the
+   for the constraints when it is the case.
+  \code{space} to be used as the index set for the
    main spatial effect which will be considered
-   for the constraints when it is the case.}
-  \item{spacetime}{Name of the index set for the
-   spacetime interaction effect.}
- \item{graph}{The graph for the spatial neighbor 
+   for the constraints when it is the case.
+  \code{spacetime} to be the index set for the
+   spacetime interaction effect.
+ \code{graph} to be the graph for the spatial neighbor 
    structure to be used in a \code{\link{f}} term 
    for the main spatial random effect term or for 
-   building the spacetime interaction model.}
- \item{type}{The spacetime interaction type.  
+   building the spacetime interaction model.
+ \code{type} to specify the spacetime interaction type.  
    \code{1} to \code{4} corresponds to the four 
    interaction types in Knorr-Held, L. (2000) with 
    all the needed sum-to-zero constraints. 
@@ -57,14 +57,15 @@ inla.knmodels(
    or space constrained to be equal to zero. 
    \code{2d}, \code{3d} and \code{4d} are the 
    corresponding versions when considering the 
-   diagonal add approach.}  
- \item{diagonal}{The value to be added to the 
-   diagonal when using the diagonal add approach.}
- \item{timeref}{The time point considered to be the 
-   reference for the contrast parametrization.}
- \item{spaceref}{The are considered to be the 
-   reference for the contrast parametrization.}
-  \item{...}{Passed to \code{\link{f}} function.
+   diagonal add approach.  
+ \code{diagonal} to be the value to be added to the 
+   diagonal when using the diagonal add approach.
+ \code{timeref} to specify the time point to be the
+   reference time in the contrast parametrization.
+ \item{spaceref} to specify the area to be the
+   reference for the contrast parametrization.
+  \code{...} where additional arguments can be 
+   passed to \code{\link{f}} function.
    Specification of the hyperparameter, 
    fixed or random, initial value, prior and its 
    parameters for the spacetime interaction. See 
@@ -72,11 +73,8 @@ inla.knmodels(
    By default we scale it and use the PC-prior to set 
    the prior using the \code{pc.prec} prior with 
    \code{param = c(0.5, 0.5)}. See documentation with 
-   \code{?inla.doc("pc.prec")}}
-
- \item{progress}{If it is to be shown the model 
-   fitting progress. Useful if more than one 
-   interaction type is being fitted.}
+   \code{?inla.doc("pc.prec")}.
+}
  \item{...}{Arguments to be passed to the 
    \code{\link{inla}} function.}
  }
@@ -116,10 +114,11 @@ summary(dat$y)
 
 ### fit the type 4 considering three different approaches 
 tgraph <- sparseMatrix(i=c(2:10, 1:9), j=c(1:9, 2:10), x=-1)
-res <- testfit(y~f(t, model='bym2', graph=tgraph) +
-     f(s, model='bym2', graph=graph),
+res <- inla.knmodels(y ~ f(time, model='bym2', graph=tgraph) +
+     f(space, model='bym2', graph=graph),
      data=dat, family='poisson', E=dat$E, progress=TRUE, 
-     control.st=list(t=t, s=s, st=st, graph=graph, type=c(4, '4c', '4d')), 
+     control.st=list(time=time, space=space, 
+        spacetime=spacetime, graph=graph, type=c(4, '4c', '4d')), 
      control.compute=list(dic=TRUE, waic=TRUE, cpo=TRUE))
 sapply(res, function(x)
        c(dic=x$dic$dic, waic=x$waic$waic, cpo=-sum(log(x$cpo$cpo))))
