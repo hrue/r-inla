@@ -40,7 +40,7 @@ ssh -x -t $IP "
 
 tarfile="$D.tgz"
 ssh -x $IP "cd builds/build64; tar cvfz $tarfile 64bit"
-d="Linux-builds/$VERSION/$INLA_TAG"
+d="www/Linux-builds/$VERSION/$INLA_TAG"
 mkdir -p "$d"
 rsync $IP:builds/build64/$tarfile "$d"
 
