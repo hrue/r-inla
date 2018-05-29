@@ -61,9 +61,9 @@ __BEGIN_DECLS
 
 #define GMRFLib_PARDISO_PLEN (64)
     typedef struct {
-	int base;					       /* 0 or 1 */
 	int n;
 	int na;
+	int base;					       /* 0 or 1 */
 	int *ia;
 	int *ja;
 	double *a;
@@ -147,7 +147,6 @@ int GMRFLib_csr_check(GMRFLib_csr_tp * M);
 int GMRFLib_csr_convert(GMRFLib_csr_tp * M);
 int GMRFLib_duplicate_csr(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from);
 int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_pardiso_store_tp * old, int copy_ptr, int copy_pardiso_ptr);
-int GMRFLib_free_csr(GMRFLib_csr_tp ** csr);
 int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store);
 
 // might fix this later
@@ -168,7 +167,10 @@ int GMRFLib_pardiso_solve_LLT(GMRFLib_pardiso_store_tp * store, double *x, doubl
 int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs);
 int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso_flag_tp flag, double *x, double *b, int nrhs);
 int GMRFLib_pardiso_symfact(GMRFLib_pardiso_store_tp * store);
-int GMRFLib_print_csr(FILE * fp, GMRFLib_csr_tp * csr);
+int GMRFLib_csr_print(FILE * fp, GMRFLib_csr_tp * csr);
+int GMRFLib_csr_write(char *filename, GMRFLib_csr_tp * csr);
+int GMRFLib_csr_read(char *filename, GMRFLib_csr_tp ** csr);
+int GMRFLib_csr_free(GMRFLib_csr_tp ** csr);
 
 int GMRFLib_pardiso_perm(double *x, int m, GMRFLib_pardiso_store_tp * store);
 int GMRFLib_pardiso_iperm(double *x, int m, GMRFLib_pardiso_store_tp * store);
@@ -177,6 +179,7 @@ int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store
 int my_pardiso_test1(void);
 int my_pardiso_test2(void);
 int my_pardiso_test3(void);
+int my_pardiso_test4(void);
 double my_test_program_Q(int i, int j, void *arg);
 
 void pardisoinit(void *, int *, int *, int *, double *, int *);

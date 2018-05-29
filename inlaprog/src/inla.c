@@ -30972,6 +30972,22 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 24: 
+		my_pardiso_test1();
+		break;
+		
+	case 25: 
+		my_pardiso_test2();
+		break;
+		
+	case 26: 
+		my_pardiso_test3();
+		break;
+
+	case 27: 
+		my_pardiso_test4();
+		break;
+
 	default:
 		exit(0);
 	}
