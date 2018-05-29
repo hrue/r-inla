@@ -1,7 +1,7 @@
 
 /* smtp-pardiso.h
  * 
- * Copyright (C) 2018 Havard Rue & Alexander Litvinenko
+ * Copyright (C) 2018 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
