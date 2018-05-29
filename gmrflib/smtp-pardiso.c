@@ -89,7 +89,7 @@ int GMRFLib_csr_free(GMRFLib_csr_tp ** csr)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_duplicate_csr(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from)
+int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from)
 {
 	if (csr_from == NULL) {
 		*csr_to = NULL;
@@ -151,7 +151,7 @@ int GMRFLib_csr_check(GMRFLib_csr_tp * M)
 	int mtype = S.mtype, error = 0;
 	GMRFLib_csr_tp *Q;
 
-	GMRFLib_duplicate_csr(&Q, M);
+	GMRFLib_csr_duplicate(&Q, M);
 	GMRFLib_csr_base(1, Q);
 	pardiso_chkmatrix(&mtype, &(Q->n), Q->a, Q->ia, Q->ja, &error);
 	GMRFLib_csr_free(&Q);
@@ -341,8 +341,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default[23] = 1;			       /* two level scheduling, and... */
 	s->iparm_default[24] = 1; 			       /* use parallel solve, as... */
 
-	FIXME("set iparm[33]=1");
-	if (1 || s->iparm_default[2] == 1) {
+	if (s->iparm_default[2] == 1) {
 		s->iparm_default[33] = 1;		       /* I want identical solutions (require ipar[1]=2 above) */
 	} else {
 		s->iparm_default[33] = 0;		       /* WORKAROUND FOR THE PARALLEL ISSUE */
@@ -808,7 +807,7 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 		GMRFLib_csr_free(&(store->pstore->Qinv));
 	}
 
-	GMRFLib_duplicate_csr(&(store->pstore->Qinv), store->pstore->Q);
+	GMRFLib_csr_duplicate(&(store->pstore->Qinv), store->pstore->Q);
 	GMRFLib_csr_base(1, store->pstore->Qinv);
 
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_QINV, store);
@@ -1060,11 +1059,12 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 // **********************************************************************
 
 
-double my_test_program_Q(int i, int j, void *arg)
+double my_pardiso_test_Q(int i, int j, void *arg)
 {
 	GMRFLib_graph_tp *graph = (GMRFLib_graph_tp *) arg;
 	return (i == j ? graph->n + i : -1.0);
 }
+
 int my_pardiso_test1(void)
 {
 	int err = 0, idum;
@@ -1094,7 +1094,7 @@ int my_pardiso_test1(void)
 	GMRFLib_csr_print(stdout, csr);
 	P(csr->n);
 
-	GMRFLib_duplicate_csr(&csr2, csr);
+	GMRFLib_csr_duplicate(&csr2, csr);
 	// GMRFLib_csr_print(stdout, csr2);
 
 	GMRFLib_csr2Q(&Qtab, &g, csr2);
@@ -1192,6 +1192,7 @@ int my_pardiso_test1(void)
 
 	exit(0);
 }
+
 int my_pardiso_test2(void)
 {
 	int n = 5, m = 1, nc = 1, i, idum;
@@ -1228,7 +1229,7 @@ int my_pardiso_test2(void)
 		mean[i] = GMRFLib_uniform();
 	}
 
-	GMRFLib_init_problem(&problem, x, b, c, mean, graph, my_test_program_Q, (void *) graph, NULL, constr, GMRFLib_NEW_PROBLEM);
+	GMRFLib_init_problem(&problem, x, b, c, mean, graph, my_pardiso_test_Q, (void *) graph, NULL, constr, GMRFLib_NEW_PROBLEM);
 	GMRFLib_evaluate(problem);
 #pragma omp parallel for private(idum) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (idum = 0; idum < 1; idum++) {
@@ -1243,7 +1244,6 @@ int my_pardiso_test2(void)
 
 	return 0;
 }
-
 
 int my_pardiso_test3(void)
 {

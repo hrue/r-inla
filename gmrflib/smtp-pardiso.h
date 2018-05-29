@@ -139,27 +139,29 @@ typedef struct {
 
 double GMRFLib_pardiso_Qfunc_default(int i, int j, void *arg);
 double GMRFLib_pardiso_logdet(GMRFLib_pardiso_store_tp * store);
-//int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem);
 int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp ** Qtab, GMRFLib_graph_tp ** graph, GMRFLib_csr_tp * csr);
 int GMRFLib_csr_base(int base, GMRFLib_csr_tp * M);
 int GMRFLib_csr_check(GMRFLib_csr_tp * M);
 int GMRFLib_csr_convert(GMRFLib_csr_tp * M);
-int GMRFLib_duplicate_csr(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from);
+int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from);
+int GMRFLib_csr_free(GMRFLib_csr_tp ** csr);
+int GMRFLib_csr_print(FILE * fp, GMRFLib_csr_tp * csr);
+int GMRFLib_csr_read(char *filename, GMRFLib_csr_tp ** csr);
+int GMRFLib_csr_write(char *filename, GMRFLib_csr_tp * csr);
 int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_pardiso_store_tp * old, int copy_ptr, int copy_pardiso_ptr);
 int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store);
-
-// might fix this later
-// int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem);
 int GMRFLib_pardiso_Qinv_INLA();
-
 int GMRFLib_pardiso_bitmap(void);
 int GMRFLib_pardiso_build(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_pardiso_check_install(int quiet, int no_err);
 int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store);
 int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store);
 int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store);
+int GMRFLib_pardiso_iperm(double *x, int m, GMRFLib_pardiso_store_tp * store);
 int GMRFLib_pardiso_num_proc();
+int GMRFLib_pardiso_perm(double *x, int m, GMRFLib_pardiso_store_tp * store);
+int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store, int direction);
 int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph);
 int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store_tp * store);
 int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs);
@@ -167,20 +169,12 @@ int GMRFLib_pardiso_solve_LLT(GMRFLib_pardiso_store_tp * store, double *x, doubl
 int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs);
 int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso_flag_tp flag, double *x, double *b, int nrhs);
 int GMRFLib_pardiso_symfact(GMRFLib_pardiso_store_tp * store);
-int GMRFLib_csr_print(FILE * fp, GMRFLib_csr_tp * csr);
-int GMRFLib_csr_write(char *filename, GMRFLib_csr_tp * csr);
-int GMRFLib_csr_read(char *filename, GMRFLib_csr_tp ** csr);
-int GMRFLib_csr_free(GMRFLib_csr_tp ** csr);
-
-int GMRFLib_pardiso_perm(double *x, int m, GMRFLib_pardiso_store_tp * store);
-int GMRFLib_pardiso_iperm(double *x, int m, GMRFLib_pardiso_store_tp * store);
-int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store, int direction);
 
 int my_pardiso_test1(void);
 int my_pardiso_test2(void);
 int my_pardiso_test3(void);
 int my_pardiso_test4(void);
-double my_test_program_Q(int i, int j, void *arg);
+double my_pardiso_test_Q(int i, int j, void *arg);
 
 void pardisoinit(void *, int *, int *, int *, double *, int *);
 void pardiso(void *, int *, int *, int *, int *, int *, double *, int *, int *, int *, int *, int *, int *, double *, double *, int *, double *);
