@@ -31,11 +31,10 @@ ssh -x -t $IP "
     test -d $D && rm -rf $D;
     rsync -auv r-inla/rinla/inst/bin/linux/$D .;
     export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib64:\$PWD/local/lib:\$LD_LIBRARY_PATH;
-    cd $D;
-    cp -v ../local/bin/inla .;
-    cp -v ../local/bin/fmesher .;
-    \$HOME/bin/my.ldd ./inla | while read f; do cp -v \$f .; done;
-    \$HOME/bin/my.ldd ./fmesher | while read f; do cp -v \$f .; done
+    cp -v ./local/bin/inla $D;
+    cp -v ./local/bin/fmesher $D;
+    \$HOME/bin/my.ldd ./local/bin/inla | while read f; do cp -v \$f $D; done;
+    \$HOME/bin/my.ldd ./local/bin/fmesher | while read f; do cp -v \$f $D; done
 "
 
 tarfile="$D.tgz"
