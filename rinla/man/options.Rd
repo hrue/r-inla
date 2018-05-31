@@ -20,8 +20,8 @@
  
    \item{...}{Option and value,  like \code{option=value} or \code{option, value}; see the Examples}
    \item{option}{The option to get. If \code{option = NULL} then
-     \code{inla.getOption} then \code{inla.getOption} will display the
-     current defaults, otherwise, \code{option} must be one of
+     \code{inla.getOption} then \code{inla.getOption} will return a named list of
+     current values, otherwise, \code{option} must be one of
  
      inla.call: The path to the inla-program.
  
