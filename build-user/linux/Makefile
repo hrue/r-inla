@@ -27,10 +27,11 @@ BITS = 64
 FLAGS_COMMON = \
 	-m64 -Wall -O2 -mtune=generic -mfpmath=sse \
 	-msse2 -funroll-loops -ftracer -pipe
-FLAGS_INLA = $(FLAGS_COMMON) -std=gnu99 -fopenmp
-FLAGS_FMESHER = $(FLAGS_COMMON) -std=c++11
 
 ## You probably don't need to edit anything below this line
+
+FLAGS_INLA = $(FLAGS_COMMON) -std=gnu99 -fopenmp
+FLAGS_FMESHER = $(FLAGS_COMMON) -std=c++11
 
 ## For Debian or Ubuntu package installation in lib-install:
 APT=aptitude
@@ -51,7 +52,7 @@ ARGS = CC="$(CC)" CXX="$(CXX)" FC="$(FC)" LD="$(LD)"
 
 all :;
 	@(echo "";\
-	echo "Edit this Makefile, especially the 'FLAGS_*' variables,";\
+	echo "Edit this Makefile, especially the 'FLAGS_COMMON' variable,";\
 	echo "check if you need to run 'sudo $(MAKE) lib-install', then do";\
 	echo "";\
 	echo "	$(MAKE) lib-install";\
@@ -116,6 +117,12 @@ bin :
 	$(MAKE) GMRFLib
 	$(MAKE) inla
 
+bin-x11 :
+	$(MAKE) taucs
+	$(MAKE) fmesher-x11
+	$(MAKE) GMRFLib
+	$(MAKE) inla
+
 update :
 	$(MAKE) download-update
 	$(MAKE) bin
@@ -123,6 +130,11 @@ update :
 
 
 fmesher-x11:
+	$(MAKE) -C inla/fmesher PREFIX=$(PREFIX) $(ARGS) -k clean
+	$(MAKE) -C inla/fmesher PREFIX=$(PREFIX) FMESHER_USE_X=1 FLAGS="$(FLAGS_FMESHER)" $(ARGS)
+	$(MAKE) -C inla/fmesher PREFIX=$(PREFIX) $(ARGS) install
+	@rsync -a $(PREFIX)/bin/fmesher $(BINPREFIX)/fmesher$(BITS)
+	@rm $(PREFIX)/bin/fmesher
 
 fmesher :
 	$(MAKE) -C inla/fmesher PREFIX=$(PREFIX) $(ARGS) -k clean
@@ -159,4 +171,4 @@ package :
 	@rm -f inla/INLA_*.tgz
 	cd inla ; utils/build-package-bin $(PREFIX)/bin $(MAINDIR)/tmp
 
-.PHONY: all inla GMRFLib taucs download download-update update fmesher bin init download-jss2014 sync-taucs package
+.PHONY: all inla GMRFLib taucs download download-update update fmesher bin init download-jss2014 sync-taucs package fmesher-x11 bin-x11
