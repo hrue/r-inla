@@ -430,7 +430,8 @@
         ## a neigbour-graph from spdep with class="nb".
         ## this can replace spdep::nb2INLA.
         ## call spdep::nb2listw and use spdep coercion.
-        Q = nb2listw(graph, style="B", zero.policy=TRUE)
+        inla.require("spdep")
+        Q = spdep::nb2listw(graph, style="B", zero.policy=TRUE)
         Q = inla.as.sparse(as(Q, "symmetricMatrix"))
         return (inla.matrix2graph.internal(Q, size.only = size.only))
     } else {
