@@ -80,17 +80,25 @@ all :;
 	echo "	sudo update-alternatives --config liblapack.so";\
 	echo "";\
 	echo "It's possible to link to both lapack and lapack_atlas.";\
+	echo "";\
+	echo "For x11 enabled fmesher, use lib-install-x11 and bin-x11.";\
+	echo "";\
+	echo "To use libRmath instead of libR, use '$(MAKE) bin INLA_WITH_RMATH=1'.";\
 	echo "";)
 
 ## Package list
 ##  updated 2014-08-23
 ##  updated 2018-05-23: removed optional fmesher libx11-dev (default fmesher builds without x11)
 LIBPKG = liblapack-dev libgsl0-dev zlib1g-dev libsuitesparse-dev \
-	libmetis-dev libxdmcp-dev libc6-dev libatlas-dev \
+	libmetis-dev libxdmcp-dev libc6-dev libatlas-base-dev \
 	libblas-dev libmuparser-dev r-mathlib
+LIBPKGX = $(LIBPKG) libx11-dev
 
 lib-install :
 	$(APT) install $(LIBPKG)
+
+lib-install-x11 :
+	$(APT) install $(LIBPKGX)
 
 init :
 	@mkdir -p $(LIBPREFIX)
