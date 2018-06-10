@@ -83,7 +83,7 @@ all :;
 	echo "";\
 	echo "For x11 enabled fmesher, use lib-install-x11 and bin-x11.";\
 	echo "";\
-	echo "To use libRmath instead of libR, use '$(MAKE) bin INLA_WITH_RMATH=1'.";\
+	echo "To deactivate the use of libR, use '$(MAKE) bin INLA_WITHOUT_LIBR=1'.";\
 	echo "";)
 
 ## Package list
