@@ -7,13 +7,15 @@ VERSION=snapshot
 # $(PREFIX)/doc/examples yourself.
 PREFIX = /usr/local
 
-## *** chose either one of these; rgeneric requires the second version ***
-ifeq ($(INLA_WITH_RMATH),1)
-  RLIB_INC = -I/usr/include -I/usr/include/R -I/usr/share/R/include
+## *** chose either one of these; rgeneric requires the first version ***
+ifeq ($(INLA_WITHOUT_LIBR),1)
+  RLIB_INC = -DINLA_WITH_RMATH \
+		-I/usr/include -I/usr/include/R -I/usr/share/R/include
   RLIB_LIB = -L/usr/lib -lRmath
 else
-  RLIB_INC = -DINLA_LIBR -I/usr/include/R -I/usr/share/R/include
-  RLIB_LIB = -L/usr/lib/R/lib -lR
+  RLIB_INC = -DINLA_WITH_RMATH -DINLA_LIBR \
+		-I/usr/include -I/usr/include/R -I/usr/share/R/include
+  RLIB_LIB = -L/usr/lib -lRmath -L/usr/lib/R/lib -lR
 endif
 
 # select compilers and optimized compiler-options, add -fopenmp or similar to use OpenMP
