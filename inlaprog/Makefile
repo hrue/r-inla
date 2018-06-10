@@ -7,7 +7,7 @@ VERSION=snapshot
 # $(PREFIX)/doc/examples yourself.
 PREFIX = /usr/local
 
-## *** chose either one of these; rgeneric requires the first version ***
+## *** chose either one of these; rgeneric requires the second version ***
 ifeq ($(INLA_WITHOUT_LIBR),1)
   RLIB_INC = -DINLA_WITH_RMATH \
 		-I/usr/include -I/usr/include/R -I/usr/share/R/include
