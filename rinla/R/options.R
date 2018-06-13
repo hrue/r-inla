@@ -30,6 +30,12 @@
 ##!     fmesher.arg: Additional arguments to \code{fmesher.call}
 ##!     
 ##!     num.threads: Number of threads to use.
+##!
+##!     blas.num.threads: Number of threads to use for openblas and mklblas (see \code{inla} for details)
+##!     
+##!     smtp: sparse matrix library,  one of \code{band}, \code{taucs} (\code{default}) or \code{pardiso}
+##!
+##!     pardiso.license: The full path to the PARDISO license file
 ##!     
 ##!     keep: Keep temporary files?
 ##! 
@@ -81,6 +87,9 @@
         "fmesher.call",
         "fmesher.arg",
         "num.threads",
+        "blas.num.threads",
+        "smtp", 
+        "pardiso.license", 
         "keep",
         "working.directory",
         "silent",
@@ -94,11 +103,33 @@
         "show.warning.graph.file",
         "scale.model.default"))
 {
+    default.opt = list(
+        inla.call = inla.call.builtin(), 
+        fmesher.call = inla.fmesher.call.builtin(), 
+        inla.arg = NULL,
+        fmesher.arg = "", 
+        num.threads = NULL, 
+        blas.num.threads = 1L, 
+        smtp = "default", 
+        pardiso.license = NULL, 
+        keep = FALSE, 
+        working.directory = NULL, 
+        silent = TRUE, 
+        debug = FALSE, 
+        internal.binary.mode = TRUE, 
+        internal.experimental.mode = FALSE, 
+        cygwin = "C:/cygwin",
+        cygwin.home = paste("/home/", inla.get.USER(), sep=""), 
+        ssh.auth.sock = paste("/tmp/ssh-auth-sock-", inla.get.USER(), sep=""),
+        enable.inla.argument.weights = FALSE, 
+        show.warning.graph.file = TRUE, 
+        scale.model.default = FALSE
+        )
+
     if (missing(option))
-        stop("argument is required.")
+        return (default.opt)
 
     envir = inla.get.inlaEnv()
-
     option = match.arg(option, several.ok = TRUE)
     if (exists("inla.options", envir = envir))
         opt = get("inla.options", envir = envir)
@@ -116,26 +147,6 @@
         fmesher.call = inla.fmesher.call.builtin()
     else
         fmesher.call = opt$fmesher.call
-
-    default.opt = list(
-        inla.call = inla.call,
-        fmesher.call = fmesher.call, 
-        inla.arg = NULL,
-        fmesher.arg = "", 
-        num.threads = NULL, 
-        keep = FALSE, 
-        working.directory = NULL, 
-        silent = TRUE, 
-        debug = FALSE, 
-        internal.binary.mode = TRUE, 
-        internal.experimental.mode = FALSE, 
-        cygwin = "C:/cygwin",
-        cygwin.home = paste("/home/", inla.get.USER(), sep=""), 
-        ssh.auth.sock = paste("/tmp/ssh-auth-sock-", inla.get.USER(), sep=""),
-        enable.inla.argument.weights = FALSE, 
-        show.warning.graph.file = TRUE, 
-        scale.model.default = FALSE
-        )
 
     res = c()
     for (i in 1:length(option)) {
@@ -164,6 +175,9 @@
             "fmesher.call",
             "fmesher.arg",
             "num.threads",
+            "blas.num.threads",
+            "smtp",
+            "pardiso.license", 
             "keep",
             "working.directory",
             "silent",

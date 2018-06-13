@@ -525,11 +525,10 @@ dictionary *iniparser_load(const char *ininame)
 				/*
 				 * Valid section name 
 				 */
-				//printf("sec %s\n", sec);
+				// printf("sec %s\n", sec);
 				iniparser_add_entry(d, sec, NULL, NULL);
 			} else if (sscanf(where, "%[^=] = \"%[^\"]\"", key, val) == 2
-				   || sscanf(where, "%[^=] = '%[^\']'", key, val) == 2
-				   || sscanf(where, "%[^=] = %[^#]", key, val) == 2) {
+				   || sscanf(where, "%[^=] = '%[^\']'", key, val) == 2 || sscanf(where, "%[^=] = %[^#]", key, val) == 2) {
 				strcpy(key, MY_STRING_LOWERCASE(strcrop(key)));
 				/*
 				 * sscanf cannot handle "" or '' as empty value,

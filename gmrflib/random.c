@@ -73,6 +73,11 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#if defined(WINDOWS)
+#include <windows.h>
+#include <wincrypt.h>
+#endif
+
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
@@ -80,23 +85,47 @@ int GMRFLib_rng_set_default_seed(void)
 {
 	unsigned long int seed_default = (unsigned long int) time(NULL);
 	unsigned long int seed;
-	int fd;
+	int fd, debug = 0;
 	ssize_t nb;
 	size_t len = sizeof(unsigned long int);
-
 #pragma omp critical					       /* only one at the time */
 	{
-		fd = open("/dev/urandom", O_RDONLY);
-		if (fd > 0) {
-			nb = read(fd, (void *) &seed, len);
-			if (nb != (ssize_t) len) {
+#if defined(WINDOWS)
+		{
+			// this is the eqv of /dev/random for Windows
+			HCRYPTPROV prov;
+			if (CryptAcquireContext(&prov, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT)) {
+				if (!CryptGenRandom(prov, (DWORD) len, (BYTE *) & seed)) {
+					// error: fall back to default
+					seed = seed_default;
+				} else {
+					CryptReleaseContext(prov, 0);
+				}
+			} else {
+				// error: fall back to default
 				seed = seed_default;
 			}
-			close(fd);
-		} else {
-			seed = seed_default;
 		}
+#else							       /* !defined(WINDOWS) */
+		{
+			fd = open("/dev/urandom", O_RDONLY);
+			if (fd > 0) {
+				nb = read(fd, (void *) &seed, len);
+				if (nb != (ssize_t) len) {
+					seed = seed_default;
+				}
+				close(fd);
+			} else {
+				// error: fall back to default
+				seed = seed_default;
+			}
+		}
+#endif							       /* defined(WINDOWS) */
 	}
+
+	if (debug)
+		fprintf(stderr, "Init RNG with seed %lu\n", seed);
+
 	GMRFLib_rng_init(seed);
 
 	return GMRFLib_SUCCESS;
@@ -122,7 +151,7 @@ double GMRFLib_rng_uniform(void)
 {
 	return gsl_rng_uniform_pos(GMRFLib_rng);
 }
-void *GMRFLib_rng_getstate(size_t *siz)
+void *GMRFLib_rng_getstate(size_t * siz)
 {
 	size_t n;
 	void *p, *pp;
@@ -132,7 +161,7 @@ void *GMRFLib_rng_getstate(size_t *siz)
 	pp = Calloc(n, char);
 
 	memcpy(pp, p, n);
-	if (siz){
+	if (siz) {
 		*siz = n;
 	}
 
