@@ -12,12 +12,10 @@ build-configs :;
 update-inla :;
 	-tilix --title="laptop-g"  -e "make -C /home/hrue/p/inla/builds/my-laptop-g update"
 	-tilix --title="laptop-O2" -e "make -C /home/hrue/p/inla/builds/my-laptop-O2 update"
-	-tilix --title="mac32"     -e "ssh -x -t $$INLA_MAC   export INLA_TAG=$$INLA_TAG\; make -C builds/build32 update"
 	-tilix --title="mac64"     -e "ssh -x -t $$INLA_MAC   export INLA_TAG=$$INLA_TAG\; make -C builds/build64 update"
 	-tilix --title="$$INLA_LINUX 64"        -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; make -C builds/build64 update"
 	-tilix --title="$$INLA_LINUX static"    -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; make -C builds/build.static update"
 	-tilix --title="$$INLA_LINUX windows64" -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; make -C builds/windows64 update"
-	-tilix --title="$$INLA_INLA 32" -e "ssh -x -t $$INLA_INLA export INLA_TAG=$$INLA_TAG\; make -C builds/build32 update"
 	-tilix --title="$$INLA_INLA 64" -e "ssh -x -t $$INLA_INLA export INLA_TAG=$$INLA_TAG\; make -C builds/build64 update"
 	-tilix --title="$$INLA_INLA O2" -e "ssh -x -t $$INLA_INLA export INLA_TAG=$$INLA_TAG\; make -C builds/build.O2 update"
 	-tilix --title="$$INLA_INLA g"  -e "ssh -x -t $$INLA_INLA export INLA_TAG=$$INLA_TAG\; make -C builds/build.debug update"

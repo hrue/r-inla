@@ -1,0 +1,518 @@
+---
+title: "Defining a latent model in `R`: The `rgeneric` model"
+author: "Haavard Rue `(hrue@r-inla.org)`"
+date: "Nov 22th 2017"
+output: rmarkdown::pdf_document
+vignette: >
+  %\VignetteIndexEntry{rgeneric model}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8} 
+---
+
+```{r setup, include=FALSE}
+set.seed(123)
+library(INLA)
+library(knitr)
+library(rmarkdown)
+inla.setOption(num.threads=1)
+knitr::opts_chunk$set(echo=TRUE, cache=FALSE, message=FALSE, warning=FALSE)
+```
+
+# Introduction
+
+This is a class of generic models allows the user to define latent
+model component in `R`, for cases where the requested model is not yet
+implemented in `INLA`, and do the Bayesian inference using `INLA`.
+Since the model component has to be interpreted in `R`, it will run
+slower compared to a similar model implemented in `INLA`.
+
+
+# Defining a latent model in `R`
+
+A `rgeneric` model is defined in a function `rmodel` (to be defined
+later), and the usage is quite simple. 
+First we need to define a `inla-rgeneric` object
+```{r eval=FALSE}
+model = inla.rgeneric.define(rmodel, ...)
+```
+with additional variables/functions/etc in `...` that 
+we might use in `rmodel`. This
+can be the size, prior parameters, covariates, external functions 
+and so on.
+This object can then be used to define a normal model component in
+`INLA` using `f()`,
+```{r eval=FALSE}
+y ~ ... + f(idx, model=model, ...)
+```
+where `idx` can take values $1, 2, \ldots, n$ where `n` is the size of
+`model`. 
+ All additional features for `f()` will still be valid. 
+
+
+# Example: The AR1 model
+
+The function `rmodel` needs to follow some rules to provide the required
+features. We explain this while 
+demonstrating how to implement the AR1-model.
+This model already exists, see
+`inla.doc("ar1")`. With the parmeterisation we use,
+the AR1-model is defined as 
+\begin{displaymath}
+    x_{1} \;\sim\; {\mathcal N}(0, \tau)
+\qquad\text{and}\qquad
+    x_{t} \mid x_{1}, \ldots, x_{t-1} \;\sim\; {\mathcal N}(\rho
+    x_{t-1}, \tau_{I}), \qquad t=2, \ldots,n.
+\end{displaymath}
+where $\tau_I = \tau/(1-\rho^2)$.
+The scale-parameter is the *marginal precision* $\tau$, **not** the
+commonly used innovation precision $\tau_I$.
+The joint density of $x$ is Gaussian
+\begin{displaymath}
+    \pi(x|\rho,\tau) = \left(\frac{1}{\sqrt{2\pi}}\right)^{n}
+    \tau_{I}^{n/2} (1-\rho^{2})^{1/2}
+    \exp\left(-\frac{\tau_{I}}{2} x^{T} R x\right)
+\end{displaymath}
+where the precision-matrix is
+\begin{displaymath}
+    Q = \tau_I R = 
+    \tau_I
+    \begin{bmatrix}
+        1 & -\rho &&&& \\
+        -\rho & 1+\rho^{2}& -\rho &&& \\
+        &-\rho & 1+\rho^{2}& -\rho && \\
+        && \ddots& \ddots& \ddots& \\
+        &       &       &       -\rho & 1 + \rho^{2} & -\rho\\
+        & & & & -\rho & 1
+    \end{bmatrix}
+\end{displaymath}
+There are two (hyper-)parameters for this model: the marginal
+precision $\tau$ and the lag-one correlation $\rho$.
+We will 
+reparameterise these as
+\begin{displaymath}
+    \tau = \exp(\theta_1), \qquad\text{and}\qquad
+    \rho = 2\frac{\exp(\theta_{2})}{1+\exp(\theta_{2})} - 1.
+\end{displaymath}
+It is required that the parameters $\theta = (\theta_{1}, \theta_{2})$
+have support on $\Re^2$ and the priors for $\tau$ and $\rho$ are given
+as the corresponding priors for $\theta_{1}$ and $\theta_{2}$.
+
+A good re-parametersation is required for `INLA` to work well. A good
+parmeterisation makes, ideally, the *Fisher information matrix* of
+$\theta$ constant with respect to to $\theta$. It is sufficient to
+check this in a frequentistic setting with data directly from the
+AR$(1)$ model, in this case. `INLA` will provide the posterior
+marginals for $\theta$, but `inla.tmarginal()` can be used to convert
+it to the appropriate marginals for $\rho$ and $\tau$.
+
+We assign Gamma prior $\Gamma(.; a,b)$ (with mean $a/b$ and
+variance $a/b^{2}$) for $\tau$ and a Gaussian prior
+${\mathcal N}(\mu,\kappa)$ for $\theta_{2}$, so the joint prior for
+$\theta$ becomes
+\begin{displaymath}
+    \pi(\theta) = \Gamma(\exp(\theta_1); a,b) \exp(\theta_1) \;\times\;
+    {\mathcal N}(\theta_{2}; \mu, \kappa).
+\end{displaymath}
+The extra term, $\exp(\theta_1)$ is the Jacobian for the change of
+variable from $\tau$ to $\theta_1$. We will in this example use
+$a=b=1$, $\mu=0$ and $\kappa=1$.
+
+
+In order to define the AR1-model, we need to make `R`-functions that
+returns
+
+*    the graph,
+*    the precision matrix $Q(\theta)$,
+*    the zero mean,
+*    the initial values of $\theta$,
+*    the log-normalising constant, and
+*    the log-prior
+
+We need to incorporate these functions into `rmodel`, in
+the following way
+```{r eval=FALSE}
+inla.rgeneric.ar1.model = function(
+        cmd = c("graph", "Q", "mu", "initial", "log.norm.const",
+                "log.prior", "quit"),
+        theta = NULL)
+{
+    # for reference and potential storage for objects to
+    # cache, this is the environment of this function
+    # which holds arguments passed as `...` in
+    # `inla.rgeneric.define()`.
+    envir = environment(sys.call()[[1]])
+
+    graph = function(){ <to be completed> }
+    Q = function() { <to be completed> }
+    mu = function() { <to be completed> }
+    log.norm.const = function() { <to be completed> }
+    log.prior = function() { <to be completed> }
+    initial = function() { <to be completed> }
+    quit = function() { <to be completed> }
+
+    # sometimes this is useful, as argument 'graph' and 'quit'
+    # will pass theta=NULL as the values of theta are not
+	# required for defining the graph. however, this statement
+    # will ensure that theta is always defined.
+    if (is.null(theta)) theta = initial()
+
+    val = do.call(match.arg(cmd), args = list())
+    return (val)
+}
+```
+The input parameters are
+
+* **cmd** What to return
+* **theta**  The values of the $\theta$-parameters
+
+Other parameters in the model definition, like $n$ and possibly the
+parameters of the prior, goes into the `...` part of
+`inla.rgeneric.define()`, like
+```{r eval=FALSE}
+model = inla.rgeneric.define(inla.rgeneric.ar1.model, n = 100)
+```
+and is assigned in the environment of
+`inla.rgeneric.ar1.model`. Using
+variable `n` inside this function will then
+return `100`. This environment can also be accessed as `envir` as
+defined
+in the function skeleton. Sometimes this is useful, to hold static
+varibles or to cache intermediate calculations.
+
+Our next task, is to *fill in the blanks* and define the
+functions required. To help us, we will add a function that return
+a list of the **real** parameters in the model from $\theta$,
+```{r eval=FALSE}
+interpret.theta = function() {
+    return(list(prec = exp(theta[1L]), 
+                rho = 2 * exp(theta[2L])/(1 + exp(theta[2L])) - 1))
+}
+```
+Since `theta` exist already within `inla.rgeneric.ar1.model` we do
+not need to pass it as an argument.
+
+We also assume that variable `n` is defined as an argument in
+`inla.rgeneric.define()`.
+
+## Function `graph()`
+
+This is normally an easy function to add, as it is essentially the
+matrix $Q$. One can construct cases where this is not
+so\footnote{Depending on $\theta$ an element $Q_{ij}$ might be exactly
+zero}, and for this reason it exists as a separate function. The only
+thing that matter is if the elements are zero or non-zero. Also, it
+should return a `sparse matrix` as we do not want to pass $n^2$
+elements when ${\mathcal O}(n)$ are sufficient. Also, only the upper
+triangular matrix (diagonal included) are actually used, since the
+graph must be symmetric.
+```{r eval=FALSE}
+graph = function() {
+    return (Q())
+}
+```
+
+## function `Q()`
+
+This is normally the most tricky function, as we need to return
+the precision matrix (as a sparse matrix) for the given values of
+$\theta$.  Only the upper triangular matrix (diagonal included) are
+read.
+
+A *dense matrix* version is as follows, and is easier to read
+```{r eval=FALSE}
+Q = function() {
+    p = interpret.theta()
+    Q = p$prec/(1 - p$rho^2) *
+	    toeplitz(c(1 + p$rho^2, -p$rho, rep(0, n - 2L)))
+    Q[1, 1] = Q[n, n] = p$prec/(1 - p$rho^2)
+    return (inla.as.sparse(Q))
+}
+```
+The function `inla.as.sparse()` convert a matrix or sparse matrix,
+into the appropriate sparse matrix format used internally in `INLA`.
+This version of `Q()` creates a dense matrix and then make it sparse,
+and is not the way to do it.
+The better way, is to define the (upper triangular)
+sparse matrix directly using `sparseMatrix`.
+```{r eval=FALSE}
+Q = function() {
+    p = interpret.theta()
+    i = c(1L, n, 2L:(n - 1L), 1L:(n - 1L))
+    j = c(1L, n, 2L:(n - 1L), 2L:n)
+    x = p$prec/(1 - p$rho^2) *
+	    c(1L, 1L, rep(1 + p$rho^2, n - 2L),
+	      rep(-p$rho, n - 1L))
+     return (sparseMatrix(i = i, j = j, x = x, giveCsparse = FALSE))
+}
+```
+This is both faster and requires less memory, but it gets somewhat
+unreadable and hard to debug. The dense matrix version above, is at
+least easier to debug against for reasonable values of $n$.
+
+## Function `mu()`
+
+This function must return the mean which might depend on $\theta$.
+The convention, is that if `numeric(0)` is returned, then the mean is
+zero.
+```{r eval=FALSE}
+mu = function() {
+    return(numeric(0))
+}
+```
+
+
+
+## Function `log.norm.const()`
+
+This function must return the log of the normalising constant. For the
+AR1-model the normalising constant is
+\begin{displaymath}
+    \left(\frac{1}{\sqrt{2\pi}}\right)^{n} \tau_{I}^{n/2} (1-\rho^{2})^{1/2}
+\end{displaymath}
+where
+\begin{displaymath}
+    \tau_{I} = \tau/(1-\rho^{2}).
+\end{displaymath}
+The function can then be implemented as
+```{r eval=FALSE}
+log.norm.const = function() {
+   p = interpret.theta()
+   prec.i  = p / (1.0 - p$rho^2)
+   val = n * (- 0.5 * log(2*pi) + 0.5 * log(prec.i)) +
+         0.5 * log(1.0 - p$rho^2)
+   return (val)
+}
+```
+Since the normalizing constant is known, we can ask `INLA` to evaluate
+$$-\frac{n}{2}\log(2\pi) + \frac{1}{2} \log(|Q(\theta)|)$$ 
+and $\log|Q(\theta)|$ can be computed from the
+sparse Cholesky factorisation of $Q(\theta)$. In this case 
+we can return `numeric(0)` (which is a code for "`compute it yourself,
+please!`")
+```{r eval=FALSE}
+log.norm.const = function() {
+   return (numeric(0))
+}
+```
+Unless the log-normalizing constant is known analytically (and the
+precision matrix depends on $\theta$) it is both better, and
+easier, just to return `numeric(0)`.
+
+
+## Function `log.prior()`
+
+This function must return the (log-)prior of the prior density for
+$\theta$. For the AR1-model, we have for simplicity chosen this prior
+\begin{displaymath}
+    \pi(\theta) = \Gamma(\exp(\theta_1); a,b) \exp(\theta_1) \;\times\;
+    {\mathcal N}(\theta_{2}; \mu, \kappa)
+\end{displaymath}
+so we can implement this as with our choices $a=b=1$, $\mu=0$ and
+$\kappa=1$ as
+```{r eval=FALSE}
+log.prior = function() {
+    p = interpret.theta()
+    val = dgamma(p$prec, shape = 1, rate = 1, log=TRUE) + theta[1L] + 
+          dnorm(theta[2L], mean = 0, sd = 1, log=TRUE)
+    return (val)
+}
+```
+The parameters in the joint prior can also be defined in the 
+`inla.rgeneric.define()` call, by adding arguments `a=1`, `b=1` and so on.
+
+**Note** that `log.prior()` must return the log prior for $\theta$, and
+not the prior for the more natural parameters defined in
+`interpret.theta()`.
+
+
+## Function `initial()`
+
+This function returns the initial values for $\theta$, like
+```{r eval=FALSE}
+initial = function() {
+    return (rep(1, 2))
+}
+```
+or `numeric(0)` is there are no $\theta$'s. For a precision parameters
+it is generally advisable to chose a high precision as the initial
+value, as this helps the optimizer. `INLA` generally use initial value
+$4$ for log precisions. 
+
+
+## Function `quit()`
+
+This function is called when all the computations are done and before
+exit-ing the \texttt{C}-program. If there is some cleanup to do, you
+can do this here. In our example, there is nothing do to.
+```{r eval=FALSE}
+quit = function() {
+    return (invisible())
+}
+```
+
+## Example of usage
+
+Here is an example of use. The function `inla.rgeneric.ar1.model()`
+contains the functions given above, and can be used directly like
+this.
+```{r}
+n = 100
+rho=0.9
+x = arima.sim(n, model = list(ar = rho)) * sqrt(1-rho^2)
+y = x + rnorm(n, sd = 0.1)
+model = inla.rgeneric.define(inla.rgeneric.ar1.model, n=n)
+formula = y ~ -1 + f(idx, model=model)
+r = inla(formula, data = data.frame(y, idx = 1:n))
+```
+We can also compare with the buildt-in version, if we make sure to use
+the same priors
+```{r}
+fformula = y ~ -1 +
+	f(idx, model = "ar1",
+	  hyper = list(prec = list(prior = "loggamma", param = c(1,1)),
+      rho = list(prior = "normal", param = c(0,1))))
+rr = inla(fformula, data = data.frame(y, idx = 1:n))
+```	  
+and plot the hyperparameters in the same scale
+```{r}
+plot(inla.smarginal(rr$marginals.hyperpar[[2]]), 
+	 type="l", lwd=5, col="red", xlab="stdev", ylab="density")
+lines(inla.tmarginal(exp, r$internal.marginals.hyperpar[[2]]), 
+     col="yellow")
+```
+```{r}
+plot(inla.smarginal(rr$marginals.hyperpar[[3]]), 
+	 type="l", lwd=5, col="red", xlab="rho", ylab="density")
+lines(inla.tmarginal(function(x) 2*exp(x)/(1+exp(x))-1,
+                     r$internal.marginals.hyperpar[[3]]), 
+     col="yellow")
+```
+The running time will of'course be quite different
+```{r}
+round(rbind(native = rr$cpu.used,  
+            rgeneric = r$cpu.used), digits = 3)
+```
+
+
+# Example: The iid-model
+
+The following function defines the \texttt{iid}-model, see
+`inla.doc("iid")`, which we give without further comments. To
+run this model in `R`, you may run `demo(rgeneric)`.
+
+```{r}
+inla.rgeneric.iid.model
+```
+
+
+# Example: A model for the mean structure
+
+Up to now, we have assumed zero mean. In this example, we will
+illustrate how to add a non-zero mean model, focusing on the mean
+model only. We can of'course have a mean model and a non-trivial
+precision matrix together.
+```{r, eval=FALSE}
+## In this example we do linear regression using 'rgeneric'.
+## The regression model is y = a + b*x + noise,  and we
+## define 'a + b*x + tiny.noise' as a latent model.
+## The dimension is length(x) and number of hyperparameters
+## is 2 ('a' and 'b'). 
+```
+```{r}
+rgeneric.linear.regression =
+    function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", 
+                     "log.prior", "quit"),
+             theta = NULL)
+{
+    envir = environment(sys.call()[[1]])
+
+    ## artifical high precision to be added to the mean-model
+    prec.high = exp(15)
+    
+    interpret.theta = function() {
+        return(list(a = theta[1L], b = theta[2L]))
+    }
+    
+    graph = function() {
+        G = Diagonal(n = length(x), x=1)
+        return(G)
+    } 
+    
+    Q = function() {
+        Q = prec.high * graph()
+        return(Q)
+    }
+    
+    mu = function() {
+        par = interpret.theta()
+        return(par$a + par$b * x)
+    }
+
+    log.norm.const = function() {
+        return(numeric(0))
+    }
+
+    log.prior = function() {
+        par = interpret.theta()
+        val = (dnorm(par$a, mean=0, sd=1, log=TRUE) +
+               dnorm(par$b, mean=0, sd=1, log=TRUE))
+        return(val)
+    }
+
+    initial = function() {
+        return(rep(0, 2))
+    }
+   
+    quit = function() {
+        return(invisible())
+    }
+
+    val = do.call(match.arg(cmd), args = list())
+    return(val)
+}
+```
+and we can run this as
+```{r}
+a = 1
+b = 2
+n = 50
+x = rnorm(n)
+eta = a + b*x
+s = 0.25
+y = eta + rnorm(n, sd=s)
+
+rgen = inla.rgeneric.define(model = rgeneric.linear.regression, x=x)
+r = inla(y ~ -1 + f(idx, model=rgen),
+         data = data.frame(y, idx = 1:n))
+rr = inla(y ~ 1 + x,
+          data = data.frame(y, x),
+          control.fixed = list(prec.intercept = 1, prec = 1))
+```
+and we can compare the results with the native model
+```{r}
+plot(inla.smarginal(r$marginals.hyperpar[['Theta1 for idx']]),
+     type="l", lwd=5, col="red", xlab="Intercept", ylab="density")
+lines(inla.smarginal(rr$marginals.fixed$'(Intercept)'), col="yellow")
+```
+```{r}
+plot(inla.smarginal(r$marginals.hyperpar[['Theta2 for idx']]),
+     type="l", lwd=5, col="red", xlab="Slope", ylab="density")
+lines(inla.smarginal(rr$marginals.fixed$x), col="yellow")
+```
+The tiny in-accuacy is due to treatment of `a` and `b` as
+hyperparameters in the `rgeneric` model.
+We can improve the estimates using `inla.hyperpar()` as usual, 
+```{r}
+r = inla.hyperpar(r)
+```
+Replotting the results shows improvement:
+```{r}
+plot(inla.smarginal(r$marginals.hyperpar[['Theta1 for idx']]),
+     type="l", lwd=5, col="red", xlab="Intercept", ylab="density")
+lines(inla.smarginal(rr$marginals.fixed$'(Intercept)'), col="yellow")
+```
+```{r}
+plot(inla.smarginal(r$marginals.hyperpar[['Theta2 for idx']]),
+     type="l", lwd=5, col="red", xlab="Slope", ylab="density")
+lines(inla.smarginal(rr$marginals.fixed$x), col="yellow")
+```

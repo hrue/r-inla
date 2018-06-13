@@ -48,7 +48,7 @@ and the prior is defined on $\theta$.
 \item family$=$\texttt{gp}
 \item Required arguments: $y$ and the quantile $\alpha$. 
 \end{itemize}
-The quantile is given as \texttt{control.family=list(quantile=$\alpha$)}.
+The quantile is given as \texttt{control.family=list(control.link=list(quantile=$\alpha$))}.
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/likelihood/gp.tex}
