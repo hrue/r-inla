@@ -98,8 +98,9 @@
         if (missingArg(graph)) 
             stop("'graph' or 'ev.s' must be provided!")        
         graph <- inla.graph2matrix(graph) 
-        R.s <- inla.scale.model(Diagonal(n, colSums(graph)) - graph,
-                                constr=list(A=matrix(1, 1, n), e=0))
+        R.s <- inla.scale.model(
+            Diagonal(nrow(graph), colSums(graph)) - graph,
+            constr=list(A=matrix(1, 1, n), e=0))
         ev.s <- eigen(as.matrix(R.s))
     }
     n <- length(ev.s$values)
