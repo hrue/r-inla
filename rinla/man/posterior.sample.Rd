@@ -12,7 +12,7 @@
               of a fitted model (an inla-object}
  \usage{
      inla.posterior.sample(n = 1L, result, intern = FALSE, use.improved.mean = TRUE,
-                           add.names = TRUE, seed = 0L)
+                           add.names = TRUE, seed = 0L, num.threads = 1L)
  }
  
  \arguments{
@@ -39,6 +39,9 @@
        If you want reproducible results,  you ALSO need to control the seed for the RNG in R by
        controlling the variable \code{.Random.seed} or using the function \code{set.seed},
        the example for how this can be done. }
+   \item{num.threads}{The number of threads that can be used. \code{num.threads>1L} requires
+       \code{seed = 0L}. Only use \code{num.threads > 1L} for large problems/number of
+       samples. This option does currently NOT use the default one set by \code{inla.setOption()}. }
 }
 \details{The hyperparameters are sampled from the configurations used to do the
        numerical integration,  hence if you want a higher resolution,  you need to

@@ -135,8 +135,8 @@ namespace fmesh {
       } else {
 	input.read((char*)&h_, header_size);
 	if (file_header_size > header_size) {
-	  char* buf = new char[header_size-file_header_size];
-	  input.read(buf, header_size-file_header_size);
+	  char* buf = new char[file_header_size - header_size];
+	  input.read(buf, file_header_size - header_size);
 	  delete[] buf;
 	}
       }
@@ -480,7 +480,7 @@ namespace fmesh {
   }
 
   template <class T>
-  IOHeader::IOHeader(const T& ref) { def(ref); };
+  IOHeader::IOHeader(const T& ref) { def(ref); }
 
 
 

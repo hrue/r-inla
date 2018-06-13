@@ -44,6 +44,8 @@ c/*!
       csd = 1/a(1,indx)
       return
       end
+
+
       subroutine dtbsvSpecial(uplo,trans,diag,n,k,a,lda,x,incx,
      $     findx,toindx)
       integer            incx, k, lda, n,findx,toindx
@@ -260,22 +262,18 @@ c                  print *,'set x(j)',j,x(j),a(1,j)
 *     end of dtbsv .
 *
       end
-c
+
       double precision function erfi(x)
-c
 c     this function computes
-c      
 c     erfi(x) = 1/sqrt(Pi)*int(exp(t^2),t=0..x);
-c      
       double precision x,y,u,v
       logical flag
       y=0.0
       call wofz(x,y,u,v,flag)
       erfi = exp(x**2)*v
       end
-c
+
       subroutine wofz (xi, yi, u, v, flag)
-c
 c     algorithm 680, collected algorithms from acm.  this work published
 c     in transactions on mathematical software, vol. 16, no. 1, pp. 47.
 c
@@ -462,9 +460,10 @@ c
   100 flag = .true.
       return
       end
+
       subroutine dchdc(a,lda,p,work,jpvt,job,info,eps)
-      integer lda,p,jpvt(1),job,info
-      double precision a(lda,1),work(1),eps
+      integer lda,p,jpvt(*),job,info
+      double precision a(lda,*),work(*),eps
 c
 c     dchdc computes the cholesky decomposition of a positive definite
 c     matrix.  a pivoting option allows the user to estimate the
@@ -732,7 +731,7 @@ c      epsf = epsf/10
       sigsm=epsx
       return
       end
-c
+
       subroutine domin_setup_1(nhyper,xxst)
 #include "domincommon.inc"
       integer nhyper
@@ -744,7 +743,7 @@ c
       enddo
       return
       end
-c      
+
       subroutine domin_f(xx,ffx,ierr)
 #include "domincommon.inc"
       double precision xx(*),ffx
@@ -753,7 +752,7 @@ c
       call gmrflib_domin_f(xx,ffx,ierr)
       return
       end
-c      
+
       subroutine domin_gradf(xx,ggradx,ierr)
 #include "domincommon.inc"
       double precision xx(*),ggradx(*)
@@ -762,6 +761,7 @@ c
       call gmrflib_domin_gradf(xx,ggradx,ierr)
       return
       end
+
       subroutine domin_get_results(xx,ffx,iierr)
 #include "domincommon.inc"
       double precision xx(*), ffx
@@ -790,9 +790,7 @@ c      enddo
       strlen = i
       return
       end
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
+
       SUBROUTINE DGEMV_FAILSAFE(TRANS,M,N,ALPHA,A,LDA,
      +                          X,INCX,BETA,Y,INCY)
 *     .. Scalar Arguments ..

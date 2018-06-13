@@ -856,7 +856,7 @@ typedef struct {
 	size_t nconfig;
 	size_t *idx_mapping;
 	size_t idx_next;
-	GMRFLib_int8 *configurations;
+	GMRFLib_short_int *configurations;
 
 	char all_out;
 	char *out;
@@ -992,7 +992,7 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo,
 
 int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_ai_store_tp * ai_store,
 			       double *improved_mean);
-GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, int skeleton, int copy_ptr);
+GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, int skeleton, int copy_ptr, int copy_pardiso_ptr);
 GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp * to, GMRFLib_ai_store_tp * from);
 GMRFLib_sizeof_tp GMRFLib_sizeof_ai_store(GMRFLib_ai_store_tp * ai_store);
 char *GMRFLib_ai_tag(int *iz, int len);

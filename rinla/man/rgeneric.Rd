@@ -12,6 +12,8 @@
 \alias{inla.rgeneric.iid.model}
 \alias{rgeneric.wrapper}
 \alias{inla.rgeneric.wrapper}
+\alias{rgeneric.q}
+\alias{inla.rgeneric.q}
 
 \title{rgeneric models}
 
@@ -28,11 +30,15 @@ inla.rgeneric.ar1.model(
 inla.rgeneric.wrapper(
         cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
         model, theta = NULL)
+inla.rgeneric.q(
+        rmodel, 
+        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
+        theta = NULL)
 }
 
 \arguments{
-
   \item{model}{The definition of the model; see \code{inla.rgeneric.ar1.model}}
+  \item{rmodel}{The rgeneric model-object, the output of \code{inla.rgeneric.define}}
   \item{debug}{Logical. Turn on/off debugging}
   \item{cmd}{An allowed request}
   \item{theta}{Values of theta}

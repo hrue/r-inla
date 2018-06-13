@@ -20,7 +20,7 @@
               percentiles of the PC prior for the \code{gammacount} likelihood}
  \usage{
  inla.pc.rgammacount(n, lambda = 1)
- inla.pc.dgammacount(x, lambda = 1, = FALSE)
+ inla.pc.dgammacount(x, lambda = 1, log = FALSE)
  inla.pc.qgammacount(p, lambda = 1)
  inla.pc.pgammacount(q, lambda = 1)
  }

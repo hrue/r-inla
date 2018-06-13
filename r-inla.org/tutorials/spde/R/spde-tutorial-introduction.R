@@ -117,7 +117,7 @@ data(SPDEtoy)
 crossprod(q1) ### same inner pattern as for RW2
 INLA:::inla.rw2(n=5)
 
-## ----mesh0, echo=FALSE, results='hide'-----------------------------------
+## ----mesh0, echo=TRUE, results='hide'------------------------------------
 s <- 3 ### this factor will only changes C, not G
 pts <- rbind(c(1,1), c(2,1), 
              c(2.6, 1), c(0.7,1.7), 4:5/3, c(2,1.7))*s

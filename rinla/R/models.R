@@ -153,7 +153,7 @@
                      aug.factor = 1L,
                      aug.constr = NULL,
                      n.div.by = NULL,
-                     n.required = FALSE,
+                     n.required = TRUE,
                      set.default.values = TRUE,
                      status = "experimental", 
                      pdf = "rgeneric"
@@ -4684,6 +4684,10 @@
                      doc = "The tan-link", 
                      hyper = list()
                  ), 
+                 quantile = list(
+                     doc = "The quantile-link", 
+                     hyper = list()
+                 ), 
                  sslogit = list(
                      doc = "Logit link with sensitivity and specificity", 
                      hyper = list(
@@ -4992,7 +4996,7 @@
                          ),
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "log", "logoffset", "test1", "special1", "special2"),
+                     link = c("default", "log", "logoffset", "quantile", "test1", "special1", "special2"),
                      pdf = "poisson"
                      ),
                  
@@ -5068,7 +5072,7 @@
                      survival = FALSE,
                      discrete = TRUE,
                      link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog",
-                              "log", "sslogit", "logitoffset"),
+                              "log", "sslogit", "logitoffset", "quantile"),
                      pdf = "binomial"
                      ),
 
@@ -5122,7 +5126,7 @@
                          ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "log"),
+                     link = c("default", "log", "quantile"),
                      pdf = "gamma"
                      ),
 
@@ -5170,23 +5174,46 @@
                  ),
 
                  qloglogistic = list(
-                     doc = "A quantile version of the logistic likelihood", 
+                     doc = "A quantile loglogistic likelihood", 
                      hyper = list(
                          theta = list(
                              hyperid =  60011,
-                             name = "precision parameter",
-                             short.name = "prec",
-                             initial = 2,
+                             name = "log alpha",
+                             short.name = "alpha",
+                             initial = 1,
                              fixed = FALSE,
                              prior = "loggamma",
-                             param = c(1, 0.001),
+                             param = c(25, 25),
                              to.theta = function(x) log(x), 
                              from.theta = function(x) exp(x)
                          )
                      ), 
+                     status = "changed:Oct.25.2017", 
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "log"), 
+                     link = c("default", "log", "neglog"), 
+                     pdf = "qloglogistic"
+                 ),
+
+                 qloglogisticsurv = list(
+                     doc = "A quantile loglogistic likelihood (survival)", 
+                     hyper = list(
+                         theta = list(
+                             hyperid =  60021,
+                             name = "log alpha",
+                             short.name = "alpha",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "loggamma",
+                             param = c(25, 25),
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x)
+                         )
+                     ), 
+                     status = "changed:Oct.25.2017", 
+                     survival = TRUE,
+                     discrete = FALSE,
+                     link = c("default", "log", "neglog"), 
                      pdf = "qloglogistic"
                  ),
 
@@ -5260,7 +5287,7 @@
                          ),
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "log", "logoffset"),
+                     link = c("default", "log", "logoffset", "quantile"),
                      pdf = "nbinomial"
                      ),
 
@@ -5609,7 +5636,7 @@
                              hyperid =  77101,
                              name = "log precision",
                              short.name = "prec",
-                             initial = 4,
+                             initial = 0,
                              fixed = FALSE,
                              prior = "loggamma",
                              param = c(1, 0.00005),
@@ -5624,13 +5651,13 @@
                      ),
 
                  lognormalsurv = list(
-                     doc = "The log-Normal likelihood (survival version)", 
+                     doc = "The log-Normal likelihood (survival)", 
                      hyper = list(
                          theta = list(
                              hyperid =  78001,
                              name = "log precision",
                              short.name = "prec",
-                             initial = 2,
+                             initial = 0,
                              fixed = FALSE,
                              prior = "loggamma",
                              param = c(1, 0.00005),
@@ -5655,7 +5682,7 @@
                      ),
 
                  exponentialsurv = list(
-                     doc = "The Exponential likelihood (survival version)", 
+                     doc = "The Exponential likelihood (survival)", 
                      hyper = list(
                          ),
                      survival = TRUE,
@@ -5693,12 +5720,12 @@
                          ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "log"),
+                     link = c("default", "log", "neglog", "quantile"),
                      pdf = "weibull"
                      ),
 
                  weibullsurv = list(
-                     doc = "The Weibull likelihood (survival version)", 
+                     doc = "The Weibull likelihood (survival)", 
                      ## variant=0: lambda*y^alpha
                      ## variant=1: (lambda*y)^alpha
                      hyper = list(
@@ -5716,12 +5743,12 @@
                          ),
                      survival = TRUE,
                      discrete = FALSE,
-                     link = c("default", "log", "neglog"),
+                     link = c("default", "log", "neglog", "quantile"),
                      pdf = "weibull"
                      ),
 
                  loglogistic = list(
-                     doc = "The log-logistic likelihood (survival version)", 
+                     doc = "The loglogistic likelihood", 
                      hyper = list(
                          theta = list(
                              hyperid =  80001,
@@ -5735,6 +5762,29 @@
                              from.theta = function(x) exp(x)
                              )
                          ),
+                     status = "changed:Oct.25.2017", 
+                     survival = FALSE,
+                     discrete = FALSE,
+                     link = c("default", "log", "neglog"),
+                     pdf = "loglogistic"
+                     ),
+
+                 loglogisticsurv = list(
+                     doc = "The loglogistic likelihood (survival)", 
+                     hyper = list(
+                         theta = list(
+                             hyperid =  80011,
+                             name = "log alpha",
+                             short.name = "alpha",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "loggamma",
+                             param = c(25, 25),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                             )
+                         ),
+                     status = "changed:Oct.25.2017", 
                      survival = TRUE,
                      discrete = FALSE,
                      link = c("default", "log", "neglog"),
@@ -5742,7 +5792,7 @@
                      ),
 
                  weibullcure = list(
-                     doc = "The Weibull-cure likelihood (survival version)", 
+                     doc = "The Weibull-cure likelihood (survival)", 
                      hyper = list(
                          theta1 = list(
                              hyperid =  81001,
@@ -6928,7 +6978,7 @@
                      status = "experimental", 
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "log"), 
+                     link = c("default", "quantile"), 
                      pdf = "genPareto"
                  ),
 
@@ -7347,30 +7397,45 @@
         if (is.null(status)) {
             ## do nothing; all ok.
         } else {
-            stopifnot(any(inla.strcasecmp(status, c("experimental", "disabled"))))
+            status.core = strsplit(status, ":")[[1]][1]
+            stopifnot(any(inla.strcasecmp(status.core, c("experimental", "disabled", "changed"))))
             envir = inla.get.inlaEnv()
             var = paste("processed.status.for.model.", model, ".in.section.", section, sep="")
 
-            if (inla.strcasecmp(status, "experimental")) {
+            if (inla.strcasecmp(status.core, "experimental")) {
                 if (!(exists(var, envir = envir) && get(var, envir = envir))) {
                     assign(var, TRUE, envir = envir)
-                    msg = paste("Model '", model, "' in section '", section, "' is marked as '", status, 
+                    msg = paste0("Model '", model, "' in section '", section, "' is marked as '", status, 
                         "'; changes may appear at any time.",
                         "\n  ",
-                        "Use this model with extra care!!! Further warnings are disabled.", sep="")
+                        "Use this model with extra care!!! Further warnings are disabled.")
                     warning(msg)
                 } else {
                     ## the warning is already given; do nothing
                 }
-            } else if (inla.strcasecmp(status, "disabled")) {
+            } else if (inla.strcasecmp(status.core, "disabled")) {
                 assign(var, TRUE, envir = envir)
-                msg = paste("Model '", model, "' in section '", section, "' is marked as '", status,
-                    "'.\n  Usage is not recommended and unsupported.\n", sep="")
+                msg = paste("Model '", model, "' in section '", section, "' is marked as '",
+                            status, ".\n",
+                            "Usage is either not recommended and unsupported.",
+                            "\n", sep="")
                 var = paste("enable.model.", section, ".", model, sep="")
                 if (!(exists(var, envir = envir) && get(var, envir = envir))) {
-                    msg = paste(c(msg, paste("  You can enable it setting variable '", var,
+                    msg = paste0(c(msg, paste("  You can enable this model setting variable '", var,
                         "'\n  to 'TRUE' in environment INLA:::inla.get.inlaEnv().\n",
-                        "  If you chose to do so, you are on your own.", sep="")))
+                        "  If you chose to do so, you are on your own.")))
+                    stop(msg)
+                }
+            } else if (inla.strcasecmp(status.core, "changed")) {
+                assign(var, TRUE, envir = envir)
+                msg = paste0("Model '", model, "' in section '", section, "' is marked as '",
+                            status, ".\n",
+                            "  There have been a change in the model definition, which is not backward compatible.\n",
+                            "  Please refer to the documentation before proceeeding.")
+                var = paste("enable.model.", section, ".", model, sep="")
+                if (!(exists(var, envir = envir) && get(var, envir = envir))) {
+                    msg = paste0(c(msg, paste0("\n  You can bypass this check setting variable '", var,
+                        "'\n  to 'TRUE' in environment INLA:::inla.get.inlaEnv().\n")))
                     stop(msg)
                 }
             }

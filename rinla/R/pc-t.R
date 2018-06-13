@@ -20109,7 +20109,6 @@
         stopifnot(!(missing(u) && missing(alpha)))
         stopifnot(u > 2.0 && (alpha > 0 && alpha < 1))
         lambda = -log(alpha) / pc.dof.dist(u)
-        print(paste("lambda", lambda))
     } else {
         stopifnot(!(missing(lambda)))
         stopifnot(lambda > 0.0)

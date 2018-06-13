@@ -8,8 +8,8 @@ options(width=75, prompt = " ", continue = "   ")
 library(lattice) 
 library(INLA)
 lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
-inla.setOption(num.threads=7)
+##inla.setOption(inla.call='remote')
+##inla.setOption(num.threads=7)
 
 ## ----datatoy-------------------------------------------------------------
 data(SPDEtoy)
@@ -17,9 +17,9 @@ data(SPDEtoy)
 ## ----strdata-------------------------------------------------------------
 str(SPDEtoy)
 
-## ----loadmeshes,echo=F---------------------------------------------------
-for (i in 1:6)
-  load(paste('mesh', i, '.RData', sep=''))
+## ----buildmesh5----------------------------------------------------------
+pl.dom <- cbind(c(0,1,1,0.7,0), c(0,0,0.7,1,1))
+mesh5 <- inla.mesh.2d(, pl.dom, max.e=c(0.092, 0.2))
 
 ## ----spde2matern---------------------------------------------------------
 args(inla.spde2.matern)
@@ -45,6 +45,10 @@ table(rowSums(A5))
 
 ## ----colsA---------------------------------------------------------------
 table(colSums(A5)>0)
+
+## ----loadmeshes, echo=FALSE----------------------------------------------
+for (i in 1:6)
+  load(paste('mesh', i, '.RData', sep=''))
 
 ## ----eacha1--------------------------------------------------------------
 A1 <- inla.spde.make.A(mesh1, loc=coords)
@@ -248,18 +252,10 @@ s2.marg <- lapply(lres, function(m)
                   inla.tmarginal(function(x) 1/x, m$marginals.hy[[1]]))
 
 ## ----truepars------------------------------------------------------------
-beta0 <- 10; sigma2e <- 0.3; sigma2x <- 5; kappa <- 7; nu <- 1
-
-## ----likfit,echo=F,results='hide'----------------------------------------
-source('R/spde-tutorial-functions.R')
-inla.setOption(inla.call=lcall)
-system.time(opt.b <- optim(
-    c(-1,2), negLogLikFun, hessian=TRUE, method='BFGS',
-    X=matrix(1,nrow(coords)), A=A5, y=SPDEtoy[,3], spde=spde5)) 
-lk.est <- par2user(opt.b$par, matrix(1,nrow(coords),1), A5, SPDEtoy[,3], spde5) 
+beta0 <- 10; sigma2e <- 0.3; sigma2u <- 5; kappa <- 7; nu <- 1
 
 ## ----lkv-----------------------------------------------------------------
-lk.est
+lk.est <- c(beta=9.54, s2e=0.374, s2u=3.32, range=0.336)
 
 ## ----compare,eval=F------------------------------------------------------
 ## rcols <- rainbow(6)##c(rgb(4:1/4,0:3/5,0), c(rgb(0,0:3/5,4:1/4)))
@@ -289,7 +285,7 @@ lk.est
 ##      xlim=xrange, ylim=yrange, xlab=expression(sigma[x]^2), ylab='Density')
 ## for (k in 1:6)
 ##   lines(lrf[[k]]$marginals.variance.nominal[[1]], col=rcols[k], lwd=2)
-## abline(v=sigma2x, lty=2, lwd=2, col=3)
+## abline(v=sigma2u, lty=2, lwd=2, col=3)
 ## abline(v=lk.est[3], lty=3, lwd=2, col=3)
 ## 
 ## xrange <- range(sapply(lrf, function(r) range(r$marginals.kappa[[1]][,1])))
@@ -351,7 +347,7 @@ plot(lrf[[1]]$marginals.variance.nominal[[1]], type='l',
      xlim=xrange, ylim=yrange, xlab=expression(sigma[x]^2), ylab='Density')
 for (k in 1:6)
   lines(lrf[[k]]$marginals.variance.nominal[[1]], col=rcols[k], lwd=2)
-abline(v=sigma2x, lty=2, lwd=2, col=3) 
+abline(v=sigma2u, lty=2, lwd=2, col=3) 
 abline(v=lk.est[3], lty=3, lwd=2, col=3)
 
 xrange <- range(sapply(lrf, function(r) range(r$marginals.kappa[[1]][,1])))

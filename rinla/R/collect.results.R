@@ -197,6 +197,10 @@
 
         ## also put the linkfunctions here
         misc$linkfunctions = linkfunctions
+        if (!is.null(linkfunctions)) {
+            ## a better name
+            misc$family = linkfunctions$link
+        }
     }
 
     ## add the names of the theta's here, as they are available.

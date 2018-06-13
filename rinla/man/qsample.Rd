@@ -17,10 +17,11 @@
         mu, 
         sample,
         constr,
-        reordering = inla.reorderings(),
+        reordering = INLA::inla.reorderings(),
         seed = 0L,
         logdens = ifelse(missing(sample), FALSE, TRUE),
-        compute.mean = ifelse(missing(sample), FALSE, TRUE))
+        compute.mean = ifelse(missing(sample), FALSE, TRUE),
+        num.threads = 1L)
  }
  
  \arguments{
@@ -30,7 +31,8 @@
    \item{mu}{The mu term}
    \item{sample}{A matrix of optional samples where each column is a sample. If set, then evaluate the log-density for each sample only.}
    \item{constr}{Optional linear constraints; see \code{?INLA::f} and argument \code{extraconstr}}
-   \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()}
+   \item{reordering}{The type of reordering algorithm to be used for \code{TAUCS};
+        either one of the names listed in \code{inla.reorderings()} 
         or the output from \code{inla.qreordering(Q)}.
         The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
    \item{seed}{Control the RNG. If \code{seed=0L} then GMRFLib will set the seed intelligently/at 'random'.
@@ -39,7 +41,10 @@
                If \code{seed > 0L} then this value is used as the seed for the RNG.}
    \item{logdens}{If \code{TRUE}, compute also the log-density of each sample. Note that the output format then change.}
    \item{compute.mean}{If \code{TRUE}, compute also the (constrained) mean. Note that the output format then change.}
-}
+   \item{num.threads}{The number of threads that can be used. \code{num.threads>1L} requires
+       \code{seed = 0L}. Only use \code{num.threads > 1L} for large problems/number of
+       samples. This option does currently NOT use the default one set by \code{inla.setOption()}. }
+ }
 \value{
       The log-density has form {-1/2(x-mu)^T Q (x-mu) + b^T x}
 

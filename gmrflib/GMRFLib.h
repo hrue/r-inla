@@ -104,6 +104,7 @@ __BEGIN_DECLS
 #include "GMRFLib/seasonal.h"
 #include "GMRFLib/rw.h"
 #include "GMRFLib/tabulate-Qfunc.h"
+#include "GMRFLib/smtp-pardiso.h"
 #include "GMRFLib/sparse-interface.h"
 #include "GMRFLib/problem-setup.h"
 #include "GMRFLib/openmp.h"
@@ -119,7 +120,6 @@ __BEGIN_DECLS
 #include "GMRFLib/distributions.h"
 #include "GMRFLib/wa.h"
 #include "GMRFLib/smtp-band.h"
-#include "GMRFLib/smtp-profile.h"
 #include "GMRFLib/smtp-taucs.h"
 #include "GMRFLib/bitmap.h"				       /* needs both graph and problem and sparse */
 #include "GMRFLib/geo.h"
