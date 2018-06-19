@@ -340,12 +340,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default[20] = 0;			       /* Diagonal pivoting, and... */
 	s->iparm_default[23] = 1;			       /* two level scheduling, and... */
 	s->iparm_default[24] = 1; 			       /* use parallel solve, as... */
-
-	if (s->iparm_default[2] == 1) {
-		s->iparm_default[33] = 1;		       /* I want identical solutions (require ipar[1]=2 above) */
-	} else {
-		s->iparm_default[33] = 0;		       /* WORKAROUND FOR THE PARALLEL ISSUE */
-	}
+	s->iparm_default[33] = 1;			       /* I want identical solutions (require iparm_default[1]=2) */
 
 	if (error != 0) {
 		if (error == NOLIB_ECODE) {
@@ -373,10 +368,7 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 	memcpy((void *) (store->pstore->iparm), (void *) (store->iparm_default), GMRFLib_PARDISO_PLEN * sizeof(int));
 	memcpy((void *) (store->pstore->dparm), (void *) (store->dparm_default), GMRFLib_PARDISO_PLEN * sizeof(double));
 
-	/* 
-	   workaround for the parallel issue. have to use 0 for parallel
-	 */
-	int ival7 = (store->pstore->iparm[2] > 1 ? 4 : 0);    // iterative improvements? #iterations
+	int ival7 = 4;					       /* #iterations for iterative improvement (max) */
 
 	store->pstore->nrhs = 0;
 	store->pstore->err_code = 0;
