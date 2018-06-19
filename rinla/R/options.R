@@ -179,7 +179,7 @@
 
 `inla.setOption` = function(...)
 {
-    ## now supports more formats, and also the common one
+    ## supports formats:
     ##     inla.setOption("keep", TRUE)
     ## and
     ##     inla.setOption(keep=TRUE)
