@@ -10441,7 +10441,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_WEIBULL:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.y[i] < 0.0) {
+				if (ds->data_observations.y[i] <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Weibull data[%1d] (y) = (%g) is void\n", secname, i, ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
