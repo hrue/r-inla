@@ -276,8 +276,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 				M->j[k] = IMAX(ij[0], ij[1]);
 			}
 			if ((all_i_st_j && all_j_st_i) || (!all_i_st_j && !all_j_st_i)) {
-				ERROR
-				    ("Not all entries satisfy all i >= j, or all j <= i, in the symmetric case. Do not know what to do...");
+				ERROR("Not all entries satisfy all i >= j, or all j <= i, in the symmetric case. Do not know what to do...");
 			}
 
 			int nneq = 0;
@@ -587,8 +586,7 @@ double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp * M)
 
 	if (M) {
 		if (M->nrow != M->ncol) {
-			fprintf(stderr, "*** %s:%1d ***  Not a diagonal matrix: %1d != %1d\n", __FILE__, __LINE__, M->nrow,
-				M->ncol);
+			fprintf(stderr, "*** %s:%1d ***  Not a diagonal matrix: %1d != %1d\n", __FILE__, __LINE__, M->nrow, M->ncol);
 			exit(1);
 		}
 

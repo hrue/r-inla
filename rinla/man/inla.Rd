@@ -42,6 +42,7 @@ inla(
     inla.call = inla.getOption("inla.call"),
     inla.arg = inla.getOption("inla.arg"),
     num.threads = inla.getOption("num.threads"),
+    blas.num.threads = inla.getOption("blas.num.threads"),
     keep = inla.getOption("keep"),
     working.directory = inla.getOption("working.directory"),
     silent = inla.getOption("silent"),
@@ -156,6 +157,14 @@ the 'inla' program and do not include default
 arguments. (OOPS: This is an expert option!)}
 \item{num.threads}{ Maximum number of threads the
 \code{inla}-program will use}
+\item{blas.num.threads}{The absolute value of \code{blas.num.threads} is the maximum
+number of threads the the \code{openblas}/\code{mklblas} will use. If
+\code{blas.num.threads} > 0, then the environment variables
+\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned, unless they
+are already defined. If \code{blas.num.threads} < 0, then the environment variables
+\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be (possibly re)-assigned.
+If \code{blas.num.threads} = 0,  then variables \code{OPENBLAS_NUM_THREADS} and
+\code{MKL_NUM_THREADS} will be removed.}
 \item{keep}{ A boolean variable indicating that the
 working files (ini file, data files and results
 files) should be kept. If TRUE and no

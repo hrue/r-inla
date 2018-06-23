@@ -33,6 +33,9 @@ Xfun () {
 	    /System/Library/Frameworks/Accelerate.framework/*)
 		test -f "$lib" && otool -l $lib | grep .dylib | grep /Accelerate.framework
 		;;
+	    *)
+		echo $lib | grep -v ^/usr/lib | grep -v ^/Library/Frameworks/R.framework
+		;;
 	esac
     done
 }
