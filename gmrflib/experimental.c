@@ -186,7 +186,7 @@ int GMRFLib_write_graph_binary_EXPERIMENTAL(const char *filename, GMRFLib_graph_
 	int i;
 	FILE *fp;
 	size_t ret;
-	
+
 	if (!filename) {
 		return GMRFLib_SUCCESS;
 	}

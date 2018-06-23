@@ -40,6 +40,7 @@
 ##!    inla.call = inla.getOption("inla.call"),
 ##!    inla.arg = inla.getOption("inla.arg"),
 ##!    num.threads = inla.getOption("num.threads"),
+##!    blas.num.threads = inla.getOption("blas.num.threads"),
 ##!    keep = inla.getOption("keep"),
 ##!    working.directory = inla.getOption("working.directory"),
 ##!    silent = inla.getOption("silent"),
@@ -214,6 +215,16 @@
         ##!\item{num.threads}{ Maximum number of threads the
         ##!\code{inla}-program will use}
         num.threads = inla.getOption("num.threads"),
+        
+        ##!\item{blas.num.threads}{The absolute value of \code{blas.num.threads} is the maximum
+        ##!number of threads the the \code{openblas}/\code{mklblas} will use. If
+        ##!\code{blas.num.threads} > 0, then the environment variables
+        ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned, unless they
+        ##!are already defined. If \code{blas.num.threads} < 0, then the environment variables
+        ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be (possibly re)-assigned.
+        ##!If \code{blas.num.threads} = 0,  then variables \code{OPENBLAS_NUM_THREADS} and
+        ##!\code{MKL_NUM_THREADS} will be removed.}
+        blas.num.threads = inla.getOption("blas.num.threads"),
         
         ##!\item{keep}{ A boolean variable indicating that the
         ##!working files (ini file, data files and results
@@ -572,6 +583,7 @@
             inla.call = inla.call,
             inla.arg = inla.arg,
             num.threads = num.threads,
+            blas.num.threads = blas.num.threads,
             keep = keep,
             working.directory = working.directory,
             silent = silent,
@@ -950,6 +962,7 @@
         inla.dir.create(inla.dir)
     }
     ## Create a directory where to store data and results
+    inla.dir = normalizePath(inla.dir)
     data.dir=paste(inla.dir, "/data.files", sep="")
     results.dir = paste(inla.dir, "/results.files", sep="")
     inla.dir.create(data.dir)
@@ -980,10 +993,12 @@
     ## copy the argument-lists
     mf = match.call(expand.dots = FALSE)
     mf$family = NULL; mf$quantiles=NULL; 
-    mf$verbose = NULL; mf$control.compute = NULL; mf$control.predictor = NULL; mf$silent = NULL; mf$control.hazard=NULL;
+    mf$verbose = NULL; mf$control.compute = NULL; mf$control.predictor = NULL;
+    mf$silent = NULL; mf$control.hazard=NULL;
     mf$control.family = NULL;  mf$control.update = NULL;
     mf$control.inla = NULL; mf$control.results = NULL; mf$control.fixed = NULL; mf$control.lincomb=NULL;
-    mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL; mf$num.threads = NULL; mf$keep = NULL;
+    mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL;
+    mf$num.threads = NULL; mf$blas.num.threads = NULL; mf$keep = NULL;
     mf$working.directory = NULL; mf$only.hyperparam = NULL; mf$debug = NULL; mf$contrasts = NULL; 
     mf$inla.arg = NULL; mf$lincomb=NULL; mf$.parent.frame = NULL;
     mf$data = data.same.len
@@ -1890,32 +1905,51 @@
     all.args = paste(arg.arg, arg.b, arg.s, arg.v, arg.nt, sep=" ")
 
     ## define some environment variables for remote computing
-    inla.eval(paste("Sys.setenv(", "\"INLA_PATH\"", "=\"", system.file("bin", package="INLA"), "\"", ")", sep=""))
-    inla.eval(paste("Sys.setenv(", "\"INLA_OS\"", "=\"", inla.os.type() , "\"", ")", sep=""))
-    inla.eval(paste("Sys.setenv(", "\"INLA_HGVERSION\"", "=\"", inla.version("hgid") , "\"", ")", sep=""))
-    rversion = paste(R.Version()$major, ".", strsplit(R.Version()$minor,"[.]")[[1]][1], sep="")
-    inla.eval(paste("Sys.setenv(", "\"INLA_RVERSION\"", "=\"", rversion , "\"", ")", sep=""))
-    inla.eval(paste("Sys.setenv(", "\"INLA_RHOME\"", "=\"", Sys.getenv("R_HOME") , "\"", ")", sep=""))
+    vars = list(INLA_PATH = system.file("bin", package="INLA"),
+                INLA_OS = inla.os.type(), 
+                INLA_HGVERSION = inla.version("hgid"), 
+                INLA_RVERSION = paste0(R.Version()$major, ".",
+                                       strsplit(R.Version()$minor,"[.]")[[1]][1]),
+                INLA_RHOME = Sys.getenv("R_HOME"))
+    do.call("Sys.setenv", vars)
+    inla.set.sparselib.env(inla.dir, blas.num.threads = blas.num.threads)
+
+    vars = NULL
     if (debug) {
-        inla.eval(paste("Sys.setenv(", "\"INLA_DEBUG=\"", "=\"", 1, "\"", ")", sep=""))
+        vars = c(vars, INLA_DEBUG=1)
     }
     if (remote || submit) {
         if (submit) {
             all.args = paste(all.args,  "-p") ## need this option
-            inla.eval(paste("Sys.setenv(", "\"INLA_SUBMIT_ID\"", "=\"", submit.id, "\"", ")", sep=""))
+            vars = c(vars,
+                     INLA_SUBMIT_ID = submit.id)
         }
         if (inla.os("windows")) {
-            inla.eval(paste("Sys.setenv(", "\"INLA_SSH_AUTH_SOCK\"", "=\"", inla.getOption("ssh.auth.sock"), "\"", ")", sep=""))
-            inla.eval(paste("Sys.setenv(", "\"INLA_CYGWIN_HOME\"", "=\"", inla.getOption("cygwin.home"), "\"", ")", sep=""))
-            inla.eval(paste("Sys.setenv(", "\"INLA_HOME\"", "=\"",
-                            inla.cygwin.map.filename(gsub("\\\\", "/", inla.get.HOME())), "\"", ")", sep=""))
+            vars = c(vars, 
+                     INLA_SSH_AUTH_SOCK = inla.getOption("ssh.auth.sock"), 
+                     INLA_CYGWIN_HOME = inla.getOption("cygwin.home"), 
+                     INLA_HOME = inla.cygwin.map.filename(gsub("\\\\", "/", inla.get.HOME())))
         } else {
-            inla.eval(paste("Sys.setenv(", "\"INLA_HOME\"", "=\"", inla.get.HOME(), "\"", ")", sep=""))
-            ## if SSH_AUTH_SOCK is not set, then we can pass it to the remote computing script
+            vars = c(vars,
+                     INLA_HOME = inla.get.HOME())
             if (Sys.getenv("SSH_AUTH_SOCK") == "") {
-                inla.eval(paste("Sys.setenv(", "\"INLA_SSH_AUTH_SOCK\"", "=\"", inla.getOption("ssh.auth.sock"), "\"", ")", sep=""))
+                vars = c(vars,
+                         INLA_SSH_AUTH_SOCK = inla.getOption("ssh.auth.sock"))
             }
         }
+    }
+    if (!is.null(vars))
+        do.call("Sys.setenv", as.list(vars))
+
+    ## write the list of environment variables set, so they can be reset if needed
+    env = Sys.getenv()
+    env.n = names(env)
+    idx = grep("^(INLA_|(OPENBLAS|MKL)_NUM_THREADS|PARDISO)", env.n)
+    env.list = env[idx]
+    file.env = paste0(inla.dir, "/environment")
+    cat(file=file.env)
+    for(i in seq_along(env.list)) {
+        cat(names(env.list[i]), "=\"", env.list[i], "\"\n", sep="", file=file.env, append=TRUE)
     }
 
     my.time.used[2] = Sys.time()
@@ -2118,3 +2152,56 @@
     }
     return (data)
 }
+
+`inla.set.sparselib.env` = function(inla.dir = NULL, blas.num.threads = 1L) 
+{
+    ## environment variables for sparse libraries
+    if (is.null(inla.dir)) {
+        inla.dir = inla.tempdir()
+    }
+    if (!is.null(inla.getOption("pardiso.license"))) {
+        lic.filename = "pardiso.lic" ## do not change
+        lic.file = normalizePath(inla.getOption("pardiso.license"))
+        lic.path = NA
+        if (file.exists(lic.file)) {
+            info = file.info(lic.file)
+            if (!is.na(info$isdir)) {
+                if (info$isdir) {
+                    lic.path = lic.file
+                } else if (!is.null(inla.dir)) {
+                    file.copy(lic.file, paste0(inla.dir, "/", lic.filename))
+                    lic.path = inla.dir
+                } else {
+                    stop("This should not happen")
+                }
+            } else {
+                lic.path = lic.file
+            }
+        } else {
+            lic.path = lic.file
+        }
+        do.call("Sys.setenv", list(PARDISO_LIC_PATH = normalizePath(lic.path), 
+                                   INLA_LOAD_PARDISO = 1))
+    } else {
+        Sys.unsetenv("INLA_LOAD_PARDISO")
+    }
+
+    if (Sys.getenv("PARDISOLICMESSAGE") == "")
+        Sys.setenv(PARDISOLICMESSAGE=1)
+    
+    blas.num.threads = as.integer(blas.num.threads)
+    if (blas.num.threads == 0) {
+        Sys.unsetenv("OPENBLAS_NUM_THREADS")
+        Sys.unsetenv("MKL_NUM_THREADS")
+    } else if (blas.num.threads > 0) {
+        if (Sys.getenv("OPENBLAS_NUM_THREADS") == "")
+            Sys.setenv(OPENBLAS_NUM_THREADS = blas.num.threads)
+        if (Sys.getenv("MKL_NUM_THREADS") == "")
+            Sys.setenv(MKL_NUM_THREADS = blas.num.threads)
+    } else {
+        Sys.setenv(OPENBLAS_NUM_THREADS = abs(blas.num.threads))
+        Sys.setenv(MKL_NUM_THREADS = abs(blas.num.threads))
+    }
+        
+    return (invisible())
+}    
