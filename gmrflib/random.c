@@ -94,9 +94,8 @@ int GMRFLib_rng_set_default_seed(void)
 		{
 			// this is the eqv of /dev/random for Windows
 			HCRYPTPROV prov;
-			if (CryptAcquireContext(&prov, NULL, NULL,
-						PROV_RSA_FULL, CRYPT_VERIFYCONTEXT)) {
-				if (!CryptGenRandom(prov, (DWORD) len, (BYTE *)&seed)) {
+			if (CryptAcquireContext(&prov, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT)) {
+				if (!CryptGenRandom(prov, (DWORD) len, (BYTE *) & seed)) {
 					// error: fall back to default
 					seed = seed_default;
 				} else {
@@ -107,7 +106,7 @@ int GMRFLib_rng_set_default_seed(void)
 				seed = seed_default;
 			}
 		}
-#else  /* !defined(WINDOWS) */
+#else							       /* !defined(WINDOWS) */
 		{
 			fd = open("/dev/urandom", O_RDONLY);
 			if (fd > 0) {
@@ -121,7 +120,7 @@ int GMRFLib_rng_set_default_seed(void)
 				seed = seed_default;
 			}
 		}
-#endif	/* defined(WINDOWS) */	
+#endif							       /* defined(WINDOWS) */
 	}
 
 	if (debug)
@@ -152,7 +151,7 @@ double GMRFLib_rng_uniform(void)
 {
 	return gsl_rng_uniform_pos(GMRFLib_rng);
 }
-void *GMRFLib_rng_getstate(size_t *siz)
+void *GMRFLib_rng_getstate(size_t * siz)
 {
 	size_t n;
 	void *p, *pp;
@@ -162,7 +161,7 @@ void *GMRFLib_rng_getstate(size_t *siz)
 	pp = Calloc(n, char);
 
 	memcpy(pp, p, n);
-	if (siz){
+	if (siz) {
 		*siz = n;
 	}
 

@@ -95,6 +95,7 @@ typedef enum {
 	INLA_MODE_GRAPH,
 	INLA_MODE_R,
 	INLA_MODE_FGN,
+	INLA_MODE_PARDISO, 
 	INLA_MODE_TESTIT = 999
 } inla_mode_tp;
 
@@ -757,7 +758,8 @@ struct inla_tp_struct {
 	 */
 	int verbose;
 	int strategy;
-
+	char *smtp;
+	
 	/*
 	 * parameters for global_nodes
 	 */
@@ -1484,6 +1486,7 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q);
 int ar_pacf2phi(int p, double *pacf, double *phi);
 int ar_phi2pacf(int p, double *phi, double *pacf);
 int ar_test1();
+int inla_check_pardiso(void);
 int inla_fgn(char *H_arg, char *outfile);
 int count_f(inla_tp * mb, inla_component_tp id);
 int find_f(inla_tp * mb, inla_component_tp id);
