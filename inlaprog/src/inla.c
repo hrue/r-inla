@@ -26612,19 +26612,19 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	}
 	for (i = 0; i < mb_old->ntheta; i++) {
 		j++;
-		GMRFLib_sprintf(&fnm, "%s/hyperparameter 1 %6.6d %s", mb_old->dir, i, mb_old->theta_dir[i]);
+		GMRFLib_sprintf(&fnm, "%s/hyperparameter-1-%6.6d-%s", mb_old->dir, i, mb_old->theta_dir[i]);
 		inla_mkdir(fnm);
 		Free(fnm);
-		GMRFLib_sprintf(&fnm, "%s/hyperparameter 1 %6.6d %s/trace.dat", mb_old->dir, i, mb_old->theta_dir[i]);
+		GMRFLib_sprintf(&fnm, "%s/hyperparameter-1-%6.6d-%s/trace.dat", mb_old->dir, i, mb_old->theta_dir[i]);
 		fpp[j] = fopen(fnm, "w");
 		assert(fpp[j]);
 		Free(fnm);
 
 		j++;
-		GMRFLib_sprintf(&fnm, "%s/hyperparameter 2 %6.6d %s user scale", mb_old->dir, i, mb_old->theta_dir[i]);
+		GMRFLib_sprintf(&fnm, "%s/hyperparameter-2-%6.6d-%s-user-scale", mb_old->dir, i, mb_old->theta_dir[i]);
 		inla_mkdir(fnm);
 		Free(fnm);
-		GMRFLib_sprintf(&fnm, "%s/hyperparameter 2 %6.6d %s user scale/trace.dat", mb_old->dir, i, mb_old->theta_dir[i]);
+		GMRFLib_sprintf(&fnm, "%s/hyperparameter-2-%6.6d-%s-user-scale/trace.dat", mb_old->dir, i, mb_old->theta_dir[i]);
 		fpp[j] = fopen(fnm, "w");
 		assert(fpp[j]);
 		Free(fnm);
@@ -27401,7 +27401,7 @@ int inla_output(inla_tp * mb)
 				char *sdir, *newtag;
 
 				GMRFLib_sprintf(&newtag, "%s in user scale", mb->predictor_tag);
-				GMRFLib_sprintf(&sdir, "%s user scale", mb->predictor_dir);
+				GMRFLib_sprintf(&sdir, "%s-user-scale", mb->predictor_dir);
 				inla_output_detail(mb->dir, &(mb->density[offset]),
 						   (mb->gdensity ? &(mb->gdensity[offset]) : NULL),
 						   NULL, mb->predictor_n + mb->predictor_m, 1,
@@ -27506,13 +27506,13 @@ int inla_output(inla_tp * mb)
 				for (ii = 0; ii < mb->ntheta; ii++) {
 					char *sdir;
 
-					GMRFLib_sprintf(&sdir, "hyperparameter 1 %.6d %s", ii, mb->theta_dir[ii]);
+					GMRFLib_sprintf(&sdir, "hyperparameter-1-%.6d-%s", ii, mb->theta_dir[ii]);
 					inla_output_detail(mb->dir, &(mb->density_hyper[ii]), NULL, NULL, 1, 1, mb->output, sdir,
 							   NULL, NULL, NULL, mb->theta_tag[ii], NULL, local_verbose);
 					inla_output_hyperid(mb->dir, sdir, mb->theta_hyperid[ii]);
 					inla_output_size(mb->dir, sdir, 1, -1, -1, -1, -1);
 
-					GMRFLib_sprintf(&sdir, "hyperparameter 2 %.6d %s user scale", ii, mb->theta_dir[ii]);
+					GMRFLib_sprintf(&sdir, "hyperparameter-2-%.6d-%s-user-scale", ii, mb->theta_dir[ii]);
 					inla_output_detail(mb->dir, &(mb->density_hyper[ii]), NULL, NULL, 1, 1, mb->output, sdir,
 							   mb->theta_map[ii], mb->theta_map_arg[ii], NULL,
 							   mb->theta_tag_userscale[ii], NULL, local_verbose);
