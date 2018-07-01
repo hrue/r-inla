@@ -8,4 +8,4 @@ all : $(PDFs)
 	R --vanilla -e 'library(rmarkdown); render("'$<'", "all")'
 
 %.pdf : %.Rnw
-	R --vanilla -e 'library(knitr); knit("'$<'", "'$@'")'
+	R --vanilla -e 'library(knitr); knit2pdf("'$<'")'
