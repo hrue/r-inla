@@ -207,19 +207,7 @@ int inla_ncpu(void)
 	return -1;
 #endif
 }
-char *inla_fnmfix(char *name)
-{
-	if (!name) {
-		return NULL;
-	}
-	int i;
-	for (i = 0; i < (int) strlen(name); i++) {
-		if (strncmp(name + i, " ", 1) == 0 || strncmp(name + i, "\t", 1) == 0) {
-			name[i] = '-';
-		}
-	}
-	return name;
-}
+
 int inla_mkdir(const char *dirname)
 {
 #if defined(WINDOWS)
@@ -2249,7 +2237,7 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 			}
 			assert(k == n_out);
 			Free(x_out);
-			
+
 			GMRFLib_tabulate_Qfunc_from_list(&(a->Q[id]), &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
 			assert(graph->n == a->n);
 		}
@@ -9369,8 +9357,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	mb->lc_prec = Realloc(mb->lc_prec, mb->nlc + 1, double);
 	mb->lc_order = Realloc(mb->lc_order, mb->nlc + 1, double);
 	mb->lc_tag[mb->nlc] = secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-	mb->lc_dir[mb->nlc] =
-	    GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), inla_fnmfix(GMRFLib_strdup(mb->lc_tag[mb->nlc]))));
+	mb->lc_dir[mb->nlc] = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup(mb->lc_tag[mb->nlc])));
 
 	if (mb->verbose) {
 		printf("\tinla_parse_lincomb...\n\t\tsecname = [%s]\n", mb->lc_tag[mb->nlc]);
@@ -9699,7 +9686,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 					mb->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
 					openmp_strategy = GMRFLib_strdup("default");
 				}
-				
+
 				GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
 				smtp = GMRFLib_strdup("taucs");
 			}
@@ -9728,7 +9715,6 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		Free(tmpp);
 		for (i = 0; i < 9999; i++) {
 			GMRFLib_sprintf(&tmp, mb->dir, i);
-			inla_fnmfix(tmp);
 			if (inla_mkdir(tmp) != 0) {
 				if (mb->verbose) {
 					printf("\t\tfail to create directory [%s]: %s\n", tmp, strerror(errno));
@@ -9774,8 +9760,7 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 	if (mb->verbose) {
 		printf("\t\tsection=[%s]\n", secname);
 	}
-	mb->predictor_dir =
-	    GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), inla_fnmfix(GMRFLib_strdup(mb->predictor_tag))));
+	mb->predictor_dir = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup(mb->predictor_tag)));
 	if (mb->verbose) {
 		printf("\t\tdir=[%s]\n", mb->predictor_dir);
 	}
@@ -14911,8 +14896,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	sprintf(default_tag, "default tag for ffield %d", mb->nf);
 	mb->f_tag[mb->nf] = GMRFLib_strdup((secname ? secname : default_tag));
-	mb->f_dir[mb->nf] =
-	    GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), inla_fnmfix(GMRFLib_strdup(mb->f_tag[mb->nf]))));
+	mb->f_dir[mb->nf] = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup(mb->f_tag[mb->nf])));
 	if (mb->verbose) {
 		printf("\t\tdir=[%s]\n", mb->f_dir[mb->nf]);
 	}
@@ -21792,7 +21776,7 @@ int inla_parse_linear(inla_tp * mb, dictionary * ini, int sec)
 	sprintf(default_tag, "default tag for linear %d", (int) (10000 * GMRFLib_uniform()));
 	mb->linear_tag[mb->nlinear] = GMRFLib_strdup((secname ? secname : default_tag));
 	mb->linear_dir[mb->nlinear] =
-	    GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), inla_fnmfix(GMRFLib_strdup(mb->linear_tag[mb->nlinear]))));
+	    GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup(mb->linear_tag[mb->nlinear])));
 	if (mb->verbose) {
 		printf("\t\tdir=[%s]\n", mb->linear_dir[mb->nlinear]);
 	}
@@ -22014,7 +21998,6 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		} else {
 			static FILE *fp = NULL;
 
-			inla_fnmfix(filename);
 			fp = fopen(filename, "w");
 			if (!fp) {
 				GMRFLib_sprintf(&msg, "%s: fail to open file[%s]", __GMRFLib_FuncName, filename);
@@ -22099,7 +22082,6 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		} else {
 			static FILE *fp = NULL;
 
-			inla_fnmfix(filename);
 			fp = fopen(filename, "w");
 			if (!fp) {
 				GMRFLib_sprintf(&msg, "%s: fail to open file[%s]", __GMRFLib_FuncName, filename);
@@ -22125,7 +22107,6 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		} else {
 			static FILE *fp = NULL;
 
-			inla_fnmfix(filename);
 			fp = fopen(filename, "w");
 			if (!fp) {
 				GMRFLib_sprintf(&msg, "%s: fail to open file[%s]", __GMRFLib_FuncName, filename);
@@ -26175,7 +26156,7 @@ int inla_INLA(inla_tp * mb)
 		GMRFLib_sizeof_tp nnz = 0;
 		int use_g = 0;
 		GMRFLib_optimize_reorder(mb->hgmrfm->graph, &nnz, &use_g, &(mb->gn));
-		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {		
+		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
 			if (mb->verbose) {
 				printf("\tFound optimal reordering=[%s] nnz(L)=[%lu] and use_global_nodes(user)=[%s]\n",
 				       GMRFLib_reorder_name(GMRFLib_reorder), nnz, (use_g ? "yes" : "no"));
@@ -26578,11 +26559,9 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	 */
 	FILE *fp_offset;
 	GMRFLib_sprintf(&fnm, "%s/totaloffset", mb_old->dir);
-	inla_fnmfix(fnm);
 	inla_mkdir(fnm);
 	Free(fnm);
 	GMRFLib_sprintf(&fnm, "%s/totaloffset/totaloffset.dat", mb_old->dir);
-	inla_fnmfix(fnm);
 	fp_offset = fopen(fnm, "w");
 	Free(fnm);
 	for (i = 0; i < mb_old->predictor_n + mb_old->predictor_m; i++) {
@@ -26594,11 +26573,9 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	j++;
 	if (mb_old->predictor_compute) {
 		GMRFLib_sprintf(&fnm, "%s/%s", mb_old->dir, mb_old->predictor_dir);
-		inla_fnmfix(fnm);
 		inla_mkdir(fnm);
 		Free(fnm);
 		GMRFLib_sprintf(&fnm, "%s/%s/trace.dat", mb_old->dir, mb_old->predictor_dir);
-		inla_fnmfix(fnm);
 		fpp[j] = fopen(fnm, "w");
 		Free(fnm);
 	}
@@ -26606,11 +26583,9 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 		j++;
 		if (mb_old->f_compute[i]) {
 			GMRFLib_sprintf(&fnm, "%s/%s", mb_old->dir, mb_old->f_dir[i]);
-			inla_fnmfix(fnm);
 			inla_mkdir(fnm);
 			Free(fnm);
 			GMRFLib_sprintf(&fnm, "%s/%s/trace.dat", mb_old->dir, mb_old->f_dir[i]);
-			inla_fnmfix(fnm);
 			fpp[j] = fopen(fnm, "w");
 			Free(fnm);
 		}
@@ -26619,11 +26594,9 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 		j++;
 		if (mb_old->linear_compute[i]) {
 			GMRFLib_sprintf(&fnm, "%s/%s", mb_old->dir, mb_old->linear_dir[i]);
-			inla_fnmfix(fnm);
 			inla_mkdir(fnm);
 			Free(fnm);
 			GMRFLib_sprintf(&fnm, "%s/%s/trace.dat", mb_old->dir, mb_old->linear_dir[i]);
-			inla_fnmfix(fnm);
 			fpp[j] = fopen(fnm, "w");
 			Free(fnm);
 		}
@@ -26631,33 +26604,27 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	for (i = 0; i < mb_old->nlc; i++) {
 		j++;
 		GMRFLib_sprintf(&fnm, "%s/%s", mb_old->dir, mb_old->lc_dir[i]);
-		inla_fnmfix(fnm);
 		inla_mkdir(fnm);
 		Free(fnm);
 		GMRFLib_sprintf(&fnm, "%s/%s/trace.dat", mb_old->dir, mb_old->lc_dir[i]);
-		inla_fnmfix(fnm);
 		fpp[j] = fopen(fnm, "w");
 		Free(fnm);
 	}
 	for (i = 0; i < mb_old->ntheta; i++) {
 		j++;
 		GMRFLib_sprintf(&fnm, "%s/hyperparameter 1 %6.6d %s", mb_old->dir, i, mb_old->theta_dir[i]);
-		inla_fnmfix(fnm);
 		inla_mkdir(fnm);
 		Free(fnm);
 		GMRFLib_sprintf(&fnm, "%s/hyperparameter 1 %6.6d %s/trace.dat", mb_old->dir, i, mb_old->theta_dir[i]);
-		inla_fnmfix(fnm);
 		fpp[j] = fopen(fnm, "w");
 		assert(fpp[j]);
 		Free(fnm);
 
 		j++;
 		GMRFLib_sprintf(&fnm, "%s/hyperparameter 2 %6.6d %s user scale", mb_old->dir, i, mb_old->theta_dir[i]);
-		inla_fnmfix(fnm);
 		inla_mkdir(fnm);
 		Free(fnm);
 		GMRFLib_sprintf(&fnm, "%s/hyperparameter 2 %6.6d %s user scale/trace.dat", mb_old->dir, i, mb_old->theta_dir[i]);
-		inla_fnmfix(fnm);
 		fpp[j] = fopen(fnm, "w");
 		assert(fpp[j]);
 		Free(fnm);
@@ -26986,11 +26953,9 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	char *idx_table = NULL;
 
 	GMRFLib_sprintf(&last_dir, "%s/%s", mb_old->dir, "last-mcmc-configuration");
-	inla_fnmfix(last_dir);
 	inla_mkdir(last_dir);
 
 	GMRFLib_sprintf(&last_theta, "%s/theta.dat", last_dir);
-	inla_fnmfix(last_theta);
 	fp_last_theta = fopen(last_theta, "w");
 	for (i = 0; i < mb_old->ntheta; i++) {
 		fprintf(fp_last_theta, "%.12g\n", mb_old->theta[i][0][0]);
@@ -26998,7 +26963,6 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	fclose(fp_last_theta);
 
 	GMRFLib_sprintf(&last_x, "%s/x.dat", last_dir);
-	inla_fnmfix(last_x);
 	fp_last_x = fopen(last_x, "w");
 	for (i = 0; i < mb_old->predictor_n + mb_old->predictor_m; i++) {
 		fprintf(fp_last_x, "%.12g\n", x_old[i] + OFFSET2(i));
@@ -27009,7 +26973,6 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	fclose(fp_last_x);
 
 	GMRFLib_sprintf(&idx_table, "%s/idx-table.dat", last_dir);
-	inla_fnmfix(idx_table);
 	fp_idx_table = fopen(idx_table, "w");
 
 	for (i = 0; i < mb_old->idx_tot; i++) {
@@ -27252,7 +27215,6 @@ int inla_output_matrix(const char *dir, const char *sdir, const char *filename, 
 		GMRFLib_sprintf(&ndir, "%s", dir);
 	}
 
-	inla_fnmfix(ndir);
 	GMRFLib_sprintf(&fnm, "%s/%s", ndir, filename);
 
 	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp);
@@ -27289,7 +27251,6 @@ int inla_output_names(const char *dir, const char *sdir, int n, const char **nam
 	char *fnm, *ndir;
 
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, sdir);
-	inla_fnmfix(ndir);
 	GMRFLib_sprintf(&fnm, "%s/NAMES", ndir);
 
 	int i;
@@ -27310,7 +27271,6 @@ int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal
 	char *fnm, *ndir;
 
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, sdir);
-	inla_fnmfix(ndir);
 	GMRFLib_sprintf(&fnm, "%s/size.dat", ndir);
 
 	fp = fopen(fnm, (G.binary ? "wb" : "w"));
@@ -27345,7 +27305,6 @@ int inla_output_hyperid(const char *dir, const char *sdir, char *hyperid)
 	// fprintf(stderr, "output hyperid %s / %s [%s]\n", dir, sdir, hyperid);
 
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, sdir);
-	inla_fnmfix(ndir);
 	GMRFLib_sprintf(&fnm, "%s/hyperid.dat", ndir);
 
 	fp = fopen(fnm, "w");
@@ -27369,7 +27328,6 @@ int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_t
 	char *fnm, *ndir;
 
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, sdir);
-	inla_fnmfix(ndir);
 	GMRFLib_sprintf(&fnm, "%s/id-names.dat", ndir);
 
 	inla_write_file_contents(fnm, fc);
@@ -27479,11 +27437,9 @@ int inla_output(inla_tp * mb)
 				char *fnm;
 
 				GMRFLib_sprintf(&fnm, "%s/totaloffset", mb->dir);
-				inla_fnmfix(fnm);
 				inla_mkdir(fnm);
 				Free(fnm);
 				GMRFLib_sprintf(&fnm, "%s/totaloffset/totaloffset.dat", mb->dir);
-				inla_fnmfix(fnm);
 				fp = fopen(fnm, (G.binary ? "wb" : "w"));
 				Free(fnm);
 				if (G.binary) {
@@ -27766,13 +27722,11 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 	n = predictor_n;				       /* the CPO and PIT are at the first predictor_n */
 
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, "cpo");
-	inla_fnmfix(ndir);
 	if (inla_mkdir(ndir) != 0) {
 		GMRFLib_sprintf(&msg, "fail to create directory [%s]: %s", ndir, strerror(errno));
 		inla_error_general(msg);
 	}
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "cpo.dat");
-	inla_fnmfix(nndir);
 	fp = fopen(nndir, (G.binary ? "wb" : "w"));
 	if (!fp) {
 		inla_error_open_file(nndir);
@@ -27806,7 +27760,6 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 	fclose(fp);
 	if (cpo->pit_value) {
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "pit.dat");
-		inla_fnmfix(nndir);
 		fp = fopen(nndir, (G.binary ? "wb" : "w"));
 		if (!fp) {
 			inla_error_open_file(nndir);
@@ -27841,7 +27794,6 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 	}
 	if (cpo->failure) {
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "failure.dat");
-		inla_fnmfix(nndir);
 		fp = fopen(nndir, (G.binary ? "wb" : "w"));
 		if (!fp) {
 			inla_error_open_file(nndir);
@@ -27873,7 +27825,6 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 		fclose(fp);
 	}
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "summary.dat");
-	inla_fnmfix(nndir);
 	fp = fopen(nndir, (G.binary ? "wb" : "w"));
 	if (!fp) {
 		inla_error_open_file(nndir);
@@ -27909,13 +27860,11 @@ int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * po, int predictor_
 	n = predictor_n;				       /* the PO are at the first predictor_n */
 
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, "po");
-	inla_fnmfix(ndir);
 	if (inla_mkdir(ndir) != 0) {
 		GMRFLib_sprintf(&msg, "fail to create directory [%s]: %s", ndir, strerror(errno));
 		inla_error_general(msg);
 	}
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "po.dat");
-	inla_fnmfix(nndir);
 	fp = fopen(nndir, (G.binary ? "wb" : "w"));
 	if (!fp) {
 		inla_error_open_file(nndir);
@@ -27974,13 +27923,11 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 		return INLA_OK;
 	}
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, "dic");
-	inla_fnmfix(ndir);
 	if (inla_mkdir(ndir) != 0) {
 		GMRFLib_sprintf(&msg, "fail to create directory [%s]: %s", ndir, strerror(errno));
 		inla_error_general(msg);
 	}
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "dic.dat");
-	inla_fnmfix(nndir);
 	fp = fopen(nndir, (G.binary ? "wb" : "w"));
 	if (!fp) {
 		inla_error_open_file(nndir);
@@ -28018,34 +27965,29 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 		_PAD_WITH_NA(dic->e_deviance);
 		M->A = tmp;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "e_deviance.dat");
-		inla_fnmfix(nndir);
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
 		Free(tmp);
 
 		_PAD_WITH_NA(dic->e_deviance_sat);
 		M->A = tmp;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "e_deviance_sat.dat");
-		inla_fnmfix(nndir);
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
 		Free(tmp);
 
 		_PAD_WITH_NA(dic->deviance_e);
 		M->A = tmp;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "deviance_e.dat");
-		inla_fnmfix(nndir);
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
 		Free(tmp);
 
 		_PAD_WITH_NA(dic->deviance_e_sat);
 		M->A = tmp;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "deviance_e_sat.dat");
-		inla_fnmfix(nndir);
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
 		Free(tmp);
 
 		M->A = family_idx;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "family_idx.dat");
-		inla_fnmfix(nndir);
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
 
 		M->A = NULL;
@@ -28071,7 +28013,6 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 		return INLA_OK;
 	}
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, "misc");
-	inla_fnmfix(ndir);
 	if (inla_mkdir(ndir) != 0) {
 		GMRFLib_sprintf(&msg, "fail to create directory [%s]: %s", ndir, strerror(errno));
 		inla_error_general(msg);
@@ -28116,7 +28057,6 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	}
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "covmat-hyper-internal.dat");
-	inla_fnmfix(nndir);
 	fp = fopen(nndir, (G.binary ? "wb" : "w"));
 	if (!fp) {
 		inla_error_open_file(nndir);
@@ -28139,7 +28079,6 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	Free(nndir);
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "covmat-eigenvectors.dat");
-	inla_fnmfix(nndir);
 	fp = fopen(nndir, (G.binary ? "wb" : "w"));
 	if (!fp) {
 		inla_error_open_file(nndir);
@@ -28162,7 +28101,6 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	Free(nndir);
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "covmat-eigenvalues.dat");
-	inla_fnmfix(nndir);
 	fp = fopen(nndir, (G.binary ? "wb" : "w"));
 	if (!fp) {
 		inla_error_open_file(nndir);
@@ -28182,7 +28120,6 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	Free(nndir);
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "reordering.dat");
-	inla_fnmfix(nndir);
 	fp = fopen(nndir, (G.binary ? "wb" : "w"));
 	if (!fp) {
 		inla_error_open_file(nndir);
@@ -28201,7 +28138,6 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	Free(nndir);
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "mode-status.dat");
-	inla_fnmfix(nndir);
 	fp = fopen(nndir, "w");
 	if (!fp) {
 		inla_error_open_file(nndir);
@@ -28211,7 +28147,6 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	Free(nndir);
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "log-posterior-mode.dat");
-	inla_fnmfix(nndir);
 	fp = fopen(nndir, "w");
 	if (!fp) {
 		inla_error_open_file(nndir);
@@ -28221,7 +28156,6 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	Free(nndir);
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "stdev_corr_pos.dat");
-	inla_fnmfix(nndir);
 	if (mo->stdev_corr_pos) {
 		GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp);
 		M->nrow = mo->nhyper;
@@ -28234,7 +28168,6 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	}
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "stdev_corr_neg.dat");
-	inla_fnmfix(nndir);
 	if (mo->stdev_corr_pos) {
 		GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp);
 		M->nrow = mo->nhyper;
@@ -28268,14 +28201,12 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	if (mo->configs) {
 
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "config");
-		inla_fnmfix(nndir);
 		if (inla_mkdir(nndir) != 0) {
 			GMRFLib_sprintf(&msg, "fail to create directory [%s]: %s", nndir, strerror(errno));
 			inla_error_general(msg);
 		}
 
 		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "theta-tag.dat");
-		inla_fnmfix(nnndir);
 		fp = fopen(nnndir, "w");
 		for (i = 0; i < mb->ntheta; i++) {
 			fprintf(fp, "%s\n", mb->theta_tag[i]);
@@ -28283,7 +28214,6 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 		fclose(fp);
 
 		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "tag.dat");
-		inla_fnmfix(nnndir);
 		fp = fopen(nnndir, "w");
 		for (i = 0; i < mb->idx_tot; i++) {
 			fprintf(fp, "%s\n", mb->idx_tag[i]);
@@ -28291,7 +28221,6 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 		fclose(fp);
 
 		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "start.dat");
-		inla_fnmfix(nnndir);
 		fp = fopen(nnndir, "w");
 		for (i = 0; i < mb->idx_tot; i++) {
 			fprintf(fp, "%d\n", mb->idx_start[i]);
@@ -28299,7 +28228,6 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 		fclose(fp);
 
 		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "n.dat");
-		inla_fnmfix(nnndir);
 		fp = fopen(nnndir, "w");
 		for (i = 0; i < mb->idx_tot; i++) {
 			fprintf(fp, "%d\n", mb->idx_n[i]);
@@ -28307,7 +28235,6 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 		fclose(fp);
 
 		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "configs.dat");
-		inla_fnmfix(nnndir);
 		fp = fopen(nnndir, "wb");
 
 		int id, header = 0, nconfig = 0;
@@ -28377,13 +28304,11 @@ int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp *
 		return INLA_OK;
 	}
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, "marginal-likelihood");
-	inla_fnmfix(ndir);
 	if (inla_mkdir(ndir) != 0) {
 		GMRFLib_sprintf(&msg, "fail to create directory [%s]: %s", ndir, strerror(errno));
 		inla_error_general(msg);
 	}
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "marginal-likelihood.dat");
-	inla_fnmfix(nndir);
 	fp = fopen(nndir, (G.binary ? "wb" : "w"));
 	if (!fp) {
 		inla_error_open_file(nndir);
@@ -28418,13 +28343,11 @@ int inla_output_detail_neffp(const char *dir, GMRFLib_ai_neffp_tp * neffp, int v
 		return INLA_OK;
 	}
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, "neffp");
-	inla_fnmfix(ndir);
 	if (inla_mkdir(ndir) != 0) {
 		GMRFLib_sprintf(&msg, "fail to create directory [%s]: %s", ndir, strerror(errno));
 		inla_error_general(msg);
 	}
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "neffp.dat");
-	inla_fnmfix(nndir);
 	fp = fopen(nndir, (G.binary ? "wb" : "w"));
 	if (!fp) {
 		inla_error_open_file(nndir);
@@ -28454,7 +28377,6 @@ int inla_output_hgid(const char *dir)
 	FILE *fp = NULL;
 
 	GMRFLib_sprintf(&nndir, "%s/%s", dir, ".hgid");
-	inla_fnmfix(nndir);
 	fp = fopen(nndir, "w");
 	if (!fp) {
 		inla_error_open_file(nndir);
@@ -28472,7 +28394,6 @@ int inla_output_linkfunctions(const char *dir, inla_tp * mb)
 	FILE *fp = NULL;
 
 	GMRFLib_sprintf(&nndir, "%s/%s", dir, "linkfunctions.names");
-	inla_fnmfix(nndir);
 	fp = fopen(nndir, "w");
 	if (!fp) {
 		inla_error_open_file(nndir);
@@ -28519,7 +28440,6 @@ int inla_output_linkfunctions(const char *dir, inla_tp * mb)
 	Free(nndir);
 
 	GMRFLib_sprintf(&nndir, "%s/%s", dir, "linkfunctions.link");
-	inla_fnmfix(nndir);
 	fp = fopen(nndir, "wb");
 	if (!fp) {
 		inla_error_open_file(nndir);
@@ -28561,7 +28481,6 @@ int inla_output_ok(const char *dir)
 	FILE *fp = NULL;
 
 	GMRFLib_sprintf(&nndir, "%s/%s", dir, ".ok");
-	inla_fnmfix(nndir);
 	fp = fopen(nndir, "w");
 	if (!fp) {
 		inla_error_open_file(nndir);
@@ -28583,7 +28502,6 @@ int inla_output_detail_theta(const char *dir, double ***theta, int n_theta)
 	FILE *fp = NULL;
 
 	GMRFLib_sprintf(&nndir, "%s/%s", dir, ".theta_mode");
-	inla_fnmfix(nndir);
 	fp = fopen(nndir, (G.binary ? "wb" : "w"));
 	if (!fp) {
 		inla_error_open_file(nndir);
@@ -28613,7 +28531,6 @@ int inla_output_detail_x(const char *dir, double *x, int n_x)
 	FILE *fp = NULL;
 
 	GMRFLib_sprintf(&nndir, "%s/%s", dir, ".x_mode");
-	inla_fnmfix(nndir);
 	fp = fopen(nndir, (G.binary ? "wb" : "w"));
 	if (!fp) {
 		inla_error_open_file(nndir);
@@ -28869,7 +28786,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 
 	ssdir = GMRFLib_strdup(sdir);
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, ssdir);
-	inla_fnmfix(ndir);
 	if (inla_mkdir(ndir) != 0) {
 		GMRFLib_sprintf(&msg, "fail to create directory [%s]: %s", ndir, strerror(errno));
 		inla_error_general(msg);
@@ -28877,7 +28793,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 	Free(ssdir);
 	if (1) {
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "N");
-		inla_fnmfix(nndir);
 		fp = fopen(nndir, "w");
 		if (!fp) {
 			inla_error_open_file(nndir);
@@ -28888,7 +28803,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 	}
 	if (tag) {
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "TAG");
-		inla_fnmfix(nndir);
 		fp = fopen(nndir, "w");
 		if (!fp) {
 			inla_error_open_file(nndir);
@@ -28899,7 +28813,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 	}
 	if (modelname) {
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "MODEL");
-		inla_fnmfix(nndir);
 		fp = fopen(nndir, "w");
 		if (!fp) {
 			inla_error_open_file(nndir);
@@ -28911,7 +28824,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 	if (output->summary) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "summary.dat");
-			inla_fnmfix(nndir);
 			fp = fopen(nndir, (G.binary ? "wb" : "w"));
 			if (!fp) {
 				inla_error_open_file(nndir);
@@ -28961,7 +28873,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 		}
 		if (inla_computed(gdensity, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "summary-gaussian.dat");
-			inla_fnmfix(nndir);
 			fp = fopen(nndir, (G.binary ? "wb" : "w"));
 			if (!fp) {
 				inla_error_open_file(nndir);
@@ -29013,7 +28924,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 	if (output->return_marginals || strncmp("hyperparameter", sdir, 13) == 0) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "marginal-densities.dat");
-			inla_fnmfix(nndir);
 			fp = fopen(nndir, (G.binary ? "wb" : "w"));
 			if (!fp) {
 				inla_error_open_file(nndir);
@@ -29095,7 +29005,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 		}
 		if (inla_computed(gdensity, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "marginal-densities-gaussian.dat");
-			inla_fnmfix(nndir);
 			fp = fopen(nndir, (G.binary ? "wb" : "w"));
 			if (!fp) {
 				inla_error_open_file(nndir);
@@ -29178,7 +29087,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 		 */
 		if (inla_computed(density, n) && inla_computed(gdensity, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "symmetric-kld.dat");
-			inla_fnmfix(nndir);
 			fp = fopen(nndir, (G.binary ? "wb" : "w"));
 			if (!fp) {
 				inla_error_open_file(nndir);
@@ -29242,7 +29150,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 			fclose(fp);
 		} else if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "symmetric-kld.dat");
-			inla_fnmfix(nndir);
 			fp = fopen(nndir, (G.binary ? "wb" : "w"));
 			if (!fp) {
 				inla_error_open_file(nndir);
@@ -29312,7 +29219,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 	if (output->nquantiles) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "quantiles.dat");
-			inla_fnmfix(nndir);
 			fp = fopen(nndir, (G.binary ? "wb" : "w"));
 			if (!fp) {
 				inla_error_open_file(nndir);
@@ -29394,7 +29300,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 		}
 		if (inla_computed(gdensity, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "quantiles-gaussian.dat");
-			inla_fnmfix(nndir);
 			fp = fopen(nndir, (G.binary ? "wb" : "w"));
 			if (!fp) {
 				inla_error_open_file(nndir);
@@ -29478,7 +29383,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 	if (output->mode) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "mode.dat");
-			inla_fnmfix(nndir);
 			fp = fopen(nndir, (G.binary ? "wb" : "w"));
 			if (!fp) {
 				inla_error_open_file(nndir);
@@ -29537,7 +29441,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 		}
 		if (inla_computed(gdensity, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "mode-gaussian.dat");
-			inla_fnmfix(nndir);
 			fp = fopen(nndir, (G.binary ? "wb" : "w"));
 			if (!fp) {
 				inla_error_open_file(nndir);
@@ -29598,7 +29501,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 	if (output->ncdf) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "cdf.dat");
-			inla_fnmfix(nndir);
 			fp = fopen(nndir, (G.binary ? "wb" : "w"));
 			if (!fp) {
 				inla_error_open_file(nndir);
@@ -29679,7 +29581,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 		}
 		if (inla_computed(gdensity, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "cdf-gaussian.dat");
-			inla_fnmfix(nndir);
 			fp = fopen(nndir, (G.binary ? "wb" : "w"));
 			if (!fp) {
 				inla_error_open_file(nndir);
@@ -30424,20 +30325,20 @@ int inla_fgn(char *infile, char *outfile)
 }
 int testit(int argc, char **argv)
 {
-        int test_no = -1;
-        char **args = NULL;
-        int nargs = 0, i;
-        
-        if (argc > 0) {
-                test_no = atoi(argv[0]);
-                nargs = argc -1;
-                args = &(argv[1]);
-        } 
+	int test_no = -1;
+	char **args = NULL;
+	int nargs = 0, i;
+
+	if (argc > 0) {
+		test_no = atoi(argv[0]);
+		nargs = argc - 1;
+		args = &(argv[1]);
+	}
 	printf("test_no = %1d  nargs = %1d\n", test_no, nargs);
-	for(i = 0; i < nargs; i++) {
+	for (i = 0; i < nargs; i++) {
 		printf("\targs[%d] = %s\n", i, args[i]);
 	}
-   
+
 	switch (test_no) {
 	case -1:
 	case 0:
@@ -30972,19 +30873,19 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 24: 
+	case 24:
 		my_pardiso_test1();
 		break;
-		
-	case 25: 
+
+	case 25:
 		my_pardiso_test2();
 		break;
-		
-	case 26: 
+
+	case 26:
 		my_pardiso_test3();
 		break;
 
-	case 27: 
+	case 27:
 		my_pardiso_test4();
 		break;
 
@@ -31323,7 +31224,7 @@ int main(int argc, char **argv)
 		break;
 
 	case INLA_MODE_TESTIT:
-		testit(argc-optind, &(argv[optind]));
+		testit(argc - optind, &(argv[optind]));
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
