@@ -87,7 +87,7 @@ cp $mf $md/$mf
 SRC=INLA-source.tgz
 tar cvfzh INLA-source.tgz INLA
 
-R --vanilla CMD build --resave-data --log INLA || exit 1
+R --vanilla CMD build --verbose --keep-empty-dirs --resave-data --log INLA || exit 1
 
 INLA=$(echo INLA_*.tar.gz)
 tgzINLA=${INLA%%.tar.gz}.tgz
