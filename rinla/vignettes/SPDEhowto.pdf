@@ -1,0 +1,605 @@
+\documentclass[a4paper,11pt]{article}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt} 
+
+\usepackage[margin={2cm,2cm}]{geometry} 
+\usepackage{multicol,hyperref}
+
+\title{\vspace{-2cm}
+  A short introduction on how to fit a \textbf{SPDE} model 
+  with \textbf{\textsf{INLA}}}
+\author{Elias T. Krainski and H{\aa}vard Rue} 
+\date{Created: November, 20 2013 - Last update: August, 9 2017}
+
+%\VignetteEngine{knitr::knitr} 
+%\VignetteIndexEntry{SPDEhowto}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document} 
+
+\maketitle 
+
+\vspace{-1cm}
+\begin{center}\begin{minipage}[c]{0.9\textwidth}\centering
+This document ilustrates how to do a 
+geostatistical fully Bayesian analysis
+through the \textbf{S}tochastic \textbf{P}artial 
+\textbf{D}iferential \textbf{E}quation 
+approach, \cite{lindgrenRL:2011}, 
+with \textbf{I}ntegrated \textbf{N}ested 
+\textbf{L}aplace \textbf{A}proximation, 
+\cite{rueMC:2009}, 
+using the \textbf{\textsf{INLA}} package, 
+\texttt{http://www.r-inla.org}.
+\end{minipage}\end{center}
+
+
+
+\begin{multicols}{2} 
+
+\section{Data simulation} 
+
+Set $n$ \textbf{locations} and a 
+exponential \textbf{covariance} matrix 
+to define the \textbf{R}andon \textbf{F}ield (RF)
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{n} \hlkwb{<-} \hlnum{200}\hlstd{; coo} \hlkwb{<-} \hlkwd{matrix}\hlstd{(}\hlkwd{runif}\hlstd{(}\hlnum{2}\hlopt{*}\hlstd{n), n)}
+\hlstd{s2u} \hlkwb{<-} \hlnum{.5}\hlstd{; k} \hlkwb{<-} \hlnum{10}\hlstd{; r} \hlkwb{<-} \hlnum{2}\hlopt{/}\hlstd{k} \hlcom{## RF params.}
+\hlstd{R} \hlkwb{<-} \hlstd{s2u}\hlopt{*}\hlkwd{exp}\hlstd{(}\hlopt{-}\hlstd{k}\hlopt{*}\hlkwd{as.matrix}\hlstd{(}\hlkwd{dist}\hlstd{(coo)))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\textbf{Sample}: one multivariate Normal realization 
+  
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{u} \hlkwb{<-} \hlkwd{drop}\hlstd{(}\hlkwd{rnorm}\hlstd{(n)}\hlopt{%*%}\hlkwd{chol}\hlstd{(R))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+Add a \textbf{covariate} effect and a noise (nugget) 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{x} \hlkwb{<-} \hlkwd{runif}\hlstd{(n);  beta} \hlkwb{<-} \hlnum{1}\hlopt{:}\hlnum{2}\hlstd{;  s2e} \hlkwb{<-} \hlnum{0.2}
+\hlstd{lin.pred} \hlkwb{<-} \hlstd{beta[}\hlnum{1}\hlstd{]} \hlopt{+} \hlstd{beta[}\hlnum{2}\hlstd{]}\hlopt{*}\hlstd{x} \hlopt{+} \hlstd{u}
+\hlstd{y} \hlkwb{<-} \hlstd{lin.pred} \hlopt{+} \hlkwd{rnorm}\hlstd{(n,} \hlnum{0}\hlstd{,} \hlkwd{sqrt}\hlstd{(s2e))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\section{Model fitting} 
+
+1. \textbf{Mesh:} 
+Triangulation around the locations
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{mesh} \hlkwb{<-} \hlkwd{inla.mesh.2d}\hlstd{(coo,} \hlkwc{cutoff}\hlstd{=r}\hlopt{/}\hlnum{10}\hlstd{,}
+  \hlkwc{max.edge}\hlstd{=}\hlkwd{c}\hlstd{(r}\hlopt{/}\hlnum{4}\hlstd{, r}\hlopt{/}\hlnum{2}\hlstd{),} \hlkwc{offset}\hlstd{=}\hlkwd{c}\hlstd{(r}\hlopt{/}\hlnum{2}\hlstd{, r))}
+\hlkwd{plot}\hlstd{(mesh,} \hlkwc{asp}\hlstd{=}\hlnum{1}\hlstd{);}  \hlkwd{points}\hlstd{(coo,} \hlkwc{col}\hlstd{=}\hlstr{'red'}\hlstd{)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=0.45\textwidth]{figures/SPDEhowto-fmesh-1} 
+
+}
+
+
+
+\end{knitrout}
+
+The outer domain additional triangles 
+is to avoid boundary effects. 
+Is good to have aproximately 
+isosceles triangles and 
+to avoid tiny triangles, see \texttt{cuttof}. 
+We need to have edge length 
+for the inner mesh triangles 
+less than the range of the process, 
+if there is a spatial effect. 
+
+2. The linear predictor at location $s$: 
+\[ \eta(s) = \beta_0 + \beta_1 x(s) + A(s,s_0) u(s_0), \]
+where $u(s_0)$ is the RF at the mesh nodes, 
+\cite{lindgrenR:2015}, and 
+$A(s,s_0)$ is a $n\times m$ 
+\textbf{projection matrix} 
+to project the process from the mesh 
+nodes to the observation locations: 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{A} \hlkwb{<-} \hlkwd{inla.spde.make.A}\hlstd{(}\hlkwc{mesh}\hlstd{=mesh,} \hlkwc{loc}\hlstd{=coo)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+3. \textbf{Build the SPDE model} on the mesh, 
+where $\alpha=3/2$ for the exponential correlation 
+and set the \textbf{RF parameters prior} 
+distributions, \cite{fuglstadetal:2017}:
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{spde} \hlkwb{<-} \hlkwd{inla.spde2.pcmatern}\hlstd{(}
+ \hlkwc{mesh}\hlstd{=mesh,} \hlkwc{alpha}\hlstd{=}\hlnum{1.5}\hlstd{,}
+ \hlkwc{prior.range}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{0.2}\hlstd{,} \hlnum{0.5}\hlstd{),}\hlcom{#P(range<0.2)=0.5}
+ \hlkwc{prior.sigma}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,} \hlnum{0.5}\hlstd{))} \hlcom{## P(sigma>1)=0.5 }
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+4. Use \texttt{inla.stack()} to deal with 
+effects having different projection matrices: 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{stk.e} \hlkwb{<-} \hlkwd{inla.stack}\hlstd{(}\hlkwc{tag}\hlstd{=}\hlstr{'est'}\hlstd{,} \hlcom{## tag id}
+  \hlkwc{data}\hlstd{=}\hlkwd{list}\hlstd{(}\hlkwc{y}\hlstd{=y),}  \hlcom{## response}
+  \hlkwc{A}\hlstd{=}\hlkwd{list}\hlstd{(}\hlnum{1}\hlstd{, A),} \hlcom{## two projection matrices}
+  \hlkwc{effects}\hlstd{=}\hlkwd{list}\hlstd{(}\hlcom{## two elements: }
+    \hlkwd{data.frame}\hlstd{(}\hlkwc{b0}\hlstd{=}\hlnum{1}\hlstd{,} \hlkwc{x}\hlstd{=x),} \hlcom{## covariate}
+    \hlkwc{idx.u}\hlstd{=}\hlnum{1}\hlopt{:}\hlstd{spde}\hlopt{$}\hlstd{n.spde))} \hlcom{## RF index }
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+5. Set the \textbf{nugget prior} distribution,
+the linear predictor \textbf{formula} 
+and \textbf{fit} the posterior marginal distributions 
+(PMD)s for all the model parameters 
+using \texttt{inla()} 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{pcprec} \hlkwb{<-} \hlkwd{list}\hlstd{(}\hlkwc{hyper}\hlstd{=}\hlkwd{list}\hlstd{(}\hlkwc{theta}\hlstd{=}\hlkwd{list}\hlstd{(}
+  \hlkwc{prior}\hlstd{=}\hlstr{'pc.prec'}\hlstd{,}\hlkwc{param}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{.1}\hlstd{))))}
+\hlstd{mf} \hlkwb{<-} \hlstd{y} \hlopt{~} \hlnum{0} \hlopt{+} \hlstd{b0} \hlopt{+} \hlstd{x} \hlopt{+} \hlkwd{f}\hlstd{(idx.u,} \hlkwc{model}\hlstd{=spde)}
+\hlstd{res} \hlkwb{<-} \hlkwd{inla}\hlstd{(mf,} \hlkwc{control.family}\hlstd{=pcprec,}
+ \hlkwc{data}\hlstd{=}\hlkwd{inla.stack.data}\hlstd{(stk.e),} \hlcom{## data }
+ \hlkwc{control.predictor}\hlstd{=}\hlkwd{list}\hlstd{(}\hlkwc{compute}\hlstd{=}\hlnum{TRUE}\hlstd{,}
+  \hlkwc{A}\hlstd{=}\hlkwd{inla.stack.A}\hlstd{(stk.e)))}\hlcom{# full projector}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\end{multicols} 
+
+\section{Posterior marginal distributions - PMDs} 
+
+The \texttt{summary.hyperpar} element of \texttt{res} 
+has a summary from each regression coefficient PMD:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{round}\hlstd{(res}\hlopt{$}\hlstd{summary.fixed,} \hlnum{4}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+##      mean     sd 0.025quant 0.5quant 0.975quant   mode kld
+## b0 1.0331 0.2440     0.5227   1.0397     1.5051 1.0510   0
+## x  1.9184 0.1577     1.6069   1.9189     2.2269 1.9198   0
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+Similarly, the \texttt{summary.hyperpar} for the hyperparameters. 
+The likelihood hyperparameter is parametrized as precision. 
+We can work with its PMDs transforming it to standard deviation: 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{pmd.s2e} \hlkwb{<-} \hlkwd{inla.tmarginal}\hlstd{(}\hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)} \hlkwd{sqrt}\hlstd{(}\hlnum{1}\hlopt{/}\hlstd{x),} \hlcom{## inverse and square root}
+  \hlstd{res}\hlopt{$}\hlstd{marginals.hyperpar}\hlopt{$}\hlstr{'Precision for the Gaussian observations'}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+The PMDs for the likelihood SD and RF parameters can be visualized by 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{plot}\hlstd{(pmd.s2e,} \hlkwc{type}\hlstd{=}\hlstr{'l'}\hlstd{,} \hlkwc{ylab}\hlstd{=}\hlstr{'Density'}\hlstd{,}  \hlkwc{xlab}\hlstd{=}\hlkwd{expression}\hlstd{(sigma[e]))}
+\hlkwd{abline}\hlstd{(}\hlkwc{v}\hlstd{=}\hlkwd{sqrt}\hlstd{(s2e),} \hlkwc{col}\hlstd{=}\hlnum{2}\hlstd{)} \hlcom{## add the 'true' value}
+\hlkwd{plot}\hlstd{(res}\hlopt{$}\hlstd{marginals.hy[[}\hlnum{3}\hlstd{]],} \hlkwc{type}\hlstd{=}\hlstr{'l'}\hlstd{,} \hlkwc{xlab}\hlstd{=}\hlkwd{expression}\hlstd{(sigma[u]),} \hlkwc{yla}\hlstd{=}\hlstr{'Density'}\hlstd{)}
+\hlkwd{abline}\hlstd{(}\hlkwc{v}\hlstd{=}\hlkwd{sqrt}\hlstd{(s2u),} \hlkwc{col}\hlstd{=}\hlnum{2}\hlstd{)} \hlcom{## add the 'true' value}
+\hlkwd{plot}\hlstd{(res}\hlopt{$}\hlstd{marginals.hy[[}\hlnum{2}\hlstd{]],} \hlkwc{type}\hlstd{=}\hlstr{'l'}\hlstd{,} \hlkwc{xlab}\hlstd{=}\hlstr{'range nominal'}\hlstd{,} \hlkwc{ylab}\hlstd{=}\hlstr{'Density'}\hlstd{)}
+\hlkwd{abline}\hlstd{(}\hlkwc{v}\hlstd{=r,} \hlkwc{col}\hlstd{=}\hlnum{2}\hlstd{)} \hlcom{## add the 'true' value}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=0.99\textwidth,height=0.33\textwidth]{figures/SPDEhowto-rfpars-1} 
+
+}
+
+
+
+\end{knitrout}
+
+To look at the PMD for the linear predictor, 
+$E(Y|X,U)$, at each data location will be too much. 
+For now, we can show its the 2.5\% and 97.5\% quantiles 
+ordered by its mean on top of $y$ values:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{idx.obs} \hlkwb{<-} \hlkwd{inla.stack.index}\hlstd{(stk.e,} \hlkwc{tag}\hlstd{=}\hlstr{'est'}\hlstd{)}\hlopt{$}\hlstd{data} \hlcom{## index in the stack }
+\hlstd{order.eta} \hlkwb{<-} \hlkwd{order}\hlstd{(res}\hlopt{$}\hlstd{summary.fitted.values}\hlopt{$}\hlstd{mean[idx.obs])}
+\hlkwd{plot}\hlstd{(y[order.eta],} \hlkwc{pch}\hlstd{=}\hlnum{19}\hlstd{,} \hlkwc{ylab}\hlstd{=}\hlstr{'y'}\hlstd{)}
+\hlkwd{segments}\hlstd{(}\hlnum{1}\hlopt{:}\hlstd{n, res}\hlopt{$}\hlstd{summary.fitted.val}\hlopt{$}\hlstr{'0.025quant'}\hlstd{[idx.obs][order.eta],}
+         \hlnum{1}\hlopt{:}\hlstd{n, res}\hlopt{$}\hlstd{summary.fitted.val}\hlopt{$}\hlstr{'0.975quant'}\hlstd{[idx.obs][order.eta])}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=0.99\textwidth]{figures/SPDEhowto-predicts-1} 
+
+}
+
+
+
+\end{knitrout}
+
+\section{RF projection on a grid}
+
+An interesting result is the map of the RF on a grid. 
+The simplest way to have it is by projection. 
+We just have to define the projector matrix 
+and project, for example, the posterior 
+mean and posterior standard deviation on the grid. 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{nxy} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlnum{200}\hlstd{,} \hlnum{200}\hlstd{)}
+\hlstd{gproj} \hlkwb{<-} \hlkwd{inla.mesh.projector}\hlstd{(mesh,}  \hlkwc{xlim}\hlstd{=}\hlnum{0}\hlopt{:}\hlnum{1}\hlstd{,} \hlkwc{ylim}\hlstd{=}\hlnum{0}\hlopt{:}\hlnum{1}\hlstd{,} \hlkwc{dims}\hlstd{=nxy)}
+\hlstd{g.mean} \hlkwb{<-} \hlkwd{inla.mesh.project}\hlstd{(gproj, res}\hlopt{$}\hlstd{summary.random}\hlopt{$}\hlstd{idx.u}\hlopt{$}\hlstd{mean)}
+\hlstd{g.sd} \hlkwb{<-} \hlkwd{inla.mesh.project}\hlstd{(gproj, res}\hlopt{$}\hlstd{summary.random}\hlopt{$}\hlstd{idx.u}\hlopt{$}\hlstd{sd)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+We can visualize it by 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(lattice);}     \hlkwd{library}\hlstd{(gridExtra)}
+\hlkwd{trellis.par.set}\hlstd{(}\hlkwc{regions}\hlstd{=}\hlkwd{list}\hlstd{(}\hlkwc{col}\hlstd{=}\hlkwd{terrain.colors}\hlstd{(}\hlnum{16}\hlstd{)))}
+\hlkwd{grid.arrange}\hlstd{(}\hlkwd{levelplot}\hlstd{(g.mean,} \hlkwc{scales}\hlstd{=}\hlkwd{list}\hlstd{(}\hlkwc{draw}\hlstd{=F),} \hlkwc{xlab}\hlstd{=}\hlstr{''}\hlstd{,} \hlkwc{ylab}\hlstd{=}\hlstr{''}\hlstd{,} \hlkwc{main}\hlstd{=}\hlstr{'mean'}\hlstd{),}
+             \hlkwd{levelplot}\hlstd{(g.sd,} \hlkwc{scal}\hlstd{=}\hlkwd{list}\hlstd{(}\hlkwc{draw}\hlstd{=F),} \hlkwc{xla}\hlstd{=}\hlstr{''}\hlstd{,} \hlkwc{yla}\hlstd{=}\hlstr{''}\hlstd{,} \hlkwc{main}\hlstd{=}\hlstr{'sd'}\hlstd{),} \hlkwc{nrow}\hlstd{=}\hlnum{1}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=0.97\textwidth,height=0.45\textwidth]{figures/SPDEhowto-fgrid-1} 
+
+\end{knitrout}
+
+\section{Prediction} 
+
+The prediction is usually needed when one wants to know the distribution the 
+expected value for the outcome given the data. 
+It consider each model component, not only the random field, 
+which is only one component in the model, showed in the previous section. 
+
+First, one has to define the scenario for the prediction, 
+that is the locationas and value for the covariates. 
+We show an example with only three locations, 
+predictions over a fine grid can also be considered, 
+and covariate values set in its the mean value
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{tcoo} \hlkwb{<-} \hlkwd{rbind}\hlstd{(}\hlkwd{c}\hlstd{(}\hlnum{0.3}\hlstd{,}\hlnum{0.9}\hlstd{),} \hlkwd{c}\hlstd{(}\hlnum{0.5}\hlstd{,}\hlnum{0.5}\hlstd{),} \hlkwd{c}\hlstd{(}\hlnum{0.7}\hlstd{,}\hlnum{0.3}\hlstd{))}
+\hlkwd{dim}\hlstd{(Ap} \hlkwb{<-} \hlkwd{inla.spde.make.A}\hlstd{(}\hlkwc{mesh}\hlstd{=mesh,} \hlkwc{loc}\hlstd{=tcoo))}
+\end{alltt}
+\begin{verbatim}
+## [1]    3 1664
+\end{verbatim}
+\begin{alltt}
+\hlstd{x0} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlnum{0.5}\hlstd{,} \hlnum{0.5}\hlstd{,} \hlnum{0.5}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+There is more than one ways to compute the posterior marginals for 
+the linear predictor. 
+When predictions over a fine grid is needed, 
+it will be preferable a computationally cheaper way.
+
+\subsection{Expensive way: NA's in the response vector}
+
+An usual way is to build a scenario, 
+for fixed and random effects, 
+and assign NA for the outcome. 
+In this case, the linear predictor for 
+such missing observations is also 
+part of the model graph, \cite{Rueetal:2017},
+and is treated in the entire model fitting process. 
+
+Defining a prediction stack, join and use the full stack in \texttt{inla()}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{stk.pred} \hlkwb{<-} \hlkwd{inla.stack}\hlstd{(}\hlkwc{tag}\hlstd{=}\hlstr{'pred'}\hlstd{,} \hlkwc{A}\hlstd{=}\hlkwd{list}\hlstd{(Ap,} \hlnum{1}\hlstd{),} \hlkwc{data}\hlstd{=}\hlkwd{list}\hlstd{(}\hlkwc{y}\hlstd{=}\hlnum{NA}\hlstd{),} \hlcom{## response as NA}
+  \hlkwc{effects}\hlstd{=}\hlkwd{list}\hlstd{(}\hlkwc{idx.u}\hlstd{=}\hlnum{1}\hlopt{:}\hlstd{spde}\hlopt{$}\hlstd{n.spde,} \hlkwd{data.frame}\hlstd{(}\hlkwc{x}\hlstd{=x0,} \hlkwc{b0}\hlstd{=}\hlnum{1}\hlstd{)))} \hlcom{## all idx.u}
+\hlstd{stk.full} \hlkwb{<-} \hlkwd{inla.stack}\hlstd{(stk.e, stk.pred)} \hlcom{## join the data and prediction scenario}
+\hlstd{p.res} \hlkwb{<-} \hlkwd{inla}\hlstd{(mf,} \hlkwc{data}\hlstd{=}\hlkwd{inla.stack.data}\hlstd{(stk.full),} \hlcom{## supply the full data }
+  \hlkwc{control.predictor}\hlstd{=}\hlkwd{list}\hlstd{(}\hlkwc{compute}\hlstd{=}\hlnum{TRUE}\hlstd{,} \hlkwc{A}\hlstd{=}\hlkwd{inla.stack.A}\hlstd{(stk.full)),} \hlcom{## full }
+  \hlkwc{control.mode}\hlstd{=}\hlkwd{list}\hlstd{(}\hlkwc{theta}\hlstd{=res}\hlopt{$}\hlstd{mode}\hlopt{$}\hlstd{theta,} \hlkwc{restart}\hlstd{=}\hlnum{FALSE}\hlstd{))}\hlcom{## use mode already found}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+Get the prediction data index and have a look into the summary
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{pred.ind} \hlkwb{<-} \hlkwd{inla.stack.index}\hlstd{(stk.full,} \hlkwc{tag}\hlstd{=}\hlstr{'pred'}\hlstd{)}\hlopt{$}\hlstd{data}
+\hlkwd{round}\hlstd{(p.res}\hlopt{$}\hlstd{summary.fitted.val[pred.ind,],} \hlnum{4}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+##                         mean     sd 0.025quant 0.5quant 0.975quant   mode
+## fitted.APredictor.201 1.0758 0.3871     0.3052   1.0792     1.8275 1.0863
+## fitted.APredictor.202 3.1932 0.3455     2.5161   3.1927     3.8726 3.1919
+## fitted.APredictor.203 1.8777 0.3794     1.1255   1.8799     2.6179 1.8843
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+Collect the linear predictor PMDs to work with, 
+and isualize with commands bellow
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{ypost} \hlkwb{<-} \hlstd{p.res}\hlopt{$}\hlstd{marginals.fitted.values[pred.ind]}
+\hlkwd{names}\hlstd{(ypost)} \hlkwb{<-} \hlkwd{paste}\hlstd{(}\hlstr{'y'}\hlstd{,} \hlkwd{seq_along}\hlstd{(ypost),} \hlkwc{sep}\hlstd{=}\hlstr{'_'}\hlstd{);}     \hlkwd{library}\hlstd{(plyr)}
+\hlkwd{xyplot}\hlstd{(y}\hlopt{~}\hlstd{x} \hlopt{|} \hlstd{.id,} \hlkwd{ldply}\hlstd{(ypost),} \hlkwc{panel}\hlstd{=}\hlstr{'llines'}\hlstd{,} \hlkwc{xlab}\hlstd{=}\hlstr{'y'}\hlstd{,} \hlkwc{ylab}\hlstd{=}\hlstr{'Density'}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=0.99\textwidth,height=0.35\textwidth]{figures/SPDEhowto-ppred-1} 
+
+\end{knitrout}
+
+\begin{multicols}{2} 
+%\addtolength{\linewidth}{2in}
+In \textbf{\textsf{INLA}} we have some functions to work 
+with marginals distributions 
+
+
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{apropos}\hlstd{(}\hlstr{'marginal'}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+ [1] "inla.dmarginal"   "inla.emarginal"  
+ [3] "inla.hpdmarginal" "inla.mmarginal"  
+ [5] "inla.pmarginal"   "inla.qmarginal"  
+ [7] "inla.rmarginal"   "inla.smarginal"  
+ [9] "inla.tmarginal"   "inla.zmarginal"  
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{## inla.mmarginal(ypost[[1]]) ## mode}
+\hlkwd{inla.qmarginal}\hlstd{(}\hlkwd{c}\hlstd{(}\hlnum{0.15}\hlstd{,} \hlnum{0.7}\hlstd{),}
+               \hlstd{ypost[[}\hlnum{1}\hlstd{]])} \hlcom{## quantiles}
+\end{alltt}
+\begin{verbatim}
+## [1] 0.6760727 1.2779376
+\end{verbatim}
+\begin{alltt}
+\hlkwd{inla.pmarginal}\hlstd{(}\hlkwd{inla.qmarginal}\hlstd{(}
+    \hlnum{0.3}\hlstd{, ypost[[}\hlnum{1}\hlstd{]]), ypost[[}\hlnum{1}\hlstd{]])}
+\end{alltt}
+\begin{verbatim}
+## [1] 0.3
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{multicols} 
+
+\subsection{Cheaper way: Monte Carlo samples}
+
+The way we show here is cheaper if the number of locations 
+to be predicted is not small. 
+The idea is to drawn samples from the joint posterior distribution. 
+As any functional of interest can be computed we can compute 
+the linear predictor at a set of target locations. 
+
+We can ask \texttt{inla()} to store the precision matrix for each 
+hyperparameter configuration and use it to drawn Monte Carlo samples, 
+\cite{Rueetal:2017}. 
+The \texttt{inla.posterior.sample()} function drawn samples 
+from each hyperparameter configuration using its relative posterior 
+as weights and them sample from the latent field for each 
+hyperparameter sampled configuration. 
+
+We can set \texttt{control.compute=list(cofig=TRUE)} 
+before the \texttt{inla()} to have such configurations. 
+Or, we can rerun the model after asking it 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{res}\hlopt{$}\hlstd{.args}\hlopt{$}\hlstd{control.compute}\hlopt{$}\hlstd{config} \hlkwb{<-} \hlnum{TRUE}
+\hlstd{res} \hlkwb{<-} \hlkwd{inla.rerun}\hlstd{(res)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+Drawn Monte Carlo samples 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{samples} \hlkwb{<-} \hlkwd{inla.posterior.sample}\hlstd{(}\hlkwc{n}\hlstd{=}\hlnum{2e3}\hlstd{,} \hlkwc{result}\hlstd{=res,} \hlkwc{add.names}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+We have to find the index set for the elements we need samples, 
+the fixed effecs ('b0' and 'x') and the random effect ('s'). 
+The names were stored for the first sample as rownames of the latent field
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{xnames} \hlkwb{<-} \hlkwd{rownames}\hlstd{(samples[[}\hlnum{1}\hlstd{]]}\hlopt{$}\hlstd{latent)} \hlcom{### collect the names}
+\hlstd{idx} \hlkwb{<-} \hlkwd{lapply}\hlstd{(}\hlkwd{c}\hlstd{(}\hlstr{'b0'}\hlstd{,} \hlstr{'x'}\hlstd{,} \hlstr{'idx.u'}\hlstd{),} \hlkwa{function}\hlstd{(}\hlkwc{nam}\hlstd{)} \hlcom{## for each effect}
+    \hlkwd{which}\hlstd{(}\hlkwd{substr}\hlstd{(xnames,} \hlnum{1}\hlstd{,} \hlkwd{nchar}\hlstd{(nam))}\hlopt{==}\hlstd{nam))} \hlcom{## find the index}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+These indexes are used to collect the desired part of the latent field 
+and organize it into a matrix
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{mat.samples} \hlkwb{<-} \hlkwd{sapply}\hlstd{(samples,} \hlkwa{function}\hlstd{(}\hlkwc{spl}\hlstd{)}
+    \hlkwd{c}\hlstd{(}\hlkwc{bo}\hlstd{=spl}\hlopt{$}\hlstd{latent[idx[[}\hlnum{1}\hlstd{]]],} \hlkwc{x}\hlstd{=spl}\hlopt{$}\hlstd{latent[idx[[}\hlnum{2}\hlstd{]]],} \hlkwc{u}\hlstd{=spl}\hlopt{$}\hlstd{latent[idx[[}\hlnum{3}\hlstd{]]]))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+The next step is to compute the linear predictor 
+for the scenario needed for each sample.  
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{eta3.sample} \hlkwb{<-} \hlkwd{as.matrix}\hlstd{(}\hlkwd{cBind}\hlstd{(}\hlkwc{b0}\hlstd{=}\hlnum{1}\hlstd{,} \hlkwc{x}\hlstd{=}\hlnum{0.5}\hlstd{,} \hlkwc{u}\hlstd{=Ap)}\hlopt{%*%}\hlstd{mat.samples)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+We can visualize it comparing wit the previous result with
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{par}\hlstd{(}\hlkwc{mfrow}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{3}\hlstd{),} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{),} \hlkwc{mgp}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{2}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{0}\hlstd{))}
+\hlkwa{for} \hlstd{(j} \hlkwa{in} \hlnum{1}\hlopt{:}\hlnum{3}\hlstd{) \{}
+    \hlkwd{hist}\hlstd{(eta3.sample[j,],} \hlkwc{freq}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{xlab}\hlstd{=}\hlkwd{paste0}\hlstd{(}\hlstr{'y'}\hlstd{,j),} \hlkwc{main}\hlstd{=}\hlstr{''}\hlstd{,} \hlkwc{col}\hlstd{=}\hlkwd{gray}\hlstd{(}\hlnum{0.7}\hlstd{))}
+    \hlkwd{lines}\hlstd{(ypost[[j]],} \hlkwc{lwd}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{col}\hlstd{=}\hlstr{'blue'}\hlstd{)}
+\hlstd{\}}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=0.99\textwidth]{figures/SPDEhowto-comparey3-1} 
+
+\end{knitrout}
+
+\begin{multicols}{2}
+\subsection{Prediction on a grid, cheaper way}
+
+We can consider the previously defined grid projection matrix and samples 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{eta.g.samp} \hlkwb{<-} \hlkwd{as.matrix}\hlstd{(}\hlkwd{cBind}\hlstd{(}\hlkwc{b0}\hlstd{=}\hlnum{1}\hlstd{,} \hlkwc{x}\hlstd{=}\hlnum{0.5}\hlstd{,}
+        \hlkwc{s}\hlstd{=gproj}\hlopt{$}\hlstd{proj}\hlopt{$}\hlstd{A)}\hlopt{%*%}\hlstd{mat.samples)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+Any summary statistics can be computed from that. 
+Computing the mean, standard deviation, 
+$P(E(Y)>3)$ and the 95\% quantile for $E(Y)$: 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(matrixStats)}
+\hlstd{ss} \hlkwb{<-} \hlkwd{list}\hlstd{(}\hlkwc{mean}\hlstd{=}\hlkwd{rowMeans}\hlstd{(eta.g.samp),}
+ \hlkwc{sd}\hlstd{=}\hlkwd{rowSds}\hlstd{(eta.g.samp),}
+ \hlkwc{p3}\hlstd{=}\hlkwd{rowMeans}\hlstd{(eta.g.samp}\hlopt{>}\hlnum{3}\hlstd{),}
+ \hlkwc{q95}\hlstd{=}\hlkwd{rowQuantiles}\hlstd{(eta.g.samp,} \hlkwc{probs}\hlstd{=}\hlnum{0.95}\hlstd{))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+It is visualized with the commands bellow 
+(locations added on top of the sd map): 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(fields);} \hlkwa{for} \hlstd{(s} \hlkwa{in} \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{4}\hlstd{,}\hlnum{2}\hlstd{))}
+  \hlkwd{image.plot}\hlstd{(}\hlkwd{list}\hlstd{(}\hlkwc{x}\hlstd{=gproj}\hlopt{$}\hlstd{x,} \hlkwc{y}\hlstd{=gproj}\hlopt{$}\hlstd{y,}
+      \hlkwc{z}\hlstd{=}\hlkwd{matrix}\hlstd{(ss[[s]], nxy[}\hlnum{1}\hlstd{])),} \hlkwc{asp}\hlstd{=}\hlnum{1}\hlstd{,}
+    \hlkwc{legend.mar}\hlstd{=}\hlnum{3}\hlstd{,} \hlkwc{main}\hlstd{=}\hlkwd{names}\hlstd{(ss)[s])}
+\hlkwd{points}\hlstd{(coo,} \hlkwc{pch}\hlstd{=}\hlnum{4}\hlstd{,} \hlkwc{cex}\hlstd{=}\hlnum{0.5}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\bibliographystyle{apalike}
+\bibliography{spde-tutorial}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+
+{\centering \includegraphics[width=0.49\textwidth]{figures/SPDEhowto-predmapsview-1} 
+
+}
+
+
+
+\end{knitrout}
+\end{multicols}
+
+\end{document} 

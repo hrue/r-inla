@@ -1,0 +1,462 @@
+\documentclass[a4paper,11pt]{article}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+
+\usepackage[margin={2cm,2cm}]{geometry}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+
+\title{\vspace{-2cm}
+  SPDE one dimensional example}
+\author{Elias T. Krainski and H{\aa}vard Rue}
+\date{Created: September 26th 2016 - Last update: August 9th 2017}
+
+%\VignetteEngine{knitr::knitr} 
+%\VignetteIndexEntry{SPDE1d}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+\maketitle
+
+\vspace{-1cm}
+\begin{center}\begin{minipage}[c]{0.9\textwidth}\centering
+
+In this example we show row to analyse a time series 
+of daily temperature using a one dimension SPDE model.
+More details about it are on the paber at 
+<https://www.jstatsoft.org/article/view/v063i19>
+\end{minipage}\end{center}
+
+
+
+\section{The data}
+
+We consider the daily weather data available at 
+<http://www.yr.no/>. 
+We have the following set the URL for the daily data for 
+Trondheim considerint in the last 13 months 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{u0} \hlkwb{<-} \hlkwd{paste0}\hlstd{(}\hlstr{'http://www.yr.no/place/Norway/S%C3%B8r-Tr%C3%B8ndelag/'}\hlstd{,}
+             \hlstr{'Trondheim/Trondheim/detailed_statistics.html'}\hlstd{)}
+\hlcom{### browseURL(u0) ### to visit the web page }
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+One can read and extract the desired data table 
+(the second one at the URL) using the **XML** package with the 
+\texttt{readHTMLTable()} function. 
+However, it still need some pre-processing.
+
+We do not consider it and just read the web page as a text
+and play with the text and its structure directly. 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{d0} \hlkwb{<-} \hlkwd{readLines}\hlstd{(u0)} \hlcom{### read it as text (Done at 26 September 2016)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+First, we have to find the index for each table line 
+and consider only those for the main table:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{i} \hlkwb{<-} \hlkwd{grep}\hlstd{(}\hlstr{'<tr>'}\hlstd{, d0)} \hlcom{### index for each table line}
+\hlstd{i} \hlkwb{<-} \hlstd{i[i}\hlopt{>}\hlkwd{grep}\hlstd{(}\hlstr{'<tbody>'}\hlstd{, d0)[}\hlnum{2}\hlstd{]]} \hlcom{### select those for the second table}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+The desired data we would like to analyse is the 
+minimum and maximum temperature. 
+Commands to extract and pre-process these data
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwa{if} \hlstd{(}\hlkwd{Sys.getlocale}\hlstd{(}\hlstr{'LC_TIME'}\hlstd{)}\hlopt{!=}\hlstr{'C'}\hlstd{)}
+    \hlkwd{Sys.setlocale}\hlstd{(}\hlstr{'LC_TIME'}\hlstd{,} \hlstr{'C'}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+## [1] "C"
+\end{verbatim}
+\begin{alltt}
+\hlstd{dates} \hlkwb{<-} \hlkwd{as.Date}\hlstd{(d0[i}\hlopt{+}\hlnum{1}\hlstd{],} \hlkwc{format}\hlstd{=}\hlstr{'      <th>%b %d, %Y</th>'}\hlstd{)}
+\hlstd{tmed} \hlkwb{<-} \hlkwd{as.numeric}\hlstd{(}\hlkwd{gsub}\hlstd{(}\hlstr{'<td>'}\hlstd{,} \hlstr{''}\hlstd{,} \hlkwd{gsub}\hlstd{(}\hlstr{'°</td>'}\hlstd{,} \hlstr{''}\hlstd{, d0[i}\hlopt{+}\hlnum{4}\hlstd{])))}
+\hlstd{(n} \hlkwb{<-} \hlkwd{length}\hlstd{(dates))} \hlcom{### it is daily over last 13 months}
+\end{alltt}
+\begin{verbatim}
+## [1] 422
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+Visualize it with the following commands
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{pd} \hlkwb{<-} \hlkwd{pretty}\hlstd{(}\hlkwd{c}\hlstd{(dates,} \hlkwd{max}\hlstd{(dates}\hlopt{+}\hlnum{30}\hlstd{)),} \hlkwc{n}\hlstd{=}\hlnum{13}\hlstd{)}
+\hlkwd{par}\hlstd{(}\hlkwc{mfrow}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{),} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{0.5}\hlstd{,}\hlnum{2}\hlstd{),} \hlkwc{mgp}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{2}\hlstd{,}\hlnum{.7}\hlstd{,}\hlnum{0}\hlstd{),} \hlkwc{las}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{xaxs}\hlstd{=}\hlstr{'i'}\hlstd{)}
+\hlkwd{plot}\hlstd{(dates, tmed,} \hlkwc{type}\hlstd{=}\hlstr{'l'}\hlstd{,} \hlkwc{lwd}\hlstd{=}\hlnum{2}\hlstd{,}
+     \hlkwc{axes}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{xlab}\hlstd{=}\hlstr{'day'}\hlstd{,} \hlkwc{ylab}\hlstd{=}\hlstr{'Temperature'}\hlstd{)}
+\hlkwd{abline}\hlstd{(}\hlkwc{h}\hlstd{=}\hlnum{0}\hlstd{)}
+\hlkwd{abline}\hlstd{(}\hlkwc{h}\hlstd{=}\hlnum{3}\hlopt{*}\hlstd{(}\hlopt{-}\hlnum{8}\hlopt{:}\hlnum{9}\hlstd{),} \hlkwc{v}\hlstd{=pd,} \hlkwc{lty}\hlstd{=}\hlnum{3}\hlstd{,} \hlkwc{col}\hlstd{=}\hlkwd{gray}\hlstd{(}\hlnum{.5}\hlstd{))}
+\hlkwd{box}\hlstd{()}
+\hlkwd{axis}\hlstd{(}\hlnum{2}\hlstd{,} \hlnum{3}\hlopt{*}\hlstd{(}\hlopt{-}\hlnum{8}\hlopt{:}\hlnum{9}\hlstd{));} \hlkwd{axis}\hlstd{(}\hlnum{4}\hlstd{,} \hlnum{3}\hlopt{*}\hlstd{(}\hlopt{-}\hlnum{8}\hlopt{:}\hlnum{9}\hlstd{))}
+\hlkwd{axis}\hlstd{(}\hlnum{1}\hlstd{, pd,} \hlkwd{months}\hlstd{(pd,} \hlnum{TRUE}\hlstd{))}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=0.99\textwidth]{figures/SPDE1dvisualize-1} 
+
+}
+
+
+
+\end{knitrout}
+
+\section{Model fitting}
+
+\paragraph{Mesh}
+in 1d it is a matter of chosing a set of knots, 
+the order of the basis functions and the boundary. 
+Choosing first order basis function and Neumann boundary.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{coo} \hlkwb{<-} \hlkwd{as.numeric}\hlstd{(dates}\hlopt{-}\hlkwd{min}\hlstd{(dates))} \hlcom{## have numeric temporal coordinates}
+\hlstd{mesh} \hlkwb{<-} \hlkwd{inla.mesh.1d}\hlstd{(}\hlkwc{loc}\hlstd{=}\hlkwd{seq}\hlstd{(}\hlkwd{min}\hlstd{(coo),} \hlkwd{max}\hlstd{(coo),} \hlkwc{by}\hlstd{=}\hlnum{7}\hlstd{),} \hlcom{## knots (7 days)}
+                 \hlkwc{boundary}\hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{'neumann'}\hlstd{,} \hlstr{'neumann'}\hlstd{),} \hlcom{## boundaries }
+                 \hlkwc{degree}\hlstd{=}\hlnum{2}\hlstd{)}  \hlcom{### basis function degree}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\paragraph{Projector matrix} is the matrix built to project 
+ the process at the mesh nodes to the locations 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{A} \hlkwb{<-} \hlkwd{inla.spde.make.A}\hlstd{(} \hlcom{## projector creator}
+    \hlkwc{mesh}\hlstd{=mesh,} \hlcom{## provide the mesh}
+    \hlkwc{loc}\hlstd{=coo)} \hlcom{### locations where to project the field}
+\hlkwd{dim}\hlstd{(A)} \hlcom{## an 'n' by 'm' projector matrix}
+\end{alltt}
+\begin{verbatim}
+## [1] 422  60
+\end{verbatim}
+\begin{alltt}
+\hlkwd{summary}\hlstd{(}\hlkwd{rowSums}\hlstd{(A))} \hlcom{### each line sums up to one}
+\end{alltt}
+\begin{verbatim}
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##       1       1       1       1       1       1
+\end{verbatim}
+\begin{alltt}
+\hlkwd{summary}\hlstd{(}\hlkwd{colSums}\hlstd{(A))} \hlcom{### 'how many' observations per knot}
+\end{alltt}
+\begin{verbatim}
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   7.000   7.000   7.000   7.033   7.000   8.500
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\paragraph{Build the SPDE model} on the mesh, choosing the 
+smoothness ($\alpha$), to define the precision structure, 
+and priors for the hyperparameters. We just set $\alpha=2$ 
+and keep the default priors.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{spde} \hlkwb{<-} \hlkwd{inla.spde2.pcmatern}\hlstd{(} \hlcom{## model for the precision }
+    \hlkwc{mesh}\hlstd{=mesh,} \hlcom{## mesh supplied}
+    \hlkwc{alpha}\hlstd{=}\hlnum{2}\hlstd{,} \hlcom{## smoothness parameter}
+    \hlkwc{prior.range} \hlstd{=} \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,} \hlnum{0.01}\hlstd{),} \hlcom{## P(range < 1) = 0.01}
+    \hlkwc{prior.sigma} \hlstd{=} \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,} \hlnum{0.5}\hlstd{))} \hlcom{## P(sigma > 1) = 0.5}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\paragraph{Create a data stack} in order to organize the data. 
+This is a way to allow models with complex 
+linear predictors. 
+In our case, we have a SPDE 
+model defined on $m$ nodes. 
+It must be combined 
+with the covariate (and the intercept) 
+effect at $n$ locations. 
+We do it using different projector matrices. 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{stk.e} \hlkwb{<-} \hlkwd{inla.stack}\hlstd{(} \hlcom{## stack creator}
+  \hlkwc{data}\hlstd{=}\hlkwd{list}\hlstd{(}\hlkwc{y}\hlstd{=tmed),}  \hlcom{## response}
+  \hlkwc{effects}\hlstd{=}\hlkwd{list}\hlstd{(}\hlcom{## two elements:}
+    \hlkwd{data.frame}\hlstd{(}\hlkwc{b0}\hlstd{=}\hlkwd{rep}\hlstd{(}\hlnum{1}\hlstd{, n)),} \hlcom{## regressor part}
+    \hlkwc{i}\hlstd{=}\hlnum{1}\hlopt{:}\hlstd{spde}\hlopt{$}\hlstd{n.spde),}  \hlcom{## RF index}
+  \hlkwc{A}\hlstd{=}\hlkwd{list}\hlstd{(}\hlcom{## projector list of each effect}
+    \hlnum{1}\hlstd{,} \hlcom{## for the covariates}
+    \hlstd{A),} \hlcom{## for the RF}
+  \hlkwc{tag}\hlstd{=}\hlstr{'est'}\hlstd{)} \hlcom{## tag}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\paragraph{Fit} the posterior marginal distributions
+  for all model parameters, 
+  syplying the model formula, data and some additional controls 
+  to the main function in the \textbf{\textsf{INLA}} package
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{formula} \hlkwb{<-} \hlstd{y} \hlopt{~} \hlnum{0} \hlopt{+} \hlstd{b0} \hlopt{+} \hlcom{## fixed part}
+  \hlkwd{f}\hlstd{(i,} \hlkwc{model}\hlstd{=spde)} \hlcom{## RF term}
+\hlstd{res} \hlkwb{<-} \hlkwd{inla}\hlstd{(} \hlcom{## main function in INLA package}
+  \hlstd{formula,} \hlcom{## model formula}
+  \hlkwc{data}\hlstd{=}\hlkwd{inla.stack.data}\hlstd{(stk.e),} \hlcom{## dataset}
+  \hlkwc{control.predictor}\hlstd{=}\hlkwd{list}\hlstd{(} \hlcom{## inform projector needed in SPDE models}
+    \hlkwc{A} \hlstd{=} \hlkwd{inla.stack.A}\hlstd{(stk.e),} \hlkwc{compute}\hlstd{=}\hlnum{TRUE}\hlstd{))} \hlcom{## projector from the stack data}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\section{Posterior marginal distributions - PMDs}
+
+Summary of the regression coefficients PMDs
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{round}\hlstd{(res}\hlopt{$}\hlstd{summary.fixed,} \hlnum{4}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+##     mean     sd 0.025quant 0.5quant 0.975quant   mode kld
+## b0 7.438 1.7138     4.0181   7.4395    10.8444 7.4421   0
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+The PMDs summary for the Gaussian likelihood precision and the 
+two RF parameters 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{round}\hlstd{(res}\hlopt{$}\hlstd{summary.hyperpar,} \hlnum{4}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+##                                            mean     sd 0.025quant 0.5quant
+## Precision for the Gaussian observations  0.1846 0.0138     0.1585   0.1842
+## Range for i                             31.6273 4.9758    23.3862  31.0830
+## Stdev for i                              5.7835 0.8007     4.4258   5.7064
+##                                         0.975quant    mode
+## Precision for the Gaussian observations     0.2129  0.1836
+## Range for i                                42.8207 29.8911
+## Stdev for i                                 7.5630  5.5342
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+We have to transform the likelihood precision PMD to have 
+the variance PMD. It can be done by 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{m.prec} \hlkwb{<-} \hlstd{res}\hlopt{$}\hlstd{marginals.hyperpar}\hlopt{$}\hlstr{'Precision for the Gaussian observations'} \hlcom{## the marginal}
+\hlstd{post.s2e} \hlkwb{<-} \hlkwd{inla.tmarginal}\hlstd{(}\hlcom{## function to compute a tranformation }
+  \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)} \hlkwd{sqrt}\hlstd{(}\hlnum{1}\hlopt{/}\hlstd{x),} \hlcom{## inverse transformation and square root}
+  \hlstd{m.prec)} \hlcom{## marginal to be applied}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+The PMDs for likelihood standard deviation and 
+the RF parameters can be visualized by 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{par}\hlstd{(}\hlkwc{mfrow}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{3}\hlstd{),} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{0.3}\hlstd{,}\hlnum{0.3}\hlstd{),} \hlkwc{mgp}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{2}\hlstd{,}\hlnum{0.5}\hlstd{,}\hlnum{0}\hlstd{))}
+\hlkwd{plot}\hlstd{(post.s2e,} \hlkwc{type}\hlstd{=}\hlstr{'l'}\hlstd{,} \hlkwc{ylab}\hlstd{=}\hlstr{'Density'}\hlstd{,}
+     \hlkwc{xlab}\hlstd{=}\hlkwd{expression}\hlstd{(sigma[e]}\hlopt{^}\hlnum{2}\hlstd{))}
+\hlkwd{plot}\hlstd{(res}\hlopt{$}\hlstd{marginals.hyperpar[[}\hlnum{2}\hlstd{]],} \hlkwc{type}\hlstd{=}\hlstr{'l'}\hlstd{,}
+     \hlkwc{xlab}\hlstd{=}\hlstr{'range'}\hlstd{,} \hlkwc{ylab}\hlstd{=}\hlstr{'Density'}\hlstd{)}
+\hlkwd{plot}\hlstd{(res}\hlopt{$}\hlstd{marginals.hyperpar[[}\hlnum{3}\hlstd{]],} \hlkwc{ty}\hlstd{=}\hlstr{'l'}\hlstd{,}
+     \hlkwc{xlab}\hlstd{=}\hlkwd{expression}\hlstd{(sigma[s]),} \hlkwc{yla}\hlstd{=}\hlstr{'Density'}\hlstd{)}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=0.99\textwidth]{figures/SPDE1dparameters-1} 
+
+}
+
+
+
+\end{knitrout}
+
+\section{Predicted}
+
+Visualize it with the commands bellow
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{par}\hlstd{(}\hlkwc{mfrow}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{),} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{0.3}\hlstd{,}\hlnum{2}\hlstd{),} \hlkwc{mgp}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{2}\hlstd{,}\hlnum{0.5}\hlstd{,}\hlnum{0}\hlstd{),} \hlkwc{las}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{xaxs}\hlstd{=}\hlstr{'i'}\hlstd{)}
+\hlstd{id} \hlkwb{<-} \hlkwd{inla.stack.index}\hlstd{(stk.e,} \hlkwc{tag}\hlstd{=}\hlstr{'est'}\hlstd{)}\hlopt{$}\hlstd{data}
+\hlkwd{plot}\hlstd{(dates, tmed,} \hlkwc{type}\hlstd{=}\hlstr{'l'}\hlstd{,} \hlkwc{axes}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{ylab}\hlstd{=}\hlstr{'Temperature'}\hlstd{,} \hlkwc{lwd}\hlstd{=}\hlnum{2}\hlstd{)}
+\hlkwa{for} \hlstd{(j} \hlkwa{in} \hlnum{3}\hlopt{:}\hlnum{5}\hlstd{)}
+  \hlkwd{lines}\hlstd{(dates, res}\hlopt{$}\hlstd{summary.fitted.values[id, j],} \hlkwc{lty}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{lwd}\hlstd{=}\hlnum{2}\hlstd{)}
+\hlkwd{box}\hlstd{();} \hlkwd{axis}\hlstd{(}\hlnum{2}\hlstd{,} \hlnum{3}\hlopt{*}\hlstd{(}\hlopt{-}\hlnum{8}\hlopt{:}\hlnum{9}\hlstd{));} \hlkwd{axis}\hlstd{(}\hlnum{4}\hlstd{,} \hlnum{3}\hlopt{*}\hlstd{(}\hlopt{-}\hlnum{8}\hlopt{:}\hlnum{9}\hlstd{))}
+\hlkwd{axis}\hlstd{(}\hlnum{1}\hlstd{, pd,} \hlkwd{months}\hlstd{(pd, T))}
+\hlkwd{abline}\hlstd{(}\hlkwc{h}\hlstd{=}\hlnum{0}\hlstd{)}
+\hlkwd{abline}\hlstd{(}\hlkwc{h}\hlstd{=}\hlnum{3}\hlopt{*}\hlstd{(}\hlopt{-}\hlnum{8}\hlopt{:}\hlnum{9}\hlstd{),} \hlkwc{v}\hlstd{=pd,} \hlkwc{lty}\hlstd{=}\hlnum{3}\hlstd{,} \hlkwc{col}\hlstd{=}\hlkwd{gray}\hlstd{(}\hlnum{.5}\hlstd{))}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=0.99\textwidth]{figures/SPDE1dpredicted-1} 
+
+}
+
+
+
+\end{knitrout}
+
+\section{Just a look to the rest of the data}
+
+Pre-processing the maximum, minimum and normal temperature, 
+the precipitation, and the average and maximum wind:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{tmax} \hlkwb{<-} \hlkwd{as.numeric}\hlstd{(}\hlkwd{gsub}\hlstd{(}\hlstr{'<td>'}\hlstd{,} \hlstr{''}\hlstd{,} \hlkwd{gsub}\hlstd{(}\hlstr{'°</td>'}\hlstd{,} \hlstr{''}\hlstd{, d0[i}\hlopt{+}\hlnum{2}\hlstd{])))}
+\hlstd{tmin} \hlkwb{<-} \hlkwd{as.numeric}\hlstd{(}\hlkwd{gsub}\hlstd{(}\hlstr{'<td>'}\hlstd{,} \hlstr{''}\hlstd{,} \hlkwd{gsub}\hlstd{(}\hlstr{'°</td>'}\hlstd{,} \hlstr{''}\hlstd{, d0[i}\hlopt{+}\hlnum{3}\hlstd{])))}
+\hlstd{tnormal} \hlkwb{<-} \hlkwd{as.numeric}\hlstd{(}\hlkwd{gsub}\hlstd{(}\hlstr{'<td>'}\hlstd{,} \hlstr{''}\hlstd{,} \hlkwd{gsub}\hlstd{(}\hlstr{'°</td>'}\hlstd{,} \hlstr{''}\hlstd{, d0[i}\hlopt{+}\hlnum{5}\hlstd{])))}
+\hlstd{prec} \hlkwb{<-} \hlkwd{as.numeric}\hlstd{(}\hlkwd{gsub}\hlstd{(}\hlstr{'<td>'}\hlstd{,} \hlstr{''}\hlstd{,} \hlkwd{gsub}\hlstd{(}\hlstr{'mm</td>'}\hlstd{,} \hlstr{''}\hlstd{, d0[i}\hlopt{+}\hlnum{6}\hlstd{])))}
+\hlstd{wind} \hlkwb{<-} \hlkwd{as.numeric}\hlstd{(}\hlkwd{gsub}\hlstd{(}\hlstr{'<td>'}\hlstd{,} \hlstr{''}\hlstd{,} \hlkwd{gsub}\hlstd{(}\hlstr{'m/s</td>'}\hlstd{,} \hlstr{''}\hlstd{, d0[i}\hlopt{+}\hlnum{10}\hlstd{])))}
+\hlstd{wmax} \hlkwb{<-} \hlkwd{as.numeric}\hlstd{(}\hlkwd{gsub}\hlstd{(}\hlstr{'<td>'}\hlstd{,} \hlstr{''}\hlstd{,} \hlkwd{gsub}\hlstd{(}\hlstr{'m/s</td>'}\hlstd{,} \hlstr{''}\hlstd{, d0[i}\hlopt{+}\hlnum{9}\hlstd{])))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+Visualize it
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{par}\hlstd{(}\hlkwc{mfrow}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{),} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{0.1}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{0.1}\hlstd{,}\hlnum{2}\hlstd{),} \hlkwc{mgp}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{2}\hlstd{,}\hlnum{.7}\hlstd{,}\hlnum{0}\hlstd{),} \hlkwc{las}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{xaxs}\hlstd{=}\hlstr{'i'}\hlstd{)}
+\hlkwd{plot}\hlstd{(dates, tmed,} \hlkwc{type}\hlstd{=}\hlstr{'l'}\hlstd{,} \hlkwc{ylim}\hlstd{=}\hlkwd{range}\hlstd{(tmin, tmax,} \hlkwc{na.rm}\hlstd{=}\hlnum{TRUE}\hlstd{),}
+     \hlkwc{axes}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{xlab}\hlstd{=}\hlstr{''}\hlstd{,} \hlkwc{ylab}\hlstd{=}\hlstr{'Temperature'}\hlstd{,} \hlkwc{col}\hlstd{=}\hlstr{'green'}\hlstd{)}
+\hlkwd{lines}\hlstd{(dates, tmin,} \hlkwc{col}\hlstd{=}\hlstr{'blue'}\hlstd{)}
+\hlkwd{lines}\hlstd{(dates, tmax,} \hlkwc{col}\hlstd{=}\hlstr{'red'}\hlstd{)}
+\hlkwd{lines}\hlstd{(dates, tnormal)}
+\hlkwd{legend}\hlstd{(dates[}\hlkwd{which.min}\hlstd{(tmin)],} \hlkwd{par}\hlstd{()}\hlopt{$}\hlstd{usr[}\hlnum{4}\hlstd{],} \hlkwd{c}\hlstd{(}\hlstr{'normal'}\hlstd{,} \hlstr{'max.'}\hlstd{,} \hlstr{'aver.'}\hlstd{,} \hlstr{'min.'}\hlstd{),}
+      \hlkwc{col}\hlstd{=}\hlnum{1}\hlopt{:}\hlnum{4}\hlstd{,} \hlkwc{lty}\hlstd{=}\hlnum{1}\hlstd{,} \hlkwc{ncol}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{xjust}\hlstd{=}\hlnum{0.5}\hlstd{,} \hlkwc{bty}\hlstd{=}\hlstr{'n'}\hlstd{)}
+\hlkwd{abline}\hlstd{(}\hlkwc{h}\hlstd{=}\hlnum{5}\hlopt{*}\hlstd{(}\hlopt{-}\hlnum{5}\hlopt{:}\hlnum{6}\hlstd{),} \hlkwc{v}\hlstd{=pd,} \hlkwc{lty}\hlstd{=}\hlnum{3}\hlstd{,} \hlkwc{col}\hlstd{=}\hlkwd{gray}\hlstd{(}\hlnum{.5}\hlstd{))}
+\hlkwd{box}\hlstd{();} \hlkwd{axis}\hlstd{(}\hlnum{2}\hlstd{,} \hlnum{5}\hlopt{*}\hlstd{(}\hlopt{-}\hlnum{5}\hlopt{:}\hlnum{6}\hlstd{));} \hlkwd{axis}\hlstd{(}\hlnum{4}\hlstd{,} \hlnum{5}\hlopt{*}\hlstd{(}\hlopt{-}\hlnum{5}\hlopt{:}\hlnum{6}\hlstd{))}
+
+\hlkwd{plot}\hlstd{(dates, prec,} \hlkwc{type}\hlstd{=}\hlstr{'l'}\hlstd{,} \hlkwc{axes}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{xlab}\hlstd{=}\hlstr{''}\hlstd{)}
+\hlkwd{box}\hlstd{();} \hlkwd{axis}\hlstd{(}\hlnum{2}\hlstd{);} \hlkwd{axis}\hlstd{(}\hlnum{4}\hlstd{)}
+\hlkwd{abline}\hlstd{(}\hlkwc{v}\hlstd{=pd,} \hlkwc{h}\hlstd{=}\hlnum{10}\hlopt{*}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{4}\hlstd{),} \hlkwc{lty}\hlstd{=}\hlnum{3}\hlstd{,} \hlkwc{col}\hlstd{=}\hlkwd{gray}\hlstd{(}\hlnum{0.5}\hlstd{))}
+
+\hlkwd{par}\hlstd{(}\hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,} \hlnum{3}\hlstd{,} \hlnum{0.1}\hlstd{,} \hlnum{2}\hlstd{),} \hlkwc{new}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+\hlkwd{plot}\hlstd{(dates, wind,} \hlkwc{type}\hlstd{=}\hlstr{'l'}\hlstd{,} \hlkwc{axes}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{xlab}\hlstd{=}\hlstr{''}\hlstd{,}
+     \hlkwc{ylim}\hlstd{=}\hlkwd{range}\hlstd{(wind, wmax,} \hlkwc{na.rm}\hlstd{=}\hlnum{TRUE}\hlstd{))}
+\hlkwd{lines}\hlstd{(dates, wmax,} \hlkwc{col}\hlstd{=}\hlnum{2}\hlstd{)}
+\hlkwd{box}\hlstd{();} \hlkwd{axis}\hlstd{(}\hlnum{2}\hlstd{);} \hlkwd{axis}\hlstd{(}\hlnum{4}\hlstd{)}
+\hlkwd{abline}\hlstd{(}\hlkwc{v}\hlstd{=pd,} \hlkwc{h}\hlstd{=}\hlnum{5}\hlopt{*}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{3}\hlstd{),} \hlkwc{lty}\hlstd{=}\hlnum{3}\hlstd{,} \hlkwc{col}\hlstd{=}\hlkwd{gray}\hlstd{(}\hlnum{0.5}\hlstd{))}
+\hlkwd{axis}\hlstd{(}\hlnum{1}\hlstd{, pd,} \hlkwd{months}\hlstd{(pd,} \hlnum{TRUE}\hlstd{))}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=0.99\textwidth]{figures/SPDE1dvisualize3-1} 
+
+}
+
+
+
+\end{knitrout}
+
+We can have a look at the difference between the daily mean temperature and 
+the normal temperature. 
+The current normal is the average over the period from 1961 to 1990.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{par}\hlstd{(}\hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,} \hlnum{3}\hlstd{,} \hlnum{0.1}\hlstd{,} \hlnum{2}\hlstd{),} \hlkwc{mgp}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{2}\hlstd{,}\hlnum{0.7}\hlstd{,}\hlnum{0}\hlstd{),} \hlkwc{las}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{xaxs}\hlstd{=}\hlstr{'i'}\hlstd{)}
+\hlkwd{plot}\hlstd{(dates, tmed}\hlopt{-}\hlstd{tnormal,} \hlkwc{type}\hlstd{=}\hlstr{'l'}\hlstd{,} \hlkwc{axes}\hlstd{=}\hlnum{FALSE}\hlstd{,}
+     \hlkwc{xlab}\hlstd{=}\hlstr{''}\hlstd{,} \hlkwc{ylab}\hlstd{=}\hlstr{'Deviation from normal temperature'}\hlstd{)}
+\hlkwd{box}\hlstd{();} \hlkwd{axis}\hlstd{(}\hlnum{2}\hlstd{);} \hlkwd{axis}\hlstd{(}\hlnum{4}\hlstd{)}
+\hlkwd{abline}\hlstd{(}\hlkwc{h}\hlstd{=}\hlnum{5}\hlopt{*}\hlstd{(}\hlopt{-}\hlnum{2}\hlopt{:}\hlnum{2}\hlstd{),} \hlkwc{v}\hlstd{=pd,} \hlkwc{lty}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{col}\hlstd{=}\hlkwd{gray}\hlstd{(}\hlnum{0.5}\hlstd{))}
+\hlkwd{axis}\hlstd{(}\hlnum{1}\hlstd{, pd,} \hlkwd{months}\hlstd{(pd,} \hlnum{TRUE}\hlstd{))}
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=0.99\textwidth]{figures/SPDE1danomalia-1} 
+
+}
+
+
+
+\end{knitrout}
+
+\end{document}
