@@ -2237,7 +2237,7 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 			}
 			assert(k == n_out);
 			Free(x_out);
-			
+
 			GMRFLib_tabulate_Qfunc_from_list(&(a->Q[id]), &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
 			assert(graph->n == a->n);
 		}
@@ -9357,8 +9357,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	mb->lc_prec = Realloc(mb->lc_prec, mb->nlc + 1, double);
 	mb->lc_order = Realloc(mb->lc_order, mb->nlc + 1, double);
 	mb->lc_tag[mb->nlc] = secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
-	mb->lc_dir[mb->nlc] =
-	    GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup(mb->lc_tag[mb->nlc])));
+	mb->lc_dir[mb->nlc] = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup(mb->lc_tag[mb->nlc])));
 
 	if (mb->verbose) {
 		printf("\tinla_parse_lincomb...\n\t\tsecname = [%s]\n", mb->lc_tag[mb->nlc]);
@@ -9687,7 +9686,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 					mb->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
 					openmp_strategy = GMRFLib_strdup("default");
 				}
-				
+
 				GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
 				smtp = GMRFLib_strdup("taucs");
 			}
@@ -9761,8 +9760,7 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 	if (mb->verbose) {
 		printf("\t\tsection=[%s]\n", secname);
 	}
-	mb->predictor_dir =
-	    GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup(mb->predictor_tag)));
+	mb->predictor_dir = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup(mb->predictor_tag)));
 	if (mb->verbose) {
 		printf("\t\tdir=[%s]\n", mb->predictor_dir);
 	}
@@ -14898,8 +14896,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	sprintf(default_tag, "default tag for ffield %d", mb->nf);
 	mb->f_tag[mb->nf] = GMRFLib_strdup((secname ? secname : default_tag));
-	mb->f_dir[mb->nf] =
-	    GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup(mb->f_tag[mb->nf])));
+	mb->f_dir[mb->nf] = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup(mb->f_tag[mb->nf])));
 	if (mb->verbose) {
 		printf("\t\tdir=[%s]\n", mb->f_dir[mb->nf]);
 	}
@@ -26159,7 +26156,7 @@ int inla_INLA(inla_tp * mb)
 		GMRFLib_sizeof_tp nnz = 0;
 		int use_g = 0;
 		GMRFLib_optimize_reorder(mb->hgmrfm->graph, &nnz, &use_g, &(mb->gn));
-		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {		
+		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
 			if (mb->verbose) {
 				printf("\tFound optimal reordering=[%s] nnz(L)=[%lu] and use_global_nodes(user)=[%s]\n",
 				       GMRFLib_reorder_name(GMRFLib_reorder), nnz, (use_g ? "yes" : "no"));
@@ -30328,20 +30325,20 @@ int inla_fgn(char *infile, char *outfile)
 }
 int testit(int argc, char **argv)
 {
-        int test_no = -1;
-        char **args = NULL;
-        int nargs = 0, i;
-        
-        if (argc > 0) {
-                test_no = atoi(argv[0]);
-                nargs = argc -1;
-                args = &(argv[1]);
-        } 
+	int test_no = -1;
+	char **args = NULL;
+	int nargs = 0, i;
+
+	if (argc > 0) {
+		test_no = atoi(argv[0]);
+		nargs = argc - 1;
+		args = &(argv[1]);
+	}
 	printf("test_no = %1d  nargs = %1d\n", test_no, nargs);
-	for(i = 0; i < nargs; i++) {
+	for (i = 0; i < nargs; i++) {
 		printf("\targs[%d] = %s\n", i, args[i]);
 	}
-   
+
 	switch (test_no) {
 	case -1:
 	case 0:
@@ -30876,19 +30873,19 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 24: 
+	case 24:
 		my_pardiso_test1();
 		break;
-		
-	case 25: 
+
+	case 25:
 		my_pardiso_test2();
 		break;
-		
-	case 26: 
+
+	case 26:
 		my_pardiso_test3();
 		break;
 
-	case 27: 
+	case 27:
 		my_pardiso_test4();
 		break;
 
@@ -31227,7 +31224,7 @@ int main(int argc, char **argv)
 		break;
 
 	case INLA_MODE_TESTIT:
-		testit(argc-optind, &(argv[optind]));
+		testit(argc - optind, &(argv[optind]));
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
