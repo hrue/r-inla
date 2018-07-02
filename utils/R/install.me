@@ -87,7 +87,17 @@ cp $mf $md/$mf
 SRC=INLA-source.tgz
 tar cvfzh INLA-source.tgz INLA
 
-R --vanilla CMD build --keep-empty-dirs --no-build-vignettes --resave-data --log INLA || exit 1
+
+## If required, build with ``--no-build-vignettes''
+if R --vanilla CMD build --keep-empty-dirs --resave-data --log INLA; then
+    echo '*** Build OK'
+else
+    if R --vanilla CMD build --keep-empty-dirs --no-build-vignettes --resave-data --log INLA; then
+	echo '*** Build without rebuilding vignettes OK'
+    else
+	exit 1
+    fi
+fi
 
 INLA=$(echo INLA_*.tar.gz)
 tgzINLA=${INLA%%.tar.gz}.tgz
