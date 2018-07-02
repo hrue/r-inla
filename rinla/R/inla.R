@@ -954,7 +954,9 @@
                            "] even after trying a random dirname. I give up.", sep=""))
             }
         }
-        cat("Model and results are stored in working directory [", inla.dir,"]\n", sep="")
+        if (verbose) {
+            cat("Model and results are stored in working directory [", inla.dir,"]\n", sep="")
+        }
     } else {
         ##create a temporary directory
         inla.dir=inla.tempfile()
@@ -1965,7 +1967,7 @@
             if (verbose) {
                 echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
             } else {
-                echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log,
+                echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", shQuote(file.log),
                     inla.ifelse(silent == 2L, " 2>/dev/null", "")))
             }
         } else if (inla.os("windows")) {
