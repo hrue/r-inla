@@ -954,7 +954,9 @@
                            "] even after trying a random dirname. I give up.", sep=""))
             }
         }
-        cat("Model and results are stored in working directory [", inla.dir,"]\n", sep="")
+        if (verbose) {
+            cat("Model and results are stored in working directory [", inla.dir,"]\n", sep="")
+        }
     } else {
         ##create a temporary directory
         inla.dir=inla.tempfile()
@@ -1965,7 +1967,7 @@
             if (verbose) {
                 echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
             } else {
-                echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log,
+                echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", shQuote(file.log),
                     inla.ifelse(silent == 2L, " 2>/dev/null", "")))
             }
         } else if (inla.os("windows")) {
@@ -2159,8 +2161,12 @@
     if (is.null(inla.dir)) {
         inla.dir = inla.tempdir()
     }
+
+    lic.filename = "pardiso.lic" ## do not change
+    lic.filename.dir = paste0(inla.dir, "/", lic.filename)
+    file.create(lic.filename.dir)
+    
     if (!is.null(inla.getOption("pardiso.license"))) {
-        lic.filename = "pardiso.lic" ## do not change
         lic.file = normalizePath(inla.getOption("pardiso.license"))
         lic.path = NA
         if (file.exists(lic.file)) {
@@ -2169,7 +2175,7 @@
                 if (info$isdir) {
                     lic.path = lic.file
                 } else if (!is.null(inla.dir)) {
-                    file.copy(lic.file, paste0(inla.dir, "/", lic.filename))
+                    file.copy(lic.file, lic.filename.dir, overwrite=TRUE)
                     lic.path = inla.dir
                 } else {
                     stop("This should not happen")
