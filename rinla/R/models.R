@@ -102,7 +102,6 @@
                      n.div.by = NULL,
                      n.required = FALSE,
                      set.default.values = FALSE,
-                     status = "experimental", 
                      pdf = "mec"
                  ),
 
@@ -140,7 +139,6 @@
                      n.div.by = NULL,
                      n.required = FALSE,
                      set.default.values = FALSE,
-                     status = "experimental", 
                      pdf = "meb"
                  ),
 
