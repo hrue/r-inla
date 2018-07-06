@@ -108,13 +108,15 @@ static const char RCSId[] = HGVERSION;
 #define MODEFILENAME ".inla-mode"
 #define MODEFILENAME_FMT "%02x"
 
-#define TSTRATA_MAXTHETA (11)				       /* as given in models.R */
-#define SPDE2_MAXTHETA   (100)				       /* as given in models.R */
-#define SPDE3_MAXTHETA (100)				       /* as given in models.R */
-#define GENERIC3_MAXTHETA (11)				       /* as given in models.R */
-#define AR_MAXTHETA   (10)				       /* as given in models.R */
-#define LINK_MAXTHETA (10)				       /* as given in models.R */
-#define STRATA_MAXTHETA (10)				       /* as given in models.R */
+#define TSTRATA_MAXTHETA (11L)				       /* as given in models.R */
+#define SPDE2_MAXTHETA (100L)				       /* as given in models.R */
+#define SPDE3_MAXTHETA (100L)				       /* as given in models.R */
+#define GENERIC3_MAXTHETA (11L)			       /* as given in models.R */
+#define AR_MAXTHETA (10L)				       /* as given in models.R */
+#define LINK_MAXTHETA (10L)				       /* as given in models.R */
+#define STRATA_MAXTHETA (10L)				       /* as given in models.R */
+#define NMIX_MMAX (10L)				       /* as given in models.R */
+#define POM_MAX (10L)				               /* as given in models.R */
 
 G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 
@@ -3775,6 +3777,11 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[1] = ds->data_observations.cbinomial_n = Calloc(mb->predictor_ndata, double);
 		break;
 
+	case L_POM:
+		idiv = 2;
+		a[0] = NULL;
+		break;
+
 	case L_GAMMA:
 		idiv = 3;
 		a[0] = ds->data_observations.gamma_scale = Calloc(mb->predictor_ndata, double);
@@ -3942,16 +3949,16 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		int dim_y;
 		// this case is a bit special, as the real data 'y' is fake, and the list
 		// of replicated data is in the 'a' below.
-		assert(ncol_data_all >= 3L + L_NMIX_MMAX && ncol_data_all < _DIM_A);
+		assert(ncol_data_all >= 3L + NMIX_MMAX && ncol_data_all < _DIM_A);
 		idiv = ncol_data_all;
-		ds->data_observations.nmix_x = Calloc(L_NMIX_MMAX, double *);
-		dim_y = ncol_data_all - L_NMIX_MMAX - 2L;
+		ds->data_observations.nmix_x = Calloc(NMIX_MMAX, double *);
+		dim_y = ncol_data_all - NMIX_MMAX - 2L;
 		ds->data_observations.nmix_y = Calloc(dim_y + 1, double *);	/* yes, its +1 */
-		for (i = 0; i < L_NMIX_MMAX; i++) {
+		for (i = 0; i < NMIX_MMAX; i++) {
 			a[i] = ds->data_observations.nmix_x[i] = Calloc(mb->predictor_ndata, double);
 		}
 		for (i = 0; i < dim_y; i++) {
-			a[i + L_NMIX_MMAX] = ds->data_observations.nmix_y[i] = Calloc(mb->predictor_ndata, double);
+			a[i + NMIX_MMAX] = ds->data_observations.nmix_y[i] = Calloc(mb->predictor_ndata, double);
 		}
 		// fill the fake column of NA's so we know when to stop
 		ds->data_observations.nmix_y[dim_y] = Calloc(mb->predictor_ndata, double);
@@ -10051,6 +10058,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "CBINOMIAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_cbinomial;
 		ds->data_id = L_CBINOMIAL;
+	} else if (!strcasecmp(ds->data_likelihood, "POM")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_pom;
+		ds->data_id = L_POM;
 	} else if (!strcasecmp(ds->data_likelihood, "GAMMA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gamma;
 		ds->data_id = L_GAMMA;
@@ -10398,6 +10408,45 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 		break;
+
+	case L_POM:
+	{
+		int nclasses = -1, iy;
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				iy = (int) ds->data_observations.y[i];
+				nclasses = IMAX(nclass, iy);
+				if (iy <= 0) {
+					GMRFLib_sprintf(&msg, "%s: POM data[%1d] (y) = %g is void\n", secname, i,
+							ds->data_observations.y[i]);							
+					inla_error_general(msg);
+				}
+				if (iy != (int)  ds->data_observations.y[i]) {
+					GMRFLib_sprintf(&msg, "%s: POM data[%1d] (y) = (%g) is not an integer\n", secname, i,
+							ds->data_observations.y[i]);							
+					inla_error_general(msg);
+				}
+			}
+		}
+		ds->data_observations.pom_nclasses = nclasses;
+		assert(nclasses > 0);
+
+		int *check = Calloc(nclasses + 1, int);
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				iy = (int) ds->data_observations.y[i];
+				check[iy] = 1;
+			}
+		}
+		for(int k = 1; k <= nclasses, k++) {
+			if (check[k] == 0) {
+				GMRFLib_sprintf(&msg, "%s: POM: There are no observations for class [%1d]. Not allowed\n", secname, k);
+				inla_error_general(msg);
+			}
+		}
+		Free(check);
+	}
+	break;
 
 	case L_GAMMACOUNT:
 		for (i = 0; i < mb->predictor_ndata; i++) {
@@ -13622,8 +13671,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		// first we need to know 'm'. 
 
 		found = 0;
-		ds->data_observations.nmix_m = L_NMIX_MMAX;
-		for (i = 0; i < L_NMIX_MMAX && !found; i++) {
+		ds->data_observations.nmix_m = NMIX_MMAX;
+		for (i = 0; i < NMIX_MMAX && !found; i++) {
 			for (int j = 0; j < mb->predictor_ndata; j++) {
 				if (gsl_isnan(ds->data_observations.nmix_x[i][j])) {
 					found = 1;
@@ -13635,18 +13684,18 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tnmix.m=[%1d]\n", ds->data_observations.nmix_m);
 		}
-		assert(ds->data_observations.nmix_m > 0 && ds->data_observations.nmix_m <= L_NMIX_MMAX);
-		ds->data_observations.nmix_beta = Calloc(L_NMIX_MMAX + 1, double **);	/* yes, its +1 to cover the NB case */
-		ds->data_nprior = Calloc(L_NMIX_MMAX + 1, Prior_tp);
-		ds->data_nfixed = Calloc(L_NMIX_MMAX + 1, int);
+		assert(ds->data_observations.nmix_m > 0 && ds->data_observations.nmix_m <= NMIX_MMAX);
+		ds->data_observations.nmix_beta = Calloc(NMIX_MMAX + 1, double **);	/* yes, its +1 to cover the NB case */
+		ds->data_nprior = Calloc(NMIX_MMAX + 1, Prior_tp);
+		ds->data_nfixed = Calloc(NMIX_MMAX + 1, int);
 
 		int k;
-		for (k = 0; k < L_NMIX_MMAX; k++) {
+		for (k = 0; k < NMIX_MMAX; k++) {
 			ds->data_nfixed[k] = 1;		       /* so that the unused ones are fixed, so we can loop over all in the 'extra'
 							        * function */
 		}
 
-		for (k = 0; k < L_NMIX_MMAX; k++) {
+		for (k = 0; k < NMIX_MMAX; k++) {
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", k);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
@@ -13724,7 +13773,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		if (ds->data_id == L_NMIXNB) {
-			k = L_NMIX_MMAX;		       /* this the overdisperson */
+			k = NMIX_MMAX;		       /* this the overdisperson */
 
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", k);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);
@@ -23414,7 +23463,7 @@ double extra(double *theta, int ntheta, void *argument)
 				break;
 
 			case L_NMIX:
-				for (int k = 0; k < L_NMIX_MMAX; k++) {
+				for (int k = 0; k < NMIX_MMAX; k++) {
 					if (!ds->data_nfixed[k]) {
 						beta = theta[count];
 						val += PRIOR_EVAL(ds->data_nprior[k], &beta);
@@ -23427,7 +23476,7 @@ double extra(double *theta, int ntheta, void *argument)
 				/*
 				 *  the last one here is the log_overdispersion, which I do not rename to, for simplicity
 				 */
-				for (int k = 0; k < L_NMIX_MMAX + 1; k++) {
+				for (int k = 0; k < NMIX_MMAX + 1; k++) {
 					if (!ds->data_nfixed[k]) {
 						beta = theta[count];
 						val += PRIOR_EVAL(ds->data_nprior[k], &beta);
