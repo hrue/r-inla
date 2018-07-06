@@ -20760,9 +20760,20 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			GMRFLib_rwdef_tp *rwdef = NULL;
 
 			if (mb->f_locations[mb->nf]) {
-				printf("\n*** Warning ***\tModel[%s] in Section[%s] has cyclic = TRUE but values != NULL.\n", model, secname);
-				printf("*** Warning ***\tCylic = TRUE is not implemented for non-equal spaced values.\n");
-				printf("*** Warning ***\tAssume values are equal spaced.\n\n");
+				int ok = 1;
+				double diff = mb->f_locations[mb->nf][1] - mb->f_locations[mb->nf][0];
+
+				for(int j = 2; j < mb->f_n[mb->nf]; j++) {
+					if (mb->f_locations[mb->nf][j] - mb->f_locations[mb->nf][j-1] != diff) {
+						ok = 0;
+						break;
+					}
+				}
+				if (!ok) {
+					printf("\n*** Warning ***\tModel[%s] in Section[%s] has cyclic = TRUE but values != NULL.\n", model, secname);
+					printf("*** Warning ***\tCylic = TRUE is not implemented for non-equal spaced values.\n");
+					printf("*** Warning ***\tAssume values are equal spaced.\n\n");
+				}
 			}
 
 			int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
