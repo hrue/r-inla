@@ -20770,9 +20770,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					}
 				}
 				if (!ok) {
-					printf("\n*** Warning ***\tModel[%s] in Section[%s] has cyclic = TRUE but values != NULL.\n", model, secname);
-					printf("*** Warning ***\tCylic = TRUE is not implemented for non-equal spaced values.\n");
-					printf("*** Warning ***\tAssume values are equal spaced.\n\n");
+					fprintf(stderr, "\n*** Warning ***\tModel[%s] in Section[%s] has cyclic = TRUE but values != NULL.\n", model, secname);
+					fprintf(stderr, "*** Warning ***\tCylic = TRUE is not implemented for non-equal spaced values.\n");
+					fprintf(stderr, "*** Warning ***\tAssume values are equal spaced.\n\n");
 				}
 			}
 
