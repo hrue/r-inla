@@ -56,7 +56,6 @@ __BEGIN_DECLS
 #define FIFO_PUT "inla-mcmc-fifo-put"
 #define FIFO_GET_DATA "inla-mcmc-fifo-get-data"
 #define FIFO_PUT_DATA "inla-mcmc-fifo-put-data"
-#define L_NMIX_MMAX  (10L)				       /* the same number is in models.R */
 
 /* 
  *
@@ -174,6 +173,12 @@ typedef struct {
 	 */
 	double *strata;					       /* type int */
 	double ***log_sizes;
+
+	/* 
+	 * y ~ POM
+	 */
+	double ***pom_theta;
+	int pom_nclasses;
 
 	/*
 	 * y ~ Normal(x, 1/(weight*prec)), also used for the log-normal
@@ -477,6 +482,7 @@ typedef enum {
 	L_LOGLOGISTICSURV,
 	L_QLOGLOGISTIC,
 	L_QLOGLOGISTICSURV,
+	L_POM, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
