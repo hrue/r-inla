@@ -5119,7 +5119,7 @@
                              prior = "normal",
                              param = c(-1, 1),
                              to.theta = function(x) x, 
-                             from.theta = function(x) x, 
+                             from.theta = function(x) x
                              ), 
                          theta2 = list(
                              hyperid =  57102,
@@ -5130,7 +5130,7 @@
                              prior = "normal",
                              param = c(-0.5, 8),
                              to.theta = function(x) log(x), 
-                             from.theta = function(x) exp(x), 
+                             from.theta = function(x) exp(x)
                              ), 
                          theta3 = list(
                              hyperid =  57103,
@@ -5141,7 +5141,7 @@
                              prior = "normal",
                              param = c(-0.5, 8),
                              to.theta = function(x) log(x), 
-                             from.theta = function(x) exp(x), 
+                             from.theta = function(x) exp(x)
                              ), 
                          theta4 = list(
                              hyperid =  57104,
@@ -5152,7 +5152,7 @@
                              prior = "normal",
                              param = c(-0.5, 8),
                              to.theta = function(x) log(x), 
-                             from.theta = function(x) exp(x), 
+                             from.theta = function(x) exp(x) 
                              ), 
                          theta5 = list(
                              hyperid =  57105,
@@ -5163,7 +5163,7 @@
                              prior = "normal",
                              param = c(-0.5, 8),
                              to.theta = function(x) log(x), 
-                             from.theta = function(x) exp(x), 
+                             from.theta = function(x) exp(x) 
                              ), 
                          theta6 = list(
                              hyperid =  57106,
@@ -5174,7 +5174,7 @@
                              prior = "normal",
                              param = c(-0.5, 8),
                              to.theta = function(x) log(x), 
-                             from.theta = function(x) exp(x), 
+                             from.theta = function(x) exp(x) 
                              ), 
                          theta7 = list(
                              hyperid =  57107,
@@ -5185,7 +5185,7 @@
                              prior = "normal",
                              param = c(-0.5, 8),
                              to.theta = function(x) log(x), 
-                             from.theta = function(x) exp(x), 
+                             from.theta = function(x) exp(x) 
                              ), 
                          theta8 = list(
                              hyperid =  57108,
@@ -5196,7 +5196,7 @@
                              prior = "normal",
                              param = c(-0.5, 8),
                              to.theta = function(x) log(x), 
-                             from.theta = function(x) exp(x), 
+                             from.theta = function(x) exp(x) 
                              ), 
                          theta9 = list(
                              hyperid =  57109,
@@ -5207,7 +5207,7 @@
                              prior = "normal",
                              param = c(-0.5, 8),
                              to.theta = function(x) log(x), 
-                             from.theta = function(x) exp(x), 
+                             from.theta = function(x) exp(x) 
                              ), 
                          theta10 = list(
                              hyperid =  57110,
@@ -5218,8 +5218,8 @@
                              prior = "normal",
                              param = c(-0.5, 8),
                              to.theta = function(x) log(x), 
-                             from.theta = function(x) exp(x), 
-                             ), 
+                             from.theta = function(x) exp(x) 
+                             )
                          ),
                      status = "experimental", 
                      survival = FALSE,
