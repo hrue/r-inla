@@ -561,6 +561,7 @@ typedef enum {
 	P_PC_GAMMACOUNT,
 	P_REF_AR,					       /* Reference prior for AR(p) for p=1,2,3 */
 	P_INVALID,
+	P_POM, 
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
@@ -1703,6 +1704,7 @@ int my_file_exists(const char *filename);
 int my_dir_exists(const char *dirname);
 int my_setenv(char *str, int prefix);
 int testit(int argc, char **argv);
+int pom_default_prior(double *mean, double *prec, int class, int nclasses);
 map_table_tp *mapfunc_find(const char *name);
 unsigned char *inla_fp_sha1(FILE * fp);
 unsigned char *inla_inifile_sha1(const char *filename);
