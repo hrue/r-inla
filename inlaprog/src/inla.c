@@ -165,7 +165,6 @@ G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 		}							\
 	}
 
-
 #define WRITE(fd, buf, num, type)					\
 	if (1) {							\
 		if (num > 0) {						\
@@ -3487,6 +3486,33 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 #undef COMPUTE_Q
 
 	return val;
+}
+
+int pom_default_prior(double *mean, double *prec, int class, int nclasses) 
+{
+	/* 
+	 * return the default POM prior which depends on the number of classes. theta1 is the offset and the remaining ones, are
+	 * log differences, for the cutpoints
+	 */
+#define _Qfun(_alpha) log((_alpha)/(1.0-(_alpha)))
+	double m, sd, range = _Qfun(0.975) - _Qfun(0.025), nc = (double)nclasses;
+
+	if (class == 1) {
+		m = _Qfun(1.0/nc);
+		sd = range/nc/4.0;
+	} else {
+		if (class > nc) {
+			m = NAN;
+		} else {
+			m = log(_Qfun(class/nc) - _Qfun((class-1.0)/nc));
+		}
+		sd = 0.25;
+	}
+	if (mean) *mean = m;
+	if (prec) *prec = 1/SQR(sd);
+
+#undef Qfun
+	return GMRFLib_SUCCESS;
 }
 double Qfunc_besag(int i, int j, void *arg)
 {
@@ -8313,7 +8339,7 @@ int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 	GMRFLib_sprintf(&d, "TO.THETA%1d", N);
 	GMRFLib_sprintf(&e, "HYPERID%1d", N);
 	val =
-	    inla_read_prior_generic(mb, ini, sec, prior, (const char *) a, (const char *) b, (const char *) c, (const char *) d,
+		inla_read_prior_generic(mb, ini, sec, prior, (const char *) a, (const char *) b, (const char *) c, (const char *) d,
 				    (const char *) e, default_prior);
 	Free(a);
 	Free(b);
@@ -8833,6 +8859,16 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		}
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g]\n", prior_tag, param_tag, prior->parameters[0]);
+		}
+	} else if (!strcasecmp(prior->name, "POM")) {
+		// the parameters of the Gaussian prior is set where this function is called
+		prior->id = P_GAUSSIAN;
+		prior->priorfunc = priorfunc_gaussian;
+		prior->parameters = Calloc(2, double);
+		prior->parameters[0] = NAN;
+		prior->parameters[1] = NAN;
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
 	} else if (!strcasecmp(prior->name, "REFAR")) {
 		prior->id = P_REF_AR;
@@ -11015,23 +11051,31 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_POM: 
+	{
 		/* 
 		 * get options for the POM model. note that all theta`K' for K > nclasses-1 are not used and must be fixed no
 		 * matter their input.
 		 */
+		int nclasses = ds->data_observations.pom_nclasses;
 		ds->data_observations.pom_theta = Calloc(POM_MAXTHETA, double **);
 		ds->data_nfixed = Calloc(POM_MAXTHETA, int);
 		ds->data_nprior = Calloc(POM_MAXTHETA, Prior_tp);
 
 		if (mb->verbose) {
-			printf("\tPOM nclasses [%d]\n", ds->data_observations.pom_nclasses);
+			printf("\tPOM nclasses = [%1d]\n", nclasses);
 		}
 
 		for (int count = 0; count < POM_MAXTHETA; count++) {
 			char *ctmp = NULL;
+			double pom_m, pom_prec;
+			
+			pom_default_prior(&pom_m, &pom_prec, count + 1, nclasses);
 
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", count);
-			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), -1.0);
+			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), NAN);
+			if (ISNAN(tmp)) {
+				tmp = pom_m;
+			}
 			
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", count);
 			ds->data_nfixed[count] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
@@ -11047,8 +11091,20 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\tinitialise theta%1d[%g]\n", count + 1, ds->data_observations.pom_theta[count][0][0]);
 				printf("\t\tfixed%1d=[%1d]\n", count + 1, ds->data_nfixed[count]);
 			}
-			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "GAUSSIAN-std", count);
-
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "POM", count);
+			if (ds->data_nprior[count].id == P_GAUSSIAN) {
+				if (ISNAN(ds->data_nprior[count].parameters[0])) {
+					ds->data_nprior[count].parameters[0] = pom_m;
+				}
+				if (ISNAN(ds->data_nprior[count].parameters[1])) {
+					ds->data_nprior[count].parameters[1] = pom_prec;
+				} 
+				if (mb->verbose) {
+					printf("\t\tPOM prior%1d = Gaussian[%g %g]\n", count + 1,
+					       ds->data_nprior[count].parameters[0], ds->data_nprior[count].parameters[1]);
+				}
+			}
+						
 			/*
 			 * add theta 
 			 */
@@ -11081,6 +11137,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				ds->data_ntheta++;
 			}
 		}
+	}
 		break;
 
 	case L_CIRCULAR_NORMAL:
