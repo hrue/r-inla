@@ -5417,15 +5417,13 @@ int loglikelihood_pom(double *logll, double *x, int m, int idx, double *x_vec, d
 		return GMRFLib_SUCCESS;
 	}
 
-	double alpha[POM_MAXTHETA], eta, theta;
+	double *alpha = NULL, eta, theta;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	int i, k, iy = ds->data_observations.y[idx], nclasses = ds->data_observations.pom_nclasses;
+	int i, k, iy = (int) ds->data_observations.y[idx], nclasses = ds->data_observations.pom_nclasses;
 
-	for(i = 0; i < POM_MAXTHETA; i++) {
-		alpha[i] = NAN;					       /*  not in use */
-	}
+	alpha = Calloc(nclasses, double);
 	for(i = 0; i < nclasses - 1; i++) {
-		k = i + 1;
+		k = 1 + i;
 		theta = map_identity(ds->data_observations.pom_theta[i][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 		alpha[k] = (k == 1 ?  theta : alpha[k-1] + exp(theta));
 	}
@@ -5440,9 +5438,11 @@ int loglikelihood_pom(double *logll, double *x, int m, int idx, double *x_vec, d
 		assert(0 == 1);
 	}
 
+	Free(alpha);
 	LINK_END;
 #undef _P
 #undef _F_CORE
+	
 	return GMRFLib_SUCCESS;
 }
 
@@ -11070,7 +11070,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			double pom_m, pom_prec;
 			
 			pom_default_prior(&pom_m, &pom_prec, count + 1, nclasses);
-
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", count);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), NAN);
 			if (ISNAN(tmp)) {
@@ -23675,7 +23674,6 @@ double extra(double *theta, int ntheta, void *argument)
 					}
 				}
 				break;
-
 
 			default:
 				/*
