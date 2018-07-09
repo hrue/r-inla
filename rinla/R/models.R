@@ -5108,7 +5108,7 @@
                      ),
 
                  pom = list(
-                     doc = "Proportional odds model", 
+                     doc = "Likelihood for the proportional odds model", 
                      hyper = list(
                          theta1 = list(
                              hyperid =  57101,
@@ -5227,8 +5227,6 @@
                      link = c("default", "identity"), 
                      pdf = "pom"
                      ),
-
-
 
                  gamma = list(
                      doc = "The Gamma likelihood", 
