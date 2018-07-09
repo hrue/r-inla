@@ -5116,8 +5116,8 @@
                              short.name = "theta1",
                              initial = NA,
                              fixed = FALSE,
-                             prior = "pom",
-                             param = numeric(0), 
+                             prior = "dirichlet",
+                             param = 3.0, 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                              ), 
@@ -5127,7 +5127,7 @@
                              short.name = "theta2",
                              initial = NA,
                              fixed = FALSE,
-                             prior = "pom",
+                             prior = "none",
                              param = numeric(0), 
                              to.theta = function(x) log(x), 
                              from.theta = function(x) exp(x)
@@ -5138,7 +5138,7 @@
                              short.name = "theta3",
                              initial = NA,
                              fixed = FALSE,
-                             prior = "pom",
+                             prior = "none",
                              param = numeric(0), 
                              to.theta = function(x) log(x), 
                              from.theta = function(x) exp(x)
@@ -5149,7 +5149,7 @@
                              short.name = "theta4",
                              initial = NA,
                              fixed = FALSE,
-                             prior = "pom",
+                             prior = "none",
                              param = numeric(0), 
                              to.theta = function(x) log(x), 
                              from.theta = function(x) exp(x) 
@@ -5160,7 +5160,7 @@
                              short.name = "theta5",
                              initial = NA,
                              fixed = FALSE,
-                             prior = "pom",
+                             prior = "none",
                              param = numeric(0), 
                              to.theta = function(x) log(x), 
                              from.theta = function(x) exp(x) 
@@ -5171,7 +5171,7 @@
                              short.name = "theta6",
                              initial = NA,
                              fixed = FALSE,
-                             prior = "pom",
+                             prior = "none",
                              param = numeric(0), 
                              to.theta = function(x) log(x), 
                              from.theta = function(x) exp(x) 
@@ -5182,7 +5182,7 @@
                              short.name = "theta7",
                              initial = NA,
                              fixed = FALSE,
-                             prior = "pom",
+                             prior = "none",
                              param = numeric(0), 
                              to.theta = function(x) log(x), 
                              from.theta = function(x) exp(x) 
@@ -5193,7 +5193,7 @@
                              short.name = "theta8",
                              initial = NA,
                              fixed = FALSE,
-                             prior = "pom",
+                             prior = "none",
                              param = numeric(0), 
                              to.theta = function(x) log(x), 
                              from.theta = function(x) exp(x) 
@@ -5204,7 +5204,7 @@
                              short.name = "theta9",
                              initial = NA,
                              fixed = FALSE,
-                             prior = "pom",
+                             prior = "none",
                              param = numeric(0), 
                              to.theta = function(x) log(x), 
                              from.theta = function(x) exp(x) 
@@ -5215,7 +5215,7 @@
                              short.name = "theta10",
                              initial = NA,
                              fixed = FALSE,
-                             prior = "pom",
+                             prior = "none",
                              param = numeric(0), 
                              to.theta = function(x) log(x), 
                              from.theta = function(x) exp(x) 
@@ -7200,6 +7200,11 @@
                      doc = "PC prior for the AR(p) model", 
                      nparameters = 1L,
                      pdf = "pc.ar"
+                 ),
+                 dirichlet = list(
+                     doc ="Dirichlet prior",
+                     nparameters = 1L,
+                     pdf = "dirichlet"
                  ),
 
                  ## this is the 'no prior needed' prior

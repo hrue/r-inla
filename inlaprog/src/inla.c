@@ -3146,9 +3146,66 @@ double priorfunc_loggamma(double *x, double *parameters)
 	 * return log(loggamma(x,a,b)). NOTE: if y ~ gamma(a,b), then log(y) ~ loggamma(a,b). 
 	 */
 	double val = exp(*x);
-
 	return priorfunc_gamma(&val, parameters) + (*x);
 }
+double priorfunc_dirichlet(double *x, double *parameters)
+{
+#define _F(_x) (1.0/(1.0+exp(-(_x))))
+#define _f(_x) (exp(-(_x)) / SQR(1.0 + exp(-(_x))))
+	
+	double alpha = parameters[0], nclasses = parameters[1], ld;
+	int K = (int) nclasses, k, debug = 0;
+	double *work = Calloc(4*K, double);
+	double *xx = work, *alphas = work + K, *qs = work + 2*K, *v = work + 3*K;
+	
+	// from the internal representation, x, to cutpoints, xx 
+	xx[0] = x[0];
+	for(k = 1; k < K-1; k++) {
+		xx[k] = xx[k-1] + exp(x[k]);
+	}
+	// from cutpoints, xx, to quantiles, qs
+	for(k = 0; k < K-1; k++) {
+		qs[k] = _F(xx[k]);
+	}
+	// from quantiles, qs, to Dirichlet variables, v
+	v[0] = qs[0];
+	for(k = 1; k < K-1; k++) {
+		v[k] = qs[k] - qs[k-1];
+	}
+	v[K-1] = 1.0 - qs[K-2];
+
+	for(k = 0; k < K; k++) {			       /* also to provide this */
+		alphas[k] = alpha;
+	}
+	ld = gsl_ran_dirichlet_lnpdf((size_t) K, alphas, v);
+
+	// finally, add the log-jacobian of the transformation. This is approximately correct, as there are K variables and a
+	// sum to 1 constr for the Dirichlet, but K-1 variables for the theta without the constr. Maybe look into this later
+	
+	ld += log(_f(xx[0]));
+	for(k = 1; k < K-1; k++){
+		ld += log(_f(xx[k])) + x[k];
+	}
+
+	if (debug) {
+		printf("priorfunc_dirichlet: alpha = %g  K=%1d\n", alpha, K);
+		for(int i = 0; i < K-1; i++){
+			printf("input theta[%1d] = %g\n", i, x[i]);
+		}
+		for(int i = 0; i < K; i++){
+			printf("input v[%1d] = %g\n", i, v[i]);
+		}
+		P(ld);
+	}
+	
+
+	Free(work);
+#undef _F
+#undef _f	
+
+	return (ld);
+}
+
 double priorfunc_gamma(double *x, double *parameters)
 {
 	/*
@@ -3488,32 +3545,6 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 	return val;
 }
 
-int pom_default_prior(double *mean, double *prec, int class, int nclasses) 
-{
-	/* 
-	 * return the default POM prior which depends on the number of classes. theta1 is the offset and the remaining ones, are
-	 * log differences, for the cutpoints
-	 */
-#define _Qfun(_alpha) log((_alpha)/(1.0-(_alpha)))
-	double m, sd, range = _Qfun(0.975) - _Qfun(0.025), nc = (double)nclasses;
-
-	if (class == 1) {
-		m = _Qfun(1.0/nc);
-		sd = range/nc/4.0;
-	} else {
-		if (class > nc) {
-			m = NAN;
-		} else {
-			m = log(_Qfun(class/nc) - _Qfun((class-1.0)/nc));
-		}
-		sd = 0.25;
-	}
-	if (mean) *mean = m;
-	if (prec) *prec = 1/SQR(sd);
-
-#undef Qfun
-	return GMRFLib_SUCCESS;
-}
 double Qfunc_besag(int i, int j, void *arg)
 {
 	inla_besag_Qfunc_arg_tp *a;
@@ -8860,15 +8891,22 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g]\n", prior_tag, param_tag, prior->parameters[0]);
 		}
-	} else if (!strcasecmp(prior->name, "POM")) {
-		// the parameters of the Gaussian prior is set where this function is called
-		prior->id = P_GAUSSIAN;
-		prior->priorfunc = priorfunc_gaussian;
-		prior->parameters = Calloc(2, double);
-		prior->parameters[0] = NAN;
-		prior->parameters[1] = NAN;
+	} else if (!strcasecmp(prior->name, "DIRICHLET")) {
+		prior->id = P_DIRICHLET;
+		prior->priorfunc = priorfunc_dirichlet;
+		if (param && inla_is_NAs(1, param) != GMRFLib_SUCCESS) {
+			prior->parameters = Calloc(2, double); /* yes, 2 */
+			if (inla_sread_doubles(prior->parameters, 1, param) == INLA_FAIL) {
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
+			}
+			prior->parameters[1] = NAN;	       /* number of classes, added later */
+		} else {
+			prior->parameters = Calloc(2, double);
+			prior->parameters[0] = 0.5;	       /* alpha */
+			prior->parameters[1] = NAN;	       /* number of classes, added later */
+		}
 		if (mb->verbose) {
-			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
+			printf("\t\t%s->%s=[%g]\n", prior_tag, param_tag, prior->parameters[0]);
 		}
 	} else if (!strcasecmp(prior->name, "REFAR")) {
 		prior->id = P_REF_AR;
@@ -11052,6 +11090,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_POM: 
 	{
+#define _Q(_x) log((_x)/(1.0-(_x)))
 		/* 
 		 * get options for the POM model. note that all theta`K' for K > nclasses-1 are not used and must be fixed no
 		 * matter their input.
@@ -11067,13 +11106,18 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 		for (int count = 0; count < POM_MAXTHETA; count++) {
 			char *ctmp = NULL;
-			double pom_m, pom_prec;
-			
-			pom_default_prior(&pom_m, &pom_prec, count + 1, nclasses);
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", count);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), NAN);
 			if (ISNAN(tmp)) {
-				tmp = pom_m;
+				if (count == 0) {
+					tmp = _Q(1.0/(nclasses + 1.0));
+				} else {
+					if (count < nclasses) {
+						tmp = log(_Q((count+1.0)/(nclasses + 1.0)) - _Q(count/(nclasses + 1.0)));
+					} else {
+						tmp = 0.0;     /* not in use */
+					}
+				}
 			}
 			
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", count);
@@ -11087,23 +11131,19 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			HYPER_NEW(ds->data_observations.pom_theta[count], tmp);
 
 			if (mb->verbose) {
-				printf("\t\tinitialise theta%1d[%g]\n", count + 1, ds->data_observations.pom_theta[count][0][0]);
-				printf("\t\tfixed%1d=[%1d]\n", count + 1, ds->data_nfixed[count]);
+				printf("\t\tinitialise theta%1d[%g]\n", count, ds->data_observations.pom_theta[count][0][0]);
+				printf("\t\tfixed%1d=[%1d]\n", count, ds->data_nfixed[count]);
 			}
-			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "POM", count);
-			if (ds->data_nprior[count].id == P_GAUSSIAN) {
-				if (ISNAN(ds->data_nprior[count].parameters[0])) {
-					ds->data_nprior[count].parameters[0] = pom_m;
-				}
-				if (ISNAN(ds->data_nprior[count].parameters[1])) {
-					ds->data_nprior[count].parameters[1] = pom_prec;
-				} 
-				if (mb->verbose) {
-					printf("\t\tPOM prior%1d = Gaussian[%g %g]\n", count + 1,
-					       ds->data_nprior[count].parameters[0], ds->data_nprior[count].parameters[1]);
-				}
+
+			if (count == 0) {
+				inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "DIRICHLET", count);
+				assert(ds->data_nprior[count].id == P_DIRICHLET);
+				ds->data_nprior[count].parameters[1] = nclasses;
+			} else {
+				inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "NONE", count);
+				assert(ds->data_nprior[count].id == P_NONE);
 			}
-						
+
 			/*
 			 * add theta 
 			 */
@@ -11136,6 +11176,19 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				ds->data_ntheta++;
 			}
 		}
+
+		int all_fixed = 1, all_nonfixed = 1;
+		for (int count = 0; count < nclasses -1 ; count++) {
+			all_fixed = (all_fixed && (ds->data_nfixed[count] == 1));
+			all_nonfixed = (all_nonfixed && (ds->data_nfixed[count] == 0));
+		}
+		if (all_fixed == 0 && all_nonfixed == 0) {
+			char *msg;
+			GMRFLib_sprintf(&msg, "Hyperparameters of the POM model must either be all fixed, or all non-fixed.");
+			inla_error_general(msg);
+			exit(1);
+		}
+#undef _Q
 	}
 		break;
 
@@ -23665,14 +23718,23 @@ double extra(double *theta, int ntheta, void *argument)
 				 */
 				break;
 
-			case L_POM:
+			case L_POM: 
+			{
+				double *v = Calloc(POM_MAXTHETA, double);
+				int v_count = 0;
+				
 				for (int k = 0; k < POM_MAXTHETA; k++) {
 					if (!ds->data_nfixed[k]) {
-						beta = theta[count];
-						val += PRIOR_EVAL(ds->data_nprior[k], &beta);
+						v[v_count] = theta[count];
+						v_count++;
 						count++;
 					}
 				}
+				if (v_count > 0) {
+					val += PRIOR_EVAL(ds->data_nprior[0], v);
+				}
+				Free(v);
+			}
 				break;
 
 			default:
