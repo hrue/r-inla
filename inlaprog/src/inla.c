@@ -111,12 +111,12 @@ static const char RCSId[] = HGVERSION;
 #define TSTRATA_MAXTHETA (11L)				       /* as given in models.R */
 #define SPDE2_MAXTHETA (100L)				       /* as given in models.R */
 #define SPDE3_MAXTHETA (100L)				       /* as given in models.R */
-#define GENERIC3_MAXTHETA (11L)			       /* as given in models.R */
+#define GENERIC3_MAXTHETA (11L)				       /* as given in models.R */
 #define AR_MAXTHETA (10L)				       /* as given in models.R */
 #define LINK_MAXTHETA (10L)				       /* as given in models.R */
 #define STRATA_MAXTHETA (10L)				       /* as given in models.R */
-#define NMIX_MMAX (10L)				       /* as given in models.R */
-#define POM_MAXTHETA (10L)				               /* as given in models.R */
+#define NMIX_MMAX (10L)					       /* as given in models.R */
+#define POM_MAXTHETA (10L)				       /* as given in models.R */
 
 G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 
@@ -3152,56 +3152,56 @@ double priorfunc_dirichlet(double *x, double *parameters)
 {
 #define _F(_x) (1.0/(1.0+exp(-(_x))))
 #define _f(_x) (exp(-(_x)) / SQR(1.0 + exp(-(_x))))
-	
+
 	double alpha = parameters[0], nclasses = parameters[1], ld;
 	int K = (int) nclasses, k, debug = 0;
-	double *work = Calloc(4*K, double);
-	double *xx = work, *alphas = work + K, *qs = work + 2*K, *v = work + 3*K;
-	
+	double *work = Calloc(4 * K, double);
+	double *xx = work, *alphas = work + K, *qs = work + 2 * K, *v = work + 3 * K;
+
 	// from the internal representation, x, to cutpoints, xx 
 	xx[0] = x[0];
-	for(k = 1; k < K-1; k++) {
-		xx[k] = xx[k-1] + exp(x[k]);
+	for (k = 1; k < K - 1; k++) {
+		xx[k] = xx[k - 1] + exp(x[k]);
 	}
 	// from cutpoints, xx, to quantiles, qs
-	for(k = 0; k < K-1; k++) {
+	for (k = 0; k < K - 1; k++) {
 		qs[k] = _F(xx[k]);
 	}
 	// from quantiles, qs, to Dirichlet variables, v
 	v[0] = qs[0];
-	for(k = 1; k < K-1; k++) {
-		v[k] = qs[k] - qs[k-1];
+	for (k = 1; k < K - 1; k++) {
+		v[k] = qs[k] - qs[k - 1];
 	}
-	v[K-1] = 1.0 - qs[K-2];
+	v[K - 1] = 1.0 - qs[K - 2];
 
-	for(k = 0; k < K; k++) {			       /* also to provide this */
+	for (k = 0; k < K; k++) {			       /* also to provide this */
 		alphas[k] = alpha;
 	}
 	ld = gsl_ran_dirichlet_lnpdf((size_t) K, alphas, v);
 
 	// finally, add the log-jacobian of the transformation. This is approximately correct, as there are K variables and a
 	// sum to 1 constr for the Dirichlet, but K-1 variables for the theta without the constr. Maybe look into this later
-	
+
 	ld += log(_f(xx[0]));
-	for(k = 1; k < K-1; k++){
+	for (k = 1; k < K - 1; k++) {
 		ld += log(_f(xx[k])) + x[k];
 	}
 
 	if (debug) {
 		printf("priorfunc_dirichlet: alpha = %g  K=%1d\n", alpha, K);
-		for(int i = 0; i < K-1; i++){
+		for (int i = 0; i < K - 1; i++) {
 			printf("input theta[%1d] = %g\n", i, x[i]);
 		}
-		for(int i = 0; i < K; i++){
+		for (int i = 0; i < K; i++) {
 			printf("input v[%1d] = %g\n", i, v[i]);
 		}
 		P(ld);
 	}
-	
+
 
 	Free(work);
 #undef _F
-#undef _f	
+#undef _f
 
 	return (ld);
 }
@@ -5440,7 +5440,7 @@ int loglikelihood_pom(double *logll, double *x, int m, int idx, double *x_vec, d
 #define _P(_class, _eta) (_class == 1 ? _F_CORE(alpha[_class] - (_eta)) : \
 	(_class == nclasses ? (1.0 - _F_CORE(alpha[_class -1] - (_eta))) : \
 	(_F_CORE(alpha[_class] - (_eta)) - _F_CORE(alpha[_class -1] - (_eta)))))
-	
+
 	/*
 	 * y ~ POM(alpha_k + eta)
 	 */
@@ -5453,10 +5453,10 @@ int loglikelihood_pom(double *logll, double *x, int m, int idx, double *x_vec, d
 	int i, k, iy = (int) ds->data_observations.y[idx], nclasses = ds->data_observations.pom_nclasses;
 
 	alpha = Calloc(nclasses, double);
-	for(i = 0; i < nclasses - 1; i++) {
+	for (i = 0; i < nclasses - 1; i++) {
 		k = 1 + i;
 		theta = map_identity(ds->data_observations.pom_theta[i][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-		alpha[k] = (k == 1 ?  theta : alpha[k-1] + exp(theta));
+		alpha[k] = (k == 1 ? theta : alpha[k - 1] + exp(theta));
 	}
 
 	LINK_INIT;
@@ -5473,7 +5473,7 @@ int loglikelihood_pom(double *logll, double *x, int m, int idx, double *x_vec, d
 	LINK_END;
 #undef _P
 #undef _F_CORE
-	
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -8370,7 +8370,7 @@ int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 	GMRFLib_sprintf(&d, "TO.THETA%1d", N);
 	GMRFLib_sprintf(&e, "HYPERID%1d", N);
 	val =
-		inla_read_prior_generic(mb, ini, sec, prior, (const char *) a, (const char *) b, (const char *) c, (const char *) d,
+	    inla_read_prior_generic(mb, ini, sec, prior, (const char *) a, (const char *) b, (const char *) c, (const char *) d,
 				    (const char *) e, default_prior);
 	Free(a);
 	Free(b);
@@ -10534,13 +10534,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				iy = (int) ds->data_observations.y[i];
 				nclasses = IMAX(nclasses, iy);
 				if (iy <= 0) {
-					GMRFLib_sprintf(&msg, "%s: POM data[%1d] (y) = %g is void\n", secname, i,
-							ds->data_observations.y[i]);							
+					GMRFLib_sprintf(&msg, "%s: POM data[%1d] (y) = %g is void\n", secname, i, ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
-				if (iy != (int)  ds->data_observations.y[i]) {
+				if (iy != (int) ds->data_observations.y[i]) {
 					GMRFLib_sprintf(&msg, "%s: POM data[%1d] (y) = (%g) is not an integer\n", secname, i,
-							ds->data_observations.y[i]);							
+							ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -10557,7 +10556,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				check[iy] = 1;
 			}
 		}
-		for(int k = 1; k <= nclasses; k++) {
+		for (int k = 1; k <= nclasses; k++) {
 			if (check[k] == 0) {
 				GMRFLib_sprintf(&msg, "%s: POM: There are no observations for class [%1d]. Not allowed\n", secname, k);
 				inla_error_general(msg);
@@ -10565,7 +10564,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		Free(check);
 	}
-	break;
+		break;
 
 	case L_GAMMACOUNT:
 		for (i = 0; i < mb->predictor_ndata; i++) {
@@ -11088,10 +11087,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
-	case L_POM: 
+	case L_POM:
 	{
 #define _Q(_x) log((_x)/(1.0-(_x)))
-		/* 
+		/*
 		 * get options for the POM model. note that all theta`K' for K > nclasses-1 are not used and must be fixed no
 		 * matter their input.
 		 */
@@ -11110,16 +11109,16 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), NAN);
 			if (ISNAN(tmp)) {
 				if (count == 0) {
-					tmp = _Q(1.0/(nclasses + 1.0));
+					tmp = _Q(1.0 / (nclasses + 1.0));
 				} else {
 					if (count < nclasses) {
-						tmp = log(_Q((count+1.0)/(nclasses + 1.0)) - _Q(count/(nclasses + 1.0)));
+						tmp = log(_Q((count + 1.0) / (nclasses + 1.0)) - _Q(count / (nclasses + 1.0)));
 					} else {
 						tmp = 0.0;     /* not in use */
 					}
 				}
 			}
-			
+
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", count);
 			ds->data_nfixed[count] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
 			if (count + 1 >= ds->data_observations.pom_nclasses) {
@@ -11178,7 +11177,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		int all_fixed = 1, all_nonfixed = 1;
-		for (int count = 0; count < nclasses -1 ; count++) {
+		for (int count = 0; count < nclasses - 1; count++) {
 			all_fixed = (all_fixed && (ds->data_nfixed[count] == 1));
 			all_nonfixed = (all_nonfixed && (ds->data_nfixed[count] == 0));
 		}
@@ -13996,7 +13995,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		if (ds->data_id == L_NMIXNB) {
-			k = NMIX_MMAX;		       /* this the overdisperson */
+			k = NMIX_MMAX;			       /* this the overdisperson */
 
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", k);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);
@@ -21035,14 +21034,15 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				int ok = 1;
 				double diff = mb->f_locations[mb->nf][1] - mb->f_locations[mb->nf][0];
 
-				for(int j = 2; j < mb->f_n[mb->nf]; j++) {
-					if (mb->f_locations[mb->nf][j] - mb->f_locations[mb->nf][j-1] != diff) {
+				for (int j = 2; j < mb->f_n[mb->nf]; j++) {
+					if (mb->f_locations[mb->nf][j] - mb->f_locations[mb->nf][j - 1] != diff) {
 						ok = 0;
 						break;
 					}
 				}
 				if (!ok) {
-					fprintf(stderr, "\n*** Warning ***\tModel[%s] in Section[%s] has cyclic = TRUE but values != NULL.\n", model, secname);
+					fprintf(stderr, "\n*** Warning ***\tModel[%s] in Section[%s] has cyclic = TRUE but values != NULL.\n",
+						model, secname);
 					fprintf(stderr, "*** Warning ***\tCylic = TRUE is not implemented for non-equal spaced values.\n");
 					fprintf(stderr, "*** Warning ***\tAssume values are equal spaced.\n\n");
 				}
@@ -23718,11 +23718,11 @@ double extra(double *theta, int ntheta, void *argument)
 				 */
 				break;
 
-			case L_POM: 
+			case L_POM:
 			{
 				double *v = Calloc(POM_MAXTHETA, double);
 				int v_count = 0;
-				
+
 				for (int k = 0; k < POM_MAXTHETA; k++) {
 					if (!ds->data_nfixed[k]) {
 						v[v_count] = theta[count];
