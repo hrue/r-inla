@@ -21,20 +21,20 @@ where
 \begin{displaymath}
     \gamma_k = \alpha_k - \eta.
 \end{displaymath}
-$\{\alpha_k\}$ is here increasing sequence of $K-1$ cut-off points, and $\eta$ is the
-linear predictor,
+$\{\alpha_k\}$ is here increasing sequence of $K-1$ cut-off points, 
 \begin{displaymath}
     \alpha_{0} = -\infty < \alpha_1 < \alpha_2 < \ldots < \alpha_{K-1}
-    < \alpha_K=1
+    < \alpha_K=1,
 \end{displaymath}
-The likelihood for an observation is then
+and $\eta$ is the linear predictor. The likelihood for an observation
+is then
 \begin{displaymath}
     \text{Prob}(y = k) = F(k) - F(k-1).
 \end{displaymath}
 
 \subsection*{Link-function}
 
-There is no option here.
+Not available.
 
 \subsection*{Hyperparameters}
 
@@ -47,7 +47,8 @@ and
     \alpha_{k} = \alpha_{k-1} + \exp(\theta_{k}) = \theta_1 +
     \sum_{j=2}^{k} \exp(\theta_j)
 \end{displaymath}
-for $k=2, \ldots, K-1$.
+for $k=2, \ldots, K-1$. The posteriors for $\{\alpha_k\}$ must be
+found through simulations as shown in the example below.
 
 \subsection*{Specification}
 
@@ -62,13 +63,24 @@ observations. Empty classes are not allowed.
 
 In the following example we estimate the parameters in a simulated
 example.
+{\small
 \verbatiminput{example-pom.R}
+}
 
 \subsection*{Notes}
 
+The prior for $\{\theta_k\}$ are fixed to the Dirichlet distribution
+for
+\begin{displaymath}
+    \left(F^{-1}(\alpha_1),\quad
+    F^{-1}(\alpha_2)- F^{-1}(\alpha_1),\quad
+    F^{-1}(\alpha_3)- F^{-1}(\alpha_2),\quad
+    \ldots,\quad
+    1-F^{-1}(\alpha_{K-1})\right)
+\end{displaymath}    
+with a common scale parameter; see \texttt{inla.doc("dirichlet", sec="prior")}
 
 \end{document}
-
 
 %%% Local Variables: 
 %%% TeX-master: t
