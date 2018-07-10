@@ -94,7 +94,7 @@ typedef enum {
 	INLA_MODE_GRAPH,
 	INLA_MODE_R,
 	INLA_MODE_FGN,
-	INLA_MODE_PARDISO, 
+	INLA_MODE_PARDISO,
 	INLA_MODE_TESTIT = 999
 } inla_mode_tp;
 
@@ -174,7 +174,7 @@ typedef struct {
 	double *strata;					       /* type int */
 	double ***log_sizes;
 
-	/* 
+	/*
 	 * y ~ POM
 	 */
 	double ***pom_theta;
@@ -482,7 +482,7 @@ typedef enum {
 	L_LOGLOGISTICSURV,
 	L_QLOGLOGISTIC,
 	L_QLOGLOGISTICSURV,
-	L_POM, 
+	L_POM,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -561,7 +561,7 @@ typedef enum {
 	P_PC_GAMMACOUNT,
 	P_REF_AR,					       /* Reference prior for AR(p) for p=1,2,3 */
 	P_INVALID,
-	P_DIRICHLET, 
+	P_DIRICHLET,
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
@@ -703,7 +703,7 @@ typedef struct {
 	inla_component_tp link_id;
 	link_func_tp *predictor_invlinkfunc;
 	void **predictor_invlinkfunc_arg;
-	
+
 	/*
 	 * the re-extention
 	 */
@@ -766,7 +766,7 @@ struct inla_tp_struct {
 	int verbose;
 	int strategy;
 	char *smtp;
-	
+
 	/*
 	 * parameters for global_nodes
 	 */
