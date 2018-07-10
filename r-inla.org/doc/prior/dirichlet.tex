@@ -7,11 +7,11 @@
 \section*{Dirichlet prior}
 
 \subsection*{Parametrization}
-This is a prior for $(\theta_1, \ldots, \theta_K)$, where
-$0<\theta_k<1$ and $\sum_{k=1}^{K} \theta_k = 1$. The density is
+This is a prior for $(\gamma_1, \ldots, \gamma_K)$, where
+$0<\gamma_k<1$ and $\sum_{k=1}^{K} \gamma_k = 1$. The density is
 \begin{displaymath}
-    \pi(\theta_1, \ldots, \theta_K) = \frac{\Gamma(K\alpha)}{\Gamma(\alpha)^{K}}
-    \prod_{k=1}^{K} \theta_i^{\alpha-1}
+    \pi(\gamma_1, \ldots, \gamma_K) = \frac{\Gamma(K\alpha)}{\Gamma(\alpha)^{K}}
+    \prod_{k=1}^{K} \gamma_i^{\alpha-1}
 \end{displaymath}
 using a common $\alpha$ for all $k$.
 
@@ -23,8 +23,9 @@ This prior for the hyperparameters is specified inside the
     \texttt{hyper = list(<theta> =
         list(prior="dirichlet", param=<alpha>))}
 \end{center}
-and the value of $K$ is implicit for that model (see for example the
-likelihood model \texttt{"pom"}).
+and the value of $K$ is implicit for corresponding model.
+
+
 
 \subsection*{Example}
 
