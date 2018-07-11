@@ -126,16 +126,14 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	int *nhyper = (int *) arg;
 	int nhyper_def = 5;
 	int debug = 0;
-	static int pardiso_ok = -1;
-
 	if (nhyper == NULL) {
 		nhyper = &nhyper_def;
 	}
 	// this check is done once only
-	if (pardiso_ok < 0) {
-		pardiso_ok = (GMRFLib_pardiso_check_install(1, 1) == GMRFLib_SUCCESS ? 1 : 0);
+	if (GMRFLib_pardiso_ok < 0) {
+		GMRFLib_pardiso_ok = (GMRFLib_pardiso_check_install(0, 1) == GMRFLib_SUCCESS ? 1 : 0);
 		if (debug) {
-			printf("%s:%1d: PARDISO installed and working? [%s]\n", __FILE__, __LINE__, (pardiso_ok ? "YES" : "NO"));
+			printf("%s:%1d: pardiso-library installed and working? [%s]\n", __FILE__, __LINE__, (GMRFLib_pardiso_ok ? "YES" : "NO"));
 		}
 	}
 
@@ -144,7 +142,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		smtp_store = *smtp;
 	}
 
-	if (pardiso_ok && (smtp_store == GMRFLib_SMTP_PARDISO || smtp_store == GMRFLib_SMTP_DEFAULT)) {
+	if (GMRFLib_pardiso_ok && (smtp_store == GMRFLib_SMTP_PARDISO || smtp_store == GMRFLib_SMTP_DEFAULT)) {
 		if (!(strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL || strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL)) {
 			strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
 			if (debug) {
