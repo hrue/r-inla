@@ -41,7 +41,8 @@ Suggests:
     Rgraphviz,
     rmarkdown,
     sn,
-    splancs
+    splancs,
+    spdep
 Imports:
     graphics,
     grDevices,
