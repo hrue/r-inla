@@ -44,7 +44,7 @@ else
     PDIR="$DIR/../../pardiso/libnopardiso/mac"
 fi
 
-export DYLD_LIBRARY_PATH="$DIR/first:$RHOME_LIB:$PDIR:$DIR:$LIBPNGPATH:/usr/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
+export DYLD_LIBRARY_PATH="$DIR/first:$RHOME_LIB:$PDIR:$DIR:$LIBPNGPATH:/usr/lib:/usr/local/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
     echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
     otool -L "$DIR/$prog"

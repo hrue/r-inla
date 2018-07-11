@@ -44,9 +44,12 @@ inla.knmodels.sample(
  }
  \value{
   A list with the following elements
-   \item{t}{The time index for each obervation, with length equals m*n.} 
-   \item{s}{The spatial index for each obervation, with length equals m*n.} 
-   \item{st}{The spacetime index for each obervation, with length equals m*n.} 
+   \item{time}{The time index for each obervation, 
+       with length equals m*n.} 
+   \item{space}{The spatial index for each obervation, 
+       with length equals m*n.} 
+   \item{spacetime}{The spacetime index for each obervation, 
+       with length equals m*n.} 
    \item{x}{A list with the following elements}
    \item{t.iid}{The unstructured main temporal effect part.}
    \item{t.str}{The structured main temporal effect part.}

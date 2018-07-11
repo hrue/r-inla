@@ -7,11 +7,16 @@ VERSION=snapshot
 # $(PREFIX)/doc/examples yourself.
 PREFIX = /usr/local
 
-## *** chose either one of these ***
-RLIB_INC = -DINLA_LIBR -I/usr/include/R -I/usr/share/R/include
-RLIB_LIB = -L/usr/lib/R/lib -lR
-##RLIB_INC = -I/usr/include -I/usr/include/R -I/usr/share/R/include
-##RLIB_LIB = -L/usr/lib -lRmath
+## *** chose either one of these; rgeneric requires the second version ***
+ifeq ($(INLA_WITHOUT_LIBR),1)
+  RLIB_INC = -DINLA_WITH_RMATH \
+		-I/usr/include -I/usr/include/R -I/usr/share/R/include
+  RLIB_LIB = -L/usr/lib -lRmath
+else
+  RLIB_INC = -DINLA_WITH_RMATH -DINLA_LIBR \
+		-I/usr/include -I/usr/include/R -I/usr/share/R/include
+  RLIB_LIB = -L/usr/lib -lRmath -L/usr/lib/R/lib -lR
+endif
 
 # select compilers and optimized compiler-options, add -fopenmp or similar to use OpenMP
 CC = gcc
@@ -76,7 +81,7 @@ CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DHGVERSION="\"${HGVERSION}\"
 
 
 INLA = inla
-OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/sha1.o src/spde.o src/spde2.o src/spde3.o src/eval.o src/interpol.o src/re.o src/ar.o src/bessel.o src/pc-priors.o src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o
+OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/sha1.o src/spde.o src/spde2.o src/spde3.o src/eval.o src/interpol.o src/re.o src/ar.o src/bessel.o src/pc-priors.o src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o src/libpardiso.o
 
 $(INLA) : $(OBJ)
 	$(LD) $(LDFLAGS) -o $@ $(OBJ) -L$(PREFIX)/lib  $(EXTLIBS)
