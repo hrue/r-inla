@@ -72,7 +72,7 @@
            ##! \code{timeref} to specify the time point to be the
            ##!   reference time in the contrast parametrization.
            timeref=1, 
-           ##! \item{spaceref} to specify the area to be the
+           ##! \code{spaceref} to specify the area to be the
            ##!   reference for the contrast parametrization.
            spaceref=1, 
            ##!  \code{...} where additional arguments can be 
@@ -85,13 +85,13 @@
            ##!   the prior using the \code{pc.prec} prior with 
            ##!   \code{param = c(0.5, 0.5)}. See documentation with 
            ##!   \code{?inla.doc("pc.prec")}.
+           ##! }
            ...),
        ##! \item{...}{Arguments to be passed to the 
        ##!   \code{\link{inla}} function.}
        ...)
 {
 ##! }
-##!}
 ##! \value{
 ##!  \code{inla.knmodels} returns an object of class \code{"inla"}. 
 ##!    or a list of objects of this class if it is asked to compute 
