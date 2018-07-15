@@ -940,7 +940,6 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
     {
         ## we compute the PC-prior on the fly using these two packages. Its somewhat quick.
         inla.require("HKprocess")
-        inla.require("FGN")
         
         to.theta = inla.models()$latent$fgn$hyper$theta2$to.theta
         from.theta = inla.models()$latent$fgn$hyper$theta2$from.theta
@@ -949,7 +948,7 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
             ans = c()
             Hseq = H
             for(H in Hseq) {
-                r = FGN::acvfFGN(H, n-1)
+                r = inla.acvfFGN(H, n-1)
                 res = HKprocess::ltzc(r, rep(0, n))
                 ans = c(ans,  as.numeric(res[2]))
             }
