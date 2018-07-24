@@ -17,11 +17,9 @@ Depends:
     Matrix,
     sp
 Suggests:
-    compiler,
     Deriv,
     devtools,
     doParallel,
-    FGN,
     fields,
     foreach,
     graph,
@@ -34,14 +32,14 @@ Suggests:
     mvtnorm,
     numDeriv,
     orthopolynom,
-    parallel,
     pixmap,
     rgdal,
     rgl,
     Rgraphviz,
     rmarkdown,
     sn,
-    splancs
+    splancs,
+    spdep
 Imports:
     graphics,
     grDevices,
@@ -52,7 +50,6 @@ Imports:
     utils
 VignetteBuilder: knitr
 BuildVignettes: true
-ByteCompile: no
 LazyData: true
 License: GPL (>= 2)
 Version: 99.99.9999

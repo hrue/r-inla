@@ -1,5 +1,3 @@
-## Export: inla.over_sp_mesh
-
 #' Check which mesh triangles are inside a polygon
 #'
 #' Wrapper for the \code{\link[sp]{over}} method to find triangle centroids

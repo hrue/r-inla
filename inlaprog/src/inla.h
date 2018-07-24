@@ -56,7 +56,6 @@ __BEGIN_DECLS
 #define FIFO_PUT "inla-mcmc-fifo-put"
 #define FIFO_GET_DATA "inla-mcmc-fifo-get-data"
 #define FIFO_PUT_DATA "inla-mcmc-fifo-put-data"
-#define L_NMIX_MMAX  (10L)				       /* the same number is in models.R */
 
 /* 
  *
@@ -95,6 +94,7 @@ typedef enum {
 	INLA_MODE_GRAPH,
 	INLA_MODE_R,
 	INLA_MODE_FGN,
+	INLA_MODE_PARDISO,
 	INLA_MODE_TESTIT = 999
 } inla_mode_tp;
 
@@ -173,6 +173,12 @@ typedef struct {
 	 */
 	double *strata;					       /* type int */
 	double ***log_sizes;
+
+	/*
+	 * y ~ POM
+	 */
+	double ***pom_theta;
+	int pom_nclasses;
 
 	/*
 	 * y ~ Normal(x, 1/(weight*prec)), also used for the log-normal
@@ -304,7 +310,7 @@ typedef struct {
 	/*
 	 * iid gamma 
 	 */
-	double *iid_gamma_weight;
+	double *iid_gamma_scale;
 	double **iid_gamma_log_shape;
 	double **iid_gamma_log_rate;
 
@@ -354,7 +360,7 @@ typedef struct {
 	 * Gamma 
 	 */
 	double **gamma_log_prec;
-	double *gamma_weight;				       /* the scalings 's' */
+	double *gamma_scale;				       /* the scalings 's' */
 
 	/*
 	 * MIX ~ Normal(x, 1/prec)
@@ -394,6 +400,7 @@ typedef struct {
 } Data_tp;
 
 typedef struct {
+	int idx;
 	int order;					       /* a copy of ds->link_order */
 	int variant;					       /* a copy of ds->link_variant */
 	int Ntrial;
@@ -406,6 +413,7 @@ typedef struct {
 	double **sensitivity_intern;
 	double **specificity_intern;
 	double **prob_intern;
+	double *scale;
 } Link_param_tp;
 
 /* 
@@ -474,6 +482,7 @@ typedef enum {
 	L_LOGLOGISTICSURV,
 	L_QLOGLOGISTIC,
 	L_QLOGLOGISTICSURV,
+	L_POM,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -552,6 +561,7 @@ typedef enum {
 	P_PC_GAMMACOUNT,
 	P_REF_AR,					       /* Reference prior for AR(p) for p=1,2,3 */
 	P_INVALID,
+	P_DIRICHLET,
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
@@ -579,7 +589,8 @@ typedef enum {
 	LINK_INVERSE,
 	LINK_QPOISSON,
 	LINK_QBINOMIAL,
-	LINK_QWEIBULL
+	LINK_QWEIBULL,
+	LINK_QGAMMA
 } inla_component_tp;
 
 
@@ -692,7 +703,7 @@ typedef struct {
 	inla_component_tp link_id;
 	link_func_tp *predictor_invlinkfunc;
 	void **predictor_invlinkfunc_arg;
-	
+
 	/*
 	 * the re-extention
 	 */
@@ -754,6 +765,7 @@ struct inla_tp_struct {
 	 */
 	int verbose;
 	int strategy;
+	char *smtp;
 
 	/*
 	 * parameters for global_nodes
@@ -1330,7 +1342,6 @@ GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp * 
 GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRFLib_constr_tp * constr);
 GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n);
 char *inla_create_hyperid(int id, const char *secname);
-char *inla_fnmfix(char *name);
 char *inla_make_tag(const char *string, int ds);
 const char *inla_string_join(const char *a, const char *b);
 double Qfunc_2diid(int i, int j, void *arg);
@@ -1374,6 +1385,7 @@ double extra(double *theta, int ntheta, void *argument);
 double iid_mfunc(int idx, void *arg);
 double inla_Phi(double x);
 double inla_Phi_fast(double x);
+double inla_sn_Phi(double x, double xi, double omega, double alpha);
 double inla_ar1_cyclic_logdet(int N_orig, double phi);
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec, void *arg);
 double inla_compute_saturated_loglik(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
@@ -1438,6 +1450,7 @@ double mfunc_sigm(int i, void *arg);
 double priorfunc_beta(double *x, double *parameters);
 double priorfunc_betacorrelation(double *x, double *parameters);
 double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logprec_iid, double *p_iid);
+double priorfunc_dirichlet(double *x, double *parameters);
 double priorfunc_flat(double *x, double *parameters);
 double priorfunc_gamma(double *precision, double *parameters);
 double priorfunc_gaussian(double *x, double *parameters);
@@ -1480,6 +1493,7 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q);
 int ar_pacf2phi(int p, double *pacf, double *phi);
 int ar_phi2pacf(int p, double *phi, double *pacf);
 int ar_test1();
+int inla_check_pardiso(void);
 int inla_fgn(char *H_arg, char *outfile);
 int count_f(inla_tp * mb, inla_component_tp id);
 int find_f(inla_tp * mb, inla_component_tp id);
@@ -1652,6 +1666,7 @@ int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, do
 int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_pom(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_qcontpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_qkumar(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_qloglogistic(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
