@@ -206,8 +206,8 @@
     ##:EXTRA: 
     ##:NAME: control.compute
     list(
-        ##:ARGUMENT: openmp.strategy The computational strategy to use: 'small', 'medium', 'large', 'huge' and 'default'. The difference is how the parallelisation is done, and is tuned for 'small'-sized models, 'medium'-sized models, etc. The default option tries to make an educated guess, but this allows to overide this selection. Default is 'default'
-        openmp.strategy = "default", ## "small", "medium", "large", "huge"
+        ##:ARGUMENT: openmp.strategy The computational strategy to use: 'small', 'medium', 'large', 'huge' and 'default'. There are also two options for the pardiso solver: 'pardiso.serial' and 'pardiso.parallel'. The difference is how the parallelisation is done, and is tuned for 'small'-sized models, 'medium'-sized models, etc. The default option tries to make an educated guess, but this allows to overide this selection. Default is 'default'
+        openmp.strategy = "default", ## "small", "medium", "large", "huge",  "pardiso.serial",  "pardiso.parallel"
 
         ##:ARGUMENT: hyperpar A boolean variable if the marginal for the hyperparameters should be computed. Default TRUE.
         hyperpar=TRUE,
@@ -236,7 +236,7 @@
         ##:ARGUMENT: config A boolean variable if the internal GMRF approximations be stored. (Default FALSE. EXPERIMENTAL)
         config=FALSE,
 
-        ##:ARGUMENT: smtp The sparse-matrix solver, one of 'smtp' (default) or 'band'
+        ##:ARGUMENT: smtp The sparse-matrix solver, one of 'default', 'taucs', 'band' or 'pardiso' (default \code{inla.getoption("smtp")})
         smtp = NULL,
 
         ##:ARGUMENT: graph A boolean variable if the graph itself should be returned. (Default FALSE.)

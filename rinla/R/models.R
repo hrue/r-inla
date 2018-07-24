@@ -102,7 +102,6 @@
                      n.div.by = NULL,
                      n.required = FALSE,
                      set.default.values = FALSE,
-                     status = "experimental", 
                      pdf = "mec"
                  ),
 
@@ -140,7 +139,6 @@
                      n.div.by = NULL,
                      n.required = FALSE,
                      set.default.values = FALSE,
-                     status = "experimental", 
                      pdf = "meb"
                  ),
 
@@ -5109,6 +5107,127 @@
                      pdf = "testbinomial1"
                      ),
 
+                 pom = list(
+                     doc = "Likelihood for the proportional odds model", 
+                     hyper = list(
+                         theta1 = list(
+                             hyperid =  57101,
+                             name = "theta1",
+                             short.name = "theta1",
+                             initial = NA,
+                             fixed = FALSE,
+                             prior = "dirichlet",
+                             param = 3.0, 
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                             ), 
+                         theta2 = list(
+                             hyperid =  57102,
+                             name = "theta2",
+                             short.name = "theta2",
+                             initial = NA,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(0), 
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x)
+                             ), 
+                         theta3 = list(
+                             hyperid =  57103,
+                             name = "theta3",
+                             short.name = "theta3",
+                             initial = NA,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(0), 
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x)
+                             ), 
+                         theta4 = list(
+                             hyperid =  57104,
+                             name = "theta4",
+                             short.name = "theta4",
+                             initial = NA,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(0), 
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x) 
+                             ), 
+                         theta5 = list(
+                             hyperid =  57105,
+                             name = "theta5",
+                             short.name = "theta5",
+                             initial = NA,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(0), 
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x) 
+                             ), 
+                         theta6 = list(
+                             hyperid =  57106,
+                             name = "theta6",
+                             short.name = "theta6",
+                             initial = NA,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(0), 
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x) 
+                             ), 
+                         theta7 = list(
+                             hyperid =  57107,
+                             name = "theta7",
+                             short.name = "theta7",
+                             initial = NA,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(0), 
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x) 
+                             ), 
+                         theta8 = list(
+                             hyperid =  57108,
+                             name = "theta8",
+                             short.name = "theta8",
+                             initial = NA,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(0), 
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x) 
+                             ), 
+                         theta9 = list(
+                             hyperid =  57109,
+                             name = "theta9",
+                             short.name = "theta9",
+                             initial = NA,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(0), 
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x) 
+                             ), 
+                         theta10 = list(
+                             hyperid =  57110,
+                             name = "theta10",
+                             short.name = "theta10",
+                             initial = NA,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(0), 
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x) 
+                             )
+                         ),
+                     status = "experimental", 
+                     survival = FALSE,
+                     discrete = TRUE,
+                     link = c("default", "identity"), 
+                     pdf = "pom"
+                     ),
+
                  gamma = list(
                      doc = "The Gamma likelihood", 
                      hyper = list(
@@ -5126,7 +5245,7 @@
                          ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "log"),
+                     link = c("default", "log", "quantile"),
                      pdf = "gamma"
                      ),
 
@@ -7080,6 +7199,11 @@
                      nparameters = 1L,
                      pdf = "pc.ar"
                  ),
+                 dirichlet = list(
+                     doc ="Dirichlet prior",
+                     nparameters = 1L,
+                     pdf = "dirichlet"
+                 ),
 
                  ## this is the 'no prior needed' prior
                  none = list(
@@ -7180,6 +7304,12 @@
                      doc = "Reference prior for the AR(p) model, p<=3", 
                      nparameters = 0L,
                      pdf = NA
+                 ),
+                 
+                 pom = list(
+                     doc = "#classes-dependent prior for the POM model", 
+                     nparameters = 0L,
+                     pdf = "pom"
                  ),
                  
                  jeffreystdf = list(
@@ -7309,11 +7439,14 @@
     stop("This should not happen")
 }
 
-`inla.is.model` = function(model, section = names(inla.models()),
+`inla.is.model` = function(model, section = NULL, 
         stop.on.error = TRUE, ignore.case = FALSE)
 {
-    section = match.arg(section)
     mm = inla.models()
+    if (is.null(section)) {
+        stop("No section given; please fix...")
+    }
+    section = match.arg(section, names(mm))
     models = names((mm[ names(mm) == section ])[[1]])
 
     if (is.character(model) && length(model) > 0) {
@@ -7350,15 +7483,15 @@
 
 `inla.model.properties` = function(
         model,
-        section = c("..invalid.model..", names(inla.models())),
+        section = NULL, 
         stop.on.error = TRUE,
         ignore.case = FALSE)
 {
-    section = match.arg(section)
-    if (section == "..invalid.model..")
+    if (is.null(section)) {
         stop("No section given; please fix...")
-
+    }
     mm = inla.models()
+    section = match.arg(section, names(mm))
     m = inla.model.properties.generic(inla.trim.family(model),
         (mm[names(mm) == section])[[1]],
         stop.on.error, ignore.case,
