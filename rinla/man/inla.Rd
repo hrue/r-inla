@@ -158,7 +158,7 @@ arguments. (OOPS: This is an expert option!)}
 \item{num.threads}{ Maximum number of threads the
 \code{inla}-program will use}
 \item{blas.num.threads}{The absolute value of \code{blas.num.threads} is the maximum
-number of threads the the \code{openblas}/\code{mklblas} will use. If
+number of threads the the \code{openblas}/\code{mklblas} will use (if available). If
 \code{blas.num.threads} > 0, then the environment variables
 \code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned. If
 \code{blas.num.threads} < 0, then the environment variables
