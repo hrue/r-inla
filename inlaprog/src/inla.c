@@ -31573,7 +31573,15 @@ int main(int argc, char **argv)
 	if (G.mode == INLA_MODE_DEFAULT || G.mode == INLA_MODE_HYPER) {
 		for (arg = optind; arg < argc; arg++) {
 			if (verbose) {
-				printf("Processing file [%s] max_threads=[%1d]\n", argv[arg], GMRFLib_MAX_THREADS);
+				int blas_num_threads = 0;
+				if (inla_sread_ints(&blas_num_threads, 1, getenv("OPENBLAS_NUM_THREADS")) != INLA_OK) {
+					if (inla_sread_ints(&blas_num_threads, 1, getenv("MKL_NUM_THREADS")) != INLA_OK) {
+						blas_num_threads = 0;
+					}
+				}
+				//openblas_set_num_threads(4);
+				printf("Process file[%s] threads[%1d] blas_threads[%1d]\n",
+				       argv[arg], GMRFLib_MAX_THREADS, blas_num_threads);
 			}
 			if (!silent) {
 				printf("\nWall-clock time used on [%s] max_threads=[%1d]\n", argv[arg], GMRFLib_MAX_THREADS);
