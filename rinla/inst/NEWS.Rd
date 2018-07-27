@@ -8,8 +8,7 @@
 \section{CHANGES IN VERSION 18.07.XX}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
-      \item NEWS page created
-      \item Added vignette about the conditional logit model (thanks to Stefani Muff)
+      \item
     }
   }
   \subsection{NEW FEATURES}{
@@ -25,6 +24,20 @@
   \subsection{BUG FIXES}{
     \itemize{
       \item
+    }
+  }
+}
+
+
+\section{CHANGES IN VERSION 18.07.XX}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item NEWS page created (see \code{news(package="INLA")})
+      \item Added vignette about the conditional logit model (thanks to
+      Stefani Muff)
+      \item Fixed missprints in the documentation for model \code{ar1c}
+      (Thanks to Virgilio Gomez Rubio)
+      \item Fixed documentation about argument \code{blas.num.threads} in \code{inla()}
     }
   }
 }
