@@ -160,11 +160,11 @@ arguments. (OOPS: This is an expert option!)}
 \item{blas.num.threads}{The absolute value of \code{blas.num.threads} is the maximum
 number of threads the the \code{openblas}/\code{mklblas} will use. If
 \code{blas.num.threads} > 0, then the environment variables
-\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned, unless they
-are already defined. If \code{blas.num.threads} < 0, then the environment variables
-\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be (possibly re)-assigned.
-If \code{blas.num.threads} = 0,  then variables \code{OPENBLAS_NUM_THREADS} and
-\code{MKL_NUM_THREADS} will be removed.}
+\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned. If
+\code{blas.num.threads} < 0, then the environment variables
+\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned unless they
+are already defined. If \code{blas.num.threads} = 0, then variables
+\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be removed.}
 \item{keep}{ A boolean variable indicating that the
 working files (ini file, data files and results
 files) should be kept. If TRUE and no
