@@ -4,7 +4,7 @@ author: "Stefanie Muff (stefanie.muff@uzh.ch), Johannes Signer, John Fieberg"
 date: "July 16th 2018"
 output: rmarkdown::pdf_document
 vignette: >
-  %\VignetteIndexEntry{rgeneric model}
+  %\VignetteIndexEntry{Conditional Logistic Regression Model}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
