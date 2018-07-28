@@ -5,7 +5,7 @@
 \encoding{UTF-8}
 
 
-\section{CHANGES IN VERSION 18.07.XX}{
+\section{CHANGES IN VERSION XX.XX.XX}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
       \item
@@ -29,7 +29,7 @@
 }
 
 
-\section{CHANGES IN VERSION 18.07.XX}{
+\section{CHANGES IN VERSION 18.07.27}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
       \item NEWS page created (see \code{news(package="INLA")})
