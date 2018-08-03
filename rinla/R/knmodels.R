@@ -2,6 +2,7 @@
 
 ##! \name{inla.knmodels}
 ##! \alias{inla.knmodels}
+##! \alias{knmodels}
 ##! \title{Spacetime interaction models}
 ##! \description{
 ##!    It implements the models in Knorr-Held, L. (2000) 
@@ -21,7 +22,7 @@
 ##!   type=c(paste(1:4), paste0(2:4, 'c'), paste0(2:4, 'd')), 
 ##!   diagonal=1e-5, 
 ##!   ...) 
-##!  )
+##! )
 ##!}
 ##! \arguments{
 `inla.knmodels` =
@@ -32,12 +33,10 @@
        ##!   will be added accordly to the specification in 
        ##!   the \code{control.st} argument. See \code{inla}}
        formula, 
-       ##! \item{progress}{If it is to be shown the model 
-       ##!   fitting progress. Useful if more than one 
-       ##!   interaction type is being fitted.}
-       progress=FALSE,
        ##! \item{control.st}{Named list of arguments to control
        ##!   the spacetime interaction. It should contains: 
+       ##!   IS MISSING HERE
+       ##!}
        control.st=list(
            ##!  \code{time} to be used as the index set for the
            ##!   main temporal effect which will be considered
@@ -47,8 +46,8 @@
            ##!   main spatial effect which will be considered
            ##!   for the constraints when it is the case.
            space,
-           ##!  \code{spacetime} to be the index set for the
-           ##!   spacetime interaction effect.
+           ##!  \code{spacetime} to be used as the index set for 
+           ##!   the spacetime interaction effect.
            spacetime,
            ##! \code{graph} to be the graph for the spatial neighbor 
            ##!   structure to be used in a \code{\link{f}} term 
@@ -69,10 +68,10 @@
            ##! \code{diagonal} to be the value to be added to the 
            ##!   diagonal when using the diagonal add approach.
            diagonal=1e-5, 
-           ##! \code{timeref} to specify the time point to be the
+           ##! \code{timeref} to specify the time point to be the 
            ##!   reference time in the contrast parametrization.
            timeref=1, 
-           ##! \item{spaceref} to specify the area to be the
+           ##! \item{spaceref} to specify the area to be the 
            ##!   reference for the contrast parametrization.
            spaceref=1, 
            ##!  \code{...} where additional arguments can be 
@@ -84,14 +83,18 @@
            ##!   By default we scale it and use the PC-prior to set 
            ##!   the prior using the \code{pc.prec} prior with 
            ##!   \code{param = c(0.5, 0.5)}. See documentation with 
-           ##!   \code{?inla.doc("pc.prec")}.
+           ##!   \code{?inla.doc("pc.prec")}
            ...),
+       ##!
+       ##! \item{progress}{If it is to be shown the model 
+       ##!   fitting progress. Useful if more than one 
+       ##!   interaction type is being fitted.}
+       progress=FALSE, 
        ##! \item{...}{Arguments to be passed to the 
        ##!   \code{\link{inla}} function.}
        ...)
 {
 ##! }
-##!}
 ##! \value{
 ##!  \code{inla.knmodels} returns an object of class \code{"inla"}. 
 ##!    or a list of objects of this class if it is asked to compute 
@@ -132,7 +135,6 @@
 ##!     f(space, model='bym2', graph=graph),
 ##!     data=dat, family='poisson', E=dat$E, progress=TRUE, 
 ##!     control.st=list(time=time, space=space, 
-##!        spacetime=spacetime, graph=graph, type=c(4, '4c', '4d')), 
 ##!     control.compute=list(dic=TRUE, waic=TRUE, cpo=TRUE))
 ##!sapply(res, function(x)
 ##!       c(dic=x$dic$dic, waic=x$waic$waic, cpo=-sum(log(x$cpo$cpo))))
