@@ -4686,6 +4686,10 @@
                      doc = "The quantile-link", 
                      hyper = list()
                  ), 
+                 pquantile = list(
+                     doc = "The population quantile-link", 
+                     hyper = list()
+                 ), 
                  sslogit = list(
                      doc = "Logit link with sensitivity and specificity", 
                      hyper = list(
@@ -5070,7 +5074,7 @@
                      survival = FALSE,
                      discrete = TRUE,
                      link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog",
-                              "log", "sslogit", "logitoffset", "quantile"),
+                              "log", "sslogit", "logitoffset", "quantile", "pquantile"),
                      pdf = "binomial"
                      ),
 

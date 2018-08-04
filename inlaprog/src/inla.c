@@ -1498,6 +1498,57 @@ double link_qgamma(double x, map_arg_tp typ, void *param, double *cov)
 }
 double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
 {
+	// individual link
+	Link_param_tp *lparam = (Link_param_tp *) param;
+	double q, ret;
+
+	switch (typ) {
+	case INVLINK:
+	{
+		q = 1.0 / (1.0 + exp(-x));
+		ret = MATHLIB_FUN(qbeta) (lparam->quantile, q + 1.0, 1.0 - q, 0, 0);
+	}
+		break;
+
+	case LINK:
+	{
+		CODE_NEEDED;
+	}
+		break;
+
+	case DINVLINK:
+	{
+		double dx = GMRFLib_eps(1.0 / 3.9134);	       // about 0.0001 on my laptop
+		double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
+		double wf_sum = 0.0;
+		int i, nwf = sizeof(wf) / sizeof(double), nwf2 = (nwf - 1) / 2;	/* gives 5 and 2 */
+
+		for (i = 0; i < nwf; i++) {
+			wf_sum += wf[i] * link_qbinomial(x + (i - nwf2) * dx, INVLINK, param, cov);
+		}
+		ret = wf_sum / dx;
+	}
+		break;
+
+	case LINKINCREASING:
+	{
+		return 1.0;
+	}
+		break;
+
+	default:
+	{
+		assert(0 == 1);
+	}
+		break;
+
+	}
+
+	return (ret);
+}
+double link_pqbinomial(double x, map_arg_tp typ, void *param, double *cov)
+{
+	// population link
 	Link_param_tp *lparam = (Link_param_tp *) param;
 	double q, ret;
 
@@ -1523,7 +1574,7 @@ double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
 		int i, nwf = sizeof(wf) / sizeof(double), nwf2 = (nwf - 1) / 2;	/* gives 5 and 2 */
 
 		for (i = 0; i < nwf; i++) {
-			wf_sum += wf[i] * link_qbinomial(x + (i - nwf2) * dx, INVLINK, param, cov);
+			wf_sum += wf[i] * link_pqbinomial(x + (i - nwf2) * dx, INVLINK, param, cov);
 		}
 		ret = wf_sum / dx;
 	}
@@ -14156,6 +14207,17 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->link_id = LINK_LOG;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_log;
+			break;
+		default:
+			assert(0 == 1);
+		}
+	} else if (!strcasecmp(ds->link_model, "PQUANTILE")) {
+		GMRFLib_ASSERT((ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0), GMRFLib_EPARAMETER);
+		switch (ds->data_id) {
+		case L_BINOMIAL:
+			ds->link_id = LINK_QBINOMIAL;
+			ds->link_ntheta = 0;
+			ds->predictor_invlinkfunc = link_pqbinomial;
 			break;
 		default:
 			assert(0 == 1);
@@ -28730,6 +28792,8 @@ int inla_output_linkfunctions(const char *dir, inla_tp * mb)
 			fprintf(fp, "quantile\n");
 		} else if (lf == link_qbinomial) {
 			fprintf(fp, "quantile\n");
+		} else if (lf == link_pqbinomial) {
+			fprintf(fp, "pquantile\n");
 		} else if (lf == link_qweibull) {
 			fprintf(fp, "quantile\n");
 		} else if (lf == NULL) {
