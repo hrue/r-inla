@@ -217,13 +217,13 @@
         num.threads = inla.getOption("num.threads"),
         
         ##!\item{blas.num.threads}{The absolute value of \code{blas.num.threads} is the maximum
-        ##!number of threads the the \code{openblas}/\code{mklblas} will use. If
+        ##!number of threads the the \code{openblas}/\code{mklblas} will use (if available). If
         ##!\code{blas.num.threads} > 0, then the environment variables
-        ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned, unless they
-        ##!are already defined. If \code{blas.num.threads} < 0, then the environment variables
-        ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be (possibly re)-assigned.
-        ##!If \code{blas.num.threads} = 0,  then variables \code{OPENBLAS_NUM_THREADS} and
-        ##!\code{MKL_NUM_THREADS} will be removed.}
+        ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned. If
+        ##!\code{blas.num.threads} < 0, then the environment variables
+        ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned unless they
+        ##!are already defined. If \code{blas.num.threads} = 0, then variables
+        ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be removed.}
         blas.num.threads = inla.getOption("blas.num.threads"),
         
         ##!\item{keep}{ A boolean variable indicating that the
@@ -954,7 +954,9 @@
                            "] even after trying a random dirname. I give up.", sep=""))
             }
         }
-        cat("Model and results are stored in working directory [", inla.dir,"]\n", sep="")
+        if (verbose) {
+            cat("Model and results are stored in working directory [", inla.dir,"]\n", sep="")
+        }
     } else {
         ##create a temporary directory
         inla.dir=inla.tempfile()
@@ -1965,7 +1967,7 @@
             if (verbose) {
                 echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
             } else {
-                echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log,
+                echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", shQuote(file.log),
                     inla.ifelse(silent == 2L, " 2>/dev/null", "")))
             }
         } else if (inla.os("windows")) {
@@ -2159,8 +2161,12 @@
     if (is.null(inla.dir)) {
         inla.dir = inla.tempdir()
     }
+
+    lic.filename = "pardiso.lic" ## do not change
+    lic.filename.dir = paste0(inla.dir, "/", lic.filename)
+    file.create(lic.filename.dir)
+    
     if (!is.null(inla.getOption("pardiso.license"))) {
-        lic.filename = "pardiso.lic" ## do not change
         lic.file = normalizePath(inla.getOption("pardiso.license"))
         lic.path = NA
         if (file.exists(lic.file)) {
@@ -2169,7 +2175,7 @@
                 if (info$isdir) {
                     lic.path = lic.file
                 } else if (!is.null(inla.dir)) {
-                    file.copy(lic.file, paste0(inla.dir, "/", lic.filename))
+                    file.copy(lic.file, lic.filename.dir, overwrite=TRUE)
                     lic.path = inla.dir
                 } else {
                     stop("This should not happen")
@@ -2194,13 +2200,13 @@
         Sys.unsetenv("OPENBLAS_NUM_THREADS")
         Sys.unsetenv("MKL_NUM_THREADS")
     } else if (blas.num.threads > 0) {
-        if (Sys.getenv("OPENBLAS_NUM_THREADS") == "")
-            Sys.setenv(OPENBLAS_NUM_THREADS = blas.num.threads)
-        if (Sys.getenv("MKL_NUM_THREADS") == "")
-            Sys.setenv(MKL_NUM_THREADS = blas.num.threads)
+        Sys.setenv(OPENBLAS_NUM_THREADS = blas.num.threads)
+        Sys.setenv(MKL_NUM_THREADS = blas.num.threads)
     } else {
-        Sys.setenv(OPENBLAS_NUM_THREADS = abs(blas.num.threads))
-        Sys.setenv(MKL_NUM_THREADS = abs(blas.num.threads))
+        if (Sys.getenv("OPENBLAS_NUM_THREADS") == "")
+            Sys.setenv(OPENBLAS_NUM_THREADS = abs(blas.num.threads))
+        if (Sys.getenv("MKL_NUM_THREADS") == "")
+            Sys.setenv(MKL_NUM_THREADS = abs(blas.num.threads))
     }
         
     return (invisible())
