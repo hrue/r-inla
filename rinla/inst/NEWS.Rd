@@ -8,7 +8,7 @@
 \section{CHANGES IN VERSION XX.XX.XX}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
-      \item
+      \item 
     }
   }
   \subsection{NEW FEATURES}{
@@ -18,8 +18,10 @@
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item
-    }
+      \item Separated the quantile link for the binomial response,
+      into individual (\texttt{model="quantile"}) and population
+	(\texttt{model="pquantile"})
+      }
   }
   \subsection{BUG FIXES}{
     \itemize{

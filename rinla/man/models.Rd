@@ -5531,6 +5531,8 @@ inla.models()
 				 }
 				\item{Model `quantile'.}{Number of hyperparmeters are 0.
 				 }
+				\item{Model `pquantile'.}{Number of hyperparmeters are 0.
+				 }
 				\item{Model `sslogit'.}{Number of hyperparmeters are 2.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
