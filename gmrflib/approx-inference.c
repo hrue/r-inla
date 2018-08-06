@@ -150,6 +150,10 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	(*ai_par)->strategy = GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN;
 	(*ai_par)->strategy = GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN;
 
+	(*ai_par)->adapt_max = 5;
+	(*ai_par)->adapt_len = 0;
+	(*ai_par)->adapt_strategy = NULL;
+
 	(*ai_par)->fast = GMRFLib_FALSE;		       /* compute conditional mode */
 	(*ai_par)->fast = GMRFLib_TRUE;			       /* use mode = conditional mean */
 
@@ -277,6 +281,38 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_ai_param_duplicate(GMRFLib_ai_param_tp ** ai_par_new, GMRFLib_ai_param_tp * ai_par) 
+{
+	if (!ai_par) {
+		*ai_par_new = NULL;
+		return GMRFLib_SUCCESS;
+	}
+
+	*ai_par_new = Calloc(1, GMRFLib_ai_param_tp);
+	memcpy((void *) *ai_par_new, (void *) ai_par, sizeof(GMRFLib_ai_param_tp));
+
+	if (ai_par->adapt_strategy) {
+		(*ai_par_new)->adapt_strategy = Calloc(ai_par->adapt_len, GMRFLib_ai_param_tp);
+		memcpy((void *)  (*ai_par_new)->adapt_strategy, (void *) ai_par->adapt_strategy,
+		       sizeof(GMRFLib_ai_strategy_tp) * ai_par->adapt_len);
+	}
+
+	return GMRFLib_SUCCESS;
+}
+int GMRFLib_ai_param_free(GMRFLib_ai_param_tp * ai_par) 
+{
+	if (ai_par) {
+		if (ai_par->adapt_len > 0 && ai_par->adapt_strategy) {
+			Free(ai_par->adapt_strategy);
+		}
+		Free(ai_par);
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
+
+
 /*!
   \brief Print the values of a \c GMRFLib_ai_param_tp -object
 
@@ -327,6 +363,9 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	}
 	if (ai_par->strategy == GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN) {
 		fprintf(fp, "Use a mean-skew corrected Gaussian by fitting a Skew-Normal\n");
+	}
+	if (ai_par->strategy == GMRFLib_AI_STRATEGY_ADAPTIVE) {
+		fprintf(fp, "Use an adaptive strategy (max=%1d)\n", ai_par->adapt_max);
 	}
 
 	fprintf(fp, "\tFast mode: \t%s\n", (ai_par->fast == GMRFLib_FALSE ? "Off" : "On"));
@@ -1366,7 +1405,8 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	GMRFLib_blockupdate_param_tp *blockpar = NULL;
 	GMRFLib_problem_tp *newp = NULL;
 	GMRFLib_store_tp *store = NULL;
-
+	GMRFLib_ai_strategy_tp strategy;
+	
 #define COMPUTE_CPO_DENSITY						\
 	if (cpo_density) {						\
 		if (d[idx]) {						\
@@ -1498,12 +1538,19 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		free_ai_par = 1;
 		GMRFLib_default_ai_param(&ai_par);
 	}
+	if (ai_par->strategy == GMRFLib_AI_STRATEGY_ADAPTIVE) {
+		assert(ai_par->adapt_len > 0);
+		assert(ai_par->adapt_strategy != NULL);
+		strategy = ai_par->adapt_strategy[idx];
+	} else {
+		strategy = ai_par->strategy;
+	}
 
 	/*
 	 * if we use the ...CORRECTED_GAUSSIAN strategy, we have to use the linear correction. if the user have not selected an
 	 * option for this, then do so depending if 'fast' option is set or not.
 	 */
-	if ((ai_par->strategy == GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN || ai_par->strategy == GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN)
+	if ((strategy == GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN || strategy == GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN)
 	    && ai_par->linear_correction == GMRFLib_AI_LINEAR_CORRECTION_OFF) {
 		if (ai_par->fast) {
 #pragma omp critical
@@ -1569,7 +1616,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	/*
 	 * if just the Gaussian is needed, exit here 
 	 */
-	if (ai_par->strategy == GMRFLib_AI_STRATEGY_GAUSSIAN) {
+	if (strategy == GMRFLib_AI_STRATEGY_GAUSSIAN) {
 		/*
 		 * build the density-object 
 		 */
@@ -1633,7 +1680,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	 * if we do not use the meancorrected gaussian and the fast-option, then locate local neigb. set the derivative to zero
 	 * for those sites that are not in the local neigb.
 	 */
-	if ((ai_par->strategy == GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN || ai_par->strategy == GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN)
+	if ((strategy == GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN || strategy == GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN)
 	    && ai_par->linear_correction == GMRFLib_AI_LINEAR_CORRECTION_FAST) {
 		if (fixed_value) {
 			memcpy(fix, fixed_value, n * sizeof(char));
@@ -1830,7 +1877,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		break;
 	}
 
-	if (ai_par->strategy != GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN && ai_par->strategy != GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN) {
+	if (strategy != GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN && strategy != GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN) {
 		/*
 		 * this is the main loop, where we evaluate different values for x_i. 
 		 */
@@ -1917,9 +1964,9 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 
 	GMRFLib_free_store(store);
 
-	if (ai_par->strategy == GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN) {
+	if (strategy == GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN) {
 		GMRFLib_density_create_normal(density, -deriv_log_dens_cond, 1.0, x_mean, x_sd);
-	} else if (ai_par->strategy == GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN) {
+	} else if (strategy == GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN) {
 		int np = 11, err, fail = 0;
 		double *ld = NULL, *xp = NULL, xx, low, high, third_order_derivative, a_sigma, cc, sol1, aa, tmp;
 		GMRFLib_sn_param_tp snp;
@@ -1995,7 +2042,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	Free(optpar);
 	Free(blockpar);
 	if (free_ai_par) {
-		Free(ai_par);
+		GMRFLib_ai_param_free(ai_par);
 	}
 	Free(mean_and_variance);
 	if (free_ai_store) {
@@ -3516,7 +3563,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	x_mode = Calloc(graph->n, double);
 
 	marginal_hidden_store = Calloc(1, GMRFLib_marginal_hidden_store_tp);
-	if (ai_par->strategy == GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN) {
+	if (ai_par->strategy == GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN || ai_par->strategy == GMRFLib_AI_STRATEGY_ADAPTIVE) {
 		marginal_hidden_store->n = graph->n;
 		marginal_hidden_store->subgraphs = Calloc(graph->n, GMRFLib_graph_tp *);
 	} else {
@@ -6600,12 +6647,6 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 				v_j = &(cross_store[j].v[ij_from - cross_store[j].from_idx]);
 				ij_len = ij_to - ij_from + 1;
 				(*cross)[i + j * nlin] = ddot_(&ij_len, v_i, &one, v_j, &one);
-
-				P(ij_from);
-				P(ij_to);
-				P(ij_len);
-				P((*cross)[i + j * nlin]);
-
 			} else {
 				(*cross)[i + j * nlin] = 0.0;
 			}
