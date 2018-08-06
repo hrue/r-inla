@@ -22388,10 +22388,13 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			   !strcasecmp(opt, "MEANSKEWCORRECTED_GAUSSIAN") || !strcasecmp(opt, "SLA") || !strcasecmp(opt, "SIMPLIFIED_LAPLACE")
 			   || !strcasecmp(opt, "SIMPLIFIED.LAPLACE")) {
 			mb->ai_par->strategy = GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN;
+		} else if (!strcasecmp(opt, "ADAPTIVE")) {
+			mb->ai_par->strategy = GMRFLib_AI_STRATEGY_ADAPTIVE;
 		} else {
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "strategy", opt);
 		}
 	}
+	mb->ai_par->adapt_max = iniparser_getint(ini, inla_string_join(secname, "ADAPTIVE.MAX"), 5);
 
 	mb->ai_par->fast = iniparser_getboolean(ini, inla_string_join(secname, "FAST"), mb->ai_par->fast);
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "LINEAR.CORRECTION"), NULL));
@@ -26282,7 +26285,7 @@ double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, d
 int inla_INLA(inla_tp * mb)
 {
 	double *c = NULL, *x = NULL, *b = NULL;
-	int N, i, j, k, count;
+	int N, i, j, k, count, local_count;
 	char *compute = NULL;
 	GMRFLib_bfunc_tp **bfunc;
 
@@ -26488,8 +26491,8 @@ int inla_INLA(inla_tp * mb)
 
 	// correct using fixed effects only
 	char *correct = NULL;
+	local_count = 0;
 	if (mb->ai_par->correct) {
-		int local_count = 0;
 		correct = Calloc(N, char);
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
@@ -26515,6 +26518,39 @@ int inla_INLA(inla_tp * mb)
 	}
 	Free(mb->ai_par->correct);
 	mb->ai_par->correct = correct;
+
+	// define the adaptive strategy
+	GMRFLib_ai_strategy_tp *adapt = NULL;
+	local_count = 0;
+	if (mb->ai_par->strategy == GMRFLib_AI_STRATEGY_ADAPTIVE) {
+		adapt = Calloc(N, GMRFLib_ai_strategy_tp);
+		for(i = 0; i < N; i++) {
+			adapt[i] = GMRFLib_AI_STRATEGY_GAUSSIAN;
+		}
+		count = mb->predictor_n + mb->predictor_m;
+		for (i = 0; i < mb->nf; i++) {
+			if (mb->f_Ntotal[i] <= mb->ai_par->adapt_max) {
+				/*
+				 * add also random effects with small size
+				 */
+				for (j = 0; j < mb->f_Ntotal[i]; j++) {
+					adapt[count + j] = GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN;
+					local_count++;
+				}
+			}
+			count += mb->f_Ntotal[i];
+		}
+		for (i = 0; i < mb->nlinear; i++) {
+			adapt[count++] = GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN;
+			local_count++;
+		}
+		if (local_count == 0) {			       /* then there is nothting to correct for */
+			Free(adapt);
+			adapt = NULL;
+		}
+	}
+	mb->ai_par->adapt_strategy = adapt;
+	mb->ai_par->adapt_len = local_count;
 
 	if (G.reorder < 0) {
 		GMRFLib_sizeof_tp nnz = 0;

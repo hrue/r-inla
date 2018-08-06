@@ -343,7 +343,7 @@
     ##:EXTRA: 
     ##:NAME: control.inla
     ans = list(
-        ##:ARGUMENT: strategy  Character The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default) or 'laplace'
+        ##:ARGUMENT: strategy  Character The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default), 'laplace' or 'adaptive'
         strategy="simplified.laplace",
 
         ##:ARGUMENT: int.strategy  Character The integration strategy to use; one of 'auto' (default),  'ccd', 'grid', 'eb' (empirical bayes),  'user' or 'user.std'
@@ -427,6 +427,9 @@
         ##:ARGUMENT: adapt.hessian.scale Numerical The scaling of the 'h' after each trial.
         adapt.hessian.scale = NULL, 
 
+        ##:ARGUMENT: adaptive.max Selecting \code{strategy="adaptive"} will chose the default strategy for all fixed effects and model components with length less or equal to \code{adaptive.max}, for others, the gaussian strategy will be applied.
+        adaptive.max = 5L,
+        
         ##:ARGUMENT: huge Logical If TRUE then try to do some of the internal parallisations differently. Hopefully this will be of benefite for 'HUGE' models. (Default FALSE.) [THIS OPTION IS OBSOLETE AND NOT USED!]
         huge = FALSE,
 
