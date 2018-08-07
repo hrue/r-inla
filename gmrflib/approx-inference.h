@@ -226,14 +226,9 @@ typedef enum {
 typedef enum {
 
 	/**
-	 * \brief BFGS implementation in domin
-	 */
-	GMRFLib_AI_OPTIMISER_DOMIN = 1,
-
-	/**
 	 * \brief BFGS(2) implementation in GSL
 	 */
-	GMRFLib_AI_OPTIMISER_GSL,
+	GMRFLib_AI_OPTIMISER_GSL = 2,
 
 	/**
 	 * \brief The default choice
@@ -241,10 +236,9 @@ typedef enum {
 	GMRFLib_AI_OPTIMISER_DEFAULT
 } GMRFLib_ai_optimiser_tp;
 
-#define GMRFLib_AI_OPTIMISER_NAME(opt)					\
-	((opt) == GMRFLib_AI_OPTIMISER_DOMIN ? "domin-BFGS" :		\
-	 ((opt) == GMRFLib_AI_OPTIMISER_GSL ? "GSL-BFGS2" :		\
-	  ((opt) == GMRFLib_AI_OPTIMISER_DEFAULT ? "DEFAULT METHOD" : "unknown!!!")))
+#define GMRFLib_AI_OPTIMISER_NAME(opt) \
+	((opt) == GMRFLib_AI_OPTIMISER_GSL ? "GSL-BFGS2" : \
+	 ((opt) == GMRFLib_AI_OPTIMISER_DEFAULT ? "DEFAULT METHOD" : "unknown!!!"))
 
 
 /**
@@ -395,7 +389,7 @@ typedef struct {
 	GMRFLib_ai_interpolator_tp interpolator;
 
 	/**
-	 * \brief Type of optimiser to use: GMRFLib_AI_OPTIMISER_DOMIN, GMRFLib_AI_OPTIMISER_GSL
+	 * \brief Type of optimiser to use
 	 */
 	GMRFLib_ai_optimiser_tp optimiser;
 
@@ -403,21 +397,6 @@ typedef struct {
 	 * \brief Run the optimiser twice by restarting the optmiser at the first found solution
 	 */
 	int restart;
-
-	/**
-	 * \brief DOMIN parameter. Stopping parameter for |x| (if negative, use factory defaults)
-	 */
-	double domin_epsx;
-
-	/**
-	 * \brief DOMIN parameter. Stopping parameter for |grad f| (if negative, use factory defaults)
-	 */
-	double domin_epsg;
-
-	/**
-	 * \brief DOMIN parameter. Rounding error in f (if negative, use factory defaults)
-	 */
-	double domin_epsf;
 
 	/**
 	 * \brief GSL parameter tolerance (something with linesearch, recommended 0.1)
