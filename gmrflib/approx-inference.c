@@ -221,15 +221,8 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	(*ai_par)->interpolator = GMRFLib_AI_INTERPOLATOR_WEIGHTED_DISTANCE;
 	(*ai_par)->interpolator = GMRFLib_AI_INTERPOLATOR_AUTO;	/* automatic choice */
 
-
-	/*
-	 * Type of optimiser to use: GMRFLib_AI_OPTIMISER_DOMIN, GMRFLib_AI_OPTIMISER_GSL
-	 */
-	(*ai_par)->optimiser = GMRFLib_AI_OPTIMISER_DEFAULT;
+	(*ai_par)->optimiser = GMRFLib_AI_OPTIMISER_GSL;
 	(*ai_par)->restart = 0;
-	(*ai_par)->domin_epsx = 0.005;
-	(*ai_par)->domin_epsf = 0.00001;		       /* rounding error */
-	(*ai_par)->domin_epsg = 0.005;
 	(*ai_par)->gsl_tol = 0.1;
 	(*ai_par)->gsl_epsg = 0.005;
 	(*ai_par)->gsl_epsf = pow(0.005, 1.5);		       /* this is the default relationship used in R-INLA */
@@ -296,9 +289,6 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	fprintf(fp, "Contents of ai_param %p\n", (void *) ai_par);
 
 	fprintf(fp, "\tOptimiser: %s\n", GMRFLib_AI_OPTIMISER_NAME(ai_par->optimiser));
-	fprintf(fp, "\t\tOption for %s: epsx = %.6g\n", GMRFLib_AI_OPTIMISER_NAME(GMRFLib_AI_OPTIMISER_DOMIN), ai_par->domin_epsx);
-	fprintf(fp, "\t\tOption for %s: epsf = %.6g (rounding error)\n", GMRFLib_AI_OPTIMISER_NAME(GMRFLib_AI_OPTIMISER_DOMIN), ai_par->domin_epsf);
-	fprintf(fp, "\t\tOption for %s: epsg = %.6g\n", GMRFLib_AI_OPTIMISER_NAME(GMRFLib_AI_OPTIMISER_DOMIN), ai_par->domin_epsg);
 	fprintf(fp, "\t\tOption for %s: tol  = %.6g\n", GMRFLib_AI_OPTIMISER_NAME(GMRFLib_AI_OPTIMISER_GSL), ai_par->gsl_tol);
 	fprintf(fp, "\t\tOption for %s: step_size = %.6g\n", GMRFLib_AI_OPTIMISER_NAME(GMRFLib_AI_OPTIMISER_GSL), ai_par->gsl_step_size);
 	fprintf(fp, "\t\tOption for %s: epsx = %.6g\n", GMRFLib_AI_OPTIMISER_NAME(GMRFLib_AI_OPTIMISER_GSL), ai_par->gsl_epsx);
@@ -3541,7 +3531,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		 */
 		GMRFLib_domin_setup(hyperparam, nhyper, log_extra, log_extra_arg, compute, x, b, c, mean, bfunc, d, loglFunc,
 				    loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store);
-		domin_seteps_(&(ai_par->domin_epsx), &(ai_par->domin_epsf), &(ai_par->domin_epsg));
 		/*
 		 * the optimizer runs most smoothly when #threads is about nhyper+1, which is the number of `natural' threads for
 		 * computing the gradient.
@@ -3560,15 +3549,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 
 			switch (ai_par->optimiser) {
-			case GMRFLib_AI_OPTIMISER_DOMIN:
-				domin_();		       /* this is the optimizer */
-				if (ai_par->restart) {
-					for (k = 0; k < IMAX(0, ai_par->restart); k++)
-						domin_();      /* restart */
-				}
-				domin_get_results_(theta_mode, &log_dens_mode, &ierr);
-				break;
-
 			case GMRFLib_AI_OPTIMISER_GSL:
 			case GMRFLib_AI_OPTIMISER_DEFAULT:
 				GMRFLib_gsl_optimize(ai_par);
@@ -3580,9 +3560,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				break;
 
 			default:
-				GMRFLib_ASSERT((ai_par->optimiser == GMRFLib_AI_OPTIMISER_DOMIN) ||
-					       (ai_par->optimiser == GMRFLib_AI_OPTIMISER_GSL) ||
-					       (ai_par->optimiser == GMRFLib_AI_OPTIMISER_DEFAULT), GMRFLib_EPARAMETER);
+				GMRFLib_ASSERT(0 == 1, GMRFLib_EPARAMETER);
 				break;
 			}
 
