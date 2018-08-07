@@ -400,7 +400,7 @@
         ##:ARGUMENT: restart Numerical To improve the optimisation, the optimiser is restarted at the found optimum 'restart' number of times.
         restart = 0L,
 
-        ##:ARGUMENT: optimiser Character The optimiser to use; one of 'gsl', 'domin' or 'default'.
+        ##:ARGUMENT: optimiser Character The optimiser to use; one of 'gsl' or 'default'.
         optimiser = "default",
 
         ##:ARGUMENT: verbose Logical Run in verbose mode? (Default FALSE)
