@@ -33,10 +33,12 @@
        ##!   will be added accordly to the specification in 
        ##!   the \code{control.st} argument. See \code{inla}}
        formula, 
+       ##! \item{progress}{If it is to be shown the model 
+       ##!   fitting progress. Useful if more than one 
+       ##!   interaction type is being fitted.}
+       progress=FALSE,
        ##! \item{control.st}{Named list of arguments to control
        ##!   the spacetime interaction. It should contains: 
-       ##!   IS MISSING HERE
-       ##!}
        control.st=list(
            ##!  \code{time} to be used as the index set for the
            ##!   main temporal effect which will be considered
@@ -46,8 +48,8 @@
            ##!   main spatial effect which will be considered
            ##!   for the constraints when it is the case.
            space,
-           ##!  \code{spacetime} to be used as the index set for 
-           ##!   the spacetime interaction effect.
+           ##!  \code{spacetime} to be the index set for the
+           ##!   spacetime interaction effect.
            spacetime,
            ##! \code{graph} to be the graph for the spatial neighbor 
            ##!   structure to be used in a \code{\link{f}} term 
@@ -68,10 +70,10 @@
            ##! \code{diagonal} to be the value to be added to the 
            ##!   diagonal when using the diagonal add approach.
            diagonal=1e-5, 
-           ##! \code{timeref} to specify the time point to be the 
+           ##! \code{timeref} to specify the time point to be the
            ##!   reference time in the contrast parametrization.
            timeref=1, 
-           ##! \item{spaceref} to specify the area to be the 
+           ##! \item{spaceref} to specify the area to be the
            ##!   reference for the contrast parametrization.
            spaceref=1, 
            ##!  \code{...} where additional arguments can be 
@@ -83,7 +85,7 @@
            ##!   By default we scale it and use the PC-prior to set 
            ##!   the prior using the \code{pc.prec} prior with 
            ##!   \code{param = c(0.5, 0.5)}. See documentation with 
-           ##!   \code{?inla.doc("pc.prec")}
+           ##!   \code{?inla.doc("pc.prec")}.
            ...),
        ##!
        ##! \item{progress}{If it is to be shown the model 
@@ -95,6 +97,7 @@
        ...)
 {
 ##! }
+##!}
 ##! \value{
 ##!  \code{inla.knmodels} returns an object of class \code{"inla"}. 
 ##!    or a list of objects of this class if it is asked to compute 
@@ -135,6 +138,7 @@
 ##!     f(space, model='bym2', graph=graph),
 ##!     data=dat, family='poisson', E=dat$E, progress=TRUE, 
 ##!     control.st=list(time=time, space=space, 
+##!        spacetime=spacetime, graph=graph, type=c(4, '4c', '4d')), 
 ##!     control.compute=list(dic=TRUE, waic=TRUE, cpo=TRUE))
 ##!sapply(res, function(x)
 ##!       c(dic=x$dic$dic, waic=x$waic$waic, cpo=-sum(log(x$cpo$cpo))))
@@ -279,7 +283,7 @@
             st2=Diagonal(n*m)[,id2] - M2[space, id2])
         names(lc2) <- gsub('lc', 'st', names(lc2))
         if (lc2.on) {
-            lc2args <- list(cBind(Diagonal(n), Diagonal(n,0)), st2=M2[,id2]-1/(n*m))
+            lc2args <- list(cbind(Diagonal(n), Diagonal(n,0)), st2=M2[,id2]-1/(n*m))
             names(lc2args)[1] <- sname 
             lcc2 <- do.call('inla.make.lincombs', lc2args) 
             names(lcc2) <- gsub('lc', 's', names(lcc2))
@@ -337,7 +341,7 @@
             lc4 <- c(lcc3, lc4)
         }
         if (lc2.on) {
-            lc2args <- list(cBind(Diagonal(n), Diagonal(n,0)),
+            lc2args <- list(cbind(Diagonal(n), Diagonal(n,0)),
                             st4=M2[, id4]-1/(n*m))
             names(lc2args)[1] <- sname
             lcc2 <- do.call('inla.make.lincombs', lc2args)
@@ -352,7 +356,7 @@
     if (any(type%in%c('2d', '3d', '4d'))) {
         lcd2 <- lcd3 <- NULL
         if (lc2.on) {
-            lc2args <- list(cBind(Diagonal(n), Diagonal(n,0)), M2)
+            lc2args <- list(cbind(Diagonal(n), Diagonal(n,0)), M2)
             names(lc2args) <- c(sname, stname)
             lcd2 <- do.call('inla.make.lincombs', lc2args)
         }
@@ -391,7 +395,7 @@
     if (any(type%in%'4d')) {
         lcd3args <- lcd2args <- NULL
         if(lc2.on) {
-            lcd2args <- list(cBind(Diagonal(n), Diagonal(n,0)), M2)
+            lcd2args <- list(cbind(Diagonal(n), Diagonal(n,0)), M2)
             names(lcd2args) <- c(sname, stname)
             lcd2 <- do.call('inla.make.lincombs', lcd2args)
             names(lcd2) <- gsub('lc', 's', names(lcd2))

@@ -17,11 +17,9 @@ Depends:
     Matrix,
     sp
 Suggests:
-    compiler,
     Deriv,
     devtools,
     doParallel,
-    FGN,
     fields,
     foreach,
     graph,
@@ -34,7 +32,6 @@ Suggests:
     mvtnorm,
     numDeriv,
     orthopolynom,
-    parallel,
     pixmap,
     rgdal,
     rgl,
@@ -53,9 +50,8 @@ Imports:
     utils
 VignetteBuilder: knitr
 BuildVignettes: true
-ByteCompile: no
 LazyData: true
 License: GPL (>= 2)
 Version: 99.99.9999
 Date: 9999-99-99
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0

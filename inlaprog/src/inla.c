@@ -1498,6 +1498,57 @@ double link_qgamma(double x, map_arg_tp typ, void *param, double *cov)
 }
 double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
 {
+	// individual link
+	Link_param_tp *lparam = (Link_param_tp *) param;
+	double q, ret;
+
+	switch (typ) {
+	case INVLINK:
+	{
+		q = 1.0 / (1.0 + exp(-x));
+		ret = MATHLIB_FUN(qbeta) (lparam->quantile, q + 1.0, 1.0 - q, 0, 0);
+	}
+		break;
+
+	case LINK:
+	{
+		CODE_NEEDED;
+	}
+		break;
+
+	case DINVLINK:
+	{
+		double dx = GMRFLib_eps(1.0 / 3.9134);	       // about 0.0001 on my laptop
+		double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
+		double wf_sum = 0.0;
+		int i, nwf = sizeof(wf) / sizeof(double), nwf2 = (nwf - 1) / 2;	/* gives 5 and 2 */
+
+		for (i = 0; i < nwf; i++) {
+			wf_sum += wf[i] * link_qbinomial(x + (i - nwf2) * dx, INVLINK, param, cov);
+		}
+		ret = wf_sum / dx;
+	}
+		break;
+
+	case LINKINCREASING:
+	{
+		return 1.0;
+	}
+		break;
+
+	default:
+	{
+		assert(0 == 1);
+	}
+		break;
+
+	}
+
+	return (ret);
+}
+double link_pqbinomial(double x, map_arg_tp typ, void *param, double *cov)
+{
+	// population link
 	Link_param_tp *lparam = (Link_param_tp *) param;
 	double q, ret;
 
@@ -1523,7 +1574,7 @@ double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
 		int i, nwf = sizeof(wf) / sizeof(double), nwf2 = (nwf - 1) / 2;	/* gives 5 and 2 */
 
 		for (i = 0; i < nwf; i++) {
-			wf_sum += wf[i] * link_qbinomial(x + (i - nwf2) * dx, INVLINK, param, cov);
+			wf_sum += wf[i] * link_pqbinomial(x + (i - nwf2) * dx, INVLINK, param, cov);
 		}
 		ret = wf_sum / dx;
 	}
@@ -14160,6 +14211,17 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		default:
 			assert(0 == 1);
 		}
+	} else if (!strcasecmp(ds->link_model, "PQUANTILE")) {
+		GMRFLib_ASSERT((ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0), GMRFLib_EPARAMETER);
+		switch (ds->data_id) {
+		case L_BINOMIAL:
+			ds->link_id = LINK_QBINOMIAL;
+			ds->link_ntheta = 0;
+			ds->predictor_invlinkfunc = link_pqbinomial;
+			break;
+		default:
+			assert(0 == 1);
+		}
 	} else {
 		char *msg;
 		GMRFLib_sprintf(&msg, "Unknown link-model [%s]\n", ds->link_model);
@@ -22216,8 +22278,6 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		mb->ai_par->optimiser = GMRFLib_AI_OPTIMISER_DEFAULT;
 	} else if (!strcasecmp(opt, "DEFAULT")) {
 		mb->ai_par->optimiser = GMRFLib_AI_OPTIMISER_DEFAULT;
-	} else if (!strcasecmp(opt, "DOMIN")) {
-		mb->ai_par->optimiser = GMRFLib_AI_OPTIMISER_DOMIN;
 	} else if (!strcasecmp(opt, "GSL")) {
 		mb->ai_par->optimiser = GMRFLib_AI_OPTIMISER_GSL;
 	} else {
@@ -22227,35 +22287,18 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	/*
 	 * if eps. < 0.0 then factory defaults are used. 
 	 */
-	mb->ai_par->domin_epsx = iniparser_getdouble(ini, inla_string_join(secname, "DOMIN.EPSX"), mb->ai_par->domin_epsx);
-	mb->ai_par->domin_epsx = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.X"), mb->ai_par->domin_epsx);
-
-	mb->ai_par->domin_epsf = iniparser_getdouble(ini, inla_string_join(secname, "DOMIN.EPSF"), mb->ai_par->domin_epsf);
-	// as this means the rounding error... in domin()
-	// mb->ai_par->domin_epsf = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.F"), mb->ai_par->domin_epsf);
-
-	mb->ai_par->domin_epsg = iniparser_getdouble(ini, inla_string_join(secname, "DOMIN.EPSG"), mb->ai_par->domin_epsg);
-	mb->ai_par->domin_epsg = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.G"), mb->ai_par->domin_epsg);
-
 	mb->ai_par->gsl_tol = iniparser_getdouble(ini, inla_string_join(secname, "GSL.TOL"), mb->ai_par->gsl_tol);
-
 	mb->ai_par->gsl_step_size = iniparser_getdouble(ini, inla_string_join(secname, "GSL.STEP.SIZE"), mb->ai_par->gsl_step_size);
-
 	mb->ai_par->gsl_epsg = iniparser_getdouble(ini, inla_string_join(secname, "GSL.EPSG"), mb->ai_par->gsl_epsg);
 	mb->ai_par->gsl_epsg = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.G"), mb->ai_par->gsl_epsg);
-
 	mb->ai_par->gsl_epsf = iniparser_getdouble(ini, inla_string_join(secname, "GSL.EPSF"), mb->ai_par->gsl_epsf);
 	mb->ai_par->gsl_epsf = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.F"), mb->ai_par->gsl_epsf);
-
 	mb->ai_par->gsl_epsx = iniparser_getdouble(ini, inla_string_join(secname, "GSL.EPSX"), mb->ai_par->gsl_epsx);
 	mb->ai_par->gsl_epsx = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.X"), mb->ai_par->gsl_epsx);
-
 	mb->ai_par->optpar_abserr_func = iniparser_getdouble(ini, inla_string_join(secname, "ABSERR.FUNC"), mb->ai_par->optpar_abserr_func);
 	mb->ai_par->optpar_abserr_func = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR.ABSERR.FUNC"), mb->ai_par->optpar_abserr_func);
-
 	mb->ai_par->optpar_abserr_step = iniparser_getdouble(ini, inla_string_join(secname, "ABSERR.STEP"), mb->ai_par->optpar_abserr_step);
 	mb->ai_par->optpar_abserr_step = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR.ABSERR.STEP"), mb->ai_par->optpar_abserr_step);
-
 	mb->ai_par->optpar_nr_step_factor =
 	    iniparser_getdouble(ini, inla_string_join(secname, "NR.STEP.FACTOR"), mb->ai_par->optpar_nr_step_factor);
 
@@ -22326,10 +22369,13 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			   !strcasecmp(opt, "MEANSKEWCORRECTED_GAUSSIAN") || !strcasecmp(opt, "SLA") || !strcasecmp(opt, "SIMPLIFIED_LAPLACE")
 			   || !strcasecmp(opt, "SIMPLIFIED.LAPLACE")) {
 			mb->ai_par->strategy = GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN;
+		} else if (!strcasecmp(opt, "ADAPTIVE")) {
+			mb->ai_par->strategy = GMRFLib_AI_STRATEGY_ADAPTIVE;
 		} else {
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "strategy", opt);
 		}
 	}
+	mb->ai_par->adapt_max = iniparser_getint(ini, inla_string_join(secname, "ADAPTIVE.MAX"), 5);
 
 	mb->ai_par->fast = iniparser_getboolean(ini, inla_string_join(secname, "FAST"), mb->ai_par->fast);
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "LINEAR.CORRECTION"), NULL));
@@ -26220,7 +26266,7 @@ double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, d
 int inla_INLA(inla_tp * mb)
 {
 	double *c = NULL, *x = NULL, *b = NULL;
-	int N, i, j, k, count;
+	int N, i, j, k, count, local_count;
 	char *compute = NULL;
 	GMRFLib_bfunc_tp **bfunc;
 
@@ -26426,8 +26472,8 @@ int inla_INLA(inla_tp * mb)
 
 	// correct using fixed effects only
 	char *correct = NULL;
+	local_count = 0;
 	if (mb->ai_par->correct) {
-		int local_count = 0;
 		correct = Calloc(N, char);
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
@@ -26453,6 +26499,39 @@ int inla_INLA(inla_tp * mb)
 	}
 	Free(mb->ai_par->correct);
 	mb->ai_par->correct = correct;
+
+	// define the adaptive strategy
+	GMRFLib_ai_strategy_tp *adapt = NULL;
+	local_count = 0;
+	if (mb->ai_par->strategy == GMRFLib_AI_STRATEGY_ADAPTIVE) {
+		adapt = Calloc(N, GMRFLib_ai_strategy_tp);
+		for(i = 0; i < N; i++) {
+			adapt[i] = GMRFLib_AI_STRATEGY_GAUSSIAN;
+		}
+		count = mb->predictor_n + mb->predictor_m;
+		for (i = 0; i < mb->nf; i++) {
+			if (mb->f_Ntotal[i] <= mb->ai_par->adapt_max) {
+				/*
+				 * add also random effects with small size
+				 */
+				for (j = 0; j < mb->f_Ntotal[i]; j++) {
+					adapt[count + j] = GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN;
+					local_count++;
+				}
+			}
+			count += mb->f_Ntotal[i];
+		}
+		for (i = 0; i < mb->nlinear; i++) {
+			adapt[count++] = GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN;
+			local_count++;
+		}
+		if (local_count == 0) {			       /* then there is nothting to correct for */
+			Free(adapt);
+			adapt = NULL;
+		}
+	}
+	mb->ai_par->adapt_strategy = adapt;
+	mb->ai_par->adapt_len = local_count;
 
 	if (G.reorder < 0) {
 		GMRFLib_sizeof_tp nnz = 0;
@@ -28730,6 +28809,8 @@ int inla_output_linkfunctions(const char *dir, inla_tp * mb)
 			fprintf(fp, "quantile\n");
 		} else if (lf == link_qbinomial) {
 			fprintf(fp, "quantile\n");
+		} else if (lf == link_pqbinomial) {
+			fprintf(fp, "pquantile\n");
 		} else if (lf == link_qweibull) {
 			fprintf(fp, "quantile\n");
 		} else if (lf == NULL) {
@@ -31203,9 +31284,9 @@ int inla_check_pardiso(void)
 {
 	// check if PARDISO-lib is installed and working
 	if (GMRFLib_pardiso_check_install(1, 1) == GMRFLib_SUCCESS) {
-		printf("PARDISO IS ALIVE AND WORKING\n");
+		printf("SUCCESS: PARDISO IS INSTALLED AND WORKING\n");
 	} else {
-		printf("NO PARDISO\n");
+		printf("FAILURE: PARDISO IS NOT INSTALLED OR NOT WORKING\n");
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -31573,7 +31654,15 @@ int main(int argc, char **argv)
 	if (G.mode == INLA_MODE_DEFAULT || G.mode == INLA_MODE_HYPER) {
 		for (arg = optind; arg < argc; arg++) {
 			if (verbose) {
-				printf("Processing file [%s] max_threads=[%1d]\n", argv[arg], GMRFLib_MAX_THREADS);
+				int blas_num_threads = 0;
+				if (inla_sread_ints(&blas_num_threads, 1, getenv("OPENBLAS_NUM_THREADS")) != INLA_OK) {
+					if (inla_sread_ints(&blas_num_threads, 1, getenv("MKL_NUM_THREADS")) != INLA_OK) {
+						blas_num_threads = 0;
+					}
+				}
+				//openblas_set_num_threads(4);
+				printf("Process file[%s] threads[%1d] blas_threads[%1d]\n",
+				       argv[arg], GMRFLib_MAX_THREADS, blas_num_threads);
 			}
 			if (!silent) {
 				printf("\nWall-clock time used on [%s] max_threads=[%1d]\n", argv[arg], GMRFLib_MAX_THREADS);

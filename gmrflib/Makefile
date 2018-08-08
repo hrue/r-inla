@@ -55,7 +55,7 @@ LIBOBJ = problem-setup.o lapack-interface.o graph.o error-handler.o acm582.o \
 	distributions.o globals.o wa.o random.o timer.o hash.o density.o \
 	smtp-band.o smtp-taucs.o sparse-interface.o rw.o \
 	bitmap.o tabulate-Qfunc.o sphere.o io.o approx-inference.o ghq.o \
-	utils.o experimental.o graph-edit.o domin.o domin-interface.o auxvar.o \
+	utils.o experimental.o graph-edit.o domin-interface.o auxvar.o \
 	design.o version.o integrator.o openmp.o hgmrfm.o seasonal.o matern.o \
 	bfgs3.o fmesher-io.o smtp-pardiso.o
 LIBOBJG = geo.o

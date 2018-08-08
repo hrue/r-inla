@@ -241,11 +241,8 @@ int GMRFLib_csr_read(char *filename, GMRFLib_csr_tp ** csr)
 
 	GMRFLib_io_open(&io, filename, "rb");
 	GMRFLib_io_read(io, (void *) &(M->n), sizeof(int));
-	P(M->n);
 	GMRFLib_io_read(io, (void *) &(M->na), sizeof(int));
-	P(M->na);
 	GMRFLib_io_read(io, (void *) &(M->base), sizeof(int));
-	P(M->base);
 
 	M->ia = Calloc(M->n + 1, int);
 	GMRFLib_io_read(io, (void *) (M->ia), sizeof(int) * (M->n + 1));
@@ -1087,7 +1084,6 @@ int my_pardiso_test1(void)
 	GMRFLib_csr_tp *csr, *csr2;
 	GMRFLib_Q2csr(&csr, g, Qtab->Qfunc, Qtab->Qfunc_arg);
 	GMRFLib_csr_print(stdout, csr);
-	P(csr->n);
 
 	GMRFLib_csr_duplicate(&csr2, csr);
 	// GMRFLib_csr_print(stdout, csr2);

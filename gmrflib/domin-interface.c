@@ -46,8 +46,6 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-int domin_setup_1_(int *nhyper, double *theta);
-
 static GMRFLib_domin_arg_tp G;				       /* hold arguments */
 
 typedef struct {
@@ -106,7 +104,6 @@ int GMRFLib_domin_setup(double ***hyperparam, int nhyper,
 	for (i = 0; i < nhyper; i++) {
 		theta[i] = hyperparam[i][GMRFLib_thread_id][0];
 	}
-	domin_setup_1_(&nhyper, theta);
 	Free(theta);
 
 	return GMRFLib_SUCCESS;
@@ -123,14 +120,6 @@ int GMRFLib_domin_exit(void)
 	if (B.f_best_x)
 		Free(B.f_best_x);
 	return GMRFLib_SUCCESS;
-}
-int gmrflib_domin_f_(double *x, double *fx, int *ierr)
-{
-	return GMRFLib_domin_f(x, fx, ierr, NULL, NULL);
-}
-int gmrflib_domin_f__(double *x, double *fx, int *ierr)
-{
-	return GMRFLib_domin_f(x, fx, ierr, NULL, NULL);
 }
 int GMRFLib_domin_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew)
 {
@@ -307,14 +296,6 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 	}
 
 	return GMRFLib_SUCCESS;
-}
-int gmrflib_domin_gradf_(double *x, double *gradx, int *ierr)
-{
-	return GMRFLib_domin_gradf(x, gradx, ierr);
-}
-int gmrflib_domin_gradf__(double *x, double *gradx, int *ierr)
-{
-	return GMRFLib_domin_gradf(x, gradx, ierr);
 }
 int GMRFLib_domin_gradf(double *x, double *gradx, int *ierr)
 {
