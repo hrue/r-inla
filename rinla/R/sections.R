@@ -685,6 +685,9 @@
     if (!is.null(inla.spec$strategy)) {
         cat("strategy = ", inla.spec$strategy,"\n", sep = " ", file = file,  append = TRUE)
     }
+    if (!is.null(inla.spec$adaptive.max)) {
+        cat("adaptive.max = ", as.integer(inla.spec$adaptive.max),"\n", sep = " ", file = file,  append = TRUE)
+    }
     inla.write.boolean.field("fast", inla.spec$fast, file)
     if (!is.null(inla.spec$linear.correction)) {
         cat("linear.correction = ", inla.spec$linear.correction,"\n", sep = " ", file = file,  append = TRUE)

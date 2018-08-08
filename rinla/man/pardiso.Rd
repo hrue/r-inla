@@ -4,18 +4,21 @@
 %%
 \name{inla.pardiso}
 \alias{inla.pardiso}
+\alias{inla.pardiso.check}
 \title{PARDISO support in R-INLA}
 \description{
-Describe the PARDISO support in R-INLA
+Describe and check the PARDISO support in R-INLA
 }
 \usage{
 inla.pardiso()
+inla.pardiso.check()
 }
 \arguments{
 }
 \details{
-Describe the PARDISO support in R-INLA, how to get the
-license key and enable it in the R-INLA package.
+\code{inla.pardiso()} describes the \code{PARDISO} support in R-INLA, how to get the license
+key and enable it in the \code{R-INLA} package. \code{inla.pardiso.check()} check if the
+\code{PARDISO} support is working.
 }
 \value{
 }
