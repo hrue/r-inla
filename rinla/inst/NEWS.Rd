@@ -18,7 +18,10 @@
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item 
+      \item Added new strategy
+      \code{control.inla=list(strategy="adaptive")} which use the
+      simplified.laplace approximations for fixed effects and low-dimensional model
+      components, and the gaussian approximation otherwise. 
       }
   }
   \subsection{BUG FIXES}{
