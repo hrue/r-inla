@@ -35,7 +35,7 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 \item{tolerance.g}{  Numerical The tolerance for the absolute change in the gradient of the log posterior in the optimisation of the hyperparameters.}
 \item{tolerance.x}{  Numerical The tolerance for the change in the hyperparameters (root-mean-square) in the optimisation of the hyperparameters.}
 \item{restart}{  Numerical To improve the optimisation, the optimiser is restarted at the found optimum 'restart' number of times.}
-\item{optimiser}{  Character The optimiser to use; one of 'gsl', 'domin' or 'default'.}
+\item{optimiser}{  Character The optimiser to use; one of 'gsl' or 'default'.}
 \item{verbose}{  Logical Run in verbose mode? (Default FALSE)}
 \item{reordering}{  Character Type of reordering to use. (EXPERT OPTION; one of "AUTO", "DEFAULT", "IDENTITY", "REVERSEIDENTITY", "BAND", "METIS", "GENMMD", "AMD", "MD", "MMD", "AMDBAR", "AMDC", "AMDBARC", or the output from \code{inla.qreordering}. Default is 'auto'.)}
 \item{cpo.diff}{  Numerical Threshold to define when the cpo-calculations are inaccurate. (EXPERT OPTION.)}
