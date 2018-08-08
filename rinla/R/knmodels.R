@@ -87,11 +87,6 @@
            ##!   \code{param = c(0.5, 0.5)}. See documentation with 
            ##!   \code{?inla.doc("pc.prec")}.
            ...),
-       ##!
-       ##! \item{progress}{If it is to be shown the model 
-       ##!   fitting progress. Useful if more than one 
-       ##!   interaction type is being fitted.}
-       progress=FALSE, 
        ##! \item{...}{Arguments to be passed to the 
        ##!   \code{\link{inla}} function.}
        ...)
