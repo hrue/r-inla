@@ -31248,9 +31248,9 @@ int inla_check_pardiso(void)
 {
 	// check if PARDISO-lib is installed and working
 	if (GMRFLib_pardiso_check_install(1, 1) == GMRFLib_SUCCESS) {
-		printf("PARDISO IS ALIVE AND WORKING\n");
+		printf("SUCCESS: PARDISO IS INSTALLED AND WORKING\n");
 	} else {
-		printf("NO PARDISO\n");
+		printf("FAILURE: PARDISO IS NOT INSTALLED OR NOT WORKING\n");
 	}
 	return GMRFLib_SUCCESS;
 }
