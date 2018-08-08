@@ -18,6 +18,33 @@
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
+      \item Added new strategy
+      \code{control.inla=list(strategy="adaptive")} which use the
+      simplified.laplace approximations for fixed effects and low-dimensional model
+      components, and the gaussian approximation otherwise. 
+      }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION XX.XX.XX}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Added new function \code{inla.pardiso.check()}
+      \item Added COPYRIGHTS file
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
       \item Separated the quantile link for the binomial response,
       into individual (\texttt{model="quantile"}) and population
 	(\texttt{model="pquantile"})
@@ -25,7 +52,7 @@
   }
   \subsection{BUG FIXES}{
     \itemize{
-      \item
+      \item Removed some code not used anymore
     }
   }
 }
