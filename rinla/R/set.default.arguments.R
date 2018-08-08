@@ -428,7 +428,7 @@
         adapt.hessian.scale = NULL, 
 
         ##:ARGUMENT: adaptive.max Selecting \code{strategy="adaptive"} will chose the default strategy for all fixed effects and model components with length less or equal to \code{adaptive.max}, for others, the gaussian strategy will be applied.
-        adaptive.max = 5L,
+        adaptive.max = 10L,
         
         ##:ARGUMENT: huge Logical If TRUE then try to do some of the internal parallisations differently. Hopefully this will be of benefite for 'HUGE' models. (Default FALSE.) [THIS OPTION IS OBSOLETE AND NOT USED!]
         huge = FALSE,
