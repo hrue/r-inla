@@ -727,7 +727,8 @@ static heap_item heap_pop(heap * h)
 
 /* adaptive integration, analogous to adaptintegrator.cpp in HIntLib */
 
-static int ruleadapt_integrate(rule * r, integrand f, void *fdata, const hypercube * h, unsigned maxEval, double reqAbsError, double reqRelError, esterr * ee)
+static int ruleadapt_integrate(rule * r, integrand f, void *fdata, const hypercube * h, unsigned maxEval, double reqAbsError, double reqRelError,
+			       esterr * ee)
 {
 	unsigned maxIter;				       /* maximum number of adaptive subdivisions */
 	heap regions;
@@ -777,7 +778,8 @@ static int ruleadapt_integrate(rule * r, integrand f, void *fdata, const hypercu
 }
 
 int adapt_integrate(integrand f, void *fdata,
-		    unsigned dim, const double *xmin, const double *xmax, unsigned maxEval, double reqAbsError, double reqRelError, double *val, double *err)
+		    unsigned dim, const double *xmin, const double *xmax, unsigned maxEval, double reqAbsError, double reqRelError, double *val,
+		    double *err)
 {
 	rule *r;
 	hypercube h;
