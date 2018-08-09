@@ -101,10 +101,11 @@ citEntry(
                         as.person("Geir-Arne Fuglstad"),
                         as.person("Andrea I. Riebler"), 
                         as.person("David Bolin"), 
+                        as.person("Janine Illian"), 
                         as.person("Elias Krainski"), 
                         as.person("Daniel P. Simpson"),
                         as.person("Finn K. Lindgren")), 
-    journal = "(Invited extended review)",
+    journal = "WIRES (Invited extended review)",
     year = "2018",
     volume = "xx",
     number = "Feb",
@@ -117,4 +118,63 @@ citEntry(
         "Invited extended review,  arxiv:1802.06350,  2018.")
 )
 
+citEntry(
+    entry = "Article", 
+    title = "Needles: Toward Large-Scale Genomic Prediction with Marker-by-Environment Interaction", 
+    author = personList(as.person("Arne De Coninck"),
+                        as.person("Bernard De Baets"),
+                        as.person("Drosos Kourounis"),
+                        as.person("Fabio Verbosio"),
+                        as.person("Olaf Schenk"),
+                        as.person("Steven Maenhout"),
+                        as.person("Jan Fostier")),
+    volume = "203", 
+    number = "1", 
+    pages = "543--555", 
+    year = "2016",
+    doi = "10.1534/genetics.115.179887",
+    journal = "Genetics",
+    url="http://dx.doi.org/10.1534/genetics.115.179887",
+    eprint = "http://www.genetics.org/content/203/1/543.full.pdf",
+    textVersion = paste(
+        "A. De Coninck, B. De Baets, D. Kourounis, F. Verbosio, O. Schenk, S. Maenhout, and J. Fostier, ",
+        "Needles: Toward large-scale genomic prediction with marker-by-environment interaction, ",
+        "Genetics, vol. 203, no. 1, pp. 543-555, 2016."))
+
+citEntry(
+    entry = "Article",
+    title = "Enhancing the scalability of selected inversion factorization algorithms in genomic prediction",
+    author = personList(as.person("Fabio Verbosio"),
+                        as.person("Arne De Coninck"),
+                        as.person("Drosos Kourounis"),
+                        as.person("Olaf Schenk")), 
+    journal = "Journal of Computational Science",
+    volume = "22",
+    number = "Supplement C",
+    pages = "99-108",
+    year = "2017",
+    issn = "1877-7503",
+    url = "https://doi.org/10.1016/j.jocs.2017.08.013",
+    textVersion = paste(
+        "F. Verbosio, A. D. Coninck, D. Kourounis, and O. Schenk,",
+        "Enhancing the scalability of selected inversion factorization algorithms in genomic predictions,",
+        "Journal of Computational Science, vol. 22, no. Supplement C, pp. 99-108, 2017."))
+
+
+citEntry(
+    entry = "Article", 
+    title = "Towards the Next Generation of Multiperiod Optimal Power Flow Solvers", 
+    author = personList(as.person("D. Kourounis"),
+                       as.person("A. Fuchs"),
+                       as.person("O. Schenk")), 
+    journal = "IEEE Transactions on Power Systems", 
+    year = "2018", 
+    volume = "PP", 
+    number = "99", 
+    pages = "1-10", 
+    url = "https://doi.org/10.1109/TPWRS.2017.2789187", 
+    textVersion = paste(
+        "D. Kourounis, A. Fuchs, and O. Schenk,",
+        "Towards the next generation of multiperiod optimal power flow solvers,",
+        "IEEE Transactions on Power Systems, vol. PP, no. 99, pp. 1-10, 2018."))
 

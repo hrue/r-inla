@@ -18,7 +18,8 @@
 ##!   \item{B}{The right hand side matrix, either as a (dense) matrix,  sparse-matrix  or a filename
 ##!            containing the matrix (in the fmesher-format).
 ##!            (Must be a matrix or sparse-matrix even if \code{ncol(B)} is 1.)}
-##!   \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()} 
+##!   \item{reordering}{The type of reordering algorithm to be used for \code{TAUCS};
+##!        either one of the names listed in \code{inla.reorderings()} 
 ##!        or the output from \code{inla.qreordering(Q)}.
 ##!        The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
 ##!   \item{method}{The system to solve, one of \code{"solve"},  \code{"forward"} or \code{"backward"}. Let \code{Q = L L^T},
@@ -59,6 +60,7 @@
 
 `inla.qsolve` = function(Q, B, reordering = inla.reorderings(), method = c("solve", "forward", "backward"))
 {
+    smtp = match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "pardiso"))
     Q = inla.sparse.check(Q)
     if (is(Q, "dgTMatrix")) {
         Qfile = inla.write.fmesher.file(Q)
@@ -83,7 +85,7 @@
     } else {
         stop("This should not happen.")
     }
-        
+    
     if (is.list(reordering)) {
         ## argument is the output from inla.qreordering()
         reordering = reordering$name
@@ -92,12 +94,13 @@
     method = match.arg(method)
 
     Xfile = inla.tempfile()
+    inla.set.sparselib.env(NULL)
     if (inla.os("linux") || inla.os("mac")) {
-        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsolve", "-r",
-                reordering, Qfile, Xfile, Bfile, method), intern=TRUE)
+        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsolve", "-r", 
+                         reordering, "-S", smtp, Qfile, Xfile, Bfile, method), intern=TRUE)
     } else if(inla.os("windows")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsolve", "-r",
-                reordering, Qfile, Xfile, Bfile, method), intern=TRUE)
+                         reordering, "-S", smtp, Qfile, Xfile, Bfile, method), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }
