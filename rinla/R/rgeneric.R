@@ -361,7 +361,7 @@
     }
     res = NULL
 
-    if (TRUE) {
+    if (FALSE) {
         nm = "...cpu.time"
         envir = environment(model$definition)
         cpu.time = if (exists(nm, envir, envir)) get(nm, envir = envir) else list()
@@ -370,7 +370,6 @@
             list(total.time = cpu.time[[cmd]]$total.time + proc.time()[3] - time.ref,
                  n.times = cpu.time[[cmd]]$n.times + 1)
         assign(nm, cpu.time, envir = envir)
-        print(cpu.time)
     }
     
     return (as.numeric(result))
