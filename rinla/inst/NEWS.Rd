@@ -18,7 +18,7 @@
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item
+      \item Added function \code{inla.posterior.sample.eval}
     }
   }
   \subsection{BUG FIXES}{
