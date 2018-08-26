@@ -99,17 +99,17 @@
 ##! fun = function(...) {
 ##!     mean(xx) - mean(yy)
 ##! }
-##! f1 = inla.posterior.sample.eval(fun, x, return.matrix=TRUE)
+##! f1 = inla.posterior.sample.eval(fun, x)
 ##! 
 ##! fun = function(...) {
 ##!     c(exp(Intercept), exp(Intercept + z))
 ##! }
-##! f2 = inla.posterior.sample.eval(fun, x, return.matrix=TRUE)
+##! f2 = inla.posterior.sample.eval(fun, x)
 ##! 
 ##! fun = function(...) {
 ##!     return (theta[1]/(theta[1] + theta[2]))
 ##! }
-##! f3 = inla.posterior.sample.eval(fun, x, return.matrix=TRUE)
+##! f3 = inla.posterior.sample.eval(fun, x)
 ##!}
 
 
