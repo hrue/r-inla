@@ -10,8 +10,15 @@
 #define __BEGIN_DECLS					       /* empty */
 #define __END_DECLS					       /* empty */
 #endif
-__BEGIN_DECLS int my_is_double(char *str);
 
+__BEGIN_DECLS
+// ...
+
+#if defined(INLA_WINDOWS32_FIX)
+void _mm_pause(void);
+#endif
+
+int my_is_double(char *str);
 int my_is_int(char *str);
 char *my_strlwc(const char *str);
 
