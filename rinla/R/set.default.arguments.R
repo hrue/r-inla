@@ -278,6 +278,15 @@
         ##:ARGUMENT: gev.scale.xi The internal scaling of the shape-parameter for the GEV distribution. (default 0.01)
         gev.scale.xi = 0.01,
 
+        ##:ARGUMENT: gev2.level.alpha The quantile level for the location parameter
+        gev2.level.alpha = 0.5,
+        
+        ##:ARGUMENT: gev2.level.beta The quantile level for the spread parameter (must be < 0.5)
+        gev2.level.beta = 0.05,
+        
+        ##:ARGUMENT: gev2.scale.xi The internal scaling of the shape-parameter for the GEV2 distribution. (default 0.01)
+        gev2.scale.xi= 0.01,
+        
         ##:ARGUMENT: cenpoisson.I The censoring interval for the censored Poisson
         cenpoisson.I = c(-1L, -1L),
 
