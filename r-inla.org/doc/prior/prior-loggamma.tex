@@ -4,7 +4,7 @@
 \usepackage{listings}
 \begin{document}
 
-\section*{LogGamma prior}
+\section*{Gamma and logGamma prior}
 
 \subsection*{Parametrization}
 The Gamma  distribution has density
@@ -17,29 +17,25 @@ for $\tau>0$ where:
 \item[$b>0$] is the inverse-scale parameter.
 \end{description}
 The mean of $\tau$ is $a/b$ and the variance is $a/b^2$, and we denote
-this distribution  Gamma$(a,b)$.  The variable $\theta$
-has\footnote{We \emph{define} it in this way; if variable $X$ has
-    distribution $D$ then $\log(X)$ has distribution $logD$. This is
-    oposite to the implicite convention leading to the definition of
-    the logNormal distribution, which we believe is confusing.}  a
+this distribution Gamma$(a,b)$. The variable $\theta$ has a
 \emph{logGamma}$(a,b)$ distribution, if $\theta=\log(\tau)$ and $\tau$
 is Gamma$(a,b)$ distributed.
 
 \subsection*{Specification}
-The LogGamma prior for the hyperparameters is specified inside the
-{\tt f()} function as following using the old-style,
+The Gamma and logGamma prior for the hyperparameters is specified as
 \begin{center}
-    {\tt f(<whatever>,prior=loggamma, param=c(<a>,<b>))}
+    {\tt f(<whatever>, hyper = list(<theta> =
+        list(prior="gamma", param=c(<a>,<b>))))}
 \end{center}
-or better, the new style
+or
 \begin{center}
     {\tt f(<whatever>, hyper = list(<theta> =
         list(prior="loggamma", param=c(<a>,<b>))))}
 \end{center}
 In the case where there is one hyperparameter for that particular
 f-model. In the case where we want to specify the prior for the
-hyperparameter of an observation model, for example the
-Gaussian, the the prior spesification will appear inside the
+hyperparameter of an observation model, for example the Gaussian, the
+the prior spesification will appear inside the
 control.family()-argument; see the following example for illustration.
 
 \subsection*{Example}
@@ -58,7 +54,8 @@ y=rnorm(n,z,1)
 data=list(y=y,z=z)
 formula=y~1+z
 result=inla(formula,family="gaussian",data=data,
-       control.family=list(hyper = list(prec = list(prior="loggamma",param=c(0.1,0.1)))))
+       control.family=list(hyper = list(prec =
+                           list(prior="loggamma",param=c(0.1,0.1)))))
 \end{verbatim}
 
 \subsection*{Notes}
