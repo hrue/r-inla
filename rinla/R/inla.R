@@ -1167,6 +1167,7 @@
 
         ##....then create the new section 
         inla.family.section(file=file.ini, family=family[[i.family]], file.data=files$file.data, file.weights=files$file.weights,
+                            file.attr = files$file.attr, 
                             control=cont.family[[i.family]], i.family=i.family, link.covariates = link.covariates, data.dir = data.dir)
     }
 

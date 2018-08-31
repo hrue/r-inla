@@ -116,7 +116,7 @@
 }
 
 `inla.data.section` = function(
-        file, family, file.data, file.weights, control, i.family="",
+        file, family, file.data, file.weights, file.attr, control, i.family="",
         link.covariates = link.covariates, data.dir)
 {
     ## this function is called from 'inla.family.section' only.
@@ -125,6 +125,7 @@
     cat("likelihood = ", family,"\n", sep = " ", file = file,  append = TRUE)
     cat("filename = ", file.data,"\n", sep = " ", file = file,  append = TRUE)
     cat("weights = ", file.weights,"\n", sep = " ", file = file,  append = TRUE)
+    cat("attributes = ", file.attr, "\n", sep = " ", file = file,  append = TRUE)
 
     cat("variant = ",
         inla.ifelse(is.null(control$variant), 0L, as.integer(control$variant)),
@@ -167,6 +168,14 @@
 
     if (inla.one.of(family, "gev")) {
         cat("gev.scale.xi = ", inla.ifelse(is.null(control$gev.scale.xi), 0.01, control$gev.scale.xi), "\n",
+            sep="", file=file, append=TRUE)
+    }
+
+    if (inla.one.of(family, "gev2")) {
+        cat("gev2.level.alpha = ", inla.ifelse(is.null(control$gev2.level.alpha), 0.5, control$gev2.level.alpha), "\n",
+            sep="", file=file, append=TRUE)
+        cat("gev2.level.beta = ", inla.ifelse(is.null(control$gev2.level.beta), 0.05,
+                                        min(control$gev2.level.beta, 1.0 - control$gev2.level.beta)), "\n",
             sep="", file=file, append=TRUE)
     }
 
