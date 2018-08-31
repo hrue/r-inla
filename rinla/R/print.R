@@ -66,16 +66,19 @@
             cat(paste("Likelihood model",
                       inla.ifelse(length(x$.args$family)>1, paste("[", ii, "]", sep=""), ""),
                       ": ", x$.args$family[ii],"\n", sep=""))
-            prop = inla.model.properties(x$.args$family[ii], "likelihood")
-            ntheta = length(prop$hyper)
-            if (ntheta > 0) {
-                for (i in 1:ntheta) {
-                    ## need a fix here for the 'numeric(0)' problem.
-                    if (!is.null(contfamily[[ii]]$hyper[[i]]$fixed)) {
-                        if (contfamily[[ii]]$hyper[[i]]$fixed) {
-                            cat(paste("\t", prop$hyper[[i]]$name, "in the", x$family[ii], "likelihood is fixed\n"))
-                        } else {
-                            cat(paste("\t", prop$hyper[[i]]$name, "in the", x$family[ii], "likelihood is random\n"))
+            if (FALSE) {
+                ## do not need this really. Also, this code might fail
+                prop = inla.model.properties(x$.args$family[ii], "likelihood")
+                ntheta = length(prop$hyper)
+                if (ntheta > 0) {
+                    for (i in 1:ntheta) {
+                        ## need a fix here for the 'numeric(0)' problem.
+                        if (!is.null(contfamily[[ii]]$hyper[[i]]$fixed)) {
+                            if (contfamily[[ii]]$hyper[[i]]$fixed) {
+                                cat(paste("\t", prop$hyper[[i]]$name, "in the", x$family[ii], "likelihood is fixed\n"))
+                            } else {
+                                cat(paste("\t", prop$hyper[[i]]$name, "in the", x$family[ii], "likelihood is random\n"))
+                            }
                         }
                     }
                 }
