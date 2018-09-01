@@ -177,6 +177,8 @@
         cat("gev2.level.beta = ", inla.ifelse(is.null(control$gev2.level.beta), 0.05,
                                         min(control$gev2.level.beta, 1.0 - control$gev2.level.beta)), "\n",
             sep="", file=file, append=TRUE)
+        cat("gev2.scale.xi = ", inla.ifelse(is.null(control$gev2.scale.xi), 0.01, control$gev2.scale.xi), "\n",
+            sep="", file=file, append=TRUE)
     }
 
     inla.write.hyper(control$hyper, file, data.dir = data.dir)

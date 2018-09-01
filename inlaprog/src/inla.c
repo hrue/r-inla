@@ -5039,15 +5039,12 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 	for (i = 0; i < ds->data_observations.gev2_nbetas[0]; i++) {
 		log_spread += ds->data_observations.gev2_betas[i + off][GMRFLib_thread_id][0] * ds->data_observations.gev2_x[i + off][idx];
 	}
-	
-	FIXME1("Ignore argument 'scale'");
-	// spread = exp(log_spread) / sqrt(ds->data_observations.gev2_scale[i]);
-	spread = exp(log_spread);
+	spread = exp(log_spread) * ABS(ds->data_observations.gev2_scale[i]);
 
 	off = ds->data_observations.gev2_nbetas[0];
 	for (i = 0; i < ds->data_observations.gev2_nbetas[1]; i++) {
-		xi += ds->data_observations.gev2_betas[i + off][GMRFLib_thread_id][0] * ds->data_observations.gev2_x[i + off][idx]
-			* ds->data_observations.gev2_scale_xi;
+		xi += (ds->data_observations.gev2_betas[i + off][GMRFLib_thread_id][0] * ds->data_observations.gev2_scale_xi) 
+			* ds->data_observations.gev2_x[i + off][idx];
 	}
 
 	if (m > 0) {
@@ -12118,7 +12115,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		assert(tmp > 0.0);
 		ds->data_observations.gev_scale_xi = tmp;
 		if (mb->verbose) {
-			printf("\t\tgev.scale.xi [%g]\n", ds->data_observations.gev_scale_xi);
+			printf("\t\tgev_scale_xi [%g]\n", ds->data_observations.gev_scale_xi);
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* YES! */
@@ -12190,8 +12187,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("intern shape-parameter for gev-observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("shape-parameter for gev observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("tail parameter for GEV observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("tail parameter for GEV observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -12297,7 +12294,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("log.spread for GEV2 observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("log_spread for GEV2 observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("spread for GEV2 observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -12400,10 +12397,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 				if (i < ds->data_observations.gev2_nbetas[0]) {
 					ii = i + 1;
-					GMRFLib_sprintf(&ctmp, "log.spread.beta%1d for GEV2 observations", ii);
+					GMRFLib_sprintf(&ctmp, "log_spread_beta%1d for GEV2 observations", ii);
 				} else {
 					ii = i + 1 - ds->data_observations.gev2_nbetas[0];
-					GMRFLib_sprintf(&ctmp, "tail.beta%1d for GEV2 observations", ii);
+					GMRFLib_sprintf(&ctmp, "tail_beta%1d for GEV2 observations", ii);
 				}
 
 				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
