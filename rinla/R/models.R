@@ -5233,7 +5233,7 @@
                      ),
 
                  gev2 = list(
-                     doc = "Likelihood for the GEV2 model", 
+                     doc = "The Generalized Extreme Value likelihood (2nd variant)", 
                      hyper = list(
                          theta1 = list(
                              hyperid =  57201,
@@ -5878,8 +5878,8 @@
                              ),
                          theta2 = list(
                              hyperid =  76002,
-                             name = "gev parameter",
-                             short.name = "gev",
+                             name = "tail parameter",
+                             short.name = "tail",
                              initial = 0,
                              fixed = FALSE,
                              prior = "gaussian",
