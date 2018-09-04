@@ -290,6 +290,9 @@
         ##:ARGUMENT: gev2.sign.xi The sign of tail-parameter for the GEV2 distribution (default 1, ie positive)
         gev2.sign.xi= 1,
         
+        ##:ARGUMENT: gev2.censor.limit The limit for which an observation is considered to be censored
+        gev2.censor.limit = 0.2,
+        
         ##:ARGUMENT: cenpoisson.I The censoring interval for the censored Poisson
         cenpoisson.I = c(-1L, -1L),
 
