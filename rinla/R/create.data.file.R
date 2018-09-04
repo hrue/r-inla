@@ -328,6 +328,12 @@
 
         response = cbind(idx, scale, X, Y)
         ## fix attr, so the order corresponds to (X, Y) and not (Y, X) as in the inla.mdata() input
+        stopifnot(y.attr[1] > 0)
+        if (y.attr[1] == 1) { ## y.attr[1] is number of attributes
+            y.attr = c(3, y.attr[2], 0, 0)
+        } else if (y.attr[1] == 2) {
+            y.attr = c(3, y.attr[2], y.attr[3], 0)
+        }
         y.attr = c(y.attr[1], y.attr[-c(1, 2)], y.attr[2])
 
     } else {

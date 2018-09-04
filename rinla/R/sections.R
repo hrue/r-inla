@@ -179,6 +179,9 @@
             sep="", file=file, append=TRUE)
         cat("gev2.scale.xi = ", inla.ifelse(is.null(control$gev2.scale.xi), 0.01, control$gev2.scale.xi), "\n",
             sep="", file=file, append=TRUE)
+        if (is.null(control$gev2.sign.xi)) control$gev2.sign.xi = 1
+        cat("gev2.sign.xi = ", inla.ifelse(control$gev2.sign.xi >= 0.0, 1, -1), "\n",
+            sep="", file=file, append=TRUE)
     }
 
     inla.write.hyper(control$hyper, file, data.dir = data.dir)

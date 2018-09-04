@@ -58,8 +58,10 @@
     names(y.obj) = paste("Y", 1:length(y.obj), sep="")
     if (length(x.obj) > 0) {
         names(x.obj) = paste("X", 1:length(x.obj), sep="")
+        obj = c(y.obj,  x.obj)
+    } else {
+        obj = y.obj
     }
-    obj = c(y.obj,  x.obj)
     attr(obj, "inla.ncols") = c(length(ncols), ncols)
     class(obj) = "inla.mdata"
     return (obj)

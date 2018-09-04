@@ -275,7 +275,7 @@
         ##:ARGUMENT: sn.shape.max Maximum value for the shape-parameter for Skew Normal observations (default 5.0)
         sn.shape.max = 5.0,
 
-        ##:ARGUMENT: gev.scale.xi The internal scaling of the shape-parameter for the GEV distribution. (default 0.01)
+        ##:ARGUMENT: gev.scale.xi (Expert option, do not use unless you know what you are doing.) The internal scaling of the shape-parameter for the GEV distribution. (default 0.1)
         gev.scale.xi = 0.1,
 
         ##:ARGUMENT: gev2.level.alpha The quantile level for the location parameter
@@ -284,8 +284,11 @@
         ##:ARGUMENT: gev2.level.beta The quantile level for the spread parameter (must be < 0.5)
         gev2.level.beta = 0.05,
         
-        ##:ARGUMENT: gev2.scale.xi The internal scaling of the shape-parameter for the GEV2 distribution. (default 0.01)
+        ##:ARGUMENT: gev2.scale.xi (Expert option, do not use unless you know what you are doing.) The internal scaling of the tail-parameter for the GEV2 distribution, default 0.1.
         gev2.scale.xi= 0.1,
+        
+        ##:ARGUMENT: gev2.sign.xi The sign of tail-parameter for the GEV2 distribution (default 1, ie positive)
+        gev2.sign.xi= 1,
         
         ##:ARGUMENT: cenpoisson.I The censoring interval for the censored Poisson
         cenpoisson.I = c(-1L, -1L),

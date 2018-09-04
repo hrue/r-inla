@@ -552,6 +552,42 @@ double map_exp(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
+double map_exp_scale(double arg, map_arg_tp typ, void *param)
+{
+	/*
+	 * the exp-map-function with a scale
+	 */
+	double *p = (double *) param;
+	double a = p[0],  b = p[1];
+
+	switch (typ) {
+	case MAP_FORWARD:
+		/*
+		 * extern = func(local) 
+		 */
+		return a * exp(b * arg);
+	case MAP_BACKWARD:
+		/*
+		 * local = func(extern) 
+		 */
+		return log(arg/a)/b;
+	case MAP_DFORWARD:
+		/*
+		 * d_extern / d_local 
+		 */
+		return a * b * exp(b * arg);
+	case MAP_INCREASING:
+		/*
+		 * return 1.0 if montone increasing and 0.0 otherwise 
+		 */
+		return (map_exp_scale(1.0, MAP_FORWARD, param) >
+			map_exp_scale(0.0, MAP_FORWARD, param) ? 1 : -1);
+	default:
+		abort();
+	}
+	abort();
+	return 0.0;
+}
 double map_negexp(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -4117,7 +4153,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 
 	if (mb->verbose) {
 		for (i = 0; i < n_attr; i++) {
-			printf("\t\tmdata-attribute[%1d] = %g\n", i, attr[i]);
+			printf("\t\tmdata.attribute[%1d] = %g\n", i, attr[i]);
 		}
 	}
 
@@ -5025,35 +5061,41 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
-	int i, off, nb;
+	int i, off;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double log_spread, spread, xi = 0.0, sigma, q_alpha, d, mu, sprec, ypred, xx, y;
-	double level_alpha = ds->data_observations.gev2_level_alpha, level_beta = ds->data_observations.gev2_level_beta;
+	double log_spread, spread, log_xi, xi, sigma, q_alpha, d, mu, sprec, ypred, xx, y, tx;
+	double level_alpha = ds->data_observations.gev2_level_alpha;
+	double level_beta = ds->data_observations.gev2_level_beta;
 	
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
-	log_spread = ds->data_observations.gev2_log_spread[GMRFLib_thread_id][0];
-	xi = ds->data_observations.gev2_tail[GMRFLib_thread_id][0] * ds->data_observations.gev2_scale_xi;
-
+	
 	off = 0;
+	log_spread = ds->data_observations.gev2_log_spread[GMRFLib_thread_id][0];
 	for (i = 0; i < ds->data_observations.gev2_nbetas[0]; i++) {
 		log_spread += ds->data_observations.gev2_betas[i + off][GMRFLib_thread_id][0] * ds->data_observations.gev2_x[i + off][idx];
 	}
-	spread = exp(log_spread) * ABS(ds->data_observations.gev2_scale[i]);
+	spread = exp(log_spread) * ds->data_observations.gev2_scale[idx];
 
 	off = ds->data_observations.gev2_nbetas[0];
-	for (i = 0; i < ds->data_observations.gev2_nbetas[1]; i++) {
-		xi += (ds->data_observations.gev2_betas[i + off][GMRFLib_thread_id][0] * ds->data_observations.gev2_scale_xi) 
-			* ds->data_observations.gev2_x[i + off][idx];
+	log_xi = ds->data_observations.gev2_log_tail[GMRFLib_thread_id][0];
+	if (ISINF(log_xi) == -1) {
+		xi = 0.0;
+	} else {
+		for (i = 0; i < ds->data_observations.gev2_nbetas[1]; i++) {
+			log_xi += ds->data_observations.gev2_betas[i + off][GMRFLib_thread_id][0] * ds->data_observations.gev2_x[i + off][idx];
+		}
+		xi = ds->data_observations.gev2_sign_xi * exp(log_xi * ds->data_observations.gev2_scale_xi);
 	}
-
+	if (idx==0)P(xi);
+	
 	if (m > 0) {
 		if (ISZERO(xi)) {
 			d = log(-log(level_beta / 2.0)) - log(-log(1.0 - level_beta / 2.0));
 			for (i = 0; i < m; i++) {
 				q_alpha = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				mu = q_alpha + spread / d * log(-log(level_alpha));
 				sigma = spread / d;
+				mu = q_alpha + sigma * log(-log(level_alpha));
 
 				sprec = 1.0 / sigma;
 				ypred = mu;
@@ -5064,20 +5106,19 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 			d = (pow(-log(1.0 - level_beta / 2.0), -xi) - pow(-log(level_beta / 2.0), -xi)) / xi;
 			for (i = 0; i < m; i++) {
 				q_alpha = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				mu = q_alpha - spread / d * ((pow(-log(level_alpha), -xi) - 1.0) / xi);
 				sigma = spread / d;
+				mu = q_alpha - sigma * ((pow(-log(level_alpha), -xi) - 1.0) / xi);
 
 				sprec = 1.0 / sigma;
 				ypred = mu;
 				xx = 1.0 + xi * sprec * (y - ypred);
-				//P(xx);
 				if (xx > DBL_EPSILON) {
 					logll[i] = (-1.0 / xi - 1.0) * log(xx) - pow(xx, -1.0 / xi) + log(sprec);
 				} else {
 					logll[i] =
-					    (-1.0 / xi - 1.0) * log(DBL_EPSILON) - pow(DBL_EPSILON,
-										       -1.0 / xi) + log(sprec) -
-					    1e4 * SQR(sprec * (DBL_EPSILON - xx));
+						(-1.0 / xi - 1.0) * log(DBL_EPSILON) - pow(DBL_EPSILON,
+											   -1.0 / xi) + log(sprec) -
+						1.0e2 * ABS(sprec * (DBL_EPSILON - xx));
 				}
 			}
 		}
@@ -12231,6 +12272,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tgev2.scale.xi [%g]\n", ds->data_observations.gev2_scale_xi);
 		}
 
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev2.sign.xi"), 1.0);
+		ds->data_observations.gev2_sign_xi = (int) (tmp >= 0.0 ? 1.0 : -1.0);
+		if (mb->verbose) {
+			printf("\t\tgev2.sign.xi [%d]\n", ds->data_observations.gev2_sign_xi);
+		}
+
 		/*
 		 * mark all as read 
 		 */
@@ -12270,7 +12317,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->data_observations.gev2_betas = Calloc(GEV2_MAXTHETA, double **);
 		ds->data_nfixed = Calloc(GEV2_MAXTHETA + 2, int);
 		ds->data_nprior = Calloc(GEV2_MAXTHETA + 2, Prior_tp);
-
 		
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL10"), 0.0);	/* YES! */
 		ds->data_nfixed[10] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED10"), 0);
@@ -12306,7 +12352,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->theta[mb->ntheta] = ds->data_observations.gev2_log_spread;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -12318,9 +12364,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (!ds->data_nfixed[11] && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->data_observations.gev2_tail, tmp);
+		HYPER_NEW(ds->data_observations.gev2_log_tail, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise tail[%g] (corrected for 'gev2_scale_xi = %g) \n", ds->data_observations.gev2_tail[0][0],
+			printf("\t\tinitialise tail[%g] (corrected for 'gev2_scale_xi = %g) \n", ds->data_observations.gev2_log_tail[0][0],
 			       ds->data_observations.gev2_scale_xi);
 			printf("\t\tfixed=[%1d]\n", ds->data_nfixed[11]);
 		}
@@ -12336,7 +12382,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("tail for GEV2 observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("log_tail for GEV2 observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("tail for GEV2 observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -12346,11 +12392,15 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[11].from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[11].to_theta);
 
-			mb->theta[mb->ntheta] = ds->data_observations.gev2_tail;
+			double *p = Calloc(2, double);
+			mb->theta[mb->ntheta] = ds->data_observations.gev2_log_tail;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_identity_scale;
+			mb->theta_map[mb->ntheta] = map_exp_scale;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = (void *) &(ds->data_observations.gev2_scale_xi);
+			p[0] = ds->data_observations.gev2_sign_xi;
+			p[1] = ds->data_observations.gev2_scale_xi;
+			mb->theta_map_arg[mb->ntheta] = (void *) p;
+
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -12376,12 +12426,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 					printf("\t\tfixed[%1d]= %1d\n", i, ds->data_nfixed[i]);
 				}
 			} else {
-				// xi part, scaled case
-				double tmp_scale = ds->data_observations.gev2_scale_xi;
-				HYPER_NEW(ds->data_observations.gev2_betas[i], tmp/tmp_scale);
+				// xi part
+				HYPER_NEW(ds->data_observations.gev2_betas[i], tmp/ds->data_observations.gev2_sign_xi);
 				if (mb->verbose) {
-					printf("\t\tbetas[%1d] = %g (corrected for 'gev2_scale_xi' = %g)\n",
-					       i, ds->data_observations.gev2_betas[i][0][0], tmp_scale);
+					printf("\t\tbetas[%1d] = %g (corrected for gev2_scale_xi = %g)\n", i,
+					       ds->data_observations.gev2_betas[i][0][0], ds->data_observations.gev2_scale_xi);
 					printf("\t\tfixed[%1d]= %1d\n", i, ds->data_nfixed[i]);
 				}
 			}
@@ -12416,15 +12465,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta[mb->ntheta] = ds->data_observations.gev2_betas[i];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 				
-				if (i < ds->data_observations.gev2_nbetas[0]) {
-					mb->theta_map[mb->ntheta] = map_identity;
-					mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-					mb->theta_map_arg[mb->ntheta] = NULL; 
-				} else {
-					mb->theta_map[mb->ntheta] = map_identity_scale;
-					mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-					mb->theta_map_arg[mb->ntheta] = (void *) &(ds->data_observations.gev2_scale_xi);
-				}
+				mb->theta_map[mb->ntheta] = map_identity;
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL; 
+
 				mb->ntheta++;
 				ds->data_ntheta++;
 			}
@@ -23704,7 +23748,7 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					double xi = theta[count] * ds->data_observations.gev_scale_xi;
 
-					val += PRIOR_EVAL(ds->data_prior1, &xi);
+					val += PRIOR_EVAL(ds->data_prior1, &xi) + log(ds->data_observations.gev_scale_xi);
 					count++;
 				}
 				break;
@@ -23715,12 +23759,13 @@ double extra(double *theta, int ntheta, void *argument)
 				for (int k = 0; k < nbetas; k++) {
 					if (!ds->data_nfixed[k]) {
 						double b = theta[count];
-						// if we are in the tail part, we need to scale theta's with 'scale_xi'.
-						// map_identity_scale(theta, MAP_FORWARD, arg...)
-						if (k >= ds->data_observations.gev2_nbetas[0]) {
+
+						if (k < ds->data_observations.gev2_nbetas[0]) {
+							val += PRIOR_EVAL(ds->data_nprior[k], &b);
+						} else {
 							b *= ds->data_observations.gev2_scale_xi;
+							val += PRIOR_EVAL(ds->data_nprior[k], &b) + log(ds->data_observations.gev2_scale_xi);
 						}
-						val += PRIOR_EVAL(ds->data_nprior[k], &b);
 						count++;
 					}
 				}
@@ -23731,9 +23776,12 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				if (!ds->data_nfixed[GEV2_MAXTHETA + 1]) {
 					// we are in the tail part, so we need to scale theta's with 'scale_xi'
-					// map_identity_scale(theta, MAP_FORWARD, arg...)
-					double tail = theta[count] * ds->data_observations.gev2_scale_xi;
-					val += PRIOR_EVAL(ds->data_nprior[GEV2_MAXTHETA + 1], &tail);
+					// note that the sign is not here, its the prior for log|xi|
+					double log_tail = theta[count] * ds->data_observations.gev2_scale_xi;
+					FIXME1("UNIFORM prior for log_tail");
+					if (0)
+					val += PRIOR_EVAL(ds->data_nprior[GEV2_MAXTHETA + 1], &log_tail) +
+						log(ds->data_observations.gev2_scale_xi);
 					count++;
 				}
 			}
