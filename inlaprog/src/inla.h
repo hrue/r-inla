@@ -315,10 +315,11 @@ typedef struct {
 	double **gev2_x;				       /* matrix of covariates */
 	double ***gev2_betas;				       /* vector of betas */
 	double **gev2_log_spread;
-	double **gev2_tail;
+	double **gev2_log_tail;
 	int gev2_nbetas[2];
 	int *gev2_ncols;
-
+	int gev2_sign_xi;
+	
 	/*
 	 * Log gamma frailty
 	 */
@@ -1442,6 +1443,7 @@ double map_beta(double arg, map_arg_tp typ, void *param);
 double map_dof(double arg, map_arg_tp typ, void *param);
 double map_dof5(double arg, map_arg_tp typ, void *param);
 double map_exp(double arg, map_arg_tp typ, void *param);
+double map_exp_scale(double arg, map_arg_tp typ, void *param);
 double map_group_rho(double x, map_arg_tp typ, void *param);
 double map_identity(double arg, map_arg_tp typ, void *param);
 double map_identity_scale(double arg, map_arg_tp typ, void *param);

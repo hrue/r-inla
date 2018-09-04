@@ -5242,7 +5242,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1), 
+                             param = c(0, 100), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          ), 
@@ -5253,7 +5253,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1), 
+                             param = c(0, 100), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          ), 
@@ -5264,7 +5264,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1), 
+                             param = c(0, 100), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          ), 
@@ -5275,7 +5275,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1), 
+                             param = c(0, 100), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          ), 
@@ -5286,7 +5286,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1), 
+                             param = c(0, 100), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          ), 
@@ -5297,7 +5297,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1), 
+                             param = c(0, 100), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          ), 
@@ -5308,7 +5308,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1), 
+                             param = c(0, 100), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          ), 
@@ -5319,7 +5319,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1), 
+                             param = c(0, 100), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          ), 
@@ -5330,7 +5330,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1), 
+                             param = c(0, 100), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          ), 
@@ -5341,7 +5341,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1), 
+                             param = c(0, 100), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          ),
@@ -5349,7 +5349,7 @@
                              hyperid =  57211,
                              name = "log spread",
                              short.name = "spread",
-                             initial = -2,
+                             initial = -4,
                              fixed = FALSE,
                              prior = "loggamma",
                              param = c(0.01, 0.01),
@@ -5360,12 +5360,12 @@
                              hyperid =  57212,
                              name = "tail",
                              short.name = "tail",
-                             initial = 0,
+                             initial = log(0.1),
                              fixed = FALSE,
-                             prior = "normal",
-                             param = c(0, 10),
-                             to.theta = function(x) x,
-                             from.theta = function(x) x
+                             prior = "loggamma",
+                             param = c(1, 3),
+                             to.theta = function(x, sign = 1) log(x/sign),
+                             from.theta = function(x, sign = 1) sign*exp(x)
                          )
                      ), 
                      status = "experimental", 
