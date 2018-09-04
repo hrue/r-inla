@@ -2733,7 +2733,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			GMRFLib_2order_approx(&(aa[idx]), &bcoof, &ccoof, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg,
 					      &(optpar->step_len), &(optpar->stencil));
 			cc_is_negative = (cc_is_negative || ccoof < 0.0);	/* this line IS OK! also for multithread.. */
-			//printf("idx %d ccoof %.12g\n", idx, ccoof);
+			//if (ccoof < 0.0) printf("idx %d ccoof %.12g\n", idx, ccoof);
 			if (cc_positive) {
 				bb[idx] += bcoof;
 				cc[idx] += DMAX(cmin, ccoof);

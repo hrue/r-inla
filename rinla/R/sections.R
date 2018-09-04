@@ -182,6 +182,8 @@
         if (is.null(control$gev2.sign.xi)) control$gev2.sign.xi = 1
         cat("gev2.sign.xi = ", inla.ifelse(control$gev2.sign.xi >= 0.0, 1, -1), "\n",
             sep="", file=file, append=TRUE)
+        cat("gev2.censor.limit = ", min(1, control$gev2.censor.limit), "\n",
+            sep="", file=file, append=TRUE)
     }
 
     inla.write.hyper(control$hyper, file, data.dir = data.dir)
