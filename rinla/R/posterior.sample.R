@@ -149,6 +149,7 @@
         n.idx[i] = sum(idx == i)
     }
 
+    con = cs$contents
     all.samples = rep(list(c()), n)
     i.sample = 1L
     for(k in 1:cs$nconfig) {
@@ -257,14 +258,35 @@
                             latent = as.numeric(xx$logdens[i]),
                             joint = as.numeric(ld.h + xx$logdens[i])))
                 }
-                rownames(a.sample$latent) = if (add.names || i.sample == 1L) nm else NULL
+                if (add.names || i.sample == 1L) {
+                    n1 = length(nm)
+                    n2 = length(a.sample$latent)
+                    stopifnot(n2 >= n1)  ## this must be true. just a check
+                    if (n2 > n1 ) {
+                        ## This is the case where lincomb.derived.only = FALSE, so these are
+                        ## then added to the end. Should transfer the names of them all the way
+                        ## to here, but...
+                        xnm = paste0("Lincomb:", inla.num(1:(n2-n1)))
+                        nm = c(nm,  xnm)
+
+                        if (i.sample == 1L) {
+                            ## add to the contents if needed
+                            con$tag = c(con$tag, "Lincomb")
+                            con$start = c(con$start, n1 + 1)
+                            con$length = c(con$length, n2 - n1)
+                        }
+                    }
+                    rownames(a.sample$latent) = nm
+                } else {
+                    rownames(a.sample$latent) = NULL
+                }
                 all.samples[[i.sample]] = a.sample
                 i.sample = i.sample + 1L
             }    
         }
     }
 
-    attr(all.samples, ".contents") = result$misc$configs$contents
+    attr(all.samples, ".contents") = con
     return (all.samples)
 }
 
