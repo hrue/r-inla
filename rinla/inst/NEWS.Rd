@@ -18,7 +18,30 @@
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item Added function \code{inla.posterior.sample.eval}
+      \item 
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.08.26}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Added 32-bit builds for windows (upon request)
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added function \code{inla.posterior.sample.eval()}
     }
   }
   \subsection{BUG FIXES}{

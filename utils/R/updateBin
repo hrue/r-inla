@@ -39,7 +39,7 @@ for m in 64; do
     fix-perm $d/linux/${m}bit
 done
 
-for m in 64; do
+for m in 32 64; do
     for p in inla fmesher; do 
 	for f in $(ssh -p $INLA_LINUX_PORT $INLA_LINUX builds/windows$m/bin/my.objdump builds/windows$m/local/bin/$p.exe) builds/windows$m/local/bin/$p.exe; do
 	    echo sync $f
