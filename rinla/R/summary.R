@@ -65,21 +65,21 @@
 
     ## might not be if using collect directly
     if (inla.is.element("cpu.used", object)) {
-        ret = c(ret, list(cpu.used = round(object$cpu.used, digits))) 
+        ret = c(ret, list(cpu.used = round(object$cpu.used, digits = digits))) 
     } else {
         ret = c(ret,  list(cpu.used = NA))
     }
 
     if(!is.null(object$summary.fixed) && length(object$summary.fixed) > 0) 
-        ret = c(ret, list(fixed=round(as.matrix(object$summary.fixed), digits)))
+        ret = c(ret, list(fixed=round(as.matrix(object$summary.fixed), digits = digits)))
 
     if (include.lincomb) {
         if(!is.null(object$summary.lincomb) && any(names(object) == "summary.lincomb")
            && (length(object$summary.lincomb) > 0)) 
-            ret = c(ret, list(lincomb=round(as.matrix(object$summary.lincomb), digits)))
+            ret = c(ret, list(lincomb=round(as.matrix(object$summary.lincomb), digits = digits)))
         if(!is.null(object$summary.lincomb.derived) && length(object$summary.lincomb.derived) > 0)
             ret = c(ret, list(lincomb.derived=round(as.matrix(object$summary.lincomb.derived),
-                                  digits)))
+                                  digits = digits)))
     } else {
         if(!is.null(object$summary.lincomb) && any(names(object) == "summary.lincomb")
            && (length(object$summary.lincomb) > 0)) {
@@ -93,13 +93,13 @@
     }
 
     if(!is.null(object$summary.hyperpar) && length(object$summary.hyperpar) > 0)
-        ret = c(ret, list(hyperpar=round(object$summary.hyperpar, digits)))
+        ret = c(ret, list(hyperpar=round(object$summary.hyperpar, digits = digits)))
     
     if(!is.null(object$summary.random) && length(object$summary.random) > 0) 
         ret = c(ret, list(random.names=names(object$summary.random), random.model=object$model.random))
     
     neffp = object$neffp
-    ret = c(ret, list(neffp = round(neffp, digits)))
+    ret = c(ret, list(neffp = round(neffp, digits = digits)))
     
     if (!is.null(object$dic)) {
         ret = c(ret, list(dic = lapply(object$dic, round, digits = digits)))
@@ -110,13 +110,13 @@
     }
 
     if(!is.null(object$mlik))
-        ret = c(ret, list(mlik = round(object$mlik, digits)))
+        ret = c(ret, list(mlik = round(object$mlik, digits = digits)))
     
     if(!is.null(object$cpo$cpo) && length(object$cpo$cpo) > 0L)
         ret = c(ret, list(cpo = lapply(object$cpo, round, digits = digits)))
 
     if(!is.null(object$summary.linear.predictor))
-        ret = c(ret, list(linear.predictor= round(object$summary.linear.predictor, digits)))
+        ret = c(ret, list(linear.predictor= round(object$summary.linear.predictor, digits = digits)))
     
     ret = c(ret, list(family=object$family))
     class(ret) = "summary.inla"
@@ -124,10 +124,14 @@
     return (ret)
 }
 
-`print.summary.inla` = function(x, ...)
+`print.summary.inla` = function(x, digits = 4L, ...)
 {
-    digits = 4L
-    cat("\nCall:\n", inla.formula2character(x$call), "\n\n", sep = "")
+    form = strwrap(inla.formula2character(x$call))
+    cat("\nCall:\n")
+    for (i in seq_along(form)) {
+        cat("  ", form[i], "\n")
+    }
+
     if (inla.is.element("cpu.used",  x)) {
         cat("Time used:\n")
         print(x$cpu.used)
