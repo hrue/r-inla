@@ -12,8 +12,8 @@
 ##!
 ##!}
 ##!\usage{
-##!\method{summary}{inla}(object, ..., digits = 4L, include.lincomb = TRUE)
-##!\method{print}{summary.inla}(x, ...)
+##!\method{summary}{inla}(object, digits = 3L, include.lincomb = TRUE, ...)
+##!\method{print}{summary.inla}(x, digits = 3L, ...)
 ##!}
 ##!%- maybe also 'usage' for other objects documented here.
 ##!\arguments{
@@ -47,7 +47,7 @@
 ##!\author{Sara Martino and Havard Rue}
 ##!\seealso{ \code{\link{inla}} }
 
-`summary.inla` = function(object, ..., digits = 4L, include.lincomb = TRUE)
+`summary.inla` = function(object, digits = 3L, include.lincomb = TRUE, ...)
 {
     inla.eval.dots(...)
     
@@ -65,7 +65,15 @@
 
     ## might not be if using collect directly
     if (inla.is.element("cpu.used", object)) {
-        ret = c(ret, list(cpu.used = round(object$cpu.used, digits = digits))) 
+        ret = c(ret, list(cpu.used =
+                              paste0(names(object$cpu.used)[1], " = ",
+                                     format(object$cpu.used[1], digits = digits), ", ", 
+                                     names(object$cpu.used)[2], " = ",
+                                     format(object$cpu.used[2], digits = digits), ", ", 
+                                     names(object$cpu.used)[3], " = ",
+                                     format(object$cpu.used[3], digits = digits), ", ",
+                                     names(object$cpu.used)[4], " = ",
+                                     format(object$cpu.used[4], digits = digits))))
     } else {
         ret = c(ret,  list(cpu.used = NA))
     }
@@ -124,7 +132,7 @@
     return (ret)
 }
 
-`print.summary.inla` = function(x, digits = 4L, ...)
+`print.summary.inla` = function(x, digits = 3L, ...)
 {
     form = strwrap(inla.formula2character(x$call))
     cat("\nCall:\n")
@@ -133,9 +141,7 @@
     }
 
     if (inla.is.element("cpu.used",  x)) {
-        cat("Time used:\n")
-        print(x$cpu.used)
-        cat("\n")
+        cat("Time used:\n", "  ", x$cpu.used, "\n")
     }
     
     if (inla.is.element("fixed", x)) {
@@ -167,9 +173,9 @@
 
     if (inla.is.element("random.names", x)) {
         cat("Random effects:\n")
-        cat("Name\t ", "Model\n ")
+        cat("  Name\t ", "Model\n ")
         for(i in 1:length(x$random.names))
-            cat(paste(inla.nameunfix(x$random.names[i])," ", x$random.model[i],"\n"))
+            cat("  ", paste0(inla.nameunfix(x$random.names[i])," ", x$random.model[i], "\n"))
         cat("\n")
     } else 
         cat("The model has no random effects\n\n")
@@ -182,11 +188,12 @@
         cat("The model has no hyperparameters\n\n")
     
     if (inla.is.element("neffp", x)) {
-        cat("Expected number of effective parameters(std dev): ", format(x$neffp[1], digits=digits, nsmall=2),"(",
+        cat("Expected number of effective parameters(stdev): ", format(x$neffp[1], digits=digits, nsmall=2),"(",
             format(x$neffp[2], digits=digits, nsmall=2),")\n", sep="")
         cat("Number of equivalent replicates :", format(x$neffp[3], digits=digits, nsmall=2),"\n\n")
     } else {
-        cat("Expected number of effective parameters and Number of equivalent replicates not computed\n\n")
+        cat("Expected number of effective parameters and\n",
+            "number of equivalent replicates are not computed\n\n")
     }
 
     if (inla.is.element("dic", x)) 
@@ -209,6 +216,10 @@
     if (inla.is.element("cpo", x)) 
         cat("CPO and PIT are computed\n\n")
 
+    if (inla.is.element("po", x)) 
+        cat("PO is computed\n\n")
+
     if (inla.is.element("linear.predictor", x)) 
-        cat("Posterior marginals for linear predictor and fitted values computed\n\n")
+        cat("Posterior marginals for the linear predictor and\n",
+            "the fitted values are computed\n\n")
 }
