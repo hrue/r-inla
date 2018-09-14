@@ -94,24 +94,51 @@
 ##!         data = data.frame(y, z, xx, yy), 
 ##!         control.compute = list(config=TRUE),
 ##!         family = "gaussian")
-##! x = inla.posterior.sample(100, r)
+##! r.samples = inla.posterior.sample(100, r)
 ##! 
 ##! fun = function(...) {
 ##!     mean(xx) - mean(yy)
 ##! }
-##! f1 = inla.posterior.sample.eval(fun, x)
+##! f1 = inla.posterior.sample.eval(fun, r.samples)
 ##! 
 ##! fun = function(...) {
 ##!     c(exp(Intercept), exp(Intercept + z))
 ##! }
-##! f2 = inla.posterior.sample.eval(fun, x)
+##! f2 = inla.posterior.sample.eval(fun, r.samples)
 ##! 
 ##! fun = function(...) {
 ##!     return (theta[1]/(theta[1] + theta[2]))
 ##! }
-##! f3 = inla.posterior.sample.eval(fun, x)
+##! f3 = inla.posterior.sample.eval(fun, r.samples)
+##!
+##! ## Predicting nz new observations, and
+##! ## comparing the estimated one with the true one
+##! set.seed(1234)
+##! n = 100
+##! alpha = beta = s = 1
+##! z = rnorm(n)
+##! y = alpha + beta * z + rnorm(n, sd = s)
+##! r = inla(y ~ 1 + z, 
+##!         data = data.frame(y, z), 
+##!         control.compute = list(config=TRUE),
+##!         family = "gaussian")
+##! r.samples = inla.posterior.sample(10^3, r)
+##! nz = 3
+##! znew = rnorm(nz)
+##! fun = function(zz = NA) {
+##!     ## theta[1] is the precision
+##!     return (Intercept + z * zz +
+##!             rnorm(length(zz), sd = sqrt(1/theta[1])))
+##! }
+##! par(mfrow=c(1, nz))
+##! f1 = inla.posterior.sample.eval(fun, r.samples, zz = znew)
+##! for(i in 1:nz) {
+##!     hist(f1[i, ], n = 100, prob = TRUE)
+##!     m = alpha + beta * znew[i]
+##!     xx = seq(m-4*s, m+4*s, by = s/100)
+##!     lines(xx, dnorm(xx, mean=m, sd = s), lwd=2)
+##! }
 ##!}
-
 
 `inla.posterior.sample` = function(n = 1, result, intern = FALSE,
     use.improved.mean = TRUE, add.names = TRUE, seed = 0L, num.threads = 1L)
