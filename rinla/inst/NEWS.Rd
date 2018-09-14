@@ -8,7 +8,7 @@
 \section{CHANGES IN VERSION xx.xx.xx}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
-      \item 
+      \item New example added to \code{inla.posterior.sample()}
     }
   }
   \subsection{NEW FEATURES}{
@@ -18,12 +18,13 @@
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item 
+      \item
     }
   }
   \subsection{BUG FIXES}{
     \itemize{
-      \item 
+      \item Fixed the issue when \code{lincomb.derived.only=FALSE} and
+      then using \code{inla.posterior.sample()}
     }
   }
 }
