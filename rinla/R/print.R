@@ -11,6 +11,7 @@
 ##!}
 ##!\arguments{
 ##!  \item{x}{An inla-object (output from an \code{\link{inla}}-call).}
+##!  \item{digits}{Number of digits to print}
 ##!  \item{...}{ other arguments.}
 ##!}
 ##!\details{
@@ -26,13 +27,19 @@
 ##!## None
 ##!}
 
-`print.inla` = function(x, ...)
+`print.inla` = function(x, digits = 4L, ...)
 {
-    cat("\nCall:\n", inla.formula2character(x$call), "\n\n", sep = "")
+    nsmall = 2L
+    form = strwrap(inla.formula2character(x$call))
+    cat("\nCall:\n")
+    for (i in seq_along(form)) {
+        cat("  ", form[i], "\n")
+    }
+
     cat("Time used:\n")
-    print(x$cpu.used)
+    print(format(x$cpu.used, digits = digits, nsmall = nsmall))
     cat("\nIntegration Strategy: ")
-   
+    
     if(is.null(x$.args$control.inla$int.strategy))
         cat("default\n\n ")
     else if(x$.args$control.inla$int.strategy=="eb")
@@ -41,8 +48,12 @@
         cat("Central Composit Design\n\n")
     else if(x$.args$control.inla$int.strategy=="grid") {
         cat("Integration on a regular grid\n")
-        cat("with parameters dz=", x$.args$control.inla$dz,
-            " and diff.logdens=", x$.args$control.inla$diff.logdens,"\n\n")
+        cat("  ",
+            "with parameters dz=",
+            format(x$.args$control.inla$dz, digits=digits, nsmall = nsmall), 
+            " and diff.logdens=",
+            format(x$.args$control.inla$diff.logdens,digits = digits, nsmall = nsmall),
+            "\n\n")
     }
     
     cat(paste("Model contains ", x$nhyper," hyperparameters\n", sep=""))
