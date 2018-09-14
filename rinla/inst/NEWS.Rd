@@ -8,7 +8,34 @@
 \section{CHANGES IN VERSION xx.xx.xx}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item 
+    }
+  }
+}
+
+
+
+\section{CHANGES IN VERSION 18.09.14}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
       \item New example added to \code{inla.posterior.sample()}
+      \item Slight changes in the default \code{print}, and
+      \code{summary} for an \code{inla}-object
     }
   }
   \subsection{NEW FEATURES}{
