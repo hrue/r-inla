@@ -7,10 +7,11 @@
 ##!Print a INLA fit
 ##!}
 ##!\usage{
-##!\method{print}{inla}(x,...)
+##!\method{print}{inla}(x, digits = 3L, ...)
 ##!}
 ##!\arguments{
 ##!  \item{x}{An inla-object (output from an \code{\link{inla}}-call).}
+##!  \item{digits}{Number of digits to print}
 ##!  \item{...}{ other arguments.}
 ##!}
 ##!\details{
@@ -26,13 +27,30 @@
 ##!## None
 ##!}
 
-`print.inla` = function(x, ...)
+`print.inla` = function(x, digits = 3L, ...)
 {
-    cat("\nCall:\n", inla.formula2character(x$call), "\n\n", sep = "")
-    cat("Time used:\n")
-    print(x$cpu.used)
+    nsmall = 2L
+    form = strwrap(inla.formula2character(x$call))
+    cat("\nCall:\n")
+    for (i in seq_along(form)) {
+        cat("  ", form[i], "\n")
+    }
+
+    cat("Time used:\n  ")
+    if (inla.is.element("cpu.used", x)) {
+        cat(sep = "", 
+            names(x$cpu.used)[1], " = ",
+            format(x$cpu.used[1], digits = digits), ", ", 
+            names(x$cpu.used)[2], " = ",
+            format(x$cpu.used[2], digits = digits), ", ", 
+            names(x$cpu.used)[3], " = ",
+            format(x$cpu.used[3], digits = digits), ", ",
+            names(x$cpu.used)[4], " = ",
+            format(x$cpu.used[4], digits = digits), "\n")
+    }
+
     cat("\nIntegration Strategy: ")
-   
+    
     if(is.null(x$.args$control.inla$int.strategy))
         cat("default\n\n ")
     else if(x$.args$control.inla$int.strategy=="eb")
@@ -41,8 +59,12 @@
         cat("Central Composit Design\n\n")
     else if(x$.args$control.inla$int.strategy=="grid") {
         cat("Integration on a regular grid\n")
-        cat("with parameters dz=", x$.args$control.inla$dz,
-            " and diff.logdens=", x$.args$control.inla$diff.logdens,"\n\n")
+        cat("  ",
+            "with parameters dz=",
+            format(x$.args$control.inla$dz, digits=digits, nsmall = nsmall), 
+            " and diff.logdens=",
+            format(x$.args$control.inla$diff.logdens,digits = digits, nsmall = nsmall),
+            "\n\n")
     }
     
     cat(paste("Model contains ", x$nhyper," hyperparameters\n", sep=""))
