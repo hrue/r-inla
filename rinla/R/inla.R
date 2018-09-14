@@ -2025,9 +2025,9 @@
             
             my.time.used[4] = Sys.time()
             cpu.used = c(
-                "Pre-processing"  = diff(my.time.used)[1],
-                "Running inla"    = diff(my.time.used)[2],
-                "Post-processing" = diff(my.time.used)[3],
+                "Pre" = diff(my.time.used)[1],
+                "Running" = diff(my.time.used)[2],
+                "Post" = diff(my.time.used)[3],
                 "Total" = my.time.used[4] - my.time.used[1])
 
             ret$cpu.used = cpu.used
