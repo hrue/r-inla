@@ -18,9 +18,12 @@
 \item{plain}{Logical. If \code{FALSE} (default), then make
 changes in \code{object} to improve the performance}
 }
-\value{This function will take the result in \code{object},  and rerun \code{inla} again.
-       If \code{plain}  is \code{FALSE},  start  the optimization from the mode in \code{object} so that
-       we can obtain an  improvement the mode for the hyperparameters. Otherwise,  start from the same configuration
+\value{This function will take the result in \code{object},
+       and rerun \code{inla} again.
+       If \code{plain}  is \code{FALSE},  start  the optimization
+       from the mode in \code{object} so that
+       we can obtain an  improvement the mode for the hyperparameters.
+       Otherwise,  start from the same configuration
        as for \code{object}.
        The returned value is an \code{inla}-object.}
 \seealso{\code{\link{inla}}}

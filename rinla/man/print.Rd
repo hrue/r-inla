@@ -9,10 +9,11 @@
 Print a INLA fit
 }
 \usage{
-\method{print}{inla}(x,...)
+\method{print}{inla}(x, digits = 3L, ...)
 }
 \arguments{
   \item{x}{An inla-object (output from an \code{\link{inla}}-call).}
+  \item{digits}{Number of digits to print}
   \item{...}{ other arguments.}
 }
 \details{
