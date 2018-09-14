@@ -33,7 +33,6 @@
     ##!r = inla.rerun(r)
     ##!}
 {
-
     stopifnot(any(inherits(object, "inla")))
 
     ## need to do this, as if its true it will regenerate the linear combinations
@@ -49,6 +48,8 @@
     }
     
     new.obj = do.call("inla",  args = object$.args)
+    ## revert this one, as variables are expanded and its long...
     new.obj$call = object$call
+
     return (new.obj)
 }
