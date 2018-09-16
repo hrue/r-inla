@@ -1,8 +1,8 @@
 #!/bin/bash
 cmd=$(readlink -f "$0")
-tmp=$(basename "$cmd")
-prog=${tmp%%.run}
 DIR=$(dirname "$cmd")
+tmp=$(basename "$0")
+prog=${tmp%%.run}
 
 D=""
 if [ ! -z ${R_HOME+x} ]; then 
