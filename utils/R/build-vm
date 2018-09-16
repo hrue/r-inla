@@ -35,6 +35,10 @@ ssh -x -t $IP "
     cp -v ./local/bin/fmesher $D;
     \$HOME/bin/my.ldd ./local/bin/inla | while read f; do cp -v \$f $D; done;
     \$HOME/bin/my.ldd ./local/bin/fmesher | while read f; do cp -v \$f $D; done
+    if test -f ./local/bin/inla.mkl; then 
+        cp -v ./local/bin/inla.mkl $D;
+        \$HOME/bin/my.ldd ./local/bin/inla.mkl | while read f; do cp -v \$f $D; done;
+    fi	
 "
 
 tarfile="$D.tgz"
