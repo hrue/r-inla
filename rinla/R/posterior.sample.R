@@ -42,7 +42,7 @@
 ##!       the example for how this can be done. }
 ##!   \item{num.threads}{The number of threads that can be used. \code{num.threads>1L} requires
 ##!       \code{seed = 0L}. Only use \code{num.threads > 1L} for large problems/number of
-##!       samples. This option does currently NOT use the default one set by \code{inla.setOption()}. }
+##!       samples. }
 ##!   \item{fun}{The function to evaluate for each sample. Upon entry, the variable names
 ##!               defined in the model are defined as the value of the sample.
 ##!               The list of names are defined in \code{result$misc$configs$contents} where
