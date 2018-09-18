@@ -2,6 +2,7 @@
 
 ##! \name{inla.knmodels}
 ##! \alias{inla.knmodels}
+##! \alias{knmodels}
 ##! \title{Spacetime interaction models}
 ##! \description{
 ##!    It implements the models in Knorr-Held, L. (2000) 
@@ -21,7 +22,7 @@
 ##!   type=c(paste(1:4), paste0(2:4, 'c'), paste0(2:4, 'd')), 
 ##!   diagonal=1e-5, 
 ##!   ...) 
-##!  )
+##! )
 ##!}
 ##! \arguments{
 `inla.knmodels` =
@@ -86,12 +87,12 @@
            ##!   \code{param = c(0.5, 0.5)}. See documentation with 
            ##!   \code{?inla.doc("pc.prec")}.
            ...),
-       ##!}
        ##! \item{...}{Arguments to be passed to the 
        ##!   \code{\link{inla}} function.}
        ...)
 {
 ##! }
+##!}
 ##! \value{
 ##!  \code{inla.knmodels} returns an object of class \code{"inla"}. 
 ##!    or a list of objects of this class if it is asked to compute 
@@ -277,7 +278,7 @@
             st2=Diagonal(n*m)[,id2] - M2[space, id2])
         names(lc2) <- gsub('lc', 'st', names(lc2))
         if (lc2.on) {
-            lc2args <- list(cBind(Diagonal(n), Diagonal(n,0)), st2=M2[,id2]-1/(n*m))
+            lc2args <- list(cbind(Diagonal(n), Diagonal(n,0)), st2=M2[,id2]-1/(n*m))
             names(lc2args)[1] <- sname 
             lcc2 <- do.call('inla.make.lincombs', lc2args) 
             names(lcc2) <- gsub('lc', 's', names(lcc2))
@@ -335,7 +336,7 @@
             lc4 <- c(lcc3, lc4)
         }
         if (lc2.on) {
-            lc2args <- list(cBind(Diagonal(n), Diagonal(n,0)),
+            lc2args <- list(cbind(Diagonal(n), Diagonal(n,0)),
                             st4=M2[, id4]-1/(n*m))
             names(lc2args)[1] <- sname
             lcc2 <- do.call('inla.make.lincombs', lc2args)
@@ -350,7 +351,7 @@
     if (any(type%in%c('2d', '3d', '4d'))) {
         lcd2 <- lcd3 <- NULL
         if (lc2.on) {
-            lc2args <- list(cBind(Diagonal(n), Diagonal(n,0)), M2)
+            lc2args <- list(cbind(Diagonal(n), Diagonal(n,0)), M2)
             names(lc2args) <- c(sname, stname)
             lcd2 <- do.call('inla.make.lincombs', lc2args)
         }
@@ -389,7 +390,7 @@
     if (any(type%in%'4d')) {
         lcd3args <- lcd2args <- NULL
         if(lc2.on) {
-            lcd2args <- list(cBind(Diagonal(n), Diagonal(n,0)), M2)
+            lcd2args <- list(cbind(Diagonal(n), Diagonal(n,0)), M2)
             names(lcd2args) <- c(sname, stname)
             lcd2 <- do.call('inla.make.lincombs', lcd2args)
             names(lcd2) <- gsub('lc', 's', names(lcd2))

@@ -1,19 +1,22 @@
-## Export: inla.pardiso
+## Export: inla.pardiso inla.pardiso.check
 
 ##!\name{inla.pardiso}
 ##!\alias{inla.pardiso}
+##!\alias{inla.pardiso.check}
 ##!\title{PARDISO support in R-INLA}
 ##!\description{
-##!Describe the PARDISO support in R-INLA
+##!Describe and check the PARDISO support in R-INLA
 ##!}
 ##!\usage{
 ##!inla.pardiso()
+##!inla.pardiso.check()
 ##!}
 ##!\arguments{
 ##!}
 ##!\details{
-##!Describe the PARDISO support in R-INLA, how to get the
-##!license key and enable it in the R-INLA package.
+##!\code{inla.pardiso()} describes the \code{PARDISO} support in R-INLA, how to get the license
+##!key and enable it in the \code{R-INLA} package. \code{inla.pardiso.check()} check if the
+##!\code{PARDISO} support is working.
 ##!}
 ##!\value{
 ##!}
@@ -51,6 +54,8 @@
         "     library(INLA)\n",
         "     inla.setOption(\"pardiso.license\", \"~/sys/licenses/pardiso.lic\")\n",
         "3. That is it!\n", 
+        "4. You can check PARDISO setup, by\n",
+        "     inla.pardiso.check()\n", 
         "\n",
         "Using remote computing with inla.call=\"remote\", you may need to add\n",
         "the full path to the license file (on the remote host) in the\n",
@@ -74,4 +79,17 @@
         "Havard Rue & Olaf Schenk\n",
         "May 2018\n",
         "\n")
+}
+
+`inla.pardiso.check` = function() 
+{
+    inla.set.sparselib.env(NULL)
+    if (inla.os("linux") || inla.os("mac")) {
+        ret = system(paste(shQuote(inla.getOption("inla.call")), "-m pardiso"), intern=TRUE)
+    } else if(inla.os("windows")) {
+        ret = system(paste(shQuote(inla.getOption("inla.call")), "-m pardiso"), intern=TRUE)
+    } else {
+        stop("\n\tNot supported architecture.")
+    }
+    return (ret)
 }

@@ -228,7 +228,7 @@ int GMRFLib_csr_write(char *filename, GMRFLib_csr_tp * csr)
 	GMRFLib_io_write(io, (const void *) (csr->ja), sizeof(int) * csr->na);
 	GMRFLib_io_write(io, (const void *) (csr->a), sizeof(double) * csr->na);
 	GMRFLib_io_close(io);
-	
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -238,11 +238,11 @@ int GMRFLib_csr_read(char *filename, GMRFLib_csr_tp ** csr)
 	GMRFLib_io_tp *io = NULL;
 #define M (*csr)
 	M = Calloc(1, GMRFLib_csr_tp);
-	
+
 	GMRFLib_io_open(&io, filename, "rb");
-	GMRFLib_io_read(io, (void *) &(M->n), sizeof(int)); P(M->n);
-	GMRFLib_io_read(io, (void *) &(M->na), sizeof(int)); P(M->na);
-	GMRFLib_io_read(io, (void *) &(M->base), sizeof(int)); P(M->base);
+	GMRFLib_io_read(io, (void *) &(M->n), sizeof(int));
+	GMRFLib_io_read(io, (void *) &(M->na), sizeof(int));
+	GMRFLib_io_read(io, (void *) &(M->base), sizeof(int));
 
 	M->ia = Calloc(M->n + 1, int);
 	GMRFLib_io_read(io, (void *) (M->ia), sizeof(int) * (M->n + 1));
@@ -254,7 +254,7 @@ int GMRFLib_csr_read(char *filename, GMRFLib_csr_tp ** csr)
 	GMRFLib_io_read(io, (void *) (M->a), sizeof(double) * M->na);
 
 	GMRFLib_io_close(io);
-#undef M	
+#undef M
 	return GMRFLib_SUCCESS;
 }
 
@@ -339,7 +339,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default[12] = 0;			       /* I need these for the divided LDL^Tx=b solver to work */
 	s->iparm_default[20] = 0;			       /* Diagonal pivoting, and... */
 	s->iparm_default[23] = 1;			       /* two level scheduling, and... */
-	s->iparm_default[24] = 1; 			       /* use parallel solve, as... */
+	s->iparm_default[24] = 1;			       /* use parallel solve, as... */
 	s->iparm_default[33] = 1;			       /* I want identical solutions (require iparm_default[1]=2) */
 
 	if (error != 0) {
@@ -1084,7 +1084,6 @@ int my_pardiso_test1(void)
 	GMRFLib_csr_tp *csr, *csr2;
 	GMRFLib_Q2csr(&csr, g, Qtab->Qfunc, Qtab->Qfunc_arg);
 	GMRFLib_csr_print(stdout, csr);
-	P(csr->n);
 
 	GMRFLib_csr_duplicate(&csr2, csr);
 	// GMRFLib_csr_print(stdout, csr2);
@@ -1382,9 +1381,9 @@ int my_pardiso_test4(void)
 	GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q-problem-ijformat.txt", -1, NULL, NULL, NULL);
 	GMRFLib_Q2csr(&csr, g, Qtab->Qfunc, Qtab->Qfunc_arg);
 
-	//GMRFLib_csr_write("Q-problem-csr.dat", csr);
-	//GMRFLib_csr_read("Q-problem-csr.dat", &csr);
-	
+	// GMRFLib_csr_write("Q-problem-csr.dat", csr);
+	// GMRFLib_csr_read("Q-problem-csr.dat", &csr);
+
 	GMRFLib_pardiso_store_tp *store = NULL;
 	GMRFLib_pardiso_init(&store);
 	GMRFLib_pardiso_reorder(store, g);

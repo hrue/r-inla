@@ -86,6 +86,7 @@
     reordering = match.arg(reordering)
 
     out.file = inla.tempfile()
+    inla.set.sparselib.env(NULL)
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv", "-r",  reordering,
                          "-S", smtp, qinv.file, constr.file, out.file), intern=TRUE)
