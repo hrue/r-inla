@@ -77,10 +77,7 @@
                     a = a + w[j] * phi[j]^(0:(n-1))
                 }
             } else {
-                ## this is from FGN::acvfFGN()
-                h2 = 2 * H[i]
-                k = 1:(n-1)
-                a = c(1, 0.5 * ((k + 1)^h2 - 2 * k^h2 + (k - 1)^h2))
+                a = inla.acvfFGN(H[i], n-1)
             }
             ACF[i, ] = a
         }
@@ -90,4 +87,12 @@
     } else {
         return (res)
     }
+}
+
+`inla.acvfFGN` = function(H, maxlag) 
+{
+    ## a copy of function FGN::acvfFGN as library FGN in not there for R-3.5
+    h2 <- 2 * H
+    k <- 1:maxlag
+    return (c(1, 0.5 * ((k + 1)^h2 - 2 * k^h2 + (k - 1)^h2)))
 }
