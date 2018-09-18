@@ -63,6 +63,9 @@
        to change the \code{int.stratey} variable and friends. The latent field is
        sampled from the Gaussian approximation conditioned on the hyperparameters,
        but with a correction for the mean (default).
+
+       Set sparse-matrix library with \code{inla.setOption(smtp=...)} and
+       number of threads by \code{inla.setOption(num.threads=...)}.
 }
 \value{\code{inla.posterior.sample} returns a list of the samples,
        where each sample is a list with

@@ -28,6 +28,31 @@
   }
 }
 
+\section{CHANGES IN VERSION 18.09.18}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Allow better user control of sparse matrix library in
+      \code{inla.qinv()}, \code{inla.qsample()} and
+      \code{inla.posterior.sample()}
+    }
+  }
+}
+
 
 
 \section{CHANGES IN VERSION 18.09.14}{
