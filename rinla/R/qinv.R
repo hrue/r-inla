@@ -57,6 +57,8 @@
 `inla.qinv` = function(Q, constr, reordering = INLA::inla.reorderings())
 {
     smtp = match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "pardiso"))
+    num.threads = inla.getOption("num.threads")
+
     Q = inla.sparse.check(Q)
     if (is(Q, "dgTMatrix")) {
         qinv.file = inla.write.fmesher.file(Q)
@@ -88,10 +90,12 @@
     out.file = inla.tempfile()
     inla.set.sparselib.env(NULL)
     if (inla.os("linux") || inla.os("mac")) {
-        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv", "-r",  reordering,
+        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv",
+                         "-r",  reordering, "-t", num.threads, 
                          "-S", smtp, qinv.file, constr.file, out.file), intern=TRUE)
     } else if(inla.os("windows")) {
-        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv", "-r",  reordering,
+        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv",
+                         "-r",  reordering, "-t", num.threads, 
                          "-S", smtp, qinv.file, constr.file, out.file), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
