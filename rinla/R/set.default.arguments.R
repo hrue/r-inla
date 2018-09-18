@@ -207,7 +207,7 @@
     ##:NAME: control.compute
     list(
         ##:ARGUMENT: openmp.strategy The computational strategy to use: 'small', 'medium', 'large', 'huge' and 'default'. There are also two options for the pardiso solver: 'pardiso.serial' and 'pardiso.parallel'. The difference is how the parallelisation is done, and is tuned for 'small'-sized models, 'medium'-sized models, etc. The default option tries to make an educated guess, but this allows to overide this selection. Default is 'default'
-        openmp.strategy = "default", ## "small", "medium", "large", "huge",  "pardiso.serial",  "pardiso.parallel"
+        openmp.strategy = "default", 
 
         ##:ARGUMENT: hyperpar A boolean variable if the marginal for the hyperparameters should be computed. Default TRUE.
         hyperpar=TRUE,

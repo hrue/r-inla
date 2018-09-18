@@ -330,6 +330,10 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default[0] = 0;			       /* use default values */
 	s->iparm_default[2] = GMRFLib_openmp->max_threads_inner;
 
+	if (S.s_verbose) {
+		PPg("_pardiso_init(): num_threads", (double) (s->iparm_default[2]));
+	}
+
 	pardisoinit(s->pt, &(s->mtype), &(s->solver), s->iparm_default, s->dparm_default, &error);
 	assert(s->iparm_default[2] == GMRFLib_openmp->max_threads_inner);
 
