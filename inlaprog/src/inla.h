@@ -56,7 +56,6 @@ __BEGIN_DECLS
 #define FIFO_PUT "inla-mcmc-fifo-put"
 #define FIFO_GET_DATA "inla-mcmc-fifo-get-data"
 #define FIFO_PUT_DATA "inla-mcmc-fifo-put-data"
-#define L_NMIX_MMAX  (10L)				       /* the same number is in models.R */
 
 /* 
  *
@@ -95,7 +94,7 @@ typedef enum {
 	INLA_MODE_GRAPH,
 	INLA_MODE_R,
 	INLA_MODE_FGN,
-	INLA_MODE_PARDISO, 
+	INLA_MODE_PARDISO,
 	INLA_MODE_TESTIT = 999
 } inla_mode_tp;
 
@@ -174,6 +173,12 @@ typedef struct {
 	 */
 	double *strata;					       /* type int */
 	double ***log_sizes;
+
+	/*
+	 * y ~ POM
+	 */
+	double ***pom_theta;
+	int pom_nclasses;
 
 	/*
 	 * y ~ Normal(x, 1/(weight*prec)), also used for the log-normal
@@ -477,6 +482,7 @@ typedef enum {
 	L_LOGLOGISTICSURV,
 	L_QLOGLOGISTIC,
 	L_QLOGLOGISTICSURV,
+	L_POM,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -555,6 +561,7 @@ typedef enum {
 	P_PC_GAMMACOUNT,
 	P_REF_AR,					       /* Reference prior for AR(p) for p=1,2,3 */
 	P_INVALID,
+	P_DIRICHLET,
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
@@ -696,7 +703,7 @@ typedef struct {
 	inla_component_tp link_id;
 	link_func_tp *predictor_invlinkfunc;
 	void **predictor_invlinkfunc_arg;
-	
+
 	/*
 	 * the re-extention
 	 */
@@ -759,7 +766,7 @@ struct inla_tp_struct {
 	int verbose;
 	int strategy;
 	char *smtp;
-	
+
 	/*
 	 * parameters for global_nodes
 	 */
@@ -1398,6 +1405,7 @@ double link_logoffset(double x, map_arg_tp typ, void *param, double *cov);
 double link_neglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_probit(double x, map_arg_tp typ, void *param, double *cov);
 double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov);
+double link_pqbinomial(double x, map_arg_tp typ, void *param, double *cov);
 double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov);
 double link_qweibull(double x, map_arg_tp typ, void *param, double *cov);
 double link_special1(double x, map_arg_tp typ, void *param, double *cov);
@@ -1443,6 +1451,7 @@ double mfunc_sigm(int i, void *arg);
 double priorfunc_beta(double *x, double *parameters);
 double priorfunc_betacorrelation(double *x, double *parameters);
 double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logprec_iid, double *p_iid);
+double priorfunc_dirichlet(double *x, double *parameters);
 double priorfunc_flat(double *x, double *parameters);
 double priorfunc_gamma(double *precision, double *parameters);
 double priorfunc_gaussian(double *x, double *parameters);
@@ -1658,6 +1667,7 @@ int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, do
 int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_pom(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_qcontpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_qkumar(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_qloglogistic(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

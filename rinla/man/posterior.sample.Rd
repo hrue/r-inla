@@ -5,14 +5,17 @@
  \name{inla.sample}
  \alias{inla.posterior.sample}
  \alias{posterior.sample}
+ \alias{inla.posterior.sample.eval}
+ \alias{posterior.sample.eval}
  
- \title{Generate samples from an approximated posterior of a fitted model}
+ \title{Generate samples, and functions thereof, from an approximated posterior of a fitted model}
  
- \description{This function generate samples from an approximated posterior
-              of a fitted model (an inla-object}
+ \description{This function generate samples, and functions of those,
+              from an approximated posterior of a fitted model (an inla-object)}
  \usage{
      inla.posterior.sample(n = 1L, result, intern = FALSE, use.improved.mean = TRUE,
                            add.names = TRUE, seed = 0L, num.threads = 1L)
+     inla.posterior.sample.eval(fun, samples, return.matrix = TRUE, ...)
  }
  
  \arguments{
@@ -42,6 +45,18 @@
    \item{num.threads}{The number of threads that can be used. \code{num.threads>1L} requires
        \code{seed = 0L}. Only use \code{num.threads > 1L} for large problems/number of
        samples. This option does currently NOT use the default one set by \code{inla.setOption()}. }
+   \item{fun}{The function to evaluate for each sample. Upon entry, the variable names
+               defined in the model are defined as the value of the sample.
+               The list of names are defined in \code{result$misc$configs$contents} where
+               \code{result} is an \code{inla}-object. This includes predefined names for
+               for the linear predictor (\code{Predictor} and \code{APredictor}),  and the
+               intercept (\code{(Intercept)} or \code{Intercept}).
+               The hyperparameters are defined as \code{theta},  no matter if they are in the
+               internal scale or not. The function \code{fun} can also return a vector.}
+   \item{samples}{\code{samples} is the output from \code{inla.posterior.sample()}}
+   \item{return.matrix}{Logical. If \code{TRUE},  then return the samples of \code{fun}
+                         as matrix,  otherwise,  as a list.}
+   \item{...}{Additional arguments to \code{fun}}
 }
 \details{The hyperparameters are sampled from the configurations used to do the
        numerical integration,  hence if you want a higher resolution,  you need to
@@ -49,10 +64,13 @@
        sampled from the Gaussian approximation conditioned on the hyperparameters,
        but with a correction for the mean (default).
 }
-\value{A list of the samples, where each sample is a list with
+\value{\code{inla.posterior.sample} returns a list of the samples,
+       where each sample is a list with
      names \code{hyperpar} and \code{latent}, and with their marginal
      densities in \code{logdens$hyperpar} and \code{logdens$latent}
      and the joint density is in \code{logdens$joint}.
+     \code{inla.posterior.sample.eval} return a list or a matrix of 
+     \code{fun} applied to each sample.
 }
 \author{Havard Rue \email{hrue@r-inla.org}}
  
@@ -67,4 +85,59 @@
   set.seed(1234)
   xx = inla.posterior.sample(100, r, seed = inla.seed)
   all.equal(x, xx)
+
+ set.seed(1234)
+ n = 25
+ xx = rnorm(n)
+ yy = rev(xx)
+ z = runif(n)
+ y = rnorm(n)
+ r = inla(y ~ 1 + z + f(xx) + f(yy, copy="xx"),
+         data = data.frame(y, z, xx, yy), 
+         control.compute = list(config=TRUE),
+         family = "gaussian")
+ r.samples = inla.posterior.sample(100, r)
+ 
+ fun = function(...) {
+     mean(xx) - mean(yy)
+ }
+ f1 = inla.posterior.sample.eval(fun, r.samples)
+ 
+ fun = function(...) {
+     c(exp(Intercept), exp(Intercept + z))
+ }
+ f2 = inla.posterior.sample.eval(fun, r.samples)
+ 
+ fun = function(...) {
+     return (theta[1]/(theta[1] + theta[2]))
+ }
+ f3 = inla.posterior.sample.eval(fun, r.samples)
+
+ ## Predicting nz new observations, and
+ ## comparing the estimated one with the true one
+ set.seed(1234)
+ n = 100
+ alpha = beta = s = 1
+ z = rnorm(n)
+ y = alpha + beta * z + rnorm(n, sd = s)
+ r = inla(y ~ 1 + z, 
+         data = data.frame(y, z), 
+         control.compute = list(config=TRUE),
+         family = "gaussian")
+ r.samples = inla.posterior.sample(10^3, r)
+ nz = 3
+ znew = rnorm(nz)
+ fun = function(zz = NA) {
+     ## theta[1] is the precision
+     return (Intercept + z * zz +
+             rnorm(length(zz), sd = sqrt(1/theta[1])))
+ }
+ par(mfrow=c(1, nz))
+ f1 = inla.posterior.sample.eval(fun, r.samples, zz = znew)
+ for(i in 1:nz) {
+     hist(f1[i, ], n = 100, prob = TRUE)
+     m = alpha + beta * znew[i]
+     xx = seq(m-4*s, m+4*s, by = s/100)
+     lines(xx, dnorm(xx, mean=m, sd = s), lwd=2)
+ }
 }

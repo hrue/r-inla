@@ -98,11 +98,11 @@
         if (missingArg(graph)) 
             stop("'graph' or 'ev.s' must be provided!")        
         graph <- inla.graph2matrix(graph) 
+        n <- nrow(graph)
         R.s <- inla.scale.model(Diagonal(n, colSums(graph)) - graph,
-                                constr=list(A=matrix(1, 1, n), e=0))
+            constr=list(A=matrix(1, 1, n), e=0))
         ev.s <- eigen(as.matrix(R.s))
-    }
-    n <- length(ev.s$values)
+    } else n <- length(ev.s$values)
     dat <- list(time=rep(1:m, each=n), space=rep(1:n, m), spacetime=1:(m*n), x=list()) 
     ### AR(1), as used before:
     ##    dat$x$t <- arima.sim(model=list(ar=rho), n=m, ### sample with marginal variance = 1/tau.t

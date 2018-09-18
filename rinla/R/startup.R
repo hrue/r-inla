@@ -26,9 +26,10 @@ inla.print.version <- function()
                            "To enable PARDISO sparse library; see inla.pardiso()")
         }
         packageStartupMessage(hello)
-        if (inla.os.is.32bit())
+        if (!inla.os("windows") && inla.os.is.32bit()) {
             warning(paste0("INLA_",  version,
                            ": 32bit binaries are no longer supported!"))
+        }
     }
 }
 

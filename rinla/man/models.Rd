@@ -120,7 +120,6 @@ inla.models()
 								\item{n.div.by = }{`NULL'}
 								\item{n.required = }{`FALSE'}
 								\item{set.default.values = }{`FALSE'}
-								\item{status = }{`experimental'}
 								\item{pdf = }{`mec'}
 							 }
 						 }
@@ -167,7 +166,6 @@ inla.models()
 								\item{n.div.by = }{`NULL'}
 								\item{n.required = }{`FALSE'}
 								\item{set.default.values = }{`FALSE'}
-								\item{status = }{`experimental'}
 								\item{pdf = }{`meb'}
 							 }
 						 }
@@ -5533,6 +5531,8 @@ inla.models()
 				 }
 				\item{Model `quantile'.}{Number of hyperparmeters are 0.
 				 }
+				\item{Model `pquantile'.}{Number of hyperparmeters are 0.
+				 }
 				\item{Model `sslogit'.}{Number of hyperparmeters are 2.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
@@ -6004,6 +6004,152 @@ inla.models()
 								\item{discrete = }{`TRUE'}
 								\item{link = }{`default logit cauchit probit cloglog loglog log'}
 								\item{pdf = }{`testbinomial1'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `pom'.}{Number of hyperparmeters are 10.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{hyperid = }{`57101'}
+							\item{name = }{`theta1'}
+							\item{short.name = }{`theta1'}
+							\item{initial = }{`NA'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`dirichlet'}
+							\item{param = }{`3'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{hyperid = }{`57102'}
+							\item{name = }{`theta2'}
+							\item{short.name = }{`theta2'}
+							\item{initial = }{`NA'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta3'}{
+							 \describe{
+							\item{hyperid = }{`57103'}
+							\item{name = }{`theta3'}
+							\item{short.name = }{`theta3'}
+							\item{initial = }{`NA'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta4'}{
+							 \describe{
+							\item{hyperid = }{`57104'}
+							\item{name = }{`theta4'}
+							\item{short.name = }{`theta4'}
+							\item{initial = }{`NA'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta5'}{
+							 \describe{
+							\item{hyperid = }{`57105'}
+							\item{name = }{`theta5'}
+							\item{short.name = }{`theta5'}
+							\item{initial = }{`NA'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta6'}{
+							 \describe{
+							\item{hyperid = }{`57106'}
+							\item{name = }{`theta6'}
+							\item{short.name = }{`theta6'}
+							\item{initial = }{`NA'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta7'}{
+							 \describe{
+							\item{hyperid = }{`57107'}
+							\item{name = }{`theta7'}
+							\item{short.name = }{`theta7'}
+							\item{initial = }{`NA'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta8'}{
+							 \describe{
+							\item{hyperid = }{`57108'}
+							\item{name = }{`theta8'}
+							\item{short.name = }{`theta8'}
+							\item{initial = }{`NA'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta9'}{
+							 \describe{
+							\item{hyperid = }{`57109'}
+							\item{name = }{`theta9'}
+							\item{short.name = }{`theta9'}
+							\item{initial = }{`NA'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta10'}{
+							 \describe{
+							\item{hyperid = }{`57110'}
+							\item{name = }{`theta10'}
+							\item{short.name = }{`theta10'}
+							\item{initial = }{`NA'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`Likelihood for the proportional odds model'}
+								\item{status = }{`experimental'}
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`TRUE'}
+								\item{link = }{`default identity'}
+								\item{pdf = }{`pom'}
 							 }
 						 }
 					 }
@@ -8379,6 +8525,8 @@ inla.models()
 				 }
 				\item{Model `pc.ar'.}{					 Number of parameters in the prior = 1 
 				 }
+				\item{Model `dirichlet'.}{					 Number of parameters in the prior = 1 
+				 }
 				\item{Model `none'.}{					 Number of parameters in the prior = 0 
 				 }
 				\item{Model `invalid'.}{					 Number of parameters in the prior = 0 
@@ -8412,6 +8560,8 @@ inla.models()
 				\item{Model `pc'.}{					 Number of parameters in the prior = 2 
 				 }
 				\item{Model `ref.ar'.}{					 Number of parameters in the prior = 0 
+				 }
+				\item{Model `pom'.}{					 Number of parameters in the prior = 0 
 				 }
 				\item{Model `jeffreystdf'.}{					 Number of parameters in the prior = 0 
 				 }
