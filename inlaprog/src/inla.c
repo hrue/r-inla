@@ -31406,7 +31406,7 @@ int main(int argc, char **argv)
 			break;
 
 		case 'S':
-			// this option is only used for other MODES than INLA
+			// this option is only used for other MODES than INLA, like qsample
 			inla_tolower(optarg);
 			if (!strcasecmp(optarg, "taucs") || !strcasecmp(optarg, "default")) {
 				GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
@@ -31414,6 +31414,7 @@ int main(int argc, char **argv)
 				GMRFLib_smtp = GMRFLib_SMTP_BAND;
 			} else if (!strcasecmp(optarg, "pardiso")) {
 				GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
+				// yes, this is what we want
 				GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
 			}
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_EXTERNAL, NULL, &GMRFLib_smtp);
