@@ -15,7 +15,8 @@ Description: Full Bayesian analysis of latent Gaussian models using Integrated N
 Depends:
     R (>= 3.2),
     Matrix,
-    sp
+    sp,
+    parallel
 Suggests:
     Deriv,
     devtools,

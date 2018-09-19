@@ -9838,6 +9838,11 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
 		} else if (!strcasecmp(smtp, "PARDISO")) {
 			GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
+			// need to make sure this is correct
+			if (mb->strategy != GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL &&
+			    mb->strategy != GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL) {
+				mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
+			}
 		} else if (!strcasecmp(smtp, "DEFAULT")) {
 			if (GMRFLib_pardiso_ok < 0) {
 				GMRFLib_pardiso_ok = (GMRFLib_pardiso_check_install(0, 1) == GMRFLib_SUCCESS ? 1 : 0);
@@ -31406,7 +31411,7 @@ int main(int argc, char **argv)
 			break;
 
 		case 'S':
-			// this option is only used for other MODES than INLA
+			// this option is only used for other MODES than INLA, like qsample
 			inla_tolower(optarg);
 			if (!strcasecmp(optarg, "taucs") || !strcasecmp(optarg, "default")) {
 				GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
@@ -31414,6 +31419,7 @@ int main(int argc, char **argv)
 				GMRFLib_smtp = GMRFLib_SMTP_BAND;
 			} else if (!strcasecmp(optarg, "pardiso")) {
 				GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
+				// yes, this is what we want
 				GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
 			}
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_EXTERNAL, NULL, &GMRFLib_smtp);

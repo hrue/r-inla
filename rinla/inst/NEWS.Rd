@@ -18,7 +18,7 @@
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item Added function \code{inla.posterior.sample.eval}
+      \item
     }
   }
   \subsection{BUG FIXES}{
@@ -28,16 +28,59 @@
   }
 }
 
+
+\section{CHANGES IN VERSION 18.09.19}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fix for \code{num.threads} in \code{inla.qinv()}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.09.18}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Allow better user control of sparse matrix library in
+      \code{inla.qinv()}, \code{inla.qsample()} and
+      \code{inla.posterior.sample()}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.09.14}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item New example added to \code{inla.posterior.sample()}
+      \item Slight changes in the default \code{print}, and
+      \code{summary} for an \code{inla}-object
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed the issue when \code{lincomb.derived.only=FALSE} and
+      then using \code{inla.posterior.sample()}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.08.26}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Added 32-bit builds for windows (upon request)
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added function \code{inla.posterior.sample.eval()}
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 18.08.09}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
       \item Added new function \code{inla.pardiso.check()}
       \item Added COPYRIGHTS file
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
     }
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
