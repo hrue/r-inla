@@ -145,18 +145,6 @@ updateBinaryPackages () {
     
 
 if [ $# -ge 1 -a "$1" == "1" ]; then
-    cp -v $tgzINLA $www/INLA.tgz
-    cp -v $zipINLA $www/INLA.zip
-    cp -v $SRC     $www/INLA-source.tgz
-    cp -v $tgzINLA $OldDir/$old
-    cp -v $tgzINLA $www/testing/INLA.tgz
-    cp -v $zipINLA $www/testing/INLA.zip
-    cp -v $SRC     $www/testing/INLA-source.tgz
-    updateBinaryPackages "$www" "$www/testing"
-    
-    echo $bdate >  $www/build.date
-    echo $bdate >  $www/testing/build.date
-
     for prefix in stable testing; do
 	d=$wwwR/$prefix/src/contrib
 	cp -v $SRC $d/INLA_$VERSION.tar.gz
@@ -173,15 +161,7 @@ if [ $# -ge 1 -a "$1" == "1" ]; then
     done
 fi
 
-
 if [ $# -ge 1 -a "$1" == "2" ]; then
-    cp -v $tgzINLA $OldDir/$old
-    cp -v $tgzINLA $www/testing/INLA.tgz
-    cp -v $zipINLA $www/testing/INLA.zip
-    cp -v $SRC     $www/testing/INLA-source.tgz
-    echo $bdate >  $www/testing/build.date
-    updateBinaryPackages "$www/testing"
-
     for prefix in testing; do
 	d=$wwwR/$prefix/src/contrib
 	cp -v $SRC $d/INLA_$VERSION.tar.gz
