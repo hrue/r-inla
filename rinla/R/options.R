@@ -108,7 +108,7 @@
         fmesher.call = inla.fmesher.call.builtin(), 
         inla.arg = NULL,
         fmesher.arg = "", 
-        num.threads = NULL, 
+        num.threads = parallel::detectCores(), 
         blas.num.threads = 1L, 
         smtp = "default", 
         pardiso.license = NULL, 
