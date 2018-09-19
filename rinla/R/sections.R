@@ -952,7 +952,6 @@
     cat(inla.secsep("INLA.Model"), "\n", sep = " ", file = file,  append = TRUE)
     cat("type = problem\n", sep = " ", file = file,  append = TRUE)
     cat("dir = $inlaresdir\n", sep = " ", file = file,  append = TRUE)
-    cat("openmp.strategy = ", openmp.strategy, "\n", sep = " ", file = file,  append = TRUE)
     inla.write.boolean.field("return.marginals", return.marginals, file)
     inla.write.boolean.field("hyperparameters", hyperpar, file)
     inla.write.boolean.field("cpo", cpo, file)
@@ -970,9 +969,17 @@
     smtp = match.arg(tolower(smtp), c("band", "taucs", "pardiso", "default"))
     cat("smtp = ", smtp, "\n", sep = " ", file = file,  append = TRUE)
 
+    if (is.null(openmp.strategy) || !(is.character(openmp.strategy) && (nchar(openmp.strategy) > 0))) {
+        openmp.strategy = "default"
+    }
+    openmp.strategy = match.arg(tolower(openmp.strategy),
+                                c("default", "small", "medium", "large", "huge", "pardiso.serial", "pardiso.parallel"))
+    cat("openmp.strategy = ", openmp.strategy, "\n", sep = " ", file = file,  append = TRUE)
+
     if (!is.null(quantiles)) {
         cat("quantiles = ", quantiles, "\n", sep = " ", file = file,  append = TRUE)
     }
+
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 
