@@ -949,12 +949,9 @@
 ##
 `inla.mclapply` = function(..., mc.cores = NULL, parallel = TRUE)
 {
-    if (parallel && inla.require("parallel") && !inla.os("windows")) {
+    if (parallel && !inla.os("windows")) {
         if (is.null(mc.cores)) {
             mc.cores = inla.getOption("num.threads")
-            if (is.null(mc.cores)) {
-                mc.cores = parallel::detectCores()
-            }
         }
         return (parallel::mclapply(..., mc.cores = mc.cores))
     } else {
