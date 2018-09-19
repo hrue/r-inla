@@ -58,7 +58,6 @@
 {
     smtp = match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "pardiso"))
     num.threads = inla.getOption("num.threads")
-
     Q = inla.sparse.check(Q)
     if (is(Q, "dgTMatrix")) {
         qinv.file = inla.write.fmesher.file(Q)

@@ -28,22 +28,16 @@
   }
 }
 
+
+\section{CHANGES IN VERSION 18.09.19}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fix for \code{num.threads} in \code{inla.qinv()}
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 18.09.18}{
-  \subsection{USER-VISIBLE CHANGES}{
-    \itemize{
-      \item 
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
-    }
-  }
-  \subsection{NEW EXPERIMENTAL FEATURES}{
-    \itemize{
-      \item
-    }
-  }
   \subsection{BUG FIXES}{
     \itemize{
       \item Allow better user control of sparse matrix library in
@@ -53,24 +47,12 @@
   }
 }
 
-
-
 \section{CHANGES IN VERSION 18.09.14}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
       \item New example added to \code{inla.posterior.sample()}
       \item Slight changes in the default \code{print}, and
       \code{summary} for an \code{inla}-object
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
-    }
-  }
-  \subsection{NEW EXPERIMENTAL FEATURES}{
-    \itemize{
-      \item
     }
   }
   \subsection{BUG FIXES}{
@@ -87,19 +69,9 @@
       \item Added 32-bit builds for windows (upon request)
     }
   }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
-    }
-  }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
       \item Added function \code{inla.posterior.sample.eval()}
-    }
-  }
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item 
     }
   }
 }
@@ -109,11 +81,6 @@
     \itemize{
       \item Added new function \code{inla.pardiso.check()}
       \item Added COPYRIGHTS file
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
     }
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
