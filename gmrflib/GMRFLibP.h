@@ -198,8 +198,9 @@ typedef long unsigned int GMRFLib_sizeof_tp;
 #define Pstderr(x)  if (1) { fprintf(stderr, "line[%1d] " #x " = [ %.12f ]\n",__LINE__,(double)(x)); }
 #define P1(x)       if (1) { static int first=1;  if (first) { printf("line[%1d] " #x " = [ %.12f ]\n", __LINE__, (double)(x)); first=0; }}
 #define P1stderr(x) if (1) { static int first=1;  if (first) { fprintf(stderr, "line[%1d] " #x " = [ %.12f ]\n", __LINE__, (double)(x)); first=0; }}
-#define PP(msg,pt) if (1) { printf("%d: %s ptr " #pt " = 0x%x\n",__LINE__,msg,pt); }
+#define PP(msg,pt) if (1) { fprintf(stdout, "%d: %s ptr " #pt " = 0x%x\n", __LINE__, msg, pt); }
 #define PPstderr(msg,pt)  if (1) { fprintf(stderr, "%d: %s ptr " #pt " = 0x%x\n", __LINE__, msg, pt); }
+#define PPg(msg,pt) if (1) { fprintf(stdout, "%d: %s value " #pt " = %g\n", __LINE__, msg, pt); }
 #define ISINF(x) gsl_isinf(x)
 #define ISNAN(x) gsl_isnan(x)
 #define ISZERO(x) (gsl_fcmp(x, 0.0, DBL_EPSILON) == 0)

@@ -42,7 +42,7 @@
 ##!       the example for how this can be done. }
 ##!   \item{num.threads}{The number of threads that can be used. \code{num.threads>1L} requires
 ##!       \code{seed = 0L}. Only use \code{num.threads > 1L} for large problems/number of
-##!       samples. This option does currently NOT use the default one set by \code{inla.setOption()}. }
+##!       samples. }
 ##!   \item{fun}{The function to evaluate for each sample. Upon entry, the variable names
 ##!               defined in the model are defined as the value of the sample.
 ##!               The list of names are defined in \code{result$misc$configs$contents} where
@@ -61,6 +61,9 @@
 ##!       to change the \code{int.stratey} variable and friends. The latent field is
 ##!       sampled from the Gaussian approximation conditioned on the hyperparameters,
 ##!       but with a correction for the mean (default).
+##!
+##!       Set sparse-matrix library with \code{inla.setOption(smtp=...)} and
+##!       number of threads by \code{inla.setOption(num.threads=...)}.
 ##!}
 ##!\value{\code{inla.posterior.sample} returns a list of the samples,
 ##!       where each sample is a list with
@@ -94,24 +97,51 @@
 ##!         data = data.frame(y, z, xx, yy), 
 ##!         control.compute = list(config=TRUE),
 ##!         family = "gaussian")
-##! x = inla.posterior.sample(100, r)
+##! r.samples = inla.posterior.sample(100, r)
 ##! 
 ##! fun = function(...) {
 ##!     mean(xx) - mean(yy)
 ##! }
-##! f1 = inla.posterior.sample.eval(fun, x, return.matrix=TRUE)
+##! f1 = inla.posterior.sample.eval(fun, r.samples)
 ##! 
 ##! fun = function(...) {
 ##!     c(exp(Intercept), exp(Intercept + z))
 ##! }
-##! f2 = inla.posterior.sample.eval(fun, x, return.matrix=TRUE)
+##! f2 = inla.posterior.sample.eval(fun, r.samples)
 ##! 
 ##! fun = function(...) {
 ##!     return (theta[1]/(theta[1] + theta[2]))
 ##! }
-##! f3 = inla.posterior.sample.eval(fun, x, return.matrix=TRUE)
+##! f3 = inla.posterior.sample.eval(fun, r.samples)
+##!
+##! ## Predicting nz new observations, and
+##! ## comparing the estimated one with the true one
+##! set.seed(1234)
+##! n = 100
+##! alpha = beta = s = 1
+##! z = rnorm(n)
+##! y = alpha + beta * z + rnorm(n, sd = s)
+##! r = inla(y ~ 1 + z, 
+##!         data = data.frame(y, z), 
+##!         control.compute = list(config=TRUE),
+##!         family = "gaussian")
+##! r.samples = inla.posterior.sample(10^3, r)
+##! nz = 3
+##! znew = rnorm(nz)
+##! fun = function(zz = NA) {
+##!     ## theta[1] is the precision
+##!     return (Intercept + z * zz +
+##!             rnorm(length(zz), sd = sqrt(1/theta[1])))
+##! }
+##! par(mfrow=c(1, nz))
+##! f1 = inla.posterior.sample.eval(fun, r.samples, zz = znew)
+##! for(i in 1:nz) {
+##!     hist(f1[i, ], n = 100, prob = TRUE)
+##!     m = alpha + beta * znew[i]
+##!     xx = seq(m-4*s, m+4*s, by = s/100)
+##!     lines(xx, dnorm(xx, mean=m, sd = s), lwd=2)
+##! }
 ##!}
-
 
 `inla.posterior.sample` = function(n = 1, result, intern = FALSE,
     use.improved.mean = TRUE, add.names = TRUE, seed = 0L, num.threads = 1L)
@@ -122,7 +152,7 @@
     }
 
     if (is.null(num.threads)) {
-        num.threads = 1L
+        num.threads = inla.getOption("num.threads")
     }
     num.threads = max(num.threads, 1L)
     if (num.threads > 1L) {
@@ -149,6 +179,7 @@
         n.idx[i] = sum(idx == i)
     }
 
+    con = cs$contents
     all.samples = rep(list(c()), n)
     i.sample = 1L
     for(k in 1:cs$nconfig) {
@@ -257,14 +288,35 @@
                             latent = as.numeric(xx$logdens[i]),
                             joint = as.numeric(ld.h + xx$logdens[i])))
                 }
-                rownames(a.sample$latent) = if (add.names || i.sample == 1L) nm else NULL
+                if (add.names || i.sample == 1L) {
+                    n1 = length(nm)
+                    n2 = length(a.sample$latent)
+                    stopifnot(n2 >= n1)  ## this must be true. just a check
+                    if (n2 > n1 ) {
+                        ## This is the case where lincomb.derived.only = FALSE, so these are
+                        ## then added to the end. Should transfer the names of them all the way
+                        ## to here, but...
+                        xnm = paste0("Lincomb:", inla.num(1:(n2-n1)))
+                        nm = c(nm,  xnm)
+
+                        if (i.sample == 1L) {
+                            ## add to the contents if needed
+                            con$tag = c(con$tag, "Lincomb")
+                            con$start = c(con$start, n1 + 1)
+                            con$length = c(con$length, n2 - n1)
+                        }
+                    }
+                    rownames(a.sample$latent) = nm
+                } else {
+                    rownames(a.sample$latent) = NULL
+                }
                 all.samples[[i.sample]] = a.sample
                 i.sample = i.sample + 1L
             }    
         }
     }
 
-    attr(all.samples, ".contents") = result$misc$configs$contents
+    attr(all.samples, ".contents") = con
     return (all.samples)
 }
 
