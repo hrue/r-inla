@@ -24,10 +24,12 @@
 ##!       \code{control.compute=list(config=TRUE)}.}
 ##!   \item{selection}{Select what part of the sample to return. By default, the whole sample
 ##!       is returned. \code{selection} is a named list with the name of the components of
-##!       the sample, and which indices of them to return,  like \code{APredictor},
-##!       \code{Predictor}, \code{(Intercept)}. The values is interpreted as indices. If they
+##!       the sample, and what indices of them to return. Names include \code{APredictor},
+##!       \code{Predictor}, \code{(Intercept)},  and otherwise names in the formula.
+###!      The values of the list, is interpreted as indices. If they
 ##!       are negative, they are interpreted as 'not', a zero is interpreted as 'all',  and
-##!       positive indices are interpreted as 'only'.}
+##!       positive indices are interpreted as 'only'. The names of elements of each samples 
+##!       refer to the indices in the full sample. }
 ##!   \item{use.improved.mean}{Logical. If \code{TRUE} then use the
 ##!       marginal mean values when constructing samples. If \code{FALSE}
 ##!       then use the mean in the Gaussian approximations.}
@@ -375,7 +377,7 @@
 {
     ## this function interpret a selection, of the form of a named list,
     ##     list(NAME = idx's, ...),
-    ## with the standard names APredictor, Predictor, '(Intercept)' as well. the idx can
+    ## with the standard names 'APredictor', 'Predictor', '(Intercept)' as well. the idx can
     ## contains negative numbers for which will be interpreted as 'not'. if idx=0, then this is
     ## interpreted as the whole vector. the result is a named list of vector of logicals, that
     ## described which part of the sample to select
@@ -430,4 +432,3 @@
 
     return (select)
 }
-        
