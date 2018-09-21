@@ -112,7 +112,7 @@
     stopifnot(!missing(Q))
     stopifnot(n >= 1L)
 
-    if (seed > 0L && is.null(num.threads)) {
+    if (seed != 0L && is.null(num.threads)) {
         num.threads = 1L
     }
     if (is.null(num.threads)) {
