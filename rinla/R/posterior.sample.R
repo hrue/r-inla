@@ -165,22 +165,16 @@
         stop("num.threads > 1L require seed = 0L")
     }
 
-    selection = inla.posterior.sample.interpret.selection(selection, result)
-    if (sum(selection) == 0) {
+    sel = inla.posterior.sample.interpret.selection(selection, result)
+    if (sum(sel) == 0) {
         return (matrix(NA, 0, 0))
     }
-    sel.n = sum(selection)
-    sel.map = numeric(sel.n)
-    kk = 1
-    for(k in 1:length(selection)) {
-        if (!is.na(selection)) {
 
-            CONTINUE
+    sel.n = sum(sel)
+    sel.map = which(sel)
+    stopifnot(length(sel.map) == sel.n)
+    names(sel.map) = names(sel[sel.map])
 
-        }
-    }
-    
-    
     n = as.integer(n)
     stopifnot(is.integer(n) && n > 0L)
     
@@ -191,8 +185,7 @@
         ld[i] = cs$config[[i]]$log.posterior
     }
     p = exp(ld - max(ld))
-    idx = sample(1:cs$nconfig, n, prob = p, replace = TRUE)
-    idx = sort(idx)
+    idx = sort(sample(1:cs$nconfig, n, prob = p, replace = TRUE))
     n.idx = numeric(cs$nconfig)
     n.idx[] = 0
     for(i in 1:cs$nconfig) {
@@ -207,38 +200,14 @@
             ## then the latent field
             xx = inla.qsample(n=n.idx[k], Q=cs$config[[k]]$Q,
                               mu = inla.ifelse(use.improved.mean, cs$config[[k]]$improved.mean, cs$config[[k]]$mean), 
-                              constr = cs$constr, logdens = TRUE, seed = seed, num.threads = num.threads)
+                              constr = cs$constr, logdens = TRUE, seed = seed, num.threads = num.threads,
+                              selection = sel.map)
             ## if user set seed,  then just continue this rng-stream
             if (seed > 0L) seed = -1L
 
-            nm = c()
-            ld.theta = cs$max.log.posterior + cs$config[[k]]$log.posterior
-            for(j in 1:length(cs$contents$tag)) {
-                ii = seq(cs$contents$start[j], length = cs$contents$length[j])
 
-                ## if 'tag' is a f() term,  use the ID-names from there
-                tag = cs$contents$tag[j]
-                random.idx = which(names(result$summary.random) == tag)
-                if (length(random.idx) != 1L) {
-                    if (cs$contents$length[j] == 1L) {
-                        ## this corresponds to fixed effects,  no need to do "(Intercept):1"
-                        ## instead of just "(Intercept)"
-                        nm = c(nm, cs$contents$tag[j])
-                    } else {
-                        nm = c(nm,
-                               paste(cs$contents$tag[j],
-                                     ":",
-                                     inla.ifelse(cs$contents$length[j] == 1L, 1, inla.num(1:cs$contents$length[j])), 
-                                     sep=""))
-                    }
-                } else {
-                    nm = c(nm,
-                           paste(cs$contents$tag[j],
-                                 ":",
-                                 result$summary.random[[random.idx]]$ID, 
-                                 sep=""))
-                }
-            }
+            ld.theta = cs$max.log.posterior + cs$config[[k]]$log.posterior
+            nm = names(sel.map)
             
             theta = cs$config[[k]]$theta
             log.J = 0.0
@@ -335,8 +304,22 @@
             }    
         }
     }
-
-    attr(all.samples, ".contents") = con
+    if (length(selection) == 0L) {
+        attr(all.samples, ".contents") = con
+    } else {
+        ## we use a selection, need to build a new 'contents' list
+        con = list(tag = names(selection), start = c(), length = c())
+        for(nm in names(selection)) {
+            ## from Hmisc::escapeRegex. Need it for the '(Intercept)'
+            re = paste0("^", gsub("([.|()\\^{}+$*?]|\\[|\\])", "\\\\\\1", nm), ":")
+            m = grep(re, names(sel.map))
+            if (length(m) > 0) {
+                con$start = c(con$start, min(m))
+                con$length = c(con$length, diff(range(m)) + 1)
+            }
+        }
+        attr(all.samples,  ".contents") = con
+    }
     return (all.samples)
 }
 
@@ -367,7 +350,9 @@
                    envir = env)
         }
         ## this is special
-        assign("Intercept", get("(Intercept)", envir = env), envir = env)
+        if (exists("(Intercept)", envir = env)) {
+            assign("Intercept", get("(Intercept)", envir = env), envir = env)
+        }
 
         parent.env(env) = .GlobalEnv
         environment(.fun) = env
@@ -438,8 +423,8 @@
     }
 
     if (length(selection) > 0) {
-        warning(paste0("Some selections are not used:",
-                       paste(selection,  collapse=", ", sep="")))
+        warning(paste0("Some selections are not used: ",
+                       paste(names(selection), collapse=", ", sep="")))
     }
     names(select) = nam
 
