@@ -30218,7 +30218,8 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 }
 
 int inla_qsample(const char *filename, const char *outfile, const char *nsamples, const char *rngfile,
-		 const char *samplefile, const char *bfile, const char *mufile, const char *constrfile, const char *meanfile)
+		 const char *samplefile, const char *bfile, const char *mufile, const char *constrfile,
+		 const char *meanfile, const char *selectionfile)
 {
 	size_t siz, ret;
 	char *state;
@@ -30243,7 +30244,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem = NULL;
 
-	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp), *S = NULL, *b = NULL, *mu = NULL, *constr_x = NULL;
+	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp), *S = NULL, *b = NULL, *mu = NULL, *constr_x = NULL, *selection = NULL;
 	GMRFLib_constr_tp *constr = NULL;
 
 	inla_sread_ints(&ns, 1, nsamples);
@@ -30265,6 +30266,12 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	if (fp) {
 		fclose(fp);				       /* file exists */
 		mu = GMRFLib_read_fmesher_file(mufile, 0L, SEEK_CUR);
+	}
+
+	fp = fopen(selectionfile, "r");
+	if (fp) {
+		fclose(fp);				       /* file exists */
+		selection = GMRFLib_read_fmesher_file(selectionfile, 0L, SEEK_CUR);
 	}
 
 	fp = fopen(constrfile, "r");
@@ -30290,7 +30297,11 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	GMRFLib_init_problem(&problem, NULL, (b ? b->A : NULL), NULL, (mu ? mu->A : NULL), graph, tab->Qfunc, tab->Qfunc_arg, NULL,
 			     constr, GMRFLib_NEW_PROBLEM);
 
-	M->nrow = graph->n + 1;
+	if (selection) {
+		M->nrow = selection->nrow + 1;
+	} else {
+		M->nrow = graph->n + 1;
+	}
 	M->ncol = ns;
 	M->elems = M->ncol * M->nrow;
 	M->A = Calloc(M->nrow * M->ncol, double);
@@ -30304,7 +30315,14 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 				memcpy(problem->sample, &(S->A[i * S->nrow]), S->nrow * sizeof(double));
 			}
 			GMRFLib_evaluate(problem);
-			memcpy(&(M->A[i * M->nrow]), problem->sample, graph->n * sizeof(double));
+
+			if (!selection) {
+				memcpy(&(M->A[i * M->nrow]), problem->sample, graph->n * sizeof(double));
+			} else {
+				for(int ii = 0; ii < selection->nrow; ii++){
+					M->A[i * M->nrow + ii ] = problem->sample[(int) selection->A[ii]];
+				}
+			}
 			M->A[(i + 1) * M->nrow - 1] = problem->sub_logdens;
 		}
 	} else {
@@ -30321,7 +30339,14 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 				memcpy(problems[thread]->sample, &(S->A[i * S->nrow]), S->nrow * sizeof(double));
 			}
 			GMRFLib_evaluate(problems[thread]);
-			memcpy(&(M->A[i * M->nrow]), problems[thread]->sample, M->nrow * sizeof(double));
+	
+			if (!selection) {
+				memcpy(&(M->A[i * M->nrow]), problems[thread]->sample, graph->n * sizeof(double));
+			} else {
+				for(int ii = 0; ii < selection->nrow; ii++) {
+					M->A[i * M->nrow + ii] = problems[thread]->sample[(int) selection->A[ii]];
+				}
+			}
 			M->A[(i + 1) * M->nrow - 1] = problems[thread]->sub_logdens;
 		}
 	}
@@ -30329,11 +30354,17 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	GMRFLib_write_fmesher_file(M, outfile, (long int) 0, -1);
 
 	GMRFLib_matrix_tp *CM = Calloc(1, GMRFLib_matrix_tp);
-	CM->nrow = graph->n;
+	CM->nrow = M->nrow -1; 
 	CM->ncol = 1;
 	CM->elems = CM->ncol * CM->nrow;
 	CM->A = Calloc(CM->nrow * CM->ncol, double);
-	memcpy(CM->A, problem->mean_constr, graph->n * sizeof(double));
+	if (!selection) {
+		memcpy(CM->A, problem->mean_constr, graph->n * sizeof(double));
+	} else {
+		for(int ii = 0; ii < selection->nrow; ii++){
+			CM->A[ii] = problem->mean_constr[(int) selection->A[ii]];
+		}
+	}
 	GMRFLib_write_fmesher_file(CM, meanfile, (long int) 0, -1);
 
 	state = GMRFLib_rng_getstate(&siz);
@@ -31573,7 +31604,7 @@ int main(int argc, char **argv)
 
 	case INLA_MODE_QSAMPLE:
 		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5],
-			     argv[optind + 6], argv[optind + 7], argv[optind + 8]);
+			     argv[optind + 6], argv[optind + 7], argv[optind + 8], argv[optind + 9]);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
