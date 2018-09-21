@@ -201,6 +201,7 @@ typedef long unsigned int GMRFLib_sizeof_tp;
 #define PP(msg,pt) if (1) { fprintf(stdout, "%d: %s ptr " #pt " = 0x%x\n", __LINE__, msg, pt); }
 #define PPstderr(msg,pt)  if (1) { fprintf(stderr, "%d: %s ptr " #pt " = 0x%x\n", __LINE__, msg, pt); }
 #define PPg(msg,pt) if (1) { fprintf(stdout, "%d: %s value " #pt " = %g\n", __LINE__, msg, pt); }
+#define PPstderrg(msg,pt) if (1) { fprintf(stderr, "%d: %s value " #pt " = %g\n", __LINE__, msg, pt); }
 #define ISINF(x) gsl_isinf(x)
 #define ISNAN(x) gsl_isnan(x)
 #define ISZERO(x) (gsl_fcmp(x, 0.0, DBL_EPSILON) == 0)
