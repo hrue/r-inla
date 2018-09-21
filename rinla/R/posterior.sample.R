@@ -11,8 +11,9 @@
 ##! \description{This function generate samples, and functions of those,
 ##!              from an approximated posterior of a fitted model (an inla-object)}
 ##! \usage{
-##!     inla.posterior.sample(n = 1L, result, intern = FALSE, use.improved.mean = TRUE,
-##!                           add.names = TRUE, seed = 0L, num.threads = 1L)
+##!     inla.posterior.sample(n = 1L, result, selection = list(),
+##!                           intern = FALSE, use.improved.mean = TRUE,
+##!                           add.names = TRUE, seed = 0L, num.threads = NULL)
 ##!     inla.posterior.sample.eval(fun, samples, return.matrix = TRUE, ...)
 ##! }
 ##! 
@@ -21,6 +22,12 @@
 ##!   \item{result}{The inla-object, ie the output from an \code{inla}-call.
 ##!       The \code{inla}-object must be created with
 ##!       \code{control.compute=list(config=TRUE)}.}
+##!   \item{selection}{Select what part of the sample to return. By default, the whole sample
+##!       is returned. \code{selection} is a named list with the name of the components of
+##!       the sample, and which indices of them to return,  like \code{APredictor},
+##!       \code{Predictor}, \code{(Intercept)}. The values is interpreted as indices. If they
+##!       are negative, they are interpreted as 'not', a zero is interpreted as 'all',  and
+##!       positive indices are interpreted as 'only'.}
 ##!   \item{use.improved.mean}{Logical. If \code{TRUE} then use the
 ##!       marginal mean values when constructing samples. If \code{FALSE}
 ##!       then use the mean in the Gaussian approximations.}
@@ -41,8 +48,7 @@
 ##!       controlling the variable \code{.Random.seed} or using the function \code{set.seed},
 ##!       the example for how this can be done. }
 ##!   \item{num.threads}{The number of threads that can be used. \code{num.threads>1L} requires
-##!       \code{seed = 0L}. Only use \code{num.threads > 1L} for large problems/number of
-##!       samples. }
+##!       \code{seed = 0L}. Default value is controlled by \code{inla.getOption("num.threads")}}
 ##!   \item{fun}{The function to evaluate for each sample. Upon entry, the variable names
 ##!               defined in the model are defined as the value of the sample.
 ##!               The list of names are defined in \code{result$misc$configs$contents} where
@@ -143,8 +149,8 @@
 ##! }
 ##!}
 
-`inla.posterior.sample` = function(n = 1, result, intern = FALSE,
-    use.improved.mean = TRUE, add.names = TRUE, seed = 0L, num.threads = 1L)
+`inla.posterior.sample` = function(n = 1, result, selection = list(), intern = FALSE,
+    use.improved.mean = TRUE, add.names = TRUE, seed = 0L, num.threads = NULL)
 {
     stopifnot(!missing(result) && any(class(result) == "inla"))
     if (is.null(result$misc$configs)) {
@@ -155,12 +161,26 @@
         num.threads = inla.getOption("num.threads")
     }
     num.threads = max(num.threads, 1L)
-    if (num.threads > 1L) {
-        if (seed != 0L) {
-            stop("num.threads > 1L require seed = 0L")
-        }
+    if (num.threads > 1L && seed != 0L) {
+        stop("num.threads > 1L require seed = 0L")
     }
 
+    selection = inla.posterior.sample.interpret.selection(selection, result)
+    if (sum(selection) == 0) {
+        return (matrix(NA, 0, 0))
+    }
+    sel.n = sum(selection)
+    sel.map = numeric(sel.n)
+    kk = 1
+    for(k in 1:length(selection)) {
+        if (!is.na(selection)) {
+
+            CONTINUE
+
+        }
+    }
+    
+    
     n = as.integer(n)
     stopifnot(is.integer(n) && n > 0L)
     
@@ -364,3 +384,65 @@
 
     return (ret)
 }
+
+
+`inla.posterior.sample.interpret.selection` = function(selection = list(), result)
+{
+    ## this function interpret a selection, of the form of a named list,
+    ##     list(NAME = idx's, ...),
+    ## with the standard names APredictor, Predictor, '(Intercept)' as well. the idx can
+    ## contains negative numbers for which will be interpreted as 'not'. if idx=0, then this is
+    ## interpreted as the whole vector. the result is a named list of vector of logicals, that
+    ## described which part of the sample to select
+
+    cs = result$misc$configs$contents
+    nc = length(cs$tag)
+    n = sum(cs$length)
+    select = rep(FALSE, n)
+    nam = rep(NA, n)
+
+    ## is selection is NULL or an empty list, this means select all. just make a selection that
+    ## do that
+    if (is.null(selection) || length(selection) == 0) {
+        selection = as.list(rep(0, nc))
+        names(selection) = cs$tag
+    }
+    
+    for(k in seq_along(cs$tag)) {
+        tag = cs$tag[k]
+        start = cs$start[k]
+        end = start + cs$length[k] - 1L
+        len = cs$length[k]
+        
+        if (inla.is.element(tag, selection)) {
+            idx = which(names(selection) == tag)
+            sel = selection[[idx]]
+            selection[[idx]] = NULL
+            
+            if (all(sel == 0)) {
+                sel = 1:len
+            } else if (all(sel > 0)) {
+                stopifnot(all(sel <= len))
+            } else if (all(sel < 0)) {
+                stopifnot(all(-sel <= len))
+                xx = 1:len
+                for (s in sel) xx[-s] = NA
+                sel = xx[!is.na(xx)]
+            } else {
+                stop(paste("This should not happen. Something wrong with the selection for tag=", tag))
+            }
+
+            select[start + sel - 1] = TRUE
+            nam[start + sel -1] = paste0(tag, ":", sel)
+        }
+    }
+
+    if (length(selection) > 0) {
+        warning(paste0("Some selections are not used:",
+                       paste(selection,  collapse=", ", sep="")))
+    }
+    names(select) = nam
+
+    return (select)
+}
+        
