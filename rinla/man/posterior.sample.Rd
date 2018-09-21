@@ -13,8 +13,9 @@
  \description{This function generate samples, and functions of those,
               from an approximated posterior of a fitted model (an inla-object)}
  \usage{
-     inla.posterior.sample(n = 1L, result, intern = FALSE, use.improved.mean = TRUE,
-                           add.names = TRUE, seed = 0L, num.threads = 1L)
+     inla.posterior.sample(n = 1L, result, selection = list(),
+                           intern = FALSE, use.improved.mean = TRUE,
+                           add.names = TRUE, seed = 0L, num.threads = NULL)
      inla.posterior.sample.eval(fun, samples, return.matrix = TRUE, ...)
  }
  
@@ -23,6 +24,14 @@
    \item{result}{The inla-object, ie the output from an \code{inla}-call.
        The \code{inla}-object must be created with
        \code{control.compute=list(config=TRUE)}.}
+   \item{selection}{Select what part of the sample to return. By default, the whole sample
+       is returned. \code{selection} is a named list with the name of the components of
+       the sample, and what indices of them to return. Names include \code{APredictor},
+       \code{Predictor}, \code{(Intercept)},  and otherwise names in the formula.
+      The values of the list, is interpreted as indices. If they
+       are negative, they are interpreted as 'not', a zero is interpreted as 'all',  and
+       positive indices are interpreted as 'only'. The names of elements of each samples 
+       refer to the indices in the full sample. }
    \item{use.improved.mean}{Logical. If \code{TRUE} then use the
        marginal mean values when constructing samples. If \code{FALSE}
        then use the mean in the Gaussian approximations.}
@@ -43,8 +52,7 @@
        controlling the variable \code{.Random.seed} or using the function \code{set.seed},
        the example for how this can be done. }
    \item{num.threads}{The number of threads that can be used. \code{num.threads>1L} requires
-       \code{seed = 0L}. Only use \code{num.threads > 1L} for large problems/number of
-       samples. This option does currently NOT use the default one set by \code{inla.setOption()}. }
+       \code{seed = 0L}. Default value is controlled by \code{inla.getOption("num.threads")}}
    \item{fun}{The function to evaluate for each sample. Upon entry, the variable names
                defined in the model are defined as the value of the sample.
                The list of names are defined in \code{result$misc$configs$contents} where

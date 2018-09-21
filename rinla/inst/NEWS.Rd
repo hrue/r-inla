@@ -28,6 +28,15 @@
   }
 }
 
+\section{CHANGES IN VERSION 18.09.21}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Argument \code{selection} in \code{inla.posterior.sample}
+      and \code{inla.qsample}.
+    }
+  }
+}
+
 
 \section{CHANGES IN VERSION 18.09.19}{
   \subsection{BUG FIXES}{
