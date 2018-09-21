@@ -30354,7 +30354,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	GMRFLib_write_fmesher_file(M, outfile, (long int) 0, -1);
 
 	GMRFLib_matrix_tp *CM = Calloc(1, GMRFLib_matrix_tp);
-	CM->nrow = M->nrow -1;
+	CM->nrow = M->nrow -1; 
 	CM->ncol = 1;
 	CM->elems = CM->ncol * CM->nrow;
 	CM->A = Calloc(CM->nrow * CM->ncol, double);
