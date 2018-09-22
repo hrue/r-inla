@@ -415,9 +415,7 @@
                 stopifnot(all(sel <= len))
             } else if (all(sel < 0)) {
                 stopifnot(all(-sel <= len))
-                xx = 1:len
-                for (s in sel) xx[-s] = NA
-                sel = xx[!is.na(xx)]
+                sel = (1:len)[sel]
             } else {
                 stop(paste("This should not happen. Something wrong with the selection for tag=", tag))
             }
