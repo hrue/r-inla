@@ -159,6 +159,9 @@
         stop("You need an inla-object computed with option 'control.compute=list(config = TRUE)'.")
     }
 
+    if (seed != 0L && is.null(num.threads)) {
+        num.threads = 1L
+    }
     if (is.null(num.threads)) {
         num.threads = inla.getOption("num.threads")
     }
