@@ -28,6 +28,14 @@
   }
 }
 
+\section{CHANGES IN VERSION 18.09.24}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Performance improvement using the PARDISO library
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 18.09.21}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
