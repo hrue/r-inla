@@ -30221,12 +30221,17 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 
 int inla_qsample(const char *filename, const char *outfile, const char *nsamples, const char *rngfile,
 		 const char *samplefile, const char *bfile, const char *mufile, const char *constrfile,
-		 const char *meanfile, const char *selectionfile)
+		 const char *meanfile, const char *selectionfile, int verbose)
 {
+	int output_every = 100;
+	double t_ref = GMRFLib_cpu(), t_reff = GMRFLib_cpu();
 	size_t siz, ret;
 	char *state;
 	FILE *fp;
 
+	if (verbose) {
+		fprintf(stderr, "inla_qsample: start pre...\n");
+	}
 	fp = fopen(rngfile, "rb");
 	if (fp) {
 		fseek(fp, 0L, SEEK_END);
@@ -30299,8 +30304,21 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 
+	if (verbose) {
+		fprintf(stderr, "inla_qsample: end pre %.2fs\n", GMRFLib_cpu() - t_ref);
+	}
+	t_ref = GMRFLib_cpu();
+	if (verbose) {
+		fprintf(stderr, "inla_qsample: start prepare the model...\n");
+	}
+
 	GMRFLib_init_problem(&problem, NULL, (b ? b->A : NULL), NULL, (mu ? mu->A : NULL), graph, tab->Qfunc, tab->Qfunc_arg, NULL,
 			     constr, GMRFLib_NEW_PROBLEM);
+
+	if (verbose) {
+		fprintf(stderr, "inla_qsample: end prepare the model %.2fs\n", GMRFLib_cpu() - t_ref);
+	}
+	t_ref = GMRFLib_cpu();
 
 	if (selection) {
 		M->nrow = selection->nrow + 1;
@@ -30310,6 +30328,10 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	M->ncol = ns;
 	M->elems = M->ncol * M->nrow;
 	M->A = Calloc(M->nrow * M->ncol, double);
+
+	if (verbose) {
+		fprintf(stderr, "inla_qsample: start to sample %1d samples...\n", ns);
+	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		// as we do not want to factorize it again...
@@ -30329,6 +30351,11 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 				}
 			}
 			M->A[(i + 1) * M->nrow - 1] = problem->sub_logdens;
+
+			if (verbose && (!((i+1) % output_every) || i == (ns-1))) {
+				fprintf(stderr, "inla_qsample: done with %1d samples, with %.2f samples/s and %.2fs in total\n",
+					i+1, (i+1.0)/(GMRFLib_cpu()-t_ref), (GMRFLib_cpu()-t_ref));
+			}
 		}
 	} else {
 		GMRFLib_problem_tp **problems = Calloc(GMRFLib_openmp->max_threads_outer, GMRFLib_problem_tp *);
@@ -30356,6 +30383,15 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		}
 	}
 
+	if (verbose) {
+		fprintf(stderr, "inla_qsample: end in %.2fs with %.2f samples/s\n",
+			GMRFLib_cpu() - t_ref, (double) ns /(GMRFLib_cpu() - t_ref));
+	}
+	t_ref = GMRFLib_cpu();
+	if (verbose) {
+		fprintf(stderr, "inla_qsample: start post...\n");
+	}
+
 	GMRFLib_write_fmesher_file(M, outfile, (long int) 0, -1);
 
 	GMRFLib_matrix_tp *CM = Calloc(1, GMRFLib_matrix_tp);
@@ -30377,6 +30413,11 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	fwrite((void *) state, (size_t) 1, siz, fp);
 	fclose(fp);
 
+	if (verbose) {
+		fprintf(stderr, "inla_qsample: end post %.2fs\n", GMRFLib_cpu() - t_ref);
+		fprintf(stderr, "inla_qsample: total time %.2fs\n", GMRFLib_cpu() - t_reff);
+	}
+	
 	return 0;
 }
 
@@ -31609,7 +31650,7 @@ int main(int argc, char **argv)
 
 	case INLA_MODE_QSAMPLE:
 		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5],
-			     argv[optind + 6], argv[optind + 7], argv[optind + 8], argv[optind + 9]);
+			     argv[optind + 6], argv[optind + 7], argv[optind + 8], argv[optind + 9], verbose);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);

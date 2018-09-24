@@ -20,7 +20,7 @@
 ##!        logdens = ifelse(missing(sample), FALSE, TRUE),
 ##!        compute.mean = ifelse(missing(sample), FALSE, TRUE),
 ##!        num.threads = if (seed == 0L) 1L else NULL,
-##!        selection = NULL)
+##!        selection = NULL, verbose = FALSE)
 ##! }
 ##! 
 ##! \arguments{
@@ -45,6 +45,7 @@
 ##!   \item{selection}{A vector with indices of each sample to return,  where \code{NULL} means
 ##!                    return the whole sample. (The log-density retured,  is for the whole sample.)
 ##!                    The use of \code{selection} cannot be combined with the use of \code{sample}.}
+##!   \item{verbose}{Logical. Run in verbose mode or not.}
 ##! }
 ##!\value{
 ##!      The log-density has form {-1/2(x-mu)^T Q (x-mu) + b^T x}
@@ -106,7 +107,8 @@
         logdens = ifelse(missing(sample), FALSE, TRUE), 
         compute.mean = ifelse(missing(sample), FALSE, TRUE),
         num.threads = NULL, 
-        selection = NULL)
+        selection = NULL,
+        verbose = FALSE)
 {
     smtp = match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "pardiso"))
     stopifnot(!missing(Q))
@@ -207,12 +209,14 @@
     inla.set.sparselib.env(NULL)
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample",
-                         "-t", num.threads, "-r", reordering, "-z", seed, "-S", smtp, 
+                         "-t", num.threads, "-r", reordering, "-z", seed, "-S", smtp,
+                         if (verbose) "-v" else "", 
                          Q.file, x.file, as.integer(n), rng.file,
                          sample.file, b.file, mu.file, constr.file, cmean.file, selection.file), intern=FALSE)
     } else if(inla.os("windows")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample",
                          "-t", num.threads, "-r", reordering, "-z", seed, "-S", smtp,
+                         if (verbose) "-v" else "", 
                          Q.file, x.file, as.integer(n), rng.file,
                          sample.file, b.file, mu.file, constr.file, cmean.file, selection.file), intern=TRUE)
     } else {
