@@ -13,7 +13,8 @@
 ##! \usage{
 ##!     inla.posterior.sample(n = 1L, result, selection = list(),
 ##!                           intern = FALSE, use.improved.mean = TRUE,
-##!                           add.names = TRUE, seed = 0L, num.threads = NULL)
+##!                           add.names = TRUE, seed = 0L, num.threads = NULL,
+##!                           verbose = FALSE)
 ##!     inla.posterior.sample.eval(fun, samples, return.matrix = TRUE, ...)
 ##! }
 ##! 
@@ -51,6 +52,7 @@
 ##!       the example for how this can be done. }
 ##!   \item{num.threads}{The number of threads that can be used. \code{num.threads>1L} requires
 ##!       \code{seed = 0L}. Default value is controlled by \code{inla.getOption("num.threads")}}
+##!   \item{verbose}{Logical. Run in verbose mode or not.}
 ##!   \item{fun}{The function to evaluate for each sample. Upon entry, the variable names
 ##!               defined in the model are defined as the value of the sample.
 ##!               The list of names are defined in \code{result$misc$configs$contents} where
@@ -152,7 +154,8 @@
 ##!}
 
 `inla.posterior.sample` = function(n = 1, result, selection = list(), intern = FALSE,
-    use.improved.mean = TRUE, add.names = TRUE, seed = 0L, num.threads = NULL)
+                                   use.improved.mean = TRUE, add.names = TRUE, seed = 0L,
+                                   num.threads = NULL, verbose = FALSE)
 {
     stopifnot(!missing(result) && any(class(result) == "inla"))
     if (is.null(result$misc$configs)) {
@@ -206,7 +209,7 @@
             xx = inla.qsample(n=n.idx[k], Q=cs$config[[k]]$Q,
                               mu = inla.ifelse(use.improved.mean, cs$config[[k]]$improved.mean, cs$config[[k]]$mean), 
                               constr = cs$constr, logdens = TRUE, seed = seed, num.threads = num.threads,
-                              selection = sel.map)
+                              selection = sel.map, verbose = verbose)
             ## if user set seed,  then just continue this rng-stream
             if (seed > 0L) seed = -1L
 
