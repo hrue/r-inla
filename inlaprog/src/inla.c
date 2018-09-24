@@ -30128,7 +30128,9 @@ int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_PARDISO;
+		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
+		GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
 	} else {
@@ -30289,11 +30291,14 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
+		GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
 	} else {
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
+
 	GMRFLib_init_problem(&problem, NULL, (b ? b->A : NULL), NULL, (mu ? mu->A : NULL), graph, tab->Qfunc, tab->Qfunc_arg, NULL,
 			     constr, GMRFLib_NEW_PROBLEM);
 
