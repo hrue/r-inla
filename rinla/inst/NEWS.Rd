@@ -33,7 +33,8 @@
 \section{CHANGES IN VERSION xx.xx.xx}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
-      \item 
+      \item New option \code{control.inla=list(tolerance.step=)}, to
+      control the RMS of the step-size for the inner optimization.
     }
   }
   \subsection{NEW FEATURES}{
