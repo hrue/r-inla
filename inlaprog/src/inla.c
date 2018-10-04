@@ -9838,6 +9838,11 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 			GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
 		} else if (!strcasecmp(smtp, "PARDISO")) {
 			GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
+			// need to make sure this is correct
+			if (mb->strategy != GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL &&
+			    mb->strategy != GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL) {
+				mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
+			}
 		} else if (!strcasecmp(smtp, "DEFAULT")) {
 			if (GMRFLib_pardiso_ok < 0) {
 				GMRFLib_pardiso_ok = (GMRFLib_pardiso_check_install(0, 1) == GMRFLib_SUCCESS ? 1 : 0);
@@ -22297,8 +22302,8 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	mb->ai_par->gsl_epsx = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.X"), mb->ai_par->gsl_epsx);
 	mb->ai_par->optpar_abserr_func = iniparser_getdouble(ini, inla_string_join(secname, "ABSERR.FUNC"), mb->ai_par->optpar_abserr_func);
 	mb->ai_par->optpar_abserr_func = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR.ABSERR.FUNC"), mb->ai_par->optpar_abserr_func);
+	mb->ai_par->optpar_abserr_step = iniparser_getdouble(ini, inla_string_join(secname, "TOLERANCE.STEP"), mb->ai_par->optpar_abserr_step);
 	mb->ai_par->optpar_abserr_step = iniparser_getdouble(ini, inla_string_join(secname, "ABSERR.STEP"), mb->ai_par->optpar_abserr_step);
-	mb->ai_par->optpar_abserr_step = iniparser_getdouble(ini, inla_string_join(secname, "OPTPAR.ABSERR.STEP"), mb->ai_par->optpar_abserr_step);
 	mb->ai_par->optpar_nr_step_factor =
 	    iniparser_getdouble(ini, inla_string_join(secname, "NR.STEP.FACTOR"), mb->ai_par->optpar_nr_step_factor);
 
@@ -30123,7 +30128,9 @@ int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_PARDISO;
+		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
+		GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
 	} else {
@@ -30213,12 +30220,18 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 }
 
 int inla_qsample(const char *filename, const char *outfile, const char *nsamples, const char *rngfile,
-		 const char *samplefile, const char *bfile, const char *mufile, const char *constrfile, const char *meanfile)
+		 const char *samplefile, const char *bfile, const char *mufile, const char *constrfile,
+		 const char *meanfile, const char *selectionfile, int verbose)
 {
+	int output_every = 100;
+	double t_ref = GMRFLib_cpu(), t_reff = GMRFLib_cpu();
 	size_t siz, ret;
 	char *state;
 	FILE *fp;
 
+	if (verbose) {
+		fprintf(stderr, "inla_qsample: start pre...\n");
+	}
 	fp = fopen(rngfile, "rb");
 	if (fp) {
 		fseek(fp, 0L, SEEK_END);
@@ -30238,7 +30251,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem = NULL;
 
-	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp), *S = NULL, *b = NULL, *mu = NULL, *constr_x = NULL;
+	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp), *S = NULL, *b = NULL, *mu = NULL, *constr_x = NULL, *selection = NULL;
 	GMRFLib_constr_tp *constr = NULL;
 
 	inla_sread_ints(&ns, 1, nsamples);
@@ -30262,6 +30275,12 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		mu = GMRFLib_read_fmesher_file(mufile, 0L, SEEK_CUR);
 	}
 
+	fp = fopen(selectionfile, "r");
+	if (fp) {
+		fclose(fp);				       /* file exists */
+		selection = GMRFLib_read_fmesher_file(selectionfile, 0L, SEEK_CUR);
+	}
+
 	fp = fopen(constrfile, "r");
 	if (fp) {
 		fclose(fp);
@@ -30277,18 +30296,42 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
+		GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
 	} else {
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
+
+	if (verbose) {
+		fprintf(stderr, "inla_qsample: end pre %.2fs\n", GMRFLib_cpu() - t_ref);
+	}
+	t_ref = GMRFLib_cpu();
+	if (verbose) {
+		fprintf(stderr, "inla_qsample: start prepare the model...\n");
+	}
+
 	GMRFLib_init_problem(&problem, NULL, (b ? b->A : NULL), NULL, (mu ? mu->A : NULL), graph, tab->Qfunc, tab->Qfunc_arg, NULL,
 			     constr, GMRFLib_NEW_PROBLEM);
 
-	M->nrow = graph->n + 1;
+	if (verbose) {
+		fprintf(stderr, "inla_qsample: end prepare the model %.2fs\n", GMRFLib_cpu() - t_ref);
+	}
+	t_ref = GMRFLib_cpu();
+
+	if (selection) {
+		M->nrow = selection->nrow + 1;
+	} else {
+		M->nrow = graph->n + 1;
+	}
 	M->ncol = ns;
 	M->elems = M->ncol * M->nrow;
 	M->A = Calloc(M->nrow * M->ncol, double);
+
+	if (verbose) {
+		fprintf(stderr, "inla_qsample: start to sample %1d samples...\n", ns);
+	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		// as we do not want to factorize it again...
@@ -30299,8 +30342,20 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 				memcpy(problem->sample, &(S->A[i * S->nrow]), S->nrow * sizeof(double));
 			}
 			GMRFLib_evaluate(problem);
-			memcpy(&(M->A[i * M->nrow]), problem->sample, graph->n * sizeof(double));
+
+			if (!selection) {
+				memcpy(&(M->A[i * M->nrow]), problem->sample, graph->n * sizeof(double));
+			} else {
+				for(int ii = 0; ii < selection->nrow; ii++){
+					M->A[i * M->nrow + ii ] = problem->sample[(int) selection->A[ii]];
+				}
+			}
 			M->A[(i + 1) * M->nrow - 1] = problem->sub_logdens;
+
+			if (verbose && (!((i+1) % output_every) || i == (ns-1))) {
+				fprintf(stderr, "inla_qsample: done with %1d samples, with %.2f samples/s and %.2fs in total\n",
+					i+1, (i+1.0)/(GMRFLib_cpu()-t_ref), (GMRFLib_cpu()-t_ref));
+			}
 		}
 	} else {
 		GMRFLib_problem_tp **problems = Calloc(GMRFLib_openmp->max_threads_outer, GMRFLib_problem_tp *);
@@ -30316,19 +30371,41 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 				memcpy(problems[thread]->sample, &(S->A[i * S->nrow]), S->nrow * sizeof(double));
 			}
 			GMRFLib_evaluate(problems[thread]);
-			memcpy(&(M->A[i * M->nrow]), problems[thread]->sample, M->nrow * sizeof(double));
+	
+			if (!selection) {
+				memcpy(&(M->A[i * M->nrow]), problems[thread]->sample, graph->n * sizeof(double));
+			} else {
+				for(int ii = 0; ii < selection->nrow; ii++) {
+					M->A[i * M->nrow + ii] = problems[thread]->sample[(int) selection->A[ii]];
+				}
+			}
 			M->A[(i + 1) * M->nrow - 1] = problems[thread]->sub_logdens;
 		}
+	}
+
+	if (verbose) {
+		fprintf(stderr, "inla_qsample: end in %.2fs with %.2f samples/s\n",
+			GMRFLib_cpu() - t_ref, (double) ns /(GMRFLib_cpu() - t_ref));
+	}
+	t_ref = GMRFLib_cpu();
+	if (verbose) {
+		fprintf(stderr, "inla_qsample: start post...\n");
 	}
 
 	GMRFLib_write_fmesher_file(M, outfile, (long int) 0, -1);
 
 	GMRFLib_matrix_tp *CM = Calloc(1, GMRFLib_matrix_tp);
-	CM->nrow = graph->n;
+	CM->nrow = M->nrow -1; 
 	CM->ncol = 1;
 	CM->elems = CM->ncol * CM->nrow;
 	CM->A = Calloc(CM->nrow * CM->ncol, double);
-	memcpy(CM->A, problem->mean_constr, graph->n * sizeof(double));
+	if (!selection) {
+		memcpy(CM->A, problem->mean_constr, graph->n * sizeof(double));
+	} else {
+		for(int ii = 0; ii < selection->nrow; ii++){
+			CM->A[ii] = problem->mean_constr[(int) selection->A[ii]];
+		}
+	}
 	GMRFLib_write_fmesher_file(CM, meanfile, (long int) 0, -1);
 
 	state = GMRFLib_rng_getstate(&siz);
@@ -30336,6 +30413,11 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	fwrite((void *) state, (size_t) 1, siz, fp);
 	fclose(fp);
 
+	if (verbose) {
+		fprintf(stderr, "inla_qsample: end post %.2fs\n", GMRFLib_cpu() - t_ref);
+		fprintf(stderr, "inla_qsample: total time %.2fs\n", GMRFLib_cpu() - t_reff);
+	}
+	
 	return 0;
 }
 
@@ -31406,7 +31488,7 @@ int main(int argc, char **argv)
 			break;
 
 		case 'S':
-			// this option is only used for other MODES than INLA
+			// this option is only used for other MODES than INLA, like qsample
 			inla_tolower(optarg);
 			if (!strcasecmp(optarg, "taucs") || !strcasecmp(optarg, "default")) {
 				GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
@@ -31414,6 +31496,7 @@ int main(int argc, char **argv)
 				GMRFLib_smtp = GMRFLib_SMTP_BAND;
 			} else if (!strcasecmp(optarg, "pardiso")) {
 				GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
+				// yes, this is what we want
 				GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
 			}
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_EXTERNAL, NULL, &GMRFLib_smtp);
@@ -31567,7 +31650,7 @@ int main(int argc, char **argv)
 
 	case INLA_MODE_QSAMPLE:
 		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5],
-			     argv[optind + 6], argv[optind + 7], argv[optind + 8]);
+			     argv[optind + 6], argv[optind + 7], argv[optind + 8], argv[optind + 9], verbose);
 		if (report)
 			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);

@@ -19,7 +19,8 @@
 ##!        seed = 0L,
 ##!        logdens = ifelse(missing(sample), FALSE, TRUE),
 ##!        compute.mean = ifelse(missing(sample), FALSE, TRUE),
-##!        num.threads = 1L)
+##!        num.threads = if (seed == 0L) 1L else NULL,
+##!        selection = NULL, verbose = FALSE)
 ##! }
 ##! 
 ##! \arguments{
@@ -40,8 +41,11 @@
 ##!   \item{logdens}{If \code{TRUE}, compute also the log-density of each sample. Note that the output format then change.}
 ##!   \item{compute.mean}{If \code{TRUE}, compute also the (constrained) mean. Note that the output format then change.}
 ##!   \item{num.threads}{The number of threads that can be used. \code{num.threads>1L} requires
-##!       \code{seed = 0L}. Only use \code{num.threads > 1L} for large problems/number of
-##!       samples. This option does currently NOT use the default one set by \code{inla.setOption()}. }
+##!       \code{seed = 0L}.} 
+##!   \item{selection}{A vector with indices of each sample to return,  where \code{NULL} means
+##!                    return the whole sample. (The log-density retured,  is for the whole sample.)
+##!                    The use of \code{selection} cannot be combined with the use of \code{sample}.}
+##!   \item{verbose}{Logical. Run in verbose mode or not.}
 ##! }
 ##!\value{
 ##!      The log-density has form {-1/2(x-mu)^T Q (x-mu) + b^T x}
@@ -102,14 +106,19 @@
         seed = 0L,
         logdens = ifelse(missing(sample), FALSE, TRUE), 
         compute.mean = ifelse(missing(sample), FALSE, TRUE),
-        num.threads = 1L)
+        num.threads = NULL, 
+        selection = NULL,
+        verbose = FALSE)
 {
     smtp = match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "pardiso"))
     stopifnot(!missing(Q))
     stopifnot(n >= 1L)
 
-    if (is.null(num.threads)) {
+    if (seed != 0L && is.null(num.threads)) {
         num.threads = 1L
+    }
+    if (is.null(num.threads)) {
+        num.threads = inla.getOption("num.threads")
     }
     num.threads = max(num.threads, 1L)
     if (num.threads > 1L) {
@@ -142,6 +151,7 @@
     sample.file = inla.tempfile()
     rng.file = inla.tempfile()
     cmean.file = inla.tempfile()
+    selection.file = inla.tempfile()
     
     if (!missing(b)) {
         stopifnot(length(b) == nrow(Q))
@@ -173,6 +183,17 @@
         n = ncol(sample) ## redefine n here
     }
 
+    if (!missing(selection) && !is.null(selection)) {
+        if (!missing(sample)) {
+            stop("Cannot use 'selection' and 'sample' at the same time")
+        }
+        selection = as.matrix(selection, ncol = 1)
+        inla.write.fmesher.file(selection -1, filename = selection.file)
+    } else {
+        ## make the code easier below
+        selection = 1:nrow(Q)
+    }
+
     envir = inla.get.inlaEnv()
     if (seed < 0L) {
         if (!exists("GMRFLib.rng.state", envir = envir)) {
@@ -188,14 +209,16 @@
     inla.set.sparselib.env(NULL)
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample",
-                         "-t", num.threads, "-r", reordering, "-z", seed, "-S", smtp, 
+                         "-t", num.threads, "-r", reordering, "-z", seed, "-S", smtp,
+                         if (verbose) "-v" else "", 
                          Q.file, x.file, as.integer(n), rng.file,
-                         sample.file, b.file, mu.file, constr.file, cmean.file), intern=FALSE)
+                         sample.file, b.file, mu.file, constr.file, cmean.file, selection.file), intern=FALSE)
     } else if(inla.os("windows")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample",
                          "-t", num.threads, "-r", reordering, "-z", seed, "-S", smtp,
+                         if (verbose) "-v" else "", 
                          Q.file, x.file, as.integer(n), rng.file,
-                         sample.file, b.file, mu.file, constr.file, cmean.file), intern=TRUE)
+                         sample.file, b.file, mu.file, constr.file, cmean.file, selection.file), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }
@@ -216,10 +239,10 @@
     unlink(x.file)
     unlink(cmean.file)
 
-    nx = dim(Q)[1L]
+    nx = dim(x)[1L] -1L
     samples = matrix(x[-(nx + 1L),, drop=FALSE], nx, n)
     colnames(samples) = paste("sample", 1L:n, sep="")
-    rownames(samples) = paste("x", 1L:nx, sep="")
+    rownames(samples) = paste("x", selection, sep="")
     ld = c(x[nx+1L, ])
     names(ld) = paste("logdens", 1L:n, sep="")
 
@@ -227,6 +250,7 @@
     unlink(mu.file)
     unlink(constr.file)
     unlink(sample.file)
+    unlink(selection.file)
 
     if (logdens || compute.mean) {
         return (list(sample=samples, logdens = ld, mean = c(cmean)))
