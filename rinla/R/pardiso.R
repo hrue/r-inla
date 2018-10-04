@@ -85,11 +85,11 @@
 {
     inla.set.sparselib.env(NULL)
     if (inla.os("linux") || inla.os("mac")) {
-        system(paste(shQuote(inla.getOption("inla.call")), "-m pardiso"), intern=FALSE)
+        ret = system(paste(shQuote(inla.getOption("inla.call")), "-m pardiso"), intern=TRUE)
     } else if(inla.os("windows")) {
-        system(paste(shQuote(inla.getOption("inla.call")), "-m pardiso"), intern=FALSE)
+        ret = system(paste(shQuote(inla.getOption("inla.call")), "-m pardiso"), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }
-    return (invisible())
+    return (ret)
 }

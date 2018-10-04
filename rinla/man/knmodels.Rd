@@ -4,6 +4,7 @@
 %%
  \name{inla.knmodels}
  \alias{inla.knmodels}
+ \alias{knmodels}
  \title{Spacetime interaction models}
  \description{
     It implements the models in Knorr-Held, L. (2000) 
@@ -23,7 +24,7 @@ inla.knmodels(
    type=c(paste(1:4), paste0(2:4, 'c'), paste0(2:4, 'd')), 
    diagonal=1e-5, 
    ...) 
-  )
+ )
 }
  \arguments{
  \item{formula}{The formula specifying the other 
@@ -62,7 +63,7 @@ inla.knmodels(
    diagonal when using the diagonal add approach.
  \code{timeref} to specify the time point to be the
    reference time in the contrast parametrization.
- \code{spaceref} to specify the area to be the
+ \item{spaceref} to specify the area to be the
    reference for the contrast parametrization.
   \code{...} where additional arguments can be 
    passed to \code{\link{f}} function.
@@ -74,10 +75,10 @@ inla.knmodels(
    the prior using the \code{pc.prec} prior with 
    \code{param = c(0.5, 0.5)}. See documentation with 
    \code{?inla.doc("pc.prec")}.
- }
  \item{...}{Arguments to be passed to the 
    \code{\link{inla}} function.}
  }
+}
  \value{
   \code{inla.knmodels} returns an object of class \code{"inla"}. 
     or a list of objects of this class if it is asked to compute 
