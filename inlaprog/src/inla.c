@@ -26507,7 +26507,6 @@ int inla_INLA(inla_tp * mb)
 
 	// define the adaptive strategy
 	GMRFLib_ai_strategy_tp *adapt = NULL;
-	local_count = 0;
 	if (mb->ai_par->strategy == GMRFLib_AI_STRATEGY_ADAPTIVE) {
 		adapt = Calloc(N, GMRFLib_ai_strategy_tp);
 		for(i = 0; i < N; i++) {
@@ -26521,22 +26520,16 @@ int inla_INLA(inla_tp * mb)
 				 */
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					adapt[count + j] = GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN;
-					local_count++;
 				}
 			}
 			count += mb->f_Ntotal[i];
 		}
 		for (i = 0; i < mb->nlinear; i++) {
 			adapt[count++] = GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN;
-			local_count++;
-		}
-		if (local_count == 0) {			       /* then there is nothting to correct for */
-			Free(adapt);
-			adapt = NULL;
 		}
 	}
 	mb->ai_par->adapt_strategy = adapt;
-	mb->ai_par->adapt_len = local_count;
+	mb->ai_par->adapt_len = (adapt ? N : 0);
 
 	if (G.reorder < 0) {
 		GMRFLib_sizeof_tp nnz = 0;
