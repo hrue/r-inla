@@ -5,7 +5,8 @@
 \encoding{UTF-8}
 
 
-\section{CHANGES IN VERSION XX.XX.XX}{
+
+\section{CHANGES IN VERSION xx.xx.xx}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
       \item 
@@ -18,11 +19,8 @@
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item Added new strategy
-      \code{control.inla=list(strategy="adaptive")} which use the
-      simplified.laplace approximations for fixed effects and low-dimensional model
-      components, and the gaussian approximation otherwise. 
-      }
+      \item
+    }
   }
   \subsection{BUG FIXES}{
     \itemize{
@@ -31,11 +29,12 @@
   }
 }
 
-\section{CHANGES IN VERSION XX.XX.XX}{
+
+\section{CHANGES IN VERSION xx.xx.xx}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
-      \item Added new function \code{inla.pardiso.check()}
-      \item Added COPYRIGHTS file
+      \item New option \code{control.inla=list(tolerance.step=)}, to
+      control the RMS of the step-size for the inner optimization.
     }
   }
   \subsection{NEW FEATURES}{
@@ -45,9 +44,106 @@
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
+      \item Added option \code{verbose} to
+      \code{inla.qsample()} and \code{inla.posterior.sample()}
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item 
+    }
+  }
+}
+
+
+
+\section{CHANGES IN VERSION 18.09.24}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Performance improvement using the PARDISO library
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.09.21}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Argument \code{selection} in \code{inla.posterior.sample}
+      and \code{inla.qsample}.
+    }
+  }
+}
+
+
+\section{CHANGES IN VERSION 18.09.19}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fix for \code{num.threads} in \code{inla.qinv()}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.09.18}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Allow better user control of sparse matrix library in
+      \code{inla.qinv()}, \code{inla.qsample()} and
+      \code{inla.posterior.sample()}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.09.14}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item New example added to \code{inla.posterior.sample()}
+      \item Slight changes in the default \code{print}, and
+      \code{summary} for an \code{inla}-object
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed the issue when \code{lincomb.derived.only=FALSE} and
+      then using \code{inla.posterior.sample()}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.08.26}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Added 32-bit builds for windows (upon request)
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added function \code{inla.posterior.sample.eval()}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.08.09}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Added new function \code{inla.pardiso.check()}
+      \item Added COPYRIGHTS file
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
       \item Separated the quantile link for the binomial response,
-      into individual (\texttt{model="quantile"}) and population
-	(\texttt{model="pquantile"})
+      into individual (\code{model="quantile"}) and population
+	(\code{model="pquantile"})
+
+      \item Added new strategy
+      \code{control.inla=list(strategy="adaptive")} which use the
+      \code{simplified.laplace} approximations for fixed effects and
+      low-dimensional model components, and the \code{gaussian}
+      approximation
+      otherwise. The argument 
+      \code{adaptive.max} in \code{control.inla}
+      determines what is low-dimensional in this
+      context (default 10).
       }
   }
   \subsection{BUG FIXES}{

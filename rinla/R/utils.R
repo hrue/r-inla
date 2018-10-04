@@ -255,7 +255,7 @@
     }
 
     ## hash the models again
-    assign("hgid", "hash it again, please!", envir = inla.get.inlaEnv())
+    assign("hgid", "(Undefined)", envir = inla.get.inlaEnv())
     assign("inla.models", NULL, envir = inla.get.inlaEnv())
     cat("Reset stored 'inla.models()' in .inlaEnv\n")
 
@@ -949,12 +949,9 @@
 ##
 `inla.mclapply` = function(..., mc.cores = NULL, parallel = TRUE)
 {
-    if (parallel && inla.require("parallel") && !inla.os("windows")) {
+    if (parallel && !inla.os("windows")) {
         if (is.null(mc.cores)) {
             mc.cores = inla.getOption("num.threads")
-            if (is.null(mc.cores)) {
-                mc.cores = parallel::detectCores()
-            }
         }
         return (parallel::mclapply(..., mc.cores = mc.cores))
     } else {
