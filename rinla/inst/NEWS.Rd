@@ -30,7 +30,7 @@
 }
 
 
-\section{CHANGES IN VERSION xx.xx.xx}{
+\section{CHANGES IN VERSION 18.10.09}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
       \item New option \code{control.inla=list(tolerance.step=)}, to
@@ -38,6 +38,7 @@
       \item Changed, slightly, the initial values for the exponent in
       the Weibull likelihood models, to a value close to zero instead of
       zero.
+      \item New vignette about how to deal with multinomial data.
     }
   }
   \subsection{NEW FEATURES}{
