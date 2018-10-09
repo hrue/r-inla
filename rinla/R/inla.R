@@ -217,13 +217,13 @@
         num.threads = inla.getOption("num.threads"),
         
         ##!\item{blas.num.threads}{The absolute value of \code{blas.num.threads} is the maximum
-        ##!number of threads the the \code{openblas}/\code{mklblas} will use. If
+        ##!number of threads the the \code{openblas}/\code{mklblas} will use (if available). If
         ##!\code{blas.num.threads} > 0, then the environment variables
-        ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned, unless they
-        ##!are already defined. If \code{blas.num.threads} < 0, then the environment variables
-        ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be (possibly re)-assigned.
-        ##!If \code{blas.num.threads} = 0,  then variables \code{OPENBLAS_NUM_THREADS} and
-        ##!\code{MKL_NUM_THREADS} will be removed.}
+        ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned. If
+        ##!\code{blas.num.threads} < 0, then the environment variables
+        ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned unless they
+        ##!are already defined. If \code{blas.num.threads} = 0, then variables
+        ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be removed.}
         blas.num.threads = inla.getOption("blas.num.threads"),
         
         ##!\item{keep}{ A boolean variable indicating that the
@@ -2025,9 +2025,9 @@
             
             my.time.used[4] = Sys.time()
             cpu.used = c(
-                "Pre-processing"  = diff(my.time.used)[1],
-                "Running inla"    = diff(my.time.used)[2],
-                "Post-processing" = diff(my.time.used)[3],
+                "Pre" = diff(my.time.used)[1],
+                "Running" = diff(my.time.used)[2],
+                "Post" = diff(my.time.used)[3],
                 "Total" = my.time.used[4] - my.time.used[1])
 
             ret$cpu.used = cpu.used
@@ -2200,13 +2200,13 @@
         Sys.unsetenv("OPENBLAS_NUM_THREADS")
         Sys.unsetenv("MKL_NUM_THREADS")
     } else if (blas.num.threads > 0) {
-        if (Sys.getenv("OPENBLAS_NUM_THREADS") == "")
-            Sys.setenv(OPENBLAS_NUM_THREADS = blas.num.threads)
-        if (Sys.getenv("MKL_NUM_THREADS") == "")
-            Sys.setenv(MKL_NUM_THREADS = blas.num.threads)
+        Sys.setenv(OPENBLAS_NUM_THREADS = blas.num.threads)
+        Sys.setenv(MKL_NUM_THREADS = blas.num.threads)
     } else {
-        Sys.setenv(OPENBLAS_NUM_THREADS = abs(blas.num.threads))
-        Sys.setenv(MKL_NUM_THREADS = abs(blas.num.threads))
+        if (Sys.getenv("OPENBLAS_NUM_THREADS") == "")
+            Sys.setenv(OPENBLAS_NUM_THREADS = abs(blas.num.threads))
+        if (Sys.getenv("MKL_NUM_THREADS") == "")
+            Sys.setenv(MKL_NUM_THREADS = abs(blas.num.threads))
     }
         
     return (invisible())
