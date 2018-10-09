@@ -94,6 +94,7 @@
     method = match.arg(method)
 
     Xfile = inla.tempfile()
+    inla.set.sparselib.env(NULL)
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsolve", "-r", 
                          reordering, "-S", smtp, Qfile, Xfile, Bfile, method), intern=TRUE)

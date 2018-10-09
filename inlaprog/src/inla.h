@@ -1405,6 +1405,7 @@ double link_logoffset(double x, map_arg_tp typ, void *param, double *cov);
 double link_neglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_probit(double x, map_arg_tp typ, void *param, double *cov);
 double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov);
+double link_pqbinomial(double x, map_arg_tp typ, void *param, double *cov);
 double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov);
 double link_qweibull(double x, map_arg_tp typ, void *param, double *cov);
 double link_special1(double x, map_arg_tp typ, void *param, double *cov);
@@ -1583,7 +1584,8 @@ int inla_print_sha1(FILE * fp, unsigned char *md);
 int inla_qinv(const char *filename, const char *outfile, const char *constrfile);
 int inla_qreordering(const char *filename);
 int inla_qsample(const char *filename, const char *outfile, const char *nsamples, const char *rngfile,
-		 const char *samplefile, const char *bfile, const char *mufile, const char *constr_file, const char *meanfile);
+		 const char *samplefile, const char *bfile, const char *mufile, const char *constr_file,
+		 const char *meanfile, const char *selectionfile, int verbose);
 int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilename, const char *method);
 int inla_read_data_all(double **x, int *n, const char *filename, int *ncol_data_all);
 int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filename, int n, int column, int n_columns, int verbose,

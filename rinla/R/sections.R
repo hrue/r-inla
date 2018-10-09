@@ -685,6 +685,9 @@
     if (!is.null(inla.spec$strategy)) {
         cat("strategy = ", inla.spec$strategy,"\n", sep = " ", file = file,  append = TRUE)
     }
+    if (!is.null(inla.spec$adaptive.max)) {
+        cat("adaptive.max = ", as.integer(inla.spec$adaptive.max),"\n", sep = " ", file = file,  append = TRUE)
+    }
     inla.write.boolean.field("fast", inla.spec$fast, file)
     if (!is.null(inla.spec$linear.correction)) {
         cat("linear.correction = ", inla.spec$linear.correction,"\n", sep = " ", file = file,  append = TRUE)
@@ -725,6 +728,10 @@
     }
     cat("tolerance.x = ", inla.spec$tolerance.x,"\n", sep = " ", file = file,  append = TRUE)
 
+    if (!(is.null(inla.spec$tolerance.step) || is.na(inla.spec$tolerance.step))) {
+        cat("tolerance.step = ", inla.spec$tolerance.step,"\n", sep = " ", file = file, append = TRUE)
+    }
+        
     inla.write.boolean.field("hessian.force.diagonal", inla.spec$force.diagonal, file)
     inla.write.boolean.field("skip.configurations", inla.spec$skip.configurations, file)
     inla.write.boolean.field("mode.known", inla.spec$mode.known.conf, file)
@@ -949,7 +956,6 @@
     cat(inla.secsep("INLA.Model"), "\n", sep = " ", file = file,  append = TRUE)
     cat("type = problem\n", sep = " ", file = file,  append = TRUE)
     cat("dir = $inlaresdir\n", sep = " ", file = file,  append = TRUE)
-    cat("openmp.strategy = ", openmp.strategy, "\n", sep = " ", file = file,  append = TRUE)
     inla.write.boolean.field("return.marginals", return.marginals, file)
     inla.write.boolean.field("hyperparameters", hyperpar, file)
     inla.write.boolean.field("cpo", cpo, file)
@@ -967,9 +973,17 @@
     smtp = match.arg(tolower(smtp), c("band", "taucs", "pardiso", "default"))
     cat("smtp = ", smtp, "\n", sep = " ", file = file,  append = TRUE)
 
+    if (is.null(openmp.strategy) || !(is.character(openmp.strategy) && (nchar(openmp.strategy) > 0))) {
+        openmp.strategy = "default"
+    }
+    openmp.strategy = match.arg(tolower(openmp.strategy),
+                                c("default", "small", "medium", "large", "huge", "pardiso.serial", "pardiso.parallel"))
+    cat("openmp.strategy = ", openmp.strategy, "\n", sep = " ", file = file,  append = TRUE)
+
     if (!is.null(quantiles)) {
         cat("quantiles = ", quantiles, "\n", sep = " ", file = file,  append = TRUE)
     }
+
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 

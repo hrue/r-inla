@@ -119,9 +119,8 @@ R --vanilla CMD INSTALL --library=$DD $tgzINLA || exit 1
 mv -f $DD/$zipINLA .
 
 ls -l INLA*gz INLA*zip
-www=../www/binaries
+www=../www
 wwwR=../www/R
-OldDir=$(echo ~hrue/www/www.inla/binaries/testing/Old)
 old="$tgzINLA-$bdate"
 
 convert_to_mac_binary () {
@@ -145,18 +144,6 @@ updateBinaryPackages () {
     
 
 if [ $# -ge 1 -a "$1" == "1" ]; then
-    cp -v $tgzINLA $www/INLA.tgz
-    cp -v $zipINLA $www/INLA.zip
-    cp -v $SRC     $www/INLA-source.tgz
-    cp -v $tgzINLA $OldDir/$old
-    cp -v $tgzINLA $www/testing/INLA.tgz
-    cp -v $zipINLA $www/testing/INLA.zip
-    cp -v $SRC     $www/testing/INLA-source.tgz
-    updateBinaryPackages "$www" "$www/testing"
-    
-    echo $bdate >  $www/build.date
-    echo $bdate >  $www/testing/build.date
-
     for prefix in stable testing; do
 	d=$wwwR/$prefix/src/contrib
 	cp -v $SRC $d/INLA_$VERSION.tar.gz
@@ -173,15 +160,7 @@ if [ $# -ge 1 -a "$1" == "1" ]; then
     done
 fi
 
-
 if [ $# -ge 1 -a "$1" == "2" ]; then
-    cp -v $tgzINLA $OldDir/$old
-    cp -v $tgzINLA $www/testing/INLA.tgz
-    cp -v $zipINLA $www/testing/INLA.zip
-    cp -v $SRC     $www/testing/INLA-source.tgz
-    echo $bdate >  $www/testing/build.date
-    updateBinaryPackages "$www/testing"
-
     for prefix in testing; do
 	d=$wwwR/$prefix/src/contrib
 	cp -v $SRC $d/INLA_$VERSION.tar.gz
@@ -206,7 +185,7 @@ fi
     echo 'if (!exists("inla.lib")) inla.lib = NULL'
     echo 'givemeINLA(testing=FALSE, lib = inla.lib)'
     echo 'cat("\n\n\nYou can later upgrade INLA using: inla.upgrade()\n")'
-} | sed 's/inla.os/inla.installer.os/g' >  $www/../givemeINLA.R
+} | sed 's/inla.os/inla.installer.os/g' >  $www/givemeINLA.R
 {
     cat $D/upgrade.R | sed 's/inla.upgrade/inla.installer/g' | grep -v ^#
     cat $D/os.R | grep -v ^#
@@ -215,7 +194,7 @@ fi
     echo 'if (!exists("inla.lib")) inla.lib = NULL'
     echo 'givemeINLA(testing=TRUE, lib = inla.lib)'
     echo 'cat("\n\n\nYou can later upgrade INLA using: inla.upgrade(testing=TRUE)\n")'
-} | sed 's/inla.os/inla.installer.os/g' >  $www/../givemeINLA-testing.R
+} | sed 's/inla.os/inla.installer.os/g' >  $www/givemeINLA-testing.R
 
 rm -f $tgzINLA 
 rm -f $zipINLA 

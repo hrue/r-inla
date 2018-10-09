@@ -5531,6 +5531,8 @@ inla.models()
 				 }
 				\item{Model `quantile'.}{Number of hyperparmeters are 0.
 				 }
+				\item{Model `pquantile'.}{Number of hyperparmeters are 0.
+				 }
 				\item{Model `sslogit'.}{Number of hyperparmeters are 2.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
@@ -6891,7 +6893,7 @@ inla.models()
 							\item{hyperid = }{`79001'}
 							\item{name = }{`log alpha'}
 							\item{short.name = }{`alpha'}
-							\item{initial = }{`0'}
+							\item{initial = }{`0.1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`25 25'}
@@ -6919,7 +6921,7 @@ inla.models()
 							\item{hyperid = }{`79101'}
 							\item{name = }{`log alpha'}
 							\item{short.name = }{`alpha'}
-							\item{initial = }{`0'}
+							\item{initial = }{`0.1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`25 25'}
@@ -7005,7 +7007,7 @@ inla.models()
 							\item{hyperid = }{`81001'}
 							\item{name = }{`log alpha'}
 							\item{short.name = }{`a'}
-							\item{initial = }{`0'}
+							\item{initial = }{`0.1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`25 25'}

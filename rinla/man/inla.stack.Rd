@@ -4,7 +4,6 @@
 \alias{inla.stack}
 \alias{inla.stack.remove.unused}
 \alias{inla.stack.compress}
-\alias{inla.stack}
 \alias{inla.stack.sum}
 \alias{inla.stack.join}
 \alias{inla.stack.index}

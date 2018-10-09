@@ -21,7 +21,8 @@
         seed = 0L,
         logdens = ifelse(missing(sample), FALSE, TRUE),
         compute.mean = ifelse(missing(sample), FALSE, TRUE),
-        num.threads = 1L)
+        num.threads = if (seed == 0L) 1L else NULL,
+        selection = NULL, verbose = FALSE)
  }
  
  \arguments{
@@ -42,8 +43,11 @@
    \item{logdens}{If \code{TRUE}, compute also the log-density of each sample. Note that the output format then change.}
    \item{compute.mean}{If \code{TRUE}, compute also the (constrained) mean. Note that the output format then change.}
    \item{num.threads}{The number of threads that can be used. \code{num.threads>1L} requires
-       \code{seed = 0L}. Only use \code{num.threads > 1L} for large problems/number of
-       samples. This option does currently NOT use the default one set by \code{inla.setOption()}. }
+       \code{seed = 0L}.} 
+   \item{selection}{A vector with indices of each sample to return,  where \code{NULL} means
+                    return the whole sample. (The log-density retured,  is for the whole sample.)
+                    The use of \code{selection} cannot be combined with the use of \code{sample}.}
+   \item{verbose}{Logical. Run in verbose mode or not.}
  }
 \value{
       The log-density has form {-1/2(x-mu)^T Q (x-mu) + b^T x}

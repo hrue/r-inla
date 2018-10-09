@@ -4686,6 +4686,10 @@
                      doc = "The quantile-link", 
                      hyper = list()
                  ), 
+                 pquantile = list(
+                     doc = "The population quantile-link", 
+                     hyper = list()
+                 ), 
                  sslogit = list(
                      doc = "Logit link with sensitivity and specificity", 
                      hyper = list(
@@ -5070,7 +5074,7 @@
                      survival = FALSE,
                      discrete = TRUE,
                      link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog",
-                              "log", "sslogit", "logitoffset", "quantile"),
+                              "log", "sslogit", "logitoffset", "quantile", "pquantile"),
                      pdf = "binomial"
                      ),
 
@@ -5829,7 +5833,7 @@
                              hyperid =  79001,
                              name = "log alpha",
                              short.name = "alpha",
-                             initial = 0,
+                             initial = 0.1,
                              fixed = FALSE,
                              prior = "loggamma",
                              param = c(25, 25),
@@ -5852,7 +5856,7 @@
                              hyperid =  79101,
                              name = "log alpha",
                              short.name = "alpha",
-                             initial = 0,
+                             initial = 0.1,
                              fixed = FALSE,
                              prior = "loggamma",
                              param = c(25, 25),
@@ -5917,7 +5921,7 @@
                              hyperid =  81001,
                              name = "log alpha",
                              short.name = "a",
-                             initial = 0,
+                             initial = 0.1,
                              fixed = FALSE,
                              prior = "loggamma",
                              param = c(25, 25),

@@ -4,7 +4,8 @@
 \alias{inla.over_sp_mesh}
 \title{Check which mesh triangles are inside a polygon}
 \usage{
-inla.over_sp_mesh(x, y, type = c("centroid", "vertex"), ignore.CRS = FALSE)
+inla.over_sp_mesh(x, y, type = c("centroid", "vertex"),
+  ignore.CRS = FALSE)
 }
 \arguments{
 \item{x}{geometry (typically a \code{\link[sp]{SpatialPolygons}} object) for the queries}
