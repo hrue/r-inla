@@ -455,9 +455,9 @@ parameters space. If we are not sure of the model, then, take a small
 $N$ is better because it ensures more flexible posterior results.
 
 
-![Confidence Interval for beta varying the size parameter N](img/beta.confidence.jpeg){width=500px}
+![Confidence Interval for beta varying the size parameter N](multinomial-img/beta.confidence.jpeg){width=500px}
 
-![Confidence Interval for the difference between gamma.B and gamma.A varying the size parameter N](img/diff.confidence.jpeg){height=350px}
+![Confidence Interval for the difference between gamma.B and gamma.A varying the size parameter N](multinomial-img/diff.confidence.jpeg){height=350px}
 
 
 ### A First Random Effect
@@ -574,7 +574,7 @@ the previous section are valid also for the random effect estimates.
 Greater the size better the accuracy. In Figure 3 are reported the box
 plots of the mean square errors for each value of $N$.
 
-![Boxplot of the estimated random effect mean square errors varying the size parameter N](img/MSE.iid.jpeg){width=350px}
+![Boxplot of the estimated random effect mean square errors varying the size parameter N](multinomial-img/MSE.iid.jpeg){width=350px}
 
 
 The estimates with $N = 1$ are particularly bad, that's why there is
@@ -583,7 +583,7 @@ resulting estimates are almost zero. To make this point clearer in
 Figure 4 are reported the confidence intervals relative to $20$
 samples from the random effect.
 
-![Confidence intervals for a sample of 20 points from the random effect varying the size parameter N](img/conf.iid.jpeg){width=485px}
+![Confidence intervals for a sample of 20 points from the random effect varying the size parameter N](multinomial-img/conf.iid.jpeg){width=485px}
 
 \ \newline
 \ \newline
