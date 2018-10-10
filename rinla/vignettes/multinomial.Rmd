@@ -62,7 +62,7 @@ how well we are able to retrieve it. The code is provided and
 explained as well. In the end, we will report the results of our
 technique on the famous Yogurt Data.
 
-## Theoretical part    
+## Theoretical part
 ###On the Multinomial logit model
 
 The multinomial logit model arises naturally when we have to model
@@ -724,10 +724,11 @@ voronoi.polygons <- function(x) {
   }
   SP <- SpatialPolygons(polys)
   voronoi <- SpatialPolygonsDataFrame(SP, 
-                                      data=data.frame(x=crds[,1],
-                                                      y=crds[,2], 
-                                                      row.names=sapply(slot(SP, 'polygons'), 
-                                                                       function(x) slot(x, 'ID'))))
+                data=data.frame(
+                    x=crds[,1],
+                    y=crds[,2], 
+                    row.names=sapply(slot(SP, 'polygons'),
+                    function(x) slot(x, 'ID'))))
 }
 ```
 
@@ -892,7 +893,6 @@ grid.arrange(spplot(vor, 'rand.eff', at = seq(-2.5, 2.5, length.out = 32),
                     col.regions = terrain.colors(32), main = "Residuals"),
              nrow = 1)
 ```
-
 
 ### Continuos spatial random effect
 
