@@ -66,6 +66,7 @@
 ##!                         X = NULL, W = NULL, Q.beta = NULL),
 ##!         args.ar1c = list(Z = NULL, Q.beta = NULL),
 ##!         correct = NULL,
+##!         locations = NULL, 
 ##!         debug = FALSE)
 ##!}
 ##!\arguments{
@@ -325,6 +326,9 @@
     ##!\item{correct}{Add this model component to the list of variables to be used in the corrected Laplace approximation? If \code{NULL} use default choice,  otherwise correct if \code{TRUE} and do not if \code{FALSE}. (This option is currently experimental.)},
     correct = NULL,
 
+    ##!\item{locations}{A matrix with locations for the model \code{dmatern}. This also defines \code{n}.}
+    locations = NULL,
+    
     ##!\item{debug}{Enable local debug output}
     debug = FALSE)
 {
@@ -700,6 +704,19 @@
         }
     }
 
+    if (inla.one.of(model, c("dmatern"))) {
+        stopifnot(!missing(locations) && !is.null(locations))
+        if (is.vector(locations)) {
+            locations = matrix(locations, ncol = 1)
+        }
+        stopifnot(is.matrix(locations))
+        stopifnot(nrow(locations) > 1)
+        stopifnot(!any(is.na(locations)))
+        n = ncol(locations)
+    } else {
+        stopifnot(missing(locations) || is.null(locations))
+    }
+
     ## is N required?
     if (is.null(n) && (!is.null(inla.model.properties(model, "latent")$n.required)
                        && inla.model.properties(model, "latent")$n.required)) {
@@ -1003,7 +1020,8 @@
         adjust.for.con.comp = as.logical(adjust.for.con.comp),
         args.slm = args.slm,
         args.ar1c = args.ar1c,
-        correct = correct
+        correct = correct,
+        locations = locations
         )
 
     if (debug) print(ret)
