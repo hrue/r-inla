@@ -2301,6 +2301,63 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 
 	return (a->Q[id]->Qfunc(i, j, a->Q[id]->Qfunc_arg));
 }
+
+double Qfunc_dmatern(int i, int j, void *arg)
+{
+	dmatern_arg_tp *a = (dmatern_arg_tp *) arg;
+	double prec = exp(a->log_prec[GMRFLib_thread_id][0]);
+	int rebuild, debug = 0, id;
+
+	id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
+	rebuild = (a->param[id] == NULL || a->Q[GMRFLib_thread_id] == NULL);
+	if (!rebuild) {
+		// yes, as log_prec is [0], we start at 1
+		rebuild = rebuild || (a->param[id][1] != a->log_range[GMRFLib_thread_id][0])
+		rebuild = rebuild || (a->param[id][2] != a->log_nu[GMRFLib_thread_id][0])
+	}
+
+	if (rebuild) {
+#pragma omp critical
+		{
+			double range, nu;
+			if (debug) {
+				printf("Rebuild Q-hash for id %d\n", id);
+			}
+
+			if (!(a->Q[id])) {
+				a->Q[id] = gsl_matrix_calloc(a->n, a->n);
+			}
+
+			a->param[id][1] = a->log_range[GMRFLib_thread_id][0];
+			a->param[id][2] = a->log_nu[GMRFLib_thread_id][0];
+			range = exp(a->param[id][1]);
+			nu = exp(a->param[id][2]);
+			
+			if (debug) {
+				printf("\tprec %.4f range %.4f nu %.4f\n", prec, range, nu);
+			}
+
+			for(int i = 0; i < a->n; i++) {
+				for(int j = i; j < a->n; j++) {
+					double dist2 = 0.0, val;
+					for(int k = 0; k < a->dim; k++) {
+						dist2 += SQR(GMRFLib_matrix_get(i, k, a->locations)
+							     -
+							     GMRFLib_matrix_get(j, k, a->locations));
+					}
+					dist2 = MAX(0.0, dist2);
+					val = inla_dmatern_cf(sqrt(dist2), range, nu);
+					gsl_matrix_set(a->Q[id], i, j, val);
+					gsl_matrix_set(a->Q[id], j, i, val);
+				}
+			}
+			GMRFLib_gsl_spd_inverse(a->Q[id]);
+		}
+	}
+
+	return prec * gsl_matrix_get(a->Q[id], i, j);
+}
+
 double mfunc_ar1(int i, void *arg)
 {
 	inla_ar1_arg_tp *a = (inla_ar1_arg_tp *) arg;
@@ -15111,7 +15168,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	    NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL, **h2_intern =
 	    NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd, **mean_x = NULL, **log_prec_x =
 	    NULL, ***pacf_intern = NULL, slm_rho_min = 0.0, slm_rho_max = 0.0, **log_halflife = NULL, **log_shape = NULL, **alpha =
-	    NULL, **gama = NULL, **alpha1 = NULL, **alpha2 = NULL, **H_intern = NULL;
+	    NULL, **gama = NULL, **alpha1 = NULL, **alpha2 = NULL, **H_intern = NULL, **nu_intern;
 
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	inla_spde_tp *spde_model = NULL;
@@ -15404,6 +15461,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_MATERN2D;
 		mb->f_ntheta[mb->nf] = 2;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("Matern2D model");
+	} else if (_OneOf("DMATERN")) {
+		mb->f_id[mb->nf] = F_DMATERN;
+		mb->f_ntheta[mb->nf] = 3;
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("DMatern model");
 	} else if (_OneOf("Z")) {
 		mb->f_id[mb->nf] = F_Z;
 		mb->f_ntheta[mb->nf] = 1;
@@ -15665,6 +15726,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_MATERN2D:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* range */
+		break;
+
+	case F_DMATERN:
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* range */
+		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* nu */
 		break;
 
 	case F_MEC:
@@ -19866,6 +19933,138 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
+
+	case F_DMATERN:
+	{
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
+		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		_SetInitial(0, tmp);
+		HYPER_INIT(log_prec, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_precision[%g]\n", tmp);
+			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
+		}
+
+		mb->f_theta[mb->nf] = Calloc(3, double **);
+		mb->f_theta[mb->nf][0] = log_prec;
+		if (!mb->f_fixed[mb->nf][0]) {
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = mb->f_prior[mb->nf][0].hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			GMRFLib_sprintf(&msg, "Log precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "Precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter0", mb->f_dir[mb->nf]);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+
+			mb->theta[mb->ntheta] = log_prec;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+		}
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 2.0);
+		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		_SetInitial(1, tmp);
+		HYPER_INIT(range_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise range_intern[%g]\n", tmp);
+			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][1]);
+		}
+
+		mb->f_theta[mb->nf][1] = range_intern;
+		if (!mb->f_fixed[mb->nf][1]) {
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = mb->f_prior[mb->nf][1].hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			GMRFLib_sprintf(&msg, "Range_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "Range for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter1", mb->f_dir[mb->nf]);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+
+			mb->theta[mb->ntheta] = range_intern;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_range;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+		}
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), log(0.5));
+		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		_SetInitial(2, tmp);
+		HYPER_INIT(nu_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise nu_intern[%g]\n", tmp);
+			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][2]);
+		}
+
+		mb->f_theta[mb->nf][2] = nu_intern;
+		if (!mb->f_fixed[mb->nf][2]) {
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = mb->f_prior[mb->nf][1].hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			GMRFLib_sprintf(&msg, "Nu_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "Nu for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter1", mb->f_dir[mb->nf]);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][1].to_theta);
+
+			mb->theta[mb->ntheta] = nu_intern;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_range;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+		}
+		break;
+	}
+
 	default:
 		abort();
 	}
@@ -21088,6 +21287,51 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_make_matern2d_graph(&(mb->f_graph_orig[mb->nf]), arg);
 		break;
 	}
+
+	case F_DMATERN:
+	{
+		dmatern_arg_tp *arg = Calloc(1, dmatern_arg_tp);
+		dmatern_arg_tp *arg_orig = Calloc(1, dmatern_arg_tp);
+
+		filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "dmatern.locations"), NULL));
+		arg->locations = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
+		Free(filename);
+		arg->n = arg->locations->nrow;
+		arg->dim = arg->locations->ncol;
+		arg->log_range = range_intern;
+		arg->log_prec = prec_intern;
+		arg->log_nu = nu_intern;
+		memcpy(arg_orig, arg, sizeof(dmatern_arg_tp));
+
+		mb->f_Qfunc[mb->nf] = GMRFLib_dmatern;
+		mb->f_Qfunc_orig[mb->nf] = GMRFLib_dmatern;
+		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
+		mb->f_Qfunc_arg_orig[mb->nf] = (void *) arg_orig;
+		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), def->n, def->n, 0);
+		GMRFLib_make_linear_graph(&(mb->f_graph_orig[mb->nf]), def->n, def->n, 0);
+		mb->f_rankdef[mb->nf] = 0.0;
+		assert(mb->f_n[mb->nf] == arg->n);
+		mb->f_N[mb->nf] = mb->f_n[mb->nf]; 
+		mb->f_id[mb->nf] = F_DMATERN;
+
+		arg->param = Calloc(GMRFLib_MAX_THREADS, double *);
+		arg->Q = Calloc(GMRFLib_MAX_THREADS, gsl_matrix *);
+		arg_orig->param = Calloc(GMRFLib_MAX_THREADS, double *);
+		arg_orig->Q = Calloc(GMRFLib_MAX_THREADS, gsl_matrix *);
+		
+		for(int i = 0; i < GMRFLib_MAX_THREADS; i++) {
+			int np = 3;
+			arg->param[i] = Calloc(np, double);
+			arg_orig->param[i] = Calloc(np, double);
+			for(int j = 0; j < np; j++) {
+				arg->param[i][j] = GMRFLib_uniform();
+				arg_orig->param[i][j] = GMRFLib_uniform();
+			}
+		}
+
+		break;
+	}
+
 
 	default:
 	{
@@ -30741,6 +30985,18 @@ double inla_update_density(double *theta, inla_update_tp * arg)
 	Free(z);
 	return update_dens;
 }
+
+double inla_dmatern_cf(double dist, double range, double nu) 
+{
+	double kappa = sqrt(8.0 * nu) / range, 
+		d = kappa * dist, cf;
+	
+	cf = (dist <= 1e-12 ? 1.0 : 1.0 / pow(2.0, nu - 1.0) / MATHLIB_FUN(gammafn)(nu) *
+	      pow(dd, nu) * MATHLIB_FUN(bessel_k)(dd, nu, 1.0));
+
+	return (cf);
+}
+
 int inla_R(char **argv)
 {
 	while (*argv) {
@@ -31347,6 +31603,25 @@ int testit(int argc, char **argv)
 		my_pardiso_test4();
 		break;
 
+	case 28: 
+	{
+		double range = 1.9;
+		double nu = 0.94;
+		double kappa = sqrt(8.0 * nu) / range;
+		double d, dd;
+		double corf;
+		
+		for(d = 0.0; d < 3.0 * range; d += range/10.0) {
+			dd = kappa * d;
+			corf = (dd <= 0.0 ? 1.0 : 1.0 / pow(2.0, nu - 1.0) / MATHLIB_FUN(gammafn)(nu) *
+				pow(dd, nu) * MATHLIB_FUN(bessel_k)(dd, nu, 1.0));
+			printf("dmatern nu %.3f range %.3f dist %.3f dd %.5f corf %.5f\n",
+			       nu, range, d, dd, corf);
+		}
+
+		break;
+	}
+	
 	default:
 		exit(0);
 	}
