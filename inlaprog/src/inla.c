@@ -21305,6 +21305,20 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "dmatern.locations"), NULL));
 		arg->locations = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
 		Free(filename);
+
+		if (!strcasecmp(mb->f_prior[mb->nf][1].name, "PCRANGE")){
+			// In this case, the parameters of the prior depends on the dimension. This is fixed here, where we
+			// compute lambda = -U^(dim/2)*log(alpha) and then the parametes are redefined to be (lambda, dim)
+			double U = mb->f_prior[mb->nf][1].parameters[0];
+			double alpha = mb->f_prior[mb->nf][1].parameters[1];
+			double dim = arg->locations->ncol;
+			mb->f_prior[mb->nf][1].parameters[0] = -pow(U, dim/2.0) * log(alpha);
+			mb->f_prior[mb->nf][1].parameters[1] = dim;
+
+			printf("\n\nNew PCRANGE parameters (%.4f, %.4f)\n", mb->f_prior[mb->nf][1].parameters[0],
+			       mb->f_prior[mb->nf][1].parameters[1]);
+		}
+
 		arg->n = arg->locations->nrow;
 		arg->dim = arg->locations->ncol;
 		arg->log_range = range_intern;
@@ -26126,7 +26140,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_DMATERN: 
 		{
-			double log_range, log_nu, range, nu, prec, logdet;
+			double log_range, log_nu, range, var, nu, prec, logdet;
 			
 			if (_NOT_FIXED(f_fixed[i][0])) {
 				log_precision = theta[count];
@@ -26152,12 +26166,13 @@ double extra(double *theta, int ntheta, void *argument)
 			gsl_matrix *S = gsl_matrix_calloc(a->n, a->n);
 			prec = map_exp(log_precision, MAP_FORWARD, NULL);
 			range = map_exp(log_range, MAP_FORWARD, NULL);
+			var = 1.0/prec;
 			nu = map_exp(log_nu, MAP_FORWARD, NULL);
 			
 			for(int ii = 0; ii < a->n; ii++) {
 				for(int jj = ii; jj < a->n; jj++) {
 					if (ii == jj) {
-						gsl_matrix_set(S, ii, jj, 1.0/prec);
+						gsl_matrix_set(S, ii, jj, var);
 					} else {
 						double dist2 = 0.0, val;
 						for(int kk = 0; kk < a->dim; kk++) {
@@ -26166,13 +26181,13 @@ double extra(double *theta, int ntheta, void *argument)
 								     GMRFLib_matrix_get(jj, kk, a->locations));
 						}
 						dist2 = DMAX(0.0, dist2);
-						val = 1.0/prec * inla_dmatern_cf(sqrt(dist2), range, nu);
+						val = var * inla_dmatern_cf(sqrt(dist2), range, nu);
 						gsl_matrix_set(S, ii, jj, val);
 						gsl_matrix_set(S, jj, ii, val);
 					}
 				}
 			}
-			logdet = -GMRFLib_gsl_spd_logdet(S) / a->n; /* makes its easier below */
+			logdet = -GMRFLib_gsl_spd_logdet(S) / a->n; /* logdet(Q), as if a->n=1. makes its easier below */
 			gsl_matrix_free(S);
 
 			_SET_GROUP_RHO(3);
