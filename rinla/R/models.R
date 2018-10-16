@@ -4053,6 +4053,55 @@
                      pdf = "matern2d"
                  ),
 
+                 dmatern = list(
+                     doc = "Dense Matern field", 
+                     hyper = list(
+                         theta1 = list(
+                             hyperid =  35101,
+                             name = "log precision",
+                             short.name = "prec",
+                             initial = 3,
+                             fixed = FALSE,
+                             prior = "pc.prec",
+                             param = c(1, 0.01),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         ),
+                         theta2 = list(
+                             hyperid =  35102,
+                             name = "log range",
+                             short.name = "range",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "pc.range",
+                             param = c(1, 0.5),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         ), 
+                         theta3 = list(
+                             hyperid =  35103,
+                             name = "log nu",
+                             short.name = "nu",
+                             initial = log(0.5),
+                             fixed = TRUE,
+                             prior = "loggamma",
+                             param = c(0.5, 1),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         )
+                     ),
+                     constr = FALSE,
+                     nrow.ncol = FALSE,
+                     augmented = FALSE,
+                     aug.factor = 1L,
+                     aug.constr = NULL,
+                     n.div.by = NULL,
+                     n.required = TRUE,
+                     set.default.values = TRUE,
+                     status = "experimental", 
+                     pdf = "dmatern"
+                 ),
+
                  copy = list(
                      doc = "Create a copy of a model component", 
                      hyper = list(
