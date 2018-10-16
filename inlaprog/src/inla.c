@@ -21314,9 +21314,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			double dim = arg->locations->ncol;
 			mb->f_prior[mb->nf][1].parameters[0] = -pow(U, dim/2.0) * log(alpha);
 			mb->f_prior[mb->nf][1].parameters[1] = dim;
-
-			printf("\n\nNew PCRANGE parameters (%.4f, %.4f)\n", mb->f_prior[mb->nf][1].parameters[0],
-			       mb->f_prior[mb->nf][1].parameters[1]);
 		}
 
 		arg->n = arg->locations->nrow;
