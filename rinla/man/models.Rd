@@ -4862,8 +4862,8 @@ inla.models()
 							\item{short.name = }{`range'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`0.1 0.1'}
+							\item{prior = }{`pc.range'}
+							\item{param = }{`1 0.5'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
@@ -4885,7 +4885,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
-								\item{doc = }{`Dense Matern covariance function'}
+								\item{doc = }{`Dense Matern field'}
 								\item{constr = }{`FALSE'}
 								\item{nrow.ncol = }{`FALSE'}
 								\item{augmented = }{`FALSE'}
@@ -4894,6 +4894,7 @@ inla.models()
 								\item{n.div.by = }{`NULL'}
 								\item{n.required = }{`TRUE'}
 								\item{set.default.values = }{`TRUE'}
+								\item{status = }{`experimental'}
 								\item{pdf = }{`dmatern'}
 							 }
 						 }
