@@ -4073,8 +4073,8 @@
                              short.name = "range",
                              initial = 0,
                              fixed = FALSE,
-                             prior = "loggamma",
-                             param = c(0.1, 0.1),
+                             prior = "pc.range",
+                             param = c(1, 0.5),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
                          ), 
@@ -4098,6 +4098,7 @@
                      n.div.by = NULL,
                      n.required = TRUE,
                      set.default.values = TRUE,
+                     status = "experimental", 
                      pdf = "dmatern"
                  ),
 
