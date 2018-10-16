@@ -1,7 +1,7 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] Dense Matern covariance function
+	\item[doc] Dense Matern field
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
@@ -23,8 +23,8 @@
 	 	 	\item[short.name] range
 	 	 	\item[initial] 0
 	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 0.1 0.1
+	 	 	\item[prior] pc.range
+	 	 	\item[param] 1 0.5
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
@@ -49,5 +49,6 @@
 	\item[n.div.by] 
 	\item[n.required] TRUE
 	\item[set.default.values] TRUE
+	\item[status] experimental
 	\item[pdf] dmatern
 \end{description}
