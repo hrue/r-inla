@@ -4054,16 +4054,16 @@
                  ),
 
                  dmatern = list(
-                     doc = "Dense Matern covariance function", 
+                     doc = "Dense Matern field", 
                      hyper = list(
                          theta1 = list(
                              hyperid =  35101,
                              name = "log precision",
                              short.name = "prec",
-                             initial = 4,
+                             initial = 3,
                              fixed = FALSE,
-                             prior = "loggamma",
-                             param = c(1, 0.00005),
+                             prior = "pc.prec",
+                             param = c(1, 0.01),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
                          ),
@@ -4071,13 +4071,13 @@
                              hyperid =  35102,
                              name = "log range",
                              short.name = "range",
-                             initial = 2,
+                             initial = 0,
                              fixed = FALSE,
                              prior = "loggamma",
-                             param = c(1, 0.01),
+                             param = c(0.1, 0.1),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                         )
+                         ), 
                          theta3 = list(
                              hyperid =  35103,
                              name = "log nu",

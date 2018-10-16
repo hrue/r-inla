@@ -727,10 +727,10 @@ typedef struct {
 	double **log_prec;
 	double **log_nu;
 
-	double **Q;
+	gsl_matrix **Q;
 	double **param;
 }
-	dmatern_def_tp;
+	dmatern_arg_tp;
 
 typedef struct {
 	int n;
@@ -1374,6 +1374,7 @@ double Qfunc_clinear(int i, int j, void *arg);
 double Qfunc_copy_part00(int i, int j, void *arg);
 double Qfunc_copy_part01(int i, int j, void *arg);
 double Qfunc_copy_part11(int i, int j, void *arg);
+double Qfunc_dmatern(int i, int j, void *arg);
 double Qfunc_generic1(int i, int j, void *arg);
 double Qfunc_generic2(int i, int j, void *arg);
 double Qfunc_generic3(int i, int j, void *arg);
