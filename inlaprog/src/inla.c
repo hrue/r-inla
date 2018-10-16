@@ -20010,7 +20010,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Range_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "log range for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "Range for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
@@ -20052,7 +20052,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Nu_intern for %s", (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "log nu for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "Nu for %s", (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
@@ -20066,7 +20066,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->theta[mb->ntheta] = nu_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_range;
+			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -21330,6 +21330,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc_orig[mb->nf] = Qfunc_dmatern;
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_Qfunc_arg_orig[mb->nf] = (void *) arg_orig;
+		// dense graph
 		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), arg->n, arg->n, 0);
 		GMRFLib_make_linear_graph(&(mb->f_graph_orig[mb->nf]), arg->n, arg->n, 0);
 		mb->f_rankdef[mb->nf] = 0.0;
@@ -21337,6 +21338,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_N[mb->nf] = mb->f_n[mb->nf]; 
 		mb->f_id[mb->nf] = F_DMATERN;
 
+		// setup cache and prefill parameters with random numbers
 		arg->param = Calloc(GMRFLib_MAX_THREADS, double *);
 		arg->Q = Calloc(GMRFLib_MAX_THREADS, gsl_matrix *);
 		arg_orig->param = Calloc(GMRFLib_MAX_THREADS, double *);
@@ -26165,9 +26167,9 @@ double extra(double *theta, int ntheta, void *argument)
 			dmatern_arg_tp *a = (dmatern_arg_tp *) (mb->f_Qfunc_arg_orig[i]);
 			gsl_matrix *S = gsl_matrix_calloc(a->n, a->n);
 			prec = map_exp(log_precision, MAP_FORWARD, NULL);
-			range = map_exp(log_range, MAP_FORWARD, NULL);
-			var = 1.0/prec;
+			range = map_range(log_range, MAP_FORWARD, NULL);
 			nu = map_exp(log_nu, MAP_FORWARD, NULL);
+			var = 1.0/prec;
 			
 			for(int ii = 0; ii < a->n; ii++) {
 				for(int jj = ii; jj < a->n; jj++) {
@@ -26180,14 +26182,14 @@ double extra(double *theta, int ntheta, void *argument)
 								     -
 								     GMRFLib_matrix_get(jj, kk, a->locations));
 						}
-						dist2 = DMAX(0.0, dist2);
 						val = var * inla_dmatern_cf(sqrt(dist2), range, nu);
 						gsl_matrix_set(S, ii, jj, val);
 						gsl_matrix_set(S, jj, ii, val);
 					}
 				}
 			}
-			logdet = -GMRFLib_gsl_spd_logdet(S) / a->n; /* logdet(Q), as if a->n=1. makes its easier below */
+			// need a '-' as we're computing the |S| instead of |Q|.
+			logdet = - GMRFLib_gsl_spd_logdet(S) / a->n; /* logdet(Q), as if a->n=1. makes its easier below */
 			gsl_matrix_free(S);
 
 			_SET_GROUP_RHO(3);
