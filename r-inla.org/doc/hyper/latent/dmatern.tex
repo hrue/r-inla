@@ -1,0 +1,53 @@
+%% DO NOT EDIT!
+%% This file is generated automatically from models.R
+\begin{description}
+	\item[doc] Dense Matern covariance function
+	\item[hyper]\ 
+	 \begin{description}
+	 	\item[theta1]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 35101
+	 	 	\item[name] log precision
+	 	 	\item[short.name] prec
+	 	 	\item[initial] 3
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] pc.prec
+	 	 	\item[param] 1 0.01
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 	\item[theta2]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 35102
+	 	 	\item[name] log range
+	 	 	\item[short.name] range
+	 	 	\item[initial] 0
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] loggamma
+	 	 	\item[param] 0.1 0.1
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 	\item[theta3]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 35103
+	 	 	\item[name] log nu
+	 	 	\item[short.name] nu
+	 	 	\item[initial] -0.693147180559945
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] loggamma
+	 	 	\item[param] 0.5 1
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 \end{description}
+	\item[constr] FALSE
+	\item[nrow.ncol] FALSE
+	\item[augmented] FALSE
+	\item[aug.factor] 1
+	\item[aug.constr] 
+	\item[n.div.by] 
+	\item[n.required] TRUE
+	\item[set.default.values] TRUE
+	\item[pdf] dmatern
+\end{description}

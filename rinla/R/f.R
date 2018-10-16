@@ -712,7 +712,7 @@
         stopifnot(is.matrix(locations))
         stopifnot(nrow(locations) > 1)
         stopifnot(!any(is.na(locations)))
-        n = ncol(locations)
+        n = nrow(locations)
     } else {
         stopifnot(missing(locations) || is.null(locations))
     }
