@@ -2305,20 +2305,21 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 double Qfunc_dmatern(int i, int j, void *arg)
 {
 	dmatern_arg_tp *a = (dmatern_arg_tp *) arg;
-	double prec = exp(a->log_prec[GMRFLib_thread_id][0]);
+	double prec = map_exp(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	int rebuild, debug = 0, id;
 
 	id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
 	rebuild = (a->param[id] == NULL || a->Q[GMRFLib_thread_id] == NULL);
 	if (!rebuild) {
-		// yes, as log_prec is [0], we start at 1
-		rebuild = rebuild || (a->param[id][1] != a->log_range[GMRFLib_thread_id][0])
-		rebuild = rebuild || (a->param[id][2] != a->log_nu[GMRFLib_thread_id][0])
+		// yes, log_prec is ...[0], so we start at 1
+		rebuild = (a->param[id][1] != a->log_range[GMRFLib_thread_id][0]) ||
+			(a->param[id][2] != a->log_nu[GMRFLib_thread_id][0]);
 	}
 
 	if (rebuild) {
 #pragma omp critical
 		{
+			// yes, log_prec is ...[0], so we start at 1
 			double range, nu;
 			if (debug) {
 				printf("Rebuild Q-hash for id %d\n", id);
@@ -2330,25 +2331,29 @@ double Qfunc_dmatern(int i, int j, void *arg)
 
 			a->param[id][1] = a->log_range[GMRFLib_thread_id][0];
 			a->param[id][2] = a->log_nu[GMRFLib_thread_id][0];
-			range = exp(a->param[id][1]);
-			nu = exp(a->param[id][2]);
+			range = map_exp(a->param[id][1], MAP_FORWARD, NULL);
+			nu = map_exp(a->param[id][2], MAP_FORWARD, NULL);
 			
 			if (debug) {
-				printf("\tprec %.4f range %.4f nu %.4f\n", prec, range, nu);
+				printf("\trange %.4f nu %.4f\n", range, nu);
 			}
 
 			for(int i = 0; i < a->n; i++) {
 				for(int j = i; j < a->n; j++) {
-					double dist2 = 0.0, val;
-					for(int k = 0; k < a->dim; k++) {
-						dist2 += SQR(GMRFLib_matrix_get(i, k, a->locations)
-							     -
-							     GMRFLib_matrix_get(j, k, a->locations));
+					if (i == j) {
+						gsl_matrix_set(a->Q[id], i, j, 1.0);
+					} else {
+						double dist2 = 0.0, val;
+						for(int k = 0; k < a->dim; k++) {
+							dist2 += SQR(GMRFLib_matrix_get(i, k, a->locations)
+								     -
+								     GMRFLib_matrix_get(j, k, a->locations));
+						}
+						dist2 = DMAX(0.0, dist2);
+						val = inla_dmatern_cf(sqrt(dist2), range, nu);
+						gsl_matrix_set(a->Q[id], i, j, val);
+						gsl_matrix_set(a->Q[id], j, i, val);
 					}
-					dist2 = MAX(0.0, dist2);
-					val = inla_dmatern_cf(sqrt(dist2), range, nu);
-					gsl_matrix_set(a->Q[id], i, j, val);
-					gsl_matrix_set(a->Q[id], j, i, val);
 				}
 			}
 			GMRFLib_gsl_spd_inverse(a->Q[id]);
@@ -15324,6 +15329,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	HYPER_NEW(alpha1, 0.0);
 	HYPER_NEW(alpha2, 0.0);
 	HYPER_NEW(gama, 0.0);
+	HYPER_NEW(nu_intern, 0.0);
 
 	/*
 	 * start parsing 
@@ -15731,7 +15737,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_DMATERN:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* range */
-		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* nu */
+		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "LOGGAMMA");	/* nu */
 		break;
 
 	case F_MEC:
@@ -16490,6 +16496,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		case F_LOG1EXP:
 		case F_LOGDIST:
 		case F_R_GENERIC:
+		case F_DMATERN:
+		{
 			/*
 			 * RW-models and OU-model and ME: read LOCATIONS, set N from LOCATIONS, else read field N and use LOCATIONS=DEFAULT.
 			 */
@@ -16562,7 +16570,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 			break;
-
+		}
+		
 		default:
 			/*
 			 * if this happens, its an error, as I have forgot one of the models in the list....
@@ -21299,16 +21308,16 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg->n = arg->locations->nrow;
 		arg->dim = arg->locations->ncol;
 		arg->log_range = range_intern;
-		arg->log_prec = prec_intern;
+		arg->log_prec = log_prec;
 		arg->log_nu = nu_intern;
 		memcpy(arg_orig, arg, sizeof(dmatern_arg_tp));
 
-		mb->f_Qfunc[mb->nf] = GMRFLib_dmatern;
-		mb->f_Qfunc_orig[mb->nf] = GMRFLib_dmatern;
+		mb->f_Qfunc[mb->nf] = Qfunc_dmatern;
+		mb->f_Qfunc_orig[mb->nf] = Qfunc_dmatern;
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_Qfunc_arg_orig[mb->nf] = (void *) arg_orig;
-		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), def->n, def->n, 0);
-		GMRFLib_make_linear_graph(&(mb->f_graph_orig[mb->nf]), def->n, def->n, 0);
+		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), arg->n, arg->n, 0);
+		GMRFLib_make_linear_graph(&(mb->f_graph_orig[mb->nf]), arg->n, arg->n, 0);
 		mb->f_rankdef[mb->nf] = 0.0;
 		assert(mb->f_n[mb->nf] == arg->n);
 		mb->f_N[mb->nf] = mb->f_n[mb->nf]; 
@@ -21331,7 +21340,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		break;
 	}
-
 
 	default:
 	{
@@ -26116,6 +26124,74 @@ double extra(double *theta, int ntheta, void *argument)
 			break;
 		}
 
+		case F_DMATERN: 
+		{
+			double log_range, log_nu, range, nu, prec, logdet;
+			
+			if (_NOT_FIXED(f_fixed[i][0])) {
+				log_precision = theta[count];
+				count++;
+			} else {
+				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
+			}
+			if (_NOT_FIXED(f_fixed[i][1])) {
+				log_range = theta[count];
+				count++;
+			} else {
+				log_range = mb->f_theta[i][1][GMRFLib_thread_id][0];
+			}
+			if (_NOT_FIXED(f_fixed[i][2])) {
+				log_nu = theta[count];
+				count++;
+			} else {
+				log_nu = mb->f_theta[i][2][GMRFLib_thread_id][0];
+			}
+
+
+			dmatern_arg_tp *a = (dmatern_arg_tp *) (mb->f_Qfunc_arg_orig[i]);
+			gsl_matrix *S = gsl_matrix_calloc(a->n, a->n);
+			prec = map_exp(log_precision, MAP_FORWARD, NULL);
+			range = map_exp(log_range, MAP_FORWARD, NULL);
+			nu = map_exp(log_nu, MAP_FORWARD, NULL);
+			
+			for(int ii = 0; ii < a->n; ii++) {
+				for(int jj = ii; jj < a->n; jj++) {
+					if (ii == jj) {
+						gsl_matrix_set(S, ii, jj, 1.0/prec);
+					} else {
+						double dist2 = 0.0, val;
+						for(int kk = 0; kk < a->dim; kk++) {
+							dist2 += SQR(GMRFLib_matrix_get(ii, kk, a->locations)
+								     -
+								     GMRFLib_matrix_get(jj, kk, a->locations));
+						}
+						dist2 = DMAX(0.0, dist2);
+						val = 1.0/prec * inla_dmatern_cf(sqrt(dist2), range, nu);
+						gsl_matrix_set(S, ii, jj, val);
+						gsl_matrix_set(S, jj, ii, val);
+					}
+				}
+			}
+			logdet = -GMRFLib_gsl_spd_logdet(S) / a->n; /* makes its easier below */
+			gsl_matrix_free(S);
+
+			_SET_GROUP_RHO(3);
+			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
+								   (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * logdet));
+			
+			if (_NOT_FIXED(f_fixed[i][0])) {
+				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
+			}
+			if (_NOT_FIXED(f_fixed[i][1])) {
+				val += PRIOR_EVAL(mb->f_prior[i][1], &log_range);
+			}
+			if (_NOT_FIXED(f_fixed[i][2])) {
+				val += PRIOR_EVAL(mb->f_prior[i][2], &log_nu);
+			}
+
+			break;
+		}
+		
 		case F_BESAGPROPER:
 		{
 			typedef struct {
@@ -30988,8 +31064,9 @@ double inla_update_density(double *theta, inla_update_tp * arg)
 
 double inla_dmatern_cf(double dist, double range, double nu) 
 {
-	double kappa = sqrt(8.0 * nu) / range, 
-		d = kappa * dist, cf;
+	double kappa = sqrt(8.0 * nu) / range;
+	double dd = kappa * dist;
+	double cf;
 	
 	cf = (dist <= 1e-12 ? 1.0 : 1.0 / pow(2.0, nu - 1.0) / MATHLIB_FUN(gammafn)(nu) *
 	      pow(dd, nu) * MATHLIB_FUN(bessel_k)(dd, nu, 1.0));
