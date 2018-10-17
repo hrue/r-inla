@@ -2340,20 +2340,12 @@ double Qfunc_dmatern(int i, int j, void *arg)
 
 			for(int i = 0; i < a->n; i++) {
 				for(int j = i; j < a->n; j++) {
-					if (i == j) {
-						gsl_matrix_set(a->Q[id], i, j, 1.0);
-					} else {
-						double dist2 = 0.0, val;
-						for(int k = 0; k < a->dim; k++) {
-							dist2 += SQR(GMRFLib_matrix_get(i, k, a->locations)
-								     -
-								     GMRFLib_matrix_get(j, k, a->locations));
-						}
-						dist2 = DMAX(0.0, dist2);
-						val = inla_dmatern_cf(sqrt(dist2), range, nu);
-						gsl_matrix_set(a->Q[id], i, j, val);
-						gsl_matrix_set(a->Q[id], j, i, val);
-					}
+					double dist, val;
+
+					dist = gsl_matrix_get(a->dist, i, j);
+					val = inla_dmatern_cf(dist, range, nu);
+					gsl_matrix_set(a->Q[id], i, j, val);
+					gsl_matrix_set(a->Q[id], j, i, val);
 				}
 			}
 			GMRFLib_gsl_spd_inverse(a->Q[id]);
@@ -21351,6 +21343,29 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 
+
+		// compute the distance between locations. 
+		arg->dist = gsl_matrix_alloc(arg->n, arg->n);
+		arg_orig->dist = arg->dist;		       /* read only */
+		for(int i = 0; i < arg->n; i++) {
+			for(int j = i; j < arg->n; j++) {
+				if (i == j) {
+					gsl_matrix_set(arg->dist, i, j, 0.0);
+				} else {
+					double dist = 0.0;
+					
+					for(int k = 0; k < arg->dim; k++) {
+						dist += SQR(GMRFLib_matrix_get(i, k, arg->locations)
+							    -
+							    GMRFLib_matrix_get(j, k, arg->locations));
+					}
+					dist = sqrt(dist);
+					gsl_matrix_set(arg->dist, i, j, dist);
+					gsl_matrix_set(arg->dist, j, i, dist);
+				}
+			}
+		}
+
 		break;
 	}
 
@@ -26168,21 +26183,13 @@ double extra(double *theta, int ntheta, void *argument)
 			nu = map_exp(log_nu, MAP_FORWARD, NULL);
 			var = 1.0/prec;
 			
-			for(int ii = 0; ii < a->n; ii++) {
-				for(int jj = ii; jj < a->n; jj++) {
-					if (ii == jj) {
-						gsl_matrix_set(S, ii, jj, var);
-					} else {
-						double dist2 = 0.0, val;
-						for(int kk = 0; kk < a->dim; kk++) {
-							dist2 += SQR(GMRFLib_matrix_get(ii, kk, a->locations)
-								     -
-								     GMRFLib_matrix_get(jj, kk, a->locations));
-						}
-						val = var * inla_dmatern_cf(sqrt(dist2), range, nu);
-						gsl_matrix_set(S, ii, jj, val);
-						gsl_matrix_set(S, jj, ii, val);
-					}
+			for (int ii = 0; ii < a->n; ii++) {
+				for (int jj = ii; jj < a->n; jj++) {
+					double dist, val;
+					dist = gsl_matrix_get(a->dist, ii, jj);
+					val = var * inla_dmatern_cf(dist, range, nu);
+					gsl_matrix_set(S, ii, jj, val);
+					gsl_matrix_set(S, jj, ii, val);
 				}
 			}
 			// need a '-' as we're computing the |S| instead of |Q|.
@@ -26843,7 +26850,7 @@ int inla_INLA(inla_tp * mb)
 	GMRFLib_ai_strategy_tp *adapt = NULL;
 	if (mb->ai_par->strategy == GMRFLib_AI_STRATEGY_ADAPTIVE) {
 		adapt = Calloc(N, GMRFLib_ai_strategy_tp);
-		for(i = 0; i < N; i++) {
+		for (i = 0; i < N; i++) {
 			adapt[i] = GMRFLib_AI_STRATEGY_GAUSSIAN;
 		}
 		count = mb->predictor_n + mb->predictor_m;
