@@ -466,6 +466,14 @@
         cat("z.Bmatrix = ", file.B, "\n", append=TRUE, sep = " ", file = file)
     }
 
+    if (inla.one.of(random.spec$model, "dmatern")) {
+        ## need the matrix of locations
+        file.loc = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(random.spec$locations, filename = file.loc)
+        file.loc = gsub(data.dir, "$inladatadir", file.loc, fixed=TRUE)
+        cat("dmatern.locations = ", file.loc, "\n", append=TRUE, sep = " ", file = file)
+    }
+
     if (inla.one.of(random.spec$model, "generic3")) {
         ## For this model, Cmatrix is a list of matrices. Error checking have be done already in
         ## f()

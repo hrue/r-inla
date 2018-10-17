@@ -29,6 +29,19 @@
   }
 }
 
+\section{CHANGES IN VERSION 18.10.16}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New latent model: \code{dmatern}
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Improved the numerics for computing the scaling of the RW1 and RW2 models.
+    }
+  }
+}
+
 
 \section{CHANGES IN VERSION 18.10.09}{
   \subsection{USER-VISIBLE CHANGES}{
@@ -41,20 +54,10 @@
       \item New vignette about how to deal with multinomial data.
     }
   }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
-    }
-  }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
       \item Added option \code{verbose} to
       \code{inla.qsample()} and \code{inla.posterior.sample()}
-    }
-  }
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item 
     }
   }
 }
