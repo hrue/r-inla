@@ -29,20 +29,10 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
-  \subsection{USER-VISIBLE CHANGES}{
-    \itemize{
-      \item 
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
-    }
-  }
+\section{CHANGES IN VERSION 18.10.16}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item
+      \item New latent model: \code{dmatern}
     }
   }
   \subsection{BUG FIXES}{
@@ -64,20 +54,10 @@
       \item New vignette about how to deal with multinomial data.
     }
   }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
-    }
-  }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
       \item Added option \code{verbose} to
       \code{inla.qsample()} and \code{inla.posterior.sample()}
-    }
-  }
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item 
     }
   }
 }
