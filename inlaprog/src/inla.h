@@ -528,7 +528,7 @@ typedef enum {
 	F_FGN,
 	F_FGN2,
 	F_AR1C,
-	F_DMATERN, 
+	F_DMATERN,
 	P_LOGGAMMA = 2000,				       /* priors */
 	P_GAUSSIAN,
 	P_MVGAUSSIAN,
@@ -730,8 +730,7 @@ typedef struct {
 
 	gsl_matrix **Q;
 	double **param;
-}
-	dmatern_arg_tp;
+} dmatern_arg_tp;
 
 typedef struct {
 	int n;

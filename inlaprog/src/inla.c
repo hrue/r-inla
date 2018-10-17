@@ -2312,8 +2312,7 @@ double Qfunc_dmatern(int i, int j, void *arg)
 	rebuild = (a->param[id] == NULL || a->Q[GMRFLib_thread_id] == NULL);
 	if (!rebuild) {
 		// yes, log_prec is ...[0], so we start at 1
-		rebuild = (a->param[id][1] != a->log_range[GMRFLib_thread_id][0]) ||
-			(a->param[id][2] != a->log_nu[GMRFLib_thread_id][0]);
+		rebuild = (a->param[id][1] != a->log_range[GMRFLib_thread_id][0]) || (a->param[id][2] != a->log_nu[GMRFLib_thread_id][0]);
 	}
 
 	if (rebuild) {
@@ -2333,13 +2332,13 @@ double Qfunc_dmatern(int i, int j, void *arg)
 			a->param[id][2] = a->log_nu[GMRFLib_thread_id][0];
 			range = map_exp(a->param[id][1], MAP_FORWARD, NULL);
 			nu = map_exp(a->param[id][2], MAP_FORWARD, NULL);
-			
+
 			if (debug) {
 				printf("\trange %.4f nu %.4f\n", range, nu);
 			}
 
-			for(int i = 0; i < a->n; i++) {
-				for(int j = i; j < a->n; j++) {
+			for (int i = 0; i < a->n; i++) {
+				for (int j = i; j < a->n; j++) {
 					double dist, val;
 
 					dist = gsl_matrix_get(a->dist, i, j);
@@ -9893,8 +9892,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		} else if (!strcasecmp(smtp, "PARDISO")) {
 			GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
 			// need to make sure this is correct
-			if (mb->strategy != GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL &&
-			    mb->strategy != GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL) {
+			if (mb->strategy != GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL && mb->strategy != GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL) {
 				mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
 			}
 		} else if (!strcasecmp(smtp, "DEFAULT")) {
@@ -16563,7 +16561,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 			break;
 		}
-		
+
 		default:
 			/*
 			 * if this happens, its an error, as I have forgot one of the models in the list....
@@ -21298,13 +21296,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg->locations = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
 		Free(filename);
 
-		if (!strcasecmp(mb->f_prior[mb->nf][1].name, "PCRANGE")){
+		if (!strcasecmp(mb->f_prior[mb->nf][1].name, "PCRANGE")) {
 			// In this case, the parameters of the prior depends on the dimension. This is fixed here, where we
 			// compute lambda = -U^(dim/2)*log(alpha) and then the parametes are redefined to be (lambda, dim)
 			double U = mb->f_prior[mb->nf][1].parameters[0];
 			double alpha = mb->f_prior[mb->nf][1].parameters[1];
 			double dim = arg->locations->ncol;
-			mb->f_prior[mb->nf][1].parameters[0] = -pow(U, dim/2.0) * log(alpha);
+			mb->f_prior[mb->nf][1].parameters[0] = -pow(U, dim / 2.0) * log(alpha);
 			mb->f_prior[mb->nf][1].parameters[1] = dim;
 		}
 
@@ -21324,7 +21322,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_make_linear_graph(&(mb->f_graph_orig[mb->nf]), arg->n, arg->n, 0);
 		mb->f_rankdef[mb->nf] = 0.0;
 		assert(mb->f_n[mb->nf] == arg->n);
-		mb->f_N[mb->nf] = mb->f_n[mb->nf]; 
+		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		mb->f_id[mb->nf] = F_DMATERN;
 
 		// setup cache and prefill parameters with random numbers
@@ -21332,12 +21330,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg->Q = Calloc(GMRFLib_MAX_THREADS, gsl_matrix *);
 		arg_orig->param = Calloc(GMRFLib_MAX_THREADS, double *);
 		arg_orig->Q = Calloc(GMRFLib_MAX_THREADS, gsl_matrix *);
-		
-		for(int i = 0; i < GMRFLib_MAX_THREADS; i++) {
+
+		for (int i = 0; i < GMRFLib_MAX_THREADS; i++) {
 			int np = 3;
 			arg->param[i] = Calloc(np, double);
 			arg_orig->param[i] = Calloc(np, double);
-			for(int j = 0; j < np; j++) {
+			for (int j = 0; j < np; j++) {
 				arg->param[i][j] = GMRFLib_uniform();
 				arg_orig->param[i][j] = GMRFLib_uniform();
 			}
@@ -21347,17 +21345,16 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		// compute the distance between locations. 
 		arg->dist = gsl_matrix_alloc(arg->n, arg->n);
 		arg_orig->dist = arg->dist;		       /* read only */
-		for(int i = 0; i < arg->n; i++) {
-			for(int j = i; j < arg->n; j++) {
+		for (int i = 0; i < arg->n; i++) {
+			for (int j = i; j < arg->n; j++) {
 				if (i == j) {
 					gsl_matrix_set(arg->dist, i, j, 0.0);
 				} else {
 					double dist = 0.0;
-					
-					for(int k = 0; k < arg->dim; k++) {
+
+					for (int k = 0; k < arg->dim; k++) {
 						dist += SQR(GMRFLib_matrix_get(i, k, arg->locations)
-							    -
-							    GMRFLib_matrix_get(j, k, arg->locations));
+							    - GMRFLib_matrix_get(j, k, arg->locations));
 					}
 					dist = sqrt(dist);
 					gsl_matrix_set(arg->dist, i, j, dist);
@@ -26152,10 +26149,10 @@ double extra(double *theta, int ntheta, void *argument)
 			break;
 		}
 
-		case F_DMATERN: 
+		case F_DMATERN:
 		{
 			double log_range, log_nu, range, var, nu, prec, logdet;
-			
+
 			if (_NOT_FIXED(f_fixed[i][0])) {
 				log_precision = theta[count];
 				count++;
@@ -26181,8 +26178,8 @@ double extra(double *theta, int ntheta, void *argument)
 			prec = map_exp(log_precision, MAP_FORWARD, NULL);
 			range = map_range(log_range, MAP_FORWARD, NULL);
 			nu = map_exp(log_nu, MAP_FORWARD, NULL);
-			var = 1.0/prec;
-			
+			var = 1.0 / prec;
+
 			for (int ii = 0; ii < a->n; ii++) {
 				for (int jj = ii; jj < a->n; jj++) {
 					double dist, val;
@@ -26193,13 +26190,13 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 			}
 			// need a '-' as we're computing the |S| instead of |Q|.
-			logdet = - GMRFLib_gsl_spd_logdet(S) / a->n; /* logdet(Q), as if a->n=1. makes its easier below */
+			logdet = -GMRFLib_gsl_spd_logdet(S) / a->n;	/* logdet(Q), as if a->n=1. makes its easier below */
 			gsl_matrix_free(S);
 
 			_SET_GROUP_RHO(3);
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
 								   (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * logdet));
-			
+
 			if (_NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
@@ -26212,7 +26209,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 			break;
 		}
-		
+
 		case F_BESAGPROPER:
 		{
 			typedef struct {
@@ -30680,15 +30677,15 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 			if (!selection) {
 				memcpy(&(M->A[i * M->nrow]), problem->sample, graph->n * sizeof(double));
 			} else {
-				for(int ii = 0; ii < selection->nrow; ii++){
-					M->A[i * M->nrow + ii ] = problem->sample[(int) selection->A[ii]];
+				for (int ii = 0; ii < selection->nrow; ii++) {
+					M->A[i * M->nrow + ii] = problem->sample[(int) selection->A[ii]];
 				}
 			}
 			M->A[(i + 1) * M->nrow - 1] = problem->sub_logdens;
 
-			if (verbose && (!((i+1) % output_every) || i == (ns-1))) {
+			if (verbose && (!((i + 1) % output_every) || i == (ns - 1))) {
 				fprintf(stderr, "inla_qsample: done with %1d samples, with %.2f samples/s and %.2fs in total\n",
-					i+1, (i+1.0)/(GMRFLib_cpu()-t_ref), (GMRFLib_cpu()-t_ref));
+					i + 1, (i + 1.0) / (GMRFLib_cpu() - t_ref), (GMRFLib_cpu() - t_ref));
 			}
 		}
 	} else {
@@ -30705,11 +30702,11 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 				memcpy(problems[thread]->sample, &(S->A[i * S->nrow]), S->nrow * sizeof(double));
 			}
 			GMRFLib_evaluate(problems[thread]);
-	
+
 			if (!selection) {
 				memcpy(&(M->A[i * M->nrow]), problems[thread]->sample, graph->n * sizeof(double));
 			} else {
-				for(int ii = 0; ii < selection->nrow; ii++) {
+				for (int ii = 0; ii < selection->nrow; ii++) {
 					M->A[i * M->nrow + ii] = problems[thread]->sample[(int) selection->A[ii]];
 				}
 			}
@@ -30718,8 +30715,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	}
 
 	if (verbose) {
-		fprintf(stderr, "inla_qsample: end in %.2fs with %.2f samples/s\n",
-			GMRFLib_cpu() - t_ref, (double) ns /(GMRFLib_cpu() - t_ref));
+		fprintf(stderr, "inla_qsample: end in %.2fs with %.2f samples/s\n", GMRFLib_cpu() - t_ref, (double) ns / (GMRFLib_cpu() - t_ref));
 	}
 	t_ref = GMRFLib_cpu();
 	if (verbose) {
@@ -30729,14 +30725,14 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	GMRFLib_write_fmesher_file(M, outfile, (long int) 0, -1);
 
 	GMRFLib_matrix_tp *CM = Calloc(1, GMRFLib_matrix_tp);
-	CM->nrow = M->nrow -1; 
+	CM->nrow = M->nrow - 1;
 	CM->ncol = 1;
 	CM->elems = CM->ncol * CM->nrow;
 	CM->A = Calloc(CM->nrow * CM->ncol, double);
 	if (!selection) {
 		memcpy(CM->A, problem->mean_constr, graph->n * sizeof(double));
 	} else {
-		for(int ii = 0; ii < selection->nrow; ii++){
+		for (int ii = 0; ii < selection->nrow; ii++) {
 			CM->A[ii] = problem->mean_constr[(int) selection->A[ii]];
 		}
 	}
@@ -30751,7 +30747,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		fprintf(stderr, "inla_qsample: end post %.2fs\n", GMRFLib_cpu() - t_ref);
 		fprintf(stderr, "inla_qsample: total time %.2fs\n", GMRFLib_cpu() - t_reff);
 	}
-	
+
 	return 0;
 }
 
@@ -31083,14 +31079,13 @@ double inla_update_density(double *theta, inla_update_tp * arg)
 	return update_dens;
 }
 
-double inla_dmatern_cf(double dist, double range, double nu) 
+double inla_dmatern_cf(double dist, double range, double nu)
 {
 	double kappa = sqrt(8.0 * nu) / range;
 	double dd = kappa * dist;
 	double cf;
-	
-	cf = (dist <= 1e-12 ? 1.0 : 1.0 / pow(2.0, nu - 1.0) / MATHLIB_FUN(gammafn)(nu) *
-	      pow(dd, nu) * MATHLIB_FUN(bessel_k)(dd, nu, 1.0));
+
+	cf = (dist <= 1e-12 ? 1.0 : 1.0 / pow(2.0, nu - 1.0) / MATHLIB_FUN(gammafn) (nu) * pow(dd, nu) * MATHLIB_FUN(bessel_k) (dd, nu, 1.0));
 
 	return (cf);
 }
@@ -31701,25 +31696,24 @@ int testit(int argc, char **argv)
 		my_pardiso_test4();
 		break;
 
-	case 28: 
+	case 28:
 	{
 		double range = 1.9;
 		double nu = 0.94;
 		double kappa = sqrt(8.0 * nu) / range;
 		double d, dd;
 		double corf;
-		
-		for(d = 0.0; d < 3.0 * range; d += range/10.0) {
+
+		for (d = 0.0; d < 3.0 * range; d += range / 10.0) {
 			dd = kappa * d;
-			corf = (dd <= 0.0 ? 1.0 : 1.0 / pow(2.0, nu - 1.0) / MATHLIB_FUN(gammafn)(nu) *
-				pow(dd, nu) * MATHLIB_FUN(bessel_k)(dd, nu, 1.0));
-			printf("dmatern nu %.3f range %.3f dist %.3f dd %.5f corf %.5f\n",
-			       nu, range, d, dd, corf);
+			corf = (dd <= 0.0 ? 1.0 : 1.0 / pow(2.0, nu - 1.0) / MATHLIB_FUN(gammafn) (nu) *
+				pow(dd, nu) * MATHLIB_FUN(bessel_k) (dd, nu, 1.0));
+			printf("dmatern nu %.3f range %.3f dist %.3f dd %.5f corf %.5f\n", nu, range, d, dd, corf);
 		}
 
 		break;
 	}
-	
+
 	default:
 		exit(0);
 	}
@@ -32109,9 +32103,8 @@ int main(int argc, char **argv)
 						blas_num_threads = 0;
 					}
 				}
-				//openblas_set_num_threads(4);
-				printf("Process file[%s] threads[%1d] blas_threads[%1d]\n",
-				       argv[arg], GMRFLib_MAX_THREADS, blas_num_threads);
+				// openblas_set_num_threads(4);
+				printf("Process file[%s] threads[%1d] blas_threads[%1d]\n", argv[arg], GMRFLib_MAX_THREADS, blas_num_threads);
 			}
 			if (!silent) {
 				printf("\nWall-clock time used on [%s] max_threads=[%1d]\n", argv[arg], GMRFLib_MAX_THREADS);
