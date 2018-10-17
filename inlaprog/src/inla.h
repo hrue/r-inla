@@ -722,6 +722,7 @@ typedef struct {
 	int n;
 	int dim;
 	GMRFLib_matrix_tp *locations;
+	gsl_matrix *dist;
 
 	double **log_range;
 	double **log_prec;
