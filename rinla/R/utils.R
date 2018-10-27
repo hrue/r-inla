@@ -215,7 +215,9 @@
     tmp.env = new.env()
     for (ff in files) {
         fff = paste(dir, "/", ff, sep="")
-        local({source(fff, local=TRUE)}, envir = tmp.env)
+        res = try(local({source(fff, local=TRUE)}, envir = tmp.env))
+        if (class(res) %in% "try-error")
+            warning(paste0("Got an error while sourcing file ",  fff))
     }
 
     ## replace the ones in the INLA-namespace
