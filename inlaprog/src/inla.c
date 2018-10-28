@@ -17129,7 +17129,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_theta[mb->nf] = Calloc(ntheta, double **);
 
 		/*
-		 * mark all possible as read 
+		 * mark all possible as read
 		 */
 		for (i = 0; i < SPDE3_MAXTHETA; i++) {
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
