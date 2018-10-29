@@ -29,6 +29,14 @@
   }
 }
 
+\section{CHANGES IN VERSION 18.10.29}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Likelihood model \code{nbinomial2}
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 18.10.28}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
