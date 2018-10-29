@@ -3927,6 +3927,11 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 		break;
 
+	case L_NBINOMIAL2:
+		idiv = 3;
+		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
+		break;
+
 	case L_TEST_BINOMIAL_1:
 		idiv = 3;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
@@ -6436,6 +6441,48 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 			p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
 			p = DMIN(1.0, p);
 			logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+{
+	/*
+	 * y ~ nBinomial2. y is the number of failures to get n successes with a success in the last trial
+	 */
+	int i;
+
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+	int status;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double n = ds->data_observations.nb[idx], p;
+
+	/*
+	 * this is the normal case...
+	 */
+	LINK_INIT;
+	if (m > 0) {
+		gsl_sf_result res;
+		status = gsl_sf_lnchoose_e((unsigned int) (y + n - 1.0), (unsigned int) (n - 1.0), &res);
+		assert(status == GSL_SUCCESS);
+		for (i = 0; i < m; i++) {
+			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			p = DMAX(0.0, DMIN(1.0, p));
+			logll[i] = res.val + y * log(1.0 - p) + n * log(p);
+		}
+	} else {
+		double *yy = (y_cdf ? y_cdf : &y);
+		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+		for (i = 0; i < -m; i++) {
+			p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
+			p = DMAX(0.0, DMIN(1.0, p));
+			logll[i] = gsl_cdf_negative_binomial_P((unsigned int) *yy, p, n);
 		}
 	}
 
@@ -10277,6 +10324,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "BINOMIAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomial;
 		ds->data_id = L_BINOMIAL;
+	} else if (!strcasecmp(ds->data_likelihood, "NBINOMIAL2")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_nbinomial2;
+		ds->data_id = L_NBINOMIAL2;
 	} else if (!strcasecmp(ds->data_likelihood, "TESTBINOMIAL1")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_test_binomial_1;
 		ds->data_id = L_TEST_BINOMIAL_1;
@@ -10803,6 +10853,18 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 								i, ds->data_observations.nb[i], ds->data_observations.y[i]);
 						inla_error_general(msg);
 					}
+				}
+			}
+		}
+		break;
+
+	case L_NBINOMIAL2:
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.nb[i] <= 0.0 || ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: NBinomial2 data[%1d] (nb,y) = (%g,%g) is void\n", secname,
+							i, ds->data_observations.nb[i], ds->data_observations.y[i]);
+					inla_error_general(msg);
 				}
 			}
 		}
@@ -11453,7 +11515,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
 		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "NORMAL");
-
 		/*
 		 * add theta 
 		 */
