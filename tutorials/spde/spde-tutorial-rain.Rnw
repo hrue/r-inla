@@ -1,42 +1,48 @@
-\chapter{Non-Gaussian response: Precipitation on Paran\'a}\label{ch:prprec} 
+\section{Non-Gaussian response: Precipitation on Paran\'a}\label{sec:prprec} 
 
-\SweaveOpts{prefix.string=figs/rain} 
-<<opts,echo=F,results=hide>>=
+The R source for this file is available at
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-rain.R}
+
+
+<<settings,include=FALSE,results='hide',message=FALSE,warning=FALSE>>=
+library(knitr)
+opts_chunk$set(
+fig.path='figs/rain',
+message=FALSE, warning=FALSE
+)
 options(width=75, prompt = " ", continue = "   ")
-require(INLA)
+library(INLA)
 lcall <- inla.getOption('inla.call')
 inla.setOption(inla.call='remote')
 inla.setOption(num.threads=7)
-require(lattice) 
-require(gridExtra) 
+library(lattice) 
+library(gridExtra) 
 @ 
 
 A very common data in spatial statistics is the climate data. 
-On this section we analyze a data set from Water National 
+We have collected data from the National Water 
 Agency in Brazil, in Portuguese it is 
 \textit{Agencia Nacional de \'Aguas} - ANA. 
-The ANA collect data on many locations over Brazil. 
+The ANA collect data from many locations over Brazil. 
 All these data are freely available from the ANA website. 
 
-\section{The data set}
+\subsection{The data set}
 
-It have data on more one thousand of locations within 
-Paran\'a state, a state at south of Brazil. 
 We have daily rainfall data on each day of the year 
-2011 on 616 locations, including stations within the 
+2011 at 616 locations, including stations within the 
 Paran\'a state and around its border. 
 
 We have these dataset on the \pkg{INLA} package 
 and call it with 
-<<start,results=hide>>=
+<<start,results='hide'>>=
 data(PRprec) 
 @ 
 We have the coordinates at first two columns, 
-altitude at third column  
-and more 365 columns, one for each day with the 
+altitude at third column  and more 365 columns, 
+one for each day with the 
 daily accumulated precipitation. 
 
-We show bellow some data of four stations: 
+In the bellow code we show some data from four stations: 
 the with missing altitude with less latitude, 
 the stations with extremes longitudes and
 the station with greater altitude. 
@@ -44,43 +50,42 @@ the station with greater altitude.
 PRprec[ii <- c(which(is.na(PRprec$A))[which.min(PRprec$La[is.na(PRprec$A)])], 
                which(PRprec$Lo%in%range(PRprec$Lo)), which.max(PRprec$A)), 1:10]
 @ 
-We visualize this four stations in red points on the graph at 
-right of Figure~\ref{fig:paranastations}. 
+We do visualize this four stations as red points 
+in the right plot in Figure~\ref{fig:paranastations}. 
 
-We have some problems on this data set. 
-For example, we have a spatio-temporal data. 
-Also, there are seven stations with missing altitude 
-and missing data on daily rainfall. 
-The red stations with missing altitude is the red points 
-on graph at left of Figure~\ref{fig:paranastations}. 
-It's easy to get the altitude only from coordinates information. 
-For example, using an digital elevation model, 
-google earth or another on line information. 
-For example, the station with missing altitude located at south 
-and out of border of Paran\'a state is located on a coast city. 
-So in this case it is reasonable to assign a small value. 
-But, it is possible to build a stochastic model for 
-altitude and predict these missing values. 
+There are a few problems in this data set. 
+There are seven stations with missing altitude 
+and missing data on daily rainfall, 
+which are displayed in red in the left plot in 
+Figure~\ref{fig:paranastations}. 
+If this information is considerend when building a model 
+it will be important to have it everywere in the state. 
+There are digital elevation models that can be considered 
+to find out the altitude at these locations. 
+It can also be considered a stochastic model. 
 
-However, the principal problem is that we have 47 stations 
-with missing data and that 10 stations on 45 or more days. 
-This problem is treated on next section. 
-In this section, we analyze the mean of daily 
-accumulated precipitation on January of 2012. 
-We compute this covariate with
+We will analyse the daily rainfall mean in January 2011. 
+However, we do have \Sexpr{format(sum(is.na(PRprec[,3+1:31])))} 
+missing observations. 
+So, we take the average over the number of days without 
+missing data as follows 
 <<meanjan>>=
-PRprec$precMean <- rowMeans(PRprec[,3+1:31], na.rm=TRUE) 
+summary(PRprec$precMean <- rowMeans(PRprec[,3+1:31], na.rm=TRUE) )
+table(rowSums(is.na(PRprec[,3+1:31])))
 @ 
+and still have missing data for it as we do have stations 
+without data in January 2011. 
 
-Also we have the Paran\'a state border 
+We will also consider the Paran\'a state border 
 <<prborder>>=
 data(PRborder) 
 @ 
+to define the study domain. 
 
-We visualize the locations on 
+We can visualize the locations in 
 Figure~\ref{fig:paranastations}, 
 with the commands bellow
-<<precviz,eval=F,results=hide>>=
+<<precviz,eval=F,results='hide'>>=
 par(mfrow=c(1,2), mar=c(0,0,2,0)) 
 plot(PRborder, type='l', asp=1, axes=FALSE, main='Altitude') 
 points(PRprec[1:2], col=is.na(PRprec$Alt)+1, 
@@ -94,394 +99,498 @@ points(PRprec[1:2], cex=0.3+PRprec$precMean/20)
 legend('topright', format(seq(1,21,5)), 
        bty='n', pch=1, pt.cex=0.3+seq(1,21,5)/20) 
 points(PRprec[ii, 1:2], pch=3, col=2) 
+lines(PRborder[1034:1078, ], col='cyan') 
 @ 
 \setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
-<<prmap,echo=F,fig=T,eps=F,results=hide,width=10,height=4>>=
+<<prmap,echo=FALSE,results='hide',fig.width=10,fig.height=4>>=
 <<precviz>>
 @ 
 \caption{Locations of Paran\'a stations, altitude and average 
-  of daily accumulated precipitation (mm) on January.} 
-\label{fig:paranastations}
-\end{figure}
+  of daily accumulated precipitation (mm) in January 2011.} 
+\end{figure}\label{fig:paranastations}
+
 The size of the points on left graph are 
 proportional to altitude of the locations. 
-The cyan line in this graph is the Paran\'a 
-boundary with the Atlantic Ocean. 
-So, we have height altitudes at mid and south, 
-low altitudes near the sea and the altitude decrease 
-at north and west of Paran\'a state. 
-On the right graph, the points sizer are proportional 
-to average of daily accumulated precipitation. 
-We see that near the coast we have large values. 
+The cyan line in the east border is along the Atlantic Ocean. 
+There are low altitudes near the sea, 
+hight altitudes around 50 to 100 kilometers 
+from this coast and 
+from the mid of the state towards south as well. 
+It decreases when goint towards the north and 
+west sides of the Paran\'a state. 
+The size of the points in the right plot is proportional 
+to the daily average of the precipitation in January 2011. 
+There are higher values near the coast. 
 
-\section{The model and covariate selection}
+\subsection{The model and covariate selection}
 
-In this section, we analise the average of daily 
-accumulated precipitation on that period. 
-The average of daily precipitation must be positive. 
-So, we consider in this section the model 
+In this subsection we analise the average of 
+the daily accumulated precipitation for each of the 
+31 days in January 2011. 
+It must be a positive and we will consider a 
+Gamma likelihood. 
+In the Gamma likelihood we have 
+$E(y_i) = a_i/b_i = \mu_i$ and 
+$V(y_i) = a_i/b_i^2 = \mu_i^2/\phi$, 
+where $\phi$ is a precision parameter. 
+Then we have to define a model for the 
+linear predictor $\eta_i = \log(\mu_i)$, 
+depending on the covariates $\mathbf{F}$ 
+and the spatial random field $\mathbf{x}$ as follows 
 \[ \begin{array}{c}
-y_i|F_i,\beta,x_i,\theta \sim Gamma(a_i, b_i)\\
-log(\mu_i) = F_i^{T}\beta + x_i\\
+y_i|F_i,\alpha,x_i,\theta \sim Gamma(a_i, b_i) \\
+log(\mu_i) = \alpha + f(F_i) + x_i\\
 x_i \sim GF(0, \Sigma) 
 \end{array}\]
-where, $F_i$ is a vector of covariates (the location 
-coordinates and altitude) as covariates, with the vector 
-of coefficients $\beta$, 
-and a latent Gaussian random field $x$, 
-with its covariance matrix function of 
-parameters $\nu$, $\kappa$ and $\sigma_x^2$. 
-Also, with the Gamma likelihood, we consider that 
-$E(y_i) = \mu_i = a_i/b_i$ and 
-$V(y_i) = a_i/b_i^2=\mu_i^2/\phi$, 
-where $\phi$ us a precision parameter and we 
-define a linear predictor to $\text{log}(\mu_i)$. 
+where, $F_i$ is a vector of covariates 
+(the location coordinates and altitude) 
+tha will assumes a function detailed later
+and $x$ is the spatial latent Gaussian random field.
+We will consider a Mat\'{e}rn covariance function 
+with parameters $\nu$, $\kappa$ and $\sigma_x^2$. 
 
-To make an initial exploration of relationship between 
-the precipitation and the covariates, we visualize some 
-dispersion diagrams. 
-After preliminary tests, we see that is more adequate the 
-construction of a new covariate: 
-the distance from each station to Atlantic Ocean. 
-We found the coordinates of Paran\'a state border 
-that share frontier with the sea (plotted as cyan line on 
-left graph at Figure~\ref{fig:paranastations}) and computes 
-the distance from each station to the 
+\subsubsection{Smoothed covariate effect}
+
+To make an initial exploration of the relationship 
+between the precipitation and the covariates, 
+we visualize some dispersion diagrams. 
+After preliminary tests, it seems reazonable to 
+construct a new covariate. 
+That is the distance from each station to the Atlantic Ocean. 
+The Paran\'{a} state border along the Atlantic Ocean 
+is shown as cyan line in Figure~\ref{fig:paranastations}). 
+We can compute the distance from each station to the 
 neighbor coordinate of this line. 
 
-We compute the distances in Km units 
-using the \code{spDists()} function 
-from \pkg{sp} package 
+To have this distance in kilometers we use the 
+\code{spDists()} function from the \pkg{sp} package 
 <<project>>=
 coords <- as.matrix(PRprec[,1:2]) 
 mat.dists <- spDists(coords, PRborder[1034:1078,], longlat=TRUE) 
 @ 
-This function computes the distance between each 
-location on the first points set to each one on the 
-second points set. So, we need to take the minimum
+However, this function computes the distance between each 
+location in the first set of points to each point in the 
+second set of points. So, we need to take the minimum 
+along the lines of the resulting matrix of distances 
 <<distseacalc>>=
 PRprec$"seaDist" <- apply(mat.dists, 1, min) 
 @ 
-We see the dispersion plots 
-at Figure~\ref{fig:disppred}. 
-<<dispp,eval=F,results=hide>>=
+
+We can see the dispersion plots in Figure~\ref{fig:disppred}
+It seems to have a non well defined non-linear 
+relationship with Longitude. 
+Also, there is a similar, but inverse, relation with sea distance. 
+We will build two models, one with longitude as covariate 
+and another with distance to sea as covariate. 
+We can compute fitting measures to proceed a model 
+choise among this two options. 
+
+<<dispp,eval=F,results='hide'>>=
 par(mfrow=c(2,2), mar=c(3,3,0.5,0.5), mgp=c(1.7,.7,0), las=1) 
 for (i in c(1:3, ncol(PRprec)))  plot(PRprec[c(i,ncol(PRprec)-1)], cex=.5) 
 @ 
 \setkeys{Gin}{width=0.9\textwidth}
 \begin{figure}\centering
-<<dispfig,echo=F,results=hide,fig=T,eps=F,width=7.5,height=5>>=
+<<dispfig,echo=F,results='hide',fig.width=7.5,fig.height=5>>=
 <<dispp>>
 @ 
 \caption{Dispersion plots of average of daily accumulated 
-  precipitation mean by Longitude (top left), Latitude (top right), 
+  precipitation by Longitude (top left), Latitude (top right), 
   Altitude (bottom left) and distance to sea (bottom right).} 
-\label{fig:disppred}
-\end{figure}
-With the Figure~\ref{fig:disppred}, we conclude 
-that have a not well defined non-linear 
-relationship with Longitude, and there is  
-a similar, but inverse, relation with sea distance. 
-So, we build two models, one with longitude as covariate 
-and another with distance to sea as covariate. 
-And compute the DIC to decide what model is better. 
+\end{figure}\label{fig:disppred}
 
-To consider a the non-linear relationship, we consider the coefficients 
-of these covariates with a semi-parametric trend on 
-the relationship, such that the coefficients over the range 
-of the covariate values have a first order random walk prior. 
-So we have the model adopted is of the form
-\[
-log(\mu_i) = \alpha + x_i + \sum_{k=1}^m I_{ki} f_k(\tilde{F}_i^{(k)}) \\
-\]
-were 
-$\alpha$ is the intercept, 
-$x_i$ is the spatial random effect 
-and $\tilde{F}_i^{(k)}$ is the mean of the sea distance(or longitude) 
-in the class $k$ out of $m$ classes chosen 
-considering the \texttt{inla.group()} function, 
-$I_{ki}$ indicates if the covariate for the observation $i$ belongs to class $k$. 
+To consider a non-linear relationship from a covariate 
+we can set a randon walk prior over its effect. 
+To do that we can discretize this covariate in a set 
+of knots and place the random walk over. 
+In this case the term in the linear predictor 
+due to sea distance (or longitude) 
+is discretized into $m$ classes 
+considering the \texttt{inla.group()} function.
+The model can be chosen from any one dimensional 
+model available in INLA, from \texttt{rw1}, 
+\texttt{rw2}, \textbf{ar1} or others. 
+It can also be considered an 
+one-dimensional Mat\'{e}rn model.
 
-We use the mesh builded for the Paran\'a state on the 
-Chapter~\ref{ch:mesh}. 
-<<echo=F>>=
-load('prmesh2.RData')
+When considering intrinsic models as prior 
+one should consider to scale it first, 
+\cite{sorbyeR:2014}. 
+After it, the precision parameter can be 
+interpreted as the inverse of the random 
+effect marginal variance. 
+It makes easier the process of defining 
+a prior on it. 
+The suggestion is to consider the 
+PC-prior, \cite{simpsonetal:2017}. 
+This can be done defining a reference 
+standard deviation $\sigma_0$ 
+and the right tail probability $u$ 
+as $P(\sigma > \sigma_0)=u$. 
+Setting $\sigma_0=1$ and $u=0.01$
+<<pcprec>>=
+pcprec <- list(prior='pcprec', param=c(1, 0.01))
 @ 
 
-The projector matrix can be done by 
+\subsubsection{Define the spatial model and prepare the data}
+
+In order to define the spatial model we need to define a mesh. 
+We first define a boundary around the points 
+and use it to create the mesh
+<<prmesh>>=
+pts.bound <- inla.nonconvex.hull(coords, 0.3, 0.3)
+mesh <- inla.mesh.2d(coords, boundary=pts.bound, 
+                     max.edge=c(0.3,1), offset=c(1e-5,1.5), cutoff=0.1)
+@ 
+
+The projector matrix is computed by 
 <<projA>>=
-A <- inla.spde.make.A(prmesh2, loc=coords)
+A <- inla.spde.make.A(mesh, loc=coords)
 @ 
-The SPDE model is defined by
-<<spdem>>=
-spde <- inla.spde2.matern(prmesh2, alpha=2)
+
+The SPDE model considering the PC-prior 
+derived in \cite{fuglstadetal:2017} for the 
+model parameters as the practical range, 
+$\sqrt{8\nu}/\kappa$, and the 
+marginal standard deviation is defined as follows 
+<<spde>>=
+spde <- inla.spde2.pcmatern(
+    mesh=mesh, alpha=2, ### mesh and smoothness parameter
+    prior.range=c(0.05, 0.01), ### P(practic.range<0.05)=0.01
+    prior.sigma=c(1, 0.01)) ### P(sigma>1)=0.01
 @ 
-and the stack data is defined to include four effects: 
+
+The stack data is defined to include four effects: 
 the GRF, intercept, west coordinate and distance to sea
 <<stackpr>>=
-stk.dat <- inla.stack(data=list(y=PRprec$precMean), 
-                      A=list(A,1), tag='dat', 
-                      effects=list(list(i=1:spde$n.spde), 
-                        data.frame(Intercept=1, 
-                                   gWest=inla.group(coords[,1]), 
-                                   gSeaDist=inla.group(PRprec$seaDist)))) 
+stk.dat <- inla.stack(
+    data=list(y=PRprec$precMean), 
+    A=list(A,1), tag='dat', 
+    effects=list(list(s=1:spde$n.spde), 
+                 data.frame(Intercept=1, 
+                            gWest=inla.group(coords[,1]), 
+                            gSeaDist=inla.group(PRprec$seaDist), 
+                            seaDist=PRprec$seaDist))) 
 @ 
+
+\subsubsection{Fitting the models}
 
 We fit the two models using the same stack data. 
 We just use different formula. For the model 
 with west coordinate we have 
 <<fitwestcoo>>=
-f.west <- y ~ 0 + Intercept + f(gWest, model='rw1') + f(i, model=spde)
-r.west <- inla(f.west, family='Gamma', control.compute=list(dic=TRUE),
+f.west <- y ~ 0 + Intercept + 
+    f(gWest, model='rw1', ### first random walk prior 
+      scale.model=TRUE, ### scaling this prior
+      hyper=list(theta=pcprec)) + ### considering the PC prior
+    f(s, model=spde)
+r.west <- inla(f.west, family='Gamma', 
+               control.compute=list(cpo=TRUE),
                data=inla.stack.data(stk.dat), 
-               control.predictor=list(A=inla.stack.A(stk.dat), compute=TRUE))
+               control.predictor=list(
+                   A=inla.stack.A(stk.dat), link=1))
 @ 
+
+We have \texttt{link=1} in the \texttt{control.predictor} 
+to track the function link to be considered in the computation 
+of the fitted values. 
 
 For the model with distance to sea covariate we have 
 <<fitdistsea>>=
-f.sead <- y ~ 0 + Intercept + f(gSeaDist, model='rw1') + f(i, model=spde)
-r.sead <- inla(f.sead, family='Gamma', control.compute=list(dic=TRUE),
+f.seaD <- y ~ 0 + Intercept + 
+    f(gSeaDist, model='rw1', scale.model=TRUE, 
+      hyper=list(theta=pcprec)) + 
+    f(s, model=spde)
+r.seaD <- inla(f.seaD, family='Gamma', 
+               control.compute=list(cpo=TRUE),
                data=inla.stack.data(stk.dat), 
-               control.predictor=list(A=inla.stack.A(stk.dat), compute=TRUE))
+               control.predictor=list(
+                   A=inla.stack.A(stk.dat), link=1))
 @ 
 
-We have the DIC of each model with 
-<<dics>>=
-c(r.west$dic$dic, r.sead$dic$dic)
+We can see in Figure~\ref{fig:dseaeff} that the effect 
+from distance to sea is almost linear. 
+We them also fit the model considering this option 
+For the model with distance to sea covariate we have 
+<<fitdistseal>>=
+f.seaD.l <- y ~ 0 + Intercept + seaDist + 
+    f(s, model=spde)
+r.seaD.l <- inla(f.seaD.l, family='Gamma', 
+                control.compute=list(cpo=TRUE),
+                data=inla.stack.data(stk.dat), 
+                control.predictor=list(
+                    A=inla.stack.A(stk.dat), link=1))
 @ 
-and choose the model that with distance to sea as covariate. 
+
+\subsubsection{Compare the models and look at the results}
+
+We have the negated sum of the log CPO from each model with 
+<<cpos>>=
+slcpo <- function(m, na.rm=TRUE) 
+    -sum(log(m$cpo$cpo), na.rm=na.rm)
+c(long=slcpo(r.west), seaD=slcpo(r.seaD), 
+  seaD.l=slcpo(r.seaD.l))
+@ 
+wich inform that the model with distance to sea as 
+a linear effect has a bit better fit. 
+It was just to show one way to compare models 
+considering how it fits the data.  
+In this case the three models 
+have a very similar sum of the log CPO. 
 
 We got the summary of posterior distribution of the intercept with 
 <<betasumary1>>=
-r.sead$summary.fixed
+round(r.seaD.l$summary.fixed, 4)
 @ 
 
-To dispersion parameter of the gamma likelihood we have 
+Summary of the PMD for the gamma likelihood dispersion parameter 
 <<disp>>=
-r.sead$summary.hy[1,]
+round(unlist(r.seaD.l$summary.hy[1,]), 4)
 @ 
 
-To dispersion parameter of the coefficients of the 
-sea distance covariate we have 
-<<disp>>=
-r.sead$summary.hy[2,]
-@ 
-
-And, to $log(\kappa)$ we have 
-<<logkappa>>=
-r.sead$summary.hy[4,]
-@ 
-
-The variance and range of the spatial process 
-we need a post processing.  
-We obtain the marginal distribution for both by
+The summary for the practical range and 
+the standard deviation of the spatial process is 
 <<resfield>>=
-r.f <- inla.spde2.result(r.sead, 'i', spde, do.transf=TRUE)
-@ 
-The posterior mean for the marginal variance 
-<<mvar>>=
-inla.emarginal(function(x) x, r.f$marginals.variance.nominal[[1]])
-@ 
-And to the practical range of the process we have 
-<<range>>=
-inla.emarginal(function(x) x, r.f$marginals.range.nominal[[1]])
+round(r.seaD.l$summary.hyper[-1, ], 4)
 @ 
 
-At the Figure~\ref{fig:dseaeff} we look the posterior 
-distribution to $\beta_0$, $\phi$, 
-$1/\kappa$, $\sigma_x^2$, practical range and to the 
+The posterior marginal distribution for $\beta_0$, 
+the practical range (in degrees), 
+the standard deviation for the spatial random field, 
+
 mean and 95\% credibility interval of the 
 distance to sea effect at Figure~\ref{fig:dseaeff}. 
 We choose $1/\kappa$ instead $\kappa$ because 
 $1/\kappa$ is the range parameter and in 
 this case is expressed in degrees units.
-<<seacoefs,eval=F>>= 
+Figure~\ref{fig:dseaeff} we look 
+<<seacoefs,eval=F>>=
 par(mfrow=c(2,3), mar=c(3,3.5,0,0), mgp=c(1.5, .5, 0), las=0) 
-plot(r.sead$marginals.fix[[1]], type='l', xlab='Intercept', ylab='Density') 
-plot(r.sead$summary.random[[1]][,1:2], type='l', 
-     xlab='Distance to sea (Km)', ylab='Effect'); abline(h=0, lty=3) 
-for (i in c(4,6)) lines(r.sead$summary.random[[1]][,c(1,i)], lty=2) 
-plot(r.sead$marginals.hy[[1]], type='l', ylab='Density', xlab=expression(phi)) 
-plot.default(inla.tmarginal(function(x) 1/exp(x), r.sead$marginals.hy[[4]]), 
-             type='l', xlab=expression(kappa), ylab='Density') 
-plot.default(r.f$marginals.variance.nominal[[1]], type='l', 
-             xlab=expression(sigma[x]^2), ylab='Density') 
-plot.default(r.f$marginals.range.nominal[[1]], type='l', 
-             xlab='Practical range', ylab='Density') 
+plot(r.seaD.l$marginals.fix[[1]], type='l', 
+     xlab='Intercept', ylab='Density') 
+plot(r.seaD.l$marginals.fix[[2]], type='l', 
+     xlab='Sea distance coefficient', ylab='Density') 
+plot(r.seaD$summary.random[[1]][,1:2], type='l', 
+     xlab='Distance to sea (Km)', ylab='Effect') 
+abline(h=0, lty=3) 
+for (i in c(4,6)) 
+    lines(r.seaD$summary.random[[1]][,c(1,i)], lty=2) 
+abline(h=0)
+for (j in 1:3) 
+plot(r.seaD.l$marginals.hy[[j]], type='l', 
+     ylab='Density', xlab=names(r.seaD.l$marginals.hy)[j])
 @ 
 \setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
-<<seacoefsv,echo=F,results=hide,fig=T,eps=F,width=7.5,height=4>>=
+<<seacoefsv,echo=F,results='hide',fig.width=7.5,fig.height=4>>=
 <<seacoefs>>
 @ 
-\caption{Posterior marginal distribution of $\beta_0$ (top left), 
-  the posterior mean (continuous line) and 95\% credibility  
-  interval (dashed lines) to effect of distance to sea 
-  (top mid), posterior marginal distribution to $\phi$ (top right), 
-  posterior marginal distribution of $\kappa$ (bottom left),  
-  posterior marginal distribution to nominal variance of the 
-  random field (bottom mid) and posterior marginal distribution of 
-  the practical range (bottom right).}
-\label{fig:dseaeff}
-\end{figure}
+\caption{PMD for $\beta_0$ (top left), 
+  PMD for the distance to sea coefficient (top mid), 
+  posterior mean (continuous line) and 95\% credibility  
+  interval (dashed lines) for the distance to sea effect (top right), 
+  PMD for the Gamma likelihood precision (bottom left), 
+  PMD for the practical range (bottom mid) and 
+  PMD for the standard deviation of the spatial field (bottom right).}
+\end{figure}\label{fig:dseaeff}
 
-\section{Testing the significance of spatial effect}
-
-Now, we want to test the significance of the 
+Suppose that we want to test the significance of the 
 spatial random effect component on the model. 
 To access the significance of this effect, 
-can be use the DIC measure, comparing the 
-model with this component with the DIC of the 
-model without this component, fitted below
+we can fit the model without the spatial effect 
+and compare the sum of the log CPO with the 
+model including the spatial effect. 
 <<mod0>>=
-r0.sead <- inla(y ~ 0 + Intercept + f(gSeaDist, model='rw1'), 
-                family='Gamma', control.compute=list(dic=TRUE),
-                data=inla.stack.data(stk.dat), 
-                control.predictor=list(A=inla.stack.A(stk.dat), compute=TRUE))
+r0.seaD.l <- inla(y ~ 0 + Intercept + seaDist, 
+                  family='Gamma', control.compute=list(cpo=TRUE),
+                  data=inla.stack.data(stk.dat), 
+                  control.predictor=list(A=inla.stack.A(stk.dat), link=1))
 @ 
-So, we have the DIC of both models with 
-<<dics>>=
-c(r0.sead$dic$dic, r.sead$dic$dic)
+And we can compare minus the log CPO sum 
+<<cpo0>>=
+c(seaD.l=slcpo(r.seaD.l), seaD.l0=slcpo(r0.seaD.l))
 @ 
-and conclude that the spatial effect is significantly 
-to explain the precipitation. 
+and conclude that the spatial effect is useful. 
 
-\section{Prediction of the random field} 
+\subsection{Prediction of the random field} 
 
-To show the spatial effect, we make prediction of this 
-effect on a fine grid. 
-The \code{inla.mesh.projector()} get a projector 
-matrix to a regular grid and with equal dimension in 
-each direction by default.
-The Paran\'a state shape is more width than height. 
-So, we choose diferent shape of grid to get an 
-adequate cell size. We use 
-<<ncoords>>=
+We can visualize the spatial effect projecting it on a grid. 
+We want to have a regular grid where each pixel 
+is a square with near 4 kilometers each side. 
+We will use the (4/111) factor because each degree 
+has aproximately 111 kilometers to give the 
+size of the pixels in degrees 
+<<stepsize>>=
 (stepsize <- 4*1/111)
-(nxy <- round(c(diff(range(PRborder[,1])), diff(range(PRborder[,2])))/stepsize))
 @ 
-Here we divide the range of each coordinate 
-by $4$ kilometers on degree scale. 
-We use (4/111) factor because each degree 
-has aproximately 111 kilometers. 
-Its because we have the coordinates  
-with units in kilometers and we want 
-each cell on the grid with $4\times 4$ km.
 
-Now, we get the projector with
+The Paran\'a state shape is wider than height and 
+we will use it to define the grid. 
+We consider the range along each axis 
+and consider the size of the pixels 
+to define the number of pixels in each direction. 
+We will divide the range along each axis 
+by the of each coordinate and roun it
+<<ncoords>>=
+(nxy <- round(c(diff(range(PRborder[,1])), 
+                diff(range(PRborder[,2])))/stepsize))
+@ 
+
+The \code{inla.mesh.projector()} create a projector matrix. 
+If a set of coordinates is not supplied 
+it will create a grid automatically. 
+We will change the limits and dimensions as desired 
 <<projgrid>>=
-projgrid <- inla.mesh.projector(prmesh2, xlim=range(PRborder[,1]), 
+projgrid <- inla.mesh.projector(mesh, xlim=range(PRborder[,1]), 
                                 ylim=range(PRborder[,2]), dims=nxy)
 @ 
-and get the posterior mean and posterior standard deviation with 
+Them we can use it in the 
+\code{inla.mesh.project()} function to do the projection 
+for both the posterior mean and the posterior standard deviation 
 <<projpred>>=
-xmean <- inla.mesh.project(projgrid, r.sead$summary.random$i$mean)
-xsd <- inla.mesh.project(projgrid, r.sead$summary.random$i$sd)
+xmean <- inla.mesh.project(projgrid, r.seaD$summary.random$s$mean)
+xsd <- inla.mesh.project(projgrid, r.seaD$summary.random$s$sd)
 @ 
 
-To good visualization, we make NA the values corresponding of the 
-points of the grid out of the border of the Paran\'a state. 
-To do it, we use the function \code{inout()} on \pkg{splancs} 
-package, with
+To improve the visualization we will assign NA for the pixels 
+falling outside the Paran\'{a} state border. 
+We use the function \code{inout()} from the 
+\pkg{splancs} package to do that
 <<sp>>=
-require(splancs)
+library(splancs)
 table(xy.in <- inout(projgrid$lattice$loc, 
                      cbind(PRborder[,1], PRborder[,2])))
 xmean[!xy.in] <- xsd[!xy.in] <- NA
 @ 
-We visualize the this on Figure~\ref{fig:xrain1}. 
-We see on top left graph at Figure~\ref{fig:xrain1} 
-that the random field has variation from -0.6 to 0.4. 
-It isn't despicable, because we have, on the top 
-right graph, the standard errors around 0.2. 
-The variation on the mean of this random effect express 
-the remain variation after the consideration of the 
-effect of the covariate on the model. 
-The variation on its standard deviation is due to 
-density of stations over the region. 
-For example, on the top right graph we see, the first blue 
-region from right to left is near Curitiba and 
-around there  many stations. 
 
-\section{Prediction of the response on a grid}
+The posterior mean and posterior standard deviation 
+for the spatial effect at each pixel is 
+visualized in Figure~\ref{fig:xrain1}. 
+In the top left of this figure one can see that the 
+posterior mean varies from -0.6 to 0.4. 
+This is the variation after accounting 
+for the distance to sea effect. 
+When comparing it with the standard deviation image, 
+it seems to be considerable as the standard deviations 
+aries around 0.2. 
+The variation in the standard deviation is mainly 
+due to the density of the stations over the region. 
+At the top right plot in Figure~\ref{fig:xrain1} 
+the first green region from right to left is near 
+the captital city of Curitiba where the number of 
+stations around is relatively bigger than in other 
+regions of the state. 
 
-We want to predict the response on a grid. 
-A naive approach is made by the projection 
-of the sum of the linear predictor components 
-and applying exponentiation to it, 
-because we use the log link. 
-A better alternative is the joint 
-prediction with the estimation process. 
-But it is computationally expensive 
-when we have large grid. 
-At the end of this section we show a cheap 
+\subsection{Prediction of the response on a grid}
+
+When the objective is to to predict the response 
+a simple approach will be to add the other terms 
+to the spatial field projected in the previous Subsection 
+and apply the inverse of the link function. 
+A full Bayesian analysis for this problem 
+is the joint prediction with the estimation process. 
+However, it can be computationally expensive 
+when the number of pixeis in the grid is large. 
+At the end of this subsection we show a cheap 
 way for a specific case. 
 
-\subsection{By computation of the posterior distributions} 
+\subsubsection{By computation of the posterior distributions} 
 
-Using the grid from previous section 
-we have points discarded because they 
-are not within the Paran\'a border. 
-To make the predictions only on the points 
-within the Paran\'a state we select the 
-coordinates of the grid and the correspondent 
-rows of the predictor matrix by 
+Considering the grid from the previous subsection 
+we can avoid to compute the posterior marginal distributions 
+at those pixels that are not inside the Paran\'a border. 
+That is we consider the corresponding 
+lines of the projector matrix from the 
+projector object built earlier 
 <<>>=
-prdcoo <- projgrid$lattice$loc[which(xy.in),]
 Aprd <- projgrid$proj$A[which(xy.in), ]
 @ 
 
-Now we get the covariate values 
-at each point on the grid. 
-First we compute the distance to sea
-<<seadcov0>>=
+We need to have the covariate for every pixel. 
+In order to have it we can extract these 
+coordinates from the projector object as well
+<<prdcoo>>=
+prdcoo <- projgrid$lattice$loc[which(xy.in),]
+@ 
+
+Computing the distance to sea for each selected pixel 
+<<seaDcov0>>=
 seaDist0 <- apply(spDists(PRborder[1034:1078,], 
                           prdcoo, longlat=TRUE), 2, min)
 @ 
-and found the knot group, using the same 
-used on the model
-<<gsead>>=
-ug.seadist <- sort(unique(inla.group(PRprec$seaDist)))
-ig0 <- apply(abs(outer(ug.seadist, seaDist0, '-')),2,which.min)
-g.seadist <- ug.seadist[ig0]
+
+Suppose that our model is the one with the 
+smoothed effect of sea distance. 
+We have to discretize each computed distance 
+in the same way as for the estimation data 
+at the stations. 
+We have to collect the knots and order it
+<<seaDistk>>=
+seaDist.k <- sort(unique(stk.dat$effects$data$gSeaDist))
 @ 
-and put it into on a stack to prediction and 
-join with the stack data 
+We them have to identify to with knot each distance to sea 
+computed for the pixels belongs to and 
+assign these knots for each pixel. 
+The knots can are actually the mids of the 
+breaks and we will consider it as follows 
+<<gseaD>>=
+seaDist.b <- (seaDist.k[-1] + seaDist.k[length(seaDist.k)])/2
+i0 <- findInterval(seaDist0, seaDist.b)+1
+gSeaDist0 <- seaDist.k[i0]
+@ 
+
+Building the stack data with the prediction scenario 
+and joining it with the data with the 
+data for estimation 
 <<stkprd>>=
-stk.prd <- inla.stack(data=list(y=NA), A=list(Aprd,1), 
-                      effects=list(i=1:spde$n.spde, 
-                          data.frame(Intercept=1, 
-                                     gSeaDist=g.seadist)), tag='prd') 
+stk.prd <- inla.stack(
+    data=list(y=NA), A=list(Aprd,1), 
+    effects=list(s=1:spde$n.spde, 
+                 data.frame(Intercept=1, 
+                            seaDist=seaDist0)), tag='prd') 
 stk.all <- inla.stack(stk.dat, stk.prd)
 @ 
 
-Now, we fit the model joining the prediction data 
-together the observed data stack. 
-But, now we don't need the computation of DIC, 
-marginal distributions and quantiles, just 
-the mean and standard deviation of the response 
+We can now use the mode of theta found as 
+known values in the new \texttt{inla()} call. 
+We can also avoid computing things not needed such 
+as quantiles. 
+We can also avoid non needed objects to be returned, 
+such as the marginals distributions for the 
+random effects and predictor. 
+Since the number of latent variables is the main issue in 
+this case, the Gaussian approximation will reduce a lot 
+the computation time. It can be considered using 
+\texttt{control.inla=list(strategy='gaussian'}. 
+
 <<predfit>>=
-r2.sead <- inla(f.sead, family='Gamma', data=inla.stack.data(stk.all), 
-                control.predictor=list(A=inla.stack.A(stk.all), 
-                  compute=TRUE, link=1), quantiles=NULL, 
-                control.results=list(return.marginals.random=FALSE,
-                  return.marginals.predictor=FALSE))
+r2.seaD.l <- inla(f.seaD.l, family='Gamma', 
+                  data=inla.stack.data(stk.all), 
+                  control.predictor=list(A=inla.stack.A(stk.all), 
+                                         compute=TRUE, link=1), 
+                  quantiles=NULL, 
+                  control.inla=list(strategy='gaussian'), 
+                  control.results=list(return.marginals.random=FALSE,
+                                       return.marginals.predictor=FALSE), 
+                  control.mode=list(theta=r.seaD.l$mode$theta, 
+                                    restart=FALSE))
 @ 
 
-Now, we extract the index on the predictor that 
-corresponds to these wanted. 
-Also, we put the mean and standard deviation 
-on the matrix format, in the adequate positions.
+We have to find the index for the predictions in the grid. 
+It can be done using the \texttt{inla.stack.index()} function. 
+We also have to assign it into the right positions 
+of a matrix with the same dimension as the grid. 
+We will do it for both, the posterior predicted mean 
+and its standard deviation 
 <<rprevprep>>=
 id.prd <- inla.stack.index(stk.all, 'prd')$data
 sd.prd <- m.prd <- matrix(NA, nxy[1], nxy[2])
-m.prd[xy.in] <- r2.sead$summary.fitted.values$mean[id.prd]
-sd.prd[xy.in] <- r2.sead$summary.fitted.values$sd[id.prd]
+m.prd[xy.in] <- r2.seaD.l$summary.fitted.values$mean[id.prd]
+sd.prd[xy.in] <- r2.seaD.l$summary.fitted.values$sd[id.prd]
 @ 
-and we visualize on the Figure~\ref{fig:xrain1} 
-the posterior mean and standard deviation to 
-response with commands bellow  
+This result is shown in the botton plot of Figure~\ref{fig:xrain1} 
+with the following commands
 <<xrain1c,eval=F>>=
 library(gridExtra) 
 do.call('grid.arrange', 
@@ -491,83 +600,99 @@ do.call('grid.arrange',
 @ 
 \setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
-<<xrain1,echo=F,results=hide,fig=T,eps=F,width=10,height=7>>=
+<<xrain1,echo=F,results='hide',fig.width=10,fig.height=7>>=
 <<xrain1c>>
 @ 
 \caption{Posterior mean and standard deviation of the 
-  random field (top left and right respectively). 
-  Posterior mean and standard deviation of the 
-  response (top left and right respectively).}
-\label{fig:xrain1}
-\end{figure}
-We see at this Figure a clear pattern 
-on the average of the daily accumulated 
-precipitation occurred on January of 2012. 
-It's high near to sea and lower 
-at north west side of the Paran\'a state.
+  random field (top left and top right, respectively). 
+  Posterior mean and standard deviation for the 
+  response (bottom left and bottom right, respectively).}
+\end{figure}\label{fig:xrain1}
 
-\subsection{By sampling and interpolating the linear predictor}
+The posterior mean for the expected ranifall in 
+January 2011 was higher near the sea and 
+lower n the north west side of the Paran\'{a} state. 
+Since the linear effect from the distance to sea 
+will drive this pattern, the spatial effect 
+in this case is there to fit deviations from 
+this pattern. 
+That is, the spatial effect is higher near the 
+sea and summing up with the higher effect from 
+distance to sea fitted the higher observed values there. 
+The spatial effect is also higher in a region 
+of the west side causing the expected values to 
+be not so low there. 
 
-The approach in this section does not always makes sense!
-However, in some SPECIFIC cases it makes sense to interpolate the linear predictor. 
-This cases happens when whe only have the spatial effect and 
-enviromental covariates which are smooth over space. 
-The advantage is that is computationally cheap than to compute the full posterior marginals like in the previous section.
+\subsubsection{Sampling at mesh nodes and interpolating}\label{sec:sample}
 
-In our example the idea is to compute the effect 
-of the distance to sea at the mesh nodes. 
+When all the covariates are smooth over space, 
+it makes sence to make the predictions at the mesh nodes, 
+where we have the spatial effect, 
+and them project it on the grid. 
+However, as long a covariate is not smooth over space 
+this approach no longer makes sence. 
+The advantage of this approach is that it is 
+computationally cheap than to compute the full 
+posterior marginals like in the previous subsection.
+
+In our example the idea is to compute the 
+distance to sea effect at the mesh nodes. 
 Them, compute the linear predictor at the mesh nodes. 
-To predict the response on gridn one can interpolate it. 
-In our example the link is log and to aproximate also the 
-standard error on the response, we use the sampling approach. 
+By that, it is possible to predict the response at the 
+mesh nodes and them do interpolate it. 
 
-It consists in geting samples from the linear predictor at the mesh nodes. 
+The first step is to have the enviromental 
+covariate at the mesh nodes
+<<dsmesh>>=
+seaDist.mesh <- apply(
+    spDists(PRborder[1034:1078,], 
+            mesh$loc[,1:2], longlat=TRUE), 2, min)
+@ 
+
+It consists in geting samples from the 
+linear predictor at the mesh nodes. 
 Them, interpolate it to grid and compute the expected value, 
 in the response scale by applying the inverse link. 
 When we do it for each sample, we can have any functional, 
 for example, the mean and standard error. 
 
-The first step is to have the enviromental covariate at the mesh node
-<<dsmesh>>=
-dsmesh <- apply(spDists(PRborder[1034:1078,], 
-                        prmesh2$loc[,1:2], longlat=TRUE), 2, min)
-imesh0 <- apply(abs(outer(ug.seadist, dsmesh, '-')), 2, which.min)
-mesh.seadist <- ug.seadist[imesh0]
-@ 
-
 Building the stack for predict into the mesh 
 <<stkmesh>>=
-stk.mesh <- inla.stack(data=list(y=NA), A=list(1,1), 
-                       effects=list(i=1:spde$n.spde, 
-                           data.frame(Intercept=1, 
-                                      gSeaDist=mesh.seadist)), tag='mesh') 
+stk.mesh <- inla.stack(
+    tag='mesh', data=list(y=NA), A=list(1,1),  
+    effects=list(s=1:spde$n.spde, 
+                 data.frame(Intercept=1, seaDist=seaDist.mesh)))
 stk.b <- inla.stack(stk.dat, stk.mesh)
 @ 
 
-Fitting the model again and ask for the configuration, 
-needed for sampling from the model 
+Fitting the model again and asking for the configuration, 
+which will include in the output the 
+precision matrix for each hyperparameter configuration 
+needed for sampling from the joint posterior
 <<fittmesh>>=
-rm.sead <- inla(f.sead, family='Gamma', data=inla.stack.data(stk.b), 
-                control.predictor=list(A=inla.stack.A(stk.b), 
-                    compute=TRUE, link=1), quantiles=NULL, 
-                control.results=list(return.marginals.random=FALSE,
-                    return.marginals.predictor=FALSE), 
-                control.compute=list(config=TRUE))
+rm.seaD.l <- inla(f.seaD.l, family='Gamma', 
+                  data=inla.stack.data(stk.b), 
+                  control.predictor=list(A=inla.stack.A(stk.b), 
+                                         compute=TRUE, link=1), 
+                  quantiles=NULL, 
+                  control.results=list(return.marginals.random=FALSE,
+                                       return.marginals.predictor=FALSE), 
+                  control.compute=list(config=TRUE)) ## need to sample
 @ 
-<<calll,echo=F,results=hide>>=
+<<calll,echo=F,results='hide'>>=
 inla.setOption(inla.call=lcall)
 @ 
 
 Sampling from the model 
 <<sampl>>=
-sampl <- inla.posterior.sample(n=1000, result=rm.sead)
+sampl <- inla.posterior.sample(n=1000, result=rm.seaD.l)
 @ 
 
 The first $n$ elements of the latent field are the linear predictor for the observed data 
 and the next $m$ elements are for the location at the mesh nodes. 
 <<idexs>>=
 dim(pred.nodes <- exp(sapply(sampl, function(x) 
-    x$latent[nrow(PRprec) + 1:nrow(prmesh2$loc)])))
+    x$latent[nrow(PRprec) + 1:nrow(mesh$loc)])))
 @ 
 Computing the mean and standard deviation over the samples and projecting it
 <<projsamples>>=

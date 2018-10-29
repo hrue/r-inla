@@ -16,7 +16,7 @@
 ##!         skip.configurations = TRUE,
 ##!         verbose = FALSE,
 ##!         dz = 0.75,
-##!         diff.logdens = 10,
+##!         diff.logdens = 15,
 ##!         h = NULL,
 ##!         restart = FALSE,
 ##!         quantiles = NULL, 
@@ -48,8 +48,8 @@
 
         ##!\item{diff.logdens}{The difference of the
         ##!log.density for the hyperpameters to stop numerical
-        ##!integration using int.strategy='grid'.  Default 10}
-        diff.logdens = 10,
+        ##!integration using int.strategy='grid'.  Default 15}
+        diff.logdens = 15,
 
         ##!\item{h}{The step-length for the gradient
         ##!calculations for the hyperparameters. Default 0.01.}
@@ -76,7 +76,7 @@
     ##!estimates of the hyperparameters are replaced by improved estimates.}
     ##!\references{
     ##!See the references in \code{inla}}
-    ##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+    ##!\author{Havard Rue \email{hrue@r-inla.org}}
     ##!\note{This function might take a long time or if the number of
     ##!hyperparameters in the model is large. If it complains and says \code{I cannot get enough memory},
     ##!try to increase the value of the argument \code{dz} or decrease \code{diff.logdens}.}

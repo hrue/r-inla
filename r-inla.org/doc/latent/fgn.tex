@@ -43,8 +43,11 @@ The FGN model is specified as
 The parmeter \texttt{order} gives the order of the Markov
 approximation. Currently, only \texttt{order=3} is implemented.
 
-\subsubsection*{Hyperparameter spesification and default values}
+\subsubsection*{Hyperparameter spesification and default values for \texttt{model="fgn"}}
 \input{../hyper/latent/fgn.tex}
+
+\subsubsection*{Hyperparameter spesification and default values for \texttt{model="fgn2"}}
+\input{../hyper/latent/fgn2.tex}
 
 \subsection*{Example}
 
@@ -70,6 +73,16 @@ expand into a Gaussian of length \texttt{(order + 1)*n}. The first $n$
 elements is the FGN model (which is of interrest), then there are
 \texttt{order} vector of AR1 processes each of length $n$, and the sum
 of these AR1 processes is used to represent the FGN.
+
+Another alternative, is \texttt{f(idx,model="fgn2")} object will
+expand into a Gaussian of length \texttt{order*n}, which are the
+cummulative sums of the the \texttt{order} vector of AR1 processes
+each of length $n$. If \texttt{order==3}, with weighted AR1 processes
+(and with the given precision), $x$, $xx$ and $xxx$, then
+\texttt{model="fgn2"} return the vector $(x+xx+xxx, xx+xxx, xxx)$
+where $\phi_{x} < \phi_{xx} < \phi_{xxx}$.
+
+
 
 The PC-prior for $H$ take two arguments $(U, \alpha)$ where
 $\text{Prob}(U < H < 1) = \alpha$.

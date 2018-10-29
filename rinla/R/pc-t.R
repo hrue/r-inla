@@ -32,7 +32,7 @@
 ##! \value{%%
 ##!     \code{inla.pc.ddof} returns the prior density for given \code{dof}.
 ##! }
-##! \author{Havard Rue \email{hrue@math.ntnu.no}}
+##! \author{Havard Rue \email{hrue@r-inla.org}}
 ##! \examples{
 ##! }
 
@@ -20109,7 +20109,6 @@
         stopifnot(!(missing(u) && missing(alpha)))
         stopifnot(u > 2.0 && (alpha > 0 && alpha < 1))
         lambda = -log(alpha) / pc.dof.dist(u)
-        print(paste("lambda", lambda))
     } else {
         stopifnot(!(missing(lambda)))
         stopifnot(lambda > 0.0)

@@ -1,0 +1,88 @@
+%%% OOOPS: change the .Rnw
+
+\documentclass[a4paper,11pt]{report}
+\usepackage[scale={0.6,0.9},centering,includeheadfoot]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,hyperref}
+\let\bold\relax
+\usepackage{upquote,Sweave,Rd} 
+
+\def\mb#1{\ensuremath{\boldsymbol{#1}}} % version: amsmath
+
+\newcommand{\bA}{\mbox{\protect \boldmath $A$}}
+\newcommand{\bB}{\mbox{\protect \boldmath $B$}}
+\newcommand{\bF}{\mbox{\protect \boldmath $F$}}
+\newcommand{\bD}{\mbox{\protect \boldmath $D$}}
+\newcommand{\bW}{\mbox{\protect \boldmath $W$}}
+\newcommand{\bC}{\mbox{\protect \boldmath $C$}}
+\newcommand{\bG}{\mbox{\protect \boldmath $G$}}
+\newcommand{\bK}{\mbox{\protect \boldmath $K$}}
+\newcommand{\bI}{\mbox{\protect \boldmath $I$}}
+\newcommand{\bQ}{\mbox{\protect \boldmath $Q$}}
+\newcommand{\bM}{\mbox{\protect \boldmath $M$}}
+\newcommand{\bU}{\mbox{\protect \boldmath $U$}}
+\newcommand{\bV}{\mbox{\protect \boldmath $V$}}
+
+\newcommand{\be}{\mbox{\protect \boldmath $e$}}
+\newcommand{\bu}{\mbox{\protect \boldmath $u$}}
+\newcommand{\bv}{\mbox{\protect \boldmath $v$}}
+\newcommand{\bx}{\mbox{\protect \boldmath $x$}}
+\newcommand{\by}{\mbox{\protect \boldmath $y$}}
+
+\newcommand{\btheta}{\mbox{\boldmath $\theta$}}
+\newcommand{\bbeta}{\mbox{\boldmath $\beta$}}
+\newcommand{\bmu}{\mbox{\boldmath $\mu$}}
+\newcommand{\bxi}{\mbox{\boldmath $\xi$}}
+\newcommand{\bomega}{\mbox{\boldmath $\omega$}}
+\newcommand{\boldeta}{\mbox{\boldmath $\eta$}}
+
+\title{\textbf{The R-INLA tutorial on SPDE models}\\
+Warning: work in progress...\\
+Suggestions to \texttt{elias@r-inla.org} are welcome}
+\author{Elias T. Krainski, Finn Lindgren, Daniel Simpson and H{\aa}vard Rue}
+
+\begin{document}
+\maketitle
+
+\paragraph{Acknowledgments}
+To Sarah Gallup and Helen Sofaer for valuable 
+English review in the text. 
+To several people who brought cool problems to 
+the discussion forum 
+\url{http://www.r-inla.org/comments-1} 
+and to me individually. 
+
+\input{updates}
+
+\input{spde-tutorial-abstract.tex}
+
+\tableofcontents
+
+\input{spde-tutorial-introduction}
+\input{spde-tutorial-toy} 
+\input{spde-tutorial-aaa-mesh}
+
+\chapter{Non-Gaussian and covariates in the covariance}\label{ch:ngns}
+\input{spde-tutorial-rain} 
+\input{spde-tutorial-survival}
+\input{spde-tutorial-nonstationar} 
+
+\chapter{Manipulating the random field and more than one likelihood}\label{ch:manipula}
+\input{spde-tutorial-measurement-error} 
+\input{spde-tutorial-coregionalization}
+\input{spde-tutorial-linear-predictor-copy}
+
+\input{spde-tutorial-prefsampl} 
+
+\input{spde-tutorial-spacetime}
+\input{spde-tutorial-lower-spatio-temporal}
+\input{spde-tutorial-stcoregionalization}
+\input{spde-tutorial-dynamic}
+\input{spde-tutorial-stpp}
+
+\bibliographystyle{apalike}
+\bibliography{spde-tutorial}
+
+\end{document}
+

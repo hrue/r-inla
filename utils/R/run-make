@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+is_set() {
+    [[ -n "${1}" ]] && [[ ${!1+x} ]]
+}
+
+
+if ! $(is_set INLA_MAC); then
+    export INLA_MAC=hrue@hruemac.math.ntnu.no
+    export INLA_MAC=rueh@kw-16659.kaust.edu.sa
+fi
+
+IP=0.0.0.0
+for ip in $(~/bin/my-vm-addr); do
+    if ping -q -i1 -W1 -c1 $ip; then
+	IP=$ip
+	echo Host $IP is alive
+	break
+    else
+	echo Host $ip is not alive
+    fi
+done
+
+
+if [ -n "$IP" ]; then
+    export INLA_LINUX=hrue@$IP
+    export INLA_LINUX_PORT=22
+    yes yes | ssh hrue@$IP echo Testing connection
+fi
+
+if ! $(is_set INLA_INLA); then
+    export INLA_INLA=hrue@inla.math.ntnu.no
+fi
+
+output () {
+    echo "$0: $@"
+}
+
+if [ $# -eq 0 ]; then
+    echo $0: TAG
+    exit 1
+else 
+    r=$( hg -R r-inla tags | awk '$1==TAG { print 1 }' TAG="$1" )
+    if [ -n "$r" ]; then
+	output "TAG [$1] is present"
+    else
+	output "unknown TAG [$1]. exit"
+	exit 1
+    fi
+fi
+export INLA_TAG="$1"
+export INLA_VERSION=$(echo $INLA_TAG | awk -F_ '{if (NF > 1) print $2; else print $1}')
+
+output INLA_MAC=$INLA_MAC
+output INLA_LINUX=$INLA_LINUX
+output INLA_WINDOWS=$INLA_WINDOWS
+output INLA_TAG=$INLA_TAG
+output INLA_VERSION=$INLA_VERSION
+
+shift 1
+exec make -f Makefile "$@"

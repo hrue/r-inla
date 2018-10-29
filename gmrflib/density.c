@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 
@@ -96,9 +96,47 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-static double weight_eps = 1.0e-12;
+static double WEIGHT_PROB = 0.98;
 
+#define CONST_1 0.6266570686577500604			       // sqrt(M_PI/8.0);
+#define CONST_2 (-0.69314718055994528623)		       // log(0.5);
 
+int GMRFLib_density_prune_weights(int *n_idx, int *idx, double *weights, int n)
+{
+	// make a list of the largest scaled weights so that the cummulative sum is at least WEIGHT_PROB
+
+	int i, debug = 0;
+	double w_sum = 0.0;
+	double *ww = Calloc(n, double);
+
+	memcpy(ww, weights, n * sizeof(double));
+	for (i = 0, w_sum = 0.0; i < n; i++) {
+		w_sum += ww[i];
+	}
+	w_sum = 1.0 / w_sum;
+	for (i = 0; i < n; i++) {
+		ww[i] *= w_sum;
+		idx[i] = i;
+	}
+	GMRFLib_qsorts((void *) ww, (size_t) n, sizeof(double), (void *) idx, sizeof(int), NULL, NULL, GMRFLib_dcmp_r);
+	for (i = 0, *n_idx = 0, w_sum = 0.0; i < n; i++) {
+		w_sum += ww[i];
+		(*n_idx)++;
+		if (w_sum > WEIGHT_PROB)
+			break;
+	}
+
+	if (debug) {
+		w_sum = 0.0;
+		for (i = 0; i < *n_idx; i++) {
+			w_sum += ww[i];
+			printf("i %1d idx %1d n_idx %1d n %1d ww %g w_sum %g\n", i, idx[i], *n_idx, n, ww[i], w_sum);
+		}
+	}
+	Free(ww);
+
+	return GMRFLib_SUCCESS;
+}
 int GMRFLib_sn_density(double *dens, double x, void *param)
 {
 	/*
@@ -116,12 +154,22 @@ double GMRFLib_log_gsl_cdf_ugaussian_P(double z)
 	/*
 	 * compute log(gsl_cdf_ugaussian_P(z)) for large |z| as well 
 	 */
-
 	if (ABS(z) < 8.0) {
-		return log(gsl_cdf_ugaussian_P(z));
+		if (0) {
+			// faster option. see also the code with some doc in inla.c. I havn't yet merged these functions
+			double val;
+			if (z > 0.0) {
+				// val = 0.5 + 0.5 * sqrt(1.0 - exp(-sqrt(M_PI / 8.0) * SQR(z)));
+				val = 0.5 + 0.5 * sqrt(1.0 - exp(-CONST_1 * SQR(z)));
+			} else {
+				val = 1.0 - (0.5 + 0.5 * sqrt(1.0 - exp(-CONST_1 * SQR(z))));
+			}
+			return (log(val));
+		} else {
+			return log(gsl_cdf_ugaussian_P(z));
+		}
 	} else {
 		if (z > 0) {
-
 			if (z > 37.0) {
 				return 0.0;
 			} else {
@@ -174,7 +222,9 @@ double GMRFLib_sn_logdensity_diff_xi(double x, void *param)
 	t20 = 0.1e1 / t19;
 	t23 = exp(-t20 * t17 * t16 / 0.2e1);
 	t25 = sqrt(M_PI);
-	t37 = 0.1e1 / (t9 + 1.0) / 0.3141592654e1 * t20 * t1 * (t9 * x * t2 + x * t2 - t9 * xi * t2 - xi * t2 - 0.2e1 * omega * t25 * alpha * t23) / 0.2e1;
+	t37 =
+	    0.1e1 / (t9 + 1.0) / 0.3141592654e1 * t20 * t1 * (t9 * x * t2 + x * t2 - t9 * xi * t2 - xi * t2 -
+							      0.2e1 * omega * t25 * alpha * t23) / 0.2e1;
 
 	return t37;
 }
@@ -483,8 +533,6 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		return GMRFLib_SUCCESS;
 	}
 
-	GMRFLib_ENTER_ROUTINE;
-
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		density->mean = density->mean_gaussian;
 		density->stdev = density->stdev_gaussian;
@@ -717,7 +765,6 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 
 	Free(xpm);
 
-	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -759,11 +806,37 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 		 */
 
 		GMRFLib_sn_param_tp *p = density->sn_param;
+		double local_const_1 = M_LN2 + log_norm_const_gaussian - log(p->omega);
+		double a = 1.0 / p->omega;
+		double b = -p->xi / p->omega;
+		double z, zz, val;
 
 		for (i = 0; i < n; i++) {
-			double z = (x[i] - p->xi) / p->omega;
-
-			logdens[i] = M_LN2 + log_norm_const_gaussian - 0.5 * SQR(z) + GMRFLib_log_gsl_cdf_ugaussian_P(p->alpha * z) - log(p->omega);
+			// inline the most important case of log(Phi(...)) and use a very good approximation
+			z = a * x[i] + b;
+			zz = p->alpha * z;
+			if (ABS(zz) < 8.0) {
+				if (zz > 0.0) {
+					// val = log(0.5 + 0.5 * sqrt(1.0 - exp(- CONST_1 * SQR(zz))));
+					val = CONST_2 + log(1.0 + sqrt(1.0 - exp(-CONST_1 * SQR(zz))));
+				} else {
+					// val = log(0.5 - 0.5 * sqrt(1.0 - exp(- CONST_1 * SQR(zz))));
+					val = CONST_2 + log(1.0 - sqrt(1.0 - exp(-CONST_1 * SQR(zz))));
+				}
+			} else {
+				// use the more complitated asympt expression, which we do here (for which the code in
+				// the prev {} is a copy of
+				val = GMRFLib_log_gsl_cdf_ugaussian_P(zz);
+			}
+			logdens[i] = local_const_1 - 0.5 * SQR(z) + val;
+		}
+		if (0) {
+			// OLD code
+			for (i = 0; i < n; i++) {
+				z = (x[i] - p->xi) / p->omega;
+				logdens[i] =
+				    M_LN2 + log_norm_const_gaussian - 0.5 * SQR(z) + GMRFLib_log_gsl_cdf_ugaussian_P(p->alpha * z) - log(p->omega);
+			}
 		}
 		break;
 	}
@@ -952,7 +1025,6 @@ int GMRFLib_density_Pinv(double *xp, double p, GMRFLib_density_tp * density)
 	 * 
 	 * NOTE that 'xp' is in standarized scale. 
 	 */
-	GMRFLib_ENTER_ROUTINE;
 	GMRFLib_ASSERT(p >= 0 && p <= 1, GMRFLib_EPARAMETER);
 
 	/*
@@ -968,7 +1040,6 @@ int GMRFLib_density_Pinv(double *xp, double p, GMRFLib_density_tp * density)
 			GMRFLib_ASSERT(density->Pinv->spline != NULL, GMRFLib_ESNH);
 		}
 	}
-	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -1031,23 +1102,21 @@ int GMRFLib_evaluate_densities(double *dens, double x_user, int n, GMRFLib_densi
 	 * 
 	 * the weights need not to be scaled. 
 	 */
-	int i;
-	double w_sum = 0.0, d_tmp = 0.0, d = 0.0, x_std, w_eps = 0.0;
+	int i, j, *idx = NULL, n_idx;
+	double w_sum = 0.0, d_tmp = 0.0, d = 0.0, x_std;
 
-	for (i = 0; i < n; i++) {
-		w_eps += weights[i];
-	}
-	w_eps = weight_eps / w_eps;
+	idx = Calloc(n, int);
+	GMRFLib_density_prune_weights(&n_idx, idx, weights, n);
 
-	for (i = 0; i < n; i++) {
-		if (weights[i] > w_eps) {
-			x_std = GMRFLib_density_user2std(x_user, densities[i]);
-			GMRFLib_evaluate_density(&d_tmp, x_std, densities[i]);
-			d += weights[i] * d_tmp / densities[i]->std_stdev;
-			w_sum += weights[i];
-		}
+	for (j = 0; j < n_idx; j++) {
+		i = idx[j];
+		x_std = GMRFLib_density_user2std(x_user, densities[i]);
+		GMRFLib_evaluate_density(&d_tmp, x_std, densities[i]);
+		d += weights[i] * d_tmp / densities[i]->std_stdev;
+		w_sum += weights[i];
 	}
 	*dens = d / w_sum;
+	Free(idx);
 
 	return GMRFLib_SUCCESS;
 }
@@ -1060,35 +1129,35 @@ int GMRFLib_evaluate_ndensities(double *dens, int nd, double *x_user, int nx, GM
 	 * 
 	 * the weights need not to be scaled. 
 	 */
-	int i, j;
-	double w_sum = 0.0, *d_tmp, *d = NULL, *x_std, w_eps = 0.0;
+	int i, j, k, n_idx, *idx = NULL, n_alloc = IMAX(nd, nx);
+	double w_sum = 0.0, *d_tmp, *d = NULL, *x_std;
 
-	d = Calloc(3 * nx, double);
-	d_tmp = &d[nx];					       /* reduce the ammount of alloc */
-	x_std = &d[2 * nx];				       /* reduce the ammount of alloc */
+	d = Calloc(4 * n_alloc, double);
+	d_tmp = &d[n_alloc];
+	x_std = &d[2 * n_alloc];
+	idx = (int *) &d[3 * n_alloc];
 
-	for (i = 0; i < nd; i++) {
-		w_eps += weights[i];
-	}
-	w_eps = weight_eps / w_eps;
+	GMRFLib_density_prune_weights(&n_idx, idx, weights, nd);
 
-	for (i = 0; i < nd; i++) {
-		if (weights[i] > w_eps) {
-			w_sum += weights[i];
+	for (k = 0; k < n_idx; k++) {
+		i = idx[k];
+		w_sum += weights[i];
 
-			for (j = 0; j < nx; j++) {
+		GMRFLib_density_user2std_n(x_std, x_user, densities[i], nx);
+		if (0) {
+			// Old code
+			for (j = 0; j < nx; j++)
 				x_std[j] = GMRFLib_density_user2std(x_user[j], densities[i]);
-			}
-			GMRFLib_evaluate_ndensity(d_tmp, x_std, nx, densities[i]);
-
-			for (j = 0; j < nx; j++) {
-				d[j] += weights[i] * d_tmp[j] / densities[i]->std_stdev;
-			}
+		}
+		GMRFLib_evaluate_ndensity(d_tmp, x_std, nx, densities[i]);
+		for (j = 0; j < nx; j++) {
+			d[j] += weights[i] * d_tmp[j] / densities[i]->std_stdev;
 		}
 	}
 
+	w_sum /= w_sum;
 	for (j = 0; j < nx; j++) {
-		dens[j] = d[j] / w_sum;
+		dens[j] = d[j] * w_sum;
 	}
 
 	Free(d);
@@ -1104,23 +1173,21 @@ int GMRFLib_evaluate_gdensities(double *dens, double x_user, int n, GMRFLib_dens
 	 * 
 	 * the weights need not to be scaled. 
 	 */
-	int i;
-	double w_sum = 0.0, d_tmp = 0.0, d = 0.0, x_std, w_eps = 0.0;
+	int i, j, *idx = NULL, n_idx;
+	double w_sum = 0.0, d_tmp = 0.0, d = 0.0, x_std;
 
-	for (i = 0; i < n; i++) {
-		w_eps += weights[i];
-	}
-	w_eps = weight_eps / w_eps;
+	idx = Calloc(n, int);
+	GMRFLib_density_prune_weights(&n_idx, idx, weights, n);
 
-	for (i = 0; i < n; i++) {
-		if (weights[i] > w_eps) {
-			x_std = GMRFLib_density_user2std(x_user, densities[i]);
-			d_tmp = exp(-0.5 * SQR(x_std));
-			d += weights[i] * d_tmp / densities[i]->std_stdev;
-			w_sum += weights[i];
-		}
+	for (j = 0; j < n_idx; j++) {
+		i = idx[j];
+		x_std = GMRFLib_density_user2std(x_user, densities[i]);
+		d_tmp = exp(-0.5 * SQR(x_std));
+		d += weights[i] * d_tmp / densities[i]->std_stdev;
+		w_sum += weights[i];
 	}
 	*dens = d / w_sum;
+	Free(idx);
 
 	return GMRFLib_SUCCESS;
 }
@@ -1166,9 +1233,10 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 	int i, j, n_points = 30, np, np_g, np_max, nf, minp = 3;
 	double mean, stdev, mean_g, stdev_g, *x_points = NULL, *x_points_g = NULL,
 	    *log_dens = NULL, *log_dens_g = NULL, dens, x_real, m1, m2, sum_w, *ptr = NULL, m, sd, xx,
-	    f[] = { 0, 0.1, -0.1, 0.25, -0.25, 0.5, -0.5, 0.75, -0.75, 1.0, -1.0 };
+		f[] = { 0, 0.1, -0.1, 0.25, -0.25, 0.5, -0.5, 0.75, -0.75, 1.0, -1.0, 1.5, -1.5, 2.0, -2.0, 3.0, -3.0 };
 
 	GMRFLib_ENTER_ROUTINE;
+	nf = sizeof(f) / sizeof(double);
 	if (n == 0) {
 		if (density) {
 			*density = NULL;
@@ -1201,96 +1269,165 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 	mean_g = m1 / sum_w;
 	stdev_g = sqrt(DMAX(0.0, m2 / sum_w - SQR(mean_g)));
 
-	/*
-	 * chose abscissas as for the GHQ + the mean +/- 0, 0.25, 0.5 and 1.0*stdev, for each density in the mixture 
-	 */
-	nf = sizeof(f) / sizeof(double);
-	np_max = n_points + nf * n;			       /* maximum value of np */
-	x_points = Calloc(np_max, double);
-	x_points_g = (gdensity ? Calloc(np_max, double) : NULL);
+	if (1) {
+		// new code. only use the mean/stdev to layout points
+		// FIXME1("COMBINE USING NEW CODE");
+		np_max = n_points + nf;
+		x_points = Calloc(np_max, double);
+		x_points_g = (gdensity ? Calloc(np_max, double) : NULL);
 
-	GMRFLib_ghq_abscissas(&ptr, n_points);
-	memcpy(x_points, ptr, n_points * sizeof(double));
-	if (gdensity) {
-		memcpy(x_points_g, ptr, n_points * sizeof(double));
-	}
-
-	/*
-	 * compute the new points. it is required that the new points are within the INTEGRATION_LIMIT, otherwise its density
-	 * is essentially zero. this loop also determine `np' 
-	 */
-	np = n_points;
-	for (i = 0; i < n; i++) {
-		m = densities[i]->user_mean;
-		sd = densities[i]->user_stdev;
-		for (j = 0; j < nf; j++) {
-			xx = (m + f[j] * sd - mean) / stdev;
-			if (ABS(xx) < GMRFLib_DENSITY_INTEGRATION_LIMIT) {
-				x_points[np++] = xx;
-			}
+		GMRFLib_ghq_abscissas(&ptr, n_points);
+		memcpy(x_points, ptr, n_points * sizeof(double));
+		memcpy(x_points + n_points, f, nf * sizeof(double));
+		np = np_max;
+		if (gdensity) {
+			memcpy(x_points_g, ptr, n_points * sizeof(double));
+			memcpy(x_points_g + n_points, f, nf * sizeof(double));
+			np_g = np_max;
+		} else {
+			np_g = 0;
 		}
-	}
-	if (gdensity) {
-		np_g = n_points;
-		for (i = 0; i < n; i++) {
-			m = densities[i]->std_mean;
-			sd = densities[i]->std_stdev;
-			for (j = 0; j < nf; j++) {
-				xx = (m + f[j] * sd - mean_g) / stdev_g;
-				if (ABS(xx) < GMRFLib_DENSITY_INTEGRATION_LIMIT) {
-					x_points_g[np_g++] = xx;
-				}
-			}
+
+		/*
+		 * sort and remove ties or points to close. the _additive option is more 'pratical', whereas the _relative option is
+		 * very conservative. We need to ensure that we are not ending up with fewer than minp points which is minimum for the
+		 * spline-interpolant (or 5 for the akima-interpolant).
+		 */
+		qsort(x_points, (size_t) np, sizeof(double), GMRFLib_dcmp);
+		if (gdensity) {
+			qsort(x_points_g, (size_t) np_g, sizeof(double), GMRFLib_dcmp);
 		}
-	} else {
-		np_g = 0;
-	}
 
-	/*
-	 * sort and remove ties or points to close. the _additive option is more 'pratical', whereas the _relative option is
-	 * very conservative. We need to ensure that we are not ending up with fewer than minp points which is minimum for the
-	 * spline-interpolant (or 5 for the akima-interpolant).
-	 */
-	qsort(x_points, (size_t) np, sizeof(double), GMRFLib_dcmp);
-	if (gdensity) {
-		qsort(x_points_g, (size_t) np_g, sizeof(double), GMRFLib_dcmp);
-	}
+		double *x_points_tmp = NULL;
+		int np_tmp;
 
-	double *x_points_tmp = NULL;
-	int np_tmp;
-
-	x_points_tmp = Calloc(np, double);
-	np_tmp = np;
-	memcpy(x_points_tmp, x_points, np * sizeof(double));
-	GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 4.0));
-	if (np_tmp >= minp) {				       /* then its ok */
-		np = np_tmp;
-		memcpy(x_points, x_points_tmp, np * sizeof(double));
-	} else {
-		GMRFLib_unique_relative(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 3.0));
+		x_points_tmp = Calloc(np, double);
+		np_tmp = np;
+		memcpy(x_points_tmp, x_points, np * sizeof(double));
+		GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 4.0));
 		if (np_tmp >= minp) {			       /* then its ok */
 			np = np_tmp;
 			memcpy(x_points, x_points_tmp, np * sizeof(double));
-		}
-	}
-	Free(x_points_tmp);
-
-	if (gdensity) {
-		x_points_tmp = Calloc(np_g, double);
-		np_tmp = np_g;
-		memcpy(x_points_tmp, x_points_g, np_g * sizeof(double));
-		GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 4.0));
-		if (np_tmp >= minp) {			       /* then its ok */
-			np_g = np_tmp;
-			memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
 		} else {
 			GMRFLib_unique_relative(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 3.0));
 			if (np_tmp >= minp) {		       /* then its ok */
-				np_g = np_tmp;
-				memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
+				np = np_tmp;
+				memcpy(x_points, x_points_tmp, np * sizeof(double));
 			}
 		}
 		Free(x_points_tmp);
+
+		if (gdensity) {
+			x_points_tmp = Calloc(np_g, double);
+			np_tmp = np_g;
+			memcpy(x_points_tmp, x_points_g, np_g * sizeof(double));
+			GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 4.0));
+			if (np_tmp >= minp) {		       /* then its ok */
+				np_g = np_tmp;
+				memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
+			} else {
+				GMRFLib_unique_relative(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 3.0));
+				if (np_tmp >= minp) {	       /* then its ok */
+					np_g = np_tmp;
+					memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
+				}
+			}
+			Free(x_points_tmp);
+		}
+	} else {
+		// old code
+
+		/*
+		 * chose abscissas as for the GHQ + the mean +/- 0, 0.25, 0.5 and 1.0*stdev, for each density in the mixture 
+		 */
+		nf = sizeof(f) / sizeof(double);
+		np_max = n_points + nf * n;		       /* maximum value of np */
+		x_points = Calloc(np_max, double);
+		x_points_g = (gdensity ? Calloc(np_max, double) : NULL);
+
+		GMRFLib_ghq_abscissas(&ptr, n_points);
+		memcpy(x_points, ptr, n_points * sizeof(double));
+		if (gdensity) {
+			memcpy(x_points_g, ptr, n_points * sizeof(double));
+		}
+
+		/*
+		 * compute the new points. it is required that the new points are within the INTEGRATION_LIMIT, otherwise its density
+		 * is essentially zero. this loop also determine `np' 
+		 */
+		np = n_points;
+		for (i = 0; i < n; i++) {
+			m = densities[i]->user_mean;
+			sd = densities[i]->user_stdev;
+			for (j = 0; j < nf; j++) {
+				xx = (m + f[j] * sd - mean) / stdev;
+				if (ABS(xx) < GMRFLib_DENSITY_INTEGRATION_LIMIT) {
+					x_points[np++] = xx;
+				}
+			}
+		}
+		if (gdensity) {
+			np_g = n_points;
+			for (i = 0; i < n; i++) {
+				m = densities[i]->std_mean;
+				sd = densities[i]->std_stdev;
+				for (j = 0; j < nf; j++) {
+					xx = (m + f[j] * sd - mean_g) / stdev_g;
+					if (ABS(xx) < GMRFLib_DENSITY_INTEGRATION_LIMIT) {
+						x_points_g[np_g++] = xx;
+					}
+				}
+			}
+		} else {
+			np_g = 0;
+		}
+
+		/*
+		 * sort and remove ties or points to close. the _additive option is more 'pratical', whereas the _relative option is
+		 * very conservative. We need to ensure that we are not ending up with fewer than minp points which is minimum for the
+		 * spline-interpolant (or 5 for the akima-interpolant).
+		 */
+		qsort(x_points, (size_t) np, sizeof(double), GMRFLib_dcmp);
+		if (gdensity) {
+			qsort(x_points_g, (size_t) np_g, sizeof(double), GMRFLib_dcmp);
+		}
+
+		double *x_points_tmp = NULL;
+		int np_tmp;
+
+		x_points_tmp = Calloc(np, double);
+		np_tmp = np;
+		memcpy(x_points_tmp, x_points, np * sizeof(double));
+		GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 4.0));
+		if (np_tmp >= minp) {			       /* then its ok */
+			np = np_tmp;
+			memcpy(x_points, x_points_tmp, np * sizeof(double));
+		} else {
+			GMRFLib_unique_relative(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 3.0));
+			if (np_tmp >= minp) {		       /* then its ok */
+				np = np_tmp;
+				memcpy(x_points, x_points_tmp, np * sizeof(double));
+			}
+		}
+		Free(x_points_tmp);
+
+		if (gdensity) {
+			x_points_tmp = Calloc(np_g, double);
+			np_tmp = np_g;
+			memcpy(x_points_tmp, x_points_g, np_g * sizeof(double));
+			GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 4.0));
+			if (np_tmp >= minp) {		       /* then its ok */
+				np_g = np_tmp;
+				memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
+			} else {
+				GMRFLib_unique_relative(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 3.0));
+				if (np_tmp >= minp) {	       /* then its ok */
+					np_g = np_tmp;
+					memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
+				}
+			}
+			Free(x_points_tmp);
+		}
 	}
 
 	log_dens = Calloc(np, double);
@@ -1304,10 +1441,9 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 		 * new improved code; use inline 
 		 */
 		double *xx_real = NULL, *ddens = NULL;
+
 		xx_real = Calloc(2 * np, double);
-
 		ddens = &xx_real[np];
-
 		for (i = 0; i < np; i++) {
 			xx_real[i] = x_points[i] * stdev + mean;
 		}
@@ -1402,7 +1538,8 @@ int GMRFLib_density_adjust_vector(double *ldens, int n)
 	}
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, double *x, double *logdens, double std_mean, double std_stdev, int lookup_tables)
+int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, double *x, double *logdens, double std_mean,
+			   double std_stdev, int lookup_tables)
 {
 	/*
 	 * create a density of type 'type', so that
@@ -1418,8 +1555,6 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	int i, debug = 0;
 	double *xx = NULL, *ldens = NULL, g_mean, g_var;
 	GMRFLib_sn_param_tp sn_param;
-
-	GMRFLib_ENTER_ROUTINE;
 
 	xx = Calloc(n, double);
 	ldens = Calloc(n, double);
@@ -1483,7 +1618,8 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 
 			(*density)->log_correction = Calloc(1, GMRFLib_spline_tp);
 			GMRFLib_EWRAP0_GSL_PTR((*density)->log_correction->accel = gsl_interp_accel_alloc());
-			GMRFLib_EWRAP0_GSL_PTR((*density)->log_correction->spline = gsl_spline_alloc(GMRFLib_density_interp_type(n), (unsigned int) n));
+			GMRFLib_EWRAP0_GSL_PTR((*density)->log_correction->spline =
+					       gsl_spline_alloc(GMRFLib_density_interp_type(n), (unsigned int) n));
 			GMRFLib_EWRAP0_GSL(gsl_spline_init((*density)->log_correction->spline, xx, ldens, (unsigned int) n));
 			GMRFLib_EWRAP0(GMRFLib_init_density(*density, lookup_tables));
 			/*
@@ -1502,7 +1638,6 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	Free(xx);
 	Free(ldens);
 
-	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_density_new_mean(GMRFLib_density_tp ** new_density, GMRFLib_density_tp * density, double new_mean)
@@ -1770,6 +1905,17 @@ double GMRFLib_density_std2user_n(double *x_user, double *x, int n, GMRFLib_dens
 double GMRFLib_density_user2std(double x, GMRFLib_density_tp * density)
 {
 	return (x - density->std_mean) / density->std_stdev;
+}
+int GMRFLib_density_user2std_n(double *x_std, double *x, GMRFLib_density_tp * density, int n)
+{
+	// the vectorised version
+	int i;
+	double a = 1.0 / density->std_stdev;
+	double b = -density->std_mean / density->std_stdev;
+	for (i = 0; i < n; i++) {
+		x_std[i] = a * x[i] + b;
+	}
+	return GMRFLib_SUCCESS;
 }
 int GMRFLib_gsl_integration_fix_limits(double *new_lower, double *new_upper, gsl_function * F, double lower, double upper)
 {

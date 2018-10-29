@@ -25,7 +25,7 @@ namespace fmesh {
   double Vec::length(const Point& s0)
   {
     return s0.length();
-  };
+  }
 
   /*!
     Calculate an arbitrary perpendicular vector.
@@ -51,7 +51,7 @@ namespace fmesh {
     n.s[0] = zm*s_1 - ym*s_2;
     n.s[1] = xm*s_2 - zm*s_0;
     n.s[2] = ym*s_0 - xm*s_1;
-  };
+  }
 
 
 

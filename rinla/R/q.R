@@ -115,21 +115,23 @@
         return (NULL)
 
     ## define some environment variables for remote computing
-    inla.eval(paste("Sys.setenv(", "\"INLA_PATH\"", "=\"", system.file("bin", package="INLA"), "\"", ")", sep=""))
-    inla.eval(paste("Sys.setenv(", "\"INLA_OS\"", "=\"", inla.os.type() , "\"", ")", sep=""))
-    inla.eval(paste("Sys.setenv(", "\"INLA_HGVERSION\"", "=\"", inla.version("hgid") , "\"", ")", sep=""))
+    vars = c(INLA_PATH = system.file("bin", package="INLA"), 
+             INLA_OS = inla.os.type(), 
+             INLA_HGVERSION = inla.version("hgid"))
     if (inla.os("windows")) {
-        inla.eval(paste("Sys.setenv(", "\"INLA_SSH_AUTH_SOCK\"", "=\"", inla.getOption("ssh.auth.sock"), "\"", ")", sep=""))
-        inla.eval(paste("Sys.setenv(", "\"INLA_CYGWIN_HOME\"", "=\"", inla.getOption("cygwin.home"), "\"", ")", sep=""))
-        inla.eval(paste("Sys.setenv(", "\"INLA_HOME\"", "=\"",
-                        inla.cygwin.map.filename(gsub("\\\\", "/", inla.get.HOME())), "\"", ")", sep=""))
+        vars = c(vars,
+                 INLA_SSH_AUTH_SOCK = inla.getOption("ssh.auth.sock"),
+                 INLA_CYGWIN_HOME = inla.getOption("cygwin.home"), 
+                 INLA_HOME = inla.cygwin.map.filename(gsub("\\\\", "/", inla.get.HOME())))
     } else {
-        inla.eval(paste("Sys.setenv(", "\"INLA_HOME\"", "=\"", inla.get.HOME(), "\"", ")", sep=""))
-        ## if SSH_AUTH_SOCK is not set, then we can pass it to the remote computing script
+        vars = c(vars,
+                 INLA_HOME = inla.get.HOME())
         if (Sys.getenv("SSH_AUTH_SOCK") == "") {
-            inla.eval(paste("Sys.setenv(", "\"INLA_SSH_AUTH_SOCK\"", "=\"", inla.getOption("ssh.auth.sock"), "\"", ")", sep=""))
+            vars = c(vars,
+                     INLA_SSH_AUTH_SOCK = inla.getOption("ssh.auth.sock"))
         }
     }
+    do.call("Sys.setenv", as.list(vars))
 
     inla.call = system.file("bin/remote/inla.q", package="INLA")
     if (inla.os("windows")) {

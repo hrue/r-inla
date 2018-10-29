@@ -1,10 +1,18 @@
-\chapter{Survival analysis} 
+\section{Survival analysis}\label{sec:survival}
 
-\SweaveOpts{prefix.string=figs/survival} 
-<<opts,echo=F,results=hide>>=
+The R source for this file is available at
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-survival.R}
+
+
+<<opts,echo=F,results='hide',message=FALSE,warning=FALSE>>=
+library(knitr)
+opts_chunk$set(
+fig.path='figs/survival',
+message=FALSE, warning=FALSE
+)
 options(width=75, prompt = " ", continue = "   ")
-require(INLA)
-require(fields)
+library(INLA)
+library(fields)
 lcall <- inla.getOption('inla.call')
 inla.setOption(inla.call='remote')
 inla.setOption(num.threads=8)
@@ -20,7 +28,7 @@ parametric survival model and in the section~\ref{sec:coxph}
 we also show how to fit the semiparametric 
 Cox proportional hazard model. 
 
-\section{Parametric survival model}\label{sec:parsurv} 
+\subsection{Parametric survival model}\label{sec:parsurv} 
 
 We load the Leukaemia survival data using 
 <<Leuk>>=
@@ -41,9 +49,15 @@ The projector matrix is obtained with
 A <- inla.spde.make.A(mesh, loc)
 @ 
 
-The SPDE model is created with 
+Defining the SPDE model considering the PC-prior 
+derived in \cite{fuglstadetal:2017} for the 
+model parameters as the practical range, $\sqrt{8\nu}/\kappa$, 
+and the marginal standard deviation.  
 <<spde>>=
-spde <- inla.spde2.matern(mesh, alpha=2)
+spde <- inla.spde2.pcmatern(
+    mesh=mesh, alpha=2, ### mesh and smoothness parameter
+    prior.range=c(0.05, 0.01), ### P(practic.range<0.05)=0.01
+    prior.sigma=c(1, 0.01)) ### P(sigma>1)=0.01
 @ 
 
 The model formula, including the intercept, 
@@ -71,7 +85,7 @@ stk <- inla.stack(data=list(time=Leuk$time, cens=Leuk$cens),
 Now, we just had to fit the model. In this example we use 
 the 'weibullsurv' likelihood. Hovewer, other parametric 
 likelihoods can be used as well. 
-<<res,results=hide>>=
+<<res,results='hide'>>=
 r <- inla(formula, family="weibullsurv", data=inla.stack.data(stk), 
           control.predictor=list(A=inla.stack.A(stk)))
 @ 
@@ -114,17 +128,15 @@ image.plot(x=prj$x, y=prj$y, z=sd.spat, asp=1,
            xlab='', ylab='', axes=FALSE, horizontal=TRUE)
 plot(nwEngland, add=TRUE)
 @
-\setkeys{Gin}{width=0.99\textwidth} 
 \begin{figure}\centering
-<<wsmap,echo=F,fig=T,eps=F,width=7,height=5.3>>= 
+<<wsmap,echo=FALSE,fig.width=7,fig.height=5.3,out.width='0.97\\textwidth'>>=
 <<wscode>>
 @ 
 \caption{Map of the spatial effect in the Weibull survival model.
 Posterior mean (left) and posterior standard deviation (right).} 
-\label{fig:wsmap}
-\end{figure}
+\end{figure}\label{fig:wsmap}
 
-\section{Cox proportional hazard survival model}\label{sec:coxph} 
+\subsection{Cox proportional hazard survival model}\label{sec:coxph} 
 
 The Cox proportinal hazard (coxph) survival model can be written 
 as a Poisson regression. 
@@ -145,7 +157,7 @@ cph.leuk <- inla.coxph(formula0, data=data.frame(a0=1, Leuk[, c(1:8)]),
 @ 
 
 For comparison pourpose we can fit this model using 
-<<coxph0,results=hide>>=
+<<coxph0,results='hide'>>=
 cph.res0 <- inla(formula0, 'coxph', data=data.frame(a0=1,Leuk))
 @ 
 
@@ -175,7 +187,7 @@ cph.data <- c(inla.stack.data(cph.stk), cph.leuk$data.list)
 @ 
 
 Then, we only had to use it considering the Poisson likelihood
-<<cphres,results=hide>>=
+<<cphres,results='hide'>>=
 cph.res <- inla(cph.formula, family='Poisson', 
                 data=cph.data, E=cph.data$E, 
                 control.predictor=list(A=inla.stack.A(cph.stk)))
@@ -183,7 +195,7 @@ cph.res <- inla(cph.formula, family='Poisson',
 
 We can compare the results with the result from the \pkg{survival} package. 
 <<survival>>=
-require(survival)
+library(survival)
 m0 <- coxph(Surv(time, cens) ~ sex + age + wbc + tpi, Leuk)
 cbind(survival=c(NA, coef(m0)),
       r0=cph.res0$summary.fix[,1], r1=cph.res$summary.fix[,1])

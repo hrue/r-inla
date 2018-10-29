@@ -71,7 +71,7 @@
 ##!     \code{inla.pc.cormat.permute} randomly permutes a correlation matrix,
 ##!     which is useful if an exchangable sample of a correlation matrix is required.
 ##! }
-##! \author{Havard Rue \email{hrue@math.ntnu.no}}
+##! \author{Havard Rue \email{hrue@r-inla.org}}
 ##! \examples{
 ##!  p = 4
 ##!  print(paste("theta has length", inla.pc.cormat.p2dim(p)))

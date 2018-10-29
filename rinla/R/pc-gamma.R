@@ -18,7 +18,7 @@
 ##!              percentiles of the PC prior for \code{Gamma(1/a, 1/a)}}
 ##! \usage{
 ##! inla.pc.rgamma(n, lambda = 1)
-##! inla.pc.dgamma(x, lambda = 1, = FALSE)
+##! inla.pc.dgamma(x, lambda = 1, log = FALSE)
 ##! inla.pc.qgamma(p, lambda = 1)
 ##! inla.pc.pgamma(q, lambda = 1)
 ##! }
@@ -41,7 +41,7 @@
 ##!  \code{inla.pc.rgamma} generates random deviates.
 ##! }
 ##! \seealso{inla.doc("pc.gamma")}
-##! \author{Havard Rue \email{hrue@math.ntnu.no}}
+##! \author{Havard Rue \email{hrue@r-inla.org}}
 ##! \examples{
 ##! x = inla.pc.rgamma(100,  lambda = 1)
 ##! d = inla.pc.dgamma(x, lambda = 1)
@@ -55,7 +55,7 @@
 inla.pc.gamma.intern = function(lambda = 1)
 {
     ## return a marginal-object in the log(x)-scale. the important variable is x*lambda, 
-    log.x = seq(-10, 10, len=4096) - log(lambda)
+    log.x = seq(-20, 10, len=4096) - log(lambda)
     x = exp(log.x)
     marg = list(x = log.x, y = inla.pc.dgamma(x, lambda = lambda, log=FALSE) * x)
     return (marg)

@@ -19,14 +19,13 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
- * RCSId: $Id: design.h,v 1.4 2006/10/23 11:59:44 hrue Exp $
  *
  */
 
@@ -45,6 +44,8 @@
 #include <malloc.h>
 #endif
 
+#include "GMRFLib/fmesher-io.h"
+
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
@@ -55,13 +56,21 @@
 #define __END_DECLS					       /* empty */
 #endif
 
-__BEGIN_DECLS typedef struct {
+__BEGIN_DECLS 
+
+//
+
+typedef struct {
 	double **experiment;
+	double *int_weight;
 	int nexperiments;
 	int nfactors;
+	int std_scale;					       /* if true, then the weights are on a standardized scale. this
+								* is the normal case */
 } GMRFLib_design_tp;
 
 int GMRFLib_get_design(GMRFLib_design_tp ** design, int nfactors);
+int GMRFLib_read_design(GMRFLib_design_tp ** design, GMRFLib_matrix_tp *D, int std_scale);
 int GMRFLib_free_design(GMRFLib_design_tp * design);
 int GMRFLib_print_design(FILE * fp, GMRFLib_design_tp * design);
 

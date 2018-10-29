@@ -1,0 +1,45 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Dirichlet prior}
+
+\subsection*{Parametrization}
+This is a prior for $(\gamma_1, \ldots, \gamma_K)$, where
+$0<\gamma_k<1$ and $\sum_{k=1}^{K} \gamma_k = 1$. The density is
+\begin{displaymath}
+    \pi(\gamma_1, \ldots, \gamma_K) = \frac{\Gamma(K\alpha)}{\Gamma(\alpha)^{K}}
+    \prod_{k=1}^{K} \gamma_i^{\alpha-1}
+\end{displaymath}
+using a common $\alpha$ for all $k$.
+
+\subsection*{Specification}
+
+This prior for the hyperparameters is specified inside the
+\texttt{hyper}-spesification, as
+\begin{center}
+    \texttt{hyper = list(<theta> =
+        list(prior="dirichlet", param=<alpha>))}
+\end{center}
+and the value of $K$ is implicit for corresponding model.
+
+
+
+\subsection*{Example}
+
+\subsection*{Notes}
+
+This is an experimental prior-function. The normalizing constant wrt
+to the internal representation is correct only up to a multiplicative
+constant.
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

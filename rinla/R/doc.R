@@ -15,7 +15,7 @@
 ##!\item{sec}{An optional section to look for the documentation. If missing, all sections are used.}
 ##!\item{verbose}{Logical if \code{TRUE} then run in verbose mode}
 ##!}
-##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!\author{Havard Rue \email{hrue@r-inla.org}}
 ##!\seealso{\code{www.r-inla.org}}
 ##!\examples{
 ##!\dontrun{inla.doc("rw2")}
@@ -29,11 +29,11 @@
     m = inla.models()
 
     for(section in 1:length(m)) {
-        if (verbose) {
-            cat(paste("Search in section:", names(m)[section], "\n"))
-            cat(paste("\t",  "Names in section:",  names(m[[section]]), "\n"))
-        }
-        if (missing(sec) || names(m)[sec] == sec) {
+        if (missing(sec) || sections[section] == sec) {
+            if (verbose) {
+                cat(paste("Search in section:", sections[section], "\n"))
+                cat(paste("\t",  "Names in section:",  names(m[[section]]), "\n"))
+            }
             x = inla.trim.family(names(m[[section]]))
             if (length(x) > 0L) {
                 idx = grep(what, x)
@@ -57,6 +57,10 @@
                         }
                     }
                 }
+            }
+        } else {
+            if (verbose) {
+                cat(paste("Skip section:", sections[section], "\n"))
             }
         }
     }

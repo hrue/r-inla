@@ -13,7 +13,7 @@
 ##! If an error is found, then an error message is shows, otherwise the graph-object returned by
 ##! \code{inla.read.graph()} is returned.
 ##!}
-##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!\author{Havard Rue \email{hrue@r-inla.org}}
 ##!\seealso{inla.read.graph}
 ##!\examples{
 ##!## Not run:

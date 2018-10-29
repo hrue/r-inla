@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 
@@ -47,6 +47,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "amd.h"
+#include "metis.h"
 
 #ifndef HGVERSION
 #define HGVERSION
@@ -165,12 +166,12 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 /* 
    copy a supernodal_factor_matrix
 */
-supernodal_factor_matrix *GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(supernodal_factor_matrix * L)
+supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matrix * L)
 {
 #define DUPLICATE(name,len,type) if (1) {					\
-		if (L->name && len) {					\
-			LL->name = (type *)Calloc(len, type); \
-			memcpy(LL->name,L->name,(size_t)len*sizeof(type)); \
+		if (L->name && ((len) > 0)) {				\
+			LL->name = (type *)Calloc((len), type);		\
+			memcpy(LL->name,L->name,(size_t)(len)*sizeof(type)); \
 		} else {						\
 			LL->name = (type *)NULL;			\
 		}							\
@@ -228,7 +229,119 @@ supernodal_factor_matrix *GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(su
 	return LL;
 }
 
-GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_nnz(supernodal_factor_matrix * L)
+void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *which)
+{
+	// this for metis version 5
+
+	int n, nnz, i, j, ip;
+	int *xadj;
+	int *adj;
+	int *len;
+	int *ptr;
+	int ret;
+
+	assert(sizeof(idx_t) == sizeof(int));
+
+	if (!(m->flags & TAUCS_SYMMETRIC) && !(m->flags & TAUCS_HERMITIAN)) {
+		taucs_printf("taucs_ccs_treeorder: METIS ordering only works on symmetric matrices.\n");
+		*perm = NULL;
+		*invperm = NULL;
+		return;
+	}
+	/*
+	 * this routine may actually work on UPPER as well 
+	 */
+	if (!(m->flags & TAUCS_LOWER)) {
+		taucs_printf("taucs_ccs_metis: the lower part of the matrix must be represented.\n");
+		*perm = NULL;
+		*invperm = NULL;
+		return;
+	}
+
+	n = m->n;
+	nnz = (m->colptr)[n];
+
+	*perm = Calloc(n, int);
+	*invperm = Calloc(n, int);
+
+	xadj = Calloc(n + 1, int);
+	adj = Calloc(2 * nnz, int);
+
+
+	if (!(*perm) || !(*invperm) || !xadj || !adj) {
+		Free(*perm);
+		Free(*invperm);
+		Free(xadj);
+		Free(adj);
+		*perm = *invperm = NULL;
+		return;
+	}
+
+	ptr = len = *perm;
+	for (i = 0; i < n; i++)
+		len[i] = 0;
+
+	for (j = 0; j < n; j++) {
+		for (ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
+			/*
+			 * i = (m->rowind)[ip] - (m->indshift);
+			 */
+			i = (m->rowind)[ip];
+			if (i != j) {
+				len[i]++;
+				len[j]++;
+			}
+		}
+	}
+
+	xadj[0] = 0;
+	for (i = 1; i <= n; i++)
+		xadj[i] = xadj[i - 1] + len[i - 1];
+
+	for (i = 0; i < n; i++)
+		ptr[i] = xadj[i];
+
+	for (j = 0; j < n; j++) {
+		for (ip = (m->colptr)[j]; ip < (m->colptr)[j + 1]; ip++) {
+			/*
+			 * i = (m->rowind)[ip] - (m->indshift);
+			 */
+			i = (m->rowind)[ip];
+			if (i != j) {
+				adj[ptr[i]] = j;
+				adj[ptr[j]] = i;
+				ptr[i]++;
+				ptr[j]++;
+			}
+		}
+	}
+	idx_t options[METIS_NOPTIONS];
+	// Have to adapt to the PARDISO metis libs
+	// METIS_SetDefaultOptions(options);
+	for (i = 0; i < METIS_NOPTIONS; i++) {
+		options[i] = -1;
+	}
+
+	options[METIS_OPTION_NUMBERING] = 0;
+	options[METIS_OPTION_NSEPS] = 5;
+	options[METIS_OPTION_COMPRESS] = 0;
+	options[METIS_OPTION_PFACTOR] = 100;
+
+#if defined(NO_PARDISO_LIB)
+	// this the metis5 lib
+	ret = METIS_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
+#else
+	// this is defined in the pardiso libs
+	ret = METIS51_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
+#endif
+	if (ret != METIS_OK)
+		GMRFLib_ERROR(GMRFLib_EREORDER);
+
+	Free(xadj);
+	Free(adj);
+}
+
+GMRFLib_sizeof_tp GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L)
 {
 	/*
 	 * return the number of non-zeros in the matrix 
@@ -245,28 +358,7 @@ GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_nnz(supernodal_facto
 	return (nnz);
 }
 
-GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_computing_time(supernodal_factor_matrix * L)
-{
-	/*
-	 * return, approximately, the computing time for factorising L up to the constant of proportionality
-	 */
-	GMRFLib_sizeof_tp siz = 0;
-
-	if (!L) {
-		return siz;
-	}
-
-	int sn, jp;
-
-	for (sn = 0; sn < L->n_sn; sn++) {
-		for (jp = 0; jp < L->sn_size[sn]; jp++) {
-			siz += ISQR(L->sn_size[sn] - jp + 1);
-			siz += ISQR(L->sn_up_size[sn] - L->sn_size[sn] + 1);	/* HOW CAN THIS BE CORRECT ???? */
-		}
-	}
-	return siz;
-}
-GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_sizeof(supernodal_factor_matrix * L)
+GMRFLib_sizeof_tp GMRFLib_sm_fact_sizeof_TAUCS(supernodal_factor_matrix * L)
 {
 	/*
 	 * return, approximately, the size of L 
@@ -310,7 +402,7 @@ GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_sizeof(supernodal_fa
 /* 
    make a copy of a ccs-matrix
 */
-taucs_ccs_matrix *GMRFLib_my_taucs_dccs_duplicate(taucs_ccs_matrix * L, int flags)
+taucs_ccs_matrix *GMRFLib_L_duplicate_TAUCS(taucs_ccs_matrix * L, int flags)
 {
 	/*
 	 * copy a square matrix 
@@ -333,12 +425,13 @@ taucs_ccs_matrix *GMRFLib_my_taucs_dccs_duplicate(taucs_ccs_matrix * L, int flag
 
 	return LL;
 }
-int GMRFLib_print_ccs_matrix(FILE *fp, taucs_ccs_matrix * L)
+
+int GMRFLib_print_ccs_matrix(FILE * fp, taucs_ccs_matrix * L)
 {
 	if (!L) {
 		return GMRFLib_SUCCESS;
 	}
-	
+
 	int i;
 	int n = L->n;
 	int nnz = L->colptr[L->n];
@@ -346,17 +439,18 @@ int GMRFLib_print_ccs_matrix(FILE *fp, taucs_ccs_matrix * L)
 	fprintf(fp, "n = %d\n", n);
 	fprintf(fp, "nnz = %d\n", nnz);
 
-	for(i=0; i< n+1; i++) {
+	for (i = 0; i < n + 1; i++) {
 		fprintf(fp, "\tcolptr[%1d] = %1d\n", i, L->colptr[i]);
 	}
-	for(i=0; i<nnz; i++) {
+	for (i = 0; i < nnz; i++) {
 		fprintf(fp, "\trowind[%1d] = %1d\n", i, L->rowind[i]);
 		fprintf(fp, "\tvalues[%1d] = %.12g\n", i, L->values.d[i]);
 	}
 
 	return GMRFLib_SUCCESS;
 }
-GMRFLib_sizeof_tp GMRFLib_my_taucs_dccs_sizeof(taucs_ccs_matrix * L)
+
+GMRFLib_sizeof_tp GMRFLib_L_sizeof_TAUCS(taucs_ccs_matrix * L)
 {
 	/*
 	 * return, approximately, the sizeof L 
@@ -375,63 +469,7 @@ GMRFLib_sizeof_tp GMRFLib_my_taucs_dccs_sizeof(taucs_ccs_matrix * L)
 
 	return siz;
 }
-int GMRFLib_compute_reordering_TAUCS_orig(int **remap, GMRFLib_graph_tp * graph)
-{
-	/*
-	 * this is the original version without treating global nodes spesifically. 
-	 */
 
-	int i, j, k, ic, ne, n, nnz, *perm = NULL, *iperm = NULL;
-	taucs_ccs_matrix *Q = NULL;
-	char *p = NULL;
-
-	FIXME("THIS NEEDS TO BE FIXED FOR GMRFLib_reorder");
-	abort();
-
-	if (!graph || graph->n == 0) {
-		return GMRFLib_SUCCESS;
-	}
-	n = graph->n;
-	for (i = 0, nnz = n; i < n; i++) {
-		nnz += graph->nnbs[i];
-	}
-	Q = taucs_ccs_create(n, n, nnz, TAUCS_DOUBLE);
-	Q->flags = (TAUCS_PATTERN | TAUCS_SYMMETRIC | TAUCS_TRIANGULAR | TAUCS_LOWER);
-	Q->colptr[0] = 0;
-
-	for (i = 0, ic = 0; i < n; i++) {
-		Q->rowind[ic++] = i;
-		for (k = 0, ne = 1; k < graph->nnbs[i]; k++) {
-			j = graph->nbs[i][k];
-			if (j > i) {
-				break;
-			}
-			Q->rowind[ic++] = j;
-			ne++;
-		}
-		Q->colptr[i + 1] = Q->colptr[i] + ne;
-	}
-
-	if (1) {
-		p = GMRFLib_strdup("metis");
-		taucs_ccs_order(Q, &perm, &iperm, p);	       /* use the metis library */
-	} else {
-		FIXME("use identity reordering");
-		p = GMRFLib_strdup("identity");
-		taucs_ccs_order(Q, &perm, &iperm, p);	       /* use the identity mapping */
-	}
-
-	*remap = iperm;					       /* yes, this is correct */
-	Free(perm);
-	Free(p);
-	taucs_ccs_free(Q);
-
-	if (!*remap) {
-		GMRFLib_ERROR(GMRFLib_EREORDER);
-	}
-
-	return GMRFLib_SUCCESS;
-}
 int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRFLib_reorder_tp reorder, GMRFLib_global_node_tp * gn_ptr)
 {
 	/*
@@ -448,16 +486,16 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 
 	if (reorder == GMRFLib_REORDER_IDENTITY || reorder == GMRFLib_REORDER_REVERSE_IDENTITY) {
 		int *imap = Calloc(graph->n, int);
-		if (reorder == GMRFLib_REORDER_IDENTITY){
-			for(i=0; i<graph->n; i++){
+		if (reorder == GMRFLib_REORDER_IDENTITY) {
+			for (i = 0; i < graph->n; i++) {
 				imap[i] = i;
 			}
-		} else if (reorder == GMRFLib_REORDER_REVERSE_IDENTITY){
-			for(i=0; i<graph->n; i++){
-				imap[i] = graph->n -1 -i;
+		} else if (reorder == GMRFLib_REORDER_REVERSE_IDENTITY) {
+			for (i = 0; i < graph->n; i++) {
+				imap[i] = graph->n - 1 - i;
 			}
 		} else {
-			assert(0==1);
+			assert(0 == 1);
 		}
 		*remap = imap;
 		return GMRFLib_SUCCESS;
@@ -656,6 +694,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap)
 {
 	int i, j, k, ic, ne, n, nnz, *perm = NULL, *iperm = NULL, id, nan_error = 0;
@@ -803,7 +842,8 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, supernodal_factor_matrix ** symb_fact, GMRFLib_fact_info_tp * finfo, double **L_inv_diag)
+int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, supernodal_factor_matrix ** symb_fact, GMRFLib_fact_info_tp * finfo,
+					  double **L_inv_diag)
 {
 	int flags, k, retval;
 
@@ -869,74 +909,6 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, supernodal_fact
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_factorise_sparse_matrix_TAUCS_OLD(taucs_ccs_matrix ** L, GMRFLib_fact_info_tp * finfo)
-{
-	taucs_ccs_matrix *L_fact = NULL;
-	int flags;
-	int solver_option = 0;				       /* chose the solver here */
-	int k;
-
-	if (!L)
-		return GMRFLib_SUCCESS;
-
-	/*
-	 * compute some info about the factorization 
-	 */
-	k = (*L)->colptr[(*L)->n] - (*L)->n;
-	finfo->n = (*L)->n;
-	finfo->nnzero = 2 * k + (*L)->n;
-
-	flags = (*L)->flags;
-
-	switch (solver_option) {
-	case 0:					       /* fastest */
-		L_fact = (taucs_ccs_matrix *) taucs_ccs_factor_llt_mf(*L);
-		taucs_ccs_free(*L);
-		if (!L_fact) {
-			GMRFLib_ERROR(GMRFLib_EPOSDEF);
-		}
-		*L = L_fact;
-		L_fact = taucs_supernodal_factor_to_ccs(*L);
-		taucs_supernodal_factor_free(*L);
-		*L = L_fact;
-		(*L)->flags = flags & ~TAUCS_SYMMETRIC;
-		break;
-
-	case 1:					       /* less fast, but less memory */
-		L_fact = (taucs_ccs_matrix *) taucs_ccs_factor_llt_ll(*L);
-		taucs_ccs_free(*L);
-		if (!L_fact) {
-			GMRFLib_ERROR(GMRFLib_EPOSDEF);
-		}
-		*L = L_fact;
-		L_fact = taucs_supernodal_factor_to_ccs(*L);
-		taucs_supernodal_factor_free(*L);
-		*L = L_fact;
-		(*L)->flags = flags & ~TAUCS_SYMMETRIC;
-		break;
-
-	case 2:					       /* slower */
-		L_fact = taucs_ccs_factor_llt(*L, 0.0, 0);
-		if (!L_fact) {
-			GMRFLib_ERROR(GMRFLib_EPOSDEF);
-		}
-		taucs_ccs_free(*L);
-		*L = L_fact;
-		break;
-
-	default:
-		abort();
-	}
-
-	/*
-	 * some last info 
-	 */
-	k = (*L)->colptr[(*L)->n] - (*L)->n;
-	finfo->nfillin = k - (finfo->nnzero - finfo->n) / 2;
-
-	return GMRFLib_SUCCESS;
-}
-
 int GMRFLib_free_fact_sparse_matrix_TAUCS(taucs_ccs_matrix * L, double *L_inv_diag, supernodal_factor_matrix * symb_fact)
 {
 	if (L) {
@@ -949,13 +921,6 @@ int GMRFLib_free_fact_sparse_matrix_TAUCS(taucs_ccs_matrix * L, double *L_inv_di
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_free_fact_sparse_matrix_TAUCS_OLD(taucs_ccs_matrix * L)
-{
-	if (L) {
-		taucs_ccs_free(L);
-	}
-	return GMRFLib_SUCCESS;
-}
 int GMRFLib_solve_l_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap)
 {
 	GMRFLib_EWRAP0(GMRFLib_convert_to_mapped(rhs, NULL, graph, remap));
@@ -963,6 +928,7 @@ int GMRFLib_solve_l_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFL
 	GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap)
 {
 	double *b = NULL;
@@ -978,6 +944,7 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRF
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap)
 {
 	GMRFLib_EWRAP0(GMRFLib_convert_to_mapped(rhs, NULL, graph, remap));
@@ -1013,7 +980,9 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMR
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int findx, int toindx, int remapped)
+
+int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int findx, int toindx,
+						 int remapped)
 {
 	/*
 	 * rhs in real world, L in mapped world.  solve L^Tx=b backward only from rhs[findx] up to rhs[toindx].  note that
@@ -1036,7 +1005,9 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int findx, int toindx, int remapped)
+
+int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int findx, int toindx,
+						int remapped)
 {
 	/*
 	 * rhs in real world, L in mapped world.  solve Lx=b backward only from rhs[findx] up to rhs[toindx].  note that
@@ -1058,7 +1029,9 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * 
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * L, double *L_inv_diag, GMRFLib_graph_tp * graph, int *remap, int idx)
+
+int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * L, double *L_inv_diag, GMRFLib_graph_tp * graph, int *remap,
+						  int idx)
 {
 	/*
 	 * this is special version of the GMRFLib_solve_llt_sparse_matrix_TAUCS()-routine, where we KNOW that x is 0 exect for a 1 at index
@@ -1144,7 +1117,9 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * 
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_comp_cond_meansd_TAUCS(double *cmean, double *csd, int indx, double *x, int remapped, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap)
+
+int GMRFLib_comp_cond_meansd_TAUCS(double *cmean, double *csd, int indx, double *x, int remapped, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph,
+				   int *remap)
 {
 	/*
 	 * compute the conditonal mean and stdev for x[indx]|x[indx+1]...x[n-1] for the current value of x. if `remapped', then 
@@ -1162,6 +1137,7 @@ int GMRFLib_comp_cond_meansd_TAUCS(double *cmean, double *csd, int indx, double 
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_log_determinant_TAUCS(double *logdet, taucs_ccs_matrix * L)
 {
 	int i;
@@ -1174,6 +1150,7 @@ int GMRFLib_log_determinant_TAUCS(double *logdet, taucs_ccs_matrix * L)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp * problem, int storage)
 {
 	if (!problem) {
@@ -1196,7 +1173,7 @@ int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp * problem, int storage)
 		taucs_ccs_matrix *L = NULL, *LL = NULL;	       /* to hold L matrices if new ones are built */
 		map_ii **mis_elm = NULL;
 
-		n = problem->sub_sm_fact.L->n;
+		n = problem->sub_sm_fact.TAUCS_L->n;
 
 		/*
 		 * no-check, check-once or failsafe? 
@@ -1207,7 +1184,7 @@ int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp * problem, int storage)
 			/*
 			 * do some checking 
 			 */
-			L = GMRFLib_my_taucs_dccs_duplicate(problem->sub_sm_fact.L, TAUCS_DOUBLE | TAUCS_LOWER | TAUCS_TRIANGULAR);
+			L = GMRFLib_L_duplicate_TAUCS(problem->sub_sm_fact.TAUCS_L, TAUCS_DOUBLE | TAUCS_LOWER | TAUCS_TRIANGULAR);
 			while ((mis_elm = GMRFLib_compute_Qinv_TAUCS_check(L))) {
 				LL = L;
 				L = GMRFLib_compute_Qinv_TAUCS_add_elements(LL, mis_elm);
@@ -1498,12 +1475,13 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage
 	 * GMRFLib_QINV_ALL GMRFLib_QINV_NEIGB GMRFLib_QINV_DIAG 
 	 */
 	double *ptr = NULL, value, diag, *Zj = NULL;
-	int i, j, k, jp, ii, kk, jj, iii, jjj, n, *nnbs = NULL, **nbs = NULL, *nnbsQ = NULL, *rremove = NULL, nrremove, *inv_remap = NULL, *Zj_set, nset;
+	int i, j, k, jp, ii, kk, jj, iii, jjj, n, *nnbs = NULL, **nbs = NULL, *nnbsQ = NULL, *rremove = NULL, nrremove, *inv_remap =
+	    NULL, *Zj_set, nset;
 	taucs_ccs_matrix *L = NULL;
 	map_ii *mapping = NULL;
 	map_id **Qinv_L = NULL, *q = NULL;
 
-	L = (Lmatrix ? Lmatrix : problem->sub_sm_fact.L);      /* chose matrix to use */
+	L = (Lmatrix ? Lmatrix : problem->sub_sm_fact.TAUCS_L);	/* chose matrix to use */
 	n = L->n;
 
 	/*
@@ -1707,6 +1685,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_my_taucs_dccs_solve_lt(void *vL, double *x, double *b)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
@@ -1728,6 +1707,7 @@ int GMRFLib_my_taucs_dccs_solve_lt(void *vL, double *x, double *b)
 
 	return 0;
 }
+
 int GMRFLib_my_taucs_dccs_solve_lt_special(void *vL, double *x, double *b, int from_idx, int to_idx)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
@@ -1749,6 +1729,7 @@ int GMRFLib_my_taucs_dccs_solve_lt_special(void *vL, double *x, double *b, int f
 
 	return 0;
 }
+
 int GMRFLib_my_taucs_dccs_solve_l_special(void *vL, double *x, double *b, int from_idx, int to_idx)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
@@ -1768,6 +1749,7 @@ int GMRFLib_my_taucs_dccs_solve_l_special(void *vL, double *x, double *b, int fr
 	}
 	return 0;
 }
+
 int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
@@ -1821,6 +1803,7 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 	}
 	return 0;
 }
+
 int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
@@ -1856,6 +1839,7 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 	}
 	return 0;
 }
+
 int GMRFLib_my_taucs_cmsd(double *cmean, double *csd, int idx, taucs_ccs_matrix * L, double *x)
 {
 	int j, jp;
@@ -1874,6 +1858,7 @@ int GMRFLib_my_taucs_cmsd(double *cmean, double *csd, int idx, taucs_ccs_matrix 
 
 	return 0;
 }
+
 int GMRFLib_my_taucs_check_flags(int flags)
 {
 #define CheckFLAGS(X) if (flags & X) printf(#X " is ON\n");if (!(flags & X)) printf(#X " is OFF\n")
@@ -1891,6 +1876,7 @@ int GMRFLib_my_taucs_check_flags(int flags)
 #undef CheckFLAGS
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix * L, const char *filename)
 {
 #define ROUND(_i) ((int) ((_i) * reduce_factor))
@@ -1922,6 +1908,7 @@ int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix * L, const char 
 
 	return err;
 }
+
 int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matrix * L)
 {
 	/*
@@ -1935,39 +1922,40 @@ int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matr
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_amdc(int n, int *pe, int *iw, int *len, int iwlen, int pfree,
 		 int *nv, int *next, int *last, int *head, int *elen, int *degree, int ncmpa, int *w)
 {
 	int result, i;
-	double control[AMD_CONTROL], info[AMD_INFO] ;
+	double control[AMD_CONTROL], info[AMD_INFO];
 
-	amd_defaults(control) ;
-	result = amd_order(n, pe, iw, last, control, info) ;
+	amd_defaults(control);
+	result = amd_order(n, pe, iw, last, control, info);
 	GMRFLib_ASSERT(result == AMD_OK, GMRFLib_EREORDER);
 
-	for(i = 0;  i<n; i++){
+	for (i = 0; i < n; i++) {
 		last[i]++;				       /* to Fortran indexing. */
 	}
 
-	return (result == AMD_OK ? GMRFLib_SUCCESS :  !GMRFLib_SUCCESS);
+	return (result == AMD_OK ? GMRFLib_SUCCESS : !GMRFLib_SUCCESS);
 }
+
 int GMRFLib_amdbarc(int n, int *pe, int *iw, int *len, int iwlen, int pfree,
-		 int *nv, int *next, int *last, int *head, int *elen, int *degree, int ncmpa, int *w)
+		    int *nv, int *next, int *last, int *head, int *elen, int *degree, int ncmpa, int *w)
 {
 	int result, i;
-	double control[AMD_CONTROL], info[AMD_INFO] ;
+	double control[AMD_CONTROL], info[AMD_INFO];
 
-	amd_defaults(control) ;
+	amd_defaults(control);
 	control[AMD_AGGRESSIVE] = 0;			       /* turn this off */
-	result = amd_order(n, pe, iw, last, control, info) ;
+	result = amd_order(n, pe, iw, last, control, info);
 	GMRFLib_ASSERT(result == AMD_OK, GMRFLib_EREORDER);
 
-	for(i = 0;  i<n; i++){
+	for (i = 0; i < n; i++) {
 		last[i]++;				       /* to Fortran indexing. */
 	}
 
-	return (result == AMD_OK ? GMRFLib_SUCCESS :  !GMRFLib_SUCCESS);
+	return (result == AMD_OK ? GMRFLib_SUCCESS : !GMRFLib_SUCCESS);
 }
 
 #undef GMRFLib_NSET_LIMIT
-

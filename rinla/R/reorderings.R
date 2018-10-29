@@ -19,7 +19,7 @@
 ##!\value{The names of all available reorderings}
 ##!%%
 ##!
-##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!\author{Havard Rue \email{hrue@r-inla.org}}
 ##!
 ##!\examples{
 ##!inla.reorderings()

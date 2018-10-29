@@ -19,14 +19,13 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
- * RCSId: $Id: smtp-taucs.h,v 1.39 2010/02/27 08:32:19 hrue Exp $
  *
  */
 
@@ -64,10 +63,8 @@ int GMRFLib_compute_reordering_TAUCS_orig(int **remap, GMRFLib_graph_tp * graph)
 int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRFLib_reorder_tp reorder,
 				     GMRFLib_global_node_tp *gn_ptr);
 int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap);
-int GMRFLib_factorise_sparse_matrix_TAUCS_OLD(taucs_ccs_matrix ** L, GMRFLib_fact_info_tp * finfo);
 int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, supernodal_factor_matrix ** symb_fact, GMRFLib_fact_info_tp * finfo, double **L_inv_diag);
 int GMRFLib_free_fact_sparse_matrix_TAUCS(taucs_ccs_matrix * L, double *L_inv_diag, supernodal_factor_matrix * symb_fact);
-int GMRFLib_free_fact_sparse_matrix_TAUCS_OLD(taucs_ccs_matrix * L);
 int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int findx, int toindx, int remapped);
@@ -92,20 +89,20 @@ map_ii **GMRFLib_compute_Qinv_TAUCS_check(taucs_ccs_matrix * L);
 taucs_ccs_matrix *GMRFLib_compute_Qinv_TAUCS_add_elements(taucs_ccs_matrix * L, map_ii ** missing_elements);
 int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage, taucs_ccs_matrix * Lmatrix);
 
-taucs_ccs_matrix *GMRFLib_my_taucs_dccs_duplicate(taucs_ccs_matrix * L, int flags);
+taucs_ccs_matrix *GMRFLib_L_duplicate_TAUCS(taucs_ccs_matrix * L, int flags);
 int GMRFLib_print_ccs_matrix(FILE *fp, taucs_ccs_matrix * L);
-supernodal_factor_matrix *GMRFLib_my_taucs_supernodal_factor_matrix_duplicate(supernodal_factor_matrix * L);
+supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matrix * L);
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL);
+void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *which);
 
 /* 
    internal functions here, not documented
 */
 int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix * L, const char *filename);
 int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matrix * L);
-GMRFLib_sizeof_tp GMRFLib_my_taucs_dccs_sizeof(taucs_ccs_matrix * L);
-GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_sizeof(supernodal_factor_matrix * L);
-GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_computing_time(supernodal_factor_matrix * L);
-GMRFLib_sizeof_tp GMRFLib_my_taucs_supernodal_factor_matrix_nnz(supernodal_factor_matrix * L);
+GMRFLib_sizeof_tp GMRFLib_L_sizeof_TAUCS(taucs_ccs_matrix * L);
+GMRFLib_sizeof_tp GMRFLib_sm_fact_sizeof_TAUCS(supernodal_factor_matrix * L);
+GMRFLib_sizeof_tp GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L);
 
 __END_DECLS
 #endif
