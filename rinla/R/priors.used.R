@@ -1,7 +1,7 @@
 ## Export: inla.priors.used
 
 ##!\name{inla.priors.used}
-##!\alias{inla.priors.used
+##!\alias{inla.priors.used}
 ##!\alias{priors.used}
 ##!\title{Print priors used}
 ##!\description{Print the priors used for the hyperparameters}
