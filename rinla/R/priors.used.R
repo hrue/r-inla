@@ -54,11 +54,11 @@
         }
     }
 
-    h4cat = function(h4, pre = NULL) {
+    h4cat = function(h4, pre = NULL, name = "theta") {
         if (h4$fixed == FALSE) {
             cat("\t\t",
                 if (!is.null(pre)) paste0(pre, ".") else "",
-                "theta", "", j, ":", "\n",
+                name, "", j, ":", "\n",
                 "\t\t\t", "parameter=[", h4$name, "]", "\n",
                 "\t\t\t", "prior=[", h4$prior, "]", "\n",
                 "\t\t\t", "param=[", p2char(h4$param), "]", "\n", sep="")
@@ -89,9 +89,11 @@
                                          prior = "normal",
                                          param = c(h3$prior.mean, h3$prior.prec),
                                          fixed = FALSE))
-                }
-                for(j in seq_along(h3$hyper)) {
-                    if (j <= ntheta) h4cat(h3$hyper[[j]])
+                    h4cat(h3$hyper[[1]], name = "beta")
+                } else {
+                    for(j in seq_along(h3$hyper)) {
+                        if (j <= ntheta) h4cat(h3$hyper[[j]])
+                    }
                 }
                 for(j in seq_along(h3$group.hyper)) {
                     if (j <= ntheta) h4cat(h3$group.hyper[[j]], "group")
