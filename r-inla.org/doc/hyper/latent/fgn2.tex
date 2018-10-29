@@ -1,0 +1,43 @@
+%% DO NOT EDIT!
+%% This file is generated automatically from models.R
+\begin{description}
+	\item[doc] Fractional Gaussian noise model (alt 2)
+	\item[hyper]\ 
+	 \begin{description}
+	 	\item[theta1]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 13101
+	 	 	\item[name] log precision
+	 	 	\item[short.name] prec
+	 	 	\item[prior] pc.prec
+	 	 	\item[param] 3 0.01
+	 	 	\item[initial] 1
+	 	 	\item[fixed] FALSE
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 	\item[theta2]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 13102
+	 	 	\item[name] logit H
+	 	 	\item[short.name] H
+	 	 	\item[prior] pcfgnh
+	 	 	\item[param] 0.9 0.1
+	 	 	\item[initial] 2
+	 	 	\item[fixed] FALSE
+	 	 	\item[to.theta] \verb!function(x) log((2*x-1)/(2*(1-x)))!
+	 	 	\item[from.theta] \verb!function(x) 0.5 + 0.5*exp(x)/(1+exp(x))!
+	 	 \end{description}
+	 \end{description}
+	\item[constr] FALSE
+	\item[nrow.ncol] FALSE
+	\item[augmented] TRUE
+	\item[aug.factor] 4
+	\item[aug.constr] 1
+	\item[n.div.by] 
+	\item[n.required] FALSE
+	\item[set.default.values] TRUE
+	\item[order.default] 4
+	\item[order.defined] 3 4
+	\item[pdf] fgn
+\end{description}

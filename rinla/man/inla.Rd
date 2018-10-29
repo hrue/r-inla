@@ -42,6 +42,7 @@ inla(
     inla.call = inla.getOption("inla.call"),
     inla.arg = inla.getOption("inla.arg"),
     num.threads = inla.getOption("num.threads"),
+    blas.num.threads = inla.getOption("blas.num.threads"),
     keep = inla.getOption("keep"),
     working.directory = inla.getOption("working.directory"),
     silent = inla.getOption("silent"),
@@ -68,7 +69,8 @@ variable, a list or the output of the function
 \item{family}{ A string indicating the likelihood
  family. The default is \code{gaussian} with identity
  link. See \code{names(inla.models()$likelihood)} for a
- list of possible alternatives.}
+ list of possible alternatives and use \code{\link{inla.doc}}
+ for detailed docs for individual families.}
 \item{contrasts}{Optional contrasts for the fixed
 effects; see \code{?lm} or \code{?glm} for details.}
 \item{data}{ A data frame or list containing the
@@ -154,9 +156,15 @@ improve the performance.}
 the 'inla' program and do not include default
 arguments. (OOPS: This is an expert option!)}
 \item{num.threads}{ Maximum number of threads the
-\code{inla}-program will use. xFor Windows this
-defaults to 1, otherwise its defaults to \code{NULL}
-(for which the system takes over control).}
+\code{inla}-program will use}
+\item{blas.num.threads}{The absolute value of \code{blas.num.threads} is the maximum
+number of threads the the \code{openblas}/\code{mklblas} will use (if available). If
+\code{blas.num.threads} > 0, then the environment variables
+\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned. If
+\code{blas.num.threads} < 0, then the environment variables
+\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned unless they
+are already defined. If \code{blas.num.threads} = 0, then variables
+\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be removed.}
 \item{keep}{ A boolean variable indicating that the
 working files (ini file, data files and results
 files) should be kept. If TRUE and no
@@ -296,7 +304,7 @@ using Integrated Nested Laplace Approximations, JRSS-series B
 (with discussion)}, vol 71, no 2, pp 319-392.
 Rue, H and Held, L. (2005) \emph{Gaussian Markov Random Fields
 - Theory and Applications} Chapman and Hall}
-\author{Havard Rue \email{hrue@math.ntnu.no} and Sara Martino}
+\author{Havard Rue \email{hrue@r-inla.org} and Sara Martino}
 \seealso{\code{\link{f}}, 
 \code{\link{inla.hyperpar}} }
 \examples{

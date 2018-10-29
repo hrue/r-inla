@@ -12,15 +12,16 @@
 \description{Control variables in \code{control.link} for use in \code{inla}}
 \usage{
 inla.set.control.link.default(...)
-control.link(fixed, hyper, initial, model, nq, order, param, prior, variant)
+control.link(fixed, hyper, initial, model, nq, order, param, prior, quantile, variant)
 }
 \arguments{
 \item{...}{Possible arguments}
 \item{model}{  The name of the link function/model}
 \item{order}{  The \code{order} of the link function, where the interpretation of \code{order} is model-dependent.}
 \item{variant}{  The \code{variant} of the link function, where the interpretation of \code{variant} is model-dependent.}
-\item{nq}{  Number of quadrature-points used to do the numerical integration}
+\item{nq}{  Number of quadrature-points used to do the numerical integration (default 15)}
 \item{hyper}{  Definition of the hyperparameter(s) for the link model chosen}
+\item{quantile}{  The quantile for quantile link function}
 \item{initial}{  (OBSOLETE!) The initial value(s) for the hyperparameter(s)}
 \item{fixed}{  (OBSOLETE!) A boolean variable if hyperparmater(s) is/are fixed or random}
 \item{prior}{  (OBSOLETE!) The name of the prior distribution(s) for the hyperparmater(s)}

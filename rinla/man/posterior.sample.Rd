@@ -5,14 +5,19 @@
  \name{inla.sample}
  \alias{inla.posterior.sample}
  \alias{posterior.sample}
+ \alias{inla.posterior.sample.eval}
+ \alias{posterior.sample.eval}
  
- \title{Generate samples from an approximated posterior of a fitted model}
+ \title{Generate samples, and functions thereof, from an approximated posterior of a fitted model}
  
- \description{This function generate samples from an approximated posterior
-              of a fitted model (an inla-object}
+ \description{This function generate samples, and functions of those,
+              from an approximated posterior of a fitted model (an inla-object)}
  \usage{
-     inla.posterior.sample(n = 1L, result, intern = FALSE, use.improved.mean = TRUE,
-                           add.names = TRUE, seed = 0L)
+     inla.posterior.sample(n = 1L, result, selection = list(),
+                           intern = FALSE, use.improved.mean = TRUE,
+                           add.names = TRUE, seed = 0L, num.threads = NULL,
+                           verbose = FALSE)
+     inla.posterior.sample.eval(fun, samples, return.matrix = TRUE, ...)
  }
  
  \arguments{
@@ -20,6 +25,14 @@
    \item{result}{The inla-object, ie the output from an \code{inla}-call.
        The \code{inla}-object must be created with
        \code{control.compute=list(config=TRUE)}.}
+   \item{selection}{Select what part of the sample to return. By default, the whole sample
+       is returned. \code{selection} is a named list with the name of the components of
+       the sample, and what indices of them to return. Names include \code{APredictor},
+       \code{Predictor}, \code{(Intercept)},  and otherwise names in the formula.
+      The values of the list, is interpreted as indices. If they
+       are negative, they are interpreted as 'not', a zero is interpreted as 'all',  and
+       positive indices are interpreted as 'only'. The names of elements of each samples 
+       refer to the indices in the full sample. }
    \item{use.improved.mean}{Logical. If \code{TRUE} then use the
        marginal mean values when constructing samples. If \code{FALSE}
        then use the mean in the Gaussian approximations.}
@@ -39,19 +52,40 @@
        If you want reproducible results,  you ALSO need to control the seed for the RNG in R by
        controlling the variable \code{.Random.seed} or using the function \code{set.seed},
        the example for how this can be done. }
+   \item{num.threads}{The number of threads that can be used. \code{num.threads>1L} requires
+       \code{seed = 0L}. Default value is controlled by \code{inla.getOption("num.threads")}}
+   \item{verbose}{Logical. Run in verbose mode or not.}
+   \item{fun}{The function to evaluate for each sample. Upon entry, the variable names
+               defined in the model are defined as the value of the sample.
+               The list of names are defined in \code{result$misc$configs$contents} where
+               \code{result} is an \code{inla}-object. This includes predefined names for
+               for the linear predictor (\code{Predictor} and \code{APredictor}),  and the
+               intercept (\code{(Intercept)} or \code{Intercept}).
+               The hyperparameters are defined as \code{theta},  no matter if they are in the
+               internal scale or not. The function \code{fun} can also return a vector.}
+   \item{samples}{\code{samples} is the output from \code{inla.posterior.sample()}}
+   \item{return.matrix}{Logical. If \code{TRUE},  then return the samples of \code{fun}
+                         as matrix,  otherwise,  as a list.}
+   \item{...}{Additional arguments to \code{fun}}
 }
 \details{The hyperparameters are sampled from the configurations used to do the
        numerical integration,  hence if you want a higher resolution,  you need to
        to change the \code{int.stratey} variable and friends. The latent field is
        sampled from the Gaussian approximation conditioned on the hyperparameters,
        but with a correction for the mean (default).
+
+       Set sparse-matrix library with \code{inla.setOption(smtp=...)} and
+       number of threads by \code{inla.setOption(num.threads=...)}.
 }
-\value{A list of the samples, where each sample is a list with
+\value{\code{inla.posterior.sample} returns a list of the samples,
+       where each sample is a list with
      names \code{hyperpar} and \code{latent}, and with their marginal
      densities in \code{logdens$hyperpar} and \code{logdens$latent}
      and the joint density is in \code{logdens$joint}.
+     \code{inla.posterior.sample.eval} return a list or a matrix of 
+     \code{fun} applied to each sample.
 }
-\author{Havard Rue \email{hrue@math.ntnu.no}}
+\author{Havard Rue \email{hrue@r-inla.org}}
  
 \examples{
   r = inla(y ~ 1 ,data = data.frame(y=rnorm(1)), control.compute = list(config=TRUE))
@@ -64,4 +98,59 @@
   set.seed(1234)
   xx = inla.posterior.sample(100, r, seed = inla.seed)
   all.equal(x, xx)
+
+ set.seed(1234)
+ n = 25
+ xx = rnorm(n)
+ yy = rev(xx)
+ z = runif(n)
+ y = rnorm(n)
+ r = inla(y ~ 1 + z + f(xx) + f(yy, copy="xx"),
+         data = data.frame(y, z, xx, yy), 
+         control.compute = list(config=TRUE),
+         family = "gaussian")
+ r.samples = inla.posterior.sample(100, r)
+ 
+ fun = function(...) {
+     mean(xx) - mean(yy)
+ }
+ f1 = inla.posterior.sample.eval(fun, r.samples)
+ 
+ fun = function(...) {
+     c(exp(Intercept), exp(Intercept + z))
+ }
+ f2 = inla.posterior.sample.eval(fun, r.samples)
+ 
+ fun = function(...) {
+     return (theta[1]/(theta[1] + theta[2]))
+ }
+ f3 = inla.posterior.sample.eval(fun, r.samples)
+
+ ## Predicting nz new observations, and
+ ## comparing the estimated one with the true one
+ set.seed(1234)
+ n = 100
+ alpha = beta = s = 1
+ z = rnorm(n)
+ y = alpha + beta * z + rnorm(n, sd = s)
+ r = inla(y ~ 1 + z, 
+         data = data.frame(y, z), 
+         control.compute = list(config=TRUE),
+         family = "gaussian")
+ r.samples = inla.posterior.sample(10^3, r)
+ nz = 3
+ znew = rnorm(nz)
+ fun = function(zz = NA) {
+     ## theta[1] is the precision
+     return (Intercept + z * zz +
+             rnorm(length(zz), sd = sqrt(1/theta[1])))
+ }
+ par(mfrow=c(1, nz))
+ f1 = inla.posterior.sample.eval(fun, r.samples, zz = znew)
+ for(i in 1:nz) {
+     hist(f1[i, ], n = 100, prob = TRUE)
+     m = alpha + beta * znew[i]
+     xx = seq(m-4*s, m+4*s, by = s/100)
+     lines(xx, dnorm(xx, mean=m, sd = s), lwd=2)
+ }
 }

@@ -1,0 +1,314 @@
+This file contains copyright information beyond what is already
+provided in the DESCRIPTION file of this package.
+
+***
+
+The files hash.c/.h contains modified code of mapkit.c/.h and
+mapkit_generic.c with the following copyrights
+
+Copyright (c) 2002-2004, Jean-Sebastien Roy (js@jeannot.org)
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+THIS FILE CONTAINS the source mapkit.c and mapkit_generic.c
+
+# MAPKIT, Version 1.4
+# Copyright J.S. Roy (js@jeannot.org), 2002-2004
+# See the LICENSE file for copyright information.
+# @(#) $Jeannot: README,v 1.32 2004/04/16 13:48:50 js Exp $
+
+Mapkit is a simple set of C functions to create and access maps (aka
+dictionnaries, hash tables) and sparse structures (vectors, matrices).
+The last version (and other software) is available at the URL :
+http://www.jeannot.org/~js/code/index.en.html
+
+***
+
+The files bfgs3.c/.h contains a modied version of
+multimin/vector_bfgs2.c/.h from the GSL-library with the following
+copyyrights
+
+ * multimin/vector_bfgs2.c
+ * 
+ * Copyright (C) 2007 Brian Gough
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or (at
+ * your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301, USA.
+
+ * vector_bfgs2.c -- Fletcher's implementation of the BFGS method,
+   from R.Fletcher, "Practical Method's of Optimization", Second
+   Edition, ISBN 0471915475.  Algorithms 2.6.2 and 2.6.4. 
+
+
+***
+
+Algorithm 582, collected algorithms from acm,
+
+      algorithm appeared in acm-trans. math. software, vol.8, no. 2,
+     jun., 1982, p. 190.
+
+comes with the following license
+
+     ACM Collected Algorithms
+     
+     The Collected Algorithms (CALGO) is part of a family of
+     publications produced by the ACM.
+     
+     Background
+     
+     Software associated with papers published in the Transactions on
+     Mathematical Software, as well as other ACM journals are
+     incorporated in CALGO. This software is refereed for originality,
+     accuracy, robustness, completeness, portability, and lasting
+     value. (See the ACM Algorithms Policy for details.)
+
+     Readers may subscribe to CALGO. Subscribers receive quarterly
+     notification of the appearance of new algorithms, as well as
+     copies of research papers describing them in loose- leaf binder
+     form. Back issues may also be ordered.
+
+     Use of ACM Algorithms is subject to the ACM Software Copyright and
+     License Agreement
+
+     Contact
+
+     For further information about CALGO contact its Editor-in-Chief:
+
+     Tim Hopkins Computing Laboratory The University of Kent Cantebury
+     Kent CT2 7NF United Kingdom +44-122-776-4000 ext. 3793 (Voice)
+     +44-122-776-2811 (FAX) trh@ukc.ac.uk
+
+
+***
+
+The file GMRFLib-fortran.F contains some modified function from
+LAPACK, which comes with the following license
+
+Licensing
+
+LAPACK is a freely-available software package. It is available from
+netlib via anonymous ftp and the World Wide Web at
+http://www.netlib.org/lapack . Thus, it can be included in commercial
+software packages (and has been). We only ask that proper credit be
+given to the authors.
+
+The license used for the software is the modified BSD license.
+
+Copyright (c) 1992-2013 The University of Tennessee and The University
+                        of Tennessee Research Foundation.  All rights
+                        reserved.
+Copyright (c) 2000-2013 The University of California Berkeley. All
+                        rights reserved.
+Copyright (c) 2006-2013 The University of Colorado Denver.  All rights
+                        reserved.
+
+$COPYRIGHT$
+
+Additional copyrights may follow
+
+$HEADER$
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+- Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+- Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer listed
+  in this license in the documentation and/or other materials
+  provided with the distribution.
+
+- Neither the name of the copyright holders nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+The copyright holders provide no reassurances that the source code
+provided does not infringe any patent, copyright, or any other
+intellectual property rights of third parties.  The copyright holders
+disclaim any liability to any recipient for claims brought against
+recipient by any third party for infringement of that parties
+intellectual property rights.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+
+
+***
+
+The file integrator.c, contains a minor modification of the adaptive
+multidimensional integration on hypercubes (or, really,
+hyper-rectangles) using cubature rules, by Steven G. Johnson and with
+this license:
+
+Copyright (c) 2005 Steven G. Johnson
+
+Portions (see comments) based on HIntLib (also distributed under
+the GNU GPL, v2 or later), copyright (c) 2002-2005 Rudolf Schuerer.
+    (http://www.cosy.sbg.ac.at/~rschuer/hintlib/)
+
+Portions (see comments) based on GNU GSL (also distributed under
+the GNU GPL, v2 or later), copyright (c) 1996-2000 Brian Gough.
+    (http://www.gnu.org/software/gsl/)
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+USA
+
+
+***
+
+The inla-program is linked with the following libraries and licenses.
+
+* GSL - GNU Scientific Library
+  https://www.gnu.org/software/gsl/
+
+* TAUCS, A library of sparse linear solvers,
+  https://www.tau.ac.il/~stoledo/taucs/
+
+  TAUCS Version 2.0, November 29, 2001. Copyright (c) 2001, 2002, 2003
+  by Sivan Toledo, Tel-Aviv Univesity, stoledo@tau.ac.il. All Rights
+  Reserved.
+
+  TAUCS License:
+
+   Your use or distribution of TAUCS or any derivative code implies
+   that you agree to this License.
+
+   THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY
+   EXPRESSED OR IMPLIED. ANY USE IS AT YOUR OWN RISK.
+
+   Permission is hereby granted to use or copy this program, provided
+   that the Copyright, this License, and the Availability of the
+   original version is retained on all copies. User documentation of
+   any code that uses this code or any derivative code must cite the
+   Copyright, this License, the Availability note, and "Used by
+   permission." If this code or any derivative code is accessible from
+   within MATLAB, then typing "help taucs" must cite the Copyright,
+   and "type taucs" must also cite this License and the Availability
+   note. Permission to modify the code and to distribute modified code
+   is granted, provided the Copyright, this License, and the
+   Availability note are retained, and a notice that the code was
+   modified is included. This software is provided to you free of
+   charge.
+
+* LAPACK, BLAS and OPENBLAS
+  http://www.netlib.org/lapack/
+  http://www.netlib.org/blas/
+  https://www.openblas.net/  
+
+* muparser - Fast Math Parser Library
+  http://beltoforion.de/article.php?a=muparser
+  License: MIT
+
+* AMD: a set of routines for permuting sparse matrices prior to
+    factorization
+  A part of the SuiteSparse library:
+  https://github.com/PetterS/SuiteSparse/tree/master/AMD
+  License:     
+
+    AMD, Copyright (c), 1996-2015, Timothy A. Davis,
+    Patrick R. Amestoy, and Iain S. Duff.  All Rights Reserved.
+    Availability:
+        http://www.suitesparse.com
+    AMD License: BSD 3-clause:
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions
+    are met:
+
+        * Redistributions of source code must retain the above copyright
+          notice, this list of conditions and the following disclaimer.
+
+        * Redistributions in binary form must reproduce the above
+          copyright notice, this list of conditions and the following
+          disclaimer in the documentation and/or other materials
+          provided with the distribution.
+
+        * Neither the name of the organizations to which the authors
+          are affiliated, nor the names of its contributors may be
+          used to endorse or promote products derived from this
+          software without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+    CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+    INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+    MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR
+    ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+    OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+    BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+    USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+    DAMAGE.
+
+* METIS, A Family of Multilevel Partitioning Algorithms.
+  http://glaros.dtc.umn.edu/gkhome/views/metis
+  License: METIS as of 5.0.3 is being distributed under the Apache
+  License Version 2.0.
+
+* (optional) load the PARDISO library. The library PARDISO is a
+  thread-safe, high-performance, and easy to use software for solving
+  sparse symmetric that arises in the R-INLA approach to Bayesian
+  inference within the R project for Statistical Computing.
+
+  User must get a license from https://pardiso-project.org/r-inla/
+  to use this library, see also 'inla.pardiso()'
+
+
+

@@ -19,14 +19,13 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
- * RCSId: $Id: error-handler.h,v 1.37 2008/08/26 07:07:11 hrue Exp $
  *
  */
 
@@ -84,6 +83,12 @@ __BEGIN_DECLS
 #define  GMRFLib_ESNH        (21)			       /* This should not happen */
 #define  GMRFLib_EWRITE      (22)			       /* Error writing to file */
 #define  GMRFLib_EMISC       (23)			       /* Misc error */
+#define  GMRFLib_EPARDISO_LICENSE_NOTFOUND (24)		       /*  */
+#define  GMRFLib_EPARDISO_LICENSE_EXPIRED  (25)		       /*  */
+#define  GMRFLib_EPARDISO_LICENSE_ERR_USERNAME  (26)	       /*  */
+#define  GMRFLib_EPARDISO_INTERNAL_ERROR  (27)		       /*  */
+#define  GMRFLib_EPARDISO_NO_LIBRARY  (28)		       /*  */
+
 
 /**
   \brief A template function declaration for specifying error-handling functions.

@@ -7,6 +7,7 @@
   A short introduction on how to fit a \textbf{SPDE} model 
   with \textbf{\textsf{INLA}}}
 \author{Elias T. Krainski and H{\aa}vard Rue} 
+\date{Created: November, 20 2013 - Last update: August, 9 2017}
 
 %\VignetteEngine{knitr::knitr} 
 %\VignetteIndexEntry{SPDEhowto}
@@ -30,10 +31,12 @@ using the \textbf{\textsf{INLA}} package,
 
 <<setting,include=FALSE>>= 
 set.seed(1) 
-require(knitr)
+library(knitr)
 knit_hooks$set(pars = function(before, options, envir) {
     if (before) graphics::par(options$pars)
-}) 
+})
+opts_chunk$set(message=FALSE, warning=FALSE, tidy=FALSE,
+               fig.path='figures/SPDEhowto-')
 library(lattice);   library(gridExtra);  library(INLA);  library(plyr) 
 lcall <- inla.getOption('inla.call')
 ##inla.setOption(inla.call='remote') 
@@ -43,163 +46,142 @@ lcall <- inla.getOption('inla.call')
 
 \section{Data simulation} 
 
-\textbf{Locations} and the Random 
-Field (RF) \textbf{covariance} matrix, 
-exponential correlation function 
-
+Set $n$ \textbf{locations} and a 
+exponential \textbf{covariance} matrix 
+to define the \textbf{R}andon \textbf{F}ield (RF)
 <<locations,tidy=FALSE>>=
-n = 200; coo = matrix(runif(2*n), n) 
-k <- 10;   s2s <- 0.7 ## RF params.
-R <- s2s*exp(-k*as.matrix(dist(coo))) 
+n <- 200; coo <- matrix(runif(2*n), n) 
+s2u <- .5; k <- 10; r <- 2/k ## RF params.
+R <- s2u*exp(-k*as.matrix(dist(coo))) 
 @ 
 
-\textbf{RF} sample, a multivariate Normal realization 
+\textbf{Sample}: one multivariate Normal realization 
   
 <<rmvnorm,tidy=FALSE>>=
-s <- drop(rnorm(n)%*%chol(R)) 
+u <- drop(rnorm(n)%*%chol(R)) 
 @ 
 
-A \textbf{covariate} effect and a noise can be added
+Add a \textbf{covariate} effect and a noise (nugget) 
 
 <<noise,tidy=FALSE>>=
-x <- runif(n);  beta <- 1:2;  s2e <- 0.3
-lin.pred <- beta[1] + beta[2]*x + s 
+x <- runif(n);  beta <- 1:2;  s2e <- 0.2
+lin.pred <- beta[1] + beta[2]*x + u 
 y <- lin.pred + rnorm(n, 0, sqrt(s2e)) 
 @ 
 
-\section{Model fitting: steps} 
+\section{Model fitting} 
 
 1. \textbf{Mesh:} 
-a triangulation to discretize the 
-random field (RF) at $m$ nodes. 
+Triangulation around the locations
 
 <<fmesh, tidy=FALSE, pars=list(mar=c(0,0,0.7,0)), out.width='0.45\\textwidth', fig.align='center'>>= 
-mesh <- inla.mesh.2d(
-    coo, ## provide locations or domain
-    max.edge=c(0.5/k, 1/k), ## mandatory 
-    cutoff=0.1/k) ## good to have >0
-plot(mesh, asp=1);  points(coo, col='red')
+mesh <- inla.mesh.2d(coo, cutoff=r/10, 
+  max.edge=c(r/4, r/2), offset=c(r/2, r)) 
+plot(mesh, asp=1);  points(coo, col='red') 
 @ 
 
-A little warning about the mesh. 
-The additional triangles outer domain 
+The outer domain additional triangles 
 is to avoid boundary effects. 
 Is good to have aproximately 
-isosceles triangles. 
-And, to avoid tiny triangles. 
-We need to have edges lengths 
-of the inner mesh triangles 
-less than the range of the process. 
-Of course, if it is too small, there 
-might not be any spatial effect. 
+isosceles triangles and 
+to avoid tiny triangles, see \texttt{cuttof}. 
+We need to have edge length 
+for the inner mesh triangles 
+less than the range of the process, 
+if there is a spatial effect. 
 
-2. \textbf{Define the $n\times m$ projector matrix} to project 
- the process at the mesh nodes to locations 
+2. The linear predictor at location $s$: 
+\[ \eta(s) = \beta_0 + \beta_1 x(s) + A(s,s_0) u(s_0), \]
+where $u(s_0)$ is the RF at the mesh nodes, 
+\cite{lindgrenR:2015}, and 
+$A(s,s_0)$ is a $n\times m$ 
+\textbf{projection matrix} 
+to project the process from the mesh 
+nodes to the observation locations: 
 <<projector, tidy=FALSE>>=
-dim(A <- inla.spde.make.A(
-    mesh=mesh, loc=coo)) ## 'n' by 'm'
+A <- inla.spde.make.A(mesh=mesh, loc=coo)
 @ 
 
-3. \textbf{Build the SPDE model} on the mesh.
-Exponential correlation function, $\alpha=3/2$ 
+3. \textbf{Build the SPDE model} on the mesh, 
+where $\alpha=3/2$ for the exponential correlation 
+and set the \textbf{RF parameters prior} 
+distributions, \cite{fuglstadetal:2017}:
 
 <<spde,tidy=FALSE>>=
-spde <- inla.spde2.matern(
-    mesh=mesh, alpha=1.5) 
+spde <- inla.spde2.pcmatern(
+ mesh=mesh, alpha=1.5, 
+ prior.range=c(0.2, 0.5),#P(range<0.2)=0.5
+ prior.sigma=c(1, 0.5)) ## P(sigma>1)=0.5 
 @ 
 
-4. \textbf{Create a stack data} for the estimation. 
-This is a way to allow models with complex 
-linear predictors. In our case, we have a SPDE 
-model defined on $m$ nodes. It must be combined 
-with the covariate (and the intercept) 
-effect at $n$ locations. 
-We do it using different projector matrices. 
+4. Use \texttt{inla.stack()} to deal with 
+effects having different projection matrices: 
 
 <<stack-estimation,tidy=FALSE>>=
-stk.e <- inla.stack(tag='est', ## tag
-    data=list(y=y),  ## response
-    A=list(A, 1), ## two projector matrix
-    effects=list(## two elements:
-        s=1:spde$n.spde, ## RF index
-        data.frame(b0=1, x=x)))
+stk.e <- inla.stack(tag='est', ## tag id
+  data=list(y=y),  ## response
+  A=list(1, A), ## two projection matrices
+  effects=list(## two elements: 
+    data.frame(b0=1, x=x), ## covariate
+    idx.u=1:spde$n.spde)) ## RF index 
 @ 
 
-5. \textbf{Fit} the posterior marginal distributions
-  for all model parameters 
-
+5. Set the \textbf{nugget prior} distribution,
+the linear predictor \textbf{formula} 
+and \textbf{fit} the posterior marginal distributions 
+(PMD)s for all the model parameters 
+using \texttt{inla()} 
 <<fitting>>= 
-formula <- y ~ 0 + b0 + x + ## fixed part
-    f(s, model=spde) ## RF term
-res <- inla(formula, 
-            data=inla.stack.data(stk.e), 
-    control.predictor=list(A = 
-        inla.stack.A(stk.e)))# projector
+pcprec <- list(hyper=list(theta=list(
+  prior='pc.prec',param=c(1,.1))))
+mf <- y ~ 0 + b0 + x + f(idx.u, model=spde) 
+res <- inla(mf, control.family=pcprec,
+ data=inla.stack.data(stk.e), ## data 
+ control.predictor=list(compute=TRUE, 
+  A=inla.stack.A(stk.e)))# full projector
 @ 
 
 \end{multicols} 
 
 \section{Posterior marginal distributions - PMDs} 
 
-Summary of the regression coefficients PMDs
-
+The \texttt{summary.hyperpar} element of \texttt{res} 
+has a summary from each regression coefficient PMD:
 <<fixed-summary>>=
 round(res$summary.fixed, 4) 
 @ 
 
-\hrulefill
-
-\begin{multicols}{2} 
-
-\textbf{\textsf{INLA}} works with precisions. 
-We have to transform the precision PMD to have 
-the variance PMD. It can be done and visialized by
-
-<<fvar, tidy=FALSE, pars=list(mar=c(2.5,2.5,0.1,0.1), mgp=c(1.7,0.5,0)), fig.width=3.5, fig.height=3.5, out.width='0.35\\textwidth', fig.align='center', fig.pos='h'>>=
-post.s2e <- 
-  inla.tmarginal(# tranformation function
-  function(x) 1/x, ## inverse transf. 
-  res$marginals.hyperpar$
-'Precision for the Gaussian observations')
-plot(post.s2e, type='l', ylab='Density', 
-     xlab=expression(sigma[e]^2))
-abline(v=s2e, col=2) ## add true value
+Similarly, the \texttt{summary.hyperpar} for the hyperparameters. 
+The likelihood hyperparameter is parametrized as precision. 
+We can work with its PMDs transforming it to standard deviation: 
+<<sdlik>>=
+pmd.s2e <- inla.tmarginal(function(x) sqrt(1/x), ## inverse and square root
+  res$marginals.hyperpar$'Precision for the Gaussian observations')
 @ 
 
-\end{multicols} 
-
-\hrulefill
-
-\begin{multicols}{2} 
-
-The SPDE approach uses a local variance, $\tau^2$, 
-such that $\sigma_{s}^2=1/(2\pi\kappa^2\tau^2)$. 
-On \textbf{\textsf{INLA}} we work log($\tau^2$)
-and log($\kappa$). So, especially for 
-$\sigma_{s}^2$, we have to do 
-an additional computation. 
-The PMDs for all RF parameters on 
-user scale are computed by
-<<rf>>=
-rf <- inla.spde.result(
-    inla=res, ## the inla() output
-    name='s', ## name of RF index set
-    spde=spde, ## SPDE model object
-    do.transf=TRUE) ## to user scale
-@ 
-\end{multicols} 
-
-These posterior marginals can be visualized by 
+The PMDs for the likelihood SD and RF parameters can be visualized by 
 <<rfpars, pars=list(mfrow=c(1,3), mar=c(3,3,0.3,0.3), mgp=c(2,0.5,0)), fig.width=7.5, fig.height=2.5, out.width='0.99\\textwidth', out.height='0.33\\textwidth', fig.align='center', fig.pos='h', fig.keep='last'>>=
-plot(rf$marginals.var[[1]], type='l', xlab=expression(sigma[s]^2), yla='Density')
-abline(v=s2s, col=2) ## add the true value
-plot(rf$marginals.kap[[1]], type='l', xlab=expression(kappa), ylab='Density')
-abline(v=k, col=2) ## add the true value
-plot(rf$marginals.range[[1]], type='l', xlab='range nominal', ylab='Density')
-abline(v=sqrt(4)/k, col=2) ## add the 'true' value
+plot(pmd.s2e, type='l', ylab='Density',  xlab=expression(sigma[e]))
+abline(v=sqrt(s2e), col=2) ## add the 'true' value
+plot(res$marginals.hy[[3]], type='l', xlab=expression(sigma[u]), yla='Density')
+abline(v=sqrt(s2u), col=2) ## add the 'true' value
+plot(res$marginals.hy[[2]], type='l', xlab='range nominal', ylab='Density')
+abline(v=r, col=2) ## add the 'true' value
 @
 
-\section{Projection on a grid}
+To look at the PMD for the linear predictor, 
+$E(Y|X,U)$, at each data location will be too much. 
+For now, we can show its the 2.5\% and 97.5\% quantiles 
+ordered by its mean on top of $y$ values:
+<<predicts, pars=list(mfrow=c(1,1), mar=c(1.5,3,0.1,0.1), mgp=c(2,0.5,0)), fig.width=10, fig.height=2.5, out.width='0.99\\textwidth', fig.align='center', fig.pos='h', fig.keep='last'>>=
+idx.obs <- inla.stack.index(stk.e, tag='est')$data ## index in the stack 
+order.eta <- order(res$summary.fitted.values$mean[idx.obs]) 
+plot(y[order.eta], pch=19, ylab='y')
+segments(1:n, res$summary.fitted.val$'0.025quant'[idx.obs][order.eta], 
+         1:n, res$summary.fitted.val$'0.975quant'[idx.obs][order.eta]) 
+@ 
+
+\section{RF projection on a grid}
 
 An interesting result is the map of the RF on a grid. 
 The simplest way to have it is by projection. 
@@ -208,10 +190,10 @@ and project, for example, the posterior
 mean and posterior standard deviation on the grid. 
 
 <<project-grid>>=
-nxy <- c(300, 300)
+nxy <- c(200, 200)
 gproj <- inla.mesh.projector(mesh,  xlim=0:1, ylim=0:1, dims=nxy)
-g.mean <- inla.mesh.project(gproj, res$summary.random$s$mean)
-g.sd <- inla.mesh.project(gproj, res$summary.random$s$sd)
+g.mean <- inla.mesh.project(gproj, res$summary.random$idx.u$mean)
+g.sd <- inla.mesh.project(gproj, res$summary.random$idx.u$sd)
 @ 
 
 We can visualize it by 
@@ -253,17 +235,17 @@ for fixed and random effects,
 and assign NA for the outcome. 
 In this case, the linear predictor for 
 such missing observations is also 
-part of the model graph, \cite{Rueetal:2016},
+part of the model graph, \cite{Rueetal:2017},
 and is treated in the entire model fitting process. 
 
 Defining a prediction stack, join and use the full stack in \texttt{inla()}
 <<prediction-stack>>=
 stk.pred <- inla.stack(tag='pred', A=list(Ap, 1), data=list(y=NA), ## response as NA
-                       effects=list(s=1:spde$n.spde, data.frame(x=x0, b0=1)))
-stk.full <- inla.stack(stk.e, stk.pred) 
-p.res <- inla(formula, data=inla.stack.data(stk.full), ## full stack
-              control.predictor=list(compute=TRUE, ## compute the predictor
-                       A=inla.stack.A(stk.full))) ## using full stack data
+  effects=list(idx.u=1:spde$n.spde, data.frame(x=x0, b0=1))) ## all idx.u
+stk.full <- inla.stack(stk.e, stk.pred) ## join the data and prediction scenario
+p.res <- inla(mf, data=inla.stack.data(stk.full), ## supply the full data 
+  control.predictor=list(compute=TRUE, A=inla.stack.A(stk.full)), ## full 
+  control.mode=list(theta=res$mode$theta, restart=FALSE))## use mode already found
 @ 
 
 Get the prediction data index and have a look into the summary
@@ -307,19 +289,20 @@ inla.pmarginal(inla.qmarginal(
 The way we show here is cheaper if the number of locations 
 to be predicted is not small. 
 The idea is to drawn samples from the joint posterior distribution. 
-As any functional of interest can be considered, we will consider 
+As any functional of interest can be computed we can compute 
 the linear predictor at a set of target locations. 
-We start with the three locations previously considered and 
-at the end we consider a grid of location. 
 
-Monte Carlo saples from the joint posterior marginal distribution 
-can be drawn from the result of from \texttt{inla()} function when 
-the precision matrix of the entire latent field, 
-\cite{Rueetal:2016}, is stored for each hyperparameter configuration. 
-It can be asked setting \texttt{control.compute=list(cofig=TRUE)} 
-in the \texttt{inla()} call. 
+We can ask \texttt{inla()} to store the precision matrix for each 
+hyperparameter configuration and use it to drawn Monte Carlo samples, 
+\cite{Rueetal:2017}. 
+The \texttt{inla.posterior.sample()} function drawn samples 
+from each hyperparameter configuration using its relative posterior 
+as weights and them sample from the latent field for each 
+hyperparameter sampled configuration. 
 
-We can just rerun the model asking for the configurations with
+We can set \texttt{control.compute=list(cofig=TRUE)} 
+before the \texttt{inla()} to have such configurations. 
+Or, we can rerun the model after asking it 
 <<configs, warning=FALSE, message=FALSE>>=
 res$.args$control.compute$config <- TRUE
 res <- inla.rerun(res)
@@ -328,11 +311,9 @@ res <- inla.rerun(res)
 inla.setOption(inla.call=lcall) 
 @ 
 
-Monte Carlo samples can be drawn using the 
-\texttt{inla.posterior.sample()} function. 
+Drawn Monte Carlo samples 
 <<samples>>=
-samples <- inla.posterior.sample(
-    n=1000, result=res, add.names=FALSE)
+samples <- inla.posterior.sample(n=2e3, result=res, add.names=FALSE)
 @ 
 
 We have to find the index set for the elements we need samples, 
@@ -340,7 +321,7 @@ the fixed effecs ('b0' and 'x') and the random effect ('s').
 The names were stored for the first sample as rownames of the latent field
 <<xnames>>=
 xnames <- rownames(samples[[1]]$latent) ### collect the names
-idx <- lapply(c('b0', 'x', 's'), function(nam) ## for each effect
+idx <- lapply(c('b0', 'x', 'idx.u'), function(nam) ## for each effect
     which(substr(xnames, 1, nchar(nam))==nam)) ## find the index
 @ 
 
@@ -348,49 +329,60 @@ These indexes are used to collect the desired part of the latent field
 and organize it into a matrix
 <<samplesmat>>=
 mat.samples <- sapply(samples, function(spl) 
-    c(bo=spl$latent[idx[[1]]], x=spl$latent[idx[[2]]], s=spl$latent[idx[[3]]]))
+    c(bo=spl$latent[idx[[1]]], x=spl$latent[idx[[2]]], u=spl$latent[idx[[3]]]))
 @ 
 
 The next step is to compute the linear predictor 
 for the scenario needed for each sample.  
 <<y3sample>>=
-lin.pred.3.sample <- as.matrix(cBind(b0=1, x=0.5, s=Ap)%*%mat.samples)
+eta3.sample <- as.matrix(cBind(b0=1, x=0.5, u=Ap)%*%mat.samples)
 @ 
 We can visualize it comparing wit the previous result with
-<<comparey3,fig.width=9.9, fig.height=3.5, out.width='0.99\\textwidth', out.height='0.35\\textwidth', fig.pos='h', fig.keep='last'>>=
+<<comparey3, fig.width=9.9, fig.height=3.5, out.width='0.99\\textwidth', fig.pos='h', fig.keep='last'>>=
 par(mfrow=c(1,3), mar=c(3,3,1,1), mgp=c(2,1,0))
 for (j in 1:3) {
-    hist(lin.pred.3.sample[j,], freq=FALSE, xlab=paste0('y',j), main='')
-    lines(ypost[[j]], lwd=2)
+    hist(eta3.sample[j,], freq=FALSE, xlab=paste0('y',j), main='', col=gray(0.7))
+    lines(ypost[[j]], lwd=2, col='blue')
 }
 @ 
 
-\subsubsection{Considering a grid}
+\begin{multicols}{2}
+\subsection{Prediction on a grid, cheaper way}
 
-We can use the projector matrix for the grid used previously with 
+We can consider the previously defined grid projection matrix and samples 
 <<linpredsample>>=
-lin.pred.sample <- as.matrix(cBind(b0=1, x=0.5, s=gproj$proj$A)%*%mat.samples)
+eta.g.samp <- as.matrix(cBind(b0=1, x=0.5, 
+        s=gproj$proj$A)%*%mat.samples)
 @ 
 
-Any summary statistics can be computed. 
-As an example, we compute the mean and standard deviation
+Any summary statistics can be computed from that. 
+Computing the mean, standard deviation, 
+$P(E(Y)>3)$ and the 95\% quantile for $E(Y)$: 
 <<meansdgrid,warning=FALSE,message=FALSE>>=
-eta.mean <- rowMeans(lin.pred.sample)
-require(matrixStats)
-eta.sd <- rowSds(lin.pred.sample)
+library(matrixStats)
+ss <- list(mean=rowMeans(eta.g.samp), 
+ sd=rowSds(eta.g.samp), 
+ p3=rowMeans(eta.g.samp>3), 
+ q95=rowQuantiles(eta.g.samp, probs=0.95))
 @ 
 
-It can be visualized with the commands bellow. 
-The sampled locations is added on top of the standard deviation map. 
-<<responsemaps, fig.width=10, fig.height=4, out.width='0.99\\textwidth', fig.pos='h', fig.align='center'>>=
-require(fields)
-par(mfrow=c(1,2), mar=c(2,2,1,5), mgp=c(1,0.5,0))
-image.plot(list(x=gproj$x, y=gproj$y, z=matrix(eta.mean, nxy[1])), legend.mar=3)
-image.plot(list(x=gproj$x, y=gproj$y, z=matrix(eta.sd, nxy[2])), legend.mar=3)
-points(coo, pch=19, cex=1)
+It is visualized with the commands bellow 
+(locations added on top of the sd map): 
+
+<<predmaps, eval=FALSE>>=
+library(fields); for (s in c(1,3,4,2)) 
+  image.plot(list(x=gproj$x, y=gproj$y, 
+      z=matrix(ss[[s]], nxy[1])), asp=1,
+    legend.mar=3, main=names(ss)[s]) 
+points(coo, pch=4, cex=0.5)
 @ 
 
 \bibliographystyle{apalike}
 \bibliography{spde-tutorial}
+
+<<predmapsview,echo=FALSE, pars=list(mfrow=c(4,1), mar=c(1.5,2,1,0.5), mgp=c(1,0.5,0)), fig.width=3.75, fig.height=11.7, out.width='0.49\\textwidth', fig.pos='h', fig.align='center'>>=
+<<predmaps>>
+@ 
+\end{multicols}
 
 \end{document} 

@@ -1,0 +1,239 @@
+---
+title: "Avoiding trouble with factors in _inla.stack()_"
+author: "Elias T. Krainski `(elias@r-inla.org)`"
+date: "Aug 7th 2017"
+output: rmarkdown::pdf_document
+bibliography: spde-tutorial.bib
+vignette: >
+  %\VignetteIndexEntry{stack-with-factors}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8} 
+---
+
+```{r setup, include=FALSE}
+set.seed(1)
+knitr::opts_chunk$set(echo=TRUE, message=FALSE, warning=FALSE)
+library(INLA)
+```
+
+## Introduction
+
+This short note describe a way to work with factor covariates
+when working with _inla.stack()_. 
+You can skip the next section if you already know how to work with 
+factors in functions such as _lm()_ or _glm()_.
+
+### Working with factors in **R**
+
+Let the simple linear model 
+\[ y_{ijk} = \mu_0 + a_i + b_j + f_k + \beta x_{ijk} + e_{ijk} \]
+and the following data from it 
+```{r dat}
+  dat <- expand.grid(a=0:1, b=0:1, d=0:2) ### three discrete
+  dat$x <- runif(12) ### one continuous covariate
+  dat$y <- 3*dat$a - dat$b + (dat$d-1)*2 + dat$x + rnorm(12,0,0.1)
+```
+
+A factor with only two levels can be encoded 
+as numeric $0$ or $1$ or as _factor_. 
+A factor with more than two levels always 
+have to be encoded as factors. 
+So we must encode $d$ as factor 
+```{r factor}
+  dat$d <- factor(dat$d) 
+```
+
+The model can be fitted as
+```{r, fit}
+	coef(lm(y ~ 1 + a + b + d + x, dat))
+```
+where we explicited each model term. 
+
+Let us pay attention for the fact that the 
+default option for contrasts is the **treatment**. 
+In this case a reference level from each covariate 
+coded as factor is droped, the first level by default. 
+In this case the '(Intercept)' is the scenario when 
+each numeric covariate is zero and the factor covariates 
+are at its reference level. 
+The coefficient associated to a numeric covariate 
+measures the effect of changing one unity in this covariate. 
+For the covariates encoded as factors, there is one 
+coefficient for each not droped level and it measures the 
+effect of changing from the reference level to this level. 
+
+The intercept is considered by default 
+no needing to be explicited. 
+```{r, fit2}
+	coef(lm(y ~ a + b + d + x, dat))
+```
+It can be removed by adding '-1' in any part of the 
+right side of the formula 
+```{r, fit3}
+	coef(lm(y ~ -1 + a + b + d + x, dat))
+```
+or writing a literal formula explicty saying 'no intercept' 
+inserting '0' in any part of the right side of it 
+```{r, fit4}
+	coef(lm(y ~ 0 + a + b + d + x, dat))
+```
+Notice that the '(Intercept)' from before is now 'd0' 
+because it is the scenario for the first level in 'd' 
+and when all the other terms (all numeric) as zero. 
+When there is no intercept this happens to be the case 
+for the first factor in the formula. 
+
+When the '(Intercept)' is in the model, changing the order 
+of the terms in the formula does effect what is being 
+fitted, only the order 
+```{r, orderi}
+	coef(lm(y ~ b + a + d + x, dat))
+	coef(lm(y ~ d + a + b + x, dat))
+```
+
+The covariates with only two levels encoded as "0" or "1" 
+can be encoded as factor assuming any two labels 
+```{r, factor2}
+dat$a <- factor(dat$a, levels=0:1, labels=c('1st', '2nd'))
+dat$b <- factor(dat$b, levels=1:0, labels=c('2nd', '1st')) ## OBS: reference level changed
+```
+and we will have the same coefficients as when not having 
+it as factors only when '0' is the reference level
+```{r reg3f}
+coef(lm(y ~ a + b + d + x, dat))
+```
+
+When the intercept is not in the formula it will be 
+the reference level of the first factor and 
+the order matters
+```{r orderf}
+	coef(lm(y ~ 0 + a + b + d + x, dat))
+	coef(lm(y ~ 0 + b + a + d + x, dat))
+	coef(lm(y ~ 0 + d + a + b + x, dat))
+```
+
+It is important to notice that 
+the way one codes de model matters. 
+We showed the case under the **contrast parametrization**. 
+Other contrast options are available in **R** 
+and one can see these in _help(contrast)_. 
+
+Another important point is to notice that it is not a feature 
+of the _lm()_ or _glm()_ function. 
+The acual model matrix being prepared using the _model.matrix()_ 
+function. 
+This fuction is used internally to create tge dummie variables. 
+Everyone can use it directly just suplying the formula and data, 
+```{r mm, results='hide'}
+model.matrix(~a+b+d+x, dat) 
+```
+and you can see what happens with each above cases.
+
+Now we prepare ourselves to understand how to work with 
+factors in _inla.stack()_. 
+
+### Dealing with factors in _inla.stack()_ 
+
+The _inla.stack()_ function helps to organize 
+data when the model has components with 
+different projection matrices. 
+Let us consider the _Tokyo_ data which is 
+data about rain each day over two years 
+grouped by day of the year. 
+```{r tokyo}
+data(Tokyo)
+str(Tokyo)
+``` 
+$y$ is $0$, $1$ or $2$, 
+$n$ is $1$ (February 29) or $2$ 
+and $time$ is $1$, $2$, ..., $366$. 
+
+Let us have a set of knots over time in order to build 
+a model, see @lindgrenR:2015. 
+
+```{r tokyomesh}
+knots <- seq(1, 367, length = 25)
+mesh <- inla.mesh.1d(knots, interval = c(1, 367), degree = 2, boundary = "cyclic")
+spde <- inla.spde2.pcmatern(mesh, 
+    prior.sigma=c(1, 0.01), ## P(sigma > 1) = 0.01
+    prior.range=c(1, 0.01)) ## P(range < 1) = 0.01
+A <- inla.spde.make.A(mesh, loc = Tokyo$time)
+time.index <- inla.spde.make.index("time", n.spde = spde$n.spde)
+```
+Let us add two factor covariates to Tokyo data and a numeric one. 
+```{r addf}
+Tokyo$a <- factor(rbinom(366, 1, 0.5))
+Tokyo$b <- factor(rbinom(366, 2, 0.5))
+Tokyo$x <- runif(366)
+```
+
+When working with factor covariates it is better to 
+to build the design matrix and supply it to 
+_inla.stack()_. 
+We can include the other covariates as well.
+```{r ab}
+abx <- model.matrix(~a+b+x, Tokyo)[, -1]
+```
+The automatic intercept at the first column was droped. 
+When supplying it in _inla.stack()_ we will join an explict 
+intercept as we usually do when working with SPDE models. 
+
+```{r tokyostack}
+stack <- inla.stack(
+  data = list(y = Tokyo$y, link = 1, Ntrials = Tokyo$n),
+  A = list(A, 1),
+  effects = list(time.index, data.frame(mu0=1, abx)),
+  tag = "est")
+formula <- y ~ 0 + mu0 + a1 + b1 + b2 + x + f(time, model = spde)
+data <- inla.stack.data(stack)
+result <- inla(formula, family = "binomial", 
+              data = data, 
+              Ntrials = data$Ntrials,
+              control.predictor = list(
+                A = inla.stack.A(stack), 
+                link = data$link, 
+                compute = TRUE))
+result$summary.fixed[, 1:5]
+```
+
+### When there is a prediction scenario
+
+Let us build a prediction scenario 
+```{r preds}
+pred.sc <- expand.grid(a1=0:1, b1=0:1, b2=0, x=c(0.5))
+pred.sc
+```
+
+For the random effect, over time, we do need 
+to build a projection as well. 
+```{r predt}
+A.pred <- inla.spde.make.A(mesh, loc=rep(180, nrow(pred.sc)))
+```
+
+This scenario can be supplied in a new data stack as 
+```{r stackpred}
+stack.pred <- inla.stack(
+  data = list(y = NA, link = 1, Ntrials = 2),
+  A = list(A.pred, 1),
+  effects = list(time.index, data.frame(mu0=1, pred.sc)),
+  tag = "pred")
+stack.full <- inla.stack(stack, stack.pred)
+data <- inla.stack.data(stack.full)
+result <- inla(formula, family = "binomial", 
+               data = data, 
+               Ntrials = data$Ntrials,
+               control.predictor = list(
+                 A = inla.stack.A(stack.full), 
+                 link = data$link, 
+                 compute = TRUE),
+               control.mode=list(theta=result$mode$theta, 
+                                 restart=FALSE))
+```
+
+Getting the predictions
+```{r predicts}
+idx.pred <- inla.stack.index(stack.full, tag='pred')$data
+result$summary.fitted.val[idx.pred, 1:5]
+```
+
+## References

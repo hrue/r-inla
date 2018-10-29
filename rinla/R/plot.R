@@ -50,7 +50,7 @@
 ##!   \item{...}{Additional arguments to \code{postscript()}, \code{pdf()} or \code{dev.new()}.}
 ##! }
 ##! \value{The return value is a list of the files created (if any).}
-##! \author{Havard Rue \email{hrue@math.ntnu.no} }
+##! \author{Havard Rue \email{hrue@r-inla.org} }
 ##! \seealso{\code{\link{inla}}}
 ##! \examples{
 ##!\dontrun{
@@ -881,6 +881,14 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
         return (my.pc.gamma(-theta, param, log=log))
     }
 
+    my.pc.gammacount = function(theta, param, log=FALSE) 
+    {
+        ## see ?inla.pc.dgammacount. this is the same prior, but for theta where x=exp(theta)
+        x = exp(theta)
+        ld = inla.pc.dgammacount(x, lambda = param[1], log=TRUE) + theta
+        return (if (log) ld else exp(ld))
+    }
+
     my.pc.cor0 = function(theta, param, log = FALSE)
     {
         e.theta = exp(theta)
@@ -932,7 +940,6 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
     {
         ## we compute the PC-prior on the fly using these two packages. Its somewhat quick.
         inla.require("HKprocess")
-        inla.require("FGN")
         
         to.theta = inla.models()$latent$fgn$hyper$theta2$to.theta
         from.theta = inla.models()$latent$fgn$hyper$theta2$from.theta
@@ -941,7 +948,7 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
             ans = c()
             Hseq = H
             for(H in Hseq) {
-                r = FGN::acvfFGN(H, n-1)
+                r = inla.acvfFGN(H, n-1)
                 res = HKprocess::ltzc(r, rep(0, n))
                 ans = c(ans,  as.numeric(res[2]))
             }

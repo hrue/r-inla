@@ -46,14 +46,14 @@
 ##! 
 ##! \usage{
 ##! inla.dmarginal(x, marginal, log = FALSE)
-##! inla.pmarginal(q, marginal, normalize = TRUE, len = 1024L)
-##! inla.qmarginal(p, marginal, len = 1024L)
+##! inla.pmarginal(q, marginal, normalize = TRUE, len = 2048L)
+##! inla.qmarginal(p, marginal, len = 2048L)
 ##! inla.rmarginal(n, marginal)
-##! inla.hpdmarginal(p, marginal, len = 1024L)
+##! inla.hpdmarginal(p, marginal, len = 2048L)
 ##! inla.smarginal(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE, factor=15L)
 ##! inla.emarginal(fun, marginal, ...)
 ##! inla.mmarginal(marginal)
-##! inla.tmarginal(fun, marginal, n=1024L, h.diff = .Machine$double.eps^(1/3),
+##! inla.tmarginal(fun, marginal, n=2048L, h.diff = .Machine$double.eps^(1/3),
 ##!                method = c("quantile", "linear")) 
 ##! inla.zmarginal(marginal, silent = FALSE)
 ##! }
@@ -113,7 +113,7 @@
 ##!   and the remaining function returns what they say they should do.  }
 ##! %%
 ##! 
-##! \author{Havard Rue \email{hrue@math.ntnu.no}}
+##! \author{Havard Rue \email{hrue@r-inla.org}}
 ##! 
 ##! \seealso{\code{\link{inla}}, \code{\link{inla.hyperpar}}}
 ##! 
@@ -178,11 +178,20 @@
     eps = .Machine$double.eps * 1000
     ##marginal = spline(marginal)
     if (is.matrix(marginal)) {
+        if (any(is.na(marginal[, 2]))) {
+            idx = which(is.na(marginal[, 2]))
+            marginal = marginal[-idx, ]
+        }
         i = (marginal[, 2] > 0) & (abs(marginal[, 2]/max(marginal[, 2])) > eps)
         m = list(x=marginal[i, 1], y=marginal[i, 2])
         ## i = c(diff(marginal[, 1]) > eps, TRUE)
         ## m = list(x=marginal[i, 1], y=marginal[i, 2])
     } else {
+        if (any(is.na(marginal$y))) {
+            idx = which(is.na(marginal$y))
+            marginal$x = marginal$x[-idx]
+            marginal$y = marginal$y[-idx]
+        }
         i = (marginal$y > 0) & (abs(marginal$y/max(marginal$y)) > eps)
         m = list(x = marginal$x[i], y = marginal$y[i])
         ## i = c(diff(marginal$x) > eps, TRUE)
@@ -224,7 +233,7 @@
         xx = m$x
     }
     nx = length(xx)
-    dx = nx * diff(xx) / median(diff(xx))
+    dx = nx * diff(xx) / mean(diff(xx))
     xnew = c(0, cumsum(sqrt(dx)))
     xnew = xmin + (xmax - xmin) * ((xnew - min(xnew))/(max(xnew) - min(xnew)))
     fun = splinefun(xnew, xx, method = "hyman")
@@ -318,7 +327,7 @@
     return (d)
 }
 
-`inla.pmarginal` = function(q, marginal, normalize = TRUE, len = 1024L)
+`inla.pmarginal` = function(q, marginal, normalize = TRUE, len = 2048L)
 {
     f = inla.sfmarginal(inla.smarginal(marginal))
     xx = seq(f$range[1], f$range[2], length = len)
@@ -335,7 +344,7 @@
     return (fq(xx))
 }
 
-`inla.qmarginal` = function(p, marginal, len = 1024L)
+`inla.qmarginal` = function(p, marginal, len = 2048L)
 {
     f = inla.sfmarginal(inla.smarginal(marginal))
     xx = seq(f$range[1], f$range[2], length = len)
@@ -364,7 +373,7 @@
 
     return (fq(pp))
 }
-`inla.hpdmarginal` = function(p, marginal, len = 1024L)
+`inla.hpdmarginal` = function(p, marginal, len = 2048L)
 {
     sm = inla.smarginal(marginal, keep.type = FALSE)
     f = inla.sfmarginal(sm)
@@ -422,7 +431,7 @@
     return (inla.qmarginal(runif(n), marginal))
 }
 
-`inla.marginal.transform` = function(fun, marginal, n=1024L, h.diff = .Machine$double.eps^(1/3),
+`inla.marginal.transform` = function(fun, marginal, n=2048L, h.diff = .Machine$double.eps^(1/3),
         method = c("quantile", "linear"))
 {
     return (inla.tmarginal(fun, marginal, n, h.diff, method = method))
@@ -448,7 +457,7 @@
     return(fd)
 }
 
-`inla.tmarginal` = function(fun, marginal, n=1024L, h.diff = .Machine$double.eps^(1/3),
+`inla.tmarginal` = function(fun, marginal, n=2048L, h.diff = .Machine$double.eps^(1/3),
         method = c("quantile", "linear")) 
 {
     ff = match.fun(fun)

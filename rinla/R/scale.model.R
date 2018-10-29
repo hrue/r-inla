@@ -24,7 +24,7 @@
 ##!   scaled so the geometric mean of the marginal variances (of the possible
 ##!   non-singular part of \code{Q}) is one,  for each connected component of the matrix.
 ##! }
-##! \author{Havard Rue \email{hrue@math.ntnu.no}}
+##! \author{Havard Rue \email{hrue@r-inla.org}}
 ##!
 ##! \examples{
 ##! ## Q is singular
@@ -53,8 +53,11 @@
 ##! print(diag(INLA:::inla.ginv(Q.scaled)))
 ##! }
 
-inla.scale.model = function(Q, constr = NULL, eps = sqrt(.Machine$double.eps))
+inla.scale.model.internal = function(Q, constr = NULL, eps = sqrt(.Machine$double.eps))
 {
+    ## return also the scaled marginal variances
+    
+    marg.var = rep(0, nrow(Q))
     Q = inla.as.sparse(Q)
     g = inla.read.graph(Q)
     for(k in seq_len(g$cc$n)) {
@@ -63,6 +66,7 @@ inla.scale.model = function(Q, constr = NULL, eps = sqrt(.Machine$double.eps))
         QQ = Q[i, i, drop=FALSE]
         if (n == 1) {
             QQ[1, 1] = 1
+            marg.var[i] = 1
         } else {
             cconstr = constr
             if (!is.null(constr)) {
@@ -75,8 +79,15 @@ inla.scale.model = function(Q, constr = NULL, eps = sqrt(.Machine$double.eps))
             res = inla.qinv(QQ + Diagonal(n) * max(diag(QQ)) * eeps, constr = cconstr)
             fac = exp(mean(log(diag(res))))
             QQ = fac * QQ
+            marg.var[i] = diag(res)/fac
         }
         Q[i, i] = QQ
     }
-    return (Q)
+    return (list(Q=Q, var = marg.var))
+}
+
+inla.scale.model = function(Q, constr = NULL, eps = sqrt(.Machine$double.eps))
+{
+    res = inla.scale.model.internal(Q = Q, constr = constr, eps = eps)
+    return (res$Q)
 }

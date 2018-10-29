@@ -33,7 +33,7 @@ inla.version(what = c("default",
 }
 %%
 
-\author{Havard Rue \email{hrue@math.ntnu.no}}
+\author{Havard Rue \email{hrue@r-inla.org}}
 
 \examples{
 ## Summary of all

@@ -12,33 +12,37 @@
 \alias{inla.rgeneric.iid.model}
 \alias{rgeneric.wrapper}
 \alias{inla.rgeneric.wrapper}
+\alias{rgeneric.q}
+\alias{inla.rgeneric.q}
 
 \title{rgeneric models}
 
 \description{A framework for defining latent models in R}
 
 \usage{
-inla.rgeneric.define(model = NULL, debug = FALSE, R.init = NULL, ...)
+inla.rgeneric.define(model = NULL, debug = FALSE, ...)
 inla.rgeneric.iid.model(
         cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
-        theta = NULL, args = NULL)
+        theta = NULL)
 inla.rgeneric.ar1.model(
         cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
-        theta = NULL, args = NULL)
+        theta = NULL)
 inla.rgeneric.wrapper(
         cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
         model, theta = NULL)
+inla.rgeneric.q(
+        rmodel, 
+        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
+        theta = NULL)
 }
 
 \arguments{
-
   \item{model}{The definition of the model; see \code{inla.rgeneric.ar1.model}}
+  \item{rmodel}{The rgeneric model-object, the output of \code{inla.rgeneric.define}}
+  \item{debug}{Logical. Turn on/off debugging}
   \item{cmd}{An allowed request}
   \item{theta}{Values of theta}
-  \item{debug}{Logical. Turn on/off debugging}
-  \item{R.init}{An R-file to be loaded or sourced, when the R-engine starts. See \code{inla.load}}
-  \item{args}{A list. A list of further args}
-  \item{...}{Further args}
+  \item{...}{Named list of variables that defines the environment of \code{model}}
   \item{debug}{Logical. Enable debug output}
 }
 
@@ -51,4 +55,4 @@ inla.rgeneric.wrapper(
   This will be somewhat slow and is intended for special cases and
   protyping. The function \code{inla.rgeneric.wrapper} is for
   internal use only.}
-\author{Havard Rue \email{hrue@math.ntnu.no}}
+\author{Havard Rue \email{hrue@r-inla.org}}

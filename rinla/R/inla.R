@@ -40,6 +40,7 @@
 ##!    inla.call = inla.getOption("inla.call"),
 ##!    inla.arg = inla.getOption("inla.arg"),
 ##!    num.threads = inla.getOption("num.threads"),
+##!    blas.num.threads = inla.getOption("blas.num.threads"),
 ##!    keep = inla.getOption("keep"),
 ##!    working.directory = inla.getOption("working.directory"),
 ##!    silent = inla.getOption("silent"),
@@ -71,7 +72,8 @@
         ##!\item{family}{ A string indicating the likelihood
         ##! family. The default is \code{gaussian} with identity
         ##! link. See \code{names(inla.models()$likelihood)} for a
-        ##! list of possible alternatives.}
+        ##! list of possible alternatives and use \code{\link{inla.doc}}
+		##! for detailed docs for individual families.}
         family = "gaussian", 
         
         ##!\item{contrasts}{Optional contrasts for the fixed
@@ -211,10 +213,18 @@
         inla.arg = inla.getOption("inla.arg"),
         
         ##!\item{num.threads}{ Maximum number of threads the
-        ##!\code{inla}-program will use. xFor Windows this
-        ##!defaults to 1, otherwise its defaults to \code{NULL}
-        ##!(for which the system takes over control).}
+        ##!\code{inla}-program will use}
         num.threads = inla.getOption("num.threads"),
+        
+        ##!\item{blas.num.threads}{The absolute value of \code{blas.num.threads} is the maximum
+        ##!number of threads the the \code{openblas}/\code{mklblas} will use (if available). If
+        ##!\code{blas.num.threads} > 0, then the environment variables
+        ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned. If
+        ##!\code{blas.num.threads} < 0, then the environment variables
+        ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned unless they
+        ##!are already defined. If \code{blas.num.threads} = 0, then variables
+        ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be removed.}
+        blas.num.threads = inla.getOption("blas.num.threads"),
         
         ##!\item{keep}{ A boolean variable indicating that the
         ##!working files (ini file, data files and results
@@ -394,7 +404,7 @@
     ##!(with discussion)}, vol 71, no 2, pp 319-392.
     ##!Rue, H and Held, L. (2005) \emph{Gaussian Markov Random Fields
     ##!- Theory and Applications} Chapman and Hall}
-    ##!\author{Havard Rue \email{hrue@math.ntnu.no} and Sara Martino}
+    ##!\author{Havard Rue \email{hrue@r-inla.org} and Sara Martino}
     ##!\seealso{\code{\link{f}}, 
     ##!\code{\link{inla.hyperpar}} }
     ##!\examples{
@@ -403,6 +413,12 @@
     ##!}
     ##!}
 {
+    ## This will prevent values of 'OutDec' not '.' to cause error, as we create the Model.ini
+    ## file with cat().
+    old.options = options()
+    on.exit(options(old.options))
+    options(OutDec=".")
+    
     my.time.used = numeric(4)
     my.time.used[1] = Sys.time()
 
@@ -413,20 +429,21 @@
     if (missing(formula)) {
         stop("Usage: inla(formula, family, data, ...); see ?inla\n")
     }
+
     if (missing(data)) {
         stop("Missing data.frame/list `data'. Leaving `data' empty might lead to\n\t\tuncontrolled behaviour, therefore is it required.")
     }
     if (!is.data.frame(data) && !is.list(data)) {
         stop("\n\tArgument `data' must be a data.frame or a list.")
     }
-    if (!missing(weights)) {
-        if (!is.null(weights)) {
-            if (!inla.getOption("enable.inla.argument.weights")) {
-                stop(paste("Argument 'weights' must be enabled before use due to the risk of mis-interpreting the results.\n",
-                           "\tUse 'inla.setOption(\"enable.inla.argument.weights\", TRUE)' to enable it; see ?inla"))
-            }
+
+    if (!missing(weights) && !is.null(weights)) {
+        if (!inla.getOption("enable.inla.argument.weights")) {
+            stop(paste("Argument 'weights' must be enabled before use due to the risk of mis-interpreting the results.\n",
+                       "\tUse 'inla.setOption(\"enable.inla.argument.weights\", TRUE)' to enable it; see ?inla"))
         }
     }
+
 
     ## if data is a list, then it can contain elements that defines a
     ## model, like f(idx, model = model.objects). These objects crash
@@ -466,8 +483,7 @@
     control.predictor = inla.check.control(control.predictor, data)
     ## I need to check for NA's already here.
     if (!is.null(control.predictor$A)) {
-        control.predictor$A[ is.na(control.predictor$A) ] = 0
-        control.predictor$A = inla.as.sparse(control.predictor$A)
+        control.predictor$A = inla.as.sparse(control.predictor$A, na.rm=TRUE, zeros.rm=TRUE)
     }
     ## do not check control.family here, as we need to know n.family
     control.inla = inla.check.control(control.inla, data)
@@ -492,8 +508,13 @@
     ## use the internal inlaprogram
     remote = FALSE
     submit = FALSE
+    ownfun = FALSE
     submit.id = ""
-    if (inla.strcasecmp(inla.call, "remote") ||
+
+    if (is.function(inla.call)) {
+        ## in this case, the responsibility is with the user
+        ownfun = TRUE
+    } else if (inla.strcasecmp(inla.call, "remote") ||
         inla.strcasecmp(inla.call, "inla.remote") ||
         length(grep("/inla.remote$", inla.call)) > 0 ||
         length(grep("/inla.remote.cygwin$", inla.call)) > 0) {
@@ -524,12 +545,14 @@
     ##
     have.surv = FALSE
     cont.hazard = NULL
-    for(i in 1:n.family)
+    for(i in 1:n.family) {
         have.surv = have.surv || inla.model.properties(family[i], "likelihood")$survival
+    }
 
     if (have.surv && (inla.one.of(family, c("coxph")))) {
         ## This is not supported yet. 
         stopifnot(is.null(control.predictor$A))
+
         cph = inla.coxph(formula, data, control.hazard, debug = debug)
         result = inla(
             cph$formula,
@@ -538,11 +561,9 @@
             contrasts = contrasts, 
             quantiles=quantiles,
             E = cph$E,
-            ## these should be expanded as well???  Will give an error...
-            offset= offset,
-            scale = scale,
-            weights = inla.ifelse(missing(weights) || (exists("weights") && is.function(weights)), NULL, weights), 
-            ## 
+            offset= offset, 
+            scale= scale, 
+            weights= weights, 
             Ntrials = NULL,             # Not used for the poisson
             strata = NULL,              # Not used for the poisson
             lincomb = lincomb,
@@ -562,6 +583,7 @@
             inla.call = inla.call,
             inla.arg = inla.arg,
             num.threads = num.threads,
+            blas.num.threads = blas.num.threads,
             keep = keep,
             working.directory = working.directory,
             silent = silent,
@@ -580,8 +602,10 @@
         y...orig = inla.as.list.of.lists(y...orig)
         ny = max(sapply(y...orig, function(xx) if (is.list(xx)) max(sapply(xx, length)) else length(xx)))
         nc = length(y...orig)
-        if (n.family != nc)
-            stop(paste("Number of families", n.family, "does not match number of response variables", nc))
+        if (n.family != nc) {
+            stop(paste("Number of families", n.family,
+                       "does not match number of response variables", nc))
+        }
     } else {
         nc = NULL ## not in use
         if (inherits(y...orig, "inla.surv")) {
@@ -930,7 +954,9 @@
                            "] even after trying a random dirname. I give up.", sep=""))
             }
         }
-        cat("Model and results are stored in working directory [", inla.dir,"]\n", sep="")
+        if (verbose) {
+            cat("Model and results are stored in working directory [", inla.dir,"]\n", sep="")
+        }
     } else {
         ##create a temporary directory
         inla.dir=inla.tempfile()
@@ -938,6 +964,7 @@
         inla.dir.create(inla.dir)
     }
     ## Create a directory where to store data and results
+    inla.dir = normalizePath(inla.dir)
     data.dir=paste(inla.dir, "/data.files", sep="")
     results.dir = paste(inla.dir, "/results.files", sep="")
     inla.dir.create(data.dir)
@@ -968,10 +995,12 @@
     ## copy the argument-lists
     mf = match.call(expand.dots = FALSE)
     mf$family = NULL; mf$quantiles=NULL; 
-    mf$verbose = NULL; mf$control.compute = NULL; mf$control.predictor = NULL; mf$silent = NULL; mf$control.hazard=NULL;
+    mf$verbose = NULL; mf$control.compute = NULL; mf$control.predictor = NULL;
+    mf$silent = NULL; mf$control.hazard=NULL;
     mf$control.family = NULL;  mf$control.update = NULL;
     mf$control.inla = NULL; mf$control.results = NULL; mf$control.fixed = NULL; mf$control.lincomb=NULL;
-    mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL; mf$num.threads = NULL; mf$keep = NULL;
+    mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL;
+    mf$num.threads = NULL; mf$blas.num.threads = NULL; mf$keep = NULL;
     mf$working.directory = NULL; mf$only.hyperparam = NULL; mf$debug = NULL; mf$contrasts = NULL; 
     mf$inla.arg = NULL; mf$lincomb=NULL; mf$.parent.frame = NULL;
     mf$data = data.same.len
@@ -1731,7 +1760,8 @@
                     A=gp$random.spec[[r]]$extraconstr$A
                     e=gp$random.spec[[r]]$extraconstr$e
 
-                    if (ncol(A) != inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor*n)
+                    if ((gp$random.spec[[r]]$model != "rgeneric") &&
+                        (ncol(A) != inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor*n))
                         stop(paste("\n\tncol in matrix A(extraconstr) does not correspont to the length of f:",
                                    ncol(A),
                                    inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor*n))
@@ -1823,7 +1853,7 @@
         stop("\n\tSomething strange with weights in the covariate...")
 
     ## the inla section
-    inla.inla.section(file=file.ini, inla.spec=cont.inla)
+    inla.inla.section(file=file.ini, inla.spec=cont.inla, data.dir)
 
     ## create mode section
     cont.mode = inla.set.control.mode.default()
@@ -1877,42 +1907,67 @@
     all.args = paste(arg.arg, arg.b, arg.s, arg.v, arg.nt, sep=" ")
 
     ## define some environment variables for remote computing
-    inla.eval(paste("Sys.setenv(", "\"INLA_PATH\"", "=\"", system.file("bin", package="INLA"), "\"", ")", sep=""))
-    inla.eval(paste("Sys.setenv(", "\"INLA_OS\"", "=\"", inla.os.type() , "\"", ")", sep=""))
-    inla.eval(paste("Sys.setenv(", "\"INLA_HGVERSION\"", "=\"", inla.version("hgid") , "\"", ")", sep=""))
-    rversion = paste(R.Version()$major, ".", strsplit(R.Version()$minor,"[.]")[[1]][1], sep="")
-    inla.eval(paste("Sys.setenv(", "\"INLA_RVERSION\"", "=\"", rversion , "\"", ")", sep=""))
-    inla.eval(paste("Sys.setenv(", "\"INLA_RHOME\"", "=\"", Sys.getenv("R_HOME") , "\"", ")", sep=""))
+    vars = list(INLA_PATH = system.file("bin", package="INLA"),
+                INLA_OS = inla.os.type(), 
+                INLA_HGVERSION = inla.version("hgid"), 
+                INLA_RVERSION = paste0(R.Version()$major, ".",
+                                       strsplit(R.Version()$minor,"[.]")[[1]][1]),
+                INLA_RHOME = Sys.getenv("R_HOME"))
+    do.call("Sys.setenv", vars)
+    inla.set.sparselib.env(inla.dir, blas.num.threads = blas.num.threads)
+
+    vars = NULL
     if (debug) {
-        inla.eval(paste("Sys.setenv(", "\"INLA_DEBUG=\"", "=\"", 1, "\"", ")", sep=""))
+        vars = c(vars, INLA_DEBUG=1)
     }
     if (remote || submit) {
         if (submit) {
             all.args = paste(all.args,  "-p") ## need this option
-            inla.eval(paste("Sys.setenv(", "\"INLA_SUBMIT_ID\"", "=\"", submit.id, "\"", ")", sep=""))
+            vars = c(vars,
+                     INLA_SUBMIT_ID = submit.id)
         }
         if (inla.os("windows")) {
-            inla.eval(paste("Sys.setenv(", "\"INLA_SSH_AUTH_SOCK\"", "=\"", inla.getOption("ssh.auth.sock"), "\"", ")", sep=""))
-            inla.eval(paste("Sys.setenv(", "\"INLA_CYGWIN_HOME\"", "=\"", inla.getOption("cygwin.home"), "\"", ")", sep=""))
-            inla.eval(paste("Sys.setenv(", "\"INLA_HOME\"", "=\"",
-                            inla.cygwin.map.filename(gsub("\\\\", "/", inla.get.HOME())), "\"", ")", sep=""))
+            vars = c(vars, 
+                     INLA_SSH_AUTH_SOCK = inla.getOption("ssh.auth.sock"), 
+                     INLA_CYGWIN_HOME = inla.getOption("cygwin.home"), 
+                     INLA_HOME = inla.cygwin.map.filename(gsub("\\\\", "/", inla.get.HOME())))
         } else {
-            inla.eval(paste("Sys.setenv(", "\"INLA_HOME\"", "=\"", inla.get.HOME(), "\"", ")", sep=""))
-            ## if SSH_AUTH_SOCK is not set, then we can pass it to the remote computing script
+            vars = c(vars,
+                     INLA_HOME = inla.get.HOME())
             if (Sys.getenv("SSH_AUTH_SOCK") == "") {
-                inla.eval(paste("Sys.setenv(", "\"INLA_SSH_AUTH_SOCK\"", "=\"", inla.getOption("ssh.auth.sock"), "\"", ")", sep=""))
+                vars = c(vars,
+                         INLA_SSH_AUTH_SOCK = inla.getOption("ssh.auth.sock"))
             }
         }
+    }
+    if (!is.null(vars))
+        do.call("Sys.setenv", as.list(vars))
+
+    ## write the list of environment variables set, so they can be reset if needed
+    env = Sys.getenv()
+    env.n = names(env)
+    idx = grep("^(INLA_|(OPENBLAS|MKL)_NUM_THREADS|PARDISO)", env.n)
+    env.list = env[idx]
+    file.env = paste0(inla.dir, "/environment")
+    cat(file=file.env)
+    for(i in seq_along(env.list)) {
+        cat(names(env.list[i]), "=\"", env.list[i], "\"\n", sep="", file=file.env, append=TRUE)
     }
 
     my.time.used[2] = Sys.time()
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
-    if (nchar(inla.call) > 0) {
-        if (inla.os("linux") || inla.os("mac")) {
+    if (ownfun || nchar(inla.call) > 0) {
+        if (ownfun) {
+            ## undocumented feature for PB
+            echoc = inla.call(file.ini = file.ini,
+                              file.log = if (verbose) NULL else file.log,
+                              results.dir = results.dir,
+                              inla.call.args = all.args)
+        } else if (inla.os("linux") || inla.os("mac")) {
             if (verbose) {
                 echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
             } else {
-                echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", file.log,
+                echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", shQuote(file.log),
                     inla.ifelse(silent == 2L, " 2>/dev/null", "")))
             }
         } else if (inla.os("windows")) {
@@ -1970,9 +2025,9 @@
             
             my.time.used[4] = Sys.time()
             cpu.used = c(
-                "Pre-processing"  = diff(my.time.used)[1],
-                "Running inla"    = diff(my.time.used)[2],
-                "Post-processing" = diff(my.time.used)[3],
+                "Pre" = diff(my.time.used)[1],
+                "Running" = diff(my.time.used)[2],
+                "Post" = diff(my.time.used)[3],
                 "Total" = my.time.used[4] - my.time.used[1])
 
             ret$cpu.used = cpu.used
@@ -2092,10 +2147,67 @@
             if (!(names(data)[k] %in% exclude.names)) {
                 formula = as.formula(paste("~ -1 + ",  names(data)[k]))
                 tmp = model.matrix(formula, model.frame(formula,  data, na.action = na.pass))
-                colnames(tmp) = levels(data[[k]])
+                colnames(tmp) = paste0(names(data)[k], levels(data[[k]]))
                 data[[k]] = tmp
             }
         }
     }
     return (data)
 }
+
+`inla.set.sparselib.env` = function(inla.dir = NULL, blas.num.threads = 1L) 
+{
+    ## environment variables for sparse libraries
+    if (is.null(inla.dir)) {
+        inla.dir = inla.tempdir()
+    }
+
+    lic.filename = "pardiso.lic" ## do not change
+    lic.filename.dir = paste0(inla.dir, "/", lic.filename)
+    file.create(lic.filename.dir)
+    
+    if (!is.null(inla.getOption("pardiso.license"))) {
+        lic.file = normalizePath(inla.getOption("pardiso.license"))
+        lic.path = NA
+        if (file.exists(lic.file)) {
+            info = file.info(lic.file)
+            if (!is.na(info$isdir)) {
+                if (info$isdir) {
+                    lic.path = lic.file
+                } else if (!is.null(inla.dir)) {
+                    file.copy(lic.file, lic.filename.dir, overwrite=TRUE)
+                    lic.path = inla.dir
+                } else {
+                    stop("This should not happen")
+                }
+            } else {
+                lic.path = lic.file
+            }
+        } else {
+            lic.path = lic.file
+        }
+        do.call("Sys.setenv", list(PARDISO_LIC_PATH = normalizePath(lic.path), 
+                                   INLA_LOAD_PARDISO = 1))
+    } else {
+        Sys.unsetenv("INLA_LOAD_PARDISO")
+    }
+
+    if (Sys.getenv("PARDISOLICMESSAGE") == "")
+        Sys.setenv(PARDISOLICMESSAGE=1)
+    
+    blas.num.threads = as.integer(blas.num.threads)
+    if (blas.num.threads == 0) {
+        Sys.unsetenv("OPENBLAS_NUM_THREADS")
+        Sys.unsetenv("MKL_NUM_THREADS")
+    } else if (blas.num.threads > 0) {
+        Sys.setenv(OPENBLAS_NUM_THREADS = blas.num.threads)
+        Sys.setenv(MKL_NUM_THREADS = blas.num.threads)
+    } else {
+        if (Sys.getenv("OPENBLAS_NUM_THREADS") == "")
+            Sys.setenv(OPENBLAS_NUM_THREADS = abs(blas.num.threads))
+        if (Sys.getenv("MKL_NUM_THREADS") == "")
+            Sys.setenv(MKL_NUM_THREADS = abs(blas.num.threads))
+    }
+        
+    return (invisible())
+}    

@@ -29,7 +29,7 @@
      The \code{inla.spy} function, plots a binary image of a \code{graph}. The \code{reordering} argument
      is typically the reordering used by \code{inla}, found in \code{result$misc$reordering}.
 }
-\author{Havard Rue \email{hrue@math.ntnu.no}}
+\author{Havard Rue \email{hrue@r-inla.org}}
 \seealso{
     \code{\link{inla.read.graph}}, \code{inla.qreordering}
 }

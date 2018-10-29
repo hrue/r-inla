@@ -13,14 +13,16 @@
               The diagonal and values for the neighbours in the inverse, are provided.}
 
  \usage{
-     inla.qinv(Q, constr, reordering = inla.reorderings())
+     inla.qinv(Q, constr, reordering = INLA::inla.reorderings())
  }
 
  \arguments{
 
    \item{Q}{A SPD matrix,  either as a (dense) matrix or sparseMatrix.}
-   \item{constr}{Optional linear constraints; see \code{?INLA::f} and argument \code{extraconstr}}
-   \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()}
+   \item{constr}{Optional linear constraints; 
+                 see \code{?INLA::f} and argument \code{extraconstr}}
+   \item{reordering}{The type of reordering algorithm to be used for \code{TAUCS};
+        either one of the names listed in \code{inla.reorderings()} 
         or the output from \code{inla.qreordering(Q)}.
         The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
   }
@@ -28,7 +30,7 @@
    \code{inla.qinv} returns a \code{sparseMatrix} of type \code{dgTMatrix} with the
    diagonal and values for the neigbours in the inverse. Note that the full inverse is NOT provided!
  }
- \author{Havard Rue \email{hrue@math.ntnu.no}}
+ \author{Havard Rue \email{hrue@r-inla.org}}
 
  \examples{
 

@@ -4,13 +4,13 @@
 <!--http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd-->  
 <html xmlns="http://www.w3.org/1999/xhtml"  
 > 
-<head><title>8 Measurement error model</title> 
+<head><title>8 Lowering resolution of a spatio-temporal model</title> 
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" /> 
 <meta name="generator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)" /> 
 <meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)" /> 
 <!-- xhtml,html,frames,2 --> 
 <meta name="src" content="spde-tutorial.tex" /> 
-<meta name="date" content="2017-01-22 14:18:00" /> 
+<meta name="date" content="2017-02-24 10:55:00" /> 
 <link rel="stylesheet" type="text/css" href="spde-tutorial.css" /> 
 </head><body 
 >
@@ -21,2313 +21,1300 @@ href="spde-tutorialch7.html#tailspde-tutorialch7.html" >prev-tail</a>] [<a
 href="#tailspde-tutorialch8.html">tail</a>] [<a 
 href="spde-tutorial3.html#spde-tutorialch8.html" >up</a>] </p></div>
    <h2 class="chapterHead"><span class="titlemark">Chapter&#x00A0;8</span><br /><a 
- id="x12-530008"></a>Measurement error model</h2>
-<!--l. 6--><p class="noindent" >Here we focus on a similar situation than the one on Chapter&#x00A0;<a 
-href="spde-tutorialch7.html#x11-480007">7<!--tex4ht:ref: ch:jcovar --></a>. We also have a response
-<span 
-class="cmmi-10x-x-109">y </span>and a covariate <span 
-class="cmmi-10x-x-109">c </span>and the misalignment. But, now we have that the covariate is
-observed on both <span 
-class="cmmi-10x-x-109">c </span>and <span 
-class="cmmi-10x-x-109">y </span>locations and also has a error measure that is spatially
-structured.
-</p>
+ id="x12-800008"></a>Lowering resolution of a spatio-temporal model</h2>
+<!--l. 3--><p class="noindent" >The  R  source  for  this  file  is  available  at
+<a 
+href="http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-lower-spatio-temporal.R" class="url" ><span 
+class="aett-10x-x-109">http://www.math.ntnu.no/inla/r-_inla.org/tutorials/spde/R/spde-_tutorial-_lower-_spatio-_temporal.R</span></a>
+</p><!--l. 11--><p class="indent" >   It can be challenging when dealing with large data sets. In this chapter we want to show how
+to fit a model using some dimention reduction.
+</p><!--l. 15--><p class="indent" >   Before starting, the spatial mesh and the SPDE model is built with the following code.
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox11845"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor11794"><span 
+class="aett-10x-x-109">data</span></span><span id="textcolor11795"><span 
+class="aett-10x-x-109">(PRprec)</span></span>
+<br /><span id="textcolor11796"><span 
+class="aett-10x-x-109">bound</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11797"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11798"><span 
+class="aett-10x-x-109">inla.nonconvex.hull</span></span><span id="textcolor11799"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor11800"><span 
+class="aett-10x-x-109">as.matrix</span></span><span id="textcolor11801"><span 
+class="aett-10x-x-109">(PRprec[,</span></span><span id="textcolor11802"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor11803"><span 
+class="aett-10x-x-109">:</span></span><span id="textcolor11804"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor11805"><span 
+class="aett-10x-x-109">]),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11806"><span 
+class="aett-10x-x-109">.2</span></span><span id="textcolor11807"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11808"><span 
+class="aett-10x-x-109">.2</span></span><span id="textcolor11809"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11810"><span 
+class="aett-10x-x-109">resol</span></span><span id="textcolor11811"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor11812"><span 
+class="aett-10x-x-109">50</span></span><span id="textcolor11813"><span 
+class="aett-10x-x-109">)</span></span>
+<br /><span id="textcolor11814"><span 
+class="aett-10x-x-109">mesh.s</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11815"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11816"><span 
+class="aett-10x-x-109">inla.mesh.2d</span></span><span id="textcolor11817"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor11818"><span 
+class="aett-10x-x-109">bound</span></span><span id="textcolor11819"><span 
+class="aett-10x-x-109">=bound,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11820"><span 
+class="aett-10x-x-109">max.edge</span></span><span id="textcolor11821"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor11822"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor11823"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor11824"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor11825"><span 
+class="aett-10x-x-109">,</span></span><span id="textcolor11826"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor11827"><span 
+class="aett-10x-x-109">),</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11828"><span 
+class="aett-10x-x-109">offset</span></span><span id="textcolor11829"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor11830"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor11831"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor11832"><span 
+class="aett-10x-x-109">.0001</span></span><span id="textcolor11833"><span 
+class="aett-10x-x-109">,</span></span><span id="textcolor11834"><span 
+class="aett-10x-x-109">0.7</span></span><span id="textcolor11835"><span 
+class="aett-10x-x-109">),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11836"><span 
+class="aett-10x-x-109">cutoff</span></span><span id="textcolor11837"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor11838"><span 
+class="aett-10x-x-109">0.5</span></span><span id="textcolor11839"><span 
+class="aett-10x-x-109">)</span></span>
+<br /><span id="textcolor11840"><span 
+class="aett-10x-x-109">spde.s</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11841"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11842"><span 
+class="aett-10x-x-109">inla.spde2.matern</span></span><span id="textcolor11843"><span 
+class="aett-10x-x-109">(mesh.s)</span></span>
+</div>
+</div>                                                                          </span></div>-
    <h3 class="sectionHead"><span class="titlemark">8.1   </span> <a 
- id="x12-540008.1"></a>The model</h3>
-<!--l. 17--><p class="noindent" >We consider the following model <span 
-class="cmmi-10x-x-109">c</span>
+ id="x12-810008.1"></a>Data temporal aggregation</h3>
+<!--l. 30--><p class="noindent" >The data we are going to analyse is the daily rainfall in Paraná. We have rainfall at 616 location
+points observed over 365 days.  
 </p>
-   <center class="math-display" >
-<img 
-src="spde-tutorial64x.png" alt="cj = &#x03B1;c + &#x03B2;wwj + mj
-" class="math-display"  /></center>
-<!--l. 20--><p class="nopar" > where <span 
-class="cmmi-10x-x-109">w</span><sub><span 
-class="cmmi-8">i</span></sub> is a covariate. Considering a GF for <span 
-class="cmmi-10x-x-109">m</span>, we have here a kind of measurement error
-models, <span class="cite">[<a 
-href="spde-tutorialli2.html#Xmuffetal:2013">Muff et&#x00A0;al., 2013</a>]</span>, where the error is assumed t o have spatial structure.
-</p><!--l. 29--><p class="indent" >   For <span 
-class="cmmi-10x-x-109">y</span>, we have
-</p>
-   <center class="math-display" >
-<img 
-src="spde-tutorial65x.png" alt="yi ~ &#x03B1;y + &#x03B2;ccci + xi + ei
-" class="math-display"  /></center>
-<!--l. 32--><p class="nopar" > where <span 
-class="cmmi-10x-x-109">&#x03B1;</span><sub><span 
-class="cmmi-8">y</span></sub> is an intercept, <span 
-class="cmmi-10x-x-109">&#x03B2;</span><sub><span 
-class="cmmi-8">c</span></sub> is the regression coefficient on the predicted value for <span 
-class="cmmi-10x-x-109">c x</span><sub><span 
-class="cmmi-8">j</span></sub> is an zero
-mean random field and <span 
-class="cmmi-10x-x-109">e</span><sub><span 
-class="cmmi-8">i</span></sub> is a error that remains unexplained on <span 
-class="cmmi-10x-x-109">y </span>such that <span 
-class="cmmi-10x-x-109">e</span><sub><span 
-class="cmmi-8">i</span></sub><span 
-class="cmmi-10x-x-109">Ñ</span><span 
-class="cmr-10x-x-109">(0</span><span 
-class="cmmi-10x-x-109">,&#x03C3;</span><sub><span 
-class="cmmi-8">y</span></sub><sup><span 
-class="cmr-8">2</span></sup><span 
-class="cmr-10x-x-109">)</span>
-measures the.
-</p><!--l. 41--><p class="indent" >   A particular case is when we don&#8217;t have the <span 
-class="cmmi-10x-x-109">x </span>term in the model for <span 
-class="cmmi-10x-x-109">y</span>. Another case, is when
-<span 
-class="cmmi-10x-x-109">&#x03C3;</span><sub><span 
-class="cmmi-8">c</span></sub><sup><span 
-class="cmr-8">2</span></sup> <span 
-class="cmr-10x-x-109">= 0 </span>and we don&#8217;t have white noise in the covariate, i. e., the covariate is considered just a
-realization of a random field.
-</p><!--l. 48--><p class="indent" >   Differently than the joint model on Chapter&#x00A0;<a 
-href="spde-tutorialch7.html#x11-480007">7<!--tex4ht:ref: ch:jcovar --></a>, here we need to define a term that express
-the linear predictor of <span 
-class="cmmi-10x-x-109">c </span>and then copy it on the response linear predictor. We need an extra
-equation to do it
-</p>
-   <center class="math-display" >
-<img 
-src="spde-tutorial66x.png" alt="&#x03C9; =  &#x03B1; + &#x03B2;  w  + m
- j    c   w  j    j
-" class="math-display"  /></center>
-<!--l. 56--><p class="nopar" > To fit <span 
-class="cmmi-10x-x-109">&#x03C9; </span>we need o use the faked zero observations strategy, <span class="cite">[<a 
-href="spde-tutorialli2.html#XcardenasKR:2012">Ruiz-Cárdenas et&#x00A0;al., 2012</a>]</span>. So, we
-rewrite this as
-</p>
-   <center class="math-display" >
-<img 
-src="spde-tutorial67x.png" alt="0 = &#x03B1;c + &#x03B2;wwj + mj - &#x03C9;j
-" class="math-display"  /></center>
-<!--l. 63--><p class="nopar" > and define a Gaussian likelihood with fixed high precision to fit it.
-</p><!--l. 67--><p class="noindent" >
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox11860"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor11847"><span 
+class="aett-10x-x-109">dim</span></span><span id="textcolor11848"><span 
+class="aett-10x-x-109">(PRprec)</span></span>
+</div>
+</div>                                                                          </span></div>
                                                                                  
                                                                                  
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox11862">   <div class="verbatim" id="verbatim-106">
+##&#x00A0;[1]&#x00A0;616&#x00A0;368
+</div>
+<!--l. 39--><p class="nopar" ></p><div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor11849"><span 
+class="aett-10x-x-109">PRprec[</span></span><span id="textcolor11850"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor11851"><span 
+class="aett-10x-x-109">:</span></span><span id="textcolor11852"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor11853"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11854"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor11855"><span 
+class="aett-10x-x-109">:</span></span><span id="textcolor11856"><span 
+class="aett-10x-x-109">7</span></span><span id="textcolor11857"><span 
+class="aett-10x-x-109">]</span></span>
+</div>
+</div>   
+<div class="verbatim" id="verbatim-107">
+##&#x00A0;&#x00A0;&#x00A0;Longitude&#x00A0;Latitude&#x00A0;Altitude&#x00A0;d0101&#x00A0;d0102&#x00A0;d0103&#x00A0;d0104
+&#x00A0;<br />##&#x00A0;1&#x00A0;&#x00A0;-50.8744&#x00A0;-22.8511&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;365&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0
+&#x00A0;<br />##&#x00A0;3&#x00A0;&#x00A0;-50.7711&#x00A0;-22.9597&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;344&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;1&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0
+</div>
+<!--l. 47--><p class="nopar" >                                                                          </span></div>-
+<!--l. 51--><p class="indent" >   To this example we are going to analyse the probability of rain. So we only consider if the
+value where bigger than <span 
+class="cmr-10x-x-109">0</span><span 
+class="cmmi-10x-x-109">.</span><span 
+class="cmr-10x-x-109">1 </span>or not.
+</p><!--l. 54--><p class="indent" >   To reduce the time dimension of the data, we aggregate it summing every five days. At end
+we have two data matrix, one with the number of days without NA in each station and another
+with the number of raining days on such stations.  
+</p>
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox11925"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor11864"><span 
+class="aett-10x-x-109">table</span></span><span id="textcolor11865"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor11866"><span 
+class="aett-10x-x-109">table</span></span><span id="textcolor11867"><span 
+class="aett-10x-x-109">(id5</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11868"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11869"><span 
+class="aett-10x-x-109">0</span></span><span id="textcolor11870"><span 
+class="aett-10x-x-109">:</span></span><span id="textcolor11871"><span 
+class="aett-10x-x-109">364</span></span><span id="textcolor11872"><span 
+class="aett-10x-x-109">%/%</span></span><span id="textcolor11873"><span 
+class="aett-10x-x-109">5</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11874"><span 
+class="aett-10x-x-109">+</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11875"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor11876"><span 
+class="aett-10x-x-109">))</span></span>
+</div>
+</div>                                                                          </span></div>
+                                                                                 
+                                                                                 
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox11927">   <div class="verbatim" id="verbatim-108">
+##
+&#x00A0;<br />##&#x00A0;&#x00A0;5
+&#x00A0;<br />##&#x00A0;73
+</div>
+<!--l. 67--><p class="nopar" ></p><div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor11877"><span 
+class="aett-10x-x-109">n5</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11878"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11879"><span 
+class="aett-10x-x-109">t</span></span><span id="textcolor11880"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor11881"><span 
+class="aett-10x-x-109">apply</span></span><span id="textcolor11882"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor11883"><span 
+class="aett-10x-x-109">!</span></span><span id="textcolor11884"><span 
+class="aett-10x-x-109">is.na</span></span><span id="textcolor11885"><span 
+class="aett-10x-x-109">(PRprec[,</span></span><span id="textcolor11886"><span 
+class="aett-10x-x-109">3</span></span><span id="textcolor11887"><span 
+class="aett-10x-x-109">+</span></span><span id="textcolor11888"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor11889"><span 
+class="aett-10x-x-109">:</span></span><span id="textcolor11890"><span 
+class="aett-10x-x-109">365</span></span><span id="textcolor11891"><span 
+class="aett-10x-x-109">]),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11892"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor11893"><span 
+class="aett-10x-x-109">,</span><span 
+class="aett-10x-x-109">&#x00A0;tapply,</span><span 
+class="aett-10x-x-109">&#x00A0;id5,</span><span 
+class="aett-10x-x-109">&#x00A0;sum))</span></span>
+<br /><span id="textcolor11894"><span 
+class="aett-10x-x-109">y5</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11895"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11896"><span 
+class="aett-10x-x-109">t</span></span><span id="textcolor11897"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor11898"><span 
+class="aett-10x-x-109">apply</span></span><span id="textcolor11899"><span 
+class="aett-10x-x-109">(PRprec[,</span></span><span id="textcolor11900"><span 
+class="aett-10x-x-109">3</span></span><span id="textcolor11901"><span 
+class="aett-10x-x-109">+</span></span><span id="textcolor11902"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor11903"><span 
+class="aett-10x-x-109">:</span></span><span id="textcolor11904"><span 
+class="aett-10x-x-109">365</span></span><span id="textcolor11905"><span 
+class="aett-10x-x-109">]</span></span><span id="textcolor11906"><span 
+class="aett-10x-x-109">&#x003E;</span></span><span id="textcolor11907"><span 
+class="aett-10x-x-109">0.1</span></span><span id="textcolor11908"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11909"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor11910"><span 
+class="aett-10x-x-109">,</span><span 
+class="aett-10x-x-109">&#x00A0;tapply,</span><span 
+class="aett-10x-x-109">&#x00A0;id5,</span><span 
+class="aett-10x-x-109">&#x00A0;sum,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11911"><span 
+class="aett-10x-x-109">na.rm</span></span><span id="textcolor11912"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor11913"><span 
+class="aett-10x-x-109">TRUE</span></span><span id="textcolor11914"><span 
+class="aett-10x-x-109">))</span></span>
+<br /><span id="textcolor11915"><span 
+class="aett-10x-x-109">k</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11916"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11917"><span 
+class="aett-10x-x-109">ncol</span></span><span id="textcolor11918"><span 
+class="aett-10x-x-109">(n5);</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11919"><span 
+class="aett-10x-x-109">table</span></span><span id="textcolor11920"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor11921"><span 
+class="aett-10x-x-109">as.vector</span></span><span id="textcolor11922"><span 
+class="aett-10x-x-109">(n5))</span></span>
+</div>
+</div>   
+<div class="verbatim" id="verbatim-109">
+##
+&#x00A0;<br />##&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;0&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;1&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;2&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;3&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;4&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;5
+&#x00A0;<br />##&#x00A0;&#x00A0;3563&#x00A0;&#x00A0;&#x00A0;&#x00A0;77&#x00A0;&#x00A0;&#x00A0;&#x00A0;72&#x00A0;&#x00A0;&#x00A0;&#x00A0;95&#x00A0;&#x00A0;&#x00A0;172&#x00A0;40989
+</div>
+<!--l. 77--><p class="nopar" >                                                                          </span></div>-
+<!--l. 80--><p class="indent" >   From now, our data has 73 time points.
+</p><!--l. 82--><p class="indent" >   From the above table, we can see that there were 3563 periods of five days with no data
+recorded. The first approach can be removing such pairs data, both <span 
+class="cmmi-10x-x-109">y </span>and <span 
+class="cmmi-10x-x-109">n</span>. If we do not remove
+it, we have to assign NA to <span 
+class="cmmi-10x-x-109">y </span>when <span 
+class="cmmi-10x-x-109">n </span><span 
+class="cmr-10x-x-109">= 0</span>. However, we have to assign a positive
+value, five for example, for such <span 
+class="cmmi-10x-x-109">n </span>and it will be treated as a prediction scenario.
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox11942"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor11929"><span 
+class="aett-10x-x-109">y5[n5</span></span><span id="textcolor11930"><span 
+class="aett-10x-x-109">==</span></span><span id="textcolor11931"><span 
+class="aett-10x-x-109">0</span></span><span id="textcolor11932"><span 
+class="aett-10x-x-109">]</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11933"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11934"><span 
+class="aett-10x-x-109">NA</span></span><span id="textcolor11935"><span 
+class="aett-10x-x-109">;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;n5[n5</span></span><span id="textcolor11936"><span 
+class="aett-10x-x-109">==</span></span><span id="textcolor11937"><span 
+class="aett-10x-x-109">0</span></span><span id="textcolor11938"><span 
+class="aett-10x-x-109">]</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11939"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11940"><span 
+class="aett-10x-x-109">5</span></span>
+</div>
+</div>                                                                          </span></div>-
+<!--l. 96--><p class="noindent" >
 </p>
    <h3 class="sectionHead"><span class="titlemark">8.2   </span> <a 
- id="x12-550008.2"></a>Simulation from the model</h3>
-<!--l. 69--><p class="noindent" >In this section we do a simulation from this model.
-</p><!--l. 72--><p class="indent" >   First, we do the simulation of the locations
+ id="x12-820008.2"></a>Lowering temporal model resolution</h3>
+<!--l. 98--><p class="noindent" >This approach is better expained in<span class="cite">[<a 
+href="spde-tutorialli2.html#XblangiardoC:2015">Blangiardo and Cameletti, 2015</a>]</span>. The main idea is to place
+some knots over the time window and define a model on such knots. Them project the model
+into the data time points as we do using the Finite Element Method in the SPDE
+approach.
+</p><!--l. 104--><p class="indent" >   We choose to place knots at each 6 time points of the temporally aggregated data, which has
+73 time points. So, we en up with only 12 knots over time.  
+                                                                                 
+                                                                                 
 </p>
-   <div class="fancyvrb" id="fancyvrb374"><a 
- id="x12-55002r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;n.y</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;123;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;n.c</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;234</span><br class="fancyvrb" /><a 
- id="x12-55004r2"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;set.seed(1)</span><br class="fancyvrb" /><a 
- id="x12-55006r3"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;loc.c</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;cbind(runif(n.c),</span><span 
-class="aesltt-10x-x-109">&#x00A0;runif(n.c))</span>
-<br class="fancyvrb" /><a 
- id="x12-55008r4"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;loc.y</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;cbind(runif(n.y),</span><span 
-class="aesltt-10x-x-109">&#x00A0;runif(n.y))</span></div>
-<!--l. 82--><p class="indent" >   Let the parameters of both random fields <span 
-class="cmmi-10x-x-109">m </span>and <span 
-class="cmmi-10x-x-109">x</span>:
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox11991"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor11944"><span 
+class="aett-10x-x-109">bt</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11945"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11946"><span 
+class="aett-10x-x-109">6</span></span><span id="textcolor11947"><span 
+class="aett-10x-x-109">;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;gtime</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11948"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11949"><span 
+class="aett-10x-x-109">seq</span></span><span id="textcolor11950"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor11951"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor11952"><span 
+class="aett-10x-x-109">+</span></span><span id="textcolor11953"><span 
+class="aett-10x-x-109">bt,</span><span 
+class="aett-10x-x-109">&#x00A0;k,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11954"><span 
+class="aett-10x-x-109">length</span></span><span id="textcolor11955"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor11956"><span 
+class="aett-10x-x-109">round</span></span><span id="textcolor11957"><span 
+class="aett-10x-x-109">(k</span></span><span id="textcolor11958"><span 
+class="aett-10x-x-109">/</span></span><span id="textcolor11959"><span 
+class="aett-10x-x-109">bt))</span></span><span id="textcolor11960"><span 
+class="aett-10x-x-109">-</span></span><span id="textcolor11961"><span 
+class="aett-10x-x-109">bt</span></span><span id="textcolor11962"><span 
+class="aett-10x-x-109">/</span></span><span id="textcolor11963"><span 
+class="aett-10x-x-109">2</span></span>
+<br /><span id="textcolor11964"><span 
+class="aett-10x-x-109">mesh.t</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11965"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11966"><span 
+class="aett-10x-x-109">inla.mesh.1d</span></span><span id="textcolor11967"><span 
+class="aett-10x-x-109">(gtime,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11968"><span 
+class="aett-10x-x-109">degree</span></span><span id="textcolor11969"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor11970"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor11971"><span 
+class="aett-10x-x-109">)</span></span>
+<br /><span id="textcolor11972"><span 
+class="aett-10x-x-109">table</span></span><span id="textcolor11973"><span 
+class="aett-10x-x-109">(igr</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11974"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11975"><span 
+class="aett-10x-x-109">apply</span></span><span id="textcolor11976"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor11977"><span 
+class="aett-10x-x-109">abs</span></span><span id="textcolor11978"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor11979"><span 
+class="aett-10x-x-109">outer</span></span><span id="textcolor11980"><span 
+class="aett-10x-x-109">(mesh.t</span></span><span id="textcolor11981"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor11982"><span 
+class="aett-10x-x-109">loc,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11983"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor11984"><span 
+class="aett-10x-x-109">:</span></span><span id="textcolor11985"><span 
+class="aett-10x-x-109">k,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11986"><span 
+class="tctt-1095">'</span><span 
+class="aett-10x-x-109">-</span><span 
+class="tctt-1095">'</span></span><span id="textcolor11987"><span 
+class="aett-10x-x-109">)),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor11988"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor11989"><span 
+class="aett-10x-x-109">,</span><span 
+class="aett-10x-x-109">&#x00A0;which.min))</span></span>
+</div>
+</div>   
+<div class="verbatim" id="verbatim-110">
+##
+&#x00A0;<br />##&#x00A0;&#x00A0;1&#x00A0;&#x00A0;2&#x00A0;&#x00A0;3&#x00A0;&#x00A0;4&#x00A0;&#x00A0;5&#x00A0;&#x00A0;6&#x00A0;&#x00A0;7&#x00A0;&#x00A0;8&#x00A0;&#x00A0;9&#x00A0;10&#x00A0;11&#x00A0;12
+&#x00A0;<br />##&#x00A0;&#x00A0;7&#x00A0;&#x00A0;6&#x00A0;&#x00A0;6&#x00A0;&#x00A0;6&#x00A0;&#x00A0;6&#x00A0;&#x00A0;6&#x00A0;&#x00A0;6&#x00A0;&#x00A0;6&#x00A0;&#x00A0;6&#x00A0;&#x00A0;6&#x00A0;&#x00A0;6&#x00A0;&#x00A0;6
+</div>
+<!--l. 119--><p class="nopar" >                                                                          </span></div>-
+<!--l. 122--><p class="indent" >   The fist knot is closer to 7 time blocks and the others to 6.
+</p><!--l. 124--><p class="indent" >   The model dimention is then  
 </p>
-   <div class="fancyvrb" id="fancyvrb375"><a 
- id="x12-55010r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;kappa.m</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;7;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;sigma2.m</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;3</span><br class="fancyvrb" /><a 
- id="x12-55012r2"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;kappa.x</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;10;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;sigma2.x</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;2</span></div>
-<!--l. 89--><p class="noindent" >and we use the <span 
-class="aett-10x-x-109">rspde </span>function from Chapter&#x00A0;<a 
-href="spde-tutorialch2.html#x6-80002">2<!--tex4ht:ref: ch:spde --></a>. This function is available in the file at
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12001"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor11993"><span 
+class="aett-10x-x-109">spde.s</span></span><span id="textcolor11994"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor11995"><span 
+class="aett-10x-x-109">n.spde</span></span><span id="textcolor11996"><span 
+class="aett-10x-x-109">*</span></span><span id="textcolor11997"><span 
+class="aett-10x-x-109">mesh.t</span></span><span id="textcolor11998"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor11999"><span 
+class="aett-10x-x-109">n</span></span>
+</div>
+</div>   
+<div class="verbatim" id="verbatim-111">
+##&#x00A0;[1]&#x00A0;1152
+</div>
+<!--l. 132--><p class="nopar" >                                                                          </span></div>-
+<!--l. 136--><p class="indent" >   To built the spatial projector matrix, we need to replicate the spatial coordinates as
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12020"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor12003"><span 
+class="aett-10x-x-109">n</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12004"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12005"><span 
+class="aett-10x-x-109">nrow</span></span><span id="textcolor12006"><span 
+class="aett-10x-x-109">(PRprec)</span></span>
+<br /><span id="textcolor12007"><span 
+class="aett-10x-x-109">st.sloc</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12008"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12009"><span 
+class="aett-10x-x-109">cbind</span></span><span id="textcolor12010"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12011"><span 
+class="aett-10x-x-109">rep</span></span><span id="textcolor12012"><span 
+class="aett-10x-x-109">(PRprec[,</span></span><span id="textcolor12013"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12014"><span 
+class="aett-10x-x-109">],</span><span 
+class="aett-10x-x-109">&#x00A0;k),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12015"><span 
+class="aett-10x-x-109">rep</span></span><span id="textcolor12016"><span 
+class="aett-10x-x-109">(PRprec[,</span></span><span id="textcolor12017"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12018"><span 
+class="aett-10x-x-109">],</span><span 
+class="aett-10x-x-109">&#x00A0;k))</span></span>
+</div>
+</div>                                                                          </span></div>-
+<!--l. 146--><p class="indent" >   and then to consider the temporal mesh considering the group index in the scale of the data
+to be analised.  
+                                                                                 
+                                                                                 
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12042"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor12022"><span 
+class="aett-10x-x-109">Ast</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12023"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12024"><span 
+class="aett-10x-x-109">inla.spde.make.A</span></span><span id="textcolor12025"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12026"><span 
+class="aett-10x-x-109">mesh</span></span><span id="textcolor12027"><span 
+class="aett-10x-x-109">=mesh.s,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12028"><span 
+class="aett-10x-x-109">loc</span></span><span id="textcolor12029"><span 
+class="aett-10x-x-109">=st.sloc,</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12030"><span 
+class="aett-10x-x-109">group.mesh</span></span><span id="textcolor12031"><span 
+class="aett-10x-x-109">=mesh.t,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12032"><span 
+class="aett-10x-x-109">group</span></span><span id="textcolor12033"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12034"><span 
+class="aett-10x-x-109">rep</span></span><span id="textcolor12035"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12036"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12037"><span 
+class="aett-10x-x-109">:</span></span><span id="textcolor12038"><span 
+class="aett-10x-x-109">k,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12039"><span 
+class="aett-10x-x-109">each</span></span><span id="textcolor12040"><span 
+class="aett-10x-x-109">=n))</span></span>
+</div>
+</div>                                                                          </span></div>-
+<!--l. 157--><p class="indent" >   The index set and the stack is built as usual  
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12100"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor12044"><span 
+class="aett-10x-x-109">idx.st</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12045"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12046"><span 
+class="aett-10x-x-109">inla.spde.make.index</span></span><span id="textcolor12047"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12048"><span 
+class="tctt-1095">'</span><span 
+class="aett-10x-x-109">i</span><span 
+class="tctt-1095">'</span></span><span id="textcolor12049"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12050"><span 
+class="aett-10x-x-109">n.spde</span></span><span id="textcolor12051"><span 
+class="aett-10x-x-109">=spde.s</span></span><span id="textcolor12052"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12053"><span 
+class="aett-10x-x-109">n.spde,</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12054"><span 
+class="aett-10x-x-109">n.group</span></span><span id="textcolor12055"><span 
+class="aett-10x-x-109">=mesh.t</span></span><span id="textcolor12056"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12057"><span 
+class="aett-10x-x-109">n)</span></span>
+<br /><span id="textcolor12058"><span 
+class="aett-10x-x-109">dat</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12059"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12060"><span 
+class="aett-10x-x-109">inla.stack</span></span><span id="textcolor12061"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12062"><span 
+class="aett-10x-x-109">data</span></span><span id="textcolor12063"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12064"><span 
+class="aett-10x-x-109">list</span></span><span id="textcolor12065"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12066"><span 
+class="aett-10x-x-109">yy</span></span><span id="textcolor12067"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12068"><span 
+class="aett-10x-x-109">as.vector</span></span><span id="textcolor12069"><span 
+class="aett-10x-x-109">(y5),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12070"><span 
+class="aett-10x-x-109">nn</span></span><span id="textcolor12071"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12072"><span 
+class="aett-10x-x-109">as.vector</span></span><span id="textcolor12073"><span 
+class="aett-10x-x-109">(n5)),</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12074"><span 
+class="aett-10x-x-109">A</span></span><span id="textcolor12075"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12076"><span 
+class="aett-10x-x-109">list</span></span><span id="textcolor12077"><span 
+class="aett-10x-x-109">(Ast,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12078"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12079"><span 
+class="aett-10x-x-109">),</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12080"><span 
+class="aett-10x-x-109">effects</span></span><span id="textcolor12081"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12082"><span 
+class="aett-10x-x-109">list</span></span><span id="textcolor12083"><span 
+class="aett-10x-x-109">(idx.st,</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12084"><span 
+class="aett-10x-x-109">data.frame</span></span><span id="textcolor12085"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12086"><span 
+class="aett-10x-x-109">mu0</span></span><span id="textcolor12087"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12088"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12089"><span 
+class="aett-10x-x-109">,</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12090"><span 
+class="aett-10x-x-109">altitude</span></span><span id="textcolor12091"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12092"><span 
+class="aett-10x-x-109">rep</span></span><span id="textcolor12093"><span 
+class="aett-10x-x-109">(PRprec</span></span><span id="textcolor12094"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12095"><span 
+class="aett-10x-x-109">Alt</span></span><span id="textcolor12096"><span 
+class="aett-10x-x-109">/</span></span><span id="textcolor12097"><span 
+class="aett-10x-x-109">1e3</span></span><span id="textcolor12098"><span 
+class="aett-10x-x-109">,</span><span 
+class="aett-10x-x-109">&#x00A0;k))))</span></span>
+</div>
+</div>                                                                          </span></div>-
+<!--l. 172--><p class="indent" >   The formula is also as the usual for the separable spatio temporal model  
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12127"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor12102"><span 
+class="aett-10x-x-109">form</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12103"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12104"><span 
+class="aett-10x-x-109">yy</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12105"><span 
+class="aett-10x-x-109">~</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12106"><span 
+class="aett-10x-x-109">0</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12107"><span 
+class="aett-10x-x-109">+</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12108"><span 
+class="aett-10x-x-109">mu0</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12109"><span 
+class="aett-10x-x-109">+</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12110"><span 
+class="aett-10x-x-109">altitude</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12111"><span 
+class="aett-10x-x-109">+</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12112"><span 
+class="aett-10x-x-109">f</span></span><span id="textcolor12113"><span 
+class="aett-10x-x-109">(i,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12114"><span 
+class="aett-10x-x-109">model</span></span><span id="textcolor12115"><span 
+class="aett-10x-x-109">=spde.s,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12116"><span 
+class="aett-10x-x-109">group</span></span><span id="textcolor12117"><span 
+class="aett-10x-x-109">=i.group,</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12118"><span 
+class="aett-10x-x-109">control.group</span></span><span id="textcolor12119"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12120"><span 
+class="aett-10x-x-109">list</span></span><span id="textcolor12121"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12122"><span 
+class="aett-10x-x-109">model</span></span><span id="textcolor12123"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12124"><span 
+class="tctt-1095">'</span><span 
+class="aett-10x-x-109">ar1</span><span 
+class="tctt-1095">'</span></span><span id="textcolor12125"><span 
+class="aett-10x-x-109">))</span></span>
+</div>
+</div>                                                                          </span></div>-
+<!--l. 183--><p class="indent" >   To "fit" the model as fast as possible, we use the &#8217;gaussian&#8217; approximation and the Empirical
+Bayes (&#8217;eb&#8217;) integration strategy over the hyperparameters. We also fixed the mode at the values
+we have find in previous analisys.  
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12183"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor12129"><span 
+class="aett-10x-x-109">result</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12130"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12131"><span 
+class="aett-10x-x-109">inla</span></span><span id="textcolor12132"><span 
+class="aett-10x-x-109">(form,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12133"><span 
+class="tctt-1095">'</span><span 
+class="aett-10x-x-109">binomial</span><span 
+class="tctt-1095">'</span></span><span id="textcolor12134"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12135"><span 
+class="aett-10x-x-109">data</span></span><span id="textcolor12136"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12137"><span 
+class="aett-10x-x-109">inla.stack.data</span></span><span id="textcolor12138"><span 
+class="aett-10x-x-109">(dat),</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12139"><span 
+class="aett-10x-x-109">Ntrials</span></span><span id="textcolor12140"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12141"><span 
+class="aett-10x-x-109">inla.stack.data</span></span><span id="textcolor12142"><span 
+class="aett-10x-x-109">(dat)</span></span><span id="textcolor12143"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12144"><span 
+class="aett-10x-x-109">nn,</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12145"><span 
+class="aett-10x-x-109">control.predictor</span></span><span id="textcolor12146"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12147"><span 
+class="aett-10x-x-109">list</span></span><span id="textcolor12148"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12149"><span 
+class="aett-10x-x-109">A</span></span><span id="textcolor12150"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12151"><span 
+class="aett-10x-x-109">inla.stack.A</span></span><span id="textcolor12152"><span 
+class="aett-10x-x-109">(dat)),</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12153"><span 
+class="aett-10x-x-109">control.mode</span></span><span id="textcolor12154"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12155"><span 
+class="aett-10x-x-109">list</span></span><span id="textcolor12156"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12157"><span 
+class="aett-10x-x-109">theta</span></span><span id="textcolor12158"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12159"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor12160"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12161"><span 
+class="aett-10x-x-109">-</span></span><span id="textcolor12162"><span 
+class="aett-10x-x-109">0.48</span></span><span id="textcolor12163"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12164"><span 
+class="aett-10x-x-109">-</span></span><span id="textcolor12165"><span 
+class="aett-10x-x-109">0.9</span></span><span id="textcolor12166"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12167"><span 
+class="aett-10x-x-109">2.52</span></span><span id="textcolor12168"><span 
+class="aett-10x-x-109">)),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12169"><span 
+class="aeitt-10x-x-109">###restart=TRUE),</span><span 
+class="aeitt-10x-x-109">&#x00A0;</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12170"><span 
+class="aett-10x-x-109">control.inla</span></span><span id="textcolor12171"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12172"><span 
+class="aett-10x-x-109">list</span></span><span id="textcolor12173"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12174"><span 
+class="aett-10x-x-109">strategy</span></span><span id="textcolor12175"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12176"><span 
+class="tctt-1095">'</span><span 
+class="aett-10x-x-109">gaussian</span><span 
+class="tctt-1095">'</span></span><span id="textcolor12177"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12178"><span 
+class="aett-10x-x-109">int.strategy</span></span><span id="textcolor12179"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12180"><span 
+class="tctt-1095">'</span><span 
+class="aett-10x-x-109">eb</span><span 
+class="tctt-1095">'</span></span><span id="textcolor12181"><span 
+class="aett-10x-x-109">))</span></span>
+</div>
+</div>                                                                          </span></div>-
+                                                                                 
+                                                                                 
+<!--l. 199--><p class="indent" >   We can plot the fitted spatial effect for each temporal knot and overlay the proportion
+raining days considering the data closest to the time knots.
+</p><!--l. 203--><p class="indent" >   Defining a grid to project  
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12236"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor12185"><span 
+class="aett-10x-x-109">data</span></span><span id="textcolor12186"><span 
+class="aett-10x-x-109">(PRborder)</span></span>
+<br /><span id="textcolor12187"><span 
+class="aett-10x-x-109">r0</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12188"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12189"><span 
+class="aett-10x-x-109">diff</span></span><span id="textcolor12190"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12191"><span 
+class="aett-10x-x-109">range</span></span><span id="textcolor12192"><span 
+class="aett-10x-x-109">(PRborder[,</span></span><span id="textcolor12193"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12194"><span 
+class="aett-10x-x-109">]))</span></span><span id="textcolor12195"><span 
+class="aett-10x-x-109">/</span></span><span id="textcolor12196"><span 
+class="aett-10x-x-109">diff</span></span><span id="textcolor12197"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12198"><span 
+class="aett-10x-x-109">range</span></span><span id="textcolor12199"><span 
+class="aett-10x-x-109">(PRborder[,</span></span><span id="textcolor12200"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12201"><span 
+class="aett-10x-x-109">]))</span></span>
+<br /><span id="textcolor12202"><span 
+class="aett-10x-x-109">prj</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12203"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12204"><span 
+class="aett-10x-x-109">inla.mesh.projector</span></span><span id="textcolor12205"><span 
+class="aett-10x-x-109">(mesh.s,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12206"><span 
+class="aett-10x-x-109">xlim</span></span><span id="textcolor12207"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12208"><span 
+class="aett-10x-x-109">range</span></span><span id="textcolor12209"><span 
+class="aett-10x-x-109">(PRborder[,</span></span><span id="textcolor12210"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12211"><span 
+class="aett-10x-x-109">]),</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12212"><span 
+class="aett-10x-x-109">ylim</span></span><span id="textcolor12213"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12214"><span 
+class="aett-10x-x-109">range</span></span><span id="textcolor12215"><span 
+class="aett-10x-x-109">(PRborder[,</span></span><span id="textcolor12216"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12217"><span 
+class="aett-10x-x-109">]),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12218"><span 
+class="aett-10x-x-109">dims</span></span><span id="textcolor12219"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12220"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor12221"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12222"><span 
+class="aett-10x-x-109">100</span></span><span id="textcolor12223"><span 
+class="aett-10x-x-109">*</span></span><span id="textcolor12224"><span 
+class="aett-10x-x-109">r0,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12225"><span 
+class="aett-10x-x-109">100</span></span><span id="textcolor12226"><span 
+class="aett-10x-x-109">))</span></span>
+<br /><span id="textcolor12227"><span 
+class="aett-10x-x-109">in.pr</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12228"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12229"><span 
+class="aett-10x-x-109">inout</span></span><span id="textcolor12230"><span 
+class="aett-10x-x-109">(prj</span></span><span id="textcolor12231"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12232"><span 
+class="aett-10x-x-109">lattice</span></span><span id="textcolor12233"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12234"><span 
+class="aett-10x-x-109">loc,</span><span 
+class="aett-10x-x-109">&#x00A0;PRborder)</span></span>
+</div>
+</div>                                                                          </span></div>-
+<!--l. 216--><p class="indent" >   Project the posterior mean fitted at each time knot  
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12286"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor12238"><span 
+class="aett-10x-x-109">mu.spat</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12239"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12240"><span 
+class="aett-10x-x-109">lapply</span></span><span id="textcolor12241"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12242"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12243"><span 
+class="aett-10x-x-109">:</span></span><span id="textcolor12244"><span 
+class="aett-10x-x-109">mesh.t</span></span><span id="textcolor12245"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12246"><span 
+class="aett-10x-x-109">n,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12247"><span 
+class="aett-10x-x-109">function</span></span><span id="textcolor12248"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12249"><span 
+class="aett-10x-x-109">j</span></span><span id="textcolor12250"><span 
+class="aett-10x-x-109">)</span><span 
+class="aett-10x-x-109">&#x00A0;{</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12251"><span 
+class="aett-10x-x-109">r</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12252"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12253"><span 
+class="aett-10x-x-109">inla.mesh.project</span></span><span id="textcolor12254"><span 
+class="aett-10x-x-109">(prj,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12255"><span 
+class="aett-10x-x-109">field</span></span><span id="textcolor12256"><span 
+class="aett-10x-x-109">=result</span></span><span id="textcolor12257"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12258"><span 
+class="aett-10x-x-109">summary.ran</span></span><span id="textcolor12259"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12260"><span 
+class="aett-10x-x-109">i</span></span><span id="textcolor12261"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12262"><span 
+class="aett-10x-x-109">mean[</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12263"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12264"><span 
+class="aett-10x-x-109">:</span></span><span id="textcolor12265"><span 
+class="aett-10x-x-109">spde.s</span></span><span id="textcolor12266"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12267"><span 
+class="aett-10x-x-109">n.spde</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12268"><span 
+class="aett-10x-x-109">+</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12269"><span 
+class="aett-10x-x-109">(j</span></span><span id="textcolor12270"><span 
+class="aett-10x-x-109">-</span></span><span id="textcolor12271"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12272"><span 
+class="aett-10x-x-109">)</span></span><span id="textcolor12273"><span 
+class="aett-10x-x-109">*</span></span><span id="textcolor12274"><span 
+class="aett-10x-x-109">spde.s</span></span><span id="textcolor12275"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12276"><span 
+class="aett-10x-x-109">n.spde])</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12277"><span 
+class="aett-10x-x-109">r[</span></span><span id="textcolor12278"><span 
+class="aett-10x-x-109">!</span></span><span id="textcolor12279"><span 
+class="aett-10x-x-109">in.pr]</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12280"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12281"><span 
+class="aett-10x-x-109">NA</span></span><span id="textcolor12282"><span 
+class="aett-10x-x-109">;</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12283"><span 
+class="aett-10x-x-109">return</span></span><span id="textcolor12284"><span 
+class="aett-10x-x-109">(r)})</span></span>
+</div>
+</div>                                                                          </span></div>-
+<!--l. 228--><p class="indent" >   The images in Figure&#x00A0;<a 
+href="#x12-820008.2">8.2<!--tex4ht:ref: fig:lowstres --></a> were made using the following commands  
+   <div  
+class="centerline"><span 
+class="colorbox" id="colorbox12375"></p>     
+<div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor12288"><span 
+class="aett-10x-x-109">par</span></span><span id="textcolor12289"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12290"><span 
+class="aett-10x-x-109">mfrow</span></span><span id="textcolor12291"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12292"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor12293"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12294"><span 
+class="aett-10x-x-109">4</span></span><span id="textcolor12295"><span 
+class="aett-10x-x-109">,</span></span><span id="textcolor12296"><span 
+class="aett-10x-x-109">3</span></span><span id="textcolor12297"><span 
+class="aett-10x-x-109">),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12298"><span 
+class="aett-10x-x-109">mar</span></span><span id="textcolor12299"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12300"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor12301"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12302"><span 
+class="aett-10x-x-109">0</span></span><span id="textcolor12303"><span 
+class="aett-10x-x-109">,</span></span><span id="textcolor12304"><span 
+class="aett-10x-x-109">0</span></span><span id="textcolor12305"><span 
+class="aett-10x-x-109">,</span></span><span id="textcolor12306"><span 
+class="aett-10x-x-109">0</span></span><span id="textcolor12307"><span 
+class="aett-10x-x-109">,</span></span><span id="textcolor12308"><span 
+class="aett-10x-x-109">0</span></span><span id="textcolor12309"><span 
+class="aett-10x-x-109">))</span></span>
+<br /><span id="textcolor12310"><span 
+class="aett-10x-x-109">zlm</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12311"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12312"><span 
+class="aett-10x-x-109">range</span></span><span id="textcolor12313"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12314"><span 
+class="aett-10x-x-109">unlist</span></span><span id="textcolor12315"><span 
+class="aett-10x-x-109">(mu.spat),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12316"><span 
+class="aett-10x-x-109">na.rm</span></span><span id="textcolor12317"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12318"><span 
+class="aett-10x-x-109">TRUE</span></span><span id="textcolor12319"><span 
+class="aett-10x-x-109">)</span></span>
+<br /><span id="textcolor12320"><span 
+class="aett-10x-x-109">for</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12321"><span 
+class="aett-10x-x-109">(j</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12322"><span 
+class="aett-10x-x-109">in</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12323"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12324"><span 
+class="aett-10x-x-109">:</span></span><span id="textcolor12325"><span 
+class="aett-10x-x-109">mesh.t</span></span><span id="textcolor12326"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12327"><span 
+class="aett-10x-x-109">n)</span><span 
+class="aett-10x-x-109">&#x00A0;{</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12328"><span 
+class="aett-10x-x-109">image.plot</span></span><span id="textcolor12329"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor12330"><span 
+class="aett-10x-x-109">x</span></span><span id="textcolor12331"><span 
+class="aett-10x-x-109">=prj</span></span><span id="textcolor12332"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12333"><span 
+class="aett-10x-x-109">x,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12334"><span 
+class="aett-10x-x-109">y</span></span><span id="textcolor12335"><span 
+class="aett-10x-x-109">=prj</span></span><span id="textcolor12336"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor12337"><span 
+class="aett-10x-x-109">y,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12338"><span 
+class="aett-10x-x-109">z</span></span><span id="textcolor12339"><span 
+class="aett-10x-x-109">=mu.spat[[j]],</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12340"><span 
+class="aett-10x-x-109">asp</span></span><span id="textcolor12341"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12342"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12343"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12344"><span 
+class="aett-10x-x-109">axes</span></span><span id="textcolor12345"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12346"><span 
+class="aett-10x-x-109">FALSE</span></span><span id="textcolor12347"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12348"><span 
+class="aett-10x-x-109">zlim</span></span><span id="textcolor12349"><span 
+class="aett-10x-x-109">=zlm)</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12350"><span 
+class="aett-10x-x-109">lines</span></span><span id="textcolor12351"><span 
+class="aett-10x-x-109">(PRborder)</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12352"><span 
+class="aett-10x-x-109">points</span></span><span id="textcolor12353"><span 
+class="aett-10x-x-109">(PRprec[,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12354"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor12355"><span 
+class="aett-10x-x-109">:</span></span><span id="textcolor12356"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor12357"><span 
+class="aett-10x-x-109">],</span></span>
+<br /><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12358"><span 
+class="aett-10x-x-109">cex</span></span><span id="textcolor12359"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12360"><span 
+class="aett-10x-x-109">rowSums</span></span><span id="textcolor12361"><span 
+class="aett-10x-x-109">(y5[,</span><span 
+class="aett-10x-x-109">&#x00A0;j</span></span><span id="textcolor12362"><span 
+class="aett-10x-x-109">==</span></span><span id="textcolor12363"><span 
+class="aett-10x-x-109">igr],</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor12364"><span 
+class="aett-10x-x-109">na.rm</span></span><span id="textcolor12365"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor12366"><span 
+class="aett-10x-x-109">TRUE</span></span><span id="textcolor12367"><span 
+class="aett-10x-x-109">)</span></span><span id="textcolor12368"><span 
+class="aett-10x-x-109">/</span></span><span id="textcolor12369"><span 
+class="aett-10x-x-109">rowSums</span></span><span id="textcolor12370"><span 
+class="aett-10x-x-109">(n5[,j</span></span><span id="textcolor12371"><span 
+class="aett-10x-x-109">==</span></span><span id="textcolor12372"><span 
+class="aett-10x-x-109">igr]))</span></span>
+<br /><span id="textcolor12373"><span 
+class="aett-10x-x-109">}</span></span>
+</div>
+</div>                                                                          </span></div>-
+   <hr class="figure" /><div class="figure" 
+>
+                                                                                 
+                                                                                 
 <a 
-href="http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/spde-tutorial-functions.R" class="url" ><span 
-class="aett-10x-x-109">http://www.math.ntnu.no/inla/r-_inla.org/tutorials/spde/spde-_tutorial-_functions.R</span></a>.
-This function need a mesh to do simulation. We can provide the mesh or it is builded
-automatically. We build a mesh to provide taking into account the true value of the smaller
-range process
-</p>
-   <div class="fancyvrb" id="fancyvrb376"><a 
- id="x12-55014r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;maxk</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;max(kappa.m,</span><span 
-class="aesltt-10x-x-109">&#x00A0;kappa.x)</span><br class="fancyvrb" /><a 
- id="x12-55016r2"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;(mesh</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;inla.mesh.2d(rbind(loc.c,</span><span 
-class="aesltt-10x-x-109">&#x00A0;loc.y),</span><span 
-class="aesltt-10x-x-109">&#x00A0;max.edge=c(1,2)/maxk,</span>
-<br class="fancyvrb" /><a 
- id="x12-55018r3"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;cutoff=0.1/maxk,</span><span 
-class="aesltt-10x-x-109">&#x00A0;offset=c(1,2)/maxk))$n</span></div>
-<!--l. 102--><p class="noindent" >
-</p>
-   <div class="fancyvrb" id="fancyvrb377"><a 
- id="x12-55020r1"></a><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;[1]</span><span 
-class="aett-10x-x-109">&#x00A0;750</span></div>
-<!--l. 107--><p class="indent" >   We need the simulation of <span 
-class="cmmi-10x-x-109">m </span>in both set of locations.
-</p>
-   <div class="fancyvrb" id="fancyvrb378"><a 
- id="x12-55022r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;set.seed(2)</span><br class="fancyvrb" /><a 
- id="x12-55024r2"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;mm</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;rspde(coords=rbind(loc.c,</span><span 
-class="aesltt-10x-x-109">&#x00A0;loc.y),</span>
-<br class="fancyvrb" /><a 
- id="x12-55026r3"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;kappa=kappa.m,</span><span 
-class="aesltt-10x-x-109">&#x00A0;variance=sigma2.m,</span><span 
-class="aesltt-10x-x-109">&#x00A0;mesh=mesh)</span>
-<br class="fancyvrb" /><a 
- id="x12-55028r4"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;xx</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;rspde(coords=loc.y,</span><span 
-class="aesltt-10x-x-109">&#x00A0;kappa=kappa.x,</span><br class="fancyvrb" /><a 
- id="x12-55030r5"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;variance=sigma2.x,</span><span 
-class="aesltt-10x-x-109">&#x00A0;mesh=mesh)</span></div>
-<!--l. 117--><p class="noindent" >and with the following parameters
-</p>
-   <div class="fancyvrb" id="fancyvrb379"><a 
- id="x12-55032r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;alpha.c</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;-5;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;beta.w</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;0.5</span><br class="fancyvrb" /><a 
- id="x12-55034r2"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;alpha.y</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;3;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;beta.c</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;2</span><br class="fancyvrb" /><a 
- id="x12-55036r3"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;sigma2.y</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;0.3</span></div>
-<!--l. 125--><p class="noindent" >we do simulation of the covariate and response with
-</p>
-   <div class="fancyvrb" id="fancyvrb380"><a 
- id="x12-55038r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;set.seed(3)</span><br class="fancyvrb" /><a 
- id="x12-55040r2"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;w</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;runif(n.c</span><span 
-class="aesltt-10x-x-109">&#x00A0;+</span><span 
-class="aesltt-10x-x-109">&#x00A0;n.y)</span><br class="fancyvrb" /><a 
- id="x12-55042r3"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;cc</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;alpha.c</span><span 
-class="aesltt-10x-x-109">&#x00A0;+</span><span 
-class="aesltt-10x-x-109">&#x00A0;beta.w</span><span 
-class="aesltt-10x-x-109">&#x00A0;*</span><span 
-class="aesltt-10x-x-109">&#x00A0;w</span><span 
-class="aesltt-10x-x-109">&#x00A0;+</span><span 
-class="aesltt-10x-x-109">&#x00A0;mm</span>
-<br class="fancyvrb" /><a 
- id="x12-55044r4"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;yy</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;alpha.y</span><span 
-class="aesltt-10x-x-109">&#x00A0;+</span><span 
-class="aesltt-10x-x-109">&#x00A0;beta.c*cc[n.c+1:n.y]</span><span 
-class="aesltt-10x-x-109">&#x00A0;+</span><span 
-class="aesltt-10x-x-109">&#x00A0;xx</span><span 
-class="aesltt-10x-x-109">&#x00A0;+</span><br class="fancyvrb" /><a 
- id="x12-55046r5"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;rnorm(n.y,</span><span 
-class="aesltt-10x-x-109">&#x00A0;0,</span><span 
-class="aesltt-10x-x-109">&#x00A0;sqrt(sigma2.y))</span></div>
-<!--l. 136--><p class="noindent" >
-</p>
-   <h3 class="sectionHead"><span class="titlemark">8.3   </span> <a 
- id="x12-560008.3"></a>Fitting the model</h3>
-<!--l. 138--><p class="noindent" >Here we use the same mesh for both random fields on the model that is the same
-one used on simulation. So, the both index set based on the mesh have the same
-values.
-</p><!--l. 144--><p class="indent" >   We do simulations of the covariate on the locations of the response just to simulate the
-response. But, in the problem that we want to solve in pratice, we don&#8217;t have the covariate on
-the response locations. The misalignment implies in different predictor matrix for response and
-covariate.
+ id="x12-820011"></a>
                                                                                  
                                                                                  
-</p>
-   <div class="fancyvrb" id="fancyvrb381"><a 
- id="x12-56002r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;Ac</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;inla.spde.make.A(mesh,</span><span 
-class="aesltt-10x-x-109">&#x00A0;loc=loc.c)</span><br class="fancyvrb" /><a 
- id="x12-56004r2"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;Ay</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;inla.spde.make.A(mesh,</span><span 
-class="aesltt-10x-x-109">&#x00A0;loc=loc.y)</span></div>
-<!--l. 159--><p class="indent" >   We have to use three likelihoods. One for the response, one for the covariate <span 
-class="cmmi-10x-x-109">c </span>and one for
-the faked zero observations. It is easier to buil one stack for each one and join they to fit the
-model
-</p>
-   <div class="fancyvrb" id="fancyvrb382"><a 
- id="x12-56006r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;stk.y</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;inla.stack(data=list(y=cbind(yy,</span><span 
-class="aesltt-10x-x-109">&#x00A0;NA,</span><span 
-class="aesltt-10x-x-109">&#x00A0;NA)),</span><br class="fancyvrb" /><a 
- id="x12-56008r2"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;A=list(Ay,</span><span 
-class="aesltt-10x-x-109">&#x00A0;1),</span>
-<br class="fancyvrb" /><a 
- id="x12-56010r3"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;effects=list(x=1:mesh$n,</span><br class="fancyvrb" /><a 
- id="x12-56012r4"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;data.frame(</span>
-<br class="fancyvrb" /><a 
- id="x12-56014r5"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;a.y=1,</span><span 
-class="aesltt-10x-x-109">&#x00A0;o.c=(n.c+1):(n.c+n.y))))</span>
-<br class="fancyvrb" /><a 
- id="x12-56016r6"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;stk.c</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;inla.stack(data=list(y=cbind(NA,</span><span 
-class="aesltt-10x-x-109">&#x00A0;cc[1:n.c],</span><span 
-class="aesltt-10x-x-109">&#x00A0;NA)),</span>
-<br class="fancyvrb" /><a 
- id="x12-56018r7"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;A=list(Ac,</span><span 
-class="aesltt-10x-x-109">&#x00A0;1),</span><span 
-class="aesltt-10x-x-109">&#x00A0;tag=</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">dat.c</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span><br class="fancyvrb" /><a 
- id="x12-56020r8"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;effects=list(m=1:mesh$n,</span>
-<br class="fancyvrb" /><a 
- id="x12-56022r9"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;data.frame(a.c=1,</span><span 
-class="aesltt-10x-x-109">&#x00A0;w=w[1:n.c])))</span>
-<br class="fancyvrb" /><a 
- id="x12-56024r10"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;stk.0</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;inla.stack(data=list(y=cbind(NA,</span><span 
-class="aesltt-10x-x-109">&#x00A0;NA,</span><span 
-class="aesltt-10x-x-109">&#x00A0;rep(0,</span><span 
-class="aesltt-10x-x-109">&#x00A0;n.c</span><span 
-class="aesltt-10x-x-109">&#x00A0;+</span><span 
-class="aesltt-10x-x-109">&#x00A0;n.y))),</span>
-<br class="fancyvrb" /><a 
- id="x12-56026r11"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;A=list(rBind(Ac,Ay),</span><span 
-class="aesltt-10x-x-109">&#x00A0;1),</span><span 
-class="aesltt-10x-x-109">&#x00A0;tag=</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">dat.0</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span>
-<br class="fancyvrb" /><a 
- id="x12-56028r12"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;effects=list(m=1:mesh$n,</span>
-<br class="fancyvrb" /><a 
- id="x12-56030r13"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;data.frame(a.c=1,</span><span 
-class="aesltt-10x-x-109">&#x00A0;w=w[1:(n.c+n.y)],</span>
-<br class="fancyvrb" /><a 
- id="x12-56032r14"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;o=1:(n.c+n.y),</span>
-<br class="fancyvrb" /><a 
- id="x12-56034r15"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;o.weig=rep(-1,n.c+n.y))))</span>
-<br class="fancyvrb" /><a 
- id="x12-56036r16"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;stk</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;inla.stack(stk.c,</span><span 
-class="aesltt-10x-x-109">&#x00A0;stk.y,</span><span 
-class="aesltt-10x-x-109">&#x00A0;stk.0)</span></div>
-<!--l. 186--><p class="indent" >   Define the spde model
-</p>
-   <div class="fancyvrb" id="fancyvrb383"><a 
- id="x12-56038r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;spde</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;inla.spde2.matern(mesh)</span></div>
-<!--l. 193--><p class="indent" >   The estimation of the regression coefficient of <span 
-class="cmmi-10x-x-109">c </span>on <span 
-class="cmmi-10x-x-109">y </span>we use the copy feature. In this
-case, we need to do a good prior specification. For example, is possible to know, a
-priori, the signal. We set a <span 
-class="cmmi-10x-x-109">N</span><span 
-class="cmr-10x-x-109">(2</span><span 
-class="cmmi-10x-x-109">,</span><span 
-class="cmr-10x-x-109">25) </span>prior to <span 
-class="cmmi-10x-x-109">&#x03B2;</span><sub><span 
-class="cmmi-8">c</span></sub>. Also, we define the formulae for the
-model.
-</p>
-   <div class="fancyvrb" id="fancyvrb384"><a 
- id="x12-56040r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;form</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;y</span><span 
-class="aesltt-10x-x-109">&#x00A0;~</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;0</span><span 
-class="aesltt-10x-x-109">&#x00A0;+</span><span 
-class="aesltt-10x-x-109">&#x00A0;a.c</span><span 
-class="aesltt-10x-x-109">&#x00A0;+</span><span 
-class="aesltt-10x-x-109">&#x00A0;a.y</span><span 
-class="aesltt-10x-x-109">&#x00A0;+</span><span 
-class="aesltt-10x-x-109">&#x00A0;w</span><span 
-class="aesltt-10x-x-109">&#x00A0;+</span><br class="fancyvrb" /><a 
- id="x12-56042r2"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;f(m,</span><span 
-class="aesltt-10x-x-109">&#x00A0;model=spde)</span><span 
-class="aesltt-10x-x-109">&#x00A0;+</span><span 
-class="aesltt-10x-x-109">&#x00A0;f(x,</span><span 
-class="aesltt-10x-x-109">&#x00A0;model=spde)</span><span 
-class="aesltt-10x-x-109">&#x00A0;+</span>
-<br class="fancyvrb" /><a 
- id="x12-56044r3"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;f(o,</span><span 
-class="aesltt-10x-x-109">&#x00A0;o.weig,</span><span 
-class="aesltt-10x-x-109">&#x00A0;model=</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">iid</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span><br class="fancyvrb" /><a 
- id="x12-56046r4"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;hyper=list(theta=list(initial=-20,</span><span 
-class="aesltt-10x-x-109">&#x00A0;fixed=TRUE)))</span><span 
-class="aesltt-10x-x-109">&#x00A0;+</span>
-<br class="fancyvrb" /><a 
- id="x12-56048r5"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;f(o.c,</span><span 
-class="aesltt-10x-x-109">&#x00A0;copy=</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">o</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;fixed=FALSE,</span><br class="fancyvrb" /><a 
- id="x12-56050r6"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;hyper=list(theta=list(param=c(2,25),</span><span 
-class="aesltt-10x-x-109">&#x00A0;initial=2)))</span></div>
-<!--l. 209--><p class="noindent" >and fit the model with
-</p>
-   <div class="fancyvrb" id="fancyvrb385"><a 
- id="x12-56052r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;res</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;inla(form,</span><span 
-class="aesltt-10x-x-109">&#x00A0;data=inla.stack.data(stk),</span><span 
-class="aesltt-10x-x-109">&#x00A0;family=rep(</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">gaussian</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,3),</span>
-<br class="fancyvrb" /><a 
- id="x12-56054r2"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;control.predictor=list(compute=TRUE,</span><span 
-class="aesltt-10x-x-109">&#x00A0;A=inla.stack.A(stk)),</span>
-<br class="fancyvrb" /><a 
- id="x12-56056r3"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;control.family=list(list(),</span>
-<br class="fancyvrb" /><a 
- id="x12-56058r4"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;list(hyper=list(theta=list(initial=20,</span><span 
-class="aesltt-10x-x-109">&#x00A0;fixed=TRUE))),</span>
-<br class="fancyvrb" /><a 
- id="x12-56060r5"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;list(hyper=list(theta=list(initial=20,</span><span 
-class="aesltt-10x-x-109">&#x00A0;fixed=TRUE)))))</span></div>
-<!--l. 220--><p class="noindent" >
-</p>
-   <h3 class="sectionHead"><span class="titlemark">8.4   </span> <a 
- id="x12-570008.4"></a>The results</h3>
-<!--l. 222--><p class="noindent" >The true values of the intercepts and the regression coefficient of <span 
-class="cmmi-10x-x-109">w </span>on <span 
-class="cmmi-10x-x-109">c </span>and the summary of its
-posterior marginal distributions
-</p>
-   <div class="fancyvrb" id="fancyvrb386"><a 
- id="x12-57002r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;round(cbind(True=c(alpha.c,</span><span 
-class="aesltt-10x-x-109">&#x00A0;alpha.y,</span><span 
-class="aesltt-10x-x-109">&#x00A0;beta.w),</span><span 
-class="aesltt-10x-x-109">&#x00A0;res$summary.fix),</span><span 
-class="aesltt-10x-x-109">&#x00A0;4)</span></div>
-                                                                                 
-                                                                                 
-<!--l. 229--><p class="noindent" >
-</p>
-   <div class="fancyvrb" id="fancyvrb387"><a 
- id="x12-57004r1"></a><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;True</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;mean</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;sd</span><span 
-class="aett-10x-x-109">&#x00A0;0.025quant</span><span 
-class="aett-10x-x-109">&#x00A0;0.5quant</span><span 
-class="aett-10x-x-109">&#x00A0;0.975quant</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;mode</span><span 
-class="aett-10x-x-109">&#x00A0;kld</span>
-<br class="fancyvrb" /><a 
- id="x12-57006r2"></a><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;a.c</span><span 
-class="aett-10x-x-109">&#x00A0;-5.0</span><span 
-class="aett-10x-x-109">&#x00A0;-4.1260</span><span 
-class="aett-10x-x-109">&#x00A0;0.4555</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;-5.0096</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;-4.1360</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;-3.1837</span><span 
-class="aett-10x-x-109">&#x00A0;-4.1537</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;0</span>
-<br class="fancyvrb" /><a 
- id="x12-57008r3"></a><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;a.y</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;3.0</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;2.3545</span><span 
-class="aett-10x-x-109">&#x00A0;0.6021</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;1.1903</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;2.3034</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;3.6035</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;2.2455</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;0</span>
-<br class="fancyvrb" /><a 
- id="x12-57010r4"></a><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;w</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;0.5</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;0.5116</span><span 
-class="aett-10x-x-109">&#x00A0;0.0326</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;0.4476</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;0.5116</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;0.5756</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;0.5116</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;0</span></div>
-<!--l. 237--><p class="indent" >   The true values of the precision of <span 
-class="cmmi-10x-x-109">y </span>and the summary of the posterior marginal
-distribution
-</p>
-   <div class="fancyvrb" id="fancyvrb388"><a 
- id="x12-57012r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;round(cbind(True=1/sigma2.y,</span><span 
-class="aesltt-10x-x-109">&#x00A0;res$summary.hy[1,]),</span><span 
-class="aesltt-10x-x-109">&#x00A0;4)</span></div>
-<!--l. 243--><p class="noindent" >
-</p>
-   <div class="fancyvrb" id="fancyvrb389"><a 
- id="x12-57014r1"></a><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;True</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;mean</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;sd</span><span 
-class="aett-10x-x-109">&#x00A0;0.025quant</span>
-<br class="fancyvrb" /><a 
- id="x12-57016r2"></a><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;Precision</span><span 
-class="aett-10x-x-109">&#x00A0;for</span><span 
-class="aett-10x-x-109">&#x00A0;the</span><span 
-class="aett-10x-x-109">&#x00A0;Gaussian</span><span 
-class="aett-10x-x-109">&#x00A0;observations</span><span 
-class="aett-10x-x-109">&#x00A0;3.3333</span><span 
-class="aett-10x-x-109">&#x00A0;2.868</span><span 
-class="aett-10x-x-109">&#x00A0;1.527</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;0.9253</span>
-<br class="fancyvrb" /><a 
- id="x12-57018r3"></a><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;0.5quant</span><span 
-class="aett-10x-x-109">&#x00A0;0.975quant</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;mode</span>
-<br class="fancyvrb" /><a 
- id="x12-57020r4"></a><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;Precision</span><span 
-class="aett-10x-x-109">&#x00A0;for</span><span 
-class="aett-10x-x-109">&#x00A0;the</span><span 
-class="aett-10x-x-109">&#x00A0;Gaussian</span><span 
-class="aett-10x-x-109">&#x00A0;observations</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;2.5399</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;6.7362</span><span 
-class="aett-10x-x-109">&#x00A0;1.9759</span></div>
-<!--l. 251--><p class="indent" >   The true value of the regression coefficient of <span 
-class="cmmi-10x-x-109">c </span>on <span 
-class="cmmi-10x-x-109">y </span>and the summary of its posterior
-marginal distribution
-</p>
-   <div class="fancyvrb" id="fancyvrb390"><a 
- id="x12-57022r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;round(cbind(True=beta.c,</span><span 
-class="aesltt-10x-x-109">&#x00A0;res$summary.hy[6,]),</span><span 
-class="aesltt-10x-x-109">&#x00A0;4)</span></div>
-<!--l. 258--><p class="noindent" >
-</p>
-   <div class="fancyvrb" id="fancyvrb391"><a 
- id="x12-57024r1"></a><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;True</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;mean</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;sd</span><span 
-class="aett-10x-x-109">&#x00A0;0.025quant</span><span 
-class="aett-10x-x-109">&#x00A0;0.5quant</span><span 
-class="aett-10x-x-109">&#x00A0;0.975quant</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;mode</span>
-<br class="fancyvrb" /><a 
- id="x12-57026r2"></a><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;Beta</span><span 
-class="aett-10x-x-109">&#x00A0;for</span><span 
-class="aett-10x-x-109">&#x00A0;o.c</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;2</span><span 
-class="aett-10x-x-109">&#x00A0;1.9776</span><span 
-class="aett-10x-x-109">&#x00A0;0.1253</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;1.7512</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;1.9699</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;2.2404</span><span 
-class="aett-10x-x-109">&#x00A0;1.9463</span></div>
-<!--l. 264--><p class="indent" >   The true values for the scale parameter <span 
-class="cmmi-10x-x-109">&#x03BA; </span>the mean of the posterior marginals and the 95%
-HPD credibility interval.
-</p>
-   <div class="fancyvrb" id="fancyvrb392"><a 
- id="x12-57028r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;post.k</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;lapply(res$marginals.hy[c(3,5)],</span><span 
-class="aesltt-10x-x-109">&#x00A0;function(y)</span>
-<br class="fancyvrb" /><a 
- id="x12-57030r2"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;inla.tmarginal(function(x)</span><span 
-class="aesltt-10x-x-109">&#x00A0;exp(x),</span><span 
-class="aesltt-10x-x-109">&#x00A0;y))</span>
-<br class="fancyvrb" /><a 
- id="x12-57032r3"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;round(cbind(True=c(kappa.m=kappa.m,</span><span 
-class="aesltt-10x-x-109">&#x00A0;kappa.x=kappa.x),</span><br class="fancyvrb" /><a 
- id="x12-57034r4"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;t(sapply(post.k,</span><span 
-class="aesltt-10x-x-109">&#x00A0;function(x)</span>
-<br class="fancyvrb" /><a 
- id="x12-57036r5"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;c(mean=inla.emarginal(function(y)</span><span 
-class="aesltt-10x-x-109">&#x00A0;y,</span><span 
-class="aesltt-10x-x-109">&#x00A0;x),</span>
-<br class="fancyvrb" /><a 
- id="x12-57038r6"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;CI=inla.hpdmarginal(.95,</span><span 
-class="aesltt-10x-x-109">&#x00A0;x))))),</span><span 
-class="aesltt-10x-x-109">&#x00A0;4)</span></div>
-<!--l. 276--><p class="noindent" >
-</p>
-   <div class="fancyvrb" id="fancyvrb393"><a 
- id="x12-57040r1"></a><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;True</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;mean</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;CI1</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;CI2</span><br class="fancyvrb" /><a 
- id="x12-57042r2"></a><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;kappa.m</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;7</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;9.2475</span><span 
-class="aett-10x-x-109">&#x00A0;6.6234</span><span 
-class="aett-10x-x-109">&#x00A0;12.1308</span>
-<br class="fancyvrb" /><a 
- id="x12-57044r3"></a><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;kappa.x</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;10</span><span 
-class="aett-10x-x-109">&#x00A0;12.7287</span><span 
-class="aett-10x-x-109">&#x00A0;4.7479</span><span 
-class="aett-10x-x-109">&#x00A0;25.8959</span></div>
-<!--l. 283--><p class="indent" >   The true values for the precision of the both random fields and the summary of the posterior
-marginals
-</p>
-   <div class="fancyvrb" id="fancyvrb394"><a 
- id="x12-57046r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;m.rf</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;inla.spde2.result(res,</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">m</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span><span 
-class="aesltt-10x-x-109">&#x00A0;spde)</span><br class="fancyvrb" /><a 
- id="x12-57048r2"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;x.rf</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;inla.spde2.result(res,</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">x</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span><span 
-class="aesltt-10x-x-109">&#x00A0;spde)</span>
-<br class="fancyvrb" /><a 
- id="x12-57050r3"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;round(cbind(True=c(s2m=sigma2.m,</span><span 
-class="aesltt-10x-x-109">&#x00A0;s2x=sigma2.x),</span><br class="fancyvrb" /><a 
- id="x12-57052r4"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;mean=c(inla.emarginal(function(x)</span><span 
-class="aesltt-10x-x-109">&#x00A0;x,</span>
-<br class="fancyvrb" /><a 
- id="x12-57054r5"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;m.rf$marginals.variance.n[[1]]),</span><br class="fancyvrb" /><a 
- id="x12-57056r6"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;inla.emarginal(function(x)</span><span 
-class="aesltt-10x-x-109">&#x00A0;x,</span>
-<br class="fancyvrb" /><a 
- id="x12-57058r7"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;x.rf$marginals.variance.n[[1]])),</span>
-<br class="fancyvrb" /><a 
- id="x12-57060r8"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;rbind(inla.hpdmarginal(.95,</span><span 
-class="aesltt-10x-x-109">&#x00A0;m.rf$marginals.variance.n[[1]]),</span>
-<br class="fancyvrb" /><a 
- id="x12-57062r9"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;inla.hpdmarginal(.95,</span><span 
-class="aesltt-10x-x-109">&#x00A0;x.rf$marginals.variance.n[[1]]))),</span><span 
-class="aesltt-10x-x-109">&#x00A0;4)</span></div>
-                                                                                 
-                                                                                 
-<!--l. 297--><p class="noindent" >
-</p>
-   <div class="fancyvrb" id="fancyvrb395"><a 
- id="x12-57064r1"></a><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;True</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;mean</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;low</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;high</span><br class="fancyvrb" /><a 
- id="x12-57066r2"></a><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;s2m</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;3</span><span 
-class="aett-10x-x-109">&#x00A0;1.9899</span><span 
-class="aett-10x-x-109">&#x00A0;1.1498</span><span 
-class="aett-10x-x-109">&#x00A0;3.1215</span><br class="fancyvrb" /><a 
- id="x12-57068r3"></a><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;s2x</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;2</span><span 
-class="aett-10x-x-109">&#x00A0;1.0764</span><span 
-class="aett-10x-x-109">&#x00A0;0.3310</span><span 
-class="aett-10x-x-109">&#x00A0;2.1948</span></div>
-<!--l. 304--><p class="indent" >   We see the posterior distribution of regression parameters on Figure&#x00A0;<a 
-href="#x12-570951">8.1<!--tex4ht:ref: fig:regparsme --></a> generated with
-comands below
-</p>
-   <div class="fancyvrb" id="fancyvrb396"><a 
- id="x12-57070r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;par(mfcol=c(2,2),</span><span 
-class="aesltt-10x-x-109">&#x00A0;mar=c(3,3,.1,.1),</span><span 
-class="aesltt-10x-x-109">&#x00A0;mgp=c(1.5,.5,0),</span><span 
-class="aesltt-10x-x-109">&#x00A0;las=1)</span>
-<br class="fancyvrb" /><a 
- id="x12-57072r2"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;plot(res$marginals.fix[[1]],</span><span 
-class="aesltt-10x-x-109">&#x00A0;type=</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">l</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span><br class="fancyvrb" /><a 
- id="x12-57074r3"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;xlab=expression(alpha[c]),</span><span 
-class="aesltt-10x-x-109">&#x00A0;ylab=</span><span 
-class="tcst-1095">''</span><span 
-class="aesltt-10x-x-109">)</span>
-<br class="fancyvrb" /><a 
- id="x12-57076r4"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;abline(v=alpha.c,</span><span 
-class="aesltt-10x-x-109">&#x00A0;col=4)</span><br class="fancyvrb" /><a 
- id="x12-57078r5"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;plot(res$marginals.fix[[2]],</span><span 
-class="aesltt-10x-x-109">&#x00A0;type=</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">l</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span>
-<br class="fancyvrb" /><a 
- id="x12-57080r6"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;xlab=expression(alpha[y]),</span><span 
-class="aesltt-10x-x-109">&#x00A0;ylab=</span><span 
-class="tcst-1095">''</span><span 
-class="aesltt-10x-x-109">)</span><br class="fancyvrb" /><a 
- id="x12-57082r7"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;abline(v=alpha.y,</span><span 
-class="aesltt-10x-x-109">&#x00A0;col=4)</span>
-<br class="fancyvrb" /><a 
- id="x12-57084r8"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;plot(res$marginals.fix[[3]],</span><span 
-class="aesltt-10x-x-109">&#x00A0;type=</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">l</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span><br class="fancyvrb" /><a 
- id="x12-57086r9"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;xlab=expression(beta[w]),</span><span 
-class="aesltt-10x-x-109">&#x00A0;ylab=</span><span 
-class="tcst-1095">''</span><span 
-class="aesltt-10x-x-109">)</span>
-<br class="fancyvrb" /><a 
- id="x12-57088r10"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;abline(v=beta.w,</span><span 
-class="aesltt-10x-x-109">&#x00A0;col=4)</span><br class="fancyvrb" /><a 
- id="x12-57090r11"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;plot(res$marginals.hy[[6]],</span><span 
-class="aesltt-10x-x-109">&#x00A0;type=</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">l</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span>
-<br class="fancyvrb" /><a 
- id="x12-57092r12"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;xlab=expression(beta[c]),</span><span 
-class="aesltt-10x-x-109">&#x00A0;ylab=</span><span 
-class="tcst-1095">''</span><span 
-class="aesltt-10x-x-109">)</span><br class="fancyvrb" /><a 
- id="x12-57094r13"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;abline(v=beta.c,</span><span 
-class="aesltt-10x-x-109">&#x00A0;col=4)</span></div>
-<hr class="figure" /><div class="figure" 
-><a 
- id="x12-570951"></a><img 
-src="spde-tutorial68x.png" alt="PIC" class="graphics" width="320.09622pt" height="160.0513pt"  /><!--tex4ht:graphics  
-name="spde-tutorial68x.png" src="figs/me-vlikeparsme.eps"  
+<!--l. 247--><p class="noindent" ><img 
+src="spde-tutorial80x.png" alt="PIC" class="graphics" width="426.79497pt" height="371.07745pt"  /><!--tex4ht:graphics  
+name="spde-tutorial80x.png" src="figs/lowstlowstres-1.eps"  
 -->
-<br /> <div class="caption" 
+<br /> </p><div class="caption" 
 ><span class="id">Figure&#x00A0;8.1: </span><span  
-class="content">Posterior distribution of the likelihood parameters.</span></div><!--tex4ht:label?: x12-570951 -->
+class="content">Spatial effect at each time knots.</span></div><!--tex4ht:label?: x12-820011 -->
+                                                                                 
+                                                                                 
    </div><hr class="endfigure" />
-<!--l. 330--><p class="indent" >   We see on the Figure&#x00A0;<a 
-href="#x12-570951">8.1<!--tex4ht:ref: fig:regparsme --></a> that the posterior distribution covers the true values of all the
-parameters.
-</p><!--l. 334--><p class="indent" >   Now we want to see the posterior distribution of the both random fields. The practical range
-of the process is <span 
-class="cmmi-10x-x-109">sqrt</span><span 
-class="cmr-10x-x-109">(8</span><span 
-class="cmmi-10x-x-109">&#x03BD;</span><span 
-class="cmr-10x-x-109">)</span><span 
-class="cmmi-10x-x-109">&#x2215;&#x03BA;</span>, where <span 
-class="cmmi-10x-x-109">&#x03BD; </span><span 
-class="cmr-10x-x-109">= 1 </span>on this analisys. We see these parameters on
-Figure&#x00A0;<a 
-href="#x12-571302">8.2<!--tex4ht:ref: fig:rfparsme --></a> generated with comands below
-</p>
-   <div class="fancyvrb" id="fancyvrb397"><a 
- id="x12-57097r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;par(mfcol=c(2,3),</span><span 
-class="aesltt-10x-x-109">&#x00A0;mar=c(3,3,.1,.3),</span><span 
-class="aesltt-10x-x-109">&#x00A0;mgp=c(1.5,.5,0),</span><span 
-class="aesltt-10x-x-109">&#x00A0;las=1)</span>
-<br class="fancyvrb" /><a 
- id="x12-57099r2"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;plot.default(post.k[[1]],</span><span 
-class="aesltt-10x-x-109">&#x00A0;type=</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">l</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span><span 
-class="aesltt-10x-x-109">&#x00A0;xlab=expression(kappa[m]),</span><span 
-class="aesltt-10x-x-109">&#x00A0;ylab=</span><span 
-class="tcst-1095">''</span><span 
-class="aesltt-10x-x-109">)</span>
-<br class="fancyvrb" /><a 
- id="x12-57101r3"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;abline(v=kappa.m,</span><span 
-class="aesltt-10x-x-109">&#x00A0;col=4)</span><br class="fancyvrb" /><a 
- id="x12-57103r4"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;plot.default(post.k[[2]],</span><span 
-class="aesltt-10x-x-109">&#x00A0;type=</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">l</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span><span 
-class="aesltt-10x-x-109">&#x00A0;xlab=expression(kappa[x]),</span><span 
-class="aesltt-10x-x-109">&#x00A0;ylab=</span><span 
-class="tcst-1095">''</span><span 
-class="aesltt-10x-x-109">)</span>
-<br class="fancyvrb" /><a 
- id="x12-57105r5"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;abline(v=kappa.x,</span><span 
-class="aesltt-10x-x-109">&#x00A0;col=4)</span><br class="fancyvrb" /><a 
- id="x12-57107r6"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;plot.default(m.rf$marginals.variance.n[[1]],</span><span 
-class="aesltt-10x-x-109">&#x00A0;type=</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">l</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span>
-<br class="fancyvrb" /><a 
- id="x12-57109r7"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;xlab=expression(sigma[m]^2),</span><span 
-class="aesltt-10x-x-109">&#x00A0;ylab=</span><span 
-class="tcst-1095">''</span><span 
-class="aesltt-10x-x-109">)</span><br class="fancyvrb" /><a 
- id="x12-57111r8"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;abline(v=sigma2.m,</span><span 
-class="aesltt-10x-x-109">&#x00A0;col=4)</span>
-<br class="fancyvrb" /><a 
- id="x12-57113r9"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;plot.default(x.rf$marginals.variance.n[[1]],</span><span 
-class="aesltt-10x-x-109">&#x00A0;type=</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">l</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span>
-<br class="fancyvrb" /><a 
- id="x12-57115r10"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;xlab=expression(sigma[x]^2),</span><span 
-class="aesltt-10x-x-109">&#x00A0;ylab=</span><span 
-class="tcst-1095">''</span><span 
-class="aesltt-10x-x-109">)</span>
-<br class="fancyvrb" /><a 
- id="x12-57117r11"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;abline(v=sigma2.x,</span><span 
-class="aesltt-10x-x-109">&#x00A0;col=4)</span><br class="fancyvrb" /><a 
- id="x12-57119r12"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;plot.default(m.rf$marginals.range.n[[1]],</span><span 
-class="aesltt-10x-x-109">&#x00A0;type=</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">l</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span>
-<br class="fancyvrb" /><a 
- id="x12-57121r13"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;xlab=</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">practical</span><span 
-class="aesltt-10x-x-109">&#x00A0;range</span><span 
-class="aesltt-10x-x-109">&#x00A0;of</span><span 
-class="aesltt-10x-x-109">&#x00A0;m</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span><span 
-class="aesltt-10x-x-109">&#x00A0;ylab=</span><span 
-class="tcst-1095">''</span><span 
-class="aesltt-10x-x-109">)</span>
-<br class="fancyvrb" /><a 
- id="x12-57123r14"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;abline(v=sqrt(8)/kappa.m,</span><span 
-class="aesltt-10x-x-109">&#x00A0;col=4)</span><br class="fancyvrb" /><a 
- id="x12-57125r15"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;plot.default(x.rf$marginals.range.n[[1]],</span><span 
-class="aesltt-10x-x-109">&#x00A0;type=</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">l</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span>
-<br class="fancyvrb" /><a 
- id="x12-57127r16"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;xlab=</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">practical</span><span 
-class="aesltt-10x-x-109">&#x00A0;range</span><span 
-class="aesltt-10x-x-109">&#x00A0;of</span><span 
-class="aesltt-10x-x-109">&#x00A0;x</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span><span 
-class="aesltt-10x-x-109">&#x00A0;ylab=</span><span 
-class="tcst-1095">''</span><span 
-class="aesltt-10x-x-109">)</span><br class="fancyvrb" /><a 
- id="x12-57129r17"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;abline(v=sqrt(8)/kappa.x,</span><span 
-class="aesltt-10x-x-109">&#x00A0;col=4)</span></div>
                                                                                  
                                                                                  
-<hr class="figure" /><div class="figure" 
-><a 
- id="x12-571302"></a><img 
-src="spde-tutorial69x.png" alt="PIC" class="graphics" width="422.52936pt" height="140.84355pt"  /><!--tex4ht:graphics  
-name="spde-tutorial69x.png" src="figs/me-vrfparsme.eps"  
--->
-<br /> <div class="caption" 
-><span class="id">Figure&#x00A0;8.2: </span><span  
-class="content">Posterior distribution of all the parameters of both random field.</span></div><!--tex4ht:label?: x12-571302 -->
-   </div><hr class="endfigure" />
-<!--l. 370--><p class="indent" >   We see on Figure&#x00A0;<a 
-href="#x12-571302">8.2<!--tex4ht:ref: fig:rfparsme --></a> that the posterior marginal distribution of the all parameters of both
-spatial process cover the true values well.
-</p><!--l. 375--><p class="indent" >   Another interesting result is the prediction of the covariate on the response locations. We
-have the simulated values of <span 
-class="cmmi-10x-x-109">m </span>on that locations. So, we are able to see if the predictions are
-good.
-</p><!--l. 382--><p class="indent" >   The predictor matrix used on the estimation proces maps the nodes from mesh vertices to
-the data locations. The first lines of the predictor matrix for the covariate can be used to access
-the predictions on the locations of the covariate. Also, we have the predictor matrix used to the
-response. The last lines of this matrix that maps the mesh vertices to the response locations.
-Because we have the covariate simulated in the both set of locations, we use the correspondent
-parts of both predictor matrix to project the posterior mean and the posterior variance on the
-locations.
-</p><!--l. 398--><p class="indent" >   We get this matrix by
-</p>
-   <div class="fancyvrb" id="fancyvrb398"><a 
- id="x12-57132r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;mesh2locs</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;rBind(Ac,</span><span 
-class="aesltt-10x-x-109">&#x00A0;Ay)</span></div>
-<!--l. 404--><p class="noindent" >and the posterior mean and posterior standard deviations with
-</p>
-   <div class="fancyvrb" id="fancyvrb399"><a 
- id="x12-57134r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;m.mprd</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;drop(mesh2locs%*%res$summary.ran$m$mean)</span>
-<br class="fancyvrb" /><a 
- id="x12-57136r2"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;sd.mprd</span><span 
-class="aesltt-10x-x-109">&#x00A0;&#x003C;-</span><span 
-class="aesltt-10x-x-109">&#x00A0;drop(mesh2locs%*%res$summary.ran$m$sd)</span></div>
-<!--l. 412--><p class="indent" >   With this aproach for this both posterior summary can be an aproximation to 95%
-credibility interval, with normally supposition. We see it this results with comands
-below
-</p>
-   <div class="fancyvrb" id="fancyvrb400"><a 
- id="x12-57138r1"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;plot(m.mprd,</span><span 
-class="aesltt-10x-x-109">&#x00A0;mm,</span><span 
-class="aesltt-10x-x-109">&#x00A0;asp=1,</span><span 
-class="aesltt-10x-x-109">&#x00A0;type=</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">n</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span><br class="fancyvrb" /><a 
- id="x12-57140r2"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;xlab=</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">Predicted</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">,</span><span 
-class="aesltt-10x-x-109">&#x00A0;ylab=</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">Simulated</span><span 
-class="tcst-1095">'</span><span 
-class="aesltt-10x-x-109">)</span>
-<br class="fancyvrb" /><a 
- id="x12-57142r3"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;segments(m.mprd-2*sd.mprd,</span><span 
-class="aesltt-10x-x-109">&#x00A0;mm,</span><span 
-class="aesltt-10x-x-109">&#x00A0;m.mprd+2*sd.mprd,</span><span 
-class="aesltt-10x-x-109">&#x00A0;mm,</span><br class="fancyvrb" /><a 
- id="x12-57144r4"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;lty=2,</span><span 
-class="aesltt-10x-x-109">&#x00A0;col=gray(.75))</span>
-<br class="fancyvrb" /><a 
- id="x12-57146r5"></a><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;</span><span 
-class="aesltt-10x-x-109">&#x00A0;abline(c(0,1),</span><span 
-class="aesltt-10x-x-109">&#x00A0;col=4);</span><span 
-class="aesltt-10x-x-109">&#x00A0;points(m.mprd,</span><span 
-class="aesltt-10x-x-109">&#x00A0;mm,</span><span 
-class="aesltt-10x-x-109">&#x00A0;pch=3,</span><span 
-class="aesltt-10x-x-109">&#x00A0;cex=.5)</span></div>
-<hr class="figure" /><div class="figure" 
-><a 
- id="x12-571473"></a><img 
-src="spde-tutorial70x.png" alt="PIC" class="graphics" width="213.39748pt" height="152.42798pt"  /><!--tex4ht:graphics  
-name="spde-tutorial70x.png" src="figs/me-visprdplotme.eps"  
--->
-                                                                                 
-                                                                                 
-<br /> <div class="caption" 
-><span class="id">Figure&#x00A0;8.3: </span><span  
-class="content">Simulated versus predicted values of <span 
-class="cmmi-10x-x-109">m </span>(<span 
-class="cmr-10x-x-109">+</span>) and the approximated credibility
-intervals.</span></div><!--tex4ht:label?: x12-571473 -->
-   </div><hr class="endfigure" />
-<!--l. 432--><p class="indent" >   on the Figure&#x00A0;<a 
-href="#x12-571473">8.3<!--tex4ht:ref: fig:prdplotme --></a>. The blue line represents the situation where predicted is equal to
-simulated.
-                                                                                 
-                                                                                 
-</p>
    <!--l. 1--><div class="crosslinks"><p class="noindent">[<a 
 href="spde-tutorialch9.html" >next</a>] [<a 
 href="spde-tutorialch7.html" >prev</a>] [<a 

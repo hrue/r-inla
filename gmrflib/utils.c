@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 
@@ -357,6 +357,22 @@ int GMRFLib_dcmp(const void *a, const void *b)
 
 	return 0;
 }
+int GMRFLib_dcmp_r(const void *a, const void *b)
+{
+	const double *da = NULL, *db = NULL;
+
+	da = (const double *) a;
+	db = (const double *) b;
+
+	if (*da > *db) {
+		return -1;
+	}
+	if (*da < *db) {
+		return 1;
+	}
+
+	return 0;
+}
 int GMRFLib_dcmp_abs(const void *a, const void *b)
 {
 	const double *da = NULL, *db = NULL;
@@ -459,20 +475,20 @@ int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y,
 }
 double GMRFLib_log_apbex(double a, double b)
 {
-        /*
-         * try to evaluate log(a + exp(b)) safely 
-         */
+	/*
+	 * try to evaluate log(a + exp(b)) safely 
+	 */
 
-        if (a == 0.0)
-                return b;
+	if (a == 0.0)
+		return b;
 
-        double B = exp(b);
+	double B = exp(b);
 
-        if (B > a) {
-                return b + log(1.0 + a / B);
-        } else {
-                return log(a) + log(1.0 + B / a);
-        }
+	if (B > a) {
+		return b + log(1.0 + a / B);
+	} else {
+		return log(a) + log(1.0 + B / a);
+	}
 }
 
 void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id)
@@ -821,6 +837,26 @@ int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps)
 
 	return GMRFLib_SUCCESS;
 }
+
+int GMRFLib_matrix_fprintf(FILE * fp, double *A, int m, int n)
+{
+	// A is m x n matrix
+#pragma omp critial
+	{
+		fprintf(fp, "\n\n");
+		for (int i = 0; i < m; i++) {
+			fprintf(fp, "\t");
+			for (int j = 0; j < n; j++)
+				fprintf(fp, " %10.6f", A[i + j * m]);
+			fprintf(fp, "\n");
+		}
+		fprintf(fp, "\n");
+		fflush(fp);
+	}
+	return 0;
+}
+
+
 int GMRFLib_gsl_matrix_fprintf(FILE * fp, gsl_matrix * matrix, const char *format)
 {
 	size_t i, j;

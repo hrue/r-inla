@@ -46,7 +46,7 @@
 ##!  \code{inla.pc.rprec} generates random deviates.
 ##! }
 ##! \seealso{inla.doc("pc.prec")}
-##! \author{Havard Rue \email{hrue@math.ntnu.no}}
+##! \author{Havard Rue \email{hrue@r-inla.org}}
 ##! \examples{
 ##! prec = inla.pc.rprec(100,  lambda = 1)
 ##! d = inla.pc.dprec(prec, lambda = 1)

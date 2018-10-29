@@ -1,0 +1,98 @@
+---
+title: "Conditional sampling from a fitted model"
+author: "Haavard Rue `(hrue@r-inla.org)`"
+date: "Aug 19th 2017"
+output: rmarkdown::pdf_document
+vignette: >
+  %\VignetteIndexEntry{Conditional sampling from a fitted model}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8} 
+---
+
+```{r setup, include=FALSE}
+library(INLA)
+knitr::opts_chunk$set(echo = TRUE, cache = FALSE)
+```
+This short note describe how to do conditional sampling from a fitted
+model, where we want to condition on new events. An easy example which
+motivated this note, is the following.
+```{r}
+n = 50
+grp.len = 5
+x = rnorm(n)
+g = rnorm(grp.len)
+grp = rep(1:grp.len, each = n %/% grp.len)
+y = 1 + x + g[grp] + rnorm(n, sd = 0.01)
+```
+and the task is to provide the posterior a new observation, condition
+on that the random effect 'g' is zero. Although it is possible to get
+this directly (an exercise for the reader), in general, we will show that
+it is easier to compute this using Monte Carlo sampling and the function
+\verb|inla.posterior.sample()|. With a little hack. 
+
+To fit the model, we do
+```{r}
+r = inla(y ~ x + f(grp, model = "iid"),
+         data = data.frame(y, x, grp), 
+         control.compute = list(config=TRUE)) 
+```
+adding \verb|config=TRUE| to prepare for the use of \verb|inla.posterior.sample()|.
+
+The trick, is to add the conditioning as constraints, like
+$$
+A x = e
+$$
+where $x$ is the latent field. In our case, it is simply `t grp.len`
+constraints, $\{g_i=0\}$ for
+$i$ from 1 to `r grp.len`.
+To do this, we need to create the matrix $A$, and vector $e$, and add
+it to the list of contraints (if any). To do this, we need to know the
+index of the \verb|g|-term, which we find here
+```{r}
+r$misc$configs$contents
+```
+so we have both the start index and the length of this vector. So we
+create a constraint $Ax=0$ to represent 
+constraints, $\{g_i=0\}$ for
+$i$ from 1 to `r grp.len`.
+```{r}
+m = sum(r$misc$configs$contents$length)
+grp.idx = which(r$misc$configs$contents$tag == "grp")
+grp.len = r$misc$configs$contents$length[grp.idx]
+A = matrix(0, grp.len, m)
+e = matrix(0, grp.len, 1)
+for(i in 1:grp.len) {
+    A[i, r$misc$configs$contents$start[grp.idx] + i - 1] = 1
+    e[i] = 0
+}
+```
+Then we need to append it to the existing one if any, or to add a new one.
+```{r}
+constr = r$misc$configs$constr
+if (is.null(constr)) {
+    ## nothing there from before
+    r$misc$configs$constr = list(
+        nc = dim(A)[2],
+        A = A,
+        e = e)
+} else {
+    ## create a new one
+    r$misc$configs$constr = list(
+        nc = constr$nc + dim(A)[2],
+        A = rbind(constr$A, A),
+        e = rbind(constr$e, e))
+}
+```
+When we now do
+```{r}
+xx = inla.posterior.sample(1000, r)
+```
+we additional condition on $Ax=e$, but \verb|g| would still appear in
+the list of samples as zero or something very close to it.  The rest
+should be straight forward.
+
+PS: Note that you can add any linear combination of $x$ as a
+constraint, you just do not want to many, as the cost is quadratic the
+number of constraints. If the constraints simply set variables to
+zero, you can also add a large number to $Q_{i,i}$, which you will
+find in \verb|r$misc$configs|, one for each configuration.

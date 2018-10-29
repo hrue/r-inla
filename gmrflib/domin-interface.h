@@ -19,14 +19,13 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
- * RCSId: $Id: domin-interface.h,v 1.28 2010/01/13 09:56:49 hrue Exp $
  *
  */
 
@@ -95,13 +94,9 @@ int GMRFLib_domin_setup(double ***hyperparam, int nhyper,
 int GMRFLib_domin_exit(void);
 int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp **tabQfunc, double ** bnew);
 int GMRFLib_domin_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp **tabQfunc, double ** bnew);
-int gmrflib_domin_f_(double *x, double *fx, int *ierr);
-int gmrflib_domin_f__(double *x, double *fx, int *ierr);
 int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr);
 int GMRFLib_domin_gradf(double *x, double *gradx, int *ierr);
 int GMRFLib_domin_gradf_OLD(double *x, double *gradx, int *ierr);
-int gmrflib_domin_gradf_(double *x, double *gradx, int *ierr);
-int gmrflib_domin_gradf__(double *x, double *gradx, int *ierr);
 int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_mode, int count);
 int GMRFLib_domin_estimate_hessian_OLD(double *hessian, double *x);
 int GMRFLib_domin_get_f_count(void);

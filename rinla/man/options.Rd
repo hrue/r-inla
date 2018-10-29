@@ -20,8 +20,8 @@
  
    \item{...}{Option and value,  like \code{option=value} or \code{option, value}; see the Examples}
    \item{option}{The option to get. If \code{option = NULL} then
-     \code{inla.getOption} then \code{inla.getOption} will display the
-     current defaults, otherwise, \code{option} must be one of
+     \code{inla.getOption} then \code{inla.getOption} will return a named list of
+     current values, otherwise, \code{option} must be one of
  
      inla.call: The path to the inla-program.
  
@@ -32,6 +32,12 @@
      fmesher.arg: Additional arguments to \code{fmesher.call}
      
      num.threads: Number of threads to use.
+
+     blas.num.threads: Number of threads to use for openblas and mklblas (see \code{inla} for details)
+     
+     smtp: sparse matrix library,  one of \code{band}, \code{taucs} (\code{default}) or \code{pardiso}
+
+     pardiso.license: The full path to the PARDISO license file
      
      keep: Keep temporary files?
  
@@ -65,7 +71,7 @@
    }
  }
  
- \author{Havard Rue \email{hrue@math.ntnu.no}}
+ \author{Havard Rue \email{hrue@r-inla.org}}
  
  \examples{
  ## set number of threads

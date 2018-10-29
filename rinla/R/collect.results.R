@@ -197,6 +197,10 @@
 
         ## also put the linkfunctions here
         misc$linkfunctions = linkfunctions
+        if (!is.null(linkfunctions)) {
+            ## a better name
+            misc$family = linkfunctions$link
+        }
     }
 
     ## add the names of the theta's here, as they are available.
@@ -592,7 +596,7 @@ inla.internal.experimental.mode = FALSE
             if (!file.exists(tag))
                 names.fixed[i] = "missing NAME"
             else
-                names.fixed[i] = inla.namefix(readLines(tag, n=1L))
+                names.fixed[i] = readLines(tag, n=1L)
         }
         ##read summary the fixed effects
         if (debug)
@@ -670,10 +674,10 @@ inla.internal.experimental.mode = FALSE
                 }
             }
         }    
-        rownames(summary.fixed) = inla.namefix(names.fixed)
-        colnames(summary.fixed) = inla.namefix(col.nam)
+        rownames(summary.fixed) = names.fixed
+        colnames(summary.fixed) = col.nam
         if (length(marginals.fixed) > 0L) {
-            names(marginals.fixed) = inla.namefix(names.fixed)
+            names(marginals.fixed) = names.fixed
         }
     }
     else {
@@ -717,7 +721,7 @@ inla.internal.experimental.mode = FALSE
 
     ##read the names and model of the lincomb effects
     if (n.lincomb > 0L) {
-        names.lincomb = inla.namefix(character(n.lincomb))
+        names.lincomb = character(n.lincomb)
         model.lincomb = inla.trim(character(n.lincomb))
 
         summary.lincomb = list()
@@ -799,7 +803,7 @@ inla.internal.experimental.mode = FALSE
                     cat("...kld done\n")
             
                 col.nam = c(col.nam, "kld")
-                colnames(dd) = inla.namefix(col.nam)
+                colnames(dd) = col.nam
                 summary.lincomb[[i]] = as.data.frame(dd)
                 if (!is.null(row.names)) {
                     rownames(summary.lincomb[[i]]) = row.names
@@ -810,9 +814,9 @@ inla.internal.experimental.mode = FALSE
                 rm(xx)
                 if (!is.null(rr)) {
                     nd = length(rr)
-                    names(rr) = inla.namefix(paste("index.", as.character(1L:nd), sep=""))
+                    names(rr) = paste("index.", as.character(1L:nd), sep="")
                     for(j in 1L:nd) {
-                        colnames(rr[[j]]) = inla.namefix(c("x", "y"))
+                        colnames(rr[[j]]) = c("x", "y")
                         if (inla.internal.experimental.mode) {
                             class(rr[[j]]) = "inla.marginal"
                             if (derived) {
@@ -851,7 +855,7 @@ inla.internal.experimental.mode = FALSE
                 }
             }
         }
-        names(summary.lincomb) = inla.namefix(names.lincomb)
+        names(summary.lincomb) = names.lincomb
 
         ## could be that marginals.lincomb is a list of lists of NULL
         if (!is.null(marginals.lincomb)) {
@@ -860,7 +864,7 @@ inla.internal.experimental.mode = FALSE
         }
 
         if (!is.null(marginals.lincomb) && (length(marginals.lincomb) > 0L))
-            names(marginals.lincomb) = inla.namefix(names.lincomb)
+            names(marginals.lincomb) = names.lincomb
     } else {
         if (debug)
             cat("No lincomb effets\n")
@@ -1018,12 +1022,28 @@ inla.internal.experimental.mode = FALSE
             dev.e = NULL
         }
 
+        file=paste(results.dir, .Platform$file.sep,"dic", .Platform$file.sep,"deviance_e_sat.dat", sep="")
+        if (inla.is.fmesher.file(file)) {
+            dev.e.sat = c(inla.read.fmesher.file(file))
+            dev.e.sat[is.nan(dev.e.sat)] = NA
+        } else {
+            dev.e.sat = NULL
+        }
+
         file=paste(results.dir, .Platform$file.sep,"dic", .Platform$file.sep,"e_deviance.dat", sep="")
         if (inla.is.fmesher.file(file)) {
             e.dev = c(inla.read.fmesher.file(file))
             e.dev[is.nan(e.dev)] = NA
         } else {
             e.dev = NULL
+        }
+
+        file=paste(results.dir, .Platform$file.sep,"dic", .Platform$file.sep,"e_deviance_sat.dat", sep="")
+        if (inla.is.fmesher.file(file)) {
+            e.dev.sat = c(inla.read.fmesher.file(file))
+            e.dev.sat[is.nan(e.dev.sat)] = NA
+        } else {
+            e.dev.sat = NULL
         }
 
         f.idx = NULL
@@ -1040,6 +1060,7 @@ inla.internal.experimental.mode = FALSE
         }
 
         local.dic = 2.0*e.dev - dev.e
+        local.dic.sat = 2.0*e.dev.sat - dev.e.sat
         local.p.eff = e.dev - dev.e
         fam.dic = dic.values[4L]
         fam.p.eff = dic.values[3L]
@@ -1047,10 +1068,12 @@ inla.internal.experimental.mode = FALSE
         if (!is.null(f.idx) && !all(is.na(f.idx))) {
             n.fam = max(f.idx, na.rm = TRUE)
             fam.dic = numeric(n.fam)
+            fam.dic.sat = numeric(n.fam)
             fam.p.eff = numeric(n.fam)
             for(i in 1:n.fam) {
                 idx = which(f.idx == i)
                 fam.dic[i] = sum(local.dic[idx])
+                fam.dic.sat[i] = sum(local.dic.sat[idx])
                 fam.p.eff[i] = sum(local.p.eff[idx])
             }
         }
@@ -1060,10 +1083,15 @@ inla.internal.experimental.mode = FALSE
                 "p.eff"= dic.values[3L],
                 "mean.deviance" = dic.values[1L],
                 "deviance.mean" = dic.values[2L], 
+                "dic.sat" = dic.values[4L+4L],
+                "mean.deviance.sat" = dic.values[4L + 1L],
+                "deviance.mean.sat" = dic.values[4L + 2L], 
                 "family.dic" = fam.dic, 
+                "family.dic.sat" = fam.dic.sat, 
                 "family.p.eff" = fam.p.eff, 
                 "family" = f.idx, 
                 "local.dic" = local.dic, 
+                "local.dic.sat" = local.dic.sat, 
                 "local.p.eff" = local.p.eff)
     } else {
         dic = NULL
@@ -1154,7 +1182,7 @@ inla.internal.experimental.mode = FALSE
             if (!file.exists(tag)) {
                 names.hyper[i] = "missing NAME"
             } else {
-                names.hyper[i] = inla.namefix(readLines(tag, n=1L))
+                names.hyper[i] = readLines(tag, n=1L)
             }
         }
 
@@ -1211,9 +1239,9 @@ inla.internal.experimental.mode = FALSE
             
             marginal.hyper[[i]] = marg1
         }
-        names(marginal.hyper) = inla.namefix(names.hyper)
-        rownames(summary.hyper) = inla.namefix(names.hyper)
-        colnames(summary.hyper) = inla.namefix(col.nam)
+        names(marginal.hyper) = names.hyper
+        rownames(summary.hyper) = names.hyper
+        colnames(summary.hyper) = col.nam
     } else {
         marginal.hyper=NULL
         summary.hyper=NULL
@@ -1238,7 +1266,7 @@ inla.internal.experimental.mode = FALSE
             if (!file.exists(tag))
                 names.hyper[i] = "missing NAME"
             else
-                names.hyper[i] = inla.namefix(readLines(tag, n=1L))
+                names.hyper[i] = readLines(tag, n=1L)
         }
 
         ## get summary and marginals
@@ -1294,9 +1322,9 @@ inla.internal.experimental.mode = FALSE
             
             internal.marginal.hyper[[i]] = marg1
         }
-        names(internal.marginal.hyper) = inla.namefix(names.hyper)
-        rownames(internal.summary.hyper) = inla.namefix(names.hyper)
-        colnames(internal.summary.hyper) = inla.namefix(col.nam)
+        names(internal.marginal.hyper) = names.hyper
+        rownames(internal.summary.hyper) = names.hyper
+        colnames(internal.summary.hyper) = col.nam
     } else {
         internal.summary.hyper=NULL
         internal.marginal.hyper=NULL
@@ -1327,8 +1355,8 @@ inla.internal.experimental.mode = FALSE
         file=paste(results.dir, .Platform$file.sep,"marginal-likelihood",
             .Platform$file.sep,"marginal-likelihood.dat", sep="")
         mlik.res = matrix(inla.read.binary.file(file), 2L, 1L)
-        rownames(mlik.res) = inla.namefix(c("log marginal-likelihood (integration)",
-                    "log marginal-likelihood (Gaussian)"))
+        rownames(mlik.res) = c("log marginal-likelihood (integration)",
+                               "log marginal-likelihood (Gaussian)")
     }
     else
         mlik.res = NULL
@@ -1415,14 +1443,14 @@ inla.internal.experimental.mode = FALSE
                 ncol=2L, byrow=TRUE)
         dd = cbind(dd, kld[, 2L, drop=FALSE])
         col.nam = c(col.nam, "kld")
-        colnames(dd) = inla.namefix(col.nam)
+        colnames(dd) = col.nam
         summary.linear.predictor = as.data.frame(dd)
 
         if (A) {
-            rownames(summary.linear.predictor) = c(inla.namefix(paste("Apredictor.", inla.num(1L:nA), sep="")),
-                            inla.namefix(paste("predictor.", inla.num(1:n), sep="")))
+            rownames(summary.linear.predictor) = c(paste("APredictor.", inla.num(1L:nA), sep=""),
+                                                   paste("Predictor.", inla.num(1:n), sep=""))
         } else {
-            rownames(summary.linear.predictor) = inla.namefix(paste("predictor.", inla.num(1L:size.info$Ntotal), sep=""))
+            rownames(summary.linear.predictor) = paste("Predictor.", inla.num(1L:size.info$Ntotal), sep="")
         }
         
         if (return.marginals.predictor) {
@@ -1434,14 +1462,14 @@ inla.internal.experimental.mode = FALSE
             rm(xx)
             if (!is.null(rr)) {
                 if (A) {
-                    names(rr) = c(inla.namefix(paste("Apredictor.", inla.num(1L:nA), sep="")),
-                                 inla.namefix(paste("predictor.", inla.num(1L:n), sep="")))
+                    names(rr) = c(paste("APredictor.", inla.num(1L:nA), sep=""),
+                                  paste("Predictor.", inla.num(1L:n), sep=""))
                 } else {
-                    names(rr) = inla.namefix(paste("predictor.", as.character(1L:length(rr)), sep=""))
+                    names(rr) = paste("Predictor.", as.character(1L:length(rr)), sep="")
                 }
                 names.rr = names(rr)
                 for(i in 1L:length(rr)) {
-                    colnames(rr[[i]]) = inla.namefix(c("x", "y"))
+                    colnames(rr[[i]]) = c("x", "y")
 
                     if (inla.internal.experimental.mode) {
                         class(rr[[i]]) = "inla.marginal"
@@ -1507,12 +1535,12 @@ inla.internal.experimental.mode = FALSE
                 rm(xx)
             }
        
-            colnames(dd) = inla.namefix(col.nam)
+            colnames(dd) = col.nam
             if (A) {
-                rownames(dd) = c(inla.namefix(paste("fitted.Apredictor.", inla.num(1L:nA), sep="")),
-                                inla.namefix(paste("fitted.predictor.", inla.num(1L:n), sep="")))
+                rownames(dd) = c(paste("fitted.APredictor.", inla.num(1L:nA), sep=""),
+                                 paste("fitted.Predictor.", inla.num(1L:n), sep=""))
             } else {
-                rownames(dd) = inla.namefix(paste("fitted.predictor.", inla.num(1L:n), sep=""))
+                rownames(dd) = paste("fitted.Predictor.", inla.num(1L:n), sep="")
             }
             summary.fitted.values = as.data.frame(dd)
 
@@ -1523,14 +1551,14 @@ inla.internal.experimental.mode = FALSE
                 rm(xx)
                 if (!is.null(rr)) {
                     if (A) {
-                        names(rr) = c(inla.namefix(paste("fitted.Apredictor.", inla.num(1L:nA), sep="")),
-                                     inla.namefix(paste("fitted.predictor.", inla.num(1:n), sep="")))
+                        names(rr) = c(paste("fitted.APredictor.", inla.num(1L:nA), sep=""),
+                                      paste("fitted.Predictor.", inla.num(1:n), sep=""))
                     } else {
-                        names(rr) = inla.namefix(paste("fitted.predictor.", inla.num(1L:length(rr)), sep=""))
+                        names(rr) = paste("fitted.Predictor.", inla.num(1L:length(rr)), sep="")
                     }
                     names.rr = names(rr)
                     for(i in 1L:length(rr)) {
-                        colnames(rr[[i]]) = inla.namefix(c("x", "y"))
+                        colnames(rr[[i]]) = c("x", "y")
                         if (inla.internal.experimental.mode) {
                             class(rr[[i]]) = "inla.marginal"
                             attr(rr[[i]], "inla.tag") = paste("marginal fitted values", names.rr[i])
@@ -1578,21 +1606,20 @@ inla.internal.experimental.mode = FALSE
 
     ##read the names and model of the random effects
     if (n.random > 0L) {
-        names.random = inla.namefix(character(n.random))
+        names.random = character(n.random)
         model.random = inla.trim(character(n.random))
         for(i in 1L:n.random) {
             tag = paste(results.dir, .Platform$file.sep, random[i], .Platform$file.sep,"TAG", sep="")
             if (!file.exists(tag))
                 names.random[i] = "missing NAME"
             else
-                names.random[i] = inla.namefix(readLines(tag, n=1L))
+                names.random[i] = readLines(tag, n=1L)
             modelname = inla.trim(paste(results.dir, .Platform$file.sep, random[i], .Platform$file.sep,"MODEL", sep=""))
             if (!file.exists(modelname))
                 model.random[i] = "NoModelName"
             else
                 model.random[i] = inla.trim(readLines(modelname, n=1L))
         }
-        
 
         summary.random = list()
         summary.random[[n.random]] = NA
@@ -1613,7 +1640,7 @@ inla.internal.experimental.mode = FALSE
             file= paste(results.dir, .Platform$file.sep, random[i], sep="")
             dir.random = dir(file)
 
-            if (length(dir.random) > 4L) {
+            if (length(dir.random) > 5L) {
                 dd = matrix(inla.read.binary.file(file=paste(file, .Platform$file.sep,"summary.dat", sep="")), ncol=3L, byrow=TRUE)
                 col.nam = c("ID","mean","sd")
                 ##read quantiles if existing
@@ -1660,7 +1687,7 @@ inla.internal.experimental.mode = FALSE
 
             
                 col.nam = c(col.nam, "kld")
-                colnames(dd) = inla.namefix(col.nam)
+                colnames(dd) = col.nam
                 summary.random[[i]] = as.data.frame(dd)
 
                 if (return.marginals.random) {
@@ -1669,10 +1696,10 @@ inla.internal.experimental.mode = FALSE
                     rm(xx)
                     if (!is.null(rr)) {
                         nd = length(rr)
-                        names(rr) = inla.namefix(paste("index.", as.character(1L:nd), sep=""))
+                        names(rr) = paste("index.", as.character(1L:nd), sep="")
                         names.rr = names(rr)
                         for(j in 1L:nd) {
-                            colnames(rr[[j]]) = inla.namefix(c("x", "y"))
+                            colnames(rr[[j]]) = c("x", "y")
                             if (inla.internal.experimental.mode) {
                                 class(rr[[j]]) = "inla.marginal"
                                 attr(rr[[j]], "inla.tag") = paste("marginal random", names.random[i], names.rr[j])
@@ -1712,7 +1739,7 @@ inla.internal.experimental.mode = FALSE
 
             size.random[[i]] = inla.collect.size(file)
         }
-        names(summary.random) = inla.namefix(names.random)
+        names(summary.random) = names.random
 
         ## could be that marginals.random is a list of lists of NULL or NA
         if (!is.null(marginals.random)) {
@@ -1721,7 +1748,7 @@ inla.internal.experimental.mode = FALSE
         }
 
         if (!is.null(marginals.random) && (length(marginals.random) > 0L)) {
-            names(marginals.random) = inla.namefix(names.random)
+            names(marginals.random) = names.random
         }
     } else {
         if (debug)
@@ -1753,14 +1780,14 @@ inla.internal.experimental.mode = FALSE
 
     ##read the names and model of the random effects
     if (n.random > 0L) {
-        names.random = inla.namefix(character(n.random))
+        names.random = character(n.random)
         model.random = inla.trim(character(n.random))
         for(i in 1L:n.random) {
             tag = paste(results.dir, .Platform$file.sep, random[i], .Platform$file.sep,"TAG", sep="")
             if (!file.exists(tag))
                 names.random[i] = "missing NAME"
             else
-                names.random[i] = inla.namefix(readLines(tag, n=1L))
+                names.random[i] = readLines(tag, n=1L)
             modelname = inla.trim(paste(results.dir, .Platform$file.sep, random[i], .Platform$file.sep,"MODEL", sep=""))
             if (!file.exists(modelname))
                 model.random[i] = "NoModelName"
@@ -1835,7 +1862,7 @@ inla.internal.experimental.mode = FALSE
 
             
                 col.nam = c(col.nam, "kld")
-                colnames(dd) = inla.namefix(col.nam)
+                colnames(dd) = col.nam
                 summary.random[[i]] = as.data.frame(dd)
 
                 if (return.marginals.random) {
@@ -1844,10 +1871,10 @@ inla.internal.experimental.mode = FALSE
                     rm(xx)
                     if (!is.null(rr)) {
                         nd = length(rr)
-                        names(rr) = inla.namefix(paste("index.", as.character(1L:nd), sep=""))
+                        names(rr) = paste("index.", as.character(1L:nd), sep="")
                         names.rr = names(rr)
                         for(j in 1L:nd) {
-                            colnames(rr[[j]]) = inla.namefix(c("x", "y"))
+                            colnames(rr[[j]]) = c("x", "y")
                             if (inla.internal.experimental.mode) {
                                 class(rr[[j]]) = "inla.marginal"
                                 attr(rr[[j]], "inla.tag") = paste("marginal random", names.random[i], names.rr[j])
@@ -1876,7 +1903,7 @@ inla.internal.experimental.mode = FALSE
 
             size.random[[i]] = inla.collect.size(file)
         }
-        names(summary.random) = inla.namefix(names.random)
+        names(summary.random) = names.random
 
         ## could be that marginals.random is a list of lists of NULL or NA
         if (!is.null(marginals.random)) {
@@ -1885,7 +1912,7 @@ inla.internal.experimental.mode = FALSE
         }
 
         if (!is.null(marginals.random) && (length(marginals.random) > 0L)) {
-            names(marginals.random) = inla.namefix(names.random)
+            names(marginals.random) = names.random
         }
     } else {
         if (debug)
@@ -1917,14 +1944,14 @@ inla.internal.experimental.mode = FALSE
 
     ##read the names and model of the random effects
     if (n.random > 0L) {
-        names.random = inla.namefix(character(n.random))
+        names.random = character(n.random)
         model.random = inla.trim(character(n.random))
         for(i in 1L:n.random) {
             tag = paste(results.dir, .Platform$file.sep, random[i], .Platform$file.sep,"TAG", sep="")
             if (!file.exists(tag))
                 names.random[i] = "missing NAME"
             else
-                names.random[i] = inla.namefix(readLines(tag, n=1L))
+                names.random[i] = readLines(tag, n=1L)
             modelname = inla.trim(paste(results.dir, .Platform$file.sep, random[i], .Platform$file.sep,"MODEL", sep=""))
             if (!file.exists(modelname))
                 model.random[i] = "NoModelName"
@@ -1999,7 +2026,7 @@ inla.internal.experimental.mode = FALSE
 
             
                 col.nam = c(col.nam, "kld")
-                colnames(dd) = inla.namefix(col.nam)
+                colnames(dd) = col.nam
                 summary.random[[i]] = as.data.frame(dd)
 
                 if (return.marginals.random) {
@@ -2008,10 +2035,10 @@ inla.internal.experimental.mode = FALSE
                     rm(xx)
                     if (!is.null(rr)) {
                         nd = length(rr)
-                        names(rr) = inla.namefix(paste("index.", as.character(1L:nd), sep=""))
+                        names(rr) = paste("index.", as.character(1L:nd), sep="")
                         names.rr = names(rr)
                         for(j in 1L:nd) {
-                            colnames(rr[[j]]) = inla.namefix(c("x", "y"))
+                            colnames(rr[[j]]) = c("x", "y")
                             if (inla.internal.experimental.mode) {
                                 class(rr[[j]]) = "inla.marginal"
                                 attr(rr[[j]], "inla.tag") = paste("marginal random", names.random[i], names.rr[j])
@@ -2040,7 +2067,7 @@ inla.internal.experimental.mode = FALSE
 
             size.random[[i]] = inla.collect.size(file)
         }
-        names(summary.random) = inla.namefix(names.random)
+        names(summary.random) = names.random
 
         ## could be that marginals.random is a list of lists of NULL or NA
         if (!is.null(marginals.random)) {
@@ -2049,7 +2076,7 @@ inla.internal.experimental.mode = FALSE
         }
 
         if (!is.null(marginals.random) && (length(marginals.random) > 0L)) {
-            names(marginals.random) = inla.namefix(names.random)
+            names(marginals.random) = names.random
         }
     } else {
         if (debug)

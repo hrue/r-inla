@@ -32,12 +32,11 @@ else
     RHOME_LIB="$INLA_RHOME/lib"
 fi
 
-export DYLD_LIBRARY_PATH="$RHOME_LIB:$DIR:/usr/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
-export LD_LIBRARY_PATH="$DYLD_LIBRARY_PATH"
-
+export DYLD_LIBRARY_PATH="$RHOME_LIB:$DIR:/usr/lib:/usr/local/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
     echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
     otool -L "$DIR/$prog"
+    export DYLD_PRINT_LIBRARIES=YES
 fi
 
 exec "$DIR/$prog" "$@"

@@ -20,8 +20,8 @@ control.group(adjust.for.con.comp, cyclic, fixed, graph, hyper, initial, model, 
 \item{order}{  Defines the \code{order} of the model: for model \code{ar} this defines the order p, in AR(p). Not used for other models at the time being.}
 \item{cyclic}{  Make the group model cyclic? (Only applies to models 'ar1', 'rw1' and 'rw2')}
 \item{graph}{  The graph spesification (Only applies to model 'besag')}
-\item{scale.model}{  Scale the intrinsic model (RW1, RW2, BESAG) so the generalized variance is 1. (Default \code{inla.getOption("scale.model.default")}.)}
-\item{adjust.for.con.comp}{  Adjust for connected components when \code{scale.model=TRUE}?}
+\item{scale.model}{  Scale the intrinsic model (RW1, RW2, BESAG) so the generalized variance is 1. (Default \code{TRUE})}
+\item{adjust.for.con.comp}{  Adjust for connected components when \code{scale.model=TRUE}? (default \code{TRUE})}
 \item{hyper}{  Definition of the hyperparameter(s)}
 \item{initial}{  (OBSOLETE!) The initial value for the group correlation or precision in the internal scale.}
 \item{fixed}{  (OBSOLETE!) A boolean variable if the group correction or precision is assumed to be fixed or random.}

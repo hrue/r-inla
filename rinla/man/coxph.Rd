@@ -26,7 +26,7 @@
       a \code{list} to be passed as the \code{data} argument. See the example for details.
       \code{inla.rbind.data.frames} returns the new data.frame.
 }
-\author{Havard Rue \email{hrue@math.ntnu.no}}
+\author{Havard Rue \email{hrue@r-inla.org}}
 \examples{
 ## How the cbind.data.frames works:
 df1 = data.frame(x=1:2, y=2:3, z=3:4)

@@ -1,10 +1,17 @@
 #!/bin/bash
 cmd=$(readlink -f "$0")
-tmp=$(basename "$cmd")
-prog=${tmp%%.run}
 DIR=$(dirname "$cmd")
+tmp=$(basename "$0")
+prog=${tmp%%.run}
 
 D=""
+if [ ! -z ${R_HOME+x} ]; then 
+    d="$R_HOME/lib"
+    if [ -d "$d" ]; then
+	D=$d
+    fi
+fi
+
 for d in {,/usr}/lib64 /usr/lib64/R/lib {,/usr}/lib/x86_64-linux-gnu {,/usr}/lib; do
     if [ -d "$d" ]; then
 	if [ -z "$D" ]; then
@@ -14,10 +21,17 @@ for d in {,/usr}/lib64 /usr/lib64/R/lib {,/usr}/lib/x86_64-linux-gnu {,/usr}/lib
 	fi
     fi
 done
-export LD_LIBRARY_PATH="$DIR/first:$D:$DIR:$LD_LIBRARY_PATH"
 
-if [ "${INLA_DEBUG}XX" != "XX" ]; then
-    echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+if [ ! -z ${INLA_LOAD_PARDISO+x} ]; then 
+    PDIR="$DIR/../../pardiso/libpardiso/linux"
+else
+    PDIR="$DIR/../../pardiso/libnopardiso/linux"
+fi
+
+export LD_LIBRARY_PATH="$DIR/first:$PDIR:$D:$DIR:$LD_LIBRARY_PATH"
+
+if [ ! -z ${INLA_DEBUG+x} ]; then
+    echo "*** $0 *** LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
     ldd -r "$DIR/$prog"
 fi
 

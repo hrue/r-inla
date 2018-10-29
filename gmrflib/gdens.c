@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 
@@ -205,7 +205,8 @@ int GMRFLib_gdens_2Update(GMRFLib_gdens_tp * ptr)
 	 * compute various constants 
 	 */
 	for (i = 0; i < n; i++) {
-		double s, x0 = ptr->elm[i].xl, x1 = ptr->elm[i].xm, x2 = ptr->elm[i].xr, f0 = ptr->elm[i].lfl, f1 = ptr->elm[i].lfm, f2 = ptr->elm[i].lfr;
+		double s, x0 = ptr->elm[i].xl, x1 = ptr->elm[i].xm, x2 = ptr->elm[i].xr, f0 = ptr->elm[i].lfl, f1 = ptr->elm[i].lfm, f2 =
+		    ptr->elm[i].lfr;
 
 		ptr->elm[i].lfmax = f0;			       /* scale and shift */
 		f1 -= f0;

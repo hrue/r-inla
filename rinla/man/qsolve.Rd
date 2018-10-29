@@ -20,7 +20,8 @@
    \item{B}{The right hand side matrix, either as a (dense) matrix,  sparse-matrix  or a filename
             containing the matrix (in the fmesher-format).
             (Must be a matrix or sparse-matrix even if \code{ncol(B)} is 1.)}
-   \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()} 
+   \item{reordering}{The type of reordering algorithm to be used for \code{TAUCS};
+        either one of the names listed in \code{inla.reorderings()} 
         or the output from \code{inla.qreordering(Q)}.
         The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
    \item{method}{The system to solve, one of \code{"solve"},  \code{"forward"} or \code{"backward"}. Let \code{Q = L L^T},
@@ -33,7 +34,7 @@
   \code{inla.qsolve} returns a matrix \code{X},  which is the solution of \code{Q X = B},  \code{L X = B} or \code{L^T X = B} 
   depending on the value of \code{method}.                      
 }
-\author{Havard Rue \email{hrue@math.ntnu.no}}
+\author{Havard Rue \email{hrue@r-inla.org}}
  
 \examples{
 n = 10

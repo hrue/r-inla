@@ -3,7 +3,7 @@
 D=www/R
 OPTIND=1 
 OPTERR=1
-nkeep=3
+nkeep=10
 force=0
 while getopts fn: arg; do
     case "$arg" in

@@ -37,7 +37,7 @@ formula = inla.surv(Leuk$time, Leuk$cens) ~ 1 + sex + age + wbc + tpi +
     f(spatial, model=spde)
 
 ## Run INLA:
-r  = (inla(formula, family="weibull",
+r  = (inla(formula, family="weibullsurv",
            data = Leuk,
            ## Prior specification:
            control.family = list(param=c(0.05,0.1)),

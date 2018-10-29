@@ -21,7 +21,7 @@
 ##!  \code{inla.qreordering} returns a list with the name of the reordering algorithm used or found, the reordering code for the reordering algorithm,
 ##!                          the actual reordering and its inverse.
 ##!}
-##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!\author{Havard Rue \email{hrue@r-inla.org}}
 ##! 
 ##!\examples{
 ##! g = system.file("demodata/germany.graph", package="INLA")
@@ -50,12 +50,13 @@
         g.remove = FALSE
     }
 
+    ## smtp must be taucs
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qreordering", 
-                "-r", reordering, g.file), intern=TRUE)
+                "-r", reordering, "-S", "taucs", g.file), intern=TRUE)
     } else if(inla.os("windows")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qreordering",
-                "-r", reordering, g.file), intern=TRUE)
+                "-r", reordering, "-S", "taucs", g.file), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }

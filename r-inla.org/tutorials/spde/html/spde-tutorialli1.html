@@ -10,223 +10,201 @@
 <meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)" /> 
 <!-- xhtml,html,frames,2 --> 
 <meta name="src" content="spde-tutorial.tex" /> 
-<meta name="date" content="2017-01-22 14:18:00" /> 
+<meta name="date" content="2017-12-21 09:55:00" /> 
 <link rel="stylesheet" type="text/css" href="spde-tutorial.css" /> 
 </head><body 
 >
-   <!--l. 83--><div class="crosslinks"><p class="noindent">[<a 
+   <!--l. 110--><div class="crosslinks"><p class="noindent">[<a 
 href="spde-tutorialch1.html" >next</a>] [<a 
 href="#tailspde-tutorialli1.html">tail</a>] [<a 
 href="spde-tutorial3.html#spde-tutorialli1.html" >up</a>] </p></div>
    <h2 class="likechapterHead"><a 
- id="x4-30000.2"></a>Contents</h2> <div class="tableofcontents">
-   &#x00A0;<span class="sectionToc" >0.1 <a 
-href="spde-tutorial3.html#x3-10000.1">Acknowledgments</a></span>
-<br />   &#x00A0;<span class="sectionToc" >0.2 <a 
-href="spde-tutorial3.html#x3-20000.2">Updates</a></span>
-<br />   <span class="chapterToc" >1 <a 
+ id="x4-3000"></a>Contents</h2> <div class="tableofcontents">
+   <span class="chapterToc" >1 <a 
 href="spde-tutorialch1.html#x5-40001">Introduction</a></span>
 <br />   &#x00A0;<span class="sectionToc" >1.1 <a 
-href="spde-tutorialch1.html#x5-50001.1">The Gaussian random field</a></span>
+href="spde-tutorialch1.html#x5-50001.1">Introduction and main results from [Lindgren et&#x00A0;al., 2011]</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >1.1.1 <a 
+href="spde-tutorialch1.html#x5-60001.1.1" id="QQ2-5-6">Spatial variation</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >1.1.2 <a 
+href="spde-tutorialch1.html#x5-70001.1.2" id="QQ2-5-7">The Gaussian random field</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >1.1.3 <a 
+href="spde-tutorialch1.html#x5-80001.1.3" id="QQ2-5-8">The Matérn covariance</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >1.1.4 <a 
+href="spde-tutorialch1.html#x5-90001.1.4" id="QQ2-5-10">Simulation of a toy data set</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >1.1.5 <a 
+href="spde-tutorialch1.html#x5-100001.1.5" id="QQ2-5-12">The SPDE approach</a></span>
 <br />   &#x00A0;<span class="sectionToc" >1.2 <a 
-href="spde-tutorialch1.html#x5-60001.2">Simulation of a data set</a></span>
+href="spde-tutorialch1.html#x5-130001.2">A toy example</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >1.2.1 <a 
+href="spde-tutorialch1.html#x5-140001.2.1" id="QQ2-5-17">SPDE model definition</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >1.2.2 <a 
+href="spde-tutorialch1.html#x5-150001.2.2" id="QQ2-5-18">Projector matrix</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >1.2.3 <a 
+href="spde-tutorialch1.html#x5-160001.2.3" id="QQ2-5-19">The data stack</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >1.2.4 <a 
+href="spde-tutorialch1.html#x5-170001.2.4" id="QQ2-5-20">Model fitting and some results</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >1.2.5 <a 
+href="spde-tutorialch1.html#x5-180001.2.5" id="QQ2-5-21">Prediction of the random field</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >1.2.6 <a 
+href="spde-tutorialch1.html#x5-220001.2.6" id="QQ2-5-25">Prediction of the response</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >1.2.7 <a 
+href="spde-tutorialch1.html#x5-260001.2.7" id="QQ2-5-30">Results from different meshes</a></span>
 <br />   &#x00A0;<span class="sectionToc" >1.3 <a 
-href="spde-tutorialch1.html#x5-70001.3">Maximum likelihood estimation</a></span>
+href="spde-tutorialch1.html#x5-270001.3">Triangulation details and examples</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >1.3.1 <a 
+href="spde-tutorialch1.html#x5-280001.3.1" id="QQ2-5-33">Getting started</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >1.3.2 <a 
+href="spde-tutorialch1.html#x5-290001.3.2" id="QQ2-5-35">Non-convex hull meshes</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >1.3.3 <a 
+href="spde-tutorialch1.html#x5-300001.3.3" id="QQ2-5-37">Meshes for the toy example</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >1.3.4 <a 
+href="spde-tutorialch1.html#x5-310001.3.4" id="QQ2-5-39">Meshes for Paraná state</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >1.3.5 <a 
+href="spde-tutorialch1.html#x5-320001.3.5" id="QQ2-5-41">Triangulation with a SpatialPolygonsDataFrame</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >1.3.6 <a 
+href="spde-tutorialch1.html#x5-330001.3.6" id="QQ2-5-43">Mesh with holes and physical boundaries</a></span>
 <br />   <span class="chapterToc" >2 <a 
-href="spde-tutorialch2.html#x6-80002">The SPDE approach</a></span>
+href="spde-tutorialch2.html#x6-340002">Non-Gaussian and covariates in the covariance</a></span>
 <br />   &#x00A0;<span class="sectionToc" >2.1 <a 
-href="spde-tutorialch2.html#x6-90002.1">The [Lindgren et&#x00A0;al., 2011] results</a></span>
+href="spde-tutorialch2.html#x6-350002.1">Non-Gaussian response: Precipitation on Paraná</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >2.1.1 <a 
+href="spde-tutorialch2.html#x6-360002.1.1" id="QQ2-6-48">The data set</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >2.1.2 <a 
+href="spde-tutorialch2.html#x6-370002.1.2" id="QQ2-6-50">The model and covariate selection</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >2.1.3 <a 
+href="spde-tutorialch2.html#x6-420002.1.3" id="QQ2-6-57">Prediction of the random field</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >2.1.4 <a 
+href="spde-tutorialch2.html#x6-430002.1.4" id="QQ2-6-58">Prediction of the response on a grid</a></span>
 <br />   &#x00A0;<span class="sectionToc" >2.2 <a 
-href="spde-tutorialch2.html#x6-100002.2">The triangulation</a></span>
+href="spde-tutorialch2.html#x6-460002.2">Survival analysis</a></span>
 <br />   &#x00A0;&#x00A0;<span class="subsectionToc" >2.2.1 <a 
-href="spde-tutorialch2.html#x6-110002.2.1" id="QQ2-6-12">Getting started</a></span>
+href="spde-tutorialch2.html#x6-470002.2.1" id="QQ2-6-63">Parametric survival model</a></span>
 <br />   &#x00A0;&#x00A0;<span class="subsectionToc" >2.2.2 <a 
-href="spde-tutorialch2.html#x6-120002.2.2" id="QQ2-6-14">Non-convex hull meshes</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >2.2.3 <a 
-href="spde-tutorialch2.html#x6-130002.2.3" id="QQ2-6-16">Meshes for the toy example</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >2.2.4 <a 
-href="spde-tutorialch2.html#x6-140002.2.4" id="QQ2-6-18">Meshes for Paraná state</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >2.2.5 <a 
-href="spde-tutorialch2.html#x6-150002.2.5" id="QQ2-6-20">Triangulation with a SpatialPolygonsDataFrame</a></span>
+href="spde-tutorialch2.html#x6-480002.2.2" id="QQ2-6-65">Cox proportional hazard survival model</a></span>
 <br />   &#x00A0;<span class="sectionToc" >2.3 <a 
-href="spde-tutorialch2.html#x6-160002.3">Mesh with holes and physical boundaries</a></span>
-<br />   &#x00A0;<span class="sectionToc" >2.4 <a 
-href="spde-tutorialch2.html#x6-170002.4">The projector matrix</a></span>
-<br />   &#x00A0;<span class="sectionToc" >2.5 <a 
-href="spde-tutorialch2.html#x6-180002.5">GRF sampling through SPDE</a></span>
-<br />   &#x00A0;<span class="sectionToc" >2.6 <a 
-href="spde-tutorialch2.html#x6-190002.6">Maximum likelihood inference</a></span>
+href="spde-tutorialch2.html#x6-490002.3">Explanatory variables in the covariance</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >2.3.1 <a 
+href="spde-tutorialch2.html#x6-500002.3.1" id="QQ2-6-67">Introduction</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >2.3.2 <a 
+href="spde-tutorialch2.html#x6-510002.3.2" id="QQ2-6-68">An example</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >2.3.3 <a 
+href="spde-tutorialch2.html#x6-520002.3.3" id="QQ2-6-70">Simulation at the mesh nodes</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >2.3.4 <a 
+href="spde-tutorialch2.html#x6-540002.3.4" id="QQ2-6-73">Estimation with data simulated at the mesh nodes</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >2.3.5 <a 
+href="spde-tutorialch2.html#x6-550002.3.5" id="QQ2-6-74">Estimation with locations not at the mesh nodes</a></span>
 <br />   <span class="chapterToc" >3 <a 
-href="spde-tutorialch3.html#x7-200003">A toy example</a></span>
+href="spde-tutorialch3.html#x7-560003">Manipulating the random field and more than one likelihood</a></span>
 <br />   &#x00A0;<span class="sectionToc" >3.1 <a 
-href="spde-tutorialch3.html#x7-210003.1">The stack functionality</a></span>
+href="spde-tutorialch3.html#x7-570003.1">Measurement error model</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >3.1.1 <a 
+href="spde-tutorialch3.html#x7-580003.1.1" id="QQ2-7-78">The model</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >3.1.2 <a 
+href="spde-tutorialch3.html#x7-590003.1.2" id="QQ2-7-79">Simulation from the model</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >3.1.3 <a 
+href="spde-tutorialch3.html#x7-600003.1.3" id="QQ2-7-80">Fitting the model</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >3.1.4 <a 
+href="spde-tutorialch3.html#x7-610003.1.4" id="QQ2-7-81">The results</a></span>
+                                                                                 
+                                                                                 
 <br />   &#x00A0;<span class="sectionToc" >3.2 <a 
-href="spde-tutorialch3.html#x7-220003.2">Model fitting and some results</a></span>
+href="spde-tutorialch3.html#x7-620003.2">Coregionalization model</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >3.2.1 <a 
+href="spde-tutorialch3.html#x7-630003.2.1" id="QQ2-7-86">The model and parametrization</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >3.2.2 <a 
+href="spde-tutorialch3.html#x7-640003.2.2" id="QQ2-7-87">Data simulation</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >3.2.3 <a 
+href="spde-tutorialch3.html#x7-650003.2.3" id="QQ2-7-88">Model fitting</a></span>
 <br />   &#x00A0;<span class="sectionToc" >3.3 <a 
-href="spde-tutorialch3.html#x7-230003.3">Prediction of the random field</a></span>
+href="spde-tutorialch3.html#x7-660003.3">Copying part or the entire linear predictor</a></span>
 <br />   &#x00A0;&#x00A0;<span class="subsectionToc" >3.3.1 <a 
-href="spde-tutorialch3.html#x7-240003.3.1" id="QQ2-7-32">Jointly with the estimation process</a></span>
+href="spde-tutorialch3.html#x7-670003.3.1" id="QQ2-7-91">Generating data</a></span>
 <br />   &#x00A0;&#x00A0;<span class="subsectionToc" >3.3.2 <a 
-href="spde-tutorialch3.html#x7-250003.3.2" id="QQ2-7-33">After the estimation process</a></span>
+href="spde-tutorialch3.html#x7-680003.3.2" id="QQ2-7-93">Setting the way to fit the model</a></span>
 <br />   &#x00A0;&#x00A0;<span class="subsectionToc" >3.3.3 <a 
-href="spde-tutorialch3.html#x7-260003.3.3" id="QQ2-7-34">Projection on a grid</a></span>
-<br />   &#x00A0;<span class="sectionToc" >3.4 <a 
-href="spde-tutorialch3.html#x7-270003.4">Prediction of the response</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >3.4.1 <a 
-href="spde-tutorialch3.html#x7-280003.4.1" id="QQ2-7-36">By the posterior distribution</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >3.4.2 <a 
-href="spde-tutorialch3.html#x7-290003.4.2" id="QQ2-7-37">By sum of linear predictor components</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >3.4.3 <a 
-href="spde-tutorialch3.html#x7-300003.4.3" id="QQ2-7-38">Response on a grid</a></span>
-<br />   &#x00A0;<span class="sectionToc" >3.5 <a 
-href="spde-tutorialch3.html#x7-310003.5">Results from different meshes</a></span>
+href="spde-tutorialch3.html#x7-690003.3.3" id="QQ2-7-94">Fitting the model</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >3.3.4 <a 
+href="spde-tutorialch3.html#x7-700003.3.4" id="QQ2-7-95">Model results</a></span>
 <br />   <span class="chapterToc" >4 <a 
-href="spde-tutorialch4.html#x8-320004">Non-Gaussian response: Precipitation on Paraná</a></span>
+href="spde-tutorialch4.html#x8-710004">Log-Cox point process and preferential sampling</a></span>
 <br />   &#x00A0;<span class="sectionToc" >4.1 <a 
-href="spde-tutorialch4.html#x8-330004.1">The data set</a></span>
+href="spde-tutorialch4.html#x8-720004.1">The [Simpson et&#x00A0;al., 2016] approach example</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >4.1.1 <a 
+href="spde-tutorialch4.html#x8-730004.1.1" id="QQ2-8-100">Data simulation</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >4.1.2 <a 
+href="spde-tutorialch4.html#x8-740004.1.2" id="QQ2-8-102">Inference</a></span>
 <br />   &#x00A0;<span class="sectionToc" >4.2 <a 
-href="spde-tutorialch4.html#x8-340004.2">The model and covariate selection</a></span>
+href="spde-tutorialch4.html#x8-780004.2">Including a covariate on the log-Cox process</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >4.2.1 <a 
+href="spde-tutorialch4.html#x8-790004.2.1" id="QQ2-8-110">Covariate everywhere</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >4.2.2 <a 
+href="spde-tutorialch4.html#x8-800004.2.2" id="QQ2-8-112">Inference</a></span>
 <br />   &#x00A0;<span class="sectionToc" >4.3 <a 
-href="spde-tutorialch4.html#x8-350004.3">Testing the significance of spatial effect</a></span>
-<br />   &#x00A0;<span class="sectionToc" >4.4 <a 
-href="spde-tutorialch4.html#x8-360004.4">Prediction of the random field</a></span>
-<br />   &#x00A0;<span class="sectionToc" >4.5 <a 
-href="spde-tutorialch4.html#x8-370004.5">Prediction of the response on a grid</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >4.5.1 <a 
-href="spde-tutorialch4.html#x8-380004.5.1" id="QQ2-8-51">By computation of the posterior distributions</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >4.5.2 <a 
-href="spde-tutorialch4.html#x8-390004.5.2" id="QQ2-8-53">By sampling and interpolating the linear predictor</a></span>
+href="spde-tutorialch4.html#x8-810004.3">Geostatistical inference under preferential sampling</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >4.3.1 <a 
+href="spde-tutorialch4.html#x8-820004.3.1" id="QQ2-8-115">Fitting the usual model</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >4.3.2 <a 
+href="spde-tutorialch4.html#x8-830004.3.2" id="QQ2-8-117">Model fitting under preferential sampling</a></span>
 <br />   <span class="chapterToc" >5 <a 
-href="spde-tutorialch5.html#x9-400005">Survival analysis</a></span>
+href="spde-tutorialch5.html#x9-840005">Space-time examples</a></span>
 <br />   &#x00A0;<span class="sectionToc" >5.1 <a 
-href="spde-tutorialch5.html#x9-410005.1">Parametric survival model</a></span>
+href="spde-tutorialch5.html#x9-850005.1">Discrete time domain</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >5.1.1 <a 
+href="spde-tutorialch5.html#x9-860005.1.1" id="QQ2-9-121">Data simulation</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >5.1.2 <a 
+href="spde-tutorialch5.html#x9-870005.1.2" id="QQ2-9-123">Data stack preparation</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >5.1.3 <a 
+href="spde-tutorialch5.html#x9-880005.1.3" id="QQ2-9-124">Fitting the model and some results</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >5.1.4 <a 
+href="spde-tutorialch5.html#x9-890005.1.4" id="QQ2-9-126">A look at the posterior random field</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >5.1.5 <a 
+href="spde-tutorialch5.html#x9-900005.1.5" id="QQ2-9-128">Validation</a></span>
 <br />   &#x00A0;<span class="sectionToc" >5.2 <a 
-href="spde-tutorialch5.html#x9-420005.2">Cox proportional hazard survival model</a></span>
-<br />   <span class="chapterToc" >6 <a 
-href="spde-tutorialch6.html#x10-430006">Semicontinuous model to daily rainfall</a></span>
-                                                                                 
-                                                                                 
-<br />   &#x00A0;<span class="sectionToc" >6.1 <a 
-href="spde-tutorialch6.html#x10-440006.1">The hurdle continuous model</a></span>
-<br />   &#x00A0;<span class="sectionToc" >6.2 <a 
-href="spde-tutorialch6.html#x10-450006.2">The daily rainfall data</a></span>
-<br />   &#x00A0;<span class="sectionToc" >6.3 <a 
-href="spde-tutorialch6.html#x10-460006.3">Model fitting and some results</a></span>
-<br />   &#x00A0;<span class="sectionToc" >6.4 <a 
-href="spde-tutorialch6.html#x10-470006.4">Results for the spatial random effect</a></span>
-<br />   <span class="chapterToc" >7 <a 
-href="spde-tutorialch7.html#x11-480007">Joint modeling a covariate with misalignment</a></span>
-<br />   &#x00A0;<span class="sectionToc" >7.1 <a 
-href="spde-tutorialch7.html#x11-490007.1">The model</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >7.1.1 <a 
-href="spde-tutorialch7.html#x11-500007.1.1" id="QQ2-11-70">Simulation from the model</a></span>
-<br />   &#x00A0;<span class="sectionToc" >7.2 <a 
-href="spde-tutorialch7.html#x11-510007.2">Fitting the model</a></span>
-<br />   &#x00A0;<span class="sectionToc" >7.3 <a 
-href="spde-tutorialch7.html#x11-520007.3">The results</a></span>
-<br />   <span class="chapterToc" >8 <a 
-href="spde-tutorialch8.html#x12-530008">Measurement error model</a></span>
-<br />   &#x00A0;<span class="sectionToc" >8.1 <a 
-href="spde-tutorialch8.html#x12-540008.1">The model</a></span>
-<br />   &#x00A0;<span class="sectionToc" >8.2 <a 
-href="spde-tutorialch8.html#x12-550008.2">Simulation from the model</a></span>
-<br />   &#x00A0;<span class="sectionToc" >8.3 <a 
-href="spde-tutorialch8.html#x12-560008.3">Fitting the model</a></span>
-<br />   &#x00A0;<span class="sectionToc" >8.4 <a 
-href="spde-tutorialch8.html#x12-570008.4">The results</a></span>
-<br />   <span class="chapterToc" >9 <a 
-href="spde-tutorialch9.html#x13-580009">Explanatory variables in the covariance</a></span>
-<br />   &#x00A0;<span class="sectionToc" >9.1 <a 
-href="spde-tutorialch9.html#x13-590009.1">Introduction</a></span>
-<br />   &#x00A0;<span class="sectionToc" >9.2 <a 
-href="spde-tutorialch9.html#x13-600009.2">An example</a></span>
-<br />   &#x00A0;<span class="sectionToc" >9.3 <a 
-href="spde-tutorialch9.html#x13-610009.3">Simulation at the mesh nodes</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >9.3.1 <a 
-href="spde-tutorialch9.html#x13-620009.3.1" id="QQ2-13-90">Simulation with linear constraint</a></span>
-<br />   &#x00A0;<span class="sectionToc" >9.4 <a 
-href="spde-tutorialch9.html#x13-630009.4">Estimation with data simulated at the mesh nodes</a></span>
-<br />   &#x00A0;<span class="sectionToc" >9.5 <a 
-href="spde-tutorialch9.html#x13-640009.5">Estimation with locations not at the mesh nodes</a></span>
-<br />   <span class="chapterToc" >10 <a 
-href="spde-tutorialch10.html#x14-6500010">Space-time examples</a></span>
-<br />   &#x00A0;<span class="sectionToc" >10.1 <a 
-href="spde-tutorialch10.html#x14-6600010.1">Discrete time domain</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >10.1.1 <a 
-href="spde-tutorialch10.html#x14-6700010.1.1" id="QQ2-14-96">Data simulation</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >10.1.2 <a 
-href="spde-tutorialch10.html#x14-6800010.1.2" id="QQ2-14-98">Data stack preparation</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >10.1.3 <a 
-href="spde-tutorialch10.html#x14-6900010.1.3" id="QQ2-14-99">Fitting the model and some results</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >10.1.4 <a 
-href="spde-tutorialch10.html#x14-7000010.1.4" id="QQ2-14-101">A look at the posterior random field</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >10.1.5 <a 
-href="spde-tutorialch10.html#x14-7100010.1.5" id="QQ2-14-103">Validation</a></span>
-<br />   &#x00A0;<span class="sectionToc" >10.2 <a 
-href="spde-tutorialch10.html#x14-7200010.2">Continuous time domain</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >10.2.1 <a 
-href="spde-tutorialch10.html#x14-7300010.2.1" id="QQ2-14-106">Data simulation</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >10.2.2 <a 
-href="spde-tutorialch10.html#x14-7400010.2.2" id="QQ2-14-107">Data stack preparation</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >10.2.3 <a 
-href="spde-tutorialch10.html#x14-7500010.2.3" id="QQ2-14-108">Fitting the model and some results</a></span>
-<br />   <span class="chapterToc" >11 <a 
-href="spde-tutorialch11.html#x15-7600011">Lowering resolution of a spatio-temporal model</a></span>
-<br />   &#x00A0;<span class="sectionToc" >11.1 <a 
-href="spde-tutorialch11.html#x15-7700011.1">Data temporal aggregation</a></span>
-<br />   &#x00A0;<span class="sectionToc" >11.2 <a 
-href="spde-tutorialch11.html#x15-7800011.2">Lowering temporal model resolution</a></span>
-<br />   <span class="chapterToc" >12 <a 
-href="spde-tutorialch12.html#x16-7900012">Space-time coregionalization model</a></span>
-<br />   &#x00A0;<span class="sectionToc" >12.1 <a 
-href="spde-tutorialch12.html#x16-8000012.1">The model and parametrization</a></span>
-<br />   &#x00A0;<span class="sectionToc" >12.2 <a 
-href="spde-tutorialch12.html#x16-8100012.2">Data simulation</a></span>
-<br />   &#x00A0;<span class="sectionToc" >12.3 <a 
-href="spde-tutorialch12.html#x16-8200012.3">Model fitting</a></span>
-<br />   <span class="chapterToc" >13 <a 
-href="spde-tutorialch13.html#x17-8300013">Point process: inference for the log-Cox process</a></span>
-<br />   &#x00A0;<span class="sectionToc" >13.1 <a 
-href="spde-tutorialch13.html#x17-8400013.1">Data simulation</a></span>
-<br />   <span class="chapterToc" >14 <a 
-href="spde-tutorialch14.html#x18-8500014">Space-time log-Cox process</a></span>
-<br />   &#x00A0;<span class="sectionToc" >14.1 <a 
-href="spde-tutorialch14.html#x18-8600014.1">Burkitt example</a></span>
-<br />   &#x00A0;<span class="sectionToc" >14.2 <a 
-href="spde-tutorialch14.html#x18-8700014.2">Large data set</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >14.2.1 <a 
-href="spde-tutorialch14.html#x18-8800014.2.1" id="QQ2-18-127">Space-time aggregation</a></span>
-<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >14.2.2 <a 
-href="spde-tutorialch14.html#x18-8900014.2.2" id="QQ2-18-128">Model fit</a></span>
-<br />   <span class="chapterToc" >15 <a 
-href="spde-tutorialch15.html#x19-9000015">Dynamic regression example</a></span>
-<br />   &#x00A0;<span class="sectionToc" >15.1 <a 
-href="spde-tutorialch15.html#x19-9100015.1">Dynamic space-time regression</a></span>
-<br />   &#x00A0;<span class="sectionToc" >15.2 <a 
-href="spde-tutorialch15.html#x19-9200015.2">Simulation from the model</a></span>
-<br />   &#x00A0;<span class="sectionToc" >15.3 <a 
-href="spde-tutorialch15.html#x19-9300015.3">Fitting the model</a></span>
-<br />   <span class="chapterToc" >16 <a 
-href="spde-tutorialch16.html#x20-9400016">Copying part or the entire linear predictor</a></span>
-<br />   &#x00A0;<span class="sectionToc" >16.1 <a 
-href="spde-tutorialch16.html#x20-9500016.1">Generating data</a></span>
-<br />   &#x00A0;<span class="sectionToc" >16.2 <a 
-href="spde-tutorialch16.html#x20-9600016.2">Setting the way to fit the model</a></span>
-                                                                                 
-                                                                                 
-<br />   &#x00A0;<span class="sectionToc" >16.3 <a 
-href="spde-tutorialch16.html#x20-9700016.3">Fitting the model</a></span>
-<br />   &#x00A0;<span class="sectionToc" >16.4 <a 
-href="spde-tutorialch16.html#x20-9800016.4">Model results</a></span>
-<br />   <span class="chapterToc" >17 <a 
-href="spde-tutorialch17.html#x21-9900017">Data cloning example</a></span>
+href="spde-tutorialch5.html#x9-910005.2">Continuous time domain</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >5.2.1 <a 
+href="spde-tutorialch5.html#x9-920005.2.1" id="QQ2-9-131">Data simulation</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >5.2.2 <a 
+href="spde-tutorialch5.html#x9-930005.2.2" id="QQ2-9-132">Data stack preparation</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >5.2.3 <a 
+href="spde-tutorialch5.html#x9-940005.2.3" id="QQ2-9-133">Fitting the model and some results</a></span>
+<br />   &#x00A0;<span class="sectionToc" >5.3 <a 
+href="spde-tutorialch5.html#x9-950005.3">Lowering resolution of a spatio-temporal model</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >5.3.1 <a 
+href="spde-tutorialch5.html#x9-960005.3.1" id="QQ2-9-136">Data temporal aggregation</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >5.3.2 <a 
+href="spde-tutorialch5.html#x9-970005.3.2" id="QQ2-9-137">Lowering temporal model resolution</a></span>
+<br />   &#x00A0;<span class="sectionToc" >5.4 <a 
+href="spde-tutorialch5.html#x9-980005.4">Space-time coregionalization model</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >5.4.1 <a 
+href="spde-tutorialch5.html#x9-990005.4.1" id="QQ2-9-140">The model and parametrization</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >5.4.2 <a 
+href="spde-tutorialch5.html#x9-1000005.4.2" id="QQ2-9-141">Data simulation</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >5.4.3 <a 
+href="spde-tutorialch5.html#x9-1010005.4.3" id="QQ2-9-142">Model fitting</a></span>
+<br />   &#x00A0;<span class="sectionToc" >5.5 <a 
+href="spde-tutorialch5.html#x9-1020005.5">Dynamic regression example</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >5.5.1 <a 
+href="spde-tutorialch5.html#x9-1030005.5.1" id="QQ2-9-145">Dynamic space-time regression</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >5.5.2 <a 
+href="spde-tutorialch5.html#x9-1040005.5.2" id="QQ2-9-146">Simulation from the model</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >5.5.3 <a 
+href="spde-tutorialch5.html#x9-1050005.5.3" id="QQ2-9-147">Fitting the model</a></span>
+<br />   &#x00A0;<span class="sectionToc" >5.6 <a 
+href="spde-tutorialch5.html#x9-1060005.6">Space-time point process: Burkitt example</a></span>
+<br />   &#x00A0;<span class="sectionToc" >5.7 <a 
+href="spde-tutorialch5.html#x9-1070005.7">Large point process data set</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >5.7.1 <a 
+href="spde-tutorialch5.html#x9-1080005.7.1" id="QQ2-9-155">Space-time aggregation</a></span>
+<br />   &#x00A0;&#x00A0;<span class="subsectionToc" >5.7.2 <a 
+href="spde-tutorialch5.html#x9-1090005.7.2" id="QQ2-9-156">Model fit</a></span>
    </div>
                                                                                  
                                                                                  
-   <!--l. 2--><div class="crosslinks"><p class="noindent">[<a 
+   <!--l. 4--><div class="crosslinks"><p class="noindent">[<a 
 href="spde-tutorialch1.html" >next</a>] [<a 
 href="spde-tutorialli1.html" >front</a>] [<a 
 href="spde-tutorial3.html#spde-tutorialli1.html" >up</a>] </p></div>
-<!--l. 2--><p class="indent" >   <a 
+<!--l. 4--><p class="indent" >   <a 
  id="tailspde-tutorialli1.html"></a> </p> 
 </body></html> 

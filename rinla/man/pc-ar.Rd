@@ -34,6 +34,6 @@
      \code{inla.ar.pacf2acf} and \code{inla.ar.acf2pacf} to convert between various
     parameterisations.
  }
- \author{Havard Rue \email{hrue@math.ntnu.no}}
+ \author{Havard Rue \email{hrue@r-inla.org}}
  \examples{
  }

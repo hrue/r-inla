@@ -1,24 +1,26 @@
-\chapter{Space-time log-Cox process}\label{ch:stpp}
-
-\SweaveOpts{prefix.string=figs/stpp} 
-<<opts,echo=F,results=hide>>=
+<<opts,echo=F,results='hide',message=FALSE,warning=FALSE>>=
+library(knitr)
+opts_chunk$set(
+fig.path='figs/stpp',
+message=FALSE, warning=FALSE
+)
 options(width=75, prompt = " ", continue = "   ")
 library(INLA)
 lcall <- inla.getOption('inla.call')
 inla.setOption(inla.call='remote')
 inla.setOption(num.threads=7)
+source('R/spde-tutorial-functions.R')
 @ 
-
-In this chapter we show how to fit a 
-spatio temporal log-Cox point process model. 
-In Section~\ref{sec:burkitt} we have an example. 
-In Section~\ref{sec:lstpp} we show an approach to deal with large data sets.
 
 \input{spde-tutorial-burkitt}
 
-\section{Large data set}\label{sec:lstpp} 
+\section{Large point process data set}\label{sec:lstpp} 
 
+In this chapter we show how an approach to fit a 
+spatio temporal log-Cox point process model for a large data sets.
 We are going to drawn samples from a separable space time intensity function. 
+The R source for this file is available at
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-stpp.R} 
 
 First we define the spatial domain as follows 
 <<sdomain>>=
@@ -34,8 +36,8 @@ domainSP <- SpatialPolygons(list(Polygons(list(Polygon(domain)), '0')))
 
 We choose to sample a dataset using the \textbf{\textsf{lgcp}}, 
 \cite{taylorDRD:2013}, package as follows
-<<lgcp,results=hide>>=
-library(lgcp)
+<<lgcp,results='hide'>>=
+library(lgcp) 
 ndays <- 15
 n <- (xyt <- lgcpSim(
     owin=spatstat:::owin(poly=domain), tlim=c(0,ndays), 
@@ -67,13 +69,12 @@ points(xyt$x, xyt$y, cex=0.5, pch=3)
 @ 
 \setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}[h]\centering 
-<<stfit,echo=F,fig=T,eps=F,width=10,height=4>>=
+<<stfit,echo=FALSE,fig.width=10,fig.height=4>>=
 <<stplot>>
 @ 
 \caption{Time for a sample of the events (black), time knots (blue) in the upper plot. 
  Spatial locations of a sample on the spatial domain (botton plot).}
-\label{fig:stlppshow}
-\end{figure}
+\end{figure}\label{fig:stlppshow}
 
 \subsection{Space-time aggregation}
 
@@ -86,6 +87,9 @@ In this section we choose to aggregate the data in a way that we have a problem 
 So, this approach really makes sence when $n>>m*k$. 
 
 We choose to aggregate the data in accord to the integration points to make the fitting process easier. 
+We also consider the dual mesh polygons, 
+as shown in Chapter~\ref{ch:lcox}. 
+
 So, firt we find the Voronoi polygons for the mesh nodes
 <<voronoi>>=
 library(deldir)
@@ -93,7 +97,7 @@ dd <- deldir(smesh$loc[,1], smesh$loc[,2])
 tiles <- tile.list(dd)
 @ 
 Convert it into \texttt{SpatialPolygons}:
-<<sp>>=
+<<sppls>>=
 polys <- SpatialPolygons(lapply(1:length(tiles), function(i)
     { p <- cbind(tiles[[i]]$x, tiles[[i]]$y)
       n <- nrow(p)
@@ -225,13 +229,11 @@ for (j in 1:k) {
 image.plot(prj$x, prj$y, t.mean[[j]]+1e9, axes=FALSE, zlim=zlims, xlab='', 
            legend.mar=10, legend.width=5, col=tim.colors(30), horizontal=T)
 @ 
-\setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}[h]\centering
-<<lstsresf,echo=F,fig=T,eps=F,width=5,height=5>>=
+<<lstsresf,echo=FALSE,fig.width=5,fig.height=5,out.width='0.97\\textwidth'>>=
 <<lstsresp>>
 @ 
 \caption{Spatial surface fitted at each time knot overlayed 
   by the point pattern formed by the points nearest to each 
   time knot.}
-\label{fig:lstppsres}
-\end{figure}
+\end{figure}\label{fig:lstppsres}

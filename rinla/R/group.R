@@ -26,7 +26,7 @@
 ##!  \code{inla.group} return the new grouped covariates where the classes
 ##!  are set to the median of all the covariates belonging to that group.
 ##!}
-##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!\author{Havard Rue \email{hrue@r-inla.org}}
 ##!\seealso{\code{\link{f}}}
 ##!\examples{
 ##!## this gives groups 3 and 8

@@ -12,23 +12,26 @@
 
 \usage{
  inla.as.sparse(...)
- inla.as.dgTMatrix(A, unique = TRUE)
+ inla.as.dgTMatrix(A, unique = TRUE, na.rm = FALSE, zeros.rm = FALSE)
 }
 
 \arguments{
   \item{...}{The arguments. The matrix or sparse matrix,  and the additonal arguments}
   \item{A}{The matrix}
-  \item{unique}{If the internal representation needs to be unique or can have duplicated entries.
-                Do not use this option unless you know what you are doing.}
+  \item{unique}{Logical. If \code{TRUE}, then ensure that the internal representation is unique and
+                there are no duplicated entries.
+                (Do not change this unless you know what you are doing.)}
+  \item{na.rm}{Replace \code{NA}'s in the matrix with zeros.}
+  \item{zeros.rm}{Remove zeros in the matrix.}
 }
 
 \value{%%
   \code{inla.as.sparse} and \code{inla.as.dgTMatrix} is the same function.
-  The returned value is a sparse matrix in the sparse-format used by INLA
+  The returned value is a sparse matrix in the \code{dgTMatrix}-format.
 }
 %%
 
-\author{Havard Rue \email{hrue@math.ntnu.no}}
+\author{Havard Rue \email{hrue@r-inla.org}}
 
 \examples{
  A = matrix(1:9, 3, 3)

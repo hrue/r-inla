@@ -17,7 +17,7 @@ y = rkumar(n, eta, phi, q)
 r = inla(y ~ 1 + x,
     data = data.frame(y, x),
     family = "qkumar",
-    control.family = list(quantile = q))
+    control.family = list(control.link=list(quantile = q)))
 summary(r)
 
 
