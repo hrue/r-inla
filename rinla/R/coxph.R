@@ -25,7 +25,7 @@
 ##!      a \code{list} to be passed as the \code{data} argument. See the example for details.
 ##!      \code{inla.rbind.data.frames} returns the new data.frame.
 ##!}
-##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!\author{Havard Rue \email{hrue@r-inla.org}}
 ##!\examples{
 ##!## How the cbind.data.frames works:
 ##!df1 = data.frame(x=1:2, y=2:3, z=3:4)
@@ -113,7 +113,7 @@
     cont.hazard = inla.set.control.hazard.default()
     cont.hazard[names(control.hazard)] = control.hazard
     cont.hazard$hyper = inla.set.hyper(cont.hazard$model, "hazard", cont.hazard$hyper, 
-            cont.hazard$initial, cont.hazard$fixed, cont.hazard$prior, cont.hazard$param)
+                                       cont.hazard$initial, cont.hazard$fixed, cont.hazard$prior, cont.hazard$param)
 
     if (is.null(y.surv$subject)) {
         res = inla.expand.dataframe.1(y.surv, data.f, control.hazard = cont.hazard)
@@ -165,21 +165,22 @@
                                         cont.hazard$scale.model), 
         inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
         ")", sep="")[2L]
-        
-        new.formula = update(update(formula, as.formula(f.hazard)), y..coxph ~ .)
-        
-        data.list = c(res$data.list, data.l)
-        if (!is.null(strata.tmp)) {
-            data.list = c(data.list, list(baseline.hazard.strata.coding = strata.tmp$coding))
-        }
-
-        return (list(formula = new.formula, 
-                     data = res$data,
-                     data.list = data.list, 
-                     family = "poisson", 
-                     E = res$data$E..coxph,
-                     control.hazard = cont.hazard))
+    
+    new.formula = update(update(formula, as.formula(f.hazard)), y..coxph ~ .)
+    
+    data.list = c(res$data.list, data.l)
+    if (!is.null(strata.tmp)) {
+        data.list = c(data.list, list(baseline.hazard.strata.coding = strata.tmp$coding))
     }
+
+    return (list(formula = new.formula, 
+                 data = res$data,
+                 data.list = data.list, 
+                 family = "poisson", 
+                 E = res$data$E..coxph,
+                 expand.df = res$data$expand..coxph, 
+                 control.hazard = cont.hazard))
+}
 
 `inla.rbind.data.frames` = function(...)
 {

@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 
@@ -81,10 +81,12 @@ int GMRFLib_get_design(GMRFLib_design_tp ** design, int nfactors)
 	(*design)->nfactors = nfactors;
 	(*design)->nexperiments = nexp[nfactors];
 	(*design)->experiment = Calloc(nexp[nfactors], double *);
+	(*design)->int_weight = Calloc(nexp[nfactors], double);
+	(*design)->std_scale = GMRFLib_TRUE;
 
 	for (j = 0; j < nexp[nfactors]; j++) {
 		(*design)->experiment[j] = Calloc(nfactors, double);
-
+		(*design)->int_weight[j] = NAN;		       /* meaning that its undefined at this stage */
 		scale = 0.0;
 		for (k = 0; k < nfactors; k++) {
 			(*design)->experiment[j][k] = points[ipos + j * nfactors + k];
@@ -99,10 +101,38 @@ int GMRFLib_get_design(GMRFLib_design_tp ** design, int nfactors)
 	}
 
 	return GMRFLib_SUCCESS;
-#undef FNM_DIM
-#undef FNM_DAT
 }
+int GMRFLib_read_design(GMRFLib_design_tp ** design, GMRFLib_matrix_tp * D, int std_scale)
+{
+	/*
+	 * read the design from D
+	 */
+	int j, k, nfac, nexp;
+	double sum_w = 0.0;
 
+	*design = Calloc(1, GMRFLib_design_tp);
+	(*design)->nfactors = nfac = D->ncol - 1;
+	(*design)->nexperiments = nexp = D->nrow;
+	assert(nexp > 0);
+	(*design)->experiment = Calloc(nexp, double *);
+	(*design)->int_weight = Calloc(nexp, double);
+	(*design)->std_scale = (std_scale ? GMRFLib_TRUE : GMRFLib_FALSE);
+
+	for (j = 0; j < nexp; j++) {
+		(*design)->experiment[j] = Calloc(nfac, double);
+		for (k = 0; k < nfac; k++) {
+			(*design)->experiment[j][k] = GMRFLib_matrix_get(j, k, D);
+		}
+		(*design)->int_weight[j] = GMRFLib_matrix_get(j, nfac, D);
+		assert((*design)->int_weight[j] >= 0.0);
+		sum_w += (*design)->int_weight[j];
+	}
+	for (j = 0; j < nexp; j++) {
+		(*design)->int_weight[j] /= sum_w;
+	}
+
+	return GMRFLib_SUCCESS;
+}
 int GMRFLib_free_design(GMRFLib_design_tp * design)
 {
 	if (design) {
@@ -112,6 +142,7 @@ int GMRFLib_free_design(GMRFLib_design_tp * design)
 			Free(design->experiment[i]);
 		}
 		Free(design->experiment);
+		Free(design->int_weight);
 		Free(design);
 	}
 
@@ -129,13 +160,20 @@ int GMRFLib_print_design(FILE * fp, GMRFLib_design_tp * design)
 		fp = stdout;
 	}
 
-	fprintf(fp, "Design has %d factors and %d experiments\n", design->nfactors, design->nexperiments);
+	fprintf(fp, "\tDesign has %d factors and %d experiments, scale=%1s\n", design->nfactors, design->nexperiments,
+		(design->std_scale ? "Standardised" : "UserScale"));
+	fprintf(fp, "\t\t");
+	for (j = 0; j < design->nfactors; j++) {
+		fprintf(fp, "     z%1d", j);
+	}
+	fprintf(fp, " weight\n");
+
 	for (i = 0; i < design->nexperiments; i++) {
-		fprintf(fp, "\t");
+		fprintf(fp, "\t\t");
 		for (j = 0; j < design->nfactors; j++) {
 			fprintf(fp, " %6.3f", design->experiment[i][j]);
 		}
-		fprintf(fp, "\n");
+		fprintf(fp, " %6.4f\n", design->int_weight[i]);
 	}
 
 	return GMRFLib_SUCCESS;

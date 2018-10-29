@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  *
  */
@@ -42,9 +42,9 @@
 
 __BEGIN_DECLS
 // 
-double inla_eval(char *expression, double *x);
-double inla_eval_expression(char *expression, double *x);
-double inla_eval_table(char *expression, double *x);
+double inla_eval(char *expression, double *x, double *theta, int ntheta);
+double inla_eval_expression(char *expression, double *x, double *theta, int ntheta);
+double inla_eval_table(char *expression, double *x, double *theta, int ntheta);
 
 __END_DECLS
 #endif

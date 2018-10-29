@@ -31,18 +31,32 @@ EXTLIBS = $(EXTLIBS1) $(EXTLIBS2) $(EXTLIBS3)
 OS_TYPE:=$(shell uname -s)
 ifeq ($(OS_TYPE), Linux)
   OS_FLAGS=-DLINUX
+# Only activate X if specifically asked for:
+ifeq ($(FMESHER_USE_X), 1)
   OS_LDFLAGS=-lX11
+else
+  OS_LDFLAGS=
+endif
 endif
 # What does uname -s say on Mac/OSX: Darwin.
 ifeq ($(OS_TYPE), Darwin)
   OS_FLAGS=-DMAC
-  OS_LDFLAGS=-L/usr/X11R6/lib -L/usr/X11/lib -lX11
+# Only activate X if specifically asked for:
+ifeq ($(FMESHER_USE_X), 1)
+    OS_LDFLAGS=-L/usr/X11R6/lib -L/usr/X11/lib -lX11
+else
+  OS_LDFLAGS=
+endif
 endif
 ifeq ($(OS_TYPE), Windows)
   OS_FLAGS=-DWINDOWS -DFMESHER_NO_X
   OS_LDFLAGS=
 endif
 
+# Deactivate X if specifically asked for:
+ifneq ($(FMESHER_USE_X), 1)
+  OS_FLAGS:=$(OS_FLAGS) -DFMESHER_NO_X
+endif
 ifeq ($(FMESHER_NO_X), 1)
   OS_FLAGS:=$(OS_FLAGS) -DFMESHER_NO_X
 endif
@@ -101,13 +115,13 @@ $(DEPDIR):
 
 
 $(FMESHER) : $(OBJ) fmesher.o
-	$(LD) $(LDFLAGSXX) -o $@ $^ -L$(PREFIX)/lib  $(EXTLIBS)
+	$(LD) -o $@ $^ $(LDFLAGSXX) -L$(PREFIX)/lib  $(EXTLIBS)
 
 $(FMESHER_TEST) : $(OBJ) fmesher_test.o
-	$(LD) $(LDFLAGSXX) -o $@ $^ -L$(PREFIX)/lib  $(EXTLIBS)
+	$(LD) -o $@ $^ $(LDFLAGSXX) -L$(PREFIX)/lib  $(EXTLIBS)
 
 $(FMESHER_TEST2) : $(OBJ) treetest.o
-	$(LD) $(LDFLAGSXX) -o $@ $^ -L$(PREFIX)/lib  $(EXTLIBS)
+	$(LD) -o $@ $^ $(LDFLAGSXX) -L$(PREFIX)/lib  $(EXTLIBS)
 
 cmdline:
 	gengetopt --file-name=cmdline --conf-parser --unamed-opts=PREFIX \

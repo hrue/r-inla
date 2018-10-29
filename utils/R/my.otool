@@ -1,25 +1,50 @@
 #!/bin/bash
 
-{
-    for f in "$@"; do
-	for ff in $(otool -l "$f" | grep .dylib); do
-	    if [ -f "$ff" ]; then
-		for fff in $(otool -l "$ff" | grep .dylib); do
-		    if [ -f "$fff" ]; then
-			echo "$fff"
+Afun () {
+    {
+	for f in "$@"; do
+	    for ff in $(otool -l "$f" | grep .dylib); do
+		if [ -f "$ff" ]; then
+		    for fff in $(otool -l "$ff" | grep .dylib); do
+			if [ -f "$fff" ]; then
+			    echo "$fff"
 		    fi
-		done
-	    fi
+		    done
+		fi
+	    done
 	done
-    done
-} | sort | uniq | \
-    grep -v /usr/lib/system | \
-    grep -v /usr/lib/libSystem | \
-    ##grep -v libX11. | \
-    grep -v /usr/lib/libicucore.A.dylib | \
-    grep -v /usr/lib/libbz2.1.0.dylib | \
-    grep -v /usr/lib/libiconv.2.dylib | \
-    grep -v /usr/lib/libz.1.dylib | \
-    awk '/libgcc_s/{print; gsub("gcc_s", "gcc_s_x86_64"); print; next};{print}'
+    } | sort | uniq | \
+	grep -v /usr/lib/system | \
+	grep -v /usr/lib/libSystem | \
+	##grep -v libX11. | \
+	grep -v /usr/lib/libicucore.A.dylib | \
+	grep -v /usr/lib/libbz2.1.0.dylib | \
+	grep -v /usr/lib/libiconv.2.dylib | \
+	grep -v /usr/lib/libz.1.dylib | \
+	awk '/libgcc_s/{print; gsub("gcc_s", "gcc_s_x86_64"); print; next};{print}'
+}
 
+Xfun () {
+    for lib in "$@"; do
+	case "$lib" in
+	    /opt/*) 
+		test -f "$lib" && otool -l $lib | grep .dylib | grep /opt
+		;;
+	    /System/Library/Frameworks/Accelerate.framework/*)
+		test -f "$lib" && otool -l $lib | grep .dylib | grep /Accelerate.framework
+		;;
+	    *)
+		echo $lib | grep -v ^/usr/lib | grep -v ^/Library/Frameworks/R.framework
+		;;
+	esac
+    done
+}
+
+A=$(Afun "$@")
+A=$(Xfun $A)
+A=$(Xfun $A)
+A=$(Xfun $A)
+A=$(Xfun $A)
+
+echo $A | awk '{for(i=1;i<=NF;i++) print $i}' | grep dylib | grep -v : | sort | uniq
 

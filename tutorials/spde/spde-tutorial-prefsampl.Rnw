@@ -1,46 +1,62 @@
-\chapter{Point process: inference for the log-Cox process}\label{ch:lcox}
+\chapter{Log-Cox point process and preferential sampling}\label{ch:lcox}
 
-\SweaveOpts{prefix.string=figs/prefsampl} 
-<<sett,echo=F,results=hide>>=
+The R source for the three examples in this Chapter is available at
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-prefsampl.R}
+
+<<sett,echo=F,results='hide',message=FALSE,warning=FALSE>>=
+library(knitr)
+opts_chunk$set(
+fig.path='figs/prefsampl',
+message=FALSE, warning=FALSE
+)
 options(width=75, prompt = " ", continue = "   ")
-require(INLA)
+library(INLA)
 lcall <- inla.getOption('inla.call')
 inla.setOption(inla.call='remote')
 inla.setOption(num.threads=7)
-require(splancs)
-require(deldir)
-require(fields)
+library(splancs)
+library(fields)
+source('R/spde-tutorial-functions.R')
 @ 
+
+\section{The \cite{simpsonetal:2016} approach example}
 
 Under the log-Cox model assumption, there is a 
 latent Gaussian Random Field (LGRF) and the inference 
-can be done using \textbf{\textsf{INLA}} 
-\cite{illianetal:2012}. 
-
+can be done using \textbf{\textsf{INLA}}, 
+\cite{mollerSW:1998}.
 A common aproach to fit the log-Cox process is to 
 divide the study region into cells, that forms a lattice, 
-and count the number of points into each one. 
-This counts are modeled using the Poisson likelihood. 
+and count the number of points into each one, 
+\cite{mollerW:2003}. 
+One can consider this counts and a Poisson likelihood 
+conditional to a LGRF and use INLA to fit the model,
+\cite{illianetal:2012}. 
 
-A good approach for inference of log-Cox model is to 
-use the SPDE approach instead occurence counts on cells, 
-\cite{simpsonetal:2011}. 
-There are the main advantages on this approach 
-the consideration of the loc-Cox likelihood directly. 
+An approach considering the SPDE approach 
+was considerd in \cite{simpsonetal:2016}. 
+This approach has a nice theoretical justification 
+and considers a direct approximation of the log-Cox 
+point process model likelihood. 
+The data is modeled considering its exact location 
+instead of binning it into cells. 
+Along with the flexibility for defining a mesh, 
+it can handle non-rectangular areas 
+avoiding to waste computational effort. 
 
-\section{Data simulation} 
+\subsection{Data simulation} 
 
-The data simulated on this section is used also 
-on the Chapter~\ref{ch:prefsampl}. 
-
-In this section we use the \texttt{rLGCP()} function 
-from \textbf{\textsf{spatstat}} package to do the simulation. 
+We will use the data simulated here later in 
+Section~\ref{sec:lcoxcov} and in Section~\ref{sec:prefsampl}. 
+To sample from a log-Cox point process we will use the 
+\texttt{rLGCP()} function from the 
+\textbf{\textsf{spatstat}} \textbf{\textsf{R}} package. 
 By default that function do simulation on window 
 over the $(0,1) \times (0,1)$ square. 
 We choose to do simulation 
 over the $(0,3) \times (0,3)$ square.
 <<window>>=
-require(spatstat)
+library(spatstat)
 win <- owin(c(0,3), c(0,3))
 @ 
 
@@ -70,7 +86,8 @@ So, the expected number of points is
 <<n-exp>>=
 exp(beta0) * diff(range(win$x)) * diff(range(win$y))
 @ 
-Is also possible to use a functional, see Chapter~\ref{ch:lcoxcov}.
+Is also possible to use a functional, 
+see Shapter~\ref{sec:lcoxcov}.
 
 In the estimation process we use the Matern 
 covariance function with $\nu=1$. 
@@ -81,71 +98,21 @@ sigma2x <- 0.2;      kappa <- 2
 @ 
 
 Doing the simulation
-<<temporal,echo=FALSE>>=
-myrLGCP <- function (model = "exponential", mu = 0, param = NULL, ..., win = NULL) 
-{
-    if (!missing(mu)) {
-        if (!(is.numeric(mu) || is.function(mu) || is.im(mu))) 
-            stop(paste(sQuote("mu"), "must be a constant, a function or an image"))
-        if (is.numeric(mu) && !(length(mu) == 1)) 
-            stop(paste(sQuote("mu"), "must be a single number"))
-    }
-    if (!require(RandomFields)) 
-        stop("Simulation of log-Gaussian Cox process requires the package RandomFields")
-    win.given <- !is.null(win)
-    mu.image <- is.im(mu)
-    win <- if (win.given) 
-        as.owin(win)
-    else if (mu.image) 
-        as.owin(mu)
-    else owin()
-    if (win.given && mu.image && !is.subset.owin(win, as.owin(mu))) 
-        stop(paste("The spatial domain of the pixel image", sQuote("mu"), 
-            "does not cover the simulation window", sQuote("win")))
-    w <- as.mask(win)
-    x <- w$xcol
-    y <- w$yrow
-    dim <- w$dim
-    xy <- expand.grid(x = x, y = y)
-    xx <- xy$x
-    yy <- xy$y
-    muxy <- if (is.numeric(mu)) 
-        mu
-    else if (is.function(mu)) 
-        mu(xx, yy)
-    else lookup.im(mu, xx, yy, naok = TRUE, strict = TRUE)
-    muxy[is.na(muxy)] <- -Inf
-    xgrid <- c(x[1], x[length(x)], w$xstep)
-    ygrid <- c(y[1], y[length(y)], w$ystep)
-    z <- RandomFields::RFsimulate(x=xgrid, y=ygrid, grid = TRUE, 
-        model = model, ...)
-    logLambda <- muxy + z
-    Lambda <- matrix(exp(logLambda), nrow = dim[1], ncol = dim[2], 
-        byrow = TRUE)
-    Lambda <- as.im(Lambda, W = w)
-    X <- rpoispp(Lambda)[win]
-    attr(X, "Lambda") <- Lambda
-    return(X)
-}
-require(RandomFields)
-set.seed(1)
-lg.s <- myrLGCP('matern', beta0, 
-##              c(0, variance=sigma2x, nugget=0, scale=1/kappa, nu=1), win=win)
-              var=sigma2x, scale=1/kappa, nu=1, win=win)
-@ 
-<<simulapp,eval=FALSE>>=
-require(RandomFields)
+<<simulapp,eval=TRUE>>=
+library(RandomFields)
 set.seed(1)
 lg.s <- rLGCP('matern', beta0, 
-##              c(0, variance=sigma2x, nugget=0, scale=1/kappa, nu=1), win=win)
               var=sigma2x, scale=1/kappa, nu=1, win=win)
 @ 
 
-
-Both, the LGRF and the point pattern, are returned. 
-The point pattern locations are 
+Both the LGRF and the point pattern are returned. 
+We collect the point pattern locations coordinates with 
 <<xy>>=
-(n <- nrow(xy <- cbind(lg.s$x, lg.s$y)[,2:1]))
+xy <- cbind(lg.s$x, lg.s$y)[,2:1]
+@ 
+and the number of points is 
+<<nxy>>=
+(n <- nrow(xy))
 @ 
 
 The exponential of simulated values of the LGRF 
@@ -161,27 +128,26 @@ We can see the simulated LGRF over the grid and the point pattern simulated
 in Figure~\ref{fig:lgrfpp} produced with the following commands 
 <<lgrfpp,eval=F>>=
 par(mfrow=c(1,1))
-require(fields)
+library(fields)
 image.plot(list(x=Lam$yrow, y=Lam$xcol, z=rf.s), main='log-Lambda', asp=1)
 points(xy, pch=19) 
 @ 
 \setkeys{Gin}{width=0.55\textwidth}
 \begin{figure}\centering
-<<echo=F,results=hide,fig=TRUE,eps=FALSE,width=5,height=5>>=
+<<echo=F,results='hide',fig.width=5,fig.height=5>>=
 <<lgrfpp>>
 @ 
 \caption{Simulated intensity of the point process (left), 
   simulated point pattern (right).}
-\label{fig:lgrfpp}
-\end{figure}
+\end{figure}\label{fig:lgrfpp}
 
 
-\section{Inference} 
+\subsection{Inference} 
 
-Following \cite{simpsonetal:2011} we can estimate the parameters 
+Following \cite{simpsonetal:2016} we can estimate the parameters 
 of the log-Cox point process model using few command lines. 
 
-\subsection{The mesh and the weights}
+\subsubsection{The mesh and the weights}
 
 To do inference for the log-Cox point process model 
 we also need some care on building the mesh and on using it. 
@@ -199,7 +165,9 @@ This is because it is not necessary to have nodes out of the study region
 when it recieves zero weights (see weight computation below). 
 <<mesh>>=
 loc.d <- 3*t(matrix(c(0,0,1,0,1,1,0,1,0,0), 2))
-(nv <- (mesh <- inla.mesh.2d(loc.d=loc.d, off=.2, max.e=.5, cut=.1))$n) 
+(nv <- (mesh <- inla.mesh.2d(
+            loc.domain=loc.d, offset=c(.3, 1), 
+            max.edge=c(.3, 0.7), cutoff=.05))$n) 
 @ 
 which is visualized at Figure~\ref{fig:ppmesh} with following commands 
 <<meshplot,eval=FALSE>>=
@@ -210,112 +178,92 @@ points(xy, col=4, pch=19); lines(loc.d, col=3)
 
 \setkeys{Gin}{width=0.5\textwidth}
 \begin{figure}\centering
-<<echo=F,results=hide,fig=TRUE,eps=FALSE,width=5,height=5>>=
+<<echo=F,results='hide',fig.width=5,fig.height=5>>=
 <<meshplot>>
 @ 
 \caption{Mesh used to inference for the log-Cox process.}
-\label{fig:ppmesh}
-\end{figure}
+\end{figure}\label{fig:ppmesh}
 
-Defining the SPDE model 
+Defining the SPDE model considering the PC-prior 
+derived in \cite{fuglstadetal:2017} for the 
+model parameters as the practical range, $\sqrt{8\nu}/\kappa$, 
+and the marginal standard deviation.  
 <<spde>>=
-spde <- inla.spde2.matern(mesh=mesh, alpha=2)
+spde <- inla.spde2.pcmatern(
+    mesh=mesh, alpha=2, ### mesh and smoothness parameter
+    prior.range=c(0.05, 0.01), ### P(practic.range<0.05)=0.01
+    prior.sigma=c(1, 0.01)) ### P(sigma>1)=0.01
 @ 
 
 The SPDE approach defines the model on the nodes of the mesh. 
 To fit the the log-Cox point process model 
 these points are considered the integration points. 
-Them, the *relative* area of these poins are considered 
-proportional to the expected number of events. 
+The method in \cite{simpsonetal:2016} defines the 
+expected number of events to be proportional to the 
+polygons volume of the dual mesh. 
 It means that at the node on the mesh with has the larger edges 
 we have larger expected value. 
 The \code{diag(spde\$param.inla\$M0)} 
-gives this value. 
-
-But, the mesh has nodes out of the domain and we have area 
-larger than our domain when we have nodes outer the domain: 
+gives this value for every mesh node. 
+However, the mesh has nodes out of the domain implying 
 <<>>=
 sum(diag(spde$param.inla$M0))
 @ 
-We can use these values for the nodes on the inner domain and 
-with its neighbours also inside the domain. 
-For the nodes near the boundary it becomes hard to deal with. 
-If it happens to be any node out of the study region and not 
-connected to any inside the istudy region, it recieve zero. 
-So, this is way we build a mesh without a large outer extension. 
+to be larger than the domain area. 
 
-First, we get the Voronoi triangulation for the mesh nodes. 
-We can use the \code{deldir} function from package \pkg{deldir}, 
-\cite{deldir} to compute it. 
-<<deldir,results=hide>>=
-require(deldir)
-dd <- deldir(mesh$loc[,1], mesh$loc[,2])
+We can use these values for the nodes on the inner domain 
+and compute the intersection between the dual mesh polygons 
+and the study domain polygon. 
+To do that we have the function \texttt{inla.mesh.dual()}, 
+available in 
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}
+This function considers a mesh and return the dual mesh 
+in the \texttt{SpatialPolygons} class.
+<<dualmesh>>=
+dmesh <- inla.mesh.dual(mesh)
 @ 
+We can see it in Figure~\ref{fig:dualmesh}. 
 
-Second, we get the polygons (around each mesh nodes) with
-<<tiles>>=
-tiles <- tile.list(dd)
+We can convert the domain polygon into a 
+\texttt{SpatialPolygons} class with 
+<<splocd>>=
+domainSP <- SpatialPolygons(list(Polygons(
+    list(Polygon(loc.d)), '0')))
 @ 
-These polygons are defined in a special way. 
-For each of the reference points (the mesh nodes in our case), 
-the polygon around is defined in a way that any location 
-inside this polygon is closer to the respective reference point, 
-rather another of the reference points. 
-We can see these polygons on Figure~\ref{fig:vppmesh}. 
-
-Third, we get the interection polygons between these polygons 
-and the study region polygon, using functions from the 
-\pkg{rgeos} package. First, we define a function to convert 
-from simple coordinates defining a polygon to the 
-\texttt{SpatialPolygons} object 
-<<coo2sp>>=
-require(rgeos)
-coo2sp <- function(coo) {
-    n <- nrow(coo)
-    if (any(coo[1,]!=coo[n,]))
-        coo <- coo[c(1:n,1),]
-    SpatialPolygons(list(Polygons(list(Polygon(coo)), '0')))
-}
-@ 
-As an example, we apply it to coordinates that defines the domain area 
-and compute its area
-<<gArea>>=
-gArea(pl.study <- coo2sp(loc.d))
-@ 
-and them compute the intersection areas with 
+Them, we can have the intersection with each 
+polygon from the mesh dual using the functions 
+\texttt{gIntersection()} from the 
+\textbf{\textsf{rgeos}} package
 <<pols>>=
-sum(w <- sapply(tiles, function(p) {
-    pl <- coo2sp(cbind(p$x, p$y))
-    if (gIntersects(pl, pl.study))
-        return(gArea(gIntersection(pl, pl.study)))
+library(rgeos)
+sum(w <- sapply(1:length(dmesh), function(i) {
+    if (gIntersects(dmesh[i,], domainSP))
+        return(gArea(gIntersection(dmesh[i,], domainSP)))
     else return(0)
 }))
 @ 
-and we have some points without any weights (the red ones on Figure~\ref{fig:vppmesh}). 
+And we chan check that there are 
+integration points with zero weight. 
 <<wsummary>>=
 table(w>0)
 @ 
-
-At Figure~\ref{fig:vppmesh} we can see the Voronoi polygons for the mesh nodes. 
-We can see that the polygons around some mesh does not intersect the domain study area.
-<<vppmesh>>=
+These are identified in red in Figure~\ref{fig:dualmesh}. 
+<<dualmeshcode,eval=FALSE>>=
 par(mar=c(2,2,1,1), mgp=2:0)
 plot(mesh$loc, asp=1, col=(w==0)+1, pch=19, xlab='', ylab='') 
-for (i in 1:length(tiles)) 
-    lines(c(tiles[[i]]$x, tiles[[i]]$x[1]), c(tiles[[i]]$y, tiles[[i]]$y[1]))
+plot(dmesh, add=TRUE)
 lines(loc.d, col=3)
 @ 
 
 \setkeys{Gin}{width=0.5\textwidth}
 \begin{figure}\centering
-<<echo=F,results=hide,fig=TRUE,eps=FALSE,width=5,height=5>>=
-<<vppmesh>>
+<<echo=F,results='hide',fig.width=5,fig.height=5>>=
+<<dualmeshcode>>
 @ 
 \caption{Voronoy polygons for the mesh used to inference for the log-Cox process.}
-\label{fig:vppmesh}
-\end{figure}
+\end{figure}\label{fig:dualmesh}
 
-\subsection{The data and projector matrices}
+\subsubsection{The data and projector matrices}
 
 This vector is just what we need to use as the exposure (expected) 
 for the Poisson likelihood and is related to the augumented data that we need 
@@ -355,12 +303,10 @@ stk.pp <- inla.stack(data=list(y=y.pp, e=e.pp),
                      effects=list(list(b0=rep(1,nv+n)), list(i=1:nv))) 
 @ 
 
-\subsection{Posterior marginals}
+\subsubsection{Posterior marginals}
 
 The posterior marginals for the parameters 
-of the log-Cox model (on the SPDE approach scale) 
-and for the latent random field at integration 
-and location points are obtained by 
+are obtained with 
 <<ppest>>=
 pp.res <- inla(y ~ 0 + b0 + f(i, model=spde), 
                family='poisson', data=inla.stack.data(stk.pp), 
@@ -368,45 +314,40 @@ pp.res <- inla(y ~ 0 + b0 + f(i, model=spde),
                E=inla.stack.data(stk.pp)$e)
 @ 
 
-To get the model parameters on the user-scale paramenters
-such as the scale $\kappa$, nominal variance $\sigma^2_x$ 
-and nominal range we use the \texttt{inla.spde2.result()} function 
-<<insp-u,eval=TRUE>>=
-pp.rf <- inla.spde2.result(pp.res, 'i', spde)
+We can see the summary for the practical range and 
+standard deviation of the lateng Gaussian random field with 
+<<pppars,eval=TRUE>>=
+round(pp.res$summary.hyperpar, 4)
 @ 
 
 The posterior distribution of the log-Cox model 
 parameters are visualized on the Figure~\ref{fig:pppost}. 
 <<pp-viz,eval=F>>=
-par(mfrow=c(2,2), mar=c(3,3,1,0.3), mgp=c(2,1,0)) 
+par(mfrow=c(1,3), mar=c(3,3,1,0.3), mgp=c(2,1,0)) 
 plot(pp.res$marginals.fix[[1]], type='l', 
      xlab=expression(beta[0]), ylab='Density')
 abline(v=beta0, col=2)
-plot(pp.rf$marginals.variance.nominal[[1]], type='l', 
+plot(pp.res$marginals.hyperpar[[2]], type='l', 
      xlab=expression(sigma^2), ylab='Density')
 abline(v=sigma2x, col=2)
-plot(pp.rf$marginals.kappa[[1]], type='l', 
-     xlab=expression(kappa), ylab='Density')
-abline(v=kappa, col=2)
-plot(pp.rf$marginals.range.nominal[[1]], type='l', 
+plot(pp.res$marginals.hyperpar[[1]], type='l', 
      xlab='Nominal range', ylab='Density')
 abline(v=sqrt(8*1)/kappa, col=2)
 @ 
-\setkeys{Gin}{width=0.75\textwidth}
+\setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
-<<echo=F,results=hide,fig=TRUE,eps=FALSE,width=7.5,height=7.5>>=
+<<echo=F,results='hide',fig.width=10,fig.height=5>>=
 <<pp-viz>>
 @ 
 \caption{Posterior distribution for the parameters of 
   the log-Cox model $\sigma^2$ (left), $\kappa$ (mid) 
   and the nominal range  (right)} 
-\label{fig:pppost}
-\end{figure}
+\end{figure}\label{fig:pppost}
 
 
-\chapter{Including a covariate on the log-Cox process}\label{ch:lcoxcov}
+\section{Including a covariate on the log-Cox process}\label{sec:lcoxcov}
 
-In Chapter~\ref{ch:lcox} we have done simulation considering 
+In the previous example we have done simulation considering 
 the underline intensity as just the exponential of a realization 
 of a Gaussian random field. 
 In this chapter we consider that we have an additional effect, 
@@ -414,7 +355,7 @@ which is treated as a covariate.
 In order to fit the model, it is needed the covariate value everywhere, 
 at the location points and at the integration points. 
 
-\section{Covariate everywhere}
+\subsection{Covariate everywhere}
 
 The simulation is done considering that the covariate effect is available 
 at the same grid points where the Gaussian process is simulated. 
@@ -434,7 +375,6 @@ Doing the simulation
 <<simulappc>>=
 set.seed(1)
 lg.s.c <- rLGCP('matern', im(beta0 + beta1*gridcov, xcol=x0, yrow=y0), 
-##                c(0, variance=sigma2x, nugget=0, scale=1/kappa, nu=1), win=win)
               var=sigma2x, scale=1/kappa, nu=1, win=win)
 @ 
 
@@ -447,7 +387,7 @@ The point pattern locations are
 We can see the covariate values and the simulated LGRF over the grid 
 in Figure~\ref{fig:lgrfppc} with the following commands
 <<lgrfppc,eval=FALSE>>=
-require(fields)
+library(fields)
 par(mfrow=c(1,2), mar=c(2,2,1,1), mgp=c(1,0.5,0))
 image.plot(list(x=x0, y=y0, z=gridcov), main='Covariate', asp=1)
 image.plot(list(x=x0, y=y0, z=log(attr(lg.s.c, 'Lambda')$v)), 
@@ -457,16 +397,14 @@ points(xy.c, pch=19)
 
 \setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
-<<echo=F,results=hide,fig=TRUE,eps=FALSE,width=10,height=5>>=
+<<echo=F,results='hide',fig.width=10,fig.height=5>>=
 <<lgrfppc>>
 @ 
 \caption{Covariate (left), simulated intensity of the point process (mid), 
   simulated point pattern (right).}
-\label{fig:lgrfppc}
-\end{figure}
+\end{figure}\label{fig:lgrfppc}
 
-
-\section{Inference} 
+\subsection{Inference} 
 
 We have to include the covariate values to do the inference. 
 We need to collect it at the point pattern locations and at the 
@@ -511,9 +449,9 @@ pp.c.res <- inla(y ~ 0 + b0 + covariate + f(i, model=spde),
                  E=inla.stack.data(stk.pp.c)$e)
 @ 
 
-Getting the model parameters on the user-scale 
+Summary of the model parameters 
 <<insp-u.c,eval=TRUE>>=
-pp.c.rf <- inla.spde2.result(pp.c.res, 'i', spde)
+round(pp.c.res$summary.hyperpar, 4)
 @ 
 
 The posterior distribution of the log-Cox model 
@@ -525,25 +463,23 @@ plot(pp.c.res$marginals.fix[[1]], type='l', ylab='Density',
      xlab=expression(beta[0])); abline(v=beta0, col=2)
 plot(pp.c.res$marginals.fix[[2]], type='l', ylab='Density', 
      xlab=expression(beta[1])); abline(v=beta1, col=2)
-plot(pp.rf$marginals.variance.nominal[[1]], type='l', ylab='Density', 
-     xlab=expression(sigma^2)); abline(v=sigma2x, col=2)
-plot(pp.rf$marginals.kappa[[1]], type='l', ylab='Density',
-     xlab=expression(kappa)); abline(v=kappa, col=2)
+plot(pp.c.res$marginals.hyperpar[[2]], type='l', ylab='Density', 
+     xlab=expression(sigma)); abline(v=sigma2x^0.5, col=2)
+plot(pp.c.res$marginals.hyperpar[[1]], type='l', ylab='Density',
+     xlab=expression(sqrt(8)/kappa)); abline(v=kappa, col=2)
 @ 
 \setkeys{Gin}{width=0.75\textwidth}
 \begin{figure}\centering
-<<echo=F,results=hide,fig=TRUE,eps=FALSE,width=7.5,height=7.5>>=
+<<echo=F,results='hide',fig.width=7.5,fig.height=7.5>>=
 <<ppc-viz>>
 @ 
 \caption{Posterior distribution for the intercept (top left), 
   coefficient of the covariate (top right) and the parameters of 
   the log-Cox model $\sigma^2$ (bottom left), $\kappa$ (bottom right)} 
-\label{fig:pppostc}
-\end{figure}
+\end{figure}\label{fig:pppostc}
 
-
-\chapter{Geostatistical inference under 
-  preferential sampling}\label{ch:prefsampl}
+\section{Geostatistical inference under 
+  preferential sampling}\label{sec:prefsampl}
 
 In some cases the effort on sampling depends on the response. 
 For example, is more common to have stations collecting data 
@@ -556,6 +492,14 @@ and the response, \cite{diggleetal:2010}.
 So, we need also to make inference for a 
 point process model jointly. 
 
+This approach assumes a linear predictor for the point process as 
+\[ \beta_0 + \textrm{random field} \]
+and for the observations a linear predictor which is function 
+of the latent Gaussian random field for the point process
+\[ \beta_0^y + \beta \textrm{random field} \]
+where $\beta_0^y$ is an intercept for the observations and 
+$\beta$ is a sharing parameter. 
+
 An illustration of the use \textbf{\textsf{INLA}} for the 
 preferential sampling problem is on the case studies section 
 of the \textbf{\textsf{INLA}} web page, precisely on 
@@ -565,13 +509,14 @@ for the latent random field.
 Here, we show geoestatistical inference under preferencial 
 sampling using SPDE. 
 
-We use the values of the LGRF simulated on the 
-Chapter~\ref{ch:lcox} to define the response. 
+We now will use the values of the latent GRF 
+considered in the simulation of the point process 
+to define an outcome at the location points. 
 We just take the values of closest grid centers 
 to each location of the point pattern. 
 The values of the LGRF is collected (and a summary) 
 at closest grid centers with 
-<<resp>>=
+<<simulaz>>=
 summary(z <- log(t(Lam$v)[Reduce(
   'cbind', nearest.pixel(xy[,1], xy[,2], Lam))]))
 @ 
@@ -581,22 +526,23 @@ We define the response as a different intercept $\beta_y$ and multiply the
 zero mean random field with a $1/\beta$, where $\beta$ is the parameter 
 as the sharing parameter between the intensity 
 of the point process locations and the response. 
-Considering $\beta<0$, it means that the response values is inversly 
-proportional to the points density.  
 <<resp>>=
-beta0.y <- 10;   beta <- -1;   prec.y <- 16
+beta0.y <- 10;   beta <- -2;   prec.y <- 16
 set.seed(2)
 summary(resp <- beta0.y + (z-beta0)/beta + 
         rnorm(length(z), 0, sqrt(1/prec.y)))
 @ 
+Considering $\beta<0$, it means that the response values is inversly 
+proportional to the point process density.  
 
-\section{Fitting the usual model}
+
+\subsection{Fitting the usual model}
 
 Here, we just fit the geoestatistical model using the 
 usual approach. In this approach we just use the locations 
 as fixed. We use the mesh of the previous Chapter. 
 
-<<rresp>>= 
+<<rresp>>=
 stk.u <- inla.stack(data=list(y=resp), A=list(lmat, 1), 
                     effects=list(i=1:nv, b0=rep(1,length(resp))))
 u.res <- inla(y ~ 0 + b0 + f(i, model=spde), 
@@ -606,36 +552,31 @@ round(cbind(True=c(beta0y=beta0.y, prec.y=prec.y),
             rbind(u.res$summary.fix[, 1:6], u.res$summary.hy[1,])), 4)
 @ 
 
-We have to build also the posterior marginals on the
-user-scale paramenters: scale, nominal variance and nominal range
-<<rfuparams>>=
-u.rf <- inla.spde2.result(u.res, 'i', spde)
-@ 
-
-We can see the marginals posterior distributions 
+We can see the posterior distribution marginals 
 for the model parameters in the Figure~\ref{fig:upost}, 
 produced with the following code
 <<insp-u,eval=F>>=
 par(mfrow=c(1,3), mar=c(3, 3, 0.3, 0.3), mgp=c(2,1,0))
-plot(u.rf$marginals.variance.nominal[[1]], type='l', ylab='Density',
-     xlab=expression(sigma^2)); abline(v=sigma2x, col=2)
-plot(u.rf$marginals.kappa[[1]], type='l', ylab='Density', 
-     xlab=expression(kappa)); abline(v=kappa, col=2)
-plot(u.rf$marginals.range.nominal[[1]], type='l', 
-     xlab='Nominal range', ylab='Density')
-abline(v=sqrt(8*1)/kappa, col=2)
+plot(inla.tmarginal(function(x) sqrt(1/x), 
+                    u.res$marginals.hyperpar[[1]]), 
+     type='l', ylab='Density', xlab=expression(sigma)) 
+abline(v=prec.y^-0.5, col=2)
+plot(u.res$marginals.hyperpar[[2]], type='l', ylab='Density', 
+     xlab=expression(sqrt(8)/kappa)); abline(v=sqrt(8)/kappa, col=2)
+plot(u.res$marginals.hyperpar[[3]], type='l', 
+     xlab=expression(sqrt(sigma^2[x])), ylab='Density')
+abline(v=sigma2x^0.5, col=2)
 @ 
 \setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
-<<echo=F,results=hide,fig=TRUE,eps=FALSE,width=6,height=2.1>>=
+<<echo=F,results='hide',fig.width=6,fig.height=2.1>>=
 <<insp-u>>
 @ 
 \caption{Posterior distribution for $\sigma^2$, 
   $\kappa$ and the nominal range just using the response.}
-\label{fig:upost}
-\end{figure}
+\end{figure}\label{fig:upost}
 
-\section{Model fitting under preferential sampling}
+\subsection{Model fitting under preferential sampling}
 
 In this situation we fit the model where a LGRF is 
 considered to model both point pattern and the response. 
@@ -684,48 +625,58 @@ round(cbind(True=c(beta0, beta0.y),
             j.res$summary.fix), 4)
 @ 
 
-Computing the marginals posterior distributions 
-in user-scale random field parameters:
-<<psrf>>=
-j.rf <- inla.spde2.result(j.res, 'i', spde)
-@ 
-We can visualize these posterior marginal distributions 
-in Figure~\ref{fig:jpars}. 
-The negative signal to the copy parameter $\beta$ is due to the 
-fact that we define the response with opposite signal of the 
-latent field used to do the simulation of the point process. 
+We can visualize the posterior marginal distributions 
+for the model parameters from the result considering only 
+the point process (PP), only the observations/marks 
+($\mathbf{Y}$) and jointly in Figure~\ref{fig:jpars}. 
+Notice that for the $\beta_0$ parameter we only have 
+results considering only the PP and joint, 
+for $\beta_o^y$ we only have results considering only 
+$\mathbf{Y}$ and joint, and  
+for $\beta$ (fitted using copy) we only have result 
+from the joint model. 
+Only for the random field parameters we do have 
+results from the three results. 
 
 \setkeys{Gin}{width=0.7\textwidth}
 \begin{figure}\centering
-<<pppost,echo=F,results=hide,fig=TRUE,eps=FALSE,width=5.5,height=4>>=
-par(mfrow=c(2,2), mar=c(3,3,0.5,0.5), mgp=c(2,1,0))
-plot(j.res$marginals.hy[[length(j.res$marginals.hy)]], type='l', 
-     xlab=expression(beta), ylab='Density', col=4)
-abline(v=beta, col=2, lty=2)
-plot(j.rf$marginals.variance.nominal[[1]], type='l', 
-     xlim=range(j.rf$marginals.variance[[1]][,1], 
-         u.rf$marginals.variance[[1]][,1]), 
-     ylim=range(j.rf$marginals.variance[[1]][,2], 
-         u.rf$marginals.variance[[1]][,2]), 
-     xlab=expression(sigma^2), ylab='Density', col=4) 
-lines(u.rf$marginals.variance.nominal[[1]], col=3) 
-abline(v=sigma2x, col=2, lty=2) 
-plot(j.rf$marginals.kappa[[1]], type='l', 
-     xlim=range(j.rf$marginals.kappa[[1]][,1], u.rf$marginals.kappa[[1]][,1]), 
-     ylim=range(j.rf$marginals.kappa[[1]][,2], u.rf$marginals.kappa[[1]][,2]), 
-     xlab=expression(kappa), ylab='Density', col=4)
-lines(u.rf$marginals.kappa[[1]], col=3)
-abline(v=kappa, col=2, lty=2)
-plot(j.rf$marginals.range.nominal[[1]], type='l', 
-     xlim=range(j.rf$marginals.range.nominal[[1]][,1], u.rf$marginals.range.nominal[[1]][,1]), 
-     ylim=range(j.rf$marginals.range.nominal[[1]][,2], u.rf$marginals.range.nominal[[1]][,2]), 
-     xlab='Nominal range', ylab='Density', col=4)
-lines(u.rf$marginals.range.nominal[[1]], col=3)
-abline(v=sqrt(8*1)/kappa, col=2, lty=2)
-legend('topright', c('True value', 'Usual model', 'Pref_Sampl'), 
-       col=c(2,3,4), lty=1, bty='n')
+<<pppost,echo=F,results='hide',fig.width=5.5,fig.height=4>>=
+par(mfrow=c(2,3), mar=c(3,3,0.5,0.5), mgp=c(2,0.5,0))
+plot(j.res$marginals.fix[[1]], type='l', ylab='Density', 
+     xlab=expression(beta[0]), lwd=2) 
+lines(pp.res$marginals.fix[[1]], lty=2, lwd=2)
+abline(v=beta0, col=2)
+plot(j.res$marginals.fix[[2]], type='l', ylab='Density', 
+     xlab=expression(beta[0]^y), lwd=2) 
+lines(u.res$marginals.fix[[1]], lty=3, lwd=5)
+abline(v=beta0.y, col=2)
+plot(inla.tmarginal(function(x) 1/x, 
+                    j.res$marginals.hy[[1]]), lwd=2, 
+     type='l', ylab='Density', xlab=expression(sigma[y]^2)) 
+lines(inla.tmarginal(function(x) 1/x, 
+                     u.res$marginals.hy[[1]]), lwd=5, lty=3)
+abline(v=1/prec.y, col=2)
+plot(j.res$marginals.hyperpar[[2]], type='l', xlim=c(0,10),
+     xlab=expression(sqrt(8)/kappa), ylab='Density', lwd=2)
+lines(pp.res$marginals.hyperpar[[1]], lty=2, lwd=2)
+lines(u.res$marginals.hyperpar[[2]], lty=3, lwd=5)
+abline(v=sqrt(8)/kappa, col=2)
+plot(j.res$marginals.hyperpar[[3]], type='l', lwd=2, xlim=c(0,1),
+     xlab=expression(sqrt(sigma[x]^2)), ylab='Density')
+lines(pp.res$marginals.hyperpar[[2]], lty=2, lwd=2)
+lines(u.res$marginals.hyperpar[[3]], lty=3, lwd=5)
+abline(v=sigma2x^0.5, col=2)
+plot(j.res$marginals.hy[[4]], type='l', 
+     xlab=expression(beta), ylab='Density', lwd=2)
+abline(v=beta, col=2)
+legend('topright', c('True value', 'Joint', 'Only PP', 'Only Y'), 
+       col=c(2,1,1,1), lty=c(1,1,2,3), lwd=c(2,2,3,5), bty='n')
 @ 
-\caption{Posterior marginal distribution for $\beta_0$, $\sigma^2$, 
-  $\kappa$ and the nominal range under preferential sampling.}
-\label{fig:jpars}
-\end{figure}
+\caption{Posterior marginal distribution for: 
+  intercept for the point process $\beta_0$, 
+  intercept for the observations $\beta_0^y$, 
+  noise variance in the observations $\sigma^2_y$, 
+  the practical range parametrized as $\sqrt{8}/\kappa$, 
+  the marginal standard deviation for the random field $\sigma^2_x$ 
+  and the sharing coefficient $\beta$.}
+\end{figure}\label{fig:jpars}

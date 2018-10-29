@@ -12,7 +12,7 @@
 ##!\usage{
 ##!inla.changelog()
 ##!}
-##!\author{Havard Rue \email{hrue@math.ntnu.no} }
+##!\author{Havard Rue \email{hrue@r-inla.org} }
 ##!\seealso{\code{\link{inla}}}
 
 `inla.changelog` = function()

@@ -126,7 +126,7 @@ namespace fmesh {
 	current_ = copy.current_;
 	return *this;
       };
-      
+
       operator SBBTree<T>::const_iterator() const {
 	return SBBTree<T>::const_iterator(tree_, current_);
       };
@@ -808,7 +808,7 @@ namespace fmesh {
     } else
       output << std::endl;
     return output;
-  };
+  }
 
   template<class VT>
   std::ostream& operator<<(std::ostream& output,
@@ -829,7 +829,7 @@ namespace fmesh {
     } else
       output << std::endl;
     return output;
-  };
+  }
 
   template<class VT>
   std::ostream& operator<<(std::ostream& output,
@@ -841,7 +841,7 @@ namespace fmesh {
       segm.print_subtree(output, segm.tree_->root(), "");
     }
     return output;
-  };
+  }
 
   template<class VT, class STT>
   std::ostream& operator<<(std::ostream& output,
@@ -853,7 +853,7 @@ namespace fmesh {
       segm.print_subtree(output, segm.tree_->root(), "");
     }
     return output;
-  };
+  }
 
 
 

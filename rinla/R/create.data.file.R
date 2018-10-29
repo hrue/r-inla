@@ -106,8 +106,9 @@
         response = response[!null.dat,]
 
     } else if (inla.one.of(family, c("poisson",
-                                     "qpoisson", 
                                      "cenpoisson", 
+                                     "contpoisson", 
+                                     "qcontpoisson", 
                                      "gpoisson", 
                                      "zeroinflatedpoisson0",
                                      "zeroinflatedpoisson1", 
@@ -135,7 +136,7 @@
         null.dat = is.na(response[, 3L])
         response = response[!null.dat,]
 
-    } else if (inla.one.of(family, c("gammacount", "exponential", "weibull"))) {
+    } else if (inla.one.of(family, c("gammacount", "exponential", "weibull", "loglogistic"))) {
 
         response = cbind(ind, y.orig)
         null.dat = is.na(response[, 2L])
@@ -209,7 +210,8 @@
         null.dat = is.na(response[, 4L])
         response = response[!null.dat,]
 
-    } else if (inla.one.of(family, c("exponentialsurv", "weibullsurv", "weibullcure", "loglogistic",  "lognormalsurv"))) {
+    } else if (inla.one.of(family, c("exponentialsurv", "weibullsurv", "weibullcure",
+                                     "loglogisticsurv",  "qloglogisticsurv", "lognormalsurv"))) {
 
         if (!inla.model.properties(family, "likelihood")$survival) {
             file.remove(file)
@@ -250,7 +252,7 @@
         }
 
     } else if (inla.one.of(family, c("stochvol", "stochvolt", "stochvolnig", "loggammafrailty",
-                                     "iidlogitbeta", "qkumar", "qloglogistic", "gp"))) {
+                                     "iidlogitbeta", "qkumar", "qloglogistic", "gp", "pom"))) {
         response = cbind(ind, y.orig)
         null.dat = is.na(response[, 2L])
         response = response[!null.dat,]

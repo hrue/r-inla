@@ -1,0 +1,345 @@
+\section{Measurement error model}\label{sec:me}
+
+Here we focus on a similar situation of the 
+misalignement model example in the last Chapter of 
+\cite{blangiardoC:2015}. 
+Here we extend the model to consider a 
+a spatially structured error. 
+We also have a response $y$ and a covariate $c$ 
+and the misalignment. 
+The R source for this file is available at
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-measurement-error.R}
+
+<<settings,include=FALSE,message=FALSE, warning=FALSE>>=
+library(knitr)
+opts_chunk$set(
+fig.path='figs/me',
+message=FALSE, warning=FALSE
+)
+options(width=75, prompt = " ", continue = "   ")
+library(INLA)
+loc.call <- inla.getOption('inla.call')
+inla.setOption(inla.call='remote')
+source('R/spde-tutorial-functions.R')
+@ 
+
+\subsection{The model}
+
+We consider the following model $c$ 
+\[
+c_j = \alpha_c + \beta_w w_j + m_j
+\]
+where $w_i$ is a covariate. 
+Considering a GF for $m$, 
+we have here a kind of 
+measurement error models, 
+\cite{muffetal:2013}, 
+where the error is assumed t
+o have spatial structure. 
+
+For $y$, we have 
+\[
+y_i \sim \alpha_y + \beta_c cc_i + x_i + e_i 
+\]
+where $\alpha_y$ is an intercept, $\beta_c$ 
+is the regression coefficient on the 
+predicted value for $c$
+$x_j$ is an zero mean random field 
+and $e_i$ is a error that remains 
+unexplained on $y$ such that 
+$e_i \sim N(0, \sigma_y^2)$ measures the. 
+
+A particular case is when we don't have 
+the $x$ term in the model for $y$. 
+Another case, is when $\sigma_c^2=0$ and 
+we don't have white noise in the covariate, 
+i. e., the covariate is considered 
+just a realization of a random field. 
+
+Differently than the joint model in Chapter 8 
+of \cite{blangiardoC:2015} we do need  
+to define a term that express the linear predictor 
+of $c$ and then copy it on the response 
+linear predictor. 
+We need an extra equation to do it
+\[
+\omega_j = \alpha_c + \beta_w w_j + m_j
+\]
+To fit $\omega$ we need o use 
+the faked zero observations strategy,
+\cite{cardenasKR:2012}. 
+So, we rewrite this as 
+\[
+0 = \alpha_c + \beta_w w_j + m_j - \omega_j
+\]
+and define a Gaussian likelihood 
+with fixed high precision to fit it. 
+
+\subsection{Simulation from the model}
+
+We now draw a sample from this model.
+First, we simulate a set of locations 
+<<simloc>>=
+n.y <- 123;         n.c <- 234
+set.seed(1)
+loc.c <- cbind(runif(n.c), runif(n.c))
+loc.y <- cbind(runif(n.y), runif(n.y))
+@ 
+
+Let the parameters of both random fields $m$ and $x$:
+<<rfparms>>=
+kappa.m <- 7;           sigma2.m <- 3
+kappa.x <- 10;          sigma2.x <- 2
+@ 
+
+We need the simulation of $m$ in both set of locations. 
+To do that we use the \code{rMatern} function available in 
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}.
+<<simula>>=
+set.seed(2)
+mm <- rMatern(n=1, coords=rbind(loc.c, loc.y), 
+            kappa=kappa.m, variance=sigma2.m, nu=1)
+xx <- rMatern(n=1, coords=loc.y, kappa=kappa.x, 
+              variance=sigma2.x, nu=1)
+### center it to avoid confounding 
+mm <- mm-mean(mm)
+xx <- xx-mean(xx)
+@ 
+and with the following parameters 
+<<params>>=
+alpha.c <- -5;      beta.w <- 0.5
+alpha.y <- 3;       beta.c <- 2
+sigma2.y <- 0.3
+@ 
+we do simulation of the covariate and response with 
+<<sim-y>>=
+set.seed(3)
+w <- runif(n.c + n.y) 
+cc <- alpha.c + beta.w * w + mm 
+yy <- alpha.y + beta.c*cc[n.c+1:n.y] + xx + 
+    rnorm(n.y, 0, sqrt(sigma2.y))
+@ 
+
+\subsection{Fitting the model}
+
+First we build a mesh taking into account the 
+true value of the smaller range process 
+<<mesh>>=
+(rmin <- min(sqrt(8)/c(kappa.m, kappa.x)))
+(mesh <- inla.mesh.2d(rbind(loc.c, loc.y), max.edge=rmin/c(5, 2), 
+                      cutoff=rmin/10, offset=rmin*c(1/2,3)))$n 
+@ 
+We will use the same mesh and the index vectors for both 
+spatial effects will have the same values. 
+
+We do simulations of the covariate 
+on the locations of the response 
+just to simulate the response. 
+But, in the problem that we want 
+to solve in pratice, we don't have 
+the covariate on the response locations. 
+The misalignment implies in different 
+predictor matrix for response and covariate. 
+<<Apred>>=
+Ac <- inla.spde.make.A(mesh, loc=loc.c)
+Ay <- inla.spde.make.A(mesh, loc=loc.y)
+@ 
+
+We have to use three likelihoods. 
+One for the response, one for the 
+covariate $c$ and one for the 
+faked zero observations. 
+It is easier to buil one stack 
+for each one and join they to fit the model
+<<dat>>=
+stk.y <- inla.stack(data=list(y=cbind(yy, NA, NA)), 
+                    A=list(Ay, 1), 
+                    effects=list(x=1:mesh$n, 
+                        data.frame(
+                            a.y=1, o.c=(n.c+1):(n.c+n.y)))) 
+stk.c <- inla.stack(data=list(y=cbind(NA, cc[1:n.c], NA)), 
+                    A=list(Ac, 1), tag='dat.c', 
+                    effects=list(m=1:mesh$n, 
+                        data.frame(a.c=1, w=w[1:n.c]))) 
+stk.0 <- inla.stack(data=list(y=cbind(NA, NA, rep(0, n.c + n.y))), 
+                    A=list(rBind(Ac,Ay), 1), tag='dat.0', 
+                    effects=list(m=1:mesh$n, 
+                        data.frame(a.c=1, w=w[1:(n.c+n.y)], 
+                                   o=1:(n.c+n.y), 
+                                   o.weig=rep(-1,n.c+n.y)))) 
+stk <- inla.stack(stk.c, stk.y, stk.0) 
+@ 
+
+
+Defining the SPDE model considering the PC-prior 
+derived in \cite{fuglstadetal:2017} for the 
+model parameters as the practical range, $\sqrt{8\nu}/\kappa$, 
+and the marginal standard deviation.  
+<<spde>>=
+spde <- inla.spde2.pcmatern(
+    mesh=mesh, alpha=2, ### mesh and smoothness parameter
+    prior.range=c(0.05, 0.01), ### P(practic.range<0.05)=0.01
+    prior.sigma=c(1, 0.01)) ### P(sigma>1)=0.01
+@ 
+
+For the estimation of the regression coefficient 
+of $c$ on $y$ we use the copy feature. 
+%%In this case, we need to do a good prior specification. 
+%%For example, is possible to know, a priori, the signal. 
+We set a $N(0, 5)$ prior to $\beta_c$ 
+when defining the model as 
+<<formula>>=
+form <- y ~  0 + a.c + a.y + w + 
+    f(m, model=spde) + f(x, model=spde) + 
+    f(o, o.weig, model='iid', 
+      hyper=list(theta=list(initial=-20, fixed=TRUE))) + 
+    f(o.c, copy='o', fixed=FALSE,  
+      hyper=list(theta=list(param=c(0,5)))) 
+@ 
+and fit the model with 
+<<fit>>=
+pcprec <- list(prior='pcprec', param=c(1, 0.01))
+res <- inla(form, data=inla.stack.data(stk), family=rep('gaussian',3), 
+            control.predictor=list(compute=TRUE, A=inla.stack.A(stk)), 
+            control.family=list(list(hyper=list(theta=pcprec)), 
+                list(hyper=list(theta=list(initial=20, fixed=TRUE))), 
+                list(hyper=list(theta=list(initial=20, fixed=TRUE))))) 
+@ 
+
+\subsection{The results}
+
+The true values of the intercepts and 
+the regression coefficient of $w$ on $c$ and 
+the summary of its posterior marginal distributions 
+<<resfix>>=
+round(cbind(True=c(alpha.c, alpha.y, beta.w), 
+            res$summary.fix), 4)
+@ 
+
+The true values of the precision of $y$ and 
+the summary of the posterior marginal distribution  
+<<reshyl>>=
+round(c(True=1/sigma2.y, unlist(res$summary.hy[1,])), 4)
+@ 
+
+The summary for the random field parameters and 
+the regression parameter of $c$ on $y$ is shown by 
+<<rf>>=
+round(cbind(True=c(sqrt(8)/kappa.m, sigma2.m, 
+                   sqrt(8)/kappa.x, sigma2.x, beta.c), 
+            res$summary.hyperpar[-1,]), 3)
+@ 
+
+We see the posterior distribution of 
+regression parameters on Figure~\ref{fig:regparsme} 
+generated with comands below 
+<<likeparsme,eval=F>>=
+par(mfcol=c(2,2), mar=c(3,3,.1,.1), mgp=c(1.5,.5,0), las=1)
+plot(res$marginals.fix[[1]], type='l', 
+     xlab=expression(alpha[c]), ylab='')
+abline(v=alpha.c, col=4)
+plot(res$marginals.fix[[2]], type='l', 
+     xlab=expression(alpha[y]), ylab='')
+abline(v=alpha.y, col=4)
+plot(res$marginals.fix[[3]], type='l', 
+     xlab=expression(beta[w]), ylab='')
+abline(v=beta.w, col=4)
+plot(res$marginals.hy[[6]], type='l', 
+     xlab=expression(beta[c]), ylab='')
+abline(v=beta.c, col=4)
+@ 
+\setkeys{Gin}{width=0.75\textwidth}
+\begin{figure}\centering
+<<vlikeparsme,echo=FALSE,fig.width=7,fig.height=3.5>>=
+<<likeparsme>>
+@ 
+\caption{Posterior distribution of the likelihood parameters.}
+\end{figure}\label{fig:regparsme}
+
+We see on the Figure~\ref{fig:regparsme} that 
+the posterior distribution covers the true values 
+of all the parameters. 
+
+The posterior marginals for the random fields is shown in 
+Figure~\ref{fig:rfparsme} 
+generated with comands below 
+<<rfparsme,eval=F>>=
+par(mfcol=c(2,2), mar=c(3,3,.1,.3), mgp=c(1.5,.5,0), las=1)
+for (j in 2:5) {
+    plot(res$marginals.hyperpar[[j]], type='l', 
+         xlab=names(res$marginals.hyperpar)[j], ylab='Density')
+    abline(v=c(sqrt(8)/kappa.m, sqrt(sigma2.m), 
+               sqrt(8)/kappa.x, sqrt(sigma2.x), beta.c)[j-1], col=4)
+}
+@ 
+\setkeys{Gin}{width=0.99\textwidth}
+\begin{figure}\centering
+<<vrfparsme,echo=FALSE,fig.width=8,fig.height=4>>=
+<<rfparsme>>
+@ 
+\caption{Posterior marginal distributions the hyperparameters 
+  parameters of both random fields.}
+\end{figure}\label{fig:rfparsme}
+
+We see on Figure~\ref{fig:rfparsme}  
+that the posterior marginal distribution 
+of the all parameters of both spatial 
+process cover the true values well. 
+
+Another interesting result is the 
+prediction of the covariate on the 
+response locations. 
+We have the simulated values of $m$ 
+on that locations. So, we are able 
+to see if the predictions are good. 
+
+The predictor matrix used on the estimation 
+proces maps the nodes from mesh vertices 
+to the data locations. 
+The first lines of the predictor matrix for 
+the covariate can be used to access the 
+predictions on the locations of the covariate. 
+Also, we have the predictor matrix 
+used to the response. 
+The last lines of this matrix that maps 
+the mesh vertices to the response locations. 
+Because we have the covariate simulated 
+in the both set of locations, we use 
+the correspondent parts of both predictor 
+matrix to project the posterior mean and 
+the posterior variance on the locations. 
+
+We get this matrix by
+<<prdmat>>=
+mesh2locs <- rBind(Ac, Ay)
+@ 
+and the posterior mean and posterior standard deviations with 
+<<predicted>>=
+m.mprd <- drop(mesh2locs%*%res$summary.ran$m$mean)
+sd.mprd <- drop(mesh2locs%*%res$summary.ran$m$sd)
+@ 
+
+With this aproach for this both posterior 
+summary can be an aproximation to 95\% 
+credibility interval, with normally supposition.
+We see it this results with comands below 
+<<prdplotme,eval=F>>=
+plot(m.mprd, mm, asp=1, type='n', 
+     xlab='Predicted', ylab='Simulated')
+segments(m.mprd-2*sd.mprd, mm, m.mprd+2*sd.mprd, mm, 
+         lty=2, col=gray(.75))
+abline(c(0,1), col=4); points(m.mprd, mm, pch=3, cex=.5)
+@ 
+\setkeys{Gin}{width=0.5\textwidth}
+\begin{figure}\centering
+<<visprdplotme,echo=FALSE,fig.width=7,fig.height=5>>=
+<<prdplotme>>
+@ 
+\caption{Simulated versus predicted values of $m$ ($+$) 
+  and the approximated credibility intervals.}
+\end{figure}\label{fig:prdplotme}
+
+on the Figure~\ref{fig:prdplotme}. 
+The blue line represents the situation where 
+predicted is equal to simulated. 
+

@@ -19,7 +19,7 @@ namespace fmesh {
       if (vals) {
 	std::memcpy(data_,vals,sizeof(T)*rows_*cols_);
       }
-    };
+    }
   template <class T>
   
   const Matrix<T>& Matrix<T>::operator=(const Matrix<T>& from) {
@@ -31,7 +31,7 @@ namespace fmesh {
       std::memcpy(data_,from.data_,sizeof(T)*rows_*cols_);
       }
     return *this;
-  };
+  }
 
   template <class T>
   bool Matrix<T>::capacity(size_t cap) {
@@ -64,7 +64,7 @@ namespace fmesh {
     data_ = data_new_;
     zeros(old_cap,cap_);
     return true;
-  };
+  }
 
   template <class T>
   bool Matrix<T>::append(const Matrix<T>& toappend) {
@@ -80,7 +80,7 @@ namespace fmesh {
 		sizeof(T)*toappend.rows_*cols_);
     rows_ += toappend.rows_;
     return true;
-  };
+  }
   
   template <class T>
   Matrix<T>& Matrix<T>::rows(size_t set_rows) {
@@ -90,7 +90,7 @@ namespace fmesh {
       zeros(set_rows,rows_);
     rows_ = set_rows;
     return *this;
-  };
+  }
   template <class T>
   Matrix<T>& Matrix<T>::cols(size_t set_cols) {
     /* When set, cannot alter number of columns,
@@ -114,7 +114,7 @@ namespace fmesh {
     } else
       cols_ = set_cols;
     return *this;
-  };
+  }
 
 
   template <class T>
@@ -268,7 +268,7 @@ namespace fmesh {
       SM(i,i) = M1[i][0];
     }
     return SM;
-  };
+  }
 
   template <class T>
   Matrix<T> diag(const SparseMatrix<T>& M1) {
@@ -277,7 +277,7 @@ namespace fmesh {
       M(i,0) = M1[i][i];
     }
     return M;
-  };
+  }
 
 
 
@@ -335,6 +335,7 @@ namespace fmesh {
     M.cols(M1.cols()).rows(M1.rows());
     if (!diagonal) {
       /* NOT IMPLEMENTED */
+      NOT_IMPLEMENTED;
       return M;
     }
     for (size_t r=0; (r<M1.rows()) && (r<M1.cols()); r++) {

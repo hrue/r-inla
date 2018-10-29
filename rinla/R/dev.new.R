@@ -15,7 +15,7 @@
 ##! \value{
 ##!   The value of \code{\link{dev.new}} if not running RStudio, otherwise \code{NULL} 
 ##! }
-##! \author{Havard Rue \email{hrue@math.ntnu.no}}
+##! \author{Havard Rue \email{hrue@r-inla.org}}
 
 `inla.dev.new` = function(...)
 {

@@ -32,12 +32,23 @@ else
     RHOME_LIB="$INLA_RHOME/lib"
 fi
 
-export DYLD_LIBRARY_PATH="$RHOME_LIB:$DIR:/usr/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
-export LD_LIBRARY_PATH="$DYLD_LIBRARY_PATH"
+## this is the system path for libPng.dylib needed by grDevices.so
+## when loadlib libR.dylib using rgeneric.
+pathA="/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources"
+pathB="/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries"
+LIBPNGPATH=$pathA:$pathB
 
+if [ ! -z ${INLA_LOAD_PARDISO+x} ]; then 
+    PDIR="$DIR/../../pardiso/libpardiso/mac"
+else
+    PDIR="$DIR/../../pardiso/libnopardiso/mac"
+fi
+
+export DYLD_LIBRARY_PATH="$DIR/first:$RHOME_LIB:$PDIR:$DIR:$LIBPNGPATH:/usr/lib:/usr/local/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
     echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
     otool -L "$DIR/$prog"
+    export DYLD_PRINT_LIBRARIES=YES
 fi
 
 exec "$DIR/$prog" "$@"

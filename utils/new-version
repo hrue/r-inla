@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+OPTIND=1 
+OPTERR=1        
+force=""  
+
+while getopts fh arg; do
+    case "$arg" in 
+        f) force=1;;
+	h) echo "$0 [-f (force)] [-h (help)]"; exit 0;;
+	*) exit 1;;
+    esac
+done
+shift $[ $OPTIND - 1 ]  
+  
+tag_exist () {
+    for tag in $(hg tags | awk '{print $1}'); do
+	if [ "$tag" = "$1" ]; then
+	    echo "1"
+	fi
+    done
+}
+
+output () {
+    echo "$0: $@"
+}
+
+base="Version_$(date +%y.%m.%d)"
+output "Default tag is [$base]"
+if [ $(tag_exist "$base") ]; then
+    ## add minor-versions number
+    output "Tag exist [$base]"
+    v=1
+    while test $(tag_exist "$base-$v"); do
+	output "Tag exist [$base-$v]"
+	v=$[ $v + 1 ]
+    done
+    tag=$base-$v
+else 
+    tag=$base
+fi
+output "Valid TAG found [$tag]"
+
+if [ -n "$force" ]; then
+    output "Create tag [$tag]"
+    hg tag "$tag"
+else 
+    output "Rerun with option '-f' to create the tag"
+fi
+
+
+

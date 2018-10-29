@@ -23,7 +23,7 @@
 ##! issue for more information. 
 ##! \code{inla.ssh.copy.id} will return the path to the internal script to transfer ssh-keys.
 ##!}
-##!\author{Havard Rue \email{hrue@math.ntnu.no}}
+##!\author{Havard Rue \email{hrue@r-inla.org}}
 ##!\examples{
 ##!##See the FAQ entry on this issue on r-inla.org.
 ##!}

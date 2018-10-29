@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 
@@ -132,6 +132,13 @@ int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *lo
 	 */
 	int info = 0, i, j;
 	double *a = NULL, det;
+
+	if (0) {
+		P(dim);
+		for (i = 0; i < dim; i++)
+			for (j = 0; j < dim; j++)
+				printf("i %d j %d matrix %.12g\n", i, j, matrix[i + dim * j]);
+	}
 
 	if (dim == 0) {
 		*chol = NULL;
@@ -257,17 +264,17 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix * A)
 }
 int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef)
 {
-	/* 
+	/*
 	 * replace n x n matrix A with its generlized inverse.  if TOL > 0, use that tolerance. If rankdef is set, use that. If both are set, give an error.
 	 */
 
 	assert(A && (A->size1 == A->size2));
-	
+
 	gsl_matrix *U = GMRFLib_gsl_duplicate_matrix(A);
 	gsl_matrix *V = gsl_matrix_alloc(A->size1, A->size2);
 	gsl_vector *S = gsl_vector_alloc(A->size1);
 	gsl_vector *work = gsl_vector_alloc(A->size1);
-	
+
 	gsl_linalg_SV_decomp(U, V, S, work);
 
 	size_t i;
@@ -277,44 +284,44 @@ int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef)
 	gsl_matrix *M2 = gsl_matrix_alloc(A->size1, A->size2);
 
 	assert(!(tol > 0.0 && (rankdef >= 0 && rankdef <= (int) A->size1)));
-	if (tol > 0.0){
-		for(i = 0;  i < A->size1; i++){
+	if (tol > 0.0) {
+		for (i = 0; i < A->size1; i++) {
 			double s = gsl_vector_get(S, i);
-			
+
 			if (s < tol * s_max) {
 				gsl_matrix_set(M2, i, i, 0.0);
 			} else {
-				gsl_matrix_set(M2, i, i, 1.0/s);
+				gsl_matrix_set(M2, i, i, 1.0 / s);
 			}
 		}
 	} else {
 		assert(rankdef >= 0);
-		assert(rankdef <= (int)A->size1);
+		assert(rankdef <= (int) A->size1);
 
 		double first = gsl_vector_get(S, 0);
-		double last = gsl_vector_get(S, A->size1-1);
+		double last = gsl_vector_get(S, A->size1 - 1);
 
-		for(i = 0;  i < A->size1; i++){
+		for (i = 0; i < A->size1; i++) {
 			double s = gsl_vector_get(S, i);
-			
-			if (first > last){
+
+			if (first > last) {
 				// do not use the last 'rdef's
-				if (i < (int) A->size1 - rankdef){
-					gsl_matrix_set(M2, i, i, 1.0/s);
+				if (i < (int) A->size1 - rankdef) {
+					gsl_matrix_set(M2, i, i, 1.0 / s);
 				} else {
 					gsl_matrix_set(M2, i, i, 0.0);
 				}
 			} else {
 				// do not use the first 'rdef's
-				if (i < rankdef){
+				if (i < rankdef) {
 					gsl_matrix_set(M2, i, i, 0.0);
 				} else {
-					gsl_matrix_set(M2, i, i, 1.0/s);
+					gsl_matrix_set(M2, i, i, 1.0 / s);
 				}
 			}
 		}
 	}
-	
+
 	gsl_blas_dgemm(CblasNoTrans, CblasTrans, one, M2, U, zero, M1);
 	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, V, M1, zero, M2);
 	gsl_matrix_memcpy(A, M2);

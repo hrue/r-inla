@@ -1,12 +1,21 @@
-\chapter{Dynamic regression example}\label{ch:dynamic}
+\section{Dynamic regression example}\label{sec:dynamic} 
 
-\SweaveOpts{prefix.string=figs/dynamic} 
-<<opts,echo=F,results=hide>>=
+The R source for this file is available at
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-dynamic.R}
+
+
+<<opts,echo=F,results='hide',message=FALSE,warning=FALSE>>=
+library(knitr)
+opts_chunk$set(
+fig.path='figs/dynamic',
+message=FALSE, warning=FALSE
+)
 options(width=75, prompt = " ", continue = "   ")
-require(INLA) 
+library(INLA) 
 lcall <- inla.getOption('inla.call') 
 inla.setOption(inla.call='remote')
 inla.setOption(num.threads=8)
+source('R/spde-tutorial-functions.R')
 @ 
 
 There is a large literature about dynamic models 
@@ -19,7 +28,7 @@ were the regression coefficients are modeled as time series.
 That is the case when the regression coefficients 
 vary smoothly over time.
 
-\section{Dynamic space-time regression}
+\subsection{Dynamic space-time regression}
 
 The specific class of models for spatially 
 structured time series was proposed by \cite{gelfandKSB:2003}, 
@@ -51,7 +60,7 @@ For the class of models in~\cite{vivarF:2009} it is natural to use INLA,
 as shown in \cite{cardenasKR:2012}, and for the models in~\cite{gelfandKSB:2003} 
 we can use the SPDE approach when considering the Mat\'ern covariance for the spatial part. 
 
-In this section we show how to fit the space-time dynamic regression model 
+In this example we will show how to fit the space-time dynamic regression model 
 as in \cite{gelfandKSB:2003}, considering the Mat\'ern spatial covariance and 
 the AR(1) model for time which corresponds to the exponential correlation function. 
 This particular covariance choise correspond to the model in 
@@ -59,33 +68,27 @@ This particular covariance choise correspond to the model in
 Here, we show the case when we have a dynamic intercept and 
 a dynamic regression coefficient for an harmonic over time. 
 
-\section{Simulation from the model}
+\subsection{Simulation from the model}
 
 We can start on defining the spatial locations:
 <<coom>>=
-n <- 100;   set.seed(1);  coo <- matrix(runif(2*n), n)
+n <- 150;   set.seed(1);  coo <- matrix(runif(2*n), n)
 @ 
 
 To sample from a random field on a set of location, 
-we use the following function 
-<<rrffun>>=
-rrf <- function(n, coords, kappa, variance, nu=1) {
-    m <- as.matrix(dist(coords))
-    m <- exp((1-nu)*log(2) + nu*log(kappa*m)-
-             lgamma(nu))*besselK(m*kappa, nu)
-    diag(m) <- 1
-    crossprod(chol(variance*m), 
-              matrix(rnorm(nrow(coords)*n), ncol=n))
-}
-@ 
+we can use the \texttt{rMatern()} 
+function defined in the Section~\ref{sec:simulatoy}
+to simulate independent random field realizations for each time.  
+This function is available in the file at 
+\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}
 
-We use the above function to draw $k$ (number of time points) samples from the random field. 
+We draw $k$ (number of time points) samples from the random field. 
 Then, we make it temporally correlated considering the time autoregression 
 <<sample>>=
 kappa <- c(10, 12);    sigma2 <- c(1/2, 1/4)
 k <- 15;  rho <- c(0.7, 0.5) 
-set.seed(2); beta0 <- rrf(k, coo, kappa[1], sigma2[1]) 
-set.seed(3); beta1 <- rrf(k, coo, kappa[2], sigma2[2]) 
+set.seed(2); beta0 <- rMatern(k, coo, kappa[1], sigma2[1]) 
+set.seed(3); beta1 <- rMatern(k, coo, kappa[2], sigma2[2]) 
 beta0[,1] <- beta0[,1] / (1-rho[1]^2)
 beta1[,1] <- beta1[,1] / (1-rho[2]^2)
 for (j in 2:k) {
@@ -106,7 +109,7 @@ length(y <- (mu.beta[1] + beta0) + (mu.beta[2]+beta1)*hh + ### dynamic regressio
            error)
 @ 
 
-\section{Fitting the model}
+\subsection{Fitting the model}
 
 We have two space-time terms on the model, 
 each one with three hyperparameters: 
@@ -114,11 +117,26 @@ precision, spatial scale, temporal scale (or temporal correlation).
 So, considering the likelihood, $7$ hyperparameters in total. 
 To perform fast inference, we choose to have a crude mesh with 
 with small number of vertices. 
-<<spde>>=
-(mesh <- inla.mesh.2d(coo, max.edge=c(0.2, 0.4), ### coarse mesh
-                      offset=c(0.05, 0.4), cutoff=0.1))$n
-spde <- inla.spde2.matern(mesh)
+<<mesh>>=
+(mesh <- inla.mesh.2d(coo, max.edge=c(0.25), ### coarse mesh
+                      offset=c(0.15), cutoff=0.05))$n
 @  
+<<vmesh,eval=FALSE,echo=FALSE,results='hide'>>=
+mesh$n
+plot(mesh, asp=1)
+points(coo, pch=4, col=2)
+@ 
+
+Defining the SPDE model considering the PC-prior 
+derived in \cite{fuglstadetal:2017} for the 
+model parameters as the practical range, $\sqrt{8\nu}/\kappa$, 
+and the marginal standard deviation.  
+<<spde>>=
+spde <- inla.spde2.pcmatern(
+    mesh=mesh, alpha=2, ### mesh and smoothness parameter
+    prior.range=c(0.05, 0.01), ### P(practic.range<0.05)=0.01
+    prior.sigma=c(1, 0.01)) ### P(sigma>1)=0.01
+@ 
 
 We do need one set of index for each call of the \texttt{f()} 
 function, no matter if they are the same, so:
@@ -129,11 +147,14 @@ i1 <- inla.spde.make.index('i1', spde$n.spde, n.group=k)
 
 In the SPDE approach, the space-time model is defined in a set of mesh nodes. 
 As we have considered continuous time, it is also defined on a set of time knots. 
-So, we have to deal with the projection from the model domain (nodes, knots) to 
-the space-time data locations. 
+So, we have to deal with the projection from the model 
+domain (nodes, knots) to the space-time data locations. 
 For the intercept it is the same way as in the other examples. 
-For the regression coefficients, we need to account for the covariate value in the projection matrix. 
-It can be seen as follows 
+For the regression coefficients, all we need to multiply 
+the projector matrix by the covariate vector columnwie, 
+i. e., each column of the projector matrix 
+is multiplyed by the covariate vector.  
+It can be seen from the following 
 \begin{eqnarray}
 \boldeta & = & \mu_{\beta_0} + \mu_{\beta_2}\mb{h} + 
 \mb{A} \mb{\beta}_0 + (\mb{A} \mb{\beta}_1) \mb{h} \nonumber \\
@@ -178,11 +199,13 @@ The first step of the INLA algorithm is the optimization to find the mode of the
 By choosing good starting values it will be needed less iteractions in this optimization process. 
 Below, we define starting values for the hyperparameters in the internal scale considering the values used to simute the data
 <<theta>>=
-(theta.ini <- c(log(taue), 
-                -log(4*pi*sigma2[1]*kappa[1]^2)/2, log(kappa[1]), 
-                log((1+rho[1])/(1-rho[1])), 
-                -log(4*pi*sigma2[2]*kappa[2]^2)/2, log(kappa[2]), 
-                log((1+rho[2])/(1-rho[2]))))
+(theta.ini <- c(log(taue), ## likelihood log precision
+                log(sqrt(8)/kappa[1]), ## log range 1
+                log(sqrt(sigma2[1])), ## log stdev 1
+                log((1+rho[1])/(1-rho[1])), ## inv.logit rho 1
+                log(sqrt(8)/kappa[2]), ## log range 1
+                log(sqrt(sigma2[2])), ## log stdev 1
+                log((1+rho[2])/(1-rho[2]))))## inv.logit rho 2
 @ 
 This step takes around few minutes to fit, and 
 with bigger \texttt{tolerance} value in \texttt{inla.control}, 
@@ -196,8 +219,7 @@ Fitting the model considering the initial values defined above
 <<fittingdyn3>>=
 (res <- inla(form, family='gaussian', data=inla.stack.data(stk.y), 
             control.predictor=list(A=inla.stack.A(stk.y)),
-            control.inla=list(int.strategy='eb', ### no integration wr theta
-                              tolerance=0.1), ### not too acurate (fast and crude result)
+            control.inla=list(int.strategy='eb'), ### no integration wr theta
             control.mode=list(theta=theta.ini, ### initial theta value
                               restart=TRUE)))$cpu 
 @ 
@@ -207,43 +229,35 @@ Summary of the $\mu_{\beta}$:
 round(cbind(true=mu.beta, res$summary.fix), 4)
 @ 
 
-The results for the random fields
-<<rfres>>=
-rf12 <- list(rf1=inla.spde2.result(res, 'i0', spde),
-             rf2=inla.spde2.result(res, 'i1', spde))
+Summary for the likelihood precision
+<<likprec>>=
+round(c(true=taue, unlist(res$summary.hy[1,])), 3)
 @ 
 
 We can see the posterior marginal distributions for the 
-model hyperparameters and the range for each 
+range and standard deviation for each 
 spatio-temporal process in Figure~\ref{fig:hd3pmds}. 
 <<hd3pmds, echo=TRUE, eval=FALSE>>=
-par(mfrow=c(3, 3), mar=c(2.5,2.5,0.3,0.3), mgp=c(1.5,0.5,0)) 
-for (i in 1:2) for (j in 15:17) {
-        plot(rf12[[i]][[j]][[1]], type='l', ylab='Density', 
-             xlab=paste('rf', i, '.', substring(names(rf12[[i]])[j],11), sep=''))
-        abline(v=c(kappa[i], sigma2[i], sqrt(8*1)/kappa[i])[j-14], col=4)
-    }
-for (i in 1:2) {
-     plot(res$marginals.hy[[c(4,7)[i]]], type='l', 
-         xlab=bquote(rho[.(i)]), ylab='Density') 
-    abline(v=rho[i], col=4)
+par(mfrow=c(2, 3), mar=c(2.5,2.5,0.3,0.3), mgp=c(1.5,0.5,0)) 
+for (j in 2:7) {
+    plot(res$marginals.hy[[j]], type='l', 
+         xlab=names(res$marginals.hyperpar)[j], ylab='Density')
+    abline(v=c(sqrt(8)/kappa[1], sigma2[1]^0.5, rho[1], 
+               sqrt(8)/kappa[2], sigma2[2]^0.5, rho[2])[j-1])
 }
-plot(res$marginals.hy[[1]], type='l', xlab=expression(tau[E]), ylab='Density') 
-abline(v=taue, col=4) 
 @ 
-\setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
-<<hd3pmdsf, eval=TRUE, echo=FALSE, fig=T,eps=F, width=7.5, height=5>>=
+<<hd3pmdsf, eval=TRUE, echo=FALSE, fig.width=7.5, fig.height=4, out.width='0.97\\textwidth'>>=
 <<hd3pmds>>
 @ 
 \caption{Posterior marginal distributions for the 
-  dynamic continuous spatial model hyperparameters} 
-\label{fig:hd3pmds}\end{figure}
+  hyperparameters of the spacetime fields.}
+\end{figure}\label{fig:hd3pmds}
 
-%We can have a look over the posterior mean of the dynamic coefficients. 
-%We compute the correlation between the simulated and the posterior mean ones by
-%<<betas>>=
-%c(beta0=cor(as.vector(beta0), drop(A0%*%res$summary.ran$i0$mean)), 
-%  beta1=cor(as.vector(beta1), 
-%      drop(A0%*%res$summary.ran$i1$mean))) ## using A0 to account only for the coeff.
-%@ 
+We can have a look over the posterior mean of the dynamic coefficients. 
+We compute the correlation between the simulated and the posterior mean ones by
+<<betas>>=
+c(beta0=cor(as.vector(beta0), drop(A0%*%res$summary.ran$i0$mean)), 
+  beta1=cor(as.vector(beta1), 
+      drop(A0%*%res$summary.ran$i1$mean))) ## using A0 to account only for the coeff.
+@ 

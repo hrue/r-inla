@@ -1,8 +1,8 @@
-#if defined(INLA_EXPERIMENTAL)
+#if defined(INLA_LIBR)
 
 /* R-interface.c
  * 
- * Copyright (C) 2014-2016 Havard Rue
+ * Copyright (C) 2014-2017 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,12 +20,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 #ifndef HGVERSION
@@ -62,13 +62,55 @@ int GMRFLib_sprintf(char **ptr, const char *fmt, ...);
 #include "R-interface.h"
 static int R_init = 1;
 static int R_debug = 0;
+static int R_busy = 0;
+
+#define CHECK_IN				\
+	if (1) {				\
+		inla_R_init();			\
+		while(R_busy)			\
+			delay(100);		\
+		R_busy = 1;			\
+	}
+#define CHECK_OUT						\
+	if (1) {						\
+		if (R_debug) {					\
+			fprintf(stderr, "set R_busy=0\n");	\
+			fflush(stderr);				\
+		}						\
+		R_busy=0;					\
+	}
+
+// this function is adapted from
+//      http://c-for-dummies.com/blog/?p=69
+void delay(int milliseconds);
+void delay(int milliseconds)
+{
+	long pause;
+	clock_t now, then;
+
+	pause = milliseconds * (CLOCKS_PER_SEC / 1000);
+	now = then = clock();
+	while ((now - then) < pause) {
+		if (1) {
+			fprintf(stderr, "thread %d is waiting as R_busy=%d\n", omp_get_thread_num(), R_busy);
+			fflush(stderr);
+		}
+		if (R_busy == 0)			       /* leave early if ok */
+			break;
+		now = clock();
+	}
+}
 
 void inla_R_exit(void)
 {
-	if (R_debug)
+	if (R_debug) {
 		fprintf(stderr, "R-interface: exit\n");
+		fflush(stderr);
+	}
+
 	Rf_endEmbeddedR(0);
 	R_init = 1;
+	R_busy = 0;
 }
 
 int inla_R_init(void)
@@ -111,8 +153,10 @@ int inla_R_init(void)
 		// Disable C stack limit check
 		R_CStackLimit = (uintptr_t) (-1);
 		R_init = 0;
-		if (R_debug)
+		if (R_debug) {
 			fprintf(stderr, "R-interface: init\n");
+			fflush(stderr);
+		}
 	}
 
 	return (INLA_OK);
@@ -120,15 +164,18 @@ int inla_R_init(void)
 
 int inla_R_library(const char *library)
 {
-	if (!library) 
+	if (!library)
 		return (INLA_OK);
-	inla_R_init();
+
+	if (R_debug) {
+		fprintf(stderr, "R-interface[%1d]: enter: load library [%s]\n", omp_get_thread_num(), library);
+		fflush(stderr);
+	}
+	CHECK_IN;
 
 	SEXP e, result, yy;
 	int error;
 
-	if (R_debug)
-		fprintf(stderr, "R-interface: load library [%s]\n", library);
 	yy = PROTECT(mkString(library));
 	e = PROTECT(lang2(install("library"), yy));
 	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
@@ -138,6 +185,12 @@ int inla_R_library(const char *library)
 	}
 	UNPROTECT(3);
 
+	if (R_debug) {
+		fprintf(stderr, "R-interface[%1d]: leave: load library [%s]\n", omp_get_thread_num(), library);
+		fflush(stderr);
+	}
+	CHECK_OUT;
+
 	return (INLA_OK);
 }
 
@@ -145,13 +198,16 @@ int inla_R_source(const char *filename)
 {
 	if (!filename)
 		return (INLA_OK);
-	inla_R_init();
+
+	if (R_debug) {
+		fprintf(stderr, "R-interface: enter: source file [%s]\n", filename);
+		fflush(stderr);
+	}
+	CHECK_IN;
 
 	SEXP e, result, yy, false, true;
 	int error;
 
-	if (R_debug)
-		fprintf(stderr, "R-interface: source file [%s]\n", filename);
 	false = PROTECT(ScalarLogical(FALSE));
 	true = PROTECT(ScalarLogical(TRUE));
 	yy = PROTECT(mkString(filename));
@@ -163,29 +219,43 @@ int inla_R_source(const char *filename)
 	}
 	UNPROTECT(5);
 
+	if (R_debug) {
+		fprintf(stderr, "R-interface: leave: source file [%s]\n", filename);
+		fflush(stderr);
+	}
+	CHECK_OUT;
 
 	return (INLA_OK);
 }
+
 int inla_R_load(const char *filename)
 {
 	if (!filename)
 		return (INLA_OK);
-	inla_R_init();
+
+	if (R_debug) {
+		fprintf(stderr, "R-interface: enter: load file [%s]\n", filename);
+		fflush(stderr);
+	}
+	CHECK_IN;
 
 	SEXP e, result, yy;
 	int error;
-
-	if (R_debug)
-		fprintf(stderr, "R-interface: loading file [%s]\n", filename);
 
 	yy = PROTECT(mkString(filename));
 	e = PROTECT(lang2(install("load"), yy));
 	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
 	if (error) {
-		fprintf(stderr, "\n *** ERROR ***: loading RData-file [%s] failed.\n", filename);
+		fprintf(stderr, "\n *** ERROR ***: load RData-file [%s] failed.\n", filename);
 		exit(1);
 	}
 	UNPROTECT(3);
+
+	if (R_debug) {
+		fprintf(stderr, "R-interface: leave: load file [%s]\n", filename);
+		fflush(stderr);
+	}
+	CHECK_OUT;
 
 	return (INLA_OK);
 }
@@ -194,13 +264,15 @@ int inla_R_inlaload(const char *filename)
 {
 	if (!filename)
 		return (INLA_OK);
-	inla_R_init();
+
+	if (R_debug) {
+		fprintf(stderr, "R-interface: enter: load file [%s]\n", filename);
+		fflush(stderr);
+	}
+	CHECK_IN;
 
 	SEXP e, result, yy;
 	int error;
-
-	if (R_debug)
-		fprintf(stderr, "R-interface: inla.load file [%s]\n", filename);
 
 	yy = PROTECT(mkString(filename));
 	e = PROTECT(lang2(install("inla.load"), yy));
@@ -211,6 +283,12 @@ int inla_R_inlaload(const char *filename)
 	}
 	UNPROTECT(3);
 
+	if (R_debug) {
+		fprintf(stderr, "R-interface: leave: load file [%s]\n", filename);
+		fflush(stderr);
+	}
+	CHECK_OUT;
+
 	return (INLA_OK);
 }
 
@@ -220,11 +298,11 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 	 * Call function(tag,x), where x is a double vector of length n. output is 'x_out' with length 'n_out'
 	 */
 
-	inla_R_init();
-
-	if (R_debug)
-		fprintf(stderr, "R-interface[%1d]: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag,
-			n);
+	if (R_debug) {
+		fprintf(stderr, "R-interface[%1d]: enter: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag, n);
+		fflush(stderr);
+	}
+	CHECK_IN;
 
 	int error, i;
 	SEXP xx, result, e;
@@ -256,6 +334,14 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 	}
 
 	UNPROTECT((tag ? 4 : 3));
+
+	if (R_debug) {
+		fprintf(stderr, "R-interface[%1d]: leave: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag, n);
+		fflush(stderr);
+	}
+	CHECK_OUT;
+
+
 	return (INLA_OK);
 }
 
@@ -270,9 +356,11 @@ int inla_R_assign(const char *variable, int n, double *x)
 	 * variable = x
 	 */
 
-	inla_R_init();
-	if (R_debug)
-		fprintf(stderr, "R-interface[%1d]: assign: [%s] n [%1d]\n", omp_get_thread_num(), variable, n);
+	if (R_debug) {
+		fprintf(stderr, "R-interface[%1d]: enter: assign: [%s] n [%1d]\n", omp_get_thread_num(), variable, n);
+		fflush(stderr);
+	}
+	CHECK_IN;
 
 	int error, i;
 	SEXP xx, result, e, yy;
@@ -290,6 +378,12 @@ int inla_R_assign(const char *variable, int n, double *x)
 	}
 	UNPROTECT(4);
 
+	if (R_debug) {
+		fprintf(stderr, "R-interface[%1d]: leave: assign: [%s] n [%1d]\n", omp_get_thread_num(), variable, n);
+		fflush(stderr);
+	}
+	CHECK_OUT;
+
 	return (INLA_OK);
 }
 
@@ -299,9 +393,11 @@ int inla_R_get(int *n_out, double **x_out, const char *variable)
 	 * return variable
 	 */
 
-	inla_R_init();
-	if (R_debug)
-		fprintf(stderr, "R-interface[%1d]: get: [%s]\n", omp_get_thread_num(), variable);
+	if (R_debug) {
+		fprintf(stderr, "R-interface[%1d]: enter: get: [%s]\n", omp_get_thread_num(), variable);
+		fflush(stderr);
+	}
+	CHECK_IN;
 
 	int error, i;
 	SEXP result, e, yy;
@@ -326,6 +422,12 @@ int inla_R_get(int *n_out, double **x_out, const char *variable)
 
 	UNPROTECT(3);
 
+	if (R_debug) {
+		fprintf(stderr, "R-interface[%1d]: leave: get: [%s]\n", omp_get_thread_num(), variable);
+		fflush(stderr);
+	}
+	CHECK_OUT;
+
 	return (INLA_OK);
 }
 
@@ -335,9 +437,11 @@ int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *mod
 	 * do the rgeneric call with CMD and THETA and given MODEL name for the model definition
 	 */
 
-	inla_R_init();
-	if (R_debug)
-		fprintf(stderr, "R-interface[%1d]: rgeneric: [%s] model [%s]\n", omp_get_thread_num(), cmd, model);
+	if (R_debug) {
+		fprintf(stderr, "R-interface[%1d]: enter: rgeneric: cmd [%s] model [%s]\n", omp_get_thread_num(), cmd, model);
+		fflush(stderr);
+	}
+	CHECK_IN;
 
 	int error, i;
 	SEXP xx_theta, result, e, yy, yyy;
@@ -367,6 +471,12 @@ int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *mod
 	}
 
 	UNPROTECT(5);
+
+	if (R_debug) {
+		fprintf(stderr, "R-interface[%1d]: leave: rgeneric: cmd [%s] model [%s]\n", omp_get_thread_num(), cmd, model);
+		fflush(stderr);
+	}
+	CHECK_OUT;
 
 	return (INLA_OK);
 }

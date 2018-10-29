@@ -4,16 +4,13 @@
 ## Export: inla.spde.make.A inla.spde.make.block.A inla.spde.make.index
 ## Export: inla.spde.models inla.spde.precision inla.spde.result
 ## Export: inla.spde.sample inla.spde.sample!default
-## Export: inla.spde.sample!inla.spde inla.stack inla.stack.A
-## Export: inla.stack.LHS inla.stack.RHS inla.stack.compress
-## Export: inla.stack.data inla.stack.sum
-## Export: inla.stack.index inla.stack.join
-## Export: inla.stack.remove.unused rbind!inla.data.stack.info
+## Export: inla.spde.sample!inla.spde
 ## Internal: inla.spde.homogenise_B_matrix inla.regex.match
 
 inla.dBind <- function(...)
 {
-    return(.bdiag(list(...)))
+    .Deprecated("Matrix::bdiag")
+    return(bdiag(...))
 }
 
 inla.extract.el <- function(M, ...)
@@ -520,6 +517,11 @@ inla.spde.make.A =
         if (!is.null(A.loc)) {
             n.spde = ncol(A.loc)
         }
+    } else if (inherits(mesh, "inla.spde")) {
+        spde <- mesh
+        mesh <- spde$mesh
+        inla.require.inherits(spde$mesh, c("inla.mesh", "inla.mesh.1d"), "'spde$mesh'")
+        n.spde = spde$n.spde
     } else {
         inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
         if (inherits(mesh, "inla.mesh.1d")) {
@@ -689,6 +691,180 @@ inla.spde.make.A =
 
 
 
+
+
+#' Data stacking for advanced INLA models
+#' 
+#' Functions for combining data, effects and observation matrices into
+#' \code{inla.stack} objects, and extracting information from such
+#' objects.
+#' 
+#' @param data A list or code{data.frame} of named data vectors.
+#' Scalars are expanded to match the number of rows in the A matrices, or any non-scalar data vectors.
+#' An error is given if the input is inconsistent.
+#' @param A A list of observation matrices. Scalars are expanded to diagonal matrices matching the effect vector lengths.
+#' An error is given if the input is inconsistent or ambiguous.
+#' @param effects A collection of effects/predictors.  Each list element corresponds
+#' to an observation matrix, and must either be a single vector, a
+#' list of vectors, or a \code{data.frame}. Single-element effect vectors are expanded
+#'  to vectors matching the number of columns in the corresponding A matrix.
+#'  An error is given if the input is inconsistent or ombiguous.
+#' @param tag A string specifying a tag for later identification.
+#' @param compress If \code{TRUE}, compress the model by removing duplicated rows of
+#' effects, replacing the corresponding A-matrix columns with a single column containing the sum.
+#' @param remove.unused If \code{TRUE}, compress the model by removing rows of effects
+#' corresponding to all-zero columns in the \code{A} matrix (and removing
+#' those columns).
+#' @param stack A \code{inla.data.stack} object, created by a call to \code{inla.stack},
+#' \code{inla.stack.sum}, or \code{inla.stack.join}.
+#' @param ... For \code{inla.stack.join}, two or more data stacks of class
+#' \code{inla.data.stack}, created by a call to \code{inla.stack},
+#' \code{inla.stack.sum}, or \code{inla.stack.join}.
+#' For \code{inla.stack.data}, a list of variables to be joined with
+#' the data list.
+#' 
+#' @details
+#' For models with a single effects collection, the outer list container for \code{A} and \code{effects} may be omitted.
+#' 
+#' Component size definitions:
+#' \itemize{
+#'    \item[\eqn{n_l}{n_l}] effect blocks
+#'    \item[\eqn{n_k}{n_k}] effects
+#'    \item[\eqn{n_i}{n_i}] data values
+#'    \item[\eqn{n_{j,l}}{n_jl}] effect size for block \eqn{l}{l}
+#'    \item[\eqn{n_j}{n_j}] \eqn{= \sum_{l=1}^{n_l} n_{j,l}}{sum_l n_jl} total effect size
+#' }
+#' 
+#'  Input:
+#'  \itemize{
+#'    \item[\code{data}] \eqn{(y^1, \ldots, y^p)}{} \eqn{p}{p} vectors,
+#'    each of length \eqn{n_i}{n_i}
+#'    \item[\code{A}] \eqn{(A^1, \ldots, A^{n_l})}{} matrices of size
+#'    \eqn{n_i \times n_{j,l}}{n_i by n_jl}
+#'    \item[\code{effects}] \eqn{\left((x^{1,1},\ldots,x^{n_k,1}), \ldots,
+#'      (x^{1,n_l},\ldots,x^{n_k,n_l})\right)}{} collections of effect vectors
+#'    of length \eqn{n_{j,l}}{n_jl}
+#'  }
+#'  
+#'  \deqn{
+#'    \mbox{predictor}(y^1, \ldots, y^p) \sim
+#'    \sum_{l=1}^{n_l} A^l \sum_{k=1}^{n_k} g(k, x^{k,l})
+#'    = \tilde{A} \sum_{k=1}^{n_k} g(k, \tilde{x}^k)
+#'  }{
+#'    predictor(y^1, \ldots, y^p)
+#'    ~ sum_{l=1}^{n_l} A^l sum_{k=1}^{n_k} g(k, x^{k,l})
+#'    = tilde{A} sum_{k=1}^{n_k} g(k, tilde{x}^k)
+#'  }
+#'  where
+#'  \deqn{
+#'    \tilde{A} = \mbox{cbind}\left( A^1, \ldots, A^{n_l} \right)
+#'  }{
+#'    tilde{A} = cbind( A^1, ..., A^{n_l} )
+#'  }
+#'  \deqn{
+#'    \tilde{x}^k = \mbox{rbind}\left( x^{k,1}, \ldots, x^{k,n_l} \right)
+#'  }{
+#'    tilde{x}^k = rbind( x^{k,1}, ..., x^{k,n_l} )
+#'  }
+#'  and for each block \eqn{l}{l}, any missing \eqn{x^{k,l}} is replaced by an
+#'  \code{NA} vector.
+#'
+#' @return A data stack of class \code{inla.data.stack}.  Elements:
+#'  \itemize{
+#'    \item{\code{data} }{\eqn{=(y^1, \ldots, y^p, \tilde{x}^1, \ldots, \tilde{x}^{n_k})}}
+#'    \item{\code{A} }{\eqn{=\tilde{A}}}
+#'    \item{\code{data.names} }{List of data names, length \eqn{p}}
+#'    \item{\code{effect.names} }{List of effect names, length \eqn{n_k}}
+#'    \item{\code{n.data} }{Data length, \eqn{n_i}}
+#'    \item{\code{index} }{List indexed by \code{tag}s, each element indexing
+#'    into \eqn{i=1, \ldots, n_i}}
+#'  }
+#'  
+#' @seealso 
+#'  \code{\link{inla.spde.make.A}},
+#'  \code{\link{inla.spde.make.index}}
+#'
+#' @keywords fmesher
+#'  
+#' @name inla.stack
+#'
+#' @examples
+#' n <- 200
+#' loc <- matrix(runif(n*2), n, 2)
+#' mesh <- inla.mesh.2d(loc.domain = loc,
+#'                      max.edge=c(0.05, 0.2))
+#' proj.obs <- inla.mesh.projector(mesh, loc = loc)
+#' proj.pred <- inla.mesh.projector(mesh, loc = mesh$loc)
+#' spde <- inla.spde2.pcmatern(mesh,
+#'                             prior.range = c(0.01, 0.01),
+#'                             prior.sigma = c(10, 0.01))
+#' 
+#' covar <- rnorm(n)
+#' field <- inla.qsample(n = 1, Q = inla.spde.precision(spde, theta = log(c(0.5, 1))))[,1]
+#' y <- 2*covar + inla.mesh.project(proj.obs, field)
+#' 
+#' A.obs <- inla.spde.make.A(mesh, loc = loc)
+#' A.pred = inla.spde.make.A(mesh, loc = proj.pred$loc)
+#' stack.obs <-
+#'     inla.stack(data=list(y=y),
+#'                A=list(A.obs, 1),
+#'                effects=list(c(list(Intercept = 1),
+#'                               inla.spde.make.index("spatial", spde$n.spde)),
+#'                             covar=covar),
+#'                tag="obs")
+#' stack.pred <-
+#'     inla.stack(data=list(y=NA),
+#'                A=list(A.pred),
+#'                effects=list(c(list(Intercept = 1),
+#'                               inla.spde.make.index("spatial", mesh$n))),
+#'                tag="pred")
+#' stack <- inla.stack(stack.obs, stack.pred)
+#' 
+#' formula <- y ~ -1 + Intercept + covar + f(spatial, model=spde)
+#' result1 <- inla(formula,
+#'                 data=inla.stack.data(stack.obs, spde = spde),
+#'                 family="gaussian",
+#'                 control.predictor = list(A = inla.stack.A(stack.obs),
+#'                                         compute = TRUE))
+#' 
+#' plot(y, result1$summary.fitted.values[inla.stack.index(stack.obs,"obs")$data, "mean"],
+#'      main = "Observations vs posterior predicted values at the data locations")
+#' 
+#' result2 <- inla(formula,
+#'                 data=inla.stack.data(stack, spde = spde),
+#'                 family="gaussian",
+#'                 control.predictor = list(A = inla.stack.A(stack),
+#'                                          compute = TRUE))
+#' 
+#' field.pred <- inla.mesh.project(proj.pred,
+#'   result2$summary.fitted.values[inla.stack.index(stack,"pred")$data, "mean"])
+#' field.pred.sd <- inla.mesh.project(proj.pred,
+#'   result2$summary.fitted.values[inla.stack.index(stack,"pred")$data, "sd"])
+#' 
+#' plot(field, field.pred, main = "True vs predicted field")
+#' abline(0, 1)
+#' image(inla.mesh.project(mesh,
+#'                         field = field,
+#'                         dims = c(200,200)),
+#'       main = "True field")
+#' image(inla.mesh.project(mesh,
+#'                         field = field.pred,
+#'                         dims = c(200,200)),
+#'       main = "Posterior field mean")
+#' image(inla.mesh.project(mesh,
+#'                         field = field.pred.sd,
+#'                         dims = c(200,200)),
+#'       main = "Prediction standard deviation")
+#' plot(field, (field.pred - field) / 1,
+#'      main = "True field vs standardised prediction residuals")
+NULL
+
+
+
+#' Internal function for merging raw stack information
+#' 
+#' @method rbind inla.data.stack.info
+#' @export
 rbind.inla.data.stack.info <- function(...)
 {
     l = list(...)
@@ -776,7 +952,9 @@ rbind.inla.data.stack.info <- function(...)
     return(info)
 }
 
-
+#' @describeIn inla.stack Remove unused entries from an existing stack
+#' 
+#' @export
 inla.stack.remove.unused <- function(stack)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
@@ -818,6 +996,9 @@ inla.stack.remove.unused <- function(stack)
     return(stack)
 }
 
+#' @describeIn inla.stack Compress an existing stack by removing duplicates
+#'
+#' @export
 inla.stack.compress <- function(stack, remove.unused=TRUE)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
@@ -882,7 +1063,9 @@ inla.stack.compress <- function(stack, remove.unused=TRUE)
 
 
 
-
+#' @describeIn inla.stack Shorthand for inla.stack.join and inla.stack.sum
+#'
+#' @export
 inla.stack <- function(..., compress=TRUE, remove.unused=TRUE)
 {
     if (all(sapply(list(...), function(x) inherits(x, "inla.data.stack")))) {
@@ -899,6 +1082,9 @@ inla.stack <- function(..., compress=TRUE, remove.unused=TRUE)
 }
 
 
+#' @describeIn inla.stack Create data stack as a sum of predictors
+#'
+#' @export
 inla.stack.sum <- function(data, A, effects,
                            tag="",
                            compress=TRUE,
@@ -948,7 +1134,7 @@ inla.stack.sum <- function(data, A, effects,
     }
 
 
-    parse.input.list <- function(l, n.A, error.tag, tag="") {
+    parse.input.list <- function(l, n.A, error.tag, tag="", n.A.strict = FALSE) {
         ncol = input.list.ncol(l)
         nrow = input.list.nrow(l)
         names = input.list.names(l)
@@ -991,7 +1177,7 @@ inla.stack.sum <- function(data, A, effects,
         data = as.data.frame(l)
         names(data) = do.call(c, names)
         nrow = nrow(data)
-        if ((n.A>1) && (nrow != n.A)) {
+        if ((n.A>1 || n.A.strict) && (nrow != n.A)) {
             stop(paste(error.tag,
                        "Mismatching row sizes: ",
                        paste(nrow, collapse=",", sep=""),
@@ -1075,15 +1261,16 @@ inla.stack.sum <- function(data, A, effects,
 
     data =
         parse.input.list(inla.ifelse(is.data.frame(data),
-                                     list(data),
+                                     as.list(data),
                                      data),
                          A.nrow,
-                         paste("Effect block ", k, ":\n", sep=""),
-                         tag)
+                         paste("Data block:\n", sep=""),
+                         tag,
+                         n.A.strict = TRUE)
 
     effects = do.call(rbind.inla.data.stack.info, eff)
 
-    A.matrix = do.call(cBind, A)
+    A.matrix = do.call(cbind, A)
     A.nrow = nrow(A.matrix)
     A.ncol = ncol(A.matrix)
 
@@ -1110,6 +1297,9 @@ inla.stack.sum <- function(data, A, effects,
     }
 }
 
+#' @describeIn inla.stack Join two or more data stacks
+#'
+#' @export
 inla.stack.join <- function(..., compress=TRUE, remove.unused=TRUE)
 {
     S.input = list(...)
@@ -1118,8 +1308,8 @@ inla.stack.join <- function(..., compress=TRUE, remove.unused=TRUE)
                     lapply(S.input, function(x) x$data))
     effects <- do.call(rbind.inla.data.stack.info,
                        lapply(S.input, function(x) x$effects))
-    A <- do.call(inla.dBind,
-                 lapply(S.input, function(x) x$A))
+    ## The .bdiag form of bdiag takes a list as input.
+    A <- .bdiag(lapply(S.input, function(x) x$A))
 
     S.output = list(A=A, data=data, effects=effects)
     class(S.output) = "inla.data.stack"
@@ -1148,7 +1338,9 @@ inla.stack.join <- function(..., compress=TRUE, remove.unused=TRUE)
 
 
 
-
+#' @describeIn inla.stack Extract tagged indices
+#'
+#' @export
 inla.stack.index <- function(stack, tag)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
@@ -1164,6 +1356,7 @@ inla.stack.index <- function(stack, tag)
     }
 }
 
+## Extract an object list from an inla.stack internal structure
 inla.stack.do.extract <- function(dat)
 {
     inla.require.inherits(dat, "inla.data.stack.info", "'dat'")
@@ -1188,6 +1381,10 @@ inla.stack.do.extract <- function(dat)
 }
 
 
+#' @describeIn inla.stack Extract data associated with the "left hand side" of the model
+#' (e.g. the data itself, \code{Ntrials}, \code{link}, \code{E})
+#'
+#' @export
 inla.stack.LHS <- function(stack)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
@@ -1195,6 +1392,10 @@ inla.stack.LHS <- function(stack)
     return(inla.stack.do.extract(stack$data))
 }
 
+#' @describeIn inla.stack Extract data associated with the "right hand side" of the model
+#' (all the covariates/predictors)
+#'
+#' @export
 inla.stack.RHS <- function(stack)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
@@ -1202,6 +1403,9 @@ inla.stack.RHS <- function(stack)
     return(inla.stack.do.extract(stack$effects))
 }
 
+#' @describeIn inla.stack Extract data for an inla call, and optionally join with other variables
+#' 
+#' @export
 inla.stack.data <- function(stack, ...)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")
@@ -1211,6 +1415,9 @@ inla.stack.data <- function(stack, ...)
              list(...)))
 }
 
+#' @describeIn inla.stack Extract the "A matrix" for control.predictor
+#' 
+#' @export
 inla.stack.A <- function(stack)
 {
     inla.require.inherits(stack, "inla.data.stack", "'stack'")

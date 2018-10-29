@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 #ifndef HGVERSION
@@ -111,8 +111,8 @@ int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const ch
 		GMRFLib_matrix_free(model->M[3]);
 		model->M[3] = NULL;
 	}
-	// since this matrix is non-symmetric, we need the graph for for the transpose as well. the graph gives the entries for for 
-	// each row.
+	// since this matrix is non-symmetric, we need the graph for for the transpose as well. the
+	// graph gives the entries for for each row.
 	if (model->M[3]) {
 		model->M3transpose = GMRFLib_matrix_transpose(model->M[3]);
 	} else {
@@ -493,8 +493,7 @@ int inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, 
 			iarg->interpolator = GMRFLib_AI_INTERPOLATOR_CCD;
 
 			int npoints = 51;
-			double *x = Calloc(nhyper, double), *xx = NULL, *xxx = Calloc(npoints, double), *ldens_values =
-			    Calloc(npoints, double);
+			double *x = Calloc(nhyper, double), *xx = NULL, *xxx = Calloc(npoints, double), *ldens_values = Calloc(npoints, double);
 
 			GMRFLib_ghq_abscissas(&xx, npoints);
 			memcpy(xxx, xx, npoints * sizeof(double));
@@ -508,8 +507,7 @@ int inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, 
 				ldens_values[ii] = GMRFLib_ai_integrator_func(nhyper, x, iarg);
 			}
 			GMRFLib_density_create(&(GMRFLib_ai_INLA_userfunc3_density[number][i]),
-					       GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, xxx, ldens_values, mean, sqrt(var),
-					       GMRFLib_TRUE);
+					       GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, xxx, ldens_values, mean, sqrt(var), GMRFLib_TRUE);
 
 			Free(Sigma_a);
 			Free(x);
@@ -528,8 +526,7 @@ int inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, 
 			for (ii = 0; ii < model->ntheta; ii++) {
 				mean += Theta_spde3(ii) * row_spde3[1 + ii];
 				for (jj = 0; jj < model->ntheta; jj++) {
-					var += row_spde3[1 + ii] * row_spde3[1 + jj] * Cov_spde3(ii, jj);	/* yes the first
-														 * column is a
+					var += row_spde3[1 + ii] * row_spde3[1 + jj] * Cov_spde3(ii, jj);	/* yes the first column is a
 														 * constant offset */
 				}
 			}

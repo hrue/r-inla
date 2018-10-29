@@ -1,7 +1,7 @@
 
 /* domin-interface.c
  * 
- * Copyright (C) 2006-2008 Havard Rue
+ * Copyright (C) 2006-2018 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology.
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 
@@ -32,8 +32,6 @@
 #define HGVERSION
 #endif
 static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
-
-/* Pre-hg-Id: $Id: domin-interface.c,v 1.93 2010/04/08 05:09:40 hrue Exp $ */
 
 #include <float.h>
 #include <math.h>
@@ -47,8 +45,6 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
-
-int domin_setup_1_(int *nhyper, double *theta);
 
 static GMRFLib_domin_arg_tp G;				       /* hold arguments */
 
@@ -108,7 +104,6 @@ int GMRFLib_domin_setup(double ***hyperparam, int nhyper,
 	for (i = 0; i < nhyper; i++) {
 		theta[i] = hyperparam[i][GMRFLib_thread_id][0];
 	}
-	domin_setup_1_(&nhyper, theta);
 	Free(theta);
 
 	return GMRFLib_SUCCESS;
@@ -125,14 +120,6 @@ int GMRFLib_domin_exit(void)
 	if (B.f_best_x)
 		Free(B.f_best_x);
 	return GMRFLib_SUCCESS;
-}
-int gmrflib_domin_f_(double *x, double *fx, int *ierr)
-{
-	return GMRFLib_domin_f(x, fx, ierr, NULL, NULL);
-}
-int gmrflib_domin_f__(double *x, double *fx, int *ierr)
-{
-	return GMRFLib_domin_f(x, fx, ierr, NULL, NULL);
 }
 int GMRFLib_domin_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew)
 {
@@ -165,9 +152,8 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 	/*
 	 * This is the copy that is to be copied 
 	 */
-	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
-
-#pragma omp parallel for private(i)
+	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < nx; i++) {
 		int local_err;
 		GMRFLib_ai_store_tp *ais = NULL;
@@ -177,7 +163,8 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 			ais = G.ai_store;
 		} else {
 			if (!ai_store[GMRFLib_thread_id]) {
-				ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE);
+				ai_store[GMRFLib_thread_id] =
+				    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 			}
 			ais = ai_store[GMRFLib_thread_id];
 		}
@@ -206,7 +193,7 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 	/*
 	 * this version controls AI_STORE 
 	 */
-	int i, debug = 0;
+	int i, debug = 0, idum;
 	double ffx, fx_local;
 
 	/*
@@ -224,54 +211,33 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 		bnew_local = Calloc(GMRFLib_MAX_THREADS, double *);
 	}
 
-
-	/*
-	 * don't run in parallel if tabQfunc is given!!! 
-	 */
-#pragma omp parallel sections if (((!tabQfunc && (GMRFLib_openmp && GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_HUGE) ? 1 : 0)))
-	{
-		/*
-		 * if huge, then do this in parallel; the normaising contstant may be needed to compute like the matern... 
-		 */
-#pragma omp section
-		{
-			GMRFLib_thread_id = id;
-			for (i = 0; i < G.nhyper; i++) {
-				G.hyperparam[i][GMRFLib_thread_id][0] = x[i];
-			}
-
-			GMRFLib_tabulate_Qfunc((tabQfunc ? tabQfunc : &(tabQfunc_local[GMRFLib_thread_id])), G.graph,
-					       G.Qfunc[GMRFLib_thread_id], G.Qfunc_arg[GMRFLib_thread_id], NULL, NULL, NULL);
-
-			double con, *bnew_ptr = NULL;
-
-			GMRFLib_bnew(&bnew_ptr, &con, G.graph->n, G.b, G.bfunc);
-			if (bnew) {
-				*bnew = bnew_ptr;
-			} else {
-				bnew_local[GMRFLib_thread_id] = bnew_ptr;
-			}
-
-			if (0) {
-				FIXME1("FIX");
-				for (i = 0; i < G.graph->n; i++)
-					printf("bnew[%d] = %g\n", i, bnew_ptr[i]);
-			}
-
-			GMRFLib_ai_marginal_hyperparam(fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg, G.fixed_value,
-						       G.graph,
-						       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local[GMRFLib_thread_id]->Qfunc),
-						       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[GMRFLib_thread_id]->Qfunc_arg), G.constr, G.ai_par, ais);
-			*fx += con;			       /* add missing constant due to b = b(theta) */
-		}
-
-#pragma omp section
-		{
-			GMRFLib_thread_id = id;
-			ffx = G.log_extra(x, G.nhyper, G.log_extra_arg);
-		}
-	}
 	GMRFLib_thread_id = id;
+	for (i = 0; i < G.nhyper; i++) {
+		G.hyperparam[i][GMRFLib_thread_id][0] = x[i];
+	}
+
+	GMRFLib_tabulate_Qfunc((tabQfunc ? tabQfunc : &(tabQfunc_local[GMRFLib_thread_id])), G.graph,
+			       G.Qfunc[GMRFLib_thread_id], G.Qfunc_arg[GMRFLib_thread_id], NULL, NULL, NULL);
+
+	double con, *bnew_ptr = NULL;
+
+	GMRFLib_bnew(&bnew_ptr, &con, G.graph->n, G.b, G.bfunc);
+	if (bnew) {
+		*bnew = bnew_ptr;
+	} else {
+		bnew_local[GMRFLib_thread_id] = bnew_ptr;
+	}
+
+#pragma omp parallel for private(idum) num_threads(GMRFLib_openmp->max_threads_outer)
+	for (idum = 0; idum < 1; idum++) {
+		GMRFLib_ai_marginal_hyperparam(fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg, G.fixed_value,
+					       G.graph,
+					       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local[GMRFLib_thread_id]->Qfunc),
+					       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[GMRFLib_thread_id]->Qfunc_arg), G.constr,
+					       G.ai_par, ais);
+	}
+	*fx += con;					       /* add missing constant due to b = b(theta) */
+	ffx = G.log_extra(x, G.nhyper, G.log_extra_arg);
 
 	if (tabQfunc_local) {
 		for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
@@ -286,25 +252,18 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 		Free(bnew_local);
 	}
 
-	if (0) {
-		FIXME1("FIX");
-		for (i = 0; i < G.nhyper; i++) {
-			printf("theta%1d = %.12f ", i, x[i]);
-		}
-		printf(" %.12f %.12f\n", -*fx, -ffx);
-	}
-
 	*fx += ffx;					       /* add contributions */
 	*fx *= -1.0;					       /* domin() do minimisation */
 	fx_local = *fx;
 
 	if (debug)
-		printf("\t%d: fx_local %.12g where f_best %.12g (%s)\n", omp_get_thread_num(), fx_local, B.f_best, (fx_local < B.f_best ? "BETTER!" : ""));
+		printf("\t%d: fx_local %.12g where f_best %.12g (%s)\n", omp_get_thread_num(), fx_local, B.f_best,
+		       (fx_local < B.f_best ? "BETTER!" : ""));
 
 	*ierr = 0;
 	G.f_count[omp_get_thread_num()]++;
 
-	if (B.f_best == 0.0 || fx_local < B.f_best) {
+	if (B.f_best == 0.0 || (!(ISNAN(fx_local) || ISINF(fx_local)) && (fx_local < B.f_best))) {
 #pragma omp critical
 		{
 			if (B.f_best == 0.0 || fx_local < B.f_best) {
@@ -321,13 +280,12 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 				if (debug)
 					printf("\t%d: set: B.f_best %.12g fx %.12g\n", omp_get_thread_num(), B.f_best, fx_local);
 				if (G.ai_par->fp_log) {
-					fprintf(G.ai_par->fp_log, "max.logdens= %.6f fn= %1d theta=", -fx_local,
-						GMRFLib_domin_get_f_count());
+					fprintf(G.ai_par->fp_log, "max.logdens= %.4f fn= %1d theta=", -fx_local, GMRFLib_domin_get_f_count());
 					for (i = 0; i < G.nhyper; i++) {
-						fprintf(G.ai_par->fp_log, " %.6f", x[i]);
+						fprintf(G.ai_par->fp_log, " %.4f", x[i]);
 					}
-					fprintf(G.ai_par->fp_log, "  range=[%.3f", GMRFLib_min_value(ais->mode, G.graph->n, NULL));
-					fprintf(G.ai_par->fp_log, " %.3f]", GMRFLib_max_value(ais->mode, G.graph->n, NULL));
+					fprintf(G.ai_par->fp_log, "  range=[%.2f", GMRFLib_min_value(ais->mode, G.graph->n, NULL));
+					fprintf(G.ai_par->fp_log, " %.2f]", GMRFLib_max_value(ais->mode, G.graph->n, NULL));
 					fprintf(G.ai_par->fp_log, "\n");
 					fflush(G.ai_par->fp_log);
 					fflush(stdout);	       /* helps for remote inla */
@@ -336,30 +294,8 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 			}
 		}
 	}
-	if (G.ai_par->fp_hyperparam) {
-		// FIXME1("I do not longer write hyperparamters and density in the optimisation step");
-		if (0) {
-#pragma omp critical
-			{
-				// fprintf(G.ai_par->fp_hyperparam, "%s: ", __GMRFLib_FuncName);
-				for (i = 0; i < G.nhyper; i++) {
-					fprintf(G.ai_par->fp_hyperparam, " %.10g", x[i]);
-				}
-				fprintf(G.ai_par->fp_hyperparam, " %.10g\n", -fx_local);
-				fflush(G.ai_par->fp_hyperparam);
-			}
-		}
-	}
 
 	return GMRFLib_SUCCESS;
-}
-int gmrflib_domin_gradf_(double *x, double *gradx, int *ierr)
-{
-	return GMRFLib_domin_gradf(x, gradx, ierr);
-}
-int gmrflib_domin_gradf__(double *x, double *gradx, int *ierr)
-{
-	return GMRFLib_domin_gradf(x, gradx, ierr);
 }
 int GMRFLib_domin_gradf(double *x, double *gradx, int *ierr)
 {
@@ -368,7 +304,7 @@ int GMRFLib_domin_gradf(double *x, double *gradx, int *ierr)
 int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 {
 	/*
-	 * new implementation more suited for OpenMP. return also, optionally, also f0.
+	 * new implementation more suited for OpenMP. return also, optionally, also a better estimate for f0.
 	 */
 
 	int i, tmax, id, debug = 0, id_save;
@@ -385,7 +321,10 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	/*
 	 * this is the one to be copied 
 	 */
-	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
+
+	if (GMRFLib_openmp->max_threads_outer > 1) {
+		ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+	}
 
 	if (G.ai_par->gradient_forward_finite_difference) {
 		/*
@@ -393,7 +332,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		 */
 		double *f = Calloc(G.nhyper + 1, double);
 
-#pragma omp parallel for private(i)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < G.nhyper + 1; i++) {
 			double *xx = NULL;
 			int j, err;
@@ -408,7 +347,8 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 					ais = G.ai_store;
 				} else {
 					if (!ai_store[GMRFLib_thread_id]) {
-						ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE);
+						ai_store[GMRFLib_thread_id] =
+						    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 					}
 					ais = ai_store[GMRFLib_thread_id];
 				}
@@ -459,7 +399,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			ff = Calloc(G.nhyper, double);
 			ffm = Calloc(G.nhyper, double);
 		}
-#pragma omp parallel for private(i)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < 2 * G.nhyper; i++) {
 			int j, err;
 			double *xx = NULL;
@@ -476,7 +416,8 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 					ais = G.ai_store;
 				} else {
 					if (!ai_store[GMRFLib_thread_id]) {
-						ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE);
+						ai_store[GMRFLib_thread_id] =
+						    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 					}
 					ais = ai_store[GMRFLib_thread_id];
 				}
@@ -545,7 +486,6 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		}
 	}
 	Free(ai_store);
-
 	*ierr = 0;
 
 	if (debug) {
@@ -686,8 +626,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 			fprintf(G.ai_par->fp_log, "Estimate Hessian Part I (%1d) ", 2 * n + 1);
 		}
 	}
-
-#pragma omp parallel for private(i)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < 2 * n + 1; i++) {
 		int j;
 		GMRFLib_ai_store_tp *ais = NULL;
@@ -701,7 +640,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 		GMRFLib_thread_id = omp_get_thread_num();
 		if (omp_in_parallel()) {
 			if (!ai_store[GMRFLib_thread_id]) {
-				ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
+				ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 			}
 			ais = ai_store[GMRFLib_thread_id];
 			i2thread[i] = GMRFLib_thread_id;
@@ -765,11 +704,6 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 	 * this is a problem, thread_min might not point to G.ai_store, which is used later in the main code. we would like to do a similar thing as below, but
 	 * cannot since G.ai_store is pointing to a storage in INLA() which cannot be changed. therefore the optimiser has to be restarted to set things straight!
 	 */
-	// if (thread_min > 0)
-	// {
-	// GMRFLib_free_ai_store(G.ai_store);
-	// G.ai_store = GMRFLib_duplicate_ai_store(ai_store[thread_min], GMRFLib_TRUE);
-	// }
 
 	if (G.ai_par->stupid_search_mode && !G.ai_par->mode_known && !ISEQUAL(f0, f0min)) {
 		if (debug)
@@ -833,7 +767,7 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 					fprintf(G.ai_par->fp_log, "\nEstimate Hessian Part II (%1d) ", nn);
 				}
 			}
-#pragma omp parallel for private(k)
+#pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (k = 0; k < nn; k++) {
 				int ii, jj;
 				double f11, fm11, f1m1, fm1m1;
@@ -848,7 +782,8 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 				GMRFLib_thread_id = omp_get_thread_num();
 				if (omp_in_parallel()) {
 					if (!ai_store[GMRFLib_thread_id]) {
-						ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
+						ai_store[GMRFLib_thread_id] =
+						    GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 					}
 					ais = ai_store[GMRFLib_thread_id];
 				} else {
@@ -976,7 +911,7 @@ int GMRFLib_test_something____omp(void)
 	printf("x %g %g f %.12f\n", x[0], x[1], fx[0]);
 
 	for (i = 0; i < 10; i++) {
-		GMRFLib_ai_store_tp *ais = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
+		GMRFLib_ai_store_tp *ais = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 
 		x[0] = 3.0 - (i + 1) * 0.1;
 		x[1] = 3.0 + (i + 1) * 0.1;
@@ -985,9 +920,9 @@ int GMRFLib_test_something____omp(void)
 
 		GMRFLib_free_ai_store(ais);
 	}
-#pragma omp parallel for private(i, x, fx)
+#pragma omp parallel for private(i, x, fx) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < 10; i++) {
-		GMRFLib_ai_store_tp *ais = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE);
+		GMRFLib_ai_store_tp *ais = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 
 		x[0] = 3.0 - (i + 1) * 0.1;
 		x[1] = 3.0 + (i + 1) * 0.1;
@@ -1187,7 +1122,8 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 			status_g = status_f = status_x = GSL_SUCCESS;
 			break;
 		}
-	} while ((status_g == GSL_CONTINUE) && (status_f == GSL_CONTINUE) && (status_x == GSL_CONTINUE) && (status == GSL_SUCCESS) && (iter < iter_max));
+	} while ((status_g == GSL_CONTINUE) && (status_f == GSL_CONTINUE) && (status_x == GSL_CONTINUE) && (status == GSL_SUCCESS)
+		 && (iter < iter_max));
 
 	xx = gsl_multimin_fdfminimizer_x(s);
 	G.fvalue = -gsl_multimin_fdfminimizer_minimum(s);
