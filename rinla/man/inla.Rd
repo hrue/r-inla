@@ -117,9 +117,9 @@ WARNING: The normalizing constant for the likelihood is NOT recomputed, so
 ALL marginals (and the marginal likelihood) must be interpreted with great care.
 Possibly, you may want to set the prior for the hyperparameters to \code{"uniform"}
 and the integration strategy to \code{"eb"} to mimic a maximum-likelihood approach.}
-\item{Ntrials}{ A vector containing the number of
-trials for the \code{binomial} likelihood. Default
-value is \code{rep(1, n.data)}.}
+\item{Ntrials}{A vector containing the number of trials for the \code{binomial} 
+likelihood and variantes, or the number of required successes for the
+\code{nbinomial2} likelihood. Default value is \code{rep(1, n.data)}.}
 \item{strata}{Fixed (optional) strata indicators 
 for tstrata likelihood model.}
 \item{link.covariates}{A vector or matrix with covariates for link functions}

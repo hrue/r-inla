@@ -22,7 +22,7 @@
         logdens = ifelse(missing(sample), FALSE, TRUE),
         compute.mean = ifelse(missing(sample), FALSE, TRUE),
         num.threads = if (seed == 0L) 1L else NULL,
-        selection = NULL)
+        selection = NULL, verbose = FALSE)
  }
  
  \arguments{
@@ -47,6 +47,7 @@
    \item{selection}{A vector with indices of each sample to return,  where \code{NULL} means
                     return the whole sample. (The log-density retured,  is for the whole sample.)
                     The use of \code{selection} cannot be combined with the use of \code{sample}.}
+   \item{verbose}{Logical. Run in verbose mode or not.}
  }
 \value{
       The log-density has form {-1/2(x-mu)^T Q (x-mu) + b^T x}
