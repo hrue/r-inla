@@ -6443,6 +6443,8 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `nbinomial2'.}{Number of hyperparmeters are 0.
+				 }
 				\item{Model `simplex'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{
