@@ -20,7 +20,7 @@ rsync -auv ~/p/inla/pardiso $d
 fix-perm $d/pardiso
 
 for m in 64; do
-    for p in inla fmesher; do 
+    for p in inla inla.mkl fmesher; do 
 	for f in $(ssh $INLA_MAC bin/my.otool builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
 	    rsync -auvL $INLA_MAC:$f $d/mac/${m}bit/.
