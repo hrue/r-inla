@@ -6650,15 +6650,9 @@ int inla_integration_scheme_gaussian(double **x, double **w, int n)
 	assert(lcache_idx < lcache_idx_max);
 	
 	if (!lcache[lcache_idx]) {
-		double *xx = Calloc(n, double);
-		double *ww = Calloc(n, double);
-		double weight[2] = { 4.0, 2.0 };
-		double limit = 6.0;
-		double dx = 2.0*limit/(n - 1.0);
-		double dx3 = dx / 3.0;
-		double norm = 1.0/sqrt(2.0*M_PI);
-		int i;
-		int j;
+		double *xx = Calloc(n, double), *ww = Calloc(n, double);
+		double weight[2] = { 4.0, 2.0 }, limit = 4.0, dx = 2.0*limit/(n - 1.0), dx3 = dx / 3.0, norm = 1.0/sqrt(2.0*M_PI);
+		int i, j;
 		
 		xx[0] = -limit;
 		xx[n-1] = limit;
@@ -6668,7 +6662,7 @@ int inla_integration_scheme_gaussian(double **x, double **w, int n)
 			ww[i] = weight[j] * norm * exp(-0.5 * SQR(xx[i])) * dx3; 
 		}
 
-		double corr = 0.0;			       /* make sure integral(1) = 1 */
+		double corr = 0.0;			       /* correct by making sure that integral(1) = 1 */
 		for(i = 0; i < n; i++) {
 			corr += ww[i];
 		}
@@ -6680,18 +6674,6 @@ int inla_integration_scheme_gaussian(double **x, double **w, int n)
 		lcache[lcache_idx] = Calloc(1, lcache_t);
 		lcache[lcache_idx]->x = xx;
 		lcache[lcache_idx]->w = ww;
-		
-		if (0) {
-			double mom[3] = {0, 0, 0};
-			for(i = 0; i < n; i++){
-				mom[0] += 1.0 * ww[i];
-				mom[1] += xx[i] * ww[i];
-				mom[2] += SQR(xx[i]) * ww[i];
-			}
-			P(mom[0]);
-			P(mom[1]);
-			P(mom[2]);
-		}
 	}
 	*x = lcache[lcache_idx]->x;
 	*w = lcache[lcache_idx]->w;
@@ -6709,7 +6691,7 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	int i, k, debug = 0;
+	int i, k, kk, debug = 0, mm;
 	double *val = NULL, val_max, sum, prec, *xx = NULL, *ll = NULL, *storage = NULL, *points = NULL, *weights = NULL;
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
@@ -6726,65 +6708,53 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 	default:
 		assert(0 == 1);
 	}
-	storage = Calloc(3 * ds->mix_nq * ABS(m), double);	       /* use just one longer vector */
+
+	mm = ds->mix_nq * ABS(m);
+	storage = Calloc(3 * mm, double);		       /* use just one longer vector */
 	val = storage;
-	xx = storage + 1 * ds->mix_nq * ABS(m);
-	ll = storage + 2 * ds->mix_nq * ABS(m);
+	xx = storage + 1 * mm;
+	ll = storage + 2 * mm;
 	
 	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			if (debug) {
-				printf("x[%1d] = %g prec = %g\n", i, x[i], prec);
-			}
+		// do just one call to the likelihood function
+		for (i = 0, kk = 0; i < m; i++) {
 			for (k = 0; k < ds->mix_nq; k++) {
-				xx[k] = x[i] + points[k] / sqrt(prec);
-				if (debug) {
-					printf("\txx[%1d] = %g\n", k, xx[k]);
-				}
+				xx[kk++] = x[i] + points[k] / sqrt(prec);
 			}
-			ds->mix_loglikelihood(ll, xx, ds->mix_nq, idx, x_vec, NULL, arg);
-
+		}
+		assert(kk == mm);
+		ds->mix_loglikelihood(ll, xx, mm, idx, x_vec, NULL, arg);
+		for (i = 0, kk = 0; i < m; i++) {
 			for (k = 0; k < ds->mix_nq; k++) {
-				if (debug) {
-					printf("\tll[%1d] = %g integration.weight = %g\n", k, ll[k], weights[k]);
-				}
-				val[k] = log(weights[k]) + ll[k];
+				val[k] = log(weights[k]) + ll[kk++];
 			}
 			val_max = GMRFLib_max_value(val, ds->mix_nq, NULL);
-			sum = 0.0;
-			for (k = 0; k < ds->mix_nq; k++) {
+			for (k = 0, sum = 0.0; k < ds->mix_nq; k++) {
 				if (!ISNAN(val[k])) {
 					sum += exp(val[k] - val_max);
 				}
 			}
 			assert(sum > 0.0);
 			logll[i] = log(sum) + val_max;
-			if (debug) {
-				printf("\nlogll[%1d] = %g\n", i, logll[i]);
-			}
-
-			if (0) {
-				P(idx);
-				P(x[i]);
-				P(prec);
-				P(log(prec));
-				P(logll[i]);
-			}
+			//printf("idx %d x %f prec %f logll %f\n", idx, x[i], prec, logll[i]);
 		}
+		assert(kk == mm);
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
-		for (i = 0; i < -m; i++) {
+		for (i = 0, kk = 0; i < -m; i++) {
 			for (k = 0; k < ds->mix_nq; k++) {
-				xx[k] = x[i] + points[k] / sqrt(prec);
+				xx[kk++] = x[i] + points[k] / sqrt(prec);
 			}
-			ds->mix_loglikelihood(ll, xx, -ds->mix_nq, idx, x_vec, NULL, arg);
-
-			sum = 0.0;
-			for (k = 0; k < ds->mix_nq; k++) {
-				sum += weights[k] * ll[k];
+		}
+		assert(kk == mm);
+		ds->mix_loglikelihood(ll, xx, mm, idx, x_vec, NULL, arg);
+		for (i = 0, kk = 0; i < -m; i++) {
+			for (k = 0, sum = 0.0; k < ds->mix_nq; k++) {
+				sum += weights[k] * ll[kk++];
 			}
 			logll[i] = sum;
 		}
+		assert(kk == mm);
 	}
 
 	Free(storage);
