@@ -6627,6 +6627,78 @@ int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *x_vec
 	return GMRFLib_SUCCESS;
 }
 
+int inla_integration_scheme_gaussian(double **x, double **w, int n)
+{
+	// return integration points and weight when integrating wrt to a std Gaussian kernel
+
+	typedef struct
+	{
+		double *x, *w;
+	}
+	lcache_t;
+	
+	static lcache_t **lcache = NULL;
+#pragma omp threadprivate(lcache)
+	int lcache_idx_max = 512;
+	
+	if (!lcache) {
+		lcache = Calloc(lcache_idx_max, lcache_t *);
+	}
+	
+	int lcache_idx = n / 2L;			       /* YES, use integer division */
+	assert(GSL_IS_ODD(n));
+	assert(lcache_idx < lcache_idx_max);
+	
+	if (!lcache[lcache_idx]) {
+		double *xx = Calloc(n, double);
+		double *ww = Calloc(n, double);
+		double weight[2] = { 4.0, 2.0 };
+		double limit = 6.0;
+		double dx = 2.0*limit/(n - 1.0);
+		double dx3 = dx / 3.0;
+		double norm = 1.0/sqrt(2.0*M_PI);
+		int i;
+		int j;
+		
+		xx[0] = -limit;
+		xx[n-1] = limit;
+		ww[0] = ww[n-1] = norm * exp(-0.5*SQR(xx[0])) * dx3;
+		for(i = 1, j = 0; i < n-1; i++, j = (j+1) % 2L) {
+			xx[i] = xx[i-1] + dx;
+			ww[i] = weight[j] * norm * exp(-0.5 * SQR(xx[i])) * dx3; 
+		}
+
+		double corr = 0.0;			       /* make sure integral(1) = 1 */
+		for(i = 0; i < n; i++) {
+			corr += ww[i];
+		}
+		corr = 1.0/corr;
+		for(i = 0; i < n; i++) {
+			ww[i] *= corr;
+		}
+		
+		lcache[lcache_idx] = Calloc(1, lcache_t);
+		lcache[lcache_idx]->x = xx;
+		lcache[lcache_idx]->w = ww;
+		
+		if (0) {
+			double mom[3] = {0, 0, 0};
+			for(i = 0; i < n; i++){
+				mom[0] += 1.0 * ww[i];
+				mom[1] += xx[i] * ww[i];
+				mom[2] += SQR(xx[i]) * ww[i];
+			}
+			P(mom[0]);
+			P(mom[1]);
+			P(mom[2]);
+		}
+	}
+	*x = lcache[lcache_idx]->x;
+	*w = lcache[lcache_idx]->w;
+
+	return GMRFLib_SUCCESS;
+}
+
 int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	/*
@@ -6643,12 +6715,22 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	prec = map_precision(ds->data_observations.mix_log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
-	GMRFLib_ghq(&points, &weights, ds->mix_nq);	       /* these are just pointers... */
-	storage = Calloc(3 * ds->mix_nq, double);	       /* use just one longer vector */
+	switch(ds->mix_integrator) {
+	case MIX_INT_GQ: 
+		GMRFLib_ghq(&points, &weights, ds->mix_nq);	       /* these are just pointers... */
+		break;
+	case MIX_INT_DEFAULT:
+	case MIX_INT_SIMPSON: 
+		inla_integration_scheme_gaussian(&points, &weights, ds->mix_nq);
+		break;
+	default:
+		assert(0 == 1);
+	}
+	storage = Calloc(3 * ds->mix_nq * ABS(m), double);	       /* use just one longer vector */
 	val = storage;
-	xx = storage + 1 * ds->mix_nq;
-	ll = storage + 2 * ds->mix_nq;
-
+	xx = storage + 1 * ds->mix_nq * ABS(m);
+	ll = storage + 2 * ds->mix_nq * ABS(m);
+	
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			if (debug) {
@@ -6679,6 +6761,14 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 			logll[i] = log(sum) + val_max;
 			if (debug) {
 				printf("\nlogll[%1d] = %g\n", i, logll[i]);
+			}
+
+			if (0) {
+				P(idx);
+				P(x[i]);
+				P(prec);
+				P(log(prec));
+				P(logll[i]);
 			}
 		}
 	} else {
@@ -14969,14 +15059,26 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 * read mix-parameters
 		 */
 
-		char *model = NULL;
+		char *model = NULL, *integrator = NULL;
 
 		ds->mix_nq = iniparser_getint(ini, inla_string_join(secname, "MIX.NQ"), 15);
 		assert(ds->mix_nq >= 5);
 		model = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "MIX.MODEL"), NULL)));
+		integrator = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "MIX.INTEGRATOR"), NULL)));
+		if (!strcasecmp(integrator, "default")){
+			ds->mix_integrator = MIX_INT_DEFAULT;
+		} else if (!strcasecmp(integrator, "gq")) {
+			ds->mix_integrator = MIX_INT_GQ;
+		} else if (!strcasecmp(integrator, "simpson")) {
+			ds->mix_integrator = MIX_INT_SIMPSON;
+		} else {
+			assert(0 == 1);
+		}
+		
 		if (mb->verbose) {
 			printf("\t\tmix.nq [%d]\n", ds->mix_nq);
 			printf("\t\tmix.model [%s]\n", model);
+			printf("\t\tmix.integrator [%s]\n", integrator);
 		}
 		if (!strcasecmp(model, "GAUSSIAN")) {
 			ds->mix_id = MIX_GAUSSIAN;
@@ -30688,7 +30790,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
-		GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
+		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
