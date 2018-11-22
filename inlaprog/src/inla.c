@@ -6627,77 +6627,183 @@ int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *x_vec
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int inla_mix_int_quadrature_gaussian(double **x, double **w, int n, void *arg) 
 {
-	/*
-	 * this is the wrapper for the gaussian_mix
-	 */
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double prec = map_precision(ds->data_observations.mix_log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double sd = sqrt(1.0/prec);
+	double *xx = NULL, *ww = NULL;
 
-	if (m == 0) {
-		return GMRFLib_LOGL_COMPUTE_CDF;
+	GMRFLib_ghq(&xx, &ww, n);
+	*x = Calloc(n, double);
+	*w = Calloc(n, double);
+	for(int i = 0; i < n; i++) {
+		(*x)[i] = sd * xx[i];
+	}
+	memcpy(*w, ww, n * sizeof(double));
+
+	return GMRFLib_SUCCESS;
+}
+
+int inla_mix_int_simpson_gaussian(double **x, double **w, int n, void *arg)
+{
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double prec = map_precision(ds->data_observations.mix_log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double sd = sqrt(1.0/prec);
+
+	typedef struct
+	{
+		int n;
+		double *x, *w;
+	} lcache_t;
+	
+	static lcache_t *lcache = NULL;
+#pragma omp threadprivate(lcache)
+	
+	if (!lcache) {
+		lcache = Calloc(1, lcache_t);
 	}
 
-	int i, k, debug = 0;
-	double *val = NULL, val_max, sum, prec, *xx = NULL, *ll = NULL, *storage = NULL, *points = NULL, *weights = NULL;
+	if (lcache->n != n) {
 
+		if (lcache->n > 0) {
+			inla_error_general("Ask <help@r-inla.org> to rewrite inla_mix_int_simpson_gaussian()");
+			exit(1);
+		}
+
+		Free(lcache->x);
+		Free(lcache->w);
+		lcache->n = n;
+
+		double *xx = Calloc(n, double), *ww = Calloc(n, double);
+		double weight[2] = { 4.0, 2.0 }, limit = 4.0, dx = 2.0*limit/(n - 1.0);
+		int i, j;
+		
+		xx[0] = -limit;
+		xx[n-1] = limit;
+		ww[0] = ww[n-1] = exp(-0.5*SQR(xx[0]));
+		for(i = 1, j = 0; i < n-1; i++, j = (j+1) % 2L) {
+			xx[i] = xx[i-1] + dx;
+			ww[i] = weight[j] * exp(-0.5 * SQR(xx[i]));
+		}
+
+		// make sure that integral(1) = 1 
+		double corr = 0.0;		
+		for(i = 0; i < n; i++) {
+			corr += ww[i];
+		}
+		corr = 1.0/corr;
+		for(i = 0; i < n; i++) {
+			ww[i] *= corr;
+		}
+		
+		lcache->x = xx;
+		lcache->w = ww;
+	}
+
+	*x = Calloc(n, double);
+	*w = Calloc(n, double);
+	for(int i = 0; i < n; i++) {
+		(*x)[i] = sd * lcache->x[i];
+	}
+	memcpy(*w, lcache->w, n * sizeof(double));
+
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+{
+	return (loglikelihood_mix_core(logll, x, m, idx, x_vec, y_cdf, arg,
+				       inla_mix_int_quadrature_gaussian,
+				       inla_mix_int_simpson_gaussian));
+}
+
+int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			   int (*func_quadrature)(double **, double **, int, void *arg),
+			   int (*func_simpson)(double **, double **, int, void *arg))
+{
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	prec = map_precision(ds->data_observations.mix_log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	if (m == 0) {
+		if (arg) {
+			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
+		} else {
+			return (GMRFLib_LOGL_COMPUTE_CDF);
+		}
+	}
+	
+	int i, k, kk, mm;
+	double *val = NULL, val_max, sum, *xx = NULL, *ll = NULL, *storage = NULL, *points = NULL, *weights = NULL;
 
-	GMRFLib_ghq(&points, &weights, ds->mix_nq);	       /* these are just pointers... */
-	storage = Calloc(3 * ds->mix_nq, double);	       /* use just one longer vector */
+	switch(ds->mix_integrator) {
+	case MIX_INT_QUADRATURE: 
+		if (func_quadrature) {
+			func_quadrature(&points, &weights, ds->mix_npoints, arg);
+		} else {
+			assert(0 == 1);
+		}
+		break;
+	case MIX_INT_DEFAULT:
+	case MIX_INT_SIMPSON: 
+		if (func_simpson) {
+			func_simpson(&points, &weights, ds->mix_npoints, arg);
+		} else {
+			assert(0 == 1);
+		}
+		break;
+	default:
+		assert(0 == 1);
+	}
+
+	mm = ds->mix_npoints * ABS(m);
+	storage = Calloc(ds->mix_npoints + 2 * mm, double);	       /* use just one longer vector */
 	val = storage;
-	xx = storage + 1 * ds->mix_nq;
-	ll = storage + 2 * ds->mix_nq;
-
+	xx = storage + ds->mix_npoints;
+	ll = storage + ds->mix_npoints + mm;
+	
 	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			if (debug) {
-				printf("x[%1d] = %g prec = %g\n", i, x[i], prec);
+		for (i = 0, kk = 0; i < m; i++) {
+			for (k = 0; k < ds->mix_npoints; k++) {
+				xx[kk++] = x[i] + points[k];
 			}
-			for (k = 0; k < ds->mix_nq; k++) {
-				xx[k] = x[i] + points[k] / sqrt(prec);
-				if (debug) {
-					printf("\txx[%1d] = %g\n", k, xx[k]);
-				}
+		}
+		assert(kk == mm);
+		ds->mix_loglikelihood(ll, xx, mm, idx, x_vec, NULL, arg);
+		for (i = 0, kk = 0; i < m; i++) {
+			for (k = 0; k < ds->mix_npoints; k++) {
+				val[k] = log(weights[k]) + ll[kk++];
 			}
-			ds->mix_loglikelihood(ll, xx, ds->mix_nq, idx, x_vec, NULL, arg);
-
-			for (k = 0; k < ds->mix_nq; k++) {
-				if (debug) {
-					printf("\tll[%1d] = %g integration.weight = %g\n", k, ll[k], weights[k]);
-				}
-				val[k] = log(weights[k]) + ll[k];
-			}
-			val_max = GMRFLib_max_value(val, ds->mix_nq, NULL);
-			sum = 0.0;
-			for (k = 0; k < ds->mix_nq; k++) {
+			val_max = GMRFLib_max_value(val, ds->mix_npoints, NULL);
+			for (k = 0, sum = 0.0; k < ds->mix_npoints; k++) {
 				if (!ISNAN(val[k])) {
 					sum += exp(val[k] - val_max);
 				}
 			}
 			assert(sum > 0.0);
 			logll[i] = log(sum) + val_max;
-			if (debug) {
-				printf("\nlogll[%1d] = %g\n", i, logll[i]);
-			}
 		}
+		assert(kk == mm);
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
-		for (i = 0; i < -m; i++) {
-			for (k = 0; k < ds->mix_nq; k++) {
-				xx[k] = x[i] + points[k] / sqrt(prec);
+		for (i = 0, kk = 0; i < -m; i++) {
+			for (k = 0; k < ds->mix_npoints; k++) {
+				xx[kk++] = x[i] + points[k];
 			}
-			ds->mix_loglikelihood(ll, xx, -ds->mix_nq, idx, x_vec, NULL, arg);
-
-			sum = 0.0;
-			for (k = 0; k < ds->mix_nq; k++) {
-				sum += weights[k] * ll[k];
+		}
+		assert(kk == mm);
+		ds->mix_loglikelihood(ll, xx, mm, idx, x_vec, NULL, arg);
+		for (i = 0, kk = 0; i < -m; i++) {
+			for (k = 0, sum = 0.0; k < ds->mix_npoints; k++) {
+				sum += weights[k] * ll[kk++];
 			}
 			logll[i] = sum;
 		}
+		assert(kk == mm);
 	}
 
 	Free(storage);
+	Free(points);
+	Free(weights);
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -14969,14 +15075,26 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 * read mix-parameters
 		 */
 
-		char *model = NULL;
+		char *model = NULL, *integrator = NULL;
 
-		ds->mix_nq = iniparser_getint(ini, inla_string_join(secname, "MIX.NQ"), 15);
-		assert(ds->mix_nq >= 5);
+		ds->mix_npoints = iniparser_getint(ini, inla_string_join(secname, "MIX.NPOINTS"), 99);
+		assert(ds->mix_npoints >= 5);
 		model = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "MIX.MODEL"), NULL)));
+		integrator = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "MIX.INTEGRATOR"), NULL)));
+		if (!strcasecmp(integrator, "default")){
+			ds->mix_integrator = MIX_INT_DEFAULT;
+		} else if (!strcasecmp(integrator, "quadrature")) {
+			ds->mix_integrator = MIX_INT_QUADRATURE;
+		} else if (!strcasecmp(integrator, "simpson")) {
+			ds->mix_integrator = MIX_INT_SIMPSON;
+		} else {
+			assert(0 == 1);
+		}
+		
 		if (mb->verbose) {
-			printf("\t\tmix.nq [%d]\n", ds->mix_nq);
+			printf("\t\tmix.npoints [%d]\n", ds->mix_npoints);
 			printf("\t\tmix.model [%s]\n", model);
+			printf("\t\tmix.integrator [%s]\n", integrator);
 		}
 		if (!strcasecmp(model, "GAUSSIAN")) {
 			ds->mix_id = MIX_GAUSSIAN;
@@ -30521,7 +30639,7 @@ int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
-		GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
+		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
@@ -30688,7 +30806,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
-		GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
+		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
