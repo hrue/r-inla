@@ -669,7 +669,7 @@ typedef struct inla_tp_struct inla_tp;			       /* need it like this as they poi
 
 typedef enum {
 	MIX_INT_DEFAULT = 0, 
-	MIX_INT_GQ = 1,
+	MIX_INT_QUADRATURE = 1,
 	MIX_INT_SIMPSON = 2
 } inla_mix_integrator_tp;
 
@@ -717,7 +717,7 @@ typedef struct {
 	 * the re-extention
 	 */
 	int mix_use;
-	int mix_nq;
+	int mix_npoints;
 	inla_component_tp mix_id;
 	inla_mix_integrator_tp mix_integrator;
 	GMRFLib_logl_tp *mix_loglikelihood;
@@ -1734,11 +1734,16 @@ int my_file_exists(const char *filename);
 int my_dir_exists(const char *dirname);
 int my_setenv(char *str, int prefix);
 int testit(int argc, char **argv);
-int inla_integration_scheme_gaussian(double **x, double **w, int n);
+int inla_mix_int_simpson_gaussian(double **x, double **w, int n, void *arg);
+int inla_mix_int_quadrature_gaussian(double **x, double **w, int n, void *arg);
 map_table_tp *mapfunc_find(const char *name);
 unsigned char *inla_fp_sha1(FILE * fp);
 unsigned char *inla_inifile_sha1(const char *filename);
 void inla_signal(int sig);
+
+int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+			   int (*quadrature)(double **, double **, int, void *),
+			   int (*simpson)(double **, double **, int, void *));
 
 /* 
 ***
