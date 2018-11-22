@@ -127,10 +127,10 @@
         ##:ARGUMENT: param (OBSOLETE!) The parameters for the prior distribution(s) for the hyperparmater(s)
         param = NULL,
 
-        ##:ARGUMENT: nq Number of points used to do the numerical integration (default 21)
-        nq = 21, 
+        ##:ARGUMENT: npoints Number of points used to do the numerical integration (default 101)
+        npoints = 101, 
 
-        ##:ARGUMENT: integrator The integration scheme to use (\code{default}, \code{gq}, \code{simpson})
+        ##:ARGUMENT: integrator The integration scheme to use (\code{default}, \code{quadrature}, \code{simpson})
         integrator = "default")
     
     ##:SEEALSO: inla
