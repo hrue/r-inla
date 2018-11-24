@@ -243,7 +243,8 @@
 }
 
 `inla.ffield.section` = function(file, file.loc, file.cov, file.id.names = NULL,  n, nrep, ngroup,
-        file.extraconstr, file.weights, random.spec, results.dir, only.hyperparam, data.dir)
+                                 file.extraconstr, file.weights, random.spec, results.dir, only.hyperparam, data.dir,
+                                 www)
 {
     label= random.spec$term
     prop = inla.model.properties(random.spec$model, "latent", stop.on.error=TRUE)
@@ -268,7 +269,11 @@
         cat("extraconstraint =", file.extraconstr,"\n", sep = " ", file = file,  append = TRUE)
     }
     if (!is.null(random.spec$weights)) {
-        cat("weights =", file.weights,"\n", sep = " ", file = file,  append = TRUE)
+        ## the 'intslope' model is special where we use the values of the weights, passed in the
+        ## variable 'www', further down
+        if (!inla.one.of(random.spec$model, "intslope")) { 
+            cat("weights =", file.weights,"\n", sep = " ", file = file,  append = TRUE)
+        }
     }
     if (!is.null(random.spec$spde.prefix)) {
         ## need a special one, as spde.prefix is not a file or a directory...
@@ -604,6 +609,18 @@
             file.C = gsub(data.dir, "$inladatadir", file.C, fixed=TRUE)
             cat("Cmatrix = ", file.C, "\n", append=TRUE, sep = " ", file = file)
         }
+    }
+
+    if (inla.one.of(random.spec$model, "intslope")) {
+        ## use the weights as in 'www'
+        stopifnot(!is.null(random.spec$args.intslope))
+        random.spec$args.intslope$covariates = www
+        M.matrix = cbind(random.spec$args.intslope$covariates, random.spec$args.intslope$strata)
+        file.M = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(M.matrix, filename = file.M)
+        file.M = gsub(data.dir, "$inladatadir", file.M, fixed=TRUE)
+        cat("intslope.matrix = ", file.M, "\n", append=TRUE, sep = " ", file = file)
+        browser()
     }
 
     if (!is.null(random.spec$rankdef)) {

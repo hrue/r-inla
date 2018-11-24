@@ -308,7 +308,7 @@
     ##!\item{scale}{A scaling vector. Its meaning depends on the model.}
     scale = NULL,
 
-    ##!\item{strata}{A stratum vector. It meaning depends on the model.}
+    ##!\item{strata}{A stratum factor with exact meaning that is model dependent. Currently only used for the \code{intslope}-model.}
     strata = NULL,
 
     ##!\item{rgeneric}{A object of class \code{inla.rgeneric} which defines the model. (EXPERIMENTAL!)}
@@ -547,6 +547,26 @@
             order = as.integer(order)
         }
         stopifnot(any(order == inla.models()$latent$fgn$order.defined))
+    }
+
+    args.intslope = NULL
+    if (inla.one.of(model, c("intslope"))) {
+        if (!is.null(constr)) {
+            stop("For model 'intslope', setting 'constr=TRUE' has no meaning.")
+        }
+        if (!is.null(values)) {
+            stop("For model 'intslope', setting 'values=...' has no meaning.")
+        }
+        if (is.null(weights)) {
+            stop("For model 'intslope', 'weights' are required.")
+        }
+        if (missing(strata) || is.null(strata)) {
+            stop("For model 'intslope', option 'strata' must be defined.")
+        }
+        ## yes, collect these together (partly) here...
+        args.intslope = list(covariates = NA, strata = as.numeric(as.factor(strata)))
+        ## as 'weights' is not yet expanded
+        strata = NULL
     }
 
     ## Check that the Cmatrix is defined for those models needing it, and oposite.
@@ -1018,6 +1038,7 @@
         rgeneric = rgeneric,
         scale.model = as.logical(scale.model),
         adjust.for.con.comp = as.logical(adjust.for.con.comp),
+        args.intslope = args.intslope, 
         args.slm = args.slm,
         args.ar1c = args.ar1c,
         correct = correct,

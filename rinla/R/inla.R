@@ -1778,6 +1778,7 @@
                 }
                 
                 ##....also if necessary a file for the weights (not to be confused with argument 'weights' in the inla() call...)
+                www = NULL
                 if (!is.null(gp$random.spec[[r]]$weights)) {
                     ## $weights is the name
                     www = wf[, gp$random.spec[[r]]$weights ]
@@ -1807,7 +1808,7 @@
                                                   random.spec=gp$random.spec[[r]], 
                                                   results.dir=paste("random.effect", inla.num(count.random), sep=""), 
                                                   only.hyperparam= only.hyperparam,
-                                                  data.dir=data.dir))
+                                                  data.dir=data.dir, www = www))
                 all.hyper$random[[r]] = (list(hyperid = inla.namefix(gp$random.spec[[r]]$term),
                                               hyper = rs.updated$hyper,
                                               group.hyper = rs.updated$control.group$hyper))
