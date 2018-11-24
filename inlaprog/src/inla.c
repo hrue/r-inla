@@ -6627,17 +6627,17 @@ int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *x_vec
 	return GMRFLib_SUCCESS;
 }
 
-int inla_mix_int_quadrature_gaussian(double **x, double **w, int n, void *arg) 
+int inla_mix_int_quadrature_gaussian(double **x, double **w, int n, void *arg)
 {
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double prec = map_precision(ds->data_observations.mix_log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double sd = sqrt(1.0/prec);
+	double sd = sqrt(1.0 / prec);
 	double *xx = NULL, *ww = NULL;
 
 	GMRFLib_ghq(&xx, &ww, n);
 	*x = Calloc(n, double);
 	*w = Calloc(n, double);
-	for(int i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		(*x)[i] = sd * xx[i];
 	}
 	memcpy(*w, ww, n * sizeof(double));
@@ -6649,17 +6649,16 @@ int inla_mix_int_simpson_gaussian(double **x, double **w, int n, void *arg)
 {
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double prec = map_precision(ds->data_observations.mix_log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double sd = sqrt(1.0/prec);
+	double sd = sqrt(1.0 / prec);
 
-	typedef struct
-	{
+	typedef struct {
 		int n;
 		double *x, *w;
 	} lcache_t;
-	
+
 	static lcache_t *lcache = NULL;
 #pragma omp threadprivate(lcache)
-	
+
 	if (!lcache) {
 		lcache = Calloc(1, lcache_t);
 	}
@@ -6676,34 +6675,34 @@ int inla_mix_int_simpson_gaussian(double **x, double **w, int n, void *arg)
 		lcache->n = n;
 
 		double *xx = Calloc(n, double), *ww = Calloc(n, double);
-		double weight[2] = { 4.0, 2.0 }, limit = 4.0, dx = 2.0*limit/(n - 1.0);
+		double weight[2] = { 4.0, 2.0 }, limit = 4.0, dx = 2.0 * limit / (n - 1.0);
 		int i, j;
-		
+
 		xx[0] = -limit;
-		xx[n-1] = limit;
-		ww[0] = ww[n-1] = exp(-0.5*SQR(xx[0]));
-		for(i = 1, j = 0; i < n-1; i++, j = (j+1) % 2L) {
-			xx[i] = xx[i-1] + dx;
+		xx[n - 1] = limit;
+		ww[0] = ww[n - 1] = exp(-0.5 * SQR(xx[0]));
+		for (i = 1, j = 0; i < n - 1; i++, j = (j + 1) % 2L) {
+			xx[i] = xx[i - 1] + dx;
 			ww[i] = weight[j] * exp(-0.5 * SQR(xx[i]));
 		}
 
 		// make sure that integral(1) = 1 
-		double corr = 0.0;		
-		for(i = 0; i < n; i++) {
+		double corr = 0.0;
+		for (i = 0; i < n; i++) {
 			corr += ww[i];
 		}
-		corr = 1.0/corr;
-		for(i = 0; i < n; i++) {
+		corr = 1.0 / corr;
+		for (i = 0; i < n; i++) {
 			ww[i] *= corr;
 		}
-		
+
 		lcache->x = xx;
 		lcache->w = ww;
 	}
 
 	*x = Calloc(n, double);
 	*w = Calloc(n, double);
-	for(int i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		(*x)[i] = sd * lcache->x[i];
 	}
 	memcpy(*w, lcache->w, n * sizeof(double));
@@ -6713,14 +6712,12 @@ int inla_mix_int_simpson_gaussian(double **x, double **w, int n, void *arg)
 
 int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
-	return (loglikelihood_mix_core(logll, x, m, idx, x_vec, y_cdf, arg,
-				       inla_mix_int_quadrature_gaussian,
-				       inla_mix_int_simpson_gaussian));
+	return (loglikelihood_mix_core(logll, x, m, idx, x_vec, y_cdf, arg, inla_mix_int_quadrature_gaussian, inla_mix_int_simpson_gaussian));
 }
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*func_quadrature)(double **, double **, int, void *arg),
-			   int (*func_simpson)(double **, double **, int, void *arg))
+			   int (*func_quadrature) (double **, double **, int, void *arg),
+			   int (*func_simpson) (double **, double **, int, void *arg))
 {
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
@@ -6730,12 +6727,12 @@ int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_v
 			return (GMRFLib_LOGL_COMPUTE_CDF);
 		}
 	}
-	
+
 	int i, k, kk, mm;
 	double *val = NULL, val_max, sum, *xx = NULL, *ll = NULL, *storage = NULL, *points = NULL, *weights = NULL;
 
-	switch(ds->mix_integrator) {
-	case MIX_INT_QUADRATURE: 
+	switch (ds->mix_integrator) {
+	case MIX_INT_QUADRATURE:
 		if (func_quadrature) {
 			func_quadrature(&points, &weights, ds->mix_npoints, arg);
 		} else {
@@ -6743,7 +6740,7 @@ int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_v
 		}
 		break;
 	case MIX_INT_DEFAULT:
-	case MIX_INT_SIMPSON: 
+	case MIX_INT_SIMPSON:
 		if (func_simpson) {
 			func_simpson(&points, &weights, ds->mix_npoints, arg);
 		} else {
@@ -6755,11 +6752,11 @@ int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_v
 	}
 
 	mm = ds->mix_npoints * ABS(m);
-	storage = Calloc(ds->mix_npoints + 2 * mm, double);	       /* use just one longer vector */
+	storage = Calloc(ds->mix_npoints + 2 * mm, double);    /* use just one longer vector */
 	val = storage;
 	xx = storage + ds->mix_npoints;
 	ll = storage + ds->mix_npoints + mm;
-	
+
 	if (m > 0) {
 		for (i = 0, kk = 0; i < m; i++) {
 			for (k = 0; k < ds->mix_npoints; k++) {
@@ -15081,7 +15078,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		assert(ds->mix_npoints >= 5);
 		model = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "MIX.MODEL"), NULL)));
 		integrator = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "MIX.INTEGRATOR"), NULL)));
-		if (!strcasecmp(integrator, "default")){
+		if (!strcasecmp(integrator, "default")) {
 			ds->mix_integrator = MIX_INT_DEFAULT;
 		} else if (!strcasecmp(integrator, "quadrature")) {
 			ds->mix_integrator = MIX_INT_QUADRATURE;
@@ -15090,7 +15087,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		} else {
 			assert(0 == 1);
 		}
-		
+
 		if (mb->verbose) {
 			printf("\t\tmix.npoints [%d]\n", ds->mix_npoints);
 			printf("\t\tmix.model [%s]\n", model);

@@ -668,7 +668,7 @@ typedef struct {
 typedef struct inla_tp_struct inla_tp;			       /* need it like this as they point to each other */
 
 typedef enum {
-	MIX_INT_DEFAULT = 0, 
+	MIX_INT_DEFAULT = 0,
 	MIX_INT_QUADRATURE = 1,
 	MIX_INT_SIMPSON = 2
 } inla_mix_integrator_tp;
@@ -1742,8 +1742,7 @@ unsigned char *inla_inifile_sha1(const char *filename);
 void inla_signal(int sig);
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(double **, double **, int, void *),
-			   int (*simpson)(double **, double **, int, void *));
+			   int (*quadrature) (double **, double **, int, void *), int (*simpson) (double **, double **, int, void *));
 
 /* 
 ***
