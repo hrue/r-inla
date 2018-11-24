@@ -29,27 +29,67 @@
   }
 }
 
-
-\section{CHANGES IN VERSION xx.xx.xx}{
-  \subsection{USER-VISIBLE CHANGES}{
+\section{CHANGES IN VERSION 18.11.22}{
+  \subsection{BUG FIXES}{
     \itemize{
-      \item 
+      \item Improved \code{control.mix} interface and code
     }
   }
+}
+
+\section{CHANGES IN VERSION 18.10.29}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Likelihood model \code{nbinomial2}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.10.28}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New function \code{inla.priors.used}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.10.17}{
   \subsection{NEW FEATURES}{
     \itemize{
-      \item
+      \item Export class \code{inla}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.10.16}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New latent model: \code{dmatern}
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Improved the numerics for computing the scaling of the RW1 and RW2 models.
+    }
+  }
+}
+
+
+\section{CHANGES IN VERSION 18.10.09}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item New option \code{control.inla=list(tolerance.step=)}, to
+      control the RMS of the step-size for the inner optimization.
+      \item Changed, slightly, the initial values for the exponent in
+      the Weibull likelihood models, to a value close to zero instead of
+      zero.
+      \item New vignette about how to deal with multinomial data.
     }
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
       \item Added option \code{verbose} to
       \code{inla.qsample()} and \code{inla.posterior.sample()}
-    }
-  }
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item 
     }
   }
 }

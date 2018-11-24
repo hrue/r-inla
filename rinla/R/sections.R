@@ -231,9 +231,11 @@
     inla.write.boolean.field("mix.use", !is.null(control$control.mix$model), file)
     if (!is.null(control$control.mix$model)) {
         cat("mix.model = ", control$control.mix$model, "\n", sep="", file=file, append=TRUE)
-        nq = as.integer(control$control.mix$nq)
-        stopifnot(nq >= 5L)
-        cat("mix.nq = ", nq, "\n", sep="", file=file, append=TRUE)
+        npoints = as.integer(control$control.mix$npoints)
+        stopifnot(npoints >= 5L)
+        cat("mix.npoints = ", npoints, "\n", sep="", file=file, append=TRUE)
+        integrator = match.arg(control$control.mix$integrator, c("default", "quadrature", "simpson"))
+        cat("mix.integrator = ", integrator, "\n", sep="", file=file, append=TRUE)
         inla.write.hyper(control$control.mix$hyper, file, prefix = "mix.", data.dir = dirname(file))
     }
 
@@ -464,6 +466,14 @@
         inla.write.fmesher.file(B, filename = file.B)
         file.B = gsub(data.dir, "$inladatadir", file.B, fixed=TRUE)
         cat("z.Bmatrix = ", file.B, "\n", append=TRUE, sep = " ", file = file)
+    }
+
+    if (inla.one.of(random.spec$model, "dmatern")) {
+        ## need the matrix of locations
+        file.loc = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(random.spec$locations, filename = file.loc)
+        file.loc = gsub(data.dir, "$inladatadir", file.loc, fixed=TRUE)
+        cat("dmatern.locations = ", file.loc, "\n", append=TRUE, sep = " ", file = file)
     }
 
     if (inla.one.of(random.spec$model, "generic3")) {
@@ -728,6 +738,10 @@
     }
     cat("tolerance.x = ", inla.spec$tolerance.x,"\n", sep = " ", file = file,  append = TRUE)
 
+    if (!(is.null(inla.spec$tolerance.step) || is.na(inla.spec$tolerance.step))) {
+        cat("tolerance.step = ", inla.spec$tolerance.step,"\n", sep = " ", file = file, append = TRUE)
+    }
+        
     inla.write.boolean.field("hessian.force.diagonal", inla.spec$force.diagonal, file)
     inla.write.boolean.field("skip.configurations", inla.spec$skip.configurations, file)
     inla.write.boolean.field("mode.known", inla.spec$mode.known.conf, file)

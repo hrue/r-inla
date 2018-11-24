@@ -4053,6 +4053,55 @@
                      pdf = "matern2d"
                  ),
 
+                 dmatern = list(
+                     doc = "Dense Matern field", 
+                     hyper = list(
+                         theta1 = list(
+                             hyperid =  35101,
+                             name = "log precision",
+                             short.name = "prec",
+                             initial = 3,
+                             fixed = FALSE,
+                             prior = "pc.prec",
+                             param = c(1, 0.01),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         ),
+                         theta2 = list(
+                             hyperid =  35102,
+                             name = "log range",
+                             short.name = "range",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "pc.range",
+                             param = c(1, 0.5),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         ), 
+                         theta3 = list(
+                             hyperid =  35103,
+                             name = "log nu",
+                             short.name = "nu",
+                             initial = log(0.5),
+                             fixed = TRUE,
+                             prior = "loggamma",
+                             param = c(0.5, 1),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         )
+                     ),
+                     constr = FALSE,
+                     nrow.ncol = FALSE,
+                     augmented = FALSE,
+                     aug.factor = 1L,
+                     aug.constr = NULL,
+                     n.div.by = NULL,
+                     n.required = TRUE,
+                     set.default.values = TRUE,
+                     status = "experimental", 
+                     pdf = "dmatern"
+                 ),
+
                  copy = list(
                      doc = "Create a copy of a model component", 
                      hyper = list(
@@ -5384,8 +5433,7 @@
 
                  cbinomial = list(
                      doc = "The clustered Binomial likelihood", 
-                     hyper = list(
-                         ),
+                     hyper = list(),
                      survival = FALSE,
                      discrete = TRUE,
                      link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog"),
@@ -5411,6 +5459,15 @@
                      survival = FALSE,
                      discrete = TRUE,
                      link = c("default", "log", "logoffset", "quantile"),
+                     pdf = "nbinomial"
+                     ),
+
+                 nbinomial2 = list(
+                     doc = "The negBinomial2 likelihood", 
+                     hyper = list(), 
+                     survival = FALSE,
+                     discrete = TRUE,
+                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog"), 
                      pdf = "nbinomial"
                      ),
 
@@ -5833,7 +5890,7 @@
                              hyperid =  79001,
                              name = "log alpha",
                              short.name = "alpha",
-                             initial = 0,
+                             initial = 0.1,
                              fixed = FALSE,
                              prior = "loggamma",
                              param = c(25, 25),
@@ -5856,7 +5913,7 @@
                              hyperid =  79101,
                              name = "log alpha",
                              short.name = "alpha",
-                             initial = 0,
+                             initial = 0.1,
                              fixed = FALSE,
                              prior = "loggamma",
                              param = c(25, 25),
@@ -5921,7 +5978,7 @@
                              hyperid =  81001,
                              name = "log alpha",
                              short.name = "a",
-                             initial = 0,
+                             initial = 0.1,
                              fixed = FALSE,
                              prior = "loggamma",
                              param = c(25, 25),
