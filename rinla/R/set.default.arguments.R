@@ -125,8 +125,14 @@
         prior = NULL,
 
         ##:ARGUMENT: param (OBSOLETE!) The parameters for the prior distribution(s) for the hyperparmater(s)
-        param = NULL)
+        param = NULL,
 
+        ##:ARGUMENT: npoints Number of points used to do the numerical integration (default 101)
+        npoints = 101, 
+
+        ##:ARGUMENT: integrator The integration scheme to use (\code{default}, \code{quadrature}, \code{simpson})
+        integrator = "default")
+    
     ##:SEEALSO: inla
 }
 
@@ -144,9 +150,6 @@
 
         ##:ARGUMENT: variant The \code{variant} of the link function, where the interpretation of \code{variant} is model-dependent.
         variant = NULL, 
-
-        ##:ARGUMENT: nq Number of quadrature-points used to do the numerical integration (default 15)
-        nq = 15, 
 
         ##:ARGUMENT: hyper Definition of the hyperparameter(s) for the link model chosen
         hyper = NULL,
@@ -396,6 +399,9 @@
 
         ##:ARGUMENT: tolerance.x Numerical The tolerance for the change in the hyperparameters (root-mean-square) in the optimisation of the hyperparameters.
         tolerance.x = NULL, 
+
+        ##:ARGUMENT: tolerance.step Numerical The tolerance for the change in root-mean_squre in the inner Newton-like optimisation of the latent field.
+        tolerance.step = 0.0005, 
 
         ##:ARGUMENT: restart Numerical To improve the optimisation, the optimiser is restarted at the found optimum 'restart' number of times.
         restart = 0L,

@@ -4840,6 +4840,66 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `dmatern'.}{Number of hyperparmeters are 3.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{hyperid = }{`35101'}
+							\item{name = }{`log precision'}
+							\item{short.name = }{`prec'}
+							\item{initial = }{`3'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`pc.prec'}
+							\item{param = }{`1 0.01'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{hyperid = }{`35102'}
+							\item{name = }{`log range'}
+							\item{short.name = }{`range'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`pc.range'}
+							\item{param = }{`1 0.5'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta3'}{
+							 \describe{
+							\item{hyperid = }{`35103'}
+							\item{name = }{`log nu'}
+							\item{short.name = }{`nu'}
+							\item{initial = }{`-0.693147180559945'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`0.5 1'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`Dense Matern field'}
+								\item{constr = }{`FALSE'}
+								\item{nrow.ncol = }{`FALSE'}
+								\item{augmented = }{`FALSE'}
+								\item{aug.factor = }{`1'}
+								\item{aug.constr = }{`NULL'}
+								\item{n.div.by = }{`NULL'}
+								\item{n.required = }{`TRUE'}
+								\item{set.default.values = }{`TRUE'}
+								\item{status = }{`experimental'}
+								\item{pdf = }{`dmatern'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `copy'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{
@@ -6383,6 +6443,8 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `nbinomial2'.}{Number of hyperparmeters are 0.
+				 }
 				\item{Model `simplex'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{
@@ -6893,7 +6955,7 @@ inla.models()
 							\item{hyperid = }{`79001'}
 							\item{name = }{`log alpha'}
 							\item{short.name = }{`alpha'}
-							\item{initial = }{`0'}
+							\item{initial = }{`0.1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`25 25'}
@@ -6921,7 +6983,7 @@ inla.models()
 							\item{hyperid = }{`79101'}
 							\item{name = }{`log alpha'}
 							\item{short.name = }{`alpha'}
-							\item{initial = }{`0'}
+							\item{initial = }{`0.1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`25 25'}
@@ -7007,7 +7069,7 @@ inla.models()
 							\item{hyperid = }{`81001'}
 							\item{name = }{`log alpha'}
 							\item{short.name = }{`a'}
-							\item{initial = }{`0'}
+							\item{initial = }{`0.1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`25 25'}

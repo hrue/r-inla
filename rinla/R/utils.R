@@ -215,7 +215,9 @@
     tmp.env = new.env()
     for (ff in files) {
         fff = paste(dir, "/", ff, sep="")
-        local({source(fff, local=TRUE)}, envir = tmp.env)
+        res = try(local({source(fff, local=TRUE)}, envir = tmp.env))
+        if (class(res) %in% "try-error")
+            warning(paste0("Got an error while sourcing file ",  fff))
     }
 
     ## replace the ones in the INLA-namespace
@@ -1054,3 +1056,18 @@
     }
     return (invisible())
 }
+
+`inla.matern.cf` = function(dist, range = 1, nu = 0.5) 
+{
+    ## the matern correlation function, with parameter 'range' as defined for the SPDE models.
+    ## this function can vectorize over 'dist'
+    kappa = sqrt(8.0 * nu) / range  ## this the definition used
+    d = kappa * dist
+    res = numeric(length(dist))
+    is.zero = (dist == 0.0)
+    d = d[!is.zero]
+    res[is.zero] = 1.0
+    res[!is.zero] = 1.0 / 2.0^(nu - 1.0) / gamma(nu) * d^nu * besselK(d, nu)
+    return (res)
+}
+

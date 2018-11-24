@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.inla} for use in \code{inla}}
 \usage{
 inla.set.control.inla.default(...)
-control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, adaptive.max, adjust.weights, cmin, correct, correct.factor, correct.strategy, correct.verbose, cpo.diff, cutoff, diagonal, diff.logdens, dz, fast, force.diagonal, global.node.degree, global.node.factor, h, huge, int.design, int.strategy, interpolator, lincomb.derived.correlation.matrix, lincomb.derived.only, linear.correction, mode.known, npoints, numint.abserr, numint.maxfeval, numint.relerr, optimiser, print.joint.hyper, reordering, restart, skip.configurations, stencil, step.factor, step.len, strategy, stupid.search, stupid.search.factor, stupid.search.max.iter, tolerance, tolerance.f, tolerance.g, tolerance.x, verbose)
+control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, adaptive.max, adjust.weights, cmin, correct, correct.factor, correct.strategy, correct.verbose, cpo.diff, cutoff, diagonal, diff.logdens, dz, fast, force.diagonal, global.node.degree, global.node.factor, h, huge, int.design, int.strategy, interpolator, lincomb.derived.correlation.matrix, lincomb.derived.only, linear.correction, mode.known, npoints, numint.abserr, numint.maxfeval, numint.relerr, optimiser, print.joint.hyper, reordering, restart, skip.configurations, stencil, step.factor, step.len, strategy, stupid.search, stupid.search.factor, stupid.search.max.iter, tolerance, tolerance.f, tolerance.g, tolerance.step, tolerance.x, verbose)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -34,6 +34,7 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 \item{tolerance.f}{  Numerical The tolerance for the absolute change in the log posterior in the optimisation of the hyperparameters.}
 \item{tolerance.g}{  Numerical The tolerance for the absolute change in the gradient of the log posterior in the optimisation of the hyperparameters.}
 \item{tolerance.x}{  Numerical The tolerance for the change in the hyperparameters (root-mean-square) in the optimisation of the hyperparameters.}
+\item{tolerance.step}{  Numerical The tolerance for the change in root-mean_squre in the inner Newton-like optimisation of the latent field.}
 \item{restart}{  Numerical To improve the optimisation, the optimiser is restarted at the found optimum 'restart' number of times.}
 \item{optimiser}{  Character The optimiser to use; one of 'gsl' or 'default'.}
 \item{verbose}{  Logical Run in verbose mode? (Default FALSE)}
