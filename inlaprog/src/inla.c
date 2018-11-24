@@ -31890,6 +31890,26 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 29: 
+	{
+		GMRFLib_idx_tp *h = NULL;
+		int i;
+
+		for(i = 0; i < 10; i++)
+			GMRFLib_idx_add(&h, i);
+		GMRFLib_idx_print(stdout, h, "IDX-test");
+		GMRFLib_idx_free(h);
+		
+		GMRFLib_idx2_tp *h2 = NULL;
+		GMRFLib_idx2_create(&h2);
+		for(i = 0; i < 10; i++)
+			GMRFLib_idx2_add(&h2, i, -i);
+		GMRFLib_idx2_print(stdout, h2, "IDX2-test");
+		GMRFLib_idx2_free(h2);
+
+		break;
+	}
+
 	default:
 		exit(0);
 	}
