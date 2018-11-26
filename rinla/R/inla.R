@@ -1808,7 +1808,7 @@
                                                   random.spec=gp$random.spec[[r]], 
                                                   results.dir=paste("random.effect", inla.num(count.random), sep=""), 
                                                   only.hyperparam= only.hyperparam,
-                                                  data.dir=data.dir, www = www))
+                                                  data.dir=data.dir))
                 all.hyper$random[[r]] = (list(hyperid = inla.namefix(gp$random.spec[[r]]$term),
                                               hyper = rs.updated$hyper,
                                               group.hyper = rs.updated$control.group$hyper))
