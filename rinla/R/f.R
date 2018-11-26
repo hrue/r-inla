@@ -65,6 +65,7 @@
 ##!         args.slm = list(rho.min = NULL, rho.max = NULL, 
 ##!                         X = NULL, W = NULL, Q.beta = NULL),
 ##!         args.ar1c = list(Z = NULL, Q.beta = NULL),
+##!         args.intslope = list(subject = NULL, strata = NULL, covariates = NULL), 
 ##!         correct = NULL,
 ##!         locations = NULL, 
 ##!         debug = FALSE)
@@ -308,7 +309,7 @@
     ##!\item{scale}{A scaling vector. Its meaning depends on the model.}
     scale = NULL,
 
-    ##!\item{strata}{A stratum factor with exact meaning that is model dependent. Currently only used for the \code{intslope}-model.}
+    ##!\item{strata}{Currently not in use}
     strata = NULL,
 
     ##!\item{rgeneric}{A object of class \code{inla.rgeneric} which defines the model. (EXPERIMENTAL!)}
@@ -322,6 +323,9 @@
 
     ##!\item{args.ar1c}{Required arguments to the model="ar1c"; see the documentation for further details.},
     args.ar1c = list(Z = NULL, Q.beta = NULL),
+
+    ##!\item{args.intslope}{A list with the \code{subject} (factor),  \code{strata} (factor) and \code{covariates} (numeric) for the \code{intslope} model; see the documentation for further details.}, 
+    args.intslope = list(subject = NULL, strata = NULL, covariates = NULL), 
 
     ##!\item{correct}{Add this model component to the list of variables to be used in the corrected Laplace approximation? If \code{NULL} use default choice,  otherwise correct if \code{TRUE} and do not if \code{FALSE}. (This option is currently experimental.)},
     correct = NULL,
@@ -549,26 +553,6 @@
         stopifnot(any(order == inla.models()$latent$fgn$order.defined))
     }
 
-    args.intslope = NULL
-    if (inla.one.of(model, c("intslope"))) {
-        if (!is.null(constr)) {
-            stop("For model 'intslope', setting 'constr=TRUE' has no meaning.")
-        }
-        if (!is.null(values)) {
-            stop("For model 'intslope', setting 'values=...' has no meaning.")
-        }
-        if (is.null(weights)) {
-            stop("For model 'intslope', 'weights' are required.")
-        }
-        if (missing(strata) || is.null(strata)) {
-            stop("For model 'intslope', option 'strata' must be defined.")
-        }
-        ## yes, collect these together (partly) here...
-        args.intslope = list(covariates = NA, strata = as.numeric(as.factor(strata)))
-        ## as 'weights' is not yet expanded
-        strata = NULL
-    }
-
     ## Check that the Cmatrix is defined for those models needing it, and oposite.
     if (!inla.one.of(model, "z")) {
         if (inla.one.of(model, c("generic", "generic0","generic1", "generic2"))) {
@@ -735,6 +719,25 @@
         n = nrow(locations)
     } else {
         stopifnot(missing(locations) || is.null(locations))
+    }
+
+    if (inla.one.of(model, "intslope")) {
+        stopifnot(!is.null(args.intslope$subject))
+        stopifnot(!is.null(args.intslope$strata))
+        stopifnot(!is.null(args.intslope$covariates))
+        zz = args.intslope$covariates
+        zz[is.na(zz)] = 0
+        args.intslope = list(
+            subject = as.numeric(as.factor(args.intslope$subject)),
+            strata = as.numeric(as.factor(args.intslope$strata)),
+            covariates = zz)
+        if (is.null(n)) {
+            n = length(args.intslope$subject)
+        } else {
+            stopifnot(n == length(args.intslope$subject))
+        }
+        stopifnot(length(args.intslope$subject) == length(args.intslope$strata))
+        stopifnot(length(args.intslope$subject) == length(args.intslope$covariates))
     }
 
     ## is N required?
