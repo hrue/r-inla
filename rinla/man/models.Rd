@@ -985,6 +985,195 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `intslope'.}{Number of hyperparmeters are 13.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{hyperid = }{`16101'}
+							\item{name = }{`log precision1'}
+							\item{short.name = }{`prec1'}
+							\item{initial = }{`4'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`wishart2d'}
+							\item{param = }{`4 1 1 0'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{hyperid = }{`16102'}
+							\item{name = }{`log precision2'}
+							\item{short.name = }{`prec2'}
+							\item{initial = }{`4'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta3'}{
+							 \describe{
+							\item{hyperid = }{`16103'}
+							\item{name = }{`logit correlation'}
+							\item{short.name = }{`cor'}
+							\item{initial = }{`4'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							}
+						}
+						\item{Hyperparameter `theta4'}{
+							 \describe{
+							\item{hyperid = }{`16104'}
+							\item{name = }{`gamma1'}
+							\item{short.name = }{`g1'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`1 36'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta5'}{
+							 \describe{
+							\item{hyperid = }{`16105'}
+							\item{name = }{`gamma2'}
+							\item{short.name = }{`g2'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`1 36'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta6'}{
+							 \describe{
+							\item{hyperid = }{`16106'}
+							\item{name = }{`gamma3'}
+							\item{short.name = }{`g3'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`1 36'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta7'}{
+							 \describe{
+							\item{hyperid = }{`16107'}
+							\item{name = }{`gamma4'}
+							\item{short.name = }{`g4'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`1 36'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta8'}{
+							 \describe{
+							\item{hyperid = }{`16108'}
+							\item{name = }{`gamma5'}
+							\item{short.name = }{`g5'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`1 36'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta9'}{
+							 \describe{
+							\item{hyperid = }{`16109'}
+							\item{name = }{`gamma6'}
+							\item{short.name = }{`g6'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`1 36'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta10'}{
+							 \describe{
+							\item{hyperid = }{`16110'}
+							\item{name = }{`gamma7'}
+							\item{short.name = }{`g7'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`1 36'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta11'}{
+							 \describe{
+							\item{hyperid = }{`16111'}
+							\item{name = }{`gamma8'}
+							\item{short.name = }{`g8'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`1 36'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta12'}{
+							 \describe{
+							\item{hyperid = }{`16112'}
+							\item{name = }{`gamma9'}
+							\item{short.name = }{`g9'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`1 36'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta13'}{
+							 \describe{
+							\item{hyperid = }{`16113'}
+							\item{name = }{`gamma10'}
+							\item{short.name = }{`g10'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`1 36'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`Intecept-slope model with Wishart-prior'}
+								\item{constr = }{`FALSE'}
+								\item{nrow.ncol = }{`FALSE'}
+								\item{augmented = }{`FALSE'}
+								\item{aug.factor = }{`1'}
+								\item{aug.constr = }{`NULL'}
+								\item{n.div.by = }{`NULL'}
+								\item{n.required = }{`FALSE'}
+								\item{set.default.values = }{`TRUE'}
+								\item{pdf = }{`intslope'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `generic'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{

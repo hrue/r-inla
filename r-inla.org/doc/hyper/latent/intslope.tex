@@ -1,0 +1,173 @@
+%% DO NOT EDIT!
+%% This file is generated automatically from models.R
+\begin{description}
+	\item[doc] Intecept-slope model with Wishart-prior
+	\item[hyper]\ 
+	 \begin{description}
+	 	\item[theta1]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 16101
+	 	 	\item[name] log precision1
+	 	 	\item[short.name] prec1
+	 	 	\item[initial] 4
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] wishart2d
+	 	 	\item[param] 4 1 1 0
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 	\item[theta2]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 16102
+	 	 	\item[name] log precision2
+	 	 	\item[short.name] prec2
+	 	 	\item[initial] 4
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] none
+	 	 	\item[param] 
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 	\item[theta3]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 16103
+	 	 	\item[name] logit correlation
+	 	 	\item[short.name] cor
+	 	 	\item[initial] 4
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] none
+	 	 	\item[param] 
+	 	 	\item[to.theta] \verb!function(x) log((1+x)/(1-x))!
+	 	 	\item[from.theta] \verb!function(x) 2*exp(x)/(1+exp(x))-1!
+	 	 \end{description}
+	 	\item[theta4]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 16104
+	 	 	\item[name] gamma1
+	 	 	\item[short.name] g1
+	 	 	\item[initial] 1
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] normal
+	 	 	\item[param] 1 36
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 	\item[theta5]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 16105
+	 	 	\item[name] gamma2
+	 	 	\item[short.name] g2
+	 	 	\item[initial] 1
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] normal
+	 	 	\item[param] 1 36
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 	\item[theta6]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 16106
+	 	 	\item[name] gamma3
+	 	 	\item[short.name] g3
+	 	 	\item[initial] 1
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] normal
+	 	 	\item[param] 1 36
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 	\item[theta7]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 16107
+	 	 	\item[name] gamma4
+	 	 	\item[short.name] g4
+	 	 	\item[initial] 1
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] normal
+	 	 	\item[param] 1 36
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 	\item[theta8]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 16108
+	 	 	\item[name] gamma5
+	 	 	\item[short.name] g5
+	 	 	\item[initial] 1
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] normal
+	 	 	\item[param] 1 36
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 	\item[theta9]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 16109
+	 	 	\item[name] gamma6
+	 	 	\item[short.name] g6
+	 	 	\item[initial] 1
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] normal
+	 	 	\item[param] 1 36
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 	\item[theta10]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 16110
+	 	 	\item[name] gamma7
+	 	 	\item[short.name] g7
+	 	 	\item[initial] 1
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] normal
+	 	 	\item[param] 1 36
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 	\item[theta11]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 16111
+	 	 	\item[name] gamma8
+	 	 	\item[short.name] g8
+	 	 	\item[initial] 1
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] normal
+	 	 	\item[param] 1 36
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 	\item[theta12]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 16112
+	 	 	\item[name] gamma9
+	 	 	\item[short.name] g9
+	 	 	\item[initial] 1
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] normal
+	 	 	\item[param] 1 36
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 	\item[theta13]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 16113
+	 	 	\item[name] gamma10
+	 	 	\item[short.name] g10
+	 	 	\item[initial] 1
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] normal
+	 	 	\item[param] 1 36
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 \end{description}
+	\item[constr] FALSE
+	\item[nrow.ncol] FALSE
+	\item[augmented] FALSE
+	\item[aug.factor] 1
+	\item[aug.constr] 
+	\item[n.div.by] 
+	\item[n.required] FALSE
+	\item[set.default.values] TRUE
+	\item[pdf] intslope
+\end{description}
