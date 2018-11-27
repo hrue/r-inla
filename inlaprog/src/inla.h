@@ -1340,6 +1340,15 @@ typedef struct
 	inla_iid_wishart_arg_tp *warg;
 } inla_intslope_arg_tp;
 
+typedef enum {
+	INTSLOPE_SUBJECT = 0,
+	INTSLOPE_STRATA = 1,
+	INTSLOPE_Z = 2
+}
+	inla_intslope_column_tp;
+	
+
+
 #define R_GENERIC_Q "Q"
 #define R_GENERIC_GRAPH "graph"
 #define R_GENERIC_MU "mu"
