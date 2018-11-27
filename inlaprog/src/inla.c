@@ -15322,9 +15322,60 @@ GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRF
 	return c;
 }
 
+double Qfunc_intslope(int node, int nnode, void *arg)
+{
+	int i, imin, imax, idx, subject, strata, icase;
+	double val = 0.0, xval = 0.0, gam, z = NAN;
+	inla_intslope_arg_tp *a = (inla_intslope_arg_tp *) arg;
+	
+	imin = IMIN(node, nnode);
+	imax = IMAX(node, nnode);
+
+	if (imax < a->n) {
+		// the diagonal part
+		return a->precision;
+	} else if (imin >= a->n) {
+		// the Wishart part
+		imin -= a->n;
+		imax -= a->n;
+		val = Qfunc_iid_wishart(imin, imax, (void *) a->warg);
+		subject = (imin == imax ? (imin < a->nsubject ? imin : imin - a->nsubject) : imin);
+		icase = (imax < a->nsubject ? 0 : (imin >= a->nsubject ? 1 : 2));
+		for(i = 0; i < a->subject_idx[subject]->n; i++){
+			idx = a->subject_idx[subject]->idx[i];
+			strata = (int) GMRFLib_matrix_get(idx, INTSLOPE_STRATA, a->def);
+			gam = a->theta_gamma[strata][GMRFLib_thread_id][0];
+			if (icase > 0) {
+				z = GMRFLib_matrix_get(idx, INTSLOPE_Z, a->def);
+			}
+			switch(icase){
+			case 0: xval += SQR(gam); break;
+			case 1: xval += SQR(gam * z); break;
+			case 2: xval += SQR(gam) * z; break;
+			}
+		}
+
+		return val + a->precision * xval;
+	} else {
+		imax -= a->n;
+		strata = (int) GMRFLib_matrix_get(imin, INTSLOPE_STRATA, a->def);
+		gam = a->theta_gamma[strata][GMRFLib_thread_id][0];
+		if (imax < a->nsubject) {
+			val = -gam;
+		} else {
+			z = GMRFLib_matrix_get(imin, INTSLOPE_Z, a->def);
+			val = -gam * z;
+		}
+		return a->precision * val;
+	}
+
+	assert(0 == 1);
+	return 0.0;
+}
+
 int inla_make_intslope_graph(GMRFLib_graph_tp **graph, inla_intslope_arg_tp *arg) 
 {
-	int i, j, k, s;
+	int idx, subject;
 	GMRFLib_ged_tp *ged = NULL;
 	GMRFLib_graph_tp *g = NULL;
 
@@ -15333,16 +15384,10 @@ int inla_make_intslope_graph(GMRFLib_graph_tp **graph, inla_intslope_arg_tp *arg
 	inla_make_iid_wishart_graph(&g, arg->warg);
 	GMRFLib_ged_insert_graph(ged, g, arg->n);
 
-	for(s = 0; s < arg->nsubject; s++) {
-		for(k = 0; k < arg->subject_idx[s]->n; k++){
-			// meaning that row 'j' refer to subject 's'
-			j = arg->subject_idx[s]->idx[k];
-
-			// the 'iid2d' model store the vector of first components, then
-			// the vector of the second components
-			GMRFLib_ged_add(ged, j, arg->n + s + 0);
-			GMRFLib_ged_add(ged, j, arg->n + s + arg->nsubject);
-		}
+	for(idx = 0; idx < arg->n; idx++) {
+		subject = (int) GMRFLib_matrix_get(idx, INTSLOPE_SUBJECT, arg->def);
+		GMRFLib_ged_add(ged, idx, arg->n + subject);
+		GMRFLib_ged_add(ged, idx, arg->n + arg->nsubject + subject);
 	}
 	GMRFLib_ged_build(graph, ged);
 	GMRFLib_ged_free(ged);
@@ -15366,7 +15411,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * parse section = ffield 
 	 */
-	int i, j, k, ii, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1;
+	int i, j, k, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg =
 		NULL, default_tag[100], *file_loc, *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL, nstrata = 0,
 		nsubject = 0;
@@ -16733,9 +16778,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				assert(intslope_def->ncol == 3);
 				for (int i = 0; i < IMIN(intslope_def->nrow, PREVIEW); i++) {
 					printf("\t\t%6d %6.1g %6.1g  %12.6f\n", i, 
-					       GMRFLib_matrix_get(i, 0, intslope_def),
-					       GMRFLib_matrix_get(i, 1, intslope_def), 
-					       GMRFLib_matrix_get(i, 2, intslope_def));
+					       GMRFLib_matrix_get(i, INTSLOPE_SUBJECT, intslope_def),
+					       GMRFLib_matrix_get(i, INTSLOPE_STRATA, intslope_def), 
+					       GMRFLib_matrix_get(i, INTSLOPE_Z, intslope_def));
 				}
 			}
 
@@ -20137,14 +20182,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			 */
 			char *init;
 
-			if (dim == 1) {
-				GMRFLib_sprintf(&init, "INITIAL");
-			} else {
-				GMRFLib_sprintf(&init, "INITIAL%1d", k);
-			}
-
+			GMRFLib_sprintf(&init, "INITIAL%1d", k);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, init), G.log_prec_initial);
-
 			if (!mb->f_fixed[mb->nf][k] && mb->reuse_mode) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
 			}
@@ -20237,18 +20276,20 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 
-		
-		intslope_gamma = Calloc(nstrata, double **);
-		for (i = 0; i < nstrata; i++) {
+		intslope_gamma = Calloc(INTSLOPE_MAXTHETA, double **);
+		for (i = 0; i < INTSLOPE_MAXTHETA; i++) {
 			HYPER_NEW(intslope_gamma[i], 1.0);
 		}
 
 		int kk;
-		for (i = 0; i < nstrata; i++) {
+		for (i = 0; i < INTSLOPE_MAXTHETA; i++) {
 			char *init;
-			GMRFLib_sprintf(&init, "INITIAL%1d", k);
 
-			kk = k - 3;
+			kk = k - n_theta;
+			if (i >= nstrata) {
+				mb->f_fixed[mb->nf][k] = 1;
+			}
+			GMRFLib_sprintf(&init, "INITIAL%1d", k);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, init), 1.0);
 
 			if (!mb->f_fixed[mb->nf][k] && mb->reuse_mode) {
@@ -20290,7 +20331,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			k++;
 		}
 
-		assert(k == n_theta + nstrata);
+		assert(k == n_theta + INTSLOPE_MAXTHETA);
 		break;
 	}
 
@@ -21190,44 +21231,40 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	case F_INTSLOPE: 
 	{
+		int subject;
 		inla_intslope_arg_tp *arg = Calloc(1, inla_intslope_arg_tp);
 
-		arg->n = mb->f_n[mb->nf];
-		arg->N = mb->f_N[mb->nf];
+		arg->n = mb->f_n[mb->nf];		       /* n */
+		arg->N = mb->f_N[mb->nf];		       /* n + 2 * nsubject */
 		arg->precision = mb->f_precision[mb->nf];
 		arg->theta_gamma = intslope_gamma;
 		arg->def = intslope_def;
 		arg->nsubject = nsubject;
 		arg->nstrata = nstrata;
 		
-		// this is for the Wishart part
-		inla_iid_wishart_arg_tp *warg = NULL;
-		warg = Calloc(1, inla_iid_wishart_arg_tp);
-		warg->dim = 2;
-		warg->n = nsubject;
-		warg->N = warg->dim * warg->n; 
-		warg->log_prec = theta_iidwishart;
-		warg->rho_intern = theta_iidwishart + warg->dim;
-		warg->hold = Calloc(ISQR(GMRFLib_MAX_THREADS), inla_wishart_hold_tp *);
-		arg->warg = warg;
+		arg->warg = Calloc(1, inla_iid_wishart_arg_tp);
+		arg->warg->dim = 2;
+		arg->warg->n = nsubject;
+		arg->warg->N = arg->warg->dim * arg->warg->n; 
+		arg->warg->log_prec = theta_iidwishart;
+		arg->warg->rho_intern = theta_iidwishart + arg->warg->dim;
+		arg->warg->hold = Calloc(ISQR(GMRFLib_MAX_THREADS), inla_wishart_hold_tp *);
 
-		// Need to build the index-arrays for the Qfunc. For each subject, we need to know all those using it. Since we
-		// have all stored in the 'intslope_def' matrix, we only need to store the references to the rows in that one.
+		// For each subject, we need to know all those using it. Since we have all stored in the 'intslope_def' matrix,
+		// we only need to store the references to the rows in that one.
 		arg->subject_idx = Calloc(nsubject, GMRFLib_idx_tp *);
-		for(i = 0; i < nsubject; i++) {
-			GMRFLib_idx_create(&(arg->subject_idx[i]));
+		for(subject = 0; subject < nsubject; subject++) {
+			GMRFLib_idx_create(&(arg->subject_idx[subject]));
 		}
-		for(i = 0; i < n; i++) {
-			// first column is the subject for the i'th intslope, so we add 'i' to the list of indices for subject
-			// 'ii'
-			ii = GMRFLib_matrix_get(i, 0, arg->def);
-			GMRFLib_idx_add(&(arg->subject_idx[ii]), i);
+		for(int idx = 0; idx < n; idx++) {
+			subject = GMRFLib_matrix_get(idx, INTSLOPE_SUBJECT, arg->def);
+			GMRFLib_idx_add(&(arg->subject_idx[subject]), idx);
 		}
 
 		mb->f_rankdef[mb->nf] = 0;
-		//mb->f_Qfunc[mb->nf] = Qfunc_intslope;
-		mb->f_Qfunc[mb->nf] = GMRFLib_rw;
+		mb->f_Qfunc[mb->nf] = Qfunc_intslope;
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
+		mb->f_Qfunc_arg_orig[mb->nf] = (void *) arg;   /* need access to the internals later */
 		inla_make_intslope_graph(&(mb->f_graph[mb->nf]), arg);
 
 		break;
