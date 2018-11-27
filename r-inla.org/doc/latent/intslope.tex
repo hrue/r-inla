@@ -1,0 +1,96 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{verbatim}
+\begin{document}
+
+\section*{Intercept-slope model}
+
+\subsection*{Parametrization}
+
+The intercept-slope model is a convenient reimplementation of a
+commonly used construct, where
+\begin{displaymath}
+    (a,b)
+\end{displaymath}
+is bivariate Gaussian with a Wishart prior for the precision
+matrix\footnote{The documentation for the model ``iid2d'' gives the
+    details of the definition of the parameterisation of the precision
+    matrix and the Wishart-prior.}, and various forms of
+\begin{equation}\label{eq1}%
+    \gamma(a + bz),
+\end{equation}
+where $z$ is a covariate and $\gamma$ is a (random) scaling, goes into
+the linear predictor. Replicates of $(a,b)$ is indexed by
+\emph{subject}, $i=1, \ldots, n$, and the various scaling of
+Eq.~\ref{eq1} by \emph{strata} $j=1, \ldots, m$, leading to a model
+for (a subset of)
+\begin{displaymath}
+    \left\{\gamma_j(a_i + b_i z_{ij}), \quad i=1, \ldots,n, \quad j=1,\ldots,m\right\},
+\end{displaymath}
+as not all combinations need to be present.
+
+\subsection*{Hyperparameters}
+
+The hyperparameters are $(\theta_1,\theta_2,\theta_3)$ as in the model
+``iid2d'' (related to the precisions of $a$ and $b$, and their
+correlation), and
+$\theta_4=\gamma_1, \ldots, \theta_{13}=\gamma_{10}$. Since $m$ is
+defined in the input, only $\gamma_1, \ldots, \gamma_m$ are used. $m$
+is limited to $m \le 10$. Note that $\gamma_1$ is by default
+\textbf{fixed} to $1$, due to confounding issues.
+
+
+\subsection*{Specification}
+
+The is specified as
+\begin{verbatim}
+    f(idx, model="intslope", hyper = ...,
+      precision = exp(14),
+      args.intslope = list(subject=i, strata=j, covariate = z))
+\end{verbatim}
+The defintion of the model is through the \verb|args.intslope|
+argument, where \verb|i| and \verb|j| are factors/integers and
+\verb|z| is numerical, all with same length $N$, say. The argument
+\verb|idx|, index which row that is used, hence values of \verb|idx|
+must take integer values in the interval $1$ to $N$. The precision
+argument, defines the tiny small noise added to each $\gamma(a+bz)$ to
+avoid a singular joint model. The \verb|subject| and \verb|strata|
+argument, is converted internally as
+\begin{verbatim}
+    subject = as.numerical(as.factor(subject))
+    strata  = as.numerical(as.factor(strata))
+\end{verbatim}
+and the results is shown after this conversion.
+
+
+\subsubsection*{Hyperparameter spesification and default values}
+{\small
+\input{../hyper/latent/intslope.tex}
+}
+
+\clearpage
+\subsection*{Example}
+{\small\verbatiminput{example-intslope.R}}
+
+\subsection*{Notes}
+\begin{itemize}
+\item With $n_s=\max($subject$)$, the internal storage of this model
+    is
+    \begin{displaymath}
+        \left(\gamma_{j_1} (a_{i_1} + z_{1}b_{i_{1}}), \ldots, 
+        \gamma_{j_N} (a_{i_N} + z_{N}b_{i_N}), 
+        a_1, \ldots, a_{n_s}, b_1, \ldots, b_{n_s}\right),
+    \end{displaymath}
+    i.e.\ a vector of length $N+2n_s$.
+\end{itemize}
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
