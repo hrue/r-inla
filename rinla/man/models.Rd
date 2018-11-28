@@ -1169,6 +1169,7 @@ inla.models()
 								\item{n.div.by = }{`NULL'}
 								\item{n.required = }{`FALSE'}
 								\item{set.default.values = }{`TRUE'}
+								\item{status = }{`experimental'}
 								\item{pdf = }{`intslope'}
 							 }
 						 }
