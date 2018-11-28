@@ -971,6 +971,7 @@
                      n.div.by = NULL,
                      n.required = FALSE,
                      set.default.values = TRUE,
+                     status = "experimental", 
                      pdf = "intslope"
                  ),
 
