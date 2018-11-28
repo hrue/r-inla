@@ -16,11 +16,7 @@ ab = rmvnorm(nsubject, sigma=Sigma)
 a = ab[,1]
 b = ab[,2]
 s = 0.01
-y = numeric(n)
-for(k in 1:n) {
-    y[k] = gam[strata[k]] * (a[subject[k]] + z[k] * b[subject[k]]) +
-           rnorm(1, s = 0.01)
-}    
+y = gam[strata] * (a[subject] + z * b[subject]) + rnorm(n, s = 0.01)
 r = inla(y ~ -1 + f(idx, model = "intslope",
                     args.intslope = list(subject = subject,
                                          strata = strata,

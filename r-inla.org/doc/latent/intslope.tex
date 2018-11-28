@@ -9,14 +9,14 @@
 
 \subsection*{Parametrization}
 
-The intercept-slope model is a convenient reimplementation of a
+The intercept-slope model is a convenient re-implementation of a
 commonly used construct, where
 \begin{displaymath}
     (a,b)
 \end{displaymath}
-is bivariate Gaussian with a Wishart prior for the precision
+is bi-variate Gaussian with a Wishart prior for the precision
 matrix\footnote{The documentation for the model ``iid2d'' gives the
-    details of the definition of the parameterisation of the precision
+    details of the definition of the parameterization of the precision
     matrix and the Wishart-prior.}, and various forms of
 \begin{equation}\label{eq1}%
     \gamma(a + bz),
@@ -39,7 +39,7 @@ correlation), and
 $\theta_4=\gamma_1, \ldots, \theta_{13}=\gamma_{10}$. Since $m$ is
 defined in the input, only $\gamma_1, \ldots, \gamma_m$ are used. $m$
 is limited to $m \le 10$. Note that $\gamma_1$ is by default
-\textbf{fixed} to $1$, due to confounding issues.
+\textbf{fixed} to $1$, due to confounding issues. 
 
 
 \subsection*{Specification}
@@ -50,14 +50,15 @@ The is specified as
       precision = exp(14),
       args.intslope = list(subject=i, strata=j, covariate = z))
 \end{verbatim}
-The defintion of the model is through the \verb|args.intslope|
+The definition of the model is through the \verb|args.intslope|
 argument, where \verb|i| and \verb|j| are factors/integers and
 \verb|z| is numerical, all with same length $N$, say. The argument
-\verb|idx|, index which row that is used, hence values of \verb|idx|
-must take integer values in the interval $1$ to $N$. The precision
-argument, defines the tiny small noise added to each $\gamma(a+bz)$ to
-avoid a singular joint model. The \verb|subject| and \verb|strata|
-argument, is converted internally as
+\verb|idx|, index which row that is used for the linear predictor,
+hence values of \verb|idx| must take integer values in the interval
+$1$ to $N$. The precision argument, defines the tiny small noise added
+to each $\gamma(a+bz)$ to avoid a singular joint model. The
+\verb|subject| and \verb|strata| argument, is converted internally
+into integers $1, 2, \ldots$, using
 \begin{verbatim}
     subject = as.numerical(as.factor(subject))
     strata  = as.numerical(as.factor(strata))
@@ -65,7 +66,7 @@ argument, is converted internally as
 and the results is shown after this conversion.
 
 
-\subsubsection*{Hyperparameter spesification and default values}
+\subsubsection*{Hyperparameter specification and default values}
 {\small
 \input{../hyper/latent/intslope.tex}
 }
@@ -89,8 +90,9 @@ and the results is shown after this conversion.
 \end{document}
 
 
-% LocalWords: 
+% LocalWords:  Parametrization Wishart iid covariate Eq ij Hyperparameters args
 
 %%% Local Variables: 
 %%% TeX-master: t
 %%% End: 
+% LocalWords:  hyperparameters intslope idx bz Hyperparameter
