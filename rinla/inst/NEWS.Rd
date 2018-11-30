@@ -29,6 +29,29 @@
   }
 }
 
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New option \code{mkl} in \code{inla.setOption()}
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item 
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 18.11.28}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
