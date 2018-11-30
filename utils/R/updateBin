@@ -30,7 +30,7 @@ for m in 64; do
 done
 
 for m in 64; do
-    for p in inla fmesher; do 
+    for p in inla inla.mkl fmesher; do 
 	for f in $(ssh -p $INLA_LINUX_PORT $INLA_LINUX bin/my.ldd builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
 	    rsync --rsh="ssh -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:$f $d/linux/${m}bit/.
