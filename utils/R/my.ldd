@@ -11,8 +11,7 @@ done
 for f in "$@"; do
     case "$f" in 
 	*/inla.mkl*) 
-	   ls -1 builds/build64/local/lib/libmkl_avx*.so
-	   ls -1 builds/build64/local/lib/libmkl_def.so
+	   ls -1 builds/build64/local/lib/libmkl_{avx,avx2,def}.so
 	   ;;
     esac
 done
