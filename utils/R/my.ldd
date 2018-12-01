@@ -7,3 +7,15 @@ for f in "$@"; do
     export LD_LIBRARY_PATH=$ff/local/lib:$LD_LIBRARY_PATH
     ldd -r "$f" | awk '/ => / {print $3}' | grep / ## | grep -v libc.so
 done
+
+for f in "$@"; do
+    case "$f" in 
+	*/inla.mkl*) 
+	   ls -1 builds/build64/local/lib/libmkl_avx*.so
+	   ls -1 builds/build64/local/lib/libmkl_def.so
+	   ;;
+    esac
+done
+
+	   
+	    
