@@ -243,7 +243,7 @@
 }
 
 `inla.ffield.section` = function(file, file.loc, file.cov, file.id.names = NULL,  n, nrep, ngroup,
-        file.extraconstr, file.weights, random.spec, results.dir, only.hyperparam, data.dir)
+                                 file.extraconstr, file.weights, random.spec, results.dir, only.hyperparam, data.dir)
 {
     label= random.spec$term
     prop = inla.model.properties(random.spec$model, "latent", stop.on.error=TRUE)
@@ -292,7 +292,7 @@
             cat("of =", random.spec$of, "\n", sep = " ", file = file,  append = TRUE)
         }
     }
-    if (inla.one.of(random.spec$model, c("copy", "sigm", "revsigm", "log1exp", "fgn"))) {
+    if (inla.one.of(random.spec$model, c("copy", "sigm", "revsigm", "log1exp", "fgn", "intslope"))) {
         if (!is.null(random.spec$precision)) {
             cat("precision =", random.spec$precision, "\n", sep = " ", file = file,  append = TRUE)
         }
@@ -604,6 +604,19 @@
             file.C = gsub(data.dir, "$inladatadir", file.C, fixed=TRUE)
             cat("Cmatrix = ", file.C, "\n", append=TRUE, sep = " ", file = file)
         }
+    }
+
+    if (inla.one.of(random.spec$model, "intslope")) {
+        stopifnot(!is.null(random.spec$args.intslope))
+        M.matrix = cbind(random.spec$args.intslope$subject -1L,
+                         random.spec$args.intslope$strata -1L,
+                         random.spec$args.intslope$covariates)
+        file.M = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(M.matrix, filename = file.M)
+        file.M = gsub(data.dir, "$inladatadir", file.M, fixed=TRUE)
+        cat("intslope.def = ", file.M, "\n", append=TRUE, sep = " ", file = file)
+        cat("intslope.nsubject = ", max(random.spec$args.intslope$subject), "\n", append=TRUE, sep = " ", file = file)
+        cat("intslope.nstrata = ", max(random.spec$args.intslope$strata), "\n", append=TRUE, sep = " ", file = file)
     }
 
     if (!is.null(random.spec$rankdef)) {
