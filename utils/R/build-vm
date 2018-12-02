@@ -26,18 +26,18 @@ D=64bit
 
 ssh -x -t $IP "
     export INLA_TAG=$INLA_TAG;
-    cd builds/build64;
-    make update;
-    test -d $D && rm -rf $D;
-    rsync -auv r-inla/rinla/inst/bin/linux/$D .;
+    B=builds/build64;
+    make -C \$B update;
+    test -d \$B/$D && rm -rf \$B/$D;
+    rsync -auv \$B/r-inla/rinla/inst/bin/linux/$D \$B;
     export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib64:\$PWD/local/lib:\$LD_LIBRARY_PATH;
-    cp -v ./local/bin/inla $D;
-    cp -v ./local/bin/fmesher $D;
-    \$HOME/bin/my.ldd ./local/bin/inla | while read f; do cp -v \$f $D; done;
-    \$HOME/bin/my.ldd ./local/bin/fmesher | while read f; do cp -v \$f $D; done
-    if test -f ./local/bin/inla.mkl; then 
-        cp -v ./local/bin/inla.mkl $D;
-        \$HOME/bin/my.ldd ./local/bin/inla.mkl | while read f; do cp -v \$f $D; done;
+    cp -v \$B/local/bin/inla \$B/$D;
+    cp -v \$B/local/bin/fmesher \$B/$D;
+    bin/my.ldd \$B/local/bin/inla | while read f; do cp -v \$f \$B/$D; done;
+    bin/my.ldd \$B/local/bin/fmesher | while read f; do cp -v \$f \$B/$D; done
+    if test -f \$B/local/bin/inla.mkl; then 
+        cp -v \$B/local/bin/inla.mkl \$B/$D;
+        bin/my.ldd \$B/local/bin/inla.mkl | while read f; do cp -v \$f \$B/$D; done;
     fi	
 "
 

@@ -833,7 +833,8 @@ typedef struct {
 	double *cov_lin;				       /* covariance  of the lincombs (derived only) */
 
 	int mode_status;				       /* 0 for ok, 1 not ok. */
-
+	int nfunc;					       /* number of function evaluations */
+	
 	GMRFLib_store_configs_tp **configs;		       /* configs[id][...] */
 } GMRFLib_ai_misc_output_tp;
 

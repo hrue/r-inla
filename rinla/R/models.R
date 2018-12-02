@@ -816,6 +816,165 @@
                      pdf = "ou"
                  ),
 
+                 intslope = list(
+                     doc = "Intecept-slope model with Wishart-prior", 
+                     hyper = list(
+                         theta1 = list(
+                             hyperid =  16101,
+                             name = "log precision1",
+                             short.name = "prec1",
+                             initial = 4,
+                             fixed = FALSE,
+                             prior = "wishart2d",
+                             param = c(4, 1, 1, 0),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         ),
+                         theta2 = list(
+                             hyperid =  16102,
+                             name = "log precision2",
+                             short.name = "prec2",
+                             initial = 4,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         ),
+                         theta3 = list(
+                             hyperid =  16103,
+                             name = "logit correlation",
+                             short.name = "cor",
+                             initial = 4,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(),
+                             to.theta = function(x) log((1+x)/(1-x)),
+                             from.theta = function(x) 2*exp(x)/(1+exp(x))-1
+                         ), 
+                         theta4 = list(
+                             hyperid =  16104,
+                             name = "gamma1",
+                             short.name = "g1",
+                             initial = 1,
+                             fixed = TRUE,   ## YES.
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         ),
+                         theta5 = list(
+                             hyperid =  16105,
+                             name = "gamma2",
+                             short.name = "g2",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         ),
+                         theta6 = list(
+                             hyperid =  16106,
+                             name = "gamma3",
+                             short.name = "g3",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         ),
+                         theta7 = list(
+                             hyperid =  16107,
+                             name = "gamma4",
+                             short.name = "g4",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         ),
+                         theta8 = list(
+                             hyperid =  16108,
+                             name = "gamma5",
+                             short.name = "g5",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         ),
+                         theta9 = list(
+                             hyperid =  16109,
+                             name = "gamma6",
+                             short.name = "g6",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         ),
+                         theta10 = list(
+                             hyperid =  16110,
+                             name = "gamma7",
+                             short.name = "g7",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         ),
+                         theta11 = list(
+                             hyperid =  16111,
+                             name = "gamma8",
+                             short.name = "g8",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         ),
+                         theta12 = list(
+                             hyperid =  16112,
+                             name = "gamma9",
+                             short.name = "g9",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         ),
+                         theta13 = list(
+                             hyperid =  16113,
+                             name = "gamma10",
+                             short.name = "g10",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         )
+                     ),
+                     constr = FALSE,
+                     nrow.ncol = FALSE,
+                     augmented = FALSE,
+                     aug.factor = 1L,
+                     aug.constr = NULL,
+                     n.div.by = NULL,
+                     n.required = FALSE,
+                     set.default.values = TRUE,
+                     status = "experimental", 
+                     pdf = "intslope"
+                 ),
+
                  generic = list(
                      doc = "A generic model", 
                      hyper = list(
