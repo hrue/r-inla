@@ -29507,6 +29507,15 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	fclose(fp);
 	Free(nndir);
 
+	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "nfunc.dat");
+	fp = fopen(nndir, "w");
+	if (!fp) {
+		inla_error_open_file(nndir);
+	}
+	fprintf(fp, "%1d\n", mo->nfunc);
+	fclose(fp);
+	Free(nndir);
+
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "log-posterior-mode.dat");
 	fp = fopen(nndir, "w");
 	if (!fp) {
