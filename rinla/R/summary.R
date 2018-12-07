@@ -182,7 +182,7 @@
 
     if (inla.is.element("hyperpar", x)) {
         cat("Model hyperparameters:\n")
-        print.default(x$hyperpar) 
+        print(format(x$hyperpar, digits=digits, nsmall=2), quote=FALSE)
         cat("\n")
     } else 
         cat("The model has no hyperparameters\n\n")
