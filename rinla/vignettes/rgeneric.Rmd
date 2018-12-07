@@ -277,7 +277,7 @@ The function can then be implemented as
 ```{r eval=FALSE}
 log.norm.const = function() {
    p = interpret.theta()
-   prec.i  = p / (1.0 - p$rho^2)
+   prec.i  = p$prec / (1.0 - p$rho^2)
    val = n * (- 0.5 * log(2*pi) + 0.5 * log(prec.i)) +
          0.5 * log(1.0 - p$rho^2)
    return (val)
