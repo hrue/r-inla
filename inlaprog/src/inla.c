@@ -15418,9 +15418,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	 * parse section = ffield 
 	 */
 	int i, j, k, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1,
-		 nstrata = 0, nsubject = 0;
+	    nstrata = 0, nsubject = 0;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg =
-		NULL, default_tag[100], *file_loc, *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL; 
+	    NULL, default_tag[100], *file_loc, *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern =
 	    NULL, **group_rho_intern = NULL, **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 =
 	    NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL, **h2_intern =
@@ -26592,8 +26592,8 @@ double extra(double *theta, int ntheta, void *argument)
 			break;
 		}
 
-		
-		case F_INTSLOPE: 
+
+		case F_INTSLOPE:
 		{
 			// this first part is just a copy from F_IID2D
 			int jj, count_ref = count;
@@ -26634,7 +26634,7 @@ double extra(double *theta, int ntheta, void *argument)
 			}
 			assert(k == nt);
 
-			fail = inla_iid_wishart_adjust(dim, theta_vec); /*  should not be needed */
+			fail = inla_iid_wishart_adjust(dim, theta_vec);	/* should not be needed */
 			Q = gsl_matrix_calloc(dim, dim);
 			k = 0;
 			for (j = 0; j < dim; j++) {
@@ -26668,10 +26668,10 @@ double extra(double *theta, int ntheta, void *argument)
 				 */
 				val += PRIOR_EVAL(mb->f_prior[i][0], theta_vec) + log_jacobian;
 			}
-			
+
 			Free(theta_vec);
-			
-			for(j = 0; j < INTSLOPE_MAXTHETA; j++){
+
+			for (j = 0; j < INTSLOPE_MAXTHETA; j++) {
 				if (_NOT_FIXED(f_fixed[i][k + j])) {
 					double gam = theta[count];
 					count++;
