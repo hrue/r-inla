@@ -674,6 +674,7 @@ typedef enum {
 	MIX_INT_SIMPSON = 2
 } inla_mix_integrator_tp;
 
+#define MIX_INT_EPS  (1.0E-6)				       /* defines the cut-off for the integration weights */
 
 typedef struct {
 	char *data_likelihood;
@@ -1757,8 +1758,8 @@ int my_file_exists(const char *filename);
 int my_dir_exists(const char *dirname);
 int my_setenv(char *str, int prefix);
 int testit(int argc, char **argv);
-int inla_mix_int_simpson_gaussian(double **x, double **w, int n, void *arg);
-int inla_mix_int_quadrature_gaussian(double **x, double **w, int n, void *arg);
+int inla_mix_int_simpson_gaussian(double **x, double **w, int *n, void *arg);
+int inla_mix_int_quadrature_gaussian(double **x, double **w, int *n, void *arg);
 map_table_tp *mapfunc_find(const char *name);
 unsigned char *inla_fp_sha1(FILE * fp);
 unsigned char *inla_inifile_sha1(const char *filename);
@@ -1766,7 +1767,8 @@ void inla_signal(int sig);
 int inla_make_intslope_graph(GMRFLib_graph_tp **graph, inla_intslope_arg_tp *arg);
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature) (double **, double **, int, void *), int (*simpson) (double **, double **, int, void *));
+			   int (*quadrature) (double **, double **, int *, void *),
+			   int (*simpson) (double **, double **, int *, void *));
 
 /* 
 ***
