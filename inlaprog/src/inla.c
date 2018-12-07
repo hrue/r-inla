@@ -6632,15 +6632,15 @@ int inla_mix_int_quadrature_gaussian(double **x, double **w, int *n, void *arg)
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double prec = map_precision(ds->data_observations.mix_log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double sd = sqrt(1.0 / prec);
-	double *xx = NULL, *ww = NULL, wmax;
+	double *xx = NULL, *ww = NULL, wmin;
 	int i, j;
 	GMRFLib_ghq(&xx, &ww, *n);
 	
-	wmax = GMRFLib_max_value(ww, *n, NULL);
+	wmin = MIX_INT_EPS * GMRFLib_max_value(ww, *n, NULL);
 	*x = Calloc(*n, double);
 	*w = Calloc(*n, double);
 	for (i = j = 0; i < *n; i++) {
-		if (ww[i] > MIX_INT_EPS * wmax) {	       /* avoid to small weights */
+		if (ww[i] > wmin) {			       /* avoid to small weights */
 			(*x)[j] = sd * xx[i];
 			(*w)[j] = ww[i];
 			j++;
@@ -6682,7 +6682,7 @@ int inla_mix_int_simpson_gaussian(double **x, double **w, int *n, void *arg)
 		lcache->n = *n;
 
 		double *xx = Calloc(*n, double), *ww = Calloc(*n, double);
-		double weight[2] = { 4.0, 2.0 }, limit = sqrt(-2.0 * log(MIX_INT_EPS)), dx = 2.0 * limit / (*n - 1.0), wmax;
+		double weight[2] = { 4.0, 2.0 }, limit = sqrt(-2.0 * log(MIX_INT_EPS)), dx = 2.0 * limit / (*n - 1.0), wmin;
 		int i, j, np;
 
 		xx[0] = -limit;
@@ -6693,9 +6693,9 @@ int inla_mix_int_simpson_gaussian(double **x, double **w, int *n, void *arg)
 			ww[i] = weight[j] * exp(-0.5 * SQR(xx[i]));
 		}
 
-		wmax = GMRFLib_max_value(ww, *n, NULL);
-		for(i = j = 0; i < *n;  i++) {
-			if (ww[i] > MIX_INT_EPS * wmax) {
+		wmin = MIX_INT_EPS * GMRFLib_max_value(ww, *n, NULL);
+		for(i = j = 0; i < *n; i++) {
+			if (ww[i] > wmin) {
 				xx[j] = xx[i];
 				ww[j] = ww[i];
 				j++;
