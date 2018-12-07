@@ -6753,10 +6753,13 @@ int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_v
 	int i, k, kk, mm, np;
 	double *val = NULL, val_max, sum, *xx = NULL, *ll = NULL, *storage = NULL, *points = NULL, *weights = NULL;
 
-	np = ds->mix_npoints;
+	np = ds->mix_npoints;				       /* 'np' is the maximum number of points */
 	switch (ds->mix_integrator) {
 	case MIX_INT_QUADRATURE:
 		if (func_quadrature) {
+			/* 
+			 * we can get back few points, as small weights are removed
+			 */
 			func_quadrature(&points, &weights, &np, arg);
 		} else {
 			assert(0 == 1);
@@ -6765,6 +6768,9 @@ int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_v
 	case MIX_INT_DEFAULT:
 	case MIX_INT_SIMPSON:
 		if (func_simpson) {
+			/* 
+			 * we can get back few points, as small weights are removed
+			 */
 			func_simpson(&points, &weights, &np, arg);
 		} else {
 			assert(0 == 1);
