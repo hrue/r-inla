@@ -274,7 +274,7 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_ai_param_duplicate(GMRFLib_ai_param_tp ** ai_par_new, GMRFLib_ai_param_tp * ai_par) 
+int GMRFLib_ai_param_duplicate(GMRFLib_ai_param_tp ** ai_par_new, GMRFLib_ai_param_tp * ai_par)
 {
 	if (!ai_par) {
 		*ai_par_new = NULL;
@@ -285,14 +285,13 @@ int GMRFLib_ai_param_duplicate(GMRFLib_ai_param_tp ** ai_par_new, GMRFLib_ai_par
 	memcpy((void *) *ai_par_new, (void *) ai_par, sizeof(GMRFLib_ai_param_tp));
 
 	if (ai_par->adapt_strategy) {
-		(*ai_par_new)->adapt_strategy = Calloc(ai_par->adapt_len, GMRFLib_ai_param_tp);
-		memcpy((void *)  (*ai_par_new)->adapt_strategy, (void *) ai_par->adapt_strategy,
-		       sizeof(GMRFLib_ai_strategy_tp) * ai_par->adapt_len);
+		(*ai_par_new)->adapt_strategy = Calloc(ai_par->adapt_len, GMRFLib_ai_strategy_tp);
+		memcpy((void *) (*ai_par_new)->adapt_strategy, (void *) ai_par->adapt_strategy, sizeof(GMRFLib_ai_strategy_tp) * ai_par->adapt_len);
 	}
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_ai_param_free(GMRFLib_ai_param_tp * ai_par) 
+int GMRFLib_ai_param_free(GMRFLib_ai_param_tp * ai_par)
 {
 	if (ai_par) {
 		if (ai_par->adapt_len > 0 && ai_par->adapt_strategy) {
@@ -1396,7 +1395,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	GMRFLib_problem_tp *newp = NULL;
 	GMRFLib_store_tp *store = NULL;
 	GMRFLib_ai_strategy_tp strategy;
-	
+
 #define COMPUTE_CPO_DENSITY						\
 	if (cpo_density) {						\
 		if (d[idx]) {						\
@@ -3612,7 +3611,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 
 			if (ai_par->fp_log) {
-				fprintf(ai_par->fp_log, "Number of function evaluations = %1d\n", GMRFLib_domin_get_f_count());
+				fprintf(ai_par->fp_log, "Optim: Number of function evaluations = %1d\n", GMRFLib_domin_get_f_count());
 			}
 		} else {
 			/*
@@ -4854,8 +4853,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->
-																   cpo_manual)
+																   ai_par->cpo_manual)
 															   ? &cpodens : NULL), ii,
 												   x, bnew, c, mean, d, loglFunc, loglFunc_arg,
 												   fixed_value, graph, tabQfunc->Qfunc,
@@ -4887,8 +4885,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->
-																   cpo_manual)
+																   ai_par->cpo_manual)
 															   ? &cpodens : NULL), ii,
 												   x, bnew, c, mean, d, loglFunc, loglFunc_arg,
 												   fixed_value, graph, tabQfunc->Qfunc,
@@ -5034,8 +5031,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->
-																   cpo_manual)
+																   ai_par->cpo_manual)
 															   ? &cpodens : NULL), ii,
 												   x, bnew, c, mean, d, loglFunc, loglFunc_arg,
 												   fixed_value, graph, tabQfunc->Qfunc,
@@ -5068,8 +5064,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->
-																   cpo_manual)
+																   ai_par->cpo_manual)
 															   ? &cpodens : NULL), ii,
 												   x, bnew, c, mean, d, loglFunc, loglFunc_arg,
 												   fixed_value, graph, tabQfunc->Qfunc,
@@ -5965,6 +5960,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		if (ai_store) {
 			if (ai_store->problem->sub_sm_fact.remap != NULL) {
 				misc_output->len_reordering = ai_store->problem->sub_graph->n;
+				misc_output->nfunc = GMRFLib_domin_get_f_count();
 				misc_output->reordering = Calloc(misc_output->len_reordering, int);
 				memcpy(misc_output->reordering, ai_store->problem->sub_sm_fact.remap, misc_output->len_reordering * sizeof(int));
 			}

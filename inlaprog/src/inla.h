@@ -530,6 +530,7 @@ typedef enum {
 	F_FGN2,
 	F_AR1C,
 	F_DMATERN,
+	F_INTSLOPE, 
 	P_LOGGAMMA = 2000,				       /* priors */
 	P_GAUSSIAN,
 	P_MVGAUSSIAN,
@@ -668,7 +669,7 @@ typedef struct {
 typedef struct inla_tp_struct inla_tp;			       /* need it like this as they point to each other */
 
 typedef enum {
-	MIX_INT_DEFAULT = 0, 
+	MIX_INT_DEFAULT = 0,
 	MIX_INT_QUADRATURE = 1,
 	MIX_INT_SIMPSON = 2
 } inla_mix_integrator_tp;
@@ -1326,6 +1327,28 @@ typedef struct {
 	inla_besag_Qfunc_arg_tp *besagdef;
 } inla_group_def_tp;
 
+typedef struct
+{
+	int n;				       // length of covariates/subject/strata 
+	int N;				       // size of matrix = n + warg->dim*m, m=#subjects, dim=2 
+	int nsubject;
+	int nstrata;
+	double precision;		       // fixed high precision 
+	double ***theta_gamma;
+	GMRFLib_matrix_tp *def;
+	GMRFLib_idx_tp **subject_idx;
+	inla_iid_wishart_arg_tp *warg;
+} inla_intslope_arg_tp;
+
+typedef enum {
+	INTSLOPE_SUBJECT = 0,
+	INTSLOPE_STRATA = 1,
+	INTSLOPE_Z = 2
+}
+	inla_intslope_column_tp;
+	
+
+
 #define R_GENERIC_Q "Q"
 #define R_GENERIC_GRAPH "graph"
 #define R_GENERIC_MU "mu"
@@ -1740,10 +1763,10 @@ map_table_tp *mapfunc_find(const char *name);
 unsigned char *inla_fp_sha1(FILE * fp);
 unsigned char *inla_inifile_sha1(const char *filename);
 void inla_signal(int sig);
+int inla_make_intslope_graph(GMRFLib_graph_tp **graph, inla_intslope_arg_tp *arg);
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(double **, double **, int, void *),
-			   int (*simpson)(double **, double **, int, void *));
+			   int (*quadrature) (double **, double **, int, void *), int (*simpson) (double **, double **, int, void *));
 
 /* 
 ***
