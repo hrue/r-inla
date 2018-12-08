@@ -29,6 +29,26 @@
   }
 }
 
+\section{CHANGES IN VERSION 18.12.01}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New option \code{mkl} in \code{inla.setOption()} to chose
+      MKL-buildt binaries.
+      \item Linux binaries now buildt with Ubuntu1804.
+      \item MKL-versions are included for MacOSX, and Linux (both dynamic
+      and static).
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.11.28}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New latent model \code{intslope}
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 18.11.22}{
   \subsection{BUG FIXES}{
     \itemize{
