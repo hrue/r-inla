@@ -6659,6 +6659,14 @@ int inla_mix_int_quadrature_loggamma(double **x, double **w, int *n, void *arg)
 	return GMRFLib_SUCCESS;
 }
 
+int inla_mix_int_quadrature_mloggamma(double **x, double **w, int *n, void *arg)
+{
+	char *msg = GMRFLib_strdup("This function is not yet implemented.");
+	inla_error_general(msg);
+	exit(1);
+	return GMRFLib_SUCCESS;
+}
+
 int inla_mix_int_simpson_gaussian(double **x, double **w, int *n, void *arg)
 {
 #define DENS(_x) exp(-0.5 * SQR(_x))
@@ -6772,16 +6780,7 @@ int inla_mix_int_simpson_loggamma(double **x, double **w, int *n, void *arg)
 
 		low_limit = log(MATHLIB_FUN(qgamma)(alpha/2.0, shape, 1.0/shape, 1, 0));
 		high_limit = log(MATHLIB_FUN(qgamma)(1.0 - alpha/2.0, shape, 1.0/shape, 1, 0));
-		
-		if (0) {
-			P(low_limit);
-			P(log(gsl_cdf_gamma_Pinv(alpha/2.0, shape, 1.0/shape)));
-			P(high_limit);
-			P(log(gsl_cdf_gamma_Pinv(1.0 - alpha/2.0, shape, 1.0/shape)));
-		}
 		dx = (high_limit - low_limit) / (*n - 1.0);
-		P(shape);
-		
 		xx = work;				       /* use same storage */
 		ww = work + *n;
 		xx[0] = low_limit;
@@ -6830,13 +6829,29 @@ int inla_mix_int_simpson_loggamma(double **x, double **w, int *n, void *arg)
 	return GMRFLib_SUCCESS;
 }
 
+int inla_mix_int_simpson_mloggamma(double **x, double **w, int *n, void *arg) 
+{
+	inla_mix_int_simpson_loggamma(x, w, n, arg);
+
+	for(int i = 0; i < *n; i++) {
+		/* 
+		 * just swap the sign
+		 */
+		(*x)[i] = - (*x)[i];
+	}
+	return GMRFLib_SUCCESS;
+}
 
 int loglikelihood_mix_loggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	return (loglikelihood_mix_core(logll, x, m, idx, x_vec, y_cdf, arg, inla_mix_int_quadrature_loggamma, 
 				       inla_mix_int_simpson_loggamma));
 }
-
+int loglikelihood_mix_mloggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+{
+	return (loglikelihood_mix_core(logll, x, m, idx, x_vec, y_cdf, arg, inla_mix_int_quadrature_mloggamma, 
+				       inla_mix_int_simpson_mloggamma));
+}
 
 int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
@@ -15232,6 +15247,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->mix_id = MIX_GAUSSIAN;
 		} else if (!strcasecmp(model, "LOGGAMMA")) {
 			ds->mix_id = MIX_LOGGAMMA;
+		} else if (!strcasecmp(model, "MLOGGAMMA")) {
+			ds->mix_id = MIX_MLOGGAMMA;
 		} else {
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "MIX.MODEL", model);
 		}
@@ -15287,6 +15304,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			break;
 
 		case MIX_LOGGAMMA:
+		case MIX_MLOGGAMMA:
 			/*
 			 * get options related to the loggamma
 			 */
@@ -15312,11 +15330,18 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-				mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the LogGamma mix", mb->ds);
-				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the LogGamma mix", mb->ds);
-				GMRFLib_sprintf(&msg, "%s-parameter", secname);
-				mb->theta_dir[mb->ntheta] = msg;
 
+				if (ds->mix_id == MIX_LOGGAMMA) {
+					mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the LogGamma mix", mb->ds);
+					mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the LogGamma mix", mb->ds);
+					GMRFLib_sprintf(&msg, "%s-parameter", secname);
+					mb->theta_dir[mb->ntheta] = msg;
+				} else {
+					mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the mLogGamma mix", mb->ds);
+					mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the mLogGamma mix", mb->ds);
+					GMRFLib_sprintf(&msg, "%s-parameter", secname);
+					mb->theta_dir[mb->ntheta] = msg;
+				}
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->mix_prior.from_theta);
@@ -15332,7 +15357,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 
 			ds->mix_loglikelihood = ds->loglikelihood;
-			ds->loglikelihood = loglikelihood_mix_loggamma;
+			if (ds->mix_id == MIX_LOGGAMMA) {
+				ds->loglikelihood = loglikelihood_mix_loggamma;
+			} else {
+				ds->loglikelihood = loglikelihood_mix_mloggamma;
+			}
 			break;
 
 		default:
@@ -24921,6 +24950,7 @@ double extra(double *theta, int ntheta, void *argument)
 					break;
 
 				case MIX_LOGGAMMA:
+				case MIX_MLOGGAMMA:
 					if (!ds->mix_fixed) {
 						log_shape = theta[count];
 						val += PRIOR_EVAL(ds->mix_prior, &log_shape);
