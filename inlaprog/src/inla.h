@@ -368,6 +368,11 @@ typedef struct {
 	double **mix_log_prec_gaussian;
 
 	/*
+	 * MIX ~ LogGamma(a,a)
+	 */
+	double **mix_log_prec_loggamma;
+
+	/*
 	 * Gammacount; parameter alpha
 	 */
 	double **gammacount_log_alpha;
@@ -574,6 +579,7 @@ typedef enum {
 	G_BESAG,
 	G_IID,
 	MIX_GAUSSIAN = 4000,				       /* mix-models */
+	MIX_LOGGAMMA,
 	LINK_IDENTITY = 5000,				       /* link-models */
 	LINK_LOG,
 	LINK_NEGLOG,
@@ -1759,7 +1765,9 @@ int my_dir_exists(const char *dirname);
 int my_setenv(char *str, int prefix);
 int testit(int argc, char **argv);
 int inla_mix_int_simpson_gaussian(double **x, double **w, int *n, void *arg);
+int inla_mix_int_simpson_loggamma(double **x, double **w, int *n, void *arg);
 int inla_mix_int_quadrature_gaussian(double **x, double **w, int *n, void *arg);
+int inla_mix_int_quadrature_loggamma(double **x, double **w, int *n, void *arg);
 map_table_tp *mapfunc_find(const char *name);
 unsigned char *inla_fp_sha1(FILE * fp);
 unsigned char *inla_inifile_sha1(const char *filename);
