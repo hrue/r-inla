@@ -4852,6 +4852,22 @@
                              from.theta = function(x) exp(x)
                              )
                          )
+                     ), 
+                 mloggamma = list(
+                     doc = "Minus-LogGamma mixture", 
+                     hyper = list(
+                         theta = list(
+                             hyperid =  47201,
+                             name = "log shape",
+                             short.name = "shape",
+                             prior = "pc.mgamma",
+                             param = 7, 
+                             initial = 4,
+                             fixed = FALSE,
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                             )
+                         )
                      )
                  )
          )
