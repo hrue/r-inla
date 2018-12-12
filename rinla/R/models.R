@@ -4828,16 +4828,56 @@
                              hyperid =  47001,
                              name = "log precision",
                              short.name = "prec",
-                             prior = "loggamma",
+                             prior = "pc.prec",
                              param = c(1, 0.01),
                              initial = 0,
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
+                         )
+                     )
+                 ), 
+                 loggamma = list(
+                     ## > a = 1/inla.pc.rgamma(100000, lambda = 4.8)
+                     ## > x = log(rgamma(length(a), shape=a, rate = a))
+                     ## > sd (x)
+                     ## [1] 0.3344429082
+                     doc = "LogGamma mixture", 
+                     hyper = list(
+                         theta = list(
+                             hyperid =  47101,
+                             name = "log precision",
+                             short.name = "prec",
+                             prior = "pc.mgamma",
+                             param = 4.8, 
+                             initial = 4,
+                             fixed = FALSE,
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         )
+                     )
+                 ), 
+                 mloggamma = list(
+                     ## > a = 1/inla.pc.rgamma(100000, lambda = 4.8)
+                     ## > x = log(rgamma(length(a), shape=a, rate = a))
+                     ## > sd (x)
+                     ## [1] 0.3344429082
+                     doc = "Minus-LogGamma mixture", 
+                     hyper = list(
+                         theta = list(
+                             hyperid =  47201,
+                             name = "log precision",
+                             short.name = "prec",
+                             prior = "pc.mgamma",
+                             param = 4.8, 
+                             initial = 4,
+                             fixed = FALSE,
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
                          )
                      )
                  )
+             )
          )
 }
 
