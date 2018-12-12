@@ -6832,7 +6832,6 @@ int inla_mix_int_simpson_loggamma(double **x, double **w, int *n, void *arg)
 int inla_mix_int_simpson_mloggamma(double **x, double **w, int *n, void *arg) 
 {
 	inla_mix_int_simpson_loggamma(x, w, n, arg);
-
 	for(int i = 0; i < *n; i++) {
 		/* 
 		 * just swap the sign
@@ -15357,11 +15356,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 
 			ds->mix_loglikelihood = ds->loglikelihood;
-			if (ds->mix_id == MIX_LOGGAMMA) {
-				ds->loglikelihood = loglikelihood_mix_loggamma;
-			} else {
-				ds->loglikelihood = loglikelihood_mix_mloggamma;
-			}
+			ds->loglikelihood = (ds->mix_id == MIX_LOGGAMMA ? loglikelihood_mix_loggamma : loglikelihood_mix_mloggamma);
 			break;
 
 		default:
@@ -24942,22 +24937,14 @@ double extra(double *theta, int ntheta, void *argument)
 
 				switch (ds->mix_id) {
 				case MIX_GAUSSIAN:
+				case MIX_LOGGAMMA:
+				case MIX_MLOGGAMMA:
 					if (!ds->mix_fixed) {
 						log_precision = theta[count];
 						val += PRIOR_EVAL(ds->mix_prior, &log_precision);
 						count++;
 					}
 					break;
-
-				case MIX_LOGGAMMA:
-				case MIX_MLOGGAMMA:
-					if (!ds->mix_fixed) {
-						log_shape = theta[count];
-						val += PRIOR_EVAL(ds->mix_prior, &log_shape);
-						count++;
-					}
-					break;
-
 				default:
 					GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 				}
