@@ -29,6 +29,20 @@
   }
 }
 
+\section{CHANGES IN VERSION 18.12.12}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New models, \code{loggamma} and \code{mloggamma}
+      in \code{mix}.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Minor changes in some build scripts.
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 18.12.01}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{

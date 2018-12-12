@@ -5735,7 +5735,7 @@ inla.models()
 							\item{hyperid = }{`47001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
-							\item{prior = }{`loggamma'}
+							\item{prior = }{`pc.prec'}
 							\item{param = }{`1 0.01'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
@@ -5748,6 +5748,54 @@ inla.models()
 						\item{Properties:}{
 							\describe{
 								\item{doc = }{`Gaussian mixture'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `loggamma'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{hyperid = }{`47101'}
+							\item{name = }{`log precision'}
+							\item{short.name = }{`prec'}
+							\item{prior = }{`pc.mgamma'}
+							\item{param = }{`4.8'}
+							\item{initial = }{`4'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`LogGamma mixture'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `mloggamma'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{hyperid = }{`47201'}
+							\item{name = }{`log precision'}
+							\item{short.name = }{`prec'}
+							\item{prior = }{`pc.mgamma'}
+							\item{param = }{`4.8'}
+							\item{initial = }{`4'}
+							\item{fixed = }{`FALSE'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`Minus-LogGamma mixture'}
 							 }
 						 }
 					 }
