@@ -1776,6 +1776,8 @@ map_table_tp *mapfunc_find(const char *name);
 unsigned char *inla_fp_sha1(FILE * fp);
 unsigned char *inla_inifile_sha1(const char *filename);
 void inla_signal(int sig);
+int inla_testit_timer(void);
+
 
 /* 
 ***

@@ -32601,12 +32601,35 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 30:
+	{
+		double tref = GMRFLib_cpu();
+		for (int i = 0; i < 3; i++) {
+			system("sleep 1");
+			printf("Call system() to sleep 1s. Time elapsed: %.6f\n", GMRFLib_cpu() - tref);
+		}
+		GMRFLib_collect_timer_statistics = GMRFLib_TRUE;
+		for (int i = 0; i < 3; i++) {
+			printf("Call inla_testit_timer()\n");
+			inla_testit_timer();
+		}
+		GMRFLib_timer_full_report(stdout);
+		break;
+	}
+
 	default:
 		exit(0);
 	}
 
 
 	exit(EXIT_SUCCESS);
+}
+int inla_testit_timer(void) 
+{
+	GMRFLib_ENTER_ROUTINE;
+	system("sleep 1");
+	GMRFLib_LEAVE_ROUTINE;
+	return 0;
 }
 
 int inla_check_pardiso(void)
