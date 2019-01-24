@@ -29,6 +29,14 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.01.24}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Added a new test-script
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 18.12.12}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
