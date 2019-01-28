@@ -316,6 +316,8 @@
     result = NULL
     cmd = match.arg(cmd)
     res = do.call(model$definition, args = list(cmd = cmd, theta = theta))
+    time.ref = proc.time()[3]
+    
     if (cmd %in% "Q") {
         Q = inla.as.sparse(res)
         debug.cat("dim(Q)", dim(Q))
@@ -324,6 +326,7 @@
         idx = which(Q@i <= Q@j)
         len = length(Q@i[idx])
         result = c(n, len, Q@i[idx], Q@j[idx], Q@x[idx])
+        Q = NULL
     } else if (cmd %in% "graph") {
         diag(res) = 1
         G = inla.as.sparse(res)
@@ -333,6 +336,7 @@
         len = length(G@i[idx])
         debug.cat("n", n, "len", len)
         result = c(n, len, G@i[idx], G@j[idx])
+        G = NULL
     } else if (cmd %in% "mu") {
         mu = res
         debug.cat("length(mu)", length(mu))
@@ -355,10 +359,21 @@
     } else {
         stop(paste("Unknown command", cmd))
     }
+    res = NULL
 
+    if (FALSE) {
+        nm = "...cpu.time"
+        envir = environment(model$definition)
+        cpu.time = if (exists(nm, envir, envir)) get(nm, envir = envir) else list()
+        if (is.null(cpu.time[[cmd]])) cpu.time[[cmd]] = list(total.time = 0, n.times = 0)
+        cpu.time[[cmd]] =
+            list(total.time = cpu.time[[cmd]]$total.time + proc.time()[3] - time.ref,
+                 n.times = cpu.time[[cmd]]$n.times + 1)
+        assign(nm, cpu.time, envir = envir)
+    }
+    
     return (as.numeric(result))
 }
-
 
 `inla.rgeneric.q` = function(rmodel,
                              cmd = c("graph", "Q", "mu", "initial", "log.norm.const",

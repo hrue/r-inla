@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+IP=0.0.0.0
+for ip in $(~/bin/my-vm-addr); do
+    if ping -q -i1 -W1 -c1 $ip; then
+	IP=$ip
+	echo Host $IP is alive
+	break
+    else
+	echo Host $ip is not alive
+    fi
+done
+
+if [ -n "$IP" ]; then
+    export INLA_LINUX=hrue@$IP
+    export INLA_LINUX_PORT=22
+    yes yes | ssh hrue@$IP echo Testing connection
+else 
+    echo "No VM, exit"
+    exit 1
+fi
+
+export INLA_TAG="${1-Current}"
+VERSION=$(ssh $IP "source /etc/os-release; echo \$NAME-\$VERSION")
+D=64bit
+
+ssh -x -t $IP "
+    export INLA_TAG=$INLA_TAG;
+    B=builds/build64;
+    make -C \$B update;
+    test -d \$B/$D && rm -rf \$B/$D;
+    rsync -auv \$B/r-inla/rinla/inst/bin/linux/$D \$B;
+    export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib64:\$PWD/local/lib:\$LD_LIBRARY_PATH;
+    cp -v \$B/local/bin/inla \$B/$D;
+    cp -v \$B/local/bin/fmesher \$B/$D;
+    bin/my.ldd \$B/local/bin/inla | while read f; do cp -v \$f \$B/$D; done;
+    bin/my.ldd \$B/local/bin/fmesher | while read f; do cp -v \$f \$B/$D; done
+    if test -f \$B/local/bin/inla.mkl; then 
+        cp -v \$B/local/bin/inla.mkl \$B/$D;
+        bin/my.ldd \$B/local/bin/inla.mkl | while read f; do cp -v \$f \$B/$D; done;
+    fi	
+"
+
+tarfile="$D.tgz"
+ssh -x $IP "cd builds/build64; tar cvfz $tarfile 64bit"
+d="www/Linux-builds/$VERSION/$INLA_TAG"
+mkdir -p "$d"
+rsync $IP:builds/build64/$tarfile "$d"
+
+
+
+
+
+
+
+
+

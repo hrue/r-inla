@@ -45,8 +45,6 @@ Suggestions to \texttt{elias@r-inla.org} are welcome}
 \begin{document}
 \maketitle
 
-\input{spde-tutorial-abstract.tex}
-
 \paragraph{Acknowledgments}
 To Sarah Gallup and Helen Sofaer for valuable 
 English review in the text. 
@@ -55,7 +53,9 @@ the discussion forum
 \url{http://www.r-inla.org/comments-1} 
 and to me individually. 
 
-\input{updates} 
+\input{updates}
+
+\input{spde-tutorial-abstract.tex}
 
 \tableofcontents
 

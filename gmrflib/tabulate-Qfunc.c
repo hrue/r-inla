@@ -168,7 +168,7 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 
 	arg->values = Calloc(graph->n, map_id *);
 
-#pragma omp parallel for private(i)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
 	for (i = 0; i < graph->n; i++) {
 		int j, k, count;
 
@@ -336,11 +336,11 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 		if (!sparse) {
 			assert(M->ncol == 3);
 		} else {
-			/* 
+			/*
 			 * make sure to fix the dimension of the matrix
 			 */
 			assert(M->nrow == M->ncol);
-			GMRFLib_ged_add(ged, M->nrow-1,  M->ncol-1);
+			GMRFLib_ged_add(ged, M->nrow - 1, M->ncol - 1);
 		}
 		if (sparse) {
 			for (k = 0; k < M->elems; k++) {
@@ -597,7 +597,8 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 
 */
 int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph,
-				     int ntriples, int *ilist, int *jlist, double *Qijlist, int dim, double *prec, double *log_prec, double **log_prec_omp)
+				     int ntriples, int *ilist, int *jlist, double *Qijlist, int dim, double *prec, double *log_prec,
+				     double **log_prec_omp)
 {
 	/*
 	 * as GMRFLib_tabulate_Qfunc(), but get its Q_ij values from its arguments

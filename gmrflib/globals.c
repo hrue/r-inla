@@ -203,6 +203,7 @@ int GMRFLib_faster_integration_np = 80;
 int GMRFLib_thread_id = 0;
 #pragma omp threadprivate(GMRFLib_thread_id)
 
+
 /*
   Signal USR2: Stop optimiser and present results
 */
@@ -245,10 +246,20 @@ GMRFLib_global_node_tp GMRFLib_global_node = { 2.0, INT_MAX };
 /* 
    storage strategy for density
  */
-GMRFLib_density_storage_strategy_tp GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT; 
+GMRFLib_density_storage_strategy_tp GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT;
 
 
 /* 
    internal use only; for debugging
  */
 int GMRFLib_debug_code = 0;
+
+/* 
+   tell the pardiso-interface that we're in a thread-safe area
+ */
+int GMRFLib_pardiso_thread_safe = 1;
+
+/* 
+   tell if we have a working pardiso library, -1, is for 'not checked yet'
+ */
+int GMRFLib_pardiso_ok = -1;

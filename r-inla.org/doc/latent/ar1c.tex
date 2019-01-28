@@ -40,8 +40,8 @@ and the prior is defined on $\mathbf{\theta}=(\theta_1,\theta_2)$.
 
 The AR1C model is specified as
 \begin{verbatim}
- f(<whatever>, model="ar1", hyper = <hyper>,
-   control.ar1c = list(Z=Z, Q.beta = Q))
+ f(<whatever>, model="ar1c", hyper = <hyper>,
+   args.ar1c = list(Z=Z, Q.beta = Q))
 \end{verbatim}
 The covariates are given in the \textbf{matrix} $Z$ and \textbf{must
     have} dimension $n\times m$\footnote{Despite the fact that the

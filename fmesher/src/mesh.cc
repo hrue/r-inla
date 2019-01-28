@@ -69,7 +69,7 @@ namespace fmesh {
 	TTi_.capacity(V_capacity*2);
       S_.capacity(V_capacity);
     }
-  };
+  }
 
   Mesh::~Mesh()
   {
@@ -128,7 +128,7 @@ namespace fmesh {
     }
 
     return *this;
-  };
+  }
 
 
 
@@ -305,16 +305,15 @@ namespace fmesh {
       VV(TV_[t][2],TV_[t][1]) = 1;
     };
     return VV;
-  };
+  }
     
 
+#ifndef FMESHER_NO_X
   void Mesh::setX11delay(double set_delay)
   {
-#ifndef FMESHER_NO_X
     if (X11_) {
       X11_->delay(set_delay);
     }
-#endif
   }
 
   Mesh& Mesh::useX11(bool use_X11,
@@ -326,7 +325,6 @@ namespace fmesh {
 		     double maxy,
 		     std::string name)
   {
-#ifndef FMESHER_NO_X
     if (use_X11) {
       if (!X11_) { /* Init. */
 	if (type_ == Mtype_sphere)
@@ -350,9 +348,9 @@ namespace fmesh {
 	X11_ = NULL;
       }
     }
-#endif
     return *this;
   }
+#endif
 
 
 
@@ -386,9 +384,9 @@ namespace fmesh {
     return *this;
   }
 
+#ifndef FMESHER_NO_X
   void Mesh::drawX11point(int v, bool fg)
   {
-#ifndef FMESHER_NO_X
     if (!X11_) return;
 
     int szbig = (nV()>50 ? (nV()>500 ? 1 : 3) : 5);
@@ -405,12 +403,12 @@ namespace fmesh {
       int sz = ((v<X11_v_big_limit_) ? szbig : szsmall);
       X11_->dot(fg,s,sz);
     }
-#endif
   }
+#endif
 
+#ifndef FMESHER_NO_X
   void Mesh::drawX11triangle(int t, bool fg)
   {
-#ifndef FMESHER_NO_X
     if (!X11_) return;
 
     int szbig = (nV()>50 ? (nV()>500 ? 1 : 3) : 5);
@@ -538,13 +536,15 @@ namespace fmesh {
       ss << "t" << t << "";
       X11_->text(fg,s0,ss.str());
     }
-#endif
   }
+#endif
 
+#ifndef FMESHER_NO_X
   void Mesh::redrawX11(std::string str)
   {
-#ifndef FMESHER_NO_X
     if (!X11_) return;
+    if (verbose_ > 0)
+      std::cout << str << std::endl;
     
     X11_->clear();
     for (int v=0;v<(int)nV();v++)
@@ -553,8 +553,8 @@ namespace fmesh {
       drawX11triangle(t,true);
 
     X11_->delay();
-#endif /* FMESHER_NO_X */
   }
+#endif /* FMESHER_NO_X */
   
   Mesh& Mesh::TV_append(const Matrix3int& TV)
   {
@@ -563,7 +563,9 @@ namespace fmesh {
       update_VT_triangles(nT()-TV.rows());
     rebuildTT();
     rebuildTTi();
+#ifndef FMESHER_NO_X
     redrawX11(std::string("TV appended"));
+#endif
     return *this;
   }
 
@@ -2340,6 +2342,7 @@ namespace fmesh {
     NOT_IMPLEMENTED;
     // TODO: Implement;
     clear();
+    std::cout << WHEREAMI << "M.nV = " << M.nV() << std::endl;
     return *this;
   }
 
@@ -2433,11 +2436,11 @@ namespace fmesh {
 
 
 
-  MOAint3 Mesh::TVO() const { return MOAint3(TV_,nT()); };
-  MOAint3 Mesh::TTO() const { return MOAint3(TT_,nT()); };
-  MOAint Mesh::VTO() const { return MOAint(VT_,nV()); };
-  MOAint3 Mesh::TTiO() const { return MOAint3(TTi_,nT()); };
-  MOAdouble3 Mesh::SO() const { return MOAdouble3(S_,nV()); };
+  MOAint3 Mesh::TVO() const { return MOAint3(TV_,nT()); }
+  MOAint3 Mesh::TTO() const { return MOAint3(TT_,nT()); }
+  MOAint Mesh::VTO() const { return MOAint(VT_,nV()); }
+  MOAint3 Mesh::TTiO() const { return MOAint3(TTi_,nT()); }
+  MOAdouble3 Mesh::SO() const { return MOAdouble3(S_,nV()); }
 
 
 
@@ -2878,7 +2881,9 @@ namespace fmesh {
     output << "Options:\t"
 	   << (M.useVT() ? "VT " : "")
 	   << (M.useTTi() ? "TTi " : "")
+#ifndef FMESHER_NO_X
 	   << (M.useX11() ? "X11 " : "")
+#endif
 	   << endl;
     return output;
   }
