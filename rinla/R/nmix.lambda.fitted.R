@@ -67,6 +67,7 @@
 ##!
 ##!\references{
 ##!    See documentation for families "nmix" and "nmixmb": \code{inla.doc("nmix")}
+##!}
 ##!\author{
 ##!    Tim Meehan <tmeehan@audubon.org>
 ##!}

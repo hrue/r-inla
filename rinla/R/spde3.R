@@ -178,7 +178,7 @@ inla.spde3.matern.sd.basis =
     n.spde = inla.ifelse(d==2, mesh$n, mesh$m)
 
     ## log(kappa) = 0.5*log(8*nu) - log(range)
-    B.kappa = (cBind(log(8*nu.nominal)/2 - B.range[,1],
+    B.kappa = (cbind(log(8*nu.nominal)/2 - B.range[,1],
                      -B.range[,-1,drop=FALSE] ))
 
     if (method==1) {
@@ -215,11 +215,11 @@ inla.spde3.matern.sd.basis =
     log.var.scaling = lgamma(nu.nominal)-lgamma(alpha.nominal)-log(4*pi)*d/2
 
     B.tau =
-        cBind(B.tau[,1]-B.sd[,1],
+        cbind(B.tau[,1]-B.sd[,1],
               -B.sd[,-1,drop=FALSE],
               B.tau[,-1,drop=FALSE])
     B.kappa =
-        cBind(B.kappa[,1],
+        cbind(B.kappa[,1],
               matrix(0, n.spde, p.sd),
               B.kappa[,-1,drop=FALSE])
 
@@ -235,11 +235,11 @@ inla.internal.test.spde3.sd.basis = function (k=1, dth=0.1, r=1000, globe=25, co
     mesh = inla.mesh.create(globe=globe)
 
     B.common = inla.mesh.basis(mesh, "b.spline", n=3)
-    B.common = cBind(B.common, B.common[,1]*(mesh$loc[,3]>0))
+    B.common = cbind(B.common, B.common[,1]*(mesh$loc[,3]>0))
     B.common[,1] = B.common[,1]*(mesh$loc[,3]<=0)
 
-    B.sd = cBind(0, B.common)
-    B.range = cBind(log(r/6370), B.common)
+    B.sd = cbind(0, B.common)
+    B.range = cbind(log(r/6370), B.common)
 
     sd.basis0 = inla.spde3.matern.sd.basis(mesh, B.sd=B.sd, B.range=B.range, method=0, alpha=alpha, local.offset.compensation=compensate)
     sd.basis1 = inla.spde3.matern.sd.basis(mesh, B.sd=B.sd, B.range=B.range, method=1, alpha=alpha, local.offset.compensation=compensate)
@@ -573,13 +573,13 @@ inla.spde3.matern =
         }
         if (!is.null(extraconstr.int)) {
             A.constr =
-                rBind(A.constr,
+                rbind(A.constr,
                       matrix(extraconstr.int$A %*% fem$c1,
                              nrow(extraconstr.int$A), n.spde))
             e.constr = c(e.constr, extraconstr.int$e)
         }
         if (!is.null(extraconstr)) {
-            A.constr = rBind(A.constr, extraconstr$A)
+            A.constr = rbind(A.constr, extraconstr$A)
             e.constr = c(e.constr, extraconstr$e)
         }
 
@@ -742,13 +742,13 @@ inla.spde3.iheat =
         }
         if (!is.null(extraconstr.int)) {
             A.constr =
-                rBind(A.constr,
+                rbind(A.constr,
                       matrix(extraconstr.int$A %*% fem$c1,
                              nrow(extraconstr.int$A), n.spde))
             e.constr = c(e.constr, extraconstr.int$e)
         }
         if (!is.null(extraconstr)) {
-            A.constr = rBind(A.constr, extraconstr$A)
+            A.constr = rbind(A.constr, extraconstr$A)
             e.constr = c(e.constr, extraconstr$e)
         }
 

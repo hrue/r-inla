@@ -82,7 +82,7 @@ namespace fmesh {
       std::ostream& print(TT* tree, std::ostream& output) const {
 	output << *tree;
 	return output;
-      };
+      }
 
     public:
       Search_tree_type(int ndim, bool use_interval_tree=true) : ndim_(ndim), use_interval_tree_(use_interval_tree), I_(NULL), S_(NULL), SI_(NULL), SS_(NULL), SSI_(NULL), SSS_(NULL) {};
@@ -113,13 +113,13 @@ namespace fmesh {
 	  typename std::vector<T>::const_iterator loc_i = loc_.begin();
 	  (*i) = t->search(loc_i);
 	  is_null_ = (*i).is_null();
-	};
+	}
 	
 	template <class TreeType_iter>
 	void next(TreeType_iter* i) {
 	  ++(*i);
 	  is_null_ = (*i).is_null();
-	};
+	}
 	
       public:
 	Iterator(const Search_tree_type* search_tree, const std::vector<T>& loc);
@@ -128,7 +128,7 @@ namespace fmesh {
 	
 	bool is_null() const {
 	  return is_null_;
-	};
+	}
 	
 	/*	
 		bool operator==(const Iterator& b) const {

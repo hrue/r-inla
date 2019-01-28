@@ -54,6 +54,7 @@
 
 __BEGIN_DECLS
 
+
 /*!
   \struct GMRFLib_rwdef_tp rw.h
   \brief The typedef used to define RW1 and RW2 models with regular locations.
@@ -308,7 +309,6 @@ double GMRFLib_rw2d(int node, int nnode, void *rw2ddef);
 int GMRFLib_make_rw2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def);
 int GMRFLib_make_rw_graph(GMRFLib_graph_tp ** graph, GMRFLib_rwdef_tp * def);
 int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def);
-int GMRFLib_crw_scale_OLD(void *def);
 int GMRFLib_crw_scale(void *def);
 int GMRFLib_rw_scale(void *def);
 int GMRFLib_rw2d_scale(void *def);

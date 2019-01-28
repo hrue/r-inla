@@ -111,7 +111,8 @@ int GMRFLib_default_hidden_par(GMRFLib_hidden_param_tp ** hidden_par)
 	(*hidden_par)->nresolution = 12;		       /* number of points in the spline */
 	(*hidden_par)->norder = 2;			       /* order in the fitted spline: 1 or 2 */
 	(*hidden_par)->nsample = 4;			       /* number of basic samples */
-	(*hidden_par)->nantithetic = 1;			       /* # of antithetic samples is GMRFLib_NUM_ANTITHETIC (=4) times this: +- x (u,1-u)scale */
+	(*hidden_par)->nantithetic = 1;			       /* # of antithetic samples is GMRFLib_NUM_ANTITHETIC (=4) times this: +- x
+							        * (u,1-u)scale */
 	(*hidden_par)->range = 6.0;			       /* + = range * stdev */
 	(*hidden_par)->cmeanmode = GMRFLib_COND_MODE;
 	(*hidden_par)->cmeanmode = GMRFLib_COND_MEAN;
@@ -221,7 +222,8 @@ int GMRFLib_init_problem_hidden(GMRFLib_hidden_problem_tp ** hidden_problem,
 				double *x, double *b, double *c, double *mean,
 				GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
 				char *fixed_value,
-				double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_optimize_param_tp * optpar, GMRFLib_hidden_param_tp * hidden_par)
+				double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_optimize_param_tp * optpar,
+				GMRFLib_hidden_param_tp * hidden_par)
 {
 	int retval;
 
@@ -469,7 +471,8 @@ int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_proble
 			GMRFLib_2order_approx(&args->acoof[i], &args->bcoof[i], &args->ccoof[i],
 					      (*hidden_problem)->sub_d[i], (*hidden_problem)->sub_mean[i],
 					      (*hidden_problem)->map[i], (*hidden_problem)->x_vec,
-					      loglFunc, loglFunc_arg, &((*hidden_problem)->hidden_par->step_len), &((*hidden_problem)->hidden_par->stencil));
+					      loglFunc, loglFunc_arg, &((*hidden_problem)->hidden_par->step_len),
+					      &((*hidden_problem)->hidden_par->stencil));
 			args->ccoof[i] = DMAX(0.0, args->ccoof[i]);
 		} else
 			args->acoof[i] = args->bcoof[i] = args->ccoof[i] = 0.0;
@@ -488,7 +491,8 @@ int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_proble
 	GMRFLib_EWRAP1(GMRFLib_factorise_sparse_matrix(&((*hidden_problem)->sub_sm_fact), (*hidden_problem)->sub_graph));
 
 	memcpy((*hidden_problem)->sub_mean, (*hidden_problem)->sub_b, sub_n * sizeof(double));
-	GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix((*hidden_problem)->sub_mean, &((*hidden_problem)->sub_sm_fact), (*hidden_problem)->sub_graph));
+	GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix
+		       ((*hidden_problem)->sub_mean, 1, &((*hidden_problem)->sub_sm_fact), (*hidden_problem)->sub_graph));
 
 	/*
 	 * determine the neighbor-graph 
@@ -768,7 +772,8 @@ int GMRFLib_doit_hidden_i(GMRFLib_hidden_problem_tp * h, int sample_flag, int id
 	 */
 	if (!h->hidden_par->gaussapprox) {
 		if (1 ||				       /* do this always, se below why */
-		    h->hidden_par->neightype == GMRFLib_NEIGHTYPE_LINEAR || h->hidden_par->cmeanmode == GMRFLib_COND_MODE) {	/* FIXME: is this what I whant? */
+		    h->hidden_par->neightype == GMRFLib_NEIGHTYPE_LINEAR || h->hidden_par->cmeanmode == GMRFLib_COND_MODE) {	/* FIXME: is this
+																 * what I whant? */
 			/*
 			 * sample every index 
 			 */
@@ -871,13 +876,14 @@ int GMRFLib_doit_hidden_i(GMRFLib_hidden_problem_tp * h, int sample_flag, int id
 				for (j = 0; j < ndim; j++) {
 					memset(sol, 0, sub_n * sizeof(double));
 					sol[indexs[j]] = 1.0;
-					GMRFLib_EWRAP0(GMRFLib_solve_llt_sparse_matrix(sol, &(h->sub_sm_fact), h->sub_graph));
+					GMRFLib_EWRAP0(GMRFLib_solve_llt_sparse_matrix(sol, 1, &(h->sub_sm_fact), h->sub_graph));
 					for (i = 0; i < ndim; i++)
 						cov[j + i * ndim] = cov[i + j * ndim] = sol[indexs[i]];
 				}
 				for (j = 0; j < cndim; j++)
 					for (i = 0; i < cndim; i++)
-						ccov[i + cndim * j] = ccov[j + cndim * i] = cov[(i + 1) + ndim * (j + 1)] - cov[i + 1] * cov[j + 1] / cov[0];
+						ccov[i + cndim * j] = ccov[j + cndim * i] =
+						    cov[(i + 1) + ndim * (j + 1)] - cov[i + 1] * cov[j + 1] / cov[0];
 
 				GMRFLib_EWRAP0(GMRFLib_comp_chol_general(&chol_ccov, ccov, cndim, NULL, GMRFLib_ESINGMAT));
 
@@ -935,7 +941,9 @@ int GMRFLib_doit_hidden_i(GMRFLib_hidden_problem_tp * h, int sample_flag, int id
 			/*
 			 * new experimental code. note that the arguments are different!!! 
 			 */
-			gdens = GMRFLib_gdens_InitNew(h->hidden_par->range, cmode[idx], csd, h->hidden_par->nresolution, GMRFLib_ConditionalFunc, (void *) args);
+			gdens =
+			    GMRFLib_gdens_InitNew(h->hidden_par->range, cmode[idx], csd, h->hidden_par->nresolution, GMRFLib_ConditionalFunc,
+						  (void *) args);
 		}
 
 	}
@@ -1122,13 +1130,15 @@ double GMRFLib_ConditionalFunc(double xn, void *arg)
 			a->cmode[a->idx] = xn;
 			for (j = a->idx - 1; j >= a->fidx; j--) {
 				GMRFLib_locate_cmode(a->cmode, j, a->h, &ccmm, &cond_stdev[j]);
-				printf("idx %d j %d cmean %f cmode %f dev %f\n", a->idx, j, ccmm, a->cmode[j], (ccmm - a->cmode[j]) / cond_stdev[j]);
+				printf("idx %d j %d cmean %f cmode %f dev %f\n", a->idx, j, ccmm, a->cmode[j],
+				       (ccmm - a->cmode[j]) / cond_stdev[j]);
 			}
 		}
 	}
 
 	fac = (xn - cm) / cond_stdev[a->idx];
-	if ((a->h->hidden_par->neightype == GMRFLib_NEIGHTYPE_LINEAR) || (a->h->hidden_par->cmeanmode == GMRFLib_COND_MODE)) {	/* need all of them */
+	if ((a->h->hidden_par->neightype == GMRFLib_NEIGHTYPE_LINEAR) || (a->h->hidden_par->cmeanmode == GMRFLib_COND_MODE)) {	/* need all of them 
+																 */
 		for (j = a->idx - 1; j >= a->fidx; j--)
 			a->cmean[j] = a->cmean0[j] + fac * (a->cmean1[j] - a->cmean0[j]);
 	} else {					       /* do not need all cmean's */

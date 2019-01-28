@@ -10,6 +10,7 @@ bdate=$(date -d @$epoch +%Y%m%d%H%M)
 date=$(date -d @$epoch)
 D=r-inla/rinla/R
 DD=INLA/R
+RVersion=$(R --vanilla --version | grep '^R version' | awk '{print $3}' | awk -F. '{print $1 "." $2}')
 
 ##(cd $D; hg update; )
 ##hg=$(cd $D >/dev/null 2>/dev/null; hg parents --template 'hgid: {node|short}  date: {date|date}')
@@ -48,24 +49,9 @@ if false; then
     fi
 fi
 
-## generate the exports defined in the R-files
-{
-    echo ""
-    echo "# The functions to be exported are defined in the R-code with"
-    echo "# lines as:"
-    echo "# ## Export: func1"
-    echo "# ## Export: func1 func2"
-    echo "# etc..."
+## make man-pages and run roxygen
+( cd $D; ./make-man-pages; )
 
-    ls -1 INLA/R/*.R | while read f; do
-        egrep "^## *Export *:" $f | while read ff; do
-            echo "$ff" | awk -F: '{print $2}' | awk '{for(i=1;i<=NF;i++) print $i}' | \
-                awk '{nf = split($0, a, /!/)
-                      if (nf == 2) print "S3method(" a[1] ", "  a[2] ")"
-                      if (nf == 1) print "export(" a[1] ")" }'
-        done
-    done
-} >> INLA/NAMESPACE || exit 1
 
 rm -f $tt 2>/dev/null
 cat $D/version.R | \
@@ -81,11 +67,6 @@ mv -f $tt $DD/version.R
 echo "bdate: $bdate"
 cat $D/version.R
 cat $DD/version.R
-##exit
-
-( cd $D; ./make-man-pages; )
-
-test -d INLA || mkdir INLA
 
 ## Modify the DESCRIPTION file
 desc="INLA/DESCRIPTION"
@@ -107,7 +88,17 @@ cp $mf $md/$mf
 SRC=INLA-source.tgz
 tar cvfzh INLA-source.tgz INLA
 
-R --vanilla CMD build --resave-data --log INLA || exit 1
+
+## If required, build with ``--no-build-vignettes''
+if R --vanilla CMD build --keep-empty-dirs --resave-data --log INLA; then
+    echo '*** Build OK'
+else
+    if R --vanilla CMD build --keep-empty-dirs --no-build-vignettes --resave-data --log INLA; then
+	echo '*** Build without rebuilding vignettes OK'
+    else
+	exit 1
+    fi
+fi
 
 INLA=$(echo INLA_*.tar.gz)
 tgzINLA=${INLA%%.tar.gz}.tgz
@@ -128,9 +119,8 @@ R --vanilla CMD INSTALL --library=$DD $tgzINLA || exit 1
 mv -f $DD/$zipINLA .
 
 ls -l INLA*gz INLA*zip
-www=../www/binaries
+www=../www
 wwwR=../www/R
-OldDir=$(echo ~hrue/www/www.inla/binaries/testing/Old)
 old="$tgzINLA-$bdate"
 
 convert_to_mac_binary () {
@@ -142,63 +132,49 @@ convert_to_mac_binary () {
     done
 }
 
-if [ $# -ge 1 -a "$1" == "1" ]; then
-    cp -v $tgzINLA $www/INLA.tgz
-    cp -v $zipINLA $www/INLA.zip
-    cp -v $SRC     $www/INLA-source.tgz
-    cp -v $tgzINLA $OldDir/$old
-    cp -v $tgzINLA $www/testing/INLA.tgz
-    cp -v $zipINLA $www/testing/INLA.zip
-    cp -v $SRC     $www/testing/INLA-source.tgz
+updateBinaryPackages () {
+    for d in "$@"; do
+	(
+	    echo "RUN ./updateBinaryPackages in dir=$d"
+	    cd "$d"
+	    ./updateBinaryPackages
+	)
+    done
+}
     
-    echo $bdate >  $www/build.date
-    echo $bdate >  $www/testing/build.date
 
+if [ $# -ge 1 -a "$1" == "1" ]; then
     for prefix in stable testing; do
-	cp -v $SRC $wwwR/$prefix/src/contrib/INLA_$VERSION.tar.gz
-	for d in $(find $wwwR/$prefix/bin/macosx -name updateBinaryPackages|xargs dirname); do
-	    cp -v $tgzINLA $d/INLA_$VERSION.tgz
-	    convert_to_mac_binary $d/INLA_$VERSION.tgz
-	done
-	for d in $(find $wwwR/$prefix/bin/windows -name updateBinaryPackages|xargs dirname); do
-	    cp -v $zipINLA $d/INLA_$VERSION.zip
-	done
-	for d in $(find $wwwR/$prefix -name updateBinaryPackages|xargs dirname); do
-	    (
-		echo "RUN $d/updateBinaryPackages..."
-		cd $d
-		./updateBinaryPackages
-	    )
-	done
+	d=$wwwR/$prefix/src/contrib
+	cp -v $SRC $d/INLA_$VERSION.tar.gz
+	updateBinaryPackages $d
+	
+	d=$wwwR/$prefix/bin/macosx/contrib/$RVersion
+	cp -v $tgzINLA $d/INLA_$VERSION.tgz
+	convert_to_mac_binary $d/INLA_$VERSION.tgz
+	updateBinaryPackages $d
+
+	d=$wwwR/$prefix/bin/windows/contrib/$RVersion
+	cp -v $zipINLA $d/INLA_$VERSION.zip
+	updateBinaryPackages $d
     done
 fi
 
-
 if [ $# -ge 1 -a "$1" == "2" ]; then
-    cp -v $tgzINLA $OldDir/$old
-    cp -v $tgzINLA $www/testing/INLA.tgz
-    cp -v $zipINLA $www/testing/INLA.zip
-    cp -v $SRC     $www/testing/INLA-source.tgz
-    echo $bdate >  $www/testing/build.date
-
     for prefix in testing; do
-	cp -v $SRC $wwwR/$prefix/src/contrib/INLA_$VERSION.tar.gz
-	for d in $(find $wwwR/$prefix/bin/macosx -name updateBinaryPackages|xargs dirname); do
-	    cp -v $tgzINLA $d/INLA_$VERSION.tgz
-	    convert_to_mac_binary $d/INLA_$VERSION.tgz
-	done
-	for d in $(find $wwwR/$prefix/bin/windows -name updateBinaryPackages|xargs dirname); do
-	    cp -v $zipINLA $d/INLA_$VERSION.zip
-	done
-	for d in $(find $wwwR/$prefix -name updateBinaryPackages|xargs dirname); do
-	    (
-		echo "RUN $d/updateBinaryPackages..."
-		cd $d
-		./updateBinaryPackages
-	    )
-	done
-    done
+	d=$wwwR/$prefix/src/contrib
+	cp -v $SRC $d/INLA_$VERSION.tar.gz
+	updateBinaryPackages $d
+	
+	d=$wwwR/$prefix/bin/macosx/contrib/$RVersion
+	cp -v $tgzINLA $d/INLA_$VERSION.tgz
+	convert_to_mac_binary $d/INLA_$VERSION.tgz
+	updateBinaryPackages $d
 
+	d=$wwwR/$prefix/bin/windows/contrib/$RVersion
+	cp -v $zipINLA $d/INLA_$VERSION.zip
+	updateBinaryPackages $d
+    done
 fi
 
 {
@@ -209,7 +185,7 @@ fi
     echo 'if (!exists("inla.lib")) inla.lib = NULL'
     echo 'givemeINLA(testing=FALSE, lib = inla.lib)'
     echo 'cat("\n\n\nYou can later upgrade INLA using: inla.upgrade()\n")'
-} | sed 's/inla.os/inla.installer.os/g' >  $www/../givemeINLA.R
+} | sed 's/inla.os/inla.installer.os/g' >  $www/givemeINLA.R
 {
     cat $D/upgrade.R | sed 's/inla.upgrade/inla.installer/g' | grep -v ^#
     cat $D/os.R | grep -v ^#
@@ -218,31 +194,7 @@ fi
     echo 'if (!exists("inla.lib")) inla.lib = NULL'
     echo 'givemeINLA(testing=TRUE, lib = inla.lib)'
     echo 'cat("\n\n\nYou can later upgrade INLA using: inla.upgrade(testing=TRUE)\n")'
-} | sed 's/inla.os/inla.installer.os/g' >  $www/../givemeINLA-testing.R
-    
-( 
-    cd $www; 
-    test -f SHA1SUM && rm -f SHA1SUM; 
-    {
-	for f in *; do
-	    if [ -f "$f" ]; then
-		sha1sum "$f"
-	    fi
-	done
-    } > SHA1SUM
-)
-
-( 
-    cd $www/testing; 
-    test -f SHA1SUM && rm -f SHA1SUM; 
-    {
-	for f in *; do
-	    if [ -f "$f" ]; then
-		sha1sum "$f"
-	    fi
-	done
-    } > SHA1SUM
-)
+} | sed 's/inla.os/inla.installer.os/g' >  $www/givemeINLA-testing.R
 
 rm -f $tgzINLA 
 rm -f $zipINLA 

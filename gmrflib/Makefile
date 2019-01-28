@@ -55,9 +55,9 @@ LIBOBJ = problem-setup.o lapack-interface.o graph.o error-handler.o acm582.o \
 	distributions.o globals.o wa.o random.o timer.o hash.o density.o \
 	smtp-band.o smtp-taucs.o sparse-interface.o rw.o \
 	bitmap.o tabulate-Qfunc.o sphere.o io.o approx-inference.o ghq.o \
-	utils.o experimental.o graph-edit.o domin.o domin-interface.o auxvar.o \
+	utils.o experimental.o graph-edit.o domin-interface.o auxvar.o \
 	design.o version.o integrator.o openmp.o hgmrfm.o seasonal.o matern.o \
-	bfgs3.o fmesher-io.o
+	bfgs3.o fmesher-io.o smtp-pardiso.o
 LIBOBJG = geo.o
 HEADERS = blockupdate.h GMRFLib.h  hidden-approx.h optimize.h hash.h \
 	distributions.h gdens.h GMRFLibP.h lapack-interface.h timer.h \
@@ -67,7 +67,7 @@ HEADERS = blockupdate.h GMRFLib.h  hidden-approx.h optimize.h hash.h \
 	tabulate-Qfunc.h geo.h geo-coefs2.h geo-coefs3.h sphere.h io.h \
 	approx-inference.h density.h utils.h experimental.h graph-edit.h \
 	domin-interface.h auxvar.h design.h version.h integrator.h openmp.h \
-	init.h hgmrfm.h seasonal.h matern.h bfgs3.h fmesher-io.h
+	init.h hgmrfm.h seasonal.h matern.h bfgs3.h fmesher-io.h smtp-pardiso.h
 EXAMPLES = examples/Makefile examples/Makefile.in \
 	examples/example-blockupdate.c examples/example-graph1.c \
 	examples/example-graph2.c examples/example-sample.c \

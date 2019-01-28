@@ -62,7 +62,7 @@ __BEGIN_DECLS
 
 /* 
  */
-typedef signed char GMRFLib_int8;
+typedef short int GMRFLib_short_int;
 typedef long unsigned int GMRFLib_sizeof_tp;
 
 
@@ -192,10 +192,16 @@ typedef long unsigned int GMRFLib_sizeof_tp;
 #define MOD(i,n)  (((i)+(n))%(n))
 #define FIXME( msg) if (1) { printf("\n[%1d]:%s:%1d:%s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
 #define FIXME1(msg) if (1) { static int first=1; if (first) { first=0; FIXME(msg); }}
-#define FIXMEE( msg) if (1) { fprintf(stderr, "\n[%1d]:%s:%1d:%s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
-#define FIXMEE1(msg) if (1) { static int first=1; if (first) { first=0; FIXMEE(msg); }}
-#define P(x)        if (1) { printf("line[%1d] " #x " = [ %.12f ]\n",__LINE__,(double)x); }
-#define PP(msg,pt)  if (1) { printf("%d: %s ptr " #pt " = 0x%x\n",__LINE__,msg,pt); }
+#define FIXMEstderr( msg) if (1) { fprintf(stderr, "\n[%1d]:%s:%1d:%s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
+#define FIXME1stderr(msg) if (1) { static int first=1; if (first) { first=0; FIXMEstderr(msg); }}
+#define P(x)        if (1) { printf("line[%1d] " #x " = [ %.12f ]\n",__LINE__,(double)(x)); }
+#define Pstderr(x)  if (1) { fprintf(stderr, "line[%1d] " #x " = [ %.12f ]\n",__LINE__,(double)(x)); }
+#define P1(x)       if (1) { static int first=1;  if (first) { printf("line[%1d] " #x " = [ %.12f ]\n", __LINE__, (double)(x)); first=0; }}
+#define P1stderr(x) if (1) { static int first=1;  if (first) { fprintf(stderr, "line[%1d] " #x " = [ %.12f ]\n", __LINE__, (double)(x)); first=0; }}
+#define PP(msg,pt) if (1) { fprintf(stdout, "%d: %s ptr " #pt " = 0x%x\n", __LINE__, msg, pt); }
+#define PPstderr(msg,pt)  if (1) { fprintf(stderr, "%d: %s ptr " #pt " = 0x%x\n", __LINE__, msg, pt); }
+#define PPg(msg,pt) if (1) { fprintf(stdout, "%d: %s value " #pt " = %g\n", __LINE__, msg, pt); }
+#define PPstderrg(msg,pt) if (1) { fprintf(stderr, "%d: %s value " #pt " = %g\n", __LINE__, msg, pt); }
 #define ISINF(x) gsl_isinf(x)
 #define ISNAN(x) gsl_isnan(x)
 #define ISZERO(x) (gsl_fcmp(x, 0.0, DBL_EPSILON) == 0)
