@@ -55,6 +55,7 @@ inla.nmix.lambda.fitted(result, sample.size = 1000,
 
 \references{
     See documentation for families "nmix" and "nmixmb": \code{inla.doc("nmix")}
+}
 \author{
     Tim Meehan <tmeehan@audubon.org>
 }

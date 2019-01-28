@@ -262,22 +262,18 @@ c                  print *,'set x(j)',j,x(j),a(1,j)
 *     end of dtbsv .
 *
       end
-c
+
       double precision function erfi(x)
-c
 c     this function computes
-c      
 c     erfi(x) = 1/sqrt(Pi)*int(exp(t^2),t=0..x);
-c      
       double precision x,y,u,v
       logical flag
       y=0.0
       call wofz(x,y,u,v,flag)
       erfi = exp(x**2)*v
       end
-c
+
       subroutine wofz (xi, yi, u, v, flag)
-c
 c     algorithm 680, collected algorithms from acm.  this work published
 c     in transactions on mathematical software, vol. 16, no. 1, pp. 47.
 c
@@ -464,9 +460,10 @@ c
   100 flag = .true.
       return
       end
+
       subroutine dchdc(a,lda,p,work,jpvt,job,info,eps)
-      integer lda,p,jpvt(1),job,info
-      double precision a(lda,1),work(1),eps
+      integer lda,p,jpvt(*),job,info
+      double precision a(lda,*),work(*),eps
 c
 c     dchdc computes the cholesky decomposition of a positive definite
 c     matrix.  a pivoting option allows the user to estimate the
@@ -699,89 +696,7 @@ c
   280 continue
       return
       end
-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-c     some functions for domin()
-c
-c      
-#include "dominparam.inc"
-      subroutine domin_setup
-#include "domincommon.inc"
-      ident = 'GMRFLibMarginalHyperparameters'
-c     no log needed
-      ident = 'GMRFLib.........................'
-      ident = ''
-      cold = .true.
-      analyt = .true.
-      if (.false.) then
-         test1 = .true.
-         test2 = .true.
-         test3 = .true.
-         test4 = .true.
-      else
-         test1 = .false.
-         test2 = .false.
-         test3 = .false.
-         test4 = .false.
-      endif
-      epsx=epsmach**(2.d0/3.d0/2.0)
-      epsg=epsx
-      epsf=sqrt(epsmach)*1.d3
-      eta=epsmach**(.5d0/2.0)
-c      epsx = epsx/10
-c      epsg = epsg/10
-c      epsf = epsf/10
-      sigsm=epsx
-      return
-      end
-c
-      subroutine domin_setup_1(nhyper,xxst)
-#include "domincommon.inc"
-      integer nhyper
-      double precision xxst(*)
-      integer i
-      n = nhyper
-      do i=1,n
-         xst(i) = xxst(i)
-      enddo
-      return
-      end
-c      
-      subroutine domin_f(xx,ffx,ierr)
-#include "domincommon.inc"
-      double precision xx(*),ffx
-      integer ierr
-      icf = icf + 1
-      call gmrflib_domin_f(xx,ffx,ierr)
-      return
-      end
-c      
-      subroutine domin_gradf(xx,ggradx,ierr)
-#include "domincommon.inc"
-      double precision xx(*),ggradx(*)
-      integer ierr
-      icgf = icgf + 1
-      call gmrflib_domin_gradf(xx,ggradx,ierr)
-      return
-      end
-      subroutine domin_get_results(xx,ffx,iierr)
-#include "domincommon.inc"
-      double precision xx(*), ffx
-      integer iierr
-      integer i
-c      do i=1,n
-c         do j=1,n
-c            k = i + (j-1)*n
-c            hhessian(k) = hessian(i,j)
-c         enddo
-c      enddo
-      do i=1,n
-         xx(i) = x(i)
-      enddo
-      ffx = -fx
-      iierr = int(bfgsterm)
-      return
-      end
+
       integer function strlen(st)
       integer i
       character st*(*)
@@ -792,9 +707,7 @@ c      enddo
       strlen = i
       return
       end
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
+
       SUBROUTINE DGEMV_FAILSAFE(TRANS,M,N,ALPHA,A,LDA,
      +                          X,INCX,BETA,Y,INCY)
 *     .. Scalar Arguments ..

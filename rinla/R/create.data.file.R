@@ -181,6 +181,7 @@
                            c("binomial",
                              "binomialtest", 
                              "betabinomial", 
+                             "nbinomial2", 
                              "zeroinflatedbinomial0",
                              "zeroinflatedbinomial1",
                              "zeroinflatedbinomial2",
@@ -252,7 +253,7 @@
         }
 
     } else if (inla.one.of(family, c("stochvol", "stochvolt", "stochvolnig", "loggammafrailty",
-                                     "iidlogitbeta", "qkumar", "qloglogistic", "gp"))) {
+                                     "iidlogitbeta", "qkumar", "qloglogistic", "gp", "pom"))) {
         response = cbind(ind, y.orig)
         null.dat = is.na(response[, 2L])
         response = response[!null.dat,]

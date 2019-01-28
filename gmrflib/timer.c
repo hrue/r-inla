@@ -136,7 +136,7 @@ int GMRFLib_timer_compare(const void *a, const void *b)
 }
 int GMRFLib_timer_enter(const char *name)
 {
-#pragma omp critical
+//#pragma omp critical
 	{
 		GMRFLib_timer_hashval_tp *p;
 		void *vpp;
@@ -182,7 +182,7 @@ int GMRFLib_timer_enter(const char *name)
 }
 int GMRFLib_timer_leave(const char *name)
 {
-#pragma omp critical
+//#pragma omp critical
 	{
 		GMRFLib_timer_hashval_tp *p;
 		void *vpp;

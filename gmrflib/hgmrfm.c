@@ -131,7 +131,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
-			int nbeta, double **covariate, double *prior_precision, int nlc, GMRFLib_lc_tp ** lc, double *lc_precision, GMRFLib_ai_param_tp * ai_par)
+			int nbeta, double **covariate, double *prior_precision, int nlc, GMRFLib_lc_tp ** lc, double *lc_precision,
+			GMRFLib_ai_param_tp * ai_par)
 {
 	/*
 	 * define a HGMRF-model, of the form
@@ -181,7 +182,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	}
 
 	int i, ii, j, jj, k, kk, l, m, nnz, N, n_short, **ilist = NULL, **jlist = NULL, *ntriples = NULL, *ntriples_max = NULL, *idxs = NULL,
-	    idx_map_eta = 0, *idx_map_f = NULL, *idx_map_beta = NULL, *idx_map_lc = NULL, offset, ***fidx = NULL, **nfidx = NULL, **lfidx = NULL, fidx_add = 5;
+	    idx_map_eta = 0, *idx_map_f = NULL, *idx_map_beta = NULL, *idx_map_lc = NULL, offset, ***fidx = NULL, **nfidx = NULL, **lfidx =
+	    NULL, fidx_add = 5;
 	int nu = 0, *uniq = NULL;
 	double **Qijlist = NULL, value, **ww = NULL;
 	float *weight;
@@ -192,7 +194,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		return GMRFLib_SUCCESS;
 	}
 
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL);
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 
 	*hgmrfm = Calloc(1, GMRFLib_hgmrfm_tp);
 	arg = Calloc(1, GMRFLib_hgmrfm_arg_tp);
@@ -382,7 +384,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			}
 		}
 	}
-#pragma omp parallel sections
+#pragma omp parallel sections num_threads(GMRFLib_openmp->max_threads_outer)
 	{
 #pragma omp section
 		{
@@ -518,7 +520,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 				j = j_idx[jm_idx];
 				m = m_idx[jm_idx];
 
-#pragma omp parallel for private(k, l, value, ii, i)
+#pragma omp parallel for private(k, l, value, ii, i) num_threads(GMRFLib_openmp->max_threads_outer)
 				for (k = 0; k < f_graph[j]->n; k++) {
 					int thread = omp_get_thread_num();
 					for (l = 0; l < f_graph[m]->n; l++) {
@@ -549,7 +551,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 
 			// FIXME("*****************OLD");
 
-#pragma omp parallel for private(jm_idx, j, k, m, l, value, ii, i)
+#pragma omp parallel for private(jm_idx, j, k, m, l, value, ii, i) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (jm_idx = 0; jm_idx < jm; jm_idx++) {
 				int thread = omp_get_thread_num();
 
@@ -629,7 +631,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		}
 	}
 
-	GMRFLib_tabulate_Qfunc_from_list(&(arg->eta_Q), &(arg->eta_graph), nntriples, iilist, jjlist, QQijlist, -1, NULL, logprec_unstruct, logprec_unstruct_omp);
+	GMRFLib_tabulate_Qfunc_from_list(&(arg->eta_Q), &(arg->eta_graph), nntriples, iilist, jjlist, QQijlist, -1, NULL, logprec_unstruct,
+					 logprec_unstruct_omp);
 
 	/*
 	 * cleanup already here, as we do not need them anymore 
@@ -865,7 +868,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		GMRFLib_print_Qfunc(stdout, h->graph, h->Qfunc, h->Qfunc_arg);
 	}
 
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL);
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	return GMRFLib_SUCCESS;
 }
@@ -935,6 +938,7 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
 			return value;
 		}
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
+		break;
 
 	case GMRFLib_HGMRFM_TP_F:
 		switch (jt.tp) {
@@ -953,10 +957,13 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
 						printf("Qfunc-extra: it.idx %d jt.idx %d it.tp_idx %d jt.tp_idx %d Qfunc %g\n",
 						       it.idx, jt.idx, it.tp_idx, jt.tp_idx,
 						       a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx,
-											  a->ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
+											  a->ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.
+																       tp_idx] :
+											  NULL));
 					}
 					value +=
-					    a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx, (a->ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
+					    a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx,
+									       (a->ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
 				}
 			}
 			return value;
@@ -968,6 +975,7 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
 			GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
 		}
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
+		break;
 
 	case GMRFLib_HGMRFM_TP_BETA:
 		switch (jt.tp) {
@@ -982,12 +990,15 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
 			GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
 		}
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
+		break;
 
 	case GMRFLib_HGMRFM_TP_LC:
 		return value;
+		break;
 
 	default:
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
+		break;
 	}
 
 	return value;

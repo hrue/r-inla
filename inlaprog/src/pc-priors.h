@@ -52,7 +52,5 @@ double inla_pcp_dof_dof(double d);
 double inla_pcp_dof_kld_approx(double dof);
 double inla_pcp_dof_d(double dof);
 
-
-
 __END_DECLS
 #endif

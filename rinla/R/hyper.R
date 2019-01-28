@@ -15,7 +15,7 @@
 
 inla.set.hyper = function(
         model = NULL,
-        section = names(inla.models()),
+        section = NULL, 
         hyper = NULL,
         initial = NULL,
         fixed = NULL,
@@ -26,10 +26,14 @@ inla.set.hyper = function(
 {
     ## name of the list can be in any CASE, and a longer name is ok,
     ## like 'list(precision=list(...))' where the 'name="prec"'.
-
     skip.final.check = FALSE
 
-    section = match.arg(section)
+    if (is.null(section)) {
+        stop("No section given; please fix...")
+    }
+    mm = inla.models()
+    section = match.arg(section, names(mm))    
+
     if (is.null(hyper.default)) {
         ## default values are given in the inla.models()
         hyper.new = inla.model.properties(model, section)$hyper

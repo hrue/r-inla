@@ -15,8 +15,12 @@ fix-perm () {
     done
 }
 
+## Maybe put them somewhere else, but for the moment, its here
+rsync -auv ~/p/inla/pardiso $d
+fix-perm $d/pardiso
+
 for m in 64; do
-    for p in inla fmesher; do 
+    for p in inla inla.mkl fmesher; do 
 	for f in $(ssh $INLA_MAC bin/my.otool builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
 	    rsync -auvL $INLA_MAC:$f $d/mac/${m}bit/.
@@ -26,7 +30,7 @@ for m in 64; do
 done
 
 for m in 64; do
-    for p in inla fmesher; do 
+    for p in inla inla.mkl fmesher; do 
 	for f in $(ssh -p $INLA_LINUX_PORT $INLA_LINUX bin/my.ldd builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
 	    rsync --rsh="ssh -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:$f $d/linux/${m}bit/.
@@ -35,7 +39,7 @@ for m in 64; do
     fix-perm $d/linux/${m}bit
 done
 
-for m in 64; do
+for m in 32 64; do
     for p in inla fmesher; do 
 	for f in $(ssh -p $INLA_LINUX_PORT $INLA_LINUX builds/windows$m/bin/my.objdump builds/windows$m/local/bin/$p.exe) builds/windows$m/local/bin/$p.exe; do
 	    echo sync $f
@@ -47,4 +51,5 @@ done
 
 echo sync static versions of inla and fmesher
 rsync --rsh="ssh -p $INLA_LINUX_PORT" -auv $INLA_LINUX:builds/build.static/local/bin/inla $d/linux/64bit/inla.static
+rsync --rsh="ssh -p $INLA_LINUX_PORT" -auv $INLA_LINUX:builds/build.static/local/bin/inla.mkl $d/linux/64bit/inla.mkl.static
 rsync --rsh="ssh -p $INLA_LINUX_PORT" -auv $INLA_LINUX:builds/build.static/local/bin/fmesher $d/linux/64bit/fmesher.static

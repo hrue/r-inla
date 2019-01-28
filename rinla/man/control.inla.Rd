@@ -12,11 +12,11 @@
 \description{Control variables in \code{control.inla} for use in \code{inla}}
 \usage{
 inla.set.control.inla.default(...)
-control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, adjust.weights, cmin, correct, correct.factor, correct.strategy, correct.verbose, cpo.diff, cutoff, diagonal, diff.logdens, dz, fast, force.diagonal, global.node.degree, global.node.factor, h, huge, int.design, int.strategy, interpolator, lincomb.derived.correlation.matrix, lincomb.derived.only, linear.correction, mode.known, npoints, numint.abserr, numint.maxfeval, numint.relerr, optimiser, print.joint.hyper, reordering, restart, skip.configurations, stencil, step.factor, step.len, strategy, stupid.search, stupid.search.factor, stupid.search.max.iter, tolerance, tolerance.f, tolerance.g, tolerance.x, verbose)
+control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, adaptive.max, adjust.weights, cmin, correct, correct.factor, correct.strategy, correct.verbose, cpo.diff, cutoff, diagonal, diff.logdens, dz, fast, force.diagonal, global.node.degree, global.node.factor, h, huge, int.design, int.strategy, interpolator, lincomb.derived.correlation.matrix, lincomb.derived.only, linear.correction, mode.known, npoints, numint.abserr, numint.maxfeval, numint.relerr, optimiser, print.joint.hyper, reordering, restart, skip.configurations, stencil, step.factor, step.len, strategy, stupid.search, stupid.search.factor, stupid.search.max.iter, tolerance, tolerance.f, tolerance.g, tolerance.step, tolerance.x, verbose)
 }
 \arguments{
 \item{...}{Possible arguments}
-\item{strategy}{  Character The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default) or 'laplace'}
+\item{strategy}{  Character The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default), 'laplace' or 'adaptive'}
 \item{int.strategy}{  Character The integration strategy to use; one of 'auto' (default), 'ccd', 'grid', 'eb' (empirical bayes), 'user' or 'user.std'}
 \item{int.design}{  Matrix Matrix of user-defined integration points and weights. Each row consists theta values and the integration weight. (EXPERIMENTAL!)}
 \item{interpolator}{  Character The interpolator used to compute the marginals for the hyperparameters. One of 'auto', 'nearest', 'quadratic', 'weighted.distance', 'ccd', 'ccdintegrate', 'gridsum', 'gaussian'. Default is 'auto'.}
@@ -34,8 +34,9 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 \item{tolerance.f}{  Numerical The tolerance for the absolute change in the log posterior in the optimisation of the hyperparameters.}
 \item{tolerance.g}{  Numerical The tolerance for the absolute change in the gradient of the log posterior in the optimisation of the hyperparameters.}
 \item{tolerance.x}{  Numerical The tolerance for the change in the hyperparameters (root-mean-square) in the optimisation of the hyperparameters.}
+\item{tolerance.step}{  Numerical The tolerance for the change in root-mean_squre in the inner Newton-like optimisation of the latent field.}
 \item{restart}{  Numerical To improve the optimisation, the optimiser is restarted at the found optimum 'restart' number of times.}
-\item{optimiser}{  Character The optimiser to use; one of 'gsl', 'domin' or 'default'.}
+\item{optimiser}{  Character The optimiser to use; one of 'gsl' or 'default'.}
 \item{verbose}{  Logical Run in verbose mode? (Default FALSE)}
 \item{reordering}{  Character Type of reordering to use. (EXPERT OPTION; one of "AUTO", "DEFAULT", "IDENTITY", "REVERSEIDENTITY", "BAND", "METIS", "GENMMD", "AMD", "MD", "MMD", "AMDBAR", "AMDC", "AMDBARC", or the output from \code{inla.qreordering}. Default is 'auto'.)}
 \item{cpo.diff}{  Numerical Threshold to define when the cpo-calculations are inaccurate. (EXPERT OPTION.)}
@@ -44,6 +45,7 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 \item{adapt.hessian.mode}{  Logical Should optimisation be continued if the Hessian estimate is void? (Default TRUE)}
 \item{adapt.hessian.max.trials}{  Numerical Number of steps in the adaptive Hessian optimisation}
 \item{adapt.hessian.scale}{  Numerical The scaling of the 'h' after each trial.}
+\item{adaptive.max}{  Selecting \code{strategy="adaptive"} will chose the default strategy for all fixed effects and model components with length less or equal to \code{adaptive.max}, for others, the gaussian strategy will be applied.}
 \item{huge}{  Logical If TRUE then try to do some of the internal parallisations differently. Hopefully this will be of benefite for 'HUGE' models. (Default FALSE.) [THIS OPTION IS OBSOLETE AND NOT USED!]}
 \item{step.len}{  Numerical The step-length used to compute numerical derivaties of the log-likelihood}
 \item{stencil}{  Numerical Number of points in the stencil used to compute the numerical derivaties of the log-likelihood (3, 5, 7 or 9). (default 5)}
