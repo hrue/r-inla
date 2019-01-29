@@ -29,6 +29,15 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.01.29}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Increased maximum number of covariates in likelihood models
+      \code{nmix} and \code{nmixnb} from 10 to 15
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.01.24}{
   \subsection{BUG FIXES}{
     \itemize{
