@@ -115,7 +115,7 @@ static const char RCSId[] = HGVERSION;
 #define AR_MAXTHETA (10L)				       /* as given in models.R */
 #define LINK_MAXTHETA (10L)				       /* as given in models.R */
 #define STRATA_MAXTHETA (10L)				       /* as given in models.R */
-#define NMIX_MMAX (10L)					       /* as given in models.R */
+#define NMIX_MMAX (15L)					       /* as given in models.R */
 #define POM_MAXTHETA (10L)				       /* as given in models.R */
 #define INTSLOPE_MAXTHETA (10L)				       /* as given in models.R */
 G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
