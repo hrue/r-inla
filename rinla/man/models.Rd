@@ -8452,7 +8452,7 @@ inla.models()
 						 }
 					 }
 				 }
-				\item{Model `nmix'.}{Number of hyperparmeters are 10.
+				\item{Model `nmix'.}{Number of hyperparmeters are 15.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
@@ -8584,6 +8584,71 @@ inla.models()
 							\item{from.theta = }{`\code{function(x) x}'}
 							}
 						}
+						\item{Hyperparameter `theta11'}{
+							 \describe{
+							\item{hyperid = }{`101111'}
+							\item{name = }{`beta11'}
+							\item{short.name = }{`beta11'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 1'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta12'}{
+							 \describe{
+							\item{hyperid = }{`101112'}
+							\item{name = }{`beta12'}
+							\item{short.name = }{`beta12'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 1'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta13'}{
+							 \describe{
+							\item{hyperid = }{`101113'}
+							\item{name = }{`beta13'}
+							\item{short.name = }{`beta13'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 1'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta14'}{
+							 \describe{
+							\item{hyperid = }{`101114'}
+							\item{name = }{`beta14'}
+							\item{short.name = }{`beta14'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 1'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta15'}{
+							 \describe{
+							\item{hyperid = }{`101115'}
+							\item{name = }{`beta15'}
+							\item{short.name = }{`beta15'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 1'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
 					 }
 					 \describe{
 						\item{Properties:}{
@@ -8598,7 +8663,7 @@ inla.models()
 						 }
 					 }
 				 }
-				\item{Model `nmixnb'.}{Number of hyperparmeters are 11.
+				\item{Model `nmixnb'.}{Number of hyperparmeters are 16.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
@@ -8733,6 +8798,71 @@ inla.models()
 						\item{Hyperparameter `theta11'}{
 							 \describe{
 							\item{hyperid = }{`101131'}
+							\item{name = }{`beta11'}
+							\item{short.name = }{`beta11'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 1'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta12'}{
+							 \describe{
+							\item{hyperid = }{`101132'}
+							\item{name = }{`beta12'}
+							\item{short.name = }{`beta12'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 1'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta13'}{
+							 \describe{
+							\item{hyperid = }{`101133'}
+							\item{name = }{`beta13'}
+							\item{short.name = }{`beta13'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 1'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta14'}{
+							 \describe{
+							\item{hyperid = }{`101134'}
+							\item{name = }{`beta14'}
+							\item{short.name = }{`beta14'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 1'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta15'}{
+							 \describe{
+							\item{hyperid = }{`101135'}
+							\item{name = }{`beta15'}
+							\item{short.name = }{`beta15'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 1'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta16'}{
+							 \describe{
+							\item{hyperid = }{`101136'}
 							\item{name = }{`overdispersion'}
 							\item{short.name = }{`overdispersion'}
 							\item{initial = }{`0'}
