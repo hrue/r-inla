@@ -3932,11 +3932,6 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 		break;
 
-	case L_TEST_BINOMIAL_1:
-		idiv = 3;
-		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
-		break;
-
 	case L_CBINOMIAL:
 		idiv = 4;
 		a[0] = ds->data_observations.cbinomial_k = Calloc(mb->predictor_ndata, double);
@@ -6953,75 +6948,6 @@ int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_v
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_test_binomial_1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
-{
-	/*
-	 * y ~ Binomial(n, p) with (s,e) correction to prob for success
-	 */
-	int i;
-#define _SE(_p) (s * (_p) + (1.0 - (_p)) * (1.0 - e))
-
-	if (m == 0) {
-		return GMRFLib_LOGL_COMPUTE_CDF;
-	}
-	int status;
-	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], p,
-	    s = map_probability(ds->data_observations.test_binomial_1_s[GMRFLib_thread_id][0], MAP_FORWARD, NULL),
-	    e = map_probability(ds->data_observations.test_binomial_1_e[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-
-	LINK_INIT;
-	if (m > 0) {
-		gsl_sf_result res;
-		status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
-		assert(status == GSL_SUCCESS);
-		for (i = 0; i < m; i++) {
-			p = PREDICTOR_INVERSE_LINK(_SE(x[i] + OFFSET(idx)));
-			p = _SE(p);
-			if (p > 1.0) {
-				/*
-				 * need this for the link = "log" that was requested...
-				 */
-				logll[i] = res.val - SQR(DMIN(10.0, n)) * SQR(x[i] + OFFSET(idx) - (-5.0));
-				// printf("idx x logl %d %g %g\n", idx, x[i], logll[i]);
-			} else {
-				if (ISEQUAL(p, 1.0)) {
-					/*
-					 * this is ok if we get a 0*log(0) expression for the reminder 
-					 */
-					if (n == (int) y) {
-						logll[i] = res.val + y * log(p);
-					} else {
-						logll[i] = -DBL_MAX;
-					}
-				} else if (ISZERO(p)) {
-					/*
-					 * this is ok if we get a 0*log(0) expression for the reminder 
-					 */
-					if ((int) y == 0) {
-						logll[i] = res.val + (n - y) * log(1.0 - p);
-					} else {
-						logll[i] = -DBL_MAX;
-					}
-				} else {
-					logll[i] = res.val + y * log(p) + (n - y) * log(1.0 - p);
-				}
-			}
-		}
-	} else {
-		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
-		for (i = 0; i < -m; i++) {
-			p = PREDICTOR_INVERSE_LINK(_SE((x[i] + OFFSET(idx))));
-			p = _SE(p);
-			p = DMIN(1.0, p);
-			logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
-		}
-	}
-
-	LINK_END;
-#undef _SE
-	return GMRFLib_SUCCESS;
-}
 
 int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
@@ -10579,9 +10505,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "NBINOMIAL2")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_nbinomial2;
 		ds->data_id = L_NBINOMIAL2;
-	} else if (!strcasecmp(ds->data_likelihood, "TESTBINOMIAL1")) {
-		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_test_binomial_1;
-		ds->data_id = L_TEST_BINOMIAL_1;
 	} else if (!strcasecmp(ds->data_likelihood, "CBINOMIAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_cbinomial;
 		ds->data_id = L_CBINOMIAL;
@@ -11148,7 +11071,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_ZEROINFLATEDBETABINOMIAL1:
 	case L_ZEROINFLATEDBETABINOMIAL2:
 	case L_BETABINOMIAL:
-	case L_TEST_BINOMIAL_1:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.nb[i] <= 0.0 ||
@@ -11745,95 +11667,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta[mb->ntheta] = ds->data_observations.gp_log_shape;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_exp;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-			ds->data_ntheta++;
-		}
-		break;
-
-	case L_TEST_BINOMIAL_1:
-		/*
-		 * get options related to the test-binomial-1: sensitivity 's'
-		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* yes! */
-		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		HYPER_NEW(ds->data_observations.test_binomial_1_s, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise logit sensitivity[%g]\n", ds->data_observations.test_binomial_1_s[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
-		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "NORMAL");
-		/*
-		 * add theta 
-		 */
-		if (!ds->data_fixed0) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = ds->data_prior0.hyperid;
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Logit sensitivity for test-binomial-1", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Sensitivity for test-binomial-1", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
-			mb->theta_dir[mb->ntheta] = msg;
-
-			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
-
-			mb->theta[mb->ntheta] = ds->data_observations.test_binomial_1_s;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_probability;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-			ds->data_ntheta++;
-		}
-
-		/*
-		 * the 'specificity' parameter 'e'
-		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
-		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		HYPER_NEW(ds->data_observations.test_binomial_1_e, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise logit specificity[%g]\n", ds->data_observations.test_binomial_1_e[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
-		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "NORMAL");
-
-		/*
-		 * add theta 
-		 */
-		if (!ds->data_fixed1) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = ds->data_prior1.hyperid;
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Logit specificity for test-binomial-1", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Specificity for test-binomial-1", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
-			mb->theta_dir[mb->ntheta] = msg;
-
-			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
-
-			mb->theta[mb->ntheta] = ds->data_observations.test_binomial_1_e;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_probability;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -24188,27 +24021,6 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					log_shape = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &log_shape);
-					count++;
-				}
-				break;
-
-			case L_TEST_BINOMIAL_1:
-				if (!ds->data_fixed0) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
-					double s = theta[count];
-					val += PRIOR_EVAL(ds->data_prior0, &s);
-					count++;
-				}
-				if (!ds->data_fixed1) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
-					double e = theta[count];
-					val += PRIOR_EVAL(ds->data_prior1, &e);
 					count++;
 				}
 				break;
