@@ -352,11 +352,6 @@ typedef struct {
 	double *cenpoisson_interval;
 
 	/*
-	 * test-implementations  
-	 */
-	double **test_binomial_1_s, **test_binomial_1_e;
-
-	/*
 	 * Gamma 
 	 */
 	double **gamma_log_prec;
@@ -472,7 +467,7 @@ typedef enum {
 	L_IID_LOGITBETA,
 	L_CIRCULAR_NORMAL,
 	L_WRAPPED_CAUCHY,
-	L_TEST_BINOMIAL_1,
+	REMOVED___L_TEST_BINOMIAL_1,
 	L_SIMPLEX,
 	L_GAMMACOUNT,
 	L_SKEWNORMAL2,
@@ -1746,7 +1741,6 @@ int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_v
 int loglikelihood_stochvol_nig(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_test_binomial_1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
