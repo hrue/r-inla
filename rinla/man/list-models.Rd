@@ -7,7 +7,8 @@
 \alias{list.models}
 \title{List available model components, likelihoods,  priors,  etc}
 \description{
-    List available model components, likelihoods,  priors,  etc.
+    List available model components, likelihoods,  priors,  etc. 
+    To read specific documentation for the individual elements, use \code{\link{inla.doc}}.
 }
 \usage{
     inla.list.models(section = names(inla.models()), ...)
@@ -31,5 +32,8 @@
 inla.list.models("likelihood")
 inla.list.models(c("prior", "group"))
 inla.list.models(file=file("everything.txt"))
+
+#Show detailed doc for a specific prior/likelihood/latent model
+inla.doc("binomial")
 }
 }

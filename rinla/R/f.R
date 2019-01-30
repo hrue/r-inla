@@ -8,7 +8,7 @@
 ##!  Function used for defining of smooth and spatial terms within \code{inla} model
 ##!  formulae. The function does not evaluate anything - it
 ##!  exists purely to help set up a model. The function specifies one
-##!  smooth function in the linear predictor (see \code{\link{inla.models}}) as
+##!  smooth function in the linear predictor (see \code{\link{inla.list.models}}) as
 ##!  \deqn{w\ f(x)}{weight*f(var)}
 ##!
 ##!}
@@ -62,8 +62,12 @@
 ##!         strata = NULL,
 ##!         rgeneric = NULL,
 ##!         scale.model = NULL,
-##!         args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL),
+##!         args.slm = list(rho.min = NULL, rho.max = NULL, 
+##!                         X = NULL, W = NULL, Q.beta = NULL),
+##!         args.ar1c = list(Z = NULL, Q.beta = NULL),
+##!         args.intslope = list(subject = NULL, strata = NULL, covariates = NULL), 
 ##!         correct = NULL,
+##!         locations = NULL, 
 ##!         debug = FALSE)
 ##!}
 ##!\arguments{
@@ -77,7 +81,7 @@
     ##!\item{model}{ A string indicating the choosen model. The
     ##! default is \code{iid}. See
     ##! \code{names(inla.models()$latent)} for a list of possible
-    ##! alternatives.}
+    ##! alternatives and \code{\link{inla.doc}} for detailed docs.}
     model = "iid",
 
     ##!\item{copy}{TODO}
@@ -107,10 +111,13 @@
     ##!\item{control.group}{TODO}
     control.group = inla.set.control.group.default(),
 
-    ##!\item{hyper}{Spesification of the hyperparameter, fixed or
+    ##!\item{hyper}{Specification of the hyperparameter, fixed or
     ##!random, initial values, priors and its parameters. See
     ##!\code{?inla.models} for the list of hyparameters for each
-    ##!model and its default options.}
+    ##!model and its default options or
+	##!use \code{inla.doc()} for
+	##!detailed info on the family and
+	##!supported prior distributions.}
     hyper = NULL,
 
     ##!\item{initial}{THIS OPTION IS OBSOLETE; use
@@ -302,7 +309,7 @@
     ##!\item{scale}{A scaling vector. Its meaning depends on the model.}
     scale = NULL,
 
-    ##!\item{strata}{A stratum vector. It meaning depends on the model.}
+    ##!\item{strata}{Currently not in use}
     strata = NULL,
 
     ##!\item{rgeneric}{A object of class \code{inla.rgeneric} which defines the model. (EXPERIMENTAL!)}
@@ -314,9 +321,18 @@
     ##!\item{args.slm}{Required arguments to the model="slm"; see the documentation for further details.},
     args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL),
 
+    ##!\item{args.ar1c}{Required arguments to the model="ar1c"; see the documentation for further details.},
+    args.ar1c = list(Z = NULL, Q.beta = NULL),
+
+    ##!\item{args.intslope}{A list with the \code{subject} (factor),  \code{strata} (factor) and \code{covariates} (numeric) for the \code{intslope} model; see the documentation for further details.}, 
+    args.intslope = list(subject = NULL, strata = NULL, covariates = NULL), 
+
     ##!\item{correct}{Add this model component to the list of variables to be used in the corrected Laplace approximation? If \code{NULL} use default choice,  otherwise correct if \code{TRUE} and do not if \code{FALSE}. (This option is currently experimental.)},
     correct = NULL,
 
+    ##!\item{locations}{A matrix with locations for the model \code{dmatern}. This also defines \code{n}.}
+    locations = NULL,
+    
     ##!\item{debug}{Enable local debug output}
     debug = FALSE)
 {
@@ -672,6 +688,58 @@
         }
     }
 
+    if (inla.one.of(model, c("ar1c"))) {
+        stopifnot(!is.null(args.ar1c))
+        stopifnot(!is.null(args.ar1c$Z) && inla.is.matrix(args.ar1c$Z))
+        stopifnot(!is.null(args.ar1c$Q.beta) && inla.is.matrix(args.ar1c$Q.beta))
+
+        args.ar1c$Z = as.matrix(args.ar1c$Z)           ## is dense
+        args.ar1c$Q.beta = as.matrix(args.ar1c$Q.beta) ## is dense
+
+        ar1c.n = dim(args.ar1c$Z)[1L]
+        ar1c.m = dim(args.ar1c$Z)[2L]
+        stopifnot(all(dim(args.ar1c$Z) == c(ar1c.n, ar1c.m)))
+        stopifnot(all(dim(args.ar1c$Q.beta) == c(ar1c.m, ar1c.m)))
+
+        if (missing(n) || is.null(n)) {
+            n = ar1c.n + ar1c.m
+        } else {
+            stopifnot(n == ar1c.n + ar1c.m)
+        }
+    }
+
+    if (inla.one.of(model, c("dmatern"))) {
+        stopifnot(!missing(locations) && !is.null(locations))
+        if (is.vector(locations)) {
+            locations = matrix(locations, ncol = 1)
+        }
+        stopifnot(is.matrix(locations))
+        stopifnot(nrow(locations) > 1)
+        stopifnot(!any(is.na(locations)))
+        n = nrow(locations)
+    } else {
+        stopifnot(missing(locations) || is.null(locations))
+    }
+
+    if (inla.one.of(model, "intslope")) {
+        stopifnot(!is.null(args.intslope$subject))
+        stopifnot(!is.null(args.intslope$strata))
+        stopifnot(!is.null(args.intslope$covariates))
+        zz = args.intslope$covariates
+        zz[is.na(zz)] = 0
+        args.intslope = list(
+            subject = as.numeric(as.factor(args.intslope$subject)),
+            strata = as.numeric(as.factor(args.intslope$strata)),
+            covariates = zz)
+        if (is.null(n)) {
+            n = length(args.intslope$subject)
+        } else {
+            stopifnot(n == length(args.intslope$subject))
+        }
+        stopifnot(length(args.intslope$subject) == length(args.intslope$strata))
+        stopifnot(length(args.intslope$subject) == length(args.intslope$covariates))
+    }
+
     ## is N required?
     if (is.null(n) && (!is.null(inla.model.properties(model, "latent")$n.required)
                        && inla.model.properties(model, "latent")$n.required)) {
@@ -973,8 +1041,11 @@
         rgeneric = rgeneric,
         scale.model = as.logical(scale.model),
         adjust.for.con.comp = as.logical(adjust.for.con.comp),
+        args.intslope = args.intslope, 
         args.slm = args.slm,
-        correct = correct
+        args.ar1c = args.ar1c,
+        correct = correct,
+        locations = locations
         )
 
     if (debug) print(ret)

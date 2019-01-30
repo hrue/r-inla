@@ -14,8 +14,8 @@ a summary from it.
 
 }
 \usage{
-\method{summary}{inla}(object, ..., digits = 4L, include.lincomb = TRUE)
-\method{print}{summary.inla}(x, ...)
+\method{summary}{inla}(object, digits = 3L, include.lincomb = TRUE, ...)
+\method{print}{summary.inla}(x, digits = 3L, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

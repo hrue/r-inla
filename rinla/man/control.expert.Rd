@@ -18,7 +18,7 @@ control.expert(cpo.idx, cpo.manual, disable.gaussian.check, jp)
 \item{...}{Possible arguments}
 \item{cpo.manual}{  A boolean variable to decide if the inla-program is to be runned in a manual-cpo-mode. (EXPERT OPTION: DO NOT USE)}
 \item{cpo.idx}{  The index/indices of the data point(s) to remove. (EXPERT OPTION: DO NOT USE)}
-\item{disable.gaussian.check}{  Disable the check for fast computations with a Gaussian likelihood and identity link}
+\item{disable.gaussian.check}{  Disable the check for fast computations with a Gaussian likelihood and identity link (default \code{FALSE})}
 \item{jp}{  An object of class \code{inla.jp} defining a joint prior}
 }
 \value{

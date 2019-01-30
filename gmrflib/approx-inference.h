@@ -1,7 +1,7 @@
 
 /* approx-inference.h
  * 
- * Copyright (C) 2006 Havard Rue
+ * Copyright (C) 2006-2018 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -85,7 +85,6 @@ typedef struct {
  * Available strategies.
  */
 typedef enum {
-
 	/**
 	 * \brief Use the GMRF-approximation
 	 */
@@ -104,11 +103,15 @@ typedef enum {
 	/**
 	 *  \brief Fit a Spline-corrected Gaussian 
 	 */
-	GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN
+	GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN, 
+
+	/**
+	 * \brief Adaptive strategy
+	 */
+	GMRFLib_AI_STRATEGY_ADAPTIVE
 } GMRFLib_ai_strategy_tp;
 
 typedef enum {
-
 	/**
 	 * \brief Use  a grid strategy for integration
 	 */
@@ -226,14 +229,9 @@ typedef enum {
 typedef enum {
 
 	/**
-	 * \brief BFGS implementation in domin
-	 */
-	GMRFLib_AI_OPTIMISER_DOMIN = 1,
-
-	/**
 	 * \brief BFGS(2) implementation in GSL
 	 */
-	GMRFLib_AI_OPTIMISER_GSL,
+	GMRFLib_AI_OPTIMISER_GSL = 2,
 
 	/**
 	 * \brief The default choice
@@ -241,10 +239,9 @@ typedef enum {
 	GMRFLib_AI_OPTIMISER_DEFAULT
 } GMRFLib_ai_optimiser_tp;
 
-#define GMRFLib_AI_OPTIMISER_NAME(opt)					\
-	((opt) == GMRFLib_AI_OPTIMISER_DOMIN ? "domin-BFGS" :		\
-	 ((opt) == GMRFLib_AI_OPTIMISER_GSL ? "GSL-BFGS2" :		\
-	  ((opt) == GMRFLib_AI_OPTIMISER_DEFAULT ? "DEFAULT METHOD" : "unknown!!!")))
+#define GMRFLib_AI_OPTIMISER_NAME(opt) \
+	((opt) == GMRFLib_AI_OPTIMISER_GSL ? "GSL-BFGS2" : \
+	 ((opt) == GMRFLib_AI_OPTIMISER_DEFAULT ? "DEFAULT METHOD" : "unknown!!!"))
 
 
 /**
@@ -256,6 +253,10 @@ typedef struct {
 	 * \brief The stategy used to compute marginals 
 	 */
 	GMRFLib_ai_strategy_tp strategy;
+
+	int adapt_max;
+	int adapt_len;
+	GMRFLib_ai_strategy_tp *adapt_strategy;
 
 	/**
 	 *  \brief Fast mode? If TRUE, compromise accurancy for the sake of speed. Usually OK.
@@ -395,7 +396,7 @@ typedef struct {
 	GMRFLib_ai_interpolator_tp interpolator;
 
 	/**
-	 * \brief Type of optimiser to use: GMRFLib_AI_OPTIMISER_DOMIN, GMRFLib_AI_OPTIMISER_GSL
+	 * \brief Type of optimiser to use
 	 */
 	GMRFLib_ai_optimiser_tp optimiser;
 
@@ -403,21 +404,6 @@ typedef struct {
 	 * \brief Run the optimiser twice by restarting the optmiser at the first found solution
 	 */
 	int restart;
-
-	/**
-	 * \brief DOMIN parameter. Stopping parameter for |x| (if negative, use factory defaults)
-	 */
-	double domin_epsx;
-
-	/**
-	 * \brief DOMIN parameter. Stopping parameter for |grad f| (if negative, use factory defaults)
-	 */
-	double domin_epsg;
-
-	/**
-	 * \brief DOMIN parameter. Rounding error in f (if negative, use factory defaults)
-	 */
-	double domin_epsf;
 
 	/**
 	 * \brief GSL parameter tolerance (something with linesearch, recommended 0.1)
@@ -847,7 +833,8 @@ typedef struct {
 	double *cov_lin;				       /* covariance  of the lincombs (derived only) */
 
 	int mode_status;				       /* 0 for ok, 1 not ok. */
-
+	int nfunc;					       /* number of function evaluations */
+	
 	GMRFLib_store_configs_tp **configs;		       /* configs[id][...] */
 } GMRFLib_ai_misc_output_tp;
 
@@ -856,7 +843,7 @@ typedef struct {
 	size_t nconfig;
 	size_t *idx_mapping;
 	size_t idx_next;
-	GMRFLib_int8 *configurations;
+	GMRFLib_short_int *configurations;
 
 	char all_out;
 	char *out;
@@ -992,27 +979,30 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo,
 
 int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_ai_store_tp * ai_store,
 			       double *improved_mean);
-GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, int skeleton, int copy_ptr);
+GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, int skeleton, int copy_ptr, int copy_pardiso_ptr);
 GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp * to, GMRFLib_ai_store_tp * from);
 GMRFLib_sizeof_tp GMRFLib_sizeof_ai_store(GMRFLib_ai_store_tp * ai_store);
 char *GMRFLib_ai_tag(int *iz, int len);
 double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_density_tp * cpo_density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 				   double *x_vec);
-double GMRFLib_ai_po_integrate(double *po, double *po2, double *po3, int idx, GMRFLib_density_tp * po_density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
 double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
+double GMRFLib_ai_po_integrate(double *po, double *po2, double *po3, int idx, GMRFLib_density_tp * po_density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
 double GMRFLib_interpolator_nearest(int ndim, int nobs, double *x, double *xobs, double *yobs, void *arg);
 int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp * ai_store);
 int GMRFLib_ai_adjust_integration_weights(double *adj_weights, double *weights, double **izs, int n, int nhyper, double dz);
 int GMRFLib_ai_correct_cpodens(double *dens, double *x, int *n, GMRFLib_ai_param_tp * ai_par);
 int GMRFLib_ai_cpo_free(GMRFLib_ai_cpo_tp * cpo);
-int GMRFLib_ai_po_free(GMRFLib_ai_po_tp * po);
 int GMRFLib_ai_do_MC_error_check(double *statistics, GMRFLib_problem_tp * problem, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, int nsamp);
 int GMRFLib_ai_nparam_eff(double *nparam_eff, double *nparam_eff_rel, GMRFLib_problem_tp * problem, double *c, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
+int GMRFLib_ai_param_duplicate(GMRFLib_ai_param_tp ** ai_par_new, GMRFLib_ai_param_tp * ai_par);
+int GMRFLib_ai_param_free(GMRFLib_ai_param_tp * ai_par);
+int GMRFLib_ai_po_free(GMRFLib_ai_po_tp * po);
 int GMRFLib_ai_skip_configurations(map_strd * hash_table, int k, int *iz, int *izz, int *len, int *k_max, int len_length, int nhyper);
 int GMRFLib_ai_theta2z(double *z, int nhyper, double *theta_mode, double *theta, gsl_vector * sqrt_eigen_values, gsl_matrix * eigen_vectors);
 int GMRFLib_ai_validate_cpodens(GMRFLib_density_tp * cpo_density);
 int GMRFLib_ai_z2theta(double *theta, int nhyper, double *theta_mode, double *z, gsl_vector * sqrt_eigen_values, gsl_matrix * eigen_vectors);
 int GMRFLib_free_marginal_hidden_store(GMRFLib_marginal_hidden_store_tp * m);
+
 
 double GMRFLib_bfunc_eval(double *con, GMRFLib_bfunc_tp * bfunc);
 int GMRFLib_bnew(double **bnew, double *constant, int n, double *b, GMRFLib_bfunc_tp ** bfunc);

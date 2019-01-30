@@ -1,4 +1,4 @@
-#if defined(INLA_EXPERIMENTAL) || defined(INLA_LIBR)
+#if defined(INLA_LIBR)
 
 /* R-interface.c
  * 
@@ -78,7 +78,7 @@ static int R_busy = 0;
 			fflush(stderr);				\
 		}						\
 		R_busy=0;					\
-	}	
+	}
 
 // this function is adapted from
 //      http://c-for-dummies.com/blog/?p=69
@@ -107,7 +107,7 @@ void inla_R_exit(void)
 		fprintf(stderr, "R-interface: exit\n");
 		fflush(stderr);
 	}
-	
+
 	Rf_endEmbeddedR(0);
 	R_init = 1;
 	R_busy = 0;
@@ -299,8 +299,7 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 	 */
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: enter: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag,
-			n);
+		fprintf(stderr, "R-interface[%1d]: enter: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag, n);
 		fflush(stderr);
 	}
 	CHECK_IN;
@@ -337,8 +336,7 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 	UNPROTECT((tag ? 4 : 3));
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: leave: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag,
-			n);
+		fprintf(stderr, "R-interface[%1d]: leave: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag, n);
 		fflush(stderr);
 	}
 	CHECK_OUT;

@@ -1,0 +1,74 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{verbatim}
+\usepackage{amsmath,amssymb}
+
+\begin{document}
+\bibliographystyle{apalike}
+
+\section*{The dMatern model}
+\subsection*{Parametrisation}
+
+This model is the Gaussian field with a Mat\'ern correlation function,
+directly, meaning \textbf{dense matrices}. This model is intended for
+a low-dimension only. The correlation function is 
+\begin{displaymath}
+    \text{Corr}(d)
+    = \frac{1}{2^{\nu-1}\Gamma(\nu)}
+    \left(\kappa\, {d}\right)^{\nu}
+    \;
+    K_{\nu}( \kappa d), \qquad \alpha = \nu + \text{d}/2,
+\end{displaymath}
+where $K_{\nu}$ is the modified Bessel function and $\Gamma(\cdot)$ is
+the Gamma-function. The range is \emph{defined} to be
+\begin{displaymath}
+    r = {\sqrt{8\nu}}/{\kappa}
+\end{displaymath}
+which about the distance where the covariance function becomes
+about $0.1$.
+
+\subsection*{Hyperparameters}
+
+The hyperparameters are the precision parameter $\tau$, the range $r$
+and the smoothness $\nu$, where the internal representation are
+\begin{displaymath}
+    \theta = (\log(\tau), \log(r), \log(\nu))
+\end{displaymath}
+The latent field has marginal variance $1/\tau$ and range (as defined
+above) $r$.
+
+We do \textbf{not recommend} to treat $\nu$ as random, and for this
+reason it is default fixed. You can change its value by changing the
+initial value.
+
+\subsection*{Specification}
+
+The {\tt dmatern} model is specified inside the {\tt f()} function as:
+\begin{verbatim}
+f(idx, model="dmatern", locations = L, hyper = <hyper>)
+\end{verbatim}
+where $L$ is a matrix of the locations for which the Gaussian field is
+defined; row $L[i,]$ are the coordinates for the $i$'th location.
+\verb|idx| represent the location indexing the corresponding row in
+$L$, so $idx=3$ means location $L[idx,]$. \verb|idx| must be integers
+1, 2, \ldots, nrow($L$), or \texttt{NA}.
+
+\subsubsection*{Hyperparameter specification and default values}
+\input{../hyper/latent/dmatern.tex}
+
+
+\subsection*{Example}
+
+{\small\verbatiminput{dmatern-example.R}}
+
+\subsection*{Notes}
+
+Note that the above definition of range, might differ from the
+definition in other packages. It is the same used for the SPDE-models.
+
+
+\end{document}
+
+% LocalWords:  dMatern Parametrisation ern covariance Hyperparameters dmatern
+% LocalWords:  hyperparameters th idx nrow Hyperparameter SPDE

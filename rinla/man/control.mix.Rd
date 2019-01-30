@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.mix} for use in \code{inla}}
 \usage{
 inla.set.control.mix.default(...)
-control.mix(fixed, hyper, initial, model, param, prior)
+control.mix(fixed, hyper, initial, integrator, model, npoints, param, prior)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -22,6 +22,8 @@ control.mix(fixed, hyper, initial, model, param, prior)
 \item{fixed}{  (OBSOLETE!) A boolean variable if hyperparmater(s) is/are fixed or random}
 \item{prior}{  (OBSOLETE!) The name of the prior distribution(s) for the hyperparmater(s)}
 \item{param}{  (OBSOLETE!) The parameters for the prior distribution(s) for the hyperparmater(s)}
+\item{npoints}{  Number of points used to do the numerical integration (default 101)}
+\item{integrator}{  The integration scheme to use (\code{default}, \code{quadrature}, \code{simpson})}
 }
 \value{
   The \code{control.mix} -list is set within the corresponding \code{control.family}-list a the mixture of the likelihood is likelihood spesific. (This option is EXPERIMENTAL.)

@@ -1,0 +1,11 @@
+import(stats)
+import(graphics)
+import(grDevices)
+import(utils)
+import(methods)
+import(Matrix)
+import(sp)
+import(splines)
+
+# Export all names
+# exportPattern(".")

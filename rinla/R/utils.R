@@ -28,23 +28,26 @@
 
 `inla.trim` = function(string)
 {
-    ## trim leading and trailing whitespaces and dots. there is a
-    ## function in R.oo called `trim' that do this, but I don't want
-    ## INLA to be dependent on R.oo. This function also works the
-    ## string is a list of strings.
+    ## trim leading and trailing whitespaces. there is a function in R.oo called `trim' that do
+    ## this, but I don't want INLA to be dependent on R.oo. This function also works the string
+    ## is a list of strings.
 
-    string = gsub("^[ \t.]+", "", string)
-    string = gsub("[ \t.]+$", "", string)
+    string = gsub("^[ \t]+", "", string)
+    string = gsub("[ \t]+$", "", string)
     return (string)
 }
 
 `inla.namefix` = function(string)
 {
-    ## makes inla-name from string
-    if (FALSE) {
-        string = inla.trim(string)
-        string = gsub("[^A-Za-z0-9.*]+", ".", string)
-        string = gsub("[.]+", ".", string)
+    ## must be the same as in iniparser.h
+    re = "[$]" 
+    re.to = "|S|"
+    old.string = inla.trim(string)
+    ## special characters, need to do something
+    while(TRUE) {
+        string = gsub(re, re.to, old.string)
+        if (string == old.string) break
+        old.string = string
     }
     return (string)
 }
@@ -113,10 +116,19 @@
 
 `inla.call.builtin` = function()
 {
+    ## cannot call inla.getOption() here as it leads to an infinite recursive call. do this
+    ## manually instead.
+    if (exists("inla.options", env = inla.get.inlaEnv())) {
+        opt = get("inla.options", env = inla.get.inlaEnv())
+        mkl = if (!is.null(opt$mkl) && opt$mkl) "mkl." else ""
+    } else {
+        mkl = ""
+    }
+
     if (inla.os("mac")) {
-        fnm = system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/inla.run", sep=""), package="INLA")
+        fnm = system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/inla.", mkl, "run", sep=""), package="INLA")
     } else if (inla.os("linux")) {
-        fnm = system.file(paste("bin/linux/", inla.os.32or64bit(), "bit/inla.run", sep=""), package="INLA")
+        fnm = system.file(paste("bin/linux/", inla.os.32or64bit(), "bit/inla.", mkl, "run", sep=""), package="INLA")
     } else if (inla.os("windows")) {
         fnm = system.file(paste("bin/windows/", inla.os.32or64bit(), "bit/inla.exe", sep=""), package="INLA")
     } else {
@@ -212,7 +224,9 @@
     tmp.env = new.env()
     for (ff in files) {
         fff = paste(dir, "/", ff, sep="")
-        local({source(fff, local=TRUE)}, envir = tmp.env)
+        res = try(local({source(fff, local=TRUE)}, envir = tmp.env))
+        if (class(res) %in% "try-error")
+            warning(paste0("Got an error while sourcing file ",  fff))
     }
 
     ## replace the ones in the INLA-namespace
@@ -246,13 +260,13 @@
     cat("Source files in ", dir, ". Loaded ", length(files), " files and replaced ", nfuncs, " functions.\n", sep="")
 
     if (binaries) {
-        inla.setOption("inla.call", paste(bin.path, "/", "inla", sep=""))
-        inla.setOption("fmesher.call", paste(bin.path, "/", "fmesher", sep=""))
-        cat("Define new values for 'inla.call' and 'fmesher.call': ", bin.path, "/{inla,fmesher}\n", sep="")
+        inla.setOption("inla.call", path.expand(paste(bin.path, "/", "inla", sep="")))
+        inla.setOption("fmesher.call", path.expand(paste(bin.path, "/", "fmesher", sep="")))
+        cat("Define new values for 'inla.call' and 'fmesher.call'\n", sep="")
     }
 
     ## hash the models again
-    assign("hgid", "hash it again, please!", envir = inla.get.inlaEnv())
+    assign("hgid", "(Undefined)", envir = inla.get.inlaEnv())
     assign("inla.models", NULL, envir = inla.get.inlaEnv())
     cat("Reset stored 'inla.models()' in .inlaEnv\n")
 
@@ -946,12 +960,9 @@
 ##
 `inla.mclapply` = function(..., mc.cores = NULL, parallel = TRUE)
 {
-    if (parallel && inla.require("parallel") && !inla.os("windows")) {
+    if (parallel && !inla.os("windows")) {
         if (is.null(mc.cores)) {
             mc.cores = inla.getOption("num.threads")
-            if (is.null(mc.cores)) {
-                mc.cores = parallel::detectCores()
-            }
         }
         return (parallel::mclapply(..., mc.cores = mc.cores))
     } else {
@@ -1048,9 +1059,26 @@
 {
     if (inla.os("linux")) {
         ## setup the static builds instead
+        mkl = inla.getOption("mkl")
+        if (is.null(mkl)) mkl = FALSE
         d = dirname(inla.call.builtin())
-        inla.setOption(inla.call = paste(d,"/inla.static", sep=""))
+        inla.setOption(inla.call = paste(d, "/inla.", if (mkl) "mkl." else "", "static", sep=""))
         inla.setOption(fmesher.call = paste(d,"/fmesher.static", sep=""))
     }
     return (invisible())
 }
+
+`inla.matern.cf` = function(dist, range = 1, nu = 0.5) 
+{
+    ## the matern correlation function, with parameter 'range' as defined for the SPDE models.
+    ## this function can vectorize over 'dist'
+    kappa = sqrt(8.0 * nu) / range  ## this the definition used
+    d = kappa * dist
+    res = numeric(length(dist))
+    is.zero = (dist == 0.0)
+    d = d[!is.zero]
+    res[is.zero] = 1.0
+    res[!is.zero] = 1.0 / 2.0^(nu - 1.0) / gamma(nu) * d^nu * besselK(d, nu)
+    return (res)
+}
+
