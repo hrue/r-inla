@@ -4,7 +4,9 @@
 \usepackage[scale={0.6,0.9},centering,includeheadfoot]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage{amsmath,upquote,Rd,Sweave,hyperref} 
+\usepackage{amsmath,amssymb,hyperref}
+\let\bold\relax
+\usepackage{upquote,Sweave,Rd} 
 
 \def\mb#1{\ensuremath{\boldsymbol{#1}}} % version: amsmath
 
@@ -37,11 +39,23 @@
 
 \title{\textbf{The R-INLA tutorial on SPDE models}\\
 Warning: work in progress...\\
-Suggestions are welcome to \texttt{elias@r-inla.org}}
+Suggestions to \texttt{elias@r-inla.org} are welcome}
 \author{Elias T. Krainski, Finn Lindgren, Daniel Simpson and H{\aa}vard Rue}
 
 \begin{document}
 \maketitle
+
+\paragraph{Acknowledgments}
+To Sarah Gallup and Helen Sofaer for valuable 
+English review in the text. 
+To several people who brought cool problems to 
+the discussion forum 
+\url{http://www.r-inla.org/comments-1} 
+and to me individually. 
+
+\input{updates}
+
+\input{spde-tutorial-abstract.tex}
 
 \tableofcontents
 

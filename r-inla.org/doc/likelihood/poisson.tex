@@ -54,7 +54,15 @@ This likelihood also accept $E=0$ and in this case $\log(E)$ is
 although the normalising constant of the likelihood is then wrong (but
 its a constant only).
 
-
+For the quantile-link, then \texttt{model="quantile"} is applied to
+$\lambda$ only and this is then scaled with \texttt{E}. A more
+population version, can be achived moving the constant \texttt{E} into
+the linear predictor by 
+\begin{verbatim}
+     ~ offset(log(E)) + ...
+\end{verbatim}
+Note there is no link-model \texttt{pquantile} for the Poisson, as
+this would disable the \texttt{E} argument.
 \end{document}
 
 

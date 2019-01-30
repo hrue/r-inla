@@ -1,3 +1,4 @@
+
 #include <cstddef>
 #include <cstring>
 #include <set>
@@ -38,7 +39,7 @@ namespace fmesh {
    //                    Storagetype_colmajor=1};
 
 
-  IOHeader::IOHeader() { def(); };
+  IOHeader::IOHeader() { def(); }
 
   IOHeader& IOHeader::def(const int& ref) {
     def();
@@ -152,9 +153,10 @@ namespace fmesh {
       if (bin_) {
 	int string_size;
 	input.read((char*)&string_size, sizeof(string_size));
-	char buf[string_size];
+	char* buf = new char[string_size];
 	input.read(buf, sizeof(char)*string_size);
 	list_.push_back(std::string(buf));
+	delete[] buf;
       } else {
 	input >> name;
 	list_.push_back(name);

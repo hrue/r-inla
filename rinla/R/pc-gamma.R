@@ -18,7 +18,7 @@
 ##!              percentiles of the PC prior for \code{Gamma(1/a, 1/a)}}
 ##! \usage{
 ##! inla.pc.rgamma(n, lambda = 1)
-##! inla.pc.dgamma(x, lambda = 1, = FALSE)
+##! inla.pc.dgamma(x, lambda = 1, log = FALSE)
 ##! inla.pc.qgamma(p, lambda = 1)
 ##! inla.pc.pgamma(q, lambda = 1)
 ##! }

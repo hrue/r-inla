@@ -72,12 +72,12 @@ __BEGIN_DECLS
 /*!
   \brief Macro to be placed at the entry point of each routine which CPU time is be monitored.
 */
-#define GMRFLib_ENTER_ROUTINE if (1) { if (GMRFLib_collect_timer_statistics) GMRFLib_timer_enter(GMRFLib_timer_strip(__GMRFLib_FuncName));}
+#define GMRFLib_ENTER_ROUTINE if (1) { if(0) printf("==>Enter [%s]\n", __GMRFLib_FuncName); if (GMRFLib_collect_timer_statistics) GMRFLib_timer_enter(GMRFLib_timer_strip(__GMRFLib_FuncName));}
 
 /*!
   \brief Macro to be placed at \em each exit point of each routine which CPU time is be monitored.
 */
-#define GMRFLib_LEAVE_ROUTINE if (1) { if (GMRFLib_collect_timer_statistics) GMRFLib_timer_leave(GMRFLib_timer_strip(__GMRFLib_FuncName));}
+#define GMRFLib_LEAVE_ROUTINE if (1) { if (0) printf("==>    Leave [%s]\n", __GMRFLib_FuncName); if (GMRFLib_collect_timer_statistics) GMRFLib_timer_leave(GMRFLib_timer_strip(__GMRFLib_FuncName));}
 
 double GMRFLib_cpu_default(void);
 int GMRFLib_timer_table_expand(void);

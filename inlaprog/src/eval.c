@@ -145,23 +145,24 @@ muFloat_t *inla_eval_AddVariable(const muChar_t * a_szName, void *pUserData)
 	return &(a->value[a->n - 1][0]);
 }
 
-double inla_eval(char *expression, double *x)
+double inla_eval(char *expression, double *x, double *theta, int ntheta)
 {
 	if (debug) {
 		printf("call inla_eval with %s\n", expression);
 	}
 
 	if (strncasecmp(expression, "EXPRESSION:", strlen("EXPRESSION:")) == 0) {
-		return (inla_eval_expression(expression + strlen("EXPRESSION:"), x));
+		return (inla_eval_expression(expression + strlen("EXPRESSION:"), x, theta, ntheta));
 	} else if (strncasecmp(expression, "TABLE:", strlen("TABLE:")) == 0) {
-		return (inla_eval_table(expression + strlen("TABLE:"), x));
+		return (inla_eval_table(expression + strlen("TABLE:"), x, theta, ntheta));
 	} else {
 		assert(0 == 1);
 	}
 }
-double inla_eval_expression(char *expression, double *x)
+double inla_eval_expression(char *expression, double *x, double *theta, int ntheta)
 {
 	double value;
+	int i;
 
 	/*
 	 * I need this until the muparser-library is thread-safe....
@@ -193,6 +194,13 @@ double inla_eval_expression(char *expression, double *x)
 		mupDefineFun1(hParser, "ln", log, 1);
 		mupDefineFun2(hParser, "pow", pow, 1);
 
+		// add constants like THETA0, THETA1, THETA2, ...
+		for (i = 0; i < ntheta; i++) {
+			char *var = NULL;
+			GMRFLib_sprintf(&var, "THETA%1d", i);
+			mupDefineConst(hParser, var, theta[i]);
+			Free(var);
+		}
 		eval_keep_vars_tp *keep_vars = NULL;
 
 		keep_vars = Calloc(1, eval_keep_vars_tp);
@@ -225,7 +233,7 @@ double inla_eval_expression(char *expression, double *x)
 
 	return value;
 }
-double inla_eval_table(char *expression, double *xval)
+double inla_eval_table(char *expression, double *xval, double *theta, int ntheta)
 {
 	double value;
 	GMRFLib_spline_tp *s;
@@ -257,8 +265,7 @@ double inla_eval_table(char *expression, double *xval)
 
 	if (ISNAN(value)) {
 		char *msg;
-		GMRFLib_sprintf(&msg, "table-prior returns NAN. Argument is %g but prior is defined on [%g,%g] only.", *xval,
-				s->xmin, s->xmax);
+		GMRFLib_sprintf(&msg, "table-prior returns NAN. Argument is %g but prior is defined on [%g,%g] only.", *xval, s->xmin, s->xmax);
 		inla_error_general(msg);
 		exit(1);
 	}

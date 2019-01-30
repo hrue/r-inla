@@ -201,7 +201,8 @@ int GMRFLib_io_error(GMRFLib_io_tp * io, int error)
 	case GMRFLib_IO_ERR_READLINE:
 		if (io->tokens_read) {
 			GMRFLib_EWRAP0(GMRFLib_sprintf
-				       (&msg, "Fail to read from or get, line[%1d] token[%1d] in file[%s]", io->lines_read, io->tokens_read, io->filename));
+				       (&msg, "Fail to read from or get, line[%1d] token[%1d] in file[%s]", io->lines_read, io->tokens_read,
+					io->filename));
 		} else {
 			GMRFLib_EWRAP0(GMRFLib_sprintf(&msg, "Fail to read from or get, line[%1d] in file[%s]", io->lines_read, io->filename));
 		}
@@ -212,7 +213,8 @@ int GMRFLib_io_error(GMRFLib_io_tp * io, int error)
 		ecode = GMRFLib_EREADFILE;
 		break;
 	case GMRFLib_IO_ERR_WRITEBYTES:
-		GMRFLib_EWRAP0(GMRFLib_sprintf(&msg, "Fail to write more after [%1d] bytes are written to file[%s]", io->bytes_written, io->filename));
+		GMRFLib_EWRAP0(GMRFLib_sprintf
+			       (&msg, "Fail to write more after [%1d] bytes are written to file[%s]", io->bytes_written, io->filename));
 		ecode = GMRFLib_EWRITE;
 		break;
 

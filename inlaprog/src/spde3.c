@@ -493,8 +493,7 @@ int inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, 
 			iarg->interpolator = GMRFLib_AI_INTERPOLATOR_CCD;
 
 			int npoints = 51;
-			double *x = Calloc(nhyper, double), *xx = NULL, *xxx = Calloc(npoints, double), *ldens_values =
-			    Calloc(npoints, double);
+			double *x = Calloc(nhyper, double), *xx = NULL, *xxx = Calloc(npoints, double), *ldens_values = Calloc(npoints, double);
 
 			GMRFLib_ghq_abscissas(&xx, npoints);
 			memcpy(xxx, xx, npoints * sizeof(double));
@@ -508,8 +507,7 @@ int inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, 
 				ldens_values[ii] = GMRFLib_ai_integrator_func(nhyper, x, iarg);
 			}
 			GMRFLib_density_create(&(GMRFLib_ai_INLA_userfunc3_density[number][i]),
-					       GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, xxx, ldens_values, mean, sqrt(var),
-					       GMRFLib_TRUE);
+					       GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, xxx, ldens_values, mean, sqrt(var), GMRFLib_TRUE);
 
 			Free(Sigma_a);
 			Free(x);
@@ -528,8 +526,7 @@ int inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, 
 			for (ii = 0; ii < model->ntheta; ii++) {
 				mean += Theta_spde3(ii) * row_spde3[1 + ii];
 				for (jj = 0; jj < model->ntheta; jj++) {
-					var += row_spde3[1 + ii] * row_spde3[1 + jj] * Cov_spde3(ii, jj);	/* yes the first
-														 * column is a
+					var += row_spde3[1 + ii] * row_spde3[1 + jj] * Cov_spde3(ii, jj);	/* yes the first column is a
 														 * constant offset */
 				}
 			}
