@@ -84,7 +84,7 @@ namespace fmesh {
     bool emptyQ() const { return darts_quality_.empty(); };
     bool found(const Dart& d) const;
     bool foundQ(const Dart& d) const;
-    const double quality(const Dart& d) const;
+    double quality(const Dart& d) const;
     Dart quality() const;
     const_iterator find(const Dart& d) const { return darts_.find(d); };
     const_iterator begin() const { return darts_.begin(); };
@@ -133,7 +133,7 @@ namespace fmesh {
     bool foundQ(const Dart& d) const {
       return MCQ::foundQ(Dart(*d.M(),d.t()));
     };
-    const double quality(const Dart& d) const {
+    double quality(const Dart& d) const {
       return MCQ::quality(Dart(*d.M(),d.t()));
     };
     Dart quality() const {
@@ -177,7 +177,7 @@ namespace fmesh {
     void update(const Dart& d);
     /*!< Update quality, keep metadata, don't insert new */
 
-    const meta_type meta(const Dart& d) const;
+    meta_type meta(const Dart& d) const;
 
     void clear();
     void insert(const Dart& d, const meta_type& meta);
@@ -199,7 +199,7 @@ namespace fmesh {
     MCQswapable(MeshC* MC) : MCQ(MC,false) {};
     bool found(const Dart& d) const;
     bool foundQ(const Dart& d) const;
-    const double quality(const Dart& d) const;
+    double quality(const Dart& d) const;
     void insert(const Dart& d); /*!< Insert dart if not existing. */
     void erase(const Dart& d); /*!< Remove dart if existing. */
     virtual double calcQ(const Dart& d) const;

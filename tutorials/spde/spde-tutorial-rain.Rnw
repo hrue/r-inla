@@ -437,7 +437,7 @@ by the of each coordinate and roun it
                 diff(range(PRborder[,2])))/stepsize))
 @ 
 
-The \code{inla.mesh.projector()} create a projector. 
+The \code{inla.mesh.projector()} create a projector matrix. 
 If a set of coordinates is not supplied 
 it will create a grid automatically. 
 We will change the limits and dimensions as desired 

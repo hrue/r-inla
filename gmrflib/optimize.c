@@ -148,7 +148,7 @@ int GMRFLib_optimize_set_store_flags(GMRFLib_store_tp * store)
 			store_smtp = GMRFLib_smtp;
 		}
 		if (store_smtp == GMRFLib_SMTP_TAUCS) {
-			store_store_symb_fact = (store->symb_fact ? 0 : 1);
+			store_store_symb_fact = (store->TAUCS_symb_fact ? 0 : 1);
 			store_use_symb_fact = !store_store_symb_fact;
 		} else {
 			store_store_symb_fact = 0;
@@ -181,10 +181,12 @@ int GMRFLib_optimize_set_store_flags(GMRFLib_store_tp * store)
  */
 int GMRFLib_optimize(double *mode, double *b, double *c, double *mean,
 		     GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
-		     char *fixed_value, GMRFLib_constr_tp * constr, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_optimize_param_tp * optpar)
+		     char *fixed_value, GMRFLib_constr_tp * constr, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+		     GMRFLib_optimize_param_tp * optpar)
 {
 	GMRFLib_ENTER_ROUTINE;
-	GMRFLib_EWRAP1(GMRFLib_optimize_store(mode, b, c, mean, graph, Qfunc, Qfunc_args, fixed_value, constr, d, loglFunc, loglFunc_arg, optpar, NULL));
+	GMRFLib_EWRAP1(GMRFLib_optimize_store
+		       (mode, b, c, mean, graph, Qfunc, Qfunc_args, fixed_value, constr, d, loglFunc, loglFunc_arg, optpar, NULL));
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
@@ -401,7 +403,8 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 
 	GMRFLib_ASSERT(opt_problem->optpar->opt_type == GMRFLib_OPTTYPE_CG ||
 		       opt_problem->optpar->opt_type == GMRFLib_OPTTYPE_NR ||
-		       opt_problem->optpar->opt_type == GMRFLib_OPTTYPE_SAFECG || opt_problem->optpar->opt_type == GMRFLib_OPTTYPE_SAFENR, GMRFLib_EPARAMETER);
+		       opt_problem->optpar->opt_type == GMRFLib_OPTTYPE_SAFECG
+		       || opt_problem->optpar->opt_type == GMRFLib_OPTTYPE_SAFENR, GMRFLib_EPARAMETER);
 
 	/*
 	 * do stuff relating to the constraint 
@@ -722,7 +725,8 @@ double GMRFLib_linesearch_func(double length, double *dir, GMRFLib_optimize_prob
 			GMRFLib_thread_id = id;
 			sum += (-0.5 * v[i] + opt_problem->b[i]) * u[i];
 			if (opt_problem->d[i]) {
-				(*(opt_problem->loglFunc)) (&logll, &u[i], 1, opt_problem->map[i], opt_problem->x_vec, opt_problem->loglFunc_arg);
+				(*(opt_problem->loglFunc)) (&logll, &u[i], 1, opt_problem->map[i], opt_problem->x_vec, NULL,
+							    opt_problem->loglFunc_arg);
 				sum += opt_problem->d[i] * logll;
 			}
 		}
@@ -736,7 +740,7 @@ double GMRFLib_linesearch_func(double length, double *dir, GMRFLib_optimize_prob
 		GMRFLib_thread_id = id;
 		fval += (-0.5 * v[i] + opt_problem->b[i]) * u[i];
 		if (opt_problem->d[i]) {
-			(*(opt_problem->loglFunc)) (&logll, &u[i], 1, opt_problem->map[i], opt_problem->x_vec, opt_problem->loglFunc_arg);
+			(*(opt_problem->loglFunc)) (&logll, &u[i], 1, opt_problem->map[i], opt_problem->x_vec, NULL, opt_problem->loglFunc_arg);
 			fval += opt_problem->d[i] * logll;
 		}
 	}
@@ -804,7 +808,8 @@ int GMRFLib_linesearch(GMRFLib_optimize_problem_tp * opt_problem, double *dir)
 			 */
 			if (iter >= 4) {
 				if (ABS(len_history[iter] - len_history[iter - 2]) < len_eps &&
-				    ABS(len_history[iter - 1] - len_history[iter - 3]) < len_eps && ABS(len_history[iter] + len_history[iter - 1]) < len_eps) {
+				    ABS(len_history[iter - 1] - len_history[iter - 3]) < len_eps
+				    && ABS(len_history[iter] + len_history[iter - 1]) < len_eps) {
 					len = len_history[iter] / 2.;
 					len_history[iter] = len;
 					periodic_flag = 1;     /* !!!stop after this step!!! */
@@ -918,7 +923,8 @@ int GMRFLib_optimize3(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 			idx = idxs[i];
 			GMRFLib_2order_approx(NULL, &bcoof, &ccoof, opt_problem->d[idx],
 					      opt_problem->mode[idx], opt_problem->map[idx], opt_problem->x_vec,
-					      opt_problem->loglFunc, opt_problem->loglFunc_arg, &(opt_problem->optpar->step_len), &(opt_problem->optpar->stencil));
+					      opt_problem->loglFunc, opt_problem->loglFunc_arg, &(opt_problem->optpar->step_len),
+					      &(opt_problem->optpar->stencil));
 			bb[idx] = opt_problem->b[idx] + bcoof;
 			opt_problem->sub_Qfunc_arg->diagonal_adds[idx] += DMAX(0.0, ccoof);
 		}
@@ -928,7 +934,9 @@ int GMRFLib_optimize3(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 		GMRFLib_EWRAP0(GMRFLib_init_problem_store(&problem, opt_problem->mode, bb, NULL, NULL, opt_problem->sub_graph,
 							  opt_problem->sub_Qfunc, (void *) opt_problem->sub_Qfunc_arg,
 							  NULL, opt_problem->sub_constr,
-							  (unsigned int) (iter == 0 ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_constr), store));
+							  (unsigned int) (iter ==
+									  0 ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_constr),
+							  store));
 		f = DMIN(1.0, step_factor * (iter + 1));
 		if (problem->sub_constr) {
 			for (i = 0, err = 0.0; i < sub_n; i++) {

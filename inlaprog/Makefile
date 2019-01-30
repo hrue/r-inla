@@ -1,5 +1,4 @@
 VERSION=snapshot
-# $Id: inla-Makefile,v 1.21 2009/09/06 16:40:13 hrue Exp $
 
 # USER OPTIONS
 
@@ -8,6 +7,17 @@ VERSION=snapshot
 # $(PREFIX)/doc/examples yourself.
 PREFIX = /usr/local
 
+## *** chose either one of these; rgeneric requires the second version ***
+ifeq ($(INLA_WITHOUT_LIBR),1)
+  RLIB_INC = -DINLA_WITH_RMATH \
+		-I/usr/include -I/usr/include/R -I/usr/share/R/include
+  RLIB_LIB = -L/usr/lib -lRmath
+else
+  RLIB_INC = -DINLA_WITH_RMATH -DINLA_LIBR \
+		-I/usr/include -I/usr/include/R -I/usr/share/R/include
+  RLIB_LIB = -L/usr/lib -lRmath -L/usr/lib/R/lib -lR
+endif
+
 # select compilers and optimized compiler-options, add -fopenmp or similar to use OpenMP
 CC = gcc
 CXX = g++
@@ -15,6 +25,7 @@ FC = gfortran
 FCEXTRAFLAGS = -fno-second-underscore
 FLAGS= -std=gnu99 -O3 -march=native -mfpmath=sse -msse2 -funroll-loops -ftracer -fopenmp -pipe
 LD = $(CXX)
+INLA_OS = $(shell uname)
 
 # The path to the external libraries: metis, taucs, lapack, blas and zlib, often the same as $(PREFIX)
 LEXTPREFIX = $(PREFIX)
@@ -23,8 +34,6 @@ LEXTPREFIX = $(PREFIX)
 EXTLIBS1 = -L$(PREFIX)/lib -lGMRFLib -L$(LEXTPREFIX)/lib 
 EXTLIBS2 = -lgsl -ltaucs -lmetis -llapack -lblas -lgslcblas -lamd -lmuparser -lz -lgfortran
 EXTLIBS3 = -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -lm
-
-EXTLIBS = $(EXTLIBS1) $(EXTLIBS2) $(EXTLIBS3)
 
 ################################################################################
 #
@@ -39,19 +48,43 @@ SHELL   = /bin/sh
 # To use existing HG file, use "make HG= target"
 # Would be prettier and more robust with a mercurial update hook.
 HG:= $(shell which hg)
-HGVERSION:= $(shell if [ -x "$(HG)" ]; then $(HG) parents --template 'hgid: {node|short}  date: {date|date}'; elif [ -e hgstamp ]; then cat hgstamp; else echo 'hgid: unknown  date: unknown' ; fi)
+HGVERSION:= $(shell if [ -x "$(HG)" -a -d ../.hg ]; then $(HG) parents --template 'hgid: {node|short}  date: {date|date}'; elif [ -e hgstamp ]; then cat hgstamp; else echo 'hgid: unknown  date: unknown' ; fi)
 
-INCL    = -Isrc -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
+EXTLIBS = $(RLIB_LIB) $(EXTLIBS1) $(EXTLIBS2) $(EXTLIBS3)
+INCL    = $(RLIB_INC) -Isrc -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
 LDFLAGS = $(FLAGS) 
 FFLAGS  = $(FLAGS) $(FCEXTRAFLAGS) $(INCL)
 CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DHGVERSION="\"${HGVERSION}\""
 
+#ifeq ($(INLA_OS),Darwin)
+#  NOPARDISO_LIB = libpardiso.dylib
+#  NOPARDISO_LDFLAGS = -Wall -dynamiclib -undefined suppress -flat_namespace 
+#  $(NOPARDISO_LIB) : $(NOPARDISO_SRC)
+#	( cd src; $(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ )
+#else ifeq ($(INLA_OS),Windows)
+#  NOPARDISO_LIB = libpardiso.dll
+#  NOPARDISO_CFLAGS = -c
+#  NOPARDISO_LDFLAGS = -shared
+#  $(NOPARDISO_LIB) : $(NOPARDISO_OBJ)
+#	( cd src; $(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ )
+#  $(NOPARDISO_OBJ) : $(NOPARDISO_SRC)
+#	( cd src; $(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^ )
+#else ifeq ($(INLA_OS),Linux)
+#  NOPARDISO_LIB = libpardiso.so
+#  NOPARDISO_CFLAGS = -fPIC -Wall
+#  NOPARDISO_LDFLAGS = -shared
+#  $(NOPARDISO_LIB) : $(NOPARDISO_OBJ)
+#	( cd src; $(CC) $(NOPARDISO_LDFLAGS) -o $@ $^ )
+#  $(NOPARDISO_OBJ) : $(NOPARDISO_SRC)
+#	( cd src; $(CC) $(NOPARDISO_CFLAGS) -c -o $@ $^ )
+#endif
+
+
 INLA = inla
-OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/sha1.o src/spde.o src/spde2.o src/spde3.o src/eval.o src/interpol.o src/re.o src/ar.o src/bessel.o src/pc-priors.o src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o
-all: $(INLA)
+OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/sha1.o src/spde.o src/spde2.o src/spde3.o src/eval.o src/interpol.o src/re.o src/ar.o src/bessel.o src/pc-priors.o src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o src/libpardiso.o
 
 $(INLA) : $(OBJ)
-	$(LD) $(LDFLAGS) -o $@ $^ -L$(PREFIX)/lib  $(EXTLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(OBJ) -L$(PREFIX)/lib  $(EXTLIBS)
 
 install: $(INLA)
 	 @umask 022;\
@@ -70,7 +103,3 @@ src/TAGS : $(wildcard src/*.c src/*.h)
 clean:; -$(RM) $(OBJ) $(INLA)
 
 .PHONY: depend clean uninstall install 
-
-
-
-
