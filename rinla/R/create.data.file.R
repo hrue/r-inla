@@ -210,7 +210,8 @@
         response = response[!null.dat,]
 
     } else if (inla.one.of(family, c("exponentialsurv", "weibullsurv", "weibullcure",
-                                     "loglogisticsurv",  "qloglogisticsurv", "lognormalsurv"))) {
+                                     "loglogisticsurv",  "qloglogisticsurv", "lognormalsurv",
+                                     "gammasurv"))) {
 
         if (!inla.model.properties(family, "likelihood")$survival) {
             file.remove(file)
