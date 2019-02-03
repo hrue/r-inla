@@ -6264,48 +6264,6 @@ inla.models()
 				 }
 				\item{Model `binomial'.}{Number of hyperparmeters are 0.
 				 }
-				\item{Model `testbinomial1'.}{Number of hyperparmeters are 2.
-					 \describe{
-						\item{Hyperparameter `theta1'}{
-							 \describe{
-							\item{hyperid = }{`57001'}
-							\item{name = }{`sensitivity'}
-							\item{short.name = }{`s'}
-							\item{initial = }{`3'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`logitbeta'}
-							\item{param = }{`2 1'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
-							}
-						}
-						\item{Hyperparameter `theta2'}{
-							 \describe{
-							\item{hyperid = }{`57002'}
-							\item{name = }{`specificity'}
-							\item{short.name = }{`e'}
-							\item{initial = }{`3'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`logitbeta'}
-							\item{param = }{`2 1'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
-							}
-						}
-					 }
-					 \describe{
-						\item{Properties:}{
-							\describe{
-								\item{doc = }{`(experimental)'}
-								\item{status = }{`experimental'}
-								\item{survival = }{`FALSE'}
-								\item{discrete = }{`TRUE'}
-								\item{link = }{`default logit cauchit probit cloglog loglog log'}
-								\item{pdf = }{`testbinomial1'}
-							 }
-						 }
-					 }
-				 }
 				\item{Model `pom'.}{Number of hyperparmeters are 10.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
