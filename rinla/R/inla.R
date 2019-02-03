@@ -1779,6 +1779,7 @@
                 }
                 
                 ##....also if necessary a file for the weights (not to be confused with argument 'weights' in the inla() call...)
+                www = NULL
                 if (!is.null(gp$random.spec[[r]]$weights)) {
                     ## $weights is the name
                     www = wf[, gp$random.spec[[r]]$weights ]

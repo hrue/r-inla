@@ -417,6 +417,13 @@ inla.internal.experimental.mode = FALSE
         mode.status = NA
     }
 
+    fnm = paste(d, "/nfunc.dat", sep="")
+    if (file.exists(fnm)) {
+        nfunc = as.numeric(scan(fnm, quiet=TRUE))
+    } else {
+        nfunc = NA
+    }
+
     fnm = paste(d, "/log-posterior-mode.dat", sep="")
     if (file.exists(fnm)) {
         lpm = scan(fnm, quiet=TRUE)
@@ -531,10 +538,10 @@ inla.internal.experimental.mode = FALSE
                  cov.intern.eigenvalues = cov.intern.eigenvalues, cov.intern.eigenvectors = cov.intern.eigenvectors, 
                  reordering = r, theta.tags = tags, log.posterior.mode = lpm, 
                  stdev.corr.negative = stdev.corr.negative, stdev.corr.positive = stdev.corr.positive,
-                 to.theta = theta.to, from.theta = theta.from, mode.status = mode.status, 
+                 to.theta = theta.to, from.theta = theta.from, mode.status = mode.status,
                  lincomb.derived.correlation.matrix = lincomb.derived.correlation.matrix,
                  lincomb.derived.covariance.matrix = lincomb.derived.covariance.matrix,
-                 configs = configs))
+                 configs = configs, nfunc = nfunc))
 }
 
 `inla.collect.logfile` = function(file.log = NULL, debug = FALSE)
