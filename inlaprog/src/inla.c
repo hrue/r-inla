@@ -4076,6 +4076,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_EXPONENTIALSURV:
+	case L_GAMMASURV:
 	case L_WEIBULLSURV:
 	case L_WEIBULL_CURE:
 	case L_LOGLOGISTICSURV:
@@ -6473,7 +6474,6 @@ int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x
 		}
 	} else {
 		double *yy = (y_cdf ? y_cdf : &y);
-		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 		for (i = 0; i < -m; i++) {
 			p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
 			p = DMAX(0.0, DMIN(1.0, p));
@@ -7368,7 +7368,8 @@ int loglikelihood_gamma(double *logll, double *x, int m, int idx, double *x_vec,
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
-	double s = ds->data_observations.gamma_scale[idx];
+	// 'scale' is not used for the survival version
+	double s = (ds->data_observations.gamma_scale ? ds->data_observations.gamma_scale[idx] : 1.0);
 	double phi_param = map_exp(ds->data_observations.gamma_log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double phi, mu, a, b, c;
 
@@ -7382,17 +7383,22 @@ int loglikelihood_gamma(double *logll, double *x, int m, int idx, double *x_vec,
 			logll[i] = c - phi * (log(mu) + y / mu);
 		}
 	} else {
-		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+		double yy = (y_cdf ? *y_cdf : y);
 		for (i = 0; i < -m; i++) {
 			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			a = phi;
 			b = mu / phi;
-			logll[i] = gsl_cdf_gamma_P(y, a, b);
+			logll[i] = gsl_cdf_gamma_P(yy, a, b);
 		}
 	}
 
 	LINK_END;
 	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_gammasurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+{
+	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gamma));
 }
 
 int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
@@ -10592,6 +10598,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "EXPONENTIALSURV")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_expsurv;
 		ds->data_id = L_EXPONENTIALSURV;
+	} else if (!strcasecmp(ds->data_likelihood, "GAMMASURV")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gammasurv;
+		ds->data_id = L_GAMMASURV;
 	} else if (!strcasecmp(ds->data_likelihood, "WEIBULL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_weibull;
 		ds->data_id = L_WEIBULL;
@@ -11099,6 +11108,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_EXPONENTIALSURV:
+	case L_GAMMASURV:
 	case L_WEIBULLSURV:
 	case L_WEIBULL_CURE:
 	case L_LOGLOGISTICSURV:
@@ -12235,6 +12245,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_GAMMA:
+	case L_GAMMASURV:
 		/*
 		 * get options related to the gamma
 		 */
@@ -24159,6 +24170,7 @@ double extra(double *theta, int ntheta, void *argument)
 				break;
 
 			case L_GAMMA:
+			case L_GAMMASURV:
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
