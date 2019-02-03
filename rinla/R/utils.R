@@ -502,8 +502,9 @@
 `inla.tempdir` = function()
 {
     ## just replace \ in Windows with /
-
-    return (gsub("\\\\", "/", tempdir()))
+    t.dir = tempfile()
+    inla.dir.create(t.dir)
+    return (gsub("\\\\", "/", t.dir))
 }
 
 
