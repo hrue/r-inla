@@ -1,28 +1,40 @@
+## Export: merge!inla
 ## Export: inla.merge
 
 ##! \name{inla.merge}
 ##! \alias{inla.merge}
+##! \alias{merge.inla}
 ##! \title{Merge a mixture of \code{inla}-objects}
 ##! \description{Merge a mixture of \code{inla}-objects}
 ##! \usage{
+##!     \method{merge}{inla}(x, y, ..., prob = rep(1,  length(loo)), verbose = FALSE)
 ##!     inla.merge(loo, prob = rep(1,  length(loo)), verbose = FALSE)
 ##! }
 ##! \arguments{
-##!   \item{loo}{A list of \code{inla}-objects to be merged}
+##!   \item{x}{An \code{inla}-object to be merged}
+##!   \item{y}{An \code{inla}-object to be merged}
+##!   \item{...}{Additional \code{inla}-objects to be merged}
+##!   \item{loo}{List of \code{inla}-objects to be merged}
 ##!   \item{prob}{The mixture of (possibly unnormalized) probabilities}
 ##!   \item{verbose}{Turn on verbose-output or not}
 ##!  }
 ##! \value{
-##!   A merge \code{inla}-object.
+##!   A merged \code{inla}-object.
 ##! }
 ##! \details{
-##!    This function is intented for merging a mixture of \code{inla}-object,
-##!    each run with the same formula and settings,  except for a set of
+##!    The function \code{merge.inla} implements method \code{merge} for
+##!    \code{inla}-objects. \code{merge.inla} is a wrapper for the function
+##!    \code{inla.merge}. The interface is slightly different.
+##!   
+##!    \code{inla.merge} is intented for merging a mixture of \code{inla}-objects,
+##!    each run with the same formula and settings, except for a set of
 ##!    hyperparameters that are fixed to different values. Using this function,
-##!    we can then integrate over these hyperparameters using integration weights
-##!    \code{prob}. Not all entries in the object can be merged, so they are
-##!    inheritated from the first object in the list. Those objectes that are merged,
-##!    can be seen setting \code{verbose=TRUE}.
+##!    we can then integrate over these hyperparameters using (unnormalized)
+##!    integration weights
+##!    \code{prob}. Not all entries in the object can be merged, and some are
+##!    inheritated from the first object in the list,  others set to \code{NULL}.
+##!    Those objectes that are merged,
+##!    will be listed with option \code{verbose=TRUE}.
 ##!  
 ##!    Note that merging hyperparameter in the user-scale can be prone to
 ##!    discretization error, so more stable results can be found converting
@@ -30,15 +42,22 @@
 ##! }    
 ##! \author{Havard Rue \email{hrue@r-inla.org}}
 
-`inla.merge` = function(loo,  prob = rep(1,  length(loo)), verbose = FALSE)
+`merge.inla` = function(x, y, ...,  prob = rep(1,  length(loo)), verbose = FALSE) 
 {
+    return (inla.merge(loo = list(x, y, ...), prob = prob, verbose = verbose))
+}
+
+`inla.merge` = function(loo, prob = rep(1,  length(loo)), verbose = FALSE)
+{
+    loo = list(x, y, ...)
+    
     verboze = function(...) {
         if (verbose) {
             cat("inla.merge: ", ..., "\n")
         }
     }
 
-    merge.marginals = function(lom, prob, nx = 256) {
+    merge.marginals = function(lom, prob, nx = 64) {
         n = length(lom)
         eps = 0.001
         x.range = range(unlist(lapply(
@@ -46,8 +65,7 @@
         xx = seq(x.range[1], x.range[2], len = nx)
         yy = rep(0, nx)
         for(i in 1:n) {
-            d = inla.dmarginal(xx, lom[[i]])
-            yy = yy + prob[i] * d
+            yy = yy + prob[i] * inla.dmarginal(xx, lom[[i]])
         }
         mm = list(x = xx, y = yy)
         marg = inla.smarginal(mm, factor = 2L)
@@ -122,6 +140,46 @@
         res$summary.random[[k]] = merge.summary(zum, prob)
     }
 
+    verboze("Merge '$marginals.fixed'...")
+    for(k in seq_along(res$marginals.fixed)) {
+        verboze(paste0("      '$marginals.fixed$", names(res$marginals.fixed)[k], "'"))
+        margs = lapply(loo, function(x, k) x$marginals.fixed[[k]], k = k)
+        res$marginals.fixed[[k]] = merge.marginals(margs, prob)
+    }
+
+    verboze("Merge '$summary.fixed'...")
+    if (!is.null(res$summary.fixed) && nrow(res$summary.fixed) > 0) {
+        zum = lapply(loo, function(x) x$summary.fixed)
+        res$summary.fixed = merge.summary(zum, prob)
+    }
+
+    verboze("Merge '$marginals.lincomb'...")
+    for(k in seq_along(res$marginals.lincomb)) {
+        verboze(paste0("      '$marginals.lincomb$", names(res$marginals.lincomb)[k], "'"))
+        margs = lapply(loo, function(x, k) x$marginals.lincomb[[k]], k = k)
+        res$marginals.lincomb[[k]] = merge.marginals(margs, prob)
+    }
+
+    verboze("Merge '$summary.lincomb'...")
+    if (!is.null(res$summary.lincomb) && nrow(res$summary.lincomb) > 0) {
+        zum = lapply(loo, function(x) x$summary.lincomb)
+        res$summary.lincomb = merge.summary(zum, prob)
+    }
+
+    verboze("Merge '$marginals.lincomb.derived'...")
+    for(k in seq_along(res$marginals.lincomb.derived)) {
+        verboze(paste0("      '$marginals.lincomb.derived$", names(res$marginals.lincomb.derived)[k], "'"))
+        margs = lapply(loo, function(x, k) x$marginals.lincomb.derived[[k]], k = k)
+        res$marginals.lincomb.derived[[k]] = merge.marginals(margs, prob)
+    }
+
+    verboze("Merge '$summary.lincomb.derived'...")
+    if (!is.null(res$summary.lincomb.derived) && nrow(res$summary.lincomb.derived) > 0) {
+        zum = lapply(loo, function(x) x$summary.lincomb.derived)
+        res$summary.lincomb.derived = merge.summary(zum, prob)
+    }
+
+
     verboze("Merge '$marginals.spde2.blc'...")
     for(k in seq_along(res$marginals.spde2.blc)) {
         verboze(paste0("      '$marginals.spde2.blc$", names(res$marginals.spde2.blc)[k], "'"))
@@ -175,17 +233,14 @@
         }
     }
 
-    for (nm in c("marginals.fitted.values", "dic", "cpo", "waic", "po",
-                 "summary.fitted.values", "neffp")) {
+    for (nm in c("marginals.fitted.values", "summary.fitted.values",
+                 "dic", "cpo", "waic", "po", "neffp")) {
         verboze(paste0("Remove '$", nm, "'..."))
         idx = which(names(res) == nm)
         if (length(idx) >0) {
             res[idx] = NULL
         }
     }
-
-
-
 
     return (res)
 }
