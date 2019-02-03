@@ -47,6 +47,7 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 #include "GMRFLib/GMRFLibP.h"
 
 static GMRFLib_domin_arg_tp G;				       /* hold arguments */
+static int domin_setup = 0;
 
 typedef struct {
 	double f_best;
@@ -70,6 +71,7 @@ int GMRFLib_domin_setup(double ***hyperparam, int nhyper,
 	double *theta;
 	int i;
 
+	domin_setup = 1;
 	G.hyperparam = hyperparam;
 	G.nhyper = nhyper;
 	G.log_extra = log_extra;
@@ -938,11 +940,15 @@ int GMRFLib_test_something____omp(void)
 }
 int GMRFLib_domin_get_f_count(void)
 {
-	int i, sum;
-	for (sum = 0, i = 0; i < GMRFLib_MAX_THREADS; i++) {
-		sum += G.f_count[i];
+	if (domin_setup) {
+		int i, sum;
+		for (sum = 0, i = 0; i < GMRFLib_MAX_THREADS; i++) {
+			sum += G.f_count[i];
+		}
+		return sum;
+	} else {
+		return 0;
 	}
-	return sum;
 }
 double GMRFLib_gsl_f(const gsl_vector * v, void *params)
 {
