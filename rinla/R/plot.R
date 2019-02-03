@@ -779,9 +779,25 @@ inla.extract.prior = function(section = NULL, hyperid = NULL, all.hyper, debug=F
                 from.theta = h[[idx.family]]$link$hyper[[idx.theta]]$from.theta
                 to.theta = h[[idx.family]]$link$hyper[[idx.theta]]$to.theta
             } else {
-                output("likelihood ",  section, " with hyperid ", hyperid,  ". theta is not found",
-                       warning = TRUE)
-                return (NA)
+                ## look in the mix-section for theta
+                found = FALSE
+                for (idx.theta in seq_along(h[[idx.family]]$mix$hyper)) {
+                    if (inla.strcasecmp(hyperid, h[[idx.family]]$mix$hyper[[idx.theta]]$hyperid)) {
+                        found = TRUE
+                        break
+                    }
+                }
+                if (found) {
+                    output("likelihood ",  section, " with hyperid ", hyperid,  ". theta is found with idx.theta=", idx.theta)
+                    prior = h[[idx.family]]$mix$hyper[[idx.theta]]$prior
+                    param = h[[idx.family]]$mix$hyper[[idx.theta]]$param
+                    from.theta = h[[idx.family]]$mix$hyper[[idx.theta]]$from.theta
+                    to.theta = h[[idx.family]]$mix$hyper[[idx.theta]]$to.theta
+                } else {
+                    output("likelihood ",  section, " with hyperid ", hyperid,  ". theta is not found",
+                           warning = TRUE)
+                    return (NA)
+                }
             }
         }
     } else {
