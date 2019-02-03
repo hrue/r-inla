@@ -29,6 +29,60 @@
   }
 }
 
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Removed testing code for likelihood model \code{testbinomial1}
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.01.29}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Increased maximum number of covariates in likelihood models
+      \code{nmix} and \code{nmixnb} from 10 to 15
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.01.24}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Added a new test-script
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.12.12}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New models, \code{loggamma} and \code{mloggamma}
+      in \code{mix}.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Minor changes in some build scripts.
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 18.12.01}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
