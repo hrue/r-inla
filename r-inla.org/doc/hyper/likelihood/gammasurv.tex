@@ -1,0 +1,24 @@
+%% DO NOT EDIT!
+%% This file is generated automatically from models.R
+\begin{description}
+	\item[doc] The Gamma likelihood (survival)
+	\item[hyper]\ 
+	 \begin{description}
+	 	\item[theta]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 58101
+	 	 	\item[name] precision parameter
+	 	 	\item[short.name] prec
+	 	 	\item[initial] 0
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] loggamma
+	 	 	\item[param] 1 0.01
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 \end{description}
+	\item[survival] TRUE
+	\item[discrete] FALSE
+	\item[link] default log quantile
+	\item[pdf] gammasurv
+\end{description}
