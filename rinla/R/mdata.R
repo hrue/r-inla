@@ -48,17 +48,28 @@
 {
     y.obj = as.list(as.data.frame(list(y)))
     x.obj = as.list(as.data.frame(list(...)))
+    if (length(list(...)) == 0) {
+        ncols = ncol(as.data.frame(list(y)))
+    } else {
+        ncols = c(ncol(as.data.frame(list(y))), 
+                  unlist(lapply(list(...),
+                                function(x) if (is.null(ncol(x))) 1 else ncol(x))))
+    }
     names(y.obj) = paste("Y", 1:length(y.obj), sep="")
     if (length(x.obj) > 0) {
         names(x.obj) = paste("X", 1:length(x.obj), sep="")
+        obj = c(y.obj,  x.obj)
+    } else {
+        obj = y.obj
     }
-    obj = c(y.obj,  x.obj)
+    attr(obj, "inla.ncols") = c(length(ncols), ncols)
     class(obj) = "inla.mdata"
     return (obj)
 }
 
 `print.inla.mdata` = function(object, ...)
 {
+    cat("inla.cols = ", attr(object, "inla.ncols", exact=TRUE), "\n")
     print(as.data.frame(unclass(object)), ...)
 }
 
@@ -70,15 +81,19 @@
     object = as.list(as.data.frame(object))
     if (length(object) == 1) {
         names(object) = "Y1"
+        ncols = c(1, 1)
     } else {
         names(object) = c("Y1",  paste("X", 1:(length(object)-1), sep=""))
+        ncols = c(2, 1, length(object) -1)
     }
     warning("Guess that ncol(response) == 1. Otherwise,  please modify 'names(object)'.")
+    attr(object, "inla.ncols") = ncols
     class(object) = "inla.mdata"
     return (object)
 }
 
 `is.inla.mdata` = function(object)
 {
-    return (inherits(object, "inla.mdata"))
+    return (!is.null(attr(object, "inla.ncols", exact=TRUE)) ||
+            inherits(object, "inla.mdata"))
 }
