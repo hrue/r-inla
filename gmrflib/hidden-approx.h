@@ -295,7 +295,7 @@ typedef struct {
 } GMRFLib_logl_arg_tp;
 
 int GMRFLib_default_hidden_par(GMRFLib_hidden_param_tp ** hidden_par);
-int GMRFLib_loglFunc_wrapper(double *logll, double *x, int m, int idx, double *x_vec, void *arg);
+int GMRFLib_loglFunc_wrapper(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int GMRFLib_init_problem_hidden(GMRFLib_hidden_problem_tp ** hidden_problem,
 				double *x, double *b, double *c, double *mean,
 				GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,

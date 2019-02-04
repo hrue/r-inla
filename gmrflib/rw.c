@@ -150,14 +150,16 @@ double GMRFLib_rw(int node, int nnode, void *def)
 						return prec * 6.0;
 					default:
 						GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);
+						return NAN;
 					}
 				case 1:
 					return prec * (imin == 0 ? -2.0 : -4.0);
 				case 2:
 					return prec * 1.0;
 				default:
-					GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);
-				}
+					GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);	
+					return NAN;
+			}
 			default:
 				return 0.0;
 			}
@@ -350,6 +352,7 @@ double GMRFLib_crw(int node, int nnode, void *def)
 						return prec * 6.0;
 					default:
 						GMRFLib_ASSERT(0, GMRFLib_ESNH);
+						return NAN;
 					}
 				case 1:
 					return prec * (imin == 0 ? -2.0 : -4.0);
@@ -357,6 +360,7 @@ double GMRFLib_crw(int node, int nnode, void *def)
 					return prec * 1.0;
 				default:
 					GMRFLib_ASSERT(0, GMRFLib_ESNH);
+					return NAN;
 				}
 			}
 		} else {
