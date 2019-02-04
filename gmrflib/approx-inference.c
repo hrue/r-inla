@@ -6448,8 +6448,8 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 #pragma omp parallel for private(i, j, k) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < nlin; i++) {
 
-		int from_idx, to_idx, len, from_idx_a, to_idx_a, len_a, ip, ii, jj;
-		double var, mean, imean, *a = NULL, *b = NULL, *v = NULL, *vv = NULL, var_corr, weight, Aij, Ajj;
+		int from_idx, to_idx, len, from_idx_a, to_idx_a, len_a, jj;
+		double var, mean, imean, *a = NULL, *b = NULL, *v = NULL, *vv = NULL, var_corr, weight;
 
 		if (Alin[i]->tinfo[id].first_nonzero < 0) {
 			/*
@@ -6833,7 +6833,7 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 double GMRFLib_ai_po_integrate(double *po, double *po2, double *po3, int idx, GMRFLib_density_tp * po_density,
 			       double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec)
 {
-	int retval, i, k, np = GMRFLib_faster_integration_np;
+	int i, k, np = GMRFLib_faster_integration_np;
 	double low, dx, dxi, *xp = NULL, *xpi = NULL, *xpi3 = NULL, *xpi4 = NULL,
 	    *dens = NULL, *work = NULL, integral2 = 0.0, integral3 = 0.0, integral4 = 0.0, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
 	double fail = 0.0;

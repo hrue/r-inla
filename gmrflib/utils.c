@@ -841,7 +841,7 @@ int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps)
 int GMRFLib_matrix_fprintf(FILE * fp, double *A, int m, int n)
 {
 	// A is m x n matrix
-#pragma omp critial
+#pragma omp critical
 	{
 		fprintf(fp, "\n\n");
 		for (int i = 0; i < m; i++) {
