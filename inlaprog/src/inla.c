@@ -118,6 +118,7 @@ static const char RCSId[] = HGVERSION;
 #define NMIX_MMAX (15L)					       /* as given in models.R */
 #define POM_MAXTHETA (10L)				       /* as given in models.R */
 #define INTSLOPE_MAXTHETA (10L)				       /* as given in models.R */
+#define GEV2_MAXTHETA (10L)
 G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 
 /* 
@@ -16206,6 +16207,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_2DIID;
 		mb->f_ntheta[mb->nf] = 3;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("2DIID model");
+ 	} else if (_OneOf("INTSLOPE")) {
+ 		mb->f_id[mb->nf] = F_INTSLOPE;
+ 		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(2L) + INTSLOPE_MAXTHETA;
+ 		mb->f_modelname[mb->nf] = GMRFLib_strdup("INTSLOPE model");
 	} else if (_OneOf("MEC")) {
 		mb->f_id[mb->nf] = F_MEC;
 		mb->f_ntheta[mb->nf] = 4;
@@ -16456,6 +16461,29 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		Free(par);
 	}
 		break;
+
+ 	case F_INTSLOPE:
+ 	{
+ 		char *pri, *par, *to_theta, *from_theta, *prifunc, *hyperid;
+ 		int dim = 2;
+ 		GMRFLib_sprintf(&prifunc, "WISHART%1dD", dim);
+ 		for (int kk = 0; kk < mb->f_ntheta[mb->nf]; kk++) {
+ 			GMRFLib_sprintf(&pri, "PRIOR%1d", kk);
+ 			GMRFLib_sprintf(&par, "PARAMETERS%1d", kk);
+ 			GMRFLib_sprintf(&from_theta, "FROM.THETA%1d", kk);
+ 			GMRFLib_sprintf(&to_theta, "TO.THETA%1d", kk);
+ 			GMRFLib_sprintf(&hyperid, "HYPERID%1d", kk);
+ 			inla_read_prior_generic(mb, ini, sec, &(mb->f_prior[mb->nf][kk]), pri, par, from_theta, to_theta,
+ 						hyperid, (kk == 0 ? prifunc : "NONE"));
+ 
+ 			Free(pri);
+ 			Free(par);
+ 			Free(from_theta);
+ 			Free(to_theta);
+ 			Free(hyperid);
+ 		}
+		break;
+	}
 
 	case F_BYM:
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision0 iid */
@@ -17256,6 +17284,46 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
 			break;
 		}
+
+ 		case F_INTSLOPE:
+ 		{
+ 			n = iniparser_getint(ini, inla_string_join(secname, "N"), 0);
+ 			if (n <= 0) {
+ 				char *val;
+ 				GMRFLib_sprintf(&val, "%1d", n);
+ 				inla_error_field_is_void(__GMRFLib_FuncName, secname, "N", val);
+ 			}
+ 			nstrata = iniparser_getint(ini, inla_string_join(secname, "intslope.nstrata"), 1);
+ 			nsubject = iniparser_getint(ini, inla_string_join(secname, "intslope.nsubject"), 1);
+ 			mb->f_n[mb->nf] = n;
+ 			mb->f_N[mb->nf] = n + 2 * nsubject;
+ 			mb->f_precision[mb->nf] = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), mb->f_precision[mb->nf]);
+ 			if (mb->verbose) {
+ 				printf("\t\tn=[%1d]\n", mb->f_n[mb->nf]);
+ 				printf("\t\tN=[%1d]\n", mb->f_N[mb->nf]);
+ 				printf("\t\tnstrata=[%1d]\n", nstrata);
+ 				printf("\t\tnsubject=[%1d]\n", nsubject);
+ 				printf("\t\tprecision=[%f]\n", mb->f_precision[mb->nf]);
+ 			}
+ 
+ 			filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "intslope.def"), NULL));
+ 			assert(filename != NULL);
+ 			intslope_def = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
+ 
+ 			if (mb->verbose) {
+ 				printf("\t\tRead intslope.def[%s] nrow[%1d] ncol[%1d]\n", filename, intslope_def->nrow, intslope_def->ncol);
+ 				printf("\t\t    Idx  Subject Strata  Covariate\n");
+ 				assert(intslope_def->ncol == 3);
+ 				for (int i = 0; i < IMIN(intslope_def->nrow, PREVIEW); i++) {
+ 					printf("\t\t%6d %6.1g %6.1g  %12.6f\n", i,
+ 					       GMRFLib_matrix_get(i, INTSLOPE_SUBJECT, intslope_def),
+ 					       GMRFLib_matrix_get(i, INTSLOPE_STRATA, intslope_def),
+ 					       GMRFLib_matrix_get(i, INTSLOPE_Z, intslope_def));
+ 				}
+ 			}
+ 
+ 			break;
+ 		}
 
 		case F_SPDE:
 			// nothing to do
@@ -20635,6 +20703,180 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
+ 
+ 	case F_INTSLOPE:
+ 	{
+ 		int dim = 2;
+ 		int n_theta = inla_iid_wishart_nparam(dim);
+ 		theta_iidwishart = Calloc(n_theta, double **);
+ 		for (i = 0; i < n_theta; i++) {
+ 			HYPER_NEW(theta_iidwishart[i], 0.0);
+ 		}
+ 
+ 		mb->f_theta[mb->nf] = Calloc(mb->f_ntheta[mb->nf], double **);
+ 		k = 0;
+ 		for (i = 0; i < dim; i++) {
+ 			/*
+ 			 * first get all the precisions 
+ 			 */
+ 			char *init;
+ 
+ 			GMRFLib_sprintf(&init, "INITIAL%1d", k);
+ 			tmp = iniparser_getdouble(ini, inla_string_join(secname, init), G.log_prec_initial);
+ 			if (!mb->f_fixed[mb->nf][k] && mb->reuse_mode) {
+ 				tmp = mb->theta_file[mb->theta_counter_file++];
+ 			}
+ 			_SetInitial(k, tmp);
+ 			HYPER_INIT(theta_iidwishart[k], tmp);
+ 			if (mb->verbose) {
+ 				printf("\t\tinitialise log_precision (component %d)[%g]\n", k + 1, tmp);
+ 				printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][k]);
+ 			}
+ 
+ 			mb->f_theta[mb->nf][k] = theta_iidwishart[k];
+ 
+ 			if (!mb->f_fixed[mb->nf][k]) {
+ 				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+ 				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+ 				mb->theta_hyperid[mb->ntheta] = mb->f_prior[mb->nf][k].hyperid;
+ 				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+ 				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+ 				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+ 				GMRFLib_sprintf(&msg, "Log precision for %s (component %1d)", mb->f_tag[mb->nf], k + 1);
+ 				mb->theta_tag[mb->ntheta] = msg;
+ 				GMRFLib_sprintf(&msg, "Precision for %s (component %1d)", mb->f_tag[mb->nf], k + 1);
+ 				mb->theta_tag_userscale[mb->ntheta] = msg;
+ 				GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], k);
+ 				mb->theta_dir[mb->ntheta] = msg;
+ 
+ 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+ 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+ 				mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].from_theta);
+ 				mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].to_theta);
+ 
+ 				mb->theta[mb->ntheta] = theta_iidwishart[k];
+ 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+ 				mb->theta_map[mb->ntheta] = map_precision;
+ 				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+ 				mb->theta_map_arg[mb->ntheta] = NULL;
+ 				mb->ntheta++;
+ 			}
+ 
+ 			k++;
+ 		}
+ 		for (i = 0; i < dim; i++) {
+ 			for (j = i + 1; j < dim; j++) {
+ 				/*
+ 				 * all the correlations 
+ 				 */
+ 				char *init;
+ 				GMRFLib_sprintf(&init, "INITIAL%1d", k);
+ 				tmp = iniparser_getdouble(ini, inla_string_join(secname, init), 0.0);
+ 
+ 				if (!mb->f_fixed[mb->nf][k] && mb->reuse_mode) {
+ 					tmp = mb->theta_file[mb->theta_counter_file++];
+ 				}
+ 				_SetInitial(k, tmp);
+ 				HYPER_INIT(theta_iidwishart[k], tmp);
+ 				if (mb->verbose) {
+ 					printf("\t\tinitialise rho_internal%1d:%1d [%g]\n", i + 1, j + 1, tmp);
+ 					printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][k]);
+ 				}
+ 
+ 				mb->f_theta[mb->nf][k] = theta_iidwishart[k];
+ 
+ 				if (!mb->f_fixed[mb->nf][k]) {
+ 					mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+ 					mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+ 					mb->theta_hyperid[mb->ntheta] = mb->f_prior[mb->nf][k].hyperid;
+ 					mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+ 					mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+ 					mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+ 					GMRFLib_sprintf(&msg, "Rho_internal%1d:%1d for %s", i + 1, j + 1, mb->f_tag[mb->nf]);
+ 					mb->theta_tag[mb->ntheta] = msg;
+ 					GMRFLib_sprintf(&msg, "Rho%1d:%1d for %s", i + 1, j + 1, mb->f_tag[mb->nf]);
+ 					mb->theta_tag_userscale[mb->ntheta] = msg;
+ 					GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], k);
+ 					mb->theta_dir[mb->ntheta] = msg;
+ 
+ 					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+ 					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+ 					mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].from_theta);
+ 					mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].to_theta);
+ 
+ 					mb->theta[mb->ntheta] = theta_iidwishart[k];
+ 					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+ 					mb->theta_map[mb->ntheta] = map_rho;
+ 					mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+ 					mb->theta_map_arg[mb->ntheta] = NULL;
+ 					mb->ntheta++;
+ 				}
+ 				k++;
+ 			}
+ 		}
+ 
+ 		intslope_gamma = Calloc(INTSLOPE_MAXTHETA, double **);
+ 		for (i = 0; i < INTSLOPE_MAXTHETA; i++) {
+ 			HYPER_NEW(intslope_gamma[i], 1.0);
+ 		}
+ 
+ 		int kk;
+ 		for (i = 0; i < INTSLOPE_MAXTHETA; i++) {
+ 			char *init;
+ 
+ 			kk = k - n_theta;
+ 			if (i >= nstrata) {
+ 
+ 				P(nstrata);
+ 				mb->f_fixed[mb->nf][k] = 1;
+ 			}
+ 			GMRFLib_sprintf(&init, "INITIAL%1d", k);
+ 			tmp = iniparser_getdouble(ini, inla_string_join(secname, init), 1.0);
+ 
+ 			if (!mb->f_fixed[mb->nf][k] && mb->reuse_mode) {
+ 				tmp = mb->theta_file[mb->theta_counter_file++];
+ 			}
+ 			_SetInitial(k, tmp);
+ 			HYPER_INIT(intslope_gamma[kk], tmp);
+ 			if (mb->verbose) {
+ 				printf("\t\tinitialise gamma[%1d] = [%g]\n", kk, tmp);
+ 				printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][k]);
+ 			}
+ 			mb->f_theta[mb->nf][k] = intslope_gamma[kk];
+ 			if (!mb->f_fixed[mb->nf][k]) {
+ 				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+ 				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+ 				mb->theta_hyperid[mb->ntheta] = mb->f_prior[mb->nf][k].hyperid;
+ 				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+ 				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+ 				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+ 				GMRFLib_sprintf(&msg, "Gamma%1d for %s", kk + 1, mb->f_tag[mb->nf]);
+ 				mb->theta_tag[mb->ntheta] = msg;
+ 				GMRFLib_sprintf(&msg, "Gamma%1d for %s", kk + 1, mb->f_tag[mb->nf]);
+ 				mb->theta_tag_userscale[mb->ntheta] = msg;
+ 				GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], k);
+ 				mb->theta_dir[mb->ntheta] = msg;
+ 
+ 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+ 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+ 				mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].from_theta);
+ 				mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].to_theta);
+ 
+ 				mb->theta[mb->ntheta] = intslope_gamma[kk];
+ 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+ 				mb->theta_map[mb->ntheta] = map_identity;
+ 				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+ 				mb->theta_map_arg[mb->ntheta] = NULL;
+ 				mb->ntheta++;
+ 			}
+ 			k++;
+ 		}
+ 
+ 		assert(k == n_theta + INTSLOPE_MAXTHETA);
+ 		break;
+ 	}
+ 
+
 	case F_MATERN2D:
 	{
 		itmp = iniparser_getint(ini, inla_string_join(secname, "NU"), 1);
@@ -21529,6 +21771,47 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
+ 	case F_INTSLOPE:
+ 	{
+ 		int subject;
+ 		inla_intslope_arg_tp *arg = Calloc(1, inla_intslope_arg_tp);
+ 
+ 		arg->n = mb->f_n[mb->nf];		       /* n */
+ 		arg->N = mb->f_N[mb->nf];		       /* n + 2 * nsubject */
+ 		arg->precision = mb->f_precision[mb->nf];
+ 		arg->theta_gamma = intslope_gamma;
+ 		arg->def = intslope_def;
+ 		arg->nsubject = nsubject;
+ 		arg->nstrata = nstrata;
+ 
+ 		arg->warg = Calloc(1, inla_iid_wishart_arg_tp);
+ 		arg->warg->dim = 2;
+ 		arg->warg->n = nsubject;
+ 		arg->warg->N = arg->warg->dim * arg->warg->n;
+ 		arg->warg->log_prec = theta_iidwishart;
+ 		arg->warg->rho_intern = theta_iidwishart + arg->warg->dim;
+ 		arg->warg->hold = Calloc(ISQR(GMRFLib_MAX_THREADS), inla_wishart_hold_tp *);
+ 
+ 		// For each subject, we need to know all those using it. Since we have all stored in the 'intslope_def' matrix,
+ 		// we only need to store the references to the rows in that one.
+ 		arg->subject_idx = Calloc(nsubject, GMRFLib_idx_tp *);
+ 		for (subject = 0; subject < nsubject; subject++) {
+ 			GMRFLib_idx_create(&(arg->subject_idx[subject]));
+ 		}
+ 		for (int idx = 0; idx < n; idx++) {
+ 			subject = GMRFLib_matrix_get(idx, INTSLOPE_SUBJECT, arg->def);
+ 			GMRFLib_idx_add(&(arg->subject_idx[subject]), idx);
+ 		}
+ 
+ 		mb->f_rankdef[mb->nf] = 0;
+ 		mb->f_Qfunc[mb->nf] = Qfunc_intslope;
+ 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
+ 		mb->f_Qfunc_arg_orig[mb->nf] = (void *) arg;   /* need access to the internals later */
+ 		inla_make_intslope_graph(&(mb->f_graph[mb->nf]), arg);
+ 
+ 		break;
+ 	}
+ 
 	case F_SEASONAL:
 	{
 		GMRFLib_seasonaldef_tp *sdef = NULL;
@@ -24233,27 +24516,6 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				break;
 
-			case L_TEST_BINOMIAL_1:
-				if (!ds->data_fixed0) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
-					double s = theta[count];
-					val += PRIOR_EVAL(ds->data_prior0, &s);
-					count++;
-				}
-				if (!ds->data_fixed1) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
-					double e = theta[count];
-					val += PRIOR_EVAL(ds->data_prior1, &e);
-					count++;
-				}
-				break;
-
 			case L_IID_GAMMA:
 				if (!ds->data_fixed0) {
 					/*
@@ -25011,6 +25273,8 @@ double extra(double *theta, int ntheta, void *argument)
 
 				switch (ds->mix_id) {
 				case MIX_GAUSSIAN:
+				case MIX_LOGGAMMA:
+				case MIX_MLOGGAMMA:
 					if (!ds->mix_fixed) {
 						log_precision = theta[count];
 						val += PRIOR_EVAL(ds->mix_prior, &log_precision);
@@ -26876,6 +27140,111 @@ double extra(double *theta, int ntheta, void *argument)
 			break;
 		}
 
+ 
+ 		case F_INTSLOPE:
+ 		{
+ 			// this first part is just a copy from F_IID2D
+ 			int jj, count_ref = count;
+ 			int dim = 2;
+ 			assert(dim > 0);
+ 
+ 			int nt = inla_iid_wishart_nparam(dim);
+ 			double log_jacobian = 0.0;
+ 			double *theta_vec = Calloc(nt, double);
+ 			int k = 0;
+ 			nfixed = 0;
+ 			for (j = 0; j < dim; j++) {
+ 				if (_NOT_FIXED(f_fixed[i][k])) {
+ 					theta_vec[k] = theta[count];
+ 					count++;
+ 				} else {
+ 					nfixed++;
+ 					theta_vec[k] = mb->f_theta[i][k][GMRFLib_thread_id][0];
+ 				}
+ 				log_jacobian += log(map_precision(theta_vec[k], MAP_DFORWARD, NULL));
+ 				theta_vec[k] = map_precision(theta_vec[k], MAP_FORWARD, NULL);
+ 				k++;
+ 			}
+ 
+ 			for (j = 0; j < dim; j++) {
+ 				for (jj = j + 1; jj < dim; jj++) {
+ 					if (_NOT_FIXED(f_fixed[i][k])) {
+ 						theta_vec[k] = theta[count];
+ 						count++;
+ 					} else {
+ 						nfixed++;
+ 						theta_vec[k] = mb->f_theta[i][k][GMRFLib_thread_id][0];
+ 					}
+ 					log_jacobian += log(map_rho(theta_vec[k], MAP_DFORWARD, NULL));
+ 					theta_vec[k] = map_rho(theta_vec[k], MAP_FORWARD, NULL);
+ 					k++;
+ 				}
+ 			}
+ 			assert(k == nt);
+ 
+ 			fail = inla_iid_wishart_adjust(dim, theta_vec);	/* should not be needed */
+ 			Q = gsl_matrix_calloc(dim, dim);
+ 			k = 0;
+ 			for (j = 0; j < dim; j++) {
+ 				gsl_matrix_set(Q, j, j, 1.0 / theta_vec[k]);
+ 				k++;
+ 			}
+ 			for (j = 0; j < dim; j++) {
+ 				for (jj = j + 1; jj < dim; jj++) {
+ 					double value = theta_vec[k] / sqrt(theta_vec[j] * theta_vec[jj]);
+ 					gsl_matrix_set(Q, j, jj, value);
+ 					gsl_matrix_set(Q, jj, j, value);
+ 					k++;
+ 				}
+ 			}
+ 			GMRFLib_gsl_spd_inverse(Q);
+ 			assert(k == nt);
+ 
+ 			if (count - count_ref > 0) {
+ 				if (nfixed) {
+ 					static char first = 1;
+ 					if (first) {
+ 						fprintf(stderr,
+ 							"\n\n\nWARNING: Wishart prior is not corrected to account for %d fixed hyperparameters.\n\n",
+ 							nfixed);
+ 						first = 0;
+ 					}
+ 				}
+ 				/*
+ 				 * prior density wrt theta. Include here the Jacobian from going from (precision0, precision1,
+ 				 * rho), to theta = (log_precision0, log_precision1, rho_intern).
+ 				 */
+ 				val += PRIOR_EVAL(mb->f_prior[i][0], theta_vec) + log_jacobian;
+ 			}
+ 
+ 			Free(theta_vec);
+ 
+ 			for (j = 0; j < INTSLOPE_MAXTHETA; j++) {
+ 				if (_NOT_FIXED(f_fixed[i][k + j])) {
+ 					double gam = theta[count];
+ 					count++;
+ 					nt++;
+ 					val += PRIOR_EVAL(mb->f_prior[i][k + j], &gam);
+ 				}
+ 			}
+ 			_SET_GROUP_RHO(mb->f_ntheta[i]);
+ 
+ 			inla_intslope_arg_tp *arg = (inla_intslope_arg_tp *) mb->f_Qfunc_arg_orig[i];
+ 			int ngroup = mb->f_ngroup[i];
+ 
+ 			assert(mb->f_rankdef[i] == 0);	       /* as this does not make sense if its not 0 */
+ 
+ 			logdet = GMRFLib_gsl_spd_logdet(Q) * arg->nsubject + log(arg->precision) * arg->n;
+ 			val += mb->f_nrep[i] * (normc_g + gcorr * ngroup * (LOG_NORMC_GAUSSIAN * arg->N + 0.5 * logdet));
+ 			gsl_matrix_free(Q);
+ 			if (fail) {
+ 				val += PENALTY;
+ 			}
+ 
+ 			break;
+ 		}
+ 
+ 
 		case F_MATERN2D:
 		{
 			/*
@@ -32547,12 +32916,55 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+ 	case 29:
+ 	{
+ 		GMRFLib_idx_tp *h = NULL;
+ 		int i;
+ 
+ 		for (i = 0; i < 10; i++)
+ 			GMRFLib_idx_add(&h, i);
+ 		GMRFLib_idx_print(stdout, h, "IDX-test");
+ 		GMRFLib_idx_free(h);
+ 
+ 		GMRFLib_idx2_tp *h2 = NULL;
+ 		GMRFLib_idx2_create(&h2);
+ 		for (i = 0; i < 10; i++)
+ 			GMRFLib_idx2_add(&h2, i, -i);
+ 		GMRFLib_idx2_print(stdout, h2, "IDX2-test");
+ 		GMRFLib_idx2_free(h2);
+ 
+ 		break;
+ 	}
+ 
+ 	case 30:
+ 	{
+ 		double tref = GMRFLib_cpu();
+ 		for (int i = 0; i < 3; i++) {
+ 			system("sleep 1");
+ 			printf("Call system() to sleep 1s. Time elapsed: %.6f\n", GMRFLib_cpu() - tref);
+ 		}
+ 		GMRFLib_collect_timer_statistics = GMRFLib_TRUE;
+ 		for (int i = 0; i < 3; i++) {
+ 			printf("Call inla_testit_timer()\n");
+ 			inla_testit_timer();
+ 		}
+ 		GMRFLib_timer_full_report(stdout);
+ 		break;
+ 	}
+
 	default:
 		exit(0);
 	}
 
 
 	exit(EXIT_SUCCESS);
+}
+int inla_testit_timer(void) 
+{
+	GMRFLib_ENTER_ROUTINE;
+	system("sleep 1");
+	GMRFLib_LEAVE_ROUTINE;
+ 	return 0;
 }
 
 int inla_check_pardiso(void)

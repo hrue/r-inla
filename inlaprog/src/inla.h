@@ -503,6 +503,8 @@ typedef enum {
 	L_QLOGLOGISTICSURV,
 	L_POM,
 	L_GEV2, 
+ 	L_NBINOMIAL2,
+ 	L_GAMMASURV, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -585,7 +587,7 @@ typedef enum {
 	P_INVALID,
 	P_DIRICHLET,
 	P_GAMMA, 
-	G_EXCHANGEABLE = 3000,				       /* group models */
+	G_EXCHANGEABLE = 3000,				       /* group_ models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
 	G_RW1,
@@ -1350,6 +1352,25 @@ typedef struct {
 	ar_def_tp *ardef;
 	inla_besag_Qfunc_arg_tp *besagdef;
 } inla_group_def_tp;
+
+typedef struct {
+ 	int n;						       // length of covariates/subject/strata 
+ 	int N;						       // size of matrix = n + warg->dim*m, m=#subjects, dim=2 
+ 	int nsubject;
+ 	int nstrata;
+ 	double precision;				       // fixed high precision 
+ 	double ***theta_gamma;
+ 	GMRFLib_matrix_tp *def;
+ 	GMRFLib_idx_tp **subject_idx;
+ 	inla_iid_wishart_arg_tp *warg;
+} inla_intslope_arg_tp;
+
+typedef enum {
+ 	INTSLOPE_SUBJECT = 0,
+ 	INTSLOPE_STRATA = 1,
+ 	INTSLOPE_Z = 2
+} inla_intslope_column_tp;
+
 
 #define R_GENERIC_Q "Q"
 #define R_GENERIC_GRAPH "graph"
