@@ -42,12 +42,12 @@
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item
+      \item Added new likelihood \code{gamma.surv}
     }
   }
   \subsection{BUG FIXES}{
     \itemize{
-      \item 
+      \item Cleaned up the use of temporary dir and files
     }
   }
 }
