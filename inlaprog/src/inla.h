@@ -142,6 +142,9 @@ typedef struct {
 	double *y;					       /* general responce */
 	double quantile;				       /* value of the quantile for quantile parameterised likelihoods */
 
+	double *attr;					       /* for inla.mdata() data */
+	int n_attr;
+
 	/*
 	 * y ~ Poisson(E*exp(x)) 
 	 */
@@ -302,6 +305,22 @@ typedef struct {
 	double **xi_gev;				       /* the shape-parameter */
 	double gev_scale_xi;				       /* scaling of the shape-parameter */
 
+	/*
+	 * GEV2
+	 */
+	double gev2_level_alpha;
+	double gev2_level_beta;
+	double gev2_scale_xi;
+	double gev2_censor_limit;
+	double *gev2_scale;
+	double **gev2_x;				       /* matrix of covariates */
+	double ***gev2_betas;				       /* vector of betas */
+	double **gev2_location;
+	double **gev2_log_tail;
+	int gev2_nbetas[2];
+	int *gev2_ncols;
+	int gev2_sign_xi;
+	
 	/*
 	 * Log gamma frailty
 	 */
@@ -483,8 +502,9 @@ typedef enum {
 	L_QLOGLOGISTIC,
 	L_QLOGLOGISTICSURV,
 	L_POM,
-	L_NBINOMIAL2,
-	L_GAMMASURV, 
+	L_GEV2, 
+ 	L_NBINOMIAL2,
+ 	L_GAMMASURV, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -566,7 +586,8 @@ typedef enum {
 	P_REF_AR,					       /* Reference prior for AR(p) for p=1,2,3 */
 	P_INVALID,
 	P_DIRICHLET,
-	G_EXCHANGEABLE = 3000,				       /* group models */
+	P_GAMMA, 
+	G_EXCHANGEABLE = 3000,				       /* group_ models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
 	G_RW1,
@@ -686,6 +707,7 @@ typedef struct {
 	inla_component_tp data_id;
 	File_tp data_file;
 	File_tp weight_file;
+	File_tp attr_file;
 	Prior_tp data_prior;
 	Prior_tp data_prior0;
 	Prior_tp data_prior1;
@@ -1332,23 +1354,22 @@ typedef struct {
 } inla_group_def_tp;
 
 typedef struct {
-	int n;						       // length of covariates/subject/strata 
-	int N;						       // size of matrix = n + warg->dim*m, m=#subjects, dim=2 
-	int nsubject;
-	int nstrata;
-	double precision;				       // fixed high precision 
-	double ***theta_gamma;
-	GMRFLib_matrix_tp *def;
-	GMRFLib_idx_tp **subject_idx;
-	inla_iid_wishart_arg_tp *warg;
+ 	int n;						       // length of covariates/subject/strata 
+ 	int N;						       // size of matrix = n + warg->dim*m, m=#subjects, dim=2 
+ 	int nsubject;
+ 	int nstrata;
+ 	double precision;				       // fixed high precision 
+ 	double ***theta_gamma;
+ 	GMRFLib_matrix_tp *def;
+ 	GMRFLib_idx_tp **subject_idx;
+ 	inla_iid_wishart_arg_tp *warg;
 } inla_intslope_arg_tp;
 
 typedef enum {
-	INTSLOPE_SUBJECT = 0,
-	INTSLOPE_STRATA = 1,
-	INTSLOPE_Z = 2
+ 	INTSLOPE_SUBJECT = 0,
+ 	INTSLOPE_STRATA = 1,
+ 	INTSLOPE_Z = 2
 } inla_intslope_column_tp;
-
 
 
 #define R_GENERIC_Q "Q"
@@ -1385,6 +1406,7 @@ typedef enum {
 /* 
    functions
  */
+
 
 GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp * constr);
 GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRFLib_constr_tp * constr);
@@ -1472,6 +1494,7 @@ double map_beta(double arg, map_arg_tp typ, void *param);
 double map_dof(double arg, map_arg_tp typ, void *param);
 double map_dof5(double arg, map_arg_tp typ, void *param);
 double map_exp(double arg, map_arg_tp typ, void *param);
+double map_exp_scale(double arg, map_arg_tp typ, void *param);
 double map_group_rho(double x, map_arg_tp typ, void *param);
 double map_identity(double arg, map_arg_tp typ, void *param);
 double map_identity_scale(double arg, map_arg_tp typ, void *param);
@@ -1662,8 +1685,8 @@ int inla_read_prior7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 int inla_read_prior8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N);
-int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag, const char *param_tag,
-			    const char *from_theta, const char *to_theta, const char *hyperid, const char *default_prior);
+int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag,
+			    const char *param_tag, const char *from_theta, const char *to_theta, const char *hyperid, const char *default_prior);
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
@@ -1711,6 +1734,7 @@ int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x
 int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, GMRFLib_logl_tp * loglfun);
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gp(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
