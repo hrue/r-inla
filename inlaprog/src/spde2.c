@@ -241,7 +241,7 @@ int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const ch
 	return INLA_OK;
 }
 
-int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, void *arg)
+double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, void *arg)
 {
 	/*
 	 * compute the marginals for BLC*theta
@@ -261,7 +261,7 @@ int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, 
 #define ThetaNew(_i)   theta_new[(_i)]
 
 	if (!covmat || nhyper == 0) {
-		return INLA_OK;
+		return NULL;
 	}
 
 	int use_new_version = 1, i, ii, jj, debug = 0, k, kk, *idx_map = NULL, nhyper_new = 0;
@@ -272,7 +272,7 @@ int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, 
 	inla_spde2_tp *model = (inla_spde2_tp *) GMRFLib_ai_INLA_userfunc2_args[number];
 
 	if (model->BLC == NULL) {
-		return INLA_OK;
+		return NULL;
 	}
 
 	int idx_offset = model->theta_first_idx;
@@ -489,5 +489,5 @@ int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, 
 #undef Theta
 #undef CovNew
 #undef ThetaNew
-	return INLA_OK;
+	return NULL;
 }

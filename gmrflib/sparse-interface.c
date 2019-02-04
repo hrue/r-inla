@@ -65,7 +65,6 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 {
 	GMRFLib_ENTER_ROUTINE;
 
-	int i;
 	GMRFLib_global_node_tp lgn, *gn_ptr = NULL;
 
 	if (gn) {
@@ -335,7 +334,7 @@ int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * sm
 	/*
 	 * rhs in real world. solve L x=rhs, rhs is overwritten by the solution 
 	 */
-	int i, idum;
+	int i;
 	GMRFLib_ENTER_ROUTINE;
 
 	switch (sm_fact->smtp) {
@@ -375,7 +374,7 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * s
 	/*
 	 * rhs in real world. solve L^Tx=rhs, rhs is overwritten by the solution 
 	 */
-	int i, idum;
+	int i;
 	GMRFLib_ENTER_ROUTINE;
 
 	switch (sm_fact->smtp) {
@@ -415,7 +414,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * 
 	/*
 	 * rhs in real world. solve Q x=rhs, where Q=L L^T 
 	 */
-	int i, idum;
+	int i;
 	GMRFLib_ENTER_ROUTINE;
 
 	if (sm_fact->smtp == GMRFLib_SMTP_BAND) {
@@ -445,7 +444,6 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm
 	 * rhs in real world. solve Q x=rhs, where Q=L L^T. BUT, here we know that rhs is 0 execpt for a 1 at index idx.
 	 */
 	GMRFLib_ENTER_ROUTINE;
-	int idum;
 
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
@@ -482,7 +480,6 @@ int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_
 	 * 
 	 * this routine is called to many times and the work is not that much, to justify GMRFLib_ENTER_ROUTINE; 
 	 */
-	int idum;
 
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
@@ -529,7 +526,6 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_f
 
 	case GMRFLib_SMTP_PARDISO:
 	{
-		int idum;
 		if (remapped) {
 			GMRFLib_pardiso_perm(rhs, 1, sm_fact->PARDISO_fact);
 		}
