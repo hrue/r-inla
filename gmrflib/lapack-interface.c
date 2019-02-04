@@ -306,14 +306,14 @@ int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef)
 
 			if (first > last) {
 				// do not use the last 'rdef's
-				if (i < (int) A->size1 - rankdef) {
+				if (i < (size_t) A->size1 - rankdef) {
 					gsl_matrix_set(M2, i, i, 1.0 / s);
 				} else {
 					gsl_matrix_set(M2, i, i, 0.0);
 				}
 			} else {
 				// do not use the first 'rdef's
-				if (i < rankdef) {
+				if (i < (size_t) rankdef) {
 					gsl_matrix_set(M2, i, i, 0.0);
 				} else {
 					gsl_matrix_set(M2, i, i, 1.0 / s);

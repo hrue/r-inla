@@ -154,6 +154,7 @@ int GMRFLib_init_geo_problem(GMRFLib_geo_problem_tp ** geo_problem, int name, in
 		break;
 	case 3:
 		GMRFLib_EWRAP0(GMRFLib_get_geo_coefs3(&(geo_arg->coef), name, param, range));
+		break;
 	default:
 		GMRFLib_ASSERT(0, GMRFLib_ESNH);
 	}
