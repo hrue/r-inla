@@ -1354,22 +1354,23 @@ typedef struct {
 } inla_group_def_tp;
 
 typedef struct {
- 	int n;						       // length of covariates/subject/strata 
- 	int N;						       // size of matrix = n + warg->dim*m, m=#subjects, dim=2 
- 	int nsubject;
- 	int nstrata;
- 	double precision;				       // fixed high precision 
- 	double ***theta_gamma;
- 	GMRFLib_matrix_tp *def;
- 	GMRFLib_idx_tp **subject_idx;
- 	inla_iid_wishart_arg_tp *warg;
+	int n;						       // length of covariates/subject/strata 
+	int N;						       // size of matrix = n + warg->dim*m, m=#subjects, dim=2 
+	int nsubject;
+	int nstrata;
+	double precision;				       // fixed high precision 
+	double ***theta_gamma;
+	GMRFLib_matrix_tp *def;
+	GMRFLib_idx_tp **subject_idx;
+	inla_iid_wishart_arg_tp *warg;
 } inla_intslope_arg_tp;
 
 typedef enum {
- 	INTSLOPE_SUBJECT = 0,
- 	INTSLOPE_STRATA = 1,
- 	INTSLOPE_Z = 2
+	INTSLOPE_SUBJECT = 0,
+	INTSLOPE_STRATA = 1,
+	INTSLOPE_Z = 2
 } inla_intslope_column_tp;
+
 
 
 #define R_GENERIC_Q "Q"
@@ -1406,7 +1407,6 @@ typedef enum {
 /* 
    functions
  */
-
 
 GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp * constr);
 GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRFLib_constr_tp * constr);
@@ -1685,8 +1685,8 @@ int inla_read_prior7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 int inla_read_prior8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N);
-int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag,
-			    const char *param_tag, const char *from_theta, const char *to_theta, const char *hyperid, const char *default_prior);
+int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag, const char *param_tag,
+			    const char *from_theta, const char *to_theta, const char *hyperid, const char *default_prior);
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
 int inla_read_prior_group1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
