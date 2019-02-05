@@ -484,7 +484,7 @@ typedef enum {
 	L_QLOGLOGISTICSURV,
 	L_POM,
 	L_NBINOMIAL2,
-	L_GAMMASURV, 
+	L_GAMMASURV,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
