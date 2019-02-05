@@ -5118,7 +5118,7 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 	}
 	int i, off, show_msg = 1;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double location, spread, log_xi, xi, sigma, q_alpha, d, mu, sprec, ypred, xx, y, tx;
+	double location, spread, log_xi, xi, sigma, q_alpha, d, mu, sprec, ypred, xx, y;
 	double level_alpha = ds->data_observations.gev2_level_alpha;
 	double level_beta = ds->data_observations.gev2_level_beta;
 	
