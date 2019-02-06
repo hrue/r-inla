@@ -49,24 +49,29 @@
 
 `inla.merge` = function(loo, prob = rep(1,  length(loo)), verbose = FALSE)
 {
-    loo = list(x, y, ...)
-    
     verboze = function(...) {
         if (verbose) {
             cat("inla.merge: ", ..., "\n")
         }
     }
 
+    TIME = rep(0, 3)
+    t.ref = Sys.time()
+    
     merge.marginals = function(lom, prob, nx = 64) {
         n = length(lom)
         eps = 0.001
+        t.ref = Sys.time()
         x.range = range(unlist(lapply(
             lom, function(m) inla.qmarginal(c(eps, 1-eps), m))))
+        TIME[1] <<- TIME[1] + Sys.time() - t.ref
         xx = seq(x.range[1], x.range[2], len = nx)
         yy = rep(0, nx)
+        t.ref = Sys.time()
         for(i in 1:n) {
             yy = yy + prob[i] * inla.dmarginal(xx, lom[[i]])
         }
+        TIME[2] <<- TIME[2] + Sys.time() - t.ref
         mm = list(x = xx, y = yy)
         marg = inla.smarginal(mm, factor = 2L)
         return (marg)
@@ -241,6 +246,9 @@
             res[idx] = NULL
         }
     }
+
+    TIME[3] = TIME[3] + (Sys.time() - t.ref)
+    print(TIME)
 
     return (res)
 }
