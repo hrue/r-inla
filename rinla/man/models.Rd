@@ -6460,6 +6460,7 @@ inla.models()
 								\item{doc = }{`The Gamma likelihood (survival)'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
+								\item{status = }{`experimental'}
 								\item{link = }{`default log quantile'}
 								\item{pdf = }{`gammasurv'}
 							 }
