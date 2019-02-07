@@ -7,8 +7,8 @@
 ##! \title{Merge a mixture of \code{inla}-objects}
 ##! \description{Merge a mixture of \code{inla}-objects}
 ##! \usage{
-##!     \method{merge}{inla}(x, y, ..., prob = rep(1,  length(loo)), verbose = FALSE)
-##!     inla.merge(loo, prob = rep(1,  length(loo)), verbose = FALSE)
+##!     \method{merge}{inla}(x, y, ..., prob = rep(1,  length(loo)), verbose = FALSE, parallel = TRUE)
+##!     inla.merge(loo, prob = rep(1,  length(loo)), verbose = FALSE, parallel = TRUE)
 ##! }
 ##! \arguments{
 ##!   \item{x}{An \code{inla}-object to be merged}
@@ -17,6 +17,7 @@
 ##!   \item{loo}{List of \code{inla}-objects to be merged}
 ##!   \item{prob}{The mixture of (possibly unnormalized) probabilities}
 ##!   \item{verbose}{Turn on verbose-output or not}
+##!   \item{parallel}{Do the merge in parallel using \code{parallel::mclapply}, if possible.}
 ##!  }
 ##! \value{
 ##!   A merged \code{inla}-object.
@@ -42,12 +43,12 @@
 ##! }    
 ##! \author{Havard Rue \email{hrue@r-inla.org}}
 
-`merge.inla` = function(x, y, ...,  prob = rep(1,  length(loo)), verbose = FALSE) 
+`merge.inla` = function(x, y, ...,  prob = rep(1,  length(loo)), verbose = FALSE, parallel = TRUE)
 {
-    return (inla.merge(loo = list(x, y, ...), prob = prob, verbose = verbose))
+    return (inla.merge(loo = list(x, y, ...), prob = prob, verbose = verbose, parallel = parallel))
 }
 
-`inla.merge` = function(loo, prob = rep(1,  length(loo)), verbose = FALSE)
+`inla.merge` = function(loo, prob = rep(1,  length(loo)), verbose = FALSE, parallel = TRUE)
 {
     verboze = function(...) {
         if (verbose) {
@@ -55,25 +56,46 @@
         }
     }
 
-    TIME = rep(0, 3)
-    t.ref = Sys.time()
-    
-    merge.marginals = function(lom, prob, nx = 64) {
-        n = length(lom)
-        eps = 0.001
-        t.ref = Sys.time()
-        x.range = range(unlist(lapply(
-            lom, function(m) inla.qmarginal(c(eps, 1-eps), m))))
-        TIME[1] <<- TIME[1] + Sys.time() - t.ref
-        xx = seq(x.range[1], x.range[2], len = nx)
+    merge.marginals = function(lom, prob, nx = 128, eps.y = 1e-6) {
+        ## compute the (min, median, max) for each marginal, and then the min, median, max of
+        ## those again.
+        xs = matrix(unlist(lapply(
+            lom,
+            function(m) {
+            xx = m[, "x"]
+            return (c(min(xx), median(xx), max(xx)))
+        })), nrow = 3)
+        x.min = min(xs[1, ])
+        x.med = median(xs[2, ])
+        x.max = max(xs[3, ])
+        ## we guess the transformation... In any case, it should not to be to bad.
+        if (x.min > 0 && x.max < 1) {
+            ## probability
+            m1 = function(x) 1.0/(1.0 + exp(-x))
+            m1i = function(x) log(x/(1.0 - x))
+        } else if (x.min > 0) {
+            ## this is positive marginal. Chose the scale that make is more centered.
+            if (abs((x.med - x.min)/(x.max - x.min) - 0.5) <
+                abs((log(x.med) - log(x.min))/(log(x.max) - log(x.min)) - 0.5)) {
+                ## linear
+                m1 = m1i = function(x) x
+            } else {
+                ## log
+                m1 = function(x) exp(x)
+                m1i = function(x) log(x)
+            }
+        } else {
+            ## use a linear mapping
+            m1 = m1i = function(x) x
+        }
+        xx = m1(seq(m1i(x.min), m1i(x.max), len = nx))
         yy = rep(0, nx)
-        t.ref = Sys.time()
-        for(i in 1:n) {
+        for(i in seq_along(lom)) {
             yy = yy + prob[i] * inla.dmarginal(xx, lom[[i]])
         }
-        TIME[2] <<- TIME[2] + Sys.time() - t.ref
-        mm = list(x = xx, y = yy)
-        marg = inla.smarginal(mm, factor = 2L)
+        ## remove points not needed
+        idx.keep = (yy > eps.y * max(yy))
+        marg = inla.smarginal(list(x = xx[idx.keep], y = yy[idx.keep]), factor = 2L)
         return (marg)
     }
 
@@ -108,10 +130,20 @@
     verboze("enter with prob = ", round(prob, dig = 3))
 
     verboze("Merge '$internal.marginals.hyperpar'")
-    for(k in seq_along(res$internal.marginals.hyperpar)) {
-        margs = lapply(loo, function(x, k) x$internal.marginals.hyperpar[[k]], k = k)
-        res$internal.marginals.hyperpar[[k]] = merge.marginals(margs, prob)
+    if (!parallel) {
+        for(k in seq_along(res$internal.marginals.hyperpar)) {
+            margs = lapply(loo, function(x, k) x$internal.marginals.hyperpar[[k]], k = k)
+            res$internal.marginals.hyperpar[[k]] = merge.marginals(margs, prob)
+        }
+    } else {
+        dummy = inla.mclapply(seq_along(res$internal.marginals.hyperpar),
+                              function(k) {
+            margs = lapply(loo, function(x, kk) x$internal.marginals.hyperpar[[kk]], kk = k)
+            res$internal.marginals.hyperpar[[k]] = merge.marginals(margs, prob)
+            return (NULL)
+        })
     }
+
     verboze("Merge '$internal.summary.hyperpar'")
     if (!is.null(res$internal.summary.hyperpar) && nrow(res$internal.summary.hyperpar) > 0) {
         zum = lapply(loo, function(x) x$internal.summary.hyperpar)
@@ -130,13 +162,25 @@
     }
 
     verboze("Merge '$marginals.random'...")
-    for(k in seq_along(res$marginals.random)) {
-        verboze(paste0("      '$marginals.random$", names(res$marginals.random)[k], "'"))
-        for(kk in seq_along(res$marginals.random[[k]])) {
-            margs = lapply(loo, function(x, k, kk) x$marginals.random[[k]][[kk]], k = k, kk = kk)
-            res$marginals.random[[k]][[kk]] = merge.marginals(margs, prob)
+    if (!parallel) {
+        for(k in seq_along(res$marginals.random)) {
+            verboze(paste0("      '$marginals.random$", names(res$marginals.random)[k], "'"))
+            for(kk in seq_along(res$marginals.random[[k]])) {
+                margs = lapply(loo, function(x, k, kk) x$marginals.random[[k]][[kk]], k = k, kk = kk)
+                res$marginals.random[[k]][[kk]] = merge.marginals(margs, prob)
+            }
         }
-    }
+    } else {
+        for(k in seq_along(res$marginals.random)) {
+            verboze(paste0("      '$marginals.random$", names(res$marginals.random)[k], "'"))
+            dummy = inla.mclapply(seq_along(res$marginals.random[[k]]),
+                                  function(kk) {
+                margs = lapply(loo, function(x, k, kkk) x$marginals.random[[k]][[kkk]], k = k, kkk = kk)
+                res$marginals.random[[k]][[kk]] = merge.marginals(margs, prob)
+                return (NULL)
+            })
+        }
+    }        
 
     verboze("Merge '$summary.random'...")
     for(k in seq_along(res$summary.random)) {
@@ -159,10 +203,18 @@
     }
 
     verboze("Merge '$marginals.lincomb'...")
-    for(k in seq_along(res$marginals.lincomb)) {
-        verboze(paste0("      '$marginals.lincomb$", names(res$marginals.lincomb)[k], "'"))
-        margs = lapply(loo, function(x, k) x$marginals.lincomb[[k]], k = k)
-        res$marginals.lincomb[[k]] = merge.marginals(margs, prob)
+    if (!parallel) {
+        for(k in seq_along(res$marginals.lincomb)) {
+            margs = lapply(loo, function(x, k) x$marginals.lincomb[[k]], k = k)
+            res$marginals.lincomb[[k]] = merge.marginals(margs, prob)
+        }
+    } else {
+        dummy = inla.mclapply(seq_along(res$marginals.lincomb),
+                              function(k) {
+            margs = lapply(loo, function(x, k) x$marginals.lincomb[[k]], k = k)
+            res$marginals.lincomb[[k]] = merge.marginals(margs, prob)
+            return (NULL)
+        })
     }
 
     verboze("Merge '$summary.lincomb'...")
@@ -172,10 +224,18 @@
     }
 
     verboze("Merge '$marginals.lincomb.derived'...")
-    for(k in seq_along(res$marginals.lincomb.derived)) {
-        verboze(paste0("      '$marginals.lincomb.derived$", names(res$marginals.lincomb.derived)[k], "'"))
-        margs = lapply(loo, function(x, k) x$marginals.lincomb.derived[[k]], k = k)
-        res$marginals.lincomb.derived[[k]] = merge.marginals(margs, prob)
+    if (!parallel) {
+        for(k in seq_along(res$marginals.lincomb.derived)) {
+            margs = lapply(loo, function(x, k) x$marginals.lincomb.derived[[k]], k = k)
+            res$marginals.lincomb.derived[[k]] = merge.marginals(margs, prob)
+        }
+    } else {
+        dummy = inla.mclapply(seq_along(res$marginals.lincomb.derived),
+                              function(k) {
+            margs = lapply(loo, function(x, k) x$marginals.lincomb.derived[[k]], k = k)
+            res$marginals.lincomb.derived[[k]] = merge.marginals(margs, prob)
+            return (NULL)
+        })
     }
 
     verboze("Merge '$summary.lincomb.derived'...")
@@ -183,7 +243,6 @@
         zum = lapply(loo, function(x) x$summary.lincomb.derived)
         res$summary.lincomb.derived = merge.summary(zum, prob)
     }
-
 
     verboze("Merge '$marginals.spde2.blc'...")
     for(k in seq_along(res$marginals.spde2.blc)) {
@@ -217,10 +276,19 @@
         res$summary.spde3.blc[[k]] = merge.summary(zum, prob)
     }
 
-    verboze("Merge '$marginals.predictor'...")
-    for(k in seq_along(res$marginals.predictor)) {
-        margs = lapply(loo, function(x, k) x$marginals.predictor[[k]], k = k)
-        res$marginals.random[[k]] = merge.marginals(margs, prob)
+    verboze("Merge '$marginals.linear.predictor'...")
+    if (!parallel) {
+        for(k in seq_along(res$marginals.linear.predictor)) {
+            margs = lapply(loo, function(x, k) x$marginals.linear.predictor[[k]], k = k)
+            res$marginals.linear.predictor[[k]] = merge.marginals(margs, prob)
+        }
+    } else {
+        dummy = inla.mclapply(seq_along(res$marginals.linear.predictor),
+                              function(k) {
+            margs = lapply(loo, function(x, k) x$marginals.linear.predictor[[k]], k = k)
+            res$marginals.linear.predictor[[k]] = merge.marginals(margs, prob)
+            return (NULL)
+        })
     }
 
     verboze("Merge '$summary.linear.predictor'")
@@ -246,9 +314,6 @@
             res[idx] = NULL
         }
     }
-
-    TIME[3] = TIME[3] + (Sys.time() - t.ref)
-    print(TIME)
 
     return (res)
 }
