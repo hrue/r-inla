@@ -7,8 +7,8 @@
 ##! \title{Merge a mixture of \code{inla}-objects}
 ##! \description{Merge a mixture of \code{inla}-objects}
 ##! \usage{
-##!     \method{merge}{inla}(x, y, ..., prob = rep(1,  length(loo)), verbose = FALSE, parallel = TRUE)
-##!     inla.merge(loo, prob = rep(1,  length(loo)), verbose = FALSE, parallel = TRUE)
+##!     \method{merge}{inla}(x, y, ..., prob = rep(1,  length(loo)), verbose = FALSE)
+##!     inla.merge(loo, prob = rep(1,  length(loo)), verbose = FALSE)
 ##! }
 ##! \arguments{
 ##!   \item{x}{An \code{inla}-object to be merged}
@@ -17,7 +17,6 @@
 ##!   \item{loo}{List of \code{inla}-objects to be merged}
 ##!   \item{prob}{The mixture of (possibly unnormalized) probabilities}
 ##!   \item{verbose}{Turn on verbose-output or not}
-##!   \item{parallel}{Do the merge in parallel using \code{parallel::mclapply}, if possible.}
 ##!  }
 ##! \value{
 ##!   A merged \code{inla}-object.
@@ -43,16 +42,16 @@
 ##! }    
 ##! \author{Havard Rue \email{hrue@r-inla.org}}
 
-`merge.inla` = function(x, y, ...,  prob = rep(1,  length(loo)), verbose = FALSE, parallel = TRUE)
+`merge.inla` = function(x, y, ...,  prob = rep(1,  length(loo)), verbose = FALSE)
 {
-    return (inla.merge(loo = list(x, y, ...), prob = prob, verbose = verbose, parallel = parallel))
+    return (inla.merge(loo = list(x, y, ...), prob = prob, verbose = verbose))
 }
 
-`inla.merge` = function(loo, prob = rep(1,  length(loo)), verbose = FALSE, parallel = TRUE)
+`inla.merge` = function(loo, prob = rep(1,  length(loo)), verbose = FALSE)
 {
     verboze = function(...) {
         if (verbose) {
-            cat("inla.merge: ", ..., "\n")
+            cat("inla.merge: ", ..., "\n", sep="")
         }
     }
 
@@ -74,7 +73,7 @@
             m1 = function(x) 1.0/(1.0 + exp(-x))
             m1i = function(x) log(x/(1.0 - x))
         } else if (x.min > 0) {
-            ## this is positive marginal. Chose the scale that make is more centered.
+            ## this is positive marginal. Choose the scale that make is more symmetric
             if (abs((x.med - x.min)/(x.max - x.min) - 0.5) <
                 abs((log(x.med) - log(x.min))/(log(x.max) - log(x.min)) - 0.5)) {
                 ## linear
@@ -129,189 +128,75 @@
     verboze("enter with ", m, " models")
     verboze("enter with prob = ", round(prob, dig = 3))
 
-    verboze("Merge '$internal.marginals.hyperpar'")
-    if (!parallel) {
-        for(k in seq_along(res$internal.marginals.hyperpar)) {
-            margs = lapply(loo, function(x, k) x$internal.marginals.hyperpar[[k]], k = k)
-            res$internal.marginals.hyperpar[[k]] = merge.marginals(margs, prob)
+    ## list
+    marginals = c(paste0("marginals.", c("hyperpar", "fixed", "lincomb", "lincomb.derived", "linear.predictor")),
+                  "internal.marginals.hyperpar")                  
+    ## list of list
+    marginals2 = paste0("marginals.", c("random", "spde2.blc", "spde3.blc"))
+    ## data.frame
+    summaries = c(paste0("summary.", c("hyperpar", "fixed", "lincomb", "lincomb.derived", "linear.predictor")), 
+                  "internal.summary.hyperpar")
+    ## list of data.frame
+    summaries2 = paste0("summary.", c("random", "spde2.blc", "spde3.blc"))
+                     
+    remove = c("marginals.fitted.values", "summary.fitted.values", "dic", "cpo", "waic", "po", "neffp")
+
+
+    for(nm in marginals) {
+        idx = which(names(res) == nm)
+        if (length(idx) > 0) {
+            verboze("Merge '$", nm, "'")
+            dummy = INLA:::inla.mclapply(seq_along(res[[idx]]),
+                                         function(k) {
+                               margs = lapply(loo, function(x, kk) x[[idx]][[kk]], kk = k)
+                               res[[idx]][[k]] = merge.marginals(margs, prob)
+                               return (NULL)
+                           })
         }
-    } else {
-        dummy = inla.mclapply(seq_along(res$internal.marginals.hyperpar),
-                              function(k) {
-            margs = lapply(loo, function(x, kk) x$internal.marginals.hyperpar[[kk]], kk = k)
-            res$internal.marginals.hyperpar[[k]] = merge.marginals(margs, prob)
-            return (NULL)
-        })
-    }
-
-    verboze("Merge '$internal.summary.hyperpar'")
-    if (!is.null(res$internal.summary.hyperpar) && nrow(res$internal.summary.hyperpar) > 0) {
-        zum = lapply(loo, function(x) x$internal.summary.hyperpar)
-        res$internal.summary.hyperpar = merge.summary(zum, prob)
-    }
-
-    verboze("Merge '$marginals.hyperpar'")
-    for(k in seq_along(res$marginals.hyperpar)) {
-        margs = lapply(loo, function(x, k) x$marginals.hyperpar[[k]], k = k)
-        res$marginals.hyperpar[[k]] = merge.marginals(margs, prob)
-    }
-    verboze("Merge '$summary.hyperpar'")
-    if (!is.null(res$summary.hyperpar) && nrow(res$summary.hyperpar) > 0) {
-        zum = lapply(loo, function(x) x$summary.hyperpar)
-        res$summary.hyperpar = merge.summary(zum, prob)
-    }
-
-    verboze("Merge '$marginals.random'...")
-    if (!parallel) {
-        for(k in seq_along(res$marginals.random)) {
-            verboze(paste0("      '$marginals.random$", names(res$marginals.random)[k], "'"))
-            for(kk in seq_along(res$marginals.random[[k]])) {
-                margs = lapply(loo, function(x, k, kk) x$marginals.random[[k]][[kk]], k = k, kk = kk)
-                res$marginals.random[[k]][[kk]] = merge.marginals(margs, prob)
-            }
-        }
-    } else {
-        for(k in seq_along(res$marginals.random)) {
-            verboze(paste0("      '$marginals.random$", names(res$marginals.random)[k], "'"))
-            dummy = inla.mclapply(seq_along(res$marginals.random[[k]]),
-                                  function(kk) {
-                margs = lapply(loo, function(x, k, kkk) x$marginals.random[[k]][[kkk]], k = k, kkk = kk)
-                res$marginals.random[[k]][[kk]] = merge.marginals(margs, prob)
-                return (NULL)
-            })
-        }
-    }        
-
-    verboze("Merge '$summary.random'...")
-    for(k in seq_along(res$summary.random)) {
-        verboze(paste0("      '$summary.random$", names(res$summary.random)[k], "'"))
-        zum = lapply(loo, function(x) x$summary.random[[k]])
-        res$summary.random[[k]] = merge.summary(zum, prob)
-    }
-
-    verboze("Merge '$marginals.fixed'...")
-    for(k in seq_along(res$marginals.fixed)) {
-        verboze(paste0("      '$marginals.fixed$", names(res$marginals.fixed)[k], "'"))
-        margs = lapply(loo, function(x, k) x$marginals.fixed[[k]], k = k)
-        res$marginals.fixed[[k]] = merge.marginals(margs, prob)
-    }
-
-    verboze("Merge '$summary.fixed'...")
-    if (!is.null(res$summary.fixed) && nrow(res$summary.fixed) > 0) {
-        zum = lapply(loo, function(x) x$summary.fixed)
-        res$summary.fixed = merge.summary(zum, prob)
-    }
-
-    verboze("Merge '$marginals.lincomb'...")
-    if (!parallel) {
-        for(k in seq_along(res$marginals.lincomb)) {
-            margs = lapply(loo, function(x, k) x$marginals.lincomb[[k]], k = k)
-            res$marginals.lincomb[[k]] = merge.marginals(margs, prob)
-        }
-    } else {
-        dummy = inla.mclapply(seq_along(res$marginals.lincomb),
-                              function(k) {
-            margs = lapply(loo, function(x, k) x$marginals.lincomb[[k]], k = k)
-            res$marginals.lincomb[[k]] = merge.marginals(margs, prob)
-            return (NULL)
-        })
-    }
-
-    verboze("Merge '$summary.lincomb'...")
-    if (!is.null(res$summary.lincomb) && nrow(res$summary.lincomb) > 0) {
-        zum = lapply(loo, function(x) x$summary.lincomb)
-        res$summary.lincomb = merge.summary(zum, prob)
-    }
-
-    verboze("Merge '$marginals.lincomb.derived'...")
-    if (!parallel) {
-        for(k in seq_along(res$marginals.lincomb.derived)) {
-            margs = lapply(loo, function(x, k) x$marginals.lincomb.derived[[k]], k = k)
-            res$marginals.lincomb.derived[[k]] = merge.marginals(margs, prob)
-        }
-    } else {
-        dummy = inla.mclapply(seq_along(res$marginals.lincomb.derived),
-                              function(k) {
-            margs = lapply(loo, function(x, k) x$marginals.lincomb.derived[[k]], k = k)
-            res$marginals.lincomb.derived[[k]] = merge.marginals(margs, prob)
-            return (NULL)
-        })
-    }
-
-    verboze("Merge '$summary.lincomb.derived'...")
-    if (!is.null(res$summary.lincomb.derived) && nrow(res$summary.lincomb.derived) > 0) {
-        zum = lapply(loo, function(x) x$summary.lincomb.derived)
-        res$summary.lincomb.derived = merge.summary(zum, prob)
-    }
-
-    verboze("Merge '$marginals.spde2.blc'...")
-    for(k in seq_along(res$marginals.spde2.blc)) {
-        verboze(paste0("      '$marginals.spde2.blc$", names(res$marginals.spde2.blc)[k], "'"))
-        for(kk in seq_along(res$marginals.spde2.blc[[k]])) {
-            margs = lapply(loo, function(x, k, kk) x$marginals.spde2.blc[[k]][[kk]], k = k, kk = kk)
-            res$marginals.spde2.blc[[k]][[kk]] = merge.marginals(margs, prob)
-        }
-    }
-
-    verboze("Merge '$summary.spde2.blc'...")
-    for(k in seq_along(res$summary.spde2.blc)) {
-        verboze(paste0("      '$summary.spde2.blc$", names(res$summary.spde2.blc)[k], "'"))
-        zum = lapply(loo, function(x) x$summary.spde2.blc[[k]])
-        res$summary.spde2.blc[[k]] = merge.summary(zum, prob)
-    }
-
-    verboze("Merge '$marginals.spde3.blc'...")
-    for(k in seq_along(res$marginals.spde3.blc)) {
-        verboze(paste0("      '$marginals.spde3.blc$", names(res$marginals.spde3.blc)[k], "'"))
-        for(kk in seq_along(res$marginals.spde3.blc[[k]])) {
-            margs = lapply(loo, function(x, k, kk) x$marginals.spde3.blc[[k]][[kk]], k = k, kk = kk)
-            res$marginals.spde3.blc[[k]][[kk]] = merge.marginals(margs, prob)
-        }
-    }
-
-    verboze("Merge '$summary.spde3.blc'...")
-    for(k in seq_along(res$summary.spde3.blc)) {
-        verboze(paste0("      '$summary.spde3.blc$", names(res$summary.spde3.blc)[k], "'"))
-        zum = lapply(loo, function(x) x$summary.spde3.blc[[k]])
-        res$summary.spde3.blc[[k]] = merge.summary(zum, prob)
-    }
-
-    verboze("Merge '$marginals.linear.predictor'...")
-    if (!parallel) {
-        for(k in seq_along(res$marginals.linear.predictor)) {
-            margs = lapply(loo, function(x, k) x$marginals.linear.predictor[[k]], k = k)
-            res$marginals.linear.predictor[[k]] = merge.marginals(margs, prob)
-        }
-    } else {
-        dummy = inla.mclapply(seq_along(res$marginals.linear.predictor),
-                              function(k) {
-            margs = lapply(loo, function(x, k) x$marginals.linear.predictor[[k]], k = k)
-            res$marginals.linear.predictor[[k]] = merge.marginals(margs, prob)
-            return (NULL)
-        })
-    }
-
-    verboze("Merge '$summary.linear.predictor'")
-    if (!is.null(res$summary.linear.predictor) && nrow(res$summary.linear.predictor) > 0) {
-        zum = lapply(loo, function(x) x$summary.linear.predictor)
-        res$summary.linear.predictor = merge.summary(zum, prob)
     }
     
-    verboze("Merge '$mlik'...")
-    if (!is.null(res$mlik)) {
-        val = matrix(unlist(lapply(loo, function(x) x$mlik)), nrow = 2)
-        for(i in 1:nrow(res$mlik)) {
-            m = max(val[i, ])
-            res$mlik[i, 1] = log(sum(prob * (exp(val[i, ] - m)))) + m
+    for (nm in marginals2) {
+        idx = which(names(res) == nm)
+        if (length(idx) > 0) {
+            verboze("Merge '$", nm, "'")
+            for(k in seq_along(res[[idx]])) {
+                verboze("      '$", nm, "$", names(res[[idx]])[k], "'")
+                dummy = INLA:::inla.mclapply(seq_along(res[[idx]][[k]]),
+                                             function(kk) {
+                                   margs = lapply(loo, function(x, k, kkk) x[[idx]][[k]][[kkk]], k = k, kkk = kk)
+                                   res[[idx]][[k]][[kk]] = merge.marginals(margs, prob)
+                                   return (NULL)
+                               })
+            }
         }
     }
 
-    for (nm in c("marginals.fitted.values", "summary.fitted.values",
-                 "dic", "cpo", "waic", "po", "neffp")) {
-        verboze(paste0("Remove '$", nm, "'..."))
+    for (nm in summaries) {
+        idx = which(names(res) == nm)
+        if (length(idx) > 0) {
+            verboze("Merge '$", nm, "'")
+            if (!is.null(res[[idx]]) && nrow(res[[idx]]) > 0) {
+                zum = lapply(loo, function(x) x[[idx]])
+                res[[idx]] = merge.summary(zum, prob)
+            }
+        }
+    }
+    for (nm in summaries2) {
+        idx = which(names(res) == nm)
+        if (length(idx) > 0) {
+            for(k in seq_along(res[[idx]])) {
+                verboze(paste0("      '$", nm, "$", names(res[[idx]])[k], "'"))
+                zum = lapply(loo, function(x) x[[idx]][[k]])
+                res[[idx]][[k]] = merge.summary(zum, prob)
+            }
+        }
+    }
+
+    for (nm in remove) {
+        verboze(paste0("Remove '$", nm, "'"))
         idx = which(names(res) == nm)
         if (length(idx) >0) {
-            res[idx] = NULL
+            res[[idx]] = NULL
         }
     }
 
