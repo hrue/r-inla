@@ -4365,11 +4365,20 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_v
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, lprec, prec, w, ypred;
-
+	static double log_prec_limit = -log(DBL_EPSILON);
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_gaussian[idx];
-	lprec = ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0] + log(w);
-	prec = map_precision(ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
+
+	if (ds->data_observations.log_prec_gaussian_offset[GMRFLib_thread_id][0] > log_prec_limit) {
+		lprec = ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0] + log(w);
+		prec = map_precision(ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
+	} else {
+		double prec_offset = map_precision(ds->data_observations.log_prec_gaussian_offset[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+		double prec_var = map_precision(ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+		double prec_tmp = 1.0/(1.0/prec_offset + 1.0/prec_var);
+		prec = prec_tmp * w;
+		lprec = log(prec);
+	}
 
 	LINK_INIT;
 	if (m > 0) {
@@ -11182,22 +11191,22 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * get options related to the gaussian 
 		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
-		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
-		if (!ds->data_fixed && mb->reuse_mode) {
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
+		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
+		if (!ds->data_fixed0 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
 		HYPER_NEW(ds->data_observations.log_prec_gaussian, tmp);
 		if (mb->verbose) {
 			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.log_prec_gaussian[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+			printf("\t\tfixed0=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
 
 		/*
 		 * add theta 
 		 */
-		if (!ds->data_fixed) {
+		if (!ds->data_fixed0) {
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
 			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
 			mb->theta_hyperid[mb->ntheta] = ds->data_prior.hyperid;
@@ -11221,6 +11230,19 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 			ds->data_ntheta++;
+		}
+
+		// this one must be fixed.
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 999999.9);
+		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 1);
+		HYPER_NEW(ds->data_observations.log_prec_gaussian_offset, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_precision offset[%g]\n", ds->data_observations.log_prec_gaussian_offset[0][0]);
+			printf("\t\tfixed1=[%1d]\n", ds->data_fixed1);
+		}
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "NONE");
+		if (!ds->data_fixed1) {
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "FIXED1", "1");
 		}
 		break;
 
@@ -23942,13 +23964,20 @@ double extra(double *theta, int ntheta, void *argument)
 			check += ds->data_ntheta;
 			switch (ds->data_id) {
 			case L_GAUSSIAN:
-				if (!ds->data_fixed) {
+				if (!ds->data_fixed0) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
 					 * function.
 					 */
 					log_precision = theta[count];
-					val += PRIOR_EVAL(ds->data_prior, &log_precision);
+					val += PRIOR_EVAL(ds->data_prior0, &log_precision);
+					count++;
+				}
+				if (!ds->data_fixed1) {
+					// this should not happen, as data_fixed1 must be TRUE. We prepare the code for it, in
+					// any case. 
+					log_precision = theta[count];
+					val += PRIOR_EVAL(ds->data_prior1, &log_precision);
 					count++;
 				}
 				break;
