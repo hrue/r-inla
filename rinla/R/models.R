@@ -5683,7 +5683,7 @@
                  gaussian = list(
                      doc = "The Gaussian likelihoood", 
                      hyper = list(
-                         theta = list(
+                         theta1 = list(
                              hyperid =  65001,
                              name = "log precision",
                              short.name = "prec",
@@ -5693,32 +5693,22 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
-                     survival = FALSE,
-                     discrete = FALSE,
-                     link = c("default", "identity", "logit", "cauchit", "log", "logoffset"),
-                     pdf = "gaussian"
-                     ),
-
-                 normal = list(
-                     doc = "The Gaussian likelihoood", 
-                     hyper = list(
-                         theta = list(
-                             hyperid =  66001,
-                             name = "log precision",
-                             short.name = "prec",
-                             initial = 4,
-                             fixed = FALSE,
-                             prior = "loggamma",
-                             param = c(1, 0.00005),
+                             ), 
+                         theta2 = list(
+                             hyperid =  65002,
+                             name = "log precision offset",
+                             short.name = "precoffset",
+                             initial = (-2.0 * log(.Machine$double.eps)), 
+                             fixed = TRUE,
+                             prior = "none",
+                             param = numeric(), 
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
                              )
                          ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "identity"),
+                     link = c("default", "identity", "logit", "cauchit", "log", "logoffset"),
                      pdf = "gaussian"
                      ),
 
