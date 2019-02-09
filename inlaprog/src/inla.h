@@ -184,6 +184,7 @@ typedef struct {
 	 * y ~ Normal(x, 1/(weight*prec)), also used for the log-normal
 	 */
 	double **log_prec_gaussian;
+	double **log_prec_gaussian_offset;
 	double *weight_gaussian;			       /* weights for the gaussian: Variance = 1/(weight*prec) */
 
 	/*
