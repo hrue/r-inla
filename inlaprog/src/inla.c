@@ -11209,19 +11209,19 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (!ds->data_fixed0) {
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
 			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = ds->data_prior.hyperid;
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior0.hyperid;
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the Gaussian observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the Gaussian observations", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_gaussian;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
