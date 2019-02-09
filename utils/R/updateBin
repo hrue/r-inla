@@ -20,7 +20,7 @@ rsync -auv ~/p/inla/pardiso $d
 fix-perm $d/pardiso
 
 for m in 64; do
-    for p in inla fmesher; do 
+    for p in inla inla.mkl fmesher; do 
 	for f in $(ssh $INLA_MAC bin/my.otool builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
 	    rsync -auvL $INLA_MAC:$f $d/mac/${m}bit/.
@@ -30,7 +30,7 @@ for m in 64; do
 done
 
 for m in 64; do
-    for p in inla fmesher; do 
+    for p in inla inla.mkl fmesher; do 
 	for f in $(ssh -p $INLA_LINUX_PORT $INLA_LINUX bin/my.ldd builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
 	    rsync --rsh="ssh -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:$f $d/linux/${m}bit/.
@@ -51,4 +51,5 @@ done
 
 echo sync static versions of inla and fmesher
 rsync --rsh="ssh -p $INLA_LINUX_PORT" -auv $INLA_LINUX:builds/build.static/local/bin/inla $d/linux/64bit/inla.static
+rsync --rsh="ssh -p $INLA_LINUX_PORT" -auv $INLA_LINUX:builds/build.static/local/bin/inla.mkl $d/linux/64bit/inla.mkl.static
 rsync --rsh="ssh -p $INLA_LINUX_PORT" -auv $INLA_LINUX:builds/build.static/local/bin/fmesher $d/linux/64bit/fmesher.static

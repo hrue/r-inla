@@ -29,6 +29,125 @@
   }
 }
 
+
+\section{CHANGES IN VERSION 19.02.09}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item New parameter for Gaussian likelihood: Fixed offset in the
+      variance. 
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.02.06}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Removed testing code for likelihood model \code{testbinomial1}
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added new likelihood \code{gamma.surv}
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Cleaned up the use of temporary dir and files
+      \item General code clean-up
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.01.29}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Increased maximum number of covariates in likelihood models
+      \code{nmix} and \code{nmixnb} from 10 to 15
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.01.24}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Added a new test-script
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.12.12}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New models, \code{loggamma} and \code{mloggamma}
+      in \code{mix}.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Minor changes in some build scripts.
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.12.01}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New option \code{mkl} in \code{inla.setOption()} to chose
+      MKL-buildt binaries.
+      \item Linux binaries now buildt with Ubuntu1804.
+      \item MKL-versions are included for MacOSX, and Linux (both dynamic
+      and static).
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.11.28}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New latent model \code{intslope}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.11.22}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Improved \code{control.mix} interface and code
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.10.29}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Likelihood model \code{nbinomial2}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.10.28}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New function \code{inla.priors.used}
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 18.10.17}{
   \subsection{NEW FEATURES}{
     \itemize{

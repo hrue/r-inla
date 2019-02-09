@@ -2,7 +2,21 @@
 
 for f in "$@"; do
     ff=${f%"/local/bin/inla"}
+    ff=${ff%"/local/bin/inla.mkl"}
     ff=${ff%"/local/bin/fmesher"}
     export LD_LIBRARY_PATH=$ff/local/lib:$LD_LIBRARY_PATH
     ldd -r "$f" | awk '/ => / {print $3}' | grep / ## | grep -v libc.so
 done
+
+for f in "$@"; do
+    case "$f" in 
+	*/inla.mkl*) 
+	   echo "builds/build64/local/lib/libmkl_avx.so"
+	   echo "builds/build64/local/lib/libmkl_avx2.so"
+	   echo "builds/build64/local/lib/libmkl_def.so"
+	   ;;
+    esac
+done
+
+	   
+	    

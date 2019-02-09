@@ -1,0 +1,54 @@
+#!/bin/bash
+
+myreadlink () {
+    (
+	TARGET_FILE=$1
+	cd `dirname $TARGET_FILE`
+	TARGET_FILE=`basename $TARGET_FILE`
+	while [ -L "$TARGET_FILE" ]
+	do
+	    TARGET_FILE=`readlink $TARGET_FILE`
+	    cd `dirname $TARGET_FILE`
+	    TARGET_FILE=`basename $TARGET_FILE`
+	done
+	PHYS_DIR=`pwd -P`
+	RESULT=$PHYS_DIR/$TARGET_FILE
+	echo $RESULT
+    )
+}
+
+cmd=$(myreadlink "$0")
+DIR=$(dirname "$cmd")
+tmp=$(basename "$cmd")
+prog=${tmp%%.run}
+
+if [ -z "$INLA_RHOME" ]; then
+    if $(which R 2>/dev/null >/dev/null); then
+	RHOME_LIB="$(R RHOME)/lib"
+    else
+	RHOME_LIB="/Library/Frameworks/R.framework/Resources/lib"
+    fi
+else
+    RHOME_LIB="$INLA_RHOME/lib"
+fi
+
+## this is the system path for libPng.dylib needed by grDevices.so
+## when loadlib libR.dylib using rgeneric.
+pathA="/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources"
+pathB="/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries"
+LIBPNGPATH=$pathA:$pathB
+
+if [ ! -z ${INLA_LOAD_PARDISO+x} ]; then 
+    PDIR="$DIR/../../pardiso/libpardiso/mac"
+else
+    PDIR="$DIR/../../pardiso/libnopardiso/mac"
+fi
+
+export DYLD_LIBRARY_PATH="$DIR/first:$RHOME_LIB:$PDIR:$DIR:$LIBPNGPATH:/usr/lib:/usr/local/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
+if [ "${INLA_DEBUG}XX" != "XX" ]; then
+    echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
+    otool -L "$DIR/$prog"
+    export DYLD_PRINT_LIBRARIES=YES
+fi
+
+exec "$DIR/$prog" "$@"
