@@ -27,117 +27,117 @@
 ##! \arguments{
 `inla.knmodels` =
     function(
-       ##! \item{formula}{The formula specifying the other 
-       ##!   model components, without the spacetime 
-       ##!   interaction term. The spacetime interaction term 
-       ##!   will be added accordly to the specification in 
-       ##!   the \code{control.st} argument. See \code{inla}}
-       formula, 
-       ##! \item{progress}{If it is to be shown the model 
-       ##!   fitting progress. Useful if more than one 
-       ##!   interaction type is being fitted.}
-       progress=FALSE,
-       ##! \item{control.st}{Named list of arguments to control
-       ##!   the spacetime interaction. It should contains: 
-       control.st=list(
-           ##!  \code{time} to be used as the index set for the
-           ##!   main temporal effect which will be considered
-           ##!   for the constraints when it is the case.
-           time,
-           ##!  \code{space} to be used as the index set for the
-           ##!   main spatial effect which will be considered
-           ##!   for the constraints when it is the case.
-           space,
-           ##!  \code{spacetime} to be the index set for the
-           ##!   spacetime interaction effect.
-           spacetime,
-           ##! \code{graph} to be the graph for the spatial neighbor 
-           ##!   structure to be used in a \code{\link{f}} term 
-           ##!   for the main spatial random effect term or for 
-           ##!   building the spacetime interaction model.
-           graph,
-           ##! \code{type} to specify the spacetime interaction type.  
-           ##!   \code{1} to \code{4} corresponds to the four 
-           ##!   interaction types in Knorr-Held, L. (2000) with 
-           ##!   all the needed sum-to-zero constraints. 
-           ##!   \code{2c}, \code{3c} and \code{4c} are 
-           ##!   the contrast version considering the first time  
-           ##!   or space constrained to be equal to zero. 
-           ##!   \code{2d}, \code{3d} and \code{4d} are the 
-           ##!   corresponding versions when considering the 
-           ##!   diagonal add approach.  
-           type=c(paste(1:4), paste0(2:4, 'c'), paste0(2:4, 'd')), 
-           ##! \code{diagonal} to be the value to be added to the 
-           ##!   diagonal when using the diagonal add approach.
-           diagonal=1e-5, 
-           ##! \code{timeref} to specify the time point to be the
-           ##!   reference time in the contrast parametrization.
-           timeref=1, 
-           ##! \item{spaceref} to specify the area to be the
-           ##!   reference for the contrast parametrization.
-           spaceref=1, 
-           ##!  \code{...} where additional arguments can be 
-           ##!   passed to \code{\link{f}} function.
-           ##!   Specification of the hyperparameter, 
-           ##!   fixed or random, initial value, prior and its 
-           ##!   parameters for the spacetime interaction. See 
-           ##!   \code{?inla.models} and look for \code{generic0}. 
-           ##!   By default we scale it and use the PC-prior to set 
-           ##!   the prior using the \code{pc.prec} prior with 
-           ##!   \code{param = c(0.5, 0.5)}. See documentation with 
-           ##!   \code{?inla.doc("pc.prec")}.
-           ...),
-       ##! \item{...}{Arguments to be passed to the 
-       ##!   \code{\link{inla}} function.}
-       ...)
+             ##! \item{formula}{The formula specifying the other 
+             ##!   model components, without the spacetime 
+             ##!   interaction term. The spacetime interaction term 
+             ##!   will be added accordly to the specification in 
+             ##!   the \code{control.st} argument. See \code{inla}}
+             formula, 
+             ##! \item{progress}{If it is to be shown the model 
+             ##!   fitting progress. Useful if more than one 
+             ##!   interaction type is being fitted.}
+             progress=FALSE,
+             ##! \item{control.st}{Named list of arguments to control
+             ##!   the spacetime interaction. It should contains: 
+             control.st=list(
+                 ##!  \code{time} to be used as the index set for the
+                 ##!   main temporal effect which will be considered
+                 ##!   for the constraints when it is the case.
+                 time,
+                 ##!  \code{space} to be used as the index set for the
+                 ##!   main spatial effect which will be considered
+                 ##!   for the constraints when it is the case.
+                 space,
+                 ##!  \code{spacetime} to be the index set for the
+                 ##!   spacetime interaction effect.
+                 spacetime,
+                 ##! \code{graph} to be the graph for the spatial neighbor 
+                 ##!   structure to be used in a \code{\link{f}} term 
+                 ##!   for the main spatial random effect term or for 
+                 ##!   building the spacetime interaction model.
+                 graph,
+                 ##! \code{type} to specify the spacetime interaction type.  
+                 ##!   \code{1} to \code{4} corresponds to the four 
+                 ##!   interaction types in Knorr-Held, L. (2000) with 
+                 ##!   all the needed sum-to-zero constraints. 
+                 ##!   \code{2c}, \code{3c} and \code{4c} are 
+                 ##!   the contrast version considering the first time  
+                 ##!   or space constrained to be equal to zero. 
+                 ##!   \code{2d}, \code{3d} and \code{4d} are the 
+                 ##!   corresponding versions when considering the 
+                 ##!   diagonal add approach.  
+                 type=c(paste(1:4), paste0(2:4, 'c'), paste0(2:4, 'd')), 
+                 ##! \code{diagonal} to be the value to be added to the 
+                 ##!   diagonal when using the diagonal add approach.
+                 diagonal=1e-5, 
+                 ##! \code{timeref} to specify the time point to be the
+                 ##!   reference time in the contrast parametrization.
+                 timeref=1, 
+                 ##! \item{spaceref} to specify the area to be the
+                 ##!   reference for the contrast parametrization.
+                 spaceref=1, 
+                 ##!  \code{...} where additional arguments can be 
+                 ##!   passed to \code{\link{f}} function.
+                 ##!   Specification of the hyperparameter, 
+                 ##!   fixed or random, initial value, prior and its 
+                 ##!   parameters for the spacetime interaction. See 
+                 ##!   \code{?inla.models} and look for \code{generic0}. 
+                 ##!   By default we scale it and use the PC-prior to set 
+                 ##!   the prior using the \code{pc.prec} prior with 
+                 ##!   \code{param = c(0.5, 0.5)}. See documentation with 
+                 ##!   \code{?inla.doc("pc.prec")}.
+                 ...),
+             ##! \item{...}{Arguments to be passed to the 
+             ##!   \code{\link{inla}} function.}
+             ...)
 {
-##! }
-##!}
-##! \value{
-##!  \code{inla.knmodels} returns an object of class \code{"inla"}. 
-##!    or a list of objects of this class if it is asked to compute 
-##!    more than one interaction type at once. 
-##! Note: when the model type is 2c, 3c, 4c, 2d, 3d or 4d, it also 
-##!   includes linear combinations summary.
-##! }
-##! \author{Elias T. Krainski}
-##! \seealso{
-##!     \code{\link{inla.knmodels.sample}} to sample from
-##! }
-##! \examples{
-##!### define space domain as a grid
-##!grid <- SpatialGrid(GridTopology(c(0,0), c(1, 1), c(4, 5)))
-##!(n <- nrow(xy <- coordinates(grid)))
-##!
-##!### build a spatial neighborhood list
-##!jj <- lapply(1:n, function(i) 
-##!    which(sqrt((xy[i,1]-xy[,1])^2 + (xy[i,2]-xy[,2])^2)==1))
-##!
-##!### build the spatial adjacency matrix
-##!graph <- sparseMatrix(rep(1:n, sapply(jj, length)),
-##!                      unlist(jj), x=1, dims=c(n, n))
-##!
-##!### some random data at 10 time points
-##!dat <- inla.knmodels.sample(graph, m=10, tau.t=2, tau.s=2, tau.st=3)
-##!str(dat)
-##!sapply(dat$x, summary)
-##!
-##!nd <- length(dat$x$eta)
-##!dat$e <- runif(nd, 0.9, 1.1)*rgamma(n, 40, 2)
-##!dat$y <- rpois(nd, dat$e*exp(dat$x$eta-3))
-##!summary(dat$y)
-##!
-##!### fit the type 4 considering three different approaches 
-##!tgraph <- sparseMatrix(i=c(2:10, 1:9), j=c(1:9, 2:10), x=-1)
-##!res <- inla.knmodels(y ~ f(time, model='bym2', graph=tgraph) +
-##!     f(space, model='bym2', graph=graph),
-##!     data=dat, family='poisson', E=dat$E, progress=TRUE, 
-##!     control.st=list(time=time, space=space, 
-##!        spacetime=spacetime, graph=graph, type=c(4, '4c', '4d')), 
-##!     control.compute=list(dic=TRUE, waic=TRUE, cpo=TRUE))
-##!sapply(res, function(x)
-##!       c(dic=x$dic$dic, waic=x$waic$waic, cpo=-sum(log(x$cpo$cpo))))
-##!}
+    ##! }
+    ##!}
+    ##! \value{
+    ##!  \code{inla.knmodels} returns an object of class \code{"inla"}. 
+    ##!    or a list of objects of this class if it is asked to compute 
+    ##!    more than one interaction type at once. 
+    ##! Note: when the model type is 2c, 3c, 4c, 2d, 3d or 4d, it also 
+    ##!   includes linear combinations summary.
+    ##! }
+    ##! \author{Elias T. Krainski}
+    ##! \seealso{
+    ##!     \code{\link{inla.knmodels.sample}} to sample from
+    ##! }
+    ##! \examples{
+    ##!### define space domain as a grid
+    ##!grid <- SpatialGrid(GridTopology(c(0,0), c(1, 1), c(4, 5)))
+    ##!(n <- nrow(xy <- coordinates(grid)))
+    ##!
+    ##!### build a spatial neighborhood list
+    ##!jj <- lapply(1:n, function(i) 
+    ##!    which(sqrt((xy[i,1]-xy[,1])^2 + (xy[i,2]-xy[,2])^2)==1))
+    ##!
+    ##!### build the spatial adjacency matrix
+    ##!graph <- sparseMatrix(rep(1:n, sapply(jj, length)),
+    ##!                      unlist(jj), x=1, dims=c(n, n))
+    ##!
+    ##!### some random data at 10 time points
+    ##!dat <- inla.knmodels.sample(graph, m=10, tau.t=2, tau.s=2, tau.st=3)
+    ##!str(dat)
+    ##!sapply(dat$x, summary)
+    ##!
+    ##!nd <- length(dat$x$eta)
+    ##!dat$e <- runif(nd, 0.9, 1.1)*rgamma(n, 40, 2)
+    ##!dat$y <- rpois(nd, dat$e*exp(dat$x$eta-3))
+    ##!summary(dat$y)
+    ##!
+    ##!### fit the type 4 considering three different approaches 
+    ##!tgraph <- sparseMatrix(i=c(2:10, 1:9), j=c(1:9, 2:10), x=-1)
+    ##!res <- inla.knmodels(y ~ f(time, model='bym2', graph=tgraph) +
+    ##!     f(space, model='bym2', graph=graph),
+    ##!     data=dat, family='poisson', E=dat$E, progress=TRUE, 
+    ##!     control.st=list(time=time, space=space, 
+    ##!        spacetime=spacetime, graph=graph, type=c(4, '4c', '4d')), 
+    ##!     control.compute=list(dic=TRUE, waic=TRUE, cpo=TRUE))
+    ##!sapply(res, function(x)
+    ##!       c(dic=x$dic$dic, waic=x$waic$waic, cpo=-sum(log(x$cpo$cpo))))
+    ##!}
     mcall <- match.call(expand.dots=TRUE)
     ft <- paste('~', mcall$control.st$time)
     if (ft=='~ ') {
@@ -169,15 +169,15 @@
         stname <- substring(fst, 3)
         spacetime <- model.frame(as.formula(fst), data=eval(mcall$data))[,1]
     }
-###    cat('tname =', tname, ', sname =', sname, ', stname =', stname, '\n')
+    ##    cat('tname =', tname, ', sname =', sname, ', stname =', stname, '\n')
     type <- as.character(unique(eval(mcall$control.st$type)))
     types <- c(1:4, paste0(2:4, 'c'), paste0(2:4, 'd'))
     type <- if(length(type)==0) types else types[match(type, types)]
-###    cat('type =', type, '\n')
+    ##    cat('type =', type, '\n')
     if (length(type)==0) return(NULL)
     else res <- list()
     if (length(mcall$control.st$diagonal)==0) diagonal <- 1e-5
-###    cat('diagonal =', diagonal, '\n')
+    ##    cat('diagonal =', diagonal, '\n')
     m <- n <- NULL
     nst <- length(unique(spacetime))
     if (!is.null(mcall$control.st$graph)) {
@@ -199,11 +199,11 @@
         m <- length(unique(time))
         if (any(substr(type,1,1)%in%c('2', '4')))
             R.t <- inla.scale.model(crossprod(diff(Diagonal(m))),
-                                   constr=list(A=matrix(1,1,m), e=0))
+                                    constr=list(A=matrix(1,1,m), e=0))
     }
     if (is.null(m)) m <- nst/n
     if (is.null(n)) n <- nst/m
-###    cat('m = ', m, ', n = ', n, ', nst = ', nst, '\n', sep='')
+    ##    cat('m = ', m, ', n = ', n, ', nst = ', nst, '\n', sep='')
     if (TRUE) { ## working in progress: identify need of constraints from the formula
         etemp <- INLA:::inla.interpret.formula(formula, data, debug=FALSE)
         rterms <- attr(terms(etemp[[1]]), 'term.labels')
@@ -223,7 +223,7 @@
         lc2.on <- any(rterms==sname)
         lc3.on <- any(rterms==tname)
     }
-###    cat('lc2 =', lc2.on, ' and lc3 =', lc3.on, '\n')
+    ##    cat('lc2 =', lc2.on, ' and lc3 =', lc3.on, '\n')
     M2 <- kronecker(matrix(1/m,1,m), diag(n)) 
     M3 <- kronecker(diag(m), matrix(1/n,1,n))
     dotdot <- mcall$control.st[which(!is.element(names(mcall$control.st),
@@ -416,5 +416,3 @@
     if (length(res)==1) return(res[[1]]) 
     return(res) 
 }
-
-

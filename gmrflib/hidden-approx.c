@@ -135,7 +135,7 @@ int GMRFLib_default_hidden_par(GMRFLib_hidden_param_tp ** hidden_par)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_loglFunc_wrapper(double *logll, double *x, int m, int idx, double *x_vec, void *arg)
+int GMRFLib_loglFunc_wrapper(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	/*
 	 * adjust for index, the second order contrib and zero mean 

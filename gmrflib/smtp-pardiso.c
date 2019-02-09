@@ -653,7 +653,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	assert(store->pstore->done_with_chol == GMRFLib_TRUE);
 
 	// this is so that the RHS can be overwritten
-	int n = store->graph->n, mnum1 = 1, i, j, k, offset, quot, rem, nblock;
+	int n = store->graph->n, mnum1 = 1, i, offset, nblock;
 	div_t d;
 	double *xx = NULL, *bb = NULL;
 
@@ -1035,7 +1035,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 	}
 	assert(found == 1);
 	if (S.s_verbose) {
-		printf("duplicate: new=%x old=%x i=%1d\n", *((void **) new), ((void *) old), i);
+		printf("duplicate: new=%p old=%p i=%1d\n", *((void **) new), ((void *) old), i);
 	}
 
 	GMRFLib_LEAVE_ROUTINE;
@@ -1372,7 +1372,7 @@ int my_pardiso_test3(void)
 
 int my_pardiso_test4(void)
 {
-	int err = 0, k;
+	int k;
 	GMRFLib_tabulate_Qfunc_tp *Qtab;
 	GMRFLib_graph_tp *g;
 	GMRFLib_csr_tp *csr;

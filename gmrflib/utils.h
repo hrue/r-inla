@@ -62,6 +62,22 @@ __BEGIN_DECLS
 	size_t bytes;
 } GMRFLib_meminfo_tp;
 
+typedef struct
+{
+	int n;
+	int n_alloc;
+	int *idx;
+}
+	GMRFLib_idx_tp;
+typedef struct
+{
+	int n;
+	int n_alloc;
+	int **idx;
+}
+	GMRFLib_idx2_tp;
+
+
 /*
  */
 
@@ -85,6 +101,14 @@ int GMRFLib_find_nonzero(double *array, int len, int direction);
 int GMRFLib_fpe(void);
 int GMRFLib_gsl_matrix_fprintf(FILE * fp, gsl_matrix * matrix, const char *format);
 int GMRFLib_icmp(const void *a, const void *b);
+int GMRFLib_idx2_add(GMRFLib_idx2_tp **hold, int idx0, int idx1);
+int GMRFLib_idx2_create(GMRFLib_idx2_tp **hold);
+int GMRFLib_idx2_free(GMRFLib_idx2_tp *hold);
+int GMRFLib_idx2_print(FILE *fp, GMRFLib_idx2_tp *hold, char *msg);
+int GMRFLib_idx_add(GMRFLib_idx_tp **hold, int idx);
+int GMRFLib_idx_create(GMRFLib_idx_tp **hold);
+int GMRFLib_idx_free(GMRFLib_idx_tp *hold);
+int GMRFLib_idx_print(FILE *fp, GMRFLib_idx_tp *hold, char *msg);
 int GMRFLib_imax_value(int *x, int n, int *idx);
 int GMRFLib_imin_value(int *x, int n, int *idx);
 int GMRFLib_is_int(char *str, int *value);
