@@ -29,15 +29,10 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
+\section{CHANGES IN VERSION 19.02.06}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
       \item Removed testing code for likelihood model \code{testbinomial1}
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
     }
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
@@ -48,6 +43,7 @@
   \subsection{BUG FIXES}{
     \itemize{
       \item Cleaned up the use of temporary dir and files
+      \item General code clean-up
     }
   }
 }
