@@ -34,11 +34,28 @@ and the mean is linked to the linear predictor by
 
 \subsection*{Hyperparameters}
 
-The precision is represented as
+The default behaviour is to represent the precision $\tau = \kappa_1$
+where
 \begin{displaymath}
-    \theta = \log \tau
+    \theta_1 = \log \kappa_1
 \end{displaymath}
-and the prior is defined on $\theta$. 
+and the prior is defined on $\theta_1$.
+
+The more general formulation have a second (fixed) hyperparameter
+$\theta_2$ which determines a fixed offset $1/\kappa_2$,
+$\theta_2=\log\kappa_2$, for the variance (scaling not included) of
+the response. In this case,
+\begin{displaymath}
+    1/\tau = 1/\kappa_1 + 1/\kappa_2
+\end{displaymath}
+or
+\begin{displaymath}
+    \tau = \frac{1}{1/\kappa_1 + 1/\kappa_2}
+\end{displaymath}
+In the case where $1/\kappa_2$ is zero, then $\tau = \kappa_1$ and we
+are back to the default behaviour. We use the convension that
+$1/\kappa_2$ is zero if $1/\kappa_2 <$\verb|.Machine$double.eps|,%%
+which is $\theta_2 \ge 36.05$ for common machines.
 
 \subsection*{Specification}
 
@@ -53,16 +70,16 @@ The scalings have default value 1.
 
 \subsection*{Example}
 
-In the following example we estimate the parameters in a simulated
-example with Gaussian responses, giving $\tau$ a Gamma-prior with
-parameters $(1, 0.01)$ and initial value (for the optimisations) of
-$\exp(2.0)$.
+The first example estimate the parameters in a simulated example with
+Gaussian responses, giving $\tau$ a Gamma-prior with parameters
+$(1, 0.01)$ and initial value (for the optimisations) of $\exp(2.0)$.
+The second example shows the use of an fixed offset in the variance.
 %%
 \verbatiminput{example-gaussian.R}
 
 \subsection*{Notes}
 
-None.
+An error is given if $\theta_2$ is not fixed. 
 
 
 \end{document}

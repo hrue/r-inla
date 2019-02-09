@@ -6698,9 +6698,9 @@ inla.models()
 						 }
 					 }
 				 }
-				\item{Model `gaussian'.}{Number of hyperparmeters are 1.
+				\item{Model `gaussian'.}{Number of hyperparmeters are 2.
 					 \describe{
-						\item{Hyperparameter `theta'}{
+						\item{Hyperparameter `theta1'}{
 							 \describe{
 							\item{hyperid = }{`65001'}
 							\item{name = }{`log precision'}
@@ -6713,30 +6713,15 @@ inla.models()
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
-					 }
-					 \describe{
-						\item{Properties:}{
-							\describe{
-								\item{doc = }{`The Gaussian likelihoood'}
-								\item{survival = }{`FALSE'}
-								\item{discrete = }{`FALSE'}
-								\item{link = }{`default identity logit cauchit log logoffset'}
-								\item{pdf = }{`gaussian'}
-							 }
-						 }
-					 }
-				 }
-				\item{Model `normal'.}{Number of hyperparmeters are 1.
-					 \describe{
-						\item{Hyperparameter `theta'}{
+						\item{Hyperparameter `theta2'}{
 							 \describe{
-							\item{hyperid = }{`66001'}
-							\item{name = }{`log precision'}
-							\item{short.name = }{`prec'}
-							\item{initial = }{`4'}
-							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`1 5e-05'}
+							\item{hyperid = }{`65002'}
+							\item{name = }{`log precision offset'}
+							\item{short.name = }{`precoffset'}
+							\item{initial = }{`72.0873067782343'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
@@ -6748,7 +6733,7 @@ inla.models()
 								\item{doc = }{`The Gaussian likelihoood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default identity'}
+								\item{link = }{`default identity logit cauchit log logoffset'}
 								\item{pdf = }{`gaussian'}
 							 }
 						 }
