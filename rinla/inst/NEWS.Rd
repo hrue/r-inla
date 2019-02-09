@@ -24,33 +24,23 @@
   }
   \subsection{BUG FIXES}{
     \itemize{
-      \item Updated \code{envir} definition in the \code{rgeneric}
-      documentation and examples. 
+      \item
     }
   }
 }
 
 
 \section{CHANGES IN VERSION 19.02.09}{
-  \subsection{USER-VISIBLE CHANGES}{
-    \itemize{
-      \item
-    }
-  }
   \subsection{NEW FEATURES}{
     \itemize{
       \item New parameter for Gaussian likelihood: Fixed offset in the
       variance. 
     }
   }
-  \subsection{NEW EXPERIMENTAL FEATURES}{
-    \itemize{
-      \item
-    }
-  }
   \subsection{BUG FIXES}{
     \itemize{
-      \item 
+      \item Updated \code{envir} definition in the \code{rgeneric}
+      documentation and examples. 
     }
   }
 }
