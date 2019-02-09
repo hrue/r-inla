@@ -24,7 +24,8 @@
   }
   \subsection{BUG FIXES}{
     \itemize{
-      \item 
+      \item Updated \code{envir} definition in the \code{rgeneric}
+      documentation and examples. 
     }
   }
 }
