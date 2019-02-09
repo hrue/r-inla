@@ -33,7 +33,9 @@
 ##!
 ##!     blas.num.threads: Number of threads to use for openblas and mklblas (see \code{inla} for details)
 ##!     
-##!     smtp: sparse matrix library,  one of \code{band}, \code{taucs} (\code{default}) or \code{pardiso}
+##!     smtp: Sparse matrix library to use,  one of \code{band}, \code{taucs} (\code{default}) or \code{pardiso}
+##!
+##!     mkl: Use binaries buildt with Intel MKL?  (If possible)
 ##!
 ##!     pardiso.license: The full path to the PARDISO license file
 ##!     
@@ -89,6 +91,7 @@
         "num.threads",
         "blas.num.threads",
         "smtp", 
+        "mkl", 
         "pardiso.license", 
         "keep",
         "working.directory",
@@ -111,6 +114,7 @@
         num.threads = parallel::detectCores(), 
         blas.num.threads = 1L, 
         smtp = "default", 
+        mkl = FALSE, 
         pardiso.license = NULL, 
         keep = FALSE, 
         working.directory = NULL, 
@@ -194,6 +198,7 @@
             "num.threads",
             "blas.num.threads",
             "smtp",
+            "mkl", 
             "pardiso.license", 
             "keep",
             "working.directory",

@@ -181,6 +181,7 @@
                            c("binomial",
                              "binomialtest", 
                              "betabinomial", 
+                             "nbinomial2", 
                              "zeroinflatedbinomial0",
                              "zeroinflatedbinomial1",
                              "zeroinflatedbinomial2",
@@ -188,9 +189,7 @@
                              "zeroninflatedbinomial3",
                              "zeroinflatedbetabinomial0",
                              "zeroinflatedbetabinomial1",
-                             "zeroinflatedbetabinomial2",
-                             "testbinomial1"))) {
-
+                             "zeroinflatedbetabinomial2"))) {
         if (is.null(Ntrials)) {
             Ntrials = rep(1L, n.data)
         }
@@ -211,7 +210,8 @@
         response = response[!null.dat,]
 
     } else if (inla.one.of(family, c("exponentialsurv", "weibullsurv", "weibullcure",
-                                     "loglogisticsurv",  "qloglogisticsurv", "lognormalsurv"))) {
+                                     "loglogisticsurv",  "qloglogisticsurv", "lognormalsurv",
+                                     "gammasurv"))) {
 
         if (!inla.model.properties(family, "likelihood")$survival) {
             file.remove(file)

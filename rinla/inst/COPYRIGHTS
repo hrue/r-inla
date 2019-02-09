@@ -310,5 +310,42 @@ The inla-program is linked with the following libraries and licenses.
   User must get a license from https://pardiso-project.org/r-inla/
   to use this library, see also 'inla.pardiso()'
 
+* Some of the binaries are linked with the INTEL MKL libraries,
+  for which the license is as follows (https://software.intel.com/en-us/license/intel-simplified-software-license)
 
+  Intel Simplified Software License (Version April 2018) View PDF 217
+  KB
 
+  Copyright (c) 2018 Intel Corporation.
+
+  Use and Redistribution. You may use and redistribute the software
+  (the "Software”), without modification, provided the following
+  conditions are met:
+
+  * Redistributions must reproduce the above copyright notice and the
+    following terms of use in the Software and in the documentation
+    and/or other materials provided with the distribution.
+
+  * Neither the name of Intel nor the names of its suppliers may be
+    used to endorse or promote products derived from this Software
+    without specific prior written permission.
+
+  * No reverse engineering, decompilation, or disassembly of this
+    Software is permitted.
+
+  Limited patent license. Intel grants you a world-wide, royalty-free,
+  non-exclusive license under patents it now or hereafter owns or
+  controls to make, have made, use, import, offer to sell and sell
+  ("Utilize”) this Software, but solely to the extent that any such
+  patent is necessary to Utilize the Software alone. The patent
+  license shall not apply to any combinations which include this
+  software. No hardware per se is licensed hereunder.
+
+  Third party and other Intel programs. "Third Party Programs” are the
+  files listed in the "third-party-programs.txt” text file that is
+  included with the Software and may include Intel programs under
+  separate license terms. Third Party Programs, even if included with
+  the distribution of the Materials, are governed by separate license
+  terms and those license terms solely govern your use of those
+  programs.
+  

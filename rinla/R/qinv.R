@@ -56,20 +56,19 @@
 
 `inla.qinv` = function(Q, constr, reordering = INLA::inla.reorderings())
 {
+    t.dir = inla.tempdir()
     smtp = match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "pardiso"))
     num.threads = inla.getOption("num.threads")
     Q = inla.sparse.check(Q)
     if (is(Q, "dgTMatrix")) {
-        qinv.file = inla.write.fmesher.file(Q)
-        remove = TRUE
+        qinv.file = inla.write.fmesher.file(Q, filename = inla.tempfile(tmpdir = t.dir))
     } else if (is.character(Q)) {
         qinv.file = Q
-        remove = FALSE
     } else {
         stop("This chould not happen.")
     }
 
-    constr.file = inla.tempfile()
+    constr.file = inla.tempfile(tmpdir = t.dir)
     if (!missing(constr) && !is.null(constr)) {
         stopifnot(is.list(constr))
         A = as.matrix(constr$A)
@@ -86,8 +85,8 @@
     }
     reordering = match.arg(reordering)
 
-    out.file = inla.tempfile()
-    inla.set.sparselib.env(NULL)
+    out.file = inla.tempfile(tmpdir = t.dir)
+    inla.set.sparselib.env(inla.dir = t.dir)
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv",
                          "-r",  reordering, "-t", num.threads, 
@@ -101,12 +100,7 @@
     }
 
     Qinv = inla.read.fmesher.file(out.file)
-
-    if (remove) {
-        unlink(qinv.file)
-    }
-    unlink(out.file)
-    unlink(constr.file)
-
+    unlink(t.dir, recursive = TRUE)
+    
     return (Qinv)
 }

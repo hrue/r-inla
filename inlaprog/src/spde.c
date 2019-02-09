@@ -377,7 +377,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 
 	return INLA_OK;
 }
-double *inla_spde_userfunc0(GMRFLib_problem_tp * problem, double *theta, int *nhyper)
+double *inla_spde_userfunc0(GMRFLib_problem_tp * problem, double *theta, int nhyper)
 {
 	/*
 	 * return the log(deformations). First the T's so the K's
@@ -403,7 +403,7 @@ double *inla_spde_userfunc0(GMRFLib_problem_tp * problem, double *theta, int *nh
 
 	return deformations;
 }
-int inla_spde_userfunc1(double *theta, int nhyper, double *covmat)
+double *inla_spde_userfunc1(double *theta, int nhyper, double *covmat)
 {
 	/*
 	 * compute the marginals for the log(deformations). First the T's so the K's. using the mode and the covariance at the mode
@@ -421,7 +421,7 @@ int inla_spde_userfunc1(double *theta, int nhyper, double *covmat)
 
 
 	if (!covmat) {
-		return INLA_FAIL;
+		return NULL;
 	}
 
 	assert(func_smodel);
@@ -452,5 +452,5 @@ int inla_spde_userfunc1(double *theta, int nhyper, double *covmat)
 	}
 
 #undef DO_COMPUTE
-	return INLA_OK;
+	return NULL;
 }
