@@ -24,7 +24,23 @@
   }
   \subsection{BUG FIXES}{
     \itemize{
-      \item 
+      \item
+    }
+  }
+}
+
+
+\section{CHANGES IN VERSION 19.02.09}{
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item New parameter for Gaussian likelihood: Fixed offset in the
+      variance. 
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Updated \code{envir} definition in the \code{rgeneric}
+      documentation and examples. 
     }
   }
 }
