@@ -2033,7 +2033,6 @@
             ret$cpu.used = cpu.used
             ## store all arguments; replacing 'control.xxx' with 'cont.xxx'
             the.args = list()
-            browser()
             for (nm in names(formals(inla))) {
                 nnm = nm
                 nnm = gsub("^control\\.", "cont.", nnm) ## these are the processed ones
