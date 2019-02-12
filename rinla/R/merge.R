@@ -75,7 +75,6 @@
 ##! summary(r)
 ##!}
 
-
 `merge.inla` = function(x, y, ...,  prob = rep(1,  length(loo)), verbose = FALSE)
 {
     return (inla.merge(loo = list(x, y, ...), prob = prob, verbose = verbose))
@@ -171,9 +170,8 @@
                   "internal.summary.hyperpar")
     ## list of data.frame
     summaries2 = paste0("summary.", c("random", "spde2.blc", "spde3.blc"))
-    
+    ## items to remove
     remove = c("marginals.fitted.values", "summary.fitted.values", "dic", "cpo", "waic", "po", "neffp")
-
 
     for(nm in marginals) {
         idx = which(names(res) == nm)
@@ -214,6 +212,7 @@
             }
         }
     }
+
     for (nm in summaries2) {
         idx = which(names(res) == nm)
         if (length(idx) > 0) {
