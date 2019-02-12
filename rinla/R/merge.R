@@ -73,7 +73,7 @@
             m1 = function(x) 1.0/(1.0 + exp(-x))
             m1i = function(x) log(x/(1.0 - x))
         } else if (x.min > 0) {
-            ## this is positive marginal. Choose the scale that make is more symmetric
+            ## this is a positive marginal. Choose the scale that make is more symmetric
             if (abs((x.med - x.min)/(x.max - x.min) - 0.5) <
                 abs((log(x.med) - log(x.min))/(log(x.max) - log(x.min)) - 0.5)) {
                 ## linear
@@ -146,12 +146,12 @@
         idx = which(names(res) == nm)
         if (length(idx) > 0) {
             verboze("Merge '$", nm, "'")
-            dummy = INLA:::inla.mclapply(seq_along(res[[idx]]),
-                                         function(k) {
-                               margs = lapply(loo, function(x, kk) x[[idx]][[kk]], kk = k)
-                               res[[idx]][[k]] = merge.marginals(margs, prob)
-                               return (NULL)
-                           })
+            dummy = inla.mclapply(seq_along(res[[idx]]),
+                                  function(k) {
+                margs = lapply(loo, function(x, kk) x[[idx]][[kk]], kk = k)
+                res[[idx]][[k]] = merge.marginals(margs, prob)
+                return (NULL)
+            })
         }
     }
     
@@ -161,12 +161,12 @@
             verboze("Merge '$", nm, "'")
             for(k in seq_along(res[[idx]])) {
                 verboze("      '$", nm, "$", names(res[[idx]])[k], "'")
-                dummy = INLA:::inla.mclapply(seq_along(res[[idx]][[k]]),
-                                             function(kk) {
-                                   margs = lapply(loo, function(x, k, kkk) x[[idx]][[k]][[kkk]], k = k, kkk = kk)
-                                   res[[idx]][[k]][[kk]] = merge.marginals(margs, prob)
-                                   return (NULL)
-                               })
+                dummy = inla.mclapply(seq_along(res[[idx]][[k]]),
+                                      function(kk) {
+                    margs = lapply(loo, function(x, k, kkk) x[[idx]][[k]][[kkk]], k = k, kkk = kk)
+                    res[[idx]][[k]][[kk]] = merge.marginals(margs, prob)
+                    return (NULL)
+                })
             }
         }
     }
