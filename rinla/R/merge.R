@@ -82,6 +82,8 @@
 
 `inla.merge` = function(loo, prob = rep(1,  length(loo)), verbose = FALSE)
 {
+    warning("This function is experimental.", immediate. = TRUE)
+
     verboze = function(..., sep="") {
         if (verbose) {
             cat("inla.merge: ", ..., "\n", sep=sep)
