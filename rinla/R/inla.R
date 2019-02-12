@@ -2038,7 +2038,9 @@
                 nnm = gsub("^control\\.", "cont.", nnm) ## these are the processed ones
                 nnm = gsub("^data$", "data.orig", nnm) 
                 nnm = gsub("^formula$", "formula.orig", nnm) 
-                nnm = gsub("^cont(rol)?\\.family$", "control.family.orig", nnm)
+                ## maybe comment out this one so we use the processed one? I cannot recall the
+                ## argument for doing like this. It does not make sense now.
+                ## nnm = gsub("^cont(rol)?\\.family$", "control.family.orig", nnm)
                 inla.eval(paste("the.args$", nm, " = ", nnm, sep=""))
             }
             ## remove the .Evironment attribute, as it will fail if
