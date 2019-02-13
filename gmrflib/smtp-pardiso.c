@@ -857,7 +857,7 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 			if (S.s_verbose) {
 				for (i = 0; i < PSTORES_NUM(); i++) {
 					if (S.busy[i]) {
-						printf("in store: i=%1d s=%lx\n", i, (unsigned long int) ((void *) S.static_pstores[i]));
+						printf("in store: i=%1d s=%p\n", i, (void *) S.static_pstores[i]);
 					}
 				}
 			}
@@ -1126,7 +1126,7 @@ int my_pardiso_test1(void)
 			GMRFLib_pardiso_build(store2, g, Qtab->Qfunc, Qtab->Qfunc_arg);
 			GMRFLib_pardiso_chol(store2);
 		} else {
-			GMRFLib_duplicate_pardiso_store(&store2, store, NAN, 1);
+			GMRFLib_duplicate_pardiso_store(&store2, store, -1, 1);
 		}
 
 		int view = 1;
@@ -1292,7 +1292,7 @@ int my_pardiso_test3(void)
 		GMRFLib_pardiso_store_tp *local_store = NULL;
 
 		printf("this is k= %d from thread %d\n", k, omp_get_thread_num());
-		GMRFLib_duplicate_pardiso_store(&local_store, store, 1, 1);
+		GMRFLib_duplicate_pardiso_store(&local_store, store, -1, 1);
 
 		int view = 1;
 		double *x = Calloc(g->n * nrhs, double);
