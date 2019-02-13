@@ -24,7 +24,67 @@
   }
   \subsection{BUG FIXES}{
     \itemize{
+      \item
+    }
+  }
+}
+
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
       \item 
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item More work on the \code{inla.merge}: merge
+      more results. 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.02.12}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Simplied \code{print.inla} output
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New method \code{merge} and function \code{inla.merge},
+      for merging \code{inla}-objects
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Store \code{control.family} after processing, in the
+      \code{result$.args} argument, not just the calling value.
+    }
+  }
+}
+
+
+\section{CHANGES IN VERSION 19.02.09}{
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item New parameter for Gaussian likelihood: Fixed offset in the
+      variance. 
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Updated \code{envir} definition in the \code{rgeneric}
+      documentation and examples. 
     }
   }
 }
