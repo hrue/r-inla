@@ -32489,6 +32489,7 @@ int inla_testit_timer(void)
 {
 	GMRFLib_ENTER_ROUTINE;
 	int ret = system("sleep 1");
+	if (ret != 0) exit(1);
 	GMRFLib_LEAVE_ROUTINE;
 	return 0;
 }
