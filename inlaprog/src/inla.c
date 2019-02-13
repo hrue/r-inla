@@ -15503,7 +15503,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	    NULL, ***pacf_intern = NULL, slm_rho_min = 0.0, slm_rho_max = 0.0, **log_halflife = NULL, **log_shape = NULL, **alpha =
 	    NULL, **gama = NULL, **alpha1 = NULL, **alpha2 = NULL, **H_intern = NULL, **nu_intern, ***intslope_gamma = NULL;
 
-	GMRFLib_matrix_tp *intslope_def;
+	GMRFLib_matrix_tp *intslope_def = NULL;
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	inla_spde_tp *spde_model = NULL;
 	inla_spde_tp *spde_model_orig = NULL;
@@ -32240,13 +32240,15 @@ int testit(int argc, char **argv)
 
 	case 19:
 	{
-#define _GET(_int) fscanf(fp, "%d\n", &_int)
+#define _GET(_int) if (1) {				      \
+			int _ret = fscanf(fp, "%d\n", &_int); \
+		}
 #define _GETV(_vec, _len)						\
 		if (1) {						\
 			_vec = Calloc(_len, double);			\
 			int _i;						\
 			for(_i=0; _i < _len; _i++) {			\
-				fscanf(fp, "%lf\n", &_vec[_i]);		\
+				int _ret = fscanf(fp, "%lf\n", &_vec[_i]); \
 				if (0) printf("%s[%1d] = %g\n", #_vec, _i, _vec[_i]); \
 			}						\
 		}
@@ -32457,7 +32459,7 @@ int testit(int argc, char **argv)
 	{
 		double tref = GMRFLib_cpu();
 		for (int i = 0; i < 3; i++) {
-			system("sleep 1");
+			int ret = system("sleep 1");
 			printf("Call system() to sleep 1s. Time elapsed: %.6f\n", GMRFLib_cpu() - tref);
 		}
 		GMRFLib_collect_timer_statistics = GMRFLib_TRUE;
@@ -32479,7 +32481,7 @@ int testit(int argc, char **argv)
 int inla_testit_timer(void)
 {
 	GMRFLib_ENTER_ROUTINE;
-	system("sleep 1");
+	int ret = system("sleep 1");
 	GMRFLib_LEAVE_ROUTINE;
 	return 0;
 }
