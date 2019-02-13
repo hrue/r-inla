@@ -4365,9 +4365,13 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_v
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, lprec, prec, w, ypred;
-	static double log_prec_limit = -log(DBL_EPSILON);
+	static double log_prec_limit = 0.0;
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_gaussian[idx];
+
+	if (log_prec_limit == 0.0) {
+		log_prec_limit = -log(DBL_EPSILON);
+	}
 
 	if (ds->data_observations.log_prec_gaussian_offset[GMRFLib_thread_id][0] > log_prec_limit) {
 		lprec = ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0] + log(w);
