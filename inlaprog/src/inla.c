@@ -32240,7 +32240,9 @@ int testit(int argc, char **argv)
 
 	case 19:
 	{
-#define _GET(_int) int _ret = fscanf(fp, "%d\n", &_int)
+#define _GET(_int) if (1) {				      \
+			int _ret = fscanf(fp, "%d\n", &_int); \
+		}
 #define _GETV(_vec, _len)						\
 		if (1) {						\
 			_vec = Calloc(_len, double);			\
