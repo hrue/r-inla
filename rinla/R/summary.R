@@ -107,8 +107,10 @@
         ret = c(ret, list(random.names=names(object$summary.random), random.model=object$model.random))
     
     neffp = object$neffp
-    ret = c(ret, list(neffp = round(neffp, digits = digits)))
-    
+    if (!is.null(neffp)) {
+        ret = c(ret, list(neffp = round(neffp, digits = digits)))
+    }
+
     if (!is.null(object$dic)) {
         ret = c(ret, list(dic = lapply(object$dic, round, digits = digits)))
     }
