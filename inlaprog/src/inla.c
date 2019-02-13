@@ -32241,14 +32241,20 @@ int testit(int argc, char **argv)
 	case 19:
 	{
 #define _GET(_int) if (1) {				      \
-			int _ret = fscanf(fp, "%d\n", &_int); \
+			if (fscanf(fp, "%d\n", &_int) == EOF) {	\
+				fprintf(stderr, "%s\n", strerror(errno)); \
+				exit(1);\
+			}\
 		}
 #define _GETV(_vec, _len)						\
 		if (1) {						\
 			_vec = Calloc(_len, double);			\
 			int _i;						\
 			for(_i=0; _i < _len; _i++) {			\
-				int _ret = fscanf(fp, "%lf\n", &_vec[_i]); \
+				if (fscanf(fp, "%lf\n", &_vec[_i]) == EOF) { \
+					fprintf(stderr, "%s\n", strerror(errno)); \
+					exit(1);			\
+				}					\
 				if (0) printf("%s[%1d] = %g\n", #_vec, _i, _vec[_i]); \
 			}						\
 		}
@@ -32460,6 +32466,7 @@ int testit(int argc, char **argv)
 		double tref = GMRFLib_cpu();
 		for (int i = 0; i < 3; i++) {
 			int ret = system("sleep 1");
+			if (ret != 0) exit(1);
 			printf("Call system() to sleep 1s. Time elapsed: %.6f\n", GMRFLib_cpu() - tref);
 		}
 		GMRFLib_collect_timer_statistics = GMRFLib_TRUE;
