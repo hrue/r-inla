@@ -173,7 +173,13 @@
     ## list of data.frame
     summaries2 = paste0("summary.", c("random", "spde2.blc", "spde3.blc"))
     ## items to remove
-    remove = c("marginals.fitted.values", "summary.fitted.values", "dic", "cpo", "waic", "po", "neffp")
+    remove = c("marginals.fitted.values", "summary.fitted.values", "dic", "cpo", "waic", "po",
+               "neffp", "mode", ".args", "model.matrix")
+    misc.remove = c("cov.intern", "cov.intern.eigenvalues", "cov.intern.eigenvectors",
+                    "lincomb.derived.correlation.matrix", "lincomb.derived.covariance.matrix", 
+                    "log.posterior.mode", "stdev.corr.negative", "stdev.corr.negative",
+                    "stdev.corr.positive", "theta.mode")
+    
 
     for(nm in marginals) {
         idx = which(names(res) == nm)
@@ -226,11 +232,73 @@
         }
     }
 
+    ## merge configs, if they are there
+    if (!is.null(res$misc$configs)) {
+        verboze("Merge '$misc$configs'")
+        res$misc$configs$nconfig = m * res$misc$configs$nconfig
+        res$misc$configs$config = as.list(seq_len(res$misc$configs$nconfig)) ## create the list to be filled
+        res$misc$configs$max.log.posterior = NA ## to be computer later
+        count = 1
+        for(k in seq_along(loo)) {
+            conf = loo[[k]]$misc$configs
+            for(kk in seq_len(conf$nconfig)) {
+                conf$config[[kk]]$log.posterior = conf$config[[kk]]$log.posterior +
+                    conf$max.log.posterior + log(prob[k])
+                conf$config[[kk]]$log.posterior.orig = conf$config[[kk]]$log.posterior.orig +
+                    conf$max.log.posterior + log(prob[k])
+                res$misc$configs$config[[count]] = conf$config[[kk]]
+                count = count + 1
+            }
+        }
+        ## rescale the log.posterior's, similar code as in 'inla.collect.misc()'
+        res$misc$configs$max.log.posterior = max(sapply(res$misc$configs$config, function(x) x$log.posterior.orig))
+        for(k in seq_len(res$misc$configs$nconfig)) {
+            res$misc$configs$config[[k]]$log.posterior = res$misc$configs$config[[k]]$log.posterior -
+                res$misc$configs$max.log.posterior
+            res$misc$configs$config[[k]]$log.posterior.orig = res$misc$configs$config[[k]]$log.posterior.orig - 
+                res$misc$configs$max.log.posterior
+        }
+    }
+
+    verboze(paste0("Merge '$misc$nfunc"))
+    res$misc$nfunc = sum(unlist(lapply(loo, function(x) x$misc$nfunc)))
+
+    verboze(paste0("Merge '$cpu.used"))
+    res$cpu.used = rowSums(sapply(loo, function(x) x$cpu.used))
+
+    verboze(paste0("Merge '$logfile"))
+    res$logfile = c()
+    for (k in seq_along(loo)) {
+        res$logfile = c(res$logfile,
+                        "###",
+                        paste0("### CONFIGURATION number ", k, ", prob = ", round(prob[k], dig=5)),
+                        "###",
+                        loo[[k]]$logfile)
+    }
+
+    if (!is.null(res$joint.hyper)) {
+        verboze(paste0("Merge '$joint.hyper"))
+        res$joint.hyper = data.frame()
+        for (k in seq_along(loo)) {
+            tmp = loo[[k]]$joint.hyper
+            tmp[, ncol(tmp)] = tmp[, ncol(tmp)] + log(prob[k])
+            res$joint.hyper = rbind(res$joint.hyper, tmp)
+        }
+    }
+
     for (nm in remove) {
         verboze(paste0("Remove '$", nm, "'"))
         idx = which(names(res) == nm)
         if (length(idx) >0) {
             res[[idx]] = NULL
+        }
+    }
+
+    for (nm in misc.remove) {
+        verboze(paste0("Remove '$misc$", nm, "'"))
+        idx = which(names(res$misc) == nm)
+        if (length(idx) >0) {
+            res$misc[[idx]] = NULL
         }
     }
 
