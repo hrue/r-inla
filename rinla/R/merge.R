@@ -129,7 +129,7 @@
         }
         ## remove points not needed
         idx.keep = (yy > eps.y * max(yy))
-        marg = inla.smarginal(list(x = xx[idx.keep], y = yy[idx.keep]), factor = 2L)
+        marg = inla.smarginal(cbind(x = xx[idx.keep], y = yy[idx.keep]), factor = 2L, keep.type = TRUE)
         return (marg)
     }
 
@@ -150,7 +150,6 @@
             df$ID = los[[1]]$ID
         }
         rownames(df) = rownames(los[[1]])
-
         return (df)
     }
     
@@ -175,22 +174,24 @@
     ## items to remove
     remove = c("marginals.fitted.values", "summary.fitted.values", "dic", "cpo", "waic", "po",
                "neffp", "mode", ".args", "model.matrix")
+    ## items to remove in $misc
     misc.remove = c("cov.intern", "cov.intern.eigenvalues", "cov.intern.eigenvectors",
                     "lincomb.derived.correlation.matrix", "lincomb.derived.covariance.matrix", 
                     "log.posterior.mode", "stdev.corr.negative", "stdev.corr.negative",
                     "stdev.corr.positive", "theta.mode")
-    
 
     for(nm in marginals) {
         idx = which(names(res) == nm)
         if (length(idx) > 0) {
             verboze("Merge '$", nm, "'")
-            dummy = inla.mclapply(seq_along(res[[idx]]),
-                                  function(k) {
+            nm = names(res[[idx]])
+            res[[idx]] = inla.mclapply(
+                seq_along(res[[idx]]),
+                function(k) {
                 margs = lapply(loo, function(x, kk) x[[idx]][[kk]], kk = k)
-                res[[idx]][[k]] = merge.marginals(margs, prob)
-                return (NULL)
+                return (merge.marginals(margs, prob))
             })
+            names(res[[idx]]) = nm
         }
     }
     
@@ -200,12 +201,13 @@
             verboze("Merge '$", nm, "'")
             for(k in seq_along(res[[idx]])) {
                 verboze("      '$", nm, "$", names(res[[idx]])[k], "'")
-                dummy = inla.mclapply(seq_along(res[[idx]][[k]]),
-                                      function(kk) {
+                nm = names(res[[idx]][[k]])
+                res[[idx]][[k]] = inla.mclapply(seq_along(res[[idx]][[k]]),
+                                                function(kk) {
                     margs = lapply(loo, function(x, k, kkk) x[[idx]][[k]][[kkk]], k = k, kkk = kk)
-                    res[[idx]][[k]][[kk]] = merge.marginals(margs, prob)
-                    return (NULL)
+                    return (merge.marginals(margs, prob))
                 })
+                names(res[[idx]][[k]]) = nm
             }
         }
     }
