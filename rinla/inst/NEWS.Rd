@@ -29,26 +29,10 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
-  \subsection{USER-VISIBLE CHANGES}{
-    \itemize{
-      \item 
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
-    }
-  }
-  \subsection{NEW EXPERIMENTAL FEATURES}{
-    \itemize{
-      \item
-    }
-  }
+\section{CHANGES IN VERSION 19.02.14}{
   \subsection{BUG FIXES}{
     \itemize{
-      \item More work on the \code{inla.merge}: merge
-      more results. 
+      \item More work and fixes in  \code{inla.merge}
     }
   }
 }
