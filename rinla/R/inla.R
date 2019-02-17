@@ -443,7 +443,14 @@
         }
     }
 
-
+    ## replace alias's
+    family.alias = list(
+        list(from = "normal", to = "gaussian")
+    )
+    for (i in seq_along(family.alias)) {
+        family[which(inla.trim.family(family) %in% family.alias[[i]]$from)] = family.alias[[i]]$to
+    }
+    
     ## if data is a list, then it can contain elements that defines a
     ## model, like f(idx, model = model.objects). These objects crash
     ## the formula routines in R since then the data cannot be cast
