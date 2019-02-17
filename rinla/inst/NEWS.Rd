@@ -29,6 +29,17 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.02.17}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed input-test using \code{inla.qsample} with
+      \code{selection}-argument.
+      \item Added back \code{family = "normal"} which is now
+      translated to \code{family = "gaussian"} internally. 
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.02.14}{
   \subsection{BUG FIXES}{
     \itemize{
