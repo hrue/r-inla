@@ -10170,7 +10170,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		}
 	}
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_PARDISO;
+		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
 	}
 	mb->smtp = GMRFLib_SMTP_NAME(GMRFLib_smtp);
 	if (mb->verbose) {
@@ -27585,10 +27585,13 @@ int inla_INLA(inla_tp * mb)
 		int use_g = 0;
 		GMRFLib_optimize_reorder(mb->hgmrfm->graph, &nnz, &use_g, &(mb->gn));
 		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
-			if (mb->verbose) {
-				printf("\tFound optimal reordering=[%s] nnz(L)=[%lu] and use_global_nodes(user)=[%s]\n",
-				       GMRFLib_reorder_name(GMRFLib_reorder), nnz, (use_g ? "yes" : "no"));
-			}
+			// ....
+		} else {
+			GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
+		}
+		if (mb->verbose) {
+			printf("\tFound optimal reordering=[%s] nnz(L)=[%lu] and use_global_nodes(user)=[%s]\n",
+			       GMRFLib_reorder_name(GMRFLib_reorder), nnz, (use_g ? "yes" : "no"));
 		}
 	}
 	if (mb->verbose) {
@@ -27771,6 +27774,10 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	char *fnm, *msg;
 	ssize_t rw_retval;
 
+	GMRFLib_sprintf(&msg, "inla_MCMC() is no longer supported.");
+	inla_error_general(msg);
+	exit(1);
+
 	if (mb_old->fixed_mode) {
 		/*
 		 * then there is a request to treat the theta's as fixed and known. This little hack do the job nicely. 
@@ -27873,10 +27880,8 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 
 	if (G.reorder < 0) {
 		GMRFLib_optimize_reorder(mb_new->hgmrfm->graph, NULL, NULL, &(mb_new->gn));
-		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
-			if (mb_new->verbose) {
-				printf("\tFound optimal reordering=[%s]\n", GMRFLib_reorder_name(GMRFLib_reorder));
-			}
+		if (mb_new->verbose) {
+			printf("\tFound optimal reordering=[%s]\n", GMRFLib_reorder_name(GMRFLib_reorder));
 		}
 	}
 	if (mb_new->verbose) {
@@ -31179,12 +31184,13 @@ int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
+		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
 		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
+		GMRFLib_reorder = GMRFLib_REORDER_BAND;
 	} else {
+		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, constr, GMRFLib_NEW_PROBLEM);
@@ -31239,10 +31245,11 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, Qfilename, -1, NULL, NULL, NULL);
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
+		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
+		GMRFLib_reorder = GMRFLib_REORDER_BAND;
 	} else {
+		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
@@ -31346,12 +31353,13 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
+		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
 		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
+		GMRFLib_reorder = GMRFLib_REORDER_BAND;
 	} else {
+		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 
@@ -31821,6 +31829,7 @@ int inla_R(char **argv)
 
 	return GMRFLib_SUCCESS;
 }
+
 int inla_fgn(char *infile, char *outfile)
 {
 	double H, H_intern, *res;
@@ -31850,6 +31859,7 @@ int inla_fgn(char *infile, char *outfile)
 
 	return GMRFLib_SUCCESS;
 }
+
 int testit(int argc, char **argv)
 {
 	int test_no = -1;
@@ -32489,6 +32499,7 @@ int testit(int argc, char **argv)
 
 	exit(EXIT_SUCCESS);
 }
+
 int inla_testit_timer(void)
 {
 	GMRFLib_ENTER_ROUTINE;
