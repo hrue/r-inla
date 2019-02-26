@@ -29,6 +29,14 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.02.26}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Do not need to optimize reordering when PARDISO is used. 
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.02.17}{
   \subsection{BUG FIXES}{
     \itemize{
