@@ -689,6 +689,8 @@ const char *GMRFLib_reorder_name(GMRFLib_reorder_tp r)
 		return "amdc";
 	case GMRFLib_REORDER_AMDBARC:
 		return "amdbarc";
+	case GMRFLib_REORDER_PARDISO:
+		return "pardiso";
 	default:
 		fprintf(stderr, "\n\t*** ERROR *** Reordering [%d] not defined.\n", r);
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_EPARAMETER, "(unknown reording)");
@@ -726,6 +728,8 @@ int GMRFLib_reorder_id(const char *name)
 		return GMRFLib_REORDER_AMDC;
 	else if (!strcasecmp(name, "amdbarc"))
 		return GMRFLib_REORDER_AMDBARC;
+	else if (!strcasecmp(name, "pardiso"))
+		return GMRFLib_REORDER_PARDISO;
 	else if (!strcasecmp(name, "auto"))
 		return -1;				       /* THIS IS SPECIAL */
 	else {
