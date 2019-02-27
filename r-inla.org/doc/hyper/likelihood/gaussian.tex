@@ -4,7 +4,7 @@
 	\item[doc] The Gaussian likelihoood
 	\item[hyper]\ 
 	 \begin{description}
-	 	\item[theta]\ 
+	 	\item[theta1]\ 
 	 	 \begin{description}
 	 	 	\item[hyperid] 65001
 	 	 	\item[name] log precision
@@ -13,6 +13,18 @@
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] loggamma
 	 	 	\item[param] 1 5e-05
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 	\item[theta2]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 65002
+	 	 	\item[name] log precision offset
+	 	 	\item[short.name] precoffset
+	 	 	\item[initial] 72.0873067782343
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] none
+	 	 	\item[param] 
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}

@@ -404,14 +404,14 @@ void filter_locations(Matrix<double>& S,
 
   LOG("Filtering locations." << endl);
 
-  for (size_t v=0; v < Nv; v++) {
+  for (size_t v=0; v < size_t(Nv); v++) {
     remap[v] = -1;
   }
 
   NNLocator::iterator nniter;
 
   LOG("Identify 'unique' points." << endl);
-  for (size_t v=0; v < Nv; v++) {
+  for (size_t v=0; v < size_t(Nv); v++) {
     nniter = nnl(S[v], cutoff);
     if (nniter != nnl.end()) {
       // Exclude node
@@ -429,7 +429,7 @@ void filter_locations(Matrix<double>& S,
   LOG("All vertices handled." << endl);
 
   LOG("Identifying nearest points for excluded locations." << endl);
-  for (size_t v=Nv; v > incl_next;) {
+  for (size_t v=Nv; v > size_t(incl_next);) {
     --v;
     nniter = nnl(S[remap[v]]);
     if (nniter == nnl.end()) {
@@ -444,11 +444,11 @@ void filter_locations(Matrix<double>& S,
   LOG("Done identifying nearest points." << endl);
 
   LOG("Compactify storage from " << Nv << " to " << incl_next << endl);
-  for (size_t v=0; v < incl_next; ++v) {
+  for (size_t v=0; v < size_t(incl_next); ++v) {
     // In-place overwrite allowed since remapping of included nodes
     // was order preserving.  If no filtering done, no need to copy data.
-    if (v != remap[v]) {
-      for (size_t d=0; d<dim; d++)
+    if (v != size_t(remap[v])) {
+      for (size_t d=0; d < size_t(dim); d++)
 	S(v,d) = S[remap[v]][d];
     }
   }
@@ -467,7 +467,7 @@ void invalidate_unused_vertex_indices(const Mesh& M,
 {
   for (size_t v=0; v<idx.rows(); v++) {
     if ((idx(v,0)>=0) &&
-	((idx(v,0) >= M.nV()) || (M.VT(idx(v,0))==-1))) {
+	((idx(v,0) >= int(M.nV())) || (M.VT(idx(v,0))==-1))) {
       idx(v,0) = -1;
     }
   }
@@ -1070,12 +1070,12 @@ int main(int argc, char* argv[])
     M.S_append(S0);
     size_t nV = iS0.rows();
 
-    isflat = (std::abs(M.S(0)[2]) < 1.0e-10);
+    isflat = (std::fabs(M.S(0)[2]) < 1.0e-10);
     double radius = M.S(0).length();
     issphere = true;
     for (size_t i=1; i<M.nV(); i++) {
-      isflat = (isflat && (std::abs(M.S(i)[2]) < 1.0e-10));
-      issphere = (issphere && (std::abs(M.S(i).length()-radius) < sphere_tolerance));
+      isflat = (isflat && (std::fabs(M.S(i)[2]) < 1.0e-10));
+      issphere = (issphere && (std::fabs(M.S(i).length()-radius) < sphere_tolerance));
     }
     if (!isflat) {
       if (issphere) {
@@ -1084,8 +1084,10 @@ int main(int argc, char* argv[])
 	M.type(Mesh::Mtype_manifold);
       }
     }
-    
+
+#ifndef FMESHER_NO_X
     M.setX11VBigLimit(M.nV());
+#endif
       
     if (TV0) {
       M.TV_set(*TV0);
@@ -1111,6 +1113,7 @@ int main(int argc, char* argv[])
 	    : (sz[2] < sz[1] ? sz[1] : sz[2]));
     */
     
+#ifndef FMESHER_NO_X
     if (useX11) {
       if (issphere) {
 	if (args_info.x11_zoom_given==0) {
@@ -1136,6 +1139,7 @@ int main(int argc, char* argv[])
       }
       M.setX11delay(x11_delay_factor/M.nV());
     }
+#endif
     
     if (args_info.smorg_given>0) {
       LOG("Calculating smorg output." << std::endl)

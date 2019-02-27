@@ -8,8 +8,8 @@ options(width=75, prompt = " ", continue = "   ")
 library(lattice) 
 library(INLA)
 lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
-inla.setOption(num.threads=8)
+#inla.setOption(inla.call='remote')
+inla.setOption(num.threads=4)
 source('R/spde-tutorial-functions.R')
 load('prmesh1.RData')
 
@@ -99,7 +99,7 @@ sdat <- inla.stack(tag='stdata', data=list(y=dat$y),
 h.spec <- list(theta=list(prior='pccor1', param=c(0, 0.9)))
 
 ## ----remote,echo=FALSE---------------------------------------------------
-inla.setOption(inla.call='remote')
+##inla.setOption(inla.call='remote')
 
 ## ----ft------------------------------------------------------------------
 formulae <- y ~ 0 + w + 

@@ -9,90 +9,70 @@ library(INLA)
 source('R/spde-tutorial-functions.R')
 
 ## ----maternsamplefunc,results='hide'-------------------------------------
-cMatern <- function(x, nu, kappa) ### Matern correlation
-    besselK(x * kappa, nu) *
-        (x*kappa)^nu / (gamma(nu) * 2^(nu-1))
+cMatern <- function(h, nu, kappa) ### Matern correlation
+    besselK(h * kappa, nu) *
+        (h*kappa)^nu / (gamma(nu) * 2^(nu-1))
 ### function to sample from zero mean multivariate normal
 rmvnorm0 <- function(n, cov, L=NULL) { 
     if (is.null(L)) L <- chol(cov)
     return(crossprod(L, matrix(rnorm(n*ncol(L)), ncol(L))))
 }
 
+## ----loc1----------------------------------------------------------------
+### define locations and distance matrix
+loc <- 1:249/25 
+mdist <- as.matrix(dist(loc))
+
+## ----param---------------------------------------------------------------
+### define parameters
+nu <- c(0.5,1,2,5)
+pract.range = c(1,4) 
+kappa <- c(sqrt(8*nu)/pract.range[1], 
+           sqrt(8*nu)/pract.range[2]) 
+### covariance parameter scenarios
+params <- cbind(nu=rep(nu, length(pract.range)),
+                kappa=kappa,
+                r=rep(pract.range, each=length(nu)))
+
+## ----error---------------------------------------------------------------
+### sample error
+set.seed(123)
+z <- matrix(rnorm(nrow(mdist)*5), ncol=5)
+
+## ----samples-------------------------------------------------------------
+### compute the correlated samples
+yy <- lapply(1:nrow(params), function(j) { ## scenarios
+    v <- cMatern(mdist, params[j,1], params[j,2])
+    diag(v) <- 1 + 1e-10
+    return(list(params=params[j,], ### parameter scenario
+                y=crossprod(chol(v), z))) ### compute sample
+})
+
 ## ----maternsamples,eval=FALSE,results='hide'-----------------------------
-## ### define parameters
-## nu <- c(0.5,1,2,5)
-## pract.range = c(1,4)
-## kappa <- round(t(t(sqrt(8*nu))) %*% t(1/pract.range), 2)
-## 
-## ### define locations and distance matrix
-## loc <- 1:249/25
-## mdist <- as.matrix(dist(loc))
-## 
-## ### sample the error
-## set.seed(123)
-## z <- matrix(rnorm(length(loc)*5), ncol=5)
-## 
-## ### compute covariance scenarios
-## params <- cbind(nu=rep(nu, each=length(pract.range)),
-##                 kappa=as.vector(t(kappa)),
-##                 r=rep(pract.range, length(nu)))
-## ### compute the correlated samples
-## yy <- lapply(1:nrow(params), function(j) { ## scenarios
-##     v <- cMatern(mdist, params[j,1], params[j,2])
-##     diag(v) <- 1+1e-10
-##     return(list(params=params[j,], ### parameter scenario
-##                 y=crossprod(chol(v), z))) ### compute sample
-## })
-## 
 ## ### visualize
 ## (ry <- range(unlist(lapply(yy, tail, 1))))
-## par(mfrow=c(4,2), mar=c(2,2,1,.1), mgp=c(1.5,0.7,0), las=1)
+## par(mfcol=c(4,2), mar=c(2,2,1,.1), mgp=c(1.5,0.7,0), las=1)
 ## for (i in 1:length(yy)) { ### each scenario
 ##     plot(loc, yy[[i]]$y[,1], ylim=ry,
 ##          xlab='', ylab='', type='n',
 ##          main=as.expression(bquote(paste(
 ##              nu==.(yy[[i]]$params[1]), ', ',
-##              kappa==.(yy[[i]]$params[2]), ', ',
+##              kappa==.(round(yy[[i]]$params[2],2)), ', ',
 ##              r==.(yy[[i]]$params[3])))))
 ##     for (k in 1:5)
 ##         lines(loc, yy[[i]]$y[,k], col=k) ### each sample
 ## }
 
 ## ----maternsamplesfig,echo=FALSE,results='hide',fig.width=5,fig.height=7,out.width='0.97\\textwidth'----
-### define parameters
-nu <- c(0.5,1,2,5)
-pract.range = c(1,4)
-kappa <- round(t(t(sqrt(8*nu))) %*% t(1/pract.range), 2)
-
-### define locations and distance matrix
-loc <- 1:249/25 
-mdist <- as.matrix(dist(loc))
-
-### sample the error
-set.seed(123)
-z <- matrix(rnorm(length(loc)*5), ncol=5)
-
-### compute covariance scenarios
-params <- cbind(nu=rep(nu, each=length(pract.range)),
-                kappa=as.vector(t(kappa)),
-                r=rep(pract.range, length(nu))) 
-### compute the correlated samples
-yy <- lapply(1:nrow(params), function(j) { ## scenarios
-    v <- cMatern(mdist, params[j,1], params[j,2])
-    diag(v) <- 1+1e-10
-    return(list(params=params[j,], ### parameter scenario
-                y=crossprod(chol(v), z))) ### compute sample
-})
-
 ### visualize
 (ry <- range(unlist(lapply(yy, tail, 1))))
-par(mfrow=c(4,2), mar=c(2,2,1,.1), mgp=c(1.5,0.7,0), las=1)
+par(mfcol=c(4,2), mar=c(2,2,1,.1), mgp=c(1.5,0.7,0), las=1)
 for (i in 1:length(yy)) { ### each scenario
     plot(loc, yy[[i]]$y[,1], ylim=ry, 
          xlab='', ylab='', type='n',
          main=as.expression(bquote(paste(
              nu==.(yy[[i]]$params[1]), ', ',
-             kappa==.(yy[[i]]$params[2]), ', ',
+             kappa==.(round(yy[[i]]$params[2],2)), ', ',
              r==.(yy[[i]]$params[3])))))
     for (k in 1:5) 
         lines(loc, yy[[i]]$y[,k], col=k) ### each sample 
@@ -106,12 +86,12 @@ pts <- cbind(s1=sample(1:n/n-0.5/n)^2, s2=sample(1:n/n-0.5/n)^2)
 dmat <- dist(pts)
 
 ## ----params--------------------------------------------------------------
-beta0 <- 10; sigma2e <- 0.3; sigma2x <- 5; kappa <- 7; nu <- 1
+beta0 <- 10; sigma2e <- 0.3; sigma2u <- 5; kappa <- 7; nu <- 1
 
 ## ----covMatm-------------------------------------------------------------
 mcor <- as.matrix(2^(1-nu)*(kappa*dmat)^nu * 
                   besselK(dmat*kappa,nu)/gamma(nu)) 
-diag(mcor) <- 1;   mcov <- sigma2e*diag(n) + sigma2x*mcor 
+diag(mcor) <- 1;   mcov <- sigma2e*diag(n) + sigma2u*mcor 
 
 ## ----chol1mvnorm---------------------------------------------------------
 L <- chol(mcov);   set.seed(234) 
@@ -137,7 +117,7 @@ data(SPDEtoy)
 crossprod(q1) ### same inner pattern as for RW2
 INLA:::inla.rw2(n=5)
 
-## ----mesh0, echo=FALSE, results='hide'-----------------------------------
+## ----mesh0, echo=TRUE, results='hide'------------------------------------
 s <- 3 ### this factor will only changes C, not G
 pts <- rbind(c(1,1), c(2,1), 
              c(2.6, 1), c(0.7,1.7), 4:5/3, c(2,1.7))*s

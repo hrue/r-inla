@@ -14,12 +14,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 
@@ -154,6 +154,7 @@ int GMRFLib_init_geo_problem(GMRFLib_geo_problem_tp ** geo_problem, int name, in
 		break;
 	case 3:
 		GMRFLib_EWRAP0(GMRFLib_get_geo_coefs3(&(geo_arg->coef), name, param, range));
+		break;
 	default:
 		GMRFLib_ASSERT(0, GMRFLib_ESNH);
 	}

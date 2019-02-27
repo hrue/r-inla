@@ -521,17 +521,14 @@ dictionary *iniparser_load(const char *ininame)
 		if (*where == ';' || *where == '#' || *where == 0)
 			continue;			       /* Comment lines */
 		else {
-			if (sscanf(where, "[%[^]]", sec) == 1) {
+			if (sscanf(where, INIPARSER_SECSEP "%[^" INIPARSER_SECSEP "]" INIPARSER_SECSEP, sec) == 1) {
 				/*
 				 * Valid section name 
 				 */
 				// printf("sec %s\n", sec);
-				// strcpy(sec, MY_STRING_LOWERCASE(sec));
-				// strcpy(sec, sec);
 				iniparser_add_entry(d, sec, NULL, NULL);
 			} else if (sscanf(where, "%[^=] = \"%[^\"]\"", key, val) == 2
-				   || sscanf(where, "%[^=] = '%[^\']'", key, val) == 2
-				   || sscanf(where, "%[^=] = %[^#]", key, val) == 2) {
+				   || sscanf(where, "%[^=] = '%[^\']'", key, val) == 2 || sscanf(where, "%[^=] = %[^#]", key, val) == 2) {
 				strcpy(key, MY_STRING_LOWERCASE(strcrop(key)));
 				/*
 				 * sscanf cannot handle "" or '' as empty value,

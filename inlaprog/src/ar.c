@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 #ifndef HGVERSION
@@ -149,8 +149,7 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 				gsl_matrix_set(A, i, j, -1.0);
 			} else {
 				lag = (size_t) IABS((int) i - (int) j);
-				lag_idx = lag - 1;	       /* as correlation for lag 1 is x[0], lag 2 is x[1] (lag 0 = 1 and
-							        * not used) */
+				lag_idx = lag - 1;	       /* as correlation for lag 1 is x[0], lag 2 is x[1] (lag 0 = 1 and not used) */
 				gsl_matrix_set(A, i, lag_idx, phi[j] + gsl_matrix_get(A, i, lag_idx));
 			}
 		}
@@ -286,8 +285,8 @@ double Qfunc_ar(int i, int j, void *arg)
 		if (nnode < def->p) {			       /* recalling (i,j) starts from (0,0) */
 			ii = node;
 			jj = nnode;
-			Qmarg_contrib = def->hold_Qmarg[id][ii + jj * def->p];	/* contribution from the marginal distribution for
-										 * the first p x's. */
+			Qmarg_contrib = def->hold_Qmarg[id][ii + jj * def->p];	/* contribution from the marginal distribution for the first p x's. 
+										 */
 		} else if (nnode >= def->n - def->p) {
 			ii = dimQ - def->p + node - (def->n - def->p);
 			jj = dimQ - def->p + nnode - (def->n - def->p);

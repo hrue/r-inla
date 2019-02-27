@@ -95,12 +95,10 @@
 \examples{
 if (require(rgdal)) {
   oblique <- c(0,45,45,0)
-  par(mfrow=c(4,2))
   for (projtype in c("longlat", "lambert", "mollweide", "hammer")) {
     plot(inla.CRS(projtype), main=projtype)
     plot(inla.CRS(projtype, oblique=oblique), main=paste("oblique", projtype))
   }
-  par(mfrow=c(1,1))
 }
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

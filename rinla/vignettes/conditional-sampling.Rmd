@@ -11,7 +11,7 @@ vignette: >
 
 ```{r setup, include=FALSE}
 library(INLA)
-knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = FALSE)
 ```
 This short note describe how to do conditional sampling from a fitted
 model, where we want to condition on new events. An easy example which

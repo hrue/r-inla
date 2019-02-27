@@ -18,8 +18,8 @@
 ##! 
 ##!   \item{...}{Option and value,  like \code{option=value} or \code{option, value}; see the Examples}
 ##!   \item{option}{The option to get. If \code{option = NULL} then
-##!     \code{inla.getOption} then \code{inla.getOption} will display the
-##!     current defaults, otherwise, \code{option} must be one of
+##!     \code{inla.getOption} then \code{inla.getOption} will return a named list of
+##!     current values, otherwise, \code{option} must be one of
 ##! 
 ##!     inla.call: The path to the inla-program.
 ##! 
@@ -30,6 +30,14 @@
 ##!     fmesher.arg: Additional arguments to \code{fmesher.call}
 ##!     
 ##!     num.threads: Number of threads to use.
+##!
+##!     blas.num.threads: Number of threads to use for openblas and mklblas (see \code{inla} for details)
+##!     
+##!     smtp: Sparse matrix library to use,  one of \code{band}, \code{taucs} (\code{default}) or \code{pardiso}
+##!
+##!     mkl: Use binaries buildt with Intel MKL?  (If possible)
+##!
+##!     pardiso.license: The full path to the PARDISO license file
 ##!     
 ##!     keep: Keep temporary files?
 ##! 
@@ -81,6 +89,10 @@
         "fmesher.call",
         "fmesher.arg",
         "num.threads",
+        "blas.num.threads",
+        "smtp", 
+        "mkl", 
+        "pardiso.license", 
         "keep",
         "working.directory",
         "silent",
@@ -94,35 +106,16 @@
         "show.warning.graph.file",
         "scale.model.default"))
 {
-    if (missing(option))
-        stop("argument is required.")
-
-    envir = inla.get.inlaEnv()
-
-    option = match.arg(option, several.ok = TRUE)
-    if (exists("inla.options", envir = envir))
-        opt = get("inla.options", envir = envir)
-    else
-        opt = list()
-
-    if (is.null(opt$inla.call))
-        inla.call = inla.call.builtin()
-    else if (inla.strcasecmp(opt$inla.call, "remote") || inla.strcasecmp(opt$inla.call, "inla.remote"))
-        inla.call = gsub("\\\\", "/", system.file("bin/remote/inla.remote", package="INLA"))
-    else
-        inla.call = opt$inla.call
-
-    if (is.null(opt$fmesher.call))
-        fmesher.call = inla.fmesher.call.builtin()
-    else
-        fmesher.call = opt$fmesher.call
-
     default.opt = list(
-        inla.call = inla.call,
-        fmesher.call = fmesher.call, 
+        inla.call = inla.call.builtin(), 
+        fmesher.call = inla.fmesher.call.builtin(), 
         inla.arg = NULL,
         fmesher.arg = "", 
-        num.threads = NULL, 
+        num.threads = parallel::detectCores(), 
+        blas.num.threads = 1L, 
+        smtp = "default", 
+        mkl = FALSE, 
+        pardiso.license = NULL, 
         keep = FALSE, 
         working.directory = NULL, 
         silent = TRUE, 
@@ -135,15 +128,54 @@
         enable.inla.argument.weights = FALSE, 
         show.warning.graph.file = TRUE, 
         scale.model.default = FALSE
-        )
+    )
+
+    ## with no argument, return a named list of current values
+    if (missing(option)) {
+        opt.names = names(default.opt)
+        option = opt.names
+    } else {
+        opt.names = NULL
+    }
+
+    envir = inla.get.inlaEnv()
+    option = match.arg(option, several.ok = TRUE)
+    if (exists("inla.options", envir = envir)) {
+        opt = get("inla.options", envir = envir)
+    } else {
+        opt = list()
+    }
+
+    if (is.null(opt$inla.call)) {
+        inla.call = inla.call.builtin()
+    } else if (inla.strcasecmp(opt$inla.call, "remote") ||
+               inla.strcasecmp(opt$inla.call, "inla.remote")) {
+        inla.call = gsub("\\\\", "/", system.file("bin/remote/inla.remote", package="INLA"))
+    } else {
+        inla.call = opt$inla.call
+    }
+
+    if (is.null(opt$fmesher.call)) {
+        fmesher.call = inla.fmesher.call.builtin()
+    } else {
+        fmesher.call = opt$fmesher.call
+    }
 
     res = c()
     for (i in 1:length(option)) {
         if (inla.is.element(option[i], opt)) {
-            res = c(res, inla.get.element(option[i], opt))
+            val = list(inla.get.element(option[i], opt))
         } else {
-            res = c(res, inla.get.element(option[i], default.opt))
+            val = list(inla.get.element(option[i], default.opt))
         }
+        if (!is.null(opt.names)) {
+            names(val) = opt.names[i]
+        }
+        res = c(res, val)
+    }
+
+    if (is.null(opt.names)) {
+        res = unlist(res)
     }
 
     return (res)
@@ -151,7 +183,7 @@
 
 `inla.setOption` = function(...)
 {
-    ## now supports more formats, and also the common one
+    ## supports formats:
     ##     inla.setOption("keep", TRUE)
     ## and
     ##     inla.setOption(keep=TRUE)
@@ -164,6 +196,10 @@
             "fmesher.call",
             "fmesher.arg",
             "num.threads",
+            "blas.num.threads",
+            "smtp",
+            "mkl", 
+            "pardiso.license", 
             "keep",
             "working.directory",
             "silent",
@@ -180,8 +216,9 @@
         envir = inla.get.inlaEnv()
 
         option = match.arg(option, several.ok = FALSE)
-        if (!exists("inla.options", envir = envir))
+        if (!exists("inla.options", envir = envir)) {
             assign("inla.options", list(), envir = envir)
+        }
         if (is.character(value)) {
             eval(parse(text=paste("inla.options$", option, "=", shQuote(value), sep="")),
                  envir = envir)

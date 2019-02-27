@@ -20,8 +20,12 @@ syntax: regexp
 # example from mercurial manual   ^\.pc/
 # Ignore these files:
 ^.*/TAGS$
-^extlibs/metis-4.0.tgz$
-^extlibs/taucs-2.2.tgz$
+^rinla/DESCRIPTION\.backup$
+^rinla/DESCRIPTION\.new$
+^rinla/NAMESPACE\.backup$
+^rinla/NAMESPACE\.new$
+^extlibs/metis-4.0\.tgz$
+^extlibs/taucs-2.2\.tgz$
 ^extlibs/metis-build/
 ^extlibs/taucs-build/
 ^extlibs/.patch-metis$
