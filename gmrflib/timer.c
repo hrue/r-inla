@@ -69,6 +69,7 @@ static map_strvp *GMRFLib_timer_hashtable;
  */
 #if defined(_OPENMP)
 #include <sys/time.h>
+#include <omp.h>
 double GMRFLib_cpu_default(void)
 {
 	return omp_get_wtime();
