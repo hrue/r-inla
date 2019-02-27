@@ -79,7 +79,7 @@ double GMRFLib_cpu_default(void)
 /* 
    else, choose default timer according to arch
 */
-#if defined(__linux__) || defined(__linux) || defined(__sun__) || defined(__sun) || defined(__FreeBSD__) || defined(__FreeBSD)
+#if defined(__linux__) || defined(__linux) || defined(__sun__) || defined(__sun) || defined(__FreeBSD__) || defined(__FreeBSD) || defined(__APPLE__)
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <unistd.h>
