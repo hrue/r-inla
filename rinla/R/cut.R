@@ -40,25 +40,26 @@
 ##!  This function is EXPERIMENTAL!!!
 ##! }
 ##!
-##! \author{Egil Ferkingstad \email{egil@hi.is} and Havard Rue \email{hrue@r-inla.org}}
+##! \author{Egil Ferkingstad \email{egil.ferkingstad@gmail.com} and Havard Rue \email{hrue@r-inla.org}}
 ##!
 ##! \examples{
-##! ## See Ferkingstad et al (2017).
+##! ## See http://www.r-inla.org/examples/case-studies/ferkingstad-2017 and Ferkingstad et al (2017).
 ##! }
 ##!
 ##! \references{
 ##! Ferkingstad, E., Held, L. and Rue, H. (2017). Fast and accurate Bayesian
 ##! model criticism and conflict diagnostics using R-INLA. arXiv preprint
-##! arXiv:1708.03272, available at http://arxiv.org/abs/1708.03272
+##! arXiv:1708.03272, available at http://arxiv.org/abs/1708.03272.
+##! Published in Stat, 6:331-344 (2017).
 ##! 
 ##! Marshall, E. C. and Spiegelhalter, D. J. (2007). Identifying outliers
 ##! in Bayesian hierarchical models: a simulation-based approach.
-##! Bayesian Analysis, 2(2):409– 444.
+##! Bayesian Analysis, 2(2):409-444.
 ##! 
 ##! Presanis, A. M., Ohlssen, D., Spiegelhalter,
 ##! D. J., De Angelis, D., et al. (2013). Conflict diagnostics
 ##! in directed acyclic graphs, with applications in Bayesian evidence synthesis. 
-##! Statistical Science, 28(3):376–397.
+##! Statistical Science, 28(3):376-397.
 ##! }
 
 inla.cut = function(result, split.by, debug=FALSE)
@@ -74,24 +75,6 @@ inla.cut = function(result, split.by, debug=FALSE)
         stop(paste(match.call()[[1]], "is not yet implemented when 'data' is not a data.frame"))
     }
 
-    ## use an INLA internal to get the variable names of the whole model, ie, the fixed effects
-    ## + f(idx)'s
-    intf = INLA:::inla.interpret.formula(formula)
-
-    ## check that fixed/random effects exists, otherwise you can get an error e.g.
-    ## for a model with only fixed effects:
-    if (!is.null(intf$fixf)) {
-        fixf = as.character(attr(terms.formula(intf$fixf), "variables"))[-c(1:2)]
-    } else {
-        fixf = NULL
-    }
-    if (!is.null(intf$randf)) {
-        randf = as.character(attr(terms.formula(intf$randf), "variables"))[-c(1:2)]
-    } else {
-        randf = NULL
-    }
-    vars = c(fixf, randf)
-    
     ## find the name of the response, store the response and remove it from the data.frame.
     ## merge the two dataframes and add the reponse back in
     resp = formula[[2]]
@@ -108,99 +91,101 @@ inla.cut = function(result, split.by, debug=FALSE)
     ## store inla-results
     res = list()
     r = NULL
-    p.linpred = numeric(split.len)
-    for(split.idx in seq_len(split.len)) {
-        idx = (split.val == split.uval[split.idx])
-        idx.num = which(idx)
-        
-        ## First run REP version, everything except part i, "between" group:
-        data.rep = data
-        data.rep[idx.num, resp] = NA
-        
-        ## prepare the arguments for inla()
-        args = result$.args
-        args$data = data.rep
-        args$formula = formula
-        cont.compute = args$control.compute
-        if (is.null(cont.compute)) cont.compute = list()
-        cont.compute$config = TRUE
-        cont.compute$return.marginals = TRUE
-        args$control.compute = cont.compute
+    p.linpred = c(unlist(
+        inla.mclapply(
+            seq_len(split.len), 
+            FUN = (function(split.idx) {
+                idx = (split.val == split.uval[split.idx])
+                idx.num = which(idx)
+                
+                ## First run REP version, everything except part i, "between" group:
+                data.rep = data
+                data.rep[idx.num, resp] = NA
+                
+                ## prepare the arguments for inla()
+                args = result$.args
+                args$data = data.rep
+                args$formula = formula
+                cont.compute = args$control.compute
+                if (is.null(cont.compute)) cont.compute = list()
+                cont.compute$config = TRUE
+                cont.compute$return.marginals = TRUE
+                args$control.compute = cont.compute
 
-        ## make linear combinations for calculating linear predictor-based p-values:
-        cont.inla = args$control.inla
-        cont.inla$lincomb.derived.correlation.matrix = TRUE
-        args$control.inla = cont.inla
-        n.pred = length(idx.num)
-        lc.rep = c()
-        for (i in 1:n.pred) {
-            pred.idx = rep(NA, n)
-            pred.idx[idx.num[i]] = 1
-            lci = inla.make.lincomb(Predictor = pred.idx)
-            names(lci) = paste0("lc.pred",i)
-            lc.rep = c(lc.rep, lci)
-        }
-        args$lincomb = lc.rep
-        cont.pred <- args$control.predictor
-        cont.pred$link = 1
-        args$control.predictor = cont.pred
-        r.rep = do.call("inla", args = args)
-        ## this case we do not do
-        if (!is.null(r.rep$.args$control.predictor$A)) {
-            stop("A-matrix in the linear predictor is not supported")
-        }
-        mu.rep = r.rep$summary.lincomb.derived$mean
-        sigma.rep = r.rep$misc$lincomb.derived.covariance.matrix
-        ## Then run LIK version, group i, within-group:
-        data.lik = data[idx.num,]
-        if (!is.null(args$E)) args$E = args$E[idx.num]
-        if (!is.null(args$offset)) args$offset = args$offset[idx.num]
-        if (!is.null(args$scale)) args$scale = args$scale[idx.num]
-        if (!is.null(args$weights)) args$weights = args$weights[idx.num]
-        if (!is.null(args$Ntrials)) args$Ntrials = args$Ntrials[idx.num]
-        if (!is.null(args$strata)) args$strata = args$strata[idx.num]
-        if (!is.null(args$link.covariates)) args$link.covariates = args$link.covariates[idx.num, ]
+                ## make linear combinations for calculating linear predictor-based p-values:
+                cont.inla = args$control.inla
+                cont.inla$lincomb.derived.correlation.matrix = TRUE
+                args$control.inla = cont.inla
+                n.pred = length(idx.num)
+                lc.rep = c()
+                for (i in 1:n.pred) {
+                    pred.idx = rep(NA, n)
+                    pred.idx[idx.num[i]] = 1
+                    lci = inla.make.lincomb(Predictor = pred.idx)
+                    names(lci) = paste0("lc.pred",i)
+                    lc.rep = c(lc.rep, lci)
+                }
+                args$lincomb = lc.rep
+                cont.pred <- args$control.predictor
+                cont.pred$link = 1
+                args$control.predictor = cont.pred
+                r.rep = do.call("inla", args = args)
+                ## this case we do not do
+                if (!is.null(r.rep$.args$control.predictor$A)) {
+                    stop("A-matrix in the linear predictor is not supported")
+                }
+                mu.rep = r.rep$summary.lincomb.derived$mean
+                sigma.rep = r.rep$misc$lincomb.derived.covariance.matrix
+                ## Then run LIK version, group i, within-group:
+                data.lik = data[idx.num,]
+                if (!is.null(args$E)) args$E = args$E[idx.num]
+                if (!is.null(args$offset)) args$offset = args$offset[idx.num]
+                if (!is.null(args$scale)) args$scale = args$scale[idx.num]
+                if (!is.null(args$weights)) args$weights = args$weights[idx.num]
+                if (!is.null(args$Ntrials)) args$Ntrials = args$Ntrials[idx.num]
+                if (!is.null(args$strata)) args$strata = args$strata[idx.num]
+                if (!is.null(args$link.covariates)) args$link.covariates = args$link.covariates[idx.num, ]
 
-        args$data = data.lik
-        lc.lik = c()
-        ## make new linear combinations:
-        lc.names = paste0("lc.pred", INLA:::inla.num(1:n.pred))
-        for (i in 1:n.pred) {
-            pred.idx = rep(NA, nrow(data.lik))
-            pred.idx[i] = 1
-            lci = inla.make.lincomb(Predictor = pred.idx)
-            names(lci) = lc.names[i]
-            lc.lik = c(lc.lik, lci)
-        }
+                args$data = data.lik
+                lc.lik = c()
+                ## make new linear combinations:
+                lc.names = paste0("lc.pred", INLA:::inla.num(1:n.pred))
+                for (i in 1:n.pred) {
+                    pred.idx = rep(NA, nrow(data.lik))
+                    pred.idx[i] = 1
+                    lci = inla.make.lincomb(Predictor = pred.idx)
+                    names(lci) = lc.names[i]
+                    lc.lik = c(lc.lik, lci)
+                }
 
-        args$lincomb = lc.lik
-        ## set prior of hyperpar to posterior from REP version:
-        args$control.update = list(result = r.rep)
-        r.lik = do.call("inla", args = args)
-        mu.lik = r.lik$summary.lincomb.derived$mean
-        sigma.lik = r.lik$misc$lincomb.derived.covariance.matrix
-        mu.diff = mu.rep - mu.lik
-        sigma.diff = sigma.rep + sigma.lik
-        respIdx = which(names(data.lik)==resp)
-        curr.data = data.lik[,-respIdx]
-        curr.data[is.na(curr.data)] = 0
-        ## curr.data: change any factors to numeric:
-        for (kk in 1:ncol(curr.data)) {
-            if (is.factor(curr.data[,kk])) {
-                curr.data[,kk] = as.numeric(as.character(curr.data[,kk]))
-            }
-        }
-        
-        ## Calculate p-values from linear predictor:
-        min.eigen.value = 1E-3
-        lin.pred.mu = mu.diff
-        lin.pred.sigma = sigma.diff
-        lin.pred.df = sum(eigen(lin.pred.sigma)$values > min.eigen.value)
-        lin.pred.Delta = t(lin.pred.mu) %*% INLA:::inla.ginv(lin.pred.sigma, tol=min.eigen.value) %*% lin.pred.mu
-        p.linpred[split.idx] = 1 - pchisq(as.numeric(lin.pred.Delta), df=lin.pred.df) 
-        my.debug(split.idx, "of", split.len,": p-value:", round(p.linpred[split.idx],4),
-                 "df:", lin.pred.df)
-    }
+                args$lincomb = lc.lik
+                ## set prior of hyperpar to posterior from REP version:
+                args$control.update = list(result = r.rep)
+                r.lik = do.call("inla", args = args)
+                mu.lik = r.lik$summary.lincomb.derived$mean
+                sigma.lik = r.lik$misc$lincomb.derived.covariance.matrix
+                mu.diff = mu.rep - mu.lik
+                sigma.diff = sigma.rep + sigma.lik
+                respIdx = which(names(data.lik)==resp)
+                curr.data = data.lik[,-respIdx]
+                curr.data[is.na(curr.data)] = 0
+                ## curr.data: change any factors to numeric:
+                for (kk in 1:ncol(curr.data)) {
+                    if (is.factor(curr.data[,kk])) {
+                        curr.data[,kk] = as.numeric(as.character(curr.data[,kk]))
+                    }
+                }
+                
+                ## Calculate p-values from linear predictor:
+                min.eigen.value = 1E-3
+                lin.pred.mu = mu.diff
+                lin.pred.sigma = sigma.diff
+                lin.pred.df = sum(eigen(lin.pred.sigma)$values > min.eigen.value)
+                lin.pred.Delta = t(lin.pred.mu) %*% inla.ginv(lin.pred.sigma, tol=min.eigen.value) %*% lin.pred.mu
+                pval = 1 - pchisq(as.numeric(lin.pred.Delta), df=lin.pred.df) 
+                my.debug(split.idx, "of", split.len,": p-value:", round(pval,4), "df:", lin.pred.df)
+                return (pval)
+            }))))
+
     return(p.linpred)
 }
-

@@ -1,4 +1,4 @@
-#if defined(INLA_EXPERIMENTAL) || defined(INLA_LIBR)
+#if defined(INLA_LIBR)
 
 /* R-interface.c
  * 
@@ -20,12 +20,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 #ifndef HGVERSION
@@ -78,7 +78,7 @@ static int R_busy = 0;
 			fflush(stderr);				\
 		}						\
 		R_busy=0;					\
-	}	
+	}
 
 // this function is adapted from
 //      http://c-for-dummies.com/blog/?p=69
@@ -107,7 +107,7 @@ void inla_R_exit(void)
 		fprintf(stderr, "R-interface: exit\n");
 		fflush(stderr);
 	}
-	
+
 	Rf_endEmbeddedR(0);
 	R_init = 1;
 	R_busy = 0;
@@ -179,7 +179,7 @@ int inla_R_library(const char *library)
 	yy = PROTECT(mkString(library));
 	e = PROTECT(lang2(install("library"), yy));
 	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
-	if (error) {
+	if (result == NULL || error) {
 		fprintf(stderr, "\n *** ERROR ***: load library [%s] failed.\n", library);
 		exit(1);
 	}
@@ -213,7 +213,7 @@ int inla_R_source(const char *filename)
 	yy = PROTECT(mkString(filename));
 	e = PROTECT(lang4(install("source"), yy, false, true));
 	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
-	if (error) {
+	if (result == NULL || error) {
 		fprintf(stderr, "\n *** ERROR ***: source R-file [%s] failed.\n", filename);
 		exit(1);
 	}
@@ -245,7 +245,7 @@ int inla_R_load(const char *filename)
 	yy = PROTECT(mkString(filename));
 	e = PROTECT(lang2(install("load"), yy));
 	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
-	if (error) {
+	if (result == NULL || error) {
 		fprintf(stderr, "\n *** ERROR ***: load RData-file [%s] failed.\n", filename);
 		exit(1);
 	}
@@ -277,7 +277,7 @@ int inla_R_inlaload(const char *filename)
 	yy = PROTECT(mkString(filename));
 	e = PROTECT(lang2(install("inla.load"), yy));
 	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
-	if (error) {
+	if (result == NULL || error) {
 		fprintf(stderr, "\n *** ERROR ***: inla.load file [%s] failed.\n", filename);
 		exit(1);
 	}
@@ -299,8 +299,7 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 	 */
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: enter: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag,
-			n);
+		fprintf(stderr, "R-interface[%1d]: enter: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag, n);
 		fflush(stderr);
 	}
 	CHECK_IN;
@@ -319,7 +318,7 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 		e = PROTECT(lang2(install(function), xx));
 	}
 	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
-	if (error) {
+	if (result == NULL || error) {
 		fprintf(stderr, "\n *** ERROR *** Calling R-function [%s] with tag [%s] and [%1d] arguments\n", function, tag, n);
 		exit(1);
 	}
@@ -337,8 +336,7 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 	UNPROTECT((tag ? 4 : 3));
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: leave: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag,
-			n);
+		fprintf(stderr, "R-interface[%1d]: leave: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag, n);
 		fflush(stderr);
 	}
 	CHECK_OUT;
@@ -374,7 +372,7 @@ int inla_R_assign(const char *variable, int n, double *x)
 	}
 	e = PROTECT(lang3(install("assign"), yy, xx));
 	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
-	if (error) {
+	if (result == NULL || error) {
 		fprintf(stderr, "\n *** ERROR *** assign [%s] with n [%1d] failed\n", variable, n);
 		exit(1);
 	}
@@ -407,7 +405,7 @@ int inla_R_get(int *n_out, double **x_out, const char *variable)
 	yy = PROTECT(mkString(variable));
 	e = PROTECT(lang2(install("get"), yy));
 	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
-	if (error) {
+	if (result == NULL || error) {
 		fprintf(stderr, "\n *** ERROR *** get [%s]\n", variable);
 		exit(1);
 	}
@@ -457,7 +455,7 @@ int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *mod
 	yyy = PROTECT(mkString(model));
 	e = PROTECT(lang4(install(R_GENERIC_WRAPPER), yy, yyy, xx_theta));
 	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
-	if (error) {
+	if (result == NULL || error) {
 		fprintf(stderr, "\n *** ERROR *** rgeneric [%s] with model [%s] failed\n", cmd, model);
 		exit(1);
 	}

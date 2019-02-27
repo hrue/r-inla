@@ -22,7 +22,7 @@ for responses $y=0, 1, 2, \ldots$, where
 
 \subsection*{Link-function}
 
-The mean and variance of $y$ are given as 
+The mean and variance of $y$ are given as
 \begin{displaymath}
     \mu = n \frac{1-p}{p} \qquad\text{and}\qquad \sigma^{2} = \mu(1 + \frac{\mu}{n})
 \end{displaymath}
@@ -31,24 +31,24 @@ and the mean is linked to the linear predictor by
     \mu = E \exp(\eta)
 \end{displaymath}
 where the hyperparameter $n$ (\emph{size}) plays the role of an
-dispersion parameter. $E$ represents knows constant and $\log(E)$
-is the offset of $\eta$.
+dispersion parameter. $E$ represents knows constant and $\log(E)$ is
+the offset of $\eta$.
 
 \subsection*{Hyperparameters}
 
-The default parameterization (\verb|variant=0|) is that the
-dispersion parameter $n$ (\emph{size}) is represented as
+The default parameterization (\verb|variant=0|) is that the dispersion
+parameter $n$ (\emph{size}) is represented as
 \begin{displaymath}
     n = \exp(\theta)
 \end{displaymath}
-and the prior is defined on $\theta$. 
+and the prior is defined on $\theta$.
 
-If \verb|variant=1|, then
-dispersion parameter $n$ (\emph{size}) is represented as
+If \verb|variant=1|, then dispersion parameter $n$ (\emph{size}) is
+represented as
 \begin{displaymath}
     n = E\exp(\theta)
 \end{displaymath}
-and the prior is defined on $\theta$. 
+and the prior is defined on $\theta$.
 
 \subsection*{Specification}
 
@@ -80,7 +80,54 @@ Poisson distribution. For numerical reasons, if $n$ is too large:
 \end{displaymath}
 then the Poisson limit is used.
 
-The PC-prior is available for \verb|variant=1|, see \verb|inla.doc("pc.gamma")|.
+The PC-prior is available for \verb|variant=1|, see
+\verb|inla.doc("pc.gamma")|.
+
+\clearpage
+
+
+\subsection*{The \texttt{nbinomial2} distribution}
+
+The negative Binomial distribution is also available in its ``pure
+form'', as the number of excess experiments to get $n$ successes with
+a success in the last experiment,
+\begin{displaymath}
+    \text{Prob}(y) = {y + n -1 \choose n-1} (1-p)^{y} p^{n}
+\end{displaymath}
+for $y=0, 1, 2, \ldots$, where
+\begin{description}
+\item[$n$:] the (fixed) number of successes before stopping,
+    $n=1, 2, \ldots$,
+\item[$p$:] the probability of success in each independent trial.
+\end{description}
+
+\subsection*{Link-function}
+
+The probability $p$ is (by default) linked to the linear predictor
+$\eta$ as
+\begin{displaymath}
+    p = \frac{\exp(\eta)}{1+\exp(\eta)}.
+\end{displaymath}
+
+\subsection*{Hyperparameters}
+None.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{nbinomial2}$
+\item Required arguments: $y$ and $Ntrials$
+\end{itemize}
+The argument \texttt{Ntrials} gives the value of $n$ for each
+observation.
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/nbinomial2.tex}
+
+\subsection*{Example}
+\verbatiminput{example-nbinomial2.R}
+
+
 
 \end{document}
 

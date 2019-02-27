@@ -1,33 +1,35 @@
 n = 1000
-alpha = 2
-beta = 2
-x = runif(n)
+alpha = 1.1
+beta = 2.2
+x = c(scale(runif(n)))
 eta = 1+beta*x
 lambda = exp(eta)
-y = rweibull(n, shape= alpha, scale= lambda^(1/-alpha))
-event = rep(1,n)
-data = list(y=y, event=event, x=x)
 
-formula=inla.surv(y,event)~ x
-model=inla(formula, family ="weibullsurv", data=data)
-summary(model)
+for(variant in 0:1) {
+    y = rweibull(n,
+                 shape= alpha,
+                 scale= if (variant == 0)
+                            lambda^(-1/alpha)
+                        else
+                            1/lambda)
 
-formula= y ~ x
-model=inla(formula, family ="weibull", data=data)
-summary(model)
+    print(paste("VARIANT=", variant))
+    event = rep(1,n)
+    data = list(y=y, event=event, x=x)
 
-## variant 1
-y = rweibull(n, shape= alpha, scale= 1/lambda)
-event = rep(1,n)
-data = list(y=y, event=event, x=x)
+    formula=inla.surv(y,event)~ x
+    r=inla(formula,
+           family ="weibullsurv",
+           data=data,
+           control.family = list(list(variant = variant)))
+    print("SURV")
+    print(summary(r))
 
-formula=inla.surv(y,event)~ x
-model=inla(formula, family ="weibullsurv", data=data,
-           control.family = list(variant=1))
-summary(model)
-
-formula= y ~ x
-model=inla(formula, family ="weibull", data=data,
-           control.family = list(variant=1))
-summary(model)
-
+    formula= y ~ x
+    r=inla(formula,
+           family ="weibull",
+           data=data, 
+           control.family = list(list(variant = variant)))
+    print("REGRESSION")
+    print(summary(r))
+}

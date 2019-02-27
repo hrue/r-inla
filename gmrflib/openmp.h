@@ -19,14 +19,13 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
- * RCSId: $Id: openmp.h,v 1.4 2007/05/27 13:44:55 hrue Exp $
  *
  */
 
@@ -65,16 +64,29 @@ extern void omp_set_nested(int);
 extern int omp_get_nested(void);
 extern double omp_get_wtime(void);
 extern double omp_get_wtick(void);
-
 #endif
+
 
 typedef enum {
 	GMRFLib_OPENMP_STRATEGY_SMALL = 1,
 	GMRFLib_OPENMP_STRATEGY_MEDIUM,
 	GMRFLib_OPENMP_STRATEGY_LARGE,
 	GMRFLib_OPENMP_STRATEGY_HUGE,
-	GMRFLib_OPENMP_STRATEGY_DEFAULT
+	GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL,
+	GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL,
+	GMRFLib_OPENMP_STRATEGY_DEFAULT, 
+	GMRFLib_OPENMP_STRATEGY_NONE
 } GMRFLib_openmp_strategy_tp;
+
+#define GMRFLib_OPENMP_STRATEGY_NAME(num) \
+	((num) == GMRFLib_OPENMP_STRATEGY_SMALL ? "small" :		\
+	 ((num) == GMRFLib_OPENMP_STRATEGY_MEDIUM ? "medium" :	\
+	  ((num) == GMRFLib_OPENMP_STRATEGY_LARGE ? "large" :		\
+	   ((num) == GMRFLib_OPENMP_STRATEGY_HUGE ? "huge" :		\
+	    ((num) == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ? "pardiso.serial" : \
+	     ((num) == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ? "pardiso.parallel" : \
+	      ((num) == GMRFLib_OPENMP_STRATEGY_DEFAULT ? "default" :	\
+	       ((num) == GMRFLib_OPENMP_STRATEGY_NONE ? "none" : "THIS SHOULD NOT HAPPEN"))))))))
 
 typedef enum {
 	GMRFLib_OPENMP_PLACES_BUILD_MODEL = 1,
@@ -84,17 +96,36 @@ typedef enum {
 	GMRFLib_OPENMP_PLACES_INTEGRATE,
 	GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR,
 	GMRFLib_OPENMP_PLACES_COMBINE,
-	GMRFLib_OPENMP_PLACES_DEFAULT
+	GMRFLib_OPENMP_PLACES_EXTERNAL,
+	GMRFLib_OPENMP_PLACES_DEFAULT, 
+	GMRFLib_OPENMP_PLACES_NONE
 } GMRFLib_openmp_place_tp;
 
+#define GMRFLib_OPENMP_PLACE_NAME(num) \
+	((num) == GMRFLib_OPENMP_PLACES_BUILD_MODEL ? "build.model" :	\
+	 ((num) == GMRFLib_OPENMP_PLACES_OPTIMIZE ? "optimize" :	\
+	  ((num) == GMRFLib_OPENMP_PLACES_HESSIAN ? "hessian" :		\
+	   ((num) == GMRFLib_OPENMP_PLACES_HESSIAN_SCALE ? "hessian.scale" : \
+	    ((num) == GMRFLib_OPENMP_PLACES_INTEGRATE ? "integrate" :	\
+	     ((num) == GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR ? "integrate.hyperpar" : \
+	      ((num) == GMRFLib_OPENMP_PLACES_COMBINE ? "combine" : \
+	       ((num) == GMRFLib_OPENMP_PLACES_EXTERNAL ? "external" : \
+		((num) == GMRFLib_OPENMP_PLACES_DEFAULT ? "default" : \
+		 ((num) == GMRFLib_OPENMP_PLACES_NONE ? "none" : "THIS SHOULD NOT HAPPEN"))))))))))
+
 typedef struct {
+	GMRFLib_openmp_place_tp place;
 	int max_threads;
+	// for PARDISO, like _outer is the number of threads in the outer loop, while _inner is the number of threads for
+	// pardiso. the _inner is only relevant if nested=1.
+	int max_threads_outer;
+	int max_threads_inner;
 	GMRFLib_openmp_strategy_tp strategy;
 } GMRFLib_openmp_tp;
 
-#define GMRFLib_MAX_THREADS (GMRFLib_openmp ? GMRFLib_openmp->max_threads : omp_get_max_threads())
+#define GMRFLib_MAX_THREADS (GMRFLib_openmp ? GMRFLib_openmp->max_threads : IMIN(omp_get_max_threads(), omp_get_num_procs()))
 
-int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg);
+int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, GMRFLib_smtp_tp *smtp);
 
 __END_DECLS
 #endif

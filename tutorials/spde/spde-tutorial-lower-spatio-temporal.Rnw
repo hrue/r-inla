@@ -68,11 +68,13 @@ y5[n5==0] <- NA;     n5[n5==0] <- 5
 
 \subsection{Lowering temporal model resolution}
 
-This approach is better expained in\cite{blangiardoC:2015}. 
+This approach can be seen from the template code in 
+Section 3.2 of \cite{lindgrenR:2015} and was also considered 
+in the last example of the INLA book, \cite{blangiardoC:2015}. 
 The main idea is to place some knots over the time window
-and define a model on such knots. 
-Them project the model into the data time points as we
-do using the Finite Element Method in the SPDE approach. 
+and define the model on such knots. 
+Them define the projection from the time knots as we do 
+for the spatial case with the mesh. 
 
 We choose to place knots at each 6 time points of the
 temporally aggregated data, 

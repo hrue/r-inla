@@ -10,21 +10,27 @@ if ! $(is_set INLA_MAC); then
     export INLA_MAC=rueh@kw-16659.kaust.edu.sa
 fi
 
-if ! $(is_set INLA_LINUX); then
-    export INLA_LINUX=hrue@inla.math.ntnu.no ## ubuntu
+IP=0.0.0.0
+for ip in $(~/bin/my-vm-addr); do
+    if ping -q -i1 -W1 -c1 $ip; then
+	IP=$ip
+	echo Host $IP is alive
+	break
+    else
+	echo Host $ip is not alive
+    fi
+done
+
+
+if [ -n "$IP" ]; then
+    export INLA_LINUX=hrue@$IP
     export INLA_LINUX_PORT=22
-    export INLA_LINUX=hrue@localhost.localdomain ## centos
-    export INLA_LINUX_PORT=19999
+    yes yes | ssh hrue@$IP echo Testing connection
 fi
 
 if ! $(is_set INLA_INLA); then
     export INLA_INLA=hrue@inla.math.ntnu.no
 fi
-
-if ! $(is_set INLA_WINDOWS); then
-    export INLA_WINDOWS=$(echo ~/p/inla/builds/windows)
-fi
-
 
 output () {
     echo "$0: $@"

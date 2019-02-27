@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 #ifndef HGVERSION
@@ -276,8 +276,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 				M->j[k] = IMAX(ij[0], ij[1]);
 			}
 			if ((all_i_st_j && all_j_st_i) || (!all_i_st_j && !all_j_st_i)) {
-				ERROR
-				    ("Not all entries satisfy all i >= j, or all j <= i, in the symmetric case. Do not know what to do...");
+				ERROR("Not all entries satisfy all i >= j, or all j <= i, in the symmetric case. Do not know what to do...");
 			}
 
 			int nneq = 0;
@@ -399,7 +398,7 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long
 		nwrite = fwrite((const void *)ptr, sizeof(type), (size_t) n, (FILE *) fp); \
 		if (nwrite != (size_t) n) {				\
 			char *m;					\
-			GMRFLib_sprintf(&m, "Fail to write [%1u] elems of size [%1u] from file [%s], at position %ld\n", \
+			GMRFLib_sprintf(&m, "Fail to write [%1u] elems of size [%1u] to file [%s], at position %ld\n", \
 					n, sizeof(type), filename, ftell(fp)); \
 			ERROR(m);					\
 		}							\
@@ -587,8 +586,7 @@ double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp * M)
 
 	if (M) {
 		if (M->nrow != M->ncol) {
-			fprintf(stderr, "*** %s:%1d ***  Not a diagonal matrix: %1d != %1d\n", __FILE__, __LINE__, M->nrow,
-				M->ncol);
+			fprintf(stderr, "*** %s:%1d ***  Not a diagonal matrix: %1d != %1d\n", __FILE__, __LINE__, M->nrow, M->ncol);
 			exit(1);
 		}
 
