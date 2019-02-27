@@ -19,14 +19,13 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
- * RCSId: $Id: optimize.h,v 1.29 2009/02/15 17:54:15 hrue Exp $
  *
  */
 
@@ -158,7 +157,7 @@ __BEGIN_DECLS
 
   \sa GMRFLib_blockupdate
 */
-typedef int GMRFLib_logl_tp(double *logll, double *x_i, int m, int idx, double *x_vec, void *logl_arg);
+typedef int GMRFLib_logl_tp(double *logll, double *x_i, int m, int idx, double *x_vec, double *y_cdf, void *logl_arg);
 
 /*!
   \brief The value to return to tell that exact derivaties are provided.

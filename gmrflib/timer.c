@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 
@@ -69,16 +69,21 @@ static map_strvp *GMRFLib_timer_hashtable;
  */
 #if defined(_OPENMP)
 #include <sys/time.h>
+#include <omp.h>
 double GMRFLib_cpu_default(void)
 {
-	return omp_get_wtime();
+	static double ref = 0.0;
+	if (!ref) {
+		ref = omp_get_wtime();
+	}
+	return (omp_get_wtime() - ref);
 }
 #else
 
 /* 
    else, choose default timer according to arch
 */
-#if defined(__linux__) || defined(__linux) || defined(__sun__) || defined(__sun) || defined(__FreeBSD__) || defined(__FreeBSD)
+#if defined(__linux__) || defined(__linux) || defined(__sun__) || defined(__sun) || defined(__FreeBSD__) || defined(__FreeBSD) || defined(__APPLE__)
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <unistd.h>
@@ -86,14 +91,26 @@ double GMRFLib_cpu_default(void)
 {
 	if (1) {
 		struct timeval time1;
+		double time;
+		static double ref = 0.0;
 
 		gettimeofday(&time1, NULL);
-		return time1.tv_sec + time1.tv_usec * 1.0e-6;
+		time = time1.tv_sec + time1.tv_usec * 1.0e-6;
+		if (!ref) {
+			ref = time;
+		}
+		return (time - ref);
 	} else {
 		struct rusage a;
-
+		double time;
+		static double ref = 0.0;
+		
 		getrusage(RUSAGE_SELF, &a);
-		return (double) ((a.ru_utime).tv_sec + (a.ru_stime).tv_sec) + (double) ((a.ru_utime).tv_usec + (a.ru_stime).tv_usec) * 1.0e-6;
+		time = (double) ((a.ru_utime).tv_sec + (a.ru_stime).tv_sec) + (double) ((a.ru_utime).tv_usec + (a.ru_stime).tv_usec) * 1.0e-6;
+		if (!ref) {
+			ref = time;
+		}
+		return (time - ref);
 	}
 }
 #else
@@ -136,7 +153,7 @@ int GMRFLib_timer_compare(const void *a, const void *b)
 }
 int GMRFLib_timer_enter(const char *name)
 {
-#pragma omp critical
+//#pragma omp critical
 	{
 		GMRFLib_timer_hashval_tp *p;
 		void *vpp;
@@ -182,7 +199,7 @@ int GMRFLib_timer_enter(const char *name)
 }
 int GMRFLib_timer_leave(const char *name)
 {
-#pragma omp critical
+//#pragma omp critical
 	{
 		GMRFLib_timer_hashval_tp *p;
 		void *vpp;

@@ -136,7 +136,7 @@
         null.dat = is.na(response[, 3L])
         response = response[!null.dat,]
 
-    } else if (inla.one.of(family, c("gammacount", "exponential", "weibull"))) {
+    } else if (inla.one.of(family, c("gammacount", "exponential", "weibull", "loglogistic"))) {
 
         response = cbind(ind, y.orig)
         null.dat = is.na(response[, 2L])
@@ -181,6 +181,7 @@
                            c("binomial",
                              "binomialtest", 
                              "betabinomial", 
+                             "nbinomial2", 
                              "zeroinflatedbinomial0",
                              "zeroinflatedbinomial1",
                              "zeroinflatedbinomial2",
@@ -188,9 +189,7 @@
                              "zeroninflatedbinomial3",
                              "zeroinflatedbetabinomial0",
                              "zeroinflatedbetabinomial1",
-                             "zeroinflatedbetabinomial2",
-                             "testbinomial1"))) {
-
+                             "zeroinflatedbetabinomial2"))) {
         if (is.null(Ntrials)) {
             Ntrials = rep(1L, n.data)
         }
@@ -210,7 +209,9 @@
         null.dat = is.na(response[, 4L])
         response = response[!null.dat,]
 
-    } else if (inla.one.of(family, c("exponentialsurv", "weibullsurv", "weibullcure", "loglogistic",  "lognormalsurv"))) {
+    } else if (inla.one.of(family, c("exponentialsurv", "weibullsurv", "weibullcure",
+                                     "loglogisticsurv",  "qloglogisticsurv", "lognormalsurv",
+                                     "gammasurv"))) {
 
         if (!inla.model.properties(family, "likelihood")$survival) {
             file.remove(file)
@@ -251,7 +252,7 @@
         }
 
     } else if (inla.one.of(family, c("stochvol", "stochvolt", "stochvolnig", "loggammafrailty",
-                                     "iidlogitbeta", "qkumar", "qloglogistic", "gp"))) {
+                                     "iidlogitbeta", "qkumar", "qloglogistic", "gp", "pom"))) {
         response = cbind(ind, y.orig)
         null.dat = is.na(response[, 2L])
         response = response[!null.dat,]

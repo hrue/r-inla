@@ -245,7 +245,7 @@
         ans = inla.marginal.fix(ans)
     }
     if (is.mat && keep.type) {
-        return (cbind(ans$x, ans$y))
+        return (cbind(x=ans$x, y=ans$y))
     } else {
         return (ans)
     }

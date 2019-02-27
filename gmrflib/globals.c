@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 
@@ -36,7 +36,7 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+//static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 /* Pre-hg-Id: $Id: globals.c,v 1.43 2010/02/15 08:26:37 hrue Exp $ */
 
@@ -203,6 +203,7 @@ int GMRFLib_faster_integration_np = 80;
 int GMRFLib_thread_id = 0;
 #pragma omp threadprivate(GMRFLib_thread_id)
 
+
 /*
   Signal USR2: Stop optimiser and present results
 */
@@ -245,10 +246,20 @@ GMRFLib_global_node_tp GMRFLib_global_node = { 2.0, INT_MAX };
 /* 
    storage strategy for density
  */
-GMRFLib_density_storage_strategy_tp GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT; 
+GMRFLib_density_storage_strategy_tp GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT;
 
 
 /* 
    internal use only; for debugging
  */
 int GMRFLib_debug_code = 0;
+
+/* 
+   tell the pardiso-interface that we're in a thread-safe area
+ */
+int GMRFLib_pardiso_thread_safe = 1;
+
+/* 
+   tell if we have a working pardiso library, -1, is for 'not checked yet'
+ */
+int GMRFLib_pardiso_ok = -1;

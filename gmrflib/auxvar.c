@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 
@@ -96,7 +96,8 @@ int GMRFLib_mixture_lgamma_testing__intern(void)
 	printf("This is a test\n");
 	while (n > 0) {
 		printf("Enter n:\n");
-		scanf("%lf", &n);
+		int ret = scanf("%lf", &n);
+		if (ret == EOF) break;
 		printf("n=%lf\n", n);
 		GMRFLib_mixture_lgamma(&mycoeffs, n);
 		nc = mycoeffs->ncomp;

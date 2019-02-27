@@ -1,0 +1,42 @@
+%% DO NOT EDIT!
+%% This file is generated automatically from models.R
+\begin{description}
+	\item[doc] Auto-regressive model of order 1 w/covariates
+	\item[hyper]\ 
+	 \begin{description}
+	 	\item[theta1]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 14101
+	 	 	\item[name] log precision
+	 	 	\item[short.name] prec
+	 	 	\item[prior] pc.prec
+	 	 	\item[param] 1 0.01
+	 	 	\item[initial] 4
+	 	 	\item[fixed] FALSE
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 	\item[theta2]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 14102
+	 	 	\item[name] logit lag one correlation
+	 	 	\item[short.name] rho
+	 	 	\item[prior] pc.cor0
+	 	 	\item[param] 0.5 0.5
+	 	 	\item[initial] 2
+	 	 	\item[fixed] FALSE
+	 	 	\item[to.theta] \verb!function(x) log((1+x)/(1-x))!
+	 	 	\item[from.theta] \verb!function(x) 2*exp(x)/(1+exp(x))-1!
+	 	 \end{description}
+	 \end{description}
+	\item[constr] FALSE
+	\item[nrow.ncol] FALSE
+	\item[augmented] FALSE
+	\item[aug.factor] 1
+	\item[aug.constr] 
+	\item[n.div.by] 
+	\item[n.required] FALSE
+	\item[set.default.values] TRUE
+	\item[status] experimental
+	\item[pdf] ar1c
+\end{description}

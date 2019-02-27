@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 #ifndef HGVERSION
@@ -241,7 +241,7 @@ int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const ch
 	return INLA_OK;
 }
 
-int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, void *arg)
+double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, void *arg)
 {
 	/*
 	 * compute the marginals for BLC*theta
@@ -261,7 +261,7 @@ int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, 
 #define ThetaNew(_i)   theta_new[(_i)]
 
 	if (!covmat || nhyper == 0) {
-		return INLA_OK;
+		return NULL;
 	}
 
 	int use_new_version = 1, i, ii, jj, debug = 0, k, kk, *idx_map = NULL, nhyper_new = 0;
@@ -272,7 +272,7 @@ int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, 
 	inla_spde2_tp *model = (inla_spde2_tp *) GMRFLib_ai_INLA_userfunc2_args[number];
 
 	if (model->BLC == NULL) {
-		return INLA_OK;
+		return NULL;
 	}
 
 	int idx_offset = model->theta_first_idx;
@@ -425,8 +425,7 @@ int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, 
 			iarg->interpolator = GMRFLib_AI_INTERPOLATOR_CCD;
 
 			int npoints = 51;
-			double *x = Calloc(nhyper_new, double), *xx = NULL, *xxx = Calloc(npoints, double), *ldens_values =
-			    Calloc(npoints, double);
+			double *x = Calloc(nhyper_new, double), *xx = NULL, *xxx = Calloc(npoints, double), *ldens_values = Calloc(npoints, double);
 
 			GMRFLib_ghq_abscissas(&xx, npoints);
 			memcpy(xxx, xx, npoints * sizeof(double));
@@ -441,12 +440,10 @@ int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, 
 					ldens_values[ii] = GMRFLib_ai_integrator_func(nhyper_new, x, iarg);
 				}
 				GMRFLib_density_create(&(GMRFLib_ai_INLA_userfunc2_density[number][i]),
-						       GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, xxx, ldens_values, mean, sqrt(var),
-						       GMRFLib_TRUE);
+						       GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, xxx, ldens_values, mean, sqrt(var), GMRFLib_TRUE);
 			} else {
 				// return a point-mass
-				GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc2_density[number][i]), 0.0, 1.0, mean,
-							      DBL_EPSILON);
+				GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc2_density[number][i]), 0.0, 1.0, mean, DBL_EPSILON);
 			}
 			Free(Sigma_a);
 			Free(x);
@@ -467,8 +464,7 @@ int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, 
 			for (ii = 0; ii < model->ntheta; ii++) {
 				mean += Theta_spde2(ii) * row_spde2[1 + ii];
 				for (jj = 0; jj < model->ntheta; jj++) {
-					var += row_spde2[1 + ii] * row_spde2[1 + jj] * Cov_spde2(ii, jj);	/* yes the first
-														 * column is a
+					var += row_spde2[1 + ii] * row_spde2[1 + jj] * Cov_spde2(ii, jj);	/* yes the first column is a
 														 * constant offset */
 				}
 			}
@@ -493,5 +489,5 @@ int inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, 
 #undef Theta
 #undef CovNew
 #undef ThetaNew
-	return INLA_OK;
+	return NULL;
 }

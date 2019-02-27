@@ -3,82 +3,86 @@
 \usepackage{amstext}
 \usepackage{amsmath}
 \usepackage{verbatim}
-
+\newcommand{\vect}[1]{\boldsymbol{#1}}
 \begin{document}
-\section*{The quantile log-logistics distribution}
+
+\section*{qLogLogistic likelihood}
 
 \subsection*{Parametrisation}
 
-The loglogistic distribution has cdf
-\begin{displaymath} 
-    F(y) = \frac{y^{\beta}}{\alpha^{\beta} + y^{\beta}}, \qquad y\ge
-    0, \quad \alpha, \beta > 0
-\end{displaymath}
-The quantile function is given by
+The LogLogistic distribution has cumulative distribution function
 \begin{displaymath}
-    \kappa(q) = F^{-1}(q) = \alpha
-    \left(\frac{q}{1-q}\right)^{1/\beta}, \qquad 0 < q < 1.
+    F_0(y) = \frac{1}{1 + \lambda y^{-\alpha}}, \qquad y > 0
 \end{displaymath}
-The median is $\kappa(0.5)$ and equals $\alpha$.
-We will use a quantile parameterisation. Define for fixed $q$, 
+if \texttt{variant=0}, or
 \begin{displaymath}
-    \kappa = \alpha \left(\frac{q}{1-q}\right)^{1/\beta}
+    F_1(y) = \frac{1}{1 + (\lambda y)^{-\alpha}}, \qquad y > 0
 \end{displaymath}
-and
+if \texttt{variant=1}, where
+\begin{description}
+\item[$\alpha > 0$] is a shape parameter, and
+\item[$\lambda > 0$] is a scale parameter.
+\end{description}
+The $\lambda$ is defined implicitely through the quantile, as
 \begin{displaymath}
-    s = 1/\beta.
+    F_0(y_q) = q, \quad\text{or}\quad
+    F_q(y_q) = q, \quad 0<q<1
 \end{displaymath}
-Then $0<\kappa<1$ is the $q$-quantile, and $s>0$ is a scaling parameter.
-The cdf and the density are now
-\begin{displaymath}
-    F(y) = \frac{q^{*}y^{1/s}}{\kappa^{1/s} + q^{*} y^{1/s}}
-\end{displaymath}
-and 
-\begin{displaymath}
-    f(y) = \frac{q^{*} \kappa^{1/s} y^{1/s-1}}{s(\kappa^{1/s}+q^{*}y^{1/s})^{2}}
-\end{displaymath}
-where $q^{*} = q/(1-q)$.
+and the linear predictor is defined on $y_q$.
 
-\subsection*{Link-function}
+\subsection*{Link-functions}
 
-The quantile $\kappa$ relates to the linear predictor,
-\begin{displaymath}
-    \log(\kappa) = \eta
-\end{displaymath}
-using the default log link-function.
+The parameter $\lambda$ is linked to the linear predictor, implicitely through
+\[
+    y_q = \exp(\eta)
+\]
 
 \subsection*{Hyperparameters}
 
-The hyperparameter is
-\begin{displaymath}
-    \theta = \log(s)
-\end{displaymath}
-and the prior is given for $\theta$.
-
+The $\alpha$ parameter is represented as
+\[
+    \theta = \log\alpha
+\]
+and the prior is defined on $\theta$.
 
 \subsection*{Specification}
 
 \begin{itemize}
-\item $\text{family}=\texttt{qloglogistic}$
-\item Required arguments: Observations $y$ and the value of $q$.
+\item \texttt{family} equals \texttt{qloglogistic} (regression) or
+    \texttt{qloglogisticsurv} (survival)
+\item \texttt{variant=0} (default) or 1, chosing between
+    parameterisation $F_0$ or $F_1$.
+\item Required arguments: $y$ (regression) or an
+    \texttt{inla.surv}-object using \texttt{inla.surv()} (for survival
+    data), and quantile$=q$.
 \end{itemize}
-The quantile is given as \texttt{control.family=list(quantile=$q$)}.
 
 \subsubsection*{Hyperparameter spesification and default values}
-\input{../hyper/likelihood/qloglogistic.tex}
+\textbf{Regression:} \input{../hyper/likelihood/qloglogistic.tex}
+
+\textbf{Survival:} \input{../hyper/likelihood/qloglogisticsurv.tex}
+
 
 \subsection*{Example}
 
-\verbatiminput{example-qloglogistic.R}
+In the following example we estimate the parameters in a simulated
+case \verbatiminput{example-qloglogistic.R}
 
 \subsection*{Notes}
 
+\begin{itemize}
+\item Loglogisticsurv model can be used for right censored, left
+    censored, interval censored data. If the observed times $y$ are
+    large/huge, then this can cause numerical overflow in the
+    likelihood routine. If you encounter this problem, try to scale
+    the observatios, \verb|time = time / max(time)| or similar.
+\end{itemize}
 
 \end{document}
 
 
-% LocalWords: 
 
 %%% Local Variables: 
 %%% TeX-master: t
 %%% End: 
+
