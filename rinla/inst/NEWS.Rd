@@ -29,6 +29,15 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.02.28}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Several fgn-models are now fine
+      \item Fixed CPU timing with the PARDISO library
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.02.26}{
   \subsection{BUG FIXES}{
     \itemize{
