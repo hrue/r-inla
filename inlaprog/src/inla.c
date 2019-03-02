@@ -31243,9 +31243,18 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem = NULL;
 
+	/*
+	 * I need B to be dense 
+	 */
+	GMRFLib_matrix_tp *B = GMRFLib_read_fmesher_file(Bfilename, (long int) 0, -1);
+	assert(B->i == NULL);				       /* I want B as dense matrix */
+
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, Qfilename, -1, NULL, NULL, NULL);
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
+		GMRFLib_pardiso_set_nrhs(IMIN(GMRFLib_MAX_THREADS, B->ncol));
+		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = GMRFLib_REORDER_BAND;
 	} else {
@@ -31253,12 +31262,6 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
-
-	/*
-	 * I need B to be dense 
-	 */
-	GMRFLib_matrix_tp *B = GMRFLib_read_fmesher_file(Bfilename, (long int) 0, -1);
-	assert(B->i == NULL);				       /* I want B as dense matrix */
 	assert(problem->n == B->nrow);
 
 	if (!strcasecmp(method, "solve")) {
@@ -31354,7 +31357,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
-		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
+		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL; // use _PARALLEL with an option??
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = GMRFLib_REORDER_BAND;
@@ -31392,8 +31395,8 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		fprintf(stderr, "inla_qsample: start to sample %1d samples...\n", ns);
 	}
 
-	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		// as we do not want to factorize it again...
+	if ((GMRFLib_smtp == GMRFLib_SMTP_PARDISO) &&
+	    (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL)) {
 		for (i = 0; i < ns; i++) {
 			if (!S) {
 				GMRFLib_sample(problem);
@@ -32571,7 +32574,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR1, inla_signal);
 	signal(SIGUSR2, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:T:N:r:FYz:cp")) != -1) {
+	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:T:N:r:FYz:cpR:")) != -1) {
 		switch (opt) {
 		case 'b':
 			G.binary = 1;
@@ -32730,6 +32733,18 @@ int main(int argc, char **argv)
 				G.reorder = GMRFLib_reorder_id((const char *) optarg);
 			}
 			GMRFLib_reorder = G.reorder;	       /* yes! */
+			break;
+
+		case 'R':
+		{
+			int nrhs = 0;
+			err = inla_sread_ints(&nrhs, 1, optarg);
+			if (err || nrhs < 0) {
+				GMRFLib_ASSERT(err, GMRFLib_EPARAMETER);
+				exit(1);
+			}
+			GMRFLib_pardiso_set_nrhs(nrhs);
+		}
 			break;
 
 		case 'c':
