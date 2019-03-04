@@ -89,10 +89,10 @@ mv -f $TMP $model
 ## long jobs the pipe gets terminated.
 cd $dir > /dev/null
 
-tar cfm$compress_put - . | ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
+tar cfm$compress_put - . 2>/dev/null | ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
     mkdir -p $rdir; \
     cd $rdir; \
     echo $INLA_SUBMIT_ID > jobid; \
     echo > working; \
-    tar xfm$compress_put - ; \
+    tar xfm$compress_put - 2>/dev/null ; \
     { rm -f working; $RemoteINLA $args -v Model.ini && echo > done; } </dev/null > Logfile.txt 2>&1 &" &
