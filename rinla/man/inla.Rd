@@ -42,6 +42,7 @@ inla(
     inla.call = inla.getOption("inla.call"),
     inla.arg = inla.getOption("inla.arg"),
     num.threads = inla.getOption("num.threads"),
+    blas.num.threads = inla.getOption("blas.num.threads"),
     keep = inla.getOption("keep"),
     working.directory = inla.getOption("working.directory"),
     silent = inla.getOption("silent"),
@@ -68,7 +69,8 @@ variable, a list or the output of the function
 \item{family}{ A string indicating the likelihood
  family. The default is \code{gaussian} with identity
  link. See \code{names(inla.models()$likelihood)} for a
- list of possible alternatives.}
+ list of possible alternatives and use \code{\link{inla.doc}}
+ for detailed docs for individual families.}
 \item{contrasts}{Optional contrasts for the fixed
 effects; see \code{?lm} or \code{?glm} for details.}
 \item{data}{ A data frame or list containing the
@@ -115,9 +117,9 @@ WARNING: The normalizing constant for the likelihood is NOT recomputed, so
 ALL marginals (and the marginal likelihood) must be interpreted with great care.
 Possibly, you may want to set the prior for the hyperparameters to \code{"uniform"}
 and the integration strategy to \code{"eb"} to mimic a maximum-likelihood approach.}
-\item{Ntrials}{ A vector containing the number of
-trials for the \code{binomial} likelihood. Default
-value is \code{rep(1, n.data)}.}
+\item{Ntrials}{A vector containing the number of trials for the \code{binomial} 
+likelihood and variantes, or the number of required successes for the
+\code{nbinomial2} likelihood. Default value is \code{rep(1, n.data)}.}
 \item{strata}{Fixed (optional) strata indicators 
 for tstrata likelihood model.}
 \item{link.covariates}{A vector or matrix with covariates for link functions}
@@ -154,9 +156,15 @@ improve the performance.}
 the 'inla' program and do not include default
 arguments. (OOPS: This is an expert option!)}
 \item{num.threads}{ Maximum number of threads the
-\code{inla}-program will use. xFor Windows this
-defaults to 1, otherwise its defaults to \code{NULL}
-(for which the system takes over control).}
+\code{inla}-program will use}
+\item{blas.num.threads}{The absolute value of \code{blas.num.threads} is the maximum
+number of threads the the \code{openblas}/\code{mklblas} will use (if available). If
+\code{blas.num.threads} > 0, then the environment variables
+\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned. If
+\code{blas.num.threads} < 0, then the environment variables
+\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned unless they
+are already defined. If \code{blas.num.threads} = 0, then variables
+\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be removed.}
 \item{keep}{ A boolean variable indicating that the
 working files (ini file, data files and results
 files) should be kept. If TRUE and no

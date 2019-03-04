@@ -12,7 +12,7 @@
               mixture representing FGN(H)}
 
  \usage{
-     inla.fgn(H, K=3L, lag.max = NULL, approx = TRUE)
+     inla.fgn(H, K=4L, lag.max = NULL, approx = TRUE)
  } 
 
  \arguments{

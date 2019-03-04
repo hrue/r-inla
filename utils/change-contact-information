@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+TMP=$(echo ~/tmp/file-$RANDOM-$$)
+
+for f in "$@"; do
+    
+    echo "$f..."
+
+    awk '/ [*] The author.*s contact information:/{
+    print
+    print " *" 
+    for(i=1;i<=8;i=i+1) getline;
+    print " *        H{\aa}vard Rue"
+    print " *        CEMSE Division"
+    print " *        King Abdullah University of Science and Technology"
+    print " *        Thuwal 23955-6900, Saudi Arabia"
+    print " *        Email: haavard.rue@kaust.edu.sa"
+    print " *        Office: +966 (0)12 808 0640"
+}
+/ [*] RCSId: [$]Id: / {next}
+			    {print}' "$f" > $TMP && mv $TMP "$f";
+done
+
+			    

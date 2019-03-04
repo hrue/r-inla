@@ -65,6 +65,7 @@ namespace fmesh {
     Xtmpl (*X11_);
     int X11_v_big_limit_;
 #endif
+    int verbose_;
     
   private:
     Mesh& rebuildTT();
@@ -83,27 +84,31 @@ namespace fmesh {
     Mesh& rebuild_VT();
     Mesh& rebuildTTi();
 
+#ifndef FMESHER_NO_X
   public:
     void drawX11point(int v, bool fg);
     void drawX11triangle(int t, bool fg);
     void redrawX11(std::string str);
+#endif
     
   public:
     Mesh(void) : type_(Mtype_manifold),
 		 use_VT_(false), use_TTi_(true),
-		 TV_(), TT_(), VT_(), TTi_(), S_()
+		 TV_(), TT_(), VT_(), TTi_(), S_(),
 #ifndef FMESHER_NO_X
-	       , X11_(NULL), X11_v_big_limit_(0)
+		 X11_(NULL), X11_v_big_limit_(0),
 #endif
+		 verbose_(0)
     {};
     Mesh(Mtype manifold_type, size_t Vcapacity,
 	 bool use_VT=true, bool use_TTi=false);
     Mesh(const Mesh& M) : type_(Mtype_manifold),
 			  use_VT_(true), use_TTi_(false),
-			  TV_(), TT_(), VT_(), TTi_(), S_()
+			  TV_(), TT_(), VT_(), TTi_(), S_(),
 #ifndef FMESHER_NO_X
-			, X11_(NULL), X11_v_big_limit_(0)
+			  X11_(NULL), X11_v_big_limit_(0),
 #endif
+			  verbose_(0)
     {
       *this = M;
     };
@@ -123,17 +128,13 @@ namespace fmesh {
     bool useTTi() const { return use_TTi_; };
     Mesh& useTTi(bool use_TTi);
 
-    bool useX11() const {
 #ifndef FMESHER_NO_X
+    bool useX11() const {
       return (X11_!=NULL);
-#else
       return false;
-#endif
     };
     void setX11VBigLimit(int lim) {
-#ifndef FMESHER_NO_X
       X11_v_big_limit_ = lim;
-#endif
     };
     void setX11delay(double set_delay);
     Mesh& useX11(bool use_X11, bool draw_text,
@@ -143,6 +144,7 @@ namespace fmesh {
 		 double miny = -0.05,
 		 double maxy = 1.05,
 		 std::string name = "fmesher::Mesh");
+#endif
 
     Mtype type() const { return type_; };
     void type(Mtype set_type) { type_ = set_type; };
@@ -169,8 +171,6 @@ namespace fmesh {
 
 #ifndef FMESHER_NO_X
     Xtmpl *X11() { return X11_; };
-#else
-    void *X11() { return NULL; };
 #endif
 
     MOAint3 TVO() const;

@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 #ifndef HGVERSION
@@ -68,6 +68,30 @@ int inla_make_fgn_graph(GMRFLib_graph_tp ** graph, inla_fgn_arg_tp * def)
 	return (GMRFLib_SUCCESS);
 }
 
+int inla_make_fgn2_graph(GMRFLib_graph_tp ** graph, inla_fgn2_arg_tp * def)
+{
+	int i;
+	GMRFLib_graph_tp *g_ar1 = NULL;
+	GMRFLib_ged_tp *ged = NULL;
+
+	GMRFLib_make_linear_graph(&g_ar1, def->n, 1, 0);
+	GMRFLib_ged_init(&ged, NULL);
+
+	for (i = 0; i < def->k; i++) {
+		GMRFLib_ged_insert_graph2(ged, g_ar1, i * def->n, i * def->n);
+	}
+	for (i = 0; i < def->k - 1; i++) {
+		GMRFLib_ged_insert_graph2(ged, g_ar1, i * def->n, (i + 1) * def->n);
+	}
+	assert(GMRFLib_ged_max_node(ged) == def->N - 1);
+	GMRFLib_ged_build(graph, ged);
+	GMRFLib_free_graph(g_ar1);
+
+	return (GMRFLib_SUCCESS);
+}
+
+
+
 double Qfunc_fgn(int i, int j, void *arg)
 {
 	// the model (z,x1,x2,x3,...), where z = 1/\sqrt{prec} * \sum_i \sqrt{w_i} x_i + tiny.noise,
@@ -77,23 +101,30 @@ double Qfunc_fgn(int i, int j, void *arg)
 	static double **phi_cache = NULL, **w_cache = NULL, *H_intern_cache = NULL;
 
 	if (!arg) {
-		assert(phi_cache == NULL);		       /* do not initialize twice */
-		phi_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		w_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		H_intern_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double);
-
-		for (int j = 0; j < ISQR(GMRFLib_MAX_THREADS); j++) {
-			phi_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
-			w_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
+		assert(i < 0 && j < 0);			       /* safety check */
+		if (phi_cache == NULL) {
+#pragma omp critical 
+			{
+				if (phi_cache == NULL) {
+					phi_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+					w_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+					H_intern_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double);
+					
+					for (int j = 0; j < ISQR(GMRFLib_MAX_THREADS); j++) {
+						phi_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
+						w_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
+					}
+					if (debug) {
+						printf("Qfunc_fgn: initialize cache\n");
+					}
+				}
+			}
 		}
-		if (debug) {
-			printf("Qfunc_fgn: initialize cache\n");
-		}
-		return NAN;
+		return NAN;				       /* so it will break if used wrong */
 	}
 
 	inla_fgn_arg_tp *a = (inla_fgn_arg_tp *) arg;
-	double H_intern, prec, val = 0.0, *phi, *w;
+	double H_intern, prec, val = 0.0, *phi, *w, kappa;
 	int id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
 
 	phi = phi_cache[id];
@@ -101,6 +132,7 @@ double Qfunc_fgn(int i, int j, void *arg)
 
 	H_intern = a->H_intern[GMRFLib_thread_id][0];
 	prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	kappa = a->prec_eps * prec;
 
 	if (!ISEQUAL(H_intern, H_intern_cache[id])) {
 		if (debug) {
@@ -121,7 +153,7 @@ double Qfunc_fgn(int i, int j, void *arg)
 	// the x^i's are the scaled AR1's, and the FGN is then just the sum of the
 	// components.
 	if (ii.quot == 0) {
-		val = a->prec_eps * (jj.quot == 0 ? 1.0 : -1.0);
+		val = kappa * (jj.quot == 0 ? 1.0 : -1.0);
 	} else {
 		if (ii.quot == jj.quot) {
 			// this is the AR1
@@ -132,18 +164,99 @@ double Qfunc_fgn(int i, int j, void *arg)
 				val = -scale * prec_cond * phi[ii.quot - 1L];
 			} else {
 				// diagonal
-				val =
-				    scale * prec_cond *
-				    ((ii.rem == 0 || ii.rem == a->n - 1L) ? 1.0 : (1.0 + SQR(phi[ii.quot - 1L])));
-				val += a->prec_eps;
+				val = scale * prec_cond * ((ii.rem == 0 || ii.rem == a->n - 1L) ? 1.0 : (1.0 + SQR(phi[ii.quot - 1L])));
+				val += kappa;
 			}
 		} else {
-			val = a->prec_eps;
+			val = kappa;
 		}
 	}
 
 	return val;
 }
+
+double inla_fgn2_helper(int i, int j, int n, double phi)
+{
+	double phi2 = SQR(phi);
+	return ((i != j ? -phi : ((i == 0 || i == n - 1) ? 1.0 : (1.0 + phi2))) / (1.0 - phi2));
+
+	if (0) {
+		double val;
+
+		if (i != j) {
+			val = -phi;
+		} else {
+			if (i == 0 || i == n - 1) {
+				val = 1.0;
+			} else {
+				val = 1.0 + phi2;
+			}
+		}
+		return val / (1.0 - phi2);		       /* correction to get unit variance */
+	}
+}
+
+double Qfunc_fgn2(int i, int j, void *arg)
+{
+	// the x^i's are the scaled AR1's, and FGN is the cummulative sum of the components.
+
+	int debug = 0;
+	static double **phi_cache = NULL, **w_cache = NULL, *H_intern_cache = NULL;
+
+	if (!arg) {
+		assert(phi_cache == NULL);		       /* do not initialize twice */
+		phi_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		w_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		H_intern_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double);
+
+		for (int j = 0; j < ISQR(GMRFLib_MAX_THREADS); j++) {
+			phi_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
+			w_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
+		}
+		if (debug) {
+			printf("Qfunc_fgn2: initialize cache\n");
+		}
+		return NAN;
+	}
+
+	inla_fgn2_arg_tp *a = (inla_fgn2_arg_tp *) arg;
+	double H_intern, prec, val = 0.0, *phi, *w;
+	int id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
+
+	phi = phi_cache[id];
+	w = w_cache[id];
+
+	H_intern = a->H_intern[GMRFLib_thread_id][0];
+	prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+
+	if (!ISEQUAL(H_intern, H_intern_cache[id])) {
+		if (debug) {
+			printf("Qfunc_fgn2: update cache H_intern[%1d]= %f\n", id, H_intern);
+		}
+		inla_fgn_get(phi, w, H_intern, a->k);
+		H_intern_cache[id] = H_intern;
+		if (debug) {
+			for (int k = 0; k < a->k; k++)
+				printf("\tphi[%1d]= %f   w[%1d]= %f\n", k, phi[k], k, w[k]);
+		}
+	}
+
+	div_t ii = div(IMIN(i, j), a->n);
+	div_t jj = div(IMAX(i, j), a->n);
+	int k, kk;
+	double qval, qqval;
+
+	// this is to get the slowest components last, otherwise use k = ii.quot and kk=k-1
+	k = a->k - ii.quot - 1;
+	kk = k + 1;
+
+	qval = inla_fgn2_helper(ii.rem, jj.rem, a->n, phi[k]) / w[k];
+	qqval = ((ii.quot > 0) ? inla_fgn2_helper(ii.rem, jj.rem, a->n, phi[kk]) / w[kk] : 0.0);
+	val = prec * ((ii.quot == jj.quot) ? qval + qqval : -qval);
+
+	return val;
+}
+
 
 int inla_fgn_get(double *phi, double *w, double H_intern, int k)
 {

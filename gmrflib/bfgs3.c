@@ -10,7 +10,7 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+//static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 /* Pre-hg-Id: $Id: bfgs3.c,v 1.8 2009/12/15 12:26:03 hrue Exp $ */
 
@@ -184,7 +184,8 @@ static double interpolate(double a, double fa, double fpa, double b, double fb, 
 /* recommended values from Fletcher are 
    rho = 0.01, sigma = 0.1, tau1 = 9, tau2 = 0.05, tau3 = 0.5 */
 
-static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1, double tau2, double tau3, int order, double alpha1, double *alpha_new)
+static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1, double tau2, double tau3, int order, double alpha1,
+		    double *alpha_new)
 {
 	double f0, fp0, falpha, falpha_prev, fpalpha, fpalpha_prev, delta, alpha_next;
 	double alpha = alpha1, alpha_prev = 0.0;
@@ -309,7 +310,7 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 		if (debug)
 			printf("... roundoff check %.12g\n", (a - alpha) * fpa);
 
-		if ((a - alpha) * fpa <= GMRFLib_eps(2.0/3.0)) {	       /* hrue */
+		if ((a - alpha) * fpa <= GMRFLib_eps(2.0 / 3.0)) {	/* hrue */
 			/*
 			 * roundoff prevents progress 
 			 */
@@ -601,7 +602,8 @@ static int vector_bfgs3_alloc(void *vstate, size_t n)
 	return GSL_SUCCESS;
 }
 
-static int vector_bfgs3_set(void *vstate, gsl_multimin_function_fdf * fdf, const gsl_vector * x, double *f, gsl_vector * gradient, double step_size, double tol)
+static int vector_bfgs3_set(void *vstate, gsl_multimin_function_fdf * fdf, const gsl_vector * x, double *f, gsl_vector * gradient, double step_size,
+			    double tol)
 {
 	vector_bfgs3_state_t *state = (vector_bfgs3_state_t *) vstate;
 

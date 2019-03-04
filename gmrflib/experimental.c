@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 
@@ -186,7 +186,7 @@ int GMRFLib_write_graph_binary_EXPERIMENTAL(const char *filename, GMRFLib_graph_
 	int i;
 	FILE *fp;
 	size_t ret;
-	
+
 	if (!filename) {
 		return GMRFLib_SUCCESS;
 	}
@@ -201,9 +201,12 @@ int GMRFLib_write_graph_binary_EXPERIMENTAL(const char *filename, GMRFLib_graph_
 	ret = fwrite(&(graph->n), sizeof(int), 1, fp);
 	for (i = 0; i < graph->n; i++) {
 		ret = fwrite(&i, sizeof(int), 1, fp);
+		if (ret == 0) assert(0 == 1);
 		ret = fwrite(&(graph->nnbs[i]), sizeof(int), 1, fp);
+		if (ret == 0) assert(0 == 1);
 		if (graph->nnbs[i]) {
 			ret = fwrite(graph->nbs[i], sizeof(int), (unsigned int) graph->nnbs[i], fp);
+			if (ret == 0) assert(0 == 1);
 		}
 	}
 	fclose(fp);

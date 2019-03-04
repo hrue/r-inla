@@ -1,11 +1,12 @@
 \name{inla.dBind}
 \alias{inla.dBind}
+\alias{inla.dBind-deprecated}
 \title{
   Build a block-diagonal sparse matrix.
 }
 \description{
   Build a block-diagonal sparse matrix.
-  Obsolete wrapper for \code{dbind()}.
+  Obsolete wrapper for \code{bdiag()}.
 }
 \usage{
 inla.dBind(...)

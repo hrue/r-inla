@@ -19,14 +19,13 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
- * RCSId: $Id: GMRFLib.h,v 1.67 2010/01/26 10:46:53 hrue Exp $
  *
  */
 
@@ -105,6 +104,7 @@ __BEGIN_DECLS
 #include "GMRFLib/seasonal.h"
 #include "GMRFLib/rw.h"
 #include "GMRFLib/tabulate-Qfunc.h"
+#include "GMRFLib/smtp-pardiso.h"
 #include "GMRFLib/sparse-interface.h"
 #include "GMRFLib/problem-setup.h"
 #include "GMRFLib/openmp.h"
@@ -120,7 +120,6 @@ __BEGIN_DECLS
 #include "GMRFLib/distributions.h"
 #include "GMRFLib/wa.h"
 #include "GMRFLib/smtp-band.h"
-#include "GMRFLib/smtp-profile.h"
 #include "GMRFLib/smtp-taucs.h"
 #include "GMRFLib/bitmap.h"				       /* needs both graph and problem and sparse */
 #include "GMRFLib/geo.h"

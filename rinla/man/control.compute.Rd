@@ -16,17 +16,17 @@ control.compute(config, cpo, dic, gdensity, graph, hyperpar, mlik, openmp.strate
 }
 \arguments{
 \item{...}{Possible arguments}
-\item{openmp.strategy}{  The computational strategy to use: 'small', 'medium', 'large', 'huge' and 'default'. The difference is how the parallelisation is done, and is tuned for 'small'-sized models, 'medium'-sized models, etc. The default option tries to make an educated guess, but this allows to overide this selection. Default is 'default'}
+\item{openmp.strategy}{  The computational strategy to use: 'small', 'medium', 'large', 'huge' and 'default'. There are also two options for the pardiso solver: 'pardiso.serial' and 'pardiso.parallel'. The difference is how the parallelisation is done, and is tuned for 'small'-sized models, 'medium'-sized models, etc. The default option tries to make an educated guess, but this allows to overide this selection. Default is 'default'}
 \item{hyperpar}{  A boolean variable if the marginal for the hyperparameters should be computed. Default TRUE.}
 \item{return.marginals}{  A boolean variable if the marginals for the latent field should be returned (although it is computed). Default TRUE}
 \item{dic}{  A boolean variable if the DIC-value should be computed. Default FALSE.}
-\item{mlik}{  A boolean variable if the marginal likelihood should be computed. Default FALSE.}
-\item{cpo}{  A boolean variable if the cross-validated predictive measures (cpo, pit) should be computed}
-\item{po}{  A boolean variable if the predictive ordinate should be computed}
-\item{waic}{  A boolean variable if the Watanabe-Akaike information criteria should be computed}
+\item{mlik}{  A boolean variable if the marginal likelihood should be computed. Default \code{TRUE}.}
+\item{cpo}{  A boolean variable if the cross-validated predictive measures (cpo, pit) should be computed (default \code{FALSE})}
+\item{po}{  A boolean variable if the predictive ordinate should be computed (default \code{FALSE})}
+\item{waic}{  A boolean variable if the Watanabe-Akaike information criteria should be computed (default \code{FALSE})}
 \item{q}{  A boolean variable if binary images of the precision matrix, the reordered precision matrix and the Cholesky triangle should be generated. (Default FALSE.)}
 \item{config}{  A boolean variable if the internal GMRF approximations be stored. (Default FALSE. EXPERIMENTAL)}
-\item{smtp}{  The sparse-matrix solver, one of 'smtp' (default) or 'band'}
+\item{smtp}{  The sparse-matrix solver, one of 'default', 'taucs', 'band' or 'pardiso' (default \code{inla.getoption("smtp")})}
 \item{graph}{  A boolean variable if the graph itself should be returned. (Default FALSE.)}
 \item{gdensity}{  A boolean variable if the Gaussian-densities itself should be returned. (Default FALSE.)}
 }
