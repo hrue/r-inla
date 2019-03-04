@@ -19,14 +19,13 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
- * RCSId: $Id: rw.h,v 1.44 2010/03/10 18:18:11 hrue Exp $
  *
  */
 
@@ -54,6 +53,7 @@
 #endif
 
 __BEGIN_DECLS
+
 
 /*!
   \struct GMRFLib_rwdef_tp rw.h
@@ -309,7 +309,6 @@ double GMRFLib_rw2d(int node, int nnode, void *rw2ddef);
 int GMRFLib_make_rw2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def);
 int GMRFLib_make_rw_graph(GMRFLib_graph_tp ** graph, GMRFLib_rwdef_tp * def);
 int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def);
-int GMRFLib_crw_scale_OLD(void *def);
 int GMRFLib_crw_scale(void *def);
 int GMRFLib_rw_scale(void *def);
 int GMRFLib_rw2d_scale(void *def);

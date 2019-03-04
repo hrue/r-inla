@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  *
  */
@@ -88,8 +88,8 @@ typedef struct {
 
 double inla_spde_KT_model_eval(inla_spde_theta_tp * theta_model, int idx);
 double inla_spde_Qfunction(int node, int nnode, void *arg);
-double *inla_spde_userfunc0(GMRFLib_problem_tp * problem, double *theta, int *nhyper);
-int inla_spde_userfunc1(double *theta, int nhyper, double *covmat);
+double *inla_spde_userfunc0(GMRFLib_problem_tp * problem, double *theta, int nhyper);
+double *inla_spde_userfunc1(double *theta, int nhyper, double *covmat);
 int inla_spde_KT_model_eval2(double *value0, double *value1, inla_spde_theta_tp * theta_model, int idx, int iidx);
 int inla_spde_KT_model_init(inla_spde_theta_tp * theta_model, GMRFLib_matrix_tp * basis);
 int inla_spde_free_points(inla_spde_points_tp * p);

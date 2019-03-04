@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 
@@ -150,14 +150,16 @@ double GMRFLib_rw(int node, int nnode, void *def)
 						return prec * 6.0;
 					default:
 						GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);
+						return NAN;
 					}
 				case 1:
 					return prec * (imin == 0 ? -2.0 : -4.0);
 				case 2:
 					return prec * 1.0;
 				default:
-					GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);
-				}
+					GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);	
+					return NAN;
+			}
 			default:
 				return 0.0;
 			}
@@ -350,6 +352,7 @@ double GMRFLib_crw(int node, int nnode, void *def)
 						return prec * 6.0;
 					default:
 						GMRFLib_ASSERT(0, GMRFLib_ESNH);
+						return NAN;
 					}
 				case 1:
 					return prec * (imin == 0 ? -2.0 : -4.0);
@@ -357,6 +360,7 @@ double GMRFLib_crw(int node, int nnode, void *def)
 					return prec * 1.0;
 				default:
 					GMRFLib_ASSERT(0, GMRFLib_ESNH);
+					return NAN;
 				}
 			}
 		} else {
@@ -885,81 +889,6 @@ int GMRFLib_make_rw2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_crw_scale_OLD(void *def)
-{
-	/*
-	 * This approach uses the 'ginv' approach. to slow
-	 */
-
-	GMRFLib_crwdef_tp *crwdef = Calloc(1, GMRFLib_crwdef_tp);
-	GMRFLib_crwdef_tp *odef = (GMRFLib_crwdef_tp *) def;
-
-	crwdef->n = odef->n;
-	assert(odef->order > 0);
-	crwdef->order = odef->order;
-	crwdef->prec = NULL;
-	crwdef->log_prec = NULL;
-	crwdef->log_prec_omp = NULL;
-	crwdef->position = odef->position;
-	assert(odef->layout == GMRFLib_CRW_LAYOUT_SIMPLE);
-	crwdef->layout = odef->layout;
-	crwdef->work = NULL;
-	crwdef->scale0 = NULL;
-
-	GMRFLib_graph_tp *graph = NULL;
-	GMRFLib_make_crw_graph(&graph, crwdef);
-
-	gsl_matrix *Q = gsl_matrix_alloc(crwdef->n, crwdef->n);
-	size_t i, j, k;
-
-	/*
-	 * yes, use dense matrix
-	 */
-	for (i = 0; i < (size_t) graph->n; i++) {
-		gsl_matrix_set(Q, i, i, GMRFLib_crw(i, i, crwdef));
-		for (k = 0; k < (size_t) graph->nnbs[i]; k++) {
-			double value;
-
-			j = (size_t) graph->nbs[i][k];
-			value = GMRFLib_crw(i, j, crwdef);
-			gsl_matrix_set(Q, i, j, value);
-			gsl_matrix_set(Q, j, i, value);
-		}
-	}
-
-	GMRFLib_gsl_ginv(Q, -1.0, crwdef->order);
-	double sum = 0.0, scale;
-
-	if (crwdef->position) {
-		for (i = 0; i < Q->size1; i++) {
-			if (i == 0) {
-				sum += log(gsl_matrix_get(Q, i, i)) * (crwdef->position[i + 1] - crwdef->position[i]) * 0.5;
-			} else if (i == Q->size1 - 1) {
-				sum += log(gsl_matrix_get(Q, i, i)) * (crwdef->position[i] - crwdef->position[i - 1]) * 0.5;
-			} else {
-				sum += log(gsl_matrix_get(Q, i, i)) * (crwdef->position[i + 1] - crwdef->position[i - 1]) * 0.5;
-			}
-		}
-		scale = exp(sum / (crwdef->position[Q->size1 - 1] - crwdef->position[0]));
-	} else {
-		/*
-		 * there is a correction 0.5 at the two endpoints that is different with the discrete and the general case
-		 */
-		for (i = 0; i < Q->size1; i++) {
-			sum += log(gsl_matrix_get(Q, i, i));
-		}
-		scale = exp(sum / Q->size1);
-	}
-
-	odef->prec_scale = Calloc(1, double);
-	odef->prec_scale[0] = scale;
-
-	gsl_matrix_free(Q);
-	Free(crwdef);
-	GMRFLib_free_graph(graph);
-
-	return GMRFLib_SUCCESS;
-}
 
 int GMRFLib_crw_scale(void *def)
 {
@@ -969,6 +898,9 @@ int GMRFLib_crw_scale(void *def)
 	GMRFLib_crwdef_tp *crwdef = Calloc(1, GMRFLib_crwdef_tp);
 	GMRFLib_crwdef_tp *odef = (GMRFLib_crwdef_tp *) def;
 
+	double *prec_scale_guess = Calloc(1, double);
+	*prec_scale_guess = 1.0;
+
 	crwdef->n = odef->n;
 	assert(odef->order > 0);
 	crwdef->order = odef->order;
@@ -980,6 +912,7 @@ int GMRFLib_crw_scale(void *def)
 	crwdef->layout = odef->layout;
 	crwdef->work = NULL;
 	crwdef->scale0 = NULL;
+	crwdef->prec_scale = prec_scale_guess;
 
 	GMRFLib_graph_tp *graph = NULL;
 	GMRFLib_make_crw_graph(&graph, crwdef);
@@ -1016,9 +949,18 @@ int GMRFLib_crw_scale(void *def)
 		constr->a_matrix[i * constr->nc + 0] = len[i];
 	}
 
-	if (crwdef->order == 2) {
-		double len_acum = 0.0;
+	double len_acum = 0.0;
+	for (i = 0; i < graph->n; i++) {
+		len_acum += len[i];
+	}
+	if (crwdef->order == 1) {
+		*prec_scale_guess = len_acum;
+	} else {
+		*prec_scale_guess = SQR(len_acum);
+	}
 
+	if (crwdef->order == 2) {
+		len_acum = 0.0;
 		for (i = 0; i < graph->n; i++) {
 			len_acum += len[i];
 			constr->a_matrix[i * constr->nc + 1] = len_acum;
@@ -1028,7 +970,7 @@ int GMRFLib_crw_scale(void *def)
 	constr->e_vector = Calloc(constr->nc, double);
 	GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
 
-	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(.75);
+	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(0.5);
 	GMRFLib_problem_tp *problem;
 
 	for (i = 0; i < graph->n; i++) {
@@ -1037,12 +979,13 @@ int GMRFLib_crw_scale(void *def)
 
 	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-	
+
 	while (!ok) {
-		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_crw, (void *) crwdef, NULL, constr, GMRFLib_NEW_PROBLEM);
+		retval =
+		    GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_crw, (void *) crwdef, NULL, constr, GMRFLib_NEW_PROBLEM);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
-			for (i = 0; i < graph->n; i++){
+			for (i = 0; i < graph->n; i++) {
 				c[i] *= 10.0;
 			}
 			problem = NULL;
@@ -1056,14 +999,14 @@ int GMRFLib_crw_scale(void *def)
 			abort();
 			break;
 		}
-		
+
 		if (++num_try >= num_try_max) {
 			FIXME("This should not happen. Contact developers...");
 			abort();
 		}
 	}
 	GMRFLib_set_error_handler(old_handler);
-	
+
 	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
 
 	double sum = 0.0;
@@ -1072,7 +1015,7 @@ int GMRFLib_crw_scale(void *def)
 	}
 
 	odef->prec_scale = Calloc(1, double);
-	odef->prec_scale[0] = exp(sum / (crwdef->position[graph->n - 1] - crwdef->position[0]));
+	odef->prec_scale[0] = exp(sum / (crwdef->position[graph->n - 1] - crwdef->position[0])) * *prec_scale_guess;
 
 	Free(c);
 	Free(crwdef);
@@ -1091,6 +1034,8 @@ int GMRFLib_rw_scale(void *def)
 {
 	GMRFLib_rwdef_tp *rwdef = Calloc(1, GMRFLib_rwdef_tp);
 	GMRFLib_rwdef_tp *odef = (GMRFLib_rwdef_tp *) def;
+	double *prec_scale_guess = Calloc(1, double);
+	*prec_scale_guess = 1.0;
 
 	rwdef->n = odef->n;
 	assert(odef->order > 0);
@@ -1100,13 +1045,14 @@ int GMRFLib_rw_scale(void *def)
 	rwdef->log_prec = NULL;
 	rwdef->log_prec_omp = NULL;
 	rwdef->scale0 = odef->scale0;
+	rwdef->prec_scale = prec_scale_guess;
 
 	GMRFLib_graph_tp *graph = NULL;
 	GMRFLib_make_rw_graph(&graph, rwdef);
-
 	int i;
 	GMRFLib_constr_tp *constr = NULL;
 	GMRFLib_make_empty_constr(&constr);
+
 	if (!rwdef->cyclic) {
 		/*
 		 * cyclic == FALSE
@@ -1119,6 +1065,7 @@ int GMRFLib_rw_scale(void *def)
 			for (i = 0; i < graph->n; i++) {
 				constr->a_matrix[i * constr->nc + 0] = 1.0;
 			}
+			*prec_scale_guess = (double) graph->n - 1;
 		} else if (rwdef->order == 2) {
 			constr->nc = 2;
 			constr->a_matrix = Calloc(constr->nc * graph->n, double);
@@ -1126,6 +1073,7 @@ int GMRFLib_rw_scale(void *def)
 				constr->a_matrix[i * constr->nc + 0] = 1.0;
 				constr->a_matrix[i * constr->nc + 1] = (i - graph->n / 2.0);
 			}
+			*prec_scale_guess = (double) ISQR(graph->n - 1);
 		} else {
 			assert(0 == 1);
 		}
@@ -1141,6 +1089,7 @@ int GMRFLib_rw_scale(void *def)
 			for (i = 0; i < graph->n; i++) {
 				constr->a_matrix[i * constr->nc + 0] = 1.0;
 			}
+			*prec_scale_guess = (double) (rwdef->order == 1 ? graph->n - 1 : ISQR(graph->n - 1));
 		} else {
 			assert(0 == 1);
 		}
@@ -1154,7 +1103,7 @@ int GMRFLib_rw_scale(void *def)
 		constr = NULL;
 	}
 
-	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(.75);
+	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(0.5);
 	GMRFLib_problem_tp *problem;
 
 	for (i = 0; i < graph->n; i++) {
@@ -1163,12 +1112,12 @@ int GMRFLib_rw_scale(void *def)
 
 	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-	
+
 	while (!ok) {
 		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_rw, (void *) rwdef, NULL, constr, GMRFLib_NEW_PROBLEM);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
-			for (i = 0; i < graph->n; i++){
+			for (i = 0; i < graph->n; i++) {
 				c[i] *= 10.0;
 			}
 			problem = NULL;
@@ -1182,7 +1131,7 @@ int GMRFLib_rw_scale(void *def)
 			abort();
 			break;
 		}
-		
+
 		if (++num_try >= num_try_max) {
 			FIXME("This should not happen. Contact developers...");
 			abort();
@@ -1198,7 +1147,7 @@ int GMRFLib_rw_scale(void *def)
 	}
 
 	odef->prec_scale = Calloc(1, double);
-	odef->prec_scale[0] = exp(sum / graph->n);
+	odef->prec_scale[0] = exp(sum / graph->n) * *prec_scale_guess;
 
 	Free(c);
 	Free(rwdef);
@@ -1254,7 +1203,7 @@ int GMRFLib_rw2d_scale(void *def)
 		constr->e_vector = Calloc(constr->nc, double);
 		GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
 
-		double eps = GMRFLib_eps(.75);
+		double eps = GMRFLib_eps(0.75);
 		c = Calloc(graph->n, double);
 		for (i = 0; i < graph->n; i++) {
 			c[i] = eps;
@@ -1268,12 +1217,13 @@ int GMRFLib_rw2d_scale(void *def)
 
 	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-	
+
 	while (!ok) {
-		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_rw2d, (void *) rw2ddef, NULL, constr, GMRFLib_NEW_PROBLEM);
+		retval =
+		    GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_rw2d, (void *) rw2ddef, NULL, constr, GMRFLib_NEW_PROBLEM);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
-			for (i = 0; i < graph->n; i++){
+			for (i = 0; i < graph->n; i++) {
 				c[i] *= 10.0;
 			}
 			problem = NULL;
@@ -1287,7 +1237,7 @@ int GMRFLib_rw2d_scale(void *def)
 			abort();
 			break;
 		}
-		
+
 		if (++num_try >= num_try_max) {
 			FIXME("This should not happen. Contact developers...");
 			abort();

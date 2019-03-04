@@ -18,7 +18,8 @@
 ##!   \item{B}{The right hand side matrix, either as a (dense) matrix,  sparse-matrix  or a filename
 ##!            containing the matrix (in the fmesher-format).
 ##!            (Must be a matrix or sparse-matrix even if \code{ncol(B)} is 1.)}
-##!   \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()} 
+##!   \item{reordering}{The type of reordering algorithm to be used for \code{TAUCS};
+##!        either one of the names listed in \code{inla.reorderings()} 
 ##!        or the output from \code{inla.qreordering(Q)}.
 ##!        The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
 ##!   \item{method}{The system to solve, one of \code{"solve"},  \code{"forward"} or \code{"backward"}. Let \code{Q = L L^T},
@@ -59,13 +60,13 @@
 
 `inla.qsolve` = function(Q, B, reordering = inla.reorderings(), method = c("solve", "forward", "backward"))
 {
+    t.dir = inla.tempdir()
+    smtp = match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "pardiso"))
     Q = inla.sparse.check(Q)
     if (is(Q, "dgTMatrix")) {
-        Qfile = inla.write.fmesher.file(Q)
-        Qremove = TRUE
+        Qfile = inla.write.fmesher.file(Q, filename = inla.tempfile(tmpdir = t.dir))
     } else if (is.character(Q)) {
         Qfile = Q
-        Qremove = FALSE
     } else {
         stop("This should not happen.")
     }
@@ -75,15 +76,13 @@
         B = as.matrix(B)
     }
     if (is.matrix(B)) {
-        Bfile = inla.write.fmesher.file(B)
-        Bremove = TRUE
+        Bfile = inla.write.fmesher.file(B, filename = inla.tempfile(tmpdir = t.dir))
     } else if (is.character(B)) {
         Bfile = B
-        Bremove = FALSE
     } else {
         stop("This should not happen.")
     }
-        
+    
     if (is.list(reordering)) {
         ## argument is the output from inla.qreordering()
         reordering = reordering$name
@@ -91,25 +90,20 @@
     reordering = match.arg(reordering)
     method = match.arg(method)
 
-    Xfile = inla.tempfile()
+    Xfile = inla.tempfile(tmpdir = t.dir)
+    inla.set.sparselib.env(inla.dir = t.dir)
     if (inla.os("linux") || inla.os("mac")) {
-        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsolve", "-r",
-                reordering, Qfile, Xfile, Bfile, method), intern=TRUE)
+        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsolve", "-r", 
+                         reordering, "-S", smtp, Qfile, Xfile, Bfile, method), intern=TRUE)
     } else if(inla.os("windows")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsolve", "-r",
-                reordering, Qfile, Xfile, Bfile, method), intern=TRUE)
+                         reordering, "-S", smtp, Qfile, Xfile, Bfile, method), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }
 
     X = inla.read.fmesher.file(Xfile)
+    unlink(t.dir, recursive = TRUE)
 
-    if (Qremove) {
-        unlink(Qfile)
-    }
-    if (Bremove) {
-        unlink(Bfile)
-    }
-    
     return (X)
 }

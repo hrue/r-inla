@@ -8,7 +8,7 @@
                  linear = list(
                      doc = "Alternative interface to an fixed effect", 
                      hyper = list(
-                         ),
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -18,7 +18,7 @@
                      n.required = FALSE,
                      set.default.values = FALSE,
                      pdf = "linear"
-                     ),
+                 ),
 
                  iid = list(
                      doc = "Gaussian random effects in dim=1", 
@@ -33,8 +33,8 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -44,7 +44,7 @@
                      n.required = FALSE,
                      set.default.values = FALSE,
                      pdf = "indep"
-                     ),
+                 ),
 
                  mec = list(
                      doc = "Classical measurement error model", 
@@ -59,7 +59,7 @@
                              fixed = FALSE,
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ), 
+                         ), 
                          theta2 = list(
                              hyperid =  2002,
                              name = "prec.u",
@@ -70,7 +70,7 @@
                              fixed = TRUE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ), 
+                         ), 
                          theta3 = list(
                              hyperid =  2003,
                              name = "mean.x",
@@ -81,7 +81,7 @@
                              fixed = TRUE,
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ), 
+                         ), 
                          theta4 = list(
                              hyperid =  2004,
                              name = "prec.x",
@@ -92,8 +92,8 @@
                              fixed = TRUE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -102,9 +102,8 @@
                      n.div.by = NULL,
                      n.required = FALSE,
                      set.default.values = FALSE,
-                     status = "experimental", 
                      pdf = "mec"
-                     ),
+                 ),
 
                  meb = list(
                      doc = "Berkson measurement error model", 
@@ -119,7 +118,7 @@
                              fixed = FALSE,
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ), 
+                         ), 
                          theta2 = list(
                              hyperid =  3002,
                              name = "prec.u",
@@ -130,8 +129,8 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -140,9 +139,8 @@
                      n.div.by = NULL,
                      n.required = FALSE,
                      set.default.values = FALSE,
-                     status = "experimental", 
                      pdf = "meb"
-                     ),
+                 ),
 
                  rgeneric = list(
                      doc = "Generic latent model spesified using R", 
@@ -153,11 +151,11 @@
                      aug.factor = 1L,
                      aug.constr = NULL,
                      n.div.by = NULL,
-                     n.required = FALSE,
+                     n.required = TRUE,
                      set.default.values = TRUE,
                      status = "experimental", 
                      pdf = "rgeneric"
-                     ),
+                 ),
 
                  rw1 = list(
                      doc = "Random walk of order 1", 
@@ -172,8 +170,8 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = TRUE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -184,7 +182,7 @@
                      set.default.values = FALSE,
                      min.diff = 1E-5, 
                      pdf = "rw1"
-                     ),
+                 ),
 
                  rw2 = list(
                      doc = "Random walk of order 2", 
@@ -199,8 +197,8 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = TRUE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -211,7 +209,7 @@
                      set.default.values = FALSE,
                      min.diff = 1E-3, 
                      pdf = "rw2"
-                     ),
+                 ),
 
                  crw2 = list(
                      doc = "Exact solution to the random walk of order 2", 
@@ -226,8 +224,8 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = TRUE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -238,7 +236,7 @@
                      set.default.values = FALSE,
                      min.diff = 1E-3, 
                      pdf = "crw2"
-                     ),
+                 ),
 
                  seasonal = list(
                      doc = "Seasonal model for time series", 
@@ -253,8 +251,8 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -264,7 +262,7 @@
                      n.required = FALSE,
                      set.default.values = FALSE,
                      pdf = "seasonal"
-                     ),
+                 ),
 
                  besag = list(
                      doc = "The Besag area model (CAR-model)", 
@@ -279,8 +277,8 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = TRUE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -290,7 +288,7 @@
                      n.required = TRUE,
                      set.default.values = TRUE,
                      pdf = "besag"
-                     ),
+                 ),
 
                  besag2 = list(
                      doc = "The shared Besag model", 
@@ -305,7 +303,7 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  9002,
                              name = "scaling parameter",
@@ -316,8 +314,8 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -327,7 +325,7 @@
                      n.required = TRUE,
                      set.default.values = TRUE,
                      pdf = "besag2"
-                     ),
+                 ),
 
                  bym = list(
                      doc = "The BYM-model (Besag-York-Mollier model)", 
@@ -342,7 +340,7 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  10002,
                              name = "log spatial precision",
@@ -353,8 +351,8 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = TRUE,
                      nrow.ncol = FALSE,
                      augmented = TRUE,
@@ -364,7 +362,7 @@
                      n.required = TRUE,
                      set.default.values = TRUE,
                      pdf = "bym"
-                     ),
+                 ),
 
                  bym2 = list(
                      doc = "The BYM-model with the PC priors", 
@@ -379,7 +377,7 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  11002,
                              name = "logit phi",
@@ -390,8 +388,8 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x/(1-x)),
                              from.theta = function(x) exp(x)/(1+exp(x))
-                             )
-                         ),
+                         )
+                     ),
                      constr = TRUE,
                      nrow.ncol = FALSE,
                      augmented = TRUE,
@@ -402,7 +400,7 @@
                      set.default.values = TRUE,
                      status = "experimental", 
                      pdf = "bym2"
-                     ),
+                 ),
 
                  besagproper = list(
                      doc = "A proper version of the Besag model", 
@@ -417,7 +415,7 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  12002,
                              name = "log diagonal",
@@ -428,8 +426,8 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -440,7 +438,7 @@
                      set.default.values = TRUE,
                      status = "experimental", 
                      pdf = "besagproper"
-                     ),
+                 ),
 
                  besagproper2 = list(
                      doc = "An alternative proper version of the Besag model", 
@@ -455,7 +453,7 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  13002,
                              name = "logit lambda",
@@ -466,8 +464,8 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x/(1-x)),
                              from.theta = function(x) exp(x)/(1+exp(x))
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -478,7 +476,7 @@
                      set.default.values = TRUE,
                      status = "experimental", 
                      pdf = "besagproper2"
-                     ),
+                 ),
 
                  fgn = list(
                      doc = "Fractional Gaussian noise model", 
@@ -493,7 +491,7 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  13102,
                              name = "logit H",
@@ -504,8 +502,47 @@
                              fixed = FALSE,
                              to.theta = function(x) log((2*x-1)/(2*(1-x))), 
                              from.theta = function(x) 0.5 + 0.5*exp(x)/(1+exp(x))
-                             )
+                         )
+                     ),
+                     constr = FALSE,
+                     nrow.ncol = FALSE,
+                     augmented = TRUE,
+                     aug.factor = 5L,
+                     aug.constr = 1L,
+                     n.div.by = NULL,
+                     n.required = FALSE,
+                     set.default.values = TRUE,
+                     order.default = 4L,     ## default order for approximation
+                     order.defined = 3L:4L,  ## the list of orders which are implemented
+                     pdf = "fgn"
+                 ),
+
+                 fgn2 = list(
+                     doc = "Fractional Gaussian noise model (alt 2)", 
+                     hyper = list(
+                         theta1 = list(
+                             hyperid =  13101,
+                             name = "log precision",
+                             short.name = "prec",
+                             prior = "pc.prec",
+                             param = c(3, 0.01),
+                             initial = 1,
+                             fixed = FALSE,
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
                          ),
+                         theta2 = list(
+                             hyperid =  13102,
+                             name = "logit H",
+                             short.name = "H",
+                             prior = "pcfgnh",
+                             param = c(0.9, 0.1),
+                             initial = 2,
+                             fixed = FALSE,
+                             to.theta = function(x) log((2*x-1)/(2*(1-x))), 
+                             from.theta = function(x) 0.5 + 0.5*exp(x)/(1+exp(x))
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = TRUE,
@@ -514,10 +551,10 @@
                      n.div.by = NULL,
                      n.required = FALSE,
                      set.default.values = TRUE,
-                     order.default = 3L,     ## default order for approximation
+                     order.default = 4L,     ## default order for approximation
                      order.defined = 3L:4L,  ## the list of orders which are implemented
                      pdf = "fgn"
-                     ),
+                 ),
 
                  ar1 = list(
                      doc = "Auto-regressive model of order 1 (AR(1))", 
@@ -532,7 +569,7 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  14002,
                              name = "logit lag one correlation",
@@ -543,7 +580,7 @@
                              fixed = FALSE,
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ), 
+                         ), 
                          theta3 = list(
                              hyperid =  14003,
                              name = "mean",
@@ -554,8 +591,8 @@
                              fixed = TRUE,
                              to.theta = function(x) x, 
                              from.theta = function(x) x
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -565,7 +602,45 @@
                      n.required = FALSE,
                      set.default.values = FALSE,
                      pdf = "ar1"
+                 ),
+
+                 ar1c = list(
+                     doc = "Auto-regressive model of order 1 w/covariates", 
+                     hyper = list(
+                         theta1 = list(
+                             hyperid =  14101,
+                             name = "log precision",
+                             short.name = "prec",
+                             prior = "pc.prec",
+                             param = c(1, 0.01),
+                             initial = 4,
+                             fixed = FALSE,
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         ),
+                         theta2 = list(
+                             hyperid =  14102,
+                             name = "logit lag one correlation",
+                             short.name = "rho",
+                             prior = "pc.cor0",
+                             param = c(0.5, 0.5),
+                             initial = 2,
+                             fixed = FALSE,
+                             to.theta = function(x) log((1+x)/(1-x)),
+                             from.theta = function(x) 2*exp(x)/(1+exp(x))-1
+                         )
                      ),
+                     constr = FALSE,
+                     nrow.ncol = FALSE,
+                     augmented = FALSE,
+                     aug.factor = 1L,
+                     aug.constr = NULL,
+                     n.div.by = NULL,
+                     n.required = FALSE,
+                     set.default.values = TRUE,
+                     status = "experimental", 
+                     pdf = "ar1c"
+                 ),
 
                  ar = list(
                      doc = "Auto-regressive model of order p (AR(p))", 
@@ -581,7 +656,7 @@
                              param = c(3, 0.01),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  15002,
                              name = "pacf1",
@@ -592,7 +667,7 @@
                              param = c(0.5, 0.5), 
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta3 = list(
                              hyperid =  15003,
                              name = "pacf2",
@@ -603,7 +678,7 @@
                              param = c(0.5, 0.4), 
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta4 = list(
                              hyperid =  15004,
                              name = "pacf3",
@@ -614,7 +689,7 @@
                              param = c(0.5, 0.3), 
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta5 = list(
                              hyperid =  15005,
                              name = "pacf4",
@@ -625,7 +700,7 @@
                              param = c(0.5, 0.2), 
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta6 = list(
                              hyperid =  15006,
                              name = "pacf5",
@@ -636,7 +711,7 @@
                              param = c(0.5, 0.1), 
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta7 = list(
                              hyperid =  15007,
                              name = "pacf6",
@@ -647,7 +722,7 @@
                              param = c(0.5, 0.1), 
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta8 = list(
                              hyperid =  15008,
                              name = "pacf7",
@@ -658,7 +733,7 @@
                              param = c(0.5, 0.1), 
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta9 = list(
                              hyperid =  15009,
                              name = "pacf8",
@@ -669,7 +744,7 @@
                              param = c(0.5, 0.1), 
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta10 = list(
                              hyperid =  15010,
                              name = "pacf9",
@@ -680,7 +755,7 @@
                              param = c(0.5, 0.1), 
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta11 = list(
                              hyperid =  15011,
                              name = "pacf10",
@@ -691,8 +766,8 @@
                              param = c(0.5, 0.1), 
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -702,7 +777,7 @@
                      n.required = FALSE,
                      set.default.values = FALSE,
                      pdf = "ar"
-                     ),
+                 ),
 
                  ou = list(
                      doc = "The Ornstein-Uhlenbeck process", 
@@ -717,7 +792,7 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  16002,
                              name = "log phi",
@@ -728,8 +803,8 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x), 
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -739,7 +814,166 @@
                      n.required = FALSE,
                      set.default.values = FALSE,
                      pdf = "ou"
+                 ),
+
+                 intslope = list(
+                     doc = "Intecept-slope model with Wishart-prior", 
+                     hyper = list(
+                         theta1 = list(
+                             hyperid =  16101,
+                             name = "log precision1",
+                             short.name = "prec1",
+                             initial = 4,
+                             fixed = FALSE,
+                             prior = "wishart2d",
+                             param = c(4, 1, 1, 0),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         ),
+                         theta2 = list(
+                             hyperid =  16102,
+                             name = "log precision2",
+                             short.name = "prec2",
+                             initial = 4,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         ),
+                         theta3 = list(
+                             hyperid =  16103,
+                             name = "logit correlation",
+                             short.name = "cor",
+                             initial = 4,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(),
+                             to.theta = function(x) log((1+x)/(1-x)),
+                             from.theta = function(x) 2*exp(x)/(1+exp(x))-1
+                         ), 
+                         theta4 = list(
+                             hyperid =  16104,
+                             name = "gamma1",
+                             short.name = "g1",
+                             initial = 1,
+                             fixed = TRUE,   ## YES.
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         ),
+                         theta5 = list(
+                             hyperid =  16105,
+                             name = "gamma2",
+                             short.name = "g2",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         ),
+                         theta6 = list(
+                             hyperid =  16106,
+                             name = "gamma3",
+                             short.name = "g3",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         ),
+                         theta7 = list(
+                             hyperid =  16107,
+                             name = "gamma4",
+                             short.name = "g4",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         ),
+                         theta8 = list(
+                             hyperid =  16108,
+                             name = "gamma5",
+                             short.name = "g5",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         ),
+                         theta9 = list(
+                             hyperid =  16109,
+                             name = "gamma6",
+                             short.name = "g6",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         ),
+                         theta10 = list(
+                             hyperid =  16110,
+                             name = "gamma7",
+                             short.name = "g7",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         ),
+                         theta11 = list(
+                             hyperid =  16111,
+                             name = "gamma8",
+                             short.name = "g8",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         ),
+                         theta12 = list(
+                             hyperid =  16112,
+                             name = "gamma9",
+                             short.name = "g9",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         ),
+                         theta13 = list(
+                             hyperid =  16113,
+                             name = "gamma10",
+                             short.name = "g10",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(1, 36),
+                             to.theta = function(x) x,
+                             from.theta = function(x) x
+                         )
                      ),
+                     constr = FALSE,
+                     nrow.ncol = FALSE,
+                     augmented = FALSE,
+                     aug.factor = 1L,
+                     aug.constr = NULL,
+                     n.div.by = NULL,
+                     n.required = FALSE,
+                     set.default.values = TRUE,
+                     status = "experimental", 
+                     pdf = "intslope"
+                 ),
 
                  generic = list(
                      doc = "A generic model", 
@@ -754,8 +988,8 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -765,7 +999,7 @@
                      n.required = TRUE,
                      set.default.values = TRUE,
                      pdf = "generic0"
-                     ),
+                 ),
 
                  generic0 = list(
                      doc = "A generic model (type 0)", 
@@ -780,8 +1014,8 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -791,7 +1025,7 @@
                      n.required = TRUE,
                      set.default.values = TRUE,
                      pdf = "generic0"
-                     ),
+                 ),
 
                  generic1 = list(
                      doc = "A generic model (type 1)", 
@@ -806,7 +1040,7 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  19002,
                              name = "beta",
@@ -817,8 +1051,8 @@
                              param = c(0, 0.1),
                              to.theta = function(x) log(x/(1-x)),
                              from.theta = function(x) exp(x)/(1+exp(x))
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -828,7 +1062,7 @@
                      n.required = TRUE,
                      set.default.values = TRUE,
                      pdf = "generic1"
-                     ),
+                 ),
 
                  generic2 = list(
                      doc = "A generic model (type 2)", 
@@ -843,7 +1077,7 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  20002,
                              name = "log precision random",
@@ -854,8 +1088,8 @@
                              param = c(1, 0.001),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -865,7 +1099,7 @@
                      n.required = TRUE,
                      set.default.values = TRUE,
                      pdf = "generic2"
-                     ),
+                 ),
 
                  generic3 = list(
                      doc = "A generic model (type 3)", 
@@ -880,7 +1114,7 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  21002,
                              name = "log precision2",
@@ -891,7 +1125,7 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta3 = list(
                              hyperid =  21003,
                              name = "log precision3",
@@ -902,7 +1136,7 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta4 = list(
                              hyperid =  21004,
                              name = "log precision4",
@@ -913,7 +1147,7 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta5 = list(
                              hyperid =  21005,
                              name = "log precision5",
@@ -924,7 +1158,7 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta6 = list(
                              hyperid =  21006,
                              name = "log precision6",
@@ -935,7 +1169,7 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta7 = list(
                              hyperid =  21007,
                              name = "log precision7",
@@ -946,7 +1180,7 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta8 = list(
                              hyperid =  21008,
                              name = "log precision8",
@@ -957,7 +1191,7 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta9 = list(
                              hyperid =  21009,
                              name = "log precision9",
@@ -968,7 +1202,7 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta10 = list(
                              hyperid =  21010,
                              name = "log precision10",
@@ -979,7 +1213,7 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta11 = list(
                              hyperid =  21011,
                              name = "log precision common",
@@ -990,8 +1224,8 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -1002,7 +1236,7 @@
                      set.default.values = TRUE,
                      status = "experimental", 
                      pdf = "generic3"
-                     ),
+                 ),
 
                  spde = list(
                      doc = "A SPDE model", 
@@ -1018,7 +1252,7 @@
                              param = c(0, 1),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  22002,
                              name = "theta.K",
@@ -1029,7 +1263,7 @@
                              param = c(0, 1),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta3 = list(
                              hyperid =  22003,
                              name = "theta.KT",
@@ -1040,7 +1274,7 @@
                              param = c(0, 1),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta4 = list(
                              hyperid =  22004,
                              name = "theta.OC",
@@ -1051,8 +1285,8 @@
                              param = c(0, 0.2),
                              to.theta = function(x) log(x/(1-x)),
                              from.theta = function(x) exp(x)/(1+exp(x))
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -1062,7 +1296,7 @@
                      n.required = TRUE,
                      set.default.values = TRUE,
                      pdf = "spde"
-                     ),
+                 ),
 
                  spde2 = list(
                      doc = "A SPDE2 model", 
@@ -1078,7 +1312,7 @@
                              param = c(1, 1),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  23002,
                              name = "theta2",
@@ -1089,7 +1323,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta3 = list(
                              hyperid =  23003,
                              name = "theta3",
@@ -1100,7 +1334,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta4 = list(
                              hyperid =  23004,
                              name = "theta4",
@@ -1111,7 +1345,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta5 = list(
                              hyperid =  23005,
                              name = "theta5",
@@ -1122,7 +1356,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta6 = list(
                              hyperid =  23006,
                              name = "theta6",
@@ -1133,7 +1367,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta7 = list(
                              hyperid =  23007,
                              name = "theta7",
@@ -1144,7 +1378,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta8 = list(
                              hyperid =  23008,
                              name = "theta8",
@@ -1155,7 +1389,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta9 = list(
                              hyperid =  23009,
                              name = "theta9",
@@ -1166,7 +1400,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta10 = list(
                              hyperid =  23010,
                              name = "theta10",
@@ -1177,7 +1411,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta11 = list(
                              hyperid =  23011,
                              name = "theta11",
@@ -1188,7 +1422,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta12 = list(
                              hyperid =  23012,
                              name = "theta12",
@@ -1199,7 +1433,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta13 = list(
                              hyperid =  23013,
                              name = "theta13",
@@ -1210,7 +1444,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta14 = list(
                              hyperid =  23014,
                              name = "theta14",
@@ -1221,7 +1455,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta15 = list(
                              hyperid =  23015,
                              name = "theta15",
@@ -1232,7 +1466,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta16 = list(
                              hyperid =  23016,
                              name = "theta16",
@@ -1243,7 +1477,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta17 = list(
                              hyperid =  23017,
                              name = "theta17",
@@ -1254,7 +1488,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta18 = list(
                              hyperid =  23018,
                              name = "theta18",
@@ -1265,7 +1499,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta19 = list(
                              hyperid =  23019,
                              name = "theta19",
@@ -1276,7 +1510,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta20 = list(
                              hyperid =  23020,
                              name = "theta20",
@@ -1287,7 +1521,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta21 = list(
                              hyperid =  23021,
                              name = "theta21",
@@ -1298,7 +1532,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta22 = list(
                              hyperid =  23022,
                              name = "theta22",
@@ -1309,7 +1543,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta23 = list(
                              hyperid =  23023,
                              name = "theta23",
@@ -1320,7 +1554,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta24 = list(
                              hyperid =  23024,
                              name = "theta24",
@@ -1331,7 +1565,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta25 = list(
                              hyperid =  23025,
                              name = "theta25",
@@ -1342,7 +1576,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta26 = list(
                              hyperid =  23026,
                              name = "theta26",
@@ -1353,7 +1587,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta27 = list(
                              hyperid =  23027,
                              name = "theta27",
@@ -1364,7 +1598,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta28 = list(
                              hyperid =  23028,
                              name = "theta28",
@@ -1375,7 +1609,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta29 = list(
                              hyperid =  23029,
                              name = "theta29",
@@ -1386,7 +1620,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta30 = list(
                              hyperid =  23030,
                              name = "theta30",
@@ -1397,7 +1631,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta31 = list(
                              hyperid =  23031,
                              name = "theta31",
@@ -1408,7 +1642,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta32 = list(
                              hyperid =  23032,
                              name = "theta32",
@@ -1419,7 +1653,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta33 = list(
                              hyperid =  23033,
                              name = "theta33",
@@ -1430,7 +1664,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta34 = list(
                              hyperid =  23034,
                              name = "theta34",
@@ -1441,7 +1675,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta35 = list(
                              hyperid =  23035,
                              name = "theta35",
@@ -1452,7 +1686,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta36 = list(
                              hyperid =  23036,
                              name = "theta36",
@@ -1463,7 +1697,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta37 = list(
                              hyperid =  23037,
                              name = "theta37",
@@ -1474,7 +1708,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta38 = list(
                              hyperid =  23038,
                              name = "theta38",
@@ -1485,7 +1719,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta39 = list(
                              hyperid =  23039,
                              name = "theta39",
@@ -1496,7 +1730,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta40 = list(
                              hyperid =  23040,
                              name = "theta40",
@@ -1507,7 +1741,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta41 = list(
                              hyperid =  23041,
                              name = "theta41",
@@ -1518,7 +1752,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta42 = list(
                              hyperid =  23042,
                              name = "theta42",
@@ -1529,7 +1763,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta43 = list(
                              hyperid =  23043,
                              name = "theta43",
@@ -1540,7 +1774,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta44 = list(
                              hyperid =  23044,
                              name = "theta44",
@@ -1551,7 +1785,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta45 = list(
                              hyperid =  23045,
                              name = "theta45",
@@ -1562,7 +1796,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta46 = list(
                              hyperid =  23046,
                              name = "theta46",
@@ -1573,7 +1807,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta47 = list(
                              hyperid =  23047,
                              name = "theta47",
@@ -1584,7 +1818,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta48 = list(
                              hyperid =  23048,
                              name = "theta48",
@@ -1595,7 +1829,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta49 = list(
                              hyperid =  23049,
                              name = "theta49",
@@ -1606,7 +1840,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta50 = list(
                              hyperid =  23050,
                              name = "theta50",
@@ -1617,7 +1851,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta51 = list(
                              hyperid =  23051,
                              name = "theta51",
@@ -1628,7 +1862,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta52 = list(
                              hyperid =  23052,
                              name = "theta52",
@@ -1639,7 +1873,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta53 = list(
                              hyperid =  23053,
                              name = "theta53",
@@ -1650,7 +1884,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta54 = list(
                              hyperid =  23054,
                              name = "theta54",
@@ -1661,7 +1895,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta55 = list(
                              hyperid =  23055,
                              name = "theta55",
@@ -1672,7 +1906,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta56 = list(
                              hyperid =  23056,
                              name = "theta56",
@@ -1683,7 +1917,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta57 = list(
                              hyperid =  23057,
                              name = "theta57",
@@ -1694,7 +1928,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta58 = list(
                              hyperid =  23058,
                              name = "theta58",
@@ -1705,7 +1939,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta59 = list(
                              hyperid =  23059,
                              name = "theta59",
@@ -1716,7 +1950,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta60 = list(
                              hyperid =  23060,
                              name = "theta60",
@@ -1727,7 +1961,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta61 = list(
                              hyperid =  23061,
                              name = "theta61",
@@ -1738,7 +1972,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta62 = list(
                              hyperid =  23062,
                              name = "theta62",
@@ -1749,7 +1983,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta63 = list(
                              hyperid =  23063,
                              name = "theta63",
@@ -1760,7 +1994,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta64 = list(
                              hyperid =  23064,
                              name = "theta64",
@@ -1771,7 +2005,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta65 = list(
                              hyperid =  23065,
                              name = "theta65",
@@ -1782,7 +2016,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta66 = list(
                              hyperid =  23066,
                              name = "theta66",
@@ -1793,7 +2027,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta67 = list(
                              hyperid =  23067,
                              name = "theta67",
@@ -1804,7 +2038,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta68 = list(
                              hyperid =  23068,
                              name = "theta68",
@@ -1815,7 +2049,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta69 = list(
                              hyperid =  23069,
                              name = "theta69",
@@ -1826,7 +2060,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta70 = list(
                              hyperid =  23070,
                              name = "theta70",
@@ -1837,7 +2071,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta71 = list(
                              hyperid =  23071,
                              name = "theta71",
@@ -1848,7 +2082,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta72 = list(
                              hyperid =  23072,
                              name = "theta72",
@@ -1859,7 +2093,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta73 = list(
                              hyperid =  23073,
                              name = "theta73",
@@ -1870,7 +2104,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta74 = list(
                              hyperid =  23074,
                              name = "theta74",
@@ -1881,7 +2115,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta75 = list(
                              hyperid =  23075,
                              name = "theta75",
@@ -1892,7 +2126,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta76 = list(
                              hyperid =  23076,
                              name = "theta76",
@@ -1903,7 +2137,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta77 = list(
                              hyperid =  23077,
                              name = "theta77",
@@ -1914,7 +2148,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta78 = list(
                              hyperid =  23078,
                              name = "theta78",
@@ -1925,7 +2159,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta79 = list(
                              hyperid =  23079,
                              name = "theta79",
@@ -1936,7 +2170,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta80 = list(
                              hyperid =  23080,
                              name = "theta80",
@@ -1947,7 +2181,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta81 = list(
                              hyperid =  23081,
                              name = "theta81",
@@ -1958,7 +2192,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta82 = list(
                              hyperid =  23082,
                              name = "theta82",
@@ -1969,7 +2203,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta83 = list(
                              hyperid =  23083,
                              name = "theta83",
@@ -1980,7 +2214,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta84 = list(
                              hyperid =  23084,
                              name = "theta84",
@@ -1991,7 +2225,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta85 = list(
                              hyperid =  23085,
                              name = "theta85",
@@ -2002,7 +2236,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta86 = list(
                              hyperid =  23086,
                              name = "theta86",
@@ -2013,7 +2247,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta87 = list(
                              hyperid =  23087,
                              name = "theta87",
@@ -2024,7 +2258,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta88 = list(
                              hyperid =  23088,
                              name = "theta88",
@@ -2035,7 +2269,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta89 = list(
                              hyperid =  23089,
                              name = "theta89",
@@ -2046,7 +2280,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta90 = list(
                              hyperid =  23090,
                              name = "theta90",
@@ -2057,7 +2291,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta91 = list(
                              hyperid =  23091,
                              name = "theta91",
@@ -2068,7 +2302,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta92 = list(
                              hyperid =  23092,
                              name = "theta92",
@@ -2079,7 +2313,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta93 = list(
                              hyperid =  23093,
                              name = "theta93",
@@ -2090,7 +2324,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta94 = list(
                              hyperid =  23094,
                              name = "theta94",
@@ -2101,7 +2335,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta95 = list(
                              hyperid =  23095,
                              name = "theta95",
@@ -2112,7 +2346,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta96 = list(
                              hyperid =  23096,
                              name = "theta96",
@@ -2123,7 +2357,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta97 = list(
                              hyperid =  23097,
                              name = "theta97",
@@ -2134,7 +2368,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta98 = list(
                              hyperid =  23098,
                              name = "theta98",
@@ -2145,7 +2379,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta99 = list(
                              hyperid =  23099,
                              name = "theta99",
@@ -2156,7 +2390,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta100 = list(
                              hyperid =  23100,
                              name = "theta100",
@@ -2167,8 +2401,8 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -2178,7 +2412,7 @@
                      n.required = TRUE,
                      set.default.values = TRUE,
                      pdf = "spde2"
-                     ),
+                 ),
 
                  spde3 = list(
                      doc = "A SPDE3 model", 
@@ -2194,7 +2428,7 @@
                              param = c(1, 1),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  24002,
                              name = "theta2",
@@ -2205,7 +2439,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta3 = list(
                              hyperid =  24003,
                              name = "theta3",
@@ -2216,7 +2450,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta4 = list(
                              hyperid =  24004,
                              name = "theta4",
@@ -2227,7 +2461,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta5 = list(
                              hyperid =  24005,
                              name = "theta5",
@@ -2238,7 +2472,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta6 = list(
                              hyperid =  24006,
                              name = "theta6",
@@ -2249,7 +2483,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta7 = list(
                              hyperid =  24007,
                              name = "theta7",
@@ -2260,7 +2494,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta8 = list(
                              hyperid =  24008,
                              name = "theta8",
@@ -2271,7 +2505,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta9 = list(
                              hyperid =  24009,
                              name = "theta9",
@@ -2282,7 +2516,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta10 = list(
                              hyperid =  24010,
                              name = "theta10",
@@ -2293,7 +2527,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta11 = list(
                              hyperid =  24011,
                              name = "theta11",
@@ -2304,7 +2538,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta12 = list(
                              hyperid =  24012,
                              name = "theta12",
@@ -2315,7 +2549,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta13 = list(
                              hyperid =  24013,
                              name = "theta13",
@@ -2326,7 +2560,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta14 = list(
                              hyperid =  24014,
                              name = "theta14",
@@ -2337,7 +2571,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta15 = list(
                              hyperid =  24015,
                              name = "theta15",
@@ -2348,7 +2582,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta16 = list(
                              hyperid =  24016,
                              name = "theta16",
@@ -2359,7 +2593,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta17 = list(
                              hyperid =  24017,
                              name = "theta17",
@@ -2370,7 +2604,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta18 = list(
                              hyperid =  24018,
                              name = "theta18",
@@ -2381,7 +2615,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta19 = list(
                              hyperid =  24019,
                              name = "theta19",
@@ -2392,7 +2626,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta20 = list(
                              hyperid =  24020,
                              name = "theta20",
@@ -2403,7 +2637,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta21 = list(
                              hyperid =  24021,
                              name = "theta21",
@@ -2414,7 +2648,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta22 = list(
                              hyperid =  24022,
                              name = "theta22",
@@ -2425,7 +2659,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta23 = list(
                              hyperid =  24023,
                              name = "theta23",
@@ -2436,7 +2670,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta24 = list(
                              hyperid =  24024,
                              name = "theta24",
@@ -2447,7 +2681,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta25 = list(
                              hyperid =  24025,
                              name = "theta25",
@@ -2458,7 +2692,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta26 = list(
                              hyperid =  24026,
                              name = "theta26",
@@ -2469,7 +2703,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta27 = list(
                              hyperid =  24027,
                              name = "theta27",
@@ -2480,7 +2714,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta28 = list(
                              hyperid =  24028,
                              name = "theta28",
@@ -2491,7 +2725,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta29 = list(
                              hyperid =  24029,
                              name = "theta29",
@@ -2502,7 +2736,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta30 = list(
                              hyperid =  24030,
                              name = "theta30",
@@ -2513,7 +2747,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta31 = list(
                              hyperid =  24031,
                              name = "theta31",
@@ -2524,7 +2758,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta32 = list(
                              hyperid =  24032,
                              name = "theta32",
@@ -2535,7 +2769,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta33 = list(
                              hyperid =  24033,
                              name = "theta33",
@@ -2546,7 +2780,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta34 = list(
                              hyperid =  24034,
                              name = "theta34",
@@ -2557,7 +2791,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta35 = list(
                              hyperid =  24035,
                              name = "theta35",
@@ -2568,7 +2802,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta36 = list(
                              hyperid =  24036,
                              name = "theta36",
@@ -2579,7 +2813,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta37 = list(
                              hyperid =  24037,
                              name = "theta37",
@@ -2590,7 +2824,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta38 = list(
                              hyperid =  24038,
                              name = "theta38",
@@ -2601,7 +2835,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta39 = list(
                              hyperid =  24039,
                              name = "theta39",
@@ -2612,7 +2846,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta40 = list(
                              hyperid =  24040,
                              name = "theta40",
@@ -2623,7 +2857,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta41 = list(
                              hyperid =  24041,
                              name = "theta41",
@@ -2634,7 +2868,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta42 = list(
                              hyperid =  24042,
                              name = "theta42",
@@ -2645,7 +2879,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta43 = list(
                              hyperid =  24043,
                              name = "theta43",
@@ -2656,7 +2890,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta44 = list(
                              hyperid =  24044,
                              name = "theta44",
@@ -2667,7 +2901,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta45 = list(
                              hyperid =  24045,
                              name = "theta45",
@@ -2678,7 +2912,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta46 = list(
                              hyperid =  24046,
                              name = "theta46",
@@ -2689,7 +2923,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta47 = list(
                              hyperid =  24047,
                              name = "theta47",
@@ -2700,7 +2934,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta48 = list(
                              hyperid =  24048,
                              name = "theta48",
@@ -2711,7 +2945,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta49 = list(
                              hyperid =  24049,
                              name = "theta49",
@@ -2722,7 +2956,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta50 = list(
                              hyperid =  24050,
                              name = "theta50",
@@ -2733,7 +2967,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta51 = list(
                              hyperid =  24051,
                              name = "theta51",
@@ -2744,7 +2978,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta52 = list(
                              hyperid =  24052,
                              name = "theta52",
@@ -2755,7 +2989,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta53 = list(
                              hyperid =  24053,
                              name = "theta53",
@@ -2766,7 +3000,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta54 = list(
                              hyperid =  24054,
                              name = "theta54",
@@ -2777,7 +3011,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta55 = list(
                              hyperid =  24055,
                              name = "theta55",
@@ -2788,7 +3022,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta56 = list(
                              hyperid =  24056,
                              name = "theta56",
@@ -2799,7 +3033,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta57 = list(
                              hyperid =  24057,
                              name = "theta57",
@@ -2810,7 +3044,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta58 = list(
                              hyperid =  24058,
                              name = "theta58",
@@ -2821,7 +3055,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta59 = list(
                              hyperid =  24059,
                              name = "theta59",
@@ -2832,7 +3066,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta60 = list(
                              hyperid =  24060,
                              name = "theta60",
@@ -2843,7 +3077,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta61 = list(
                              hyperid =  24061,
                              name = "theta61",
@@ -2854,7 +3088,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta62 = list(
                              hyperid =  24062,
                              name = "theta62",
@@ -2865,7 +3099,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta63 = list(
                              hyperid =  24063,
                              name = "theta63",
@@ -2876,7 +3110,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta64 = list(
                              hyperid =  24064,
                              name = "theta64",
@@ -2887,7 +3121,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta65 = list(
                              hyperid =  24065,
                              name = "theta65",
@@ -2898,7 +3132,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta66 = list(
                              hyperid =  24066,
                              name = "theta66",
@@ -2909,7 +3143,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta67 = list(
                              hyperid =  24067,
                              name = "theta67",
@@ -2920,7 +3154,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta68 = list(
                              hyperid =  24068,
                              name = "theta68",
@@ -2931,7 +3165,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta69 = list(
                              hyperid =  24069,
                              name = "theta69",
@@ -2942,7 +3176,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta70 = list(
                              hyperid =  24070,
                              name = "theta70",
@@ -2953,7 +3187,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta71 = list(
                              hyperid =  24071,
                              name = "theta71",
@@ -2964,7 +3198,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta72 = list(
                              hyperid =  24072,
                              name = "theta72",
@@ -2975,7 +3209,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta73 = list(
                              hyperid =  24073,
                              name = "theta73",
@@ -2986,7 +3220,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta74 = list(
                              hyperid =  24074,
                              name = "theta74",
@@ -2997,7 +3231,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta75 = list(
                              hyperid =  24075,
                              name = "theta75",
@@ -3008,7 +3242,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta76 = list(
                              hyperid =  24076,
                              name = "theta76",
@@ -3019,7 +3253,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta77 = list(
                              hyperid =  24077,
                              name = "theta77",
@@ -3030,7 +3264,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta78 = list(
                              hyperid =  24078,
                              name = "theta78",
@@ -3041,7 +3275,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta79 = list(
                              hyperid =  24079,
                              name = "theta79",
@@ -3052,7 +3286,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta80 = list(
                              hyperid =  24080,
                              name = "theta80",
@@ -3063,7 +3297,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta81 = list(
                              hyperid =  24081,
                              name = "theta81",
@@ -3074,7 +3308,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta82 = list(
                              hyperid =  24082,
                              name = "theta82",
@@ -3085,7 +3319,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta83 = list(
                              hyperid =  24083,
                              name = "theta83",
@@ -3096,7 +3330,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta84 = list(
                              hyperid =  24084,
                              name = "theta84",
@@ -3107,7 +3341,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta85 = list(
                              hyperid =  24085,
                              name = "theta85",
@@ -3118,7 +3352,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta86 = list(
                              hyperid =  24086,
                              name = "theta86",
@@ -3129,7 +3363,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta87 = list(
                              hyperid =  24087,
                              name = "theta87",
@@ -3140,7 +3374,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta88 = list(
                              hyperid =  24088,
                              name = "theta88",
@@ -3151,7 +3385,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta89 = list(
                              hyperid =  24089,
                              name = "theta89",
@@ -3162,7 +3396,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta90 = list(
                              hyperid =  24090,
                              name = "theta90",
@@ -3173,7 +3407,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta91 = list(
                              hyperid =  24091,
                              name = "theta91",
@@ -3184,7 +3418,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta92 = list(
                              hyperid =  24092,
                              name = "theta92",
@@ -3195,7 +3429,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta93 = list(
                              hyperid =  24093,
                              name = "theta93",
@@ -3206,7 +3440,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta94 = list(
                              hyperid =  24094,
                              name = "theta94",
@@ -3217,7 +3451,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta95 = list(
                              hyperid =  24095,
                              name = "theta95",
@@ -3228,7 +3462,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta96 = list(
                              hyperid =  24096,
                              name = "theta96",
@@ -3239,7 +3473,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta97 = list(
                              hyperid =  24097,
                              name = "theta97",
@@ -3250,7 +3484,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta98 = list(
                              hyperid =  24098,
                              name = "theta98",
@@ -3261,7 +3495,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta99 = list(
                              hyperid =  24099,
                              name = "theta99",
@@ -3272,7 +3506,7 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta100 = list(
                              hyperid =  24100,
                              name = "theta100",
@@ -3283,8 +3517,8 @@
                              param = numeric(0),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -3294,7 +3528,7 @@
                      n.required = TRUE,
                      set.default.values = TRUE,
                      pdf = "spde3"
-                     ),
+                 ),
 
                  iid1d = list(
                      doc = "Gaussian random effect in dim=1 with Wishart prior", 
@@ -3316,8 +3550,8 @@
                              param = c(2*1, 2*0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -3328,7 +3562,7 @@
                      ## needed here.
                      set.default.values = TRUE,
                      pdf = "iid123d"
-                     ),
+                 ),
 
                  iid2d = list(
                      doc = "Gaussian random effect in dim=2 with Wishart prior", 
@@ -3343,7 +3577,7 @@
                              param = c(4, 1, 1, 0),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  26002,
                              name = "log precision2",
@@ -3354,7 +3588,7 @@
                              param = numeric(),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta3 = list(
                              hyperid =  26003,
                              name = "logit correlation",
@@ -3365,8 +3599,8 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = TRUE,
@@ -3376,7 +3610,7 @@
                      n.required = TRUE,
                      set.default.values = TRUE,
                      pdf = "iid123d"
-                     ),
+                 ),
 
                  iid3d = list(
                      doc = "Gaussian random effect in dim=3 with Wishart prior", 
@@ -3391,7 +3625,7 @@
                              param = c(7, 1, 1, 1, 0, 0, 0),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  27002,
                              name = "log precision2",
@@ -3402,7 +3636,7 @@
                              param = numeric(),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta3 = list(
                              hyperid =  27003,
                              name = "log precision3",
@@ -3413,7 +3647,7 @@
                              param = numeric(),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta4= list(
                              hyperid =  27004,
                              name = "logit correlation12",
@@ -3424,7 +3658,7 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta5 = list(
                              hyperid =  27005,
                              name = "logit correlation13",
@@ -3435,7 +3669,7 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta6 = list(
                              hyperid =  27006,
                              name = "logit correlation23",
@@ -3446,8 +3680,8 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = TRUE,
@@ -3457,7 +3691,7 @@
                      n.required = TRUE,
                      set.default.values = TRUE,
                      pdf = "iid123d"
-                     ),
+                 ),
 
                  iid4d = list(
                      doc = "Gaussian random effect in dim=4 with Wishart prior", 
@@ -3472,7 +3706,7 @@
                              param = c(11, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  28002,
                              name = "log precision2",
@@ -3483,7 +3717,7 @@
                              param = numeric(),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta3 = list(
                              hyperid =  28003,
                              name = "log precision3",
@@ -3494,7 +3728,7 @@
                              param = numeric(),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta4 = list(
                              hyperid =  28004,
                              name = "log precision4",
@@ -3505,7 +3739,7 @@
                              param = numeric(),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta5= list(
                              hyperid =  28005,
                              name = "logit correlation12",
@@ -3516,7 +3750,7 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta6 = list(
                              hyperid =  28006,
                              name = "logit correlation13",
@@ -3527,7 +3761,7 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta7 = list(
                              hyperid =  28007,
                              name = "logit correlation14",
@@ -3538,7 +3772,7 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta8 = list(
                              hyperid =  28008,
                              name = "logit correlation23",
@@ -3549,7 +3783,7 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta9 = list(
                              hyperid =  28009,
                              name = "logit correlation24",
@@ -3560,7 +3794,7 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta10 = list(
                              hyperid =  28010,
                              name = "logit correlation34",
@@ -3571,8 +3805,8 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = TRUE,
@@ -3582,7 +3816,7 @@
                      n.required = TRUE,
                      set.default.values = TRUE,
                      pdf = "iid123d"
-                     ),
+                 ),
 
                  iid5d = list(
                      doc = "Gaussian random effect in dim=5 with Wishart prior", 
@@ -3597,7 +3831,7 @@
                              param = c(16, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  29002,
                              name = "log precision2",
@@ -3608,7 +3842,7 @@
                              param = numeric(),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta3 = list(
                              hyperid =  29003,
                              name = "log precision3",
@@ -3619,7 +3853,7 @@
                              param = numeric(),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta4 = list(
                              hyperid =  29004,
                              name = "log precision4",
@@ -3630,7 +3864,7 @@
                              param = numeric(),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta5 = list(
                              hyperid =  29005,
                              name = "log precision5",
@@ -3641,7 +3875,7 @@
                              param = numeric(),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta6= list(
                              hyperid =  29006,
                              name = "logit correlation12",
@@ -3652,7 +3886,7 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta7 = list(
                              hyperid =  29007,
                              name = "logit correlation13",
@@ -3663,7 +3897,7 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta8 = list(
                              hyperid =  29008,
                              name = "logit correlation14",
@@ -3674,7 +3908,7 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta9 = list(
                              hyperid =  29009,
                              name = "logit correlation15",
@@ -3685,7 +3919,7 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta10 = list(
                              hyperid =  29010,
                              name = "logit correlation23",
@@ -3696,7 +3930,7 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta11 = list(
                              hyperid =  29011,
                              name = "logit correlation24",
@@ -3707,7 +3941,7 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta12 = list(
                              hyperid =  29012,
                              name = "logit correlation25",
@@ -3718,7 +3952,7 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta13 = list(
                              hyperid =  29013,
                              name = "logit correlation34",
@@ -3729,7 +3963,7 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta14 = list(
                              hyperid =  29014,
                              name = "logit correlation35",
@@ -3740,7 +3974,7 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             ),
+                         ),
                          theta15 = list(
                              hyperid =  29015,
                              name = "logit correlation45",
@@ -3751,8 +3985,8 @@
                              param = numeric(),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = TRUE,
@@ -3762,7 +3996,7 @@
                      n.required = TRUE,
                      set.default.values = TRUE,
                      pdf = "iid123d"
-                     ),
+                 ),
 
                  "2diid" = list(
                      doc = "(This model is obsolute)", 
@@ -3777,7 +4011,7 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  30002,
                              name = "log precision2",
@@ -3788,7 +4022,7 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta3 = list(
                              hyperid =  30003,
                              name = "correlation",
@@ -3799,8 +4033,8 @@
                              param = c(0, 0.15),
                              to.theta = function(x) log((1+x)/(1-x)),
                              from.theta = function(x) 2*exp(x)/(1+exp(x))-1
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -3810,7 +4044,7 @@
                      n.required = TRUE,
                      set.default.values = TRUE,
                      pdf = "iid123d"
-                     ),
+                 ),
 
                  z = list(
                      doc = "The z-model in a classical mixed model formulation", 
@@ -3825,8 +4059,8 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -3837,7 +4071,7 @@
                      set.default.values = TRUE,
                      pdf = "z", 
                      status = "experimental"
-                     ),
+                 ),
 
                  rw2d = list(
                      doc = "Thin-plate spline model", 
@@ -3852,8 +4086,8 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = TRUE,
                      nrow.ncol = TRUE,
                      augmented = FALSE,
@@ -3863,7 +4097,7 @@
                      n.required = FALSE,
                      set.default.values = TRUE,
                      pdf = "rw2d"
-                     ),
+                 ),
 
                  rw2diid = list(
                      doc = "Thin-plate spline with iid noise", 
@@ -3878,7 +4112,7 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  33002,
                              name = "logit phi",
@@ -3889,8 +4123,8 @@
                              fixed = FALSE,
                              to.theta = function(x) log(x/(1-x)),
                              from.theta = function(x) exp(x)/(1+exp(x))
-                             )
-                         ),
+                         )
+                     ),
                      constr = TRUE,
                      nrow.ncol = TRUE,
                      augmented = TRUE,
@@ -3901,7 +4135,7 @@
                      set.default.values = TRUE,
                      status = "experimental", 
                      pdf = "rw2diid"
-                     ),
+                 ),
 
                  slm = list(
                      doc = "Spatial lag model", 
@@ -3916,7 +4150,7 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ), 
+                         ), 
                          theta2 = list(
                              hyperid =  34002,
                              name = "rho",
@@ -3927,8 +4161,8 @@
                              param = c(0, 10),
                              to.theta = function(x) log(x/(1-x)), 
                              from.theta = function(x) 1/(1+exp(-x))
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -3939,7 +4173,7 @@
                      set.default.values = TRUE,
                      pdf = "slm", 
                      status = "experimental"
-                     ),
+                 ),
 
                  matern2d = list(
                      doc = "Matern covariance function on a regular grid", 
@@ -3954,7 +4188,7 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  35002,
                              name = "log range",
@@ -3965,8 +4199,8 @@
                              param = c(1, 0.01),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = TRUE,
                      augmented = FALSE,
@@ -3976,7 +4210,56 @@
                      n.required = FALSE,
                      set.default.values = TRUE,
                      pdf = "matern2d"
+                 ),
+
+                 dmatern = list(
+                     doc = "Dense Matern field", 
+                     hyper = list(
+                         theta1 = list(
+                             hyperid =  35101,
+                             name = "log precision",
+                             short.name = "prec",
+                             initial = 3,
+                             fixed = FALSE,
+                             prior = "pc.prec",
+                             param = c(1, 0.01),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         ),
+                         theta2 = list(
+                             hyperid =  35102,
+                             name = "log range",
+                             short.name = "range",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "pc.range",
+                             param = c(1, 0.5),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         ), 
+                         theta3 = list(
+                             hyperid =  35103,
+                             name = "log nu",
+                             short.name = "nu",
+                             initial = log(0.5),
+                             fixed = TRUE,
+                             prior = "loggamma",
+                             param = c(0.5, 1),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         )
                      ),
+                     constr = FALSE,
+                     nrow.ncol = FALSE,
+                     augmented = FALSE,
+                     aug.factor = 1L,
+                     aug.constr = NULL,
+                     n.div.by = NULL,
+                     n.required = TRUE,
+                     set.default.values = TRUE,
+                     status = "experimental", 
+                     pdf = "dmatern"
+                 ),
 
                  copy = list(
                      doc = "Create a copy of a model component", 
@@ -3990,31 +4273,31 @@
                              prior = "normal",
                              param = c(1, 10),
                              to.theta = function(x, REPLACE.ME.low, REPLACE.ME.high) {
-                                 if (all(is.infinite(c(low, high))) || low == high) {
-                                     return (x)
-                                 } else if (all(is.finite(c(low, high)))) {
-                                     stopifnot(low < high)
-                                     return (log( - (low - x)/(high -x)))
-                                 } else if (is.finite(low) && is.infinite(high) && high > low) {
-                                     return (log(x-low))
-                                 } else {
-                                     stop("Condition not yet implemented")
-                                 }
-                             }, 
-                             from.theta = function(x, REPLACE.ME.low, REPLACE.ME.high) {
-                                 if (all(is.infinite(c(low, high))) || low == high) {
-                                     return (x)
-                                 } else if (all(is.finite(c(low, high)))) {
-                                     stopifnot(low < high)
-                                     return (low + exp(x)/(1+exp(x)) * (high - low))
-                                 } else if (is.finite(low) && is.infinite(high) && high > low) {
-                                     return (low + exp(x))
-                                 } else {
-                                     stop("Condition not yet implemented")
-                                 }
+                             if (all(is.infinite(c(low, high))) || low == high) {
+                                 return (x)
+                             } else if (all(is.finite(c(low, high)))) {
+                                 stopifnot(low < high)
+                                 return (log( - (low - x)/(high -x)))
+                             } else if (is.finite(low) && is.infinite(high) && high > low) {
+                                 return (log(x-low))
+                             } else {
+                                 stop("Condition not yet implemented")
                              }
-                             )
-                         ),
+                         }, 
+                         from.theta = function(x, REPLACE.ME.low, REPLACE.ME.high) {
+                             if (all(is.infinite(c(low, high))) || low == high) {
+                                 return (x)
+                             } else if (all(is.finite(c(low, high)))) {
+                                 stopifnot(low < high)
+                                 return (low + exp(x)/(1+exp(x)) * (high - low))
+                             } else if (is.finite(low) && is.infinite(high) && high > low) {
+                                 return (low + exp(x))
+                             } else {
+                                 stop("Condition not yet implemented")
+                             }
+                         }
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -4024,7 +4307,7 @@
                      n.required = FALSE,
                      set.default.values = FALSE,
                      pdf = NA
-                     ), 
+                 ), 
 
                  clinear = list(
                      doc = "Constrained linear effect", 
@@ -4038,33 +4321,33 @@
                              prior = "normal",
                              param = c(1, 10),
                              to.theta = function(x, REPLACE.ME.low, REPLACE.ME.high) {
-                                 if (all(is.infinite(c(low, high))) || low == high) {
-                                     stopifnot(low < high)
-                                     return (x)
-                                 } else if (all(is.finite(c(low, high)))) {
-                                     stopifnot(low < high)
-                                     return (log( - (low - x)/(high -x)))
-                                 } else if (is.finite(low) && is.infinite(high) && high > low) {
-                                     return (log(x-low))
-                                 } else {
-                                     stop("Condition not yet implemented")
-                                 }
-                             }, 
-                             from.theta = function(x, REPLACE.ME.low, REPLACE.ME.high) {
-                                 if (all(is.infinite(c(low, high))) || low == high) {
-                                     stopifnot(low < high)
-                                     return (x)
-                                 } else if (all(is.finite(c(low, high)))) {
-                                     stopifnot(low < high)
-                                     return (low + exp(x)/(1+exp(x)) * (high - low))
-                                 } else if (is.finite(low) && is.infinite(high) && high > low) {
-                                     return (low + exp(x))
-                                 } else {
-                                     stop("Condition not yet implemented")
-                                 }
+                             if (all(is.infinite(c(low, high))) || low == high) {
+                                 stopifnot(low < high)
+                                 return (x)
+                             } else if (all(is.finite(c(low, high)))) {
+                                 stopifnot(low < high)
+                                 return (log( - (low - x)/(high -x)))
+                             } else if (is.finite(low) && is.infinite(high) && high > low) {
+                                 return (log(x-low))
+                             } else {
+                                 stop("Condition not yet implemented")
                              }
-                             )
-                         ),
+                         }, 
+                         from.theta = function(x, REPLACE.ME.low, REPLACE.ME.high) {
+                             if (all(is.infinite(c(low, high))) || low == high) {
+                                 stopifnot(low < high)
+                                 return (x)
+                             } else if (all(is.finite(c(low, high)))) {
+                                 stopifnot(low < high)
+                                 return (low + exp(x)/(1+exp(x)) * (high - low))
+                             } else if (is.finite(low) && is.infinite(high) && high > low) {
+                                 return (low + exp(x))
+                             } else {
+                                 stop("Condition not yet implemented")
+                             }
+                         }
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -4074,7 +4357,7 @@
                      n.required = FALSE,
                      set.default.values = FALSE,
                      pdf = "clinear"
-                     ), 
+                 ), 
 
                  sigm = list(
                      doc = "Sigmoidal effect of a covariate", 
@@ -4089,7 +4372,7 @@
                              param = c(1, 10),
                              to.theta = function(x) x, 
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  38002,
                              name = "loghalflife",
@@ -4100,7 +4383,7 @@
                              param = c(3, 1),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ), 
+                         ), 
                          theta3 = list(
                              hyperid =  38003,
                              name = "logshape",
@@ -4111,8 +4394,8 @@
                              param = c(10, 10),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -4123,7 +4406,7 @@
                      set.default.values = FALSE,
                      status = "experimental", 
                      pdf = "sigm"
-                     ), 
+                 ), 
 
                  revsigm = list(
                      doc = "Reverse sigmoidal effect of a covariate", 
@@ -4138,7 +4421,7 @@
                              param = c(1, 10),
                              to.theta = function(x) x, 
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  39002,
                              name = "loghalflife",
@@ -4149,7 +4432,7 @@
                              param = c(3, 1),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ), 
+                         ), 
                          theta3 = list(
                              hyperid =  39003,
                              name = "logshape",
@@ -4160,8 +4443,8 @@
                              param = c(10, 10),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -4172,7 +4455,7 @@
                      set.default.values = FALSE,
                      status = "experimental", 
                      pdf = "sigm"
-                     ),
+                 ),
 
                  log1exp = list(
                      doc = "A nonlinear model of a covariate", 
@@ -4187,7 +4470,7 @@
                              param = c(0, 1),
                              to.theta = function(x) x, 
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  39012,
                              name = "alpha",
@@ -4198,7 +4481,7 @@
                              param = c(0, 1),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             ), 
+                         ), 
                          theta3 = list(
                              hyperid =  39013,
                              name = "gamma",
@@ -4209,8 +4492,8 @@
                              param = c(0, 1),
                              to.theta = function(x) x,
                              from.theta = function(x) x
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -4221,7 +4504,7 @@
                      set.default.values = FALSE,
                      status = "experimental", 
                      pdf = "log1exp"
-                     ),
+                 ),
                  
                  logdist = list(
                      doc = "A nonlinear model of a covariate", 
@@ -4236,7 +4519,7 @@
                              param = c(0, 1),
                              to.theta = function(x) x, 
                              from.theta = function(x) x
-                             ),
+                         ),
                          theta2 = list(
                              hyperid =  39022,
                              name = "alpha1",
@@ -4247,7 +4530,7 @@
                              param = c(0.1, 1),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             ), 
+                         ), 
                          theta3 = list(
                              hyperid =  39023,
                              name = "alpha2",
@@ -4258,8 +4541,8 @@
                              param = c(0.1, 1),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
+                         )
+                     ),
                      constr = FALSE,
                      nrow.ncol = FALSE,
                      augmented = FALSE,
@@ -4270,9 +4553,9 @@
                      set.default.values = FALSE,
                      status = "experimental", 
                      pdf = "logdist"
-                     )
-                 ##
                  )
+                 ##
+             )
          )
 }
 
@@ -4545,16 +4828,56 @@
                              hyperid =  47001,
                              name = "log precision",
                              short.name = "prec",
-                             prior = "loggamma",
+                             prior = "pc.prec",
                              param = c(1, 0.01),
                              initial = 0,
                              fixed = FALSE,
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
+                         )
+                     )
+                 ), 
+                 loggamma = list(
+                     ## > a = 1/inla.pc.rgamma(100000, lambda = 4.8)
+                     ## > x = log(rgamma(length(a), shape=a, rate = a))
+                     ## > sd (x)
+                     ## [1] 0.3344429082
+                     doc = "LogGamma mixture", 
+                     hyper = list(
+                         theta = list(
+                             hyperid =  47101,
+                             name = "log precision",
+                             short.name = "prec",
+                             prior = "pc.mgamma",
+                             param = 4.8, 
+                             initial = 4,
+                             fixed = FALSE,
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         )
+                     )
+                 ), 
+                 mloggamma = list(
+                     ## > a = 1/inla.pc.rgamma(100000, lambda = 4.8)
+                     ## > x = log(rgamma(length(a), shape=a, rate = a))
+                     ## > sd (x)
+                     ## [1] 0.3344429082
+                     doc = "Minus-LogGamma mixture", 
+                     hyper = list(
+                         theta = list(
+                             hyperid =  47201,
+                             name = "log precision",
+                             short.name = "prec",
+                             prior = "pc.mgamma",
+                             param = 4.8, 
+                             initial = 4,
+                             fixed = FALSE,
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
                          )
                      )
                  )
+             )
          )
 }
 
@@ -4605,6 +4928,14 @@
                  ), 
                  tan = list(
                      doc = "The tan-link", 
+                     hyper = list()
+                 ), 
+                 quantile = list(
+                     doc = "The quantile-link", 
+                     hyper = list()
+                 ), 
+                 pquantile = list(
+                     doc = "The population quantile-link", 
                      hyper = list()
                  ), 
                  sslogit = list(
@@ -4915,7 +5246,7 @@
                          ),
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "log", "logoffset", "test1", "special1", "special2"),
+                     link = c("default", "log", "logoffset", "quantile", "test1", "special1", "special2"),
                      pdf = "poisson"
                      ),
                  
@@ -4991,41 +5322,129 @@
                      survival = FALSE,
                      discrete = TRUE,
                      link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog",
-                              "log", "sslogit", "logitoffset"),
+                              "log", "sslogit", "logitoffset", "quantile", "pquantile"),
                      pdf = "binomial"
                      ),
 
-                 testbinomial1 = list(
-                     doc = "(experimental)", 
+                 pom = list(
+                     doc = "Likelihood for the proportional odds model", 
                      hyper = list(
                          theta1 = list(
-                             hyperid =  57001,
-                             name = "sensitivity",
-                             short.name = "s",
-                             initial = 3,
+                             hyperid =  57101,
+                             name = "theta1",
+                             short.name = "theta1",
+                             initial = NA,
                              fixed = FALSE,
-                             prior = "logitbeta",
-                             param = c(2, 1),
-                             to.theta = function(x) log(x/(1-x)),
-                             from.theta = function(x) exp(x)/(1+exp(x))
+                             prior = "dirichlet",
+                             param = 3.0, 
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
                              ), 
                          theta2 = list(
-                             hyperid =  57002,
-                             name = "specificity",
-                             short.name = "e",
-                             initial = 3,
+                             hyperid =  57102,
+                             name = "theta2",
+                             short.name = "theta2",
+                             initial = NA,
                              fixed = FALSE,
-                             prior = "logitbeta",
-                             param = c(2, 1),
-                             to.theta = function(x) log(x/(1-x)),
-                             from.theta = function(x) exp(x)/(1+exp(x))
+                             prior = "none",
+                             param = numeric(0), 
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x)
+                             ), 
+                         theta3 = list(
+                             hyperid =  57103,
+                             name = "theta3",
+                             short.name = "theta3",
+                             initial = NA,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(0), 
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x)
+                             ), 
+                         theta4 = list(
+                             hyperid =  57104,
+                             name = "theta4",
+                             short.name = "theta4",
+                             initial = NA,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(0), 
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x) 
+                             ), 
+                         theta5 = list(
+                             hyperid =  57105,
+                             name = "theta5",
+                             short.name = "theta5",
+                             initial = NA,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(0), 
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x) 
+                             ), 
+                         theta6 = list(
+                             hyperid =  57106,
+                             name = "theta6",
+                             short.name = "theta6",
+                             initial = NA,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(0), 
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x) 
+                             ), 
+                         theta7 = list(
+                             hyperid =  57107,
+                             name = "theta7",
+                             short.name = "theta7",
+                             initial = NA,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(0), 
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x) 
+                             ), 
+                         theta8 = list(
+                             hyperid =  57108,
+                             name = "theta8",
+                             short.name = "theta8",
+                             initial = NA,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(0), 
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x) 
+                             ), 
+                         theta9 = list(
+                             hyperid =  57109,
+                             name = "theta9",
+                             short.name = "theta9",
+                             initial = NA,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(0), 
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x) 
+                             ), 
+                         theta10 = list(
+                             hyperid =  57110,
+                             name = "theta10",
+                             short.name = "theta10",
+                             initial = NA,
+                             fixed = FALSE,
+                             prior = "none",
+                             param = numeric(0), 
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x) 
                              )
                          ),
                      status = "experimental", 
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "log"),
-                     pdf = "testbinomial1"
+                     link = c("default", "identity"), 
+                     pdf = "pom"
                      ),
 
                  gamma = list(
@@ -5045,8 +5464,30 @@
                          ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "log"),
+                     link = c("default", "log", "quantile"),
                      pdf = "gamma"
+                     ),
+
+                 gammasurv = list(
+                     doc = "The Gamma likelihood (survival)", 
+                     hyper = list(
+                         theta = list(
+                             hyperid =  58101,
+                             name = "precision parameter",
+                             short.name = "prec",
+                             initial = log(1),
+                             fixed = FALSE,
+                             prior = "loggamma",
+                             param = c(1, 0.01),
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x)
+                             )
+                         ),
+                     survival = TRUE,
+                     discrete = FALSE,
+                     status = "experimental", 
+                     link = c("default", "log", "quantile"),
+                     pdf = "gammasurv"
                      ),
 
                  gammacount = list(
@@ -5093,23 +5534,46 @@
                  ),
 
                  qloglogistic = list(
-                     doc = "A quantile version of the logistic likelihood", 
+                     doc = "A quantile loglogistic likelihood", 
                      hyper = list(
                          theta = list(
                              hyperid =  60011,
-                             name = "precision parameter",
-                             short.name = "prec",
-                             initial = 2,
+                             name = "log alpha",
+                             short.name = "alpha",
+                             initial = 1,
                              fixed = FALSE,
                              prior = "loggamma",
-                             param = c(1, 0.001),
+                             param = c(25, 25),
                              to.theta = function(x) log(x), 
                              from.theta = function(x) exp(x)
                          )
                      ), 
+                     status = "changed:Oct.25.2017", 
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "log"), 
+                     link = c("default", "log", "neglog"), 
+                     pdf = "qloglogistic"
+                 ),
+
+                 qloglogisticsurv = list(
+                     doc = "A quantile loglogistic likelihood (survival)", 
+                     hyper = list(
+                         theta = list(
+                             hyperid =  60021,
+                             name = "log alpha",
+                             short.name = "alpha",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "loggamma",
+                             param = c(25, 25),
+                             to.theta = function(x) log(x), 
+                             from.theta = function(x) exp(x)
+                         )
+                     ), 
+                     status = "changed:Oct.25.2017", 
+                     survival = TRUE,
+                     discrete = FALSE,
+                     link = c("default", "log", "neglog"), 
                      pdf = "qloglogistic"
                  ),
 
@@ -5157,8 +5621,7 @@
 
                  cbinomial = list(
                      doc = "The clustered Binomial likelihood", 
-                     hyper = list(
-                         ),
+                     hyper = list(),
                      survival = FALSE,
                      discrete = TRUE,
                      link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog"),
@@ -5183,7 +5646,16 @@
                          ),
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "log", "logoffset"),
+                     link = c("default", "log", "logoffset", "quantile"),
+                     pdf = "nbinomial"
+                     ),
+
+                 nbinomial2 = list(
+                     doc = "The negBinomial2 likelihood", 
+                     hyper = list(), 
+                     survival = FALSE,
+                     discrete = TRUE,
+                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog"), 
                      pdf = "nbinomial"
                      ),
 
@@ -5211,7 +5683,7 @@
                  gaussian = list(
                      doc = "The Gaussian likelihoood", 
                      hyper = list(
-                         theta = list(
+                         theta1 = list(
                              hyperid =  65001,
                              name = "log precision",
                              short.name = "prec",
@@ -5221,32 +5693,22 @@
                              param = c(1, 0.00005),
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
-                             )
-                         ),
-                     survival = FALSE,
-                     discrete = FALSE,
-                     link = c("default", "identity", "logit", "cauchit", "log", "logoffset"),
-                     pdf = "gaussian"
-                     ),
-
-                 normal = list(
-                     doc = "The Gaussian likelihoood", 
-                     hyper = list(
-                         theta = list(
-                             hyperid =  66001,
-                             name = "log precision",
-                             short.name = "prec",
-                             initial = 4,
-                             fixed = FALSE,
-                             prior = "loggamma",
-                             param = c(1, 0.00005),
+                             ), 
+                         theta2 = list(
+                             hyperid =  65002,
+                             name = "log precision offset",
+                             short.name = "precoffset",
+                             initial = (-2.0 * log(.Machine$double.eps)), 
+                             fixed = TRUE,
+                             prior = "none",
+                             param = numeric(), 
                              to.theta = function(x) log(x),
                              from.theta = function(x) exp(x)
                              )
                          ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "identity"),
+                     link = c("default", "identity", "logit", "cauchit", "log", "logoffset"),
                      pdf = "gaussian"
                      ),
 
@@ -5532,7 +5994,7 @@
                              hyperid =  77101,
                              name = "log precision",
                              short.name = "prec",
-                             initial = 4,
+                             initial = 0,
                              fixed = FALSE,
                              prior = "loggamma",
                              param = c(1, 0.00005),
@@ -5547,13 +6009,13 @@
                      ),
 
                  lognormalsurv = list(
-                     doc = "The log-Normal likelihood (survival version)", 
+                     doc = "The log-Normal likelihood (survival)", 
                      hyper = list(
                          theta = list(
                              hyperid =  78001,
                              name = "log precision",
                              short.name = "prec",
-                             initial = 2,
+                             initial = 0,
                              fixed = FALSE,
                              prior = "loggamma",
                              param = c(1, 0.00005),
@@ -5578,7 +6040,7 @@
                      ),
 
                  exponentialsurv = list(
-                     doc = "The Exponential likelihood (survival version)", 
+                     doc = "The Exponential likelihood (survival)", 
                      hyper = list(
                          ),
                      survival = TRUE,
@@ -5606,7 +6068,7 @@
                              hyperid =  79001,
                              name = "log alpha",
                              short.name = "alpha",
-                             initial = 0,
+                             initial = 0.1,
                              fixed = FALSE,
                              prior = "loggamma",
                              param = c(25, 25),
@@ -5616,12 +6078,12 @@
                          ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "log"),
+                     link = c("default", "log", "neglog", "quantile"),
                      pdf = "weibull"
                      ),
 
                  weibullsurv = list(
-                     doc = "The Weibull likelihood (survival version)", 
+                     doc = "The Weibull likelihood (survival)", 
                      ## variant=0: lambda*y^alpha
                      ## variant=1: (lambda*y)^alpha
                      hyper = list(
@@ -5629,7 +6091,7 @@
                              hyperid =  79101,
                              name = "log alpha",
                              short.name = "alpha",
-                             initial = 0,
+                             initial = 0.1,
                              fixed = FALSE,
                              prior = "loggamma",
                              param = c(25, 25),
@@ -5639,12 +6101,12 @@
                          ),
                      survival = TRUE,
                      discrete = FALSE,
-                     link = c("default", "log", "neglog"),
+                     link = c("default", "log", "neglog", "quantile"),
                      pdf = "weibull"
                      ),
 
                  loglogistic = list(
-                     doc = "The log-logistic likelihood (survival version)", 
+                     doc = "The loglogistic likelihood", 
                      hyper = list(
                          theta = list(
                              hyperid =  80001,
@@ -5658,6 +6120,29 @@
                              from.theta = function(x) exp(x)
                              )
                          ),
+                     status = "changed:Oct.25.2017", 
+                     survival = FALSE,
+                     discrete = FALSE,
+                     link = c("default", "log", "neglog"),
+                     pdf = "loglogistic"
+                     ),
+
+                 loglogisticsurv = list(
+                     doc = "The loglogistic likelihood (survival)", 
+                     hyper = list(
+                         theta = list(
+                             hyperid =  80011,
+                             name = "log alpha",
+                             short.name = "alpha",
+                             initial = 1,
+                             fixed = FALSE,
+                             prior = "loggamma",
+                             param = c(25, 25),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                             )
+                         ),
+                     status = "changed:Oct.25.2017", 
                      survival = TRUE,
                      discrete = FALSE,
                      link = c("default", "log", "neglog"),
@@ -5665,13 +6150,13 @@
                      ),
 
                  weibullcure = list(
-                     doc = "The Weibull-cure likelihood (survival version)", 
+                     doc = "The Weibull-cure likelihood (survival)", 
                      hyper = list(
                          theta1 = list(
                              hyperid =  81001,
                              name = "log alpha",
                              short.name = "a",
-                             initial = 0,
+                             initial = 0.1,
                              fixed = FALSE,
                              prior = "loggamma",
                              param = c(25, 25),
@@ -6692,6 +7177,61 @@
                              param = c(0, 1),
                              to.theta = function(x) x, 
                              from.theta = function(x) x
+                         ), 
+                         theta11 = list(
+                             hyperid =  101111,
+                             name = "beta11",
+                             short.name = "beta11",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                         ), 
+                         theta12 = list(
+                             hyperid =  101112,
+                             name = "beta12",
+                             short.name = "beta12",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                         ), 
+                         theta13 = list(
+                             hyperid =  101113,
+                             name = "beta13",
+                             short.name = "beta13",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                         ), 
+                         theta14 = list(
+                             hyperid =  101114,
+                             name = "beta14",
+                             short.name = "beta14",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                         ), 
+                         theta15 = list(
+                             hyperid =  101115,
+                             name = "beta15",
+                             short.name = "beta15",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
                          )
                      ),
                      status = "experimental", 
@@ -6816,6 +7356,61 @@
                          ), 
                          theta11 = list(
                              hyperid =  101131,
+                             name = "beta11",
+                             short.name = "beta11",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                         ), 
+                         theta12 = list(
+                             hyperid =  101132,
+                             name = "beta12",
+                             short.name = "beta12",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                         ), 
+                         theta13 = list(
+                             hyperid =  101133,
+                             name = "beta13",
+                             short.name = "beta13",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                         ), 
+                         theta14 = list(
+                             hyperid =  101134,
+                             name = "beta14",
+                             short.name = "beta14",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                         ), 
+                         theta15 = list(
+                             hyperid =  101135,
+                             name = "beta15",
+                             short.name = "beta15",
+                             initial = 0,
+                             fixed = FALSE,
+                             prior = "normal",
+                             param = c(0, 1),
+                             to.theta = function(x) x, 
+                             from.theta = function(x) x
+                         ), 
+                         theta16 = list(
+                             hyperid =  101136,
                              name = "overdispersion",
                              short.name = "overdispersion",
                              initial = 0,
@@ -6851,7 +7446,7 @@
                      status = "experimental", 
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "log"), 
+                     link = c("default", "quantile"), 
                      pdf = "genPareto"
                  ),
 
@@ -6953,6 +7548,11 @@
                      nparameters = 1L,
                      pdf = "pc.ar"
                  ),
+                 dirichlet = list(
+                     doc ="Dirichlet prior",
+                     nparameters = 1L,
+                     pdf = "dirichlet"
+                 ),
 
                  ## this is the 'no prior needed' prior
                  none = list(
@@ -7053,6 +7653,12 @@
                      doc = "Reference prior for the AR(p) model, p<=3", 
                      nparameters = 0L,
                      pdf = NA
+                 ),
+                 
+                 pom = list(
+                     doc = "#classes-dependent prior for the POM model", 
+                     nparameters = 0L,
+                     pdf = "pom"
                  ),
                  
                  jeffreystdf = list(
@@ -7182,11 +7788,14 @@
     stop("This should not happen")
 }
 
-`inla.is.model` = function(model, section = names(inla.models()),
+`inla.is.model` = function(model, section = NULL, 
         stop.on.error = TRUE, ignore.case = FALSE)
 {
-    section = match.arg(section)
     mm = inla.models()
+    if (is.null(section)) {
+        stop("No section given; please fix...")
+    }
+    section = match.arg(section, names(mm))
     models = names((mm[ names(mm) == section ])[[1]])
 
     if (is.character(model) && length(model) > 0) {
@@ -7223,15 +7832,15 @@
 
 `inla.model.properties` = function(
         model,
-        section = c("..invalid.model..", names(inla.models())),
+        section = NULL, 
         stop.on.error = TRUE,
         ignore.case = FALSE)
 {
-    section = match.arg(section)
-    if (section == "..invalid.model..")
+    if (is.null(section)) {
         stop("No section given; please fix...")
-
+    }
     mm = inla.models()
+    section = match.arg(section, names(mm))
     m = inla.model.properties.generic(inla.trim.family(model),
         (mm[names(mm) == section])[[1]],
         stop.on.error, ignore.case,
@@ -7270,30 +7879,45 @@
         if (is.null(status)) {
             ## do nothing; all ok.
         } else {
-            stopifnot(any(inla.strcasecmp(status, c("experimental", "disabled"))))
+            status.core = strsplit(status, ":")[[1]][1]
+            stopifnot(any(inla.strcasecmp(status.core, c("experimental", "disabled", "changed"))))
             envir = inla.get.inlaEnv()
             var = paste("processed.status.for.model.", model, ".in.section.", section, sep="")
 
-            if (inla.strcasecmp(status, "experimental")) {
+            if (inla.strcasecmp(status.core, "experimental")) {
                 if (!(exists(var, envir = envir) && get(var, envir = envir))) {
                     assign(var, TRUE, envir = envir)
-                    msg = paste("Model '", model, "' in section '", section, "' is marked as '", status, 
+                    msg = paste0("Model '", model, "' in section '", section, "' is marked as '", status, 
                         "'; changes may appear at any time.",
                         "\n  ",
-                        "Use this model with extra care!!! Further warnings are disabled.", sep="")
+                        "Use this model with extra care!!! Further warnings are disabled.")
                     warning(msg)
                 } else {
                     ## the warning is already given; do nothing
                 }
-            } else if (inla.strcasecmp(status, "disabled")) {
+            } else if (inla.strcasecmp(status.core, "disabled")) {
                 assign(var, TRUE, envir = envir)
-                msg = paste("Model '", model, "' in section '", section, "' is marked as '", status,
-                    "'.\n  Usage is not recommended and unsupported.\n", sep="")
+                msg = paste("Model '", model, "' in section '", section, "' is marked as '",
+                            status, ".\n",
+                            "Usage is either not recommended and unsupported.",
+                            "\n", sep="")
                 var = paste("enable.model.", section, ".", model, sep="")
                 if (!(exists(var, envir = envir) && get(var, envir = envir))) {
-                    msg = paste(c(msg, paste("  You can enable it setting variable '", var,
+                    msg = paste0(c(msg, paste("  You can enable this model setting variable '", var,
                         "'\n  to 'TRUE' in environment INLA:::inla.get.inlaEnv().\n",
-                        "  If you chose to do so, you are on your own.", sep="")))
+                        "  If you chose to do so, you are on your own.")))
+                    stop(msg)
+                }
+            } else if (inla.strcasecmp(status.core, "changed")) {
+                assign(var, TRUE, envir = envir)
+                msg = paste0("Model '", model, "' in section '", section, "' is marked as '",
+                            status, ".\n",
+                            "  There have been a change in the model definition, which is not backward compatible.\n",
+                            "  Please refer to the documentation before proceeeding.")
+                var = paste("enable.model.", section, ".", model, sep="")
+                if (!(exists(var, envir = envir) && get(var, envir = envir))) {
+                    msg = paste0(c(msg, paste0("\n  You can bypass this check setting variable '", var,
+                        "'\n  to 'TRUE' in environment INLA:::inla.get.inlaEnv().\n")))
                     stop(msg)
                 }
             }
