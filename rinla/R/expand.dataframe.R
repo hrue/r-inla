@@ -22,15 +22,15 @@
         cutpoints = seq(0L, max(time), len = n.intervals +1L) 
 
     new.data = inla.get.poisson.data.1(time=time, truncation=truncation, event=event, cutpoints=cutpoints)
-    expand = table(new.data$indicator)
+    expand.df = table(new.data$indicator)
 
     if(!missing(dataframe) && prod(dim(dataframe)) > 0L) {
         new.dataframe = as.data.frame(matrix(0.0, length(new.data$y), dim(dataframe)[2L]))
         for(i in 1L:dim(dataframe)[2L])
-            new.dataframe[, i] = rep(dataframe[, i], expand)
+            new.dataframe[, i] = rep(dataframe[, i], expand.df)
 
         ## alternative code,  not faster...
-        ## new.dataframe = apply(dataframe, 2, rep, times = expand)  
+        ## new.dataframe = apply(dataframe, 2, rep, times = expand.df)  
 
         new.dataframe = as.data.frame(new.dataframe)
         ## just give some name that we are able to recognise afterwards
@@ -40,14 +40,15 @@
     }
 
     res = data.frame(
-            y..coxph = new.data$y,
-            E..coxph = new.data$E,
-            baseline.hazard = cutpoints[new.data$baseline.hazard],
-            baseline.hazard.idx = new.data$baseline.hazard,
-            baseline.hazard.time = cutpoints[new.data$baseline.hazard],
-            baseline.hazard.length = diff(cutpoints)[new.data$baseline.hazard],
-            new.dataframe)
-        
+        y..coxph = new.data$y,
+        E..coxph = new.data$E,
+        expand..coxph = rep(1:nrow(dataframe), expand.df), 
+        baseline.hazard = cutpoints[new.data$baseline.hazard],
+        baseline.hazard.idx = new.data$baseline.hazard,
+        baseline.hazard.time = cutpoints[new.data$baseline.hazard],
+        baseline.hazard.length = diff(cutpoints)[new.data$baseline.hazard],
+        new.dataframe)
+    
     names(res)[grep("fake.dataframe.names", names(res))] = names(dataframe)
 
     return (list(data = res, data.list = list(baseline.hazard.values = cutpoints)))
@@ -63,34 +64,39 @@
 
     for(i in 1L:length(time)) {
         if(is.na(start[i])) {
-            if(end[i]>1.0)
-                dc = cbind(ds[1L:(end[i]-1L)], rep(0L,(end[i]-1L)), rep(i,(end[i]-1L)), c(1L:(end[i]-1L)))
-            else dc = numeric(0L)
+            if(end[i]>1.0) {
+                dc = cbind(ds[1L:(end[i]-1L)], rep(0L,(end[i]-1L)), rep(i,(end[i]-1L)),
+                           c(1L:(end[i]-1L)))
+            } else {
+                dc = numeric(0L)
+            }
             dc = rbind(dc, cbind(time[i]-(cutpoints[end[i]]), event[i], i, end[i]))
             data.new = rbind(data.new, dc)
         }
         else {
             if(start[i]<end[i]) {
                 dc = cbind((cutpoints[start[i]+1L]-truncation[i]), 0L, i, start[i])
-                if(end[i]>(start[i]+1L))
+                if(end[i]>(start[i]+1L)) {
                     dc = rbind(dc, cbind(ds[(start[i]+1L):(end[i]-1L)], rep(0L,(end[i]-start[i]-1L)),
-                            rep(i,(end[i]-start[i]-1L)), c((start[i]+2L):(end[i])-1L)))
+                                         rep(i,(end[i]-start[i]-1L)),
+                                         c((start[i]+2L):(end[i])-1L)))
+                }
                 dc = rbind(dc, cbind(time[i]-(cutpoints[end[i]]), event[i], i, end[i]))
                 data.new = rbind(data.new, dc)
 
             } else if(start[i]==end[i]) {
                 dc = cbind(time[i]-(cutpoints[end[i]]), event[i], i, end[i])
                 data.new = rbind(data.new, dc)
-            }
-            else
+            } else {
                 stop("Truncation cannot be greater than time")
+            }
         }
     }
     data.new = data.frame(
-            E=data.new[, 1L],
-            y=data.new[, 2L],
-            indicator=data.new[, 3L],
-            baseline.hazard=data.new[, 4L])
+        E=data.new[, 1L],
+        y=data.new[, 2L],
+        indicator=data.new[, 3L],
+        baseline.hazard=data.new[, 4L])
 
     return(data.new)
 }

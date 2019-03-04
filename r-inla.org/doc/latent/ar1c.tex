@@ -1,0 +1,74 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{verbatim}
+\begin{document}
+
+\section*{Autoregressive model of order $1$ with covariates (AR1C)}
+
+\subsection*{Parametrization}
+
+This is an extention of the common autoregressive model (AR1) to
+include a set of covariates into the conditional mean
+\begin{eqnarray}\nonumber
+  x_1&\sim&\mathcal{N}(0,(\tau(1-\rho^2))^{-1}) \\\nonumber
+  x_t&=&\rho\ x_{t-1}+ \sum_{j=1}^{m} \beta_j z^{(j)}_{t-1} +
+         \epsilon_t; \qquad \epsilon_i\sim\mathcal{N}(0,\tau^{-1}) \qquad  t=2,\dots,n
+\end{eqnarray}
+where $|\rho|<1$. The latent vector has length $n+m$ and is represeted
+as $(x_1, x_2, \ldots, x_n, \beta_1, \ldots, \beta_m)$.
+
+
+\subsection*{Hyperparameters}
+
+The precision parameter $\kappa$ is represented as
+\begin{displaymath}
+    \theta_1 =\log(\kappa) 
+\end{displaymath}
+where $\kappa$ is the \emph{marginal} precision (when there is no covariates)
+\begin{displaymath}
+    \kappa = \tau (1-\rho^{2}).
+\end{displaymath}
+The parameter $\rho$ is represented as
+\[
+\theta_2 = \log\left(\frac{1+\rho}{1-\rho}\right)
+\]
+and the prior is defined on $\mathbf{\theta}=(\theta_1,\theta_2)$. 
+
+\subsection*{Specification}
+
+The AR1C model is specified as
+\begin{verbatim}
+ f(<whatever>, model="ar1c", hyper = <hyper>,
+   args.ar1c = list(Z=Z, Q.beta = Q))
+\end{verbatim}
+The covariates are given in the \textbf{matrix} $Z$ and \textbf{must
+    have} dimension $n\times m$\footnote{Despite the fact that the
+    last row of $Z$ is not used}. The prior for
+$\beta = (\beta_1, \ldots, \beta_m)$ is a zero mean Gaussian with a
+$m\times m$ precision \textbf{matrix} \texttt{Q}.
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/latent/ar1c.tex}
+
+\subsection*{Example}
+
+\verbatiminput{example-ar1c.R}
+
+\subsection*{Notes}
+
+\begin{itemize}
+\item If $m = 0$, use \texttt{model="ar1"}. 
+\end{itemize}
+
+
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

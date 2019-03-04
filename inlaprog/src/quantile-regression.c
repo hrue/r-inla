@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 #ifndef HGVERSION
@@ -46,7 +46,7 @@ double inla_pcontpois(double y, double lambda)
 double inla_pcontpois_deriv(double y, double lambda)
 {
 	// the derivative of the cdf for the continous poisson, wrt lambda
-	return (-exp((y-1.0) * log(lambda) - lambda - gsl_sf_lngamma(y)));
+	return (-exp((y - 1.0) * log(lambda) - lambda - gsl_sf_lngamma(y)));
 }
 double inla_qcontpois(double quantile, double alpha, double *initial_guess)
 {
@@ -64,7 +64,7 @@ double inla_qcontpois_eta(double quantile, double alpha, double *initial_guess)
 	double eta_0, eta, max_step = 10, max_step_f = 0.8 * max_step, tol = GMRFLib_eps(0.5);
 	double d, f, fd, lambda;
 
-	eta_0 = (initial_guess? *initial_guess : log(quantile));
+	eta_0 = (initial_guess ? *initial_guess : log(quantile));
 	for (int i = 0; i < iter_max; i++) {
 		lambda = exp(eta_0);
 		f = LOGIT(inla_pcontpois(quantile, lambda)) - LOGIT(alpha);
@@ -93,7 +93,7 @@ GMRFLib_spline_tp **inla_qcontpois_func(double alpha, int num)
 	 * alpha is kept fixed
 	 */
 
-	int n = 1024, verbose=0;
+	int n = 1024, verbose = 0;
 	double lq_min = -5.0, lq_max = 10.0, lq_delta = (lq_max - lq_min) / n;
 	double *lquantile, *eta;
 	GMRFLib_spline_tp **spline;

@@ -11,14 +11,16 @@
 ##!              The diagonal and values for the neighbours in the inverse, are provided.}
 ##!
 ##! \usage{
-##!     inla.qinv(Q, constr, reordering = inla.reorderings())
+##!     inla.qinv(Q, constr, reordering = INLA::inla.reorderings())
 ##! }
 ##!
 ##! \arguments{
 ##!
 ##!   \item{Q}{A SPD matrix,  either as a (dense) matrix or sparseMatrix.}
-##!   \item{constr}{Optional linear constraints; see \code{?INLA::f} and argument \code{extraconstr}}
-##!   \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()}
+##!   \item{constr}{Optional linear constraints; 
+##!                 see \code{?INLA::f} and argument \code{extraconstr}}
+##!   \item{reordering}{The type of reordering algorithm to be used for \code{TAUCS};
+##!        either one of the names listed in \code{inla.reorderings()} 
 ##!        or the output from \code{inla.qreordering(Q)}.
 ##!        The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
 ##!  }
@@ -54,18 +56,19 @@
 
 `inla.qinv` = function(Q, constr, reordering = INLA::inla.reorderings())
 {
+    t.dir = inla.tempdir()
+    smtp = match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "pardiso"))
+    num.threads = inla.getOption("num.threads")
     Q = inla.sparse.check(Q)
     if (is(Q, "dgTMatrix")) {
-        qinv.file = inla.write.fmesher.file(Q)
-        remove = TRUE
+        qinv.file = inla.write.fmesher.file(Q, filename = inla.tempfile(tmpdir = t.dir))
     } else if (is.character(Q)) {
         qinv.file = Q
-        remove = FALSE
     } else {
         stop("This chould not happen.")
     }
 
-    constr.file = inla.tempfile()
+    constr.file = inla.tempfile(tmpdir = t.dir)
     if (!missing(constr) && !is.null(constr)) {
         stopifnot(is.list(constr))
         A = as.matrix(constr$A)
@@ -82,22 +85,22 @@
     }
     reordering = match.arg(reordering)
 
-    out.file = inla.tempfile()
+    out.file = inla.tempfile(tmpdir = t.dir)
+    inla.set.sparselib.env(inla.dir = t.dir)
     if (inla.os("linux") || inla.os("mac")) {
-        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv", "-r",  reordering, qinv.file, constr.file, out.file), intern=TRUE)
+        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv",
+                         "-r",  reordering, "-t", num.threads, 
+                         "-S", smtp, qinv.file, constr.file, out.file), intern=TRUE)
     } else if(inla.os("windows")) {
-        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv", "-r",  reordering, qinv.file, constr.file, out.file), intern=TRUE)
+        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qinv",
+                         "-r",  reordering, "-t", num.threads, 
+                         "-S", smtp, qinv.file, constr.file, out.file), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }
 
     Qinv = inla.read.fmesher.file(out.file)
-
-    if (remove) {
-        unlink(qinv.file)
-    }
-    unlink(out.file)
-    unlink(constr.file)
-
+    unlink(t.dir, recursive = TRUE)
+    
     return (Qinv)
 }

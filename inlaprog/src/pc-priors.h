@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 #ifndef __INLA_PC_PRIORS_H__
@@ -51,8 +51,6 @@ GMRFLib_spline_tp *inla_pcp_dof_create_spline(void);
 double inla_pcp_dof_dof(double d);
 double inla_pcp_dof_kld_approx(double dof);
 double inla_pcp_dof_d(double dof);
-
-
 
 __END_DECLS
 #endif

@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  */
 #ifndef __INLA_FGN_H__
@@ -43,21 +43,36 @@ __BEGIN_DECLS
 /* 
  *
  */
+#include "GMRFLib/GMRFLib.h"
+#include "GMRFLib/GMRFLibP.h"
 #include "inla.h"
-#define FGN_KMAX (6L)					       /* maximum K in the tables */
+#define FGN_KMAX (4L)					       /* maximum K in the tables */
+
 //
     typedef struct {
 	int N;						       /* total size = (k+1)*n */
 	int n;						       /* size of each component */
 	int k;						       /* number of components */
-
 	double prec_eps;				       /* fixed tiny noise */
 	double **log_prec;				       /* theta[0] */
 	double **H_intern;				       /* theta[1] */
 } inla_fgn_arg_tp;
 
+typedef struct {
+	int N;						       /* total size = k*n */
+	int n;						       /* size of each component */
+	int k;						       /* number of components */
+	double **log_prec;				       /* theta[0] */
+	double **H_intern;				       /* theta[1] */
+} inla_fgn2_arg_tp;
+
+double inla_fgn2_helper(int i, int j, int n, double phi);
+
 int inla_make_fgn_graph(GMRFLib_graph_tp ** graph, inla_fgn_arg_tp * def);
+int inla_make_fgn2_graph(GMRFLib_graph_tp ** graph, inla_fgn2_arg_tp * def);
 double Qfunc_fgn(int i, int j, void *arg);
+double Qfunc_fgn2(int i, int j, void *arg);
+
 int inla_fgn_get(double *phi, double *w, double H_intern, int k);
 double priorfunc_fgn_priorH(double *H_intern, double *param);
 

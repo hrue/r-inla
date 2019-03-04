@@ -35,9 +35,9 @@ and the prior is defined on $\mathbf{\theta}$.
 The seasonal model is specified inside the {\tt f()} function as
 \begin{verbatim}
  f(<whatever>,model="seasonal",season.length=<season.length>,
-              hyper = <hyper>)
+              scale.model=<scale.model>, hyper = <hyper>)
 \end{verbatim}
- 
+
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/latent/seasonal.tex}
 

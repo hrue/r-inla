@@ -79,13 +79,13 @@ spde <- inla.spde2.pcmatern(
 m <- spde$n.spde
 @ 
 
-The spatio temporal projector matrix is made considering 
+The spatio temporal projection matrix is made considering 
 both spatial and temporal locations and both spatial and temporal meshes. 
 <<Ast>>=
 dim(Ast <- inla.spde.make.A(mesh=mesh.s, loc=burpts, n.group=length(mesh.t$n), 
                             group=burkitt$t, group.mesh=mesh.t))
 @ 
-Internally \texttt{inla.spde.make.A} function makes a row Kronecker product (see \texttt{inla.row.kron}) between the spatial projector and the group (temporal in our case) projector.  
+Internally \texttt{inla.spde.make.A} function makes a row Kronecker product (see \texttt{inla.row.kron}) between the spatial projector matrix and the group (temporal in our case) projector one. 
 This matrix has number of columns equals to the number 
 of nodes in the mesh times the number of groups. 
 

@@ -19,12 +19,12 @@
  *
  * The author's contact information:
  *
- *       H{\aa}vard Rue
- *       Department of Mathematical Sciences
- *       The Norwegian University of Science and Technology
- *       N-7491 Trondheim, Norway
- *       Voice: +47-7359-3533    URL  : http://www.math.ntnu.no/~hrue  
- *       Fax  : +47-7359-3524    Email: havard.rue@math.ntnu.no
+ *        Haavard Rue
+ *        CEMSE Division
+ *        King Abdullah University of Science and Technology
+ *        Thuwal 23955-6900, Saudi Arabia
+ *        Email: haavard.rue@kaust.edu.sa
+ *        Office: +966 (0)12 808 0640
  *
  *
  */
@@ -62,7 +62,7 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+//static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 /* Pre-hg-Id: $Id: error-handler.c,v 1.49 2008/08/26 07:07:11 hrue Exp $ */
 static GMRFLib_error_handler_tp *handler = NULL;
@@ -100,7 +100,12 @@ static GMRFLib_error_handler_tp *handler = NULL;
   21 :   This should not happen\n
   22 :   Error writing file
   23 :   Misc error\n
-  24 :   (this is an unknown error code) \n
+  24 :   PARDISO License file: not found\n
+  25 :   PARDISO License file: expired\n
+  26 :   PARDISO License file: wrong username\
+  27 :   PARDISO: Internal error\
+  28 :   PARDISO: Library not loaded or available\
+  29 :   (this is an unknown error code) \n
 
   \remarks This function is used within the library generating the \a reason argument 
   in the default error handling function \c GMRFLib_error_handler().
@@ -111,8 +116,9 @@ const char *GMRFLib_error_reason(int errorno)
 	/*
 	 * return a pointer to the reason for error=errorno 
 	 */
-#define NMSG 25
-	static const char *reasons[NMSG] = { "No error, please ignore",
+#define NMSG 30
+	static const char *reasons[NMSG] = {
+		"No error, please ignore",
 		"Alloc failed",
 		"Matrix is not (numerical) positive definite",
 		"Matrix is (numerical) singular",
@@ -136,6 +142,11 @@ const char *GMRFLib_error_reason(int errorno)
 		"This should not happen",
 		"Error writing file",
 		"Misc error",
+		"License file for PARDISO: Not found",
+		"License file for PARDISO: Expired",
+		"License file for PARDISO: Wrong username",
+		"PARDISO: Internal error",
+		"PARDISO: Library not available",
 		"(((this is an unknown errorcode)))"
 	};
 	if (errorno < 0 || errorno >= NMSG - 1)
