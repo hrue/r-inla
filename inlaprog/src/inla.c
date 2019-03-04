@@ -4365,9 +4365,13 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_v
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, lprec, prec, w, ypred;
-	static double log_prec_limit = -log(DBL_EPSILON);
+	static double log_prec_limit = 0.0;
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_gaussian[idx];
+
+	if (log_prec_limit == 0.0) {
+		log_prec_limit = -log(DBL_EPSILON);
+	}
 
 	if (ds->data_observations.log_prec_gaussian_offset[GMRFLib_thread_id][0] > log_prec_limit) {
 		lprec = ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0] + log(w);
@@ -10166,7 +10170,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		}
 	}
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_PARDISO;
+		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
 	}
 	mb->smtp = GMRFLib_SMTP_NAME(GMRFLib_smtp);
 	if (mb->verbose) {
@@ -11209,19 +11213,19 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (!ds->data_fixed0) {
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
 			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = ds->data_prior.hyperid;
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior0.hyperid;
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("Log precision for the Gaussian observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Precision for the Gaussian observations", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_prec_gaussian;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -15503,7 +15507,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	    NULL, ***pacf_intern = NULL, slm_rho_min = 0.0, slm_rho_max = 0.0, **log_halflife = NULL, **log_shape = NULL, **alpha =
 	    NULL, **gama = NULL, **alpha1 = NULL, **alpha2 = NULL, **H_intern = NULL, **nu_intern, ***intslope_gamma = NULL;
 
-	GMRFLib_matrix_tp *intslope_def;
+	GMRFLib_matrix_tp *intslope_def = NULL;
 	GMRFLib_crwdef_tp *crwdef = NULL;
 	inla_spde_tp *spde_model = NULL;
 	inla_spde_tp *spde_model_orig = NULL;
@@ -27581,10 +27585,13 @@ int inla_INLA(inla_tp * mb)
 		int use_g = 0;
 		GMRFLib_optimize_reorder(mb->hgmrfm->graph, &nnz, &use_g, &(mb->gn));
 		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
-			if (mb->verbose) {
-				printf("\tFound optimal reordering=[%s] nnz(L)=[%lu] and use_global_nodes(user)=[%s]\n",
-				       GMRFLib_reorder_name(GMRFLib_reorder), nnz, (use_g ? "yes" : "no"));
-			}
+			// ....
+		} else {
+			GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
+		}
+		if (mb->verbose) {
+			printf("\tFound optimal reordering=[%s] nnz(L)=[%lu] and use_global_nodes(user)=[%s]\n",
+			       GMRFLib_reorder_name(GMRFLib_reorder), nnz, (use_g ? "yes" : "no"));
 		}
 	}
 	if (mb->verbose) {
@@ -27767,6 +27774,10 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	char *fnm, *msg;
 	ssize_t rw_retval;
 
+	GMRFLib_sprintf(&msg, "inla_MCMC() is no longer supported.");
+	inla_error_general(msg);
+	exit(1);
+
 	if (mb_old->fixed_mode) {
 		/*
 		 * then there is a request to treat the theta's as fixed and known. This little hack do the job nicely. 
@@ -27869,10 +27880,8 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 
 	if (G.reorder < 0) {
 		GMRFLib_optimize_reorder(mb_new->hgmrfm->graph, NULL, NULL, &(mb_new->gn));
-		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
-			if (mb_new->verbose) {
-				printf("\tFound optimal reordering=[%s]\n", GMRFLib_reorder_name(GMRFLib_reorder));
-			}
+		if (mb_new->verbose) {
+			printf("\tFound optimal reordering=[%s]\n", GMRFLib_reorder_name(GMRFLib_reorder));
 		}
 	}
 	if (mb_new->verbose) {
@@ -31175,12 +31184,13 @@ int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
+		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
 		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
+		GMRFLib_reorder = GMRFLib_REORDER_BAND;
 	} else {
+		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, constr, GMRFLib_NEW_PROBLEM);
@@ -31233,21 +31243,25 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem = NULL;
 
-	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, Qfilename, -1, NULL, NULL, NULL);
-	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
-	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
-	} else {
-		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
-	}
-	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
-
 	/*
 	 * I need B to be dense 
 	 */
 	GMRFLib_matrix_tp *B = GMRFLib_read_fmesher_file(Bfilename, (long int) 0, -1);
 	assert(B->i == NULL);				       /* I want B as dense matrix */
+
+	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, Qfilename, -1, NULL, NULL, NULL);
+	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
+		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
+		GMRFLib_pardiso_set_nrhs(IMIN(GMRFLib_MAX_THREADS, B->ncol));
+		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
+	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
+		GMRFLib_reorder = GMRFLib_REORDER_BAND;
+	} else {
+		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
+		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
+	}
+	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
 	assert(problem->n == B->nrow);
 
 	if (!strcasecmp(method, "solve")) {
@@ -31342,12 +31356,13 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
-		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
+		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
+		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL; // use _PARALLEL with an option??
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
+		GMRFLib_reorder = GMRFLib_REORDER_BAND;
 	} else {
+		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 
@@ -31380,8 +31395,8 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		fprintf(stderr, "inla_qsample: start to sample %1d samples...\n", ns);
 	}
 
-	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		// as we do not want to factorize it again...
+	if ((GMRFLib_smtp == GMRFLib_SMTP_PARDISO) &&
+	    (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL)) {
 		for (i = 0; i < ns; i++) {
 			if (!S) {
 				GMRFLib_sample(problem);
@@ -31817,6 +31832,7 @@ int inla_R(char **argv)
 
 	return GMRFLib_SUCCESS;
 }
+
 int inla_fgn(char *infile, char *outfile)
 {
 	double H, H_intern, *res;
@@ -31846,6 +31862,7 @@ int inla_fgn(char *infile, char *outfile)
 
 	return GMRFLib_SUCCESS;
 }
+
 int testit(int argc, char **argv)
 {
 	int test_no = -1;
@@ -32240,13 +32257,21 @@ int testit(int argc, char **argv)
 
 	case 19:
 	{
-#define _GET(_int) fscanf(fp, "%d\n", &_int)
+#define _GET(_int) if (1) {				      \
+			if (fscanf(fp, "%d\n", &_int) == EOF) {	\
+				fprintf(stderr, "%s\n", strerror(errno)); \
+				exit(1);\
+			}\
+		}
 #define _GETV(_vec, _len)						\
 		if (1) {						\
 			_vec = Calloc(_len, double);			\
 			int _i;						\
 			for(_i=0; _i < _len; _i++) {			\
-				fscanf(fp, "%lf\n", &_vec[_i]);		\
+				if (fscanf(fp, "%lf\n", &_vec[_i]) == EOF) { \
+					fprintf(stderr, "%s\n", strerror(errno)); \
+					exit(1);			\
+				}					\
 				if (0) printf("%s[%1d] = %g\n", #_vec, _i, _vec[_i]); \
 			}						\
 		}
@@ -32457,7 +32482,8 @@ int testit(int argc, char **argv)
 	{
 		double tref = GMRFLib_cpu();
 		for (int i = 0; i < 3; i++) {
-			system("sleep 1");
+			int ret = system("sleep 1");
+			if (ret != 0) exit(1);
 			printf("Call system() to sleep 1s. Time elapsed: %.6f\n", GMRFLib_cpu() - tref);
 		}
 		GMRFLib_collect_timer_statistics = GMRFLib_TRUE;
@@ -32476,10 +32502,12 @@ int testit(int argc, char **argv)
 
 	exit(EXIT_SUCCESS);
 }
+
 int inla_testit_timer(void)
 {
 	GMRFLib_ENTER_ROUTINE;
-	system("sleep 1");
+	int ret = system("sleep 1");
+	if (ret != 0) exit(1);
 	GMRFLib_LEAVE_ROUTINE;
 	return 0;
 }
@@ -32546,7 +32574,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR1, inla_signal);
 	signal(SIGUSR2, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:T:N:r:FYz:cp")) != -1) {
+	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:T:N:r:FYz:cpR:")) != -1) {
 		switch (opt) {
 		case 'b':
 			G.binary = 1;
@@ -32705,6 +32733,18 @@ int main(int argc, char **argv)
 				G.reorder = GMRFLib_reorder_id((const char *) optarg);
 			}
 			GMRFLib_reorder = G.reorder;	       /* yes! */
+			break;
+
+		case 'R':
+		{
+			int nrhs = 0;
+			err = inla_sread_ints(&nrhs, 1, optarg);
+			if (err || nrhs < 0) {
+				GMRFLib_ASSERT(err, GMRFLib_EPARAMETER);
+				exit(1);
+			}
+			GMRFLib_pardiso_set_nrhs(nrhs);
+		}
 			break;
 
 		case 'c':
