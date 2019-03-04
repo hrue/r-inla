@@ -30,26 +30,12 @@
 }
 
 
-\section{CHANGES IN VERSION xx.xx.xx}{
-  \subsection{USER-VISIBLE CHANGES}{
-    \itemize{
-      \item 
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
-    }
-  }
-  \subsection{NEW EXPERIMENTAL FEATURES}{
-    \itemize{
-      \item
-    }
-  }
+\section{CHANGES IN VERSION 19.03.04}{
   \subsection{BUG FIXES}{
     \itemize{
       \item Redirect error output of some warning messages in the remote-feture
-      section from MacOSX to Linux. 
+      section from MacOSX to Linux.
+      \item Faster return when \code{mu} is zero for \code{rgeneric}
     }
   }
 }
