@@ -2412,10 +2412,15 @@ double mfunc_rgeneric(int i, void *arg)
 				memcpy((void *) (a->mu[id]), (void *) &(x_out[k]), n * sizeof(double));
 				a->mu_zero = 0;
 			} else {
-				a->mu[id] = Calloc(a->n, double);
+				//a->mu[id] = Calloc(a->n, double);
 				a->mu_zero = 1;
 			}
 			Free(x_out);
+		}
+
+		// do a fast return here, so we do not need to allocate the a->mu[id] above. 
+		if (a->mu_zero) {
+			return 0.0;
 		}
 	}
 
