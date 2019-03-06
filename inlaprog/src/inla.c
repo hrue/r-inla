@@ -2364,6 +2364,11 @@ double mfunc_rgeneric(int i, void *arg)
 	inla_rgeneric_tp *a = (inla_rgeneric_tp *) arg;
 	int rebuild, ii, debug = 0, id;
 
+	// possible fast return ?
+	if (a->mu_zero) {
+		return 0.0;
+	}
+
 	id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
 	rebuild = (a->mu_param[id] == NULL || a->mu[GMRFLib_thread_id] == NULL);
 	if (!rebuild) {
@@ -2405,10 +2410,17 @@ double mfunc_rgeneric(int i, void *arg)
 				assert(n == a->n);
 				a->mu[id] = Calloc(n, double);
 				memcpy((void *) (a->mu[id]), (void *) &(x_out[k]), n * sizeof(double));
+				a->mu_zero = 0;
 			} else {
-				a->mu[id] = Calloc(a->n, double);
+				//a->mu[id] = Calloc(a->n, double);
+				a->mu_zero = 1;
 			}
 			Free(x_out);
+		}
+
+		// do a fast return here, so we do not need to allocate the a->mu[id] above. 
+		if (a->mu_zero) {
+			return 0.0;
 		}
 	}
 
