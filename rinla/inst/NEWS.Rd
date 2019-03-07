@@ -29,6 +29,17 @@
   }
 }
 
+
+\section{CHANGES IN VERSION 19.03.04}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Redirect error output of some warning messages in the remote-feture
+      section from MacOSX to Linux.
+      \item Faster return when \code{mu} is zero for \code{rgeneric}
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.03.02}{
   \subsection{BUG FIXES}{
     \itemize{

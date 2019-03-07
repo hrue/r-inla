@@ -114,7 +114,7 @@ elif [ "$cmd" = "get" ]; then
 	                 cd \$d; \
 			 if [ -f done ]; then \
 			     if \[ -f $Logfile \]; then cp $Logfile results.files; fi; \
-			     tar cf ../$tarfile results.files; \
+			     tar cf ../$tarfile results.files 2>/dev/null ; \
 			     if [ $remove -eq 1 ]; then \
                                  cd ..; rm -rf \$d; \
                              fi; \
@@ -125,7 +125,7 @@ elif [ "$cmd" = "get" ]; then
     scp -P$Port -B -C -p -q $RemoteUser@$RemoteHost:$rdir/$tarfile "$tarfile_to" >/dev/null 2>&1 || \
         {  echo "ERROR Job is not yet finished or does not exist; try 'inla.qstat()'"; exit; }
     ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "rm -f $rdir/$tarfile" 
-    tar xfm  "$tarfile_to" -C $dirto
+    tar xfm  "$tarfile_to" -C $dirto 2>/dev/null 
     rm -f "$tarfile_to"
     rm -f "${tarfile_to%.tar}"
     echo "$dirto"

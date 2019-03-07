@@ -253,7 +253,7 @@ least easier to debug against for reasonable values of $n$.
 
 This function must return the mean which might depend on $\theta$.
 The convention, is that if `numeric(0)` is returned, then the mean is
-zero.
+identical to zero (and then there is no need to check for this later)
 ```{r eval=FALSE}
 mu = function() {
     return(numeric(0))
