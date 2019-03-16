@@ -20620,7 +20620,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), log(0.5));
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][2] && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
 		_SetInitial(2, tmp);
@@ -21967,12 +21967,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_DMATERN;
 
 		// setup cache and prefill parameters with random numbers
-		arg->param = Calloc(GMRFLib_MAX_THREADS, double *);
-		arg->Q = Calloc(GMRFLib_MAX_THREADS, gsl_matrix *);
-		arg_orig->param = Calloc(GMRFLib_MAX_THREADS, double *);
-		arg_orig->Q = Calloc(GMRFLib_MAX_THREADS, gsl_matrix *);
+		arg->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		arg->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), gsl_matrix *);
+		arg_orig->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		arg_orig->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), gsl_matrix *);
 
-		for (int i = 0; i < GMRFLib_MAX_THREADS; i++) {
+		for (int i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
 			int np = 3;
 			arg->param[i] = Calloc(np, double);
 			arg_orig->param[i] = Calloc(np, double);
@@ -21981,7 +21981,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				arg_orig->param[i][j] = GMRFLib_uniform();
 			}
 		}
-
 
 		// compute the distance between locations. 
 		arg->dist = gsl_matrix_alloc(arg->n, arg->n);
