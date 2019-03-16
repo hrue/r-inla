@@ -29,6 +29,14 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.03.16}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Small fix in model \code{dmatern}
+    }
+  }
+}
+
 
 \section{CHANGES IN VERSION 19.03.04}{
   \subsection{BUG FIXES}{
