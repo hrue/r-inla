@@ -10183,6 +10183,10 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	}
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
+		if (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL) {
+			// tell pardiso to use parallel reordering
+			GMRFLib_pardiso_set_parallel_reordering(1);
+		}
 	}
 	mb->smtp = GMRFLib_SMTP_NAME(GMRFLib_smtp);
 	if (mb->verbose) {

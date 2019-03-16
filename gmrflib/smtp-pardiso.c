@@ -60,6 +60,7 @@ typedef struct {
 	int mtype;
 	int msglvl;
 	int nrhs_max;
+	int parallel_reordering;
 	int *busy;
 	GMRFLib_pardiso_store_tp **static_pstores;
 } GMRFLib_static_pardiso_tp;
@@ -71,11 +72,19 @@ GMRFLib_static_pardiso_tp S = {
 	-2,						       // mtype (-2 = sym, 2 = sym pos def)
 	0,						       // msg-level (0: no, 1: yes)
 	1,						       // maximum number of rhs
+	0,                                                     // parallel reordering? no
 	NULL,						       // busy
 	NULL
 };
 
 #define PSTORES_NUM() (2048)
+
+int GMRFLib_pardiso_set_parallel_reordering(int value) 
+{
+	//S.parallel_reordering = (value == 0 ? 0 : 1);
+	//fprintf(stderr, "set S.parallel_reordering = %1d\n", S.parallel_reordering);
+	return GMRFLib_SUCCESS;
+}
 
 int GMRFLib_pardiso_set_nrhs(int nrhs) 
 {
@@ -350,6 +359,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default[20] = 0;			       /* Diagonal pivoting, and... */
 	s->iparm_default[23] = 1;			       /* two level scheduling, and... */
 	s->iparm_default[24] = 1;			       /* use parallel solve, as... */
+	s->iparm_default[27] = S.parallel_reordering;	       /* parallel reordering? */
 	s->iparm_default[33] = 1;			       /* I want identical solutions (require iparm_default[1]=2) */
 
 	if (error != 0) {
