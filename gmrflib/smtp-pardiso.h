@@ -164,6 +164,7 @@ int GMRFLib_pardiso_perm(double *x, int m, GMRFLib_pardiso_store_tp * store);
 int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store, int direction);
 int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph);
 int GMRFLib_pardiso_set_nrhs(int nrhs);
+int GMRFLib_pardiso_set_parallel_reordering(int value);
 int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store_tp * store);
 int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs);
 int GMRFLib_pardiso_solve_LLT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs);
