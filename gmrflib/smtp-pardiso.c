@@ -1,7 +1,6 @@
-
 /* smtp-pardiso.c
  * 
- * Copyright (C) 2018 Havard Rue
+ * Copyright (C) 2018-19 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,6 +60,7 @@ typedef struct {
 	int mtype;
 	int msglvl;
 	int nrhs_max;
+	int parallel_reordering;
 	int *busy;
 	GMRFLib_pardiso_store_tp **static_pstores;
 } GMRFLib_static_pardiso_tp;
@@ -72,11 +72,26 @@ GMRFLib_static_pardiso_tp S = {
 	-2,						       // mtype (-2 = sym, 2 = sym pos def)
 	0,						       // msg-level (0: no, 1: yes)
 	1,						       // maximum number of rhs
+	0,                                                     // parallel reordering? no
 	NULL,						       // busy
 	NULL
 };
 
 #define PSTORES_NUM() (2048)
+
+int GMRFLib_pardiso_set_parallel_reordering(int value) 
+{
+	//S.parallel_reordering = (value == 0 ? 0 : 1);
+	//fprintf(stderr, "set S.parallel_reordering = %1d\n", S.parallel_reordering);
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_pardiso_set_nrhs(int nrhs) 
+{
+	S.nrhs_max = IMAX(1, nrhs);
+	//fprintf(stderr, "set S.nrhs_max = %1d\n", S.nrhs_max);
+	return GMRFLib_SUCCESS;
+}
 
 int GMRFLib_csr_free(GMRFLib_csr_tp ** csr)
 {
@@ -344,6 +359,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default[20] = 0;			       /* Diagonal pivoting, and... */
 	s->iparm_default[23] = 1;			       /* two level scheduling, and... */
 	s->iparm_default[24] = 1;			       /* use parallel solve, as... */
+	s->iparm_default[27] = S.parallel_reordering;	       /* parallel reordering? */
 	s->iparm_default[33] = 1;			       /* I want identical solutions (require iparm_default[1]=2) */
 
 	if (error != 0) {
@@ -669,6 +685,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 
 	GMRFLib_pardiso_setparam(flag, store);
 	for (i = 0; i < nblock; i++) {
+		//fprintf(stderr, "Solve block %1d/%1d with %d rhs\n", i, nblock, S.nrhs_max);
 		offset = i * n * S.nrhs_max;
 		pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore->phase),
 			&n, store->pstore->Q->a, store->pstore->Q->ia, store->pstore->Q->ja,
