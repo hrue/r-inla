@@ -29,6 +29,14 @@
   }
 }
 
+\section{CHANGES IN VERSION 01.04.19}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed an issue with AR-model and group
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.03.16}{
   \subsection{BUG FIXES}{
     \itemize{
