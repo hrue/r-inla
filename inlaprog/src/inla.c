@@ -119,6 +119,11 @@ static const char RCSId[] = HGVERSION;
 #define INTSLOPE_MAXTHETA (10L)				       /* as given in models.R */
 G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 
+char *keywords[] = {
+	"FIXED", "INITIAL", "PRIOR", "HYPERID", "PARAMETERS", "TO.THETA", "FROM.THETA", NULL
+};
+
+
 /* 
    default values for priors
  */
@@ -14222,33 +14227,15 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 							        * function */
 		}
 
-		for (k = 0; k < NMIX_MMAX; k++) {
-			GMRFLib_sprintf(&ctmp, "FIXED%1d", k);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			Free(ctmp);
-			GMRFLib_sprintf(&ctmp, "INITIAL%1d", k);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			Free(ctmp);
-			GMRFLib_sprintf(&ctmp, "PRIOR%1d", k);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			Free(ctmp);
-			GMRFLib_sprintf(&ctmp, "HYPERID%1d", k);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			Free(ctmp);
-			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", k);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			Free(ctmp);
-			GMRFLib_sprintf(&ctmp, "to.theta%1d", k);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			Free(ctmp);
-			GMRFLib_sprintf(&ctmp, "from.theta%1d", k);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+		// mark all as read
+		for(i = 0; i < NMIX_MMAX; i++) {
+			char **keyw = keywords;
+			while(*keyw) {
+				GMRFLib_sprintf(&ctmp, "%s%1d", *keyw, i);
+				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+				Free(ctmp);
+				keyw++;
+			}
 		}
 
 		for (int k = 0; k < ds->data_observations.nmix_m; k++) {
@@ -14945,29 +14932,16 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * mark all possible as read 
 		 */
+
+		// mark all as read
 		for (i = 0; i < LINK_MAXTHETA + 1; i++) {
-			char *ctmp;
-
-			GMRFLib_sprintf(&ctmp, "LINK.FIXED%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "LINK.INITIAL%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "LINK.PRIOR%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "LINK.HYPERID%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "LINK.PARAMETERS%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "LINK.to.theta%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "LINK.from.theta%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+			char **keyw = keywords;
+			while(*keyw) {
+				GMRFLib_sprintf(&ctmp, "LINK.%s%1d", *keyw, i);
+				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+				Free(ctmp);
+				keyw++;
+			}
 		}
 
 		ds->link_fixed = Calloc(ds->link_ntheta, int);
@@ -15521,10 +15495,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	    NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd, **mean_x = NULL, **log_prec_x =
 	    NULL, ***pacf_intern = NULL, slm_rho_min = 0.0, slm_rho_max = 0.0, **log_halflife = NULL, **log_shape = NULL, **alpha =
 	    NULL, **gama = NULL, **alpha1 = NULL, **alpha2 = NULL, **H_intern = NULL, **nu_intern, ***intslope_gamma = NULL;
-
-	char *keywords[] = {
-		"FIXED", "INITIAL", "PRIOR", "HYPERID", "PARAMETERS", "to.theta", "from.theta", NULL
-	};
 
 	GMRFLib_matrix_tp *intslope_def = NULL;
 	GMRFLib_crwdef_tp *crwdef = NULL;
@@ -17349,27 +17319,15 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * mark all possible as read 
 		 */
+		// mark all as read
 		for (i = 0; i < SPDE2_MAXTHETA; i++) {
-			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "HYPERID%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "to.theta%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "from.theta%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+			char **keyw = keywords;
+			while(*keyw) {
+				GMRFLib_sprintf(&ctmp, "%s%1d", *keyw, i);
+				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+				Free(ctmp);
+				keyw++;
+			}
 		}
 
 		/*
@@ -17561,27 +17519,16 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * mark all possible as read
 		 */
+
+		// mark all as read
 		for (i = 0; i < SPDE3_MAXTHETA; i++) {
-			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "HYPERID%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "to.theta%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "from.theta%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+			char **keyw = keywords;
+			while(*keyw) {
+				GMRFLib_sprintf(&ctmp, "%s%1d", *keyw, i);
+				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+				Free(ctmp);
+				keyw++;
+			}
 		}
 
 		/*
@@ -17688,6 +17635,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			while(*keyw) {
 				GMRFLib_sprintf(&ctmp, "%s%1d", *keyw, i);
 				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+				Free(ctmp);
 				keyw++;
 			}
 		}
@@ -22463,28 +22411,16 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				/*
 				 * mark all possible as read 
 				 */
+
+				// mark all as read
 				for (i = 0; i < AR_MAXTHETA + 1; i++) {
-
-					GMRFLib_sprintf(&ctmp, "GROUP.FIXED%1d", i);
-					iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-					GMRFLib_sprintf(&ctmp, "GROUP.INITIAL%1d", i);
-					iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-					GMRFLib_sprintf(&ctmp, "GROUP.PRIOR%1d", i);
-					iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-					GMRFLib_sprintf(&ctmp, "GROUP.HYPERID%1d", i);
-					iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-					GMRFLib_sprintf(&ctmp, "GROUP.PARAMETERS%1d", i);
-					iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-					GMRFLib_sprintf(&ctmp, "GROUP.to.theta%1d", i);
-					iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-					GMRFLib_sprintf(&ctmp, "GROUP.from.theta%1d", i);
-					iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+					char **keyw = keywords;
+					while(*keyw) {
+						GMRFLib_sprintf(&ctmp, "GROUP.%s%1d", *keyw, i);
+						iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+						Free(ctmp);
+						keyw++;
+					}
 				}
 
 				mb->f_fixed[mb->nf] = Realloc(mb->f_fixed[mb->nf], ntheta_orig + AR_MAXTHETA + 1, int);
