@@ -1322,6 +1322,7 @@ typedef struct {
 	char *model;					       /* the variable name that contains the model definition */
 	int ntheta;
 	int n;
+	int mu_zero;					       /*  often mu is zero, allow for fast return */
 	double ***theta;
 	double **param;
 	GMRFLib_tabulate_Qfunc_tp **Q;
@@ -1813,9 +1814,9 @@ typedef struct {
 	double log_prec_initial;			       /* inititial value for log-precisions */
 	double mcmc_scale;				       /* scaling */
 	int mcmc_thinning;				       /* thinning */
-	int mcmc_niter;					       /* number of iterations: 0 is infinite */
+	int mcmc_niter;				       /* number of iterations: 0 is infinite */
 	int reorder;					       /* reorder strategy: -1 for optimize */
-	int mcmc_fifo;					       /* use fifo to communicate in mcmc mode */
+	int mcmc_fifo;				       /* use fifo to communicate in mcmc mode */
 	int mcmc_fifo_pass_data;			       /* use fifo to communicate in mcmc mode, pass also all data */
 } G_tp;
 
