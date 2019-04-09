@@ -29,26 +29,83 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
-  \subsection{USER-VISIBLE CHANGES}{
-    \itemize{
-      \item 
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
-    }
-  }
+\section{CHANGES IN VERSION 19.04.09}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item
+      \item Option \code{int.strategy="user.expert"}, see the vignette
+      about user-defined integration points.
     }
   }
+}
+
+\section{CHANGES IN VERSION 19.04.01}{
   \subsection{BUG FIXES}{
     \itemize{
-      \item More work on the \code{inla.merge}: merge
-      more results. 
+      \item Fixed an issue with AR-model and group
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.03.16}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Small fix in model \code{dmatern}
+    }
+  }
+}
+
+
+\section{CHANGES IN VERSION 19.03.04}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Redirect error output of some warning messages in the remote-feture
+      section from MacOSX to Linux.
+      \item Faster return when \code{mu} is zero for \code{rgeneric}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.03.02}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Changed from PARDISO.PARALLEL to PARDISO.SERIAL in \code{inla.qsample}
+      \item Optimize the \code{nhrs} for \code{inla.qsolve} for PARDISO
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.02.28}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Several fgn-models are now fine
+      \item Fixed CPU timing with the PARDISO library
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.02.26}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Do not need to optimize reordering when PARDISO is used. 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.02.17}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed input-test using \code{inla.qsample} with
+      \code{selection}-argument.
+      \item Added back \code{family = "normal"} which is now
+      translated to \code{family = "gaussian"} internally. 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.02.14}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item More work and fixes in  \code{inla.merge}
     }
   }
 }
