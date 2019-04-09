@@ -695,9 +695,9 @@
         cat("int.strategy = ", inla.spec$int.strategy,"\n", sep = " ", file = file,  append = TRUE)
     }
 
-    if (inla.one.of(inla.spec$int.strategy, c("user", "user.std"))) {
+    if (inla.one.of(inla.spec$int.strategy, c("user", "user.std", "user.expert"))) {
         if (is.null(inla.spec$int.design)) {
-            stop(paste0("int.strategy = 'user' or 'user.std' require the integration design in 'int.design'"))
+            stop(paste0("int.strategy = 'user' or 'user.std' or 'user.expert' require the integration design in 'int.design'"))
         }
         file.A = inla.tempfile(tmpdir=data.dir)
         inla.write.fmesher.file(as.matrix(inla.spec$int.design), filename = file.A)

@@ -1,4 +1,3 @@
-
 /* inla.c
  * 
  * Copyright (C) 2007-2019 Havard Rue
@@ -119,6 +118,11 @@ static const char RCSId[] = HGVERSION;
 #define POM_MAXTHETA (10L)				       /* as given in models.R */
 #define INTSLOPE_MAXTHETA (10L)				       /* as given in models.R */
 G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
+
+char *keywords[] = {
+	"FIXED", "INITIAL", "PRIOR", "HYPERID", "PARAMETERS", "TO.THETA", "FROM.THETA", NULL
+};
+
 
 /* 
    default values for priors
@@ -2364,6 +2368,11 @@ double mfunc_rgeneric(int i, void *arg)
 	inla_rgeneric_tp *a = (inla_rgeneric_tp *) arg;
 	int rebuild, ii, debug = 0, id;
 
+	// possible fast return ?
+	if (a->mu_zero) {
+		return 0.0;
+	}
+
 	id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
 	rebuild = (a->mu_param[id] == NULL || a->mu[GMRFLib_thread_id] == NULL);
 	if (!rebuild) {
@@ -2405,10 +2414,17 @@ double mfunc_rgeneric(int i, void *arg)
 				assert(n == a->n);
 				a->mu[id] = Calloc(n, double);
 				memcpy((void *) (a->mu[id]), (void *) &(x_out[k]), n * sizeof(double));
+				a->mu_zero = 0;
 			} else {
-				a->mu[id] = Calloc(a->n, double);
+				//a->mu[id] = Calloc(a->n, double);
+				a->mu_zero = 1;
 			}
 			Free(x_out);
+		}
+
+		// do a fast return here, so we do not need to allocate the a->mu[id] above. 
+		if (a->mu_zero) {
+			return 0.0;
 		}
 	}
 
@@ -10170,7 +10186,11 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		}
 	}
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_PARDISO;
+		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
+		if (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL) {
+			// tell pardiso to use parallel reordering
+			GMRFLib_pardiso_set_parallel_reordering(1);
+		}
 	}
 	mb->smtp = GMRFLib_SMTP_NAME(GMRFLib_smtp);
 	if (mb->verbose) {
@@ -14207,33 +14227,15 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 							        * function */
 		}
 
-		for (k = 0; k < NMIX_MMAX; k++) {
-			GMRFLib_sprintf(&ctmp, "FIXED%1d", k);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			Free(ctmp);
-			GMRFLib_sprintf(&ctmp, "INITIAL%1d", k);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			Free(ctmp);
-			GMRFLib_sprintf(&ctmp, "PRIOR%1d", k);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			Free(ctmp);
-			GMRFLib_sprintf(&ctmp, "HYPERID%1d", k);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			Free(ctmp);
-			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", k);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			Free(ctmp);
-			GMRFLib_sprintf(&ctmp, "to.theta%1d", k);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			Free(ctmp);
-			GMRFLib_sprintf(&ctmp, "from.theta%1d", k);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+		// mark all as read
+		for(i = 0; i < NMIX_MMAX; i++) {
+			char **keyw = keywords;
+			while(*keyw) {
+				GMRFLib_sprintf(&ctmp, "%s%1d", *keyw, i);
+				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+				Free(ctmp);
+				keyw++;
+			}
 		}
 
 		for (int k = 0; k < ds->data_observations.nmix_m; k++) {
@@ -14930,29 +14932,16 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * mark all possible as read 
 		 */
+
+		// mark all as read
 		for (i = 0; i < LINK_MAXTHETA + 1; i++) {
-			char *ctmp;
-
-			GMRFLib_sprintf(&ctmp, "LINK.FIXED%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "LINK.INITIAL%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "LINK.PRIOR%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "LINK.HYPERID%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "LINK.PARAMETERS%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "LINK.to.theta%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "LINK.from.theta%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+			char **keyw = keywords;
+			while(*keyw) {
+				GMRFLib_sprintf(&ctmp, "LINK.%s%1d", *keyw, i);
+				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+				Free(ctmp);
+				keyw++;
+			}
 		}
 
 		ds->link_fixed = Calloc(ds->link_ntheta, int);
@@ -15830,7 +15819,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("SPDE3 model");
 	} else if (_OneOf("AR")) {
 		mb->f_id[mb->nf] = F_AR;
-		mb->f_ntheta[mb->nf] = -1;		       /* Not known yet */
+		mb->f_ntheta[mb->nf] = AR_MAXTHETA + 1;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("AR(p) model");
 	} else if (_OneOf("COPY")) {
 		mb->f_id[mb->nf] = F_COPY;
@@ -16005,7 +15994,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		Free(pri);
 		Free(par);
 	}
-		break;
+	break;
 
 	case F_INTSLOPE:
 	{
@@ -17330,27 +17319,15 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * mark all possible as read 
 		 */
+		// mark all as read
 		for (i = 0; i < SPDE2_MAXTHETA; i++) {
-			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "HYPERID%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "to.theta%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "from.theta%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+			char **keyw = keywords;
+			while(*keyw) {
+				GMRFLib_sprintf(&ctmp, "%s%1d", *keyw, i);
+				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+				Free(ctmp);
+				keyw++;
+			}
 		}
 
 		/*
@@ -17542,27 +17519,16 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * mark all possible as read
 		 */
+
+		// mark all as read
 		for (i = 0; i < SPDE3_MAXTHETA; i++) {
-			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "HYPERID%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "to.theta%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "from.theta%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+			char **keyw = keywords;
+			while(*keyw) {
+				GMRFLib_sprintf(&ctmp, "%s%1d", *keyw, i);
+				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+				Free(ctmp);
+				keyw++;
+			}
 		}
 
 		/*
@@ -17632,11 +17598,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		int ntheta, order, ntheta_ref = mb->ntheta;
 
 		order = mb->f_order[mb->nf];
-		ntheta = mb->f_ntheta[mb->nf] = mb->f_order[mb->nf] + 1;
-		assert(ntheta <= AR_MAXTHETA + 1);
+		ntheta = mb->f_ntheta[mb->nf] = AR_MAXTHETA + 1;
 		mb->f_initial[mb->nf] = Calloc(ntheta, double);
 		if (mb->verbose) {
-			printf("\t\tntheta = [%1d]\n", ntheta);
+			printf("\t\tntheta.max = [%1d]\n", ntheta);
 		}
 
 		/*
@@ -17653,52 +17618,41 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			break;
 		}
 
-		/*
-		 * mark all possible as read 
-		 */
-		for (i = 0; i < AR_MAXTHETA + 1; i++) {
-
-			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "HYPERID%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "to.theta%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-			GMRFLib_sprintf(&ctmp, "from.theta%1d", i);
-			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-		}
-
 		mb->f_fixed[mb->nf] = Calloc(ntheta, int);
 		mb->f_theta[mb->nf] = Calloc(ntheta, double **);
 
 		HYPER_NEW(log_prec, 0.0);
 		mb->f_theta[mb->nf][0] = log_prec;
-		pacf_intern = Calloc(order, double **);
-		for (i = 0; i < order; i++) {
+		pacf_intern = Calloc(AR_MAXTHETA, double **);
+		for (i = 0; i < AR_MAXTHETA; i++) {
 			HYPER_NEW(pacf_intern[i], 0.0);
 			mb->f_theta[mb->nf][i + 1] = pacf_intern[i];
 		}
 
+		// mark all as read
+		for (i = 0; i < AR_MAXTHETA + 1; i++) {
+			char **keyw = keywords;
+			while(*keyw) {
+				GMRFLib_sprintf(&ctmp, "%s%1d", *keyw, i);
+				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+				Free(ctmp);
+				keyw++;
+			}
+		}
+		
 		/*
 		 * then read those we need 
 		 */
 		for (i = 0; i < ntheta; i++) {
 			double theta_initial = 0.0;
 
-			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
-			mb->f_fixed[mb->nf][i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+			if (i > order) {
+				// by definition, this one must be fixed
+				mb->f_fixed[mb->nf][i] = 1;
+			} else {
+				GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+				mb->f_fixed[mb->nf][i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+			}
 
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
 			theta_initial = iniparser_getdouble(ini, inla_string_join(secname, ctmp), theta_initial);
@@ -17722,7 +17676,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					 */
 					mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
 					mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-					mb->theta_hyperid[mb->ntheta] = mb->f_prior[mb->nf][0].hyperid;
+					mb->theta_hyperid[mb->ntheta] = mb->f_prior[mb->nf][i].hyperid;
 					mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 					mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 					mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
@@ -17736,8 +17690,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 					mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 					mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-					mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
-					mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+					mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][i].from_theta);
+					mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][i].to_theta);
 					mb->theta[mb->ntheta] = log_prec;
 					mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 					mb->theta_map[mb->ntheta] = map_precision;
@@ -17785,7 +17739,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
-		mb->f_ntheta[mb->nf] = mb->ntheta - ntheta_ref;
+		if (mb->verbose) {
+			printf("\t\tntheta = [%1d]\n", mb->ntheta - ntheta_ref);
+		}
 		break;
 	}
 
@@ -20604,7 +20560,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), log(0.5));
-		if (!mb->f_fixed[mb->nf][1] && mb->reuse_mode) {
+		if (!mb->f_fixed[mb->nf][2] && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
 		_SetInitial(2, tmp);
@@ -21951,12 +21907,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_DMATERN;
 
 		// setup cache and prefill parameters with random numbers
-		arg->param = Calloc(GMRFLib_MAX_THREADS, double *);
-		arg->Q = Calloc(GMRFLib_MAX_THREADS, gsl_matrix *);
-		arg_orig->param = Calloc(GMRFLib_MAX_THREADS, double *);
-		arg_orig->Q = Calloc(GMRFLib_MAX_THREADS, gsl_matrix *);
+		arg->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		arg->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), gsl_matrix *);
+		arg_orig->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		arg_orig->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), gsl_matrix *);
 
-		for (int i = 0; i < GMRFLib_MAX_THREADS; i++) {
+		for (int i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
 			int np = 3;
 			arg->param[i] = Calloc(np, double);
 			arg_orig->param[i] = Calloc(np, double);
@@ -21965,7 +21921,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				arg_orig->param[i][j] = GMRFLib_uniform();
 			}
 		}
-
 
 		// compute the distance between locations. 
 		arg->dist = gsl_matrix_alloc(arg->n, arg->n);
@@ -22307,10 +22262,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 						printf("\t\tgroup.fixed=[%1d]\n", fixed);
 					}
 				}
-				// P(mb->nf);
-				// P(mb->f_ntheta[mb->nf]);
-				// P(mb->f_fixed[mb->nf][3]);
-
 				mb->f_theta[mb->nf] = Realloc(mb->f_theta[mb->nf], mb->f_ntheta[mb->nf] + 1, double **);
 				mb->f_fixed[mb->nf] = Realloc(mb->f_fixed[mb->nf], mb->f_ntheta[mb->nf] + 1, int);
 				mb->f_prior[mb->nf] = Realloc(mb->f_prior[mb->nf], mb->f_ntheta[mb->nf] + 1, Prior_tp);
@@ -22321,7 +22272,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				} else {
 					mb->f_theta[mb->nf][mb->f_ntheta[mb->nf]] = group_prec_intern;
 				}
-
 				mb->f_fixed[mb->nf][mb->f_ntheta[mb->nf]] = fixed;
 
 				switch (mb->f_group_model[mb->nf]) {
@@ -22461,28 +22411,16 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				/*
 				 * mark all possible as read 
 				 */
+
+				// mark all as read
 				for (i = 0; i < AR_MAXTHETA + 1; i++) {
-
-					GMRFLib_sprintf(&ctmp, "GROUP.FIXED%1d", i);
-					iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-					GMRFLib_sprintf(&ctmp, "GROUP.INITIAL%1d", i);
-					iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-					GMRFLib_sprintf(&ctmp, "GROUP.PRIOR%1d", i);
-					iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-					GMRFLib_sprintf(&ctmp, "GROUP.HYPERID%1d", i);
-					iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-					GMRFLib_sprintf(&ctmp, "GROUP.PARAMETERS%1d", i);
-					iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-					GMRFLib_sprintf(&ctmp, "GROUP.to.theta%1d", i);
-					iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
-
-					GMRFLib_sprintf(&ctmp, "GROUP.from.theta%1d", i);
-					iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+					char **keyw = keywords;
+					while(*keyw) {
+						GMRFLib_sprintf(&ctmp, "GROUP.%s%1d", *keyw, i);
+						iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+						Free(ctmp);
+						keyw++;
+					}
 				}
 
 				mb->f_fixed[mb->nf] = Realloc(mb->f_fixed[mb->nf], ntheta_orig + AR_MAXTHETA + 1, int);
@@ -23363,6 +23301,9 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		} else if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_USER_STD") || !strcasecmp(opt, "USERSTD")
 			   || !strcasecmp(opt, "USER.STD")) {
 			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_USER_STD;
+		} else if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_USER_EXPERT") || !strcasecmp(opt, "USEREXPERT")
+			   || !strcasecmp(opt, "USER.EXPERT")) {
+			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_USER_EXPERT;
 		} else if (!strcasecmp(opt, "GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES")
 			   || !strcasecmp(opt, "EMPIRICAL_BAYES") || !strcasecmp(opt, "EB")) {
 			mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES;
@@ -23377,7 +23318,8 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_GRID;
 	}
 
-	if (mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER || mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD) {
+	if (mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER || mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD ||
+		mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
 		GMRFLib_matrix_tp *D = NULL;
 		filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "INT.DESIGN"), NULL));
 		if (my_file_exists(filename) != INLA_OK)
@@ -25345,14 +25287,13 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_AR:
 		{
-			double log_precision, *pacf, *pacf_intern;
-			int p, ntheta_used = 0;
+			double log_precision, *pacf = NULL, *pacf_intern = NULL;
+			int p;
 
 			p = mb->f_order[i];
 			if (_NOT_FIXED(f_fixed[i][0])) {
 				log_precision = theta[count];
 				count++;
-				ntheta_used++;
 			} else {
 				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
@@ -25362,13 +25303,12 @@ double extra(double *theta, int ntheta, void *argument)
 				if (_NOT_FIXED(f_fixed[i][j + 1])) {
 					pacf_intern[j] = theta[count];
 					count++;
-					ntheta_used++;
 				} else {
 					pacf_intern[j] = mb->f_theta[i][j + 1][GMRFLib_thread_id][0];
 				}
 				pacf[j] = ar_map_pacf(pacf_intern[j], MAP_FORWARD, NULL);
 			}
-			_SET_GROUP_RHO(ntheta_used);
+			_SET_GROUP_RHO(AR_MAXTHETA + 1);
 
 			int n_ar;
 			double marginal_prec, conditional_prec, *marginal_Q, *param, *zero, ldens;
@@ -25384,9 +25324,9 @@ double extra(double *theta, int ntheta, void *argument)
 				param[1 + p + j] = marginal_Q[j] * exp(log_precision);
 			}
 
-			n_ar = mb->f_n[i] / mb->f_nrep[i];
-			ldens =
-			    priorfunc_mvnorm(zero, param) + (n_ar - p - mb->f_rankdef[i]) * (-0.5 * log(2 * M_PI) + 0.5 * log(conditional_prec));
+			n_ar = mb->f_n[i] / mb->f_ngroup[i];
+			ldens = priorfunc_mvnorm(zero, param) +
+				(n_ar - p - mb->f_rankdef[i]) * (-0.5 * log(2 * M_PI) + 0.5 * log(conditional_prec));
 			val += mb->f_nrep[i] * (ldens * (ngroup - grankdef) + normc_g);
 
 			if (_NOT_FIXED(f_fixed[i][0])) {
@@ -25397,7 +25337,7 @@ double extra(double *theta, int ntheta, void *argument)
 				// joint reference prior
 				val += PRIOR_EVAL(mb->f_prior[i][1], pacf_intern);
 			} else {
-				// sequential pc prior
+				// sequential pc prior. No need to use AR_MAXTHETA there
 				for (j = 0; j < p; j++) {
 					if (_NOT_FIXED(f_fixed[i][j + 1])) {
 						val += PRIOR_EVAL(mb->f_prior[i][j + 1], &(pacf_intern[j]));
@@ -27585,10 +27525,13 @@ int inla_INLA(inla_tp * mb)
 		int use_g = 0;
 		GMRFLib_optimize_reorder(mb->hgmrfm->graph, &nnz, &use_g, &(mb->gn));
 		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
-			if (mb->verbose) {
-				printf("\tFound optimal reordering=[%s] nnz(L)=[%lu] and use_global_nodes(user)=[%s]\n",
-				       GMRFLib_reorder_name(GMRFLib_reorder), nnz, (use_g ? "yes" : "no"));
-			}
+			// ....
+		} else {
+			GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
+		}
+		if (mb->verbose) {
+			printf("\tFound optimal reordering=[%s] nnz(L)=[%lu] and use_global_nodes(user)=[%s]\n",
+			       GMRFLib_reorder_name(GMRFLib_reorder), nnz, (use_g ? "yes" : "no"));
 		}
 	}
 	if (mb->verbose) {
@@ -27771,6 +27714,10 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 	char *fnm, *msg;
 	ssize_t rw_retval;
 
+	GMRFLib_sprintf(&msg, "inla_MCMC() is no longer supported.");
+	inla_error_general(msg);
+	exit(1);
+
 	if (mb_old->fixed_mode) {
 		/*
 		 * then there is a request to treat the theta's as fixed and known. This little hack do the job nicely. 
@@ -27873,10 +27820,8 @@ int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new)
 
 	if (G.reorder < 0) {
 		GMRFLib_optimize_reorder(mb_new->hgmrfm->graph, NULL, NULL, &(mb_new->gn));
-		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
-			if (mb_new->verbose) {
-				printf("\tFound optimal reordering=[%s]\n", GMRFLib_reorder_name(GMRFLib_reorder));
-			}
+		if (mb_new->verbose) {
+			printf("\tFound optimal reordering=[%s]\n", GMRFLib_reorder_name(GMRFLib_reorder));
 		}
 	}
 	if (mb_new->verbose) {
@@ -31179,12 +31124,13 @@ int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
+		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
 		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
+		GMRFLib_reorder = GMRFLib_REORDER_BAND;
 	} else {
+		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, constr, GMRFLib_NEW_PROBLEM);
@@ -31237,21 +31183,25 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem = NULL;
 
-	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, Qfilename, -1, NULL, NULL, NULL);
-	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
-	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
-	} else {
-		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
-	}
-	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
-
 	/*
 	 * I need B to be dense 
 	 */
 	GMRFLib_matrix_tp *B = GMRFLib_read_fmesher_file(Bfilename, (long int) 0, -1);
 	assert(B->i == NULL);				       /* I want B as dense matrix */
+
+	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, Qfilename, -1, NULL, NULL, NULL);
+	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
+		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
+		GMRFLib_pardiso_set_nrhs(IMIN(GMRFLib_MAX_THREADS, B->ncol));
+		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
+	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
+		GMRFLib_reorder = GMRFLib_REORDER_BAND;
+	} else {
+		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
+		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
+	}
+	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
 	assert(problem->n == B->nrow);
 
 	if (!strcasecmp(method, "solve")) {
@@ -31346,12 +31296,13 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_DEFAULT;
-		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
+		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
+		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL; // use _PARALLEL with an option??
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
-		GMRFLib_reorder = G.reorder = GMRFLib_REORDER_BAND;
+		GMRFLib_reorder = GMRFLib_REORDER_BAND;
 	} else {
+		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 
@@ -31384,8 +31335,8 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		fprintf(stderr, "inla_qsample: start to sample %1d samples...\n", ns);
 	}
 
-	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
-		// as we do not want to factorize it again...
+	if ((GMRFLib_smtp == GMRFLib_SMTP_PARDISO) &&
+	    (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL)) {
 		for (i = 0; i < ns; i++) {
 			if (!S) {
 				GMRFLib_sample(problem);
@@ -31821,6 +31772,7 @@ int inla_R(char **argv)
 
 	return GMRFLib_SUCCESS;
 }
+
 int inla_fgn(char *infile, char *outfile)
 {
 	double H, H_intern, *res;
@@ -31850,6 +31802,7 @@ int inla_fgn(char *infile, char *outfile)
 
 	return GMRFLib_SUCCESS;
 }
+
 int testit(int argc, char **argv)
 {
 	int test_no = -1;
@@ -32489,6 +32442,7 @@ int testit(int argc, char **argv)
 
 	exit(EXIT_SUCCESS);
 }
+
 int inla_testit_timer(void)
 {
 	GMRFLib_ENTER_ROUTINE;
@@ -32560,7 +32514,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR1, inla_signal);
 	signal(SIGUSR2, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:T:N:r:FYz:cp")) != -1) {
+	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:T:N:r:FYz:cpR:")) != -1) {
 		switch (opt) {
 		case 'b':
 			G.binary = 1;
@@ -32719,6 +32673,18 @@ int main(int argc, char **argv)
 				G.reorder = GMRFLib_reorder_id((const char *) optarg);
 			}
 			GMRFLib_reorder = G.reorder;	       /* yes! */
+			break;
+
+		case 'R':
+		{
+			int nrhs = 0;
+			err = inla_sread_ints(&nrhs, 1, optarg);
+			if (err || nrhs < 0) {
+				GMRFLib_ASSERT(err, GMRFLib_EPARAMETER);
+				exit(1);
+			}
+			GMRFLib_pardiso_set_nrhs(nrhs);
+		}
 			break;
 
 		case 'c':

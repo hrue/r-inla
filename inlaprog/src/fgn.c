@@ -101,19 +101,26 @@ double Qfunc_fgn(int i, int j, void *arg)
 	static double **phi_cache = NULL, **w_cache = NULL, *H_intern_cache = NULL;
 
 	if (!arg) {
-		assert(phi_cache == NULL);		       /* do not initialize twice */
-		phi_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		w_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		H_intern_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double);
-
-		for (int j = 0; j < ISQR(GMRFLib_MAX_THREADS); j++) {
-			phi_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
-			w_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
+		assert(i < 0 && j < 0);			       /* safety check */
+		if (phi_cache == NULL) {
+#pragma omp critical 
+			{
+				if (phi_cache == NULL) {
+					phi_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+					w_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+					H_intern_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double);
+					
+					for (int j = 0; j < ISQR(GMRFLib_MAX_THREADS); j++) {
+						phi_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
+						w_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
+					}
+					if (debug) {
+						printf("Qfunc_fgn: initialize cache\n");
+					}
+				}
+			}
 		}
-		if (debug) {
-			printf("Qfunc_fgn: initialize cache\n");
-		}
-		return NAN;
+		return NAN;				       /* so it will break if used wrong */
 	}
 
 	inla_fgn_arg_tp *a = (inla_fgn_arg_tp *) arg;
