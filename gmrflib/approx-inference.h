@@ -140,7 +140,12 @@ typedef enum {
 	/**
 	 * \brief USER_STD (std scale)
 	 */
-	GMRFLib_AI_INT_STRATEGY_USER_STD
+	GMRFLib_AI_INT_STRATEGY_USER_STD, 
+
+	/**
+	 * \brief USER_EXPERT (expert option: the density and the integration weights in the real scale)
+	 */
+	GMRFLib_AI_INT_STRATEGY_USER_EXPERT
 } GMRFLib_ai_int_strategy_tp;
 
 /** 

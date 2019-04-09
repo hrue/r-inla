@@ -398,6 +398,9 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD) {
 		fprintf(fp, "Use user-defined standardized integration points\n");
 	}
+	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
+		fprintf(fp, "Use user-defined expert integration points and weights\n");
+	}
 	GMRFLib_print_design(fp, ai_par->int_design);
 
 	fprintf(fp, "\t\tf0 (CCD only):\t %f\n", ai_par->f0);
@@ -3415,6 +3418,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES ||
 				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER ||
 				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD ||
+				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT ||
 				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD), GMRFLib_EPARAMETER);
 	/*
 	 * Simply chose int-strategy here
@@ -4142,7 +4146,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			 * END OF GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES 
 			 */
 		} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD ||
-			   ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER || ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD) {
+			   ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER ||
+			   ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD ||
+			   ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
 			/*
 			 * use points from the ccd-design to do the integration. This includes also the deterministic
 			 * integration points.
@@ -4206,7 +4212,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							z_local[i] = design->experiment[k][i]
 							    * (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
 						}
-					} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER) {
+					} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER ||
+						   ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
 						for (i = 0; i < nhyper; i++) {
 							z_local[i] = design->experiment[k][i];
 						}
@@ -4257,7 +4264,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						}
 					} else {
 						// integration weights are _given_. this is the deterministic integration points
-						log_dens += log(design->int_weight[k]);
+						if (ai_par->int_strategy != GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
+							log_dens += log(design->int_weight[k]);
+						} else {
+							// we do that later
+						}
 					}
 
 					/*
@@ -4272,7 +4283,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					 * compute the marginals for this point. check storage 
 					 */
 					if (nhyper > 0) {
-						weights[dens_count] = log_dens;
+						if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
+							// In this case, the int_weights INCLUDE the log_dens
+							weights[dens_count] = log(design->int_weight[k]);
+						} else {
+							weights[dens_count] = log_dens;
+						}
 					} else {
 						weights[dens_count] = 0.0;
 					}
