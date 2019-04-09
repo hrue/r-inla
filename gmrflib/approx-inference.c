@@ -4377,7 +4377,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							z[i] = design->experiment[k][i]
 							    * (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
 						}
-					} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER) {
+					} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER ||
+						   ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
 						for (i = 0; i < nhyper; i++) {
 							z[i] = design->experiment[k][i];
 						}
@@ -4454,7 +4455,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					 */
 					CHECK_DENS_STORAGE;
 					if (nhyper > 0) {
-						weights[dens_count] = log_dens;
+						if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
+							// In this case, the int_weights INCLUDE the log_dens
+							weights[dens_count] = log(design->int_weight[k]);
+						} else {
+							weights[dens_count] = log_dens;
+						}
 					} else {
 						weights[dens_count] = 0.0;
 					}
