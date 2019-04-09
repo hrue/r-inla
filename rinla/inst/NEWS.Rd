@@ -29,6 +29,23 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.04.09}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Option \code{int.strategy="user.expert"}, see the vignette
+      about user-defined integration points.
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.04.01}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed an issue with AR-model and group
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.03.16}{
   \subsection{BUG FIXES}{
     \itemize{
