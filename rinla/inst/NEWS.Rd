@@ -34,6 +34,7 @@
     \itemize{
       \item Option \code{int.strategy="user.expert"}, see the vignette
       about user-defined integration points.
+      \item Merge also \code{cpo} and \code{po} results in \code{inla.merge()}
     }
   }
 }
