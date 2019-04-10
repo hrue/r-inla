@@ -82,7 +82,11 @@
 
 `inla.merge` = function(loo, prob = rep(1,  length(loo)), verbose = FALSE)
 {
-    warning("This function is experimental.", immediate. = TRUE)
+    nm = "disable.inla.merge.warning"
+    if (!exists(nm, envir = inla.get.inlaEnv())) {
+        warning("This function is experimental.", immediate. = TRUE)
+        assign(nm, TRUE, envir = inla.get.inlaEnv())
+    }
 
     verboze = function(..., sep="") {
         if (verbose) {
@@ -256,7 +260,11 @@
 
     if (!is.null(res$cpo)) {
         verboze(paste0("Merge '$cpo'"))
-        warning("Merging 'cpo' and 'pit'-results are approximate only")
+        nm = "disable.inla.merge.cpo.warning"
+        if (!exists(nm, envir = inla.get.inlaEnv())) {
+            warning("Merging 'cpo' and 'pit'-results are/can be, approximate only")
+            assign(nm, TRUE, envir = inla.get.inlaEnv())
+        }
         cpo = lapply(loo, function(x) x$cpo)
         res$cpo = merge.cpo(cpo, prob)
     }
