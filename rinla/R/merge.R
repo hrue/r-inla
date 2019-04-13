@@ -82,7 +82,11 @@
 
 `inla.merge` = function(loo, prob = rep(1,  length(loo)), verbose = FALSE)
 {
-    warning("This function is experimental.", immediate. = TRUE)
+    nm = "disable.inla.merge.warning"
+    if (!exists(nm, envir = inla.get.inlaEnv())) {
+        warning("This function is experimental.", immediate. = TRUE)
+        assign(nm, TRUE, envir = inla.get.inlaEnv())
+    }
 
     verboze = function(..., sep="") {
         if (verbose) {
@@ -152,7 +156,38 @@
         rownames(df) = rownames(los[[1]])
         return (df)
     }
-    
+
+    merge.cpo = function(cpos, prob) {
+        n = length(cpos)
+        stopifnot(length(prob) == n)
+        m = length(cpos[[1]]$cpo)
+        res = matrix(0, m, 3)
+        if (m > 0) {
+            prob = prob / sum(prob)
+            for(i in 1:n) {
+                res[, 1] = res[, 1] + prob[i] * cpos[[i]]$cpo
+                res[, 2] = res[, 2] + prob[i] * cpos[[i]]$pit
+                res[, 3] = res[, 3] + prob[i] * cpos[[i]]$failure
+            }
+            res[, 3] = as.numeric(res[, 3] > 0)
+        }
+        return (list(cpo = res[, 1], pit = res[, 2], failure = res[, 3]))
+    }
+
+    merge.po = function(pos, prob) {
+        n = length(pos)
+        stopifnot(length(prob) == n)
+        m = length(pos[[1]]$po)
+        res = numeric(m)
+        if (m > 0) {
+            prob = prob / sum(prob)
+            for(i in 1:n) {
+                res = res + prob[i] * pos[[i]]$po
+            }
+        }
+        return (list(po = res))
+    }
+
     stopifnot(length(prob) == length(loo))
     stopifnot(all(prob > 0))
     prob = prob / sum(prob)
@@ -172,7 +207,7 @@
     ## list of data.frame
     summaries2 = paste0("summary.", c("random", "spde2.blc", "spde3.blc"))
     ## items to remove
-    remove = c("marginals.fitted.values", "summary.fitted.values", "dic", "cpo", "waic", "po",
+    remove = c("marginals.fitted.values", "summary.fitted.values", "dic", "waic", 
                "neffp", "mode", ".args", "model.matrix")
     ## items to remove in $misc
     misc.remove = c("cov.intern", "cov.intern.eigenvalues", "cov.intern.eigenvectors",
@@ -223,6 +258,23 @@
         }
     }
 
+    if (!is.null(res$cpo)) {
+        verboze(paste0("Merge '$cpo'"))
+        nm = "disable.inla.merge.cpo.warning"
+        if (!exists(nm, envir = inla.get.inlaEnv())) {
+            warning("Merging 'cpo' and 'pit'-results are/can be, approximate only")
+            assign(nm, TRUE, envir = inla.get.inlaEnv())
+        }
+        cpo = lapply(loo, function(x) x$cpo)
+        res$cpo = merge.cpo(cpo, prob)
+    }
+
+    if (!is.null(res$po)) {
+        verboze(paste0("Merge '$po'"))
+        po = lapply(loo, function(x) x$po)
+        res$po = merge.po(po, prob)
+    }
+
     for (nm in summaries2) {
         idx = which(names(res) == nm)
         if (length(idx) > 0) {
@@ -233,6 +285,7 @@
             }
         }
     }
+
 
     ## merge configs, if they are there
     if (!is.null(res$misc$configs)) {
