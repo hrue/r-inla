@@ -5454,7 +5454,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			 *
 			 * first we need to compute the normalising constants for \pi(theta|y_i) for each i. This we call Z[i].
 			 * 
-			 * Note that \pi(theta_j | y_{-i}) = adj_weights[j] / cpo_theta[i][j] / Z[i]; 
+			 * Note that \pi(theta_j | y_{-i}) = adj_weights[j] / cpo_theta[i][j] / Z[i];
+			 *
+			 * We do not correct for int.strategy = user.expert, for which the weights are given.
 			 */
 			double *Z = Calloc(graph->n, double);
 
@@ -5477,11 +5479,21 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				ii = compute_idx[j];
 				if (cpo_theta[ii]) {
 					(*cpo)->value[ii] = Calloc(1, double);
-
-					for (jj = 0, evalue = evalue_one = 0.0; jj < dens_count; jj++) {
-						if (!ISNAN(cpo_theta[ii][jj])) {
-							evalue += cpo_theta[ii][jj] * adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
-							evalue_one += adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
+					
+					if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
+						for (jj = 0, evalue = evalue_one = 0.0; jj < dens_count; jj++) {
+							if (!ISNAN(cpo_theta[ii][jj])) {
+								evalue += cpo_theta[ii][jj] * adj_weights[jj];
+								evalue_one += adj_weights[jj]; 
+							}
+						}
+					} else {
+						// here, we correct for adjusting pi(theta_j|y_{-i})
+						for (jj = 0, evalue = evalue_one = 0.0; jj < dens_count; jj++) {
+							if (!ISNAN(cpo_theta[ii][jj])) {
+								evalue += cpo_theta[ii][jj] * adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
+								evalue_one += adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
+							}
 						}
 					}
 					if (evalue_one) {
