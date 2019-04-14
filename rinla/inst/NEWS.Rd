@@ -29,6 +29,15 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.04.14}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Removed the weight correction for the computation of the cpo
+            for \code{int.design="user.expert"}
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.04.09}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
