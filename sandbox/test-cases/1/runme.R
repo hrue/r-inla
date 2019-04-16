@@ -2,7 +2,7 @@ library(INLA)
 inla.pardiso.check()
 
 library(mvtnorm)
-n = 1000
+n = 100
 A = matrix(rnorm(n^2), n, n)
 Q = A %*% t(A)
 y = c(rmvnorm(1, sigma = solve(Q)))
