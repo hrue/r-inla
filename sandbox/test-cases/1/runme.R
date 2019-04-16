@@ -47,17 +47,30 @@ rg.test = function (cmd = c("graph", "Q", "mu", "initial",
 }
 
 rg = inla.rgeneric.define(rg.test,  Q.matrix = Q, debug=FALSE)
+
 inla.pardiso.check()
+inla.setOption(num.threads = 4)
+
+inla.setOption(mkl=FALSE)
+r.pp = inla(y ~ -1 + f(idx, model = rg),
+           data = data.frame(y, idx = 1:n),
+           control.compute = list(smtp = "pardiso", openmp.strategy = "pardiso.parallel"))
+
+inla.setOption(mkl=TRUE)
+r.ppm = inla(y ~ -1 + f(idx, model = rg),
+           data = data.frame(y, idx = 1:n),
+           control.compute = list(smtp = "pardiso", openmp.strategy = "pardiso.parallel"))
 
 inla.setOption(mkl=FALSE)
 r.p = inla(y ~ -1 + f(idx, model = rg),
            data = data.frame(y, idx = 1:n),
-           control.compute = list(smtp = "pardiso", openmp.strategy = "huge"))
+           control.compute = list(smtp = "pardiso", openmp.strategy = "pardiso.serial"))
 
 inla.setOption(mkl=TRUE)
 r.pm = inla(y ~ -1 + f(idx, model = rg),
            data = data.frame(y, idx = 1:n),
-           control.compute = list(smtp = "pardiso", openmp.strategy = "huge"))
+           control.inla = list(int.strategy = "eb"), 
+           control.compute = list(smtp = "pardiso", openmp.strategy = "pardiso.serial"))
 
 inla.setOption(mkl=FALSE)
 r.t = inla(y ~ -1 + f(idx, model = rg),
@@ -80,8 +93,10 @@ r.bm = inla(y ~ -1 + f(idx, model = rg),
          control.compute = list(smtp = "band", openmp.strategy = "huge"))
 
 cat("\n\n\n")
-print(rbind(PARDISO=c(round(r.p$cpu, digits = 2), "#func"=r.p$misc$nfunc), 
-            PARDISO.MKL=c(round(r.pm$cpu, digits = 2), "#func"=r.pm$misc$nfunc), 
+print(rbind(PARDISO.PARALLEL=c(round(r.pp$cpu, digits = 2), "#func"=r.pp$misc$nfunc), 
+            PARDISO.PARALLEL.MKL=c(round(r.ppm$cpu, digits = 2), "#func"=r.ppm$misc$nfunc), 
+            PARDISO.SERIAL=c(round(r.p$cpu, digits = 2), "#func"=r.p$misc$nfunc), 
+            PARDISO.SERIAL.MKL=c(round(r.pm$cpu, digits = 2), "#func"=r.pm$misc$nfunc), 
             TAUCS=c(round(r.t$cpu, digits = 2), "#func" = r.t$misc$nfunc), 
             TAUCS.MKL=c(round(r.tm$cpu, digits = 2), "#func" = r.tm$misc$nfunc), 
             BAND=c(round(r.b$cpu, digits = 2), "#func" = r.b$misc$nfunc), 
