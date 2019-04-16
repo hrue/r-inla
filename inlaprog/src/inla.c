@@ -2236,7 +2236,7 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 	int rebuild, ii, debug = 0, id;
 
 	id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
-	rebuild = (a->param[id] == NULL || a->Q[GMRFLib_thread_id] == NULL);
+	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 	if (!rebuild) {
 		for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
 			rebuild = (a->param[id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
@@ -2250,7 +2250,7 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 #pragma omp critical
 		{
 			if (debug) {
-				printf("Rebuild Q-hash for id %d\n", id);
+				printf("Qfunc_rgeneric: Rebuild Q-hash for id %d\n", id);
 			}
 			if (a->Q[id]) {
 				GMRFLib_free_tabulate_Qfunc(a->Q[id]);
@@ -2266,11 +2266,11 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 			}
 
 			if (debug) {
-				printf("Call rgeneric\n");
+				printf("\tCall rgeneric\n");
 			}
 			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_Q, a->model, a->ntheta, a->param[id]);
 			if (debug) {
-				printf("Return from rgeneric with n_out= %1d\n", n_out);
+				printf("\tReturn from rgeneric with n_out= %1d\n", n_out);
 			}
 
 			assert(n_out >= 2);
@@ -2313,7 +2313,7 @@ double Qfunc_dmatern(int i, int j, void *arg)
 	int rebuild, debug = 0, id;
 
 	id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
-	rebuild = (a->param[id] == NULL || a->Q[GMRFLib_thread_id] == NULL);
+	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 	if (!rebuild) {
 		// yes, log_prec is ...[0], so we start at 1
 		rebuild = (a->param[id][1] != a->log_range[GMRFLib_thread_id][0]) || (a->param[id][2] != a->log_nu[GMRFLib_thread_id][0]);
@@ -2325,7 +2325,7 @@ double Qfunc_dmatern(int i, int j, void *arg)
 			// yes, log_prec is ...[0], so we start at 1
 			double range, nu;
 			if (debug) {
-				printf("Rebuild Q-hash for id %d\n", id);
+				printf("Qfunc_dmatern: Rebuild Q-hash for id %d\n", id);
 			}
 
 			if (!(a->Q[id])) {
