@@ -77,7 +77,6 @@ for(model in models) {
     inla.setOption(mkl=TRUE)
     r.pm = inla(formula, 
                 data = data.frame(y, idx = 1:n),
-                control.inla = list(int.strategy = "eb"), 
                 control.compute = list(smtp = "pardiso", openmp.strategy = "pardiso.serial"))
 
     inla.setOption(mkl=FALSE)
