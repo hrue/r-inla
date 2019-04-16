@@ -29,6 +29,16 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.04.16}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed an error in the cache-system for
+      y\code{model="rgeneric"} and \code{model="dmatern"}.
+      Most notably with option \code{openmp.strategy="pardiso.parallel"}.
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.04.14}{
   \subsection{BUG FIXES}{
     \itemize{
