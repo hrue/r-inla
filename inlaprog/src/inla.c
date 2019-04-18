@@ -810,7 +810,8 @@ double map_beta(double x, map_arg_tp typ, void *param)
 			xx = (x - range[0]) / d;
 			return log(xx / (1.0 - xx));
 		case MAP_DFORWARD:
-			return d * exp(x) / SQR(1 + exp(x));
+			xx = exp(x);
+			return d * xx / SQR(1.0 + xx);
 		case MAP_INCREASING:
 			return 1.0;
 		default:
@@ -952,12 +953,15 @@ double map_phi(double arg, map_arg_tp typ, void *param)
 	/*
 	 * the map-function for the lag-1 correlation in the AR(1) model 
 	 */
+	double xx;
+
 	switch (typ) {
 	case MAP_FORWARD:
 		/*
 		 * extern = func(local) 
 		 */
-		return (2.0 * (exp((arg)) / (1.0 + exp((arg)))) - 1.0);
+		xx = exp(arg);
+		return (2.0 * (xx / (1.0 + xx)) - 1.0);
 	case MAP_BACKWARD:
 		/*
 		 * local = func(extern) 
@@ -967,7 +971,8 @@ double map_phi(double arg, map_arg_tp typ, void *param)
 		/*
 		 * d_extern / d_local 
 		 */
-		return 2.0 * exp(arg) / ((SQR(1.0 + exp(arg))));
+		xx = exp(arg);
+		return 2.0 * xx / SQR(1.0 + xx);
 	case MAP_INCREASING:
 		/*
 		 * return 1.0 if montone increasing and 0.0 otherwise 
@@ -1026,13 +1031,17 @@ double map_invlogit(double x, map_arg_tp typ, void *param)
 	/*
 	 * extern = exp(local) / (1 + exp(local)) 
 	 */
+	double xx;
+
 	switch (typ) {
 	case MAP_FORWARD:
-		return exp(x) / (1.0 + exp(x));
+		xx = exp(x);
+		return xx / (1.0 + xx);
 	case MAP_BACKWARD:
 		return log(x / (1.0 - x));
 	case MAP_DFORWARD:
-		return exp(x) / SQR(1.0 + exp(x));
+		xx = exp(x);
+		return xx / SQR(1.0 + xx);
 	case MAP_INCREASING:
 		return 1.0;
 	default:
@@ -1045,13 +1054,17 @@ double map_probability(double x, map_arg_tp typ, void *param)
 	/*
 	 * extern = exp(local) / (1 + exp(local)) 
 	 */
+	double xx;
+
 	switch (typ) {
 	case MAP_FORWARD:
-		return exp(x) / (1.0 + exp(x));
+		xx = exp(x);
+		return xx / (1.0 + xx);
 	case MAP_BACKWARD:
 		return log(x / (1.0 - x));
 	case MAP_DFORWARD:
-		return exp(x) / SQR(1.0 + exp(x));
+		xx = exp(x);
+		return xx / SQR(1.0 + xx);
 	case MAP_INCREASING:
 		return 1.0;
 	default:
@@ -1096,13 +1109,17 @@ double map_H(double x, map_arg_tp typ, void *param)
 	/*
 	 * extern = 1/2  + 1/2 * exp(local) / (1 + exp(local)) 
 	 */
+	double xx;
+
 	switch (typ) {
 	case MAP_FORWARD:
-		return 0.5 + 0.5 * exp(x) / (1.0 + exp(x));
+		xx = exp(x);
+		return 0.5 + 0.5 * xx / (1.0 + xx);
 	case MAP_BACKWARD:
 		return log((2.0 * x - 1.0) / (2.0 * (1.0 - x)));
 	case MAP_DFORWARD:
-		return 0.5 * exp(x) / SQR(1.0 + exp(x));
+		xx = exp(x);
+		return 0.5 * xx / SQR(1.0 + xx);
 	case MAP_INCREASING:
 		return 1.0;
 	default:
@@ -1117,14 +1134,17 @@ double map_group_rho(double x, map_arg_tp typ, void *param)
 	 */
 	assert(param != NULL);
 	int ngroups = *((int *) param);
-
+	double xx;
+	
 	switch (typ) {
 	case MAP_FORWARD:
-		return (exp(x) - 1.0) / (exp(x) + ngroups - 1.0);
+		xx = exp(x);
+		return (xx - 1.0) / (xx + ngroups - 1.0);
 	case MAP_BACKWARD:
 		return log((1.0 + (ngroups - 1.0) * x) / (1.0 - x));
 	case MAP_DFORWARD:
-		return (exp(x) * ngroups) / SQR(exp(x) + ngroups - 1.0);
+		xx = exp(x);
+		return (xx * ngroups) / SQR(xx + ngroups - 1.0);
 	case MAP_INCREASING:
 		return 1.0;
 	default:
@@ -1300,7 +1320,7 @@ double link_logitoffset(double x, map_arg_tp typ, void *param, double *cov)
 double link_sslogit(double x, map_arg_tp typ, void *param, double *cov)
 {
 	Link_param_tp *p;
-	double sens, spec, a, b;
+	double sens, spec, a, b, xx;
 
 	p = (Link_param_tp *) param;
 	sens = map_probability(p->sensitivity_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -1319,7 +1339,8 @@ double link_sslogit(double x, map_arg_tp typ, void *param, double *cov)
 		return log((x - b) / (x - b - a));
 
 	case MAP_DFORWARD:
-		return a * exp(-x) / SQR(1.0 + exp(-x));
+		xx = exp(-x);
+		return a * xx / SQR(1.0 + xx);
 
 	case MAP_INCREASING:
 		return (a > 0 ? 1 : 0);
@@ -2273,7 +2294,7 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 	int rebuild, ii, debug = 0, id;
 
 	id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
-	rebuild = (a->param[id] == NULL || a->Q[GMRFLib_thread_id] == NULL);
+	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 	if (!rebuild) {
 		for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
 			rebuild = (a->param[id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
@@ -2287,7 +2308,7 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 #pragma omp critical
 		{
 			if (debug) {
-				printf("Rebuild Q-hash for id %d\n", id);
+				printf("Qfunc_rgeneric: Rebuild Q-hash for id %d\n", id);
 			}
 			if (a->Q[id]) {
 				GMRFLib_free_tabulate_Qfunc(a->Q[id]);
@@ -2303,11 +2324,11 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 			}
 
 			if (debug) {
-				printf("Call rgeneric\n");
+				printf("\tCall rgeneric\n");
 			}
 			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_Q, a->model, a->ntheta, a->param[id]);
 			if (debug) {
-				printf("Return from rgeneric with n_out= %1d\n", n_out);
+				printf("\tReturn from rgeneric with n_out= %1d\n", n_out);
 			}
 
 			assert(n_out >= 2);
@@ -2350,7 +2371,7 @@ double Qfunc_dmatern(int i, int j, void *arg)
 	int rebuild, debug = 0, id;
 
 	id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
-	rebuild = (a->param[id] == NULL || a->Q[GMRFLib_thread_id] == NULL);
+	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 	if (!rebuild) {
 		// yes, log_prec is ...[0], so we start at 1
 		rebuild = (a->param[id][1] != a->log_range[GMRFLib_thread_id][0]) || (a->param[id][2] != a->log_nu[GMRFLib_thread_id][0]);
@@ -2362,7 +2383,7 @@ double Qfunc_dmatern(int i, int j, void *arg)
 			// yes, log_prec is ...[0], so we start at 1
 			double range, nu;
 			if (debug) {
-				printf("Rebuild Q-hash for id %d\n", id);
+				printf("Qfunc_dmatern: Rebuild Q-hash for id %d\n", id);
 			}
 
 			if (!(a->Q[id])) {
