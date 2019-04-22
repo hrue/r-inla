@@ -394,7 +394,8 @@ param2.matern.orig =
         } else {
           if (!is.numeric(prior.range.nominal) ||
               (length(prior.range.nominal) != 1)) {
-            stop("'prior.range.nominal' must be NULL or a single scalar value.")
+            stop(paste0("'prior.range.nominal' must be NULL or a single scalar value.\n",
+                        "Did you intend to supply 'prior.range' to inla.spde2.pcmatern instead?"))
           }
         }
 
