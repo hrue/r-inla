@@ -29,6 +29,29 @@
   }
 }
 
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Code cleanup and improved some input-error checking.
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.04.16}{
   \subsection{BUG FIXES}{
     \itemize{
