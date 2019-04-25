@@ -274,7 +274,7 @@
         q.mix.b = 0.1,
     
         ##:ARGUMENT: beta.ab The parameters a and b in the Beta mixing function
-        beta.ab = 2)
+        beta.ab = 3)
 
     ##:SEEALSO: inla
 }

@@ -173,10 +173,9 @@
 
     if (inla.one.of(family, "gev2")) {
         c.gev2 = control$control.gev2
+        nms = names(c.gev2)
         for (i in seq_along(c.gev2)) {
-            nm = names(c.gev2)[i]
-            val = as.numeric(c.gev2[[i]])
-            cat("gev2.", nm, " = ", val, "\n", sep="", file=file, append=TRUE)
+            cat("gev2.", nms[i], " = ", as.numeric(c.gev2[[i]]), "\n", sep="", file=file, append=TRUE)
         }
     }
 

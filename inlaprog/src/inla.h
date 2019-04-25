@@ -309,9 +309,12 @@ typedef struct {
 	/*
 	 * GEV2
 	 */
-	double gev2_level_alpha;
-	double gev2_level_beta;
+	double gev2_qlocation;
+	double gev2_qspread;
 	double gev2_scale_xi;
+	double gev2_qmix_a;
+	double gev2_qmix_b;
+	double gev2_beta_ab;
 	double *gev2_scale;
 	double **gev2_x;				       /* matrix of covariates */
 	double ***gev2_betas;				       /* vector of betas */
