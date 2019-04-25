@@ -312,7 +312,6 @@ typedef struct {
 	double gev2_level_alpha;
 	double gev2_level_beta;
 	double gev2_scale_xi;
-	double gev2_censor_limit;
 	double *gev2_scale;
 	double **gev2_x;				       /* matrix of covariates */
 	double ***gev2_betas;				       /* vector of betas */
@@ -320,7 +319,6 @@ typedef struct {
 	double **gev2_log_tail;
 	int gev2_nbetas[2];
 	int *gev2_ncols;
-	int gev2_sign_xi;
 	
 	/*
 	 * Log gamma frailty
