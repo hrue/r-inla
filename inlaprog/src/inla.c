@@ -5189,7 +5189,7 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 		for (i = 0; i < ds->data_observations.gev2_nbetas[1]; i++) {
 			log_xi += ds->data_observations.gev2_betas[i + off][GMRFLib_thread_id][0] * ds->data_observations.gev2_x[i + off][idx];
 		}
-		xi = ds->data_observations.gev2_sign_xi * exp(log_xi * ds->data_observations.gev2_scale_xi);
+		xi = exp(log_xi * ds->data_observations.gev2_scale_xi);
 	}
 	
 	if (m > 0) {
@@ -5218,29 +5218,12 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 				ypred = mu;
 				xx = 1.0 + xi * sprec * (y - ypred);
 
-				if (1) {
-					// new
-					if (xx < ds->data_observations.gev2_censor_limit) {
-						// treat this observation as cencored. I know...
-						if (show_msg) {
-							printf("Observation y[%1d] = %g, for GEV2, is currently censored\n", idx, y);
-							show_msg = 0;
-						}
-						logll[i] = -pow(ds->data_observations.gev2_censor_limit, -1.0/xi);
-						xx = DMAX(ds->data_observations.gev2_censor_limit, xx);
-						logll[i] = (-1.0 / xi - 1.0) * log(xx) - pow(xx, -1.0 / xi) + log(sprec);
-					} else {
-						logll[i] = (-1.0 / xi - 1.0) * log(xx) - pow(xx, -1.0 / xi) + log(sprec);
-					}
+				if (xx > DBL_EPSILON) {
+					logll[i] = (-1.0 / xi - 1.0) * log(xx) - pow(xx, -1.0 / xi) + log(sprec);
 				} else {
-					// old
-					if (xx > DBL_EPSILON) {
-						logll[i] = (-1.0 / xi - 1.0) * log(xx) - pow(xx, -1.0 / xi) + log(sprec);
-					} else {
-						if (i==0)FIXME("rescue");
-						logll[i] = (-1.0 / xi - 1.0) * log(DBL_EPSILON)
-							- pow(DBL_EPSILON, -1.0 / xi) + log(sprec) - 1e5;
-					}
+					if (i==0)FIXME("rescue");
+					logll[i] = (-1.0 / xi - 1.0) * log(DBL_EPSILON)
+						- pow(DBL_EPSILON, -1.0 / xi) + log(sprec) - 1e5;
 				}
 			}
 		}
@@ -12570,18 +12553,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tgev2.scale.xi [%g]\n", ds->data_observations.gev2_scale_xi);
 		}
 
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev2.sign.xi"), 1.0);
-		ds->data_observations.gev2_sign_xi = (int) (tmp >= 0.0 ? 1.0 : -1.0);
-		if (mb->verbose) {
-			printf("\t\tgev2.sign.xi [%d]\n", ds->data_observations.gev2_sign_xi);
-		}
-
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev2.censor.limit"), 0.2);
-		ds->data_observations.gev2_censor_limit = tmp;
-		if (mb->verbose) {
-			printf("\t\tgev2.censor.limit [%g]\n", ds->data_observations.gev2_censor_limit);
-		}
-
 		/*
 		 * mark all as read 
 		 */
@@ -12701,7 +12672,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_exp_scale;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			p[0] = ds->data_observations.gev2_sign_xi;
+			p[0] = 1.0;			       /* no sign switch */
 			p[1] = ds->data_observations.gev2_scale_xi;
 			mb->theta_map_arg[mb->ntheta] = (void *) p;
 
@@ -12731,7 +12702,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			} else {
 				// xi part
-				HYPER_NEW(ds->data_observations.gev2_betas[i], tmp/ds->data_observations.gev2_sign_xi);
+				HYPER_NEW(ds->data_observations.gev2_betas[i], tmp);
 				if (mb->verbose) {
 					printf("\t\tbetas[%1d] = %g (corrected for gev2_scale_xi = %g)\n", i,
 					       ds->data_observations.gev2_betas[i][0][0], ds->data_observations.gev2_scale_xi);
@@ -12777,7 +12748,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				} else {
 					// tail
 					double *p = Calloc(1, double);
-					*p = ds->data_observations.gev2_sign_xi;
 					mb->theta_map[mb->ntheta] = map_identity_scale;
 					mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 					mb->theta_map_arg[mb->ntheta] = (void *) p;
