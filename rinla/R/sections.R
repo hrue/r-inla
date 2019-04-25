@@ -172,18 +172,12 @@
     }
 
     if (inla.one.of(family, "gev2")) {
-        cat("gev2.level.alpha = ", inla.ifelse(is.null(control$gev2.level.alpha), 0.5, control$gev2.level.alpha), "\n",
-            sep="", file=file, append=TRUE)
-        cat("gev2.level.beta = ", inla.ifelse(is.null(control$gev2.level.beta), 0.05,
-                                        min(control$gev2.level.beta, 1.0 - control$gev2.level.beta)), "\n",
-            sep="", file=file, append=TRUE)
-        cat("gev2.scale.xi = ", inla.ifelse(is.null(control$gev2.scale.xi), 0.01, control$gev2.scale.xi), "\n",
-            sep="", file=file, append=TRUE)
-        if (is.null(control$gev2.sign.xi)) control$gev2.sign.xi = 1
-        cat("gev2.sign.xi = ", inla.ifelse(control$gev2.sign.xi >= 0.0, 1, -1), "\n",
-            sep="", file=file, append=TRUE)
-        cat("gev2.censor.limit = ", min(1, control$gev2.censor.limit), "\n",
-            sep="", file=file, append=TRUE)
+        c.gev2 = control$control.gev2
+        for (i in seq_along(c.gev2)) {
+            nm = names(c.gev2)[i]
+            val = as.numeric(c.gev2[[i]])
+            cat("gev2.", nm, " = ", val, "\n", sep="", file=file, append=TRUE)
+        }
     }
 
     inla.write.hyper(control$hyper, file, data.dir = data.dir)

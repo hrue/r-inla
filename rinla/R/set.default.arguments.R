@@ -12,6 +12,7 @@
 ## Export: inla.set.control.results.default
 ## Export: inla.set.control.mode.default
 ## Export: inla.set.control.hazard.default
+## Export: inla.set.control.gev2.default
 
 ## Export: control.lincomb
 ## Export: control.update
@@ -27,7 +28,7 @@
 ## Export: control.results
 ## Export: control.mode
 ## Export: control.hazard
-
+## Export: control.gev2
 
 
 ### Defines default arguments
@@ -251,12 +252,43 @@
     ##:SEEALSO: inla
 }
 
+`inla.set.control.gev2.default` =
+    function(...)
+{
+    ##:EXTRA: The \code{control.gev2}-list is set within the corresponding \code{control.family}-list as control parameters to the \code{family="gev2"}
+    ##:NAME: control.gev2.default
+    list(
+        ##:ARGUMENT: q.location The quantile level for the location parameter
+        q.location = 0.5,
+        
+        ##:ARGUMENT: q.spread The quantile level for the spread parameter (must be < 0.5)
+        q.spread = 0.25,
+        
+        ##:ARGUMENT: scale.xi (Expert option, do not use unless you know what you are doing.) The internal scaling of the tail-parameter for the GEV2 distribution, default 0.1.
+        scale.xi= 0.1,
+
+        ##:ARGUMENT: q.mix.a The lower quantile level for the mixing function
+        q.mix.a = 0.001,
+        
+        ##:ARGUMENT: q.mix.b The higher quantile level for the mixing function (must be less than 'level.beta')
+        q.mix.b = 0.1,
+    
+        ##:ARGUMENT: beta.ab The parameters a and b in the Beta mixing function
+        beta.ab = 2)
+
+    ##:SEEALSO: inla
+}
+
+
 `inla.set.control.family.default`=
     function(...)
 {
     ##:EXTRA: 
     ##:NAME: control.family
     list(
+        ##:ARGUMENT: dummy A dummy argument that can be used as a workaround
+        dummy = 0,
+
         ##:ARGUMENT: hyper Definition of the hyperparameters
         hyper = NULL,
 
@@ -281,21 +313,9 @@
         ##:ARGUMENT: gev.scale.xi (Expert option, do not use unless you know what you are doing.) The internal scaling of the shape-parameter for the GEV distribution. (default 0.1)
         gev.scale.xi = 0.1,
 
-        ##:ARGUMENT: gev2.level.alpha The quantile level for the location parameter
-        gev2.level.alpha = 0.5,
-        
-        ##:ARGUMENT: gev2.level.beta The quantile level for the spread parameter (must be < 0.5)
-        gev2.level.beta = 0.05,
-        
-        ##:ARGUMENT: gev2.scale.xi (Expert option, do not use unless you know what you are doing.) The internal scaling of the tail-parameter for the GEV2 distribution, default 0.1.
-        gev2.scale.xi= 0.1,
-        
-        ##:ARGUMENT: gev2.sign.xi The sign of tail-parameter for the GEV2 distribution (default 1, ie positive)
-        gev2.sign.xi= 1,
-        
-        ##:ARGUMENT: gev2.censor.limit The limit for which an observation is considered to be censored
-        gev2.censor.limit = 0.2,
-        
+        ##:ARGUMENT: control.gev2  See \code{?control.gev2}
+        control.gev2 = NULL, 
+
         ##:ARGUMENT: cenpoisson.I The censoring interval for the censored Poisson
         cenpoisson.I = c(-1L, -1L),
 
