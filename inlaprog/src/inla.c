@@ -5160,6 +5160,12 @@ int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, d
 
 int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
+// this is for a=b=3
+#define f_BETA_STD(_x) (30.0*SQR(_x)*SQR(1.0-(_x)))
+#define F_BETA_STD(_x) (gsl_pow_3(_x)*(6.0*SQR(_x) - 15.0*(_x) + 10.0))
+#define f_BETA(_x, _a, _b) (f_BETA_STD(((_x)-(_a))/((_b)-(_a))) / ((_b) - (_a)))
+#define F_BETA(_x, _a, _b) F_BETA_STD(((_x)-(_a))/((_b)-(_a)))
+
 	/*
 	 * y ~ GEV
 	 */
@@ -5169,8 +5175,8 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 	int i, off, show_msg = 1;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double location, spread, log_xi, xi, sigma, q_alpha, d, mu, sprec, ypred, xx, y;
-	double level_alpha = ds->data_observations.gev2_level_alpha;
-	double level_beta = ds->data_observations.gev2_level_beta;
+	double qlocation = ds->data_observations.gev2_qlocation;
+	double qspread = ds->data_observations.gev2_qspread;
 	
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
@@ -5194,12 +5200,12 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 	
 	if (m > 0) {
 		if (ISZERO(xi)) {
-			d = log(-log(level_beta / 2.0)) - log(-log(1.0 - level_beta / 2.0));
+			d = log(-log(qspread / 2.0)) - log(-log(1.0 - qspread / 2.0));
 			for (i = 0; i < m; i++) {
 				spread = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				q_alpha = location;
 				sigma = spread / d;
-				mu = q_alpha + sigma * log(-log(level_alpha));
+				mu = q_alpha + sigma * log(-log(qlocation));
 
 				sprec = 1.0 / sigma;
 				ypred = mu;
@@ -5207,12 +5213,12 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 				logll[i] = -xx - exp(-xx) + log(sprec);
 			}
 		} else {
-			d = (pow(-log(1.0 - level_beta / 2.0), -xi) - pow(-log(level_beta / 2.0), -xi)) / xi;
+			d = (pow(-log(1.0 - qspread / 2.0), -xi) - pow(-log(qspread / 2.0), -xi)) / xi;
 			for (i = 0; i < m; i++) {
 				spread = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				sigma = spread / d;
 				q_alpha = location;
-				mu = q_alpha - sigma * ((pow(-log(level_alpha), -xi) - 1.0) / xi);
+				mu = q_alpha - sigma * ((pow(-log(qlocation), -xi) - 1.0) / xi);
 
 				sprec = 1.0 / sigma;
 				ypred = mu;
@@ -5230,12 +5236,12 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
 		if (ISZERO(xi)) {
-			d = log(-log(level_beta / 2.0)) - log(-log(1.0 - level_beta / 2.0));
+			d = log(-log(qspread / 2.0)) - log(-log(1.0 - qspread / 2.0));
 			for (i = 0; i < -m; i++) {
 				spread = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				q_alpha = location;
 				sigma = spread / d;
-				mu = q_alpha + sigma * log(-log(level_alpha));
+				mu = q_alpha + sigma * log(-log(qlocation));
 
 				sprec = 1.0 / sigma;
 				ypred = mu;
@@ -5243,12 +5249,12 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 				logll[i] = exp(-exp(-xx));
 			}
 		} else {
-			d = (pow(-log(1.0 - level_beta / 2.0), -xi) - pow(-log(level_beta / 2.0), -xi)) / xi;
+			d = (pow(-log(1.0 - qspread / 2.0), -xi) - pow(-log(qspread / 2.0), -xi)) / xi;
 			for (i = 0; i < -m; i++) {
 				spread = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				sigma = spread / d;
 				q_alpha = location;
-				mu = q_alpha - sigma * ((pow(-log(level_alpha), -xi) - 1.0) / xi);
+				mu = q_alpha - sigma * ((pow(-log(qlocation), -xi) - 1.0) / xi);
 
 				sprec = 1.0 / sigma;
 				ypred = mu;
@@ -12533,18 +12539,18 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * get options related to the gev2
 		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev2.level.alpha"), 0.5);
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev2.q.location"), 0.5);
 		assert(tmp > 0.0 && tmp < 1.0);
-		ds->data_observations.gev2_level_alpha = tmp;
+		ds->data_observations.gev2_qlocation = tmp;
 		if (mb->verbose) {
-			printf("\t\tgev2.level_alpha [%g]\n", ds->data_observations.gev2_level_alpha);
+			printf("\t\tgev2.q.location [%g]\n", ds->data_observations.gev2_qlocation);
 		}
 
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev2.level.beta"), 0.05);
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev2.q.spread"), 0.25);
 		assert(tmp > 0.0 && tmp < 0.5);
-		ds->data_observations.gev2_level_beta = tmp;
+		ds->data_observations.gev2_qspread = tmp;
 		if (mb->verbose) {
-			printf("\t\tgev2.level.beta [%g]\n", ds->data_observations.gev2_level_beta);
+			printf("\t\tgev2.q.spread [%g]\n", ds->data_observations.gev2_qspread);
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev2.scale.xi"), 0.01);
@@ -12552,6 +12558,27 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tgev2.scale.xi [%g]\n", ds->data_observations.gev2_scale_xi);
 		}
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev2.q.mix.a"), 0.001);
+		ds->data_observations.gev2_qmix_a = tmp;
+		if (mb->verbose) {
+			printf("\t\tgev2.q.mix.a [%g]\n", ds->data_observations.gev2_qmix_a);
+		}
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev2.q.mix.b"), 0.1);
+		ds->data_observations.gev2_qmix_b = tmp;
+		if (mb->verbose) {
+			printf("\t\tgev2.q.mix.b [%g]\n", ds->data_observations.gev2_qmix_b);
+		}
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev2.beta.ab"), 3);
+		ds->data_observations.gev2_beta_ab = tmp;
+		if (mb->verbose) {
+			printf("\t\tgev2.beta.ab [%g]\n", ds->data_observations.gev2_beta_ab);
+		}
+
+		FIXME("DEBUG: REMOVE THIS LINE");
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev2.sign.xi"), 0);
 
 		/*
 		 * mark all as read 
