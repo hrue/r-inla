@@ -5194,8 +5194,8 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 #define H(_x, _loc, _scale) exp(log_H(_x, _loc, _scale))	
 #define h(_x, _loc, _scale) (H(_x, _loc, _scale) * T2(_x, _loc, _scale) / (_scale))
 #define log_h(_x, _loc, _scale) (log_H(_x, _loc, _scale) + log(T2(_x, _loc, _scale)) - log(_scale))
-#define g(_x, _loc, _scale, _xi) (G(_x, _loc, _scale, _xi) * T1(_x, _loc, _scale, _xi) * T1_SCALED_M1((((_x) - (_loc))/(_scale)), _xi) / (_scale))
-#define log_g(_x, _loc, _scale, _xi) (log_G(_x, _loc, _scale, _xi) + log(T1(_x, _loc, _scale, _xi)) + log(T1_SCALED_M1((((_x) - (_loc))/(_scale)), _xi)) - log(_scale))
+#define g(_x, _loc, _scale, _xi) (G(_x, _loc, _scale, _xi) * T1_SCALED_M1(((_x) - (_loc))/(_scale), _xi) / (_scale))
+#define log_g(_x, _loc, _scale, _xi) (log_G(_x, _loc, _scale, _xi) + log(T1_SCALED_M1(((_x) - (_loc))/(_scale), _xi)) - log(_scale))
 
 
 	if (0) {
@@ -5220,6 +5220,7 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 		exit(1);
 	}
 
+	FIXME1("scale is not yet added");
 
 	/*
 	 * y ~ GEV
@@ -5229,7 +5230,7 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 	}
 	int i, off;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double location, spread, log_xi, xi, sigma, sigma0, q_alpha, d, mu, mu0, sprec, ypred, xx, y, ld, low_lim;
+	double location, spread, log_spread, log_xi, xi, sigma, sigmaH, d, mu, muH, sprec, ypred, xx, y, ld;
 	double qlocation = ds->data_observations.gev2_qlocation;
 	double qspread = ds->data_observations.gev2_qspread;
 	double mix_a, qmix_a = ds->data_observations.gev2_qmix_a;
@@ -5240,11 +5241,12 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 	y = ds->data_observations.y[idx];
 	
 	off = 0;
-	location = ds->data_observations.gev2_location[GMRFLib_thread_id][0];
+	log_spread = ds->data_observations.gev2_log_spread[GMRFLib_thread_id][0];
 	for (i = 0; i < ds->data_observations.gev2_nbetas[0]; i++) {
-		location += ds->data_observations.gev2_betas[i + off][GMRFLib_thread_id][0] * ds->data_observations.gev2_x[i + off][idx];
+		log_spread += ds->data_observations.gev2_betas[i + off][GMRFLib_thread_id][0] * ds->data_observations.gev2_x[i + off][idx];
 	}
-
+	spread = map_exp(log_spread, MAP_FORWARD, NULL);
+	
 	off = ds->data_observations.gev2_nbetas[0];
 	log_xi = ds->data_observations.gev2_log_tail[GMRFLib_thread_id][0];
 	if (ISINF(log_xi) == -1) {
@@ -5256,80 +5258,90 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 		xi = exp(log_xi * ds->data_observations.gev2_scale_xi);
 	}
 	
-	if (0) {
-		y = 1.0;
-		location = 0.0;
-		m = 100;
-		x = Calloc(m, double);
-		for(i=0; i<m; i++) x[i] = -6.0 + 9.0/m * i;
-		logll = Calloc(m, double);
-	}
-
 	if (m > 0) {
 		if (ISZERO(xi)) {
 			d = log(-log(qspread / 2.0)) - log(-log(1.0 - qspread / 2.0));
 			for (i = 0; i < m; i++) {
-				spread = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				q_alpha = location;
+				location = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				sigma = spread / d;
-				mu = q_alpha + sigma * log(-log(qlocation));
-
+				mu = location + sigma * log(-log(qlocation));
 				sprec = 1.0 / sigma;
 				ypred = mu;
 				xx = sprec * (y - ypred);
 				logll[i] = -xx - exp(-xx) + log(sprec);
 			}
 		} else {
+
+
+			spread = 2.0;
+			m = 10000;
+			double *yy = Calloc(m, double);
+			x = Calloc(m, double);
+			for(i = 0; i < m; i++) yy[i] = y - 2.0 + 10.0*(i/(double)m);
+			for(i = 0; i < m; i++) x[i] = y;
+			logll = Calloc(m, double);
+
 			d = (pow(-log(1.0 - qspread / 2.0), -xi) - pow(-log(qspread / 2.0), -xi)) / xi;
 			for (i = 0; i < m; i++) {
-				spread = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				sigma = spread / d;
-				q_alpha = location;
-				mu = q_alpha - sigma * ((pow(-log(qlocation), -xi) - 1.0) / xi);
+				location = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				mu = location - sigma * ((pow(-log(qlocation), -xi) - 1.0) / xi);
 				mix_a = (pow(-log(qmix_a), -xi) - 1.0) / xi * sigma + mu;
 				mix_b = (pow(-log(qmix_b), -xi) - 1.0) / xi * sigma + mu;
-				sigma0 = (mix_b - mix_a) / log(log(qmix_a) / log(qmix_b));
-				mu0 = mix_a + sigma0 * log(-log(qmix_a));
+				sigmaH = (mix_b - mix_a) / log(log(qmix_a) / log(qmix_b));
+				muH = mix_a + sigmaH * log(-log(qmix_a));
 
-				if (y >= mix_b) {
-					ld = log_G(y, mu, sigma, xi);
-				} else if (y <= mix_a) {
-					ld = log_H(y, mu0, sigma0);
+				if (1 && i == 0){
+					P(location);
+					P(sigma);
+					P(mu);
+					P(mix_a);
+					P(mix_b);
+					P(sigmaH);
+					P(muH);
+				}
+				
+				if (yy[i] >= mix_b) {
+					ld = log_g(yy[i], mu, sigma, xi);
+				} else if (yy[i] <= mix_a) {
+					ld = log_h(yy[i], muH, sigmaH);
 				} else {
-					double value_p = p(y, mix_a, mix_b);
-					double value_p_deriv = p_deriv(y, mix_a, mix_b);
-					double value_log_G = log_G(y, mu, sigma, xi);
-					double value_log_H = log_H(y, mu0, sigma0);
-					double value_g = g(y, mu, sigma, xi);
-					double value_h = h(y, mu0, sigma0);
+					double value_p = p(yy[i], mix_a, mix_b);
+					double value_p_deriv = p_deriv(yy[i], mix_a, mix_b);
+					double value_log_G = log_G(yy[i], mu, sigma, xi);
+					double value_log_H = log_H(yy[i], muH, sigmaH);
+					double value_g = g(yy[i], mu, sigma, xi);
+					double value_h = h(yy[i], muH, sigmaH);
 
 					ld = (value_p * value_log_G + (1.0 - value_p) * value_log_H) +
-						log(value_p_deriv * value_log_G + value_p * value_g / exp(value_log_G)
+						log(value_p_deriv * value_log_G + value_p * value_g / exp(value_log_G) 
 						    - value_p_deriv * value_log_H + (1.0 - value_p) * value_h / exp(value_log_H));
 				}
+				if (0) if (idx == 1)printf("idx x ld y %d %g %g %g\n", idx, x[i], logll[i], yy[i]);
+
 				logll[i] = ld;
-				if (idx == 1)printf("idx x ld y %d %g %g %g\n", idx, x[i], logll[i], y);
+			}
+
+			if (1) {
+				FILE *fp = fopen("out.txt", "w");
+				for(i = 0; i < m; i++){
+					fprintf(fp, "%g %g\n", yy[i], logll[i]);
+				}
+				fclose(fp);
+				exit(0);
 			}
 		}
-
-	if (0) {
-		FILE *fp = fopen("out.txt", "w");
-		for(i = 0; i < m; i++){
-			fprintf(fp, "%g %g\n", x[i], logll[i]);
-		}
-		fclose(fp);
-		exit(0);
-	}
-		
 	} else {
+		FIXME("NOT DONE YET!");
+		exit(1);
+		
 		double yy = (y_cdf ? *y_cdf : y);
 		if (ISZERO(xi)) {
 			d = log(-log(qspread / 2.0)) - log(-log(1.0 - qspread / 2.0));
 			for (i = 0; i < -m; i++) {
 				spread = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				q_alpha = location;
 				sigma = spread / d;
-				mu = q_alpha + sigma * log(-log(qlocation));
+				mu = location + sigma * log(-log(qlocation));
 
 				sprec = 1.0 / sigma;
 				ypred = mu;
@@ -5341,8 +5353,7 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 			for (i = 0; i < -m; i++) {
 				spread = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				sigma = spread / d;
-				q_alpha = location;
-				mu = q_alpha - sigma * ((pow(-log(qlocation), -xi) - 1.0) / xi);
+				mu = location - sigma * ((pow(-log(qlocation), -xi) - 1.0) / xi);
 
 				sprec = 1.0 / sigma;
 				ypred = mu;
@@ -12708,9 +12719,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tgev2.beta.ab [%g]\n", ds->data_observations.gev2_beta_ab);
 		}
 
-		FIXME("DEBUG: REMOVE THIS LINE");
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev2.sign.xi"), 0);
-
 		/*
 		 * mark all as read 
 		 */
@@ -12756,12 +12764,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (!ds->data_nfixed[10] && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->data_observations.gev2_location, tmp);
+		HYPER_NEW(ds->data_observations.gev2_log_spread, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise location[%g]\n", ds->data_observations.gev2_location[0][0]);
+			printf("\t\tinitialise log.spread[%g]\n", ds->data_observations.gev2_log_spread[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_nfixed[10]);
 		}
-		inla_read_priorN(mb, ini, sec, &(ds->data_nprior[10]), "NORMAL", 10);
+		inla_read_priorN(mb, ini, sec, &(ds->data_nprior[10]), "LOGGAMMA", 10);
 
 		/*
 		 * add theta 
@@ -12773,8 +12781,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("location for GEV2 observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("location for GEV2 observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("log(spread) for GEV2 observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("spread for GEV2 observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -12783,9 +12791,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[10].from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[10].to_theta);
 
-			mb->theta[mb->ntheta] = ds->data_observations.gev2_location;
+			mb->theta[mb->ntheta] = ds->data_observations.gev2_log_spread;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map[mb->ntheta] = map_exp;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -12815,7 +12823,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("log_tail for GEV2 observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("log(tail) for GEV2 observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("tail for GEV2 observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -24788,8 +24796,8 @@ double extra(double *theta, int ntheta, void *argument)
 					}
 				}
 				if (!ds->data_nfixed[GEV2_MAXTHETA]) {
-					double location = theta[count];
-					val += PRIOR_EVAL(ds->data_nprior[GEV2_MAXTHETA], &location);
+					double spread = theta[count];
+					val += PRIOR_EVAL(ds->data_nprior[GEV2_MAXTHETA], &spread);
 					count++;
 				}
 				if (!ds->data_nfixed[GEV2_MAXTHETA + 1]) {

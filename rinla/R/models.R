@@ -5562,14 +5562,14 @@
                          ),
                          theta11 = list(
                              hyperid =  57211,
-                             name = "location",
-                             short.name = "loc",
+                             name = "spread",
+                             short.name = "sd",
                              initial = 0,
                              fixed = FALSE,
-                             prior = "normal",
-                             param = c(0, 0.01),
-                             to.theta = function(x) x,
-                             from.theta = function(x) x
+                             prior = "loggamma",
+                             param = c(1, 3),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
                          ),
                          theta12 = list(
                              hyperid =  57212,
@@ -5586,7 +5586,7 @@
                      status = "experimental", 
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "log"), 
+                     link = c("default", "identity"), 
                      pdf = "gev2"
                      ),
 

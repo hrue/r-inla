@@ -318,7 +318,7 @@ typedef struct {
 	double *gev2_scale;
 	double **gev2_x;				       /* matrix of covariates */
 	double ***gev2_betas;				       /* vector of betas */
-	double **gev2_location;
+	double **gev2_log_spread;
 	double **gev2_log_tail;
 	int gev2_nbetas[2];
 	int *gev2_ncols;
