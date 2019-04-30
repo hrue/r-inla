@@ -80,7 +80,7 @@ static const char RCSId[] = HGVERSION;
 #include "GMRFLib/GMRFLibP.h"
 
 #if !defined(INLA_TAG)
-#  define INLA_TAG "work"
+#  define INLA_TAG "devel"
 #endif
 
 //#include <openssl/sha.h>                                     /* Would also work with this library... */
@@ -5165,41 +5165,60 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 {
 #define f3_BETA_STD(_x) (30.0 * SQR(_x) * SQR(1.0-(_x)))
 #define F3_BETA_STD(_x) (gsl_pow_3(_x) * (10.0 + (-15.0 + 6.0 * (_x)) * (_x)))
-#define f3_BETA(_x, _a, _b) (f3_BETA_STD(((_x) - (_a)) / ((_b) - (_a))) / ((_b) - (_a)))
-#define F3_BETA(_x, _a, _b) F3_BETA_STD(((_x) - (_a)) / ((_b) - (_a)))
-
+#define f3_BETA(_x, _a, _b) (f3_BETA_STD((((_x) - (_a)) / ((_b) - (_a)))) / ((_b) - (_a)))
+#define F3_BETA(_x, _a, _b) F3_BETA_STD((((_x) - (_a)) / ((_b) - (_a))))
 #define f4_BETA_STD(_x) (140.0 * gsl_pow_3(_x) * gsl_pow_3(1.0 - (_x)))
 #define F4_BETA_STD(_x) (gsl_pow_4(_x) * (35.0 + (-84.0 + (70.0 - 20.0 * (_x)) * (_x)) * (_x)))
 #define f4_BETA(_x, _a, _b) (f4_BETA_STD(((_x) - (_a)) / ((_b) - (_a))) / ((_b) - (_a)))
-#define F4_BETA(_x, _a, _b) F4_BETA_STD(((_x) - (_a)) / ((_b) - (_a)))
-
+#define F4_BETA(_x, _a, _b) F4_BETA_STD((((_x) - (_a)) / ((_b) - (_a))))
 #define f5_BETA_STD(_x) (630.0 * gsl_pow_4(_x) * gsl_pow_4(1.0 - (_x)))
 #define F5_BETA_STD(_x) (gsl_pow_5(_x) * ((_x) * ((_x) * ((_x) * ((_x) * 70.0 - 315.0) + 540.0) - 420.0) + 126.0))
-#define f5_BETA(_x, _a, _b) (f5_BETA_STD(((_x) - (_a)) / ((_b) - (_a))) / ((_b) - (_a)))
-#define F5_BETA(_x, _a, _b) F5_BETA_STD(((_x) - (_a)) / ((_b) - (_a)))
-
+#define f5_BETA(_x, _a, _b) (f5_BETA_STD((((_x) - (_a)) / ((_b) - (_a)))) / ((_b) - (_a)))
+#define F5_BETA(_x, _a, _b) F5_BETA_STD((((_x) - (_a)) / ((_b) - (_a))))
 #define f6_BETA_STD(_x) (2772.0 * gsl_pow_5(_x) * gsl_pow_5(1.0 - (_x)))
 #define F6_BETA_STD(_x) (gsl_pow_6(_x) * ((_x) * ((_x) * ((_x) * ((_x) * ((_x) * (-252.0) + 1386.0) - 3080.0) + 3465.0) - 1980.0) + 462.0))
-#define f6_BETA(_x, _a, _b) (f6_BETA_STD(((_x) - (_a)) / ((_b) - (_a))) / ((_b) - (_a)))
-#define F6_BETA(_x, _a, _b) F6_BETA_STD(((_x) - (_a)) / ((_b) - (_a)))
+#define f6_BETA(_x, _a, _b) (f6_BETA_STD((((_x) - (_a)) / ((_b) - (_a)))) / ((_b) - (_a)))
+#define F6_BETA(_x, _a, _b) F6_BETA_STD((((_x) - (_a)) / ((_b) - (_a))))
+#define f_BETA(_x, _a, _b) f6_BETA(_x, _a, _b)
+#define F_BETA(_x, _a, _b) F6_BETA(_x, _a, _b)
+#define p(_x, _a, _b) F_BETA(_x, _a, _b)
+#define p_deriv(_x, _a, _b) f_BETA(_x, _a, _b)
+#define T1_SCALED_M1(_x, _xi) pow( 1.0 + (_xi) * (_x), -1.0 / (_xi) - 1.0)
+#define T1_SCALED(_x, _xi) pow( 1.0 + (_xi) * (_x), -1.0 / (_xi))
+#define T1(_x, _loc, _scale, _xi) T1_SCALED((((_x) - (_loc)) / (_scale)), _xi)
+#define T2_SCALED(_x) exp(-(_x))
+#define T2(_x, _loc, _scale) T2_SCALED((((_x) - (_loc)) / (_scale)))
+#define log_G(_x, _loc, _scale, _xi) (-T1(_x, _loc, _scale, _xi))
+#define G(_x, _loc, _scale, _xi) exp(log_G(_x, _loc, _scale, _xi))
+#define log_H(_x, _loc, _scale)	(-T2(_x, _loc, _scale))
+#define H(_x, _loc, _scale) exp(log_H(_x, _loc, _scale))	
+#define h(_x, _loc, _scale) (H(_x, _loc, _scale) * T2(_x, _loc, _scale) / (_scale))
+#define log_h(_x, _loc, _scale) (log_H(_x, _loc, _scale) + log(T2(_x, _loc, _scale)) - log(_scale))
+#define g(_x, _loc, _scale, _xi) (G(_x, _loc, _scale, _xi) * T1(_x, _loc, _scale, _xi) * T1_SCALED_M1((((_x) - (_loc))/(_scale)), _xi) / (_scale))
+#define log_g(_x, _loc, _scale, _xi) (log_G(_x, _loc, _scale, _xi) + log(T1(_x, _loc, _scale, _xi)) + log(T1_SCALED_M1((((_x) - (_loc))/(_scale)), _xi)) - log(_scale))
 
-#define f_BETA(_x, _a, _b) f5_BETA(_x, _a, _b)
-#define F_BETA(_x, _a, _b) F5_BETA(_x, _a, _b)
 
+	if (0) {
+		double loc = 1.2, scale = 1.5, xi = 0.5, _x;
+		FILE *fp = fopen("out.txt", "w");
+		for(_x = 0.001 + loc - scale/xi; _x <= loc + 4.0 * scale / xi; _x += 0.01)
+			fprintf(fp, "%g %g %g %g %g %g %g\n", _x, H(_x, loc, scale), h(_x, loc, scale), exp(log_h(_x, loc, scale)),
+				G(_x, loc, scale, xi), g(_x, loc, scale, xi), exp(log_g(_x, loc, scale, xi)));
+		fclose(fp);
+		exit(0);
+	}
 
-
-	double a = 1.2, b = 2.5,  _x;
-	FILE *fp = fopen("out.txt", "w");
-	for(_x = a;  _x <= b;  _x += (b-a)/1000)
-		fprintf(fp, "%f %g %g %g %g %g %g %g %g\n", _x,
-			f3_BETA(_x, a, b), F3_BETA(_x, a, b), f4_BETA(_x, a, b),
-			F4_BETA(_x, a, b), f5_BETA(_x, a, b), F5_BETA(_x, a, b),
-			f6_BETA(_x, a, b), F6_BETA(_x, a, b));
-	fclose(fp);
-	exit(1);
-
-
-	
+	if (0) {
+		double a = 1.2, b = 2.5,  _x;
+		FILE *fp = fopen("out.txt", "w");
+		for(_x = a;  _x <= b;  _x += (b-a)/1000)
+			fprintf(fp, "%f %g %g %g %g %g %g %g %g\n", _x,
+				f3_BETA(_x, a, b), F3_BETA(_x, a, b), f4_BETA(_x, a, b),
+				F4_BETA(_x, a, b), f5_BETA(_x, a, b), F5_BETA(_x, a, b),
+				f6_BETA(_x, a, b), F6_BETA(_x, a, b));
+		fclose(fp);
+		exit(1);
+	}
 
 
 	/*
@@ -5208,11 +5227,14 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
-	int i, off, show_msg = 1;
+	int i, off;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double location, spread, log_xi, xi, sigma, q_alpha, d, mu, sprec, ypred, xx, y;
+	double location, spread, log_xi, xi, sigma, sigma0, q_alpha, d, mu, mu0, sprec, ypred, xx, y, ld, low_lim;
 	double qlocation = ds->data_observations.gev2_qlocation;
 	double qspread = ds->data_observations.gev2_qspread;
+	double mix_a, qmix_a = ds->data_observations.gev2_qmix_a;
+	double mix_b, qmix_b = ds->data_observations.gev2_qmix_b;
+	//double gev2_beta_ab;
 	
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
@@ -5234,6 +5256,15 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 		xi = exp(log_xi * ds->data_observations.gev2_scale_xi);
 	}
 	
+	if (0) {
+		y = 1.0;
+		location = 0.0;
+		m = 100;
+		x = Calloc(m, double);
+		for(i=0; i<m; i++) x[i] = -6.0 + 9.0/m * i;
+		logll = Calloc(m, double);
+	}
+
 	if (m > 0) {
 		if (ISZERO(xi)) {
 			d = log(-log(qspread / 2.0)) - log(-log(1.0 - qspread / 2.0));
@@ -5255,20 +5286,41 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 				sigma = spread / d;
 				q_alpha = location;
 				mu = q_alpha - sigma * ((pow(-log(qlocation), -xi) - 1.0) / xi);
+				mix_a = (pow(-log(qmix_a), -xi) - 1.0) / xi * sigma + mu;
+				mix_b = (pow(-log(qmix_b), -xi) - 1.0) / xi * sigma + mu;
+				sigma0 = (mix_b - mix_a) / log(log(qmix_a) / log(qmix_b));
+				mu0 = mix_a + sigma0 * log(-log(qmix_a));
 
-				sprec = 1.0 / sigma;
-				ypred = mu;
-				xx = 1.0 + xi * sprec * (y - ypred);
-
-				if (xx > DBL_EPSILON) {
-					logll[i] = (-1.0 / xi - 1.0) * log(xx) - pow(xx, -1.0 / xi) + log(sprec);
+				if (y >= mix_b) {
+					ld = log_G(y, mu, sigma, xi);
+				} else if (y <= mix_a) {
+					ld = log_H(y, mu0, sigma0);
 				} else {
-					if (i==0)FIXME("rescue");
-					logll[i] = (-1.0 / xi - 1.0) * log(DBL_EPSILON)
-						- pow(DBL_EPSILON, -1.0 / xi) + log(sprec) - 1e5;
+					double value_p = p(y, mix_a, mix_b);
+					double value_p_deriv = p_deriv(y, mix_a, mix_b);
+					double value_log_G = log_G(y, mu, sigma, xi);
+					double value_log_H = log_H(y, mu0, sigma0);
+					double value_g = g(y, mu, sigma, xi);
+					double value_h = h(y, mu0, sigma0);
+
+					ld = (value_p * value_log_G + (1.0 - value_p) * value_log_H) +
+						log(value_p_deriv * value_log_G + value_p * value_g / exp(value_log_G)
+						    - value_p_deriv * value_log_H + (1.0 - value_p) * value_h / exp(value_log_H));
 				}
+				logll[i] = ld;
+				if (idx == 1)printf("idx x ld y %d %g %g %g\n", idx, x[i], logll[i], y);
 			}
 		}
+
+	if (0) {
+		FILE *fp = fopen("out.txt", "w");
+		for(i = 0; i < m; i++){
+			fprintf(fp, "%g %g\n", x[i], logll[i]);
+		}
+		fclose(fp);
+		exit(0);
+	}
+		
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
 		if (ISZERO(xi)) {
@@ -5311,6 +5363,39 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 			}
 		}
 	}
+
+#undef f3_BETA_STD
+#undef F3_BETA_STD
+#undef f3_BETA
+#undef F3_BETA
+#undef f4_BETA_STD
+#undef F4_BETA_STD
+#undef f4_BETA
+#undef F4_BETA
+#undef f5_BETA_STD
+#undef F5_BETA_STD
+#undef f5_BETA
+#undef F5_BETA
+#undef f6_BETA_STD
+#undef F6_BETA_STD
+#undef f6_BETA
+#undef F6_BETA
+#undef f_BETA
+#undef F_BETA
+#undef p
+#undef p_deriv
+#undef T1_SCALED
+#undef T1
+#undef T2_SCALED
+#undef T2
+#undef logG
+#undef G
+#undef logH
+#undef H
+#undef h
+#undef log_h
+#undef g
+#undef log_g
 
 	LINK_END;
 	return GMRFLib_SUCCESS;
