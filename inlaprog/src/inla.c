@@ -5271,16 +5271,6 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 				logll[i] = -xx - exp(-xx) + log(sprec);
 			}
 		} else {
-
-
-			spread = 2.0;
-			m = 10000;
-			double *yy = Calloc(m, double);
-			x = Calloc(m, double);
-			for(i = 0; i < m; i++) yy[i] = y - 2.0 + 10.0*(i/(double)m);
-			for(i = 0; i < m; i++) x[i] = y;
-			logll = Calloc(m, double);
-
 			d = (pow(-log(1.0 - qspread / 2.0), -xi) - pow(-log(qspread / 2.0), -xi)) / xi;
 			for (i = 0; i < m; i++) {
 				sigma = spread / d;
@@ -5291,7 +5281,7 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 				sigmaH = (mix_b - mix_a) / log(log(qmix_a) / log(qmix_b));
 				muH = mix_a + sigmaH * log(-log(qmix_a));
 
-				if (1 && i == 0){
+				if (0 && i == 0){
 					P(location);
 					P(sigma);
 					P(mu);
@@ -5301,34 +5291,25 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 					P(muH);
 				}
 				
-				if (yy[i] >= mix_b) {
-					ld = log_g(yy[i], mu, sigma, xi);
-				} else if (yy[i] <= mix_a) {
-					ld = log_h(yy[i], muH, sigmaH);
+				if (y >= mix_b) {
+					ld = log_g(y, mu, sigma, xi);
+				} else if (y <= mix_a) {
+					ld = log_h(y, muH, sigmaH);
 				} else {
-					double value_p = p(yy[i], mix_a, mix_b);
-					double value_p_deriv = p_deriv(yy[i], mix_a, mix_b);
-					double value_log_G = log_G(yy[i], mu, sigma, xi);
-					double value_log_H = log_H(yy[i], muH, sigmaH);
-					double value_g = g(yy[i], mu, sigma, xi);
-					double value_h = h(yy[i], muH, sigmaH);
+					double value_p = p(y, mix_a, mix_b);
+					double value_p_deriv = p_deriv(y, mix_a, mix_b);
+					double value_log_G = log_G(y, mu, sigma, xi);
+					double value_log_H = log_H(y, muH, sigmaH);
+					double value_g = g(y, mu, sigma, xi);
+					double value_h = h(y, muH, sigmaH);
 
 					ld = (value_p * value_log_G + (1.0 - value_p) * value_log_H) +
 						log(value_p_deriv * value_log_G + value_p * value_g / exp(value_log_G) 
 						    - value_p_deriv * value_log_H + (1.0 - value_p) * value_h / exp(value_log_H));
 				}
-				if (0) if (idx == 1)printf("idx x ld y %d %g %g %g\n", idx, x[i], logll[i], yy[i]);
+				if (0) if (idx == 1)printf("idx x ld y %d %g %g %g\n", idx, x[i], logll[i], y);
 
 				logll[i] = ld;
-			}
-
-			if (1) {
-				FILE *fp = fopen("out.txt", "w");
-				for(i = 0; i < m; i++){
-					fprintf(fp, "%g %g\n", yy[i], logll[i]);
-				}
-				fclose(fp);
-				exit(0);
 			}
 		}
 	} else {
