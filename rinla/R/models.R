@@ -5575,12 +5575,12 @@
                              hyperid =  57212,
                              name = "tail",
                              short.name = "tail",
-                             initial = log(0.01),
+                             initial = -4,
                              fixed = FALSE,
                              prior = "loggamma",
                              param = c(1, 3),
-                             to.theta = function(x, sign = 1) log(x/sign),
-                             from.theta = function(x, sign = 1) sign*exp(x)
+                             to.theta = function(x, interval = c(0, 0.5)) log(-(interval[1] - x)/(interval[2] - x)), 
+                             from.theta = function(x, interval = c(0, 0.5)) interval[1] + diff(interval) * exp(x)/(1.0 + exp(x))
                          )
                      ), 
                      status = "experimental", 

@@ -175,7 +175,9 @@
         c.gev2 = control$control.gev2
         nms = names(c.gev2)
         for (i in seq_along(c.gev2)) {
-            cat("gev2.", nms[i], " = ", as.numeric(c.gev2[[i]]), "\n", sep="", file=file, append=TRUE)
+            ## need this, as the xi.range is a vector of length 2
+            cat("gev2.", nms[i], " = ", paste(as.numeric(c.gev2[[i]]), collapse = " "),
+                "\n", sep="", file=file, append=TRUE)
         }
     }
 
