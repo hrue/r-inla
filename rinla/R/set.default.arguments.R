@@ -264,8 +264,11 @@
         ##:ARGUMENT: q.spread The quantile level for the spread parameter (must be < 0.5)
         q.spread = 0.25,
         
-        ##:ARGUMENT: scale.xi (Expert option, do not use unless you know what you are doing.) The internal scaling of the tail-parameter for the GEV2 distribution, default 0.1.
-        scale.xi= 0.1,
+        ##:ARGUMENT: xi.scale (Expert option, do not use unless you know what you are doing.) The internal scaling of the tail-parameter for the GEV2 distribution, default 1.0
+        xi.scale= 1.0,
+
+        ##:ARGUMENT: xi.interval The interval for the tail parameter
+        xi.interval = c(0, 0.5), 
 
         ##:ARGUMENT: q.mix.a The lower quantile level for the mixing function
         q.mix.a = 0.001,
