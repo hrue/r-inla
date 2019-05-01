@@ -311,7 +311,8 @@ typedef struct {
 	 */
 	double gev2_qlocation;
 	double gev2_qspread;
-	double gev2_scale_xi;
+	double gev2_xi_scale;
+	double *gev2_xi_interval;
 	double gev2_qmix_a;
 	double gev2_qmix_b;
 	double gev2_beta_ab;
@@ -319,7 +320,7 @@ typedef struct {
 	double **gev2_x;				       /* matrix of covariates */
 	double ***gev2_betas;				       /* vector of betas */
 	double **gev2_log_spread;
-	double **gev2_log_tail;
+	double **gev2_intern_tail;
 	int gev2_nbetas[2];
 	int *gev2_ncols;
 	
@@ -1508,6 +1509,7 @@ double map_invlogit(double x, map_arg_tp typ, void *param);
 double map_invloglog(double arg, map_arg_tp typ, void *param);
 double map_invprobit(double arg, map_arg_tp typ, void *param);
 double map_invtan(double arg, map_arg_tp typ, void *param);
+double map_interval(double x, map_arg_tp typ, void *param);
 double map_negexp(double arg, map_arg_tp typ, void *param);
 double map_p_weibull_cure(double arg, map_arg_tp typ, void *param);
 double map_phi(double arg, map_arg_tp typ, void *param);
