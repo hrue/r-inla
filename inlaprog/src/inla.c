@@ -5262,8 +5262,8 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 	double location, spread, log_spread, log_xi, xi, sigma, sigmaH, d, mu, muH, sprec, ypred, xx, y, ld;
 	double qlocation = ds->data_observations.gev2_qlocation;
 	double qspread = ds->data_observations.gev2_qspread;
-	double mix_a, qmix_a = ds->data_observations.gev2_qmix_a;
-	double mix_b, qmix_b = ds->data_observations.gev2_qmix_b;
+	double mix_a, qmix_a = ds->data_observations.gev2_qmix[0];
+	double mix_b, qmix_b = ds->data_observations.gev2_qmix[1];
 	//double gev2_beta_ab;
 	
 	LINK_INIT;
@@ -5300,6 +5300,9 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 				logll[i] = -xx - exp(-xx) + log(sprec);
 			}
 		} else {
+
+			static double count[3] = {0, 0, 0};
+
 			d = (pow(-log(1.0 - qspread / 2.0), -xi) - pow(-log(qspread / 2.0), -xi)) / xi;
 			for (i = 0; i < m; i++) {
 				sigma = spread / d;
@@ -5321,10 +5324,13 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 				}
 				
 				if (y >= mix_b) {
+					count[0]++;
 					ld = log_g(y, mu, sigma, xi);
 				} else if (y <= mix_a) {
+					count[1]++;
 					ld = log_h(y, muH, sigmaH);
 				} else {
+					count[2]++;
 					double value_p = p(y, mix_a, mix_b);
 					double value_p_deriv = p_deriv(y, mix_a, mix_b);
 					double value_g = g(y, mu, sigma, xi);
@@ -5342,6 +5348,12 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 				//logll[i] = log_g_max + DMAX(-100.0, ld - log_g_max);
 				logll[i] = ld;
 			}
+
+			if (0 && idx == 1)
+				printf("right %g left %g mix %g\n",
+				       count[0] / (count[0] + count[1] + count[2]), 
+				       count[1] / (count[0] + count[1] + count[2]), 
+				       count[2] / (count[0] + count[1] + count[2]));
 		}
 	} else {
 		FIXME("NOT DONE YET!");
@@ -12721,16 +12733,16 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			       ds->data_observations.gev2_xi_interval[1], ds->data_observations.gev2_xi_interval[2]);
 		}
 
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev2.q.mix.a"), 0.001);
-		ds->data_observations.gev2_qmix_a = tmp;
-		if (mb->verbose) {
-			printf("\t\tgev2.q.mix.a [%g]\n", ds->data_observations.gev2_qmix_a);
+		ctmp = iniparser_getstring(ini, inla_string_join(secname, "gev2.q.mix"), GMRFLib_strdup("0.10 0.20"));
+		ds->data_observations.gev2_qmix = Calloc(2, double);
+		if (inla_sread_doubles(ds->data_observations.gev2_qmix, 2, ctmp) == INLA_FAIL ||
+		    DMIN(ds->data_observations.gev2_qmix[0], ds->data_observations.gev2_qmix[1]) <= 0.0 ||
+		    DMAX(ds->data_observations.gev2_qmix[0], ds->data_observations.gev2_qmix[1]) >= 1.0 ||
+		    ds->data_observations.gev2_qmix[0] >= ds->data_observations.gev2_qmix[1]) {
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "GEV2.Q.MIX", ctmp);
 		}
-
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev2.q.mix.b"), 0.1);
-		ds->data_observations.gev2_qmix_b = tmp;
 		if (mb->verbose) {
-			printf("\t\tgev2.q.mix.b [%g]\n", ds->data_observations.gev2_qmix_b);
+			printf("\t\tgev2.q.mix [%g %g]\n", ds->data_observations.gev2_qmix[0], ds->data_observations.gev2_qmix[1]);
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev2.beta.ab"), 3);
