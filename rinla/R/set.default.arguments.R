@@ -267,12 +267,9 @@
         ##:ARGUMENT: xi.interval The interval and the scaling for the tail parameter
         xi.interval = c(0, 0.5, 0.1), 
 
-        ##:ARGUMENT: q.mix.a The lower quantile level for the mixing function
-        q.mix.a = 0.05,
-        
-        ##:ARGUMENT: q.mix.b The higher quantile level for the mixing function (must be less than 'level.beta')
-        q.mix.b = 0.20,
-    
+        ##:ARGUMENT: q.mix The lower and upper quantile level for the mixing function
+        q.mix = c(0.10, 0.20), 
+
         ##:ARGUMENT: beta.ab The parameters a and b in the Beta mixing function
         beta.ab = 5L)
 
