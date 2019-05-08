@@ -5366,7 +5366,6 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 				spread = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				sigma = spread / d;
 				mu = location + sigma * log(-log(qlocation));
-
 				sprec = 1.0 / sigma;
 				ypred = mu;
 				xx = sprec * (yy - ypred);
