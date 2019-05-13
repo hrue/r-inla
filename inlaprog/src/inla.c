@@ -79,7 +79,9 @@ static const char RCSId[] = HGVERSION;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-#if !defined(INLA_TAG)
+#if defined(INLA_TAG)
+#  define INLA_TAG "" ## INLA_TAG
+#else
 #  define INLA_TAG "work"
 #endif
 
