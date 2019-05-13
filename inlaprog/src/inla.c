@@ -5249,7 +5249,7 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 		exit(1);
 	}
 
-	FIXME1("scale is not yet added");
+	FIXME1("precition scale is not yet added");
 
 	/*
 	 * y ~ GEV
@@ -5280,6 +5280,7 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 	log_xi = ds->data_observations.gev2_intern_tail[GMRFLib_thread_id][0];
 	if (ISINF(log_xi) == -1) {
 		xi = 0.0;
+		assert(ds->data_observations.gev2_nbetas[1] == 0);
 	} else {
 		for (i = 0; i < ds->data_observations.gev2_nbetas[1]; i++) {
 			log_xi += ds->data_observations.gev2_betas[i + off][GMRFLib_thread_id][0] * ds->data_observations.gev2_x[i + off][idx];
@@ -5301,7 +5302,7 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 			}
 		} else {
 
-			static double count[3] = {0, 0, 0};
+			static double count[3] = {0.0, 0.0, 0.0};
 
 			d = (pow(-log(1.0 - qspread / 2.0), -xi) - pow(-log(qspread / 2.0), -xi)) / xi;
 			for (i = 0; i < m; i++) {
@@ -5330,13 +5331,15 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 					count[1]++;
 					ld = log_h(y, muH, sigmaH);
 				} else {
+					double value_p, value_p_deriv, value_g, value_log_G, value_h, value_log_H;
 					count[2]++;
-					double value_p = p(y, mix_a, mix_b);
-					double value_p_deriv = p_deriv(y, mix_a, mix_b);
-					double value_g = g(y, mu, sigma, xi);
-					double value_log_G = log_G(y, mu, sigma, xi);
-					double value_h = h(y, muH, sigmaH);
-					double value_log_H = log_H(y, muH, sigmaH);
+					
+					value_p = p(y, mix_a, mix_b);
+					value_p_deriv = p_deriv(y, mix_a, mix_b);
+					value_g = g(y, mu, sigma, xi);
+					value_log_G = log_G(y, mu, sigma, xi);
+					value_h = h(y, muH, sigmaH);
+					value_log_H = log_H(y, muH, sigmaH);
 
 					ld = (value_p * value_log_G + (1.0 - value_p) * value_log_H) +
 						log(value_p_deriv * value_log_G + value_p * value_g / exp(value_log_G) 
@@ -5344,13 +5347,11 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 				}
 				if (0) if (idx == 1)printf("idx x ld y %d %g %g %g\n", idx, x[i], logll[i], y);
 
-				//double log_g_max = log_g(y, y, sigma, xi);
-				//logll[i] = log_g_max + DMAX(-100.0, ld - log_g_max);
 				logll[i] = ld;
 			}
 
 			if (0 && idx == 1)
-				printf("right %g left %g mix %g\n",
+				printf("right %.2g left %.2g mix %.2g\n",
 				       count[0] / (count[0] + count[1] + count[2]), 
 				       count[1] / (count[0] + count[1] + count[2]), 
 				       count[2] / (count[0] + count[1] + count[2]));
@@ -12886,17 +12887,17 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 
 			if (i < ds->data_observations.gev2_nbetas[0]) {
-				// location part, as normal
+				// log-spread part, as normal
 				HYPER_NEW(ds->data_observations.gev2_betas[i], tmp);
 				if (mb->verbose) {
-					printf("\t\tbetas[%1d] = %g\n", i, ds->data_observations.gev2_betas[i][0][0]);
-					printf("\t\tfixed[%1d]= %1d\n", i, ds->data_nfixed[i]);
+					printf("\t\tbetas[%1d] (spread) = %g\n", i, ds->data_observations.gev2_betas[i][0][0]);
+					printf("\t\tfixed[%1d] = %1d\n", i, ds->data_nfixed[i]);
 				}
 			} else {
 				// xi part
 				HYPER_NEW(ds->data_observations.gev2_betas[i], tmp);
 				if (mb->verbose) {
-					printf("\t\tbetas[%1d] = %g\n", i, ds->data_observations.gev2_betas[i][0][0]);
+					printf("\t\tbetas[%1d] (tail) = %g\n", i, ds->data_observations.gev2_betas[i][0][0]);
 					printf("\t\tfixed[%1d]= %1d\n", i, ds->data_nfixed[i]);
 				}
 			}
@@ -12932,7 +12933,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 				
 				if (i < ds->data_observations.gev2_nbetas[0]) {
-					// location
+					// spread
 					mb->theta_map[mb->ntheta] = map_identity;
 					mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 					mb->theta_map_arg[mb->ntheta] = NULL;
