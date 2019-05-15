@@ -29,20 +29,10 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
-  \subsection{USER-VISIBLE CHANGES}{
-    \itemize{
-      \item 
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
-    }
-  }
+\section{CHANGES IN VERSION 19.05.13}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item
+      \item Added exampledata directory for various example datasets
     }
   }
   \subsection{BUG FIXES}{
@@ -56,7 +46,7 @@
   \subsection{BUG FIXES}{
     \itemize{
       \item Fixed an error in the cache-system for
-      y\code{model="rgeneric"} and \code{model="dmatern"}.
+      \code{model="rgeneric"} and \code{model="dmatern"}.
       Most notably with option \code{openmp.strategy="pardiso.parallel"}.
     }
   }
