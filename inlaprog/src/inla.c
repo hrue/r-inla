@@ -76,9 +76,12 @@ static const char RCSId[] = HGVERSION;
 #undef ISNAN
 #endif
 
-
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
+
+#if !defined(INLA_TAG)
+#  define INLA_TAG "work"
+#endif
 
 //#include <openssl/sha.h>                                     /* Would also work with this library... */
 #include "sha1.h"					       /* instead of this one */
@@ -10136,8 +10139,8 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	rinla_tag = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "RINLA.TAG"), GMRFLib_strdup("UNKNOWN")));
 	if (mb->verbose) {
 		printf("\t\tR-INLA tag=[%s]\n", rinla_tag);
-		printf("\t\tBuild tag=[%s]\n", RINLA_TAG);
-		if (strcmp(rinla_tag, RINLA_TAG)) {
+		printf("\t\tBuild tag=[%s]\n", INLA_TAG);
+		if (strcmp(rinla_tag, INLA_TAG)) {
 			printf("\t\t***WARNING*** 'R-INLA tag' and 'Build tag' differ!\n");
 		}
 	}
