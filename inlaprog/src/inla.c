@@ -4275,6 +4275,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	ds->data_observations.n_attr = n_attr;
 
 	if (mb->verbose) {
+		printf("\t\tmdata.nattributes = %d\n", n_attr);
 		for (i = 0; i < n_attr; i++) {
 			printf("\t\tmdata.attribute[%1d] = %g\n", i, attr[i]);
 		}
@@ -5285,7 +5286,23 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 		for (i = 0; i < ds->data_observations.gev2_nbetas[1]; i++) {
 			log_xi += ds->data_observations.gev2_betas[i + off][GMRFLib_thread_id][0] * ds->data_observations.gev2_x[i + off][idx];
 		}
+		P(log_xi);
 		xi = map_interval(log_xi, MAP_FORWARD, (void *) (ds->data_observations.gev2_xi_interval));
+		P(xi);
+		
+		if (1){
+			if (idx == 0) {
+				P(log_xi);
+				//P(ds->data_observations.gev2_betas[0 + off][GMRFLib_thread_id][0]);
+			}
+			if (ISNAN(xi)){
+				ds->data_observations.gev2_betas[0 + off][GMRFLib_thread_id][0] = 0.0;
+				xi = 0;
+				exit(1);
+			}
+		}
+		
+		
 	}
 
 	if (m > 0) {
@@ -5314,7 +5331,7 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 				sigmaH = (mix_b - mix_a) / log(log(qmix_a) / log(qmix_b));
 				muH = mix_a + sigmaH * log(-log(qmix_a));
 
-				if (0 && i == 0){
+				if (0) {
 					P(location);
 					P(sigma);
 					P(mu);
@@ -5345,9 +5362,9 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 						log(value_p_deriv * value_log_G + value_p * value_g / exp(value_log_G) 
 						    - value_p_deriv * value_log_H + (1.0 - value_p) * value_h / exp(value_log_H));
 				}
-				if (0) if (idx == 1)printf("idx x ld y %d %g %g %g\n", idx, x[i], logll[i], y);
+				if (ISNAN(ld)||ISINF(ld)) printf("idx x ld y %d %g %g %g\n", idx, x[i], logll[i], y);
 
-				logll[i] = ld;
+				logll[i] = ld; 
 			}
 
 			if (0 && idx == 1)
@@ -24810,7 +24827,6 @@ double extra(double *theta, int ntheta, void *argument)
 				for (int k = 0; k < nbetas; k++) {
 					if (!ds->data_nfixed[k]) {
 						double b = theta[count];
-
 						if (k < ds->data_observations.gev2_nbetas[0]) {
 							val += PRIOR_EVAL(ds->data_nprior[k], &b);
 						} else {
