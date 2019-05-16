@@ -32,7 +32,7 @@
 ##!For the random effects the function \code{summary()} prints the
 ##!posterior mean and standard deviations for the hyperparameters
 ##!
-##!If the option \call{short.summary} is set to \call{TRUE} using
+##!If the option \code{short.summary} is set to \code{TRUE} using
 ##!\code{inla.setOption},  
 ##!then  a less verbose summary
 ##!variant will be used,  which might be
