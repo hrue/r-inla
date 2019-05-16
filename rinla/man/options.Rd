@@ -70,9 +70,6 @@
      
      short.summary : Use a less verbose output for \code{summary}. Useful for Markdown
                      documents. 
-
- The options are stored in the variable \code{inla.options} in the
-     \code{.GlobalEnv}-environment.
    }
  }
  
