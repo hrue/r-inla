@@ -9,3 +9,4 @@ all : $(PDFs)
 
 %.pdf : %.Rnw
 	R --vanilla -e 'library(knitr); knit2pdf("'$<'")'
+
