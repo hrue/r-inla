@@ -33,18 +33,16 @@ cdf) are printed for the fixed effects in the model.
 
 For the random effects the function \code{summary()} prints the
 posterior mean and standard deviations for the hyperparameters
+
+If the option \call{short.summary} is set to \call{TRUE} using
+\code{inla.setOption},  
+then  a less verbose summary
+variant will be used,  which might be
+more suitable for Markdown documents.
 }
 \value{
-  \code{summary.inla} returns an object of call \code{summaryinla}, a
-  list with components: 
-  \item{call}{the component from \code{object}.}
-  \item{fixed}{the component from \code{object}.}
-  \item{random}{the component from \code{object}.}
-  \item{neffp}{the component from \code{object}.}          
-  \item{linear.predictor}{the component from \code{object}.}
-  \item{lincomb}{the component from \code{object}.}
-  \item{lincomb.derived}{the component from \code{object}.}
-  \item{family}{the component from \code{object}.}   
+  \code{summary.inla} returns an object of class \code{summary.inla}, a
+  list of components to print.
 }
 \author{Sara Martino and Havard Rue}
 \seealso{ \code{\link{inla}} }
