@@ -335,7 +335,7 @@ mat.samples <- sapply(samples, function(spl)
 The next step is to compute the linear predictor 
 for the scenario needed for each sample.  
 <<y3sample>>=
-eta3.sample <- as.matrix(cBind(b0=1, x=0.5, u=Ap)%*%mat.samples)
+eta3.sample <- as.matrix(cbind(b0=1, x=0.5, u=Ap)%*%mat.samples)
 @ 
 We can visualize it comparing wit the previous result with
 <<comparey3, fig.width=9.9, fig.height=3.5, out.width='0.99\\textwidth', fig.pos='h', fig.keep='last'>>=
@@ -351,7 +351,7 @@ for (j in 1:3) {
 
 We can consider the previously defined grid projection matrix and samples 
 <<linpredsample>>=
-eta.g.samp <- as.matrix(cBind(b0=1, x=0.5, 
+eta.g.samp <- as.matrix(cbind(b0=1, x=0.5, 
         s=gproj$proj$A)%*%mat.samples)
 @ 
 

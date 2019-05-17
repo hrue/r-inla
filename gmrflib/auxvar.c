@@ -96,7 +96,8 @@ int GMRFLib_mixture_lgamma_testing__intern(void)
 	printf("This is a test\n");
 	while (n > 0) {
 		printf("Enter n:\n");
-		scanf("%lf", &n);
+		int ret = scanf("%lf", &n);
+		if (ret == EOF) break;
 		printf("n=%lf\n", n);
 		GMRFLib_mixture_lgamma(&mycoeffs, n);
 		nc = mycoeffs->ncomp;

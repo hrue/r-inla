@@ -44,7 +44,7 @@
    \item{compute.mean}{If \code{TRUE}, compute also the (constrained) mean. Note that the output format then change.}
    \item{num.threads}{The number of threads that can be used. \code{num.threads>1L} requires
        \code{seed = 0L}.} 
-   \item{selection}{A vector of length \code{nrow(Q)} of witch indices of each sample to
+   \item{selection}{A vector of indices of each sample to
                     return. \code{NULL} means return the whole sample.
                     (Note that the log-density retured,  is for the whole sample.)
                     The use of \code{selection} cannot be combined with the use of \code{sample}.}
