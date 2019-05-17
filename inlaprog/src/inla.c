@@ -559,7 +559,7 @@ double map_exp(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
-double map_exp_scale(double arg, map_arg_tp typ, void *param)
+double map_exp_scale2(double arg, map_arg_tp typ, void *param)
 {
 	/*
 	 * the exp-map-function with a scale
@@ -587,8 +587,8 @@ double map_exp_scale(double arg, map_arg_tp typ, void *param)
 		/*
 		 * return 1.0 if montone increasing and 0.0 otherwise 
 		 */
-		return (map_exp_scale(1.0, MAP_FORWARD, param) >
-			map_exp_scale(0.0, MAP_FORWARD, param) ? 1 : -1);
+		return (map_exp_scale2(1.0, MAP_FORWARD, param) >
+			map_exp_scale2(0.0, MAP_FORWARD, param) ? 1 : -1);
 	default:
 		abort();
 	}
