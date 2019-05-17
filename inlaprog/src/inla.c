@@ -559,6 +559,38 @@ double map_exp(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
+double map_negexp(double arg, map_arg_tp typ, void *param)
+{
+	/*
+	 * the negexp-map-function
+	 */
+	switch (typ) {
+	case MAP_FORWARD:
+		/*
+		 * extern = func(local) 
+		 */
+		return exp(-arg);
+	case MAP_BACKWARD:
+		/*
+		 * local = func(extern) 
+		 */
+		return -log(arg);
+	case MAP_DFORWARD:
+		/*
+		 * d_extern / d_local 
+		 */
+		return -exp(-arg);
+	case MAP_INCREASING:
+		/*
+		 * return 1.0 if montone increasing and 0.0 otherwise 
+		 */
+		return 0.0;
+	default:
+		abort();
+	}
+	abort();
+	return 0.0;
+}
 double map_exp_scale2(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -589,38 +621,6 @@ double map_exp_scale2(double arg, map_arg_tp typ, void *param)
 		 */
 		return (map_exp_scale2(1.0, MAP_FORWARD, param) >
 			map_exp_scale2(0.0, MAP_FORWARD, param) ? 1 : -1);
-	default:
-		abort();
-	}
-	abort();
-	return 0.0;
-}
-double map_negexp(double arg, map_arg_tp typ, void *param)
-{
-	/*
-	 * the negexp-map-function
-	 */
-	switch (typ) {
-	case MAP_FORWARD:
-		/*
-		 * extern = func(local) 
-		 */
-		return exp(-arg);
-	case MAP_BACKWARD:
-		/*
-		 * local = func(extern) 
-		 */
-		return -log(arg);
-	case MAP_DFORWARD:
-		/*
-		 * d_extern / d_local 
-		 */
-		return -exp(-arg);
-	case MAP_INCREASING:
-		/*
-		 * return 1.0 if montone increasing and 0.0 otherwise 
-		 */
-		return 0.0;
 	default:
 		abort();
 	}
