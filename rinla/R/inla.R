@@ -443,7 +443,14 @@
         }
     }
 
-
+    ## replace alias's
+    family.alias = list(
+        list(from = "normal", to = "gaussian")
+    )
+    for (i in seq_along(family.alias)) {
+        family[which(inla.trim.family(family) %in% family.alias[[i]]$from)] = family.alias[[i]]$to
+    }
+    
     ## if data is a list, then it can contain elements that defines a
     ## model, like f(idx, model = model.objects). These objects crash
     ## the formula routines in R since then the data cannot be cast
@@ -2038,7 +2045,9 @@
                 nnm = gsub("^control\\.", "cont.", nnm) ## these are the processed ones
                 nnm = gsub("^data$", "data.orig", nnm) 
                 nnm = gsub("^formula$", "formula.orig", nnm) 
-                nnm = gsub("^cont(rol)?\\.family$", "control.family.orig", nnm)
+                ## maybe comment out this one so we use the processed one? I cannot recall the
+                ## argument for doing like this. It does not make sense now.
+                ## nnm = gsub("^cont(rol)?\\.family$", "control.family.orig", nnm)
                 inla.eval(paste("the.args$", nm, " = ", nnm, sep=""))
             }
             ## remove the .Evironment attribute, as it will fail if
