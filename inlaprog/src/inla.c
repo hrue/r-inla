@@ -559,6 +559,39 @@ double map_exp(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
+double map_exp_scale(double arg, map_arg_tp typ, void *param)
+{
+	/*
+	 * the exp-map-function with scaling
+	 */
+	double scale = *((double *) param);
+	switch (typ) {
+	case MAP_FORWARD:
+		/*
+		 * extern = func(local) 
+		 */
+		return exp(scale * arg);
+	case MAP_BACKWARD:
+		/*
+		 * local = func(extern) 
+		 */
+		return log(arg) / scale;
+	case MAP_DFORWARD:
+		/*
+		 * d_extern / d_local 
+		 */
+		return exp(scale * arg) * scale;
+	case MAP_INCREASING:
+		/*
+		 * return 1.0 if montone increasing and 0.0 otherwise 
+		 */
+		return (scale > 0.0 ? 1.0 : 0.0);
+	default:
+		abort();
+	}
+	abort();
+	return 0.0;
+}
 double map_negexp(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -1013,14 +1046,8 @@ double map_alpha_weibull(double arg, map_arg_tp typ, void *param)
 	/*
 	 * the map-function for the range
 	 */
-	return map_exp(arg, typ, param);
-}
-double map_alpha_weibull_cure(double arg, map_arg_tp typ, void *param)
-{
-	/*
-	 * the map-function for the alpha-parameter in L_WEIBULL_CURE
-	 */
-	return map_exp(arg, typ, param);
+	double scale = INLA_WEIBULL_ALPHA_SCALE;
+	return map_exp_scale(arg, typ, (void *) &scale);
 }
 double map_p_weibull_cure(double arg, map_arg_tp typ, void *param)
 {
@@ -8616,7 +8643,7 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 	truncation = ds->data_observations.truncation[idx];
 	lower = ds->data_observations.lower[idx];
 	upper = ds->data_observations.upper[idx];
-	alpha = map_alpha_weibull_cure(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	alpha = map_alpha_weibull(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	p = map_p_weibull_cure(ds->data_observations.p_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	truncationpow = pow(truncation, alpha);
 	onemp = 1.0 - p;
@@ -14335,7 +14362,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->theta[mb->ntheta] = ds->data_observations.alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_alpha_weibull_cure;	/* alpha = exp(alpha.intern) */
+			mb->theta_map[mb->ntheta] = map_alpha_weibull;	/* alpha = exp(alpha.intern) */
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -25172,11 +25199,7 @@ double extra(double *theta, int ntheta, void *argument)
 			case L_WEIBULL:
 			case L_WEIBULLSURV:
 				if (!ds->data_fixed) {
-					/*
-					 * this is the alpha-parameter in the Weibull 
-					 */
 					double alpha_intern = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior, &alpha_intern);
 					count++;
 				}
@@ -25184,20 +25207,12 @@ double extra(double *theta, int ntheta, void *argument)
 
 			case L_WEIBULL_CURE:
 				if (!ds->data_fixed0) {
-					/*
-					 * this is the alpha-parameter in PS
-					 */
 					double alpha_intern = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior0, &alpha_intern);
 					count++;
 				}
 				if (!ds->data_fixed1) {
-					/*
-					 * this is the p-parameter in PS
-					 */
 					double p_intern = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior1, &p_intern);
 					count++;
 				}

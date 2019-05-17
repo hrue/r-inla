@@ -36,9 +36,11 @@ The parameter $\lambda$ is linked to the linear predictor as:
 
 The $\alpha$ parameter is represented as
 \[
-    \theta = \log\alpha
+    \alpha = \exp(S\theta)
 \]
-and the prior is defined on $\theta$.
+and the prior is defined on $\theta$. The constant $S$ currently set
+to $0.1$ to avoid numerical instabilities in the optimization, since
+small changes of $\alpha$ can make a huge difference.
 
 \subsection*{Specification}
 

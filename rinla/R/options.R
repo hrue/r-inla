@@ -65,9 +65,9 @@
 ##!     scale.model.default : The default value of argument \code{scale.model} which
 ##!                           optionally scale intrinisic models to have generalized
 ##!                           unit average variance 
-##!
-##! The options are stored in the variable \code{inla.options} in the
-##!     \code{.GlobalEnv}-environment.
+##!     
+##!     short.summary : Use a less verbose output for \code{summary}. Useful for Markdown
+##!                     documents. 
 ##!   }
 ##! }
 ##! 
@@ -104,7 +104,8 @@
         "cygwin.home",
         "enable.inla.argument.weights",
         "show.warning.graph.file",
-        "scale.model.default"))
+        "scale.model.default",
+        "short.summary"))
 {
     default.opt = list(
         inla.call = inla.call.builtin(), 
@@ -127,7 +128,8 @@
         ssh.auth.sock = paste("/tmp/ssh-auth-sock-", inla.get.USER(), sep=""),
         enable.inla.argument.weights = FALSE, 
         show.warning.graph.file = TRUE, 
-        scale.model.default = FALSE
+        scale.model.default = FALSE,
+        short.summary = FALSE
     )
 
     ## with no argument, return a named list of current values
@@ -211,7 +213,8 @@
             "cygwin.home",
             "enable.inla.argument.weights",
             "show.warning.graph.file", 
-            "scale.model.default"), value)
+            "scale.model.default",
+            "short.summary"), value)
     {
         envir = inla.get.inlaEnv()
 

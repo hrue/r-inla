@@ -29,6 +29,16 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.05.16}{
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item Option \code{short.summary} will use a version of
+      \code{summary} with less output, maybe more suitable for
+      Markdown documents. 
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.05.13}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
