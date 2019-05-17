@@ -24,20 +24,175 @@
   }
   \subsection{BUG FIXES}{
     \itemize{
-      \item 
+      \item
     }
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
+\section{CHANGES IN VERSION 19.05.16}{
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item Option \code{short.summary} will use a version of
+      \code{summary} with less output, maybe more suitable for
+      Markdown documents. 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.05.13}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added exampledata directory for various example datasets
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Code cleanup and improved some input-error checking.
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.04.16}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed an error in the cache-system for
+      \code{model="rgeneric"} and \code{model="dmatern"}.
+      Most notably with option \code{openmp.strategy="pardiso.parallel"}.
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.04.14}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Removed the weight correction for the computation of the cpo
+            for \code{int.design="user.expert"}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.04.09}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Option \code{int.strategy="user.expert"}, see the vignette
+      about user-defined integration points.
+      \item Merge also \code{cpo} and \code{po} results in \code{inla.merge()}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.04.01}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed an issue with AR-model and group
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.03.16}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Small fix in model \code{dmatern}
+    }
+  }
+}
+
+
+\section{CHANGES IN VERSION 19.03.04}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Redirect error output of some warning messages in the remote-feture
+      section from MacOSX to Linux.
+      \item Faster return when \code{mu} is zero for \code{rgeneric}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.03.02}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Changed from PARDISO.PARALLEL to PARDISO.SERIAL in \code{inla.qsample}
+      \item Optimize the \code{nhrs} for \code{inla.qsolve} for PARDISO
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.02.28}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Several fgn-models are now fine
+      \item Fixed CPU timing with the PARDISO library
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.02.26}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Do not need to optimize reordering when PARDISO is used. 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.02.17}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed input-test using \code{inla.qsample} with
+      \code{selection}-argument.
+      \item Added back \code{family = "normal"} which is now
+      translated to \code{family = "gaussian"} internally. 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.02.14}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item More work and fixes in  \code{inla.merge}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.02.12}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Simplied \code{print.inla} output
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New method \code{merge} and function \code{inla.merge},
+      for merging \code{inla}-objects
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Store \code{control.family} after processing, in the
+      \code{result$.args} argument, not just the calling value.
+    }
+  }
+}
+
+
+\section{CHANGES IN VERSION 19.02.09}{
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item New parameter for Gaussian likelihood: Fixed offset in the
+      variance. 
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Updated \code{envir} definition in the \code{rgeneric}
+      documentation and examples. 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.02.06}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
       \item Removed testing code for likelihood model \code{testbinomial1}
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
     }
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
@@ -48,6 +203,7 @@
   \subsection{BUG FIXES}{
     \itemize{
       \item Cleaned up the use of temporary dir and files
+      \item General code clean-up
     }
   }
 }

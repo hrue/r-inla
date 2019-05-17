@@ -233,6 +233,11 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *whi
 {
 	// this for metis version 5
 
+#if !defined(NO_PARDISO_LIB)
+	int METIS51_NodeND(idx_t *, idx_t *, idx_t *, idx_t *, idx_t *, idx_t *, idx_t *);
+#endif
+
+
 	int n, nnz, i, j, ip;
 	int *xadj;
 	int *adj;
@@ -334,8 +339,10 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *whi
 	// this is defined in the pardiso libs
 	ret = METIS51_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
 #endif
-	if (ret != METIS_OK)
-		GMRFLib_ERROR(GMRFLib_EREORDER);
+	if (ret != METIS_OK) {
+		assert(0 == 1);
+		return;
+	}
 
 	Free(xadj);
 	Free(adj);
