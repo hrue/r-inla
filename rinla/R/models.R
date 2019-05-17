@@ -6213,10 +6213,14 @@
                              short.name = "alpha",
                              initial = 0.1,
                              fixed = FALSE,
+                             ## not a good prior, need the pc-prior
                              prior = "loggamma",
-                             param = c(25, 25),
-                             to.theta = function(x) log(x),
-                             from.theta = function(x) exp(x)
+                             param = c(0.4, 0.26),
+                             ## the 'sc' constant is defined in inla.h, and must be the same.
+                             ## I know, this is hard-coded for the moment. Should be a generic
+                             ## way of doing this...
+                             to.theta = function(x, sc = 0.1) log(x)/sc,
+                             from.theta = function(x, sc = 0.1) exp(sc*x)
                              )
                          ),
                      survival = FALSE,
@@ -6236,10 +6240,14 @@
                              short.name = "alpha",
                              initial = 0.1,
                              fixed = FALSE,
+                             ## not a good prior, need the pc-prior
                              prior = "loggamma",
-                             param = c(25, 25),
-                             to.theta = function(x) log(x),
-                             from.theta = function(x) exp(x)
+                             param = c(0.4, 0.26),
+                             ## the 'sc' constant is defined in inla.h, and must be the same.
+                             ## I know, this is hard-coded for the moment. Should be a generic
+                             ## way of doing this...
+                             to.theta = function(x, sc = 0.1) log(x)/sc,
+                             from.theta = function(x, sc = 0.1) exp(sc*x)
                              )
                          ),
                      survival = TRUE,
@@ -6301,10 +6309,14 @@
                              short.name = "a",
                              initial = 0.1,
                              fixed = FALSE,
+                             ## not a good prior, need the pc-prior
                              prior = "loggamma",
-                             param = c(25, 25),
-                             to.theta = function(x) log(x),
-                             from.theta = function(x) exp(x)
+                             param = c(0.4, 0.26),
+                             ## the 'sc' constant is defined in inla.h, and must be the same.
+                             ## I know, this is hard-coded for the moment. Should be a generic
+                             ## way of doing this...
+                             to.theta = function(x, sc = 0.1) log(x)/sc,
+                             from.theta = function(x, sc = 0.1) exp(sc*x)
                              ),
                          theta2 = list(
                              hyperid =  81002,
