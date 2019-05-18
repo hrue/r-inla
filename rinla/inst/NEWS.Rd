@@ -29,6 +29,19 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.05.17}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item The internal parameterisation of the alpha-parameter for the
+  Weibull likelihood familes, has been redefined/scaled, to fix some
+  optimisation issues. This means that the default prior has changed (a
+  little) and user-defined priors has to change to account for this new
+  internal parameterisation (sorry about that). See the documentation
+  for details.
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.05.16}{
   \subsection{NEW FEATURES}{
     \itemize{
