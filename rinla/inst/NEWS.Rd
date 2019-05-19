@@ -29,6 +29,15 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.05.19}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Set \code{StagedInstall:no} to work around
+      installation problems for MacOS and R-3.6
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.05.17}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
