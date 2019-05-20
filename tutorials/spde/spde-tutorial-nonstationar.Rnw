@@ -1,12 +1,15 @@
 \section{Explanatory variables in the covariance}\label{sec:exvarcov} 
 
+This content is part of the book available at
+\url{http://www.r-inla.org/spde-book},
+whose Gitbook version is freely available
+along all the code and datasets.
+
 In this example we will show how an example of the 
 model proposed in~\cite{ingebrigtsenLS:2013}. 
 This is a way to include explanatory variables (covariates) 
 in both the SPDE model parameters, 
 the local precision and the range. 
-The R source is available at
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-nonstationar.R}
 
 <<settings,echo=FALSE,results='hide',message=FALSE,warning=FALSE>>=
 library(knitr)

@@ -12,15 +12,25 @@ inla.setOption(num.threads=7)
 source('R/spde-tutorial-functions.R')
 @ 
 
+This content is part of the book available at
+\url{http://www.r-inla.org/spde-book},
+whose Gitbook version is freely available
+along all the code and datasets.
+
 \input{spde-tutorial-burkitt}
 
 \section{Large point process data set}\label{sec:lstpp} 
+
+This content is part of the book available at
+\url{http://www.r-inla.org/spde-book},
+whose Gitbook version is freely available
+along all the code and datasets.
 
 In this chapter we show how an approach to fit a 
 spatio temporal log-Cox point process model for a large data sets.
 We are going to drawn samples from a separable space time intensity function. 
 The R source for this file is available at
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-stpp.R} 
+\url{http://inla.r-inla-download.org/r-inla.org/tutorials/spde/R/spde-tutorial-stpp.R} 
 
 First we define the spatial domain as follows 
 <<sdomain>>=
