@@ -148,6 +148,9 @@ typedef struct {
 	double *y;					       /* general responce */
 	double quantile;				       /* value of the quantile for quantile parameterised likelihoods */
 
+	double *attr;					       /* for inla.mdata() data */
+	int n_attr;
+
 	/*
 	 * y ~ Poisson(E*exp(x)) 
 	 */
@@ -309,6 +312,23 @@ typedef struct {
 	double **xi_gev;				       /* the shape-parameter */
 	double gev_scale_xi;				       /* scaling of the shape-parameter */
 
+	/*
+	 * GEV2
+	 */
+	double gev2_qlocation;
+	double gev2_qspread;
+	double gev2_xi_scale;
+	double gev2_beta_ab;
+	double *gev2_xi_interval;
+	double *gev2_qmix;
+	double *gev2_scale;
+	double **gev2_x;				       /* matrix of covariates */
+	double ***gev2_betas;				       /* vector of betas */
+	double **gev2_log_spread;
+	double **gev2_intern_tail;
+	int gev2_nbetas[2];
+	int *gev2_ncols;
+	
 	/*
 	 * Log gamma frailty
 	 */
@@ -490,8 +510,9 @@ typedef enum {
 	L_QLOGLOGISTIC,
 	L_QLOGLOGISTICSURV,
 	L_POM,
-	L_NBINOMIAL2,
-	L_GAMMASURV,
+	L_GEV2, 
+ 	L_NBINOMIAL2,
+ 	L_GAMMASURV, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -573,7 +594,8 @@ typedef enum {
 	P_REF_AR,					       /* Reference prior for AR(p) for p=1,2,3 */
 	P_INVALID,
 	P_DIRICHLET,
-	G_EXCHANGEABLE = 3000,				       /* group models */
+	P_GAMMA, 
+	G_EXCHANGEABLE = 3000,				       /* group_ models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
 	G_RW1,
@@ -693,6 +715,7 @@ typedef struct {
 	inla_component_tp data_id;
 	File_tp data_file;
 	File_tp weight_file;
+	File_tp attr_file;
 	Prior_tp data_prior;
 	Prior_tp data_prior0;
 	Prior_tp data_prior1;
@@ -1479,7 +1502,7 @@ double map_beta(double arg, map_arg_tp typ, void *param);
 double map_dof(double arg, map_arg_tp typ, void *param);
 double map_dof5(double arg, map_arg_tp typ, void *param);
 double map_exp(double arg, map_arg_tp typ, void *param);
-double map_exp_scale(double arg, map_arg_tp typ, void *param);
+double map_exp_scale2(double arg, map_arg_tp typ, void *param);
 double map_group_rho(double x, map_arg_tp typ, void *param);
 double map_identity(double arg, map_arg_tp typ, void *param);
 double map_identity_scale(double arg, map_arg_tp typ, void *param);
@@ -1490,6 +1513,7 @@ double map_invlogit(double x, map_arg_tp typ, void *param);
 double map_invloglog(double arg, map_arg_tp typ, void *param);
 double map_invprobit(double arg, map_arg_tp typ, void *param);
 double map_invtan(double arg, map_arg_tp typ, void *param);
+double map_interval(double x, map_arg_tp typ, void *param);
 double map_negexp(double arg, map_arg_tp typ, void *param);
 double map_p_weibull_cure(double arg, map_arg_tp typ, void *param);
 double map_phi(double arg, map_arg_tp typ, void *param);
@@ -1719,6 +1743,7 @@ int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x
 int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, GMRFLib_logl_tp * loglfun);
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gp(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
