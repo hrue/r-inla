@@ -1,7 +1,9 @@
 \section{A toy example}\label{sec:toyexample} 
 
-The R source for this file is available at
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-toy.R}
+This content is part of the book available at
+\url{http://www.r-inla.org/spde-book},
+whose Gitbook version is freely available
+along all the code and datasets.
 
 <<sett,echo=F,results='hide',message=FALSE,warning=FALSE>>=
 library(knitr)
