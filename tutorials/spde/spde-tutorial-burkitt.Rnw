@@ -3,7 +3,7 @@
 In this example we show hot to fit a space-time point process 
 using the \texttt{burkitt} dataset from the \pkg{splancs} \pkg{R} package. 
 The R source for this file is available at
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-burkitt.R}
+\url{http://inla.r-inla-download.org/r-inla.org/tutorials/spde/R/spde-tutorial-burkitt.R}
 
 <<opts,echo=F,results='hide',message=FALSE,warning=FALSE>>=
 library(knitr)
@@ -108,7 +108,7 @@ in accord to the likelihood approximation proposed by \cite{simpsonetal:2016}.
 The dual mesh is extracted considering the function 
 \texttt{inla.mesh.dual()}, 
 available in 
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}
+\url{http://inla.r-inla-download.org/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}
 <<dualmesh>>=
 source('R/spde-tutorial-functions.R') 
 dmesh <- inla.mesh.dual(mesh.s)
