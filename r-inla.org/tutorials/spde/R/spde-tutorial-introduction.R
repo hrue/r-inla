@@ -8,6 +8,7 @@ options(width=75, prompt = " ", continue = "   ")
 library(INLA)
 source('R/spde-tutorial-functions.R')
 
+
 ## ----maternsamplefunc,results='hide'-------------------------------------
 cMatern <- function(h, nu, kappa) ### Matern correlation
     besselK(h * kappa, nu) *
@@ -18,10 +19,12 @@ rmvnorm0 <- function(n, cov, L=NULL) {
     return(crossprod(L, matrix(rnorm(n*ncol(L)), ncol(L))))
 }
 
+
 ## ----loc1----------------------------------------------------------------
 ### define locations and distance matrix
 loc <- 1:249/25 
 mdist <- as.matrix(dist(loc))
+
 
 ## ----param---------------------------------------------------------------
 ### define parameters
@@ -34,10 +37,12 @@ params <- cbind(nu=rep(nu, length(pract.range)),
                 kappa=kappa,
                 r=rep(pract.range, each=length(nu)))
 
+
 ## ----error---------------------------------------------------------------
 ### sample error
 set.seed(123)
 z <- matrix(rnorm(nrow(mdist)*5), ncol=5)
+
 
 ## ----samples-------------------------------------------------------------
 ### compute the correlated samples
@@ -47,6 +52,7 @@ yy <- lapply(1:nrow(params), function(j) { ## scenarios
     return(list(params=params[j,], ### parameter scenario
                 y=crossprod(chol(v), z))) ### compute sample
 })
+
 
 ## ----maternsamples,eval=FALSE,results='hide'-----------------------------
 ## ### visualize
@@ -63,6 +69,7 @@ yy <- lapply(1:nrow(params), function(j) { ## scenarios
 ##         lines(loc, yy[[i]]$y[,k], col=k) ### each sample
 ## }
 
+
 ## ----maternsamplesfig,echo=FALSE,results='hide',fig.width=5,fig.height=7,out.width='0.97\\textwidth'----
 ### visualize
 (ry <- range(unlist(lapply(yy, tail, 1))))
@@ -78,24 +85,30 @@ for (i in 1:length(yy)) { ### each scenario
         lines(loc, yy[[i]]$y[,k], col=k) ### each sample 
 }
 
+
 ## ----rpts----------------------------------------------------------------
 n <- 200;  set.seed(123) 
 pts <- cbind(s1=sample(1:n/n-0.5/n)^2, s2=sample(1:n/n-0.5/n)^2)
 
+
 ## ----distpts-------------------------------------------------------------
 dmat <- dist(pts)
 
+
 ## ----params--------------------------------------------------------------
 beta0 <- 10; sigma2e <- 0.3; sigma2u <- 5; kappa <- 7; nu <- 1
+
 
 ## ----covMatm-------------------------------------------------------------
 mcor <- as.matrix(2^(1-nu)*(kappa*dmat)^nu * 
                   besselK(dmat*kappa,nu)/gamma(nu)) 
 diag(mcor) <- 1;   mcov <- sigma2e*diag(n) + sigma2u*mcor 
 
+
 ## ----chol1mvnorm---------------------------------------------------------
 L <- chol(mcov);   set.seed(234) 
 y1 <- beta0 + drop(crossprod(L, rnorm(n))) 
+
 
 ## ----plot1c,eval=FALSE---------------------------------------------------
 ## par(mar=c(3,3,1,1), mgp=c(1.7, 0.7, 0), las=1)
@@ -103,19 +116,23 @@ y1 <- beta0 + drop(crossprod(L, rnorm(n)))
 ## q <- quantile(y1, 0:5/5)
 ## legend('topright', format(q, dig=2), pch=1, pt.cex=q/10)
 
+
 ## ----plot1,echo=FALSE,fig.width=5.5,fig.height=4.7-----------------------
 par(mar=c(3,3,1,1), mgp=c(1.7, 0.7, 0), las=1)
 plot(pts, asp=1, xlim=c(0,1.2), cex=y1/10)
 q <- quantile(y1, 0:5/5)
 legend('topright', format(q, dig=2), pch=1, pt.cex=q/10)
 
+
 ## ----datatoy-------------------------------------------------------------
 data(SPDEtoy)
+
 
 ## ----rw1rw2--------------------------------------------------------------
 (q1 <- INLA:::inla.rw1(n=5))
 crossprod(q1) ### same inner pattern as for RW2
 INLA:::inla.rw2(n=5)
+
 
 ## ----mesh0, echo=TRUE, results='hide'------------------------------------
 s <- 3 ### this factor will only changes C, not G
@@ -131,6 +148,7 @@ mesh <- inla.mesh.2d(rbind(c(3.3,1)*s, c(2.4,2)*s,
 dmesh <- inla.mesh.dual(mesh)
 fem <- inla.mesh.fem(mesh, order=1)
 A <- inla.spde.make.A(mesh, pts)
+
 
 ## ----mesh0plot,eval=FALSE------------------------------------------------
 ## par(mfrow=c(1,3), mar=c(2,2,1,1))
@@ -168,6 +186,7 @@ A <- inla.spde.make.A(mesh, pts)
 ##     layer(panel.text(A@j+1L, A@i+1L, round(A@x, 2),
 ##                      col=gray(A@x>0.5))), ncol=3)
 
+
 ## ----mesh0fig,echo=FALSE,results='hide',fig.width=12,fig.height=4, out.width='0.99\\linewidth'----
 par(mfrow=c(1,3), mar=c(2,2,1,1))
 plot(mesh, asp=1, lwd=2, edge.color=1)
@@ -203,6 +222,7 @@ grid.arrange(
     plot(A, colorkey=FALSE, xlab='', ylab='', sub='') + 
     layer(panel.text(A@j+1L, A@i+1L, round(A@x, 2), 
                      col=gray(A@x>0.5))), ncol=3)
+
 
 ## ----aaa,include=FALSE---------------------------------------------------
 proj <- inla.mesh.projector(mesh, dims=c(1.8,1)*200)

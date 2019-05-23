@@ -57,6 +57,12 @@ __BEGIN_DECLS
 #define FIFO_GET_DATA "inla-mcmc-fifo-get-data"
 #define FIFO_PUT_DATA "inla-mcmc-fifo-put-data"
 
+/*
+  The scaling of the critical 'alpha' parameter. If this value change, it must also be changed in models.R (Yes, CHANGE IT
+  MANUALLY!)
+*/
+#define INLA_WEIBULL_ALPHA_SCALE 0.10
+
 /* 
  *
  */
@@ -1469,11 +1475,11 @@ double link_this_should_not_happen(double x, map_arg_tp typ, void *param, double
 double map_1exp(double arg, map_arg_tp typ, void *param);
 double map_H(double x, map_arg_tp typ, void *param);
 double map_alpha_weibull(double arg, map_arg_tp typ, void *param);
-double map_alpha_weibull_cure(double arg, map_arg_tp typ, void *param);
 double map_beta(double arg, map_arg_tp typ, void *param);
 double map_dof(double arg, map_arg_tp typ, void *param);
 double map_dof5(double arg, map_arg_tp typ, void *param);
 double map_exp(double arg, map_arg_tp typ, void *param);
+double map_exp_scale(double arg, map_arg_tp typ, void *param);
 double map_group_rho(double x, map_arg_tp typ, void *param);
 double map_identity(double arg, map_arg_tp typ, void *param);
 double map_identity_scale(double arg, map_arg_tp typ, void *param);

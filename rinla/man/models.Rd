@@ -7168,9 +7168,9 @@ inla.models()
 							\item{initial = }{`0.1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`25 25'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							\item{param = }{`0.4 0.26'}
+							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x)/sc}'}
+							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc*x)}'}
 							}
 						}
 					 }
@@ -7196,9 +7196,9 @@ inla.models()
 							\item{initial = }{`0.1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`25 25'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							\item{param = }{`0.4 0.26'}
+							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x)/sc}'}
+							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc*x)}'}
 							}
 						}
 					 }
@@ -7282,9 +7282,9 @@ inla.models()
 							\item{initial = }{`0.1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`25 25'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							\item{param = }{`0.4 0.26'}
+							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x)/sc}'}
+							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc*x)}'}
 							}
 						}
 						\item{Hyperparameter `theta2'}{
