@@ -56,3 +56,4 @@ License: GPL (>= 2)
 Version: 99.99.9999
 Date: 9999-99-99
 RoxygenNote: 6.1.1
+StagedInstall: no
