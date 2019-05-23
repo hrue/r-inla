@@ -11,18 +11,23 @@ lcall <- inla.getOption('inla.call')
 ##inla.setOption(inla.call='remote')
 ##inla.setOption(num.threads=7)
 
+
 ## ----datatoy-------------------------------------------------------------
 data(SPDEtoy)
 
+
 ## ----strdata-------------------------------------------------------------
 str(SPDEtoy)
+
 
 ## ----buildmesh5----------------------------------------------------------
 pl.dom <- cbind(c(0,1,1,0.7,0), c(0,0,0.7,1,1))
 mesh5 <- inla.mesh.2d(, pl.dom, max.e=c(0.092, 0.2))
 
+
 ## ----spde2matern---------------------------------------------------------
 args(inla.spde2.matern)
+
 
 ## ----spde5def------------------------------------------------------------
 spde5 <- inla.spde2.pcmatern(
@@ -30,21 +35,27 @@ spde5 <- inla.spde2.pcmatern(
     prior.range=c(0.3, 0.5), ### P(practic.range<0.3)=0.5
     prior.sigma=c(1, 0.01)) ### P(sigma>1)=0.01
 
+
 ## ----proj2---------------------------------------------------------------
 coords <- as.matrix(SPDEtoy[,1:2])
 A5 <- inla.spde.make.A(mesh5, loc=coords)
 
+
 ## ----dima1---------------------------------------------------------------
 dim(A5)
+
 
 ## ----a5lines-------------------------------------------------------------
 table(rowSums(A5>0))
 
+
 ## ----rsum----------------------------------------------------------------
 table(rowSums(A5))
 
+
 ## ----colsA---------------------------------------------------------------
 table(colSums(A5)>0)
+
 
 ## ----loadmeshes, echo=FALSE----------------------------------------------
 for (i in 1:6)
@@ -54,31 +65,39 @@ for (i in 1:6)
 A1 <- inla.spde.make.A(mesh1, loc=coords)
 table(rowSums(A1>0))
 
+
 ## ----summarya1-----------------------------------------------------------
 table(rowSums(A1))
+
 
 ## ----stackdata1b---------------------------------------------------------
 stk5 <- inla.stack(data=list(resp=SPDEtoy$y), A=list(A5,1), 
                    effects=list(i=1:spde5$n.spde, 
                      m=rep(1,nrow(SPDEtoy))), tag='est')
 
+
 ## ----dimA----------------------------------------------------------------
 dim(inla.stack.A(stk5))
+
 
 ## ----modelfit------------------------------------------------------------
 res5 <- inla(resp ~ 0 + m + f(i, model=spde5), 
              data=inla.stack.data(stk5), 
              control.predictor=list(A=inla.stack.A(stk5)))
 
+
 ## ----beta0summary--------------------------------------------------------
 res5$summary.fix
+
 
 ## ----invnuggetsummary----------------------------------------------------
 res5$summary.hy[1,]
 
+
 ## ----postnugget----------------------------------------------------------
 post.se <- inla.tmarginal(function(x) sqrt(1/x), 
                           res5$marginals.hy[[1]])
+
 
 ## ----summarypostnu-------------------------------------------------------
 inla.emarginal(function(x) x, post.se)
@@ -86,72 +105,92 @@ inla.qmarginal(c(0.025, 0.5, 0.975), post.se)
 inla.hpdmarginal(0.95, post.se)
 inla.pmarginal(c(0.5, 0.7), post.se)
 
+
 ## ----variancepost--------------------------------------------------------
 res5.field <- inla.spde2.result(res5, 'i', spde5, do.transf=TRUE)
+
 
 ## ----erandf--------------------------------------------------------------
 inla.emarginal(function(x) x, res5.field$marginals.kappa[[1]])
 inla.emarginal(function(x) x, res5.field$marginals.variance.nominal[[1]])
 inla.emarginal(function(x) x, res5.field$marginals.range.nominal[[1]])
 
+
 ## ----pts3----------------------------------------------------------------
 pts3 <- rbind(c(.1,.1), c(.5,.55), c(.7,.9))
 
+
 ## ----A5pts3--------------------------------------------------------------
 dim(A5pts3 <- inla.spde.make.A(mesh5, loc=pts3))
+
 
 ## ----a5pts3c-------------------------------------------------------------
 (jj3 <- which(colSums(A5pts3)>0))
 round(A5pts3[, jj3],3)
 
+
 ## ----stk3prd-------------------------------------------------------------
 stk5p.rf <- inla.stack(data=list(resp=NA), A=list(A5pts3), 
                        effects=list(i=1:spde5$n.spde), tag='prd5r')
 
+
 ## ----stakfull------------------------------------------------------------
 stk5.jp <- inla.stack(stk5, stk5p.rf)
+
 
 ## ----refit---------------------------------------------------------------
 res5p <- inla(resp ~ 0 + m + f(i, model=spde5), 
               data=inla.stack.data(stk5.jp), 
               control.predictor=list(A=inla.stack.A(stk5.jp), compute=TRUE))
 
+
 ## ----inddp---------------------------------------------------------------
 (indd5p <- inla.stack.index(stk5.jp, tag='prd5r')$data)
+
 
 ## ----postp---------------------------------------------------------------
 round(res5p$summary.linear.pred[indd5p,], 4)
 
+
 ## ----marg3p,results='hide'-----------------------------------------------
 marg3 <- res5p$marginals.linear[indd5p]
+
 
 ## ----hpdp3---------------------------------------------------------------
 inla.hpdmarginal(0.95, marg3[[2]])
 
+
 ## ----meanproj3-----------------------------------------------------------
 drop(A5pts3%*%res5$summary.random$i$mean)
+
 
 ## ----projector-----------------------------------------------------------
 inla.mesh.project(inla.mesh.projector(mesh5, loc=pts3), 
                   res5$summary.random$i$mean)
 
+
 ## ----sdproj3-------------------------------------------------------------
 drop(A5pts3%*%res5$summary.random$i$sd)
+
 
 ## ----sdproj3c------------------------------------------------------------
 sqrt(drop((A5pts3^2)%*%(res5$summary.random$i$sd^2)))
 
+
 ## ----grid0---------------------------------------------------------------
 pgrid0 <- inla.mesh.projector(mesh5, xlim=0:1, ylim=0:1, dims=c(101,101))
+
 
 ## ----projg---------------------------------------------------------------
 prd0.m <- inla.mesh.project(pgrid0,  res5$summary.ran$i$mean)
 prd0.s <- inla.mesh.project(pgrid0,  res5$summary.ran$i$s)
 
+
 ## ----stackpresp----------------------------------------------------------
 stk5.presp <- inla.stack(data=list(resp=NA), A=list(A5pts3,1), 
                          effects=list(i=1:spde5$n.spde, m=rep(1,3)), 
                          tag='prd5.resp')
+
 
 ## ----rresp---------------------------------------------------------------
 stk5.full <- inla.stack(stk5, stk5.presp)
@@ -159,20 +198,26 @@ r5presp <- inla(resp ~ 0 + m + f(i, model=spde5),
                 data=inla.stack.data(stk5.full), 
                 control.predictor=list(A=inla.stack.A(stk5.full), compute=TRUE))
 
+
 ## ----indd----------------------------------------------------------------
 (indd3r <- inla.stack.index(stk5.full, 'prd5.resp')$data)
+
 
 ## ----postd---------------------------------------------------------------
 round(r5presp$summary.fitted.values[indd3r,], 3)
 
+
 ## ----margp,results='hide'------------------------------------------------
 marg3r <- r5presp$marginals.fitted.values[indd3r]
+
 
 ## ----hpdp----------------------------------------------------------------
 inla.hpdmarginal(0.95, marg3r[[2]])
 
+
 ## ----prdmean-------------------------------------------------------------
 res5$summary.fix[1,1] + drop(A5pts3%*%res5$summary.random$i$mean)
+
 
 ## ----optlcall,echo=F-----------------------------------------------------
 inla.setOption(inla.call=lcall)
@@ -188,6 +233,7 @@ cov3
 summary(rvar <- res5$summary.random$i$sd^2)
 sqrt(1^2+res5$summary.fix[1,2]^2 + drop(A5pts3%*%rvar))
 
+
 ## ----prespgrid-----------------------------------------------------------
 stkgrid <- inla.stack(data=list(resp=NA), A=list(pgrid0$proj$A,1), 
                       effects=list(i=1:spde5$n.spde,
@@ -201,8 +247,10 @@ res5g <- inla(resp ~ 0 + m + f(i, model=spde5),
                 return.marginals.predictor=FALSE))
 res5g$cpu
 
+
 ## ----indgr---------------------------------------------------------------
 igr <- inla.stack.index(stk.all, 'prd.gr')$data
+
 
 ## ----pgrid,eval=F--------------------------------------------------------
 ## library(gridExtra)
@@ -218,6 +266,7 @@ igr <- inla.stack.index(stk.all, 'prd.gr')$data
 ##                        col.regions=topo.colors(99), scales=list(draw=FALSE)),
 ##              nrow=2)
 
+
 ## ----echo=FALSE,fig.width=7.5,fig.height=7,out.width='0.97\\textwidth'----
 library(gridExtra)
 grid.arrange(levelplot(prd0.m, col.regions=topo.colors(99), main='latent field mean',
@@ -232,6 +281,7 @@ grid.arrange(levelplot(prd0.m, col.regions=topo.colors(99), main='latent field m
                        col.regions=topo.colors(99), scales=list(draw=FALSE)), 
              nrow=2)
 
+
 ## ----meshes--------------------------------------------------------------
 lrf <- lres <- l.dat <- l.spde <- l.a <- list()
 for (k in 1:6) {
@@ -244,18 +294,23 @@ for (k in 1:6) {
   lrf[[k]] <- inla.spde2.result(lres[[k]], 'i', l.spde[[k]], do.transf=TRUE)
 }
 
+
 ## ----time----------------------------------------------------------------
 round(sapply(lres, function(x) x$cpu[2]), 2)
+
 
 ## ----s2marg--------------------------------------------------------------
 s2.marg <- lapply(lres, function(m) 
                   inla.tmarginal(function(x) 1/x, m$marginals.hy[[1]]))
 
+
 ## ----truepars------------------------------------------------------------
 beta0 <- 10; sigma2e <- 0.3; sigma2u <- 5; kappa <- 7; nu <- 1
 
+
 ## ----lkv-----------------------------------------------------------------
 lk.est <- c(beta=9.54, s2e=0.374, s2u=3.32, range=0.336)
+
 
 ## ----compare,eval=F------------------------------------------------------
 ## rcols <- rainbow(6)##c(rgb(4:1/4,0:3/5,0), c(rgb(0,0:3/5,4:1/4)))
@@ -316,8 +371,10 @@ lk.est <- c(beta=9.54, s2e=0.374, s2u=3.32, range=0.336)
 ## legend('topright', c(paste('mesh', 1:6, sep=''), 'True', 'Likelihood'),
 ##        lty=c(rep(1,6), 2, 3), lwd=rep(2, 6), col=c(rcols,3,3), bty='n')
 
+
 ## ----kappai--------------------------------------------------------------
 1/kappa
+
 
 ## ----echo=F,fig.width=7.5,fig.height=5-----------------------------------
 rcols <- rainbow(6)##c(rgb(4:1/4,0:3/5,0), c(rgb(0,0:3/5,4:1/4)))
