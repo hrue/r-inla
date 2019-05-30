@@ -1,5 +1,11 @@
 \section{Measurement error model}\label{sec:me}
 
+An improved version of this content is part of the book available at
+\url{http://www.r-inla.org/spde-book},
+whose Gitbook version is freely available
+along all the code and datasets.
+
+
 Here we focus on a similar situation of the 
 misalignement model example in the last Chapter of 
 \cite{blangiardoC:2015}. 
@@ -7,8 +13,6 @@ Here we extend the model to consider a
 a spatially structured error. 
 We also have a response $y$ and a covariate $c$ 
 and the misalignment. 
-The R source for this file is available at
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-measurement-error.R}
 
 <<settings,include=FALSE,message=FALSE, warning=FALSE>>=
 library(knitr)
@@ -94,7 +98,7 @@ kappa.x <- 10;          sigma2.x <- 2
 
 We need the simulation of $m$ in both set of locations. 
 To do that we use the \code{rMatern} function available in 
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}.
+\url{http://inla.r-inla-download.org/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}.
 <<simula>>=
 set.seed(2)
 mm <- rMatern(n=1, coords=rbind(loc.c, loc.y), 
