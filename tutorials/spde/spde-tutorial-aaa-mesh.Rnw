@@ -2,8 +2,11 @@
 
 \section{Triangulation details and examples}\label{sec:mesh}
 
-The R source for this file is available at 
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-aaa-mesh.R}
+This content is part of the book available at
+\url{http://www.r-inla.org/spde-book},
+whose Gitbook version is freely available
+along all the code and datasets.
+
 You can play with the shiny app typing 
 \texttt{
 demo(mesh2d)
