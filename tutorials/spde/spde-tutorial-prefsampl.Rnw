@@ -1,7 +1,9 @@
 \chapter{Log-Cox point process and preferential sampling}\label{ch:lcox}
 
-The R source for the three examples in this Chapter is available at
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-prefsampl.R}
+This content is part of the book available at
+\url{http://www.r-inla.org/spde-book},
+whose Gitbook version is freely available 
+along all the code and datasets.
 
 <<sett,echo=F,results='hide',message=FALSE,warning=FALSE>>=
 library(knitr)
@@ -216,7 +218,7 @@ and compute the intersection between the dual mesh polygons
 and the study domain polygon. 
 To do that we have the function \texttt{inla.mesh.dual()}, 
 available in 
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}
+\url{http://inla.r-inla-download.org/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}
 This function considers a mesh and return the dual mesh 
 in the \texttt{SpatialPolygons} class.
 <<dualmesh>>=

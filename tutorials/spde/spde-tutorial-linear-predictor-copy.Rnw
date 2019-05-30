@@ -1,7 +1,9 @@
 \section{Copying part or the entire linear predictor}\label{sec:copy}
 
-The R source for this file is available at
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-linear-predictor-copy.R}
+This content is part of the book available at
+\url{http://www.r-inla.org/spde-book},
+whose Gitbook version is freely available 
+along all the code and datasets.
 
 
 <<sett,echo=F,results='hide',message=FALSE,warning=FALSE>>=
@@ -89,7 +91,7 @@ loc <- cbind(runif(n), runif(n))
 @ 
 and draw one realization of the Mat\'{e}rn process 
 considering the \texttt{rMatern()} function available in the file at 
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}
+\url{http://inla.r-inla-download.org/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}
 <<>>=
 b <- rMatern(n=1, coords=loc, kappa=10, variance=1)
 @ 

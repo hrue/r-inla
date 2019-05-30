@@ -6,11 +6,10 @@
 > 
 <head><title>text</title> 
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" /> 
-<meta name="generator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)" /> 
-<meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)" /> 
+<meta name="generator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
 <!-- xhtml,html,frames,2 --> 
 <meta name="src" content="spde-tutorial.tex" /> 
-<meta name="date" content="2017-12-21 09:55:00" /> 
 <link rel="stylesheet" type="text/css" href="spde-tutorial.css" /> 
 </head><body 
 id="tex4ht-main">
@@ -25,7 +24,7 @@ Suggestions to elias@r-inla.org are welcome</h2>
 <div class="author" ><span 
 class="aer12-">Elias T. Krainski, Finn Lindgren, Daniel Simpson and Håvard Rue</span></div><br />
 <div class="date" ><span 
-class="aer12-">December 21, 2017</span></div>
+class="aer12-">May 20, 2019</span></div>
                                                                                  
                                                                                  
    </div>
@@ -35,8 +34,8 @@ class="aebx-10x-x-109">Acknowledgments</span></span>
    To Sarah Gallup and Helen Sofaer for valuable English review in the text. To several people
 who brought cool problems to the discussion forum <a 
 href="http://www.r-inla.org/comments-1" class="url" ><span 
-class="aett-10x-x-109">http://www.r-_inla.org/comments-_1</span></a>
-and to me individually.
+class="aett-10x-x-109">http://www.r-inla.org/comments-1</span></a> and
+to me individually.
 </p>
 <!--l. 1--><p class="noindent" ><span class="paragraphHead"><a 
  id="x3-2000"></a><span 
@@ -45,7 +44,8 @@ class="aebx-10x-x-109">Updates</span></span>
                                                                                  
 </p>
    <div class="verbatim" id="verbatim-1">
-2017&#x00A0;Oct&#x00A0;05:&#x00A0;English&#x00A0;review&#x00A0;(thanks&#x00A0;to&#x00A0;SG)
+2019&#x00A0;May&#x00A0;20:&#x00A0;Update&#x00A0;links&#x00A0;and&#x00A0;point&#x00A0;to&#x00A0;spde-book
+&#x00A0;<br />2017&#x00A0;Oct&#x00A0;05:&#x00A0;English&#x00A0;review&#x00A0;(thanks&#x00A0;to&#x00A0;SG)
 &#x00A0;<br />2017&#x00A0;Mar&#x00A0;01:&#x00A0;revision&#x00A0;and&#x00A0;new&#x00A0;organization
 &#x00A0;<br />2017&#x00A0;Feb&#x00A0;15:&#x00A0;started&#x00A0;a&#x00A0;major&#x00A0;revision/organization
 &#x00A0;<br />2017&#x00A0;Jan&#x00A0;23:&#x00A0;compile&#x00A0;to&#x00A0;html&#x00A0;and&#x00A0;small&#x00A0;fixes
@@ -82,7 +82,7 @@ class="aebx-10x-x-109">Updates</span></span>
 &#x00A0;<br />2013&#x00A0;March&#x00A0;01:
 &#x00A0;<br />&#x00A0;*&#x00A0;first&#x00A0;draft:&#x00A0;introduction,&#x00A0;toy&#x00A0;example,&#x00A0;rainfall&#x00A0;on&#x00A0;Parana&#x00A0;State
 </div>
-<!--l. 40--><p class="nopar" >
+<!--l. 41--><p class="nopar" >
 </p>
    <div 
 class="abstract" 
@@ -140,7 +140,7 @@ predictor from one outcome in a linear predictor to another one ends this chapte
 shows a slight different way from the coregionalization model to jointly model three
 outcomes.
 </p><!--l. 58--><p class="indent" >   The log Cox point process model is considered in Chapter&#x00A0;<a 
-href="spde-tutorialch4.html#x8-710004">4<!--tex4ht:ref: ch:lcox --></a>. In this case we show how to fit
+href="spde-tutorialch4.html#x8-670004">4<!--tex4ht:ref: ch:lcox --></a>. In this case we show how to fit
 a Log-cox point process using the direct approximation for the likelihood as proposed in
 <span class="cite">[<a 
 href="spde-tutorialli2.html#Xsimpsonetal:2016">Simpson et&#x00A0;al., 2016</a>]</span>. We also take the opportunity to show how to consider the joint modeling
@@ -150,7 +150,7 @@ href="spde-tutorialli2.html#Xdiggleetal:2010">Diggle et&#x00A0;al.,
                                                                                  
                                                                                  
 </p><!--l. 66--><p class="indent" >   Finally, Chapter&#x00A0;<a 
-href="spde-tutorialch5.html#x9-840005">5<!--tex4ht:ref: ch:spacetime --></a> presents several cases to example analysis of space-time data. We start by
+href="spde-tutorialch5.html#x9-800005">5<!--tex4ht:ref: ch:spacetime --></a> presents several cases to example analysis of space-time data. We start by
 an example having discrete time domain as in <span class="cite">[<a 
 href="spde-tutorialli2.html#Xcamelettietal:2012">Cameletti et&#x00A0;al., 2012</a>]</span>. We extend this example
 considering the time as continuous by considering time knots along with temporal function basis
@@ -160,14 +160,14 @@ regression example having the regression coefficients varying over space-time. W
 consider the space-time version of the log-Cox point process model for a dataset and also
 illustrates an approach to deal whit the case of having a large space-time point process
 data.
-</p><!--l. 81--><p class="indent" >   Since this tutorial is more a collection of examples, one should start with the tutorial marked as
-<span 
+</p><!--l. 81--><p class="indent" >   Since this tutorial is more a collection of examples, one should start with the tutorial marked
+as <span 
 class="aebx-10x-x-109">Read this first! </span>at the tutorials link in the R-INLA web page, <a 
 href="http://www.r-inla.org" class="url" ><span 
-class="aett-10x-x-109">http://www.r-_inla.org</span></a>, more
-precisely at <a 
+class="aett-10x-x-109">http://www.r-inla.org</span></a>,
+more precisely at <a 
 href="http://www.r-inla.org/examples/tutorials/spde-tutorial-from-jss" class="url" ><span 
-class="aett-10x-x-109">http://www.r-_inla.org/examples/tutorials/spde-_tutorial-_from-_jss</span></a>. If
+class="aett-10x-x-109">http://www.r-inla.org/examples/tutorials/spde-tutorial-from-jss</span></a>. If
 you are in a rush to fit a simple geostatistical model, we made a short tutorial without the
 details as a vignette in the <span 
 class="aessbx-10x-x-109">INLA</span>. Thus one can have it just typing <span 
