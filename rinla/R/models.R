@@ -1,5 +1,9 @@
 ## Export: inla.models
 
+## this is how to define a must-be-enabled...
+## status = "changed:Oct.25.2017", 
+
+
 `inla.models.section.latent` = function()
 {
     return
@@ -5548,7 +5552,6 @@
                              from.theta = function(x) exp(x)
                          )
                      ), 
-                     status = "changed:Oct.25.2017", 
                      survival = FALSE,
                      discrete = FALSE,
                      link = c("default", "log", "neglog"), 
@@ -5570,7 +5573,6 @@
                              from.theta = function(x) exp(x)
                          )
                      ), 
-                     status = "changed:Oct.25.2017", 
                      survival = TRUE,
                      discrete = FALSE,
                      link = c("default", "log", "neglog"), 
@@ -6128,7 +6130,6 @@
                              from.theta = function(x) exp(x)
                              )
                          ),
-                     status = "changed:Oct.25.2017", 
                      survival = FALSE,
                      discrete = FALSE,
                      link = c("default", "log", "neglog"),
@@ -6150,7 +6151,6 @@
                              from.theta = function(x) exp(x)
                              )
                          ),
-                     status = "changed:Oct.25.2017", 
                      survival = TRUE,
                      discrete = FALSE,
                      link = c("default", "log", "neglog"),

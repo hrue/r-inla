@@ -6544,7 +6544,6 @@ inla.models()
 						\item{Properties:}{
 							\describe{
 								\item{doc = }{`A quantile loglogistic likelihood'}
-								\item{status = }{`changed:Oct.25.2017'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}
@@ -6573,7 +6572,6 @@ inla.models()
 						\item{Properties:}{
 							\describe{
 								\item{doc = }{`A quantile loglogistic likelihood (survival)'}
-								\item{status = }{`changed:Oct.25.2017'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}
@@ -7234,7 +7232,6 @@ inla.models()
 						\item{Properties:}{
 							\describe{
 								\item{doc = }{`The loglogistic likelihood'}
-								\item{status = }{`changed:Oct.25.2017'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}
@@ -7263,7 +7260,6 @@ inla.models()
 						\item{Properties:}{
 							\describe{
 								\item{doc = }{`The loglogistic likelihood (survival)'}
-								\item{status = }{`changed:Oct.25.2017'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}
