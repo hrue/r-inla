@@ -48,7 +48,8 @@
   }
   \subsection{BUG FIXES}{
     \itemize{
-      \item
+      \item Added missing \code{to.theta} and \code{from.theta}
+      functions in likelihoods \code{sn} and \code{sn2}
     }
   }
 }
