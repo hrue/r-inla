@@ -29,6 +29,31 @@
   }
 }
 
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Removed must-be-enabled warnings in some
+      surival models, from Oct  25 2017
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Added missing \code{to.theta} and \code{from.theta}
+      functions in likelihoods \code{sn} and \code{sn2}
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.05.19}{
   \subsection{BUG FIXES}{
     \itemize{
