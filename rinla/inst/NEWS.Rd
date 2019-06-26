@@ -50,6 +50,8 @@
     \itemize{
       \item Added missing \code{to.theta} and \code{from.theta}
       functions in likelihoods \code{sn} and \code{sn2}
+      \item Fix some documentation in \code{marginal.R} (refering to the
+      obsolete function \code{inla.marginal.transform})
     }
   }
 }
