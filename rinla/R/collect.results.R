@@ -337,7 +337,7 @@ inla.internal.experimental.mode = FALSE
     } else {
         theta.to = NULL
     }
-        
+    
     fnm = paste(d, "/covmat-hyper-internal.dat", sep="")
     if (file.exists(fnm)) {
         siz = inla.read.binary.file(fnm)
@@ -409,7 +409,7 @@ inla.internal.experimental.mode = FALSE
     } else {
         lincomb.derived.covariance.matrix = NULL
     }
-        
+    
     fnm = paste(d, "/mode-status.dat", sep="")
     if (file.exists(fnm)) {
         mode.status = scan(fnm, quiet=TRUE)
@@ -436,9 +436,9 @@ inla.internal.experimental.mode = FALSE
         fp = file(fnm, "rb")
         iarr = readBin(fp, integer(), 3)
         configs = list(
-                n = iarr[1], 
-                nz = iarr[2], 
-                ntheta = iarr[3])
+            n = iarr[1], 
+            nz = iarr[2], 
+            ntheta = iarr[3])
         configs.i = readBin(fp, integer(), configs$nz) ## 0-based
         configs.j = readBin(fp, integer(), configs$nz) ## 0-based
         configs$nconfig = readBin(fp, integer(), 1)
@@ -448,18 +448,18 @@ inla.internal.experimental.mode = FALSE
             A = readBin(fp, numeric(), configs$n * nc)
             e = readBin(fp, numeric(), nc)
             configs$constr = list(
-                    nc = nc,
-                    A = matrix(A, nc, configs$n),
-                    e = e)
+                nc = nc,
+                A = matrix(A, nc, configs$n),
+                e = e)
         } else {
             configs$constr = NULL
         }
 
         theta.tag = readLines(paste(d, "/config/theta-tag.dat", sep=""))
         configs$contents = list(
-                tag = readLines(paste(d, "/config/tag.dat", sep="")),
-                start = as.integer(readLines(paste(d, "/config/start.dat", sep=""))) + 1L,
-                length = as.integer(readLines(paste(d, "/config/n.dat", sep=""))))
+            tag = readLines(paste(d, "/config/tag.dat", sep="")),
+            start = as.integer(readLines(paste(d, "/config/start.dat", sep=""))) + 1L,
+            length = as.integer(readLines(paste(d, "/config/n.dat", sep=""))))
 
         if (configs$nconfig > 0L) {
             configs$config[[configs$nconfig]] = list()
@@ -495,26 +495,26 @@ inla.internal.experimental.mode = FALSE
                     Qinvadd = c()
                 }
                 configs$config[[k]] = list(
-                                      theta = theta, 
-                                      log.posterior = log.post, 
-                                      log.posterior.orig = log.post.orig, 
-                                      mean = mean,
-                                      improved.mean = improved.mean,
-                                      skewness = skewness, 
-                                      Q = sparseMatrix(
-                                              i = c(configs.i, iadd),
-                                              j = c(configs.j, jadd),
-                                              x = c(Q, Qadd),
-                                              dims = c(configs$n, configs$n),
-                                              index1 = FALSE,
-                                              giveCsparse = TRUE), 
-                                      Qinv = sparseMatrix(
-                                              i = c(configs.i, iadd),
-                                              j = c(configs.j, jadd),
-                                              x = c(Qinv, Qinvadd),
-                                              dims = c(configs$n, configs$n),
-                                              index1 = FALSE,
-                                              giveCsparse = TRUE))
+                    theta = theta, 
+                    log.posterior = log.post, 
+                    log.posterior.orig = log.post.orig, 
+                    mean = mean,
+                    improved.mean = improved.mean,
+                    skewness = skewness, 
+                    Q = sparseMatrix(
+                        i = c(configs.i, iadd),
+                        j = c(configs.j, jadd),
+                        x = c(Q, Qadd),
+                        dims = c(configs$n, configs$n),
+                        index1 = FALSE,
+                        giveCsparse = TRUE), 
+                    Qinv = sparseMatrix(
+                        i = c(configs.i, iadd),
+                        j = c(configs.j, jadd),
+                        x = c(Qinv, Qinvadd),
+                        dims = c(configs$n, configs$n),
+                        index1 = FALSE,
+                        giveCsparse = TRUE))
             }
 
             ## rescale the log.posteriors
