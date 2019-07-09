@@ -116,7 +116,7 @@
 }
 
 `inla.data.section` = function(
-        file, family, file.data, file.weights, control, i.family="",
+        file, family, file.data, file.weights, file.attr, control, i.family="",
         link.covariates = link.covariates, data.dir)
 {
     ## this function is called from 'inla.family.section' only.
@@ -125,6 +125,7 @@
     cat("likelihood = ", family,"\n", sep = " ", file = file,  append = TRUE)
     cat("filename = ", file.data,"\n", sep = " ", file = file,  append = TRUE)
     cat("weights = ", file.weights,"\n", sep = " ", file = file,  append = TRUE)
+    cat("attributes = ", file.attr, "\n", sep = " ", file = file,  append = TRUE)
 
     cat("variant = ",
         inla.ifelse(is.null(control$variant), 0L, as.integer(control$variant)),
@@ -168,6 +169,16 @@
     if (inla.one.of(family, "gev")) {
         cat("gev.scale.xi = ", inla.ifelse(is.null(control$gev.scale.xi), 0.01, control$gev.scale.xi), "\n",
             sep="", file=file, append=TRUE)
+    }
+
+    if (inla.one.of(family, "gev2")) {
+        c.gev2 = control$control.gev2
+        nms = names(c.gev2)
+        for (i in seq_along(c.gev2)) {
+            ## need this, as the xi.range is a vector of length 2
+            cat("gev2.", nms[i], " = ", paste(as.numeric(c.gev2[[i]]), collapse = " "),
+                "\n", sep="", file=file, append=TRUE)
+        }
     }
 
     inla.write.hyper(control$hyper, file, data.dir = data.dir)
