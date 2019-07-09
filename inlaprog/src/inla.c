@@ -76,9 +76,12 @@ static const char RCSId[] = HGVERSION;
 #undef ISNAN
 #endif
 
-
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
+
+#if !defined(INLA_TAG)
+#  define INLA_TAG "work"
+#endif
 
 //#include <openssl/sha.h>                                     /* Would also work with this library... */
 #include "sha1.h"					       /* instead of this one */
@@ -555,6 +558,39 @@ double map_exp(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
+double map_exp_scale(double arg, map_arg_tp typ, void *param)
+{
+	/*
+	 * the exp-map-function with scaling
+	 */
+	double scale = *((double *) param);
+	switch (typ) {
+	case MAP_FORWARD:
+		/*
+		 * extern = func(local) 
+		 */
+		return exp(scale * arg);
+	case MAP_BACKWARD:
+		/*
+		 * local = func(extern) 
+		 */
+		return log(arg) / scale;
+	case MAP_DFORWARD:
+		/*
+		 * d_extern / d_local 
+		 */
+		return exp(scale * arg) * scale;
+	case MAP_INCREASING:
+		/*
+		 * return 1.0 if montone increasing and 0.0 otherwise 
+		 */
+		return (scale > 0.0 ? 1.0 : 0.0);
+	default:
+		abort();
+	}
+	abort();
+	return 0.0;
+}
 double map_negexp(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -773,7 +809,8 @@ double map_beta(double x, map_arg_tp typ, void *param)
 			xx = (x - range[0]) / d;
 			return log(xx / (1.0 - xx));
 		case MAP_DFORWARD:
-			return d * exp(x) / SQR(1 + exp(x));
+			xx = exp(x);
+			return d * xx / SQR(1.0 + xx);
 		case MAP_INCREASING:
 			return 1.0;
 		default:
@@ -915,12 +952,15 @@ double map_phi(double arg, map_arg_tp typ, void *param)
 	/*
 	 * the map-function for the lag-1 correlation in the AR(1) model 
 	 */
+	double xx;
+
 	switch (typ) {
 	case MAP_FORWARD:
 		/*
 		 * extern = func(local) 
 		 */
-		return (2.0 * (exp((arg)) / (1.0 + exp((arg)))) - 1.0);
+		xx = exp(arg);
+		return (2.0 * (xx / (1.0 + xx)) - 1.0);
 	case MAP_BACKWARD:
 		/*
 		 * local = func(extern) 
@@ -930,7 +970,8 @@ double map_phi(double arg, map_arg_tp typ, void *param)
 		/*
 		 * d_extern / d_local 
 		 */
-		return 2.0 * exp(arg) / ((SQR(1.0 + exp(arg))));
+		xx = exp(arg);
+		return 2.0 * xx / SQR(1.0 + xx);
 	case MAP_INCREASING:
 		/*
 		 * return 1.0 if montone increasing and 0.0 otherwise 
@@ -968,14 +1009,8 @@ double map_alpha_weibull(double arg, map_arg_tp typ, void *param)
 	/*
 	 * the map-function for the range
 	 */
-	return map_exp(arg, typ, param);
-}
-double map_alpha_weibull_cure(double arg, map_arg_tp typ, void *param)
-{
-	/*
-	 * the map-function for the alpha-parameter in L_WEIBULL_CURE
-	 */
-	return map_exp(arg, typ, param);
+	double scale = INLA_WEIBULL_ALPHA_SCALE;
+	return map_exp_scale(arg, typ, (void *) &scale);
 }
 double map_p_weibull_cure(double arg, map_arg_tp typ, void *param)
 {
@@ -989,13 +1024,17 @@ double map_invlogit(double x, map_arg_tp typ, void *param)
 	/*
 	 * extern = exp(local) / (1 + exp(local)) 
 	 */
+	double xx;
+
 	switch (typ) {
 	case MAP_FORWARD:
-		return exp(x) / (1.0 + exp(x));
+		xx = exp(x);
+		return xx / (1.0 + xx);
 	case MAP_BACKWARD:
 		return log(x / (1.0 - x));
 	case MAP_DFORWARD:
-		return exp(x) / SQR(1.0 + exp(x));
+		xx = exp(x);
+		return xx / SQR(1.0 + xx);
 	case MAP_INCREASING:
 		return 1.0;
 	default:
@@ -1008,13 +1047,17 @@ double map_probability(double x, map_arg_tp typ, void *param)
 	/*
 	 * extern = exp(local) / (1 + exp(local)) 
 	 */
+	double xx;
+
 	switch (typ) {
 	case MAP_FORWARD:
-		return exp(x) / (1.0 + exp(x));
+		xx = exp(x);
+		return xx / (1.0 + xx);
 	case MAP_BACKWARD:
 		return log(x / (1.0 - x));
 	case MAP_DFORWARD:
-		return exp(x) / SQR(1.0 + exp(x));
+		xx = exp(x);
+		return xx / SQR(1.0 + xx);
 	case MAP_INCREASING:
 		return 1.0;
 	default:
@@ -1059,13 +1102,17 @@ double map_H(double x, map_arg_tp typ, void *param)
 	/*
 	 * extern = 1/2  + 1/2 * exp(local) / (1 + exp(local)) 
 	 */
+	double xx;
+
 	switch (typ) {
 	case MAP_FORWARD:
-		return 0.5 + 0.5 * exp(x) / (1.0 + exp(x));
+		xx = exp(x);
+		return 0.5 + 0.5 * xx / (1.0 + xx);
 	case MAP_BACKWARD:
 		return log((2.0 * x - 1.0) / (2.0 * (1.0 - x)));
 	case MAP_DFORWARD:
-		return 0.5 * exp(x) / SQR(1.0 + exp(x));
+		xx = exp(x);
+		return 0.5 * xx / SQR(1.0 + xx);
 	case MAP_INCREASING:
 		return 1.0;
 	default:
@@ -1080,14 +1127,17 @@ double map_group_rho(double x, map_arg_tp typ, void *param)
 	 */
 	assert(param != NULL);
 	int ngroups = *((int *) param);
-
+	double xx;
+	
 	switch (typ) {
 	case MAP_FORWARD:
-		return (exp(x) - 1.0) / (exp(x) + ngroups - 1.0);
+		xx = exp(x);
+		return (xx - 1.0) / (xx + ngroups - 1.0);
 	case MAP_BACKWARD:
 		return log((1.0 + (ngroups - 1.0) * x) / (1.0 - x));
 	case MAP_DFORWARD:
-		return (exp(x) * ngroups) / SQR(exp(x) + ngroups - 1.0);
+		xx = exp(x);
+		return (xx * ngroups) / SQR(xx + ngroups - 1.0);
 	case MAP_INCREASING:
 		return 1.0;
 	default:
@@ -1263,7 +1313,7 @@ double link_logitoffset(double x, map_arg_tp typ, void *param, double *cov)
 double link_sslogit(double x, map_arg_tp typ, void *param, double *cov)
 {
 	Link_param_tp *p;
-	double sens, spec, a, b;
+	double sens, spec, a, b, xx;
 
 	p = (Link_param_tp *) param;
 	sens = map_probability(p->sensitivity_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -1282,7 +1332,8 @@ double link_sslogit(double x, map_arg_tp typ, void *param, double *cov)
 		return log((x - b) / (x - b - a));
 
 	case MAP_DFORWARD:
-		return a * exp(-x) / SQR(1.0 + exp(-x));
+		xx = exp(-x);
+		return a * xx / SQR(1.0 + xx);
 
 	case MAP_INCREASING:
 		return (a > 0 ? 1 : 0);
@@ -2236,7 +2287,7 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 	int rebuild, ii, debug = 0, id;
 
 	id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
-	rebuild = (a->param[id] == NULL || a->Q[GMRFLib_thread_id] == NULL);
+	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 	if (!rebuild) {
 		for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
 			rebuild = (a->param[id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
@@ -2250,7 +2301,7 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 #pragma omp critical
 		{
 			if (debug) {
-				printf("Rebuild Q-hash for id %d\n", id);
+				printf("Qfunc_rgeneric: Rebuild Q-hash for id %d\n", id);
 			}
 			if (a->Q[id]) {
 				GMRFLib_free_tabulate_Qfunc(a->Q[id]);
@@ -2266,11 +2317,11 @@ double Qfunc_rgeneric(int i, int j, void *arg)
 			}
 
 			if (debug) {
-				printf("Call rgeneric\n");
+				printf("\tCall rgeneric\n");
 			}
 			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_Q, a->model, a->ntheta, a->param[id]);
 			if (debug) {
-				printf("Return from rgeneric with n_out= %1d\n", n_out);
+				printf("\tReturn from rgeneric with n_out= %1d\n", n_out);
 			}
 
 			assert(n_out >= 2);
@@ -2313,7 +2364,7 @@ double Qfunc_dmatern(int i, int j, void *arg)
 	int rebuild, debug = 0, id;
 
 	id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
-	rebuild = (a->param[id] == NULL || a->Q[GMRFLib_thread_id] == NULL);
+	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 	if (!rebuild) {
 		// yes, log_prec is ...[0], so we start at 1
 		rebuild = (a->param[id][1] != a->log_range[GMRFLib_thread_id][0]) || (a->param[id][2] != a->log_nu[GMRFLib_thread_id][0]);
@@ -2325,7 +2376,7 @@ double Qfunc_dmatern(int i, int j, void *arg)
 			// yes, log_prec is ...[0], so we start at 1
 			double range, nu;
 			if (debug) {
-				printf("Rebuild Q-hash for id %d\n", id);
+				printf("Qfunc_dmatern: Rebuild Q-hash for id %d\n", id);
 			}
 
 			if (!(a->Q[id])) {
@@ -6923,7 +6974,7 @@ int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_v
 		assert(0 == 1);
 	}
 
-	mm = np * ABS(m);
+	mm = np * IABS(m);
 	storage = Calloc(np + 2 * mm, double);		       /* use just one longer vector */
 	val = storage;
 	xx = storage + np;
@@ -8230,7 +8281,7 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 	truncation = ds->data_observations.truncation[idx];
 	lower = ds->data_observations.lower[idx];
 	upper = ds->data_observations.upper[idx];
-	alpha = map_alpha_weibull_cure(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	alpha = map_alpha_weibull(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	p = map_p_weibull_cure(ds->data_observations.p_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	truncationpow = pow(truncation, alpha);
 	onemp = 1.0 - p;
@@ -10098,7 +10149,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	 * parse section = PROBLEM
 	 */
 	int i, ok;
-	char *secname = NULL, *tmp = NULL, *tmpp = NULL, *smtp = NULL, *openmp_strategy = NULL;
+	char *secname = NULL, *tmp = NULL, *tmpp = NULL, *smtp = NULL, *openmp_strategy = NULL, *rinla_tag = NULL;
 
 	if (mb->verbose) {
 		printf("\tinla_parse_problem...\n");
@@ -10111,6 +10162,16 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	if (mb->verbose) {
 		printf("\t\tname=[%s]\n", mb->name);
 	}
+
+	rinla_tag = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "RINLA.TAG"), GMRFLib_strdup("UNKNOWN")));
+	if (mb->verbose) {
+		printf("\t\tR-INLA tag=[%s]\n", rinla_tag);
+		printf("\t\tBuild tag=[%s]\n", INLA_TAG);
+		if (strcmp(rinla_tag, INLA_TAG)) {
+			printf("\t\t***WARNING*** 'R-INLA tag' and 'Build tag' differ!\n");
+		}
+	}
+
 	openmp_strategy = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"), GMRFLib_strdup("DEFAULT")));
 	if (mb->verbose) {
 		printf("\t\topenmp.strategy=[%s]\n", openmp_strategy);
@@ -13656,7 +13717,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->theta[mb->ntheta] = ds->data_observations.alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_alpha_weibull_cure;	/* alpha = exp(alpha.intern) */
+			mb->theta_map[mb->ntheta] = map_alpha_weibull;	/* alpha = exp(alpha.intern) */
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -24465,11 +24526,7 @@ double extra(double *theta, int ntheta, void *argument)
 			case L_WEIBULL:
 			case L_WEIBULLSURV:
 				if (!ds->data_fixed) {
-					/*
-					 * this is the alpha-parameter in the Weibull 
-					 */
 					double alpha_intern = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior, &alpha_intern);
 					count++;
 				}
@@ -24477,20 +24534,12 @@ double extra(double *theta, int ntheta, void *argument)
 
 			case L_WEIBULL_CURE:
 				if (!ds->data_fixed0) {
-					/*
-					 * this is the alpha-parameter in PS
-					 */
 					double alpha_intern = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior0, &alpha_intern);
 					count++;
 				}
 				if (!ds->data_fixed1) {
-					/*
-					 * this is the p-parameter in PS
-					 */
 					double p_intern = theta[count];
-
 					val += PRIOR_EVAL(ds->data_prior1, &p_intern);
 					count++;
 				}

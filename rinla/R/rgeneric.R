@@ -266,7 +266,7 @@
     env = if (length(args) > 0) as.environment(args) else new.env()
     parent.env(env) = .GlobalEnv
     environment(model) = env
-    
+
     rmodel = list(
         f = list(
             model = "rgeneric", 

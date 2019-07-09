@@ -391,6 +391,12 @@ param2.matern.orig =
                                    ))),
                             diff(mesh$interval))
             prior.range.nominal = mesh.range*0.2
+        } else {
+          if (!is.numeric(prior.range.nominal) ||
+              (length(prior.range.nominal) != 1)) {
+            stop(paste0("'prior.range.nominal' must be NULL or a single scalar value.\n",
+                        "Did you intend to supply 'prior.range' to inla.spde2.pcmatern instead?"))
+          }
         }
 
         if (is.null(prior.kappa)) {
