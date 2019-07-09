@@ -29,6 +29,97 @@
   }
 }
 
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Removed must-be-enabled warnings in some
+      surival models, from Oct  25 2017
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Added missing \code{to.theta} and \code{from.theta}
+      functions in likelihoods \code{sn} and \code{sn2}
+      \item Fix some documentation in \code{marginal.R} (refering to the
+      obsolete function \code{inla.marginal.transform})
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.05.19}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Set \code{StagedInstall:no} to work around
+      installation problems for MacOS and R-3.6
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.05.17}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item The internal parameterisation of the alpha-parameter for the
+  Weibull likelihood familes, has been redefined/scaled, to fix some
+  optimisation issues. This means that the default prior has changed (a
+  little) and user-defined priors has to change to account for this new
+  internal parameterisation (sorry about that). See the documentation
+  for details.
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.05.16}{
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item Option \code{short.summary} will use a version of
+      \code{summary} with less output, maybe more suitable for
+      Markdown documents. 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.05.13}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added exampledata directory for various example datasets
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Code cleanup and improved some input-error checking.
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.04.16}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed an error in the cache-system for
+      \code{model="rgeneric"} and \code{model="dmatern"}.
+      Most notably with option \code{openmp.strategy="pardiso.parallel"}.
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.04.14}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Removed the weight correction for the computation of the cpo
+            for \code{int.design="user.expert"}
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.04.09}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
