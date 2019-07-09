@@ -1,7 +1,9 @@
 \section{Dynamic regression example}\label{sec:dynamic} 
 
-The R source for this file is available at
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-dynamic.R}
+This content is part of the book available at
+\url{http://www.r-inla.org/spde-book},
+whose Gitbook version is freely available
+along all the code and datasets.
 
 
 <<opts,echo=F,results='hide',message=FALSE,warning=FALSE>>=
@@ -80,7 +82,7 @@ we can use the \texttt{rMatern()}
 function defined in the Section~\ref{sec:simulatoy}
 to simulate independent random field realizations for each time.  
 This function is available in the file at 
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}
+\url{http://inla.r-inla-download.org/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}
 
 We draw $k$ (number of time points) samples from the random field. 
 Then, we make it temporally correlated considering the time autoregression 

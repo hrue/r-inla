@@ -12,9 +12,9 @@
 	 	 	\item[initial] 0.1
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] loggamma
-	 	 	\item[param] 25 25
-	 	 	\item[to.theta] \verb!function(x) log(x)!
-	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 	\item[param] 0.4 0.26
+	 	 	\item[to.theta] \verb!function(x, sc = 0.1) log(x)/sc!
+	 	 	\item[from.theta] \verb!function(x, sc = 0.1) exp(sc*x)!
 	 	 \end{description}
 	 \end{description}
 	\item[survival] TRUE

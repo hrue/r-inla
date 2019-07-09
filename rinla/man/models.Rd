@@ -6544,7 +6544,6 @@ inla.models()
 						\item{Properties:}{
 							\describe{
 								\item{doc = }{`A quantile loglogistic likelihood'}
-								\item{status = }{`changed:Oct.25.2017'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}
@@ -6573,7 +6572,6 @@ inla.models()
 						\item{Properties:}{
 							\describe{
 								\item{doc = }{`A quantile loglogistic likelihood (survival)'}
-								\item{status = }{`changed:Oct.25.2017'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}
@@ -6943,23 +6941,27 @@ inla.models()
 						\item{Hyperparameter `theta1'}{
 							 \describe{
 							\item{hyperid = }{`73001'}
-							\item{name = }{`inverse.scale'}
+							\item{name = }{`log inverse scale'}
 							\item{short.name = }{`iscale'}
 							\item{initial = }{`4'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
 							\item{hyperid = }{`73002'}
-							\item{name = }{`skewness'}
+							\item{name = }{`logit skewness'}
 							\item{short.name = }{`skew'}
 							\item{initial = }{`4'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`0 10'}
+							\item{to.theta = }{`\code{function(x, shape.max = 1) log((1+x/shape.max)/(1-x/shape.max))}'}
+							\item{from.theta = }{`\code{function(x, shape.max = 1) shape.max*(2*exp(x)/(1+exp(x))-1)}'}
 							}
 						}
 					 }
@@ -6986,6 +6988,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta2'}{
@@ -7025,6 +7029,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 5e-05'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta2'}{
@@ -7036,8 +7042,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`0 10'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) (2*exp(x)/(1+exp(x))-1)}'}
+							\item{to.theta = }{`\code{function(x, shape.max = 1) log((1+x/shape.max)/(1-x/shape.max))}'}
+							\item{from.theta = }{`\code{function(x, shape.max = 1) shape.max*(2*exp(x)/(1+exp(x))-1)}'}
 							}
 						}
 					 }
@@ -7168,9 +7174,9 @@ inla.models()
 							\item{initial = }{`0.1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`25 25'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							\item{param = }{`0.4 0.26'}
+							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x)/sc}'}
+							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc*x)}'}
 							}
 						}
 					 }
@@ -7196,9 +7202,9 @@ inla.models()
 							\item{initial = }{`0.1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`25 25'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							\item{param = }{`0.4 0.26'}
+							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x)/sc}'}
+							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc*x)}'}
 							}
 						}
 					 }
@@ -7234,7 +7240,6 @@ inla.models()
 						\item{Properties:}{
 							\describe{
 								\item{doc = }{`The loglogistic likelihood'}
-								\item{status = }{`changed:Oct.25.2017'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}
@@ -7263,7 +7268,6 @@ inla.models()
 						\item{Properties:}{
 							\describe{
 								\item{doc = }{`The loglogistic likelihood (survival)'}
-								\item{status = }{`changed:Oct.25.2017'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default log neglog'}
@@ -7282,9 +7286,9 @@ inla.models()
 							\item{initial = }{`0.1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`25 25'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							\item{param = }{`0.4 0.26'}
+							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x)/sc}'}
+							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc*x)}'}
 							}
 						}
 						\item{Hyperparameter `theta2'}{
