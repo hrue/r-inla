@@ -19,14 +19,14 @@
 ##!              in the Weibull likelihood}
 ##! \usage{
 ##! inla.pc.ralphaw(n, lambda = 7)
-##! inla.pc.dalphaw(x, lambda = 7, log = FALSE)
+##! inla.pc.dalphaw(alpha, lambda = 7, log = FALSE)
 ##! inla.pc.qalphaw(p, lambda = 7)
 ##! inla.pc.palphaw(q, lambda = 7)
 ##! }
 ##! \arguments{
 ##!   \item{n}{Number of observations}
-##!   \item{lambda}{The rate parameter (see Details)}
-##!   \item{x}{Evaluation points}
+##!   \item{lambda}{The rate parameter in the PC-prior}
+##!   \item{alpha}{Vector of evaluation points, where \code{alpha>0}.}
 ##!   \item{log}{Logical. Return the density in natural or log-scale.}
 ##!   \item{p}{Vector of probabilities}
 ##!   \item{q}{Vector of quantiles}
@@ -61,7 +61,7 @@ inla.pc.alphaw.cache = function()
 
     tag = "pc.alphaw.dist.cache"
     if (!exists(tag, envir = INLA:::inla.get.inlaEnv())) {
-        lalphas = seq(-5, 3, by = 0.001)
+        lalphas = seq(-5, 3, by = 0.01)
         lalphas[which.min(abs(lalphas))] = 0 ## yes, make it exactly 0
         lalphas.pos = lalphas[which(lalphas >= 0)]
         lalphas.neg = lalphas[which(lalphas <= 0)]
@@ -160,7 +160,8 @@ inla.pc.palphaw = function(q, lambda = 7)
     return(p)
 }
 
-inla.pc.alphaw.test = function(lambda = 7) {
+inla.pc.alphaw.test = function(lambda = 7) 
+{
     n = 10^7
     x = inla.pc.ralphaw(n, lambda = lambda)
     x = x[x < quantile(x, prob = 0.999)]
