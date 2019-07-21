@@ -3006,6 +3006,30 @@ double priorfunc_pc_range(double *x, double *parameters)
 
 	return ldens;
 }
+double priorfunc_pc_alphaw(double *x, double *parameters)
+{
+	// the inla.pc.alphaw prior. alpha = exp(sc * x), where sc is given
+#define _GAM (0.577215664901532860606512090082)
+#define KLD(_a) ((MATHLIB_FUN(gammafn)((1.0+(_a))/(_a)) * (_a) + (_a) * log((_a)) - (_a) * _GAM + _GAM - (_a))/(_a))
+#define D(_a) sqrt(2.0*DMAX(0.0, KLD((_a))))
+	
+	double d0, ld, diff, h = 1.0E-06;
+	double alpha = exp(INLA_WEIBULL_ALPHA_SCALE*x[0]), lambda = parameters[0];
+
+	d0 = D(alpha);
+	if (alpha >= 1.0) {
+		diff = (D(alpha + h) - d0)/h;
+	} else {
+		diff = (d0 - D(alpha - h))/h;
+	}
+
+	ld = log(0.5) + lambda - lambda * d0 + log(ABS(diff)) + log(alpha * INLA_WEIBULL_ALPHA_SCALE);
+#undef _GAM
+#undef KLD
+#undef D	
+	return (ld);
+}
+
 double priorfunc_pc_gamma(double *x, double *parameters)
 {
 	// the inla.pc.dgamma prior, which is the prior for 'a' in Gamma(1/a, 1/a) where a=0 is the base model. Here we have the
@@ -9414,6 +9438,18 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 
 		prior->id = P_PC_GAMMA;
 		prior->priorfunc = priorfunc_pc_gamma;
+		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
+		assert(nparam == 1);
+		if (mb->verbose) {
+			for (i = 0; i < nparam; i++) {
+				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "PCALPHAW")) {
+		int nparam, i;
+
+		prior->id = P_PC_ALPHAW;
+		prior->priorfunc = priorfunc_pc_alphaw;
 		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
 		assert(nparam == 1);
 		if (mb->verbose) {
