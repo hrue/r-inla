@@ -1,7 +1,7 @@
 
 /* inla.h
  * 
- * Copyright (C) 2007-2017 Havard Rue
+ * Copyright (C) 2007-2019 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,8 +58,9 @@ __BEGIN_DECLS
 #define FIFO_PUT_DATA "inla-mcmc-fifo-put-data"
 
 /*
-  The scaling of the critical 'alpha' parameter. If this value change, it must also be changed in models.R (Yes, CHANGE IT
-  MANUALLY!)
+  The scaling of the critical 'alpha' parameter. If this value change, it must also be changed in models.R
+
+  YES, CHANGE IT MANUALLY!
 */
 #define INLA_WEIBULL_ALPHA_SCALE 0.10
 
@@ -594,8 +595,8 @@ typedef enum {
 	P_REF_AR,					       /* Reference prior for AR(p) for p=1,2,3 */
 	P_INVALID,
 	P_DIRICHLET,
-	P_GAMMA, 
-	G_EXCHANGEABLE = 3000,				       /* group_ models */
+	P_PC_ALPHAW, 
+	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
 	G_RW1,
@@ -1546,6 +1547,7 @@ double priorfunc_logitbeta(double *x, double *parameters);
 double priorfunc_minuslogsqrtruncnormal(double *x, double *parameters);
 double priorfunc_mvnorm(double *x, double *parameters);
 double priorfunc_normal(double *x, double *parameters);
+double priorfunc_pc_alphaw(double *x, double *parameters);
 double priorfunc_pc_ar(double *x, double *parameters);
 double priorfunc_pc_cor0(double *x, double *parameters);
 double priorfunc_pc_cor1(double *x, double *parameters);

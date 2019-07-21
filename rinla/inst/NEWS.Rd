@@ -29,7 +29,7 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
+\section{CHANGES IN VERSION 19.07.21}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
       \item Removed must-be-enabled warnings in some
@@ -38,12 +38,9 @@
   }
   \subsection{NEW FEATURES}{
     \itemize{
-      \item
-    }
-  }
-  \subsection{NEW EXPERIMENTAL FEATURES}{
-    \itemize{
-      \item
+      \item Added PC-prior for the Weibull likelihood models. The prior
+      is derived
+      for \code{variant = 1}, which is the good parameterisation.
     }
   }
   \subsection{BUG FIXES}{
