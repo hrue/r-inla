@@ -18,10 +18,10 @@
 ##!              percentiles of the PC prior for the \code{alpha} parameter
 ##!              in the Weibull likelihood}
 ##! \usage{
-##! inla.pc.ralphaw(n, lambda = 7)
-##! inla.pc.dalphaw(alpha, lambda = 7, log = FALSE)
-##! inla.pc.qalphaw(p, lambda = 7)
-##! inla.pc.palphaw(q, lambda = 7)
+##! inla.pc.ralphaw(n, lambda = 5)
+##! inla.pc.dalphaw(alpha, lambda = 5, log = FALSE)
+##! inla.pc.qalphaw(p, lambda = 5)
+##! inla.pc.palphaw(q, lambda = 5)
 ##! }
 ##! \arguments{
 ##!   \item{n}{Number of observations}
@@ -44,14 +44,16 @@
 ##! \seealso{inla.doc("pc.alphaw")}
 ##! \author{Havard Rue \email{hrue@r-inla.org}}
 ##! \examples{
-##! x = inla.pc.ralphaw(100,  lambda = 7)
-##! d = inla.pc.dalphaw(x, lambda = 7)
-##! x = inla.pc.qalphaw(0.5, lambda = 7)
-##! inla.pc.palphaw(x, lambda = 7)
+##! x = inla.pc.ralphaw(100,  lambda = 5)
+##! d = inla.pc.dalphaw(x, lambda = 5)
+##! x = inla.pc.qalphaw(0.5, lambda = 5)
+##! inla.pc.palphaw(x, lambda = 5)
 ##! }
 
 inla.pc.alphaw.cache = function() 
 {
+    ## return the cache for these functions
+
     dist = function(lalpha) {
         alpha = exp(lalpha)
         gam = 0.5772156649
@@ -59,9 +61,9 @@ inla.pc.alphaw.cache = function()
         return (sqrt(2.0*kld))
     }
 
-    tag = "pc.alphaw.dist.cache"
+    tag = "cache.pc.alphaw"
     if (!exists(tag, envir = INLA:::inla.get.inlaEnv())) {
-        lalphas = seq(-5, 3, by = 0.01)
+        lalphas = seq(-4, 5, by = 0.005)
         lalphas[which.min(abs(lalphas))] = 0 ## yes, make it exactly 0
         lalphas.pos = lalphas[which(lalphas >= 0)]
         lalphas.neg = lalphas[which(lalphas <= 0)]
@@ -81,48 +83,48 @@ inla.pc.alphaw.cache = function()
     return (get(tag, envir = INLA:::inla.get.inlaEnv()))
 }
 
-inla.pc.ralphaw = function(n, lambda = 7)
+inla.pc.ralphaw = function(n, lambda = 5)
 {
-    cac = inla.pc.alphaw.cache()
+    cache = inla.pc.alphaw.cache()
     x = numeric(n)
     ind = sample(c(-1, 1), n, replace=TRUE)
     idx.pos = which(ind > 0)
     idx.neg = which(ind < 0)
     z = rexp(n, rate = lambda)
     if (length(idx.pos) > 0) {
-        x[idx.pos] = cac$pos$idist(z[idx.pos])
+        x[idx.pos] = cache$pos$idist(z[idx.pos])
     }
     if (length(idx.neg) > 0) {
-        x[idx.neg] = cac$neg$idist(z[idx.neg])
+        x[idx.neg] = cache$neg$idist(z[idx.neg])
     }
     return (exp(x))
 }
 
-inla.pc.dalphaw = function(alpha, lambda = 7, log = FALSE)
+inla.pc.dalphaw = function(alpha, lambda = 5, log = FALSE)
 {
-    cac = inla.pc.alphaw.cache()
+    cache = inla.pc.alphaw.cache()
     d = numeric(length(alpha))
     lalpha = log(alpha)
     idx.pos = which(lalpha >= 0)
     idx.neg = which(lalpha <  0)
     if (length(idx.pos) > 0) {
         la = lalpha[idx.pos]
-        dist = cac$pos$dist(la)
-        deriv = cac$pos$dist(la, deriv = 1)
+        dist = cache$pos$dist(la)
+        deriv = cache$pos$dist(la, deriv = 1)
         d[idx.pos] = log(0.5) + log(lambda) - lambda * dist + log(abs(deriv)) - la
     }        
     if (length(idx.neg) > 0) {
         la = lalpha[idx.neg]
-        dist = cac$neg$dist(la)
-        deriv = cac$neg$dist(la, deriv = 1)
+        dist = cache$neg$dist(la)
+        deriv = cache$neg$dist(la, deriv = 1)
         d[idx.neg] = log(0.5) + log(lambda) - lambda * dist + log(abs(deriv)) - la
     }        
     return (if (log) d else exp(d))
 }
 
-inla.pc.qalphaw = function(p, lambda = 7)
+inla.pc.qalphaw = function(p, lambda = 5)
 {
-    cac = inla.pc.alphaw.cache()
+    cache = inla.pc.alphaw.cache()
     n = length(p)
     q = numeric(n)
     idx.pos = which(p >= 0.5)
@@ -130,49 +132,48 @@ inla.pc.qalphaw = function(p, lambda = 7)
     if (length(idx.pos) > 0) {
         pp = 2.0*(p[idx.pos] - 0.5)
         qe = qexp(pp, rate = lambda)
-        q[idx.pos] = cac$pos$idist(qe)
+        q[idx.pos] = cache$pos$idist(qe)
     }
     if (length(idx.neg) > 0) {
         pp = 2.0*(0.5 - p[idx.neg])
         qe = qexp(pp, rate = lambda)
-        q[idx.neg] = cac$neg$idist(qe)
+        q[idx.neg] = cache$neg$idist(qe)
     }
     return(exp(q))
 }
 
-inla.pc.palphaw = function(q, lambda = 7)
+inla.pc.palphaw = function(q, lambda = 5)
 {
-    cac = inla.pc.alphaw.cache()
+    cache = inla.pc.alphaw.cache()
     n = length(q)
     p = numeric(n)
     idx.pos = which(q >= 1.0)
     idx.neg = which(q <  1.0)
     if (length(idx.pos) > 0) {
-        qq = cac$pos$dist(log(q[idx.pos]))
+        qq = cache$pos$dist(log(q[idx.pos]))
         pp = pexp(qq, rate = lambda)
         p[idx.pos] = 0.5 * (1 + pp)
     }
     if (length(idx.neg) > 0) {
-        qq = cac$neg$dist(log(q[idx.neg]))
+        qq = cache$neg$dist(log(q[idx.neg]))
         pp = pexp(qq, rate = lambda)
         p[idx.neg] = 0.5 * (1 - pp)
     }
     return(p)
 }
 
-inla.pc.alphaw.test = function(lambda = 7) 
+inla.pc.alphaw.test = function(lambda = 5) 
 {
-    n = 10^7
+    ## this is just an internal test, and is not exported
+    n = 10^6
     x = inla.pc.ralphaw(n, lambda = lambda)
     x = x[x < quantile(x, prob = 0.999)]
     alpha = seq(min(x), max(x), by = 0.001)
     hist(x, n = 300,  prob = TRUE)
     lines(alpha, inla.pc.dalphaw(alpha, lambda), lwd=3, col="blue")
     print(sum(alpha * inla.pc.dalphaw(alpha, lambda) * diff(alpha)[1]))
-
     p = seq(0.1, 0.9, by = 0.05)
     print(cbind(p=p, q.emp = as.numeric(quantile(x,  prob = p)), q.true = inla.pc.qalphaw(p, lambda)))
-
     q = as.numeric(quantile(x, prob = p))
     cdf = ecdf(x)
     print(cbind(q=q, p.emp = cdf(q), p.true = inla.pc.palphaw(q, lambda)))
