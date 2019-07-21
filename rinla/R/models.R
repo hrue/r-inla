@@ -6081,8 +6081,8 @@
                              initial = 0.1,
                              fixed = FALSE,
                              ## not a good prior, need the pc-prior
-                             prior = "loggamma",
-                             param = c(0.4, 0.26),
+                             prior = "pc.logalphaw",
+                             param = c(5),
                              ## the 'sc' constant is defined in inla.h, and must be the same.
                              ## I know, this is hard-coded for the moment. Should be a generic
                              ## way of doing this...
@@ -6107,9 +6107,8 @@
                              short.name = "alpha",
                              initial = 0.1,
                              fixed = FALSE,
-                             ## not a good prior, need the pc-prior
-                             prior = "loggamma",
-                             param = c(0.4, 0.26),
+                             prior = "pc.logalphaw",
+                             param = c(5),
                              ## the 'sc' constant is defined in inla.h, and must be the same.
                              ## I know, this is hard-coded for the moment. Should be a generic
                              ## way of doing this...
@@ -7563,6 +7562,11 @@
                      nparameters = -1L,
                      pdf = "mvnorm"
                  ),
+                 pc.logalphaw = list(
+                     doc = "PC prior for alpha in Weibull",
+                     nparameters = 1L,
+                     pdf = "pc.alphaw"
+                 ), 
                  pc.ar = list(
                      doc = "PC prior for the AR(p) model", 
                      nparameters = 1L,

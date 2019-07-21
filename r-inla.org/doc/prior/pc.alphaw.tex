@@ -1,0 +1,56 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{PC prior for $\alpha$ in the Weibull likelihood}
+
+\subsection*{Parametrization}
+The PC prior for the $\alpha$ parameter in the Weibull likelihood, has
+\begin{displaymath}
+    \text{KLD}(\alpha) = (\Gamma((1 + \alpha)/\alpha)\alpha + \alpha \log(\alpha) - \alpha\gamma + \gamma - \alpha)/\alpha
+\end{displaymath}
+where $\gamma = 0.5772156649...$ is Euler's constant. The base-model is
+$\alpha=1$, and the expression for the prior follow from
+\begin{displaymath}
+    d(\alpha) = \sqrt{2\text{KLD}(\alpha)}
+\end{displaymath}
+and
+\begin{displaymath}
+    \pi(\alpha) = \frac{\lambda}{2} \exp(-\lambda d(\alpha)) \left|\frac{\partial
+    d(\alpha)}{\partial\alpha}\right|
+\end{displaymath}
+for $\lambda>0$ and $\alpha{} > 0$. The density, cumulative
+distribution function, quantile function, and a random number
+generator for this distribution are implemented in the
+\texttt{inla.pc.\{d,p,q,r\}alphaw} functions. Internally, R-INLA uses
+the $\log(\alpha)$ rather than $\alpha$, and the prior is corrected
+accordingly.
+
+\subsection*{Specification}
+This prior for the hyperparameters is specified inside the
+\texttt{hyper}-specification, as
+\begin{center}
+    \texttt{hyper = list(<theta> =
+        list(prior="pc.logalphaw", param= <lambda>))}
+\end{center}
+
+\subsection*{Example}
+
+\subsection*{Notes}
+
+\begin{itemize}
+\item The default value is $\lambda = 5$.
+\item See also functions \texttt{inla.pc.\{d,p,q,r\}alphaw}
+\end{itemize}
+
+\end{document}
+
+
+% LocalWords:  Weibull Parametrization KLD quantile inla pc alphaw INLA param
+% LocalWords:  hyperparameters logalphaw
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
