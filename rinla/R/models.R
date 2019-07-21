@@ -6080,8 +6080,7 @@
                              short.name = "alpha",
                              initial = 0.1,
                              fixed = FALSE,
-                             ## not a good prior, need the pc-prior
-                             prior = "pc.logalphaw",
+                             prior = "pc.alphaw",
                              param = c(5),
                              ## the 'sc' constant is defined in inla.h, and must be the same.
                              ## I know, this is hard-coded for the moment. Should be a generic
@@ -6107,7 +6106,7 @@
                              short.name = "alpha",
                              initial = 0.1,
                              fixed = FALSE,
-                             prior = "pc.logalphaw",
+                             prior = "pc.alphaw",
                              param = c(5),
                              ## the 'sc' constant is defined in inla.h, and must be the same.
                              ## I know, this is hard-coded for the moment. Should be a generic
@@ -6173,9 +6172,8 @@
                              short.name = "a",
                              initial = 0.1,
                              fixed = FALSE,
-                             ## not a good prior, need the pc-prior
-                             prior = "loggamma",
-                             param = c(0.4, 0.26),
+                             prior = "pc.alphaw",
+                             param = c(5),
                              ## the 'sc' constant is defined in inla.h, and must be the same.
                              ## I know, this is hard-coded for the moment. Should be a generic
                              ## way of doing this...
@@ -7562,7 +7560,7 @@
                      nparameters = -1L,
                      pdf = "mvnorm"
                  ),
-                 pc.logalphaw = list(
+                 pc.alphaw = list(
                      doc = "PC prior for alpha in Weibull",
                      nparameters = 1L,
                      pdf = "pc.alphaw"
