@@ -49,6 +49,7 @@
       functions in likelihoods \code{sn} and \code{sn2}
       \item Fix some documentation in \code{marginal.R} (refering to the
       obsolete function \code{inla.marginal.transform})
+      \item Fixed an issue with (parallel) PARDISO and many linear combinations.
     }
   }
 }
