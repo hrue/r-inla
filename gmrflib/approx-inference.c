@@ -6479,6 +6479,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	if (cross) {
 		cross_store = Calloc(nlin, cross_tp);
 	}
+	GMRFLib_pardiso_thread_safe = GMRFLib_FALSE;
 #pragma omp parallel for private(i, j, k) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < nlin; i++) {
 
@@ -6611,7 +6612,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 		GMRFLib_density_create_normal(&d[i], (imean - mean) / sqrt(var), 1.0, mean, sqrt(var));
 		Free(a);
 	}
-
+	GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
 
 	if (cross) {
 		/*

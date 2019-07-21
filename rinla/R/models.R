@@ -1,5 +1,9 @@
 ## Export: inla.models
 
+## this is how to define a must-be-enabled...
+## status = "changed:Oct.25.2017", 
+
+
 `inla.models.section.latent` = function()
 {
     return
@@ -5548,7 +5552,6 @@
                              from.theta = function(x) exp(x)
                          )
                      ), 
-                     status = "changed:Oct.25.2017", 
                      survival = FALSE,
                      discrete = FALSE,
                      link = c("default", "log", "neglog"), 
@@ -5570,7 +5573,6 @@
                              from.theta = function(x) exp(x)
                          )
                      ), 
-                     status = "changed:Oct.25.2017", 
                      survival = TRUE,
                      discrete = FALSE,
                      link = c("default", "log", "neglog"), 
@@ -5870,28 +5872,32 @@
                      hyper = list(
                          theta1 = list(
                              hyperid =  73001,
-                             name = "inverse.scale",
+                             name = "log inverse scale",
                              short.name = "iscale",
                              initial = 4,
                              fixed = FALSE,
                              prior = "loggamma",
-                             param = c(1, 0.00005)
-                             ),
+                             param = c(1, 0.00005), 
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         ),
                          theta2 = list(
                              hyperid =  73002,
-                             name = "skewness",
+                             name = "logit skewness",
                              short.name = "skew",
                              initial = 4,
                              fixed = FALSE,
                              prior = "gaussian",
-                             param = c(0, 10)
-                             )
-                         ),
+                             param = c(0, 10), 
+                             to.theta = function(x, shape.max = 1) log((1+x/shape.max)/(1-x/shape.max)),
+                             from.theta = function(x, shape.max = 1) shape.max*(2*exp(x)/(1+exp(x))-1)
+                         )
+                     ),
                      survival = FALSE,
                      discrete = FALSE,
                      link = c("default", "identity"),
                      pdf = "sn"
-                     ),
+                 ),
 
                  sn = list(
                      doc = "The Skew-Normal likelihoood", 
@@ -5903,8 +5909,10 @@
                              initial = 4,
                              fixed = FALSE,
                              prior = "loggamma",
-                             param = c(1, 0.00005)
-                             ),
+                             param = c(1, 0.00005), 
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         ),
                          theta2 = list(
                              hyperid =  74002,
                              name = "logit skewness",
@@ -5933,8 +5941,10 @@
                              initial = 1,
                              fixed = FALSE,
                              prior = "loggamma",
-                             param = c(1, 0.00005)
-                             ),
+                             param = c(1, 0.00005), 
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         ),
                          theta2 = list(
                              hyperid =  75002,
                              name = "logit skewness",
@@ -5943,16 +5953,16 @@
                              fixed = FALSE,
                              prior = "gaussian",
                              param = c(0, 10),
-                             to.theta = function(x) log((1+x)/(1-x)),
-                             from.theta = function(x) (2*exp(x)/(1+exp(x))-1)
-                             )
-                         ),
+                             to.theta = function(x, shape.max = 1) log((1+x/shape.max)/(1-x/shape.max)),
+                             from.theta = function(x, shape.max = 1) shape.max*(2*exp(x)/(1+exp(x))-1)
+                         )
+                     ),
                      survival = FALSE,
                      discrete = FALSE,
                      link = c("default", "identity"),
                      status = "experimental", 
                      pdf = "sn2"
-                     ),
+                 ),
 
                  gev = list(
                      doc = "The Generalized Extreme Value likelihood", 
@@ -6070,9 +6080,8 @@
                              short.name = "alpha",
                              initial = 0.1,
                              fixed = FALSE,
-                             ## not a good prior, need the pc-prior
-                             prior = "loggamma",
-                             param = c(0.4, 0.26),
+                             prior = "pc.alphaw",
+                             param = c(5),
                              ## the 'sc' constant is defined in inla.h, and must be the same.
                              ## I know, this is hard-coded for the moment. Should be a generic
                              ## way of doing this...
@@ -6097,9 +6106,8 @@
                              short.name = "alpha",
                              initial = 0.1,
                              fixed = FALSE,
-                             ## not a good prior, need the pc-prior
-                             prior = "loggamma",
-                             param = c(0.4, 0.26),
+                             prior = "pc.alphaw",
+                             param = c(5),
                              ## the 'sc' constant is defined in inla.h, and must be the same.
                              ## I know, this is hard-coded for the moment. Should be a generic
                              ## way of doing this...
@@ -6128,7 +6136,6 @@
                              from.theta = function(x) exp(x)
                              )
                          ),
-                     status = "changed:Oct.25.2017", 
                      survival = FALSE,
                      discrete = FALSE,
                      link = c("default", "log", "neglog"),
@@ -6150,7 +6157,6 @@
                              from.theta = function(x) exp(x)
                              )
                          ),
-                     status = "changed:Oct.25.2017", 
                      survival = TRUE,
                      discrete = FALSE,
                      link = c("default", "log", "neglog"),
@@ -6166,9 +6172,8 @@
                              short.name = "a",
                              initial = 0.1,
                              fixed = FALSE,
-                             ## not a good prior, need the pc-prior
-                             prior = "loggamma",
-                             param = c(0.4, 0.26),
+                             prior = "pc.alphaw",
+                             param = c(5),
                              ## the 'sc' constant is defined in inla.h, and must be the same.
                              ## I know, this is hard-coded for the moment. Should be a generic
                              ## way of doing this...
@@ -7555,6 +7560,11 @@
                      nparameters = -1L,
                      pdf = "mvnorm"
                  ),
+                 pc.alphaw = list(
+                     doc = "PC prior for alpha in Weibull",
+                     nparameters = 1L,
+                     pdf = "pc.alphaw"
+                 ), 
                  pc.ar = list(
                      doc = "PC prior for the AR(p) model", 
                      nparameters = 1L,
