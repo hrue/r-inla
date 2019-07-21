@@ -7173,8 +7173,8 @@ inla.models()
 							\item{short.name = }{`alpha'}
 							\item{initial = }{`0.1'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`0.4 0.26'}
+							\item{prior = }{`pc.alphaw'}
+							\item{param = }{`5'}
 							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x)/sc}'}
 							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc*x)}'}
 							}
@@ -7201,8 +7201,8 @@ inla.models()
 							\item{short.name = }{`alpha'}
 							\item{initial = }{`0.1'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`0.4 0.26'}
+							\item{prior = }{`pc.alphaw'}
+							\item{param = }{`5'}
 							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x)/sc}'}
 							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc*x)}'}
 							}
@@ -7285,8 +7285,8 @@ inla.models()
 							\item{short.name = }{`a'}
 							\item{initial = }{`0.1'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`0.4 0.26'}
+							\item{prior = }{`pc.alphaw'}
+							\item{param = }{`5'}
 							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x)/sc}'}
 							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc*x)}'}
 							}
@@ -8928,6 +8928,8 @@ inla.models()
 				\item{Model `logiflat'.}{					 Number of parameters in the prior = 0 
 				 }
 				\item{Model `mvnorm'.}{					 Number of parameters in the prior = -1 
+				 }
+				\item{Model `pc.alphaw'.}{					 Number of parameters in the prior = 1 
 				 }
 				\item{Model `pc.ar'.}{					 Number of parameters in the prior = 1 
 				 }
