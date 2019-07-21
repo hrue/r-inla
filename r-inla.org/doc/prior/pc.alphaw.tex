@@ -9,7 +9,9 @@
 \subsection*{Parametrization}
 The PC prior for the $\alpha$ parameter in the Weibull likelihood, has
 \begin{displaymath}
-    \text{KLD}(\alpha) = (\Gamma((1 + \alpha)/\alpha)\alpha + \alpha \log(\alpha) - \alpha\gamma + \gamma - \alpha)/\alpha
+    \text{KLD}(\alpha) = (\Gamma((1 + \alpha)/\alpha)\alpha + \alpha
+    \log(\alpha) -
+    \alpha\gamma + \gamma - \alpha)/\alpha
 \end{displaymath}
 where $\gamma = 0.5772156649...$ is Euler's constant. The base-model is
 $\alpha=1$, and the expression for the prior follow from
@@ -25,8 +27,8 @@ for $\lambda>0$ and $\alpha{} > 0$. The density, cumulative
 distribution function, quantile function, and a random number
 generator for this distribution are implemented in the
 \texttt{inla.pc.\{d,p,q,r\}alphaw} functions. Internally, R-INLA uses
-the $\log(\alpha)$ rather than $\alpha$, and the prior is corrected
-accordingly.
+$\theta = \log(\alpha)$ rather than $\alpha$, and the prior for
+$\theta$ follows accordingly.
 
 \subsection*{Specification}
 This prior for the hyperparameters is specified inside the
@@ -46,7 +48,6 @@ This prior for the hyperparameters is specified inside the
 \end{itemize}
 
 \end{document}
-
 
 % LocalWords:  Weibull Parametrization KLD quantile inla pc alphaw INLA param
 % LocalWords:  hyperparameters logalphaw

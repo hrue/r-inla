@@ -62,7 +62,7 @@ inla.pc.alphaw.cache = function()
     }
 
     tag = "cache.pc.alphaw"
-    if (!exists(tag, envir = INLA:::inla.get.inlaEnv())) {
+    if (!exists(tag, envir = inla.get.inlaEnv())) {
         lalphas = seq(-4, 5, by = 0.005)
         lalphas[which.min(abs(lalphas))] = 0 ## yes, make it exactly 0
         lalphas.pos = lalphas[which(lalphas >= 0)]
@@ -78,9 +78,9 @@ inla.pc.alphaw.cache = function()
                         x = lalphas.neg, 
                         dist = splinefun(lalphas.neg, dist.neg), 
                         idist = splinefun(dist.neg, lalphas.neg))), 
-               envir = INLA:::inla.get.inlaEnv())
+               envir = inla.get.inlaEnv())
     }
-    return (get(tag, envir = INLA:::inla.get.inlaEnv()))
+    return (get(tag, envir = inla.get.inlaEnv()))
 }
 
 inla.pc.ralphaw = function(n, lambda = 5)

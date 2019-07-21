@@ -883,10 +883,12 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
     ## specified from within the R-interface and argument 'hyper'. the conversion to the prior
     ## density for the user-scale is done automatically.
 
-    my.pc.logalphaw = function(theta, param, log=FALSE) 
+    my.pc.alphaw = function(theta, param, log=FALSE) 
     {
-        alpha = exp(theta)
-        ld = inla.pc.dalphaw(alpha, lambda = param[1], log=TRUE) + theta
+        fun = inla.models()$likelihood$weibull$hyper$theta$from.theta
+        alpha = fun(theta)
+        h = .Machine$double.eps^0.25
+        ld = inla.pc.dalphaw(alpha, lambda = param[1], log=TRUE) + log(abs((fun(theta + h) - fun(theta-h))/(2.0*h)))
         return (if (log) ld else exp(ld))
     }        
 
