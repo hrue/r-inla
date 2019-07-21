@@ -1,7 +1,9 @@
 \section{Coregionalization model}\label{sec:coreg} 
 
-The R source code for this example is available at
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-coregionalization.R}
+This content is part of the book available at
+\url{http://www.r-inla.org/spde-book},
+whose Gitbook version is freely available 
+along all the code and datasets.
 
 
 <<sett,echo=F,results='hide',message=FALSE,warning=FALSE>>=
@@ -104,7 +106,7 @@ loc3 <- cbind(runif(n3), runif(n3))
 We can use the \texttt{rMatern()} function 
 to simulate independent random field realizations for each time.  
 This function is available in the file at 
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}. 
+\url{http://inla.r-inla-download.org/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}. 
 
 In order to build the second and third outcomes, 
 we do consider samples for the random field in 

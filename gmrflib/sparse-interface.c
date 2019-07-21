@@ -524,7 +524,7 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_f
 		GMRFLib_EWRAP0(GMRFLib_solve_l_sparse_matrix_special_TAUCS(rhs, sm_fact->TAUCS_L, graph, sm_fact->remap, findx, toindx, remapped));
 		break;
 
-	case GMRFLib_SMTP_PARDISO:
+	case GMRFLib_SMTP_PARDISO: 
 	{
 		if (remapped) {
 			GMRFLib_pardiso_perm(rhs, 1, sm_fact->PARDISO_fact);

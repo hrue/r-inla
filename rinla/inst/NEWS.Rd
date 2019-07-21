@@ -29,6 +29,39 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.07.21}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Removed must-be-enabled warnings in some
+      surival models, from Oct  25 2017
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item Added PC-prior for the Weibull likelihood models. The prior
+      is derived
+      for \code{variant = 1}, which is the good parameterisation.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Added missing \code{to.theta} and \code{from.theta}
+      functions in likelihoods \code{sn} and \code{sn2}
+      \item Fix some documentation in \code{marginal.R} (refering to the
+      obsolete function \code{inla.marginal.transform})
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.05.19}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Set \code{StagedInstall:no} to work around
+      installation problems for MacOS and R-3.6
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.05.17}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
