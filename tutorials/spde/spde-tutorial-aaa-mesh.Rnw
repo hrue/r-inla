@@ -1,6 +1,6 @@
-%%% OOPS: change .Rnw, not .tex 
+%%% OOPS: change .Rnw, not .tex  
 
-\section{Triangulation details and examples}\label{sec:mesh}
+\section{Triangulation details and examples}\label{sec:mesh}   
 
 This content is part of the book available at
 \url{http://www.r-inla.org/spde-book},
@@ -20,6 +20,8 @@ message=FALSE, warning=FALSE
 )
 options(width=75, prompt = " ", continue = "   ")
 library(INLA)
+library(rgdal)
+library(maptools)
 @
 
 The first step to fit the model is 
@@ -411,23 +413,18 @@ the North Carolina map, in package \pkg{spdep},
 \cite{spdep}. 
 
 <<ncmap>>=
-library(maptools)
-nc.fl <- system.file("etc/shapes/sids.shp", package="spdep")[1]
-nc.sids <- readShapePoly(nc.fl, ID="FIPSNO", 
-                         proj4string=CRS("+proj=longlat +ellps=clrk66"))
+library(rgdal)
+nc.sids <- readOGR(system.file("shapes/sids.shp", package="spData")[1])
+proj4string(nc.sids) <- CRS("+proj=longlat +ellps=clrk66")
+row.names(nc.sids) <- as.character(nc.sids$FIPS)
 @ 
 
 We simplify this map by uniting all the areas together. 
 To do it, we use the \code{unionSpatialPolygons()} 
-\pkg{spdep} function that uses function of the \pkg{rgeos} 
-package~\cite{rgeos}. If we don't have the \pkg{rgeos} 
-we can use the \pkg{gpclib} package instead, 
-but the we do need to set a permission 
-<<uionsp,results='hide',eval=FALSE>>=
-gpclibPermit()
-@ 
-before working with this library 
+\pkg{maptools} function that uses function of the \pkg{rgeos} 
+package~\cite{rgeos}. 
 <<unionSpatialPolygons>>=
+library(maptools)
 nc.border <- unionSpatialPolygons(nc.sids, rep(1, nrow(nc.sids)))
 @ 
 
