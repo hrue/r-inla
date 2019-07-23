@@ -49,9 +49,22 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
  */
 #define RUN_SAFE(_expr) if (!GMRFLib_pardiso_thread_safe && omp_in_parallel()) \
 	{								\
-		_Pragma("omp critical")				\
+		int debug = 0;						\
+		if (debug) {						\
+			printf("RUN_SAFE: enter with thread %1d\n", omp_get_thread_num()); \
+			fflush(stdout);					\
+		}							\
+		_Pragma("omp critical")					\
 		{							\
+			if (debug) {					\
+				printf("RUN_SAFE: CRITICAL REGION with thread %1d\n", omp_get_thread_num()); \
+				fflush(stdout);				\
+			}						\
 			_expr;						\
+		}							\
+		if (debug) {						\
+			printf("RUN_SAFE: done with thread %1d\n", omp_get_thread_num()); \
+			fflush(stdout);					\
 		}							\
 	} else {							\
 		_expr;							\

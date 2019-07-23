@@ -6479,8 +6479,13 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	if (cross) {
 		cross_store = Calloc(nlin, cross_tp);
 	}
-	GMRFLib_pardiso_thread_safe = GMRFLib_FALSE;
-#pragma omp parallel for private(i, j, k) num_threads(GMRFLib_openmp->max_threads_outer)
+
+	// there is some bad designed code which require some code calling this to be run as
+	// a critical region, which mess up if run with pardiso and this loop in parallel.
+	// so I disable it for the moment.
+	int use_pardiso = (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ||
+	                   GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL);
+#pragma omp parallel for private(i, j, k) num_threads(GMRFLib_openmp->max_threads_inner) if (!use_pardiso)
 	for (i = 0; i < nlin; i++) {
 
 		int from_idx, to_idx, len, from_idx_a, to_idx_a, len_a, jj;
@@ -6612,7 +6617,6 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 		GMRFLib_density_create_normal(&d[i], (imean - mean) / sqrt(var), 1.0, mean, sqrt(var));
 		Free(a);
 	}
-	GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
 
 	if (cross) {
 		/*
