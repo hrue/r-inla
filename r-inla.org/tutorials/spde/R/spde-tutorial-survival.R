@@ -7,13 +7,15 @@ message=FALSE, warning=FALSE
 options(width=75, prompt = " ", continue = "   ")
 library(INLA)
 library(fields)
-lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
-inla.setOption(num.threads=8)
+lcall <- inla.getOption('inla.call')  
+## inla.setOption(inla.call='remote')
+## inla.setOption(num.threads=4)
 
 
 ## ----Leuk----------------------------------------------------------------
-data(Leuk);    sapply(Leuk, summary)
+data(Leuk) 
+Leuk$time <- Leuk$time/365.25 ## to yearly
+sapply(Leuk, summary)
 
 
 ## ----mesh----------------------------------------------------------------

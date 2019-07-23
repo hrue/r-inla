@@ -6,8 +6,8 @@ fig.path='figs/stcoreg'
 options(width=77, prompt = " ", continue = "   ")
 library(INLA)
 lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
-inla.setOption(num.threads=8)
+## inla.setOption(inla.call='remote')
+## inla.setOption(num.threads=4)
 source('R/spde-tutorial-functions.R')
 set.seed(1)
 

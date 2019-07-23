@@ -1,5 +1,5 @@
 ## ----sett,echo=F,results='hide',message=FALSE,warning=FALSE--------------
-library(knitr)
+library(knitr) 
 opts_chunk$set(
 fig.path='figs/prefsampl',
 message=FALSE, warning=FALSE
@@ -7,8 +7,8 @@ message=FALSE, warning=FALSE
 options(width=75, prompt = " ", continue = "   ")
 library(INLA)
 lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
-inla.setOption(num.threads=7)
+## inla.setOption(inla.call='remote')
+## inla.setOption(num.threads=4)
 library(splancs)
 library(fields)
 source('R/spde-tutorial-functions.R')
@@ -24,22 +24,24 @@ spatstat.options(npixel=300)
 
 
 ## ------------------------------------------------------------------------
+sigma2x <- 0.2 
+kappax <- 2
+rangex <- sqrt(8*1)/kappax
+
+
+## ------------------------------------------------------------------------
 beta0 <- 3
 
 
 ## ----n-exp---------------------------------------------------------------
-exp(beta0) * diff(range(win$x)) * diff(range(win$y))
-
-
-## ------------------------------------------------------------------------
-sigma2x <- 0.2;      kappa <- 2
+exp(beta0 + sigma2x/2) * diff(range(win$x)) * diff(range(win$y))
 
 
 ## ----simulapp,eval=TRUE--------------------------------------------------
 library(RandomFields)
 set.seed(1)
 lg.s <- rLGCP('matern', beta0, 
-              var=sigma2x, scale=1/kappa, nu=1, win=win)
+              var=sigma2x, scale=1/kappax, nu=1, win=win)
 
 
 ## ----xy------------------------------------------------------------------
@@ -182,7 +184,7 @@ round(pp.res$summary.hyperpar, 4)
 ## abline(v=sigma2x, col=2)
 ## plot(pp.res$marginals.hyperpar[[1]], type='l',
 ##      xlab='Nominal range', ylab='Density')
-## abline(v=sqrt(8*1)/kappa, col=2)
+## abline(v=rangex, col=2)
 
 
 ## ----echo=F,results='hide',fig.width=10,fig.height=5---------------------
@@ -195,7 +197,7 @@ plot(pp.res$marginals.hyperpar[[2]], type='l',
 abline(v=sigma2x, col=2)
 plot(pp.res$marginals.hyperpar[[1]], type='l', 
      xlab='Nominal range', ylab='Density')
-abline(v=sqrt(8*1)/kappa, col=2)
+abline(v=rangex, col=2)
 
 
 ## ----gridcov-------------------------------------------------------------
@@ -206,13 +208,13 @@ gridcov <- outer(x0, y0, function(x,y) cos(x) - sin(y-2))
 
 ## ----n-exp-cov-----------------------------------------------------------
 beta1 <- -0.5
-sum(exp(beta0 + beta1*gridcov) * diff(x0[1:2])*diff(y0[1:2]))
+sum(exp(beta0 + beta1*gridcov + sigma2x/2) * diff(x0[1:2])*diff(y0[1:2]))
 
 
 ## ----simulappc-----------------------------------------------------------
 set.seed(1)
 lg.s.c <- rLGCP('matern', im(beta0 + beta1*gridcov, xcol=x0, yrow=y0), 
-              var=sigma2x, scale=1/kappa, nu=1, win=win)
+              var=sigma2x, scale=1/kappax, nu=1, win=win)
 
 
 ## ----xyc-----------------------------------------------------------------
@@ -283,7 +285,7 @@ round(pp.c.res$summary.hyperpar, 4)
 ## plot(pp.c.res$marginals.hyperpar[[2]], type='l', ylab='Density',
 ##      xlab=expression(sigma)); abline(v=sigma2x^0.5, col=2)
 ## plot(pp.c.res$marginals.hyperpar[[1]], type='l', ylab='Density',
-##      xlab=expression(sqrt(8)/kappa)); abline(v=kappa, col=2)
+##      xlab='Range'); abline(v=rangex, col=2)
 
 
 ## ----echo=F,results='hide',fig.width=7.5,fig.height=7.5------------------
@@ -295,7 +297,7 @@ plot(pp.c.res$marginals.fix[[2]], type='l', ylab='Density',
 plot(pp.c.res$marginals.hyperpar[[2]], type='l', ylab='Density', 
      xlab=expression(sigma)); abline(v=sigma2x^0.5, col=2)
 plot(pp.c.res$marginals.hyperpar[[1]], type='l', ylab='Density',
-     xlab=expression(sqrt(8)/kappa)); abline(v=kappa, col=2)
+     xlab='Range'); abline(v=rangex, col=2)
 
 
 ## ----simulaz-------------------------------------------------------------
@@ -327,7 +329,7 @@ round(cbind(True=c(beta0y=beta0.y, prec.y=prec.y),
 ##      type='l', ylab='Density', xlab=expression(sigma))
 ## abline(v=prec.y^-0.5, col=2)
 ## plot(u.res$marginals.hyperpar[[2]], type='l', ylab='Density',
-##      xlab=expression(sqrt(8)/kappa)); abline(v=sqrt(8)/kappa, col=2)
+##      xlab='Range'); abline(v=rangex, col=2)
 ## plot(u.res$marginals.hyperpar[[3]], type='l',
 ##      xlab=expression(sqrt(sigma^2[x])), ylab='Density')
 ## abline(v=sigma2x^0.5, col=2)
@@ -340,7 +342,7 @@ plot(inla.tmarginal(function(x) sqrt(1/x),
      type='l', ylab='Density', xlab=expression(sigma)) 
 abline(v=prec.y^-0.5, col=2)
 plot(u.res$marginals.hyperpar[[2]], type='l', ylab='Density', 
-     xlab=expression(sqrt(8)/kappa)); abline(v=sqrt(8)/kappa, col=2)
+     xlab='Range'); abline(v=rangex, col=2)
 plot(u.res$marginals.hyperpar[[3]], type='l', 
      xlab=expression(sqrt(sigma^2[x])), ylab='Density')
 abline(v=sigma2x^0.5, col=2)
@@ -383,10 +385,10 @@ lines(inla.tmarginal(function(x) 1/x,
                      u.res$marginals.hy[[1]]), lwd=5, lty=3)
 abline(v=1/prec.y, col=2)
 plot(j.res$marginals.hyperpar[[2]], type='l', xlim=c(0,10),
-     xlab=expression(sqrt(8)/kappa), ylab='Density', lwd=2)
+     xlab='Range', ylab='Density', lwd=2)
 lines(pp.res$marginals.hyperpar[[1]], lty=2, lwd=2)
 lines(u.res$marginals.hyperpar[[2]], lty=3, lwd=5)
-abline(v=sqrt(8)/kappa, col=2)
+abline(v=rangex, col=2)
 plot(j.res$marginals.hyperpar[[3]], type='l', lwd=2, xlim=c(0,1),
      xlab=expression(sqrt(sigma[x]^2)), ylab='Density')
 lines(pp.res$marginals.hyperpar[[2]], lty=2, lwd=2)

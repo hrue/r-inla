@@ -9,7 +9,7 @@ library(lattice)
 library(INLA)
 lcall <- inla.getOption('inla.call')
 ##inla.setOption(inla.call='remote')
-##inla.setOption(num.threads=7)
+##inla.setOption(num.threads=4)
 
 
 ## ----datatoy-------------------------------------------------------------

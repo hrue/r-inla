@@ -9,8 +9,8 @@ library(lattice)
 library(INLA)
 library(gridExtra)
 lcall <- inla.getOption('inla.call')
-###inla.setOption(inla.call='remote')
-inla.setOption(num.threads=7)
+## inla.setOption(inla.call='remote')
+## inla.setOption(num.threads=4)
 
 
 ## ----poly----------------------------------------------------------------
@@ -47,7 +47,7 @@ inla.setOption(inla.call=lcall)
 cov1 <- inla.qinv(Q1);         cov2 <- inla.qinv(Q2) 
 
 ## ----changetoremodecall,echo=FALSE---------------------------------------
-inla.setOption(inla.call='remote')
+## inla.setOption(inla.call='remote')
 
 
 ## ----diagC---------------------------------------------------------------
@@ -93,7 +93,7 @@ sample1 <-  as.vector(inla.qsample(1, Q1, seed=1))
 sample2 <-  as.vector(inla.qsample(1, Q2, seed=1))
 
 ## ----changetoremodecall2,echo=FALSE--------------------------------------
-inla.setOption(inla.call='remote')
+## inla.setOption(inla.call='remote')
 
 
 ## ----ssummary------------------------------------------------------------
@@ -129,7 +129,7 @@ s1r <-  as.vector(inla.qsample(1, Q1, seed=1, constr=spde$f$extraconstr))
 s2r <-  as.vector(inla.qsample(1, Q2, seed=1, constr=spde$f$extraconstr))
 
 ## ----changetoremodecall3,echo=FALSE--------------------------------------
-inla.setOption(inla.call='remote')
+## inla.setOption(inla.call='remote')
 
 
 ## ----comparss------------------------------------------------------------
@@ -138,7 +138,7 @@ c(cor1=cor(sample1, s1r), cor2=cor(sample2, s2r))
 
 
 ## ----likehy--------------------------------------------------------------
-clik <- list(hyper=list(theta=list(initial=20, fixed=TRUE)))
+clik <- list(hyper=list(prec=list(initial=20, fixed=TRUE)))
 
 
 ## ----fit12---------------------------------------------------------------
