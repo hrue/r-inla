@@ -1,4 +1,4 @@
-\section{Survival analysis}\label{sec:survival}
+\section{Survival analysis}\label{sec:survival} 
 
 This content is part of the book available at
 \url{http://www.r-inla.org/spde-book},
@@ -15,9 +15,9 @@ message=FALSE, warning=FALSE
 options(width=75, prompt = " ", continue = "   ")
 library(INLA)
 library(fields)
-lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
-inla.setOption(num.threads=8)
+lcall <- inla.getOption('inla.call')  
+## inla.setOption(inla.call='remote')
+## inla.setOption(num.threads=4)
 @ 
 
 In this chapter we shown how to fit a survival model using a 
@@ -34,7 +34,9 @@ Cox proportional hazard model.
 
 We load the Leukaemia survival data using 
 <<Leuk>>=
-data(Leuk);    sapply(Leuk, summary)
+data(Leuk) 
+Leuk$time <- Leuk$time/365.25 ## to yearly
+sapply(Leuk, summary)
 @ 
 
 The mesh is builded using the following code
