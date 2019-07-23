@@ -7,8 +7,8 @@ message=FALSE, warning=FALSE
 options(width=75, prompt = " ", continue = "   ")
 library(INLA)
 lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
-inla.setOption(num.threads=7)
+## inla.setOption(inla.call='remote')
+## inla.setOption(num.threads=4) 
 source('R/spde-tutorial-functions.R')
 
 

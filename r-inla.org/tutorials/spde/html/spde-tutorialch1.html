@@ -13,7 +13,7 @@
 <link rel="stylesheet" type="text/css" href="spde-tutorial.css" /> 
 </head><body 
 >
-   <!--l. 4--><div class="crosslinks"><p class="noindent">[<a 
+   <!--l. 5--><div class="crosslinks"><p class="noindent">[<a 
 href="spde-tutorialch2.html" >next</a>] [<a 
 href="spde-tutorialli1.html" >prev</a>] [<a 
 href="spde-tutorialli1.html#tailspde-tutorialli1.html" >prev-tail</a>] [<a 
@@ -21,7 +21,7 @@ href="#tailspde-tutorialch1.html">tail</a>] [<a
 href="spde-tutorial3.html#spde-tutorialch1.html" >up</a>] </p></div>
    <h2 class="chapterHead"><span class="titlemark">Chapter&#x00A0;1</span><br /><a 
  id="x5-40001"></a>Introduction</h2>
-<!--l. 6--><p class="noindent" >This content is part of the book available at <a 
+<!--l. 7--><p class="noindent" >This content is part of the book available at <a 
 href="http://www.r-inla.org/spde-book" class="url" ><span 
 class="aett-10x-x-109">http://www.r-inla.org/spde-book</span></a>, whose
 Gitbook version is freely available along all the code and datasets.
@@ -29,26 +29,26 @@ Gitbook version is freely available along all the code and datasets.
    <h3 class="sectionHead"><span class="titlemark">1.1   </span> <a 
  id="x5-50001.1"></a>Introduction and main results from <span class="cite">[<a 
 href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren et&#x00A0;al., 2011</a>]</span></h3>
-<!--l. 13--><p class="noindent" >The R source code for this introduction is available at
+<!--l. 14--><p class="noindent" >The R source code for this introduction is available at
 <a 
 href="http://inla.r-inla-download.org/r-inla.org/tutorials/spde/R/spde-tutorial-introduction.R" class="url" ><span 
 class="aett-10x-x-109">http://inla.r-inla-download.org/r-inla.org/tutorials/spde/R/spde-tutorial-introduction.R</span></a>
-</p><!--l. 16--><p class="noindent" >
+</p><!--l. 17--><p class="noindent" >
 </p>
    <h4 class="subsectionHead"><span class="titlemark">1.1.1   </span> <a 
  id="x5-60001.1.1"></a>Spatial variation</h4>
-<!--l. 18--><p class="noindent" >A point-referenced dataset is made up of any data measured at known locations. These
+<!--l. 19--><p class="noindent" >A point-referenced dataset is made up of any data measured at known locations. These
 locations may be in any coordinate reference system, most often longitude and latitude.
 Point-referenced data are common in many areas of science. This type of data appears in
 mining, climate modeling, ecology, agriculture and elsewhere. If we want to incorporate
 the influence of location in a model for the data we need a model for geo-referenced
 data.
-</p><!--l. 30--><p class="indent" >   A regression model can be built using the location&#8217;s coordinates as a covariates. In some
+</p><!--l. 31--><p class="indent" >   A regression model can be built using the location&#8217;s coordinates as a covariates. In some
 cases it will be necessary a complicated function based on the coordinates to adequately describe
 the effect of the location. For example, we can consider basis functions on the coordinates and
 use it as covariates in order to build a complex function. This model explictly the trend on the
 mean.
-</p><!--l. 40--><p class="indent" >   Alternatively, it may be more natural to model explictly the variations of the outcome
+</p><!--l. 41--><p class="indent" >   Alternatively, it may be more natural to model explictly the variations of the outcome
 considering that it maybe similar at nearby locations. The first law of geography asserts:
 &#8220;Everything is related to everything else, but near things are more related than distant things&#8221;,
 <span class="cite">[<a 
@@ -58,16 +58,16 @@ another observation that is collected from farther away. A spatially-structured 
 effects model incorporates such spatial dependency rather than simply one consistent
 spatial trend across a domain. Sometimes it is appropriate to include both terms in a
 model.
-</p><!--l. 56--><p class="indent" >   The models that accounts for spatial dependency may be defined depending whether the
+</p><!--l. 57--><p class="indent" >   The models that accounts for spatial dependency may be defined depending whether the
 locations are areas (cities for example) or points. The latter case is usually divided when
 considering the locations as fixed (geostatistics or point-referenced data) or random (point
 process), <span class="cite">[<a 
 href="spde-tutorialli2.html#Xcressie:1993">Cressie, 1993</a>]</span>.
-</p><!--l. 64--><p class="noindent" >
+</p><!--l. 65--><p class="noindent" >
 </p>
    <h4 class="subsectionHead"><span class="titlemark">1.1.2   </span> <a 
  id="x5-70001.1.2"></a>The Gaussian random field</h4>
-<!--l. 66--><p class="noindent" >To introduce some notation, let <span 
+<!--l. 67--><p class="noindent" >To introduce some notation, let <span 
 class="cmmi-10x-x-109">s </span>be any location in a study area and let <span 
 class="cmmi-10x-x-109">U</span><span 
 class="cmr-10x-x-109">(</span><span 
@@ -91,7 +91,7 @@ we have data measured at geographical locations, over <span
 class="cmmi-10x-x-109">d </span><span 
 class="cmr-10x-x-109">= 2 </span>dimensions within this
 country.
-</p><!--l. 75--><p class="indent" >   Suppose we assume that we have a realization of <span 
+</p><!--l. 76--><p class="indent" >   Suppose we assume that we have a realization of <span 
 class="cmmi-10x-x-109">u</span><span 
 class="cmr-10x-x-109">(</span><span 
 class="aebx-10x-x-109">s</span><sub><span 
@@ -126,7 +126,7 @@ class="cmr-10x-x-109">(</span><span
 class="cmmi-10x-x-109">s</span><span 
 class="cmr-10x-x-109">)</span>, it is necessary to define its mean
 and covariance.
-</p><!--l. 87--><p class="indent" >   A very simple option is to define a correlation function based only on the Euclidean distance
+</p><!--l. 88--><p class="indent" >   A very simple option is to define a correlation function based only on the Euclidean distance
 between locations. This assumes that if we have two pairs of points separated by the same
 distance <span 
 class="cmmi-10x-x-109">h</span>, both pairs have same degree of correlation. It is intuitive to choose a function that
@@ -134,7 +134,7 @@ decrease with distance, <span
 class="cmmi-10x-x-109">h</span>. <span class="cite">[<a 
 href="spde-tutorialli2.html#Xabrahamsen:1997">Abrahamsen, 1997</a>]</span> presents Gaussian random fields and correlation
 functions.
-</p><!--l. 98--><p class="indent" >   Now suppose that we have data <span 
+</p><!--l. 99--><p class="indent" >   Now suppose that we have data <span 
 class="cmmi-10x-x-109">y</span><sub><span 
 class="cmmi-8">i</span></sub> observed at locations <span 
 class="aebx-10x-x-109">s</span><sub><span 
@@ -182,7 +182,7 @@ class="cmr-10x-x-109">) </span>at a finite number of points is considered a real
 distribution. In this case, the likelihood function is the multivariate distribution with covariance
 <span 
 class="cmr-10x-x-109">&#x03A3;</span>.
-</p><!--l. 114--><p class="indent" >   In many situations we assume that there is an underlying GF but we cannot observe direclty.
+</p><!--l. 115--><p class="indent" >   In many situations we assume that there is an underlying GF but we cannot observe direclty.
 Instead we observe data with a measurement error
 </p><table 
 class="align">
@@ -204,7 +204,7 @@ class="cmmi-10x-x-109">.</span></td>                                 <td
 class="align-even"></td>                                 <td 
 class="align-label"><a 
  id="x5-7001r1"></a>(1.1)                                 </td></tr></table>
-<!--l. 120--><p class="indent" >   It is common to assume that <span 
+<!--l. 121--><p class="indent" >   It is common to assume that <span 
 class="cmmi-10x-x-109">e</span><sub><span 
 class="cmmi-8">i</span></sub> is independent of <span 
 class="cmmi-10x-x-109">e</span><sub><span 
@@ -239,7 +239,7 @@ class="cmbx-10x-x-109">I</span>. This is a short extension of the basic GF model
 additional parameter to estimate. For more about this model see <span class="cite">[<a 
 href="spde-tutorialli2.html#Xdiggleribeiro:2007">Diggle and Ribeiro Jr,
 2007</a>]</span>.
-</p><!--l. 133--><p class="indent" >   To usual way to evaluate the likelihood function, which is just a multivariate Gaussian
+</p><!--l. 134--><p class="indent" >   To usual way to evaluate the likelihood function, which is just a multivariate Gaussian
 density for the model in Eq.&#x00A0;<a 
 href="#x5-7001r1">1.1<!--tex4ht:ref: eq:toy0 --></a>, usually considers a Cholesky factorization of the covariance
 matrix. Because this matrix is a dense, this is a operation of order <span 
@@ -254,7 +254,7 @@ about a likelihood function for the data or uses a multivariate Gaussian distrib
 spatially structured random effect. A good description of these techniques is available in <span class="cite">[<a 
 href="spde-tutorialli2.html#Xcressie:1993">Cressie,
 1993</a>]</span>.
-</p><!--l. 150--><p class="indent" >   When extending the model to deal with non-Gaussian data, it is usual to assume a likelihood
+</p><!--l. 151--><p class="indent" >   When extending the model to deal with non-Gaussian data, it is usual to assume a likelihood
 for the data conditional on an unobserved random effect, which is GF to model the spatial
 dependence. Such spatial mixed effects model is under the the model based geostatistics
 approach, citediggleribeiro:2007. It is possible to describe the model in Eq.&#x00A0;<a 
@@ -279,7 +279,7 @@ class="equation"><tr><td><a
 src="spde-tutorial0x.png" alt="yi|&#x03B8;,&#x03B2;,ui,Fi ~ P(yi|&#x03BC;i,&#x03D5; )
      u ~ GF  (0,&#x03A3; )
 " class="math-display"  /></center></td><td class="equation-label">(1.2)</td></tr></table>
-<!--l. 164--><p class="nopar" >
+<!--l. 165--><p class="nopar" >
  where <span 
 class="cmmi-10x-x-109">&#x03BC;</span><sub><span 
 class="cmmi-8">i</span></sub> <span 
@@ -335,7 +335,7 @@ class="cmbx-10x-x-109">u </span>as a
 GF. However, at times one does consider a multivariate Gaussian distribution for
 the random effect, it becomes impractical to use covariance directly for model-based
 inference.
-</p><!--l. 183--><p class="indent" >   In another area of spatial statistics, the analysis of areal data, there are models specified by
+</p><!--l. 184--><p class="indent" >   In another area of spatial statistics, the analysis of areal data, there are models specified by
 conditional distributions that imply a joint distribution with a sparse precision matrix. These
 models are called Gaussian Markov random fields (GMRF) and a good reference is <span class="cite">[<a 
 href="spde-tutorialli2.html#XRueHeld:2005">Rue and
@@ -350,14 +350,14 @@ class="cmmi-8">&#x2215;</span><span
 class="cmr-8">2</span></sup><span 
 class="cmr-10x-x-109">)</span>. This makes it easier to conduct analyses with big
 &#8217;n&#8217;.
-</p><!--l. 198--><p class="indent" >   We can extend this basic hierarchical model in many ways, and we return to some extensions
+</p><!--l. 199--><p class="indent" >   We can extend this basic hierarchical model in many ways, and we return to some extensions
 later. If we know the properties of the GF, we can study all the practical models that contain or
 are based on, this random effect.
-</p><!--l. 204--><p class="noindent" >
+</p><!--l. 205--><p class="noindent" >
 </p>
    <h4 class="subsectionHead"><span class="titlemark">1.1.3   </span> <a 
  id="x5-80001.1.3"></a>The Matérn covariance</h4>
-<!--l. 206--><p class="noindent" >A very popular correlation function is the Matérn correlation function. It has a scale parameter
+<!--l. 207--><p class="noindent" >A very popular correlation function is the Matérn correlation function. It has a scale parameter
 <span 
 class="cmmi-10x-x-109">&#x03BA; &#x003E; </span><span 
 class="cmr-10x-x-109">0 </span>and a smoothness parameter <span 
@@ -377,7 +377,7 @@ class="equation"><tr><td><a
 src="spde-tutorial1x.png" alt="                     21-&#x03BD;             &#x03BD;
 CorM  (U(si),U (sj)) = &#x0393;-(&#x03BD;-)(&#x03BA; &#x2225; si - sj &#x2225;) K &#x03BD;(&#x03BA; &#x2225; si - sj &#x2225;)
 " class="math-display"  /></center></td><td class="equation-label">(1.3)</td></tr></table>
-<!--l. 217--><p class="nopar" >
+<!--l. 218--><p class="nopar" >
 where <span 
 class="cmsy-10x-x-109">&#x2225; </span><span 
 class="cmmi-10x-x-109">. </span><span 
@@ -402,7 +402,7 @@ class="cmr-10x-x-109">))</span>, where <span
 class="cmmi-10x-x-109">&#x03C3;</span><sub><span 
 class="cmmi-8">u</span></sub> is the marginal variance
 of the process.
-</p><!--l. 225--><p class="indent" >   If we have a realization <span 
+</p><!--l. 226--><p class="indent" >   If we have a realization <span 
 class="cmmi-10x-x-109">u</span><span 
 class="cmr-10x-x-109">(</span><span 
 class="cmmi-10x-x-109">s</span><span 
@@ -447,7 +447,7 @@ class="cmmi-10x-x-109">u</span><span
 class="cmr-10x-x-109">(</span><span 
 class="cmmi-10x-x-109">s</span><span 
 class="cmr-10x-x-109">)</span>.
-</p><!--l. 234--><p class="indent" >   To gain a better feel about the Matérn correlation we can drawn samples from the RF
+</p><!--l. 235--><p class="indent" >   To gain a better feel about the Matérn correlation we can drawn samples from the RF
 process and look at it. A sample <span 
 class="cmbx-10x-x-109">u </span>is drawn considering <span 
 class="cmbx-10x-x-109">u </span><span 
@@ -622,7 +622,7 @@ class="aett-10x-x-109">rMatern </span>that is available at
 <a 
 href="http://inla.r-inla-download.org/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R" class="url" ><span 
 class="aett-10x-x-109">http://inla.r-inla-download.org/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R</span></a>
-<!--l. 267--><p class="indent" >   In order to simplify the visualization of the properties, we consider a set of <span 
+<!--l. 268--><p class="indent" >   In order to simplify the visualization of the properties, we consider a set of <span 
 class="cmmi-10x-x-109">n </span><span 
 class="cmr-10x-x-109">= 249 </span>locations
 in the one-dimensional space from 0 to <span 
@@ -658,7 +658,7 @@ class="aett-10x-x-109">(loc))</span></span>
 </div>
 </div>
    </div>
-<!--l. 280--><p class="indent" >   We consider four values for the smoothness parameter <span 
+<!--l. 281--><p class="indent" >   We consider four values for the smoothness parameter <span 
 class="cmmi-10x-x-109">&#x03BD;</span>. The values for the <span 
 class="cmmi-10x-x-109">&#x03BA; </span>parameter was
 determined from the practical range expression <img 
@@ -809,7 +809,7 @@ class="aett-10x-x-109">(nu)))</span></span>
 </div>
 </div>
    </div>
-<!--l. 305--><p class="indent" >   The sample value depends on the covariance matrix and on the noise considered from the
+<!--l. 306--><p class="indent" >   The sample value depends on the covariance matrix and on the noise considered from the
 standard Gaussian distribution, <span 
 class="cmmi-10x-x-109">z</span>. We consider a set of five vectors of size <span 
 class="cmmi-10x-x-109">n </span>drawn from the
@@ -849,7 +849,7 @@ class="aett-10x-x-109">)</span></span>
 </div>
 </div>
    </div>
-<!--l. 324--><p class="indent" >   Therefore, we have a set of <span 
+<!--l. 325--><p class="indent" >   Therefore, we have a set of <span 
 class="cmr-10x-x-109">40 </span>different realizations, five for each parameter configuration
 </p><div class="framedenv" id="kframe-1">
    <div class="alltt">
@@ -960,7 +960,7 @@ class="aett-10x-x-109">})</span></span>
 </div>
 </div>
    </div>
-<!--l. 340--><p class="indent" >   These samples are shown in the eight plots in Figure&#x00A0;<a 
+<!--l. 341--><p class="indent" >   These samples are shown in the eight plots in Figure&#x00A0;<a 
 href="#x5-80001.1.3">1.1.3<!--tex4ht:ref: fig:maternsamples --></a>.
                                                                                  
                                                                                  
@@ -1233,7 +1233,7 @@ class="aett-10x-x-109">}</span></span>
  id="x5-80021"></a>
                                                                                  
                                                                                  
-<!--l. 365--><p class="noindent" ><img 
+<!--l. 366--><p class="noindent" ><img 
 src="spde-tutorial3x.png" alt="PIC" class="graphics" width="413" height="579"  /><!--tex4ht:graphics  
 name="spde-tutorial3x.png" src="figs/intromaternsamplesfig-1.eps"  
 -->
@@ -1245,7 +1245,7 @@ parameter (each line of plots).</span></div><!--tex4ht:label?: x5-80021 -->
                                                                                  
                                                                                  
    </div><hr class="endfigure" />
-<!--l. 374--><p class="indent" >   One important point to observe in Figure&#x00A0;<a 
+<!--l. 375--><p class="indent" >   One important point to observe in Figure&#x00A0;<a 
 href="#x5-80001.1.3">1.1.3<!--tex4ht:ref: fig:maternsamples --></a> is the main feature on the samples. It almost
 does not depends on the smoothness parameter. To see it consider one of the five samples (one of
 the colors) and compare it for different smoothness. Also, image if we add a noise on a smooth
@@ -1255,7 +1255,7 @@ term.
 </p>
    <h4 class="subsectionHead"><span class="titlemark">1.1.4   </span> <a 
  id="x5-90001.1.4"></a>Simulation of a toy data set</h4>
-<!--l. 389--><p class="noindent" >We will now draw a sample from the model in Eq.&#x00A0;<a 
+<!--l. 390--><p class="noindent" >We will now draw a sample from the model in Eq.&#x00A0;<a 
 href="#x5-7001r1">1.1<!--tex4ht:ref: eq:toy0 --></a> and use in Section&#x00A0;<a 
 href="#x5-130001.2">1.2<!--tex4ht:ref: sec:toyexample --></a>. We consider a set
 of <span 
@@ -1335,7 +1335,7 @@ class="aett-10x-x-109">(pts)</span></span>
 </div>
 </div>
    </div>
-<!--l. 414--><p class="indent" >   We choose parameter values for the Matérn as <span 
+<!--l. 415--><p class="indent" >   We choose parameter values for the Matérn as <span 
 class="cmmi-10x-x-109">&#x03C3;</span><sub><span 
 class="cmmi-8">u</span></sub><sup><span 
 class="cmr-8">2</span></sup> <span 
@@ -1390,7 +1390,7 @@ class="aett-10x-x-109">1</span></span>
 </div>
 </div>
    </div>
-<!--l. 427--><p class="indent" >   Now we need to sample from a multivariate distribution with constant mean equals
+<!--l. 428--><p class="indent" >   Now we need to sample from a multivariate distribution with constant mean equals
 <span 
 class="cmmi-10x-x-109">&#x03B2;</span><sub><span 
 class="cmr-8">0</span></sub> and covariance <span 
@@ -1515,7 +1515,7 @@ class="aett-10x-x-109">(n)))</span></span>
 </div>
 </div>
    </div>
-<!--l. 451--><p class="indent" >   We show these simulated data in a graph of the locations where the size of the points is
+<!--l. 452--><p class="indent" >   We show these simulated data in a graph of the locations where the size of the points is
 proportional to the simulated values. Figure&#x00A0;<a 
 href="#x5-90001.1.4">1.1.4<!--tex4ht:ref: fig:grf1 --></a> was produced with the code below
 </p><div class="framedenv" id="kframe-1">
@@ -1628,7 +1628,7 @@ class="aett-10x-x-109">)</span></span>
  id="x5-90012"></a>
                                                                                  
                                                                                  
-<!--l. 469--><p class="noindent" ><img 
+<!--l. 470--><p class="noindent" ><img 
 src="spde-tutorial4x.png" alt="PIC" class="graphics" width="397" height="339"  /><!--tex4ht:graphics  
 name="spde-tutorial4x.png" src="figs/introplot1-1.eps"  
 -->
@@ -1638,7 +1638,7 @@ class="content">The simulated toy example data.</span></div><!--tex4ht:label?: x
                                                                                  
                                                                                  
    </div><hr class="endfigure" />
-<!--l. 475--><p class="indent" >   This data will be used as a toy example in this tutorial. It is available in the <span 
+<!--l. 476--><p class="indent" >   This data will be used as a toy example in this tutorial. It is available in the <span 
 class="aett-10x-x-109">R-INLA </span>package
 and can be loaded by  </p><div class="framedenv" id="kframe-1">
    <div class="alltt">
@@ -1651,13 +1651,13 @@ class="aett-10x-x-109">(SPDEtoy)</span></span>
    </div>
    <h4 class="subsectionHead"><span class="titlemark">1.1.5   </span> <a 
  id="x5-100001.1.5"></a>The SPDE approach</h4>
-<!--l. 488--><p class="noindent" >In this section we summarizes the main results in <span class="cite">[<a 
+<!--l. 489--><p class="noindent" >In this section we summarizes the main results in <span class="cite">[<a 
 href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren et&#x00A0;al., 2011</a>]</span>. If your purpose does
 not includes understanding the methodology, you can skip this section. If you keep
 reading this section and have difficulty, do not be discouraged. You may still be able
 to use INLA effectively even if you have only a limited grasp of what&#8217;s &#8217;under the
 hood.&#8217;
-</p><!--l. 497--><p class="indent" >   <span class="cite">[<a 
+</p><!--l. 498--><p class="indent" >   <span class="cite">[<a 
 href="spde-tutorialli2.html#XrueT:2002">Rue and Tjelmeland, 2002</a>]</span> proposed to approximate a continuous field using a Gaussian
 Markov Random Field - GMRF. This idea is not so strange since there are continuous random
 fields that are Markov. This is the case when the continuous field is a solution of a linear
@@ -1666,7 +1666,7 @@ href="spde-tutorialli2.html#Xrozanov:1977">Rozanov, 1977</a>]</span>. <span clas
 href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren et&#x00A0;al., 2011</a>]</span> provided that
 the GRF with Matérn correlation is a solution for an stochastic partial differential equation
 (SPDE).
-</p><!--l. 508--><p class="indent" >   If you want to get an intuition about the approach, we tried to provide it in this section.
+</p><!--l. 509--><p class="indent" >   If you want to get an intuition about the approach, we tried to provide it in this section.
 However, if you want to know all the details, they are in the Appendix of <span class="cite">[<a 
 href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren
 et&#x00A0;al., 2011</a>]</span>. In few words it uses the Finite Element Method (FEM) along with basis
@@ -1674,11 +1674,11 @@ functions carefully chosen to preserve the sparse structure of the resulting pre
 matrix for the random field at a set of mesh nodes. This provides an explicit link
 between a continuous random field and a GMRF representation, which allows efficient
 computations.
-</p><!--l. 520--><p class="noindent" >
+</p><!--l. 521--><p class="noindent" >
 </p>
    <h5 class="subsubsectionHead"><a 
  id="x5-110001.1.5"></a>First result</h5>
-<!--l. 522--><p class="noindent" >Lindgren&#8217;s first main provided that a GF with a generalized covariance function, obtained when
+<!--l. 523--><p class="noindent" >Lindgren&#8217;s first main provided that a GF with a generalized covariance function, obtained when
 <span 
 class="cmmi-10x-x-109">&#x03BD; </span><span 
 class="cmsy-10x-x-109">&#x2192; </span><span 
@@ -1699,7 +1699,7 @@ class="equation"><tr><td><a
 src="spde-tutorial5x.png" alt="              1
 E (uij|u-ij) = a(ui-1,j + ui+1,j + ui,j-1 + ui,j+1)
 " class="math-display"  /></center></td><td class="equation-label">(1.4)</td></tr></table>
-<!--l. 532--><p class="nopar" >
+<!--l. 533--><p class="nopar" >
 and <span 
 class="cmmi-10x-x-109">V ar</span><span 
 class="cmr-10x-x-109">(</span><span 
@@ -1729,8 +1729,8 @@ src="spde-tutorial6x.png" alt="|
 | -1
 --a----1--
 " class="math-display"  /></center></td><td class="equation-label">(1.5)</td></tr></table>
-<!--l. 543--><p class="nopar" >
-</p><!--l. 545--><p class="indent" >   A GF <span 
+<!--l. 544--><p class="nopar" >
+</p><!--l. 546--><p class="indent" >   A GF <span 
 class="cmmi-10x-x-109">U</span><span 
 class="cmr-10x-x-109">(</span><span 
 class="cmmi-10x-x-109">s</span><span 
@@ -1745,7 +1745,7 @@ class="equation"><tr><td><a
 src="spde-tutorial7x.png" alt="  2     &#x03B1;&#x2215;2                  d
 (&#x03BA;  - &#x0394; )  u (s) = W  (s),s &#x2208; &#x211D; ,&#x03B1; = &#x03BD; + d&#x2215;2,&#x03BA; &#x003E; 0,&#x03BD; &#x003E; 0,
 " class="math-display"  /></center></td><td class="equation-label">(1.6)</td></tr></table>
-<!--l. 550--><p class="nopar" >
+<!--l. 551--><p class="nopar" >
 <span class="cite">[<a 
 href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren et&#x00A0;al., 2011</a>]</span> show that for <span 
 class="cmmi-10x-x-109">&#x03BD; </span><span 
@@ -1767,7 +1767,7 @@ src="spde-tutorial8x.png" alt="|  1
 |    2
 -4+a-----2a--1--
 " class="math-display"  /></center></td><td class="equation-label">(1.7)</td></tr></table>
-<!--l. 561--><p class="nopar" >
+<!--l. 562--><p class="nopar" >
  and, for <span 
 class="cmmi-10x-x-109">&#x03BD; </span><span 
 class="cmr-10x-x-109">= 2</span>:
@@ -1783,8 +1783,8 @@ src="spde-tutorial9x.png" alt="|
 |-3(a2+3)      6a     -3
 -a(a2+12)----3(a2+3-)--3a---1--
 " class="math-display"  /></center></td><td class="equation-label">(1.8)</td></tr></table>
-<!--l. 571--><p class="nopar" >
-</p><!--l. 573--><p class="indent" >   Interpreting the result intuitively, as the smoothness parameter <span 
+<!--l. 572--><p class="nopar" >
+</p><!--l. 574--><p class="indent" >   Interpreting the result intuitively, as the smoothness parameter <span 
 class="cmmi-10x-x-109">&#x03BD; </span>increases the precision
 matrix in the GMRF representation becomes less sparse. Greater density of the matrix is
 because the conditional distributions depend on a wider neighborhood. The precision matrix for
@@ -1806,7 +1806,7 @@ class="cmr-10x-x-109">= 1</span>,
 <span 
 class="cmmib-10x-x-109">Q</span><sub><span 
 class="cmr-8">1</span></sub>.
-</p><!--l. 584--><p class="indent" >   However, the denser matrix does not imply that the conditional mean is an average over a
+</p><!--l. 585--><p class="indent" >   However, the denser matrix does not imply that the conditional mean is an average over a
 wider neighborhood. The conceptual parallel is going from a first order random walk to a second
 order one. To understand this point let us consider the precision matrix for the first order
 random walk, its square and the precision matrix for the second order random walk.
@@ -1839,7 +1839,7 @@ class="aett-10x-x-109">))</span></span>
 &#x00A0;<br />##&#x00A0;[4,]&#x00A0;&#x00A0;.&#x00A0;&#x00A0;.&#x00A0;-1&#x00A0;&#x00A0;2&#x00A0;-1
 &#x00A0;<br />##&#x00A0;[5,]&#x00A0;&#x00A0;.&#x00A0;&#x00A0;.&#x00A0;&#x00A0;.&#x00A0;-1&#x00A0;&#x00A0;1
 </div>
-<!--l. 605--><p class="nopar" ></p><div class="alltt">
+<!--l. 606--><p class="nopar" ></p><div class="alltt">
 <div class="obeylines-v">
 <span id="textcolor545"><span 
 class="aett-10x-x-109">crossprod</span></span><span id="textcolor546"><span 
@@ -1865,7 +1865,7 @@ class="aeitt-10x-x-109">&#x00A0;RW2</span></span>
 &#x00A0;<br />##&#x00A0;[4,]&#x00A0;&#x00A0;.&#x00A0;&#x00A0;1&#x00A0;-4&#x00A0;&#x00A0;6&#x00A0;-3
 &#x00A0;<br />##&#x00A0;[5,]&#x00A0;&#x00A0;.&#x00A0;&#x00A0;.&#x00A0;&#x00A0;1&#x00A0;-3&#x00A0;&#x00A0;2
 </div>
-<!--l. 617--><p class="nopar" ></p><div class="alltt">
+<!--l. 618--><p class="nopar" ></p><div class="alltt">
 <div class="obeylines-v">
 <span id="textcolor548"><span 
 class="aett-10x-x-109">INLA</span></span><span id="textcolor549"><span 
@@ -1889,27 +1889,27 @@ class="aett-10x-x-109">)</span></span>
 &#x00A0;<br />##&#x00A0;[4,]&#x00A0;&#x00A0;.&#x00A0;&#x00A0;1&#x00A0;-4&#x00A0;&#x00A0;5&#x00A0;-2
 &#x00A0;<br />##&#x00A0;[5,]&#x00A0;&#x00A0;.&#x00A0;&#x00A0;.&#x00A0;&#x00A0;1&#x00A0;-2&#x00A0;&#x00A0;1
 </div>
-<!--l. 629--><p class="nopar" >
+<!--l. 630--><p class="nopar" >
 </p>
    </div>
 We can see that the difference is only in the corners.
-<!--l. 635--><p class="noindent" >
+<!--l. 636--><p class="noindent" >
 </p>
    <h5 class="subsubsectionHead"><a 
  id="x5-120001.1.5"></a>Second result</h5>
-<!--l. 637--><p class="noindent" >It is common point data are not located on a grid, but instead are distributed irregularly.
+<!--l. 638--><p class="noindent" >It is common point data are not located on a grid, but instead are distributed irregularly.
 <span class="cite">[<a 
 href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren et&#x00A0;al., 2011</a>]</span> provide a second set of results that provide a solution for the case
 irregular grids. They use the finite element method technique (FEM), a tool that is used widely
 in engineering and applied mathematics to solve differential equations.
-</p><!--l. 646--><p class="indent" >   The domain can be divided into a set of non-intersecting triangles, which may be
+</p><!--l. 647--><p class="indent" >   The domain can be divided into a set of non-intersecting triangles, which may be
 irregular, where any two triangles meet in at most a common edge or corner. The three
 corners of a triangle are named vertices or nodes. The solution for the SPDE and its
 properties will depend on the basis functions used. <span class="cite">[<a 
 href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren et&#x00A0;al., 2011</a>]</span> choose basis
 functions carefully in order to preserve the sparse structure of the resulting precision
 matrix.
-</p><!--l. 658--><p class="indent" >   The approximation is
+</p><!--l. 659--><p class="indent" >   The approximation is
 </p>
    <center class="math-display" >
 <img 
@@ -1917,7 +1917,7 @@ src="spde-tutorial10x.png" alt="      &#x2211;m
 u(s) =    &#x03C8;k(s)wk
       k=1
 " class="math-display"  /></center>
-<!--l. 659--><p class="nopar" > where <span 
+<!--l. 660--><p class="nopar" > where <span 
 class="cmmi-10x-x-109">&#x03C8;</span><sub><span 
 class="cmmi-8">k</span></sub> are basis functions, <span 
 class="cmmi-10x-x-109">w</span><sub><span 
@@ -1940,7 +1940,7 @@ class="cmmi-10x-x-109">k</span>. A stochastic weak solution was considered to
 show that the joint distribution for the weights determines the full distribution in the
 continuous domain. These weights can be interpolated for any point inside the triangulated
 domain.
-</p><!--l. 673--><p class="indent" >   We will now focus on the resulting precision matrix. It does consider the triangulation and
+</p><!--l. 674--><p class="indent" >   We will now focus on the resulting precision matrix. It does consider the triangulation and
 the basis functions. It matches the first result when applying for a regular grid. Consider the set
 of <span 
 class="cmmi-10x-x-109">m </span><span 
@@ -1961,7 +1961,7 @@ class="equation"><tr><td><a
 src="spde-tutorial11x.png" alt="C   = &#x27E8;&#x03C8; ,&#x03C8; &#x27E9;,G   = &#x27E8;&#x2207; &#x03C8; ,&#x2207; &#x03C8; &#x27E9;,(K   )  = &#x03BA;2C   + G   .
   i,j    i  j    i,j      i    j     &#x03BA;i,j       i,j    i,j
 " class="math-display"  /></center></td><td class="equation-label">(1.9)</td></tr></table>
-<!--l. 682--><p class="nopar" >
+<!--l. 683--><p class="nopar" >
 The precision matrix <span 
 class="cmmib-10x-x-109">Q</span><sub><span 
 class="cmmi-8">&#x03B1;,&#x03BA;</span></sub> as a function of <span 
@@ -1979,7 +1979,7 @@ src="spde-tutorial12x.png" alt="               Q1,&#x03BA; = K &#x03BA;,
             -21,&#x03BA;     &#x03BA;-1    &#x03BA;
 Q &#x03B1;,&#x03BA; = K &#x03BA;C   Q &#x03B1;-2,&#x03BA;C   K &#x03BA;,for&#x03B1; = 3,4,....
 " class="math-display"  /></center></td><td class="equation-label">(1.10)</td></tr></table>
-<!--l. 690--><p class="nopar" >
+<!--l. 691--><p class="nopar" >
 The actual <span 
 class="cmmib-10x-x-109">K</span><sub><span 
 class="cmmi-8">&#x03BA;</span></sub> matrix consider
@@ -1989,14 +1989,14 @@ class="cmmi-8">&#x03BA;</span></sub> matrix consider
 src="spde-tutorial13x.png" alt=" &#x02DC;
 Ci,j = &#x27E8;&#x03C8;i,1&#x27E9;
 " class="math-display"  /></center>
-<!--l. 692--><p class="nopar" > instead, which is common when working with FEM. Since <img 
+<!--l. 693--><p class="nopar" > instead, which is common when working with FEM. Since <img 
 src="spde-tutorial14x.png" alt=" &#x02DC;
 C"  class="tilde"  /> is diagonal <span 
 class="cmmib-10x-x-109">K</span><sub><span 
 class="cmmi-8">&#x03BA;</span></sub> is as sparse as
 <span 
 class="cmmib-10x-x-109">G</span>.
-</p><!--l. 697--><p class="indent" >   The projection of the weight for any location inside the mesh domain considers a linear
+</p><!--l. 698--><p class="indent" >   The projection of the weight for any location inside the mesh domain considers a linear
 interpolation in 2D. It uses the barycentric coordinates of the point with respect to the
 coordinates of the triangle vertices. For this particular case they are known also as
 areal coordinates. When a point is inside a triangle we have three non-zero values in
@@ -2004,7 +2004,7 @@ the corresponding line of <span
 class="cmmib-10x-x-109">A</span>. When it is along an edge, we have two non-zeros and
 when the point is on top of a triangle vertex we have only one non-zero which equals
 one.
-</p><!--l. 710--><p class="indent" >   The following code creates a set of six points, builds a mesh around them and extracts the
+</p><!--l. 711--><p class="indent" >   The following code creates a set of six points, builds a mesh around them and extracts the
 FEM matrices (<span 
 class="cmbx-10x-x-109">C</span>, <span 
 class="cmbx-10x-x-109">G </span>and <span 
@@ -2309,7 +2309,7 @@ class="aett-10x-x-109">&#x00A0;pts)</span></span>
 </div>
 </div>
    </div>
-<!--l. 733--><p class="indent" >   We can gain intuition about this result by considering the structure of each matrix which is
+<!--l. 734--><p class="indent" >   We can gain intuition about this result by considering the structure of each matrix which is
 detailed in Appendix A.2 in <span class="cite">[<a 
 href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren et&#x00A0;al., 2011</a>]</span>. It may be easier to understand it by
 considering the plots in Figure&#x00A0;<a 
@@ -2923,11 +2923,11 @@ class="aett-10x-x-109">)</span></span>
  id="x5-120033"></a>
                                                                                  
                                                                                  
-<!--l. 789--><p class="noindent" ><img 
+<!--l. 790--><p class="noindent" ><img 
 src="spde-tutorial15x.png" alt="PIC" class="graphics" width="422" height="140"  /><!--tex4ht:graphics  
 name="spde-tutorial15x.png" src="figs/intromesh0fig-1.eps"  
 -->
-</p><!--l. 791--><p class="noindent" ><img 
+</p><!--l. 792--><p class="noindent" ><img 
 src="spde-tutorial16x.png" alt="PIC" class="graphics" width="422" height="140"  /><!--tex4ht:graphics  
 name="spde-tutorial16x.png" src="figs/intromesh0fig-2.eps"  
 -->
@@ -2942,7 +2942,7 @@ class="cmmib-10x-x-109">A</span> matrix (bottom right).</span></div><!--tex4ht:l
                                                                                  
                                                                                  
    </div><hr class="endfigure" />
-<!--l. 801--><p class="indent" >   The <img 
+<!--l. 802--><p class="indent" >   The <img 
 src="spde-tutorial17x.png" alt="&#x02DC;C"  class="tilde"  /> matrix is diagonal for <img 
 src="spde-tutorial18x.png" alt="C&#x02DC;"  class="tilde"  /><sub><span 
 class="cmmi-8">ii</span></sub> equals the area of the polygons formed from the dual mesh.
@@ -2953,13 +2953,13 @@ class="cmmi-8">ii</span></sub> is equal the sum of one third the area of each tr
 class="cmmi-10x-x-109">i </span>is part of.
 Notice that each polygon around each mesh node is formed by one third of the triangles that it
 is part of.
-</p><!--l. 808--><p class="indent" >   The <span 
+</p><!--l. 809--><p class="indent" >   The <span 
 class="cmmib-10x-x-109">G</span> matrix reflects the connectivity of the mesh nodes. Nodes not connected by edges
 have corresponding entry as zero. The values do not depend on the size of the triangles as they
 are scaled by the area of the triangles. For more detailed information, see A.2 in <span class="cite">[<a 
 href="spde-tutorialli2.html#XlindgrenRL:2011">Lindgren
 et&#x00A0;al., 2011</a>]</span>.
-</p><!--l. 815--><p class="indent" >   We have seen that the resulting precision matrix for increasing <span 
+</p><!--l. 816--><p class="indent" >   We have seen that the resulting precision matrix for increasing <span 
 class="cmmi-10x-x-109">&#x03BD; </span>is a convolution of the
 precision matrix for <span 
 class="cmmi-10x-x-109">&#x03BD; </span><span 
@@ -2972,7 +2972,7 @@ class="cmmi-10x-x-109">&#x03BA;</span><span
 class="cmmib-10x-x-109">C</span> <span 
 class="cmr-10x-x-109">+</span> <span 
 class="cmmib-10x-x-109">G</span>.
-</p><!--l. 823--><p class="indent" >   The <span 
+</p><!--l. 824--><p class="indent" >   The <span 
 class="cmmib-10x-x-109">Q</span> precision matrix is generalized for a fractional values of <span 
 class="cmmi-10x-x-109">&#x03B1; </span>(or <span 
 class="cmmi-10x-x-109">&#x03BD;</span>) using a
@@ -2995,7 +2995,7 @@ src="spde-tutorial20x.png" alt="     &#x2211;p       - 1  i
 Q  =    biC (C   G) .
      i=0
 " class="math-display"  /></center></td><td class="equation-label">(1.11)</td></tr></table>
-<!--l. 830--><p class="nopar" >
+<!--l. 831--><p class="nopar" >
 For <span 
 class="cmmi-10x-x-109">&#x03B1; </span><span 
 class="cmr-10x-x-109">= 1 </span>and <span 
@@ -5377,8 +5377,8 @@ class="aett-10x-x-109">cpu</span></span>
                                                                                  
                                                                                  
    <div class="verbatim" id="verbatim-39">
-##&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;Pre&#x00A0;&#x00A0;&#x00A0;Running&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;Post&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;Total
-&#x00A0;<br />##&#x00A0;0.4026573&#x00A0;6.7569563&#x00A0;0.1046681&#x00A0;7.2642817
+##&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;Pre&#x00A0;&#x00A0;&#x00A0;&#x00A0;Running&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;Post&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;&#x00A0;Total
+&#x00A0;<br />##&#x00A0;0.38548446&#x00A0;6.41950345&#x00A0;0.09945011&#x00A0;6.90443802
 </div>
 <!--l. 890--><p class="nopar" >
 </p>
@@ -6069,7 +6069,7 @@ class="aett-10x-x-109">)</span></span>
                                                                                  
    <div class="verbatim" id="verbatim-40">
 ##&#x00A0;Running&#x00A0;Running&#x00A0;Running&#x00A0;Running&#x00A0;Running&#x00A0;Running
-&#x00A0;<br />##&#x00A0;&#x00A0;&#x00A0;&#x00A0;8.65&#x00A0;&#x00A0;&#x00A0;&#x00A0;1.20&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.69&#x00A0;&#x00A0;&#x00A0;&#x00A0;8.92&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.92&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.75
+&#x00A0;<br />##&#x00A0;&#x00A0;&#x00A0;&#x00A0;8.39&#x00A0;&#x00A0;&#x00A0;&#x00A0;1.17&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.64&#x00A0;&#x00A0;&#x00A0;&#x00A0;8.91&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.94&#x00A0;&#x00A0;&#x00A0;&#x00A0;0.74
 </div>
 <!--l. 992--><p class="nopar" >
 </p>
@@ -9083,153 +9083,123 @@ href="spde-tutorialli2.html#Xspdep">Bivand et&#x00A0;al., 2012</a>]</span>.
 <div class="obeylines-v">
 <span id="textcolor3796"><span 
 class="aett-10x-x-109">library</span></span><span id="textcolor3797"><span 
-class="aett-10x-x-109">(maptools)</span></span>
+class="aett-10x-x-109">(rgdal)</span></span>
 <br /><span id="textcolor3798"><span 
-class="aett-10x-x-109">nc.fl</span></span><span 
+class="aett-10x-x-109">nc.sids</span></span><span 
 class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3799"><span 
 class="aett-10x-x-109">&#x003C;-</span></span><span 
 class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3800"><span 
-class="aett-10x-x-109">system.file</span></span><span id="textcolor3801"><span 
+class="aett-10x-x-109">readOGR</span></span><span id="textcolor3801"><span 
 class="aett-10x-x-109">(</span></span><span id="textcolor3802"><span 
-class="aett-10x-x-109">"etc/shapes/sids.shp"</span></span><span id="textcolor3803"><span 
+class="aett-10x-x-109">system.file</span></span><span id="textcolor3803"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor3804"><span 
+class="aett-10x-x-109">"shapes/sids.shp"</span></span><span id="textcolor3805"><span 
 class="aett-10x-x-109">,</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3804"><span 
-class="aett-10x-x-109">package</span></span><span id="textcolor3805"><span 
-class="aett-10x-x-109">=</span></span><span id="textcolor3806"><span 
-class="aett-10x-x-109">"spdep"</span></span><span id="textcolor3807"><span 
-class="aett-10x-x-109">)[</span></span><span id="textcolor3808"><span 
-class="aett-10x-x-109">1</span></span><span id="textcolor3809"><span 
-class="aett-10x-x-109">]</span></span>
-<br /><span id="textcolor3810"><span 
-class="aett-10x-x-109">nc.sids</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3811"><span 
-class="aett-10x-x-109">&#x003C;-</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3812"><span 
-class="aett-10x-x-109">readShapePoly</span></span><span id="textcolor3813"><span 
-class="aett-10x-x-109">(nc.fl,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3806"><span 
+class="aett-10x-x-109">package</span></span><span id="textcolor3807"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor3808"><span 
+class="aett-10x-x-109">"spData"</span></span><span id="textcolor3809"><span 
+class="aett-10x-x-109">)[</span></span><span id="textcolor3810"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor3811"><span 
+class="aett-10x-x-109">])</span></span>
+</div>
+</div>
+                                                                                 
+                                                                                 
+   <div class="verbatim" id="verbatim-56">
+##&#x00A0;OGR&#x00A0;data&#x00A0;source&#x00A0;with&#x00A0;driver:&#x00A0;ESRI&#x00A0;Shapefile
+&#x00A0;<br />##&#x00A0;Source:&#x00A0;"/usr/local/lib/R/site-library/spData/shapes/sids.shp",&#x00A0;layer:&#x00A0;"sids"
+&#x00A0;<br />##&#x00A0;with&#x00A0;100&#x00A0;features
+&#x00A0;<br />##&#x00A0;It&#x00A0;has&#x00A0;22&#x00A0;fields
+</div>
+<!--l. 573--><p class="nopar" ></p><div class="alltt">
+<div class="obeylines-v">
+<span id="textcolor3812"><span 
+class="aett-10x-x-109">proj4string</span></span><span id="textcolor3813"><span 
+class="aett-10x-x-109">(nc.sids)</span></span><span 
 class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3814"><span 
-class="aett-10x-x-109">ID</span></span><span id="textcolor3815"><span 
-class="aett-10x-x-109">=</span></span><span id="textcolor3816"><span 
-class="aett-10x-x-109">"FIPSNO"</span></span><span id="textcolor3817"><span 
-class="aett-10x-x-109">,</span></span>
-<br /><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3818"><span 
-class="aett-10x-x-109">proj4string</span></span><span id="textcolor3819"><span 
-class="aett-10x-x-109">=</span></span><span id="textcolor3820"><span 
-class="aett-10x-x-109">CRS</span></span><span id="textcolor3821"><span 
-class="aett-10x-x-109">(</span></span><span id="textcolor3822"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3815"><span 
+class="aett-10x-x-109">CRS</span></span><span id="textcolor3816"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor3817"><span 
 class="aett-10x-x-109">"+proj=longlat</span><span 
-class="aett-10x-x-109">&#x00A0;+ellps=clrk66"</span></span><span id="textcolor3823"><span 
-class="aett-10x-x-109">))</span></span>
+class="aett-10x-x-109">&#x00A0;+ellps=clrk66"</span></span><span id="textcolor3818"><span 
+class="aett-10x-x-109">)</span></span>
+<br /><span id="textcolor3819"><span 
+class="aett-10x-x-109">row.names</span></span><span id="textcolor3820"><span 
+class="aett-10x-x-109">(nc.sids)</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3821"><span 
+class="aett-10x-x-109">&#x003C;-</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3822"><span 
+class="aett-10x-x-109">as.character</span></span><span id="textcolor3823"><span 
+class="aett-10x-x-109">(nc.sids</span></span><span id="textcolor3824"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor3825"><span 
+class="aett-10x-x-109">FIPS)</span></span>
 </div>
 </div>
-<!--l. 572--><p class="noindent" ><span 
-class="aett-10x-x-109">## Error in getinfo.shape(filen): Error opening SHP file</span>
-</p>
    </div>
-<!--l. 575--><p class="indent" >   We simplify this map by uniting all the areas together. To do it, we use the
+<!--l. 581--><p class="indent" >   We simplify this map by uniting all the areas together. To do it, we use the
 <span 
 class="aett-10x-x-109">unionSpatialPolygons() </span><span 
-class="aeb10-x-x-109">spdep </span>function that uses function of the <span 
+class="aeb10-x-x-109">maptools </span>function that uses function of the <span 
 class="aeb10-x-x-109">rgeos </span>package&#x00A0;<span class="cite">[<a 
-href="spde-tutorialli2.html#Xrgeos">Bivand and
-Rundel, 2013</a>]</span>. If we don&#8217;t have the <span 
-class="aeb10-x-x-109">rgeos </span>we can use the <span 
-class="aeb10-x-x-109">gpclib </span>package instead, but the we do
-need to set a permission  </p><div class="framedenv" id="kframe-1">
-   <div class="alltt">
-<div class="obeylines-v">
-<span id="textcolor3824"><span 
-class="aett-10x-x-109">gpclibPermit</span></span><span id="textcolor3825"><span 
-class="aett-10x-x-109">()</span></span>
-</div>
-</div>
-   </div>
-before working with this library  <div class="framedenv" id="kframe-1">
+href="spde-tutorialli2.html#Xrgeos">Bivand
+and Rundel, 2013</a>]</span>.  </p><div class="framedenv" id="kframe-1">
    <div class="alltt">
 <div class="obeylines-v">
 <span id="textcolor3826"><span 
+class="aett-10x-x-109">library</span></span><span id="textcolor3827"><span 
+class="aett-10x-x-109">(maptools)</span></span>
+<br /><span id="textcolor3828"><span 
 class="aett-10x-x-109">nc.border</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3827"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3829"><span 
 class="aett-10x-x-109">&#x003C;-</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3828"><span 
-class="aett-10x-x-109">unionSpatialPolygons</span></span><span id="textcolor3829"><span 
-class="aett-10x-x-109">(nc.sids,</span></span><span 
 class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3830"><span 
-class="aett-10x-x-109">rep</span></span><span id="textcolor3831"><span 
-class="aett-10x-x-109">(</span></span><span id="textcolor3832"><span 
-class="aett-10x-x-109">1</span></span><span id="textcolor3833"><span 
+class="aett-10x-x-109">unionSpatialPolygons</span></span><span id="textcolor3831"><span 
+class="aett-10x-x-109">(nc.sids,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3832"><span 
+class="aett-10x-x-109">rep</span></span><span id="textcolor3833"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor3834"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor3835"><span 
 class="aett-10x-x-109">,</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3834"><span 
-class="aett-10x-x-109">nrow</span></span><span id="textcolor3835"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3836"><span 
+class="aett-10x-x-109">nrow</span></span><span id="textcolor3837"><span 
 class="aett-10x-x-109">(nc.sids)))</span></span>
 </div>
 </div>
-<!--l. 596--><p class="noindent" ><span 
-class="aett-10x-x-109">## Error in is(SpP, "SpatialPolygons"): object &#8217;nc.sids&#8217; not found</span>
-</p>
    </div>
-<!--l. 599--><p class="indent" >   Now, we use the <span 
+<!--l. 594--><p class="indent" >   Now, we use the <span 
 class="aett-10x-x-109">inla.sp2segment() </span>to extract the boundary of the <span 
 class="aett-10x-x-109">SpatialPolygons</span>
 object that contains the border of the map  </p><div class="framedenv" id="kframe-1">
    <div class="alltt">
-                                                                                 
-                                                                                 
 <div class="obeylines-v">
-<span id="textcolor3836"><span 
+<span id="textcolor3838"><span 
 class="aett-10x-x-109">nc.bdry</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3837"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3839"><span 
 class="aett-10x-x-109">&#x003C;-</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3838"><span 
-class="aett-10x-x-109">inla.sp2segment</span></span><span id="textcolor3839"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3840"><span 
+class="aett-10x-x-109">inla.sp2segment</span></span><span id="textcolor3841"><span 
 class="aett-10x-x-109">(nc.border)</span></span>
 </div>
 </div>
-<!--l. 609--><p class="noindent" ><span 
-class="aett-10x-x-109">## Error in inla.sp2segment(nc.border): object &#8217;nc.border&#8217; not found</span>
-</p>
    </div>
 and creates the mesh  <div class="framedenv" id="kframe-1">
    <div class="alltt">
 <div class="obeylines-v">
-<span id="textcolor3840"><span 
+<span id="textcolor3842"><span 
 class="aett-10x-x-109">(nc.mesh</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3841"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3843"><span 
 class="aett-10x-x-109">&#x003C;-</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3842"><span 
-class="aett-10x-x-109">inla.mesh.2d</span></span><span id="textcolor3843"><span 
-class="aett-10x-x-109">(</span></span><span id="textcolor3844"><span 
-class="aett-10x-x-109">boundary</span></span><span id="textcolor3845"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3844"><span 
+class="aett-10x-x-109">inla.mesh.2d</span></span><span id="textcolor3845"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor3846"><span 
+class="aett-10x-x-109">boundary</span></span><span id="textcolor3847"><span 
 class="aett-10x-x-109">=nc.bdry,</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3846"><span 
-class="aett-10x-x-109">cutoff</span></span><span id="textcolor3847"><span 
-class="aett-10x-x-109">=</span></span><span id="textcolor3848"><span 
-class="aett-10x-x-109">0.15</span></span><span id="textcolor3849"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3848"><span 
+class="aett-10x-x-109">cutoff</span></span><span id="textcolor3849"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor3850"><span 
+class="aett-10x-x-109">0.15</span></span><span id="textcolor3851"><span 
 class="aett-10x-x-109">,</span></span>
 <br /><span 
 class="aett-10x-x-109">&#x00A0;</span><span 
@@ -9256,57 +9226,59 @@ class="aett-10x-x-109">&#x00A0;</span><span
 class="aett-10x-x-109">&#x00A0;</span><span 
 class="aett-10x-x-109">&#x00A0;</span><span 
 class="aett-10x-x-109">&#x00A0;</span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3850"><span 
-class="aett-10x-x-109">max.edge</span></span><span id="textcolor3851"><span 
-class="aett-10x-x-109">=</span></span><span id="textcolor3852"><span 
-class="aett-10x-x-109">c</span></span><span id="textcolor3853"><span 
-class="aett-10x-x-109">(</span></span><span id="textcolor3854"><span 
-class="aett-10x-x-109">0.3</span></span><span id="textcolor3855"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3852"><span 
+class="aett-10x-x-109">max.edge</span></span><span id="textcolor3853"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor3854"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor3855"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor3856"><span 
+class="aett-10x-x-109">0.3</span></span><span id="textcolor3857"><span 
 class="aett-10x-x-109">,</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3856"><span 
-class="aett-10x-x-109">1</span></span><span id="textcolor3857"><span 
-class="aett-10x-x-109">)))</span></span><span id="textcolor3858"><span 
-class="aett-10x-x-109">$</span></span><span id="textcolor3859"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3858"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor3859"><span 
+class="aett-10x-x-109">)))</span></span><span id="textcolor3860"><span 
+class="aett-10x-x-109">$</span></span><span id="textcolor3861"><span 
 class="aett-10x-x-109">n</span></span>
 </div>
 </div>
-<!--l. 620--><p class="noindent" ><span 
-class="aett-10x-x-109">## Error in inla.mesh.2d(boundary = nc.bdry, cutoff = 0.15, max.edge = c(0.3, :</span>
-<span 
-class="aett-10x-x-109">object &#8217;nc.bdry&#8217; not found</span>
+                                                                                 
+                                                                                 
+   <div class="verbatim" id="verbatim-57">
+##&#x00A0;[1]&#x00A0;534
+</div>
+<!--l. 613--><p class="nopar" >
 </p>
    </div>
 that is visualized on Figure&#x00A0;<a 
 href="#x5-320001.3.5">1.3.5<!--tex4ht:ref: fig:ncmesh --></a> with the commands bellow.  <div class="framedenv" id="kframe-1">
    <div class="alltt">
 <div class="obeylines-v">
-<span id="textcolor3860"><span 
-class="aett-10x-x-109">par</span></span><span id="textcolor3861"><span 
-class="aett-10x-x-109">(</span></span><span id="textcolor3862"><span 
-class="aett-10x-x-109">mar</span></span><span id="textcolor3863"><span 
-class="aett-10x-x-109">=</span></span><span id="textcolor3864"><span 
-class="aett-10x-x-109">c</span></span><span id="textcolor3865"><span 
-class="aett-10x-x-109">(</span></span><span id="textcolor3866"><span 
-class="aett-10x-x-109">0</span></span><span id="textcolor3867"><span 
-class="aett-10x-x-109">,</span></span><span id="textcolor3868"><span 
+<span id="textcolor3862"><span 
+class="aett-10x-x-109">par</span></span><span id="textcolor3863"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor3864"><span 
+class="aett-10x-x-109">mar</span></span><span id="textcolor3865"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor3866"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor3867"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor3868"><span 
 class="aett-10x-x-109">0</span></span><span id="textcolor3869"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3870"><span 
 class="aett-10x-x-109">0</span></span><span id="textcolor3871"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3872"><span 
 class="aett-10x-x-109">0</span></span><span id="textcolor3873"><span 
+class="aett-10x-x-109">,</span></span><span id="textcolor3874"><span 
+class="aett-10x-x-109">0</span></span><span id="textcolor3875"><span 
 class="aett-10x-x-109">))</span></span>
-<br /><span id="textcolor3874"><span 
-class="aett-10x-x-109">plot</span></span><span id="textcolor3875"><span 
+<br /><span id="textcolor3876"><span 
+class="aett-10x-x-109">plot</span></span><span id="textcolor3877"><span 
 class="aett-10x-x-109">(nc.mesh,</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3876"><span 
-class="aett-10x-x-109">asp</span></span><span id="textcolor3877"><span 
-class="aett-10x-x-109">=</span></span><span id="textcolor3878"><span 
-class="aett-10x-x-109">1</span></span><span id="textcolor3879"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3878"><span 
+class="aett-10x-x-109">asp</span></span><span id="textcolor3879"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor3880"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor3881"><span 
 class="aett-10x-x-109">,</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3880"><span 
-class="aett-10x-x-109">main</span></span><span id="textcolor3881"><span 
-class="aett-10x-x-109">=</span></span><span id="textcolor3882"><span 
-class="tctt-1095">''</span></span><span id="textcolor3883"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3882"><span 
+class="aett-10x-x-109">main</span></span><span id="textcolor3883"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor3884"><span 
+class="tctt-1095">''</span></span><span id="textcolor3885"><span 
 class="aett-10x-x-109">)</span></span>
 </div>
 </div>
@@ -9319,12 +9291,11 @@ class="aett-10x-x-109">)</span></span>
  id="x5-3200110"></a>
                                                                                  
                                                                                  
-<div class="framedenv" id="kframe-1">
-<!--l. 637--><p class="noindent" ><span 
-class="aett-10x-x-109">## Error in plot(nc.mesh, asp = 1, main = ""): object &#8217;nc.mesh&#8217; not found</span>
-</p>
-</div>
-<br /> <div class="caption" 
+<!--l. 629--><p class="noindent" ><img 
+src="spde-tutorial30x.png" alt="PIC" class="graphics" width="426" height="160"  /><!--tex4ht:graphics  
+name="spde-tutorial30x.png" src="figs/meshncmeshv-1.eps"  
+-->
+<br /> </p><div class="caption" 
 ><span class="id">Figure&#x00A0;1.10: </span><span  
 class="content">Mesh constructed using the North Carolina map</span></div><!--tex4ht:label?: x5-3200110 -->
                                                                                  
@@ -9332,224 +9303,224 @@ class="content">Mesh constructed using the North Carolina map</span></div><!--te
    </div><hr class="endfigure" />
    <h4 class="subsectionHead"><span class="titlemark">1.3.6   </span> <a 
  id="x5-330001.3.6"></a>Mesh with holes and physical boundaries</h4>
-<!--l. 647--><p class="noindent" >Sometimes we need to deal with physical boundaries. It can be when there is a hole inside the
+<!--l. 640--><p class="noindent" >Sometimes we need to deal with physical boundaries. It can be when there is a hole inside the
 domain or when the domain shape is not convex. An example of application is when modelling
 fish and we have to consider the inland as a physical barrier and, sometimes, islands inside the
 domain.
-</p><!--l. 652--><p class="indent" >   The polygons in the Figure&#x00A0;<a 
+</p><!--l. 645--><p class="indent" >   The polygons in the Figure&#x00A0;<a 
 href="#x5-330001.3.6">1.3.6<!--tex4ht:ref: fig:lakehole --></a> were created with the following commands:  </p><div class="framedenv" id="kframe-1">
    <div class="alltt">
 <div class="obeylines-v">
-<span id="textcolor3884"><span 
+<span id="textcolor3886"><span 
 class="aett-10x-x-109">pl1</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3885"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3887"><span 
 class="aett-10x-x-109">&#x003C;-</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3886"><span 
-class="aett-10x-x-109">Polygon</span></span><span id="textcolor3887"><span 
-class="aett-10x-x-109">(</span></span><span id="textcolor3888"><span 
-class="aett-10x-x-109">cbind</span></span><span id="textcolor3889"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3888"><span 
+class="aett-10x-x-109">Polygon</span></span><span id="textcolor3889"><span 
 class="aett-10x-x-109">(</span></span><span id="textcolor3890"><span 
-class="aett-10x-x-109">c</span></span><span id="textcolor3891"><span 
+class="aett-10x-x-109">cbind</span></span><span id="textcolor3891"><span 
 class="aett-10x-x-109">(</span></span><span id="textcolor3892"><span 
-class="aett-10x-x-109">0</span></span><span id="textcolor3893"><span 
-class="aett-10x-x-109">,</span></span><span id="textcolor3894"><span 
-class="aett-10x-x-109">15</span></span><span id="textcolor3895"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor3893"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor3894"><span 
+class="aett-10x-x-109">0</span></span><span id="textcolor3895"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3896"><span 
 class="aett-10x-x-109">15</span></span><span id="textcolor3897"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3898"><span 
-class="aett-10x-x-109">0</span></span><span id="textcolor3899"><span 
+class="aett-10x-x-109">15</span></span><span id="textcolor3899"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3900"><span 
 class="aett-10x-x-109">0</span></span><span id="textcolor3901"><span 
+class="aett-10x-x-109">,</span></span><span id="textcolor3902"><span 
+class="aett-10x-x-109">0</span></span><span id="textcolor3903"><span 
 class="aett-10x-x-109">),</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3902"><span 
-class="aett-10x-x-109">c</span></span><span id="textcolor3903"><span 
-class="aett-10x-x-109">(</span></span><span id="textcolor3904"><span 
-class="aett-10x-x-109">5</span></span><span id="textcolor3905"><span 
-class="aett-10x-x-109">,</span></span><span id="textcolor3906"><span 
-class="aett-10x-x-109">0</span></span><span id="textcolor3907"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3904"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor3905"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor3906"><span 
+class="aett-10x-x-109">5</span></span><span id="textcolor3907"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3908"><span 
-class="aett-10x-x-109">20</span></span><span id="textcolor3909"><span 
+class="aett-10x-x-109">0</span></span><span id="textcolor3909"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3910"><span 
 class="aett-10x-x-109">20</span></span><span id="textcolor3911"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3912"><span 
-class="aett-10x-x-109">5</span></span><span id="textcolor3913"><span 
+class="aett-10x-x-109">20</span></span><span id="textcolor3913"><span 
+class="aett-10x-x-109">,</span></span><span id="textcolor3914"><span 
+class="aett-10x-x-109">5</span></span><span id="textcolor3915"><span 
 class="aett-10x-x-109">)),</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3914"><span 
-class="aett-10x-x-109">hole</span></span><span id="textcolor3915"><span 
-class="aett-10x-x-109">=</span></span><span id="textcolor3916"><span 
-class="aett-10x-x-109">FALSE</span></span><span id="textcolor3917"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3916"><span 
+class="aett-10x-x-109">hole</span></span><span id="textcolor3917"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor3918"><span 
+class="aett-10x-x-109">FALSE</span></span><span id="textcolor3919"><span 
 class="aett-10x-x-109">)</span></span>
-<br /><span id="textcolor3918"><span 
+<br /><span id="textcolor3920"><span 
 class="aett-10x-x-109">h1</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3919"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3921"><span 
 class="aett-10x-x-109">&#x003C;-</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3920"><span 
-class="aett-10x-x-109">Polygon</span></span><span id="textcolor3921"><span 
-class="aett-10x-x-109">(</span></span><span id="textcolor3922"><span 
-class="aett-10x-x-109">cbind</span></span><span id="textcolor3923"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3922"><span 
+class="aett-10x-x-109">Polygon</span></span><span id="textcolor3923"><span 
 class="aett-10x-x-109">(</span></span><span id="textcolor3924"><span 
-class="aett-10x-x-109">c</span></span><span id="textcolor3925"><span 
+class="aett-10x-x-109">cbind</span></span><span id="textcolor3925"><span 
 class="aett-10x-x-109">(</span></span><span id="textcolor3926"><span 
-class="aett-10x-x-109">5</span></span><span id="textcolor3927"><span 
-class="aett-10x-x-109">,</span></span><span id="textcolor3928"><span 
-class="aett-10x-x-109">7</span></span><span id="textcolor3929"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor3927"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor3928"><span 
+class="aett-10x-x-109">5</span></span><span id="textcolor3929"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3930"><span 
 class="aett-10x-x-109">7</span></span><span id="textcolor3931"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3932"><span 
-class="aett-10x-x-109">5</span></span><span id="textcolor3933"><span 
+class="aett-10x-x-109">7</span></span><span id="textcolor3933"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3934"><span 
 class="aett-10x-x-109">5</span></span><span id="textcolor3935"><span 
+class="aett-10x-x-109">,</span></span><span id="textcolor3936"><span 
+class="aett-10x-x-109">5</span></span><span id="textcolor3937"><span 
 class="aett-10x-x-109">),</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3936"><span 
-class="aett-10x-x-109">c</span></span><span id="textcolor3937"><span 
-class="aett-10x-x-109">(</span></span><span id="textcolor3938"><span 
-class="aett-10x-x-109">7</span></span><span id="textcolor3939"><span 
-class="aett-10x-x-109">,</span></span><span id="textcolor3940"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3938"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor3939"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor3940"><span 
 class="aett-10x-x-109">7</span></span><span id="textcolor3941"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3942"><span 
-class="aett-10x-x-109">15</span></span><span id="textcolor3943"><span 
+class="aett-10x-x-109">7</span></span><span id="textcolor3943"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3944"><span 
 class="aett-10x-x-109">15</span></span><span id="textcolor3945"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3946"><span 
-class="aett-10x-x-109">7</span></span><span id="textcolor3947"><span 
+class="aett-10x-x-109">15</span></span><span id="textcolor3947"><span 
+class="aett-10x-x-109">,</span></span><span id="textcolor3948"><span 
+class="aett-10x-x-109">7</span></span><span id="textcolor3949"><span 
 class="aett-10x-x-109">)),</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3948"><span 
-class="aett-10x-x-109">hole</span></span><span id="textcolor3949"><span 
-class="aett-10x-x-109">=</span></span><span id="textcolor3950"><span 
-class="aett-10x-x-109">TRUE</span></span><span id="textcolor3951"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3950"><span 
+class="aett-10x-x-109">hole</span></span><span id="textcolor3951"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor3952"><span 
+class="aett-10x-x-109">TRUE</span></span><span id="textcolor3953"><span 
 class="aett-10x-x-109">)</span></span>
-<br /><span id="textcolor3952"><span 
+<br /><span id="textcolor3954"><span 
 class="aett-10x-x-109">pl2</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3953"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3955"><span 
 class="aett-10x-x-109">&#x003C;-</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3954"><span 
-class="aett-10x-x-109">Polygon</span></span><span id="textcolor3955"><span 
-class="aett-10x-x-109">(</span></span><span id="textcolor3956"><span 
-class="aett-10x-x-109">cbind</span></span><span id="textcolor3957"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3956"><span 
+class="aett-10x-x-109">Polygon</span></span><span id="textcolor3957"><span 
 class="aett-10x-x-109">(</span></span><span id="textcolor3958"><span 
-class="aett-10x-x-109">c</span></span><span id="textcolor3959"><span 
+class="aett-10x-x-109">cbind</span></span><span id="textcolor3959"><span 
 class="aett-10x-x-109">(</span></span><span id="textcolor3960"><span 
-class="aett-10x-x-109">15</span></span><span id="textcolor3961"><span 
-class="aett-10x-x-109">,</span></span><span id="textcolor3962"><span 
-class="aett-10x-x-109">20</span></span><span id="textcolor3963"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor3961"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor3962"><span 
+class="aett-10x-x-109">15</span></span><span id="textcolor3963"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3964"><span 
 class="aett-10x-x-109">20</span></span><span id="textcolor3965"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3966"><span 
-class="aett-10x-x-109">30</span></span><span id="textcolor3967"><span 
+class="aett-10x-x-109">20</span></span><span id="textcolor3967"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3968"><span 
 class="aett-10x-x-109">30</span></span><span id="textcolor3969"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3970"><span 
-class="aett-10x-x-109">15</span></span><span id="textcolor3971"><span 
+class="aett-10x-x-109">30</span></span><span id="textcolor3971"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3972"><span 
 class="aett-10x-x-109">15</span></span><span id="textcolor3973"><span 
+class="aett-10x-x-109">,</span></span><span id="textcolor3974"><span 
+class="aett-10x-x-109">15</span></span><span id="textcolor3975"><span 
 class="aett-10x-x-109">),</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3974"><span 
-class="aett-10x-x-109">c</span></span><span id="textcolor3975"><span 
-class="aett-10x-x-109">(</span></span><span id="textcolor3976"><span 
-class="aett-10x-x-109">10</span></span><span id="textcolor3977"><span 
-class="aett-10x-x-109">,</span></span><span id="textcolor3978"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3976"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor3977"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor3978"><span 
 class="aett-10x-x-109">10</span></span><span id="textcolor3979"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3980"><span 
-class="aett-10x-x-109">0</span></span><span id="textcolor3981"><span 
+class="aett-10x-x-109">10</span></span><span id="textcolor3981"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3982"><span 
 class="aett-10x-x-109">0</span></span><span id="textcolor3983"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3984"><span 
-class="aett-10x-x-109">20</span></span><span id="textcolor3985"><span 
+class="aett-10x-x-109">0</span></span><span id="textcolor3985"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3986"><span 
 class="aett-10x-x-109">20</span></span><span id="textcolor3987"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor3988"><span 
-class="aett-10x-x-109">10</span></span><span id="textcolor3989"><span 
+class="aett-10x-x-109">20</span></span><span id="textcolor3989"><span 
+class="aett-10x-x-109">,</span></span><span id="textcolor3990"><span 
+class="aett-10x-x-109">10</span></span><span id="textcolor3991"><span 
 class="aett-10x-x-109">)),</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3990"><span 
-class="aett-10x-x-109">hole</span></span><span id="textcolor3991"><span 
-class="aett-10x-x-109">=</span></span><span id="textcolor3992"><span 
-class="aett-10x-x-109">FALSE</span></span><span id="textcolor3993"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3992"><span 
+class="aett-10x-x-109">hole</span></span><span id="textcolor3993"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor3994"><span 
+class="aett-10x-x-109">FALSE</span></span><span id="textcolor3995"><span 
 class="aett-10x-x-109">)</span></span>
-<br /><span id="textcolor3994"><span 
+<br /><span id="textcolor3996"><span 
 class="aett-10x-x-109">sp</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3995"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3997"><span 
 class="aett-10x-x-109">&#x003C;-</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3996"><span 
-class="aett-10x-x-109">SpatialPolygons</span></span><span id="textcolor3997"><span 
-class="aett-10x-x-109">(</span></span><span id="textcolor3998"><span 
-class="aett-10x-x-109">list</span></span><span id="textcolor3999"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor3998"><span 
+class="aett-10x-x-109">SpatialPolygons</span></span><span id="textcolor3999"><span 
 class="aett-10x-x-109">(</span></span><span id="textcolor4000"><span 
-class="aett-10x-x-109">Polygons</span></span><span id="textcolor4001"><span 
+class="aett-10x-x-109">list</span></span><span id="textcolor4001"><span 
 class="aett-10x-x-109">(</span></span><span id="textcolor4002"><span 
-class="aett-10x-x-109">list</span></span><span id="textcolor4003"><span 
+class="aett-10x-x-109">Polygons</span></span><span id="textcolor4003"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor4004"><span 
+class="aett-10x-x-109">list</span></span><span id="textcolor4005"><span 
 class="aett-10x-x-109">(pl1,</span><span 
 class="aett-10x-x-109">&#x00A0;h1),</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4004"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4006"><span 
 class="tctt-1095">'</span><span 
 class="aett-10x-x-109">0</span><span 
-class="tctt-1095">'</span></span><span id="textcolor4005"><span 
+class="tctt-1095">'</span></span><span id="textcolor4007"><span 
 class="aett-10x-x-109">),</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4006"><span 
-class="aett-10x-x-109">Polygons</span></span><span id="textcolor4007"><span 
-class="aett-10x-x-109">(</span></span><span id="textcolor4008"><span 
-class="aett-10x-x-109">list</span></span><span id="textcolor4009"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4008"><span 
+class="aett-10x-x-109">Polygons</span></span><span id="textcolor4009"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor4010"><span 
+class="aett-10x-x-109">list</span></span><span id="textcolor4011"><span 
 class="aett-10x-x-109">(pl2),</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4010"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4012"><span 
 class="tctt-1095">'</span><span 
 class="aett-10x-x-109">1</span><span 
-class="tctt-1095">'</span></span><span id="textcolor4011"><span 
+class="tctt-1095">'</span></span><span id="textcolor4013"><span 
 class="aett-10x-x-109">)))</span></span>
-<br /><span id="textcolor4012"><span 
-class="aett-10x-x-109">par</span></span><span id="textcolor4013"><span 
-class="aett-10x-x-109">(</span></span><span id="textcolor4014"><span 
-class="aett-10x-x-109">mar</span></span><span id="textcolor4015"><span 
-class="aett-10x-x-109">=</span></span><span id="textcolor4016"><span 
-class="aett-10x-x-109">c</span></span><span id="textcolor4017"><span 
-class="aett-10x-x-109">(</span></span><span id="textcolor4018"><span 
-class="aett-10x-x-109">0</span></span><span id="textcolor4019"><span 
-class="aett-10x-x-109">,</span></span><span id="textcolor4020"><span 
+<br /><span id="textcolor4014"><span 
+class="aett-10x-x-109">par</span></span><span id="textcolor4015"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor4016"><span 
+class="aett-10x-x-109">mar</span></span><span id="textcolor4017"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor4018"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor4019"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor4020"><span 
 class="aett-10x-x-109">0</span></span><span id="textcolor4021"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor4022"><span 
 class="aett-10x-x-109">0</span></span><span id="textcolor4023"><span 
 class="aett-10x-x-109">,</span></span><span id="textcolor4024"><span 
 class="aett-10x-x-109">0</span></span><span id="textcolor4025"><span 
+class="aett-10x-x-109">,</span></span><span id="textcolor4026"><span 
+class="aett-10x-x-109">0</span></span><span id="textcolor4027"><span 
 class="aett-10x-x-109">));</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4026"><span 
-class="aett-10x-x-109">plot</span></span><span id="textcolor4027"><span 
-class="aett-10x-x-109">(sp)</span></span><span 
 class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4028"><span 
+class="aett-10x-x-109">plot</span></span><span id="textcolor4029"><span 
+class="aett-10x-x-109">(sp)</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4030"><span 
 class="aeitt-10x-x-109">###</span><span 
 class="aeitt-10x-x-109">&#x00A0;to</span><span 
 class="aeitt-10x-x-109">&#x00A0;visualize</span><span 
 class="aeitt-10x-x-109">&#x00A0;it</span></span>
-<br /><span id="textcolor4029"><span 
-class="aett-10x-x-109">text</span></span><span id="textcolor4030"><span 
-class="aett-10x-x-109">(</span></span><span id="textcolor4031"><span 
-class="aett-10x-x-109">c</span></span><span id="textcolor4032"><span 
+<br /><span id="textcolor4031"><span 
+class="aett-10x-x-109">text</span></span><span id="textcolor4032"><span 
 class="aett-10x-x-109">(</span></span><span id="textcolor4033"><span 
-class="aett-10x-x-109">13</span></span><span id="textcolor4034"><span 
-class="aett-10x-x-109">,</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4035"><span 
-class="aett-10x-x-109">17</span></span><span id="textcolor4036"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor4034"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor4035"><span 
+class="aett-10x-x-109">13</span></span><span id="textcolor4036"><span 
 class="aett-10x-x-109">,</span></span><span 
 class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4037"><span 
-class="aett-10x-x-109">23</span></span><span id="textcolor4038"><span 
-class="aett-10x-x-109">),</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4039"><span 
-class="aett-10x-x-109">c</span></span><span id="textcolor4040"><span 
-class="aett-10x-x-109">(</span></span><span id="textcolor4041"><span 
-class="aett-10x-x-109">3</span></span><span id="textcolor4042"><span 
+class="aett-10x-x-109">17</span></span><span id="textcolor4038"><span 
 class="aett-10x-x-109">,</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4043"><span 
-class="aett-10x-x-109">12</span></span><span id="textcolor4044"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4039"><span 
+class="aett-10x-x-109">23</span></span><span id="textcolor4040"><span 
+class="aett-10x-x-109">),</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4041"><span 
+class="aett-10x-x-109">c</span></span><span id="textcolor4042"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor4043"><span 
+class="aett-10x-x-109">3</span></span><span id="textcolor4044"><span 
 class="aett-10x-x-109">,</span></span><span 
 class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4045"><span 
-class="aett-10x-x-109">3</span></span><span id="textcolor4046"><span 
+class="aett-10x-x-109">12</span></span><span id="textcolor4046"><span 
+class="aett-10x-x-109">,</span></span><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4047"><span 
+class="aett-10x-x-109">3</span></span><span id="textcolor4048"><span 
 class="aett-10x-x-109">),</span><span 
-class="aett-10x-x-109">&#x00A0;LETTERS[</span></span><span id="textcolor4047"><span 
-class="aett-10x-x-109">1</span></span><span id="textcolor4048"><span 
-class="aett-10x-x-109">:</span></span><span id="textcolor4049"><span 
-class="aett-10x-x-109">3</span></span><span id="textcolor4050"><span 
+class="aett-10x-x-109">&#x00A0;LETTERS[</span></span><span id="textcolor4049"><span 
+class="aett-10x-x-109">1</span></span><span id="textcolor4050"><span 
+class="aett-10x-x-109">:</span></span><span id="textcolor4051"><span 
+class="aett-10x-x-109">3</span></span><span id="textcolor4052"><span 
 class="aett-10x-x-109">],</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4051"><span 
-class="aett-10x-x-109">cex</span></span><span id="textcolor4052"><span 
-class="aett-10x-x-109">=</span></span><span id="textcolor4053"><span 
-class="aett-10x-x-109">3</span></span><span id="textcolor4054"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4053"><span 
+class="aett-10x-x-109">cex</span></span><span id="textcolor4054"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor4055"><span 
+class="aett-10x-x-109">3</span></span><span id="textcolor4056"><span 
 class="aett-10x-x-109">)</span></span>
 </div>
 </div>
@@ -9562,9 +9533,9 @@ class="aett-10x-x-109">)</span></span>
  id="x5-3300111"></a>
                                                                                  
                                                                                  
-<!--l. 668--><p class="noindent" ><img 
-src="spde-tutorial30x.png" alt="PIC" class="graphics" width="426" height="304"  /><!--tex4ht:graphics  
-name="spde-tutorial30x.png" src="figs/meshplotlake-1.eps"  
+<!--l. 661--><p class="noindent" ><img 
+src="spde-tutorial31x.png" alt="PIC" class="graphics" width="426" height="304"  /><!--tex4ht:graphics  
+name="spde-tutorial31x.png" src="figs/meshplotlake-1.eps"  
 -->
 <br /> </p><div class="caption" 
 ><span class="id">Figure&#x00A0;1.11: </span><span  
@@ -9572,41 +9543,41 @@ class="content">Region with a hole and non convex domain.</span></div><!--tex4ht
                                                                                  
                                                                                  
    </div><hr class="endfigure" />
-<!--l. 674--><p class="indent" >   We have two neighbour regions, one with a hole and one with no convex shape. Suppose that
+<!--l. 667--><p class="indent" >   We have two neighbour regions, one with a hole and one with no convex shape. Suppose that
 it is necessary to avoid correlation between near regions separated by land. For example, suppose
 that we want to make sure that the correlation between A and C is smaller than between A and
 B or between B and C.
-</p><!--l. 682--><p class="indent" >   In this example we do not want additional points outer the domain. To have it, we have to
+</p><!--l. 675--><p class="indent" >   In this example we do not want additional points outer the domain. To have it, we have to
 supply a length one value for <span 
 class="aett-10x-x-109">max.edge</span>. The following code is to prepare the boundary and built
 the mesh.  </p><div class="framedenv" id="kframe-1">
    <div class="alltt">
 <div class="obeylines-v">
-<span id="textcolor4055"><span 
+<span id="textcolor4057"><span 
 class="aett-10x-x-109">bound</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4056"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4058"><span 
 class="aett-10x-x-109">&#x003C;-</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4057"><span 
-class="aett-10x-x-109">inla.sp2segment</span></span><span id="textcolor4058"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4059"><span 
+class="aett-10x-x-109">inla.sp2segment</span></span><span id="textcolor4060"><span 
 class="aett-10x-x-109">(sp)</span></span>
-<br /><span id="textcolor4059"><span 
+<br /><span id="textcolor4061"><span 
 class="aett-10x-x-109">mesh</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4060"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4062"><span 
 class="aett-10x-x-109">&#x003C;-</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4061"><span 
-class="aett-10x-x-109">inla.mesh.2d</span></span><span id="textcolor4062"><span 
-class="aett-10x-x-109">(</span></span><span id="textcolor4063"><span 
-class="aett-10x-x-109">boundary</span></span><span id="textcolor4064"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4063"><span 
+class="aett-10x-x-109">inla.mesh.2d</span></span><span id="textcolor4064"><span 
+class="aett-10x-x-109">(</span></span><span id="textcolor4065"><span 
+class="aett-10x-x-109">boundary</span></span><span id="textcolor4066"><span 
 class="aett-10x-x-109">=bound,</span></span><span 
-class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4065"><span 
-class="aett-10x-x-109">max.edge</span></span><span id="textcolor4066"><span 
-class="aett-10x-x-109">=</span></span><span id="textcolor4067"><span 
-class="aett-10x-x-109">2</span></span><span id="textcolor4068"><span 
+class="aett-10x-x-109">&#x00A0;</span><span id="textcolor4067"><span 
+class="aett-10x-x-109">max.edge</span></span><span id="textcolor4068"><span 
+class="aett-10x-x-109">=</span></span><span id="textcolor4069"><span 
+class="aett-10x-x-109">2</span></span><span id="textcolor4070"><span 
 class="aett-10x-x-109">)</span></span>
 </div>
 </div>
    </div>
-<!--l. 694--><p class="indent" >   The mesh is displayed in the Figure&#x00A0;<a 
+<!--l. 687--><p class="indent" >   The mesh is displayed in the Figure&#x00A0;<a 
 href="#x5-330001.3.6">1.3.6<!--tex4ht:ref: fig:meshhole --></a> using the commands below: </p><hr class="figure" /><div class="figure" 
 >
                                                                                  
@@ -9615,9 +9586,9 @@ href="#x5-330001.3.6">1.3.6<!--tex4ht:ref: fig:meshhole --></a> using the comman
  id="x5-3300212"></a>
                                                                                  
                                                                                  
-<!--l. 699--><p class="noindent" ><img 
-src="spde-tutorial31x.png" alt="PIC" class="graphics" width="298" height="213"  /><!--tex4ht:graphics  
-name="spde-tutorial31x.png" src="figs/meshplothex-1.eps"  
+<!--l. 692--><p class="noindent" ><img 
+src="spde-tutorial32x.png" alt="PIC" class="graphics" width="298" height="213"  /><!--tex4ht:graphics  
+name="spde-tutorial32x.png" src="figs/meshplothex-1.eps"  
 -->
 <br /> </p><div class="caption" 
 ><span class="id">Figure&#x00A0;1.12: </span><span  
@@ -9625,7 +9596,7 @@ class="content">Triangulation with hole and non convex shaped region</span></div
                                                                                  
                                                                                  
    </div><hr class="endfigure" />
-<!--l. 705--><p class="indent" >   Notice that when building the SPDE model, the neighborhood structure of the
+<!--l. 698--><p class="indent" >   Notice that when building the SPDE model, the neighborhood structure of the
 mesh is taken into account. So, it is easier to reach B from A than C on the related
 graph.
                                                                                  

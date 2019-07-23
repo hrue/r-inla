@@ -1,9 +1,15 @@
-\section{Space-time point process: Burkitt example}\label{sec:burkitt}
+\section{Space-time point process: Burkitt example}\label{sec:burkitt}  
 
 In this example we show hot to fit a space-time point process 
 using the \texttt{burkitt} dataset from the \pkg{splancs} \pkg{R} package. 
 The R source for this file is available at
 \url{http://inla.r-inla-download.org/r-inla.org/tutorials/spde/R/spde-tutorial-burkitt.R}
+
+This content is part of the book available at
+\url{http://www.r-inla.org/spde-book},
+whose Gitbook version is freely available 
+along all the code and datasets.
+
 
 <<opts,echo=F,results='hide',message=FALSE,warning=FALSE>>=
 library(knitr)
@@ -16,8 +22,8 @@ library(sp)
 library(INLA)
 library(fields)
 lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
-inla.setOption(num.threads=7)
+## inla.setOption(inla.call='remote')
+## inla.setOption(num.threads=4)
 @
 
 We use the \texttt{burkitt} data set from the \pkg{splancs} package. 

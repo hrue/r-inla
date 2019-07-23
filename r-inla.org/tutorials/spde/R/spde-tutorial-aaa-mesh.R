@@ -6,6 +6,8 @@ message=FALSE, warning=FALSE
 )
 options(width=75, prompt = " ", continue = "   ")
 library(INLA)
+library(rgdal)
+library(maptools)
 
 
 ## ----argsmesh------------------------------------------------------------
@@ -170,17 +172,14 @@ plot(prmesh2, asp=1, main='');   lines(PRborder, col=3)
 
 
 ## ----ncmap---------------------------------------------------------------
-library(maptools)
-nc.fl <- system.file("etc/shapes/sids.shp", package="spdep")[1]
-nc.sids <- readShapePoly(nc.fl, ID="FIPSNO", 
-                         proj4string=CRS("+proj=longlat +ellps=clrk66"))
-
-
-## ----uionsp,results='hide',eval=FALSE------------------------------------
-## gpclibPermit()
+library(rgdal)
+nc.sids <- readOGR(system.file("shapes/sids.shp", package="spData")[1])
+proj4string(nc.sids) <- CRS("+proj=longlat +ellps=clrk66")
+row.names(nc.sids) <- as.character(nc.sids$FIPS)
 
 
 ## ----unionSpatialPolygons------------------------------------------------
+library(maptools)
 nc.border <- unionSpatialPolygons(nc.sids, rep(1, nrow(nc.sids)))
 
 

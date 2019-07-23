@@ -13,8 +13,8 @@ fig.path='figs/stcoreg'
 options(width=77, prompt = " ", continue = "   ")
 library(INLA)
 lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
-inla.setOption(num.threads=8)
+## inla.setOption(inla.call='remote')
+## inla.setOption(num.threads=4)
 source('R/spde-tutorial-functions.R')
 set.seed(1)
 @ 
@@ -45,7 +45,7 @@ y_2(s,t) = \alpha_2 + \lambda_1 y_1(s,t) + z_2(s,t) + e_2(s,t)
 \]
 \[
 y_3(s,t) = \alpha_3 + \lambda_2 y_1(s,t) + \lambda_3 y_2(s,t) + z_3(s,t) + e_3(s,t) 
-\]
+\] 
 where the $z_{k}(s,t)$ are spacetime correlated processes and 
 $e_{k}(s,t)$ are uncorrelated error terms, $k=1,2,3$. 
 

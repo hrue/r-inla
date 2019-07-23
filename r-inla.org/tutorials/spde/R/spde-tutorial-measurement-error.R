@@ -7,7 +7,8 @@ message=FALSE, warning=FALSE
 options(width=75, prompt = " ", continue = "   ")
 library(INLA)
 loc.call <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
+## inla.setOption(inla.call='remote')
+## inla.setOption(num.threads=4)
 source('R/spde-tutorial-functions.R')
 
 
@@ -99,8 +100,8 @@ pcprec <- list(prior='pcprec', param=c(1, 0.01))
 res <- inla(form, data=inla.stack.data(stk), family=rep('gaussian',3), 
             control.predictor=list(compute=TRUE, A=inla.stack.A(stk)), 
             control.family=list(list(hyper=list(theta=pcprec)), 
-                list(hyper=list(theta=list(initial=20, fixed=TRUE))), 
-                list(hyper=list(theta=list(initial=20, fixed=TRUE))))) 
+                list(hyper=list(prec=list(initial=20, fixed=TRUE))), 
+                list(hyper=list(prec=list(initial=20, fixed=TRUE))))) 
 
 
 ## ----resfix--------------------------------------------------------------

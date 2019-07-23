@@ -1,4 +1,4 @@
-%%% OOOPS: change the .Rnw
+%%% OOOPS: change the .Rnw 
 
 \documentclass[a4paper,11pt]{report}
 \usepackage[scale={0.6,0.9},centering,includeheadfoot]{geometry}
@@ -38,8 +38,8 @@
 \newcommand{\boldeta}{\mbox{\boldmath $\eta$}}
 
 \title{\textbf{The R-INLA tutorial on SPDE models}\\
-Warning: work in progress...\\
-Suggestions to \texttt{elias@r-inla.org} are welcome}
+This work was further developed into the\\
+SPDE book, see \url{http://www.r-inla.org/spde-book}}
 \author{Elias T. Krainski, Finn Lindgren, Daniel Simpson and H{\aa}vard Rue}
 
 \begin{document}

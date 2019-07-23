@@ -7,8 +7,8 @@ message=FALSE, warning=FALSE
 options(width=77, prompt = " ", continue = "   ")
 library(INLA)
 lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
-inla.setOption(num.threads=8)
+## inla.setOption(inla.call='remote')
+## inla.setOption(num.threads=4)
 source('R/spde-tutorial-functions.R')
 set.seed(1)
 
@@ -147,7 +147,7 @@ res123 <- inla(formula123,
                data=inla.stack.data(stack),
                offset=offset,
                control.family=list(list(
-                   hyper=list(theta=list(initial=10, fixed=TRUE)))),
+                   hyper=list(prec=list(initial=10, fixed=TRUE)))),
                control.predictor=list(A=inla.stack.A(stack)))
 
 
