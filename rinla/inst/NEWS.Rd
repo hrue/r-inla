@@ -29,6 +29,30 @@
   }
 }
 
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed, again, an issue with (parallel) PARDISO
+      and many linear combinations.
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.07.21}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
