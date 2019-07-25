@@ -308,7 +308,7 @@ typedef struct {
 	/*
 	 * GEV 
 	 */
-	double *weight_gev;				       /* weights for the skew_normal: Variance propto 1/(weight*prec) */
+	double *weight_gev;				       /* weights for the gev: Variance propto 1/(weight*prec) */
 	double **log_prec_gev;				       /* log prec for gev */
 	double **xi_gev;				       /* the shape-parameter */
 	double gev_scale_xi;				       /* scaling of the shape-parameter */
@@ -318,7 +318,6 @@ typedef struct {
 	 */
 	double gev2_qlocation;
 	double gev2_qspread;
-	double gev2_xi_scale;
 	double gev2_beta_ab;
 	double *gev2_xi_interval;
 	double *gev2_qmix;
