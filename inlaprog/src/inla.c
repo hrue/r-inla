@@ -1165,7 +1165,7 @@ double map_interval(double x, map_arg_tp typ, void *param)
 	double *ABC = (double *) param;
 	double A = ABC[0];
 	double B = ABC[1];
-	double C = ABC[2];
+	double C = 1.0;					       /* no longer in use */
 	double ex;
 	
 	//printf("%g %g %g %g %g\n", x, A, B, C, (double) typ);
@@ -5260,8 +5260,8 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 #define F6_BETA_STD(_x) (gsl_pow_6(_x) * ((_x) * ((_x) * ((_x) * ((_x) * ((_x) * (-252.0) + 1386.0) - 3080.0) + 3465.0) - 1980.0) + 462.0))
 #define f6_BETA(_x, _a, _b) (f6_BETA_STD((((_x) - (_a)) / ((_b) - (_a)))) / ((_b) - (_a)))
 #define F6_BETA(_x, _a, _b) F6_BETA_STD((((_x) - (_a)) / ((_b) - (_a))))
-#define f_BETA(_x, _a, _b) f6_BETA(_x, _a, _b)
-#define F_BETA(_x, _a, _b) F6_BETA(_x, _a, _b)
+#define f_BETA(_x, _a, _b) f5_BETA(_x, _a, _b)
+#define F_BETA(_x, _a, _b) F5_BETA(_x, _a, _b)
 #define p(_x, _a, _b) F_BETA(_x, _a, _b)
 #define p_deriv(_x, _a, _b) f_BETA(_x, _a, _b)
 #define T1_SCALED_M1(_x, _xi) pow( 1.0 + (_xi) * (_x), -1.0 / (_xi) - 1.0)
@@ -5272,14 +5272,13 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 #define log_G(_x, _loc, _scale, _xi) (-T1(_x, _loc, _scale, _xi))
 #define G(_x, _loc, _scale, _xi) exp(log_G(_x, _loc, _scale, _xi))
 #define log_H(_x, _loc, _scale)	(-T2(_x, _loc, _scale))
-#define H(_x, _loc, _scale) exp(log_H(_x, _loc, _scale))	
+#define H(_x, _loc, _scale) exp(log_H(_x, _loc, _scale))
 #define h(_x, _loc, _scale) (H(_x, _loc, _scale) * T2(_x, _loc, _scale) / (_scale))
 #define log_h(_x, _loc, _scale) (log_H(_x, _loc, _scale) + log(T2(_x, _loc, _scale)) - log(_scale))
 #define g(_x, _loc, _scale, _xi) (G(_x, _loc, _scale, _xi) * T1_SCALED_M1(((_x) - (_loc))/(_scale), _xi) / (_scale))
 #define log_g(_x, _loc, _scale, _xi) (log_G(_x, _loc, _scale, _xi) + log(T1_SCALED_M1(((_x) - (_loc))/(_scale), _xi)) - log(_scale))
 
-
-	if (0) {
+        if (0) {
 		double loc = 1.2, scale = 1.5, xi = 0.5, _x;
 		FILE *fp = fopen("out.txt", "w");
 		for(_x = 0.001 + loc - scale/xi; _x <= loc + 4.0 * scale / xi; _x += 0.01)
@@ -5301,8 +5300,6 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 		exit(1);
 	}
 
-	FIXME1("precition scale is not yet added");
-
 	/*
 	 * y ~ GEV
 	 */
@@ -5311,22 +5308,34 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 	}
 	int i, off;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double location, spread, log_spread, log_xi, xi, sigma, sigmaH, d, mu, muH, sprec, ypred, xx, y, ld;
+	double location, spread, log_spread, log_xi, xi, sigma, sigmaH, d, mu, muH, sprec, ypred, xx, y, w, ld;
 	double qlocation = ds->data_observations.gev2_qlocation;
 	double qspread = ds->data_observations.gev2_qspread;
 	double mix_a, qmix_a = ds->data_observations.gev2_qmix[0];
 	double mix_b, qmix_b = ds->data_observations.gev2_qmix[1];
-	//double gev2_beta_ab;
-	
+
+	double ab = ds->data_observations.gev2_beta_ab;
+	static double count[3] = {0.0, 0.0, 0.0};
+
+	if (ab != 5.0) {
+		static char first = 1;
+		if (first) {
+			fprintf(stderr, "*** Warning ***: loglikelihood_gev2: argument beta_ab=[%.2f] is not used\n", ab);
+			fprintf(stdout, "*** Warning ***: loglikelihood_gev2: argument beta_ab=[%.2f] is not used\n", ab);
+		}
+		first = 0;
+	}
+
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
-	
+	w = ds->data_observations.gev2_scale[idx];
+
 	off = 0;
 	log_spread = ds->data_observations.gev2_log_spread[GMRFLib_thread_id][0];
 	for (i = 0; i < ds->data_observations.gev2_nbetas[0]; i++) {
 		log_spread += ds->data_observations.gev2_betas[i + off][GMRFLib_thread_id][0] * ds->data_observations.gev2_x[i + off][idx];
 	}
-	spread = map_exp(log_spread, MAP_FORWARD, NULL);
+	spread = map_exp(log_spread, MAP_FORWARD, NULL) / sqrt(w);
 	
 	off = ds->data_observations.gev2_nbetas[0];
 	log_xi = ds->data_observations.gev2_intern_tail[GMRFLib_thread_id][0];
@@ -5337,23 +5346,9 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 		for (i = 0; i < ds->data_observations.gev2_nbetas[1]; i++) {
 			log_xi += ds->data_observations.gev2_betas[i + off][GMRFLib_thread_id][0] * ds->data_observations.gev2_x[i + off][idx];
 		}
-		P(log_xi);
 		xi = map_interval(log_xi, MAP_FORWARD, (void *) (ds->data_observations.gev2_xi_interval));
-		P(xi);
-		
-		if (1){
-			if (idx == 0) {
-				P(log_xi);
-				//P(ds->data_observations.gev2_betas[0 + off][GMRFLib_thread_id][0]);
-			}
-			if (ISNAN(xi)){
-				ds->data_observations.gev2_betas[0 + off][GMRFLib_thread_id][0] = 0.0;
-				xi = 0;
-				exit(1);
-			}
-		}
-		
-		
+
+		if (idx == 0) P(xi);
 	}
 
 	if (m > 0) {
@@ -5369,9 +5364,8 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 				logll[i] = -xx - exp(-xx) + log(sprec);
 			}
 		} else {
-
-			static double count[3] = {0.0, 0.0, 0.0};
-
+			int left = 0;
+			
 			d = (pow(-log(1.0 - qspread / 2.0), -xi) - pow(-log(qspread / 2.0), -xi)) / xi;
 			for (i = 0; i < m; i++) {
 				sigma = spread / d;
@@ -5382,20 +5376,11 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 				sigmaH = (mix_b - mix_a) / log(log(qmix_a) / log(qmix_b));
 				muH = mix_a + sigmaH * log(-log(qmix_a));
 
-				if (0) {
-					P(location);
-					P(sigma);
-					P(mu);
-					P(mix_a);
-					P(mix_b);
-					P(sigmaH);
-					P(muH);
-				}
-				
 				if (y >= mix_b) {
 					count[0]++;
 					ld = log_g(y, mu, sigma, xi);
 				} else if (y <= mix_a) {
+					left = 1;
 					count[1]++;
 					ld = log_h(y, muH, sigmaH);
 				} else {
@@ -5413,13 +5398,13 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 						log(value_p_deriv * value_log_G + value_p * value_g / exp(value_log_G) 
 						    - value_p_deriv * value_log_H + (1.0 - value_p) * value_h / exp(value_log_H));
 				}
-				if (ISNAN(ld)||ISINF(ld)) printf("idx x ld y %d %g %g %g\n", idx, x[i], logll[i], y);
+				if (ISNAN(ld)||ISINF(ld)) printf("gev2: idx x ld y %d %g %g %g\n", idx, x[i], logll[i], y);
 
 				logll[i] = ld; 
 			}
 
-			if (0 && idx == 1)
-				printf("right %.2g left %.2g mix %.2g\n",
+			if (left) 
+				printf("right %.3g left %.3g mix %.3g\n",
 				       count[0] / (count[0] + count[1] + count[2]), 
 				       count[1] / (count[0] + count[1] + count[2]), 
 				       count[2] / (count[0] + count[1] + count[2]));
@@ -12799,18 +12784,17 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tgev2.q.spread [%g]\n", ds->data_observations.gev2_qspread);
 		}
 
-		ctmp = iniparser_getstring(ini, inla_string_join(secname, "gev2.xi.interval"), GMRFLib_strdup("0 0.5 0.1"));
-		ds->data_observations.gev2_xi_interval = Calloc(3, double);
-		if (inla_sread_doubles(ds->data_observations.gev2_xi_interval, 3, ctmp) == INLA_FAIL ||
+		ctmp = iniparser_getstring(ini, inla_string_join(secname, "gev2.xi.interval"), GMRFLib_strdup("0 0.5"));
+		ds->data_observations.gev2_xi_interval = Calloc(2, double);
+		if (inla_sread_doubles(ds->data_observations.gev2_xi_interval, 2, ctmp) == INLA_FAIL ||
 		    DMIN(ds->data_observations.gev2_xi_interval[0], ds->data_observations.gev2_xi_interval[1]) < 0.0 ||
 		    DMAX(ds->data_observations.gev2_xi_interval[0], ds->data_observations.gev2_xi_interval[1]) >= 1.0 ||
-		    ds->data_observations.gev2_xi_interval[0] >= ds->data_observations.gev2_xi_interval[1] ||
-		    ds->data_observations.gev2_xi_interval[2] <= 0.0) {
+		    ds->data_observations.gev2_xi_interval[0] >= ds->data_observations.gev2_xi_interval[1]) {
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "GEV2.XI.INTERVAL", ctmp);
 		}
 		if (mb->verbose) {
-			printf("\t\tgev2.xi.interval/scale [%g %g][%g]\n", ds->data_observations.gev2_xi_interval[0],
-			       ds->data_observations.gev2_xi_interval[1], ds->data_observations.gev2_xi_interval[2]);
+			printf("\t\tgev2.xi.interval [%g %g]\n", ds->data_observations.gev2_xi_interval[0],
+			       ds->data_observations.gev2_xi_interval[1]);
 		}
 
 		ctmp = iniparser_getstring(ini, inla_string_join(secname, "gev2.q.mix"), GMRFLib_strdup("0.10 0.20"));
@@ -12825,7 +12809,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tgev2.q.mix [%g %g]\n", ds->data_observations.gev2_qmix[0], ds->data_observations.gev2_qmix[1]);
 		}
 
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev2.beta.ab"), 3);
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev2.beta.ab"), 5);
 		ds->data_observations.gev2_beta_ab = tmp;
 		if (mb->verbose) {
 			printf("\t\tgev2.beta.ab [%g]\n", ds->data_observations.gev2_beta_ab);
@@ -12862,46 +12846,46 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * this gives the number of betas in the spread and tail
 		 */
-		assert(GEV2_MAXTHETA == 10);		       /* otherwise change 10, and 11 below... */
+		assert(GEV2_MAXTHETA == 10);		       /* otherwise change below... */
 		ds->data_observations.gev2_nbetas[0] = ds->data_observations.attr[0];
 		ds->data_observations.gev2_nbetas[1] = ds->data_observations.attr[1];
 		int nbetas = ds->data_observations.gev2_nbetas[0] + ds->data_observations.gev2_nbetas[1];
 
 		ds->data_observations.gev2_betas = Calloc(GEV2_MAXTHETA, double **);
-		ds->data_nfixed = Calloc(GEV2_MAXTHETA + 2, int);
+		ds->data_nfixed = Calloc(GEV2_MAXTHETA + 2, int); /* +2 for spread and tail */
 		ds->data_nprior = Calloc(GEV2_MAXTHETA + 2, Prior_tp);
 		
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL10"), 0.0);	/* YES! */
-		ds->data_nfixed[10] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED10"), 0);
-		if (!ds->data_nfixed[10] && mb->reuse_mode) {
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);
+		ds->data_nfixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
+		if (!ds->data_nfixed[0] && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
 		HYPER_NEW(ds->data_observations.gev2_log_spread, tmp);
 		if (mb->verbose) {
 			printf("\t\tinitialise log.spread[%g]\n", ds->data_observations.gev2_log_spread[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_nfixed[10]);
+			printf("\t\tfixed=[%1d]\n", ds->data_nfixed[0]);
 		}
-		inla_read_priorN(mb, ini, sec, &(ds->data_nprior[10]), "LOGGAMMA", 10);
+		inla_read_priorN(mb, ini, sec, &(ds->data_nprior[0]), "LOGGAMMA", 0);
 
 		/*
 		 * add theta 
 		 */
-		if (!ds->data_nfixed[10]) {
+		if (!ds->data_nfixed[0]) {
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
 			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = ds->data_prior0.hyperid;
+			mb->theta_hyperid[mb->ntheta] = ds->data_nprior[0].hyperid;
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("log(spread) for GEV2 observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("log spread for GEV2 observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("spread for GEV2 observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[10].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[10].to_theta);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[0].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[0].to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.gev2_log_spread;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12912,25 +12896,25 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->data_ntheta++;
 		}
 
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL11"), 0.0);
-		ds->data_nfixed[11] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED11"), 0);
-		if (!ds->data_nfixed[11] && mb->reuse_mode) {
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
+		ds->data_nfixed[1] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
+		if (!ds->data_nfixed[1] && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
 		HYPER_NEW(ds->data_observations.gev2_intern_tail, tmp);
 		if (mb->verbose) {
 			printf("\t\tinitialise internal tail[%g]\n", ds->data_observations.gev2_intern_tail[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_nfixed[11]);
+			printf("\t\tfixed=[%1d]\n", ds->data_nfixed[1]);
 		}
-		inla_read_priorN(mb, ini, sec, &(ds->data_nprior[11]), "GAMMA", 11);
+		inla_read_priorN(mb, ini, sec, &(ds->data_nprior[1]), "GAMMA", 1);
 
 		/*
 		 * add theta 
 		 */
-		if (!ds->data_nfixed[11]) {
+		if (!ds->data_nfixed[1]) {
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
 			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = ds->data_prior0.hyperid;
+			mb->theta_hyperid[mb->ntheta] = ds->data_nprior[1].hyperid;
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
@@ -12941,8 +12925,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[11].from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[11].to_theta);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[1].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[1].to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.gev2_intern_tail;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -12955,14 +12939,14 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 		for (i = 0; i < nbetas; i++) {
 			char *ctmp;
-			int ii;
-
-			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			int ii, idx = i + 2;
+			
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", idx);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */
 
-			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
-			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", idx);
+			ds->data_nfixed[idx] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+			if (!ds->data_nfixed[idx] && mb->reuse_mode) {
 				tmp = mb->theta_file[mb->theta_counter_file++];
 			}
 
@@ -12974,7 +12958,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 					printf("\t\tfixed[%1d] = %1d\n", i, ds->data_nfixed[i]);
 				}
 			} else {
-				// xi part
+				// tail part
 				HYPER_NEW(ds->data_observations.gev2_betas[i], tmp);
 				if (mb->verbose) {
 					printf("\t\tbetas[%1d] (tail) = %g\n", i, ds->data_observations.gev2_betas[i][0][0]);
@@ -12982,12 +12966,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 			
-			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[i]), "GAUSSIAN-std", i);
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[idx]), "GAUSSIAN-std", idx);
 
-			if (!ds->data_nfixed[i]) {
+			if (!ds->data_nfixed[idx]) {
 				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
 				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-				mb->theta_hyperid[mb->ntheta] = ds->data_nprior[i].hyperid;
+				mb->theta_hyperid[mb->ntheta] = ds->data_nprior[idx].hyperid;
 				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
@@ -13006,8 +12990,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[idx].from_theta);
+				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[idx].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.gev2_betas[i];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -24887,27 +24871,26 @@ double extra(double *theta, int ntheta, void *argument)
 			case L_GEV2:
 			{
 				int nbetas = ds->data_observations.gev2_nbetas[0] + ds->data_observations.gev2_nbetas[1];
+				int off = 2;
 				for (int k = 0; k < nbetas; k++) {
 					if (!ds->data_nfixed[k]) {
 						double b = theta[count];
 						if (k < ds->data_observations.gev2_nbetas[0]) {
-							val += PRIOR_EVAL(ds->data_nprior[k], &b);
+							val += PRIOR_EVAL(ds->data_nprior[off + k], &b);
 						} else {
-							val += PRIOR_EVAL(ds->data_nprior[k], &b);
+							val += PRIOR_EVAL(ds->data_nprior[off + k], &b);
 						}
 						count++;
 					}
 				}
 				if (!ds->data_nfixed[GEV2_MAXTHETA]) {
 					double spread = theta[count];
-					val += PRIOR_EVAL(ds->data_nprior[GEV2_MAXTHETA], &spread);
+					val += PRIOR_EVAL(ds->data_nprior[0], &spread);
 					count++;
 				}
 				if (!ds->data_nfixed[GEV2_MAXTHETA + 1]) {
-					// we are in the tail part, so we need to scale theta's with 'scale_xi'
-					// note that the sign is not here, its the prior for log|xi|
 					double intern_tail = theta[count];
-					val += PRIOR_EVAL(ds->data_nprior[GEV2_MAXTHETA + 1], &intern_tail);
+					val += PRIOR_EVAL(ds->data_nprior[1], &intern_tail);
 					count++;
 				}
 			}
