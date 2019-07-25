@@ -5347,8 +5347,6 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 			log_xi += ds->data_observations.gev2_betas[i + off][GMRFLib_thread_id][0] * ds->data_observations.gev2_x[i + off][idx];
 		}
 		xi = map_interval(log_xi, MAP_FORWARD, (void *) (ds->data_observations.gev2_xi_interval));
-
-		if (idx == 0) P(xi);
 	}
 
 	if (m > 0) {
@@ -5403,21 +5401,18 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 				logll[i] = ld; 
 			}
 
-			if (left) 
+			if (0 && left) 
 				printf("right %.3g left %.3g mix %.3g\n",
 				       count[0] / (count[0] + count[1] + count[2]), 
 				       count[1] / (count[0] + count[1] + count[2]), 
 				       count[2] / (count[0] + count[1] + count[2]));
 		}
 	} else {
-		FIXME("NOT DONE YET!");
-		exit(1);
-		
 		double yy = (y_cdf ? *y_cdf : y);
 		if (ISZERO(xi)) {
 			d = log(-log(qspread / 2.0)) - log(-log(1.0 - qspread / 2.0));
 			for (i = 0; i < -m; i++) {
-				spread = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				location = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				sigma = spread / d;
 				mu = location + sigma * log(-log(qlocation));
 				sprec = 1.0 / sigma;
@@ -5428,26 +5423,23 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 		} else {
 			d = (pow(-log(1.0 - qspread / 2.0), -xi) - pow(-log(qspread / 2.0), -xi)) / xi;
 			for (i = 0; i < -m; i++) {
-				spread = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				sigma = spread / d;
+				location = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				mu = location - sigma * ((pow(-log(qlocation), -xi) - 1.0) / xi);
+				mix_a = (pow(-log(qmix_a), -xi) - 1.0) / xi * sigma + mu;
+				mix_b = (pow(-log(qmix_b), -xi) - 1.0) / xi * sigma + mu;
+				sigmaH = (mix_b - mix_a) / log(log(qmix_a) / log(qmix_b));
+				muH = mix_a + sigmaH * log(-log(qmix_a));
 
-				sprec = 1.0 / sigma;
-				ypred = mu;
-				xx = sprec * (yy - ypred);
-				if (xi > 0.0) {
-					if (1.0 + xi * xx > 0.0) {
-						logll[i] = exp(-pow(xx, -xi));
-					} else {
-						logll[i] = 0.0;
-					}
+				if (yy >= mix_b) {
+					ld = log_G(yy, mu, sigma, xi);
+				} else if (yy <= mix_a) {
+					ld = log_H(yy, muH, sigmaH);
 				} else {
-					if (1.0 + xi * xx > 0.0) {
-						logll[i] = exp(-pow(xx, xi));
-					} else {
-						logll[i] = 1.0;
-					}
+					double value_p = p(yy, mix_a, mix_b);
+					ld = value_p * log_G(yy, mu, sigma, xi)  + (1.0 - value_p) * log_H(yy, muH, sigmaH);
 				}
+				logll[i] = exp(ld); 
 			}
 		}
 	}
