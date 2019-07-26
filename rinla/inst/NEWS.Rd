@@ -49,6 +49,7 @@
     \itemize{
       \item Fixed, again, an issue with (parallel) PARDISO
       and many linear combinations.
+      \item Minor code changes in \code{doc.R}
     }
   }
 }
