@@ -5471,10 +5471,10 @@
                              short.name = "tail",
                              initial = -4,
                              fixed = FALSE,
-                             prior = "normal",
-                             param = c(-4, 0.1),
-                             to.theta = function(x, interval = c(0, 0.5)) log(-(interval[1] - x)/(interval[2] - x)), 
-                             from.theta = function(x, interval = c(0, 0.5)) interval[1] + (interval[2]-interval[1]) * exp(x)/(1.0 + exp(x))
+                             prior = "pc.gevtail",
+                             param = 7,
+                             to.theta = function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x)/(interval[2] - x)), 
+                             from.theta = function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2]-interval[1]) * exp(x)/(1.0 + exp(x))
                          ), 
                          theta3 = list(
                              hyperid =  57203,
@@ -7810,6 +7810,12 @@
                      doc = "PC prior for the GammaCount likelihood", 
                      nparameters = 1L,
                      pdf = "pc.gammacount"
+                 ), 
+
+		 pc.gevtail = list(
+                     doc = "PC prior for the tail in the GEV likelihood", 
+                     nparameters = 1L,
+                     pdf = "pc.gevtail"
                  ), 
 
                  ## this is the generic one, which is case-spesific and possibly adaptive

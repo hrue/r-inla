@@ -2944,6 +2944,24 @@ double Qfunc_ou(int i, int j, void *arg)
 	abort();
 	return 0.0;
 }
+double priorfunc_pc_gevtail(double *x, double *parameters) 
+{
+#define DIST(_xi) ((_xi)*sqrt(2.0/(1.0-(_xi))))
+	double lambda = parameters[0], low = parameters[1], high = parameters[2],
+		xi, xi_deriv, p_low, p_high, ld, d, d_deriv;
+	
+	// the internal parameterisation is in the interval [low,high]
+	xi = map_interval(*x, MAP_FORWARD, (void *) &(parameters[1]));
+	xi_deriv = map_interval(*x, MAP_DFORWARD, (void *) &(parameters[1]));
+	d = DIST(xi);
+	d_deriv = (2.0-xi)*sqrt(2.0)/2.0/sqrt(1.0/(1.0-xi))/SQR(1.0-xi);
+	p_low = (low > 0.0 ? 1.0 - exp(-lambda * DIST(low)) : 0.0);
+	p_high = (high < 1.0 ? 1.0 - exp(-lambda * DIST(high)) : 1.0);
+	ld = -log(p_high - p_low) + log(lambda) - lambda * d + log(ABS(d_deriv)) + log(ABS(xi_deriv));
+
+#undef DIST
+	return ld;
+}
 double priorfunc_pc_spde_ga(double *x, double *parameters)
 {
 	double theta1 = x[0], theta2 = x[1], *par = parameters, ldens, lam1, lam2;
@@ -5346,7 +5364,7 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 		for (i = 0; i < ds->data_observations.gev2_nbetas[1]; i++) {
 			log_xi += ds->data_observations.gev2_betas[i + off][GMRFLib_thread_id][0] * ds->data_observations.gev2_x[i + off][idx];
 		}
-		xi = map_interval(log_xi, MAP_FORWARD, (void *) (ds->data_observations.gev2_xi_interval));
+		xi = map_interval(log_xi, MAP_FORWARD, (void *) (ds->data_observations.gev2_tail_interval));
 	}
 
 	if (m > 0) {
@@ -9003,140 +9021,140 @@ int inla_read_weightsinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * fil
 	}
 	return INLA_OK;
 }
-int inla_read_prior(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
-	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR", "PARAMETERS", "FROM.THETA", "TO.THETA", "HYPERID", default_prior);
+	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR", "PARAMETERS", "FROM.THETA", "TO.THETA", "HYPERID", default_prior, args);
 }
-int inla_read_prior_mix(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior_mix(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "MIX.PRIOR", "MIX.PARAMETERS", "MIX.FROM.THETA", "MIX.TO.THETA",
-				       "MIX.HYPERID", default_prior);
+				       "MIX.HYPERID", default_prior, args);
 }
-int inla_read_prior_link(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior_link(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR", "LINK.PARAMETERS", "LINK.FROM.THETA", "LINK.TO.THETA",
-				       "LINK.HYPERID", default_prior);
+				       "LINK.HYPERID", default_prior, args);
 }
-int inla_read_prior_link0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior_link0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR0", "LINK.PARAMETERS0", "LINK.FROM.THETA0", "LINK.TO.THETA0",
-				       "LINK.HYPERID0", default_prior);
+				       "LINK.HYPERID0", default_prior, args);
 }
-int inla_read_prior_link1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior_link1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR1", "LINK.PARAMETERS1", "LINK.FROM.THETA1", "LINK.TO.THETA1",
-				       "LINK.HYPERID1", default_prior);
+				       "LINK.HYPERID1", default_prior, args);
 }
-int inla_read_prior_link2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior_link2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR2", "LINK.PARAMETERS2", "LINK.FROM.THETA2", "LINK.TO.THETA2",
-				       "LINK.HYPERID2", default_prior);
+				       "LINK.HYPERID2", default_prior, args);
 }
-int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR", "GROUP.PARAMETERS", "GROUP.FROM.THETA", "GROUP.TO.THETA",
-				       "GROUP.HYPERID", default_prior);
+				       "GROUP.HYPERID", default_prior, args);
 }
-int inla_read_prior_group0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior_group0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR0", "GROUP.PARAMETERS0", "GROUP.FROM.THETA0",
-				       "GROUP.TO.THETA0", "GROUP.HYPERID0", default_prior);
+				       "GROUP.TO.THETA0", "GROUP.HYPERID0", default_prior, args);
 }
-int inla_read_prior_group1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior_group1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR1", "GROUP.PARAMETERS1", "GROUP.FROM.THETA1",
-				       "GROUP.TO.THETA1", "GROUP.HYPERID1", default_prior);
+				       "GROUP.TO.THETA1", "GROUP.HYPERID1", default_prior, args);
 }
-int inla_read_prior_group2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior_group2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR2", "GROUP.PARAMETERS2", "GROUP.FROM.THETA2",
-				       "GROUP.TO.THETA2", "GROUP.HYPERID2", default_prior);
+				       "GROUP.TO.THETA2", "GROUP.HYPERID2", default_prior, args);
 }
-int inla_read_prior_group3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior_group3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR3", "GROUP.PARAMETERS3", "GROUP.FROM.THETA3",
-				       "GROUP.TO.THETA3", "GROUP.HYPERID3", default_prior);
+				       "GROUP.TO.THETA3", "GROUP.HYPERID3", default_prior, args);
 }
-int inla_read_prior_group4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior_group4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR4", "GROUP.PARAMETERS4", "GROUP.FROM.THETA4",
-				       "GROUP.TO.THETA4", "GROUP.HYPERID4", default_prior);
+				       "GROUP.TO.THETA4", "GROUP.HYPERID4", default_prior, args);
 }
-int inla_read_prior_group5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior_group5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR5", "GROUP.PARAMETERS5", "GROUP.FROM.THETA5",
-				       "GROUP.TO.THETA5", "GROUP.HYPERID5", default_prior);
+				       "GROUP.TO.THETA5", "GROUP.HYPERID5", default_prior, args);
 }
-int inla_read_prior_group6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior_group6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR6", "GROUP.PARAMETERS6", "GROUP.FROM.THETA6",
-				       "GROUP.TO.THETA6", "GROUP.HYPERID6", default_prior);
+				       "GROUP.TO.THETA6", "GROUP.HYPERID6", default_prior, args);
 }
-int inla_read_prior_group7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior_group7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR7", "GROUP.PARAMETERS7", "GROUP.FROM.THETA7",
-				       "GROUP.TO.THETA7", "GROUP.HYPERID7", default_prior);
+				       "GROUP.TO.THETA7", "GROUP.HYPERID7", default_prior, args);
 }
-int inla_read_prior_group8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior_group8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR8", "GROUP.PARAMETERS8", "GROUP.FROM.THETA8",
-				       "GROUP.TO.THETA8", "GROUP.HYPERID8", default_prior);
+				       "GROUP.TO.THETA8", "GROUP.HYPERID8", default_prior, args);
 }
-int inla_read_prior_group9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior_group9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR9", "GROUP.PARAMETERS9", "GROUP.FROM.THETA9",
-				       "GROUP.TO.THETA9", "GROUP.HYPERID9", default_prior);
+				       "GROUP.TO.THETA9", "GROUP.HYPERID9", default_prior, args);
 }
-int inla_read_prior_group10(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior_group10(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR10", "GROUP.PARAMETERS10", "GROUP.FROM.THETA10",
-				       "GROUP.TO.THETA10", "GROUP.HYPERID10", default_prior);
+				       "GROUP.TO.THETA10", "GROUP.HYPERID10", default_prior, args);
 }
-int inla_read_prior0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
-	return inla_read_priorN(mb, ini, sec, prior, default_prior, 0);
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 0, args);
 }
-int inla_read_prior1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
-	return inla_read_priorN(mb, ini, sec, prior, default_prior, 1);
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 1, args);
 }
-int inla_read_prior2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
-	return inla_read_priorN(mb, ini, sec, prior, default_prior, 2);
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 2, args);
 }
-int inla_read_prior3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
-	return inla_read_priorN(mb, ini, sec, prior, default_prior, 3);
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 3, args);
 }
-int inla_read_prior4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
-	return inla_read_priorN(mb, ini, sec, prior, default_prior, 4);
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 4, args);
 }
-int inla_read_prior5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
-	return inla_read_priorN(mb, ini, sec, prior, default_prior, 5);
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 5, args);
 }
-int inla_read_prior6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
-	return inla_read_priorN(mb, ini, sec, prior, default_prior, 6);
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 6, args);
 }
-int inla_read_prior7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
-	return inla_read_priorN(mb, ini, sec, prior, default_prior, 7);
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 7, args);
 }
-int inla_read_prior8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
-	return inla_read_priorN(mb, ini, sec, prior, default_prior, 8);
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 8, args);
 }
-int inla_read_prior9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
-	return inla_read_priorN(mb, ini, sec, prior, default_prior, 9);
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 9, args);
 }
-int inla_read_prior10(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior)
+int inla_read_prior10(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
-	return inla_read_priorN(mb, ini, sec, prior, default_prior, 10);
+	return inla_read_priorN(mb, ini, sec, prior, default_prior, 10, args);
 }
-int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N)
+int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N, void *args)
 {
 	int val;
 	char *a = NULL, *b = NULL, *c = NULL, *d = NULL, *e = NULL;
@@ -9148,7 +9166,7 @@ int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 	GMRFLib_sprintf(&e, "HYPERID%1d", N);
 	val =
 	    inla_read_prior_generic(mb, ini, sec, prior, (const char *) a, (const char *) b, (const char *) c, (const char *) d,
-				    (const char *) e, default_prior);
+				    (const char *) e, default_prior, args);
 	Free(a);
 	Free(b);
 	Free(c);
@@ -9158,7 +9176,8 @@ int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 	return val;
 }
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag,
-			    const char *param_tag, const char *from_theta, const char *to_theta, const char *hyperid, const char *default_prior)
+			    const char *param_tag, const char *from_theta, const char *to_theta, const char *hyperid, const char *default_prior,
+			    void *args)
 {
 	char *secname = NULL, *param = NULL;
 	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
@@ -9405,6 +9424,26 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		prior->priorfunc = priorfunc_pc_range;
 		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
 		assert(nparam == 2);
+		if (mb->verbose) {
+			for (i = 0; i < nparam; i++) {
+				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "PCGEVTAIL")) {
+		int nparam, i;
+
+		prior->id = P_PC_GEVTAIL;
+		prior->priorfunc = priorfunc_pc_gevtail;
+		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
+		assert(nparam == 1);
+		// Add the interval as well, which comes in as 'args'
+		double lambda = prior->parameters[0];
+		double *interval = (double *) args;
+		nparam = 3;
+		prior->parameters = Calloc(nparam, double);
+		prior->parameters[0] = lambda;
+		prior->parameters[1] = interval[0];
+		prior->parameters[2] = interval[1];
 		if (mb->verbose) {
 			for (i = 0; i < nparam; i++) {
 				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
@@ -10712,7 +10751,7 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 		printf("\t\tdir=[%s]\n", mb->predictor_dir);
 	}
 
-	inla_read_prior(mb, ini, sec, &(mb->predictor_prior), "LOGGAMMA");
+	inla_read_prior(mb, ini, sec, &(mb->predictor_prior), "LOGGAMMA", NULL);
 
 	tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
 	mb->predictor_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
@@ -11694,7 +11733,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.log_prec_gaussian[0][0]);
 			printf("\t\tfixed0=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -11733,7 +11772,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_precision offset[%g]\n", ds->data_observations.log_prec_gaussian_offset[0][0]);
 			printf("\t\tfixed1=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "NONE");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "NONE", NULL);
 		if (!ds->data_fixed1) {
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "FIXED1", "1");
 		}
@@ -11754,7 +11793,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.log_prec_gaussian[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -11806,7 +11845,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_prec[%g]\n", ds->data_observations.log_prec_simplex[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -11879,7 +11918,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_overdispersion[%g]\n", ds->data_observations.gpoisson_overdispersion[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -11923,7 +11962,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise p[%g]\n", ds->data_observations.gpoisson_p[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "normal");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "normal", NULL);
 
 		/*
 		 * add theta 
@@ -12003,11 +12042,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 
 			if (count == 0) {
-				inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "DIRICHLET", count);
+				inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "DIRICHLET", count, NULL);
 				assert(ds->data_nprior[count].id == P_DIRICHLET);
 				ds->data_nprior[count].parameters[1] = nclasses;
 			} else {
-				inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "NONE", count);
+				inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "NONE", count, NULL);
 				assert(ds->data_nprior[count].id == P_NONE);
 			}
 
@@ -12073,7 +12112,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_precision parameter[%g]\n", ds->data_observations.log_prec_circular_normal[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -12119,7 +12158,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_precision parameter[%g]\n", ds->data_observations.log_prec_wrapped_cauchy[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -12166,7 +12205,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_shape parameter[%g]\n", ds->data_observations.gp_log_shape[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -12212,7 +12251,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_shape[%g]\n", ds->data_observations.iid_gamma_log_shape[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -12256,7 +12295,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_rate[%g]\n", ds->data_observations.iid_gamma_log_rate[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "loggamma");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "loggamma", NULL);
 
 		/*
 		 * add theta 
@@ -12302,7 +12341,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_a[%g]\n", ds->data_observations.iid_logitbeta_log_a[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -12346,7 +12385,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_b[%g]\n", ds->data_observations.iid_logitbeta_log_b[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "loggamma");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "loggamma", NULL);
 
 		/*
 		 * add theta 
@@ -12393,7 +12432,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.log_prec_loggamma_frailty[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -12439,7 +12478,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.log_prec_logistic[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -12485,7 +12524,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.log_prec_skew_normal[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -12536,7 +12575,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise shape[%g]\n", ds->data_observations.shape_skew_normal[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std", NULL);
 
 		/*
 		 * add theta 
@@ -12582,7 +12621,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.log_prec_skew_normal2[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -12626,7 +12665,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise intern skewness[%g]\n", ds->data_observations.logit_skewness_skew_normal2[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std", NULL);
 
 		/*
 		 * add theta 
@@ -12679,7 +12718,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.log_prec_gev[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -12726,7 +12765,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			       ds->data_observations.gev_scale_xi);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-a");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-a", NULL);
 
 		/*
 		 * add theta 
@@ -12776,17 +12815,17 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tgev2.q.spread [%g]\n", ds->data_observations.gev2_qspread);
 		}
 
-		ctmp = iniparser_getstring(ini, inla_string_join(secname, "gev2.xi.interval"), GMRFLib_strdup("0 0.5"));
-		ds->data_observations.gev2_xi_interval = Calloc(2, double);
-		if (inla_sread_doubles(ds->data_observations.gev2_xi_interval, 2, ctmp) == INLA_FAIL ||
-		    DMIN(ds->data_observations.gev2_xi_interval[0], ds->data_observations.gev2_xi_interval[1]) < 0.0 ||
-		    DMAX(ds->data_observations.gev2_xi_interval[0], ds->data_observations.gev2_xi_interval[1]) >= 1.0 ||
-		    ds->data_observations.gev2_xi_interval[0] >= ds->data_observations.gev2_xi_interval[1]) {
-			inla_error_field_is_void(__GMRFLib_FuncName, secname, "GEV2.XI.INTERVAL", ctmp);
+		ctmp = iniparser_getstring(ini, inla_string_join(secname, "gev2.tail.interval"), GMRFLib_strdup("0 0.5"));
+		ds->data_observations.gev2_tail_interval = Calloc(2, double);
+		if (inla_sread_doubles(ds->data_observations.gev2_tail_interval, 2, ctmp) == INLA_FAIL ||
+		    DMIN(ds->data_observations.gev2_tail_interval[0], ds->data_observations.gev2_tail_interval[1]) < 0.0 ||
+		    DMAX(ds->data_observations.gev2_tail_interval[0], ds->data_observations.gev2_tail_interval[1]) >= 1.0 ||
+		    ds->data_observations.gev2_tail_interval[0] >= ds->data_observations.gev2_tail_interval[1]) {
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "GEV2.TAIL.INTERVAL", ctmp);
 		}
 		if (mb->verbose) {
-			printf("\t\tgev2.xi.interval [%g %g]\n", ds->data_observations.gev2_xi_interval[0],
-			       ds->data_observations.gev2_xi_interval[1]);
+			printf("\t\tgev2.tail.interval [%g %g]\n", ds->data_observations.gev2_tail_interval[0],
+			       ds->data_observations.gev2_tail_interval[1]);
 		}
 
 		ctmp = iniparser_getstring(ini, inla_string_join(secname, "gev2.q.mix"), GMRFLib_strdup("0.10 0.20"));
@@ -12857,7 +12896,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log.spread[%g]\n", ds->data_observations.gev2_log_spread[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_nfixed[0]);
 		}
-		inla_read_priorN(mb, ini, sec, &(ds->data_nprior[0]), "LOGGAMMA", 0);
+		inla_read_priorN(mb, ini, sec, &(ds->data_nprior[0]), "LOGGAMMA", 0, NULL);
 
 		/*
 		 * add theta 
@@ -12898,7 +12937,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise internal tail[%g]\n", ds->data_observations.gev2_intern_tail[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_nfixed[1]);
 		}
-		inla_read_priorN(mb, ini, sec, &(ds->data_nprior[1]), "GAMMA", 1);
+		inla_read_priorN(mb, ini, sec, &(ds->data_nprior[1]), "PCGEVTAIL", 1, (void *) (ds->data_observations.gev2_tail_interval));
 
 		/*
 		 * add theta 
@@ -12924,7 +12963,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_interval;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = (void *) (ds->data_observations.gev2_xi_interval);
+			mb->theta_map_arg[mb->ntheta] = (void *) (ds->data_observations.gev2_tail_interval);
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -12958,7 +12997,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 			
-			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[idx]), "GAUSSIAN-std", idx);
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[idx]), "GAUSSIAN-std", idx, NULL);
 
 			if (!ds->data_nfixed[idx]) {
 				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
@@ -13022,7 +13061,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise precision_intern[%g]\n", ds->data_observations.gamma_log_prec[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -13068,7 +13107,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_alpha[%g]\n", ds->data_observations.gammacount_log_alpha[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -13116,7 +13155,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.qkumar_log_prec[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -13167,7 +13206,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log(alpha) [%g]\n", ds->data_observations.alpha_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
 		/*
 		 * add theta 
 		 */
@@ -13212,7 +13251,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise precision_intern[%g]\n", ds->data_observations.beta_precision_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -13258,7 +13297,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise overdispersion_intern[%g]\n", ds->data_observations.betabinomial_overdispersion_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -13306,7 +13345,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 			printf("\t\tuse parameterization variant=[%1d]; see doc for details\n", ds->variant);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -13362,7 +13401,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_size[%g]\n", ds->data_observations.log_size[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -13406,7 +13445,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise prob_intern[%g]\n", ds->data_observations.prob_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std", NULL);
 
 		/*
 		 * add theta 
@@ -13462,7 +13501,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise rho_intern[%g]\n", ds->data_observations.zeroinflated_rho_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN-std");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN-std", NULL);
 
 		/*
 		 * add theta 
@@ -13506,7 +13545,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise prob_intern[%g]\n", ds->data_observations.prob_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std", NULL);
 
 		/*
 		 * add theta 
@@ -13562,7 +13601,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_size[%g]\n", ds->data_observations.log_size[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -13620,7 +13659,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\tinitialise prob%1d_intern[%g]\n", count + 1, ds->data_observations.probN_intern[count][0][0]);
 				printf("\t\tfixed%1d=[%1d]\n", count + 1, ds->data_nfixed[count]);
 			}
-			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "GAUSSIAN-std", count + 1);
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "GAUSSIAN-std", count + 1, NULL);
 
 			/*
 			 * add theta 
@@ -13670,7 +13709,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise prob_intern[%g]\n", ds->data_observations.prob_intern[0][0]);
 			printf("\t\tfixed0=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN-std");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN-std", NULL);
 
 		/*
 		 * add theta 
@@ -13728,7 +13767,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\tinitialise log_size%1d[%g]\n", count + 1, ds->data_observations.log_sizes[count][0][0]);
 				printf("\t\tfixed%1d=[%1d]\n", count + 1, ds->data_nfixed[count]);
 			}
-			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "LOGGAMMA", count + 1);
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "LOGGAMMA", count + 1, NULL);
 
 			/*
 			 * add theta 
@@ -13778,7 +13817,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_size[%g]\n", ds->data_observations.log_size[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA", NULL);
 
 
 		/*
@@ -13823,7 +13862,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise alpha_intern[%g]\n", ds->data_observations.zeroinflated_alpha_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "gaussian-std");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "gaussian-std", NULL);
 
 		/*
 		 * add theta 
@@ -13870,7 +13909,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.log_prec_t[0][0]);
 			printf("\t\tfixed0=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA", NULL);
 
 		if (!ds->data_fixed0) {
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
@@ -13916,7 +13955,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise dof_intern_t[%g]\n", ds->data_observations.dof_intern_t[0][0]);
 			printf("\t\tfixed1=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "normal");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "normal", NULL);
 
 		if (!ds->data_fixed1) {
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
@@ -13986,7 +14025,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise dof_intern_tstrata[%g]\n", ds->data_observations.dof_intern_tstrata[0][0]);
 			printf("\t\tfixed0=[%1d]\n", ds->data_nfixed[0]);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_nprior[0]), "normal");
+		inla_read_prior0(mb, ini, sec, &(ds->data_nprior[0]), "normal", NULL);
 
 		if (!ds->data_nfixed[0]) {
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
@@ -14025,7 +14064,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			GMRFLib_sprintf(&from_theta, "FROM.THETA%1d", k);
 			GMRFLib_sprintf(&to_theta, "TO.THETA%1d", k);
 			GMRFLib_sprintf(&hyperid, "HYPERID%1d", k);
-			inla_read_prior_generic(mb, ini, sec, &(ds->data_nprior[k]), pri, par, from_theta, to_theta, hyperid, "normal");
+			inla_read_prior_generic(mb, ini, sec, &(ds->data_nprior[k]), pri, par, from_theta, to_theta, hyperid, "normal", NULL);
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", k);
 			ds->data_nfixed[k] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
@@ -14103,7 +14142,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise log.offset[%g]\n", ds->data_observations.log_offset_prec[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
 
 		/*
 		 * add theta 
@@ -14153,7 +14192,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise dof_intern[%g]\n", ds->data_observations.dof_intern_svt[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN", NULL);
 
 		/*
 		 * add theta 
@@ -14205,7 +14244,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise skew_intern_svnig[%g]\n", ds->data_observations.skew_intern_svnig[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN", NULL);
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), initial1);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
@@ -14217,7 +14256,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise shape_intern_snvig[%g]\n", tmp);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN", NULL);
 
 		/*
 		 * add theta 
@@ -14295,7 +14334,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise alpha_intern[%g]\n", ds->data_observations.alpha_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA-ALPHA");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA-ALPHA", NULL);
 
 		/*
 		 * add theta 
@@ -14350,7 +14389,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise alpha_intern[%g]\n", ds->data_observations.alpha_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA-ALPHA");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA-ALPHA", NULL);
 
 		/*
 		 * add theta 
@@ -14392,7 +14431,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise p_intern[%g]\n", ds->data_observations.p_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std", NULL);
 
 		/*
 		 * add p
@@ -14443,7 +14482,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise prob_intern[%g]\n", ds->data_observations.prob_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN-std");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN-std", NULL);
 
 		/*
 		 * add theta 
@@ -14500,7 +14539,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise alpha_intern[%g]\n", ds->data_observations.zeroinflated_alpha_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN-std");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN-std", NULL);
 		/*
 		 * add theta 
 		 */
@@ -14549,7 +14588,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise alpha_intern[%g]\n", ds->data_observations.zeroinflated_alpha_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN-std");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN-std", NULL);
 
 		/*
 		 * add theta 
@@ -14599,7 +14638,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise alpha1_intern[%g]\n", ds->data_observations.zero_n_inflated_alpha1_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN-std");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN-std", NULL);
 
 		/*
 		 * add theta 
@@ -14640,7 +14679,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise alpha2_intern[%g]\n", ds->data_observations.zero_n_inflated_alpha2_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std", NULL);
 
 		/*
 		 * add theta 
@@ -14688,7 +14727,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise alpha0_intern[%g]\n", ds->data_observations.zero_n_inflated_alpha0_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN-std");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN-std", NULL);
 
 		/*
 		 * add theta 
@@ -14729,7 +14768,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise alphaN_intern[%g]\n", ds->data_observations.zero_n_inflated_alphaN_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std", NULL);
 
 		/*
 		 * add theta 
@@ -14777,7 +14816,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise alpha_intern[%g]\n", ds->data_observations.zeroinflated_alpha_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN-std");
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "GAUSSIAN-std", NULL);
 
 		/*
 		 * add theta 
@@ -14819,7 +14858,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise delta_intern[%g]\n", ds->data_observations.zeroinflated_delta_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std");
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std", NULL);
 
 		/*
 		 * add theta 
@@ -14870,7 +14909,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise prob_intern[%g]\n", ds->data_observations.prob_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN-std");
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN-std", NULL);
 
 		/*
 		 * add theta 
@@ -14972,7 +15011,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\tinitialise nmix.beta[%1d] = %g\n", k, ds->data_observations.nmix_beta[k][0][0]);
 				printf("\t\tfixed = %1d\n", ds->data_nfixed[k]);
 			}
-			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[k]), "GAUSSIAN", k);
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[k]), "GAUSSIAN", k, NULL);
 
 			if (!ds->data_nfixed[k]) {
 				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
@@ -15023,7 +15062,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\tinitialise nmix.log_overdispersion = %g\n", ds->data_observations.nmix_log_overdispersion[0][0]);
 				printf("\t\tfixed = %1d\n", ds->data_nfixed[k]);
 			}
-			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[k]), "LOGGAMMA", k);
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[k]), "LOGGAMMA", k, NULL);
 
 			if (!ds->data_nfixed[k]) {
 				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
@@ -15324,8 +15363,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->link_fixed[0]);
 		}
 		ds->link_prior = Calloc(2, Prior_tp);
-		inla_read_prior_link0(mb, ini, sec, &(ds->link_prior[0]), "LOGITBETA");	/* read both priors here */
-		inla_read_prior_link1(mb, ini, sec, &(ds->link_prior[1]), "LOGITBETA");	/* ... */
+		inla_read_prior_link0(mb, ini, sec, &(ds->link_prior[0]), "LOGITBETA", NULL);	/* read both priors here */
+		inla_read_prior_link1(mb, ini, sec, &(ds->link_prior[1]), "LOGITBETA", NULL);	/* ... */
 
 		/*
 		 * add theta 
@@ -15418,7 +15457,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->link_fixed[0]);
 		}
 		ds->link_prior = Calloc(1, Prior_tp);
-		inla_read_prior_link(mb, ini, sec, ds->link_prior, "GAUSSIAN-std");
+		inla_read_prior_link(mb, ini, sec, ds->link_prior, "GAUSSIAN-std", NULL);
 
 		/*
 		 * add theta 
@@ -15475,7 +15514,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->link_fixed[0]);
 		}
 		ds->link_prior = Calloc(1, Prior_tp);
-		inla_read_prior_link(mb, ini, sec, ds->link_prior, "GAUSSIAN-std");
+		inla_read_prior_link(mb, ini, sec, ds->link_prior, "GAUSSIAN-std", NULL);
 
 		/*
 		 * add theta 
@@ -15531,7 +15570,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->link_fixed[0]);
 		}
 		ds->link_prior = Calloc(1, Prior_tp);
-		inla_read_prior_link(mb, ini, sec, ds->link_prior, "GAUSSIAN-std");
+		inla_read_prior_link(mb, ini, sec, ds->link_prior, "GAUSSIAN-std", NULL);
 
 		/*
 		 * add theta 
@@ -15587,7 +15626,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->link_fixed[0]);
 		}
 		ds->link_prior = Calloc(1, Prior_tp);
-		inla_read_prior_link(mb, ini, sec, ds->link_prior, "GAUSSIAN-std");
+		inla_read_prior_link(mb, ini, sec, ds->link_prior, "GAUSSIAN-std", NULL);
 
 		/*
 		 * add theta 
@@ -15623,8 +15662,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case LINK_SPECIAL1:
 	{
 		ds->link_prior = Calloc(2, Prior_tp);
-		inla_read_prior_link0(mb, ini, sec, &(ds->link_prior[0]), "LOGGAMMA");	// log precision
-		inla_read_prior_link1(mb, ini, sec, &(ds->link_prior[1]), "MVNORM");	// the beta's
+		inla_read_prior_link0(mb, ini, sec, &(ds->link_prior[0]), "LOGGAMMA", NULL);	// log precision
+		inla_read_prior_link1(mb, ini, sec, &(ds->link_prior[1]), "MVNORM", NULL);	// the beta's
 
 		if (ds->link_order > 0 && (int) ds->link_prior[1].parameters[0] != ds->link_order) {
 			char *ptmp;
@@ -15843,7 +15882,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\tinitialise mix.log_precision[%g]\n", ds->data_observations.mix_log_prec_gaussian[0][0]);
 				printf("\t\tmix.fixed=[%1d]\n", ds->mix_fixed);
 			}
-			inla_read_prior_mix(mb, ini, sec, &(ds->mix_prior), "LOGGAMMA");
+			inla_read_prior_mix(mb, ini, sec, &(ds->mix_prior), "LOGGAMMA", NULL);
 
 			/*
 			 * add theta 
@@ -15893,7 +15932,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\tinitialise mix.log_precision[%g]\n", ds->data_observations.mix_log_prec_loggamma[0][0]);
 				printf("\t\tmix.fixed=[%1d]\n", ds->mix_fixed);
 			}
-			inla_read_prior_mix(mb, ini, sec, &(ds->mix_prior), "PCMGAMMA");
+			inla_read_prior_mix(mb, ini, sec, &(ds->mix_prior), "PCMGAMMA", NULL);
 
 			/*
 			 * add theta 
@@ -16596,77 +16635,77 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_RW2:
 	case F_CRW2:
 	case F_Z:
-		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");
+		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);
 		break;
 
 	case F_SLM:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	// kappa
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL");	// rho
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	// kappa
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL", NULL);	// rho
 		break;
 
 	case F_BESAG2:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	// kappa
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL-a");	// a
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	// kappa
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL-a", NULL);	// a
 		break;
 
 	case F_BESAGPROPER:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	// precision
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	// weight
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	// precision
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA", NULL);	// weight
 		break;
 
 	case F_BESAGPROPER2:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	// precision
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN");	// lambda
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	// precision
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN", NULL);	// lambda
 		break;
 
 	case F_SPDE:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL");	// T[0]
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL");	// K[0]
-		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NORMAL");	// the rest
-		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "FLAT");	// the ocillating cooef
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL", NULL);	// T[0]
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL", NULL);	// K[0]
+		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NORMAL", NULL);	// the rest
+		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "FLAT", NULL);	// the ocillating cooef
 		break;
 
 	case F_SPDE2:
 		mb->f_prior[mb->nf] = Calloc(1, Prior_tp);
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "MVNORM");	// Just one prior...
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "MVNORM", NULL);	// Just one prior...
 		break;
 
 	case F_SPDE3:
 		mb->f_prior[mb->nf] = Calloc(1, Prior_tp);
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "MVNORM");	// Just one prior...
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "MVNORM", NULL);	// Just one prior...
 		break;
 
 	case F_AR:
 		mb->f_prior[mb->nf] = Calloc(11, Prior_tp);
 		assert(11 == AR_MAXTHETA + 1);
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "PCPREC");	// log precision
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "PCRHO0");	// the pacf
-		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "PCRHO0");	// the pacf
-		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "PCRHO0");	// the pacf
-		inla_read_prior4(mb, ini, sec, &(mb->f_prior[mb->nf][4]), "PCRHO0");	// the pacf
-		inla_read_prior5(mb, ini, sec, &(mb->f_prior[mb->nf][5]), "PCRHO0");	// the pacf
-		inla_read_prior6(mb, ini, sec, &(mb->f_prior[mb->nf][6]), "PCRHO0");	// the pacf
-		inla_read_prior7(mb, ini, sec, &(mb->f_prior[mb->nf][7]), "PCRHO0");	// the pacf
-		inla_read_prior8(mb, ini, sec, &(mb->f_prior[mb->nf][8]), "PCRHO0");	// the pacf
-		inla_read_prior9(mb, ini, sec, &(mb->f_prior[mb->nf][9]), "PCRHO0");	// the pacf
-		inla_read_prior10(mb, ini, sec, &(mb->f_prior[mb->nf][10]), "PCRHO0");	// the pacf
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "PCPREC", NULL);	// log precision
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "PCRHO0", NULL);	// the pacf
+		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "PCRHO0", NULL);	// the pacf
+		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "PCRHO0", NULL);	// the pacf
+		inla_read_prior4(mb, ini, sec, &(mb->f_prior[mb->nf][4]), "PCRHO0", NULL);	// the pacf
+		inla_read_prior5(mb, ini, sec, &(mb->f_prior[mb->nf][5]), "PCRHO0", NULL);	// the pacf
+		inla_read_prior6(mb, ini, sec, &(mb->f_prior[mb->nf][6]), "PCRHO0", NULL);	// the pacf
+		inla_read_prior7(mb, ini, sec, &(mb->f_prior[mb->nf][7]), "PCRHO0", NULL);	// the pacf
+		inla_read_prior8(mb, ini, sec, &(mb->f_prior[mb->nf][8]), "PCRHO0", NULL);	// the pacf
+		inla_read_prior9(mb, ini, sec, &(mb->f_prior[mb->nf][9]), "PCRHO0", NULL);	// the pacf
+		inla_read_prior10(mb, ini, sec, &(mb->f_prior[mb->nf][10]), "PCRHO0", NULL);	// the pacf
 		break;
 
 	case F_COPY:
-		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL-1");
+		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL-1", NULL);
 		break;
 
 	case F_CLINEAR:
-		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL");
+		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL", NULL);
 		break;
 
 	case F_LOG1EXP:
 	case F_LOGDIST:
 	case F_SIGM:
 	case F_REVSIGM:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL");	// beta
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL");	// log_halflife
-		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NORMAL");	// log_shape
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL", NULL);	// beta
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL", NULL);	// log_halflife
+		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NORMAL", NULL);	// log_shape
 		break;
 
 	case F_IID1D:
@@ -16690,7 +16729,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				GMRFLib_sprintf(&to_theta, "TO.THETA%1d", kk);
 				GMRFLib_sprintf(&hyperid, "HYPERID%1d", kk);
 				inla_read_prior_generic(mb, ini, sec, &(mb->f_prior[mb->nf][kk]), pri, par, from_theta, to_theta,
-							hyperid, (kk == 0 ? prifunc : "NONE"));
+							hyperid, (kk == 0 ? prifunc : "NONE"), NULL);
 
 				Free(pri);
 				Free(par);
@@ -16706,7 +16745,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			GMRFLib_sprintf(&to_theta, "TO.THETA");
 			GMRFLib_sprintf(&hyperid, "HYPERID");
 			inla_read_prior_generic(mb, ini, sec, &(mb->f_prior[mb->nf][kk]), pri, par, from_theta, to_theta, hyperid,
-						(kk == 0 ? prifunc : "NONE"));
+						(kk == 0 ? prifunc : "NONE"), NULL);
 		}
 
 		Free(pri);
@@ -16726,7 +16765,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			GMRFLib_sprintf(&to_theta, "TO.THETA%1d", kk);
 			GMRFLib_sprintf(&hyperid, "HYPERID%1d", kk);
 			inla_read_prior_generic(mb, ini, sec, &(mb->f_prior[mb->nf][kk]), pri, par, from_theta, to_theta,
-						hyperid, (kk == 0 ? prifunc : "NONE"));
+						hyperid, (kk == 0 ? prifunc : "NONE"), NULL);
 
 			Free(pri);
 			Free(par);
@@ -16738,85 +16777,85 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	}
 
 	case F_BYM:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision0 iid */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* precision1 spatial */
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* precision0 iid */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA", NULL);	/* precision1 spatial */
 		break;
 
 	case F_BYM2:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN");	/* phi */
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* precision */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN", NULL);	/* phi */
 		break;
 
 	case F_RW2DIID:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN");	/* phi */
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* precision */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN", NULL);	/* phi */
 		break;
 
 	case F_AR1:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* marginal precision */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN-rho");	/* phi (lag-1 correlation) */
-		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "GAUSSIAN");	/* mean */
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* marginal precision */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN-rho", NULL);	/* phi (lag-1 correlation) */
+		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "GAUSSIAN", NULL);	/* mean */
 		break;
 
 	case F_AR1C:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* marginal precision */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN-rho");	/* phi (lag-1 correlation) */
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* marginal precision */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN-rho", NULL);	/* phi (lag-1 correlation) */
 		break;
 
 	case F_FGN:
 	case F_FGN2:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* marginal precision */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN");	/* H */
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* marginal precision */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN", NULL);	/* H */
 		break;
 
 	case F_OU:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* marginal precision */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN");	/* log(phi) */
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* marginal precision */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN", NULL);	/* log(phi) */
 		break;
 
 	case F_GENERIC1:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN");	/* beta */
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* precision */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN", NULL);	/* beta */
 		break;
 
 	case F_GENERIC2:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision Cmatrix */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* the other precision, but theta1 = h^2 */
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* precision Cmatrix */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA", NULL);	/* the other precision, but theta1 = h^2 */
 		break;
 
 	case F_GENERIC3:
 		for (i = 0; i < GENERIC3_MAXTHETA; i++) {
-			inla_read_priorN(mb, ini, sec, &(mb->f_prior[mb->nf][i]), "LOGGAMMA", i);
+			inla_read_priorN(mb, ini, sec, &(mb->f_prior[mb->nf][i]), "LOGGAMMA", i, NULL);
 		}
 		break;
 
 	case F_2DIID:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision0 */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* precision1 */
-		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "GAUSSIAN-rho");	/* rho */
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* precision0 */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA", NULL);	/* precision1 */
+		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "GAUSSIAN-rho", NULL);	/* rho */
 		break;
 
 	case F_MATERN2D:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* range */
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* precision */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA", NULL);	/* range */
 		break;
 
 	case F_DMATERN:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA");	/* precision */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* range */
-		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "LOGGAMMA");	/* nu */
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* precision */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA", NULL);	/* range */
+		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "LOGGAMMA", NULL);	/* nu */
 		break;
 
 	case F_MEC:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL");	/* beta */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* prec.u */
-		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NORMAL");	/* mean */
-		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "LOGGAMMA");	/* prec.x */
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL", NULL);	/* beta */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA", NULL);	/* prec.u */
+		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NORMAL", NULL);	/* mean */
+		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "LOGGAMMA", NULL);	/* prec.x */
 		break;
 
 	case F_MEB:
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL");	/* beta */
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA");	/* prec.u */
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL", NULL);	/* beta */
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA", NULL);	/* prec.u */
 		break;
 
 	case F_R_GENERIC:
@@ -22994,12 +23033,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				switch (mb->f_group_model[mb->nf]) {
 				case G_EXCHANGEABLE:
 				case G_EXCHANGEABLE_POS:
-					inla_read_prior_group(mb, ini, sec, &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]]), "GAUSSIAN-group");
+					inla_read_prior_group(mb, ini, sec, &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]]), "GAUSSIAN-group", NULL);
 					mb->f_ntheta[mb->nf]++;
 					break;
 
 				case G_AR1:
-					inla_read_prior_group(mb, ini, sec, &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]]), "GAUSSIAN-rho");
+					inla_read_prior_group(mb, ini, sec, &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]]), "GAUSSIAN-rho", NULL);
 					mb->f_ntheta[mb->nf]++;
 					break;
 
@@ -23007,7 +23046,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				case G_RW1:
 				case G_RW2:
 				case G_BESAG:
-					inla_read_prior_group(mb, ini, sec, &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]]), "LOGGAMMA");
+					inla_read_prior_group(mb, ini, sec, &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]]), "LOGGAMMA", NULL);
 					mb->f_ntheta[mb->nf]++;
 					break;
 
@@ -23108,17 +23147,17 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				assert(11 == AR_MAXTHETA + 1);
 
 				mb->f_prior[mb->nf] = Realloc(mb->f_prior[mb->nf], ntheta_orig + AR_MAXTHETA + 1, Prior_tp);
-				inla_read_prior_group0(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 0]), "LOGGAMMA");
-				inla_read_prior_group1(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 1]), "PCRHO0");
-				inla_read_prior_group2(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 2]), "PCRHO0");
-				inla_read_prior_group3(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 3]), "PCRHO0");
-				inla_read_prior_group4(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 4]), "PCRHO0");
-				inla_read_prior_group5(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 5]), "PCRHO0");
-				inla_read_prior_group6(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 6]), "PCRHO0");
-				inla_read_prior_group7(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 7]), "PCRHO0");
-				inla_read_prior_group8(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 8]), "PCRHO0");
-				inla_read_prior_group9(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 9]), "PCRHO0");
-				inla_read_prior_group10(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 10]), "PCRHO0");
+				inla_read_prior_group0(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 0]), "LOGGAMMA", NULL);
+				inla_read_prior_group1(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 1]), "PCRHO0", NULL);
+				inla_read_prior_group2(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 2]), "PCRHO0", NULL);
+				inla_read_prior_group3(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 3]), "PCRHO0", NULL);
+				inla_read_prior_group4(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 4]), "PCRHO0", NULL);
+				inla_read_prior_group5(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 5]), "PCRHO0", NULL);
+				inla_read_prior_group6(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 6]), "PCRHO0", NULL);
+				inla_read_prior_group7(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 7]), "PCRHO0", NULL);
+				inla_read_prior_group8(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 8]), "PCRHO0", NULL);
+				inla_read_prior_group9(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 9]), "PCRHO0", NULL);
+				inla_read_prior_group10(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 10]), "PCRHO0", NULL);
 
 				mb->f_initial[mb->nf] = Realloc(mb->f_initial[mb->nf], ntheta_orig + AR_MAXTHETA + 1, double);
 				if (mb->verbose) {
