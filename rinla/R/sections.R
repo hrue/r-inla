@@ -179,9 +179,13 @@
             cat("gev2.", nms[i], " = ", paste(as.numeric(c.gev2[[i]]), collapse = " "),
                 "\n", sep="", file=file, append=TRUE)
         }
+        low = c.gev2$tail.interval[1]
+        high = c.gev2$tail.interval[2]
+    } else {
+        low = high = NA
     }
 
-    inla.write.hyper(control$hyper, file, data.dir = data.dir)
+    inla.write.hyper(control$hyper, file, data.dir = data.dir, low = low, high = high)
 
     ## the link-part. first make it backward-compatible...
     if (!(is.null(control$link) || inla.strcasecmp(control$link, "default"))) {

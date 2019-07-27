@@ -319,7 +319,7 @@ typedef struct {
 	double gev2_qlocation;
 	double gev2_qspread;
 	double gev2_beta_ab;
-	double *gev2_xi_interval;
+	double *gev2_tail_interval;
 	double *gev2_qmix;
 	double *gev2_scale;
 	double **gev2_x;				       /* matrix of covariates */
@@ -590,6 +590,7 @@ typedef enum {
 	P_PC_PREC,
 	P_PC_RANGE,
 	P_PC_SPDE_GA,					       /* Experimental prior from GA when dim(theta)=2 */
+	P_PC_GEVTAIL, 
 	P_REF_AR,					       /* Reference prior for AR(p) for p=1,2,3 */
 	P_TABLE,
 	P_WISHART1D,
@@ -1560,6 +1561,7 @@ double priorfunc_pc_mgamma(double *x, double *parameters);
 double priorfunc_pc_prec(double *x, double *parameters);
 double priorfunc_pc_range(double *x, double *parameters);
 double priorfunc_pc_spde_ga(double *x, double *parameters);
+double priorfunc_pc_gevtail(double *x, double *parameters);
 double priorfunc_ref_ar(double *x, double *parameters);
 double priorfunc_wishart(int dim, double *x, double *parameters);
 double priorfunc_wishart1d(double *x, double *parameters);
@@ -1684,38 +1686,38 @@ int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filen
 int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec);
 int inla_read_fileinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file, const char *FILENAME);
 int inla_read_graph(const char *filename);
-int inla_read_prior(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior10(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N);
+int inla_read_prior(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior10(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N, void *args);
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag, const char *param_tag,
-			    const char *from_theta, const char *to_theta, const char *hyperid, const char *default_prior);
-int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior_group0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior_group1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior_group10(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior_group2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior_group3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior_group4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior_group5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior_group6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior_group7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior_group8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior_group9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior_link(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior_link0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior_link1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior_link2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
-int inla_read_prior_mix(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior);
+			    const char *from_theta, const char *to_theta, const char *hyperid, const char *default_prior, void *args);
+int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior_group0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior_group1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior_group10(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior_group2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior_group3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior_group4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior_group5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior_group6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior_group7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior_group8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior_group9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior_link(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior_link0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior_link1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior_link2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
+int inla_read_prior_mix(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
 int inla_read_theta_sha1(unsigned char **sha1_hash, double **theta, int *ntheta);
 int inla_read_weightsinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file);
 int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate);
