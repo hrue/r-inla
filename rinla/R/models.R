@@ -5472,7 +5472,7 @@
                              initial = -4,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(-10, 0.0001),
+                             param = c(-4, 0.1),
                              to.theta = function(x, interval = c(0, 0.5)) log(-(interval[1] - x)/(interval[2] - x)), 
                              from.theta = function(x, interval = c(0, 0.5)) interval[1] + (interval[2]-interval[1]) * exp(x)/(1.0 + exp(x))
                          ), 
@@ -5483,7 +5483,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1000), 
+                             param = c(0, 10), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          ), 
@@ -5494,7 +5494,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1000), 
+                             param = c(0, 10), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          ), 
@@ -5505,7 +5505,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1000), 
+                             param = c(0, 10), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          ), 
@@ -5516,7 +5516,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1000), 
+                             param = c(0, 10), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          ), 
@@ -5527,7 +5527,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1000), 
+                             param = c(0, 10), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          ), 
@@ -5538,7 +5538,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1000), 
+                             param = c(0, 10), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          ), 
@@ -5549,7 +5549,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1000), 
+                             param = c(0, 10), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          ), 
@@ -5560,7 +5560,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1000), 
+                             param = c(0, 10), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          ), 
@@ -5571,7 +5571,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1000), 
+                             param = c(0, 10), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          ), 
@@ -5582,7 +5582,7 @@
                              initial = NA,
                              fixed = FALSE,
                              prior = "normal",
-                             param = c(0, 1000), 
+                             param = c(0, 10), 
                              to.theta = function(x) x, 
                              from.theta = function(x) x
                          )
