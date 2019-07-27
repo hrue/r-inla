@@ -1,0 +1,45 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{\texttt{pc.gevtail}: The PC prior for $\xi$ in the GEV likelihood}
+
+\subsection*{Parametrization}
+
+This is the PC prior for the tail parameter $\xi$ in the GEV
+likelihood, where the KLD is
+\begin{displaymath}
+    \text{KLD} = \xi^{2}/(1-\xi)
+\end{displaymath}
+for $0 \le \xi < 1$.
+
+\subsection*{Specification}
+This prior for the hyperparameter is specified in the
+\texttt{hyper}-spesification, as
+\begin{center}
+    \texttt{hyper = list(<theta> = list(prior="pc.gevtail", param=c(<lambda>)))}
+\end{center}
+and for $\theta = -\log(a)$ it is
+\begin{center}
+    \texttt{hyper = list(<theta> = list(prior="pc.gevtail", param=c(<lambda>)))}
+\end{center}
+
+\subsection*{Example}
+
+\subsection*{Notes}
+
+See also functions \texttt{inla.pc.\{d,p,q,r\}gevtail} which defines
+utility functions for this prior.
+
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
+
