@@ -63,6 +63,15 @@
         }
 
         cat(prefix, "parameters", suff, " = ", inla.paste(hyper[[k]]$param), "\n", file = file, append = TRUE, sep="")
+
+        ## the PCGEVTAIL prior is a special case, as the (low, high) is given as parameters 2
+        ## and 3, in the prior. So we need to extract those, and make sure they are set to
+        ## (low, high), so they will be replaced
+        if (tmp.prior == "pcgevtail") {
+            low = hyper[[k]]$param[2]
+            high = hyper[[k]]$param[3]
+        }
+
         to.t = gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""), inla.function2source(hyper[[k]]$to.theta))
         from.t = gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""), inla.function2source(hyper[[k]]$from.theta))
         to.t = gsub("REPLACE.ME.low", paste("low=", as.numeric(low), sep=""), to.t)
@@ -179,13 +188,9 @@
             cat("gev2.", nms[i], " = ", paste(as.numeric(c.gev2[[i]]), collapse = " "),
                 "\n", sep="", file=file, append=TRUE)
         }
-        low = c.gev2$tail.interval[1]
-        high = c.gev2$tail.interval[2]
-    } else {
-        low = high = NA
     }
 
-    inla.write.hyper(control$hyper, file, data.dir = data.dir, low = low, high = high)
+    inla.write.hyper(control$hyper, file, data.dir = data.dir)
 
     ## the link-part. first make it backward-compatible...
     if (!(is.null(control$link) || inla.strcasecmp(control$link, "default"))) {

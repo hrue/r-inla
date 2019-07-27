@@ -19,19 +19,23 @@ for $0 \le \xi < 1$.
 This prior for the hyperparameter is specified in the
 \texttt{hyper}-spesification, as
 \begin{center}
-    \texttt{hyper = list(<theta> = list(prior="pc.gevtail", param=c(<lambda>)))}
+    \texttt{hyper = list(<theta> = list(prior="pc.gevtail", param=c(<lambda>, <low>, <high>)))}
 \end{center}
-and for $\theta = -\log(a)$ it is
-\begin{center}
-    \texttt{hyper = list(<theta> = list(prior="pc.gevtail", param=c(<lambda>)))}
-\end{center}
+restricted to the interval $[\text{low}, \text{high}]$ (and the
+default interval is $[0,1/2]$).
 
 \subsection*{Example}
 
 \subsection*{Notes}
 
+\textbf{OOPS:} This prior can ONLY be used with \texttt{family =
+    "gev2"}. If you use it with another family, then there is no
+error, you just get wrong results. 
+
 See also functions \texttt{inla.pc.\{d,p,q,r\}gevtail} which defines
-utility functions for this prior.
+utility functions for this prior, without the interval-restriction.
+
+This prior is experimental.
 
 
 \end{document}

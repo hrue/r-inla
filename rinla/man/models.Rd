@@ -6432,10 +6432,10 @@ inla.models()
 							\item{short.name = }{`tail'}
 							\item{initial = }{`-4'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`normal'}
-							\item{param = }{`-4 0.1'}
-							\item{to.theta = }{`\code{function(x, interval = c(0, 0.5)) log(-(interval[1] - x)/(interval[2] - x))}'}
-							\item{from.theta = }{`\code{function(x, interval = c(0, 0.5)) interval[1] + (interval[2]-interval[1]) * exp(x)/(1.0 + exp(x))}'}
+							\item{prior = }{`pc.gevtail'}
+							\item{param = }{`7 0 0.5'}
+							\item{to.theta = }{`\code{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x)/(interval[2] - x))}'}
+							\item{from.theta = }{`\code{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2]-interval[1]) * exp(x)/(1.0 + exp(x))}'}
 							}
 						}
 						\item{Hyperparameter `theta3'}{
@@ -6446,7 +6446,7 @@ inla.models()
 							\item{initial = }{`NA'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
-							\item{param = }{`0 10'}
+							\item{param = }{`0 300'}
 							\item{to.theta = }{`\code{function(x) x}'}
 							\item{from.theta = }{`\code{function(x) x}'}
 							}
@@ -6459,7 +6459,7 @@ inla.models()
 							\item{initial = }{`NA'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
-							\item{param = }{`0 10'}
+							\item{param = }{`0 300'}
 							\item{to.theta = }{`\code{function(x) x}'}
 							\item{from.theta = }{`\code{function(x) x}'}
 							}
@@ -6472,7 +6472,7 @@ inla.models()
 							\item{initial = }{`NA'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
-							\item{param = }{`0 10'}
+							\item{param = }{`0 300'}
 							\item{to.theta = }{`\code{function(x) x}'}
 							\item{from.theta = }{`\code{function(x) x}'}
 							}
@@ -6485,7 +6485,7 @@ inla.models()
 							\item{initial = }{`NA'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
-							\item{param = }{`0 10'}
+							\item{param = }{`0 300'}
 							\item{to.theta = }{`\code{function(x) x}'}
 							\item{from.theta = }{`\code{function(x) x}'}
 							}
@@ -6498,7 +6498,7 @@ inla.models()
 							\item{initial = }{`NA'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
-							\item{param = }{`0 10'}
+							\item{param = }{`0 300'}
 							\item{to.theta = }{`\code{function(x) x}'}
 							\item{from.theta = }{`\code{function(x) x}'}
 							}
@@ -6511,7 +6511,7 @@ inla.models()
 							\item{initial = }{`NA'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
-							\item{param = }{`0 10'}
+							\item{param = }{`0 300'}
 							\item{to.theta = }{`\code{function(x) x}'}
 							\item{from.theta = }{`\code{function(x) x}'}
 							}
@@ -6524,7 +6524,7 @@ inla.models()
 							\item{initial = }{`NA'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
-							\item{param = }{`0 10'}
+							\item{param = }{`0 300'}
 							\item{to.theta = }{`\code{function(x) x}'}
 							\item{from.theta = }{`\code{function(x) x}'}
 							}
@@ -6537,7 +6537,7 @@ inla.models()
 							\item{initial = }{`NA'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
-							\item{param = }{`0 10'}
+							\item{param = }{`0 300'}
 							\item{to.theta = }{`\code{function(x) x}'}
 							\item{from.theta = }{`\code{function(x) x}'}
 							}
@@ -6550,7 +6550,7 @@ inla.models()
 							\item{initial = }{`NA'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
-							\item{param = }{`0 10'}
+							\item{param = }{`0 300'}
 							\item{to.theta = }{`\code{function(x) x}'}
 							\item{from.theta = }{`\code{function(x) x}'}
 							}
@@ -6563,7 +6563,7 @@ inla.models()
 							\item{initial = }{`NA'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
-							\item{param = }{`0 10'}
+							\item{param = }{`0 300'}
 							\item{to.theta = }{`\code{function(x) x}'}
 							\item{from.theta = }{`\code{function(x) x}'}
 							}
@@ -9138,6 +9138,8 @@ inla.models()
 				\item{Model `pc.mgamma'.}{					 Number of parameters in the prior = 1 
 				 }
 				\item{Model `pc.gammacount'.}{					 Number of parameters in the prior = 1 
+				 }
+				\item{Model `pc.gevtail'.}{					 Number of parameters in the prior = 3 
 				 }
 				\item{Model `pc'.}{					 Number of parameters in the prior = 2 
 				 }

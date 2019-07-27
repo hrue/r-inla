@@ -2737,6 +2737,13 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			cc_is_negative = (cc_is_negative || ccoof < 0.0);	/* this line IS OK! also for multithread.. */
 			//if (ccoof < 0.0) printf("idx %d ccoof %.12g\n", idx, ccoof);
 			if (cc_positive) {
+
+				if (0) {
+					if (ccoof < 0) {
+						fprintf(stderr, "idx = %1d, ccoof = %g bcoof %g\n", idx,  ccoof, bcoof);
+					}
+				}
+				
 				if (cmin == 0.0) {
 					if (ccoof <= cmin) {
 						FIXME1("TRY NEW STRATEGY FOR bcoof");

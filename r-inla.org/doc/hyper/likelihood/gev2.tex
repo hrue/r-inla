@@ -23,10 +23,10 @@
 	 	 	\item[short.name] tail
 	 	 	\item[initial] -4
 	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] -4 0.1
-	 	 	\item[to.theta] \verb!function(x, interval = c(0, 0.5)) log(-(interval[1] - x)/(interval[2] - x))!
-	 	 	\item[from.theta] \verb!function(x, interval = c(0, 0.5)) interval[1] + (interval[2]-interval[1]) * exp(x)/(1.0 + exp(x))!
+	 	 	\item[prior] pc.gevtail
+	 	 	\item[param] 7 0 0.5
+	 	 	\item[to.theta] \verb!function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x)/(interval[2] - x))!
+	 	 	\item[from.theta] \verb!function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2]-interval[1]) * exp(x)/(1.0 + exp(x))!
 	 	 \end{description}
 	 	\item[theta3]\ 
 	 	 \begin{description}
@@ -36,7 +36,7 @@
 	 	 	\item[initial] NA
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] normal
-	 	 	\item[param] 0 10
+	 	 	\item[param] 0 300
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
@@ -48,7 +48,7 @@
 	 	 	\item[initial] NA
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] normal
-	 	 	\item[param] 0 10
+	 	 	\item[param] 0 300
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
@@ -60,7 +60,7 @@
 	 	 	\item[initial] NA
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] normal
-	 	 	\item[param] 0 10
+	 	 	\item[param] 0 300
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
@@ -72,7 +72,7 @@
 	 	 	\item[initial] NA
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] normal
-	 	 	\item[param] 0 10
+	 	 	\item[param] 0 300
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
@@ -84,7 +84,7 @@
 	 	 	\item[initial] NA
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] normal
-	 	 	\item[param] 0 10
+	 	 	\item[param] 0 300
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
@@ -96,7 +96,7 @@
 	 	 	\item[initial] NA
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] normal
-	 	 	\item[param] 0 10
+	 	 	\item[param] 0 300
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
@@ -108,7 +108,7 @@
 	 	 	\item[initial] NA
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] normal
-	 	 	\item[param] 0 10
+	 	 	\item[param] 0 300
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
@@ -120,7 +120,7 @@
 	 	 	\item[initial] NA
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] normal
-	 	 	\item[param] 0 10
+	 	 	\item[param] 0 300
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
@@ -132,7 +132,7 @@
 	 	 	\item[initial] NA
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] normal
-	 	 	\item[param] 0 10
+	 	 	\item[param] 0 300
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
@@ -144,7 +144,7 @@
 	 	 	\item[initial] NA
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] normal
-	 	 	\item[param] 0 10
+	 	 	\item[param] 0 300
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
