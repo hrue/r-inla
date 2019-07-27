@@ -9,17 +9,18 @@
 \title{View documentation}
 \description{View documentation of latent, prior and likelihood models.}
 \usage{
-inla.doc(what, sec, verbose=FALSE)
+inla.doc(what, section, verbose=FALSE)
 }
 \arguments{
 \item{what}{What to view documentation about;
             name of latent model,  name of prior,  etc. (A regular expression.)}
-\item{sec}{An optional section to look for the documentation. If missing, all sections are used.}
-\item{verbose}{Logical if \code{TRUE} then run in verbose mode}
+\item{section}{An optional section, like \code{names(inla.models())},
+               to look for the documentation. If missing, all sections are used.}
+\item{verbose}{Logical If \code{TRUE} then run in verbose mode}
 }
 \author{Havard Rue \email{hrue@r-inla.org}}
 \seealso{\code{www.r-inla.org}}
 \examples{
 \dontrun{inla.doc("rw2")}
-\dontrun{inla.doc("gaussian")}
+\dontrun{inla.doc("gaussian", section = "prior")}
 }
