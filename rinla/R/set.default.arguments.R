@@ -264,8 +264,8 @@
         ##:ARGUMENT: q.spread The quantile level for the spread parameter (must be < 0.5)
         q.spread = 0.25,
         
-        ##:ARGUMENT: xi.interval The interval for the tail parameter
-        xi.interval = c(0, 0.5), 
+        ##:ARGUMENT: tail.interval The interval for the tail parameter
+        tail.interval = c(0, 0.5), 
 
         ##:ARGUMENT: q.mix The lower and upper quantile level for the mixing function
         q.mix = c(0.10, 0.20), 
