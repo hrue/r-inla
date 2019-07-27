@@ -9435,15 +9435,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		prior->id = P_PC_GEVTAIL;
 		prior->priorfunc = priorfunc_pc_gevtail;
 		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
-		assert(nparam == 1);
-		// Add the interval as well, which comes in as 'args'
-		double lambda = prior->parameters[0];
-		double *interval = (double *) args;
-		nparam = 3;
-		prior->parameters = Calloc(nparam, double);
-		prior->parameters[0] = lambda;
-		prior->parameters[1] = interval[0];
-		prior->parameters[2] = interval[1];
+		assert(nparam == 3);
 		if (mb->verbose) {
 			for (i = 0; i < nparam; i++) {
 				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
@@ -12815,19 +12807,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tgev2.q.spread [%g]\n", ds->data_observations.gev2_qspread);
 		}
 
-		ctmp = iniparser_getstring(ini, inla_string_join(secname, "gev2.tail.interval"), GMRFLib_strdup("0 0.5"));
-		ds->data_observations.gev2_tail_interval = Calloc(2, double);
-		if (inla_sread_doubles(ds->data_observations.gev2_tail_interval, 2, ctmp) == INLA_FAIL ||
-		    DMIN(ds->data_observations.gev2_tail_interval[0], ds->data_observations.gev2_tail_interval[1]) < 0.0 ||
-		    DMAX(ds->data_observations.gev2_tail_interval[0], ds->data_observations.gev2_tail_interval[1]) >= 1.0 ||
-		    ds->data_observations.gev2_tail_interval[0] >= ds->data_observations.gev2_tail_interval[1]) {
-			inla_error_field_is_void(__GMRFLib_FuncName, secname, "GEV2.TAIL.INTERVAL", ctmp);
-		}
-		if (mb->verbose) {
-			printf("\t\tgev2.tail.interval [%g %g]\n", ds->data_observations.gev2_tail_interval[0],
-			       ds->data_observations.gev2_tail_interval[1]);
-		}
-
 		ctmp = iniparser_getstring(ini, inla_string_join(secname, "gev2.q.mix"), GMRFLib_strdup("0.10 0.20"));
 		ds->data_observations.gev2_qmix = Calloc(2, double);
 		if (inla_sread_doubles(ds->data_observations.gev2_qmix, 2, ctmp) == INLA_FAIL ||
@@ -12937,7 +12916,26 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tinitialise internal tail[%g]\n", ds->data_observations.gev2_intern_tail[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_nfixed[1]);
 		}
-		inla_read_priorN(mb, ini, sec, &(ds->data_nprior[1]), "PCGEVTAIL", 1, (void *) (ds->data_observations.gev2_tail_interval));
+		inla_read_priorN(mb, ini, sec, &(ds->data_nprior[1]), "PCGEVTAIL", 1, NULL);
+		ds->data_observations.gev2_tail_interval = Calloc(2, double);
+		if (ds->data_nprior[1].id == P_PC_GEVTAIL) {
+			ds->data_observations.gev2_tail_interval[0] = ds->data_nprior[1].parameters[1];
+			ds->data_observations.gev2_tail_interval[1] = ds->data_nprior[1].parameters[2];
+		} else {
+			// used a fixed interval then
+			ds->data_observations.gev2_tail_interval[0] = 0.0;
+			ds->data_observations.gev2_tail_interval[1] = 0.5;
+		}
+
+		if (DMIN(ds->data_observations.gev2_tail_interval[0], ds->data_observations.gev2_tail_interval[1]) < 0.0 ||
+		    DMAX(ds->data_observations.gev2_tail_interval[0], ds->data_observations.gev2_tail_interval[1]) >= 1.0 ||
+		    ds->data_observations.gev2_tail_interval[0] >= ds->data_observations.gev2_tail_interval[1]) {
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "GEV2.TAIL.INTERVAL", ctmp);
+		}
+		if (mb->verbose) {
+			printf("\t\tgev2.tail.interval [%g %g]\n", ds->data_observations.gev2_tail_interval[0],
+			       ds->data_observations.gev2_tail_interval[1]);
+		}
 
 		/*
 		 * add theta 
@@ -24901,28 +24899,29 @@ double extra(double *theta, int ntheta, void *argument)
 
 			case L_GEV2:
 			{
-				int nbetas = ds->data_observations.gev2_nbetas[0] + ds->data_observations.gev2_nbetas[1];
-				int off = 2;
-				for (int k = 0; k < nbetas; k++) {
-					if (!ds->data_nfixed[k]) {
-						double b = theta[count];
-						if (k < ds->data_observations.gev2_nbetas[0]) {
-							val += PRIOR_EVAL(ds->data_nprior[off + k], &b);
-						} else {
-							val += PRIOR_EVAL(ds->data_nprior[off + k], &b);
-						}
-						count++;
-					}
-				}
-				if (!ds->data_nfixed[GEV2_MAXTHETA]) {
+				if (!ds->data_nfixed[0]) {
 					double spread = theta[count];
 					val += PRIOR_EVAL(ds->data_nprior[0], &spread);
 					count++;
 				}
-				if (!ds->data_nfixed[GEV2_MAXTHETA + 1]) {
+				if (!ds->data_nfixed[1]) {
 					double intern_tail = theta[count];
 					val += PRIOR_EVAL(ds->data_nprior[1], &intern_tail);
 					count++;
+				}
+
+				int nbetas = ds->data_observations.gev2_nbetas[0] + ds->data_observations.gev2_nbetas[1];
+				int off = 2;
+				for (int k = off; k < off + nbetas; k++) {
+					if (!ds->data_nfixed[k]) {
+						double b = theta[count];
+						if (k < ds->data_observations.gev2_nbetas[0]) {
+							val += PRIOR_EVAL(ds->data_nprior[k], &b);
+						} else {
+							val += PRIOR_EVAL(ds->data_nprior[k], &b);
+						}
+						count++;
+					}
 				}
 			}
 			break;
