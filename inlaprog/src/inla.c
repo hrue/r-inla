@@ -12910,7 +12910,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("internal tail for GEV2 observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("intern tail for GEV2 observations", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("tail for GEV2 observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -12969,10 +12969,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 				if (i < ds->data_observations.gev2_nbetas[0]) {
 					ii = i + 1;
-					GMRFLib_sprintf(&ctmp, "spread_beta%1d for GEV2 observations", ii);
+					GMRFLib_sprintf(&ctmp, "beta%1d (spread) for GEV2 observations", ii);
 				} else {
-					ii = i + 1 - ds->data_observations.gev2_nbetas[0];
-					GMRFLib_sprintf(&ctmp, "tail_beta%1d for GEV2 observations", ii);
+					ii = i + 1;
+					GMRFLib_sprintf(&ctmp, "beta%1d (tail) for GEV2 observations", ii);
 				}
 
 				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
