@@ -29,20 +29,10 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
-  \subsection{USER-VISIBLE CHANGES}{
-    \itemize{
-      \item 
-    }
-  }
+\section{CHANGES IN VERSION 19.07.27}{
   \subsection{NEW FEATURES}{
     \itemize{
-      \item
-    }
-  }
-  \subsection{NEW EXPERIMENTAL FEATURES}{
-    \itemize{
-      \item
+      \item New (experimental) likelihood: gev2
     }
   }
   \subsection{BUG FIXES}{
