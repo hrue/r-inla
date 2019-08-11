@@ -29,6 +29,30 @@
   }
 }
 
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Improved the stability of the saturated deviance calculations
+    }
+  }
+}
+
+
 \section{CHANGES IN VERSION 19.07.27}{
   \subsection{NEW FEATURES}{
     \itemize{
