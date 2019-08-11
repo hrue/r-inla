@@ -2637,20 +2637,10 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 	int i, free_x = 0, free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc =
 	    0, n, id, *idxs = NULL, nidx = 0;
 	double *mode = NULL;
-	static int new_idea = 0;
 
-	if (new_idea == 99) {
-		if (getenv("INLA_NEW_IDEA")) {
-			new_idea = 1;
-		} else {
-			new_idea = 0;
-		}
-		FIXME("READ INLA_NEW_IDEA: ");
-		P(new_idea);
-	}
 #define FREE_ALL if (1) { if (free_x) Free(x); if (free_b) Free(b); if (free_c) Free(c); if (free_d) Free(d); \
 		if (free_mean) Free(mean); if (free_blockpar) Free(blockupdate_par); if (free_aa) Free(aa); if (free_bb) Free(bb); \
-		if (free_cc) Free(cc); Free(mode); Free(idxs); }
+		if (free_cc) Free(cc); Free(idxs); }
 
 	GMRFLib_ENTER_ROUTINE;
 
@@ -2745,9 +2735,27 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			GMRFLib_2order_approx(&(aa[idx]), &bcoof, &ccoof, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg,
 					      &(optpar->step_len), &(optpar->stencil));
 			cc_is_negative = (cc_is_negative || ccoof < 0.0);	/* this line IS OK! also for multithread.. */
+			//if (ccoof < 0.0) printf("idx %d ccoof %.12g\n", idx, ccoof);
 			if (cc_positive) {
-				bb[idx] += bcoof;
-				cc[idx] += DMAX(cmin, ccoof);
+
+				if (0) {
+					if (ccoof < 0) {
+						fprintf(stderr, "idx = %1d, ccoof = %g bcoof %g\n", idx,  ccoof, bcoof);
+					}
+				}
+				
+				if (cmin == 0.0) {
+					if (ccoof <= cmin) {
+						FIXME1("TRY NEW STRATEGY FOR bcoof");
+						// do nothing. set ccoof=0 and bcoof=0.
+					} else {
+						bb[idx] += bcoof;
+						cc[idx] += DMAX(cmin, ccoof);
+					}
+				} else {
+					bb[idx] += bcoof;
+					cc[idx] += DMAX(cmin, ccoof);
+				}
 			} else {
 				if (ccoof > 0.0) {
 					bb[idx] += bcoof;
@@ -2924,6 +2932,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 					for (i = 0; i < graph->n; i++) {
 						c_new[i] = lambda * Qfunc(i, i, Qfunc_arg) + (1.0 + lambda) * c[i];
 						if (ISNAN(x[i]) || ISINF(x[i])) {
+							if (!mode) FIXME("MODE is NULL");
 							x[i] = mode[i];
 						}
 					}
@@ -2979,6 +2988,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 	}
 
 	Free(mode_initial);
+	Free(mode);					       /* not part of 'FREE_ALL' */
 
 	FREE_ALL;
 	GMRFLib_LEAVE_ROUTINE;
