@@ -27969,69 +27969,53 @@ double inla_compute_saturated_loglik(int idx, GMRFLib_logl_tp * loglfunc, double
 
 double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg)
 {
-	double prec = 1.0, x, xnew, xinit, f, deriv, dderiv, arr[3], xarr[3], eps = 1.0e-4, steplen = 1.0e-4;
-	int niter = 0, compute_deriv, retval, niter_max = 100, debug = 0, stencil = 5;
+	double precs[] = {1.0, 1.0E-1, 1.0E-2, 1.0E-4, 1.0E-8},
+		epss[] = {1.0E-3, 1.0E-4, 1.0E-5, 1.0E-6, 1.0E-7},
+		isafefactors[] = {4.0, 3.0, 2.0, 1.0, 1.0}, 
+		prec, eps, safefac, x, xnew, xinit, f, deriv, dderiv, arr[3], xarr[3], steplen = 1.0e-4;
+	int niter, compute_deriv, retval, niter_max = 1000, debug = 1, stencil = 5, k, nk;
 
 	x = xnew = xinit = (x_vec ? x_vec[idx] : 0.0);
 	retval = loglfunc(NULL, NULL, 0, 0, NULL, NULL, NULL);
 	compute_deriv = (retval == GMRFLib_LOGL_COMPUTE_DERIVATIES || retval == GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF);
 
-	while (1) {
+	nk = ((int) sizeof(precs))/((int)sizeof(double));
+	for(k = 0; k < nk; k++) {
 
-		if (compute_deriv) {
-			xarr[0] = xarr[1] = xarr[2] = x;
-			loglfunc(arr, xarr, 3, idx, x_vec, NULL, arg);
-		} else {
-			GMRFLib_2order_taylor(&arr[0], &arr[1], &arr[2], 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
-		}
-		f = arr[0] - 0.5 * prec * SQR(x);
-		deriv = arr[1] - prec * x;
-		dderiv = DMIN(0.0, arr[2]) - prec;
+		prec = precs[k];
+		eps = epss[k];
+		safefac = 1.0/isafefactors[k];
+		niter = 0;
 
-		xnew = x - DMIN(0.25 + niter * 0.25, 1.0) * deriv / dderiv;
-		if (debug) {
-			printf("PHASE1: idx %d x %.10g xnew %.10g f %.10g deriv %.10g dderiv %.10g\n", idx, x, xnew, f, deriv, dderiv);
-		}
-		x = xnew;
+		while (1) {
+			if (compute_deriv) {
+				xarr[0] = xarr[1] = xarr[2] = x;
+				loglfunc(arr, xarr, 3, idx, x_vec, NULL, arg);
+			} else {
+				GMRFLib_2order_taylor(&arr[0], &arr[1], &arr[2], 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
+			}
+			f = arr[0] - 0.5 * prec * SQR(x);
+			deriv = arr[1] - prec * x;
+			dderiv = DMIN(0.0, arr[2]) - prec;
 
-		if (ABS(deriv / dderiv) < eps) {
-			break;
+			xnew = x - DMIN(safefac + niter * safefac, 1.0) * deriv / dderiv;
+			
+			if (debug) {
+				printf("PHASE%1d: idx %d x %.6g xnew %.6g f %.6g deriv %.6g dderiv %.6g\n", k, idx, x, xnew, f, deriv, dderiv);
+			}
+			x = xnew;
+
+			if (ABS(deriv / dderiv) < eps) {
+				break;
+			}
+			if (++niter > niter_max) {
+				x = xinit;
+				break;
+			}
 		}
-		if (++niter > niter_max) {
-			x = xinit;
-			break;
-		}
+		xinit = x;
 	}
-	xinit = x;
-
-	prec = SQR(0.0001);
-	niter = 0;
-	while (1) {
-		if (compute_deriv) {
-			xarr[0] = xarr[1] = xarr[2] = x;
-			loglfunc(arr, xarr, 3, idx, x_vec, NULL, arg);
-		} else {
-			GMRFLib_2order_taylor(&arr[0], &arr[1], &arr[2], 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
-		}
-		f = arr[0] - 0.5 * prec * SQR(x);
-		deriv = arr[1] - prec * x;
-		dderiv = DMIN(0.0, arr[2]) - prec;
-
-		xnew = x - DMIN(0.25 + niter * 0.25, 1.0) * deriv / dderiv;
-		if (debug) {
-			printf("PHASE2: idx %d x %.10g xnew %.10g f %.10g deriv %.10g dderiv %.10g\n", idx, x, xnew, f, deriv, dderiv);
-		}
-		x = xnew;
-
-		if (ABS(deriv / dderiv) < eps) {
-			break;
-		}
-		if (++niter > niter_max) {
-			x = xinit;
-			break;
-		}
-	}
-
+	
 	return arr[0];
 }
 int inla_INLA(inla_tp * mb)
