@@ -5006,7 +5006,24 @@
                      status = "experimental", 
                      pdf = "logitoffset"
                      ), 
-
+                 robit = list(
+                     doc = "Robit link", 
+                     hyper = list(
+                         theta = list(
+                             hyperid =  49021,
+                             name = "log degrees of freedom",
+                             short.name = "dof",
+                             initial = log(5),
+                             fixed = TRUE,
+                             prior = "pc.dof",
+                             param = c(50, 0.5),
+                             to.theta = function(x) log(x-2),
+                             from.theta = function(x) 2+exp(x)
+                             )
+                         ),
+                     status = "experimental", 
+                     pdf = "robit"
+                     ), 
                  test1 = list(
                      doc = "A test1-link function (experimental)", 
                      hyper = list(
@@ -5326,7 +5343,7 @@
                      survival = FALSE,
                      discrete = TRUE,
                      link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog",
-                              "log", "sslogit", "logitoffset", "quantile", "pquantile"),
+                              "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit"),
                      pdf = "binomial"
                      ),
 
@@ -5760,7 +5777,7 @@
                          ),
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog"),
+                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit"),
                      pdf = "betabinomial"
                      ),
 
@@ -5769,7 +5786,7 @@
                      hyper = list(),
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog"),
+                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit"),
                      status = "experimental", 
                      pdf = "cbinomial"
                      ),
@@ -6506,7 +6523,7 @@
                          ),
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog"),
+                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit"),
                      pdf = "zeroinflated"
                      ),
 
@@ -6538,7 +6555,7 @@
                          ),
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog"),
+                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit"),
                      pdf = "zeroinflated"
                      ),
 
@@ -6559,7 +6576,7 @@
                          ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog"),
+                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit"),
                      pdf = "zeroinflated"
                      ),
 
@@ -6580,7 +6597,7 @@
                          ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog"),
+                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit"),
                      pdf = "zeroinflated"
                      ),
 
@@ -6601,7 +6618,7 @@
                          ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog"),
+                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit"),
                      pdf = "zeroinflated"
                      ),
 
@@ -6633,7 +6650,7 @@
                          ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog"),
+                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit"),
                      pdf = NA
                      ),
 
@@ -6666,7 +6683,7 @@
                      status = "experimental", 
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog"),
+                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit"),
                      pdf = "zeroinflated"
                      ),
 
@@ -6698,7 +6715,7 @@
                          ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog"),
+                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit"),
                      pdf = "zeroinflated"
                      ),
 
