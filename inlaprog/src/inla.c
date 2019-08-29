@@ -660,6 +660,44 @@ double map_exp_scale2(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
+double map_invrobit(double arg, map_arg_tp typ, void *param)
+{
+	/*
+	 * the inverse of the robit link: cdf of student t (scaled to have variance 1)
+	 */
+	double df_intern = *((double *) param);
+	double df = map_dof(df_intern, MAP_FORWARD, NULL);
+	double scale = sqrt(df/(df - 2.0));
+
+	switch (typ) {
+	case MAP_FORWARD:
+		/*
+		 * extern = func(local) 
+		 */
+		return MATHLIB_FUN(pt)(arg/scale, df, 1, 0);
+	case MAP_BACKWARD:
+		/*
+		 * local = func(extern) 
+		 */
+		return MATHLIB_FUN(qt)(arg, df, 1, 0) * scale;
+	case MAP_DFORWARD:
+		/*
+		 * d_extern / d_local 
+		 */
+		return MATHLIB_FUN(dt)(arg/scale, df, 0) / scale;
+	case MAP_INCREASING:
+		/*
+		 * return 1.0 if montone increasing and 0.0 otherwise
+		 */
+		return 1.0;
+	default:
+		abort();
+	}
+	abort();
+	return 0.0;
+}
+
+
 double map_invprobit(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -1250,6 +1288,16 @@ double link_probit(double x, map_arg_tp typ, void *param, double *cov)
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_invprobit(x, typ, param);
+}
+double link_robit(double x, map_arg_tp typ, void *param, double *cov)
+{
+	/*
+	 * the link-functions calls the inverse map-function 
+	 */
+	Link_param_tp *p = (Link_param_tp *) param;
+	double dof_intern = p->dof_intern[GMRFLib_thread_id][0];
+
+	return map_invrobit(x, typ, (void *) &dof_intern);
 }
 double link_tan(double x, map_arg_tp typ, void *param, double *cov)
 {
@@ -15163,6 +15211,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_id = LINK_SSLOGIT;
 		ds->link_ntheta = 2;
 		ds->predictor_invlinkfunc = link_sslogit;
+	} else if (!strcasecmp(ds->link_model, "ROBIT")) {
+		ds->link_id = LINK_ROBIT;
+		ds->link_ntheta = 1;
+		ds->predictor_invlinkfunc = link_robit;
 	} else if (!strcasecmp(ds->link_model, "TEST1")) {
 		ds->link_id = LINK_TEST1;
 		ds->link_ntheta = 1;
@@ -15423,6 +15475,63 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_probability;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->link_ntheta++;
+		}
+	}
+		break;
+
+	case LINK_ROBIT:
+	{
+		/*
+		 * Robit link with default fixed number of df.
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL"), 0.0);
+		ds->link_fixed = Calloc(2, int);
+		ds->link_fixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED"), 1);
+		if (!ds->link_fixed[0] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		ds->link_parameters = Calloc(1, Link_param_tp);
+		ds->link_parameters->idx = -1;
+		ds->link_parameters->order = -1;
+		for (i = 0; i < n_data; i++) {
+			ds->predictor_invlinkfunc_arg[i] = (void *) (ds->link_parameters);
+		}
+		HYPER_NEW(ds->link_parameters->dof_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise robit link dof_intern[%g]\n", ds->link_parameters->dof_intern[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->link_fixed[0]);
+		}
+
+		ds->link_prior = Calloc(1, Prior_tp);
+		inla_read_prior_link(mb, ini, sec, &(ds->link_prior[0]), "PCDOF", NULL);
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->link_fixed[0]) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->link_prior[0].hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Link robit dof_intern", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link robit dof", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].to_theta);
+			mb->theta[mb->ntheta] = ds->link_parameters->dof_intern;
+
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_dof;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -25453,6 +25562,14 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				break;
 
+			case LINK_ROBIT:
+				if (!ds->link_fixed[0]) {
+					double dof_intern = theta[count];
+					val += PRIOR_EVAL(ds->link_prior[0], &dof_intern);
+					count++;
+				}
+				break;
+
 			case LINK_TEST1:
 				if (!ds->link_fixed[0]) {
 					double beta = theta[count];
@@ -30557,6 +30674,8 @@ int inla_output_linkfunctions(const char *dir, inla_tp * mb)
 			fprintf(fp, "inverse\n");
 		} else if (lf == link_sslogit) {
 			fprintf(fp, "sslogit\n");
+		} else if (lf == link_robit) {
+			fprintf(fp, "robit\n");
 		} else if (lf == link_logoffset) {
 			fprintf(fp, "logoffset\n");
 		} else if (lf == link_logitoffset) {
@@ -33190,6 +33309,54 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 31:
+	{
+		double xx, df;
+
+		for(df = 4.0; df <= 125; df += 60.0) {
+			printf("df = %.4g\n", df);
+			for(xx = 0.01; xx <= 0.99; xx += 0.1) {
+				double cdf = MATHLIB_FUN(pt)(xx, df, 1, 0);
+				double icdf = MATHLIB_FUN(qt)(cdf, df, 1, 0);
+				double ldens = MATHLIB_FUN(dt)(xx, df, 1);
+				printf("\txx= %.6f  cdf= %.6f icdf= %.6f ldens = %.6f\n", xx, cdf, icdf, ldens);
+			}
+		}
+		for(df = 4.0; df <= 125; df += 60.0) {
+			double scale = sqrt(df/(df - 2.0));
+			printf("Normalized df = %.4g\n", df);
+			for(xx = 0.01; xx <= 0.99; xx += 0.1) {
+				double cdf = MATHLIB_FUN(pt)(xx/scale, df, 1, 0);
+				double icdf = MATHLIB_FUN(qt)(cdf, df, 1, 0)*scale;
+				double ldens = MATHLIB_FUN(dt)(xx/scale, df, 1) - log(scale);
+				printf("\txx= %.6f  cdf= %.6f icdf= %.6f ldens = %.6f\n", xx, cdf, icdf, ldens);
+			}
+		}
+
+		for(df = 4.0; df <= 125; df += 60.0) {
+			double df_intern = log(df - 2.0);
+			printf("Link probit\n");
+			
+			for(xx = 0.01; xx <= 0.99; xx += 0.1) {
+				double back, forw, dforw;
+				back = link_probit(xx, MAP_BACKWARD, (void *) &df_intern, NULL);
+				forw = link_probit(back, MAP_FORWARD, (void *) &df_intern, NULL);
+				dforw = link_probit(back, MAP_DFORWARD, (void *) &df_intern, NULL);
+				printf("\txx= %.6f  back= %.6f forw= %.6f dforw = %.6f\n", xx, back, forw, dforw);
+			}
+
+			printf("Link df = %.4g\n", df);
+			for(xx = 0.01; xx <= 0.99; xx += 0.1) {
+				double back, forw, dforw;
+				back = link_robit(xx, MAP_BACKWARD, (void *) &df_intern, NULL);
+				forw = link_robit(back, MAP_FORWARD, (void *) &df_intern, NULL);
+				dforw = link_robit(back, MAP_DFORWARD, (void *) &df_intern, NULL);
+				printf("\txx= %.6f  back= %.6f forw= %.6f dforw = %.6f\n", xx, back, forw, dforw);
+			}
+		}
+		break;
+	}
+	
 	default:
 		exit(0);
 	}
