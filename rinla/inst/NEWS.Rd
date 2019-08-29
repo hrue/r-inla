@@ -42,7 +42,7 @@
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item
+      \item Added \code{robit} link model.
     }
   }
   \subsection{BUG FIXES}{

@@ -440,6 +440,7 @@ typedef struct {
 	double **sensitivity_intern;
 	double **specificity_intern;
 	double **prob_intern;
+	double **dof_intern;
 	double *scale;
 } Link_param_tp;
 
@@ -628,7 +629,8 @@ typedef enum {
 	LINK_QPOISSON,
 	LINK_QBINOMIAL,
 	LINK_QWEIBULL,
-	LINK_QGAMMA
+	LINK_QGAMMA,
+	LINK_ROBIT
 } inla_component_tp;
 
 
@@ -1490,6 +1492,7 @@ double link_neglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_pqbinomial(double x, map_arg_tp typ, void *param, double *cov);
 double link_probit(double x, map_arg_tp typ, void *param, double *cov);
 double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov);
+double link_robit(double x, map_arg_tp typ, void *param, double *cov);
 double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov);
 double link_qweibull(double x, map_arg_tp typ, void *param, double *cov);
 double link_special1(double x, map_arg_tp typ, void *param, double *cov);
@@ -1509,14 +1512,15 @@ double map_exp_scale2(double arg, map_arg_tp typ, void *param);
 double map_group_rho(double x, map_arg_tp typ, void *param);
 double map_identity(double arg, map_arg_tp typ, void *param);
 double map_identity_scale(double arg, map_arg_tp typ, void *param);
+double map_interval(double x, map_arg_tp typ, void *param);
 double map_invcauchit(double arg, map_arg_tp typ, void *param);
 double map_invcloglog(double arg, map_arg_tp typ, void *param);
 double map_inverse(double arg, map_arg_tp typ, void *param);
 double map_invlogit(double x, map_arg_tp typ, void *param);
 double map_invloglog(double arg, map_arg_tp typ, void *param);
 double map_invprobit(double arg, map_arg_tp typ, void *param);
+double map_invrobit(double arg, map_arg_tp typ, void *param);
 double map_invtan(double arg, map_arg_tp typ, void *param);
-double map_interval(double x, map_arg_tp typ, void *param);
 double map_negexp(double arg, map_arg_tp typ, void *param);
 double map_p_weibull_cure(double arg, map_arg_tp typ, void *param);
 double map_phi(double arg, map_arg_tp typ, void *param);
