@@ -27,6 +27,8 @@
  \alias{inla.link.invcauchit}
  \alias{inla.link.inverse}
  \alias{inla.link.invinverse}
+ \alias{inla.link.robit}
+ \alias{inla.link.invrobit}
  
  \title{Link functions in INLA}
  
@@ -53,12 +55,15 @@
  inla.link.invidentity(x, inverse=FALSE)
  inla.link.inverse(x, inverse=FALSE)
  inla.link.invinverse(x, inverse=FALSE)
+ inla.link.robit(x, df=7, inverse=FALSE)
+ inla.link.invrobit(x, df=7, inverse=FALSE)
  inla.link.invalid(x, inverse=FALSE)
  inla.link.invinvalid(x, inverse=FALSE)
  }
  
  \arguments{
      \item{x}{The argument. A numeric vector.}
+     \item{df}{The degrees of freedom for the Student-t}
      \item{inverse}{Logical. Use the link (\code{inverse=FALSE})
                     or its inverse (\code{inverse=TRUE})}
 }
