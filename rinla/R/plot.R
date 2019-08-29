@@ -928,6 +928,14 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
                 log(abs(xi.deriv)))
     }
         
+    my.pc.dof = function(theta, param, log=FALSE) 
+    {
+        fun = inla.models()$likelihood$t$hyper$theta2$from.theta
+        dof = fun(theta)
+        ld = inla.pc.ddof(dof, lambda = param[1], log=TRUE) + theta
+        return (if (log) ld else exp(ld))
+    }        
+
     my.pc.alphaw = function(theta, param, log=FALSE) 
     {
         fun = inla.models()$likelihood$weibull$hyper$theta$from.theta
