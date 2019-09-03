@@ -29,17 +29,7 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
-  \subsection{USER-VISIBLE CHANGES}{
-    \itemize{
-      \item 
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
-    }
-  }
+\section{CHANGES IN VERSION 19.09.03}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
       \item Added \code{robit} link model.
