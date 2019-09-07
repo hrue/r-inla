@@ -641,7 +641,6 @@ typedef struct
  	double alpha, xmin, xmax, pmin, pmax;
 }
 	inla_sn_table_tp;
-	
 /* 
    priors are defined using this template. return log(pi(precision, parameters....))
  */

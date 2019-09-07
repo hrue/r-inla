@@ -707,15 +707,14 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 	 * the inverse of the robit link: cdf of student t (scaled to have variance 1)
 	 */
 	static inla_sn_table_tp **table = NULL;
-	double alpha = *((double *) param);
+	static char first = 1;
+
 	int i, j, id, debug = 1;
-	double range = 7.0, dx = 0.01, p, pp, delta, mean, sd;
+	double alpha = *((double *) param), range = 10.0, dx = 0.025, p, pp, delta, mean, sd;
 
-
-	if (!table) {
+	if (first) {
 #pragma omp critical
-		if (!table) {
-
+		if (first) {
 			if (debug) {
 				fprintf(stderr, "map_invsn: build table\n");
 			}
@@ -726,6 +725,7 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 				table[i]->cdf = NULL;
 				table[i]->icdf = NULL;
 			}
+			first = 0;
 		}
 	}
 
@@ -735,13 +735,13 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 	
 	id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
 	if (alpha != table[id]->alpha) {
+		int len = (int) (2.0*range/dx) + 1, llen = 0;
+		double *work = Calloc(2*len, double), *x, *y, nc = 0.0, xx;
 
 		if (debug) {
 			fprintf(stderr, "map_invsn: build new table for alpha=%g\n", alpha);
 		}
 
-		int len = (int) (2.0*range/dx) + 1, llen = 0;
-		double *work = Calloc(2*len, double), *x, *y, nc = 0.0, xx;
 		x = work;
 		y = work + len;
 		for(xx = -range, i = 0, llen = 0; xx <= range; xx += dx, i++) {
@@ -831,6 +831,10 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 		abort();
 	}
 	abort();
+
+#undef MAP
+#undef iMAP
+#undef diMAP
 	return 0.0;
 }
 
@@ -33458,6 +33462,7 @@ int testit(int argc, char **argv)
 	case 31:
 	{
 		double xx, df;
+		Link_param_tp *param = Calloc(1, Link_param_tp);
 
 		for(df = 4.0; df <= 125; df += 60.0) {
 			printf("df = %.4g\n", df);
@@ -33480,23 +33485,23 @@ int testit(int argc, char **argv)
 		}
 
 		for(df = 4.0; df <= 125; df += 60.0) {
-			double df_intern = log(df - 2.0);
 			printf("Link probit\n");
+			HYPER_NEW(param->dof_intern, log(df - 2.0));
 			
 			for(xx = 0.01; xx <= 0.99; xx += 0.1) {
 				double back, forw, dforw;
-				back = link_probit(xx, MAP_BACKWARD, (void *) &df_intern, NULL);
-				forw = link_probit(back, MAP_FORWARD, (void *) &df_intern, NULL);
-				dforw = link_probit(back, MAP_DFORWARD, (void *) &df_intern, NULL);
+				back = link_probit(xx, MAP_BACKWARD, (void *) param, NULL);
+				forw = link_probit(back, MAP_FORWARD, (void *) param, NULL);
+				dforw = link_probit(back, MAP_DFORWARD, (void *) param, NULL);
 				printf("\txx= %.6f  back= %.6f forw= %.6f dforw = %.6f\n", xx, back, forw, dforw);
 			}
 
 			printf("Link df = %.4g\n", df);
 			for(xx = 0.01; xx <= 0.99; xx += 0.1) {
 				double back, forw, dforw;
-				back = link_robit(xx, MAP_BACKWARD, (void *) &df_intern, NULL);
-				forw = link_robit(back, MAP_FORWARD, (void *) &df_intern, NULL);
-				dforw = link_robit(back, MAP_DFORWARD, (void *) &df_intern, NULL);
+				back = link_robit(xx, MAP_BACKWARD, (void *) param, NULL);
+				forw = link_robit(back, MAP_FORWARD, (void *) param, NULL);
+				dforw = link_robit(back, MAP_DFORWARD, (void *) param, NULL);
 				printf("\txx= %.6f  back= %.6f forw= %.6f dforw = %.6f\n", xx, back, forw, dforw);
 			}
 		}
@@ -33506,20 +33511,21 @@ int testit(int argc, char **argv)
 	case 32:
 	{
 		double xx, alpha;
-		if (!args[0]) {
-			alpha = 0.5;
-		} else {
-			alpha = atof(args[0]);
-		}
-
+		alpha = (!args[0] ? 0.5 :  atof(args[0]));
 		printf("alpha = %g\n", alpha);
-		double range = 9;
-		for(xx = -range; xx < range;  xx += 0.1) {
-			double a, b, c;
+		double range = 9.0, dx=0.1;
+// paralle for must have int as loop-index
+//#pragma omp parallel for private(xx)
+		for(int i = 0;  i < (int) (2.0*range/dx); i++) {
+			xx = -range + i * dx;
+			//alpha = GMRFLib_uniform();
+			double a, b, c, d, h=1e-6;
 			a = map_invsn(xx, MAP_FORWARD, (void *) &alpha);
 			b = map_invsn(a, MAP_BACKWARD, (void *) &alpha);
 			c = map_invsn(xx, MAP_DFORWARD, (void *) &alpha);
-			printf("xx = %.8g %.8g %.8g %.8g\n", xx, a,  b, c);
+			d = (map_invsn(xx+h, MAP_FORWARD, (void *) &alpha) -
+			     map_invsn(xx-h, MAP_FORWARD, (void *) &alpha))/(2.0*h);
+			printf("xx = %.8g forw=%.8g backw=%.8g dforw=%.8g fdiff=%.8g (derr=%.8g)\n", xx, a,  b, c, d, c-d);
 
 		}
 		break;
