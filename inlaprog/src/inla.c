@@ -786,15 +786,18 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 			}
 		}
 		len = j;
+		// Remove values in 'y' that are to close (difference is to small)
+		GMRFLib_unique_additive2(&len, y, x, GMRFLib_eps(0.75));
 
-		GMRFLib_unique_additive2(&len, y, x, GMRFLib_eps(0.5));
 		table[id]->alpha = alpha;
 		table[id]->xmin = x[0];
 		table[id]->xmax = x[len - 1];
 		table[id]->pmin = iMAP(y[0]);
 		table[id]->pmax = iMAP(y[len - 1]);
+
 		inla_spline_free(table[id]->cdf);	       /* ok if NULL */
 		inla_spline_free(table[id]->icdf);	       /* ok if NULL */
+
 		table[id]->cdf = inla_spline_create(x, y, len);
 		table[id]->icdf = inla_spline_create(y, x, len);
 		Free(work);
