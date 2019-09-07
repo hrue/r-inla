@@ -1,3 +1,4 @@
+
 /* inla.c
  * 
  * Copyright (C) 2007-2019 Havard Rue
@@ -80,7 +81,7 @@ static const char RCSId[] = HGVERSION;
 #include "GMRFLib/GMRFLibP.h"
 
 #if !defined(INLA_TAG)
-#  define INLA_TAG "devel"
+#define INLA_TAG "devel"
 #endif
 
 //#include <openssl/sha.h>                                     /* Would also work with this library... */
@@ -630,7 +631,7 @@ double map_exp_scale2(double arg, map_arg_tp typ, void *param)
 	 * the exp-map-function with a scale
 	 */
 	double *p = (double *) param;
-	double a = p[0],  b = p[1];
+	double a = p[0], b = p[1];
 
 	switch (typ) {
 	case MAP_FORWARD:
@@ -642,7 +643,7 @@ double map_exp_scale2(double arg, map_arg_tp typ, void *param)
 		/*
 		 * local = func(extern) 
 		 */
-		return log(arg/a)/b;
+		return log(arg / a) / b;
 	case MAP_DFORWARD:
 		/*
 		 * d_extern / d_local 
@@ -652,8 +653,7 @@ double map_exp_scale2(double arg, map_arg_tp typ, void *param)
 		/*
 		 * return 1.0 if montone increasing and 0.0 otherwise 
 		 */
-		return (map_exp_scale2(1.0, MAP_FORWARD, param) >
-			map_exp_scale2(0.0, MAP_FORWARD, param) ? 1 : -1);
+		return (map_exp_scale2(1.0, MAP_FORWARD, param) > map_exp_scale2(0.0, MAP_FORWARD, param) ? 1 : -1);
 	default:
 		abort();
 	}
@@ -667,24 +667,24 @@ double map_invrobit(double arg, map_arg_tp typ, void *param)
 	 */
 	double df_intern = *((double *) param);
 	double df = map_dof(df_intern, MAP_FORWARD, NULL);
-	double scale = sqrt(df/(df - 2.0));
+	double scale = sqrt(df / (df - 2.0));
 
 	switch (typ) {
 	case MAP_FORWARD:
 		/*
 		 * extern = func(local) 
 		 */
-		return MATHLIB_FUN(pt)(arg/scale, df, 1, 0);
+		return MATHLIB_FUN(pt) (arg / scale, df, 1, 0);
 	case MAP_BACKWARD:
 		/*
 		 * local = func(extern) 
 		 */
-		return MATHLIB_FUN(qt)(arg, df, 1, 0) * scale;
+		return MATHLIB_FUN(qt) (arg, df, 1, 0) * scale;
 	case MAP_DFORWARD:
 		/*
 		 * d_extern / d_local 
 		 */
-		return MATHLIB_FUN(dt)(arg/scale, df, 0) / scale;
+		return MATHLIB_FUN(dt) (arg / scale, df, 0) / scale;
 	case MAP_INCREASING:
 		/*
 		 * return 1.0 if montone increasing and 0.0 otherwise
@@ -719,7 +719,7 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 				fprintf(stderr, "map_invsn: build table\n");
 			}
 			table = Calloc(ISQR(GMRFLib_MAX_THREADS), inla_sn_table_tp *);
-			for(i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
+			for (i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
 				table[i] = Calloc(1, inla_sn_table_tp);
 				table[i]->alpha = NAN;
 				table[i]->cdf = NULL;
@@ -729,14 +729,14 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 		}
 	}
 
-	delta = alpha/sqrt(1.0 + SQR(alpha));
-	mean = delta * sqrt(2.0/M_PI);
+	delta = alpha / sqrt(1.0 + SQR(alpha));
+	mean = delta * sqrt(2.0 / M_PI);
 	sd = sqrt(1.0 - 2.0 * SQR(delta) / M_PI);
-	
+
 	id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
 	if (alpha != table[id]->alpha) {
-		int len = (int) (2.0*range/dx) + 1, llen = 0;
-		double *work = Calloc(2*len, double), *x, *y, nc = 0.0, xx;
+		int len = (int) (2.0 * range / dx) + 1, llen = 0;
+		double *work = Calloc(2 * len, double), *x, *y, nc = 0.0, xx;
 
 		if (debug) {
 			fprintf(stderr, "map_invsn: build new table for alpha=%g\n", alpha);
@@ -744,18 +744,18 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 
 		x = work;
 		y = work + len;
-		for(xx = -range, i = 0, llen = 0; xx <= range; xx += dx, i++) {
+		for (xx = -range, i = 0, llen = 0; xx <= range; xx += dx, i++) {
 			x[i] = xx;
 			if (alpha != 0.0) {
-				y[i] = 2.0 * MATHLIB_FUN(dnorm)(xx, 0.0, 1.0, 0) * MATHLIB_FUN(pnorm)(alpha * xx, 0.0, 1.0, 1, 0);
+				y[i] = 2.0 * MATHLIB_FUN(dnorm) (xx, 0.0, 1.0, 0) * MATHLIB_FUN(pnorm) (alpha * xx, 0.0, 1.0, 1, 0);
 			} else {
-				y[i] = MATHLIB_FUN(dnorm)(xx, 0.0, 1.0, 0);
+				y[i] = MATHLIB_FUN(dnorm) (xx, 0.0, 1.0, 0);
 			}
 			llen++;
 		}
 		len = llen;
 
-		for(i=j=0; i<len; i++) {
+		for (i = j = 0; i < len; i++) {
 			if (!ISNAN(y[i]) && !ISINF(y[i])) {
 				x[j] = x[i];
 				y[j] = y[i];
@@ -764,21 +764,21 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 		}
 		len = j;
 
-		for(i = 0, nc = 0.0; i < len; i++) {
+		for (i = 0, nc = 0.0; i < len; i++) {
 			nc += y[i];
 		}
-		nc = 1.0/nc;
-		for(i = 0; i < len; i++) {
+		nc = 1.0 / nc;
+		for (i = 0; i < len; i++) {
 			y[i] *= nc;
 		}
-		for(i = 1; i < len; i++) {
-			y[i] += y[i-1];
+		for (i = 1; i < len; i++) {
+			y[i] += y[i - 1];
 		}
-		for(i = 0; i< len; i++) {
+		for (i = 0; i < len; i++) {
 			y[i] = MAP(y[i]);
 		}
 
-		for(i=j=0; i<len; i++) {
+		for (i = j = 0; i < len; i++) {
 			if (!ISNAN(y[i]) && !ISINF(y[i])) {
 				x[j] = x[i];
 				y[j] = y[i];
@@ -790,22 +790,22 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 		GMRFLib_unique_additive2(&len, y, x, GMRFLib_eps(0.5));
 		table[id]->alpha = alpha;
 		table[id]->xmin = x[0];
-		table[id]->xmax = x[len-1];
+		table[id]->xmax = x[len - 1];
 		table[id]->pmin = iMAP(y[0]);
-		table[id]->pmax = iMAP(y[len-1]);
+		table[id]->pmax = iMAP(y[len - 1]);
 		inla_spline_free(table[id]->cdf);	       /* ok if NULL */
 		inla_spline_free(table[id]->icdf);	       /* ok if NULL */
 		table[id]->cdf = inla_spline_create(x, y, len);
 		table[id]->icdf = inla_spline_create(y, x, len);
 		Free(work);
 	}
-	
+
 	switch (typ) {
 	case MAP_FORWARD:
 		/*
 		 * extern = func(local) 
 		 */
-		arg = DMIN(table[id]->xmax, DMAX(table[id]->xmin, (arg - mean)/sd));
+		arg = DMIN(table[id]->xmax, DMAX(table[id]->xmin, (arg - mean) / sd));
 		p = inla_spline_eval(arg, table[id]->cdf);
 		return iMAP(p);
 	case MAP_BACKWARD:
@@ -818,7 +818,7 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 		/*
 		 * d_extern / d_local 
 		 */
-		arg = DMIN(table[id]->xmax, DMAX(table[id]->xmin, (arg - mean)/sd));
+		arg = DMIN(table[id]->xmax, DMAX(table[id]->xmin, (arg - mean) / sd));
 		p = inla_spline_eval(arg, table[id]->cdf);
 		pp = inla_spline_eval_deriv(arg, table[id]->cdf);
 		return diMAP(p) * pp / sd;
@@ -1345,17 +1345,17 @@ double map_interval(double x, map_arg_tp typ, void *param)
 	double B = ABC[1];
 	double C = 1.0;					       /* no longer in use */
 	double ex;
-	
-	//printf("%g %g %g %g %g\n", x, A, B, C, (double) typ);
-	
+
+	// printf("%g %g %g %g %g\n", x, A, B, C, (double) typ);
+
 	switch (typ) {
 	case MAP_FORWARD:
 		ex = exp(C * x);
 		return A + (B - A) * ex / (1.0 + ex);
 	case MAP_BACKWARD:
-		return log(-(A - x)/(B - x))/C;
+		return log(-(A - x) / (B - x)) / C;
 	case MAP_DFORWARD:
-		ex = exp(C*x);
+		ex = exp(C * x);
 		return C * (B - A) * ex / SQR(1.0 + ex);
 	case MAP_INCREASING:
 		return 1.0;
@@ -1372,7 +1372,7 @@ double map_group_rho(double x, map_arg_tp typ, void *param)
 	assert(param != NULL);
 	int ngroups = *((int *) param);
 	double xx;
-	
+
 	switch (typ) {
 	case MAP_FORWARD:
 		xx = exp(x);
@@ -2731,7 +2731,7 @@ double mfunc_rgeneric(int i, void *arg)
 				memcpy((void *) (a->mu[id]), (void *) &(x_out[k]), n * sizeof(double));
 				a->mu_zero = 0;
 			} else {
-				//a->mu[id] = Calloc(a->n, double);
+				// a->mu[id] = Calloc(a->n, double);
 				a->mu_zero = 1;
 			}
 			Free(x_out);
@@ -3142,17 +3142,16 @@ double Qfunc_ou(int i, int j, void *arg)
 	abort();
 	return 0.0;
 }
-double priorfunc_pc_gevtail(double *x, double *parameters) 
+double priorfunc_pc_gevtail(double *x, double *parameters)
 {
 #define DIST(_xi) ((_xi)*sqrt(2.0/(1.0-(_xi))))
-	double lambda = parameters[0], low = parameters[1], high = parameters[2],
-		xi, xi_deriv, p_low, p_high, ld, d, d_deriv;
-	
+	double lambda = parameters[0], low = parameters[1], high = parameters[2], xi, xi_deriv, p_low, p_high, ld, d, d_deriv;
+
 	// the internal parameterisation is in the interval [low,high]
 	xi = map_interval(*x, MAP_FORWARD, (void *) &(parameters[1]));
 	xi_deriv = map_interval(*x, MAP_DFORWARD, (void *) &(parameters[1]));
 	d = DIST(xi);
-	d_deriv = (2.0-xi)*sqrt(2.0)/2.0/sqrt(1.0/(1.0-xi))/SQR(1.0-xi);
+	d_deriv = (2.0 - xi) * sqrt(2.0) / 2.0 / sqrt(1.0 / (1.0 - xi)) / SQR(1.0 - xi);
 	p_low = (low > 0.0 ? 1.0 - exp(-lambda * DIST(low)) : 0.0);
 	p_high = (high < 1.0 ? 1.0 - exp(-lambda * DIST(high)) : 1.0);
 	ld = -log(p_high - p_low) + log(lambda) - lambda * d + log(ABS(d_deriv)) + log(ABS(xi_deriv));
@@ -3228,21 +3227,21 @@ double priorfunc_pc_alphaw(double *x, double *parameters)
 #define _GAM (0.577215664901532860606512090082)
 #define KLD(_a) ((MATHLIB_FUN(gammafn)((1.0+(_a))/(_a)) * (_a) + (_a) * log((_a)) - (_a) * _GAM + _GAM - (_a))/(_a))
 #define D(_a) sqrt(2.0*DMAX(0.0, KLD((_a))))
-	
+
 	double d0, ld, diff, h = 1.0E-06;
-	double alpha = exp(INLA_WEIBULL_ALPHA_SCALE*x[0]), lambda = parameters[0];
+	double alpha = exp(INLA_WEIBULL_ALPHA_SCALE * x[0]), lambda = parameters[0];
 
 	d0 = D(alpha);
 	if (alpha >= 1.0) {
-		diff = (D(alpha + h) - d0)/h;
+		diff = (D(alpha + h) - d0) / h;
 	} else {
-		diff = (d0 - D(alpha - h))/h;
+		diff = (d0 - D(alpha - h)) / h;
 	}
 
 	ld = log(0.5) + lambda - lambda * d0 + log(ABS(diff)) + log(alpha * INLA_WEIBULL_ALPHA_SCALE);
 #undef _GAM
 #undef KLD
-#undef D	
+#undef D
 	return (ld);
 }
 
@@ -4786,7 +4785,7 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_v
 	} else {
 		double prec_offset = map_precision(ds->data_observations.log_prec_gaussian_offset[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 		double prec_var = map_precision(ds->data_observations.log_prec_gaussian[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-		double prec_tmp = 1.0/(1.0/prec_offset + 1.0/prec_var);
+		double prec_tmp = 1.0 / (1.0 / prec_offset + 1.0 / prec_var);
 		prec = prec_tmp * w;
 		lprec = log(prec);
 	}
@@ -5494,10 +5493,10 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 #define g(_x, _loc, _scale, _xi) (G(_x, _loc, _scale, _xi) * T1_SCALED_M1(((_x) - (_loc))/(_scale), _xi) / (_scale))
 #define log_g(_x, _loc, _scale, _xi) (log_G(_x, _loc, _scale, _xi) + log(T1_SCALED_M1(((_x) - (_loc))/(_scale), _xi)) - log(_scale))
 
-        if (0) {
+	if (0) {
 		double loc = 1.2, scale = 1.5, xi = 0.5, _x;
 		FILE *fp = fopen("out.txt", "w");
-		for(_x = 0.001 + loc - scale/xi; _x <= loc + 4.0 * scale / xi; _x += 0.01)
+		for (_x = 0.001 + loc - scale / xi; _x <= loc + 4.0 * scale / xi; _x += 0.01)
 			fprintf(fp, "%g %g %g %g %g %g %g\n", _x, H(_x, loc, scale), h(_x, loc, scale), exp(log_h(_x, loc, scale)),
 				G(_x, loc, scale, xi), g(_x, loc, scale, xi), exp(log_g(_x, loc, scale, xi)));
 		fclose(fp);
@@ -5505,13 +5504,12 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 	}
 
 	if (0) {
-		double a = 1.2, b = 2.5,  _x;
+		double a = 1.2, b = 2.5, _x;
 		FILE *fp = fopen("out.txt", "w");
-		for(_x = a;  _x <= b;  _x += (b-a)/1000)
+		for (_x = a; _x <= b; _x += (b - a) / 1000)
 			fprintf(fp, "%f %g %g %g %g %g %g %g %g\n", _x,
 				f3_BETA(_x, a, b), F3_BETA(_x, a, b), f4_BETA(_x, a, b),
-				F4_BETA(_x, a, b), f5_BETA(_x, a, b), F5_BETA(_x, a, b),
-				f6_BETA(_x, a, b), F6_BETA(_x, a, b));
+				F4_BETA(_x, a, b), f5_BETA(_x, a, b), F5_BETA(_x, a, b), f6_BETA(_x, a, b), F6_BETA(_x, a, b));
 		fclose(fp);
 		exit(1);
 	}
@@ -5531,7 +5529,7 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 	double mix_b, qmix_b = ds->data_observations.gev2_qmix[1];
 
 	double ab = ds->data_observations.gev2_beta_ab;
-	static double count[3] = {0.0, 0.0, 0.0};
+	static double count[3] = { 0.0, 0.0, 0.0 };
 
 	if (ab != 5.0) {
 		static char first = 1;
@@ -5552,7 +5550,7 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 		log_spread += ds->data_observations.gev2_betas[i + off][GMRFLib_thread_id][0] * ds->data_observations.gev2_x[i + off][idx];
 	}
 	spread = map_exp(log_spread, MAP_FORWARD, NULL) / sqrt(w);
-	
+
 	off = ds->data_observations.gev2_nbetas[0];
 	log_xi = ds->data_observations.gev2_intern_tail[GMRFLib_thread_id][0];
 	if (ISINF(log_xi) == -1) {
@@ -5579,7 +5577,7 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 			}
 		} else {
 			int left = 0;
-			
+
 			d = (pow(-log(1.0 - qspread / 2.0), -xi) - pow(-log(qspread / 2.0), -xi)) / xi;
 			for (i = 0; i < m; i++) {
 				sigma = spread / d;
@@ -5600,7 +5598,7 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 				} else {
 					double value_p, value_p_deriv, value_g, value_log_G, value_h, value_log_H;
 					count[2]++;
-					
+
 					value_p = p(y, mix_a, mix_b);
 					value_p_deriv = p_deriv(y, mix_a, mix_b);
 					value_g = g(y, mu, sigma, xi);
@@ -5609,19 +5607,19 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 					value_log_H = log_H(y, muH, sigmaH);
 
 					ld = (value_p * value_log_G + (1.0 - value_p) * value_log_H) +
-						log(value_p_deriv * value_log_G + value_p * value_g / exp(value_log_G) 
-						    - value_p_deriv * value_log_H + (1.0 - value_p) * value_h / exp(value_log_H));
+					    log(value_p_deriv * value_log_G + value_p * value_g / exp(value_log_G)
+						- value_p_deriv * value_log_H + (1.0 - value_p) * value_h / exp(value_log_H));
 				}
-				if (ISNAN(ld)||ISINF(ld)) printf("gev2: idx x ld y %d %g %g %g\n", idx, x[i], logll[i], y);
+				if (ISNAN(ld) || ISINF(ld))
+					printf("gev2: idx x ld y %d %g %g %g\n", idx, x[i], logll[i], y);
 
-				logll[i] = ld; 
+				logll[i] = ld;
 			}
 
-			if (0 && left) 
+			if (0 && left)
 				printf("right %.3g left %.3g mix %.3g\n",
-				       count[0] / (count[0] + count[1] + count[2]), 
-				       count[1] / (count[0] + count[1] + count[2]), 
-				       count[2] / (count[0] + count[1] + count[2]));
+				       count[0] / (count[0] + count[1] + count[2]),
+				       count[1] / (count[0] + count[1] + count[2]), count[2] / (count[0] + count[1] + count[2]));
 		}
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
@@ -5653,9 +5651,9 @@ int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, 
 					ld = log_H(yy, muH, sigmaH);
 				} else {
 					double value_p = p(yy, mix_a, mix_b);
-					ld = value_p * log_G(yy, mu, sigma, xi)  + (1.0 - value_p) * log_H(yy, muH, sigmaH);
+					ld = value_p * log_G(yy, mu, sigma, xi) + (1.0 - value_p) * log_H(yy, muH, sigmaH);
 				}
-				logll[i] = exp(ld); 
+				logll[i] = exp(ld);
 			}
 		}
 	}
@@ -7511,10 +7509,10 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 }
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*func_quadrature) (double **, double **, int *, void *arg),
-			   int (*func_simpson) (double **, double **, int *, void *arg))
+			   int (*func_quadrature)(double **, double **, int *, void *arg),
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -13060,9 +13058,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		int nbetas = ds->data_observations.gev2_nbetas[0] + ds->data_observations.gev2_nbetas[1];
 
 		ds->data_observations.gev2_betas = Calloc(GEV2_MAXTHETA, double **);
-		ds->data_nfixed = Calloc(GEV2_MAXTHETA + 2, int); /* +2 for spread and tail */
+		ds->data_nfixed = Calloc(GEV2_MAXTHETA + 2, int);	/* +2 for spread and tail */
 		ds->data_nprior = Calloc(GEV2_MAXTHETA + 2, Prior_tp);
-		
+
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);
 		ds->data_nfixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
 		if (!ds->data_nfixed[0] && mb->reuse_mode) {
@@ -13167,7 +13165,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		for (i = 0; i < nbetas; i++) {
 			char *ctmp;
 			int ii, idx = i + 2;
-			
+
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", idx);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */
 
@@ -13192,7 +13190,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 					printf("\t\tfixed[%1d]= %1d\n", i, ds->data_nfixed[i]);
 				}
 			}
-			
+
 			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[idx]), "GAUSSIAN-std", idx, NULL);
 
 			if (!ds->data_nfixed[idx]) {
@@ -13222,7 +13220,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 				mb->theta[mb->ntheta] = ds->data_observations.gev2_betas[i];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-				
+
 				if (i < ds->data_observations.gev2_nbetas[0]) {
 					// spread
 					mb->theta_map[mb->ntheta] = map_identity;
@@ -13234,7 +13232,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 					mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 					mb->theta_map_arg[mb->ntheta] = (void *) NULL;
 				}
-						
+
 				mb->ntheta++;
 				ds->data_ntheta++;
 			}
@@ -15181,9 +15179,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		// mark all as read
-		for(i = 0; i < NMIX_MMAX; i++) {
+		for (i = 0; i < NMIX_MMAX; i++) {
 			char **keyw = keywords;
-			while(*keyw) {
+			while (*keyw) {
 				GMRFLib_sprintf(&ctmp, "%s%1d", *keyw, i);
 				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 				Free(ctmp);
@@ -15950,7 +15948,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		// mark all as read
 		for (i = 0; i < LINK_MAXTHETA + 1; i++) {
 			char **keyw = keywords;
-			while(*keyw) {
+			while (*keyw) {
 				GMRFLib_sprintf(&ctmp, "LINK.%s%1d", *keyw, i);
 				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 				Free(ctmp);
@@ -17008,7 +17006,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		Free(pri);
 		Free(par);
 	}
-	break;
+		break;
 
 	case F_INTSLOPE:
 	{
@@ -18335,7 +18333,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		// mark all as read
 		for (i = 0; i < SPDE2_MAXTHETA; i++) {
 			char **keyw = keywords;
-			while(*keyw) {
+			while (*keyw) {
 				GMRFLib_sprintf(&ctmp, "%s%1d", *keyw, i);
 				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 				Free(ctmp);
@@ -18536,7 +18534,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		// mark all as read
 		for (i = 0; i < SPDE3_MAXTHETA; i++) {
 			char **keyw = keywords;
-			while(*keyw) {
+			while (*keyw) {
 				GMRFLib_sprintf(&ctmp, "%s%1d", *keyw, i);
 				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 				Free(ctmp);
@@ -18645,14 +18643,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		// mark all as read
 		for (i = 0; i < AR_MAXTHETA + 1; i++) {
 			char **keyw = keywords;
-			while(*keyw) {
+			while (*keyw) {
 				GMRFLib_sprintf(&ctmp, "%s%1d", *keyw, i);
 				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 				Free(ctmp);
 				keyw++;
 			}
 		}
-		
+
 		/*
 		 * then read those we need 
 		 */
@@ -23428,7 +23426,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				// mark all as read
 				for (i = 0; i < AR_MAXTHETA + 1; i++) {
 					char **keyw = keywords;
-					while(*keyw) {
+					while (*keyw) {
 						GMRFLib_sprintf(&ctmp, "GROUP.%s%1d", *keyw, i);
 						iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 						Free(ctmp);
@@ -24332,7 +24330,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	}
 
 	if (mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER || mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD ||
-		mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
+	    mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
 		GMRFLib_matrix_tp *D = NULL;
 		filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "INT.DESIGN"), NULL));
 		if (my_file_exists(filename) != INLA_OK)
@@ -25183,7 +25181,7 @@ double extra(double *theta, int ntheta, void *argument)
 					}
 				}
 			}
-			break;
+				break;
 
 			case L_GAMMA:
 			case L_GAMMASURV:
@@ -26364,7 +26362,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 			n_ar = mb->f_n[i] / mb->f_ngroup[i];
 			ldens = priorfunc_mvnorm(zero, param) +
-				(n_ar - p - mb->f_rankdef[i]) * (-0.5 * log(2 * M_PI) + 0.5 * log(conditional_prec));
+			    (n_ar - p - mb->f_rankdef[i]) * (-0.5 * log(2 * M_PI) + 0.5 * log(conditional_prec));
 			val += mb->f_nrep[i] * (ldens * (ngroup - grankdef) + normc_g);
 
 			if (_NOT_FIXED(f_fixed[i][0])) {
@@ -28236,22 +28234,21 @@ double inla_compute_saturated_loglik(int idx, GMRFLib_logl_tp * loglfunc, double
 
 double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg)
 {
-	double precs[] = {1.0, 1.0E-1, 1.0E-2, 1.0E-4, 1.0E-8},
-		epss[] = {1.0E-3, 1.0E-4, 1.0E-5, 1.0E-6, 1.0E-7},
-		isafefactors[] = {4.0, 3.0, 2.0, 1.0, 1.0}, 
-		prec, eps, safefac, x, xnew, xinit, f, deriv, dderiv, arr[3], xarr[3], steplen = 1.0e-4;
+	double precs[] = { 1.0, 1.0E-1, 1.0E-2, 1.0E-4, 1.0E-8 },
+	    epss[] = { 1.0E-3, 1.0E-4, 1.0E-5, 1.0E-6, 1.0E-7 },
+	    isafefactors[] = { 4.0, 3.0, 2.0, 1.0, 1.0 }, prec, eps, safefac, x, xnew, xinit, f, deriv, dderiv, arr[3], xarr[3], steplen = 1.0e-4;
 	int niter, compute_deriv, retval, niter_max = 1000, debug = 1, stencil = 5, k, nk;
 
 	x = xnew = xinit = (x_vec ? x_vec[idx] : 0.0);
 	retval = loglfunc(NULL, NULL, 0, 0, NULL, NULL, NULL);
 	compute_deriv = (retval == GMRFLib_LOGL_COMPUTE_DERIVATIES || retval == GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF);
 
-	nk = ((int) sizeof(precs))/((int)sizeof(double));
-	for(k = 0; k < nk; k++) {
+	nk = ((int) sizeof(precs)) / ((int) sizeof(double));
+	for (k = 0; k < nk; k++) {
 
 		prec = precs[k];
 		eps = epss[k];
-		safefac = 1.0/isafefactors[k];
+		safefac = 1.0 / isafefactors[k];
 		niter = 0;
 
 		while (1) {
@@ -28266,7 +28263,7 @@ double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, d
 			dderiv = DMIN(0.0, arr[2]) - prec;
 
 			xnew = x - DMIN(safefac + niter * safefac, 1.0) * deriv / dderiv;
-			
+
 			if (debug) {
 				printf("PHASE%1d: idx %d x %.6g xnew %.6g f %.6g deriv %.6g dderiv %.6g\n", k, idx, x, xnew, f, deriv, dderiv);
 			}
@@ -28282,7 +28279,7 @@ double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, d
 		}
 		xinit = x;
 	}
-	
+
 	return arr[0];
 }
 int inla_INLA(inla_tp * mb)
@@ -32321,7 +32318,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
-		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL; // use _PARALLEL with an option??
+		GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;	// use _PARALLEL with an option??
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = GMRFLib_REORDER_BAND;
@@ -32359,8 +32356,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		fprintf(stderr, "inla_qsample: start to sample %1d samples...\n", ns);
 	}
 
-	if ((GMRFLib_smtp == GMRFLib_SMTP_PARDISO) &&
-	    (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL)) {
+	if ((GMRFLib_smtp == GMRFLib_SMTP_PARDISO) && (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL)) {
 		for (i = 0; i < ns; i++) {
 			if (!S) {
 				GMRFLib_sample(problem);
@@ -33447,7 +33443,8 @@ int testit(int argc, char **argv)
 		double tref = GMRFLib_cpu();
 		for (int i = 0; i < 3; i++) {
 			int ret = system("sleep 1");
-			if (ret != 0) exit(1);
+			if (ret != 0)
+				exit(1);
 			printf("Call system() to sleep 1s. Time elapsed: %.6f\n", GMRFLib_cpu() - tref);
 		}
 		GMRFLib_collect_timer_statistics = GMRFLib_TRUE;
@@ -33464,31 +33461,31 @@ int testit(int argc, char **argv)
 		double xx, df;
 		Link_param_tp *param = Calloc(1, Link_param_tp);
 
-		for(df = 4.0; df <= 125; df += 60.0) {
+		for (df = 4.0; df <= 125; df += 60.0) {
 			printf("df = %.4g\n", df);
-			for(xx = 0.01; xx <= 0.99; xx += 0.1) {
-				double cdf = MATHLIB_FUN(pt)(xx, df, 1, 0);
-				double icdf = MATHLIB_FUN(qt)(cdf, df, 1, 0);
-				double ldens = MATHLIB_FUN(dt)(xx, df, 1);
+			for (xx = 0.01; xx <= 0.99; xx += 0.1) {
+				double cdf = MATHLIB_FUN(pt) (xx, df, 1, 0);
+				double icdf = MATHLIB_FUN(qt) (cdf, df, 1, 0);
+				double ldens = MATHLIB_FUN(dt) (xx, df, 1);
 				printf("\txx= %.6f  cdf= %.6f icdf= %.6f ldens = %.6f\n", xx, cdf, icdf, ldens);
 			}
 		}
-		for(df = 4.0; df <= 125; df += 60.0) {
-			double scale = sqrt(df/(df - 2.0));
+		for (df = 4.0; df <= 125; df += 60.0) {
+			double scale = sqrt(df / (df - 2.0));
 			printf("Normalized df = %.4g\n", df);
-			for(xx = 0.01; xx <= 0.99; xx += 0.1) {
-				double cdf = MATHLIB_FUN(pt)(xx/scale, df, 1, 0);
-				double icdf = MATHLIB_FUN(qt)(cdf, df, 1, 0)*scale;
-				double ldens = MATHLIB_FUN(dt)(xx/scale, df, 1) - log(scale);
+			for (xx = 0.01; xx <= 0.99; xx += 0.1) {
+				double cdf = MATHLIB_FUN(pt) (xx / scale, df, 1, 0);
+				double icdf = MATHLIB_FUN(qt) (cdf, df, 1, 0) * scale;
+				double ldens = MATHLIB_FUN(dt) (xx / scale, df, 1) - log(scale);
 				printf("\txx= %.6f  cdf= %.6f icdf= %.6f ldens = %.6f\n", xx, cdf, icdf, ldens);
 			}
 		}
 
-		for(df = 4.0; df <= 125; df += 60.0) {
+		for (df = 4.0; df <= 125; df += 60.0) {
 			printf("Link probit\n");
 			HYPER_NEW(param->dof_intern, log(df - 2.0));
-			
-			for(xx = 0.01; xx <= 0.99; xx += 0.1) {
+
+			for (xx = 0.01; xx <= 0.99; xx += 0.1) {
 				double back, forw, dforw;
 				back = link_probit(xx, MAP_BACKWARD, (void *) param, NULL);
 				forw = link_probit(back, MAP_FORWARD, (void *) param, NULL);
@@ -33497,7 +33494,7 @@ int testit(int argc, char **argv)
 			}
 
 			printf("Link df = %.4g\n", df);
-			for(xx = 0.01; xx <= 0.99; xx += 0.1) {
+			for (xx = 0.01; xx <= 0.99; xx += 0.1) {
 				double back, forw, dforw;
 				back = link_robit(xx, MAP_BACKWARD, (void *) param, NULL);
 				forw = link_robit(back, MAP_FORWARD, (void *) param, NULL);
@@ -33511,26 +33508,25 @@ int testit(int argc, char **argv)
 	case 32:
 	{
 		double xx, alpha;
-		alpha = (!args[0] ? 0.5 :  atof(args[0]));
+		alpha = (!args[0] ? 0.5 : atof(args[0]));
 		printf("alpha = %g\n", alpha);
-		double range = 9.0, dx=0.1;
+		double range = 9.0, dx = 0.1;
 // paralle for must have int as loop-index
 //#pragma omp parallel for private(xx)
-		for(int i = 0;  i < (int) (2.0*range/dx); i++) {
+		for (int i = 0; i < (int) (2.0 * range / dx); i++) {
 			xx = -range + i * dx;
-			//alpha = GMRFLib_uniform();
-			double a, b, c, d, h=1e-6;
+			// alpha = GMRFLib_uniform();
+			double a, b, c, d, h = 1e-6;
 			a = map_invsn(xx, MAP_FORWARD, (void *) &alpha);
 			b = map_invsn(a, MAP_BACKWARD, (void *) &alpha);
 			c = map_invsn(xx, MAP_DFORWARD, (void *) &alpha);
-			d = (map_invsn(xx+h, MAP_FORWARD, (void *) &alpha) -
-			     map_invsn(xx-h, MAP_FORWARD, (void *) &alpha))/(2.0*h);
-			printf("xx = %.8g forw=%.8g backw=%.8g dforw=%.8g fdiff=%.8g (derr=%.8g)\n", xx, a,  b, c, d, c-d);
+			d = (map_invsn(xx + h, MAP_FORWARD, (void *) &alpha) - map_invsn(xx - h, MAP_FORWARD, (void *) &alpha)) / (2.0 * h);
+			printf("xx = %.8g forw=%.8g backw=%.8g dforw=%.8g fdiff=%.8g (derr=%.8g)\n", xx, a, b, c, d, c - d);
 
 		}
 		break;
 	}
-	
+
 	default:
 		exit(0);
 	}
@@ -33543,7 +33539,8 @@ int inla_testit_timer(void)
 {
 	GMRFLib_ENTER_ROUTINE;
 	int ret = system("sleep 1");
-	if (ret != 0) exit(1);
+	if (ret != 0)
+		exit(1);
 	GMRFLib_LEAVE_ROUTINE;
 	return 0;
 }
