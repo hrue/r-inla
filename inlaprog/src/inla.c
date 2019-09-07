@@ -697,6 +697,142 @@ double map_invrobit(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
+double map_invsn(double arg, map_arg_tp typ, void *param)
+{
+#define MAP(_x) log((_x)/(1.0 - (_x)))
+#define iMAP(_x) (exp(_x)/(1.0+exp(_x)))
+#define diMAP(_x) (exp(_x)/SQR(1.0+exp(_x)))
+
+	/*
+	 * the inverse of the robit link: cdf of student t (scaled to have variance 1)
+	 */
+	static inla_sn_table_tp **table = NULL;
+	double alpha = *((double *) param);
+	int i, j, id, debug = 1;
+	double range = 7.0, dx = 0.01, p, pp, delta, mean, sd;
+
+
+	if (!table) {
+#pragma omp critical
+		if (!table) {
+
+			if (debug) {
+				fprintf(stderr, "map_invsn: build table\n");
+			}
+			table = Calloc(ISQR(GMRFLib_MAX_THREADS), inla_sn_table_tp *);
+			for(i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
+				table[i] = Calloc(1, inla_sn_table_tp);
+				table[i]->alpha = NAN;
+				table[i]->cdf = NULL;
+				table[i]->icdf = NULL;
+			}
+		}
+	}
+
+	delta = alpha/sqrt(1.0 + SQR(alpha));
+	mean = delta * sqrt(2.0/M_PI);
+	sd = sqrt(1.0 - 2.0 * SQR(delta) / M_PI);
+	
+	id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
+	if (alpha != table[id]->alpha) {
+
+		if (debug) {
+			fprintf(stderr, "map_invsn: build new table for alpha=%g\n", alpha);
+		}
+
+		int len = (int) (2.0*range/dx) + 1, llen = 0;
+		double *work = Calloc(2*len, double), *x, *y, nc = 0.0, xx;
+		x = work;
+		y = work + len;
+		for(xx = -range, i = 0, llen = 0; xx <= range; xx += dx, i++) {
+			x[i] = xx;
+			if (alpha != 0.0) {
+				y[i] = 2.0 * MATHLIB_FUN(dnorm)(xx, 0.0, 1.0, 0) * MATHLIB_FUN(pnorm)(alpha * xx, 0.0, 1.0, 1, 0);
+			} else {
+				y[i] = MATHLIB_FUN(dnorm)(xx, 0.0, 1.0, 0);
+			}
+			llen++;
+		}
+		len = llen;
+
+		for(i=j=0; i<len; i++) {
+			if (!ISNAN(y[i]) && !ISINF(y[i])) {
+				x[j] = x[i];
+				y[j] = y[i];
+				j++;
+			}
+		}
+		len = j;
+
+		for(i = 0, nc = 0.0; i < len; i++) {
+			nc += y[i];
+		}
+		nc = 1.0/nc;
+		for(i = 0; i < len; i++) {
+			y[i] *= nc;
+		}
+		for(i = 1; i < len; i++) {
+			y[i] += y[i-1];
+		}
+		for(i = 0; i< len; i++) {
+			y[i] = MAP(y[i]);
+		}
+
+		for(i=j=0; i<len; i++) {
+			if (!ISNAN(y[i]) && !ISINF(y[i])) {
+				x[j] = x[i];
+				y[j] = y[i];
+				j++;
+			}
+		}
+		len = j;
+
+		GMRFLib_unique_additive2(&len, y, x, GMRFLib_eps(0.5));
+		table[id]->alpha = alpha;
+		table[id]->xmin = x[0];
+		table[id]->xmax = x[len-1];
+		table[id]->pmin = iMAP(y[0]);
+		table[id]->pmax = iMAP(y[len-1]);
+		inla_spline_free(table[id]->cdf);	       /* ok if NULL */
+		inla_spline_free(table[id]->icdf);	       /* ok if NULL */
+		table[id]->cdf = inla_spline_create(x, y, len);
+		table[id]->icdf = inla_spline_create(y, x, len);
+		Free(work);
+	}
+	
+	switch (typ) {
+	case MAP_FORWARD:
+		/*
+		 * extern = func(local) 
+		 */
+		arg = DMIN(table[id]->xmax, DMAX(table[id]->xmin, (arg - mean)/sd));
+		p = inla_spline_eval(arg, table[id]->cdf);
+		return iMAP(p);
+	case MAP_BACKWARD:
+		/*
+		 * local = func(extern) 
+		 */
+		arg = DMIN(table[id]->pmax, DMAX(table[id]->pmin, arg));
+		return mean + sd * inla_spline_eval(MAP(arg), table[id]->icdf);
+	case MAP_DFORWARD:
+		/*
+		 * d_extern / d_local 
+		 */
+		arg = DMIN(table[id]->xmax, DMAX(table[id]->xmin, (arg - mean)/sd));
+		p = inla_spline_eval(arg, table[id]->cdf);
+		pp = inla_spline_eval_deriv(arg, table[id]->cdf);
+		return diMAP(p) * pp / sd;
+	case MAP_INCREASING:
+		/*
+		 * return 1.0 if montone increasing and 0.0 otherwise
+		 */
+		return 1.0;
+	default:
+		abort();
+	}
+	abort();
+	return 0.0;
+}
 
 double map_invprobit(double arg, map_arg_tp typ, void *param)
 {
@@ -1298,6 +1434,16 @@ double link_robit(double x, map_arg_tp typ, void *param, double *cov)
 	double dof_intern = p->dof_intern[GMRFLib_thread_id][0];
 
 	return map_invrobit(x, typ, (void *) &dof_intern);
+}
+double link_sn(double x, map_arg_tp typ, void *param, double *cov)
+{
+	/*
+	 * the link-functions calls the inverse map-function 
+	 */
+	Link_param_tp *p = (Link_param_tp *) param;
+	double alpha = p->sn_alpha[GMRFLib_thread_id][0];
+
+	return map_invsn(x, typ, (void *) &alpha);
 }
 double link_tan(double x, map_arg_tp typ, void *param, double *cov)
 {
@@ -33353,6 +33499,28 @@ int testit(int argc, char **argv)
 				dforw = link_robit(back, MAP_DFORWARD, (void *) &df_intern, NULL);
 				printf("\txx= %.6f  back= %.6f forw= %.6f dforw = %.6f\n", xx, back, forw, dforw);
 			}
+		}
+		break;
+	}
+
+	case 32:
+	{
+		double xx, alpha;
+		if (!args[0]) {
+			alpha = 0.5;
+		} else {
+			alpha = atof(args[0]);
+		}
+
+		printf("alpha = %g\n", alpha);
+		double range = 9;
+		for(xx = -range; xx < range;  xx += 0.1) {
+			double a, b, c;
+			a = map_invsn(xx, MAP_FORWARD, (void *) &alpha);
+			b = map_invsn(a, MAP_BACKWARD, (void *) &alpha);
+			c = map_invsn(xx, MAP_DFORWARD, (void *) &alpha);
+			printf("xx = %.8g %.8g %.8g %.8g\n", xx, a,  b, c);
+
 		}
 		break;
 	}
