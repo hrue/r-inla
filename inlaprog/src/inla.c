@@ -808,20 +808,20 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 		/*
 		 * extern = func(local) 
 		 */
-		arg = DMIN(table[id]->xmax, DMAX(table[id]->xmin, (arg - mean) / sd));
+		arg = TRUNCATE((arg - mean) / sd,  table[id]->xmin, table[id]->xmax);
 		p = inla_spline_eval(arg, table[id]->cdf);
 		return iMAP(p);
 	case MAP_BACKWARD:
 		/*
 		 * local = func(extern) 
 		 */
-		arg = DMIN(table[id]->pmax, DMAX(table[id]->pmin, arg));
+		arg = TRUNCATE(arg, table[id]->pmin, table[id]->pmax);
 		return mean + sd * inla_spline_eval(MAP(arg), table[id]->icdf);
 	case MAP_DFORWARD:
 		/*
 		 * d_extern / d_local 
 		 */
-		arg = DMIN(table[id]->xmax, DMAX(table[id]->xmin, (arg - mean) / sd));
+		arg = TRUNCATE((arg - mean) / sd, table[id]->xmin, table[id]->xmax); 
 		p = inla_spline_eval(arg, table[id]->cdf);
 		pp = inla_spline_eval_deriv(arg, table[id]->cdf);
 		return diMAP(p) * pp / sd;
@@ -5272,7 +5272,7 @@ double inla_sn_Phi(double x, double xi, double omega, double alpha)
 			integral += w * exp(LOG_NORMC_GAUSSIAN + M_LN2 - 0.5 * SQR(xval) + inla_log_Phi(alpha * xval));
 		}
 
-		return (DMAX(0.0, DMIN(1.0, integral * dx / 3.0)));
+		return (TRUNCATE(integral * dx / 3.0, 0.0, 1.0));
 	}
 }
 
@@ -7069,7 +7069,7 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 		assert(status == GSL_SUCCESS);
 		for (i = 0; i < m; i++) {
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			p = DMAX(0.0, DMIN(1.0, p));
+			p = TRUNCATE(p, 0.0, 1.0); 
 			if (ISEQUAL(p, 1.0)) {
 				/*
 				 * this is ok if we get a 0*log(0) expression for the reminder 
@@ -7130,14 +7130,14 @@ int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x
 		assert(status == GSL_SUCCESS);
 		for (i = 0; i < m; i++) {
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			p = DMAX(0.0, DMIN(1.0, p));
+			p = TRUNCATE(p, 0.0, 1.0); 
 			logll[i] = res.val + y * log(1.0 - p) + n * log(p);
 		}
 	} else {
 		double *yy = (y_cdf ? y_cdf : &y);
 		for (i = 0; i < -m; i++) {
 			p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
-			p = DMAX(0.0, DMIN(1.0, p));
+			p = TRUNCATE(p, 0.0, 1.0); 
 			logll[i] = gsl_cdf_negative_binomial_P((unsigned int) *yy, p, n);
 		}
 	}
@@ -7187,7 +7187,7 @@ int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *x_vec, 
 			gsl_sf_result res;
 
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			p = DMAX(0.0, DMIN(1.0, p));
+			p = TRUNCATE(p, 0.0, 1.0); 
 			logll[i] = n * log_lambda - lambda - normc_poisson;
 			for (j = 0; j < ny; j++) {
 				gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y[j], &res);
@@ -7255,7 +7255,7 @@ int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *x_vec
 			gsl_sf_result res;
 
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			p = DMAX(0.0, DMIN(1.0, p));
+			p = TRUNCATE(p, 0.0, 1.0); 
 			q = size / (size + lambda);
 			logll[i] = normc_nb + size * log(q) + n * log(1.0 - q);
 			for (j = 0; j < ny; j++) {
@@ -7630,7 +7630,7 @@ int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_
 		for (i = 0; i < m; i++) {
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			p = 1.0 - pow(1.0 - p, n);
-			p = DMIN(1.0, DMAX(0.0, p));
+			p = TRUNCATE(p, 0.0, 1.0); 
 			if (ISEQUAL(p, 1.0)) {
 				/*
 				 * this is ok if we get a 0*log(0) expression for the reminder 
@@ -7658,7 +7658,7 @@ int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_
 		for (i = 0; i < -m; i++) {
 			p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
 			p = 1.0 - pow(1.0 - p, n);
-			p = DMIN(1.0, DMAX(0.0, p));
+			p = TRUNCATE(p, 0.0, 1.0);
 			logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) k);
 		}
 	}
