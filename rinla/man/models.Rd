@@ -9159,6 +9159,8 @@ inla.models()
 				 }
 				\item{Model `pc.range'.}{					 Number of parameters in the prior = 2 
 				 }
+				\item{Model `pc.sn'.}{					 Number of parameters in the prior = 1 
+				 }
 				\item{Model `pc.gamma'.}{					 Number of parameters in the prior = 1 
 				 }
 				\item{Model `pc.mgamma'.}{					 Number of parameters in the prior = 1 
