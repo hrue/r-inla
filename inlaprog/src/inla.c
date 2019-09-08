@@ -1,4 +1,3 @@
-
 /* inla.c
  * 
  * Copyright (C) 2007-2019 Havard Rue
@@ -704,12 +703,12 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 #define diMAP(_x) (exp(_x)/SQR(1.0+exp(_x)))
 
 	/*
-	 * the inverse of the robit link: cdf of student t (scaled to have variance 1)
+	 * the inverse link is the cdf of the sn, scaled to have E()=1 and Var()=1
 	 */
 	static inla_sn_table_tp **table = NULL;
 	static char first = 1;
 
-	int i, j, id, debug = 1;
+	int i, j, id, debug = 0;
 	double alpha = *((double *) param), range = 10.0, dx = 0.025, p, pp, delta, mean, sd;
 
 	if (first) {
@@ -1450,6 +1449,9 @@ double link_sn(double x, map_arg_tp typ, void *param, double *cov)
 	Link_param_tp *p = (Link_param_tp *) param;
 	double alpha = p->sn_alpha[GMRFLib_thread_id][0];
 
+	P(x);
+	P(map_invsn(x, typ, (void *) &alpha));
+	
 	return map_invsn(x, typ, (void *) &alpha);
 }
 double link_tan(double x, map_arg_tp typ, void *param, double *cov)
@@ -3333,6 +3335,15 @@ double priorfunc_pc_dof(double *x, double *parameters)
 
 	return val;
 #undef _NP
+}
+double priorfunc_pc_sn(double *x, double *parameters)
+{
+	double lambda = parameters[0], val, dist, deriv;
+
+	dist = inla_pc_sn_d(*x, &deriv);
+	val = log(lambda) - lambda * dist + log(ABS(deriv));
+	return val;
+
 }
 double priorfunc_pc_prec(double *x, double *parameters)
 {
@@ -9859,6 +9870,21 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
+	} else if (!strcasecmp(prior->name, "PCSN")) {
+		prior->id = P_PC_SN;
+		prior->priorfunc = priorfunc_pc_sn;
+		if (param && inla_is_NAs(1, param) != GMRFLib_SUCCESS) {
+			prior->parameters = Calloc(1, double);
+			if (inla_sread_doubles(prior->parameters, 1, param) == INLA_FAIL) {
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
+			}
+		} else {
+			prior->parameters = Calloc(1, double); 
+			prior->parameters[0] = 10.0;	       /* lambda */
+		}
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[%g]\n", prior_tag, param_tag, prior->parameters[0]);
+		}
 	} else if (!strcasecmp(prior->name, "LOGITBETA")) {
 		prior->id = P_LOGITBETA;
 		prior->priorfunc = priorfunc_logitbeta;
@@ -15366,6 +15392,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_id = LINK_ROBIT;
 		ds->link_ntheta = 1;
 		ds->predictor_invlinkfunc = link_robit;
+	} else if (!strcasecmp(ds->link_model, "SN")) {
+		ds->link_id = LINK_SN;
+		ds->link_ntheta = 1;
+		ds->predictor_invlinkfunc = link_sn;
 	} else if (!strcasecmp(ds->link_model, "TEST1")) {
 		ds->link_id = LINK_TEST1;
 		ds->link_ntheta = 1;
@@ -15683,6 +15713,63 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_dof;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->link_ntheta++;
+		}
+	}
+		break;
+
+	case LINK_SN:
+	{
+		/*
+		 * SN link
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL"), 0.0);
+		ds->link_fixed = Calloc(2, int);
+		ds->link_fixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED"), 1);
+		if (!ds->link_fixed[0] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		ds->link_parameters = Calloc(1, Link_param_tp);
+		ds->link_parameters->idx = -1;
+		ds->link_parameters->order = -1;
+		for (i = 0; i < n_data; i++) {
+			ds->predictor_invlinkfunc_arg[i] = (void *) (ds->link_parameters);
+		}
+		HYPER_NEW(ds->link_parameters->sn_alpha, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise sn link alpha[%g]\n", ds->link_parameters->sn_alpha[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->link_fixed[0]);
+		}
+
+		ds->link_prior = Calloc(1, Prior_tp);
+		inla_read_prior_link(mb, ini, sec, &(ds->link_prior[0]), "PCSN", NULL);
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->link_fixed[0]) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->link_prior[0].hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Link sn alpha", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link sn alpha", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].to_theta);
+			mb->theta[mb->ntheta] = ds->link_parameters->sn_alpha;
+
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_identity;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -25721,6 +25808,14 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				break;
 
+			case LINK_SN:
+				if (!ds->link_fixed[0]) {
+					double alpha = theta[count];
+					val += PRIOR_EVAL(ds->link_prior[0], &alpha);
+					count++;
+				}
+				break;
+
 			case LINK_TEST1:
 				if (!ds->link_fixed[0]) {
 					double beta = theta[count];
@@ -33514,8 +33609,8 @@ int testit(int argc, char **argv)
 		alpha = (!args[0] ? 0.5 : atof(args[0]));
 		printf("alpha = %g\n", alpha);
 		double range = 9.0, dx = 0.1;
-// paralle for must have int as loop-index
-//#pragma omp parallel for private(xx)
+                // paralle for must have int as loop-index
+                // #pragma omp parallel for private(xx)
 		for (int i = 0; i < (int) (2.0 * range / dx); i++) {
 			xx = -range + i * dx;
 			// alpha = GMRFLib_uniform();
