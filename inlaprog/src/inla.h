@@ -600,6 +600,7 @@ typedef enum {
 	P_WISHART3D,
 	P_WISHART4D,
 	P_WISHART5D,
+	P_PC_SN, 
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
@@ -1569,11 +1570,12 @@ double priorfunc_pc_dof(double *x, double *parameters);
 double priorfunc_pc_gamma(double *x, double *parameters);
 double priorfunc_pc_gammacount(double *x, double *parameters);
 double priorfunc_pc_matern(double *x, double *parameters);
+double priorfunc_pc_gevtail(double *x, double *parameters);
 double priorfunc_pc_mgamma(double *x, double *parameters);
 double priorfunc_pc_prec(double *x, double *parameters);
 double priorfunc_pc_range(double *x, double *parameters);
+double priorfunc_pc_sn(double *x, double *parameters);
 double priorfunc_pc_spde_ga(double *x, double *parameters);
-double priorfunc_pc_gevtail(double *x, double *parameters);
 double priorfunc_ref_ar(double *x, double *parameters);
 double priorfunc_wishart(int dim, double *x, double *parameters);
 double priorfunc_wishart1d(double *x, double *parameters);
