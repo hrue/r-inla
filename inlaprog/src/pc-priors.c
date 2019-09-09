@@ -20640,7 +20640,3 @@ GMRFLib_spline_tp *inla_pc_sn_create_spline(void)
 
 	return spline;
 }
-
-	
-	
-

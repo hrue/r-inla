@@ -945,7 +945,7 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
         return (if (log) ld else exp(ld))
     }        
 
-    my.pc.sn = function(theta, param,  log=FALSE) 
+    my.pc.sn = function(theta, param, log=FALSE) 
     {
         x = theta
         ld = inla.pc.dsn(x, lambda = param[1], log=TRUE)
