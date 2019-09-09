@@ -5967,7 +5967,7 @@ inla.models()
 							\describe{
 								\item{doc = }{`Skew-normal link'}
 								\item{status = }{`experimental'}
-								\item{pdf = }{`pcsn'}
+								\item{pdf = }{`linksn'}
 							 }
 						 }
 					 }

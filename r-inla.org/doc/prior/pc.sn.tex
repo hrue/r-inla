@@ -1,0 +1,44 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{PC prior for skewness in the Skew-normal}
+
+\subsection*{Parametrization}
+This is the PC prior for the skewness parameter $a$ in the Skew-normal 
+\begin{displaymath}
+    2\phi(x)\Phi(a^{1/3}x)
+\end{displaymath}
+which is renormalized to have zero mean and unit variance. The
+base-model, is the standard normal. 
+
+The distance is proportional to $a$ for $|a|$ close to zero. The
+density, cumulative distribution function, quantile function, and a
+random number generator for this distribution are implemented in the
+\texttt{inla.pc.\{d,p,q,r\}sn} functions.
+
+\subsection*{Specification}
+This prior for the hyperparameters is specified inside the
+\texttt{hyper}-spesification, as
+\begin{center}
+    \texttt{hyper = list(<theta> =
+        list(prior="pc.sn", param=<lambda>,<alpha>))}
+\end{center}
+
+\subsection*{Example}
+
+\subsection*{Notes}
+
+See also functions \texttt{inla.pc.\{d,p,q,r\}prec} and
+\texttt{inla.doc("link.sn")}
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

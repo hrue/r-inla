@@ -29,6 +29,8 @@
  \alias{inla.link.invinverse}
  \alias{inla.link.robit}
  \alias{inla.link.invrobit}
+ \alias{inla.link.sn}
+ \alias{inla.link.invsn}
  
  \title{Link functions in INLA}
  
@@ -57,6 +59,8 @@
  inla.link.invinverse(x, inverse=FALSE)
  inla.link.robit(x, df=7, inverse=FALSE)
  inla.link.invrobit(x, df=7, inverse=FALSE)
+ inla.link.sn(x, a=0, inverse=FALSE)
+ inla.link.invsn(x, a=0, inverse=FALSE)
  inla.link.invalid(x, inverse=FALSE)
  inla.link.invinvalid(x, inverse=FALSE)
  }

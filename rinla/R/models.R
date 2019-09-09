@@ -5040,7 +5040,7 @@
                              )
                          ),
                      status = "experimental", 
-                     pdf = "pcsn"
+                     pdf = "linksn"
                      ), 
                  test1 = list(
                      doc = "A test1-link function (experimental)", 
