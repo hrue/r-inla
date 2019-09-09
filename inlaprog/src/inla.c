@@ -709,7 +709,7 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 	static char first = 1;
 
 	int i, j, id, debug = 0;
-	double a, alpha, range = 12.0, dx = 0.025, p, pp;
+	double a, alpha, range = 12.0, dx = 0.02, p, pp;
 	double omega, delta, xi;
 
 	if (first) {
@@ -742,13 +742,14 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 
 	if (alpha != table[id]->alpha) {
 		int len = (int) (2.0 * range / dx) + 1, llen = 0;
-		double *work = Calloc(2 * len, double), *x, *y, nc = 0.0, xx;
+		double *work = Calloc(3 * len, double), *x, *y, *yy, nc = 0.0, xx;
 		if (debug) {
 			fprintf(stderr, "map_invsn: build new table for alpha=%g id=%1d\n", alpha, id);
 		}
 
 		x = work;
 		y = work + len;
+		yy = work + 2*len;
 		for (xx = -range, i = 0, llen = 0; xx <= range; xx += dx, i++) {
 			x[i] = xx;
 			if (alpha != 0.0) {
@@ -773,15 +774,18 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 		for (i = 0, nc = 0.0; i < len; i++) {
 			nc += y[i];
 		}
+
 		nc = 1.0 / nc;
 		for (i = 0; i < len; i++) {
 			y[i] *= nc;
 		}
+
+		yy[0] = y[0];
 		for (i = 1; i < len; i++) {
-			y[i] += y[i - 1];
+			yy[i] = yy[i-1] + (y[i] + y[i - 1])/2.0;
 		}
 		for (i = 0; i < len; i++) {
-			y[i] = MAP(y[i]);
+			y[i] = MAP(yy[i]);
 		}
 
 		for (i = j = 0; i < len; i++) {
