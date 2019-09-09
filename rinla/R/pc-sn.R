@@ -19,10 +19,10 @@
 ##!              percentiles of the PC prior for the \code{alpha} parameter
 ##!              in the skew-normal link-function}
 ##! \usage{
-##! inla.pc.rsn(n, lambda = 30)
-##! inla.pc.dsn(alpha, lambda = 30, log = FALSE)
-##! inla.pc.qsn(p, lambda = 30)
-##! inla.pc.psn(q, lambda = 30)
+##! inla.pc.rsn(n, lambda = 40)
+##! inla.pc.dsn(alpha, lambda = 40, log = FALSE)
+##! inla.pc.qsn(p, lambda = 40)
+##! inla.pc.psn(q, lambda = 40)
 ##! }
 ##! \arguments{
 ##!   \item{n}{number of observations}
@@ -45,19 +45,16 @@
 ##! \seealso{inla.doc("pc.sn")}
 ##! \author{havard rue \email{hrue@r-inla.org}}
 ##! \examples{
-##! x = inla.pc.rsn(100,  lambda = 30)
-##! d = inla.pc.dsn(x, lambda = 30)
-##! x = inla.pc.qsn(0.5, lambda = 30)
-##! inla.pc.psn(x, lambda = 30)
+##! x = inla.pc.rsn(100,  lambda = 40)
+##! d = inla.pc.dsn(x, lambda = 40)
+##! x = inla.pc.qsn(0.5, lambda = 40)
+##! inla.pc.psn(x, lambda = 40)
 ##! }
 
-map = function(alpha) sign(alpha) * abs(alpha)^(1/3)
-
-inla.pc.sn.cache = function() 
+inla.pc.sn.cache = function(force = FALSE) 
 {
-    ## return the cache for these functions
     sn = function(x, alpha) {
-        a = map(alpha)
+        a = sign(alpha) * alpha^(1/3)
         delta = a/sqrt(1 + a^2)
         omega = 1/sqrt(1-2*delta^2/pi)
         xi = -omega * delta * sqrt(2/pi)
@@ -65,18 +62,16 @@ inla.pc.sn.cache = function()
         return (2/omega * dnorm(xx) * pnorm(a*xx))
     }
 
-    kld.arg = function(x, alpha) {
+    kld.value = function(x, alpha) {
         dsn = sn(x, alpha)
         idx = which(dsn > 0.0)
         dsn = dsn[idx]
         x = x[idx]
-
-        if (length(x) %%2==0) {
+        if (length(x)%%2 == 0) {
             x = x[-length(x)]
             dsn = dsn[-length(dsn)]
         }
         w = c(1, rep(c(4, 2), (length(x)-3) %/% 2), 4, 1)/3
-
         dn = dnorm(x)
         dsn = dsn / sum(w*dsn)
         dn = dn / sum(w*dn)
@@ -85,9 +80,9 @@ inla.pc.sn.cache = function()
 
     kld = function(alpha) {
         dx = 0.001
-        ran = 10
+        ran = 8
         x = seq(-ran, ran, by = dx)
-        return (kld.arg(x, alpha))
+        return (kld.value(x, alpha))
     }
 
     dist = function(alpha) {
@@ -95,14 +90,14 @@ inla.pc.sn.cache = function()
         for(i in seq_along(alpha)) {
             d[i] = sqrt(2.0 * max(0, kld(alpha[i])))
         }
-        idx = which(!(is.na(d) | is.infinite(d) | d < 0.0))
-        return (data.frame(alpha[idx], dist=d[idx]))
+        idx = which(!(is.na(d) | is.infinite(d)))
+        return (data.frame(alpha = alpha[idx], dist = d[idx]))
     }
 
     tag = "cache.pc.sn"
-    if (!exists(tag, envir = inla.get.inlaEnv())) {
-        ran = 100
-        alphas = exp(seq(log(0.001), log(ran), len=99))
+    if (force || !exists(tag, envir = inla.get.inlaEnv())) {
+        ran = 2000
+        alphas = exp(seq(log(0.001), log(ran), len=199))
         alphas = c(-rev(alphas), 0, alphas)
         alphas.pos = alphas[which(alphas >= 0)]
         alphas.neg = alphas[which(alphas <= 0)]
@@ -110,22 +105,23 @@ inla.pc.sn.cache = function()
         dist.neg = rev(dist.pos)
         ## write(alphas.pos, ncol = 1, file="aa")
         ## write(dist.pos, ncol = 1, file="dd")
+        m = "monoH.FC"
         assign(tag,
                list(alpha.range = range(alphas),
                     pos = list(
                         x = alphas.pos, 
-                        dist = splinefun(alphas.pos, dist.pos),
-                        idist = splinefun(dist.pos, alphas.pos)), 
+                        dist = splinefun(alphas.pos, dist.pos, method = m), 
+                        idist = splinefun(dist.pos, alphas.pos, method = m)), 
                     neg = list(
                         x = alphas.neg, 
-                        dist = splinefun(alphas.neg, dist.neg), 
-                        idist = splinefun(dist.neg, alphas.neg))), 
+                        dist = splinefun(alphas.neg, dist.neg, method = m), 
+                        idist = splinefun(dist.neg, alphas.neg, method = m))), 
                envir = inla.get.inlaEnv())
     }
     return (get(tag, envir = inla.get.inlaEnv()))
 }
 
-inla.pc.rsn = function(n, lambda = 30)
+inla.pc.rsn = function(n, lambda = 40)
 {
     cache = inla.pc.sn.cache()
     x = numeric(n)
@@ -142,7 +138,7 @@ inla.pc.rsn = function(n, lambda = 30)
     return (x)
 }
 
-inla.pc.dsn = function(alpha, lambda = 30, log = FALSE)
+inla.pc.dsn = function(alpha, lambda = 40, log = FALSE)
 {
     cache = inla.pc.sn.cache()
     d = numeric(length(alpha))
@@ -163,7 +159,7 @@ inla.pc.dsn = function(alpha, lambda = 30, log = FALSE)
     return (if (log) d else exp(d))
 }
 
-inla.pc.qsn = function(p, lambda = 30)
+inla.pc.qsn = function(p, lambda = 40)
 {
     cache = inla.pc.sn.cache()
     n = length(p)
@@ -183,7 +179,7 @@ inla.pc.qsn = function(p, lambda = 30)
     return(q)
 }
 
-inla.pc.psn = function(q, lambda = 30)
+inla.pc.psn = function(q, lambda = 40)
 {
     cache = inla.pc.sn.cache()
     n = length(q)
@@ -203,18 +199,16 @@ inla.pc.psn = function(q, lambda = 30)
     return(p)
 }
 
-inla.pc.sn.test = function(lambda = 30) 
+inla.pc.sn.test = function(lambda = 40) 
 {
-    ## this is just an internal test, and is not exported
+    ## this is for testing only
     f = function(...) format(...,  digits = 3)
     n = 10^6
     x = inla.pc.rsn(n, lambda = lambda)
-    x = x[x < quantile(x, prob = 0.999)]
-    x = x[x > quantile(x, prob = 1-0.999)]
-    alpha = seq(min(x), max(x), by = 0.001)
-    hist(x, n = 300,  prob = TRUE)
+    alpha = seq(min(x), max(x), by = 0.01)
+    hist(x, n = 3000,  prob = TRUE, xlim = quantile(x, c(0.001, 0.999)))
     lines(alpha, inla.pc.dsn(alpha, lambda), lwd=3, col="blue")
-    p = seq(0.1, 0.9, by = 0.05)
+    p = c(0.001, 0.01, seq(0.05, 0.95, by = 0.1), 0.99, 0.999)
     print(cbind(p=f(p), q.emp = f(as.numeric(quantile(x,  prob = p))),
                 q.true = f(inla.pc.qsn(p, lambda))))
     q = as.numeric(quantile(x, prob = p))

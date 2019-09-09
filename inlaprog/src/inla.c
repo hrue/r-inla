@@ -709,7 +709,8 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 	static char first = 1;
 
 	int i, j, id, debug = 0;
-	double alpha = *((double *) param), range = 10.0, dx = 0.025, p, pp, delta, mean, sd;
+	double a, alpha, range = 12.0, dx = 0.025, p, pp;
+	double omega, delta, xi;
 
 	if (first) {
 #pragma omp critical
@@ -728,17 +729,22 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 		}
 	}
 
+	a = *((double *) param);
+	if (ISZERO(a)) {
+		alpha = 0.0;
+	} else {
+		alpha = (a >= 0.0 ? 1.0 : -1.0) * pow(ABS(a), 1.0/3.0);
+	}
 	delta = alpha / sqrt(1.0 + SQR(alpha));
-	mean = delta * sqrt(2.0 / M_PI);
-	sd = sqrt(1.0 - 2.0 * SQR(delta) / M_PI);
-
+	omega  = 1.0/sqrt(1.0 - 2.0 * SQR(delta)/M_PI);
+	xi = -omega * delta * sqrt(2.0/M_PI);
 	id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
+
 	if (alpha != table[id]->alpha) {
 		int len = (int) (2.0 * range / dx) + 1, llen = 0;
 		double *work = Calloc(2 * len, double), *x, *y, nc = 0.0, xx;
-
 		if (debug) {
-			fprintf(stderr, "map_invsn: build new table for alpha=%g\n", alpha);
+			fprintf(stderr, "map_invsn: build new table for alpha=%g id=%1d\n", alpha, id);
 		}
 
 		x = work;
@@ -746,7 +752,8 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 		for (xx = -range, i = 0, llen = 0; xx <= range; xx += dx, i++) {
 			x[i] = xx;
 			if (alpha != 0.0) {
-				y[i] = 2.0 * MATHLIB_FUN(dnorm) (xx, 0.0, 1.0, 0) * MATHLIB_FUN(pnorm) (alpha * xx, 0.0, 1.0, 1, 0);
+				double z = (xx - xi)/omega;
+				y[i] = 2.0/omega * MATHLIB_FUN(dnorm) (z, 0.0, 1.0, 0) * MATHLIB_FUN(pnorm) (alpha * z, 0.0, 1.0, 1, 0);
 			} else {
 				y[i] = MATHLIB_FUN(dnorm) (xx, 0.0, 1.0, 0);
 			}
@@ -807,28 +814,32 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 		/*
 		 * extern = func(local) 
 		 */
-		arg = TRUNCATE((arg - mean) / sd,  table[id]->xmin, table[id]->xmax);
+		arg = TRUNCATE(arg, table[id]->xmin, table[id]->xmax);
 		p = inla_spline_eval(arg, table[id]->cdf);
 		return iMAP(p);
+
 	case MAP_BACKWARD:
 		/*
 		 * local = func(extern) 
 		 */
 		arg = TRUNCATE(arg, table[id]->pmin, table[id]->pmax);
-		return mean + sd * inla_spline_eval(MAP(arg), table[id]->icdf);
+		return inla_spline_eval(MAP(arg), table[id]->icdf);
+
 	case MAP_DFORWARD:
 		/*
 		 * d_extern / d_local 
 		 */
-		arg = TRUNCATE((arg - mean) / sd, table[id]->xmin, table[id]->xmax); 
+		arg = TRUNCATE(arg, table[id]->xmin, table[id]->xmax); 
 		p = inla_spline_eval(arg, table[id]->cdf);
 		pp = inla_spline_eval_deriv(arg, table[id]->cdf);
-		return diMAP(p) * pp / sd;
+		return diMAP(p) * pp;
+
 	case MAP_INCREASING:
 		/*
 		 * return 1.0 if montone increasing and 0.0 otherwise
 		 */
 		return 1.0;
+
 	default:
 		abort();
 	}
@@ -1449,9 +1460,6 @@ double link_sn(double x, map_arg_tp typ, void *param, double *cov)
 	Link_param_tp *p = (Link_param_tp *) param;
 	double alpha = p->sn_alpha[GMRFLib_thread_id][0];
 
-	P(x);
-	P(map_invsn(x, typ, (void *) &alpha));
-	
 	return map_invsn(x, typ, (void *) &alpha);
 }
 double link_tan(double x, map_arg_tp typ, void *param, double *cov)
@@ -30921,6 +30929,8 @@ int inla_output_linkfunctions(const char *dir, inla_tp * mb)
 			fprintf(fp, "sslogit\n");
 		} else if (lf == link_robit) {
 			fprintf(fp, "robit\n");
+		} else if (lf == link_sn) {
+			fprintf(fp, "sn\n");
 		} else if (lf == link_logoffset) {
 			fprintf(fp, "logoffset\n");
 		} else if (lf == link_logitoffset) {
