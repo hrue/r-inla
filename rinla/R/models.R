@@ -5031,10 +5031,10 @@
                              hyperid =  49031,
                              name = "alpha",
                              short.name = "alpha",
-                             initial = 0.0001,
+                             initial = 0,
                              fixed = TRUE,
                              prior = "pc.sn",
-                             param = 10,
+                             param = 40,
                              to.theta = function(x) x,
                              from.theta = function(x) x
                              )
