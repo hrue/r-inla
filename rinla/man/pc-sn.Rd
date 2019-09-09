@@ -15,16 +15,16 @@
  \alias{inla.pc.qsn}
  
  \title{Utility functions for the PC prior for the \code{alpha} parameter in the skew-normal
- likelihood and linkfunction}
+ linkfunction}
  
  \description{Functions to evaluate, sample, compute quantiles and
               percentiles of the PC prior for the \code{alpha} parameter
-              in the skew-normal likelihood and link-function}
+              in the skew-normal link-function}
  \usage{
- inla.pc.rsn(n, lambda = 10)
- inla.pc.dsn(alpha, lambda = 10, log = FALSE)
- inla.pc.qsn(p, lambda = 10)
- inla.pc.psn(q, lambda = 10)
+ inla.pc.rsn(n, lambda = 40)
+ inla.pc.dsn(alpha, lambda = 40, log = FALSE)
+ inla.pc.qsn(p, lambda = 40)
+ inla.pc.psn(q, lambda = 40)
  }
  \arguments{
    \item{n}{number of observations}
@@ -35,7 +35,7 @@
    \item{q}{vector of quantiles}
  }
  \details{
- Defines the PC prior for the \code{alpha} parameter for the skew-normal likelihood and linkfunction
+ Defines the PC prior for the \code{alpha} parameter for the skew-normal linkfunction
  where \code{alpha=0} is the base model. 
  }
 \value{%%
@@ -47,8 +47,8 @@
  \seealso{inla.doc("pc.sn")}
  \author{havard rue \email{hrue@r-inla.org}}
  \examples{
- x = inla.pc.rsn(100,  lambda = 10)
- d = inla.pc.dsn(x, lambda = 10)
- x = inla.pc.qsn(0.5, lambda = 10)
- inla.pc.psn(x, lambda = 10)
+ x = inla.pc.rsn(100,  lambda = 40)
+ d = inla.pc.dsn(x, lambda = 40)
+ x = inla.pc.qsn(0.5, lambda = 40)
+ inla.pc.psn(x, lambda = 40)
  }
