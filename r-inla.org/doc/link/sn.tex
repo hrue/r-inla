@@ -1,0 +1,59 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Linkmodel: sn}
+
+\subsection*{Parametrization}
+
+This is the link that map $p\in (0,1)$ into $x\in\Re$, where
+\begin{displaymath}
+    F_{a}(x) = p
+\end{displaymath}
+and $F_{a}$ is the cummulative distribution function for the
+skew-normal distribution,
+\begin{displaymath}
+    2\phi(x)\Phi(a^{1/3}x)
+\end{displaymath}
+which is renormalized to have zero mean and unit variance.
+
+\subsection*{Hyperparameters}
+
+The  parameter $a$ represented as
+\begin{displaymath}
+    \theta = a
+\end{displaymath}
+and the prior is defined on $\theta$. There is a PC prior available
+for $a$.
+
+
+\subsection*{Specification}
+
+Use \texttt{model="sn"} within \texttt{control.link}.  
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/link/sn.tex}
+
+\subsection*{Example}
+
+\begin{verbatim}
+\end{verbatim}
+
+\subsection*{Notes}
+
+\begin{itemize}
+\item The link-function is also available as R-functions
+    \texttt{inla.link.sn} and \texttt{inla.link.invsn}
+\item This link-model is experimental for the moment.
+\end{itemize}
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
