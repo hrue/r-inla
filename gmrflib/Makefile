@@ -41,7 +41,7 @@ LDFLAGS = $(FLAGS)
 FFLAGS  = $(INCL) $(FLAGS) $(FCEXTRAFLAGS)
 CFLAGS  = $(INCL) $(FLAGS) $(IEXTLIBS) -DHGVERSION="\"${HGVERSION}\""
 LD      = $(FC)
-INSTALL = install
+INSTALL = /usr/bin/install
 LIBNAME = lib$(GMRFLibNAME).a
 LIBNAMEG = lib$(GMRFLibNAME)-geo.a
 

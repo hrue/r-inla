@@ -15,6 +15,10 @@
         file = NULL,
         debug = FALSE)
 {
+    y.attr = attr(y.orig, "inla.ncols", exact=TRUE)
+    if (is.null(y.attr))
+        y.attr = 0
+
     if (is.null(y.orig)) {
         y.orig = c(mf[, 1L])
     } else if (is.inla.surv(y.orig)) {
@@ -189,9 +193,7 @@
                              "zeroninflatedbinomial3",
                              "zeroinflatedbetabinomial0",
                              "zeroinflatedbetabinomial1",
-                             "zeroinflatedbetabinomial2",
-                             "testbinomial1"))) {
-
+                             "zeroinflatedbetabinomial2"))) {
         if (is.null(Ntrials)) {
             Ntrials = rep(1L, n.data)
         }
@@ -212,7 +214,8 @@
         response = response[!null.dat,]
 
     } else if (inla.one.of(family, c("exponentialsurv", "weibullsurv", "weibullcure",
-                                     "loglogisticsurv",  "qloglogisticsurv", "lognormalsurv"))) {
+                                     "loglogisticsurv",  "qloglogisticsurv", "lognormalsurv",
+                                     "gammasurv"))) {
 
         if (!inla.model.properties(family, "likelihood")$survival) {
             file.remove(file)
@@ -260,8 +263,7 @@
 
     } else if (inla.one.of(family, c("nmix", "nmixnb"))) {
 
-        ## yes. it must be the same for both model nmix and nmixnb
-        mmax = length(inla.model.properties(model="nmix", section="likelihood")$hyper)
+        mmax = length(inla.model.properties(model=family, section="likelihood")$hyper)
 
         response = cbind(IDX=ind, y.orig)
         col.idx = grep("^IDX$", names(response))
@@ -289,7 +291,54 @@
         ## although it is not required
         Y = matrix(c(apply(Y, 1, function(x) c(sort(x[!is.na(x)]), x[is.na(x)]))), ncol = ncol(Y), byrow=TRUE)
         response = cbind(idx, X, Y, yfake)
-        
+
+    } else if (inla.one.of(family, c("gev2"))) {
+
+        if (is.null(scale)) {
+            scale = rep(1.0, n.data)
+        }
+        if (length(scale) == 1L) {
+            scale = rep(scale, n.data)
+        }
+
+        if (length(scale) != n.data) {
+            file.remove(file)
+            file.remove(data.dir)
+            stop(paste("Length of scale has to be the same as the length of the response:", length(scale), n.data))
+        }
+
+        mmax = length(inla.model.properties(model=family, section="likelihood")$hyper) -2L
+        response = cbind(IDX=ind, y.orig)
+        col.idx = grep("^IDX$", names(response))
+        col.x = grep("^X[0-9]+", names(response))
+        col.y = grep("^Y[0-9]+", names(response))
+        m.x = length(col.x)
+        m.y = length(col.y)
+
+        ## remove entries with NA's in all responses
+        na.y = apply(response[, col.y, drop=FALSE], 1, function(x) all(is.na(x)))
+        response = response[!na.y,, drop=FALSE]
+
+        X = response[, col.x, drop=FALSE]
+        Y = response[, col.y, drop=FALSE]
+        stopifnot(ncol(Y) == 1)
+        idx = response[, col.idx, drop=FALSE]
+        ## replace NA's in the covariates with 0's
+        X[is.na(X)] = 0
+
+        response = cbind(idx, scale, X, Y)
+        ## fix attr, so the order corresponds to (X, Y) and not (Y, X) as in the inla.mdata() input.
+        ## y.attr[1] is number of attributes
+        stopifnot(y.attr[1] > 0)
+        if (y.attr[1] == 1) { 
+            y.attr = c(3, y.attr[2], 0, 0)
+        } else if (y.attr[1] == 2) {
+            y.attr = c(3, y.attr[2], y.attr[3], 0)
+        } else if (y.attr[1] == 3) {
+            y.attr = c(3, y.attr[2], y.attr[3], y.attr[4])
+        }
+        y.attr = c(y.attr[1], y.attr[-c(1, 2)], y.attr[2])
+
     } else {
 
         file.remove(file)
@@ -319,6 +368,15 @@
         file.create(file.weights)
     }
     file.weights = gsub(data.dir, "$inladatadir", file.weights, fixed=TRUE)
-    
-    return(list(file.data = file.data, file.weights = file.weights))
+
+    file.attr = inla.tempfile(tmpdir=data.dir)
+    if (inla.getOption("internal.binary.mode")) {
+        inla.write.fmesher.file(as.matrix(y.attr, ncol=1), filename = file.attr, debug=debug)
+    } else {
+        file.create(file.attr)
+        write(y.attr, ncolumns=1, file=file.attr, append=FALSE)
+    }
+    file.attr = gsub(data.dir, "$inladatadir", file.attr, fixed=TRUE)
+
+    return(list(file.data = file.data, file.weights = file.weights, file.attr = file.attr))
 }

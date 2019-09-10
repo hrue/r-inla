@@ -1,0 +1,157 @@
+%% DO NOT EDIT!
+%% This file is generated automatically from models.R
+\begin{description}
+	\item[doc] The Generalized Extreme Value likelihood (2nd variant)
+	\item[hyper]\ 
+	 \begin{description}
+	 	\item[theta1]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 57201
+	 	 	\item[name] spread
+	 	 	\item[short.name] sd
+	 	 	\item[initial] 0
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] loggamma
+	 	 	\item[param] 1 3
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 	\item[theta2]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 57202
+	 	 	\item[name] tail
+	 	 	\item[short.name] tail
+	 	 	\item[initial] -4
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] pc.gevtail
+	 	 	\item[param] 7 0 0.5
+	 	 	\item[to.theta] \verb!function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x)/(interval[2] - x))!
+	 	 	\item[from.theta] \verb!function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2]-interval[1]) * exp(x)/(1.0 + exp(x))!
+	 	 \end{description}
+	 	\item[theta3]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 57203
+	 	 	\item[name] beta1
+	 	 	\item[short.name] beta1
+	 	 	\item[initial] NA
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] normal
+	 	 	\item[param] 0 300
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 	\item[theta4]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 57204
+	 	 	\item[name] beta2
+	 	 	\item[short.name] beta2
+	 	 	\item[initial] NA
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] normal
+	 	 	\item[param] 0 300
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 	\item[theta5]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 57205
+	 	 	\item[name] beta3
+	 	 	\item[short.name] beta3
+	 	 	\item[initial] NA
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] normal
+	 	 	\item[param] 0 300
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 	\item[theta6]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 57206
+	 	 	\item[name] beta4
+	 	 	\item[short.name] beta4
+	 	 	\item[initial] NA
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] normal
+	 	 	\item[param] 0 300
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 	\item[theta7]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 57207
+	 	 	\item[name] beta5
+	 	 	\item[short.name] beta5
+	 	 	\item[initial] NA
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] normal
+	 	 	\item[param] 0 300
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 	\item[theta8]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 57208
+	 	 	\item[name] beta6
+	 	 	\item[short.name] beta6
+	 	 	\item[initial] NA
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] normal
+	 	 	\item[param] 0 300
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 	\item[theta9]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 57209
+	 	 	\item[name] beta7
+	 	 	\item[short.name] beta7
+	 	 	\item[initial] NA
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] normal
+	 	 	\item[param] 0 300
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 	\item[theta10]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 57210
+	 	 	\item[name] beta8
+	 	 	\item[short.name] beta8
+	 	 	\item[initial] NA
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] normal
+	 	 	\item[param] 0 300
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 	\item[theta11]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 57211
+	 	 	\item[name] beta9
+	 	 	\item[short.name] beta9
+	 	 	\item[initial] NA
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] normal
+	 	 	\item[param] 0 300
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 	\item[theta12]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 57212
+	 	 	\item[name] beta10
+	 	 	\item[short.name] beta
+	 	 	\item[initial] NA
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] normal
+	 	 	\item[param] 0 300
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 \end{description}
+	\item[status] experimental
+	\item[survival] FALSE
+	\item[discrete] FALSE
+	\item[link] default identity
+	\item[pdf] gev2
+\end{description}

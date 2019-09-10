@@ -1,10 +1,12 @@
 \chapter{Log-Cox point process and preferential sampling}\label{ch:lcox}
 
-The R source for the three examples in this Chapter is available at
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-prefsampl.R}
+This content is part of the book available at
+\url{http://www.r-inla.org/spde-book},
+whose Gitbook version is freely available 
+along all the code and datasets.
 
 <<sett,echo=F,results='hide',message=FALSE,warning=FALSE>>=
-library(knitr)
+library(knitr) 
 opts_chunk$set(
 fig.path='figs/prefsampl',
 message=FALSE, warning=FALSE
@@ -12,14 +14,14 @@ message=FALSE, warning=FALSE
 options(width=75, prompt = " ", continue = "   ")
 library(INLA)
 lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
-inla.setOption(num.threads=7)
+## inla.setOption(inla.call='remote')
+## inla.setOption(num.threads=4)
 library(splancs)
 library(fields)
 source('R/spde-tutorial-functions.R')
 @ 
 
-\section{The \cite{simpsonetal:2016} approach example}
+\section{The \cite{simpsonetal:2016} approach example}  
 
 Under the log-Cox model assumption, there is a 
 latent Gaussian Random Field (LGRF) and the inference 
@@ -72,37 +74,41 @@ resolution of the grid. We change it to
 spatstat.options(npixel=300)
 @ 
 
-First we define the model parameter for 
-the model is the mean of the LGRF. 
-This is directly related to expected number 
-of points of the spatial pattern. 
-The expected number of points is its 
-exponential times the area fo the window. 
-We use 
-<<>>=
-beta0 <- 3
-@ 
-So, the expected number of points is 
-<<n-exp>>=
-exp(beta0) * diff(range(win$x)) * diff(range(win$y))
-@ 
-Is also possible to use a functional, 
-see Shapter~\ref{sec:lcoxcov}.
-
 In the estimation process we use the Matern 
 covariance function with $\nu=1$. 
 So, here we just fix it on this value. 
 The other parameters are the variance and scale
 <<>>=
-sigma2x <- 0.2;      kappa <- 2
+sigma2x <- 0.2 
+kappax <- 2
+rangex <- sqrt(8*1)/kappax
 @ 
+
+First we define the model parameter for 
+the model is the mean of the LGRF. 
+We use 
+<<>>=
+beta0 <- 3
+@ 
+
+This is directly related to expected number 
+of points of the spatial pattern. 
+The expected number of points is given by 
+\[ \exp(\beta_0 + \sigma^2_x/2)\Omega \]
+where $\Omega$ is the area of the spatial domain. 
+So, the expected number of points is 
+<<n-exp>>=
+exp(beta0 + sigma2x/2) * diff(range(win$x)) * diff(range(win$y))
+@ 
+Is also possible to use a functional, 
+see Chapter~\ref{sec:lcoxcov}.
 
 Doing the simulation
 <<simulapp,eval=TRUE>>=
 library(RandomFields)
 set.seed(1)
 lg.s <- rLGCP('matern', beta0, 
-              var=sigma2x, scale=1/kappa, nu=1, win=win)
+              var=sigma2x, scale=1/kappax, nu=1, win=win)
 @ 
 
 Both the LGRF and the point pattern are returned. 
@@ -186,7 +192,7 @@ points(xy, col=4, pch=19); lines(loc.d, col=3)
 
 Defining the SPDE model considering the PC-prior 
 derived in \cite{fuglstadetal:2017} for the 
-model parameters as the practical range, $\sqrt{8\nu}/\kappa$, 
+model parameters as the practical range, $\sqrt{8\nu}/\kappa_x$, 
 and the marginal standard deviation.  
 <<spde>>=
 spde <- inla.spde2.pcmatern(
@@ -216,7 +222,7 @@ and compute the intersection between the dual mesh polygons
 and the study domain polygon. 
 To do that we have the function \texttt{inla.mesh.dual()}, 
 available in 
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}
+\url{http://inla.r-inla-download.org/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}
 This function considers a mesh and return the dual mesh 
 in the \texttt{SpatialPolygons} class.
 <<dualmesh>>=
@@ -332,7 +338,7 @@ plot(pp.res$marginals.hyperpar[[2]], type='l',
 abline(v=sigma2x, col=2)
 plot(pp.res$marginals.hyperpar[[1]], type='l', 
      xlab='Nominal range', ylab='Density')
-abline(v=sqrt(8*1)/kappa, col=2)
+abline(v=rangex, col=2)
 @ 
 \setkeys{Gin}{width=0.99\textwidth}
 \begin{figure}\centering
@@ -340,8 +346,8 @@ abline(v=sqrt(8*1)/kappa, col=2)
 <<pp-viz>>
 @ 
 \caption{Posterior distribution for the parameters of 
-  the log-Cox model $\sigma^2$ (left), $\kappa$ (mid) 
-  and the nominal range  (right)} 
+  the log-Cox model $\beta_0$ (left), $\sigma^2_x$ (mid) 
+  and the nominal range (right)} 
 \end{figure}\label{fig:pppost}
 
 
@@ -365,17 +371,18 @@ y0 <- x0 <- seq(win$xrange[1], win$xrange[2],
                 length=spatstat.options()$npixel)
 gridcov <- outer(x0, y0, function(x,y) cos(x) - sin(y-2))
 @ 
-Now, the expected number of points is function of the covariate 
+Now, the expected number of points is now a function 
+of the covariate as well 
 <<n-exp-cov>>=
 beta1 <- -0.5
-sum(exp(beta0 + beta1*gridcov) * diff(x0[1:2])*diff(y0[1:2]))
+sum(exp(beta0 + beta1*gridcov + sigma2x/2) * diff(x0[1:2])*diff(y0[1:2]))
 @ 
 
 Doing the simulation
 <<simulappc>>=
 set.seed(1)
 lg.s.c <- rLGCP('matern', im(beta0 + beta1*gridcov, xcol=x0, yrow=y0), 
-              var=sigma2x, scale=1/kappa, nu=1, win=win)
+              var=sigma2x, scale=1/kappax, nu=1, win=win)
 @ 
 
 Both, the LGRF and the point pattern, are returned. 
@@ -466,7 +473,7 @@ plot(pp.c.res$marginals.fix[[2]], type='l', ylab='Density',
 plot(pp.c.res$marginals.hyperpar[[2]], type='l', ylab='Density', 
      xlab=expression(sigma)); abline(v=sigma2x^0.5, col=2)
 plot(pp.c.res$marginals.hyperpar[[1]], type='l', ylab='Density',
-     xlab=expression(sqrt(8)/kappa)); abline(v=kappa, col=2)
+     xlab='Range'); abline(v=rangex, col=2)
 @ 
 \setkeys{Gin}{width=0.75\textwidth}
 \begin{figure}\centering
@@ -474,8 +481,8 @@ plot(pp.c.res$marginals.hyperpar[[1]], type='l', ylab='Density',
 <<ppc-viz>>
 @ 
 \caption{Posterior distribution for the intercept (top left), 
-  coefficient of the covariate (top right) and the parameters of 
-  the log-Cox model $\sigma^2$ (bottom left), $\kappa$ (bottom right)} 
+  coefficient of the covariate (top right), 
+  $\sigma^2_x$ (bottom left) and the range (bottom right).} 
 \end{figure}\label{fig:pppostc}
 
 \section{Geostatistical inference under 
@@ -492,11 +499,10 @@ and the response, \cite{diggleetal:2010}.
 So, we need also to make inference for a 
 point process model jointly. 
 
-This approach assumes a linear predictor for the point process as 
-\[ \beta_0 + \textrm{random field} \]
-and for the observations a linear predictor which is function 
-of the latent Gaussian random field for the point process
-\[ \beta_0^y + \beta \textrm{random field} \]
+This approach assumes a linear predictor for the outcome  
+\[ \beta_0^y + \textrm{ random field} \]
+and for the log of the intensity of the point process  
+\[ \beta_0 + \beta \textrm{ random field} \]
 where $\beta_0^y$ is an intercept for the observations and 
 $\beta$ is a sharing parameter. 
 
@@ -521,9 +527,11 @@ summary(z <- log(t(Lam$v)[Reduce(
   'cbind', nearest.pixel(xy[,1], xy[,2], Lam))]))
 @ 
 
-These values are the latent field with zero mean plus the defined intercept.
-We define the response as a different intercept $\beta_y$ and multiply the 
-zero mean random field with a $1/\beta$, where $\beta$ is the parameter 
+These values are the latent field with zero mean 
+plus the defined intercept for the intensity process, $\beta_0$.
+We define the response as a different intercept $\beta_y$ 
+and multiply the zero mean random field with a $1/\beta$, 
+where $\beta$ is the parameter 
 as the sharing parameter between the intensity 
 of the point process locations and the response. 
 <<resp>>=
@@ -562,7 +570,7 @@ plot(inla.tmarginal(function(x) sqrt(1/x),
      type='l', ylab='Density', xlab=expression(sigma)) 
 abline(v=prec.y^-0.5, col=2)
 plot(u.res$marginals.hyperpar[[2]], type='l', ylab='Density', 
-     xlab=expression(sqrt(8)/kappa)); abline(v=sqrt(8)/kappa, col=2)
+     xlab='Range'); abline(v=rangex, col=2)
 plot(u.res$marginals.hyperpar[[3]], type='l', 
      xlab=expression(sqrt(sigma^2[x])), ylab='Density')
 abline(v=sigma2x^0.5, col=2)
@@ -573,7 +581,7 @@ abline(v=sigma2x^0.5, col=2)
 <<insp-u>>
 @ 
 \caption{Posterior distribution for $\sigma^2$, 
-  $\kappa$ and the nominal range just using the response.}
+  $\kappa_x$ and the nominal range just using the response.}
 \end{figure}\label{fig:upost}
 
 \subsection{Model fitting under preferential sampling}
@@ -657,10 +665,10 @@ lines(inla.tmarginal(function(x) 1/x,
                      u.res$marginals.hy[[1]]), lwd=5, lty=3)
 abline(v=1/prec.y, col=2)
 plot(j.res$marginals.hyperpar[[2]], type='l', xlim=c(0,10),
-     xlab=expression(sqrt(8)/kappa), ylab='Density', lwd=2)
+     xlab='Range', ylab='Density', lwd=2)
 lines(pp.res$marginals.hyperpar[[1]], lty=2, lwd=2)
 lines(u.res$marginals.hyperpar[[2]], lty=3, lwd=5)
-abline(v=sqrt(8)/kappa, col=2)
+abline(v=rangex, col=2)
 plot(j.res$marginals.hyperpar[[3]], type='l', lwd=2, xlim=c(0,1),
      xlab=expression(sqrt(sigma[x]^2)), ylab='Density')
 lines(pp.res$marginals.hyperpar[[2]], lty=2, lwd=2)
@@ -676,7 +684,7 @@ legend('topright', c('True value', 'Joint', 'Only PP', 'Only Y'),
   intercept for the point process $\beta_0$, 
   intercept for the observations $\beta_0^y$, 
   noise variance in the observations $\sigma^2_y$, 
-  the practical range parametrized as $\sqrt{8}/\kappa$, 
+  the practical range parametrized as $\sqrt{8}/\kappa_x$, 
   the marginal standard deviation for the random field $\sigma^2_x$ 
   and the sharing coefficient $\beta$.}
 \end{figure}\label{fig:jpars}

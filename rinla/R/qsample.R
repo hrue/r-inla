@@ -42,7 +42,7 @@
 ##!   \item{compute.mean}{If \code{TRUE}, compute also the (constrained) mean. Note that the output format then change.}
 ##!   \item{num.threads}{The number of threads that can be used. \code{num.threads>1L} requires
 ##!       \code{seed = 0L}.} 
-##!   \item{selection}{A vector of length \code{nrow(Q)} of witch indices of each sample to
+##!   \item{selection}{A vector of indices of each sample to
 ##!                    return. \code{NULL} means return the whole sample.
 ##!                    (Note that the log-density retured,  is for the whole sample.)
 ##!                    The use of \code{selection} cannot be combined with the use of \code{sample}.}
@@ -111,6 +111,7 @@
         selection = NULL,
         verbose = FALSE)
 {
+    t.dir = inla.tempdir()
     smtp = match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "pardiso"))
     stopifnot(!missing(Q))
     stopifnot(n >= 1L)
@@ -136,23 +137,21 @@
 
     Q = inla.sparse.check(Q)
     if (is(Q, "dgTMatrix")) {
-        Q.file = inla.write.fmesher.file(Q)
-        remove = TRUE
+        Q.file = inla.write.fmesher.file(Q, filename = inla.tempfile(tmpdir = t.dir))
     } else if (is.character(Q)) {
         Q.file = Q
-        remove = FALSE
     } else {
         stop("This should not happen.")
     }
 
-    b.file = inla.tempfile()
-    mu.file = inla.tempfile()
-    constr.file = inla.tempfile()
-    x.file = inla.tempfile()
-    sample.file = inla.tempfile()
-    rng.file = inla.tempfile()
-    cmean.file = inla.tempfile()
-    selection.file = inla.tempfile()
+    b.file = inla.tempfile(tmpdir = t.dir)
+    mu.file = inla.tempfile(tmpdir = t.dir)
+    constr.file = inla.tempfile(tmpdir = t.dir)
+    x.file = inla.tempfile(tmpdir = t.dir)
+    sample.file = inla.tempfile(tmpdir = t.dir)
+    rng.file = inla.tempfile(tmpdir = t.dir)
+    cmean.file = inla.tempfile(tmpdir = t.dir)
+    selection.file = inla.tempfile(tmpdir = t.dir)
     
     if (!missing(b)) {
         stopifnot(length(b) == nrow(Q))
@@ -189,7 +188,7 @@
             stop("Cannot use 'selection' and 'sample' at the same time")
         }
         selection = as.matrix(selection, ncol = 1)
-        stopifnot(nrow(selection) == nrow(Q))
+        stopifnot(nrow(selection) <= nrow(Q))
         inla.write.fmesher.file(selection -1, filename = selection.file)
     } else {
         ## make the code easier below
@@ -208,7 +207,7 @@
         }
     }
 
-    inla.set.sparselib.env(NULL)
+    inla.set.sparselib.env(inla.dir = t.dir)
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsample",
                          "-t", num.threads, "-r", reordering, "-z", seed, "-S", smtp,
@@ -225,21 +224,14 @@
         stop("\n\tNot supported architecture.")
     }
 
-    if (remove) {
-        unlink(Q.file)
-    }
-
     fp = file(rng.file, "rb")
     siz = file.info(rng.file)$size
     rng.state = readBin(fp, raw(), siz)
     close(fp)    
     assign("GMRFLib.rng.state", rng.state, envir = envir)
-    unlink(rng.file)
 
     x = inla.read.fmesher.file(x.file)
     cmean = inla.read.fmesher.file(cmean.file)
-    unlink(x.file)
-    unlink(cmean.file)
 
     nx = dim(x)[1L] -1L
     samples = matrix(x[-(nx + 1L),, drop=FALSE], nx, n)
@@ -248,12 +240,8 @@
     ld = c(x[nx+1L, ])
     names(ld) = paste("logdens", 1L:n, sep="")
 
-    unlink(b.file)
-    unlink(mu.file)
-    unlink(constr.file)
-    unlink(sample.file)
-    unlink(selection.file)
-
+    unlink(t.dir, recursive = TRUE)
+    
     if (logdens || compute.mean) {
         return (list(sample=samples, logdens = ld, mean = c(cmean)))
     } else {

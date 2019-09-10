@@ -63,6 +63,15 @@
         }
 
         cat(prefix, "parameters", suff, " = ", inla.paste(hyper[[k]]$param), "\n", file = file, append = TRUE, sep="")
+
+        ## the PCGEVTAIL prior is a special case, as the (low, high) is given as parameters 2
+        ## and 3, in the prior. So we need to extract those, and make sure they are set to
+        ## (low, high), so they will be replaced
+        if (tmp.prior == "pcgevtail") {
+            low = hyper[[k]]$param[2]
+            high = hyper[[k]]$param[3]
+        }
+
         to.t = gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""), inla.function2source(hyper[[k]]$to.theta))
         from.t = gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""), inla.function2source(hyper[[k]]$from.theta))
         to.t = gsub("REPLACE.ME.low", paste("low=", as.numeric(low), sep=""), to.t)
@@ -116,7 +125,7 @@
 }
 
 `inla.data.section` = function(
-        file, family, file.data, file.weights, control, i.family="",
+        file, family, file.data, file.weights, file.attr, control, i.family="",
         link.covariates = link.covariates, data.dir)
 {
     ## this function is called from 'inla.family.section' only.
@@ -125,6 +134,7 @@
     cat("likelihood = ", family,"\n", sep = " ", file = file,  append = TRUE)
     cat("filename = ", file.data,"\n", sep = " ", file = file,  append = TRUE)
     cat("weights = ", file.weights,"\n", sep = " ", file = file,  append = TRUE)
+    cat("attributes = ", file.attr, "\n", sep = " ", file = file,  append = TRUE)
 
     cat("variant = ",
         inla.ifelse(is.null(control$variant), 0L, as.integer(control$variant)),
@@ -168,6 +178,16 @@
     if (inla.one.of(family, "gev")) {
         cat("gev.scale.xi = ", inla.ifelse(is.null(control$gev.scale.xi), 0.01, control$gev.scale.xi), "\n",
             sep="", file=file, append=TRUE)
+    }
+
+    if (inla.one.of(family, "gev2")) {
+        c.gev2 = control$control.gev2
+        nms = names(c.gev2)
+        for (i in seq_along(c.gev2)) {
+            ## need this, as the xi.range is a vector of length 2
+            cat("gev2.", nms[i], " = ", paste(as.numeric(c.gev2[[i]]), collapse = " "),
+                "\n", sep="", file=file, append=TRUE)
+        }
     }
 
     inla.write.hyper(control$hyper, file, data.dir = data.dir)
@@ -695,9 +715,9 @@
         cat("int.strategy = ", inla.spec$int.strategy,"\n", sep = " ", file = file,  append = TRUE)
     }
 
-    if (inla.one.of(inla.spec$int.strategy, c("user", "user.std"))) {
+    if (inla.one.of(inla.spec$int.strategy, c("user", "user.std", "user.expert"))) {
         if (is.null(inla.spec$int.design)) {
-            stop(paste0("int.strategy = 'user' or 'user.std' require the integration design in 'int.design'"))
+            stop(paste0("int.strategy = 'user' or 'user.std' or 'user.expert' require the integration design in 'int.design'"))
         }
         file.A = inla.tempfile(tmpdir=data.dir)
         inla.write.fmesher.file(as.matrix(inla.spec$int.design), filename = file.A)
@@ -979,6 +999,7 @@
     cat(inla.secsep("INLA.Model"), "\n", sep = " ", file = file,  append = TRUE)
     cat("type = problem\n", sep = " ", file = file,  append = TRUE)
     cat("dir = $inlaresdir\n", sep = " ", file = file,  append = TRUE)
+    cat("rinla.tag = ", inla.version("hgid"), "\n", file = file,  append = TRUE)
     inla.write.boolean.field("return.marginals", return.marginals, file)
     inla.write.boolean.field("hyperparameters", hyperpar, file)
     inla.write.boolean.field("cpo", cpo, file)

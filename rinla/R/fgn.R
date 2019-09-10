@@ -45,8 +45,9 @@
         stop(paste0("Number of components 'K' must be 3 or 4,  not ",  K))
     }
     
-    in.file = inla.tempfile()
-    out.file = inla.tempfile()
+    t.dir = inla.tempdir()
+    in.file = inla.tempfile(tmpdir = t.dir)
+    out.file = inla.tempfile(tmpdir = t.dir)
     inla.write.fmesher.file(matrix(c(K, as.numeric(H)), ncol = 1), file = in.file)
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m fgn", in.file, out.file), intern=TRUE)
@@ -59,8 +60,8 @@
     res = inla.read.fmesher.file(out.file)
     stopifnot(ncol(res) == 2*K+1)
     colnames(res) = c("H",  paste0("phi", 1:K), paste0("weight", 1:K))
-    unlink(in.file)
-    unlink(out.file)
+
+    unlink(t.dir, recursive = TRUE)
 
     if (!is.null(lag.max)) {
         lag.max = as.integer(lag.max)

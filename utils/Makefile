@@ -17,10 +17,6 @@ update-inla :;
 	-tilix --title="$$INLA_LINUX static"    -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; make -C builds/build.static update"
 	-tilix --title="$$INLA_LINUX windows32" -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; make -C builds/windows32 update"
 	-tilix --title="$$INLA_LINUX windows64" -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; make -C builds/windows64 update"
-	-tilix --title="$$INLA_INLA 64" -e "ssh -x -t $$INLA_INLA export INLA_TAG=$$INLA_TAG\; make -C builds/build64 update"
-	-tilix --title="$$INLA_INLA O2" -e "ssh -x -t $$INLA_INLA export INLA_TAG=$$INLA_TAG\; make -C builds/build.O2 update"
-	-tilix --title="$$INLA_INLA g"  -e "ssh -x -t $$INLA_INLA export INLA_TAG=$$INLA_TAG\; make -C builds/build.debug update"
-	-tilix --title="$$INLA_INLA static" -e "ssh -x -t $$INLA_INLA export INLA_TAG=$$INLA_TAG\; make -C builds/build.static update"
 	@echo -en "\n\nType YES to proceeed: "
 	@read ans && test $$ans == "YES" || exit 1
 	@echo -e "Proceed with the build...\n\n"

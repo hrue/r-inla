@@ -24,7 +24,306 @@
   }
   \subsection{BUG FIXES}{
     \itemize{
-      \item 
+      \item
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.09.10}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added skew-normal link-model \code{sn} for binary data,
+            with its PC-prior
+    }
+  }
+}
+
+
+\section{CHANGES IN VERSION 19.09.03}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added \code{robit} link model.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Improved the stability of the saturated deviance
+      calculations
+      \item Fixed \code{INLA:::inla.is.list.of.lists} to cover the
+      case where the arguments are a list of named lists
+    }
+  }
+}
+
+
+\section{CHANGES IN VERSION 19.07.27}{
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item New (experimental) likelihood: gev2
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed, again, an issue with (parallel) PARDISO
+      and many linear combinations.
+      \item Minor code changes in \code{doc.R}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.07.21}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Removed must-be-enabled warnings in some
+      surival models, from Oct  25 2017
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item Added PC-prior for the Weibull likelihood models. The prior
+      is derived
+      for \code{variant = 1}, which is the good parameterisation.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Added missing \code{to.theta} and \code{from.theta}
+      functions in likelihoods \code{sn} and \code{sn2}
+      \item Fix some documentation in \code{marginal.R} (refering to the
+      obsolete function \code{inla.marginal.transform})
+      \item Fixed an issue with (parallel) PARDISO and many linear combinations.
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.05.19}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Set \code{StagedInstall:no} to work around
+      installation problems for MacOS and R-3.6
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.05.17}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item The internal parameterisation of the alpha-parameter for the
+  Weibull likelihood familes, has been redefined/scaled, to fix some
+  optimisation issues. This means that the default prior has changed (a
+  little) and user-defined priors has to change to account for this new
+  internal parameterisation (sorry about that). See the documentation
+  for details.
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.05.16}{
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item Option \code{short.summary} will use a version of
+      \code{summary} with less output, maybe more suitable for
+      Markdown documents. 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.05.13}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added exampledata directory for various example datasets
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Code cleanup and improved some input-error checking.
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.04.16}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed an error in the cache-system for
+      \code{model="rgeneric"} and \code{model="dmatern"}.
+      Most notably with option \code{openmp.strategy="pardiso.parallel"}.
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.04.14}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Removed the weight correction for the computation of the cpo
+            for \code{int.design="user.expert"}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.04.09}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Option \code{int.strategy="user.expert"}, see the vignette
+      about user-defined integration points.
+      \item Merge also \code{cpo} and \code{po} results in \code{inla.merge()}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.04.01}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed an issue with AR-model and group
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.03.16}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Small fix in model \code{dmatern}
+    }
+  }
+}
+
+
+\section{CHANGES IN VERSION 19.03.04}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Redirect error output of some warning messages in the remote-feture
+      section from MacOSX to Linux.
+      \item Faster return when \code{mu} is zero for \code{rgeneric}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.03.02}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Changed from PARDISO.PARALLEL to PARDISO.SERIAL in \code{inla.qsample}
+      \item Optimize the \code{nhrs} for \code{inla.qsolve} for PARDISO
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.02.28}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Several fgn-models are now fine
+      \item Fixed CPU timing with the PARDISO library
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.02.26}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Do not need to optimize reordering when PARDISO is used. 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.02.17}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed input-test using \code{inla.qsample} with
+      \code{selection}-argument.
+      \item Added back \code{family = "normal"} which is now
+      translated to \code{family = "gaussian"} internally. 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.02.14}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item More work and fixes in  \code{inla.merge}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.02.12}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Simplied \code{print.inla} output
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New method \code{merge} and function \code{inla.merge},
+      for merging \code{inla}-objects
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Store \code{control.family} after processing, in the
+      \code{result$.args} argument, not just the calling value.
+    }
+  }
+}
+
+
+\section{CHANGES IN VERSION 19.02.09}{
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item New parameter for Gaussian likelihood: Fixed offset in the
+      variance. 
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Updated \code{envir} definition in the \code{rgeneric}
+      documentation and examples. 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.02.06}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Removed testing code for likelihood model \code{testbinomial1}
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added new likelihood \code{gamma.surv}
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Cleaned up the use of temporary dir and files
+      \item General code clean-up
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.01.29}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Increased maximum number of covariates in likelihood models
+      \code{nmix} and \code{nmixnb} from 10 to 15
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.01.24}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Added a new test-script
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 18.12.12}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New models, \code{loggamma} and \code{mloggamma}
+      in \code{mix}.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Minor changes in some build scripts.
     }
   }
 }
