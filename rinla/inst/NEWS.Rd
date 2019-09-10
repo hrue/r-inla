@@ -29,6 +29,16 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.09.10}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added skew-normal link-model \code{sn} for binary data,
+            with its PC-prior
+    }
+  }
+}
+
+
 \section{CHANGES IN VERSION 19.09.03}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
