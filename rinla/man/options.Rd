@@ -67,9 +67,9 @@
      scale.model.default : The default value of argument \code{scale.model} which
                            optionally scale intrinisic models to have generalized
                            unit average variance 
-
- The options are stored in the variable \code{inla.options} in the
-     \code{.GlobalEnv}-environment.
+     
+     short.summary : Use a less verbose output for \code{summary}. Useful for Markdown
+                     documents. 
    }
  }
  

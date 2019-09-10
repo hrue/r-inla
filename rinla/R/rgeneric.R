@@ -71,7 +71,7 @@
     
     ## variables defined the in the define-call, are stored here
     ## (which is in the path)
-    envir = environment(sys.call()[[1]]) 
+    envir = parent.env(environment())
 
     interpret.theta = function()
     {
@@ -198,7 +198,7 @@
 
     ## variables defined the in the define-call, are stored here
     ## (which is in the path)
-    envir = environment(sys.call()[[1]]) 
+    envir = parent.env(environment())
     
     interpret.theta = function()
     {
@@ -266,7 +266,7 @@
     env = if (length(args) > 0) as.environment(args) else new.env()
     parent.env(env) = .GlobalEnv
     environment(model) = env
-    
+
     rmodel = list(
         f = list(
             model = "rgeneric", 

@@ -6,8 +6,8 @@ is_set() {
 
 
 if ! $(is_set INLA_MAC); then
-    export INLA_MAC=hrue@hruemac.math.ntnu.no
     export INLA_MAC=rueh@kw-16659.kaust.edu.sa
+    export INLA_MAC=rueh@kw-15905.kaust.edu.sa
 fi
 
 IP=0.0.0.0
@@ -26,10 +26,6 @@ if [ -n "$IP" ]; then
     export INLA_LINUX=hrue@$IP
     export INLA_LINUX_PORT=22
     yes yes | ssh hrue@$IP echo Testing connection
-fi
-
-if ! $(is_set INLA_INLA); then
-    export INLA_INLA=hrue@inla.math.ntnu.no
 fi
 
 output () {

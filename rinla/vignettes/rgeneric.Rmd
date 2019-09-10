@@ -140,7 +140,7 @@ inla.rgeneric.ar1.model = function(
     # cache, this is the environment of this function
     # which holds arguments passed as `...` in
     # `inla.rgeneric.define()`.
-    envir = environment(sys.call()[[1]])
+	envir = parent.env(environment())
 
     graph = function(){ <to be completed> }
     Q = function() { <to be completed> }
@@ -253,7 +253,7 @@ least easier to debug against for reasonable values of $n$.
 
 This function must return the mean which might depend on $\theta$.
 The convention, is that if `numeric(0)` is returned, then the mean is
-zero.
+identical to zero (and then there is no need to check for this later)
 ```{r eval=FALSE}
 mu = function() {
     return(numeric(0))
@@ -424,7 +424,7 @@ rgeneric.linear.regression =
                      "log.prior", "quit"),
              theta = NULL)
 {
-    envir = environment(sys.call()[[1]])
+	envir = parent.env(environment())
 
     ## artifical high precision to be added to the mean-model
     prec.high = exp(15)

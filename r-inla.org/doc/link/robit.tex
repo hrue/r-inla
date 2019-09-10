@@ -1,0 +1,73 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Linkmodel: robit}
+
+\subsection*{Parametrization}
+
+This is the link that map $p\in (0,1)$ into $x\in\Re$, where
+\begin{displaymath}
+    F_{\nu}(x) = p
+\end{displaymath}
+and $F_{\nu}$ is the cummulative distribution function for Student-t
+with $\nu$ degrees of freedom, normalized to have unit variance and
+$\nu > 2$.
+
+\subsection*{Hyperparameters}
+
+The  parameter $\nu$ represented as
+\begin{displaymath}
+    \nu = 2 + \exp(\theta)
+\end{displaymath}
+and the prior is defined on $\theta$. $\nu$ is default fixed and set
+to $7$ (to estimate $\nu$ is somewhat challenging).
+
+\subsection*{Specification}
+
+Use \texttt{model="robit"} within \texttt{control.link}.  
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/link/robit.tex}
+
+\subsection*{Example}
+
+\begin{verbatim}
+n = 300
+Nt = 2
+x = rnorm(n, sd = 0.3)
+eta = 1 + x
+df = 7
+y = rbinom(n, size=Nt, prob = inla.link.invrobit(eta, df = df))
+
+r = inla(y ~ 1 + x,
+         family = "binomial",
+          Ntrials = Nt,
+          data = data.frame(y, x, Nt),
+          control.family = list(
+              control.link = list(
+                  model = "robit",
+                  hyper = list(dof = list(
+                      initial = log(df - 2), 
+                      fixed = FALSE)))))
+summary(r)
+\end{verbatim}
+
+\subsection*{Notes}
+
+\begin{itemize}
+\item The link-function is also available as R-functions
+    \texttt{inla.link.robit} and \texttt{inla.link.invrobit}
+\item This link-model is experimental for the moment.
+\end{itemize}
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

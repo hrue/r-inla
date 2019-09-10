@@ -21,8 +21,6 @@
 ##! \alias{marginal.expectation}
 ##! \alias{inla.smarginal}
 ##! \alias{smarginal}
-##! \alias{inla.marginal.transform}
-##! \alias{marginal.transform}
 ##! \alias{inla.tmarginal}
 ##! \alias{inla.mmarginal}
 ##! \alias{mmarginal}
@@ -78,11 +76,9 @@
 ##!   \item{p}{Probabilities}
 ##! 
 ##!   \item{n}{The number of observations. If \code{length(n) > 1}, the
-##!     length is taken to be the number required. For
-##!     \code{inla.marginal.transform}, its the number of points to use
-##!     in the new density.}
+##!     length is taken to be the number required.}
 ##! 
-##!   \item{h.diff}{The step-length for the numerical differeniation inside \code{inla.marginal.transform}}
+##!   \item{h.diff}{The step-length for the numerical differeniation inside \code{inla.tmarginal}}
 ##!     
 ##!   \item{...}{Further arguments to be passed to function which
 ##!     expectation is to be computed.}
@@ -245,7 +241,7 @@
         ans = inla.marginal.fix(ans)
     }
     if (is.mat && keep.type) {
-        return (cbind(ans$x, ans$y))
+        return (cbind(x=ans$x, y=ans$y))
     } else {
         return (ans)
     }

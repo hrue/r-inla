@@ -398,6 +398,9 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD) {
 		fprintf(fp, "Use user-defined standardized integration points\n");
 	}
+	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
+		fprintf(fp, "Use user-defined expert integration points and weights\n");
+	}
 	GMRFLib_print_design(fp, ai_par->int_design);
 
 	fprintf(fp, "\t\tf0 (CCD only):\t %f\n", ai_par->f0);
@@ -2634,20 +2637,10 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 	int i, free_x = 0, free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc =
 	    0, n, id, *idxs = NULL, nidx = 0;
 	double *mode = NULL;
-	static int new_idea = 0;
 
-	if (new_idea == 99) {
-		if (getenv("INLA_NEW_IDEA")) {
-			new_idea = 1;
-		} else {
-			new_idea = 0;
-		}
-		FIXME("READ INLA_NEW_IDEA: ");
-		P(new_idea);
-	}
 #define FREE_ALL if (1) { if (free_x) Free(x); if (free_b) Free(b); if (free_c) Free(c); if (free_d) Free(d); \
 		if (free_mean) Free(mean); if (free_blockpar) Free(blockupdate_par); if (free_aa) Free(aa); if (free_bb) Free(bb); \
-		if (free_cc) Free(cc); Free(mode); Free(idxs); }
+		if (free_cc) Free(cc); Free(idxs); }
 
 	GMRFLib_ENTER_ROUTINE;
 
@@ -2742,9 +2735,27 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			GMRFLib_2order_approx(&(aa[idx]), &bcoof, &ccoof, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg,
 					      &(optpar->step_len), &(optpar->stencil));
 			cc_is_negative = (cc_is_negative || ccoof < 0.0);	/* this line IS OK! also for multithread.. */
+			//if (ccoof < 0.0) printf("idx %d ccoof %.12g\n", idx, ccoof);
 			if (cc_positive) {
-				bb[idx] += bcoof;
-				cc[idx] += DMAX(cmin, ccoof);
+
+				if (0) {
+					if (ccoof < 0) {
+						fprintf(stderr, "idx = %1d, ccoof = %g bcoof %g\n", idx,  ccoof, bcoof);
+					}
+				}
+				
+				if (cmin == 0.0) {
+					if (ccoof <= cmin) {
+						FIXME1("TRY NEW STRATEGY FOR bcoof");
+						// do nothing. set ccoof=0 and bcoof=0.
+					} else {
+						bb[idx] += bcoof;
+						cc[idx] += DMAX(cmin, ccoof);
+					}
+				} else {
+					bb[idx] += bcoof;
+					cc[idx] += DMAX(cmin, ccoof);
+				}
 			} else {
 				if (ccoof > 0.0) {
 					bb[idx] += bcoof;
@@ -2921,6 +2932,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 					for (i = 0; i < graph->n; i++) {
 						c_new[i] = lambda * Qfunc(i, i, Qfunc_arg) + (1.0 + lambda) * c[i];
 						if (ISNAN(x[i]) || ISINF(x[i])) {
+							if (!mode) FIXME("MODE is NULL");
 							x[i] = mode[i];
 						}
 					}
@@ -2976,6 +2988,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 	}
 
 	Free(mode_initial);
+	Free(mode);					       /* not part of 'FREE_ALL' */
 
 	FREE_ALL;
 	GMRFLib_LEAVE_ROUTINE;
@@ -3415,6 +3428,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES ||
 				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER ||
 				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD ||
+				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT ||
 				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD), GMRFLib_EPARAMETER);
 	/*
 	 * Simply chose int-strategy here
@@ -4142,7 +4156,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			 * END OF GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES 
 			 */
 		} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD ||
-			   ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER || ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD) {
+			   ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER ||
+			   ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD ||
+			   ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
 			/*
 			 * use points from the ccd-design to do the integration. This includes also the deterministic
 			 * integration points.
@@ -4206,7 +4222,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							z_local[i] = design->experiment[k][i]
 							    * (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
 						}
-					} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER) {
+					} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER ||
+						   ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
 						for (i = 0; i < nhyper; i++) {
 							z_local[i] = design->experiment[k][i];
 						}
@@ -4257,7 +4274,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						}
 					} else {
 						// integration weights are _given_. this is the deterministic integration points
-						log_dens += log(design->int_weight[k]);
+						if (ai_par->int_strategy != GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
+							log_dens += log(design->int_weight[k]);
+						} else {
+							// we do that later
+						}
 					}
 
 					/*
@@ -4272,7 +4293,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					 * compute the marginals for this point. check storage 
 					 */
 					if (nhyper > 0) {
-						weights[dens_count] = log_dens;
+						if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
+							// In this case, the int_weights INCLUDE the log_dens
+							weights[dens_count] = log(design->int_weight[k]);
+						} else {
+							weights[dens_count] = log_dens;
+						}
 					} else {
 						weights[dens_count] = 0.0;
 					}
@@ -4361,7 +4387,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							z[i] = design->experiment[k][i]
 							    * (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
 						}
-					} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER) {
+					} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER ||
+						   ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
 						for (i = 0; i < nhyper; i++) {
 							z[i] = design->experiment[k][i];
 						}
@@ -4438,7 +4465,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					 */
 					CHECK_DENS_STORAGE;
 					if (nhyper > 0) {
-						weights[dens_count] = log_dens;
+						if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
+							// In this case, the int_weights INCLUDE the log_dens
+							weights[dens_count] = log(design->int_weight[k]);
+						} else {
+							weights[dens_count] = log_dens;
+						}
 					} else {
 						weights[dens_count] = 0.0;
 					}
@@ -5432,7 +5464,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			 *
 			 * first we need to compute the normalising constants for \pi(theta|y_i) for each i. This we call Z[i].
 			 * 
-			 * Note that \pi(theta_j | y_{-i}) = adj_weights[j] / cpo_theta[i][j] / Z[i]; 
+			 * Note that \pi(theta_j | y_{-i}) = adj_weights[j] / cpo_theta[i][j] / Z[i];
+			 *
+			 * We do not correct for int.strategy = user.expert, for which the weights are given.
 			 */
 			double *Z = Calloc(graph->n, double);
 
@@ -5455,11 +5489,21 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				ii = compute_idx[j];
 				if (cpo_theta[ii]) {
 					(*cpo)->value[ii] = Calloc(1, double);
-
-					for (jj = 0, evalue = evalue_one = 0.0; jj < dens_count; jj++) {
-						if (!ISNAN(cpo_theta[ii][jj])) {
-							evalue += cpo_theta[ii][jj] * adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
-							evalue_one += adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
+					
+					if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
+						for (jj = 0, evalue = evalue_one = 0.0; jj < dens_count; jj++) {
+							if (!ISNAN(cpo_theta[ii][jj])) {
+								evalue += cpo_theta[ii][jj] * adj_weights[jj];
+								evalue_one += adj_weights[jj]; 
+							}
+						}
+					} else {
+						// here, we correct for adjusting pi(theta_j|y_{-i})
+						for (jj = 0, evalue = evalue_one = 0.0; jj < dens_count; jj++) {
+							if (!ISNAN(cpo_theta[ii][jj])) {
+								evalue += cpo_theta[ii][jj] * adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
+								evalue_one += adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
+							}
 						}
 					}
 					if (evalue_one) {
@@ -6445,11 +6489,17 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	if (cross) {
 		cross_store = Calloc(nlin, cross_tp);
 	}
-#pragma omp parallel for private(i, j, k) num_threads(GMRFLib_openmp->max_threads_outer)
+
+	// there is some bad designed code which require some code calling this to be run as
+	// a critical region, which mess up if run with pardiso and this loop in parallel.
+	// so I disable it for the moment.
+	int use_pardiso = (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ||
+	                   GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL);
+#pragma omp parallel for private(i, j, k) num_threads(GMRFLib_openmp->max_threads_inner) if (!use_pardiso)
 	for (i = 0; i < nlin; i++) {
 
-		int from_idx, to_idx, len, from_idx_a, to_idx_a, len_a, ip, ii, jj;
-		double var, mean, imean, *a = NULL, *b = NULL, *v = NULL, *vv = NULL, var_corr, weight, Aij, Ajj;
+		int from_idx, to_idx, len, from_idx_a, to_idx_a, len_a, jj;
+		double var, mean, imean, *a = NULL, *b = NULL, *v = NULL, *vv = NULL, var_corr, weight;
 
 		if (Alin[i]->tinfo[id].first_nonzero < 0) {
 			/*
@@ -6577,7 +6627,6 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 		GMRFLib_density_create_normal(&d[i], (imean - mean) / sqrt(var), 1.0, mean, sqrt(var));
 		Free(a);
 	}
-
 
 	if (cross) {
 		/*
@@ -6833,7 +6882,7 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 double GMRFLib_ai_po_integrate(double *po, double *po2, double *po3, int idx, GMRFLib_density_tp * po_density,
 			       double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec)
 {
-	int retval, i, k, np = GMRFLib_faster_integration_np;
+	int i, k, np = GMRFLib_faster_integration_np;
 	double low, dx, dxi, *xp = NULL, *xpi = NULL, *xpi3 = NULL, *xpi4 = NULL,
 	    *dens = NULL, *work = NULL, integral2 = 0.0, integral3 = 0.0, integral4 = 0.0, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
 	double fail = 0.0;
