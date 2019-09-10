@@ -29,17 +29,17 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
-  \subsection{USER-VISIBLE CHANGES}{
+\section{CHANGES IN VERSION 19.09.10}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item 
+      \item Added skew-normal link-model \code{sn} for binary data,
+            with its PC-prior
     }
   }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
-    }
-  }
+}
+
+
+\section{CHANGES IN VERSION 19.09.03}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
       \item Added \code{robit} link model.
@@ -47,7 +47,10 @@
   }
   \subsection{BUG FIXES}{
     \itemize{
-      \item Improved the stability of the saturated deviance calculations
+      \item Improved the stability of the saturated deviance
+      calculations
+      \item Fixed \code{INLA:::inla.is.list.of.lists} to cover the
+      case where the arguments are a list of named lists
     }
   }
 }

@@ -363,10 +363,11 @@
 `inla.is.list.of.lists` = function(a.list)
 {
     ## return TRUE if `a.list' is a list of lists, otherwise FALSE
-    if (length(a.list) == 0)
+    if (length(a.list) == 0) {
         return (FALSE)
-    else
-        return (all(sapply(a.list, is.list)))
+    } else {
+        return (is.null(names(a.list)) && all(sapply(a.list, is.list)))
+    }
 }
 
 `inla.as.list.of.lists` = function(a)
