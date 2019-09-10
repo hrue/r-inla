@@ -1,8 +1,9 @@
 \section{Lowering resolution of a spatio-temporal model}\label{sec:lowst} 
 
-The R source for this file is available at
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-lower-spatio-temporal.R}
-
+This content is part of the book available at
+\url{http://www.r-inla.org/spde-book},
+whose Gitbook version is freely available 
+along all the code and datasets.
 
 <<settings,include=FALSE,message=FALSE, warning=FALSE>>=
 library(knitr)
@@ -15,8 +16,8 @@ library(splancs)
 library(INLA) 
 library(fields) 
 lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
-inla.setOption(num.threads=7)
+## inla.setOption(inla.call='remote')
+## inla.setOption(num.threads=4)
 @
 
 It can be challenging when dealing with large data sets.

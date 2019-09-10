@@ -201,9 +201,12 @@ int GMRFLib_write_graph_binary_EXPERIMENTAL(const char *filename, GMRFLib_graph_
 	ret = fwrite(&(graph->n), sizeof(int), 1, fp);
 	for (i = 0; i < graph->n; i++) {
 		ret = fwrite(&i, sizeof(int), 1, fp);
+		if (ret == 0) assert(0 == 1);
 		ret = fwrite(&(graph->nnbs[i]), sizeof(int), 1, fp);
+		if (ret == 0) assert(0 == 1);
 		if (graph->nnbs[i]) {
 			ret = fwrite(graph->nbs[i], sizeof(int), (unsigned int) graph->nnbs[i], fp);
+			if (ret == 0) assert(0 == 1);
 		}
 	}
 	fclose(fp);

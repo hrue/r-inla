@@ -49,9 +49,22 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
  */
 #define RUN_SAFE(_expr) if (!GMRFLib_pardiso_thread_safe && omp_in_parallel()) \
 	{								\
-		_Pragma("omp critical")				\
+		int debug = 0;						\
+		if (debug) {						\
+			printf("RUN_SAFE: enter with thread %1d\n", omp_get_thread_num()); \
+			fflush(stdout);					\
+		}							\
+		_Pragma("omp critical")					\
 		{							\
+			if (debug) {					\
+				printf("RUN_SAFE: CRITICAL REGION with thread %1d\n", omp_get_thread_num()); \
+				fflush(stdout);				\
+			}						\
 			_expr;						\
+		}							\
+		if (debug) {						\
+			printf("RUN_SAFE: done with thread %1d\n", omp_get_thread_num()); \
+			fflush(stdout);					\
 		}							\
 	} else {							\
 		_expr;							\
@@ -65,7 +78,6 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 {
 	GMRFLib_ENTER_ROUTINE;
 
-	int i;
 	GMRFLib_global_node_tp lgn, *gn_ptr = NULL;
 
 	if (gn) {
@@ -335,7 +347,7 @@ int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * sm
 	/*
 	 * rhs in real world. solve L x=rhs, rhs is overwritten by the solution 
 	 */
-	int i, idum;
+	int i;
 	GMRFLib_ENTER_ROUTINE;
 
 	switch (sm_fact->smtp) {
@@ -375,7 +387,7 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * s
 	/*
 	 * rhs in real world. solve L^Tx=rhs, rhs is overwritten by the solution 
 	 */
-	int i, idum;
+	int i;
 	GMRFLib_ENTER_ROUTINE;
 
 	switch (sm_fact->smtp) {
@@ -415,7 +427,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * 
 	/*
 	 * rhs in real world. solve Q x=rhs, where Q=L L^T 
 	 */
-	int i, idum;
+	int i;
 	GMRFLib_ENTER_ROUTINE;
 
 	if (sm_fact->smtp == GMRFLib_SMTP_BAND) {
@@ -445,7 +457,6 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm
 	 * rhs in real world. solve Q x=rhs, where Q=L L^T. BUT, here we know that rhs is 0 execpt for a 1 at index idx.
 	 */
 	GMRFLib_ENTER_ROUTINE;
-	int idum;
 
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
@@ -482,7 +493,6 @@ int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_
 	 * 
 	 * this routine is called to many times and the work is not that much, to justify GMRFLib_ENTER_ROUTINE; 
 	 */
-	int idum;
 
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
@@ -527,9 +537,8 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_f
 		GMRFLib_EWRAP0(GMRFLib_solve_l_sparse_matrix_special_TAUCS(rhs, sm_fact->TAUCS_L, graph, sm_fact->remap, findx, toindx, remapped));
 		break;
 
-	case GMRFLib_SMTP_PARDISO:
+	case GMRFLib_SMTP_PARDISO: 
 	{
-		int idum;
 		if (remapped) {
 			GMRFLib_pardiso_perm(rhs, 1, sm_fact->PARDISO_fact);
 		}
@@ -693,6 +702,8 @@ const char *GMRFLib_reorder_name(GMRFLib_reorder_tp r)
 		return "amdc";
 	case GMRFLib_REORDER_AMDBARC:
 		return "amdbarc";
+	case GMRFLib_REORDER_PARDISO:
+		return "pardiso";
 	default:
 		fprintf(stderr, "\n\t*** ERROR *** Reordering [%d] not defined.\n", r);
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_EPARAMETER, "(unknown reording)");
@@ -730,6 +741,8 @@ int GMRFLib_reorder_id(const char *name)
 		return GMRFLib_REORDER_AMDC;
 	else if (!strcasecmp(name, "amdbarc"))
 		return GMRFLib_REORDER_AMDBARC;
+	else if (!strcasecmp(name, "pardiso"))
+		return GMRFLib_REORDER_PARDISO;
 	else if (!strcasecmp(name, "auto"))
 		return -1;				       /* THIS IS SPECIAL */
 	else {

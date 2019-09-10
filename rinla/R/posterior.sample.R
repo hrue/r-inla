@@ -213,7 +213,6 @@
             ## if user set seed,  then just continue this rng-stream
             if (seed > 0L) seed = -1L
 
-
             ld.theta = cs$max.log.posterior + cs$config[[k]]$log.posterior
             nm = names(sel.map)
             

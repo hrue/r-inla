@@ -395,7 +395,7 @@ double inla_spde3_Qfunction(int i, int j, void *arg)
 
 	return value;
 }
-int inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, void *arg)
+double *inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, void *arg)
 {
 	/*
 	 * compute the marginals for BLC*theta
@@ -413,7 +413,7 @@ int inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, 
 #define Theta(_i)         theta[(_i)]
 
 	if (!covmat || nhyper == 0) {
-		return INLA_OK;
+		return NULL;
 	}
 
 	int use_new_version = 1;
@@ -421,7 +421,7 @@ int inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, 
 	inla_spde3_tp *model = (inla_spde3_tp *) GMRFLib_ai_INLA_userfunc3_args[number];
 
 	if (model->BLC == NULL) {
-		return INLA_OK;
+		return NULL;
 	}
 
 	int idx_offset = model->theta_first_idx;
@@ -542,5 +542,5 @@ int inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, 
 #undef Cov
 #undef Theta_spde3
 #undef Theta
-	return INLA_OK;
+	return NULL;
 }

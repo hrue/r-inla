@@ -118,7 +118,7 @@ int GMRFLib_density_prune_weights(int *n_idx, int *idx, double *weights, int n)
 		ww[i] *= w_sum;
 		idx[i] = i;
 	}
-	GMRFLib_qsorts((void *) ww, (size_t) n, sizeof(double), (void *) idx, sizeof(int), NULL, NULL, GMRFLib_dcmp_r);
+	GMRFLib_qsorts((void *) ww, (size_t) n, sizeof(double), (void *) idx, sizeof(int), NULL, 0, GMRFLib_dcmp_r);
 	for (i = 0, *n_idx = 0, w_sum = 0.0; i < n; i++) {
 		w_sum += ww[i];
 		(*n_idx)++;

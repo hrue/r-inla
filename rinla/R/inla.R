@@ -443,7 +443,14 @@
         }
     }
 
-
+    ## replace alias's
+    family.alias = list(
+        list(from = "normal", to = "gaussian")
+    )
+    for (i in seq_along(family.alias)) {
+        family[which(inla.trim.family(family) %in% family.alias[[i]]$from)] = family.alias[[i]]$to
+    }
+    
     ## if data is a list, then it can contain elements that defines a
     ## model, like f(idx, model = model.objects). These objects crash
     ## the formula routines in R since then the data cannot be cast
@@ -872,12 +879,15 @@
         cont.family[[i.family]] = inla.set.control.family.default()
         cont.family[[i.family]]$control.mix = inla.set.control.mix.default()
         cont.family[[i.family]]$control.link = inla.set.control.link.default()
+        cont.family[[i.family]]$control.gev2 = inla.set.control.gev2.default()
 
         ## need to take option 'control.mix' and 'control.link' out and process it seperately
         c.mix = control.family[[i.family]]$control.mix
         c.link = control.family[[i.family]]$control.link
+        c.gev2 = control.family[[i.family]]$control.gev2
         control.family[[i.family]]$control.mix = NULL
         control.family[[i.family]]$control.link = NULL
+        control.family[[i.family]]$control.gev2 = NULL
 
         cont.family[[i.family]][names(control.family[[i.family]])] = control.family[[i.family]]
         cont.family[[i.family]]$hyper = inla.set.hyper(
@@ -895,6 +905,8 @@
         
         cont.family[[i.family]]$control.mix[names(c.mix)] = c.mix
         cont.family[[i.family]]$control.link[names(c.link)] = c.link
+        cont.family[[i.family]]$control.gev2[names(c.gev2)] = c.gev2
+
         if (!is.null(cont.family[[i.family]]$control.mix$model)) {
             cont.family[[i.family]]$control.mix$hyper = inla.set.hyper(
                                        cont.family[[i.family]]$control.mix$model,
@@ -1166,6 +1178,7 @@
 
         ##....then create the new section 
         inla.family.section(file=file.ini, family=family[[i.family]], file.data=files$file.data, file.weights=files$file.weights,
+                            file.attr = files$file.attr, 
                             control=cont.family[[i.family]], i.family=i.family, link.covariates = link.covariates, data.dir = data.dir)
     }
 
@@ -2038,7 +2051,9 @@
                 nnm = gsub("^control\\.", "cont.", nnm) ## these are the processed ones
                 nnm = gsub("^data$", "data.orig", nnm) 
                 nnm = gsub("^formula$", "formula.orig", nnm) 
-                nnm = gsub("^cont(rol)?\\.family$", "control.family.orig", nnm)
+                ## maybe comment out this one so we use the processed one? I cannot recall the
+                ## argument for doing like this. It does not make sense now.
+                ## nnm = gsub("^cont(rol)?\\.family$", "control.family.orig", nnm)
                 inla.eval(paste("the.args$", nm, " = ", nnm, sep=""))
             }
             ## remove the .Evironment attribute, as it will fail if
