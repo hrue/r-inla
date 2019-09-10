@@ -945,6 +945,13 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
         return (if (log) ld else exp(ld))
     }        
 
+    my.pc.sn = function(theta, param, log=FALSE) 
+    {
+        x = theta
+        ld = inla.pc.dsn(x, lambda = param[1], log=TRUE)
+        return (if (log) ld else exp(ld))
+    }
+
     my.pc.gamma = function(theta, param, log=FALSE) 
     {
         ## see ?inla.pc.dgamma. this is the same prior, but for theta where x=exp(theta)
