@@ -1084,3 +1084,59 @@
     return (res)
 }
 
+
+`inla.alt.binary.install` = function(debug = TRUE) 
+{
+    show = function(...) {
+        if (debug) {
+            msg = paste(unlist(list(...)), sep="", collapse="")
+            cat("* ", msg, "\n", sep="")
+        }
+    }
+
+    stopifnot(inla.os.type() == "linux")
+    version = paste("Version_", inla.version("version"), sep="")
+    show("Looking for ", version)
+    
+    address = "https://inla.r-inla-download.org/Linux-builds"
+    Files = paste0(address, "/Files")
+    fp = url(Files, open="r")
+    ff = readLines(fp)
+    close(fp)
+    ff = ff[grep(version, ff)]
+    nf = length(ff)
+    cat("  Available alternatives:\n")
+    for(i in seq_len(nf)) {
+        cat("  \t", paste0("Alternative ", i), " is ", ff[i], "\n")
+    }
+    cat("  ", "Chose alternative [", 1, ":", nf, "]", sep="", "\n\t")
+    ans = scan(file="", what = integer(), n=1, quiet=TRUE)
+    if (!(ans %in% seq_len(nf)))
+        stop("Not a valid choice. Exit.")
+    fnm = paste0(address, "/", ff[ans])
+    show("Install file [", fnm, "]")
+    pa = searchpaths()
+    pa = pa[grep("/INLA$", pa)]
+    stopifnot(file.info(pa)$isdir)
+    show("INLA is installed in [", pa, "]")
+    pa = paste0(pa, "/bin/linux")
+
+    show("Rename old 64bit directory...")
+    file.rename(from = paste0(pa, "/64bit"), to = paste0(pa, "/64bit-", date()))
+    show("Rename old 64bit directory...done!")
+
+    show("Download file...")
+    to.file = paste0(pa, "/64bit-download-", date(), ".tgz")
+    download.file(fnm, to.file, quiet = TRUE)
+    show("Download file...done!")
+
+    show("Unpack file...")
+    untar(to.file, exdir = dirname(to.file), verbose = FALSE)
+    show("Unpack file...done")
+
+    show("Remove temporary file...") 
+    unlink(to.file)
+    show("Remove temporary file...done!") 
+
+    return(invisible())
+}
