@@ -1085,8 +1085,10 @@
 }
 
 
-`inla.alt.binary.install` = function(debug = TRUE) 
+`inla.binary.install` = function(debug = TRUE) 
 {
+    ## install alternative binary builds
+    
     show = function(...) {
         if (debug) {
             msg = paste(unlist(list(...)), sep="", collapse="")
@@ -1121,18 +1123,43 @@
     show("INLA is installed in [", pa, "]")
     pa = paste0(pa, "/bin/linux")
 
-    show("Rename old 64bit directory...")
-    file.rename(from = paste0(pa, "/64bit"), to = paste0(pa, "/64bit-", date()))
-    show("Rename old 64bit directory...done!")
-
-    show("Download file...")
+    show("Download file, please wait...")
     to.file = paste0(pa, "/64bit-download-", date(), ".tgz")
-    download.file(fnm, to.file, quiet = TRUE)
-    show("Download file...done!")
+    ret = download.file(fnm, to.file, quiet = TRUE)
+    if (ret == 0) {
+        show("Download file, please wait...done!")
+    } else {
+        unlink(to.file)
+        stop("Error downloading file. Abort.")
+    }
+
+    my.restore = function() {
+        show("Error. Will try to restore old configuration.")
+        show("If unsuccessful, then reinstall R-INLA.")
+        unlink(from.dir,  recursive=TRUE)
+        unlink(to.file)
+        file.rename(to.dir, from.dir)
+    }
+
+    show("Rename old 64bit directory...")
+    from.dir = paste0(pa, "/64bit")
+    to.dir = paste0(pa, "/64bit-", date())
+    ret = file.rename(from.dir, to.dir)
+    if (ret == TRUE) {
+        show("Rename old 64bit directory...done!")
+    } else {
+        my.restore()
+        stop("Error renaming old 64bit directory. Abort.")
+    }
 
     show("Unpack file...")
-    untar(to.file, exdir = dirname(to.file), verbose = FALSE)
-    show("Unpack file...done")
+    ret = untar(to.file, exdir = dirname(to.file), verbose = FALSE)
+    if (ret == 0) {
+        show("Unpack file...done")
+    } else {
+        my.restore()
+        stop("Error unpacking file. Abort.")
+    }
 
     show("Remove temporary file...") 
     unlink(to.file)
