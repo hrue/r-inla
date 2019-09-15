@@ -6,7 +6,8 @@ is_set() {
 
 
 if ! $(is_set INLA_MAC); then
-    export INLA_MAC=rueh@kw-16659.kaust.edu.sa
+    ##export INLA_MAC=rueh@kw-16659.kaust.edu.sa
+    ## this is KAUST_OFFICEMAC
     export INLA_MAC=rueh@kw-15905.kaust.edu.sa
 fi
 
