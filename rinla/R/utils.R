@@ -1096,6 +1096,10 @@
         }
     }
 
+    map.filename = function(fnm) {
+        return (gsub(" ", "%20", fnm))
+    }
+
     stopifnot(inla.os.type() == "linux")
     version = paste("Version_", inla.version("version"), sep="")
     show("Looking for ", version)
@@ -1125,7 +1129,7 @@
 
     show("Download file, please wait...")
     to.file = paste0(pa, "/64bit-download-", date(), ".tgz")
-    ret = download.file(fnm, to.file, quiet = TRUE)
+    ret = download.file(map.filename(fnm), to.file, quiet = TRUE)
     if (ret == 0) {
         show("Download file, please wait...done!")
     } else {
