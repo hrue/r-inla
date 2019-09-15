@@ -1101,7 +1101,7 @@
     show("Looking for ", version)
     
     address = "https://inla.r-inla-download.org/Linux-builds"
-    Files = paste0(address, "/Files")
+    Files = paste0(address, "/FILES")
     fp = url(Files, open="r")
     ff = readLines(fp)
     close(fp)
