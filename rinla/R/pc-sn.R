@@ -1,4 +1,4 @@
-## export: inla.pc.rsn inla.pc.dsn inla.pc.qsn inla.pc.psn
+## Export: inla.pc.rsn inla.pc.dsn inla.pc.qsn inla.pc.psn
 
 ##! \name{pc.sn}
 ##! \alias{inla.pc.sn}
