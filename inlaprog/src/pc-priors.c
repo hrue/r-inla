@@ -211,9 +211,9 @@ double inla_pc_sn_d(double alpha, double *deriv)
 	}
 	return dist;
 }
-
-
 
+
+
 
 
 GMRFLib_spline_tp *inla_pcp_dof_create_spline(void)
