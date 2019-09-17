@@ -600,7 +600,7 @@ typedef enum {
 	P_WISHART3D,
 	P_WISHART4D,
 	P_WISHART5D,
-	P_PC_SN, 
+	P_PC_SN,
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
@@ -1776,7 +1776,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(double **, double **, int *, void *), int(*simpson)(double **, double **, int *, void *));
+			   int (*quadrature)(double **, double **, int *, void *), int (*simpson)(double **, double **, int *, void *));
 int loglikelihood_mix_loggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
