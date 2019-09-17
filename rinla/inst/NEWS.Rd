@@ -29,6 +29,15 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.09.15}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item \code{INLA:::inla.binary.install()} is a new interactive tool
+      to install alternative Linux builds. 
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.09.10}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{

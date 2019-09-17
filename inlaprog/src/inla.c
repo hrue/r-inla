@@ -1,3 +1,4 @@
+
 /* inla.c
  * 
  * Copyright (C) 2007-2019 Havard Rue
@@ -733,11 +734,11 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 	if (ISZERO(a)) {
 		alpha = 0.0;
 	} else {
-		alpha = (a >= 0.0 ? 1.0 : -1.0) * pow(ABS(a), 1.0/3.0);
+		alpha = (a >= 0.0 ? 1.0 : -1.0) * pow(ABS(a), 1.0 / 3.0);
 	}
 	delta = alpha / sqrt(1.0 + SQR(alpha));
-	omega  = 1.0/sqrt(1.0 - 2.0 * SQR(delta)/M_PI);
-	xi = -omega * delta * sqrt(2.0/M_PI);
+	omega = 1.0 / sqrt(1.0 - 2.0 * SQR(delta) / M_PI);
+	xi = -omega * delta * sqrt(2.0 / M_PI);
 	id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
 
 	if (alpha != table[id]->alpha) {
@@ -749,12 +750,12 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 
 		x = work;
 		y = work + len;
-		yy = work + 2*len;
+		yy = work + 2 * len;
 		for (xx = -range, i = 0, llen = 0; xx <= range; xx += dx, i++) {
 			x[i] = xx;
 			if (alpha != 0.0) {
-				double z = (xx - xi)/omega;
-				y[i] = 2.0/omega * MATHLIB_FUN(dnorm) (z, 0.0, 1.0, 0) * MATHLIB_FUN(pnorm) (alpha * z, 0.0, 1.0, 1, 0);
+				double z = (xx - xi) / omega;
+				y[i] = 2.0 / omega * MATHLIB_FUN(dnorm) (z, 0.0, 1.0, 0) * MATHLIB_FUN(pnorm) (alpha * z, 0.0, 1.0, 1, 0);
 			} else {
 				y[i] = MATHLIB_FUN(dnorm) (xx, 0.0, 1.0, 0);
 			}
@@ -782,7 +783,7 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 
 		yy[0] = y[0];
 		for (i = 1; i < len; i++) {
-			yy[i] = yy[i-1] + (y[i] + y[i - 1])/2.0;
+			yy[i] = yy[i - 1] + (y[i] + y[i - 1]) / 2.0;
 		}
 		for (i = 0; i < len; i++) {
 			y[i] = MAP(yy[i]);
@@ -833,7 +834,7 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 		/*
 		 * d_extern / d_local 
 		 */
-		arg = TRUNCATE(arg, table[id]->xmin, table[id]->xmax); 
+		arg = TRUNCATE(arg, table[id]->xmin, table[id]->xmax);
 		p = inla_spline_eval(arg, table[id]->cdf);
 		pp = inla_spline_eval_deriv(arg, table[id]->cdf);
 		return diMAP(p) * pp;
@@ -7092,7 +7093,7 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 		assert(status == GSL_SUCCESS);
 		for (i = 0; i < m; i++) {
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			p = TRUNCATE(p, 0.0, 1.0); 
+			p = TRUNCATE(p, 0.0, 1.0);
 			if (ISEQUAL(p, 1.0)) {
 				/*
 				 * this is ok if we get a 0*log(0) expression for the reminder 
@@ -7153,14 +7154,14 @@ int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x
 		assert(status == GSL_SUCCESS);
 		for (i = 0; i < m; i++) {
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			p = TRUNCATE(p, 0.0, 1.0); 
+			p = TRUNCATE(p, 0.0, 1.0);
 			logll[i] = res.val + y * log(1.0 - p) + n * log(p);
 		}
 	} else {
 		double *yy = (y_cdf ? y_cdf : &y);
 		for (i = 0; i < -m; i++) {
 			p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
-			p = TRUNCATE(p, 0.0, 1.0); 
+			p = TRUNCATE(p, 0.0, 1.0);
 			logll[i] = gsl_cdf_negative_binomial_P((unsigned int) *yy, p, n);
 		}
 	}
@@ -7210,7 +7211,7 @@ int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *x_vec, 
 			gsl_sf_result res;
 
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			p = TRUNCATE(p, 0.0, 1.0); 
+			p = TRUNCATE(p, 0.0, 1.0);
 			logll[i] = n * log_lambda - lambda - normc_poisson;
 			for (j = 0; j < ny; j++) {
 				gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y[j], &res);
@@ -7278,7 +7279,7 @@ int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *x_vec
 			gsl_sf_result res;
 
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			p = TRUNCATE(p, 0.0, 1.0); 
+			p = TRUNCATE(p, 0.0, 1.0);
 			q = size / (size + lambda);
 			logll[i] = normc_nb + size * log(q) + n * log(1.0 - q);
 			for (j = 0; j < ny; j++) {
@@ -7536,9 +7537,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int(*func_simpson)(double **, double **, int *, void *arg))
+			   int (*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -7653,7 +7654,7 @@ int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_
 		for (i = 0; i < m; i++) {
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			p = 1.0 - pow(1.0 - p, n);
-			p = TRUNCATE(p, 0.0, 1.0); 
+			p = TRUNCATE(p, 0.0, 1.0);
 			if (ISEQUAL(p, 1.0)) {
 				/*
 				 * this is ok if we get a 0*log(0) expression for the reminder 
@@ -9891,7 +9892,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
-			prior->parameters = Calloc(1, double); 
+			prior->parameters = Calloc(1, double);
 			prior->parameters[0] = 10.0;	       /* lambda */
 		}
 		if (mb->verbose) {
@@ -33623,8 +33624,8 @@ int testit(int argc, char **argv)
 		alpha = (!args[0] ? 0.5 : atof(args[0]));
 		printf("alpha = %g\n", alpha);
 		double range = 9.0, dx = 0.1;
-                // paralle for must have int as loop-index
-                // #pragma omp parallel for private(xx)
+		// paralle for must have int as loop-index
+		// #pragma omp parallel for private(xx)
 		for (int i = 0; i < (int) (2.0 * range / dx); i++) {
 			xx = -range + i * dx;
 			// alpha = GMRFLib_uniform();
