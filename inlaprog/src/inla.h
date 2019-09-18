@@ -58,11 +58,16 @@ __BEGIN_DECLS
 #define FIFO_PUT_DATA "inla-mcmc-fifo-put-data"
 
 /*
-  The scaling of the critical 'alpha' parameter. If this value change, it must also be changed in models.R
-
-  YES, CHANGE IT MANUALLY!
-*/
+ * The scaling of the critical 'alpha' parameter. If this value change, it must also be changed in models.R
+ * YES, CHANGE IT MANUALLY!
+ */
 #define INLA_WEIBULL_ALPHA_SCALE 0.10
+
+/* 
+ * The maximum skewness parameter in the LINK_SN, where this is the 1/3-root of 'aa' as in the term Phi(aa*x). 3.2 gives aa =
+ * 3.2^3 = 32.768. This constant also appears in the 'to.theta' and 'from.theta' functions in inla.models()$link$sn$hyper$theta
+ */
+#define LINK_SN_AMAX (3.2)
 
 /* 
  *

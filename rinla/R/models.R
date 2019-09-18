@@ -5034,9 +5034,10 @@
                              initial = 0,
                              fixed = TRUE,
                              prior = "pc.sn",
-                             param = 40,
-                             to.theta = function(x) x,
-                             from.theta = function(x) x
+                             param = 500,
+                             ## 3.2 is the value defined by ``LINK_SN_AMAX'' in inla.h
+                             to.theta = function(x, amax3 = 3.2^3) log((1+x/amax3)/(1-x/amax3)),
+                             from.theta = function(x, amax3 = 3.2^3) amax3*(2*exp(x)/(1+exp(x))-1)
                              )
                          ),
                      status = "experimental", 

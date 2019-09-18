@@ -5956,9 +5956,9 @@ inla.models()
 							\item{initial = }{`0'}
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`pc.sn'}
-							\item{param = }{`40'}
-							\item{to.theta = }{`\code{function(x) x}'}
-							\item{from.theta = }{`\code{function(x) x}'}
+							\item{param = }{`500'}
+							\item{to.theta = }{`\code{function(x, amax3 = 3.2^3) log((1+x/amax3)/(1-x/amax3))}'}
+							\item{from.theta = }{`\code{function(x, amax3 = 3.2^3) amax3*(2*exp(x)/(1+exp(x))-1)}'}
 							}
 						}
 					 }
