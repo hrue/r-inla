@@ -122,6 +122,7 @@ static const char RCSId[] = HGVERSION;
 #define POM_MAXTHETA (10L)				       /* as given in models.R */
 #define INTSLOPE_MAXTHETA (10L)				       /* as given in models.R */
 #define GEV2_MAXTHETA (10L)
+
 G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
 
 char *keywords[] = {
@@ -710,9 +711,10 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 	static char first = 1;
 
 	int i, j, id, debug = 0;
-	double a, alpha, range = 12.0, dx = 0.02, p, pp;
-	double omega, delta, xi;
-
+	double a, alpha, dx = 0.02, p, pp, omega, delta, xi, amax = LINK_SN_AMAX, range = 12.0;
+	double amax3 = gsl_pow_3(amax);
+	void *amax3_ptr = (void *) &amax3;
+	
 	if (first) {
 #pragma omp critical
 		if (first) {
@@ -734,7 +736,10 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 	if (ISZERO(a)) {
 		alpha = 0.0;
 	} else {
-		alpha = (a >= 0.0 ? 1.0 : -1.0) * pow(ABS(a), 1.0 / 3.0);
+		alpha = (a >= 0.0 ? 1.0 : -1.0) * pow(ABS(map_phi(a, MAP_FORWARD, amax3_ptr)), 1.0 / 3.0);
+		if (ISNAN(alpha)) {
+			alpha = ((ISNAN(a) || a >= 0.0) ? 1.0 : -1.0) * amax;
+		}
 	}
 	delta = alpha / sqrt(1.0 + SQR(alpha));
 	omega = 1.0 / sqrt(1.0 - 2.0 * SQR(delta) / M_PI);
@@ -743,14 +748,16 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 
 	if (alpha != table[id]->alpha) {
 		int len = (int) (2.0 * range / dx) + 1, llen = 0;
-		double *work = Calloc(3 * len, double), *x, *y, *yy, nc = 0.0, xx;
+		double *work, *x, *y, *yy, nc = 0.0, xx;
 		if (debug) {
 			fprintf(stderr, "map_invsn: build new table for alpha=%g id=%1d\n", alpha, id);
 		}
 
+		work = Calloc(3 * len, double);
 		x = work;
 		y = work + len;
 		yy = work + 2 * len;
+
 		for (xx = -range, i = 0, llen = 0; xx <= range; xx += dx, i++) {
 			x[i] = xx;
 			if (alpha != 0.0) {
@@ -799,7 +806,7 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 		len = j;
 		// Remove values in 'y' that are to close (difference is to small)
 		GMRFLib_unique_additive2(&len, y, x, GMRFLib_eps(0.75));
-
+		
 		table[id]->alpha = alpha;
 		table[id]->xmin = x[0];
 		table[id]->xmax = x[len - 1];
@@ -1183,9 +1190,11 @@ double map_dof5(double arg, map_arg_tp typ, void *param)
 double map_phi(double arg, map_arg_tp typ, void *param)
 {
 	/*
-	 * the map-function for the lag-1 correlation in the AR(1) model 
+	 * the map-function for the lag-1 correlation in the AR(1) model. The
+	 * extra argument, if present, is the range (default = 1)
 	 */
 	double xx;
+	double range = (param ? *((double *) param) : 1.0);
 
 	switch (typ) {
 	case MAP_FORWARD:
@@ -1193,23 +1202,23 @@ double map_phi(double arg, map_arg_tp typ, void *param)
 		 * extern = func(local) 
 		 */
 		xx = exp(arg);
-		return (2.0 * (xx / (1.0 + xx)) - 1.0);
+		return (range * (2.0 * (xx / (1.0 + xx)) - 1.0));
 	case MAP_BACKWARD:
 		/*
 		 * local = func(extern) 
 		 */
-		return log((1.0 + arg) / (1.0 - arg));
+		return log((1.0 + arg/range) / (1.0 - arg/range));
 	case MAP_DFORWARD:
 		/*
 		 * d_extern / d_local 
 		 */
 		xx = exp(arg);
-		return 2.0 * xx / SQR(1.0 + xx);
+		return (range * 2.0 * xx / SQR(1.0 + xx));
 	case MAP_INCREASING:
 		/*
 		 * return 1.0 if montone increasing and 0.0 otherwise 
 		 */
-		return 1.0;
+		return (range >= 0 ? 1.0 : -1.0);
 	default:
 		abort();
 	}
@@ -3351,12 +3360,17 @@ double priorfunc_pc_dof(double *x, double *parameters)
 }
 double priorfunc_pc_sn(double *x, double *parameters)
 {
-	double lambda = parameters[0], val, dist, deriv;
+	double lambda = parameters[0], val, dist, dist_max, deriv, xx, xxd, amax = LINK_SN_AMAX;
+	double amax3 = gsl_pow_3(amax);
+	void *amax3_ptr = (void *) &amax3;
 
-	dist = inla_pc_sn_d(*x, &deriv);
-	val = log(lambda) - lambda * dist + log(ABS(deriv));
+	xx = map_phi(*x, MAP_FORWARD, amax3_ptr);
+	xxd = map_phi(*x, MAP_DFORWARD, amax3_ptr);
+	dist = inla_pc_sn_d(xx, &deriv);
+	dist_max = inla_pc_sn_d(amax3, NULL);
+	val = log(0.5) + log(lambda) - lambda * dist - log(1.0 - exp(-lambda * dist_max)) + log(ABS(deriv)) + log(ABS(xxd));
+
 	return val;
-
 }
 double priorfunc_pc_prec(double *x, double *parameters)
 {
@@ -15781,10 +15795,13 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].to_theta);
 			mb->theta[mb->ntheta] = ds->link_parameters->sn_alpha;
 
+			double *amax3 = Calloc(1, double);
+			*amax3 = gsl_pow_3(LINK_SN_AMAX);
+			
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map[mb->ntheta] = map_phi;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->theta_map_arg[mb->ntheta] = (void *) amax3;
 			mb->ntheta++;
 			ds->link_ntheta++;
 		}
@@ -25823,6 +25840,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 			case LINK_SN:
 				if (!ds->link_fixed[0]) {
+					// the prior has to know about the LINK_SN_AMAX...
 					double alpha = theta[count];
 					val += PRIOR_EVAL(ds->link_prior[0], &alpha);
 					count++;
@@ -33637,6 +33655,42 @@ int testit(int argc, char **argv)
 			printf("xx = %.8g forw=%.8g backw=%.8g dforw=%.8g fdiff=%.8g (derr=%.8g)\n", xx, a, b, c, d, c - d);
 
 		}
+		break;
+	}
+
+	case 33:
+	{
+		double xx, yy, h=1.0e-4, range = 1.123;
+
+		for(xx=1.2; xx < 3.0; xx += 0.35) {
+			yy = map_phi(xx, MAP_FORWARD, NULL);
+			printf("xx %g yy %g  xx.inv %g deriv %g dderiv %g\n",
+			       xx, yy,
+			       map_phi(yy, MAP_BACKWARD, NULL),
+			       map_phi(xx, MAP_DFORWARD, NULL),
+			       (map_phi(xx+h, MAP_FORWARD, NULL) - map_phi(xx-h, MAP_FORWARD, NULL))/2.0/h);
+		}
+		for(xx=1.2; xx < 3.0; xx += 0.35) {
+			yy = map_phi(xx, MAP_FORWARD, (void *) &range);
+			printf("xx %g yy %g  xx.inv %g deriv %g dderiv %g\n",
+			       xx, yy,
+			       map_phi(yy, MAP_BACKWARD, (void *) &range),
+			       map_phi(xx, MAP_DFORWARD, (void *) &range),
+			       (map_phi(xx+h, MAP_FORWARD, (void *) &range) - map_phi(xx-h, MAP_FORWARD, (void *)&range))/2.0/h);
+		}
+		break;
+	}
+
+	case 34: 
+	{
+		double theta, lambda = 40;
+
+		for(theta= -5; theta <= 5;  theta += 0.01) {
+			printf("theta %g logprior %g\n",
+			       theta,
+			       priorfunc_pc_sn(&theta, &lambda));
+		}
+
 		break;
 	}
 
