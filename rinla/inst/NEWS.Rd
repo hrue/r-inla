@@ -29,6 +29,14 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.09.18}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item More work on the skew-normal link model
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.09.15}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
