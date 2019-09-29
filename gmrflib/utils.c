@@ -485,9 +485,9 @@ double GMRFLib_log_apbex(double a, double b)
 	double B = exp(b);
 
 	if (B > a) {
-		return b + log(1.0 + a / B);
+		return b + log1p(0.0 + a / B);
 	} else {
-		return log(a) + log(1.0 + B / a);
+		return log(a) + log1p(0.0 + B / a);
 	}
 }
 
@@ -727,7 +727,7 @@ int GMRFLib_memcheck_printf(FILE * fp)
 	fp = (fp ? fp : stdout);
 	if (!memcheck_first) {
 		for (i = -1; (i = map_vpvp_next(&memcheck_hash_table, i)) != -1;) {
-			fprintf(fp, "0x%x %s\n", (size_t) memcheck_hash_table.contents[i].key, (char *) memcheck_hash_table.contents[i].value);
+			fprintf(fp, "0x%lx %s\n", (size_t) memcheck_hash_table.contents[i].key, (char *) memcheck_hash_table.contents[i].value);
 		}
 	}
 #endif

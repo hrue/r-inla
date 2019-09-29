@@ -431,7 +431,7 @@ int GMRFLib_write_graph_binary(const char *filename, GMRFLib_graph_tp * graph)
  */
 int GMRFLib_read_graph_binary(GMRFLib_graph_tp ** graph, const char *filename)
 {
-	int i, j, ii, idx, tag;
+	int i, j, ii, idx, tag = 0;
 	GMRFLib_io_tp *io = NULL;
 	GMRFLib_graph_tp *g = NULL;
 
