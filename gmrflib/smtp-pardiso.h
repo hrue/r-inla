@@ -41,6 +41,7 @@
 #include <malloc.h>
 #endif
 #include <stdlib.h>
+#include <stdio.h>
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS
@@ -58,6 +59,10 @@ __BEGIN_DECLS
    
  */
 
+#if defined(INLA_CENTOS_FIX)
+#include <stdio.h>
+int fileno(FILE *stream);
+#endif
 
 #define GMRFLib_PARDISO_PLEN (64)
     typedef struct {
