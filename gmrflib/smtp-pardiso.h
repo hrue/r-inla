@@ -59,11 +59,6 @@ __BEGIN_DECLS
    
  */
 
-#if defined(INLA_CENTOS_FIX)
-#include <stdio.h>
-int fileno(FILE *stream);
-#endif
-
 #define GMRFLib_PARDISO_PLEN (64)
     typedef struct {
 	int n;
