@@ -17,8 +17,6 @@
  \alias{hpdmarginal}
  \alias{inla.emarginal}
  \alias{emarginal}
- \alias{inla.marginal.expectation}
- \alias{marginal.expectation}
  \alias{inla.smarginal}
  \alias{smarginal}
  \alias{inla.tmarginal}
