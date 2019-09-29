@@ -654,7 +654,7 @@ int GMRFLib_doit_hidden(GMRFLib_hidden_problem_tp * hidden_problem, int sample_f
 		h->sub_sample[i] = h->sample[h->map[i]] - h->sub_mean[i];
 
 	for (i = sub_n - 1, h->sub_logdens = 0.0; i >= h->hidden_par->stop_idx; i--) {
-		double ldens;
+		double ldens = 0.0;
 
 		GMRFLib_EWRAP0(GMRFLib_doit_hidden_i(h, sample_flag, i, &ldens));
 		h->sub_logdens += ldens;

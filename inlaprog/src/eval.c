@@ -162,13 +162,13 @@ double inla_eval(char *expression, double *x, double *theta, int ntheta)
 double inla_eval_expression(char *expression, double *x, double *theta, int ntheta)
 {
 	double value;
-	int i;
 
 	/*
 	 * I need this until the muparser-library is thread-safe....
 	 */
 #pragma omp critical
 	{
+		int i;
 		muParserHandle_t hParser;
 
 		if (debug) {
@@ -211,7 +211,6 @@ double inla_eval_expression(char *expression, double *x, double *theta, int nthe
 
 		mupRelease(hParser);
 
-		int i;
 		for (i = 0; i < keep_vars->n; i++) {
 			if (debug) {
 				printf("Free %s = %g\n", keep_vars->name[i], (double) keep_vars->value[i][0]);
