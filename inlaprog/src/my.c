@@ -45,6 +45,7 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 #include "inla.h"
 #include "my.h"
+#include "my-fix.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/GMRFLib.h"
 
