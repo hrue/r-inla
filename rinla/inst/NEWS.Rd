@@ -29,6 +29,16 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.10.01}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed a bug in the \code{nmixnb} likelihood. 
+      \item Preserve names in \code{inla.posterior.sample.eval}
+      if present.
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.09.18}{
   \subsection{BUG FIXES}{
     \itemize{
