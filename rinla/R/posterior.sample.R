@@ -369,9 +369,10 @@
     ret = inla.mclapply(samples, my.fun, .fun=fun, .contents = contents, ...)
     if (return.matrix) {
         ns = length(ret)
+        nm = names(ret[[1]])
         ret = matrix(unlist(ret), ncol = ns)
         colnames(ret) = paste0("sample", 1:ns)
-        rownames(ret) = paste0("fun", 1:nrow(ret))
+        rownames(ret) = if (!is.null(nm)) nm else paste0("fun", 1:nrow(ret))
     }
 
     return (ret)
