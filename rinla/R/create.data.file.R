@@ -263,7 +263,14 @@
 
     } else if (inla.one.of(family, c("nmix", "nmixnb"))) {
 
-        mmax = length(inla.model.properties(model=family, section="likelihood")$hyper)
+        if (inla.one.of(family,  "nmix")) {
+            mmax = length(inla.model.properties(model=family, section="likelihood")$hyper)
+        } else if (inla.one.of(family, "nmixnb")) {
+            ## remove the overdispersion parameter
+            mmax = length(inla.model.properties(model=family, section="likelihood")$hyper) -1
+        } else {
+            stop("This should not happen.")
+        }
 
         response = cbind(IDX=ind, y.orig)
         col.idx = grep("^IDX$", names(response))
