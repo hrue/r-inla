@@ -29,6 +29,14 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.10.02}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Disable some debug output
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.10.01}{
   \subsection{BUG FIXES}{
     \itemize{

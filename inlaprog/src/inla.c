@@ -28366,7 +28366,7 @@ double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, d
 	double precs[] = { 1.0, 1.0E-1, 1.0E-2, 1.0E-4, 1.0E-8 },
 	    epss[] = { 1.0E-3, 1.0E-4, 1.0E-5, 1.0E-6, 1.0E-7 },
 	    isafefactors[] = { 4.0, 3.0, 2.0, 1.0, 1.0 }, prec, eps, safefac, x, xnew, xinit, f, deriv, dderiv, arr[3], xarr[3], steplen = 1.0e-4;
-	int niter, compute_deriv, retval, niter_max = 1000, debug = 1, stencil = 5, k, nk;
+	int niter, compute_deriv, retval, niter_max = 1000, debug = 0, stencil = 5, k, nk;
 
 	x = xnew = xinit = (x_vec ? x_vec[idx] : 0.0);
 	retval = loglfunc(NULL, NULL, 0, 0, NULL, NULL, NULL);
