@@ -1,4 +1,3 @@
-
 /* inla.c
  * 
  * Copyright (C) 2007-2019 Havard Rue
@@ -200,6 +199,13 @@ char *keywords[] = {
 		exit(1);						\
 		assert(0==1);						\
 	}
+
+
+// these versions (in my.c) cache the result when the argument is integer
+#define gsl_sf_lngamma(_x) my_gsl_sf_lngamma(_x)
+#define gsl_sf_lnfact(_x) my_gsl_sf_lnfact(_x)
+#define gsl_sf_lnchoose_e(_a, _b, _c) my_gsl_sf_lnchoose_e(_a, _b, _c)
+
 
 int inla_ncpu(void)
 {
@@ -431,6 +437,8 @@ int inla_print_sha1(FILE * fp, unsigned char *md)
 	}
 #endif
 }
+
+
 double map_identity(double arg, map_arg_tp typ, void *param)
 {
 	/*
