@@ -48,6 +48,7 @@
   \subsection{BUG FIXES}{
     \itemize{
       \item Code-improvement for the \code{loggamma}-function
+      \item \code{barrier.R} updated (minor fix and code edits)
     }
   }
 }
