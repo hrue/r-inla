@@ -6481,7 +6481,7 @@ inla.models()
 							 \describe{
 							\item{hyperid = }{`57202'}
 							\item{name = }{`tail'}
-							\item{short.name = }{`tail'}
+							\item{short.name = }{`xi'}
 							\item{initial = }{`-4'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.gevtail'}
@@ -9092,14 +9092,14 @@ inla.models()
 						\item{Hyperparameter `theta'}{
 							 \describe{
 							\item{hyperid = }{`101201'}
-							\item{name = }{`shape'}
+							\item{name = }{`tail'}
 							\item{short.name = }{`xi'}
-							\item{initial = }{`-2.30258509299405'}
+							\item{initial = }{`-4'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`1 15'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							\item{prior = }{`pc.gevtail'}
+							\item{param = }{`7 0 0.5'}
+							\item{to.theta = }{`\code{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x)/(interval[2] - x))}'}
+							\item{from.theta = }{`\code{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2]-interval[1]) * exp(x)/(1.0 + exp(x))}'}
 							}
 						}
 					 }

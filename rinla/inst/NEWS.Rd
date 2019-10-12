@@ -29,6 +29,35 @@
   }
 }
 
+
+\section{CHANGES IN VERSION 19.10.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Default prior for the tail parameter in likelihood model
+      \code{gp}, have changed to \code{pc.gevtail}, and the name change
+      from \code{shape} to \code{tail}. It is now required to define a
+      interval for the tail parameter, similar to \code{pc.gevtail}.
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item
+    }
+  }
+}
+
+
+
 \section{CHANGES IN VERSION 19.10.06}{
   \subsection{BUG FIXES}{
     \itemize{
