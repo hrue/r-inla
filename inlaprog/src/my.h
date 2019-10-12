@@ -48,6 +48,10 @@ __BEGIN_DECLS
 int my_file_exists(const char *filename);
 int my_dir_exists(const char *dirname);
 int my_setenv(char *str, int prefix);
+double my_gsl_sf_lngamma(double x);
+double my_gsl_sf_lnfact(unsigned int x);
+int my_gsl_sf_lnfact_e(const unsigned int n, gsl_sf_result * result);
+int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result * result);
 
 __END_DECLS
 #endif

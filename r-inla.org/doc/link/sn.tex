@@ -23,11 +23,15 @@ which is renormalized to have zero mean and unit variance.
 
 The  parameter $a$ represented as
 \begin{displaymath}
-    \theta = a
+    a = a_{\text{max}} \left(2\frac{\exp(\theta)}{1+ \exp(\theta)} -1\right)
 \end{displaymath}
 and the prior is defined on $\theta$. There is a PC prior available
-for $a$.
-
+for $\theta$. The (absolute) bound of
+$a_{\text{max}} = 3.2^{3} = 32.768$, is there for for stability
+reasons\footnote{This constant is defined as \texttt{LINK\_SN\_AMAX}
+    in the file \texttt{inla.h}.}. The PC-prior will be corrected for
+this bound, whereas the pc-prior in the R-functions
+\texttt{inla.pc.\{r,p,q,d\}sn} does not define a such bound.
 
 \subsection*{Specification}
 
