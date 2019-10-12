@@ -29,9 +29,9 @@
    \item{mesh}{The mesh to build the model on, from inla.mesh.2d}
    \item{barrier.triangles}{The numerical ids of the triangles that make up the barrier area}
    \item{prior.range}{2 parameters \code{(range0,Prange)} for the prior spatial range. 
-         If \code{Prange} is \code{NA}, then \code{range0} is used as a fixed range value (TODO).}
+         If \code{Prange} is \code{NA}, then \code{range0} is used as a fixed range value (not tested).}
    \item{prior.sigma}{2 parameters \code{(sig0,Psig)} for the prior marginal standard deviation sigma. 
-         If \code{Psig} is \code{NA}, then \code{sig0} is used as a fixed sigma value (TODO).}
+         If \code{Psig} is \code{NA}, then \code{sig0} is used as a fixed sigma value (not tested).}
    \item{range.fraction}{The length of the spatial range inside the barrier area,
                          as a fraction of the range parameter.}
    \item{Omega}{Advanced option for creating a set of permeable barriers (not documented)}

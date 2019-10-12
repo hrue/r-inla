@@ -29,6 +29,41 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.10.06}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Code-improvement for the \code{loggamma}-function
+      \item \code{barrier.R} updated (minor fix and code edits)
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.10.02}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Disable some debug output
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.10.01}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed a bug in the \code{nmixnb} likelihood. 
+      \item Preserve names in \code{inla.posterior.sample.eval}
+      if present.
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.09.18}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item More work on the skew-normal link model
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.09.15}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{

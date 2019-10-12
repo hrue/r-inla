@@ -1,7 +1,7 @@
 
 /* pc-priors.c
  * 
- * Copyright (C) 2014-2015 Havard Rue
+ * Copyright (C) 2014-2019 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -190,7 +190,7 @@ double inla_pcp_dof_dof(double d)
 
 double inla_pc_sn_d(double alpha, double *deriv)
 {
-	double alpha_lim = 3.2, dist;
+	double alpha_lim = gsl_pow_3(LINK_SN_AMAX), dist;
 
 	static GMRFLib_spline_tp *spline = NULL;
 #pragma omp threadprivate(spline)

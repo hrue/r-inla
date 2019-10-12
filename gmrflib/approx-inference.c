@@ -5344,7 +5344,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		for (j = 0; j < compute_n; j++) {
 			int ii = compute_idx[j];
 			// fprintf(stderr, "thead %d ii %d\n", omp_get_thread_num(), ii);
-			GMRFLib_density_tp *dens_combine, *gdens_combine;
+			GMRFLib_density_tp *dens_combine = NULL, *gdens_combine = NULL;
 			GMRFLib_density_combine((density ? &dens_combine : NULL), (gdensity ? &gdens_combine : NULL), dens_count,
 						dens[ii], adj_weights);
 			if (density) {
@@ -5357,7 +5357,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 
 			if (tfunc && tfunc[ii]) {
-				GMRFLib_density_tp *dens_c;
+				GMRFLib_density_tp *dens_c = NULL;
 				GMRFLib_density_combine((density_transform ? &dens_c : NULL), NULL, dens_count, dens_transform[ii], adj_weights);
 				(*density_transform)[ii] = dens_c;
 			}
