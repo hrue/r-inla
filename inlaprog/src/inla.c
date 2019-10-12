@@ -8204,7 +8204,8 @@ int loglikelihood_gp(double *logll, double *x, int m, int idx, double *x_vec, do
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
-	double xi = map_exp(ds->data_observations.gp_log_shape[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double xi = map_interval(ds->data_observations.gp_intern_tail[GMRFLib_thread_id][0], MAP_FORWARD,
+				 (void *) (ds->data_observations.gp_tail_interval));				 
 	double alpha = ds->data_observations.quantile;
 	double q, sigma, fac;
 
@@ -12452,12 +12453,31 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (!ds->data_fixed && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->data_observations.gp_log_shape, tmp);
+		HYPER_NEW(ds->data_observations.gp_intern_tail, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise log_shape parameter[%g]\n", ds->data_observations.gp_log_shape[0][0]);
+			printf("\t\tinitialise internal_tail[%g]\n", ds->data_observations.gp_intern_tail[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
 		}
-		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "PCGEVTAIL", NULL);
+		ds->data_observations.gp_tail_interval = Calloc(2, double);
+		if (ds->data_prior.id == P_PC_GEVTAIL) {
+			ds->data_observations.gp_tail_interval[0] = ds->data_prior.parameters[1];
+			ds->data_observations.gp_tail_interval[1] = ds->data_prior.parameters[2];
+		} else {
+			// used a fixed interval then
+			ds->data_observations.gp_tail_interval[0] = 0.0;
+			ds->data_observations.gp_tail_interval[1] = 0.5;
+		}
+
+		if (DMIN(ds->data_observations.gp_tail_interval[0], ds->data_observations.gp_tail_interval[1]) < 0.0 ||
+		    DMAX(ds->data_observations.gp_tail_interval[0], ds->data_observations.gp_tail_interval[1]) >= 1.0 ||
+		    ds->data_observations.gp_tail_interval[0] >= ds->data_observations.gp_tail_interval[1]) {
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "GP.TAIL.INTERVAL", ctmp);
+		}
+		if (mb->verbose) {
+			printf("\t\tgp.tail.interval [%g %g]\n", ds->data_observations.gp_tail_interval[0],
+			       ds->data_observations.gp_tail_interval[1]);
+		}
 
 		/*
 		 * add theta 
@@ -12469,8 +12489,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Log shape parameter for the genPareto observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Shape parameter for the genPareto observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern tail parameter for the genPareto observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Tail parameter for the genPareto observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -12479,11 +12499,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
 
-			mb->theta[mb->ntheta] = ds->data_observations.gp_log_shape;
+			mb->theta[mb->ntheta] = ds->data_observations.gp_intern_tail;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_exp;
+			mb->theta_map[mb->ntheta] = map_interval;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->theta_map_arg[mb->ntheta] = (void *) (ds->data_observations.gp_tail_interval);
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -25143,8 +25163,8 @@ double extra(double *theta, int ntheta, void *argument)
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
 					 * function.
 					 */
-					log_shape = theta[count];
-					val += PRIOR_EVAL(ds->data_prior, &log_shape);
+					double log_tail = theta[count];
+					val += PRIOR_EVAL(ds->data_prior, &log_tail);
 					count++;
 				}
 				break;
