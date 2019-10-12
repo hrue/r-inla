@@ -1,3 +1,4 @@
+
 /* inla.c
  * 
  * Copyright (C) 2007-2019 Havard Rue
@@ -722,7 +723,7 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 	double a, alpha, dx = 0.02, p, pp, omega, delta, xi, amax = LINK_SN_AMAX, range = 12.0;
 	double amax3 = gsl_pow_3(amax);
 	void *amax3_ptr = (void *) &amax3;
-	
+
 	if (first) {
 #pragma omp critical
 		if (first) {
@@ -814,7 +815,7 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 		len = j;
 		// Remove values in 'y' that are to close (difference is to small)
 		GMRFLib_unique_additive2(&len, y, x, GMRFLib_eps(0.75));
-		
+
 		table[id]->alpha = alpha;
 		table[id]->xmin = x[0];
 		table[id]->xmax = x[len - 1];
@@ -1215,7 +1216,7 @@ double map_phi(double arg, map_arg_tp typ, void *param)
 		/*
 		 * local = func(extern) 
 		 */
-		return log((1.0 + arg/range) / (1.0 - arg/range));
+		return log((1.0 + arg / range) / (1.0 - arg / range));
 	case MAP_DFORWARD:
 		/*
 		 * d_extern / d_local 
@@ -7559,9 +7560,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -8205,7 +8206,7 @@ int loglikelihood_gp(double *logll, double *x, int m, int idx, double *x_vec, do
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
 	double xi = map_interval(ds->data_observations.gp_intern_tail[GMRFLib_thread_id][0], MAP_FORWARD,
-				 (void *) (ds->data_observations.gp_tail_interval));				 
+				 (void *) (ds->data_observations.gp_tail_interval));
 	double alpha = ds->data_observations.quantile;
 	double q, sigma, fac;
 
@@ -15825,7 +15826,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 			double *amax3 = Calloc(1, double);
 			*amax3 = gsl_pow_3(LINK_SN_AMAX);
-			
+
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_phi;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
@@ -33688,35 +33689,33 @@ int testit(int argc, char **argv)
 
 	case 33:
 	{
-		double xx, yy, h=1.0e-4, range = 1.123;
+		double xx, yy, h = 1.0e-4, range = 1.123;
 
-		for(xx=1.2; xx < 3.0; xx += 0.35) {
+		for (xx = 1.2; xx < 3.0; xx += 0.35) {
 			yy = map_phi(xx, MAP_FORWARD, NULL);
 			printf("xx %g yy %g  xx.inv %g deriv %g dderiv %g\n",
 			       xx, yy,
 			       map_phi(yy, MAP_BACKWARD, NULL),
 			       map_phi(xx, MAP_DFORWARD, NULL),
-			       (map_phi(xx+h, MAP_FORWARD, NULL) - map_phi(xx-h, MAP_FORWARD, NULL))/2.0/h);
+			       (map_phi(xx + h, MAP_FORWARD, NULL) - map_phi(xx - h, MAP_FORWARD, NULL)) / 2.0 / h);
 		}
-		for(xx=1.2; xx < 3.0; xx += 0.35) {
+		for (xx = 1.2; xx < 3.0; xx += 0.35) {
 			yy = map_phi(xx, MAP_FORWARD, (void *) &range);
 			printf("xx %g yy %g  xx.inv %g deriv %g dderiv %g\n",
 			       xx, yy,
 			       map_phi(yy, MAP_BACKWARD, (void *) &range),
 			       map_phi(xx, MAP_DFORWARD, (void *) &range),
-			       (map_phi(xx+h, MAP_FORWARD, (void *) &range) - map_phi(xx-h, MAP_FORWARD, (void *)&range))/2.0/h);
+			       (map_phi(xx + h, MAP_FORWARD, (void *) &range) - map_phi(xx - h, MAP_FORWARD, (void *) &range)) / 2.0 / h);
 		}
 		break;
 	}
 
-	case 34: 
+	case 34:
 	{
 		double theta, lambda = 40;
 
-		for(theta= -5; theta <= 5;  theta += 0.01) {
-			printf("theta %g logprior %g\n",
-			       theta,
-			       priorfunc_pc_sn(&theta, &lambda));
+		for (theta = -5; theta <= 5; theta += 0.01) {
+			printf("theta %g logprior %g\n", theta, priorfunc_pc_sn(&theta, &lambda));
 		}
 
 		break;
