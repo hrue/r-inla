@@ -939,16 +939,27 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
     my.pc.alphaw = function(theta, param, log=FALSE) 
     {
         fun = inla.models()$likelihood$weibull$hyper$theta$from.theta
+        fun.deriv = args(to.theta)
+        body(fun.deriv) = D(body(to.theta), "x")
         alpha = fun(theta)
-        h = .Machine$double.eps^0.25
-        ld = inla.pc.dalphaw(alpha, lambda = param[1], log=TRUE) + log(abs((fun(theta + h) - fun(theta-h))/(2.0*h)))
+        ld = inla.pc.dalphaw(alpha, lambda = param[1], log=TRUE) + log(abs(fun.deriv(theta)))
         return (if (log) ld else exp(ld))
     }        
 
     my.pc.sn = function(theta, param, log=FALSE) 
     {
-        x = theta
-        ld = inla.pc.dsn(x, lambda = param[1], log=TRUE)
+        fun = inla.models()$link$sn$hyper$theta$from.theta
+        fun.deriv = args(fun)
+        body(fun.deriv) = D(body(fun), "x")
+
+        ## make a function that extracts 'amax3'
+        fun.amax3 = args(fun)
+        body(fun.amax3) = expression(amax3)
+
+        alpha = fun(theta)
+        alpha.max = fun.amax3()
+        integral = inla.pc.psn(alpha.max, lambda = param[1]) - inla.pc.psn(-alpha.max, lambda = param[1]) 
+        ld = inla.pc.dsn(alpha, lambda = param[1], log=TRUE) -log(integral) + log(abs(fun.deriv(theta)))
         return (if (log) ld else exp(ld))
     }
 
