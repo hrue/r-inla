@@ -427,7 +427,8 @@ typedef struct {
 	/*
 	 * generalized Pareto
 	 */
-	double **gp_log_shape;				       /* log(shape) [or log(xi)] parameter */
+	double **gp_intern_tail;			       /* log(xi) parameter */
+	double *gp_tail_interval;
 
 } Data_tp;
 
