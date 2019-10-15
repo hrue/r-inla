@@ -30,7 +30,7 @@
 }
 
 
-\section{CHANGES IN VERSION 19.10.xx}{
+\section{CHANGES IN VERSION 19.10.15}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
       \item Default prior for the tail parameter in likelihood model
