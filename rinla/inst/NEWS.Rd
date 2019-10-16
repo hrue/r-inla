@@ -29,6 +29,14 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.10.16}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Likelihoodmodel \code{betabinomialna}
+    }
+  }
+}
+
 
 \section{CHANGES IN VERSION 19.10.15}{
   \subsection{USER-VISIBLE CHANGES}{
@@ -39,24 +47,7 @@
       interval for the tail parameter, similar to \code{pc.gevtail}.
     }
   }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
-    }
-  }
-  \subsection{NEW EXPERIMENTAL FEATURES}{
-    \itemize{
-      \item
-    }
-  }
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item
-    }
-  }
 }
-
-
 
 \section{CHANGES IN VERSION 19.10.06}{
   \subsection{BUG FIXES}{
