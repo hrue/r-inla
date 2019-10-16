@@ -286,9 +286,10 @@ typedef struct {
 	double **zero_n_inflated_alphaN_intern;
 
 	/*
-	 * the overdispersion parameter for the betabinomial, \rho = 1/(a+b+1).
+	 * the overdispersion parameter for the betabinomial and betabinomialna, \rho = 1/(a+b+1).
 	 */
 	double **betabinomial_overdispersion_intern;
+	double *betabinomialnb_scale;
 
 	/*
 	 * the precision parameter for the beta, \phi = exp(theta)
@@ -521,6 +522,7 @@ typedef enum {
 	L_GEV2,
 	L_NBINOMIAL2,
 	L_GAMMASURV,
+	L_BETABINOMIALNA,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1755,6 +1757,7 @@ int inla_wishart3d_adjust(double *rho);
 int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc);
 int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_betabinomialna(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
