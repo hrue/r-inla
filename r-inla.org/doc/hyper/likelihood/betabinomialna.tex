@@ -1,0 +1,24 @@
+%% DO NOT EDIT!
+%% This file is generated automatically from models.R
+\begin{description}
+	\item[doc] The Beta-Binomial Normal approximation likelihood
+	\item[hyper]\ 
+	 \begin{description}
+	 	\item[theta]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 62101
+	 	 	\item[name] overdispersion
+	 	 	\item[short.name] rho
+	 	 	\item[initial] 0
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] gaussian
+	 	 	\item[param] 0 0.4
+	 	 	\item[to.theta] \verb!function(x) log(x/(1-x))!
+	 	 	\item[from.theta] \verb!function(x) exp(x)/(1+exp(x))!
+	 	 \end{description}
+	 \end{description}
+	\item[survival] FALSE
+	\item[discrete] TRUE
+	\item[link] default logit cauchit probit cloglog loglog robit sn
+	\item[pdf] betabinomialna
+\end{description}
