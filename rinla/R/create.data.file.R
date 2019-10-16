@@ -16,8 +16,9 @@
         debug = FALSE)
 {
     y.attr = attr(y.orig, "inla.ncols", exact=TRUE)
-    if (is.null(y.attr))
+    if (is.null(y.attr)) {
         y.attr = 0
+    }
 
     if (is.null(y.orig)) {
         y.orig = c(mf[, 1L])
@@ -101,7 +102,8 @@
         if (length(scale) != n.data || length(strata) != n.data) {
             file.remove(file)
             file.remove(data.dir)
-            stop(paste("Length of scale and strata has to be the same as the length of the response:", length(scale), length(strata), n.data))
+            stop(paste("Length of scale and strata has to be the same as the length of the response:",
+                       length(scale), length(strata), n.data))
         }
 
         ## strata goes from 0L to nstrata-1L,  therefore subtract 1L.
@@ -147,6 +149,7 @@
         response = response[!null.dat,]
 
     } else if (inla.one.of(family, c("zeroinflatednbinomial1strata2", "zeroinflatednbinomial1strata3"))) {
+
         if (is.null(E)) {
             E = rep(1.0, n.data)
         }
@@ -169,13 +172,15 @@
         if (length(E) != n.data) {
             file.remove(file)
             file.remove(data.dir)
-            stop(paste("Length of E has to be the same as the length of the response:", length(E), n.data))
+            stop(paste("Length of E has to be the same as the length of the response:",
+                       length(E), n.data))
         }
 
         if (length(strata) != n.data) {
             file.remove(file)
             file.remove(data.dir)
-            stop(paste("Length of strata has to be the same as the length of the response:", length(strata), n.data))
+            stop(paste("Length of strata has to be the same as the length of the response:",
+                       length(strata), n.data))
         }
 
         null.dat = is.na(response[, 4L])
@@ -194,6 +199,7 @@
                              "zeroinflatedbetabinomial0",
                              "zeroinflatedbetabinomial1",
                              "zeroinflatedbetabinomial2"))) {
+
         if (is.null(Ntrials)) {
             Ntrials = rep(1L, n.data)
         }
@@ -205,9 +211,37 @@
         null.dat = is.na(response[, 3L])
         response = response[!null.dat,]
 
+    } else if (inla.one.of(family, c("betabinomialna"))) {
+
+        if (is.null(Ntrials)) {
+            Ntrials = rep(1L, n.data)
+        }
+        if (length(Ntrials) == 1L) {
+            Ntrials = rep(Ntrials, n.data)
+        }
+
+        if (is.null(scale)) {
+            scale = rep(1.0, n.data)
+        }
+        if (length(scale) == 1L) {
+            scale = rep(scale, n.data)
+        }
+
+        if (length(scale) != n.data) {
+            file.remove(file)
+            file.remove(data.dir)
+            stop(paste("Length of scale has to be the same as the length of the response:", length(scale), n.data))
+        }
+
+        response = cbind(ind, Ntrials, scale, y.orig)
+        null.dat = is.na(response[, 4L])
+        response = response[!null.dat,]
+
     } else if (inla.one.of(family, c("cbinomial"))) {
+
         if (!(is.matrix(Ntrials) && all(dim(Ntrials) == c(n.data, 2)))) {
-            stop(paste("Argument 'Ntrials' for family='cbinomial' must be a", n.data, "x", 2, "-matrix; see the documentation."))
+            stop(paste("Argument 'Ntrials' for family='cbinomial' must be a", n.data,
+                       "x", 2, "-matrix; see the documentation."))
         }
         response = cbind(ind, Ntrials, y.orig)
         null.dat = is.na(response[, 4L])
@@ -257,6 +291,7 @@
 
     } else if (inla.one.of(family, c("stochvol", "stochvolt", "stochvolnig", "loggammafrailty",
                                      "iidlogitbeta", "qkumar", "qloglogistic", "gp", "pom"))) {
+
         response = cbind(ind, y.orig)
         null.dat = is.na(response[, 2L])
         response = response[!null.dat,]
