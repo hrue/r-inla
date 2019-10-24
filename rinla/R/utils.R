@@ -963,14 +963,22 @@
 `inla.mclapply` = function(..., mc.cores = NULL, parallel = TRUE)
 {
     if (parallel && !inla.os("windows")) {
+        ## slightly different default 'mc.cores'
         if (is.null(mc.cores)) {
-            mc.cores = inla.getOption("num.threads")
+            mc.cores = getOption("mc.cores", NULL)
+            if (is.null(mc.cores)) {
+                mc.cores = inla.getOption("num.threads")
+                if (is.null(mc.cores)) {
+                    mc.cores = 2L
+                }
+            }
         }
         return (parallel::mclapply(..., mc.cores = mc.cores))
     } else {
         return (lapply(...))
     }
 }
+
 `inla.cmpfun` = function(fun, options = list(optimize = 3L))
 {
     if (inla.require("compiler")) {
