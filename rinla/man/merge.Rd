@@ -8,7 +8,8 @@
  \title{Merge a mixture of \code{inla}-objects}
  \description{Merge a mixture of \code{inla}-objects}
  \usage{
-     \method{merge}{inla}(x, y, ..., prob = rep(1,  length(loo)), verbose = FALSE)
+     \method{merge}{inla}(x, y, ..., prob = rep(1,  length(loo)),
+                          mc.cores = NULL, verbose = FALSE)
      inla.merge(loo, prob = rep(1,  length(loo)), verbose = FALSE)
  }
  \arguments{
@@ -17,6 +18,9 @@
    \item{...}{Additional \code{inla}-objects to be merged}
    \item{loo}{List of \code{inla}-objects to be merged}
    \item{prob}{The mixture of (possibly unnormalized) probabilities}
+   \item{mc.cores}{The number of cores to use in \code{parallel::mclapply}. If
+                   \code{is.null(mc.cores)}, then check \code{getOption("mc.cores")}
+                   and \code{inla.getOption("num.threads")} in that order.}
    \item{verbose}{Turn on verbose-output or not}
   }
  \value{

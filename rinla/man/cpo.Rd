@@ -14,6 +14,7 @@
 \usage{
 inla.cpo(result,
          force = FALSE,
+         mc.cores = NULL, 
          verbose = TRUE,
          recompute.mode = TRUE)
 }
@@ -23,6 +24,9 @@ inla.cpo(result,
 of a call to \code{inla()}}
 \item{force}{If TRUE,  then recompute all CPO/PIT values and not just 
 those with \code{result$cpo$failure > 0}.}
+\item{mc.cores}{The number of cores to use in \code{parallel::mclapply}. If
+                \code{is.null(mc.cores)}, then check \code{getOption("mc.cores")}
+                and \code{inla.getOption("num.threads")} in that order.}
 \item{verbose}{Run in verbose mode?}
 \item{recompute.mode}{Should be mode (and the integration points) be recomputed when a data-point is removed or not?}
 }

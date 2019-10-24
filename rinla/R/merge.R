@@ -7,7 +7,8 @@
 ##! \title{Merge a mixture of \code{inla}-objects}
 ##! \description{Merge a mixture of \code{inla}-objects}
 ##! \usage{
-##!     \method{merge}{inla}(x, y, ..., prob = rep(1,  length(loo)), verbose = FALSE)
+##!     \method{merge}{inla}(x, y, ..., prob = rep(1,  length(loo)),
+##!                          mc.cores = NULL, verbose = FALSE)
 ##!     inla.merge(loo, prob = rep(1,  length(loo)), verbose = FALSE)
 ##! }
 ##! \arguments{
@@ -16,6 +17,9 @@
 ##!   \item{...}{Additional \code{inla}-objects to be merged}
 ##!   \item{loo}{List of \code{inla}-objects to be merged}
 ##!   \item{prob}{The mixture of (possibly unnormalized) probabilities}
+##!   \item{mc.cores}{The number of cores to use in \code{parallel::mclapply}. If
+##!                   \code{is.null(mc.cores)}, then check \code{getOption("mc.cores")}
+##!                   and \code{inla.getOption("num.threads")} in that order.}
 ##!   \item{verbose}{Turn on verbose-output or not}
 ##!  }
 ##! \value{
@@ -80,7 +84,7 @@
     return (inla.merge(loo = list(x, y, ...), prob = prob, verbose = verbose))
 }
 
-`inla.merge` = function(loo, prob = rep(1,  length(loo)), verbose = FALSE)
+`inla.merge` = function(loo, prob = rep(1,  length(loo)), mc.cores = NULL, verbose = FALSE)
 {
     nm = "disable.inla.merge.warning"
     if (!exists(nm, envir = inla.get.inlaEnv())) {
@@ -220,12 +224,14 @@
         if (length(idx) > 0) {
             verboze("Merge '$", nm, "'")
             nm = names(res[[idx]])
-            res[[idx]] = inla.mclapply(
-                seq_along(res[[idx]]),
-                function(k) {
-                margs = lapply(loo, function(x, kk) x[[idx]][[kk]], kk = k)
-                return (merge.marginals(margs, prob))
-            })
+            res[[idx]] = (inla.mclapply(
+                   seq_along(res[[idx]]),
+                   function(k)
+                   {
+                       margs = lapply(loo, function(x, kk) x[[idx]][[kk]], kk = k)
+                       return (merge.marginals(margs, prob))
+                   },
+                   mc.cores = mc.cores))
             names(res[[idx]]) = nm
         }
     }
@@ -237,11 +243,14 @@
             for(k in seq_along(res[[idx]])) {
                 verboze("      '$", nm, "$", names(res[[idx]])[k], "'")
                 nm = names(res[[idx]][[k]])
-                res[[idx]][[k]] = inla.mclapply(seq_along(res[[idx]][[k]]),
-                                                function(kk) {
-                    margs = lapply(loo, function(x, k, kkk) x[[idx]][[k]][[kkk]], k = k, kkk = kk)
-                    return (merge.marginals(margs, prob))
-                })
+                res[[idx]][[k]] = (inla.mclapply(
+                              seq_along(res[[idx]][[k]]),
+                              function(kk) 
+                              {
+                                  margs = lapply(loo, function(x, k, kkk) x[[idx]][[k]][[kkk]], k = k, kkk = kk)
+                                  return (merge.marginals(margs, prob))
+                              },
+                              mc.cores = mc.cores))
                 names(res[[idx]][[k]]) = nm
             }
         }
