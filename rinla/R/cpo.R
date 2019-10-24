@@ -12,6 +12,7 @@
 ##!\usage{
 ##!inla.cpo(result,
 ##!         force = FALSE,
+##!         mc.cores = NULL, 
 ##!         verbose = TRUE,
 ##!         recompute.mode = TRUE)
 ##!}
@@ -26,6 +27,11 @@
         ##!those with \code{result$cpo$failure > 0}.}
         force = FALSE,
 
+        ##!\item{mc.cores}{The number of cores to use in \code{parallel::mclapply}. If
+        ##!                \code{is.null(mc.cores)}, then check \code{getOption("mc.cores")}
+        ##!                and \code{inla.getOption("num.threads")} in that order.}
+        mc.cores = NULL,
+        
         ##!\item{verbose}{Run in verbose mode?}
         verbose = TRUE,
 
@@ -87,7 +93,7 @@
                             result$.args$control.compute$dic = result$.args$control.compute$waic = FALSE
                             rr = inla.rerun(result, plain = TRUE)$cpo
                             return (list(cpo = rr$cpo[idx], pit = rr$pit[idx], failure = rr$failure[idx]))
-                        },  result = result, mc.cores = result$.args$num.threads)
+                        },  result = result, mc.cores = mc.cores)
         
         result.new$cpo$cpo[idx.fail] = unlist(lapply(res, function(xx) return (xx$cpo)))
         result.new$cpo$pit[idx.fail] = unlist(lapply(res, function(xx) return (xx$pit)))
