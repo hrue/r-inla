@@ -21,13 +21,16 @@
 ##! }
 ##! 
 ##! \usage{
-##!     inla.cut(result, split.by, debug=FALSE)
+##!     inla.cut(result, split.by, mc.cores = NULL, debug=FALSE)
 ##! } 
 ##!
 ##! \arguments{
 ##!   \item{result}{An object of class \code{inla}, i.e. a result of a call to \code{inla()}}
 ##!   \item{split.by}{The name of the variable to group by. Data points that have
 ##!                   the same value of \code{split.by} are in the same group.}
+##!   \item{mc.cores}{The number of cores to use in \code{parallel::mclapply}. If
+##!                   \code{is.null(mc.cores)}, then check \code{getOption("mc.cores")}
+##!                   and \code{inla.getOption("num.threads")} in that order.}
 ##!   \item{debug}{Print debugging information if \code{TRUE}, default is \code{FALSE}}
 ##!  }
 ##!
@@ -62,7 +65,7 @@
 ##! Statistical Science, 28(3):376-397.
 ##! }
 
-inla.cut = function(result, split.by, debug=FALSE)
+inla.cut = function(result, split.by, mc.cores = NULL, debug=FALSE)
 {
     my.debug = function(...) if (debug) cat("*** inla.cut: ", ... , "\n")
 
@@ -185,7 +188,7 @@ inla.cut = function(result, split.by, debug=FALSE)
                 pval = 1 - pchisq(as.numeric(lin.pred.Delta), df=lin.pred.df) 
                 my.debug(split.idx, "of", split.len,": p-value:", round(pval,4), "df:", lin.pred.df)
                 return (pval)
-            }))))
+            }), mc.cores = mc.cores)))
 
     return(p.linpred)
 }
