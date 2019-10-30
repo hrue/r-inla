@@ -29,6 +29,32 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.10.30}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Added a scaling constant for the precision parameter in the
+      \code{qkumar} likelihood (to avoid instabilities). See updated
+      documentation for details.
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item
+    }
+  }
+}
+
+
 \section{CHANGES IN VERSION 19.10.16}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
