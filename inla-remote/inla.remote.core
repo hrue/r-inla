@@ -109,11 +109,11 @@ else
    PardisoLoad="true"
 fi	
 
-tar cfm$compress_put - . | ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
+tar cfm$compress_put - . 2>/dev/null | ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
     mkdir -p $rdir; \
     cd $rdir; \
     eval $PardisoLoad; \
-    tar xfm$compress_put - ; \
+    tar xfm$compress_put - 2>/dev/null ; \
     $RemoteINLA $args Model.ini < /dev/null"
 
 if [ $verbose == 1 ]; then
@@ -131,13 +131,13 @@ fi
 if [ $CYGWIN == 0 -a $Port == $SSHDefaultPort ]; then
     ## Linux and Mac
     ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
-    cd $rdir; tar cf$compress_get - results.files; cd; rm -rf $rdir" | tar xfm$compress_get -
+    cd $rdir; tar cf$compress_get - results.files 2>/dev/null ; cd; rm -rf $rdir" | tar xfm$compress_get - 2>/dev/null 
 else
     ## Cygwin/Windows or Port != $SSHDefaultPort
     tarfile=results$RANDOM$RANDOM.tar
-    ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "cd $rdir; tar cf $tarfile results.files"
+    ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "cd $rdir; tar cf $tarfile results.files 2>/dev/null "
     tarfile_to=$(maketemp).tar
     scp -P$Port -B -C -p -q $RemoteUser@$RemoteHost:$rdir/$tarfile "$tarfile_to"
-    tar xfm "$tarfile_to"
+    tar xfm "$tarfile_to" 2>/dev/null 
     rm -f "$tarfile_to"
 fi

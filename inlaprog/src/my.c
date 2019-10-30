@@ -45,6 +45,7 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
 
 #include "inla.h"
 #include "my.h"
+#include "my-fix.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/GMRFLib.h"
 
@@ -96,4 +97,79 @@ int my_setenv(char *str, int prefix)
 #endif
 	Free(var);
 	return INLA_OK;
+}
+
+double my_gsl_sf_lngamma(double x) 
+{
+	if (round(x) != x) {
+		return gsl_sf_lngamma(x);
+	} else {
+		// x is an int, then use the cached values
+
+		static int first = 1;
+		static int nmax = 1048576;
+		static double *lng = NULL;
+
+		if (first) {
+#pragma omp critical
+			if (first) {
+				lng = Calloc(nmax, double);
+				lng[0] = NAN;
+				lng[1] = 0.0;
+				for(int i = 2; i < nmax; i++) {
+					lng[i] = lng[i-1] + log((double)(i-1));
+				}
+				first = 0;
+			}
+		}
+		if (x >= nmax) {
+			return gsl_sf_lngamma(x);
+		} else {
+			return lng[(int) round(x)];
+		}
+	} 
+
+	assert(0 == 1);
+	return NAN;
+}
+
+double my_gsl_sf_lnfact(unsigned int x) 
+{
+	return my_gsl_sf_lngamma((double) x + 1.0);
+}
+
+int my_gsl_sf_lnfact_e(const unsigned int n, gsl_sf_result * result)
+{
+	// copy of gsl_sf_lnfact_e
+	
+	result->val = my_gsl_sf_lnfact(n);
+	result->err = 2.0 * GSL_DBL_EPSILON * fabs(result->val);
+	return GSL_SUCCESS;
+}
+
+int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result * result)
+{
+	// copy of gsl_sf_lnchoose_e
+
+	if(m > n) {
+		assert(0 == 1);
+	}
+	else if(m == n || m == 0) {
+		result->val = 0.0;
+		result->err = 0.0;
+		return GSL_SUCCESS;
+	}
+	else {
+		gsl_sf_result nf;
+		gsl_sf_result mf;
+		gsl_sf_result nmmf;
+		if(m*2 > n) m = n-m;
+		my_gsl_sf_lnfact_e(n, &nf);
+		my_gsl_sf_lnfact_e(m, &mf);
+		my_gsl_sf_lnfact_e(n-m, &nmmf);
+		result->val  = nf.val - mf.val - nmmf.val;
+		result->err  = nf.err + mf.err + nmmf.err;
+		result->err += 2.0 * GSL_DBL_EPSILON * fabs(result->val);
+		return GSL_SUCCESS;
+	}
 }

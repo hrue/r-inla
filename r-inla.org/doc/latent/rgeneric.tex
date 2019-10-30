@@ -133,6 +133,9 @@ are fixed.  The skeleton-function for defining a model is
                 "log.prior", "quit"),
         theta = NULL)
 {
+    ## the environment of this function
+    envir = parent.env(environment())
+
     graph = function(){ <to be completed> }
     Q = function() { <to be completed> }
     mu = function() { <to be completed> }
@@ -146,7 +149,11 @@ are fixed.  The skeleton-function for defining a model is
 }
 \end{verbatim}
 }
-The input parameters are
+%%
+The \verb|envir| is the environment of this function, for which
+variables defined in \verb|inla.rgeneric.define| is stored. It can
+also be used to store intermediate calculations that needs to be done
+once only. The input parameters are
 \begin{description}
 \item[cmd] What to return
 \item[theta] The values of the $\theta$-parameters
@@ -382,7 +389,10 @@ predefined in the \texttt{INLA}-library.
     ## the AR-1 model as described in inla.doc("ar1"), where 'rho' is
     ## the lag-1 correlation and 'prec' is the *marginal* (not
     ## conditional) precision.
-    
+
+    ## the environment of this function
+    envir = parent.env(environment())
+
     interpret.theta = function()
     {
         ## internal helper-function to map the parameters from the internal-scale to the
@@ -513,6 +523,9 @@ run this model in \texttt{R}, you may do \texttt{demo(rgeneric)}.
 {
     ## this is an example of the 'rgeneric' model. here we implement the iid model as described
     ## in inla.doc("iid"), without the scaling-option
+
+    ## the environment of this function
+    envir = parent.env(environment())
 
     interpret.theta = function()
     {

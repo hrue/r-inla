@@ -118,7 +118,7 @@ int GMRFLib_density_prune_weights(int *n_idx, int *idx, double *weights, int n)
 		ww[i] *= w_sum;
 		idx[i] = i;
 	}
-	GMRFLib_qsorts((void *) ww, (size_t) n, sizeof(double), (void *) idx, sizeof(int), NULL, NULL, GMRFLib_dcmp_r);
+	GMRFLib_qsorts((void *) ww, (size_t) n, sizeof(double), (void *) idx, sizeof(int), NULL, 0, GMRFLib_dcmp_r);
 	for (i = 0, *n_idx = 0, w_sum = 0.0; i < n; i++) {
 		w_sum += ww[i];
 		(*n_idx)++;
@@ -142,7 +142,7 @@ int GMRFLib_sn_density(double *dens, double x, void *param)
 	/*
 	 * compute the sn-density 
 	 */
-	double ldens;
+	double ldens = 0.0;
 
 	GMRFLib_EWRAP0(GMRFLib_sn_logdensity(&ldens, x, param));
 	*dens = exp(ldens);
@@ -349,7 +349,7 @@ int GMRFLib_sn_fit__intern(void *param, double *fval, double *x, double *log_den
 
 #define MAXIT (500)					       /* maximum iterations */
 #define print_state(iter, s) if (debug) { \
-		printf ("iter: %3u x = %.16f %.16f %.16f %.16f " "|f(x)| = %g\n", \
+		printf ("iter: %3d x = %.16f %.16f %.16f %.16f " "|f(x)| = %g\n", \
 			iter, gsl_vector_get (s->x, 0), gsl_vector_get (s->x, 1), \
 			gsl_vector_get (s->x, 2), (m == 4 ? gsl_vector_get (s->x, 3) : 0.0), \
 			gsl_blas_dnrm2 (s->f));				\
@@ -525,7 +525,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	 * initialize 'density': compute the mean, stdev and the norm_const (for the log spline fit) 
 	 */
 	int i, k, np = 2 * GMRFLib_faster_integration_np, npm = 2 * np, debug = 0;
-	double result, error, eps = GMRFLib_eps(1. / 2.), tmp, low = 0.0, high = 0.0, xval, ldens_max = -FLT_MAX, *xpm =
+	double result = 0.0, error, eps = GMRFLib_eps(1. / 2.), tmp, low = 0.0, high = 0.0, xval, ldens_max = -FLT_MAX, *xpm =
 	    NULL, *ldm = NULL, *xp = NULL, integral, w[2] = {
 	4.0, 2.0}, dx = 0.0, m1, m2, m3, x0, x1, d0, d1;
 
@@ -818,10 +818,10 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 			if (ABS(zz) < 8.0) {
 				if (zz > 0.0) {
 					// val = log(0.5 + 0.5 * sqrt(1.0 - exp(- CONST_1 * SQR(zz))));
-					val = CONST_2 + log(1.0 + sqrt(1.0 - exp(-CONST_1 * SQR(zz))));
+					val = CONST_2 + log1p(0.0 + sqrt(1.0 - exp(-CONST_1 * SQR(zz))));
 				} else {
 					// val = log(0.5 - 0.5 * sqrt(1.0 - exp(- CONST_1 * SQR(zz))));
-					val = CONST_2 + log(1.0 - sqrt(1.0 - exp(-CONST_1 * SQR(zz))));
+					val = CONST_2 + log1p(0.0 - sqrt(1.0 - exp(-CONST_1 * SQR(zz))));
 				}
 			} else {
 				// use the more complitated asympt expression, which we do here (for which the code in
@@ -1065,7 +1065,7 @@ int GMRFLib_density_P(double *px, double x, GMRFLib_density_tp * density)
 	 * 
 	 * NOTE that 'x' is in standarized scale. 
 	 */
-	double result;
+	double result = 0.0;
 
 	GMRFLib_ENTER_ROUTINE;
 
@@ -1135,7 +1135,7 @@ int GMRFLib_evaluate_ndensities(double *dens, int nd, double *x_user, int nx, GM
 	d = Calloc(4 * n_alloc, double);
 	d_tmp = &d[n_alloc];
 	x_std = &d[2 * n_alloc];
-	idx = (int *) &d[3 * n_alloc];
+	idx = (int *) &d[3 * n_alloc]; // the int* from double* is ok here.
 
 	GMRFLib_density_prune_weights(&n_idx, idx, weights, nd);
 
@@ -1155,7 +1155,7 @@ int GMRFLib_evaluate_ndensities(double *dens, int nd, double *x_user, int nx, GM
 		}
 	}
 
-	w_sum /= w_sum;
+	w_sum = 1.0/w_sum;
 	for (j = 0; j < nx; j++) {
 		dens[j] = d[j] * w_sum;
 	}
@@ -1759,7 +1759,7 @@ int GMRFLib_kld(double *kld, GMRFLib_density_tp * density, GMRFLib_density_tp * 
 	/*
 	 * compute the KLD from density to ddensity, \int log(density/ddensity)*density dx 
 	 */
-	double result, error, eps = GMRFLib_eps(1. / 2.), low0, low1, high0, high1, low, high;
+	double result = 0.0, error, eps = GMRFLib_eps(1. / 2.), low0, low1, high0, high1, low, high;
 	gsl_function F;
 	GMRFLib_density_tp *d[2];
 

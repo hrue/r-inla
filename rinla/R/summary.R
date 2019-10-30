@@ -31,113 +31,129 @@
 ##!
 ##!For the random effects the function \code{summary()} prints the
 ##!posterior mean and standard deviations for the hyperparameters
+##!
+##!If the option \code{short.summary} is set to \code{TRUE} using
+##!\code{inla.setOption},  
+##!then  a less verbose summary
+##!variant will be used,  which might be
+##!more suitable for Markdown documents.
 ##!}
 ##!\value{
-##!  \code{summary.inla} returns an object of call \code{summaryinla}, a
-##!  list with components: 
-##!  \item{call}{the component from \code{object}.}
-##!  \item{fixed}{the component from \code{object}.}
-##!  \item{random}{the component from \code{object}.}
-##!  \item{neffp}{the component from \code{object}.}          
-##!  \item{linear.predictor}{the component from \code{object}.}
-##!  \item{lincomb}{the component from \code{object}.}
-##!  \item{lincomb.derived}{the component from \code{object}.}
-##!  \item{family}{the component from \code{object}.}   
+##!  \code{summary.inla} returns an object of class \code{summary.inla}, a
+##!  list of components to print.
 ##!}
 ##!\author{Sara Martino and Havard Rue}
 ##!\seealso{ \code{\link{inla}} }
 
-`summary.inla` = function(object, digits = 3L, include.lincomb = TRUE, ...)
+`summary.inla` = function(object, digits = 3L, include.lincomb = TRUE, ...) 
 {
-    inla.eval.dots(...)
-    
-    ## provides a summary for a inla object
-    ret = list()
+    `internal.summary.inla` = function(object, digits = 3L, include.lincomb = TRUE, ...)
+    {
+        inla.eval.dots(...)
+        ## provides a summary for a inla object
+        ret = list()
 
-    maxlen = 2048L
-    if (sum(nchar(object$call)) > maxlen) {
-        ret = c(ret,
-                list(call=paste(substr(inla.paste(object$call), 1L, maxlen),
-                             "<<<the rest is not shown>>>")))
-    } else {
-        ret = c(ret, list(call=object$call))
-    }
-
-    ## might not be if using collect directly
-    if (inla.is.element("cpu.used", object)) {
-        ret = c(ret, list(cpu.used =
-                              paste0(names(object$cpu.used)[1], " = ",
-                                     format(object$cpu.used[1], digits = digits), ", ", 
-                                     names(object$cpu.used)[2], " = ",
-                                     format(object$cpu.used[2], digits = digits), ", ", 
-                                     names(object$cpu.used)[3], " = ",
-                                     format(object$cpu.used[3], digits = digits), ", ",
-                                     names(object$cpu.used)[4], " = ",
-                                     format(object$cpu.used[4], digits = digits))))
-    } else {
-        ret = c(ret,  list(cpu.used = NA))
-    }
-
-    if(!is.null(object$summary.fixed) && length(object$summary.fixed) > 0) 
-        ret = c(ret, list(fixed=round(as.matrix(object$summary.fixed), digits = digits)))
-
-    if (include.lincomb) {
-        if(!is.null(object$summary.lincomb) && any(names(object) == "summary.lincomb")
-           && (length(object$summary.lincomb) > 0)) 
-            ret = c(ret, list(lincomb=round(as.matrix(object$summary.lincomb), digits = digits)))
-        if(!is.null(object$summary.lincomb.derived) && length(object$summary.lincomb.derived) > 0)
-            ret = c(ret, list(lincomb.derived=round(as.matrix(object$summary.lincomb.derived),
-                                  digits = digits)))
-    } else {
-        if(!is.null(object$summary.lincomb) && any(names(object) == "summary.lincomb")
-           && (length(object$summary.lincomb) > 0)) {
-            m = nrow(as.matrix(object$summary.lincomb))
-            ret = c(ret, list(lincomb=paste("<", m, " lincomb not included>", sep="")))
+        maxlen = 2048L
+        if (sum(nchar(object$call)) > maxlen) {
+            ret = c(ret,
+                    list(call=paste(substr(inla.paste(object$call), 1L, maxlen),
+                                    "<<<the rest is not shown>>>")))
+        } else {
+            ret = c(ret, list(call=object$call))
         }
-        if(!is.null(object$summary.lincomb.derived) && length(object$summary.lincomb.derived) > 0) {
-            m = nrow(as.matrix(object$summary.lincomb.derived))
-            ret = c(ret, list(lincomb.derived=paste("<", m, " lincomb.derived not included>", sep="")))
+
+        ## might not be if using collect directly
+        if (inla.is.element("cpu.used", object)) {
+            ret = c(ret, list(cpu.used =
+                                  paste0(names(object$cpu.used)[1], " = ",
+                                         format(object$cpu.used[1], digits = digits), ", ", 
+                                         names(object$cpu.used)[2], " = ",
+                                         format(object$cpu.used[2], digits = digits), ", ", 
+                                         names(object$cpu.used)[3], " = ",
+                                         format(object$cpu.used[3], digits = digits), ", ",
+                                         names(object$cpu.used)[4], " = ",
+                                         format(object$cpu.used[4], digits = digits))))
+        } else {
+            ret = c(ret,  list(cpu.used = NA))
         }
+
+        if(!is.null(object$summary.fixed) && length(object$summary.fixed) > 0) 
+            ret = c(ret, list(fixed=round(as.matrix(object$summary.fixed), digits = digits)))
+
+        if (include.lincomb) {
+            if(!is.null(object$summary.lincomb) && any(names(object) == "summary.lincomb")
+               && (length(object$summary.lincomb) > 0)) 
+                ret = c(ret, list(lincomb=round(as.matrix(object$summary.lincomb), digits = digits)))
+            if(!is.null(object$summary.lincomb.derived) && length(object$summary.lincomb.derived) > 0)
+                ret = c(ret, list(lincomb.derived=round(as.matrix(object$summary.lincomb.derived),
+                                                        digits = digits)))
+        } else {
+            if(!is.null(object$summary.lincomb) && any(names(object) == "summary.lincomb")
+               && (length(object$summary.lincomb) > 0)) {
+                m = nrow(as.matrix(object$summary.lincomb))
+                ret = c(ret, list(lincomb=paste("<", m, " lincomb not included>", sep="")))
+            }
+            if(!is.null(object$summary.lincomb.derived) && length(object$summary.lincomb.derived) > 0) {
+                m = nrow(as.matrix(object$summary.lincomb.derived))
+                ret = c(ret, list(lincomb.derived=paste("<", m, " lincomb.derived not included>", sep="")))
+            }
+        }
+
+        if(!is.null(object$summary.hyperpar) && length(object$summary.hyperpar) > 0)
+            ret = c(ret, list(hyperpar=round(object$summary.hyperpar, digits = digits)))
+        
+        if(!is.null(object$summary.random) && length(object$summary.random) > 0) 
+            ret = c(ret, list(random.names=names(object$summary.random), random.model=object$model.random))
+        
+        neffp = object$neffp
+        if (!is.null(neffp)) {
+            ret = c(ret, list(neffp = round(neffp, digits = digits)))
+        }
+
+        if (!is.null(object$dic)) {
+            ret = c(ret, list(dic = lapply(object$dic, round, digits = digits)))
+        }
+
+        if (!is.null(object$waic)) {
+            ret = c(ret, list(waic = lapply(object$waic, round, digits = digits)))
+        }
+
+        if(!is.null(object$mlik))
+            ret = c(ret, list(mlik = round(object$mlik, digits = digits)))
+        
+        if(!is.null(object$cpo$cpo) && length(object$cpo$cpo) > 0L)
+            ret = c(ret, list(cpo = lapply(object$cpo, round, digits = digits)))
+
+        if(!is.null(object$summary.linear.predictor))
+            ret = c(ret, list(linear.predictor= round(object$summary.linear.predictor, digits = digits)))
+        
+        ret = c(ret, list(family=object$family))
+        class(ret) = "summary.inla"
+
+        return (ret)
     }
 
-    if(!is.null(object$summary.hyperpar) && length(object$summary.hyperpar) > 0)
-        ret = c(ret, list(hyperpar=round(object$summary.hyperpar, digits = digits)))
-    
-    if(!is.null(object$summary.random) && length(object$summary.random) > 0) 
-        ret = c(ret, list(random.names=names(object$summary.random), random.model=object$model.random))
-    
-    neffp = object$neffp
-    ret = c(ret, list(neffp = round(neffp, digits = digits)))
-    
-    if (!is.null(object$dic)) {
-        ret = c(ret, list(dic = lapply(object$dic, round, digits = digits)))
+    ret = internal.summary.inla(object, digits = digits,
+                              include.lincomb = include.lincomb, ...)
+    ss = inla.getOption("short.summary") 
+    if (!is.null(ss) && ss) {
+        new.ret = list(fixed = ret$fixed, hyperpar = ret$hyperpar,
+                       dic = ret$dic, waic = ret$waic)
+        class(new.ret) = class(ret)
+        ret  = new.ret
     }
-
-    if (!is.null(object$waic)) {
-        ret = c(ret, list(waic = lapply(object$waic, round, digits = digits)))
-    }
-
-    if(!is.null(object$mlik))
-        ret = c(ret, list(mlik = round(object$mlik, digits = digits)))
-    
-    if(!is.null(object$cpo$cpo) && length(object$cpo$cpo) > 0L)
-        ret = c(ret, list(cpo = lapply(object$cpo, round, digits = digits)))
-
-    if(!is.null(object$summary.linear.predictor))
-        ret = c(ret, list(linear.predictor= round(object$summary.linear.predictor, digits = digits)))
-    
-    ret = c(ret, list(family=object$family))
-    class(ret) = "summary.inla"
-
     return (ret)
 }
+    
 
 `print.summary.inla` = function(x, digits = 3L, ...)
 {
     form = strwrap(inla.formula2character(x$call))
-    cat("\nCall:\n")
-    for (i in seq_along(form)) {
-        cat("  ", form[i], "\n")
+    if (!is.null(x$call)) {
+        cat("\nCall:\n")
+        for (i in seq_along(form)) {
+            cat("  ", form[i], "\n")
+        }
     }
 
     if (inla.is.element("cpu.used",  x)) {
@@ -148,8 +164,7 @@
         cat("Fixed effects:\n")
         print.default(x$fixed)
         cat("\n")
-    } else 
-        cat("The model has no fixed effects\n\n")
+    } 
 
     if (inla.is.element("lincomb.derived", x)) {
         cat("Linear combinations (derived):\n")
@@ -177,24 +192,19 @@
         for(i in 1:length(x$random.names))
             cat("  ", paste0(inla.nameunfix(x$random.names[i])," ", x$random.model[i], "\n"))
         cat("\n")
-    } else 
-        cat("The model has no random effects\n\n")
+    } 
 
     if (inla.is.element("hyperpar", x)) {
         cat("Model hyperparameters:\n")
         print(format(x$hyperpar, digits=digits, nsmall=2), quote=FALSE)
         cat("\n")
-    } else 
-        cat("The model has no hyperparameters\n\n")
+    } 
     
     if (inla.is.element("neffp", x)) {
         cat("Expected number of effective parameters(stdev): ", format(x$neffp[1], digits=digits, nsmall=2),"(",
             format(x$neffp[2], digits=digits, nsmall=2),")\n", sep="")
         cat("Number of equivalent replicates :", format(x$neffp[3], digits=digits, nsmall=2),"\n\n")
-    } else {
-        cat("Expected number of effective parameters and\n",
-            "number of equivalent replicates are not computed\n\n")
-    }
+    } 
 
     if (inla.is.element("dic", x)) 
         cat(paste("Deviance Information Criterion (DIC) ...............: ",

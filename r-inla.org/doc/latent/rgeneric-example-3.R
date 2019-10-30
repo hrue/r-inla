@@ -11,8 +11,10 @@ rgeneric.linear.regression =
     function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", 
                      "log.prior", "quit"),
              theta = NULL)
-{
-    
+{  
+    ## the environment of this function
+    envir = parent.env(environment())
+  
     ## artifical high precision to be added to the mean-model
     prec.high = exp(15)
     

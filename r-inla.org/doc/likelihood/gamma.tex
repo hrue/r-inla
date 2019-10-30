@@ -49,13 +49,17 @@ and the prior is defined on $\theta$.
 \subsection*{Specification}
 
 \begin{itemize}
-\item $\text{family}=\texttt{gamma}$
-\item Required arguments: $y$ and $s$ (argument \texttt{scale})
+\item $\text{family}=\texttt{gamma}$ for regression models and
+    $\text{family}=\texttt{gamma.surv}$ for survival models.
+\item Required arguments: for \texttt{gamma.surv}, $y$ (to be given in
+    a format by using $\texttt{inla.surv()}$), and for \texttt{gamma},
+    $y$ and $s$.
 \end{itemize}
 The scalings have default value 1.
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/likelihood/gamma.tex}
+\input{../hyper/likelihood/gammasurv.tex}
 
 
 \subsection*{Example}

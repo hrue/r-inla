@@ -10,12 +10,18 @@ options(width=75, prompt = " ", continue = "   ")
 library(INLA)
 source('R/spde-tutorial-functions.R')
 @
+
 \chapter{Introduction}\label{ch:intro}
+
+This content is part of the book available at 
+\url{http://www.r-inla.org/spde-book}, 
+whose Gitbook version is freely available 
+along all the code and datasets. 
 
 \section{Introduction and main results from \cite{lindgrenRL:2011}}\label{sec:intro}
 
 The R source code for this introduction is available at  
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-introduction.R}
+\url{http://inla.r-inla-download.org/r-inla.org/tutorials/spde/R/spde-tutorial-introduction.R}
 
 \subsection{Spatial variation}\label{sec:spatial}
 
@@ -261,7 +267,7 @@ rmvnorm0 <- function(n, cov, L=NULL) {
 @ 
 These steps are collected into the function 
 \texttt{rMatern} that is available at 
-\url{http://www.math.ntnu.no/inla/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}
+\url{http://inla.r-inla-download.org/r-inla.org/tutorials/spde/R/spde-tutorial-functions.R}
 
 
 In order to simplify the visualization of the 
