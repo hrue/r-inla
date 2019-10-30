@@ -166,6 +166,7 @@ library(rgeos)
 library(mvtnorm)
 library(gridExtra)
 library(mlogit)
+library(Ecdat)
 ```
 
 

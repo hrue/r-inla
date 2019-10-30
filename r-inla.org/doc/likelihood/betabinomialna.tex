@@ -1,0 +1,90 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Beta-binomial Normal-approximation}
+
+\subsection*{Parametrisation}
+
+The Beta-binomial distribution arise from a hierarchical model where
+the probability $p$ is Beta-distributed
+\begin{displaymath}
+    \pi(p) = \frac{1}{B(\alpha, \beta)}
+    p^{\alpha-1}(1-p)^{\beta-1},\quad \alpha > 0, \; \beta > 0
+\end{displaymath}
+and the response $y$ is Binomial
+\begin{displaymath}
+    \pi(y\mid p) = {n \choose y} p^y (1-p)^{(n-y)}, \quad y=0, 1,\ldots, n.
+\end{displaymath}
+The marginal distribution for $y$ is the Beta-binomial,
+\begin{displaymath}
+    \pi(y) = {n \choose y} \frac{
+        B(y+\alpha, n-y + \beta)}{B(\alpha, \beta)}.
+\end{displaymath}
+The mean and variance of $y$ are given as
+\begin{displaymath}
+    \mu = n \frac{\alpha}{\alpha+\beta} = n \mu_{p}, \quad\text{and}\quad
+    \sigma^{2} = n \mu_{p}(1-\mu_{p}) \left(1 + (n-1)\rho\right),
+\end{displaymath}
+where $\mu_{p} = \frac{\alpha}{\alpha+\beta}$ is the mean of the
+probability $p$ from the Beta-distribution, and
+$\rho = \frac{1}{\alpha+\beta+1}$ ($0 < \rho < 1$) is the pairwise
+correlation between the $n$ Bernoulli draws and an over-dispersion
+parameter.
+
+The ``Beta-Binomial Normal approximation''-model implements a
+Normal-approximation to this distribution, treating $y$ as a continous
+Normal distributed variable, with mean $n\mu_p$ and variance
+$n \mu_p (1-\mu_p)(1 + s(n-1)\rho)$. We have added a constant scaling
+$s \ge 0$ for more flexibility, where $s=1$ gives the Beta-Binomial above.
+
+\subsection*{Link-function}
+
+The mean probability $\mu_{p}$ is linked to the linear predictor by
+\begin{displaymath}
+    \mu_p = \frac{\exp(\eta)}{1+\exp(\eta)}
+\end{displaymath}
+using the default logit-link.
+
+
+\subsection*{Hyperparameter}
+
+The hyperparameter is the over-dispersion parameter $\rho$, which is
+represented as
+\begin{displaymath}
+    \rho = \frac{\exp(\theta)}{1+\exp(\theta)}
+\end{displaymath}
+and the prior is defined on $\theta$. 
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{betabinomialna}$
+\item Required arguments: $y$ and $\text{Ntrials} = n$ (default
+    $\text{Ntrials}=1$), and $\text{scale} = s$ (default $s=1$).
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/betabinomialna.tex}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example.
+\verbatiminput{example-betabinomialna.R}
+
+\subsection*{Notes}
+
+None.
+
+\end{document}
+
+
+% LocalWords:  hyperparameter overdispersion Hyperparameters nbinomial
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

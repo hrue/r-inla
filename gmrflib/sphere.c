@@ -83,7 +83,7 @@ log_scale_omp[GMRFLib_thread_id] is used, otherwise the \c scale is set to 1.
 */
 int GMRFLib_make_spherical_igmrf(GMRFLib_sphere_tp ** sphere, int resolution, double *scale, double *log_scale, double **log_scale_omp)
 {
-	char *fnm, *p;
+	char *fnm = NULL, *p;
 	int i, n;
 	GMRFLib_tabulate_Qfunc_tp *tab = NULL;
 	GMRFLib_io_tp *io = NULL;
