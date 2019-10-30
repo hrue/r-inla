@@ -5702,12 +5702,15 @@
                              hyperid =  60001,
                              name = "precision parameter",
                              short.name = "prec",
-                             initial = 0,
+                             initial = 1,
                              fixed = FALSE,
                              prior = "loggamma",
-                             param = c(1, 0.001),
-                             to.theta = function(x) log(x), 
-                             from.theta = function(x) exp(x)
+                             param = c(1, 0.1),
+                             ## the 'sc' constant is defined in inla.h, and must be the same.
+                             ## I know, this is hard-coded for the moment. Should be a generic
+                             ## way of doing this...
+                             to.theta = function(x, sc = 0.1) log(x)/sc,
+                             from.theta = function(x, sc = 0.1) exp(sc*x)
                          )
                      ), 
                      survival = FALSE,
