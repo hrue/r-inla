@@ -39,7 +39,8 @@
   }
   \subsection{NEW FEATURES}{
     \itemize{
-      \item
+      \item \code{inla.posterior.sample} now correct for possible skewness
+      by default: see \code{?inla.posterior.sample} for details.
     }
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
