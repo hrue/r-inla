@@ -33,7 +33,9 @@
 ##!
 ##!     blas.num.threads: Number of threads to use for openblas and mklblas (see \code{inla} for details)
 ##!     
-##!     smtp: sparse matrix library,  one of \code{band}, \code{taucs} (\code{default}) or \code{pardiso}
+##!     smtp: Sparse matrix library to use,  one of \code{band}, \code{taucs} (\code{default}) or \code{pardiso}
+##!
+##!     mkl: Use binaries buildt with Intel MKL?  (If possible)
 ##!
 ##!     pardiso.license: The full path to the PARDISO license file
 ##!     
@@ -63,9 +65,9 @@
 ##!     scale.model.default : The default value of argument \code{scale.model} which
 ##!                           optionally scale intrinisic models to have generalized
 ##!                           unit average variance 
-##!
-##! The options are stored in the variable \code{inla.options} in the
-##!     \code{.GlobalEnv}-environment.
+##!     
+##!     short.summary : Use a less verbose output for \code{summary}. Useful for Markdown
+##!                     documents. 
 ##!   }
 ##! }
 ##! 
@@ -89,6 +91,7 @@
         "num.threads",
         "blas.num.threads",
         "smtp", 
+        "mkl", 
         "pardiso.license", 
         "keep",
         "working.directory",
@@ -101,7 +104,8 @@
         "cygwin.home",
         "enable.inla.argument.weights",
         "show.warning.graph.file",
-        "scale.model.default"))
+        "scale.model.default",
+        "short.summary"))
 {
     default.opt = list(
         inla.call = inla.call.builtin(), 
@@ -111,6 +115,7 @@
         num.threads = parallel::detectCores(), 
         blas.num.threads = 1L, 
         smtp = "default", 
+        mkl = FALSE, 
         pardiso.license = NULL, 
         keep = FALSE, 
         working.directory = NULL, 
@@ -123,7 +128,8 @@
         ssh.auth.sock = paste("/tmp/ssh-auth-sock-", inla.get.USER(), sep=""),
         enable.inla.argument.weights = FALSE, 
         show.warning.graph.file = TRUE, 
-        scale.model.default = FALSE
+        scale.model.default = FALSE,
+        short.summary = FALSE
     )
 
     ## with no argument, return a named list of current values
@@ -194,6 +200,7 @@
             "num.threads",
             "blas.num.threads",
             "smtp",
+            "mkl", 
             "pardiso.license", 
             "keep",
             "working.directory",
@@ -206,7 +213,8 @@
             "cygwin.home",
             "enable.inla.argument.weights",
             "show.warning.graph.file", 
-            "scale.model.default"), value)
+            "scale.model.default",
+            "short.summary"), value)
     {
         envir = inla.get.inlaEnv()
 

@@ -52,7 +52,7 @@
         "2. Add the license key to R-INLA, by assigning the full path\n",
         "   of the key-file to variable 'pardiso.license', for example,\n", 
         "     library(INLA)\n",
-        "     inla.setOption(\"pardiso.license\", \"~/sys/licenses/pardiso.lic\")\n",
+        "     inla.setOption(pardiso.license=\"~/sys/licenses/pardiso.lic\")\n",
         "3. That is it!\n", 
         "4. You can check PARDISO setup, by\n",
         "     inla.pardiso.check()\n", 
@@ -83,7 +83,8 @@
 
 `inla.pardiso.check` = function() 
 {
-    inla.set.sparselib.env(NULL)
+    t.dir = inla.tempdir()
+    inla.set.sparselib.env(inla.dir = t.dir)
     if (inla.os("linux") || inla.os("mac")) {
         ret = system(paste(shQuote(inla.getOption("inla.call")), "-m pardiso"), intern=TRUE)
     } else if(inla.os("windows")) {
@@ -91,5 +92,7 @@
     } else {
         stop("\n\tNot supported architecture.")
     }
+    unlink(t.dir, recursive = TRUE)
+
     return (ret)
 }

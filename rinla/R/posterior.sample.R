@@ -213,7 +213,6 @@
             ## if user set seed,  then just continue this rng-stream
             if (seed > 0L) seed = -1L
 
-
             ld.theta = cs$max.log.posterior + cs$config[[k]]$log.posterior
             nm = names(sel.map)
             
@@ -370,9 +369,10 @@
     ret = inla.mclapply(samples, my.fun, .fun=fun, .contents = contents, ...)
     if (return.matrix) {
         ns = length(ret)
+        nm = names(ret[[1]])
         ret = matrix(unlist(ret), ncol = ns)
         colnames(ret) = paste0("sample", 1:ns)
-        rownames(ret) = paste0("fun", 1:nrow(ret))
+        rownames(ret) = if (!is.null(nm)) nm else paste0("fun", 1:nrow(ret))
     }
 
     return (ret)

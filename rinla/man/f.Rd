@@ -67,6 +67,7 @@
          args.slm = list(rho.min = NULL, rho.max = NULL, 
                          X = NULL, W = NULL, Q.beta = NULL),
          args.ar1c = list(Z = NULL, Q.beta = NULL),
+         args.intslope = list(subject = NULL, strata = NULL, covariates = NULL), 
          correct = NULL,
          locations = NULL, 
          debug = FALSE)
@@ -216,11 +217,12 @@ number of connected components in graph is larger than
 model \code{ar} this defines the order p, in AR(p). Not
 used for other models at the time being.}
 \item{scale}{A scaling vector. Its meaning depends on the model.}
-\item{strata}{A stratum vector. It meaning depends on the model.}
+\item{strata}{Currently not in use}
 \item{rgeneric}{A object of class \code{inla.rgeneric} which defines the model. (EXPERIMENTAL!)}
 \item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default value is \code{inla.getOption("scale.model.default")}}
 \item{args.slm}{Required arguments to the model="slm"; see the documentation for further details.},
 \item{args.ar1c}{Required arguments to the model="ar1c"; see the documentation for further details.},
+\item{args.intslope}{A list with the \code{subject} (factor),  \code{strata} (factor) and \code{covariates} (numeric) for the \code{intslope} model; see the documentation for further details.}, 
 \item{correct}{Add this model component to the list of variables to be used in the corrected Laplace approximation? If \code{NULL} use default choice,  otherwise correct if \code{TRUE} and do not if \code{FALSE}. (This option is currently experimental.)},
 \item{locations}{A matrix with locations for the model \code{dmatern}. This also defines \code{n}.}
 \item{debug}{Enable local debug output}

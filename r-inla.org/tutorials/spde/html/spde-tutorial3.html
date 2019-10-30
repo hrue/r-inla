@@ -6,11 +6,10 @@
 > 
 <head><title>text</title> 
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" /> 
-<meta name="generator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)" /> 
-<meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)" /> 
+<meta name="generator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
+<meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)" /> 
 <!-- xhtml,html,frames,2 --> 
 <meta name="src" content="spde-tutorial.tex" /> 
-<meta name="date" content="2017-12-21 09:55:00" /> 
 <link rel="stylesheet" type="text/css" href="spde-tutorial.css" /> 
 </head><body 
 id="tex4ht-main">
@@ -20,12 +19,13 @@ id="tex4ht-main">
                                                                                  
 
 <h2 class="titleHead">The R-INLA tutorial on SPDE models<br />
-Warning: work in progress...<br />
-Suggestions to elias@r-inla.org are welcome</h2>
+This work was further developed into the<br />
+SPDE book, see <a 
+href="http://www.r-inla.org/spde-book" class="url" >http://www.r-inla.org/spde-book</a></h2>
 <div class="author" ><span 
 class="aer12-">Elias T. Krainski, Finn Lindgren, Daniel Simpson and Håvard Rue</span></div><br />
 <div class="date" ><span 
-class="aer12-">December 21, 2017</span></div>
+class="aer12-">July 22, 2019</span></div>
                                                                                  
                                                                                  
    </div>
@@ -35,8 +35,8 @@ class="aebx-10x-x-109">Acknowledgments</span></span>
    To Sarah Gallup and Helen Sofaer for valuable English review in the text. To several people
 who brought cool problems to the discussion forum <a 
 href="http://www.r-inla.org/comments-1" class="url" ><span 
-class="aett-10x-x-109">http://www.r-_inla.org/comments-_1</span></a>
-and to me individually.
+class="aett-10x-x-109">http://www.r-inla.org/comments-1</span></a> and
+to me individually.
 </p>
 <!--l. 1--><p class="noindent" ><span class="paragraphHead"><a 
  id="x3-2000"></a><span 
@@ -45,7 +45,9 @@ class="aebx-10x-x-109">Updates</span></span>
                                                                                  
 </p>
    <div class="verbatim" id="verbatim-1">
-2017&#x00A0;Oct&#x00A0;05:&#x00A0;English&#x00A0;review&#x00A0;(thanks&#x00A0;to&#x00A0;SG)
+2019&#x00A0;Jul&#x00A0;22:&#x00A0;rerun&#x00A0;to&#x00A0;fix&#x00A0;some&#x00A0;updated&#x00A0;code
+&#x00A0;<br />2019&#x00A0;May&#x00A0;20:&#x00A0;Update&#x00A0;links&#x00A0;and&#x00A0;point&#x00A0;to&#x00A0;spde-book
+&#x00A0;<br />2017&#x00A0;Oct&#x00A0;05:&#x00A0;English&#x00A0;review&#x00A0;(thanks&#x00A0;to&#x00A0;SG)
 &#x00A0;<br />2017&#x00A0;Mar&#x00A0;01:&#x00A0;revision&#x00A0;and&#x00A0;new&#x00A0;organization
 &#x00A0;<br />2017&#x00A0;Feb&#x00A0;15:&#x00A0;started&#x00A0;a&#x00A0;major&#x00A0;revision/organization
 &#x00A0;<br />2017&#x00A0;Jan&#x00A0;23:&#x00A0;compile&#x00A0;to&#x00A0;html&#x00A0;and&#x00A0;small&#x00A0;fixes
@@ -82,7 +84,7 @@ class="aebx-10x-x-109">Updates</span></span>
 &#x00A0;<br />2013&#x00A0;March&#x00A0;01:
 &#x00A0;<br />&#x00A0;*&#x00A0;first&#x00A0;draft:&#x00A0;introduction,&#x00A0;toy&#x00A0;example,&#x00A0;rainfall&#x00A0;on&#x00A0;Parana&#x00A0;State
 </div>
-<!--l. 40--><p class="nopar" >
+<!--l. 42--><p class="nopar" >
 </p>
    <div 
 class="abstract" 
@@ -160,14 +162,14 @@ regression example having the regression coefficients varying over space-time. W
 consider the space-time version of the log-Cox point process model for a dataset and also
 illustrates an approach to deal whit the case of having a large space-time point process
 data.
-</p><!--l. 81--><p class="indent" >   Since this tutorial is more a collection of examples, one should start with the tutorial marked as
-<span 
+</p><!--l. 81--><p class="indent" >   Since this tutorial is more a collection of examples, one should start with the tutorial marked
+as <span 
 class="aebx-10x-x-109">Read this first! </span>at the tutorials link in the R-INLA web page, <a 
 href="http://www.r-inla.org" class="url" ><span 
-class="aett-10x-x-109">http://www.r-_inla.org</span></a>, more
-precisely at <a 
+class="aett-10x-x-109">http://www.r-inla.org</span></a>,
+more precisely at <a 
 href="http://www.r-inla.org/examples/tutorials/spde-tutorial-from-jss" class="url" ><span 
-class="aett-10x-x-109">http://www.r-_inla.org/examples/tutorials/spde-_tutorial-_from-_jss</span></a>. If
+class="aett-10x-x-109">http://www.r-inla.org/examples/tutorials/spde-tutorial-from-jss</span></a>. If
 you are in a rush to fit a simple geostatistical model, we made a short tutorial without the
 details as a vignette in the <span 
 class="aessbx-10x-x-109">INLA</span>. Thus one can have it just typing <span 
@@ -178,6 +180,10 @@ application to help one to understand the mesh building. It depends on the <span
 class="aessbx-10x-x-109">shiny </span>package. This
 application opens by typing <span 
 class="aett-10x-x-109">demo(mesh2d)</span>.
+</p><!--l. 94--><p class="indent" >   This content is part of the book available at <a 
+href="http://www.r-inla.org/spde-book" class="url" ><span 
+class="aett-10x-x-109">http://www.r-inla.org/spde-book</span></a>, whose
+Gitbook version is freely available along all the code and datasets.
                                                                                  
                                                                                  
 </p>

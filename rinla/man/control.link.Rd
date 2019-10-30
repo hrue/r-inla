@@ -12,14 +12,13 @@
 \description{Control variables in \code{control.link} for use in \code{inla}}
 \usage{
 inla.set.control.link.default(...)
-control.link(fixed, hyper, initial, model, nq, order, param, prior, quantile, variant)
+control.link(fixed, hyper, initial, model, order, param, prior, quantile, variant)
 }
 \arguments{
 \item{...}{Possible arguments}
 \item{model}{  The name of the link function/model}
 \item{order}{  The \code{order} of the link function, where the interpretation of \code{order} is model-dependent.}
 \item{variant}{  The \code{variant} of the link function, where the interpretation of \code{variant} is model-dependent.}
-\item{nq}{  Number of quadrature-points used to do the numerical integration (default 15)}
 \item{hyper}{  Definition of the hyperparameter(s) for the link model chosen}
 \item{quantile}{  The quantile for quantile link function}
 \item{initial}{  (OBSOLETE!) The initial value(s) for the hyperparameter(s)}
@@ -33,6 +32,6 @@ The function \code{control.link} is used to TAB-complete arguments and returns a
 The function \code{inla.set.control.link.default} returns a list with all the default values of all parameters within this control statement.
 }
 \seealso{
-\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
+\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.gev2.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
 \code{\link{inla}}
 }

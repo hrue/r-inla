@@ -30,7 +30,7 @@
 #ifndef HGVERSION
 #define HGVERSION
 #endif
-static const char RCSId[] = HGVERSION;
+//static const char RCSId[] = HGVERSION;
 
 #include <float.h>
 #include <math.h>

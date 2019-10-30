@@ -114,7 +114,7 @@ typedef enum {
 	/**
 	 * \brief Identity (no reordering) 
 	 */
-	GMRFLib_REORDER_IDENTITY,
+	GMRFLib_REORDER_IDENTITY, 
 
 	/**
 	 * \brief Minmise the bandwidth 

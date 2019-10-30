@@ -1,0 +1,49 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{\texttt{pc.gevtail}: The PC prior for $\xi$ in the GEV likelihood}
+
+\subsection*{Parametrization}
+
+This is the PC prior for the tail (or shape) parameter $\xi$ in the
+GEV likelihood, where the KLD is
+\begin{displaymath}
+    \text{KLD} = \xi^{2}/(1-\xi)
+\end{displaymath}
+for $0 \le \xi < 1$.
+
+\subsection*{Specification}
+This prior for the hyperparameter is specified in the
+\texttt{hyper}-spesification, as
+\begin{center}
+    \texttt{hyper = list(<theta> = list(prior="pc.gevtail", param=c(<lambda>, <low>, <high>)))}
+\end{center}
+restricted to the interval $[\text{low}, \text{high}]$ (and the
+default interval is $[0,1/2]$).
+
+\subsection*{Example}
+
+\subsection*{Notes}
+
+\textbf{OOPS:} This prior can ONLY be used with \texttt{family =
+    "gev2"}. If you use it with another family, then there is no
+error, you just get wrong results. 
+
+See also functions \texttt{inla.pc.\{d,p,q,r\}gevtail} which defines
+utility functions for this prior, without the interval-restriction.
+
+This prior is experimental.
+
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
+
