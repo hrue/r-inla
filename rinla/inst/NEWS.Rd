@@ -43,16 +43,6 @@
       by default: see \code{?inla.posterior.sample} for details.
     }
   }
-  \subsection{NEW EXPERIMENTAL FEATURES}{
-    \itemize{
-      \item
-    }
-  }
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item
-    }
-  }
 }
 
 
