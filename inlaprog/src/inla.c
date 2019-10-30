@@ -1263,6 +1263,14 @@ double map_alpha_weibull(double arg, map_arg_tp typ, void *param)
 	double scale = INLA_WEIBULL_ALPHA_SCALE;
 	return map_exp_scale(arg, typ, (void *) &scale);
 }
+double map_prec_qkumar(double arg, map_arg_tp typ, void *param)
+{
+	/*
+	 * the map-function for the precision
+	 */
+	double scale = INLA_QKUMAR_PREC_SCALE;
+	return map_exp_scale(arg, typ, (void *) &scale);
+}
 double map_p_weibull_cure(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -8173,7 +8181,7 @@ int loglikelihood_qkumar(double *logll, double *x, int m, int idx, double *x_vec
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
-	double phi = map_exp(ds->data_observations.qkumar_log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double phi = map_prec_qkumar(ds->data_observations.qkumar_log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double q = ds->data_observations.quantile;
 	double alpha, beta, kappa, mu;
 
@@ -13524,7 +13532,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->theta[mb->ntheta] = ds->data_observations.qkumar_log_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map[mb->ntheta] = map_prec_qkumar;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;

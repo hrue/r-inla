@@ -40,9 +40,12 @@ using the default logit link-function.
 
 The hyperparameter is
 \begin{displaymath}
-    \theta = log(\phi)
+    \phi = \exp(S \theta)
 \end{displaymath}
-and the prior is given for $\theta$.
+and the prior is defined on $\theta$. The constant $S$ currently set
+to $0.1$ to avoid numerical instabilities in the optimization, since
+small changes of $\alpha$ can make a huge difference.
+
 
 \subsection*{Specification}
 

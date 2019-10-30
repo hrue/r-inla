@@ -6727,12 +6727,12 @@ inla.models()
 							\item{hyperid = }{`60001'}
 							\item{name = }{`precision parameter'}
 							\item{short.name = }{`prec'}
-							\item{initial = }{`0'}
+							\item{initial = }{`1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`1 0.001'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							\item{param = }{`1 0.1'}
+							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x)/sc}'}
+							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc*x)}'}
 							}
 						}
 					 }
