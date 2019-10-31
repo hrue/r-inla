@@ -551,10 +551,8 @@
     
     samples.list  <- unlist(unlist(samples.list, recursive=FALSE), recursive = FALSE)
     ## correct labels for the samples
-    if (skew.corr == TRUE | num.cores > 1) {
-        invisible(lapply(seq_along(samples.list), 
-                         function(i) colnames(samples.list[[i]]$latent) <<- paste0("sample",i)))
-    }
+    invisible(lapply(seq_along(samples.list), 
+                     function(i) colnames(samples.list[[i]]$latent) <<- paste0("sample",i)))
     if (length(selection) == 0L) {
         attr(samples.list, ".contents") = con
     } else {
