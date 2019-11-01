@@ -33842,10 +33842,73 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 35:
+	{
+		int iterations = 10000000;
+		int range = 300;         /* random number between 1 and 30 */
+		if (1) {
+			struct HashTable* ht;
+			int i;
+			ht = AllocateHashTable(4, 0);    /* value is 4 bytes, 0: don't copy keys */
+			GMRFLib_cpu_default();
+			for (i = 0; i < iterations; ++i) {
+				int key = rand() % range;
+				HTItem* bck = HashFindOrInsert(ht, key, 0);     /* initialize to 0 */
+				bck->data++;                   /* found one more of them */
+			}
+			printf("%.6g ", GMRFLib_cpu_default());
+		}
+		if (1) {
+			map_ii map;
+			int i;
+			int key;
+			int *iptr;
+			map_ii_init(&map);
+			GMRFLib_cpu_default();
+			for (i = 0; i < iterations; ++i) {
+				key = rand() % range;
+				iptr =  map_ii_insertptr(&map, key);
+				(*iptr)++;
+			}
+			printf("%.6g \n", GMRFLib_cpu_default());
+		}
+
+		if (0) printf("%ld=64 %d=6 ?\n", sizeof(void *) * CHAR_BIT, LOG_WORD_SIZE);
+		break;
+	}
+
+	case 36: 
+	{
+		int N = 100, i, j;
+
+		HashTable **ht =  Calloc(N, HashTable *);
+		for(i = 0; i < N; i++){
+			ht[i] =  AllocateHashTable(sizeof(int), 1);
+			HashSetDeltaGoalSize(ht[i], N);
+		}
+		printf("size %d %d\n", sizeof(ulong), sizeof(double));
+
+#pragma parallel for private(i, j)
+		for(i = 0; i < N; i++){
+			for(j = 0; j <  N; j++){
+				HTItem item;
+				item.key = (ulong) j;
+				item.data = (ulong) (i*N+j);
+				HashInsertItem(ht[i], &item);
+			}
+		}
+		for(i = 0; i < N; i++){
+			for(j = 0; j <  N; j++){
+				HTItem *item =  HashFind(ht[i], (ulong) j);
+				if (item) printf("%d %d %g\n", i, j, (double) item->data);
+			}
+		}
+		break;
+	}
+
 	default:
 		exit(0);
 	}
-
 
 	exit(EXIT_SUCCESS);
 }

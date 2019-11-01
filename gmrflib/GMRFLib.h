@@ -112,6 +112,7 @@ __BEGIN_DECLS
 #include "GMRFLib/globals.h"
 #include "GMRFLib/error-handler.h"
 #include "GMRFLib/hash.h"
+#include "GMRFLib/libchash.h"
 #include "GMRFLib/lapack-interface.h"
 #include "GMRFLib/optimize.h"
 #include "GMRFLib/gdens.h"
