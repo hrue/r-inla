@@ -44,6 +44,7 @@
 #include <zlib.h>
 
 #include "GMRFLib/hashP.h"
+#include "GMRFLib/libchash.h"
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS
@@ -63,6 +64,7 @@ __BEGIN_DECLS
     typedef struct {
 	int n;						       /* the size of the graph */
 	map_id **values;				       /* hash-table for the values */
+	HashTable **values2;				       /* hash-table for the values */
 	double *prec;					       /* precision */
 	double *log_prec;				       /* log(prec) */
 	double **log_prec_omp;				       /* log(prec) thread dependent */

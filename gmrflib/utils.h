@@ -56,6 +56,7 @@
 
 __BEGIN_DECLS
 #include "GMRFLib/hashP.h"
+#include "GMRFLib/libchash.h"
 #include "GMRFLib/GMRFLibP.h"
     typedef struct {
 	size_t n;
@@ -140,5 +141,8 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 void *GMRFLib_realloc__(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno, const char *id);
 void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno, const char *id);
 void GMRFLib_free__(void *ptr, const char *file, const char *funcname, int lineno, const char *id);
+
+HashTable *GMRFLib_HashTable_duplicate(HashTable * hash);
+
 __END_DECLS
 #endif

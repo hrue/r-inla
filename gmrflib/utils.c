@@ -996,6 +996,29 @@ map_id *GMRFLib_duplicate_map_id(map_id * hash)
 
 	return newhash;
 }
+
+HashTable *GMRFLib_HashTable_duplicate(HashTable * hash)
+{
+	/*
+	 * return a copy of HASH 
+	 */
+	if (!hash) {
+		return NULL;
+	}
+
+	HashTable *ht = AllocateHashTable(sizeof(int), 1);
+	HashSetDeltaGoalSize(ht, hash->cDeltaGoalSize);
+//#pragma omp critical 
+	{
+		// this operation is not safe, if several copies of 'hash' are produced at the same time.
+		HTItem *item = NULL;
+		for (item = HashFirstBucket(hash); ; item = HashNextBucket(hash))
+			if (item) HashInsertItem(ht, item);
+	}
+	return ht;
+}
+
+
 GMRFLib_sizeof_tp GMRFLib_sizeof_map_id(map_id * hash)
 {
 	if (!hash) {

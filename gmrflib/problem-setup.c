@@ -2194,10 +2194,22 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 				Qfunc_arg->log_prec_omp[i] = tmp->log_prec_omp[i];
 			}
 		}
-		Qfunc_arg->values = Calloc(ns, map_id *);
-		for (i = 0; i < ns; i++) {
-			Qfunc_arg->values[i] = GMRFLib_duplicate_map_id(tmp->values[i]);
+
+		if (GMRFLib_use_mapkit) {
+			Qfunc_arg->values = Calloc(ns, map_id *);
+			for (i = 0; i < ns; i++) {
+				Qfunc_arg->values[i] = GMRFLib_duplicate_map_id(tmp->values[i]);
+			}
+		} else {
+#pragma omp critical
+			{
+				Qfunc_arg->values2 =  Calloc(ns, HashTable *);
+				for (i = 0; i < ns; i++) {
+					Qfunc_arg->values2[i] = GMRFLib_HashTable_duplicate(tmp->values2[i]);
+				}
+			}
 		}
+
 		tab->Qfunc_arg = (void *) Qfunc_arg;
 		np->tab = tab;
 	} else {

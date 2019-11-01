@@ -103,13 +103,23 @@ double GMRFLib_tabulate_Qfunction(int node, int nnode, void *arg)
 	args = (GMRFLib_tabulate_Qfunc_arg_tp *) arg;
 	prec = GMRFLib_SET_PREC(args);
 
-	dp = map_id_ptr(args->values[IMIN(node, nnode)], IMAX(node, nnode));
+	if (GMRFLib_use_mapkit) {
+		dp = map_id_ptr(args->values[IMIN(node, nnode)], IMAX(node, nnode));
+	} else {
+		HTItem *item;
+		item = HashFind(args->values2[IMIN(node, nnode)], (ulong)IMAX(node, nnode));
+		dp =  &(item->data);
+	}
 	return (dp ? prec * (*dp) : 0.0);
 }
 double GMRFLib_tabulate_Qfunction_std(int node, int nnode, void *arg)
 {
 	GMRFLib_tabulate_Qfunc_arg_tp *args = (GMRFLib_tabulate_Qfunc_arg_tp *) arg;
-	return (*map_id_ptr(args->values[IMIN(node, nnode)], IMAX(node, nnode)));
+	if (GMRFLib_use_mapkit) {
+		return (*map_id_ptr(args->values[IMIN(node, nnode)], IMAX(node, nnode)));
+	} else {
+		return (HashFind(args->values2[IMIN(node, nnode)], IMAX(node, nnode))->data);
+	}
 }
 
 /*!
@@ -166,8 +176,12 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 		arg->log_prec_omp = NULL;
 	}
 
-	arg->values = Calloc(graph->n, map_id *);
-
+	if (GMRFLib_use_mapkit) {
+		arg->values = Calloc(graph->n, map_id *);
+	} else {
+		arg->values2 = Calloc(graph->n, HashTable *);
+	}
+	
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
 	for (i = 0; i < graph->n; i++) {
 		int j, k, count;
@@ -175,18 +189,34 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 		GMRFLib_thread_id = id;
 		GMRFLib_meminfo_thread_id = mem_id;
 
-		arg->values[i] = Calloc(1, map_id);	       /* allocate hash-table */
+		if (GMRFLib_use_mapkit) {
+			arg->values[i] = Calloc(1, map_id);	       /* allocate hash-table */
+		} else {
+			arg->values2[i] = AllocateHashTable(sizeof(int), 1);
+		}
 		for (j = 0, count = 1; j < graph->nnbs[i]; j++) {	/* count the number of terms in the hash-table */
 			if (graph->nbs[i][j] > i) {
 				count++;
 			}
 		}
-		map_id_init_hint(arg->values[i], count);       /* init hash with count number of elms */
-		map_id_set(arg->values[i], i, (*Qfunc) (i, i, Qfunc_arg));	/* diagonal */
-		for (j = 0, count = 1; j < graph->nnbs[i]; j++) {
-			k = graph->nbs[i][j];
-			if (k > i) {			       /* store only those */
-				map_id_set(arg->values[i], k, (*Qfunc) (i, k, Qfunc_arg));
+
+		if (GMRFLib_use_mapkit) {
+			map_id_init_hint(arg->values[i], count);       /* init hash with count number of elms */
+			map_id_set(arg->values[i], i, (*Qfunc) (i, i, Qfunc_arg));	/* diagonal */
+			for (j = 0, count = 1; j < graph->nnbs[i]; j++) {
+				k = graph->nbs[i][j];
+				if (k > i) {			       /* store only those */
+					map_id_set(arg->values[i], k, (*Qfunc) (i, k, Qfunc_arg));
+				}
+			}
+		} else {
+			HashSetDeltaGoalSize(arg->values2[i], count);       /* init hash with count number of elms */
+			HashInsert(arg->values2[i], (ulong) i, (*Qfunc) (i, i, Qfunc_arg));	/* diagonal */
+			for (j = 0, count = 1; j < graph->nnbs[i]; j++) {
+				k = graph->nbs[i][j];
+				if (k > i) {			       /* store only those */
+					HashInsert(arg->values2[i], (ulong) k, (*Qfunc) (i, k, Qfunc_arg));
+				}
 			}
 		}
 	}
@@ -199,6 +229,8 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 int GMRFLib_tabulate_Qfunc_from_file_OLD(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
 					 const char *filename, double *prec, double *log_prec, double **log_prec_omp)
 {
+	if (GMRFLib_use_mapkit)
+		assert(0 == 1);
 	/*
 	 * OOPS: DO NOT DELETE: THIS FUNCTION IS USED BY \c sphere.c 
 	 */
@@ -297,6 +329,8 @@ int GMRFLib_tabulate_Qfunc_from_file_OLD(GMRFLib_tabulate_Qfunc_tp ** tabulate_Q
 int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph, const char *filename,
 				     int dim, double *prec, double *log_prec, double **log_prec_omp)
 {
+	if (GMRFLib_use_mapkit)
+		assert(0 == 1);
 	/*
 	 * as GMRFLib_tabulate_Qfunc(), but reads the Q_ij values from file with name FILENAME, in format
 	 * 
@@ -654,7 +688,11 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	(*tabulate_Qfunc)->Qfunc_arg = (void *) arg;
 
 	arg->n = (*graph)->n;
-	arg->values = Calloc((*graph)->n, map_id *);
+	if (GMRFLib_use_mapkit) {
+		arg->values = Calloc((*graph)->n, map_id *);
+	} else {
+		arg->values2 = Calloc((*graph)->n, HashTable *);
+	}
 	if (prec == NULL && log_prec == NULL && log_prec_omp != NULL) {
 		int tmax = GMRFLib_MAX_THREADS;
 		arg->log_prec_omp = Calloc(tmax, double *);
@@ -672,31 +710,60 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	for (i = 0; i < (*graph)->n; i++) {
 		int count = 1, j, jj;
 
-		arg->values[i] = Calloc(1, map_id);
+		if (GMRFLib_use_mapkit) {
+			arg->values[i] = Calloc(1, map_id);
+		} else {
+			arg->values2[i] = AllocateHashTable(sizeof(int), 1);
+		}
 		for (j = 0; j < (*graph)->nnbs[i]; j++) {
 			if ((*graph)->nbs[i][j] > i) {
 				count++;
 			}
 		}
-		map_id_init_hint(arg->values[i], count);
-		map_id_set(arg->values[i], i, 0.0);
-		for (jj = 0; jj < (*graph)->nnbs[i]; jj++) {
-			j = (*graph)->nbs[i][jj];
-			if (j > i) {
-				map_id_set(arg->values[i], j, 0.0);	/* fill them with default = 0.0 */
+
+		if (GMRFLib_use_mapkit) {
+			map_id_init_hint(arg->values[i], count);
+			map_id_set(arg->values[i], i, 0.0);
+			for (jj = 0; jj < (*graph)->nnbs[i]; jj++) {
+				j = (*graph)->nbs[i][jj];
+				if (j > i) {
+					map_id_set(arg->values[i], j, 0.0);	/* fill them with default = 0.0 */
+				}
+			}
+		} else {
+			HashSetDeltaGoalSize(arg->values2[i], count);
+			HashInsert(arg->values2[i], (ulong) i, 0.0);
+			for (jj = 0; jj < (*graph)->nnbs[i]; jj++) {
+				j = (*graph)->nbs[i][jj];
+				if (j > i) {
+					HashInsert(arg->values2[i], (ulong)j, 0.0);	/* fill them with default = 0.0 */
+				}
 			}
 		}
 	}
 
-	for (i = 0; i < ntriples; i++) {
-		int ii, jj;
-		double *prev;
+	if (GMRFLib_use_mapkit) {
+		for (i = 0; i < ntriples; i++) {
+			int ii, jj;
+			double *prev;
+			
+			if (ilist[i] <= jlist[i]) {
+				ii = ilist[i] - off;
+				jj = jlist[i] - off;
+				CHECK_FOR_MULTIPLE_ENTRIES(arg->values[ii], jj, Qijlist[i]);
+				map_id_set(arg->values[ii], jj, Qijlist[i] + PREVIOUS_VALUE);
+			}
+		}
+	} else {
+		for (i = 0; i < ntriples; i++) {
+			int ii, jj;
+			double *prev;
 
-		if (ilist[i] <= jlist[i]) {
-			ii = ilist[i] - off;
-			jj = jlist[i] - off;
-			CHECK_FOR_MULTIPLE_ENTRIES(arg->values[ii], jj, Qijlist[i]);
-			map_id_set(arg->values[ii], jj, Qijlist[i] + PREVIOUS_VALUE);
+			if (ilist[i] <= jlist[i]) {
+				ii = ilist[i] - off;
+				jj = jlist[i] - off;
+				HashInsert(arg->values2[ii], (ulong) jj, Qijlist[i]);
+			}
 		}
 	}
 
@@ -720,10 +787,13 @@ int GMRFLib_free_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp * tabulate_Qfunc)
 		arg = (GMRFLib_tabulate_Qfunc_arg_tp *) tabulate_Qfunc->Qfunc_arg;
 
 		for (i = 0; i < arg->n; i++) {
-			map_id_free(arg->values[i]);
-			Free(arg->values[i]);
+			if (GMRFLib_use_mapkit) {
+				map_id_free(arg->values[i]);
+				Free(arg->values[i]);
+			} else {
+				FreeHashTable(arg->values2[i]);
+			}
 		}
-		Free(arg->values);
 		Free(arg->log_prec_omp);
 		Free(arg);
 		Free(tabulate_Qfunc);
