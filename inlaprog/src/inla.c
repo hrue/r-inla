@@ -33893,7 +33893,7 @@ int testit(int argc, char **argv)
 			for(j = 0; j <  N; j++){
 				HTItem item;
 				item.key = (ulong) j;
-				item.data = (ulong) (i*N+j);
+				item.data = (double) (i*N+j) + 0.1;
 				HashInsertItem(ht[i], &item);
 			}
 		}

@@ -214,6 +214,12 @@ extern int GMRFLib_thread_id;
   Signal USR2: Stop optimiser and present results
 */
 extern int GMRFLib_request_optimiser_to_stop;
+
+/*
+  Use MAPKIT library?
+*/
+extern int GMRFLib_use_mapkit;
+
 
 
 

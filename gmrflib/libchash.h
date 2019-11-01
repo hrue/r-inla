@@ -115,6 +115,9 @@
  *        from disk.
  */
 
+#ifndef __GMRFLib_LIBCHASH_H__
+#define __GMRFLib_LIBCHASH_H__
+
 #include <sys/types.h>         /* includes definition of "ulong", we hope */
 #define ulong u_long
 
@@ -176,7 +179,7 @@
 
    /* This is what an item is.  Either can be cast to a pointer. */
 typedef struct {
-   ulong data;        /* 4 bytes for data: either a pointer or an integer */
+   double data;        /* 4 bytes for data: either a pointer or an integer */
    ulong key;         /* 4 bytes for the key: either a pointer or an int */
 } HTItem;
 
@@ -233,10 +236,10 @@ void FreeHashTable(struct HashTable *ht);
 
 HTItem *HashFind(struct HashTable *ht, ulong key);
 HTItem *HashFindLast(struct HashTable *ht);
-HTItem *HashFindOrInsert(struct HashTable *ht, ulong key, ulong dataInsert);
+HTItem *HashFindOrInsert(struct HashTable *ht, ulong key, double dataInsert);
 HTItem *HashFindOrInsertItem(struct HashTable *ht, HTItem *pItem);
 
-HTItem *HashInsert(struct HashTable *ht, ulong key, ulong data);
+HTItem *HashInsert(struct HashTable *ht, ulong key, double data);
 HTItem *HashInsertItem(struct HashTable *ht, HTItem *pItem);
 
 int HashDelete(struct HashTable *ht, ulong key);
@@ -250,3 +253,5 @@ int HashSetDeltaGoalSize(struct HashTable *ht, int delta);
 void HashSave(FILE *fp, struct HashTable *ht, int (*write)(FILE *, char *));
 struct HashTable *HashLoad(FILE *fp, char * (*read)(FILE *, int));
 struct HashTable *HashLoadKeys(FILE *fp, char * (*read)(FILE *, int));
+
+#endif

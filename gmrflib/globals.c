@@ -263,3 +263,8 @@ int GMRFLib_pardiso_thread_safe = 1;
    tell if we have a working pardiso library, -1, is for 'not checked yet'
  */
 int GMRFLib_pardiso_ok = -1;
+
+/*
+  Use MAPKIT library?
+*/
+int GMRFLib_use_mapkit = 1;

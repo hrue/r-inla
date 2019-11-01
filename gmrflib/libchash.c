@@ -118,13 +118,14 @@
  *  is defined correctly for your machine!  (5 for 32 bit words, 6 for 64).
  */
 
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>       /* for strcmp, memcmp, etc */
 #include <sys/types.h>    /* ULTRIX needs this for in.h */
 #include <netinet/in.h>   /* for reading/writing hashtables */
 #include <assert.h>
-#include "libchash.h"     /* all the types */
+#include "GMRFLib/libchash.h"     /* all the types */
 
    /* if keys are stored directly but cchKey is less than sizeof(ulong), */
    /* this cuts off the bits at the end */
@@ -203,24 +204,7 @@ typedef ulong          HTOffset; /* something big enough to hold offsets */
    /* Moves data from disk to memory if necessary.  Note dataRead cannot be  *
     * NULL, because then we might as well (and do) load the data into memory */
 #define LOAD_AND_RETURN(ht, loadCommand)     /* lC returns an HTItem * */     \
-   if ( !(ht)->fpData )          /* data is stored in memory */               \
-      return (loadCommand);                                                   \
-   else                          /* must read data off of disk */             \
-   {                                                                          \
-      int cchData;                                                            \
-      HTItem *bck;                                                            \
-      if ( (ht)->bckData.data )  free((char *)(ht)->bckData.data);            \
-      ht->bckData.data = (ulong)NULL;   /* needed if loadCommand fails */     \
-      bck = (loadCommand);                                                    \
-      if ( bck == NULL )          /* loadCommand failed: key not found */     \
-         return NULL;                                                         \
-      else                                                                    \
-         (ht)->bckData = *bck;                                                \
-      fseek(ht->fpData, (ht)->bckData.data, SEEK_SET);                        \
-      READ_UL((ht)->fpData, cchData);                                         \
-      (ht)->bckData.data = (ulong)(ht)->dataRead((ht)->fpData, cchData);      \
-      return &((ht)->bckData);                                                \
-   }
+      return (loadCommand)
 
 
 /* ======================================================================== */
@@ -1067,7 +1051,7 @@ static ulong NextPow2(ulong x)    /* returns next power of 2 > x, or 2^31 */
    return x << 1;                 /* makes it the *next* power of 2 */
 }
 
-static HTItem *Insert(HashTable *ht, ulong key, ulong data, int fOverwrite)
+static HTItem *Insert(HashTable *ht, ulong key, double data, int fOverwrite)
 {
    HTItem *item, bckInsert;
    ulong iEmpty;                  /* first empty bucket key probes */
@@ -1192,8 +1176,9 @@ void ClearHashTable(HashTable *ht)
    ht->cDeltaGoalSize = 0;
    ht->posLastFind = NULL;
    ht->fpData = NULL;               /* no longer HashLoading */
-   if ( ht->bckData.data )  free( (char *)(ht)->bckData.data);
-   ht->bckData.data = (ulong) NULL;
+   //if ( ht->bckData.data )  free( (char *)(ht)->bckData.data);
+   ht->bckData.data =  0.0;
+   //ht->bckData.data = (ulong) NULL;
 }
 
 void FreeHashTable(HashTable *ht)
@@ -1238,7 +1223,7 @@ HTItem *HashFindLast(HashTable *ht)
 |     (a pointer into the hashtable) if appropriate.                      |
 \*************************************************************************/
 
-HTItem *HashFindOrInsert(HashTable *ht, ulong key, ulong dataInsert)
+HTItem *HashFindOrInsert(HashTable *ht, ulong key, double dataInsert)
 {
       /* This is equivalent to Insert without samekey-overwrite */
    return Insert(ht, KEY_TRUNC(ht, key), dataInsert, 0);
@@ -1249,7 +1234,7 @@ HTItem *HashFindOrInsertItem(HashTable *ht, HTItem *pItem)
    return HashFindOrInsert(ht, pItem->key, pItem->data);
 }
 
-HTItem *HashInsert(HashTable *ht, ulong key, ulong data)
+HTItem *HashInsert(HashTable *ht, ulong key, double data)
 {
    return Insert(ht, KEY_TRUNC(ht, key), data, SAMEKEY_OVERWRITE);
 }
@@ -1297,7 +1282,10 @@ HTItem *HashNextBucket(HashTable *ht)
 
    while ( (retval=Table(NextBucket)(ht->iter)) )
       if ( !IS_BCK_DELETED(retval) )
+      {
 	 LOAD_AND_RETURN(ht, retval);
+      }
+   
    return NULL;
 }
 
@@ -1348,111 +1336,12 @@ int HashSetDeltaGoalSize(HashTable *ht, int delta)
 
 void HashSave(FILE *fp, HashTable *ht, int (*dataWrite)(FILE *, char *))
 {
-   long cchData, posStart;
-   HTItem *bck;
-
-   /* File format: magic number (4 bytes)
-                 : cchKey (one word)
-                 : cItems (one word)
-                 : cDeletedItems (one word)
-                 : table info (buckets and a bitmap)
-		 : cchAllKeys (one word)
-      Then the keys, in a block.  If cchKey is NULL_TERMINATED, the keys
-      are null-terminated too, otherwise this takes up cchKey*cItems bytes.
-      Note that keys are not written for DELETED buckets.
-      Then the data:
-                 : EITHER DELETED (one word) to indicate it's a deleted bucket,
-                 : OR number of bytes for this (non-empty) bucket's data
-                   (one word).  This is not stored if dataWrite == NULL
-                   since the size is known to be sizeof(ul).  Plus:
-                 : the data for this bucket (variable length)
-      All words are in network byte order. */
-
-   fprintf(fp, "%s", MAGIC_KEY);
-   WRITE_UL(fp, ht->cchKey);        /* WRITE_UL, READ_UL, etc in fks-hash.h */
-   WRITE_UL(fp, ht->cItems);
-   WRITE_UL(fp, ht->cDeletedItems);
-   Table(Write)(fp, ht->table, ht->cBuckets);        /* writes cBuckets too */
-
-   WRITE_UL(fp, 0);                 /* to be replaced with sizeof(key block) */
-   posStart = ftell(fp);
-   for ( bck = HashFirstBucket(ht); bck; bck = HashNextBucket(ht) )
-      fwrite(KEY_PTR(ht, bck->key), 1,
-	     (ht->cchKey == NULL_TERMINATED ?
-	      strlen(KEY_PTR(ht, bck->key))+1 : ht->cchKey), fp);
-   cchData = ftell(fp) - posStart;
-   fseek(fp, posStart - sizeof(unsigned long), SEEK_SET);
-   WRITE_UL(fp, cchData);
-   fseek(fp, 0, SEEK_END);          /* done with our sojourn at the header */
-
-      /* Unlike HashFirstBucket, TableFirstBucket iters through deleted bcks */
-   for ( bck = Table(FirstBucket)(ht->iter, ht->table, ht->cBuckets);
-	 bck;  bck = Table(NextBucket)(ht->iter) )
-      if ( dataWrite == NULL || IS_BCK_DELETED(bck) )
-	 WRITE_UL(fp, bck->data);
-      else                          /* write cchData followed by the data */
-      {
-	 WRITE_UL(fp, (*dataWrite)(NULL, (char *)bck->data));
-	 (*dataWrite)(fp, (char *)bck->data);
-      }
+	assert(0 == 1);
 }
 
-static HashTable *HashDoLoad(FILE *fp, char * (*dataRead)(FILE *, int), 
+HashTable *HashDoLoad(FILE *fp, char * (*dataRead)(FILE *, int), 
 			     HashTable *ht)
 {
-   ulong cchKey;
-   char szMagicKey[4], *rgchKeys;
-   HTItem *bck;
-
-   fread(szMagicKey, 1, 4, fp);
-   if ( strncmp(szMagicKey, MAGIC_KEY, 4) )
-   {
-      fprintf(stderr, "ERROR: not a hash table (magic key is %4.4s, not %s)\n",
-	      szMagicKey, MAGIC_KEY);
-      exit(3);
-   }
-   Table(Free)(ht->table, ht->cBuckets);  /* allocated in AllocateHashTable */
-
-   READ_UL(fp, ht->cchKey);
-   READ_UL(fp, ht->cItems);
-   READ_UL(fp, ht->cDeletedItems);
-   ht->cBuckets = Table(Read)(fp, &ht->table);    /* next is the table info */
-
-   READ_UL(fp, cchKey);
-   rgchKeys = (char *) HTsmalloc( cchKey );  /* stores all the keys */
-   fread(rgchKeys, 1, cchKey, fp);
-      /* We use the table iterator so we don't try to LOAD_AND_RETURN */
-   for ( bck = Table(FirstBucket)(ht->iter, ht->table, ht->cBuckets);
-	 bck;  bck = Table(NextBucket)(ht->iter) )
-   {
-      READ_UL(fp, bck->data);        /* all we need if dataRead is NULL */
-      if ( IS_BCK_DELETED(bck) )     /* always 0 if defined(INSERT_ONLY) */
-	 continue;                   /* this is why we read the data first */
-      if ( dataRead != NULL )        /* if it's null, we're done */
-	 if ( !ht->fpData )          /* load data into memory */
-	    bck->data = (ulong)dataRead(fp, bck->data);
-	 else                        /* store location of data on disk */
-	 {
-	    fseek(fp, bck->data, SEEK_CUR);  /* bck->data held size of data */
-	    bck->data = ftell(fp) - bck->data - sizeof(unsigned long);
-	 }
-
-      if ( ht->cchKey == NULL_TERMINATED )   /* now read the key */
-      {
-	 bck->key = (ulong) rgchKeys;
-	 rgchKeys = strchr(rgchKeys, '\0') + 1;    /* read past the string */
-      }
-      else
-      {
-	 if ( STORES_PTR(ht) )               /* small keys stored directly */
-	    bck->key = (ulong) rgchKeys;
-	 else
-	    memcpy(&bck->key, rgchKeys, ht->cchKey);
-	 rgchKeys += ht->cchKey;
-      }
-   }
-   if ( !STORES_PTR(ht) )                    /* keys are stored directly */
-      HTfree(rgchKeys - cchKey, cchKey);     /* we've advanced rgchK to end */
    return ht;
 }
 
@@ -1488,50 +1377,6 @@ HashTable *HashLoadKeys(FILE *fp, char * (*dataRead)(FILE *, int))
 
 ulong PrintHashTable(HashTable *ht, double time, int iForm)
 {
-   ulong cbData = 0, cbBin = 0, cItems = 0, cOccupied = 0;
-   HTItem *item;
-
-   printf("HASH TABLE.\n");
-   if ( time > -1.0 )
-   {
-      printf("----------\n");
-      printf("Time: %27.2f\n", time);
-   }
-
-   for ( item = Table(FirstBucket)(ht->iter, ht->table, ht->cBuckets);
-	 item;  item = Table(NextBucket)(ht->iter) )
-   {
-      cOccupied++;                    /* this includes deleted buckets */
-      if ( IS_BCK_DELETED(item) )     /* we don't need you for anything else */
-	 continue;
-      cItems++;                       /* this is for a sanity check */
-      if ( STORES_PTR(ht) )
-	 cbData += ht->cchKey == NULL_TERMINATED ? 
-	    WORD_ROUND(strlen((char *)item->key)+1) : ht->cchKey;
-      else
-	 cbBin -= sizeof(item->key), cbData += sizeof(item->key);
-      cbBin -= sizeof(item->data), cbData += sizeof(item->data);
-      if ( iForm != 0 )      /* we want the actual contents */
-      {
-	 if ( iForm == 2 && ht->cchKey == NULL_TERMINATED ) 
-	    printf("%s/%lu\n", (char *)item->key, item->data);
-	 else if ( iForm == 2 && STORES_PTR(ht) )
-	    printf("%.*s/%lu\n", 
-		   (int)ht->cchKey, (char *)item->key, item->data);
-	 else     /* either key actually is a ulong, or iForm == 1 */
-	    printf("%lu/%lu\n", item->key, item->data);
-      }
-   }
-   assert( cItems == ht->cItems );                   /* sanity check */
-   cbBin = Table(Memory)(ht->cBuckets, cOccupied);
-
-   printf("----------\n");   
-   printf("%lu buckets (%lu bytes).  %lu empty.  %lu hold deleted items.\n"
-	  "%lu items (%lu bytes).\n"
-	  "%lu bytes total.  %lu bytes (%2.1f%%) of this is ht overhead.\n",
-	  ht->cBuckets, cbBin, ht->cBuckets - cOccupied, cOccupied - ht->cItems,
-	  ht->cItems, cbData,
-	  cbData + cbBin, cbBin, cbBin*100.0/(cbBin+cbData));
-
-   return cbData + cbBin;
+	return (ulong) 0;
 }
+
