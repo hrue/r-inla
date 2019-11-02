@@ -1,24 +1,24 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] Zero-inflated Binomial, type 2
+	\item[doc] The Beta-Binomial Normal approximation likelihood
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 92001
-	 	 	\item[name] alpha
-	 	 	\item[short.name] alpha
-	 	 	\item[initial] -1
+	 	 	\item[hyperid] 62101
+	 	 	\item[name] overdispersion
+	 	 	\item[short.name] rho
+	 	 	\item[initial] 0
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] gaussian
-	 	 	\item[param] -1 0.2
-	 	 	\item[to.theta] \verb!function(x) log(x)!
-	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 	\item[param] 0 0.4
+	 	 	\item[to.theta] \verb!function(x) log(x/(1-x))!
+	 	 	\item[from.theta] \verb!function(x) exp(x)/(1+exp(x))!
 	 	 \end{description}
 	 \end{description}
 	\item[survival] FALSE
-	\item[discrete] FALSE
+	\item[discrete] TRUE
 	\item[link] default logit cauchit probit cloglog loglog robit sn
-	\item[pdf] zeroinflated
+	\item[pdf] betabinomialna
 \end{description}

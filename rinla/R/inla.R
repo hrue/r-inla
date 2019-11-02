@@ -464,7 +464,7 @@
         if (any(nchar(names(data)) == 0L)) {
             stop(paste("Elements in the 'data'-list has no name: data[[k]], for k=c(", inla.paste(which(nchar(names(data)) == 0L), sep=","), ")."))
         }
-            
+        
         i.remove = c()
         for(i in 1:length(data)) {
             ## these are the objects which we want to remove:
@@ -521,9 +521,9 @@
         ## in this case, the responsibility is with the user
         ownfun = TRUE
     } else if (inla.strcasecmp(inla.call, "remote") ||
-        inla.strcasecmp(inla.call, "inla.remote") ||
-        length(grep("/inla.remote$", inla.call)) > 0 ||
-        length(grep("/inla.remote.cygwin$", inla.call)) > 0) {
+               inla.strcasecmp(inla.call, "inla.remote") ||
+               length(grep("/inla.remote$", inla.call)) > 0 ||
+               length(grep("/inla.remote.cygwin$", inla.call)) > 0) {
         remote = TRUE
         inla.call = system.file("bin/remote/inla.remote", package="INLA")
         if (inla.os("windows")) {
@@ -702,7 +702,7 @@
     formula = update.formula(formula, y...fake ~ .)
     ## parse the formula
     gp = inla.interpret.formula(formula, data.same.len=data.same.len, data=data,
-        data.model = data.model, parent.frame = .parent.frame)
+                                data.model = data.model, parent.frame = .parent.frame)
     call = deparse(match.call())
 
     ## issue a warning if the intercept is spesified while the
@@ -749,9 +749,9 @@
         }
         if (inla.require("MatrixModels")) {
             gp$model.matrix = MatrixModels::model.Matrix(
-                new.fix.formula,
-                data = model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
-                contrasts.arg = contrasts, sparse=TRUE)
+                                                new.fix.formula,
+                                                data = model.frame(new.fix.formula, data.same.len, na.action=inla.na.action),
+                                                contrasts.arg = contrasts, sparse=TRUE)
         } else {
             gp$model.matrix = model.matrix(
                 new.fix.formula,
@@ -822,8 +822,8 @@
     cont.predictor = inla.set.control.predictor.default()
     cont.predictor[names(control.predictor)] = control.predictor
     cont.predictor$hyper = inla.set.hyper("predictor", "predictor",
-        cont.predictor$hyper, cont.predictor$initial,
-        cont.predictor$fixed, cont.predictor$prior, cont.predictor$param)
+                                          cont.predictor$hyper, cont.predictor$initial,
+                                          cont.predictor$fixed, cont.predictor$prior, cont.predictor$param)
     all.hyper$predictor$hyper = cont.predictor$hyper
     if (cont.compute$cpo || cont.compute$dic || cont.compute$po || cont.compute$waic || !is.null(cont.predictor$link))
         cont.predictor$compute=TRUE
@@ -869,8 +869,8 @@
         while (is.list(control.family) &&
                length(control.family) > 0 &&
                is.null(names(control.family))) {
-            control.family = control.family[[1]]
-        }
+                   control.family = control.family[[1]]
+               }
         control.family.save[[ii]] = inla.check.control(control.family, data)
     }
     control.family = control.family.save
@@ -891,17 +891,17 @@
 
         cont.family[[i.family]][names(control.family[[i.family]])] = control.family[[i.family]]
         cont.family[[i.family]]$hyper = inla.set.hyper(
-                                   family[i.family],
-                                   "likelihood",
-                                   cont.family[[i.family]]$hyper, 
-                                   cont.family[[i.family]]$initial, 
-                                   cont.family[[i.family]]$fixed,
-                                   cont.family[[i.family]]$prior,
-                                   cont.family[[i.family]]$param)
+            family[i.family],
+            "likelihood",
+            cont.family[[i.family]]$hyper, 
+            cont.family[[i.family]]$initial, 
+            cont.family[[i.family]]$fixed,
+            cont.family[[i.family]]$prior,
+            cont.family[[i.family]]$param)
         all.hyper$family[[i.family]] = list(
-                            hyperid = paste("INLA.Data", i.family, sep=""), 
-                            label = family[i.family],
-                            hyper = cont.family[[i.family]]$hyper)
+            hyperid = paste("INLA.Data", i.family, sep=""), 
+            label = family[i.family],
+            hyper = cont.family[[i.family]]$hyper)
         
         cont.family[[i.family]]$control.mix[names(c.mix)] = c.mix
         cont.family[[i.family]]$control.link[names(c.link)] = c.link
@@ -909,23 +909,23 @@
 
         if (!is.null(cont.family[[i.family]]$control.mix$model)) {
             cont.family[[i.family]]$control.mix$hyper = inla.set.hyper(
-                                       cont.family[[i.family]]$control.mix$model,
-                                       "mix",
-                                       cont.family[[i.family]]$control.mix$hyper, 
-                                       cont.family[[i.family]]$control.mix$initial, 
-                                       cont.family[[i.family]]$control.mix$fixed,
-                                       cont.family[[i.family]]$control.mix$prior,
-                                       cont.family[[i.family]]$control.mix$param)
+                cont.family[[i.family]]$control.mix$model,
+                "mix",
+                cont.family[[i.family]]$control.mix$hyper, 
+                cont.family[[i.family]]$control.mix$initial, 
+                cont.family[[i.family]]$control.mix$fixed,
+                cont.family[[i.family]]$control.mix$prior,
+                cont.family[[i.family]]$control.mix$param)
             all.hyper$family[[i.family]]$mix$hyper= cont.family[[i.family]]$control.mix$hyper
         }
         cont.family[[i.family]]$control.link$hyper = inla.set.hyper(
-                                   cont.family[[i.family]]$control.link$model,
-                                   "link",
-                                   cont.family[[i.family]]$control.link$hyper, 
-                                   cont.family[[i.family]]$control.link$initial, 
-                                   cont.family[[i.family]]$control.link$fixed,
-                                   cont.family[[i.family]]$control.link$prior,
-                                   cont.family[[i.family]]$control.link$param)
+            cont.family[[i.family]]$control.link$model,
+            "link",
+            cont.family[[i.family]]$control.link$hyper, 
+            cont.family[[i.family]]$control.link$initial, 
+            cont.family[[i.family]]$control.link$fixed,
+            cont.family[[i.family]]$control.link$prior,
+            cont.family[[i.family]]$control.link$param)
         all.hyper$family[[i.family]]$link$hyper = cont.family[[i.family]]$control.link$hyper
     }
     
@@ -1167,8 +1167,8 @@
         }
 
         files = inla.create.data.file(y.orig= yy, mf=mf, E=E, scale=scale, 
-            weights=weights, Ntrials=Ntrials, strata=strata, 
-            family=family[i.family], data.dir=data.dir, file=file.ini, debug=debug)
+                                      weights=weights, Ntrials=Ntrials, strata=strata, 
+                                      family=family[i.family], data.dir=data.dir, file=file.ini, debug=debug)
         
         ## add a section to the file.ini
         prop = inla.model.properties(family[i.family], "likelihood", stop.on.error=TRUE)
@@ -1340,12 +1340,12 @@
                         ##
                         ## not both are copy, then copy is at the end
                         ##
-                        (gp$random.spec[[r]]$model == "copy" && gp$random.spec[[r+1]]$model != "copy") ||
-                        ##
-                        ## both are copy, then 'same.as' is at the end
-                        ##
-                        (gp$random.spec[[r]]$model == "copy" && gp$random.spec[[r+1]]$model == "copy" &&
-                         !is.null(gp$random.spec[[r]]$same.as) && is.null(gp$random.spec[[r+1]]$same.as))) {
+                    (gp$random.spec[[r]]$model == "copy" && gp$random.spec[[r+1]]$model != "copy") ||
+                    ##
+                    ## both are copy, then 'same.as' is at the end
+                    ##
+                    (gp$random.spec[[r]]$model == "copy" && gp$random.spec[[r+1]]$model == "copy" &&
+                     !is.null(gp$random.spec[[r]]$same.as) && is.null(gp$random.spec[[r+1]]$same.as))) {
 
                         tmp = gp$random.spec[[r]]
                         gp$random.spec[[r]] = gp$random.spec[[r+1]]
@@ -1483,7 +1483,7 @@
                         if (ng.unused >= ng.used) {
                             warning(paste(txt, ": ", 
                                           "Number of unused groups >= the number of groups used: ", ng.unused, " >= ", ng.used, 
-                                        ", this is *usually* a misspesification", sep=""),
+                                          ", this is *usually* a misspesification", sep=""),
                                     immediate. = TRUE)
                         }
                     }
@@ -1544,7 +1544,7 @@
                         covariate[[r]] = cov
                     } else if ((is.factor(xx) || is.character(xx))
                                &&
-                               (is.factor(gp$random.spec[[r]]$values) || is.character(gp$random.spec[[r]]$values))) {
+                           (is.factor(gp$random.spec[[r]]$values) || is.character(gp$random.spec[[r]]$values))) {
                         ## case 2: both factors or character's
 
                         if (is.character(xx)) {
@@ -1664,7 +1664,7 @@
 
                 if (nrep == 1 && ngroup == 1) {
                     n = inla.ifelse(is.null(gp$random.spec[[r]]$n), length(location[[r]][!is.na(location[[r]])]),
-                        gp$random.spec[[r]]$n)
+                                    gp$random.spec[[r]]$n)
                 } else {
                     if (is.null(n))
                         stop("n is NULL!!!!")
@@ -1842,10 +1842,10 @@
                 file.linear = gsub(data.dir, "$inladatadir", file.linear, fixed=TRUE)
 
                 cont = list(cdf=gp$random.spec[[r]]$cdf,
-                    quantiles=gp$random.spec[[r]]$quantiles,
-                    prec=gp$random.spec[[r]]$prec.linear,
-                    mean=gp$random.spec[[r]]$mean.linear,
-                    compute=gp$random.spec[[r]]$compute)
+                            quantiles=gp$random.spec[[r]]$quantiles,
+                            prec=gp$random.spec[[r]]$prec.linear,
+                            mean=gp$random.spec[[r]]$mean.linear,
+                            compute=gp$random.spec[[r]]$compute)
                 
                 if (is.null(all.hyper$linear)) {
                     lin.count = 1L
@@ -1853,9 +1853,9 @@
                     lin.count = length(all.hyper$linear) + 1L
                 }
                 all.hyper$linear[[lin.count]] = inla.linear.section(
-                                    file=file.ini, file.fixed=file.linear, label=gp$random.spec[[r]]$term,
-                                    results.dir=paste("fixed.effect", inla.num(gp$n.fix+count.linear), sep=""),
-                                    control.fixed = cont, only.hyperparam=only.hyperparam)
+                    file=file.ini, file.fixed=file.linear, label=gp$random.spec[[r]]$term,
+                    results.dir=paste("fixed.effect", inla.num(gp$n.fix+count.linear), sep=""),
+                    control.fixed = cont, only.hyperparam=only.hyperparam)
             } else {
                 stop("This should not happen.")
             }
@@ -1981,7 +1981,7 @@
                 echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
             } else {
                 echoc = system(paste(shQuote(inla.call), all.args, shQuote(file.ini), " > ", shQuote(file.log),
-                    inla.ifelse(silent == 2L, " 2>/dev/null", "")))
+                                     inla.ifelse(silent == 2L, " 2>/dev/null", "")))
             }
         } else if (inla.os("windows")) {
             if (!remote && !submit) {
@@ -2028,7 +2028,7 @@
         if (echoc == 0L) {
             if (!submit) {
                 ret = try(inla.collect.results(results.dir, control.results=cont.results, debug=debug,
-                    only.hyperparam=only.hyperparam, file.log = file.log, file.log2=file.log2), silent=FALSE)
+                                               only.hyperparam=only.hyperparam, file.log = file.log, file.log2=file.log2), silent=FALSE)
                 if (!is.list(ret)) {
                     ret = list()
                 }
@@ -2103,7 +2103,7 @@
     } else {
         ret = NULL
     }
-        
+    
     ##
     if (submit) {
         ret$misc$inla.dir = inla.dir
@@ -2128,17 +2128,17 @@
         idx = which(sapply(
             data, 
             function(a, n) {
-                if (inla.is.matrix(a) && (length(dim(a)) > 1L) && (dim(a)[1L] == n)) {
-                    return (TRUE)
-                } else if (length(a) != n || inla.is.matrix(a)) {
-                    return (FALSE)
-                } else if (length(a) == n) {
-                    return (TRUE)
-                } else {
-                    stop("This should not happen.")
-                }
-            },
-            n = n))
+            if (inla.is.matrix(a) && (length(dim(a)) > 1L) && (dim(a)[1L] == n)) {
+                return (TRUE)
+            } else if (length(a) != n || inla.is.matrix(a)) {
+                return (FALSE)
+            } else if (length(a) == n) {
+                return (TRUE)
+            } else {
+                stop("This should not happen.")
+            }
+        },
+        n = n))
         if (revert) {
             idx = (1:length(data))[-idx]
         }
@@ -2223,6 +2223,6 @@
         if (Sys.getenv("MKL_NUM_THREADS") == "")
             Sys.setenv(MKL_NUM_THREADS = abs(blas.num.threads))
     }
-        
+    
     return (invisible())
 }    

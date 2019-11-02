@@ -635,7 +635,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 						 * check that the constaints are not singular, if so, remove them 
 						 */
 						int debug = 0;
-						int *map = NULL, rank, ii, jj;
+						int *map = NULL, rank = 0, ii, jj;
 						double *a = NULL, *e = NULL, eps = GMRFLib_eps(1. / 2.);
 
 						nc = (*problem)->sub_constr->nc;
@@ -1146,7 +1146,7 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp * problem, int compute_const)
 			/*
 			 * t_vector = A mu -b tt_vector = work 
 			 */
-			double *t_vector = NULL, *tt_vector = NULL, exp_corr;
+			double *t_vector = NULL, *tt_vector = NULL, exp_corr = 0.0;
 
 			Free(problem->sub_constr_value);
 			problem->sub_constr_value = t_vector = Calloc(nc, double);

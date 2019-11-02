@@ -29,17 +29,98 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
+\section{CHANGES IN VERSION 19.10.30}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
-      \item 
+      \item Added a scaling constant for the precision parameter in the
+      \code{qkumar} likelihood (to avoid instabilities). See updated
+      documentation for details.
     }
   }
   \subsection{NEW FEATURES}{
     \itemize{
-      \item
+      \item \code{inla.posterior.sample} now correct for possible skewness
+      by default: see \code{?inla.posterior.sample} for details.
     }
   }
+}
+
+
+\section{CHANGES IN VERSION 19.10.16}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Likelihoodmodel \code{betabinomialna}
+    }
+  }
+}
+
+
+\section{CHANGES IN VERSION 19.10.15}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Default prior for the tail parameter in likelihood model
+      \code{gp}, have changed to \code{pc.gevtail}, and the name change
+      from \code{shape} to \code{tail}. It is now required to define a
+      interval for the tail parameter, similar to \code{pc.gevtail}.
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.10.06}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Code-improvement for the \code{loggamma}-function
+      \item \code{barrier.R} updated (minor fix and code edits)
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.10.02}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Disable some debug output
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.10.01}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed a bug in the \code{nmixnb} likelihood. 
+      \item Preserve names in \code{inla.posterior.sample.eval}
+      if present.
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.09.18}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item More work on the skew-normal link model
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.09.15}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item \code{INLA:::inla.binary.install()} is a new interactive tool
+      to install alternative Linux builds. 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.09.10}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added skew-normal link-model \code{sn} for binary data,
+            with its PC-prior
+    }
+  }
+}
+
+
+\section{CHANGES IN VERSION 19.09.03}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
       \item Added \code{robit} link model.
@@ -47,7 +128,10 @@
   }
   \subsection{BUG FIXES}{
     \itemize{
-      \item Improved the stability of the saturated deviance calculations
+      \item Improved the stability of the saturated deviance
+      calculations
+      \item Fixed \code{INLA:::inla.is.list.of.lists} to cover the
+      case where the arguments are a list of named lists
     }
   }
 }
