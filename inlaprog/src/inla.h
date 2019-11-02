@@ -58,11 +58,24 @@ __BEGIN_DECLS
 #define FIFO_PUT_DATA "inla-mcmc-fifo-put-data"
 
 /*
-  The scaling of the critical 'alpha' parameter. If this value change, it must also be changed in models.R
-
-  YES, CHANGE IT MANUALLY!
-*/
+ * The scaling of the critical 'alpha' parameter. If this value change, it must also be changed in models.R
+ *
+ * YES, CHANGE IT MANUALLY!
+ */
 #define INLA_WEIBULL_ALPHA_SCALE 0.10
+
+/*
+ * The scaling of the critical 'precision' parameter. If this value change, it must also be changed in models.R 
+ *
+ * YES, CHANGE IT MANUALLY!
+ */
+#define INLA_QKUMAR_PREC_SCALE 0.10
+
+/* 
+ * The maximum skewness parameter in the LINK_SN, where this is the 1/3-root of 'aa' as in the term Phi(aa*x). 3.2 gives aa =
+ * 3.2^3 = 32.768. This constant also appears in the 'to.theta' and 'from.theta' functions in inla.models()$link$sn$hyper$theta
+ */
+#define LINK_SN_AMAX (3.2)
 
 /* 
  *
@@ -281,9 +294,10 @@ typedef struct {
 	double **zero_n_inflated_alphaN_intern;
 
 	/*
-	 * the overdispersion parameter for the betabinomial, \rho = 1/(a+b+1).
+	 * the overdispersion parameter for the betabinomial and betabinomialna, \rho = 1/(a+b+1).
 	 */
 	double **betabinomial_overdispersion_intern;
+	double *betabinomialnb_scale;
 
 	/*
 	 * the precision parameter for the beta, \phi = exp(theta)
@@ -328,7 +342,7 @@ typedef struct {
 	double **gev2_intern_tail;
 	int gev2_nbetas[2];
 	int *gev2_ncols;
-	
+
 	/*
 	 * Log gamma frailty
 	 */
@@ -422,7 +436,8 @@ typedef struct {
 	/*
 	 * generalized Pareto
 	 */
-	double **gp_log_shape;				       /* log(shape) [or log(xi)] parameter */
+	double **gp_intern_tail;			       /* log(xi) parameter */
+	double *gp_tail_interval;
 
 } Data_tp;
 
@@ -441,6 +456,7 @@ typedef struct {
 	double **specificity_intern;
 	double **prob_intern;
 	double **dof_intern;
+	double **sn_alpha;
 	double *scale;
 } Link_param_tp;
 
@@ -511,9 +527,10 @@ typedef enum {
 	L_QLOGLOGISTIC,
 	L_QLOGLOGISTICSURV,
 	L_POM,
-	L_GEV2, 
- 	L_NBINOMIAL2,
- 	L_GAMMASURV, 
+	L_GEV2,
+	L_NBINOMIAL2,
+	L_GAMMASURV,
+	L_BETABINOMIALNA,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -561,24 +578,24 @@ typedef enum {
 	F_AR1C,
 	F_DMATERN,
 	F_INTSLOPE,
-	P_FIRST_ENTRY_FOR_PRIORS____NOT_FOR_USE = 2000,		       /* priors */
+	P_FIRST_ENTRY_FOR_PRIORS____NOT_FOR_USE = 2000,	       /* priors */
 	P_BETACORRELATION,
 	P_DIRICHLET,
 	P_EXPRESSION,
 	P_FLAT,
-	P_GAMMA, 
+	P_GAMMA,
 	P_GAUSSIAN,
 	P_INVALID,
 	P_JEFFREYS_T_DF,
 	P_LOGFLAT,
-	P_LOGGAMMA, 
+	P_LOGGAMMA,
 	P_LOGIFLAT,
 	P_LOGITBETA,
 	P_MINUSLOGSQRTRUNCGAUSSIAN,
 	P_MVGAUSSIAN,
 	P_MVNORM,
 	P_NONE,
-	P_PC_ALPHAW, 
+	P_PC_ALPHAW,
 	P_PC_AR,
 	P_PC_COR0,
 	P_PC_COR1,
@@ -591,7 +608,7 @@ typedef enum {
 	P_PC_PREC,
 	P_PC_RANGE,
 	P_PC_SPDE_GA,					       /* Experimental prior from GA when dim(theta)=2 */
-	P_PC_GEVTAIL, 
+	P_PC_GEVTAIL,
 	P_REF_AR,					       /* Reference prior for AR(p) for p=1,2,3 */
 	P_TABLE,
 	P_WISHART1D,
@@ -599,6 +616,7 @@ typedef enum {
 	P_WISHART3D,
 	P_WISHART4D,
 	P_WISHART5D,
+	P_PC_SN,
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
@@ -630,9 +648,14 @@ typedef enum {
 	LINK_QBINOMIAL,
 	LINK_QWEIBULL,
 	LINK_QGAMMA,
-	LINK_ROBIT
+	LINK_ROBIT,
+	LINK_SN
 } inla_component_tp;
 
+typedef struct {
+	GMRFLib_spline_tp *cdf, *icdf;
+	double alpha, xmin, xmax, pmin, pmax;
+} inla_sn_table_tp;
 
 /* 
    priors are defined using this template. return log(pi(precision, parameters....))
@@ -1334,7 +1357,7 @@ typedef struct {
 	char *model;					       /* the variable name that contains the model definition */
 	int ntheta;
 	int n;
-	int mu_zero;					       /*  often mu is zero, allow for fast return */
+	int mu_zero;					       /* often mu is zero, allow for fast return */
 	double ***theta;
 	double **param;
 	GMRFLib_tabulate_Qfunc_tp **Q;
@@ -1492,9 +1515,10 @@ double link_neglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_pqbinomial(double x, map_arg_tp typ, void *param, double *cov);
 double link_probit(double x, map_arg_tp typ, void *param, double *cov);
 double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov);
-double link_robit(double x, map_arg_tp typ, void *param, double *cov);
 double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov);
 double link_qweibull(double x, map_arg_tp typ, void *param, double *cov);
+double link_robit(double x, map_arg_tp typ, void *param, double *cov);
+double link_sn(double x, map_arg_tp typ, void *param, double *cov);
 double link_special1(double x, map_arg_tp typ, void *param, double *cov);
 double link_special2(double x, map_arg_tp typ, void *param, double *cov);
 double link_sslogit(double x, map_arg_tp typ, void *param, double *cov);
@@ -1504,6 +1528,7 @@ double link_this_should_not_happen(double x, map_arg_tp typ, void *param, double
 double map_1exp(double arg, map_arg_tp typ, void *param);
 double map_H(double x, map_arg_tp typ, void *param);
 double map_alpha_weibull(double arg, map_arg_tp typ, void *param);
+double map_prec_qkumar(double arg, map_arg_tp typ, void *param);
 double map_beta(double arg, map_arg_tp typ, void *param);
 double map_dof(double arg, map_arg_tp typ, void *param);
 double map_dof5(double arg, map_arg_tp typ, void *param);
@@ -1520,6 +1545,7 @@ double map_invlogit(double x, map_arg_tp typ, void *param);
 double map_invloglog(double arg, map_arg_tp typ, void *param);
 double map_invprobit(double arg, map_arg_tp typ, void *param);
 double map_invrobit(double arg, map_arg_tp typ, void *param);
+double map_invsn(double arg, map_arg_tp typ, void *param);
 double map_invtan(double arg, map_arg_tp typ, void *param);
 double map_negexp(double arg, map_arg_tp typ, void *param);
 double map_p_weibull_cure(double arg, map_arg_tp typ, void *param);
@@ -1561,11 +1587,12 @@ double priorfunc_pc_dof(double *x, double *parameters);
 double priorfunc_pc_gamma(double *x, double *parameters);
 double priorfunc_pc_gammacount(double *x, double *parameters);
 double priorfunc_pc_matern(double *x, double *parameters);
+double priorfunc_pc_gevtail(double *x, double *parameters);
 double priorfunc_pc_mgamma(double *x, double *parameters);
 double priorfunc_pc_prec(double *x, double *parameters);
 double priorfunc_pc_range(double *x, double *parameters);
+double priorfunc_pc_sn(double *x, double *parameters);
 double priorfunc_pc_spde_ga(double *x, double *parameters);
-double priorfunc_pc_gevtail(double *x, double *parameters);
 double priorfunc_ref_ar(double *x, double *parameters);
 double priorfunc_wishart(int dim, double *x, double *parameters);
 double priorfunc_wishart1d(double *x, double *parameters);
@@ -1739,6 +1766,7 @@ int inla_wishart3d_adjust(double *rho);
 int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc);
 int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_betabinomialna(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
@@ -1766,7 +1794,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature) (double **, double **, int *, void *), int (*simpson) (double **, double **, int *, void *));
+			   int (*quadrature)(double **, double **, int *, void *), int(*simpson)(double **, double **, int *, void *));
 int loglikelihood_mix_loggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
@@ -1830,9 +1858,9 @@ typedef struct {
 	double log_prec_initial;			       /* inititial value for log-precisions */
 	double mcmc_scale;				       /* scaling */
 	int mcmc_thinning;				       /* thinning */
-	int mcmc_niter;				       /* number of iterations: 0 is infinite */
+	int mcmc_niter;					       /* number of iterations: 0 is infinite */
 	int reorder;					       /* reorder strategy: -1 for optimize */
-	int mcmc_fifo;				       /* use fifo to communicate in mcmc mode */
+	int mcmc_fifo;					       /* use fifo to communicate in mcmc mode */
 	int mcmc_fifo_pass_data;			       /* use fifo to communicate in mcmc mode, pass also all data */
 } G_tp;
 
