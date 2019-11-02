@@ -16,7 +16,7 @@ F(y;\sigma,\xi)=1-\left(1+\xi\frac{y}{\sigma}\right)^{-1/\xi},
 $$
 for a continuous response $y$ where
 \begin{description}
-\item $\xi$: is the shape parameter, $\xi>0$
+\item $\xi$: is the tail parameter, $\xi>0$
 \item $\sigma$: is the scale parameter, $\sigma>0$
 \end{description}
 The limit for $\xi\downarrow 0$ is
@@ -36,12 +36,15 @@ function of $(q_{\alpha}, \xi)$, as
 \end{displaymath}
 
 \subsection*{Hyperparameters}
-The $\mathrm{GP}$ model has one hyperparameter. The shape $\xi>0$ is
+The $\mathrm{GP}$ model has one hyperparameter. The tail $\xi>0$ is
 represented as
 $$
-\theta=\log \xi,
+\xi = \xi_{\text{low}} + (\xi_{\text{high}} - \xi_{\text{low}})
+\frac{\exp(\theta)}{1 + \exp(\theta)}
 $$
-and the prior is defined on $\theta$.
+and the prior is defined on $\theta$, with constant low and high
+values. The prior is FIXED to \texttt{pc.gevtail}, see
+\texttt{inla.doc("pc.gevtail")} for more info.
 
 \subsection*{Specification}
 \begin{itemize}
@@ -57,5 +60,10 @@ The quantile is given as \texttt{control.family=list(control.link=list(quantile=
 \verbatiminput{genPareto-example.R}
 
 \subsection*{Notes}
+
+The prior for $\xi$ is fixed to \texttt{pc.gevtail} or one that
+respect an given interval similarly. Note that the default prior (and
+the internal representation of it and its name) changed 2019/10/12.
+
         
 \end{document}

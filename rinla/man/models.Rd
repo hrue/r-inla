@@ -5946,6 +5946,32 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `sn'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{hyperid = }{`49031'}
+							\item{name = }{`alpha'}
+							\item{short.name = }{`alpha'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`pc.sn'}
+							\item{param = }{`50'}
+							\item{to.theta = }{`\code{function(x, amax3 = 3.2^3) log((1+x/amax3)/(1-x/amax3))}'}
+							\item{from.theta = }{`\code{function(x, amax3 = 3.2^3) amax3*(2*exp(x)/(1+exp(x))-1)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`Skew-normal link'}
+								\item{status = }{`experimental'}
+								\item{pdf = }{`linksn'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `test1'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{
@@ -6455,7 +6481,7 @@ inla.models()
 							 \describe{
 							\item{hyperid = }{`57202'}
 							\item{name = }{`tail'}
-							\item{short.name = }{`tail'}
+							\item{short.name = }{`xi'}
 							\item{initial = }{`-4'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.gevtail'}
@@ -6701,12 +6727,12 @@ inla.models()
 							\item{hyperid = }{`60001'}
 							\item{name = }{`precision parameter'}
 							\item{short.name = }{`prec'}
-							\item{initial = }{`0'}
+							\item{initial = }{`1'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`1 0.001'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							\item{param = }{`1 0.1'}
+							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x)/sc}'}
+							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc*x)}'}
 							}
 						}
 					 }
@@ -6828,8 +6854,36 @@ inla.models()
 								\item{doc = }{`The Beta-Binomial likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default logit cauchit probit cloglog loglog robit'}
+								\item{link = }{`default logit cauchit probit cloglog loglog robit sn'}
 								\item{pdf = }{`betabinomial'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `betabinomialna'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{hyperid = }{`62101'}
+							\item{name = }{`overdispersion'}
+							\item{short.name = }{`rho'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`gaussian'}
+							\item{param = }{`0 0.4'}
+							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`The Beta-Binomial Normal approximation likelihood'}
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`TRUE'}
+								\item{link = }{`default logit cauchit probit cloglog loglog robit sn'}
+								\item{pdf = }{`betabinomialna'}
 							 }
 						 }
 					 }
@@ -7731,7 +7785,7 @@ inla.models()
 								\item{doc = }{`Zero-inflated Beta-Binomial, type 0'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default logit cauchit probit cloglog loglog robit'}
+								\item{link = }{`default logit cauchit probit cloglog loglog robit sn'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }
@@ -7772,7 +7826,7 @@ inla.models()
 								\item{doc = }{`Zero-inflated Beta-Binomial, type 1'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default logit cauchit probit cloglog loglog robit'}
+								\item{link = }{`default logit cauchit probit cloglog loglog robit sn'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }
@@ -7800,7 +7854,7 @@ inla.models()
 								\item{doc = }{`Zero-inflated Binomial, type 0'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit cauchit probit cloglog loglog robit'}
+								\item{link = }{`default logit cauchit probit cloglog loglog robit sn'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }
@@ -7828,7 +7882,7 @@ inla.models()
 								\item{doc = }{`Zero-inflated Binomial, type 1'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit cauchit probit cloglog loglog robit'}
+								\item{link = }{`default logit cauchit probit cloglog loglog robit sn'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }
@@ -7856,7 +7910,7 @@ inla.models()
 								\item{doc = }{`Zero-inflated Binomial, type 2'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit cauchit probit cloglog loglog robit'}
+								\item{link = }{`default logit cauchit probit cloglog loglog robit sn'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }
@@ -7897,7 +7951,7 @@ inla.models()
 								\item{doc = }{`Zero and N inflated binomial, type 2'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit cauchit probit cloglog loglog robit'}
+								\item{link = }{`default logit cauchit probit cloglog loglog robit sn'}
 								\item{pdf = }{`NA'}
 							 }
 						 }
@@ -7939,7 +7993,7 @@ inla.models()
 								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit cauchit probit cloglog loglog robit'}
+								\item{link = }{`default logit cauchit probit cloglog loglog robit sn'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }
@@ -7980,7 +8034,7 @@ inla.models()
 								\item{doc = }{`Zero inflated Beta-Binomial, type 2'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit cauchit probit cloglog loglog robit'}
+								\item{link = }{`default logit cauchit probit cloglog loglog robit sn'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }
@@ -9066,14 +9120,14 @@ inla.models()
 						\item{Hyperparameter `theta'}{
 							 \describe{
 							\item{hyperid = }{`101201'}
-							\item{name = }{`shape'}
+							\item{name = }{`tail'}
 							\item{short.name = }{`xi'}
-							\item{initial = }{`-2.30258509299405'}
+							\item{initial = }{`-4'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`1 15'}
-							\item{to.theta = }{`\code{function(x) log(x)}'}
-							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							\item{prior = }{`pc.gevtail'}
+							\item{param = }{`7 0 0.5'}
+							\item{to.theta = }{`\code{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x)/(interval[2] - x))}'}
+							\item{from.theta = }{`\code{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2]-interval[1]) * exp(x)/(1.0 + exp(x))}'}
 							}
 						}
 					 }
@@ -9158,6 +9212,8 @@ inla.models()
 				\item{Model `pc.matern'.}{					 Number of parameters in the prior = 3 
 				 }
 				\item{Model `pc.range'.}{					 Number of parameters in the prior = 2 
+				 }
+				\item{Model `pc.sn'.}{					 Number of parameters in the prior = 1 
 				 }
 				\item{Model `pc.gamma'.}{					 Number of parameters in the prior = 1 
 				 }

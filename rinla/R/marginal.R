@@ -1,5 +1,6 @@
 ## Export: inla.dmarginal inla.pmarginal inla.qmarginal inla.rmarginal inla.hpdmarginal
 ## Export: inla.smarginal inla.emarginal inla.tmarginal inla.mmarginal inla.zmarginal
+
 ## NOT-YET-IN-USE-Export: summary!inla.marginal plot!inla.marginal
 
 ##! \name{marginal}
@@ -17,8 +18,6 @@
 ##! \alias{hpdmarginal}
 ##! \alias{inla.emarginal}
 ##! \alias{emarginal}
-##! \alias{inla.marginal.expectation}
-##! \alias{marginal.expectation}
 ##! \alias{inla.smarginal}
 ##! \alias{smarginal}
 ##! \alias{inla.tmarginal}

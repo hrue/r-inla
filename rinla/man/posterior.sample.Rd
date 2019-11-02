@@ -13,10 +13,12 @@
  \description{This function generate samples, and functions of those,
               from an approximated posterior of a fitted model (an inla-object)}
  \usage{
-     inla.posterior.sample(n = 1L, result, selection = list(),
-                           intern = FALSE, use.improved.mean = TRUE,
-                           add.names = TRUE, seed = 0L, num.threads = NULL,
-                           verbose = FALSE)
+     inla.posterior.sample(n = 1L, result, selection = list(), 
+                           intern = FALSE,
+                           use.improved.mean = TRUE, skew.corr = TRUE, 
+                           num.cores = 1L,
+                           add.names = TRUE, seed = 0L, num.threads = NULL, 
+                           verbose=FALSE)
      inla.posterior.sample.eval(fun, samples, return.matrix = TRUE, ...)
  }
  
@@ -29,13 +31,23 @@
        is returned. \code{selection} is a named list with the name of the components of
        the sample, and what indices of them to return. Names include \code{APredictor},
        \code{Predictor}, \code{(Intercept)},  and otherwise names in the formula.
-      The values of the list, is interpreted as indices. If they
+       The values of the list, is interpreted as indices. If they
        are negative, they are interpreted as 'not', a zero is interpreted as 'all',  and
        positive indices are interpreted as 'only'. The names of elements of each samples 
        refer to the indices in the full sample. }
+   \item{num.cores}{Number of cores to use in the \code{foreach} package.
+        By default it only exploits one for a serial strategy of 
+        the computations. For \code{num.cores} greater than 1 we are basically
+        creating a single stream of tasks 
+        that can all be executed in parallel. The number of threads employed
+        by \code{inla.qsample},  the argument \code{num.threads},  are matched
+        with the number of cores specified in the option \code{num.cores}.}
    \item{use.improved.mean}{Logical. If \code{TRUE} then use the
        marginal mean values when constructing samples. If \code{FALSE}
        then use the mean in the Gaussian approximations.}
+   \item{skew.corr}{Logical. If \code{TRUE} then correct samples for skewness,
+       if \code{FALSE},  do not correct samples for skewness (ie use the
+       Gaussian).}
   \item{intern}{Logical. If \code{TRUE} then produce samples in the
        internal scale for the hyperparmater, if \code{FALSE} then produce
        samples in the user-scale. (For example log-precision (intern)
@@ -69,13 +81,17 @@
    \item{...}{Additional arguments to \code{fun}}
 }
 \details{The hyperparameters are sampled from the configurations used to do the
-       numerical integration,  hence if you want a higher resolution,  you need to
+       numerical integration, hence if you want a higher resolution, you need to
        to change the \code{int.stratey} variable and friends. The latent field is
        sampled from the Gaussian approximation conditioned on the hyperparameters,
-       but with a correction for the mean (default).
+       but with a correction for the mean (default), and optional (and by default)
+       corrected for the estimated skewness.
 
-       Set sparse-matrix library with \code{inla.setOption(smtp=...)} and
-       number of threads by \code{inla.setOption(num.threads=...)}.
+       The log.density report is only correct when there is no constraints.
+       With constraints, it correct the Gaussian part of the sample for the constraints.
+       After the sample is (optional) skewness corrected, the log.density
+       is is not exact for correcting for constraints, but the error is very
+       small in most cases.
 }
 \value{\code{inla.posterior.sample} returns a list of the samples,
        where each sample is a list with
@@ -85,7 +101,7 @@
      \code{inla.posterior.sample.eval} return a list or a matrix of 
      \code{fun} applied to each sample.
 }
-\author{Havard Rue \email{hrue@r-inla.org}}
+\author{Havard Rue \email{hrue@r-inla.org} and Cristian Chiuchiolo \email{cristian.chiuchiolo@kaust.edu.sa}}
  
 \examples{
   r = inla(y ~ 1 ,data = data.frame(y=rnorm(1)), control.compute = list(config=TRUE))
