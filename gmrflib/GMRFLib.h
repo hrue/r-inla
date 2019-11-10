@@ -136,5 +136,6 @@ __BEGIN_DECLS
 #include "GMRFLib/hgmrfm.h"
 #include "GMRFLib/matern.h"
 #include "GMRFLib/fmesher-io.h"
+
     __END_DECLS
 #endif

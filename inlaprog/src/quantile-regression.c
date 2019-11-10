@@ -1,7 +1,7 @@
 
 /* quantile-regression.c
  * 
- * Copyright (C) 2016-7 Havard Rue
+ * Copyright (C) 2016-2019 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,8 +32,11 @@
 #endif
 static const char RCSId[] = HGVERSION;
 
+#include "rmath.h"
+
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
+#include "GMRFLib/density.h"
 
 #include "quantile-regression.h"
 #include "interpol.h"
@@ -43,11 +46,13 @@ double inla_pcontpois(double y, double lambda)
 	// the cdf for the continous poisson
 	return gsl_sf_gamma_inc_Q(y, lambda);
 }
+
 double inla_pcontpois_deriv(double y, double lambda)
 {
 	// the derivative of the cdf for the continous poisson, wrt lambda
 	return (-exp((y - 1.0) * log(lambda) - lambda - gsl_sf_lngamma(y)));
 }
+
 double inla_qcontpois(double quantile, double alpha, double *initial_guess)
 {
 	double eta;
@@ -56,6 +61,7 @@ double inla_qcontpois(double quantile, double alpha, double *initial_guess)
 	}
 	return (exp(inla_qcontpois_eta(quantile, alpha, (initial_guess ? &eta : NULL))));
 }
+
 double inla_qcontpois_eta(double quantile, double alpha, double *initial_guess)
 {
 #define LOGIT(p) log((p)/(1.0-(p)))
@@ -116,3 +122,74 @@ GMRFLib_spline_tp **inla_qcontpois_func(double alpha, int num)
 
 	return (spline);
 }
+
+double inla_qgamma_cache(double shape, double quantile, int id) 
+{
+	/* 
+	 * this function cache spline-tables of qgamma()'s, with a unit scale and varying shape, for fixed quantiles. if 'id' is
+	 * negative, then initialize the caches for the given quantile, possible adding a new one if an other one exists.
+	 */
+
+	static struct inla_qgamma_cache_tp **cache = NULL;
+	static int cache_len = 0;
+	double invalid_value = -1.0;
+	int debug = 0;
+	
+	if (id < 0) {
+#pragma omp critical
+		{
+			double log_shape_min = -7.0, log_shape_max = 10.0, by = 0.2, *xy, *x, *y;
+			int id_max = GMRFLib_MAX_THREADS, i, n, nn;
+
+			n = (int) ((log_shape_max - log_shape_min) / by + 0.5) + 1;
+			xy = Calloc(2*n, double);
+			x = xy;
+			y = xy + n;
+
+			for(i = nn = 0; i < n; i++) {
+				x[i] = log_shape_min + by * i;
+				y[i] = log(MATHLIB_FUN(qgamma)(quantile, exp(x[i]), 1.0, 1, 0));
+				nn++;
+			}
+
+			if (cache == NULL) {
+				cache_len = 1;
+				cache = Calloc(1, struct inla_qgamma_cache_tp *);
+			} else {
+				cache_len++;
+				cache = Realloc(cache, cache_len, struct inla_qgamma_cache_tp *);
+			}
+                        cache[cache_len-1] = Calloc(1, struct inla_qgamma_cache_tp);
+			cache[cache_len-1]->quantile = quantile;
+			cache[cache_len-1]->s = Calloc(id_max, GMRFLib_spline_tp *);
+			for(i = 0; i < id_max; i++){
+				cache[cache_len-1]->s[i] = inla_spline_create(x, y, nn);
+			}
+			Free(xy);
+		}
+		if (debug) {
+			fprintf(stderr, "init cache for quantile = %g\n", quantile);
+		}
+
+		return invalid_value;
+	} else {
+		int i, found, thread = omp_get_thread_num();
+		
+		for(i = found = 0; i < cache_len; i++) {
+			if (cache[i]->quantile == quantile) {
+				found = 1;
+				break;
+			}
+		}
+		if (found) {
+			return (exp(inla_spline_eval(log(shape), cache[i]->s[thread])));
+		} else {
+			inla_qgamma_cache(shape, quantile, -1); /* init a new one */
+			return (inla_qgamma_cache(shape, quantile, id));
+		} 
+	}
+	return invalid_value;
+}
+
+
+
