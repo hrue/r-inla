@@ -29,26 +29,11 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
-  \subsection{USER-VISIBLE CHANGES}{
-    \itemize{
-      \item 
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
-    }
-  }
+\section{CHANGES IN VERSION 19.11.10}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
       \item Cache values of \code{qgamma} to speedup
       Gamma quantile regression
-    }
-  }
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item
     }
   }
 }
