@@ -29,6 +29,29 @@
   }
 }
 
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Updated the vignette about the multinomial distribution
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.11.10}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
