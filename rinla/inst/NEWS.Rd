@@ -29,6 +29,15 @@
   }
 }
 
+\section{CHANGES IN VERSION 19.11.10}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Cache values of \code{qgamma} to speedup
+      Gamma quantile regression
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.10.30}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{

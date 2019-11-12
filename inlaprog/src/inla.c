@@ -70,12 +70,7 @@ static const char RCSId[] = HGVERSION;
 #include <sys/sysctl.h>
 #endif
 
-#define MATHLIB_STANDALONE
-#define MATHLIB_FUN(_fun) _fun
-#include <Rmath.h>
-#ifdef ISNAN
-#undef ISNAN
-#endif
+#include "rmath.h"
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
@@ -1824,7 +1819,8 @@ double link_qgamma(double x, map_arg_tp typ, void *param, double *cov)
 
 	switch (typ) {
 	case INVLINK:
-		ret = exp(x) * shape / MATHLIB_FUN(qgamma) (lparam->quantile, shape, 1.0, 1, 0);
+		//ret = exp(x) * shape / MATHLIB_FUN(qgamma) (lparam->quantile, shape, 1.0, 1, 0);
+		ret = exp(x) * shape / inla_qgamma_cache(shape, lparam->quantile, 0);
 		break;
 
 	case LINK:
@@ -15607,6 +15603,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->link_id = LINK_QGAMMA;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_qgamma;
+			inla_qgamma_cache(0.0, ds->data_observations.quantile, -1);
 			break;
 		case L_GP:
 			ds->link_id = LINK_LOG;
