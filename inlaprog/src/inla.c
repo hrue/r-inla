@@ -32771,6 +32771,7 @@ int inla_qreordering(const char *filename)
 	sm_fact.smtp = GMRFLib_SMTP_TAUCS;
 	GMRFLib_compute_reordering(&sm_fact, graph, NULL);
 
+	printf("QREORDERING\n");			       /* code used when the output is parsed */
 	printf("%s\n", GMRFLib_reorder_name(GMRFLib_reorder));
 	printf("%1d\n", GMRFLib_reorder);
 	for (i = 0; i < graph->n; i++) {
