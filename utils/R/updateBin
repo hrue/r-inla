@@ -52,7 +52,7 @@ done
 ## the experimental windows build
 dex=$d/windows/experimental
 if true; then
-    mkdir -p 
+    mkdir -p $dex
     for f in $(ssh -p $INLA_LINUX_PORT $INLA_LINUX builds/my-windows/local/bin/list-dll); do
 	echo sync $f
 	rsync --rsh="ssh -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:$f $dex/.
