@@ -28,25 +28,14 @@
     }
   }
 }
-\section{CHANGES IN VERSION xx.xx.xx}{
-  \subsection{USER-VISIBLE CHANGES}{
-    \itemize{
-      \item 
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
-    }
-  }
-  \subsection{NEW EXPERIMENTAL FEATURES}{
-    \itemize{
-      \item
-    }
-  }
+
+\section{CHANGES IN VERSION 19.12.03}{
   \subsection{BUG FIXES}{
     \itemize{
-      \item
+      \item Updated some documentation about the \code{pc.gevtail} prior.
+      \item Reverted \code{inla.posterior.sample} back to the old
+      version, the new experimental version is available as
+      \code{INLA:::inla.posterior.sample.new}
     }
   }
 }
