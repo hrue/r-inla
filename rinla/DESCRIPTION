@@ -23,7 +23,6 @@ Suggests:
     Deriv,
     devtools,
     doParallel,
-    doMC,
     fields,
     graph,
     gridExtra,
