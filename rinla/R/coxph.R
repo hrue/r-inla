@@ -67,7 +67,7 @@
 ##!rr = inla(formula,
 ##!        family = c(p$family, "gaussian"),
 ##!        data = df.joint,
-##!        E = df.joint$E)
+##!        E = df.joint$E..coxph)
 ##!}
 
 `inla.coxph` = function(formula, data, control.hazard = list(), debug=FALSE)
