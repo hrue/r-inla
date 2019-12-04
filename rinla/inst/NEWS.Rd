@@ -29,6 +29,29 @@
   }
 }
 
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Improved documentation of \code{inla.posterior.sample} and \code{inla.coxph}
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.12.03}{
   \subsection{BUG FIXES}{
     \itemize{
