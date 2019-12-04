@@ -109,10 +109,10 @@
 ##!  samples = inla.posterior.sample(2,r)
 ##!
 ##!  ## reproducible results:
-##!  set.seed(1234)
 ##!  inla.seed = as.integer(runif(1)*.Machine$integer.max)
+##!  set.seed(12345)
 ##!  x = inla.posterior.sample(100, r, seed = inla.seed)
-##!  set.seed(1234)
+##!  set.seed(12345)
 ##!  xx = inla.posterior.sample(100, r, seed = inla.seed)
 ##!  all.equal(x, xx)
 ##!
