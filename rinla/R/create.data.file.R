@@ -360,7 +360,8 @@
         ## remove entries with NA's in all responses
         na.y = apply(response[, col.y, drop=FALSE], 1, function(x) all(is.na(x)))
         response = response[!na.y,, drop=FALSE]
-
+        scale = scale[!na.y]
+        
         X = response[, col.x, drop=FALSE]
         Y = response[, col.y, drop=FALSE]
         stopifnot(ncol(Y) == 1)
