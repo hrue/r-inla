@@ -47,7 +47,9 @@
   }
   \subsection{BUG FIXES}{
     \itemize{
-      \item Improved documentation of \code{inla.posterior.sample} and \code{inla.coxph}
+      \item Improved documentation of \code{inla.posterior.sample} and
+      \code{inla.coxph}
+      \item Fixed an issue with \code{NA} data in the family \code{gev2}
     }
   }
 }
