@@ -37,7 +37,7 @@
   }
   \subsection{NEW FEATURES}{
     \itemize{
-      \item
+      \item The function \code{inla.binary.install} is now exported.
     }
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
@@ -45,6 +45,14 @@
       \item
     }
   }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.12.10}{
   \subsection{BUG FIXES}{
     \itemize{
       \item Improved documentation of \code{inla.posterior.sample} and
