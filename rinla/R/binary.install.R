@@ -66,6 +66,9 @@
     show("Install file [", fnm, "]")
     pa = searchpaths()
     pa = pa[grep("/INLA$", pa)]
+    if (length(pa) == 0) {
+        stop("I cannot find '/INLA' in the searchpath(), so please retry after doing library('INLA')")
+    }
     stopifnot(file.info(pa)$isdir)
     show("INLA is installed in [", pa, "]")
     pa = paste0(pa, "/bin/linux")
