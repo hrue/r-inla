@@ -69,6 +69,8 @@
       \item Reverted \code{inla.posterior.sample} back to the old
       version, the new experimental version is available as
       \code{INLA:::inla.posterior.sample.new}
+      \item Error in \code{Epil} data-set, \code{y[31]} should be
+      23 not 21. 
     }
   }
 }
