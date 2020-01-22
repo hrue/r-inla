@@ -11251,7 +11251,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	 */
 
 	char *secname = NULL, *msg = NULL, *ctmp = NULL;
-	int i, j, found = 0, n_data = (mb->predictor_m > 0 ? mb->predictor_m : mb->predictor_n);
+	int i, j, found = 0, n_data = (mb->predictor_m > 0 ? mb->predictor_m : mb->predictor_n), 
+		discrete_data = 0;
 	double tmp;
 	Data_section_tp *ds;
 
@@ -11316,45 +11317,57 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "POISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_poisson;
 		ds->data_id = L_POISSON;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "QCONTPOISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_qcontpoisson;
 		ds->data_id = L_QCONTPOISSON;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "CONTPOISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_contpoisson;
 		ds->data_id = L_CONTPOISSON;
 	} else if (!strcasecmp(ds->data_likelihood, "CENPOISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_cenpoisson;
 		ds->data_id = L_CENPOISSON;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "GPOISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gpoisson;
 		ds->data_id = L_GPOISSON;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDPOISSON0")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_poisson0;
 		ds->data_id = L_ZEROINFLATEDPOISSON0;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDPOISSON1")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_poisson1;
 		ds->data_id = L_ZEROINFLATEDPOISSON1;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDPOISSON2")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_poisson2;
 		ds->data_id = L_ZEROINFLATEDPOISSON2;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "BINOMIAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomial;
 		ds->data_id = L_BINOMIAL;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "NBINOMIAL2")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_nbinomial2;
 		ds->data_id = L_NBINOMIAL2;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "CBINOMIAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_cbinomial;
 		ds->data_id = L_CBINOMIAL;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "POM")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_pom;
 		ds->data_id = L_POM;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "GAMMA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gamma;
 		ds->data_id = L_GAMMA;
 	} else if (!strcasecmp(ds->data_likelihood, "GAMMACOUNT")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gammacount;
 		ds->data_id = L_GAMMACOUNT;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "QKUMAR")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_qkumar;
 		ds->data_id = L_QKUMAR;
@@ -11370,51 +11383,66 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "BETABINOMIAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_betabinomial;
 		ds->data_id = L_BETABINOMIAL;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "BETABINOMIALNA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_betabinomialna;
 		ds->data_id = L_BETABINOMIALNA;
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDBINOMIAL0")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_binomial0;
 		ds->data_id = L_ZEROINFLATEDBINOMIAL0;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDBINOMIAL1")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_binomial1;
 		ds->data_id = L_ZEROINFLATEDBINOMIAL1;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDBINOMIAL2")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_binomial2;
 		ds->data_id = L_ZEROINFLATEDBINOMIAL2;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "ZERONINFLATEDBINOMIAL2")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zero_n_inflated_binomial2;
 		ds->data_id = L_ZERO_N_INFLATEDBINOMIAL2;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "ZERONINFLATEDBINOMIAL3")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zero_n_inflated_binomial3;
 		ds->data_id = L_ZERO_N_INFLATEDBINOMIAL3;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDBETABINOMIAL0")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_betabinomial0;
 		ds->data_id = L_ZEROINFLATEDBETABINOMIAL0;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDBETABINOMIAL1")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_betabinomial1;
 		ds->data_id = L_ZEROINFLATEDBETABINOMIAL1;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDBETABINOMIAL2")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_betabinomial2;
 		ds->data_id = L_ZEROINFLATEDBETABINOMIAL2;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "NBINOMIAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_negative_binomial;
 		ds->data_id = L_NBINOMIAL;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDNBINOMIAL0")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_negative_binomial0;
 		ds->data_id = L_ZEROINFLATEDNBINOMIAL0;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDNBINOMIAL1")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_negative_binomial1;
 		ds->data_id = L_ZEROINFLATEDNBINOMIAL1;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDNBINOMIAL2")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_negative_binomial2;
 		ds->data_id = L_ZEROINFLATEDNBINOMIAL2;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDNBINOMIAL1STRATA2")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_negative_binomial1_strata2;
 		ds->data_id = L_ZEROINFLATEDNBINOMIAL1STRATA2;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDNBINOMIAL1STRATA3")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_negative_binomial1_strata3;
 		ds->data_id = L_ZEROINFLATEDNBINOMIAL1STRATA3;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "STOCHVOL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_stochvol;
 		ds->data_id = L_STOCHVOL;
@@ -11469,16 +11497,17 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "NMIX")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_nmix;
 		ds->data_id = L_NMIX;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "NMIXNB")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_nmixnb;
 		ds->data_id = L_NMIXNB;
+		discrete_data = 1;
 	} else {
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, "LIKELIHOOD", ds->data_likelihood);
 	}
 	if (mb->verbose) {
 		printf("\t\tlikelihood=[%s]\n", ds->data_likelihood);
 	}
-
 
 	inla_read_fileinfo(mb, ini, sec, &(ds->data_file), NULL);
 	inla_read_fileinfo(mb, ini, sec, &(ds->weight_file), "WEIGHTS");
@@ -11488,6 +11517,18 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * validate the data 
 	 */
+	if (discrete_data) {
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.y[i] != (int) ds->data_observations.y[i]) {
+					GMRFLib_sprintf(&msg, "%s: %s likelihood is defined on integers, but y[%1d] = %.12g\n",
+							secname, ds->data_likelihood, i, ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+	}
+	
 	switch (ds->data_id) {
 	case L_GAUSSIAN:
 		for (i = 0; i < mb->predictor_ndata; i++) {
