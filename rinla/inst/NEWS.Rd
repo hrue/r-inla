@@ -47,7 +47,8 @@
   }
   \subsection{BUG FIXES}{
     \itemize{
-      \item
+      \item Added a check that observations are indeed integers for
+      Poisson, Binomial, etc
     }
   }
 }
