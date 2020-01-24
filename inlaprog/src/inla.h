@@ -517,12 +517,12 @@ typedef enum {
 	L_GAMMACOUNT,
 	L_SKEWNORMAL2,
 	L_QKUMAR,
-	L_QCONTPOISSON,
+	L_QCONTPOISSON,					       /* DISABLED in models.R */
 	L_CENPOISSON,					       /* cencored poisson */
 	L_NMIX,
 	L_NMIXNB,
 	L_GP,
-	L_CONTPOISSON,
+	L_CONTPOISSON,					       /* DISABLED in models.R */
 	L_LOGLOGISTIC,
 	L_LOGLOGISTICSURV,
 	L_QLOGLOGISTIC,

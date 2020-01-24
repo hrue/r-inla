@@ -6086,14 +6086,13 @@ double eval_log_contpoisson(double y, double lambda)
 {
 	// use that f.cont(x+1/2) approx f.poisson(x) for integer x's. I wasn't able to get the incomplete_gamma version
 	// accurate enough to work. maybe the connection with the Gamma-distribution is a nice way to go?
-#define _R 3
-#define _L 5
+#define _R 2
+#define _L 3
 #define _LEN (_R + _L + 2)
 	int i, istart, iy, low, high, len;
-	double work[2 * _LEN], *xx, *yy, lnormc, lval;
+	double work[2 * _LEN], *xx, *yy, lval;
 	GMRFLib_spline_tp *spline;
 
-	lnormc = gsl_sf_lnfact((unsigned int) y);
 	low = IMAX(0, (int) y - _L);
 	high = (int) y + _R;
 	len = high - low + 1;
@@ -6111,7 +6110,7 @@ double eval_log_contpoisson(double y, double lambda)
 
 	for (iy = low, i = istart; iy <= high; iy++, i++) {
 		xx[i] = iy + 0.5;
-		yy[i] = iy * log(lambda) - lambda - lnormc;
+		yy[i] = iy * log(lambda) - lambda - gsl_sf_lnfact((unsigned int) iy);
 	}
 	spline = inla_spline_create(xx, yy, len);
 	lval = inla_spline_eval(y, spline);
@@ -6125,6 +6124,9 @@ double eval_log_contpoisson(double y, double lambda)
 
 int loglikelihood_contpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
+	// this model is disabled
+	assert(0 == 1);
+
 	/*
 	 * y ~ ContPoisson(E*exp(x))
 	 */
@@ -6159,6 +6161,9 @@ int loglikelihood_contpoisson(double *logll, double *x, int m, int idx, double *
 
 int loglikelihood_qcontpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
+	// this model is disabled
+	assert(0 == 1);
+
 	/*
 	 * y ~ ContPoisson(E*exp(x)), also accept E=0, giving the likelihood y * x.  quantile version
 	 */
@@ -33881,11 +33886,20 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 35: 
+	{
+		double y, lambda =  1.234;
+
+		for(y = 0.0; y <= 3.0; y += 0.1) {
+			printf("y=%g  eval_log_contpoisson= %g\n", y, eval_log_contpoisson(y+1, lambda));
+		}
+		break;
+	}
+
 	default:
 		exit(0);
 	}
-
-
+	
 	exit(EXIT_SUCCESS);
 }
 
