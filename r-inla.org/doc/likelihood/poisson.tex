@@ -38,8 +38,19 @@ None.
 
 \begin{itemize}
 \item $\text{family}=\texttt{poisson}$
+\item Required arguments: (integer-valued) $y$ and $E$
+\end{itemize}
+
+\noindent There is an alternative expert-version,
+\begin{itemize}
+\item $\text{family}=\texttt{xpoisson}$
 \item Required arguments: $y$ and $E$
 \end{itemize}
+which allows the Poisson likelihood to be evaluated for a
+real-numbered response $y\ge0$, in cases where this is known to make
+sense. Note that $y!$ is computed using the integer part of $y$.
+
+
 
 \subsection*{Example}
 

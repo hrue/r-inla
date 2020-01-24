@@ -532,6 +532,7 @@ typedef enum {
 	L_NBINOMIAL2,
 	L_GAMMASURV,
 	L_BETABINOMIALNA,
+	L_XPOISSON,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */

@@ -4309,6 +4309,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_POISSON:
+	case L_XPOISSON:
 		idiv = 3;
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 		break;
@@ -11323,6 +11324,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_poisson;
 		ds->data_id = L_POISSON;
 		discrete_data = 1;
+	} else if (!strcasecmp(ds->data_likelihood, "XPOISSON")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_poisson;
+		ds->data_id = L_XPOISSON;
+		discrete_data = 0;			       /* disable any check. Yes, this is what this one does. */
 	} else if (!strcasecmp(ds->data_likelihood, "QCONTPOISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_qcontpoisson;
 		ds->data_id = L_QCONTPOISSON;
@@ -11727,6 +11732,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_POISSON:
+	case L_XPOISSON:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
@@ -12248,6 +12254,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_POISSON:
+	case L_XPOISSON:
 		break;
 
 	case L_CONTPOISSON:
@@ -15630,6 +15637,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_ASSERT((ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0), GMRFLib_EPARAMETER);
 		switch (ds->data_id) {
 		case L_POISSON:
+		case L_XPOISSON:
 			ds->link_id = LINK_QPOISSON;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_qpoisson;
@@ -25934,6 +25942,7 @@ double extra(double *theta, int ntheta, void *argument)
 			case L_EXPONENTIAL:
 			case L_EXPONENTIALSURV:
 			case L_POISSON:
+			case L_XPOISSON:
 			case L_CONTPOISSON:
 			case L_QCONTPOISSON:
 				/*
