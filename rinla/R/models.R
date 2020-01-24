@@ -5289,6 +5289,16 @@
                      link = c("default", "log", "logoffset", "quantile", "test1", "special1", "special2"),
                      pdf = "poisson"
                  ),
+
+                 xpoisson = list(
+                     doc = "The Poisson likelihood (expert version)", 
+                     hyper = list(
+                     ),
+                     survival = FALSE,
+                     discrete = TRUE,
+                     link = c("default", "log", "logoffset", "quantile", "test1", "special1", "special2"),
+                     pdf = "poisson"
+                 ),
                  
 ###                 contpoisson = list(
 ###                     doc = "The Cont Poisson likelihood", 
