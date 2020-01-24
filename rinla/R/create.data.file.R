@@ -112,9 +112,10 @@
         response = response[!null.dat,]
 
     } else if (inla.one.of(family, c("poisson",
+                                     "xpoisson", 
                                      "cenpoisson", 
-                                     "contpoisson", 
-                                     "qcontpoisson", 
+                                     ## "contpoisson", 
+                                     ## "qcontpoisson", 
                                      "gpoisson", 
                                      "zeroinflatedpoisson0",
                                      "zeroinflatedpoisson1", 
