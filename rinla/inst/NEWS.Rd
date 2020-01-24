@@ -32,12 +32,15 @@
 \section{CHANGES IN VERSION xx.xx.xx}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
-      \item 
+      \item Added a check that discrete observations are indeed
+      integers, like for Poisson, Binomial, etc
     }
   }
   \subsection{NEW FEATURES}{
     \itemize{
       \item The function \code{inla.binary.install} is now exported.
+      \item Added new likelihood family, \code{xpoisson}, which allows
+      continous response: see the documentation for details
     }
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
@@ -47,8 +50,7 @@
   }
   \subsection{BUG FIXES}{
     \itemize{
-      \item Added a check that observations are indeed integers for
-      Poisson, Binomial, etc
+      \item Code clean-up (\code{contpoisson} and \code{qcontpoisson})
     }
   }
 }
