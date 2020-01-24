@@ -5290,25 +5290,25 @@
                      pdf = "poisson"
                  ),
                  
-                 contpoisson = list(
-                     doc = "The Cont Poisson likelihood", 
-                     hyper = list(
-                     ),
-                     survival = FALSE,
-                     discrete = TRUE,
-                     link = c("default", "log"), 
-                     pdf = "contpoisson"
-                 ),
-                 
-                 qcontpoisson = list(
-                     doc = "The quantile Cont Poisson likelihood", 
-                     hyper = list(
-                     ),
-                     survival = FALSE,
-                     discrete = TRUE,
-                     link = c("default", "log"), 
-                     pdf = "qcontpoisson"
-                 ),
+###                 contpoisson = list(
+###                     doc = "The Cont Poisson likelihood", 
+###                     hyper = list(
+###                     ),
+###                     survival = FALSE,
+###                     discrete = TRUE,
+###                     link = c("default", "log"), 
+###                     pdf = "contpoisson"
+###                 ),
+###                 
+###                 qcontpoisson = list(
+###                     doc = "The quantile Cont Poisson likelihood", 
+###                     hyper = list(
+###                     ),
+###                     survival = FALSE,
+###                     discrete = TRUE,
+###                     link = c("default", "log"), 
+###                     pdf = "qcontpoisson"
+###                 ),
                  
                  cenpoisson = list(
                      doc = "Then censored Poisson likelihood", 
