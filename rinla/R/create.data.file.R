@@ -291,7 +291,7 @@
         }
 
     } else if (inla.one.of(family, c("stochvol", "stochvolt", "stochvolnig", "loggammafrailty",
-                                     "iidlogitbeta", "qkumar", "qloglogistic", "gp", "pom"))) {
+                                     "iidlogitbeta", "qkumar", "qloglogistic", "gp", "dgp", "pom"))) {
 
         response = cbind(ind, y.orig)
         null.dat = is.na(response[, 2L])

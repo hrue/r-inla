@@ -4534,6 +4534,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_GP:
+	case L_DGP:
 		idiv = 2;
 		a[0] = NULL;
 		break;
@@ -8248,6 +8249,49 @@ int loglikelihood_gp(double *logll, double *x, int m, int idx, double *x_vec, do
 	return GMRFLib_SUCCESS;
 }
 
+
+int loglikelihood_dgp(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+{
+#define F(_y, _sigma, _xi) (1.0 - pow(1.0 + (_xi) * ((_y) + 1.0)/(_sigma), -1.0/(_xi)))
+	/*
+	 * discrete genPareto
+	 */
+
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double xi = map_interval(ds->data_observations.gp_intern_tail[GMRFLib_thread_id][0], MAP_FORWARD,
+				 (void *) (ds->data_observations.gp_tail_interval));
+	double alpha = ds->data_observations.quantile;
+	double q, sigma, fac;
+
+	fac = xi / (pow(1.0 - alpha, -xi) - 1.0);
+
+	LINK_INIT;
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			q = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			sigma = q * fac;
+			logll[i] = log(F(y, sigma, xi) - F(y-1.01, sigma, xi));
+		}
+	} else {
+		double yy = (y_cdf ? *y_cdf : y);
+		for (i = 0; i < -m; i++) {
+			q = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			sigma = q * fac;
+			logll[i] = F(yy, sigma, xi);
+		}
+	}
+	LINK_END;
+
+#undef F
+	return GMRFLib_SUCCESS;
+}
+
 int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	/*
@@ -11504,6 +11548,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "GP")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gp;
 		ds->data_id = L_GP;
+	} else if (!strcasecmp(ds->data_likelihood, "DGP")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_dgp;
+		ds->data_id = L_DGP;
+		discrete_data =  1;
 	} else if (!strcasecmp(ds->data_likelihood, "NMIX")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_nmix;
 		ds->data_id = L_NMIX;
@@ -11623,10 +11671,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_GP:
+	case L_DGP:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.y[i] < 0.0) {
-					GMRFLib_sprintf(&msg, "%s: genPareto observation y[%1d] = %g is void\n", secname, i,
+					GMRFLib_sprintf(&msg, "%s: gp/dgp observation y[%1d] = %g is void\n", secname, i,
 							ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
@@ -12568,8 +12617,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_GP:
+	case L_DGP:
 		/*
-		 * get options related to the genPareto
+		 * get options related to the gp/dgp
 		 */
 		GMRFLib_ASSERT(ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0, GMRFLib_EPARAMETER);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), -3.0);
@@ -12596,7 +12646,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (DMIN(ds->data_observations.gp_tail_interval[0], ds->data_observations.gp_tail_interval[1]) < 0.0 ||
 		    DMAX(ds->data_observations.gp_tail_interval[0], ds->data_observations.gp_tail_interval[1]) >= 1.0 ||
 		    ds->data_observations.gp_tail_interval[0] >= ds->data_observations.gp_tail_interval[1]) {
-			inla_error_field_is_void(__GMRFLib_FuncName, secname, "GP.TAIL.INTERVAL", ctmp);
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "TAIL.INTERVAL", ctmp);
 		}
 		if (mb->verbose) {
 			printf("\t\tgp.tail.interval [%g %g]\n", ds->data_observations.gp_tail_interval[0],
@@ -12613,8 +12663,15 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern tail parameter for the genPareto observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Tail parameter for the genPareto observations", mb->ds);
+
+			if (ds->data_id == L_GP) {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("Intern tail parameter for the gp observations", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Tail parameter for the gp observations", mb->ds);
+			} else {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("Intern tail parameter for the dgp observations", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Tail parameter for the dgp observations", mb->ds);
+			}
+			
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -15660,6 +15717,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			inla_qgamma_cache(0.0, ds->data_observations.quantile, -1);
 			break;
 		case L_GP:
+			ds->link_id = LINK_LOG;
+			ds->link_ntheta = 0;
+			ds->predictor_invlinkfunc = link_log;
+			break;
+		case L_DGP:
 			ds->link_id = LINK_LOG;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_log;
@@ -25330,6 +25392,7 @@ double extra(double *theta, int ntheta, void *argument)
 				break;
 
 			case L_GP:
+			case L_DGP:
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
