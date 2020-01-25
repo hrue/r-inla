@@ -29,7 +29,7 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
+\section{CHANGES IN VERSION 20.01.25}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
       \item Added a check that discrete observations are indeed
@@ -46,7 +46,7 @@
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item
+      \item Added new likelihood \code{dgp} (discrete generalized Pareto)
     }
   }
   \subsection{BUG FIXES}{
