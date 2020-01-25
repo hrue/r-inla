@@ -33905,6 +33905,14 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+
+	// this will give some more error messages, if any
+	case 999:
+	{
+		GMRFLib_pardiso_check_install(0, 0);
+		break;
+	}
+	
 	default:
 		exit(0);
 	}
@@ -33927,8 +33935,11 @@ int inla_check_pardiso(void)
 	// check if PARDISO-lib is installed and working
 	if (GMRFLib_pardiso_check_install(1, 1) == GMRFLib_SUCCESS) {
 		printf("SUCCESS: PARDISO IS INSTALLED AND WORKING\n");
+		fflush(stdout);
 	} else {
 		printf("FAILURE: PARDISO IS NOT INSTALLED OR NOT WORKING\n");
+		fflush(stdout);
+		GMRFLib_pardiso_check_install(0, 0);
 	}
 	return GMRFLib_SUCCESS;
 }
