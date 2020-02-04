@@ -2746,7 +2746,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				
 				if (cmin == 0.0) {
 					if (ccoof <= cmin) {
-						FIXME1("TRY NEW STRATEGY FOR bcoof");
 						// do nothing. set ccoof=0 and bcoof=0.
 					} else {
 						bb[idx] += bcoof;
