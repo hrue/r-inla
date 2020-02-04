@@ -29,7 +29,7 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
+\section{CHANGES IN VERSION 20.01.25}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
       \item Added a check that discrete observations are indeed
@@ -40,17 +40,20 @@
     \itemize{
       \item The function \code{inla.binary.install} is now exported.
       \item Added new likelihood family, \code{xpoisson}, which allows
-      continous response: see the documentation for details
+      continous response: see the documentation for details (and note
+      the error-check now done for discrete observations)
     }
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item
+      \item Added new likelihood \code{dgp} (discrete generalized Pareto)
     }
   }
   \subsection{BUG FIXES}{
     \itemize{
       \item Code clean-up (\code{contpoisson} and \code{qcontpoisson})
+      \item Made \code{inla.pardiso.check()} a bit more informative if
+      there is an error.
     }
   }
 }

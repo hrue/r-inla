@@ -1,0 +1,72 @@
+\documentclass[12pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+
+\section*{Discrete generalized Pareto distribution}
+\subsection*{Parametrisation}
+The discrete generalized Pareto (GP) distribution with positive shape parameter
+has cumulative distribution function
+$$
+F(y;\sigma,\xi)=1-\left(1+\xi\frac{y+1}{\sigma}\right)^{-1/\xi},
+\qquad y = 0, 1, 2, \ldots
+$$
+for a discrete response $y$ where
+\begin{description}
+\item $\xi$: is the tail parameter, $\xi>0$
+\item $\sigma$: is the scale parameter, $\sigma>0$
+\end{description}
+
+\subsection*{Link function}
+
+The linear predictor $\eta$ controls the $\alpha$ quantile of
+the corresponding continous GP
+\begin{displaymath}
+    P(y \le q_{\alpha}) = \alpha
+\end{displaymath}
+and $q_{\alpha} = \exp(\eta)$. The scaling $\sigma$, is then a
+function of $(q_{\alpha}, \xi)$, as
+\begin{displaymath}
+    \sigma = \frac{\xi\exp(\eta)}{(1-\alpha)^{-\xi}-1}
+\end{displaymath}
+
+\subsection*{Hyperparameters}
+The $\mathrm{GP}$ model has one hyperparameter. The tail $\xi>0$ is
+represented as
+$$
+\xi = \xi_{\text{low}} + (\xi_{\text{high}} - \xi_{\text{low}})
+\frac{\exp(\theta)}{1 + \exp(\theta)}
+$$
+and the prior is defined on $\theta$, with constant low and high
+values. The prior is FIXED to \texttt{pc.gevtail}, see
+\texttt{inla.doc("pc.gevtail")} for more info.
+
+\subsection*{Specification}
+\begin{itemize}
+\item family$=$\texttt{dgp}
+\item Required arguments: $y$ and the quantile $\alpha$. 
+\end{itemize}
+The quantile is given as \texttt{control.family=list(control.link=list(quantile=$\alpha$))}.
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/dgp.tex}
+
+\subsubsection*{Example}
+\verbatiminput{dgp-example.R}
+
+\subsection*{Notes}
+
+
+        
+\end{document}
+
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
