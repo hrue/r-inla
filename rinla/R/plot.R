@@ -857,7 +857,7 @@ inla.extract.prior = function(section = NULL, hyperid = NULL, all.hyper, debug=F
 }
 
 inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FALSE,
-    len = 1000, range, intern = FALSE)
+    len = 10000, range, intern = FALSE)
 {
     str.trunc = function(..., max.len = 32)
     {
@@ -884,6 +884,20 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
         } else {
             return ((high - low) * ex / (1.0 + ex)^2)
         }
+    }
+
+    log.jac.fun = function(x, y) {
+        ## return a function that returns func(x) = log(abs(f(x, deriv=1))),  where y = f(x)
+        fun = function(x) x
+        sf = splinefun(x, y)
+        body(fun) <- log(abs(sf(x, deriv=1)))
+        return(fun)
+    }
+
+    log.jac = function(x, y) {
+        ## evaluate log.jac.fun in x
+        fun = log.jac.fun(x, y)
+        return (fun(x))
     }
 
     ## add priors here. the format is
@@ -930,36 +944,28 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
         
     my.pc.dof = function(theta, param, log=FALSE) 
     {
-        fun = inla.models()$likelihood$t$hyper$theta2$from.theta
-        dof = fun(theta)
-        ld = inla.pc.ddof(dof, lambda = param[1], log=TRUE) + theta
+        dof = inla.models()$likelihood$t$hyper$theta2$from.theta(theta)
+        ld = inla.pc.ddof(dof, lambda = param[1], log=TRUE) + log.jac(dof, theta)
         return (if (log) ld else exp(ld))
     }        
 
     my.pc.alphaw = function(theta, param, log=FALSE) 
     {
-        fun = inla.models()$likelihood$weibull$hyper$theta$from.theta
-        fun.deriv = args(to.theta)
-        body(fun.deriv) = D(body(to.theta), "x")
-        alpha = fun(theta)
-        ld = inla.pc.dalphaw(alpha, lambda = param[1], log=TRUE) + log(abs(fun.deriv(theta)))
+        alpha = inla.models()$likelihood$weibull$hyper$theta$from.theta(theta)
+        ld = inla.pc.dalphaw(alpha, lambda = param[1], log=TRUE) + log.jac(alpha, theta)
         return (if (log) ld else exp(ld))
     }        
 
     my.pc.sn = function(theta, param, log=FALSE) 
     {
         fun = inla.models()$link$sn$hyper$theta$from.theta
-        fun.deriv = args(fun)
-        body(fun.deriv) = D(body(fun), "x")
-
         ## make a function that extracts 'amax3'
         fun.amax3 = args(fun)
         body(fun.amax3) = expression(amax3)
-
         alpha = fun(theta)
         alpha.max = fun.amax3()
         integral = inla.pc.psn(alpha.max, lambda = param[1]) - inla.pc.psn(-alpha.max, lambda = param[1]) 
-        ld = inla.pc.dsn(alpha, lambda = param[1], log=TRUE) -log(integral) + log(abs(fun.deriv(theta)))
+        ld = inla.pc.dsn(alpha, lambda = param[1], log=TRUE) -log(integral) + log.jac(alpha, theta)
         return (if (log) ld else exp(ld))
     }
 
