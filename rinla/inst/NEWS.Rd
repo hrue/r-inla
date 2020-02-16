@@ -29,6 +29,31 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.02.16}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Added argument \code{E}, or \code{log(offset)}, to
+      likelihood \code{gammacount}, so its equal to family \code{poisson}
+      for \code{alpha=1}.
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Minor changes
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.01.25}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
