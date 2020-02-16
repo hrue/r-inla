@@ -4376,8 +4376,8 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_GAMMACOUNT:
-		idiv = 2;
-		a[0] = NULL;
+		idiv = 3;
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 		break;
 
 	case L_EXPONENTIAL:
@@ -8139,6 +8139,7 @@ int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
+	double E = ds->data_observations.E[idx];
 	double alpha = map_exp(ds->data_observations.gammacount_log_alpha[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double beta, mu, p, logp;
 
@@ -8146,7 +8147,7 @@ int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
-			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			mu = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			beta = alpha * mu;
 			p = _G(y * alpha, beta) - _G((y + 1.0) * alpha, beta);
 			logp = log(p);
@@ -8160,7 +8161,7 @@ int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 		for (i = 0; i < -m; i++) {
-			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			mu = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			beta = alpha * mu;
 			logll[i] = _G((y + 1.0) * alpha, beta);
 		}
@@ -11861,9 +11862,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_GAMMACOUNT:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.y[i] < 0.0) {
-					GMRFLib_sprintf(&msg, "%s: Gammacount data[%1d] (y) = (%g) is void\n", secname, i,
-							ds->data_observations.y[i]);
+				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Gammacount data[%1d] (E,y) = (%g, %g) is void\n", secname, i,
+							ds->data_observations.E[i], ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
 			}

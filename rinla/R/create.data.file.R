@@ -114,6 +114,7 @@
     } else if (inla.one.of(family, c("poisson",
                                      "xpoisson", 
                                      "cenpoisson", 
+                                     "gammacount",
                                      ## "contpoisson", 
                                      ## "qcontpoisson", 
                                      "gpoisson", 
@@ -143,7 +144,7 @@
         null.dat = is.na(response[, 3L])
         response = response[!null.dat,]
 
-    } else if (inla.one.of(family, c("gammacount", "exponential", "weibull", "loglogistic"))) {
+    } else if (inla.one.of(family, c("exponential", "weibull", "loglogistic"))) {
 
         response = cbind(ind, y.orig)
         null.dat = is.na(response[, 2L])
