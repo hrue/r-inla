@@ -29,6 +29,31 @@
   }
 }
 
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Added \code{dplyr} as suggested package as
+      \code{dplyr::bind_rows} can replace
+      \code{INLA::inla.rbind.data.frames}
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.02.19}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
