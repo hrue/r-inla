@@ -23,6 +23,7 @@ Suggests:
     Deriv,
     devtools,
     doParallel,
+    dplyr,
     fields,
     graph,
     gridExtra,
