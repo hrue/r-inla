@@ -17,7 +17,7 @@
 ##!model  formula for the \code{\link{inla}} function for survival models.
 ##!}
 ##!\usage{
-##!inla.surv(time, event, time2, truncation,subject)
+##!inla.surv(time, event, time2, truncation, subject=NULL)
 ##!\method{plot}{inla.surv}(x, y, ...)
 ##!\method{print}{inla.surv}(x, ...)
 ##!is.inla.surv(object)
@@ -26,13 +26,16 @@
 ##!
 ##!\arguments{
 ##!  \item{time}{For right censored data, this is the follow up time.  For
-##!    interval data, this is the starting time for the interval.  }
+##!    interval data, this is the starting time for the interval. For in-interval event,  this is
+##!    the observed time to event. }
 ##!  \item{event}{The status indicator, 1=observed event, 0=right censored
-##!    event, 2=left censored event, 3=interval censored event.  Although
+##!    event, 2=left censored event, 3=interval censored event, 
+##!    and 4=observed event in an interval (left, right).
+##!    Although
 ##!    unusual, the event indicator can be omitted, in which case all
 ##!    subjects are assumed to have an event.}
-##!  \item{time2}{Ending time for the interval censured data.}
-##!  \item{truncation}{Left truncation. If missing it is assumed to be 0.}
+##!  \item{time2}{Ending time for the interval censured data or an in-interval event.}
+##!  \item{truncation}{Left truncation. If missing it is assumed to be 0. The lower limit for event=4.}
 ##!  \item{subject}{Patient number in multiple event data, not needed otherwise. }
 ##!  \item{object}{Any \code{R}-object}
 ##!  \item{x}{Object to plot or print}
@@ -83,10 +86,10 @@
 ##!
 ##!\keyword{Survival models}
 
-`inla.surv` = function(time, event, time2, truncation, subject)
+`inla.surv` = function(time, event, time2, truncation, subject=NULL)
 {
     ret = NULL
-    if(missing(subject)) {
+    if (is.null(subject)) {
         ret = inla.surv.1(time, event, time2, truncation)
     } else {
         if (!missing(time2))
@@ -101,7 +104,7 @@
 `plot.inla.surv` = function(x, y,...)
 {
     ## argument y is not used
-    if(!is.null(x$lower)) {
+    if(is.null(x$subject)) {
         inla.plot.inla.surv.1(x,...)
     } else {
         inla.plot.inla.surv.2(x,...)
@@ -110,7 +113,7 @@
 
 `print.inla.surv` = function(x,...)
 {
-    if(!is.null(x$lower)) {
+    if(is.null(x$subject)) {
         inla.print.inla.surv.1(x,...)
     } else {
         inla.print.inla.surv.2(x,...)
@@ -172,14 +175,14 @@
         warning("Some elements in `event' are NA: set them to observed failures.")
     }
       
-    ## check that event is 0, 1, 2, 3
-    if (!all(is.element(event, 0:3)))
+    ## check that event is 0, 1, 2, 3, 4
+    if (!all(is.element(event, 0:4)))
         stop("Invalid value for event")
   
-    ## check that for event=3 time2 is present
-    interval = (event==3)
+    ## check that for event=3 or 4, time2 is present
+    interval = (event==3 | event==4)
     if (sum(interval)>0 && missing(time2))
-        stop("'time2' has to be present for interval censored data")
+        stop("'time2' has to be present for interval censored data or in-interval events")
     ## and warn that time2 is ignored for even!=3
     if (sum(interval)==0 && !missing(time2))
         warning("'time2' is ignored for data that are not interval censored")
@@ -201,13 +204,17 @@
     right = (event==0)
     left = (event==2)
     interval = (event==3)
+    ininterval = (event==4)
 
     surv.time[observed] = time[observed]
     surv.lower[right] = time[right]
     surv.upper[left] = time[left]
     surv.lower[interval] = time[interval]
     surv.upper[interval] = time2[interval]
-
+    surv.time[ininterval] = time[ininterval]
+    surv.lower[ininterval] = truncation[ininterval]
+    surv.upper[ininterval] = time2[ininterval]
+    truncation[ininterval] = 0
     ss = list(time=surv.time, lower=surv.lower, upper=surv.upper,
             event=event, truncation=truncation)
     class(ss) = "inla.surv"
@@ -245,6 +252,9 @@
             lines(c(truncation[i], upper[i]), c( i, i), type="l")
             text(upper[i], i,"|")
             text(lower[i], i,"|")
+        } else if (event[i]==4) {
+            lines(c(truncation[i], upper[i]), c( i, i), type="l")
+            text(time[i], i,"*")
         }
     }
 
@@ -264,6 +274,10 @@
             leg.text = c(leg.text,"interval cens")
             leg.symb = paste(leg.symb,"|", sep="")
         }
+        if (any(event==4)) {
+            leg.text = c(leg.text,"in-interval failure")
+            leg.symb = paste(leg.symb,"*", sep="")
+        }
         legend("topright", leg.text, pch=leg.symb, inset=0.02)
     }
 }
@@ -278,8 +292,10 @@
     class(x) = NULL
     nn = length(x$event)
 
-    interval = (x$event==3)
     out = character(nn)
+    ininterval = (x$event==4)
+    out[ininterval] = paste("[", x$lower[ininterval],",", x$upper[ininterval],"]", " ", x$time[ininterval], sep="")
+    interval = (x$event==3)
     out[interval] = paste("[", x$lower[interval],",", x$upper[interval],"]", sep="")
     right = (x$event==0)
     out[right] = paste(x$lower[right],"+", sep="")
@@ -299,7 +315,6 @@
         for (nm in names(object))
             if (!is.element(nm, c("event", "time", "lower", "upper", "truncation")))
                 stop(paste("Wrong name:", nm))
-
         class(object) = "inla.surv"
         return(object)
     }
