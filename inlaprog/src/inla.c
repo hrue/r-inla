@@ -1,7 +1,7 @@
 
 /* inla.c
  * 
- * Copyright (C) 2007-2019 Havard Rue
+ * Copyright (C) 2007-2020 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -8762,8 +8762,17 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 					       - ((prob_lower[i] - prob_truncation[i]) / (1.0 - prob_truncation[i]))
 				    );
 			}
-
 			break;
+			
+		case SURV_EVENT_ININTERVAL:
+			loglfun(log_dens, x, m, idx, x_vec, NULL, arg);
+			loglfun(prob_lower, x, -m, idx, x_vec, &lower, arg);
+			loglfun(prob_upper, x, -m, idx, x_vec, &upper, arg);
+			for (i = 0; i < m; i++) {
+				logll[i] = log_dens[i] - log(prob_upper[i] - prob_lower[i]);
+			}
+			break;
+
 		default:
 			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 		}
@@ -12112,6 +12121,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 					break;
 				case SURV_EVENT_INTERVAL:
 					if (DMIN(lower, upper) < truncation || upper < lower)
+						_SERR;
+					break;
+				case SURV_EVENT_ININTERVAL:
+					if (DMIN(lower, upper) < truncation || upper < lower || ttime < lower || ttime >  upper)
 						_SERR;
 					break;
 				default:

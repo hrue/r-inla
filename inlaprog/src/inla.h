@@ -1,7 +1,6 @@
-
 /* inla.h
  * 
- * Copyright (C) 2007-2019 Havard Rue
+ * Copyright (C) 2007-2020 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -100,7 +99,13 @@ __BEGIN_DECLS
 	/*
 	 * Interval cencored
 	 */
-	SURV_EVENT_INTERVAL = 3
+	SURV_EVENT_INTERVAL = 3,
+
+	/*
+	 * In an interval
+	 */
+	SURV_EVENT_ININTERVAL = 4
+	
 } inla_surv_event_tp;
 
 typedef enum {
