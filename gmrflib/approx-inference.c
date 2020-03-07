@@ -262,6 +262,7 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	 * for numerical optimisation
 	 */
 	(*ai_par)->cmin = 0.0;
+	(*ai_par)->b_strategy = 1;			       /* keep */
 
 	/*
 	 * default is no correction
@@ -445,6 +446,7 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 
 	fprintf(fp, "\tTo stabilise the numerical optimisation:\n");
 	fprintf(fp, "\t\tMinimum value of the -Hessian [%g]\n", ai_par->cmin);
+	fprintf(fp, "\t\tStrategy for the linear term [%s]\n", (ai_par->b_strategy == 0 ? "Skip" : "Keep"));
 
 	if (show_expert_options) {
 		/*
@@ -602,12 +604,12 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
 			       (&problem, ai_store->mode, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc,
 				Qfunc_arg, constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc,
-				ai_par->gaussian_data, ai_par->cmin, 0));
+				ai_par->gaussian_data, ai_par->cmin, ai_par->b_strategy, 0));
 	} else {
 		GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
 			       (&problem, x, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg,
 				constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc,
-				ai_par->gaussian_data, ai_par->cmin, 0));
+				ai_par->gaussian_data, ai_par->cmin, ai_par->b_strategy, 0));
 	}
 
 	GMRFLib_ASSERT(problem, GMRFLib_EOPTNR);
@@ -1307,7 +1309,7 @@ int GMRFLib_ai_do_MC_error_check(double *err, GMRFLib_problem_tp * problem, doub
 		i = problem->map[ii];
 		if (d && d[i]) {
 			GMRFLib_2order_approx(&a[i], &b[i], &c[i], d[i], problem->mean_constr[i], i, problem->mean_constr, loglFunc,
-					      loglFunc_arg, NULL, NULL);
+					      loglFunc_arg, NULL, NULL, NULL);
 		}
 	}
 
@@ -1573,7 +1575,8 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 									     b, c, mean, d, loglFunc, loglFunc_arg, fixed_value,
 									     graph, Qfunc, Qfunc_arg, constr, optpar, blockpar,
 									     ai_store->store, ai_store->aa, ai_store->bb,
-									     ai_store->cc, ai_par->gaussian_data, ai_par->cmin, 0));
+									     ai_store->cc, ai_par->gaussian_data, ai_par->cmin,
+									     ai_par->b_strategy, 0));
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		if (ai_par->compute_nparam_eff) {
 			GMRFLib_ai_nparam_eff(&(ai_store->neff), NULL, ai_store->problem, c, Qfunc, Qfunc_arg);
@@ -1759,10 +1762,10 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 							ai_store->correction_idx[ai_store->nidx++] = i;
 							GMRFLib_2order_approx(NULL, NULL, &c0, d[i], fixed_mode[i] - deldif, i,
 									      fixed_mode, loglFunc, loglFunc_arg,
-									      &(ai_par->step_len), &(ai_par->stencil));
+									      &(ai_par->step_len), &(ai_par->stencil), NULL);
 							GMRFLib_2order_approx(NULL, NULL, &c1, d[i], fixed_mode[i] + deldif, i,
 									      fixed_mode, loglFunc, loglFunc_arg,
-									      &(ai_par->step_len), &(ai_par->stencil));
+									      &(ai_par->step_len), &(ai_par->stencil), NULL);
 							ai_store->derivative3[i] = -(c1 - c0) * s;	/* `-' since c is negative 2.deriv */
 							ai_store->correction_term[i] = -SQR(ai_store->stdev[i]) * ai_store->derivative3[i];
 						}
@@ -1773,9 +1776,9 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 						i = ai_store->d_idx[ii];
 						ai_store->correction_idx[ai_store->nidx++] = i;
 						GMRFLib_2order_approx(NULL, NULL, &c0, d[i], fixed_mode[i] - deldif, i, fixed_mode,
-								      loglFunc, loglFunc_arg, &(ai_par->step_len), &(ai_par->stencil));
+								      loglFunc, loglFunc_arg, &(ai_par->step_len), &(ai_par->stencil), NULL);
 						GMRFLib_2order_approx(NULL, NULL, &c1, d[i], fixed_mode[i] + deldif, i, fixed_mode,
-								      loglFunc, loglFunc_arg, &(ai_par->step_len), &(ai_par->stencil));
+								      loglFunc, loglFunc_arg, &(ai_par->step_len), &(ai_par->stencil), NULL);
 						ai_store->derivative3[i] = -(c1 - c0) * s;	/* `-' since c is negative 2.deriv */
 						ai_store->correction_term[i] = -SQR(ai_store->stdev[i]) * ai_store->derivative3[i];
 					}
@@ -2628,7 +2631,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 						  GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 						  GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar,
 						  GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store,
-						  double *aa, double *bb, double *cc, int gaussian_data, double cmin, int nested)
+						  double *aa, double *bb, double *cc, int gaussian_data, double cmin,
+						  int b_strategy, int nested)
 {
 	/*
 	 * This is copy of the original routine but with optional arguments 
@@ -2733,29 +2737,25 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			GMRFLib_thread_id = id;
 			idx = idxs[i];
 			GMRFLib_2order_approx(&(aa[idx]), &bcoof, &ccoof, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg,
-					      &(optpar->step_len), &(optpar->stencil));
+					      &(optpar->step_len), &(optpar->stencil), &cmin);
 			cc_is_negative = (cc_is_negative || ccoof < 0.0);	/* this line IS OK! also for multithread.. */
-			//if (ccoof < 0.0) printf("idx %d ccoof %.12g\n", idx, ccoof);
 			if (cc_positive) {
-
-				if (0) {
-					if (ccoof < 0) {
-						fprintf(stderr, "idx = %1d, ccoof = %g bcoof %g\n", idx,  ccoof, bcoof);
-					}
-				}
-				
-				if (cmin == 0.0) {
-					if (ccoof <= cmin) {
-						// do nothing. set ccoof=0 and bcoof=0.
+				if (ccoof == cmin) {
+					// then cmin is in effect
+					if (b_strategy == INLA_B_STRATEGY_SKIP) {
+						bcoof = 0.0;
+					} else if (b_strategy == INLA_B_STRATEGY_KEEP) {
+						// do nothing
 					} else {
-						bb[idx] += bcoof;
-						cc[idx] += DMAX(cmin, ccoof);
+						assert(0 == 1);
 					}
-				} else {
-					bb[idx] += bcoof;
-					cc[idx] += DMAX(cmin, ccoof);
-				}
+				} 
+				bb[idx] += bcoof;
+				cc[idx] += ccoof;
 			} else {
+				//
+				// this is not in use...
+				//
 				if (ccoof > 0.0) {
 					bb[idx] += bcoof;
 					cc[idx] += ccoof;
@@ -2851,7 +2851,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				int idx = idxs[i];
 				GMRFLib_thread_id = id;
 				GMRFLib_2order_approx(&(aa[idx]), NULL, NULL, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg,
-						      &(optpar->step_len), &(optpar->stencil));
+						      &(optpar->step_len), &(optpar->stencil), NULL);
 			}
 			GMRFLib_thread_id = id;
 		}
@@ -2939,7 +2939,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 											       loglFunc, loglFunc_arg, fixed_value,
 											       graph, Qfunc, Qfunc_arg, constr,
 											       &new_optpar, blockupdate_par, store,
-											       aa, bb, cc, gaussian_data, cmin, 2);
+											       aa, bb, cc, gaussian_data, cmin, b_strategy, 2);
 					if (stop && retval == GMRFLib_SUCCESS) {
 						break;
 					}
