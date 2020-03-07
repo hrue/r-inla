@@ -45,6 +45,7 @@
       \item Added option \code{b.strategy} in \code{control.inla} to
       control what to do with the linear term when the \code{cmin} option is
       in effect
+      \item Added in-interval observed event in \code{inla.surv}
     }
   }
   \subsection{BUG FIXES}{
