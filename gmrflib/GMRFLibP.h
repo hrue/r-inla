@@ -65,6 +65,12 @@ __BEGIN_DECLS
 typedef short int GMRFLib_short_int;
 typedef long unsigned int GMRFLib_sizeof_tp;
 
+typedef enum {
+	INLA_B_STRATEGY_SKIP = 0, 
+	INLA_B_STRATEGY_KEEP = 1
+}
+	inla_b_strategy_tp;
+	
 
 /* 
    here are the wrappers for calling functions which return the error-code if it fails

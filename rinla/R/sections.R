@@ -851,6 +851,23 @@
     if (!is.null(inla.spec$cmin)) {
         cat("cmin = ", inla.spec$cmin, "\n", file = file, append = TRUE)
     }
+    if (!is.null(inla.spec$b.strategy)) {
+        b = inla.spec$b.strategy
+        if (is.character(b)) {
+            ## use the same enum mapping as in GMRFLibP.h for INLA_B_STRATEGY_SKIP and _KEEP
+            if (inla.strcasecmp(b, "skip")) {
+                b = 0
+            } else if (inla.strcasecmp(b, "keep")) {
+                b = 1
+            } else {
+                stop("control.inla$b.strategy must be 'keep' or 'skip'.")
+            }
+        } else {
+            b = as.integer(b)
+            stopifnot(any(b == 0:1))
+        }
+        cat("b.strategy = ", b, "\n", file = file, append = TRUE)
+    }
     if (!is.null(inla.spec$step.factor)) {
         cat("nr.step.factor = ", inla.spec$step.factor, "\n", file = file, append = TRUE)
     }
