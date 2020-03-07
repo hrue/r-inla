@@ -857,7 +857,7 @@ inla.extract.prior = function(section = NULL, hyperid = NULL, all.hyper, debug=F
 }
 
 inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FALSE,
-    len = 1000, range, intern = FALSE)
+    len = 10000, range, intern = FALSE)
 {
     str.trunc = function(..., max.len = 32)
     {
@@ -874,6 +874,32 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
         return (invisible())
     }
 
+    map.interval = function(x, param, deriv = 0)
+    {
+        low = param[1]
+        high = param[2]
+        ex = exp(x);
+        if (deriv == 0) {
+            return (low + (high - low) * ex / (1.0 + ex))
+        } else {
+            return ((high - low) * ex / (1.0 + ex)^2)
+        }
+    }
+
+    log.jac.fun = function(x, y) {
+        ## return a function that returns func(x) = log(abs(f(x, deriv=1))),  where y = f(x)
+        fun = function(x) x
+        sf = splinefun(x, y)
+        body(fun) <- log(abs(sf(x, deriv=1)))
+        return(fun)
+    }
+
+    log.jac = function(x, y) {
+        ## evaluate log.jac.fun in x
+        fun = log.jac.fun(x, y)
+        return (fun(x))
+    }
+
     ## add priors here. the format is
     ##
     ## my.<NameOfPrior> = function(theta, param, log=FALSE)
@@ -882,6 +908,66 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
     ## THETA (which is a vector), and the prior has parameters PARAM (which is the same ones as
     ## specified from within the R-interface and argument 'hyper'. the conversion to the prior
     ## density for the user-scale is done automatically.
+
+    my.pc.gevtail = function(theta, param, log=FALSE) 
+    {
+        dist = function(xi, deriv = 0) {
+            if (deriv == 0) {
+                return (xi*sqrt(2.0/(1.0-xi)))
+            } else {
+                return ((2.0-xi) * sqrt(2.0) / 2.0 / sqrt(1.0/(1.0-xi)) / (1.0 - xi)^2)
+            }
+        }
+
+        lambda = param[1]
+        interval = param[c(2, 3)]
+        xi = map.interval(theta, interval)
+        xi.deriv = map.interval(theta, interval, deriv = 1)
+        
+        if (interval[1] == 0.0) {
+            p.low = 0.0
+        } else {
+            p.low = 1.0 - exp(-lambda * dist(interval[1]))
+        }
+        if (interval[2] == 1.0) {
+            p.high = 1.0
+        } else {
+            p.high = 1.0 - exp(-lambda * dist(interval[2]))
+        }
+
+        d = dist(xi)
+        d.deriv = dist(xi, deriv = 1)
+
+        return (-log(p.high - p.low) + log(lambda) - lambda * d + log(abs(d.deriv)) +
+                log(abs(xi.deriv)))
+    }
+        
+    my.pc.dof = function(theta, param, log=FALSE) 
+    {
+        dof = inla.models()$likelihood$t$hyper$theta2$from.theta(theta)
+        ld = inla.pc.ddof(dof, lambda = param[1], log=TRUE) + log.jac(dof, theta)
+        return (if (log) ld else exp(ld))
+    }        
+
+    my.pc.alphaw = function(theta, param, log=FALSE) 
+    {
+        alpha = inla.models()$likelihood$weibull$hyper$theta$from.theta(theta)
+        ld = inla.pc.dalphaw(alpha, lambda = param[1], log=TRUE) + log.jac(alpha, theta)
+        return (if (log) ld else exp(ld))
+    }        
+
+    my.pc.sn = function(theta, param, log=FALSE) 
+    {
+        fun = inla.models()$link$sn$hyper$theta$from.theta
+        ## make a function that extracts 'amax3'
+        fun.amax3 = args(fun)
+        body(fun.amax3) = expression(amax3)
+        alpha = fun(theta)
+        alpha.max = fun.amax3()
+        integral = inla.pc.psn(alpha.max, lambda = param[1]) - inla.pc.psn(-alpha.max, lambda = param[1]) 
+        ld = inla.pc.dsn(alpha, lambda = param[1], log=TRUE) -log(integral) + log.jac(alpha, theta)
+        return (if (log) ld else exp(ld))
+    }
 
     my.pc.gamma = function(theta, param, log=FALSE) 
     {
@@ -951,7 +1037,7 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
             theta - 2.0 * log(1.0 + e.theta)
         return (if (log) ld else exp(ld))
     }
-
+         
     my.pcfgnh = function(theta, param, log=FALSE) 
     {
         ## we compute the PC-prior on the fly using these two packages. Its somewhat quick.
@@ -1064,9 +1150,19 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
         y = do.call(myp, list(theta=x, param = prior$param))
     } else {
         ## 'x' is in the user-scale.
-        range.theta = prior$to.theta(range)
-        theta = seq(range.theta[1], range.theta[2], len = len)
-        x = prior$from.theta(theta)
+
+        ## this is a special case, need to extract the interval and use that as the correct
+        ## argument
+        if (prior$prior == "pc.gevtail") {
+            interval = prior$param[c(2, 3)]
+            range.theta = prior$to.theta(range, interval = interval)
+            theta = seq(range.theta[1], range.theta[2], len = len)
+            x = prior$from.theta(theta, interval = interval)
+        } else {
+            range.theta = prior$to.theta(range)
+            theta = seq(range.theta[1], range.theta[2], len = len)
+            x = prior$from.theta(theta)
+        }
         ld = do.call(myp, args = list(theta = theta, param = prior$param, log=TRUE))
         fun = splinefun(x, theta)
         y = exp(ld + log(abs(fun(x, deriv=1))))

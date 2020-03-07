@@ -363,10 +363,11 @@
 `inla.is.list.of.lists` = function(a.list)
 {
     ## return TRUE if `a.list' is a list of lists, otherwise FALSE
-    if (length(a.list) == 0)
+    if (length(a.list) == 0) {
         return (FALSE)
-    else
-        return (all(sapply(a.list, is.list)))
+    } else {
+        return (is.null(names(a.list)) && all(sapply(a.list, is.list)))
+    }
 }
 
 `inla.as.list.of.lists` = function(a)
@@ -962,14 +963,22 @@
 `inla.mclapply` = function(..., mc.cores = NULL, parallel = TRUE)
 {
     if (parallel && !inla.os("windows")) {
+        ## slightly different default 'mc.cores'
         if (is.null(mc.cores)) {
-            mc.cores = inla.getOption("num.threads")
+            mc.cores = getOption("mc.cores", NULL)
+            if (is.null(mc.cores)) {
+                mc.cores = inla.getOption("num.threads")
+                if (is.null(mc.cores)) {
+                    mc.cores = 2L
+                }
+            }
         }
         return (parallel::mclapply(..., mc.cores = mc.cores))
     } else {
         return (lapply(...))
     }
 }
+
 `inla.cmpfun` = function(fun, options = list(optimize = 3L))
 {
     if (inla.require("compiler")) {
@@ -1082,4 +1091,5 @@
     res[!is.zero] = 1.0 / 2.0^(nu - 1.0) / gamma(nu) * d^nu * besselK(d, nu)
     return (res)
 }
+
 

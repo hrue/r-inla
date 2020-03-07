@@ -1,4 +1,4 @@
-\section{Non-Gaussian response: Precipitation on Paran\'a}\label{sec:prprec} 
+\section{Non-Gaussian response: Precipitation on Paran\'a}\label{sec:prprec}
 
 This content is part of the book available at
 \url{http://www.r-inla.org/spde-book},
@@ -14,8 +14,8 @@ message=FALSE, warning=FALSE
 options(width=75, prompt = " ", continue = "   ")
 library(INLA)
 lcall <- inla.getOption('inla.call')
-inla.setOption(inla.call='remote')
-inla.setOption(num.threads=7)
+## inla.setOption(inla.call='remote')
+## inla.setOption(num.threads=4)
 library(lattice) 
 library(gridExtra) 
 @ 
@@ -27,7 +27,7 @@ Agency in Brazil, in Portuguese it is
 The ANA collect data from many locations over Brazil. 
 All these data are freely available from the ANA website. 
 
-\subsection{The data set}
+\subsection{The data set}  
 
 We have daily rainfall data on each day of the year 
 2011 at 616 locations, including stations within the 

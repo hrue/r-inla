@@ -49,9 +49,22 @@ static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
  */
 #define RUN_SAFE(_expr) if (!GMRFLib_pardiso_thread_safe && omp_in_parallel()) \
 	{								\
-		_Pragma("omp critical")				\
+		int debug = 0;						\
+		if (debug) {						\
+			printf("RUN_SAFE: enter with thread %1d\n", omp_get_thread_num()); \
+			fflush(stdout);					\
+		}							\
+		_Pragma("omp critical")					\
 		{							\
+			if (debug) {					\
+				printf("RUN_SAFE: CRITICAL REGION with thread %1d\n", omp_get_thread_num()); \
+				fflush(stdout);				\
+			}						\
 			_expr;						\
+		}							\
+		if (debug) {						\
+			printf("RUN_SAFE: done with thread %1d\n", omp_get_thread_num()); \
+			fflush(stdout);					\
 		}							\
 	} else {							\
 		_expr;							\
@@ -524,7 +537,7 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_f
 		GMRFLib_EWRAP0(GMRFLib_solve_l_sparse_matrix_special_TAUCS(rhs, sm_fact->TAUCS_L, graph, sm_fact->remap, findx, toindx, remapped));
 		break;
 
-	case GMRFLib_SMTP_PARDISO:
+	case GMRFLib_SMTP_PARDISO: 
 	{
 		if (remapped) {
 			GMRFLib_pardiso_perm(rhs, 1, sm_fact->PARDISO_fact);

@@ -43,15 +43,15 @@ ssh -x -t $IP "
 
 tarfile="$D.tgz"
 ssh -x $IP "cd builds/build64; tar cvfz $tarfile 64bit"
-d="www/Linux-builds/$VERSION/$INLA_TAG"
+D="www/Linux-builds"
+d="$D/$VERSION/$INLA_TAG"
 mkdir -p "$d"
 rsync $IP:builds/build64/$tarfile "$d"
 
-
-
-
-
-
-
-
+(
+    cd $D
+    f="FILES"
+    test -f "$f" && rm "$f"
+    find . -type f -print | sort > $f
+)
 

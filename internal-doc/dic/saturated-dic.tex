@@ -1,0 +1,48 @@
+\documentclass{article}
+\usepackage{amsmath}
+\begin{document}
+
+\title{Saturated DIC}
+\maketitle
+
+Let $\theta$ be the hyperparameters and $\eta$ the linear predictor
+and $y$ the data. The Saturated DIC in the INLA output, is computed
+from the following. Define the expected saturated deviance for $y_i$,
+as
+\begin{displaymath}
+    -2\left(\int \log\pi(y_i|\eta_i,\theta)\; \pi(\eta_i|y,\theta)
+      \pi(\theta|y) d\eta_i d\theta
+      - \log\pi(y_i|\eta_i^{*}, \theta^{*}) \right)
+\end{displaymath}
+and the saturated deviance at the expected value, as
+\begin{displaymath}
+    -2\left(\log\pi(y_i|\eta_i^{e},\theta^{*}) 
+      - \log\pi(y_i|\eta_i^{*}, \theta^{*})\right)
+\end{displaymath}
+where
+\begin{displaymath}
+    \eta_i^{e}=\text{E}(\eta_i|y)
+\end{displaymath}
+\begin{displaymath}
+    \theta^{*} = \arg\max_{\theta} \pi(\theta|y)
+\end{displaymath}
+and
+\begin{displaymath}
+    \eta_i^{*} = \arg\max_{\eta_i}\pi(y_i|\eta_i, \theta^{*})
+\end{displaymath}
+By taking the sum over all data, we can comupute the (Saturated) DIC.
+
+The mode $\theta^{*}$ is used as for some parameters, posterior
+expectation of the hyperparameters in the user-scale, does not make
+much sense (the tail is to heavy). So, using the mode seems more
+robust and sensible.`
+
+\end{document}
+
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

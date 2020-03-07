@@ -1,5 +1,6 @@
 ## Export: inla.dmarginal inla.pmarginal inla.qmarginal inla.rmarginal inla.hpdmarginal
 ## Export: inla.smarginal inla.emarginal inla.tmarginal inla.mmarginal inla.zmarginal
+
 ## NOT-YET-IN-USE-Export: summary!inla.marginal plot!inla.marginal
 
 ##! \name{marginal}
@@ -17,12 +18,8 @@
 ##! \alias{hpdmarginal}
 ##! \alias{inla.emarginal}
 ##! \alias{emarginal}
-##! \alias{inla.marginal.expectation}
-##! \alias{marginal.expectation}
 ##! \alias{inla.smarginal}
 ##! \alias{smarginal}
-##! \alias{inla.marginal.transform}
-##! \alias{marginal.transform}
 ##! \alias{inla.tmarginal}
 ##! \alias{inla.mmarginal}
 ##! \alias{mmarginal}
@@ -78,11 +75,9 @@
 ##!   \item{p}{Probabilities}
 ##! 
 ##!   \item{n}{The number of observations. If \code{length(n) > 1}, the
-##!     length is taken to be the number required. For
-##!     \code{inla.marginal.transform}, its the number of points to use
-##!     in the new density.}
+##!     length is taken to be the number required.}
 ##! 
-##!   \item{h.diff}{The step-length for the numerical differeniation inside \code{inla.marginal.transform}}
+##!   \item{h.diff}{The step-length for the numerical differeniation inside \code{inla.tmarginal}}
 ##!     
 ##!   \item{...}{Further arguments to be passed to function which
 ##!     expectation is to be computed.}

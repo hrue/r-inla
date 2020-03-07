@@ -64,7 +64,7 @@ char *strlwc(const char *s)
 
 	size_t i;
 	i = 0;
-	while (s[i] && i < strlen(s)) {
+	while (i < strlen(s) && s[i]) {
 		l[i] = (char) tolower((int) s[i]);
 		i++;
 	}
@@ -99,7 +99,7 @@ char *strupc(char *s)
 
 	size_t i;
 	i = 0;
-	while (s[i] && i < strlen(s)) {
+	while (i < strlen(s) && s[i]) {
 		l[i] = (char) toupper((int) s[i]);
 		i++;
 	}

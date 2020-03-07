@@ -65,6 +65,13 @@
         unlink(g.file)
     }
 
+    for(i in 1:length(s)) {
+        ## the output containts this code, as there may be some other output before this
+        if (as.character(s[i]) == "QREORDERING")
+            break
+    }
+    s = s[-(1:i)]
+
     nm = as.character(s[1L])
     code = as.numeric(s[2L])
     s = as.numeric(s[-c(1L, 2L)])

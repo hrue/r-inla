@@ -12,6 +12,7 @@
 ## Export: inla.set.control.results.default
 ## Export: inla.set.control.mode.default
 ## Export: inla.set.control.hazard.default
+## Export: inla.set.control.gev2.default
 
 ## Export: control.lincomb
 ## Export: control.update
@@ -27,7 +28,7 @@
 ## Export: control.results
 ## Export: control.mode
 ## Export: control.hazard
-
+## Export: control.gev2
 
 
 ### Defines default arguments
@@ -251,12 +252,37 @@
     ##:SEEALSO: inla
 }
 
+`inla.set.control.gev2.default` =
+    function(...)
+{
+    ##:EXTRA: The \code{control.gev2}-list is set within the corresponding \code{control.family}-list as control parameters to the \code{family="gev2"}
+    ##:NAME: control.gev2.default
+    list(
+        ##:ARGUMENT: q.location The quantile level for the location parameter
+        q.location = 0.5,
+        
+        ##:ARGUMENT: q.spread The quantile level for the spread parameter (must be < 0.5)
+        q.spread = 0.25,
+        
+        ##:ARGUMENT: q.mix The lower and upper quantile level for the mixing function
+        q.mix = c(0.10, 0.20), 
+
+        ##:ARGUMENT: beta.ab The parameters a and b in the Beta mixing function
+        beta.ab = 5L)
+
+    ##:SEEALSO: inla
+}
+
+
 `inla.set.control.family.default`=
     function(...)
 {
     ##:EXTRA: 
     ##:NAME: control.family
     list(
+        ##:ARGUMENT: dummy A dummy argument that can be used as a workaround
+        dummy = 0,
+
         ##:ARGUMENT: hyper Definition of the hyperparameters
         hyper = NULL,
 
@@ -278,8 +304,11 @@
         ##:ARGUMENT: sn.shape.max Maximum value for the shape-parameter for Skew Normal observations (default 5.0)
         sn.shape.max = 5.0,
 
-        ##:ARGUMENT: gev.scale.xi The internal scaling of the shape-parameter for the GEV distribution. (default 0.01)
-        gev.scale.xi = 0.01,
+        ##:ARGUMENT: gev.scale.xi (Expert option, do not use unless you know what you are doing.) The internal scaling of the shape-parameter for the GEV distribution. (default 0.1)
+        gev.scale.xi = 0.1,
+
+        ##:ARGUMENT: control.gev2  See \code{?control.gev2}
+        control.gev2 = NULL, 
 
         ##:ARGUMENT: cenpoisson.I The censoring interval for the censored Poisson
         cenpoisson.I = c(-1L, -1L),
@@ -463,8 +492,11 @@
         ##:ARGUMENT: numint.abserr Numerical Absolute error requirement in the the numerical integration for the hyperparameters. (Default 1e-6)
         numint.abserr = 1e-6,
 
-        ##:ARGUMENT: cmin Numerical The minimum value for the negative Hessian from the likelihood. Increasing this value will stabalise the optimisation but can introduce bias in some estimates unless \code{-Inf} is used.  (Default -Inf)
+        ##:ARGUMENT: cmin Numerical The minimum value for the negative Hessian from the likelihood. Increasing this value will stabalise the optimisation but can introduce bias.  (Default -Inf)
         cmin = -Inf,
+
+        ##:ARGUMENT: b.strategy Character If \code{cmin} is used, either keep the linear term (with \code{b.strategy="keep"}) or skip the contribution by setting the linear term to zero (\code{b.strategy="skip"}). The default value is \code{"keep"}
+        b.strategy = "keep",
 
         ##:ARGUMENT: step.factor Numerical The step factor in the Newton-Raphson algorithm saying how large step to take (Default 1.0)
         ## YES! setting this to a negative values means = 1,  EXCEPT the first time (for each thread) where |step.factor| is used.
@@ -730,3 +762,4 @@ control.predictor = inla.make.completion.function(names(inla.set.control.predict
 control.results = inla.make.completion.function(names(inla.set.control.results.default()))
 control.mode = inla.make.completion.function(names(inla.set.control.mode.default()))
 control.hazard = inla.make.completion.function(names(inla.set.control.hazard.default()))
+control.gev2 = inla.make.completion.function(names(inla.set.control.gev2.default()))

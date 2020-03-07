@@ -13,6 +13,8 @@
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] loggamma
 	 	 	\item[param] 1 5e-05
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
@@ -23,8 +25,8 @@
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] gaussian
 	 	 	\item[param] 0 10
-	 	 	\item[to.theta] \verb!function(x) log((1+x)/(1-x))!
-	 	 	\item[from.theta] \verb!function(x) (2*exp(x)/(1+exp(x))-1)!
+	 	 	\item[to.theta] \verb!function(x, shape.max = 1) log((1+x/shape.max)/(1-x/shape.max))!
+	 	 	\item[from.theta] \verb!function(x, shape.max = 1) shape.max*(2*exp(x)/(1+exp(x))-1)!
 	 	 \end{description}
 	 \end{description}
 	\item[survival] FALSE
