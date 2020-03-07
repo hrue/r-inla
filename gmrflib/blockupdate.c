@@ -608,11 +608,12 @@ int GMRFLib_blockupdate_store(double *laccept,
 		if (d_new) {
 #pragma omp parallel for private(i)
 			for (i = 0; i < n; i++) {
+				double cmin = 0.0;
 				GMRFLib_thread_id = id;
 				if (d_new[i] && (!fixed_value || !fixed_value[i])) {
 					GMRFLib_2order_approx(NULL, &bb[i], &cc[i], d_new[i], mode[i], i,
-							      mode, loglFunc_new, loglFunc_arg_new, &(blockpar->step_len), &(blockpar->stencil));
-					cc[i] = DMAX(0.0, cc[i]);	/* do not want negative terms on the diagonal */
+							      mode, loglFunc_new, loglFunc_arg_new, &(blockpar->step_len), &(blockpar->stencil),
+							      &cmin);
 				}
 			}
 			GMRFLib_thread_id = id;
@@ -695,11 +696,12 @@ int GMRFLib_blockupdate_store(double *laccept,
 		if (d_old) {
 #pragma omp parallel for private(i)
 			for (i = 0; i < n; i++) {
+				double cmin = 0.0;
 				GMRFLib_thread_id = id;
 				if (d_old[i] && (!fixed_value || !fixed_value[i])) {
 					GMRFLib_2order_approx(NULL, &bb[i], &cc[i], d_old[i], mode[i], i, mode,
-							      loglFunc_old, loglFunc_arg_old, &(blockpar->step_len), &(blockpar->stencil));
-					cc[i] = DMAX(0.0, cc[i]);	/* do not want negative terms on the diagonal */
+							      loglFunc_old, loglFunc_arg_old, &(blockpar->step_len), &(blockpar->stencil),
+							      &cmin);
 				}
 			}
 			GMRFLib_thread_id = id;
@@ -804,7 +806,7 @@ int GMRFLib_blockupdate_store(double *laccept,
 	}
 
 	if (STOCHASTIC_CONSTR(constr_new)) {
-		double sqr_term;
+		double sqr_term = 0.0;
 
 		GMRFLib_EWRAP1(GMRFLib_eval_constr(NULL, &sqr_term, x_new, constr_new, graph));
 		neww += -0.5 * sqr_term;
@@ -862,7 +864,7 @@ int GMRFLib_blockupdate_store(double *laccept,
 			old += sum;
 		}
 		if (STOCHASTIC_CONSTR(constr_old)) {
-			double sqr_term;
+			double sqr_term = 0.0;
 
 			GMRFLib_EWRAP1(GMRFLib_eval_constr(NULL, &sqr_term, x_old, constr_old, graph));
 			old += -0.5 * sqr_term;
@@ -1034,11 +1036,12 @@ int GMRFLib_init_GMRF_approximation_store(GMRFLib_problem_tp ** problem, double 
 		if (d) {
 #pragma omp parallel for private(i)
 			for (i = 0; i < n; i++) {
+				double cmin = 0.0;
 				GMRFLib_thread_id = id;
 				if (d[i]) {
 					GMRFLib_2order_approx(NULL, &bb[i], &cc[i], d[i], mode[i], i, mode, loglFunc, loglFunc_arg,
-							      &(blockupdate_par->step_len), &(blockupdate_par->stencil));
-					cc[i] = DMAX(0.0, cc[i]);	/* do not want negative terms on the diagonal */
+							      &(blockupdate_par->step_len), &(blockupdate_par->stencil),
+							      &cmin);
 				}
 			}
 			GMRFLib_thread_id = id;
@@ -1075,12 +1078,13 @@ int GMRFLib_init_GMRF_approximation_store(GMRFLib_problem_tp ** problem, double 
 
 #pragma omp parallel for private(i, j)
 		for (j = 0; j < ns; j++) {
+			double cmin = 0.0;
 			GMRFLib_thread_id = id;
 			i = mothergraph_idx[j];
 			if (d[i]) {
 				GMRFLib_2order_approx(NULL, &bb[i], &cc[i], d[i], mode[i], i, mode, loglFunc, loglFunc_arg,
-						      &(blockupdate_par->step_len), &(blockupdate_par->stencil));
-				cc[i] = DMAX(0.0, cc[i]);      /* do not want negative terms on the diagonal */
+						      &(blockupdate_par->step_len), &(blockupdate_par->stencil),
+						      &cmin);
 			}
 		}
 		GMRFLib_thread_id = id;
@@ -1154,13 +1158,15 @@ int GMRFLib_2order_taylor(double *a, double *b, double *c, double d, double x0, 
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_2order_approx(double *a, double *b, double *c, double d, double x0, int indx,
-			  double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
+			  double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *step_len, int *stencil,
+			  double *cmin)
 {
 	/*
 	 * compute a,b,c in the taylor expansion around x0 of d*loglFunc(x0,...)
 	 * 
-	 * a + b*x) - 0.5*c*x^2
-	 * 
+	 * a + b*x- 0.5*c*x^2
+	 *
+	 * where cmin is the minimum value of c.
 	 */
 	double f0, df, ddf;
 
@@ -1170,6 +1176,11 @@ int GMRFLib_2order_approx(double *a, double *b, double *c, double d, double x0, 
 		GMRFLib_2order_approx_core(&f0, &df, &ddf, x0, indx, x_vec, loglFunc, loglFunc_arg, step_len, stencil);
 	}
 
+	// If there is a truncation, we have to do this here
+	if (cmin) {
+		ddf = DMIN(-(*cmin), ddf);
+	}
+	
 	if (a) {
 		*a = d * (f0 - df * x0 + 0.5 * ddf * SQR(x0));
 	}

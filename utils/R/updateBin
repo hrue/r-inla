@@ -49,6 +49,17 @@ for m in 32 64; do
     fix-perm $d/windows/${m}bit
 done
 
+## the experimental windows build
+dex=$d/windows/experimental
+if true; then
+    mkdir -p $dex
+    for f in $(ssh -p $INLA_LINUX_PORT $INLA_LINUX builds/my-windows/local/bin/list-dll); do
+	echo sync $f
+	rsync --rsh="ssh -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:$f $dex/.
+    done
+fi
+fix-perm $dex
+
 echo sync static versions of inla and fmesher
 rsync --rsh="ssh -p $INLA_LINUX_PORT" -auv $INLA_LINUX:builds/build.static/local/bin/inla $d/linux/64bit/inla.static
 rsync --rsh="ssh -p $INLA_LINUX_PORT" -auv $INLA_LINUX:builds/build.static/local/bin/inla.mkl $d/linux/64bit/inla.mkl.static

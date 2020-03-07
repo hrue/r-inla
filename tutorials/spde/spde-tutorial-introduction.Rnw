@@ -10,6 +10,7 @@ options(width=75, prompt = " ", continue = "   ")
 library(INLA)
 source('R/spde-tutorial-functions.R')
 @
+
 \chapter{Introduction}\label{ch:intro}
 
 This content is part of the book available at 

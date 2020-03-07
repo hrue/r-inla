@@ -3,7 +3,8 @@
 This content is part of the book available at
 \url{http://www.r-inla.org/spde-book},
 whose Gitbook version is freely available
-along all the code and datasets.
+along all the code and datasets. 
+We strongly recommend to consider this. 
 
 In this example we will show how an example of the 
 model proposed in~\cite{ingebrigtsenLS:2013}. 
@@ -22,11 +23,11 @@ library(lattice)
 library(INLA)
 library(gridExtra)
 lcall <- inla.getOption('inla.call')
-###inla.setOption(inla.call='remote')
-inla.setOption(num.threads=7)
+## inla.setOption(inla.call='remote')
+## inla.setOption(num.threads=4)
 @ 
 
-\subsection{Introduction}
+\subsection{Introduction} 
 
 We start to remember the definition for the precision 
 matrix considering the equations 
@@ -166,7 +167,7 @@ inla.setOption(inla.call=lcall)
 cov1 <- inla.qinv(Q1);         cov2 <- inla.qinv(Q2) 
 @ 
 <<changetoremodecall,echo=FALSE>>=
-inla.setOption(inla.call='remote')
+## inla.setOption(inla.call='remote')
 @ 
 A summary of the variances implied  
 (diagonal of the covariance matrix) 
@@ -230,7 +231,7 @@ sample1 <-  as.vector(inla.qsample(1, Q1, seed=1))
 sample2 <-  as.vector(inla.qsample(1, Q2, seed=1))
 @
 <<changetoremodecall2,echo=FALSE>>=
-inla.setOption(inla.call='remote')
+## inla.setOption(inla.call='remote')
 @
 
 We compute the standard deviations for both the 
@@ -319,7 +320,7 @@ s1r <-  as.vector(inla.qsample(1, Q1, seed=1, constr=spde$f$extraconstr))
 s2r <-  as.vector(inla.qsample(1, Q2, seed=1, constr=spde$f$extraconstr))
 @ 
 <<changetoremodecall3,echo=FALSE>>=
-inla.setOption(inla.call='remote')
+## inla.setOption(inla.call='remote')
 @
 So, we have
 <<comparss>>=
@@ -343,7 +344,7 @@ and need to fix the precision of the
 Gaussian likelihood in a high value, 
 for example on the value $e^{20}$
 <<likehy>>=
-clik <- list(hyper=list(theta=list(initial=20, fixed=TRUE)))
+clik <- list(hyper=list(prec=list(initial=20, fixed=TRUE)))
 @ 
 Remember that we have a zero mean random field, 
 so we also do not have fixed parameters to fit. 

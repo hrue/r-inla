@@ -1,4 +1,4 @@
-\chapter{Space-time examples}\label{ch:spacetime}
+\chapter{Space-time examples}\label{ch:spacetime} 
 
 This content is part of the book available at
 \url{http://www.r-inla.org/spde-book},
@@ -15,8 +15,8 @@ options(width=75, prompt = " ", continue = "   ")
 library(lattice) 
 library(INLA)
 lcall <- inla.getOption('inla.call')
-#inla.setOption(inla.call='remote')
-inla.setOption(num.threads=4)
+## inla.setOption(inla.call='remote')
+## inla.setOption(num.threads=4)
 source('R/spde-tutorial-functions.R')
 load('prmesh1.RData')
 @ 
@@ -225,7 +225,7 @@ To deal with the categorical covariate we need
 to set \code{expand.factor.strategy='inla'} 
 on the \code{control.fixed} argument list. 
 <<remote,echo=FALSE>>=
-##inla.setOption(inla.call='remote')
+## inla.setOption(inla.call='remote')
 @ 
 <<ft>>=
 formulae <- y ~ 0 + w + 

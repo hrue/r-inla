@@ -17,13 +17,14 @@
 ##!  \item{data}{All the data used in the formula,  as a list.}
 ##!  \item{control.hazard}{Control the model for the baseline-hazard; see \code{?control.hazard}.}
 ##!  \item{debug}{Print debug-information}
-##!  \item{...}{Data.frames to be \code{cbind}-ed,  padding with \code{NA}.}
+##!  \item{...}{Data.frames to be \code{rbind}-ed,  padding with \code{NA}.}
 ##!}
 ##!\value{
 ##!      \code{inla.coxph} returns a list of new expanded variables to be used in the \code{inla}-call.
 ##!      Note that element \code{data} and \code{data.list} needs to be merged into
 ##!      a \code{list} to be passed as the \code{data} argument. See the example for details.
-##!      \code{inla.rbind.data.frames} returns the new data.frame.
+##!      \code{inla.rbind.data.frames} returns the new data.frame (an alternative and better
+##!      implementation is \code{dplyr::bind_rows},  which is used if \code{dplyr} is installed).
 ##!}
 ##!\author{Havard Rue \email{hrue@r-inla.org}}
 ##!\examples{
@@ -67,7 +68,7 @@
 ##!rr = inla(formula,
 ##!        family = c(p$family, "gaussian"),
 ##!        data = df.joint,
-##!        E = df.joint$E)
+##!        E = df.joint$E..coxph)
 ##!}
 
 `inla.coxph` = function(formula, data, control.hazard = list(), debug=FALSE)
@@ -184,59 +185,63 @@
 
 `inla.rbind.data.frames` = function(...)
 {
-    ## cbind data.frames padding with NA
+    ## rbind data.frames padding with NA
 
-    cbind.two.data.frames = function(df1, df2)
-    {
-        df = NULL
-        nr1 = nrow(df1)
-        nr2 = nrow(df2)
-        nams = sort(unique(c(names(df1), names(df2))), decreasing=TRUE)
-        
-        for(nam in nams) {
-            if (nam %in% names(df1)) {
-                idx = which(names(df1) %in% nam)
-                if (nam %in% names(df)) {
-                    idxx = which(names(df) %in% nam)
-                    df[1:nr1, idxx] = df1[1:nr1, idx]
-                } else {
-                    if (!is.null(df)) {
-                        df = data.frame(c(df1[1:nr1, idx], rep(NA, nr2)), df)
+    if (inla.require("dplyr")) {
+        ## a better implementation is \code{dplyr::bind_rows})
+        return (dplyr::bind_rows(...))
+    } else {
+        rbind.two.data.frames = function(df1, df2) {
+            df = NULL
+            nr1 = nrow(df1)
+            nr2 = nrow(df2)
+            nams = sort(unique(c(names(df1), names(df2))), decreasing=TRUE)
+            
+            for(nam in nams) {
+                if (nam %in% names(df1)) {
+                    idx = which(names(df1) %in% nam)
+                    if (nam %in% names(df)) {
+                        idxx = which(names(df) %in% nam)
+                        df[1:nr1, idxx] = df1[1:nr1, idx]
                     } else {
-                        df = data.frame(c(df1[1:nr1, idx], rep(NA, nr2)))
+                        if (!is.null(df)) {
+                            df = data.frame(c(df1[1:nr1, idx], rep(NA, nr2)), df)
+                        } else {
+                            df = data.frame(c(df1[1:nr1, idx], rep(NA, nr2)))
+                        }
+                        names(df)[1] = nam
                     }
-                    names(df)[1] = nam
+                }
+                if (nam %in% names(df2)) {
+                    idx = which(names(df2) %in% nam)
+                    if (nam %in% names(df)) {
+                        idxx = which(names(df) %in% nam)
+                        df[nr1 + 1:nr2, idxx] = df2[1:nr2, idx]
+                    } else {
+                        if (!is.null(df)) {
+                            df = data.frame(c(rep(NA, nr1), df2[1:nr2, idx]), df)
+                        } else {
+                            df = data.frame(c(rep(NA, nr1), df2[1:nr2, idx]))
+                        }
+                        names(df)[1] = nam
+                    }
                 }
             }
-            if (nam %in% names(df2)) {
-                idx = which(names(df2) %in% nam)
-                if (nam %in% names(df)) {
-                    idxx = which(names(df) %in% nam)
-                    df[nr1 + 1:nr2, idxx] = df2[1:nr2, idx]
-                } else {
-                    if (!is.null(df)) {
-                        df = data.frame(c(rep(NA, nr1), df2[1:nr2, idx]), df)
-                    } else {
-                        df = data.frame(c(rep(NA, nr1), df2[1:nr2, idx]))
-                    }
-                    names(df)[1] = nam
-                }
+
+            return (df)
+        }
+
+        args = list(...)
+        stopifnot(length(args) >= 2L)
+
+        for(i in 2L:length(args)) {
+            if (i == 2L) {
+                df = rbind.two.data.frames(args[[1]], args[[2]])
+            } else {
+                df = rbind.two.data.frames(df, args[[i]])
             }
         }
 
         return (df)
     }
-
-    args = list(...)
-    stopifnot(length(args) >= 2L)
-
-    for(i in 2L:length(args)) {
-        if (i == 2L) {
-            df = cbind.two.data.frames(args[[1]], args[[2]])
-        } else {
-            df = cbind.two.data.frames(df, args[[i]])
-        }
-    }
-
-    return (df)
 }

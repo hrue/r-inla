@@ -1,7 +1,7 @@
 
 /* quantile-regression.h
  * 
- * Copyright (C) 2016 Havard Rue
+ * Copyright (C) 2016-2019 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,11 +43,20 @@ __BEGIN_DECLS
 /* 
  *
  */
+
+#include "GMRFLib/density.h"
+
+struct inla_qgamma_cache_tp {
+	double quantile;
+	GMRFLib_spline_tp **s;
+};
+
+GMRFLib_spline_tp **inla_qcontpois_func(double alpha, int num);
 double inla_pcontpois(double y, double lambda);
 double inla_pcontpois_deriv(double y, double lambda);
 double inla_qcontpois(double quantile, double alpha, double *initial_guess);
 double inla_qcontpois_eta(double quantile, double alpha, double *initial_guess);
-GMRFLib_spline_tp **inla_qcontpois_func(double alpha, int num);
+double inla_qgamma_cache(double shape, double quantile, int id);
 
 __END_DECLS
 #endif

@@ -1,5 +1,6 @@
 ## Code for Lindgren, Rue, Lindstrom (2011), partially updated to newer R-INLA
 ## Note: Will not reproduce exactly the same results as in the paper.
+
 require(rgl)
 require(INLA)
 require(lattice)
@@ -37,6 +38,8 @@ Leuk$spatial = mesh$idx$loc
 ## Create the SPDE/GMRF model, (kappa^2-Delta)(tau x) = W:
 spde = inla.spde2.matern(mesh, alpha=2)
 
+## Scale the data
+Leuk$time = Leuk$time / max(Leuk$time)
 ## Build the GLM model:
 formula = inla.surv(Leuk$time, Leuk$cens) ~ 1 + sex + age + wbc + tpi +
     ## Add the spatial effect model:
@@ -45,14 +48,8 @@ formula = inla.surv(Leuk$time, Leuk$cens) ~ 1 + sex + age + wbc + tpi +
 ## Run INLA:
 r  = (inla(formula, family="weibullsurv",
            data = Leuk,
-           ## Prior specification:
-           control.family = list(param=c(0.05,0.1)),
-           ## Reasonable starting point for the optimisation:
-           control.mode = list(theta=c(-0.5,-2,2),restart=TRUE),
            ## We don't need the marginals:
            control.compute = list(return.marginals=FALSE),
-           ## We don't need to overoptimise:
-           control.inla=list(tolerance=1e-5),
            ## Verbose output:
            verbose=TRUE
            ))
@@ -63,7 +60,6 @@ kappa = exp(r$summary.hyperpar[3,"mean"])
 
 ## Get the precision matrix:
 Q = inla.spde2.precision(spde, theta=log(c(tau, kappa)))
-
 
 ## Get a random sample (not used here),
 ## and the index reordering,

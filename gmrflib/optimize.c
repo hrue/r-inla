@@ -918,15 +918,16 @@ int GMRFLib_optimize3(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 		for (i = 0; i < nidx; i++) {
 			int idx;
 			double bcoof, ccoof;
-
+			double cmin = 0.0;
+			
 			GMRFLib_thread_id = id;
 			idx = idxs[i];
 			GMRFLib_2order_approx(NULL, &bcoof, &ccoof, opt_problem->d[idx],
 					      opt_problem->mode[idx], opt_problem->map[idx], opt_problem->x_vec,
 					      opt_problem->loglFunc, opt_problem->loglFunc_arg, &(opt_problem->optpar->step_len),
-					      &(opt_problem->optpar->stencil));
+					      &(opt_problem->optpar->stencil), &cmin);
 			bb[idx] = opt_problem->b[idx] + bcoof;
-			opt_problem->sub_Qfunc_arg->diagonal_adds[idx] += DMAX(0.0, ccoof);
+			opt_problem->sub_Qfunc_arg->diagonal_adds[idx] += ccoof;
 		}
 		GMRFLib_thread_id = id;
 

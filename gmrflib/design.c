@@ -107,18 +107,18 @@ int GMRFLib_read_design(GMRFLib_design_tp ** design, GMRFLib_matrix_tp * D, int 
 	/*
 	 * read the design from D
 	 */
-	int j, k, nfac, nexp;
+	int j, k, nfac, nex;
 	double sum_w = 0.0;
 
 	*design = Calloc(1, GMRFLib_design_tp);
 	(*design)->nfactors = nfac = D->ncol - 1;
-	(*design)->nexperiments = nexp = D->nrow;
-	assert(nexp > 0);
-	(*design)->experiment = Calloc(nexp, double *);
-	(*design)->int_weight = Calloc(nexp, double);
+	(*design)->nexperiments = nex = D->nrow;
+	assert(nex > 0);
+	(*design)->experiment = Calloc(nex, double *);
+	(*design)->int_weight = Calloc(nex, double);
 	(*design)->std_scale = (std_scale ? GMRFLib_TRUE : GMRFLib_FALSE);
 
-	for (j = 0; j < nexp; j++) {
+	for (j = 0; j < nex; j++) {
 		(*design)->experiment[j] = Calloc(nfac, double);
 		for (k = 0; k < nfac; k++) {
 			(*design)->experiment[j][k] = GMRFLib_matrix_get(j, k, D);
@@ -127,7 +127,7 @@ int GMRFLib_read_design(GMRFLib_design_tp ** design, GMRFLib_matrix_tp * D, int 
 		assert((*design)->int_weight[j] >= 0.0);
 		sum_w += (*design)->int_weight[j];
 	}
-	for (j = 0; j < nexp; j++) {
+	for (j = 0; j < nex; j++) {
 		(*design)->int_weight[j] /= sum_w;
 	}
 

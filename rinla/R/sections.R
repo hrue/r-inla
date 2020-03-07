@@ -63,6 +63,15 @@
         }
 
         cat(prefix, "parameters", suff, " = ", inla.paste(hyper[[k]]$param), "\n", file = file, append = TRUE, sep="")
+
+        ## the PCGEVTAIL prior is a special case, as the (low, high) is given as parameters 2
+        ## and 3, in the prior. So we need to extract those, and make sure they are set to
+        ## (low, high), so they will be replaced
+        if (tmp.prior == "pcgevtail") {
+            low = hyper[[k]]$param[2]
+            high = hyper[[k]]$param[3]
+        }
+
         to.t = gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""), inla.function2source(hyper[[k]]$to.theta))
         from.t = gsub("REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep=""), inla.function2source(hyper[[k]]$from.theta))
         to.t = gsub("REPLACE.ME.low", paste("low=", as.numeric(low), sep=""), to.t)
@@ -116,7 +125,7 @@
 }
 
 `inla.data.section` = function(
-        file, family, file.data, file.weights, control, i.family="",
+        file, family, file.data, file.weights, file.attr, control, i.family="",
         link.covariates = link.covariates, data.dir)
 {
     ## this function is called from 'inla.family.section' only.
@@ -125,6 +134,7 @@
     cat("likelihood = ", family,"\n", sep = " ", file = file,  append = TRUE)
     cat("filename = ", file.data,"\n", sep = " ", file = file,  append = TRUE)
     cat("weights = ", file.weights,"\n", sep = " ", file = file,  append = TRUE)
+    cat("attributes = ", file.attr, "\n", sep = " ", file = file,  append = TRUE)
 
     cat("variant = ",
         inla.ifelse(is.null(control$variant), 0L, as.integer(control$variant)),
@@ -168,6 +178,16 @@
     if (inla.one.of(family, "gev")) {
         cat("gev.scale.xi = ", inla.ifelse(is.null(control$gev.scale.xi), 0.01, control$gev.scale.xi), "\n",
             sep="", file=file, append=TRUE)
+    }
+
+    if (inla.one.of(family, "gev2")) {
+        c.gev2 = control$control.gev2
+        nms = names(c.gev2)
+        for (i in seq_along(c.gev2)) {
+            ## need this, as the xi.range is a vector of length 2
+            cat("gev2.", nms[i], " = ", paste(as.numeric(c.gev2[[i]]), collapse = " "),
+                "\n", sep="", file=file, append=TRUE)
+        }
     }
 
     inla.write.hyper(control$hyper, file, data.dir = data.dir)
@@ -830,6 +850,23 @@
     }
     if (!is.null(inla.spec$cmin)) {
         cat("cmin = ", inla.spec$cmin, "\n", file = file, append = TRUE)
+    }
+    if (!is.null(inla.spec$b.strategy)) {
+        b = inla.spec$b.strategy
+        if (is.character(b)) {
+            ## use the same enum mapping as in GMRFLibP.h for INLA_B_STRATEGY_SKIP and _KEEP
+            if (inla.strcasecmp(b, "skip")) {
+                b = 0
+            } else if (inla.strcasecmp(b, "keep")) {
+                b = 1
+            } else {
+                stop("control.inla$b.strategy must be 'keep' or 'skip'.")
+            }
+        } else {
+            b = as.integer(b)
+            stopifnot(any(b == 0:1))
+        }
+        cat("b.strategy = ", b, "\n", file = file, append = TRUE)
     }
     if (!is.null(inla.spec$step.factor)) {
         cat("nr.step.factor = ", inla.spec$step.factor, "\n", file = file, append = TRUE)

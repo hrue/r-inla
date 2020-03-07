@@ -5,7 +5,7 @@
 \usepackage{verbatim}
 
 \begin{document}
-\section*{The Gammacount-distribution}
+\section*{The Gammacount-likelihood}
 
 \subsection*{Parametrisation}
 
@@ -21,17 +21,19 @@ where
 The reciprocal of the expected waiting time depends on the linear
 predictor
 \begin{displaymath}
-    (\alpha/\beta)^{-1} = \exp(\eta),
+    (\alpha/\beta)^{-1} = E\exp(\eta),
 \end{displaymath}
 so that high values of $\eta$ corresponds to high values of $y$, and
-low values of $\eta$ corresponds to low values of $y$.
+low values of $\eta$ corresponds to low values of $y$, and $\log(E)$
+is an offset. In the case where $\alpha=1$, then we are back to the
+Poisson.
 
 \subsection*{Link-function}
 
 The linear predictor $\eta$ is linked to the reciprocal of the
 expected waiting time, by a log-link,
 \begin{displaymath}
-    (\alpha/\beta)^{-1} = \exp(\eta).
+    (\alpha/\beta)^{-1} = E\exp(\eta), \qquad E >0.
 \end{displaymath}
 
 \subsection*{Hyperparameter}
@@ -47,7 +49,7 @@ and the prior is defined on $\theta$.
 
 \begin{itemize}
 \item $\text{family}=\texttt{gammacount}$
-\item Required arguments: $y$
+\item Required arguments: $y$ (and $E$, default one)
 \end{itemize}
 
 \subsubsection*{Hyperparameter spesification and default values}

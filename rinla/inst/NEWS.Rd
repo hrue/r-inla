@@ -29,6 +29,278 @@
   }
 }
 
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added option \code{b.strategy} in \code{control.inla} to
+      control what to do with the linear term when the \code{cmin} option is
+      in effect
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Added \code{dplyr} as suggested package as
+      \code{dplyr::bind_rows} can replace
+      \code{INLA::inla.rbind.data.frames}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 20.02.19}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Added argument \code{E}, or \code{log(offset)}, to
+      likelihood \code{gammacount}, so its equal to family \code{poisson}
+      for \code{alpha=1}.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Minor changes
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 20.01.25}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Added a check that discrete observations are indeed
+      integers, like for Poisson, Binomial, etc
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item The function \code{inla.binary.install} is now exported.
+      \item Added new likelihood family, \code{xpoisson}, which allows
+      continous response: see the documentation for details (and note
+      the error-check now done for discrete observations)
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added new likelihood \code{dgp} (discrete generalized Pareto)
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Code clean-up (\code{contpoisson} and \code{qcontpoisson})
+      \item Made \code{inla.pardiso.check()} a bit more informative if
+      there is an error.
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.12.10}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Improved documentation of \code{inla.posterior.sample} and
+      \code{inla.coxph}
+      \item Fixed an issue with \code{NA} data in the family \code{gev2}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.12.03}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Updated some documentation about the \code{pc.gevtail} prior.
+      \item Reverted \code{inla.posterior.sample} back to the old
+      version, the new experimental version is available as
+      \code{INLA:::inla.posterior.sample.new}
+      \item Error in \code{Epil} data-set, \code{y[31]} should be
+      23 not 21. 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.11.17}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Updated the vignette about the multinomial distribution
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New experimental windows binary built with
+  \code{x86_64-w64-mingw32-gcc}, version 7.3, and linked with the
+  pardiso library. Its stored in \code{bin/windows/experimental}
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Updated \code{inla.qreordering} and updated \code{leuk-demo.R}
+      example file (and the corresponding zip-file).
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.11.10}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Cache values of \code{qgamma} to speedup
+      Gamma quantile regression
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.10.30}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Added a scaling constant for the precision parameter in the
+      \code{qkumar} likelihood (to avoid instabilities). See updated
+      documentation for details.
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item \code{inla.posterior.sample} now correct for possible skewness
+      by default: see \code{?inla.posterior.sample} for details.
+    }
+  }
+}
+
+
+\section{CHANGES IN VERSION 19.10.16}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Likelihoodmodel \code{betabinomialna}
+    }
+  }
+}
+
+
+\section{CHANGES IN VERSION 19.10.15}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Default prior for the tail parameter in likelihood model
+      \code{gp}, have changed to \code{pc.gevtail}, and the name change
+      from \code{shape} to \code{tail}. It is now required to define a
+      interval for the tail parameter, similar to \code{pc.gevtail}.
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.10.06}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Code-improvement for the \code{loggamma}-function
+      \item \code{barrier.R} updated (minor fix and code edits)
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.10.02}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Disable some debug output
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.10.01}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed a bug in the \code{nmixnb} likelihood. 
+      \item Preserve names in \code{inla.posterior.sample.eval}
+      if present.
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.09.18}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item More work on the skew-normal link model
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.09.15}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item \code{INLA:::inla.binary.install()} is a new interactive tool
+      to install alternative Linux builds. 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.09.10}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added skew-normal link-model \code{sn} for binary data,
+            with its PC-prior
+    }
+  }
+}
+
+
+\section{CHANGES IN VERSION 19.09.03}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added \code{robit} link model.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Improved the stability of the saturated deviance
+      calculations
+      \item Fixed \code{INLA:::inla.is.list.of.lists} to cover the
+      case where the arguments are a list of named lists
+    }
+  }
+}
+
+
+\section{CHANGES IN VERSION 19.07.27}{
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item New (experimental) likelihood: gev2
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed, again, an issue with (parallel) PARDISO
+      and many linear combinations.
+      \item Minor code changes in \code{doc.R}
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 19.07.21}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Removed must-be-enabled warnings in some
+      surival models, from Oct  25 2017
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item Added PC-prior for the Weibull likelihood models. The prior
+      is derived
+      for \code{variant = 1}, which is the good parameterisation.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Added missing \code{to.theta} and \code{from.theta}
+      functions in likelihoods \code{sn} and \code{sn2}
+      \item Fix some documentation in \code{marginal.R} (refering to the
+      obsolete function \code{inla.marginal.transform})
+      \item Fixed an issue with (parallel) PARDISO and many linear combinations.
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 19.05.19}{
   \subsection{BUG FIXES}{
     \itemize{
