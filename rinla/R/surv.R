@@ -249,11 +249,11 @@
             lines(c(truncation[i], upper[i]), c( i, i), type="l")
             text(upper[i], i,"<")
         } else if (event[i]==3) {
-            lines(c(truncation[i], upper[i]), c( i, i), type="l")
+            lines(c(lower[i], upper[i]), c( i, i), type="l")
             text(upper[i], i,"|")
             text(lower[i], i,"|")
         } else if (event[i]==4) {
-            lines(c(truncation[i], upper[i]), c( i, i), type="l")
+            lines(c(lower[i], upper[i]), c( i, i), type="l")
             text(time[i], i,"*")
         }
     }
