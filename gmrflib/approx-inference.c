@@ -1,7 +1,7 @@
 
 /* approx-inference.c
  * 
- * Copyright (C) 2006-2018 Havard Rue
+ * Copyright (C) 2006-2020 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2631,8 +2631,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 						  GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 						  GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar,
 						  GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store,
-						  double *aa, double *bb, double *cc, int gaussian_data, double cmin,
-						  int b_strategy, int nested)
+						  double *aa, double *bb, double *cc, int gaussian_data, double cmin, int b_strategy, int nested)
 {
 	/*
 	 * This is copy of the original routine but with optional arguments 
@@ -2749,13 +2748,13 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 					} else {
 						assert(0 == 1);
 					}
-				} 
+				}
 				bb[idx] += bcoof;
 				cc[idx] += ccoof;
 			} else {
-				//
+				// 
 				// this is not in use...
-				//
+				// 
 				if (ccoof > 0.0) {
 					bb[idx] += bcoof;
 					cc[idx] += ccoof;
@@ -2931,7 +2930,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 					for (i = 0; i < graph->n; i++) {
 						c_new[i] = lambda * Qfunc(i, i, Qfunc_arg) + (1.0 + lambda) * c[i];
 						if (ISNAN(x[i]) || ISINF(x[i])) {
-							if (!mode) FIXME("MODE is NULL");
+							if (!mode)
+								FIXME("MODE is NULL");
 							x[i] = mode[i];
 						}
 					}
@@ -4884,7 +4884,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->cpo_manual)
+																   ai_par->
+																   cpo_manual)
 															   ? &cpodens : NULL), ii,
 												   x, bnew, c, mean, d, loglFunc, loglFunc_arg,
 												   fixed_value, graph, tabQfunc->Qfunc,
@@ -4916,7 +4917,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->cpo_manual)
+																   ai_par->
+																   cpo_manual)
 															   ? &cpodens : NULL), ii,
 												   x, bnew, c, mean, d, loglFunc, loglFunc_arg,
 												   fixed_value, graph, tabQfunc->Qfunc,
@@ -5062,7 +5064,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->cpo_manual)
+																   ai_par->
+																   cpo_manual)
 															   ? &cpodens : NULL), ii,
 												   x, bnew, c, mean, d, loglFunc, loglFunc_arg,
 												   fixed_value, graph, tabQfunc->Qfunc,
@@ -5095,7 +5098,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->cpo_manual)
+																   ai_par->
+																   cpo_manual)
 															   ? &cpodens : NULL), ii,
 												   x, bnew, c, mean, d, loglFunc, loglFunc_arg,
 												   fixed_value, graph, tabQfunc->Qfunc,
@@ -5488,12 +5492,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				ii = compute_idx[j];
 				if (cpo_theta[ii]) {
 					(*cpo)->value[ii] = Calloc(1, double);
-					
+
 					if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
 						for (jj = 0, evalue = evalue_one = 0.0; jj < dens_count; jj++) {
 							if (!ISNAN(cpo_theta[ii][jj])) {
 								evalue += cpo_theta[ii][jj] * adj_weights[jj];
-								evalue_one += adj_weights[jj]; 
+								evalue_one += adj_weights[jj];
 							}
 						}
 					} else {
@@ -6493,7 +6497,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	// a critical region, which mess up if run with pardiso and this loop in parallel.
 	// so I disable it for the moment.
 	int use_pardiso = (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ||
-	                   GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL);
+			   GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL);
 #pragma omp parallel for private(i, j, k) num_threads(GMRFLib_openmp->max_threads_inner) if (!use_pardiso)
 	for (i = 0; i < nlin; i++) {
 
@@ -7996,7 +8000,7 @@ int GMRFLib_ai_pool_free(GMRFLib_ai_pool_tp * pool)
 	}
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_ai_pool_get(GMRFLib_ai_pool_tp * pool, int *iz, size_t * idx)
+int GMRFLib_ai_pool_get(GMRFLib_ai_pool_tp * pool, int *iz, size_t *idx)
 {
 	return GMRFLib_ai_pool_intern(pool, iz, idx, 0.0, GMRFLib_AI_POOL_GET);
 }
@@ -8004,7 +8008,7 @@ int GMRFLib_ai_pool_set(GMRFLib_ai_pool_tp * pool, size_t idx, double logdens)
 {
 	return GMRFLib_ai_pool_intern(pool, NULL, &idx, logdens, GMRFLib_AI_POOL_SET);
 }
-int GMRFLib_ai_pool_intern(GMRFLib_ai_pool_tp * pool, int *iz, size_t * idx, double logdens, int action)
+int GMRFLib_ai_pool_intern(GMRFLib_ai_pool_tp * pool, int *iz, size_t *idx, double logdens, int action)
 {
 	int debug = 0;
 	int retval = 0;
