@@ -29,17 +29,17 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
-  \subsection{USER-VISIBLE CHANGES}{
+
+\section{CHANGES IN VERSION 20.03.09}{
+  \subsection{BUG FIXES}{
     \itemize{
-      \item 
+      \item Fixed a bug in the PIT calculations for the zeroinflated,
+      type 0, of poisson, binomial and nbinomial.
     }
   }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
-    }
-  }
+}
+
+\section{CHANGES IN VERSION 20.03.08}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
       \item Added option \code{b.strategy} in \code{control.inla} to
