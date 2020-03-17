@@ -29,6 +29,14 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.03.17}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Updated file \code{jointdataCD4.rds} in \code{exampledata/}
+    }
+  }
+}
+
 
 \section{CHANGES IN VERSION 20.03.09}{
   \subsection{BUG FIXES}{
