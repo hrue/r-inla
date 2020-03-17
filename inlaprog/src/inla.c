@@ -1819,7 +1819,7 @@ double link_qgamma(double x, map_arg_tp typ, void *param, double *cov)
 
 	switch (typ) {
 	case INVLINK:
-		//ret = exp(x) * shape / MATHLIB_FUN(qgamma) (lparam->quantile, shape, 1.0, 1, 0);
+		// ret = exp(x) * shape / MATHLIB_FUN(qgamma) (lparam->quantile, shape, 1.0, 1, 0);
 		ret = exp(x) * shape / inla_qgamma_cache(shape, lparam->quantile, 0);
 		break;
 
@@ -6337,20 +6337,24 @@ int loglikelihood_zeroinflated_poisson0(double *logll, double *x, int m, int idx
 		}
 	} else {
 		/*
-		 * As for the Poisson but '|y>0', and Prob(y > 0) = 1-exp(-mean) 
+		 * As for the Poisson but '|y>0', and Prob(y=0) = exp(-mean) 
 		 */
+		double p0;
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
 				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				mu = E * lambda;
-				logll[i] = log(1.0 - p) + y * log(mu) - mu - normc - log(1.0 - exp(-mu));
+				p0 = exp(-mu);
+				logll[i] = log(1.0 - p) + y * log(mu) - mu - normc - log(1.0 - p0);
 			}
+
 		} else {
 			for (i = 0; i < -m; i++) {
 				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				mu = E * lambda;
-				logll[i] = p + (1.0 - p) * (gsl_cdf_poisson_P((unsigned int) y, mu) - gsl_cdf_poisson_P((unsigned int) 0, mu));
+				p0 = exp(-mu);
+				logll[i] = p + (1.0 - p) * (gsl_cdf_poisson_P((unsigned int) y, mu) - p0) / (1.0 - p0);
 			}
 		}
 	}
@@ -6694,6 +6698,7 @@ int loglikelihood_zeroinflated_negative_binomial0(double *logll, double *x, int 
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+		double p0;
 		for (i = 0; i < -m; i++) {
 			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			mu = E * lambda;
@@ -6702,15 +6707,15 @@ int loglikelihood_zeroinflated_negative_binomial0(double *logll, double *x, int 
 				 * NegativeBinomial 
 				 */
 				p = size / (size + mu);
+				p0 = gsl_cdf_negative_binomial_P((unsigned int) 0, p, size);
 				logll[i] = p_zeroinflated + (1.0 - p_zeroinflated) *
-				    (gsl_cdf_negative_binomial_P((unsigned int) y, p, size) -
-				     gsl_cdf_negative_binomial_P((unsigned int) 0, p, size));
+				    (gsl_cdf_negative_binomial_P((unsigned int) y, p, size) - p0) / (1.0 - p0);
 			} else {
 				/*
 				 * The Poission limit 
 				 */
-				logll[i] = p_zeroinflated + (1.0 - p_zeroinflated) *
-				    (gsl_cdf_poisson_P((unsigned int) y, mu) - gsl_cdf_poisson_P((unsigned int) 0, mu));
+				p0 = gsl_cdf_poisson_P((unsigned int) 0, mu);
+				logll[i] = p_zeroinflated + (1.0 - p_zeroinflated) * (gsl_cdf_poisson_P((unsigned int) y, mu) - p0) / (1.0 - p0);
 			}
 		}
 	}
@@ -7577,9 +7582,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -7764,16 +7769,18 @@ int loglikelihood_zeroinflated_binomial0(double *logll, double *x, int m, int id
 
 		gsl_sf_result res;
 		gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
+		double p0;
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
 				prob = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = log(1.0 - p) + res.val + y * log(prob) + (n - y) * log(1.0 - prob) - log(1.0 - pow(1.0 - prob, n));
+				p0 = gsl_cdf_binomial_P((unsigned int) 0, prob, (unsigned int) n);
+				logll[i] = log(1.0 - p) + res.val + y * log(prob) + (n - y) * log(1.0 - prob) - log(1.0 - p0);
 			}
 		} else {
 			for (i = 0; i < -m; i++) {
 				prob = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = p + (1.0 - p) * (gsl_cdf_binomial_P((unsigned int) y, prob, (unsigned int) n) -
-							    gsl_cdf_binomial_P((unsigned int) 0, prob, (unsigned int) n));
+				p0 = gsl_cdf_binomial_P((unsigned int) 0, prob, (unsigned int) n);
+				logll[i] = p + (1.0 - p) * (gsl_cdf_binomial_P((unsigned int) y, prob, (unsigned int) n) - p0) / (1.0 - p0);
 			}
 		}
 	}
@@ -8277,7 +8284,7 @@ int loglikelihood_dgp(double *logll, double *x, int m, int idx, double *x_vec, d
 		for (i = 0; i < m; i++) {
 			q = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			sigma = q * fac;
-			logll[i] = log(F(y, sigma, xi) - F(y-1.01, sigma, xi));
+			logll[i] = log(F(y, sigma, xi) - F(y - 1.01, sigma, xi));
 		}
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
@@ -8763,7 +8770,7 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 				    );
 			}
 			break;
-			
+
 		case SURV_EVENT_ININTERVAL:
 			loglfun(log_dens, x, m, idx, x_vec, NULL, arg);
 			loglfun(prob_lower, x, -m, idx, x_vec, &lower, arg);
@@ -11311,8 +11318,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	 */
 
 	char *secname = NULL, *msg = NULL, *ctmp = NULL;
-	int i, j, found = 0, n_data = (mb->predictor_m > 0 ? mb->predictor_m : mb->predictor_n), 
-		discrete_data = 0;
+	int i, j, found = 0, n_data = (mb->predictor_m > 0 ? mb->predictor_m : mb->predictor_n), discrete_data = 0;
 	double tmp;
 	Data_section_tp *ds;
 
@@ -11561,7 +11567,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "DGP")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_dgp;
 		ds->data_id = L_DGP;
-		discrete_data =  1;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "NMIX")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_nmix;
 		ds->data_id = L_NMIX;
@@ -11596,7 +11602,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 	}
-	
+
 	switch (ds->data_id) {
 	case L_GAUSSIAN:
 		for (i = 0; i < mb->predictor_ndata; i++) {
@@ -12056,8 +12062,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		// Since we're using a normal approximation, the data can be negative and also larger then nb
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.nb[i] <= 0.0 ||
-				    ds->data_observations.betabinomialnb_scale[i] < 0.0) {
+				if (ds->data_observations.nb[i] <= 0.0 || ds->data_observations.betabinomialnb_scale[i] < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: BetaBinomialNA data[%1d] (nb,scale,y) = (%g,%g,%g) is void\n", secname,
 							i, ds->data_observations.nb[i],
 							ds->data_observations.betabinomialnb_scale[i], ds->data_observations.y[i]);
@@ -12124,7 +12129,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 						_SERR;
 					break;
 				case SURV_EVENT_ININTERVAL:
-					if (DMIN(lower, upper) < truncation || upper < lower || ttime < lower || ttime >  upper)
+					if (DMIN(lower, upper) < truncation || upper < lower || ttime < lower || ttime > upper)
 						_SERR;
 					break;
 				default:
@@ -12685,7 +12690,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta_tag[mb->ntheta] = inla_make_tag("Intern tail parameter for the dgp observations", mb->ds);
 				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Tail parameter for the dgp observations", mb->ds);
 			}
-			
+
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -33973,28 +33978,28 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-	case 35: 
+	case 35:
 	{
-		double y, lambda =  1.234;
+		double y, lambda = 1.234;
 
-		for(y = 0.0; y <= 3.0; y += 0.1) {
-			printf("y=%g  eval_log_contpoisson= %g\n", y, eval_log_contpoisson(y+1, lambda));
+		for (y = 0.0; y <= 3.0; y += 0.1) {
+			printf("y=%g  eval_log_contpoisson= %g\n", y, eval_log_contpoisson(y + 1, lambda));
 		}
 		break;
 	}
 
 
-	// this will give some more error messages, if any
+		// this will give some more error messages, if any
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
 		break;
 	}
-	
+
 	default:
 		exit(0);
 	}
-	
+
 	exit(EXIT_SUCCESS);
 }
 
