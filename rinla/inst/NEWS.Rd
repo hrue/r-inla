@@ -29,6 +29,32 @@
   }
 }
 
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item If \code{inla.call="remote"} is set,
+      then \code{INLA:::inla.call.builtin()} is used
+      if \code{inla.qinv()} and/or \code{inla.qsolve()} are
+      used while constructing the model.
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.03.17}{
   \subsection{BUG FIXES}{
     \itemize{
