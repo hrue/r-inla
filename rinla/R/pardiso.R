@@ -86,9 +86,9 @@
     t.dir = inla.tempdir()
     inla.set.sparselib.env(inla.dir = t.dir)
     if (inla.os("linux") || inla.os("mac")) {
-        ret = system(paste(shQuote(inla.getOption("inla.call")), "-m pardiso"), intern=TRUE)
+        ret = system(paste(shQuote(inla.call.no.remote()), "-m pardiso"), intern=TRUE)
     } else if(inla.os("windows")) {
-        ret = system(paste(shQuote(inla.getOption("inla.call")), "-m pardiso"), intern=TRUE)
+        ret = system(paste(shQuote(inla.call.no.remote()), "-m pardiso"), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }

@@ -93,10 +93,10 @@
     Xfile = inla.tempfile(tmpdir = t.dir)
     inla.set.sparselib.env(inla.dir = t.dir)
     if (inla.os("linux") || inla.os("mac")) {
-        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsolve", "-r", 
+        s = system(paste(shQuote(inla.call.no.remote()), "-s -m qsolve", "-r", 
                          reordering, "-S", smtp, Qfile, Xfile, Bfile, method), intern=TRUE)
     } else if(inla.os("windows")) {
-        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m qsolve", "-r",
+        s = system(paste(shQuote(inla.call.no.remote()), "-s -m qsolve", "-r",
                          reordering, "-S", smtp, Qfile, Xfile, Bfile, method), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
