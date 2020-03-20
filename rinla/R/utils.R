@@ -142,6 +142,17 @@
     }
 }
 
+`inla.call.no.remote` = function() 
+{
+    ## return what is defined in options$inla.call except for 'remote', for which we revert back
+    ## to the builtin one
+    inla.call = inla.getOption("inla.call")
+    if (is.null(inla.call) || any(inla.strcasecmp(inla.call, c("remote", "inla.remote")))) {
+        inla.call = inla.call.builtin()
+    }
+    return (inla.call)
+}
+
 `inla.fmesher.call.builtin` = function()
 {
     if (inla.os("mac")) {

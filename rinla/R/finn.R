@@ -20,10 +20,10 @@
     }
 
     if (inla.os("linux") || inla.os("mac")) {
-        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m finn", 
+        s = system(paste(shQuote(inla.call.no.remote()), "-s -m finn", 
                 "-r", reordering, "-z", seed, finn.file), intern=TRUE)
     } else if(inla.os("windows")) {
-        s = system(paste(shQuote(inla.getOption("inla.call")), "-s -m finn",
+        s = system(paste(shQuote(inla.call.no.remote()), "-s -m finn",
                 "-r", reordering, "-z", seed, finn.file), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
