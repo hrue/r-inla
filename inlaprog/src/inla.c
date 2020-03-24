@@ -34041,8 +34041,8 @@ int main(int argc, char **argv)
 	printf("\t\t-e var=value\t: Set variable VAR to VALUE.\n");	\
 	printf("\t\t-t MAX_THREADS\t: set the maximum number of threads.\n"); \
 	printf("\t\t-m MODE\t: Enable special mode:\n");		\
-        printf("\t\t\tMCMC  :  Enable MCMC mode\n");			\
-        printf("\t\t\tHYPER :  Enable HYPERPARAMETER mode\n");		\
+        printf("\t\t\tMCMC  :  Enable MCMC mode (disabled)\n");		\
+	printf("\t\t\tHYPER :  Enable HYPERPARAMETER mode\n");		\
 	printf("\t\t-h\t: Print (this) help.\n")
 
 #define _BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
@@ -34461,6 +34461,11 @@ int main(int argc, char **argv)
 			}
 		}
 	} else {
+
+		fprintf(stderr, "\n\n\n*** MCMC mode is no longer supported. Sorry. ***\n\n\n\n");
+		fflush(stderr);
+		exit(1);
+		
 		assert(G.mode == INLA_MODE_MCMC);
 		for (arg = optind; arg < argc; arg++) {
 			inla_tp *mb_old = NULL;

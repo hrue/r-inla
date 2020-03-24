@@ -32,7 +32,7 @@
 \section{CHANGES IN VERSION xx.xx.xx}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
-      \item 
+      \item \code{MCMC} mode is now disabled
     }
   }
   \subsection{NEW FEATURES}{
