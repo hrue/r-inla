@@ -12,7 +12,7 @@
 ## Export: inla.set.control.results.default
 ## Export: inla.set.control.mode.default
 ## Export: inla.set.control.hazard.default
-## Export: inla.set.control.gev2.default
+## Export: inla.set.control.bgev.default
 
 ## Export: control.lincomb
 ## Export: control.update
@@ -28,7 +28,7 @@
 ## Export: control.results
 ## Export: control.mode
 ## Export: control.hazard
-## Export: control.gev2
+## Export: control.bgev
 
 
 ### Defines default arguments
@@ -252,11 +252,11 @@
     ##:SEEALSO: inla
 }
 
-`inla.set.control.gev2.default` =
+`inla.set.control.bgev.default` =
     function(...)
 {
-    ##:EXTRA: The \code{control.gev2}-list is set within the corresponding \code{control.family}-list as control parameters to the \code{family="gev2"}
-    ##:NAME: control.gev2.default
+    ##:EXTRA: The \code{control.bgev}-list is set within the corresponding \code{control.family}-list as control parameters to the \code{family="bgev"}
+    ##:NAME: control.bgev.default
     list(
         ##:ARGUMENT: q.location The quantile level for the location parameter
         q.location = 0.5,
@@ -307,8 +307,8 @@
         ##:ARGUMENT: gev.scale.xi (Expert option, do not use unless you know what you are doing.) The internal scaling of the shape-parameter for the GEV distribution. (default 0.1)
         gev.scale.xi = 0.1,
 
-        ##:ARGUMENT: control.gev2  See \code{?control.gev2}
-        control.gev2 = NULL, 
+        ##:ARGUMENT: control.bgev  See \code{?control.bgev}
+        control.bgev = NULL, 
 
         ##:ARGUMENT: cenpoisson.I The censoring interval for the censored Poisson
         cenpoisson.I = c(-1L, -1L),
@@ -762,4 +762,4 @@ control.predictor = inla.make.completion.function(names(inla.set.control.predict
 control.results = inla.make.completion.function(names(inla.set.control.results.default()))
 control.mode = inla.make.completion.function(names(inla.set.control.mode.default()))
 control.hazard = inla.make.completion.function(names(inla.set.control.hazard.default()))
-control.gev2 = inla.make.completion.function(names(inla.set.control.gev2.default()))
+control.bgev = inla.make.completion.function(names(inla.set.control.bgev.default()))

@@ -879,15 +879,15 @@
         cont.family[[i.family]] = inla.set.control.family.default()
         cont.family[[i.family]]$control.mix = inla.set.control.mix.default()
         cont.family[[i.family]]$control.link = inla.set.control.link.default()
-        cont.family[[i.family]]$control.gev2 = inla.set.control.gev2.default()
+        cont.family[[i.family]]$control.bgev = inla.set.control.bgev.default()
 
         ## need to take option 'control.mix' and 'control.link' out and process it seperately
         c.mix = control.family[[i.family]]$control.mix
         c.link = control.family[[i.family]]$control.link
-        c.gev2 = control.family[[i.family]]$control.gev2
+        c.bgev = control.family[[i.family]]$control.bgev
         control.family[[i.family]]$control.mix = NULL
         control.family[[i.family]]$control.link = NULL
-        control.family[[i.family]]$control.gev2 = NULL
+        control.family[[i.family]]$control.bgev = NULL
 
         cont.family[[i.family]][names(control.family[[i.family]])] = control.family[[i.family]]
         cont.family[[i.family]]$hyper = inla.set.hyper(
@@ -905,7 +905,7 @@
         
         cont.family[[i.family]]$control.mix[names(c.mix)] = c.mix
         cont.family[[i.family]]$control.link[names(c.link)] = c.link
-        cont.family[[i.family]]$control.gev2[names(c.gev2)] = c.gev2
+        cont.family[[i.family]]$control.bgev[names(c.bgev)] = c.bgev
 
         if (!is.null(cont.family[[i.family]]$control.mix$model)) {
             cont.family[[i.family]]$control.mix$hyper = inla.set.hyper(
