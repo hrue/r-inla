@@ -333,20 +333,20 @@ typedef struct {
 	double gev_scale_xi;				       /* scaling of the shape-parameter */
 
 	/*
-	 * GEV2
+	 * bGEV
 	 */
-	double gev2_qlocation;
-	double gev2_qspread;
-	double gev2_beta_ab;
-	double *gev2_tail_interval;
-	double *gev2_qmix;
-	double *gev2_scale;
-	double **gev2_x;				       /* matrix of covariates */
-	double ***gev2_betas;				       /* vector of betas */
-	double **gev2_log_spread;
-	double **gev2_intern_tail;
-	int gev2_nbetas[2];
-	int *gev2_ncols;
+	double bgev_qlocation;
+	double bgev_qspread;
+	double bgev_beta_ab;
+	double *bgev_tail_interval;
+	double *bgev_qmix;
+	double *bgev_scale;
+	double **bgev_x;				       /* matrix of covariates */
+	double ***bgev_betas;				       /* vector of betas */
+	double **bgev_log_spread;
+	double **bgev_intern_tail;
+	int bgev_nbetas[2];
+	int *bgev_ncols;
 
 	/*
 	 * Log gamma frailty
@@ -532,12 +532,13 @@ typedef enum {
 	L_QLOGLOGISTIC,
 	L_QLOGLOGISTICSURV,
 	L_POM,
-	L_GEV2,
+	L_BGEV,
 	L_NBINOMIAL2,
 	L_GAMMASURV,
 	L_BETABINOMIALNA,
 	L_XPOISSON,
 	L_DGP,
+	L_XBINOMIAL,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1788,7 +1789,7 @@ int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x
 int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, GMRFLib_logl_tp * loglfun);
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_gev2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_bgev(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gp(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

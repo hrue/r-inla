@@ -5376,6 +5376,18 @@
                      pdf = "binomial"
                  ),
 
+                 xbinomial = list(
+                     doc = "The Binomial likelihood (expert version)", 
+                     hyper = list(
+                     ),
+                     survival = FALSE,
+                     discrete = TRUE,
+                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog",
+                              "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn"),
+                     pdf = "binomial", 
+                     status = "experimental"
+                 ),
+
                  pom = list(
                      doc = "Likelihood for the proportional odds model", 
                      hyper = list(
@@ -5497,8 +5509,8 @@
                      pdf = "pom"
                  ),
 
-                 gev2 = list(
-                     doc = "The Generalized Extreme Value likelihood (2nd variant)", 
+                 bgev = list(
+                     doc = "The blended Generalized Extreme Value likelihood", 
                      hyper = list(
                          theta1 = list(
                              hyperid =  57201,
@@ -5637,7 +5649,7 @@
                      survival = FALSE,
                      discrete = FALSE,
                      link = c("default", "identity"), 
-                     pdf = "gev2"
+                     pdf = "bgev"
                  ),
 
                  gamma = list(
