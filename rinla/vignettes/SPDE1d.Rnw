@@ -80,7 +80,7 @@ Commands to extract and pre-process these data
 if (Sys.getlocale("LC_TIME")!="C")
     Sys.setlocale("LC_TIME", "C")
 dates <- as.Date(d0[i+1], format="      <th>%b %d, %Y</th>")
-tmed <- as.numeric(gsub("<td>", "", gsub("°</td>", "", d0[i+4])))
+tmed <- as.numeric(gsub("<td>", "", gsub("..</td>", "", d0[i+4])))
 (n <- length(dates)) ### it is daily over last 13 months
 @
 
