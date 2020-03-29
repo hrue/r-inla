@@ -190,6 +190,7 @@
 
     } else if (inla.one.of(family,
                            c("binomial",
+                             "xbinomial", 
                              "binomialtest", 
                              "betabinomial", 
                              "nbinomial2", 

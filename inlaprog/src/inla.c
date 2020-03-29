@@ -4350,6 +4350,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_BINOMIAL:
+	case L_XBINOMIAL:
 		idiv = 3;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 		break;
@@ -11419,6 +11420,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomial;
 		ds->data_id = L_BINOMIAL;
 		discrete_data = 1;
+	} else if (!strcasecmp(ds->data_likelihood, "XBINOMIAL")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomial; /* yes. its the same */
+		ds->data_id = L_XBINOMIAL;
+		discrete_data = 0;
 	} else if (!strcasecmp(ds->data_likelihood, "NBINOMIAL2")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_nbinomial2;
 		ds->data_id = L_NBINOMIAL2;
@@ -11991,6 +11996,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_BINOMIAL:
+	case L_XBINOMIAL:
 	case L_ZERO_N_INFLATEDBINOMIAL2:
 	case L_ZERO_N_INFLATEDBINOMIAL3:
 		for (i = 0; i < mb->predictor_ndata; i++) {
@@ -15719,6 +15725,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->predictor_invlinkfunc = link_qpoisson;
 			break;
 		case L_BINOMIAL:
+		case L_XBINOMIAL:
 			ds->link_id = LINK_QBINOMIAL;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_qbinomial;
@@ -15752,6 +15759,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_ASSERT((ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0), GMRFLib_EPARAMETER);
 		switch (ds->data_id) {
 		case L_BINOMIAL:
+		case L_XBINOMIAL:
 			ds->link_id = LINK_QBINOMIAL;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_pqbinomial;
@@ -26022,6 +26030,8 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				break;
 
+			case L_BINOMIAL:
+			case L_XBINOMIAL: 
 			case L_EXPONENTIAL:
 			case L_EXPONENTIALSURV:
 			case L_POISSON:
