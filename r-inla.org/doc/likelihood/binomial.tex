@@ -43,6 +43,20 @@ None.
 \item Required arguments: $y$ and $n$ (keyword \texttt{Ntrials})
 \end{itemize}
 
+
+\subsection*{Expert version}
+There is also an ``expert'' version were you are supposed to know what
+you are doing. Here, we allow $y$ and $n$ to be non-integers, however,
+the condition $0\le y \le n$ apply. The normalizing constant is
+computed as above using the integer part of $y$ and $n$. This is
+similar to using \verb|floor(y)| and \verb|floor(n)| in \verb|R|. The
+marginal likelihood estimate will in this case make less sense.
+\begin{itemize}
+\item $\text{family}=\texttt{xbinomial}$
+\item Required arguments: $y$ and $n$ (keyword \texttt{Ntrials})
+\end{itemize}
+\input{../hyper/likelihood/xbinomial.tex}
+
 \subsection*{Example}
 
 In the following example we estimate the parameters in a simulated

@@ -42,7 +42,8 @@
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item
+      \item Added family \code{xbinomial} that allow non-integer
+      response.
     }
   }
   \subsection{BUG FIXES}{

@@ -5376,6 +5376,18 @@
                      pdf = "binomial"
                  ),
 
+                 xbinomial = list(
+                     doc = "The Binomial likelihood (expert version)", 
+                     hyper = list(
+                     ),
+                     survival = FALSE,
+                     discrete = TRUE,
+                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog",
+                              "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn"),
+                     pdf = "binomial", 
+                     status = "experimental"
+                 ),
+
                  pom = list(
                      doc = "Likelihood for the proportional odds model", 
                      hyper = list(
