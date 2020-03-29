@@ -14,7 +14,7 @@
 ##! \usage{
 ##!     inla.posterior.sample(n = 1L, result, selection = list(), 
 ##!                           intern = FALSE,
-##!                           use.improved.mean = TRUE, 
+##!                           use.improved.mean = TRUE, skew.corr = TRUE, 
 ##!                           add.names = TRUE, seed = 0L, num.threads = NULL, 
 ##!                           verbose=FALSE)
 ##!     inla.posterior.sample.eval(fun, samples, return.matrix = TRUE, ...)
@@ -47,9 +47,9 @@
 ##!   \item{use.improved.mean}{Logical. If \code{TRUE} then use the
 ##!        marginal mean values when constructing samples. If \code{FALSE}
 ##!        then use the mean in the Gaussian approximations.}
-##   \item{skew.corr}{Logical. If \code{TRUE} then correct samples for skewness,
-##       if \code{FALSE},  do not correct samples for skewness (ie use the
-##       Gaussian).}
+##!   \item{skew.corr}{Logical. If \code{TRUE} then correct samples for skewness,
+##!       if \code{FALSE},  do not correct samples for skewness (ie use the
+##!       Gaussian).}
 ##!   \item{add.names}{Logical. If \code{TRUE} then add name for each elements of each
 ##!       sample. If \code{FALSE}, only add name for the first sample. 
 ##!       (This save space.)}
@@ -82,17 +82,15 @@
 ##!       numerical integration, hence if you want a higher resolution, you need to
 ##!       to change the \code{int.stratey} variable and friends. The latent field is
 ##!       sampled from the Gaussian approximation conditioned on the hyperparameters,
-##!       but with a correction for the mean (default). 
-##
-##        and optional (and by default) corrected for the estimated skewness.
-##
-##       The log.density report is only correct when there is no constraints.
-##       With constraints, it correct the Gaussian part of the sample for the constraints.
-##
-##       After the sample is (optional) skewness corrected, the log.density
-##       is is not exact for correcting for constraints, but the error is very
-##       small in most cases.
-##
+##!       but with a correction for the mean (default), 
+##!        and optional (and by default) corrected for the estimated skewness.
+##!
+##!       The log.density report is only correct when there is no constraints.
+##!       With constraints, it correct the Gaussian part of the sample for the constraints.
+##!
+##!       After the sample is (optional) skewness corrected, the log.density
+##!       is is not exact for correcting for constraints, but the error is very
+##!       small in most cases.
 ##!}
 ##!\value{\code{inla.posterior.sample} returns a list of the samples,
 ##!       where each sample is a list with
@@ -178,7 +176,7 @@
 ##
 ## In order to call the right interpolating functions related to the different skewness mapping 
 ## contained in the object "fun.splines" below we use a small trick for defining the right index order
-## considering ties as well (which is common in our skewness context). The following example should
+## considering ties as well ( which is common in our skewness context). The following example should
 ## be clear enough:
 ##
 ## > x = sample(round(runif(3), digits = 2), size = 10, replace = T)
@@ -190,7 +188,7 @@
 ## [1] 3 2 3 3 2 3 2 1 1 2
 
 
-`inla.create.sn.cache` <- function() 
+inla.create.sn.cache <- function() 
 {
     ## Faster function for qsn,psn and dsn functions (using interpolations from the true ones)
     speed.fsn <- function(s, x, skew, fun.splines, deriv = 0) {
@@ -267,7 +265,7 @@
         }
         return(res)
     }
-
+    
     skew.points.table <- function(s.pos, s, points) {
         skew.store.qsn <- matrix(NA, nrow = length(s.pos), ncol = length(points))
         skew.store.jac <- matrix(NA, nrow = length(s), ncol = length(points))
@@ -316,15 +314,15 @@
     return (invisible())
 }
 
-`inla.posterior.sample.new` = function(n = 1L, result, selection = list(), 
-                                       intern = FALSE,
-                                       use.improved.mean = TRUE, skew.corr = TRUE, 
-                                       num.cores = 1L,
-                                       add.names = TRUE, seed = 0L, num.threads = NULL, 
-                                       verbose=FALSE)
+
+inla.posterior.sample = function(n = 1L, result, selection = list(), 
+                                 intern = FALSE,
+                                 use.improved.mean = TRUE, skew.corr = TRUE, 
+                                 add.names = TRUE, seed = 0L, num.threads = NULL, 
+                                 verbose = FALSE)
 {
     ## New inla.posterior.sample with skewness correction. contributed by CC.
-
+    
     stopifnot(!missing(result) && any(class(result) == "inla"))
     if (is.null(result$misc$configs)) {
         stop("You need an inla-object computed with option 
@@ -341,7 +339,6 @@
     if (num.threads > 1L && seed != 0L) {
         stop("num.threads > 1L require seed = 0L")
     }
-    num.cores = max(round(num.cores), 1)
     if (use.improved.mean == FALSE) {
         skew.corr <- FALSE
     }
@@ -359,6 +356,7 @@
     sel.map = which(sel)
     stopifnot(length(sel.map) == sel.n)
     names(sel.map) = names(sel[sel.map])
+    
     n = as.integer(n)
     stopifnot(is.integer(n) && n > 0L)
     
@@ -375,29 +373,15 @@
     for(i in 1:cs$nconfig) {
         n.idx[i] = sum(idx == i)
     }
-    ## configuration indexes for not zero samples
-    id.conf = which(n.idx > 0)           
     con = cs$contents
-    stopifnot(inla.require('doMC'))
-
-    if (num.cores == 1) { 
-        ## This allows a serial computation
-        registerDoSEQ()  
-    } else {
-        ## This allows a parallel computation and the number of 
-        ## threads in INLA are matched with the employed processors 
-        num.threads = num.cores  
-        doMC::registerDoMC(num.cores)
-    }
-    samples.list = foreach(k = id.conf)  %:%       # outer multi-task loop for the configuration points
-        foreach(kk = n.idx[k])  %dopar% {          # inner loop for parallelisation 
+    all.samples = rep(list(c()), n)
+    i.sample = 1L
+    for(k in 1:cs$nconfig) {
+        if (n.idx[k] > 0) {
             ## then the latent field
-            xx = inla.qsample(n = kk, Q = cs$config[[k]]$Q,
-                              mu = inla.ifelse(use.improved.mean, 
-                                               cs$config[[k]]$improved.mean, 
-                                               cs$config[[k]]$mean), 
-                              constr = cs$constr, logdens = TRUE, 
-                              seed = seed, num.threads = num.threads,
+            xx = inla.qsample(n = n.idx[k], Q = cs$config[[k]]$Q,
+                              mu = inla.ifelse(use.improved.mean, cs$config[[k]]$improved.mean, cs$config[[k]]$mean), 
+                              constr = cs$constr, logdens = TRUE, seed = seed, num.threads = num.threads,
                               selection = sel.map, verbose = verbose)
             ## if user set seed,  then just continue this rng-stream
             if (seed > 0L) seed = -1L
@@ -486,25 +470,43 @@
                 skew.val[which(is.na(skew.val))] <- 0 
                 ## we round skewness values to the second digit for matching the correct interpolations
                 skew.val <- round(skew.val, digits = dig)  
-                s.new <- round(s, digits = dig)    
-                ## 'dsn' evaluations by interpolation
-                dsn.new <- speed.fsn(s = s.new, x = val.max, skew = skew.val, fun.splines = skew.splines.jac, deriv = 1)
-                ## 'psn' evaluations by interpolation
-                psn.new <- speed.fsn(s = s.new, x = val.max, skew = skew.val, fun.splines = skew.splines.jac)           
-                if (length(sel.map) < length(skew.val)) {
-                    mean.SN <- mean.SN[sel.map]
-                    sigma.th <- sigma.th[sel.map]
-                    skew.val <- skew.val[sel.map]
+                s.new <- round(s, digits = dig) 
+                ## Positions for skewness different from 0
+                zero.not <- which(skew.val != 0)
+                if (length(zero.not) == 0 || !any(sel.map %in% zero.not)) {
+                    sample.corr <- xx$sample
+                    C.th <- xx$logdens
+                } else {
+                    skew.val.not <- skew.val[zero.not]
+                    val.max.not <- val.max[zero.not] 
+                    ## 'dsn' evaluations by interpolation
+                    dsn.not <- speed.fsn(s = s.new, x = val.max.not, skew = skew.val.not, fun.splines = skew.splines.jac, deriv = 1)
+                    ## 'psn' evaluations by interpolation
+                    psn.not <- speed.fsn(s = s.new, x = val.max.not, skew = skew.val.not, fun.splines = skew.splines.jac)   
+                    dsn.new <- dnorm(val.max)
+                    dsn.new[zero.not] <- dsn.not
+                    psn.new <- pnorm(val.max)
+                    psn.new[zero.not] <- psn.not
+                    if (length(sel.map) < length(skew.val)) {
+                        mean.SN <- mean.SN[sel.map]
+                        sigma.th <- sigma.th[sel.map]
+                        skew.val <- skew.val[sel.map]
+                        zero.not <- which(skew.val != 0)
+                        if(length(zero.not) != 0) {skew.val.not <- skew.val[zero.not]}
+                    }
+                    x.sample.not <- xx$sample[zero.not, , drop = FALSE]
+                    mean.SN.not <- mean.SN[zero.not]
+                    sigma.th.not <- sigma.th[zero.not]
+                    x.val.not <- (x.sample.not -mean.SN.not)/sigma.th.not   
+                    ## faster vectorized 'qsn' function call
+                    fast.qsn <- speed.fsn(s = s.new, x = x.val.not, skew = skew.val.not, fun.splines = skew.splines)
+                    sample.corr <- xx$sample
+                    sample.store <- sigma.th.not*fast.qsn+mean.SN.not
+                    sample.corr[zero.not, ] <- sample.store[1:nrow(sample.store), ]
+                    C.th <- xx$logdens+sum(log(dsn.new))-sum(log(dnorm(qnorm(psn.new))))
                 }
-                x.val <- (xx$sample-mean.SN)/sigma.th          
-                ## faster vectorized 'qsn' function call
-                fast.qsn <- speed.fsn(s = s.new, x = x.val, skew = skew.val, fun.splines = skew.splines)  
-                sample.corr <- sigma.th*fast.qsn+mean.SN
-                C.th <- xx$logdens+sum(log(dsn.new))-sum(log(dnorm(qnorm(psn.new))))
             }
-            all.samples = rep(list(c()), kk)
-            i.sample = 1L
-            for(i in 1:kk) {
+            for(i in 1:n.idx[k]) {
                 if (is.null(theta)) {
                     a.sample = list(
                         hyperpar = NULL,
@@ -548,15 +550,10 @@
                 all.samples[[i.sample]] = a.sample
                 i.sample = i.sample + 1L
             }
-            all.samples
         }
-    
-    samples.list  <- unlist(unlist(samples.list, recursive=FALSE), recursive = FALSE)
-    ## correct labels for the samples
-    invisible(lapply(seq_along(samples.list), 
-                     function(i) colnames(samples.list[[i]]$latent) <<- paste0("sample",i)))
+    }
     if (length(selection) == 0L) {
-        attr(samples.list, ".contents") = con
+        attr(all.samples, ".contents") = con
     } else {
         ## we use a selection, need to build a new 'contents' list
         con = list(tag = names(selection), start = c(), length = c())
@@ -569,13 +566,13 @@
                 con$length = c(con$length, diff(range(m)) + 1)
             }
         }
-        attr(samples.list,  ".contents") = con
+        attr(all.samples,  ".contents") = con
     }
-
-    return (samples.list)
+    return (all.samples)
 }
 
-`inla.posterior.sample` = function(n = 1, result, selection = list(), intern = FALSE,
+
+`inla.posterior.sample.orig` = function(n = 1, result, selection = list(), intern = FALSE,
                                         use.improved.mean = TRUE, add.names = TRUE, seed = 0L,
                                         num.threads = NULL, verbose = FALSE)
 {
@@ -756,10 +753,10 @@
 
 `inla.posterior.sample.eval` = function(fun, samples, return.matrix = TRUE, ...)
 {
-    ## evaluate FUN(...) over each sample
+    ## evaluate fun(...) over each sample
     var = "inla.posterior.sample.eval.warning.given"
     if (!(exists(var, envir = inla.get.inlaEnv()) &&
-          get(var, envir = inla.get.inlaEnv()) == TRUE)) {
+          get(var, envir = inla.get.inlaEnv()) == true)) {
         warning("Function 'inla.posterior.sample.eval()' is experimental.")
         assign(var, TRUE, envir = inla.get.inlaEnv())
     }
