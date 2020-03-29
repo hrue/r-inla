@@ -44,6 +44,8 @@
     \itemize{
       \item Added family \code{xbinomial} that allow non-integer
       response.
+      \item Likelihood model \code{bgev} add (not yet complete), and was
+      renamed from the experimental likelihood model \code{gev2}.
     }
   }
   \subsection{BUG FIXES}{
