@@ -231,9 +231,9 @@ abline(h=3*(-8:9), v=pd, lty=3, col=gray(.5))
 Pre-processing the maximum, minimum and normal temperature, 
 the precipitation, and the average and maximum wind:
 <<other>>=
-tmax <- as.numeric(gsub("<td>", "", gsub("°</td>", "", d0[i+2])))
-tmin <- as.numeric(gsub("<td>", "", gsub("°</td>", "", d0[i+3])))
-tnormal <- as.numeric(gsub("<td>", "", gsub("°</td>", "", d0[i+5])))
+tmax <- as.numeric(gsub("<td>", "", gsub("..</td>", "", d0[i+2])))
+tmin <- as.numeric(gsub("<td>", "", gsub("..</td>", "", d0[i+3])))
+tnormal <- as.numeric(gsub("<td>", "", gsub("..</td>", "", d0[i+5])))
 prec <- as.numeric(gsub("<td>", "", gsub("mm</td>", "", d0[i+6])))
 wind <- as.numeric(gsub("<td>", "", gsub("m/s</td>", "", d0[i+10])))
 wmax <- as.numeric(gsub("<td>", "", gsub("m/s</td>", "", d0[i+9])))
