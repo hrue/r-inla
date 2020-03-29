@@ -180,12 +180,12 @@
             sep="", file=file, append=TRUE)
     }
 
-    if (inla.one.of(family, "gev2")) {
-        c.gev2 = control$control.gev2
-        nms = names(c.gev2)
-        for (i in seq_along(c.gev2)) {
+    if (inla.one.of(family, "bgev")) {
+        c.bgev = control$control.bgev
+        nms = names(c.bgev)
+        for (i in seq_along(c.bgev)) {
             ## need this, as the xi.range is a vector of length 2
-            cat("gev2.", nms[i], " = ", paste(as.numeric(c.gev2[[i]]), collapse = " "),
+            cat("bgev.", nms[i], " = ", paste(as.numeric(c.bgev[[i]]), collapse = " "),
                 "\n", sep="", file=file, append=TRUE)
         }
     }
