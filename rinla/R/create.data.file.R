@@ -337,7 +337,7 @@
         Y = matrix(c(apply(Y, 1, function(x) c(sort(x[!is.na(x)]), x[is.na(x)]))), ncol = ncol(Y), byrow=TRUE)
         response = cbind(idx, X, Y, yfake)
 
-    } else if (inla.one.of(family, c("gev2"))) {
+    } else if (inla.one.of(family, c("bgev"))) {
 
         if (is.null(scale)) {
             scale = rep(1.0, n.data)

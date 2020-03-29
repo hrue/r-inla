@@ -5509,8 +5509,8 @@
                      pdf = "pom"
                  ),
 
-                 gev2 = list(
-                     doc = "The Generalized Extreme Value likelihood (2nd variant)", 
+                 bgev = list(
+                     doc = "The blended Generalized Extreme Value likelihood", 
                      hyper = list(
                          theta1 = list(
                              hyperid =  57201,
@@ -5649,7 +5649,7 @@
                      survival = FALSE,
                      discrete = FALSE,
                      link = c("default", "identity"), 
-                     pdf = "gev2"
+                     pdf = "bgev"
                  ),
 
                  gamma = list(
