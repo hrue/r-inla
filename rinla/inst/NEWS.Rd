@@ -29,7 +29,7 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
+\section{CHANGES IN VERSION 20.03.29}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
       \item \code{MCMC} mode is now disabled
@@ -37,7 +37,8 @@
   }
   \subsection{NEW FEATURES}{
     \itemize{
-      \item
+      \item Skewness correction is now back as default, in 
+      \code{inla.posterior.sample()}
     }
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
