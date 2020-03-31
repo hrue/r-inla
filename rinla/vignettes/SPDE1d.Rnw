@@ -28,8 +28,10 @@ More details about it are on the paber at
 
 <<setting,include=FALSE>>=
 library(knitr);  library(INLA);  library(fields) 
+inla.setOption(num.threads=1)
+inla.setOption(smtp="taucs")
 opts_chunk$set(message=FALSE, warning=FALSE, tidy=FALSE,
-fig.path='figures/SPDE1d')
+fig.path="figures/SPDE1d")
 knit_hooks$set(small.mar = function(before, options, envir) {
     if (before) par(mar = c(0.1, 0.1, .1, .1))  # smaller margin on top and right
 })
@@ -45,8 +47,8 @@ We consider the daily weather data available at
 We have the following set the URL for the daily data for 
 Trondheim considerint in the last 13 months 
 <<url>>=
-u0 <- paste0('http://www.yr.no/place/Norway/S%C3%B8r-Tr%C3%B8ndelag/',
-             'Trondheim/Trondheim/detailed_statistics.html')
+u0 <- paste0("http://www.yr.no/place/Norway/S%C3%B8r-Tr%C3%B8ndelag/",
+             "Trondheim/Trondheim/detailed_statistics.html")
 ### browseURL(u0) ### to visit the web page 
 @
 
@@ -60,34 +62,34 @@ and play with the text and its structure directly.
 <<read,eval=FALSE>>=
 d0 <- readLines(u0) ### read it as text (Done at 26 September 2016)
 @ 
-<<echo=FALSE,results='hide'>>=
-load('TRD20160926weather.RData')
+<<echo=FALSE,results="hide">>=
+load("TRD20160926weather.RData")
 @ 
 
 First, we have to find the index for each table line 
 and consider only those for the main table:
 <<index>>=
-i <- grep('<tr>', d0) ### index for each table line
-i <- i[i>grep('<tbody>', d0)[2]] ### select those for the second table
+i <- grep("<tr>", d0) ### index for each table line
+i <- i[i>grep("<tbody>", d0)[2]] ### select those for the second table
 @
 
 The desired data we would like to analyse is the 
 minimum and maximum temperature. 
 Commands to extract and pre-process these data
 <<data>>=
-if (Sys.getlocale('LC_TIME')!='C')
-    Sys.setlocale('LC_TIME', 'C')
-dates <- as.Date(d0[i+1], format='      <th>%b %d, %Y</th>')
-tmed <- as.numeric(gsub('<td>', '', gsub('°</td>', '', d0[i+4])))
+if (Sys.getlocale("LC_TIME")!="C")
+    Sys.setlocale("LC_TIME", "C")
+dates <- as.Date(d0[i+1], format="      <th>%b %d, %Y</th>")
+tmed <- as.numeric(gsub("<td>", "", gsub("..</td>", "", d0[i+4])))
 (n <- length(dates)) ### it is daily over last 13 months
 @
 
 Visualize it with the following commands
-<<visualize, fig.width=9, fig.height=3, out.width='0.99\\textwidth', fig.align='center', fig.pos='h'>>=
+<<visualize, fig.width=9, fig.height=3, out.width="0.99\\textwidth", fig.align="center", fig.pos="h">>=
 pd <- pretty(c(dates, max(dates+30)), n=13)
-par(mfrow=c(1,1), mar=c(3,3,0.5,2), mgp=c(2,.7,0), las=2, xaxs='i')
-plot(dates, tmed, type='l', lwd=2,
-     axes=FALSE, xlab='day', ylab='Temperature')
+par(mfrow=c(1,1), mar=c(3,3,0.5,2), mgp=c(2,.7,0), las=2, xaxs="i")
+plot(dates, tmed, type="l", lwd=2,
+     axes=FALSE, xlab="day", ylab="Temperature")
 abline(h=0)
 abline(h=3*(-8:9), v=pd, lty=3, col=gray(.5))
 box()
@@ -105,20 +107,20 @@ Choosing first order basis function and Neumann boundary.
 <<mesh>>=
 coo <- as.numeric(dates-min(dates)) ## have numeric temporal coordinates
 mesh <- inla.mesh.1d(loc=seq(min(coo), max(coo), by=7), ## knots (7 days)
-                 boundary=c('neumann', 'neumann'), ## boundaries 
+                 boundary=c("neumann", "neumann"), ## boundaries 
                  degree=2)  ### basis function degree
 @
 
 \paragraph{Projector matrix} is the matrix built to project 
  the process at the mesh nodes to the locations 
 
-<<projector, pars=list(mar=c(0,0,1,0)), fig.width=8, fig.height=2, out.width='0.99\\textwidth', fig.align='center', fig.pos='h'>>=
+<<projector, pars=list(mar=c(0,0,1,0)), fig.width=8, fig.height=2, out.width="0.99\\textwidth", fig.align="center", fig.pos="h">>=
 A <- inla.spde.make.A( ## projector creator
     mesh=mesh, ## provide the mesh
     loc=coo) ### locations where to project the field
-dim(A) ## an 'n' by 'm' projector matrix
+dim(A) ## an "n" by "m" projector matrix
 summary(rowSums(A)) ### each line sums up to one
-summary(colSums(A)) ### 'how many' observations per knot
+summary(colSums(A)) ### "how many" observations per knot
 @
 
 \paragraph{Build the SPDE model} on the mesh, choosing the 
@@ -153,7 +155,7 @@ stk.e <- inla.stack( ## stack creator
   A=list(## projector list of each effect
     1, ## for the covariates
     A), ## for the RF
-  tag='est') ## tag
+  tag="est") ## tag
 @
 
 \paragraph{Fit} the posterior marginal distributions
@@ -189,7 +191,7 @@ We have to transform the likelihood precision PMD to have
 the variance PMD. It can be done by 
 
 <<nugget>>=
-m.prec <- res$marginals.hyperpar$'Precision for the Gaussian observations' ## the marginal
+m.prec <- res$marginals.hyperpar$"Precision for the Gaussian observations" ## the marginal
 post.s2e <- inla.tmarginal(## function to compute a tranformation 
   function(x) sqrt(1/x), ## inverse transformation and square root
   m.prec) ## marginal to be applied
@@ -198,24 +200,24 @@ post.s2e <- inla.tmarginal(## function to compute a tranformation
 The PMDs for likelihood standard deviation and 
 the RF parameters can be visualized by 
 
-<<parameters, fig.width=9, fig.height=3, out.width='0.99\\textwidth', fig.align='center', fig.pos='h'>>=
+<<parameters, fig.width=9, fig.height=3, out.width="0.99\\textwidth", fig.align="center", fig.pos="h">>=
 par(mfrow=c(1,3), mar=c(3,3,0.3,0.3), mgp=c(2,0.5,0))
-plot(post.s2e, type='l', ylab='Density', 
+plot(post.s2e, type="l", ylab="Density", 
      xlab=expression(sigma[e]^2))
-plot(res$marginals.hyperpar[[2]], type='l',
-     xlab='range', ylab='Density')
-plot(res$marginals.hyperpar[[3]], ty='l', 
-     xlab=expression(sigma[s]), yla='Density')
+plot(res$marginals.hyperpar[[2]], type="l",
+     xlab="range", ylab="Density")
+plot(res$marginals.hyperpar[[3]], ty="l", 
+     xlab=expression(sigma[s]), yla="Density")
 @
 
 \section{Predicted}
 
 Visualize it with the commands bellow
 
-<<predicted, fig.width=9, fig.height=3, out.width='0.99\\textwidth', fig.align='center', fig.pos='h'>>=
-par(mfrow=c(1,1), mar=c(3,3,0.3,2), mgp=c(2,0.5,0), las=2, xaxs='i')
-id <- inla.stack.index(stk.e, tag='est')$data
-plot(dates, tmed, type='l', axes=FALSE, ylab='Temperature', lwd=2)
+<<predicted, fig.width=9, fig.height=3, out.width="0.99\\textwidth", fig.align="center", fig.pos="h">>=
+par(mfrow=c(1,1), mar=c(3,3,0.3,2), mgp=c(2,0.5,0), las=2, xaxs="i")
+id <- inla.stack.index(stk.e, tag="est")$data
+plot(dates, tmed, type="l", axes=FALSE, ylab="Temperature", lwd=2)
 for (j in 3:5)
   lines(dates, res$summary.fitted.values[id, j], lty=2, lwd=2)
 box(); axis(2, 3*(-8:9)); axis(4, 3*(-8:9))
@@ -229,33 +231,33 @@ abline(h=3*(-8:9), v=pd, lty=3, col=gray(.5))
 Pre-processing the maximum, minimum and normal temperature, 
 the precipitation, and the average and maximum wind:
 <<other>>=
-tmax <- as.numeric(gsub('<td>', '', gsub('°</td>', '', d0[i+2])))
-tmin <- as.numeric(gsub('<td>', '', gsub('°</td>', '', d0[i+3])))
-tnormal <- as.numeric(gsub('<td>', '', gsub('°</td>', '', d0[i+5])))
-prec <- as.numeric(gsub('<td>', '', gsub('mm</td>', '', d0[i+6])))
-wind <- as.numeric(gsub('<td>', '', gsub('m/s</td>', '', d0[i+10])))
-wmax <- as.numeric(gsub('<td>', '', gsub('m/s</td>', '', d0[i+9])))
+tmax <- as.numeric(gsub("<td>", "", gsub("..</td>", "", d0[i+2])))
+tmin <- as.numeric(gsub("<td>", "", gsub("..</td>", "", d0[i+3])))
+tnormal <- as.numeric(gsub("<td>", "", gsub("..</td>", "", d0[i+5])))
+prec <- as.numeric(gsub("<td>", "", gsub("mm</td>", "", d0[i+6])))
+wind <- as.numeric(gsub("<td>", "", gsub("m/s</td>", "", d0[i+10])))
+wmax <- as.numeric(gsub("<td>", "", gsub("m/s</td>", "", d0[i+9])))
 @
 
 Visualize it
-<<visualize3, fig.width=9, fig.height=6, out.width='0.99\\textwidth', fig.align='center', fig.pos='h'>>=
-par(mfrow=c(3,1), mar=c(0.1,3,0.1,2), mgp=c(2,.7,0), las=2, xaxs='i')
-plot(dates, tmed, type='l', ylim=range(tmin, tmax, na.rm=TRUE), 
-     axes=FALSE, xlab='', ylab='Temperature', col='green')
-lines(dates, tmin, col='blue')
-lines(dates, tmax, col='red')
+<<visualize3, fig.width=9, fig.height=6, out.width="0.99\\textwidth", fig.align="center", fig.pos="h">>=
+par(mfrow=c(3,1), mar=c(0.1,3,0.1,2), mgp=c(2,.7,0), las=2, xaxs="i")
+plot(dates, tmed, type="l", ylim=range(tmin, tmax, na.rm=TRUE), 
+     axes=FALSE, xlab="", ylab="Temperature", col="green")
+lines(dates, tmin, col="blue")
+lines(dates, tmax, col="red")
 lines(dates, tnormal)
-legend(dates[which.min(tmin)], par()$usr[4], c('normal', 'max.', 'aver.', 'min.'), 
-      col=1:4, lty=1, ncol=2, xjust=0.5, bty='n')
+legend(dates[which.min(tmin)], par()$usr[4], c("normal", "max.", "aver.", "min."), 
+      col=1:4, lty=1, ncol=2, xjust=0.5, bty="n")
 abline(h=5*(-5:6), v=pd, lty=3, col=gray(.5))
 box(); axis(2, 5*(-5:6)); axis(4, 5*(-5:6))
 
-plot(dates, prec, type='l', axes=FALSE, xlab='')
+plot(dates, prec, type="l", axes=FALSE, xlab="")
 box(); axis(2); axis(4)
 abline(v=pd, h=10*(1:4), lty=3, col=gray(0.5))
 
 par(mar=c(3, 3, 0.1, 2), new=FALSE)
-plot(dates, wind, type='l', axes=FALSE, xlab='',
+plot(dates, wind, type="l", axes=FALSE, xlab="",
      ylim=range(wind, wmax, na.rm=TRUE))
 lines(dates, wmax, col=2)
 box(); axis(2); axis(4)
@@ -267,10 +269,10 @@ We can have a look at the difference between the daily mean temperature and
 the normal temperature. 
 The current normal is the average over the period from 1961 to 1990.
 
-<<anomalia, fig.width=9, fig.height=3, out.width='0.99\\textwidth', fig.align='center', fig.pos='h'>>=
-par(mar=c(3, 3, 0.1, 2), mgp=c(2,0.7,0), las=2, xaxs='i')
-plot(dates, tmed-tnormal, type='l', axes=FALSE, 
-     xlab='', ylab='Deviation from normal temperature')
+<<anomalia, fig.width=9, fig.height=3, out.width="0.99\\textwidth", fig.align="center", fig.pos="h">>=
+par(mar=c(3, 3, 0.1, 2), mgp=c(2,0.7,0), las=2, xaxs="i")
+plot(dates, tmed-tnormal, type="l", axes=FALSE, 
+     xlab="", ylab="Deviation from normal temperature")
 box(); axis(2); axis(4)
 abline(h=5*(-2:2), v=pd, lty=2, col=gray(0.5))
 axis(1, pd, months(pd, TRUE))
