@@ -766,6 +766,12 @@
         if (d != 1L) {
             stop("Model = 'linear' do not accept weights. Just set 'z.new = z * weights' as the covariates.")
         }
+        if (!is.null(group)) {
+            stop("Model = 'linear' do not accept argument 'group'. Please use another model component.")
+        }
+        if (!is.null(replicate)) {
+            stop("Model = 'linear' do not accept argument 'replicate'. Please use another model component.")
+        }
         ret = list(d=d, term=term, model=model, mean.linear=mean.linear, prec.linear=prec.linear, label=term,
             cdf=cdf, quantiles = quantiles, compute = compute)
         ## return here!
