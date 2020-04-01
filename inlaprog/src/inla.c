@@ -33998,6 +33998,15 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 36: 
+	{
+		GMRFLib_design_tp *design = Calloc(1, GMRFLib_design_tp);
+		int nf =  atoi(args[0]);
+
+		GMRFLib_get_design(&design, nf);
+		GMRFLib_print_design(stdout, design);
+		break;
+	}
 
 		// this will give some more error messages, if any
 	case 999:

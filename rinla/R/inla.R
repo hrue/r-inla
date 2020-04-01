@@ -25,6 +25,7 @@
 ##!    link.covariates = NULL,
 ##!    verbose = FALSE,
 ##!    lincomb = NULL,
+##!    selection = NULL,
 ##!    control.compute = list(),
 ##!    control.predictor = list(),
 ##!    control.family = list(),
@@ -152,13 +153,21 @@
               ##!run in a verbose mode (default \code{FALSE}).}
               verbose = FALSE,
               
-              ##!\item{lincomb}{ Used to define linear combination of
+              ##!\item{lincomb}{Used to define linear combination of
               ##!nodes in the latent field. The posterior distribution
               ##!of such linear combination is computed by the
               ##!\code{inla} function. See
               ##!\url{www.r-inla.org/faq} for examples of
               ##!how to define such linear combinations.}
               lincomb = NULL,
+              
+              ##!\item{selection}{ This is a similar argument to the one in
+              ##!\code{inla.posterior.sample}  and follow the same format. 
+              ##!This argument allows to define a subset of the latent field
+              ##!for which to compute an approximated joint
+              ##!distribution. It will appear in \code{result$selection}.
+              ##!See also \code{?inla.rjmarginal}. }
+              selection = NULL,
               
               ##!\item{control.compute}{ See \code{?control.compute}}
               control.compute = list(),
@@ -333,10 +342,8 @@
     ##!If \code{lincomb != NULL} a list of
     ##! posterior marginals of all linear combinations defined.  } 
     
-
-    ##!\item{joint.hyper}{
-    ##!A matrix containing the joint density of
-    ##!the hyperparameters (in the internal scale) }
+    ##!\item{selection}{Provide the approximated joint
+    ##!distribution for the \code{selection}}
 
     ##!\item{dic}{
     ##!If \code{dic}=\code{TRUE} in \code{control.compute}, the
@@ -573,6 +580,7 @@
             Ntrials = NULL,             # Not used for the poisson
             strata = NULL,              # Not used for the poisson
             lincomb = lincomb,
+            selection = selection,
             verbose = verbose,
             control.compute = control.compute,
             control.predictor = control.predictor,
@@ -810,6 +818,15 @@
         gp$model.matrix = NULL
     }
     
+    if (!is.null(selection)) {
+        ## convert the selection into lincomb's.
+        lincomb.sel = inla.selection2lincombs(selection)
+        lincomb = c(lincomb, lincomb.sel)
+        ## both these are required. 
+        control.inla$lincomb.derived.correlation.matrix = TRUE
+        control.compute$config = TRUE
+    }
+
     ## control what should be computed
     cont.compute = inla.set.control.compute.default()
     cont.compute[names(control.compute)] = control.compute
@@ -1013,7 +1030,7 @@
     mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL;
     mf$num.threads = NULL; mf$blas.num.threads = NULL; mf$keep = NULL;
     mf$working.directory = NULL; mf$only.hyperparam = NULL; mf$debug = NULL; mf$contrasts = NULL; 
-    mf$inla.arg = NULL; mf$lincomb=NULL; mf$.parent.frame = NULL;
+    mf$inla.arg = NULL; mf$lincomb=NULL; mf$selection = NULL; mf$.parent.frame = NULL;
     mf$data = data.same.len
 
     if (gp$n.fix > 0)
@@ -2109,6 +2126,89 @@
         ret$misc$inla.dir = inla.dir
         ret.sub = list(ret = ret, id = submit.id)
     } else {
+
+        ## post-processign part. first the 'selection'. add the missing part and remove the
+        ## 'selection' results from the other results
+        if (!is.null(selection)) {
+            tag.base = gsub("\\.", "\\\\.", formals(inla.selection2lincombs)$tag.base)
+            cmat = ret$misc$lincomb.derived.covariance.matrix
+            idx = grep(paste0("^", tag.base, "..*:[0-9]+$"), colnames(cmat))
+            snames = gsub(paste0("^", tag.base), "", colnames(cmat)[idx])
+            covmat = cmat[idx, idx]
+            colnames(covmat) = rownames(covmat) = NULL
+            mean = ret$summary.lincomb.derived[idx, "mean"]
+
+            ## note that this ordering might be different than in the selection above, which
+            ## depends on the ordering of the lincomb. so we need to make sure they are aligned!
+            sel.idx = which(inla.posterior.sample.interpret.selection(selection, ret))
+            nc = ret$misc$configs$nconfig
+            ns = length(idx)
+            m = list()
+            m[[1]] = matrix(unlist(lapply(ret$misc$configs$config,
+                                          function(x, sel.idx) return (x$improved.mean[sel.idx]),
+                                          sel.idx = sel.idx)), ns, nc)
+            m[[2]] = matrix(unlist(lapply(ret$misc$configs$config,
+                                          function(x, sel.idx) return (diag(x$Qinv)[sel.idx]),
+                                          sel.idx = sel.idx)), ns, nc) + m[[1]]^2
+            m[[3]] = (matrix(unlist(lapply(ret$misc$configs$config,
+                                           (function(x, sel.idx) {
+                                               skew = x$skewness[sel.idx]
+                                               skew[is.na(skew)] = 0
+                                               return (skew * diag(x$Qinv)[sel.idx]^1.5)
+                                           }), 
+                                           sel.idx = sel.idx)), ns, nc) + 3 * m[[2]] * m[[1]] - 2 * m[[1]]^3)
+            for(i in seq_along(m)) {
+                rownames(m[[i]]) = names(sel.idx)
+                m[[i]] = m[[i]][snames, ] ## put them in the correct order
+            }
+            prob = exp(unlist(lapply(ret$misc$configs$config, function(x) x$log.posterior)))
+            prob = prob / sum(prob)
+            mm = list()
+            for(i in seq_along(m)) {
+                mm[[i]] = numeric(nrow(m[[i]]))
+            }
+            for(i in seq_len(ncol(m[[3]]))) {
+                for(j in seq_along(m)) {
+                    mm[[j]] = mm[[j]] + prob[i] * m[[j]][, i]
+                }
+            }
+            skewness = as.numeric((mm[[3]] - 3 * mm[[2]] * mm[[1]] + 2 * mm[[1]]^3)
+                                  / (mm[[2]] - mm[[1]]^2)^1.5)
+            ret$selection = list(names = snames,
+                                 mean = mean,
+                                 cov.matrix = covmat,
+                                 skewness = skewness)
+            class(ret$selection) = "inla.jmarginal"
+
+            ## remove the 'selection' results from other places
+            if (!is.null(ret$marginals.lincomb.derived)) {
+                mnames = names(ret$marginals.lincomb.derived)
+                new.names = c()
+                new = list()
+                j = 1
+                for(i in seq_along(ret$marginals.lincomb.derived)) {
+                    if (!(mnames[i] %in% snames)) {
+                        new[[j]] = ret$marginals.lincomb.derived[[i]]
+                        new.names = c(new.names, mnames[i])
+                        j = j + 1
+                    }
+                }
+                names(new) = new.names
+                ret$marginals.lincomb.derived = new
+            }
+
+            ret$summary.lincomb.derived = ret$summary.lincomb.derived[-idx,, drop=FALSE]
+            ret$misc$lincomb.derived.covariance.matrix =
+                ret$misc$lincomb.derived.covariance.matrix[-idx, -idx, drop=FALSE]
+            ret$misc$lincomb.derived.correlation.matrix =
+                ret$misc$lincomb.derived.correlation.matrix[-idx, -idx, drop=FALSE]
+            if (all(dim(ret$misc$lincomb.derived.correlation.matrix)) == 0) {
+                ret$misc$lincomb.derived.covariance.matrix = NULL
+                ret$misc$lincomb.derived.correlation.matrix = NULL
+                ret$summary.lincomb.derived = data.frame()
+            }
+        }
+
         return (ret)
     }
 }

@@ -856,3 +856,25 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
 
     return (select)
 }
+
+`inla.selection2lincombs` = function(selection = list(), tag.base = ".selection.") 
+{
+    ## this function convert from selection format to lincombs format.
+    lc = list()
+    n.lc = 0
+    nms = names(selection)
+    nnms = c()
+    for(i in seq_along(selection)) {
+        a = selection[[i]]
+        for(j in seq_along(a)) {
+            n.lc = n.lc + 1
+            llc = list()
+            llc[[1]] = list(list(idx = a[j], weight = 1))
+            names(llc[[1]]) = nms[i]
+            lc[[n.lc]] = llc
+            nnms = c(nnms, paste0(tag.base, nms[i], ":", a[j]))
+        }
+    }
+    names(lc) = nnms
+    return(lc)
+}
