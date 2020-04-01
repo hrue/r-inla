@@ -29,6 +29,33 @@
   }
 }
 
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item First iteration on a new feature to more easily approximate
+      the joint marginal for a subset of the latent field. This is a new
+      option \code{selection} and corresponding \code{inla.rjmarginal()}
+      to sample from it. 
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Added check that \code{model="linear"} is not used with
+      replicate or group, which is not intention.
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.03.29}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
