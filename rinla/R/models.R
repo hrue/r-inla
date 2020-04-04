@@ -4914,6 +4914,10 @@
                      doc = "The log-link", 
                      hyper = list()
                  ), 
+                 loga = list(
+                     doc = "The loga-link", 
+                     hyper = list()
+                 ), 
                  neglog = list(
                      doc = "The negative log-link", 
                      hyper = list()
@@ -5371,7 +5375,7 @@
                      ),
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog",
+                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog",
                               "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn"),
                      pdf = "binomial"
                  ),
@@ -5382,7 +5386,7 @@
                      ),
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog",
+                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog",
                               "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn"),
                      pdf = "binomial", 
                      status = "experimental"
@@ -5737,7 +5741,7 @@
                      ), 
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "logit", "cauchit"),
+                     link = c("default", "logit", "loga", "cauchit"),
                      pdf = "qkumar"
                  ),
 
@@ -5800,7 +5804,7 @@
                      ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog"),
+                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog"),
                      pdf = "beta"
                  ),
 
@@ -5821,7 +5825,7 @@
                      ),
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
+                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
                      pdf = "betabinomial"
                  ),
 
@@ -5842,7 +5846,7 @@
                      ),
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
+                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
                      pdf = "betabinomialna"
                  ),
 
@@ -5851,7 +5855,7 @@
                      hyper = list(),
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
+                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
                      status = "experimental", 
                      pdf = "cbinomial"
                  ),
@@ -5882,7 +5886,7 @@
                      hyper = list(), 
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog"), 
+                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog"), 
                      pdf = "nbinomial"
                  ),
 
@@ -5903,7 +5907,7 @@
                      ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog"),
+                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog"),
                      pdf = "simplex"
                  ),
 
@@ -5935,7 +5939,7 @@
                      ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "identity", "logit", "cauchit", "log", "logoffset"),
+                     link = c("default", "identity", "logit", "loga", "cauchit", "log", "logoffset"),
                      pdf = "gaussian"
                  ),
 
@@ -6044,7 +6048,7 @@
                      ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "logit"),
+                     link = c("default", "logit", "loga"),
                      pdf = "iidlogitbeta",
                      status = "experimental"
                  ),
@@ -6588,7 +6592,7 @@
                      ),
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
+                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
                      pdf = "zeroinflated"
                  ),
 
@@ -6620,7 +6624,7 @@
                      ),
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
+                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
                      pdf = "zeroinflated"
                  ),
 
@@ -6641,7 +6645,7 @@
                      ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
+                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
                      pdf = "zeroinflated"
                  ),
 
@@ -6662,7 +6666,7 @@
                      ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
+                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
                      pdf = "zeroinflated"
                  ),
 
@@ -6683,7 +6687,7 @@
                      ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
+                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
                      pdf = "zeroinflated"
                  ),
 
@@ -6715,7 +6719,7 @@
                      ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
+                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
                      pdf = NA
                  ),
 
@@ -6748,7 +6752,7 @@
                      status = "experimental", 
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
+                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
                      pdf = "zeroinflated"
                  ),
 
@@ -6780,7 +6784,7 @@
                      ),
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "logit", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
+                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog", "robit", "sn"),
                      pdf = "zeroinflated"
                  ),
 
@@ -7479,7 +7483,7 @@
                      status = "experimental", 
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "logit", "probit"),
+                     link = c("default", "logit", "loga", "probit"),
                      pdf = "nmix"
                  ),
 
@@ -7666,7 +7670,7 @@
                      status = "experimental", 
                      survival = FALSE,
                      discrete = TRUE,
-                     link = c("default", "logit", "probit"),
+                     link = c("default", "logit", "loga", "probit"),
                      pdf = "nmixnb"
                  ),
 
