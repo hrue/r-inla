@@ -1533,7 +1533,7 @@ double link_loga(double x, map_arg_tp typ, void *param, double *cov)
 	static char first = 1;
 
 	int i, id, debug = 0;
-	double dx = 0.1, xx, range = 10.0, p, pp;
+	double dx = 0.05, xx, range = 10.0, p, pp;
 
 	if (first) {
 #pragma omp critical
