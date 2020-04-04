@@ -1520,6 +1520,109 @@ double link_log(double x, map_arg_tp typ, void *param, double *cov)
 	 */
 	return map_exp(x, typ, param);
 }
+double link_loga(double x, map_arg_tp typ, void *param, double *cov)
+{
+#define MAP(_x) log((_x)/(1.0 - (_x)))
+#define iMAP(_x) (exp(_x)/(1.0+exp(_x)))
+#define diMAP(_x) (exp(_x)/SQR(1.0+exp(_x)))
+
+	Link_param_tp *par = (Link_param_tp *) param;
+	double a = par->a;
+
+	static inla_loga_table_tp **table = NULL;
+	static char first = 1;
+
+	int i, id, debug = 0;
+	double dx = 0.1, xx, range = 10.0, p, pp;
+
+	if (first) {
+#pragma omp critical
+		if (first) {
+			if (debug) {
+				fprintf(stderr, "link_loga: init tables\n");
+			}
+			table = Calloc(ISQR(GMRFLib_MAX_THREADS), inla_loga_table_tp *);
+			for (i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
+				table[i] = Calloc(1, inla_loga_table_tp);
+				table[i]->a = NAN;
+				table[i]->cdf = NULL;
+				table[i]->icdf = NULL;
+			}
+			first = 0;
+		}
+	}
+
+	id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
+	if (a != table[id]->a) {
+		int len = (int) (4.0 * range / dx) + 1, llen = 0;
+		double *work, *x, *y, p;
+		if (debug) {
+			fprintf(stderr, "link_loga: build new table for a=%g [%1d]\n", a, id);
+		}
+
+		work = Calloc(2 * len, double);
+		x = work;
+		y = work + len;
+
+		for (xx = -range, i = 0, llen = 0; xx <= 3*range; xx += dx, i++, llen++) {
+			p = iMAP(xx);
+			y[i] = xx;
+			x[i] = log(p / pow(1.0 - p, a));
+		}
+		len = llen;
+		
+		table[id]->a = a;
+		table[id]->p_intern_min = y[0];
+		table[id]->p_intern_max = y[len - 1];
+		table[id]->eta_min = x[0];
+		table[id]->eta_max = x[len - 1];
+
+		inla_spline_free(table[id]->cdf);	       /* ok if NULL */
+		inla_spline_free(table[id]->icdf);	       /* ok if NULL */
+
+		table[id]->cdf = inla_spline_create(x, y, len);
+		table[id]->icdf = inla_spline_create(y, x, len);
+		Free(work);
+	}
+
+	switch (typ) {
+	case MAP_FORWARD:
+		/*
+		 * extern = func(local) 
+		 */
+		x = TRUNCATE(x, table[id]->eta_min, table[id]->eta_max);
+		p = inla_spline_eval(x, table[id]->cdf);
+		return (iMAP(p));
+		
+	case MAP_BACKWARD:
+		/*
+		 * local = func(extern) 
+		 */
+		x = TRUNCATE(MAP(x), table[id]->p_intern_min, table[id]->p_intern_max);
+		return inla_spline_eval(x, table[id]->icdf);
+
+	case MAP_DFORWARD:
+		/*
+		 * d_extern / d_local 
+		 */
+		x = TRUNCATE(x, table[id]->eta_min, table[id]->eta_max);
+		p = inla_spline_eval(x, table[id]->cdf);
+		pp = inla_spline_eval_deriv(x, table[id]->cdf);
+		return diMAP(p) * pp;
+
+	case MAP_INCREASING:
+		/*
+		 * return 1.0 if montone increasing and 0.0 otherwise
+		 */
+		return 1.0;
+
+	default:
+		abort();
+	}
+	abort();
+
+	return 0.0;
+}
 double link_neglog(double x, map_arg_tp typ, void *param, double *cov)
 {
 	/*
@@ -15655,6 +15758,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_id = LINK_LOG;
 		ds->link_ntheta = 0;
 		ds->predictor_invlinkfunc = link_log;
+	} else if (!strcasecmp(ds->link_model, "LOGa")) {
+		ds->link_id = LINK_LOGa;
+		ds->link_ntheta = 0;
+		ds->predictor_invlinkfunc = link_loga;
 	} else if (!strcasecmp(ds->link_model, "NEGLOG")) {
 		ds->link_id = LINK_NEGLOG;
 		ds->link_ntheta = 0;
@@ -15779,10 +15886,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	 */
 	ds->link_order = iniparser_getint(ini, inla_string_join(secname, "LINK.ORDER"), -1);
 	ds->link_variant = iniparser_getint(ini, inla_string_join(secname, "LINK.VARIANT"), -1);
+	ds->link_a = iniparser_getdouble(ini, inla_string_join(secname, "LINK.a"), 1.0);
 	if (mb->verbose) {
 		printf("\t\tLink model   [%s]\n", ds->link_model);
 		printf("\t\tLink order   [%1d]\n", ds->link_order);
 		printf("\t\tLink variant [%1d]\n", ds->link_variant);
+		printf("\t\tLink a       [%g]\n", ds->link_a);
 		printf("\t\tLink ntheta  [%1d]\n", ds->link_ntheta);
 	}
 
@@ -15836,6 +15945,16 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case LINK_CAUCHIT:
 	case LINK_LOGIT:
 	case LINK_TAN:
+		break;
+
+	case LINK_LOGa:
+	{
+		Link_param_tp *link_param = Calloc(1, Link_param_tp);
+		link_param->a = ds->link_a;
+		for (i = 0; i < n_data; i++) {
+			ds->predictor_invlinkfunc_arg[i] = (void *) link_param;
+		}
+	}
 		break;
 
 	case LINK_QPOISSON:
@@ -34008,7 +34127,31 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-		// this will give some more error messages, if any
+	case 37:
+	{
+		double xx, aa;
+		aa = (!args[0] ? 1.0 : atof(args[0]));
+		printf("aa = %g\n", aa);
+		double range = 23.0, dx = 0.1;
+		Link_param_tp *arg =  Calloc(1, Link_param_tp);
+		arg->a =  aa;
+		// paralle for must have int as loop-index
+		// #pragma omp parallel for private(xx)
+		for (int i = 0; i < (int) (2.0 * range / dx); i++) {
+			xx = -range + i * dx;
+			double a, b, c, d, h = 1e-6;
+			a = link_loga(xx, MAP_FORWARD, (void *) arg, NULL);
+			b = link_loga(a, MAP_BACKWARD, (void *) arg, NULL);
+			c = link_loga(xx, MAP_DFORWARD, (void *) arg, NULL);
+			d = (link_loga(xx + h, MAP_FORWARD, (void *) arg, NULL) - link_loga(xx - h, MAP_FORWARD, (void *) arg, NULL)) / (2.0 * h);
+			printf("xx = %.8f forw=%.12f backw=%.8f dforw=%.12f fdiff=%.12f (derr=%.12f)\n", xx, a, b, c, d, c - d);
+		}
+		break;
+	}
+
+
+
+	// this will give some more error messages, if any
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

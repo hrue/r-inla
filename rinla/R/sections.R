@@ -236,6 +236,13 @@
         }
     }
 
+    a = control$control.link$a
+    if (inla.one.of(lmod, c("loga"))) {
+        if (is.null(a) || !is.numeric(a) || (a <= 0  || a > 1))
+            stop(paste("For link-model:", lmod, ", the argument 'a' must be given, and 0 < a <= 1"))
+        cat("link.a = ", a, "\n", file = file,  append = TRUE)
+    }
+
     inla.write.hyper(control$control.link$hyper, file, prefix = "link.", data.dir = dirname(file))
     if (!is.null(link.covariates)) {
         if (!is.matrix(link.covariates)) {

@@ -158,6 +158,9 @@
         ##:ARGUMENT: quantile The quantile for quantile link function
         quantile = NULL,
 
+        ##:ARGUMENT: a The parameter \code{a} in the LOGa link
+        a = 1.0,
+
         ##:ARGUMENT: initial (OBSOLETE!) The initial value(s) for the hyperparameter(s)
         initial = NULL,
 

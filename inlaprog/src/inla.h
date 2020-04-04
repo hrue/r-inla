@@ -452,6 +452,7 @@ typedef struct {
 	int variant;					       /* a copy of ds->link_variant */
 	int Ntrial;
 	double quantile;
+	double a;					       /* a copy of ds->link_a */
 	double **alpha_intern;
 	double **log_prec;
 	double **beta;					       /* one covariate */
@@ -657,13 +658,19 @@ typedef enum {
 	LINK_QWEIBULL,
 	LINK_QGAMMA,
 	LINK_ROBIT,
-	LINK_SN
+	LINK_SN,
+	LINK_LOGa
 } inla_component_tp;
 
 typedef struct {
 	GMRFLib_spline_tp *cdf, *icdf;
 	double alpha, xmin, xmax, pmin, pmax;
 } inla_sn_table_tp;
+
+typedef struct {
+	GMRFLib_spline_tp *cdf, *icdf;
+	double a, eta_min, eta_max, p_intern_min, p_intern_max;
+} inla_loga_table_tp;
 
 /* 
    priors are defined using this template. return log(pi(precision, parameters....))
@@ -776,6 +783,7 @@ typedef struct {
 	int link_ntheta;
 	int link_order;
 	int link_variant;
+	double link_a;
 	double *link_initial;
 	GMRFLib_matrix_tp *link_covariates;
 	Link_param_tp *link_parameters;
@@ -1515,6 +1523,7 @@ double link_cloglog(double x, map_arg_tp typ, void *param, double *cov);
 double link_identity(double x, map_arg_tp typ, void *param, double *cov);
 double link_inverse(double x, map_arg_tp typ, void *param, double *cov);
 double link_log(double x, map_arg_tp typ, void *param, double *cov);
+double link_loga(double x, map_arg_tp typ, void *param, double *cov);
 double link_logit(double x, map_arg_tp typ, void *param, double *cov);
 double link_logitoffset(double x, map_arg_tp typ, void *param, double *cov);
 double link_loglog(double x, map_arg_tp typ, void *param, double *cov);
