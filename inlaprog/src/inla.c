@@ -1533,7 +1533,7 @@ double link_loga(double x, map_arg_tp typ, void *param, double *cov)
 	static char first = 1;
 
 	int i, id, debug = 0;
-	double dx = 0.05, xx, range = 10.0, p, pp;
+	double dx = 0.1, xx, range = 25.0, p, pp;
 
 	if (first) {
 #pragma omp critical
@@ -1554,23 +1554,29 @@ double link_loga(double x, map_arg_tp typ, void *param, double *cov)
 
 	id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
 	if (a != table[id]->a) {
-		int len = (int) (4.0 * range / dx) + 1, llen = 0;
+		int len, llen;
 		double *work, *x, *y, p;
 		if (debug) {
 			fprintf(stderr, "link_loga: build new table for a=%g [%1d]\n", a, id);
 		}
 
-		work = Calloc(2 * len, double);
-		x = work;
+		// count to find the length
+		for (xx = -range, len = 0; xx <= 2*range; xx += (ABS(xx) < 3.0 ? dx/5.0 : dx), len++);
+		work = x = Calloc(2 * len, double);
 		y = work + len;
 
-		for (xx = -range, i = 0, llen = 0; xx <= 3*range; xx += dx, i++, llen++) {
+		for (xx = -range, i = 0, llen = 0; xx <= 2*range; xx += (ABS(xx) < 3.0 ? dx/5.0 : dx), i++, llen++) {
 			p = iMAP(xx);
+			if (p == 1.0) {
+				// no point of going further if this happens. we need this as a small value of 'a' makes this
+				// happen rather quickly
+				break;
+			}
 			y[i] = xx;
-			x[i] = log(p / pow(1.0 - p, a));
+			x[i] = log(p) - a * log(1.0 - p); //  log(p/(1-p)^a)
 		}
 		len = llen;
-		
+
 		table[id]->a = a;
 		table[id]->p_intern_min = y[0];
 		table[id]->p_intern_max = y[len - 1];
@@ -26202,6 +26208,7 @@ double extra(double *theta, int ntheta, void *argument)
 			case LINK_IDENTITY:
 			case LINK_INVERSE:
 			case LINK_LOG:
+			case LINK_LOGa:
 			case LINK_NEGLOG:
 			case LINK_PROBIT:
 			case LINK_CLOGLOG:
