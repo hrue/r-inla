@@ -29,20 +29,11 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
-  \subsection{USER-VISIBLE CHANGES}{
-    \itemize{
-      \item 
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
-    }
-  }
+\section{CHANGES IN VERSION 20.04.06}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item First iteration on a new feature to more easily approximate
+      \item Added link \code{loga}. Not yet documented.
+      \item First try on a new feature to more easily approximate
       the joint marginal for a subset of the latent field. This is a new
       option \code{selection} and corresponding \code{inla.rjmarginal()}
       to sample from it. 
