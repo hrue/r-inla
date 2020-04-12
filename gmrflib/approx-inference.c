@@ -5213,6 +5213,19 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				GMRFLib_free_density(cpodens);
 			}
 			GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
+
+			int id_nz = 0;
+			for(id_nz = 0; id_nz < GMRFLib_MAX_THREADS; id_nz++){
+				if (ai_store_id[id_nz]) {
+					break;
+				}
+			}
+			if (id_nz < GMRFLib_MAX_THREADS) {
+				memcpy(x_mode, ai_store_id[id_nz]->mode, graph->n * sizeof(double));
+			} else {
+				memset(x_mode, 0, graph->n * sizeof(double));
+			}
+			
 			for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
 				if (!ai_store_id[i]) {
 					GMRFLib_free_ai_store(ai_store_id[i]);
