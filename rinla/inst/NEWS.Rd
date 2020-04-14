@@ -29,25 +29,12 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
-  \subsection{USER-VISIBLE CHANGES}{
-    \itemize{
-      \item 
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
-    }
-  }
-  \subsection{NEW EXPERIMENTAL FEATURES}{
-    \itemize{
-      \item
-    }
-  }
+\section{CHANGES IN VERSION 20.04.14}{
   \subsection{BUG FIXES}{
     \itemize{
-      \item Small fix so that \code{result$mode$x} is written out in the case where \code{nhyper=0} and \code{num_threads>1}
+      \item Small fix so that \code{result$mode$x} is written out in the
+      case where \code{nhyper=0} and \code{num_threads>1}
+      \item Minor internal changes.
     }
   }
 }
