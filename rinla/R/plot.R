@@ -80,6 +80,11 @@
              debug = FALSE, 
              ...)
 {
+    ## for G & J
+    if (!is.null(x$joint.model)) {
+        return (plot(x$joint.model, ...))
+    }
+
     figure.count = 1L
     figures = c()
 

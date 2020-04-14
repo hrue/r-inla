@@ -133,6 +133,11 @@
         return (ret)
     }
 
+    ## for G & J
+    if (!is.null(object$joint.model)) {
+        return (summary(object$joint.model, ...))
+    }
+
     ret = internal.summary.inla(object, digits = digits,
                               include.lincomb = include.lincomb, ...)
     ss = inla.getOption("short.summary") 
