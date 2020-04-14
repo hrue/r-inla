@@ -2172,12 +2172,17 @@
                     mm[[j]] = mm[[j]] + prob[i] * m[[j]][, i]
                 }
             }
+            for(i in seq_along(m)) {
+                names(mm[[i]]) = snames
+            }
             skewness = as.numeric((mm[[3]] - 3 * mm[[2]] * mm[[1]] + 2 * mm[[1]]^3)
                                   / (mm[[2]] - mm[[1]]^2)^1.5)
             ret$selection = list(names = snames,
                                  mean = mean,
                                  cov.matrix = covmat,
-                                 skewness = skewness)
+                                 skewness = skewness,
+                                 .private = list(moments = mm,
+                                                 selection = selection))
             class(ret$selection) = "inla.jmarginal"
 
             ## remove the 'selection' results from other places
