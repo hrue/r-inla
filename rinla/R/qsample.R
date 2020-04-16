@@ -235,8 +235,8 @@
 
     nx = dim(x)[1L] -1L
     samples = matrix(x[-(nx + 1L),, drop=FALSE], nx, n)
-    colnames(samples) = paste("sample", 1L:n, sep="")
-    rownames(samples) = paste("x", selection, sep="")
+    colnames(samples) = paste0("sample:", 1L:n)
+    rownames(samples) = paste0("x:", selection)
     ld = c(x[nx+1L, ])
     names(ld) = paste("logdens", 1L:n, sep="")
 
