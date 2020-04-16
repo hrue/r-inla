@@ -105,3 +105,75 @@
     
     return (list(samples = xx, log.density = log.dens))
 }
+
+`inla.rjmarginal.eval` = function (fun, samples, ...) 
+{
+    stopifnot(all(names(samples) == c("samples", "log.density")))
+
+    var = "inla.jmarginal.eval.warning.given"
+    if (!(exists(var, envir = inla.get.inlaEnv()) &&
+          get(var, envir = inla.get.inlaEnv()) == TRUE)) {
+        warning("Function 'inla.rjmarginal.eval()' is experimental.")
+        assign(var, TRUE, envir = inla.get.inlaEnv())
+    }
+
+    nm.split = strsplit(rownames(samples$samples), ":")
+    ## determine the names
+    nms = unique(unlist(lapply(nm.split, function(x) x[1])))
+    contents = rep(list(list()), length(nms))
+    for(i in seq_along(nms)) {
+        contents[[i]]$tag = nms[i]
+        contents[[i]]$start = min(which(nms[i] == lapply(nm.split, function(x) x[1])))
+        contents[[i]]$sample.idx = which(nms[i] == lapply(nm.split, function(x) x[1]))
+        if (FALSE) {
+            contents[[i]]$idx = sort(unlist(lapply(nm.split,
+                                                   function(x, nm) if (x[1] == nm) as.integer(x[2]),
+                                                   nm = nms[i])))
+            contents[[i]]$len = max(contents[[i]]$idx)
+        }
+    }
+
+    my.fun = function(a.sample, .contents, .fun, ...) {
+        env = new.env()
+        for (i in seq_along(.contents)) {
+            if (FALSE) {
+                ## this is where missing indices are filled with NA's
+                .tmp = rep(NA, .contents[[i]]$len)
+                .tmp[.contents[[i]]$idx] = a.sample[contents[[i]]$sample.idx]
+            } else {
+                ## and this where its not, as its done in inla.posterior.sample.eval()
+                .tmp = a.sample[contents[[i]]$sample.idx]
+            }
+            assign(.contents[[i]]$tag, .tmp, envir = env)
+        }
+        if (exists("(Intercept)", envir = env)) {
+            assign("Intercept", get("(Intercept)", envir = env), 
+                   envir = env)
+        }
+        parent.env(env) = .GlobalEnv
+        environment(.fun) = env
+        return(.fun(...))
+    }
+    ret = apply(samples$samples, 2, my.fun, .fun = fun, .contents = contents, ...)
+    ret = matrix(ret, ncol = ncol(samples$samples))
+    colnames(ret) = paste0("sample:", 1:ncol(ret))
+    rownames(ret) = paste0("fun[", 1:nrow(ret), "]")
+    return(ret)
+}
+
+
+if (FALSE) {
+    n = 100
+    x = rnorm(n)
+    eta = 1 + x
+    y = eta + rnorm(n, sd=0.1)
+    selection = list(x = 1, Predictor = c(1, 2, 4, 5),  '(Intercept)' = 1)
+    r = inla(y ~ 1 + x,
+             data = data.frame(y, x),
+             selection = selection)
+    xx = inla.rjmarginal(1000,  r)
+    xx.eval = inla.rjmarginal.eval(function() c(x, Predictor, Intercept),  xx)
+
+    print(cbind(xx$samples[, 1]))
+    print(cbind(xx.eval[, 1]))
+}
