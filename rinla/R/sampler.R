@@ -114,7 +114,7 @@
     } else {
         colnames(theta) = inla.transform.names(result, names(result$misc$to.theta))
     }
-    rownames(theta) = paste("sample-", inla.num(1L:n), sep="")
+    rownames(theta) = paste0("sample:", 1L:n)
 
     return (theta)
 }

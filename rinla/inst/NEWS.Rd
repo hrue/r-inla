@@ -29,6 +29,31 @@
   }
 }
 
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item \code{inla.rjmarginal.eval}, to evaluate samples from a join approximations
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Names of samples are now "sample:1", "sample:2", and should
+      be coherent over all functions. Similar, their contents, its like
+      "x:1", "x:2", etc.
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.04.14}{
   \subsection{BUG FIXES}{
     \itemize{

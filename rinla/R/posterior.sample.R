@@ -792,8 +792,8 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
         ns = length(ret)
         nm = names(ret[[1]])
         ret = matrix(unlist(ret), ncol = ns)
-        colnames(ret) = paste0("sample", 1:ns)
-        rownames(ret) = if (!is.null(nm)) nm else paste0("fun", 1:nrow(ret))
+        colnames(ret) = paste0("sample:", 1:ns)
+        rownames(ret) = if (!is.null(nm)) nm else paste0("fun[", 1:nrow(ret), "]")
     }
 
     return (ret)

@@ -99,8 +99,8 @@ inla.pc.multvar.simplex.r.core = function(n, p, lambda = 1, h = inla.pc.multvar.
         ## and scale it
         x[i, ] = z*r
     }
-    colnames(x) = paste("x", inla.num(1:p), sep="")
-    rownames(x) = paste("sample", inla.num(1:n), sep="")
+    colnames(x) = paste0("x:", 1:p)
+    rownames(x) = paste0("sample:", 1:n)
 
     return (x)
 }
@@ -214,8 +214,8 @@ inla.pc.multvar.sphere.r.core = function(n, p, lambda = 1, h = inla.pc.multvar.h
         ## and scale it
         x[i, ] = z*r
     }
-    colnames(x) = paste("x", inla.num(1:p), sep="")
-    rownames(x) = paste("sample", inla.num(1:n), sep="")
+    colnames(x) = paste0("x:", 1:p)
+    rownames(x) = paste0("sample:", 1:n)
 
     return (x)
 }
