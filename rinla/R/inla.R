@@ -2146,20 +2146,22 @@
             m = list()
             m[[1]] = matrix(unlist(lapply(ret$misc$configs$config,
                                           function(x, sel.idx) return (x$improved.mean[sel.idx]),
-                                          sel.idx = sel.idx)), ns, nc)
-            m[[2]] = matrix(unlist(lapply(ret$misc$configs$config,
+                                          sel.idx = sel.idx)), nrow = ns, ncol = nc)
+            m[[2]] = (matrix(unlist(lapply(ret$misc$configs$config,
                                           function(x, sel.idx) return (diag(x$Qinv)[sel.idx]),
-                                          sel.idx = sel.idx)), ns, nc) + m[[1]]^2
+                                          sel.idx = sel.idx)), nrow = ns, ncol = nc)
+                + m[[1]][,, drop=FALSE]^2)
             m[[3]] = (matrix(unlist(lapply(ret$misc$configs$config,
                                            (function(x, sel.idx) {
                                                skew = x$skewness[sel.idx]
                                                skew[is.na(skew)] = 0
                                                return (skew * diag(x$Qinv)[sel.idx]^1.5)
                                            }), 
-                                           sel.idx = sel.idx)), ns, nc) + 3 * m[[2]] * m[[1]] - 2 * m[[1]]^3)
+                                           sel.idx = sel.idx)), nrow = ns, ncol = nc)
+                + 3 * m[[2]][,, drop=FALSE] * m[[1]][,, drop=FALSE]- 2 * m[[1]][,, drop=FALSE]^3)
             for(i in seq_along(m)) {
                 rownames(m[[i]]) = names(sel.idx)
-                m[[i]] = m[[i]][snames, ] ## put them in the correct order
+                m[[i]] = m[[i]][snames,, drop=FALSE] ## put them in the correct order
             }
             prob = exp(unlist(lapply(ret$misc$configs$config, function(x) x$log.posterior)))
             prob = prob / sum(prob)
@@ -2171,9 +2173,6 @@
                 for(j in seq_along(m)) {
                     mm[[j]] = mm[[j]] + prob[i] * m[[j]][, i]
                 }
-            }
-            for(i in seq_along(m)) {
-                names(mm[[i]]) = snames
             }
             skewness = as.numeric((mm[[3]] - 3 * mm[[2]] * mm[[1]] + 2 * mm[[1]]^3)
                                   / (mm[[2]] - mm[[1]]^2)^1.5)
