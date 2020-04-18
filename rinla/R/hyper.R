@@ -1,17 +1,13 @@
 ## Nothing to Export.
 
-## this is a bit messy. (model, section) picks out the right model in
-## the correct section. this model has a default setting for
-## 'hyper'. simply replace these entries with given ones, first in
-## 'hyper', then in 'initial', 'fixed', 'prior' and 'param'. somewhat
-## tricky is that the length in 'param' depends on the argument(s) of
-## 'prior' as various priors can have different number of
-## parameters. also, if NA or NULL is given, then we use the default
-## ones.
+## this is a bit messy. (model, section) picks out the right model in the correct section. this
+## model has a default setting for 'hyper'. simply replace these entries with given ones, first
+## in 'hyper', then in 'initial', 'fixed', 'prior' and 'param'. somewhat tricky is that the
+## length in 'param' depends on the argument(s) of 'prior' as various priors can have different
+## number of parameters. also, if NA or NULL is given, then we use the default ones.
 
-## I think its a better strategy to take initial, fixed, prior, param
-## and make a hyper-similar structure and then merge these two.  the
-## current code is messy but does not have to be.
+## I think its a better strategy to take initial, fixed, prior, param and make a hyper-similar
+## structure and then merge these two. the current code is messy but does not have to be.
 
 inla.set.hyper = function(
         model = NULL,
