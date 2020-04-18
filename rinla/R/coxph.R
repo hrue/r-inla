@@ -9,13 +9,15 @@
 ##!\title{Convert a Cox proportional hazard model into Poisson regression}
 ##!\description{Tools to convert a Cox proportional hazard model into Poisson regression}
 ##!\usage{
-##!    inla.coxph(formula, data, control.hazard = list(), debug=FALSE)
+##!    inla.coxph(formula, data, control.hazard = list(), tag="", debug=FALSE)
 ##!    inla.rbind.data.frames(...)
 ##!}
 ##!\arguments{
 ##!  \item{formula}{The formula for the coxph model where the reponse must be a \code{inla.surv}-object.}
 ##!  \item{data}{All the data used in the formula,  as a list.}
 ##!  \item{control.hazard}{Control the model for the baseline-hazard; see \code{?control.hazard}.}
+##!  \item{tag}{An optional tag added to the names of the new variables created (to make them
+##!             unique when combined with several calls of \code{inla.coxph}}
 ##!  \item{debug}{Print debug-information}
 ##!  \item{...}{Data.frames to be \code{rbind}-ed,  padding with \code{NA}.}
 ##!}
@@ -23,8 +25,11 @@
 ##!      \code{inla.coxph} returns a list of new expanded variables to be used in the \code{inla}-call.
 ##!      Note that element \code{data} and \code{data.list} needs to be merged into
 ##!      a \code{list} to be passed as the \code{data} argument. See the example for details.
-##!      \code{inla.rbind.data.frames} returns the new data.frame (an alternative and better
-##!      implementation is \code{dplyr::bind_rows},  which is used if \code{dplyr} is installed).
+##! 
+##!      \code{inla.rbind.data.frames} returns the rbinded data.frames padded with NAs.
+##!      There is a better
+##!      implementation in \code{dplyr::bind_rows}, which is used if package \code{dplyr} is
+##!      installed.
 ##!}
 ##!\author{Havard Rue \email{hrue@r-inla.org}}
 ##!\examples{
@@ -71,7 +76,7 @@
 ##!        E = df.joint$E..coxph)
 ##!}
 
-`inla.coxph` = function(formula, data, control.hazard = list(), debug=FALSE)
+`inla.coxph` = function(formula, data, control.hazard = list(), debug=FALSE, tag="")
 {
     ## convert a coxph-model into poisson-regression and return a new
     ## data-list with the expand variables and new variables to use in
@@ -113,9 +118,14 @@
     control.hazard = inla.check.control(control.hazard, data.f)
     cont.hazard = inla.set.control.hazard.default()
     cont.hazard[names(control.hazard)] = control.hazard
-    cont.hazard$hyper = inla.set.hyper(cont.hazard$model, "hazard", cont.hazard$hyper, 
-                                       cont.hazard$initial, cont.hazard$fixed, cont.hazard$prior, cont.hazard$param)
-
+    cont.hazard$hyper = inla.set.hyper(model=cont.hazard$model,
+                                       section="hazard",
+                                       hyper = cont.hazard$hyper, 
+                                       initial = cont.hazard$initial,
+                                       fixed = cont.hazard$fixed,
+                                       prior = cont.hazard$prior,
+                                       param = cont.hazard$param,
+                                       debug = FALSE)
     if (is.null(y.surv$subject)) {
         res = inla.expand.dataframe.1(y.surv, data.f, control.hazard = cont.hazard)
     } else {
@@ -157,7 +167,7 @@
         inla.ifelse(intercept, "1 +", "-1 +"), 
         ". + f(baseline.hazard, model=\"", cont.hazard$model,"\"",
         ", values = baseline.hazard.values", 
-        ", hyper = ", enquote(cont.hazard$hyper),
+        ", hyper = list(prec=", as.character(cont.hazard$hyper), ")", 
         ", constr = ", cont.hazard$constr,
         ", diagonal = ", inla.ifelse((is.null(cont.hazard$diagonal) && cont.hazard$constr),
                                      inla.set.f.default()$diagonal, cont.hazard$diagonal), 
@@ -165,7 +175,7 @@
                                         inla.getOption("scale.model.default"),
                                         cont.hazard$scale.model), 
         inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
-        ")", sep="")[2L]
+        ")", sep="")
     
     new.formula = update(update(formula, as.formula(f.hazard)), y..coxph ~ .)
     
@@ -174,12 +184,48 @@
         data.list = c(data.list, list(baseline.hazard.strata.coding = strata.tmp$coding))
     }
 
+    stopifnot(is.character(tag))
+    if (nchar(tag) > 0) {
+        old.names = c("y..coxph",
+                      ##"E..coxph", 
+                      "expand..coxph",
+                      "baseline.hazard")                       
+        new.names = c(paste0("y", tag, "..coxph"),
+                      ##paste0("E", tag, "..coxph"),
+                      paste0("expand", tag, "..coxph"),
+                      paste0("baseline", tag, ".hazard"))
+        ## formula
+        nf.text = as.character(new.formula)
+        nf.text = paste(nf.text[2], nf.text[1], nf.text[3])
+        for(i in seq_along(old.names)) {
+            nf.text = gsub(old.names[i], new.names[i], nf.text, fixed=TRUE)
+        }
+        new.formula = as.formula(nf.text)
+
+        ## data
+        rd.names = names(res$data)
+        for(i in seq_along(old.names)) {
+            rd.names = gsub(old.names[i], new.names[i], rd.names, fixed=TRUE)
+        }
+        names(res$data) = rd.names
+
+        ## data.list
+        dl.names = names(data.list)
+        for(i in seq_along(old.names)) {
+            dl.names = gsub(old.names[i], new.names[i], dl.names, fixed=TRUE)
+        }
+        names(data.list) = dl.names
+    }                      
+    
+    expand..coxph.idx = which(names(res$data) == paste0("expand", tag, "..coxph"))
+    E..coxph.idx = which(names(res$data) == paste0("E", tag, "..coxph"))
+
     return (list(formula = new.formula, 
                  data = res$data,
                  data.list = data.list, 
                  family = "poisson", 
-                 E = res$data$E..coxph,
-                 expand.df = res$data$expand..coxph, 
+                 E = res$data[, E..coxph.idx],
+                 expand.df = res$data[, expand..coxph.idx], 
                  control.hazard = cont.hazard))
 }
 

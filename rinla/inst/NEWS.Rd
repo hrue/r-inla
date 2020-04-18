@@ -29,20 +29,16 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
-  \subsection{USER-VISIBLE CHANGES}{
-    \itemize{
-      \item 
-    }
-  }
+\section{CHANGES IN VERSION 20.04.18}{
   \subsection{NEW FEATURES}{
     \itemize{
-      \item
+      \item Added new argument \code{tag} to \code{inla.coxph}
     }
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item \code{inla.rjmarginal.eval}, to evaluate samples from a join approximations
+      \item \code{inla.rjmarginal.eval}, to evaluate samples from a join
+      approximations
     }
   }
   \subsection{BUG FIXES}{
@@ -50,6 +46,7 @@
       \item Names of samples are now "sample:1", "sample:2", and should
       be coherent over all functions. Similar, their contents, its like
       "x:1", "x:2", etc.
+      \item Fixed a bug setting prior for the log baseline hazard in \code{inla.coxph}
     }
   }
 }

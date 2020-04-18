@@ -1,6 +1,6 @@
 ## Nothing to export from here
 
-`inla.expand.dataframe.1` = function(response, dataframe, control.hazard = inla.set.control.hazard.default(), suffix="")
+`inla.expand.dataframe.1` = function(response, dataframe, control.hazard = inla.set.control.hazard.default())
 {
     n.intervals = control.hazard$n.intervals
     cutpoints = control.hazard$cutpoints
