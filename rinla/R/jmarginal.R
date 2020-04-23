@@ -126,7 +126,7 @@
     xx = matrix(unlist(lapply(x, function(z) z$latent)), ncol = n)
     log.dens = unlist(lapply(x, function(z) z$logdens$joint))
     rownames(xx) = jmarginal$names
-    colnames(xx) = paste0("sample", 1:n)
+    colnames(xx) = paste0("sample:", 1:n)
     names(log.dens) = colnames(xx)
     
     return (list(samples = xx, log.density = log.dens))
