@@ -29,6 +29,29 @@
   }
 }
 
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Add check for \code{NA/NaN/Inf} in mesh creation input ocations
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.04.18}{
   \subsection{NEW FEATURES}{
     \itemize{
