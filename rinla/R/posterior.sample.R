@@ -222,8 +222,8 @@ inla.create.sn.cache <- function()
     
     ## The following quantities can be changed and affect the whole code
     dig <- 2                           # skewness precision (better keep this one for fast computations)   
-    slb <- -0.99                       # lowest value for the mapping function
     sub <- 0.99                        # highest value for the mapping function
+    slb <- -sub                        # lowest value for the mapping function
     step <- 0.01                       # step for the skewness sequence to be computed
     s <- seq(slb, sub, by = step)      # overall skewness to compute
     s.pos <- seq(0, sub, by = step)    # partial skewness to compute
@@ -471,6 +471,11 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
                 ## we round skewness values to the second digit for matching the correct interpolations
                 skew.val <- round(skew.val, digits = dig)  
                 s.new <- round(s, digits = dig) 
+                skew.table.max <- max(s.new)
+                if (any(abs(skew.val) > skew.table.max)) {
+                    skew.val <- pmax(-skew.table.max, pmin(skew.table.max, skew.val))
+                    warning(paste0("One or more marginal skewness are too high. Coerced to be ", skew.table.max))
+                }
                 ## Positions for skewness different from 0
                 zero.not <- which(skew.val != 0)
                 if (length(zero.not) == 0 || !any(sel.map %in% zero.not)) {
