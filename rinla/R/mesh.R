@@ -1006,10 +1006,14 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
                                        crs=crs))
 
     loc0 = rbind(segm$loc, lattice$loc, loc)
-    if ((!is.null(loc0)) && (nrow(loc0)>0))
-        idx0 = 1:nrow(loc0)
-    else
-        idx0 = c()
+    if ((!is.null(loc0)) && (nrow(loc0)>0)) {
+        idx0 <- seq_len(nrow(loc0))
+        if (any(rowSums(!is.finite(loc0)) > 0)) {
+            stop("Non-finite values (NA, NaN, Inf, or similar) detected in location inputs.")
+        }
+    } else {
+        idx0 <- c()
+    }
 
     if (is.null(quality.spec)) {
         quality <- NULL
