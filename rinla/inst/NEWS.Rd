@@ -37,7 +37,7 @@
   }
   \subsection{NEW FEATURES}{
     \itemize{
-      \item
+      \item Remove the experimental status of \code{inla.posterior.sample.eval}
     }
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
@@ -47,7 +47,9 @@
   }
   \subsection{BUG FIXES}{
     \itemize{
-      \item Add check for \code{NA/NaN/Inf} in mesh creation input ocations
+      \item Add check for \code{NA/NaN/Inf} in mesh creation input
+      ocations
+      \item Make sure that skewness is not to high in \code{inla.posterior.sample}
     }
   }
 }
