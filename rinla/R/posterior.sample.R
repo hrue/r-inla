@@ -759,12 +759,6 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
 `inla.posterior.sample.eval` = function(fun, samples, return.matrix = TRUE, ...)
 {
     ## evaluate fun(...) over each sample
-    var = "inla.posterior.sample.eval.warning.given"
-    if (!(exists(var, envir = inla.get.inlaEnv()) &&
-          get(var, envir = inla.get.inlaEnv()) == TRUE)) {
-        warning("Function 'inla.posterior.sample.eval()' is experimental.")
-        assign(var, TRUE, envir = inla.get.inlaEnv())
-    }
 
     contents = attr(samples, which = ".contents", exact = TRUE)
     if (is.null(contents)) {
