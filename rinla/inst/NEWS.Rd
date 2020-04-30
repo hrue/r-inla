@@ -42,7 +42,8 @@
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item
+      \item Added function \code{inla.prune} which will remove binaries
+      not supported by the running OS, to reduce the size of the package.
     }
   }
   \subsection{BUG FIXES}{
