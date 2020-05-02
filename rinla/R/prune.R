@@ -22,7 +22,7 @@
         return (sum(file.info(list.files(d,
                                          all.files = TRUE,
                                          full.names = TRUE,
-                                         recursive = TRUE))$size)/1024^2)
+                                         recursive = TRUE))$size, na.rm = TRUE)/1024^2)
     }
 
     pkg <- installed.packages()
