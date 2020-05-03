@@ -43,7 +43,10 @@
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
       \item Added function \code{inla.prune} which will remove binaries
-      not supported by the running OS, to reduce the size of the package.
+      not supported by the running OS, to reduce the size of the
+      package.
+      \item Added method \code{summary} and \code{print} to class
+      \code{inla.jmarginal}
     }
   }
   \subsection{BUG FIXES}{
