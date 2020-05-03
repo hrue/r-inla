@@ -1,3 +1,7 @@
+## Export: summary!inla.jmarginal
+## Export: print!summary.inla.jmarginal
+## Export: print!inla.jmarginal
+
 ## Export: inla.rjmarginal inla.rjmarginal.eval
 
 ##! \name{joint.marginal}
@@ -176,3 +180,25 @@
     return(ret)
 }
 
+## simple methods to make some sensible outpout for r$selection, which also hide the .private
+## section
+
+`summary.inla.jmarginal` <- function(object) 
+{
+    ret <- c("Joint marginal is computed for:\n",
+             paste("\t", object$names, "\n"))
+    class(ret) <- "summary.inla.jmarginal"
+    return (ret)
+}
+
+`print.summary.inla.jmarginal` <- function(x) 
+{
+    cat(x)
+}
+
+`print.inla.jmarginal`  <- function(x) 
+{
+    x$.private <- NULL
+    class(x) <- class(list())
+    print(x)
+}
