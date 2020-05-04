@@ -2180,8 +2180,8 @@
                                  mean = mean,
                                  cov.matrix = covmat,
                                  skewness = skewness,
-                                 .private = list(moments = mm,
-                                                 selection = selection))
+                                 marginal.sn.par = inla.sn.par(mean, diag(covmat), skewness), 
+                                 .private = list(moments = mm, selection = selection))
             class(ret$selection) = "inla.jmarginal"
 
             ## remove the 'selection' results from other places

@@ -92,7 +92,7 @@
     
     if (inherits(jmarginal, "inla")) {
         jmarginal = jmarginal$selection
-    } else if (inherits(jmarginal, "inla.selection")) {
+    } else if (inherits(jmarginal, "inla.jmarginal")) {
         ## ok
     } else {
         stop("Unknown object: argument 'jmarginal'")
