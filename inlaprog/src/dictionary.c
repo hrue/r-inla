@@ -264,7 +264,7 @@ void dictionary_set(dictionary * d, char *key, char *val)
 
 	ip = map_stri_ptr(&(d->strihash), key);
 
-	if (ip && val == NULL && index(key, INIPARSER_SEP) == NULL) {
+	if (ip && val == NULL && strchr(key, INIPARSER_SEP) == NULL) {
 		fprintf(stderr, "\n\n");
 		fprintf(stderr, " *** Key [%s] is used twice and that is not allowed.\n", key);
 		fprintf(stderr, " *** A typical example where this happens is: y ~ x + f(x)\n");
