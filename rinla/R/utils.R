@@ -180,8 +180,8 @@
 `inla.only.for.developers` = function()
 {
     if (!(Sys.getenv("USER") %in%
-                    c("hrue", "martino", "finnkrl", "finn",
-                      "danielsimpson", "rieblera", "ariebler", "fuglstad")))
+          c("hrue", "rueh", "martino", "finnkrl", "finn", "cristian", "chiuchc", 
+            "danielsimpson", "rieblera", "ariebler", "fuglstad")))
         warning("This function is for developers only...")
     return (invisible())
 }
@@ -193,8 +193,8 @@
 
     inla.only.for.developers()
 
-    if (Sys.getenv("USER") %in% c("hrue")) {
-        dir.default = "~/p/inla/google-code/inla/rinla/R"
+    if (Sys.getenv("USER") %in% c("hrue", "rueh")) {
+        dir.default = "~/p/inla/r-inla/rinla/R"
         bin.default = "~/p/inla/work/local/bin"
     } else if (Sys.getenv("USER") %in% c("elias")) {
         dir.default = "~/inla-project/source/inla/rinla/R"
@@ -204,6 +204,9 @@
         bin.default = "~/build64/local/bin"
     } else if (Sys.getenv("USER") %in% c("rieblera", "ariebler")) {
         dir.default = "~/inla/rinla/R"
+        bin.default = "~/local/bin"
+    } else if (Sys.getenv("USER") %in% c("cristian", "chiuchc")) {
+        dir.default = "~/Desktop/r-inla/rinla/R"
         bin.default = "~/local/bin"
     } else {
         dir.default = "~/hg/inla/rinla/R"
