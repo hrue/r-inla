@@ -1104,3 +1104,24 @@
 }
 
 
+`inla.sn.par` = function(mean, variance, skew)
+{
+    ## return the parameters in the skew-normal for the given three moments. the parameters are
+    ## like those given in the sn-package. based on code written by CC.
+    
+    sn.map <- function(mu, variance, skew) {
+        delta <- sign(skew)*sqrt((pi/2)*(abs(skew)^(2/3)/(((4 - pi)/2)^(2/3)+abs(skew)^(2/3))))
+        alpha <- delta/sqrt(1-delta^2)
+        xi <- mu - delta*sqrt((2*variance)/(pi - 2*delta^2))
+        omega <- sqrt((pi*variance)/(pi - 2*delta^2))
+        return(list(xi = xi, omega = omega, alpha = alpha))
+    }
+
+    skew.max <- 0.99
+    skew[which(is.na(skew))] <- 0
+    if (any(abs(skew) > skew.max)) {
+        skew <- pmax(-skew.max, pmin(skew.max, skew))
+        warning(paste0("One or more abs(skewness) are too high. Coerced to be ", skew.max))
+    }
+    return (sn.map(mean, variance, skew))
+}
