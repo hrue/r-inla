@@ -29,12 +29,7 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
-  \subsection{USER-VISIBLE CHANGES}{
-    \itemize{
-      \item 
-    }
-  }
+\section{CHANGES IN VERSION 20.05.04}{
   \subsection{NEW FEATURES}{
     \itemize{
       \item Remove the experimental status of \code{inla.posterior.sample.eval}
