@@ -8,7 +8,15 @@ c/*!
 *     See the source-code for details.
 */      
 *
-*      
+
+*      Hack for issue occured May 5 2020
+#if defined(__APPLE__)
+      subroutine dtrsm_(SIDE,UPLO,TRANSA,DIAG,M,N,ALPHA,A,LDA,B,LDB)
+      call dtrsm(SIDE,UPLO,TRANSA,DIAG,M,N,ALPHA,A,LDA,B,LDB)
+      return
+      end
+#endif
+
       subroutine cmsd (cmean, csd, indx, n, k, a, lda, x)
       integer            k, lda, n,indx
       double precision   a( lda, * ), x( * ), cmean,csd
