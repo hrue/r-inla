@@ -29,6 +29,15 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.05.12}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed an issue with model \code{besag2}
+      \item Fixed an issue with \code{plot(r,plot.prior=TRUE)} for some priors
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.05.04}{
   \subsection{NEW FEATURES}{
     \itemize{
