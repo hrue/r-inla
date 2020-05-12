@@ -1561,11 +1561,11 @@ double link_loga(double x, map_arg_tp typ, void *param, double *cov)
 		}
 
 		// count to find the length
-		for (xx = -range, len = 0; xx <= 2*range; xx += (ABS(xx) < 3.0 ? dx/5.0 : dx), len++);
+		for (xx = -range, len = 0; xx <= 2 * range; xx += (ABS(xx) < 3.0 ? dx / 5.0 : dx), len++);
 		work = x = Calloc(2 * len, double);
 		y = work + len;
 
-		for (xx = -range, i = 0, llen = 0; xx <= 2*range; xx += (ABS(xx) < 3.0 ? dx/5.0 : dx), i++, llen++) {
+		for (xx = -range, i = 0, llen = 0; xx <= 2 * range; xx += (ABS(xx) < 3.0 ? dx / 5.0 : dx), i++, llen++) {
 			p = iMAP(xx);
 			if (p == 1.0) {
 				// no point of going further if this happens. we need this as a small value of 'a' makes this
@@ -1573,7 +1573,7 @@ double link_loga(double x, map_arg_tp typ, void *param, double *cov)
 				break;
 			}
 			y[i] = xx;
-			x[i] = log(p) - a * log(1.0 - p); //  log(p/(1-p)^a)
+			x[i] = log(p) - a * log(1.0 - p);      // log(p/(1-p)^a)
 		}
 		len = llen;
 
@@ -1599,7 +1599,7 @@ double link_loga(double x, map_arg_tp typ, void *param, double *cov)
 		x = TRUNCATE(x, table[id]->eta_min, table[id]->eta_max);
 		p = inla_spline_eval(x, table[id]->cdf);
 		return (iMAP(p));
-		
+
 	case MAP_BACKWARD:
 		/*
 		 * local = func(extern) 
@@ -4225,14 +4225,14 @@ double Qfunc_besag2(int i, int j, void *arg)
 
 	if (IMAX(i, j) < aa->besag_arg->graph->n) {
 		if (i == j) {
-			return (Qfunc_besag(i, j, (void *) aa->besag_arg) + aa->precision) / SQR(a);
+			return (Qfunc_besag(i, j, (void *) aa->besag_arg) + aa->precision / SQR(a)) / SQR(a) + aa->diag;
 		} else {
-			return -Qfunc_besag(i, j, (void *) aa->besag_arg) / SQR(a);
+			return Qfunc_besag(i, j, (void *) aa->besag_arg) / SQR(a);
 		}
 	} else if (IMIN(i, j) >= aa->besag_arg->graph->n) {
-		return aa->precision * SQR(a);
+		return aa->precision;
 	} else {
-		return -aa->precision;
+		return -aa->precision / SQR(a);
 	}
 }
 double Qfunc_besagproper(int i, int j, void *arg)
@@ -7692,9 +7692,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int(*func_simpson)(double **, double **, int *, void *arg))
+			   int (*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -11530,7 +11530,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->data_id = L_BINOMIAL;
 		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "XBINOMIAL")) {
-		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomial; /* yes. its the same */
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomial;	/* yes. its the same */
 		ds->data_id = L_XBINOMIAL;
 		discrete_data = 0;
 	} else if (!strcasecmp(ds->data_likelihood, "NBINOMIAL2")) {
@@ -22338,6 +22338,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg->besag_arg = Calloc(1, inla_besag_Qfunc_arg_tp);
 		arg->besag_arg->graph = mb->f_graph[mb->nf];
 
+		// do this like this, as only the first half of the diag gets this correction
+		if (mb->f_diag[mb->nf]) {
+			arg->diag = mb->f_diag[mb->nf];
+			mb->f_diag[mb->nf] = 0.0;
+		} else {
+			arg->diag = 0.0;
+		}
+
 		int adj = iniparser_getint(ini, inla_string_join(secname, "ADJUST.FOR.CON.COMP"), 1);
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
 		if (mb->verbose) {
@@ -26156,7 +26164,7 @@ double extra(double *theta, int ntheta, void *argument)
 				break;
 
 			case L_BINOMIAL:
-			case L_XBINOMIAL: 
+			case L_XBINOMIAL:
 			case L_EXPONENTIAL:
 			case L_EXPONENTIALSURV:
 			case L_POISSON:
@@ -27932,6 +27940,7 @@ double extra(double *theta, int ntheta, void *argument)
 				log_precision = mb->f_theta[i][0][GMRFLib_thread_id][0];
 			}
 			if (_NOT_FIXED(f_fixed[i][1])) {
+				// a_intern= log(a)
 				a_intern = theta[count];
 				count++;
 			} else {
@@ -27939,9 +27948,13 @@ double extra(double *theta, int ntheta, void *argument)
 			}
 			_SET_GROUP_RHO(2);
 			// N is 2*graph->n here. 
-			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] / 2.0 - mb->f_rankdef[i])
-								   + (mb->f_N[i] / 2.0 - mb->f_rankdef[i]) / 2.0 * (log_precision -
-														    2.0 * a_intern)));
+			// Add the high precision contribution? 
+			double high_precision = mb->f_precision[i];
+			double n = mb->f_N[i] / 2.0;
+
+			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (2.0 * (n - mb->f_rankdef[i]))
+								   + (n - mb->f_rankdef[i]) / 2.0 * log(high_precision)
+								   + (n - mb->f_rankdef[i]) / 2.0 * (log_precision - 2.0 * a_intern)));
 			if (_NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
@@ -34124,10 +34137,10 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-	case 36: 
+	case 36:
 	{
 		GMRFLib_design_tp *design = Calloc(1, GMRFLib_design_tp);
-		int nf =  atoi(args[0]);
+		int nf = atoi(args[0]);
 
 		GMRFLib_get_design(&design, nf);
 		GMRFLib_print_design(stdout, design);
@@ -34140,8 +34153,8 @@ int testit(int argc, char **argv)
 		aa = (!args[0] ? 1.0 : atof(args[0]));
 		printf("aa = %g\n", aa);
 		double range = 23.0, dx = 0.1;
-		Link_param_tp *arg =  Calloc(1, Link_param_tp);
-		arg->a =  aa;
+		Link_param_tp *arg = Calloc(1, Link_param_tp);
+		arg->a = aa;
 		// paralle for must have int as loop-index
 		// #pragma omp parallel for private(xx)
 		for (int i = 0; i < (int) (2.0 * range / dx); i++) {
@@ -34158,7 +34171,7 @@ int testit(int argc, char **argv)
 
 
 
-	// this will give some more error messages, if any
+		// this will give some more error messages, if any
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
@@ -34634,7 +34647,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "\n\n\n*** MCMC mode is no longer supported. Sorry. ***\n\n\n\n");
 		fflush(stderr);
 		exit(1);
-		
+
 		assert(G.mode == INLA_MODE_MCMC);
 		for (arg = optind; arg < argc; arg++) {
 			inla_tp *mb_old = NULL;

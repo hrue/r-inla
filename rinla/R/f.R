@@ -286,7 +286,7 @@
     of=NULL,
 
     ##!\item{precision}{The precision for the artifical noise added when creating a copy of a model and others.}
-    precision = exp(14),
+    precision = exp(13),
 
     ##!\item{range}{A vector of size two giving the lower and
     ##!upper range for the scaling parameter \code{beta} in the
@@ -622,19 +622,33 @@
             stop(paste("The graph has to be provided for model", model))
         }
         ## read n from the graph
-        n.from.graph = 2L*inla.graph.size(graph)
+        nn <- inla.graph.size(graph)
+        n.from.graph <- 2L*nn
         if (n.from.graph <= 0) {
             stop(paste("Argument 'n from graph' is void:", n.from.graph))
         }
         if (!is.null(n) && n != n.from.graph) {
             stop(paste("Argument 'n' and 2*'n from graph' does not match", n, n.from.graph))
         }
-        n = n.from.graph
+        n <- n.from.graph
 
-        if (!is.null(constr) && constr) {
-            stop(paste("'constr=TRUE' does not make sense for model 'besag2'"))
+        ## this is a special case
+        if (is.null(constr) || constr) {
+            constr <- FALSE
+            con <- list(A = rbind(rep(1:0, each = nn),
+                                  rep(0:1, each = nn)),
+                        e = c(0, 0))
+            extraconstr$A <- rbind(extraconstr$A, con$A)
+            extraconstr$e <- c(extraconstr$e, con$e)
+            if (missing(rankdef) || is.null(rankdef)) {
+                rankdef <- nrow(extraconstr$A) %/% 2L
+            }
         }
-    }
+        if (is.null(diagonal)) {
+            ## need a larger value...
+            diagonal = inla.set.f.default()$diagonal * 10
+        }
+    }    
 
     if (inla.one.of(model, c("z"))) {
         if (is.null(Z)) {
