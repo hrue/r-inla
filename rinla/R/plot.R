@@ -902,7 +902,7 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
     log.jac = function(x, y) {
         ## evaluate log.jac.fun in x
         fun = log.jac.fun(x, y)
-        return (fun(x))
+        return (-fun(x))
     }
 
     ## add priors here. the format is
@@ -956,6 +956,8 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
 
     my.pc.alphaw = function(theta, param, log=FALSE) 
     {
+        ## this one comes with a scale
+        sc <- log(inla.models()$likelihood$weibull$hyper$theta$from.theta(1))
         alpha = inla.models()$likelihood$weibull$hyper$theta$from.theta(theta)
         ld = inla.pc.dalphaw(alpha, lambda = param[1], log=TRUE) + log.jac(alpha, theta)
         return (if (log) ld else exp(ld))
@@ -1148,7 +1150,6 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
         return (list(x = NA, y=NA))
     }
     output("prior: ", str.trunc(prior$prior), " param: ", str.trunc(prior$param))
-
     if (intern) {
         ## use a linear scale. 'x' is in the linear scale
         x = seq(range[1], range[2], len = len)
