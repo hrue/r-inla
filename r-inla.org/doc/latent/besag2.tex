@@ -42,6 +42,7 @@ The besag2 model is specified inside the {\tt f()} function as
  f(<whatever>,model="besag2", graph=<graph>
               precision=<precision>, hyper = <hyper>,
               adjust.for.con.comp = TRUE,
+              constr=TRUE,
               scale.model = FALSE)
 \end{verbatim}
 
@@ -63,7 +64,9 @@ depending on the number of connected components.
 The logical option \verb|scale.model| determine if the model $z$
 should be scaled to have an average variance (the diagonal of the
 generalized inverse) equal to 1. This makes prior spesification much
-easier. Default is \verb|FALSE| so that the model is not scaled.
+easier. For historical reasons, the default is \verb|FALSE| so that
+the model is not scaled, but its is \textbf{HIGHLY RECOMMENDED} to set
+this option to \verb|TRUE|.
 
 
 
@@ -88,11 +91,11 @@ result = inla(formula, data = Oral, family = "poisson", E = E)
 x = result$summary.random$region$mean
 n = length(x)/2
 
-## simulate two new datasets. 'a' is the weighting between the
+## simulate two new datasets. 'a' is the scaling between the
 ## log.rel.risk:
 a = 2
 xx = x[1:n]+1
-x = c(a*xx, xx/a)
+x = c(0 + a*xx, 1 + xx/a)
 E = c(Oral$E, Oral$E)
 N = 2*n
 y = rpois(N, lambda = E*exp(x))
@@ -100,18 +103,16 @@ y = rpois(N, lambda = E*exp(x))
 ## model='besag2' defines a model with length N = 2*graph->n, the
 ## first half is weighted with 'a' the other half is weighted with
 ## 1/a. here there is no unstructed terms.
-i = 1:N
-formula = y ~ f(i, model="besag2", graph=g) -1
-r = inla(formula, family = "poisson", data = data.frame(E,y,i), E=E, verbose=TRUE)
+idx = 1:N
+mu = as.factor(rep(1:2, each=n))
+formula = y ~ -1 + mu + f(idx, model="besag2", graph=g, scale.model=TRUE)
+r = inla(formula, family = "poisson", data = data.frame(E,y,idx,mu), E=E, verbose=TRUE)
 \end{verbatim}
 
 
 \input{besag-details.inc}
 
 \subsection*{Notes}
-
-The besag2 model has default \texttt{constr=FALSE}, and
-\texttt{constr=TRUE} does not make sense.
 
 \end{document}
 
