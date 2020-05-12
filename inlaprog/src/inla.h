@@ -1115,6 +1115,7 @@ typedef struct {
 	inla_besag_Qfunc_arg_tp *besag_arg;
 	double **log_a;					       /* the parameter a */
 	double precision;				       /* the copy precision */
+	double diag;					       /* as we need to this this on part1 only */
 } inla_besag2_Qfunc_arg_tp;
 
 typedef struct {
