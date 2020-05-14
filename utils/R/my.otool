@@ -1,16 +1,23 @@
 #!/bin/bash
+D=$(dirname "$1")
+D=${D/%bin/lib}
 
 Afun () {
     {
 	for f in "$@"; do
-	    for ff in $(otool -l "$f" | grep .dylib); do
-		if [ -f "$ff" ]; then
-		    for fff in $(otool -l "$ff" | grep .dylib); do
-			if [ -f "$fff" ]; then
-			    echo "$fff"
+	    for fz in $(otool -l "$f" | grep .dylib | awk '{print $2}'); do
+		for ff in "$fz" "$D/$fz"; do
+		    if [ -f "$ff" ]; then
+			for fff in $(otool -l "$ff" | grep .dylib | awk '{print $2}'); do
+			    if [ -f "$fff" ]; then
+				echo "$fff"
+			    fi
+			    if [ -f "$D/$fff" ]; then
+				echo "$D/$fff"
+			    fi
+			done
 		    fi
-		    done
-		fi
+		done
 	    done
 	done
     } | sort | uniq | \
