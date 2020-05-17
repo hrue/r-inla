@@ -20,7 +20,11 @@ y = gam[strata] * (a[subject] + z * b[subject]) + rnorm(n, s = 0.01)
 r = inla(y ~ -1 + f(idx, model = "intslope",
                     args.intslope = list(subject = subject,
                                          strata = strata,
-                                         covariates = z)), 
+                                         covariates = z),
+                    ## this is for nstrata = 3
+                    hyper = list(gamma1 = list(fixed = TRUE),
+                                 gamma2 = list(fixed = FALSE), 
+                                 gamma3 = list(fixed = FALSE))), 
          data = list(y = y,
                      idx = idx,
                      subject = subject,
