@@ -28,6 +28,29 @@
     }
   }
 }
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item For the \code{intslope}-model: made all \code{gamma}'s
+      default fixed to 1, so its similar in style the copy-feature.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item
+    }
+  }
+}
 
 \section{CHANGES IN VERSION 20.05.12}{
   \subsection{BUG FIXES}{
