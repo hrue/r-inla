@@ -21,13 +21,15 @@
 ##! }
 ##! 
 ##! \usage{
-##! inla.rjmarginal(n, jmarginal)
+##! inla.rjmarginal(n, jmarginal, constr)
 ##! inla.rjmarginal.eval(fun, samples, ...) 
 ##! }
 ##! \arguments{
 ##!   \item{n}{The number of samples}
 ##!   \item{jmarginal}{A marginal object given  either by a \code{inla} object
 ##!     or \code{result$selection}}
+##!   \item{constr}{Optional linear constraints;
+##!                 see \code{?INLA::f} and argument \code{extraconstr}}
 ##!   \item{fun}{A function which is evaluated for each sample, similar to
 ##!              \code{inla.posterior.sample.eval}: please see the documentation
 ##!              for this functions for details. }
@@ -84,7 +86,7 @@
 ##!}
 
 
-`inla.rjmarginal` = function(n, jmarginal) 
+`inla.rjmarginal` = function(n, jmarginal, constr) 
 {
     if (missing(jmarginal) || missing(n) || n <= 0) {
         return (list(samples = matrix(ncol=0, nrow=0), log.density = numeric(0)))
@@ -98,6 +100,22 @@
         stop("Unknown object: argument 'jmarginal'")
     }
 
+    ## the setup depends on 'constr' or not
+    if (missing(constr)) {
+        constr <- NULL
+        Q <- solve(jmarginal$cov.matrix)
+        Qi <- jmarginal$cov.matrix
+        mm <- jmarginal$mean
+    } else {
+        constr$nc <- nrow(constr$A) ## this is required in the 'configs'
+        Q <- solve(jmarginal$cov.matrix)
+        Qi <- jmarginal$cov.matrix
+        QiA <- Qi %*% t(constr$A)
+        SS <- solve(constr$A %*% QiA) 
+        Qi <- Qi - QiA %*% SS %*% t(QiA)
+        mm <- jmarginal$mean - QiA %*% SS %*% (constr$A %*% jmarginal$mean - constr$e)
+    }
+    
     ## build a fake 'inla'-object, so we can feed that into 'inla.posterior.sample'
     m = length(jmarginal$mean)
     r = list(
@@ -112,21 +130,22 @@
                     start = 1:m,
                     length = rep(1, m)),
                 ntheta = 0,
+                constr = constr, 
                 config = list(list(theta = NULL,
-                                   mean = jmarginal$mean,
-                                   Q = inla.as.sparse(solve(jmarginal$cov.matrix)),
+                                   Q = inla.as.sparse(Q), 
+                                   Qinv = inla.as.sparse(Qi), 
+                                   mean = mm, 
+                                   improved.mean = mm, 
+                                   skewness = jmarginal$skewness,
                                    log.posterior = 0,
-                                   improved.mean = jmarginal$mean,
-                                   Qinv = inla.as.sparse(jmarginal$cov.matrix),
-                                   log.posterior.orig = 0,
-                                   skewness = jmarginal$skewness)),
-                constr = NULL
+                                   log.posterior.orig = 0))
             )
         )
     )
     class(r) = "inla"
 
-    x = inla.posterior.sample(n, r, use.improved.mean = TRUE, skew.corr = TRUE, add.names = FALSE)
+    x = inla.posterior.sample(n, r, use.improved.mean = TRUE, skew.corr = TRUE,
+                              add.names = FALSE)
     xx = matrix(unlist(lapply(x, function(z) z$latent)), ncol = n)
     log.dens = unlist(lapply(x, function(z) z$logdens$joint))
     rownames(xx) = jmarginal$names

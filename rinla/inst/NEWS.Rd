@@ -43,6 +43,7 @@
     \itemize{
       \item For the \code{intslope}-model: made all \code{gamma}'s
       default fixed to 1, so its similar in style the copy-feature.
+      \item Added argument \code{constr} it \code{inla.rjmarginal}
     }
   }
   \subsection{BUG FIXES}{
