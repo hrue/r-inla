@@ -872,13 +872,9 @@
         }
     }
 
-    ##for all instrinsic model the constraint has to be ON...
-    ##...except if the rw is cyclic!!!!!
+    ## for all instrinsic model the constraint has to be default ON
     if (is.null(constr)) {
         constr = inla.model.properties(model, "latent")$constr
-        if (!is.null(cyclic) && cyclic) {
-            constr=FALSE
-        }
     }
 
     ## if diagonal is not set, the set this depending on the constr
@@ -891,7 +887,7 @@
     }
 
     if (!empty.extraconstr(extraconstr)) {
-        ##check
+        ## check
         A=extraconstr$A
         e=extraconstr$e
         if (!is.matrix(A)) {
@@ -903,7 +899,9 @@
         }
     }
 
-    if (!missing(scale.model) && !inla.one.of(model, c("rw1", "rw2", "besag", "bym", "bym2", "besag2", "rw2d", "rw2diid", "seasonal"))) {
+    if (!missing(scale.model) && !inla.one.of(model, c("rw1", "rw2", "besag", "bym",
+                                                       "bym2", "besag2", "rw2d",
+                                                       "rw2diid", "seasonal"))) {
         stop(paste("Option 'scale.model' is not used for model:", model))
     }
     if (missing(scale.model) || is.null(scale.model)) {
@@ -935,7 +933,7 @@
                 rankdef = rankdef + dim(extraconstr$A)[1]
             }
         }
-            
+        
         if (adjust.for.con.comp) {
             ## we need to check if the graph contains more than 1 connected components. 
             if (g$cc$n == 1) {
