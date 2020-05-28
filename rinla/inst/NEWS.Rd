@@ -48,7 +48,8 @@
   }
   \subsection{BUG FIXES}{
     \itemize{
-      \item
+      \item Argument \code{cyclic=TRUE} in \code{f()} should not set
+            \code{constr=FALSE} when default is \code{constr=TRUE}
     }
   }
 }
