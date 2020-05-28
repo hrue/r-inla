@@ -157,6 +157,7 @@ int GMRFLib_pardiso_build(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * g
 int GMRFLib_pardiso_check_install(int quiet, int no_err);
 int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store);
 int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store);
+int GMRFLib_pardiso_get_nrhs(void);
 int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store);
 int GMRFLib_pardiso_iperm(double *x, int m, GMRFLib_pardiso_store_tp * store);
 int GMRFLib_pardiso_num_proc();
@@ -176,6 +177,7 @@ int my_pardiso_test1(void);
 int my_pardiso_test2(void);
 int my_pardiso_test3(void);
 int my_pardiso_test4(void);
+int my_pardiso_test5(void);
 double my_pardiso_test_Q(int i, int j, void *arg);
 
 void pardisoinit(void *, int *, int *, int *, double *, int *);
