@@ -2,20 +2,21 @@
 
 ##!\name{inla.prune}
 ##!\alias{inla.prune}
+##!\alias{prune}
 ##!
 ##!\title{Prune the INLA-package}
-##!
-##!\description{Prune the INLA-package by removing binaries not supported by the running OS}
-##!
+##!\description{Prune the INLA-package by deleting binary files not supported by the running OS}
 ##!\usage{
-##!inla.prune()
+##!inla.prune(ask = TRUE)
 ##!}
 ##!\arguments{
+##!\item{ask}{Logical. If TRUE, then ask for user confirmation before deleting.
+##!           If FALSE, then delete without user confirmation.}
 ##!}
 ##!\value{No value is returned.}
 ##!\author{Havard Rue \email{hrue@r-inla.org}}
 
-`inla.prune` = function()
+`inla.prune` = function(ask = TRUE)
 {
     dir.size <- function(d) {
         ## return the size of the directory (recursively) in Mb
@@ -51,14 +52,13 @@
             siz <- dir.size(d)
             if (siz < 0.1) siz <- 0
             cat("---> Found directory (size ", format(siz, dig = 1), "Mb): ", d, "\n", sep = "")
-
-            ans <- askYesNo("Remove directory?", default = FALSE)
+            ans <- if (ask) askYesNo("Remove directory?", default = FALSE) else TRUE
             if (is.na(ans)) {
-                cat("-----> Cancel\n")
+                cat("---> Cancel\n")
                 return (invisible())
             }
             if (ans) {
-                cat("-----> Remove...", "\n")
+                cat("---> Remove...", "\n")
                 size <- size + siz
                 unlink(d, recursive = TRUE, force = TRUE)
             } 
