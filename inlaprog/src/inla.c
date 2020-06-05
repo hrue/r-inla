@@ -17111,6 +17111,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	mb->f_output = Realloc(mb->f_output, mb->nf + 1, Output_tp *);
 	mb->f_id_names = Realloc(mb->f_id_names, mb->nf + 1, inla_file_contents_tp *);
 	mb->f_correct = Realloc(mb->f_correct, mb->nf + 1, int);
+	mb->f_vb_correct = Realloc(mb->f_vb_correct, mb->nf + 1, int);
 
 	/*
 	 * set everything to `ZERO' initially 
@@ -17654,6 +17655,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		abort();
 	}
 
+	mb->f_vb_correct[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "VB.CORRECT"), -1);
+	if (mb->verbose) {
+		printf("\t\tvb.correct=[%1d]\n", mb->f_vb_correct[mb->nf]);
+	}
 	mb->f_correct[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "CORRECT"), -1);
 	if (mb->verbose) {
 		printf("\t\tcorrect=[%1d]\n", mb->f_correct[mb->nf]);
@@ -25052,7 +25057,14 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	mb->ai_par->cmin = iniparser_getdouble(ini, inla_string_join(secname, "CMIN"), mb->ai_par->cmin);
 	mb->ai_par->b_strategy = iniparser_getint(ini, inla_string_join(secname, "B.STRATEGY"), mb->ai_par->b_strategy);
 
-	int corr = iniparser_getboolean(ini, inla_string_join(secname, "CORRECT"), 0);
+	int corr;
+	corr = iniparser_getint(ini, inla_string_join(secname, "VB.CORRECT"), -1);
+	mb->ai_par->vb_correct = (corr ? Calloc(1, char) : NULL);
+	if (mb->verbose) {
+		printf("\t\tvb.correct=[%1d]\n", corr);
+	}
+
+	corr = iniparser_getboolean(ini, inla_string_join(secname, "CORRECT"), 0);
 	mb->ai_par->correct = (corr ? Calloc(1, char) : NULL);
 	mb->ai_par->correct_verbose = iniparser_getboolean(ini, inla_string_join(secname, "CORRECT.VERBOSE"), mb->ai_par->correct_verbose);
 	mb->ai_par->correct_factor = iniparser_getdouble(ini, inla_string_join(secname, "CORRECT.FACTOR"), mb->ai_par->correct_factor);
@@ -28962,7 +28974,7 @@ int inla_INLA(inla_tp * mb)
 	}
 
 	/*
-	 * mark those we want to compute  and compute the b
+	 * mark those we want to compute and compute the b
 	 */
 	compute = Calloc(N, char);
 	b = Calloc(N, double);
@@ -29075,6 +29087,36 @@ int inla_INLA(inla_tp * mb)
 	}
 	Free(mb->ai_par->correct);
 	mb->ai_par->correct = correct;
+
+	// correct using fixed effects only. TODO: fix this later
+	char *vb_correct = NULL;
+	local_count = 0;
+	if (mb->ai_par->vb_correct) {
+		vb_correct = Calloc(N, char);
+		count = mb->predictor_n + mb->predictor_m;
+		for (i = 0; i < mb->nf; i++) {
+			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] == 1) || mb->f_vb_correct[i] > 0) {
+				/*
+				 * add also random effects with size 1
+				 */
+				for (j = 0; j < mb->f_Ntotal[i]; j++) {
+					vb_correct[count + j] = (char) 1;
+					local_count++;
+				}
+			}
+			count += mb->f_Ntotal[i];
+		}
+		for (i = 0; i < mb->nlinear; i++) {
+			vb_correct[count++] = (char) 1;
+			local_count++;
+		}
+		if (local_count == 0) {			       /* then there is nothting to correct for */
+			Free(vb_correct);
+			vb_correct = NULL;
+		}
+	}
+	Free(mb->ai_par->vb_correct);
+	mb->ai_par->vb_correct = vb_correct;
 
 	// define the adaptive strategy
 	GMRFLib_ai_strategy_tp *adapt = NULL;

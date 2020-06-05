@@ -177,12 +177,12 @@
     return (paste(strings, collapse = sep, sep=""))
 }
 
-`inla.only.for.developers` = function()
+`inla.only.for.developers` = function(msg = "<ADD>")
 {
     if (!(Sys.getenv("USER") %in%
           c("hrue", "rueh", "martino", "finnkrl", "finn", "cristian", "chiuchc", 
             "danielsimpson", "rieblera", "ariebler", "fuglstad")))
-        warning("This function is for developers only...")
+        warning(paste0("This function/feature [", msg, "] is for developers only..."))
     return (invisible())
 }
 
