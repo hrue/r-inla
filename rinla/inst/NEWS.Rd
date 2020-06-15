@@ -51,6 +51,9 @@
     \itemize{
       \item Argument \code{cyclic=TRUE} in \code{f()} should not set
             \code{constr=FALSE} when default is \code{constr=TRUE}
+      \item Change the \code{scale.model=TRUE} code for \code{RW1/RW2} so the
+      scaling for the continous case is the same as for the discrete
+      case when the locations are eqvidistant.
     }
   }
 }
