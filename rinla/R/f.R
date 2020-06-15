@@ -67,6 +67,7 @@
 ##!         args.ar1c = list(Z = NULL, Q.beta = NULL),
 ##!         args.intslope = list(subject = NULL, strata = NULL, covariates = NULL), 
 ##!         correct = NULL,
+##!         vb.correct = NULL,
 ##!         locations = NULL, 
 ##!         debug = FALSE)
 ##!}
@@ -329,6 +330,9 @@
 
     ##!\item{correct}{Add this model component to the list of variables to be used in the corrected Laplace approximation? If \code{NULL} use default choice,  otherwise correct if \code{TRUE} and do not if \code{FALSE}. (This option is currently experimental.)},
     correct = NULL,
+
+    ##!\item{vb.correct}{Add this model component to the list of variables to be used for the vb corrected Laplace approximation? If \code{NULL} use default choice,  otherwise correct if \code{TRUE} and do not if \code{FALSE}. (expert option)},
+    vb.correct = NULL,
 
     ##!\item{locations}{A matrix with locations for the model \code{dmatern}. This also defines \code{n}.}
     locations = NULL,
@@ -1063,6 +1067,7 @@
         args.slm = args.slm,
         args.ar1c = args.ar1c,
         correct = correct,
+        vb.correct = vb.correct,
         locations = locations
         )
 

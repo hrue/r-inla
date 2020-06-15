@@ -17111,6 +17111,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	mb->f_output = Realloc(mb->f_output, mb->nf + 1, Output_tp *);
 	mb->f_id_names = Realloc(mb->f_id_names, mb->nf + 1, inla_file_contents_tp *);
 	mb->f_correct = Realloc(mb->f_correct, mb->nf + 1, int);
+	mb->f_vb_correct = Realloc(mb->f_vb_correct, mb->nf + 1, int);
 
 	/*
 	 * set everything to `ZERO' initially 
@@ -17654,6 +17655,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		abort();
 	}
 
+	mb->f_vb_correct[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "VB.CORRECT"), -1);
+	if (mb->verbose) {
+		printf("\t\tvb.correct=[%1d]\n", mb->f_vb_correct[mb->nf]);
+	}
 	mb->f_correct[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "CORRECT"), -1);
 	if (mb->verbose) {
 		printf("\t\tcorrect=[%1d]\n", mb->f_correct[mb->nf]);
@@ -25052,7 +25057,14 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	mb->ai_par->cmin = iniparser_getdouble(ini, inla_string_join(secname, "CMIN"), mb->ai_par->cmin);
 	mb->ai_par->b_strategy = iniparser_getint(ini, inla_string_join(secname, "B.STRATEGY"), mb->ai_par->b_strategy);
 
-	int corr = iniparser_getboolean(ini, inla_string_join(secname, "CORRECT"), 0);
+	int corr;
+	corr = iniparser_getint(ini, inla_string_join(secname, "VB.CORRECT"), -1);
+	mb->ai_par->vb_correct = (corr ? Calloc(1, char) : NULL);
+	if (mb->verbose) {
+		printf("\t\tvb.correct=[%1d]\n", corr);
+	}
+
+	corr = iniparser_getboolean(ini, inla_string_join(secname, "CORRECT"), 0);
 	mb->ai_par->correct = (corr ? Calloc(1, char) : NULL);
 	mb->ai_par->correct_verbose = iniparser_getboolean(ini, inla_string_join(secname, "CORRECT.VERBOSE"), mb->ai_par->correct_verbose);
 	mb->ai_par->correct_factor = iniparser_getdouble(ini, inla_string_join(secname, "CORRECT.FACTOR"), mb->ai_par->correct_factor);
@@ -28962,7 +28974,7 @@ int inla_INLA(inla_tp * mb)
 	}
 
 	/*
-	 * mark those we want to compute  and compute the b
+	 * mark those we want to compute and compute the b
 	 */
 	compute = Calloc(N, char);
 	b = Calloc(N, double);
@@ -29075,6 +29087,36 @@ int inla_INLA(inla_tp * mb)
 	}
 	Free(mb->ai_par->correct);
 	mb->ai_par->correct = correct;
+
+	// correct using fixed effects only. TODO: fix this later
+	char *vb_correct = NULL;
+	local_count = 0;
+	if (mb->ai_par->vb_correct) {
+		vb_correct = Calloc(N, char);
+		count = mb->predictor_n + mb->predictor_m;
+		for (i = 0; i < mb->nf; i++) {
+			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] == 1) || mb->f_vb_correct[i] > 0) {
+				/*
+				 * add also random effects with size 1
+				 */
+				for (j = 0; j < mb->f_Ntotal[i]; j++) {
+					vb_correct[count + j] = (char) 1;
+					local_count++;
+				}
+			}
+			count += mb->f_Ntotal[i];
+		}
+		for (i = 0; i < mb->nlinear; i++) {
+			vb_correct[count++] = (char) 1;
+			local_count++;
+		}
+		if (local_count == 0) {			       /* then there is nothting to correct for */
+			Free(vb_correct);
+			vb_correct = NULL;
+		}
+	}
+	Free(mb->ai_par->vb_correct);
+	mb->ai_par->vb_correct = vb_correct;
 
 	// define the adaptive strategy
 	GMRFLib_ai_strategy_tp *adapt = NULL;
@@ -33912,37 +33954,69 @@ int testit(int argc, char **argv)
 	case 23:
 	{
 		// test ghq
+#define FUN0(x) (1)
+#define FUN1(x) (x)
 #define FUN2(x) SQR(x)
+#define FUN3(x) (SQR(x)*(x))
 #define FUN4(x) SQR(SQR(x))
 
-		double *xp, *wp, integral = 0, integral2 = 0, integral4 = 0.0;
-		int np = 5, i;
+		double *xp, *wp, integral0 = 0, integral1 = 0, integral2 = 0, integral3 = 0, integral4 = 0.0;
+		int np = 11, i;
 		if (nargs) {
 			np = atoi(args[0]);
 		}
 		GMRFLib_ghq(&xp, &wp, np);
 		for (i = 0; i < np; i++) {
+			integral0 += wp[i] * FUN0(xp[i]);
+			integral1 += wp[i] * FUN1(xp[i]);
 			integral2 += wp[i] * FUN2(xp[i]);
+			integral3 += wp[i] * FUN3(xp[i]);
 			integral4 += wp[i] * FUN4(xp[i]);
 			printf("x[%1d]= %.12f  w[%1d] = %.12f\n", i, xp[i], i, wp[i]);
 		}
+		printf("integral of x^0 = 1 ?  %.12f\n", integral0);
+		printf("integral of x^1 = 0 ?  %.12f\n", integral1);
 		printf("integral of x^2 = 1 ?  %.12f\n", integral2);
+		printf("integral of x^3 = 0 ?  %.12f\n", integral3);
 		printf("integral of x^4 = 3 ?  %.12f\n", integral4);
+
+		double mean = GMRFLib_uniform();
+		double stdev = exp(GMRFLib_uniform());
+		GMRFLib_ghq_ms(&xp, &wp, np, mean, stdev);
+		integral0 = 0;
+		integral1 = 0;
+		integral2 = 0;
+		integral3 = 0;
+		integral4 = 0;
+		for (i = 0; i < np; i++) {
+			double xx = (xp[i]-mean)/stdev;
+			integral0 += wp[i] * FUN0(xx);
+			integral1 += wp[i] * FUN1(xx);
+			integral2 += wp[i] * FUN2(xx);
+			integral3 += wp[i] * FUN3(xx);
+			integral4 += wp[i] * FUN4(xx);
+			printf("x[%1d]= %.12f  w[%1d] = %.12f\n", i, xp[i], i, wp[i]);
+		}
+		printf("integral of z^0 = %.12f ?  %.12f\n", 1.0, integral0);
+		printf("integral of z^1 = %.12f ?  %.12f\n", 0.0, integral1);
+		printf("integral of z^2 = %.12f ?  %.12f\n", 1.0, integral2);
+		printf("integral of z^3 = %.12f ?  %.12f\n", 0.0, integral3);
+		printf("integral of z^4 = %.12f ?  %.12f\n", 3.0, integral4);
 
 		double xx = 2 * (GMRFLib_uniform() - 0.5);
 
 		printf("compute CDF xx=%f true = %.12f\n", xx, inla_Phi(xx));
 
-		integral = 0.0;
+		integral0 = 0.0;
 		for (i = 0; i < np; i++) {
 			if (xp[i] < xx) {
-				integral += wp[i];
+				integral0 += wp[i];
 			} else {
-				integral += wp[i] * (1.0 - (xx - xp[i - 1]) / (xp[i] - xp[i - 1]));
+				integral0 += wp[i] * (1.0 - (xx - xp[i - 1]) / (xp[i] - xp[i - 1]));
 				break;
 			}
 		}
-		printf("estimate %.12f\n", integral);
+		printf("estimate %.12f\n", integral0);
 
 		exit(0);
 #undef FUN2
