@@ -58,10 +58,11 @@ __BEGIN_DECLS
 
 /*
  */
+int GMRFLib_ghq(double **xp, double **wp, int n);
 int GMRFLib_ghq__intern(double *x, double *w, int n);
 int GMRFLib_ghq_abscissas(double **xp, int n);
+int GMRFLib_ghq_ms(double **xp, double **wp, int n, double mean, double stdev);
 int GMRFLib_ghq_weights(double **wp, int n);
-int GMRFLib_ghq(double **xp, double **wp, int n);
 
 __END_DECLS
 #endif

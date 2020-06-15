@@ -317,6 +317,7 @@ int GMRFLib_density_create_sn(GMRFLib_density_tp ** density, GMRFLib_sn_param_tp
 int GMRFLib_density_duplicate(GMRFLib_density_tp ** density_to, GMRFLib_density_tp * density_from);
 int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * density);
 int GMRFLib_density_new_mean(GMRFLib_density_tp ** new_density, GMRFLib_density_tp * density, double new_mean);
+int GMRFLib_density_new_meansd(GMRFLib_density_tp ** new_density, GMRFLib_density_tp * density, double new_mean, double new_stdev);
 int GMRFLib_density_printf(FILE * fp, GMRFLib_density_tp * density);
 int GMRFLib_density_prune_weights(int *n_idx, int *idx, double *weights, int n);
 int GMRFLib_density_user2std_n(double *x_std, double *x, GMRFLib_density_tp * density, int n);
