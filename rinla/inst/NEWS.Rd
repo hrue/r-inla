@@ -28,17 +28,7 @@
     }
   }
 }
-\section{CHANGES IN VERSION xx.xx.xx}{
-  \subsection{USER-VISIBLE CHANGES}{
-    \itemize{
-      \item 
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item
-    }
-  }
+\section{CHANGES IN VERSION 20.06.15}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
       \item For the \code{intslope}-model: made all \code{gamma}'s
@@ -54,6 +44,7 @@
       \item Change the \code{scale.model=TRUE} code for \code{RW1/RW2} so the
       scaling for the continous case is the same as for the discrete
       case when the locations are eqvidistant.
+      \item Disable link \code{sslogit}
     }
   }
 }
