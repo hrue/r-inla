@@ -33954,37 +33954,69 @@ int testit(int argc, char **argv)
 	case 23:
 	{
 		// test ghq
+#define FUN0(x) (1)
+#define FUN1(x) (x)
 #define FUN2(x) SQR(x)
+#define FUN3(x) (SQR(x)*(x))
 #define FUN4(x) SQR(SQR(x))
 
-		double *xp, *wp, integral = 0, integral2 = 0, integral4 = 0.0;
-		int np = 5, i;
+		double *xp, *wp, integral0 = 0, integral1 = 0, integral2 = 0, integral3 = 0, integral4 = 0.0;
+		int np = 11, i;
 		if (nargs) {
 			np = atoi(args[0]);
 		}
 		GMRFLib_ghq(&xp, &wp, np);
 		for (i = 0; i < np; i++) {
+			integral0 += wp[i] * FUN0(xp[i]);
+			integral1 += wp[i] * FUN1(xp[i]);
 			integral2 += wp[i] * FUN2(xp[i]);
+			integral3 += wp[i] * FUN3(xp[i]);
 			integral4 += wp[i] * FUN4(xp[i]);
 			printf("x[%1d]= %.12f  w[%1d] = %.12f\n", i, xp[i], i, wp[i]);
 		}
+		printf("integral of x^0 = 1 ?  %.12f\n", integral0);
+		printf("integral of x^1 = 0 ?  %.12f\n", integral1);
 		printf("integral of x^2 = 1 ?  %.12f\n", integral2);
+		printf("integral of x^3 = 0 ?  %.12f\n", integral3);
 		printf("integral of x^4 = 3 ?  %.12f\n", integral4);
+
+		double mean = GMRFLib_uniform();
+		double stdev = exp(GMRFLib_uniform());
+		GMRFLib_ghq_ms(&xp, &wp, np, mean, stdev);
+		integral0 = 0;
+		integral1 = 0;
+		integral2 = 0;
+		integral3 = 0;
+		integral4 = 0;
+		for (i = 0; i < np; i++) {
+			double xx = (xp[i]-mean)/stdev;
+			integral0 += wp[i] * FUN0(xx);
+			integral1 += wp[i] * FUN1(xx);
+			integral2 += wp[i] * FUN2(xx);
+			integral3 += wp[i] * FUN3(xx);
+			integral4 += wp[i] * FUN4(xx);
+			printf("x[%1d]= %.12f  w[%1d] = %.12f\n", i, xp[i], i, wp[i]);
+		}
+		printf("integral of z^0 = %.12f ?  %.12f\n", 1.0, integral0);
+		printf("integral of z^1 = %.12f ?  %.12f\n", 0.0, integral1);
+		printf("integral of z^2 = %.12f ?  %.12f\n", 1.0, integral2);
+		printf("integral of z^3 = %.12f ?  %.12f\n", 0.0, integral3);
+		printf("integral of z^4 = %.12f ?  %.12f\n", 3.0, integral4);
 
 		double xx = 2 * (GMRFLib_uniform() - 0.5);
 
 		printf("compute CDF xx=%f true = %.12f\n", xx, inla_Phi(xx));
 
-		integral = 0.0;
+		integral0 = 0.0;
 		for (i = 0; i < np; i++) {
 			if (xp[i] < xx) {
-				integral += wp[i];
+				integral0 += wp[i];
 			} else {
-				integral += wp[i] * (1.0 - (xx - xp[i - 1]) / (xp[i] - xp[i - 1]));
+				integral0 += wp[i] * (1.0 - (xx - xp[i - 1]) / (xp[i] - xp[i - 1]));
 				break;
 			}
 		}
-		printf("estimate %.12f\n", integral);
+		printf("estimate %.12f\n", integral0);
 
 		exit(0);
 #undef FUN2
