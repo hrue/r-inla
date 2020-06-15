@@ -894,6 +894,9 @@ int GMRFLib_crw_scale(void *def)
 {
 	/*
 	 * This approach uses the constrained sampling approach, much faster
+	 *
+	 * Since we're using crw by default, then make the scaling here so that it matches the scale for RW1 and RW2 in the
+	 * discrete case exactly. So its kind of a hybrid solution.
 	 */
 	GMRFLib_crwdef_tp *crwdef = Calloc(1, GMRFLib_crwdef_tp);
 	GMRFLib_crwdef_tp *odef = (GMRFLib_crwdef_tp *) def;
@@ -933,9 +936,11 @@ int GMRFLib_crw_scale(void *def)
 	double *len = Calloc(graph->n, double);
 	for (i = 0; i < graph->n; i++) {
 		if (i == 0) {
-			len[i] = (crwdef->position[i + 1] - crwdef->position[i]) / 2.0;
+			// yes, to make it eq to the discrete case
+			len[i] = (crwdef->position[i + 1] - crwdef->position[i]) / 1.0;
 		} else if (i == graph->n - 1) {
-			len[i] = (crwdef->position[i] - crwdef->position[i - 1]) / 2.0;
+			// yes, to make it eq to the discrete case
+			len[i] = (crwdef->position[i] - crwdef->position[i - 1]) / 1.0;
 		} else {
 			len[i] = (crwdef->position[i + 1] - crwdef->position[i - 1]) / 2.0;
 		}
@@ -945,6 +950,7 @@ int GMRFLib_crw_scale(void *def)
 	GMRFLib_make_empty_constr(&constr);
 	constr->nc = crwdef->order;
 	constr->a_matrix = Calloc(constr->nc * graph->n, double);
+	constr->e_vector = Calloc(constr->nc, double);
 	for (i = 0; i < graph->n; i++) {
 		constr->a_matrix[i * constr->nc + 0] = len[i];
 	}
@@ -958,7 +964,7 @@ int GMRFLib_crw_scale(void *def)
 	} else {
 		*prec_scale_guess = SQR(len_acum);
 	}
-
+	
 	if (crwdef->order == 2) {
 		len_acum = 0.0;
 		for (i = 0; i < graph->n; i++) {
@@ -967,8 +973,8 @@ int GMRFLib_crw_scale(void *def)
 		}
 	}
 
-	constr->e_vector = Calloc(constr->nc, double);
 	GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
+	//GMRFLib_print_constr(stdout, constr, graph);
 
 	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(0.5);
 	GMRFLib_problem_tp *problem;
@@ -1015,7 +1021,9 @@ int GMRFLib_crw_scale(void *def)
 	}
 
 	odef->prec_scale = Calloc(1, double);
-	odef->prec_scale[0] = exp(sum / (crwdef->position[graph->n - 1] - crwdef->position[0])) * *prec_scale_guess;
+	odef->prec_scale[0] = exp(sum / ((crwdef->position[graph->n - 1] - crwdef->position[0]) *
+					 // the n/(n-1) term is to make it eq to the discrete case
+					 (graph->n / (graph->n - 1.0)))) * *prec_scale_guess;
 
 	Free(c);
 	Free(crwdef);
