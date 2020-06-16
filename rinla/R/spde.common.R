@@ -570,7 +570,7 @@ inla.spde.make.A =
         if (inherits(loc, "SpatialPoints") ||
             inherits(loc, "SpatialPointsDataFrame")) {
           loc <- inla.spTransform(coordinates(loc),
-                                  CRS(proj4string(loc)),
+                                  inla.sp_get_crs(loc),
                                   mesh$crs,
                                   passthrough=TRUE)
         }

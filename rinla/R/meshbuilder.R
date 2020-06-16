@@ -88,7 +88,7 @@ meshbuilder.app <- function() {
       c("SpatialPoints", "SpatialPointsDataFrame")
     )) > 0) {
       coord <- coordinates(sp)
-      crs <- CRS(proj4string(sp))
+      crs <- inla.sp_get_crs(sp)
       if (inherits(sp, "SpatialPointsDataFrame")) {
         code <- 'as(%%%, "SpatialPoints")'
       }
@@ -98,7 +98,7 @@ meshbuilder.app <- function() {
     )) > 0) {
       tmp <- as.inla.mesh.segment(sp)
       coord <- tmp$loc
-      crs <- CRS(proj4string(sp))
+      crs <- inla.sp_get_crs(sp)
       if (inherits(sp, "SpatialLinesDataFrame")) {
         code <- 'as(%%%, "SpatialLines")'
       }
@@ -109,7 +109,7 @@ meshbuilder.app <- function() {
     )) > 0) {
       tmp <- as.inla.mesh.segment(sp)
       coord <- tmp$loc
-      crs <- CRS(proj4string(sp))
+      crs <- inla.sp_get_crs(sp)
       if (inherits(sp, "SpatialPolygonsDataFrame")) {
         code <- 'as(%%%, "SpatialPolygons")'
       }
@@ -399,7 +399,7 @@ meshbuilder.app <- function() {
       sp <- c(boundary.loc.input(), mesh.loc.input())
       if (!is.null(sp) && (length(sp) > 0)) {
         stopifnot(identicalCRS(sp))
-        CRS(proj4string(sp[[1]]))
+        inla.sp_get_crs(sp[[1]])
       } else {
         CRS()
       }
@@ -775,13 +775,26 @@ meshbuilder.app <- function() {
         metadata$mesh <- NULL
       } else {
         if (isolate(debug$trace)) {
-          try(message(paste(
-            "crs.mesh               =",
-            inla.CRSargs(inla.CRS(input$crs.mesh))
-          )))
-          try(message(paste("CRS(mesh.loc)          =", proj4string(loc1))))
-          try(message(paste("CRS(boundary[[1]]$crs) =", inla.CRSargs(bnd1[[1]]$crs))))
-          try(message(paste("CRS(boundary[[2]]$crs) =", inla.CRSargs(bnd1[[2]]$crs))))
+          if (inla.has_PROJ6()) {
+            try(message(paste(
+              "crs.mesh               =",
+              inla.crs_get_wkt(inla.CRS(input$crs.mesh))
+            )))
+            try(message(paste("CRS(mesh.loc)          =",
+                              inla.crs_get_wkt(inla.sp_get_crs(loc1)))))
+            try(message(paste("CRS(boundary[[1]]$crs) =",
+                              inla.crs_get_wkt(bnd1[[1]]$crs))))
+            try(message(paste("CRS(boundary[[2]]$crs) =",
+                              inla.crs_get_wkt(bnd2[[2]]$crs))))
+          } else {
+            try(message(paste(
+              "crs.mesh               =",
+              inla.CRSargs(inla.CRS(input$crs.mesh))
+            )))
+            try(message(paste("CRS(mesh.loc)          =", proj4string(loc1))))
+            try(message(paste("CRS(boundary[[1]]$crs) =", inla.CRSargs(bnd1[[1]]$crs))))
+            try(message(paste("CRS(boundary[[2]]$crs) =", inla.CRSargs(bnd1[[2]]$crs))))
+          }
         }
         out <- INLA::inla.mesh.2d(
           loc = loc1,
@@ -792,7 +805,11 @@ meshbuilder.app <- function() {
           max.n.strict = c(128000, 128000),
           cutoff = input$cutoff,
           offset = input$offset,
-          crs = inla.CRS(input$crs.mesh),
+          crs = if (inla.has_PROJ6()) {
+            inla.CRS(input$crs.mesh)
+          } else {
+            inla.CRS(input$crs.mesh)
+          },
           plot.delay = isolate(debug$plot.delay)
         )
         attr(out, "code") <- paste0(
@@ -1931,26 +1948,24 @@ meshbuilder.app <- function() {
     })
 
     output$crs.strings <- renderText({
+      add_wkt <- function(crs_list, x) {
+        crs <- inla.sp_get_crs(x)
+        wkt <- inla.crs_get_wkt(crs)
+        if (!is.null(wkt)) {
+          c(crs_list, wkt)
+        } else {
+          crs_list
+        }
+      }
       crs <- c()
-      sp <- mesh.loc()
-      if (!is.null(sp) && !is.na(proj4string(sp))) {
-        crs <- c(crs, proj4string(sp))
+      crs <- add_wkt(crs, inla.CRS(input$crs.mesh))
+      crs <- add_wkt(crs, mesh.loc())
+      crs <- add_wkt(crs, boundary.loc())
+      for (sp in seq_along(boundary1.input())) {
+        crs <- add_wkt(crs, sp)
       }
-      sp <- boundary.loc()
-      if (!is.null(sp) && !is.na(proj4string(sp))) {
-        crs <- c(crs, proj4string(sp))
-      }
-      sp <- boundary1.input()
-      if (!is.null(sp) && (length(sp) > 0)) {
-        crs <- c(crs, vapply(sp, function(x) {
-          inla.CRSargs(x$crs)
-        }, ""))
-      }
-      sp <- boundary2.input()
-      if (!is.null(sp) && (length(sp) > 0)) {
-        crs <- c(crs, vapply(sp, function(x) {
-          inla.CRSargs(x$crs)
-        }, ""))
+      for (sp in seq_along(boundary2.input())) {
+        crs <- add_wkt(crs, sp)
       }
       crs <- unique(crs)
       out <- paste0(crs, collapse = "\n")
@@ -2033,6 +2048,10 @@ meshbuilder <- function() {
   library("shiny")
   library("INLA")
   library("fields")
+  
+  if (inla.has_PROJ6()) {
+    rgdal::set_thin_PROJ6_warnings(TRUE)
+  }
   
   runApp(meshbuilder.app())
 }
