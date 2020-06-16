@@ -14,7 +14,8 @@
   }
   \subsection{NEW FEATURES}{
     \itemize{
-      \item
+      \item Support for PROJ6/RGDAL3 for handling CRS information for
+        spatial objects.
     }
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
