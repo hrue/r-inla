@@ -54,7 +54,7 @@ inla.mesh.segment.default <-
       if (inherits(loc, "SpatialPoints") ||
           inherits(loc, "SpatialPointsDataFrame")) {
         loc <- inla.spTransform(coordinates(loc),
-                                CRS(proj4string(loc)),
+                                inla.sp_get_crs(loc),
                                 crs,
                                 passthrough=TRUE)
       }
@@ -931,20 +931,20 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
 
     time.pre = system.time({ ## Pre-processing timing start
 
+    crs.target <- crs
     if (!is.null(crs) &&
-        identical(inla.as.list.CRS(crs)$proj, "geocent")) {
+        inla.crs_is_geocent(crs)) {
       ## Build all geocentric meshes on a sphere, and transform afterwards,
       ## to allow general geoids.
-      crs.target <- crs
       crs <- inla.CRS("sphere")
     }
-
+        
     if (!(missing(loc) || is.null(loc))) {
       ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
       if (inherits(loc, "SpatialPoints") ||
           inherits(loc, "SpatialPointsDataFrame")) {
         loc <- inla.spTransform(coordinates(loc),
-                                CRS(proj4string(loc)),
+                                inla.sp_get_crs(loc),
                                 crs,
                                 passthrough=TRUE)
       }
@@ -1237,14 +1237,12 @@ inla.mesh.create <- function(loc=NULL, tv=NULL,
     if (!keep.dir) {
         unlink(dirname(prefix), recursive=TRUE)
     }
-
+    
     if (!is.null(crs) &&
-        identical(inla.as.list.CRS(crs)$proj, "geocent")) {
-      if (!inla.identical.CRS(crs, crs.target)) {
-        ## Target is a non-spherical geoid
-        loc <- inla.spTransform(loc, crs, crs.target)
-        crs <- crs.target
-      }
+        !inla.identical.CRS(crs, crs.target)) {
+      ## Target is a non-spherical geoid
+      loc <- inla.spTransform(loc, crs, crs.target)
+      crs <- crs.target
     }
 
     }) ## Post-processing timing end
@@ -1403,7 +1401,7 @@ inla.mesh.2d <-
 
   if (!is.null(crs)) {
     issphere <- inla.identical.CRS(crs, inla.CRS("sphere"))
-    isgeocentric <- identical(inla.as.list.CRS(crs)[["proj"]], "geocent")
+    isgeocentric <- inla.crs_is_geocent(crs)
     if (isgeocentric) {
       crs.target <- crs
       crs <- inla.CRS("sphere")
@@ -1414,18 +1412,18 @@ inla.mesh.2d <-
   if (!(missing(loc) || is.null(loc)) &&
       (inherits(loc, "SpatialPoints") ||
        inherits(loc, "SpatialPointsDataFrame"))) {
-    loc = inla.spTransform(coordinates(loc),
-                           CRS(proj4string(loc)),
-                           crs,
-                           passthrough=TRUE)
+    loc <- inla.spTransform(coordinates(loc),
+                            inla.sp_get_crs(loc),
+                            crs,
+                            passthrough = TRUE)
   }
   if (!(missing(loc.domain) || is.null(loc.domain)) &&
       (inherits(loc.domain, "SpatialPoints") ||
        inherits(loc.domain, "SpatialPointsDataFrame"))) {
-    loc.domain = inla.spTransform(coordinates(loc.domain),
-                                  CRS(proj4string(loc.domain)),
-                                  crs,
-                                  passthrough=TRUE)
+    loc.domain <- inla.spTransform(coordinates(loc.domain),
+                                   inla.sp_get_crs(loc.domain),
+                                   crs,
+                                   passthrough = TRUE)
   }
 
     if (missing(loc) || is.null(loc)) {
@@ -1650,8 +1648,8 @@ inla.delaunay <- function(loc, ...)
     if (!(missing(loc) || is.null(loc)) &&
         (inherits(loc, "SpatialPoints") ||
          inherits(loc, "SpatialPointsDataFrame"))) {
-      crs = CRS(proj4string(loc))
-      loc = coordinates(loc)
+      crs <- inla.sp_get_crs(loc)
+      loc <- coordinates(loc)
     } else {
       crs = NULL
     }
@@ -1807,10 +1805,18 @@ summary.inla.mesh <- function(object, verbose=FALSE, ...)
                        xlim=range(x$loc[,1]),
                        ylim=range(x$loc[,2]),
                        zlim=range(x$loc[,3]))))
-    if (is.na(inla.CRSargs(x$crs))) {
-      ret <- c(ret, list(crs="N/A"))
+    if (inla.has_PROJ6()) {
+      if (is.null(x$crs) || is.null(inla.crs_get_wkt(x$crs))) {
+        ret <- c(ret, list(crs = "N/A"))
+      } else {
+        ret <- c(ret, list(crs = inla.crs_get_wkt(x$crs)))
+      }
     } else {
-      ret <- c(ret, list(crs=inla.CRSargs(x$crs)))
+      if (is.na(inla.CRSargs(x$crs))) {
+        ret <- c(ret, list(crs="N/A"))
+      } else {
+        ret <- c(ret, list(crs=inla.CRSargs(x$crs)))
+      }
     }
 
     my.segm <- function(x) {
@@ -1872,7 +1878,16 @@ print.summary.inla.mesh <- function(x, ...)
     }
 
     cat("\nManifold:\t", x$manifold, "\n", sep="")
-    cat("CRS:\t", x$crs, "\n", sep="")
+    if (inla.has_PROJ6()) {
+      cat("CRS/LegacyPROJ4:\t", rgdal::showP4(x$crs), "\n", sep="")
+      if (x$verbose) {
+        cat("CRS/WKT:\n", x$crs, "\n", sep="")
+      } else {
+        cat("CRS/WKT: (only shown with verbose = TRUE)", "\n", sep="")
+      }
+    } else {
+      cat("CRS/PROJ4:\t", x$crs, "\n", sep="")
+    }
     if (x$verbose) {
         cat("Refined:\t", x$is.refined, "\n", sep="")
     }
@@ -1919,7 +1934,7 @@ inla.mesh.project.inla.mesh <- function(mesh, loc=NULL, field=NULL,
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
     if (!is.null(mesh$crs) &&
-        identical(inla.as.list.CRS(mesh$crs)[["proj"]], "geocent")) {
+        inla.crs_is_geocent(mesh$crs)) {
       crs.sphere <- inla.CRS("sphere")
       if (!inla.identical.CRS(mesh$crs, crs.sphere)) {
         ## Convert the mesh to a perfect sphere.
@@ -1938,7 +1953,7 @@ inla.mesh.project.inla.mesh <- function(mesh, loc=NULL, field=NULL,
           loc <- coordinates(loc)
         } else {
           loc = inla.spTransform(coordinates(loc),
-                                 CRS(proj4string(loc)),
+                                 inla.sp_get_crs(loc),
                                  mesh$crs,
                                  passthrough=FALSE)
         }
@@ -3364,7 +3379,7 @@ inla.nonconvex.hull.basic <-
       (inherits(points, "SpatialPoints") ||
        inherits(points, "SpatialPointsDataFrame"))) {
     points <- inla.spTransform(coordinates(points),
-                               CRS(proj4string(points)),
+                               inla.sp_get_crs(points),
                                crs,
                                passthrough=TRUE)
   }
@@ -3430,7 +3445,7 @@ inla.nonconvex.hull <-
       (inherits(points, "SpatialPoints") ||
        inherits(points, "SpatialPointsDataFrame"))) {
     points <- inla.spTransform(coordinates(points),
-                               CRS(proj4string(points)),
+                               inla.sp_get_crs(points),
                                crs,
                                passthrough=TRUE)
   }

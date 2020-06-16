@@ -22,7 +22,7 @@
 #'                                                             c(50,50),
 #'                                                             c(0,50)))),
 #'                                          ID=1)),
-#'                            proj4string = inla.CRS("longlat"))
+#'                            proj4string = inla.CRS("longlat_globe"))
 #' mesh <- inla.mesh.create(globe = 2, crs = inla.CRS("sphere"))
 #'
 #' ## 3 vertices found in the polygon
@@ -33,11 +33,11 @@
 #'
 #' ## Multiple transformations can lead to slightly different results due to edge cases
 #' ## 4 triangles found in the polygon
-#' inla.over_sp_mesh(obj, inla.spTransform(mesh, CRSobj=inla.CRS("mollweide")), ignore.CRS = FALSE)
+#' inla.over_sp_mesh(obj, inla.spTransform(mesh, CRSobj=inla.CRS("mollweide_norm")), ignore.CRS = FALSE)
 #'
 #' ## Ignoring mismatching coordinate systems is rarely useful
 #' ## 20 triangles "found in" the polygon
-#' inla.over_sp_mesh(obj, inla.spTransform(mesh, CRSobj=inla.CRS("mollweide")), ignore.CRS = TRUE)
+#' inla.over_sp_mesh(obj, inla.spTransform(mesh, CRSobj=inla.CRS("mollweide_norm")), ignore.CRS = TRUE)
 #'
 #' @export
 
@@ -68,19 +68,28 @@ inla.over_sp_mesh <- function(x, y, type = c("centroid", "vertex"), ignore.CRS=F
       stop("sp::over cannot operate on geocentric coordinates.")
     }
     ## Ignore any actual CRS information, and copy the one from x
-    points <- sp::SpatialPoints(points, proj4string = CRS(proj4string(x)))
+    points <- sp::SpatialPoints(points, proj4string = inla.sp_get_crs(x))
   } else {
     ## Extract coordinate system information
     if (identical(y$manifold, "S2")) {
-      crs <- inla.CRSargs(inla.CRS("sphere"))
+      crs <- inla.CRS("sphere")
     } else {
-      crs <- inla.CRSargs(y$crs)
+      crs <- y$crs
     }
+    crs_x <- inla.sp_get_crs(x)
     ## Create SpatialPoints object and transform the coordinates.
-    points <- sp::SpatialPoints(points, proj4string = inla.CRS(crs))
-    if (!is.na(crs) & !is.na(proj4string(x))) {
-      ## Convert to the target object CRS
-      points <- inla.spTransform(points, CRSobj = inla.CRS(proj4string(x)))
+    points <- sp::SpatialPoints(points, proj4string = crs)
+    if (inla.has_PROJ6()) {
+      if (!is.null(inla.crs_get_wkt(crs)) &&
+          !is.null(inla.crs_get_wkt(crs_x))) {
+        ## Convert to the target object CRS
+        points <- inla.spTransform(points, CRSobj = crs_x)
+      }
+    } else {
+      if (!is.na(crs) & !is.na(crs_x)) {
+        ## Convert to the target object CRS
+        points <- inla.spTransform(points, CRSobj = crs_x)
+      }
     }
   }
   ## Find indices:
