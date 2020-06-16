@@ -4971,6 +4971,7 @@
                              to.theta = function(x) log(x/(1-x)),
                              from.theta = function(x) exp(x)/(1+exp(x))
                          )), 
+                     status = "disabled", 
                      pdf = NA
                  ), 
 
