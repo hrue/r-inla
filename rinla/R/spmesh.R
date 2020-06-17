@@ -182,8 +182,24 @@ inla.wkt_is_geocent <- function(wkt) {
   if (is.null(wkt) || identical(wkt, "")) {
     return(FALSE)
   }
+  # See https://proceedings.esri.com/library/userconf/proc17/tech-workshops/tw_2588-212.pdf
+  geo_crs_items <- c("GEODCRS", "GEOGCRS",
+                     "BASEGEODCRS", "BASEGEOGCRS")
   wt <- inla.as.wkt_tree.wkt(wkt)
+  if (identical(wt[["label"]], "BOUNDCRS")) {
+    wt <- inla.wkt_tree_get_item(wt, "SOURCECRS")
+    wt <- inla.wkt_tree_get_item(wt, c("PROJCRS", geo_crs_items))
+  }
+  if (identical(wt[["label"]], "PROJCRS")) {
+    wt <- inla.wkt_tree_get_item(wt, geo_crs_items)
+  }
+  if (!(wt[["label"]] %in% geo_crs_items)) {
+    return(FALSE)
+  }
   cs <- inla.wkt_tree_get_item(wt, "CS")
+  if (is.null(cs)) {
+    return(FALSE)
+  }
   cart <- ((cs[["params"]][[1]] == 'Cartesian') &&
              (cs[["params"]][[2]] == '3'))
   if (!cart) {
@@ -220,13 +236,29 @@ inla.crs_is_geocent <- function(crs) {
 #' @export
 
 inla.wkt_get_ellipsoid_radius <- function(wkt) {
+  geo_crs_items <- c("GEODCRS", "GEOGCRS",
+                     "BASEGEODCRS", "BASEGEOGCRS")
   wt <- inla.as.wkt_tree.wkt(wkt)
+
+  if (identical(wt[["label"]], "BOUNDCRS")) {
+    wt <- inla.wkt_tree_get_item(wt, "SOURCECRS")
+    wt <- inla.wkt_tree_get_item(wt, c("PROJCRS", geo_crs_items))
+  }
+  if (identical(wt[["label"]], "PROJCRS")) {
+    wt <- inla.wkt_tree_get_item(wt, geo_crs_items)
+  }
+  if (is.null(wt) || !(wt[["label"]] %in% geo_crs_items)) {
+    stop("Ellipsoid settings not found")
+  }
+  
   datum <- inla.wkt_tree_get_item(wt, "DATUM")
   if (is.null(datum)) {
-    basegeogcrs <- inla.wkt_tree_get_item(wt, "BASEGEOGCRS")
-    datum <- inla.wkt_tree_get_item(basegeogcrs, "DATUM")
+    stop("Ellipsoid settings not found")
   }
   ellipsoid <- inla.wkt_tree_get_item(datum, "ELLIPSOID")
+  if (is.null(ellipsoid)) {
+    stop("Ellipsoid settings not found")
+  }
   as.numeric(ellipsoid[["params"]][[2]])
 }
 
@@ -244,28 +276,43 @@ inla.crs_get_ellipsoid_radius <- function(crs) {
 #' @export
 
 inla.wkt_set_ellipsoid_radius <- function(wkt, radius) {
+
+  geo_crs_items <- c("GEODCRS", "GEOGCRS",
+                     "BASEGEODCRS", "BASEGEOGCRS")
+  
+  set_radius <- function(wt) {
+    if (is.null(wt)) {
+      stop("Ellipsoid settings not found")
+    } else if (wt[["label"]] %in% geo_crs_items) {
+      datum <- inla.wkt_tree_get_item(wt, "DATUM")
+      null_datum <- is.null(datum)
+      if (is.null(datum)) {
+        stop("Ellipsoid settings not found")
+      }
+      ellipsoid <- inla.wkt_tree_get_item(datum, "ELLIPSOID")
+      if (is.null(ellipsoid)) {
+        stop("Ellipsoid settings not found")
+      }
+      ellipsoid[["params"]][[2]] <- as.character(radius)
+      datum <- inla.wkt_tree_set_item(datum, ellipsoid)
+      wt <- inla.wkt_tree_set_item(wt, datum)
+    } else if (wt[["label"]] %in% c("BOUNDCRS", "SOURCECRS", "PROJCRS")) {
+      wt_sub <- inla.wkt_tree_get_item(wt,
+                                       c("BOUNDCRS", "SOURCECRS", "PROJCRS",
+                                         geo_crs_items))
+      if (is.null(wt_sub)) {
+        stop("Ellipsoid settings not found")
+      }
+      wt_sub_new <- set_radius(wt_sub)
+      wt <- inla.wkt_tree_set_item(wt, wt_sub_new)
+    } else {
+      stop("Ellipsoid settings not found")
+    }
+    wt
+  }
+  
   wt <- inla.as.wkt_tree.wkt(wkt)
-  datum <- inla.wkt_tree_get_item(wt, "DATUM")
-  null_datum <- is.null(datum)
-  if (null_datum) {
-    basegeogcrs <- inla.wkt_tree_get_item(wt, "BASEGEOGCRS")
-    datum <- inla.wkt_tree_get_item(basegeogcrs, "DATUM")
-  }
-  if (is.null(datum)) {
-    stop("Ellipsoid settings not found in DATUM or BASEGEOGCRS/DATUM")
-  }
-  ellipsoid <- inla.wkt_tree_get_item(datum, "ELLIPSOID")
-  if (is.null(ellipsoid)) {
-    stop("Ellipsoid settings not found in DATUM/ELLIPSOID or BASEGEOGCRS/DATUM/ELLIPSOID")
-  }
-  ellipsoid[["params"]][[2]] <- as.character(radius)
-  datum <- inla.wkt_tree_set_item(datum, ellipsoid)
-  if (null_datum) {
-    basegeogcrs <- inla.wkt_tree_set_item(basegeogcrs, datum)
-    wt <- inla.wkt_tree_set_item(wt, basegeogcrs)
-  } else {
-    wt <- inla.wkt_tree_set_item(wt, datum)
-  }
+  wt <- set_radius(wt)
   inla.as.wkt.wkt_tree(wt)
 }
 
@@ -654,7 +701,7 @@ inla.CRS <- function(projargs = NULL, doCheckCRSArgs = TRUE,
           }
           projargs <- inla.as.CRSargs.list(xargs)
         }
-        SRS_string <- showSRID(projargs, multiline = "NO")
+        SRS_string <- rgdal::showSRID(projargs, multiline = "NO")
         projargs <- NULL
       }
     }
@@ -836,15 +883,18 @@ inla.as.wkt.wkt_tree <- function(x, pretty = FALSE, ...) {
   construct_item(x, 0)
 }
 
-#' @param item An item label identifying a parameter item entry
-#' @param duplicate For items that have more than one version, \code{duplicate}
+#' @param item character vector with item labels identifying a parameter item
+#' entry. 
+#' @param duplicate For items that have more than one match, \code{duplicate}
 #' indicates the index number of the desired version. Default: 1
 #' @rdname wkt_tree
 #' @export
 
 inla.wkt_tree_get_item <- function(x, item, duplicate = 1) {
   for (k in seq_along(x[["params"]])) {
-    if (is.list(x[["params"]][[k]]) && (x[["params"]][[k]]$label == item)) {
+    if (is.list(x[["params"]][[k]]) &&
+        (!is.null(x[["params"]][[k]][["label"]])) &&
+        (x[["params"]][[k]][["label"]] %in% item)) {
       if (duplicate == 1) {
         return(x[["params"]][[k]])
       }
@@ -854,16 +904,20 @@ inla.wkt_tree_get_item <- function(x, item, duplicate = 1) {
   NULL
 }
 
-#' @param item An item label identifying a parameter item entry
+#' @param item_tree An item tree identifying a parameter item entry
 #' @rdname wkt_tree
 #' @export
 
-inla.wkt_tree_set_item <- function(x, item_tree) {
+inla.wkt_tree_set_item <- function(x, item_tree, duplicate = 1) {
   success <- FALSE
   for (k in seq_along(x[["params"]])) {
-    if (is.list(x[["params"]][[k]]) && (x[["params"]][[k]]$label == item_tree$label)) {
-      x[["params"]][[k]] <- item_tree
+    if (is.list(x[["params"]][[k]]) && (x[["params"]][[k]][["label"]] == item_tree[["label"]])) {
+      if (duplicate == 1) {
+        x[["params"]][[k]] <- item_tree
+      }
+      duplicate <- duplicate - 1
       success <- TRUE
+      break
     }
   }
   if (!success) {
@@ -1074,9 +1128,9 @@ inla.wkt_set_lengthunit <- function(wkt, unit, params = NULL) {
     # 1. Recursively find LENGTHUNIT, except within ELLIPSOID
     # 2. Change unit
     
-    if (wt$label == "LENGTHUNIT") {
+    if (wt[["label"]] == "LENGTHUNIT") {
       wt[["params"]] <- unit
-    } else if (wt$label != "ELLIPSOID") {
+    } else if (wt[["label"]] != "ELLIPSOID") {
       for (k in seq_along(wt$param)) {
         if (is.list(wt[["params"]][[k]])) {
           wt[["params"]][[k]] <- convert(wt[["params"]][[k]], unit)
