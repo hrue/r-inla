@@ -4,8 +4,6 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
-
-
 \section{CHANGES IN VERSION xx.xx.xx}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
@@ -22,6 +20,16 @@
       \item
     }
   }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item 
+    }
+  }
+}
+
+
+
+\section{CHANGES IN VERSION 20.06.18}{
   \subsection{BUG FIXES}{
     \itemize{
       \item Improved WKT support for PROJ6/GDAL3
