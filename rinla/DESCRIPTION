@@ -59,4 +59,5 @@ License: GPL (>= 2)
 Version: 99.99.9999
 Date: 9999-99-99
 RoxygenNote: 7.1.0
+Encoding: UTF-8
 StagedInstall: no
