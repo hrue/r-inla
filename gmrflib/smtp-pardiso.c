@@ -81,7 +81,7 @@ GMRFLib_static_pardiso_tp S = {
 };
 
 
-#define PSTORES_NUM (4096)
+#define PSTORES_NUM (8192)
 
 int GMRFLib_pardiso_set_parallel_reordering(int value)
 {
@@ -869,61 +869,64 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 	if (S.s_verbose) {
 		PP("free: old=", *store);
 	}
-#pragma omp critical
-	{
-		int found = 0, i;
-		if (S.static_pstores != NULL) {
-			if (S.s_verbose) {
-				for (i = 0; i < PSTORES_NUM; i++) {
-					if (S.busy[i]) {
-						printf("in store: i=%1d s=%p\n", i, (void *) S.static_pstores[i]);
-					}
+
+	int found = 0, i;
+	if (S.static_pstores != NULL) {
+		if (S.s_verbose) {
+			for (i = 0; i < PSTORES_NUM; i++) {
+				if (S.busy[i]) {
+					printf("in store: i=%1d s=%p\n", i, (void *) S.static_pstores[i]);
 				}
 			}
-			for (i = 0; i < PSTORES_NUM && !found; i++) {
+		}
+		for (i = 0; i < PSTORES_NUM && !found; i++) {
 
-				if (S.busy[i] && (S.static_pstores[i] == *store)) {
+			if (S.static_pstores[i] == *store) {
+				found = 1;
+				if (S.busy[i]) {
 					if (S.s_verbose) {
-						P(S.busy[i]);
+						printf("==> S.busy[%1d] = 1\n", i);
 						PP("S.static_pstores[i]", S.static_pstores[i]);
 						PP("*store", *store);
 					}
-					found = 1;
 					S.busy[i] = 0;
 					if (S.s_verbose) {
 						printf("==> free store[%1d]\n", i);
 					}
+				} else {
+					if (S.s_verbose) {
+						printf("==> this one is already free [%1d]. ignore\n", i);
+					}
 				}
 			}
 		}
-
-		if (!found) {
-			if (S.s_verbose) {
-				printf("==> free manually as not found\n");
-			}
-
-			if ((*store)->pstore) {
-				(*store)->pstore->phase = -1;
-				int mnum1 = 1;
-				pardiso((*store)->pt, &((*store)->maxfct), &mnum1, &((*store)->mtype),
-					&((*store)->pstore->phase),
-					&((*store)->pstore->idummy),
-					&((*store)->pstore->dummy), &((*store)->pstore->idummy),
-					&((*store)->pstore->idummy),
-					&((*store)->pstore->idummy),
-					&((*store)->pstore->nrhs), (*store)->pstore->iparm, &((*store)->msglvl),
-					NULL, NULL, &((*store)->pstore->err_code), (*store)->pstore->dparm);
-
-				GMRFLib_csr_free(&((*store)->pstore->Q));
-				GMRFLib_csr_free(&((*store)->pstore->Qinv));
-				Free((*store)->pstore);
-			}
-
-			GMRFLib_free_graph((*store)->graph);
-			Free((*store)->iparm_default);
-			Free((*store)->dparm_default);
-			Free(*store);
+	}
+	if (!found) {
+		if (S.s_verbose) {
+			printf("==> free manually as not found\n");
 		}
+
+		if ((*store)->pstore) {
+			(*store)->pstore->phase = -1;
+			int mnum1 = 1;
+			pardiso((*store)->pt, &((*store)->maxfct), &mnum1, &((*store)->mtype),
+				&((*store)->pstore->phase),
+				&((*store)->pstore->idummy),
+				&((*store)->pstore->dummy), &((*store)->pstore->idummy),
+				&((*store)->pstore->idummy),
+				&((*store)->pstore->idummy),
+				&((*store)->pstore->nrhs), (*store)->pstore->iparm, &((*store)->msglvl),
+				NULL, NULL, &((*store)->pstore->err_code), (*store)->pstore->dparm);
+
+			GMRFLib_csr_free(&((*store)->pstore->Q));
+			GMRFLib_csr_free(&((*store)->pstore->Qinv));
+			Free((*store)->pstore);
+		}
+
+		GMRFLib_free_graph((*store)->graph);
+		Free((*store)->iparm_default);
+		Free((*store)->dparm_default);
+		Free(*store);
 	}
 
 	GMRFLib_LEAVE_ROUTINE;
