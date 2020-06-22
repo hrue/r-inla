@@ -31,6 +31,8 @@
   \subsection{BUG FIXES}{
     \itemize{
       \item Improve some code in the PARDISO interface
+      \item Improved the computation of the third derivative
+      in the log likelihood.
     }
   }
 }
