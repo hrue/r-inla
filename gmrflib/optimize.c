@@ -599,7 +599,7 @@ int GMRFLib_optimize2(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 			if (opt_problem->d[i]) {
 				double bcoof, ccoof;
 
-				GMRFLib_2order_taylor(NULL, &bcoof, &ccoof, opt_problem->d[i],
+				GMRFLib_2order_taylor(NULL, &bcoof, &ccoof, NULL, opt_problem->d[i],
 						      opt_problem->mode[i], opt_problem->map[i], opt_problem->x_vec,
 						      opt_problem->loglFunc, opt_problem->loglFunc_arg, &(opt_problem->optpar->step_len),
 						      &(opt_problem->optpar->stencil));
@@ -780,7 +780,7 @@ int GMRFLib_linesearch(GMRFLib_optimize_problem_tp * opt_problem, double *dir)
 		for (i = 0; i < sub_n; i++) {
 			GMRFLib_thread_id = id;
 			if (opt_problem->d[i]) {
-				GMRFLib_2order_taylor(NULL, &loglikgrad[i], &loglikggrad[i], 1.0,
+				GMRFLib_2order_taylor(NULL, &loglikgrad[i], &loglikggrad[i], NULL, 1.0,
 						      opt_problem->mode[i], opt_problem->map[i], opt_problem->x_vec,
 						      opt_problem->loglFunc, opt_problem->loglFunc_arg, &(opt_problem->optpar->step_len),
 						      &(opt_problem->optpar->stencil));
@@ -922,7 +922,7 @@ int GMRFLib_optimize3(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 			
 			GMRFLib_thread_id = id;
 			idx = idxs[i];
-			GMRFLib_2order_approx(NULL, &bcoof, &ccoof, opt_problem->d[idx],
+			GMRFLib_2order_approx(NULL, &bcoof, &ccoof, NULL, opt_problem->d[idx],
 					      opt_problem->mode[idx], opt_problem->map[idx], opt_problem->x_vec,
 					      opt_problem->loglFunc, opt_problem->loglFunc_arg, &(opt_problem->optpar->step_len),
 					      &(opt_problem->optpar->stencil), &cmin);

@@ -469,7 +469,7 @@ int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_proble
 	for (i = 0; i < sub_n; i++) {
 		double cmin = 0;
 		if ((*hidden_problem)->sub_d[i]) {
-			GMRFLib_2order_approx(&args->acoof[i], &args->bcoof[i], &args->ccoof[i],
+			GMRFLib_2order_approx(&args->acoof[i], &args->bcoof[i], &args->ccoof[i], NULL, 
 					      (*hidden_problem)->sub_d[i], (*hidden_problem)->sub_mean[i],
 					      (*hidden_problem)->map[i], (*hidden_problem)->x_vec,
 					      loglFunc, loglFunc_arg, &((*hidden_problem)->hidden_par->step_len),
