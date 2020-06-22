@@ -1308,7 +1308,7 @@ int GMRFLib_ai_do_MC_error_check(double *err, GMRFLib_problem_tp * problem, doub
 	for (ii = 0; ii < sub_n; ii++) {
 		i = problem->map[ii];
 		if (d && d[i]) {
-			GMRFLib_2order_approx(&a[i], &b[i], &c[i], d[i], problem->mean_constr[i], i, problem->mean_constr, loglFunc,
+			GMRFLib_2order_approx(&a[i], &b[i], &c[i], NULL, d[i], problem->mean_constr[i], i, problem->mean_constr, loglFunc,
 					      loglFunc_arg, NULL, NULL, NULL);
 		}
 	}
@@ -1760,26 +1760,26 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 					for (i = 0; i < n; i++) {
 						if (d[i] && !fixed_value[i]) {
 							ai_store->correction_idx[ai_store->nidx++] = i;
-							GMRFLib_2order_approx(NULL, NULL, &c0, d[i], fixed_mode[i] - deldif, i,
+							GMRFLib_2order_approx(NULL, NULL, &c0, NULL, d[i], fixed_mode[i] - deldif, i,
 									      fixed_mode, loglFunc, loglFunc_arg,
 									      &(ai_par->step_len), &(ai_par->stencil), NULL);
-							GMRFLib_2order_approx(NULL, NULL, &c1, d[i], fixed_mode[i] + deldif, i,
+							GMRFLib_2order_approx(NULL, NULL, &c1, NULL, d[i], fixed_mode[i] + deldif, i,
 									      fixed_mode, loglFunc, loglFunc_arg,
 									      &(ai_par->step_len), &(ai_par->stencil), NULL);
-							ai_store->derivative3[i] = -(c1 - c0) * s;	/* `-' since c is negative 2.deriv */
+							ai_store->derivative3[i] = -(c1 - c0) * s; /* `-' since c is negative 2.deriv */
 							ai_store->correction_term[i] = -SQR(ai_store->stdev[i]) * ai_store->derivative3[i];
 						}
 					}
 				} else {
 					// printf("RECOMPUTE derivative3 for thread %d and idx %d\n", omp_get_thread_num(), idx);
 					for (ii = 0; ii < ai_store->nd; ii++) {
+						double dd;
 						i = ai_store->d_idx[ii];
 						ai_store->correction_idx[ai_store->nidx++] = i;
-						GMRFLib_2order_approx(NULL, NULL, &c0, d[i], fixed_mode[i] - deldif, i, fixed_mode,
-								      loglFunc, loglFunc_arg, &(ai_par->step_len), &(ai_par->stencil), NULL);
-						GMRFLib_2order_approx(NULL, NULL, &c1, d[i], fixed_mode[i] + deldif, i, fixed_mode,
-								      loglFunc, loglFunc_arg, &(ai_par->step_len), &(ai_par->stencil), NULL);
-						ai_store->derivative3[i] = -(c1 - c0) * s;	/* `-' since c is negative 2.deriv */
+						GMRFLib_2order_approx(NULL, NULL, NULL, &dd, d[i], fixed_mode[i] + deldif, i,
+								      fixed_mode, loglFunc, loglFunc_arg,
+								      &(ai_par->step_len), &(ai_par->stencil), NULL);
+						ai_store->derivative3[i] = dd;
 						ai_store->correction_term[i] = -SQR(ai_store->stdev[i]) * ai_store->derivative3[i];
 					}
 				}
@@ -2735,7 +2735,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 			GMRFLib_thread_id = id;
 			idx = idxs[i];
-			GMRFLib_2order_approx(&(aa[idx]), &bcoof, &ccoof, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg,
+			GMRFLib_2order_approx(&(aa[idx]), &bcoof, &ccoof, NULL, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg,
 					      &(optpar->step_len), &(optpar->stencil), &cmin);
 			cc_is_negative = (cc_is_negative || ccoof < 0.0);	/* this line IS OK! also for multithread.. */
 			if (cc_positive) {
@@ -2849,7 +2849,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			for (i = 0; i < nidx; i++) {
 				int idx = idxs[i];
 				GMRFLib_thread_id = id;
-				GMRFLib_2order_approx(&(aa[idx]), NULL, NULL, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg,
+				GMRFLib_2order_approx(&(aa[idx]), NULL, NULL, NULL, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg,
 						      &(optpar->step_len), &(optpar->stencil), NULL);
 			}
 			GMRFLib_thread_id = id;

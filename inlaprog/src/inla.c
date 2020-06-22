@@ -28764,7 +28764,7 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp * loglfunc, double *x
 			xarr[0] = xarr[1] = xarr[2] = x;
 			loglfunc(arr, xarr, 3, idx, x_vec, NULL, arg);
 		} else {
-			GMRFLib_2order_taylor(&arr[0], &arr[1], &arr[2], 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
+			GMRFLib_2order_taylor(&arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
 		}
 		f = arr[0] - 0.5 * prec * SQR((x - mean));
 		deriv = arr[1] - prec * (x - mean);
@@ -28819,7 +28819,7 @@ double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, d
 				xarr[0] = xarr[1] = xarr[2] = x;
 				loglfunc(arr, xarr, 3, idx, x_vec, NULL, arg);
 			} else {
-				GMRFLib_2order_taylor(&arr[0], &arr[1], &arr[2], 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
+				GMRFLib_2order_taylor(&arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
 			}
 			f = arr[0] - 0.5 * prec * SQR(x);
 			deriv = arr[1] - prec * x;
@@ -33389,6 +33389,28 @@ int inla_fgn(char *infile, char *outfile)
 	return GMRFLib_SUCCESS;
 }
 
+
+int loglikelihood_testit(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	int i;
+	double a = 1.0, b = 2.0, c = 3.0, d = 4.0, x0;
+	x0 = x_vec[0];
+
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			double xx = x[i]- x0;
+			logll[i] = a + b * xx - c/2.0 * SQR(xx) + d/6.0*gsl_pow_3(xx);
+		}
+	} else {
+		abort();
+	}
+	return GMRFLib_SUCCESS;
+}
+
 int testit(int argc, char **argv)
 {
 	int test_no = -1;
@@ -34173,7 +34195,32 @@ int testit(int argc, char **argv)
 		my_pardiso_test5();
 		break;
 
+	case 39:
+	{
+		double a, b, c, dd, x0 = 2.0;
+		int stencil;
+		stencil = 5;
+		GMRFLib_2order_taylor(&a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
+		printf("taylor: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
+		stencil = 7;
+		GMRFLib_2order_taylor(&a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
+		printf("taylor: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
+		stencil = 9;
+		GMRFLib_2order_taylor(&a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil);
+		printf("taylor: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 
+		stencil = 5;
+		GMRFLib_2order_approx(&a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
+		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
+		stencil = 7;
+		GMRFLib_2order_approx(&a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
+		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
+		stencil = 9;
+		GMRFLib_2order_approx(&a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
+		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
+
+		break;
+	}
 
 		// this will give some more error messages, if any
 	case 999:

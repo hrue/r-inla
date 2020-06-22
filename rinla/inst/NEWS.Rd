@@ -27,6 +27,14 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.06.22}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Improve some code in the PARDISO interface
+    }
+  }
+}
+
 
 
 \section{CHANGES IN VERSION 20.06.18}{
