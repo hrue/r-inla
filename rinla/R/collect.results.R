@@ -475,13 +475,14 @@ inla.internal.experimental.mode = FALSE
                 mean = readBin(fp, numeric(), configs$n)
                 improved.mean = readBin(fp, numeric(), configs$n)
                 skewness = readBin(fp, numeric(), configs$n)
-                ## read and add the offsets here
+                ## add the offsets to the mean here
                 offsets = readBin(fp, numeric(), configs$n)
                 mean = mean + offsets
                 improved.mean = improved.mean + offsets
 
                 Q = readBin(fp, numeric(), configs$nz)
                 Qinv = readBin(fp, numeric(), configs$nz)
+                Qprior = readBin(fp, numeric(), configs$n)
                 dif = which(configs$i != configs$j)
                 if (length(dif) > 0L) {
                     iadd = configs.j[dif] ## yes, its the transpose part
@@ -514,7 +515,8 @@ inla.internal.experimental.mode = FALSE
                         x = c(Qinv, Qinvadd),
                         dims = c(configs$n, configs$n),
                         index1 = FALSE,
-                        giveCsparse = TRUE))
+                        giveCsparse = TRUE), 
+                    Qprior.diag = Qprior)
             }
 
             ## rescale the log.posteriors
