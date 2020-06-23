@@ -801,6 +801,7 @@ typedef struct {
 	double *skewness;				       /* the skewness in the skew-normal=E[((x-mu)/sd)^3] */
 	double *Q;					       /* the Q_ij-values */
 	double *Qinv;					       /* the Qinv_ij-values */
+	double *Qprior;
 } GMRFLib_store_config_tp;
 
 typedef struct {
@@ -985,7 +986,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin, GMRFLib_ai_misc_output_tp * misc_output);
 int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo,
 			    int ntheta, double *theta, double log_posterior, double log_posterior_orig, 
-			    double *improved_mean, double *skewness, GMRFLib_problem_tp * gmrf_approx);
+			    double *improved_mean, double *skewness, GMRFLib_problem_tp * gmrf_approx, 
+			    GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *c);
 
 int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_ai_store_tp * ai_store,
 			       double *improved_mean);
