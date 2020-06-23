@@ -31242,10 +31242,10 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 					fwrite((void *) mo->configs[id]->config[i]->mean, sizeof(double), (size_t) mo->configs[id]->n, fp);
 					fwrite((void *) mo->configs[id]->config[i]->improved_mean, sizeof(double), (size_t) mo->configs[id]->n, fp);
 					fwrite((void *) mo->configs[id]->config[i]->skewness, sizeof(double), (size_t) mo->configs[id]->n, fp);
-					fwrite((void *) off, sizeof(double), (size_t) mo->configs[id]->n, fp);	// To be added
-					// later.
+					fwrite((void *) off, sizeof(double), (size_t) mo->configs[id]->n, fp);	
 					fwrite((void *) mo->configs[id]->config[i]->Q, sizeof(double), (size_t) mo->configs[id]->nz, fp);
 					fwrite((void *) mo->configs[id]->config[i]->Qinv, sizeof(double), (size_t) mo->configs[id]->nz, fp);
+					fwrite((void *) mo->configs[id]->config[i]->Qprior, sizeof(double), (size_t) mo->configs[id]->n, fp);
 				}
 
 				Free(off);

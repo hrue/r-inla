@@ -3217,7 +3217,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				_improved_mean[_i] = (_store)->problem->mean_constr[_i]; \
 			}						\
 		}							\
-		GMRFLib_ai_store_config(misc_output, nhyper, _theta, _log_posterior, _log_posterior_orig, _improved_mean, _skewness, (_store)->problem); \
+		GMRFLib_ai_store_config(misc_output, nhyper, _theta, _log_posterior, _log_posterior_orig, _improved_mean, _skewness, (_store)->problem, Qfunc, Qfunc_arg, c); \
 		Free(_improved_mean);					\
 		Free(_skewness);					\
 	}
@@ -6299,7 +6299,8 @@ int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior,
-			    double log_posterior_orig, double *improved_mean, double *skewness, GMRFLib_problem_tp * gmrf_approx)
+			    double log_posterior_orig, double *improved_mean, double *skewness, GMRFLib_problem_tp * gmrf_approx,
+			    GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *c)
 {
 	if (!mo || !(mo->configs)) {
 		return GMRFLib_SUCCESS;
@@ -6360,12 +6361,11 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 		mo->configs[id]->config = NULL;
 	}
 
-
 	mo->configs[id]->config = Realloc(mo->configs[id]->config, mo->configs[id]->nconfig + 1, GMRFLib_store_config_tp *);
 	mo->configs[id]->config[mo->configs[id]->nconfig] = Calloc(1, GMRFLib_store_config_tp);
 
 	int ii, jj, k, kk;
-	double *Qinv, *Q, *mean, *imean, *skew;
+	double *Qinv, *Q, *Qprior, *mean, *imean, *skew;
 	GMRFLib_graph_tp *g = gmrf_approx->sub_graph;
 
 	Q = Calloc(mo->configs[id]->nz, double);
@@ -6377,6 +6377,11 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 				Q[k++] = gmrf_approx->tab->Qfunc(ii, jj, gmrf_approx->tab->Qfunc_arg);
 			}
 		}
+	}
+
+	Qprior = Calloc(g->n, double);
+	for (ii = 0; ii < g->n; ii++) {
+		Qprior[ii] = Qfunc(ii, ii, Qfunc_arg) + c[ii];
 	}
 
 	mean = Calloc(g->n, double);
@@ -6406,6 +6411,7 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 
 	mo->configs[id]->config[mo->configs[id]->nconfig]->Q = Q;
 	mo->configs[id]->config[mo->configs[id]->nconfig]->Qinv = Qinv;
+	mo->configs[id]->config[mo->configs[id]->nconfig]->Qprior = Qprior;
 	mo->configs[id]->config[mo->configs[id]->nconfig]->mean = mean;
 	mo->configs[id]->config[mo->configs[id]->nconfig]->improved_mean = imean;
 	mo->configs[id]->config[mo->configs[id]->nconfig]->skewness = skew;
