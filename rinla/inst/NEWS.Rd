@@ -26,6 +26,41 @@
     }
   }
 }
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added \code{Qprior.diag} to the output when \code{config=TRUE}.
+      The off-diagonals of this matrix are the same as \code{Q} in the
+      same configuration, so only the diagonal of \code{Qprior}
+      is stored.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item 
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 20.06.22}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Improve some code in the PARDISO interface
+      \item Improved the computation of the third derivative
+      in the log likelihood.
+    }
+  }
+}
 
 
 
