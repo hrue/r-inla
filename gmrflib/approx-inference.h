@@ -916,8 +916,8 @@ typedef struct {
 } GMRFLib_transform_array_func_tp;
 
 typedef struct {
-	// c[0] + c[1]*x + 1/2*c[2]*x^2 + c[3]*y + 1/2*c[4]*y2 + c[5]*x*y
-	double coofs[6];
+	// c[0] + c[1]*x + 1/2*c[2]*x^2
+	double coofs[3];
 } GMRFLib_vb_coofs_tp;
 
 
