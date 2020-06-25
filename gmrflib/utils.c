@@ -1143,7 +1143,7 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 
 int GMRFLib_idx_create(GMRFLib_idx_tp **hold) 
 {
-	int alloc_add = 4L;
+	int alloc_add = 32L;
 	*hold = Calloc(1, GMRFLib_idx_tp);
 	(*hold)->idx = Calloc(alloc_add, int);
 	(*hold)->n_alloc = alloc_add;
@@ -1153,7 +1153,7 @@ int GMRFLib_idx_create(GMRFLib_idx_tp **hold)
 }
 int GMRFLib_idx2_create(GMRFLib_idx2_tp **hold) 
 {
-	int alloc_add = 4L;
+	int alloc_add = 32L;
 	*hold = Calloc(1, GMRFLib_idx2_tp);
 	(*hold)->idx = Calloc(2, int *);
 	(*hold)->idx[0] = Calloc(alloc_add, int);
@@ -1165,7 +1165,7 @@ int GMRFLib_idx2_create(GMRFLib_idx2_tp **hold)
 }
 int GMRFLib_idx_add(GMRFLib_idx_tp **hold, int idx)
 {
-	int alloc_add = 8L;
+	int alloc_add = 32L;
 	if (*hold == NULL) {
 		GMRFLib_idx_create(hold);
 	}
@@ -1181,7 +1181,7 @@ int GMRFLib_idx_add(GMRFLib_idx_tp **hold, int idx)
 }
 int GMRFLib_idx2_add(GMRFLib_idx2_tp **hold, int idx0, int idx1)
 {
-	int alloc_add = 8L;
+	int alloc_add = 32L;
 	if (*hold == NULL) {
 		GMRFLib_idx2_create(hold);
 	}

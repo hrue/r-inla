@@ -521,6 +521,9 @@
         ##:ARGUMENT: stupid.search.factor Numerical Factor (>=1) to increase the step-length with after each new interation. (default 1.05)
         stupid.search.factor = 1.05,
         
+        ##:ARGUMENT: vb.correct Logical Add vb correction for the Laplace approximation. (default \code{FALSE})
+        vb.correct = FALSE,
+
         ##:ARGUMENT: correct Logical Add correction for the Laplace approximation. (default \code{FALSE})
         correct = FALSE,
 

@@ -1208,6 +1208,11 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
  */
 int GMRFLib_Qx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
+	return (GMRFLib_Qx2(result, x, graph, Qfunc, Qfunc_arg, NULL));
+}
+int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
+	double *diag)
+{
 	/*
 	 * compute RESULT = Q*x, (RESULT is a vector).
 	 */
@@ -1221,7 +1226,7 @@ int GMRFLib_Qx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfun
 		int j, jj;
 
 		GMRFLib_thread_id = id;
-		result[i] += Qfunc(i, i, Qfunc_arg) * x[i];
+		result[i] += (Qfunc(i, i, Qfunc_arg) + (diag ? diag[i] : 0.0)) * x[i];
 		for (j = 0; j < graph->nnbs[i]; j++) {
 			jj = graph->nbs[i][j];
 			result[i] += Qfunc(i, jj, Qfunc_arg) * x[jj];
