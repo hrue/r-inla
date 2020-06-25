@@ -637,8 +637,15 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 		store->pstore->perm, &(store->pstore->nrhs),
 		store->pstore->iparm, &(store->msglvl), NULL, NULL, &(store->pstore->err_code), store->pstore->dparm);
 
+	// Have to check if we need to revert back to C indexing
+	int perm_min = GMRFLib_imin_value(store->pstore->perm, n, NULL);
+	assert(perm_min == 0 || perm_min == 1);		       /* must either be C or F... */
+	if (perm_min == 1) {
+		for (i = 0; i < n; i++) {
+			store->pstore->perm[i]--;		       /* back to C indexing */
+		}
+	}
 	for (i = 0; i < n; i++) {
-		store->pstore->perm[i]--;		       /* back to C indexing */
 		store->pstore->iperm[store->pstore->perm[i]] = i;
 	}
 
