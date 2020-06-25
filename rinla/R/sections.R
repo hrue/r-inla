@@ -703,6 +703,11 @@
         cat("order = ", random.spec$order, "\n", append=TRUE, sep = " ", file = file)
     }
 
+    if (is.null(random.spec$vb.correct)) {
+        random.spec$vb.correct = -1L  ## code for ``make the default choice''
+    }
+    cat("vb.correct = ", as.numeric(random.spec$vb.correct), "\n", append=TRUE, sep = "", file = file)
+
     if (is.null(random.spec$correct)) {
         random.spec$correct = -1L  ## code for ``make the default choice''
     }

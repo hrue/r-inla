@@ -29096,9 +29096,6 @@ int inla_INLA(inla_tp * mb)
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
 			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] == 1) || mb->f_vb_correct[i] > 0) {
-				/*
-				 * add also random effects with size 1
-				 */
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_correct[count + j] = (char) 1;
 					local_count++;
@@ -29114,6 +29111,7 @@ int inla_INLA(inla_tp * mb)
 			Free(vb_correct);
 			vb_correct = NULL;
 		}
+		P(local_count);
 	}
 	Free(mb->ai_par->vb_correct);
 	mb->ai_par->vb_correct = vb_correct;
