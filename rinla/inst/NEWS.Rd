@@ -47,7 +47,7 @@
   }
   \subsection{BUG FIXES}{
     \itemize{
-      \item 
+      \item PARDISO interface: internal check added
     }
   }
 }
