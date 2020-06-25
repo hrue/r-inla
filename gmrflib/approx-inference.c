@@ -5486,7 +5486,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			for (i = 0; i < graph->n; i++) {
 				// want correlation identical to 1 for i=j
 				corr[i] = (i == j ? 1.0 : S(j) * (cmean[i] - M(i)) / S(i));
-				gsl_matrix_set(M, i, jj, corr[i] * S(i) * S(j)); /* yes, it is jj and not j */
+				gsl_matrix_set(M, i, jj, corr[i] * S(i) * S(j)); /* yes, it is 'jj' and not 'j' */
 			}
 		}
 
@@ -5519,6 +5519,15 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		gsl_matrix *MM = gsl_matrix_alloc(vb_idx->n, vb_idx->n);
 		gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);
 		
+		if (1) {
+			gsl_vector *eigen = gsl_vector_alloc(vb_idx->n);
+			gsl_eigen_symm_workspace *workspace = gsl_eigen_symm_alloc(vb_idx->n);
+			gsl_matrix *A = gsl_matrix_alloc(vb_idx->n, vb_idx->n);
+			gsl_matrix_memcpy(A, MM);
+			gsl_eigen_symm(A, eigen, workspace);  
+			P(gsl_vector_get(eigen, 0)/gsl_vector_get(eigen, vb_idx->n-1));
+		}
+
 		gsl_vector *MB = gsl_vector_alloc(vb_idx->n);
 		gsl_vector *delta = gsl_vector_alloc(vb_idx->n);
 
