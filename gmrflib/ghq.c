@@ -123,6 +123,21 @@ int GMRFLib_ghq_weights(double **wp, int n)
 {
 	return GMRFLib_ghq(NULL, wp, n);
 }
+int GMRFLib_ghq_ms(double **xp, double **wp, int n, double mean, double stdev)
+{
+	// the same for a given mean and stdev. Allocated new memory for xp and wp
+	int i;
+	double *xxp, *wwp;
+	GMRFLib_ghq(&xxp, &wwp, n);
+
+	*xp = Calloc(n, double);
+	*wp = Calloc(n, double);
+	for(i = 0; i < n; i++) {
+		(*xp)[i] = xxp[i] * stdev + mean;
+		(*wp)[i] = wwp[i]; 
+	}
+	return GMRFLib_SUCCESS;
+}
 int GMRFLib_ghq(double **xp, double **wp, int n)
 {
 	/*

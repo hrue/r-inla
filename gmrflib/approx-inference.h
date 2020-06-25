@@ -519,6 +519,11 @@ typedef struct {
 	char *correct;
 
 	/**
+	 * \brief List of nodes to vb correct LA for, if any.
+	 */
+	char *vb_correct;
+
+	/**
 	 * \brief Ajustment-factor if we use correction
 	 */
 	double correct_factor;
@@ -910,6 +915,11 @@ typedef struct {
 	double *cov;
 } GMRFLib_transform_array_func_tp;
 
+typedef struct {
+	// c[0] + c[1]*x + 1/2*c[2]*x^2
+	double coofs[3];
+} GMRFLib_vb_coofs_tp;
+
 
 #define GMRFLib_AI_POOL_GET 1
 #define GMRFLib_AI_POOL_SET 2
@@ -994,6 +1004,9 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, int skeleton, int copy_ptr, int copy_pardiso_ptr);
 GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp * to, GMRFLib_ai_store_tp * from);
 GMRFLib_sizeof_tp GMRFLib_sizeof_ai_store(GMRFLib_ai_store_tp * ai_store);
+double GMRFLib_ai_vb_mEll(int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+			  double *x_vec, double mean_add, double var_scale);
+GMRFLib_vb_coofs_tp *GMRFLib_ai_vb_prepare(int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
 char *GMRFLib_ai_tag(int *iz, int len);
 double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_density_tp * cpo_density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 				   double *x_vec);

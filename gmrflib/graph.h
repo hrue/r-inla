@@ -162,6 +162,8 @@ typedef struct {
 
 double GMRFLib_offset_Qfunc(int node, int nnode, void *arg);
 int GMRFLib_Qx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
+int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
+		double *diag);
 int GMRFLib_complete_graph(GMRFLib_graph_tp ** n_graph, GMRFLib_graph_tp * graph);
 int GMRFLib_compute_bandwidth(int *bandwidth, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_compute_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp * graph, char *remove_flag);

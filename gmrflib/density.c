@@ -1671,6 +1671,37 @@ int GMRFLib_density_new_mean(GMRFLib_density_tp ** new_density, GMRFLib_density_
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_density_new_meansd(GMRFLib_density_tp ** new_density, GMRFLib_density_tp * density, double new_mean, double new_stdev)
+{
+	/*
+	 * return a new density, which the density with the given new mean and stdev
+	 */
+
+#define N (30)
+#define M (4)
+	int i, n = N + 2 * M;
+	double *x, *ld, alpha, eps[M] = { 1e-6, 1e-5, 1e-4, 1e-3 };
+
+	x = Calloc(n, double);
+	for (i = 0; i < M; i++) {
+		GMRFLib_density_Pinv(&x[i], eps[i], density);
+		GMRFLib_density_Pinv(&x[M + i], 1.0 - eps[i], density);
+	}
+	for (i = 0; i < N; i++) {
+		alpha = 0.01 + 0.98 * (1.0 / (double) N) * i;
+		GMRFLib_density_Pinv(&x[2 * M + i], alpha, density);
+	}
+	ld = Calloc(n, double);
+
+	GMRFLib_evaluate_nlogdensity(ld, x, n, density);
+	GMRFLib_density_create(new_density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n, x, ld, new_mean, new_stdev, GMRFLib_TRUE);
+
+	Free(x);
+	Free(ld);
+
+	return GMRFLib_SUCCESS;
+}
+
 /*!
   \brief Print a summary of a density
 

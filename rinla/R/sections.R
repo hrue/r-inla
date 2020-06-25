@@ -703,6 +703,11 @@
         cat("order = ", random.spec$order, "\n", append=TRUE, sep = " ", file = file)
     }
 
+    if (is.null(random.spec$vb.correct)) {
+        random.spec$vb.correct = -1L  ## code for ``make the default choice''
+    }
+    cat("vb.correct = ", as.numeric(random.spec$vb.correct), "\n", append=TRUE, sep = "", file = file)
+
     if (is.null(random.spec$correct)) {
         random.spec$correct = -1L  ## code for ``make the default choice''
     }
@@ -895,6 +900,12 @@
         stopifnot(fac >= 1.0)
         cat("stupid.search.factor = ", fac, "\n", file = file,  append = TRUE)
     }
+
+    if (inla.spec$vb.correct) {
+        ## not yet public
+        inla.only.for.developers("vb.correct")
+    }
+    inla.write.boolean.field("vb.correct", inla.spec$vb.correct, file)
 
     inla.write.boolean.field("correct", inla.spec$correct, file)
     inla.write.boolean.field("correct.verbose", inla.spec$correct.verbose, file)
