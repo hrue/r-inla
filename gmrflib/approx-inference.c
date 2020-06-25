@@ -3395,6 +3395,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	    NULL, *hyper_z = NULL, *hyper_ldens = NULL, **userfunc_values = NULL, *inverse_hessian = NULL, *neff = NULL, *timer;
 	double **cpo_theta = NULL, **po_theta = NULL, **po2_theta = NULL, **po3_theta = NULL, **pit_theta = NULL, **deviance_theta =
 	    NULL, **failure_theta = NULL;
+	double zero = 0.0, one = 1.0;
 	char *tag = NULL;
 	gsl_matrix *H = NULL, *eigen_vectors = NULL;
 	gsl_eigen_symmv_workspace *work = NULL;
@@ -5439,12 +5440,26 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	}
 
 
+	if (ai_par->vb_correct) {
 #define M(_i) (ai_store->problem->mean_constr[_i])
 #define S(_i) (sd[_i])
 
-	if (ai_par->vb_correct) {
-		printf("VB_CORRECT:\n");
+		int ii, jj;
+		double tref = GMRFLib_cpu();
 
+		// need the idx's for the vb correction and the data locations
+		GMRFLib_idx_tp *vb_idx = NULL, *d_idx = NULL;
+
+		for (i = 0; i < graph->n; i++) {
+			if (ai_par->vb_correct[i])
+				GMRFLib_idx_add(&vb_idx, i);
+		}
+		assert(vb_idx->n > 0);
+
+		for (i = 0; i < graph->n; i++) {
+			if (d[i])
+				GMRFLib_idx_add(&d_idx, i);
+		}
 
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		double *sd = Calloc(graph->n, double);
@@ -5453,174 +5468,108 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			sd[i] = (var ? sqrt(*var) : NAN);
 		}
 
-		// first, compute the ABC
 		GMRFLib_vb_coofs_tp **vb_coof = Calloc(graph->n, GMRFLib_vb_coofs_tp *);
 
-		if (1) {
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
-			for (i = 0; i < compute_n; i++) {
-				int ii = compute_idx[i];
-				if (d[ii]) {
-					vb_coof[ii] = GMRFLib_ai_vb_prepare(ii, (*density)[ii], d[ii], loglFunc, loglFunc_arg, x_mode);
-					printf("VB: idx= %d A= %g B= %g C= %g\n", ii,
-					       vb_coof[ii]->coofs[0], vb_coof[ii]->coofs[1], vb_coof[ii]->coofs[2]);
-				}
-			}
+#pragma omp parallel for private(i, ii) num_threads(GMRFLib_openmp->max_threads_outer)
+		for (ii= 0; ii < d_idx->n; ii++) {
+			i = d_idx->idx[ii];
+			vb_coof[i] = GMRFLib_ai_vb_prepare(i, (*density)[i], d[i], loglFunc, loglFunc_arg, x_mode);
 		}
 
 		double *cmean = Calloc(graph->n, double);
 		double *corr = Calloc(graph->n, double);
-		double mc_min = 0;
-		double mEll_min = 0;
 
-		for (i = 0; i < graph->n; i++) {
-			if (ai_par->vb_correct[i]) {
-
-				GMRFLib_ai_update_conditional_mean2(cmean, ai_store->problem, i, M(i) + 1.0, NULL);
-				for (j = 0; j < graph->n; j++) {
-					if (j == i) {
-						corr[j] = 1.0;
-					} else {
-						corr[j] = S(i) * (cmean[j] - M(j)) / S(j);
-					}
-					printf("corr(%d,%d)= %g\n", i, j, corr[j]);
-				}
-
-				mc_min = 0;
-				mEll_min = 0;
-				int first = 1;
-
-				for (k = -100; k < 101; k++) {
-
-					double mean_correction = k / 200.0 * S(i);
-					double *xx, *ww;
-					int np = 11;
-					GMRFLib_ghq_ms(&xx, &ww, np, M(i), S(i));
-
-					int p;
-					double mEll = 0.0;
-
-					for (p = 0; p < np; p++) {
-						double tmp = 0.0, var_scale, mean_add;
-						for (j = 0; j < compute_n; j++) {
-							int ii = compute_idx[j];
-							if (d[ii]) {
-								var_scale = 1.0 - SQR(corr[ii]);
-								assert(var_scale > 0.0);
-								mean_add = corr[ii] * S(ii) * (xx[p] + mean_correction - M(i)) / S(i);
-								tmp += GMRFLib_ai_vb_mEll(ii, (*density)[ii], d[ii], loglFunc, loglFunc_arg,
-											  x_mode, mean_add, var_scale);
-							}
-						}
-						mEll += ww[p] * tmp;
-					}
-
-					if (first || mEll < mEll_min) {
-						first = 0;
-						mc_min = mean_correction;
-						mEll_min = mEll;
-					}
-					printf("Correcting i= %d, mean.corr= %g  mEll= %g\n", i, mean_correction, mEll);
-
-					Free(xx);
-					Free(ww);
-				}
-				printf("FOUND Correcting i= %d, mean.corr= %g  mEll= %g\n", i, mc_min, mEll_min);
-
-				GMRFLib_density_tp *ndens = NULL;
-				GMRFLib_density_new_mean(&ndens, (*density)[i], (*density)[i]->user_mean + mc_min);
-				GMRFLib_free_density((*density)[i]);
-
-				(*density)[i] = ndens;
-				if (gdensity) {
-					FIXME("FIX THIS");
-				}
-			}
-		}
-
-		if (1) {
+		gsl_matrix *M = gsl_matrix_alloc(graph->n, vb_idx->n);	 // matrix with Cov()
+		for (jj = 0; jj < vb_idx->n; jj++) {
+			j = vb_idx->idx[jj];
+			GMRFLib_ai_update_conditional_mean2(cmean, ai_store->problem, j, M(j) + 1.0, NULL);
 			for (i = 0; i < graph->n; i++) {
-				if (ai_par->vb_correct[i]) {
-
-					GMRFLib_ai_update_conditional_mean2(cmean, ai_store->problem, i, M(i) + 1.0, NULL);
-					for (j = 0; j < graph->n; j++) {
-						if (j == i) {
-							corr[j] = 1.0;
-						} else {
-							corr[j] = S(i) * (cmean[j] - M(j)) / S(j);
-						}
-						printf("corr(%d,%d)= %g\n", i, j, corr[j]);
-					}
-
-					double log_stdev_correction_min = 0;
-					mEll_min = 0;
-					int first = 1;
-					int fail = 0;
-
-					for (k = -100; k < 101; k++) {
-
-						double log_stdev_correction = k / 300.0;
-						int np = 11;
-						double *xx, *ww, Si, Mi;
-
-						Mi = M(i) + mc_min;
-						Si = S(i) * exp(log_stdev_correction);
-						GMRFLib_ghq_ms(&xx, &ww, np, Mi, Si);
-
-						int p;
-						double mEll = 0.0;
-						fail = 0;
-						for (p = 0; p < np; p++) {
-							double tmp = 0.0, var_scale, mean_add;
-							for (j = 0; j < compute_n; j++) {
-								int ii = compute_idx[j];
-								if (d[ii]) {
-									double cor_ii = corr[ii] * exp(log_stdev_correction);
-									var_scale = 1.0 - SQR(cor_ii);
-									if (var_scale > 0.0) {
-										mean_add = cor_ii * S(ii) * (xx[p] - Mi) / Si;
-										tmp +=
-										    GMRFLib_ai_vb_mEll(ii, (*density)[ii], d[ii], loglFunc,
-												       loglFunc_arg, x_mode, mean_add, var_scale);
-									} else {
-										fail = 1;
-									}
-								}
-							}
-							mEll += ww[p] * tmp;
-						}
-
-						if (!fail && (first || mEll < mEll_min)) {
-							first = 0;
-							log_stdev_correction_min = log_stdev_correction;
-							mEll_min = mEll;
-						}
-						printf("Correcting i= %d, log.stdev.corr = %g  mEll= %.10g fail= %d\n", i, log_stdev_correction,
-						       mEll, fail);
-
-						Free(xx);
-						Free(ww);
-					}
-					printf("FOUND Correcting i= %d, log.stdev.corr= %g  mEll= %g\n", i, log_stdev_correction_min, mEll_min);
-
-					GMRFLib_density_tp *ndens = NULL;
-					GMRFLib_density_new_meansd(&ndens, (*density)[i], (*density)[i]->user_mean,
-								   (*density)[i]->user_stdev * exp(log_stdev_correction_min));
-					GMRFLib_free_density((*density)[i]);
-					(*density)[i] = ndens;
-
-					if (gdensity) {
-						FIXME("FIX THIS");
-					}
-				}
+				// want correlation identical to 1 for i=j
+				corr[i] = (i == j ? 1.0 : S(j) * (cmean[i] - M(i)) / S(i));
+				gsl_matrix_set(M, i, jj, corr[i] * S(i) * S(j)); /* yes, it is jj and not j */
 			}
 		}
 
+		gsl_vector *B = gsl_vector_alloc(graph->n);
+		double *c_diag = Calloc(graph->n, double);
+
+		for (ii = 0; ii < d_idx->n; ii++) {
+			i = d_idx->idx[ii];
+			gsl_vector_set(B, i, -vb_coof[i]->coofs[1]); /* yes, I put the '-' in here */
+			c_diag[i] = vb_coof[i]->coofs[2];
+		}
+
+		gsl_matrix *QM = gsl_matrix_alloc(graph->n, vb_idx->n);
+
+#pragma omp parallel for private(i, j) num_threads(GMRFLib_openmp->max_threads_outer)
+		for(j = 0; j < vb_idx->n; j++){
+			double *col = Calloc(graph->n, double);
+			double *res = Calloc(graph->n, double);
+			for(i = 0; i < graph->n; i++){
+				col[i] = gsl_matrix_get(M, i, j);
+			}
+			GMRFLib_Qx2(res, col, graph, Qfunc, Qfunc_arg, c_diag);
+			for(i = 0; i < graph->n; i++){
+				gsl_matrix_set(QM, i, j, res[i]);
+			}
+			Free(col);
+			Free(res);
+		}
+
+		gsl_matrix *MM = gsl_matrix_alloc(vb_idx->n, vb_idx->n);
+		gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);
+		
+		gsl_vector *MB = gsl_vector_alloc(vb_idx->n);
+		gsl_vector *delta = gsl_vector_alloc(vb_idx->n);
+
+		gsl_blas_dgemv(CblasTrans, one, M, B, zero, MB);
+		gsl_linalg_cholesky_decomp(MM);
+		gsl_linalg_cholesky_solve(MM, MB, delta);
+		
+		for(i = 0; i < vb_idx->n; i++) {
+			printf("Solution delta[%1d]= %.6g\n", i, gsl_vector_get(delta, i));
+		}
+
+		gsl_vector *mu_adjust = gsl_vector_alloc(graph->n);
+		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, mu_adjust);
+
+		for(i = 0; i < graph->n; i++) {
+			printf("Mean correction [%1d]= %.6g   correction/sd= %.6g\n", i, gsl_vector_get(mu_adjust, i),
+			      gsl_vector_get(mu_adjust, i)/S(i));
+		}
+		
+		for(i = 0; i < graph->n; i++) {
+			if ((*density)[i]) {
+				GMRFLib_density_tp *ndens = NULL;
+				GMRFLib_density_new_mean(&ndens, (*density)[i], (*density)[i]->user_mean + gsl_vector_get(mu_adjust, i));
+				GMRFLib_free_density((*density)[i]);
+				(*density)[i] = ndens;
+			}
+		}
+
+		for(i = 0; i < graph->n; i++){
+			if (vb_coof[i]) {
+				Free(vb_coof[i]);
+			}
+		}
+		Free(vb_coof);
+
+		Free(c_diag);
 		Free(cmean);
 		Free(corr);
 		Free(sd);
+		GMRFLib_idx_free(d_idx);
+		GMRFLib_idx_free(vb_idx);
+		gsl_matrix_free(M);
+		gsl_matrix_free(MM);
+		gsl_matrix_free(QM);
+		gsl_vector_free(B);
+		gsl_vector_free(MB);
+		gsl_vector_free(delta);
+		gsl_vector_free(mu_adjust);
 #undef M
 #undef S
+		printf("CPU VB= %.6g\n", GMRFLib_cpu()-tref);
 	}
 
 	if (ai_par->compute_nparam_eff) {
