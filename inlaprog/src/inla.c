@@ -774,6 +774,23 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 		}
 		len = llen;
 
+		if (0) {
+			// check that we have done it right...
+			double mom[4] =  {0, 0, 0, 0}, negative = 0;
+			for(i = 0; i < len; i++){
+				mom[0] += y[i];
+				mom[1] += y[i]*x[i];
+				mom[2] += y[i]*SQR(x[i]);
+				mom[3] += y[i]*gsl_pow_3(x[i]);
+				negative += y[i] * (x[i] < 0);
+			}
+			mom[1] /= mom[0];
+			mom[2] /= mom[0];
+			mom[3] /= mom[0];
+			negative /= mom[0];
+			printf("map_invsn: alpha= %.6g, negative= %.6g moments: %.6g %.6g %.6g\n", alpha, negative, mom[1], mom[2], mom[3]);
+		}
+
 		for (i = j = 0; i < len; i++) {
 			if (!ISNAN(y[i]) && !ISINF(y[i])) {
 				x[j] = x[i];
