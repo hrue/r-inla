@@ -29111,7 +29111,6 @@ int inla_INLA(inla_tp * mb)
 			Free(vb_correct);
 			vb_correct = NULL;
 		}
-		P(local_count);
 	}
 	Free(mb->ai_par->vb_correct);
 	mb->ai_par->vb_correct = vb_correct;
