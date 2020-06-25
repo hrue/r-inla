@@ -13413,7 +13413,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "bgev.q.spread"), 0.25);
-		assert(tmp > 0.0 && tmp < 0.5);
+		assert(tmp > 0.0 && tmp < 1.0);
 		ds->data_observations.bgev_qspread = tmp;
 		if (mb->verbose) {
 			printf("\t\tbgev.q.spread [%g]\n", ds->data_observations.bgev_qspread);
