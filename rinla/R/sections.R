@@ -901,20 +901,17 @@
         cat("stupid.search.factor = ", fac, "\n", file = file,  append = TRUE)
     }
 
-    if (inla.spec$vb.correct) {
-        ## not yet public
-        inla.only.for.developers("vb.correct")
-    }
-    inla.write.boolean.field("vb.correct", inla.spec$vb.correct, file)
+    if (inla.spec$control.vb.correct$enable) inla.only.for.developers("vb.correct")
+    inla.write.boolean.field("vb.correct.enable", inla.spec$control.vb.correct$enable, file)
 
-    inla.write.boolean.field("correct", inla.spec$correct, file)
-    inla.write.boolean.field("correct.verbose", inla.spec$correct.verbose, file)
-    if (!is.null(inla.spec$correct.factor)) {
-        stopifnot(inla.spec$correct.factor > 0);
-        cat("correct.factor = ", inla.spec$correct.factor, "\n", file = file, append = TRUE)
+    inla.write.boolean.field("correct.enable", inla.spec$control.correct$enable, file)
+    inla.write.boolean.field("correct.verbose", inla.spec$control.correct$verbose, file)
+    if (!is.null(inla.spec$control.correct$factor)) {
+        stopifnot(inla.spec$control.correct$factor > 0);
+        cat("correct.factor = ", inla.spec$control.correct$factor, "\n", file = file, append = TRUE)
     }
-    if (!is.null(inla.spec$correct.strategy)) {
-        cat("correct.strategy = ", inla.spec$correct.strategy,"\n", sep = " ", file = file,  append = TRUE)
+    if (!is.null(inla.spec$control.correct$strategy)) {
+        cat("correct.strategy = ", inla.spec$control.correct$strategy,"\n", sep = " ", file = file,  append = TRUE)
     }
 
     cat("\n", sep = " ", file = file,  append = TRUE)
