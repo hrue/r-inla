@@ -1646,7 +1646,7 @@ int GMRFLib_density_new_mean(GMRFLib_density_tp ** new_density, GMRFLib_density_
 	 * return a new density, which the density with the given new mean 
 	 */
 
-#define N (30)
+#define N (60)
 #define M (4)
 	int i, n = N + 2 * M;
 	double *x, *ld, alpha, eps[M] = { 1e-6, 1e-5, 1e-4, 1e-3 };
@@ -1657,7 +1657,8 @@ int GMRFLib_density_new_mean(GMRFLib_density_tp ** new_density, GMRFLib_density_
 		GMRFLib_density_Pinv(&x[M + i], 1.0 - eps[i], density);
 	}
 	for (i = 0; i < N; i++) {
-		alpha = 0.01 + 0.98 * (1.0 / (double) N) * i;
+		double delta = eps[M-1] * 2.0;
+		alpha = delta + (1.0 - 2.0 * delta) * i * (1.0 / (double) (N - 1.0));
 		GMRFLib_density_Pinv(&x[2 * M + i], alpha, density);
 	}
 	ld = Calloc(n, double);
@@ -1667,6 +1668,8 @@ int GMRFLib_density_new_mean(GMRFLib_density_tp ** new_density, GMRFLib_density_
 
 	Free(x);
 	Free(ld);
+#undef N
+#undef M	
 
 	return GMRFLib_SUCCESS;
 }
@@ -1698,7 +1701,8 @@ int GMRFLib_density_new_meansd(GMRFLib_density_tp ** new_density, GMRFLib_densit
 
 	Free(x);
 	Free(ld);
-
+#undef N
+#undef M	
 	return GMRFLib_SUCCESS;
 }
 

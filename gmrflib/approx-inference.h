@@ -1043,6 +1043,9 @@ int GMRFLib_ai_validate_cpodens(GMRFLib_density_tp * cpo_density);
 int GMRFLib_ai_z2theta(double *theta, int nhyper, double *theta_mode, double *z, gsl_vector * sqrt_eigen_values, gsl_matrix * eigen_vectors);
 int GMRFLib_free_marginal_hidden_store(GMRFLib_marginal_hidden_store_tp * m);
 
+int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, int dens_count, GMRFLib_density_tp **dens_local, double *c, double *d,
+			       GMRFLib_ai_param_tp *ai_par, GMRFLib_ai_store_tp *ai_store, GMRFLib_graph_tp *graph,
+			       GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg);
 
 double GMRFLib_bfunc_eval(double *con, GMRFLib_bfunc_tp * bfunc);
 int GMRFLib_bnew(double **bnew, double *constant, int n, double *b, GMRFLib_bfunc_tp ** bfunc);
