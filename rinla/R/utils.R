@@ -180,9 +180,8 @@
 `inla.only.for.developers` = function(msg = "<ADD>")
 {
     if (!(Sys.getenv("USER") %in%
-          c("hrue", "rueh", "martino", "finnkrl", "finn", "cristian", "chiuchc", 
-            "danielsimpson", "rieblera", "ariebler", "fuglstad")))
-        warning(paste0("This function/feature [", msg, "] is for developers only..."))
+          c("hrue", "rueh", "finnkrl", "finn", "cristian", "chiuchc", "vanniej")))
+        warning(paste0("This function/feature [", msg, "] is for developers only."))
     return (invisible())
 }
 

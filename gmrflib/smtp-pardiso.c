@@ -1432,7 +1432,7 @@ int my_pardiso_test4(void)
 
 int my_pardiso_test5(void)
 {
-	int err = 0, idum;
+	int err = 0;
 
 	FIXME("this is test5");
 	if (1) {

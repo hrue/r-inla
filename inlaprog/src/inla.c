@@ -25074,15 +25074,12 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	mb->ai_par->cmin = iniparser_getdouble(ini, inla_string_join(secname, "CMIN"), mb->ai_par->cmin);
 	mb->ai_par->b_strategy = iniparser_getint(ini, inla_string_join(secname, "B.STRATEGY"), mb->ai_par->b_strategy);
 
-	int corr;
-	corr = iniparser_getint(ini, inla_string_join(secname, "VB.CORRECT"), -1);
-	mb->ai_par->vb_correct = (corr ? Calloc(1, char) : NULL);
-	if (mb->verbose) {
-		printf("\t\tvb.correct=[%1d]\n", corr);
-	}
+	mb->ai_par->vb_correct_enable = iniparser_getboolean(ini, inla_string_join(secname, "VB.CORRECT.ENABLE"), 0);
+	mb->ai_par->vb_correct_verbose = iniparser_getboolean(ini, inla_string_join(secname, "VB.CORRECT.VERBOSE"), 0);
+	mb->ai_par->vb_correct_nodes = (mb->ai_par->vb_correct_enable ? Calloc(1, char) : NULL); 
 
-	corr = iniparser_getboolean(ini, inla_string_join(secname, "CORRECT"), 0);
-	mb->ai_par->correct = (corr ? Calloc(1, char) : NULL);
+	mb->ai_par->correct_enable = iniparser_getboolean(ini, inla_string_join(secname, "CORRECT.ENABLE"), 0);
+	mb->ai_par->correct_nodes = (mb->ai_par->correct_enable ? Calloc(1, char) : NULL); 
 	mb->ai_par->correct_verbose = iniparser_getboolean(ini, inla_string_join(secname, "CORRECT.VERBOSE"), mb->ai_par->correct_verbose);
 	mb->ai_par->correct_factor = iniparser_getdouble(ini, inla_string_join(secname, "CORRECT.FACTOR"), mb->ai_par->correct_factor);
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CORRECT.STRATEGY"), NULL));
@@ -29078,7 +29075,7 @@ int inla_INLA(inla_tp * mb)
 	// correct using fixed effects only
 	char *correct = NULL;
 	local_count = 0;
-	if (mb->ai_par->correct) {
+	if (mb->ai_par->correct_enable) {
 		correct = Calloc(N, char);
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
@@ -29102,13 +29099,12 @@ int inla_INLA(inla_tp * mb)
 			correct = NULL;
 		}
 	}
-	Free(mb->ai_par->correct);
-	mb->ai_par->correct = correct;
+	mb->ai_par->correct_nodes = correct;
 
-	// correct using fixed effects only. TODO: fix this later
+	// VB correct 
 	char *vb_correct = NULL;
 	local_count = 0;
-	if (mb->ai_par->vb_correct) {
+	if (mb->ai_par->vb_correct_enable) {
 		vb_correct = Calloc(N, char);
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
@@ -29129,8 +29125,7 @@ int inla_INLA(inla_tp * mb)
 			vb_correct = NULL;
 		}
 	}
-	Free(mb->ai_par->vb_correct);
-	mb->ai_par->vb_correct = vb_correct;
+	mb->ai_par->vb_correct_nodes = vb_correct;
 
 	// define the adaptive strategy
 	GMRFLib_ai_strategy_tp *adapt = NULL;

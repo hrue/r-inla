@@ -521,20 +521,14 @@
         ##:ARGUMENT: stupid.search.factor Numerical Factor (>=1) to increase the step-length with after each new interation. (default 1.05)
         stupid.search.factor = 1.05,
         
-        ##:ARGUMENT: vb.correct Logical Add vb correction for the Laplace approximation. (default \code{FALSE})
-        vb.correct = FALSE,
+        ##:ARGUMENT: control.vb.correct List of arguments for various VB corrections. \code{enable} Logical Use this feature? 
+        control.vb.correct = list(enable = FALSE),
 
-        ##:ARGUMENT: correct Logical Add correction for the Laplace approximation. (default \code{FALSE})
-        correct = FALSE,
+        ##:ARGUMENT: control.correct List of control arguments for correction for the Laplace approximation: \code{enable} Logical Use this feature? \code{factor} Numerical Factor used in adjusting the correction factor (default=10) if \code{correct=TRUE}. \code{strategy}  Character The strategy used to compute the correction; one of 'simplified.laplace' (default) or 'laplace'. \code{verbose}  Logical Be verbose when computing the correction? (default \code{FALSE})
+        control.correct = list(enable = FALSE, factor = 10.0, strategy = "simplified.laplace", verbose = FALSE)
 
-        ##:ARGUMENT: correct.factor Numerical Factor used in adjusting the correction factor (default=10) if correct=TRUE
-        correct.factor = 10.0,
-
-        ##:ARGUMENT: correct.strategy  Character The strategy used to compute the correction; one of 'simplified.laplace' (default) or 'laplace'
-        correct.strategy = "simplified.laplace", 
-
-        ##:ARGUMENT: correct.verbose  Logical Be verbose when computing the correction? (default \code{FALSE})
-        correct.verbose = FALSE)
+        )
+        
  
     ##:SEEALSO: inla
 

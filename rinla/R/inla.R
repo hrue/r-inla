@@ -835,6 +835,10 @@
         cont.compute$dic = cont.compute$cpo = cont.compute$po = cont.compute$waic = FALSE 
     } 
     
+    ## control inla
+    cont.inla =inla.set.control.inla.default(family=family)
+    cont.inla[names(control.inla)] = control.inla
+
     ## control predictor section
     cont.predictor = inla.set.control.predictor.default()
     cont.predictor[names(control.predictor)] = control.predictor
@@ -842,17 +846,14 @@
                                           cont.predictor$hyper, cont.predictor$initial,
                                           cont.predictor$fixed, cont.predictor$prior, cont.predictor$param)
     all.hyper$predictor$hyper = cont.predictor$hyper
-    if (cont.compute$cpo || cont.compute$dic || cont.compute$po || cont.compute$waic || !is.null(cont.predictor$link))
+    if (cont.compute$cpo || cont.compute$dic || cont.compute$po || cont.compute$waic ||
+        !is.null(cont.predictor$link) || cont.inla$control.vb.correct$enable)
         cont.predictor$compute=TRUE
     if (only.hyperparam) {
         cont.predictor$compute = cont.predictor$return.marginals = FALSE
         cont.predictor$cdf = cont.predictor$quantiles = NULL
     }
     
-    ## control inla
-    cont.inla =inla.set.control.inla.default(family=family)
-    cont.inla[names(control.inla)] = control.inla
-
     ## control.family
     control.family.orig = control.family
     if (n.family == 1) {

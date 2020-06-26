@@ -514,14 +514,29 @@ typedef struct {
 	int b_strategy;
 
 	/**
-	 * \brief List of nodes to correct LA for, if any.
+	 * \brief Enable VB-correct?
 	 */
-	char *correct;
+	int vb_correct_enable;
 
 	/**
-	 * \brief List of nodes to vb correct LA for, if any.
+	 * \brief Verbose while VB-correct?
 	 */
-	char *vb_correct;
+	int vb_correct_verbose;
+
+	/**
+	 * \brief List of nodes to VB correct for, if any.
+	 */
+	char *vb_correct_nodes;
+
+	/**
+	 * \brief Enable correction for LA?
+	 */
+	int correct_enable;
+
+	/**
+	 * \brief List of nodes to correct LA for, if any.
+	 */
+	char *correct_nodes;
 
 	/**
 	 * \brief Ajustment-factor if we use correction

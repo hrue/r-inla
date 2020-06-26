@@ -267,8 +267,11 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	/*
 	 * default is no correction of any kind
 	 */
-	(*ai_par)->vb_correct = NULL;
-	(*ai_par)->correct = NULL;
+	(*ai_par)->vb_correct_enable = 0;
+	(*ai_par)->vb_correct_nodes = NULL;
+
+	(*ai_par)->correct_enable = 0;
+	(*ai_par)->correct_nodes = NULL;
 	(*ai_par)->correct_factor = 1.0;		       /* set but is default not used */
 	(*ai_par)->correct_strategy = GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN;
 	(*ai_par)->correct_verbose = GMRFLib_FALSE;
@@ -456,7 +459,14 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 		fprintf(fp, "\tCPO manual calculation[%s]\n", (ai_par->cpo_manual ? "Yes" : "No"));
 	}
 
-	if (ai_par->correct) {
+	if (ai_par->vb_correct_enable) {
+		fprintf(fp, "\tVB-correction is Enabled\n");
+		fprintf(fp, "\t\tverbose = [%s]\n", (ai_par->correct_verbose ? "TRUE" : "FALSE"));
+	} else {
+		fprintf(fp, "\tVB-correction is Disabled.\n");
+	}
+
+	if (ai_par->correct_enable) {
 		fprintf(fp, "\tLaplace-correction is Enabled with correction factor[%.4f]\n", ai_par->correct_factor);
 		if (ai_par->correct_strategy == GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN ||
 		    ai_par->correct_strategy == GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN)
@@ -658,19 +668,19 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	GMRFLib_free_problem(ai_store->problem);
 	ai_store->problem = problem;
 
-	if (ai_par->correct) {
+	if (ai_par->correct_enable && ai_par->correct_nodes) {
 		/*
 		 * compute the correction to the LA
 		 */
 		int i, j, compute_n = 0, *compute_idx = NULL;
 		for (i = 0; i < n; i++) {
-			compute_n += (int) ai_par->correct[i];
+			compute_n += (int) ai_par->correct_nodes[i];
 		}
 		assert(compute_n > 0);
 
 		compute_idx = Calloc(compute_n, int);
 		for (i = j = 0; i < n; i++) {
-			if (ai_par->correct[i]) {
+			if (ai_par->correct_nodes[i]) {
 				compute_idx[j++] = i;
 			}
 		}
@@ -5440,7 +5450,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	}
 
 
-	if (ai_par->vb_correct) {
+	if (ai_par->vb_correct_enable && ai_par->vb_correct_nodes) {
 #define M(_i) (ai_store->problem->mean_constr[_i])
 #define S(_i) (sd[_i])
 
@@ -5451,131 +5461,131 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		GMRFLib_idx_tp *vb_idx = NULL, *d_idx = NULL;
 
 		for (i = 0; i < graph->n; i++) {
-			if (ai_par->vb_correct[i])
+			if (ai_par->vb_correct_nodes[i])
 				GMRFLib_idx_add(&vb_idx, i);
 		}
-		assert(vb_idx->n > 0);
+		if (vb_idx->n > 0) {
+			for (i = 0; i < graph->n; i++) {
+				if (d[i])
+					GMRFLib_idx_add(&d_idx, i);
+			}
 
-		for (i = 0; i < graph->n; i++) {
-			if (d[i])
-				GMRFLib_idx_add(&d_idx, i);
-		}
+			GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
+			double *sd = Calloc(graph->n, double);
+			for (i = 0; i < graph->n; i++) {
+				double *var = GMRFLib_Qinv_get(ai_store->problem, i, i);
+				sd[i] = (var ? sqrt(*var) : NAN);
+			}
 
-		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
-		double *sd = Calloc(graph->n, double);
-		for (i = 0; i < graph->n; i++) {
-			double *var = GMRFLib_Qinv_get(ai_store->problem, i, i);
-			sd[i] = (var ? sqrt(*var) : NAN);
-		}
-
-		GMRFLib_vb_coofs_tp **vb_coof = Calloc(graph->n, GMRFLib_vb_coofs_tp *);
+			GMRFLib_vb_coofs_tp **vb_coof = Calloc(graph->n, GMRFLib_vb_coofs_tp *);
 
 #pragma omp parallel for private(i, ii) num_threads(GMRFLib_openmp->max_threads_outer)
-		for (ii= 0; ii < d_idx->n; ii++) {
-			i = d_idx->idx[ii];
-			vb_coof[i] = GMRFLib_ai_vb_prepare(i, (*density)[i], d[i], loglFunc, loglFunc_arg, x_mode);
-		}
-
-		double *cmean = Calloc(graph->n, double);
-		double *corr = Calloc(graph->n, double);
-
-		gsl_matrix *M = gsl_matrix_alloc(graph->n, vb_idx->n);	 // matrix with Cov()
-		for (jj = 0; jj < vb_idx->n; jj++) {
-			j = vb_idx->idx[jj];
-			GMRFLib_ai_update_conditional_mean2(cmean, ai_store->problem, j, M(j) + 1.0, NULL);
-			for (i = 0; i < graph->n; i++) {
-				// want correlation identical to 1 for i=j
-				corr[i] = (i == j ? 1.0 : S(j) * (cmean[i] - M(i)) / S(i));
-				gsl_matrix_set(M, i, jj, corr[i] * S(i) * S(j)); /* yes, it is 'jj' and not 'j' */
+			for (ii= 0; ii < d_idx->n; ii++) {
+				i = d_idx->idx[ii];
+				vb_coof[i] = GMRFLib_ai_vb_prepare(i, (*density)[i], d[i], loglFunc, loglFunc_arg, x_mode);
 			}
-		}
 
-		gsl_vector *B = gsl_vector_alloc(graph->n);
-		double *c_diag = Calloc(graph->n, double);
+			double *cmean = Calloc(graph->n, double);
+			double *corr = Calloc(graph->n, double);
 
-		for (ii = 0; ii < d_idx->n; ii++) {
-			i = d_idx->idx[ii];
-			gsl_vector_set(B, i, -vb_coof[i]->coofs[1]); /* yes, I put the '-' in here */
-			c_diag[i] = vb_coof[i]->coofs[2];
-		}
+			gsl_matrix *M = gsl_matrix_alloc(graph->n, vb_idx->n);	 // matrix with Cov()
+			for (jj = 0; jj < vb_idx->n; jj++) {
+				j = vb_idx->idx[jj];
+				GMRFLib_ai_update_conditional_mean2(cmean, ai_store->problem, j, M(j) + 1.0, NULL);
+				for (i = 0; i < graph->n; i++) {
+					// want correlation identical to 1 for i=j
+					corr[i] = (i == j ? 1.0 : S(j) * (cmean[i] - M(i)) / S(i));
+					gsl_matrix_set(M, i, jj, corr[i] * S(i) * S(j)); /* yes, it is 'jj' and not 'j' */
+				}
+			}
 
-		gsl_matrix *QM = gsl_matrix_alloc(graph->n, vb_idx->n);
+			gsl_vector *B = gsl_vector_alloc(graph->n);
+			double *c_diag = Calloc(graph->n, double);
+
+			for (ii = 0; ii < d_idx->n; ii++) {
+				i = d_idx->idx[ii];
+				gsl_vector_set(B, i, -vb_coof[i]->coofs[1]); /* yes, I put the '-' in here */
+				c_diag[i] = vb_coof[i]->coofs[2];
+			}
+
+			gsl_matrix *QM = gsl_matrix_alloc(graph->n, vb_idx->n);
 
 #pragma omp parallel for private(i, j) num_threads(GMRFLib_openmp->max_threads_outer)
-		for(j = 0; j < vb_idx->n; j++){
-			double *col = Calloc(graph->n, double);
-			double *res = Calloc(graph->n, double);
+			for(j = 0; j < vb_idx->n; j++){
+				double *col = Calloc(graph->n, double);
+				double *res = Calloc(graph->n, double);
+				for(i = 0; i < graph->n; i++){
+					col[i] = gsl_matrix_get(M, i, j);
+				}
+				GMRFLib_Qx2(res, col, graph, Qfunc, Qfunc_arg, c_diag);
+				for(i = 0; i < graph->n; i++){
+					gsl_matrix_set(QM, i, j, res[i]);
+				}
+				Free(col);
+				Free(res);
+			}
+
+			gsl_matrix *MM = gsl_matrix_alloc(vb_idx->n, vb_idx->n);
+			gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);
+		
+			if (1) {
+				gsl_vector *eigen = gsl_vector_alloc(vb_idx->n);
+				gsl_eigen_symm_workspace *workspace = gsl_eigen_symm_alloc(vb_idx->n);
+				gsl_matrix *A = gsl_matrix_alloc(vb_idx->n, vb_idx->n);
+				gsl_matrix_memcpy(A, MM);
+				gsl_eigen_symm(A, eigen, workspace);  
+				P(gsl_vector_get(eigen, 0)/gsl_vector_get(eigen, vb_idx->n-1));
+			}
+
+			gsl_vector *MB = gsl_vector_alloc(vb_idx->n);
+			gsl_vector *delta = gsl_vector_alloc(vb_idx->n);
+
+			gsl_blas_dgemv(CblasTrans, one, M, B, zero, MB);
+			gsl_linalg_cholesky_decomp(MM);
+			gsl_linalg_cholesky_solve(MM, MB, delta);
+		
+			for(i = 0; i < vb_idx->n; i++) {
+				printf("Solution delta[%1d]= %.6g\n", i, gsl_vector_get(delta, i));
+			}
+
+			gsl_vector *mu_adjust = gsl_vector_alloc(graph->n);
+			gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, mu_adjust);
+
+			for(i = 0; i < graph->n; i++) {
+				printf("Mean correction [%1d]= %.6g   correction/sd= %.6g\n", i, gsl_vector_get(mu_adjust, i),
+				       gsl_vector_get(mu_adjust, i)/S(i));
+			}
+		
+			for(i = 0; i < graph->n; i++) {
+				if ((*density)[i]) {
+					GMRFLib_density_tp *ndens = NULL;
+					GMRFLib_density_new_mean(&ndens, (*density)[i], (*density)[i]->user_mean + gsl_vector_get(mu_adjust, i));
+					GMRFLib_free_density((*density)[i]);
+					(*density)[i] = ndens;
+				}
+			}
+
 			for(i = 0; i < graph->n; i++){
-				col[i] = gsl_matrix_get(M, i, j);
+				if (vb_coof[i]) {
+					Free(vb_coof[i]);
+				}
 			}
-			GMRFLib_Qx2(res, col, graph, Qfunc, Qfunc_arg, c_diag);
-			for(i = 0; i < graph->n; i++){
-				gsl_matrix_set(QM, i, j, res[i]);
-			}
-			Free(col);
-			Free(res);
+			Free(vb_coof);
+
+			Free(c_diag);
+			Free(cmean);
+			Free(corr);
+			Free(sd);
+			GMRFLib_idx_free(d_idx);
+			GMRFLib_idx_free(vb_idx);
+			gsl_matrix_free(M);
+			gsl_matrix_free(MM);
+			gsl_matrix_free(QM);
+			gsl_vector_free(B);
+			gsl_vector_free(MB);
+			gsl_vector_free(delta);
+			gsl_vector_free(mu_adjust);
 		}
-
-		gsl_matrix *MM = gsl_matrix_alloc(vb_idx->n, vb_idx->n);
-		gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);
-		
-		if (1) {
-			gsl_vector *eigen = gsl_vector_alloc(vb_idx->n);
-			gsl_eigen_symm_workspace *workspace = gsl_eigen_symm_alloc(vb_idx->n);
-			gsl_matrix *A = gsl_matrix_alloc(vb_idx->n, vb_idx->n);
-			gsl_matrix_memcpy(A, MM);
-			gsl_eigen_symm(A, eigen, workspace);  
-			P(gsl_vector_get(eigen, 0)/gsl_vector_get(eigen, vb_idx->n-1));
-		}
-
-		gsl_vector *MB = gsl_vector_alloc(vb_idx->n);
-		gsl_vector *delta = gsl_vector_alloc(vb_idx->n);
-
-		gsl_blas_dgemv(CblasTrans, one, M, B, zero, MB);
-		gsl_linalg_cholesky_decomp(MM);
-		gsl_linalg_cholesky_solve(MM, MB, delta);
-		
-		for(i = 0; i < vb_idx->n; i++) {
-			printf("Solution delta[%1d]= %.6g\n", i, gsl_vector_get(delta, i));
-		}
-
-		gsl_vector *mu_adjust = gsl_vector_alloc(graph->n);
-		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, mu_adjust);
-
-		for(i = 0; i < graph->n; i++) {
-			printf("Mean correction [%1d]= %.6g   correction/sd= %.6g\n", i, gsl_vector_get(mu_adjust, i),
-			      gsl_vector_get(mu_adjust, i)/S(i));
-		}
-		
-		for(i = 0; i < graph->n; i++) {
-			if ((*density)[i]) {
-				GMRFLib_density_tp *ndens = NULL;
-				GMRFLib_density_new_mean(&ndens, (*density)[i], (*density)[i]->user_mean + gsl_vector_get(mu_adjust, i));
-				GMRFLib_free_density((*density)[i]);
-				(*density)[i] = ndens;
-			}
-		}
-
-		for(i = 0; i < graph->n; i++){
-			if (vb_coof[i]) {
-				Free(vb_coof[i]);
-			}
-		}
-		Free(vb_coof);
-
-		Free(c_diag);
-		Free(cmean);
-		Free(corr);
-		Free(sd);
-		GMRFLib_idx_free(d_idx);
-		GMRFLib_idx_free(vb_idx);
-		gsl_matrix_free(M);
-		gsl_matrix_free(MM);
-		gsl_matrix_free(QM);
-		gsl_vector_free(B);
-		gsl_vector_free(MB);
-		gsl_vector_free(delta);
-		gsl_vector_free(mu_adjust);
 #undef M
 #undef S
 		printf("CPU VB= %.6g\n", GMRFLib_cpu()-tref);
