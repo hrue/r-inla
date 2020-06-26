@@ -776,12 +776,12 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 
 		if (0) {
 			// check that we have done it right...
-			double mom[4] =  {0, 0, 0, 0}, negative = 0;
-			for(i = 0; i < len; i++){
+			double mom[4] = { 0, 0, 0, 0 }, negative = 0;
+			for (i = 0; i < len; i++) {
 				mom[0] += y[i];
-				mom[1] += y[i]*x[i];
-				mom[2] += y[i]*SQR(x[i]);
-				mom[3] += y[i]*gsl_pow_3(x[i]);
+				mom[1] += y[i] * x[i];
+				mom[2] += y[i] * SQR(x[i]);
+				mom[3] += y[i] * gsl_pow_3(x[i]);
 				negative += y[i] * (x[i] < 0);
 			}
 			mom[1] /= mom[0];
@@ -7709,9 +7709,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -25076,10 +25076,10 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 
 	mb->ai_par->vb_correct_enable = iniparser_getboolean(ini, inla_string_join(secname, "VB.CORRECT.ENABLE"), 0);
 	mb->ai_par->vb_correct_verbose = iniparser_getboolean(ini, inla_string_join(secname, "VB.CORRECT.VERBOSE"), 0);
-	mb->ai_par->vb_correct_nodes = (mb->ai_par->vb_correct_enable ? Calloc(1, char) : NULL); 
+	mb->ai_par->vb_correct_nodes = (mb->ai_par->vb_correct_enable ? Calloc(1, char) : NULL);
 
 	mb->ai_par->correct_enable = iniparser_getboolean(ini, inla_string_join(secname, "CORRECT.ENABLE"), 0);
-	mb->ai_par->correct_nodes = (mb->ai_par->correct_enable ? Calloc(1, char) : NULL); 
+	mb->ai_par->correct_nodes = (mb->ai_par->correct_enable ? Calloc(1, char) : NULL);
 	mb->ai_par->correct_verbose = iniparser_getboolean(ini, inla_string_join(secname, "CORRECT.VERBOSE"), mb->ai_par->correct_verbose);
 	mb->ai_par->correct_factor = iniparser_getdouble(ini, inla_string_join(secname, "CORRECT.FACTOR"), mb->ai_par->correct_factor);
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CORRECT.STRATEGY"), NULL));
@@ -31293,7 +31293,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 					fwrite((void *) mo->configs[id]->config[i]->mean, sizeof(double), (size_t) mo->configs[id]->n, fp);
 					fwrite((void *) mo->configs[id]->config[i]->improved_mean, sizeof(double), (size_t) mo->configs[id]->n, fp);
 					fwrite((void *) mo->configs[id]->config[i]->skewness, sizeof(double), (size_t) mo->configs[id]->n, fp);
-					fwrite((void *) off, sizeof(double), (size_t) mo->configs[id]->n, fp);	
+					fwrite((void *) off, sizeof(double), (size_t) mo->configs[id]->n, fp);
 					fwrite((void *) mo->configs[id]->config[i]->Q, sizeof(double), (size_t) mo->configs[id]->nz, fp);
 					fwrite((void *) mo->configs[id]->config[i]->Qinv, sizeof(double), (size_t) mo->configs[id]->nz, fp);
 					fwrite((void *) mo->configs[id]->config[i]->Qprior, sizeof(double), (size_t) mo->configs[id]->n, fp);
@@ -33453,8 +33453,8 @@ int loglikelihood_testit(double *logll, double *x, int m, int idx, double *x_vec
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
-			double xx = x[i]- x0;
-			logll[i] = a + b * xx - c/2.0 * SQR(xx) + d/6.0*gsl_pow_3(xx);
+			double xx = x[i] - x0;
+			logll[i] = a + b * xx - c / 2.0 * SQR(xx) + d / 6.0 * gsl_pow_3(xx);
 		}
 	} else {
 		abort();
@@ -34020,7 +34020,7 @@ int testit(int argc, char **argv)
 		integral3 = 0;
 		integral4 = 0;
 		for (i = 0; i < np; i++) {
-			double xx = (xp[i]-mean)/stdev;
+			double xx = (xp[i] - mean) / stdev;
 			integral0 += wp[i] * FUN0(xx);
 			integral1 += wp[i] * FUN1(xx);
 			integral2 += wp[i] * FUN2(xx);
