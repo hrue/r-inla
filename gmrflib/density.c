@@ -1556,6 +1556,12 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	double *xx = NULL, *ldens = NULL, g_mean, g_var;
 	GMRFLib_sn_param_tp sn_param;
 
+	//over-ride the choice lookup_tables
+	if (!lookup_tables) {
+		FIXME1("change: lookup_tables=1");
+		lookup_tables = 1;
+	}
+	
 	xx = Calloc(n, double);
 	ldens = Calloc(n, double);
 	memcpy(xx, x, (size_t) n * sizeof(double));
@@ -1645,7 +1651,6 @@ int GMRFLib_density_new_mean(GMRFLib_density_tp ** new_density, GMRFLib_density_
 	/*
 	 * return a new density, which the density with the given new mean 
 	 */
-
 #define N (60)
 #define M (4)
 	int i, n = N + 2 * M;
@@ -1662,7 +1667,6 @@ int GMRFLib_density_new_mean(GMRFLib_density_tp ** new_density, GMRFLib_density_
 		GMRFLib_density_Pinv(&x[2 * M + i], alpha, density);
 	}
 	ld = Calloc(n, double);
-
 	GMRFLib_evaluate_nlogdensity(ld, x, n, density);
 	GMRFLib_density_create(new_density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n, x, ld, new_mean, density->std_stdev, GMRFLib_TRUE);
 
