@@ -869,6 +869,16 @@ int GMRFLib_gsl_matrix_fprintf(FILE * fp, gsl_matrix * matrix, const char *forma
 	}
 	return GMRFLib_SUCCESS;
 }
+int GMRFLib_gsl_vector_fprintf(FILE * fp, gsl_vector * vector, const char *format)
+{
+	size_t i;
+
+	for (i = 0; i < vector->size; i++) {
+		fprintf(fp, (format ? format : " %g"), gsl_vector_get(vector, i));
+		fprintf(fp, "\n");
+	}
+	return GMRFLib_SUCCESS;
+}
 double GMRFLib_signed_pow(double x, double power)
 {
 	if (ISZERO(x)) {
