@@ -100,6 +100,7 @@ int GMRFLib_dcmp_r(const void *a, const void *b);
 int GMRFLib_find_nonzero(double *array, int len, int direction);
 int GMRFLib_fpe(void);
 int GMRFLib_gsl_matrix_fprintf(FILE * fp, gsl_matrix * matrix, const char *format);
+int GMRFLib_gsl_vector_fprintf(FILE * fp, gsl_vector * vector, const char *format);
 int GMRFLib_icmp(const void *a, const void *b);
 int GMRFLib_idx2_add(GMRFLib_idx2_tp **hold, int idx0, int idx1);
 int GMRFLib_idx2_create(GMRFLib_idx2_tp **hold);

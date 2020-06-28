@@ -5280,9 +5280,14 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			Free(bnew);
 		}
 		FIXME("2x!!! HER");
-		for(int _k = 0; _k < 30; _k++)
+		for(int _k = 0; _k < 20; _k++) {
+			P(dens[0][dens_count]->user_mean);
+			P(dens[graph->n-1][dens_count]->user_mean);
 			GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg, loglFunc, loglFunc_arg);
-
+			P(dens[0][dens_count]->user_mean);
+			P(dens[graph->n-1][dens_count]->user_mean);
+		}
+		
 		if (GMRFLib_ai_INLA_userfunc0) {
 			userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
 		}
@@ -6279,6 +6284,98 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 	return GMRFLib_SUCCESS;
 }
+GMRFLib_vb_coofs_tp *GMRFLib_ai_vb_prepare(int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+					   double *x_vec)
+{
+
+	if (1) {
+		static double *E, *Y;
+		static int N;
+		static int first = 1;
+		if (first) {
+#pragma omp critical
+			if (first) {
+				FILE *fp = fopen("poisson.dat",  "r");
+				fscanf(fp, "%d\n", &N);
+				E = Calloc(N, double);
+				Y = Calloc(N, double);
+				for(int i = 0; i < N; i++){
+					fscanf(fp, "%lf %lf\n", &E[i], &Y[i]);
+					printf("%1d/%1d %g %g\n", i, N, E[i], Y[i]);
+				}
+				fclose(fp);
+				first = 0;
+			}
+		}
+
+		double m = density->user_mean;
+		double s = density->user_stdev;
+		double A = -(Y[idx]*(m + log(E[idx])) - E[idx]*exp(SQR(s)/2.0 + m) - gsl_sf_lnfact((unsigned) Y[idx]));
+		double B = -(Y[idx] - E[idx]*exp(SQR(s)/2.0 + m));
+		double C = -(0 - E[idx]*exp(SQR(s)/2.0 + m));
+
+		GMRFLib_vb_coofs_tp *res = Calloc(1, GMRFLib_vb_coofs_tp);
+		res->coofs[0] = A;
+		res->coofs[1] = B;
+		res->coofs[2] = C;
+		return (res);
+	}
+
+	/*
+	 * compute the Taylor-expansion of -loglikelihood * density(x), around the mean of x
+	 */
+
+	FIXME1("10*....");
+	int i, k, np = 1000*GMRFLib_faster_integration_np;
+	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *loglik = NULL, *work = NULL, w[2] =
+	    { 4.0, 2.0 }, integral_one, integral, integral_p, integral_m;
+
+	work = Calloc(4 * np, double);
+	xp = work;
+	xpi = work + np;
+	dens = work + 2 * np;
+	loglik = work + 3 * np;
+
+	dxi = (density->x_max - density->x_min) / (np - 1.0);
+	low = GMRFLib_density_std2user(density->x_min, density);
+	dx = (GMRFLib_density_std2user(density->x_max, density) - low) / (np - 1.0);
+
+	xp[0] = low;
+	xpi[0] = density->x_min;
+	for (i = 1; i < np; i++) {
+		xp[i] = xp[0] + i * dx;
+		xpi[i] = xpi[0] + i * dxi;
+	}
+	GMRFLib_evaluate_ndensity(dens, xpi, np, density);
+	loglFunc(loglik, xp, np, idx, x_vec, NULL, loglFunc_arg);
+	for (i = 0; i < np; i++) {
+		loglik[i] *= d;
+	}
+
+	// those zero'ed out are included in the loop
+	integral_one = dens[0] + dens[np - 1];
+	integral = dens[0] * loglik[0] + dens[np - 1] * loglik[np - 1];
+	integral_p = dens[1] * loglik[0] + 0 * dens[np - 1] * loglik[np - 2];
+	integral_m = 0 * dens[0] * loglik[1] + dens[np - 2] * loglik[np - 1];
+	for (i = 1, k = 0; i < np - 1; i++, k = (k + 1) % 2) {
+		integral_one += w[k] * dens[i];
+		integral += w[k] * loglik[i] * dens[i];
+		integral_p += w[k] * loglik[i] * dens[i - 1];
+		integral_m += w[k] * loglik[i] * dens[i + 1];
+	}
+	integral /= (-integral_one);			       /* -E() */
+	integral_p /= (-integral_one);
+	integral_m /= (-integral_one);
+
+	// c[0] + c[1]*x + 1/2*c[2]*x^2 + c[3]*y + 1/2*c[4]*y2 + c[5]*x*y
+	GMRFLib_vb_coofs_tp *res = Calloc(1, GMRFLib_vb_coofs_tp);
+	res->coofs[0] = integral;
+	res->coofs[1] = (integral_p - integral_m) / (2.0 * dx);
+	res->coofs[2] = (integral_p - 2.0 * integral + integral_m) / SQR(dx);
+
+	Free(work);
+	return res;
+}
 int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 			       int dens_count, 
 			       GMRFLib_density_tp **dens_local, 
@@ -6311,9 +6408,7 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 	}
 		
 
-
-
-
+	int id = GMRFLib_thread_id;
 	int i, j, ii, jj;
 	double one = 1.0, mone = -1.0, zero = 0.0;
 	
@@ -6338,7 +6433,6 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 		double *sd = Calloc(graph->n, double);
 		double tref = GMRFLib_cpu();
 		double *mode = Calloc(graph->n, double);
-		
 		GMRFLib_vb_coofs_tp **vb_coof = Calloc(graph->n, GMRFLib_vb_coofs_tp *);
 
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
@@ -6357,12 +6451,17 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 				if (dens_local[i]){
 					mode[i] = dens_local[i]->user_mean;
 				}
-				printf("%d %g %g\n", i,  dens_local[i]->user_mean, ai_store->mode[i]);
 			}
 		}
-				
+
+		if (0)
+			for(i = 0; i < graph->n; i++){
+				printf("%d %g %g\n", i, mode[i], sd[i]);
+			}
+		
 			
 #define CODE_BLOCK for (ii = 0; ii < d_idx->n; ii++) {			\
+			GMRFLib_thread_id = id;				\
 			i = d_idx->idx[ii];				\
 			if (density) {					\
 				vb_coof[i] = GMRFLib_ai_vb_prepare(i, density[i][dens_count], d[i], loglFunc, loglFunc_arg, mode); \
@@ -6378,15 +6477,26 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 #pragma omp parallel for private(i, ii) num_threads(GMRFLib_openmp->max_threads_outer)
 			CODE_BLOCK;
 		}
+	        GMRFLib_thread_id = id;
 #undef CODE_BLOCK		
 
+	        if (0) for (ii = 0; ii < d_idx->n; ii++) {
+			i = d_idx->idx[ii];
+			printf("idx= %d mode= %g sd= %g A= %g B= %g C= %g\n",
+			       i, mode[i], sd[i], vb_coof[i]->coofs[0], vb_coof[i]->coofs[1], vb_coof[i]->coofs[2]);
+		}
+		
 		double *c_diag = Calloc(graph->n, double);
 		double *cmean = Calloc(graph->n, double);
 		double *corr = Calloc(graph->n, double);
 		gsl_matrix *QM = gsl_matrix_alloc(graph->n, vb_idx->n);
-		gsl_vector *B = gsl_vector_alloc(graph->n);
 		gsl_matrix *M = gsl_matrix_alloc(graph->n, vb_idx->n);	// matrix with Cov()
+		gsl_vector *B = gsl_vector_alloc(graph->n);
 
+		gsl_matrix_set_zero(QM);
+		gsl_matrix_set_zero(M);
+		gsl_vector_set_zero(B);
+		
 		for (jj = 0; jj < vb_idx->n; jj++) {
 			j = vb_idx->idx[jj];
 			GMRFLib_ai_update_conditional_mean2(cmean, ai_store->problem, j, M(j) + 1.0, NULL);
@@ -6397,18 +6507,36 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 			}
 		}
 
+		if(0)P(S(graph->n-1));
+
+		if(0)
+			for(i = 0; i < graph->n; i++)
+				printf("%d %g\n", i, corr[i]);
+		
+		double *tmp = Calloc(graph->n, double);
+		double *tmp2 = Calloc(graph->n, double);
+		for(i = 0; i < graph->n; i++) tmp[i] = M(i);
+		GMRFLib_Qx2(tmp2, tmp, graph, Qfunc, Qfunc_arg, c);	
 		for (ii = 0; ii < d_idx->n; ii++) {
 			i = d_idx->idx[ii];
-			gsl_vector_set(B, i, vb_coof[i]->coofs[1]);	
+			gsl_vector_set(B, i, vb_coof[i]->coofs[1] + tmp2[i]);	
 			c_diag[i] = vb_coof[i]->coofs[2];
 		}
+		Free(tmp);
+		Free(tmp2);
+		
 
 		FIXME1("THIS MUST BE A PARAMETER LATER");
 		for(i = 0; i < graph->n; i++){
-			c_diag[i] += c[i] + 1E-6 * (d[i] ? ai_store->cc[i] : 1.0);
+			c_diag[i] += c[i] + 0 * 1E-6 * (d[i] ? ai_store->cc[i] : 1.0);
 		}
+
+		if(0)for(i = 0; i < graph->n; i++)
+			printf("%d %g Q+diag %.4f\n", i, c_diag[i], Qfunc(i, i, Qfunc_arg)+c_diag[i]);
+		
 		
 #define CODE_BLOCK for (j = 0; j < vb_idx->n; j++) {			\
+			GMRFLib_thread_id = id;				\
 			double *local_work = Calloc(2*graph->n, double); \
 			double *col = local_work, *res = local_work + graph->n;	\
 			for (i = 0; i < graph->n; i++) {		\
@@ -6420,7 +6548,6 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 			}						\
 			Free(local_work); }
 		
-		
 		if (omp_in_parallel()) {
 #pragma omp parallel for private(i, j) num_threads(GMRFLib_openmp->max_threads_inner)
 	                CODE_BLOCK;
@@ -6428,7 +6555,16 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 #pragma omp parallel for private(i, j) num_threads(GMRFLib_openmp->max_threads_outer)
 	                CODE_BLOCK;
                 }
+                GMRFLib_thread_id = id;
 #undef CODE_BLOCK
+
+printf("Q\n");
+GMRFLib_print_Qfunc(stdout, graph, Qfunc, Qfunc_arg);
+printf("\nM\n");
+GMRFLib_gsl_matrix_fprintf(stdout, M, "%.16f");
+printf("\nQM\n");
+GMRFLib_gsl_matrix_fprintf(stdout, QM, "%.16f");
+
 
                 gsl_matrix *MM = gsl_matrix_alloc(vb_idx->n, vb_idx->n);
 		gsl_permutation *perm = gsl_permutation_alloc(vb_idx->n);
@@ -6436,13 +6572,39 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 		gsl_vector *delta = gsl_vector_alloc(vb_idx->n);
 		gsl_vector *mu_adjust = gsl_vector_alloc(graph->n);
 
+                gsl_matrix_set_zero(MM);
+                gsl_vector_set_zero(MB);
+                gsl_vector_set_zero(delta);
+                gsl_vector_set_zero(mu_adjust);
+
 		gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);
 		gsl_blas_dgemv(CblasTrans, mone, M, B, zero, MB);
+
+double mb = 0.0;
+for(i = 0; i < graph->n; i++)
+	mb += gsl_matrix_get(M, i, 0) * gsl_vector_get(B, i);
+P(mb);
+
+printf("\nB\n");
+GMRFLib_gsl_vector_fprintf(stdout, B, "%.16f");
+printf("\nMM\n");
+GMRFLib_gsl_matrix_fprintf(stdout, MM, "%.16f");
+printf("\nMB\n");
+GMRFLib_gsl_vector_fprintf(stdout, MB, "%.16f");
+
+
 
 		// need pivoting to solve the system
 		gsl_linalg_pcholesky_decomp(MM, perm);
 		gsl_linalg_pcholesky_solve(MM, perm, MB, delta);
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, mu_adjust);
+
+printf("\nmu_adjust\n");
+GMRFLib_gsl_vector_fprintf(stdout, mu_adjust, "%.12f");
+
+
+GMRFLib_gsl_vector_fprintf(stdout, delta, "%.16f");
+
 
                 if (density) {
 			for (i = 0; i < graph->n; i++) {
@@ -7342,64 +7504,6 @@ double GMRFLib_ai_vb_mEll(int idx, GMRFLib_density_tp * density, double d, GMRFL
 	return (integral1 / integral);
 }
 
-GMRFLib_vb_coofs_tp *GMRFLib_ai_vb_prepare(int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-					   double *x_vec)
-{
-	/*
-	 * compute the Taylor-expansion of -loglikelihood * density(x), around the mean of x
-	 */
-
-	FIXME1("10*....");
-	int i, k, np = 1000*GMRFLib_faster_integration_np;
-	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *loglik = NULL, *work = NULL, w[2] =
-	    { 4.0, 2.0 }, integral_one, integral, integral_p, integral_m;
-
-	work = Calloc(4 * np, double);
-	xp = work;
-	xpi = work + np;
-	dens = work + 2 * np;
-	loglik = work + 3 * np;
-
-	dxi = (density->x_max - density->x_min) / (np - 1.0);
-	low = GMRFLib_density_std2user(density->x_min, density);
-	dx = (GMRFLib_density_std2user(density->x_max, density) - low) / (np - 1.0);
-
-	xp[0] = low;
-	xpi[0] = density->x_min;
-	for (i = 1; i < np; i++) {
-		xp[i] = xp[0] + i * dx;
-		xpi[i] = xpi[0] + i * dxi;
-	}
-	GMRFLib_evaluate_ndensity(dens, xpi, np, density);
-	loglFunc(loglik, xp, np, idx, x_vec, NULL, loglFunc_arg);
-	for (i = 0; i < np; i++) {
-		loglik[i] *= d;
-	}
-
-	// those zero'ed out are included in the loop
-	integral_one = dens[0] + dens[np - 1];
-	integral = dens[0] * loglik[0] + dens[np - 1] * loglik[np - 1];
-	integral_p = dens[1] * loglik[0] + 0 * dens[np - 1] * loglik[np - 2];
-	integral_m = 0 * dens[0] * loglik[1] + dens[np - 2] * loglik[np - 1];
-	for (i = 1, k = 0; i < np - 1; i++, k = (k + 1) % 2) {
-		integral_one += w[k] * dens[i];
-		integral += w[k] * loglik[i] * dens[i];
-		integral_p += w[k] * loglik[i] * dens[i - 1];
-		integral_m += w[k] * loglik[i] * dens[i + 1];
-	}
-	integral /= (-integral_one);			       /* -E() */
-	integral_p /= (-integral_one);
-	integral_m /= (-integral_one);
-
-	// c[0] + c[1]*x + 1/2*c[2]*x^2 + c[3]*y + 1/2*c[4]*y2 + c[5]*x*y
-	GMRFLib_vb_coofs_tp *res = Calloc(1, GMRFLib_vb_coofs_tp);
-	res->coofs[0] = integral;
-	res->coofs[1] = (integral_p - integral_m) / (2.0 * dx);
-	res->coofs[2] = (integral_p - 2.0 * integral + integral_m) / SQR(dx);
-
-	Free(work);
-	return res;
-}
 
 /**
  *   \brief Free an \c GMRFLib_ai_cpo_tp -object created by \c GMRFLib_INLA()
