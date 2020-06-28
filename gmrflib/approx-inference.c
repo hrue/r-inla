@@ -6574,59 +6574,6 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 		gsl_linalg_pcholesky_solve(MM, perm, MB, delta);
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, delta_mu);
 
-static double tacc = 0.0;
-double tref2 = GMRFLib_cpu();
-
-#define NEW_USER_MEAN(_d, _m) ((_m) - (_d)->std_stdev * (_d)->mean)
-
-       static int first = 0;
-       if (first) {
-               first = 0;
-               GMRFLib_density_tp *dd = Calloc(1, GMRFLib_density_tp);
-               GMRFLib_density_create_normal(&dd, 1.0, 2.0, 3.0, 4.0);
-               GMRFLib_density_printf(stdout, dd);
-	       double median;
-	       GMRFLib_density_Pinv(&median, 0.5, dd);
-	       P(GMRFLib_density_std2user(median, dd));
-
-               GMRFLib_density_new_user_mean(dd, 11.0);
-               GMRFLib_density_printf(stdout, dd);
-	       GMRFLib_density_Pinv(&median, 0.5, dd);
-	       P(GMRFLib_density_std2user(median, dd));
-
-	       exit(0);
-       }
-               
-
-
-
-
-
-if(0){
-
-                if (density) {
-			for (i = 0; i < graph->n; i++) {
-				if (density[i][dens_count]) {
-					GMRFLib_density_tp *ndens = NULL;
-					GMRFLib_density_new_mean(&ndens, density[i][dens_count],
-								 NEW_USER_MEAN(density[i][dens_count],
-									       density[i][dens_count]->user_mean + gsl_vector_get(delta_mu, i)));
-					GMRFLib_free_density(density[i][dens_count]);
-					density[i][dens_count] = ndens;
-				}
-			}
-		} else {
-			for (i = 0; i < graph->n; i++) {
-				if (dens_local[i]) {
-					GMRFLib_density_tp *ndens = NULL;
-					GMRFLib_density_new_mean(&ndens, dens_local[i], 
-								 NEW_USER_MEAN(dens_local[i], dens_local[i]->user_mean + gsl_vector_get(delta_mu, i)));
-					GMRFLib_free_density(dens_local[i]);
-					dens_local[i] = ndens;
-				}
-			}
-		}
-} else {
                 if (density) {
 			for (i = 0; i < graph->n; i++) {
 				if (density[i][dens_count]) {
@@ -6642,11 +6589,6 @@ if(0){
 				}
 			}
 		}
-}
-
-#pragma omp critical
-tacc += GMRFLib_cpu()-tref2;
-P(tacc);
 
                 for (i = 0; i < graph->n; i++) {
 			if (ABS(gsl_vector_get(delta_mu, i)/sd[i]) > 0.5)
@@ -6683,7 +6625,7 @@ P(tacc);
 		
 	GMRFLib_idx_free(d_idx);
 	GMRFLib_idx_free(vb_idx);
-#undef NEW_USER_MEAN
+
 	return GMRFLib_SUCCESS;
 }  
 int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp * density, GMRFLib_transform_array_func_tp * func)
