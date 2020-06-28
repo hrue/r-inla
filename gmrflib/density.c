@@ -1710,6 +1710,19 @@ int GMRFLib_density_new_meansd(GMRFLib_density_tp ** new_density, GMRFLib_densit
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_density_new_user_mean(GMRFLib_density_tp * density, double new_user_mean)
+{
+	if (density) {
+		double diff = new_user_mean - density->user_mean;
+		density->std_mean += diff;
+		density->user_mean = new_user_mean;
+		if (!ISNAN(density->user_mode)) {
+			density->user_mode += diff;
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
 /*!
   \brief Print a summary of a density
 
