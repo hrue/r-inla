@@ -5653,7 +5653,7 @@
                      status = "experimental", 
                      survival = FALSE,
                      discrete = FALSE,
-                     link = c("default", "identity"), 
+                     link = c("default", "identity", "log"), 
                      pdf = "bgev"
                  ),
 
