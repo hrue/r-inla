@@ -112,6 +112,11 @@ typedef enum {
 } GMRFLib_ai_strategy_tp;
 
 typedef enum {
+	GMRFLib_AI_VB_MEAN = 0
+}
+	GMRFLib_ai_vb_strategy_tp;
+
+typedef enum {
 	/**
 	 * \brief Use  a grid strategy for integration
 	 */
@@ -516,17 +521,32 @@ typedef struct {
 	/**
 	 * \brief Enable VB-correct?
 	 */
-	int vb_correct_enable;
+	int vb_enable;
+
+	/**
+	 * \brief VB correction (0=mean)
+	 */
+	int vb_strategy;
 
 	/**
 	 * \brief Verbose while VB-correct?
 	 */
-	int vb_correct_verbose;
+	int vb_verbose;
+
+	/**
+	 * \brief Number of extra refinement iterations (>= 0)
+	 */
+	int vb_refinement;
+
+	/**
+	 * \brief Maximum allowed correction (=1.0)
+	 */
+	double vb_max_correct;
 
 	/**
 	 * \brief List of nodes to VB correct for, if any.
 	 */
-	char *vb_correct_nodes;
+	char *vb_nodes;
 
 	/**
 	 * \brief Enable correction for LA?
