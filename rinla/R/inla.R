@@ -836,8 +836,13 @@
     } 
     
     ## control inla
-    cont.inla =inla.set.control.inla.default(family=family)
+    cont.inla = cont.inla.def = inla.set.control.inla.default(family=family)
     cont.inla[names(control.inla)] = control.inla
+    ## because we have 'control' within a 'control', we have to process them spesifically
+    cont.inla$control.vb = cont.inla.def$control.vb
+    cont.inla$control.vb[names(control.inla$control.vb)] = control.inla$control.vb
+    cont.inla$control.correct = cont.inla.def$control.correct
+    cont.inla$control.correct[names(control.inla$control.correct)] = control.inla$control.correct
 
     ## control predictor section
     cont.predictor = inla.set.control.predictor.default()
@@ -847,7 +852,7 @@
                                           cont.predictor$fixed, cont.predictor$prior, cont.predictor$param)
     all.hyper$predictor$hyper = cont.predictor$hyper
     if (cont.compute$cpo || cont.compute$dic || cont.compute$po || cont.compute$waic ||
-        !is.null(cont.predictor$link) || cont.inla$control.vb.correct$enable)
+        !is.null(cont.predictor$link) || cont.inla$control.vb$enable)
         cont.predictor$compute=TRUE
     if (only.hyperparam) {
         cont.predictor$compute = cont.predictor$return.marginals = FALSE

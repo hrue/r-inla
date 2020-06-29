@@ -901,17 +901,23 @@
         cat("stupid.search.factor = ", fac, "\n", file = file,  append = TRUE)
     }
 
-    if (inla.spec$control.vb.correct$enable) inla.only.for.developers("vb.correct")
-    inla.write.boolean.field("vb.correct.enable", inla.spec$control.vb.correct$enable, file)
+    if (inla.spec$control.vb$enable) {
+        inla.only.for.developers("VB correction", strict = TRUE)
+    }
+    inla.write.boolean.field("control.vb.enable", inla.spec$control.vb$enable, file)
+    inla.write.boolean.field("control.vb.verbose", inla.spec$control.vb$verbose, file)
+    cat("control.vb.strategy = ", inla.spec$control.vb$strategy, "\n", file = file, append = TRUE)
+    cat("control.vb.refinement = ", inla.spec$control.vb$refinement, "\n", file = file, append = TRUE)
+    cat("control.vb.max.correct = ", inla.spec$control.vb$max.correct, "\n", file = file, append = TRUE)
 
-    inla.write.boolean.field("correct.enable", inla.spec$control.correct$enable, file)
-    inla.write.boolean.field("correct.verbose", inla.spec$control.correct$verbose, file)
+    inla.write.boolean.field("control.correct.enable", inla.spec$control.correct$enable, file)
+    inla.write.boolean.field("control.correct.verbose", inla.spec$control.correct$verbose, file)
     if (!is.null(inla.spec$control.correct$factor)) {
         stopifnot(inla.spec$control.correct$factor > 0);
-        cat("correct.factor = ", inla.spec$control.correct$factor, "\n", file = file, append = TRUE)
+        cat("control.correct.factor = ", inla.spec$control.correct$factor, "\n", file = file, append = TRUE)
     }
     if (!is.null(inla.spec$control.correct$strategy)) {
-        cat("correct.strategy = ", inla.spec$control.correct$strategy,"\n", sep = " ", file = file,  append = TRUE)
+        cat("control.correct.strategy = ", inla.spec$control.correct$strategy,"\n", sep = " ", file = file,  append = TRUE)
     }
 
     cat("\n", sep = " ", file = file,  append = TRUE)

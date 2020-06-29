@@ -177,11 +177,16 @@
     return (paste(strings, collapse = sep, sep=""))
 }
 
-`inla.only.for.developers` = function(msg = "<ADD>")
+`inla.only.for.developers` = function(msg = "<<<ADD MESSAGE HERE>>>", strict = FALSE)
 {
     if (!(Sys.getenv("USER") %in%
-          c("hrue", "rueh", "finnkrl", "finn", "cristian", "chiuchc", "vanniej")))
-        warning(paste0("This function/feature [", msg, "] is for developers only."))
+          c("hrue", "rueh", "finnkrl", "finn", "cristian", "chiuchc", "elias", "vanniej"))) {
+        if (strict) {
+            stop(paste0("This function/feature [", msg, "] is for developers only."))
+        } else {
+            warning(paste0("This function/feature [", msg, "] is for developers only."))
+        }
+    }
     return (invisible())
 }
 
@@ -190,7 +195,7 @@
     ##  Set binaries=TRUE to set the inla.call and fmesher.call options
     ##  To override the default binaries path, set binaries="/the/path/bin"
 
-    inla.only.for.developers()
+    inla.only.for.developers(msg = "inla.my.update", strict = TRUE)
 
     if (Sys.getenv("USER") %in% c("hrue", "rueh")) {
         dir.default = "~/p/inla/r-inla/rinla/R"
@@ -208,7 +213,7 @@
         dir.default = "~/Desktop/r-inla/rinla/R"
         bin.default = "~/local/bin"
     } else {
-        dir.default = "~/hg/inla/rinla/R"
+        dir.default = "~/git/inla/rinla/R"
         bin.default = "~/local/bin"
     }
     if (!missing(binaries)) {

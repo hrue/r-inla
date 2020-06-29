@@ -25074,22 +25074,35 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	mb->ai_par->cmin = iniparser_getdouble(ini, inla_string_join(secname, "CMIN"), mb->ai_par->cmin);
 	mb->ai_par->b_strategy = iniparser_getint(ini, inla_string_join(secname, "B.STRATEGY"), mb->ai_par->b_strategy);
 
-	mb->ai_par->vb_correct_enable = iniparser_getboolean(ini, inla_string_join(secname, "VB.CORRECT.ENABLE"), 0);
-	mb->ai_par->vb_correct_verbose = iniparser_getboolean(ini, inla_string_join(secname, "VB.CORRECT.VERBOSE"), 0);
-	mb->ai_par->vb_correct_nodes = (mb->ai_par->vb_correct_enable ? Calloc(1, char) : NULL);
+	mb->ai_par->vb_enable = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.VB.ENABLE"), 0);
+	mb->ai_par->vb_verbose = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.VB.VERBOSE"), 0);
+	mb->ai_par->vb_nodes = (mb->ai_par->vb_enable ? Calloc(1, char) : NULL);
+	mb->ai_par->vb_max_correct = iniparser_getdouble(ini, inla_string_join(secname, "CONTROL.VB.MAX.CORRECT"), 1.0);
+	mb->ai_par->vb_max_correct = DMAX(0.0, mb->ai_par->vb_max_correct);
+	mb->ai_par->vb_refinement = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.REFINEMENT"), 0);
+	mb->ai_par->vb_refinement = IMAX(0, mb->ai_par->vb_refinement);
+	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.VB.STRATEGY"), NULL));
+	if (opt) {
+		if (!strcasecmp(opt, "MEAN")) {
+			mb->ai_par->vb_strategy = GMRFLib_AI_VB_MEAN;
+		} else {
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "control.vb.strategy", opt);
+		}
+	}
 
-	mb->ai_par->correct_enable = iniparser_getboolean(ini, inla_string_join(secname, "CORRECT.ENABLE"), 0);
+	mb->ai_par->correct_enable = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.CORRECT.ENABLE"), 0);
 	mb->ai_par->correct_nodes = (mb->ai_par->correct_enable ? Calloc(1, char) : NULL);
-	mb->ai_par->correct_verbose = iniparser_getboolean(ini, inla_string_join(secname, "CORRECT.VERBOSE"), mb->ai_par->correct_verbose);
-	mb->ai_par->correct_factor = iniparser_getdouble(ini, inla_string_join(secname, "CORRECT.FACTOR"), mb->ai_par->correct_factor);
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CORRECT.STRATEGY"), NULL));
+	mb->ai_par->correct_verbose = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.CORRECT.VERBOSE"),
+							   mb->ai_par->correct_verbose);
+	mb->ai_par->correct_factor = iniparser_getdouble(ini, inla_string_join(secname, "CONTROL.CORRECT.FACTOR"), mb->ai_par->correct_factor);
+	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.CORRECT.STRATEGY"), NULL));
 	if (opt) {
 		if (!strcasecmp(opt, "SIMPLIFIED.LAPLACE")) {
 			mb->ai_par->correct_strategy = GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN;
 		} else if (!strcasecmp(opt, "LAPLACE")) {
 			mb->ai_par->correct_strategy = GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN;
 		} else {
-			inla_error_field_is_void(__GMRFLib_FuncName, secname, "correct.strategy", opt);
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "control.correct.strategy", opt);
 		}
 	}
 
@@ -29102,30 +29115,30 @@ int inla_INLA(inla_tp * mb)
 	mb->ai_par->correct_nodes = correct;
 
 	// VB correct 
-	char *vb_correct = NULL;
+	char *vb_nodes = NULL;
 	local_count = 0;
-	if (mb->ai_par->vb_correct_enable) {
-		vb_correct = Calloc(N, char);
+	if (mb->ai_par->vb_enable) {
+		vb_nodes = Calloc(N, char);
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
 			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] == 1) || mb->f_vb_correct[i] > 0) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
-					vb_correct[count + j] = (char) 1;
+					vb_nodes[count + j] = (char) 1;
 					local_count++;
 				}
 			}
 			count += mb->f_Ntotal[i];
 		}
 		for (i = 0; i < mb->nlinear; i++) {
-			vb_correct[count++] = (char) 1;
+			vb_nodes[count++] = (char) 1;
 			local_count++;
 		}
 		if (local_count == 0) {			       /* then there is nothting to correct for */
-			Free(vb_correct);
-			vb_correct = NULL;
+			Free(vb_nodes);
+			vb_nodes = NULL;
 		}
 	}
-	mb->ai_par->vb_correct_nodes = vb_correct;
+	mb->ai_par->vb_nodes = vb_nodes;
 
 	// define the adaptive strategy
 	GMRFLib_ai_strategy_tp *adapt = NULL;
