@@ -239,7 +239,7 @@ Memeber functions:
     void quad2(fmesh::SparseMatrix<Real> Q2) { 
 
       int nT = mesh_.nT();
-      Q2 .clear().cols(mesh_.nV()).rows(mesh_.nv());
+      Q2 .clear().cols(mesh_.nV()).rows(mesh_.nV());
       int point = 0;
       for (int tri = 0; tri < nT;tri++) {
 	fmesh::Int3 row_map = mesh_.TV(tri);
