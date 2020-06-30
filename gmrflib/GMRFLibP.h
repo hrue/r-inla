@@ -1,7 +1,7 @@
 
 /* GMRFLibP.h
  * 
- * Copyright (C) 2001-2006 Havard Rue
+ * Copyright (C) 2001-2020 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -170,10 +170,10 @@ typedef enum {
 */
 #if 1
 //#define GMRFLib_TRACE_MEMORY    1000000   // trace memory larger than this ammount. undefine it to disable this feature.
-#define Calloc(n, type)         (type *)GMRFLib_calloc((size_t)(n),sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, RCSId)
-#define Malloc(n, type)         (type *)GMRFLib_malloc((size_t)(n)*sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, RCSId)
-#define Realloc(ptr, n, type)   (type *)GMRFLib_realloc((void *)ptr, (size_t)(n)*sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, RCSId)
-#define Free(ptr)               {GMRFLib_free((void *)(ptr), __FILE__, __GMRFLib_FuncName, __LINE__, RCSId); ptr=NULL;}
+#define Calloc(n, type)         (type *)GMRFLib_calloc((size_t)(n),sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
+#define Malloc(n, type)         (type *)GMRFLib_malloc((size_t)(n)*sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
+#define Realloc(ptr, n, type)   (type *)GMRFLib_realloc((void *)ptr, (size_t)(n)*sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
+#define Free(ptr)               {GMRFLib_free((void *)(ptr), __FILE__, __GMRFLib_FuncName, __LINE__, GitID); ptr=NULL;}
 #else
 #undef  GMRFLib_TRACE_MEMORY
 #define Calloc(n, type)         (type *)calloc((size_t)(n),sizeof(type))
@@ -222,7 +222,7 @@ typedef enum {
 		if (!nan_error)						\
 			fprintf(stdout,					\
 				"\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN or INF. idx=(%1d,%1d). I will try to fix it...", \
-				RCSId, __GMRFLib_FuncName, __LINE__, omp_get_thread_num(), idx, jdx); \
+				GitID, __GMRFLib_FuncName, __LINE__, omp_get_thread_num(), idx, jdx); \
 		if (GMRFLib_catch_error_for_inla) {			\
 			nan_error = 1;					\
 		} else {						\

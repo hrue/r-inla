@@ -30,13 +30,13 @@
 
 /*!
   \file version.c
-  \brief Print out the RCSId's for the files in this build
+  \brief Print out the GitID's for the files in this build
 */
 
-#ifndef HGVERSION
-#define HGVERSION
+#ifndef GITCOMMIT
+#define GITCOMMIT
 #endif
-//static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+//static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 /* Pre-hg-Id: $Id: version.c,v 1.5 2007/03/01 23:46:00 hrue Exp $ */
 
@@ -52,8 +52,8 @@
 
 int GMRFLib_version(FILE * fp)
 {
-	const char *RCSIds[] = {
-#include "RCSId.all"
+	const char *GitIDs[] = {
+#include "GitID.all"
 		NULL
 	};
 	int i = 0;
@@ -61,8 +61,8 @@ int GMRFLib_version(FILE * fp)
 	fp = (fp ? fp : stdout);
 
 	fprintf(fp, "GMRFLib %s\n", GMRFLib_VERSION);
-	while (RCSIds[i]) {
-		fprintf(fp, "\t%s\n", RCSIds[i]);
+	while (GitIDs[i]) {
+		fprintf(fp, "\t%s\n", GitIDs[i]);
 		i++;
 	}
 

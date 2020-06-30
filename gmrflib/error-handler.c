@@ -1,7 +1,7 @@
 
 /* error-handler.c
  * 
- * Copyright (C) 2001-2006 Havard Rue
+ * Copyright (C) 2001-2020 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,10 +59,10 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-#ifndef HGVERSION
-#define HGVERSION
+#ifndef GITCOMMIT
+#define GITCOMMIT
 #endif
-//static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+//static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 /* Pre-hg-Id: $Id: error-handler.c,v 1.49 2008/08/26 07:07:11 hrue Exp $ */
 static GMRFLib_error_handler_tp *handler = NULL;
@@ -204,7 +204,7 @@ int GMRFLib_error_handler(const char *reason, const char *file, const char *func
 		fprintf(stderr, "\tLine      : %1d\n", line);
 	}
 	if (id) {
-		fprintf(stderr, "\tRCSId     : %s\n", id);
+		fprintf(stderr, "\tGitID     : %s\n", id);
 	}
 	fprintf(stderr, "\n");
 
