@@ -1,7 +1,7 @@
 
 /* GMRFLib-smtp-band.c
  * 
- * Copyright (C) 2001-2006 Havard Rue
+ * Copyright (C) 2001-2020 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,10 +36,10 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-#ifndef HGVERSION
-#define HGVERSION
+#ifndef GITCOMMIT
+#define GITCOMMIT
 #endif
-static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 /* Pre-hg-Id: $Id: smtp-band.c,v 1.47 2010/02/26 17:55:22 hrue Exp $ */
 
@@ -231,7 +231,7 @@ int GMRFLib_factorise_sparse_matrix_BAND(double *band, GMRFLib_fact_info_tp * fi
 	if (error) {
 		if (GMRFLib_catch_error_for_inla) {
 			fprintf(stdout, "\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFail to factorize Q. I will try to fix it...\n\n",
-				RCSId, __GMRFLib_FuncName, __LINE__, omp_get_thread_num());
+				GitID, __GMRFLib_FuncName, __LINE__, omp_get_thread_num());
 			return GMRFLib_EPOSDEF;
 		} else {
 			GMRFLib_ERROR(GMRFLib_EPOSDEF);

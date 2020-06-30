@@ -1,7 +1,7 @@
 
 /* hgmrfm.c
  * 
- * Copyright (C) 2007-11 Havard Rue
+ * Copyright (C) 2007-2020 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,10 +27,10 @@
  *        Office: +966 (0)12 808 0640
  *
  */
-#ifndef HGVERSION
-#define HGVERSION
+#ifndef GITCOMMIT
+#define GITCOMMIT
 #endif
-static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 /* Pre-hg-Id: $Id: hgmrfm.c,v 1.73 2009/05/23 06:16:16 hrue Exp $ */
 #include <time.h>

@@ -34,12 +34,12 @@ SHELL   = /bin/sh
 # To use existing HG file, use "make HG= target"
 # Would be prettier and more robust with a mercurial update hook.
 HG:= $(shell which hg)
-HGVERSION:= $(shell if [ -x "$(HG)" ]; then $(HG) parents --template 'hgid: {node|short}  date: {date|date}'; elif [ -e hgstamp ]; then cat hgstamp; else echo 'hgid: unknown  date: unknown' ; fi)
+GITCOMMIT:= $(shell if [ -x "$(HG)" ]; then $(HG) parents --template 'hgid: {node|short}  date: {date|date}'; elif [ -e hgstamp ]; then cat hgstamp; else echo 'hgid: unknown  date: unknown' ; fi)
 
 INCL    = -I.. -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
 LDFLAGS = $(FLAGS) 
 FFLAGS  = $(INCL) $(FLAGS) $(FCEXTRAFLAGS)
-CFLAGS  = $(INCL) $(FLAGS) $(IEXTLIBS) -DHGVERSION="\"${HGVERSION}\""
+CFLAGS  = $(INCL) $(FLAGS) $(IEXTLIBS) -DGITCOMMIT="\"${GITCOMMIT}\""
 LD      = $(FC)
 INSTALL = /usr/bin/install
 LIBNAME = lib$(GMRFLibNAME).a
@@ -196,24 +196,24 @@ $(dir $(DEPDIR))dependencies.d: Makefile $(DEPDIR) $(wildcard *.c)
 	-$(RM) $(dir $(DEPDIR))dependencies.d
 	touch $(dir $(DEPDIR))dependencies.d
 	for file in *.c *.h ; do \
-          if [ -n "`grep HGVERSION $$file`" ]; then \
+          if [ -n "`grep GITCOMMIT $$file`" ]; then \
 	    echo $$file | \
 	      $(SED) 's/\(.*\)\(\.[hc]\)$$/\1\.o: hgstamp/' \
 	      >> $(dir $(DEPDIR))dependencies.d ; \
 	  fi ; \
-          if [ -n "`grep RCSId.all $$file`" ]; then \
+          if [ -n "`grep GitID.all $$file`" ]; then \
 	    echo $$file | \
-	      $(SED) 's/\(.*\)\(\.[hc]\)$$/\1\.o: RCSId.all/' \
+	      $(SED) 's/\(.*\)\(\.[hc]\)$$/\1\.o: GitID.all/' \
 	      >> $(dir $(DEPDIR))dependencies.d ; \
 	  fi \
         done
 
-RCSId.all: hgstamp
-	$(SED) 's/\(.*\)/"\1",/' < hgstamp > RCSId.all
+GitID.all: hgstamp
+	$(SED) 's/\(.*\)/"\1",/' < hgstamp > GitID.all
 
 hgstamp: dummytarget
 	[ -f $@ ] || touch $@
-	echo '$(HGVERSION)' | cmp -s $@ - || echo '$(HGVERSION)' > $@
+	echo '$(GITCOMMIT)' | cmp -s $@ - || echo '$(GITCOMMIT)' > $@
 dummytarget: ;
 
 TAGS : $(wildcard *.c *.h)

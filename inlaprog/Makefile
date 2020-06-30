@@ -48,13 +48,13 @@ SHELL   = /bin/sh
 # To use existing HG file, use "make HG= target"
 # Would be prettier and more robust with a mercurial update hook.
 HG:= $(shell which hg)
-HGVERSION:= $(shell if [ -x "$(HG)" -a -d ../.hg ]; then $(HG) parents --template 'hgid: {node|short}  date: {date|date}'; elif [ -e hgstamp ]; then cat hgstamp; else echo 'hgid: unknown  date: unknown' ; fi)
+GITCOMMIT:= $(shell if [ -x "$(HG)" -a -d ../.hg ]; then $(HG) parents --template 'hgid: {node|short}  date: {date|date}'; elif [ -e hgstamp ]; then cat hgstamp; else echo 'hgid: unknown  date: unknown' ; fi)
 
 EXTLIBS = $(RLIB_LIB) $(EXTLIBS1) $(EXTLIBS2) $(EXTLIBS3)
 INCL    = $(RLIB_INC) -Isrc -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
 LDFLAGS = $(FLAGS) 
 FFLAGS  = $(FLAGS) $(FCEXTRAFLAGS) $(INCL)
-CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DHGVERSION="\"${HGVERSION}\""
+CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DGITCOMMIT="\"${GITCOMMIT}\""
 
 #ifeq ($(INLA_OS),Darwin)
 #  NOPARDISO_LIB = libpardiso.dylib
