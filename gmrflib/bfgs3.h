@@ -5,7 +5,7 @@
  * EXPERIMENTAL ONLY!!!
  *
  * 
- * Copyright (C) 2009 Havard Rue
+ * Copyright (C) 2009-2020 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
