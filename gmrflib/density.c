@@ -1,7 +1,7 @@
 
 /* density.c
  * 
- * Copyright (C) 2006-2013 Havard Rue
+ * Copyright (C) 2006-2020 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,10 +75,10 @@
   
 */
 
-#ifndef HGVERSION
-#define HGVERSION
+#ifndef GITCOMMIT
+#define GITCOMMIT
 #endif
-static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 /* Pre-hg-Id: $Id: density.c,v 1.147 2009/11/04 18:24:30 hrue Exp $ */
 

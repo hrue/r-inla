@@ -1,7 +1,7 @@
 
 /* geo.c
  * 
- * Copyright (C) 2005-2006 Havard Rue
+ * Copyright (C) 2005-2020 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
@@ -87,10 +87,10 @@
 #include "GMRFLib/geo-coefs2.h"				       /* these contains the BIG tables */
 #include "GMRFLib/geo-coefs3.h"
 
-#ifndef HGVERSION
-#define HGVERSION
+#ifndef GITCOMMIT
+#define GITCOMMIT
 #endif
-static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 /* Pre-hg-Id: $Id: geo.c,v 1.42 2008/08/26 07:07:12 hrue Exp $ */
 

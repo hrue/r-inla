@@ -1,7 +1,7 @@
 
 /* stochvol.c
  * 
- * Copyright (C) 2017 Havard Rue
+ * Copyright (C) 2017-2020 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,9 +27,9 @@
  *        Office: +966 (0)12 808 0640
  *
  */
-#ifndef HGVERSION
-#define HGVERSION
+#ifndef GITCOMMIT
+#define GITCOMMIT
 #endif
-//static const char RCSId[] = HGVERSION;
+//static const char GitID[] = GITCOMMIT;
 
 #include "stochvol.h"

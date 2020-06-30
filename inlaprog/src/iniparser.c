@@ -28,7 +28,7 @@
 #include "my-fix.h"
 #include "strlib.h"
 
-static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #define INI_INVALID_KEY     ((char*)-1)
 #define MY_STRING_LOWERCASE(a) my_strlwc(a)
 

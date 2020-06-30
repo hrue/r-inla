@@ -1,7 +1,7 @@
 
 /* globals.c
  * 
- * Copyright (C) 2001-2006 Havard Rue
+ * Copyright (C) 2001-2020 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,10 +33,10 @@
   \brief Set values of global variables.
 */
 
-#ifndef HGVERSION
-#define HGVERSION
+#ifndef GITCOMMIT
+#define GITCOMMIT
 #endif
-//static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+//static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 /* Pre-hg-Id: $Id: globals.c,v 1.43 2010/02/15 08:26:37 hrue Exp $ */
 

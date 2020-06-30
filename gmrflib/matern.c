@@ -1,7 +1,7 @@
 
 /* matern.c
  * 
- * Copyright (C) 2008 Havard Rue
+ * Copyright (C) 2008-2020 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,10 +33,10 @@
   \brief Functions to define Matern models
 */
 
-#ifndef HGVERSION
-#define HGVERSION
+#ifndef GITCOMMIT
+#define GITCOMMIT
 #endif
-static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 /* Pre-hg-Id: $Id: matern.c,v 1.10 2008/11/11 18:46:46 hrue Exp $ */
 

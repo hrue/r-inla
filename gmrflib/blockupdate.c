@@ -1,7 +1,7 @@
 
 /* blockupdate.c
  * 
- * Copyright (C) 2001-2008 Havard Rue
+ * Copyright (C) 2001-2020 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,10 +93,10 @@
     See \ref ex_blockupdate
 */
 
-#ifndef HGVERSION
-#define HGVERSION
+#ifndef GITCOMMIT
+#define GITCOMMIT
 #endif
-static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 /* Pre-hg-Id: $Id: blockupdate.c,v 1.76 2009/08/26 06:12:46 hrue Exp $ */
 
