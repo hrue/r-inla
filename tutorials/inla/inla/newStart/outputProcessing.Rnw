@@ -106,16 +106,16 @@ If the use of \verb|plot| is required from within
 figs = plot(result, pdf=TRUE, single=TRUE)
 cat("\\begin{figure}[htb]\n\\label{output:fig1}\n")
 for(fig in figs)
-    cat("\t\\subfigure[]{\\includegraphics[height=0.45\\linewidth]{",
+    cat("\t\\subfigure[]{\\includegraphics[width=0.4\\linewidth]{",
         fig, "}}\n", sep="")
 cat("\t\\caption{The results from the inla-call}\n")
 cat("\\end{figure}\n")
 @
 <<echo=TRUE, eval=FALSE>>=
 figs = plot(result, pdf=TRUE, single=TRUE)
-cat("\\begin{figure}[htb]\n\\label{output:fig1}\n")
+cat("\\begin{figure}[htb]\n\\label{output:fig1x}\n")
 for(fig in figs)
-    cat("\t\\subfigure[]{\\includegraphics[height=0.45\\linewidth]{",
+    cat("\t\\subfigure[]{\\includegraphics[width=0.4\\linewidth]{",
         fig, "}}\n", sep="")
 cat("\t\\caption{The results from the inla-call}\n")
 cat("\\end{figure}\n")
@@ -128,6 +128,7 @@ shows the posterior mean/median/quantiles of the random effect $u$
 plotted against its index. Figures~(d) and (e) shows the posterior
 marginals of the two hyperparameters, the precisions of the Gaussian
 response and the random effect.
+
 
 \section{Summaries for fixed and random effects}
 
