@@ -211,7 +211,6 @@ int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const ch
 
 	return INLA_OK;
 }
-
 double inla_spde3_Qfunction(int i, int j, void *arg)
 {
 	inla_spde3_tp *model = (inla_spde3_tp *) arg;
@@ -236,15 +235,7 @@ double inla_spde3_Qfunction(int i, int j, void *arg)
 				/*
 				 * '-1' is the correction for the first intercept column in B 
 				 */
-				
-				if((kk < 4) || (kk == 6)){
-					phi_i[k] += row_i[kk] * model->theta[kk - 1][GMRFLib_thread_id][0];
-				} else if(kk < 6){
-					phi_i[k] += row_i[kk] * model->theta[kk - 1][GMRFLib_thread_id][0] * exp(-0.5 * model->theta[3 - 1][GMRFLib_thread_id][0]);
-				} else{
-					phi_i[k] += row_i[kk] * model->theta[kk - 1][GMRFLib_thread_id][0] * exp(-0.5 * model->theta[6 - 1][GMRFLib_thread_id][0]);
-				}
-
+				phi_i[k] += row_i[kk] * model->theta[kk - 1][GMRFLib_thread_id][0];
 			}
 			phi_j[k] = phi_i[k];		       /* they are equal in this case */
 		} else {
@@ -259,19 +250,8 @@ double inla_spde3_Qfunction(int i, int j, void *arg)
 				/*
 				 * '-1' is the correction for the first intercept column in B 
 				 */
-		//		phi_i[k] += row_i[kk] * model->theta[kk - 1][GMRFLib_thread_id][0];
-		//		phi_j[k] += row_j[kk] * model->theta[kk - 1][GMRFLib_thread_id][0];
-
-				if((kk < 4) || (kk == 6)){
-					phi_i[k] += row_i[kk] * model->theta[kk - 1][GMRFLib_thread_id][0];
-					phi_j[k] += row_j[kk] * model->theta[kk - 1][GMRFLib_thread_id][0];
-				} else if(kk < 6){
-					phi_i[k] += row_i[kk] * model->theta[kk - 1][GMRFLib_thread_id][0] * exp(-0.5 * model->theta[3 - 1][GMRFLib_thread_id][0]);
-					phi_j[k] += row_j[kk] * model->theta[kk - 1][GMRFLib_thread_id][0] * exp(-0.5 * model->theta[3 - 1][GMRFLib_thread_id][0]);
-				} else{
-					phi_i[k] += row_i[kk] * model->theta[kk - 1][GMRFLib_thread_id][0] * exp(-0.5 * model->theta[6 - 1][GMRFLib_thread_id][0]);
-					phi_j[k] += row_j[kk] * model->theta[kk - 1][GMRFLib_thread_id][0] * exp(-0.5 * model->theta[6 - 1][GMRFLib_thread_id][0]);
-				}
+				phi_i[k] += row_i[kk] * model->theta[kk - 1][GMRFLib_thread_id][0];
+				phi_j[k] += row_j[kk] * model->theta[kk - 1][GMRFLib_thread_id][0];
 			}
 		}
 	}
@@ -344,14 +324,8 @@ double inla_spde3_Qfunction(int i, int j, void *arg)
 		GMRFLib_matrix_get_row(row_k, _k, model->B[3]);		\
 		_tmp = row_k[0];					\
 		for (_kk = 1; _kk < model->B[3]->ncol; _kk++) {		\
-				if((_kk < 4) || (_kk == 6)){   \
-					_tmp += row_k[_kk] * model->theta[_kk - 1][GMRFLib_thread_id][0];   \
-				} else if(_kk < 6){    \
-					_tmp += row_k[_kk] * model->theta[_kk - 1][GMRFLib_thread_id][0] * exp(-0.5 * model->theta[3 - 1][GMRFLib_thread_id][0]);  \
-				} else{     \
-					_tmp += row_k[_kk] * model->theta[_kk - 1][GMRFLib_thread_id][0] * exp(-0.5 * model->theta[6 - 1][GMRFLib_thread_id][0]);   \
-				}    \
-			}							\
+			_tmp += row_k[_kk] * model->theta[_kk - 1][GMRFLib_thread_id][0]; \
+		}							\
 		_d3 = exp(_tmp);					\
 	}
 

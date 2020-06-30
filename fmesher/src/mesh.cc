@@ -26,13 +26,6 @@
 #define LOG(msg)
 #endif
 #endif
-#ifndef LOGD
-#ifdef DEBUGD
-#define LOGD(msg) LOG_(msg)
-#else
-#define LOGD(msg)
-#endif
-#endif
 
 
 using std::cout;
@@ -1968,14 +1961,14 @@ namespace fmesh {
       d.orbit0rev();
     Dart d00(d);
 
-    LOGD("Finding direction to point or v starting from d00, S:" << endl
+    LOG("Finding direction to point or v starting from d00, S:" << endl
 	     << "\t\t" << s << endl
 	     << "\t\t" << v << endl
 	     << "\t\t" << d00 << endl
 	     << "\t\t" << S_[d00.v()] << endl);
 
     d.orbit2();
-    LOGD("Finding direction to point or v starting from dart:" << endl
+    LOG("Finding direction to point or v starting from dart:" << endl
 	     << "\t\t" << s << endl
 	     << "\t\t" << v << endl
 	     << "\t\t" << d << endl
@@ -1985,9 +1978,9 @@ namespace fmesh {
       return d;
     bool onleft0(inLeftHalfspace(S_[v0],s,S_[d.v()]) >= 0.0);
     bool onleft2(d.inLeftHalfspace(s) >= -MESH_EPSILON);
-    LOGD(d << endl);
+    LOG(d << endl);
     d.orbit2();
-    LOGD("Finding direction to point or v starting from dart:" << endl
+    LOG("Finding direction to point or v starting from dart:" << endl
 	     << "\t\t" << s << endl
 	     << "\t\t" << v << endl
 	     << "\t\t" << d << endl
@@ -1996,17 +1989,17 @@ namespace fmesh {
     if (d.v() == v) // Have we found a preexisting vertex?
       return d;
     bool onleft1(inLeftHalfspace(S_[v0],s,S_[d.v()]) >= 0.0);
-    LOGD("Locating direction "
+    LOG("Locating direction "
 	     << onleft0 << onleft1 << endl);
     while (!(!onleft0 && onleft1) && (!d.onBoundary())) {
       d.orbit0rev();
-      LOGD(d << endl);
+      LOG(d << endl);
       if (d.v()==d00.vo()) {
 	if (onleft2) {
-	  LOGD("Went full circle. Point found." << endl);
+	  LOG("Went full circle. Point found." << endl);
 	  return d;
 	} else {
-	  LOGD("Went full circle. Point not found." << endl);
+	  LOG("Went full circle. Point not found." << endl);
 	  return Dart();
 	}
       }
@@ -2016,7 +2009,7 @@ namespace fmesh {
       onleft1 = (inLeftHalfspace(S_[v0],s,S_[d.v()]) >= 0.0);
       if (d.v() == v) // Have we found a preexisting vertex?
 	return d;
-      LOGD("Locating direction "
+      LOG("Locating direction "
 	       << onleft0 << onleft1 << endl);
     }
     if (!onleft0 && onleft1) {
@@ -2051,15 +2044,15 @@ namespace fmesh {
 	d = find_path_direction(d, s1, -1);
 	/* Check that the line actually crosses the dart. */
 	if (inLeftHalfspace(S_[d.v()], S_[d.vo()], s1) < 0.0) {
-	  LOGD("Checkpoint 4" << endl);
+	  LOG("Checkpoint 4" << endl);
 	  return d;
 	} else {
 	  return Dart();
 	}
       }
       onleft[i] = (inLeftHalfspace(s0, s1, S_[d.v()]) >= 0.0);
-      LOGD("D=" << d << endl);
-      LOGD("onleft[" << i << "] = " << onleft[i] << endl);
+      LOG("D=" << d << endl);
+      LOG("onleft[" << i << "] = " << onleft[i] << endl);
       d.orbit2();
     }
 
@@ -2067,16 +2060,16 @@ namespace fmesh {
       int i1 = (i0+1) % 3;
       if (inLeftHalfspace(S_[d.v()], S_[d.vo()], s1) < 0.0) {
 	if (!onleft[i1]) {
-	  LOGD("Checkpoint 1" << endl);
+	  LOG("Checkpoint 1" << endl);
 	  d.orbit2();
 	  return d;
 	}
 	if (onleft[i0]) {
-	  LOGD("Checkpoint 2" << endl);
+	  LOG("Checkpoint 2" << endl);
 	  d.orbit2rev();
 	  return d;
 	}
-	LOGD("Checkpoint 3" << endl);
+	LOG("Checkpoint 3" << endl);
 	return d;
       }
       d.orbit2();
@@ -2142,8 +2135,8 @@ namespace fmesh {
     }
 
     Dart d(find_path_direction(dh,s1,v1));
-    LOGD("Path-direction " << d << endl);
-    LOGD("Starting triangle " << d.t() << " ("
+    LOG("Path-direction " << d << endl);
+    LOG("Starting triangle " << d.t() << " ("
 	     << TV_[d.t()][0] << ","
 	     << TV_[d.t()][1] << ","
 	     << TV_[d.t()][2] << ")"
@@ -2155,7 +2148,7 @@ namespace fmesh {
     Dart dstart = d;
     while (dstart.v() != d0.v())
       dstart.orbit2rev();
-    LOGD("Starting dart " << dstart << endl);
+    LOG("Starting dart " << dstart << endl);
     if ((d.v() == v1) || (d.inLeftHalfspace(s1) >= -MESH_EPSILON)) {
       LOG("Found " << d << endl);
       return DartPair(dstart,d);
@@ -2166,7 +2159,7 @@ namespace fmesh {
 	trace_index++;
       }
       d.orbit1().orbit2rev();
-      LOGD("In triangle " << d << endl);
+      LOG("In triangle " << d << endl);
       if (d.v() == v1) {
 	LOG("Found vertex at " << d << endl);
 	return DartPair(dstart,d);
@@ -2180,7 +2173,7 @@ namespace fmesh {
 	found = false;
       if (!other)
 	d.orbit2();
-      LOGD("Go to next triangle, from " << d << endl);
+      LOG("Go to next triangle, from " << d << endl);
     }
     LOG("Endpoint not found "
 	     << dstart << " " << d << endl);
@@ -2233,8 +2226,8 @@ namespace fmesh {
     LOG("Starting dart " << dstart << endl);
 
     Dart d(find_path_direction(s0, s1, dstart));
-    LOGD("Path-direction " << d << endl);
-    LOGD("Starting triangle " << d.t() << " ("
+    LOG("Path-direction " << d << endl);
+    LOG("Starting triangle " << d.t() << " ("
 	     << TV_[d.t()][0] << ","
 	     << TV_[d.t()][1] << ","
 	     << TV_[d.t()][2] << ")"
@@ -2253,7 +2246,7 @@ namespace fmesh {
 	trace_index++;
       }
       d.orbit1().orbit2rev();
-      LOGD("In triangle " << d << endl);
+      LOG("In triangle " << d << endl);
       found = (d.inLeftHalfspace(s1) >= -MESH_EPSILON);
       other = (inLeftHalfspace(s0, s1, S_[d.v()]) > 0.0);
       d.orbit2rev();
@@ -2263,7 +2256,7 @@ namespace fmesh {
 	found = false;
       if (!other)
 	d.orbit2();
-      LOGD("Go to next triangle, from " << d << endl);
+      LOG("Go to next triangle, from " << d << endl);
     }
     LOG("Endpoint not found "
 	     << dstart << " " << d << endl);
