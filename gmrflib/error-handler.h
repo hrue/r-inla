@@ -1,7 +1,7 @@
 
 /* error-handler.h
  * 
- * Copyright (C) 2001-2006 Havard Rue
+ * Copyright (C) 2001-2020 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -120,10 +120,10 @@ GMRFLib_error_handler_tp *GMRFLib_set_error_handler_off(void);
 */
 #define GMRFLib_ERROR_MSG(errorno,msg) \
        if (1) { GMRFLib_handle_error(__FILE__, __GMRFLib_FuncName, __LINE__, \
-                                     (const char *)RCSId, errorno,msg); return errorno; }
+                                     (const char *)GitID, errorno,msg); return errorno; }
 #define GMRFLib_ERROR_MSG_NO_RETURN(errorno,msg) \
        if (1) { GMRFLib_handle_error(__FILE__, __GMRFLib_FuncName, __LINE__, \
-                                     (const char *)RCSId, errorno,msg); }
+                                     (const char *)GitID, errorno,msg); }
 
 /* 
    short versions, no `msg'
@@ -137,7 +137,7 @@ GMRFLib_error_handler_tp *GMRFLib_set_error_handler_off(void);
 #define GMRFLib_ASSERT_RETVAL(condition,errorno,retval) \
             if (!(condition)) { \
                 GMRFLib_handle_error(__FILE__, __GMRFLib_FuncName, __LINE__,\
-		 		     (const char *)RCSId, errorno,  "Condition `" __GMRFLib_STRINGIFY(condition) "' is not TRUE"); \
+		 		     (const char *)GitID, errorno,  "Condition `" __GMRFLib_STRINGIFY(condition) "' is not TRUE"); \
                 return retval;}
 #define GMRFLib_ASSERT(condition,errorno) GMRFLib_ASSERT_RETVAL(condition,errorno,errorno)
 

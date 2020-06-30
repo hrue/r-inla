@@ -1,7 +1,7 @@
 
 /* openmp.c
  * 
- * Copyright (C) 2007-2018 Havard Rue
+ * Copyright (C) 2007-2020 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,10 +28,10 @@
  *
  */
 
-#ifndef HGVERSION
-#define HGVERSION
+#ifndef GITCOMMIT
+#define GITCOMMIT
 #endif
-//static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+//static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 /* Pre-hg-Id: $Id: openmp.c,v 1.7 2007/07/17 05:55:02 hrue Exp $ */
 

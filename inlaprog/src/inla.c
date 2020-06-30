@@ -27,10 +27,10 @@
  *
  */
 
-#ifndef HGVERSION
-#define HGVERSION
+#ifndef GITCOMMIT
+#define GITCOMMIT
 #endif
-static const char RCSId[] = HGVERSION;
+static const char GitID[] = GITCOMMIT;
 
 #if defined(__sun__)
 #include <stdlib.h>
@@ -8540,7 +8540,7 @@ int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double 
 			static char give_warning = 1;
 			if (n > 500 && give_warning) {
 				give_warning = 0;
-				printf("\n*** Warning ***  Version [%s]", RCSId);
+				printf("\n*** Warning ***  Version [%s]", GitID);
 				printf("\n*** Warning ***  The PIT calculations for the BetaBinomial can be time-consuming when Ntrials is large.");
 				printf("\n*** Warning ***  Please contact <help@r-inla.org> if this becomes an issue.\n");
 			}
@@ -31409,7 +31409,7 @@ int inla_output_hgid(const char *dir)
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
-	fprintf(fp, "%s\n", RCSId);
+	fprintf(fp, "%s\n", GitID);
 	fclose(fp);
 	Free(nndir);
 
@@ -34398,7 +34398,7 @@ int main(int argc, char **argv)
 	 */
 	for (i = 1; i < argc; i++) {
 		if (!strcasecmp(argv[i], "-ping") || !strcasecmp(argv[i], "--ping")) {
-			printf("INLA[%s] IS ALIVE\n", RCSId);
+			printf("INLA[%s] IS ALIVE\n", GitID);
 			exit(EXIT_SUCCESS);
 		}
 	}
@@ -34419,7 +34419,7 @@ int main(int argc, char **argv)
 			break;
 
 		case 'V':
-			printf("This program has version:\n\t%s\nand is linked with ", RCSId);
+			printf("This program has version:\n\t%s\nand is linked with ", GitID);
 			GMRFLib_version(stdout);
 			_BUGS;
 			exit(EXIT_SUCCESS);
@@ -34698,7 +34698,7 @@ int main(int argc, char **argv)
 	}
 
 	if (!silent || verbose) {
-		fprintf(stdout, "\n\t%s\n", RCSId);
+		fprintf(stdout, "\n\t%s\n", GitID);
 	}
 	if (verbose) {
 		_BUGS_intern(stdout);

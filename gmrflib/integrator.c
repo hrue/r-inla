@@ -84,10 +84,10 @@
   CHANGE/HRue: added these two lines
 */
 #include "GMRFLib/GMRFLib.h"
-#ifndef HGVERSION
-#define HGVERSION
+#ifndef GITCOMMIT
+#define GITCOMMIT
 #endif
-//static const char RCSId[] = "file: " __FILE__ "  " HGVERSION;
+//static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 /* Pre-hg-Id: $Id: integrator.c,v 1.10 2009/09/05 07:52:14 hrue Exp $ */
 
