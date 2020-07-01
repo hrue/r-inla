@@ -25076,6 +25076,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 
 	mb->ai_par->vb_enable = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.VB.ENABLE"), 0);
 	mb->ai_par->vb_verbose = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.VB.VERBOSE"), 0);
+	mb->ai_par->vb_hyperpar_correct = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.VB.HYPERPAR.CORRECT"), 0);
 	mb->ai_par->vb_nodes = (mb->ai_par->vb_enable ? Calloc(1, char) : NULL);
 	mb->ai_par->vb_max_correct = iniparser_getdouble(ini, inla_string_join(secname, "CONTROL.VB.MAX.CORRECT"), 1.0);
 	mb->ai_par->vb_max_correct = DMAX(0.0, mb->ai_par->vb_max_correct);
