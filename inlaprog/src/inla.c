@@ -28,7 +28,7 @@
  */
 
 #ifndef GITCOMMIT
-#define GITCOMMIT
+#define GITCOMMIT "current developer version"
 #endif
 static const char GitID[] = GITCOMMIT;
 
@@ -31409,7 +31409,7 @@ int inla_output_hgid(const char *dir)
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
-	fprintf(fp, "%s\n", GitID);
+	fprintf(fp, "GitID [%s]\n", GitID);
 	fclose(fp);
 	Free(nndir);
 
