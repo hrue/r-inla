@@ -1,5 +1,3 @@
-# $Id: GMRFLib-Makefile,v 1.63 2010/01/12 08:55:11 hrue Exp $
-
 # USER OPTIONS
 
 # the full path to where to install the library, headerfiles and docs.
@@ -29,10 +27,6 @@ IEXTLIBS = -I$(LEXTPREFIX)/include -I/usr/include/suitesparse
 
 SHELL   = /bin/sh
 
-# Only try to update the hgstamp if hg is available.
-# Should also check if we are in a repository.
-# To use existing HG file, use "make HG= target"
-# Would be prettier and more robust with a mercurial update hook.
 GITCOMMIT:= $(shell git log --pretty=format:"%H - %cd" | head -n1)
 
 INCL    = -I.. -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
@@ -197,7 +191,7 @@ $(dir $(DEPDIR))dependencies.d: Makefile $(DEPDIR) $(wildcard *.c)
 	for file in *.c *.h ; do \
           if [ -n "`grep GITCOMMIT $$file`" ]; then \
 	    echo $$file | \
-	      $(SED) 's/\(.*\)\(\.[hc]\)$$/\1\.o: hgstamp/' \
+	      $(SED) 's/\(.*\)\(\.[hc]\)$$/\1\.o: gitstamp/' \
 	      >> $(dir $(DEPDIR))dependencies.d ; \
 	  fi ; \
           if [ -n "`grep GitID.all $$file`" ]; then \
@@ -207,10 +201,10 @@ $(dir $(DEPDIR))dependencies.d: Makefile $(DEPDIR) $(wildcard *.c)
 	  fi \
         done
 
-GitID.all: hgstamp
-	$(SED) 's/\(.*\)/"\1",/' < hgstamp > GitID.all
+GitID.all: gitstamp
+	$(SED) 's/\(.*\)/"\1",/' < gitstamp > GitID.all
 
-hgstamp: dummytarget
+gitstamp: dummytarget
 	[ -f $@ ] || touch $@
 	echo '$(GITCOMMIT)' | cmp -s $@ - || echo '$(GITCOMMIT)' > $@
 dummytarget: ;

@@ -43,10 +43,6 @@ EXTLIBS3 = -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -lm
 
 SHELL   = /bin/sh
 
-# Only try to update the hgstamp if hg is available.
-# Should also check if we are in a repository.
-# To use existing HG file, use "make HG= target"
-# Would be prettier and more robust with a mercurial update hook.
 GITCOMMIT:= $(shell git log --pretty=format:"%H - %cd" | head -n1)
 
 EXTLIBS = $(RLIB_LIB) $(EXTLIBS1) $(EXTLIBS2) $(EXTLIBS3)
