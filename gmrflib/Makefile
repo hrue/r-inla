@@ -33,8 +33,7 @@ SHELL   = /bin/sh
 # Should also check if we are in a repository.
 # To use existing HG file, use "make HG= target"
 # Would be prettier and more robust with a mercurial update hook.
-HG:= $(shell which hg)
-GITCOMMIT:= $(shell if [ -x "$(HG)" ]; then $(HG) parents --template 'hgid: {node|short}  date: {date|date}'; elif [ -e hgstamp ]; then cat hgstamp; else echo 'hgid: unknown  date: unknown' ; fi)
+GITCOMMIT:= $(shell git log --pretty=format:"%H - %cd" | head -n1)
 
 INCL    = -I.. -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
 LDFLAGS = $(FLAGS) 
