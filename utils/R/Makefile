@@ -16,7 +16,6 @@ updateBIN:;
 	./updateBin
 
 updateREPO:;
-	## the output of this command must be copied
-	-hg --cwd r-inla pull; hg --cwd r-inla update -r $$INLA_TAG
+	cd r-inla && git checkout devel && git branch -d branch-$$INLA_TAG; git pull --all --tags && git checkout $$INLA_TAG -b branch-$$INLA_TAG
 
 .PHONY: updateBIN updateREPO local install testing check

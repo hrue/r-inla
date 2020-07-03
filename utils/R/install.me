@@ -1,70 +1,40 @@
 #!/bin/bash
 set -u
 
-epoch=$(date +%s)
 VERSION=$INLA_VERSION
+inlatag=$INLA_TAG
 
-rm INLA*tar.gz INLA*tgz INLA*zip
+rm INLA*tar.gz INLA*tgz INLA*zip || true
 
-bdate=$(date -d @$epoch +%Y%m%d%H%M)
-date=$(date -d @$epoch)
+date=$(date)
 D=r-inla/rinla/R
 DD=INLA/R
 RVersion=$(R --vanilla --version | grep '^R version' | awk '{print $3}' | awk -F. '{print $1 "." $2}')
-
-##(cd $D; hg update; )
-##hg=$(cd $D >/dev/null 2>/dev/null; hg parents --template 'hgid: {node|short}  date: {date|date}')
-##inlahg=$(extern/inla64.linux -V 2>&1 | grep hgid:|head -n1)
-hg=$INLA_TAG
-inlahg=$INLA_TAG
-
-echo "epoch=$epoch"
-echo "date=$date"
-echo "bdate=$bdate"
-echo "inlahg=$inlahg"
-echo "hg=$hg"
-
-## update these lines in the function with the updated hgid's and build-date
-tt=.tt
-test -f $tt && rm -rf $tt
 
 ## We need to remove these as we change them
 for f in INLA/NAMESPACE INLA/DESCRIPTION; do
     test -f $f && rm -f $f
 done
 
-rsync -auvL --delete --exclude '/*~' --exclude RCS/ --exclude TAGS $D/.. INLA/. 
+rsync -auvL --delete --exclude '/*~' --exclude TAGS $D/.. INLA/. 
 if [ -d $D/../inst/bin/linux/64bit/first ]; then
     rsync -auv $D/../inst/bin/linux/64bit/first/. $DD/../inst/bin/linux/64bit/first/.
 fi
 ./updateBin
 
-if false; then
-    ## move stdc++  into first/
-    if [ -d $DD/../inst/bin/linux/64bit/first ]; then
-	f=$(echo $DD/../inst/bin/linux/64bit/libstdc++.so*)
-	if [ -f "$f" ]; then
-	    mv -v -f "$f" $DD/../inst/bin/linux/64bit/first
-	fi
-    fi
-fi
 
-## make man-pages and run roxygen
-( cd $D; ./make-man-pages; )
+## make man-pages, compile doc-pdf's and run roxygen
+make -C $D/../..
 
-
-rm -f $tt 2>/dev/null
+tt=.tt
+test -f $tt && rm -rf $tt
 cat $D/version.R | \
-    awk '/^[ \t]*rinla[.]hgid *=/{ print "    rinla.hgid = ", "inla.trim(\"" hg      "\")"; next;}
-         /^[ \t]*inla[.]hgid *=/{  print "    inla.hgid  = ", "inla.trim(\"" inlahg "\")"; next;}
-         /^[ \t]*date *=/{       print "    date       = ", "inla.trim(\"" date    "\")"; next;}
-         /^[ \t]*bdate *=/{      print "    bdate      = ", "inla.trim(\"" bdate   "\")"; next;}
-        /^[ \t]*version *=/{      print "    version      = ", "inla.trim(\"" version   "\")"; next;}
-	 {print}' hg="$hg" inlahg="$inlahg" bdate="$bdate" date="$date" version="$VERSION" > $tt
+    awk '/^[ \t]*date *=/{       print "    date       = ", "inla.trim(\"" date    "\")"; next;}
+         /^[ \t]*version *=/{      print "    version      = ", "inla.trim(\"" version   "\")"; next;}
+	 {print}' date="$date" version="$VERSION" > $tt
 cp $tt $D/version.R
 mv -f $tt $DD/version.R
 
-echo "bdate: $bdate"
 cat $D/version.R
 cat $DD/version.R
 
@@ -73,7 +43,7 @@ desc="INLA/DESCRIPTION"
 {
     egrep -v '^(Version:|Date:)' r-inla/rinla/DESCRIPTION
     echo "Version: $VERSION"
-    echo "Date: $(date '+%Y-%m-%d') ($hg)"
+    echo "Date: $(date) ($inlatag)"
 } > $tt && mv -f $tt $desc
  
 ~hrue/bin/fix-permissions INLA
@@ -121,7 +91,6 @@ mv -f $DD/$zipINLA .
 ls -l INLA*gz INLA*zip
 www=../www
 wwwR=../www/R
-old="$tgzINLA-$bdate"
 
 convert_to_mac_binary () {
     for f in "$@"; do

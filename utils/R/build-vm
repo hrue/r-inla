@@ -20,7 +20,7 @@ else
     exit 1
 fi
 
-export INLA_TAG="${1-Current}"
+export INLA_TAG="${1-devel}"
 VERSION=$(ssh $IP "source /etc/os-release; echo \$NAME-\$VERSION")
 D=64bit
 
