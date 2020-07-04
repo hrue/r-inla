@@ -6,9 +6,10 @@ is_set() {
 
 
 if ! $(is_set INLA_MAC); then
-    ##export INLA_MAC=rueh@kw-16659.kaust.edu.sa
-    ## this is KAUST_OFFICEMAC
-    export INLA_MAC=rueh@kw-15905.kaust.edu.sa
+    ## KAUST_MACMINI
+    export INLA_MAC=rueh@kw-16659.kaust.edu.sa
+    ##  KAUST_OFFICEMAC
+    ##export INLA_MAC=rueh@kw-15905.kaust.edu.sa
 fi
 
 IP=0.0.0.0
@@ -37,7 +38,7 @@ if [ $# -eq 0 ]; then
     echo $0: TAG
     exit 1
 else 
-    r=$( hg -R r-inla tags | awk '$1==TAG { print 1 }' TAG="$1" )
+    r=$( git -C r-inla tag | awk '$1==TAG { print 1 }' TAG="$1" )
     if [ -n "$r" ]; then
 	output "TAG [$1] is present"
     else

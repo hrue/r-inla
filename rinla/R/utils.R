@@ -1085,14 +1085,7 @@
 
 `inla.dynload.workaround` = function()
 {
-    if (inla.os("linux")) {
-        ## setup the static builds instead
-        mkl = inla.getOption("mkl")
-        if (is.null(mkl)) mkl = FALSE
-        d = dirname(inla.call.builtin())
-        inla.setOption(inla.call = paste(d, "/inla.", if (mkl) "mkl." else "", "static", sep=""))
-        inla.setOption(fmesher.call = paste(d,"/fmesher.static", sep=""))
-    }
+    stop("This function is replaced by: inla.binary.install()")
     return (invisible())
 }
 

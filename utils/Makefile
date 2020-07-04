@@ -10,14 +10,11 @@ build-configs :;
 	./make-builds
 
 update-inla :;
-	-tilix --title="laptop-g"  -e "make -C /home/hrue/p/inla/builds/my-laptop-g update"
 	-tilix --title="laptop-O2" -e "make -C /home/hrue/p/inla/builds/my-laptop-O2 update"
 	-tilix --title="mac64"     -e "ssh -x -t $$INLA_MAC   export INLA_TAG=$$INLA_TAG\; make -C builds/build64 update"
 	-tilix --title="$$INLA_LINUX 64"        -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; make -C builds/build64 update"
-	-tilix --title="$$INLA_LINUX static"    -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; make -C builds/build.static update"
 	-tilix --title="$$INLA_LINUX windows32" -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; make -C builds/windows32 update"
 	-tilix --title="$$INLA_LINUX windows64" -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; make -C builds/windows64 update"
-	-tilix --title="$$INLA_LINUX windows experimental" -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; make -C builds/my-windows update"
 	@echo -en "\n\nType YES to proceeed: "
 	@read ans && test $$ans == "YES" || exit 1
 	@echo -e "Proceed with the build...\n\n"

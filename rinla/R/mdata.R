@@ -35,7 +35,9 @@
 ##!
 ##!     \code{as.inla.mdata} returns an object of class \code{inla.mdata}
 ##!}
-##!
+##!\note{It is often required to set \code{Y=inla.mdata(...)} and then
+##!      define the formula as \code{Y~...},  especially when used with
+##!      \code{inla.stack}.}
 ##!\author{
 ##! Havard Rue
 ##!}
