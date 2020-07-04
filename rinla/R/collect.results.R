@@ -118,7 +118,7 @@
     ##get the hyperparameters
     theta.mode = inla.read.binary.file(paste(results.dir,.Platform$file.sep,".theta_mode", sep=""))[-1]
     x.mode = inla.read.binary.file(paste(results.dir,.Platform$file.sep,".x_mode", sep=""))[-1]
-    hgid = readLines(paste(results.dir,.Platform$file.sep,".hgid", sep=""))
+    gitid = readLines(paste(results.dir,.Platform$file.sep,".gitid", sep=""))
     
     lfn.fnm = paste(results.dir,.Platform$file.sep,"linkfunctions.names", sep="")
     if (file.exists(lfn.fnm)) {
@@ -219,7 +219,7 @@
                                       log.posterior.mode = misc$log.posterior.mode),
                  neffp=neffp,
                  joint.hyper=joint.hyper, nhyper=length(theta.mode),
-                 version = list(inla.call = hgid, inla.call.builtin = hgid, R.INLA=inla.version("hgid"))),
+                 version = list(inla.call = gitid, R.INLA=inla.version("version"))),
             list(Q=res.q),
             res.graph, ok = res.ok)
     class(res) = "inla"
