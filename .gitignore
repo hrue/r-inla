@@ -785,3 +785,8 @@ rinla/vignettes/scale-model.tex
 rinla/vignettes/stack-with-factors.pdf
 
 r-inla/rinla/inst/NEWS.pdf
+
+## to override the Makefile
+r-inla/inlaprog/GNUmakefile
+r-inla/gmrflib/GNUmakefile
+r-inla/GNUmakefile
