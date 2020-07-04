@@ -284,7 +284,7 @@
     }
 
     ## hash the models again
-    assign("hgid", "(Undefined)", envir = inla.get.inlaEnv())
+    assign("inla.version", "(Undefined)", envir = inla.get.inlaEnv())
     assign("inla.models", NULL, envir = inla.get.inlaEnv())
     cat("Reset stored 'inla.models()' in .inlaEnv\n")
 

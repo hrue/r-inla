@@ -11079,7 +11079,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	 * parse section = PROBLEM
 	 */
 	int i, ok;
-	char *secname = NULL, *tmp = NULL, *tmpp = NULL, *smtp = NULL, *openmp_strategy = NULL, *rinla_tag = NULL;
+	char *secname = NULL, *tmp = NULL, *tmpp = NULL, *smtp = NULL, *openmp_strategy = NULL, *rinla_version = NULL, *build_date = NULL;
 
 	if (mb->verbose) {
 		printf("\tinla_parse_problem...\n");
@@ -11093,13 +11093,12 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		printf("\t\tname=[%s]\n", mb->name);
 	}
 
-	rinla_tag = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "RINLA.TAG"), GMRFLib_strdup("UNKNOWN")));
+	rinla_version = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "RINLA.VERSION"), GMRFLib_strdup("UNKNOWN")));
+	build_date = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "RINLA.BDATE"), GMRFLib_strdup("UNKNOWN")));
 	if (mb->verbose) {
-		printf("\t\tR-INLA tag=[%s]\n", rinla_tag);
+		printf("\t\tR-INLA version=[%s]\n", rinla_version);
+		printf("\t\tR-INLA build date=[%s]\n", build_date);
 		printf("\t\tBuild tag=[%s]\n", INLA_TAG);
-		if (strcmp(rinla_tag, INLA_TAG)) {
-			printf("\t\t***WARNING*** 'R-INLA tag' and 'Build tag' differ!\n");
-		}
 	}
 
 	openmp_strategy = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"), GMRFLib_strdup("DEFAULT")));
@@ -30670,7 +30669,7 @@ int inla_output(inla_tp * mb)
 			inla_output_detail_neffp(mb->dir, &(mb->neffp), local_verbose);
 			inla_output_detail_x(mb->dir, mb->x_file, mb->nx_file);
 			inla_output_detail_theta(mb->dir, mb->theta, mb->ntheta);
-			inla_output_hgid(mb->dir);
+			inla_output_gitid(mb->dir);
 			inla_output_linkfunctions(mb->dir, mb);
 			if ((!mb->reuse_mode) || (mb->reuse_mode && mb->reuse_mode_but_restart)) {
 				// disable output theta-mode to file '.inla-mode'
@@ -31398,13 +31397,13 @@ int inla_output_detail_neffp(const char *dir, GMRFLib_ai_neffp_tp * neffp, int v
 	Free(nndir);
 	return INLA_OK;
 }
-int inla_output_hgid(const char *dir)
+int inla_output_gitid(const char *dir)
 {
 	char *nndir = NULL;
 
 	FILE *fp = NULL;
 
-	GMRFLib_sprintf(&nndir, "%s/%s", dir, ".hgid");
+	GMRFLib_sprintf(&nndir, "%s/%s", dir, ".gitid");
 	fp = fopen(nndir, "w");
 	if (!fp) {
 		inla_error_open_file(nndir);

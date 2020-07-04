@@ -1011,7 +1011,7 @@
         cpo, po, mlik, quantiles, smtp, q, openmp.strategy, graph, config, gdensity)
 {
     cat("", sep = "", file = file, append=FALSE)
-    cat("###  ", inla.version("hgid"), "\n", sep = "", file = file,  append = TRUE)
+    cat("###  ", inla.version("version"), "\n", sep = "", file = file,  append = TRUE)
     cat("###  ", inla.paste(Sys.info()), "\n", sep = "", file = file,  append = TRUE)
     cat("###  ", inla.os.type(), "-", inla.os.32or64bit(), "bit", " ", date(), "\n", sep = "", file = file,  append = TRUE)
 
@@ -1037,7 +1037,8 @@
     cat(inla.secsep("INLA.Model"), "\n", sep = " ", file = file,  append = TRUE)
     cat("type = problem\n", sep = " ", file = file,  append = TRUE)
     cat("dir = $inlaresdir\n", sep = " ", file = file,  append = TRUE)
-    cat("rinla.tag = ", inla.version("hgid"), "\n", file = file,  append = TRUE)
+    cat("rinla.version = ", inla.version("version"), "\n", file = file,  append = TRUE)
+    cat("rinla.bdate = ", inla.version("date"), "\n", file = file,  append = TRUE)
     inla.write.boolean.field("return.marginals", return.marginals, file)
     inla.write.boolean.field("hyperparameters", hyperpar, file)
     inla.write.boolean.field("cpo", cpo, file)

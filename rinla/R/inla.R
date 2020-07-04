@@ -1945,7 +1945,7 @@
     ## define some environment variables for remote computing
     vars = list(INLA_PATH = system.file("bin", package="INLA"),
                 INLA_OS = inla.os.type(), 
-                INLA_HGVERSION = inla.version("hgid"), 
+                INLA_VERSION = inla.version("version"), 
                 INLA_RVERSION = paste0(R.Version()$major, ".",
                                        strsplit(R.Version()$minor,"[.]")[[1]][1]),
                 INLA_RHOME = Sys.getenv("R_HOME"))
