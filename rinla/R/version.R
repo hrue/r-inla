@@ -35,8 +35,14 @@
 
 `inla.version` = function (what = c("default", "version", "date"))
 {
-    date      =  inla.trim("Thu 30 Jun 08:30:28 CEST 2016")
-    version   =  inla.trim("Version_12.34.56")
+    `trim` = function(string) {
+        string = gsub("^[ \t]+", "", string)
+        string = gsub("[ \t]+$", "", string)
+        return (string)
+    }
+
+    date      =  trim("Thu 30 Jun 08:30:28 CEST 2016")
+    version   =  trim("Version_12.34.56")
     what = match.arg(what)
 
     if (what %in% "default") {

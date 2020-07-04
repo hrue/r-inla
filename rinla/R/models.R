@@ -8015,8 +8015,8 @@
     envir = inla.get.inlaEnv()
     
     if (exists("inla.models", envir = envir) &&
-        exists("inla.version", envir = envir) &&
-        get("inla.version", envir = envir) == inla.version("version")) {
+        exists("rinla.version", envir = envir) &&
+        get("rinla.version", envir = envir) == inla.version("version")) {
 
         return (get("inla.models", envir = envir))
 
@@ -8071,7 +8071,7 @@
         }
 
         assign("inla.models", models, envir = envir)
-        assign("inla.version", inla.version("version"), envir = envir)
+        assign("rinla.version", inla.version("version"), envir = envir)
 
         return (models)
     }
