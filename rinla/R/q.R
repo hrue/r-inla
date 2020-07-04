@@ -117,7 +117,7 @@
     ## define some environment variables for remote computing
     vars = c(INLA_PATH = system.file("bin", package="INLA"), 
              INLA_OS = inla.os.type(), 
-             INLA_HGVERSION = inla.version("hgid"))
+             INLA_VERSION = inla.version("version"))
     if (inla.os("windows")) {
         vars = c(vars,
                  INLA_SSH_AUTH_SOCK = inla.getOption("ssh.auth.sock"),

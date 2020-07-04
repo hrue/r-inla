@@ -1702,7 +1702,7 @@ int inla_output_detail_theta(const char *dir, double ***theta, int n_theta);
 int inla_output_detail_theta_sha1(unsigned char *sha1_hash, double ***theta, int n_theta);
 int inla_output_detail_x(const char *dir, double *x, int n_x);
 int inla_output_graph(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
-int inla_output_hgid(const char *dir);
+int inla_output_gitid(const char *dir);
 int inla_output_hyperid(const char *dir, const char *sdir, char *hyperid);
 int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_tp * fc);
 int inla_output_linkfunctions(const char *dir, inla_tp * mb);
