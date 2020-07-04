@@ -2,10 +2,11 @@
 title: "Blended GEV: a tutorial using R-INLA"
 subtitle: "Version 1.2"
 author: \normalfont{Daniela Castro-Camilo {\small{$\bullet$}} daniela.castrocamilo@glasgow.ac.uk}
-output:
-  pdf_document:
-    toc: false
-    number_sections: true
+output: rmarkdown::pdf_document
+vignette: >
+  %\VignetteIndexEntry{Blended GEV}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8} 
 ---
 \def\F{\text{F}}
 \def\G{\text{G}}
