@@ -37,15 +37,8 @@ output () {
 if [ $# -eq 0 ]; then
     echo $0: TAG
     exit 1
-else 
-    r=$( git -C r-inla tag | awk '$1==TAG { print 1 }' TAG="$1" )
-    if [ -n "$r" ]; then
-	output "TAG [$1] is present"
-    else
-	output "unknown TAG [$1]. exit"
-	exit 1
-    fi
 fi
+
 export INLA_TAG="$1"
 export INLA_VERSION=$(echo $INLA_TAG | awk -F_ '{if (NF > 1) print $2; else print $1}')
 
