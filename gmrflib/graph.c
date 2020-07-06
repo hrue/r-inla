@@ -1272,12 +1272,18 @@ int GMRFLib_print_Qfunc(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * 
  */
 int GMRFLib_xQx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
+	return (GMRFLib_xQx2(result, x, graph, Qfunc, Qfunc_arg, NULL));
+}
+
+int GMRFLib_xQx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
+		 double *diag)
+{
 	int i;
 	double *y = NULL, res;
 
 	y = Calloc(graph->n, double);
 
-	GMRFLib_Qx(y, x, graph, Qfunc, Qfunc_arg);
+	GMRFLib_Qx2(y, x, graph, Qfunc, Qfunc_arg, diag);
 	for (i = 0, res = 0.0; i < graph->n; i++) {
 		res += y[i] * x[i];
 	}

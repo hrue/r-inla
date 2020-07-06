@@ -270,6 +270,7 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	(*ai_par)->vb_enable = 0;
 	(*ai_par)->vb_strategy = 0;
 	(*ai_par)->vb_verbose = 0;
+	(*ai_par)->vb_hyperpar_correct = 0;
 	(*ai_par)->vb_refinement = 0;
 	(*ai_par)->vb_max_correct = 1.0;
 	(*ai_par)->vb_nodes = NULL;
@@ -465,11 +466,12 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 
 	if (ai_par->vb_enable) {
 		fprintf(fp, "\tVB correction is [Enabled]\n");
-		fprintf(fp, "\t\tstrategy    = [%s]\n", (ai_par->vb_strategy == GMRFLib_AI_VB_MEAN ?
-							 "mean" : "unknown"));
-		fprintf(fp, "\t\tverbose     = [%s]\n", (ai_par->vb_verbose ? "Yes" : "No"));
-		fprintf(fp, "\t\trefinement  = [%1d]\n", ai_par->vb_refinement);
-		fprintf(fp, "\t\tmax_correct = [%.2f]\n", ai_par->vb_max_correct); 
+		fprintf(fp, "\t\tstrategy         = [%s]\n", (ai_par->vb_strategy == GMRFLib_AI_VB_MEAN ?
+							      "mean" : "unknown"));
+		fprintf(fp, "\t\tverbose          = [%s]\n", (ai_par->vb_verbose ? "Yes" : "No"));
+		fprintf(fp, "\t\tcorrect hyperpar = [%s]\n", (ai_par->vb_hyperpar_correct ? "Yes" : "No"));
+		fprintf(fp, "\t\trefinement       = [%1d]\n", ai_par->vb_refinement);
+		fprintf(fp, "\t\tmax_correct      = [%.2f]\n", ai_par->vb_max_correct); 
 	} else {
 		fprintf(fp, "\tVB-correction is [Disabled]\n");
 	}
@@ -3426,6 +3428,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	double **lin_cross = NULL;
 	GMRFLib_marginal_hidden_store_tp *marginal_hidden_store = NULL;
 
+	if (!(mean == NULL)) {
+		FIXME("\n\n\n\nGMRFLib_INLA() I think the vb assumes mean=NULL, please check.\n");
+		abort();
+	}
+
 	if (fixed_value) {
 		FIXME("\n\n\n\nGMRFLib_INLA() do not longer work with FIXED_VALUE; please write a wrapper.\n");
 		abort();
@@ -4157,7 +4164,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				}
 			}
 			for(i = 0; i < 1 + ai_par->vb_refinement; i++)
-				GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg, loglFunc, loglFunc_arg);
+				GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, &log_dens_mode,
+							   b, c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg, loglFunc, loglFunc_arg, bfunc);
 
 			if (GMRFLib_ai_INLA_userfunc0) {
 				userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
@@ -4353,8 +4361,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						COMPUTE;
 						GMRFLib_free_density(cpodens);
 					}
-					for(i = 0; i < 1 + ai_par->vb_refinement; i++)
-						GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, c, d, ai_par, ai_store_id, graph, tabQfunc->Qfunc, tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg);
+					double ldens_hyperpar_corr = 0.0;
+					for(i = 0; i < 1 + ai_par->vb_refinement; i++) {
+						GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, &ldens_hyperpar_corr,
+									   b, c, d, ai_par, ai_store_id, graph, tabQfunc->Qfunc, tabQfunc->Qfunc_arg,
+									   loglFunc, loglFunc_arg, bfunc);
+					}
 
 					if (GMRFLib_ai_INLA_userfunc0) {
 						userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store_id->problem, theta_local, nhyper);
@@ -4571,8 +4583,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							GMRFLib_free_density(cpodens);
 						}
 					}
-					for(i = 0; i < 1 + ai_par->vb_refinement; i++)
-						GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, c, d, ai_par, ai_store, graph, tabQfunc->Qfunc, tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg);
+					double ldens_hyperpar_corr = 0.0;
+					for(i = 0; i < 1 + ai_par->vb_refinement; i++) {
+						GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, &ldens_hyperpar_corr, b, c, d, ai_par, ai_store,
+									   graph, tabQfunc->Qfunc, tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg, bfunc);
+					}
 
 					if (GMRFLib_ai_INLA_userfunc0) {
 						userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
@@ -4714,10 +4729,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 								COMPUTE_LOCAL;
 								GMRFLib_free_density(cpodens);
 							}
-							for(i = 0; i < 1 + ai_par->vb_refinement; i++)
-								GMRFLib_ai_vb_correct_mean(NULL, -1, dens_local, c, d, ai_par, ai_store_id, graph,
-											   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg);
-
+							double ldens_hyperpar_corr = 0.0;
+							for(i = 0; i < 1 + ai_par->vb_refinement; i++) {
+								GMRFLib_ai_vb_correct_mean(NULL, -1, dens_local, &ldens_hyperpar_corr, b, c, d, ai_par, ai_store_id, graph,
+											   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg, bfunc);
+							}
+							
 							if (GMRFLib_ai_INLA_userfunc0) {
 								userfunc_values_local =
 								    GMRFLib_ai_INLA_userfunc0(ai_store_id->problem, theta_local, nhyper);
@@ -4965,9 +4982,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 								}
 							}
 
-							for(i = 0; i < 1 + ai_par->vb_refinement; i++)
-								GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, c, d, ai_par, ai_store, graph,
-											   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg);
+							double ldens_hyperpar_corr = 0.0;
+							for(i = 0; i < 1 + ai_par->vb_refinement; i++) {
+								GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, &ldens_hyperpar_corr, b, c, d, ai_par, ai_store, graph,
+											   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg, bfunc);
+							}
 
 							if (GMRFLib_ai_INLA_userfunc0) {
 								userfunc_values[dens_count] =
@@ -5147,10 +5166,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_free_density(cpodens);
 								}
 							}
-							for(i = 0; i < 1 + ai_par->vb_refinement; i++)
-								GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, c, d, ai_par, ai_store, graph,
-											   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg);
-
+							double ldens_hyperpar_corr = 0.0;
+							for(i = 0; i < 1 + ai_par->vb_refinement; i++) {
+								GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, &ldens_hyperpar_corr, b, c, d, ai_par, ai_store, graph,
+											   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg, bfunc);
+							}
+							
 							if (GMRFLib_ai_INLA_userfunc0) {
 								userfunc_values[dens_count] =
 								    GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
@@ -5294,9 +5315,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
 			Free(bnew);
 		}
-		for(i = 0; i < 1 + ai_par->vb_refinement; i++)
-			GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg, loglFunc, loglFunc_arg);
-
+		double ldens_hyperpar_corr = 0.0;
+		for(i = 0; i < 1 + ai_par->vb_refinement; i++) {
+			GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, &ldens_hyperpar_corr, b, c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg, loglFunc, loglFunc_arg, bfunc);
+		}
+		
 		if (GMRFLib_ai_INLA_userfunc0) {
 			userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
 		}
@@ -6400,6 +6423,8 @@ GMRFLib_vb_coofs_tp *GMRFLib_ai_vb_prepare(int idx, GMRFLib_density_tp * density
 int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 			       int dens_count, 
 			       GMRFLib_density_tp **dens_local, 
+			       double *ldens_hyperpar_corr, 
+			       double *b, 
 			       double *c,
 			       double *d, 
 			       GMRFLib_ai_param_tp *ai_par,
@@ -6408,7 +6433,8 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 			       GMRFLib_Qfunc_tp *Qfunc,
 			       void *Qfunc_arg, 
 			       GMRFLib_logl_tp *loglFunc,
-			       void *loglFunc_arg)
+			       void *loglFunc_arg,
+			       GMRFLib_bfunc_tp **bfunc)
 {	
 	int id = GMRFLib_thread_id;
 	int i, j;
@@ -6556,7 +6582,6 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 		gsl_linalg_pcholesky_solve(MM, perm, MB, delta);
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, delta_mu);
 
-
 		int num_trunc = 0;
 		if (ai_par->vb_max_correct > 0) {
 			for (i = 0; i < graph->n; i++) {
@@ -6565,6 +6590,54 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 						       (gsl_vector_get(delta_mu, i) > 0.0 ? 1.0 : -1.0));
 					num_trunc++;
 				}
+			}
+		}
+
+		// compute the correction to the log-posterior for the hyperpar, based on the new mode
+		double ldens_correction = 0.0;
+		if (ai_par->vb_hyperpar_correct) {
+			double *new_mode = Calloc(graph->n, double);
+			for(i = 0; i < graph->n; i++) {
+				new_mode[i] = mode[i] + gsl_vector_get(delta_mu, i);
+			}
+			
+			for(ii = 0; ii < d_idx->n; ii++){
+				double ld[2], xx[2];
+				i = d_idx->idx[ii];
+				xx[0] = new_mode[i];
+				xx[1] = ai_store->mode[i];
+				loglFunc(&ld[0], &xx[0], 1, i, mode, NULL, loglFunc_arg);
+				loglFunc(&ld[1], &xx[1], 1, i, ai_store->mode, NULL, loglFunc_arg);
+				ldens_correction += d[i] * (ld[0] - ld[1]);
+			}
+			
+			// prior
+			double res_new, res_old;
+			GMRFLib_xQx2(&res_new, new_mode, graph, Qfunc, Qfunc_arg, c);
+			GMRFLib_xQx2(&res_old, ai_store->mode, graph, Qfunc, Qfunc_arg, c);
+			ldens_correction += res_new - res_old;
+
+			// linear term and the contributions from bfunc()
+			double *bnew = NULL, con = 0.0;
+			GMRFLib_bnew(&bnew, &con, graph->n, b, bfunc);
+			for(i = 0; i < graph->n; i++){
+				ldens_correction += bnew[i] * (new_mode[i] - ai_store->mode[i]);
+			}
+			
+			// change in the conditional distribution
+			memcpy(ai_store->problem->sample, ai_store->mode, graph->n*sizeof(double));
+			GMRFLib_evaluate(ai_store->problem);
+			ldens_correction += ai_store->problem->sub_logdens;
+			memcpy(ai_store->problem->sample, new_mode, graph->n*sizeof(double));
+			GMRFLib_evaluate(ai_store->problem);
+			ldens_correction -= ai_store->problem->sub_logdens;
+			*ldens_hyperpar_corr = ldens_correction;
+			
+			Free(new_mode);
+			Free(bnew);
+		} else {
+			if (ldens_hyperpar_corr) {
+				*ldens_hyperpar_corr = 0.0;
 			}
 		}
 
@@ -6587,6 +6660,9 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 		if (ai_par->vb_verbose) {
 			printf("\tVB correct with strategy [mean] in [%.3f]seconds\n", GMRFLib_cpu()-tref);
 			printf("\t\tNumber of nodes corrected for [%1d]\n", (int) delta->size);
+			if (ai_par->vb_hyperpar_correct) {
+				printf("\t\tPotential correct ldens_hyperpar [%.4f]\n", ldens_correction);
+			}
 			printf("\t\tNumber of corrections truncated [%1d] with max.correct[%.2f]\n", num_trunc, ai_par->vb_max_correct);
 			for (jj = 0; jj < vb_idx->n; jj++) {
 				j = vb_idx->idx[jj];
@@ -6608,8 +6684,8 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 		Free(cmean);
 		Free(corr);
 		Free(mode);
-		Free(tmp);
 		Free(sd);
+		Free(tmp);
 
 		gsl_matrix_free(M);
 		gsl_matrix_free(MM);
