@@ -927,6 +927,7 @@ struct inla_tp_struct {
 	int predictor_compute;
 	int predictor_fixed;
 	int predictor_user_scale;
+	int predictor_vb_correct;
 	link_func_tp **predictor_invlinkfunc;		       /* these are rebuilt */
 	void **predictor_invlinkfunc_arg;		       /* these are rebuilt */
 	GMRFLib_matrix_tp **predictor_invlinkfunc_covariates;
