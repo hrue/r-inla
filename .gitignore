@@ -757,6 +757,7 @@ rinla/man/reorderings.Rd
 rinla/man/rerun.Rd
 rinla/man/residuals.Rd
 rinla/man/rgeneric.Rd
+rinla/man/set.default.arguments.Rd
 rinla/man/sampler.Rd
 rinla/man/scale.model.Rd
 rinla/man/sensitivity.Rd
