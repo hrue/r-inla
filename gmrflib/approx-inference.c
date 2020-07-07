@@ -6660,6 +6660,7 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 		if (ai_par->vb_verbose) {
 			printf("\tVB correct with strategy [mean] in [%.3f]seconds\n", GMRFLib_cpu()-tref);
 			printf("\t\tNumber of nodes corrected for [%1d]\n", (int) delta->size);
+			printf("\t\tRefinement [%1d]\n", (int) ai_par->vb_refinement);
 			if (ai_par->vb_hyperpar_correct) {
 				printf("\t\tPotential correct ldens_hyperpar [%.4f]\n", ldens_correction);
 			}
