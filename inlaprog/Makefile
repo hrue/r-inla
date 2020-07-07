@@ -32,7 +32,7 @@ LEXTPREFIX = $(PREFIX)
 
 # The external libraries to link with
 EXTLIBS1 = -L$(PREFIX)/lib -lGMRFLib -L$(LEXTPREFIX)/lib 
-EXTLIBS2 = -lgsl -ltaucs -lmetis -llapack -lblas -lgslcblas -lamd -lmuparser -lz -lgfortran -lR
+EXTLIBS2 = -lgsl -ltaucs -lmetis -llapack -lblas -lgslcblas -lamd -lmuparser -lz -lgfortran
 EXTLIBS3 = -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -lm
 
 ################################################################################
@@ -43,12 +43,7 @@ EXTLIBS3 = -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -lm
 
 SHELL   = /bin/sh
 
-# Only try to update the hgstamp if hg is available.
-# Should also check if we are in a repository.
-# To use existing HG file, use "make HG= target"
-# Would be prettier and more robust with a mercurial update hook.
-HG:= $(shell which hg)
-GITCOMMIT:= $(shell if [ -x "$(HG)" -a -d ../.hg ]; then $(HG) parents --template 'hgid: {node|short}  date: {date|date}'; elif [ -e hgstamp ]; then cat hgstamp; else echo 'hgid: unknown  date: unknown' ; fi)
+GITCOMMIT:= $(shell git log --pretty=format:"%H - %cd" | head -n1)
 
 EXTLIBS = $(RLIB_LIB) $(EXTLIBS1) $(EXTLIBS2) $(EXTLIBS3)
 INCL    = $(RLIB_INC) -Isrc -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
