@@ -1005,7 +1005,7 @@
         cat("AextPrecision = ", predictor.spec$precision, "\n", append=TRUE, sep = " ", file = file)
     }
 
-    inla.write.boolean.field("vb.correct", predictor.spec$control.vb$vb.correct, file)
+    inla.write.boolean.field("vb.correct", predictor.spec$vb.correct, file)
 
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
