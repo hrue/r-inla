@@ -906,6 +906,7 @@
     }
     inla.write.boolean.field("control.vb.enable", inla.spec$control.vb$enable, file)
     inla.write.boolean.field("control.vb.verbose", inla.spec$control.vb$verbose, file)
+    inla.write.boolean.field("control.vb.hyperpar.correct", inla.spec$control.vb$hyperpar.correct, file)
     cat("control.vb.strategy = ", inla.spec$control.vb$strategy, "\n", file = file, append = TRUE)
     cat("control.vb.refinement = ", inla.spec$control.vb$refinement, "\n", file = file, append = TRUE)
     cat("control.vb.max.correct = ", inla.spec$control.vb$max.correct, "\n", file = file, append = TRUE)
@@ -1003,6 +1004,8 @@
         cat("Aext = ", file.A, "\n", append=TRUE, sep = " ", file = file)
         cat("AextPrecision = ", predictor.spec$precision, "\n", append=TRUE, sep = " ", file = file)
     }
+
+    inla.write.boolean.field("vb.correct", predictor.spec$vb.correct, file)
 
     cat("\n", sep = " ", file = file,  append = TRUE)
 }

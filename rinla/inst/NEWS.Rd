@@ -26,6 +26,15 @@
     }
   }
 }
+
+\section{CHANGES IN VERSION 20.07.04}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Vignette added for \code{family=bGEV}
+      \item Some internal changes due to the migration to \code{git}
+    }
+  }
+}
 \section{CHANGES IN VERSION 20.06.29}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{

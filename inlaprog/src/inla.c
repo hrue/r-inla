@@ -11292,6 +11292,11 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 		printf("\t\tuser.scale=[%1d]\n", mb->predictor_user_scale);
 	}
 
+	mb->predictor_vb_correct = iniparser_getboolean(ini, inla_string_join(secname, "VB.CORRECT"), 0);
+	if (mb->verbose) {
+		printf("\t\tvb.correct=[%1d]\n", mb->predictor_vb_correct);
+	}
+
 	mb->predictor_n = iniparser_getint(ini, inla_string_join(secname, "N"), -1);
 	assert(mb->predictor_n > 0);
 	if (mb->verbose) {
@@ -17671,7 +17676,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		abort();
 	}
 
-	mb->f_vb_correct[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "VB.CORRECT"), -1);
+	mb->f_vb_correct[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "VB.CORRECT"), 0);
 	if (mb->verbose) {
 		printf("\t\tvb.correct=[%1d]\n", mb->f_vb_correct[mb->nf]);
 	}
@@ -25075,6 +25080,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 
 	mb->ai_par->vb_enable = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.VB.ENABLE"), 0);
 	mb->ai_par->vb_verbose = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.VB.VERBOSE"), 0);
+	mb->ai_par->vb_hyperpar_correct = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.VB.HYPERPAR.CORRECT"), 0);
 	mb->ai_par->vb_nodes = (mb->ai_par->vb_enable ? Calloc(1, char) : NULL);
 	mb->ai_par->vb_max_correct = iniparser_getdouble(ini, inla_string_join(secname, "CONTROL.VB.MAX.CORRECT"), 1.0);
 	mb->ai_par->vb_max_correct = DMAX(0.0, mb->ai_par->vb_max_correct);
@@ -29118,6 +29124,18 @@ int inla_INLA(inla_tp * mb)
 	local_count = 0;
 	if (mb->ai_par->vb_enable) {
 		vb_nodes = Calloc(N, char);
+		if (mb->predictor_vb_correct) {
+			// I think this is for testing only
+			if (mb->predictor_m == 0) {
+				for(i = 0; i < mb->predictor_n; i++) {
+					vb_nodes[i] = (char) 1;
+				}
+			} else {
+				for(i = 0; i < mb->predictor_m; i++) {
+					vb_nodes[i] = (char) 1;
+				}
+			}
+		}
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
 			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] == 1) || mb->f_vb_correct[i] > 0) {

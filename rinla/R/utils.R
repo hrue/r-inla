@@ -959,22 +959,35 @@
 {
     inla.rw(n, order=2L, ...)
 }
-`inla.rw` = function(n, order=1L, sparse=TRUE, scale.model = FALSE)
+`inla.rw` = function(n, order=1L, sparse=TRUE, scale.model = FALSE, cyclic = FALSE)
 {
+    stopifnot(n >= 1+2*order)
     if (scale.model) {
-        Q = inla.rw(n, order = order,  sparse=sparse,  scale.model=FALSE)
-        fac = exp(mean(log(diag(inla.ginv(as.matrix(Q), rankdef = order)))))
-        Q = fac * Q
-        if (sparse) Q = inla.as.sparse(Q)
-        return (Q)
-    } else {
-        U = diff(diag(n), diff=order)
-        if (sparse) {
-            return (inla.as.sparse(t(U) %*% U))
+        if (!cyclic) {
+            rd <- order
         } else {
-            return (t(U) %*% U)
+            if (order == 1) {
+                rd <- 1
+            } else {
+                rd <- order -1
+            }
+        }
+        Q = inla.rw(n, order = order,  sparse=sparse,  scale.model=FALSE, cyclic = cyclic)
+        fac = exp(mean(log(diag(inla.ginv(as.matrix(Q), rankdef = rd)))))
+        Q = fac * Q
+    } else {
+        if (!cyclic) {
+            U = diff(diag(n), diff=order)
+            Q <- t(U) %*% U
+        } else {
+            m <- 2*order + 1
+            k <-  1+order
+            U <- diff(diag(m), diff = order)
+            U <- t(U) %*% U
+            Q <- toeplitz(c(U[k, k:m], rep(0, n-m), U[k, m:(k+1)]))
         }
     }
+    return (if (sparse) inla.as.sparse(Q) else Q)
 }
 
 ##

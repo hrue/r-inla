@@ -757,6 +757,7 @@ rinla/man/reorderings.Rd
 rinla/man/rerun.Rd
 rinla/man/residuals.Rd
 rinla/man/rgeneric.Rd
+rinla/man/set.default.arguments.Rd
 rinla/man/sampler.Rd
 rinla/man/scale.model.Rd
 rinla/man/sensitivity.Rd
@@ -785,3 +786,8 @@ rinla/vignettes/scale-model.tex
 rinla/vignettes/stack-with-factors.pdf
 
 r-inla/rinla/inst/NEWS.pdf
+
+## to override the Makefile
+r-inla/inlaprog/GNUmakefile
+r-inla/gmrflib/GNUmakefile
+r-inla/GNUmakefile

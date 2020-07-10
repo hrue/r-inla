@@ -523,8 +523,8 @@
         ##:ARGUMENT: stupid.search.factor Numerical Factor (>=1) to increase the step-length with after each new interation. (default 1.05)
         stupid.search.factor = 1.05,
         
-        ##:ARGUMENT: control.vb List of arguments for various VB corrections. \code{enable} Logical Use this feature? \code{strategy} Charactor What to correct, one of "mean", "more.to.come.later...". \code{verbose} Logical Be verbose or not. \code{refinement} Integer Number of extra refinement iterations. \code{max.correct} Numerical Bound the allowed correction (\code{strategy="mean"}: \code{|diff.mean/stdev| < max.correct})
-        control.vb = list(enable = FALSE, strategy = "mean", verbose = TRUE, refinement = 0, max.correct = 1.0),
+        ##:ARGUMENT: control.vb List of arguments for various VB corrections. \code{enable} Logical Use this feature? \code{strategy} Charactor What to correct, one of "mean", "more.to.come.later...". \code{verbose} Logical Be verbose or not. \code{refinement} Integer Number of extra refinement iterations. \code{max.correct} Numerical Bound the allowed correction (\code{strategy="mean"}: \code{|diff.mean/stdev| < max.correct}). \code{hyperpar.correct} Logical Correct the marginal posterior for the hyperparameters?
+        control.vb = list(enable = FALSE, strategy = "mean", verbose = TRUE, refinement = 0, max.correct = 1.0, hyperpar.correct = FALSE),
 
         ##:ARGUMENT: control.correct List of control arguments for correction for the Laplace approximation: \code{enable} Logical Use this feature? \code{factor} Numerical Factor used in adjusting the correction factor (default=10) if \code{correct=TRUE}. \code{strategy}  Character The strategy used to compute the correction; one of 'simplified.laplace' (default) or 'laplace'. \code{verbose}  Logical Be verbose when computing the correction? (default \code{FALSE})
         control.correct = list(enable = FALSE, factor = 10.0, strategy = "simplified.laplace", verbose = FALSE)
@@ -578,7 +578,10 @@
         precision = exp(15),
 
         ##:ARGUMENT: link Define the family-connection for unobserved observations (\code{NA}). \code{link} is integer values which defines the family connection; \code{family[link[idx]]} unless \code{is.na(link[idx])} for which the identity-link is used. The \code{link}-argument only influence the \code{fitted.values} in the \code{result}-object. If \code{is.null(link)} (default) then the identity-link is used for all missing observations. If the length of \code{link} is 1, then this value is replicated with the length of the responce vector. If an element of the responce vector is \code{!NA} then the corresponding entry in \code{link} is not used (but must still be a legal value). Setting this variable implies \code{compute=TRUE}.
-        link = NULL)
+        link = NULL,
+
+        ##:ARGUMENT: vb.correct Logical Add this model component to the list of variables to be used for the vb corrected Laplace approximation? If \code{NULL} use default choice,  otherwise correct if \code{TRUE} and do not if \code{FALSE} (expert option)
+        vb.correct = NULL)
 
     ##:SEEALSO: inla
 }
