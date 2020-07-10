@@ -27,6 +27,14 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.07.09}{
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item Package built with R-4.0
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.07.04}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
