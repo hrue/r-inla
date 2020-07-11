@@ -73,7 +73,7 @@ citEntry(
 
 citEntry(
     entry = "Article",
-    title = "Bayesian computing with {INLA}: {A} review}",
+    title = "Bayesian computing with {INLA}: {A} review",
     author = personList(as.person("H{\\aa}vard Rue"),
                         as.person("Andrea I. Riebler"), 
                         as.person("Sigrunn H. S{\\o}rbye"), 
@@ -95,7 +95,7 @@ citEntry(
 
 citEntry(
     entry = "Article",
-    title = "Spatial modelling with {INLA}: {A} review}",
+    title = "Spatial modelling with {INLA}: {A} review",
     author = personList(as.person("Haakon Bakka"),
                         as.person("H{\\aa}vard Rue"),
                         as.person("Geir-Arne Fuglstad"),
