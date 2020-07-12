@@ -16,6 +16,6 @@ updateBIN:;
 	./updateBin
 
 updateREPO:;
-	cd r-inla; git reset --hard; git checkout devel; git pull --all; git checkout release/$$INLA_TAG
+	cd r-inla; git reset --hard; git checkout devel; git branch -D tag-$$INLA_TAG||true; git pull --all --prune; git checkout tags/$$INLA_TAG -b tag-$$INLA_TAG
 
 .PHONY: updateBIN updateREPO local install testing check

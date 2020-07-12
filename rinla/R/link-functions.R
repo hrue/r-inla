@@ -232,11 +232,34 @@
     omega = 1/sqrt(1-2*delta^2/pi)
     xi = -omega * delta * sqrt(2/pi)
 
-    if (!inverse) {
-        return (sn::qsn(x, xi = xi, omega = omega, alpha = alpha))
+    ## skewness
+    ## print((4-pi)/2 * (delta*sqrt(2/pi))^3 / ((1-2*delta^2/pi)^(3/2)))
+
+    ## the sn's qsn and psn handle 'alpha' in a strange way
+    if (length(alpha) == 1) {
+        ## then it vectorize...
+        if (!inverse) {
+            ret <- sn::qsn(x, xi = xi, omega = omega, alpha = alpha)
+        } else {
+            ret <- sn::psn(x, xi = xi, omega = omega, alpha = alpha)
+        }
     } else {
-        return (sn::psn(x, xi = xi, omega = omega, alpha = alpha))
+        ## then it does not vectorize... but does not give any error/warning!
+        X <- cbind(x = x, xi = xi, omega = omega, alpha = alpha)
+        ret <- numeric(nrow(X))
+        if (!inverse) {
+            for(i in 1:nrow(X)) {
+                ret[i] <- sn::qsn(X[i, "x"], xi = X[i, "xi"],
+                                  omega = X[i, "omega"], alpha = X[i, "alpha"])
+            }
+        } else {
+            for(i in 1:nrow(X)) {
+                ret[i] <- sn::psn(X[i, "x"], xi = X[i, "xi"],
+                                  omega = X[i, "omega"], alpha = X[i, "alpha"])
+            }
+        }
     }
+    return (ret)
 }
 `inla.link.invsn` = function(x, a = 0, inverse = FALSE)
 {
