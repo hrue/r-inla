@@ -27,6 +27,30 @@
   }
 }
 
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed \code{inla.link.sn} to vectorise over argument
+      \code{a} as \code{sn}-package do not do that properly itself. 
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.07.09}{
   \subsection{NEW FEATURES}{
     \itemize{
