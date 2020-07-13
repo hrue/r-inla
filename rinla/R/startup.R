@@ -25,6 +25,13 @@ inla.print.version <- function()
                            "\n",
                            "To enable PARDISO sparse library; see inla.pardiso()")
         }
+        s <- inla.prune.check()
+        if (s > 0) {
+            hello <- paste0(hello,
+                            "\n",
+                            paste0("Save ", s,
+                                   "Mb of storage by running 'inla.prune()',  see '?inla.prune'."))
+        }
         packageStartupMessage(hello)
         if (!inla.os("windows") && inla.os.is.32bit()) {
             warning(paste0("INLA_",  version,
