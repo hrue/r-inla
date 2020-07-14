@@ -51,7 +51,7 @@
 ##! inla.pc.psn(x, lambda = 40)
 ##! }
 
-inla.pc.sn.cache = function(force = FALSE) 
+inla.pc.sn.cache = function(force = FALSE, write.files = FALSE) 
 {
     sn = function(x, alpha) {
         a = sign(alpha) * alpha^(1/3)
@@ -97,14 +97,20 @@ inla.pc.sn.cache = function(force = FALSE)
     tag = "cache.pc.sn"
     if (force || !exists(tag, envir = inla.get.inlaEnv())) {
         ran = 2000
-        alphas = exp(seq(log(0.001), log(ran), len=199))
+        alphas = exp(seq(log(0.001), log(ran), len=499))
         alphas = c(-rev(alphas), 0, alphas)
         alphas.pos = alphas[which(alphas >= 0)]
         alphas.neg = alphas[which(alphas <= 0)]
         dist.pos = dist(alphas.pos)$dist
         dist.neg = rev(dist.pos)
-        ## write(alphas.pos, ncol = 1, file="aa")
-        ## write(dist.pos, ncol = 1, file="dd")
+
+        if (write.files) {
+            print("write file [a-sn-pc-prior.dat]")
+            write(alphas.pos, ncol = 1, file="a-sn-pc-prior.dat")
+            print("write file [d-sn-pc-prior.dat]")
+            write(dist.pos, ncol = 1, file="d-sn-pc-prior.dat")
+        }
+        
         m = "monoH.FC"
         assign(tag,
                list(alpha.range = range(alphas),
@@ -221,3 +227,66 @@ inla.pc.sn.test = function(lambda = 40)
 ##     inla.get.inlaEnv = function(...) INLA:::inla.get.inlaEnv(...)
 ##     inla.pc.sn.test()
 ##
+
+inla.pc.sn.test2 <- function() 
+{
+    ## this is another test
+    
+    ## the taylor expansion where the skewness is \Phi(alpha*(x-xi)/\omega), without the ^(1/3),
+    ## giving kld=O(alpha^6).
+    kld.t <- function(alpha) {
+        t1 = alpha*alpha
+        t8 = t1*t1
+        t10 = t8*t1*(0.3960827996046746E-2+t1*(-0.4043436622715706E-2+t1*(
+            0.205737163227263E-2+0.2400653839003813E-4*t1)))
+        return (t10)
+    }
+    d.t <- function(alpha) return (sqrt(2*kld.t(alpha)))
+
+    sn = function(x, alpha) {
+        a = sign(alpha) * alpha^(1/3)
+        delta = a/sqrt(1 + a^2)
+        omega = 1/sqrt(1-2*delta^2/pi)
+        xi = -omega * delta * sqrt(2/pi)
+        xx = (x - xi)/omega
+        return (2/omega * dnorm(xx) * pnorm(a*xx))
+    }
+
+    kld.value = function(x, alpha) {
+        dsn = sn(x, alpha)
+        idx = which(dsn > 0.0)
+        dsn = dsn[idx]
+        x = x[idx]
+        if (length(x)%%2 == 0) {
+            x = x[-length(x)]
+            dsn = dsn[-length(dsn)]
+        }
+        w = c(1, rep(c(4, 2), (length(x)-3) %/% 2), 4, 1)/3
+        dn = dnorm(x)
+        dsn = dsn / sum(w*dsn)
+        dn = dn / sum(w*dn)
+        return (sum(w*dsn*log(dsn/dn)))
+    }
+
+    kld = function(alpha) {
+        dx = 0.001
+        ran = 8
+        x = seq(-ran, ran, by = dx)
+        return (kld.value(x, alpha))
+    }
+
+    dist = function(alpha) {
+        d = numeric(length(alpha))
+        for(i in seq_along(alpha)) {
+            d[i] = sqrt(2.0 * max(0, kld(alpha[i])))
+        }
+        idx = which(!(is.na(d) | is.infinite(d)))
+        return (data.frame(alpha = alpha[idx], dist = d[idx]))
+    }
+
+    alpha <- seq(0, 1, by = 0.01)
+    plot(alpha, d.t(alpha))
+    lines(alpha, dist(alpha^3)$dist)
+
+    return (invisible())
+}
