@@ -7446,7 +7446,7 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 
 	int i, k, np = GMRFLib_faster_integration_np;
 	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *loglik = NULL, *work = NULL, integral = 0.0, w[2] =
-	    { 4.0, 2.0 }, integral_one, logl_saturated;
+		{ 4.0, 2.0 }, integral_one, logl_saturated;
 
 	GMRFLib_ASSERT_RETVAL(np > 3, GMRFLib_ESNH, 0.0);
 
@@ -7475,6 +7475,20 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 	// logl_saturated = d * inla_compute_saturated_loglik(idx, loglFunc, x_vec, NULL, loglFunc_arg);
 	logl_saturated = 0.0;
 
+	// added this for stability, as it simply ignore extreme values that might and do occur, making the DIC=inf
+	double dlim = 1.0E-10, logdlim = log(dlim), dmax, llmax;
+	dmax = GMRFLib_max_value(dens, np, NULL);
+	for(i = 0; i < np; i++) {
+		dens[i] /= dmax;
+		if (dens[i] < dlim) {
+			dens[i] = 0.0;
+		}
+	}
+	llmax = GMRFLib_max_value(loglik, np, NULL);
+	for(i = 0; i < np; i++) {
+		loglik[i] = DMAX(loglik[i], llmax + logdlim); /* 'logdlim' is negative  */
+	}
+	
 	integral = loglik[0] * dens[0] + loglik[np - 1] * dens[np - 1];
 	integral_one = dens[0] + dens[np - 1];
 	for (i = 1, k = 0; i < np - 1; i++, k = (k + 1) % 2) {
@@ -7484,7 +7498,6 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 	integral = -2.0 * (integral / integral_one - logl_saturated);
 
 	Free(work);
-
 	return integral;
 }
 
