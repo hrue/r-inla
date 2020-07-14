@@ -20733,7 +20733,7 @@ GMRFLib_spline_tp *inla_pc_sn_create_spline(void)
 		2000.0
 	};
 
-	double y[] =  {
+	double yy[] =  {
 		0.0, 
 		8.85505438e-05, 
 		9.115918341e-05, 
