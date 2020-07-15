@@ -54,10 +54,10 @@
 ##! \code{inla.rjmarginal.eval} returns a matrix, where each row is the (vector) function
 ##! evaluated at each sample.
 ##!
-##!  \code{inla.tjmarginal} returns a \code{inla.jmarginal}-object of the linear combination
-##!  defined by the matrix \code{A}. 
+##! \code{inla.tjmarginal} returns a \code{inla.jmarginal}-object of the linear combination
+##! defined by the matrix \code{A}. 
 ##!
-##!  \code{inla.1djmarginal} return the marginal densities from a joint approximation.
+##! \code{inla.1djmarginal} return the marginal densities from a joint approximation.
 ##! }
 ##! 
 ##! \author{Cristian Chiuchiolo and Havard Rue \email{hrue@r-inla.org}}
@@ -98,6 +98,13 @@
 ##! xx.eval = inla.rjmarginal.eval(function() c(x, Predictor, Intercept),  xx)
 ##! print(cbind(xx$samples[, 1]))
 ##! print(cbind(xx.eval[, 1]))
+##!
+##! constr <- list(A = matrix(1, ncol = n, nrow = 1), e = 1)
+##! x <- inla.rjmarginal(10, r, constr = constr)
+##!
+##! A <- matrix(rnorm(n^2), n, n)
+##! b <- inla.tjmarginal(r, A)
+##! b.marg <- inla.1djmarginal(b)
 ##!}
 
 `inla.rjmarginal` = function(n, jmarginal, constr) 
@@ -222,8 +229,9 @@
 
 `summary.inla.jmarginal` <- function(object) 
 {
+    stopifnot(inla.require("sn"))
     mode.sn <- function(xi, omega, alpha) {
-        med <- qsn(0.5, xi, omega, alpha)
+        med <- sn::qsn(0.5, xi, omega, alpha)
         res = optimize(f = dsn, interval = c(med - omega, med + omega), maximum = TRUE, 
                        ## arguments to 'dsn'
                        log = TRUE, xi = xi, omega = omega, alpha = alpha)
@@ -240,7 +248,7 @@
     mode <- c()
     qsn.eval <- matrix(NA, nrow = length(n.sel), ncol = length(prob))
     for (i in seq_along(n.sel)) {
-        qsn.eval[i, ] <- qsn(prob, xi = dsn.xi[i], omega = dsn.omega[i], alpha = dsn.alpha[i])
+        qsn.eval[i, ] <- sn::qsn(prob, xi = dsn.xi[i], omega = dsn.omega[i], alpha = dsn.alpha[i])
         mode[i] <- mode.sn(xi = dsn.xi[i], omega = dsn.omega[i], alpha = dsn.alpha[i])
     }
     obj <- cbind(mu, std, qsn.eval, mode)
@@ -382,6 +390,7 @@
 
 `inla.1djmarginal` <- function(jmarginal)
 {
+    stopifnot(inla.require("sn"))
     if (inherits(jmarginal, "inla")) {
         jmarginal <- jmarginal$selection
     } else if (inherits(jmarginal, "inla.jmarginal")) {
@@ -396,9 +405,8 @@
     dsn.xi <- jmarginal$marginal.sn.par$xi
     dsn.omega <- jmarginal$marginal.sn.par$omega
     dsn.alpha <- jmarginal$marginal.sn.par$alpha
-    obj <- list(vector('list', length(n.sel)))
-    names(obj) <- 'dmarginal'
-    names(obj$dmarginal) <- n.sel
+    obj <- vector('list', length(n.sel))
+    names(obj) <- n.sel
 
     ## copy from density.c
     q.many <- c(0.0000001, 0.000001, 0.00001, 0.0001, 0.0005, 0.001, 0.005, 0.01, 0.025,
@@ -409,10 +417,10 @@
                 0.95, 0.975, 0.99, 0.995, 0.999, 0.9995, 0.9999, 0.99999, 0.999999, 0.9999999)
     
     for(i in seq_along(n.sel)) {
-        val <- qsn(q.many, xi = dsn.xi[i], omega = dsn.omega[i], alpha = dsn.alpha[i])
-        dsn.eval <- dsn(val, xi = dsn.xi[i], omega = dsn.omega[i], alpha = dsn.alpha[i])
-        obj[[1]][[i]] <- cbind(val, dsn.eval)
-        colnames(obj[[1]][[i]]) = c('x', 'y')
+        val <- sn::qsn(q.many, xi = dsn.xi[i], omega = dsn.omega[i], alpha = dsn.alpha[i])
+        dsn.eval <- sn::dsn(val, xi = dsn.xi[i], omega = dsn.omega[i], alpha = dsn.alpha[i])
+        obj[[i]] <- cbind(val, dsn.eval)
+        colnames(obj[[i]]) = c('x', 'y')
     }
 
     return(obj)
