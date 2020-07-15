@@ -3301,7 +3301,7 @@ inla.contour.segment <-
                                       ))
                          )
     ## Map function values to mesh indexing:
-    zz = rep(0, prod(dim(z)))
+    zz = rep(0, mesh$n)
     ## 2020-07-15:
     ##   Bug in fmesher may lead to some lattice points missing. Ignore those.
     lattice_points_ok <- !is.na(mesh$idx$lattice)
