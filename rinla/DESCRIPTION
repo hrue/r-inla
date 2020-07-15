@@ -43,7 +43,9 @@ Suggests:
     rmarkdown,
     sn,
     splancs,
-    spdep
+    spdep,
+    mpoly,
+    symmoments
 Imports:
     graphics,
     grDevices,
