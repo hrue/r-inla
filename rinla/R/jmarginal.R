@@ -44,6 +44,9 @@
 ##! }
 ##! 
 ##! \value{%%
+##! THESE FUNCTIONS ARE EXPERIMENTAL FOR THE MOMENT (JULY 2020)
+##!
+##!
 ##! \code{inla.rjmarginal} returns a list with the samples in \code{samples}
 ##! (matrix) and the corresponding log-densities
 ##! in \code{log.density} (vector). Each column in \code{samples} contains one sample.
@@ -96,7 +99,6 @@
 ##! print(cbind(xx$samples[, 1]))
 ##! print(cbind(xx.eval[, 1]))
 ##!}
-
 
 `inla.rjmarginal` = function(n, jmarginal, constr) 
 {
@@ -280,10 +282,11 @@
     ##create global environment symmoments to store all moments
     if (!exists('symmoments'))
         symmoments <<- new.env()               
+    if (is.null(symmoments$n.max)){
+        symmoments$n.max <- 1
+        symmoments::make.all.moments(moment = rep(1, 1), verbose = FALSE)
+    }
 
-    skew.tjoint <- c()
-    symmoments::make.all.moments(moment = rep(2, 2), verbose = FALSE)
-    symmoments::make.all.moments(moment = rep(1, 3), verbose = FALSE)
     skew.max <- 0.99
     moments <- jmarginal$.private$moments
     mom1 <- moments[[1]]
@@ -293,7 +296,7 @@
     mu.tjoint <- A %*% mom1
     S.tjoint <- A %*% S %*% t(A)
     m2.tjoint <- diag(S.tjoint) + mu.tjoint^2
-
+    m3.tjoint <- skew.tjoint <- c()
     for (lc in 1:nrow(A)) {
         x <- A[lc, ]
         lc.ind <- which(x != 0 & !is.na(x))
@@ -302,7 +305,8 @@
         m1.lin <- mom1[lc.ind]
         m3.lin <- mom3[lc.ind]
         S.lin <- S[lc.ind, lc.ind]
-        S.str <- S.lin[t(upper.tri(S.lin, diag = TRUE))]
+        S.str <- S.lin[lower.tri(S.lin, diag = TRUE)]
+        n.max <- get('n.max', envir = symmoments)
         m <- rep(2, n)
         names(m) <- sapply(1:n, function(x) paste0("x", x))
         names(coef) <- rep("coef", n)
@@ -312,6 +316,11 @@
             while((i < j) && (j <= n)) {
                 bicross <- c(bicross, list(c(m[i], m[j]/2, 3*coef[i]^2, coef[j])), 
                              list(c(m[i]/2, m[j], 3*coef[i], coef[j]^2)))
+                if (n > n.max){
+                    mom.eval <- rep(0, n)
+                    mom.eval[i] <- mom.eval[j] <- 2
+                    symmoments::make.all.moments(moment = mom.eval, verbose = FALSE)
+                }
                 j <- j+1
             }
         }
@@ -324,6 +333,12 @@
                     k <- 1
                     while(k < j) {
                         tricross <- c(tricross, list(c(m[i]/3, m[j]/3, m[k]/3, 6*coef[i], coef[j], coef[k])))
+                        if (n > n.max){
+                            symmoments$n.max <- n
+                            mom.eval <- rep(0, n)
+                            mom.eval[i] <- mom.eval[j] <- mom.eval[k] <- 1
+                            symmoments::make.all.moments(moment = mom.eval, verbose = FALSE)
+                        }
                         k <- k+1
                     }
                     j <- j+1
@@ -338,6 +353,7 @@
         mom3.m <- sum(coef^3*m3.lin) +
             symmoments::evaluate_expected.polynomial(poly = poly3, mu = m1.lin, sigma = S.str)
         skew.m <- (mom3.m-3*mom2.m*mom1.m+2*mom1.m^3)*((mom2.m-mom1.m^2)^(-1.5))   #global skewnesses
+        m3.tjoint[lc] <- mom3.m
         if (any(abs(skew.m) > skew.max)) {
             skew.m <- pmax(-skew.max, pmin(skew.max, skew.m))
             warning(paste0("One or more marginal skewness are too high. Coerced to be ", skew.max))
@@ -355,7 +371,10 @@
     output$marginal.sn.par$xi <- sn.par$xi
     output$marginal.sn.par$omega <- sn.par$omega
     output$marginal.sn.par$alpha <- sn.par$alpha
-    output$.private <- list(mom1.m, mom2.m, mom3.m)
+    output$.private$moments <- list(as.numeric(mu.tjoint), as.numeric(m2.tjoint), m3.tjoint)
+    names(output$.private$moments[[1]]) <- names.sel
+    names(output$.private$moments[[2]]) <- names.sel
+    names(output$.private$moments[[3]]) <- names.sel
     class(output) <- "inla.jmarginal"
 
     return(output)
