@@ -27,10 +27,11 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
+\section{CHANGES IN VERSION 20.07.16}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
-      \item 
+      \item Packages \code{mpoly} and \code{symmoments} are
+      added to the Suggests-list.
     }
   }
   \subsection{NEW FEATURES}{
@@ -41,12 +42,16 @@
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item
+      \item More features for \code{jmarginal} added
     }
   }
   \subsection{BUG FIXES}{
     \itemize{
       \item Build-scripts fixes
+      \item Fix for a rare \code{fmesher} issue
+      \item Improved the code for the DIC calculations to make
+      them more stable
+      \item Some improvment in the PC-prior for the SN-link
     }
   }
 }

@@ -1083,8 +1083,6 @@ inla.wkt_unit_params <- function() {
 #' unit.
 
 inla.wkt_get_lengthunit <- function(wkt) {
-  inla.requires_PROJ6("inla.wkt_get_lengthunit")
-  
   extract <- function(wt) {
     # 1. Recursively find LENGTHUNIT, except within ELLIPSOID
     # 2. Return unit
@@ -1122,8 +1120,6 @@ inla.wkt_get_lengthunit <- function(wkt) {
 #' Note that the length unit for the ellipsoid radius is unchanged.
 
 inla.wkt_set_lengthunit <- function(wkt, unit, params = NULL) {
-  inla.requiresPROJ6('inla.wkt_set_lengthunit')
-  
   convert <- function(wt, unit) {
     # 1. Recursively find LENGTHUNIT, except within ELLIPSOID
     # 2. Change unit

@@ -54,7 +54,7 @@ else
 fi
 
 tt=$(mktemp)
-grep -v 192.168.122.158 ~/.ssh/known_hosts  > $tt && mv -f $tt ~/.ssh/known_host
+grep -v 192.168.122.158 ~/.ssh/known_hosts  > $tt && mv -f $tt ~/.ssh/known_hosts
 	
 export INLA_VERSION=$(echo $INLA_TAG | awk -F_ '{if (NF > 1) print $2; else print $1}')
 output INLA_MAC=$INLA_MAC
