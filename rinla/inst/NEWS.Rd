@@ -27,7 +27,7 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
+\section{CHANGES IN VERSION 20.07.16}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
       \item Packages \code{mpoly} and \code{symmoments} are
