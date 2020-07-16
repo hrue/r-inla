@@ -12,6 +12,10 @@ vignette: >
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, cache = FALSE)
 Design = matrix()
+library(INLA)
+set.seed(123)
+inla.setOption(num.threads=1)
+inla.setOption(smtp="taucs")
 ```
 
 ## Introduction
@@ -46,7 +50,6 @@ at the mode.
 The relevant options
 are
 ```{r}
-	library(INLA)
 	opts = control.inla(int.strategy = "user", int.design = Design)
 ```
 where `Design` is a matrix with the integration points and the

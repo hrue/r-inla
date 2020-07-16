@@ -19,18 +19,18 @@ inla.print.version <- function()
 
         hello <- paste0("This is INLA_", version, 
                         " built ", built, ".", "\n",
-                        "See www.r-inla.org/contact-us for how to get help.")
+                        " - See www.r-inla.org/contact-us for how to get help.")
         if (!inla.os("windows")) {
             hello = paste0(hello,
                            "\n",
-                           "To enable PARDISO sparse library; see inla.pardiso()")
+                           " - To enable PARDISO sparse library; see inla.pardiso()")
         }
         s <- inla.prune.check()
         if (s > 0) {
             hello <- paste0(hello,
                             "\n",
-                            paste0("Save ", s,
-                                   "Mb of storage by running 'inla.prune()',  see '?inla.prune'."))
+                            paste0(" - Save ", s,
+                                   "Mb of storage running 'inla.prune()'"))
         }
         packageStartupMessage(hello)
         if (!inla.os("windows") && inla.os.is.32bit()) {

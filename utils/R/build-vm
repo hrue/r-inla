@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+tt=$(mktemp)
+grep -v 192.168.122.158 ~/.ssh/known_hosts  > $tt && mv -f $tt ~/.ssh/known_host
+
 IP=0.0.0.0
 for ip in $(~/bin/my-vm-addr); do
     if ping -q -i1 -W1 -c1 $ip; then
