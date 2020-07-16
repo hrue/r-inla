@@ -3301,8 +3301,11 @@ inla.contour.segment <-
                                       ))
                          )
     ## Map function values to mesh indexing:
-    zz = rep(0, prod(dim(z)))
-    zz[mesh$idx$lattice] = as.vector(z)
+    zz = rep(0, mesh$n)
+    ## 2020-07-15:
+    ##   Bug in fmesher may lead to some lattice points missing. Ignore those.
+    lattice_points_ok <- !is.na(mesh$idx$lattice)
+    zz[mesh$idx$lattice[lattice_points_ok]] <- as.vector(z)[lattice_points_ok]
 
     ## Mapping from level to group value:
     level2grp = function(level) {

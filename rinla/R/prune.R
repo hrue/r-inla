@@ -16,16 +16,17 @@
 ##!\value{No value is returned.}
 ##!\author{Havard Rue \email{hrue@r-inla.org}}
 
+`inla.dir.size` <- function(d) 
+{
+    ## return the disk usage of a directory, recursively, in Mb
+    return (sum(file.info(list.files(d,
+                                     all.files = TRUE,
+                                     full.names = TRUE,
+                                     recursive = TRUE))$size, na.rm = TRUE)/1024^2)
+}
+
 `inla.prune` = function(ask = TRUE)
 {
-    dir.size <- function(d) {
-        ## return the size of the directory (recursively) in Mb
-        return (sum(file.info(list.files(d,
-                                         all.files = TRUE,
-                                         full.names = TRUE,
-                                         recursive = TRUE))$size, na.rm = TRUE)/1024^2)
-    }
-
     pkg <- installed.packages()
     if ("INLA" %in% pkg) {
         path <- pkg["INLA","LibPath"]
@@ -49,7 +50,7 @@
         info <- file.info(d)
         if (!is.na(info$isdir) && info$isdir) {
             found <- TRUE
-            siz <- dir.size(d)
+            siz <- inla.dir.size(d)
             if (siz < 0.1) siz <- 0
             cat("---> Found directory (size ", format(siz, dig = 1), "Mb): ", d, "\n", sep = "")
             ans <- if (ask) askYesNo("Remove directory?", default = FALSE) else TRUE
@@ -73,4 +74,34 @@
     }
 
     return (invisible())
+}
+
+`inla.prune.check` = function()
+{
+    ## return the ammount that could be removed in Mb
+    pkg <- installed.packages()
+    if ("INLA" %in% pkg) {
+        path <- pkg["INLA","LibPath"]
+    } else {
+        return (0)
+    }
+    bin.path <- paste0(path, "/INLA/bin")
+    dd <- c()
+    for (os in c("linux", "mac", "windows")) {
+        for (arch in c("32bit", "64bit", "experimental")) {
+            dd <- c(dd, paste0(bin.path, "/", os, "/", arch))
+        }
+    }
+    native <- paste0(bin.path, "/", inla.os.type(), "/", inla.os.32or64bit(), "bit")
+    dd <- setdiff(dd, native)
+
+    size <- 0
+    for(d in dd) {
+        info <- file.info(d)
+        if (!is.na(info$isdir) && info$isdir) {
+            size <- size + inla.dir.size(d)
+        }
+    }
+
+    return (round(dig = 1, size))
 }
