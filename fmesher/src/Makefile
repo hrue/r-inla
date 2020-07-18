@@ -71,19 +71,13 @@ RM    = rm -f
 RMR   = rm -rf
 RMDIR = rmdir
 
-# Only try to update the hgstamp if hg is available.
-# Should also check if we are in a repository.
-# To use existing HG file, use "make HG= target"
-# Would be prettier and more robust with a mercurial update hook.
-HG:= $(shell which hg)
-HGVERSION:= $(shell if [ -x "$(HG)" ]; then $(HG) parents --template 'hgid: {node|short}  date: {date|date}'; elif [ -e hgstamp ]; then cat hgstamp; else echo 'hgid: unknown  date: unknown' ; fi)
-
+GITCOMMIT:= $(shell git log --pretty=format:"%H - %cd" | head -n1)
 INCL    = -I$(PREFIX)/include
 ##LDFLAGS = $(FLAGS) $(OS_LDFLAGS) -lgsl -lgslcblas
 LDFLAGSXX = $(FLAGS) $(OS_LDFLAGS) 
 FFLAGS  = $(FLAGS) $(FCEXTRAFLAGS) $(INCL)
-CFLAGS  = -std=gnu99 $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSION="\"${HGVERSION}\""
-CXXFLAGS  = -std=c++98 $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSION="\"${HGVERSION}\""
+CFLAGS  = -std=gnu99 $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSION="\"${GITCOMMIT}\""
+CXXFLAGS  = -std=c++98 $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSION="\"${GITCOMMIT}\""
 
 FMESHER = fmesher
 FMESHER_TEST = fmesher_test
@@ -140,14 +134,15 @@ $(dir $(DEPDIR))dependencies.d: Makefile $(DEPDIR) $(wildcard *.c) $(wildcard *.
 	for file in *.c *.h *.cc *.hh *.tcc ; do \
 	  if [ -n "`grep CMDLINE_VERSION $$file`" ]; then \
 	    echo $$file | \
-	      $(SED) 's/\(.*\)\(\.[hc]\)$$/\1\.o: hgstamp/' \
+	      $(SED) 's/\(.*\)\(\.[hc]\)$$/\1\.o: gitstamp/' \
 	      >> $(dir $(DEPDIR))dependencies.d ; \
 	  fi ; \
 	done
 
-hgstamp: dummytarget
+gitstamp: dummytarget
 	[ -f $@ ] || touch $@
-	echo '$(HGVERSION)' | cmp -s $@ - || echo '$(HGVERSION)' > $@
+	echo '$(GITCOMMIT)' | cmp -s $@ - || echo '$(GITCOMMIT)' > $@
+
 dummytarget: ;
 
 .PHONY: depend clean clean-deps uninstall install tags dummytarget cmdline
