@@ -12,6 +12,10 @@ bibliography: multinomial.bib
 
 
 ```{r setup, include=FALSE}
+library(INLA)
+set.seed(123)
+inla.setOption(num.threads=1)
+inla.setOption(smtp="taucs")
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -130,9 +134,6 @@ Here, we provide a small example just to prove to the reader the value of this a
 First of all generate a vector of proababilities and a vector of sizes.
 
 ```{r, message = FALSE, warning = FALSE}
-library(INLA)
-inla.setOption(num.threads=1)
-
 # number of observations 
 n = 10
 

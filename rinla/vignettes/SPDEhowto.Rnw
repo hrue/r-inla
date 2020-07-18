@@ -38,8 +38,10 @@ knit_hooks$set(pars = function(before, options, envir) {
 opts_chunk$set(message=FALSE, warning=FALSE, tidy=FALSE,
                fig.path='figures/SPDEhowto-')
 library(lattice);   library(gridExtra);  library(INLA);  library(plyr) 
+set.seed(123)
+inla.setOption(num.threads=1)
+inla.setOption(smtp="taucs")
 lcall <- inla.getOption('inla.call')
-##inla.setOption(inla.call='remote') 
 @ 
 
 \begin{multicols}{2} 

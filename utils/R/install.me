@@ -1,9 +1,7 @@
 #!/bin/bash
 set -u
 
-VERSION=$INLA_VERSION
-inlatag=$INLA_TAG
-
+INLA_VERSION=$(echo $INLA_TAG | awk -F_ '{print $2}')
 rm INLA*tar.gz INLA*tgz INLA*zip || true
 
 date=$(date)
@@ -16,22 +14,21 @@ for f in INLA/NAMESPACE INLA/DESCRIPTION; do
     test -f $f && rm -f $f
 done
 
+## make man-pages, compile doc-pdf's and run roxygen
+make -C $D/../.. -B
+
 rsync -auvL --delete --exclude '/*~' --exclude TAGS $D/.. INLA/. 
 if [ -d $D/../inst/bin/linux/64bit/first ]; then
     rsync -auv $D/../inst/bin/linux/64bit/first/. $DD/../inst/bin/linux/64bit/first/.
 fi
 ./updateBin
 
-
-## make man-pages, compile doc-pdf's and run roxygen
-make -C $D/../..
-
 tt=.tt
 test -f $tt && rm -rf $tt
 cat $D/version.R | \
     awk '/^[ \t]*date *=/{       print "    date       = ", "inla.trim(\"" date    "\")"; next;}
          /^[ \t]*version *=/{      print "    version      = ", "inla.trim(\"" version   "\")"; next;}
-	 {print}' date="$date" version="$VERSION" > $tt
+	 {print}' date="$date" version="$INLA_VERSION" > $tt
 cp $tt $D/version.R
 mv -f $tt $DD/version.R
 
@@ -42,8 +39,8 @@ cat $DD/version.R
 desc="INLA/DESCRIPTION"
 {
     egrep -v '^(Version:|Date:)' r-inla/rinla/DESCRIPTION
-    echo "Version: $VERSION"
-    echo "Date: $(date) ($inlatag)"
+    echo "Version: $INLA_VERSION"
+    echo "Date: $(date) ($INLA_TAG)"
 } > $tt && mv -f $tt $desc
  
 ~hrue/bin/fix-permissions INLA
@@ -115,16 +112,16 @@ updateBinaryPackages () {
 if [ $# -ge 1 -a "$1" == "1" ]; then
     for prefix in stable testing; do
 	d=$wwwR/$prefix/src/contrib
-	cp -v $SRC $d/INLA_$VERSION.tar.gz
+	cp -v $SRC $d/INLA_$INLA_VERSION.tar.gz
 	updateBinaryPackages $d
 	
 	d=$wwwR/$prefix/bin/macosx/contrib/$RVersion
-	cp -v $tgzINLA $d/INLA_$VERSION.tgz
-	convert_to_mac_binary $d/INLA_$VERSION.tgz
+	cp -v $tgzINLA $d/INLA_$INLA_VERSION.tgz
+	convert_to_mac_binary $d/INLA_$INLA_VERSION.tgz
 	updateBinaryPackages $d
 
 	d=$wwwR/$prefix/bin/windows/contrib/$RVersion
-	cp -v $zipINLA $d/INLA_$VERSION.zip
+	cp -v $zipINLA $d/INLA_$INLA_VERSION.zip
 	updateBinaryPackages $d
     done
 fi
@@ -132,16 +129,16 @@ fi
 if [ $# -ge 1 -a "$1" == "2" ]; then
     for prefix in testing; do
 	d=$wwwR/$prefix/src/contrib
-	cp -v $SRC $d/INLA_$VERSION.tar.gz
+	cp -v $SRC $d/INLA_$INLA_VERSION.tar.gz
 	updateBinaryPackages $d
 	
 	d=$wwwR/$prefix/bin/macosx/contrib/$RVersion
-	cp -v $tgzINLA $d/INLA_$VERSION.tgz
-	convert_to_mac_binary $d/INLA_$VERSION.tgz
+	cp -v $tgzINLA $d/INLA_$INLA_VERSION.tgz
+	convert_to_mac_binary $d/INLA_$INLA_VERSION.tgz
 	updateBinaryPackages $d
 
 	d=$wwwR/$prefix/bin/windows/contrib/$RVersion
-	cp -v $zipINLA $d/INLA_$VERSION.zip
+	cp -v $zipINLA $d/INLA_$INLA_VERSION.zip
 	updateBinaryPackages $d
     done
 fi

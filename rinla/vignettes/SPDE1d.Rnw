@@ -28,6 +28,7 @@ More details about it are on the paber at
 
 <<setting,include=FALSE>>=
 library(knitr);  library(INLA);  library(fields) 
+set.seed(123)
 inla.setOption(num.threads=1)
 inla.setOption(smtp="taucs")
 opts_chunk$set(message=FALSE, warning=FALSE, tidy=FALSE,
