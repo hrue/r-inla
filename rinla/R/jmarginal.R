@@ -2,7 +2,7 @@
 ## Export: print!summary.inla.jmarginal
 ## Export: print!inla.jmarginal
 
-## Export: inla.rjmarginal inla.rjmarginal.eval inla.tjmarginal
+## Export: inla.rjmarginal inla.rjmarginal.eval inla.tjmarginal inla.1djmarginal
 
 ##! \name{joint.marginal}
 ##! \alias{inla.joint.marginal}
