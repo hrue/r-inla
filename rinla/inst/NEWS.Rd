@@ -30,7 +30,7 @@
 \section{CHANGES IN VERSION 20.07.18}{
   \subsection{BUG FIXES}{
     \itemize{
-      \item Build-script changes
+      \item Build-script changes and misc fixes
     }
   }
 }
