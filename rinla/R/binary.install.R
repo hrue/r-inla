@@ -73,21 +73,31 @@
     show("INLA is installed in [", pa, "]")
     pa = paste0(pa, "/bin/linux")
 
+    show("Checking for write access...")
+    test.fnm <- paste0(pa, "/test-file---", as.integer(runif(1)*.Machine$integer.max), ".txt")
+    test.result <- file.create(test.fnm, showWarnings = FALSE)
+    if (test.result) {
+        show("Checking for write access... done!")
+        unlink(test.fnm, force = TRUE)
+    } else {
+        show(paste0("ERROR: No write access to [", pa, "]"))
+    }
+
     show("Download file, please wait...")
     to.file = paste0(pa, "/64bit-download-", date(), ".tgz")
     ret = download.file(map.filename(fnm), to.file, quiet = TRUE)
     if (ret == 0) {
-        show("Download file, please wait...done!")
+        show("Download file, please wait... done!")
     } else {
-        unlink(to.file)
+        unlink(to.file, force = TRUE)
         stop("Error downloading file. Abort.")
     }
 
     my.restore = function() {
         show("Error. Will try to restore old configuration.")
         show("If unsuccessful, then reinstall R-INLA.")
-        unlink(from.dir,  recursive=TRUE)
-        unlink(to.file)
+        unlink(from.dir, recursive=TRUE, force = TRUE)
+        unlink(to.file, force = TRUE)
         file.rename(to.dir, from.dir)
     }
 
@@ -96,7 +106,7 @@
     to.dir = paste0(pa, "/64bit-", date())
     ret = file.rename(from.dir, to.dir)
     if (ret == TRUE) {
-        show("Rename old 64bit directory...done!")
+        show("Rename old 64bit directory... done!")
     } else {
         my.restore()
         stop("Error renaming old 64bit directory. Abort.")
@@ -105,15 +115,19 @@
     show("Unpack file...")
     ret = untar(to.file, exdir = dirname(to.file), verbose = FALSE)
     if (ret == 0) {
-        show("Unpack file...done")
+        show("Unpack file... done!")
     } else {
         my.restore()
         stop("Error unpacking file. Abort.")
     }
 
     show("Remove temporary file...") 
-    unlink(to.file)
-    show("Remove temporary file...done!") 
+    unlink(to.file, force = TRUE)
+    show("Remove temporary file... done!") 
+
+    show("Remove old 64bit directory...") 
+    unlink(to.dir, recursive = TRUE, force = TRUE)
+    show("Remove old 64bit directory... done!") 
 
     return(invisible())
 }
