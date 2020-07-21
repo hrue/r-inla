@@ -57,6 +57,12 @@ __BEGIN_DECLS
 #define FIFO_GET_DATA "inla-mcmc-fifo-get-data"
 #define FIFO_PUT_DATA "inla-mcmc-fifo-put-data"
 
+//
+// just to have a big and small number to use
+#include <gsl/gsl_machine.h>
+#define INLA_REAL_BIG   GSL_SQRT_FLT_MAX
+#define INLA_REAL_SMALL GMRFLib_eps2()
+
 /*
  * The scaling of the critical 'alpha' parameter. If this value change, it must also be changed in models.R
  *
@@ -1815,7 +1821,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(double **, double **, int *, void *), int (*simpson)(double **, double **, int *, void *));
+			   int (*quadrature)(double **, double **, int *, void *), int(*simpson)(double **, double **, int *, void *));
 int loglikelihood_mix_loggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

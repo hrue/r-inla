@@ -88,6 +88,8 @@ char *GMRFLib_rindex(const char *p, int ch);
 char *GMRFLib_strdup(const char *ptr);
 char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts);
 double GMRFLib_eps(double power);
+double GMRFLib_eps1(void);
+double GMRFLib_eps2(void);
 double GMRFLib_log_apbex(double a, double b);
 double GMRFLib_max_value(double *x, int n, int *idx);
 double GMRFLib_min_value(double *x, int n, int *idx);

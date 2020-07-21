@@ -150,6 +150,8 @@ char *keywords[] = {
 #define LINK_END				\
 	Free(_link_covariates)
 
+#define PREDICTOR_LINK_EQ(_fun) (ds->predictor_invlinkfunc == (_fun))
+
 #define PREDICTOR_INVERSE_LINK(xx_)					\
 	ds->predictor_invlinkfunc(xx_, MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
 
@@ -3442,7 +3444,7 @@ double priorfunc_pc_gammacount(double *x, double *parameters)
 	double lambda = parameters[0], xx, ldens, t1, t3, t4, t5, t8, t12, t14, t15, t16;
 
 	if (ISZERO(x[0])) {
-		xx = exp(DBL_EPSILON);
+		xx = exp(INLA_REAL_SMALL);
 	} else {
 		xx = exp(x[0]);
 	}
@@ -3536,7 +3538,7 @@ double priorfunc_pc_cor0(double *x, double *parameters)
 		lambda = -log(alpha) / sqrt(-log(1.0 - SQR(u)));
 	}
 	// add the EPS to ensure its not INFINITY...
-	ldens = log(lambda) - lambda * mu + log((ABS(rho) + FLT_EPSILON) / (1.0 - SQR(rho))) - log(mu + FLT_EPSILON);
+	ldens = log(lambda) - lambda * mu + log((ABS(rho) + INLA_REAL_SMALL) / (1.0 - SQR(rho))) - log(mu + INLA_REAL_SMALL);
 	ljac = log(ABS(map_rho(*x, MAP_DFORWARD, NULL)));
 	val = ldens + ljac;
 
@@ -3737,7 +3739,7 @@ double priorfunc_pc_ar(double *x, double *parameters)
 		gamma[i] = -log(1.0 - SQR(pacf[i]));
 		// hence we need two jacobians, one for x->pacf and one for pacf->gamma. recall that we have a singularity for
 		// x[i]=0
-		double xtmp = (ISZERO(pacf[i]) ? DBL_EPSILON : pacf[i]);
+		double xtmp = (ISZERO(pacf[i]) ? INLA_REAL_SMALL : pacf[i]);
 		logjac += log(ABS(ar_map_pacf(x[i], MAP_DFORWARD, NULL))) + log(ABS(xtmp / (1.0 - SQR(pacf[i]))));
 	}
 	ldens = inla_pc_simplex_d(gamma, b, p, lambda) + logjac;
@@ -4965,7 +4967,7 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_v
 	w = ds->data_observations.weight_gaussian[idx];
 
 	if (log_prec_limit == 0.0) {
-		log_prec_limit = -log(DBL_EPSILON);
+		log_prec_limit = -log(INLA_REAL_SMALL);
 	}
 
 	if (ds->data_observations.log_prec_gaussian_offset[GMRFLib_thread_id][0] > log_prec_limit) {
@@ -5094,7 +5096,7 @@ int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, doub
 	 * store the normalising constant as it involves bessel_I0: -log(2 Pi BesselI0(kappa)),
 	 * which is ok as long as the scalings 'w' do not change to often.
 	 */
-	static double log_norm_const = 0.0, log_norm_const_arg = DBL_MAX;
+	static double log_norm_const = 0.0, log_norm_const_arg = INLA_REAL_BIG;
 #pragma omp threadprivate(log_norm_const, log_norm_const_arg)
 
 	if (!ISEQUAL(prec, log_norm_const_arg)) {
@@ -5295,7 +5297,7 @@ int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double shape, rate, w, xx, penalty = 1.0 / FLT_EPSILON, cons;
+	double shape, rate, w, xx, penalty = 1.0 / INLA_REAL_SMALL, cons;
 
 	LINK_INIT;
 	w = ds->data_observations.iid_gamma_scale[idx];
@@ -5306,13 +5308,14 @@ int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			xx = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			if (xx > FLT_EPSILON) {
+			if (xx > INLA_REAL_SMALL) {
 				logll[i] = cons + (shape - 1.0) * log(xx) - rate * xx;
 			} else {
 				/*
 				 * this is the penalty, and should not happen in the end... 
 				 */
-				logll[i] = cons + (shape - 1.0) * log(FLT_EPSILON) - rate * FLT_EPSILON - penalty * SQR(FLT_EPSILON - xx);
+				logll[i] =
+				    cons + (shape - 1.0) * log(INLA_REAL_SMALL) - rate * INLA_REAL_SMALL - penalty * SQR(INLA_REAL_SMALL - xx);
 			}
 		}
 	}
@@ -5603,13 +5606,13 @@ int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, d
 			for (i = 0; i < m; i++) {
 				ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				xx = 1.0 + xi * sprec * (y - ypred);
-				if (xx > DBL_EPSILON) {
+				if (xx > INLA_REAL_SMALL) {
 					logll[i] = (-1.0 / xi - 1.0) * log(xx) - pow(xx, -1.0 / xi) + log(sprec);
 				} else {
 					logll[i] =
-					    (-1.0 / xi - 1.0) * log(DBL_EPSILON) - pow(DBL_EPSILON,
-										       -1.0 / xi) + log(sprec) -
-					    1e6 * SQR(sprec * (DBL_EPSILON - xx));
+					    (-1.0 / xi - 1.0) * log(INLA_REAL_SMALL) - pow(INLA_REAL_SMALL,
+											   -1.0 / xi) + log(sprec) -
+					    1e6 * SQR(sprec * (INLA_REAL_SMALL - xx));
 				}
 			}
 		}
@@ -5950,7 +5953,7 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 	dof = map_dof(ds->data_observations.dof_intern_tstrata[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_tstrata[idx];
-	strata = (int) (ds->data_observations.strata_tstrata[idx] + FLT_EPSILON);
+	strata = (int) (ds->data_observations.strata_tstrata[idx] + INLA_REAL_SMALL);
 	prec = map_precision(ds->data_observations.log_prec_tstrata[strata][GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
 
 	// printf("idx y x strata prec %d %g %g %d %g\n", idx, y, x[0], strata, prec);
@@ -6230,7 +6233,7 @@ double eval_log_contpoisson(double y, double lambda)
 
 	if (low == 0) {
 		xx[0] = 0.0;
-		yy[0] = log(DBL_EPSILON);
+		yy[0] = log(INLA_REAL_SMALL);
 		istart = 1;
 		len++;
 	} else {
@@ -6613,7 +6616,7 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 			for (i = 0; i < m; i++) {
 				p = _PROB(x[i] + OFFSET(idx), E);
 				if (gsl_isnan(p)) {
-					logll[i] = -DBL_MAX;
+					logll[i] = -INLA_REAL_BIG;
 				} else {
 					lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 					mu = E * lambda;
@@ -6634,7 +6637,7 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 
 	for (i = 0; i < IABS(m); i++) {
 		if (gsl_isinf(logll[i]))
-			logll[i] = ((double) FLT_MAX) * gsl_isinf(logll[i]);
+			logll[i] = ((double) INLA_REAL_BIG) * gsl_isinf(logll[i]);
 	}
 
 	LINK_END;
@@ -7153,7 +7156,7 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 				p_zeroinflated = 1.0 - pow(mu / (1.0 + mu), alpha);
 
 				if (gsl_isnan(p_zeroinflated)) {
-					logll[i] = -DBL_MAX;
+					logll[i] = -INLA_REAL_BIG;
 				} else {
 					if (mu / size > cutoff) {
 						/*
@@ -7177,7 +7180,7 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 				mu = E * lambda;
 				p_zeroinflated = 1.0 - pow(mu / (1.0 + mu), alpha);
 				if (gsl_isnan(p_zeroinflated)) {
-					logll[i] = -DBL_MAX;
+					logll[i] = -INLA_REAL_BIG;
 				} else {
 					if (mu / size > cutoff) {
 						/*
@@ -7217,7 +7220,7 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 
 	for (i = 0; i < IABS(m); i++) {
 		if (gsl_isinf(logll[i]))
-			logll[i] = ((double) FLT_MAX) * gsl_isinf(logll[i]);
+			logll[i] = ((double) INLA_REAL_BIG) * gsl_isinf(logll[i]);
 	}
 
 	LINK_END;
@@ -7264,25 +7267,23 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 		status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
 		assert(status == GSL_SUCCESS);
 		for (i = 0; i < m; i++) {
-			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			double eta = x[i] + OFFSET(idx);
+			p = PREDICTOR_INVERSE_LINK(eta);
 			p = TRUNCATE(p, 0.0, 1.0);
-			if (ISEQUAL(p, 1.0)) {
-				/*
-				 * this is ok if we get a 0*log(0) expression for the reminder 
-				 */
-				if (n == (int) y) {
-					logll[i] = res.val + y * log(p);
-				} else {
-					logll[i] = -DBL_MAX;
+			if (ISEQUAL(p, 1.0)) {		       /* yes, this happens... */
+				if (PREDICTOR_LINK_EQ(link_probit)) {
+					logll[i] = res.val + y * (-1.0 / sqrt(2.0 * M_PI) / eta) / exp(SQR(eta) / 2.0);
+				} else if (1 || PREDICTOR_LINK_EQ(link_logit)) {
+					// I need to do something with other links...
+					logll[i] = res.val + y * (-1.0 / exp(eta));
 				}
-			} else if (ISZERO(p)) {
-				/*
-				 * this is ok if we get a 0*log(0) expression for the reminder 
-				 */
-				if ((int) y == 0) {
-					logll[i] = res.val + (n - y) * log(1.0 - p);
-				} else {
-					logll[i] = -DBL_MAX;
+			} else if (ISZERO(p)) {		       /* yes, this happens... */
+				eta = -eta;		       /* so we can just copy the code */
+				if (PREDICTOR_LINK_EQ(link_probit)) {
+					logll[i] = res.val + (n - y) * (-1.0 / sqrt(2.0 * M_PI) / eta) / exp(SQR(eta) / 2.0);
+				} else if (1 || PREDICTOR_LINK_EQ(link_logit)) {
+					// I need to do something with other links...
+					logll[i] = res.val + (n - y) * (-1.0 / exp(eta));
 				}
 			} else {
 				logll[i] = res.val + y * log(p) + (n - y) * log(1.0 - p);
@@ -7834,7 +7835,7 @@ int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_
 				if (k == (int) y) {
 					logll[i] = res.val + y * log(p);
 				} else {
-					logll[i] = -DBL_MAX;
+					logll[i] = -INLA_REAL_BIG;
 				}
 			} else if (ISZERO(p)) {
 				/*
@@ -7843,7 +7844,7 @@ int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_
 				if ((int) y == 0) {
 					logll[i] = res.val + (k - y) * log(1.0 - p);
 				} else {
-					logll[i] = -DBL_MAX;
+					logll[i] = -INLA_REAL_BIG;
 				}
 			} else {
 				logll[i] = res.val + y * log(p) + (k - y) * log(1.0 - p);
@@ -7996,7 +7997,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 				pzero = _PROBZERO(x[i] + OFFSET(idx));
 				p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				if (gsl_isinf(pzero) || gsl_isinf(p)) {
-					logll[i] = -DBL_MAX;
+					logll[i] = -INLA_REAL_BIG;
 				} else {
 					if (ISZERO(pzero)) {
 						logll[i] = res.val + y * log(p) + (n - y) * log(1.0 - p);
@@ -8019,7 +8020,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 				pzero = _PROBZERO(x[i] + OFFSET(idx));
 				p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				if (gsl_isinf(pzero) || gsl_isinf(p)) {
-					logll[i] = -DBL_MAX;
+					logll[i] = -INLA_REAL_BIG;
 				} else {
 					logll[i] = pzero + (1.0 - pzero) * gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
 				}
@@ -8031,7 +8032,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 				pzero = _PROBZERO(x[i] + OFFSET(idx));
 				p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				if (gsl_isinf(pzero) || gsl_isinf(p)) {
-					logll[i] = -DBL_MAX;
+					logll[i] = -INLA_REAL_BIG;
 				} else {
 					logll[i] = log(1.0 - pzero) + res.val + y * log(p) + (n - y) * log(1.0 - p);
 				}
@@ -8042,7 +8043,7 @@ int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int id
 				pzero = _PROBZERO(x[i] + OFFSET(idx));
 				p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				if (gsl_isinf(pzero) || gsl_isinf(p)) {
-					logll[i] = -DBL_MAX;
+					logll[i] = -INLA_REAL_BIG;
 				} else {
 					logll[i] = pzero + (1.0 - pzero) * gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
 				}
@@ -8098,7 +8099,7 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 				p2 = _P2(x[i] + OFFSET(idx));
 				p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				if (ISINF(p1) || ISINF(p2) || ISINF(p)) {
-					logll[i] = -DBL_MAX;
+					logll[i] = -INLA_REAL_BIG;
 				} else {
 					if (ISZERO(1.0 - p1)) {
 						logll[i] = log(p2) + res.val + y * log(p) + (n - y) * log(1.0 - p);
@@ -8121,7 +8122,7 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 				p2 = _P2(x[i] + OFFSET(idx));
 				p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				if (ISINF(p1) || ISINF(p2) || ISINF(p)) {
-					logll[i] = -DBL_MAX;
+					logll[i] = -INLA_REAL_BIG;
 				} else {
 					if (ISZERO(1.0 - p2)) {
 						logll[i] = log(p1) + res.val + y * log(p) + (n - y) * log(1.0 - p);
@@ -8144,7 +8145,7 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 				p2 = _P2(x[i] + OFFSET(idx));
 				p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				if (ISINF(p1) || ISINF(p2) || ISINF(p)) {
-					logll[i] = -DBL_MAX;
+					logll[i] = -INLA_REAL_BIG;
 				} else {
 					logll[i] = log(p1) + log(p2) + res.val + y * log(p) + (n - y) * log(1.0 - p);
 				}
@@ -8188,7 +8189,7 @@ int loglikelihood_zero_n_inflated_binomial3(double *logll, double *x, int m, int
 			p0 = _P0(p);
 			pN = _PN(p);
 			if (ISINF(p)) {
-				logll[i] = -DBL_MAX;
+				logll[i] = -INLA_REAL_BIG;
 			} else {
 				logB = log(1.0 - p0 - pN) + res.val + y * log(p) + (n - y) * log(1.0 - p);
 				if ((int) y == 0) {
@@ -8287,7 +8288,7 @@ int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x
 			logp = log(p);
 			// this can go in over/underflow...
 			if (ISINF(logp) || ISNAN(logp)) {
-				logll[i] = log(GMRFLib_eps(1.0)) + PENALTY * SQR(x[i] + OFFSET(idx));
+				logll[i] = log(GMRFLib_eps1()) + PENALTY * SQR(x[i] + OFFSET(idx));
 			} else {
 				logll[i] = logp;
 			}
@@ -8454,7 +8455,7 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 			// 1)'. If y is close to 1 then 'a'
 			// is
 			// tiny, do similarly
-			if (DMIN(a, b) < DBL_EPSILON) {
+			if (DMIN(a, b) < INLA_REAL_SMALL) {
 				lbeta = -log(DMIN(a, b));
 			} else {
 				lbeta = gsl_sf_lnbeta(a, b);
@@ -8770,7 +8771,7 @@ int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, in
 			pzero = _PROBZERO(x[i] + OFFSET(idx));
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			if (gsl_isinf(pzero) || gsl_isinf(p)) {
-				logll[i] = -DBL_MAX;
+				logll[i] = -INLA_REAL_BIG;
 			} else {
 
 				logA = log(pzero);
@@ -8785,7 +8786,7 @@ int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, in
 			pzero = _PROBZERO(x[i] + OFFSET(idx));
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			if (gsl_isinf(pzero) || gsl_isinf(p)) {
-				logll[i] = -DBL_MAX;
+				logll[i] = -INLA_REAL_BIG;
 			} else {
 				logll[i] = log(1.0 - pzero) + (_LOGGAMMA_INT(n + 1) - _LOGGAMMA_INT(y + 1) - _LOGGAMMA_INT(n - y + 1)
 							       + _LOGGAMMA(delta * p + y) + _LOGGAMMA(n + delta * (1.0 - p) - y) - _LOGGAMMA(delta +
@@ -25097,8 +25098,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 
 	mb->ai_par->correct_enable = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.CORRECT.ENABLE"), 0);
 	mb->ai_par->correct_nodes = (mb->ai_par->correct_enable ? Calloc(1, char) : NULL);
-	mb->ai_par->correct_verbose = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.CORRECT.VERBOSE"),
-							   mb->ai_par->correct_verbose);
+	mb->ai_par->correct_verbose = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.CORRECT.VERBOSE"), mb->ai_par->correct_verbose);
 	mb->ai_par->correct_factor = iniparser_getdouble(ini, inla_string_join(secname, "CONTROL.CORRECT.FACTOR"), mb->ai_par->correct_factor);
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.CORRECT.STRATEGY"), NULL));
 	if (opt) {
@@ -29127,11 +29127,11 @@ int inla_INLA(inla_tp * mb)
 		if (mb->predictor_vb_correct) {
 			// I think this is for testing only
 			if (mb->predictor_m == 0) {
-				for(i = 0; i < mb->predictor_n; i++) {
+				for (i = 0; i < mb->predictor_n; i++) {
 					vb_nodes[i] = (char) 1;
 				}
 			} else {
-				for(i = 0; i < mb->predictor_m; i++) {
+				for (i = 0; i < mb->predictor_m; i++) {
 					vb_nodes[i] = (char) 1;
 				}
 			}
@@ -34332,6 +34332,12 @@ int testit(int argc, char **argv)
 		GMRFLib_2order_approx(&a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
 		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
 
+		break;
+	}
+
+	case 40:
+	{
+		printf("eps= %.12g\n", GMRFLib_eps1());
 		break;
 	}
 
