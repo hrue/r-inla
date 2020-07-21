@@ -1,0 +1,338 @@
+---
+title: "Approximating joint marginals in R-INLA"
+author: "Cristian Chiuchiolo and Haavard Rue"
+date: "KAUST, Aug 19th 2017"
+output: rmarkdown::pdf_document
+vignette: >
+  %\VignetteIndexEntry{Joint marginals}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8} 
+bibliography: jmarginal.bib
+---
+
+```{r setup, include=FALSE}
+library(INLA)
+library(ggplot2)
+library(sn)
+library(knitr)
+set.seed(123)
+knitr::opts_chunk$set(echo = TRUE)
+opts_chunk$set(size='small'
+               , cache=FALSE
+               , cache.path='cache/'
+               , comment=NA
+               , warning=FALSE
+               , message=FALSE
+               , fig.align='center'
+               , fig.path='jmarginal-figs/'
+               , fig.pos='H'
+               , background='#ffffff'
+               , results='hold'
+               , eval=TRUE)
+```
+
+## Introduction
+
+The primary use of `R-INLA` is to approximate univariate marginals of
+the latent field, so we can compute their marginal summaries and
+densities. In applications, we sometimes need more than this, as we
+are interested also in statistics which involve more several of the
+components of the latent field, and/or, a joint posterior
+approximation to a subset of the latent field.
+
+The way around this issue, have earlier resolved to stochastic
+simulation, using the function `inla.posterior.sample`. This function
+samples from joint approximation to the full posterior which `INLA`
+construct, but do so for the whole latent field. Using these samples,
+we can compute the density of the relevant statistics and/or use
+standard methods to represent a joint marginal.
+
+This vignette introduces a new tool which computes a deterministic
+approximation to the joint marginal for a subset of the latent field
+using `R-INLA`. This approximation is explicitly available, and
+constructed using skew-normal marginals and a Gaussian copula, hence
+restricted to a joint approximation of a modest dimension.
+
+The key specification is using an argument `selection` in the
+`inla()`-call, which defines the subset, and then the joint marginal
+approximation is made available in `result$selection`.
+
+## Theory reference
+
+For any \emph{Latent Gaussian Model} with data $\boldsymbol{y}$ and
+set of parameters $(\boldsymbol{x}, \boldsymbol{\theta})$ with
+$\boldsymbol{x}$ being the latent field and $\boldsymbol{\theta}$ the
+hyperparameters, the resulting joint posterior approximation is stated
+as
+
+\begin{equation}
+\tilde{\pi}(\boldsymbol{x},\boldsymbol{\theta}|\boldsymbol{y}) \propto \sum_k \tilde{\pi}_G (\boldsymbol{x}|\boldsymbol{\theta},\boldsymbol{y}) \tilde{\pi}(\boldsymbol{\theta}_k|\boldsymbol{y})  \Delta_k
+\label{approx_joint}
+\end{equation}
+
+where $\tilde{\pi}_G
+(\boldsymbol{x}|\boldsymbol{\theta},\boldsymbol{y})$ is the Gaussian
+approximation. This expression recalls a Gaussian mixture distribution
+with weights $\tilde{\pi}(\boldsymbol{\theta}_k|\boldsymbol{y})
+\Delta_k$ obtained in the grid exploration of the hyperparameter
+posterior marginals. For more insights, we suggest checking sources
+like @inla, @thiago, @marta, or the recent review by @sara2019. The
+Gaussian approximation used in \eqref{approx_joint} is both mean and
+skewness corrected since it exploits Skew-Normal marginals of the
+latent field into a Gaussian copula structure (see @egil for details).
+These corrections are available in `inla.posterior.sample` as
+
+\begin{verbatim}
+inla.posterior.sample(..., skew.corr = TRUE)
+\end{verbatim}
+
+## First example
+
+We will illustrate this new feature using a simple example.
+```{r}
+n = 100
+x = rnorm(n, mean = 1, sd = 0.3)
+xx = rnorm(n, mean = -2, sd = 0.3)
+y = rpois(n, lambda = exp(x + xx))
+r = inla(y ~ 1 + x + xx,
+         data = data.frame(y, x, xx), 
+	     family = "poisson")
+```
+Let us compute the joint marginal for the effect of `x`, `xx` and the
+intercept. This is specified using the argument `selection`, which is
+a named list of indices to select. Names are those given the formula,
+plus standard names like `(Intercept)`, `Predictor` and `APredictor`.
+So that
+```{r}
+selection = list(Predictor = 3:4, x = 1, xx = 1)
+```
+say that we want the joint marginal for the $3^{rd}$ and $4^{th}$ element of
+`Predictor` and the first element of `x` and `xx`. (Well, `x` and `xx`
+only have one element, so then there is not else we can do in this
+case.)
+
+If we pass `selection`, then we have to rerun `inla()` as
+```{r}
+rs = inla(y ~ 1 + x + xx,
+          data = data.frame(y, x, xx), 
+	      family = "poisson",
+	      control.predictor = list(compute = TRUE),
+		  selection = selection)
+```		 
+and we obtain
+```{r}
+#summary(rs$selection)
+print(rs$selection)
+```
+The Gaussian copula is given by the `mean` and the `cov.matrix`
+objects, while the Skew-Normal marginals are given implicitly using
+the marginal mean and variance in the Gaussian copula and the listed
+skewness. Moreover the respective Skew-Normal mapping parameters for
+the marginals $(\xi, \omega, \alpha)$ are provided in the object
+'marginal.sn.par'. The `names` are given as a separate entry instead
+of naming each individual result, to save some storage.
+
+There are utility functions to sample and evaluate samples from this
+joint marginal, similar to `inla.posterior.sample` and
+`inla.posterior.sample.eval`. 
+```{r}
+ns = 10000
+xs = inla.rjmarginal(ns, rs) ## or rs$selection
+str(xs)
+```
+whose output is a matrix where each row contains the samples for the
+variable in each column
+```{r}
+pairs(t(xs$samples[, 1:3000]), cex = 0.1)
+```
+We can compare the approximation of `Predictor:3` to the one computed
+by the `inla()` call, 
+```{r}
+hist(xs$samples["Predictor:3",], n = 300, prob = TRUE, 
+     main = 'Histogram of Predictor:3', xlab = 'Samples 
+     from the joint and linear predictor marginal (black straight line)')
+lines(inla.smarginal(rs$marginals.linear.predictor[[3]]), lwd = 3)
+```
+These marginals are not *exactly* the same (as they are different
+approximations), but should be very similar. 
+
+## Deterministic Joint approximation
+
+As a conclusion to this vignette we show an additional joint posterior
+related tool. The following INLA function computes a deterministic
+approximation for the joint posterior sampler and must be considered
+experimental. The function is strictly related to the selection type
+INLA setting. Deterministic posterior marginals for the previous
+example can be obtained as follows
+
+```{r}
+
+dxs = inla.1djmarginal(jmarginal = rs$selection)
+str(dxs)
+
+```
+
+The output is a list with all computed marginals and a matrix summary
+output in INLA style. Marginal can be accessed and plotted by using
+the respective names in the selection
+
+```{r}
+
+ggplot(data = data.frame(y = xs$samples["Predictor:3",]), aes(y, after_stat(density), colour = "True")) +
+  stat_density(alpha = .1) +
+  geom_line(data = as.data.frame(dxs$`Predictor:3`), aes(x = x, y = y, colour = "Deterministic"))+
+  labs(title= '"Marginal Results for Predictor:3"', x='x', y='Density') +
+  scale_colour_manual("", 
+                      breaks = c("True", "Deterministic"),
+                      values = c("black", "red")) 
+
+ggplot(data = data.frame(y = xs$samples["Predictor:4",]), aes(y, after_stat(density), colour = "True")) +
+  stat_density(alpha = .1) +
+  geom_line(data = as.data.frame(dxs$`Predictor:4`), aes(x = x, y = y, colour = "Deterministic"))+
+  labs(title= '"Marginal Results for Predictor:4"', x='x', y='Density') +
+  scale_colour_manual("", 
+                      breaks = c("True", "Deterministic"),
+                      values = c("black", "red")) 
+
+ggplot(data = data.frame(y = xs$samples["x:1",]), aes(y, after_stat(density), colour = "True")) +
+  stat_density(alpha = .1) +
+  geom_line(data = as.data.frame(dxs$`x:1`), aes(x = x, y = y, colour = "Deterministic"))+
+  labs(title= '"Marginal Results for x:1"', x='x', y='Density') +
+  scale_colour_manual("", 
+                      breaks = c("True", "Deterministic"),
+                      values = c("black", "red")) 
+
+ggplot(data = data.frame(y = xs$samples["xx:1",]), aes(y, after_stat(density), colour = "True")) +
+  stat_density(alpha = .1) +
+  geom_line(data = as.data.frame(dxs$`xx:1`), aes(x = x, y = y, colour = "Deterministic"))+
+  labs(title= '"Marginal Results for xx:1"', x='x', y='Density') +
+  scale_colour_manual("", 
+                      breaks = c("True", "Deterministic"),
+                      values = c("black", "red"))  
+
+```
+
+Here we compare the deterministic marginals with their sampling
+version. They are quite accurate and can provide more informations.
+Indeed, a complete summary based on these deterministic results is
+achievable with a personalized `summary` function
+
+```{r}
+summary(rs$selection)
+```
+
+where posterior estimates and quantiles are computed for all the
+selected marginals. Along the same line, we can easily compute
+multiple deterministic linear combinations through the function
+`inla.tjmarginal`and a matrix object A with the respective indexes
+
+```{r}
+A = matrix(c(1,1,0,0,0,0,1,1), nrow = 2, ncol = 4, byrow = T)
+rownames(A) <- c("Test1", "Test2")
+A
+```
+
+We define two linear combinations: `Predictor:3+Predictor:4` and
+`x:1+xx:1` respectively. Then we can use the cited function which has
+the same class of `selection` object
+
+```{r}
+m = inla.tjmarginal(jmarginal = rs, A = A)
+m
+class(m)
+
+```
+
+```{r}
+dxs.lin = inla.1djmarginal(jmarginal = m)
+str(dxs.lin)
+
+
+fun1 <- function(...) {Predictor[1]+Predictor[2]}
+fun2 <- function(...) {x+xx}
+
+xs.lin1 = inla.rjmarginal.eval(fun1, xs)
+xs.lin2 = inla.rjmarginal.eval(fun2, xs)
+
+ggplot(data = data.frame(y = xs.lin1[1, ]), aes(y, after_stat(density), colour = "True")) +
+  stat_density(alpha = .1) +
+  geom_line(data = as.data.frame(dxs.lin$Test1), aes(x = x, y = y, colour = "Deterministic"))+
+  labs(title= '"Marginal Results for Lin1"', x='x', y='Density') +
+  scale_colour_manual("", 
+                      breaks = c("True", "Deterministic"),
+                      values = c("black", "red")) 
+
+ggplot(data = data.frame(y = xs.lin2[1, ]), aes(y, after_stat(density), colour = "True")) +
+  stat_density(alpha = .1) +
+  geom_line(data = as.data.frame(dxs.lin$Test2), aes(x = x, y = y, colour = "Deterministic"))+
+  labs(title= '"Marginal Results for Lin2"', x='x', y='Density') +
+  scale_colour_manual("", 
+                      breaks = c("True", "Deterministic"),
+                      values = c("black", "red")) 
+
+```
+
+and accomplish the job with summaries
+
+```{r}
+summary(m)
+```
+
+Transformations of the marginal terms or linear combinations are
+possible as well. We just need to use `inla.tmarginal` as follows
+
+```{r}
+
+fun.exp <- function(x) exp(x)
+
+fun5 <- function(...) {exp(x)}
+fun6 <- function(...) {exp(xx)}
+fun7 <- function(...) {exp(x+xx)}
+
+tdx <- inla.tmarginal(fun = fun.exp, marginal = dxs$`x:1`)
+tdxx <- inla.tmarginal(fun = fun.exp, marginal = dxs$`xx:1`)
+tdx.lin <- inla.tmarginal(fun = fun.exp, marginal = dxs.lin$Test2)
+
+tx = inla.rjmarginal.eval(fun5, xs)
+txx = inla.rjmarginal.eval(fun6, xs)
+tx.lin = inla.rjmarginal.eval(fun7, xs)
+
+ggplot(data = data.frame(y = tx[1, ]), aes(y, after_stat(density), colour = "True")) +
+  stat_density(alpha = .1) +
+  geom_line(data = as.data.frame(tdx), aes(x = x, y = y, colour = "Deterministic"))+
+  labs(title= '"Marginal Results for exp(x:1)"', x='x', y='Density') +
+  scale_colour_manual("", 
+                      breaks = c("True", "Deterministic"),
+                      values = c("black", "red")) 
+
+ggplot(data = data.frame(y = txx[1, ]), aes(y, after_stat(density), colour = "True")) +
+  stat_density(alpha = .1) +
+  geom_line(data = as.data.frame(tdxx), aes(x = x, y = y, colour = "Deterministic"))+
+  labs(title= '"Marginal Results for exp(xx:1)"', x='x', y='Density') +
+  scale_colour_manual("", 
+                      breaks = c("True", "Deterministic"),
+                      values = c("black", "red")) 
+
+ggplot(data = data.frame(y = tx.lin[1, ]), aes(y, after_stat(density), colour = "True")) +
+  stat_density(alpha = .1) +
+  geom_line(data = as.data.frame(tdx.lin), aes(x = x, y = y, colour = "Deterministic"))+
+  labs(title= '"Marginal Results for exp(x:1+xx:1)"', x='x', y='Density') +
+  scale_colour_manual("", 
+                      breaks = c("True", "Deterministic"),
+                      values = c("black", "red")) 
+```
+
+Summaries for all marginal transformations can be obtained through
+`inla.zmarginal`
+
+```{r}
+expx = inla.zmarginal(marginal = tdx, silent = TRUE)
+expxx = inla.zmarginal(marginal = tdxx, silent = TRUE)
+expx.lin = inla.zmarginal(marginal = tdx.lin, silent = TRUE)
+
+exp.summaries = rbind(expx, expxx, expx.lin)
+exp.summaries
+
+```
+
+## References

@@ -5,7 +5,7 @@ PDFs := $(RMDs:.Rmd=.pdf) $(RNWs:.Rnw=.pdf)
 all : $(PDFs)
 
 %.pdf : %.Rmd
-	R --vanilla -e 'library(rmarkdown); render("'$<'", "all")'
+	R --vanilla -e 'library(rmarkdown); render("'$<'", c("html_document", "pdf_document"))'
 
 %.pdf : %.Rnw
 	R --vanilla -e 'library(knitr); knit2pdf("'$<'")'

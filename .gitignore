@@ -861,22 +861,15 @@ rinla/man/upgrade.Rd
 rinla/man/version.Rd
 rinla/man/wkt_tree.Rd
 
-rinla/vignettes/SPDE1d.pdf
-rinla/vignettes/SPDE1d.tex
-rinla/vignettes/SPDEhowto.pdf
-rinla/vignettes/SPDEhowto.tex
-rinla/vignettes/bGEVtutorial1-2.pdf
-rinla/vignettes/conditional-sampling.pdf
-rinla/vignettes/conditional_logit.pdf
-rinla/vignettes/figure/
-rinla/vignettes/figures/
-rinla/vignettes/int-design.pdf
-rinla/vignettes/multinomial.pdf
-rinla/vignettes/rgeneric.pdf
-rinla/vignettes/scale-model.log
-rinla/vignettes/scale-model.pdf
-rinla/vignettes/scale-model.tex
-rinla/vignettes/stack-with-factors.pdf
+rinla/vignettes/*.pdf
+rinla/vignettes/*.html
+rinla/vignettes/*.tex
+rinla/vignettes/*.log
+rinla/vignettes/*.aux
+rinla/vignettes/figure/*
+rinla/vignettes/figures/*
+rinla/vignettes/*-figs/*
+rinla/vignettes/*-figures/*
 
 r-inla/rinla/inst/NEWS.pdf
 
@@ -884,3 +877,5 @@ r-inla/rinla/inst/NEWS.pdf
 r-inla/inlaprog/GNUmakefile
 r-inla/gmrflib/GNUmakefile
 r-inla/GNUmakefile
+
+
