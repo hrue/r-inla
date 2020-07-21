@@ -861,11 +861,11 @@ rinla/man/upgrade.Rd
 rinla/man/version.Rd
 rinla/man/wkt_tree.Rd
 
-rinla/vignettes/*.pdf
-rinla/vignettes/*.html
-rinla/vignettes/*.tex
-rinla/vignettes/*.log
 rinla/vignettes/*.aux
+rinla/vignettes/*.html
+rinla/vignettes/*.log
+rinla/vignettes/*.pdf
+rinla/vignettes/*.tex
 rinla/vignettes/figure/*
 rinla/vignettes/figures/*
 rinla/vignettes/*-figs/*
