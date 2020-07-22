@@ -870,6 +870,8 @@ rinla/vignettes/figure/*
 rinla/vignettes/figures/*
 rinla/vignettes/*-figs/*
 rinla/vignettes/*-figures/*
+rinla/vignettes/*-img/*
+rinla/vignettes/Old/*
 
 r-inla/rinla/inst/NEWS.pdf
 
