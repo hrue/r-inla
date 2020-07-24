@@ -63,6 +63,8 @@ __BEGIN_DECLS
 #define INLA_REAL_BIG   GSL_SQRT_FLT_MAX
 #define INLA_REAL_SMALL GMRFLib_eps2()
 
+#define INLA_SIGN(_x) ((_x) >= 0.0 ? 1.0 : -1.0)
+
 /*
  * The scaling of the critical 'alpha' parameter. If this value change, it must also be changed in models.R
  *

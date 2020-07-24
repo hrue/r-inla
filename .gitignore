@@ -758,6 +758,8 @@ rinla/NAMESPACE.backup
 
 rinla/R/TAGS
 rinla/R/make-man-pages.timestamp
+rinla/R/d-sn-pc-prior.dat
+rinla/R/s-sn-pc-prior.dat
 
 rinla/man/ar.Rd
 rinla/man/barrier.Rd

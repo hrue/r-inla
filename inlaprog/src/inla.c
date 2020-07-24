@@ -5513,7 +5513,6 @@ int loglikelihood_skew_normal2(double *logll, double *x, int m, int idx, double 
 
 	// skewmx = 0.995271746...
 #define _SKEW_MAX ((4.0-M_PI)/2.0/pow(ABS(1.0-M_PI/2), 3.0/2.0))
-#define _SIGN(_x) ((_x) >= 0.0 ? 1.0 : -1.0)
 
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -5538,7 +5537,7 @@ int loglikelihood_skew_normal2(double *logll, double *x, int m, int idx, double 
 				g = DMIN(_SKEW_MAX - GMRFLib_eps(0.75), g);
 				g = DMAX(-(_SKEW_MAX - GMRFLib_eps(0.75)), g);
 			}
-			alpha = _SIGN(skewness) * sqrt(g / (1.0 - g));
+			alpha = INLA_SIGN(skewness) * sqrt(g / (1.0 - g));
 			delta = alpha / sqrt(1.0 + SQR(alpha));
 			omega = sqrt(variance / (1.0 - 2.0 * SQR(delta) / M_PI));
 			xi = ypred - omega * delta * sqrt(2.0 / M_PI);
@@ -5559,7 +5558,7 @@ int loglikelihood_skew_normal2(double *logll, double *x, int m, int idx, double 
 				g = DMIN(_SKEW_MAX - GMRFLib_eps(0.75), g);
 				g = DMAX(-(_SKEW_MAX - GMRFLib_eps(0.75)), g);
 			}
-			alpha = _SIGN(skewness) * sqrt(g / (1.0 - g));
+			alpha = INLA_SIGN(skewness) * sqrt(g / (1.0 - g));
 			delta = alpha / sqrt(1.0 + SQR(alpha));
 			omega = sqrt(variance / (1.0 - 2.0 * SQR(delta) / M_PI));
 			xi = ypred - omega * delta * sqrt(2.0 / M_PI);
@@ -5569,7 +5568,6 @@ int loglikelihood_skew_normal2(double *logll, double *x, int m, int idx, double 
 	}
 
 #undef _SKEW_MAX
-#undef _SIGN
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
