@@ -27,6 +27,32 @@
   }
 }
 
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item \code{plot(result)} will now produce a plot of the
+      \code{CPO/PIT} for each likelihood family (if available), instead
+      of a joint plot as earlier.
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added new likelihood models \code{zeroinflatedcenpoisson0}
+      and \code{zeroinflatedcenpoisson1}
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Revised the PIT calculations for family \code{cenpoisson}
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.07.18}{
   \subsection{BUG FIXES}{
     \itemize{
