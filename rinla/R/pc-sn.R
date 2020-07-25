@@ -143,10 +143,12 @@ inla.pc.sn.cache = function(force = FALSE, write.files = FALSE)
                     dist.max = max(dist.pos), 
                     pos = list(
                         x = skews.pos, 
+                        a = splinefun(skews.pos, alphas.pos, method = m), 
                         dist = splinefun(skews.pos, dist.pos, method = m), 
                         idist = splinefun(dist.pos, skews.pos, method = m)), 
                     neg = list(
                         x = skews.neg, 
+                        a = splinefun(skews.neg, alphas.neg, method = m), 
                         dist = splinefun(skews.neg, dist.neg, method = m), 
                         idist = splinefun(dist.neg, skews.neg, method = m))), 
                envir = inla.get.inlaEnv())
@@ -253,4 +255,3 @@ inla.pc.sn.test = function(lambda = 40, n = 10^6)
 }
 
 ## inla.get.inlaEnv = function(...) INLA:::inla.get.inlaEnv(...)
-
