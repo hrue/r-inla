@@ -619,49 +619,80 @@
 
     if (plot.cpo && !is.null(x$cpo)) {
         if (!(is.null(x$cpo$pit) || length(x$cpo$pit) == 0L) || !(is.null(x$cpo$cpo) || length(x$cpo$cpo) == 0L)) {
-            close.and.new.plot(...)
-            if (single) {
-                par(mfrow=c(1, 1))
-            } else {
-                par(mfrow=c(2, 2))
-            }
-        }
 
-        ok = (!is.na(x$cpo$failure) & !is.na(x$cpo$pit) & !is.na(x$cpo$cpo))
-        failure = x$cpo$failure[ok]
-        pit = x$cpo$pit[ok]
-        cpo = x$cpo$cpo[ok]
+            ## do one plot for each likelihood
+            fam.names <- x$.args$family
+            fam <- sort(unique(x$misc$family))
+            len <- length(x$cpo$cpo)
 
-        if (!(is.null(pit) || length(pit) == 0L)) {
-            ## if the observational model is discrete then do some
-            ## adjustments: define the modified pit as Prob(y < y_obs)
-            ## + 0.5*Prob(y = y_obs).
-            ##
-            n.fail = sum(failure > 0.0)
-            if (!is.null(x$family) && inla.model.properties(x$family, "likelihood")$discrete) {
-                m = "The (modified) PIT-values"
-                p = pit - 0.5*cpo
-            } else {
-                m = "The PIT-values"
-                p = pit
-            }
-            plot(p, main = paste(m, ", n.fail", n.fail, sep=""), ylab = "Probability", xlab = "index", ...)
-            if (n.fail > 0) {
-                points(p[ failure > 0 ], pch=20)
-            }
+            for(ifam in fam) {
 
-            hist(p, main = paste(m, ", n.fail", n.fail, sep=""), xlab = "Probability",
-                 n = max(20, min(round(length(pit)/10), 100)))
-        }
+                close.and.new.plot(...)
+                if (single) {
+                    par(mfrow=c(1, 1))
+                } else {
+                    par(mfrow=c(2, 2))
+                }
 
-        if (!(is.null(cpo) || length(cpo) == 0L)) {
-            n.fail = sum(failure != 0.0)
-            plot(cpo, main = paste("The CPO-values", ", nfail", n.fail, sep=""), ylab = "Probability", xlab = "index", ...)
-            if (n.fail > 0) {
-                points(cpo[ failure > 0 ], pch=20L)
+                fam.name <- fam.names[ifam]
+                idx <- which(x$misc$family == ifam)
+                ok = (!is.na(x$cpo$failure[idx]) & !is.na(x$cpo$pit[idx]) & !is.na(x$cpo$cpo[idx]))
+                failure = (x$cpo$failure[idx])[ok]
+                pit = (x$cpo$pit[idx])[ok]
+                cpo = (x$cpo$cpo[idx])[ok]
+                fail <- (x$cpo$fail[idx])[ok]
+                ii <- 1:len
+                ii <- (ii[idx])[ok]
+                
+                if (!(is.null(pit) || length(pit) == 0L)) {
+                    ## if the observational model is discrete then do some
+                    ## adjustments: define the modified pit as Prob(y < y_obs)
+                    ## + 0.5*Prob(y = y_obs).
+                    n.fail = sum(failure > 0.0)
+                    if (inla.model.properties(fam.name, section = "likelihood")$discrete) {
+                        discrete <- TRUE
+                        m = "Modified PIT-values"
+                        p = pit - 0.5*cpo
+                    } else {
+                        discrete <- FALSE
+                        m = "PIT-values"
+                        p = pit
+                    }
+                    
+                    pp <- rep(NA, len)
+                    pp[ii] <- p
+                    main.txt <- paste(m, ", nfail", n.fail, ", ", fam.name, "[", ifam, "]", sep="")
+                    plot(pp, main = main.txt, ylab = "Probability", xlab = "index", ylim = c(0, 1), ...)
+                    if (n.fail > 0) {
+                        p.fail <- p
+                        p.fail[failure == 0] <- NA
+                        pp[ii] <- p.fail
+                        points(pp, pch=20)
+                    }
+                    hist(p, main = main.txt, xlab = "Probability",
+                         n = max(20, min(round(length(pit)/10), 100)))
+                }
+                
+                if (!(is.null(cpo) || length(cpo) == 0L)) {
+                    n.fail = sum(failure != 0.0)
+                    main.txt = paste("CPO-values", ", nfail", n.fail, ", ", fam.name, "[", ifam, "]",sep="")
+                    ccpo <- rep(NA, len)
+                    ccpo[ii] <- cpo
+                    if (discrete) {
+                        plot(ccpo, main = main.txt, ylab = "Probability", xlab = "index", ylim = c(0, 1), ...)
+                    } else {
+                        plot(ccpo, main = main.txt, ylab = "Probability", xlab = "index", ...)
+                    }
+                    if (n.fail > 0) {
+                        cpo.fail <- cpo
+                        cpo.fail[failure == 0] <- NA
+                        ccpo[ii] <- cpo.fail
+                        points(ccpo, pch=20)
+                    }
+                    hist(cpo, main = main.txt, xlab = "Probability",
+                         n = max(20L, min(round(length(pit)/10L), 100L)))
+                }
             }
-            hist(cpo, main = paste("Histogram of the CPO-values", ", nfail", n.fail, sep=""), xlab = "Probability",
-                 n = max(20L, min(round(length(pit)/10L), 100L)))
         }
     }
 

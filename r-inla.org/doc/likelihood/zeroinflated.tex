@@ -12,9 +12,9 @@
 
 There is support two types of zero-inflated models, which we name type
 $0$ and type $1$. These are defined for both the Binomial, the
-Poisson, the negative Binomial and BetaBinomial likelihood. For
-simplicity we will describe only the Poisson as the other cases are
-similar.
+Poisson, the censored Poisson, the negative Binomial and BetaBinomial
+likelihood. For simplicity we will describe only the Poisson as the
+other cases are similar.
 
 \subsubsection*{Type 0}
 
@@ -81,6 +81,8 @@ BetaBinomial it is similar.
 \item $\text{family}=\texttt{zeroinflatednbinomial1}$
 \item $\text{family}=\texttt{zeroinflatedpoisson0}$
 \item $\text{family}=\texttt{zeroinflatedpoisson1}$
+\item $\text{family}=\texttt{zeroinflatedcenpoisson0}$
+\item $\text{family}=\texttt{zeroinflatedcenpoisson1}$
 \item $\text{family}=\texttt{zeroinflatedbetabinomial0}$
 \item $\text{family}=\texttt{zeroinflatedbetabinomial1}$
 \item Required arguments: As for the Binomial, the negative Binomial,
@@ -112,6 +114,11 @@ BetaBinomial it is similar.
 \paragraph{Zeroinflated Poisson Type 1}
 \input{../hyper/likelihood/zeroinflatedpoisson1.tex}
 
+\paragraph{Zeroinflated Censored Poisson Type 0}
+\input{../hyper/likelihood/zeroinflatedcenpoisson0.tex}
+
+\paragraph{Zeroinflated Censored Poisson Type 1}
+\input{../hyper/likelihood/zeroinflatedcenpoisson1.tex}
 
 
 \subsection*{Example}

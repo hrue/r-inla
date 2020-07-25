@@ -6565,6 +6565,50 @@
                      pdf = "zeroinflated"
                  ),
 
+                 zeroinflatedcenpoisson0 = list(
+                     doc = "Zero-inflated censored Poisson, type 0", 
+                     hyper = list(
+                         theta = list(
+                             hyperid =  87101,
+                             name = "logit probability",
+                             short.name = "prob",
+                             initial = -1,
+                             fixed = FALSE,
+                             prior = "gaussian",
+                             param = c(-1, 0.2),
+                             to.theta = function(x) log(x/(1-x)),
+                             from.theta = function(x) exp(x)/(1+exp(x))
+                         )
+                     ),
+                     status = "experimental", 
+                     survival = FALSE,
+                     discrete = FALSE,
+                     link = c("default", "log"),
+                     pdf = "zeroinflated"
+                 ),
+
+                 zeroinflatedcenpoisson1 = list(
+                     doc = "Zero-inflated censored Poisson, type 1", 
+                     hyper = list(
+                         theta = list(
+                             hyperid =  87201,
+                             name = "logit probability",
+                             short.name = "prob",
+                             initial = -1,
+                             fixed = FALSE,
+                             prior = "gaussian",
+                             param = c(-1, 0.2),
+                             to.theta = function(x) log(x/(1-x)),
+                             from.theta = function(x) exp(x)/(1+exp(x))
+                         )
+                     ),
+                     status = "experimental", 
+                     survival = FALSE,
+                     discrete = FALSE,
+                     link = c("default", "log"),
+                     pdf = "zeroinflated"
+                 ),
+
                  zeroinflatedbetabinomial0 = list(
                      doc = "Zero-inflated Beta-Binomial, type 0", 
                      hyper = list(
