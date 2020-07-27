@@ -140,7 +140,7 @@
         inla.ifelse(is.null(control$variant), 0L, as.integer(control$variant)),
         "\n", file = file,  append = TRUE)
 
-    if (inla.one.of(family, "cenpoisson")) {
+    if (inla.one.of(family, c("cenpoisson", "zeroinflatedcenpoisson0", "zeroinflatedcenpoisson1"))) {
         if (is.null(control$cenpoisson.I)) {
             interval = inla.set.control.family.default()$cenpoisson.I
         } else {
@@ -150,9 +150,8 @@
         if (length(interval) != 2L) {
             stop(paste("cenpoisson.I: Must be a vector of length 2.", length(interval)))
         }
-        if (interval[1] > interval[2]) {
-            stop(paste("cenpoisson.I = c(Low, High): Low > High!", interval[1],  interval[2]))
-        }
+        interval <- sort(pmax(0, interval))
+        stopifnot(all(is.infinite(interval) == FALSE))
         cat("cenpoisson.I = ", interval[1], " ",  interval[2], "\n", sep="", file=file, append=TRUE)
     }
     

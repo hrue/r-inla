@@ -4,7 +4,7 @@
 \usepackage{listings}
 \begin{document}
 
-\section*{Linkmodel: sn}
+\section*{Linkmodel: sn (EXPERIMENTAL)}
 
 \subsection*{Parametrization}
 
@@ -17,21 +17,22 @@ skew-normal distribution,
 \begin{displaymath}
     2\phi(x)\Phi(a^{1/3}x)
 \end{displaymath}
-which is renormalized to have zero mean and unit variance.
+which is renormalized to have zero mean and unit variance (expression
+omitted).
 
 \subsection*{Hyperparameters}
 
-The  parameter $a$ represented as
+The parameter $a$ represented using the (standarized) skewness $s$
+(expression omitted) where
 \begin{displaymath}
-    a = a_{\text{max}} \left(2\frac{\exp(\theta)}{1+ \exp(\theta)} -1\right)
+    s = s_{\text{max}} \left(2\frac{\exp(\theta)}{1+ \exp(\theta)} -1\right)
 \end{displaymath}
-and the prior is defined on $\theta$. There is a PC prior available
-for $\theta$. The (absolute) bound of
-$a_{\text{max}} = 3.2^{3} = 32.768$, is there for for stability
-reasons\footnote{This constant is defined as \texttt{LINK\_SN\_AMAX}
-    in the file \texttt{inla.h}.}. The PC-prior is corrected for
+$s_{\text{max}} = 0.988$, and the prior is defined on $\theta$. There
+is a PC prior available for $\theta$.
+The PC-prior is corrected for
 this bound, whereas the pc-prior in the R-functions
-\texttt{inla.pc.\{r,p,q,d\}sn} does not define a such bound.
+\texttt{inla.pc.\{r,p,q,d\}sn} does not define a such bound (but use
+the bound defined by the Skew-Normal itself, $0.99527\ldots$).
 
 \subsection*{Specification}
 
@@ -51,6 +52,8 @@ Use \texttt{model="sn"} within \texttt{control.link}.
 \item The link-function is also available as R-functions
     \texttt{inla.link.sn} and \texttt{inla.link.invsn}
 \item This link-model is experimental for the moment.
+\item Setting the initial value for the hyperparameter ``intercept''
+    to infinity, will remove the intercept from the link-model.
 \end{itemize}
 
 \end{document}

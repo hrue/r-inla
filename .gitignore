@@ -492,6 +492,12 @@ r-inla.org/doc/likelihood/lognormal.fls
 r-inla.org/doc/likelihood/lognormal.log
 r-inla.org/doc/likelihood/lognormal.pdf
 r-inla.org/doc/likelihood/lognormal.synctex.gz
+r-inla.org/doc/likelihood/mec-details.aux
+r-inla.org/doc/likelihood/mec-details.fdb_latexmk
+r-inla.org/doc/likelihood/mec-details.fls
+r-inla.org/doc/likelihood/mec-details.log
+r-inla.org/doc/likelihood/mec-details.pdf
+r-inla.org/doc/likelihood/mec-details.synctex.gz
 r-inla.org/doc/likelihood/nbinomial.aux
 r-inla.org/doc/likelihood/nbinomial.fdb_latexmk
 r-inla.org/doc/likelihood/nbinomial.fls
@@ -756,8 +762,12 @@ r-inla.org/doc/utils/inla.surv.synctex.gz
 
 rinla/NAMESPACE.backup
 
+rinla/inst/doc/likelihood/mec-details.pdf
+
 rinla/R/TAGS
 rinla/R/make-man-pages.timestamp
+rinla/R/d-sn-pc-prior.dat
+rinla/R/s-sn-pc-prior.dat
 
 rinla/man/ar.Rd
 rinla/man/barrier.Rd
@@ -861,15 +871,17 @@ rinla/man/upgrade.Rd
 rinla/man/version.Rd
 rinla/man/wkt_tree.Rd
 
-rinla/vignettes/*.pdf
-rinla/vignettes/*.html
-rinla/vignettes/*.tex
-rinla/vignettes/*.log
 rinla/vignettes/*.aux
+rinla/vignettes/*.html
+rinla/vignettes/*.log
+rinla/vignettes/*.pdf
+rinla/vignettes/*.tex
 rinla/vignettes/figure/*
 rinla/vignettes/figures/*
 rinla/vignettes/*-figs/*
 rinla/vignettes/*-figures/*
+rinla/vignettes/*-img/*
+rinla/vignettes/Old/*
 
 r-inla/rinla/inst/NEWS.pdf
 
