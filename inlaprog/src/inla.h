@@ -80,10 +80,10 @@ __BEGIN_DECLS
 #define INLA_QKUMAR_PREC_SCALE 0.10
 
 /* 
- * The maximum skewness parameter in the LINK_SN, where this is the 1/3-root of 'aa' as in the term Phi(aa*x). 3.2 gives aa =
- * 3.2^3 = 32.768. This constant also appears in the 'to.theta' and 'from.theta' functions in inla.models()$link$sn$hyper$theta
+ * The maximum skewness This constant also appears in the 'to.theta' and 'from.theta' functions in
+ * inla.models()$link$sn$hyper$theta
  */
-#define LINK_SN_AMAX (3.2)
+#define LINK_SN_SKEWMAX (0.988)
 
 /* 
  *
@@ -470,7 +470,8 @@ typedef struct {
 	double **specificity_intern;
 	double **prob_intern;
 	double **dof_intern;
-	double **sn_alpha;
+	double **sn_skew;
+	double **sn_intercept;
 	double *scale;
 } Link_param_tp;
 
@@ -1529,6 +1530,7 @@ double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, d
 double inla_dmatern_cf(double dist, double range, double nu);
 double inla_log_Phi(double x);
 double inla_log_Phi_fast(double x);
+double inla_sn_intercept(double intern_quantile, double skew);
 double inla_sn_Phi(double x, double xi, double omega, double alpha);
 double inla_update_density(double *theta, inla_update_tp * arg);
 double link_cauchit(double x, map_arg_tp typ, void *param, double *cov);

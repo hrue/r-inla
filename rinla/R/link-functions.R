@@ -228,15 +228,15 @@
     return (inla.link.inverse(x, inverse = !inverse))
 }
 
-`inla.link.sn` = function(x, intercept = 0.5, skew = 0, a = 0, inverse = FALSE)
+`inla.link.sn` = function(x, intercept = 0.5, skew = 0, a = NULL, inverse = FALSE)
 {
     stopifnot(inla.require("sn"))
 
-    if (missing(a)) {
+    if (is.null(a)) {
         cache <- inla.pc.sn.cache()
         a <- sign(skew) * cache$pos$a(abs(skew))
     } else {
-        stopifnot(missing(skew))
+        stopifnot(all(skew == 0))
     }
 
     delta = a/sqrt(1 + a^2)
@@ -253,7 +253,7 @@
     } else {
         intcept <- 0
     }
-
+print(intcept)
     ## the sn's qsn and psn handle 'a' in a strange way
     if (length(a) == 1) {
         ## then it vectorize...
@@ -281,7 +281,7 @@
     }
     return (ret)
 }
-`inla.link.invsn` = function(x, intercept = 0.5, skew = 0, a = 0, inverse = FALSE)
+`inla.link.invsn` = function(x, intercept = 0.5, skew = 0, a = NULL, inverse = FALSE)
 {
     return (inla.link.sn(x, intercept = intercept, skew = skew, a = a, inverse = !inverse))
 }

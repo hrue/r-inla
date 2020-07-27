@@ -21,17 +21,17 @@ which is renormalized to have zero mean and unit variance.
 
 \subsection*{Hyperparameters}
 
-The  parameter $a$ represented as
+The parameter $a$ represented using the (standarized) skewness $s$,
+where
 \begin{displaymath}
-    a = a_{\text{max}} \left(2\frac{\exp(\theta)}{1+ \exp(\theta)} -1\right)
+    s = s_{\text{max}} \left(2\frac{\exp(\theta)}{1+ \exp(\theta)} -1\right)
 \end{displaymath}
-and the prior is defined on $\theta$. There is a PC prior available
-for $\theta$. The (absolute) bound of
-$a_{\text{max}} = 3.2^{3} = 32.768$, is there for for stability
-reasons\footnote{This constant is defined as \texttt{LINK\_SN\_AMAX}
-    in the file \texttt{inla.h}.}. The PC-prior is corrected for
+$s_{\text{max}} = 0.988$, and the prior is defined on $\theta$. There
+is a PC prior available for $\theta$.
+The PC-prior is corrected for
 this bound, whereas the pc-prior in the R-functions
-\texttt{inla.pc.\{r,p,q,d\}sn} does not define a such bound.
+\texttt{inla.pc.\{r,p,q,d\}sn} does not define a such bound (but use
+the bound defined by the Skew-Normal itself, $0.99527\ldots$).
 
 \subsection*{Specification}
 
