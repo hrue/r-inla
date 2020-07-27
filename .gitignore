@@ -492,6 +492,12 @@ r-inla.org/doc/likelihood/lognormal.fls
 r-inla.org/doc/likelihood/lognormal.log
 r-inla.org/doc/likelihood/lognormal.pdf
 r-inla.org/doc/likelihood/lognormal.synctex.gz
+r-inla.org/doc/likelihood/mec-details.aux
+r-inla.org/doc/likelihood/mec-details.fdb_latexmk
+r-inla.org/doc/likelihood/mec-details.fls
+r-inla.org/doc/likelihood/mec-details.log
+r-inla.org/doc/likelihood/mec-details.pdf
+r-inla.org/doc/likelihood/mec-details.synctex.gz
 r-inla.org/doc/likelihood/nbinomial.aux
 r-inla.org/doc/likelihood/nbinomial.fdb_latexmk
 r-inla.org/doc/likelihood/nbinomial.fls
@@ -755,6 +761,8 @@ r-inla.org/doc/utils/inla.surv.pdf
 r-inla.org/doc/utils/inla.surv.synctex.gz
 
 rinla/NAMESPACE.backup
+
+rinla/inst/doc/likelihood/mec-details.pdf
 
 rinla/R/TAGS
 rinla/R/make-man-pages.timestamp

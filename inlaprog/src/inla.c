@@ -717,7 +717,7 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 	static char first = 1;
 
 	int i, j, id, debug = 0;
-	double alpha, dx = 0.02, range = 12.0, p, pp, omega, delta, xi, skew, skew_intern, skew_max = LINK_SN_SKEWMAX;
+	double alpha, dx = 0.02, range = 10.0, p, pp, omega, delta, xi, skew, skew_intern, skew_max = LINK_SN_SKEWMAX;
 	double **par, intercept, intercept_intern, intercept_alpha;
 
 	par = (double **) param;
@@ -726,7 +726,11 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 
 	// parameters are SKEW and INTERCEPT
 	skew = map_phi(skew_intern, MAP_FORWARD, (void *) &skew_max);
-	intercept_alpha = map_probability(intercept_intern, MAP_FORWARD, NULL);
+	if (!ISNAN(intercept_intern)) {
+		intercept_alpha = map_probability(intercept_intern, MAP_FORWARD, NULL);
+	} else {
+		intercept_alpha = NAN;
+	}
 
 	if (debug)
 		printf("map_invsn: enter with arg= %g, skew= %g, intercept_alpha= %g\n", arg, skew, intercept_alpha);
@@ -762,6 +766,7 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 	if (!ISEQUAL(alpha, table[id]->alpha)) {
 		int len = (int) (2.0 * range / dx + 0.5) + 1, llen = 0;
 		double *work, *x, *y, *yy, nc = 0.0, xx;
+
 		if (debug) {
 			fprintf(stderr, "map_invsn: build new table for alpha=%g id=%1d\n", alpha, id);
 		}
@@ -852,7 +857,13 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 	}
 
 	// ...as the mapping using this reparameterisation
-	intercept = inla_spline_eval(intercept_intern, table[id]->icdf);
+	if (!ISNAN(intercept_intern)) {
+		intercept = inla_spline_eval(intercept_intern, table[id]->icdf);
+	} else {
+		// this removes the intercept from the model
+		intercept = 0.0;
+	}
+	
 	if (debug) {
 		printf("... intercept_alpha= %g intercept= %g\n", intercept_alpha, intercept);
 	}
@@ -3518,10 +3529,9 @@ double priorfunc_pc_dof(double *x, double *parameters)
 double priorfunc_pc_sn(double *x, double *parameters)
 {
 	double lambda = parameters[0], val, dist, dist_max, deriv, xx, xxd, skew_max = LINK_SN_SKEWMAX;
-	void *skew_max_ptr = (void *) &skew_max;
 
-	xx = map_phi(*x, MAP_FORWARD, skew_max_ptr);
-	xxd = map_phi(*x, MAP_DFORWARD, skew_max_ptr);
+	xx = map_phi(*x, MAP_FORWARD, (void *) &skew_max);
+	xxd = map_phi(*x, MAP_DFORWARD, (void *) &skew_max);
 	dist = inla_pc_sn_d(xx, &deriv);
 	dist_max = inla_pc_sn_d(skew_max, NULL);
 	val = log(0.5) + log(lambda) - lambda * dist - log(1.0 - exp(-lambda * dist_max)) + log(ABS(deriv)) + log(ABS(xxd));
@@ -16319,12 +16329,23 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL1"), 0);
 		ds->link_fixed[1] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED1"), 1);
+
+		// special option. If 'initial=NA' or 'Inf', then remove intercept from the model. This is done setting fixed=1
+		// and then recognising NAN in the map_invsn() function.
+		if (ISNAN(tmp) || ISINF(tmp)) {
+			tmp = NAN;
+			ds->link_fixed[1] =  1;
+		}
+
 		if (!ds->link_fixed[1] && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
 		HYPER_NEW(ds->link_parameters->sn_intercept, tmp);
 		if (mb->verbose) {
 			printf("\t\tinitialise link_sn intercept[%g]\n", ds->link_parameters->sn_intercept[0][0]);
+			if (ISNAN(ds->link_parameters->sn_intercept[0][0])) {
+				printf("\t\t *** Intercept is removed from link-model\n");
+			}
 			printf("\t\tfixed=[%1d]\n", ds->link_fixed[1]);
 		}
 		inla_read_prior_link1(mb, ini, sec, &(ds->link_prior[1]), "LOGITBETA", NULL);
@@ -34355,20 +34376,23 @@ int testit(int argc, char **argv)
 
 	case 32:
 	{
-		double xx, alpha;
-		alpha = (!args[0] ? 0.5 : atof(args[0]));
-		printf("alpha = %g\n", alpha);
+		double xx, skew, intercept;
+		skew = (!args[0] ? 0.25 : atof(args[0]));
+		intercept = (!args[1] ? 0.5 : atof(args[1]));
+		printf("skew = %g\n", skew);
+		printf("intercept = %g\n", intercept);
 		double range = 9.0, dx = 0.1;
-		// paralle for must have int as loop-index
-		// #pragma omp parallel for private(xx)
+		double *arg[2];
+		arg[0] =  &skew;
+		arg[1] =  &intercept;
+
 		for (int i = 0; i < (int) (2.0 * range / dx); i++) {
 			xx = -range + i * dx;
-			// alpha = GMRFLib_uniform();
 			double a, b, c, d, h = 1e-6;
-			a = map_invsn(xx, MAP_FORWARD, (void *) &alpha);
-			b = map_invsn(a, MAP_BACKWARD, (void *) &alpha);
-			c = map_invsn(xx, MAP_DFORWARD, (void *) &alpha);
-			d = (map_invsn(xx + h, MAP_FORWARD, (void *) &alpha) - map_invsn(xx - h, MAP_FORWARD, (void *) &alpha)) / (2.0 * h);
+			a = map_invsn(xx, MAP_FORWARD, (void *) arg);
+			b = map_invsn(a, MAP_BACKWARD, (void *) arg);
+			c = map_invsn(xx, MAP_DFORWARD, (void *) arg);
+			d = (map_invsn(xx + h, MAP_FORWARD, (void *) arg) - map_invsn(xx - h, MAP_FORWARD, (void *) arg)) / (2.0 * h);
 			printf("xx = %.8g forw=%.8g backw=%.8g dforw=%.8g fdiff=%.8g (derr=%.8g)\n", xx, a, b, c, d, c - d);
 
 		}

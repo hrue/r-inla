@@ -5039,7 +5039,7 @@
                              initial = 0.0001,
                              fixed = TRUE,
                              prior = "pc.sn",
-                             param = 25,
+                             param = 20,
                              ## This value defined by LINK_SN_SKEWMAX in inla.h
                              to.theta = function(x, skew.max = 0.988) log((1+x/skew.max)/(1-x/skew.max)),
                              from.theta = function(x, skew.max = 0.988) skew.max*(2*exp(x)/(1+exp(x))-1)

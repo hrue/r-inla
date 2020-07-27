@@ -4,7 +4,7 @@
 \usepackage{listings}
 \begin{document}
 
-\section*{Linkmodel: sn}
+\section*{Linkmodel: sn (EXPERIMENTAL)}
 
 \subsection*{Parametrization}
 
@@ -17,12 +17,13 @@ skew-normal distribution,
 \begin{displaymath}
     2\phi(x)\Phi(a^{1/3}x)
 \end{displaymath}
-which is renormalized to have zero mean and unit variance.
+which is renormalized to have zero mean and unit variance (expression
+omitted).
 
 \subsection*{Hyperparameters}
 
-The parameter $a$ represented using the (standarized) skewness $s$,
-where
+The parameter $a$ represented using the (standarized) skewness $s$
+(expression omitted) where
 \begin{displaymath}
     s = s_{\text{max}} \left(2\frac{\exp(\theta)}{1+ \exp(\theta)} -1\right)
 \end{displaymath}
@@ -51,6 +52,8 @@ Use \texttt{model="sn"} within \texttt{control.link}.
 \item The link-function is also available as R-functions
     \texttt{inla.link.sn} and \texttt{inla.link.invsn}
 \item This link-model is experimental for the moment.
+\item Setting the initial value for the hyperparameter ``intercept''
+    to infinity, will remove the intercept from the link-model.
 \end{itemize}
 
 \end{document}
