@@ -27,28 +27,28 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
-  \subsection{USER-VISIBLE CHANGES}{
-    \itemize{
-      \item 
-    }
-  }
+\section{CHANGES IN VERSION 20.07.27}{
   \subsection{NEW FEATURES}{
     \itemize{
       \item \code{plot(result)} will now produce a plot of the
       \code{CPO/PIT} for each likelihood family (if available), instead
       of a joint plot as earlier.
+      \item New vignette about \code{jmarginal}
     }
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
       \item Added new likelihood models \code{zeroinflatedcenpoisson0}
       and \code{zeroinflatedcenpoisson1}
+      \item Link-model \code{sn} is updated, as well as the
+      PC-prior for the skewness therein, and the added intercept model.
     }
   }
   \subsection{BUG FIXES}{
     \itemize{
       \item Revised the PIT calculations for family \code{cenpoisson}
+      \item Code rewrite to (try to) prevent \code{Inf} for \code{DIC} calculations
+      \item Minor fixed in \code{inla.binary.install}
     }
   }
 }
