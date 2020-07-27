@@ -112,20 +112,19 @@
         response = response[!null.dat,]
 
     } else if (inla.one.of(family, c("poisson",
-                                     "xpoisson", 
                                      "cenpoisson", 
                                      "gammacount",
-                                     ## "contpoisson", 
-                                     ## "qcontpoisson", 
                                      "gpoisson", 
-                                     "zeroinflatedpoisson0",
-                                     "zeroinflatedpoisson1", 
-                                     "zeroinflatedpoisson2", 
                                      "nbinomial",
+                                     "xpoisson", 
+                                     "zeroinflatedcenpoisson0", 
+                                     "zeroinflatedcenpoisson1", 
                                      "zeroinflatednbinomial0",
                                      "zeroinflatednbinomial1",
-                                     "zeroinflatednbinomial2"))) {
-        
+                                     "zeroinflatednbinomial2", 
+                                     "zeroinflatedpoisson0",
+                                     "zeroinflatedpoisson1", 
+                                     "zeroinflatedpoisson2"))) {
         if (is.null(E)) {
             E = rep(1.0, n.data)
         }

@@ -57,6 +57,14 @@ __BEGIN_DECLS
 #define FIFO_GET_DATA "inla-mcmc-fifo-get-data"
 #define FIFO_PUT_DATA "inla-mcmc-fifo-put-data"
 
+//
+// just to have a big and small number to use
+#include <gsl/gsl_machine.h>
+#define INLA_REAL_BIG   GSL_SQRT_FLT_MAX
+#define INLA_REAL_SMALL GMRFLib_eps2()
+
+#define INLA_SIGN(_x) ((_x) >= 0.0 ? 1.0 : -1.0)
+
 /*
  * The scaling of the critical 'alpha' parameter. If this value change, it must also be changed in models.R
  *
@@ -72,10 +80,10 @@ __BEGIN_DECLS
 #define INLA_QKUMAR_PREC_SCALE 0.10
 
 /* 
- * The maximum skewness parameter in the LINK_SN, where this is the 1/3-root of 'aa' as in the term Phi(aa*x). 3.2 gives aa =
- * 3.2^3 = 32.768. This constant also appears in the 'to.theta' and 'from.theta' functions in inla.models()$link$sn$hyper$theta
+ * The maximum skewness This constant also appears in the 'to.theta' and 'from.theta' functions in
+ * inla.models()$link$sn$hyper$theta
  */
-#define LINK_SN_AMAX (3.2)
+#define LINK_SN_SKEWMAX (0.988)
 
 /* 
  *
@@ -462,7 +470,8 @@ typedef struct {
 	double **specificity_intern;
 	double **prob_intern;
 	double **dof_intern;
-	double **sn_alpha;
+	double **sn_skew;
+	double **sn_intercept;
 	double *scale;
 } Link_param_tp;
 
@@ -540,6 +549,8 @@ typedef enum {
 	L_XPOISSON,
 	L_DGP,
 	L_XBINOMIAL,
+	L_ZEROINFLATEDCENPOISSON0,
+	L_ZEROINFLATEDCENPOISSON1,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1519,6 +1530,7 @@ double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, d
 double inla_dmatern_cf(double dist, double range, double nu);
 double inla_log_Phi(double x);
 double inla_log_Phi_fast(double x);
+double inla_sn_intercept(double intern_quantile, double skew);
 double inla_sn_Phi(double x, double xi, double omega, double alpha);
 double inla_update_density(double *theta, inla_update_tp * arg);
 double link_cauchit(double x, map_arg_tp typ, void *param, double *cov);
@@ -1815,7 +1827,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(double **, double **, int *, void *), int (*simpson)(double **, double **, int *, void *));
+			   int (*quadrature)(double **, double **, int *, void *), int(*simpson)(double **, double **, int *, void *));
 int loglikelihood_mix_loggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
@@ -1857,6 +1869,8 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 int loglikelihood_zeroinflated_poisson0(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_zeroinflated_cenpoisson0(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_zeroinflated_cenpoisson1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int my_dir_exists(const char *dirname);
 int my_file_exists(const char *filename);
 int my_setenv(char *str, int prefix);

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 tt=$(mktemp)
-grep -v 192.168.122.158 ~/.ssh/known_hosts  > $tt && mv -f $tt ~/.ssh/known_host
+grep -v 192.168.122.158 ~/.ssh/known_hosts  > $tt && mv -f $tt ~/.ssh/known_hosts
 
 IP=0.0.0.0
 for ip in $(~/bin/my-vm-addr); do
@@ -45,6 +45,7 @@ ssh -x -t $IP "
 "
 
 tarfile="$D.tgz"
+ssh -x $IP "cd builds/build64; rm -f 64bit/libc.so\*; rm -f 64bit/libpthread.so\*; rm -f 64bit/librt.so\*"
 ssh -x $IP "cd builds/build64; tar cvfz $tarfile 64bit"
 D="www/Linux-builds"
 d="$D/$VERSION/$INLA_TAG"

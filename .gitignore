@@ -1,3 +1,96 @@
+### from https://raw.githubusercontent.com/github/gitignore/master/C.gitignore
+# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+
+## From https://raw.githubusercontent.com/github/gitignore/master/C%2B%2B.gitignore
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+################### Our own
+
+*~
+.Rproj.user
 gmrflib/.deps/
 gmrflib/TAGS
 
@@ -399,6 +492,12 @@ r-inla.org/doc/likelihood/lognormal.fls
 r-inla.org/doc/likelihood/lognormal.log
 r-inla.org/doc/likelihood/lognormal.pdf
 r-inla.org/doc/likelihood/lognormal.synctex.gz
+r-inla.org/doc/likelihood/mec-details.aux
+r-inla.org/doc/likelihood/mec-details.fdb_latexmk
+r-inla.org/doc/likelihood/mec-details.fls
+r-inla.org/doc/likelihood/mec-details.log
+r-inla.org/doc/likelihood/mec-details.pdf
+r-inla.org/doc/likelihood/mec-details.synctex.gz
 r-inla.org/doc/likelihood/nbinomial.aux
 r-inla.org/doc/likelihood/nbinomial.fdb_latexmk
 r-inla.org/doc/likelihood/nbinomial.fls
@@ -663,8 +762,12 @@ r-inla.org/doc/utils/inla.surv.synctex.gz
 
 rinla/NAMESPACE.backup
 
+rinla/inst/doc/likelihood/mec-details.pdf
+
 rinla/R/TAGS
 rinla/R/make-man-pages.timestamp
+rinla/R/d-sn-pc-prior.dat
+rinla/R/s-sn-pc-prior.dat
 
 rinla/man/ar.Rd
 rinla/man/barrier.Rd
@@ -768,27 +871,23 @@ rinla/man/upgrade.Rd
 rinla/man/version.Rd
 rinla/man/wkt_tree.Rd
 
-rinla/vignettes/SPDE1d.pdf
-rinla/vignettes/SPDE1d.tex
-rinla/vignettes/SPDEhowto.pdf
-rinla/vignettes/SPDEhowto.tex
-rinla/vignettes/bGEVtutorial1-2.pdf
-rinla/vignettes/conditional-sampling.pdf
-rinla/vignettes/conditional_logit.pdf
-rinla/vignettes/figure/
-rinla/vignettes/figures/
-rinla/vignettes/int-design.pdf
-rinla/vignettes/multinomial.pdf
-rinla/vignettes/rgeneric.pdf
-rinla/vignettes/scale-model.log
-rinla/vignettes/scale-model.pdf
-rinla/vignettes/scale-model.tex
-rinla/vignettes/stack-with-factors.pdf
+rinla/vignettes/*.aux
+rinla/vignettes/*.html
+rinla/vignettes/*.log
+rinla/vignettes/*.pdf
+rinla/vignettes/*.tex
+rinla/vignettes/figure/*
+rinla/vignettes/figures/*
+rinla/vignettes/*-figs/*
+rinla/vignettes/*-figures/*
+rinla/vignettes/*-img/*
+rinla/vignettes/Old/*
 
 r-inla/rinla/inst/NEWS.pdf
 
-## to override the Makefile
+## so we can override the Makefile
 r-inla/inlaprog/GNUmakefile
 r-inla/gmrflib/GNUmakefile
 r-inla/GNUmakefile
-.Rproj.user
+
+

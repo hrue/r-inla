@@ -66,8 +66,8 @@
 ##! inla.link.invinverse(x, inverse=FALSE)
 ##! inla.link.robit(x, df=7, inverse=FALSE)
 ##! inla.link.invrobit(x, df=7, inverse=FALSE)
-##! inla.link.sn(x, a=0, inverse=FALSE)
-##! inla.link.invsn(x, a=0, inverse=FALSE)
+##! inla.link.sn(x, intercept=0.5, skew=0, a=0, inverse=FALSE)
+##! inla.link.invsn(x, intercept=0.5, skew=0, a=0, inverse=FALSE)
 ##! inla.link.invalid(x, inverse=FALSE)
 ##! inla.link.invinvalid(x, inverse=FALSE)
 ##! }
@@ -77,6 +77,11 @@
 ##!     \item{df}{The degrees of freedom for the Student-t}
 ##!     \item{inverse}{Logical. Use the link (\code{inverse=FALSE})
 ##!                    or its inverse (\code{inverse=TRUE})}
+##!     \item{intercept}{The quantile level for the intercept in the Skew-Normal link}
+##!     \item{skew}{The skewness in the Skew-Normal.
+##!                 Not both of \code{skew} and \code{a} can be given.}
+##!     \item{a}{The \code{a}-paraeter in the Skew-Normal.
+##!              Not both of \code{skew} and \code{a} can be given.}
 ##!}
 ##! 
 ##! \value{Return the values of the link-function or its inverse.}
@@ -223,47 +228,62 @@
     return (inla.link.inverse(x, inverse = !inverse))
 }
 
-`inla.link.sn` = function(x, a = 0, inverse = FALSE)
+`inla.link.sn` = function(x, intercept = 0.5, skew = 0, a = NULL, inverse = FALSE)
 {
     stopifnot(inla.require("sn"))
 
-    alpha = sign(a) * abs(a)^(1/3)
-    delta = alpha/sqrt(1 + alpha^2)
+    if (is.null(a)) {
+        cache <- inla.pc.sn.cache()
+        a <- sign(skew) * cache$pos$a(abs(skew))
+    } else {
+        stopifnot(all(skew == 0))
+    }
+
+    delta = a/sqrt(1 + a^2)
     omega = 1/sqrt(1-2*delta^2/pi)
     xi = -omega * delta * sqrt(2/pi)
 
     ## skewness
     ## print((4-pi)/2 * (delta*sqrt(2/pi))^3 / ((1-2*delta^2/pi)^(3/2)))
 
-    ## the sn's qsn and psn handle 'alpha' in a strange way
-    if (length(alpha) == 1) {
+    stopifnot(length(intercept) == 1)
+    ## can turn this feature off...
+    if (intercept > 0 && intercept < 1.0) {
+        intcept <- sn::qsn(intercept, xi = xi, omega = omega, alpha = a)
+    } else {
+        intcept <- 0
+    }
+print(intcept)
+    ## the sn's qsn and psn handle 'a' in a strange way
+    if (length(a) == 1) {
         ## then it vectorize...
         if (!inverse) {
-            ret <- sn::qsn(x, xi = xi, omega = omega, alpha = alpha)
+            ret <- sn::qsn(x, xi = xi, omega = omega, alpha = a) - intcept
         } else {
-            ret <- sn::psn(x, xi = xi, omega = omega, alpha = alpha)
+            ret <- sn::psn(x + intcept, xi = xi, omega = omega, alpha = a) 
         }
     } else {
         ## then it does not vectorize... but does not give any error/warning!
-        X <- cbind(x = x, xi = xi, omega = omega, alpha = alpha)
+        X <- cbind(x = x, xi = xi, omega = omega, alpha = a)
         ret <- numeric(nrow(X))
         if (!inverse) {
             for(i in 1:nrow(X)) {
                 ret[i] <- sn::qsn(X[i, "x"], xi = X[i, "xi"],
-                                  omega = X[i, "omega"], alpha = X[i, "alpha"])
+                                  omega = X[i, "omega"], alpha = X[i, "alpha"]) -
+                    intcept
             }
         } else {
             for(i in 1:nrow(X)) {
-                ret[i] <- sn::psn(X[i, "x"], xi = X[i, "xi"],
+                ret[i] <- sn::psn(X[i, "x"] + intcept, xi = X[i, "xi"],
                                   omega = X[i, "omega"], alpha = X[i, "alpha"])
             }
         }
     }
     return (ret)
 }
-`inla.link.invsn` = function(x, a = 0, inverse = FALSE)
+`inla.link.invsn` = function(x, intercept = 0.5, skew = 0, a = NULL, inverse = FALSE)
 {
-    return (inla.link.sn(x, a = a, inverse = !inverse))
+    return (inla.link.sn(x, intercept = intercept, skew = skew, a = a, inverse = !inverse))
 }
 
 
@@ -276,3 +296,40 @@
 {
     stop("The invinvalid link-function is used.")
 }
+
+`inla.link.sn.test` <- function() {
+
+    n <- 4
+    a <- runif(n, min = -10, max = 10)
+    intercept <- runif(n)
+    x <- rnorm(n)
+    
+    for(i in 1:n) {
+        ans <- c(x = x[i], intercept = intercept[i], a = a[i],
+                 prob = inla.link.sn(x[i], a = a[i], intercept = intercept[i], inverse = TRUE),
+                 prob.inv = inla.link.sn(inla.link.sn(x[i], a = a[i], intercept = intercept[i], inverse = TRUE),
+                                         a = a[i], intercept = intercept[i], inverse = FALSE), 
+                 "is 0?" = inla.link.sn(inla.link.sn(x[i], a = a[i], intercept = intercept[i], inverse = TRUE),
+                                      a = a[i], intercept = intercept[i], inverse = FALSE) - x[i])
+        print(round(dig = 3, ans))
+    }
+
+    cat("\n\n")
+    n <- 4
+    s <- runif(n, min = -0.98, max = 0.98)
+    intercept <- runif(n)
+    x <- rnorm(n)
+    
+    for(i in 1:n) {
+        ans <- c(x = x[i], intercept = intercept[i], skew = s[i],
+                 prob = inla.link.sn(x[i], skew = s[i], intercept = intercept[i], inverse = TRUE),
+                 prob.inv = inla.link.sn(inla.link.sn(x[i], skew = s[i], intercept = intercept[i], inverse = TRUE),
+                                         skew = s[i], intercept = intercept[i], inverse = FALSE), 
+                 "is 0?" = inla.link.sn(inla.link.sn(x[i], skew = s[i], intercept = intercept[i], inverse = TRUE),
+                                      skew = s[i], intercept = intercept[i], inverse = FALSE) - x[i])
+        print(round(dig = 3, ans))
+    }
+}
+
+
+## inla.require = function(...) INLA:::inla.require(...)
