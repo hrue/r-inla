@@ -187,10 +187,9 @@ double inla_pcp_dof_dof(double d)
 	return (inla_spline_eval(d, spline));
 }
 
-
-double inla_pc_sn_d(double alpha, double *deriv)
+double inla_pc_sn_d(double skew, double *deriv)
 {
-	double alpha_lim = gsl_pow_3(LINK_SN_AMAX), dist;
+	double skew_max = LINK_SN_SKEWMAX, dist;
 
 	static GMRFLib_spline_tp *spline = NULL;
 #pragma omp threadprivate(spline)
@@ -204,10 +203,10 @@ double inla_pc_sn_d(double alpha, double *deriv)
 		}
 	}
 
-	alpha = DMIN(alpha_lim, ABS(alpha));
-	dist = inla_spline_eval(alpha, spline);
+	skew = DMIN(skew_max, ABS(skew));
+	dist = inla_spline_eval(skew, spline);
 	if (deriv) {
-		*deriv = inla_spline_eval_deriv(alpha, spline);
+		*deriv = inla_spline_eval_deriv(skew, spline);
 	}
 	return dist;
 }

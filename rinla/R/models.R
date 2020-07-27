@@ -5032,17 +5032,28 @@
                  sn = list(
                      doc = "Skew-normal link", 
                      hyper = list(
-                         theta = list(
+                         theta1 = list(
                              hyperid =  49031,
-                             name = "alpha",
-                             short.name = "alpha",
-                             initial = 0,
+                             name = "skew",
+                             short.name = "skew",
+                             initial = 0.0001,
                              fixed = TRUE,
                              prior = "pc.sn",
-                             param = 50,
-                             ## 3.2 is the value defined by ``LINK_SN_AMAX'' in inla.h
-                             to.theta = function(x, amax3 = 3.2^3) log((1+x/amax3)/(1-x/amax3)),
-                             from.theta = function(x, amax3 = 3.2^3) amax3*(2*exp(x)/(1+exp(x))-1)
+                             param = 25,
+                             ## This value defined by LINK_SN_SKEWMAX in inla.h
+                             to.theta = function(x, skew.max = 0.988) log((1+x/skew.max)/(1-x/skew.max)),
+                             from.theta = function(x, skew.max = 0.988) skew.max*(2*exp(x)/(1+exp(x))-1)
+                         ), 
+                         theta2 = list(
+                             hyperid =  49032,
+                             name = "intercept",
+                             short.name = "intercept",
+                             initial = 0.0,
+                             fixed = FALSE,
+                             prior = "logitbeta",
+                             param = c(1, 1),
+                             to.theta = function(x) log(x/(1-x)),
+                             from.theta = function(x) exp(x)/(1+exp(x))
                          )
                      ),
                      status = "experimental", 

@@ -717,9 +717,19 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 	static char first = 1;
 
 	int i, j, id, debug = 0;
-	double a, alpha, dx = 0.02, p, pp, omega, delta, xi, amax = LINK_SN_AMAX, range = 12.0;
-	double amax3 = gsl_pow_3(amax);
-	void *amax3_ptr = (void *) &amax3;
+	double alpha, dx = 0.02, range = 12.0, p, pp, omega, delta, xi, skew, skew_intern, skew_max = LINK_SN_SKEWMAX;
+	double **par, intercept, intercept_intern, intercept_alpha;
+
+	par = (double **) param;
+	skew_intern = *(par[0]);
+	intercept_intern = *(par[1]);
+
+	// parameters are SKEW and INTERCEPT
+	skew = map_phi(skew_intern, MAP_FORWARD, (void *) &skew_max);
+	intercept_alpha = map_probability(intercept_intern, MAP_FORWARD, NULL);
+
+	if (debug)
+		printf("map_invsn: enter with arg= %g, skew= %g, intercept_alpha= %g\n", arg, skew, intercept_alpha);
 
 	if (first) {
 #pragma omp critical
@@ -730,7 +740,7 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 			table = Calloc(ISQR(GMRFLib_MAX_THREADS), inla_sn_table_tp *);
 			for (i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
 				table[i] = Calloc(1, inla_sn_table_tp);
-				table[i]->alpha = NAN;
+				table[i]->alpha = INLA_REAL_BIG;
 				table[i]->cdf = NULL;
 				table[i]->icdf = NULL;
 			}
@@ -738,22 +748,19 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 		}
 	}
 
-	a = *((double *) param);
-	if (ISZERO(a)) {
-		alpha = 0.0;
-	} else {
-		alpha = (a >= 0.0 ? 1.0 : -1.0) * pow(ABS(map_phi(a, MAP_FORWARD, amax3_ptr)), 1.0 / 3.0);
-		if (ISNAN(alpha)) {
-			alpha = ((ISNAN(a) || a >= 0.0) ? 1.0 : -1.0) * amax;
-		}
-	}
+	alpha = inla_pc_sn_skew2alpha(skew);
 	delta = alpha / sqrt(1.0 + SQR(alpha));
 	omega = 1.0 / sqrt(1.0 - 2.0 * SQR(delta) / M_PI);
 	xi = -omega * delta * sqrt(2.0 / M_PI);
 	id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
 
-	if (alpha != table[id]->alpha) {
-		int len = (int) (2.0 * range / dx) + 1, llen = 0;
+	if (debug) {
+		printf("...this gives alpha= %g, delta= %g, omega= %g, xi= %g\n", alpha, delta, omega, xi);
+	}
+	
+
+	if (!ISEQUAL(alpha, table[id]->alpha)) {
+		int len = (int) (2.0 * range / dx + 0.5) + 1, llen = 0;
 		double *work, *x, *y, *yy, nc = 0.0, xx;
 		if (debug) {
 			fprintf(stderr, "map_invsn: build new table for alpha=%g id=%1d\n", alpha, id);
@@ -776,7 +783,7 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 		}
 		len = llen;
 
-		if (0) {
+		if (debug) {
 			// check that we have done it right...
 			double mom[4] = { 0, 0, 0, 0 }, negative = 0;
 			for (i = 0; i < len; i++) {
@@ -844,12 +851,18 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 		Free(work);
 	}
 
+	// ...as the mapping using this reparameterisation
+	intercept = inla_spline_eval(intercept_intern, table[id]->icdf);
+	if (debug) {
+		printf("... intercept_alpha= %g intercept= %g\n", intercept_alpha, intercept);
+	}
+
 	switch (typ) {
 	case MAP_FORWARD:
 		/*
 		 * extern = func(local) 
 		 */
-		arg = TRUNCATE(arg, table[id]->xmin, table[id]->xmax);
+		arg = TRUNCATE(intercept + arg, table[id]->xmin, table[id]->xmax);
 		p = inla_spline_eval(arg, table[id]->cdf);
 		return iMAP(p);
 
@@ -858,13 +871,13 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 		 * local = func(extern) 
 		 */
 		arg = TRUNCATE(arg, table[id]->pmin, table[id]->pmax);
-		return inla_spline_eval(MAP(arg), table[id]->icdf);
+		return inla_spline_eval(MAP(arg), table[id]->icdf) - intercept;
 
 	case MAP_DFORWARD:
 		/*
 		 * d_extern / d_local 
 		 */
-		arg = TRUNCATE(arg, table[id]->xmin, table[id]->xmax);
+		arg = TRUNCATE(intercept + arg, table[id]->xmin, table[id]->xmax);
 		p = inla_spline_eval(arg, table[id]->cdf);
 		pp = inla_spline_eval_deriv(arg, table[id]->cdf);
 		return diMAP(p) * pp;
@@ -1503,9 +1516,12 @@ double link_sn(double x, map_arg_tp typ, void *param, double *cov)
 	 * the link-functions calls the inverse map-function 
 	 */
 	Link_param_tp *p = (Link_param_tp *) param;
-	double alpha = p->sn_alpha[GMRFLib_thread_id][0];
+	double skew = p->sn_skew[GMRFLib_thread_id][0], intercept = p->sn_intercept[GMRFLib_thread_id][0], *par[2];
 
-	return map_invsn(x, typ, (void *) &alpha);
+	par[0] = &skew;
+	par[1] = &intercept;
+
+	return map_invsn(x, typ, (void *) par);
 }
 double link_tan(double x, map_arg_tp typ, void *param, double *cov)
 {
@@ -3501,14 +3517,13 @@ double priorfunc_pc_dof(double *x, double *parameters)
 }
 double priorfunc_pc_sn(double *x, double *parameters)
 {
-	double lambda = parameters[0], val, dist, dist_max, deriv, xx, xxd, amax = LINK_SN_AMAX;
-	double amax3 = gsl_pow_3(amax);
-	void *amax3_ptr = (void *) &amax3;
+	double lambda = parameters[0], val, dist, dist_max, deriv, xx, xxd, skew_max = LINK_SN_SKEWMAX;
+	void *skew_max_ptr = (void *) &skew_max;
 
-	xx = map_phi(*x, MAP_FORWARD, amax3_ptr);
-	xxd = map_phi(*x, MAP_DFORWARD, amax3_ptr);
+	xx = map_phi(*x, MAP_FORWARD, skew_max_ptr);
+	xxd = map_phi(*x, MAP_DFORWARD, skew_max_ptr);
 	dist = inla_pc_sn_d(xx, &deriv);
-	dist_max = inla_pc_sn_d(amax3, NULL);
+	dist_max = inla_pc_sn_d(skew_max, NULL);
 	val = log(0.5) + log(lambda) - lambda * dist - log(1.0 - exp(-lambda * dist_max)) + log(ABS(deriv)) + log(ABS(xxd));
 
 	return val;
@@ -5301,6 +5316,24 @@ int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_v
 	return GMRFLib_SUCCESS;
 }
 
+
+double inla_sn_intercept(double intern_quantile, double skew) 
+{
+	double a3, val;
+	a3 = gsl_pow_3(inla_pc_sn_skew2alpha(skew));
+	val = map_invsn(intern_quantile, MAP_BACKWARD, (void *) &a3);
+	P(intern_quantile);
+	P(skew);
+	P(inla_pc_sn_skew2alpha(skew));
+	P(a3);
+	P(val);
+
+	return(0);
+
+	a3 = gsl_pow_3(inla_pc_sn_skew2alpha(skew));
+	return (map_invsn(intern_quantile, MAP_FORWARD, (void *) &a3));
+}
+
 double inla_sn_Phi(double x, double xi, double omega, double alpha)
 {
 	// density = 2/omega * phi((x - xi)/omega) * Phi(alpha * ((x-xi)/omega))
@@ -6356,7 +6389,7 @@ int loglikelihood_zeroinflated_cenpoisson1(double *logll, double *x, int m, int 
 				logll[i] = log((1.0 - p) * (gsl_cdf_poisson_P((unsigned int) interval[1], mu)
 							    - gsl_cdf_poisson_P((unsigned int) (interval[0] - 1L), mu)));
 			} else {
-				logll[i] = log((1.0 - p) * gsl_ran_poisson_pdf((unsigned int) y, mu));
+				logll[i] = log(1.0 - p) + y * log(mu) - mu - normc; 
 			}
 		}
 	} else {
@@ -15875,7 +15908,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->predictor_invlinkfunc = link_robit;
 	} else if (!strcasecmp(ds->link_model, "SN")) {
 		ds->link_id = LINK_SN;
-		ds->link_ntheta = 1;
+		ds->link_ntheta = 2;
 		ds->predictor_invlinkfunc = link_sn;
 	} else if (!strcasecmp(ds->link_model, "TEST1")) {
 		ds->link_id = LINK_TEST1;
@@ -16221,33 +16254,36 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-		break;
+	break;
 
 	case LINK_SN:
 	{
 		/*
 		 * SN link
 		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL"), 0.0);
-		ds->link_fixed = Calloc(2, int);
-		ds->link_fixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED"), 1);
-		if (!ds->link_fixed[0] && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
+
 		ds->link_parameters = Calloc(1, Link_param_tp);
 		ds->link_parameters->idx = -1;
 		ds->link_parameters->order = -1;
 		for (i = 0; i < n_data; i++) {
 			ds->predictor_invlinkfunc_arg[i] = (void *) (ds->link_parameters);
 		}
-		HYPER_NEW(ds->link_parameters->sn_alpha, tmp);
+
+		ds->link_fixed = Calloc(2, int);
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL0"), 0.0);
+		ds->link_fixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED0"), 1);
+		if (!ds->link_fixed[0] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+
+		HYPER_NEW(ds->link_parameters->sn_skew, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise sn link alpha[%g]\n", ds->link_parameters->sn_alpha[0][0]);
+			printf("\t\tinitialise link_sn skew[%g]\n", ds->link_parameters->sn_skew[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->link_fixed[0]);
 		}
 
-		ds->link_prior = Calloc(1, Prior_tp);
-		inla_read_prior_link(mb, ini, sec, &(ds->link_prior[0]), "PCSN", NULL);
+		ds->link_prior = Calloc(2, Prior_tp);
+		inla_read_prior_link0(mb, ini, sec, &(ds->link_prior[0]), "PCSN", NULL);
 
 		/*
 		 * add theta 
@@ -16259,8 +16295,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Link sn alpha", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link sn alpha", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Link sn skew", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link sn skew", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -16268,20 +16304,62 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].to_theta);
-			mb->theta[mb->ntheta] = ds->link_parameters->sn_alpha;
+			mb->theta[mb->ntheta] = ds->link_parameters->sn_skew;
 
-			double *amax3 = Calloc(1, double);
-			*amax3 = gsl_pow_3(LINK_SN_AMAX);
+			double *skewmax = Calloc(1, double);
+			*skewmax = LINK_SN_SKEWMAX;
 
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_phi;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = (void *) amax3;
+			mb->theta_map_arg[mb->ntheta] = (void *) skewmax;
 			mb->ntheta++;
 			ds->link_ntheta++;
 		}
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL1"), 0);
+		ds->link_fixed[1] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED1"), 1);
+		if (!ds->link_fixed[1] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->link_parameters->sn_intercept, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise link_sn intercept[%g]\n", ds->link_parameters->sn_intercept[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->link_fixed[1]);
+		}
+		inla_read_prior_link1(mb, ini, sec, &(ds->link_prior[1]), "LOGITBETA", NULL);
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->link_fixed[1]) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->link_prior[1].hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Link sn intercept", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link sn intercept", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].to_theta);
+			mb->theta[mb->ntheta] = ds->link_parameters->sn_intercept;
+
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_probability;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->link_ntheta++;
+		}
+
 	}
-		break;
+	break;
 
 	case LINK_LOGOFFSET:
 	{
@@ -26354,9 +26432,13 @@ double extra(double *theta, int ntheta, void *argument)
 
 			case LINK_SN:
 				if (!ds->link_fixed[0]) {
-					// the prior has to know about the LINK_SN_AMAX...
-					double alpha = theta[count];
-					val += PRIOR_EVAL(ds->link_prior[0], &alpha);
+					double skew = theta[count];
+					val += PRIOR_EVAL(ds->link_prior[0], &skew);
+					count++;
+				}
+				if (!ds->link_fixed[1]) {
+					double intercept = theta[count];
+					val += PRIOR_EVAL(ds->link_prior[1], &intercept);
 					count++;
 				}
 				break;
@@ -33533,6 +33615,30 @@ int loglikelihood_testit(double *logll, double *x, int m, int idx, double *x_vec
 	return GMRFLib_SUCCESS;
 }
 
+int inla_testit_timer(void)
+{
+	GMRFLib_ENTER_ROUTINE;
+	int ret = system("sleep 1");
+	if (ret != 0)
+		exit(1);
+	GMRFLib_LEAVE_ROUTINE;
+	return 0;
+}
+
+int inla_check_pardiso(void)
+{
+	// check if PARDISO-lib is installed and working
+	if (GMRFLib_pardiso_check_install(1, 1) == GMRFLib_SUCCESS) {
+		printf("SUCCESS: PARDISO IS INSTALLED AND WORKING\n");
+		fflush(stdout);
+	} else {
+		printf("FAILURE: PARDISO IS NOT INSTALLED OR NOT WORKING\n");
+		fflush(stdout);
+		GMRFLib_pardiso_check_install(0, 0);
+	}
+	return GMRFLib_SUCCESS;
+}
+
 int testit(int argc, char **argv)
 {
 	int test_no = -1;
@@ -34382,7 +34488,14 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-		// this will give some more error messages, if any
+	case 41: 
+	{
+		inla_sn_intercept(0.43, 0.123) ;
+		inla_sn_intercept(0.823, -0.123);
+		break;
+	}
+
+	// this will give some more error messages, if any
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
@@ -34394,30 +34507,6 @@ int testit(int argc, char **argv)
 	}
 
 	exit(EXIT_SUCCESS);
-}
-
-int inla_testit_timer(void)
-{
-	GMRFLib_ENTER_ROUTINE;
-	int ret = system("sleep 1");
-	if (ret != 0)
-		exit(1);
-	GMRFLib_LEAVE_ROUTINE;
-	return 0;
-}
-
-int inla_check_pardiso(void)
-{
-	// check if PARDISO-lib is installed and working
-	if (GMRFLib_pardiso_check_install(1, 1) == GMRFLib_SUCCESS) {
-		printf("SUCCESS: PARDISO IS INSTALLED AND WORKING\n");
-		fflush(stdout);
-	} else {
-		printf("FAILURE: PARDISO IS NOT INSTALLED OR NOT WORKING\n");
-		fflush(stdout);
-		GMRFLib_pardiso_check_install(0, 0);
-	}
-	return GMRFLib_SUCCESS;
 }
 
 int main(int argc, char **argv)

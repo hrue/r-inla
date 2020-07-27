@@ -254,4 +254,22 @@ inla.pc.sn.test = function(lambda = 40, n = 10^6)
     print(cbind(q=f(q), p.emp = f(cdf(q)), p.true = f(inla.pc.psn(q, lambda))))
 }
 
-## inla.get.inlaEnv = function(...) INLA:::inla.get.inlaEnv(...)
+inla.pc.sn.test2 <- function() {
+
+    fun <- function(intern.intercept, skew) {
+        cache <- inla.pc.sn.cache()
+        alpha <- sign(skew) * cache$pos$a(abs(skew))
+        delta = alpha/sqrt(1 + alpha^2)
+        omega = 1/sqrt(1-2*delta^2/pi)
+        xi = -omega * delta * sqrt(2/pi)
+        print(c(skew = skew, xi = xi, omega = omega, alpha = alpha))
+        return (qsn(intern.intercept, xi = xi, omega = omega, alpha = alpha))
+    }
+
+    print(fun(0.43, 0.123))
+    print(fun(0.823, -0.123))
+}
+
+if (FALSE) {
+    inla.get.inlaEnv = function(...) INLA:::inla.get.inlaEnv(...)
+}

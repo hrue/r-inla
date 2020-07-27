@@ -996,14 +996,14 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
 
     my.pc.sn = function(theta, param, log=FALSE) 
     {
-        fun = inla.models()$link$sn$hyper$theta$from.theta
-        ## make a function that extracts 'amax3'
-        fun.amax3 = args(fun)
-        body(fun.amax3) = expression(amax3)
-        alpha = fun(theta)
-        alpha.max = fun.amax3()
-        integral = inla.pc.psn(alpha.max, lambda = param[1]) - inla.pc.psn(-alpha.max, lambda = param[1]) 
-        ld = inla.pc.dsn(alpha, lambda = param[1], log=TRUE) -log(integral) + log.jac(alpha, theta)
+        fun = inla.models()$link$sn$hyper$theta1$from.theta
+        ## make a function that extracts 'skew.max'
+        fun.skew.max = args(fun)
+        body(fun.skew.max) = expression(skew.max)
+        skew = fun(theta)
+        skew.max = fun.skew.max()
+        integral = inla.pc.psn(skew.max, lambda = param[1]) - inla.pc.psn(-skew.max, lambda = param[1]) 
+        ld = inla.pc.dsn(skew, lambda = param[1], log=TRUE) -log(integral) + log.jac(skew, theta)
         return (if (log) ld else exp(ld))
     }
 
