@@ -26,6 +26,28 @@
     }
   }
 }
+\section{CHANGES IN VERSION xx.xx.xx}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Option \code{control.inla$lincomb.derived.only} is now disabled.
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item 
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item 
+    }
+  }
+}
 
 \section{CHANGES IN VERSION 20.07.27}{
   \subsection{NEW FEATURES}{

@@ -793,6 +793,10 @@
     inla.write.boolean.field("lincomb.derived.only", inla.spec$lincomb.derived.only, file)
     inla.write.boolean.field("lincomb.derived.correlation.matrix", inla.spec$lincomb.derived.correlation.matrix, file)
 
+    if (inla.spec$lincomb.derived.only != TRUE) {
+        stop("Option 'control.inla$lincomb.derived.only' is disabled. Please remove.")
+    }
+
     if (!is.null(inla.spec$restart) && inla.spec$restart >= 0) {
         cat("restart = ", as.integer(inla.spec$restart), "\n", file = file, sep = " ", append = TRUE)
     }

@@ -479,7 +479,7 @@
         ##:ARGUMENT: stencil Numerical Number of points in the stencil used to compute the numerical derivaties of the log-likelihood (3, 5, 7 or 9). (default 5)
         stencil = 5L, 
 
-        ##:ARGUMENT: lincomb.derived.only Logical If TRUE the only compute the marginals for the derived linear combinations and if FALSE, the and also the linear combinations to the graph (Default TRUE)
+        ##:ARGUMENT: lincomb.derived.only Logical THIS OPTION IS NOW DISABLED (July 2021) AND WILL BE REMOVED IN A FUTURE VERSION. (If TRUE the only compute the marginals for the derived linear combinations and if FALSE, the and also the linear combinations to the graph (Default TRUE))
         lincomb.derived.only = TRUE,
 
         ##:ARGUMENT: lincomb.derived.correlation.matrix Logical If TRUE compute also the correlations for the derived linear combinations, if FALSE do not (Default FALSE)
