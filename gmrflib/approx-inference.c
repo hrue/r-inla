@@ -6619,7 +6619,7 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 			printf("\t\tNumber of nodes corrected for [%1d]\n", (int) delta->size);
 			printf("\t\tRefinement [%1d]\n", (int) ai_par->vb_refinement);
 			if (ai_par->vb_hyperpar_correct) {
-				printf("\t\tPotential correct ldens_hyperpar [%.4f]\n", ldens_correction);
+				printf("\t\tCorrection for ldens_hyperpar [%.4f]\n", (ldens_hyperpar_corr ? *ldens_hyperpar_corr : 0.0));
 			}
 			printf("\t\tNumber of corrections truncated [%1d] with max.correct[%.2f]\n", num_trunc, ai_par->vb_max_correct);
 			for (jj = 0; jj < vb_idx->n; jj++) {
