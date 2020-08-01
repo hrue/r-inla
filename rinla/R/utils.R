@@ -197,9 +197,12 @@
 
     inla.only.for.developers(msg = "inla.my.update", strict = TRUE)
 
-    if (Sys.getenv("USER") %in% c("hrue", "rueh")) {
+    if (Sys.getenv("USER") %in% c("hrue")) {
         dir.default = "~/p/inla/r-inla/rinla/R"
         bin.default = "~/p/inla/work/local/bin"
+    } else if (Sys.getenv("USER") %in% c("rueh")) {
+        dir.default = "~/build64/r-inla/rinla/R"
+        bin.default = "~/build64/local/bin"
     } else if (Sys.getenv("USER") %in% c("elias")) {
         dir.default = "~/inla-project/source/inla/rinla/R"
         bin.default = "~/inla-project/compile/local/bin"
@@ -213,7 +216,7 @@
         dir.default = "~/Desktop/r-inla/rinla/R"
         bin.default = "~/local/bin"
     } else {
-        dir.default = "~/git/inla/rinla/R"
+        dir.default = "~/github/r-inla/rinla/R"
         bin.default = "~/local/bin"
     }
     if (!missing(binaries)) {

@@ -1066,7 +1066,8 @@
         openmp.strategy = "default"
     }
     openmp.strategy = match.arg(tolower(openmp.strategy),
-                                c("default", "small", "medium", "large", "huge", "pardiso.serial", "pardiso.parallel"))
+                                c("default", "small", "medium", "large", "huge",
+                                  "pardiso.serial", "pardiso.parallel", "pardiso.nested"))
     cat("openmp.strategy = ", openmp.strategy, "\n", sep = " ", file = file,  append = TRUE)
 
     if (!is.null(quantiles)) {

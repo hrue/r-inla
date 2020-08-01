@@ -1920,7 +1920,7 @@
     ## inla.arg override all default arguments including `-b' !!!
     if (is.null(inla.arg)) {
         arg.arg = ""
-        arg.nt = inla.ifelse(is.numeric(num.threads), paste(" -t ", num.threads, " ", sep=""), "")
+        arg.nt = paste0(" -t ", num.threads, " ")
 
         ## due to the weird behaviour,  we will do the verbose-mode differently now
         if (inla.os("linux") || inla.os("mac")) {

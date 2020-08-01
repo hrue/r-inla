@@ -157,6 +157,8 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < nx; i++) {
+		GMRFLib_openmp_nested_fix();
+
 		int local_err;
 		GMRFLib_ai_store_tp *ais = NULL;
 
@@ -232,6 +234,7 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 
 #pragma omp parallel for private(idum) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (idum = 0; idum < 1; idum++) {
+		GMRFLib_openmp_nested_fix();
 		GMRFLib_ai_marginal_hyperparam(fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg, G.fixed_value,
 					       G.graph,
 					       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local[GMRFLib_thread_id]->Qfunc),
@@ -336,6 +339,8 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < G.nhyper + 1; i++) {
+			GMRFLib_openmp_nested_fix();
+
 			double *xx = NULL;
 			int j, err;
 			GMRFLib_ai_store_tp *ais = NULL;
@@ -403,6 +408,8 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		}
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < 2 * G.nhyper; i++) {
+			GMRFLib_openmp_nested_fix();
+
 			int j, err;
 			double *xx = NULL;
 			GMRFLib_ai_store_tp *ais = NULL;
@@ -630,6 +637,8 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 	}
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < 2 * n + 1; i++) {
+		GMRFLib_openmp_nested_fix();
+
 		int j;
 		GMRFLib_ai_store_tp *ais = NULL;
 
@@ -771,6 +780,8 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 			}
 #pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (k = 0; k < nn; k++) {
+				GMRFLib_openmp_nested_fix();
+
 				int ii, jj;
 				double f11, fm11, f1m1, fm1m1;
 				GMRFLib_ai_store_tp *ais = NULL;
@@ -924,6 +935,8 @@ int GMRFLib_test_something____omp(void)
 	}
 #pragma omp parallel for private(i, x, fx) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < 10; i++) {
+		GMRFLib_openmp_nested_fix();
+
 		GMRFLib_ai_store_tp *ais = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 
 		x[0] = 3.0 - (i + 1) * 0.1;
