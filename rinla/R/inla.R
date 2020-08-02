@@ -225,13 +225,7 @@
               num.threads = inla.getOption("num.threads"),
               
               ##!\item{blas.num.threads}{The absolute value of \code{blas.num.threads} is the maximum
-              ##!number of threads the the \code{openblas}/\code{mklblas} will use (if available). If
-              ##!\code{blas.num.threads} > 0, then the environment variables
-              ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned. If
-              ##!\code{blas.num.threads} < 0, then the environment variables
-              ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be assigned unless they
-              ##!are already defined. If \code{blas.num.threads} = 0, then variables
-              ##!\code{OPENBLAS_NUM_THREADS} and \code{MKL_NUM_THREADS} will be removed.}
+              ##!number of threads the the \code{openblas}/\code{mklblas} will use (if available). }
               blas.num.threads = inla.getOption("blas.num.threads"),
               
               ##!\item{keep}{ A boolean variable indicating that the
@@ -1920,8 +1914,8 @@
     ## inla.arg override all default arguments including `-b' !!!
     if (is.null(inla.arg)) {
         arg.arg = ""
-        num.threads <- gsub("[ \t]+", "", num.threads)
-        arg.nt = paste0(" -t ", num.threads, " ")
+        num.threads <- gsub("[ \t]+", "", num.threads) ## no spaces allowed
+        arg.nt = paste0(" -t ", num.threads, " -B ", blas.num.threads, " ")
 
         ## due to the weird behaviour,  we will do the verbose-mode differently now
         if (inla.os("linux") || inla.os("mac")) {
@@ -2321,18 +2315,21 @@
     if (Sys.getenv("PARDISOLICMESSAGE") == "")
         Sys.setenv(PARDISOLICMESSAGE=1)
     
-    blas.num.threads = as.integer(blas.num.threads)
-    if (blas.num.threads == 0) {
-        Sys.unsetenv("OPENBLAS_NUM_THREADS")
-        Sys.unsetenv("MKL_NUM_THREADS")
-    } else if (blas.num.threads > 0) {
-        Sys.setenv(OPENBLAS_NUM_THREADS = blas.num.threads)
-        Sys.setenv(MKL_NUM_THREADS = blas.num.threads)
-    } else {
-        if (Sys.getenv("OPENBLAS_NUM_THREADS") == "")
-            Sys.setenv(OPENBLAS_NUM_THREADS = abs(blas.num.threads))
-        if (Sys.getenv("MKL_NUM_THREADS") == "")
-            Sys.setenv(MKL_NUM_THREADS = abs(blas.num.threads))
+    if (FALSE) {
+        ## do this different now (Aug 2020)
+        blas.num.threads = as.integer(blas.num.threads)
+        if (blas.num.threads == 0) {
+            Sys.unsetenv("OPENBLAS_NUM_THREADS")
+            Sys.unsetenv("MKL_NUM_THREADS")
+        } else if (blas.num.threads > 0) {
+            Sys.setenv(OPENBLAS_NUM_THREADS = blas.num.threads)
+            Sys.setenv(MKL_NUM_THREADS = blas.num.threads)
+        } else {
+            if (Sys.getenv("OPENBLAS_NUM_THREADS") == "")
+                Sys.setenv(OPENBLAS_NUM_THREADS = abs(blas.num.threads))
+            if (Sys.getenv("MKL_NUM_THREADS") == "")
+                Sys.setenv(MKL_NUM_THREADS = abs(blas.num.threads))
+        }
     }
     
     return (invisible())

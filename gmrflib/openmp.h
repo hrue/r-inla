@@ -126,6 +126,7 @@ typedef struct {
 
 #define GMRFLib_MAX_THREADS (GMRFLib_openmp ? GMRFLib_openmp->max_threads : IMIN(omp_get_max_threads(), omp_get_num_procs()))
 
+int GMRFLib_set_blas_num_threads(int threads);
 int GMRFLib_openmp_nested_fix(void);
 int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, GMRFLib_smtp_tp * smtp);
 

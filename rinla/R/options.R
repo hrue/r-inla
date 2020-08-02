@@ -115,7 +115,7 @@
         num.threads = parallel::detectCores(), 
         blas.num.threads = 1L, 
         smtp = "default", 
-        mkl = FALSE, 
+        mkl = inla.os("linux"), 
         pardiso.license = NULL, 
         keep = FALSE, 
         working.directory = NULL, 

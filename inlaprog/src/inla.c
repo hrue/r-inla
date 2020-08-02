@@ -9248,11 +9248,13 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 int inla_sread_colon_ints(int *i, int *j, const char *str)
 {
 	/*
-	 * read integer I and J from STR using format I:J or I,J
+	 * read integer I and J from STR using format I:J, I,J or I J
 	 */
 	if (sscanf(str, "%d:%d", i, j) == 2) {
 		return INLA_OK;
 	} else if (sscanf(str, "%d,%d", i, j) == 2) {
+		return INLA_OK;
+	} else if (sscanf(str, "%d %d", i, j) == 2) {
 		return INLA_OK;
 	} else {
 		return INLA_FAIL;
@@ -33191,6 +33193,8 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		GMRFLib_problem_tp **problems = Calloc(GMRFLib_openmp->max_threads_outer, GMRFLib_problem_tp *);
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < ns; i++) {
+			GMRFLib_openmp_nested_fix();
+
 			int thread = omp_get_thread_num();
 			if (problems[thread] == NULL) {
 				problems[thread] = GMRFLib_duplicate_problem(problem, 0, 1, 1);
@@ -34571,7 +34575,7 @@ int main(int argc, char **argv)
 
 #define _BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
-	int i, verbose = 0, silent = 0, opt, report = 0, arg, nt, ntt[2], err, enable_core_file = 0;
+	int i, verbose = 0, silent = 0, opt, report = 0, arg, nt, ntb = 0, ntt[2], err, enable_core_file = 0;
 	char *program = argv[0];
 	double time_used[3];
 	inla_tp *mb = NULL;
@@ -34603,7 +34607,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR1, inla_signal);
 	signal(SIGUSR2, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "bvVe:fhist:m:S:T:N:r:FYz:cpR:")) != -1) {
+	while ((opt = getopt(argc, argv, "bvVe:fhist:B:m:S:T:N:r:FYz:cpR:")) != -1) {
 		switch (opt) {
 		case 'b':
 			G.binary = 1;
@@ -34624,6 +34628,15 @@ int main(int argc, char **argv)
 			my_setenv(optarg, 1);
 			break;
 
+		case 'B':
+			if (inla_sread_ints(&ntb, 1, optarg) == INLA_OK) {
+				GMRFLib_set_blas_num_threads(ntb);
+			} else {
+				fprintf(stderr, "Fail to read BLAS_NUM_THREADS from %s\n", optarg);
+				exit(EXIT_SUCCESS);
+			}
+			break;
+			
 		case 't':
 			if (inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK) {
 				// we're using the PARDISO.NESTED strategy
@@ -34633,8 +34646,7 @@ int main(int argc, char **argv)
 					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
 				}
 				GMRFLib_openmp->max_threads = ntt[0] * ntt[1];
-				// in the hope it is confirmed later
-				GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED;
+				GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
 				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 			} else if (inla_sread_ints(&nt, 1, optarg) == INLA_OK) {
 				GMRFLib_openmp->max_threads = IMIN(GMRFLib_openmp->max_threads, IMAX(1, nt));
