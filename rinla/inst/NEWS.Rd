@@ -26,25 +26,17 @@
     }
   }
 }
-\section{CHANGES IN VERSION xx.xx.xx}{
+
+\section{CHANGES IN VERSION 20.08.02}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
       \item Option \code{control.inla$lincomb.derived.only} is now disabled.
     }
   }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item 
-    }
-  }
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item
-    }
-  }
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item 
+      \item Testing nested parallelism \code{openmp.nested} with
+      \code{num.threads="A,B"}. Work in progress
     }
   }
 }
