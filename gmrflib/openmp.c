@@ -184,18 +184,17 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 			break;
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL:
-			GMRFLib_openmp->max_threads_outer = nt;	/* YES */
-			GMRFLib_openmp->max_threads_inner = nt;	/* YES */
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL:
-			GMRFLib_openmp->max_threads_outer = nt;	/* YES */
-			GMRFLib_openmp->max_threads_inner = nt;	/* YES */
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED:
-			// yes
 			nested = 0;
-			GMRFLib_openmp->max_threads_outer = GMRFLib_openmp->max_threads;
-			GMRFLib_openmp->max_threads_inner = GMRFLib_openmp->max_threads; 
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
@@ -377,9 +376,9 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED:
-			nested = 1;
-			GMRFLib_openmp->max_threads_outer = GMRFLib_openmp->max_threads_nested[0];
-			GMRFLib_openmp->max_threads_inner = GMRFLib_openmp->max_threads_nested[1];
+			nested = 0;
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
@@ -403,10 +402,9 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED:
-			//yes
 			nested = 0;
-			GMRFLib_openmp->max_threads_outer = GMRFLib_openmp->max_threads;
-			GMRFLib_openmp->max_threads_inner = GMRFLib_openmp->max_threads;
+			GMRFLib_openmp->max_threads_outer = nt;
+			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:

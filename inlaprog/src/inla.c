@@ -34626,7 +34626,7 @@ int main(int argc, char **argv)
 
 		case 't':
 			if (inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK) {
-				// we're in the PARDISO.NESTED strategy
+				// we're using the PARDISO.NESTED strategy
 				GMRFLib_openmp->max_threads_nested = Calloc(2, int);
 				for(i = 0; i < 2; i++) {
 					ntt[i] = IMIN(GMRFLib_openmp->max_threads, IMAX(1, ntt[i]));
