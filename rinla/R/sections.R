@@ -793,6 +793,10 @@
     inla.write.boolean.field("lincomb.derived.only", inla.spec$lincomb.derived.only, file)
     inla.write.boolean.field("lincomb.derived.correlation.matrix", inla.spec$lincomb.derived.correlation.matrix, file)
 
+    if (inla.spec$lincomb.derived.only != TRUE) {
+        stop("Option 'control.inla$lincomb.derived.only' is disabled. Please remove.")
+    }
+
     if (!is.null(inla.spec$restart) && inla.spec$restart >= 0) {
         cat("restart = ", as.integer(inla.spec$restart), "\n", file = file, sep = " ", append = TRUE)
     }
@@ -1062,7 +1066,8 @@
         openmp.strategy = "default"
     }
     openmp.strategy = match.arg(tolower(openmp.strategy),
-                                c("default", "small", "medium", "large", "huge", "pardiso.serial", "pardiso.parallel"))
+                                c("default", "small", "medium", "large", "huge",
+                                  "pardiso.serial", "pardiso.parallel", "pardiso.nested"))
     cat("openmp.strategy = ", openmp.strategy, "\n", sep = " ", file = file,  append = TRUE)
 
     if (!is.null(quantiles)) {

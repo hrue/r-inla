@@ -883,7 +883,7 @@ rinla/vignettes/*-figures/*
 rinla/vignettes/*-img/*
 rinla/vignettes/Old/*
 
-r-inla/rinla/inst/NEWS.pdf
+rinla/inst/NEWS.pdf
 
 ## so we can override the Makefile
 r-inla/inlaprog/GNUmakefile

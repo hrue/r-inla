@@ -1042,6 +1042,8 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 					ok = 1;
 				}
 				if (!ok) {
+					P(S.static_pstores[i]->pstore->iparm[2]);
+					P(GMRFLib_openmp->max_threads_inner);
 					FIXME("THIS IS NOT TRUE: iparm[2] >= threads_inner");
 				}
 				if (S.static_pstores[i] && ok) {
@@ -1107,7 +1109,6 @@ int my_pardiso_test1(void)
 	GMRFLib_graph_tp *g;
 
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_EXTERNAL, NULL, NULL);
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 
 	// GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Qdense.txt", -1, NULL, NULL, NULL);
@@ -1448,8 +1449,8 @@ int my_pardiso_test5(void)
 	GMRFLib_graph_tp *g;
 
 	// GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
-	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
+	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	// GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q1000.txt", -1, NULL, NULL, NULL);
 	// GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q-problem-ijformat.txt", -1, NULL, NULL, NULL);

@@ -3962,6 +3962,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			if (omp_get_max_threads() > nhyper) {
 #pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
 				for (k = 0; k < 2 * nhyper; k++) {
+					GMRFLib_openmp_nested_fix();
+
 					double f0, *zz = NULL, *ttheta = NULL, llog_dens;
 					int kk, opt;
 					GMRFLib_ai_store_tp *s = NULL;
@@ -4010,6 +4012,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			} else {
 #pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
 				for (k = 0; k < nhyper; k++) {
+					GMRFLib_openmp_nested_fix();
+
 					double f0, *zz = NULL, *ttheta = NULL, llog_dens;
 					GMRFLib_ai_store_tp *s = NULL;
 
@@ -4119,6 +4123,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				GMRFLib_pardiso_thread_safe = GMRFLib_FALSE;
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 				for (i = 0; i < compute_n; i++) {
+					GMRFLib_openmp_nested_fix();
+
 					int ii = compute_idx[i];
 					int id = omp_get_thread_num();
 					GMRFLib_density_tp *cpodens = NULL;
@@ -4217,6 +4223,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 #pragma omp parallel for private(k, i, log_dens, dens_count, hyper_count, tref, tu, ierr) num_threads(GMRFLib_openmp->max_threads_outer)
 				for (k = 0; k < design->nexperiments; k++) {
+					GMRFLib_openmp_nested_fix();
 
 					double *z_local, *theta_local, log_dens_orig;
 					GMRFLib_ai_store_tp *ai_store_id = NULL;
@@ -4528,6 +4535,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						GMRFLib_pardiso_thread_safe = GMRFLib_FALSE;
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 						for (i = 0; i < compute_n; i++) {
+							GMRFLib_openmp_nested_fix();
+
 							int ii = compute_idx[i];
 							GMRFLib_density_tp *cpodens = NULL;
 							int id = omp_get_thread_num();
@@ -4625,6 +4634,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 #pragma omp parallel for private(i, log_dens, tref, tu, ierr, kk) num_threads(GMRFLib_openmp->max_threads_outer)
 				for (kk = 0; kk < pool->nconfig; kk++) {
+					GMRFLib_openmp_nested_fix();
+
 					GMRFLib_ai_store_tp *ai_store_id = NULL;
 					GMRFLib_density_tp **dens_local = NULL;
 					GMRFLib_density_tp **dens_local_transform = NULL;
@@ -4920,6 +4931,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 								GMRFLib_pardiso_thread_safe = GMRFLib_FALSE;
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 								for (i = 0; i < compute_n; i++) {
+									GMRFLib_openmp_nested_fix();
+
 									int ii = compute_idx[i];
 									GMRFLib_density_tp *cpodens = NULL;
 									int id = omp_get_thread_num();
@@ -5105,6 +5118,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 								GMRFLib_pardiso_thread_safe = GMRFLib_FALSE;
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 								for (i = 0; i < compute_n; i++) {
+									GMRFLib_openmp_nested_fix();
+
 									int ii = compute_idx[i];
 									GMRFLib_density_tp *cpodens = NULL;
 									int id = omp_get_thread_num();
@@ -5228,6 +5243,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		int idum;
 #pragma omp parallel for private(idum) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (idum = 0; idum < 1; idum++) {	       /* YES YES YES, otherwise PARDISO go nuts! */
+			GMRFLib_openmp_nested_fix();
+
 			/*
 			 * In this case the contents of ai_store is NULL, we need to recompute the Gaussian approximation since
 			 * the contents of ai_store is NULL in this case.
@@ -5250,6 +5267,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			GMRFLib_pardiso_thread_safe = GMRFLib_FALSE;
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (i = 0; i < compute_n; i++) {
+				GMRFLib_openmp_nested_fix();
+
 				int id = omp_get_thread_num();
 				int ii = compute_idx[i];
 				GMRFLib_density_tp *cpodens = NULL;
@@ -5420,6 +5439,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_COMBINE, NULL, NULL);
 #pragma omp parallel for private(j) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (j = 0; j < compute_n; j++) {
+			GMRFLib_openmp_nested_fix();
+
 			int ii = compute_idx[j];
 			// fprintf(stderr, "thead %d ii %d\n", omp_get_thread_num(), ii);
 			GMRFLib_density_tp *dens_combine = NULL, *gdens_combine = NULL;
@@ -6039,6 +6060,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 #pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (k = 0; k < nhyper; k++) {
+				GMRFLib_openmp_nested_fix();
+
 				if (!run_with_omp) {
 					if (ai_par->fp_log) {
 						fprintf(ai_par->fp_log, "\tCompute the marginal for theta[%1d] using numerical integration\n", k);
@@ -6593,52 +6616,9 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 			}
 		}
 
-		// compute the correction to the log-posterior for the hyperpar, based on the new mode
-		double ldens_correction = 0.0;
-		if (ai_par->vb_hyperpar_correct) {
-			double *new_mode = Calloc(graph->n, double);
-			for(i = 0; i < graph->n; i++) {
-				new_mode[i] = mode[i] + gsl_vector_get(delta_mu, i);
-			}
-			
-			for(ii = 0; ii < d_idx->n; ii++){
-				double ld[2], xx[2];
-				i = d_idx->idx[ii];
-				xx[0] = new_mode[i];
-				xx[1] = ai_store->mode[i];
-				loglFunc(&ld[0], &xx[0], 1, i, mode, NULL, loglFunc_arg);
-				loglFunc(&ld[1], &xx[1], 1, i, ai_store->mode, NULL, loglFunc_arg);
-				ldens_correction += d[i] * (ld[0] - ld[1]);
-			}
-			
-			// prior
-			double res_new, res_old;
-			GMRFLib_xQx2(&res_new, new_mode, graph, Qfunc, Qfunc_arg, c);
-			GMRFLib_xQx2(&res_old, ai_store->mode, graph, Qfunc, Qfunc_arg, c);
-			ldens_correction += res_new - res_old;
-
-			// linear term and the contributions from bfunc()
-			double *bnew = NULL, con = 0.0;
-			GMRFLib_bnew(&bnew, &con, graph->n, b, bfunc);
-			for(i = 0; i < graph->n; i++){
-				ldens_correction += bnew[i] * (new_mode[i] - ai_store->mode[i]);
-			}
-			
-			// change in the conditional distribution
-			memcpy(ai_store->problem->sample, ai_store->mode, graph->n*sizeof(double));
-			GMRFLib_evaluate(ai_store->problem);
-			ldens_correction += ai_store->problem->sub_logdens;
-			memcpy(ai_store->problem->sample, new_mode, graph->n*sizeof(double));
-			GMRFLib_evaluate(ai_store->problem);
-			ldens_correction -= ai_store->problem->sub_logdens;
-			*ldens_hyperpar_corr = ldens_correction;
-			
-			Free(new_mode);
-			Free(bnew);
-		} else {
-			if (ldens_hyperpar_corr) {
-				*ldens_hyperpar_corr = 0.0;
-			}
+		// no correction for the moment
+		if (ldens_hyperpar_corr) {
+			*ldens_hyperpar_corr = 0.0;
 		}
 
                 if (density) {
@@ -6662,7 +6642,7 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp ***density, // need two types
 			printf("\t\tNumber of nodes corrected for [%1d]\n", (int) delta->size);
 			printf("\t\tRefinement [%1d]\n", (int) ai_par->vb_refinement);
 			if (ai_par->vb_hyperpar_correct) {
-				printf("\t\tPotential correct ldens_hyperpar [%.4f]\n", ldens_correction);
+				printf("\t\tCorrection for ldens_hyperpar [%.4f]\n", (ldens_hyperpar_corr ? *ldens_hyperpar_corr : 0.0));
 			}
 			printf("\t\tNumber of corrections truncated [%1d] with max.correct[%.2f]\n", num_trunc, ai_par->vb_max_correct);
 			for (jj = 0; jj < vb_idx->n; jj++) {
@@ -7562,6 +7542,8 @@ int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp * ai_store)
 
 #pragma omp parallel for private(idum) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (idum = 0; idum < 1; idum++) {
+			GMRFLib_openmp_nested_fix();
+
 			GMRFLib_Qinv(ai_store->problem, GMRFLib_QINV_NEIGB);
 		}
 		Free(ai_store->stdev);
@@ -7830,6 +7812,8 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < npoints + NEXTRA; i++) {
+			GMRFLib_openmp_nested_fix();
+
 			int retval;
 			double abs_err = ai_par->numint_abs_err, rel_err = ai_par->numint_rel_err, value, err;
 			int thread = omp_get_thread_num();

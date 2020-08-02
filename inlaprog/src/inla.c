@@ -9248,9 +9248,15 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 int inla_sread_colon_ints(int *i, int *j, const char *str)
 {
 	/*
-	 * read integer I and J from STR using format I:J
+	 * read integer I and J from STR using format I:J or I,J
 	 */
-	return (sscanf(str, "%d:%d", i, j) == 2 ? INLA_OK : INLA_FAIL);
+	if (sscanf(str, "%d:%d", i, j) == 2) {
+		return INLA_OK;
+	} else if (sscanf(str, "%d,%d", i, j) == 2) {
+		return INLA_OK;
+	} else {
+		return INLA_FAIL;
+	}
 }
 
 int inla_sread(void *x, int nx, const char *str, int code)
@@ -11159,6 +11165,8 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
 	} else if (!strcasecmp(openmp_strategy, "PARDISO.PARALLEL")) {
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
+	} else if (!strcasecmp(openmp_strategy, "PARDISO.NESTED")) {
+		mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED;
 	} else {
 		GMRFLib_sprintf(&tmp, "Unknown openmp.strategy [%s]\n", openmp_strategy);
 		inla_error_general(tmp);
@@ -11167,7 +11175,8 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 
 	smtp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SMTP"),
 						  (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ||
-						   GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL) ?
+						   GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ||
+						   GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED) ?
 						  GMRFLib_strdup("PARDISO") : GMRFLib_strdup("DEFAULT")));
 	if (smtp) {
 		if (!strcasecmp(smtp, "BAND")) {
@@ -11188,10 +11197,15 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 				if (mb->verbose) {
 					printf("\t\tpardiso-library installed and working? = [%s]\n", "yes");
 				}
-				mb->strategy = (mb->strategy != GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ?
-						GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL : GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL);
+				mb->strategy = (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ?
+						GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL :
+						(mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED ?
+						 GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED : 
+						 GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL));
 				openmp_strategy = (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ?
-						   "pardiso.parallel" : "pardiso.serial");
+						   "pardiso.parallel" :
+						   (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED ?
+						    "pardiso.nested" : "pardiso.serial"));
 				GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
 				smtp = GMRFLib_strdup("pardiso");
 			} else {
@@ -11199,7 +11213,8 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 					printf("\t\tpardiso-library installed and working? = [%s]\n", "no");
 				}
 				if (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ||
-				    mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL) {
+				    mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ||
+				    mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED) {
 					mb->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
 					openmp_strategy = GMRFLib_strdup("default");
 				}
@@ -11213,7 +11228,8 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	}
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
-		if (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL) {
+		if (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ||
+			mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED) {
 			// tell pardiso to use parallel reordering
 			GMRFLib_pardiso_set_parallel_reordering(1);
 		}
@@ -29085,6 +29101,7 @@ int inla_INLA(inla_tp * mb)
 		break;
 	case GMRFLib_OPENMP_STRATEGY_HUGE:
 	case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL:
+	case GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED:
 		GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_LOW;
 		break;
 	default:
@@ -33146,7 +33163,8 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		fprintf(stderr, "inla_qsample: start to sample %1d samples...\n", ns);
 	}
 
-	if ((GMRFLib_smtp == GMRFLib_SMTP_PARDISO) && (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL)) {
+	if ((GMRFLib_smtp == GMRFLib_SMTP_PARDISO) && (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ||
+						       GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED)) {
 		for (i = 0; i < ns; i++) {
 			if (!S) {
 				GMRFLib_sample(problem);
@@ -34553,13 +34571,14 @@ int main(int argc, char **argv)
 
 #define _BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
-	int i, verbose = 0, silent = 0, opt, report = 0, arg, nt, err, enable_core_file = 0;
+	int i, verbose = 0, silent = 0, opt, report = 0, arg, nt, ntt[2], err, enable_core_file = 0;
 	char *program = argv[0];
 	double time_used[3];
 	inla_tp *mb = NULL;
 
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = omp_get_max_threads();
+	GMRFLib_openmp->max_threads_nested = NULL;
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
@@ -34606,7 +34625,18 @@ int main(int argc, char **argv)
 			break;
 
 		case 't':
-			if (inla_sread_ints(&nt, 1, optarg) == INLA_OK) {
+			if (inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK) {
+				// we're using the PARDISO.NESTED strategy
+				GMRFLib_openmp->max_threads_nested = Calloc(2, int);
+				for(i = 0; i < 2; i++) {
+					ntt[i] = IMIN(GMRFLib_openmp->max_threads, IMAX(1, ntt[i]));
+					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
+				}
+				GMRFLib_openmp->max_threads = ntt[0] * ntt[1];
+				// in the hope it is confirmed later
+				GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED;
+				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
+			} else if (inla_sread_ints(&nt, 1, optarg) == INLA_OK) {
 				GMRFLib_openmp->max_threads = IMIN(GMRFLib_openmp->max_threads, IMAX(1, nt));
 				omp_set_num_threads(GMRFLib_openmp->max_threads);
 				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
@@ -34916,7 +34946,13 @@ int main(int argc, char **argv)
 					}
 				}
 				// openblas_set_num_threads(4);
-				printf("Process file[%s] threads[%1d] blas_threads[%1d]\n", argv[arg], GMRFLib_MAX_THREADS, blas_num_threads);
+				printf("Process file[%s] threads[%1d] blas_threads[%1d]", argv[arg], GMRFLib_MAX_THREADS, blas_num_threads);
+				if (GMRFLib_openmp->max_threads_nested) {
+					printf(" nested[%1d,%1d]\n",
+					       GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
+				} else {
+					printf("\n");
+				}
 			}
 			if (!silent) {
 				printf("\nWall-clock time used on [%s] max_threads=[%1d]\n", argv[arg], GMRFLib_MAX_THREADS);
