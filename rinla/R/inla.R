@@ -1920,6 +1920,7 @@
     ## inla.arg override all default arguments including `-b' !!!
     if (is.null(inla.arg)) {
         arg.arg = ""
+        num.threads <- gsub("[ \t]+", "", num.threads)
         arg.nt = paste0(" -t ", num.threads, " ")
 
         ## due to the weird behaviour,  we will do the verbose-mode differently now
