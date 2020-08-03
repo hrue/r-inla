@@ -34575,7 +34575,7 @@ int main(int argc, char **argv)
 
 #define _BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
-	int i, verbose = 0, silent = 0, opt, report = 0, arg, nt, ntb = 0, ntt[2], err, enable_core_file = 0;
+	int i, verbose = 0, silent = 0, opt, report = 0, arg, nt, ntt[2], err, enable_core_file = 0;
 	int blas_num_threads = 1;
 	char *program = argv[0];
 	double time_used[3];
@@ -34595,7 +34595,6 @@ int main(int argc, char **argv)
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_catch_error_for_inla = GMRFLib_TRUE;
 	GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
-	GMRFLib_trace = 0;
 	
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 
@@ -34632,10 +34631,6 @@ int main(int argc, char **argv)
 			my_setenv(optarg, 1);
 			break;
 
-		case 'T':
-			GMRFLib_trace = 1;
-			break;
-			
 		case 'B':
 			if (inla_sread_ints(&blas_num_threads, 1, optarg) == INLA_OK) {
 				GMRFLib_set_blas_num_threads(blas_num_threads);

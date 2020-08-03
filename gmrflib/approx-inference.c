@@ -621,7 +621,6 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	/*
 	 * first compute the GMRF-approximation 
 	 */
-	GMRFLib_TRACE("compute GMRF approx....");
 	if (ai_store->mode) {
 		GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
 			       (&problem, ai_store->mode, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc,
@@ -633,8 +632,6 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 				constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc,
 				ai_par->gaussian_data, ai_par->cmin, ai_par->b_strategy, 0));
 	}
-	GMRFLib_TRACE("compute GMRF approx....done");
-
 	GMRFLib_ASSERT(problem, GMRFLib_EOPTNR);
 
 	/*
@@ -838,13 +835,11 @@ int GMRFLib_ai_log_posterior(double *logdens,
 		double tmp0 = 0.0, tmp1 = 0.0, tmp2 = 0.0, tmp3 = 0.0, tmp4 = 0.0;
 
 		{
-			GMRFLib_TRACE("xQx");
 			{
 				GMRFLib_xQx(&result, xx, graph, Qfunc, Qfunc_arg);
 				tmp4 = -0.5 * result;
 			}
 
-			GMRFLib_TRACE("add diag");
 			{
 				/*
 				 * add the diagonal if 'c' 
@@ -858,7 +853,7 @@ int GMRFLib_ai_log_posterior(double *logdens,
 					tmp0 = -0.5 * tmp0;
 				}
 			}
-			GMRFLib_TRACE("add linear");
+
 			{
 				/*
 				 * add the linear term 
@@ -871,7 +866,7 @@ int GMRFLib_ai_log_posterior(double *logdens,
 					}
 				}
 			}
-			GMRFLib_TRACE("add likelihood");
+
 			if (d) {
 				/*
 				 * do not include fixed points 
@@ -949,7 +944,7 @@ int GMRFLib_ai_log_posterior(double *logdens,
 				}
 			}
 		}
-		GMRFLib_TRACE("add up...");
+
 		val = tmp0 + tmp1 + tmp2 + tmp3 + tmp4;
 	} else {
 		GMRFLib_EWRAP1(GMRFLib_xQx(&result, xx, graph, Qfunc, Qfunc_arg));
@@ -1178,9 +1173,6 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 #pragma omp threadprivate(quadratic_term, linear_term)
 
 	GMRFLib_ENTER_ROUTINE;
-
-	GMRFLib_TRACE("Enter....");
-	
 	assert(subgraph);
 	ns = subgraph->n;
 
@@ -1263,7 +1255,6 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 		*logdens = val;
 	}
 
-	GMRFLib_TRACE("Enter....done");
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }

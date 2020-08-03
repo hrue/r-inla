@@ -190,9 +190,6 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 #define M (*csr)
 	int i, j, jj, k, n, na, nnz, nan_error = 0;
 
-	double tref = GMRFLib_cpu();
-	GMRFLib_TRACE("Enter...");
-	
 	M = Calloc(1, GMRFLib_csr_tp);
 	M->base = 0;
 	n = graph->n;
@@ -238,8 +235,6 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 		}
 	}
 #undef M
-
-	GMRFLib_TRACE1("Enter...", GMRFLib_cpu()-tref);
 	return GMRFLib_SUCCESS;
 }
 
@@ -595,8 +590,6 @@ int GMRFLib_pardiso_symfact(GMRFLib_pardiso_store_tp * store)
 int GMRFLib_pardiso_build(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	GMRFLib_ENTER_ROUTINE;
-	double tref = GMRFLib_cpu();
-	GMRFLib_TRACE("Enter...");
 
 	assert(store != NULL);
 	assert(store->done_with_init == GMRFLib_TRUE);
@@ -618,8 +611,6 @@ int GMRFLib_pardiso_build(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * g
 	store->pstore->done_with_build = GMRFLib_TRUE;
 	GMRFLib_LEAVE_ROUTINE;
 
-	GMRFLib_TRACE1("Enter...", GMRFLib_cpu()-tref);
-
 	return GMRFLib_SUCCESS;
 }
 
@@ -628,7 +619,6 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	int debug = 0;
 
 	GMRFLib_ENTER_ROUTINE;
-	GMRFLib_TRACE("Enter...");
 	assert(store->done_with_init == GMRFLib_TRUE);
 	assert(store->done_with_reorder == GMRFLib_TRUE);
 	assert(store->pstore->done_with_build == GMRFLib_TRUE);
@@ -679,7 +669,6 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	store->pstore->log_det_Q = store->pstore->dparm[32];
 	store->pstore->done_with_chol = GMRFLib_TRUE;
 
-	GMRFLib_TRACE("Enter...done");
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
@@ -955,7 +944,6 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 	// if copy_pardiso_ptr, then copy the ptr to read-only objects. 'copy_ptr' is NOT USED
 
 	double tref = 0.0;
-	GMRFLib_TRACE("Enter...");
 
 	int debug = 0, failsafe_mode = 0;
 	if (old == NULL) {
@@ -1083,8 +1071,6 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 	if (S.s_verbose) {
 		printf("duplicate: new=%p old=%p i=%1d\n", *((void **) new), ((void *) old), idx);
 	}
-
-	GMRFLib_TRACE1("Enter...done", GMRFLib_cpu()-tref);
 
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;

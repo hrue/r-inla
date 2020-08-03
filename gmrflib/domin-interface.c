@@ -132,11 +132,7 @@ int GMRFLib_domin_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp 
 	GMRFLib_ASSERT(GMRFLib_thread_id == 0, GMRFLib_ESNH);
 	GMRFLib_ASSERT(omp_get_thread_num() == 0, GMRFLib_ESNH);
 
-	GMRFLib_TRACE("f() single...");
-
 	GMRFLib_domin_f_intern(x, fx, ierr, G.ai_store, tabQfunc, bnew);
-
-	GMRFLib_TRACE("f() single...done");
 
 	return GMRFLib_SUCCESS;
 }
@@ -148,8 +144,6 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 
 	int i, tmax, id, *err = NULL;
 	GMRFLib_ai_store_tp **ai_store = NULL, *ai_store_reference = NULL;
-
-	GMRFLib_TRACE("f() many...");
 
 	GMRFLib_ASSERT(omp_in_parallel() == 0, GMRFLib_ESNH);
 	tmax = GMRFLib_MAX_THREADS;
@@ -196,7 +190,6 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 	Free(ai_store);
 	Free(err);
 
-	GMRFLib_TRACE("f() many...done");
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew)
@@ -313,9 +306,7 @@ int GMRFLib_domin_gradf(double *x, double *gradx, int *ierr)
 {
 	int val;
 
-	GMRFLib_TRACE("Compute gradient...");
 	val = GMRFLib_domin_gradf_intern(x, gradx, NULL, ierr);
-	GMRFLib_TRACE("Compute gradient...done");
 
 	return val;
 }
@@ -625,8 +616,6 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 		Free(xx_hold);			\
 	}
 
-	GMRFLib_TRACE("Compute Hessian...");
-
 	GMRFLib_ai_store_tp **ai_store = NULL;
 	double h = G.ai_par->hessian_finite_difference_step_len, f0, f0min, *f1 = NULL, *fm1 = NULL, f_best_save, **xx_hold, *xx_min;
 	int i, n = G.nhyper, tmax, id, ok = 0, debug = 0, len_xx_hold;
@@ -686,8 +675,6 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 		}
 	}
 	GMRFLib_thread_id = id;
-
-	GMRFLib_TRACE("Compute Hessian...done");
 
 	/*
 	 * If the mode is ok, then all neigbouring points are larger; just check. otherwise, set f0 as the minimum value. 
