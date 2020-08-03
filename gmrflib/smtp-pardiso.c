@@ -190,6 +190,9 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 #define M (*csr)
 	int i, j, jj, k, n, na, nnz, nan_error = 0;
 
+	double tref = GMRFLib_cpu();
+	GMRFLib_TRACE("Enter...");
+	
 	M = Calloc(1, GMRFLib_csr_tp);
 	M->base = 0;
 	n = graph->n;
@@ -236,6 +239,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 	}
 #undef M
 
+	GMRFLib_TRACE1("Enter...", GMRFLib_cpu()-tref);
 	return GMRFLib_SUCCESS;
 }
 
@@ -591,6 +595,8 @@ int GMRFLib_pardiso_symfact(GMRFLib_pardiso_store_tp * store)
 int GMRFLib_pardiso_build(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	GMRFLib_ENTER_ROUTINE;
+	double tref = GMRFLib_cpu();
+	GMRFLib_TRACE("Enter...");
 
 	assert(store != NULL);
 	assert(store->done_with_init == GMRFLib_TRUE);
@@ -611,6 +617,8 @@ int GMRFLib_pardiso_build(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * g
 
 	store->pstore->done_with_build = GMRFLib_TRUE;
 	GMRFLib_LEAVE_ROUTINE;
+
+	GMRFLib_TRACE("Enter...", GMRFLib_cpu()-tref);
 
 	return GMRFLib_SUCCESS;
 }
