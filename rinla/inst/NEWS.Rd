@@ -27,6 +27,14 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.08.03}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item More work on nested parallism
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.08.02}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
