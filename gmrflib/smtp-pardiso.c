@@ -954,6 +954,9 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 {
 	// if copy_pardiso_ptr, then copy the ptr to read-only objects. 'copy_ptr' is NOT USED
 
+	double tref = 0.0;
+	GMRFLib_TRACE("Enter...");
+
 	int debug = 0, failsafe_mode = 0;
 	if (old == NULL) {
 		*new = NULL;
@@ -1078,6 +1081,8 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 	if (S.s_verbose) {
 		printf("duplicate: new=%p old=%p i=%1d\n", *((void **) new), ((void *) old), i);
 	}
+
+	GMRFLib_TRACE1("Enter...done", GMRFLib_cpu()-tref);
 
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
