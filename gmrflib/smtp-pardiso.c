@@ -618,7 +618,7 @@ int GMRFLib_pardiso_build(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * g
 	store->pstore->done_with_build = GMRFLib_TRUE;
 	GMRFLib_LEAVE_ROUTINE;
 
-	GMRFLib_TRACE("Enter...", GMRFLib_cpu()-tref);
+	GMRFLib_TRACE1("Enter...", GMRFLib_cpu()-tref);
 
 	return GMRFLib_SUCCESS;
 }
