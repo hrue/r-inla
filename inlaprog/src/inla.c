@@ -34583,7 +34583,9 @@ int main(int argc, char **argv)
 
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = omp_get_max_threads();
-	GMRFLib_openmp->max_threads_nested = NULL;
+	GMRFLib_openmp->max_threads_nested = Calloc(2, int);
+	GMRFLib_openmp->max_threads_nested[0] = GMRFLib_openmp->max_threads;
+	GMRFLib_openmp->max_threads_nested[1] = 1;
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
@@ -34640,23 +34642,21 @@ int main(int argc, char **argv)
 			
 		case 't':
 			if (inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK) {
-				// we're using the PARDISO.NESTED strategy
-				GMRFLib_openmp->max_threads_nested = Calloc(2, int);
 				for(i = 0; i < 2; i++) {
 					ntt[i] = IMIN(GMRFLib_openmp->max_threads, IMAX(1, ntt[i]));
 					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
 				}
 				GMRFLib_openmp->max_threads = ntt[0] * ntt[1];
-				GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
-				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 			} else if (inla_sread_ints(&nt, 1, optarg) == INLA_OK) {
 				GMRFLib_openmp->max_threads = IMIN(GMRFLib_openmp->max_threads, IMAX(1, nt));
-				omp_set_num_threads(GMRFLib_openmp->max_threads);
-				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
+				GMRFLib_openmp->max_threads_nested[0] = nt;
+				GMRFLib_openmp->max_threads_nested[1] = 1;
 			} else {
 				fprintf(stderr, "Fail to read MAX_THREADS from %s\n", optarg);
 				exit(EXIT_SUCCESS);
 			}
+			omp_set_num_threads(GMRFLib_openmp->max_threads);
+			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 			break;
 
 		case 'm':

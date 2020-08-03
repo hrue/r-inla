@@ -29,7 +29,7 @@
 ##!
 ##!     fmesher.arg: Additional arguments to \code{fmesher.call}
 ##!     
-##!     num.threads: Number of threads to use.
+##!     num.threads: Number of threads to use, either as \code{N},  or \code{N:M} or \code{N,M} in the nested case
 ##!
 ##!     blas.num.threads: Number of threads to use for openblas and mklblas (see \code{inla} for details)
 ##!     
@@ -113,7 +113,7 @@
         inla.arg = NULL,
         fmesher.arg = "", 
         num.threads = parallel::detectCores(), 
-        blas.num.threads = 1L, 
+        blas.num.threads = 0L, 
         smtp = "default", 
         mkl = inla.os("linux"), 
         pardiso.license = NULL, 

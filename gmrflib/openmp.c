@@ -139,23 +139,16 @@ int GMRFLib_openmp_nested_fix(void)
 
 int GMRFLib_set_blas_num_threads(int threads) 
 {
+	if (threads > 0) {
 #if defined(INLA_LINK_WITH_MKL)
-	void MKL_Set_Num_Threads(int);
-	MKL_Set_Num_Threads(threads);
-
-	// no longer needed
-	if (0) {
-		static int first = 1;
-		if (first) {
-			kmp_set_warnings_off();
-			first = 0;
-		}
-	}
+		void MKL_Set_Num_Threads(int);
+		MKL_Set_Num_Threads(threads);
 #endif
 #if defined(INLA_LINK_WITH_OPENBLAS)
-	void openblas_set_num_threads(int);
-	openblas_set_num_threads(threads);
+		void openblas_set_num_threads(int);
+		openblas_set_num_threads(threads);
 #endif
+	}
 	return 0;
 }
 
