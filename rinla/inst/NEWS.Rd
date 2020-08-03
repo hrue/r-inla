@@ -27,10 +27,18 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.08.04}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Improved nested parallelism and some code changes
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.08.03}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
-      \item More work on nested parallism
+      \item More work on nested parallelism
     }
   }
 }
