@@ -218,6 +218,7 @@ typedef enum {
 						 (gptr ? (gptr)->degree : GMRFLib_global_node.degree)))
 
 #define GMRFLib_TRACE(msg) if (GMRFLib_trace) printf("%s:%s:%d:[%1d]: %s\n", __FILE__, __GMRFLib_FuncName, __LINE__, omp_get_thread_num(), msg)
+#define GMRFLib_TRACE1(msg, x) if (GMRFLib_trace) printf("%s:%s:%d:[%1d]: %s [%g]\n", __FILE__, __GMRFLib_FuncName, __LINE__, omp_get_thread_num(), msg, x)
 
 #define GMRFLib_STOP_IF_NAN_OR_INF(value, idx, jdx)			\
 	if (ISNAN(value) || ISINF(value)) {				\
