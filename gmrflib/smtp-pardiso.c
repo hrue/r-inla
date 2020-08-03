@@ -620,6 +620,7 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	int debug = 0;
 
 	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_TRACE("Enter...");
 	assert(store->done_with_init == GMRFLib_TRUE);
 	assert(store->done_with_reorder == GMRFLib_TRUE);
 	assert(store->pstore->done_with_build == GMRFLib_TRUE);
@@ -670,6 +671,7 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	store->pstore->log_det_Q = store->pstore->dparm[32];
 	store->pstore->done_with_chol = GMRFLib_TRUE;
 
+	GMRFLib_TRACE("Enter...done");
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
