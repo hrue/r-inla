@@ -226,7 +226,7 @@
               
               ##!\item{blas.num.threads}{The absolute value of \code{blas.num.threads} is the maximum
               ##!number of threads the the \code{openblas}/\code{mklblas} will use (if
-              ##!available. Value is ignored if \code{<=0} (then environment variables are used).
+              ##!available). Value is ignored if \code{<=0} (then environment variables are used).}
               blas.num.threads = inla.getOption("blas.num.threads"),
               
               ##!\item{keep}{ A boolean variable indicating that the
