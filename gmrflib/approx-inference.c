@@ -632,7 +632,6 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 				constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc,
 				ai_par->gaussian_data, ai_par->cmin, ai_par->b_strategy, 0));
 	}
-
 	GMRFLib_ASSERT(problem, GMRFLib_EOPTNR);
 
 	/*
@@ -854,6 +853,7 @@ int GMRFLib_ai_log_posterior(double *logdens,
 					tmp0 = -0.5 * tmp0;
 				}
 			}
+
 			{
 				/*
 				 * add the linear term 
@@ -866,6 +866,7 @@ int GMRFLib_ai_log_posterior(double *logdens,
 					}
 				}
 			}
+
 			if (d) {
 				/*
 				 * do not include fixed points 
@@ -943,6 +944,7 @@ int GMRFLib_ai_log_posterior(double *logdens,
 				}
 			}
 		}
+
 		val = tmp0 + tmp1 + tmp2 + tmp3 + tmp4;
 	} else {
 		GMRFLib_EWRAP1(GMRFLib_xQx(&result, xx, graph, Qfunc, Qfunc_arg));
@@ -1171,7 +1173,6 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 #pragma omp threadprivate(quadratic_term, linear_term)
 
 	GMRFLib_ENTER_ROUTINE;
-
 	assert(subgraph);
 	ns = subgraph->n;
 

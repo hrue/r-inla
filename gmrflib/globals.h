@@ -269,7 +269,6 @@ extern int GMRFLib_pardiso_thread_safe;
  */
 extern int GMRFLib_pardiso_ok;
 
-
 #endif
 __END_DECLS
 #endif

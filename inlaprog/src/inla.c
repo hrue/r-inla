@@ -34575,7 +34575,7 @@ int main(int argc, char **argv)
 
 #define _BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
-	int i, verbose = 0, silent = 0, opt, report = 0, arg, nt, ntb = 0, ntt[2], err, enable_core_file = 0;
+	int i, verbose = 0, silent = 0, opt, report = 0, arg, nt, ntt[2], err, enable_core_file = 0;
 	int blas_num_threads = 1;
 	char *program = argv[0];
 	double time_used[3];
@@ -34595,7 +34595,7 @@ int main(int argc, char **argv)
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_catch_error_for_inla = GMRFLib_TRUE;
 	GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
-
+	
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 
 	 */
@@ -34610,7 +34610,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR1, inla_signal);
 	signal(SIGUSR2, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "bvVe:fhist:B:m:S:T:N:r:FYz:cpR:")) != -1) {
+	while ((opt = getopt(argc, argv, "bvVe:fhist:B:m:S:TN:r:FYz:cpR:")) != -1) {
 		switch (opt) {
 		case 'b':
 			G.binary = 1;

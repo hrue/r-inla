@@ -304,7 +304,11 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 }
 int GMRFLib_domin_gradf(double *x, double *gradx, int *ierr)
 {
-	return GMRFLib_domin_gradf_intern(x, gradx, NULL, ierr);
+	int val;
+
+	val = GMRFLib_domin_gradf_intern(x, gradx, NULL, ierr);
+
+	return val;
 }
 int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 {

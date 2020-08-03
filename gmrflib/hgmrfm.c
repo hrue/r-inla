@@ -384,6 +384,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			}
 		}
 	}
+
 #pragma omp parallel sections num_threads(GMRFLib_openmp->max_threads_outer)
 	{
 #pragma omp section
@@ -481,7 +482,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			}
 		}
 	}						       /* END of parallel sections */
-
 
 	/*
 	 * this one could be heavy... 
@@ -593,7 +593,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	/*
 	 * now we need to collect all results... 
 	 */
-
 	int *iilist = NULL;
 	int *jjlist = NULL;
 	double *QQijlist = NULL;
@@ -630,10 +629,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			printf("ALL %d %d %g\n", iilist[i], jjlist[i], QQijlist[i]);
 		}
 	}
-
 	GMRFLib_tabulate_Qfunc_from_list(&(arg->eta_Q), &(arg->eta_graph), nntriples, iilist, jjlist, QQijlist, -1, NULL, logprec_unstruct,
 					 logprec_unstruct_omp);
-
 	/*
 	 * cleanup already here, as we do not need them anymore 
 	 */
