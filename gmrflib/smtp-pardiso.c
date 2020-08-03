@@ -81,7 +81,7 @@ GMRFLib_static_pardiso_tp S = {
 };
 
 
-#define PSTORES_NUM (8192)
+#define PSTORES_NUM (16384)
 
 int GMRFLib_pardiso_set_parallel_reordering(int value)
 {
@@ -1038,48 +1038,50 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 		}
 	}
 
-	int found = 0;
+	int found = 0, idx = -1, ok = 0;
 #pragma omp critical
 	{
 		for (i = 0; i < PSTORES_NUM && !found; i++) {
-			int ok;
 			if (!S.busy[i]) {
-				if (S.static_pstores[i]) {
-					if (debug) {
-						printf("%s:%1d: static_pstores...iparm[2] = %1d\n", __FILE__, __LINE__,
-						       S.static_pstores[i]->pstore->iparm[2]);
-						printf("%s:%1d: max_threads_inner = %1d\n", __FILE__, __LINE__, GMRFLib_openmp->max_threads_inner);
-					}
-					ok = (S.static_pstores[i]->pstore->iparm[2] >= GMRFLib_openmp->max_threads_inner);
-				} else {
-					ok = 1;
-				}
-				if (!ok) {
-					P(S.static_pstores[i]->pstore->iparm[2]);
-					P(GMRFLib_openmp->max_threads_inner);
-					FIXME("THIS IS NOT TRUE: iparm[2] >= threads_inner");
-				}
-				if (S.static_pstores[i] && ok) {
-					*new = S.static_pstores[i];
-					if (S.s_verbose) {
-						printf("==> reuse store[%1d]\n", i);
-					}
-				} else {
-					GMRFLib_pardiso_init(&(S.static_pstores[i]));
-					GMRFLib_pardiso_reorder(S.static_pstores[i], old->graph);
-					*new = S.static_pstores[i];
-					if (S.s_verbose) {
-						printf("==> new store[%1d]\n", i);
-					}
-				}
-				found = 1;
 				S.busy[i] = 1;
+				idx = i;
+				found = 1;
 			}
 		}
 	}
+
 	assert(found == 1);
+	if (S.static_pstores[idx]) {
+		if (debug) {
+			printf("%s:%1d: static_pstores...iparm[2] = %1d\n", __FILE__, __LINE__,
+			       S.static_pstores[idx]->pstore->iparm[2]);
+			printf("%s:%1d: max_threads_inner = %1d\n", __FILE__, __LINE__, GMRFLib_openmp->max_threads_inner);
+		}
+		ok = (S.static_pstores[idx]->pstore->iparm[2] >= GMRFLib_openmp->max_threads_inner);
+	} else {
+		ok = 1;
+	}
+	if (!ok) {
+		P(S.static_pstores[idx]->pstore->iparm[2]);
+		P(GMRFLib_openmp->max_threads_inner);
+		FIXME("THIS IS NOT TRUE: iparm[2] >= threads_inner");
+	}
+	if (S.static_pstores[idx] && ok) {
+		*new = S.static_pstores[idx];
+		if (S.s_verbose) {
+			printf("==> reuse store[%1d]\n", idx);
+		}
+	} else {
+		GMRFLib_pardiso_init(&(S.static_pstores[idx]));
+		GMRFLib_pardiso_reorder(S.static_pstores[idx], old->graph);
+		*new = S.static_pstores[idx];
+		if (S.s_verbose) {
+			printf("==> new store[%1d]\n", idx);
+		}
+	}
+
 	if (S.s_verbose) {
-		printf("duplicate: new=%p old=%p i=%1d\n", *((void **) new), ((void *) old), i);
+		printf("duplicate: new=%p old=%p i=%1d\n", *((void **) new), ((void *) old), idx);
 	}
 
 	GMRFLib_TRACE1("Enter...done", GMRFLib_cpu()-tref);
