@@ -119,13 +119,20 @@
     ## cannot call inla.getOption() here as it leads to an infinite recursive call. do this
     ## manually instead.
     if (exists("inla.options", env = inla.get.inlaEnv())) {
-        opt = get("inla.options", env = inla.get.inlaEnv())
-        mkl = if (!is.null(opt$mkl) && opt$mkl) "mkl." else ""
+        opt <- get("inla.options", env = inla.get.inlaEnv())
+        mkl <- if (!is.null(opt$mkl) && opt$mkl) "mkl." else ""
+        lic <- if (!is.null(opt$pardiso.license) && nchar(opt$pardiso.license) > 0) TRUE else FALSE
     } else {
-        mkl = ""
+        lic <- FALSE
+        mkl <- ""
     }
 
     if (inla.os("mac")) {
+        ## workaround for crash when MKL is used with TAUCS (Aug 2020)
+        if (nchar(mkl) > 0 && !lic) {
+            warning("Using Intel-MKL linked binary require the PARDISO library (Aug 2020)...")
+            mkl <- ""
+        }
         fnm = system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/inla.", mkl, "run", sep=""), package="INLA")
     } else if (inla.os("linux")) {
         fnm = system.file(paste("bin/linux/", inla.os.32or64bit(), "bit/inla.", mkl, "run", sep=""), package="INLA")
