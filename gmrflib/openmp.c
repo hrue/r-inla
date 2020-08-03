@@ -117,12 +117,15 @@ double omp_get_wtick(void)
 
 #endif
 
-#if defined(INLA_USE_MKL)
-// this is a workaround for the new OPENMP5 standard, where set/get_nested is depreciated
+#if defined(INLA_LINK_WITH_MKL) || defined(INLA_LINK_WITH_OPENBLAS)
+//
+// this is a workaround for the new OPENMP5 standard, where set/get_nested
+// is depreciated and we get this annoying warning message using MKL.
+//
 int omp_get_max_active_levels(void);
 void omp_set_max_active_levels(int);
-#define omp_get_nested() (omp_get_max_active_levels()-1)
-#define omp_set_nested(_val) omp_set_max_active_levels((_val)+1)
+#define omp_get_nested() (omp_get_max_active_levels() > 1)
+#define omp_set_nested(_val) omp_set_max_active_levels(((_val) ? 3 : 1))
 #endif
 
 int GMRFLib_openmp_nested_fix(void) 
@@ -136,18 +139,20 @@ int GMRFLib_openmp_nested_fix(void)
 
 int GMRFLib_set_blas_num_threads(int threads) 
 {
-#if defined(INLA_USE_MKL)
+#if defined(INLA_LINK_WITH_MKL)
 	void MKL_Set_Num_Threads(int);
 	MKL_Set_Num_Threads(threads);
 
-	static int first = 1;
-	if (first) {
-		kmp_set_warnings_off();
-		first = 0;
+	// no longer needed
+	if (0) {
+		static int first = 1;
+		if (first) {
+			kmp_set_warnings_off();
+			first = 0;
+		}
 	}
 #endif
-
-#if defined(INLA_USE_OPENBLAS)
+#if defined(INLA_LINK_WITH_OPENBLAS)
 	void openblas_set_num_threads(int);
 	openblas_set_num_threads(threads);
 #endif

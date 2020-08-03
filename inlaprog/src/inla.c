@@ -34576,6 +34576,7 @@ int main(int argc, char **argv)
 #define _BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
 	int i, verbose = 0, silent = 0, opt, report = 0, arg, nt, ntb = 0, ntt[2], err, enable_core_file = 0;
+	int blas_num_threads = 1;
 	char *program = argv[0];
 	double time_used[3];
 	inla_tp *mb = NULL;
@@ -34629,8 +34630,8 @@ int main(int argc, char **argv)
 			break;
 
 		case 'B':
-			if (inla_sread_ints(&ntb, 1, optarg) == INLA_OK) {
-				GMRFLib_set_blas_num_threads(ntb);
+			if (inla_sread_ints(&blas_num_threads, 1, optarg) == INLA_OK) {
+				GMRFLib_set_blas_num_threads(blas_num_threads);
 			} else {
 				fprintf(stderr, "Fail to read BLAS_NUM_THREADS from %s\n", optarg);
 				exit(EXIT_SUCCESS);
@@ -34951,13 +34952,6 @@ int main(int argc, char **argv)
 	if (G.mode == INLA_MODE_DEFAULT || G.mode == INLA_MODE_HYPER) {
 		for (arg = optind; arg < argc; arg++) {
 			if (verbose) {
-				int blas_num_threads = 0;
-				if (inla_sread_ints(&blas_num_threads, 1, getenv("OPENBLAS_NUM_THREADS")) != INLA_OK) {
-					if (inla_sread_ints(&blas_num_threads, 1, getenv("MKL_NUM_THREADS")) != INLA_OK) {
-						blas_num_threads = 0;
-					}
-				}
-				// openblas_set_num_threads(4);
 				printf("Process file[%s] threads[%1d] blas_threads[%1d]", argv[arg], GMRFLib_MAX_THREADS, blas_num_threads);
 				if (GMRFLib_openmp->max_threads_nested) {
 					printf(" nested[%1d,%1d]\n",
