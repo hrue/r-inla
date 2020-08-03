@@ -269,6 +269,10 @@ extern int GMRFLib_pardiso_thread_safe;
  */
 extern int GMRFLib_pardiso_ok;
 
+/*
+  trace calculations
+*/
+extern int GMRFLib_trace;
 
 #endif
 __END_DECLS

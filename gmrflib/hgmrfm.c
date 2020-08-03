@@ -195,6 +195,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	}
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
+	GMRFLib_TRACE("Enter");
 
 	*hgmrfm = Calloc(1, GMRFLib_hgmrfm_tp);
 	arg = Calloc(1, GMRFLib_hgmrfm_arg_tp);
@@ -384,6 +385,9 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			}
 		}
 	}
+
+	GMRFLib_TRACE("Enter parallel sections [1]");
+
 #pragma omp parallel sections num_threads(GMRFLib_openmp->max_threads_outer)
 	{
 #pragma omp section
@@ -481,6 +485,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			}
 		}
 	}						       /* END of parallel sections */
+	GMRFLib_TRACE("End parallel sections [1]");
 
 
 	/*
@@ -510,6 +515,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		 * try go get better load-balancing moving the parallell into an inner loop (NEW) instead of making the first loop parallel (OLD) 
 		 */
 		if (1) {
+			GMRFLib_TRACE("Enter parallel part [2]");
+
 			/*
 			 * NEW VERSION, parallel inner loop 
 			 */
@@ -544,6 +551,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 					}
 				}
 			}
+			GMRFLib_TRACE("End parallel part [2]");
 		} else {
 			/*
 			 * OLD VERSION, parallel outher loop 
@@ -593,6 +601,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	/*
 	 * now we need to collect all results... 
 	 */
+	GMRFLib_TRACE("Collect...");
 
 	int *iilist = NULL;
 	int *jjlist = NULL;
@@ -630,9 +639,10 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			printf("ALL %d %d %g\n", iilist[i], jjlist[i], QQijlist[i]);
 		}
 	}
-
+	GMRFLib_TRACE("Build...");
 	GMRFLib_tabulate_Qfunc_from_list(&(arg->eta_Q), &(arg->eta_graph), nntriples, iilist, jjlist, QQijlist, -1, NULL, logprec_unstruct,
 					 logprec_unstruct_omp);
+	GMRFLib_TRACE("Build...done");
 
 	/*
 	 * cleanup already here, as we do not need them anymore 

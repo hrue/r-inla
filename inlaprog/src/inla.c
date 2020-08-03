@@ -34595,7 +34595,8 @@ int main(int argc, char **argv)
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_catch_error_for_inla = GMRFLib_TRUE;
 	GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
-
+	GMRFLib_trace = 1;
+	
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 
 	 */
@@ -34610,7 +34611,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR1, inla_signal);
 	signal(SIGUSR2, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "bvVe:fhist:B:m:S:T:N:r:FYz:cpR:")) != -1) {
+	while ((opt = getopt(argc, argv, "bvVe:fhist:B:m:S:TN:r:FYz:cpR:")) != -1) {
 		switch (opt) {
 		case 'b':
 			G.binary = 1;
@@ -34631,6 +34632,10 @@ int main(int argc, char **argv)
 			my_setenv(optarg, 1);
 			break;
 
+		case 'T':
+			GMRFLib_trace = 1;
+			break;
+			
 		case 'B':
 			if (inla_sread_ints(&blas_num_threads, 1, optarg) == INLA_OK) {
 				GMRFLib_set_blas_num_threads(blas_num_threads);

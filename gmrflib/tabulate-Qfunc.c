@@ -138,6 +138,8 @@ double GMRFLib_tabulate_Qfunction_std(int node, int nnode, void *arg)
 int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
 			   GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *prec, double *log_prec, double **log_prec_omp)
 {
+	GMRFLib_TRACE("tabulate...");
+
 	int i, id, mem_id;
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
 
@@ -192,7 +194,7 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 	}
 	GMRFLib_thread_id = id;
 	GMRFLib_meminfo_thread_id = mem_id;
-
+	GMRFLib_TRACE("tabulate...end");
 	return GMRFLib_SUCCESS;
 }
 
