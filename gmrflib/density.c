@@ -1559,7 +1559,7 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 
 	//over-ride the choice lookup_tables
 	if (!lookup_tables) {
-		FIXME1("change: lookup_tables=0");
+		FIXME1("change: lookup_tables=1");
 		lookup_tables = 1;
 	}
 	
