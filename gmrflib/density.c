@@ -1557,9 +1557,10 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	GMRFLib_sn_param_tp sn_param;
 
 	//over-ride the choice lookup_tables
-	FIXME1("change: lookup_tables=0");
-	lookup_tables = 0;
-
+	if (!lookup_tables) {
+		FIXME1("change: lookup_tables=0");
+		lookup_tables = 1;
+	}
 	
 	xx = Calloc(n, double);
 	ldens = Calloc(n, double);
