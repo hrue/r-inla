@@ -4226,7 +4226,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				for (k = 0; k < design->nexperiments; k++) {
 					GMRFLib_openmp_nested_fix();
 
-					int free_ai_store = 0;
 					double *z_local, *theta_local, log_dens_orig;
 					GMRFLib_ai_store_tp *ai_store_id = NULL;
 					GMRFLib_tabulate_Qfunc_tp *tabQfunc = NULL;
@@ -4242,7 +4241,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_FALSE);
 						}
 						ai_store_id = ais[GMRFLib_thread_id];
-						free_ai_store = 1;
 					} else {
 						ai_store_id = ai_store;	/* the common one */
 					}
@@ -4404,12 +4402,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					Free(bnew);
 					Free(z_local);
 					Free(theta_local);
-
-					if (free_ai_store) {
-						GMRFLib_free_ai_store(ais[GMRFLib_thread_id]);
-						ais[GMRFLib_thread_id] = NULL;
-						FIXME("FREE STORE");
-					}
 				}
 
 				/*

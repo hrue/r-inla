@@ -949,6 +949,7 @@ int GMRFLib_free_density(GMRFLib_density_tp * density)
 			break;
 
 		case GMRFLib_DENSITY_TYPE_SKEWNORMAL:
+			Free(density->sn_param);
 			break;
 
 		case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
