@@ -146,9 +146,9 @@ __BEGIN_DECLS
    2 \phi(x) \Phi(alpha*x)
 */
 typedef struct {
-	double xi;
-	double omega;
-	double alpha;
+	float xi;
+	float omega;
+	float alpha;
 } GMRFLib_sn_param_tp;
 
 typedef struct {
