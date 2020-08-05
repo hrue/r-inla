@@ -709,8 +709,8 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 			printf("\tCorrect: Compute marginals for %d nodes\n", compute_n);
 		}
 		for (i = 0; i < compute_n; i++) {
-			GMRFLib_ai_marginal_hidden(&dens[i],
-						   NULL, compute_idx[i], x, b, c, mean, d,
+			GMRFLib_ai_marginal_hidden(&dens[i], NULL, GMRFLib_FALSE, 
+						   compute_idx[i], x, b, c, mean, d,
 						   loglFunc, loglFunc_arg, fixed_value, graph, Qfunc,
 						   Qfunc_arg, constr, ai_par_local, ai_store, marginal_hidden_store);
 		}
@@ -1398,6 +1398,7 @@ int GMRFLib_ai_do_MC_error_check(double *err, GMRFLib_problem_tp * problem, doub
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp ** cpo_density,
+			       int lookup_tables, 
 			       int idx, double *x, double *b, double *c, double *mean, double *d,
 			       GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
 			       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
@@ -1481,7 +1482,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 				}					\
 				if (np > 4) {				\
 					GMRFLib_density_create(cpo_density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, np, xp, ld, \
-							       (*density)->std_mean, (*density)->std_stdev, GMRFLib_FALSE); \
+							       (*density)->std_mean, (*density)->std_stdev, lookup_tables); \
 					if (flag && cpo_density) GMRFLib_setbit(&((*cpo_density)->flags), DENSITY_FLAGS_FAILURE); \
 				} else {				\
 					*cpo_density = NULL;		\
@@ -2043,9 +2044,9 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			GMRFLib_EWRAP1(GMRFLib_sn_fit(&snp, NULL, xp, ld, np));
 			Free(ld);
 		}
-		GMRFLib_density_create_sn(density, snp, x_mean, x_sd, GMRFLib_TRUE);
+		GMRFLib_density_create_sn(density, snp, x_mean, x_sd, lookup_tables);
 	} else {
-		GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n_points, x_points, log_density, x_mean, x_sd, GMRFLib_TRUE);
+		GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n_points, x_points, log_density, x_mean, x_sd, lookup_tables);
 	}
 
 	COMPUTE_CPO_DENSITY;
@@ -4135,6 +4136,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					}
 					GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 												   || ai_par->cpo_manual) ? &cpodens : NULL),
+								   GMRFLib_TRUE, 
 								   ii, x, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph,
 								   Qfunc, Qfunc_arg, constr, ai_par, ai_store_id[id], marginal_hidden_store);
 					if (tfunc && tfunc[ii]) {
@@ -4160,6 +4162,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					GMRFLib_thread_id = 0;
 					GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 												   || ai_par->cpo_manual) ? &cpodens : NULL),
+								   GMRFLib_TRUE, 
 								   ii, x, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph,
 								   Qfunc, Qfunc_arg, constr, ai_par, ai_store, marginal_hidden_store);
 					if (tfunc && tfunc[ii]) {
@@ -4358,6 +4361,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 						GMRFLib_ai_marginal_hidden(&dens[ii][dens_count],
 									   (cpo && (d[ii] || ai_par->cpo_manual) ? &cpodens : NULL),
+									   GMRFLib_FALSE, 
 									   ii, x, bnew, c, mean, d,
 									   loglFunc, loglFunc_arg, fixed_value,
 									   graph, tabQfunc->Qfunc, tabQfunc->Qfunc_arg,
@@ -4548,7 +4552,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							GMRFLib_thread_id = 0;
 							GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 														   || ai_par->cpo_manual) ?
-													   &cpodens : NULL), ii, x,
+													   &cpodens : NULL), 
+										   GMRFLib_FALSE, ii, x,
 										   bnew, c, mean, d, loglFunc, loglFunc_arg,
 										   fixed_value, graph, tabQfunc->Qfunc,
 										   tabQfunc->Qfunc_arg, constr, ai_par, ai_store_id[id],
@@ -4578,7 +4583,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							GMRFLib_thread_id = 0;
 							GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 														   || ai_par->cpo_manual) ?
-													   &cpodens : NULL), ii, x,
+													   &cpodens : NULL), 
+										   GMRFLib_FALSE, ii, x,
 										   bnew, c, mean, d, loglFunc, loglFunc_arg,
 										   fixed_value, graph, tabQfunc->Qfunc,
 										   tabQfunc->Qfunc_arg, constr, ai_par, ai_store,
@@ -4727,7 +4733,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 								ii = compute_idx[i];
 								GMRFLib_ai_marginal_hidden(&dens_local[ii], (cpo && (d[ii]
 														     || ai_par->cpo_manual)
-													     ? &cpodens : NULL), ii,
+													     ? &cpodens : NULL), 
+											   GMRFLib_FALSE, ii,
 											   x, bnew, c, mean, d, loglFunc,
 											   loglFunc_arg, fixed_value, graph,
 											   tabQfunc->Qfunc, tabQfunc->Qfunc_arg,
@@ -4947,7 +4954,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
 																   ai_par->cpo_manual)
-															   ? &cpodens : NULL), ii,
+															   ? &cpodens : NULL), 
+												   GMRFLib_FALSE, ii,
 												   x, bnew, c, mean, d, loglFunc, loglFunc_arg,
 												   fixed_value, graph, tabQfunc->Qfunc,
 												   tabQfunc->Qfunc_arg, constr, ai_par,
@@ -4979,7 +4987,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
 																   ai_par->cpo_manual)
-															   ? &cpodens : NULL), ii,
+															   ? &cpodens : NULL), 
+												   GMRFLib_FALSE, ii,
 												   x, bnew, c, mean, d, loglFunc, loglFunc_arg,
 												   fixed_value, graph, tabQfunc->Qfunc,
 												   tabQfunc->Qfunc_arg, constr, ai_par, ai_store,
@@ -5134,7 +5143,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
 																   ai_par->cpo_manual)
-															   ? &cpodens : NULL), ii,
+															   ? &cpodens : NULL), 
+												   GMRFLib_FALSE, ii,
 												   x, bnew, c, mean, d, loglFunc, loglFunc_arg,
 												   fixed_value, graph, tabQfunc->Qfunc,
 												   tabQfunc->Qfunc_arg, constr, ai_par,
@@ -5167,7 +5177,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
 																   ai_par->cpo_manual)
-															   ? &cpodens : NULL), ii,
+															   ? &cpodens : NULL), 
+												   GMRFLib_FALSE, ii,
 												   x, bnew, c, mean, d, loglFunc, loglFunc_arg,
 												   fixed_value, graph, tabQfunc->Qfunc,
 												   tabQfunc->Qfunc_arg, constr, ai_par, ai_store,
@@ -5279,7 +5290,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				}
 				GMRFLib_thread_id = 0;
 				GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
-											   || ai_par->cpo_manual) ? &cpodens : NULL), ii, x,
+											   || ai_par->cpo_manual) ? &cpodens : NULL), GMRFLib_TRUE, ii, x,
 							   bnew, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc,
 							   Qfunc_arg, constr, ai_par, ai_store_id[id], marginal_hidden_store);
 				if (tfunc && tfunc[ii]) {
@@ -5322,7 +5333,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				GMRFLib_thread_id = 0;
 
 				GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
-											   || ai_par->cpo_manual) ? &cpodens : NULL), ii, x,
+											   || ai_par->cpo_manual) ? &cpodens : NULL), GMRFLib_TRUE, ii, x,
 							   bnew, c, mean, d, loglFunc, loglFunc_arg, fixed_value, graph, Qfunc,
 							   Qfunc_arg, constr, ai_par, ai_store, marginal_hidden_store);
 				if (tfunc && tfunc[ii]) {

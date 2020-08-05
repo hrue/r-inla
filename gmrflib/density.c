@@ -1557,12 +1557,6 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	double *xx = NULL, *ldens = NULL, g_mean, g_var;
 	GMRFLib_sn_param_tp sn_param;
 
-	//over-ride the choice lookup_tables
-	if (!lookup_tables) {
-		FIXME1("change: lookup_tables=1");
-		lookup_tables = 1;
-	}
-	
 	xx = Calloc(n, double);
 	ldens = Calloc(n, double);
 	memcpy(xx, x, (size_t) n * sizeof(double));
