@@ -233,11 +233,11 @@ typedef struct {
 
 	float x_min, x_max;				       /* range for the log_correction, ALSO used by the others */
 
-	/*
-	 * params for the GMRFLib_DENSITY_TYPE_GAUSSIAN 
-	 */
-	float mean_gaussian;
-	float stdev_gaussian;
+	///*
+	//* params for the GMRFLib_DENSITY_TYPE_GAUSSIAN 
+	//*/
+	//float mean_gaussian;
+	//float stdev_gaussian;
 
 	/*
 	 * params for the GMRFLib_DENSITY_TYPE_SKEWNORMAL 
@@ -255,7 +255,6 @@ typedef struct {
 	GMRFLib_spline_tp *Pinv;
 
 	GMRFLib_uchar flags;				       /* can set various flags */
-
 } GMRFLib_density_tp;
 
 typedef enum {

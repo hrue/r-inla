@@ -534,8 +534,8 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	}
 
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
-		density->mean = density->mean_gaussian;
-		density->stdev = density->stdev_gaussian;
+		//density->mean = density->mean_gaussian;
+		//density->stdev = density->stdev_gaussian;
 		density->skewness = 0.0;
 		density->x_min = -GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
 		density->x_max = GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
@@ -1506,8 +1506,8 @@ int GMRFLib_density_create_normal(GMRFLib_density_tp ** density, double mean, do
 	(*density)->type = GMRFLib_DENSITY_TYPE_GAUSSIAN;
 	(*density)->std_mean = std_mean;
 	(*density)->std_stdev = std_stdev;
-	(*density)->mean_gaussian = mean;
-	(*density)->stdev_gaussian = stdev;
+	(*density)->mean = mean;
+	(*density)->stdev = stdev;
 
 	GMRFLib_EWRAP0(GMRFLib_init_density(*density, GMRFLib_TRUE));
 
@@ -1748,8 +1748,8 @@ int GMRFLib_density_printf(FILE * fp, GMRFLib_density_tp * density)
 		switch (density->type) {
 		case GMRFLib_DENSITY_TYPE_GAUSSIAN:
 			fprintf(fp, "%-35s %-20s\n", "Density type", "Gaussian");
-			fprintf(fp, "     %-30s %16.10f\n", "mean", density->mean_gaussian);
-			fprintf(fp, "     %-30s %16.10f\n", "stdev", density->stdev_gaussian);
+			fprintf(fp, "     %-30s %16.10f\n", "mean", density->mean);
+			fprintf(fp, "     %-30s %16.10f\n", "stdev", density->stdev);
 			break;
 		case GMRFLib_DENSITY_TYPE_SKEWNORMAL:
 			fprintf(fp, "%-35s %-20s\n", "Density type", "Skew Normal");
