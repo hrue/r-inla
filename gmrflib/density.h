@@ -179,32 +179,32 @@ typedef struct {
 	/**
 	 * \brief The mean in standarised scale.
 	 */
-	float mean;
+	double mean;
 
 	/**
 	 * \brief The standard deviation in standardised scale.
 	 */
-	float stdev;
+	double stdev;
 
 	/**
 	 * \brief The standardised skewness
 	 */
-	float skewness;
+	double skewness;
 
 	/**
 	 * \brief The mean in users own scale (not standardised).
 	 */
-	float user_mean;
+	double user_mean;
 
 	/**
 	 * \brief The standard deviation in users own scale (not standardised).
 	 */
-	float user_stdev;
+	double user_stdev;
 
 	/** 
 	 * \brief The mode in user scale (set if !NAN)
 	 */
-	float user_mode;
+	double user_mode;
 
 	/**
 	 * \brief The offset that is used for standarisation.
@@ -212,7 +212,7 @@ typedef struct {
 	 * The density is for the random variable (x-m)/sd where \c m is \c GMRFLib_density_tp::std_mean and \c sd is
 	 * GMRFLib_density_tp::std_stdev.
 	 */
-	float std_mean;
+	double std_mean;
 
 	/** 
 	 * \brief The scale that is used for standarisation.
@@ -220,7 +220,7 @@ typedef struct {
 	 * The density is for the random variable (x-m)/sd where \c m is \c GMRFLib_density_tp::std_mean and \c sd is
 	 * GMRFLib_density_tp::std_stdev.
 	 */
-	float std_stdev;				       /* this is the the standarisation */
+	double std_stdev;				       /* this is the the standarisation */
 
 	/*
 	 * The rest of the paramers is for internal use only. 
@@ -231,13 +231,13 @@ typedef struct {
 	 */
 	GMRFLib_density_type_tp type;
 
-	float x_min, x_max;				       /* range for the log_correction, ALSO used by the others */
+	double x_min, x_max;				       /* range for the log_correction, ALSO used by the others */
 
 	/*
 	 * params for the GMRFLib_DENSITY_TYPE_GAUSSIAN 
 	 */
-	float mean_gaussian;
-	float stdev_gaussian;
+	double mean_gaussian;
+	double stdev_gaussian;
 
 	/*
 	 * params for the GMRFLib_DENSITY_TYPE_SKEWNORMAL 
@@ -247,7 +247,7 @@ typedef struct {
 	/*
 	 * params for the GMRFLib_DENSITY_TYPE_SCGAUSSIAN 
 	 */
-	float log_norm_const;				       /* log(norm_const), divide by norm_const to get the normalised
+	double log_norm_const;				       /* log(norm_const), divide by norm_const to get the normalised
 							        * density.  */
 	GMRFLib_spline_tp *log_correction;
 
