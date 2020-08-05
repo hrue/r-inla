@@ -1006,6 +1006,7 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 					char *fixed_value, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 					GMRFLib_constr_tp * constr, GMRFLib_graph_tp * subgraph, GMRFLib_ai_store_tp * ai_store);
 int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp ** cpo_density,
+			       int lookup_tables, 
 			       int idx, double *x, double *b, double *c, double *mean, double *d,
 			       GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
 			       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
