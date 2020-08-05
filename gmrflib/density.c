@@ -527,15 +527,16 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	int i, k, np = 2 * GMRFLib_faster_integration_np, npm = 2 * np, debug = 0;
 	double result = 0.0, error, eps = GMRFLib_eps(1. / 2.), tmp, low = 0.0, high = 0.0, xval, ldens_max = -FLT_MAX, *xpm =
 	    NULL, *ldm = NULL, *xp = NULL, integral, w[2] = {
-	4.0, 2.0}, dx = 0.0, m1, m2, m3, x0, x1, d0, d1;
+		4.0, 2.0
+	}, dx = 0.0, m1, m2, m3, x0, x1, d0, d1;
 
 	if (!density) {
 		return GMRFLib_SUCCESS;
 	}
 
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
-		//density->mean = density->mean_gaussian;
-		//density->stdev = density->stdev_gaussian;
+		// density->mean = density->mean_gaussian;
+		// density->stdev = density->stdev_gaussian;
 		density->skewness = 0.0;
 		density->x_min = -GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
 		density->x_max = GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
@@ -1140,7 +1141,7 @@ int GMRFLib_evaluate_ndensities(double *dens, int nd, double *x_user, int nx, GM
 	d = Calloc(4 * n_alloc, double);
 	d_tmp = &d[n_alloc];
 	x_std = &d[2 * n_alloc];
-	idx = (int *) &d[3 * n_alloc]; // the int* from double* is ok here.
+	idx = (int *) &d[3 * n_alloc];			       // the int* from double* is ok here.
 
 	GMRFLib_density_prune_weights(&n_idx, idx, weights, nd);
 
@@ -1160,7 +1161,7 @@ int GMRFLib_evaluate_ndensities(double *dens, int nd, double *x_user, int nx, GM
 		}
 	}
 
-	w_sum = 1.0/w_sum;
+	w_sum = 1.0 / w_sum;
 	for (j = 0; j < nx; j++) {
 		dens[j] = d[j] * w_sum;
 	}
@@ -1238,7 +1239,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 	int i, j, n_points = 30, np, np_g, np_max, nf, minp = 3;
 	double mean, stdev, mean_g, stdev_g, *x_points = NULL, *x_points_g = NULL,
 	    *log_dens = NULL, *log_dens_g = NULL, dens, x_real, m1, m2, sum_w, *ptr = NULL, m, sd, xx,
-		f[] = { 0, 0.1, -0.1, 0.25, -0.25, 0.5, -0.5, 0.75, -0.75, 1.0, -1.0, 1.5, -1.5, 2.0, -2.0, 3.0, -3.0 };
+	    f[] = { 0, 0.1, -0.1, 0.25, -0.25, 0.5, -0.5, 0.75, -0.75, 1.0, -1.0, 1.5, -1.5, 2.0, -2.0, 3.0, -3.0 };
 
 	GMRFLib_ENTER_ROUTINE;
 	nf = sizeof(f) / sizeof(double);
@@ -1661,7 +1662,7 @@ int GMRFLib_density_new_mean(GMRFLib_density_tp ** new_density, GMRFLib_density_
 		GMRFLib_density_Pinv(&x[M + i], 1.0 - eps[i], density);
 	}
 	for (i = 0; i < N; i++) {
-		double delta = eps[M-1] * 2.0;
+		double delta = eps[M - 1] * 2.0;
 		alpha = delta + (1.0 - 2.0 * delta) * i * (1.0 / (double) (N - 1.0));
 		GMRFLib_density_Pinv(&x[2 * M + i], alpha, density);
 	}
@@ -1672,7 +1673,7 @@ int GMRFLib_density_new_mean(GMRFLib_density_tp ** new_density, GMRFLib_density_
 	Free(x);
 	Free(ld);
 #undef N
-#undef M	
+#undef M
 
 	return GMRFLib_SUCCESS;
 }
@@ -1705,7 +1706,7 @@ int GMRFLib_density_new_meansd(GMRFLib_density_tp ** new_density, GMRFLib_densit
 	Free(x);
 	Free(ld);
 #undef N
-#undef M	
+#undef M
 	return GMRFLib_SUCCESS;
 }
 
@@ -2042,146 +2043,7 @@ int GMRFLib_gsl_integration_fix_limits(double *new_lower, double *new_upper, gsl
 }
 int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * density)
 {
-	/*
-	 * return points for printing the marginals. this is on a standarised scale, so the SD is one. 
-	 */
-	double p_few[] = {
-		// 0.0000001,
-		// 0.000001,
-		// 0.00001,
-		// 0.0001,
-		// 0.0005,
-		// 0.001,
-		// 0.005,
-		0.01,
-		// 0.025, 
-		0.05,
-		// 0.075, 
-		0.10,
-		// 0.125, 
-		0.15,
-		// 0.175, 
-		0.2,
-		// 0.225,
-		0.25,
-		// 0.275,
-		0.30,
-		// 0.325,
-		0.35,
-		// 0.375,
-		0.40,
-		// 0.425,
-		0.45,
-		// 0.46,
-		// 0.47,
-		0.475,
-		// 0.48,
-		// 0.49,
-		0.50,
-		// 0.51,
-		// 0.52,
-		0.525,
-		// 0.53,
-		// 0.54,
-		0.55,
-		// 0.575,
-		0.60,
-		// 0.625,
-		0.65,
-		// 0.675,
-		0.70,
-		// 0.725,
-		0.75,
-		// 0.775,
-		0.80,
-		// 0.825,
-		0.85,
-		// 0.875,
-		0.9,
-		// 0.925, 
-		0.95,
-		// 0.975,
-		0.99,
-		// 0.995, 
-		// 0.999,
-		// 0.9995,
-		// 0.9999,
-		// 0.99999,
-		// 0.999999
-		// 0.9999999
-	};
-
-	double p_many[] = {
-		0.0000001,
-		0.000001,
-		0.00001,
-		0.0001,
-		0.0005,
-		0.001,
-		0.005,
-		0.01,
-		0.025,
-		0.05,
-		0.075,
-		0.10,
-		0.125,
-		0.15,
-		0.175,
-		0.2,
-		0.225,
-		0.25,
-		0.275,
-		0.30,
-		0.325,
-		0.35,
-		0.375,
-		0.40,
-		0.425,
-		0.45,
-		0.46,
-		0.47,
-		0.475,
-		0.48,
-		0.49,
-		0.50,
-		0.51,
-		0.52,
-		0.525,
-		0.53,
-		0.54,
-		0.55,
-		0.575,
-		0.60,
-		0.625,
-		0.65,
-		0.675,
-		0.70,
-		0.725,
-		0.75,
-		0.775,
-		0.80,
-		0.825,
-		0.85,
-		0.875,
-		0.9,
-		0.925,
-		0.95,
-		0.975,
-		0.99,
-		0.995,
-		0.999,
-		0.9995,
-		0.9999,
-		0.99999,
-		0.999999,
-		0.9999999
-	};
-
-	double x_add[] = {
-		-10.0, -8.0, -6.0, -5.0, -4.0, -3.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0
-	};
-
-	int i, m, use_many;
+	int use_many, m, i;
 
 	if ((GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT ||
 	     GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH)) {
@@ -2190,19 +2052,38 @@ int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * de
 		use_many = GMRFLib_FALSE;
 	}
 
-	double *p_ptr = (use_many ? p_many : p_few);
-
-	*len_x = (use_many ? sizeof(p_many) + sizeof(x_add) : sizeof(p_few) + sizeof(x_add)) / sizeof(double);
-	m = (use_many ? sizeof(p_many) : sizeof(p_few)) / sizeof(double);
-	*x_vec = Calloc(*len_x, double);
-	for (i = 0; i < m; i++) {
-		GMRFLib_density_Pinv(&((*x_vec)[i]), p_ptr[i], density);
+#define CODE if (1) {							\
+		*len_x = (sizeof(p) + sizeof(x_add)) / sizeof(double);	\
+		m = sizeof(p) / sizeof(double);				\
+		*x_vec = Calloc(*len_x, double);			\
+		for (i = 0; i < m; i++) {				\
+			GMRFLib_density_Pinv(&((*x_vec)[i]), p[i], density); \
+		}							\
+		for (i = m; i < *len_x; i++) {				\
+			(*x_vec)[i] = x_add[i - m];			\
+		}							\
+		qsort(*x_vec, (size_t) (*len_x), sizeof(double), GMRFLib_dcmp); \
+		GMRFLib_unique_additive(len_x, *x_vec, GMRFLib_eps(0.5)); \
 	}
-	for (i = m; i < *len_x; i++) {
-		(*x_vec)[i] = x_add[i - m];
-	}
-	qsort(*x_vec, (size_t) (*len_x), sizeof(double), GMRFLib_dcmp);
-	GMRFLib_unique_additive(len_x, *x_vec, GMRFLib_eps(0.5));
 
+	if (use_many) {
+		double p[] = { 0.0000001, 0.000001, 0.00001, 0.0001, 0.0005, 0.001, 0.005, 0.01, 0.025,
+			       0.05, 0.075, 0.10, 0.125, 0.15, 0.175, 0.2, 0.225, 0.25, 0.275, 0.30, 0.325,
+			       0.35, 0.375, 0.40, 0.425, 0.45, 0.46, 0.47, 0.475, 0.48, 0.49, 0.50, 0.51,
+			       0.52, 0.525, 0.53, 0.54, 0.55, 0.575, 0.60, 0.625, 0.65, 0.675, 0.70, 0.725,
+			       0.75, 0.775, 0.80, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.975, 0.99, 0.995,
+			       0.999, 0.9995, 0.9999, 0.99999, 0.999999, 0.9999999
+		};
+		double x_add[] = { -10.0, -8.0, -6.0, -5.0, -4.0, -3.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0 };
+		CODE;
+	} else {
+		double p[] = { 0.001, 0.01, 0.05, 0.10, 0.15, 0.2, 0.25, 0.30, 0.35, 0.40, 0.45, 0.475, 0.50,
+			       0.525, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.9, 0.95, 0.99, 0.999
+		};
+		double x_add[] = { -8.0, -5.0, -3.0, 3.0, 5.0, 8.0 };
+		CODE;
+	}
+
+#undef CODE
 	return GMRFLib_SUCCESS;
 }

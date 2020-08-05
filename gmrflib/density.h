@@ -236,8 +236,8 @@ typedef struct {
 	///*
 	//* params for the GMRFLib_DENSITY_TYPE_GAUSSIAN 
 	//*/
-	//float mean_gaussian;
-	//float stdev_gaussian;
+	//float mean_gaussian;  // use now mean and stdev
+	//float stdev_gaussian; // use now mean and stdev
 
 	/*
 	 * params for the GMRFLib_DENSITY_TYPE_SKEWNORMAL 

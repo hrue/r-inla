@@ -11188,7 +11188,8 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		} else if (!strcasecmp(smtp, "PARDISO")) {
 			GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
 			// need to make sure this is correct
-			if (mb->strategy != GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL && mb->strategy != GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL) {
+			if (mb->strategy != GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL && mb->strategy != GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL
+			    && mb->strategy != GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED) {
 				mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
 			}
 		} else if (!strcasecmp(smtp, "DEFAULT")) {
@@ -34540,6 +34541,16 @@ int testit(int argc, char **argv)
 		inla_sn_intercept(0.823, -0.123);
 		break;
 	}
+
+	case 42: 
+	{
+		float x[2] = {0, 0};
+		printf("x= %f %f\n", x[0], x[1]);
+		x[0] = NAN;
+		printf("x= %f %f (x[1]==0 %1d) sizeof()=%lu\n", x[0], x[1], x[1] == 0, sizeof(float));
+		break;
+	}
+	
 
 	// this will give some more error messages, if any
 	case 999:
