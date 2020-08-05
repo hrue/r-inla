@@ -27,6 +27,16 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.08.06}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item More work on nested parallelism and some code changes
+      \item Code changes to reduce memory usage
+      \item Linux/Mac binaries are now linked with \code{jemalloc}
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.08.04}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
