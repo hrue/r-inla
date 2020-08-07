@@ -1,7 +1,7 @@
 ---
 title: "Approximating joint marginals in R-INLA"
 author: "Cristian Chiuchiolo and Haavard Rue"
-date: "KAUST, Aug 19th 2017"
+date: "KAUST, Aug 2020"
 output: rmarkdown::pdf_document
 vignette: >
   %\VignetteIndexEntry{Joint marginals}
