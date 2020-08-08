@@ -225,6 +225,7 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	(*ai_par)->interpolator = GMRFLib_AI_INTERPOLATOR_WEIGHTED_DISTANCE;
 	(*ai_par)->interpolator = GMRFLib_AI_INTERPOLATOR_AUTO;	/* automatic choice */
 
+	(*ai_par)->optimise_smart = GMRFLib_FALSE;
 	(*ai_par)->optimiser = GMRFLib_AI_OPTIMISER_GSL;
 	(*ai_par)->restart = 0;
 	(*ai_par)->gsl_tol = 0.1;
@@ -340,6 +341,7 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	fprintf(fp, "\t\tOption for %s: epsf = %.6g\n", GMRFLib_AI_OPTIMISER_NAME(GMRFLib_AI_OPTIMISER_GSL), ai_par->gsl_epsf);
 	fprintf(fp, "\t\tOption for %s: epsg = %.6g\n", GMRFLib_AI_OPTIMISER_NAME(GMRFLib_AI_OPTIMISER_GSL), ai_par->gsl_epsg);
 	fprintf(fp, "\t\tRestart: %1d\n", ai_par->restart);
+	fprintf(fp, "\t\tOptimise smart: %s\n", (ai_par->optimise_smart ? "Yes" : "No"));
 	fprintf(fp, "\t\tMode known: %s\n", (ai_par->mode_known ? "Yes" : "No"));
 
 	fprintf(fp, "\tGaussian approximation:\n");
@@ -3638,14 +3640,35 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			switch (ai_par->optimiser) {
 			case GMRFLib_AI_OPTIMISER_GSL:
 			case GMRFLib_AI_OPTIMISER_DEFAULT:
+			{
+				int fd_save = ai_par->gradient_forward_finite_difference;
+				if (ai_par->optimise_smart) {
+					ai_par->gradient_forward_finite_difference = GMRFLib_TRUE;
+					if (ai_par->fp_log) {
+						fprintf(ai_par->fp_log, "Smart optimise part I: estimate gradient using forward differences\n");
+					}
+				}
+
 				GMRFLib_gsl_optimize(ai_par);
+
+				if (ai_par->optimise_smart) {
+					ai_par->restart = IMAX(1, ai_par->restart);
+					ai_par->gradient_forward_finite_difference = GMRFLib_FALSE;
+					if (ai_par->fp_log) {
+						fprintf(ai_par->fp_log, "Smart optimise part II: estimate gradient using central differences\n");
+						fprintf(ai_par->fp_log, "Smart optimise part II: restart optimiser\n");
+					}
+				}
+
 				if (ai_par->restart) {
 					for (k = 0; k < IMAX(0, ai_par->restart); k++)
 						GMRFLib_gsl_optimize(ai_par);	/* restart */
 				}
 				GMRFLib_gsl_get_results(theta_mode, &log_dens_mode);
+				ai_par->gradient_forward_finite_difference = fd_save;
+			}
 				break;
-
+				
 			default:
 				GMRFLib_ASSERT(0 == 1, GMRFLib_EPARAMETER);
 				break;
@@ -3689,46 +3712,139 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		 * The parameters for the adaptive hessian estimation is set in ai_par (hence G.ai_par in domin-interface.c).
 		 */
 		double log_dens_mode_save = log_dens_mode;
-		int stupid_mode_iter = 0;
+		int stupid_mode_iter = 0, smart_success = 0;
+		int fd_save = ai_par->hessian_forward_finite_difference;
 
 		hessian = Calloc(ISQR(nhyper), double);
-		while (GMRFLib_domin_estimate_hessian(hessian, theta_mode, &log_dens_mode, stupid_mode_iter) != GMRFLib_SUCCESS) {
-			if (!stupid_mode_iter) {
-				if (ai_par->fp_log)
-					fprintf(ai_par->fp_log, "Mode not sufficient accurate; switch to a stupid local search strategy.\n");
-			}
-			stupid_mode_iter++;
 
-			if (log_dens_mode_save > log_dens_mode && stupid_mode_iter > ai_par->stupid_search_max_iter) {
-				if (ai_par->fp_log) {
-					fprintf(stderr,
-						"\n\n*** Mode is not accurate yet but we have reached the rounding error level. Break.\n\n");
+		// SMART MODE: we try to be smart. do a prerun using forward differences. if its ok, keep it.
+		if (ai_par->optimise_smart) {
+			ai_par->hessian_forward_finite_difference = GMRFLib_TRUE;
+			smart_success = 1;
+			if (ai_par->fp_log) {
+				fprintf(ai_par->fp_log, "Smart optimise part III: estimate Hessian using forward differences\n");
+			}
+			while (GMRFLib_domin_estimate_hessian(hessian, theta_mode, &log_dens_mode, stupid_mode_iter) != GMRFLib_SUCCESS) {
+				smart_success = 0;
+				if (!stupid_mode_iter) {
+					if (ai_par->fp_log)
+						fprintf(ai_par->fp_log, "Mode not sufficient accurate; switch to a stupid local search strategy.\n");
 				}
-				break;
-			}
-			// printf("%.12g %.12g\n", log_dens_mode_save, log_dens_mode);
-			log_dens_mode_save = log_dens_mode;
+				stupid_mode_iter++;
 
-			if (GMRFLib_request_optimiser_to_stop) {
-				fprintf(stderr, "\n\n*** Optimiser requested to stop; stop local search..\n");
-				break;
+				if (log_dens_mode_save > log_dens_mode && stupid_mode_iter > ai_par->stupid_search_max_iter) {
+					if (ai_par->fp_log) {
+						fprintf(stderr,
+							"\n\n*** Mode is not accurate yet but we have reached the rounding error level. Break.\n\n");
+					}
+					break;
+				}
+				// printf("%.12g %.12g\n", log_dens_mode_save, log_dens_mode);
+				log_dens_mode_save = log_dens_mode;
+
+				if (GMRFLib_request_optimiser_to_stop) {
+					fprintf(stderr, "\n\n*** Optimiser requested to stop; stop local search..\n");
+					break;
+				}
+				if (stupid_mode_iter >= ai_par->stupid_search_max_iter) {
+					fprintf(stderr, "\n\n");
+					fprintf(stderr, "***\n");
+					fprintf(stderr, "*** WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n");
+					fprintf(stderr, "***\n");
+					fprintf(stderr, "*** Mode not found using the stupid local search strategy; I give up.\n");
+					fprintf(stderr,
+						"*** I continue with best mode found and the correspondingly Hessian-matrix (can be diagonal only).\n");
+					fprintf(stderr, "*** Please rerun with possible improved initial values or do other changes!!!\n");
+					fprintf(stderr, "***\n");
+					fprintf(stderr, "\n\n");
+					break;
+					// GMRFLib_ASSERT(stupid_mode_iter < ai_par->stupid_search_max_iter, GMRFLib_EMISC);
+				}
 			}
-			if (stupid_mode_iter >= ai_par->stupid_search_max_iter) {
-				fprintf(stderr, "\n\n");
-				fprintf(stderr, "***\n");
-				fprintf(stderr, "*** WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n");
-				fprintf(stderr, "***\n");
-				fprintf(stderr, "*** Mode not found using the stupid local search strategy; I give up.\n");
-				fprintf(stderr,
-					"*** I continue with best mode found and the correspondingly Hessian-matrix (can be diagonal only).\n");
-				fprintf(stderr, "*** Please rerun with possible improved initial values or do other changes!!!\n");
-				fprintf(stderr, "***\n");
-				fprintf(stderr, "\n\n");
-				break;
-				// GMRFLib_ASSERT(stupid_mode_iter < ai_par->stupid_search_max_iter, GMRFLib_EMISC);
+			ai_par->hessian_forward_finite_difference = fd_save;
+
+			/*
+			 * do this again to get the ai_store set correctly.
+			 */
+			SET_THETA_MODE;
+			if (x_mode) {
+				memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
+			}
+			
+			if (stupid_mode_iter) {
+				// FIXME("------------> do one function call");
+				for (i = 0; i < nhyper; i++) {
+					theta_mode[i] = hyperparam[i][0][0];
+				}
+				GMRFLib_domin_f(theta_mode, &log_dens_mode, &ierr, NULL, NULL);
+				log_dens_mode *= -1.0;
+				SET_THETA_MODE;
+				if (x_mode) {
+					memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
+				}
 			}
 		}
 
+		if (ai_par->fp_log) {
+			if (ai_par->optimise_smart) {
+				if (smart_success) {
+					fprintf(ai_par->fp_log, "Smart optimise part III: Hessian seems fine, keep it\n");
+				} else {
+					fprintf(ai_par->fp_log, "Smart optimise part III: trouble with the Hessian...\n");
+				}
+			}
+		}
+		
+		stupid_mode_iter = 0;			       /* reset it */
+		if (!(ai_par->optimise_smart) || !smart_success) {
+
+			if (ai_par->optimise_smart) {
+				ai_par->hessian_forward_finite_difference = GMRFLib_FALSE;
+				if (ai_par->fp_log) {
+					fprintf(ai_par->fp_log, "Smart optimise part IV: re-estimate Hessian using central differences\n");
+				}
+			}
+				
+			while (GMRFLib_domin_estimate_hessian(hessian, theta_mode, &log_dens_mode, stupid_mode_iter) != GMRFLib_SUCCESS) {
+				if (!stupid_mode_iter) {
+					if (ai_par->fp_log)
+						fprintf(ai_par->fp_log, "Mode not sufficient accurate; switch to a stupid local search strategy.\n");
+				}
+				stupid_mode_iter++;
+
+				if (log_dens_mode_save > log_dens_mode && stupid_mode_iter > ai_par->stupid_search_max_iter) {
+					if (ai_par->fp_log) {
+						fprintf(stderr,
+							"\n\n*** Mode is not accurate yet but we have reached the rounding error level. Break.\n\n");
+					}
+					break;
+				}
+				// printf("%.12g %.12g\n", log_dens_mode_save, log_dens_mode);
+				log_dens_mode_save = log_dens_mode;
+
+				if (GMRFLib_request_optimiser_to_stop) {
+					fprintf(stderr, "\n\n*** Optimiser requested to stop; stop local search..\n");
+					break;
+				}
+				if (stupid_mode_iter >= ai_par->stupid_search_max_iter) {
+					fprintf(stderr, "\n\n");
+					fprintf(stderr, "***\n");
+					fprintf(stderr, "*** WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n");
+					fprintf(stderr, "***\n");
+					fprintf(stderr, "*** Mode not found using the stupid local search strategy; I give up.\n");
+					fprintf(stderr,
+						"*** I continue with best mode found and the correspondingly Hessian-matrix (can be diagonal only).\n");
+					fprintf(stderr, "*** Please rerun with possible improved initial values or do other changes!!!\n");
+					fprintf(stderr, "***\n");
+					fprintf(stderr, "\n\n");
+					break;
+					// GMRFLib_ASSERT(stupid_mode_iter < ai_par->stupid_search_max_iter, GMRFLib_EMISC);
+				}
+			}
+		}
+		
+		ai_par->hessian_forward_finite_difference = fd_save;
+		
 		/*
 		 * do this again to get the ai_store set correctly.
 		 */

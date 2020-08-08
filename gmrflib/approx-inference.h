@@ -578,6 +578,11 @@ typedef struct {
 	 */
 	int correct_verbose;
 	
+	/** 
+	 * Try to be smart when optimizing in INLA?   
+	 */
+	int optimise_smart;
+
 } GMRFLib_ai_param_tp;
 
 /**
