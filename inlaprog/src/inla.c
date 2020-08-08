@@ -29093,6 +29093,7 @@ int inla_INLA(inla_tp * mb)
 			"Default" : (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High")));
 	}
 
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 	GMRFLib_init_hgmrfm(&(mb->hgmrfm), mb->predictor_n, mb->predictor_m,
 			    mb->predictor_cross_sumzero, NULL, mb->predictor_log_prec,
 			    (const char *) mb->predictor_Aext_fnm, mb->predictor_Aext_precision,
