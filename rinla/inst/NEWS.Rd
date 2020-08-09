@@ -27,6 +27,22 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.08.09}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New experimental optimise strategy
+      \code{control.inla=list(optmise.strategy="smart"}
+      that is hopefully faster and as safe as the default one. Maybe
+      even more safe and robust.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item More work on the nested paralellism 
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.08.06}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{

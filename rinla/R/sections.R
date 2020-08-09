@@ -785,7 +785,7 @@
     if (!(is.null(inla.spec$tolerance.step) || is.na(inla.spec$tolerance.step))) {
         cat("tolerance.step = ", inla.spec$tolerance.step,"\n", sep = " ", file = file, append = TRUE)
     }
-        
+    
     inla.write.boolean.field("hessian.force.diagonal", inla.spec$force.diagonal, file)
     inla.write.boolean.field("skip.configurations", inla.spec$skip.configurations, file)
     inla.write.boolean.field("mode.known", inla.spec$mode.known.conf, file)
@@ -923,6 +923,13 @@
     if (!is.null(inla.spec$control.correct$strategy)) {
         cat("control.correct.strategy = ", inla.spec$control.correct$strategy,"\n", sep = " ", file = file,  append = TRUE)
     }
+
+    num.gradient <- match.arg(tolower(inla.spec$num.gradient), c("central", "forward"))
+    num.hessian <- match.arg(tolower(inla.spec$num.hessian), c("central", "forward"))
+    optimise.strategy <- match.arg(tolower(inla.spec$optimise.strategy), c("safe", "smart"))
+    cat("num.gradient = ", num.gradient, "\n", sep = " ", file = file,  append = TRUE)
+    cat("num.hessian = ", num.hessian, "\n", sep = " ", file = file,  append = TRUE)
+    cat("optimise.strategy = ", optimise.strategy, "\n", sep = " ", file = file,  append = TRUE)
 
     cat("\n", sep = " ", file = file,  append = TRUE)
 }

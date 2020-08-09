@@ -1,0 +1,1266 @@
+---
+title: "Short tutorials from old www-page"
+author: "Haavard Rue (hrue@r-inla.org)"
+date: "KAUST, Aug 2020"
+output: rmarkdown::pdf_document
+vignette: >
+  %\VignetteIndexEntry{Short tutorials}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8} 
+bibliography: jmarginal.bib
+---
+
+```{r setup, include=FALSE}
+library(INLA)
+inla.setOption(smtp='taucs')
+inla.setOption(num.threads=1)
+set.seed(123)
+source("render_toc.R")
+```
+
+## Contents
+```{r toc, echo=FALSE} 
+render_toc("old-faq.Rmd")
+```
+
+
+## Introduction
+
+This vignette is a copy and slightly edited FAQ-entries and other
+short tutorials from the old \verb|www.r-inla.org| page. The content
+comes is slightly random order, sorry about that.
+
+## User-defined priors for the hyperparameters
+
+If you want to use a prior for the hyperparameter that is not yet
+implemented there are two choices. If you think that your prior should
+be on the list and that other might use it to, please let us know.
+Alternatively, you can define your own prior using \verb|prior =
+"expression: ...."|, or by specifiying a table of
+$x$ and $y$ values which define the prior distribution.
+
+There are three ways to specify prior distributions for
+hyperparameters in INLA:
+
+* Use an available prior distribution
+* Define your own prior distribution function using 
+  \verb|R|-like (not equal) syntax as expression.
+* Create a table of $(x,y)$ values which represent your prior distribution.
+
+In the following we will provide more details regarding the two last
+options. Finally, we will present an example illustrating (and
+comparing) the three different possibilities by means of the log-gamma
+distribution for the precision parameter.
+
+A user can specify any (univariate) prior distribution for the
+hyperparameter $\theta$ by defining an expression for the log-density
+log $\pi(\theta)$, as a function of the corresponding $\theta$. It is
+important to be aware that $\theta$ is on the internal scale.
+
+The format is
+```{r, eval=FALSE}
+    expression: statement; statement; ...; return(value)
+```
+
+where "statement" is any regular statement (more below) and
+"value" is the value for the log-density of the prior, evaluated at
+the current value for $\theta$. 
+
+Here, is an example defining the log-gamma distribution:
+```{r,eval=FALSE}
+    prior.expression = "expression:
+        a = 1;
+        b = 0.1;
+        precision = exp(log_precision);
+        logdens = log(b^a) - lgamma(a)
+           + (a-1)*log_precision - b*precision;
+        log_jacobian = log_precision;
+        return(logdens + log_jacobian);"
+```
+Some syntax specific notes:
+* No white-space before "(.)" in the return statement.
+* A ";" is needed to terminate each expression.
+* A "_" is allowed in variable names.
+
+Known functions that can be used within the expression statement are
+
+* common math functions, such as exp, sin, ...
+* "gamma" denotes the gamma-function and "lgamma" is its log
+* \verb|x^y| is expressed as either \verb|x^y| or \verb|pow(x;y)|
+
+Instead of defining a prior distribution function, it is possible to
+provide a table of suitable values $x$ (internal scale) and the
+corresponding log-density values $y$. INLA fits a spline through the
+provided points and continues with this in the succeeding
+computations. Note, there is no transformation into a functional form
+performed or required. The input-format for the table is a string,
+which starts with \verb|table:| and is then followed by a block of
+$x$-values and a block of the corresponding $y$-values, which
+represent the values of the log-density evaluated on x. Thus
+```{r,eval=FALSE}
+    table: x_1 ... x_n y_1 ... y_n
+```
+
+We illustrate all three different ways of defining a prior
+distribution for the precision of a normal likelihood. To show that
+the three definitions lead to the same result we inspect the
+logmarginal likelihood.
+```{r}
+## the loggamma-prior
+prior.function = function(log_precision) {
+    a = 1;
+    b = 0.1;
+    precision = exp(log_precision);
+    logdens = log(b^a) - lgamma(a) + (a-1)*log_precision - b*precision;
+    log_jacobian = log_precision;
+    return(logdens + log_jacobian)
+}
+
+## implementing the loggamma-prior using "expression:"
+prior.expression = "expression:
+a = 1;
+b = 0.1;
+precision = exp(log_precision);
+logdens = log(b^a) - lgamma(a)
+    + (a-1)*log_precision - b*precision;
+log_jacobian = log_precision;
+return(logdens + log_jacobian);"
+
+## use suitable support points x
+lprec = seq(-10, 10, len=100)
+## link the x and corresponding y values into a 
+## string which begins with "table:""
+prior.table = paste(c("table:", cbind(lprec,
+                    prior.function(lprec))), collapse=" ", sep="")
+
+# simulate some data
+n = 50
+y = rnorm(n)
+
+## use the built-in loggamma prior
+r1 = inla(y~1,data = data.frame(y),
+control.family = list(hyper = list(prec = list(
+                      prior = "loggamma", param = c(1, 0.1)))))
+
+## use the definition using expression
+r2 = inla(y~1, data = data.frame(y), 
+          control.family = list(hyper = list(
+		                        prec = list(prior = prior.expression))))
+
+## use a table of x and y values representing the loggamma prior
+r3 = inla(y~1, data = data.frame(y), 
+          control.family = list(hyper = list(
+		                        prec = list(prior = prior.table))))
+
+print(round(c(r1$mlik[1], r2$mlik[1], r3$mlik[1]), dig=3))
+```
+
+
+## Does INLA support the use of different link-functions?
+
+Yes, the type of link function is given in the \verb|control.family|
+statement using \verb|control.link=...|, and the type of link-functions
+implemented are listed on the documentation for each likelihood. The
+default link is \verb|default| which corresponds to the second link
+function in the list. Here is an example
+
+```{r}
+n = 100
+z = rnorm(n)
+eta = 1 + 0.1*z
+N = 2
+
+p = inla.link.invlogit(eta)
+y = rbinom(n,  size = N, prob = p)
+r = inla(y ~ 1 + z,  data = data.frame(y, z), family = "binomial", Ntrials = rep(N, n),
+        control.family = list(control.link = list(model="logit")), 
+		control.predictor = list(compute=TRUE))
+
+p = inla.link.invprobit(eta)
+y = rbinom(n,  size = N, prob = p)
+rr = inla(y ~ 1 + z,  data = data.frame(y, z), family = "binomial", Ntrials = rep(N, n),
+        control.family = list(control.link = list(model="probit")), 
+		control.predictor = list(compute=TRUE))
+
+p = inla.link.invcloglog(eta)
+y = rbinom(n,  size = N, prob = p)
+rrr = inla(y ~ 1 + z,  data = data.frame(y, z), family = "binomial", Ntrials = rep(N, n),
+        control.family = list(control.link = list(model="cloglog")), 
+		control.predictor = list(compute=TRUE))        
+```
+Other linkfunctions/models are also avilable from within \verb|R|, see \verb|?inla.link|
+
+
+
+## How can I do predictions using INLA?
+
+In \verb|INLA| there is no function \verb|predict| as for \verb|glm/lm|
+in \verb|R|. Predictions must to done as a part of the model fitting
+itself. As prediction is the same as fitting a model with some missing
+data, we can simply set \verb|y[i] = NA| for those "locations" we
+want to predict. Here is a simple example
+```{r}
+n = 100
+n.pred = 10
+y = arima.sim(n=n, model=list(ar=0.9))
+N = n + n.pred
+yy = c(y, rep(NA, n.pred))
+i = 1:N
+formula = yy ~ f(i, model="ar1")
+r = inla(formula, data = data.frame(i,yy),
+        control.family = list(initial = 10, fixed=TRUE)) ## no observational noise
+```
+which gives predictions
+```{r}
+r$summary.random$i[(n+1):N, c("mean", "sd") ]
+```
+
+Quantiles such like \verb|r$summary.fitted.values| and
+\verb|r$marginals.fitted.values|, if computed, use the identity link
+if \verb|y[i] = NA| by default. If you want the \verb|fitted.values|
+computed with a different link function, then there are two ways to
+doit.
+
+In the case you want to use the link-function from the likelihood
+already used (most often the case), there is the argument \verb|link|
+in \verb|control.predictor|. If the response \verb|y[idx] = NA|, then
+set \verb|link[idx] = 1|, to indicate that you want to compute that
+fitted value using the link function from \verb|family[1]|. With
+several likelihoods, set \verb|link[idx]| to family-index which is
+correct, ie the column number in the response. The following example
+shows the usage:
+```{r,plot=TRUE}
+## simple poisson regression
+n = 100
+x = sort(runif(n))
+eta = 1 + x
+lambda = exp(eta)
+y = rpois(n, lambda = lambda)
+
+## missing values:
+y[1:3] = NA
+y[(n-2):n] = NA
+
+## link = 1 is a shortcut for rep(1, n) where n is the appropriate
+## length. here '1' is a reference to the first 'family', ie
+## 'family[1]'
+r = inla(y ~ 1 + x,  family = "poisson",
+        data = data.frame(y, x),
+        control.predictor = list(link = 1))
+plot(exp(eta),type ="l")
+points(r$summary.fitted.values$mean, pch=19)
+```
+
+We only need to define \verb|link| where there
+are missing values. Entries for which the observation is
+not \verb|NA|, is ignored.
+
+For more than one likelihood, use '2' to refer to the second
+likelihood. Here is an example where we split the data in two, and
+assign the second half the \verb|nbinomial| distribution.
+```{r,plot=T}
+n2 = n %/% 2L
+Y = matrix(NA, n, 2)
+Y[1:n2, 1] = y[1:n2]
+Y[1:n2 + n2, 2] = y[1:n2 + n2]
+link = rep(NA, n)
+link[which(is.na(y[1:n2]))] = 1
+link[n2  + which(is.na(y[1:n2 + n2]))] = 2
+
+r = inla(Y ~ 1 + x,  family = c("poisson", "nbinomial"),
+        data = list(Y=Y, x=x),
+        control.predictor = list(link = link))
+plot(exp(eta),type ="l")
+points(r$summary.fitted.values$mean, pch=19)
+```
+
+We can transform marginals manually using the function
+\verb|inla.marginal.transform| or compute expectations using 
+\verb|inla.emarginal|, like in this example (taken
+from \verb|demo(Tokyo)|).
+
+```{r}
+## Load the data
+data(Tokyo)
+summary(Tokyo)
+
+Tokyo$y[300:366] <- NA
+
+## Define the model
+formula = y ~ f(time, model="rw2", scale.model=TRUE, 
+	            constr=FALSE, cyclic=TRUE,
+				hyper = list(prec=list(prior="pc.prec",
+	                                   param=c(2,0.01)))) -1 
+
+## We'll get a warning since we have not defined the link argument
+result = inla(formula, family="binomial", Ntrials=n, data=Tokyo,
+	control.predictor=list(compute=T))
+
+## need to recompute the fitted values for those with data[i] = NA,
+## as the identity link is used.
+n = 366
+fitted.values.mean = numeric(n)
+for(i in 1:366) {
+    if (is.na(Tokyo$y[i])) {
+        if (FALSE) {
+            ## either like this, which is slower
+            marg = inla.marginal.transform(
+                            function(x) exp(x)/(1+exp(x)),
+                            result$marginals.fitted.values[[i]] )
+            fitted.values.mean[i] = inla.emarginal(function(x) x, marg)
+        } else {
+            ## or like this,  which is faster
+            fitted.values.mean[i] = inla.emarginal(
+                            function(x) exp(x)/(1 +exp(x)),
+                            result$marginals.fitted.values[[i]])
+        }
+    } else {
+        fitted.values.mean[i] = result$summary.fitted.values[i,"mean"]
+    }
+}
+plot(fitted.values.mean)
+```
+
+
+
+## Some of the models needs a graph, how do I specify it?
+
+Some of the models in \verb|INLA| needs the user to specify a graph,
+saying which nodes are neighbours to each other. A 'graph' can be
+specified in three different ways.
+
+* As an ascii or binary file with a graph specification, or the same
+  contents given as (possible list of) mix of character and numerics
+  arguments.
+* As a symmetric (dense or sparse) matrix, where the non-zero pattern
+  of the matrix defines the graph.
+* As an inla.graph-object
+
+
+A graph defined in an ascii-file, must have the following format.
+The first entry is the number of nodes in the graph, $n$. The nodes in
+the graph are labelled $1, 2, \ldots, n$. The next entries, specify the
+number of neighbours and the neighbours for each node.
+A simple example is the following
+```{r, eval=FALSE}
+4    
+1 2 3 4
+2 0
+3 1 1
+4 1 1
+```
+
+This defines a graph with four nodes, where node 1 has 2 neighbours 3
+and 4, node 2 as 0 neighbours, node 3 has 1 neighbour 1, and node 4
+has 1 neighbour 1, and the graph looks like this
+```{r,plot=TRUE,fig.width=2,fig.align='center'}
+g = inla.read.graph("4 1 2 3 4 2 0 3 1 1 4 1 1")
+plot(g)
+```
+
+Note that we need to specify the implied symmetry as well. In this
+example 4 is a neighbour of 1, then we also need to specify that 1 is
+a neighbour of 4.
+
+Instead of storing the graph specification on a file, it can also be
+specified as a character string with the same contents as a file, like
+```{r,eval=FALSE}
+"4 1 2 3 4  2 0 3 1 1 4 1 1"
+```
+as used in \verb|inla.read.graph| above.
+
+Due to imitations of the length of a string/line, so in practice, this
+way specifying the graph, seems more useful for teaching or
+demonstration purposes than for practical analysis.
+
+Within \verb|INLA|, this would look like
+```{r,eval=FALSE}
+formula = y ~ f(idx, model = "besag", graph = "graph.dat")
+```
+or
+```{r,eval=FALSE}
+formula = y ~ f(idx, model = "besag", graph = "4 1 2 3 4  2 0 3 1 1 4 1 1")
+```
+
+A graph can also be defined as a symmetric (dense or sparse) matrix,
+where the non-zero pattern of the matrix defines the graph A neighbour
+matrix is often used for defining which nodes that are neighbours,
+with the convention that if \verb|Q[i,j] != 0| then $i$ and $j$ are neighbours
+if $i\not=j$.
+
+For example, the (dense) matrix C
+```{r}
+C = matrix(c(1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1),4,4)
+C
+```
+defines the same graph show above. 
+
+Since graphs tends to be large, we often
+define them as a sparse matrix
+```{r}
+C.sparse= inla.as.sparse(C)
+C.sparse
+```
+We can then use \verb|graph=C| or \verb|graph=C.sparse| in the formula.
+
+We can also define the graph as an \verb|inla.graph|-object, which 
+is used internally, represent a graph. For example
+```{r}
+str(g)
+```
+and use \verb|graph = g| as the argument.
+
+The internal format, are as follows. \verb|n| is the size of the
+graph. \verb|nnbs| are the number of neighbours to each node, \verb|nbs|
+list all the neighbours to each node, and the class is \verb|inla.graph|.
+The \verb|cc|-list is for internal use only and specify the connected
+components in the graph. 
+
+\verb|INLA| has some functions to work with graphs, and here is a
+short summary.
+
+* \verb|inla.read.graph()| and \verb|inla.write.graph()|, read and
+  write graphs using any of the graph specifications above.
+  
+* You can plot a \verb|inla.graph|-object using \verb|plot()| and 
+  get a summary using \verb|summary()|. The plotting requires the
+  \verb|Rgraphviz| package.
+
+* From a graph specification, you can generate the neighbour matrix, 
+  using \verb|inla.graph2matrix()|. You can plot a graph 
+  specification as a neighbour matrix, using \verb|inla.spy()|
+
+* If you have 'errors' in your graph, you may read it using
+  \verb|inla.debug.graph()|. This is only available for a graph
+  specification in an ascii-file.
+
+
+
+## How \texttt{INLA} deal with \texttt{NA}
+
+For a formula like
+```{r eval=FALSE}
+formula = y ~ x + f(k, model= <some model>)
+```
+then \verb|NA|'s in either $y$, $x$ or $k$ are treated differently.
+
+\verb|NA|'s in the response $y$. If \verb|y[i] = NA|, this means that
+\verb|y[i]| is not observed, hence gives no contribution to the likelihood.
+
+\verb|NA|'s in fixed effect $x$. If \verb|x[i] = NA| this means that \verb|x[i]| is not part
+of the linear predictor for \verb|y[i]|. For fixed effects, this is
+equivalent to \verb|x[i]=0|, hence internally we make this change:
+\verb|x[is.na(x)] = 0|.
+
+\verb|NA|'s in random effect $k$. If \verb|k[i] = NA|, this means that
+the random effect does not contribute to the linear predictor for
+\verb|y[i]|. 
+
+\verb|NA|'s in a factor $x$. \verb|NA|'s in a factor $x$ is not allowed
+unless \verb|NA| is a level in itself, or 
+```{r eval=F}
+control.fixed = list(expand.factor.strategy = "inla")
+```
+is set. With this option, then \verb|NA| is interpreted similarly as a
+fixed effect, where \verb|NA| means no contribution from x. The effect of
+\verb|expand.factor.strategy="inla"|, is best explained with an example.
+
+```{r}
+r = inla(y ~ 1 + x, data = data.frame(y=1:3, x=factor(c("a","b","c"))))
+as.matrix(r$model.matrix)
+```
+for default value of the argument \verb|contrasts|. The effect of \verb|xa| is
+removed to make the corresponding matrix non-singular. If we want to
+expand \verb|x| into each of each three effects, then we can do
+```{r}
+r = inla(y ~ 1 + x, data = data.frame(y=1:3,x=factor(c("a","b","c"))), 
+         control.fixed = list(expand.factor.strategy="inla"))
+as.matrix(r$model.matrix)
+```
+
+As we see, each level of the factor is now treated symetrically.
+Although the corresponding frequentist matrix is singular as we have
+confounding with the intercept, the Bayesian posterior is still proper
+with proper priors. 
+
+With a \verb|NA| in \verb|x|, we get
+
+```{r}
+r = inla(y ~ 1 + x, data = data.frame(y=1:3,x=factor(c("a","b",NA))), 
+         control.fixed = list(expand.factor.strategy="inla"))
+as.matrix(r$model.matrix)
+```
+so that the 3rd element of the linear predictor has no contribution
+from \verb|x|, as it should.
+
+
+## Can INLA deal with missing covariates?
+
+No, INLA has no generic way to "impute" or integrate-out missing
+covariates. You have to adjust your model to account for missing
+covariates, like using one of the measurement error models ("meb",
+"mec"), or construct a joint model for the data and the covariates,
+but this is case-specific.
+
+
+##  Compute cross-validation or predictive measures of fit
+
+\verb|INLA| provides two types of leave-one-out predictive
+measures of fit. It is the CPO value, which is 
+$$
+	\text{Prob}(y_i | y_{-i}),
+$$	
+the PIT value 
+$$
+	\text{Prob}(y_i^\text{new} \le y_i | y_{-i})
+$$
+To enable the computation of these quantities, you will need to add the argument
+```{r eval=FALSE}
+control.compute=list(cpo=TRUE)
+```
+We can also compute PO values
+$$
+	\text{Prob}(y_i | y),
+$$	
+when argument \verb|po=TRUE| is added.
+
+
+If the resulting object is \verb|result|, then you will find the predictive
+quantities as \verb|result$cpo$cpo| and \verb|result$cpo$pit|.
+
+Implicit assumptions made in for computations, and there are internal
+checks that these are satisfied. The results of these checks will
+appear as \verb|result$cpo$failure|. In short, if
+\verb|result$cpo$failure[i] > 0| then some assumption is violated, the
+higher the value (maximum 1) the more seriously. If
+\verb|result$cpo$failure[i] == 0| then the assumptions should be ok.
+
+You \emph{may} want to recompute those with non-zero failure. However,
+this must be done \emph{manually} by removing \verb|y[i]| from the dataset, fit
+the model and then predict \verb|y[i]|. To provide a more efficient
+implementation of this, we have provided
+```{r eval=FALSE}
+improved.result = inla.cpo(result)
+```
+which take an inla-object which is the output from \verb|inla()|, and
+recompute (in an efficient way) the cpo/pit for which
+\verb|result$cpo$failure > 0|, and return 'result' with the improved
+estimates of cpo/pit. See \verb|?inla.cpo| for details.
+
+
+
+## I have access to a remote Linux/MacOS server, is it possible to run the computations remotely and running R locally?
+
+Yes! This option allow \verb|INLA| to use a remote server to do the
+computations. In order to use this feature, you need to do some setup
+which is different from (various) Linux distributions, Mac and
+Windows. In short:
+
+* install \verb|R| and \verb|R-INLA| a remote server, for example
+  \verb|foo.bar.org|.
+* Install your public ssh-key on \verb|foo.bar.org| to setup password
+  free access to the remove server using \verb|ssh|. And please check
+  that this is indeed working before moving forward!
+* On your local host, run  \verb|inla.remote()| to initialise the 
+  init-file \verb|~/.inlarc|  and then edit this file to fit your needs.
+* You may now have to log out and log in again, to make sure your 
+  ssh key is signed out.
+* You can now use option \verb|inla.call="remote"| to do the computations
+  on your remote server, or set this globally with 
+  \verb|inla.setOption("inla.call", "remote")|
+
+You can also submit a job on the remote server, so you do not need to
+sit and wait for it to finish, but you can collect the results later.
+Basically, you do
+```{r eval=FALSE}
+r = inla(..., inla.call = "submit")
+```
+which will start the job on the server. You can start many jobs, and
+list them using
+```{r eval=FALSE}
+inla.qstat()
+```
+and you can fetch the results (for the job above) using
+```{r eval=FALSE}
+r = inla.qget(r)
+```
+
+You can also delete jobs and fetch the jobs from another machine; see
+\verb|?inla.q| for further details.
+
+HOWTO setup ssh-keys: For the unexperienced user, this is somewhat
+tricky; sorry about that. The easiest is to find a friend that knows
+this and can help you. Newer system do a lot of these things very
+nicely these days.
+
+It is also possible to setup this from Windows using CYGWIN, and INLA
+can work with this interface as well. Please see the old web-page for
+details, which are long and technical. HOWEVER, I am no longer
+convinced that this work anymore, as I haven't seen this is use for
+years. It is much much easier to use a virtual machine with Linux on
+Windows.
+
+
+
+## Posteriors for linear combinations
+
+I have some linear combinations of the nodes in the latent field that
+I want to compute the posterior marginal of, is that possible? Yes!
+These are called 'linear combinations'. There are handy functions,
+'inla.make.lincomb()' and 'inla.make.lincombs()', to define one or
+many such linear combinations. Single linear combinations made by
+using 'inla.make.lincomb()' can easily be joined into many. Its use is
+easiest explained using a rather long example...
+
+Here is the example, that explains these features.
+
+```{r}
+## A simple model
+n = 100
+a = rnorm(n)
+b = rnorm(n)
+idx = 1:n
+
+y = rnorm(n) + a + b
+formula = y ~ 1 + a + b + f(idx, model="iid")
+
+## assume we want to compute the posterior for
+##
+##  2 * beta_a + 3 * beta_b + idx[1] - idx[2]
+##
+## which we specify as follows (and giving it a unique name)
+
+lc1 = inla.make.lincomb(a=2, b=3, idx = c(1,-1,rep(NA,n-2)))
+names(lc1) = "lc1"
+
+## strictly speaking, it is sufficient to use `idx = c(1,-1)', as the
+## remaining idx's are not used in any case.
+
+r = inla(formula, data = data.frame(a,b,y),
+        ## add the linear combinations here
+        lincomb = lc1,
+        ## force noise variance to be essiatially zero
+        control.family = list(initial=10, fixed=TRUE))
+		
+## to verify the result, we can compare the mean but the variance and
+## marginal cannot be computed from the simpler marginals alone.
+lc1.1 = 2 * r$summary.fixed["a", "mean"] + 3 * r$summary.fixed["b",
+    "mean"] + r$summary.random$idx$mean[1] -
+    r$summary.random$idx$mean[2]
+lc1.2= r$summary.lincomb.derived$mean
+print(round(c(lc1.1 = lc1.1, lc1.2 = lc1.2), dig=3))
+```
+The marginals are available as \verb|r$marginals.lincomb$...|
+
+There is an another function which is handy for specifying many linear
+combinations at once, that is \verb|inla.make.lincombs()| (note the
+plural s). Here each 'row' define one linear combination
+```{r}
+## let wa and wb be vectors, and we want to compute the marginals for
+## beta_a * wa[i] + beta_b * wb[i], for i=1..m. this is done
+## conveniently as follows
+
+m = 10
+wa = runif(m)
+wb = runif(m)
+lc.many = inla.make.lincombs(a = wa, b=wb)
+
+## we can give them names as well, but there are also default names, like
+print(names(lc.many))
+r = inla(formula, data = data.frame(a,b,y),
+        lincomb = lc.many,
+        control.family = list(initial=10, fixed=TRUE))
+print(round(r$summary.lincomb.derived, dig=3))
+```
+
+Terms like 'idx' above, can be added as \verb|idx = IDX| into
+\verb|inla.make.lincombs()|, where IDX is a matrix. Again, each column
+of the arguments define one linear combination.
+
+There is a further option available for the derived linear
+combinations, that is the option to compute also the posterior
+correlation matrix between all the linear combinations. To activate
+this option, use
+```{r eval=FALSE}
+control.inla = list(lincomb.derived.correlation.matrix = TRUE)
+```
+and you will find the resulting posterior correlation matrix as
+```{r eval=FALSE}
+result$misc$lincomb.derived.correlation.matrix
+```
+
+Here is a small example where we compute the correlation matrix for
+the predicted values of a hidden AR(1) model with an intercept.
+```{r}
+n = 100
+nPred = 10
+phi = 0.9
+x = arima.sim(n,  model = list(ar=phi)) * sqrt(1-phi^2)
+y = 1 + x + rnorm(n,  sd=0.1)
+
+time = 1:(n + nPred)
+Y = c(y, rep(NA, nPred))
+formula = Y ~ 1 + f(time, model="ar1")
+
+## make linear combinations which are the nPred linear predictors
+B = matrix(NA, nPred, n+nPred)
+for(i in 1:nPred) {
+    B[i, n+i] = 1
+}
+lcs = inla.make.lincombs(Predictor = B)
+
+r = inla(formula,  data = data.frame(Y, time),
+        control.predictor = list(compute=TRUE),
+        lincomb = lcs,
+        control.inla = list(lincomb.derived.correlation.matrix=TRUE))
+
+print(round(r$misc$lincomb.derived.correlation.matrix,dig=3))
+```
+
+
+## INLA seems to work great for near all cases, but are there cases where INLA is known to have problems?
+
+The methodology needs the full conditional density for the latent
+field to be "near" Gaussian. This is usually achived by either
+replications or smoothing/"borrowing strength". A simple example which
+do not have this, is the following:
+```{r}
+n = 100
+u = rnorm(n)
+eta = 1 + u
+p = exp(eta)/(1+exp(eta))
+y = rbinom(n, size=1,  prob = p)
+
+idx = 1:n
+result = inla(y ~ 1 + f(idx, model="iid",
+                        hyper = list(prec = list(prior="pc.prec",
+						                         prior = c(1,0.01)))), 
+              data =data.frame(y,idx), family = "binomial", 
+	          Ntrials = 1)
+summary(result)
+```
+For each binary observation there is an iid "random effect" $u$, and
+there is no smoothing/``borrowing strength'' (apart from the weak
+intercept). If you plot the loglikelihood for eta for $y=1$, say, then
+its an increasing function for increasing eta, so the likelihood
+itself would like $\eta = \infty$. With an unknown precision for $u$
+we run into problems; INLA has a tendency to estimate a to high
+precision for $u$. However, it must be noted that the model is almost
+singular and you'll have a strong prior sensitivity in the (exact)
+results as well. There is a similar discussion in here as well for the
+Salamander data example.
+
+## Can I have the linear predictor from one model as a covariate in a different model?
+
+Yes, this is possible. Essentially, you have to set the linear
+predictor for the first model equal to 'u', and then you can copy 'u'
+and use the scaling to get the regression coefficient. A simple
+example will illustrate the idea:
+
+```{r}
+## simple example
+n = 100
+x1 = rnorm(n)
+eta1 = 1 + x1
+x2 = rnorm(n)
+eta2 = 2 + 2*eta1 + 2*x2
+y1 = rnorm(n, mean=eta1, sd = 0.01)
+y2 = rnorm(n, mean=eta2, sd = 0.01)
+
+## the trick is to create a vector 'u' (iid) which is 
+## equal to eta1, and then we can copy 'u' to
+## create beta*u or beta*eta1. we do this by 
+## using 0 = eta1 -u + tiny.noise
+
+formula = Y ~ -1 + intercept1 + X1 + intercept2 + f(u, w, model="iid",
+    hyper = list(prec = list(initial = -6, fixed=TRUE))) + f(b.eta2,
+    copy="u", hyper = list(beta = list(fixed = FALSE))) + X2
+    
+Y = matrix(NA, 3*n, 3)
+
+## part 1: y1
+intercept1 = rep(1, n)
+X1 = x1
+intercept2 = rep(NA, n)
+u = rep(NA, n)
+w = rep(NA, n)
+b.eta2 = rep(NA, n)
+X2 = rep(NA, n)
+Y[1:n, 1] = y1
+
+## part 2: 0 = eta1 - u + tiny.noise
+intercept1 = c(intercept1,  intercept1)
+X1 = c(X1,  x1)
+intercept2 = c(intercept2,  rep(NA, n))
+u = c(u, 1:n)
+w = c(w, rep(-1, n))
+b.eta2 = c(b.eta2,  rep(NA, n))
+X2 = c(X2,  rep(NA, n))
+Y[n + 1:n, 2] = 0
+
+## part 3: y2
+intercept1 = c(intercept1,  rep(NA, n))
+X1 = c(X1,  rep(NA, n))
+intercept2 = c(intercept2, rep(1, n))
+u = c(u, rep(NA, n))
+w = c(w, rep(NA, n))
+b.eta2 = c(b.eta2, 1:n)
+X2 = c(X2, x2)
+Y[2*n + 1:n, 3] = y2
+
+r = inla(formula,
+    data =  list(Y=Y, intercept1=intercept1, X1=X1,
+        intercept2=intercept2, u=u, w=w, b.eta2=b.eta2, X2=X2),
+    family = c("gaussian", "gaussian", "gaussian"),
+    control.family = list(
+        list(),
+        list(hyper = list(prec = list(initial = 10, fixed=TRUE))),
+        list()))
+
+summary(r)
+```
+
+## Latent models, likelihoods and priors.
+
+The list of latent models, likelihood and priors implemented, can be
+found by doing (or give a spesific section, see
+\verb|?inla.list.models|)
+```{r}
+inla.list.models()
+```
+
+## Copying a model
+
+We often encounter the situation where an element of a model is needed
+more than once for each observation. One example is where
+```{r eval=FALSE}
+y = a + b*w + ... 
+```
+for fixed weights $w$ and where $(a_i, b_i)$ is bivariate Normal and
+all 2-vectors are independent.
+
+Using the model
+```{r eval=FALSE}
+f(idx, model="iid2d", n=2*m, ...)
+```
+provide a random vector $v$, say, with length $2m$ stored as
+$$
+v = (a_1, a_2, ..., a_m, b_1, b_2, ...., b_m).
+$$
+To implement this, we simply create an indentical copy of $v$, $v^*$,
+where $v == v^*$ (nearly). Using the copy-feature, we can do
+```{r eval=FALSE}
+idx = 1:m
+idx.copy = m + 1:m
+formula = y ~  f(idx, model="iid2d", n=2*m) + f(idx.copy, w, copy="idx") + ....
+```
+recalling that the first $m$ elements is $a$ and 
+the last $m$ elements are $b$, and where $w$ are the weights.
+
+The second \verb|f()| terms define itself as a copy of \verb|f(idx, ...)|, and
+it inherit some of its features, like \verb|n| and \verb|values|.
+
+A copied model may also have an unknown scaling (hyperparameter),
+which is default fixed to be 1. In the following example, we will use
+this feature to estimate the unknown scaling (in this case, scaling is
+2), assuming we know the precision for $z$.
+```{r}
+n=1000
+i=1:n
+j = i
+z = rnorm(n)
+w = runif(n)
+y = z  + 2*z*w + rnorm(n)
+formula = y ~ f(i, model="iid",initial=0, fixed=T) +
+              f(j, w, copy="i", fixed=FALSE)
+r = inla(formula, data = data.frame(i,j,w,y))
+summary(r)
+```
+
+If the scaling parameter is within given range, then option \verb|range =
+c(low, high)|, can be given. In this case 
+```{r eval=FALSE}
+beta = low + (high-low)*exp(beta.local)/(1+exp(beta.local))
+```
+and the prior is defined on \verb|beta.local|. 
+
+If \verb|low=high| or \verb|range = NULL|, then the identity mapping
+is used. If \verb|high=Inf| and |verb|low!=Inf|, then the mapping
+\verb|low + exp(beta.local)| is used. The case low=Inf and high!=Inf
+is not yet implemented.
+
+A model or a copied model can be copied several times. The degree of
+closeness of $v$ and $v^*$ is specified by the argument
+\verb|precision|, as the precision of the noise added to $v$ to get
+$v^*$.
+
+
+## Replicate a model
+
+Independent replications of a model with the same hyperparmeters can
+be defined using the argument \verb|replicate|,
+```{r eval=FALSE}
+f(idx, model = ..,  replicate = r)
+```
+
+Here, \verb|r| is a vector of the same length as \verb|idx|. In this
+case, we use a two-dimensional index to index this (sub-)model:
+\verb|(idx, r)|, so \verb|(1,2)| identify the first value of the
+second replication of this model (component). Number of replications
+are defined as \verb|max(replicate)|, unless it is defined by the argument
+\verb|nrep|.
+
+One example is the model `iid':
+```{r eval=FALSE}
+i = 1:n
+formula = y ~  f(i, model = "iid") + ...
+```
+
+which has an alternative equivalent formulation as `n' replications of
+an iid-model with length 1
+```{r eval=FALSE}
+i = rep(1,n)
+r = 1:n
+formula = y ~  f(i, model="iid", replicate = r) + ...
+```
+
+In the following example, we estimate the parameters in three AR(1)
+time-series with the same hyperparameters (ie its replicated) but with
+separate means:
+```{r}
+n = 100
+y1 = arima.sim(n=n, model=list(ar=c(0.9)))+10
+y2 = arima.sim(n=n, model=list(ar=c(0.9)))+20
+y3 = arima.sim(n=n, model=list(ar=c(0.9)))+30
+
+formula = y ~ mean -1 + f(i, model="ar1", replicate=r)
+y = c(y1,y2,y3)
+i = rep(1:n, 3)
+r = rep(1:3, each=n)
+mean = as.factor(r)
+result = inla(formula, family = "gaussian",
+              data = data.frame(y, i, mean),
+              control.family = list(initial = 12, fixed=TRUE))
+summary(result)
+```
+All other arguments is interpreted for the basic model and also
+replicated. Like argument \verb|constr=TRUE|, is interpreted as each
+replication sums to zero, and additional constraints are also
+replicated.
+
+
+## Models with more than one type of likelihood
+
+There is no constraint in INLA that the type of likelihood must be the
+same for all observations. In fact, every observation could have its
+own likelihood. Extentions include more than one familily, like the
+Normal, Poisson, etc, but also having in the model groups of
+observations with separate hyperparameters within each group, where
+the family, for example, can be the same.
+
+In the formula
+```{r eval=FALSE}
+y ~ a + 1
+```
+we allow \verb|y| to be a matrix. In this case each column of \verb|y|
+define one likelihood where the family is the same the hyperparameters
+are the same. For each row, only one of the columns could (but don't
+have to) have an observation (non-\verb|NA| value), the other colums
+must have value \verb|NA|. All other parameters to the likelihood,
+like \verb|E| \verb|Ntrials|, \verb|offset| and \verb|scale| are used
+as appropriate. Example: If row $i$ column $j$ is a Poission
+observation, then \verb|E[i]| is used as the scaling. Similar with the
+others. This works as only one column for each row is non-\verb|NA|.
+
+The argument \verb|family| is in the case where \verb|y| is a matrix, a list of
+families. The argument \verb|control.family| is then a list of lists; one
+for each family. 
+
+The first example, is a simple linear regression, where the first half
+of the data is observed with unknown precision \verb|tau.1| (with a
+'default' noninformative prior) and the second half of the data is
+observed with unknown precision \verb|tau.2|. Otherwise, the two
+models have the same form for the linear predictor.
+```{r}
+##  Simple linear regression with observations with two different
+##  variances.
+n = 100
+N = 2*n
+y = numeric(N)
+x = rnorm(N)
+
+y[1:n] = 1 + x[1:n] + rnorm(n, sd = 1/sqrt(1))
+y[1:n + n] = 1 + x[1:n + n] + rnorm(n, sd = 1/sqrt(2))
+
+Y = matrix(NA, N, 2)
+Y[1:n, 1] = y[1:n]
+Y[1:n + n, 2] = y[1:n + n]
+
+formula = Y ~ x + 1
+result = inla(
+        formula,
+        data = list(Y=Y, x=x),
+        family = c("gaussian", "gaussian"),
+        control.family = list(list(prior = "flat", param = numeric()),
+                            list()))
+summary(result)
+```
+
+The second example shows how to use information from two
+sources to estimate the effect of the covariate \verb|x|.
+```{r}
+## Simple example with two types of likelihoods
+n = 10
+N = 2*n
+
+## common covariates
+x = rnorm(n)
+
+## Poisson, depends on x
+E1 = runif(n)
+y1 = rpois(n, lambda = E1*exp(x))
+
+## Binomial, depends on x
+size = sample(1:10, size=n, replace=TRUE)
+prob = exp(x)/(1+exp(x))
+y2 = rbinom(n, size= size, prob = prob)
+
+## Join them together
+Y = matrix(NA, N, 2)
+Y[1:n, 1] = y1
+Y[1:n + n, 2] = y2
+
+## The E for the Poisson
+E = numeric(N)
+E[1:n] = E1
+E[1:n + n] = NA
+
+## Ntrials for the Binomial
+Ntrials = numeric(N)
+Ntrials[1:n] = NA
+Ntrials[1:n + n] = size
+
+## Duplicate the covariate which is shared
+X = numeric(N)
+X[1:n] = x
+X[1:n + n] = x
+
+## Formula involving Y as a matrix
+formula = Y ~ X - 1
+
+## `family' is now
+result = inla(formula,
+        family = c("poisson", "binomial"),
+        data = list(Y=Y, X=X),
+        E = E, Ntrials = Ntrials)
+summary(result)
+```
+
+If the covariate 'x' is different for the two families, \verb|x| and
+\verb|xx|, say, then we only need to make the following changes
+```{r eval=FALSE}
+X = numeric(N)
+X[1:n] = x
+X[1:n + n] = NA
+
+XX = numeric(N)
+XX[1:n] = NA
+XX[1:n + n] = xx
+
+formula = Y  ~ X + XX -1
+```
+and add \verb|XX| into the data.frame. Note how we can express the
+joint model as a 'union' of models with the use of \verb|NA|'s to
+remove terms.
+
+
+In the next example, we use also the \verb|replicate| feature to
+estimate three replicated AR(1) models with the same hyperparamters,
+each observed differently.
+```{r}
+## An example with three independent AR(1)'s with separate means, but
+## with the same hyperparameters. These are observed with three
+## different likelihoods.
+
+n = 100
+x1 = arima.sim(n=n, model=list(ar=c(0.9))) + 0
+x2 = arima.sim(n=n, model=list(ar=c(0.9))) + 1
+x3 = arima.sim(n=n, model=list(ar=c(0.9))) + 2
+
+## Binomial observations
+Nt = 10 + rpois(n,lambda=1)
+y1 = rbinom(n, size=Nt, prob = exp(x1)/(1+exp(x1)))
+
+## Poisson observations
+Ep = runif(n, min=1, max=10)
+y2 = rpois(n, lambda = Ep*exp(x2))
+
+## Gaussian observations
+y3 = rnorm(n, mean=x3, sd=0.1)
+
+## stack these in a 3-column matrix with NA's where not observed
+y = matrix(NA, 3*n, 3)
+y[1:n, 1] = y1
+y[n + 1:n, 2] = y2
+y[2*n + 1:n, 3] = y3
+
+## define the model
+r = c(rep(1,n), rep(2,n), rep(3,n))
+rf = as.factor(r)
+i = rep(1:n, 3)
+formula = y ~ f(i, model="ar1", replicate=r, constr=TRUE) + rf -1
+data = list(y=y, i=i, r=r, rf=rf)
+
+## parameters for the binomial and the poisson
+Ntrial = rep(NA, 3*n)
+Ntrial[1:n] = Nt
+E = rep(NA, 3*n)
+E[1:n + n] = Ep
+
+result = inla(formula, family = c("binomial", "poisson", "normal"),
+              data = data, Ntrial = Ntrial, E = E,
+              control.family = list(
+                      list(),
+                      list(),
+                      list()))
+summary(result)
+```
+
+## Models where the response/data depends on linear combinations of the "linear predictor" (or the sum of "fixed" and "random" effects)
+
+In some cases, the data/response might depend on a linear combination
+of the "linear predictor" defined in the formula, like
+```{r eval=FALSE}
+y ~ 1 + z
+```
+then this implies that \verb|y[1]| depends on \verb|intercept + beta*z[1]|.
+Suppose if \verb|y[1]| depends on \verb|2*intercept + beta*z[1] + beta*z[2]|?
+Although it is possible to express this, using the tools we already
+have, it is more convenient to add another layer into the model. Let
+\verb|A| be a \verb|m x n| matrix, which defines new linear predictors, \verb|eta~|
+from \verb|eta|, like
+```{r eval=FALSE}
+eta~ = A %*% eta
+```
+Here, \verb|eta| is the ordinary linear predictor defined using the
+formula, and the data depends on the linear predictor \verb|eta~|. So
+we might express this as
+```{r eval=FALSE}
+y ~ 1 + z, with addition matrix A
+```
+meaning in short, that
+```{r eval=FALSE}
+y    ~ eta~   ## no intercept...
+eta~ = A %*% eta
+eta  = intercept + beta*z
+```
+This is specified by adding the $A$-matrix, using 
+```{r eval=FALSE}
+control.predictor=list(A=A)
+```
+
+The argument \verb|offset|, which might be defined in the formula as
+\verb|offset(value)| or as an argument \verb|inla(..., offset = value)|, does
+have different interpretation in the case where the $A$-matrix is used.
+The rule is that \verb|offset| in the formula, goes into \verb|eta|, whereas an
+argument \verb|offset| goes into \verb|eta~|. If we write out the expressions
+above adding offsets, \verb|offset.formula| and \verb|offset.arg|, we get
+```{r eval=FALSE}
+eta~ = A %*% eta + offset.arg
+eta = intercept + beta*z + offset.formula
+```
+In the case where there is no $A$-matrix, then \verb|offset.total =
+offset.arg + offset.formula|.
+
+The following example should provide more insight. You may change $n$
+and $m$, such that $m < n$, $m=n$ or $m > n$. Note that since the
+response has dimension $m$ and the covariates dimension $n$, we need
+to use \verb|list(y=y, z=z)| and not a \verb|data.frame()|. This
+example also illustrates the use of offset's.
+```{r}
+## 'm' is the number of observations of eta*, where eta* = A eta +
+## offset.arg, and A is a fixed m x n matrix, and eta has length n. An
+## offset in the formula goes into 'eta' whereas an offset in the
+## argument of the inla-call, goes into eta*
+n = 10
+m = 100
+offset.formula = 10+ 1:n
+offset.arg = 1 + 1:m
+
+## a covariate
+z = runif(n)
+
+## the linear predictor eta
+eta = 1 + z + offset.formula
+
+## the linear predictor eta* = A eta + offset.arg.
+A = matrix(runif(n*m), m, n);
+##A = inla.as.sparse(A)  ## sparse is ok
+## need 'as.vector', as 'Eta' will be a sparseMatrix if 'A' is sparse
+## even if ncol(Eta) = 1
+Eta = as.vector(A %*% eta) + offset.arg
+
+s = 1e-6
+Y = Eta + rnorm(m, sd=s)
+
+## for a check, we can use several offsets. here, m1=-1 and p1=1, so
+## they m1+p1 = 0.
+r = inla(Y ~ 1+z + offset(offset.formula) + offset(m1) + offset(p1),
+        ## The A-matrix defined here
+        control.predictor = list(A = A, compute=TRUE, precision = 1e6),
+        ## we need to use a list() as the different lengths of Y
+        ## and z
+        data = list(Y=Y, z=z,
+                m1 = rep(-1, n),
+                p1 = rep(1, n),
+                offset.formula = offset.formula,
+                offset.arg = offset.arg),
+        ## this is the offset defined in the argument of inla
+        offset = offset.arg,
+        ##
+        control.family = list(initial = log(1/s^2), fixed=TRUE))
+summary(r)
+
+## this should be a small number
+print(max(abs(r$summary.linear.predictor$mean - c(Eta, eta))))
+```
+
+
+Here is a another example where the informal formula is 
+```{r eval=FALSE}
+y = intercept + s[j] + 0.5*s[k] + noise
+```
+Instead of using the copy feature, we can implement this model using
+the A-matrix feature. What we do, is to first define a linear
+predictor being the intercept and $s$, then we use the $A$-matrix to
+'construct the model'. 
+```{r plot=TRUE}
+n = 100
+s = c(-1, 0, 1)
+nS = length(s)
+j = sample(1L:nS, n, replace=TRUE)
+k = j
+k[j == 1L] = 2
+k[j == 2L] = 3
+k[k == 3L] = 1
+
+noise = rnorm(n, sd=0.0001)
+y = 1 + s[j] + 0.5*s[k] + noise
+
+## build the formula such that the linear predictor is the intercept
+## (index 1) and the 's' term (index 2:(n+1)). then kind of
+## 'construct' the model using the A-matrix.
+formula = y ~ -1 + intercept + f(idx)
+A = matrix(0, n, nS+1L)
+for(i in 1L:n) {
+  A[i, 1L]        = 1
+  A[i, 1L + j[i]] = 1
+  A[i, 1L + k[i]] = 0.5
+}
+
+data = list(intercept = c(1, rep(NA, nS)), idx = c(NA, 1L:nS))
+result = inla(formula, data=data, control.predictor=list(A=A))
+## should be a straight line
+plot(result$summary.random$idx$mean, s, pch=19)
+abline(a=0,b=1)
+```

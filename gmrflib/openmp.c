@@ -192,32 +192,42 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	nested = 1;
 
 	switch (place) {
+	case GMRFLib_OPENMP_PLACES_PARSE_MODEL:
+		// this is serial section, except for _scale_model computations which
+		nested = 0; // new default value here
+		switch (strategy) {
+		case GMRFLib_OPENMP_STRATEGY_SMALL:
+		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
+		case GMRFLib_OPENMP_STRATEGY_LARGE:
+		case GMRFLib_OPENMP_STRATEGY_DEFAULT:
+		case GMRFLib_OPENMP_STRATEGY_HUGE:
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL:
+			nested = 0;
+			GMRFLib_openmp->max_threads_outer = 1;
+			GMRFLib_openmp->max_threads_inner = 1;
+			break;
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL:
+		case GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED:
+			nested = 0;
+			GMRFLib_openmp->max_threads_outer = 1;
+			GMRFLib_openmp->max_threads_inner = GMRFLib_openmp->max_threads_nested[1];
+			break;
+		case GMRFLib_OPENMP_STRATEGY_NONE:
+		default:
+			assert(0 == 1);
+		}
+		break;
+
 	case GMRFLib_OPENMP_PLACES_BUILD_MODEL:
 		nested = 0; // new default value here
 		switch (strategy) {
 		case GMRFLib_OPENMP_STRATEGY_SMALL:
-			nt = 1;
-			GMRFLib_openmp->max_threads_outer = nt;
-			GMRFLib_openmp->max_threads_inner = 1;
-			break;
 		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
-			GMRFLib_openmp->max_threads_outer = nt;
-			GMRFLib_openmp->max_threads_inner = 1;
-			break;
 		case GMRFLib_OPENMP_STRATEGY_LARGE:
 		case GMRFLib_OPENMP_STRATEGY_DEFAULT:
-			GMRFLib_openmp->max_threads_outer = nt;
-			GMRFLib_openmp->max_threads_inner = 1;
-			break;
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL:
-			GMRFLib_openmp->max_threads_outer = nt;
-			GMRFLib_openmp->max_threads_inner = 1;
-			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL:
-			GMRFLib_openmp->max_threads_outer = nt;
-			GMRFLib_openmp->max_threads_inner = 1;
-			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED:
 			nested = 0;
 			GMRFLib_openmp->max_threads_outer = nt;

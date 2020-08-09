@@ -527,8 +527,16 @@
         control.vb = list(enable = FALSE, strategy = "mean", verbose = TRUE, refinement = 0, max.correct = 1.0, hyperpar.correct = FALSE),
 
         ##:ARGUMENT: control.correct List of control arguments for correction for the Laplace approximation: \code{enable} Logical Use this feature? \code{factor} Numerical Factor used in adjusting the correction factor (default=10) if \code{correct=TRUE}. \code{strategy}  Character The strategy used to compute the correction; one of 'simplified.laplace' (default) or 'laplace'. \code{verbose}  Logical Be verbose when computing the correction? (default \code{FALSE})
-        control.correct = list(enable = FALSE, factor = 10.0, strategy = "simplified.laplace", verbose = FALSE)
+        control.correct = list(enable = FALSE, factor = 10.0, strategy = "simplified.laplace", verbose = FALSE), 
 
+        ##:ARGUMENTS: num.gradient Character Set the numerical scheme to compute the gradient,  one of \code{"forward"} or \code{"central"} (default).
+        num.gradient = "central",
+        
+        ##:ARGUMENTS: num.hessian Character Set the numerical scheme to compute the Hessian,  one of \code{"forward"} or \code{"central"} (default).
+        num.hessian = "central",
+        
+        ##:ARGUMENTS: optimise.strategy Character THIS OPTION IS EXPERIMENTAL. Chose the optimiser strategy,  one of \code{"safe"} (default) or \code{"smart"}.
+        optimise.strategy = "safe"
         )
         
  

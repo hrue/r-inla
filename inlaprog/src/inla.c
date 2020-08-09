@@ -22493,11 +22493,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tscale.model[%1d]\n", std);
 		}
 		if (std) {
-			int idum;
-#pragma omp parallel for private(idum) num_threads(1)
-			for (idum = 0; idum < 1; idum++) {
-				inla_besag_scale(arg, adj, mb->verbose);
-			}
+			inla_besag_scale(arg, adj, mb->verbose);
 			if (mb->verbose) {
 				printf("\t\tscale.model: prec_scale[%g]\n", arg->prec_scale[0]);
 			}
@@ -22537,11 +22533,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tscale.model[%1d]\n", std);
 		}
 		if (std) {
-			int idum;
-#pragma omp parallel for private(idum) num_threads(1)
-			for (idum = 0; idum < 1; idum++) {
-				inla_besag_scale(arg->besag_arg, adj, mb->verbose);
-			}
+			inla_besag_scale(arg->besag_arg, adj, mb->verbose);
 			if (mb->verbose) {
 				printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
 			}
@@ -22586,11 +22578,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tscale.model[%1d]\n", std);
 		}
 		if (std) {
-			int idum;
-#pragma omp parallel for private(idum) num_threads(1)
-			for (idum = 0; idum < 1; idum++) {
-				inla_besag_scale(arg->besag_arg, adj, mb->verbose);
-			}
+			inla_besag_scale(arg->besag_arg, adj, mb->verbose);
 			if (mb->verbose) {
 				printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
 			}
@@ -22629,13 +22617,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		inla_make_rw2diid_graph(&(mb->f_graph[mb->nf]), arg->rw2ddef);
 		std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 1);
 		assert(std == 1);			       /* this has to be true for this model */
-		if (1) {
-			int idum;
-#pragma omp parallel for private(idum) num_threads(1)
-			for (idum = 0; idum < 1; idum++) {
-				GMRFLib_rw2d_scale(arg->rw2ddef);
-			}
-		}
+		GMRFLib_rw2d_scale(arg->rw2ddef);
 		if (mb->verbose) {
 			printf("\t\tscale.model[%1d]\n", std);
 			printf("\t\tscale.model: prec_scale[%g]\n", arg->rw2ddef->prec_scale[0]);
@@ -22683,11 +22665,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		if (std) {
-			int idum;
-#pragma omp parallel for private(idum) num_threads(1)
-			for (idum = 0; idum < 1; idum++) {
-				inla_besag_scale(arg->besag_arg, adj, mb->verbose);
-			}
+			inla_besag_scale(arg->besag_arg, adj, mb->verbose);
 			if (mb->verbose) {
 				printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
 			}
@@ -22833,17 +22811,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg->log_prec_omp = log_prec;
 
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
-		if (std) {
-			int idum;
-#pragma omp parallel for private(idum) num_threads(1)
-			for (idum = 0; idum < 1; idum++) {
-				GMRFLib_rw2d_scale((void *) arg);
-			}
-		}
 		if (mb->verbose) {
 			printf("\t\tscale.model[%1d]\n", std);
-			if (std)
+		}
+		if (std) {
+			GMRFLib_rw2d_scale((void *) arg);
+			if (mb->verbose) {
 				printf("\t\tscale.model: prec_scale[%g]\n", arg->prec_scale[0]);
+			}
 		}
 
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
@@ -23067,16 +23042,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc_arg[mb->nf] = (void *) sdef;
 
 		if (std) {
-			int idum;
-#pragma omp parallel for private(idum) num_threads(1)
-			for (idum = 0; idum < 1; idum++) {
-				GMRFLib_seasonal_scale(sdef);
-			}
+			GMRFLib_seasonal_scale(sdef);
 		}
 		if (mb->verbose) {
 			printf("\t\tscale.model[%1d]\n", std);
-			if (std)
+			if (std) {
 				printf("\t\tscale.model: prec_scale[%g]\n", sdef->prec_scale[0]);
+			}
 		}
 
 		/*
@@ -23755,12 +23727,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\tscale.model[%1d]\n", std);
 			}
 			if (std) {
-				int idum;
-#pragma omp parallel for private(idum) num_threads(1)
-				for (idum = 0; idum < 1; idum++) {
-					GMRFLib_rw_scale((void *) rwdef);
+				GMRFLib_rw_scale((void *) rwdef);
+				if (mb->verbose) {
+					printf("\t\tscale.model: prec_scale[%g]\n", rwdef->prec_scale[0]);
 				}
-				printf("\t\tscale.model: prec_scale[%g]\n", rwdef->prec_scale[0]);
 			}
 
 			mb->f_Qfunc[mb->nf] = GMRFLib_rw;
@@ -23827,11 +23797,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
 			if (mb->f_id[mb->nf] == F_RW1 || mb->f_id[mb->nf] == F_RW2 || mb->f_id[mb->nf] == F_CRW2) {
 				if (std) {
-					int idum;
-#pragma omp parallel for private(idum) num_threads(1)
-					for (idum = 0; idum < 1; idum++) {
-						GMRFLib_crw_scale((void *) crwdef);
-					}
+					GMRFLib_crw_scale((void *) crwdef);
 				}
 				if (mb->verbose) {
 					printf("\t\tscale.model[%1d]\n", std);
@@ -24365,11 +24331,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 						def->crwdef->position[kk] = (double) kk;
 					}
 					if (std) {
-						int idum;
-#pragma omp parallel for private(idum) num_threads(1)
-						for (idum = 0; idum < 1; idum++) {
-							GMRFLib_crw_scale((void *) def->crwdef);
-						}
+						GMRFLib_crw_scale((void *) def->crwdef);
 					}
 					if (mb->verbose) {
 						printf("\t\tgroup.scale.model[%1d]\n", std);
@@ -24402,11 +24364,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					printf("\t\tgroup.adjust.for.con.comp[%1d]\n", std);
 				}
 				if (std) {
-					int idum;
-#pragma omp parallel for private(idum) num_threads(1)
-					for (idum = 0; idum < 1; idum++) {
-						inla_besag_scale((void *) def->besagdef, adj, mb->verbose);
-					}
+					inla_besag_scale((void *) def->besagdef, adj, mb->verbose);
 				}
 			} else {
 				def->rwdef = NULL;
@@ -25117,20 +25075,37 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	/*
 	 * ...which is overrided by the original names 
 	 */
-	mb->ai_par->gradient_forward_finite_difference =
-	    iniparser_getboolean(ini, inla_string_join(secname, "GRADIENT.FORWARD.FINITE.DIFFERENCE"),
-				 mb->ai_par->gradient_forward_finite_difference);
+	char *ans;
+	
+	ans = iniparser_getstring(ini, inla_string_join(secname, "NUM.GRADIENT"), GMRFLib_strdup("central"));
+	if (!strcasecmp(ans, "central")) {
+		mb->ai_par->gradient_forward_finite_difference = GMRFLib_FALSE;
+	} else {
+		mb->ai_par->gradient_forward_finite_difference = GMRFLib_TRUE;
+	}
+
+	ans = iniparser_getstring(ini, inla_string_join(secname, "NUM.HESSIAN"), GMRFLib_strdup("central"));
+	if (!strcasecmp(ans, "central")) {
+		mb->ai_par->hessian_forward_finite_difference = GMRFLib_FALSE;
+	} else {
+		mb->ai_par->hessian_forward_finite_difference = GMRFLib_TRUE;
+	}
+
+	ans = iniparser_getstring(ini, inla_string_join(secname, "OPTIMISE.STRATEGY"), GMRFLib_strdup("safe"));
+	if (!strcasecmp(ans, "safe")) {
+		mb->ai_par->optimise_smart = GMRFLib_FALSE;
+	} else {
+		mb->ai_par->optimise_smart = GMRFLib_TRUE;
+	}
+
 	mb->ai_par->gradient_finite_difference_step_len =
-	    iniparser_getdouble(ini, inla_string_join(secname, "GRADIENT.FINITE.DIFFERENCE.STEP.LEN"),
-				mb->ai_par->gradient_finite_difference_step_len);
-	mb->ai_par->hessian_forward_finite_difference =
-	    iniparser_getboolean(ini, inla_string_join(secname, "HESSIAN.FORWARD.FINITE.DIFFERENCE"),
-				 mb->ai_par->hessian_forward_finite_difference);
+		iniparser_getdouble(ini, inla_string_join(secname, "GRADIENT.FINITE.DIFFERENCE.STEP.LEN"),
+				    mb->ai_par->gradient_finite_difference_step_len);
 	mb->ai_par->hessian_finite_difference_step_len =
-	    iniparser_getdouble(ini, inla_string_join(secname, "HESSIAN.FINITE.DIFFERENCE.STEP.LEN"),
-				mb->ai_par->hessian_finite_difference_step_len);
+		iniparser_getdouble(ini, inla_string_join(secname, "HESSIAN.FINITE.DIFFERENCE.STEP.LEN"),
+				    mb->ai_par->hessian_finite_difference_step_len);
 	mb->ai_par->hessian_force_diagonal =
-	    iniparser_getboolean(ini, inla_string_join(secname, "HESSIAN.FORCE.DIAGONAL"), mb->ai_par->hessian_force_diagonal);
+		iniparser_getboolean(ini, inla_string_join(secname, "HESSIAN.FORCE.DIAGONAL"), mb->ai_par->hessian_force_diagonal);
 
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "INTERPOLATOR"), NULL));
 	if (opt) {
@@ -29118,12 +29093,14 @@ int inla_INLA(inla_tp * mb)
 			"Default" : (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High")));
 	}
 
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 	GMRFLib_init_hgmrfm(&(mb->hgmrfm), mb->predictor_n, mb->predictor_m,
 			    mb->predictor_cross_sumzero, NULL, mb->predictor_log_prec,
 			    (const char *) mb->predictor_Aext_fnm, mb->predictor_Aext_precision,
 			    mb->nf, mb->f_c, mb->f_weights, mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
 			    mb->ff_Qfunc, mb->ff_Qfunc_arg, mb->nlinear, mb->linear_covariate, mb->linear_precision,
 			    (mb->lc_derived_only ? 0 : mb->nlc), mb->lc_lc, mb->lc_prec, mb->ai_par);
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 	N = ((GMRFLib_hgmrfm_arg_tp *) mb->hgmrfm->Qfunc_arg)->N;
 	if (mb->verbose) {
 		printf("\tSize of graph........... = [%d]\n", N);
@@ -34666,7 +34643,6 @@ int main(int argc, char **argv)
 				fprintf(stderr, "Fail to read MAX_THREADS from %s\n", optarg);
 				exit(EXIT_SUCCESS);
 			}
-			omp_set_num_threads(GMRFLib_openmp->max_threads);
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 			break;
 
@@ -34976,8 +34952,9 @@ int main(int argc, char **argv)
 			}
 			time_used[0] = GMRFLib_cpu();
 
-			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
+			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_PARSE_MODEL, NULL, NULL);
 			mb = inla_build(argv[arg], verbose, 1);
+			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 			time_used[0] = GMRFLib_cpu() - time_used[0];
 			if (!silent) {
 				printf("\tPreparations    : %7.3f seconds\n", time_used[0]);
