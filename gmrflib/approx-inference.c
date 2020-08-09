@@ -3760,9 +3760,23 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					break;
 					// GMRFLib_ASSERT(stupid_mode_iter < ai_par->stupid_search_max_iter, GMRFLib_EMISC);
 				}
+				smart_success = 1;
 			}
 			ai_par->hessian_forward_finite_difference = fd_save;
 
+			if (smart_success) {
+				// check if the hessian is valid. if its ok, we accept, otherwise, we retry with central differences
+				double *chol_tmp = NULL;
+				int ecode = 99, ret_ecode;
+
+				ret_ecode = GMRFLib_comp_chol_general(&chol_tmp, hessian, nhyper, NULL, ecode);
+				Free(chol_tmp);
+				if (ret_ecode == ecode) {
+					// we failed, at least one eigenvalue is negative...
+					smart_success = 0;
+				}
+			}
+			
 			/*
 			 * do this again to get the ai_store set correctly.
 			 */
@@ -3783,18 +3797,25 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
 				}
 			}
-		}
-
-		if (ai_par->fp_log) {
-			if (ai_par->optimise_smart) {
-				if (smart_success) {
-					fprintf(ai_par->fp_log, "Smart optimise part III: Hessian seems fine, keep it\n");
-				} else {
-					fprintf(ai_par->fp_log, "Smart optimise part III: trouble with the Hessian...\n");
+			
+			if (ai_par->fp_log) {
+				if (ai_par->optimise_smart) {
+					if (smart_success) {
+						fprintf(ai_par->fp_log, "Smart optimise part III: Hessian seems fine, keep it\n");
+					} else {
+						fprintf(ai_par->fp_log, "Smart optimise part III: detected trouble with the Hessian...\n");
+						fprintf(ai_par->fp_log, "Smart optimise part III: try a restart before trying again.\n");
+					}
 				}
 			}
+
+			if (!smart_success) {
+				// we'll try to compute the Hessian again, but before that, lets restart the optimizer
+				GMRFLib_gsl_optimize(ai_par);	/* restart */
+				GMRFLib_gsl_get_results(theta_mode, &log_dens_mode);
+			}
 		}
-		
+
 		stupid_mode_iter = 0;			       /* reset it */
 		if (!(ai_par->optimise_smart) || !smart_success) {
 
@@ -3869,7 +3890,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		if (ai_par->fp_log) {
 			for (i = 0; i < nhyper; i++) {
 				for (j = 0; j < nhyper; j++) {
-					fprintf(ai_par->fp_log, " %12.6f", hessian[i + j * nhyper]);
+					fprintf(ai_par->fp_log, " %10.4f", hessian[i + j * nhyper]);
 				}
 				fprintf(ai_par->fp_log, "\n");
 			}
@@ -3889,9 +3910,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 		if (ai_par->fp_log) {
 			fprintf(ai_par->fp_log, "Eigenvectors of the Hessian\n");
-			GMRFLib_gsl_matrix_fprintf(ai_par->fp_log, eigen_vectors, "\t%f");
+			GMRFLib_gsl_matrix_fprintf(ai_par->fp_log, eigen_vectors, "\t%.4f");
 			fprintf(ai_par->fp_log, "Eigenvalues of the Hessian\n");
-			gsl_vector_fprintf(ai_par->fp_log, eigen_values, "\t%f");
+			gsl_vector_fprintf(ai_par->fp_log, eigen_values, "\t%.4f");
 		}
 
 		/*
@@ -4016,9 +4037,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							val = inverse_hessian[ii + jj * nhyper] /
 							    sqrt(inverse_hessian[ii + ii * nhyper] * inverse_hessian[jj + jj * nhyper]);
 						}
-						fprintf(ai_par->fp_log, " %12.6f", val);
+						fprintf(ai_par->fp_log, " %10.4f", val);
 					} else {
-						fprintf(ai_par->fp_log, " %12s", "");
+						fprintf(ai_par->fp_log, " %10s", "");
 					}
 				}
 				fprintf(ai_par->fp_log, "\n");
