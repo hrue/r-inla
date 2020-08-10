@@ -930,6 +930,7 @@
     cat("num.gradient = ", num.gradient, "\n", sep = " ", file = file,  append = TRUE)
     cat("num.hessian = ", num.hessian, "\n", sep = " ", file = file,  append = TRUE)
     cat("optimise.strategy = ", optimise.strategy, "\n", sep = " ", file = file,  append = TRUE)
+    inla.write.boolean.field("use.directions", inla.spec$use.directions, file)
 
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
