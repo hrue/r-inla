@@ -535,8 +535,8 @@
         ##:ARGUMENT: num.hessian Character Set the numerical scheme to compute the Hessian,  one of \code{"forward"} or \code{"central"} (default).
         num.hessian = "central",
         
-        ##:ARGUMENT: optimise.strategy Character THIS OPTION IS EXPERIMENTAL. Chose the optimiser strategy,  one of \code{"safe"} (default) or \code{"smart"}.
-        optimise.strategy = "safe"
+        ##:ARGUMENT: optimise.strategy Character THIS OPTION IS EXPERIMENTAL. Chose the optimiser strategy,  one of \code{"default"} (default) or \code{"smart"}.
+        optimise.strategy = "default"
         )
         
  

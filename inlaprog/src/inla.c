@@ -25091,8 +25091,8 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		mb->ai_par->hessian_forward_finite_difference = GMRFLib_TRUE;
 	}
 
-	ans = iniparser_getstring(ini, inla_string_join(secname, "OPTIMISE.STRATEGY"), GMRFLib_strdup("safe"));
-	if (!strcasecmp(ans, "safe")) {
+	ans = iniparser_getstring(ini, inla_string_join(secname, "OPTIMISE.STRATEGY"), GMRFLib_strdup("default"));
+	if (!strcasecmp(ans, "default")) {
 		mb->ai_par->optimise_smart = GMRFLib_FALSE;
 	} else {
 		mb->ai_par->optimise_smart = GMRFLib_TRUE;

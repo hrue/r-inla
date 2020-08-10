@@ -926,7 +926,7 @@
 
     num.gradient <- match.arg(tolower(inla.spec$num.gradient), c("central", "forward"))
     num.hessian <- match.arg(tolower(inla.spec$num.hessian), c("central", "forward"))
-    optimise.strategy <- match.arg(tolower(inla.spec$optimise.strategy), c("safe", "smart"))
+    optimise.strategy <- match.arg(tolower(inla.spec$optimise.strategy), c("default", "smart"))
     cat("num.gradient = ", num.gradient, "\n", sep = " ", file = file,  append = TRUE)
     cat("num.hessian = ", num.hessian, "\n", sep = " ", file = file,  append = TRUE)
     cat("optimise.strategy = ", optimise.strategy, "\n", sep = " ", file = file,  append = TRUE)
