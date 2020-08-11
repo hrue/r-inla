@@ -202,13 +202,11 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		case GMRFLib_OPENMP_STRATEGY_DEFAULT:
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL:
-			nested = 0;
 			GMRFLib_openmp->max_threads_outer = 1;
 			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL:
 		case GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED:
-			nested = 0;
 			GMRFLib_openmp->max_threads_outer = 1;
 			GMRFLib_openmp->max_threads_inner = GMRFLib_openmp->max_threads_nested[1];
 			break;
@@ -516,8 +514,9 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	omp_set_num_threads(GMRFLib_openmp->max_threads_outer);
 
 	if (debug) {
-		printf("%s:%1d: smtp[%s] strategy[%s] place[%s]\n", __FILE__, __LINE__,
-		       GMRFLib_SMTP_NAME(smtp_store), GMRFLib_OPENMP_STRATEGY_NAME(strategy), GMRFLib_OPENMP_PLACE_NAME(place));
+		printf("%s:%1d: smtp[%s] strategy[%s] place[%s] nested[%1d]\n", __FILE__, __LINE__,
+		       GMRFLib_SMTP_NAME(smtp_store), GMRFLib_OPENMP_STRATEGY_NAME(strategy), GMRFLib_OPENMP_PLACE_NAME(place),
+		       omp_get_nested());
 		printf("%s:%1d: max.threads[%1d] num.threads[%1d] max.inner[%1d] max.outer[%1d]\n", __FILE__, __LINE__,
 		       GMRFLib_MAX_THREADS, nt, GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer);
 	}

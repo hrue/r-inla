@@ -977,7 +977,7 @@ int GMRFLib_crw_scale(void *def)
 	//GMRFLib_print_constr(stdout, constr, graph);
 
 	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(0.5);
-	GMRFLib_problem_tp *problem;
+	GMRFLib_problem_tp *problem = NULL;
 
 	for (i = 0; i < graph->n; i++) {
 		c[i] = eps;
@@ -1012,7 +1012,6 @@ int GMRFLib_crw_scale(void *def)
 		}
 	}
 	GMRFLib_set_error_handler(old_handler);
-
 	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
 
 	double sum = 0.0;
