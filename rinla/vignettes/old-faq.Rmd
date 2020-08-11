@@ -7,7 +7,6 @@ vignette: >
   %\VignetteIndexEntry{Short tutorials}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8} 
-bibliography: jmarginal.bib
 ---
 
 ```{r setup, include=FALSE}
