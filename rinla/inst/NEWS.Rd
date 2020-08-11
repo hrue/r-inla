@@ -26,6 +26,18 @@
     }
   }
 }
+\name{NEWS}
+\title{R-INLA News}
+\encoding{UTF-8}
+
+\section{CHANGES IN VERSION 20.08.11}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Add new experimental feature
+      \code{control.inla=list(use.directions=TRUE/FALSE)}
+    }
+  }
+}
 
 \section{CHANGES IN VERSION 20.08.09}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
