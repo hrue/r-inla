@@ -46,8 +46,8 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-static GMRFLib_domin_arg_tp G;				       /* hold arguments */
-static int domin_setup = 0;
+static GMRFLib_opt_arg_tp G;				       /* hold arguments */
+static int opt_setup = 0;
 
 typedef struct {
 	double f_best;
@@ -59,19 +59,26 @@ static Best_tp B = {
 	NULL
 };
 
-int GMRFLib_domin_setup(double ***hyperparam, int nhyper,
-			GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
-			char *compute,
-			double *x, double *b, double *c, double *mean,
-			GMRFLib_bfunc_tp ** bfunc, double *d,
-			GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
-			GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-			GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store)
+static opt_dir_params_tp Opt_dir_params = {
+	NULL,
+	NULL
+};
+
+
+int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
+		      GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
+		      char *compute,
+		      double *x, double *b, double *c, double *mean,
+		      GMRFLib_bfunc_tp ** bfunc, double *d,
+		      GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
+		      GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
+		      GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store)
 {
 	double *theta;
 	int i;
 
-	domin_setup = 1;
+	opt_setup = 1;
+	G.use_directions = ai_par->optimise_use_directions;
 	G.hyperparam = hyperparam;
 	G.nhyper = nhyper;
 	G.log_extra = log_extra;
@@ -111,19 +118,26 @@ int GMRFLib_domin_setup(double ***hyperparam, int nhyper,
 	return GMRFLib_SUCCESS;
 
 }
-int GMRFLib_domin_exit(void)
+int GMRFLib_opt_exit(void)
 {
 	Free(G.f_count);
 	Free(G.solution);
 	Free(G.Qfunc);
 	Free(G.Qfunc_arg);
-	memset(&G, 0, sizeof(GMRFLib_domin_arg_tp));
+	memset(&G, 0, sizeof(GMRFLib_opt_arg_tp));
 	B.f_best = 0.0;
-	if (B.f_best_x)
+	if (B.f_best_x) {
 		Free(B.f_best_x);
+	}
+	if (Opt_dir_params.A) {
+		gsl_matrix_free(Opt_dir_params.A);
+		gsl_matrix_free(Opt_dir_params.tAinv);
+		Opt_dir_params.A = NULL;
+		Opt_dir_params.tAinv = NULL;
+	}
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_domin_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew)
+int GMRFLib_opt_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew)
 {
 	/*
 	 * this function is called only for thread=0!!! 
@@ -132,11 +146,11 @@ int GMRFLib_domin_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp 
 	GMRFLib_ASSERT(GMRFLib_thread_id == 0, GMRFLib_ESNH);
 	GMRFLib_ASSERT(omp_get_thread_num() == 0, GMRFLib_ESNH);
 
-	GMRFLib_domin_f_intern(x, fx, ierr, G.ai_store, tabQfunc, bnew);
+	GMRFLib_opt_f_intern(x, fx, ierr, G.ai_store, tabQfunc, bnew);
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
+int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 {
 	/*
 	 * Evaluate nx function evaluations of f for configuration x[i][0]...x[i][..], in parallel.
@@ -172,7 +186,7 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 			}
 			ais = ai_store[GMRFLib_thread_id];
 		}
-		GMRFLib_domin_f_intern(x[i], &f[i], &local_err, ais, NULL, NULL);
+		GMRFLib_opt_f_intern(x[i], &f[i], &local_err, ais, NULL, NULL);
 		err[i] = err[i] || local_err;
 	}
 	GMRFLib_thread_id = id;
@@ -192,7 +206,7 @@ int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew)
+int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew)
 {
 	/*
 	 * this version controls AI_STORE 
@@ -258,12 +272,13 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 	}
 
 	*fx += ffx;					       /* add contributions */
-	*fx *= -1.0;					       /* domin() do minimisation */
+	*fx *= -1.0;					       /* opt() do minimisation */
 	fx_local = *fx;
 
-	if (debug)
+	if (debug) {
 		printf("\t%d: fx_local %.12g where f_best %.12g (%s)\n", omp_get_thread_num(), fx_local, B.f_best,
 		       (fx_local < B.f_best ? "BETTER!" : ""));
+	}
 
 	*ierr = 0;
 	G.f_count[omp_get_thread_num()]++;
@@ -273,19 +288,22 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 		{
 			if (B.f_best == 0.0 || fx_local < B.f_best) {
 
-				if (debug)
+				if (debug) {
 					printf("f_local %g f_best %g\n", fx_local, B.f_best);
+				}
 
 				B.f_best = fx_local;
 
-				if (!B.f_best_x)
+				if (!B.f_best_x) {
 					B.f_best_x = Calloc(G.nhyper, double);
+				}
 				memcpy(B.f_best_x, x, G.nhyper * sizeof(double));
 
-				if (debug)
+				if (debug) {
 					printf("\t%d: set: B.f_best %.12g fx %.12g\n", omp_get_thread_num(), B.f_best, fx_local);
+				}
 				if (G.ai_par->fp_log) {
-					fprintf(G.ai_par->fp_log, "max.logdens= %.4f fn= %1d theta=", -fx_local, GMRFLib_domin_get_f_count());
+					fprintf(G.ai_par->fp_log, "max.logdens= %.4f fn= %1d theta=", -fx_local, GMRFLib_opt_get_f_count());
 					for (i = 0; i < G.nhyper; i++) {
 						fprintf(G.ai_par->fp_log, " %.4f", x[i]);
 					}
@@ -302,15 +320,15 @@ int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_domin_gradf(double *x, double *gradx, int *ierr)
+int GMRFLib_opt_gradf(double *x, double *gradx, int *ierr)
 {
 	int val;
 
-	val = GMRFLib_domin_gradf_intern(x, gradx, NULL, ierr);
+	val = GMRFLib_opt_gradf_intern(x, gradx, NULL, ierr);
 
 	return val;
 }
-int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
+int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 {
 	/*
 	 * new implementation more suited for OpenMP. return also, optionally, also a better estimate for f0.
@@ -372,10 +390,10 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			 */
 			j = i;
 			if (j < G.nhyper) {
-				xx[j] += h;
-				GMRFLib_domin_f_intern(xx, &f[j], &err, ais, NULL, NULL);
+				GMRFLib_opt_dir_step(xx, j, h);
+				GMRFLib_opt_f_intern(xx, &f[j], &err, ais, NULL, NULL);
 			} else {
-				GMRFLib_domin_f_intern(xx, &f[G.nhyper], &err, ais, NULL, NULL);
+				GMRFLib_opt_f_intern(xx, &f[G.nhyper], &err, ais, NULL, NULL);
 			}
 			Free(xx);
 		}
@@ -387,6 +405,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		for (i = 0; i < G.nhyper; i++) {
 			gradx[i] = (f[i] - f[G.nhyper]) / h;
 		}
+		GMRFLib_opt_dir_transform_gradient(gradx);
 
 		f_zero = f[G.nhyper];
 		if (f0) {
@@ -439,18 +458,18 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			}
 
 			if (i < G.nhyper) {
-				xx[j] += h;
-				GMRFLib_domin_f_intern(xx, &f[j], &err, ais, NULL, NULL);
+				GMRFLib_opt_dir_step(xx, j, h);
+				GMRFLib_opt_f_intern(xx, &f[j], &err, ais, NULL, NULL);
 				if (use_five_point) {
-					xx[j] += h;
-					GMRFLib_domin_f_intern(xx, &ff[j], &err, ais, NULL, NULL);
+					GMRFLib_opt_dir_step(xx, j, h);
+					GMRFLib_opt_f_intern(xx, &ff[j], &err, ais, NULL, NULL);
 				}
 			} else {
-				xx[j] -= h;
-				GMRFLib_domin_f_intern(xx, &fm[j], &err, ais, NULL, NULL);
+				GMRFLib_opt_dir_step(xx, j, -h);
+				GMRFLib_opt_f_intern(xx, &fm[j], &err, ais, NULL, NULL);
 				if (use_five_point) {
-					xx[j] -= h;
-					GMRFLib_domin_f_intern(xx, &ffm[j], &err, ais, NULL, NULL);
+					GMRFLib_opt_dir_step(xx, j, -h);
+					GMRFLib_opt_f_intern(xx, &ffm[j], &err, ais, NULL, NULL);
 				}
 			}
 			Free(xx);
@@ -466,6 +485,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 				gradx[i] = (f[i] - fm[i]) / (2.0 * h);
 			}
 		}
+		GMRFLib_opt_dir_transform_gradient(gradx);
 
 		/*
 		 * this should be the mean of the means 
@@ -511,43 +531,7 @@ int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_domin_gradf_OLD(double *x, double *gradx, int *ierr)
-{
-	int i;
-	double h = G.ai_par->gradient_finite_difference_step_len, f0, f1, xsave;
-
-	if (G.ai_par->gradient_forward_finite_difference) {
-		/*
-		 * forward differences 
-		 */
-		GMRFLib_domin_f(x, &f0, ierr, NULL, NULL);
-		for (i = 0; i < G.nhyper; i++) {
-			xsave = x[i];
-			x[i] += h;
-			GMRFLib_domin_f(x, &f1, ierr, NULL, NULL);
-			gradx[i] = (f1 - f0) / h;
-			x[i] = xsave;
-		}
-	} else {
-		/*
-		 * central differences 
-		 */
-		for (i = 0; i < G.nhyper; i++) {
-			xsave = x[i];
-			x[i] += h;
-			GMRFLib_domin_f(x, &f1, ierr, NULL, NULL);
-			x[i] = xsave - h;
-			GMRFLib_domin_f(x, &f0, ierr, NULL, NULL);
-			gradx[i] = (f1 - f0) / (2.0 * h);
-			x[i] = xsave;
-		}
-	}
-
-	*ierr = 0;
-
-	return GMRFLib_SUCCESS;
-}
-int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_mode, int count)
+int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mode, int count)
 {
 	/*
 	 * Estimate the Hessian using finite differences with fixed step_size. chose either central or forward differences. The central-option is somewhat more
@@ -562,12 +546,12 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 #define F1(result, idx, step, x_store)					\
 	if (1) {							\
 		if (debug) printf("F1 idx %d step %g\n",  idx, step);	\
-		double *xx;						\
+		double *xx;					        \
 		int err;						\
-		xx = Calloc(G.nhyper, double);				\
+		xx = Calloc(G.nhyper, double);			        \
 		memcpy(xx, x, G.nhyper*sizeof(double));			\
-		xx[idx] += step;					\
-		GMRFLib_domin_f_intern(xx, &(result), &err, ais, NULL, NULL); \
+		GMRFLib_opt_dir_step(xx, idx, step);			\
+		GMRFLib_opt_f_intern(xx, &(result), &err, ais, NULL, NULL); \
 		if (debug){						\
 			int iii;					\
 			printf("Estimate Hessian x=[");			\
@@ -575,21 +559,22 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 				printf(" %.8g", xx[iii]);		\
 			printf("] idx=%d step=%g F1 = %.12g\n", idx, step, result); \
 		}							\
-		if (x_store)						\
+		if (x_store) {						\
 			memcpy(x_store, xx, G.nhyper*sizeof(double));	\
+		}							\
 		Free(xx);						\
 	}
 
 #define F2(result, idx, step, iidx, sstep)				\
 	if (1) {							\
 		double *xx;						\
-		int err;					 \
+		int err;						\
 		if (debug) printf("F2 idx %d %d step %g %g\n",  idx, iidx, step, sstep); \
 		xx = Calloc(G.nhyper, double);				\
 		memcpy(xx, x, G.nhyper*sizeof(double));			\
-		xx[idx] += step;					\
-		xx[iidx] += sstep;					\
-		GMRFLib_domin_f_intern(xx, &(result), &err, ais, NULL, NULL); \
+		GMRFLib_opt_dir_step(xx, idx, step);			\
+		GMRFLib_opt_dir_step(xx, iidx, sstep);			\
+		GMRFLib_opt_f_intern(xx, &(result), &err, ais, NULL, NULL); \
 		if (debug){						\
 			int iii;					\
 			printf("Estimate Hessian x=[");			\
@@ -680,8 +665,9 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 	 * If the mode is ok, then all neigbouring points are larger; just check. otherwise, set f0 as the minimum value. 
 	 */
 	f0min = f0;
-	if (debug)
+	if (debug) {
 		P(f0);
+	}
 
 	int thread_min;
 
@@ -777,11 +763,6 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 				}
 			}
 
-			if (0) {
-				if (G.ai_par->fp_log) {
-					fprintf(G.ai_par->fp_log, "\nEstimate Hessian Part II (%1d) ", nn);
-				}
-			}
 #pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (k = 0; k < nn; k++) {
 				GMRFLib_openmp_nested_fix();
@@ -789,12 +770,6 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 				int ii, jj;
 				double f11, fm11, f1m1, fm1m1;
 				GMRFLib_ai_store_tp *ais = NULL;
-
-				if (0) {
-					if (G.ai_par->fp_log) {
-						fprintf(G.ai_par->fp_log, "[%1d]", k);
-					}
-				}
 
 				GMRFLib_thread_id = omp_get_thread_num();
 				if (omp_in_parallel()) {
@@ -830,8 +805,9 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 			/*
 			 * There is a change 
 			 */
-			if (debug)
+			if (debug) {
 				fprintf(stderr, "\n%s: (II) Mode not found sufficiently accurate %.8g %.8g\n", __GMRFLib_FuncName, f0, f0min);
+			}
 			memcpy(x, B.f_best_x, G.nhyper * sizeof(double));
 			*log_dens_mode = -B.f_best;
 			ok = 0;
@@ -839,6 +815,8 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 			ok = 1;
 		}
 	}
+
+	GMRFLib_opt_dir_transform_hessian(hessian);
 
 	FREE_XX_HOLD(len_xx_hold);
 	Free(f1);
@@ -857,107 +835,10 @@ int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_
 #undef ALLOC_XX_HOLD
 #undef FREE_XX_HOLD
 }
-int GMRFLib_domin_estimate_hessian_OLD(double *hessian, double *x)
+
+int GMRFLib_opt_get_f_count(void)
 {
-#define F1(result, idx, step) if (1) {xsave = x[idx]; x[idx] += step; GMRFLib_domin_f(x, &result, &ierr, NULL, NULL); x[idx] = xsave; }
-#define F2(result, idx, step, iidx, sstep) if (1) {xsave = x[idx]; x[idx] += step; xxsave = x[iidx];  x[iidx] += sstep; \
-		GMRFLib_domin_f(x, &result, &ierr, NULL, NULL); x[idx]  = xsave; x[iidx] = xxsave; }
-
-	/*
-	 * estimate the hessian using finite differences with fixed step_size. chose either central or forward differences.
-	 * the central-option is somewhat more expensive than the forward-option and require 3n(n-1) additional function
-	 * evaluations. 
-	 */
-	double h = G.ai_par->hessian_finite_difference_step_len, f0, *f1, *fm1, f11, fm11, f1m1, fm1m1, xsave, xxsave;
-	int i, j, ierr, n = G.nhyper;
-
-	f1 = Calloc(n, double);
-	fm1 = Calloc(n, double);
-	memset(hessian, 0, ISQR(n) * sizeof(double));
-
-	F1(f0, 0, 0.0);
-	for (i = 0; i < n; i++) {
-		F1(f1[i], i, h);
-		F1(fm1[i], i, -h);
-	}
-
-	/*
-	 * estimate the diagonal terms 
-	 */
-	for (i = 0; i < n; i++) {
-		hessian[i + i * n] = (f1[i] - 2 * f0 + fm1[i]) / SQR(h);
-	}
-
-	if (!G.ai_par->hessian_force_diagonal) {
-		/*
-		 * then the off-diagonal terms 
-		 */
-		for (i = 0; i < n; i++) {
-			for (j = i + 1; j < n; j++) {
-				if (G.ai_par->hessian_forward_finite_difference) {
-					F2(f11, i, h, j, h);
-					hessian[i + j * n] = hessian[j + i * n] = (f11 - f1[i] - f1[j] + f0) / SQR(h);
-				} else {
-					F2(f11, i, h, j, h);
-					F2(fm11, i, -h, j, h);
-					F2(f1m1, i, h, j, -h);
-					F2(fm1m1, i, -h, j, -h);
-					hessian[i + j * n] = hessian[j + i * n] = (f11 - fm11 - f1m1 + fm1m1) / 4.0 / SQR(h);
-				}
-			}
-		}
-	}
-
-	Free(f1);
-	Free(fm1);
-
-	return GMRFLib_SUCCESS;
-#undef F1
-#undef F2
-}
-int GMRFLib_test_something____omp(void)
-{
-
-	int i;
-
-	double x[2], fx[1];
-	int ierr;
-
-	x[0] = x[1] = 3.0;
-	GMRFLib_domin_f(x, fx, &ierr, NULL, NULL);
-	printf("x %g %g f %.12f\n", x[0], x[1], fx[0]);
-
-	for (i = 0; i < 10; i++) {
-		GMRFLib_ai_store_tp *ais = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
-
-		x[0] = 3.0 - (i + 1) * 0.1;
-		x[1] = 3.0 + (i + 1) * 0.1;
-		GMRFLib_domin_f_intern(x, fx, &ierr, ais, NULL, NULL);
-		printf("x %g %g f %.12f\n", x[0], x[1], fx[0]);
-
-		GMRFLib_free_ai_store(ais);
-	}
-#pragma omp parallel for private(i, x, fx) num_threads(GMRFLib_openmp->max_threads_outer)
-	for (i = 0; i < 10; i++) {
-		GMRFLib_openmp_nested_fix();
-
-		GMRFLib_ai_store_tp *ais = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
-
-		x[0] = 3.0 - (i + 1) * 0.1;
-		x[1] = 3.0 + (i + 1) * 0.1;
-		GMRFLib_thread_id = omp_get_thread_num();
-		GMRFLib_domin_f_intern(x, fx, &ierr, ais, NULL, NULL);
-		if (0)
-			printf("x %g %g f %.12f [%1d]\n", x[0], x[1], fx[0], GMRFLib_thread_id);
-
-		GMRFLib_free_ai_store(ais);
-	}
-
-	exit(0);
-}
-int GMRFLib_domin_get_f_count(void)
-{
-	if (domin_setup) {
+	if (opt_setup) {
 		int i, sum;
 		for (sum = 0, i = 0; i < GMRFLib_MAX_THREADS; i++) {
 			sum += G.f_count[i];
@@ -981,16 +862,7 @@ double GMRFLib_gsl_f(const gsl_vector * v, void *params)
 	for (i = 0; i < G.nhyper; i++) {
 		x[i] = gsl_vector_get(v, i);
 	}
-	GMRFLib_domin_f(x, &fx, &ierr, NULL, NULL);
-
-	if (0) {
-		printf("First  eval of f = %.16f\n", fx);
-		GMRFLib_domin_f(x, &fx, &ierr, NULL, NULL);
-		printf("Second eval of f = %.16f\n", fx);
-		GMRFLib_domin_f(x, &fx, &ierr, NULL, NULL);
-		printf("Third  eval of f = %.16f\n", fx);
-	}
-
+	GMRFLib_opt_f(x, &fx, &ierr, NULL, NULL);
 	Free(x);
 
 	return fx;
@@ -1010,7 +882,7 @@ void GMRFLib_gsl_df(const gsl_vector * v, void *params, gsl_vector * df)
 	for (i = 0; i < G.nhyper; i++) {
 		x[i] = gsl_vector_get(v, i);
 	}
-	GMRFLib_domin_gradf(x, gradx, &ierr);
+	GMRFLib_opt_gradf(x, gradx, &ierr);
 	for (i = 0; i < G.nhyper; i++) {
 		gsl_vector_set(df, i, gradx[i]);
 	}
@@ -1036,7 +908,7 @@ void GMRFLib_gsl_fdf(const gsl_vector * v, void *params, double *f, gsl_vector *
 	for (i = 0; i < G.nhyper; i++) {
 		x[i] = gsl_vector_get(v, i);
 	}
-	GMRFLib_domin_gradf_intern(x, gradx, f, &ierr);
+	GMRFLib_opt_gradf_intern(x, gradx, f, &ierr);
 	for (i = 0; i < G.nhyper; i++) {
 		gsl_vector_set(df, i, gradx[i]);
 	}
@@ -1051,24 +923,120 @@ int GMRFLib_gsl_get_results(double *theta_mode, double *log_dens_mode)
 
 	return GMRFLib_SUCCESS;
 }
+
+int GMRFLib_opt_dir_step(double *x, int idx, double h)
+{
+	if (Opt_dir_params.A) {
+		size_t n = Opt_dir_params.A->size1, i;
+		for (i = 0; i < n; i++) {
+			x[i] += h * gsl_matrix_get(Opt_dir_params.A, i, idx);
+		}
+	} else {
+		x[idx] += h;
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_opt_dir_transform_gradient(double *grad)
+{
+	if (Opt_dir_params.A) {
+		size_t n = Opt_dir_params.A->size1, i, j;
+		double *g = Calloc(n, double);
+		for (i = 0; i < n; i++) {
+			for (j = 0; j < n; j++) {
+				g[i] += gsl_matrix_get(Opt_dir_params.tAinv, i, j) * grad[j];
+			}
+		}
+		memcpy(grad, g, n * sizeof(double));
+		Free(g);
+	} else {
+		// the gradient is now ok as is.
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_opt_dir_transform_hessian(double *hessian)
+{
+	if (Opt_dir_params.A) {
+		size_t n = Opt_dir_params.A->size1, i, j, ii, jj;
+		double *h = Calloc(ISQR(n), double), tmp;
+
+		// H = t(solve(A)) %*% hessian %*% solve(A)
+		for (i = 0; i < n; i++) {
+			for (j = i; j < n; j++) {
+				tmp = 0.0;
+				for (ii = 0; ii < n; ii++) {
+					for (jj = 0; jj < n; jj++) {
+						tmp += gsl_matrix_get(Opt_dir_params.tAinv, i, ii) * hessian[ii + jj * n] * gsl_matrix_get(Opt_dir_params.tAinv, j, jj);	/* yes, 
+																						 * swap 
+																						 * arguments 
+																						 */
+					}
+				}
+				h[i + j * n] = h[j + i * n] = tmp;
+			}
+		}
+		memcpy(hessian, h, ISQR(n) * sizeof(double));
+		Free(h);
+	} else {
+		// the hessian is ok as is.
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 {
+	static int first = 1;
+
 	double step_size = ai_par->gsl_step_size, tol = ai_par->gsl_tol, dx = 0.0;
-	int i, status, iter = 0, iter_max = 1000;
+	size_t i, j;
+	int status, iter = 0, iter_max = 1000;
 
 	const gsl_multimin_fdfminimizer_type *T;
 	gsl_multimin_fdfminimizer *s;
 	gsl_multimin_function_fdf my_func;
 	gsl_vector *x = NULL, *xx;
 
+	static gsl_matrix *A = NULL;
+	static gsl_matrix *Adir = NULL;
+	static gsl_matrix *tAinv = NULL;
+
+
+	if (G.use_directions) {
+		if (first) {
+			A = gsl_matrix_alloc(G.nhyper, G.nhyper);
+			Adir = gsl_matrix_alloc(G.nhyper, G.nhyper);
+			tAinv = gsl_matrix_alloc(G.nhyper, G.nhyper);
+
+			gsl_matrix_set_zero(A);
+			gsl_matrix_set_zero(Adir);
+			gsl_matrix_set_zero(tAinv);
+			for (i = 0; i < (size_t) G.nhyper; i++) {
+				gsl_matrix_set(Adir, i, i, 1.0);
+			}
+			gsl_matrix_memcpy(A, Adir);
+			gsl_matrix_memcpy(tAinv, Adir);
+			first = 0;
+		} else {
+			// all is fine
+		}
+	}
+
+
+	Opt_dir_params.A = A;
+	Opt_dir_params.tAinv = tAinv;
+
 	my_func.n = G.nhyper;
 	my_func.f = &GMRFLib_gsl_f;
 	my_func.df = &GMRFLib_gsl_df;
 	my_func.fdf = &GMRFLib_gsl_fdf;
-	my_func.params = NULL;
+	my_func.params = (void *) &Opt_dir_params;
 
 	x = gsl_vector_alloc(G.nhyper);
-	for (i = 0; i < G.nhyper; i++) {
+	for (i = 0; i < (size_t) G.nhyper; i++) {
 		gsl_vector_set(x, i, G.hyperparam[i][GMRFLib_thread_id][0]);
 	}
 
@@ -1100,9 +1068,37 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 		if (x_prev) {
 			size_t i_s;
 
+			if (G.use_directions) {
+				for (j = Adir->size1 - 1; j > 0; j--) {
+					for (i = 0; i < Adir->size1; i++) {
+						gsl_matrix_set(Adir, i, j, gsl_matrix_get(Adir, i, j - 1));
+					}
+				}
+				for (i = 0; i < Adir->size1; i++) {
+					gsl_matrix_set(Adir, i, 0, 0.0);
+				}
+			}
+
 			for (i_s = 0, dx = 0.0; i_s < xx->size; i_s++) {
 				dx += SQR(gsl_vector_get(xx, i_s) - gsl_vector_get(x_prev, i_s));
 			}
+
+			if (G.use_directions) {
+				if (G.nhyper == 1) {
+					gsl_matrix_set(Adir, 0, 0, 1.0);
+				} else {
+					for (i_s = 0; i_s < xx->size; i_s++) {
+						gsl_matrix_set(Adir, i_s, 0, gsl_vector_get(xx, i_s) - gsl_vector_get(x_prev, i_s));
+					}
+				}
+				gsl_matrix_memcpy(A, Adir);
+				GMRFLib_gsl_mgs(A);
+				printf("New directions for gradient\n");
+				GMRFLib_gsl_matrix_fprintf(stdout, A, "\t %.3f");
+				gsl_matrix_transpose_memcpy(tAinv, A);
+				GMRFLib_gsl_ginv(tAinv, GMRFLib_eps(0.5), -1);
+			}
+
 			dx = sqrt(dx / xx->size);
 			status_x = gsl_multimin_test_size(dx, ai_par->gsl_epsx);
 		} else {
@@ -1151,7 +1147,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 	xx = gsl_multimin_fdfminimizer_x(s);
 	G.fvalue = -gsl_multimin_fdfminimizer_minimum(s);
 
-	for (i = 0; i < G.nhyper; i++) {
+	for (i = 0; i < (size_t) G.nhyper; i++) {
 		G.solution[i] = gsl_vector_get(xx, i);
 	}
 

@@ -761,7 +761,7 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 	if (debug) {
 		printf("...this gives alpha= %g, delta= %g, omega= %g, xi= %g\n", alpha, delta, omega, xi);
 	}
-	
+
 
 	if (!ISEQUAL(alpha, table[id]->alpha)) {
 		int len = (int) (2.0 * range / dx + 0.5) + 1, llen = 0;
@@ -863,7 +863,7 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 		// this removes the intercept from the model
 		intercept = 0.0;
 	}
-	
+
 	if (debug) {
 		printf("... intercept_alpha= %g intercept= %g\n", intercept_alpha, intercept);
 	}
@@ -5327,7 +5327,7 @@ int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_v
 }
 
 
-double inla_sn_intercept(double intern_quantile, double skew) 
+double inla_sn_intercept(double intern_quantile, double skew)
 {
 	double a3, val;
 	a3 = gsl_pow_3(inla_pc_sn_skew2alpha(skew));
@@ -5338,7 +5338,7 @@ double inla_sn_intercept(double intern_quantile, double skew)
 	P(a3);
 	P(val);
 
-	return(0);
+	return (0);
 
 	a3 = gsl_pow_3(inla_pc_sn_skew2alpha(skew));
 	return (map_invsn(intern_quantile, MAP_FORWARD, (void *) &a3));
@@ -6399,7 +6399,7 @@ int loglikelihood_zeroinflated_cenpoisson1(double *logll, double *x, int m, int 
 				logll[i] = log((1.0 - p) * (gsl_cdf_poisson_P((unsigned int) interval[1], mu)
 							    - gsl_cdf_poisson_P((unsigned int) (interval[0] - 1L), mu)));
 			} else {
-				logll[i] = log(1.0 - p) + y * log(mu) - mu - normc; 
+				logll[i] = log(1.0 - p) + y * log(mu) - mu - normc;
 			}
 		}
 	} else {
@@ -7745,9 +7745,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int(*func_simpson)(double **, double **, int *, void *arg))
+			   int (*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -11203,12 +11203,10 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 				mb->strategy = (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ?
 						GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL :
 						(mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED ?
-						 GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED : 
-						 GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL));
+						 GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED : GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL));
 				openmp_strategy = (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ?
 						   "pardiso.parallel" :
-						   (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED ?
-						    "pardiso.nested" : "pardiso.serial"));
+						   (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED ? "pardiso.nested" : "pardiso.serial"));
 				GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
 				smtp = GMRFLib_strdup("pardiso");
 			} else {
@@ -11231,8 +11229,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	}
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
-		if (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ||
-			mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED) {
+		if (mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL || mb->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED) {
 			// tell pardiso to use parallel reordering
 			GMRFLib_pardiso_set_parallel_reordering(1);
 		}
@@ -16283,7 +16280,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->link_ntheta++;
 		}
 	}
-	break;
+		break;
 
 	case LINK_SN:
 	{
@@ -16353,7 +16350,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		// and then recognising NAN in the map_invsn() function.
 		if (ISNAN(tmp) || ISINF(tmp)) {
 			tmp = NAN;
-			ds->link_fixed[1] =  1;
+			ds->link_fixed[1] = 1;
 		}
 
 		if (!ds->link_fixed[1] && mb->reuse_mode) {
@@ -16399,7 +16396,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 	}
-	break;
+		break;
 
 	case LINK_LOGOFFSET:
 	{
@@ -25076,7 +25073,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	 * ...which is overrided by the original names 
 	 */
 	char *ans;
-	
+
 	ans = iniparser_getstring(ini, inla_string_join(secname, "NUM.GRADIENT"), GMRFLib_strdup("central"));
 	if (!strcasecmp(ans, "central")) {
 		mb->ai_par->gradient_forward_finite_difference = GMRFLib_FALSE;
@@ -25091,21 +25088,24 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		mb->ai_par->hessian_forward_finite_difference = GMRFLib_TRUE;
 	}
 
-	ans = iniparser_getstring(ini, inla_string_join(secname, "OPTIMISE.STRATEGY"), GMRFLib_strdup("safe"));
-	if (!strcasecmp(ans, "safe")) {
-		mb->ai_par->optimise_smart = GMRFLib_FALSE;
-	} else {
+	ans = iniparser_getstring(ini, inla_string_join(secname, "OPTIMISE.STRATEGY"), GMRFLib_strdup("default"));
+	if (!strcasecmp(ans, "smart")) {
 		mb->ai_par->optimise_smart = GMRFLib_TRUE;
+	} else {
+		mb->ai_par->optimise_smart = GMRFLib_FALSE;
 	}
 
+	mb->ai_par->optimise_use_directions = iniparser_getboolean(ini, inla_string_join(secname, "USE.DIRECTIONS"),
+								   mb->ai_par->optimise_use_directions);
+
 	mb->ai_par->gradient_finite_difference_step_len =
-		iniparser_getdouble(ini, inla_string_join(secname, "GRADIENT.FINITE.DIFFERENCE.STEP.LEN"),
-				    mb->ai_par->gradient_finite_difference_step_len);
+	    iniparser_getdouble(ini, inla_string_join(secname, "GRADIENT.FINITE.DIFFERENCE.STEP.LEN"),
+				mb->ai_par->gradient_finite_difference_step_len);
 	mb->ai_par->hessian_finite_difference_step_len =
-		iniparser_getdouble(ini, inla_string_join(secname, "HESSIAN.FINITE.DIFFERENCE.STEP.LEN"),
-				    mb->ai_par->hessian_finite_difference_step_len);
+	    iniparser_getdouble(ini, inla_string_join(secname, "HESSIAN.FINITE.DIFFERENCE.STEP.LEN"),
+				mb->ai_par->hessian_finite_difference_step_len);
 	mb->ai_par->hessian_force_diagonal =
-		iniparser_getboolean(ini, inla_string_join(secname, "HESSIAN.FORCE.DIAGONAL"), mb->ai_par->hessian_force_diagonal);
+	    iniparser_getboolean(ini, inla_string_join(secname, "HESSIAN.FORCE.DIAGONAL"), mb->ai_par->hessian_force_diagonal);
 
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "INTERPOLATOR"), NULL));
 	if (opt) {
@@ -34383,8 +34383,8 @@ int testit(int argc, char **argv)
 		printf("intercept = %g\n", intercept);
 		double range = 9.0, dx = 0.1;
 		double *arg[2];
-		arg[0] =  &skew;
-		arg[1] =  &intercept;
+		arg[0] = &skew;
+		arg[1] = &intercept;
 
 		for (int i = 0; i < (int) (2.0 * range / dx); i++) {
 			xx = -range + i * dx;
@@ -34512,24 +34512,47 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-	case 41: 
+	case 41:
 	{
-		inla_sn_intercept(0.43, 0.123) ;
+		inla_sn_intercept(0.43, 0.123);
 		inla_sn_intercept(0.823, -0.123);
 		break;
 	}
 
-	case 42: 
+	case 42:
 	{
-		float x[2] = {0, 0};
+		float x[2] = { 0, 0 };
 		printf("x= %f %f\n", x[0], x[1]);
 		x[0] = NAN;
 		printf("x= %f %f (x[1]==0 %1d) sizeof()=%lu\n", x[0], x[1], x[1] == 0, sizeof(float));
 		break;
 	}
-	
 
-	// this will give some more error messages, if any
+	case 43:
+	{
+		gsl_matrix *A;
+		A = gsl_matrix_alloc(3, 3);
+		gsl_matrix_set(A, 0, 0, 1.0);
+		gsl_matrix_set(A, 1, 0, 2.0);
+		gsl_matrix_set(A, 2, 0, 2.0);
+
+		gsl_matrix_set(A, 0, 1, -1.0);
+		gsl_matrix_set(A, 1, 1, 0.0);
+		gsl_matrix_set(A, 2, 1, 2.0);
+
+		gsl_matrix_set(A, 0, 2, 0.0);
+		gsl_matrix_set(A, 1, 2, 0.0);
+		gsl_matrix_set(A, 2, 2, 1.0);
+
+		GMRFLib_gsl_matrix_fprintf(stdout, A, " %.4f");
+		GMRFLib_gsl_mgs(A);
+		printf("\n");
+		GMRFLib_gsl_matrix_fprintf(stdout, A, " %.4f");
+	}
+		break;
+
+
+		// this will give some more error messages, if any
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
@@ -34583,7 +34606,7 @@ int main(int argc, char **argv)
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_catch_error_for_inla = GMRFLib_TRUE;
 	GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
-	
+
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 
 	 */
@@ -34627,10 +34650,10 @@ int main(int argc, char **argv)
 				exit(EXIT_SUCCESS);
 			}
 			break;
-			
+
 		case 't':
 			if (inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK) {
-				for(i = 0; i < 2; i++) {
+				for (i = 0; i < 2; i++) {
 					ntt[i] = IMIN(GMRFLib_openmp->max_threads, IMAX(1, ntt[i]));
 					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
 				}
@@ -34941,8 +34964,7 @@ int main(int argc, char **argv)
 			if (verbose) {
 				printf("Process file[%s] threads[%1d] blas_threads[%1d]", argv[arg], GMRFLib_MAX_THREADS, blas_num_threads);
 				if (GMRFLib_openmp->max_threads_nested) {
-					printf(" nested[%1d,%1d]\n",
-					       GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
+					printf(" nested[%1d,%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 				} else {
 					printf("\n");
 				}

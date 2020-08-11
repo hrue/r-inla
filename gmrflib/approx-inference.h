@@ -583,6 +583,11 @@ typedef struct {
 	 */
 	int optimise_smart;
 
+	/**
+         * Use directions when optimising?
+	 */
+	int optimise_use_directions;
+	
 } GMRFLib_ai_param_tp;
 
 /**

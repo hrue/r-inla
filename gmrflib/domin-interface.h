@@ -55,60 +55,63 @@ __BEGIN_DECLS
    
 */
     typedef struct {
-	double ***hyperparam;
-	int nhyper;
-	GMRFLib_ai_log_extra_tp *log_extra;
-	void *log_extra_arg;
+	gsl_matrix *A;
+	gsl_matrix *tAinv;
+} opt_dir_params_tp;
 
+
+typedef struct {
 	int *f_count;
+	int nhyper;
+	int use_directions;
+	void **Qfunc_arg;
+	void *log_extra_arg;
+	void *loglFunc_arg;
 	char *compute;
-
-	double *solution;
-	double fvalue;
-
-	double *x;
+	char *fixed_value;
+	double ***hyperparam;
 	double *b;
 	double *c;
-	double *mean;
-	GMRFLib_bfunc_tp **bfunc;
 	double *d;
-	GMRFLib_logl_tp *loglFunc;
-	void *loglFunc_arg;
-	char *fixed_value;
-	GMRFLib_graph_tp *graph;
+	double *mean;
+	double *solution;
+	double *x;
+	double fvalue;
 	GMRFLib_Qfunc_tp **Qfunc;
-	void **Qfunc_arg;
-	GMRFLib_constr_tp *constr;
+	GMRFLib_ai_log_extra_tp *log_extra;
 	GMRFLib_ai_param_tp *ai_par;
 	GMRFLib_ai_store_tp *ai_store;
-} GMRFLib_domin_arg_tp;
+	GMRFLib_bfunc_tp **bfunc;
+	GMRFLib_constr_tp *constr;
+	GMRFLib_graph_tp *graph;
+	GMRFLib_logl_tp *loglFunc;
+} GMRFLib_opt_arg_tp;
 
-int GMRFLib_domin_setup(double ***hyperparam, int nhyper,
-			GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
-			char *compute,
-			double *x, double *b, double *c, double *mean,
-			GMRFLib_bfunc_tp **bfunc, 
-			double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
-			GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-			GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store);
-int GMRFLib_domin_exit(void);
-int GMRFLib_domin_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp **tabQfunc, double ** bnew);
-int GMRFLib_domin_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp **tabQfunc, double ** bnew);
-int GMRFLib_domin_f_omp(double **x, int nx, double *f, int *ierr);
-int GMRFLib_domin_gradf(double *x, double *gradx, int *ierr);
-int GMRFLib_domin_gradf_OLD(double *x, double *gradx, int *ierr);
-int GMRFLib_domin_estimate_hessian(double *hessian, double *x, double *log_dens_mode, int count);
-int GMRFLib_domin_estimate_hessian_OLD(double *hessian, double *x);
-int GMRFLib_domin_get_f_count(void);
-int GMRFLib_domin_gradf_intern(double *x, double *gradx, double *f0, int *ierr);
+int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
+		      GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
+		      char *compute,
+		      double *x, double *b, double *c, double *mean,
+		      GMRFLib_bfunc_tp ** bfunc,
+		      double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
+		      GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
+		      GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store);
+int GMRFLib_opt_exit(void);
+int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew);
+int GMRFLib_opt_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew);
+int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr);
+int GMRFLib_opt_gradf(double *x, double *gradx, int *ierr);
+int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mode, int count);
+int GMRFLib_opt_get_f_count(void);
+int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr);
 
 double GMRFLib_gsl_f(const gsl_vector * v, void *params);
+int GMRFLib_gsl_get_results(double *theta_mode, double *log_dens_mode);
+int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par);
+int GMRFLib_opt_dir_step(double *x, int idx, double h);
+int GMRFLib_opt_dir_transform_gradient(double *grad);
+int GMRFLib_opt_dir_transform_hessian(double *hessian);
 void GMRFLib_gsl_df(const gsl_vector * v, void *params, gsl_vector * df);
 void GMRFLib_gsl_fdf(const gsl_vector * x, void *params, double *f, gsl_vector * df);
-int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par);
-int GMRFLib_gsl_get_results(double *theta_mode, double *log_dens_mode);
-
-int GMRFLib_test_something____omp(void);
 
 GSL_VAR const gsl_multimin_fdfminimizer_type *gsl_multimin_fdfminimizer_vector_bfgs3;	/* my version of vector_bfgs2() */
 

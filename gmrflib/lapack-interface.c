@@ -283,7 +283,10 @@ int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef)
 	gsl_matrix *M1 = gsl_matrix_alloc(A->size1, A->size2);
 	gsl_matrix *M2 = gsl_matrix_alloc(A->size1, A->size2);
 
-	assert(!(tol > 0.0 && (rankdef >= 0 && rankdef <= (int) A->size1)));
+	gsl_matrix_set_zero(M1);
+	gsl_matrix_set_zero(M2);
+
+	//assert(!(tol > 0.0 || (rankdef >= 0 && rankdef <= (int) A->size1)));
 	if (tol > 0.0) {
 		for (i = 0; i < A->size1; i++) {
 			double s = gsl_vector_get(S, i);
@@ -334,4 +337,37 @@ int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef)
 	gsl_vector_free(work);
 
 	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_gsl_mgs(gsl_matrix *A) 
+{
+	// this is the modified Gram-Schmith ortogonalisation, and it 
+	// overwrite matrix A with its ortogonal normalized basis, column by column
+	gsl_vector *q = gsl_vector_alloc(A->size1);
+	
+	size_t i, j, k, n = A->size1;
+	double r;
+	
+	for(i= 0; i < n; i++) {
+
+		for(r = 0.0, j = 0; j < n; j++) {
+			r += SQR(gsl_matrix_get(A, j, i));
+		}
+		r = sqrt(r);
+		for(j = 0; j < n; j++) {
+			gsl_vector_set(q, j, gsl_matrix_get(A, j, i) / r);
+			gsl_matrix_set(A, j, i, gsl_vector_get(q, j)); // normalize
+		}
+		for(j = i + 1; j < n; j++) {
+			for(r = 0, k = 0; k < n; k++) {
+				r += gsl_vector_get(q, k) * gsl_matrix_get(A, k, j);
+			}
+			for(k = 0; k < n; k++) {
+				gsl_matrix_set(A, k, j, gsl_matrix_get(A, k, j) - r * gsl_vector_get(q, k));
+			}
+		}
+	}
+	gsl_vector_free(q);
+
+	return(GMRFLib_SUCCESS);
 }
