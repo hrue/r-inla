@@ -4498,7 +4498,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_BETA:
 		idiv = 3;
-		a[0] = ds->data_observations.weight_beta = Calloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.beta_weight = Calloc(mb->predictor_ndata, double);
 		break;
 
 	case L_BETABINOMIALNA:
@@ -8476,10 +8476,12 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
-	double w = ds->data_observations.weight_beta[idx];
+	double w = ds->data_observations.beta_weight[idx];
 	double phi = map_exp(ds->data_observations.beta_precision_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
 	double a, b, mu, lbeta;
-
+	double trunc = ds->data_observations.beta_trunction;
+	int no_trunc = (trunc <= 0.0 || trunc >= 0.5);
+	
 	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
@@ -8495,15 +8497,40 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 			} else {
 				lbeta = gsl_sf_lnbeta(a, b);
 			}
-			logll[i] = -lbeta + (a - 1.0) * log(y) + (b - 1.0) * log(1.0 - y);
+
+			if (no_trunc) {
+				// in most cases, we'll be here
+				logll[i] = -lbeta + (a - 1.0) * log(y) + (b - 1.0) * log(1.0 - y);
+			} else {
+				// if we have trunction, we have to be more careful
+				if (y <= trunc) {
+					logll[i] = MATHLIB_FUN(pbeta)(trunc, a, b, 1, 1);
+				} else if (y < 1.0 - trunc) {
+					logll[i] = -lbeta + (a - 1.0) * log(y) + (b - 1.0) * log(1.0 - y);
+				} else {
+					logll[i] = MATHLIB_FUN(pbeta)(1.0 - trunc, a, b, 0, 1);
+				}
+			}
 		}
 	} else {
-		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+		double yy = (y_cdf ? *y_cdf : y);
 		for (i = 0; i < -m; i++) {
 			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			a = mu * phi;
 			b = -mu * phi + phi;
-			logll[i] = gsl_cdf_beta_P(y, a, b);
+			if (no_trunc) {
+				logll[i] = gsl_cdf_beta_P(yy, a, b);
+			} else {
+				if (yy <= trunc) {
+					// use the expected prob instead
+					logll[i] = MATHLIB_FUN(pbeta)(trunc, a, b, 1, 0) / 2.0;
+				} else if (yy <  1.0 - trunc) {
+					logll[i] = gsl_cdf_beta_P(yy, a, b);
+				} else {
+					//... and also here
+					logll[i] = 1.0 - MATHLIB_FUN(pbeta)(1.0 - trunc, a, b, 0, 0) / 2.0;
+				}
+			}
 		}
 	}
 
@@ -11502,6 +11529,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 	char *secname = NULL, *msg = NULL, *ctmp = NULL;
 	int i, j, found = 0, n_data = (mb->predictor_m > 0 ? mb->predictor_m : mb->predictor_n), discrete_data = 0;
+	int beta_delayed_error = 0;
 	double tmp;
 	Data_section_tp *ds;
 
@@ -12177,10 +12205,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_BETA:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.y[i] <= 0.0 || ds->data_observations.y[i] >= 1.0
-				    || ds->data_observations.weight_beta[i] <= 0.0) {
+				if (ds->data_observations.y[i] == 0.0 || ds->data_observations.y[i] == 1.0) {
+					beta_delayed_error++;
+				} else if (ds->data_observations.y[i] < 0.0 || ds->data_observations.y[i] > 1.0
+					   || ds->data_observations.beta_weight[i] <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Beta data[%1d] (y) = (%g) or weight (%g)is void\n", secname, i,
-							ds->data_observations.y[i], ds->data_observations.weight_beta[i]);
+							ds->data_observations.y[i], ds->data_observations.beta_weight[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -13917,6 +13947,16 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * get options related to the beta
 		 */
+		ds->data_observations.beta_trunction = iniparser_getdouble(ini, inla_string_join(secname, "BETA.TRUNCATION"), 0.0);
+		if (mb->verbose) {
+			printf("\t\ttruncation [%g]\n", ds->data_observations.beta_trunction);
+		}
+
+		if (beta_delayed_error && ds->data_observations.beta_trunction == 0.0) {
+			GMRFLib_sprintf(&msg, "%s: Beta data: %1d observations are either 0 or 1,\n\t\tbut then you need to enable truncation, see inla.doc('^beta$')\n", secname, beta_delayed_error);
+			inla_error_general(msg);
+		}
+
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
 		if (!ds->data_fixed && mb->reuse_mode) {
@@ -34552,7 +34592,26 @@ int testit(int argc, char **argv)
 		break;
 
 
-		// this will give some more error messages, if any
+	case 44: 
+	{
+		double a, b, y;
+		int i;
+
+		for(i = 0; i < 10; i++){
+
+			a = 2.0*GMRFLib_uniform();
+			b = 2.0*GMRFLib_uniform();
+			y = GMRFLib_uniform();
+
+			printf("a %f b %f y %f", a, b, y);
+			printf("  pbeta %f ", MATHLIB_FUN(pbeta)(y, a, b, 1, 1));
+			printf("  1-pbeta %f\n", MATHLIB_FUN(pbeta)(y, a, b, 0, 1));
+		}
+		break;
+	}
+
+
+	// this will give some more error messages, if any
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

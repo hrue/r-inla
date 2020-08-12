@@ -226,8 +226,9 @@ typedef struct {
 	/*
 	 *  Beta
 	 */
-	double *weight_beta;
-
+	double *beta_weight;
+	double beta_trunction;
+	
 	/*
 	 * y ~ Simplex(....,1/(weight*prec))
 	 */

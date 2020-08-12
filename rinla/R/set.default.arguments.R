@@ -318,6 +318,9 @@
         ##:ARGUMENT: cenpoisson.I The censoring interval for the censored Poisson
         cenpoisson.I = c(-1L, -1L),
 
+        ##:ARGUMENT: beta.truncation The trunction limit for the Beta-likelihood (0 <= beta.truncation < 1/2)
+        beta.truncation = 0.0, 
+
         ##:ARGUMENT: variant This variable is used to give options for various variants of the likelihood,  like chosing different parameterisations for example. See the relevant likelihood documentations for options (does only apply to some likelihoods).
         variant = 0L,
 

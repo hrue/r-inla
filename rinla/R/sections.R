@@ -155,6 +155,14 @@
         cat("cenpoisson.I = ", interval[1], " ",  interval[2], "\n", sep="", file=file, append=TRUE)
     }
     
+    if (inla.one.of(family, c("beta"))) {
+        trunc = control$beta.truncation
+        if (trunc < 0 || trunc >= 0.5) {
+               stop(paste("beta.truncation: Must be in the intervel 0 to 1/2", trunc))
+        }
+        cat("beta.truncation = ", trunc, "\n", sep="", file=file, append=TRUE)
+    }
+
     if (TRUE) {
         if (!is.null(control$quantile))
             stop("control.family=list(quantile=...) is disabled. Use control.family=list(control.link=list(quantile=...)) instead")
