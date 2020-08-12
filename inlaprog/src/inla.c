@@ -13949,7 +13949,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		ds->data_observations.beta_censor_value = iniparser_getdouble(ini, inla_string_join(secname, "BETA.CENSOR.VALUE"), 0.0);
 		if (mb->verbose) {
-			printf("\t\ttruncation [%g]\n", ds->data_observations.beta_censor_value);
+			printf("\t\tbcensor.value [%g]\n", ds->data_observations.beta_censor_value);
 		}
 
 		if (beta_delayed_error && ds->data_observations.beta_censor_value == 0.0) {
