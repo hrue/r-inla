@@ -10,12 +10,13 @@ a = mu * phi
 b = -mu * phi + phi
 y = rbeta(n, a, b)
 
-trunc <- 0.05
-y[y <= trunc] <- 0
-y[y >= 1-trunc] <- 1
+## this is the censoring
+cens <- 0.05
+y[y <= cens] <- 0
+y[y >= 1-cens] <- 1
 
 ## estimate the model
 formula = y ~ 1 + z
 r = inla(formula, data = data.frame(y, z), family = "beta",
-         control.family = list(beta.truncation = trunc))
+         control.family = list(beta.censor.value = cens))
 summary(r)

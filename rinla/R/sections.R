@@ -156,11 +156,11 @@
     }
     
     if (inla.one.of(family, c("beta"))) {
-        trunc = control$beta.truncation
-        if (trunc < 0 || trunc >= 0.5) {
-               stop(paste("beta.truncation: Must be in the intervel 0 to 1/2", trunc))
+        c.val = control$beta.censor.value
+        if (c.val < 0 || c.val >= 0.5) {
+               stop(paste("beta.censor.value: Must be in the intervel 0 to 1/2", c.val))
         }
-        cat("beta.truncation = ", trunc, "\n", sep="", file=file, append=TRUE)
+        cat("beta.censor.value = ", c.val, "\n", sep="", file=file, append=TRUE)
     }
 
     if (TRUE) {

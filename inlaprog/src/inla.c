@@ -8479,8 +8479,8 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 	double w = ds->data_observations.beta_weight[idx];
 	double phi = map_exp(ds->data_observations.beta_precision_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
 	double a, b, mu, lbeta;
-	double trunc = ds->data_observations.beta_trunction;
-	int no_trunc = (trunc <= 0.0 || trunc >= 0.5);
+	double censor_value = ds->data_observations.beta_censor_value;
+	int no_censoring = (censor_value <= 0.0 || censor_value >= 0.5);
 	
 	LINK_INIT;
 	if (m > 0) {
@@ -8498,17 +8498,17 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 				lbeta = gsl_sf_lnbeta(a, b);
 			}
 
-			if (no_trunc) {
+			if (no_censoring) {
 				// in most cases, we'll be here
 				logll[i] = -lbeta + (a - 1.0) * log(y) + (b - 1.0) * log(1.0 - y);
 			} else {
-				// if we have trunction, we have to be more careful
-				if (y <= trunc) {
-					logll[i] = MATHLIB_FUN(pbeta)(trunc, a, b, 1, 1);
-				} else if (y < 1.0 - trunc) {
+				// if we have censoring, we have to be more careful
+				if (y <= censor_value) {
+					logll[i] = MATHLIB_FUN(pbeta)(censor_value, a, b, 1, 1);
+				} else if (y < 1.0 - censor_value) {
 					logll[i] = -lbeta + (a - 1.0) * log(y) + (b - 1.0) * log(1.0 - y);
 				} else {
-					logll[i] = MATHLIB_FUN(pbeta)(1.0 - trunc, a, b, 0, 1);
+					logll[i] = MATHLIB_FUN(pbeta)(1.0 - censor_value, a, b, 0, 1);
 				}
 			}
 		}
@@ -8518,17 +8518,17 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			a = mu * phi;
 			b = -mu * phi + phi;
-			if (no_trunc) {
+			if (no_censoring) {
 				logll[i] = gsl_cdf_beta_P(yy, a, b);
 			} else {
-				if (yy <= trunc) {
+				if (yy <= censor_value) {
 					// use the expected prob instead
-					logll[i] = MATHLIB_FUN(pbeta)(trunc, a, b, 1, 0) / 2.0;
-				} else if (yy <  1.0 - trunc) {
+					logll[i] = MATHLIB_FUN(pbeta)(censor_value, a, b, 1, 0) / 2.0;
+				} else if (yy <  1.0 - censor_value) {
 					logll[i] = gsl_cdf_beta_P(yy, a, b);
 				} else {
 					//... and also here
-					logll[i] = 1.0 - MATHLIB_FUN(pbeta)(1.0 - trunc, a, b, 0, 0) / 2.0;
+					logll[i] = 1.0 - MATHLIB_FUN(pbeta)(1.0 - censor_value, a, b, 0, 0) / 2.0;
 				}
 			}
 		}
@@ -13947,13 +13947,13 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * get options related to the beta
 		 */
-		ds->data_observations.beta_trunction = iniparser_getdouble(ini, inla_string_join(secname, "BETA.TRUNCATION"), 0.0);
+		ds->data_observations.beta_censor_value = iniparser_getdouble(ini, inla_string_join(secname, "BETA.CENSOR.VALUE"), 0.0);
 		if (mb->verbose) {
-			printf("\t\ttruncation [%g]\n", ds->data_observations.beta_trunction);
+			printf("\t\ttruncation [%g]\n", ds->data_observations.beta_censor_value);
 		}
 
-		if (beta_delayed_error && ds->data_observations.beta_trunction == 0.0) {
-			GMRFLib_sprintf(&msg, "%s: Beta data: %1d observations are either 0 or 1,\n\t\tbut then you need to enable truncation, see inla.doc('^beta$')\n", secname, beta_delayed_error);
+		if (beta_delayed_error && ds->data_observations.beta_censor_value == 0.0) {
+			GMRFLib_sprintf(&msg, "%s: Beta data: %1d observations are either 0 or 1,\n\t\tbut then you need to enable censoring, see inla.doc('^beta$')\n", secname, beta_delayed_error);
 			inla_error_general(msg);
 		}
 

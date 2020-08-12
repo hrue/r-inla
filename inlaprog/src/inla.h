@@ -227,7 +227,7 @@ typedef struct {
 	 *  Beta
 	 */
 	double *beta_weight;
-	double beta_trunction;
+	double beta_censor_value;
 	
 	/*
 	 * y ~ Simplex(....,1/(weight*prec))

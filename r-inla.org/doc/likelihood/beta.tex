@@ -39,11 +39,11 @@ The parameters $\{a, b\}$ are given as $\{\mu, \phi\}$ as follows,
     a = \mu \phi \quad\text{and}\quad  b = -\mu \phi + \phi.
 \end{displaymath}
 
-In some applications then observations close to 0 or 1, are truncated
-to exactly 0 and 1. For this, we introduced a truncation parameter
-$0 < \delta<1/2$ and treat all $y \le \delta$ or $y \ge 1-\delta$ as
-censored observations. By default, no censoring is applied
-($\delta=0$).
+In some applications then observations close to 0 or 1, are censored
+and represented as exactly 0 and 1. For this, we introduced a censor
+value $0 < \delta<1/2$ and treat all $y \le \delta$ or
+$y \ge 1-\delta$ as censored observations. By default, no censoring is
+applied ($\delta=0$).
 
 
 \subsection*{Link-function}
