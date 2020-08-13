@@ -2242,9 +2242,13 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 				Qfunc_arg->log_prec_omp[i] = tmp->log_prec_omp[i];
 			}
 		}
-		Qfunc_arg->values = Calloc(ns, map_id *);
-		for (i = 0; i < ns; i++) {
-			Qfunc_arg->values[i] = GMRFLib_duplicate_map_id(tmp->values[i]);
+		if (tmp->values) {
+			Qfunc_arg->values = Calloc(ns, map_id *);
+			for (i = 0; i < ns; i++) {
+				Qfunc_arg->values[i] = GMRFLib_duplicate_map_id(tmp->values[i]);
+			}
+		} else {
+			Qfunc_arg->values = NULL;
 		}
 		tab->Qfunc_arg = (void *) Qfunc_arg;
 		np->tab = tab;
