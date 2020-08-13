@@ -56,8 +56,12 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
   \sa \ref GMRFLib_rwdef_tp, \ref GMRFLib_make_rw_graph, \ref GMRFLib_prune_graph
 */
-double GMRFLib_rw(int node, int nnode, void *def)
+double GMRFLib_rw(int node, int nnode, double *values, void *def)
 {
+	if (node >= 0 && nnode < 0){
+		return NAN;
+	}
+	
 	int imax, imin, idiff, edge;
 	double prec;
 	GMRFLib_rwdef_tp *rwdef = (GMRFLib_rwdef_tp *) def;
@@ -183,8 +187,12 @@ double GMRFLib_rw(int node, int nnode, void *def)
  
   \sa \ref GMRFLib_crwdef_tp,  \ref GMRFLib_make_crw_graph,  \ref GMRFLib_prune_graph
 */
-double GMRFLib_crw(int node, int nnode, void *def)
+double GMRFLib_crw(int node, int nnode, double *values, void *def)
 {
+	if (node >= 0 && nnode < 0){
+		return NAN;
+	}
+	
 	/*
 	 * this is the continous version for order=0, 1 or 2, which take into accont the positions consistently. the order=2
 	 * uses the augmentation with the velocity.
@@ -566,8 +574,12 @@ double GMRFLib_crw(int node, int nnode, void *def)
  
   \sa \ref GMRFLib_rw2ddef_tp,  \ref GMRFLib_make_rw2d_graph
 */
-double GMRFLib_rw2d(int node, int nnode, void *def)
+double GMRFLib_rw2d(int node, int nnode, double *values, void *def)
 {
+	if (node >= 0 && nnode < 0){
+		return NAN;
+	}
+	
 	/*
 	 * this function does work for non-neigbour arguments, hence it might be (and is) used for pruning. 
 	 */

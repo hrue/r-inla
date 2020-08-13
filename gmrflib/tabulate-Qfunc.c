@@ -95,21 +95,63 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 		}							\
 	}
 
-double GMRFLib_tabulate_Qfunction(int node, int nnode, void *arg)
+double GMRFLib_tabulate_Qfunction(int node, int nnode, double *values, void *arg)
 {
 	GMRFLib_tabulate_Qfunc_arg_tp *args = NULL;
 	double prec, *dp;
-
+	int i, j, jj, k, len, imin, imax;
+	
 	args = (GMRFLib_tabulate_Qfunc_arg_tp *) arg;
 	prec = GMRFLib_SET_PREC(args);
 
-	dp = map_id_ptr(args->values[IMIN(node, nnode)], IMAX(node, nnode));
-	return (dp ? prec * (*dp) : 0.0);
+	imin = IMIN(node, nnode);
+	imax = IMAX(node, nnode);
+	
+	if (nnode >= 0) {
+		if (!(args->Q)) {
+			assert(args->values);
+			dp = map_id_ptr(args->values[imin], imax);
+		} else {
+			GMRFLib_csr_tp *Q = args->Q;
+			
+			if (args->Q_idx) {
+				int ii;
+				map_ii_get(args->Q_idx[imin], imax, &ii);
+				dp = &(Q->a[ii]);
+			} else {
+				dp = NULL;
+				for(jj = Q->ia[imin]; jj < Q->ia[imin+1]; jj++){
+					j = Q->ja[jj];
+					if (j == imax) {
+						dp = &(Q->a[jj]);
+						break;
+					}
+				}
+				assert(dp);
+			}
+			
+		}
+		return prec * (*dp);
+	} else {
+		if (args->Q) {
+			assert(args->Q->base == 0);
+			jj = args->Q->ia[node];
+			len = args->Q->ia[node+1] - jj;
+			memcpy(values, &(args->Q->a[jj]), len * sizeof(double));
+		} else {
+			return NAN;
+		}
+		for(i = 0; i < len; i++) {
+			values[i] *= prec;
+		}
+		return 0.0;
+	}
+	
 }
-double GMRFLib_tabulate_Qfunction_std(int node, int nnode, void *arg)
+double GMRFLib_tabulate_Qfunction_std(int node, int nnode, double *values, void *arg)
 {
-	GMRFLib_tabulate_Qfunc_arg_tp *args = (GMRFLib_tabulate_Qfunc_arg_tp *) arg;
-	return (*map_id_ptr(args->values[IMIN(node, nnode)], IMAX(node, nnode)));
+	FIXME1("for the moment...");
+	return (GMRFLib_tabulate_Qfunction(node, nnode, values, arg));
 }
 
 /*!
@@ -138,61 +180,95 @@ double GMRFLib_tabulate_Qfunction_std(int node, int nnode, void *arg)
 int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
 			   GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *prec, double *log_prec, double **log_prec_omp)
 {
-	int i, id, mem_id;
-	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
-
-	id = GMRFLib_thread_id;
-	mem_id = GMRFLib_meminfo_thread_id;
-
 	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
-	if (prec == NULL && log_prec == NULL && log_prec_omp == NULL) {
-		(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction_std;	/* no scaling, faster... */
-	} else {
-		(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction;	/* global scaling */
-	}
+	(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction; 
+
+	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
 	arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);
 	(*tabulate_Qfunc)->Qfunc_arg = (void *) arg;
 
-	arg->n = graph->n;
-	arg->prec = prec;
-	arg->log_prec = (prec == NULL ? log_prec : NULL);
-	if (prec == NULL && log_prec == NULL && log_prec_omp != NULL) {
-		int tmax = GMRFLib_MAX_THREADS;
-		arg->log_prec_omp = Calloc(tmax, double *);
-		for (i = 0; i < tmax; i++) {
-			arg->log_prec_omp[i] = log_prec_omp[i];
-		}
-	} else {
-		arg->log_prec_omp = NULL;
-	}
+	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
+		GMRFLib_Q2csr(&(arg->Q), graph, Qfunc, Qfunc_arg);
+		assert(arg->Q->a[0] > 0.0);
+		GMRFLib_copy_graph(&(arg->graph), graph);
 
-	arg->values = Calloc(graph->n, map_id *);
+		// I disable this for now, seems to take time than it save? 
+		if (0) {
+			arg->Q_idx = Calloc(graph->n, map_ii *);
+			int idx = 0, i;
+
+			for (i = 0; i < graph->n; i++) {
+				int j, k, count;
+
+				arg->Q_idx[i] = Calloc(1, map_ii);
+				for (j = 0, count = 1; j < graph->nnbs[i]; j++) {	
+					if (i < graph->nbs[i][j]) {
+						count++;
+					}
+				}
+				map_ii_init_hint(arg->Q_idx[i], count);      
+				arg->Q_idx[i]->defaultvalue = -2;
+				map_ii_set(arg->Q_idx[i], i, idx);
+				idx++;
+
+				for (j = 0; j < graph->nnbs[i]; j++) {
+					k = graph->nbs[i][j];
+					if (k > i) {			       
+						map_ii_set(arg->Q_idx[i], k, idx);
+						idx++;
+					}
+				}
+			}
+			assert(idx == arg->Q->na);
+		}
+		
+	} else {
+		int i, id, mem_id;
+
+		id = GMRFLib_thread_id;
+		mem_id = GMRFLib_meminfo_thread_id;
+
+		arg->n = graph->n;
+		arg->prec = prec;
+		arg->log_prec = (prec == NULL ? log_prec : NULL);
+		if (prec == NULL && log_prec == NULL && log_prec_omp != NULL) {
+			int tmax = GMRFLib_MAX_THREADS;
+			arg->log_prec_omp = Calloc(tmax, double *);
+			for (i = 0; i < tmax; i++) {
+				arg->log_prec_omp[i] = log_prec_omp[i];
+			}
+		} else {
+			arg->log_prec_omp = NULL;
+		}
+
+		arg->values = Calloc(graph->n, map_id *);
 
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
-	for (i = 0; i < graph->n; i++) {
-		int j, k, count;
+		for (i = 0; i < graph->n; i++) {
+			int j, k, count;
 
+			GMRFLib_thread_id = id;
+			GMRFLib_meminfo_thread_id = mem_id;
+
+			arg->values[i] = Calloc(1, map_id);	       /* allocate hash-table */
+			for (j = 0, count = 1; j < graph->nnbs[i]; j++) {	/* count the number of terms in the hash-table */
+				if (graph->nbs[i][j] > i) {
+					count++;
+				}
+			}
+			map_id_init_hint(arg->values[i], count);       /* init hash with count number of elms */
+			map_id_set(arg->values[i], i, (*Qfunc) (i, i, NULL, Qfunc_arg));	/* diagonal */
+			for (j = 0, count = 1; j < graph->nnbs[i]; j++) {
+				k = graph->nbs[i][j];
+				if (k > i) {			       /* store only those */
+					map_id_set(arg->values[i], k, (*Qfunc) (i, k, NULL, Qfunc_arg));
+				}
+			}
+		}
 		GMRFLib_thread_id = id;
 		GMRFLib_meminfo_thread_id = mem_id;
-
-		arg->values[i] = Calloc(1, map_id);	       /* allocate hash-table */
-		for (j = 0, count = 1; j < graph->nnbs[i]; j++) {	/* count the number of terms in the hash-table */
-			if (graph->nbs[i][j] > i) {
-				count++;
-			}
-		}
-		map_id_init_hint(arg->values[i], count);       /* init hash with count number of elms */
-		map_id_set(arg->values[i], i, (*Qfunc) (i, i, Qfunc_arg));	/* diagonal */
-		for (j = 0, count = 1; j < graph->nnbs[i]; j++) {
-			k = graph->nbs[i][j];
-			if (k > i) {			       /* store only those */
-				map_id_set(arg->values[i], k, (*Qfunc) (i, k, Qfunc_arg));
-			}
-		}
 	}
-	GMRFLib_thread_id = id;
-	GMRFLib_meminfo_thread_id = mem_id;
-
+	
 	return GMRFLib_SUCCESS;
 }
 
@@ -718,12 +794,27 @@ int GMRFLib_free_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp * tabulate_Qfunc)
 
 	if (tabulate_Qfunc) {
 		arg = (GMRFLib_tabulate_Qfunc_arg_tp *) tabulate_Qfunc->Qfunc_arg;
-
-		for (i = 0; i < arg->n; i++) {
-			map_id_free(arg->values[i]);
-			Free(arg->values[i]);
+		if (arg->graph) {
+			GMRFLib_free_graph(arg->graph);
 		}
-		Free(arg->values);
+		if (arg->Q) {
+			GMRFLib_csr_free(&(arg->Q));
+		}
+		if (arg->Q_idx) {
+			for (i = 0; i < arg->n; i++) {
+				map_ii_free(arg->Q_idx[i]);
+				Free(arg->Q_idx[i]);
+			}
+			Free(arg->Q_idx);
+		}
+		if (arg->values) {
+			for (i = 0; i < arg->n; i++) {
+				map_id_free(arg->values[i]);
+				Free(arg->values[i]);
+			}
+			Free(arg->values);
+		}
+		
 		Free(arg->log_prec_omp);
 		Free(arg);
 		Free(tabulate_Qfunc);

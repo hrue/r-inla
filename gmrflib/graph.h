@@ -100,7 +100,7 @@ typedef struct {
   
   \sa GMRFLib_Qx
 */
-typedef double GMRFLib_Qfunc_tp(int node, int nnode, void *argument);
+typedef double GMRFLib_Qfunc_tp(int node, int nnode, double *values, void *argument);
 
 /*!
   \struct GMRFLib_graph_tp graph.h 
@@ -160,7 +160,7 @@ typedef struct {
 	int n;						       /* original graph->n */
 } GMRFLib_offset_arg_tp;
 
-double GMRFLib_offset_Qfunc(int node, int nnode, void *arg);
+double GMRFLib_offset_Qfunc(int node, int nnode, double *values, void *arg);
 int GMRFLib_Qx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag);
 int GMRFLib_xQx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag);

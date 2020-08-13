@@ -303,9 +303,9 @@ typedef struct {
 	double *prec_scale;
 } GMRFLib_rw2ddef_tp;
 
-double GMRFLib_rw(int node, int nnode, void *rwdef);
-double GMRFLib_crw(int node, int nnode, void *crwdef);
-double GMRFLib_rw2d(int node, int nnode, void *rw2ddef);
+double GMRFLib_rw(int node, int nnode, double *values, void *rwdef);
+double GMRFLib_crw(int node, int nnode, double *values, void *crwdef);
+double GMRFLib_rw2d(int node, int nnode, double *values, void *rw2ddef);
 int GMRFLib_make_rw2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def);
 int GMRFLib_make_rw_graph(GMRFLib_graph_tp ** graph, GMRFLib_rwdef_tp * def);
 int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def);

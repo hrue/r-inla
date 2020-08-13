@@ -53,8 +53,12 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
   \sa \ref GMRFLib_matern2ddef_tp, \ref GMRFLib_make_matern2d_graph
 */
-double GMRFLib_matern2d(int node, int nnode, void *def)
+double GMRFLib_matern2d(int node, int nnode, double *values, void *def)
 {
+	if (node >= 0 && nnode < 0){
+		return NAN;
+	}
+	
 	double prec, range, kappa, std_variance, a, val = 0;
 	GMRFLib_matern2ddef_tp *arg = NULL;
 

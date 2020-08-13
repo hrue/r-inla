@@ -45,6 +45,7 @@
 #include <malloc.h>
 #endif
 
+#include "GMRFLib/hashP.h"
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
@@ -188,7 +189,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 {
 	// create a upper triangular csr matrix from Q
 #define M (*csr)
-	int i, j, jj, k, n, na, nnz, nan_error = 0;
+	int i, j, jj, k, kk, n, na, nnz, nan_error = 0;
 
 	M = Calloc(1, GMRFLib_csr_tp);
 	M->base = 0;
@@ -202,33 +203,57 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 	M->ia = Calloc(n + 1, int);
 
 	M->ia[0] = 0;
-	for (i = 0; i < n; i++) {
-		k = 1;
-		for (jj = 0; jj < graph->nnbs[i]; jj++) {
-			if (graph->nbs[i][jj] > i) {
-				k++;
-			}
-		}
-		M->ia[i + 1] = M->ia[i] + k;
-	}
-	assert(M->ia[n] == na);
-
 	for (i = k = 0; i < n; i++) {
-		M->ja[k] = i;
-		M->a[k] = Qfunc(i, i, Qfunc_arg);
-		GMRFLib_STOP_IF_NAN_OR_INF(M->a[k], i, i);
-		k++;
-		for (jj = 0; jj < graph->nnbs[i]; jj++) {
+		M->ja[k++] = i;
+		for (jj = 0, kk = 1; jj < graph->nnbs[i]; jj++) {
 			j = graph->nbs[i][jj];
 			if (j > i) {
-				M->ja[k] = j;
-				M->a[k] = Qfunc(i, j, Qfunc_arg);
-				GMRFLib_STOP_IF_NAN_OR_INF(M->a[k], i, j);
-				k++;
+				M->ja[k++] = j;
+				kk++;
+			}
+		}
+		M->ia[i + 1] = M->ia[i] + kk;
+	}
+	assert(M->ia[n] == na);
+	
+	// when this is true, we can just copy the whole matrix at once
+	int used_fast_tab = 0;
+	if (Qfunc == GMRFLib_tabulate_Qfunction) {
+		GMRFLib_tabulate_Qfunc_arg_tp *arg =  (GMRFLib_tabulate_Qfunc_arg_tp *) Qfunc_arg;
+		if (arg->Q) {
+			memcpy(M->a, arg->Q->a, na*sizeof(double));
+			used_fast_tab = 1;
+		}
+	}
+	
+	if (!used_fast_tab) {
+		// a bit more manual work
+		double val = Qfunc(0, -1, &(M->a[0]), Qfunc_arg);
+		if (ISNAN(val)) {
+#pragma omp parallel for private(i, k, j) num_threads(GMRFLib_openmp->max_threads_inner)
+			for(i = 0; i < n; i++){
+				for(k = M->ia[i]; k < M->ia[i+1]; k++) {
+					j = M->ja[k];
+					M->a[k] = Qfunc(i, j, NULL, Qfunc_arg);
+				}
+			}
+		} else {
+#pragma omp parallel for private(i, k, jj, j) num_threads(GMRFLib_openmp->max_threads_inner)
+			for(i = 0; i < n; i++){
+				double v;
+				k = M->ia[i];
+				v = Qfunc(i, -1, &(M->a[k]), Qfunc_arg);
+				assert(!(ISNAN(val)));
 			}
 		}
 	}
-
+	
+	for(i = 0; i < na; i++){
+		GMRFLib_STOP_IF_NAN_OR_INF(M->a[i], i, -1);
+		if (nan_error)
+			break;
+	}
+	
 	if (GMRFLib_catch_error_for_inla) {
 		if (nan_error) {
 			return !GMRFLib_SUCCESS;
@@ -482,8 +507,12 @@ int GMRFLib_pardiso_check_install(int quiet, int no_err)
 	return (err_code == 0 ? GMRFLib_SUCCESS : !GMRFLib_SUCCESS);
 }
 
-double GMRFLib_pardiso_Qfunc_default(int i, int j, void *arg)
+double GMRFLib_pardiso_Qfunc_default(int i, int j, double *values, void *arg)
 {
+	if (i >= 0 && j < 0){
+		return NAN;
+	}
+	
 	GMRFLib_graph_tp *g = (GMRFLib_graph_tp *) arg;
 	return (i == j ? g->n + 2.0 * g->nnbs[i] : -1.0);
 }

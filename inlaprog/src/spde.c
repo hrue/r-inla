@@ -86,8 +86,12 @@ int inla_spde_free_points(inla_spde_points_tp * p)
 	}
 	return INLA_OK;
 }
-double inla_spde_Qfunction(int node, int nnode, void *arg)
+double inla_spde_Qfunction(int node, int nnode, double *values, void *arg)
 {
+	if (node >= 0 && nnode < 0){
+		return NAN;
+	}
+	
 	inla_spde_tp *model = (inla_spde_tp *) arg;
 	double value;
 
@@ -120,8 +124,8 @@ double inla_spde_Qfunction(int node, int nnode, void *arg)
 	if (node == nnode) {
 		double G1ii, G2ii, K, T;
 
-		G1ii = model->G1->Qfunc(node, node, (void *) model->G1->Qfunc_arg);
-		G2ii = model->G2->Qfunc(node, node, (void *) model->G2->Qfunc_arg);
+		G1ii = model->G1->Qfunc(node, node, NULL, (void *) model->G1->Qfunc_arg);
+		G2ii = model->G2->Qfunc(node, node, NULL, (void *) model->G2->Qfunc_arg);
 
 		if (model->K) {
 			K = model->K[node];
@@ -140,11 +144,11 @@ double inla_spde_Qfunction(int node, int nnode, void *arg)
 		double G1ij, G2ij, K, KK, T, TT;
 
 		if (GMRFLib_is_neighb(node, nnode, model->G1_graph)) {
-			G1ij = model->G1->Qfunc(node, nnode, (void *) model->G1->Qfunc_arg);
+			G1ij = model->G1->Qfunc(node, nnode, NULL, (void *) model->G1->Qfunc_arg);
 		} else {
 			G1ij = 0.0;
 		}
-		G2ij = model->G2->Qfunc(node, nnode, (void *) model->G2->Qfunc_arg);
+		G2ij = model->G2->Qfunc(node, nnode, NULL, (void *) model->G2->Qfunc_arg);
 
 		if (model->K) {
 			K = model->K[node];

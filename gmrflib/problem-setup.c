@@ -59,24 +59,65 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, void *arguments)
+double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *arguments)
 {
 	int node, nnode;
 	double val;
 	GMRFLib_Qfunc_arg_tp *args = NULL;
-
 	args = (GMRFLib_Qfunc_arg_tp *) arguments;
+	GMRFLib_graph_tp *g = args->graph;
 
-	node = args->map[sub_node];
-	nnode = args->map[sub_nnode];
+	if (args->use_pardiso) {
+		// we know that the mapping is identity in this case and that the sub_graph is the same as the graph
+		// this is also validated in the problem-setup
+		
+		node = sub_node; 
+		nnode = sub_nnode;
+		
+		if (nnode >= 0) {
+			// the normal case, nothing spesific to do
+			if (node == nnode) {
+				val = (*(args->user_Qfunc)) (node, nnode, NULL, args->user_Qfunc_args) + args->diagonal_adds[sub_node];
+			} else {
+				val = (*(args->user_Qfunc)) (node, nnode, NULL, args->user_Qfunc_args);
+			}
+		} else {
+			// this is the multi-case
 
-	if (node == nnode) {
-		val = (*(args->user_Qfunc)) (node, nnode, args->user_Qfunc_args) + args->diagonal_adds[sub_node];
+			val =  (*(args->user_Qfunc)) (node, -1, values, args->user_Qfunc_args);
+			if (ISNAN(val)) {
+				// the Qfunction does not support it, move on doing it manually
+				int j, jj, k = 0;
+				values[k++] = (*(args->user_Qfunc)) (node, node, NULL, args->user_Qfunc_args) + args->diagonal_adds[node];
+				for(jj = 0; jj < args->graph->nnbs[node]; jj++){
+					j = args->graph->nbs[node][jj];
+					if (j > node) {
+						values[k++] = (*(args->user_Qfunc)) (node, j, NULL, args->user_Qfunc_args);
+					}
+				}
+			} else {
+				values[0] += args->diagonal_adds[node];
+			}
+			assert(values[0] >= 0.0);
+
+			return 0.0;
+		}
 	} else {
-		val = (*(args->user_Qfunc)) (node, nnode, args->user_Qfunc_args);
-	}
 
-	return val;
+		if (sub_node >= 0 && sub_nnode <  0) {
+			return NAN;
+		}
+		node = args->map[sub_node];
+		nnode = args->map[sub_nnode];
+		
+		if (node == nnode) {
+			val = (*(args->user_Qfunc)) (node, nnode, NULL, args->user_Qfunc_args) + args->diagonal_adds[sub_node];
+		} else {
+			val = (*(args->user_Qfunc)) (node, nnode, NULL, args->user_Qfunc_args);
+		}
+		
+		return val;
+	}
 }
 
 /*! \brief Initializes and specifies a \c GMRFLib_problem_tp -object holding all 
@@ -413,6 +454,13 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		sub_Qfunc_arg = Calloc(1, GMRFLib_Qfunc_arg_tp);
 		sub_Qfunc_arg->map = (*problem)->map;	       /* yes, this ptr is needed */
 		sub_Qfunc_arg->diagonal_adds = Calloc(sub_n, double);
+		sub_Qfunc_arg->graph = (*problem)->sub_graph;
+		sub_Qfunc_arg->use_pardiso = (GMRFLib_smtp == GMRFLib_SMTP_PARDISO);
+
+		if (sub_Qfunc_arg->use_pardiso) {
+			FIXME1("CHECK MAP. FIX LATER");
+			for (i = 0; i < sub_n; i++) assert((*problem)->map[i] == i);
+		}
 
 		if (c) {
 			for (i = 0; i < sub_n; i++) {
@@ -470,14 +518,14 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				GMRFLib_thread_id = id;
 				node = (*problem)->map[i];
 				if (mean) {
-					bb[i] += (*((*problem)->tab->Qfunc)) (i, i, (*problem)->tab->Qfunc_arg) * mean[node];
+					bb[i] += (*((*problem)->tab->Qfunc)) (i, i, NULL, (*problem)->tab->Qfunc_arg) * mean[node];
 				}
 
 				for (j = 0; j < graph->nnbs[node]; j++) {	/* then over all neighbors */
 					double qvalue;
 
 					nnode = graph->nbs[node][j];
-					qvalue = (*Qfunc) (node, nnode, Qfunc_args);
+					qvalue = (*Qfunc) (node, nnode, NULL, Qfunc_args);
 
 					if (fixed_value[nnode]) {
 						/*
@@ -2422,8 +2470,12 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 #undef COPY
 	return new_store;
 }
-double GMRFLib_Qfunc_generic(int i, int j, void *arg)
+double GMRFLib_Qfunc_generic(int i, int j, double *values, void *arg)
 {
+	if (i >= 0 && j < 0){
+		return NAN;
+	}
+	
 	if (i != j) {
 		return -1.0;
 	} else {

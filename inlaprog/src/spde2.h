@@ -77,7 +77,7 @@ typedef struct {
 } inla_spde2_tp;
 
 
-double inla_spde2_Qfunction(int node, int nnode, void *arg);
+double inla_spde2_Qfunction(int node, int nnode, double *values, void *arg);
 int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const char *transform);
 double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, void *arg);
 

@@ -370,8 +370,12 @@ int GMRFLib_init_wa_problem(GMRFLib_wa_problem_tp ** wa_problem, GMRFLib_graph_t
   reduce all the lookups. This is now implemented and controlled by the global varable
   GMRFLib_use_wa_table_lookup.
 */
-double GMRFLib_waQfunc(int node, int nnode, void *arg)
+double GMRFLib_waQfunc(int node, int nnode, double *values, void *arg)
 {
+	if (node >= 0 && nnode < 0){
+		return NAN;
+	}
+	
 	int j, jj, k, count, idx;
 	double val, tmp, *ptr = NULL;
 	GMRFLib_waQfunc_arg_tp *args = NULL;
@@ -407,11 +411,11 @@ double GMRFLib_waQfunc(int node, int nnode, void *arg)
 				}
 			}
 
-			tmp = (*args->waQfunc) (node, node, args->waQfunc_arg);
+			tmp = (*args->waQfunc) (node, node, NULL, args->waQfunc_arg);
 			val = SQR(tmp);
 			for (j = 0; j < args->neigb_info[idx]->n_nodes; j++) {
 				k = args->neigb_info[idx]->node_list[j];
-				tmp = (*args->waQfunc) (k, node, args->waQfunc_arg);
+				tmp = (*args->waQfunc) (k, node, NULL, args->waQfunc_arg);
 				val += SQR(tmp);
 			}
 			return val;
@@ -446,29 +450,29 @@ double GMRFLib_waQfunc(int node, int nnode, void *arg)
 
 			val = 0.0;
 			if (args->neigb_info[idx]->node_nnode)
-				val -= (*args->waQfunc) (node, node, args->waQfunc_arg)
-				    * (*args->waQfunc) (node, nnode, args->waQfunc_arg);
+				val -= (*args->waQfunc) (node, node, NULL, args->waQfunc_arg)
+				    * (*args->waQfunc) (node, nnode, NULL, args->waQfunc_arg);
 			if (args->neigb_info[idx]->nnode_node)
-				val -= (*args->waQfunc) (nnode, nnode, args->waQfunc_arg)
-				    * (*args->waQfunc) (nnode, node, args->waQfunc_arg);
+				val -= (*args->waQfunc) (nnode, nnode, NULL, args->waQfunc_arg)
+				    * (*args->waQfunc) (nnode, node, NULL, args->waQfunc_arg);
 
 			for (j = 0; j < args->neigb_info[idx]->n_nodes; j++) {
 				k = args->neigb_info[idx]->node_list[j];
-				val += (*args->waQfunc) (k, node, args->waQfunc_arg)
-				    * (*args->waQfunc) (k, nnode, args->waQfunc_arg);
+				val += (*args->waQfunc) (k, node, NULL, args->waQfunc_arg)
+				    * (*args->waQfunc) (k, nnode, NULL, args->waQfunc_arg);
 			}
 			return val;
 		}
 	} else {					       /* plain version */
 
 		if (node == nnode) {
-			tmp = (*args->waQfunc) (node, node, args->waQfunc_arg);
+			tmp = (*args->waQfunc) (node, node, NULL, args->waQfunc_arg);
 			val = SQR(tmp);
 
 			for (j = 0; j < args->waQgraph->nnbs[node]; j++) {
 				k = args->waQgraph->nbs[node][j];
 				if (GMRFLib_is_neighb(node, k, args->wagraph)) {
-					tmp = (*args->waQfunc) (k, node, args->waQfunc_arg);
+					tmp = (*args->waQfunc) (k, node, NULL, args->waQfunc_arg);
 					val += SQR(tmp);
 				}
 			}
@@ -476,17 +480,17 @@ double GMRFLib_waQfunc(int node, int nnode, void *arg)
 		} else {
 			val = 0.0;
 			if (GMRFLib_is_neighb(node, nnode, args->wagraph))
-				val -= (*args->waQfunc) (node, node, args->waQfunc_arg)
-				    * (*args->waQfunc) (node, nnode, args->waQfunc_arg);
+				val -= (*args->waQfunc) (node, node, NULL, args->waQfunc_arg)
+				    * (*args->waQfunc) (node, nnode, NULL, args->waQfunc_arg);
 			if (GMRFLib_is_neighb(nnode, node, args->wagraph))
-				val -= (*args->waQfunc) (nnode, nnode, args->waQfunc_arg)
-				    * (*args->waQfunc) (nnode, node, args->waQfunc_arg);
+				val -= (*args->waQfunc) (nnode, nnode, NULL, args->waQfunc_arg)
+				    * (*args->waQfunc) (nnode, node, NULL, args->waQfunc_arg);
 
 			for (j = 0; j < args->waQgraph->nnbs[node]; j++) {
 				k = args->waQgraph->nbs[node][j];
 				if (GMRFLib_is_neighb(k, node, args->wagraph) && GMRFLib_is_neighb(k, nnode, args->wagraph))
-					val += (*args->waQfunc) (k, node, args->waQfunc_arg)
-					    * (*args->waQfunc) (k, nnode, args->waQfunc_arg);
+					val += (*args->waQfunc) (k, node, NULL, args->waQfunc_arg)
+					    * (*args->waQfunc) (k, nnode, NULL, args->waQfunc_arg);
 			}
 			return val;
 		}
@@ -670,8 +674,12 @@ int GMRFLib_free_nwa_problem(GMRFLib_nwa_problem_tp * nwa_problem)
 
 	return GMRFLib_SUCCESS;
 }
-double GMRFLib_nwaQfunc(int node, int nnode, void *arg)
+double GMRFLib_nwaQfunc(int node, int nnode, double *values, void *arg)
 {
+	if (node >= 0 && nnode < 0){
+		return NAN;
+	}
+	
 	int k, equal;
 	double val = 0.0;
 	GMRFLib_nwa_problem_tp **nwa = NULL;
@@ -680,7 +688,7 @@ double GMRFLib_nwaQfunc(int node, int nnode, void *arg)
 
 	for (k = 0, equal = (node == nnode); nwa[k]; k++)
 		if (equal || GMRFLib_is_neighb(node, nnode, nwa[k]->graph))
-			val += (*(nwa[k]->Qfunc)) (node, nnode, nwa[k]->Qfunc_arg);
+			val += (*(nwa[k]->Qfunc)) (node, nnode, NULL, nwa[k]->Qfunc_arg);
 
 	return val;
 }

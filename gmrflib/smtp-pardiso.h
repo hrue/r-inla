@@ -60,14 +60,6 @@ __BEGIN_DECLS
  */
 
 #define GMRFLib_PARDISO_PLEN (64)
-    typedef struct {
-	int n;
-	int na;
-	int base;					       /* 0 or 1 */
-	int *ia;
-	int *ja;
-	double *a;
-} GMRFLib_csr_tp;
 
 typedef enum {
 	GMRFLib_PARDISO_FLAG_REORDER = 1,
@@ -137,7 +129,7 @@ typedef struct {
 	}
 
 
-double GMRFLib_pardiso_Qfunc_default(int i, int j, void *arg);
+double GMRFLib_pardiso_Qfunc_default(int i, int j, double *values, void *arg);
 double GMRFLib_pardiso_logdet(GMRFLib_pardiso_store_tp * store);
 int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp ** Qtab, GMRFLib_graph_tp ** graph, GMRFLib_csr_tp * csr);

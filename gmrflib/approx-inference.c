@@ -1066,25 +1066,25 @@ int GMRFLib_ai_log_posterior_restricted_OLD(double *logdens, double *x, double *
 			xx = (mean ? x_mode[i] - mean[i] : x_mode[i]);
 
 			if (c) {
-				q_value = (Qfunc(i, i, Qfunc_arg) + c[i]);
+				q_value = (Qfunc(i, i, NULL, Qfunc_arg) + c[i]);
 				f[ii] += x_gradient[i] * q_value;
 				g[ii] += xx * q_value;
 			} else {
-				q_value = Qfunc(i, i, Qfunc_arg);
+				q_value = Qfunc(i, i, NULL, Qfunc_arg);
 				f[ii] += x_gradient[i] * q_value;
 				g[ii] += xx * q_value;
 			}
 			if (mean) {
 				for (jj = 0; jj < graph->nnbs[i]; jj++) {
 					j = graph->nbs[i][jj];
-					q_value = Qfunc(i, j, Qfunc_arg);
+					q_value = Qfunc(i, j, NULL, Qfunc_arg);
 					f[ii] += x_gradient[j] * q_value;
 					g[ii] += (x_mode[j] - mean[j]) * q_value;
 				}
 			} else {
 				for (jj = 0; jj < graph->nnbs[i]; jj++) {
 					j = graph->nbs[i][jj];
-					q_value = Qfunc(i, j, Qfunc_arg);
+					q_value = Qfunc(i, j, NULL, Qfunc_arg);
 					f[ii] += x_gradient[j] * q_value;
 					g[ii] += x_mode[j] * q_value;
 				}
@@ -1183,31 +1183,30 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 		f = Calloc(ns, double);
 		g = Calloc(ns, double);
 
-
 		for (ii = 0; ii < ns; ii++) {
 			i = subgraph->mothergraph_idx[ii];
 			xx = (mean ? x_mode[i] - mean[i] : x_mode[i]);
 
 			if (c) {
-				q_value = (Qfunc(i, i, Qfunc_arg) + c[i]);
+				q_value = (Qfunc(i, i, NULL, Qfunc_arg) + c[i]);
 				f[ii] += x_gradient[i] * q_value;
 				g[ii] += xx * q_value;
 			} else {
-				q_value = Qfunc(i, i, Qfunc_arg);
+				q_value = Qfunc(i, i, NULL, Qfunc_arg);
 				f[ii] += x_gradient[i] * q_value;
 				g[ii] += xx * q_value;
 			}
 			if (mean) {
 				for (jj = 0; jj < graph->nnbs[i]; jj++) {
 					j = graph->nbs[i][jj];
-					q_value = Qfunc(i, j, Qfunc_arg);
+					q_value = Qfunc(i, j, NULL, Qfunc_arg);
 					f[ii] += x_gradient[j] * q_value;
 					g[ii] += (x_mode[j] - mean[j]) * q_value;
 				}
 			} else {
 				for (jj = 0; jj < graph->nnbs[i]; jj++) {
 					j = graph->nbs[i][jj];
-					q_value = Qfunc(i, j, Qfunc_arg);
+					q_value = Qfunc(i, j, NULL, Qfunc_arg);
 					f[ii] += x_gradient[j] * q_value;
 					g[ii] += x_mode[j] * q_value;
 				}
@@ -1279,7 +1278,7 @@ int GMRFLib_ai_nparam_eff(double *nparam_eff, double *nparam_eff_rel, GMRFLib_pr
 		ii = problem->map[i];
 		cov = GMRFLib_Qinv_get(problem, ii, ii);
 		GMRFLib_ASSERT(cov, GMRFLib_ESNH);
-		correction += (Qfunc(ii, ii, Qfunc_arg) + (c ? c[ii] : 0.0)) * *cov;
+		correction += (Qfunc(ii, ii, NULL, Qfunc_arg) + (c ? c[ii] : 0.0)) * *cov;
 
 		for (j = 0; j < problem->sub_graph->nnbs[i]; j++) {
 			/*
@@ -1289,7 +1288,7 @@ int GMRFLib_ai_nparam_eff(double *nparam_eff, double *nparam_eff_rel, GMRFLib_pr
 			jj = problem->map[problem->sub_graph->nbs[i][j]];
 			cov = GMRFLib_Qinv_get(problem, ii, jj);
 			if (cov) {
-				correction += Qfunc(ii, jj, Qfunc_arg) * *cov;
+				correction += Qfunc(ii, jj, NULL, Qfunc_arg) * *cov;
 			} else {
 				/*
 				 * do nothing 
@@ -2951,7 +2950,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				for (kk = 0; kk < ntimes; kk++) {
 
 					for (i = 0; i < graph->n; i++) {
-						c_new[i] = lambda * Qfunc(i, i, Qfunc_arg) + (1.0 + lambda) * c[i];
+						c_new[i] = lambda * Qfunc(i, i, NULL, Qfunc_arg) + (1.0 + lambda) * c[i];
 						if (ISNAN(x[i]) || ISINF(x[i])) {
 							if (!mode)
 								FIXME("MODE is NULL");
@@ -6942,24 +6941,39 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 	mo->configs[id]->config = Realloc(mo->configs[id]->config, mo->configs[id]->nconfig + 1, GMRFLib_store_config_tp *);
 	mo->configs[id]->config[mo->configs[id]->nconfig] = Calloc(1, GMRFLib_store_config_tp);
 
-	int ii, jj, k, kk;
+	int ii, jj, k, kk, found = 0;
 	double *Qinv, *Q, *Qprior, *mean, *imean, *skew;
 	GMRFLib_graph_tp *g = gmrf_approx->sub_graph;
 
 	Q = Calloc(mo->configs[id]->nz, double);
-	for (ii = k = 0; ii < g->n; ii++) {
-		Q[k++] = gmrf_approx->tab->Qfunc(ii, ii, gmrf_approx->tab->Qfunc_arg);
-		for (kk = 0; kk < g->nnbs[ii]; kk++) {
-			jj = g->nbs[ii][kk];
-			if (ii < jj) {
-				Q[k++] = gmrf_approx->tab->Qfunc(ii, jj, gmrf_approx->tab->Qfunc_arg);
+
+	if (gmrf_approx->tab->Qfunc == GMRFLib_tabulate_Qfunction) {
+
+		FIXME1("RECALL TO VALIDATE configs= TRUE!");
+
+		GMRFLib_tabulate_Qfunc_arg_tp *aa;
+		aa = (GMRFLib_tabulate_Qfunc_arg_tp *) gmrf_approx->tab->Qfunc_arg;
+		if (aa->Q) {
+			assert(mo->configs[id]->nz == aa->Q->na);
+			memcpy(Q, aa->Q->a, aa->Q->na * sizeof(double));
+			found = 1;
+		}
+	}
+	if (!found) {
+		for (ii = k = 0; ii < g->n; ii++) {
+			Q[k++] = gmrf_approx->tab->Qfunc(ii, ii, NULL, gmrf_approx->tab->Qfunc_arg);
+			for (kk = 0; kk < g->nnbs[ii]; kk++) {
+				jj = g->nbs[ii][kk];
+				if (ii < jj) {
+					Q[k++] = gmrf_approx->tab->Qfunc(ii, jj, NULL, gmrf_approx->tab->Qfunc_arg);
+				}
 			}
 		}
 	}
 
 	Qprior = Calloc(g->n, double);
 	for (ii = 0; ii < g->n; ii++) {
-		Qprior[ii] = Qfunc(ii, ii, Qfunc_arg) + c[ii];
+		Qprior[ii] = Qfunc(ii, ii, NULL, Qfunc_arg) + c[ii];
 	}
 
 	mean = Calloc(g->n, double);
@@ -8737,10 +8751,10 @@ double GMRFLib_bfunc_eval(double *constant, GMRFLib_bfunc_tp * bfunc)
 
 	// fprintf(stderr, "idx %d mapidx %d n %d nr %d ng %d\n", idx, MAPIDX(idx, d), d->n, d->nreplicate, d->ngroup);
 
-	b = (d->diagonal + d->Qfunc(idx, idx, d->Qfunc_arg)) * d->mfunc(MAPIDX(idx, d), d->mfunc_arg);
+	b = (d->diagonal + d->Qfunc(idx, idx, NULL, d->Qfunc_arg)) * d->mfunc(MAPIDX(idx, d), d->mfunc_arg);
 	for (i = 0; i < d->graph->nnbs[idx]; i++) {
 		j = d->graph->nbs[idx][i];
-		b += d->Qfunc(idx, j, d->Qfunc_arg) * d->mfunc(MAPIDX(j, d), d->mfunc_arg);
+		b += d->Qfunc(idx, j, NULL, d->Qfunc_arg) * d->mfunc(MAPIDX(j, d), d->mfunc_arg);
 	}
 
 	*constant = b * d->mfunc(MAPIDX(idx, d), d->mfunc_arg);

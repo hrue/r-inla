@@ -1216,23 +1216,43 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 	/*
 	 * compute RESULT = Q*x, (RESULT is a vector).
 	 */
-	int i, id;
+	int i, j, jj, k, m;
 
-	id = GMRFLib_thread_id;
 	memset(result, 0, graph->n * sizeof(double));
+	for(m = 0, i = 0; i < graph->n; i++) {
+		m = IMAX(m, graph->nnbs[i]);
+	}
+	double *values = Calloc(m+1, double);
+	double res = Qfunc(0, -1, values, Qfunc_arg);
 
-#pragma omp parallel for private(i)
-	for (i = 0; i < graph->n; i++) {
-		int j, jj;
-
-		GMRFLib_thread_id = id;
-		result[i] += (Qfunc(i, i, Qfunc_arg) + (diag ? diag[i] : 0.0)) * x[i];
-		for (j = 0; j < graph->nnbs[i]; j++) {
-			jj = graph->nbs[i][j];
-			result[i] += Qfunc(i, jj, Qfunc_arg) * x[jj];
+	if (ISNAN(res)) {
+		double qij;
+		for (i = 0; i < graph->n; i++) {
+			result[i] += (Qfunc(i, i, NULL, Qfunc_arg) + (diag ? diag[i] : 0.0)) * x[i];
+			for (jj = 0; jj < graph->nnbs[i]; jj++) {
+				j = graph->nbs[i][jj];
+				if (j > i) {
+					qij = Qfunc(i, j, NULL, Qfunc_arg);
+					result[i] += qij * x[j];
+					result[j] += qij * x[i];
+				}
+			}
+		}
+	} else {
+		for(i = 0; i < graph->n; i++) {
+			res = Qfunc(i, -1, values, Qfunc_arg);
+			result[i] += (values[0] + (diag ? diag[i] : 0.0)) * x[i];
+			for(k = 1, jj = 0; jj < graph->nnbs[i]; jj++) {
+				j = graph->nbs[i][jj];
+				if (j > i) {
+					result[i] += values[k] * x[j];
+					result[j] += values[k] * x[i];
+					k++;
+				}
+			}
 		}
 	}
-	GMRFLib_thread_id = id;
+	Free(values);
 
 	return GMRFLib_SUCCESS;
 }
@@ -1244,10 +1264,10 @@ int GMRFLib_print_Qfunc(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * 
 		fp = stdout;
 	}
 	for (i = 0; i < graph->n; i++) {
-		fprintf(fp, "Q[ %1d , %1d ] = %.12f\n", i, i, Qfunc(i, i, Qfunc_arg));
+		fprintf(fp, "Q[ %1d , %1d ] = %.12f\n", i, i, Qfunc(i, i, NULL, Qfunc_arg));
 		for (j = 0; j < graph->nnbs[i]; j++) {
 			jj = graph->nbs[i][j];
-			fprintf(fp, "\tQ[ %1d , %1d ] = %.12f\n", i, jj, Qfunc(i, jj, Qfunc_arg));
+			fprintf(fp, "\tQ[ %1d , %1d ] = %.12f\n", i, jj, Qfunc(i, jj, NULL, Qfunc_arg));
 		}
 	}
 	return GMRFLib_SUCCESS;
@@ -1470,7 +1490,7 @@ int GMRFLib_prune_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph,
 		if (graph->nnbs[i]) {
 			for (j = 0, k = 0; j < graph->nnbs[i]; j++) {
 				ii = graph->nbs[i][j];
-				if (Qfunc(i, ii, Qfunc_arg) != 0.0) {
+				if (Qfunc(i, ii, NULL, Qfunc_arg) != 0.0) {
 					(*new_graph)->nbs[i][k] = (*new_graph)->nbs[i][j];
 					k++;
 				}
@@ -1973,8 +1993,12 @@ int GMRFLib_offset_graph(GMRFLib_graph_tp ** new_graph, int n_new, int offset, G
 
 	return GMRFLib_SUCCESS;
 }
-double GMRFLib_offset_Qfunc(int node, int nnode, void *arg)
+double GMRFLib_offset_Qfunc(int node, int nnode, double *values, void *arg)
 {
+	if (node >= 0 && nnode < 0){
+		return NAN;
+	}
+	
 	GMRFLib_offset_arg_tp *a = NULL;
 
 	a = (GMRFLib_offset_arg_tp *) arg;
@@ -1983,7 +2007,7 @@ double GMRFLib_offset_Qfunc(int node, int nnode, void *arg)
 		return 0.0;
 	}
 
-	return (*a->Qfunc) (node - a->offset, nnode - a->offset, a->Qfunc_arg);
+	return (*a->Qfunc) (node - a->offset, nnode - a->offset, NULL, a->Qfunc_arg);
 }
 int GMRFLib_offset(GMRFLib_offset_tp ** off, int n_new, int offset, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {

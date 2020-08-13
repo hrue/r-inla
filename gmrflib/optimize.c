@@ -364,14 +364,14 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 			GMRFLib_thread_id = id;
 			node = opt_problem->map[i];
 			if (mean) {
-				opt_problem->b[i] += ((*Qfunc) (node, node, Qfunc_args) + cc[i]) * mean[node];
+				opt_problem->b[i] += ((*Qfunc) (node, node, NULL, Qfunc_args) + cc[i]) * mean[node];
 			}
 
 			for (j = 0; j < graph->nnbs[node]; j++) {	/* then over all neighbors */
 				double qvalue;
 
 				nnode = graph->nbs[node][j];
-				qvalue = (*Qfunc) (node, nnode, Qfunc_args);
+				qvalue = (*Qfunc) (node, nnode, NULL, Qfunc_args);
 
 				if (fixed_value[nnode]) {
 					/*

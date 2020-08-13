@@ -65,6 +65,23 @@ __BEGIN_DECLS
 typedef short int GMRFLib_short_int;
 typedef long unsigned int GMRFLib_sizeof_tp;
 
+// utility functions for this are mostly in smtp-pardiso.c
+typedef struct {
+	int n;
+	int na;
+	int base;					       /* 0 or 1 */
+	int *ia;
+	int *ja;
+	double *a;
+} GMRFLib_csr_tp;
+
+typedef struct
+{
+	double *x;
+	int free;
+}
+	GMRFLib_vec_tp;
+
 typedef enum {
 	INLA_B_STRATEGY_SKIP = 0, 
 	INLA_B_STRATEGY_KEEP = 1

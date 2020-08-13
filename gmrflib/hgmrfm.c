@@ -897,8 +897,12 @@ GMRFLib_hgmrfm_type_tp GMRFLib_hgmrfm_what_type(int node, GMRFLib_hgmrfm_arg_tp 
 	}
 	return t;
 }
-double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
+double GMRFLib_hgmrfm_Qfunc(int node, int nnode, double *values, void *arg)
 {
+	if (node >= 0 && nnode < 0) {
+		return NAN;
+	}
+
 	/*
 	 * this is Qfunction for the hgmrfm-function 
 	 */
@@ -914,10 +918,10 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
 	jt = GMRFLib_hgmrfm_what_type(jj, a);
 
 	if ((ii == jj) || GMRFLib_is_neighb(ii, jj, a->eta_graph)) {
-		value += a->eta_Q->Qfunc(ii, jj, a->eta_Q->Qfunc_arg);
+		value += a->eta_Q->Qfunc(ii, jj, NULL, a->eta_Q->Qfunc_arg);
 	}
 	if (a->lc_Q && ((ii == jj) || GMRFLib_is_neighb(ii, jj, a->lc_graph))) {
-		value += a->lc_Q->Qfunc(ii, jj, a->lc_Q->Qfunc_arg);
+		value += a->lc_Q->Qfunc(ii, jj, NULL, a->lc_Q->Qfunc_arg);
 	}
 	switch (it.tp) {
 	case GMRFLib_HGMRFM_TP_ETA:
@@ -925,7 +929,7 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
 		case GMRFLib_HGMRFM_TP_ETA:
 			if (a->eta_ext_graph) {
 				if ((ii == jj) || GMRFLib_is_neighb(ii, jj, a->eta_ext_graph)) {
-					value += a->eta_ext_Q->Qfunc(ii, jj, a->eta_ext_Q->Qfunc_arg);
+					value += a->eta_ext_Q->Qfunc(ii, jj, NULL, a->eta_ext_Q->Qfunc_arg);
 				}
 			}
 			return value;
@@ -940,7 +944,7 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
 		case GMRFLib_HGMRFM_TP_F:
 			if (it.tp_idx == jt.tp_idx) {
 				if ((it.idx == jt.idx) || GMRFLib_is_neighb(it.idx, jt.idx, a->f_graph[it.tp_idx])) {
-					value += a->f_Qfunc[it.tp_idx] (it.idx, jt.idx, (a->f_Qfunc_arg ? a->f_Qfunc_arg[it.tp_idx] : NULL));
+					value += a->f_Qfunc[it.tp_idx] (it.idx, jt.idx, NULL, (a->f_Qfunc_arg ? a->f_Qfunc_arg[it.tp_idx] : NULL));
 				}
 			}
 			/*
@@ -948,16 +952,8 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
 			 */
 			if (a->ff_Qfunc) {
 				if ((it.idx == jt.idx) && (it.tp_idx != jt.tp_idx) && a->ff_Qfunc[it.tp_idx][jt.tp_idx]) {
-					if (0) {
-						printf("Qfunc-extra: it.idx %d jt.idx %d it.tp_idx %d jt.tp_idx %d Qfunc %g\n",
-						       it.idx, jt.idx, it.tp_idx, jt.tp_idx,
-						       a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx,
-											  a->ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.
-																       tp_idx] :
-											  NULL));
-					}
 					value +=
-					    a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx,
+					    a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx, NULL, 
 									       (a->ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
 				}
 			}

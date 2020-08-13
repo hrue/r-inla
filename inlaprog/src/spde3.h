@@ -83,7 +83,7 @@ typedef struct {
 } inla_spde3_tp;
 
 
-double inla_spde3_Qfunction(int node, int nnode, void *arg);
+double inla_spde3_Qfunction(int node, int nnode, double *values, void *arg);
 int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const char *transform);
 double *inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covmat, void *arg);
 
