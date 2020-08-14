@@ -408,8 +408,8 @@ int ar_test1()
 			}
 		}
 
-		GMRFLib_make_linear_graph(&g, def.n, def.p, 0);
-		GMRFLib_print_Qfunc(stdout, g, Qfunc_ar, &def);
+		GMRFLib_graph_mk_linear(&g, def.n, def.p, 0);
+		GMRFLib_Qfunc_print(stdout, g, Qfunc_ar, &def);
 
 		if (0) {
 			FILE *fp = fopen("Q.dat", "w");

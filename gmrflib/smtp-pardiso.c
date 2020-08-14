@@ -194,7 +194,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 	M = Calloc(1, GMRFLib_csr_tp);
 	M->base = 0;
 	n = graph->n;
-	GMRFLib_nQelm(&nnz, graph);			       // symmetric
+	GMRFLib_graph_nnodes(&nnz, graph);			       // symmetric
 	na = (nnz - n) / 2 + n;				       // only upper triangular. yes, integer division
 	M->na = na;
 	M->n = n;
@@ -205,12 +205,10 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 	M->ia[0] = 0;
 	for (i = k = 0; i < n; i++) {
 		M->ja[k++] = i;
-		for (jj = 0, kk = 1; jj < graph->nnbs[i]; jj++) {
-			j = graph->nbs[i][jj];
-			if (j > i) {
-				M->ja[k++] = j;
-				kk++;
-			}
+		for (jj = 0, kk = 1; jj < graph->lnnbs[i]; jj++) {
+			j = graph->lnbs[i][jj];
+			M->ja[k++] = j;
+			kk++;
 		}
 		M->ia[i + 1] = M->ia[i] + kk;
 	}
@@ -532,7 +530,7 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 	int i, n, mnum1 = 1;
 	GMRFLib_csr_tp *Q = NULL;
 
-	GMRFLib_copy_graph(&(store->graph), graph);
+	GMRFLib_graph_duplicate(&(store->graph), graph);
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_REORDER, store);
 	GMRFLib_Q2csr(&Q, store->graph, GMRFLib_pardiso_Qfunc_default, (void *) store->graph);
 	GMRFLib_csr_base(1, Q);
@@ -958,7 +956,7 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 			Free((*store)->pstore);
 		}
 
-		GMRFLib_free_graph((*store)->graph);
+		GMRFLib_graph_free((*store)->graph);
 		Free((*store)->iparm_default);
 		Free((*store)->dparm_default);
 		Free(*store);
@@ -1153,12 +1151,12 @@ int my_pardiso_test1(void)
 	// GMRFLib_csr_print(stdout, csr2);
 
 	GMRFLib_csr2Q(&Qtab, &g, csr2);
-	// GMRFLib_print_Qfunc(stdout, g, Qtab->Qfunc, Qtab->Qfunc_arg);
+	// GMRFLib_Qfunc_print(stdout, g, Qtab->Qfunc, Qtab->Qfunc_arg);
 
 	int *perm = NULL;
 	int i, k, nrhs;
 
-	// GMRFLib_print_graph(stdout, g);
+	// GMRFLib_graph_printf(stdout, g);
 	GMRFLib_pardiso_store_tp *store = NULL;
 	GMRFLib_pardiso_init(&store);
 	GMRFLib_pardiso_reorder(store, g);
@@ -1242,7 +1240,7 @@ int my_pardiso_test1(void)
 	GMRFLib_pardiso_free(&store);
 	GMRFLib_csr_free(&csr);
 	GMRFLib_csr_free(&csr2);
-	GMRFLib_free_graph(g);
+	GMRFLib_graph_free(g);
 	Free(perm);
 
 	exit(0);
@@ -1254,7 +1252,7 @@ int my_pardiso_test2(void)
 	double *var;
 
 	GMRFLib_graph_tp *graph = NULL;
-	GMRFLib_make_linear_graph(&graph, n, m, 0);
+	GMRFLib_graph_mk_linear(&graph, n, m, 0);
 	GMRFLib_problem_tp *problem = NULL;
 	GMRFLib_constr_tp *constr = NULL;
 	GMRFLib_make_empty_constr(&constr);
@@ -1329,7 +1327,7 @@ int my_pardiso_test3(void)
 	GMRFLib_csr_print(stdout, csr);
 	P(csr->n);
 
-	// GMRFLib_print_graph(stdout, g);
+	// GMRFLib_graph_printf(stdout, g);
 	GMRFLib_pardiso_store_tp *store = NULL;
 	GMRFLib_pardiso_init(&store);
 	GMRFLib_pardiso_reorder(store, g);
@@ -1425,7 +1423,7 @@ int my_pardiso_test3(void)
 	GMRFLib_free_tabulate_Qfunc(Qtab);
 	GMRFLib_pardiso_free(&store);
 	GMRFLib_csr_free(&csr);
-	GMRFLib_free_graph(g);
+	GMRFLib_graph_free(g);
 
 	return GMRFLib_SUCCESS;
 }
@@ -1493,7 +1491,7 @@ int my_pardiso_test5(void)
 	// GMRFLib_csr_print(stdout, csr);
 	P(csr->n);
 
-	// GMRFLib_print_graph(stdout, g);
+	// GMRFLib_graph_printf(stdout, g);
 	GMRFLib_pardiso_store_tp *store = NULL;
 	GMRFLib_pardiso_init(&store);
 	GMRFLib_pardiso_reorder(store, g);
@@ -1617,7 +1615,7 @@ int my_pardiso_test5(void)
 	GMRFLib_free_tabulate_Qfunc(Qtab);
 	GMRFLib_pardiso_free(&store);
 	GMRFLib_csr_free(&csr);
-	GMRFLib_free_graph(g);
+	GMRFLib_graph_free(g);
 
 	return GMRFLib_SUCCESS;
 }

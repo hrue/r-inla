@@ -250,7 +250,7 @@ typedef enum {
   presicion matrix.  \ref GMRFLib_make_rw2d_graph() can be used to create the appropirate graph. Currently only order=2 is
   supported, however, it does incorporate correct boundary conditions for the non-cyclic case.
 
-  \sa \ref GMRFLib_rw2d(), \ref GMRFLib_make_lattice_graph()
+  \sa \ref GMRFLib_rw2d(), \ref GMRFLib_graph_mk_lattice()
 */
 typedef struct {
 

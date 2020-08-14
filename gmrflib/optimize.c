@@ -243,24 +243,24 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 		/*
 		 * copy from store 
 		 */
-		GMRFLib_EWRAP1(GMRFLib_copy_graph(&(opt_problem->sub_graph), store->sub_graph));
+		GMRFLib_EWRAP1(GMRFLib_graph_duplicate(&(opt_problem->sub_graph), store->sub_graph));
 	} else {
 		/*
 		 * compute it 
 		 */
-		GMRFLib_EWRAP1(GMRFLib_compute_subgraph(&(opt_problem->sub_graph), graph, fixed_value));
+		GMRFLib_EWRAP1(GMRFLib_graph_comp_subgraph(&(opt_problem->sub_graph), graph, fixed_value));
 
 		/*
 		 * store it in store if requested 
 		 */
 		if (store_store_sub_graph) {
-			GMRFLib_EWRAP1(GMRFLib_copy_graph(&(store->sub_graph), opt_problem->sub_graph));
+			GMRFLib_EWRAP1(GMRFLib_graph_duplicate(&(store->sub_graph), opt_problem->sub_graph));
 		}
 	}
 
 	sub_n = opt_problem->sub_graph->n;
 	if (sub_n == 0) {				       /* fast return if there is nothing todo */
-		GMRFLib_free_graph(opt_problem->sub_graph);
+		GMRFLib_graph_free(opt_problem->sub_graph);
 		Free(opt_problem);
 		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
@@ -445,7 +445,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 		}
 		store_ptr = (store ? store->diag_store : store);
 
-		GMRFLib_EWRAP1(GMRFLib_compute_subgraph(&diag_graph, opt_problem->sub_graph, NULL));
+		GMRFLib_EWRAP1(GMRFLib_graph_comp_subgraph(&diag_graph, opt_problem->sub_graph, NULL));
 		for (i = 0; i < diag_graph->n; i++)
 			if (diag_graph->nnbs[i]) {
 				diag_graph->nnbs[i] = 0;
@@ -467,7 +467,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 		if (nzero_idx >= 0) {
 			diag_graph->nnbs[nzero_idx] = 1;       /* to make _free_graph work correct */
 		}
-		GMRFLib_free_graph(diag_graph);
+		GMRFLib_graph_free(diag_graph);
 	}
 
 	if (store && fixed_value && !(store->sub_store)) {
@@ -529,7 +529,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 	if (free_optpar) {
 		Free(opt_problem->optpar);
 	}
-	GMRFLib_free_graph(opt_problem->sub_graph);
+	GMRFLib_graph_free(opt_problem->sub_graph);
 	Free(opt_problem);
 	Free(initial_value);
 	Free(cc);

@@ -162,7 +162,7 @@ int GMRFLib_init_geo_problem(GMRFLib_geo_problem_tp ** geo_problem, int name, in
 	/*
 	 * make the graph 
 	 */
-	GMRFLib_make_lattice_graph(&graph, nrow, ncol, neigh, neigh, cyclic_flag);
+	GMRFLib_graph_mk_lattice(&graph, nrow, ncol, neigh, neigh, cyclic_flag);
 
 	/*
 	 * allocate the hash-table. allocate it with the correct number of elements 
@@ -279,7 +279,7 @@ int GMRFLib_free_geo_problem(GMRFLib_geo_problem_tp * geo_problem)
 	if (!geo_problem)
 		return GMRFLib_SUCCESS;
 
-	GMRFLib_free_graph(geo_problem->graph);
+	GMRFLib_graph_free(geo_problem->graph);
 	arg = (GMRFLib_geoQfunc_arg_tp *) (geo_problem->Qfunc_arg);
 	for (i = 0; i < arg->nrow * arg->ncol; i++)
 		map_ii_free(&(arg->hash_table[i]));

@@ -37,19 +37,19 @@
   - <em> Reading from a file.</em>
   The simplest way to specify a general
   graph is to read the graph specifications from a file, using the
-  function \c GMRFLib_read_graph_ascii(). This function allocates
+  function \c GMRFLib_graph_read_ascii(). This function allocates
   and initializes the members based on the information given on the
   input file, and customizes the graph for use in other library
   functions.
   - <em> Explicitly creating a \c GMRFLib_graph_tp - object.</em> 
   The user can create a general graph by allocating and
   initializing a variable of type \c GMRFLib_graph_tp, and then 
-  (IMPORTANT!) calling the function \c GMRFLib_prepare_graph() to customize 
+  (IMPORTANT!) calling the function \c GMRFLib_graph_prepare() to customize 
   the graph and check that the graph is consistently defined.  The user 
   should specify the the members \em n, \em nnbs and \em nbs in 
   \c GMRFLib_graph_tp. The member \em mothergraph_idx is initialized, 
   and needed, only if the graph is generated as a subgraph of another graph, 
-  using \c GMRFLib_compute_subgraph().
+  using \c GMRFLib_graph_comp_subgraph().
 
   In addition to the functions for specifying general graphs, the library
   provides two separate functions for the specification of
@@ -58,13 +58,13 @@
   model (see wa.c).
 
   - <em> A lattice graph:</em> A two-dimensional graph on a lattice is
-  most easily specified using the function \c GMRFLib_make_lattice_graph(), 
+  most easily specified using the function \c GMRFLib_graph_mk_lattice(), 
   specifying the grid sizes \f$ n_{row} \f$  and
   \f$ n_{col} \f$ and the parameters \f$ m_{row} \f$ and \f$ m_{col} \f$, 
   defining the neighbourhood  \f$ (2 m_{row} + 1)\times (2 m_{col} + 1) \f$.
   - <em> A linear graph:</em> To specify a one-dimensional linear graph,
   i.e. an autoregressive AR(\em p)-model, use the function 
-  \c GMRFLib_make_linear_graph(), specifying the number of nodes
+  \c GMRFLib_graph_mk_linear(), specifying the number of nodes
   and the size of the neighbourhood.
 */
 
@@ -96,12 +96,12 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
   {\n
   ::::::::\n
   GMRFLib_graph_tp *graph;\n
-  GMRFLib_make_empty_graph(&graph);\n
+  GMRFLib_graph_mk_empty(&graph);\n
   ::::::::\n
   }
   </tt>
 */
-int GMRFLib_make_empty_graph(GMRFLib_graph_tp ** graph)
+int GMRFLib_graph_mk_empty(GMRFLib_graph_tp ** graph)
 {
 	/*
 	 * this function creates an empty graph 
@@ -114,7 +114,9 @@ int GMRFLib_make_empty_graph(GMRFLib_graph_tp ** graph)
 	 */
 	(*graph)->n = 0;
 	(*graph)->nbs = NULL;
+	(*graph)->lnbs = NULL;
 	(*graph)->nnbs = NULL;
+	(*graph)->lnnbs = NULL;
 
 	/*
 	 * private variables 
@@ -144,24 +146,24 @@ int GMRFLib_make_empty_graph(GMRFLib_graph_tp ** graph)
   the node numbers, <em>nbs[i][j]</em>, for the neighbours of each
   node \em i of the graph. The number of neighbours <em>nnbs[i]</em>
   might be zero.\n\n
-  The function calls \c GMRFLib_prepare_graph() to
+  The function calls \c GMRFLib_graph_prepare() to
   customize the graph for further computations.
 
   \par Example:
   See \ref ex_graph
 
-  \sa GMRFLib_prepare_graph, GMRFLib_print_graph
+  \sa GMRFLib_graph_prepare, GMRFLib_graph_printf
 */
-int GMRFLib_read_graph(GMRFLib_graph_tp ** graph, const char *filename)
+int GMRFLib_graph_read(GMRFLib_graph_tp ** graph, const char *filename)
 {
-	GMRFLib_read_graph_binary(graph, filename);
+	GMRFLib_graph_read_binary(graph, filename);
 	if (*graph != NULL) {
 		return GMRFLib_SUCCESS;
 	} else {
-		return GMRFLib_read_graph_ascii(graph, filename);
+		return GMRFLib_graph_read_ascii(graph, filename);
 	}
 }
-int GMRFLib_read_graph_ascii(GMRFLib_graph_tp ** graph, const char *filename)
+int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 {
 #define TO_INT(_ix, _x) \
 	if (1) {							\
@@ -192,7 +194,7 @@ int GMRFLib_read_graph_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 	GMRFLib_io_tp *io = NULL;
 
 	GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
-	GMRFLib_EWRAP0(GMRFLib_make_empty_graph(graph));
+	GMRFLib_EWRAP0(GMRFLib_graph_mk_empty(graph));
 
 	GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &tmp, "%lf"));
 	TO_INT((*graph)->n, tmp);
@@ -294,10 +296,10 @@ int GMRFLib_read_graph_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 		}
 	}
 	if (GMRFLib_verify_graph_read_from_disc) {
-		GMRFLib_EWRAP0(GMRFLib_validate_graph(stderr, *graph));
+		GMRFLib_EWRAP0(GMRFLib_graph_validate(stderr, *graph));
 	}
 
-	GMRFLib_EWRAP0(GMRFLib_prepare_graph(*graph));	       /* prepare the graph for computations */
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*graph));	       /* prepare the graph for computations */
 #undef TO_INT
 	return GMRFLib_SUCCESS;
 }
@@ -307,9 +309,9 @@ int GMRFLib_read_graph_ascii(GMRFLib_graph_tp ** graph, const char *filename)
     output or a file
   \param[out] fp The \em FILE* on which to print the graph.
   \param[in] graph The graph to be printed.
-  \sa GMRFLib_read_graph
+  \sa GMRFLib_graph_read
  */
-int GMRFLib_print_graph(FILE * fp, GMRFLib_graph_tp * graph)
+int GMRFLib_graph_printf(FILE * fp, GMRFLib_graph_tp * graph)
 {
 	int i, j;
 	FILE *fpp = NULL;
@@ -318,9 +320,16 @@ int GMRFLib_print_graph(FILE * fp, GMRFLib_graph_tp * graph)
 
 	fprintf(fpp, "graph has %1d nodes\n", graph->n);
 	for (i = 0; i < graph->n; i++) {
-		fprintf(fpp, "node %1d has %1d neighbours:", i, graph->nnbs[i]);
+		fprintf(fpp, "node %1d has %1d neighbors and %1d lneighbors:", i, graph->nnbs[i], graph->lnnbs[i]);
 		for (j = 0; j < graph->nnbs[i]; j++) {
 			fprintf(fpp, " %1d", graph->nbs[i][j]);
+		}
+		fprintf(fpp, "\n");
+	}
+	for (i = 0; i < graph->n; i++) {
+		fprintf(fpp, "node %1d has %1d lneighbors:", i, graph->lnnbs[i]);
+		for (j = 0; j < graph->lnnbs[i]; j++) {
+			fprintf(fpp, " %1d", graph->lnbs[i][j]);
 		}
 		fprintf(fpp, "\n");
 	}
@@ -338,9 +347,9 @@ int GMRFLib_print_graph(FILE * fp, GMRFLib_graph_tp * graph)
   \param[in] filename The name of the file to store the graph in
     ascii format.
   \param[in] graph The graph to be written.
-  \sa GMRFLib_read_graph.
+  \sa GMRFLib_graph_read.
  */
-int GMRFLib_write_graph(const char *filename, GMRFLib_graph_tp * graph)
+int GMRFLib_graph_write(const char *filename, GMRFLib_graph_tp * graph)
 {
 	/*
 	 * write graph to file filename in the format so it can be read by 'read_graph' 
@@ -360,12 +369,12 @@ int GMRFLib_write_graph(const char *filename, GMRFLib_graph_tp * graph)
 		GMRFLib_ERROR(GMRFLib_EOPENFILE);
 	}
 
-	GMRFLib_write_graph_2(fp, graph);
+	GMRFLib_graph_write2(fp, graph);
 	fclose(fp);
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_write_graph_2(FILE * fp, GMRFLib_graph_tp * graph)
+int GMRFLib_graph_write2(FILE * fp, GMRFLib_graph_tp * graph)
 {
 	int i, j;
 
@@ -384,9 +393,9 @@ int GMRFLib_write_graph_2(FILE * fp, GMRFLib_graph_tp * graph)
   \brief Write a graph in binary format
   \param[in] filename The name of the file
   \param[in] graph The graph to be written
-  \sa GMRFLib_read_graph_binary()
+  \sa GMRFLib_graph_read_binary()
  */
-int GMRFLib_write_graph_binary(const char *filename, GMRFLib_graph_tp * graph)
+int GMRFLib_graph_write_b(const char *filename, GMRFLib_graph_tp * graph)
 {
 	/*
 	 * use base 1: so the nodes are 1...n, not 0..n-1. this makes the connection to R and R-inla easier. However, the read_graph routines will autodetect if
@@ -424,12 +433,12 @@ int GMRFLib_write_graph_binary(const char *filename, GMRFLib_graph_tp * graph)
 }
 
 /*!
-  \brief Read a graph from file written by \c GMRFLib_write_graph_binary()
+  \brief Read a graph from file written by \c GMRFLib_graph_write_b()
   \param[in] filename The name of the file
   \param[in] graph The graph 
-  \sa GMRFLib_write_graph_binary()
+  \sa GMRFLib_graph_write_b()
  */
-int GMRFLib_read_graph_binary(GMRFLib_graph_tp ** graph, const char *filename)
+int GMRFLib_graph_read_binary(GMRFLib_graph_tp ** graph, const char *filename)
 {
 	int i, j, ii, idx, tag = 0;
 	GMRFLib_io_tp *io = NULL;
@@ -447,7 +456,7 @@ int GMRFLib_read_graph_binary(GMRFLib_graph_tp ** graph, const char *filename)
 		return !GMRFLib_SUCCESS;
 	}
 
-	GMRFLib_make_empty_graph(&g);
+	GMRFLib_graph_mk_empty(&g);
 	GMRFLib_EWRAP0(GMRFLib_io_read(io, (void *) &(g->n), sizeof(int)));
 	GMRFLib_ASSERT(g->n >= 0, GMRFLib_EPARAMETER);
 
@@ -493,8 +502,9 @@ int GMRFLib_read_graph_binary(GMRFLib_graph_tp ** graph, const char *filename)
 			g->nnbs[i] = g->nnbs[i + 1];
 			g->nbs[i] = g->nbs[i + 1];
 			g->nbs[i + 1] = NULL;
-			for (j = 0; j < g->nnbs[i]; j++)
+			for (j = 0; j < g->nnbs[i]; j++){
 				g->nbs[i][j]--;
+			}
 		}
 	} else if (min_node == 0 && max_node == g->n - 1) {
 		/*
@@ -505,8 +515,8 @@ int GMRFLib_read_graph_binary(GMRFLib_graph_tp ** graph, const char *filename)
 		GMRFLib_ERROR(GMRFLib_ESNH);
 	}
 
-	GMRFLib_EWRAP0(GMRFLib_prepare_graph(g));
-	GMRFLib_EWRAP0(GMRFLib_copy_graph(graph, g));
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(g));
+	GMRFLib_EWRAP0(GMRFLib_graph_duplicate(graph, g));
 
 	for (i = 0; i < g->n + 1; i++) {		       /* yes, its +1 */
 		Free(g->nbs[i]);
@@ -527,13 +537,13 @@ int GMRFLib_read_graph_binary(GMRFLib_graph_tp ** graph, const char *filename)
   \param[in,out] graph  A graph generated by a graph-generating
   library routine. At output, the graph and it's array members are
   all deallocated.
-  \sa GMRFLib_read_graph, GMRFLib_make_linear_graph, 
-  GMRFLib_make_lattice_graph, GMRFLib_prepare_graph, GMRFLib_read_graph_binary, etc...
+  \sa GMRFLib_graph_read, GMRFLib_graph_mk_linear, 
+  GMRFLib_graph_mk_lattice, GMRFLib_graph_prepare, GMRFLib_graph_read_binary, etc...
  */
-int GMRFLib_free_graph(GMRFLib_graph_tp * graph)
+int GMRFLib_graph_free(GMRFLib_graph_tp * graph)
 {
 	/*
-	 * free a graph build with ``GMRFLib_read_graph'' 
+	 * free a graph build with ``GMRFLib_graph_read'' 
 	 */
 	int i;
 
@@ -560,7 +570,7 @@ int GMRFLib_free_graph(GMRFLib_graph_tp * graph)
   \param[out] nelm Return the number of non-zero elements in Q in \a *nelm
   \param[in] graph The graph.
  */
-int GMRFLib_nQelm(int *nelm, GMRFLib_graph_tp * graph)
+int GMRFLib_graph_nnodes(int *nelm, GMRFLib_graph_tp * graph)
 {
 	/*
 	 * Return the number of non-zero elements in Q 
@@ -633,7 +643,7 @@ int GMRFLib_printbits(FILE * fp, GMRFLib_uchar c)
   \par Example:
   \verbinclude doxygen_is_neighbour.txt
  */
-int GMRFLib_is_neighb(int node, int nnode, GMRFLib_graph_tp * graph)
+int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 {
 	/*
 	 * plain version.  return 1 if nnode is a neighbour of node, otherwise 0. assume that the nodes are sorted. (if node == 
@@ -671,7 +681,7 @@ int GMRFLib_is_neighb(int node, int nnode, GMRFLib_graph_tp * graph)
 }
 
 /*!
-  \brief Prepare the graph by sort the vertices in increasing orders.
+  \brief Prepare the graph by sort the vertices in increasing orders and setup lnbs
 
   Post-processes a user-specified \c GMRFLib_graph_tp object, such that 
   the resulting graph is of the format required by the library functions 
@@ -684,20 +694,49 @@ int GMRFLib_is_neighb(int node, int nnode, GMRFLib_graph_tp * graph)
   \note If the user spesify its own graph, then this function MUST used to prepare internal
   structures and ensure that they are correct, otherwise, strange errors can occure.
 
-  \sa GMRFLib_read_graph
+  \sa GMRFLib_graph_read
  */
-int GMRFLib_prepare_graph(GMRFLib_graph_tp * graph)
+int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph)
 {
 	/*
 	 * prepare the graph by sort the vertices in increasing orders 
 	 */
-	GMRFLib_EWRAP0(GMRFLib_sort_nodes(graph));
-	GMRFLib_EWRAP0(GMRFLib_make_nodes_unique(graph));
+	GMRFLib_EWRAP0(GMRFLib_graph_sort(graph));
+	GMRFLib_EWRAP0(GMRFLib_graph_mk_unique(graph));
+	// this one needs to the the last one
+	GMRFLib_EWRAP0(GMRFLib_add_lnbs_info(graph));
 
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_make_nodes_unique(GMRFLib_graph_tp * graph)
+int GMRFLib_add_lnbs_info(GMRFLib_graph_tp *graph) 
+{
+	if (!graph) {
+		return GMRFLib_SUCCESS;
+	}
+
+	int n = graph->n, i, j, jj, k;
+	
+	graph->lnnbs = Calloc(n, int);
+	graph->lnbs = Calloc(n, int *);
+
+	for(i = 0; i < n; i++) {
+		for(k = 0, jj = 0; jj < graph->nnbs[i]; jj++) {
+			j = graph->nbs[i][jj];
+			if (j > i) {
+				k++;
+				if (!(graph->lnbs[i])) {
+					graph->lnbs[i] = &(graph->nbs[i][jj]);
+				}
+			}
+		}
+		graph->lnnbs[i] = k;
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_graph_mk_unique(GMRFLib_graph_tp * graph)
 {
 	/*
 	 * ensure the neigbours are unique. the neigbours must be sorted. 
@@ -725,7 +764,7 @@ int GMRFLib_make_nodes_unique(GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_sort_nodes(GMRFLib_graph_tp * graph)
+int GMRFLib_graph_sort(GMRFLib_graph_tp * graph)
 {
 	/*
 	 * sort the vertices in increasing order 
@@ -745,7 +784,7 @@ int GMRFLib_sort_nodes(GMRFLib_graph_tp * graph)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_compute_bandwidth(int *bandwidth, GMRFLib_graph_tp * graph, int *remap)
+int GMRFLib_graph_comp_bw(int *bandwidth, GMRFLib_graph_tp * graph, int *remap)
 {
 	int bw = 0, i, j, node;
 
@@ -784,7 +823,7 @@ int GMRFLib_find_idx(int *idx, int n, int *iarray, int value)
 
   \sa GMRFLib_error_handler
  */
-int GMRFLib_validate_graph(FILE * fp, GMRFLib_graph_tp * graph)
+int GMRFLib_graph_validate(FILE * fp, GMRFLib_graph_tp * graph)
 {
 
 	int i, j, jj, error = 0;
@@ -849,7 +888,7 @@ int GMRFLib_validate_graph(FILE * fp, GMRFLib_graph_tp * graph)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_remap_graph(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, int *remap)
+int GMRFLib_graph_remap(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, int *remap)
 {
 	/*
 	 * return the remapped graph based on 'graph'. the returned graph has the identity mapping. 
@@ -862,7 +901,7 @@ int GMRFLib_remap_graph(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, in
 		return GMRFLib_SUCCESS;
 	}
 
-	GMRFLib_make_empty_graph(ngraph);
+	GMRFLib_graph_mk_empty(ngraph);
 	(*ngraph)->n = graph->n;
 	(*ngraph)->nnbs = Calloc((*ngraph)->n, int);
 	(*ngraph)->nbs = Calloc((*ngraph)->n, int *);
@@ -903,7 +942,7 @@ int GMRFLib_remap_graph(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, in
 		}
 		indx += (*ngraph)->nnbs[i];
 	}
-	GMRFLib_EWRAP0(GMRFLib_prepare_graph(*ngraph));
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*ngraph));
 
 	return GMRFLib_SUCCESS;
 }
@@ -914,7 +953,7 @@ int GMRFLib_remap_graph(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, in
   \param[out] graph_new A \c GMRFLib_graph_tp -object. At output, it contains a copy of \em graph.
   \param[in] graph_old A \c GMRFLib_graph_tp -object.
  */
-int GMRFLib_copy_graph(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * graph_old)
+int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * graph_old)
 {
 	/*
 	 * there is no need to do call _prepare_graph is the old graph is assumed to be ok. 
@@ -929,56 +968,39 @@ int GMRFLib_copy_graph(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * graph_o
 		return GMRFLib_SUCCESS;
 	}
 
-	if (0) {
-		/*
-		 * old slow code 
-		 */
-		n = graph_old->n;
-		GMRFLib_compute_subgraph(&g, graph_old, NULL);
-		if (graph_old->mothergraph_idx) {
-			if (!g->mothergraph_idx)
-				g->mothergraph_idx = Calloc(n, int);
-			memcpy(g->mothergraph_idx, graph_old->mothergraph_idx, (size_t) (n * sizeof(int)));
-		}
-		*graph_new = g;
-	} else {
-		/*
-		 * new and better code 
-		 */
-		GMRFLib_make_empty_graph(&g);
-		g->n = n = graph_old->n;
-		g->nnbs = Calloc(n, int);
-		memcpy(g->nnbs, graph_old->nnbs, (size_t) (n * sizeof(int)));
+	GMRFLib_graph_mk_empty(&g);
+	g->n = n = graph_old->n;
+	g->nnbs = Calloc(n, int);
+	memcpy(g->nnbs, graph_old->nnbs, (size_t) (n * sizeof(int)));
 
-		for (i = m = 0; i < n; i++) {
-			m += g->nnbs[i];
-		}
-		if (m) {
-			hold = Calloc(m, int);
-			g->nbs = Calloc(n, int *);
+	GMRFLib_graph_nnodes(&m, graph_old);
+	m = m - graph_old->n;
+	hold = Calloc(IMAX(1, m), int);
+	g->nbs = Calloc(n, int *);
+	g->lnbs = Calloc(n, int *);
 
-			for (i = hold_idx = 0; i < n; i++) {
-				if (g->nnbs[i]) {
-					g->nbs[i] = &hold[hold_idx];
-					memcpy(g->nbs[i], graph_old->nbs[i], (size_t) (g->nnbs[i] * sizeof(int)));
-					hold_idx += g->nnbs[i];
-				}
-			}
+	for (i = hold_idx = 0; i < n; i++) {
+		if (g->nnbs[i]) {
+			g->nbs[i] = &hold[hold_idx];
+			memcpy(g->nbs[i], graph_old->nbs[i], (size_t) (g->nnbs[i] * sizeof(int)));
+			hold_idx += g->nnbs[i];
 		}
-		if (graph_old->mothergraph_idx) {
-			if (!g->mothergraph_idx) {
-				g->mothergraph_idx = Calloc(n, int);
-			}
-			memcpy(g->mothergraph_idx, graph_old->mothergraph_idx, (size_t) (n * sizeof(int)));
-		}
-		*graph_new = g;
 	}
+
+	if (graph_old->mothergraph_idx) {
+		if (!g->mothergraph_idx) {
+			g->mothergraph_idx = Calloc(n, int);
+		}
+		memcpy(g->mothergraph_idx, graph_old->mothergraph_idx, (size_t) (n * sizeof(int)));
+	}
+	*graph_new = g;
+	GMRFLib_graph_prepare(g);
 
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
-GMRFLib_sizeof_tp GMRFLib_sizeof_graph(GMRFLib_graph_tp * graph)
+GMRFLib_sizeof_tp GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph)
 {
 	/*
 	 * return, approximately, the sizeof GRAPH 
@@ -996,7 +1018,7 @@ GMRFLib_sizeof_tp GMRFLib_sizeof_graph(GMRFLib_graph_tp * graph)
 		m += graph->nnbs[i];
 	}
 
-	siz += sizeof(int) + m * sizeof(int) + n * sizeof(int) + n * sizeof(int *);
+	siz += sizeof(int) + m * sizeof(int) + 2* n * sizeof(int) + 2 * n * sizeof(int *);
 
 	if (graph->mothergraph_idx) {
 		siz += n * sizeof(int);
@@ -1018,9 +1040,8 @@ GMRFLib_sizeof_tp GMRFLib_sizeof_graph(GMRFLib_graph_tp * graph)
   \par Example:
   See \ref ex_graph
  */
-int GMRFLib_compute_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp * graph, char *remove_flag)
+int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp * graph, char *remove_flag)
 {
-
 	/*
 	 * return a subgraph of graph, by ruling out those nodes for which remove_flag[i] is true, keeping those which
 	 * remove_flag[i] false. 
@@ -1054,7 +1075,7 @@ int GMRFLib_compute_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp * gr
 		free_remove_flag = 1;
 	}
 
-	GMRFLib_make_empty_graph(subgraph);
+	GMRFLib_graph_mk_empty(subgraph);
 
 	for (i = 0, nn = 0; i < graph->n; i++) {
 		nn += (!remove_flag[i]);
@@ -1135,7 +1156,7 @@ int GMRFLib_compute_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp * gr
 			}
 		}
 	}
-	GMRFLib_EWRAP0(GMRFLib_prepare_graph(*subgraph));
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*subgraph));
 
 	if (free_remove_flag) {
 		Free(remove_flag);			       /* if we have used our own */
@@ -1256,7 +1277,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_print_Qfunc(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+int GMRFLib_Qfunc_print(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	int i, j, jj;
 
@@ -1331,7 +1352,7 @@ int GMRFLib_xQx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qf
 
   \sa GMRFLib_lattice2node, GMRFLib_node2lattice
  */
-int GMRFLib_make_lattice_graph(GMRFLib_graph_tp ** graph, int nrow, int ncol, int nb_row, int nb_col, int cyclic_flag)
+int GMRFLib_graph_mk_lattice(GMRFLib_graph_tp ** graph, int nrow, int ncol, int nb_row, int nb_col, int cyclic_flag)
 {
 	/*
 	 * make an lattice graph, with nodes from 0...n-1, and a (2 x nb_row +1) x (2 x nb_col + 1) neighborhood. if
@@ -1345,7 +1366,7 @@ int GMRFLib_make_lattice_graph(GMRFLib_graph_tp ** graph, int nrow, int ncol, in
 	n = ncol * nrow;
 	nnb = (2 * nb_row + 1) * (2 * nb_col + 1);
 
-	GMRFLib_make_empty_graph(graph);
+	GMRFLib_graph_mk_empty(graph);
 	(*graph)->n = n;
 	(*graph)->nnbs = Calloc(n, int);
 	(*graph)->nbs = Calloc(n, int *);
@@ -1388,7 +1409,7 @@ int GMRFLib_make_lattice_graph(GMRFLib_graph_tp ** graph, int nrow, int ncol, in
 		}
 	}
 
-	GMRFLib_EWRAP0(GMRFLib_prepare_graph(*graph));
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*graph));
 
 	return GMRFLib_SUCCESS;
 }
@@ -1411,7 +1432,7 @@ int GMRFLib_make_lattice_graph(GMRFLib_graph_tp ** graph, int nrow, int ncol, in
 
   \par Example:
   See \ref ex_graph
-  \sa GMRFLib_node2lattice, GMRFLib_make_lattice_graph
+  \sa GMRFLib_node2lattice, GMRFLib_graph_mk_lattice
  */
 int GMRFLib_lattice2node(int *node, int irow, int icol, int nrow, int ncol)
 {
@@ -1434,7 +1455,7 @@ int GMRFLib_lattice2node(int *node, int irow, int icol, int nrow, int ncol)
 
   \par Example:
   See \ref ex_graph
-  \sa GMRFLib_lattice2node, GMRFLib_make_lattice_graph
+  \sa GMRFLib_lattice2node, GMRFLib_graph_mk_lattice
  */
 int GMRFLib_node2lattice(int node, int *irow, int *icol, int nrow, int ncol)
 {
@@ -1464,7 +1485,7 @@ int GMRFLib_node2lattice(int node, int *irow, int *icol, int nrow, int ncol)
 
   \sa GMRFLib_init_wa_problem, GMRFLib_init_nwa_problem.
  */
-int GMRFLib_prune_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+int GMRFLib_graph_prune(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 
 	/*
@@ -1472,10 +1493,10 @@ int GMRFLib_prune_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph,
 	 */
 	int i, j, k, ii, *free_ptr = NULL, found;
 
-	GMRFLib_copy_graph(new_graph, graph);
+	GMRFLib_graph_duplicate(new_graph, graph);
 
 	/*
-	 * this is a bit tricky. as GMRFLib_free_graph free's the first ptr where nnbs[i]>0, then we must make sure that this
+	 * this is a bit tricky. as GMRFLib_graph_free free's the first ptr where nnbs[i]>0, then we must make sure that this
 	 * is the same ptr after pruning, as we modify `new_graph'. so, we need to store that ptr and make sure its ok after
 	 * pruning. 
 	 */
@@ -1500,7 +1521,7 @@ int GMRFLib_prune_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph,
 				(*new_graph)->nbs[i] = NULL;
 		}
 	}
-	GMRFLib_EWRAP0(GMRFLib_prepare_graph(*new_graph));
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*new_graph));
 
 	for (i = 0, found = 0; i < (*new_graph)->n; i++) {
 		if ((*new_graph)->nnbs[i]) {
@@ -1551,12 +1572,12 @@ int GMRFLib_prune_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph,
   \par Example:
   See \ref ex_graph
  */
-int GMRFLib_make_linear_graph(GMRFLib_graph_tp ** graph, int n, int bw, int cyclic_flag)
+int GMRFLib_graph_mk_linear(GMRFLib_graph_tp ** graph, int n, int bw, int cyclic_flag)
 {
 	int i, j, k, *hold = NULL;
 
 	bw = IMIN(n - 1, IMAX(0, bw));
-	GMRFLib_make_empty_graph(graph);
+	GMRFLib_graph_mk_empty(graph);
 	(*graph)->n = n;
 	(*graph)->nnbs = Calloc(n, int);
 	(*graph)->nbs = Calloc(n, int *);
@@ -1596,14 +1617,14 @@ int GMRFLib_make_linear_graph(GMRFLib_graph_tp ** graph, int n, int bw, int cycl
 		}
 	}
 
-	GMRFLib_EWRAP0(GMRFLib_prepare_graph(*graph));
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*graph));
 	return GMRFLib_SUCCESS;
 }
 
 
 /* NOT DOCUMENTED
    
-  \brief Internal function in \c GMRFLib_nfold_graph().
+  \brief Internal function in \c GMRFLib_graph_nfold().
 
   Returns a new graph created by expanding one graph \em g with another 
   graph \em  gg. The two graphs must have the same number of nodes.
@@ -1620,9 +1641,9 @@ int GMRFLib_make_linear_graph(GMRFLib_graph_tp ** graph, int n, int bw, int cycl
   \f$ j_g \f$ are neighbours in \em gg. The new graph \em ng is equal to the
   expanded version of of \em g.
 
-  \sa GMRFLib_nfold_graph
+  \sa GMRFLib_graph_nfold
  */
-int GMRFLib_fold_graph(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_graph_tp * gg)
+int GMRFLib_graph_fold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_graph_tp * gg)
 {
 	/*
 	 * return ng = g * gg, meaning that ng is g expanded by gg 
@@ -1638,13 +1659,13 @@ int GMRFLib_fold_graph(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_gra
 		return GMRFLib_SUCCESS;
 	}
 	if ((g && !gg) || (gg && !g)) {
-		GMRFLib_copy_graph(ng, (g ? g : gg));
+		GMRFLib_graph_duplicate(ng, (g ? g : gg));
 		return GMRFLib_SUCCESS;
 	}
 
 	GMRFLib_ASSERT(g->n == gg->n, GMRFLib_EPARAMETER);     /* of same size? */
 
-	GMRFLib_make_empty_graph(&newg);
+	GMRFLib_graph_mk_empty(&newg);
 	newg->n = g->n;
 	newg->nnbs = Calloc(g->n, int);
 	newg->nbs = Calloc(g->n, int *);
@@ -1709,7 +1730,7 @@ int GMRFLib_fold_graph(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_gra
 		}
 		indx += newg->nnbs[i];
 	}
-	GMRFLib_EWRAP0(GMRFLib_prepare_graph(newg));
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(newg));
 	*ng = newg;
 
 	return GMRFLib_SUCCESS;
@@ -1731,7 +1752,7 @@ int GMRFLib_fold_graph(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_gra
 
   \remarks Given the old graph \em og, the new graph \em ng is created 
   by expanding the neighbours of \em og by it's own neighbourhood 
-  <em>nfold-1</em> times. The function GMRFLib_fold_graph is called 
+  <em>nfold-1</em> times. The function GMRFLib_graph_fold is called 
   successively <em>nfold-1</em> times, the first time using 
   <em>g = gg = og</em>, and in successive runs letting <em>g = gprev</em> 
   and <em>gg = og</em>, where \em gprev is the resulting graph of 
@@ -1743,7 +1764,7 @@ int GMRFLib_fold_graph(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_gra
   \par Example
   See \ref ex_graph
  */
-int GMRFLib_nfold_graph(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * og, int nfold)
+int GMRFLib_graph_nfold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * og, int nfold)
 {
 	/*
 	 * make new graph, 'ng', that is 'nfold' of 'og'
@@ -1755,18 +1776,18 @@ int GMRFLib_nfold_graph(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * og, int nfold
 	GMRFLib_graph_tp *newg = NULL, *oldg = NULL;
 
 	if (nfold == 0) {
-		GMRFLib_make_empty_graph(&newg);
+		GMRFLib_graph_mk_empty(&newg);
 		newg->n = og->n;
 		newg->nnbs = Calloc(newg->n, int);
 		newg->nbs = Calloc(newg->n, int *);
 
-		GMRFLib_EWRAP0(GMRFLib_prepare_graph(newg));
+		GMRFLib_EWRAP0(GMRFLib_graph_prepare(newg));
 	} else if (nfold == 1) {
-		GMRFLib_copy_graph(&newg, og);
+		GMRFLib_graph_duplicate(&newg, og);
 	} else {
 		for (i = 0, oldg = newg = NULL; i < nfold; i++) {
-			GMRFLib_fold_graph(&newg, oldg, og);
-			GMRFLib_free_graph(oldg);
+			GMRFLib_graph_fold(&newg, oldg, og);
+			GMRFLib_graph_free(oldg);
 			if (i < nfold - 1) {
 				oldg = newg;
 				newg = NULL;
@@ -1784,7 +1805,7 @@ int GMRFLib_nfold_graph(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * og, int nfold
   <em>i~j</em> in union_graph, if <em>i~j</em> in
   <em>graph_array[0]...graph_array[n_graphs-1]</em> \n\n
 */
-int GMRFLib_union_graph(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** graph_array, int n_graphs)
+int GMRFLib_graph_union(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** graph_array, int n_graphs)
 {
 	/*
 	 * return a new graph which is the union of n_graphs graphs: i~j in union_graph, if i~j in
@@ -1801,7 +1822,7 @@ int GMRFLib_union_graph(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** gra
 	for (k = 1; k < n_graphs; k++)
 		GMRFLib_ASSERT(graph_array[0]->n == graph_array[k]->n, GMRFLib_EPARAMETER);
 
-	GMRFLib_make_empty_graph(union_graph);
+	GMRFLib_graph_mk_empty(union_graph);
 	(*union_graph)->n = graph_array[0]->n;
 	(*union_graph)->nnbs = Calloc((*union_graph)->n, int);
 	(*union_graph)->nbs = Calloc((*union_graph)->n, int *);
@@ -1845,14 +1866,14 @@ int GMRFLib_union_graph(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** gra
 			(*union_graph)->nbs[node] = NULL;
 		}
 	}
-	GMRFLib_EWRAP0(GMRFLib_prepare_graph(*union_graph));   /* this is required */
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*union_graph));   /* this is required */
 
 	/*
 	 * the union_graph is now (probably) to large as it acounts for multiple counts. the easiest way out of this, is to
 	 * make (and use) a new copy, then free the current one. 
 	 */
-	GMRFLib_copy_graph(&tmp_graph, *union_graph);
-	GMRFLib_free_graph(*union_graph);
+	GMRFLib_graph_duplicate(&tmp_graph, *union_graph);
+	GMRFLib_graph_free(*union_graph);
 	*union_graph = tmp_graph;
 
 	return GMRFLib_SUCCESS;
@@ -1869,7 +1890,7 @@ int GMRFLib_union_graph(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** gra
     then <em>j~i</em>, then this routine just returns a copy of the
     graph, allthough it will be a bit slow.
  */
-int GMRFLib_complete_graph(GMRFLib_graph_tp ** n_graph, GMRFLib_graph_tp * graph)
+int GMRFLib_graph_complete(GMRFLib_graph_tp ** n_graph, GMRFLib_graph_tp * graph)
 {
 	/*
 	 * return a new graph that is complete: if i~j but j!~i, then add j~i 
@@ -1885,7 +1906,7 @@ int GMRFLib_complete_graph(GMRFLib_graph_tp ** n_graph, GMRFLib_graph_tp * graph
 	/*
 	 * setup new graph 
 	 */
-	GMRFLib_make_empty_graph(n_graph);
+	GMRFLib_graph_mk_empty(n_graph);
 	neigh_size = Calloc(graph->n, int);
 	(*n_graph)->n = graph->n;
 	(*n_graph)->nbs = Calloc(graph->n, int *);
@@ -1945,13 +1966,13 @@ int GMRFLib_complete_graph(GMRFLib_graph_tp ** n_graph, GMRFLib_graph_tp * graph
 			}
 		}
 	}
-	GMRFLib_EWRAP0(GMRFLib_prepare_graph(*n_graph));
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*n_graph));
 
 	Free(neigh_size);
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_offset_graph(GMRFLib_graph_tp ** new_graph, int n_new, int offset, GMRFLib_graph_tp * graph)
+int GMRFLib_graph_insert(GMRFLib_graph_tp ** new_graph, int n_new, int offset, GMRFLib_graph_tp * graph)
 {
 	/*
 	 * insert graph into a larger graph with n_new nodes such that node `i' in graph corresponds to node `offset +i' in the 
@@ -1966,7 +1987,7 @@ int GMRFLib_offset_graph(GMRFLib_graph_tp ** new_graph, int n_new, int offset, G
 		n_neig += graph->nnbs[i];
 	}
 
-	GMRFLib_make_empty_graph(&g);
+	GMRFLib_graph_mk_empty(&g);
 	g->n = n_new;
 	g->nnbs = Calloc(n_new, int);
 	g->nbs = Calloc(n_new, int *);
@@ -1987,7 +2008,7 @@ int GMRFLib_offset_graph(GMRFLib_graph_tp ** new_graph, int n_new, int offset, G
 			g->nbs[ii][j] = graph->nbs[i][j] + offset;
 		}
 	}
-	GMRFLib_EWRAP0(GMRFLib_prepare_graph(g));
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(g));
 
 	*new_graph = g;
 
@@ -2025,7 +2046,7 @@ int GMRFLib_offset(GMRFLib_offset_tp ** off, int n_new, int offset, GMRFLib_grap
 	offset_arg->n = graph->n;
 
 	val = Calloc(1, GMRFLib_offset_tp);
-	GMRFLib_offset_graph(&(val->graph), n_new, offset, graph);
+	GMRFLib_graph_insert(&(val->graph), n_new, offset, graph);
 
 	val->Qfunc = GMRFLib_offset_Qfunc;
 	val->Qfunc_arg = (void *) offset_arg;
@@ -2034,7 +2055,7 @@ int GMRFLib_offset(GMRFLib_offset_tp ** off, int n_new, int offset, GMRFLib_grap
 
 	return GMRFLib_SUCCESS;
 }
-int *GMRFLib_connected_components(GMRFLib_graph_tp * g)
+int *GMRFLib_graph_cc(GMRFLib_graph_tp * g)
 {
 	/*
 	 * return a vector of length n, indicating which connecting component each node belongs to 
@@ -2055,7 +2076,7 @@ int *GMRFLib_connected_components(GMRFLib_graph_tp * g)
 	for (i = 0; i < n; i++) {
 		if (!visited[i]) {
 			ccc++;
-			GMRFLib_connected_components_do(i, g, cc, visited, &ccc);
+			GMRFLib_graph_cc_do(i, g, cc, visited, &ccc);
 		}
 	}
 
@@ -2063,7 +2084,7 @@ int *GMRFLib_connected_components(GMRFLib_graph_tp * g)
 
 	return cc;
 }
-int GMRFLib_connected_components_do(int node, GMRFLib_graph_tp * g, int *cc, char *visited, int *ccc)
+int GMRFLib_graph_cc_do(int node, GMRFLib_graph_tp * g, int *cc, char *visited, int *ccc)
 {
 	if (visited[node]) {				       /* I don't need this but include it for clarity */
 		return GMRFLib_SUCCESS;
@@ -2076,7 +2097,7 @@ int GMRFLib_connected_components_do(int node, GMRFLib_graph_tp * g, int *cc, cha
 	for (i = 0; i < g->nnbs[node]; i++) {
 		nnode = g->nbs[node][i];
 		if (!visited[nnode]) {			       /* faster to do a check here than to doit inside the funcall */
-			GMRFLib_connected_components_do(nnode, g, cc, visited, ccc);
+			GMRFLib_graph_cc_do(nnode, g, cc, visited, ccc);
 		}
 	}
 
@@ -2086,7 +2107,7 @@ int GMRFLib_connected_components_do(int node, GMRFLib_graph_tp * g, int *cc, cha
 
 /*
   Example for manual
- */
+*/
 
 /*! \page ex_graph Graph specification and handling. 
   This page includes the examples
@@ -2099,7 +2120,7 @@ int GMRFLib_connected_components_do(int node, GMRFLib_graph_tp * g, int *cc, cha
   This program performs the following tasks:
   
   - Reads a graph from the file \c graph1.dat, given below,
-  of the form required by the function \c GMRFLib_read_graph(). 
+  of the form required by the function \c GMRFLib_graph_read(). 
   The specified graph has 10 nodes, with each of them having between 1 and 5 neighbours. 
   \verbinclude doxygen_graph_2.txt
   
@@ -2108,7 +2129,7 @@ int GMRFLib_connected_components_do(int node, GMRFLib_graph_tp * g, int *cc, cha
   - Computes a subgraph, by specifying nodes to be removed from
   the graph. More specifically, the first half of the nodes,
   that is node 0, ..., 4, are specified to be removed.  To
-  compute the subgraph, the function \c GMRFLib_compute_subgraph() is called.
+  compute the subgraph, the function \c GMRFLib_graph_comp_subgraph() is called.
   
   - Frees allocated memory.
 

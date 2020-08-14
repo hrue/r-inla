@@ -2575,11 +2575,9 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 		assert(group_graph);
 		for (i = 0; i < group_graph->n; i++) {
 			int jj;
-			for (jj = 0; jj < group_graph->nnbs[i]; jj++) {
-				j = group_graph->nbs[i][jj];
-				if (j > i) {
-					GMRFLib_ged_insert_graph2(ged, graph, i * n, j * n);
-				}
+			for (jj = 0; jj < group_graph->lnnbs[i]; jj++) {
+				j = group_graph->lnbs[i][jj];
+				GMRFLib_ged_insert_graph2(ged, graph, i * n, j * n);
 			}
 		}
 		break;
@@ -2598,7 +2596,7 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 
 	if (0) {
 		FILE *fp = fopen("g.dat", "w");
-		GMRFLib_print_graph(fp, new_graph[0]);
+		GMRFLib_graph_printf(fp, new_graph[0]);
 		fclose(fp);
 	}
 
@@ -2678,7 +2676,7 @@ double Qfunc_generic3(int i, int j, double *values, void *arg)
 	int k, same = (i == j);
 
 	for (k = 0; k < a->m; k++) {
-		if (same || GMRFLib_is_neighb(i, j, a->g[k])) {
+		if (same || GMRFLib_graph_is_nb(i, j, a->g[k])) {
 			prec = map_precision(a->log_prec[k][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 			val += prec * a->tab[k]->Qfunc(i, j, NULL, a->tab[k]->Qfunc_arg);
 		}
@@ -2717,7 +2715,7 @@ int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate)
 	for (i = 0; i < replicate; i++) {
 		GMRFLib_ged_append_graph(ged, *g);
 	}
-	GMRFLib_free_graph(*g);
+	GMRFLib_graph_free(*g);
 	GMRFLib_ged_build(g, ged);
 	GMRFLib_ged_free(ged);
 
@@ -2732,10 +2730,10 @@ double Qfunc_z(int i, int j, double *values, void *arg)
 	inla_z_arg_tp *a = (inla_z_arg_tp *) arg;
 	double value = 0.0;
 
-	if (i == j || GMRFLib_is_neighb(i, j, a->graph_A)) {
+	if (i == j || GMRFLib_graph_is_nb(i, j, a->graph_A)) {
 		value += a->Qfunc_A->Qfunc(i, j, NULL, a->Qfunc_A->Qfunc_arg);
 	}
-	if (i == j || GMRFLib_is_neighb(i, j, a->graph_B)) {
+	if (i == j || GMRFLib_graph_is_nb(i, j, a->graph_B)) {
 		/*
 		 * doit like this, as most of the elements in B are zero
 		 */
@@ -2765,16 +2763,16 @@ double Qfunc_slm(int i, int j, double *values, void *arg)
 		}
 	}
 
-	if (i == j || GMRFLib_is_neighb(i, j, a->graph_A1)) {
+	if (i == j || GMRFLib_graph_is_nb(i, j, a->graph_A1)) {
 		value += prec * a->Qfunc_A1->Qfunc(i, j, NULL, a->Qfunc_A1->Qfunc_arg);
 	}
-	if (i == j || GMRFLib_is_neighb(i, j, a->graph_A2)) {
+	if (i == j || GMRFLib_graph_is_nb(i, j, a->graph_A2)) {
 		value += a->Qfunc_A2->Qfunc(i, j, NULL, a->Qfunc_A2->Qfunc_arg);
 	}
-	if (i == j || GMRFLib_is_neighb(i, j, a->graph_B)) {
+	if (i == j || GMRFLib_graph_is_nb(i, j, a->graph_B)) {
 		value += prec * rho * a->Qfunc_B->Qfunc(i, j, NULL, a->Qfunc_B->Qfunc_arg);
 	}
-	if (i == j || GMRFLib_is_neighb(i, j, a->graph_C)) {
+	if (i == j || GMRFLib_graph_is_nb(i, j, a->graph_C)) {
 		value += prec * SQR(rho) * a->Qfunc_C->Qfunc(i, j, NULL, a->Qfunc_C->Qfunc_arg);
 	}
 
@@ -2851,7 +2849,7 @@ double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 			GMRFLib_tabulate_Qfunc_from_list(&(a->Q[id]), &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
 			assert(graph->n == a->n);
 		}
-		GMRFLib_free_graph(graph);
+		GMRFLib_graph_free(graph);
 		Free(ilist);
 		Free(jlist);
 		Free(Qijlist);
@@ -3302,11 +3300,11 @@ double Qfunc_2diid_wishart(int i, int j, double *values, void *arg)
 }
 int inla_make_ar1_graph(GMRFLib_graph_tp ** graph, inla_ar1_arg_tp * arg)
 {
-	return GMRFLib_make_linear_graph(graph, arg->n, 1, arg->cyclic);
+	return GMRFLib_graph_mk_linear(graph, arg->n, 1, arg->cyclic);
 }
 int inla_make_ou_graph(GMRFLib_graph_tp ** graph, inla_ou_arg_tp * arg)
 {
-	return GMRFLib_make_linear_graph(graph, arg->n, 1, 0);
+	return GMRFLib_graph_mk_linear(graph, arg->n, 1, 0);
 }
 double Qfunc_ar1(int i, int j, double *values, void *arg)
 {
@@ -17142,9 +17140,9 @@ GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n)
 	 */
 	GMRFLib_graph_tp *g = NULL;
 
-	GMRFLib_make_linear_graph(&g, n, 0, 0);
+	GMRFLib_graph_mk_linear(&g, n, 0, 0);
 	GMRFLib_prepare_constr(c, g, 0);
-	GMRFLib_free_graph(g);
+	GMRFLib_graph_free(g);
 	Free(x);
 	return c;
 }
@@ -17207,9 +17205,9 @@ GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp * 
 	 */
 	GMRFLib_graph_tp *g = NULL;
 
-	GMRFLib_make_linear_graph(&g, n, 0, 0);
+	GMRFLib_graph_mk_linear(&g, n, 0, 0);
 	GMRFLib_prepare_constr(c, g, 0);
-	GMRFLib_free_graph(g);
+	GMRFLib_graph_free(g);
 
 	return c;
 }
@@ -17262,9 +17260,9 @@ GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRF
 	 */
 	GMRFLib_graph_tp *g = NULL;
 
-	GMRFLib_make_linear_graph(&g, Ntotal, 0, 0);
+	GMRFLib_graph_mk_linear(&g, Ntotal, 0, 0);
 	GMRFLib_prepare_constr(c, g, 0);
-	GMRFLib_free_graph(g);
+	GMRFLib_graph_free(g);
 
 	return c;
 }
@@ -17348,11 +17346,11 @@ int inla_make_intslope_graph(GMRFLib_graph_tp ** graph, inla_intslope_arg_tp * a
 	}
 	GMRFLib_ged_build(graph, ged);
 	GMRFLib_ged_free(ged);
-	GMRFLib_free_graph(g);
+	GMRFLib_graph_free(g);
 
 	if (0) {
-		GMRFLib_print_graph(stdout, *graph);
-		GMRFLib_write_graph("GRAPH", *graph);
+		GMRFLib_graph_printf(stdout, *graph);
+		GMRFLib_graph_write("GRAPH", *graph);
 	}
 
 	return GMRFLib_SUCCESS;
@@ -18217,13 +18215,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			w = gsl_eigen_symm_alloc(nn);
 			for (i = 0; i < nn; i++) {
 				gsl_matrix_set(C, i, i, arg->tab->Qfunc(i, i, NULL, arg->tab->Qfunc_arg));
-				for (jj = 0; jj < g->nnbs[i]; jj++) {
-					j = g->nbs[i][jj];
-					if (j > i) {
-						double val = arg->tab->Qfunc(i, j, NULL, arg->tab->Qfunc_arg);
-						gsl_matrix_set(C, i, j, val);
-						gsl_matrix_set(C, j, i, val);
-					}
+				for (jj = 0; jj < g->lnnbs[i]; jj++) {
+					j = g->lnbs[i][jj];
+					double val = arg->tab->Qfunc(i, j, NULL, arg->tab->Qfunc_arg);
+					gsl_matrix_set(C, i, j, val);
+					gsl_matrix_set(C, j, i, val);
 				}
 			}
 			gsl_eigen_symm(C, evalues, w);
@@ -18286,7 +18282,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				GMRFLib_ged_add(ged, ii, ii + nn);
 			}
 			GMRFLib_ged_insert_graph(ged, g, nn);
-			GMRFLib_free_graph(g);
+			GMRFLib_graph_free(g);
 			GMRFLib_ged_build(&g, ged);
 			assert(g->n == 2 * nn);
 			GMRFLib_ged_free(ged);
@@ -18339,8 +18335,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				Free(ctmp);
 				Free(filename);
 			}
-			GMRFLib_union_graph(&(arg->graph), arg->g, arg->m);
-			GMRFLib_union_graph(&(arg_orig->graph), arg_orig->g, arg_orig->m);
+			GMRFLib_graph_union(&(arg->graph), arg->g, arg->m);
+			GMRFLib_graph_union(&(arg_orig->graph), arg_orig->g, arg_orig->m);
 
 			mb->f_graph[mb->nf] = arg->graph;
 			mb->f_graph_orig[mb->nf] = arg_orig->graph;
@@ -18366,7 +18362,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			if (mb->verbose) {
 				printf("\t\tread graph from file=[%s]\n", filename);
 			}
-			GMRFLib_read_graph(&(mb->f_graph[mb->nf]), filename);
+			GMRFLib_graph_read(&(mb->f_graph[mb->nf]), filename);
 			if (mb->f_graph[mb->nf]->n <= 0) {
 				GMRFLib_sprintf(&msg, "graph=[%s] has zero size", filename);
 				inla_error_general(msg);
@@ -18387,7 +18383,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			if (mb->verbose) {
 				printf("\t\tread graph from file=[%s]\n", filename);
 			}
-			GMRFLib_read_graph(&(mb->f_graph[mb->nf]), filename);
+			GMRFLib_graph_read(&(mb->f_graph[mb->nf]), filename);
 			if (mb->f_graph[mb->nf]->n <= 0) {
 				GMRFLib_sprintf(&msg, "graph=[%s] has zero size", filename);
 				inla_error_general(msg);
@@ -18412,7 +18408,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			if (mb->verbose) {
 				printf("\t\tread graph from file=[%s]\n", filename);
 			}
-			GMRFLib_read_graph(&(mb->f_graph[mb->nf]), filename);
+			GMRFLib_graph_read(&(mb->f_graph[mb->nf]), filename);
 			if (mb->f_graph[mb->nf]->n <= 0) {
 				GMRFLib_sprintf(&msg, "graph=[%s] has zero size", filename);
 				inla_error_general(msg);
@@ -18434,7 +18430,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			if (mb->verbose) {
 				printf("\t\tread graph from file=[%s]\n", filename);
 			}
-			GMRFLib_read_graph(&(mb->f_graph[mb->nf]), filename);
+			GMRFLib_graph_read(&(mb->f_graph[mb->nf]), filename);
 			if (mb->f_graph[mb->nf]->n <= 0) {
 				GMRFLib_sprintf(&msg, "graph=[%s] has zero size", filename);
 				inla_error_general(msg);
@@ -22534,7 +22530,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def->precision = mb->f_precision[mb->nf];
 		def->x = mb->f_locations[mb->nf];
 
-		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
+		GMRFLib_graph_mk_linear(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
 		mb->f_Qfunc[mb->nf] = Qfunc_clinear;
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
@@ -22563,7 +22559,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def->precision = mb->f_precision[mb->nf];
 		def->x = mb->f_locations[mb->nf];
 
-		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
+		GMRFLib_graph_mk_linear(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
 		mb->f_Qfunc[mb->nf] = Qfunc_sigm;
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
@@ -22590,7 +22586,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def->precision = mb->f_precision[mb->nf];
 		def->x = mb->f_locations[mb->nf];
 
-		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
+		GMRFLib_graph_mk_linear(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
 		mb->f_Qfunc[mb->nf] = Qfunc_log1exp;
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
@@ -22617,7 +22613,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def->precision = mb->f_precision[mb->nf];
 		def->x = mb->f_locations[mb->nf];
 
-		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
+		GMRFLib_graph_mk_linear(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
 		mb->f_Qfunc[mb->nf] = Qfunc_logdist;
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
@@ -22641,7 +22637,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		mb->f_Qfunc[mb->nf] = Qfunc_besag;
 		arg = Calloc(1, inla_besag_Qfunc_arg_tp);
-		GMRFLib_copy_graph(&(arg->graph), mb->f_graph[mb->nf]);
+		GMRFLib_graph_duplicate(&(arg->graph), mb->f_graph[mb->nf]);
 		arg->log_prec = log_prec;
 
 		int adj = iniparser_getint(ini, inla_string_join(secname, "ADJUST.FOR.CON.COMP"), 1);
@@ -22663,7 +22659,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_BESAG;
 
 		// arg->log_prec[0][0] = 0;
-		// GMRFLib_print_Qfunc(stderr, mb->f_graph[mb->nf], mb->f_Qfunc[mb->nf], mb->f_Qfunc_arg[mb->nf]);
+		// GMRFLib_Qfunc_print(stderr, mb->f_graph[mb->nf], mb->f_Qfunc[mb->nf], mb->f_Qfunc_arg[mb->nf]);
 		break;
 	}
 
@@ -22726,7 +22722,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * args to the 'besag' model (spatial) 
 		 */
-		GMRFLib_copy_graph(&(arg->besag_arg->graph), g);
+		GMRFLib_graph_duplicate(&(arg->besag_arg->graph), g);
 		arg->besag_arg->log_prec = log_prec1;
 
 		int adj = iniparser_getint(ini, inla_string_join(secname, "ADJUST.FOR.CON.COMP"), 1);
@@ -22812,7 +22808,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		g = mb->f_graph[mb->nf];
 		inla_make_bym_graph(&(mb->f_graph[mb->nf]), g);	/* yes, its the same graph */
-		GMRFLib_copy_graph(&(arg->besag_arg->graph), g);
+		GMRFLib_graph_duplicate(&(arg->besag_arg->graph), g);
 
 		int adj = iniparser_getint(ini, inla_string_join(secname, "ADJUST.FOR.CON.COMP"), 1);
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 1);
@@ -22863,9 +22859,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		mb->f_Qfunc[mb->nf] = Qfunc_besagproper;
 		mb->f_Qfunc_orig[mb->nf] = Qfunc_besagproper;
-		GMRFLib_copy_graph(&arg->graph, mb->f_graph[mb->nf]);
-		GMRFLib_copy_graph(&arg_orig->graph, mb->f_graph[mb->nf]);
-		GMRFLib_copy_graph(&mb->f_graph_orig[mb->nf], mb->f_graph[mb->nf]);
+		GMRFLib_graph_duplicate(&arg->graph, mb->f_graph[mb->nf]);
+		GMRFLib_graph_duplicate(&arg_orig->graph, mb->f_graph[mb->nf]);
+		GMRFLib_graph_duplicate(&mb->f_graph_orig[mb->nf], mb->f_graph[mb->nf]);
 		arg->log_prec = log_prec;
 		arg->log_diag = log_diag;
 		arg_orig->log_prec = arg_orig->log_diag = NULL;
@@ -22885,9 +22881,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		mb->f_Qfunc[mb->nf] = Qfunc_besagproper2;
 		mb->f_Qfunc_orig[mb->nf] = Qfunc_besagproper2;
-		GMRFLib_copy_graph(&arg->graph, mb->f_graph[mb->nf]);
-		GMRFLib_copy_graph(&arg_orig->graph, mb->f_graph[mb->nf]);
-		GMRFLib_copy_graph(&mb->f_graph_orig[mb->nf], mb->f_graph[mb->nf]);
+		GMRFLib_graph_duplicate(&arg->graph, mb->f_graph[mb->nf]);
+		GMRFLib_graph_duplicate(&arg_orig->graph, mb->f_graph[mb->nf]);
+		GMRFLib_graph_duplicate(&mb->f_graph_orig[mb->nf], mb->f_graph[mb->nf]);
 		arg->log_prec = log_prec;
 		arg->logit_lambda = phi_intern;
 		arg_orig->log_prec = arg_orig->logit_lambda = NULL;
@@ -22944,7 +22940,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 
-		GMRFLib_make_linear_graph(&g, def->n, def->p, 0);
+		GMRFLib_graph_mk_linear(&g, def->n, def->p, 0);
 		mb->f_Qfunc[mb->nf] = Qfunc_ar;
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 		mb->f_rankdef[mb->nf] = 0.0;
@@ -23002,7 +22998,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		gs[0] = graph_A;
 		gs[1] = graph_B;
-		GMRFLib_union_graph(&graph_AB, gs, 2);
+		GMRFLib_graph_union(&graph_AB, gs, 2);
 
 		arg = Calloc(1, inla_z_arg_tp);
 		arg->n = zn;
@@ -23024,8 +23020,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_Qfunc_arg_orig[mb->nf] = (void *) arg_orig;
 		mb->f_rankdef[mb->nf] = 0;		       /* default value */
-		GMRFLib_copy_graph(&(mb->f_graph[mb->nf]), graph_AB);
-		GMRFLib_copy_graph(&(mb->f_graph_orig[mb->nf]), graph_AB);
+		GMRFLib_graph_duplicate(&(mb->f_graph[mb->nf]), graph_AB);
+		GMRFLib_graph_duplicate(&(mb->f_graph_orig[mb->nf]), graph_AB);
 		break;
 	}
 
@@ -23048,14 +23044,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_C, &graph_C, Cm, slm_n + slm_m, NULL, NULL, NULL);
 
 		// FIXME("Matrix A1");
-		// GMRFLib_print_Qfunc(stdout, graph_A1, Qfunc_A1->Qfunc, Qfunc_A1->Qfunc_arg);
+		// GMRFLib_Qfunc_print(stdout, graph_A1, Qfunc_A1->Qfunc, Qfunc_A1->Qfunc_arg);
 		// exit(0);
 
 		gs[0] = graph_A1;
 		gs[1] = graph_A2;
 		gs[2] = graph_B;
 		gs[3] = graph_C;
-		GMRFLib_union_graph(&graph_slm, gs, 4);
+		GMRFLib_graph_union(&graph_slm, gs, 4);
 
 		arg = Calloc(1, inla_slm_arg_tp);
 		arg->rho_min = slm_rho_min;
@@ -23088,8 +23084,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_Qfunc_arg_orig[mb->nf] = (void *) arg_orig;
 		mb->f_rankdef[mb->nf] = 0;		       /* default value */
-		GMRFLib_copy_graph(&(mb->f_graph[mb->nf]), graph_slm);
-		GMRFLib_copy_graph(&(mb->f_graph_orig[mb->nf]), graph_slm);
+		GMRFLib_graph_duplicate(&(mb->f_graph[mb->nf]), graph_slm);
+		GMRFLib_graph_duplicate(&(mb->f_graph_orig[mb->nf]), graph_slm);
 		break;
 	}
 
@@ -23278,7 +23274,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def->map_beta_arg = mb->f_theta_map_arg[mb->nf][0];
 		memcpy(def->scale, mb->f_scale[mb->nf], mb->predictor_n * sizeof(double));
 
-		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
+		GMRFLib_graph_mk_linear(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
 		mb->f_Qfunc[mb->nf] = Qfunc_mec;
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
@@ -23330,7 +23326,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		memcpy(def->scale, mb->f_scale[mb->nf], mb->predictor_n * sizeof(double));
 		def->map_beta_arg = mb->f_theta_map_arg[mb->nf][0];
 
-		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
+		GMRFLib_graph_mk_linear(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
 		mb->f_Qfunc[mb->nf] = Qfunc_meb;
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
@@ -23432,7 +23428,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc[mb->nf] = Qfunc_rgeneric;
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 
-		GMRFLib_copy_graph(&ggraph, graph);
+		GMRFLib_graph_duplicate(&ggraph, graph);
 		mb->f_graph_orig[mb->nf] = ggraph;
 		mb->f_Qfunc_orig[mb->nf] = Qfunc_rgeneric;
 		mb->f_Qfunc_arg_orig[mb->nf] = (void *) def_orig;
@@ -23766,8 +23762,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_Qfunc_arg_orig[mb->nf] = (void *) arg_orig;
 		// dense graph
-		GMRFLib_make_linear_graph(&(mb->f_graph[mb->nf]), arg->n, arg->n, 0);
-		GMRFLib_make_linear_graph(&(mb->f_graph_orig[mb->nf]), arg->n, arg->n, 0);
+		GMRFLib_graph_mk_linear(&(mb->f_graph[mb->nf]), arg->n, arg->n, 0);
+		GMRFLib_graph_mk_linear(&(mb->f_graph_orig[mb->nf]), arg->n, arg->n, 0);
 		mb->f_rankdef[mb->nf] = 0.0;
 		assert(mb->f_n[mb->nf] == arg->n);
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
@@ -24082,7 +24078,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 			ptmp2 = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GROUP.GRAPH"), NULL));
 			if (ptmp2) {
-				GMRFLib_read_graph(&(mb->f_group_graph[mb->nf]), ptmp2);
+				GMRFLib_graph_read(&(mb->f_group_graph[mb->nf]), ptmp2);
 			}
 
 			mb->f_group_cyclic[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "GROUP.CYCLIC"), 0);
@@ -24412,7 +24408,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 			inla_make_group_graph(&g, mb->f_graph[mb->nf], ng, mb->f_group_model[mb->nf], mb->f_group_cyclic[mb->nf],
 					      mb->f_group_order[mb->nf], mb->f_group_graph[mb->nf]);
-			GMRFLib_free_graph(mb->f_graph[mb->nf]);
+			GMRFLib_graph_free(mb->f_graph[mb->nf]);
 			mb->f_graph[mb->nf] = g;
 
 			/*
@@ -24713,7 +24709,7 @@ int inla_add_copyof(inla_tp * mb)
 			/*
 			 * yes, just use that size 
 			 */
-			GMRFLib_make_linear_graph(&(mb->f_graph[k]), mb->f_Ntotal[kk], 0, 0);
+			GMRFLib_graph_mk_linear(&(mb->f_graph[k]), mb->f_Ntotal[kk], 0, 0);
 			GMRFLib_free_constr(mb->f_constr[k]);  /* if its any */
 			mb->f_constr[k] = NULL;
 			mb->f_sumzero[k] = 0;
@@ -28127,7 +28123,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 					GMRFLib_free_problem(problem);
 					GMRFLib_free_tabulate_Qfunc(Qf);
-					GMRFLib_free_graph(graph);
+					GMRFLib_graph_free(graph);
 					Free(xx_out);
 					Free(ilist);
 					Free(jlist);
@@ -30546,9 +30542,9 @@ int inla_output_graph(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph)
 	}
 
 	if (G.binary) {
-		GMRFLib_write_graph_binary(fnm, graph);
+		GMRFLib_graph_write_b(fnm, graph);
 	} else {
-		GMRFLib_write_graph(fnm, graph);
+		GMRFLib_graph_write(fnm, graph);
 	}
 
 	Free(fnm);
@@ -33446,7 +33442,7 @@ int inla_qreordering(const char *filename)
 		GMRFLib_tabulate_Qfunc_from_file(&qtab, &graph, filename, -1, NULL, NULL, NULL);
 		GMRFLib_free_tabulate_Qfunc(qtab);
 	} else {
-		GMRFLib_read_graph(&graph, filename);
+		GMRFLib_graph_read(&graph, filename);
 	}
 
 	if (G.reorder < 0) {
@@ -33473,11 +33469,11 @@ int inla_read_graph(const char *filename)
 	 */
 	GMRFLib_graph_tp *graph = NULL;
 
-	GMRFLib_read_graph(&graph, filename);
-	GMRFLib_write_graph_2(stdout, graph);
+	GMRFLib_graph_read(&graph, filename);
+	GMRFLib_graph_write2(stdout, graph);
 
 	int *cc, i;
-	cc = GMRFLib_connected_components(graph);
+	cc = GMRFLib_graph_cc(graph);
 	for (i = 0; i < graph->n; i++)
 		printf("%d\n", cc[i]);
 	Free(cc);
@@ -33548,7 +33544,7 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose)
 
 	if (adj) {
 		// use the cc in the graph
-		cc = GMRFLib_connected_components(arg->graph);
+		cc = GMRFLib_graph_cc(arg->graph);
 	} else {
 		// treat the whole graph as one cc, with index 0
 		cc = Calloc(n, int);
@@ -33603,7 +33599,7 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose)
 				printf("\t\tconnected component[%1d] size[%1d] scale[%.6g]\n", k, num, -1.0);
 		} else {
 			// compute the subgraph and find the scaling for this connected component
-			GMRFLib_compute_subgraph(&(def->graph), arg->graph, remove);
+			GMRFLib_graph_comp_subgraph(&(def->graph), arg->graph, remove);
 
 			constr->nc = 1;
 			constr->a_matrix = Calloc(def->graph->n, double);
@@ -33670,7 +33666,7 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose)
 			if (verbose)
 				printf("\t\tconnected component[%1d] size[%1d] scale[%.6g]\n", k, def->graph->n, value);
 
-			GMRFLib_free_graph(def->graph);
+			GMRFLib_graph_free(def->graph);
 			GMRFLib_free_problem(problem);
 			GMRFLib_free_constr(constr);
 			Free(c);
@@ -33956,18 +33952,16 @@ int testit(int argc, char **argv)
 
 	case 7:
 	{
+		
 		inla_fgn_arg_tp *arg = Calloc(1, inla_fgn_arg_tp);
-
 		arg->n = 10;
 		arg->k = 3;
 		arg->N = arg->n * (arg->k + 1);
 		arg->prec_eps = 100;
+
 		GMRFLib_graph_tp *g;
 		inla_make_fgn_graph(&g, arg);
-
-		GMRFLib_print_graph(stdout, g);
-		GMRFLib_print_Qfunc(stdout, g, Qfunc_fgn, (void *) arg);
-
+		GMRFLib_graph_printf(stdout, g);
 		exit(0);
 	}
 		break;
@@ -34170,7 +34164,7 @@ int testit(int argc, char **argv)
 	{
 		GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
 		GMRFLib_graph_tp *graph;
-		GMRFLib_read_graph_ascii(&graph, "zones.graph");
+		GMRFLib_graph_read_ascii(&graph, "zones.graph");
 		exit(0);
 	}
 		break;

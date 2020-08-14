@@ -530,7 +530,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
 		}
 	}
 
-	GMRFLib_prepare_graph(g);
+	GMRFLib_graph_prepare(g);
 	M->graph = g;
 
 	/*
@@ -680,7 +680,7 @@ int GMRFLib_matrix_free(GMRFLib_matrix_tp * M)
 		Free(M->iA);
 		Free(M->filename);
 
-		GMRFLib_free_graph(M->graph);
+		GMRFLib_graph_free(M->graph);
 		if (M->htable) {
 			int k;
 			if (M->htable_column_order) {

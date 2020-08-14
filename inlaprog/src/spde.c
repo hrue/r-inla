@@ -143,7 +143,7 @@ double inla_spde_Qfunction(int node, int nnode, double *values, void *arg)
 	} else {
 		double G1ij, G2ij, K, KK, T, TT;
 
-		if (GMRFLib_is_neighb(node, nnode, model->G1_graph)) {
+		if (GMRFLib_graph_is_nb(node, nnode, model->G1_graph)) {
 			G1ij = model->G1->Qfunc(node, nnode, NULL, (void *) model->G1->Qfunc_arg);
 		} else {
 			G1ij = 0.0;
@@ -360,7 +360,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 
 		FIXME("write graph to file spde-graph.dat");
 		fp = fopen("spde-graph.dat", "w");
-		GMRFLib_print_graph(fp, model->graph);
+		GMRFLib_graph_printf(fp, model->graph);
 		fclose(fp);
 	}
 

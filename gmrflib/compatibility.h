@@ -60,8 +60,8 @@ __BEGIN_DECLS
    compability with versions < 2.0
 */
 #define GMRFLib_KEEP_bchol      GMRFLib_KEEP_chol
-#define GMRFLib_create_lattice  GMRFLib_make_lattice_graph
-#define GMRFLib_create_graph    GMRFLib_make_empty_graph
+#define GMRFLib_create_lattice  GMRFLib_graph_mk_lattice
+#define GMRFLib_create_graph    GMRFLib_graph_mk_empty
 #define GMRFLib_create_constr   GMRFLib_make_empty_constr
 
 /*

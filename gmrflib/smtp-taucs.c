@@ -542,7 +542,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 			fixed[i] = (graph->nnbs[i] >= limit ? 1 : 0);
 		}
 
-		GMRFLib_compute_subgraph(&subgraph, graph, fixed);
+		GMRFLib_graph_comp_subgraph(&subgraph, graph, fixed);
 		free_subgraph = 1;
 	} else {
 		subgraph = graph;
@@ -689,7 +689,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 
 		*remap = iperm_new;			       /* this is the reordering */
 
-		GMRFLib_free_graph(subgraph);
+		GMRFLib_graph_free(subgraph);
 		Free(iperm);
 	}
 
@@ -1623,7 +1623,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage
 
 					if (j != i) {
 						jjj = inv_remap[j];
-						if (!GMRFLib_is_neighb(iii, jjj, problem->sub_graph)) {
+						if (!GMRFLib_graph_is_nb(iii, jjj, problem->sub_graph)) {
 							rremove[nrremove++] = j;
 						}
 					}

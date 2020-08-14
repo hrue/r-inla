@@ -211,9 +211,9 @@ int GMRFLib_make_matern2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_matern2ddef_t
 {
 	GMRFLib_graph_tp *g = NULL;
 
-	GMRFLib_make_lattice_graph(&g, def->nrow, def->ncol, def->nu + 1, def->nu + 1, def->cyclic);
-	GMRFLib_prune_graph(graph, g, (GMRFLib_Qfunc_tp *) GMRFLib_matern2d, (void *) def);
-	GMRFLib_free_graph(g);
+	GMRFLib_graph_mk_lattice(&g, def->nrow, def->ncol, def->nu + 1, def->nu + 1, def->cyclic);
+	GMRFLib_graph_prune(graph, g, (GMRFLib_Qfunc_tp *) GMRFLib_matern2d, (void *) def);
+	GMRFLib_graph_free(g);
 
 	return GMRFLib_SUCCESS;
 }

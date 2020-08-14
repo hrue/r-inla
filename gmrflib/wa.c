@@ -106,9 +106,9 @@ int GMRFLib_free_wa_problem(GMRFLib_wa_problem_tp * wa_problem)
 			spmatrix_free(&(arg->neigb_idx_hash));
 		}
 
-		GMRFLib_free_graph(wa_problem->graph);
-		GMRFLib_free_graph(arg->waQgraph);
-		GMRFLib_free_graph(arg->wagraph);
+		GMRFLib_graph_free(wa_problem->graph);
+		GMRFLib_graph_free(arg->waQgraph);
+		GMRFLib_graph_free(arg->wagraph);
 
 		Free(wa_problem->Qfunc_arg);
 		Free(wa_problem);
@@ -150,7 +150,7 @@ int GMRFLib_free_wa_problem(GMRFLib_wa_problem_tp * wa_problem)
   GMRFLib_wa_problem_tp -object <em>(*problem)</em>.
 
   \note The weights \f$ w_{ij} \f$ that are initially defined to be 0, should be kept fixed. The
-  function \c GMRFLib_prune_graph() is called on the resulting graph of the GMRF <em>\b x</em>,
+  function \c GMRFLib_graph_prune() is called on the resulting graph of the GMRF <em>\b x</em>,
   removing elements of the graph corresponding to <em>\b Q (i,j) = 0</em>.  Re-setting the zero
   weights, for example by letting the weights depend on parameters that might change while running
   the programs, will invalidate this graph reduction.\n This routine will in most cases compute
@@ -164,7 +164,7 @@ int GMRFLib_free_wa_problem(GMRFLib_wa_problem_tp * wa_problem)
   \par Example:
   See \ref ex_wa
   
-  \sa GMRFLib_free_wa_problem, GMRFLib_prune_graph.
+  \sa GMRFLib_free_wa_problem, GMRFLib_graph_prune.
  */
 int GMRFLib_init_wa_problem(GMRFLib_wa_problem_tp ** wa_problem, GMRFLib_graph_tp * wagraph, GMRFLib_Qfunc_tp * wafunc, void *wafunc_arg)
 {
@@ -181,7 +181,7 @@ int GMRFLib_init_wa_problem(GMRFLib_wa_problem_tp ** wa_problem, GMRFLib_graph_t
 	GMRFLib_graph_tp *graph = NULL, *ngraph = NULL;
 	GMRFLib_waQfunc_arg_tp *wa_arg = NULL;
 
-	GMRFLib_make_empty_graph(&graph);
+	GMRFLib_graph_mk_empty(&graph);
 	n = wagraph->n;
 	graph->n = n;
 	graph->nnbs = Calloc(n, int);
@@ -210,7 +210,7 @@ int GMRFLib_init_wa_problem(GMRFLib_wa_problem_tp ** wa_problem, GMRFLib_graph_t
 					k = wagraph->nbs[i][j];
 					kk = wagraph->nbs[i][jj];
 
-					if (!GMRFLib_is_neighb(k, kk, graph)) {
+					if (!GMRFLib_graph_is_nb(k, kk, graph)) {
 						/*
 						 * add, must do it symmetrically! must also sort the neighbours, since the
 						 * 'is_neig' function assume they are sorted. 
@@ -298,7 +298,7 @@ int GMRFLib_init_wa_problem(GMRFLib_wa_problem_tp ** wa_problem, GMRFLib_graph_t
 	}
 
 	Free(memsiz);
-	GMRFLib_prepare_graph(graph);
+	GMRFLib_graph_prepare(graph);
 
 	/*
 	 * setup the new types 
@@ -307,7 +307,7 @@ int GMRFLib_init_wa_problem(GMRFLib_wa_problem_tp ** wa_problem, GMRFLib_graph_t
 	wa_arg->waQgraph = graph;
 	wa_arg->waQfunc = wafunc;
 	wa_arg->waQfunc_arg = wafunc_arg;
-	GMRFLib_copy_graph(&(wa_arg->wagraph), wagraph);       /* yes, make a copy! */
+	GMRFLib_graph_duplicate(&(wa_arg->wagraph), wagraph);       /* yes, make a copy! */
 
 	if (GMRFLib_use_wa_table_lookup) {
 		/*
@@ -316,7 +316,7 @@ int GMRFLib_init_wa_problem(GMRFLib_wa_problem_tp ** wa_problem, GMRFLib_graph_t
 		double idx = 0.0;
 		int nelm;
 
-		GMRFLib_nQelm(&nelm, graph);
+		GMRFLib_graph_nnodes(&nelm, graph);
 		spmatrix_init_hint(&(wa_arg->neigb_idx_hash), (mapkit_size_t) nelm);	/* give a hint of the size */
 		wa_arg->neigb_idx_hash.alwaysdefault = 0;
 		for (i = 0; i < graph->n; i++) {
@@ -344,7 +344,7 @@ int GMRFLib_init_wa_problem(GMRFLib_wa_problem_tp ** wa_problem, GMRFLib_graph_t
 	 * prune graph. note that waQgraph is the original unpruned graph which is needed for correct computing of Q_ij after
 	 * pruning. 
 	 */
-	GMRFLib_prune_graph(&ngraph, (*wa_problem)->graph, (*wa_problem)->Qfunc, (*wa_problem)->Qfunc_arg);
+	GMRFLib_graph_prune(&ngraph, (*wa_problem)->graph, (*wa_problem)->Qfunc, (*wa_problem)->Qfunc_arg);
 	(*wa_problem)->graph = ngraph;
 
 	return GMRFLib_SUCCESS;
@@ -396,7 +396,7 @@ double GMRFLib_waQfunc(int node, int nnode, double *values, void *arg)
 				 */
 				for (j = 0, count = 0; j < args->waQgraph->nnbs[node]; j++) {
 					k = args->waQgraph->nbs[node][j];
-					if (GMRFLib_is_neighb(k, node, args->wagraph))
+					if (GMRFLib_graph_is_nb(k, node, args->wagraph))
 						count++;
 				}
 				args->neigb_info[idx] = Calloc(1, GMRFLib_node_list_tp);
@@ -406,7 +406,7 @@ double GMRFLib_waQfunc(int node, int nnode, double *values, void *arg)
 				args->neigb_info[idx]->n_nodes = count;
 				for (j = 0, jj = 0; j < args->waQgraph->nnbs[node]; j++) {
 					k = args->waQgraph->nbs[node][j];
-					if (GMRFLib_is_neighb(k, node, args->wagraph))
+					if (GMRFLib_graph_is_nb(k, node, args->wagraph))
 						args->neigb_info[idx]->node_list[jj++] = k;
 				}
 			}
@@ -427,13 +427,13 @@ double GMRFLib_waQfunc(int node, int nnode, double *values, void *arg)
 
 				args->neigb_info[idx] = Calloc(1, GMRFLib_node_list_tp);
 
-				args->neigb_info[idx]->node_nnode = GMRFLib_is_neighb(node, nnode, args->wagraph);
-				args->neigb_info[idx]->nnode_node = GMRFLib_is_neighb(nnode, node, args->wagraph);
+				args->neigb_info[idx]->node_nnode = GMRFLib_graph_is_nb(node, nnode, args->wagraph);
+				args->neigb_info[idx]->nnode_node = GMRFLib_graph_is_nb(nnode, node, args->wagraph);
 
 				for (j = 0, count = 0; j < args->waQgraph->nnbs[node]; j++) {
 					k = args->waQgraph->nbs[node][j];
-					if (GMRFLib_is_neighb(k, node, args->wagraph)
-					    && GMRFLib_is_neighb(k, nnode, args->wagraph))
+					if (GMRFLib_graph_is_nb(k, node, args->wagraph)
+					    && GMRFLib_graph_is_nb(k, nnode, args->wagraph))
 						count++;
 				}
 				if (count)
@@ -442,8 +442,8 @@ double GMRFLib_waQfunc(int node, int nnode, double *values, void *arg)
 				args->neigb_info[idx]->n_nodes = count;
 				for (j = 0, jj = 0; j < args->waQgraph->nnbs[node]; j++) {
 					k = args->waQgraph->nbs[node][j];
-					if (GMRFLib_is_neighb(k, node, args->wagraph)
-					    && GMRFLib_is_neighb(k, nnode, args->wagraph))
+					if (GMRFLib_graph_is_nb(k, node, args->wagraph)
+					    && GMRFLib_graph_is_nb(k, nnode, args->wagraph))
 						args->neigb_info[idx]->node_list[jj++] = k;
 				}
 			}
@@ -471,7 +471,7 @@ double GMRFLib_waQfunc(int node, int nnode, double *values, void *arg)
 
 			for (j = 0; j < args->waQgraph->nnbs[node]; j++) {
 				k = args->waQgraph->nbs[node][j];
-				if (GMRFLib_is_neighb(node, k, args->wagraph)) {
+				if (GMRFLib_graph_is_nb(node, k, args->wagraph)) {
 					tmp = (*args->waQfunc) (k, node, NULL, args->waQfunc_arg);
 					val += SQR(tmp);
 				}
@@ -479,16 +479,16 @@ double GMRFLib_waQfunc(int node, int nnode, double *values, void *arg)
 			return val;
 		} else {
 			val = 0.0;
-			if (GMRFLib_is_neighb(node, nnode, args->wagraph))
+			if (GMRFLib_graph_is_nb(node, nnode, args->wagraph))
 				val -= (*args->waQfunc) (node, node, NULL, args->waQfunc_arg)
 				    * (*args->waQfunc) (node, nnode, NULL, args->waQfunc_arg);
-			if (GMRFLib_is_neighb(nnode, node, args->wagraph))
+			if (GMRFLib_graph_is_nb(nnode, node, args->wagraph))
 				val -= (*args->waQfunc) (nnode, nnode, NULL, args->waQfunc_arg)
 				    * (*args->waQfunc) (nnode, node, NULL, args->waQfunc_arg);
 
 			for (j = 0; j < args->waQgraph->nnbs[node]; j++) {
 				k = args->waQgraph->nbs[node][j];
-				if (GMRFLib_is_neighb(k, node, args->wagraph) && GMRFLib_is_neighb(k, nnode, args->wagraph))
+				if (GMRFLib_graph_is_nb(k, node, args->wagraph) && GMRFLib_graph_is_nb(k, nnode, args->wagraph))
 					val += (*args->waQfunc) (k, node, NULL, args->waQfunc_arg)
 					    * (*args->waQfunc) (k, nnode, NULL, args->waQfunc_arg);
 			}
@@ -546,14 +546,14 @@ double GMRFLib_waQfunc(int node, int nnode, double *values, void *arg)
   <em>(*problem)</em>.
 
   \note The weights \f$ w_{ij,s} \f$ that are initially defined to be 0, should be kept fixed. The
-  function \c GMRFLib_prune_graph() is called on the resulting graph of the GMRF <em>\b x</em>,
+  function \c GMRFLib_graph_prune() is called on the resulting graph of the GMRF <em>\b x</em>,
   removing elements of the graph corresponding to <em>\b Q (i,j)=0</em>. Re-setting the zero
   weights, for example by letting the weights depend on parameters that might change while running
   the programs, will invalidate this graph reduction. \n This routine will in most cases compute
   <em>\b Q (i,j)</em> less efficiently than a tailored implementation, but may save you for a lot of
   work!
 
-  \sa GMRFLib_free_nwa_problem, GMRFLib_prune_graph.
+  \sa GMRFLib_free_nwa_problem, GMRFLib_graph_prune.
  */
 int GMRFLib_init_nwa_problem(GMRFLib_nwa_problem_tp ** nwa_problem,
 			     int n_wa, GMRFLib_graph_tp ** wagraph, GMRFLib_Qfunc_tp ** wafunc, void **wafunc_arg,
@@ -609,7 +609,7 @@ int GMRFLib_init_nwa_problem(GMRFLib_nwa_problem_tp ** nwa_problem,
 
 	*nwa_problem = Calloc(1, GMRFLib_nwa_problem_tp);
 
-	GMRFLib_union_graph(&((*nwa_problem)->graph), nwa_graphs, n_wa + n_g);
+	GMRFLib_graph_union(&((*nwa_problem)->graph), nwa_graphs, n_wa + n_g);
 	Free(nwa_graphs);
 
 	(*nwa_problem)->Qfunc = GMRFLib_nwaQfunc;
@@ -668,7 +668,7 @@ int GMRFLib_free_nwa_problem(GMRFLib_nwa_problem_tp * nwa_problem)
 		}
 		Free(nwa[k]);
 	}
-	GMRFLib_free_graph(nwa_problem->graph);
+	GMRFLib_graph_free(nwa_problem->graph);
 	Free(nwa_problem->Qfunc_arg);
 	Free(nwa_problem);
 
@@ -687,7 +687,7 @@ double GMRFLib_nwaQfunc(int node, int nnode, double *values, void *arg)
 	nwa = (GMRFLib_nwa_problem_tp **) arg;
 
 	for (k = 0, equal = (node == nnode); nwa[k]; k++)
-		if (equal || GMRFLib_is_neighb(node, nnode, nwa[k]->graph))
+		if (equal || GMRFLib_graph_is_nb(node, nnode, nwa[k]->graph))
 			val += (*(nwa[k]->Qfunc)) (node, nnode, NULL, nwa[k]->Qfunc_arg);
 
 	return val;

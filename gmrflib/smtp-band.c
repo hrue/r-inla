@@ -593,7 +593,7 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem, int storage)
 					j = Qinv_L[i]->contents[k].key;
 					if (j != i) {
 						jjj = inv_remap[j];
-						if (!GMRFLib_is_neighb(iii, jjj, problem->sub_graph)) {
+						if (!GMRFLib_graph_is_nb(iii, jjj, problem->sub_graph)) {
 							rremove[nrremove++] = j;
 						}
 					}

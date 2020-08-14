@@ -194,7 +194,7 @@ int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp * def)
 	Free(c);
 	Free(sdef);
 	GMRFLib_free_constr(constr);
-	GMRFLib_free_graph(graph);
+	GMRFLib_graph_free(graph);
 	GMRFLib_free_problem(problem);
 
 	return GMRFLib_SUCCESS;
@@ -212,6 +212,6 @@ int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp * def)
 */
 int GMRFLib_make_seasonal_graph(GMRFLib_graph_tp ** graph, GMRFLib_seasonaldef_tp * def)
 {
-	GMRFLib_make_linear_graph(graph, def->n, def->s - 1, def->cyclic);
+	GMRFLib_graph_mk_linear(graph, def->n, def->s - 1, def->cyclic);
 	return GMRFLib_SUCCESS;
 }

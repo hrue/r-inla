@@ -1746,7 +1746,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			/*
 			 * note that idx is included in subgraph 
 			 */
-			GMRFLib_EWRAP1(GMRFLib_compute_subgraph(&subgraph, graph, fixx));
+			GMRFLib_EWRAP1(GMRFLib_graph_comp_subgraph(&subgraph, graph, fixx));
 
 			/*
 			 * store it for lated usage
@@ -6889,15 +6889,15 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 	if (!(mo->configs[id])) {
 		mo->configs[id] = Calloc(1, GMRFLib_store_configs_tp);
 		GMRFLib_graph_tp *g;
-		GMRFLib_copy_graph(&g, gmrf_approx->sub_graph);
+		GMRFLib_graph_duplicate(&g, gmrf_approx->sub_graph);
 		mo->configs[id]->graph = g;
 		if (debug) {
 			printf("remapped graph\n");
-			GMRFLib_print_graph(stdout, g);
+			GMRFLib_graph_printf(stdout, g);
 		}
 
 		int nelm;				       /* number of elements in Q; double conting */
-		GMRFLib_nQelm(&nelm, gmrf_approx->sub_graph);
+		GMRFLib_graph_nnodes(&nelm, gmrf_approx->sub_graph);
 		mo->configs[id]->n = gmrf_approx->sub_graph->n;
 		mo->configs[id]->nz = (nelm - mo->configs[id]->n) / 2 + mo->configs[id]->n;
 		mo->configs[id]->ntheta = ntheta;
@@ -6923,13 +6923,11 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 			i[k] = ii;
 			j[k] = ii;
 			k++;
-			for (kk = 0; kk < g->nnbs[ii]; kk++) {
-				jj = g->nbs[ii][kk];
-				if (ii < jj) {
-					i[k] = ii;
-					j[k] = jj;
-					k++;
-				}
+			for (kk = 0; kk < g->lnnbs[ii]; kk++) {
+				jj = g->lnbs[ii][kk];
+				i[k] = ii;
+				j[k] = jj;
+				k++;
 			}
 		}
 		mo->configs[id]->i = i;
@@ -6947,10 +6945,8 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 
 	Q = Calloc(mo->configs[id]->nz, double);
 
+	FIXME1("RECALL TO VALIDATE configs= TRUE!");
 	if (gmrf_approx->tab->Qfunc == GMRFLib_tabulate_Qfunction) {
-
-		FIXME1("RECALL TO VALIDATE configs= TRUE!");
-
 		GMRFLib_tabulate_Qfunc_arg_tp *aa;
 		aa = (GMRFLib_tabulate_Qfunc_arg_tp *) gmrf_approx->tab->Qfunc_arg;
 		if (aa->Q) {
@@ -6962,11 +6958,9 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 	if (!found) {
 		for (ii = k = 0; ii < g->n; ii++) {
 			Q[k++] = gmrf_approx->tab->Qfunc(ii, ii, NULL, gmrf_approx->tab->Qfunc_arg);
-			for (kk = 0; kk < g->nnbs[ii]; kk++) {
-				jj = g->nbs[ii][kk];
-				if (ii < jj) {
-					Q[k++] = gmrf_approx->tab->Qfunc(ii, jj, NULL, gmrf_approx->tab->Qfunc_arg);
-				}
+			for (kk = 0; kk < g->lnnbs[ii]; kk++) {
+				jj = g->lnbs[ii][kk];
+				Q[k++] = gmrf_approx->tab->Qfunc(ii, jj, NULL, gmrf_approx->tab->Qfunc_arg);
 			}
 		}
 	}
@@ -7051,7 +7045,7 @@ int GMRFLib_free_marginal_hidden_store(GMRFLib_marginal_hidden_store_tp * m)
 	if (m) {
 		if (m->subgraphs) {
 			for (i = 0; i < m->n; i++)
-				GMRFLib_free_graph(m->subgraphs[i]);
+				GMRFLib_graph_free(m->subgraphs[i]);
 			Free(m->subgraphs);
 		}
 		Free(m);

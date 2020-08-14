@@ -57,8 +57,8 @@
 __BEGIN_DECLS
 
 /* ... */
-int GMRFLib_read_graph_binary_EXPERIMENTAL(GMRFLib_graph_tp ** graph, const char *filename);
-int GMRFLib_write_graph_binary_EXPERIMENTAL(const char *filename, GMRFLib_graph_tp * graph);
+int GMRFLib_graph_read_binary_EXPERIMENTAL(GMRFLib_graph_tp ** graph, const char *filename);
+int GMRFLib_graph_write_b_EXPERIMENTAL(const char *filename, GMRFLib_graph_tp * graph);
 
 __END_DECLS
 #endif

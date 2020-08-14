@@ -44,8 +44,8 @@ int inla_make_fgn_graph(GMRFLib_graph_tp ** graph, inla_fgn_arg_tp * def)
 	GMRFLib_graph_tp *g_ar1 = NULL, *g_I = 0;
 	GMRFLib_ged_tp *ged = NULL;
 
-	GMRFLib_make_linear_graph(&g_ar1, def->n, 1, 0);
-	GMRFLib_make_linear_graph(&g_I, def->n, 0, 0);
+	GMRFLib_graph_mk_linear(&g_ar1, def->n, 1, 0);
+	GMRFLib_graph_mk_linear(&g_I, def->n, 0, 0);
 	GMRFLib_ged_init(&ged, NULL);
 
 	GMRFLib_ged_insert_graph2(ged, g_I, 0, 0);
@@ -62,8 +62,8 @@ int inla_make_fgn_graph(GMRFLib_graph_tp ** graph, inla_fgn_arg_tp * def)
 	GMRFLib_ged_build(graph, ged);
 
 	GMRFLib_ged_free(ged);
-	GMRFLib_free_graph(g_ar1);
-	GMRFLib_free_graph(g_I);
+	GMRFLib_graph_free(g_ar1);
+	GMRFLib_graph_free(g_I);
 
 	return (GMRFLib_SUCCESS);
 }
@@ -74,7 +74,7 @@ int inla_make_fgn2_graph(GMRFLib_graph_tp ** graph, inla_fgn2_arg_tp * def)
 	GMRFLib_graph_tp *g_ar1 = NULL;
 	GMRFLib_ged_tp *ged = NULL;
 
-	GMRFLib_make_linear_graph(&g_ar1, def->n, 1, 0);
+	GMRFLib_graph_mk_linear(&g_ar1, def->n, 1, 0);
 	GMRFLib_ged_init(&ged, NULL);
 
 	for (i = 0; i < def->k; i++) {
@@ -85,7 +85,7 @@ int inla_make_fgn2_graph(GMRFLib_graph_tp ** graph, inla_fgn2_arg_tp * def)
 	}
 	assert(GMRFLib_ged_max_node(ged) == def->N - 1);
 	GMRFLib_ged_build(graph, ged);
-	GMRFLib_free_graph(g_ar1);
+	GMRFLib_graph_free(g_ar1);
 
 	return (GMRFLib_SUCCESS);
 }
