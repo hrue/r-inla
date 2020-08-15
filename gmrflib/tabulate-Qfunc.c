@@ -108,20 +108,17 @@ double GMRFLib_tabulate_Qfunction(int node, int nnode, double *values, void *arg
 	imax = IMAX(node, nnode);
 
 	if (nnode >= 0) {
-		if (!(args->Q)) {
-			assert(args->values);
-			dp = map_id_ptr(args->values[imin], imax);
+		if (args->Q) {
+			int offset = args->Q->ia[imin];
+			j = offset + GMRFLib_iwhich_sorted(imax, offset + args->Q->ja, args->Q->ia[imin + 1] - offset);
+			assert(j >= offset);
+			dp = &(args->Q->a[j]);
+		} else if (args->Q_idx) {
+			map_ii_get(args->Q_idx[imin], imax, &ii);
+			dp = &(args->Q->a[ii]);
 		} else {
-			if (args->Q_idx) {
-				map_ii_get(args->Q_idx[imin], imax, &ii);
-				dp = &(args->Q->a[ii]);
-			} else {
-				int offset = args->Q->ia[imin];
-				j = offset + GMRFLib_iwhich_sorted(imax, offset + args->Q->ja, args->Q->ia[imin + 1] - offset);
-				assert(j >= offset);
-				dp = &(args->Q->a[j]);
-			}
-		}
+			dp = map_id_ptr(args->values[imin], imax);
+		} 
 		return prec * (*dp);
 	} else {
 		if (args->Q) {
@@ -130,6 +127,8 @@ double GMRFLib_tabulate_Qfunction(int node, int nnode, double *values, void *arg
 			len = args->Q->ia[node + 1] - j;
 			memcpy(values, &(args->Q->a[j]), len * sizeof(double));
 		} else {
+			// this mean we do not support the multi-case, so
+			// then this function have to be called serveral times
 			return NAN;
 		}
 		if (prec != 1.0) {
@@ -179,6 +178,7 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 	arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);
 	(*tabulate_Qfunc)->Qfunc_arg = (void *) arg;
 
+	// seems good to use this also for TAUCS. It is currenly required for PARDISO
 	if (1 || GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_Q2csr(&(arg->Q), graph, Qfunc, Qfunc_arg);
 		assert(arg->Q->a[0] > 0.0);
