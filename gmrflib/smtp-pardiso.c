@@ -189,12 +189,12 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 {
 	// create a upper triangular csr matrix from Q
 #define M (*csr)
-	int i, j, jj, k, kk, n, na, nnz, nan_error = 0;
+	int i, j, jj, k, n, na, nnz, nan_error = 0;
 
 	M = Calloc(1, GMRFLib_csr_tp);
 	M->base = 0;
 	n = graph->n;
-	GMRFLib_graph_nnodes(&nnz, graph);			       // symmetric
+	GMRFLib_graph_nnodes(&nnz, graph);		       // symmetric
 	na = (nnz - n) / 2 + n;				       // only upper triangular. yes, integer division
 	M->na = na;
 	M->n = n;
@@ -205,39 +205,37 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 	M->ia[0] = 0;
 	for (i = k = 0; i < n; i++) {
 		M->ja[k++] = i;
-		for (jj = 0, kk = 1; jj < graph->lnnbs[i]; jj++) {
-			j = graph->lnbs[i][jj];
-			M->ja[k++] = j;
-			kk++;
+		for (jj = 0; jj < graph->lnnbs[i]; jj++) {
+			M->ja[k++] = graph->lnbs[i][jj];       // ja[k++]=j
 		}
-		M->ia[i + 1] = M->ia[i] + kk;
+		M->ia[i + 1] = M->ia[i] + (1 + graph->lnnbs[i]);
 	}
 	assert(M->ia[n] == na);
-	
+
 	// when this is true, we can just copy the whole matrix at once
 	int used_fast_tab = 0;
 	if (Qfunc == GMRFLib_tabulate_Qfunction) {
-		GMRFLib_tabulate_Qfunc_arg_tp *arg =  (GMRFLib_tabulate_Qfunc_arg_tp *) Qfunc_arg;
+		GMRFLib_tabulate_Qfunc_arg_tp *arg = (GMRFLib_tabulate_Qfunc_arg_tp *) Qfunc_arg;
 		if (arg->Q) {
-			memcpy(M->a, arg->Q->a, na*sizeof(double));
+			memcpy(M->a, arg->Q->a, na * sizeof(double));
 			used_fast_tab = 1;
 		}
 	}
-	
+
 	if (!used_fast_tab) {
 		// a bit more manual work
 		double val = Qfunc(0, -1, &(M->a[0]), Qfunc_arg);
 		if (ISNAN(val)) {
 #pragma omp parallel for private(i, k, j) num_threads(GMRFLib_openmp->max_threads_inner)
-			for(i = 0; i < n; i++){
-				for(k = M->ia[i]; k < M->ia[i+1]; k++) {
+			for (i = 0; i < n; i++) {
+				for (k = M->ia[i]; k < M->ia[i + 1]; k++) {
 					j = M->ja[k];
 					M->a[k] = Qfunc(i, j, NULL, Qfunc_arg);
 				}
 			}
 		} else {
 #pragma omp parallel for private(i, k, jj, j) num_threads(GMRFLib_openmp->max_threads_inner)
-			for(i = 0; i < n; i++){
+			for (i = 0; i < n; i++) {
 				double v;
 				k = M->ia[i];
 				v = Qfunc(i, -1, &(M->a[k]), Qfunc_arg);
@@ -245,13 +243,13 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 			}
 		}
 	}
-	
-	for(i = 0; i < na; i++){
+
+	for (i = 0; i < na; i++) {
 		GMRFLib_STOP_IF_NAN_OR_INF(M->a[i], i, -1);
 		if (nan_error)
 			break;
 	}
-	
+
 	if (GMRFLib_catch_error_for_inla) {
 		if (nan_error) {
 			return !GMRFLib_SUCCESS;
@@ -507,10 +505,10 @@ int GMRFLib_pardiso_check_install(int quiet, int no_err)
 
 double GMRFLib_pardiso_Qfunc_default(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	GMRFLib_graph_tp *g = (GMRFLib_graph_tp *) arg;
 	return (i == j ? g->n + 2.0 * g->nnbs[i] : -1.0);
 }
@@ -668,7 +666,7 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	assert(perm_min == 0 || perm_min == 1);		       /* must either be C or F... */
 	if (perm_min == 1) {
 		for (i = 0; i < n; i++) {
-			store->pstore->perm[i]--;		       /* back to C indexing */
+			store->pstore->perm[i]--;	       /* back to C indexing */
 		}
 	}
 	for (i = 0; i < n; i++) {
@@ -863,8 +861,7 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore->phase),
 		&(store->pstore->Qinv->n),
 		store->pstore->Qinv->a, store->pstore->Qinv->ia, store->pstore->Qinv->ja,
-		NULL, &(store->pstore->nrhs), store->pstore->iparm, &(store->msglvl), NULL, NULL,
-		&(store->pstore->err_code), store->pstore->dparm);
+		NULL, &(store->pstore->nrhs), store->pstore->iparm, &(store->msglvl), NULL, NULL, &(store->pstore->err_code), store->pstore->dparm);
 
 	if (store->pstore->err_code != 0) {
 		GMRFLib_ERROR(GMRFLib_EPARDISO_INTERNAL_ERROR);
@@ -917,13 +914,11 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 			if (S.static_pstores[i] == *store) {
 				found = 1;
 				if (S.busy[i]) {
+					S.busy[i] = 0;
 					if (S.s_verbose) {
 						printf("==> S.busy[%1d] = 1\n", i);
 						PP("S.static_pstores[i]", S.static_pstores[i]);
 						PP("*store", *store);
-					}
-					S.busy[i] = 0;
-					if (S.s_verbose) {
 						printf("==> free store[%1d]\n", i);
 					}
 				} else {
@@ -1066,8 +1061,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 	assert(found == 1);
 	if (S.static_pstores[idx]) {
 		if (debug) {
-			printf("%s:%1d: static_pstores...iparm[2] = %1d\n", __FILE__, __LINE__,
-			       S.static_pstores[idx]->pstore->iparm[2]);
+			printf("%s:%1d: static_pstores...iparm[2] = %1d\n", __FILE__, __LINE__, S.static_pstores[idx]->pstore->iparm[2]);
 			printf("%s:%1d: max_threads_inner = %1d\n", __FILE__, __LINE__, GMRFLib_openmp->max_threads_inner);
 		}
 		ok = (S.static_pstores[idx]->pstore->iparm[2] >= GMRFLib_openmp->max_threads_inner);
@@ -1565,7 +1559,7 @@ int my_pardiso_test5(void)
 				}
 			}
 		}
-			
+
 		work = Calloc(g->n, double);
 		for (int ii = 0; ii < nrhs; ii++) {
 			int offset = ii * g->n;

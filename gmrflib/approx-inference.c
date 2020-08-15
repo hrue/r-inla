@@ -2409,12 +2409,11 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 	 * assume FIXED == NULL
 	 * 
 	 */
-
 /* 
    this one is FIXED by design and such that A[IDX(i,j,n)] = A_ij, i=0...n-1, j = 0..k-1 for n x k matrix A 
  */
 #define IDX(i, j, n) ((i) + (j)*(n))
-#define WORK(n) &(work[work_p]); work_p += (n)
+#define WORK(_n) &(work[work_p]); work_p += (_n)
 
 	int i, k, n, nc, ncc, one = 1, work_p, work_size, ndiv;
 	double *c = NULL, *v = NULL, *w = NULL, *z = NULL, alpha = 0.0, beta = 0.0, b22 = 0.0, *constr_m_new = NULL, *t_vec =
@@ -2469,17 +2468,18 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 		 * add inv(A Q^-1 A^t) if it does not exists. Be careful, as we need to add this and that this routine can be called threaded with the same
 		 * ai_store. 
 		 */
+
 		if (!problem->inv_aqat_m) {
+			double *m;
+			m = Calloc(ISQR(nc), double);
+			alpha = 1.0;
+			beta = 0.0;
+			dgemm_("N", "N", &nc, &nc, &n, &alpha, problem->sub_constr->a_matrix, &nc, problem->qi_at_m,
+			       &n, &beta, m, &nc, 1, 1);
+			GMRFLib_comp_posdef_inverse(m, nc);
 #pragma omp critical
 			{
 				if (!problem->inv_aqat_m) {
-					double *m;
-					m = Calloc(ISQR(nc), double);
-					alpha = 1.0;
-					beta = 0.0;
-					dgemm_("N", "N", &nc, &nc, &n, &alpha, problem->sub_constr->a_matrix, &nc, problem->qi_at_m,
-					       &n, &beta, m, &nc, 1, 1);
-					GMRFLib_comp_posdef_inverse(m, nc);
 					problem->inv_aqat_m = m;
 				}
 			}
@@ -2493,18 +2493,6 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 		dgemv_("N", &nc, &n, &alpha, problem->sub_constr->a_matrix, &nc, c, &one, &beta, v, &one, 1);
 		dgemv_("N", &nc, &nc, &alpha, problem->inv_aqat_m, &nc, v, &one, &beta, w, &one, 1);
 		dgemv_("N", &n, &nc, &alpha, problem->qi_at_m, &n, w, &one, &beta, z, &one, 1);
-
-		if (0) {
-			FIXME("print problem->inv_aqat_m");
-			GMRFLib_matrix_fprintf(stdout, problem->inv_aqat_m, nc, nc);
-			printf("c[%1d] = %g  n=%d\n", idx, c[idx], n);
-			double sum = 0.0;
-			for (i = 0; i < nc; i++) {
-				sum += v[i] * w[i];
-				printf("idx %d c %f i %d v %f w %f\n", idx, c[idx], i, v[i], w[i]);
-			}
-		}
-
 
 		/*
 		 * replacement for:: b22 = c[idx]; for (i = 0; i < nc; i++) b22 -= v[i] * w[i]; b22 = 1.0 / b22; 
@@ -2555,7 +2543,6 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 		// for(i=0; i<n; i++) constr_m_new[k + i] = cinv*c[i];
 		daxpy_(&n, &cinv, c, &one, &constr_m_new[nc * n], &one);
 	}
-
 	t_vec[ncc - 1] = problem->sub_mean[idx] - evalue;
 
 	alpha = -1.0;

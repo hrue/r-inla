@@ -299,7 +299,7 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 		GMRFLib_EWRAP0(GMRFLib_graph_validate(stderr, *graph));
 	}
 
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*graph));	       /* prepare the graph for computations */
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*graph, 0));	       /* prepare the graph for computations */
 #undef TO_INT
 	return GMRFLib_SUCCESS;
 }
@@ -515,7 +515,7 @@ int GMRFLib_graph_read_binary(GMRFLib_graph_tp ** graph, const char *filename)
 		GMRFLib_ERROR(GMRFLib_ESNH);
 	}
 
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(g));
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(g, 0));
 	GMRFLib_EWRAP0(GMRFLib_graph_duplicate(graph, g));
 
 	for (i = 0; i < g->n + 1; i++) {		       /* yes, its +1 */
@@ -696,41 +696,44 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 
   \sa GMRFLib_graph_read
  */
-int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph)
+int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph, int is_sorted)
 {
 	/*
 	 * prepare the graph by sort the vertices in increasing orders 
 	 */
-	GMRFLib_EWRAP0(GMRFLib_graph_sort(graph));
-	GMRFLib_EWRAP0(GMRFLib_graph_mk_unique(graph));
-	// this one needs to the the last one
-	GMRFLib_EWRAP0(GMRFLib_add_lnbs_info(graph));
+	if (!is_sorted) {
+		GMRFLib_graph_sort(graph);
+	}
+	GMRFLib_add_lnbs_info(graph);			       /* must be the last one */
 
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_add_lnbs_info(GMRFLib_graph_tp *graph) 
 {
+	// these nodes are sorted
+
 	if (!graph) {
 		return GMRFLib_SUCCESS;
 	}
 
-	int n = graph->n, i, j, jj, k;
+	int n = graph->n, i;
 	
 	graph->lnnbs = Calloc(n, int);
 	graph->lnbs = Calloc(n, int *);
 
+#pragma omp parallel for private(i)
 	for(i = 0; i < n; i++) {
-		for(k = 0, jj = 0; jj < graph->nnbs[i]; jj++) {
+		int j, jj, k = graph->nnbs[i];
+		for(jj = 0; jj < graph->nnbs[i]; jj++) {
 			j = graph->nbs[i][jj];
 			if (j > i) {
-				k++;
-				if (!(graph->lnbs[i])) {
-					graph->lnbs[i] = &(graph->nbs[i][jj]);
-				}
+				k = jj;
+				graph->lnbs[i] = &(graph->nbs[i][jj]);
+				break;
 			}
 		}
-		graph->lnnbs[i] = k;
+		graph->lnnbs[i] = graph->nnbs[i] - k;
 	}
 
 	return GMRFLib_SUCCESS;
@@ -776,9 +779,21 @@ int GMRFLib_graph_sort(GMRFLib_graph_tp * graph)
 		return GMRFLib_SUCCESS;
 	}
 
+#pragma omp parallel for private(i) 
 	for (i = 0; i < graph->n; i++) {
 		if (graph->nnbs[i]) {
-			qsort(graph->nbs[i], (size_t) graph->nnbs[i], sizeof(int), GMRFLib_icmp);
+
+			// faster to check if its needed, as most graphs are already sorted although its hard to know for sure.
+			int j, is_sorted = 1;
+
+			if (graph->nnbs[i]) {
+				for(j = 1; j < graph->nnbs[i] && is_sorted; j++) {
+					is_sorted = is_sorted && (graph->nbs[i][j] > graph->nbs[i][j-1]);
+				}
+			}
+			if (!is_sorted) {
+				qsort(graph->nbs[i], (size_t) graph->nnbs[i], sizeof(int), GMRFLib_icmp);
+			}
 		}
 	}
 
@@ -942,7 +957,7 @@ int GMRFLib_graph_remap(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, in
 		}
 		indx += (*ngraph)->nnbs[i];
 	}
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*ngraph));
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*ngraph, 0));
 
 	return GMRFLib_SUCCESS;
 }
@@ -958,7 +973,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 	/*
 	 * there is no need to do call _prepare_graph is the old graph is assumed to be ok. 
 	 */
-	int m, i, n, *hold = NULL, hold_idx;
+	int m, i, j, n, *hold = NULL, hold_idx;
 	GMRFLib_graph_tp *g = NULL;
 
 	GMRFLib_ENTER_ROUTINE;
@@ -979,11 +994,19 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 	g->nbs = Calloc(n, int *);
 	g->lnbs = Calloc(n, int *);
 
+	int is_sorted = 1;
+	
 	for (i = hold_idx = 0; i < n; i++) {
 		if (g->nnbs[i]) {
 			g->nbs[i] = &hold[hold_idx];
 			memcpy(g->nbs[i], graph_old->nbs[i], (size_t) (g->nnbs[i] * sizeof(int)));
 			hold_idx += g->nnbs[i];
+
+			if (is_sorted && g->nnbs[i]) {
+				for(j = 1; j < g->nnbs[i] && is_sorted; j++) {
+					is_sorted = is_sorted && (g->nbs[i][j] > g->nbs[i][j-1]);
+				}
+			}
 		}
 	}
 
@@ -994,7 +1017,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 		memcpy(g->mothergraph_idx, graph_old->mothergraph_idx, (size_t) (n * sizeof(int)));
 	}
 	*graph_new = g;
-	GMRFLib_graph_prepare(g);
+	GMRFLib_graph_prepare(g, is_sorted);
 
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
@@ -1156,7 +1179,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 			}
 		}
 	}
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*subgraph));
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*subgraph, 0));
 
 	if (free_remove_flag) {
 		Free(remove_flag);			       /* if we have used our own */
@@ -1409,7 +1432,7 @@ int GMRFLib_graph_mk_lattice(GMRFLib_graph_tp ** graph, int nrow, int ncol, int 
 		}
 	}
 
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*graph));
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*graph, 0));
 
 	return GMRFLib_SUCCESS;
 }
@@ -1521,7 +1544,7 @@ int GMRFLib_graph_prune(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph,
 				(*new_graph)->nbs[i] = NULL;
 		}
 	}
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*new_graph));
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*new_graph, 0));
 
 	for (i = 0, found = 0; i < (*new_graph)->n; i++) {
 		if ((*new_graph)->nnbs[i]) {
@@ -1617,7 +1640,7 @@ int GMRFLib_graph_mk_linear(GMRFLib_graph_tp ** graph, int n, int bw, int cyclic
 		}
 	}
 
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*graph));
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*graph, 0));
 	return GMRFLib_SUCCESS;
 }
 
@@ -1730,7 +1753,7 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_gra
 		}
 		indx += newg->nnbs[i];
 	}
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(newg));
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(newg, 0));
 	*ng = newg;
 
 	return GMRFLib_SUCCESS;
@@ -1781,7 +1804,7 @@ int GMRFLib_graph_nfold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * og, int nfold
 		newg->nnbs = Calloc(newg->n, int);
 		newg->nbs = Calloc(newg->n, int *);
 
-		GMRFLib_EWRAP0(GMRFLib_graph_prepare(newg));
+		GMRFLib_EWRAP0(GMRFLib_graph_prepare(newg, 0));
 	} else if (nfold == 1) {
 		GMRFLib_graph_duplicate(&newg, og);
 	} else {
@@ -1866,7 +1889,7 @@ int GMRFLib_graph_union(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** gra
 			(*union_graph)->nbs[node] = NULL;
 		}
 	}
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*union_graph));   /* this is required */
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*union_graph, 0));   /* this is required */
 
 	/*
 	 * the union_graph is now (probably) to large as it acounts for multiple counts. the easiest way out of this, is to
@@ -1966,7 +1989,7 @@ int GMRFLib_graph_complete(GMRFLib_graph_tp ** n_graph, GMRFLib_graph_tp * graph
 			}
 		}
 	}
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*n_graph));
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*n_graph, 0));
 
 	Free(neigh_size);
 
@@ -2008,7 +2031,7 @@ int GMRFLib_graph_insert(GMRFLib_graph_tp ** new_graph, int n_new, int offset, G
 			g->nbs[ii][j] = graph->nbs[i][j] + offset;
 		}
 	}
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(g));
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(g, 0));
 
 	*new_graph = g;
 

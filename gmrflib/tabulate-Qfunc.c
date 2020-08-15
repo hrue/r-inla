@@ -100,13 +100,13 @@ double GMRFLib_tabulate_Qfunction(int node, int nnode, double *values, void *arg
 	GMRFLib_tabulate_Qfunc_arg_tp *args = NULL;
 	double prec, *dp;
 	int i, ii, j, len, imin, imax;
-	
+
 	args = (GMRFLib_tabulate_Qfunc_arg_tp *) arg;
 	prec = GMRFLib_SET_PREC(args);
 
 	imin = IMIN(node, nnode);
 	imax = IMAX(node, nnode);
-	
+
 	if (nnode >= 0) {
 		if (!(args->Q)) {
 			assert(args->values);
@@ -117,7 +117,7 @@ double GMRFLib_tabulate_Qfunction(int node, int nnode, double *values, void *arg
 				dp = &(args->Q->a[ii]);
 			} else {
 				int offset = args->Q->ia[imin];
-				j = offset + GMRFLib_iwhich_sorted(imax, offset + args->Q->ja, args->Q->ia[imin+1] - offset);
+				j = offset + GMRFLib_iwhich_sorted(imax, offset + args->Q->ja, args->Q->ia[imin + 1] - offset);
 				assert(j >= offset);
 				dp = &(args->Q->a[j]);
 			}
@@ -127,23 +127,22 @@ double GMRFLib_tabulate_Qfunction(int node, int nnode, double *values, void *arg
 		if (args->Q) {
 			assert(args->Q->base == 0);
 			j = args->Q->ia[node];
-			len = args->Q->ia[node+1] - j;
+			len = args->Q->ia[node + 1] - j;
 			memcpy(values, &(args->Q->a[j]), len * sizeof(double));
 		} else {
 			return NAN;
 		}
 		if (prec != 1.0) {
-			for(i = 0; i < len; i++) {
+			for (i = 0; i < len; i++) {
 				values[i] *= prec;
 			}
 		}
 		return 0.0;
 	}
-	
+
 }
 double GMRFLib_tabulate_Qfunction_std(int node, int nnode, double *values, void *arg)
 {
-	FIXME1("for the moment...");
 	return (GMRFLib_tabulate_Qfunction(node, nnode, values, arg));
 }
 
@@ -174,13 +173,13 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 			   GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *prec, double *log_prec, double **log_prec_omp)
 {
 	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
-	(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction; 
+	(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction;
 
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
 	arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);
 	(*tabulate_Qfunc)->Qfunc_arg = (void *) arg;
 
-	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
+	if (1 || GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_Q2csr(&(arg->Q), graph, Qfunc, Qfunc_arg);
 		assert(arg->Q->a[0] > 0.0);
 		GMRFLib_graph_duplicate(&(arg->graph), graph);
@@ -194,7 +193,7 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 				int j, k;
 
 				arg->Q_idx[i] = Calloc(1, map_ii);
-				map_ii_init_hint(arg->Q_idx[i], graph->lnnbs[i] + 1);      
+				map_ii_init_hint(arg->Q_idx[i], graph->lnnbs[i] + 1);
 				arg->Q_idx[i]->defaultvalue = -2;
 				map_ii_set(arg->Q_idx[i], i, idx);
 				idx++;
@@ -207,7 +206,7 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 			}
 			assert(idx == arg->Q->na);
 		}
-		
+
 	} else {
 		int i, id, mem_id;
 
@@ -235,7 +234,9 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 
 			GMRFLib_thread_id = id;
 			GMRFLib_meminfo_thread_id = mem_id;
-			map_id_init_hint(arg->values[i], graph->lnnbs[i]+1);
+
+			arg->values[i] = Calloc(1, map_id);
+			map_id_init_hint(arg->values[i], graph->lnnbs[i] + 1);
 			map_id_set(arg->values[i], i, (*Qfunc) (i, i, NULL, Qfunc_arg));	/* diagonal */
 			for (j = 0; j < graph->lnnbs[i]; j++) {
 				k = graph->lnbs[i][j];
@@ -245,7 +246,7 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 		GMRFLib_thread_id = id;
 		GMRFLib_meminfo_thread_id = mem_id;
 	}
-	
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -655,7 +656,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 		map_id_set(arg->values[i], i, 0.0);
 		for (jj = 0; jj < (*graph)->lnnbs[i]; jj++) {
 			j = (*graph)->lnbs[i][jj];
-			map_id_set(arg->values[i], j, 0.0);	/* fill them with default = 0.0 */
+			map_id_set(arg->values[i], j, 0.0);    /* fill them with default = 0.0 */
 		}
 	}
 
@@ -709,7 +710,7 @@ int GMRFLib_free_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp * tabulate_Qfunc)
 			}
 			Free(arg->values);
 		}
-		
+
 		Free(arg->log_prec_omp);
 		Free(arg);
 		Free(tabulate_Qfunc);

@@ -165,7 +165,7 @@ int GMRFLib_graph_read_binary_EXPERIMENTAL(GMRFLib_graph_tp ** graph, const char
 		GMRFLib_EWRAP0(GMRFLib_graph_validate(stderr, *graph));
 	}
 
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*graph));	       /* prepare the graph for computations */
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*graph, 0));	       /* prepare the graph for computations */
 	return GMRFLib_SUCCESS;
 #undef READ_ERROR
 }
