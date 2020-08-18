@@ -124,7 +124,7 @@ typedef struct {
 
 const char *GMRFLib_geo_translate_cortp(int name);
 const char *GMRFLib_geo_translate_neigh(int neigh);
-double GMRFLib_geoQfunc(int node, int nnode, void *arg);
+double GMRFLib_geoQfunc(int node, int nnode, double *values, void *arg);
 int GMRFLib_free_geo_problem(GMRFLib_geo_problem_tp * geo_problem);
 int GMRFLib_get_geo_coefs(double **coef, int name, int neigh, double param, double range);
 int GMRFLib_get_geo_coefs2(double **coef, int name, double param, double range);
