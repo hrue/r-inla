@@ -5,7 +5,7 @@ for f in "$@"; do
     ff=${ff%"/local/bin/inla.mkl"}
     ff=${ff%"/local/bin/fmesher"}
     export LD_LIBRARY_PATH=$ff/local/lib:$LD_LIBRARY_PATH
-    ldd -r "$f" | awk '/ => / {print $3}' | grep / | grep -v libc.so | grep -v libpthread.so | grep -v librt.so | grep libm.so
+    ldd -r "$f" | awk '/ => / {print $3}' | grep / | grep -v libc.so | grep -v libpthread.so | grep -v librt.so | grep -v libm.so
 done
 
 for f in "$@"; do
