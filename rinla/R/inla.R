@@ -221,7 +221,8 @@
               inla.arg = inla.getOption("inla.arg"),
               
               ##!\item{num.threads}{ Maximum number of threads the
-              ##!\code{inla}-program will use}
+              ##!\code{inla}-program will use, or as 'A:B' defining the number threads in the
+              ##!outer (A) and inner (B) layer for nested parallelism. }
               num.threads = inla.getOption("num.threads"),
               
               ##!\item{blas.num.threads}{The absolute value of \code{blas.num.threads} is the maximum
@@ -1915,7 +1916,8 @@
     ## inla.arg override all default arguments including `-b' !!!
     if (is.null(inla.arg)) {
         arg.arg = ""
-        num.threads <- gsub("[ \t]+", "", num.threads) ## no spaces allowed
+
+        num.threads <- inla.parse.num.threads(num.threads, debug)
         arg.nt = paste0(" -t ", num.threads, " -B ", blas.num.threads, " ")
 
         ## due to the weird behaviour,  we will do the verbose-mode differently now
@@ -2318,3 +2320,48 @@
 
     return (invisible())
 }    
+
+`inla.parse.num.threads` <- function(num.threads, debug = FALSE) 
+{
+    ## it is easier to do the parsing of 'num.threads' here. use '0' to represent a value to
+    ## be decided by the inla-program.
+    if (debug) print(paste0("num.threads before [", num.threads, "]"))
+    if (is.null(num.threads)) {
+        num.threads <- "0:0"
+    }
+    num.threads <- as.character(num.threads)
+
+    ## if '' -> '0:0'
+    if (nchar(num.threads) == 0) {
+        num.threads <- "0:0"
+    }
+
+    ## remove tabs and spaces
+    num.threads <- gsub("[ \t]+", "", num.threads) 
+
+    ## use ':' instead of ','
+    num.threads <- gsub(",", ":", num.threads) 
+
+    ## if ':' then '0:0'
+    if (length(grep("^:$", num.threads)) > 0) {
+        num.threads <- "0:0"
+    }
+
+    ## if 'A:'  then  'A:0'
+    if (length(grep("^[0-9]+:$", num.threads)) > 0) {
+        num.threads <- paste0(num.threads, "0")
+    }
+
+    ## if 'A' then 'A:0'
+    if (length(grep("^[0-9]+$", num.threads)) > 0) {
+        num.threads <- paste0(num.threads, ":0")
+    }
+
+    ## if :B then 0:B
+    if (length(grep("^:[0-9]+$", num.threads)) > 0) {
+        num.threads <- paste0("0", num.threads)
+    }
+    if (debug) print(paste0("num.threads after [", num.threads, "]"))
+
+    return (num.threads)
+}

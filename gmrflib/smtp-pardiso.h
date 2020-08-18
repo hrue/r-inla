@@ -109,23 +109,46 @@ typedef struct {
 	GMRFLib_pardiso_store_pr_thread_tp *pstore;
 } GMRFLib_pardiso_store_tp;
 
-#define STDOUT_TO_DEV_NULL_START(_silent)			\
-	int XX_stdout_dupfd;					\
-	int XX_silent = _silent;				\
-	FILE *XX_temp_out;					\
-	if (XX_silent) {					\
-		XX_stdout_dupfd = dup(fileno(stdout));		\
-		XX_temp_out = fopen("/dev/null", "w");		\
-		dup2(fileno(XX_temp_out), fileno(stdout));	\
+
+#ifdef _WIN32
+#include <io.h>
+#define NULL_FNM "NUL"
+#define CROSS_DUP(fd) _dup(fd)
+#define CROSS_DUP2(fd, newfd) _dup2(fd, newfd)
+#else
+#include <unistd.h>
+#define NULL_FNM "/dev/null"
+#define CROSS_DUP(fd) dup(fd)
+#define CROSS_DUP2(fd, newfd) dup2(fd, newfd)
+#endif
+
+#define STDOUT_TO_DEV_NULL_START(_silent)				\
+	int XX_silent = _silent;					\
+	int XX_stdoutBackupFd;						\
+	int XX_stderrBackupFd;						\
+        FILE *XX_nullOut;						\
+        FILE *XX_nullErr;						\
+	if (XX_silent) {						\
+		XX_stdoutBackupFd = CROSS_DUP(STDOUT_FILENO);		\
+		XX_stderrBackupFd = CROSS_DUP(STDERR_FILENO);		\
+		fflush(stdout);						\
+		fflush(stderr);						\
+		XX_nullOut = fopen(NULL_FNM, "w");			\
+		XX_nullErr = fopen(NULL_FNM, "w");			\
+		CROSS_DUP2(fileno(XX_nullOut), STDOUT_FILENO);		\
+		CROSS_DUP2(fileno(XX_nullErr), STDERR_FILENO);		\
 	}
 
-
-#define STDOUT_TO_DEV_NULL_END				\
-	if (XX_silent) {				\
-		fflush(stdout);				\
-		fclose(XX_temp_out);			\
-		dup2(XX_stdout_dupfd, fileno(stdout));	\
-		close(XX_stdout_dupfd);			\
+#define STDOUT_TO_DEV_NULL_END						\
+	if (XX_silent) {						\
+		fflush(stdout);						\
+		fflush(stderr);						\
+		fclose(XX_nullOut);					\
+		fclose(XX_nullErr);					\
+		CROSS_DUP2(XX_stdoutBackupFd, STDOUT_FILENO);		\
+		CROSS_DUP2(XX_stderrBackupFd, STDERR_FILENO);		\
+		close(XX_stdoutBackupFd);				\
+		close(XX_stderrBackupFd);				\
 	}
 
 
@@ -170,7 +193,7 @@ int my_pardiso_test2(void);
 int my_pardiso_test3(void);
 int my_pardiso_test4(void);
 int my_pardiso_test5(void);
-double my_pardiso_test_Q(int i, int j, void *arg);
+double my_pardiso_test_Q(int i, int j, double *values, void *arg);
 
 void pardisoinit(void *, int *, int *, int *, double *, int *);
 void pardiso(void *, int *, int *, int *, int *, int *, double *, int *, int *, int *, int *, int *, int *, double *, double *, int *, double *);

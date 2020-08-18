@@ -934,11 +934,21 @@
 
     num.gradient <- match.arg(tolower(inla.spec$num.gradient), c("central", "forward"))
     num.hessian <- match.arg(tolower(inla.spec$num.hessian), c("central", "forward"))
-    optimise.strategy <- match.arg(tolower(inla.spec$optimise.strategy), c("default", "smart"))
+    optimise.strategy <- match.arg(tolower(inla.spec$optimise.strategy), c("plain", "smart"))
     cat("num.gradient = ", num.gradient, "\n", sep = " ", file = file,  append = TRUE)
     cat("num.hessian = ", num.hessian, "\n", sep = " ", file = file,  append = TRUE)
     cat("optimise.strategy = ", optimise.strategy, "\n", sep = " ", file = file,  append = TRUE)
-    inla.write.boolean.field("use.directions", inla.spec$use.directions, file)
+
+    ud <- inla.spec$use.directions
+    if (is.null(ud)) ud <- FALSE
+    ud.val <- if (is.logical(ud) && (ud == FALSE)) FALSE else TRUE
+    inla.write.boolean.field("use.directions", ud.val, file)
+    if (ud.val && is.matrix(ud)) {
+        file.directions = inla.tempfile(tmpdir=data.dir)
+        inla.write.fmesher.file(as.matrix(ud), filename=file.directions)
+        fnm = gsub(data.dir, "$inladatadir", file.directions, fixed=TRUE)
+        cat("use.directions.matrix =", fnm, "\n", file=file, append = TRUE)
+    }
 
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
@@ -981,12 +991,7 @@
         cross = as.factor(predictor.spec$cross)
         cross = as.integer(cross)
         cross[is.na(cross)] = 0L ## means not in use
-        if (inla.getOption("internal.binary.mode")) {
-            inla.write.fmesher.file(as.matrix(cross, ncol=1L), filename=file.cross)
-        } else {
-            write(cross, ncolumns=1L, file=file.cross)
-        }
-
+        inla.write.fmesher.file(as.matrix(cross, ncol=1L), filename=file.cross)
         fnm = gsub(data.dir, "$inladatadir", file.cross, fixed=TRUE)
         cat("cross.constraint =", fnm, "\n", file=file, append = TRUE)
     }
@@ -1083,7 +1088,14 @@
     }
     openmp.strategy = match.arg(tolower(openmp.strategy),
                                 c("default", "small", "medium", "large", "huge",
-                                  "pardiso.serial", "pardiso.parallel", "pardiso.nested"))
+                                  "pardiso.serial", "pardiso.parallel", "pardiso.nested", "pardiso"))
+    if (inla.one.of(openmp.strategy, c("pardiso.serial", "pardiso.parallel", "pardiso.nested"))) {
+        ## they are all the same now. this is for backward compatibility
+        warning(paste0("openmp.strategy='pardiso.serial', 'pardiso.parallel', or 'pardiso.nested', is the same as openmp.strategy='pardiso', ",
+                       "\nplease update your code. You define how the parallelisation is done using argument 'inla(...,  num.threads='A:B')'",
+                       "\nwhere A are the number of threads in the outer layer, and B in the inner layer."))
+        openmp.strategy <- "pardiso" 
+    }
     cat("openmp.strategy = ", openmp.strategy, "\n", sep = " ", file = file,  append = TRUE)
 
     if (!is.null(quantiles)) {

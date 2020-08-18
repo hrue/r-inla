@@ -205,7 +205,6 @@ typedef struct {
 	int *map;					       /* Mapping to the real-world */
 	double *diagonal_adds;
 	GMRFLib_graph_tp *graph;
-	int use_pardiso;
 } GMRFLib_Qfunc_arg_tp;
 
 /* 

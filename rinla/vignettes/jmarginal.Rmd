@@ -12,6 +12,8 @@ bibliography: jmarginal.bib
 
 ```{r setup, include=FALSE}
 library(INLA)
+inla.setOption(num.threads="1:1")
+inla.setOption(smtp="taucs")
 library(ggplot2)
 library(sn)
 library(knitr)
@@ -166,10 +168,8 @@ INLA setting. Deterministic posterior marginals for the previous
 example can be obtained as follows
 
 ```{r}
-
 dxs = inla.1djmarginal(jmarginal = rs$selection)
 str(dxs)
-
 ```
 
 The output is a list with all computed marginals and a matrix summary
@@ -177,7 +177,6 @@ output in INLA style. Marginal can be accessed and plotted by using
 the respective names in the selection
 
 ```{r}
-
 ggplot(data = data.frame(y = xs$samples["Predictor:3",]), aes(y, after_stat(density), colour = "True")) +
   stat_density(alpha = .1) +
   geom_line(data = as.data.frame(dxs$`Predictor:3`), aes(x = x, y = y, colour = "Deterministic"))+
@@ -209,7 +208,6 @@ ggplot(data = data.frame(y = xs$samples["xx:1",]), aes(y, after_stat(density), c
   scale_colour_manual("", 
                       breaks = c("True", "Deterministic"),
                       values = c("black", "red"))  
-
 ```
 
 Here we compare the deterministic marginals with their sampling
@@ -247,7 +245,6 @@ class(m)
 dxs.lin = inla.1djmarginal(jmarginal = m)
 str(dxs.lin)
 
-
 fun1 <- function(...) {Predictor[1]+Predictor[2]}
 fun2 <- function(...) {x+xx}
 
@@ -269,7 +266,6 @@ ggplot(data = data.frame(y = xs.lin2[1, ]), aes(y, after_stat(density), colour =
   scale_colour_manual("", 
                       breaks = c("True", "Deterministic"),
                       values = c("black", "red")) 
-
 ```
 
 and accomplish the job with summaries
@@ -282,7 +278,6 @@ Transformations of the marginal terms or linear combinations are
 possible as well. We just need to use `inla.tmarginal` as follows
 
 ```{r}
-
 fun.exp <- function(x) exp(x)
 
 fun5 <- function(...) {exp(x)}
@@ -332,7 +327,6 @@ expx.lin = inla.zmarginal(marginal = tdx.lin, silent = TRUE)
 
 exp.summaries = rbind(expx, expxx, expx.lin)
 exp.summaries
-
 ```
 
 ## References

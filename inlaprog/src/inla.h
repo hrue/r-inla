@@ -117,7 +117,6 @@ __BEGIN_DECLS
 
 typedef enum {
 	INLA_MODE_DEFAULT = 0,
-	INLA_MODE_MCMC,
 	INLA_MODE_HYPER,
 	INLA_MODE_QINV,
 	INLA_MODE_QSOLVE,
@@ -1649,7 +1648,6 @@ int count_f(inla_tp * mb, inla_component_tp id);
 int find_f(inla_tp * mb, inla_component_tp id);
 int find_tag(inla_tp * mb, const char *name);
 int inla_INLA(inla_tp * mb);
-int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new);
 int inla_R(char **argv);
 int inla_add_copyof(inla_tp * mb);
 int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose);

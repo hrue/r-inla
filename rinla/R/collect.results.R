@@ -410,6 +410,16 @@ inla.internal.experimental.mode = FALSE
         lincomb.derived.covariance.matrix = NULL
     }
     
+    fnm = paste(d, "/opt_directions.dat",  sep="")
+    if (file.exists(fnm)) {
+        opt.directions = inla.read.fmesher.file(fnm)
+        n <- dim(opt.directions)[1]
+        colnames(opt.directions) <- paste0("dir:", 1:n)
+        rownames(opt.directions) <- paste0("theta:", 1:n)
+    } else {
+        opt.directions = NULL
+    }
+
     fnm = paste(d, "/mode-status.dat", sep="")
     if (file.exists(fnm)) {
         mode.status = scan(fnm, quiet=TRUE)
@@ -543,6 +553,7 @@ inla.internal.experimental.mode = FALSE
                  to.theta = theta.to, from.theta = theta.from, mode.status = mode.status,
                  lincomb.derived.correlation.matrix = lincomb.derived.correlation.matrix,
                  lincomb.derived.covariance.matrix = lincomb.derived.covariance.matrix,
+                 opt.directions = opt.directions, 
                  configs = configs, nfunc = nfunc))
 }
 

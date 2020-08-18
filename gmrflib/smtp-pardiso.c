@@ -239,7 +239,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 				double v;
 				k = M->ia[i];
 				v = Qfunc(i, -1, &(M->a[k]), Qfunc_arg);
-				assert(!(ISNAN(val)));
+				assert(!(ISNAN(v)));
 			}
 		}
 	}
@@ -1108,7 +1108,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 // **********************************************************************
 
 
-double my_pardiso_test_Q(int i, int j, void *arg)
+double my_pardiso_test_Q(int i, int j, double *values, void *arg)
 {
 	GMRFLib_graph_tp *graph = (GMRFLib_graph_tp *) arg;
 	return (i == j ? graph->n + i : -1.0);
@@ -1130,7 +1130,7 @@ int my_pardiso_test1(void)
 	GMRFLib_tabulate_Qfunc_tp *Qtab;
 	GMRFLib_graph_tp *g;
 
-	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
+	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 
 	// GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Qdense.txt", -1, NULL, NULL, NULL);
@@ -1260,8 +1260,7 @@ int my_pardiso_test2(void)
 		constr->e_vector[i] = GMRFLib_uniform();
 	GMRFLib_prepare_constr(constr, graph, 1);
 
-	// GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
-	// GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
+	// GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
 	// GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 
@@ -1309,7 +1308,7 @@ int my_pardiso_test3(void)
 	GMRFLib_tabulate_Qfunc_tp *Qtab;
 	GMRFLib_graph_tp *g;
 
-	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL;
+	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 
 	// GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Qdense.txt", -1, NULL, NULL, NULL);
@@ -1430,7 +1429,7 @@ int my_pardiso_test4(void)
 	GMRFLib_csr_tp *csr;
 
 	GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
-	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
+	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 	P(GMRFLib_openmp->max_threads_inner);
 
@@ -1470,8 +1469,7 @@ int my_pardiso_test5(void)
 	GMRFLib_tabulate_Qfunc_tp *Qtab;
 	GMRFLib_graph_tp *g;
 
-	// GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
-	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL;
+	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	// GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q1000.txt", -1, NULL, NULL, NULL);

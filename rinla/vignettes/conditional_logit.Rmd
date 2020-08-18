@@ -13,11 +13,10 @@ vignette: >
 set.seed(123)
 library(INLA)
 set.seed(123)
-inla.setOption(num.threads=1)
+inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
 library(knitr)
 library(rmarkdown)
-inla.setOption(num.threads=1)
 knitr::opts_chunk$set(echo=TRUE, cache=FALSE, message=FALSE,
 warning=FALSE)
 ```

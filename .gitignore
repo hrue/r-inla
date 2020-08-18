@@ -895,3 +895,7 @@ r-inla/GNUmakefile
 gmrflib/INLA_res.RData
 
 gmrflib/GitID.all
+
+rinla/vignettes/conditional-sampling.R
+
+rinla/vignettes/old-faq.R

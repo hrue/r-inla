@@ -97,7 +97,8 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 	G.loglFunc_arg = loglFunc_arg;
 	G.fixed_value = fixed_value;
 	G.graph = graph;
-
+	G.directions = ai_par->optimise_use_directions_m;
+	
 	G.Qfunc = Calloc(GMRFLib_MAX_THREADS, GMRFLib_Qfunc_tp *);
 	G.Qfunc_arg = Calloc(GMRFLib_MAX_THREADS, void *);
 	for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
@@ -836,6 +837,27 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 #undef FREE_XX_HOLD
 }
 
+GMRFLib_matrix_tp *GMRFLib_opt_get_directions(void)
+{
+	if (Opt_dir_params.A) {
+		size_t i, j, n;
+		GMRFLib_matrix_tp *D;
+		n = Opt_dir_params.A->size1;
+		D = Calloc(1, GMRFLib_matrix_tp);
+		D->nrow = D->ncol = n;
+		D->elems = ISQR(n);
+		D->A = Calloc(ISQR(n), double);
+		for(i = 0; i < n; i++) {
+			for(j = 0; j < n; j++) {
+				D->A[i + j * n] = gsl_matrix_get(Opt_dir_params.A, i, j);
+			}
+		}
+		return D;
+	} else {
+		return NULL;
+	}
+}
+
 int GMRFLib_opt_get_f_count(void)
 {
 	if (opt_setup) {
@@ -1017,6 +1039,17 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 			for (i = 0; i < (size_t) G.nhyper; i++) {
 				gsl_matrix_set(Adir, i, i, 1.0);
 			}
+
+			if (G.directions) {
+				// start fom here instead
+				if (Adir->size1 == G.directions->size1 &&
+				    Adir->size2 == G.directions->size2) {
+					gsl_matrix_memcpy(Adir, G.directions);
+				} else {
+					fprintf(stderr, "Direction matrix has wrong dimension, ignore. [(%1d,%1d) != (%1d,%1d)]\n",
+						(int) G.directions->size1, (int) G.directions->size2, (int) Adir->size1, (int) Adir->size2);
+				}
+			} 
 			gsl_matrix_memcpy(A, Adir);
 			gsl_matrix_memcpy(tAinv, Adir);
 			first = 0;

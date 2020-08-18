@@ -16,7 +16,7 @@
 ##!                           intern = FALSE,
 ##!                           use.improved.mean = TRUE, skew.corr = TRUE, 
 ##!                           add.names = TRUE, seed = 0L, num.threads = NULL, 
-##!                           verbose=FALSE)
+##!                           parallel.configs = TRUE,  verbose=FALSE)
 ##!     inla.posterior.sample.eval(fun, samples, return.matrix = TRUE, ...)
 ##! }
 ##! 
@@ -33,13 +33,6 @@
 ##!       are negative, they are interpreted as 'not', a zero is interpreted as 'all',  and
 ##!       positive indices are interpreted as 'only'. The names of elements of each samples 
 ##!       refer to the indices in the full sample. }
-##   \item{num.cores}{Number of cores to use in the \code{foreach} package.
-##        By default it only exploits one for a serial strategy of 
-##        the computations. For \code{num.cores} greater than 1 we are basically
-##        creating a single stream of tasks 
-##        that can all be executed in parallel. The number of threads employed
-##        by \code{inla.qsample},  the argument \code{num.threads},  are matched
-##        with the number of cores specified in the option \code{num.cores}.}
 ##!   \item{intern}{Logical. If \code{TRUE} then produce samples in the
 ##!        internal scale for the hyperparmater, if \code{FALSE} then produce
 ##!        samples in the user-scale. (For example log-precision (intern)
@@ -62,8 +55,14 @@
 ##!       If you want reproducible results, you ALSO need to control the seed for the RNG in R by
 ##!       controlling the variable \code{.Random.seed} or using the function \code{set.seed},
 ##!       the example for how this can be done. }
-##!   \item{num.threads}{The number of threads that can be used. \code{num.threads>1L} requires
-##!       \code{seed = 0L}. Default value is controlled by \code{inla.getOption("num.threads")}}
+##!   \item{num.threads}{The number of threads to use in the format 'A:B' defining the number threads in the
+##!                      outer (A) and inner (B) layer for nested parallelism. A '0' will be replaced
+##!                      intelligently. 
+##!                      \code{seed!=0} requires serial comptuations.}
+##!   \item{parallel.configs}{Logical. If \code{TRUE} and not on Windows,
+##!                           then try to run each configuration in
+##!                           parallel (not Windows) using \code{A} threads (see \code{num.threads}), 
+##!                           where each of them is using \code{B:0} threads.}
 ##!   \item{verbose}{Logical. Run in verbose mode or not.}
 ##!   \item{fun}{The function to evaluate for each sample. Upon entry, the variable names
 ##!               defined in the model are defined as the value of the sample.
@@ -319,7 +318,7 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
                                  intern = FALSE,
                                  use.improved.mean = TRUE, skew.corr = TRUE, 
                                  add.names = TRUE, seed = 0L, num.threads = NULL, 
-                                 verbose = FALSE)
+                                 parallel.configs = TRUE, verbose = FALSE)
 {
     ## New inla.posterior.sample with skewness correction. contributed by CC.
     
@@ -330,13 +329,14 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
     }
     
     if (seed != 0L && is.null(num.threads)) {
-        num.threads = 1L
+        num.threads = "1"
     }
     if (is.null(num.threads)) {
         num.threads = inla.getOption("num.threads")
     }
-    num.threads = max(num.threads, 1L)
-    if (num.threads > 1L && seed != 0L) {
+    num.threads <- inla.parse.num.threads(num.threads)
+    nt.1 <- as.numeric(strsplit(num.threads, ":",)[[1]][1])
+    if (nt.1 > 1L && seed != 0L) {
         stop("num.threads > 1L require seed = 0L")
     }
     if (use.improved.mean == FALSE) {
@@ -376,13 +376,57 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
     con = cs$contents
     all.samples = rep(list(c()), n)
     i.sample = 1L
+
+    ## it is easier to parallise here,  just doing the samples in parallel. then we process them
+    ## in serial afterwards, since that is much less of an job
+
+    if (!inla.os("windows") && parallel.configs) {
+        nt <- as.numeric(strsplit(num.threads, ":")[[1]])
+        ncores <- detectCores(all.tests = TRUE, logical = FALSE)
+        if (nt[1] == 0) {
+            nt[1] <- max(1, min(cs$nconfig, ncores))
+            nt[2] <- 1
+        } 
+        if (nt[2] == 0) {
+            nt[2] <- max(1, ncores %/% nt[1])
+        }
+        xx.list <- mclapply(1:cs$nconfig,
+                            (function(k) {
+                                if (n.idx[k] > 0) {
+                                    xx = inla.qsample(n = n.idx[k],
+                                                      Q = cs$config[[k]]$Q,
+                                                      mu = inla.ifelse(use.improved.mean,
+                                                                       cs$config[[k]]$improved.mean,
+                                                                       cs$config[[k]]$mean), 
+                                                      constr = cs$constr,
+                                                      logdens = TRUE,
+                                                      seed = seed,
+                                  num.threads = paste0(nt[2], ":1"), 
+                                  selection = sel.map,
+                                  verbose = verbose)
+                                    return (xx)
+                                } else {
+                                    return (NA)
+                                }
+                            }), 
+                            mc.cores = nt[1],
+                            mc.preschedule = TRUE)
+    } else {
+        xx.list <- NULL
+    }
+
     for(k in 1:cs$nconfig) {
         if (n.idx[k] > 0) {
             ## then the latent field
-            xx = inla.qsample(n = n.idx[k], Q = cs$config[[k]]$Q,
-                              mu = inla.ifelse(use.improved.mean, cs$config[[k]]$improved.mean, cs$config[[k]]$mean), 
-                              constr = cs$constr, logdens = TRUE, seed = seed, num.threads = num.threads,
-                              selection = sel.map, verbose = verbose)
+            if (is.null(xx.list)) {
+                xx = inla.qsample(n = n.idx[k], Q = cs$config[[k]]$Q,
+                                  mu = inla.ifelse(use.improved.mean, cs$config[[k]]$improved.mean, cs$config[[k]]$mean), 
+                                  constr = cs$constr, logdens = TRUE, seed = seed, num.threads = num.threads,
+                                  selection = sel.map, verbose = verbose)
+            }
+            else {
+                xx <- xx.list[[k]]
+            }
             ## if user set seed,  then just continue this rng-stream
             if (seed > 0L) seed = -1L
             

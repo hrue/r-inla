@@ -587,6 +587,7 @@ typedef struct {
          * Use directions when optimising?
 	 */
 	int optimise_use_directions;
+	gsl_matrix *optimise_use_directions_m;
 	
 } GMRFLib_ai_param_tp;
 
@@ -900,6 +901,8 @@ typedef struct {
 
 	int mode_status;				       /* 0 for ok, 1 not ok. */
 	int nfunc;					       /* number of function evaluations */
+	
+	GMRFLib_matrix_tp *opt_directions;
 	
 	GMRFLib_store_configs_tp **configs;		       /* configs[id][...] */
 } GMRFLib_ai_misc_output_tp;

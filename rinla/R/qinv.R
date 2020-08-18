@@ -11,7 +11,7 @@
 ##!              The diagonal and values for the neighbours in the inverse, are provided.}
 ##!
 ##! \usage{
-##!     inla.qinv(Q, constr, reordering = INLA::inla.reorderings())
+##!     inla.qinv(Q, constr, reordering = INLA::inla.reorderings(), num.threads = NULL)
 ##! }
 ##!
 ##! \arguments{
@@ -23,6 +23,9 @@
 ##!        either one of the names listed in \code{inla.reorderings()} 
 ##!        or the output from \code{inla.qreordering(Q)}.
 ##!        The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
+##!   \item{num.threads}{Maximum number of threads the
+##!                      \code{inla}-program will use, or as 'A:B' defining the number threads in the
+##!                      outer (A) and inner (B) layer for nested parallelism. }
 ##!  }
 ##! \value{
 ##!   \code{inla.qinv} returns a \code{sparseMatrix} of type \code{dgTMatrix} with the
@@ -54,11 +57,16 @@
 ##! unlink(filename)
 ##! }
 
-`inla.qinv` = function(Q, constr, reordering = INLA::inla.reorderings())
+`inla.qinv` = function(Q, constr, reordering = INLA::inla.reorderings(),
+                       num.threads = NULL)
 {
     t.dir = inla.tempdir()
     smtp = match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "pardiso"))
-    num.threads = inla.getOption("num.threads")
+    if (is.null(num.threads)) {
+        num.threads = inla.getOption("num.threads")
+    }
+    num.threads <- inla.parse.num.threads(num.threads)
+
     Q = inla.sparse.check(Q)
     if (is(Q, "dgTMatrix")) {
         qinv.file = inla.write.fmesher.file(Q, filename = inla.tempfile(tmpdir = t.dir))
@@ -89,12 +97,12 @@
     inla.set.sparselib.env(inla.dir = t.dir)
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.call.no.remote()), "-s -m qinv",
-                         "-r",  reordering, "-t", num.threads, 
-                         "-S", smtp, qinv.file, constr.file, out.file), intern=TRUE)
+                         "-r",  reordering, "-S",  smtp, "-t", num.threads, 
+                         qinv.file, constr.file, out.file), intern=TRUE)
     } else if(inla.os("windows")) {
         s = system(paste(shQuote(inla.call.no.remote()), "-s -m qinv",
-                         "-r",  reordering, "-t", num.threads, 
-                         "-S", smtp, qinv.file, constr.file, out.file), intern=TRUE)
+                         "-r",  reordering, "-S", smtp, "-t", num.threads, 
+                         qinv.file, constr.file, out.file), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }

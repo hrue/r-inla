@@ -224,6 +224,7 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 
 	(*ai_par)->optimise_smart = GMRFLib_FALSE;
 	(*ai_par)->optimise_use_directions = GMRFLib_FALSE;
+	(*ai_par)->optimise_use_directions_m = NULL;
 	(*ai_par)->optimiser = GMRFLib_AI_OPTIMISER_GSL;
 	(*ai_par)->restart = 0;
 	(*ai_par)->gsl_tol = 0.1;
@@ -293,6 +294,10 @@ int GMRFLib_ai_param_duplicate(GMRFLib_ai_param_tp ** ai_par_new, GMRFLib_ai_par
 	*ai_par_new = Calloc(1, GMRFLib_ai_param_tp);
 	memcpy((void *) *ai_par_new, (void *) ai_par, sizeof(GMRFLib_ai_param_tp));
 
+	if (ai_par->optimise_use_directions_m) {
+		(*ai_par_new)->optimise_use_directions_m = GMRFLib_gsl_duplicate_matrix(ai_par->optimise_use_directions_m);
+	}
+
 	if (ai_par->adapt_strategy) {
 		(*ai_par_new)->adapt_strategy = Calloc(ai_par->adapt_len, GMRFLib_ai_strategy_tp);
 		memcpy((void *) (*ai_par_new)->adapt_strategy, (void *) ai_par->adapt_strategy, sizeof(GMRFLib_ai_strategy_tp) * ai_par->adapt_len);
@@ -342,6 +347,18 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	fprintf(fp, "\t\tOptimise: try to be smart: %s\n", (ai_par->optimise_smart ? "Yes" : "No"));
 	fprintf(fp, "\t\tOptimise: use directions: %s\n", (ai_par->optimise_use_directions ? "Yes" : "No"));
 	fprintf(fp, "\t\tMode known: %s\n", (ai_par->mode_known ? "Yes" : "No"));
+
+	gsl_matrix *m = ai_par->optimise_use_directions_m;
+	if (m) {
+		fprintf(fp, "\tDirection matrix:\n");
+		for(size_t i = 0; i < m->size1; i++) {
+			fprintf(fp, "\t\t");
+			for(size_t j = 0; j < m->size2; j++) {
+				fprintf(fp, " %7.3f", gsl_matrix_get(m, i, j));
+			}
+			fprintf(fp, "\n");
+		}
+	}
 
 	fprintf(fp, "\tGaussian approximation:\n");
 	fprintf(fp, "\t\ttolerance_func = %.6g\n", ai_par->optpar_abserr_func);
@@ -6246,6 +6263,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			if (ai_store->problem->sub_sm_fact.remap != NULL) {
 				misc_output->len_reordering = ai_store->problem->sub_graph->n;
 				misc_output->nfunc = GMRFLib_opt_get_f_count();
+				misc_output->opt_directions = GMRFLib_opt_get_directions();
 				misc_output->reordering = Calloc(misc_output->len_reordering, int);
 				memcpy(misc_output->reordering, ai_store->problem->sub_sm_fact.remap, misc_output->len_reordering * sizeof(int));
 			}
@@ -6931,8 +6949,6 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 	GMRFLib_graph_tp *g = gmrf_approx->sub_graph;
 
 	Q = Calloc(mo->configs[id]->nz, double);
-
-	FIXME1("RECALL TO VALIDATE configs= TRUE!");
 	if (gmrf_approx->tab->Qfunc == GMRFLib_tabulate_Qfunction) {
 		GMRFLib_tabulate_Qfunc_arg_tp *aa;
 		aa = (GMRFLib_tabulate_Qfunc_arg_tp *) gmrf_approx->tab->Qfunc_arg;
@@ -7088,8 +7104,9 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	// there is some bad designed code which require some code calling this to be run as
 	// a critical region, which mess up if run with pardiso and this loop in parallel.
 	// so I disable it for the moment.
-	int use_pardiso = (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ||
-			   GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL);
+	// FIXME: Recheck this later!
+	int use_pardiso = (GMRFLib_smtp == GMRFLib_SMTP_PARDISO);
+
 #pragma omp parallel for private(i, j, k) num_threads(GMRFLib_openmp->max_threads_inner) if (!use_pardiso)
 	for (i = 0; i < nlin; i++) {
 
@@ -7421,23 +7438,6 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 	loglFunc(loglik, xp, np, idx, x_vec, NULL, loglFunc_arg);
 	for (i = 0; i < np; i++) {
 		loglik[i] *= d;
-	}
-
-	if (0) {
-		P(idx);
-		FIXME("write cpo_density");
-		char *ff;
-		GMRFLib_sprintf(&ff, "cpo-density-%1d.dat", idx);
-
-		FILE *fp = fopen(ff, "w");
-		for (i = 0; i < np; i++) {
-			fprintf(fp, "%g %g %g %g\n", xp[i], dens[i], exp(loglik[i]), prob[i]);
-		}
-		fclose(fp);
-		printf("write file %s\n", ff);
-		Free(ff);
-		FIXME("info for cpo_dens");
-		GMRFLib_density_printf(stdout, cpo_density);
 	}
 
 	for (i = 0; i < np; i++) {
