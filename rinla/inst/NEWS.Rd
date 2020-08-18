@@ -26,9 +26,40 @@
     }
   }
 }
-\name{NEWS}
-\title{R-INLA News}
-\encoding{UTF-8}
+
+\section{CHANGES IN VERSION 20.08.18}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Code is prepared for nested parallism, which most gain
+      obtained when using the PARDISO library
+      \item Argument \code{num.threads} is now in the format \code{A:B},
+      where A threads for the outer layer and B threads for the inner
+      layer. And this applies for several functions.
+      \item The speed have improved, mostly when using the PARDISO
+      library. Hopefully, nothing is broken.
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item likelihood \code{beta} now allow for cencoring near 0 and 1,
+      see \code{inla.doc("beta", section="likelihood")}
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Default value for \code{control.inla$h} is now 0.005, which
+      replace the previous value of 0.01. We might change this later,
+      but we have enough experience to know that 0.01 is slightly to
+      large.
+      \item \code{control.inla$optimise.strategy="smart"} is now
+      default. By construction, this should be both faster and more
+      robust. Using \code{"plain"} reverts back the old behaviour. 
+      \item \code{control.inla$use.directions=TRUE} is now default. This option
+      estimate numerical gradients/Hessian in directions with
+      more change than for coordinate-wise directions.
+    }
+  }
+}
 
 \section{CHANGES IN VERSION 20.08.11}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
