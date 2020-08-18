@@ -14,7 +14,7 @@ for d in {,/usr}/lib64 /usr/lib64/R/lib {,/usr}/lib/x86_64-linux-gnu {,/usr}/lib
 	fi
     fi
 done
-export LD_LIBRARY_PATH="$DIR/first:$DIR:$D:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="$DIR/first:$D:$DIR:$LD_LIBRARY_PATH"
 
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
     echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
