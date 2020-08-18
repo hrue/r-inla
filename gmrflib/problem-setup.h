@@ -204,6 +204,7 @@ typedef struct {
 	GMRFLib_Qfunc_tp *user_Qfunc;
 	int *map;					       /* Mapping to the real-world */
 	double *diagonal_adds;
+	GMRFLib_graph_tp *graph;
 } GMRFLib_Qfunc_arg_tp;
 
 /* 
@@ -497,7 +498,7 @@ struct GMRFLib_store_struct {
 #define STOCHASTIC_CONSTR(constr) ((constr) && ((constr)->errcov_diagonal || (constr)->errcov_general))
 
 double *GMRFLib_Qinv_get(GMRFLib_problem_tp * problem, int i, int j);
-double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, void *arguments);
+double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *arguments);
 int GMRFLib_Qinv(GMRFLib_problem_tp * problem, int storage);
 int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_evaluate(GMRFLib_problem_tp * problem);
@@ -524,7 +525,7 @@ int GMRFLib_sample(GMRFLib_problem_tp * problem);
 
 GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int skeleton, int copy_ptr, int copy_pardiso_ptr);
 GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton, int copy_ptr, int copy_pardiso_ptr);
-double GMRFLib_Qfunc_generic(int i, int j, void *arg);
+double GMRFLib_Qfunc_generic(int i, int j, double *values, void *arg);
 int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_opt, int *use_global, GMRFLib_global_node_tp *gn);
 GMRFLib_sizeof_tp GMRFLib_sizeof_store(GMRFLib_store_tp * store);
 GMRFLib_sizeof_tp GMRFLib_sizeof_problem(GMRFLib_problem_tp * problem);

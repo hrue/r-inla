@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE, cache = FALSE)
 Design = matrix()
 library(INLA)
 set.seed(123)
-inla.setOption(num.threads=1)
+inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
 ```
 

@@ -137,7 +137,7 @@ __BEGIN_DECLS
 	double **log_range_omp;
 } GMRFLib_matern2ddef_tp;
 
-double GMRFLib_matern2d(int node, int nnode, void *def);
+double GMRFLib_matern2d(int node, int nnode, double *values, void *def);
 int GMRFLib_make_matern2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_matern2ddef_tp * def);
 
 

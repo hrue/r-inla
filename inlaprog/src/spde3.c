@@ -211,8 +211,12 @@ int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const ch
 
 	return INLA_OK;
 }
-double inla_spde3_Qfunction(int i, int j, void *arg)
+double inla_spde3_Qfunction(int i, int j, double *values, void *arg)
 {
+	if (i >= 0 && j < 0){
+		return NAN;
+	}
+	
 	inla_spde3_tp *model = (inla_spde3_tp *) arg;
 	double value, phi_i[3], phi_j[3], d_i[3], d_j[3];
 	int k, kk, use_store = 1, debug = 0;

@@ -160,7 +160,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 	}
 
 	if (sm_fact->remap) {				       /* need this still for the wa-routines. FIXME */
-		GMRFLib_EWRAP1(GMRFLib_compute_bandwidth(&(sm_fact->bandwidth), graph, sm_fact->remap));
+		GMRFLib_EWRAP1(GMRFLib_graph_comp_bw(&(sm_fact->bandwidth), graph, sm_fact->remap));
 	} else {
 		sm_fact->bandwidth = -1;
 	}
@@ -335,6 +335,7 @@ int GMRFLib_free_fact_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact)
 			break;
 		}
 	}
+
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }

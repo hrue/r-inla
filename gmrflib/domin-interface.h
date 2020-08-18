@@ -85,6 +85,7 @@ typedef struct {
 	GMRFLib_constr_tp *constr;
 	GMRFLib_graph_tp *graph;
 	GMRFLib_logl_tp *loglFunc;
+	gsl_matrix *directions;
 } GMRFLib_opt_arg_tp;
 
 int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
@@ -104,6 +105,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 int GMRFLib_opt_get_f_count(void);
 int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr);
 
+GMRFLib_matrix_tp *GMRFLib_opt_get_directions(void);
 double GMRFLib_gsl_f(const gsl_vector * v, void *params);
 int GMRFLib_gsl_get_results(double *theta_mode, double *log_dens_mode);
 int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par);

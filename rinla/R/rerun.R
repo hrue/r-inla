@@ -43,12 +43,13 @@
         object$.args$control.mode$restart = TRUE
         object$.args$control.mode$theta = object$mode$theta
         object$.args$control.mode$x = object$mode$x
-        ## do not want to change this one
-        ##object$.args$control.mode$fixed = FALSE
+        ## to do a proper restart, we should keep the direction is any. if they are not used,
+        ## they will be NULL, which is the same as FALSE.
+        object$.args$control.inla$use.directions = object$.args$misc$opt.directions
     }
     
     new.obj = do.call("inla",  args = object$.args)
-    ## revert this one, as variables are expanded and its long...
+    ## revert, as variables are expanded...
     new.obj$call = object$call
 
     return (new.obj)

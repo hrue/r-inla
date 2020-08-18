@@ -80,6 +80,7 @@
             cat("Compute new CPO/PIT values manually, for", length(idx.fail), "cases...\n")
         }
 
+        nt <- as.numeric(strsplit(result$.args$num.threads, ":")[[1]])
         res = inla.mclapply(
                         idx.fail,
                         function(idx, result) {
@@ -91,6 +92,7 @@
                                     x = result$mode$x,
                                     restart = recompute.mode)
                             result$.args$control.compute$dic = result$.args$control.compute$waic = FALSE
+                            result$.args$num.threads <- paste0(nt[2], ":1")
                             rr = inla.rerun(result, plain = TRUE)$cpo
                             return (list(cpo = rr$cpo[idx], pit = rr$pit[idx], failure = rr$failure[idx]))
                         },  result = result, mc.cores = mc.cores)

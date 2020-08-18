@@ -123,6 +123,41 @@ int GMRFLib_which(double val, double *array, int len)
 	}
 	return -1;
 }
+
+int GMRFLib_iwhich_sorted(int val, int *ix, int len)
+{
+	// return the index of iarray for which ix[idx]=val and
+	// we KNOW that ix is sorted, and return -1 if not found
+
+	int low, high, mid, n, n_lim = 8, i;
+	if (len == 0) {
+		return -1;
+	}
+	
+	low = 0;
+	high = len -1;
+
+	while (1) {
+		n = high - low - 1;			       /* n is how many alternatives left */
+		if (n <= n_lim) {			       
+			for(i = low; i <= high; i++) {
+				if (ix[i] == val) {
+					return (i);
+				}
+			}
+			return (-1);
+		} else {
+			mid = low + (high - low) / 2;	       /* integer division */
+			if (ix[mid] > val) {
+				high = mid;
+			} else {
+				low = mid;
+			}
+		}
+	}
+	return -1;
+}
+
 int GMRFLib_find_nonzero(double *array, int len, int direction)
 {
 	/*

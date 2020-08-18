@@ -87,7 +87,7 @@ typedef struct {
 
 
 double inla_spde_KT_model_eval(inla_spde_theta_tp * theta_model, int idx);
-double inla_spde_Qfunction(int node, int nnode, void *arg);
+double inla_spde_Qfunction(int node, int nnode, double *values, void *arg);
 double *inla_spde_userfunc0(GMRFLib_problem_tp * problem, double *theta, int nhyper);
 double *inla_spde_userfunc1(double *theta, int nhyper, double *covmat);
 int inla_spde_KT_model_eval2(double *value0, double *value1, inla_spde_theta_tp * theta_model, int idx, int iidx);

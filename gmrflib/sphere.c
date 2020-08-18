@@ -98,7 +98,7 @@ int GMRFLib_make_spherical_igmrf(GMRFLib_sphere_tp ** sphere, int resolution, do
 		GMRFLib_EWRAP0(GMRFLib_sprintf(&fnm, "sphere-%1d.graph.gz", resolution));
 		GMRFLib_EWRAP0(GMRFLib_io_find_file_in_path(&p, fnm, 1));
 	}
-	GMRFLib_EWRAP0(GMRFLib_read_graph(&((*sphere)->graph), p));
+	GMRFLib_EWRAP0(GMRFLib_graph_read(&((*sphere)->graph), p));
 	Free(fnm);
 	Free(p);
 
@@ -176,7 +176,7 @@ int GMRFLib_free_spherical_igmrf(GMRFLib_sphere_tp * sphere)
 		return GMRFLib_SUCCESS;
 	}
 
-	GMRFLib_free_graph(sphere->graph);
+	GMRFLib_graph_free(sphere->graph);
 	Free(sphere->area);
 	Free(sphere->coord);
 

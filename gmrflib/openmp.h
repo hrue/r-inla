@@ -72,9 +72,7 @@ typedef enum {
 	GMRFLib_OPENMP_STRATEGY_MEDIUM,
 	GMRFLib_OPENMP_STRATEGY_LARGE,
 	GMRFLib_OPENMP_STRATEGY_HUGE,
-	GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL,
-	GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL,
-	GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED,
+	GMRFLib_OPENMP_STRATEGY_PARDISO,
 	GMRFLib_OPENMP_STRATEGY_DEFAULT,
 	GMRFLib_OPENMP_STRATEGY_NONE
 } GMRFLib_openmp_strategy_tp;
@@ -84,11 +82,9 @@ typedef enum {
 	 ((num) == GMRFLib_OPENMP_STRATEGY_MEDIUM ? "medium" :		\
 	  ((num) == GMRFLib_OPENMP_STRATEGY_LARGE ? "large" :		\
 	   ((num) == GMRFLib_OPENMP_STRATEGY_HUGE ? "huge" :		\
-	    ((num) == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ? "pardiso.serial" : \
-	     ((num) == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL ? "pardiso.parallel" : \
-	      ((num) == GMRFLib_OPENMP_STRATEGY_PARDISO_NESTED ? "pardiso.nested" : \
-	       ((num) == GMRFLib_OPENMP_STRATEGY_DEFAULT ? "default" :	\
-		((num) == GMRFLib_OPENMP_STRATEGY_NONE ? "none" : "THIS SHOULD NOT HAPPEN")))))))))
+	    ((num) == GMRFLib_OPENMP_STRATEGY_PARDISO ? "pardiso" :	\
+	     ((num) == GMRFLib_OPENMP_STRATEGY_DEFAULT ? "default" :	\
+	      ((num) == GMRFLib_OPENMP_STRATEGY_NONE ? "none" : "THIS SHOULD NOT HAPPEN")))))))
 
 typedef enum {
 	GMRFLib_OPENMP_PLACES_PARSE_MODEL = 1,
