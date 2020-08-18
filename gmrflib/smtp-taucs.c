@@ -542,7 +542,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 			fixed[i] = (graph->nnbs[i] >= limit ? 1 : 0);
 		}
 
-		GMRFLib_compute_subgraph(&subgraph, graph, fixed);
+		GMRFLib_graph_comp_subgraph(&subgraph, graph, fixed);
 		free_subgraph = 1;
 	} else {
 		subgraph = graph;
@@ -689,7 +689,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 
 		*remap = iperm_new;			       /* this is the reordering */
 
-		GMRFLib_free_graph(subgraph);
+		GMRFLib_graph_free(subgraph);
 		Free(iperm);
 	}
 
@@ -754,7 +754,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 		ic = ic_idx[i];
 		GMRFLib_thread_id = id;
 
-		val = Qfunc(i, i, Qfunc_arg);
+		val = Qfunc(i, i, NULL, Qfunc_arg);
 		GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);
 		Q->values.d[ic++] = val;
 
@@ -764,7 +764,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 				break;
 			}
 
-			val = Qfunc(i, j, Qfunc_arg);
+			val = Qfunc(i, j, NULL, Qfunc_arg);
 			GMRFLib_STOP_IF_NAN_OR_INF(val, i, j);
 			Q->values.d[ic++] = val;
 		}
@@ -783,7 +783,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 
 		Q->rowind[ic] = i;
 
-		val = Qfunc(i, i, Qfunc_arg);
+		val = Qfunc(i, i, NULL, Qfunc_arg);
 		GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);
 		Q->values.d[ic] = val;
 
@@ -797,7 +797,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 			}
 			Q->rowind[ic] = j;
 
-			val = Qfunc(i, j, Qfunc_arg);
+			val = Qfunc(i, j, NULL, Qfunc_arg);
 			GMRFLib_STOP_IF_NAN_OR_INF(val, i, j);
 			Q->values.d[ic] = val;
 
@@ -832,12 +832,12 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 			FILE *fp = fopen(fnm, "w");
 			fprintf(stderr, "write %s\n", fnm);
 			for (i = 0; i < n; i++) {
-				double qq = Qfunc(i, i, Qfunc_arg);
+				double qq = Qfunc(i, i, NULL, Qfunc_arg);
 				fprintf(fp, "%d %d %.16g\n", i, i, qq);
 				for (k = 0; k < graph->nnbs[i]; k++) {
 					j = graph->nbs[i][k];
 					if (i < j) {
-						fprintf(fp, "%d %d %.20g\n", i, j, Qfunc(i, j, Qfunc_arg));
+						fprintf(fp, "%d %d %.20g\n", i, j, Qfunc(i, j, NULL, Qfunc_arg));
 					}
 				}
 			}
@@ -1623,7 +1623,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage
 
 					if (j != i) {
 						jjj = inv_remap[j];
-						if (!GMRFLib_is_neighb(iii, jjj, problem->sub_graph)) {
+						if (!GMRFLib_graph_is_nb(iii, jjj, problem->sub_graph)) {
 							rremove[nrremove++] = j;
 						}
 					}

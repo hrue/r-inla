@@ -44,11 +44,9 @@ int main(int argc, char **argv)
 	int i, j, jj;
 	for (i = 0; i < graph->n; i++) {
 		printf("%d %d %.8g\n", i, i, *GMRFLib_Qinv_get(problem, i, i));
-		for (jj = 0; jj < graph->nnbs[i]; jj++) {
-			j = graph->nbs[i][jj];
-			if (j > i) {
-				printf("%d %d %.8g\n", i, j, *GMRFLib_Qinv_get(problem, i, j));
-			}
+		for (jj = 0; jj < graph->lnnbs[i]; jj++) {
+			j = graph->lnbs[i][jj];
+			printf("%d %d %.8g\n", i, j, *GMRFLib_Qinv_get(problem, i, j));
 		}
 	}
 

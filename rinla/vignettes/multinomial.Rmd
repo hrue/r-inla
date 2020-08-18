@@ -14,7 +14,7 @@ bibliography: multinomial.bib
 ```{r setup, include=FALSE}
 library(INLA)
 set.seed(123)
-inla.setOption(num.threads=1)
+inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
 knitr::opts_chunk$set(echo = TRUE)
 ```

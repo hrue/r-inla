@@ -39,6 +39,12 @@ The parameters $\{a, b\}$ are given as $\{\mu, \phi\}$ as follows,
     a = \mu \phi \quad\text{and}\quad  b = -\mu \phi + \phi.
 \end{displaymath}
 
+In some applications then observations close to 0 or 1, are censored
+and represented as exactly 0 and 1. For this, we introduced a censor
+value $0 < \delta<1/2$ and treat all $y \le \delta$ or
+$y \ge 1-\delta$ as censored observations. By default, no censoring is
+applied ($\delta=0$).
+
 
 \subsection*{Link-function}
 
@@ -64,6 +70,8 @@ $\theta$.
 \item $\text{family}=\texttt{beta}$
 \item Required argument: $y$
 \item Optional argument: $s$ (argument \texttt{scale}, default all 1, $s>0$)
+\item Optional argument: truncation limit $0 \le \delta < 1/2$
+    (argument \texttt{beta.trunctation}, $\delta=0$ means no trunctation).
 \end{itemize}
 
 \subsubsection*{Hyperparameter spesification and default values}
@@ -75,6 +83,9 @@ $\theta$.
 In the following example we estimate the parameters in a simulated
 example.
 \verbatiminput{example-beta.R}
+
+In this example we add truncation.
+\verbatiminput{example-beta-trunc.R}
 
 \subsection*{Notes}
 

@@ -117,7 +117,6 @@ __BEGIN_DECLS
 
 typedef enum {
 	INLA_MODE_DEFAULT = 0,
-	INLA_MODE_MCMC,
 	INLA_MODE_HYPER,
 	INLA_MODE_QINV,
 	INLA_MODE_QSOLVE,
@@ -226,8 +225,9 @@ typedef struct {
 	/*
 	 *  Beta
 	 */
-	double *weight_beta;
-
+	double *beta_weight;
+	double beta_censor_value;
+	
 	/*
 	 * y ~ Simplex(....,1/(weight*prec))
 	 */
@@ -281,7 +281,7 @@ typedef struct {
 	double *event;					       /* one of inla_surv_event_tp */
 	double *lower;					       /* for survival */
 	double *upper;					       /* for survival */
-	// dobule *time == y
+	// double *time == y
 	double **p_intern;				       /* For the L_WEIBULL_CURE */
 
 	/*
@@ -1481,38 +1481,38 @@ GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n);
 char *inla_create_hyperid(int id, const char *secname);
 char *inla_make_tag(const char *string, int ds);
 const char *inla_string_join(const char *a, const char *b);
-double Qfunc_2diid(int i, int j, void *arg);
-double Qfunc_2diid_wishart(int i, int j, void *arg);
-double Qfunc_ar(int i, int j, void *arg);
-double Qfunc_ar1(int i, int j, void *arg);
-double Qfunc_ar1c(int i, int j, void *arg);
-double Qfunc_besag(int i, int j, void *arg);
-double Qfunc_besag2(int i, int j, void *arg);
-double Qfunc_besagproper(int i, int j, void *arg);
-double Qfunc_besagproper2(int i, int j, void *arg);
-double Qfunc_bym(int i, int j, void *arg);
-double Qfunc_bym2(int i, int j, void *arg);
-double Qfunc_clinear(int i, int j, void *arg);
-double Qfunc_copy_part00(int i, int j, void *arg);
-double Qfunc_copy_part01(int i, int j, void *arg);
-double Qfunc_copy_part11(int i, int j, void *arg);
-double Qfunc_dmatern(int i, int j, void *arg);
-double Qfunc_generic1(int i, int j, void *arg);
-double Qfunc_generic2(int i, int j, void *arg);
-double Qfunc_generic3(int i, int j, void *arg);
-double Qfunc_group(int i, int j, void *arg);
-double Qfunc_iid2d(int i, int j, void *arg);
-double Qfunc_iid_wishart(int node, int nnode, void *arg);
-double Qfunc_log1exp(int i, int j, void *arg);
-double Qfunc_logdist(int i, int j, void *arg);
-double Qfunc_mec(int i, int j, void *arg);
-double Qfunc_ou(int i, int j, void *arg);
-double Qfunc_replicate(int i, int j, void *arg);
-double Qfunc_rgeneric(int i, int j, void *arg);
-double Qfunc_rw2diid(int i, int j, void *arg);
-double Qfunc_sigm(int i, int j, void *arg);
-double Qfunc_slm(int i, int j, void *arg);
-double Qfunc_z(int i, int j, void *arg);
+double Qfunc_2diid(int i, int j, double *values, void *arg);
+double Qfunc_2diid_wishart(int i, int j, double *values, void *arg);
+double Qfunc_ar(int i, int j, double *values, void *arg);
+double Qfunc_ar1(int i, int j, double *values, void *arg);
+double Qfunc_ar1c(int i, int j, double *values, void *arg);
+double Qfunc_besag(int i, int j, double *values, void *arg);
+double Qfunc_besag2(int i, int j, double *values, void *arg);
+double Qfunc_besagproper(int i, int j, double *values, void *arg);
+double Qfunc_besagproper2(int i, int j, double *values, void *arg);
+double Qfunc_bym(int i, int j, double *values, void *arg);
+double Qfunc_bym2(int i, int j, double *values, void *arg);
+double Qfunc_clinear(int i, int j, double *values, void *arg);
+double Qfunc_copy_part00(int i, int j, double *values, void *arg);
+double Qfunc_copy_part01(int i, int j, double *values, void *arg);
+double Qfunc_copy_part11(int i, int j, double *values, void *arg);
+double Qfunc_dmatern(int i, int j, double *values, void *arg);
+double Qfunc_generic1(int i, int j, double *values, void *arg);
+double Qfunc_generic2(int i, int j, double *values, void *arg);
+double Qfunc_generic3(int i, int j, double *values, void *arg);
+double Qfunc_group(int i, int j, double *values, void *arg);
+double Qfunc_iid2d(int i, int j, double *values, void *arg);
+double Qfunc_iid_wishart(int node, int nnode, double *values, void *arg);
+double Qfunc_log1exp(int i, int j, double *values, void *arg);
+double Qfunc_logdist(int i, int j, double *values, void *arg);
+double Qfunc_mec(int i, int j, double *values, void *arg);
+double Qfunc_ou(int i, int j, double *values, void *arg);
+double Qfunc_replicate(int i, int j, double *values, void *arg);
+double Qfunc_rgeneric(int i, int j, double *values, void *arg);
+double Qfunc_rw2diid(int i, int j, double *values, void *arg);
+double Qfunc_sigm(int i, int j, double *values, void *arg);
+double Qfunc_slm(int i, int j, double *values, void *arg);
+double Qfunc_z(int i, int j, double *values, void *arg);
 double ar_map_pacf(double arg, map_arg_tp typ, void *param);
 double ddexp_taylor(double x, double x0, int order);
 double dexp_taylor(double x, double x0, int order);
@@ -1648,7 +1648,6 @@ int count_f(inla_tp * mb, inla_component_tp id);
 int find_f(inla_tp * mb, inla_component_tp id);
 int find_tag(inla_tp * mb, const char *name);
 int inla_INLA(inla_tp * mb);
-int inla_MCMC(inla_tp * mb_old, inla_tp * mb_new);
 int inla_R(char **argv);
 int inla_add_copyof(inla_tp * mb);
 int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose);

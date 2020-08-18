@@ -48,16 +48,20 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
   for the RW defined in \c rwdef.
 
   This function allows also arguments ij that are not neighbours and can therefore also be used for
-  pruning (using \ref GMRFLib_prune_graph()).
+  pruning (using \ref GMRFLib_graph_prune()).
 
   \param[in] node   First node
   \param[in] nnode  Second node
   \param[in] def  The definition of the RW1 or RW2
 
-  \sa \ref GMRFLib_rwdef_tp, \ref GMRFLib_make_rw_graph, \ref GMRFLib_prune_graph
+  \sa \ref GMRFLib_rwdef_tp, \ref GMRFLib_make_rw_graph, \ref GMRFLib_graph_prune
 */
-double GMRFLib_rw(int node, int nnode, void *def)
+double GMRFLib_rw(int node, int nnode, double *values, void *def)
 {
+	if (node >= 0 && nnode < 0){
+		return NAN;
+	}
+	
 	int imax, imin, idiff, edge;
 	double prec;
 	GMRFLib_rwdef_tp *rwdef = (GMRFLib_rwdef_tp *) def;
@@ -175,16 +179,20 @@ double GMRFLib_rw(int node, int nnode, void *def)
   the CRW defined in \c crwdef.
  
   This function allows also arguments ij that are not neighbours and can therefore also be used for
-  pruning (using \ref GMRFLib_prune_graph()).
+  pruning (using \ref GMRFLib_graph_prune()).
  
   \param[in]  node  First node
   \param[in] nnode  Second node
   \param[in] def The definition of the CRW1 or CRW2
  
-  \sa \ref GMRFLib_crwdef_tp,  \ref GMRFLib_make_crw_graph,  \ref GMRFLib_prune_graph
+  \sa \ref GMRFLib_crwdef_tp,  \ref GMRFLib_make_crw_graph,  \ref GMRFLib_graph_prune
 */
-double GMRFLib_crw(int node, int nnode, void *def)
+double GMRFLib_crw(int node, int nnode, double *values, void *def)
 {
+	if (node >= 0 && nnode < 0){
+		return NAN;
+	}
+	
 	/*
 	 * this is the continous version for order=0, 1 or 2, which take into accont the positions consistently. the order=2
 	 * uses the augmentation with the velocity.
@@ -566,8 +574,12 @@ double GMRFLib_crw(int node, int nnode, void *def)
  
   \sa \ref GMRFLib_rw2ddef_tp,  \ref GMRFLib_make_rw2d_graph
 */
-double GMRFLib_rw2d(int node, int nnode, void *def)
+double GMRFLib_rw2d(int node, int nnode, double *values, void *def)
 {
+	if (node >= 0 && nnode < 0){
+		return NAN;
+	}
+	
 	/*
 	 * this function does work for non-neigbour arguments, hence it might be (and is) used for pruning. 
 	 */
@@ -769,7 +781,7 @@ double GMRFLib_rw2d(int node, int nnode, void *def)
 */
 int GMRFLib_make_rw_graph(GMRFLib_graph_tp ** graph, GMRFLib_rwdef_tp * def)
 {
-	GMRFLib_make_linear_graph(graph, def->n, def->order, def->cyclic);
+	GMRFLib_graph_mk_linear(graph, def->n, def->order, def->cyclic);
 	return GMRFLib_SUCCESS;
 }
 
@@ -797,19 +809,19 @@ int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def)
 	n = def->n;
 
 	if (def->order <= 1 || (def->order == 2 && def->layout == GMRFLib_CRW_LAYOUT_SIMPLE)) {
-		// FIXME("\n\n!!!!modify the graph to a complete graph!!!");GMRFLib_make_linear_graph(graph, n, n, 0);
-		GMRFLib_make_linear_graph(graph, n, def->order, 0);
+		// FIXME("\n\n!!!!modify the graph to a complete graph!!!");GMRFLib_graph_mk_linear(graph, n, n, 0);
+		GMRFLib_graph_mk_linear(graph, n, def->order, 0);
 		return GMRFLib_SUCCESS;
 	}
 	if (def->order == 2 && def->layout == GMRFLib_CRW_LAYOUT_PAIRS) {
-		GMRFLib_make_linear_graph(graph, 2 * n, 3, 0);
+		GMRFLib_graph_mk_linear(graph, 2 * n, 3, 0);
 		return GMRFLib_SUCCESS;
 	}
 
 	/*
 	 * the rest is for the block'ed case for order 2. this is the tricky bit 
 	 */
-	GMRFLib_make_empty_graph(&gg);
+	GMRFLib_graph_mk_empty(&gg);
 	gg->n = 2 * n;
 	gg->nnbs = Calloc(2 * n, int);
 	gg->nbs = Calloc(2 * n, int *);
@@ -856,7 +868,7 @@ int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def)
 			gg->nbs[i + n][4] = i - 1 + n;	       /* prev vel */
 		}
 	}
-	GMRFLib_EWRAP0(GMRFLib_prepare_graph(gg));
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(gg, 0));
 	*graph = gg;
 
 	return GMRFLib_SUCCESS;
@@ -868,7 +880,7 @@ int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def)
   This function creates a lattice graph for the RW model on a 2D lattice as defined in \c
   def. Currently only order=2 is supported. The dimention of the lattice must be at least, 5 x
   5. The mapping of the nodes to pixel indices, is defined similar to the \ref
-  GMRFLib_make_lattice_graph(), ie using the functions \ref GMRFLib_node2lattice() and \ref
+  GMRFLib_graph_mk_lattice(), ie using the functions \ref GMRFLib_node2lattice() and \ref
   GMRFLib_lattice2node().
 
   \param[out] graph  The graph for the RW model on a 2D lattice
@@ -881,10 +893,10 @@ int GMRFLib_make_rw2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def)
 {
 	GMRFLib_graph_tp *g = NULL;
 
-	GMRFLib_EWRAP0(GMRFLib_make_lattice_graph(&g, def->nrow, def->ncol, 2, 2, def->cyclic));
-	GMRFLib_EWRAP0(GMRFLib_prune_graph(graph, g, (GMRFLib_Qfunc_tp *) GMRFLib_rw2d, (void *) def));
+	GMRFLib_EWRAP0(GMRFLib_graph_mk_lattice(&g, def->nrow, def->ncol, 2, 2, def->cyclic));
+	GMRFLib_EWRAP0(GMRFLib_graph_prune(graph, g, (GMRFLib_Qfunc_tp *) GMRFLib_rw2d, (void *) def));
 
-	GMRFLib_free_graph(g);
+	GMRFLib_graph_free(g);
 
 	return GMRFLib_SUCCESS;
 }
@@ -1028,7 +1040,7 @@ int GMRFLib_crw_scale(void *def)
 	Free(crwdef);
 	Free(len);
 	GMRFLib_free_constr(constr);
-	GMRFLib_free_graph(graph);
+	GMRFLib_graph_free(graph);
 	GMRFLib_free_problem(problem);
 	if (free_position) {
 		Free(crwdef->position);
@@ -1159,7 +1171,7 @@ int GMRFLib_rw_scale(void *def)
 	Free(c);
 	Free(rwdef);
 	GMRFLib_free_constr(constr);
-	GMRFLib_free_graph(graph);
+	GMRFLib_graph_free(graph);
 	GMRFLib_free_problem(problem);
 
 	return GMRFLib_SUCCESS;
@@ -1265,7 +1277,7 @@ int GMRFLib_rw2d_scale(void *def)
 	Free(c);
 	Free(rw2ddef);
 	GMRFLib_free_constr(constr);
-	GMRFLib_free_graph(graph);
+	GMRFLib_graph_free(graph);
 	GMRFLib_free_problem(problem);
 
 	return GMRFLib_SUCCESS;

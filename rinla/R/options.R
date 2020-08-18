@@ -29,7 +29,7 @@
 ##!
 ##!     fmesher.arg: Additional arguments to \code{fmesher.call}
 ##!     
-##!     num.threads: Number of threads to use, either as \code{N},  or \code{N:M} or \code{N,M} in the nested case
+##!     num.threads: Character string with the number of threads to use as \code{A:B}
 ##!
 ##!     blas.num.threads: Number of threads to use for openblas and mklblas (see \code{inla} for details)
 ##!     
@@ -75,9 +75,9 @@
 ##! 
 ##! \examples{
 ##! ## set number of threads
-##! inla.setOption("num.threads", 2)
+##! inla.setOption("num.threads", "4:1")
 ##! ## alternative format
-##! inla.setOption(num.threads=2)
+##! inla.setOption(num.threads="4:1")
 ##! ## check it
 ##! inla.getOption("num.threads")
 ##!}
@@ -112,7 +112,7 @@
         fmesher.call = inla.fmesher.call.builtin(), 
         inla.arg = NULL,
         fmesher.arg = "", 
-        num.threads = parallel::detectCores(), 
+        num.threads = paste0(detectCores(all.tests = TRUE, logical = FALSE), ":1"), 
         blas.num.threads = 0L, 
         smtp = "default", 
         mkl = inla.os("linux"), 

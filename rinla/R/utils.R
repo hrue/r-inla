@@ -1008,9 +1008,13 @@
         if (is.null(mc.cores)) {
             mc.cores = getOption("mc.cores", NULL)
             if (is.null(mc.cores)) {
-                mc.cores = inla.getOption("num.threads")
-                if (is.null(mc.cores)) {
-                    mc.cores = 2L
+                num.threads = inla.getOption("num.threads")
+                num.threads <- inla.parse.num.threads(num.threads)
+                nt <- as.numeric(strsplit(num.threads, ":")[[1]])
+                if (nt[1] == 0) {
+                    mc.cores = detectCores(all.tests = TRUE, logical = FALSE)
+                } else {
+                    mc.cores <- nt[1]
                 }
             }
         }

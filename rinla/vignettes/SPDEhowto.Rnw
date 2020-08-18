@@ -39,7 +39,7 @@ opts_chunk$set(message=FALSE, warning=FALSE, tidy=FALSE,
                fig.path='SPDEhowto-figs/SPDEhowto-')
 library(lattice);   library(gridExtra);  library(INLA);  library(plyr) 
 set.seed(123)
-inla.setOption(num.threads=1)
+inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
 lcall <- inla.getOption('inla.call')
 @ 

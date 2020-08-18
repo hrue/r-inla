@@ -59,24 +59,59 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, void *arguments)
+double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *arguments)
 {
 	int node, nnode;
 	double val;
 	GMRFLib_Qfunc_arg_tp *args = NULL;
-
 	args = (GMRFLib_Qfunc_arg_tp *) arguments;
+	GMRFLib_graph_tp *g = args->graph;
 
-	node = args->map[sub_node];
-	nnode = args->map[sub_nnode];
-
-	if (node == nnode) {
-		val = (*(args->user_Qfunc)) (node, nnode, args->user_Qfunc_args) + args->diagonal_adds[sub_node];
+	if (GMRFLib_catch_error_for_inla) {
+		// we know that the mapping is identity in this case and that the sub_graph is the same as the graph
+		// this is also validated in the problem-setup
+		
+		node = sub_node; 
+		nnode = sub_nnode;
+		
+		if (nnode >= 0) {
+			// the normal case, nothing spesific to do
+			if (node == nnode) {
+				val = (*(args->user_Qfunc)) (node, nnode, NULL, args->user_Qfunc_args) + args->diagonal_adds[node];
+			} else {
+				val = (*(args->user_Qfunc)) (node, nnode, NULL, args->user_Qfunc_args);
+			}
+			return val;
+		} else {
+			// this is the multi-case
+			val =  (*(args->user_Qfunc)) (node, -1, values, args->user_Qfunc_args);
+			if (ISNAN(val)) {
+				// the Qfunction does not support it, move on doing it manually
+				int j, jj, k = 0;
+				values[k++] = (*(args->user_Qfunc)) (node, node, NULL, args->user_Qfunc_args) + args->diagonal_adds[node];
+				for(jj = 0; jj < args->graph->lnnbs[node]; jj++){
+					j = args->graph->lnbs[node][jj];
+					values[k++] = (*(args->user_Qfunc)) (node, j, NULL, args->user_Qfunc_args);
+				}
+			} else {
+				values[0] += args->diagonal_adds[node];
+			}
+			return 0.0;
+		}
 	} else {
-		val = (*(args->user_Qfunc)) (node, nnode, args->user_Qfunc_args);
-	}
 
-	return val;
+		if (sub_node >= 0 && sub_nnode <  0) {
+			return NAN;
+		}
+		node = args->map[sub_node];
+		nnode = args->map[sub_nnode];
+		if (node == nnode) {
+			val = (*(args->user_Qfunc)) (node, nnode, NULL, args->user_Qfunc_args) + args->diagonal_adds[sub_node];
+		} else {
+			val = (*(args->user_Qfunc)) (node, nnode, NULL, args->user_Qfunc_args);
+		}
+		return val;
+	}
 }
 
 /*! \brief Initializes and specifies a \c GMRFLib_problem_tp -object holding all 
@@ -295,30 +330,30 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	 */
 	if (!(keep & GMRFLib_KEEP_graph)) {
 		// if (keep && (*problem)->sub_graph)
-		GMRFLib_free_graph((*problem)->sub_graph);     /* free old sub_graph */
+		GMRFLib_graph_free((*problem)->sub_graph);     /* free old sub_graph */
 
 		if (store_use_sub_graph) {
 			/*
 			 * copy from store 
 			 */
-			GMRFLib_copy_graph(&((*problem)->sub_graph), store->sub_graph);
+			GMRFLib_graph_duplicate(&((*problem)->sub_graph), store->sub_graph);
 		} else {
 			/*
 			 * compute it 
 			 */
-			GMRFLib_compute_subgraph(&((*problem)->sub_graph), graph, fixed_value);
+			GMRFLib_graph_comp_subgraph(&((*problem)->sub_graph), graph, fixed_value);
 
 			/*
 			 * store a copy, if requested 
 			 */
 			if (store_store_sub_graph) {
-				GMRFLib_copy_graph(&(store->sub_graph), (*problem)->sub_graph);
+				GMRFLib_graph_duplicate(&(store->sub_graph), (*problem)->sub_graph);
 			}
 		}
 	}
 	sub_n = (*problem)->sub_graph->n;
 	if (sub_n == 0) {				       /* fast return if there is nothing todo */
-		GMRFLib_free_graph((*problem)->sub_graph);
+		GMRFLib_graph_free((*problem)->sub_graph);
 		Free(*problem);
 		if (free_x) {
 			Free(x);
@@ -413,6 +448,12 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		sub_Qfunc_arg = Calloc(1, GMRFLib_Qfunc_arg_tp);
 		sub_Qfunc_arg->map = (*problem)->map;	       /* yes, this ptr is needed */
 		sub_Qfunc_arg->diagonal_adds = Calloc(sub_n, double);
+		sub_Qfunc_arg->graph = (*problem)->sub_graph;
+
+		if (GMRFLib_catch_error_for_inla) {
+			// just a check
+			for (i = 0; i < sub_n; i++) assert((*problem)->map[i] == i);
+		}
 
 		if (c) {
 			for (i = 0; i < sub_n; i++) {
@@ -470,14 +511,14 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				GMRFLib_thread_id = id;
 				node = (*problem)->map[i];
 				if (mean) {
-					bb[i] += (*((*problem)->tab->Qfunc)) (i, i, (*problem)->tab->Qfunc_arg) * mean[node];
+					bb[i] += (*((*problem)->tab->Qfunc)) (i, i, NULL, (*problem)->tab->Qfunc_arg) * mean[node];
 				}
 
 				for (j = 0; j < graph->nnbs[node]; j++) {	/* then over all neighbors */
 					double qvalue;
 
 					nnode = graph->nbs[node][j];
-					qvalue = (*Qfunc) (node, nnode, Qfunc_args);
+					qvalue = (*Qfunc) (node, nnode, NULL, Qfunc_args);
 
 					if (fixed_value[nnode]) {
 						/*
@@ -800,17 +841,6 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 						for (i = 0; i < ISQR(nc); i++) {
 							aqat_m[i] += (*problem)->sub_constr->errcov_general[i];
 						}
-					}
-				}
-
-				if (0) {
-					int iii, jjj;
-					FIXME("print aqat_m");
-					for (iii = 0; iii < nc; iii++) {
-						for (jjj = 0; jjj < nc; jjj++) {
-							printf(" %.8g", aqat_m[iii + jjj * nc]);
-						}
-						printf("\n");
 					}
 				}
 
@@ -1231,7 +1261,7 @@ int GMRFLib_free_problem(GMRFLib_problem_tp * problem)
 	Free(problem->l_aqat_m);
 	Free(problem->inv_aqat_m);
 	Free(problem->qi_at_m);
-	GMRFLib_free_graph(problem->sub_graph);
+	GMRFLib_graph_free(problem->sub_graph);
 	GMRFLib_free_tabulate_Qfunc(problem->tab);
 
 	GMRFLib_free_constr(problem->sub_constr);
@@ -1284,7 +1314,7 @@ int GMRFLib_free_store(GMRFLib_store_tp * store)
 		 * do nothing 
 		 */
 	} else {
-		GMRFLib_free_graph(store->sub_graph);
+		GMRFLib_graph_free(store->sub_graph);
 		if (store->TAUCS_symb_fact) {
 			taucs_supernodal_factor_free(store->TAUCS_symb_fact);
 		}
@@ -2172,7 +2202,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 	COPY(logdet_aqat);
 	COPY(log_normc);
 	COPY(exp_corr);
-	GMRFLib_copy_graph(&(np->sub_graph), problem->sub_graph);
+	GMRFLib_graph_duplicate(&(np->sub_graph), problem->sub_graph);
 	np->map = np->sub_graph->mothergraph_idx;	       /* its kind of special */
 
 	/*
@@ -2194,9 +2224,13 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 				Qfunc_arg->log_prec_omp[i] = tmp->log_prec_omp[i];
 			}
 		}
-		Qfunc_arg->values = Calloc(ns, map_id *);
-		for (i = 0; i < ns; i++) {
-			Qfunc_arg->values[i] = GMRFLib_duplicate_map_id(tmp->values[i]);
+		if (tmp->values) {
+			Qfunc_arg->values = Calloc(ns, map_id *);
+			for (i = 0; i < ns; i++) {
+				Qfunc_arg->values[i] = GMRFLib_duplicate_map_id(tmp->values[i]);
+			}
+		} else {
+			Qfunc_arg->values = NULL;
 		}
 		tab->Qfunc_arg = (void *) Qfunc_arg;
 		np->tab = tab;
@@ -2289,7 +2323,7 @@ GMRFLib_sizeof_tp GMRFLib_sizeof_problem(GMRFLib_problem_tp * problem)
 	DUPLICATE(inv_aqat_m, nc * nc, double);
 	DUPLICATE(qi_at_m, ns * nc, double);
 
-	siz += GMRFLib_sizeof_graph(problem->sub_graph);
+	siz += GMRFLib_graph_sizeof(problem->sub_graph);
 
 	/*
 	 * copy the tab 
@@ -2332,7 +2366,7 @@ GMRFLib_sizeof_tp GMRFLib_sizeof_store(GMRFLib_store_tp * store)
 	siz += sizeof(GMRFLib_store_tp);
 	siz += sizeof(double);
 	siz += ns * sizeof(int);
-	siz += GMRFLib_sizeof_graph(store->sub_graph);
+	siz += GMRFLib_graph_sizeof(store->sub_graph);
 	siz += GMRFLib_sm_fact_sizeof_TAUCS(store->TAUCS_symb_fact);
 	siz += 5 * sizeof(double);
 	siz += GMRFLib_sizeof_problem(store->problem_old2new);
@@ -2384,7 +2418,7 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 		new_store->sub_graph = store->sub_graph;
 		new_store->TAUCS_symb_fact = store->TAUCS_symb_fact;
 	} else {
-		GMRFLib_copy_graph(&(new_store->sub_graph), store->sub_graph);
+		GMRFLib_graph_duplicate(&(new_store->sub_graph), store->sub_graph);
 		new_store->TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(store->TAUCS_symb_fact);
 	}
 	new_store->copy_ptr = copy_ptr;
@@ -2422,8 +2456,12 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 #undef COPY
 	return new_store;
 }
-double GMRFLib_Qfunc_generic(int i, int j, void *arg)
+double GMRFLib_Qfunc_generic(int i, int j, double *values, void *arg)
 {
+	if (i >= 0 && j < 0){
+		return NAN;
+	}
+	
 	if (i != j) {
 		return -1.0;
 	} else {

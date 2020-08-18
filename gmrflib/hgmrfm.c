@@ -257,7 +257,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		GMRFLib_tabulate_Qfunc_from_file(&(arg->eta_ext_Q), &(arg->eta_ext_graph), Aext_fnm, -1, pr, NULL, NULL);
 		GMRFLib_ASSERT(arg->eta_ext_graph->n == n + n_ext, GMRFLib_EPARAMETER);	/* this is required!!!!! */
 		arg->n_ext = n_ext;
-		// GMRFLib_print_graph(stdout, arg->eta_ext_graph);
+		// GMRFLib_graph_printf(stdout, arg->eta_ext_graph);
 	} else {
 		arg->eta_ext_Q = NULL;
 		arg->eta_ext_graph = NULL;
@@ -846,7 +846,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		GMRFLib_hgmrfm_tp *h = *hgmrfm;
 
 		printf("view hgmrf\n");
-		GMRFLib_print_graph(stdout, h->graph);
+		GMRFLib_graph_printf(stdout, h->graph);
 
 		int nn = h->graph->n;
 		if (h->constr && h->constr->nc) {
@@ -860,7 +860,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			}
 		}
 
-		GMRFLib_print_Qfunc(stdout, h->graph, h->Qfunc, h->Qfunc_arg);
+		GMRFLib_Qfunc_print(stdout, h->graph, h->Qfunc, h->Qfunc_arg);
 	}
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
@@ -897,8 +897,12 @@ GMRFLib_hgmrfm_type_tp GMRFLib_hgmrfm_what_type(int node, GMRFLib_hgmrfm_arg_tp 
 	}
 	return t;
 }
-double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
+double GMRFLib_hgmrfm_Qfunc(int node, int nnode, double *values, void *arg)
 {
+	if (node >= 0 && nnode < 0) {
+		return NAN;
+	}
+
 	/*
 	 * this is Qfunction for the hgmrfm-function 
 	 */
@@ -913,19 +917,19 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
 	it = GMRFLib_hgmrfm_what_type(ii, a);
 	jt = GMRFLib_hgmrfm_what_type(jj, a);
 
-	if ((ii == jj) || GMRFLib_is_neighb(ii, jj, a->eta_graph)) {
-		value += a->eta_Q->Qfunc(ii, jj, a->eta_Q->Qfunc_arg);
+	if ((ii == jj) || GMRFLib_graph_is_nb(ii, jj, a->eta_graph)) {
+		value += a->eta_Q->Qfunc(ii, jj, NULL, a->eta_Q->Qfunc_arg);
 	}
-	if (a->lc_Q && ((ii == jj) || GMRFLib_is_neighb(ii, jj, a->lc_graph))) {
-		value += a->lc_Q->Qfunc(ii, jj, a->lc_Q->Qfunc_arg);
+	if (a->lc_Q && ((ii == jj) || GMRFLib_graph_is_nb(ii, jj, a->lc_graph))) {
+		value += a->lc_Q->Qfunc(ii, jj, NULL, a->lc_Q->Qfunc_arg);
 	}
 	switch (it.tp) {
 	case GMRFLib_HGMRFM_TP_ETA:
 		switch (jt.tp) {
 		case GMRFLib_HGMRFM_TP_ETA:
 			if (a->eta_ext_graph) {
-				if ((ii == jj) || GMRFLib_is_neighb(ii, jj, a->eta_ext_graph)) {
-					value += a->eta_ext_Q->Qfunc(ii, jj, a->eta_ext_Q->Qfunc_arg);
+				if ((ii == jj) || GMRFLib_graph_is_nb(ii, jj, a->eta_ext_graph)) {
+					value += a->eta_ext_Q->Qfunc(ii, jj, NULL, a->eta_ext_Q->Qfunc_arg);
 				}
 			}
 			return value;
@@ -939,8 +943,8 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
 		switch (jt.tp) {
 		case GMRFLib_HGMRFM_TP_F:
 			if (it.tp_idx == jt.tp_idx) {
-				if ((it.idx == jt.idx) || GMRFLib_is_neighb(it.idx, jt.idx, a->f_graph[it.tp_idx])) {
-					value += a->f_Qfunc[it.tp_idx] (it.idx, jt.idx, (a->f_Qfunc_arg ? a->f_Qfunc_arg[it.tp_idx] : NULL));
+				if ((it.idx == jt.idx) || GMRFLib_graph_is_nb(it.idx, jt.idx, a->f_graph[it.tp_idx])) {
+					value += a->f_Qfunc[it.tp_idx] (it.idx, jt.idx, NULL, (a->f_Qfunc_arg ? a->f_Qfunc_arg[it.tp_idx] : NULL));
 				}
 			}
 			/*
@@ -948,16 +952,8 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, void *arg)
 			 */
 			if (a->ff_Qfunc) {
 				if ((it.idx == jt.idx) && (it.tp_idx != jt.tp_idx) && a->ff_Qfunc[it.tp_idx][jt.tp_idx]) {
-					if (0) {
-						printf("Qfunc-extra: it.idx %d jt.idx %d it.tp_idx %d jt.tp_idx %d Qfunc %g\n",
-						       it.idx, jt.idx, it.tp_idx, jt.tp_idx,
-						       a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx,
-											  a->ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.
-																       tp_idx] :
-											  NULL));
-					}
 					value +=
-					    a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx,
+					    a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx, NULL, 
 									       (a->ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
 				}
 			}
@@ -1011,12 +1007,12 @@ int GMRFLib_free_hgmrfm(GMRFLib_hgmrfm_tp * hgmrfm)
 	}
 	GMRFLib_hgmrfm_arg_tp *a = (GMRFLib_hgmrfm_arg_tp *) hgmrfm->Qfunc_arg;
 
-	GMRFLib_free_graph(hgmrfm->graph);
+	GMRFLib_graph_free(hgmrfm->graph);
 	GMRFLib_free_constr(hgmrfm->constr);
 	GMRFLib_free_tabulate_Qfunc(a->eta_Q);
-	GMRFLib_free_graph(a->eta_graph);
+	GMRFLib_graph_free(a->eta_graph);
 	GMRFLib_free_tabulate_Qfunc(a->lc_Q);
-	GMRFLib_free_graph(a->lc_graph);
+	GMRFLib_graph_free(a->lc_graph);
 	Free(a->idx_map_f);
 	Free(a->idx_map_beta);
 	Free(a->idx_map_lc);

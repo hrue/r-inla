@@ -224,6 +224,7 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 
 	(*ai_par)->optimise_smart = GMRFLib_FALSE;
 	(*ai_par)->optimise_use_directions = GMRFLib_FALSE;
+	(*ai_par)->optimise_use_directions_m = NULL;
 	(*ai_par)->optimiser = GMRFLib_AI_OPTIMISER_GSL;
 	(*ai_par)->restart = 0;
 	(*ai_par)->gsl_tol = 0.1;
@@ -293,6 +294,10 @@ int GMRFLib_ai_param_duplicate(GMRFLib_ai_param_tp ** ai_par_new, GMRFLib_ai_par
 	*ai_par_new = Calloc(1, GMRFLib_ai_param_tp);
 	memcpy((void *) *ai_par_new, (void *) ai_par, sizeof(GMRFLib_ai_param_tp));
 
+	if (ai_par->optimise_use_directions_m) {
+		(*ai_par_new)->optimise_use_directions_m = GMRFLib_gsl_duplicate_matrix(ai_par->optimise_use_directions_m);
+	}
+
 	if (ai_par->adapt_strategy) {
 		(*ai_par_new)->adapt_strategy = Calloc(ai_par->adapt_len, GMRFLib_ai_strategy_tp);
 		memcpy((void *) (*ai_par_new)->adapt_strategy, (void *) ai_par->adapt_strategy, sizeof(GMRFLib_ai_strategy_tp) * ai_par->adapt_len);
@@ -342,6 +347,18 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	fprintf(fp, "\t\tOptimise: try to be smart: %s\n", (ai_par->optimise_smart ? "Yes" : "No"));
 	fprintf(fp, "\t\tOptimise: use directions: %s\n", (ai_par->optimise_use_directions ? "Yes" : "No"));
 	fprintf(fp, "\t\tMode known: %s\n", (ai_par->mode_known ? "Yes" : "No"));
+
+	gsl_matrix *m = ai_par->optimise_use_directions_m;
+	if (m) {
+		fprintf(fp, "\tDirection matrix:\n");
+		for(size_t i = 0; i < m->size1; i++) {
+			fprintf(fp, "\t\t");
+			for(size_t j = 0; j < m->size2; j++) {
+				fprintf(fp, " %7.3f", gsl_matrix_get(m, i, j));
+			}
+			fprintf(fp, "\n");
+		}
+	}
 
 	fprintf(fp, "\tGaussian approximation:\n");
 	fprintf(fp, "\t\ttolerance_func = %.6g\n", ai_par->optpar_abserr_func);
@@ -1066,25 +1083,25 @@ int GMRFLib_ai_log_posterior_restricted_OLD(double *logdens, double *x, double *
 			xx = (mean ? x_mode[i] - mean[i] : x_mode[i]);
 
 			if (c) {
-				q_value = (Qfunc(i, i, Qfunc_arg) + c[i]);
+				q_value = (Qfunc(i, i, NULL, Qfunc_arg) + c[i]);
 				f[ii] += x_gradient[i] * q_value;
 				g[ii] += xx * q_value;
 			} else {
-				q_value = Qfunc(i, i, Qfunc_arg);
+				q_value = Qfunc(i, i, NULL, Qfunc_arg);
 				f[ii] += x_gradient[i] * q_value;
 				g[ii] += xx * q_value;
 			}
 			if (mean) {
 				for (jj = 0; jj < graph->nnbs[i]; jj++) {
 					j = graph->nbs[i][jj];
-					q_value = Qfunc(i, j, Qfunc_arg);
+					q_value = Qfunc(i, j, NULL, Qfunc_arg);
 					f[ii] += x_gradient[j] * q_value;
 					g[ii] += (x_mode[j] - mean[j]) * q_value;
 				}
 			} else {
 				for (jj = 0; jj < graph->nnbs[i]; jj++) {
 					j = graph->nbs[i][jj];
-					q_value = Qfunc(i, j, Qfunc_arg);
+					q_value = Qfunc(i, j, NULL, Qfunc_arg);
 					f[ii] += x_gradient[j] * q_value;
 					g[ii] += x_mode[j] * q_value;
 				}
@@ -1183,31 +1200,30 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 		f = Calloc(ns, double);
 		g = Calloc(ns, double);
 
-
 		for (ii = 0; ii < ns; ii++) {
 			i = subgraph->mothergraph_idx[ii];
 			xx = (mean ? x_mode[i] - mean[i] : x_mode[i]);
 
 			if (c) {
-				q_value = (Qfunc(i, i, Qfunc_arg) + c[i]);
+				q_value = (Qfunc(i, i, NULL, Qfunc_arg) + c[i]);
 				f[ii] += x_gradient[i] * q_value;
 				g[ii] += xx * q_value;
 			} else {
-				q_value = Qfunc(i, i, Qfunc_arg);
+				q_value = Qfunc(i, i, NULL, Qfunc_arg);
 				f[ii] += x_gradient[i] * q_value;
 				g[ii] += xx * q_value;
 			}
 			if (mean) {
 				for (jj = 0; jj < graph->nnbs[i]; jj++) {
 					j = graph->nbs[i][jj];
-					q_value = Qfunc(i, j, Qfunc_arg);
+					q_value = Qfunc(i, j, NULL, Qfunc_arg);
 					f[ii] += x_gradient[j] * q_value;
 					g[ii] += (x_mode[j] - mean[j]) * q_value;
 				}
 			} else {
 				for (jj = 0; jj < graph->nnbs[i]; jj++) {
 					j = graph->nbs[i][jj];
-					q_value = Qfunc(i, j, Qfunc_arg);
+					q_value = Qfunc(i, j, NULL, Qfunc_arg);
 					f[ii] += x_gradient[j] * q_value;
 					g[ii] += x_mode[j] * q_value;
 				}
@@ -1279,7 +1295,7 @@ int GMRFLib_ai_nparam_eff(double *nparam_eff, double *nparam_eff_rel, GMRFLib_pr
 		ii = problem->map[i];
 		cov = GMRFLib_Qinv_get(problem, ii, ii);
 		GMRFLib_ASSERT(cov, GMRFLib_ESNH);
-		correction += (Qfunc(ii, ii, Qfunc_arg) + (c ? c[ii] : 0.0)) * *cov;
+		correction += (Qfunc(ii, ii, NULL, Qfunc_arg) + (c ? c[ii] : 0.0)) * *cov;
 
 		for (j = 0; j < problem->sub_graph->nnbs[i]; j++) {
 			/*
@@ -1289,7 +1305,7 @@ int GMRFLib_ai_nparam_eff(double *nparam_eff, double *nparam_eff_rel, GMRFLib_pr
 			jj = problem->map[problem->sub_graph->nbs[i][j]];
 			cov = GMRFLib_Qinv_get(problem, ii, jj);
 			if (cov) {
-				correction += Qfunc(ii, jj, Qfunc_arg) * *cov;
+				correction += Qfunc(ii, jj, NULL, Qfunc_arg) * *cov;
 			} else {
 				/*
 				 * do nothing 
@@ -1747,7 +1763,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			/*
 			 * note that idx is included in subgraph 
 			 */
-			GMRFLib_EWRAP1(GMRFLib_compute_subgraph(&subgraph, graph, fixx));
+			GMRFLib_EWRAP1(GMRFLib_graph_comp_subgraph(&subgraph, graph, fixx));
 
 			/*
 			 * store it for lated usage
@@ -2410,12 +2426,11 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 	 * assume FIXED == NULL
 	 * 
 	 */
-
 /* 
    this one is FIXED by design and such that A[IDX(i,j,n)] = A_ij, i=0...n-1, j = 0..k-1 for n x k matrix A 
  */
 #define IDX(i, j, n) ((i) + (j)*(n))
-#define WORK(n) &(work[work_p]); work_p += (n)
+#define WORK(_n) &(work[work_p]); work_p += (_n)
 
 	int i, k, n, nc, ncc, one = 1, work_p, work_size, ndiv;
 	double *c = NULL, *v = NULL, *w = NULL, *z = NULL, alpha = 0.0, beta = 0.0, b22 = 0.0, *constr_m_new = NULL, *t_vec =
@@ -2470,17 +2485,18 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 		 * add inv(A Q^-1 A^t) if it does not exists. Be careful, as we need to add this and that this routine can be called threaded with the same
 		 * ai_store. 
 		 */
+
 		if (!problem->inv_aqat_m) {
+			double *m;
+			m = Calloc(ISQR(nc), double);
+			alpha = 1.0;
+			beta = 0.0;
+			dgemm_("N", "N", &nc, &nc, &n, &alpha, problem->sub_constr->a_matrix, &nc, problem->qi_at_m,
+			       &n, &beta, m, &nc, 1, 1);
+			GMRFLib_comp_posdef_inverse(m, nc);
 #pragma omp critical
 			{
 				if (!problem->inv_aqat_m) {
-					double *m;
-					m = Calloc(ISQR(nc), double);
-					alpha = 1.0;
-					beta = 0.0;
-					dgemm_("N", "N", &nc, &nc, &n, &alpha, problem->sub_constr->a_matrix, &nc, problem->qi_at_m,
-					       &n, &beta, m, &nc, 1, 1);
-					GMRFLib_comp_posdef_inverse(m, nc);
 					problem->inv_aqat_m = m;
 				}
 			}
@@ -2494,18 +2510,6 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 		dgemv_("N", &nc, &n, &alpha, problem->sub_constr->a_matrix, &nc, c, &one, &beta, v, &one, 1);
 		dgemv_("N", &nc, &nc, &alpha, problem->inv_aqat_m, &nc, v, &one, &beta, w, &one, 1);
 		dgemv_("N", &n, &nc, &alpha, problem->qi_at_m, &n, w, &one, &beta, z, &one, 1);
-
-		if (0) {
-			FIXME("print problem->inv_aqat_m");
-			GMRFLib_matrix_fprintf(stdout, problem->inv_aqat_m, nc, nc);
-			printf("c[%1d] = %g  n=%d\n", idx, c[idx], n);
-			double sum = 0.0;
-			for (i = 0; i < nc; i++) {
-				sum += v[i] * w[i];
-				printf("idx %d c %f i %d v %f w %f\n", idx, c[idx], i, v[i], w[i]);
-			}
-		}
-
 
 		/*
 		 * replacement for:: b22 = c[idx]; for (i = 0; i < nc; i++) b22 -= v[i] * w[i]; b22 = 1.0 / b22; 
@@ -2556,7 +2560,6 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 		// for(i=0; i<n; i++) constr_m_new[k + i] = cinv*c[i];
 		daxpy_(&n, &cinv, c, &one, &constr_m_new[nc * n], &one);
 	}
-
 	t_vec[ncc - 1] = problem->sub_mean[idx] - evalue;
 
 	alpha = -1.0;
@@ -2951,7 +2954,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				for (kk = 0; kk < ntimes; kk++) {
 
 					for (i = 0; i < graph->n; i++) {
-						c_new[i] = lambda * Qfunc(i, i, Qfunc_arg) + (1.0 + lambda) * c[i];
+						c_new[i] = lambda * Qfunc(i, i, NULL, Qfunc_arg) + (1.0 + lambda) * c[i];
 						if (ISNAN(x[i]) || ISINF(x[i])) {
 							if (!mode)
 								FIXME("MODE is NULL");
@@ -6260,6 +6263,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			if (ai_store->problem->sub_sm_fact.remap != NULL) {
 				misc_output->len_reordering = ai_store->problem->sub_graph->n;
 				misc_output->nfunc = GMRFLib_opt_get_f_count();
+				misc_output->opt_directions = GMRFLib_opt_get_directions();
 				misc_output->reordering = Calloc(misc_output->len_reordering, int);
 				memcpy(misc_output->reordering, ai_store->problem->sub_sm_fact.remap, misc_output->len_reordering * sizeof(int));
 			}
@@ -6890,15 +6894,15 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 	if (!(mo->configs[id])) {
 		mo->configs[id] = Calloc(1, GMRFLib_store_configs_tp);
 		GMRFLib_graph_tp *g;
-		GMRFLib_copy_graph(&g, gmrf_approx->sub_graph);
+		GMRFLib_graph_duplicate(&g, gmrf_approx->sub_graph);
 		mo->configs[id]->graph = g;
 		if (debug) {
 			printf("remapped graph\n");
-			GMRFLib_print_graph(stdout, g);
+			GMRFLib_graph_printf(stdout, g);
 		}
 
 		int nelm;				       /* number of elements in Q; double conting */
-		GMRFLib_nQelm(&nelm, gmrf_approx->sub_graph);
+		GMRFLib_graph_nnodes(&nelm, gmrf_approx->sub_graph);
 		mo->configs[id]->n = gmrf_approx->sub_graph->n;
 		mo->configs[id]->nz = (nelm - mo->configs[id]->n) / 2 + mo->configs[id]->n;
 		mo->configs[id]->ntheta = ntheta;
@@ -6924,13 +6928,11 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 			i[k] = ii;
 			j[k] = ii;
 			k++;
-			for (kk = 0; kk < g->nnbs[ii]; kk++) {
-				jj = g->nbs[ii][kk];
-				if (ii < jj) {
-					i[k] = ii;
-					j[k] = jj;
-					k++;
-				}
+			for (kk = 0; kk < g->lnnbs[ii]; kk++) {
+				jj = g->lnbs[ii][kk];
+				i[k] = ii;
+				j[k] = jj;
+				k++;
 			}
 		}
 		mo->configs[id]->i = i;
@@ -6942,24 +6944,33 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 	mo->configs[id]->config = Realloc(mo->configs[id]->config, mo->configs[id]->nconfig + 1, GMRFLib_store_config_tp *);
 	mo->configs[id]->config[mo->configs[id]->nconfig] = Calloc(1, GMRFLib_store_config_tp);
 
-	int ii, jj, k, kk;
+	int ii, jj, k, kk, found = 0;
 	double *Qinv, *Q, *Qprior, *mean, *imean, *skew;
 	GMRFLib_graph_tp *g = gmrf_approx->sub_graph;
 
 	Q = Calloc(mo->configs[id]->nz, double);
-	for (ii = k = 0; ii < g->n; ii++) {
-		Q[k++] = gmrf_approx->tab->Qfunc(ii, ii, gmrf_approx->tab->Qfunc_arg);
-		for (kk = 0; kk < g->nnbs[ii]; kk++) {
-			jj = g->nbs[ii][kk];
-			if (ii < jj) {
-				Q[k++] = gmrf_approx->tab->Qfunc(ii, jj, gmrf_approx->tab->Qfunc_arg);
+	if (gmrf_approx->tab->Qfunc == GMRFLib_tabulate_Qfunction) {
+		GMRFLib_tabulate_Qfunc_arg_tp *aa;
+		aa = (GMRFLib_tabulate_Qfunc_arg_tp *) gmrf_approx->tab->Qfunc_arg;
+		if (aa->Q) {
+			assert(mo->configs[id]->nz == aa->Q->na);
+			memcpy(Q, aa->Q->a, aa->Q->na * sizeof(double));
+			found = 1;
+		}
+	}
+	if (!found) {
+		for (ii = k = 0; ii < g->n; ii++) {
+			Q[k++] = gmrf_approx->tab->Qfunc(ii, ii, NULL, gmrf_approx->tab->Qfunc_arg);
+			for (kk = 0; kk < g->lnnbs[ii]; kk++) {
+				jj = g->lnbs[ii][kk];
+				Q[k++] = gmrf_approx->tab->Qfunc(ii, jj, NULL, gmrf_approx->tab->Qfunc_arg);
 			}
 		}
 	}
 
 	Qprior = Calloc(g->n, double);
 	for (ii = 0; ii < g->n; ii++) {
-		Qprior[ii] = Qfunc(ii, ii, Qfunc_arg) + c[ii];
+		Qprior[ii] = Qfunc(ii, ii, NULL, Qfunc_arg) + c[ii];
 	}
 
 	mean = Calloc(g->n, double);
@@ -7037,7 +7048,7 @@ int GMRFLib_free_marginal_hidden_store(GMRFLib_marginal_hidden_store_tp * m)
 	if (m) {
 		if (m->subgraphs) {
 			for (i = 0; i < m->n; i++)
-				GMRFLib_free_graph(m->subgraphs[i]);
+				GMRFLib_graph_free(m->subgraphs[i]);
 			Free(m->subgraphs);
 		}
 		Free(m);
@@ -7093,8 +7104,9 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	// there is some bad designed code which require some code calling this to be run as
 	// a critical region, which mess up if run with pardiso and this loop in parallel.
 	// so I disable it for the moment.
-	int use_pardiso = (GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_SERIAL ||
-			   GMRFLib_openmp->strategy == GMRFLib_OPENMP_STRATEGY_PARDISO_PARALLEL);
+	// FIXME: Recheck this later!
+	int use_pardiso = (GMRFLib_smtp == GMRFLib_SMTP_PARDISO);
+
 #pragma omp parallel for private(i, j, k) num_threads(GMRFLib_openmp->max_threads_inner) if (!use_pardiso)
 	for (i = 0; i < nlin; i++) {
 
@@ -7426,23 +7438,6 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 	loglFunc(loglik, xp, np, idx, x_vec, NULL, loglFunc_arg);
 	for (i = 0; i < np; i++) {
 		loglik[i] *= d;
-	}
-
-	if (0) {
-		P(idx);
-		FIXME("write cpo_density");
-		char *ff;
-		GMRFLib_sprintf(&ff, "cpo-density-%1d.dat", idx);
-
-		FILE *fp = fopen(ff, "w");
-		for (i = 0; i < np; i++) {
-			fprintf(fp, "%g %g %g %g\n", xp[i], dens[i], exp(loglik[i]), prob[i]);
-		}
-		fclose(fp);
-		printf("write file %s\n", ff);
-		Free(ff);
-		FIXME("info for cpo_dens");
-		GMRFLib_density_printf(stdout, cpo_density);
 	}
 
 	for (i = 0; i < np; i++) {
@@ -8737,10 +8732,10 @@ double GMRFLib_bfunc_eval(double *constant, GMRFLib_bfunc_tp * bfunc)
 
 	// fprintf(stderr, "idx %d mapidx %d n %d nr %d ng %d\n", idx, MAPIDX(idx, d), d->n, d->nreplicate, d->ngroup);
 
-	b = (d->diagonal + d->Qfunc(idx, idx, d->Qfunc_arg)) * d->mfunc(MAPIDX(idx, d), d->mfunc_arg);
+	b = (d->diagonal + d->Qfunc(idx, idx, NULL, d->Qfunc_arg)) * d->mfunc(MAPIDX(idx, d), d->mfunc_arg);
 	for (i = 0; i < d->graph->nnbs[idx]; i++) {
 		j = d->graph->nbs[idx][i];
-		b += d->Qfunc(idx, j, d->Qfunc_arg) * d->mfunc(MAPIDX(j, d), d->mfunc_arg);
+		b += d->Qfunc(idx, j, NULL, d->Qfunc_arg) * d->mfunc(MAPIDX(j, d), d->mfunc_arg);
 	}
 
 	*constant = b * d->mfunc(MAPIDX(idx, d), d->mfunc_arg);

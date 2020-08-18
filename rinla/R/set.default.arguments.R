@@ -215,7 +215,7 @@
     ##:EXTRA: 
     ##:NAME: control.compute
     list(
-        ##:ARGUMENT: openmp.strategy The computational strategy to use: 'small', 'medium', 'large', 'huge' and 'default'. There are also two options for the pardiso solver: 'pardiso.serial' and 'pardiso.parallel'. The difference is how the parallelisation is done, and is tuned for 'small'-sized models, 'medium'-sized models, etc. The default option tries to make an educated guess, but this allows to overide this selection. Default is 'default'
+        ##:ARGUMENT: openmp.strategy The computational strategy to use: 'small', 'medium', 'large', 'huge', 'default' and 'pardiso'.
         openmp.strategy = "default", 
 
         ##:ARGUMENT: hyperpar A boolean variable if the marginal for the hyperparameters should be computed. Default TRUE.
@@ -245,7 +245,7 @@
         ##:ARGUMENT: config A boolean variable if the internal GMRF approximations be stored. (Default FALSE. EXPERIMENTAL)
         config=FALSE,
 
-        ##:ARGUMENT: smtp The sparse-matrix solver, one of 'default', 'taucs', 'band' or 'pardiso' (default \code{inla.getoption("smtp")})
+        ##:ARGUMENT: smtp The sparse-matrix solver, one of 'default', 'taucs', 'band' or 'pardiso' (default \code{inla.getoption("smtp")}). \code{smtp='pardiso'} implies \code{openmp.strategy='pardiso'}.
         smtp = NULL,
 
         ##:ARGUMENT: graph A boolean variable if the graph itself should be returned. (Default FALSE.)
@@ -317,6 +317,9 @@
 
         ##:ARGUMENT: cenpoisson.I The censoring interval for the censored Poisson
         cenpoisson.I = c(-1L, -1L),
+
+        ##:ARGUMENT: beta.censor.value The censor value for the Beta-likelihood \code{(0 <= beta.censor.value < 1/2)}
+        beta.censor.value = 0.0, 
 
         ##:ARGUMENT: variant This variable is used to give options for various variants of the likelihood,  like chosing different parameterisations for example. See the relevant likelihood documentations for options (does only apply to some likelihoods).
         variant = 0L,
@@ -398,8 +401,8 @@
         ##:ARGUMENT: linear.correction Logical Default TRUE for the 'strategy = laplace' option.
         linear.correction=NULL,
 
-        ##:ARGUMENT: h Numerical The step-length for the gradient calculations for the hyperparameters. Default 0.01.
-        h=0.01,
+        ##:ARGUMENT: h Numerical The step-length for the gradient calculations for the hyperparameters. Default 0.005.
+        h = 0.005,
 
         ##:ARGUMENT: dz Numerical The step-length in the standarised scale for the integration of the hyperparameters. Default 0.75.
         dz=0.75,
@@ -535,11 +538,11 @@
         ##:ARGUMENT: num.hessian Character Set the numerical scheme to compute the Hessian,  one of \code{"forward"} or \code{"central"} (default).
         num.hessian = "central",
         
-        ##:ARGUMENT: optimise.strategy Character THIS OPTION IS EXPERIMENTAL. Chose the optimiser strategy,  one of \code{"default"} (default) or \code{"smart"}
-        optimise.strategy = "default", 
+        ##:ARGUMENT: optimise.strategy Character THIS OPTION IS EXPERIMENTAL. Chose the optimiser strategy,  one of \code{"plain"} or \code{"smart"} (default)
+        optimise.strategy = "smart", 
 
-        ##:ARGUMENT: use.directions Logical THIS OPTION IS EXPERIMENTAL. Use directions for computing gradient and Hessian (default \code{FALSE})
-        use.directions = FALSE
+        ##:ARGUMENT: use.directions THIS OPTION IS EXPERIMENTAL. Unless \code{FALSE} or \code{NULL},  use directions for computing gradient and Hessian, initialised with \code{use.directions} if a matrix.
+        use.directions = TRUE
         )
         
  

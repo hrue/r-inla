@@ -61,12 +61,12 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
   by using the information on the file \em filename.
 
   \param[in] filename The name of the file, binary formatted similar to
-  \c GMRFLib_read_graph() (without newlines), containing the specification
+  \c GMRFLib_graph_read() (without newlines), containing the specification
   of the graph.
 
-  \sa GMRFLib_read_graph, GMRFLib_write_graph_binary
+  \sa GMRFLib_graph_read, GMRFLib_graph_write_b
  */
-int GMRFLib_read_graph_binary_EXPERIMENTAL(GMRFLib_graph_tp ** graph, const char *filename)
+int GMRFLib_graph_read_binary_EXPERIMENTAL(GMRFLib_graph_tp ** graph, const char *filename)
 {
 
 	/*
@@ -98,7 +98,7 @@ int GMRFLib_read_graph_binary_EXPERIMENTAL(GMRFLib_graph_tp ** graph, const char
 		GMRFLib_ERROR(GMRFLib_EOPENFILE);
 	}
 
-	GMRFLib_make_empty_graph(graph);
+	GMRFLib_graph_mk_empty(graph);
 
 	byte = 0;
 	nelm = 1;
@@ -162,10 +162,10 @@ int GMRFLib_read_graph_binary_EXPERIMENTAL(GMRFLib_graph_tp ** graph, const char
 		}
 
 	if (GMRFLib_verify_graph_read_from_disc) {
-		GMRFLib_EWRAP0(GMRFLib_validate_graph(stderr, *graph));
+		GMRFLib_EWRAP0(GMRFLib_graph_validate(stderr, *graph));
 	}
 
-	GMRFLib_EWRAP0(GMRFLib_prepare_graph(*graph));	       /* prepare the graph for computations */
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*graph, 0));	       /* prepare the graph for computations */
 	return GMRFLib_SUCCESS;
 #undef READ_ERROR
 }
@@ -173,11 +173,11 @@ int GMRFLib_read_graph_binary_EXPERIMENTAL(GMRFLib_graph_tp ** graph, const char
 /*!
   \brief Write a graph to file, binary format
   \param[in] filename The name of the file to store the graph in
-    binary format. Can be read with \c GMRFLib_read_graph_binary().
+    binary format. Can be read with \c GMRFLib_graph_read_binary().
   \param[in] graph The graph
-  \sa GMRFLib_read_graph_binary, GMRFLib_write_graph.
+  \sa GMRFLib_graph_read_binary, GMRFLib_graph_write.
  */
-int GMRFLib_write_graph_binary_EXPERIMENTAL(const char *filename, GMRFLib_graph_tp * graph)
+int GMRFLib_graph_write_b_EXPERIMENTAL(const char *filename, GMRFLib_graph_tp * graph)
 {
 	/*
 	 * write graph to file filename in binary format so it can be read by 'read_graph_binary' 

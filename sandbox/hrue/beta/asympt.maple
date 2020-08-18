@@ -1,0 +1,11 @@
+cdf := (y, a, b) -> int(yy^(a-1) * (1-yy)^(b-1),yy=0...y) / Beta(a,b);
+
+assume(a>0);
+assume(b>0);
+cdf(1,a,b);
+
+simplify(asympt(log(cdf(1/n,a,b)), n, 5));
+
+
+
+

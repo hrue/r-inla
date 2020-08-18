@@ -294,11 +294,11 @@ int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_proble
 	/*
 	 * define the new graph (ok if fixed_value = NULL) 
 	 */
-	GMRFLib_EWRAP1(GMRFLib_compute_subgraph(&tmp_graph, graph, fixed_value));
+	GMRFLib_EWRAP1(GMRFLib_graph_comp_subgraph(&tmp_graph, graph, fixed_value));
 	sub_n = tmp_graph->n;
 	if (sub_n == 0) {				       /* fast return if there is nothing todo */
 		Free((*hidden_problem));
-		GMRFLib_free_graph(tmp_graph);
+		GMRFLib_graph_free(tmp_graph);
 
 		if (free_fixed_value)
 			Free(fixed_value);
@@ -322,7 +322,7 @@ int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_proble
 	if (hidden_par && hidden_par->remap) {
 		tmp_fact.remap = Calloc(sub_n, int);
 		memcpy(tmp_fact.remap, hidden_par->remap, sub_n * sizeof(int));
-		GMRFLib_EWRAP1(GMRFLib_compute_bandwidth(&tmp_fact.bandwidth, tmp_graph, tmp_fact.remap));
+		GMRFLib_EWRAP1(GMRFLib_graph_comp_bw(&tmp_fact.bandwidth, tmp_graph, tmp_fact.remap));
 
 		(*hidden_problem)->hidden_par->remap = Calloc(sub_n, int);
 		memcpy((*hidden_problem)->hidden_par->remap, hidden_par->remap, sub_n * sizeof(int));
@@ -352,12 +352,12 @@ int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_proble
 		inv_remap[tmp_fact.remap[i]] = i;
 	for (i = 0; i < sub_n; i++)
 		(*hidden_problem)->map[i] = tmp_graph->mothergraph_idx[inv_remap[i]];
-	GMRFLib_EWRAP1(GMRFLib_remap_graph(&((*hidden_problem)->sub_graph), tmp_graph, tmp_fact.remap));
+	GMRFLib_EWRAP1(GMRFLib_graph_remap(&((*hidden_problem)->sub_graph), tmp_graph, tmp_fact.remap));
 	(*hidden_problem)->sub_graph->mothergraph_idx = (*hidden_problem)->map;	/* dont think this is needed? */
 	(*hidden_problem)->sub_graph->mothergraph_idx = NULL;  /* ...therefore i put it NULL to fail if it is */
 
 	Free(inv_remap);
-	GMRFLib_free_graph(tmp_graph);
+	GMRFLib_graph_free(tmp_graph);
 	GMRFLib_free_reordering(&tmp_fact);
 
 	/*
@@ -420,13 +420,13 @@ int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_proble
 	for (i = 0; i < sub_n; i++) {			       /* loop over all sub_nodes */
 		node = (*hidden_problem)->map[i];
 		if (mean)
-			(*hidden_problem)->sub_b[i] += ((*Qfunc) (node, node, Qfunc_args) + cc[i]) * mean[node];	/* add diagonal-term */
+			(*hidden_problem)->sub_b[i] += ((*Qfunc) (node, node, NULL, Qfunc_args) + cc[i]) * mean[node];	/* add diagonal-term */
 
 		for (j = 0; j < graph->nnbs[node]; j++) {      /* then over all neighbors */
 			double qvalue;
 
 			nnode = graph->nbs[node][j];
-			qvalue = (*Qfunc) (node, nnode, Qfunc_args);
+			qvalue = (*Qfunc) (node, nnode, NULL, Qfunc_args);
 
 			if (fixed_value[nnode]) {
 				/*
@@ -499,11 +499,11 @@ int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_proble
 	 */
 	switch ((*hidden_problem)->hidden_par->neightype) {
 	case GMRFLib_NEIGHTYPE_LINEAR:
-		GMRFLib_EWRAP1(GMRFLib_make_linear_graph(&((*hidden_problem)->hidden_par->ngraph),
+		GMRFLib_EWRAP1(GMRFLib_graph_mk_linear(&((*hidden_problem)->hidden_par->ngraph),
 							 (*hidden_problem)->sub_graph->n, (*hidden_problem)->hidden_par->neighpar, 0));
 		break;
 	case GMRFLib_NEIGHTYPE_GRAPH:
-		GMRFLib_EWRAP1(GMRFLib_nfold_graph(&((*hidden_problem)->hidden_par->ngraph),
+		GMRFLib_EWRAP1(GMRFLib_graph_nfold(&((*hidden_problem)->hidden_par->ngraph),
 						   (*hidden_problem)->sub_graph, (*hidden_problem)->hidden_par->neighpar));
 		break;
 	}
@@ -543,7 +543,7 @@ int GMRFLib_free_hidden(GMRFLib_hidden_problem_tp * hidden_problem)
 	GMRFLib_free_fact_sparse_matrix(&(h->sub_sm_fact));
 	GMRFLib_free_reordering(&(h->sub_sm_fact));
 	Free(h->x_vec);
-	GMRFLib_free_graph(h->sub_graph);
+	GMRFLib_graph_free(h->sub_graph);
 
 	if (h->sub_Qfunc_arg) {
 		Free(h->sub_Qfunc_arg->diagonal_adds);
@@ -555,7 +555,7 @@ int GMRFLib_free_hidden(GMRFLib_hidden_problem_tp * hidden_problem)
 		Free(((GMRFLib_logl_arg_tp *) h->loglFunc_arg)->ccoof);
 		Free(h->loglFunc_arg);
 	}
-	GMRFLib_free_graph(h->hidden_par->ngraph);
+	GMRFLib_graph_free(h->hidden_par->ngraph);
 	Free(h->hidden_par->remap);
 	/*
 	 * to free this is the responsibility of the user! don't free it here. 

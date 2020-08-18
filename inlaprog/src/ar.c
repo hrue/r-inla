@@ -249,8 +249,12 @@ double ar_map_pacf(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-double Qfunc_ar(int i, int j, void *arg)
+double Qfunc_ar(int i, int j, double *values, void *arg)
 {
+	if (i >= 0 && j < 0){
+		return NAN;
+	}
+	
 	ar_def_tp *def = (ar_def_tp *) arg;
 
 	if (IABS(i - j) > def->p) {
@@ -366,7 +370,7 @@ double Qfunc_ar(int i, int j, void *arg)
 		Free(pacf);
 		Free(L);
 
-		return Qfunc_ar(i, j, arg);		       /* recursive call */
+		return Qfunc_ar(i, j, NULL, arg);		       /* recursive call */
 	}
 	assert(0 == 1);
 
@@ -404,14 +408,14 @@ int ar_test1()
 			}
 		}
 
-		GMRFLib_make_linear_graph(&g, def.n, def.p, 0);
-		GMRFLib_print_Qfunc(stdout, g, Qfunc_ar, &def);
+		GMRFLib_graph_mk_linear(&g, def.n, def.p, 0);
+		GMRFLib_Qfunc_print(stdout, g, Qfunc_ar, &def);
 
 		if (0) {
 			FILE *fp = fopen("Q.dat", "w");
 			for (i = 0; i < def.n; i++)
 				for (j = 0; j < def.n; j++)
-					fprintf(fp, "%.12g\n", Qfunc_ar(i, j, &def));
+					fprintf(fp, "%.12g\n", Qfunc_ar(i, j, NULL, &def));
 			fclose(fp);
 		}
 
@@ -420,7 +424,7 @@ int ar_test1()
 		for (k = 0; k < 1000; k++) {
 			for (i = 0; i < def.n; i++)
 				for (j = 0; j < def.n; j++) {
-					val += Qfunc_ar(i, j, &def);
+					val += Qfunc_ar(i, j, NULL, &def);
 				}
 		}
 		P(val);

@@ -253,7 +253,7 @@
     } else {
         intcept <- 0
     }
-print(intcept)
+
     ## the sn's qsn and psn handle 'a' in a strange way
     if (length(a) == 1) {
         ## then it vectorize...

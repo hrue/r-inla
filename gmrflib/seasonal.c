@@ -61,8 +61,12 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
  \sa \ref GMRFLib_seasonaldef_tp, \ref GMRFLib_make_seasonal_graph
  */
 
-double GMRFLib_seasonal(int node, int nnode, void *def)
+double GMRFLib_seasonal(int node, int nnode, double *values, void *def)
 {
+	if (node >= 0 && nnode < 0){
+		return NAN;
+	}
+	
 	int imax, imin, diff;
 	double prec, val = 0.0;
 	GMRFLib_seasonaldef_tp *sdef = (GMRFLib_seasonaldef_tp *) def;
@@ -190,7 +194,7 @@ int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp * def)
 	Free(c);
 	Free(sdef);
 	GMRFLib_free_constr(constr);
-	GMRFLib_free_graph(graph);
+	GMRFLib_graph_free(graph);
 	GMRFLib_free_problem(problem);
 
 	return GMRFLib_SUCCESS;
@@ -208,6 +212,6 @@ int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp * def)
 */
 int GMRFLib_make_seasonal_graph(GMRFLib_graph_tp ** graph, GMRFLib_seasonaldef_tp * def)
 {
-	GMRFLib_make_linear_graph(graph, def->n, def->s - 1, def->cyclic);
+	GMRFLib_graph_mk_linear(graph, def->n, def->s - 1, def->cyclic);
 	return GMRFLib_SUCCESS;
 }

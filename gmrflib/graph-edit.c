@@ -72,7 +72,7 @@
     GMRFLib_graph_tp *new_graph, *g;
     GMRFLib_ged_tp *ged;
 
-    GMRFLib_make_linear_graph(&g, n, 1, 0); // Create a linear graph
+    GMRFLib_graph_mk_linear(&g, n, 1, 0); // Create a linear graph
 
     GMRFLib_ged_init(&ged, g);  
     GMRFLib_ged_append_node(ged, GMRFLib_GED_TAG_GLOBAL);
@@ -89,7 +89,7 @@
     GMRFLib_graph_tp *new_graph, *g;
     GMRFLib_ged_tp *ged;
 
-    GMRFLib_make_linear_graph(&g, n, 1, 0); // Create a linear graph
+    GMRFLib_graph_mk_linear(&g, n, 1, 0); // Create a linear graph
 
     GMRFLib_ged_init(&ged, g);  
     GMRFLib_ged_add(ged, n, n);
@@ -105,7 +105,7 @@
     GMRFLib_graph_tp *new_graph, *g;
     GMRFLib_ged_tp *ged;
 
-    GMRFLib_make_linear_graph(&g, n, 1, 0); // Create a linear graph
+    GMRFLib_graph_mk_linear(&g, n, 1, 0); // Create a linear graph
 
     GMRFLib_ged_init(&ged, g);  
     GMRFLib_ged_add(ged, n+1, n+1);
@@ -353,7 +353,7 @@ int GMRFLib_ged_append_node(GMRFLib_ged_tp * ged, GMRFLib_ged_tag_tp tag)
 
   \par Example:
   \verbatim
-    GMRFLib_make_linear_graph(&g, 3, 1, 0);
+    GMRFLib_graph_mk_linear(&g, 3, 1, 0);
     GMRFLib_ged_init(&ged, g);
     GMRFLib_ged_remove(ged, 2, 2);
     printf("max_node before append %d\n", GMRFLib_ged_max_node(ged));
@@ -509,21 +509,20 @@ int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 		}
 	}
 
-	GMRFLib_make_empty_graph(&g);
+	GMRFLib_graph_mk_empty(&g);
 	g->n = n_new;
 	g->nnbs = nnbs;
 	g->nbs = nbs;
 	g->mothergraph_idx = imap;			       /* preserve the mapping */
 
-	GMRFLib_copy_graph(graph, g);
-	GMRFLib_prepare_graph(*graph);
+	GMRFLib_graph_duplicate(graph, g);
 
 	if (0) {
 		/*
 		 * validate the graph? this should not be needed, as this function will ensurethe graph should be always be consistent. 
 		 * In any case, enable this for the moment until these tools are sufficiently validated. 
 		 */
-		GMRFLib_EWRAP0(GMRFLib_validate_graph(stderr, *graph));
+		GMRFLib_EWRAP0(GMRFLib_graph_validate(stderr, *graph));
 	}
 
 	/*
