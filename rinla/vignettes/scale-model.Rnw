@@ -546,7 +546,7 @@ func.munich <- function(a,b,option)
                     Kein.Badkach  + Besond.Bad + Gehobene.Kueche +
                         zim1 + zim2 + zim3 + zim4 + zim5 + zim6 -1
     
-    result =  inla(formula,data=Munich)
+    result =  inla(formula,data=Munich, control.inla = list(h = 0.001))
 }
 @
 
@@ -682,6 +682,5 @@ meaningful and controlled way.
 \bibliography{shs}    
 
 \end{document}
-
 
 
