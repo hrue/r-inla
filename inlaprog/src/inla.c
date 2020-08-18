@@ -11310,6 +11310,8 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
 	} else if (!strcasecmp(openmp_strategy, "PARDISO.NESTED")) {
 		mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
+	} else if (!strcasecmp(openmp_strategy, "PARDISO")) {
+		mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
 	} else {
 		GMRFLib_sprintf(&tmp, "Unknown openmp.strategy [%s]\n", openmp_strategy);
 		inla_error_general(tmp);
