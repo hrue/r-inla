@@ -28,7 +28,7 @@ else
     PDIR="$DIR/../../pardiso/libnopardiso/linux"
 fi
 
-export LD_LIBRARY_PATH="$DIR/first:$DIR:$PDIR:$D:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="$DIR/first:$PDIR:$DIR:$D:$LD_LIBRARY_PATH"
 
 if [ ! -z ${INLA_DEBUG+x} ]; then
     echo "*** $0 *** LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
