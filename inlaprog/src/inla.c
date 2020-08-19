@@ -34097,7 +34097,7 @@ int main(int argc, char **argv)
 
 #define _BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
-	int i, verbose = 0, silent = 0, opt, report = 0, arg, ntt[2], err, enable_core_file = 0;
+	int i, verbose = 0, silent = 0, opt, report = 0, arg, ntt[2] = {0, 0}, err, enable_core_file = 0;
 	int blas_num_threads = 1;
 	char *program = argv[0];
 	double time_used[3];
@@ -34212,7 +34212,8 @@ int main(int argc, char **argv)
 			break;
 
 		case 't':
-			if (inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK) {
+			if (inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK ||
+			    inla_sread(ntt, 1, optarg, 0) == INLA_OK) {
 
 				for (i = 0; i < 2; i++) {
 					ntt[i] = IMAX(0, ntt[i]);
@@ -34235,8 +34236,18 @@ int main(int argc, char **argv)
 				GMRFLib_openmp->max_threads = ntt[0] * ntt[1];
 
 			} else {
-				fprintf(stderr, "Fail to read MAX_THREADS from %s\n", optarg);
-				exit(EXIT_SUCCESS);
+				fprintf(stderr, "Fail to read A:B from [%s]\n", optarg);
+				fprintf(stderr, "Will continue with '2:1'\n");
+				ntt[0] = 2;
+				ntt[1] = 1;
+				for (i = 0; i < 2; i++) {
+					ntt[i] = IMIN(GMRFLib_openmp->max_threads, IMAX(1, ntt[i]));
+					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
+				}
+				GMRFLib_openmp->max_threads = ntt[0] * ntt[1];
+			}
+			if (verbose > 1) {
+				printf("Found num.threads = %1d:%1d\n", ntt[0], ntt[1]);
 			}
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 			break;

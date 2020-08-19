@@ -1058,7 +1058,6 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 		}
 	}
 
-
 	Opt_dir_params.A = A;
 	Opt_dir_params.tAinv = tAinv;
 
@@ -1101,17 +1100,6 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 		if (x_prev) {
 			size_t i_s;
 
-			if (G.use_directions) {
-				for (j = Adir->size1 - 1; j > 0; j--) {
-					for (i = 0; i < Adir->size1; i++) {
-						gsl_matrix_set(Adir, i, j, gsl_matrix_get(Adir, i, j - 1));
-					}
-				}
-				for (i = 0; i < Adir->size1; i++) {
-					gsl_matrix_set(Adir, i, 0, 0.0);
-				}
-			}
-
 			for (i_s = 0, dx = 0.0; i_s < xx->size; i_s++) {
 				dx += SQR(gsl_vector_get(xx, i_s) - gsl_vector_get(x_prev, i_s));
 			}
@@ -1120,14 +1108,24 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 				if (G.nhyper == 1) {
 					gsl_matrix_set(Adir, 0, 0, 1.0);
 				} else {
-					for (i_s = 0; i_s < xx->size; i_s++) {
-						gsl_matrix_set(Adir, i_s, 0, gsl_vector_get(xx, i_s) - gsl_vector_get(x_prev, i_s));
+					if (ISZERO(dx)) {
+						// this can happen if we cannot improve. then do nothing.
+					} else {
+						// shift
+						for (j = Adir->size1 - 1; j > 0; j--) {
+							for (i = 0; i < Adir->size1; i++) {
+								gsl_matrix_set(Adir, i, j, gsl_matrix_get(Adir, i, j - 1));
+							}
+						}
+						for (i_s = 0; i_s < xx->size; i_s++) {
+							gsl_matrix_set(Adir, i_s, 0, gsl_vector_get(xx, i_s) - gsl_vector_get(x_prev, i_s));
+						}
 					}
 				}
 				gsl_matrix_memcpy(A, Adir);
 				GMRFLib_gsl_mgs(A);
 				printf("New directions for gradient\n");
-				GMRFLib_gsl_matrix_fprintf(stdout, A, "\t %.3f");
+				GMRFLib_gsl_matrix_fprintf(stdout, A, "\t %6.3f");
 				gsl_matrix_transpose_memcpy(tAinv, A);
 				GMRFLib_gsl_ginv(tAinv, GMRFLib_eps(0.5), -1);
 			}
