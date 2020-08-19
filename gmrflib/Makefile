@@ -13,7 +13,7 @@ CC = gcc
 FC = gfortran
 FCEXTRAFLAGS = -fno-second-underscore
 FLAGS= FLAGS = -std=gnu11 -Wall -g -O2 -ftree-vectorize -mtune=generic -ftracer -fopenmp -pthread
-ARFLAGS="rvU"
+
 
 # The path to the external libraries: metis, taucs, lapack, blas and zlib
 LEXTPREFIX = /usr/local
