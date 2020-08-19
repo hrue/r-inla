@@ -1125,7 +1125,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 				gsl_matrix_memcpy(A, Adir);
 				GMRFLib_gsl_mgs(A);
 				printf("New directions for gradient\n");
-				GMRFLib_gsl_matrix_fprintf(stdout, A, "\t %.3f");
+				GMRFLib_gsl_matrix_fprintf(stdout, A, "\t %6.3f");
 				gsl_matrix_transpose_memcpy(tAinv, A);
 				GMRFLib_gsl_ginv(tAinv, GMRFLib_eps(0.5), -1);
 			}
