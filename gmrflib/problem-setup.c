@@ -65,7 +65,6 @@ double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *
 	double val;
 	GMRFLib_Qfunc_arg_tp *args = NULL;
 	args = (GMRFLib_Qfunc_arg_tp *) arguments;
-	GMRFLib_graph_tp *g = args->graph;
 
 	if (GMRFLib_catch_error_for_inla) {
 		// we know that the mapping is identity in this case and that the sub_graph is the same as the graph
