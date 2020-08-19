@@ -27,6 +27,18 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.08.19}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Changed to the gcc-10 compiler suite for Ubuntu 1804
+      and 2004.
+      \item Fixed an issue if the optimiser does not move
+      and the use of directions
+      \item Minor fixes
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.08.18}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
