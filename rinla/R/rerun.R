@@ -45,7 +45,7 @@
         object$.args$control.mode$x = object$mode$x
         ## to do a proper restart, we should keep the direction is any. if they are not used,
         ## they will be NULL, which is the same as FALSE.
-        object$.args$control.inla$use.directions = object$.args$misc$opt.directions
+        object$.args$control.inla$use.directions = object$misc$opt.directions
     }
     
     new.obj = do.call("inla",  args = object$.args)
