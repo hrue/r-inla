@@ -30,17 +30,21 @@ for m in 64; do
 done
 
 for m in 64; do
+    DIR=$d/linux/${m}bit
     for p in inla inla.mkl fmesher; do 
 	for f in $(ssh -p $INLA_LINUX_PORT $INLA_LINUX bin/my.ldd builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
-	    rsync --rsh="ssh -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:$f $d/linux/${m}bit/.
+	    rsync --rsh="ssh -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:$f $DIR/.
 	done
     done
-    fix-perm $d/linux/${m}bit
+    fix-perm $DIR
     ## these ones, we do not want or need
-    rm -f $d/linux/${m}bit/libc.so*
-    rm -f $d/linux/${m}bit/libpthread.so*
-    rm -f $d/linux/${m}bit/librt.so*
+    rm -f $DIR/libc.so*
+    rm -f $DIR/libpthread.so*
+    rm -f $DIR/librt.so*
+    rm -f $DIR/libm.so*
+    ## those we like be be first
+    mv -f $DIR/libjemalloc.* $DIR/first
 done
 
 for m in 32 64; do

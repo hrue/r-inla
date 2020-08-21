@@ -115,7 +115,10 @@ int GMRFLib_make_spherical_igmrf(GMRFLib_sphere_tp ** sphere, int resolution, do
 	/*
 	 * TODO: we can use the new implenetation of _Qfunc_from_file() which build the graph simultanously. 
 	 */
-	GMRFLib_EWRAP0(GMRFLib_tabulate_Qfunc_from_file_OLD(&tab, (*sphere)->graph, p, scale, log_scale, log_scale_omp));
+	FIXME("FIX THIS");
+	abort();
+	
+	//GMRFLib_EWRAP0(GMRFLib_tabulate_Qfunc_from_file_OLD(&tab, (*sphere)->graph, p, scale, log_scale, log_scale_omp));
 	Free(fnm);
 	Free(p);
 
