@@ -27,6 +27,15 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.08.21}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Various minor fixes
+      \item MKL binaries are now linked with libiomp5
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.08.19}{
   \subsection{BUG FIXES}{
     \itemize{
