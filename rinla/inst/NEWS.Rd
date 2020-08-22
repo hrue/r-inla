@@ -27,6 +27,27 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.08.22}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item MKL is now default for both Mac and Linux.
+      If this cause any issues, revert back by setting
+      \code{inla.setOption(mkl=FALSE)}.
+      \item As of today, the TAUCS library does not play 
+      well with MKL on Mac for some reason, and this is
+      silent accounted for.
+      It is possible to bypass the internal check,
+      and if that becomes in issue, just define
+      \code{mkl=FALSE} as above.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Updated some install scripts
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.08.21}{
   \subsection{BUG FIXES}{
     \itemize{
