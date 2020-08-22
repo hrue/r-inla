@@ -115,7 +115,7 @@
         num.threads = paste0(detectCores(all.tests = TRUE, logical = FALSE), ":1"), 
         blas.num.threads = 0L, 
         smtp = "default", 
-        mkl = inla.os("linux"), 
+        mkl = if (inla.os("linux") || inla.os("mac")) TRUE else FALSE, 
         pardiso.license = NULL, 
         keep = FALSE, 
         working.directory = NULL, 
