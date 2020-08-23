@@ -34501,7 +34501,13 @@ int main(int argc, char **argv)
 			time_used[2] = GMRFLib_cpu() - time_used[2];
 			atime_used[2] = clock() - atime_used[2];
 
-			double eff_nt = ((double)atime_used[1])/CLOCKS_PER_SEC/time_used[1];
+#define PEFF_OUTPUT if (1) {						\
+				double eff_nt = ((double)(atime_used[0] + atime_used[1]))/CLOCKS_PER_SEC/(time_used[0] + time_used[1]);	\
+				printf("\nParallel efficiency for 'Preparations' and 'Approx inference':\n"); \
+				printf("\tAccumulated CPU-time is equivalent to %.1f threads running at 100%%\n", eff_nt); \
+				printf("\tEfficiency using max %1d threads = %.1f%%\n", GMRFLib_MAX_THREADS, \
+				       100.0 * eff_nt/GMRFLib_MAX_THREADS); \
+			}
 
 			if (!silent) {
 				printf("\tOutput          : %7.3f seconds\n", time_used[2]);
@@ -34509,10 +34515,7 @@ int main(int argc, char **argv)
 				printf("\tTotal           : %7.3f seconds\n", time_used[0] + time_used[1] + time_used[2]);
 				printf("\n");
 #if !defined(WINDOWS)
-				printf("Approx inference:\n");
-				printf("Accumulated CPU time is equivalent to %.1f threads running at 100%%\n", eff_nt);
-				printf("Efficiency using %1d threads = %.1f%%\n", GMRFLib_MAX_THREADS,
-				       100.0 * eff_nt/GMRFLib_MAX_THREADS);
+				PEFF_OUTPUT;
 #endif
 				fflush(stdout);
 			}
@@ -34533,10 +34536,7 @@ int main(int argc, char **argv)
 				printf("\t---------------------------------\n");
 				printf("\tTotal           : %7.3f seconds\n", time_used[0] + time_used[1] + time_used[2]);
 #if !defined(WINDOWS)
-				printf("\nApprox inference:\n");
-				printf("Accumulated CPU time is equivalent to %.1f threads running at 100%%\n", eff_nt);
-				printf("Efficiency using %1d threads = %.1f%%\n", GMRFLib_MAX_THREADS,
-				       100.0 * eff_nt/GMRFLib_MAX_THREADS);
+				PEFF_OUTPUT;
 #endif
 				printf("\n");
 			}

@@ -185,7 +185,7 @@ typedef enum {
 /* 
    some useful macros
 */
-#if 1
+#if 0
 //#define GMRFLib_TRACE_MEMORY    1000000   // trace memory larger than this ammount. undefine it to disable this feature.
 #define Calloc(n, type)         (type *)GMRFLib_calloc((size_t)(n),sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
 #define Malloc(n, type)         (type *)GMRFLib_malloc((size_t)(n)*sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
