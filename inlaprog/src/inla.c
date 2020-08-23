@@ -34101,6 +34101,7 @@ int main(int argc, char **argv)
 	int blas_num_threads = 1;
 	char *program = argv[0];
 	double time_used[3];
+	clock_t atime_used[3];
 	inla_tp *mb = NULL;
 
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
@@ -34474,30 +34475,45 @@ int main(int argc, char **argv)
 				printf("\nWall-clock time used on [%s] max_threads=[%1d]\n", argv[arg], GMRFLib_MAX_THREADS);
 			}
 			time_used[0] = GMRFLib_cpu();
+			atime_used[0] = clock();
 
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_PARSE_MODEL, NULL, NULL);
 			mb = inla_build(argv[arg], verbose, 1);
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 			time_used[0] = GMRFLib_cpu() - time_used[0];
+			atime_used[0] = clock() - atime_used[0];
 			if (!silent) {
 				printf("\tPreparations    : %7.3f seconds\n", time_used[0]);
 				fflush(stdout);
 			}
 			time_used[1] = GMRFLib_cpu();
+			atime_used[1] = clock();
 			inla_INLA(mb);
 			time_used[1] = GMRFLib_cpu() - time_used[1];
+			atime_used[1] = clock() - atime_used[1];
 			if (!silent) {
 				printf("\tApprox inference: %7.3f seconds\n", time_used[1]);
 				fflush(stdout);
 			}
 			time_used[2] = GMRFLib_cpu();
+			atime_used[2] = clock();
 			inla_output(mb);
 			time_used[2] = GMRFLib_cpu() - time_used[2];
+			atime_used[2] = clock() - atime_used[2];
+
+			double eff_nt = ((double)atime_used[1])/CLOCKS_PER_SEC/time_used[1];
+
 			if (!silent) {
 				printf("\tOutput          : %7.3f seconds\n", time_used[2]);
 				printf("\t---------------------------------\n");
 				printf("\tTotal           : %7.3f seconds\n", time_used[0] + time_used[1] + time_used[2]);
 				printf("\n");
+#if !defined(WINDOWS)
+				printf("Approx inference:\n");
+				printf("Accumulated CPU time is equivalent to %.1f threads running at 100%%\n", eff_nt);
+				printf("Efficiency using %1d threads = %.1f%%\n", GMRFLib_MAX_THREADS,
+				       100.0 * eff_nt/GMRFLib_MAX_THREADS);
+#endif
 				fflush(stdout);
 			}
 			if (verbose) {
@@ -34516,6 +34532,12 @@ int main(int argc, char **argv)
 				printf("\tOutput          : %7.3f seconds\n", time_used[2]);
 				printf("\t---------------------------------\n");
 				printf("\tTotal           : %7.3f seconds\n", time_used[0] + time_used[1] + time_used[2]);
+#if !defined(WINDOWS)
+				printf("\nApprox inference:\n");
+				printf("Accumulated CPU time is equivalent to %.1f threads running at 100%%\n", eff_nt);
+				printf("Efficiency using %1d threads = %.1f%%\n", GMRFLib_MAX_THREADS,
+				       100.0 * eff_nt/GMRFLib_MAX_THREADS);
+#endif
 				printf("\n");
 			}
 		}
