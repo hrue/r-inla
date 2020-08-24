@@ -82,6 +82,36 @@
 ##! inla.getOption("num.threads")
 ##!}
 
+`inla.getOption.default` <- function()
+{
+    ## this function is not exported. it need to be separate, to avoid infinite recursion
+    return (
+        list(
+            inla.call = inla.call.builtin(), 
+            fmesher.call = inla.fmesher.call.builtin(), 
+            inla.arg = NULL,
+            fmesher.arg = "", 
+            num.threads = paste0(detectCores(all.tests = TRUE, logical = FALSE), ":1"), 
+            blas.num.threads = 0L, 
+            smtp = "default", 
+            mkl = if (inla.os("linux") || inla.os("mac")) TRUE else FALSE, 
+            pardiso.license = NULL, 
+            keep = FALSE, 
+            working.directory = NULL, 
+            silent = TRUE, 
+            debug = FALSE, 
+            internal.binary.mode = TRUE, 
+            internal.experimental.mode = FALSE, 
+            cygwin = "C:/cygwin",
+            cygwin.home = paste("/home/", inla.get.USER(), sep=""), 
+            ssh.auth.sock = paste("/tmp/ssh-auth-sock-", inla.get.USER(), sep=""),
+            enable.inla.argument.weights = FALSE, 
+            show.warning.graph.file = TRUE, 
+            scale.model.default = FALSE,
+            short.summary = FALSE
+        )
+    )
+}
 
 `inla.getOption` = function(
     option = c("inla.call",
@@ -107,30 +137,7 @@
         "scale.model.default",
         "short.summary"))
 {
-    default.opt = list(
-        inla.call = inla.call.builtin(), 
-        fmesher.call = inla.fmesher.call.builtin(), 
-        inla.arg = NULL,
-        fmesher.arg = "", 
-        num.threads = paste0(detectCores(all.tests = TRUE, logical = FALSE), ":1"), 
-        blas.num.threads = 0L, 
-        smtp = "default", 
-        mkl = if (inla.os("linux") || inla.os("mac")) TRUE else FALSE, 
-        pardiso.license = NULL, 
-        keep = FALSE, 
-        working.directory = NULL, 
-        silent = TRUE, 
-        debug = FALSE, 
-        internal.binary.mode = TRUE, 
-        internal.experimental.mode = FALSE, 
-        cygwin = "C:/cygwin",
-        cygwin.home = paste("/home/", inla.get.USER(), sep=""), 
-        ssh.auth.sock = paste("/tmp/ssh-auth-sock-", inla.get.USER(), sep=""),
-        enable.inla.argument.weights = FALSE, 
-        show.warning.graph.file = TRUE, 
-        scale.model.default = FALSE,
-        short.summary = FALSE
-    )
+    default.opt <- inla.getOption.default()
 
     ## with no argument, return a named list of current values
     if (missing(option)) {

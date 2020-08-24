@@ -118,14 +118,16 @@
 {
     ## cannot call inla.getOption() here as it leads to an infinite recursive call. do this
     ## manually instead.
+    opt.default <- inla.getOption.default()
     if (exists("inla.options", env = inla.get.inlaEnv())) {
         opt <- get("inla.options", env = inla.get.inlaEnv())
-        mkl <- if (!is.null(opt$mkl) && opt$mkl) "mkl." else ""
-        lic <- if (!is.null(opt$pardiso.license) && nchar(opt$pardiso.license) > 0) TRUE else FALSE
+        mkl <- if (!is.null(opt$mkl)) opt$mkl else opt.default$mkl
+        lic <- (!is.null(opt$pardiso.license) && nchar(opt$pardiso.license) > 0)
     } else {
+        mkl <- opt.default$mkl
         lic <- FALSE
-        mkl <- ""
     }
+    mkl <- if (mkl) "mkl." else ""
 
     if (inla.os("mac")) {
         ## workaround for crash when MKL is used with TAUCS (Aug 2020)

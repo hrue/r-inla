@@ -27,6 +27,19 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.08.24}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Some minor fixes in the install
+    }
+  }
+  \subsection{MISC}{
+    \itemize{
+      \item Linux builds now link with PARDISO version 7 (beta)
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.08.22}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
