@@ -87,8 +87,6 @@
     ## this function is not exported. it need to be separate, to avoid infinite recursion
     return (
         list(
-            inla.call = inla.call.builtin(), 
-            fmesher.call = inla.fmesher.call.builtin(), 
             inla.arg = NULL,
             fmesher.arg = "", 
             num.threads = paste0(detectCores(all.tests = TRUE, logical = FALSE), ":1"), 
@@ -137,7 +135,10 @@
         "scale.model.default",
         "short.summary"))
 {
+    ## we 'inla.call' and 'fmesher.call' separately to avoid infinite recursion
     default.opt <- inla.getOption.default()
+    default.opt$inla.call = inla.call.builtin()
+    default.opt$fmesher.call = inla.fmesher.call.builtin()
 
     ## with no argument, return a named list of current values
     if (missing(option)) {
