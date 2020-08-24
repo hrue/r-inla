@@ -4661,7 +4661,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					} else {
 						weights[dens_count] = 0.0;
 					}
-					izs[dens_count] = Calloc(nhyper, double);
+					izs[dens_count] = Calloc((nhyper), double);
 
 					for (i = 0; i < nhyper; i++) {
 						izs[dens_count][i] = z[i];
@@ -6968,7 +6968,7 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 		}
 	}
 
-	Qprior = Calloc(g->n, double);
+	Qprior = Calloc((g->n), double);
 	for (ii = 0; ii < g->n; ii++) {
 		Qprior[ii] = Qfunc(ii, ii, NULL, Qfunc_arg) + c[ii];
 	}
