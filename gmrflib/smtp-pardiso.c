@@ -1457,6 +1457,7 @@ int my_pardiso_test5(void)
 	int err = 0;
 	
 	S.msglvl = 1;
+	S.csr_check = 1;
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
@@ -1468,12 +1469,14 @@ int my_pardiso_test5(void)
 #pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (k = 0; k < 1000; k++) {
 
+		// I do not free anything here...
+		
 		P(k);
-		GMRFLib_tabulate_Qfunc_tp *Qtab;
-		GMRFLib_graph_tp *g;
+		GMRFLib_tabulate_Qfunc_tp *Qtab = NULL;
+		GMRFLib_graph_tp *g = NULL;
 
 		GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q.dat", -1, NULL, NULL, NULL);
-		GMRFLib_csr_tp *csr;
+		GMRFLib_csr_tp *csr = NULL;
 		GMRFLib_Q2csr(&csr, g, Qtab->Qfunc, Qtab->Qfunc_arg);
 
 		GMRFLib_pardiso_store_tp *store = NULL;
