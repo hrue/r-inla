@@ -34063,6 +34063,11 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 45:
+	{
+		my_pardiso_test5();
+		break;
+	}
 
 	// this will give some more error messages, if any
 	case 999:
