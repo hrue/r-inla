@@ -34227,7 +34227,8 @@ int main(int argc, char **argv)
 				} else if (ntt[0] == 0 && ntt[1] > 0) {
 					ntt[0] = GMRFLib_openmp->max_threads / ntt[1] + 1;
 				} else if (ntt[1] == 0) {
-					ntt[1] = (GMRFLib_openmp->max_threads - 1)/ ntt[0];
+					//ntt[1] = (GMRFLib_openmp->max_threads - 1)/ ntt[0];
+					ntt[1] = 1;
 				}
 				for (i = 0; i < 2; i++) {
 					ntt[i] = IMIN(GMRFLib_openmp->max_threads, IMAX(1, ntt[i]));
