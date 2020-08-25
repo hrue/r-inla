@@ -366,8 +366,11 @@
 
         ##:ARGUMENT: correlation.matrix Compute the posterior correlation matrix for all fixed effects? (default FALSE) OOPS: This option will set up appropriate linear combinations and the results are shown as the posterior correlation matrix of the linear combinations. This option will imply \code{control.inla=list(lincomb.derived.correlation.matrix=TRUE)}.
          
-        correlation.matrix = FALSE)
+        correlation.matrix = FALSE,
 
+        ##:ARGUMENT: remove.names A vector of names of expanded fixed effects to remove from the model-matrix. This is an expert option, and should only be used if you know what you are doing. 
+        remove.names = NULL
+    )
     ##:SEEALSO: inla
 }
 

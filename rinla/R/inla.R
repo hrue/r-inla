@@ -773,6 +773,21 @@
                            "then NA's in factor are not allowd. Please use strategy 'inla' instead."))
             }
         }
+
+        ## remove names from the model.matrix. This is useful if we need a model without an
+        ## intercept as we might have the intercept in the link-model f.ex. In this case we want
+        ## to do the expansion of factors as we have an intercept and then remove it afterwards.
+        if (!is.null(cont.fixed$remove.names)) {
+            rm.cols <- which(cont.fixed$remove.names %in% colnames(gp$model.matrix))
+            if (length(rm.cols) > 0) {
+                gp$model.matrix <- gp$model.matrix[, -rm.cols, drop = FALSE]
+            }
+            if (length(cont.fixed$remove.names) > length(rm.cols)) {
+                warning(paste0("You requested to remove ", length(cont.fixed$remove.names),
+                               " names in 'data', but only ", length(rm.cols),  " names were removed."))
+            }
+        }
+
         ## this have to match
         stopifnot(dim(gp$model.matrix)[1L] == NPredictor)
 
