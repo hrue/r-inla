@@ -30,10 +30,9 @@
 \section{CHANGES IN VERSION xx.xx.xx}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
-      \item There is a change in \code{inla.qsample},
-      if argument \code{seed!=0} then serial mode
-      is now forced. Earlier, this would have cause an error if parallel
-      mode was also requested.
+      \item There is a minor change in \code{inla.qsample} and \code{inla.posterior.sample}.
+      If argument \code{seed!=0} then serial mode is now forced.
+      Earlier, an error would be raised if parallel mode was also requested.
     }
   }
   \subsection{NEW FEATURES}{
