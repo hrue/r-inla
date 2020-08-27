@@ -34,10 +34,18 @@
 ##!        either one of the names listed in \code{inla.reorderings()} 
 ##!        or the output from \code{inla.qreordering(Q)}.
 ##!        The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
-##!   \item{seed}{Control the RNG. If \code{seed=0L} then GMRFLib will set the seed intelligently/at 'random'.
+##!   \item{seed}{Control the RNG. If \code{seed=0L} then GMRFLib will set the seed
+##!               intelligently/at 'random',  and this is and should be the default behaviour.
 ##!               If \code{seed < 0L}  then the saved state of the RNG will be reused if possible, otherwise,
 ##!               GMRFLib will set the seed intelligently/at 'random'.
-##!               If \code{seed > 0L} then this value is used as the seed for the RNG.}
+##!               If \code{seed > 0L} then this value is used as the seed for the RNG.
+##!
+##!               PLEASE NOTE1: If \code{seed!=0} then the computations will run in serial mode,  over-riding
+##!               whatever is set in \code{num.threads} (a warning might be issued).
+##!
+##!               PLEASE NOTE2: If the PARDISO sparse matrix library is used, continuity of the samples
+##!               with respect to small changes in the precision matrix, can be expected but is
+##!               not guaranteed. If this feature is required, please use the TAUCS sparse matrix library.}
 ##!   \item{logdens}{If \code{TRUE}, compute also the log-density of each sample. Note that the output format then change.}
 ##!   \item{compute.mean}{If \code{TRUE}, compute also the (constrained) mean. Note that the output format then change.}
 ##!   \item{num.threads}{Maximum number of threads the
@@ -88,12 +96,12 @@
 ##! x = inla.qsample(n, Q=Q, constr=constr)
 ##! print(constr$A \%*\% x)
 ##! 
-##! ## control the RNG
-##! x = inla.qsample(n, Q=Q, seed = 123)
+##! ## control the RNG (require serial mode)
+##! x = inla.qsample(n, Q=Q, seed = 123, num.threads="1:1")
 ##! ## restart from same seed,  only sample 1
-##! xx = inla.qsample(n=1, Q=Q, seed = 123)
+##! xx = inla.qsample(n=1, Q=Q, seed = 123, num.threads="1:1")
 ##! ## continue from the save state, sample the remaining 2
-##! xxx = inla.qsample(n=n-1, Q=Q, seed = -1)
+##! xxx = inla.qsample(n=n-1, Q=Q, seed = -1, num.threads="1:1")
 ##! ## should be 0
 ##! print(x - cbind(xx, xxx))
 ##!}
@@ -121,10 +129,14 @@
     if (is.null(num.threads)) {
         num.threads = inla.getOption("num.threads")
     }
-    num.threads <- inla.parse.num.threads(num.threads)
-    nt.1 <- as.numeric(strsplit(num.threads, ":",)[[1]][1])
-    if (nt.1 > 1L && seed != 0L) {
-        stop("num.threads > 1L require seed = 0L")
+    if (seed != 0L) {
+        num.threads.user <- inla.parse.num.threads(num.threads)
+        num.threads <- inla.parse.num.threads("1:1")
+        if (num.threads != num.threads.user) {
+            warning("Since 'seed!=0', parallel model is disabled and serial model is selected")
+        }
+    } else {
+        num.threads <- inla.parse.num.threads(num.threads)
     }
 
     if (is.list(reordering)) {
