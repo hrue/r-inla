@@ -34069,6 +34069,73 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 46: 
+	{
+		GMRFLib_crwdef_tp *rw = Calloc(1, GMRFLib_crwdef_tp);
+		GMRFLib_graph_tp *g;
+		int n = 10, i, j;
+		double one = 1.0;
+		
+		rw->n = n;
+		rw->prec = Calloc(1, double);
+		rw->prec[0] = 1.0;
+		rw->order = 2;
+		rw->layout = GMRFLib_CRW_LAYOUT_SIMPLE;
+		rw->position = Calloc(n, double);
+		rw->position[0] = 0;
+		for(i = 1; i < n; i++) {
+			rw->position[i] = rw->position[i-1] + i;
+		}
+		
+		GMRFLib_make_rw_graph(&g, rw);
+
+		double *len = Calloc(n, double);
+		double *null = Calloc(n, double);
+		double *res = Calloc(n, double);
+
+		null[0] = 1.0;
+		null[n-1] = 1.0;
+		len[0] = (rw->position[1]-rw->position[0])/1.0;
+		len[n-1] = (rw->position[n-1]-rw->position[n-2])/1.0;
+		for(i = 1; i < n-1; i++){
+			null[i] = 1.0;
+			len[i] = (rw->position[i+1]-rw->position[i]);
+		}
+		GMRFLib_Qx(res, null, g, GMRFLib_crw, (void *) rw);
+		for(i = 0; i < n; i++)
+			printf("constr i %1d  x %f null %f Qnull %f\n", i, rw->position[i], null[i], res[i]);
+		if (rw->order > 1) {
+			memcpy(null, rw->position, n*sizeof(double));
+			GMRFLib_Qx(res, null, g, GMRFLib_crw, (void *) rw);
+			for(i = 0; i < n; i++)
+				printf("linear i %1d  x %f null %f Qnull %f\n", i, rw->position[i], null[i], res[i]);
+		}
+
+		if (0) {
+			gsl_matrix *Q = gsl_matrix_calloc(n, n);
+			for(i = 0; i < n; i++)
+				for(j = 0; j < n; j++){
+					if (i == j || GMRFLib_graph_is_nb(i, j, g)){
+						gsl_matrix_set(Q, i, j, GMRFLib_crw(i, j, rw->position, rw));
+					} else {
+						gsl_matrix_set(Q, i, j, 0.0);
+					}
+				}
+			
+			gsl_matrix *vec = gsl_matrix_calloc(n, n);
+			gsl_vector *val = gsl_vector_calloc(n);
+			gsl_eigen_symmv_workspace *work = gsl_eigen_symmv_alloc(n);
+			gsl_eigen_symmv(Q, val, vec, work);
+			
+			GMRFLib_gsl_matrix_fprintf(stdout, Q,  " %8.4f");
+			printf("\n");
+			GMRFLib_gsl_matrix_fprintf(stdout, vec,  " %8.4f");
+			printf("\n");
+			GMRFLib_gsl_vector_fprintf(stdout, val, " %8.4f");
+		}
+	}
+	break;
+
 	// this will give some more error messages, if any
 	case 999:
 	{
