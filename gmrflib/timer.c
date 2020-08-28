@@ -151,47 +151,48 @@ int GMRFLib_timer_compare(const void *a, const void *b)
 		return 1;
 	return (aa->ctime_acc / aa->ntimes > bb->ctime_acc / bb->ntimes ? -1 : 1);
 }
+int GMRFLib_timer_init(void) 
+{
+	return GMRFLib_timer_enter(NULL);
+}
 int GMRFLib_timer_enter(const char *name)
 {
-//#pragma omp critical
-	{
-		GMRFLib_timer_hashval_tp *p;
-		void *vpp;
-		char *cname;
+	GMRFLib_timer_hashval_tp *p;
+	void *vpp;
+	char *cname;
 
-		cname = GMRFLib_strdup(name);
-
+	cname = GMRFLib_strdup(name);
+	if (!GMRFLib_timer_hashtable) {
 		if (!GMRFLib_timer_hashtable) {
-			{
-				if (!GMRFLib_timer_hashtable) {
-					int i;
-					map_strvp *tmp;
-
-					tmp = Calloc(GMRFLib_MAX_THREADS, map_strvp);
-					for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
-						map_strvp_init_hint(&tmp[i], 30);	/* about the number of elmements in the hash-table */
-					}
-					GMRFLib_timer_hashtable = tmp;
-				}
+			int i;
+			map_strvp *tmp;
+				
+			tmp = Calloc(GMRFLib_MAX_THREADS, map_strvp);
+			for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
+				map_strvp_init_hint(&tmp[i], 30);	/* about the number of elmements in the hash-table */
 			}
+			GMRFLib_timer_hashtable = tmp;
 		}
-		if ((vpp = map_strvp_ptr(&GMRFLib_timer_hashtable[omp_get_thread_num()], cname))) {
-			p = *((GMRFLib_timer_hashval_tp **) vpp);
-			Free(cname);
-		} else {
-			p = Calloc(1, GMRFLib_timer_hashval_tp);
-			p->name = GMRFLib_strdup(name);
-			map_strvp_set(&GMRFLib_timer_hashtable[omp_get_thread_num()], cname, (void *) p);
-		}
+	}
+	if (!name) {
+		return GMRFLib_SUCCESS;
+	}
+	if ((vpp = map_strvp_ptr(&GMRFLib_timer_hashtable[omp_get_thread_num()], cname))) {
+		p = *((GMRFLib_timer_hashval_tp **) vpp);
+		Free(cname);
+	} else {
+		p = Calloc(1, GMRFLib_timer_hashval_tp);
+		p->name = GMRFLib_strdup(name);
+		map_strvp_set(&GMRFLib_timer_hashtable[omp_get_thread_num()], cname, (void *) p);
+	}
 
-		/*
-		 * if ctime_ref > 0.0, then this routine is already initialized. in this case, we keep the first. 
-		 */
-		if (p->ctime_ref <= 0.0) {
-			{
-				if (p->ctime_ref <= 0.0) {
-					p->ctime_ref = GMRFLib_cpu();
-				}
+	/*
+	 * if ctime_ref > 0.0, then this routine is already initialized. in this case, we keep the first. 
+	 */
+	if (p->ctime_ref <= 0.0) {
+		{
+			if (p->ctime_ref <= 0.0) {
+				p->ctime_ref = GMRFLib_cpu();
 			}
 		}
 	}

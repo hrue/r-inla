@@ -354,7 +354,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 	case GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR:
 		nested = 0;
-		nt = *nhyper;
+		nt = IMIN(ntmax, *nhyper);
 		switch (strategy) {
 		case GMRFLib_OPENMP_STRATEGY_SMALL:
 			nt = (*nhyper > 2 ? nt : 1);
