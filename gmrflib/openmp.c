@@ -439,7 +439,17 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	if ((nested && !omp_get_nested()) || (!nested && omp_get_nested())) {
 		omp_set_nested(nested);
 	}
+
 	omp_set_num_threads(GMRFLib_openmp->max_threads_outer);
+	if (nested) {
+		int i;
+		omp_set_dynamic(0);
+#pragma omp parallel for private(i)
+		for(i = 0; i < 2; i++) {
+			omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
+		}
+		omp_set_dynamic(1);
+	}
 
 	if (debug) {
 		printf("%s:%1d: smtp[%s] strategy[%s] place[%s] nested[%1d]\n", __FILE__, __LINE__,
