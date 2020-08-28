@@ -34308,7 +34308,6 @@ int main(int argc, char **argv)
 				}
 				// mostly for internal code use
 				GMRFLib_openmp->max_threads = ntt[0] * ntt[1];
-
 			} else {
 				fprintf(stderr, "Fail to read A:B from [%s]\n", optarg);
 				fprintf(stderr, "Will continue with '2:1'\n");
@@ -34366,6 +34365,7 @@ int main(int argc, char **argv)
 
 		case 'i':
 			GMRFLib_collect_timer_statistics = GMRFLib_TRUE;
+			GMRFLib_timer_init();
 			report = 1;
 			break;
 
