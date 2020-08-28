@@ -89,7 +89,7 @@
         list(
             inla.arg = NULL,
             fmesher.arg = "", 
-            num.threads = paste0(detectCores(all.tests = TRUE, logical = FALSE), ":1"), 
+            num.threads = paste0(parallel::detectCores(all.tests = TRUE, logical = FALSE), ":1"), 
             blas.num.threads = 0L, 
             smtp = "default", 
             mkl = if (inla.os("linux") || inla.os("mac")) TRUE else FALSE, 

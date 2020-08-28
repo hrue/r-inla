@@ -85,6 +85,27 @@
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
+#if defined(INLA_WINDOWS32)
+static int graph_store_use = 0;				       /* do not use it as the sha1 is not prepared for it */
+#else
+static int graph_store_use = 1;
+#endif
+static map_strvp graph_store;
+static int graph_store_must_init = 1;
+static int graph_store_debug = 0;
+
+#define STORE_INIT							\
+	if (graph_store_use) {						\
+		if (graph_store_must_init) {				\
+			map_strvp_init_hint(&graph_store, 64);		\
+			graph_store.alwaysdefault = 1;			\
+			graph_store_must_init = 0;			\
+			if (graph_store_debug)				\
+				printf("graph_store: init storage\n");	\
+		}							\
+	}
+
+
 /* Pre-hg-Id: $Id: graph.c,v 1.102 2010/02/15 08:26:37 hrue Exp $ */
 
 /*!
@@ -299,7 +320,7 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 		GMRFLib_EWRAP0(GMRFLib_graph_validate(stderr, *graph));
 	}
 
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*graph, 0));	       /* prepare the graph for computations */
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*graph, 0));      /* prepare the graph for computations */
 #undef TO_INT
 	return GMRFLib_SUCCESS;
 }
@@ -502,7 +523,7 @@ int GMRFLib_graph_read_binary(GMRFLib_graph_tp ** graph, const char *filename)
 			g->nnbs[i] = g->nnbs[i + 1];
 			g->nbs[i] = g->nbs[i + 1];
 			g->nbs[i + 1] = NULL;
-			for (j = 0; j < g->nnbs[i]; j++){
+			for (j = 0; j < g->nnbs[i]; j++) {
 				g->nbs[i][j]--;
 			}
 		}
@@ -549,6 +570,22 @@ int GMRFLib_graph_free(GMRFLib_graph_tp * graph)
 
 	if (!graph) {
 		return GMRFLib_SUCCESS;
+	}
+
+	STORE_INIT;
+	if (!graph_store_must_init && graph->sha1) {
+		void *p;
+		p = map_strvp_ptr(&graph_store, (char *) graph->sha1);
+		if (graph_store_debug) {
+			if (p) {
+				printf("graph_store: graph is found in store: do not free.\n");
+			} else {
+				printf("graph_store: graph is not found in store: free.\n");
+			}
+		}
+		if (p) {
+			return GMRFLib_SUCCESS;
+		}
 	}
 
 	for (i = 0; i < graph->n; i++) {
@@ -705,11 +742,11 @@ int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph, int is_sorted)
 		GMRFLib_graph_sort(graph);
 	}
 	GMRFLib_add_lnbs_info(graph);			       /* must be the last one */
-
+	GMRFLib_graph_add_sha1(graph);
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_add_lnbs_info(GMRFLib_graph_tp *graph) 
+int GMRFLib_add_lnbs_info(GMRFLib_graph_tp * graph)
 {
 	// these nodes are sorted
 
@@ -718,14 +755,14 @@ int GMRFLib_add_lnbs_info(GMRFLib_graph_tp *graph)
 	}
 
 	int n = graph->n, i;
-	
+
 	graph->lnnbs = Calloc(n, int);
 	graph->lnbs = Calloc(n, int *);
 
 #pragma omp parallel for private(i)
-	for(i = 0; i < n; i++) {
+	for (i = 0; i < n; i++) {
 		int j, jj, k = graph->nnbs[i];
-		for(jj = 0; jj < graph->nnbs[i]; jj++) {
+		for (jj = 0; jj < graph->nnbs[i]; jj++) {
 			j = graph->nbs[i][jj];
 			if (j > i) {
 				k = jj;
@@ -778,8 +815,7 @@ int GMRFLib_graph_sort(GMRFLib_graph_tp * graph)
 	if (!graph) {
 		return GMRFLib_SUCCESS;
 	}
-
-#pragma omp parallel for private(i) 
+#pragma omp parallel for private(i)
 	for (i = 0; i < graph->n; i++) {
 		if (graph->nnbs[i]) {
 
@@ -787,8 +823,8 @@ int GMRFLib_graph_sort(GMRFLib_graph_tp * graph)
 			int j, is_sorted = 1;
 
 			if (graph->nnbs[i]) {
-				for(j = 1; j < graph->nnbs[i] && is_sorted; j++) {
-					is_sorted = is_sorted && (graph->nbs[i][j] > graph->nbs[i][j-1]);
+				for (j = 1; j < graph->nnbs[i] && is_sorted; j++) {
+					is_sorted = is_sorted && (graph->nbs[i][j] > graph->nbs[i][j - 1]);
 				}
 			}
 			if (!is_sorted) {
@@ -962,12 +998,8 @@ int GMRFLib_graph_remap(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, in
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Returns a copy of a graph
 
-  \param[out] graph_new A \c GMRFLib_graph_tp -object. At output, it contains a copy of \em graph.
-  \param[in] graph_old A \c GMRFLib_graph_tp -object.
- */
+
 int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * graph_old)
 {
 	/*
@@ -983,6 +1015,24 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 		return GMRFLib_SUCCESS;
 	}
 
+	STORE_INIT;
+	if (!graph_store_must_init && graph_old->sha1) {
+		void **p;
+		p = map_strvp_ptr(&graph_store, (char *) graph_old->sha1);
+		if (graph_store_debug) {
+			if (p) {
+				printf("graph_store: graph is found in store: do not duplicate.\n");
+			} else {
+				printf("graph_store: graph is not found in store: duplicate.\n");
+			}
+		}
+		if (p) {
+			*graph_new = (GMRFLib_graph_tp *) * p;
+			GMRFLib_LEAVE_ROUTINE;
+			return GMRFLib_SUCCESS;
+		}
+	}
+
 	GMRFLib_graph_mk_empty(&g);
 	g->n = n = graph_old->n;
 	g->nnbs = Calloc(n, int);
@@ -995,7 +1045,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 	g->lnbs = Calloc(n, int *);
 
 	int is_sorted = 1;
-	
+
 	for (i = hold_idx = 0; i < n; i++) {
 		if (g->nnbs[i]) {
 			g->nbs[i] = &hold[hold_idx];
@@ -1003,8 +1053,8 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 			hold_idx += g->nnbs[i];
 
 			if (is_sorted && g->nnbs[i]) {
-				for(j = 1; j < g->nnbs[i] && is_sorted; j++) {
-					is_sorted = is_sorted && (g->nbs[i][j] > g->nbs[i][j-1]);
+				for (j = 1; j < g->nnbs[i] && is_sorted; j++) {
+					is_sorted = is_sorted && (g->nbs[i][j] > g->nbs[i][j - 1]);
 				}
 			}
 		}
@@ -1018,6 +1068,13 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 	}
 	*graph_new = g;
 	GMRFLib_graph_prepare(g, is_sorted);
+
+	if (!graph_store_must_init && graph_old->sha1) {
+		if (graph_store_debug) {
+			printf("graph_store: store graph\n", (void *) g);
+		}
+		map_strvp_set(&graph_store, (char *) g->sha1, (void *) g);
+	}
 
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
@@ -1041,7 +1098,7 @@ GMRFLib_sizeof_tp GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph)
 		m += graph->nnbs[i];
 	}
 
-	siz += sizeof(int) + m * sizeof(int) + 2* n * sizeof(int) + 2 * n * sizeof(int *);
+	siz += sizeof(int) + m * sizeof(int) + 2 * n * sizeof(int) + 2 * n * sizeof(int *);
 
 	if (graph->mothergraph_idx) {
 		siz += n * sizeof(int);
@@ -1254,8 +1311,7 @@ int GMRFLib_Qx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfun
 {
 	return (GMRFLib_Qx2(result, x, graph, Qfunc, Qfunc_arg, NULL));
 }
-int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-	double *diag)
+int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag)
 {
 	/*
 	 * compute RESULT = Q*x, (RESULT is a vector).
@@ -1263,10 +1319,10 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 	int i, j, jj, k, m;
 
 	memset(result, 0, graph->n * sizeof(double));
-	for(m = 0, i = 0; i < graph->n; i++) {
+	for (m = 0, i = 0; i < graph->n; i++) {
 		m = IMAX(m, graph->nnbs[i]);
 	}
-	double *values = Calloc(m+1, double);
+	double *values = Calloc(m + 1, double);
 	double res = Qfunc(0, -1, values, Qfunc_arg);
 
 	if (ISNAN(res)) {
@@ -1283,10 +1339,10 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 			}
 		}
 	} else {
-		for(i = 0; i < graph->n; i++) {
+		for (i = 0; i < graph->n; i++) {
 			res = Qfunc(i, -1, values, Qfunc_arg);
 			result[i] += (values[0] + (diag ? diag[i] : 0.0)) * x[i];
-			for(k = 1, jj = 0; jj < graph->nnbs[i]; jj++) {
+			for (k = 1, jj = 0; jj < graph->nnbs[i]; jj++) {
 				j = graph->nbs[i][jj];
 				if (j > i) {
 					result[i] += values[k] * x[j];
@@ -1339,8 +1395,7 @@ int GMRFLib_xQx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 	return (GMRFLib_xQx2(result, x, graph, Qfunc, Qfunc_arg, NULL));
 }
 
-int GMRFLib_xQx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-		 double *diag)
+int GMRFLib_xQx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag)
 {
 	int i;
 	double *y = NULL, res;
@@ -1889,7 +1944,7 @@ int GMRFLib_graph_union(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** gra
 			(*union_graph)->nbs[node] = NULL;
 		}
 	}
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*union_graph, 0));   /* this is required */
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*union_graph, 0));	/* this is required */
 
 	/*
 	 * the union_graph is now (probably) to large as it acounts for multiple counts. the easiest way out of this, is to
@@ -2039,10 +2094,10 @@ int GMRFLib_graph_insert(GMRFLib_graph_tp ** new_graph, int n_new, int offset, G
 }
 double GMRFLib_offset_Qfunc(int node, int nnode, double *values, void *arg)
 {
-	if (node >= 0 && nnode < 0){
+	if (node >= 0 && nnode < 0) {
 		return NAN;
 	}
-	
+
 	GMRFLib_offset_arg_tp *a = NULL;
 
 	a = (GMRFLib_offset_arg_tp *) arg;
@@ -2128,62 +2183,202 @@ int GMRFLib_graph_cc_do(int node, GMRFLib_graph_tp * g, int *cc, char *visited, 
 }
 
 
-/*
-  Example for manual
-*/
 
-/*! \page ex_graph Graph specification and handling. 
-  This page includes the examples
-  \ref ex_graph_sec1 and \ref ex_graph_sec2 
+#if !defined(INLA_WINDOWS32)
+// I found this somewhere and I cannot find it again... It was under GPL
 
-  \section ex_graph_sec1 Reading and printing graphs
+int GMRFLib_graph_add_sha1(GMRFLib_graph_tp * g)
+{
+#define LEN 64L
+#define IUPDATE(_x, _len) if ((_x) && (_len) > 0)	\
+		if (1) {				\
+			size_t len = (_len) * sizeof(int);	\
+			size_t n = (size_t) len / LEN;		\
+			size_t m = len - n * LEN;		\
+			size_t i;				\
+			for(i = 0; i < n; i++) {			\
+				SHA1_Update(&c, &(((unsigned char *) (_x))[i * LEN]), (unsigned long) LEN); \
+			}						\
+			if (m) SHA1_Update(&c, &(((unsigned char *) (_x))[n * LEN]), (unsigned long) m); \
+		}
 
-  \par Description:
 
-  This program performs the following tasks:
-  
-  - Reads a graph from the file \c graph1.dat, given below,
-  of the form required by the function \c GMRFLib_graph_read(). 
-  The specified graph has 10 nodes, with each of them having between 1 and 5 neighbours. 
-  \verbinclude doxygen_graph_2.txt
-  
-  - Prints the graph specification to standard output.
+	// add the SHA1 hash to the graph
+	SHA_CTX c;
+	unsigned char *md = Calloc(SHA_DIGEST_LENGTH + 1, unsigned char);
+	int i;
 
-  - Computes a subgraph, by specifying nodes to be removed from
-  the graph. More specifically, the first half of the nodes,
-  that is node 0, ..., 4, are specified to be removed.  To
-  compute the subgraph, the function \c GMRFLib_graph_comp_subgraph() is called.
-  
-  - Frees allocated memory.
+	memset(md, 0, SHA_DIGEST_LENGTH + 1);
+	SHA1_Init(&c);
 
-  \par Program code:
+	IUPDATE(&(g->n), 1);
+	IUPDATE(g->nnbs, g->n);
+	IUPDATE(g->lnnbs, g->n);
+	for (i = 0; i < g->n; i++) {
+		IUPDATE(g->nbs[i], g->nnbs[i]);
+		IUPDATE(g->lnbs[i], g->lnnbs[i]);
+	}
+	IUPDATE(g->mothergraph_idx, g->n);
+	SHA1_Final(md, &c);
+	md[SHA_DIGEST_LENGTH] = '\0';
+	g->sha1 = md;
+#undef IUPDATE
+	return GMRFLib_SUCCESS;
+}
 
-  \verbinclude example-doxygen-graph1.txt
+// DBL_INT_ADD treats two unsigned ints a and b as one 64-bit integer and adds c to it
+#define ROTLEFT(a,b) ((a << b) | (a >> (32-b)))
+#define DBL_INT_ADD(a,b,c) if (a > 0xffffffff - c) ++b; a += c;
 
-  \par Output:
+void SHA1_Transform(SHA_CTX * ctx, unsigned char data[])
+{
+	unsigned int a, b, c, d, e, i, j, t, m[80];
 
-  \verbinclude doxygen_graph_3.txt
+	for (i = 0, j = 0; i < 16; ++i, j += 4)
+		m[i] = (data[j] << 24) + (data[j + 1] << 16) + (data[j + 2] << 8) + (data[j + 3]);
+	for (; i < 80; ++i) {
+		m[i] = (m[i - 3] ^ m[i - 8] ^ m[i - 14] ^ m[i - 16]);
+		m[i] = (m[i] << 1) | (m[i] >> 31);
+	}
 
-  \section ex_graph_sec2 Creating lattice graphs, linear graphs and folded graphs 
+	a = ctx->state[0];
+	b = ctx->state[1];
+	c = ctx->state[2];
+	d = ctx->state[3];
+	e = ctx->state[4];
 
-  \par Description:
+	for (i = 0; i < 20; ++i) {
+		t = ROTLEFT(a, 5) + ((b & c) ^ (~b & d)) + e + ctx->k[0] + m[i];
+		e = d;
+		d = c;
+		c = ROTLEFT(b, 30);
+		b = a;
+		a = t;
+	}
+	for (; i < 40; ++i) {
+		t = ROTLEFT(a, 5) + (b ^ c ^ d) + e + ctx->k[1] + m[i];
+		e = d;
+		d = c;
+		c = ROTLEFT(b, 30);
+		b = a;
+		a = t;
+	}
+	for (; i < 60; ++i) {
+		t = ROTLEFT(a, 5) + ((b & c) ^ (b & d) ^ (c & d)) + e + ctx->k[2] + m[i];
+		e = d;
+		d = c;
+		c = ROTLEFT(b, 30);
+		b = a;
+		a = t;
+	}
+	for (; i < 80; ++i) {
+		t = ROTLEFT(a, 5) + (b ^ c ^ d) + e + ctx->k[3] + m[i];
+		e = d;
+		d = c;
+		c = ROTLEFT(b, 30);
+		b = a;
+		a = t;
+	}
 
-  This program describes how to create a lattice graph and a linear
-  graph, and how to expand the neighbourhood of a graph. The lattice
-  graph is defined on a 6 \c x 7 lattice, such that \c nr = 6 and
-  \c nc = 7. The neighbourhood is defined to be a 3 \c x
-  3-neighbourhood, such that \c mr = \c mc = 1 in (ref 1).  The
-  node numbers corresponding to the lattice indices are extracted, and
-  the reverse operation is also illustrated.  The linear graph is
-  defined by a cyclic AR(1)-model with 10 elements. A third graph is
-  generated by expanding the neighbourhood of the linear graph twice.
+	ctx->state[0] += a;
+	ctx->state[1] += b;
+	ctx->state[2] += c;
+	ctx->state[3] += d;
+	ctx->state[4] += e;
+}
+void SHA1_Init(SHA_CTX * ctx)
+{
+	ctx->datalen = 0;
+	ctx->bitlen[0] = 0;
+	ctx->bitlen[1] = 0;
+	ctx->state[0] = 0x67452301;
+	ctx->state[1] = 0xEFCDAB89;
+	ctx->state[2] = 0x98BADCFE;
+	ctx->state[3] = 0x10325476;
+	ctx->state[4] = 0xc3d2e1f0;
+	ctx->k[0] = 0x5a827999;
+	ctx->k[1] = 0x6ed9eba1;
+	ctx->k[2] = 0x8f1bbcdc;
+	ctx->k[3] = 0xca62c1d6;
+}
+void SHA1_Update(SHA_CTX * ctx, unsigned char data[], unsigned long len)
+{
+	unsigned long i;
 
-  \par Program code:
+	for (i = 0; i < len; ++i) {
+		ctx->data[ctx->datalen] = data[i];
+		ctx->datalen++;
+		if (ctx->datalen == 64) {
+			SHA1_Transform(ctx, ctx->data);
+			DBL_INT_ADD(ctx->bitlen[0], ctx->bitlen[1], 512);
+			ctx->datalen = 0;
+		}
+	}
+}
+void SHA1_Final(unsigned char hash[], SHA_CTX * ctx)
+{
+	unsigned int i;
 
-  \verbinclude example-doxygen-graph1.txt
+	i = ctx->datalen;
 
-  \par Output:
+	// Pad whatever data is left in the buffer. 
+	if (ctx->datalen < 56) {
+		ctx->data[i++] = 0x80;
+		while (i < 56)
+			ctx->data[i++] = 0x00;
+	} else {
+		ctx->data[i++] = 0x80;
+		while (i < 64)
+			ctx->data[i++] = 0x00;
+		SHA1_Transform(ctx, ctx->data);
+		memset(ctx->data, 0, 56);
+	}
 
-  \verbinclude doxygen_graph_5.txt
+	// Append to the padding the total message's length in bits and transform. 
+	DBL_INT_ADD(ctx->bitlen[0], ctx->bitlen[1], 8 * ctx->datalen);
+	ctx->data[63] = (unsigned char) (ctx->bitlen[0]);
+	ctx->data[62] = (unsigned char) (ctx->bitlen[0] >> 8);
+	ctx->data[61] = (unsigned char) (ctx->bitlen[0] >> 16);
+	ctx->data[60] = (unsigned char) (ctx->bitlen[0] >> 24);
+	ctx->data[59] = (unsigned char) (ctx->bitlen[1]);
+	ctx->data[58] = (unsigned char) (ctx->bitlen[1] >> 8);
+	ctx->data[57] = (unsigned char) (ctx->bitlen[1] >> 16);
+	ctx->data[56] = (unsigned char) (ctx->bitlen[1] >> 24);
+	SHA1_Transform(ctx, ctx->data);
 
-*/
+	// Since this implementation uses little endian byte ordering and MD uses big endian, 
+	// reverse all the bytes when copying the final state to the output hash. 
+	for (i = 0; i < 4; ++i) {
+		hash[i] = (ctx->state[0] >> (24 - i * 8)) & 0x000000ff;
+		hash[i + 4] = (ctx->state[1] >> (24 - i * 8)) & 0x000000ff;
+		hash[i + 8] = (ctx->state[2] >> (24 - i * 8)) & 0x000000ff;
+		hash[i + 12] = (ctx->state[3] >> (24 - i * 8)) & 0x000000ff;
+		hash[i + 16] = (ctx->state[4] >> (24 - i * 8)) & 0x000000ff;
+	}
+}
+#undef ROTLEFT
+#undef DBL_INT_ADD
+
+#else
+
+// dummy-functions for WINDOWS32 (cpp symbol INLA_WINDOWS32 defined)
+
+int GMRFLib_graph_add_sha1(GMRFLib_graph_tp * g)
+{
+	g->sha1 = NULL;
+	return GMRFLib_SUCCESS;
+}
+void SHA1_Transform(SHA_CTX * ctx, unsigned char data[])
+{
+}
+void SHA1_Init(SHA_CTX * ctx)
+{
+}
+void SHA1_Update(SHA_CTX * ctx, unsigned char data[], unsigned long len)
+{
+}
+void SHA1_Final(unsigned char hash[], SHA_CTX * ctx)
+{
+}
+
+#endif

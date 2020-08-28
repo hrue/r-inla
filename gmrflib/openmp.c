@@ -354,7 +354,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 	case GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR:
 		nested = 0;
-		nt = *nhyper;
+		nt = IMIN(ntmax, *nhyper);
 		switch (strategy) {
 		case GMRFLib_OPENMP_STRATEGY_SMALL:
 			nt = (*nhyper > 2 ? nt : 1);
@@ -439,7 +439,22 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	if ((nested && !omp_get_nested()) || (!nested && omp_get_nested())) {
 		omp_set_nested(nested);
 	}
+
 	omp_set_num_threads(GMRFLib_openmp->max_threads_outer);
+	if (nested) {
+		int i;
+		int check[2] =  {0, 0};
+		omp_set_dynamic(0);
+#pragma omp parallel for private(i)
+		for(i = 0; i < 2; i++) {
+			check[omp_get_thread_num()]++;
+			omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
+		}
+		omp_set_dynamic(1);
+		if (check[0] == 0 || check[1] == 0) {
+			fprintf(stderr, "\n\n\nopenmp: set_dynamic failed\n\n");
+		}
+	}
 
 	if (debug) {
 		printf("%s:%1d: smtp[%s] strategy[%s] place[%s] nested[%1d]\n", __FILE__, __LINE__,

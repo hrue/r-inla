@@ -46,15 +46,9 @@
 ##!   \item{add.names}{Logical. If \code{TRUE} then add name for each elements of each
 ##!       sample. If \code{FALSE}, only add name for the first sample. 
 ##!       (This save space.)}
-##!   \item{seed}{Control the RNG of \code{inla.qsample},
-##!       see \code{?inla.qsample} for further information.
-##!       If \code{seed=0L} then GMRFLib will set the seed intelligently/at 'random'.
-##!       If \code{seed < 0L}  then the saved state of the RNG will be reused if possible, otherwise,
-##!       GMRFLib will set the seed intelligently/at 'random'.
-##!       If \code{seed > 0L} then this value is used as the seed for the RNG.
-##!       If you want reproducible results, you ALSO need to control the seed for the RNG in R by
-##!       controlling the variable \code{.Random.seed} or using the function \code{set.seed},
-##!       the example for how this can be done. }
+##!   \item{seed}{See the same argument in \code{?inla.qsample} for further information.
+##!               In order to produce reproducible results,  you ALSO need to make sure the
+##!               RNG in R is in the same state,  see example below.}
 ##!   \item{num.threads}{The number of threads to use in the format 'A:B' defining the number threads in the
 ##!                      outer (A) and inner (B) layer for nested parallelism. A '0' will be replaced
 ##!                      intelligently. 
@@ -108,9 +102,9 @@
 ##!  ## reproducible results:
 ##!  inla.seed = as.integer(runif(1)*.Machine$integer.max)
 ##!  set.seed(12345)
-##!  x = inla.posterior.sample(100, r, seed = inla.seed)
+##!  x = inla.posterior.sample(10, r, seed = inla.seed, num.threads="1:1")
 ##!  set.seed(12345)
-##!  xx = inla.posterior.sample(100, r, seed = inla.seed)
+##!  xx = inla.posterior.sample(10, r, seed = inla.seed, num.threads="1.1")
 ##!  all.equal(x, xx)
 ##!
 ##! set.seed(1234)
@@ -123,7 +117,7 @@
 ##!         data = data.frame(y, z, xx, yy), 
 ##!         control.compute = list(config=TRUE),
 ##!         family = "gaussian")
-##! r.samples = inla.posterior.sample(100, r)
+##! r.samples = inla.posterior.sample(10, r)
 ##! 
 ##! fun = function(...) {
 ##!     mean(xx) - mean(yy)
@@ -328,17 +322,19 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
          'control.compute=list(config = TRUE)'.")
     }
     
-    if (seed != 0L && is.null(num.threads)) {
-        num.threads = "1"
-    }
     if (is.null(num.threads)) {
         num.threads = inla.getOption("num.threads")
     }
-    num.threads <- inla.parse.num.threads(num.threads)
-    nt.1 <- as.numeric(strsplit(num.threads, ":",)[[1]][1])
-    if (nt.1 > 1L && seed != 0L) {
-        stop("num.threads > 1L require seed = 0L")
+    if (seed != 0L) {
+        num.threads.user <- inla.parse.num.threads(num.threads)
+        num.threads <- inla.parse.num.threads("1:1")
+        if (num.threads != num.threads.user) {
+            warning("Since 'seed!=0', parallel model is disabled and serial model is selected")
+        }
+    } else {
+        num.threads <- inla.parse.num.threads(num.threads)
     }
+
     if (use.improved.mean == FALSE) {
         skew.corr <- FALSE
     }
@@ -382,7 +378,7 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
 
     if (!inla.os("windows") && parallel.configs) {
         nt <- as.numeric(strsplit(num.threads, ":")[[1]])
-        ncores <- detectCores(all.tests = TRUE, logical = FALSE)
+        ncores <- parallel::detectCores(all.tests = TRUE, logical = FALSE)
         if (nt[1] == 0) {
             nt[1] <- max(1, min(cs$nconfig, ncores))
             nt[2] <- 1
@@ -390,27 +386,27 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
         if (nt[2] == 0) {
             nt[2] <- max(1, ncores %/% nt[1])
         }
-        xx.list <- mclapply(1:cs$nconfig,
-                            (function(k) {
-                                if (n.idx[k] > 0) {
-                                    xx = inla.qsample(n = n.idx[k],
-                                                      Q = cs$config[[k]]$Q,
-                                                      mu = inla.ifelse(use.improved.mean,
-                                                                       cs$config[[k]]$improved.mean,
-                                                                       cs$config[[k]]$mean), 
-                                                      constr = cs$constr,
-                                                      logdens = TRUE,
-                                                      seed = seed,
-                                  num.threads = paste0(nt[2], ":1"), 
-                                  selection = sel.map,
-                                  verbose = verbose)
-                                    return (xx)
-                                } else {
-                                    return (NA)
-                                }
-                            }), 
-                            mc.cores = nt[1],
-                            mc.preschedule = TRUE)
+        xx.list <- parallel::mclapply(1:cs$nconfig,
+                             (function(k) {
+                                 if (n.idx[k] > 0) {
+                                     xx = inla.qsample(n = n.idx[k],
+                                                       Q = cs$config[[k]]$Q,
+                                                       mu = inla.ifelse(use.improved.mean,
+                                                                        cs$config[[k]]$improved.mean,
+                                                                        cs$config[[k]]$mean), 
+                                                       constr = cs$constr,
+                                                       logdens = TRUE,
+                                                       seed = seed,
+                                                       num.threads = paste0(nt[2], ":1"), 
+                                                       selection = sel.map,
+                                                       verbose = verbose)
+                                     return (xx)
+                                 } else {
+                                     return (NA)
+                                 }
+                             }), 
+                             mc.cores = nt[1],
+                             mc.preschedule = TRUE)
     } else {
         xx.list <- NULL
     }

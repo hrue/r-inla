@@ -47,7 +47,9 @@ for m in 64; do
     rm -f $DIR/librt.so*
     rm -f $DIR/libm.so*
     ## those we like be be first
-    mv -f -v $DIR/libjemalloc.* $DIR/first
+    for f in $DIR/libjemalloc* $DIR/libopenblas* $DIR/libblas* $DIR/liblapack*; do
+	test -f "$f" && mv -f -v "$f" $DIR/first
+    done
 done
 
 for m in 32 64; do

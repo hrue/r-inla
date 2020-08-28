@@ -193,6 +193,7 @@ int my_pardiso_test2(void);
 int my_pardiso_test3(void);
 int my_pardiso_test4(void);
 int my_pardiso_test5(void);
+int my_pardiso_test6(void);
 double my_pardiso_test_Q(int i, int j, double *values, void *arg);
 
 void pardisoinit(void *, int *, int *, int *, double *, int *);

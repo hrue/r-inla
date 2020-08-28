@@ -889,8 +889,6 @@ struct inla_tp_struct {
 	/*
 	 * reuse the mode-stuff 
 	 */
-	unsigned char *sha1_hash;
-	unsigned char *sha1_hash_file;
 	int ntheta_file;
 	int theta_counter_file;
 	int reuse_mode;
@@ -1711,7 +1709,6 @@ int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp *
 int inla_output_detail_neffp(const char *dir, GMRFLib_ai_neffp_tp * neffp, int verbose);
 int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_theta(const char *dir, double ***theta, int n_theta);
-int inla_output_detail_theta_sha1(unsigned char *sha1_hash, double ***theta, int n_theta);
 int inla_output_detail_x(const char *dir, double *x, int n_x);
 int inla_output_graph(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
 int inla_output_gitid(const char *dir);
@@ -1736,7 +1733,6 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int mkdir);
 int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int make_dir);
-int inla_print_sha1(FILE * fp, unsigned char *md);
 int inla_qinv(const char *filename, const char *outfile, const char *constrfile);
 int inla_qreordering(const char *filename);
 int inla_qsample(const char *filename, const char *outfile, const char *nsamples, const char *rngfile, const char *samplefile, const char *bfile,
@@ -1780,7 +1776,6 @@ int inla_read_prior_link0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * pr
 int inla_read_prior_link1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
 int inla_read_prior_link2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
 int inla_read_prior_mix(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
-int inla_read_theta_sha1(unsigned char **sha1_hash, double **theta, int *ntheta);
 int inla_read_weightsinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file);
 int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate);
 int inla_setup_ai_par_default(inla_tp * mb);
@@ -1875,8 +1870,6 @@ int my_file_exists(const char *filename);
 int my_setenv(char *str, int prefix);
 int testit(int argc, char **argv);
 map_table_tp *mapfunc_find(const char *name);
-unsigned char *inla_fp_sha1(FILE * fp);
-unsigned char *inla_inifile_sha1(const char *filename);
 void inla_signal(int sig);
 int inla_testit_timer(void);
 

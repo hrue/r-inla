@@ -79,10 +79,6 @@ static const char GitID[] = GITCOMMIT;
 #define INLA_TAG "devel"
 #endif
 
-//#include <openssl/sha.h>                                     /* Would also work with this library... */
-#include "sha1.h"					       /* instead of this one */
-#undef INLA_SHA1
-
 #include <unistd.h>
 #include <stdlib.h>
 #if defined(WIN32) || defined(WINDOWS)
@@ -231,211 +227,6 @@ int inla_mkdir(const char *dirname)
 	return mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 #endif
 }
-unsigned char *inla_inifile_sha1(const char *filename)
-{
-#if !defined(INLA_SHA1)
-	{
-		unsigned char *hash = Calloc(SHA_DIGEST_LENGTH + 1, unsigned char);
-		hash[SHA_DIGEST_LENGTH] = '\0';
-
-		return hash;
-	}
-#else
-
-#define _BUFSIZE (1024*16)
-#define _SCAN_FILE(fnm)							\
-	{								\
-		FILE *fp;						\
-									\
-		if (debug) {						\
-			printf("\tbuild SHA1 for file %s\n", fnm);	\
-		}							\
-									\
-		fp = fopen(fnm, "r");					\
-		if (fp) {						\
-			ssize_t fd = fileno(fp);			\
-			while (1) {					\
-				ssize_t j = read(fd, buf, (size_t)_BUFSIZE); \
-				if (j <= 0L )				\
-					break;				\
-				SHA1_Update(&c, buf, (unsigned long) j); \
-			}						\
-			fclose(fp);					\
-		} else {						\
-			if (debug) {					\
-				printf("Fail to open file [%s]\n", fnm); \
-			}						\
-			memset(md, 0, SHA_DIGEST_LENGTH);		\
-			hash = Calloc(SHA_DIGEST_LENGTH + 1, unsigned char); \
-			hash[SHA_DIGEST_LENGTH] = '\0';			\
-			memcpy(hash, md, SHA_DIGEST_LENGTH * sizeof(unsigned char)); \
-									\
-			return hash;					\
-		}							\
-	}
-
-	if (0) {
-		/*
-		 * simple check: check just the inifile 
-		 */
-		FILE *fp;
-		unsigned char *hash = NULL;
-
-		fp = fopen(filename, "r");
-		if (fp) {
-			hash = inla_fp_sha1(fp);
-			fclose(fp);
-		} else {
-			hash = Calloc(SHA_DIGEST_LENGTH + 1, unsigned char);
-			hash[SHA_DIGEST_LENGTH] = '\0';
-		}
-
-		return hash;
-
-	} else {
-		/*
-		 * this is the complete check; check the inifile and all the files referred to in it. 
-		 */
-		SHA_CTX c;
-		dictionary *d = NULL;
-		int i, debug = 0;
-		unsigned char *hash = NULL, buf[_BUFSIZE], md[SHA_DIGEST_LENGTH];
-		map_stri fhash;
-
-		map_stri_init(&fhash);
-
-		memset(md, 0, SHA_DIGEST_LENGTH);
-		SHA1_Init(&c);
-		_SCAN_FILE(filename);
-
-		if (debug)
-			printf("load %s\n", filename);
-		d = iniparser_load(filename);
-		for (i = 0; i < d->size; i++) {
-			if (d->key[i]) {
-				char *p;
-				p = strchr(d->key[i], INIPARSER_SEP);
-				if (p) {
-					p++;
-					if (debug)
-						fprintf(stdout, "%20s\t[%s]\n", d->key[i], d->val[i] ? d->val[i] : "NULL");
-					if (!strcasecmp("FILENAME", p)
-					    || !strcasecmp("OFFSET", p)
-					    || !strcasecmp("COVARIATES", p)
-					    || !strcasecmp("WEIGHTS", p)
-					    || !strcasecmp("CMATRIX", p)
-					    || !strcasecmp("GRAPH", p)
-					    || !strcasecmp("LOCATIONS", p)
-					    || !strcasecmp("X", p)
-					    || !strcasecmp("THETA", p)
-					    || !strcasecmp("AEXT", p)
-					    || !strcasecmp("EXTRACONSTRAINT", p)) {
-						char *f = GMRFLib_strdup(dictionary_replace_variables(d, d->val[i]));
-
-						/*
-						 * make sure we do not read the same file twice! this is required for all the lincomb's of Finn... 
-						 */
-						if (map_stri_ptr(&fhash, f)) {
-							if (debug)
-								printf("\talready scanned file %s\n", f);
-						} else {
-							if (debug)
-								printf("\tscan file %s\n", f);
-							map_stri_set(&fhash, f, 1);
-							_SCAN_FILE(f);
-						}
-					}
-				}
-			}
-		}
-		map_stri_free(&fhash);
-
-		SHA1_Final(&(md[0]), &c);
-		hash = Calloc(SHA_DIGEST_LENGTH + 1, unsigned char);
-		hash[SHA_DIGEST_LENGTH] = '\0';
-		memcpy(hash, md, SHA_DIGEST_LENGTH * sizeof(unsigned char));
-
-		return hash;
-	}
-#undef _BUFSIZE
-#undef _SCAN_FILE
-#endif
-}
-unsigned char *inla_fp_sha1(FILE * fp)
-{
-#define _BUFSIZE (1024*16)
-
-	if (!fp) {
-		unsigned char *hash = Calloc(SHA_DIGEST_LENGTH + 1, unsigned char);
-		hash[SHA_DIGEST_LENGTH] = '\0';
-
-		return hash;
-	}
-#if !defined(INLA_SHA1)
-	{
-		unsigned char *hash = Calloc(SHA_DIGEST_LENGTH + 1, unsigned char);
-		hash[SHA_DIGEST_LENGTH] = '\0';
-
-		return hash;
-	}
-#else
-	{
-		/*
-		 * return the SHA1 in a alloced string (including an extra \0).
-		 * 
-		 * This code is copied from crypto/sha/sha1.c in the openssl library 
-		 */
-
-		SHA_CTX c;
-		unsigned char md[SHA_DIGEST_LENGTH];
-		int fd;
-		unsigned char buf[_BUFSIZE];
-
-		memset(md, 0, SHA_DIGEST_LENGTH);
-
-		fd = fileno(fp);
-		SHA1_Init(&c);
-		while (1) {
-			ssize_t i;
-
-			i = read(fd, buf, _BUFSIZE);
-			if (i <= 0) {
-				break;
-			}
-			SHA1_Update(&c, buf, (unsigned long) i);
-		}
-		SHA1_Final(&(md[0]), &c);
-
-		unsigned char *hash = NULL;
-		hash = Calloc(SHA_DIGEST_LENGTH + 1, unsigned char);
-		hash[SHA_DIGEST_LENGTH] = '\0';
-		memcpy(hash, md, SHA_DIGEST_LENGTH * sizeof(unsigned char));
-
-		return hash;
-	}
-#endif
-#undef _BUFSIZE
-}
-int inla_print_sha1(FILE * fp, unsigned char *md)
-{
-#if !defined(INLA_SHA1)
-	{
-		return INLA_OK;
-	}
-#else
-	{
-		int i;
-
-		for (i = 0; i < SHA_DIGEST_LENGTH; i++) {
-			fprintf(fp, MODEFILENAME_FMT, md[i]);
-		}
-		fprintf(fp, "\n");
-
-		return INLA_OK;
-	}
-#endif
-}
-
 
 double map_identity(double arg, map_arg_tp typ, void *param)
 {
@@ -10491,9 +10282,6 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	}
 	mb = Calloc(1, inla_tp);
 	mb->verbose = verbose;
-	mb->sha1_hash = inla_inifile_sha1(dict_filename);
-	inla_read_theta_sha1(&mb->sha1_hash_file, &mb->theta_file, &mb->ntheta_file);
-	mb->reuse_mode = (mb->sha1_hash_file && strcmp((char *) mb->sha1_hash, (char *) mb->sha1_hash_file) == 0 ? 1 : 0);
 	mb->reuse_mode = 0;				       /* disable this feature. creates more trouble than it solves. */
 	if (mb->verbose && mb->reuse_mode) {
 		printf("Reuse stored mode in [%s]\n", MODEFILENAME);
@@ -30322,11 +30110,6 @@ int inla_output(inla_tp * mb)
 			inla_output_detail_theta(mb->dir, mb->theta, mb->ntheta);
 			inla_output_gitid(mb->dir);
 			inla_output_linkfunctions(mb->dir, mb);
-			if ((!mb->reuse_mode) || (mb->reuse_mode && mb->reuse_mode_but_restart)) {
-				// disable output theta-mode to file '.inla-mode'
-				// inla_output_detail_theta_sha1(mb->sha1_hash, mb->theta, mb->ntheta);
-			}
-
 			if (mb->output->q) {
 				if (local_verbose == 0) {
 					int save = mb->verbose;
@@ -31237,83 +31020,6 @@ int inla_output_detail_x(const char *dir, double *x, int n_x)
 	fclose(fp);
 	Free(nndir);
 	return INLA_OK;
-}
-int inla_output_detail_theta_sha1(unsigned char *sha1_hash, double ***theta, int n_theta)
-{
-	int i;
-	FILE *fp;
-
-	assert(sha1_hash);
-	fp = fopen(MODEFILENAME, "w");
-
-	if (!fp) {
-		return INLA_FAIL;
-	}
-	inla_print_sha1(fp, sha1_hash);
-	fprintf(fp, "%d\n", n_theta);
-	for (i = 0; i < n_theta; i++) {
-		fprintf(fp, "%.12f\n", theta[i][0][0]);
-	}
-	fclose(fp);
-
-	return INLA_OK;
-}
-int inla_read_theta_sha1(unsigned char **sha1_hash, double **theta, int *ntheta)
-{
-#define _EXIT_READ_FAIL				\
-	if (1) {				\
-		Free(hash);			\
-		*sha1_hash = NULL;		\
-		*theta = NULL;			\
-		*ntheta = 0;			\
-		return INLA_OK;			\
-	}
-
-
-	unsigned char *hash = NULL;
-	int debug = 0, i;
-	FILE *fp;
-
-	fp = fopen(MODEFILENAME, "r");
-	if (!fp) {
-		_EXIT_READ_FAIL;
-	} else {
-		hash = Calloc(SHA_DIGEST_LENGTH + 1, unsigned char);
-		for (i = 0; i < SHA_DIGEST_LENGTH; i++) {
-			unsigned int ui;
-			if (fscanf(fp, MODEFILENAME_FMT, &ui) == EOF) {
-				_EXIT_READ_FAIL;
-			}
-			hash[i] = (unsigned char) ui;
-		}
-		hash[SHA_DIGEST_LENGTH] = '\0';
-		if (debug) {
-			inla_print_sha1(stdout, hash);
-		}
-		if (fscanf(fp, "%d\n", ntheta) == EOF) {
-			_EXIT_READ_FAIL;
-		}
-		if (debug) {
-			printf("ntheta %d\n", *ntheta);
-		}
-		if (*ntheta > 0) {
-			theta[0] = Calloc(*ntheta, double);
-			for (i = 0; i < *ntheta; i++) {
-				if (fscanf(fp, "%lf\n", &(theta[0][i])) == EOF) {
-					_EXIT_READ_FAIL;
-				}
-				if (debug) {
-					printf("theta[%1d] = %.12f\n", i, theta[0][i]);
-				}
-			}
-		} else {
-			*theta = NULL;
-		}
-		*sha1_hash = hash;
-		fclose(fp);
-	}
-	return INLA_OK;
-#undef _EXIT_READ_FAIL
 }
 int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp * density, map_func_tp * func,
 			void *func_arg, GMRFLib_transform_array_func_tp * tfunc)
@@ -34063,6 +33769,78 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 45:
+	{
+		my_pardiso_test5();
+		break;
+	}
+
+	case 46: 
+	{
+		GMRFLib_crwdef_tp *rw = Calloc(1, GMRFLib_crwdef_tp);
+		GMRFLib_graph_tp *g;
+		int n = 10, i, j;
+		double one = 1.0;
+		
+		rw->n = n;
+		rw->prec = Calloc(1, double);
+		rw->prec[0] = 1.0;
+		rw->order = 2;
+		rw->layout = GMRFLib_CRW_LAYOUT_SIMPLE;
+		rw->position = Calloc(n, double);
+		rw->position[0] = 0;
+		for(i = 1; i < n; i++) {
+			rw->position[i] = rw->position[i-1] + i;
+		}
+		
+		GMRFLib_make_crw_graph(&g, rw);
+
+		double *len = Calloc(n, double);
+		double *null = Calloc(n, double);
+		double *res = Calloc(n, double);
+
+		null[0] = 1.0;
+		null[n-1] = 1.0;
+		len[0] = (rw->position[1]-rw->position[0])/1.0;
+		len[n-1] = (rw->position[n-1]-rw->position[n-2])/1.0;
+		for(i = 1; i < n-1; i++){
+			null[i] = 1.0;
+			len[i] = (rw->position[i+1]-rw->position[i]);
+		}
+		GMRFLib_Qx(res, null, g, GMRFLib_crw, (void *) rw);
+		for(i = 0; i < n; i++)
+			printf("constr i %1d  x %f null %f Qnull %f\n", i, rw->position[i], null[i], res[i]);
+		if (rw->order > 1) {
+			memcpy(null, rw->position, n*sizeof(double));
+			GMRFLib_Qx(res, null, g, GMRFLib_crw, (void *) rw);
+			for(i = 0; i < n; i++)
+				printf("linear i %1d  x %f null %f Qnull %f\n", i, rw->position[i], null[i], res[i]);
+		}
+
+		if (0) {
+			gsl_matrix *Q = gsl_matrix_calloc(n, n);
+			for(i = 0; i < n; i++)
+				for(j = 0; j < n; j++){
+					if (i == j || GMRFLib_graph_is_nb(i, j, g)){
+						gsl_matrix_set(Q, i, j, GMRFLib_crw(i, j, rw->position, rw));
+					} else {
+						gsl_matrix_set(Q, i, j, 0.0);
+					}
+				}
+			
+			gsl_matrix *vec = gsl_matrix_calloc(n, n);
+			gsl_vector *val = gsl_vector_calloc(n);
+			gsl_eigen_symmv_workspace *work = gsl_eigen_symmv_alloc(n);
+			gsl_eigen_symmv(Q, val, vec, work);
+			
+			GMRFLib_gsl_matrix_fprintf(stdout, Q,  " %8.4f");
+			printf("\n");
+			GMRFLib_gsl_matrix_fprintf(stdout, vec,  " %8.4f");
+			printf("\n");
+			GMRFLib_gsl_vector_fprintf(stdout, val, " %8.4f");
+		}
+	}
+	break;
 
 	// this will give some more error messages, if any
 	case 999:
@@ -34227,7 +34005,8 @@ int main(int argc, char **argv)
 				} else if (ntt[0] == 0 && ntt[1] > 0) {
 					ntt[0] = GMRFLib_openmp->max_threads / ntt[1] + 1;
 				} else if (ntt[1] == 0) {
-					ntt[1] = (GMRFLib_openmp->max_threads - 1)/ ntt[0];
+					//ntt[1] = (GMRFLib_openmp->max_threads - 1)/ ntt[0];
+					ntt[1] = 1;
 				}
 				for (i = 0; i < 2; i++) {
 					ntt[i] = IMIN(GMRFLib_openmp->max_threads, IMAX(1, ntt[i]));
@@ -34235,7 +34014,6 @@ int main(int argc, char **argv)
 				}
 				// mostly for internal code use
 				GMRFLib_openmp->max_threads = ntt[0] * ntt[1];
-
 			} else {
 				fprintf(stderr, "Fail to read A:B from [%s]\n", optarg);
 				fprintf(stderr, "Will continue with '2:1'\n");
@@ -34293,6 +34071,7 @@ int main(int argc, char **argv)
 
 		case 'i':
 			GMRFLib_collect_timer_statistics = GMRFLib_TRUE;
+			GMRFLib_timer_init();
 			report = 1;
 			break;
 

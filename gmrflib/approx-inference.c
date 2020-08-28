@@ -4661,7 +4661,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					} else {
 						weights[dens_count] = 0.0;
 					}
-					izs[dens_count] = Calloc(nhyper, double);
+					izs[dens_count] = Calloc((nhyper), double);
 
 					for (i = 0; i < nhyper; i++) {
 						izs[dens_count][i] = z[i];
@@ -6672,6 +6672,7 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp *** density, // need two types
 		}
 
 		if (omp_in_parallel()) {
+			omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 #pragma omp parallel for private(i, ii) num_threads(GMRFLib_openmp->max_threads_inner)
 			CODE_BLOCK;
 		} else {
@@ -6731,6 +6732,7 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp *** density, // need two types
 			Free(local_work); }
 
 		if (omp_in_parallel()) {
+			omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 #pragma omp parallel for private(i, j) num_threads(GMRFLib_openmp->max_threads_inner)
 			CODE_BLOCK;
 		} else {
@@ -6968,7 +6970,7 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 		}
 	}
 
-	Qprior = Calloc(g->n, double);
+	Qprior = Calloc((g->n), double);
 	for (ii = 0; ii < g->n; ii++) {
 		Qprior[ii] = Qfunc(ii, ii, NULL, Qfunc_arg) + c[ii];
 	}
@@ -7107,6 +7109,9 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	// FIXME: Recheck this later!
 	int use_pardiso = (GMRFLib_smtp == GMRFLib_SMTP_PARDISO);
 
+	if (!use_pardiso) {
+		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
+	}
 #pragma omp parallel for private(i, j, k) num_threads(GMRFLib_openmp->max_threads_inner) if (!use_pardiso)
 	for (i = 0; i < nlin; i++) {
 
@@ -7264,6 +7269,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 		/*
 		 * this loop is quick in any case, so no need to make do it in parallel unless we have constraints ? 
 		 */
+		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 #pragma omp parallel for private(i, j, k) if(nc) num_threads(GMRFLib_openmp->max_threads_inner)
 		for (k = 0; k < klen; k++) {
 			i = arr[k].i;
