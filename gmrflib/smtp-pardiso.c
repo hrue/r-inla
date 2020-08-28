@@ -417,6 +417,7 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 	memcpy((void *) (store->pstore->dparm), (void *) (store->dparm_default), GMRFLib_PARDISO_PLEN * sizeof(double));
 
 	int ival7 = 2;					       /* #iterations for iterative improvement (max) */
+	omp_set_num_threads(store->pstore->iparm[2]);
 
 	store->pstore->nrhs = 0;
 	store->pstore->err_code = 0;
@@ -656,6 +657,7 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 		printf("CHOL: NUM_THREADS %d iparm[2] %d\n", omp_get_num_threads(), store->pstore->iparm[2]);
 	}
 
+	omp_set_num_threads(store->pstore->iparm[2]);
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore->phase),
 		&n, store->pstore->Q->a, store->pstore->Q->ia, store->pstore->Q->ja,
 		store->pstore->perm, &(store->pstore->nrhs),
