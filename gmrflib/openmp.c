@@ -443,12 +443,17 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	omp_set_num_threads(GMRFLib_openmp->max_threads_outer);
 	if (nested) {
 		int i;
+		int check[2] =  {0, 0};
 		omp_set_dynamic(0);
 #pragma omp parallel for private(i)
 		for(i = 0; i < 2; i++) {
+			check[omp_get_thread_num()]++;
 			omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 		}
 		omp_set_dynamic(1);
+		if (check[0] == 0 || check[1] == 0) {
+			fprintf(stderr, "\n\n\nopenmp: set_dynamic failed\n\n");
+		}
 	}
 
 	if (debug) {
