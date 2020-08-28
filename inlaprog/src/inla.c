@@ -34087,7 +34087,7 @@ int testit(int argc, char **argv)
 			rw->position[i] = rw->position[i-1] + i;
 		}
 		
-		GMRFLib_make_rw_graph(&g, rw);
+		GMRFLib_make_crw_graph(&g, rw);
 
 		double *len = Calloc(n, double);
 		double *null = Calloc(n, double);
