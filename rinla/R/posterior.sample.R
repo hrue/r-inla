@@ -378,7 +378,7 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
 
     if (!inla.os("windows") && parallel.configs) {
         nt <- as.numeric(strsplit(num.threads, ":")[[1]])
-        ncores <- detectCores(all.tests = TRUE, logical = FALSE)
+        ncores <- parallel::detectCores(all.tests = TRUE, logical = FALSE)
         if (nt[1] == 0) {
             nt[1] <- max(1, min(cs$nconfig, ncores))
             nt[2] <- 1
@@ -386,27 +386,27 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
         if (nt[2] == 0) {
             nt[2] <- max(1, ncores %/% nt[1])
         }
-        xx.list <- mclapply(1:cs$nconfig,
-                            (function(k) {
-                                if (n.idx[k] > 0) {
-                                    xx = inla.qsample(n = n.idx[k],
-                                                      Q = cs$config[[k]]$Q,
-                                                      mu = inla.ifelse(use.improved.mean,
-                                                                       cs$config[[k]]$improved.mean,
-                                                                       cs$config[[k]]$mean), 
-                                                      constr = cs$constr,
-                                                      logdens = TRUE,
-                                                      seed = seed,
-                                  num.threads = paste0(nt[2], ":1"), 
-                                  selection = sel.map,
-                                  verbose = verbose)
-                                    return (xx)
-                                } else {
-                                    return (NA)
-                                }
-                            }), 
-                            mc.cores = nt[1],
-                            mc.preschedule = TRUE)
+        xx.list <- parallel::mclapply(1:cs$nconfig,
+                             (function(k) {
+                                 if (n.idx[k] > 0) {
+                                     xx = inla.qsample(n = n.idx[k],
+                                                       Q = cs$config[[k]]$Q,
+                                                       mu = inla.ifelse(use.improved.mean,
+                                                                        cs$config[[k]]$improved.mean,
+                                                                        cs$config[[k]]$mean), 
+                                                       constr = cs$constr,
+                                                       logdens = TRUE,
+                                                       seed = seed,
+                                                       num.threads = paste0(nt[2], ":1"), 
+                                                       selection = sel.map,
+                                                       verbose = verbose)
+                                     return (xx)
+                                 } else {
+                                     return (NA)
+                                 }
+                             }), 
+                             mc.cores = nt[1],
+                             mc.preschedule = TRUE)
     } else {
         xx.list <- NULL
     }
