@@ -74,6 +74,7 @@ if [ "${INLA_DEBUG}XX" != "XX" ]; then
     ##export DYLD_PRINT_RPATHS="1"
 fi
 
+export PARDISOLICMESSAGE=1
 ## set default levels for nested openmp
 nt="-t0:1"
 for arg in "$@"; do 

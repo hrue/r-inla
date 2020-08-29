@@ -1071,7 +1071,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 
 	if (!graph_store_must_init && graph_old->sha1) {
 		if (graph_store_debug) {
-			printf("graph_store: store graph\n", (void *) g);
+			printf("graph_store: store graph 0x%p\n", (void *) g);
 		}
 		map_strvp_set(&graph_store, (char *) g->sha1, (void *) g);
 	}
