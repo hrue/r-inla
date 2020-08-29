@@ -34012,6 +34012,12 @@ int main(int argc, char **argv)
 					//ntt[1] = (GMRFLib_openmp->max_threads - 1)/ ntt[0];
 					ntt[1] = 1;
 				}
+
+				// there is no need to support nested on WINDOWS before PARDISO is
+				// integrated there
+#if defined(WINDOWS)
+				ntt[1] = 1;
+#endif				
 				for (i = 0; i < 2; i++) {
 					ntt[i] = IMIN(GMRFLib_openmp->max_threads, IMAX(1, ntt[i]));
 					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
