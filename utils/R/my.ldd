@@ -9,11 +9,11 @@ for f in "$@"; do
 done
 
 for f in "$@"; do
-    for lib in builds/build64/local/lib/libxerbla.so; do 
-	if [ -f $lib ]; then
-	    echo $lib
-	fi
-    done
+    ##for lib in builds/build64/local/lib/libxerbla.so; do 
+    ##	if [ -f $lib ]; then
+    ##	    echo $lib
+    ##	fi
+    ##done
 done
 
 
