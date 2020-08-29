@@ -34025,7 +34025,7 @@ int main(int argc, char **argv)
 				ntt[1] = 1;
 #endif				
 				for (i = 0; i < 2; i++) {
-					ntt[i] = IMIN(GMRFLib_openmp->max_threads, IMAX(1, ntt[i]));
+					ntt[i] = IMAX(1, ntt[i]);
 					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
 				}
 				GMRFLib_openmp->max_threads = ntt[0] * ntt[1];
