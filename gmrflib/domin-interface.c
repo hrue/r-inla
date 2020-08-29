@@ -247,15 +247,11 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 		bnew_local[GMRFLib_thread_id] = bnew_ptr;
 	}
 
-#pragma omp parallel for private(idum) num_threads(GMRFLib_openmp->max_threads_outer)
-	for (idum = 0; idum < 1; idum++) {
-		GMRFLib_openmp_nested_fix();
-		GMRFLib_ai_marginal_hyperparam(fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg, G.fixed_value,
-					       G.graph,
-					       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local[GMRFLib_thread_id]->Qfunc),
-					       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[GMRFLib_thread_id]->Qfunc_arg), G.constr,
-					       G.ai_par, ais);
-	}
+	GMRFLib_ai_marginal_hyperparam(fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg, G.fixed_value,
+				       G.graph,
+				       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local[GMRFLib_thread_id]->Qfunc),
+				       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[GMRFLib_thread_id]->Qfunc_arg), G.constr,
+				       G.ai_par, ais);
 	*fx += con;					       /* add missing constant due to b = b(theta) */
 	ffx = G.log_extra(x, G.nhyper, G.log_extra_arg);
 

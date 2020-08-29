@@ -22420,7 +22420,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tscale.model[%1d]\n", std);
 		}
 		if (std) {
-			inla_besag_scale(arg, adj, mb->verbose);
 			if (mb->verbose) {
 				printf("\t\tscale.model: prec_scale[%g]\n", arg->prec_scale[0]);
 			}

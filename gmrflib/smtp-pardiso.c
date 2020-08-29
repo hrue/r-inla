@@ -417,12 +417,20 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 	memcpy((void *) (store->pstore->dparm), (void *) (store->dparm_default), GMRFLib_PARDISO_PLEN * sizeof(double));
 
 	int ival7 = 2;					       /* #iterations for iterative improvement (max) */
-	if (omp_get_num_threads() != store->pstore->iparm[2]) {
-		printf("\npardiso_setparam omp_get_num_threads= %1d  iparm[2]= %1d\n",
-		       omp_get_num_threads(), store->pstore->iparm[2]);
+	if (0 && omp_get_num_threads() >= store->pstore->iparm[2]) {
+		printf("\npardiso_setparam omp_get_num_threads= %1d  iparm[2]= %1d level %1d\n",
+		       omp_get_num_threads(), store->pstore->iparm[2], omp_get_level());
+
+		static int count = 0;
+		count++;
+		//if (count == 100) abort();
 	}
 	
-	omp_set_num_threads(store->pstore->iparm[2]);
+	if (GMRFLib_openmp->max_threads_inner != store->pstore->iparm[2]) {
+		P(GMRFLib_openmp->max_threads_inner);
+		P(store->pstore->iparm[2]);
+		omp_set_num_threads(store->pstore->iparm[2]);
+	}
 
 	store->pstore->nrhs = 0;
 	store->pstore->err_code = 0;

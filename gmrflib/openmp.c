@@ -132,6 +132,8 @@ int GMRFLib_openmp_nested_fix(void)
 {
 	if (omp_get_nested()) {
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
+	} else {
+		omp_set_num_threads(1);
 	}
 	return 0;
 }
