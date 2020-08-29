@@ -417,6 +417,11 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 	memcpy((void *) (store->pstore->dparm), (void *) (store->dparm_default), GMRFLib_PARDISO_PLEN * sizeof(double));
 
 	int ival7 = 2;					       /* #iterations for iterative improvement (max) */
+	if (omp_get_num_threads() != store->pstore->iparm[2]) {
+		printf("\npardiso_setparam omp_get_num_threads= %1d  iparm[2]= %1d\n",
+		       omp_get_num_threads(), store->pstore->iparm[2]);
+	}
+	
 	omp_set_num_threads(store->pstore->iparm[2]);
 
 	store->pstore->nrhs = 0;
