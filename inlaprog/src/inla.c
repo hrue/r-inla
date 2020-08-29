@@ -33962,6 +33962,8 @@ int main(int argc, char **argv)
 				G.mode = INLA_MODE_FGN;
 			} else if (!strncasecmp(optarg, "PARDISO", 7)) {
 				G.mode = INLA_MODE_PARDISO;
+			} else if (!strncasecmp(optarg, "OPENMP", 6)) {
+				G.mode = INLA_MODE_OPENMP;
 			} else if (!strncasecmp(optarg, "TESTIT", 6)) {
 				G.mode = INLA_MODE_TESTIT;
 			} else {
@@ -34005,9 +34007,17 @@ int main(int argc, char **argv)
 				} else if (ntt[0] == 0 && ntt[1] > 0) {
 					ntt[0] = GMRFLib_openmp->max_threads / ntt[1] + 1;
 				} else if (ntt[1] == 0) {
+					// let 0 means 1 for the moment. only larger problems gives a speedup,
+					// much likely it will slow things down.
 					//ntt[1] = (GMRFLib_openmp->max_threads - 1)/ ntt[0];
 					ntt[1] = 1;
 				}
+
+				// there is no need to support nested on WINDOWS before PARDISO is
+				// integrated there
+#if defined(WINDOWS)
+				ntt[1] = 1;
+#endif				
 				for (i = 0; i < 2; i++) {
 					ntt[i] = IMIN(GMRFLib_openmp->max_threads, IMAX(1, ntt[i]));
 					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
@@ -34137,6 +34147,13 @@ int main(int argc, char **argv)
 	 * these options does not belong here in this program, but it makes all easier... and its undocumented.
 	 */
 	switch (G.mode) {
+	case INLA_MODE_OPENMP:
+		printf("export OMP_NUM_THREADS=%1d,%1d;", GMRFLib_openmp->max_threads_outer, GMRFLib_openmp->max_threads_inner);
+		printf("export OMP_NESTED=%s;", (GMRFLib_openmp->max_threads_inner > 1 ? "TRUE" : "FALSE"));
+		printf("\n");
+		exit(EXIT_SUCCESS);
+		break;
+
 	case INLA_MODE_QINV:
 		inla_qinv(argv[optind], argv[optind + 1], argv[optind + 2]);
 		if (report)

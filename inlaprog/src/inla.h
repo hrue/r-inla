@@ -127,6 +127,7 @@ typedef enum {
 	INLA_MODE_R,
 	INLA_MODE_FGN,
 	INLA_MODE_PARDISO,
+	INLA_MODE_OPENMP,
 	INLA_MODE_TESTIT = 999
 } inla_mode_tp;
 
