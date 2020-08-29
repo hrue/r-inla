@@ -9,14 +9,13 @@ for f in "$@"; do
 done
 
 for f in "$@"; do
-    case "$f" in 
-	*/inla.mkl*) 
-	##echo "builds/build64/local/lib/libmkl_avx.so"
-	##echo "builds/build64/local/lib/libmkl_avx2.so"
-	##echo "builds/build64/local/lib/libmkl_def.so"
-	   ;;
-    esac
+    for lib in builds/build64/local/lib/libxerbla.so; do 
+	if [ -f $lib ]; then
+	    echo $lib
+	fi
+    done
 done
+
 
 	   
 	    
