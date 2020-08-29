@@ -27,6 +27,16 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.08.29}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Argument \code{num.threads="A"} now means
+      \code{num.threads="A:1"}
+      \item Some changes for nested paralellism
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.08.28}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
