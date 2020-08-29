@@ -27,17 +27,22 @@
   }
 }
 
-\section{CHANGES IN VERSION xx.xx.xx}{
+\section{CHANGES IN VERSION 20.08.29}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Argument \code{num.threads="A"} now means
+      \code{num.threads="A:1"}
+      \item Some changes for nested paralellism
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 20.08.28}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
       \item There is a minor change in \code{inla.qsample} and \code{inla.posterior.sample}.
       If argument \code{seed!=0} then serial mode is now forced.
       Earlier, an error would be raised if parallel mode was also requested.
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item 
     }
   }
   \subsection{NEW EXPERIMENTAL FEATURES}{
@@ -47,7 +52,8 @@
   }
   \subsection{BUG FIXES}{
     \itemize{
-      \item 
+      \item Bug-fixes for nested parallism
+      \item Some optimization improvement
     }
   }
 }

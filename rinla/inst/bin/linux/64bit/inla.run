@@ -43,4 +43,17 @@ if [ ! -z ${INLA_DEBUG+x} ]; then
     ldd -r "$DIR/$prog"
 fi
 
+## set default levels for nested openmp
+nt="-t0:1"
+for arg in "$@"; do 
+    case "$arg" in
+	-t*) nt="$arg";;
+    esac
+done
+eval $("$DIR/$prog" $nt -m openmp)
+if [ ! -z ${INLA_DEBUG+x} ]; then
+    set | grep ^OMP_ | while read v; do echo "*** $0 *** $v"; done
+    echo " *** $0 *** exec $DIR/$prog $@"
+fi
+
 exec "$DIR/$prog" "$@"
