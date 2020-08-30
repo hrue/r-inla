@@ -467,8 +467,10 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
+	{
 		PARALLEL_OUTER(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, 1));
-		break;
+	}
+	break;
 
 	default:
 		GMRFLib_ERROR(GMRFLib_ESNH);
