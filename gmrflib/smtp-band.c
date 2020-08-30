@@ -172,37 +172,9 @@ int GMRFLib_build_sparse_matrix_BAND(double **bandmatrix, GMRFLib_Qfunc_tp * Qfu
 		}
 	}
 
-	if (GMRFLib_catch_error_for_inla) {
-		if (nan_error) {
-			return !GMRFLib_SUCCESS;
-		}
+	if (nan_error) {
+		return !GMRFLib_SUCCESS;
 	}
-
-	if (0) {
-		static int count = 0;
-		char *fnm = NULL;
-
-		GMRFLib_sprintf(&fnm, "Q-band-%1d-%1d.dat", count++, omp_get_thread_num());
-		FILE *fp = fopen(fnm, "w");
-		Free(fnm);
-		assert(fp);
-		FIXME("write Q-file");
-		for (i = 0; i < graph->n; i++) {
-			int node = remap[i];
-			int j;
-
-			fprintf(fp, "%d %d %.20f\n", i, i, (*bandmatrix)[BIDX(0, node)]);
-			for (j = 0; j < graph->nnbs[i]; j++) {
-				int jj = graph->nbs[i][j];
-				int nnode = remap[jj];
-				if (nnode > node) {
-					fprintf(fp, "%d %d %.20f\n", i, jj, (*bandmatrix)[BIDX(nnode - node, node)]);
-				}
-			}
-		}
-		fclose(fp);
-	}
-
 	GMRFLib_thread_id = id;
 
 	return GMRFLib_SUCCESS;
@@ -229,13 +201,9 @@ int GMRFLib_factorise_sparse_matrix_BAND(double *band, GMRFLib_fact_info_tp * fi
 		break;
 	}
 	if (error) {
-		if (GMRFLib_catch_error_for_inla) {
-			fprintf(stdout, "\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFail to factorize Q. I will try to fix it...\n\n",
-				GitID, __GMRFLib_FuncName, __LINE__, omp_get_thread_num());
-			return GMRFLib_EPOSDEF;
-		} else {
-			GMRFLib_ERROR(GMRFLib_EPOSDEF);
-		}
+		fprintf(stdout, "\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFail to factorize Q. I will try to fix it...\n\n",
+			GitID, __GMRFLib_FuncName, __LINE__, omp_get_thread_num());
+		return GMRFLib_EPOSDEF;
 	}
 
 	/*

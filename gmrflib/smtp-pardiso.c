@@ -261,10 +261,8 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 			break;
 	}
 
-	if (GMRFLib_catch_error_for_inla) {
-		if (nan_error) {
-			return !GMRFLib_SUCCESS;
-		}
+	if (nan_error) {
+		return !GMRFLib_SUCCESS;
 	}
 #undef M
 	return GMRFLib_SUCCESS;

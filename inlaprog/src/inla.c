@@ -33895,7 +33895,6 @@ int main(int argc, char **argv)
 	GMRFLib_collect_timer_statistics = GMRFLib_FALSE;
 	GMRFLib_bitmap_max_dimension = 128;
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
-	GMRFLib_catch_error_for_inla = GMRFLib_TRUE;
 	GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
 	GMRFLib_set_blas_num_threads(blas_num_threads);
 
