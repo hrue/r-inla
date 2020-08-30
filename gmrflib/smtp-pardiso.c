@@ -139,7 +139,14 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from)
 
 int GMRFLib_csr_base(int base, GMRFLib_csr_tp * M)
 {
-	if (M->base != base) {
+	int imin = GMRFLib_imin_value(M->ia, M->n+1, NULL);
+	int jmin = GMRFLib_imin_value(M->ja, M->na, NULL);
+	int ijmin = IMIN(imin, jmin);
+
+	if (ijmin == base) {
+		// all ok. just make sure the base _was_ correct
+		assert(base == M->base);
+	} else {
 		GMRFLib_csr_convert(M);
 	}
 	return GMRFLib_SUCCESS;
@@ -222,12 +229,14 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 		}
 	}
 
+	int id_save = GMRFLib_thread_id;
 	if (!used_fast_tab) {
 		// a bit more manual work
 		double val = Qfunc(0, -1, &(M->a[0]), Qfunc_arg);
 		if (ISNAN(val)) {
 #pragma omp parallel for private(i, k, j) num_threads(GMRFLib_openmp->max_threads_inner)
 			for (i = 0; i < n; i++) {
+				GMRFLib_thread_id = id_save;
 				for (k = M->ia[i]; k < M->ia[i + 1]; k++) {
 					j = M->ja[k];
 					M->a[k] = Qfunc(i, j, NULL, Qfunc_arg);
@@ -236,6 +245,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 		} else {
 #pragma omp parallel for private(i, k, jj, j) num_threads(GMRFLib_openmp->max_threads_inner)
 			for (i = 0; i < n; i++) {
+				GMRFLib_thread_id = id_save;
 				double v;
 				k = M->ia[i];
 				v = Qfunc(i, -1, &(M->a[k]), Qfunc_arg);
@@ -243,6 +253,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 			}
 		}
 	}
+	GMRFLib_thread_id = id_save;
 
 	for (i = 0; i < na; i++) {
 		GMRFLib_STOP_IF_NAN_OR_INF(M->a[i], i, -1);
@@ -334,7 +345,7 @@ int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp ** Qtab, GMRFLib_graph_tp ** graph, 
 		nnb = csr->ia[i + 1] - csr->ia[i];
 		for (jj = 0; jj < nnb; jj++) {
 			j = csr->ja[k];
-			iarr[k] = i - csr->base;
+			iarr[k] = i;
 			jarr[k] = j - csr->base;
 			arr[k] = csr->a[k];
 			k++;
@@ -386,7 +397,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default[12] = 0;			       /* I need these for the divided LDL^Tx=b solver to work */
 	s->iparm_default[20] = 0;			       /* Diagonal pivoting, and... */
 	s->iparm_default[23] = 1;			       /* two level scheduling, and... */
-	s->iparm_default[24] = 1;			       /* use parallel solve, as... */
+	s->iparm_default[24] = 0;			       /* use parallel solve, as... */
 	s->iparm_default[27] = S.parallel_reordering;	       /* parallel reordering? */
 	s->iparm_default[33] = 1;			       /* I want identical solutions (require iparm_default[1]=2) */
 
@@ -686,14 +697,13 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	}
 
 	if (store->pstore->err_code != 0 || store->pstore->iparm[22] > 0) {
-		printf("\n");
-		if (store->pstore->iparm[22] > 1) {
-			printf("*** PARDISO ERROR: not pos.def matrix: %1d eigenvalues are negative.\n", store->pstore->iparm[22]);
+		if (store->pstore->iparm[22] > 0) {
+			printf("\n*** PARDISO ERROR(%1d): not pos.def matrix: %1d eigenvalues are negative.\n",
+			       store->pstore->err_code, store->pstore->iparm[22]);
 		} else {
-			printf("*** PARDISO ERROR: not pos.def matrix: %1d eigenvalue is negative.\n", store->pstore->iparm[22]);
+			printf("\n*** PARDISO ERROR(%1d): check manual.\n", store->pstore->err_code);
 		}
 		printf("*** PARDISO ERROR: I will try to work around the problem...\n\n");
-		fflush(stdout);
 		return GMRFLib_EPOSDEF;
 	}
 

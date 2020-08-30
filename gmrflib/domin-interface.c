@@ -394,7 +394,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			}
 			Free(xx);
 		}
-		GMRFLib_thread_id = id;
+		GMRFLib_thread_id = id_save;
 
 		/*
 		 * then compute the gradient where f0 = f[G.nhyper] 
@@ -1120,8 +1120,10 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 				}
 				gsl_matrix_memcpy(A, Adir);
 				GMRFLib_gsl_mgs(A);
-				printf("New directions for gradient\n");
-				GMRFLib_gsl_matrix_fprintf(stdout, A, "\t %6.3f");
+				if (G.ai_par->fp_log) {
+					fprintf(G.ai_par->fp_log, "New directions for gradient\n");
+					GMRFLib_gsl_matrix_fprintf(G.ai_par->fp_log, A, "\t %6.3f");
+				}
 				gsl_matrix_transpose_memcpy(tAinv, A);
 				GMRFLib_gsl_ginv(tAinv, GMRFLib_eps(0.5), -1);
 			}

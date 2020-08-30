@@ -43,13 +43,31 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 /* Pre-hg-Id: $Id: sparse-interface.c,v 1.41 2010/02/27 08:32:02 hrue Exp $ */
 
-#define PARALLEL_OUTER(_expr)				\
-	if (omp_in_parallel()) {			\
-		GMRFLib_openmp_nested_fix();		\
-		ret = _expr;						\
+
+/* 
+   NEED TO CHANGE/REVISE THIS LATER
+ */
+#define RUN_SAFE(_expr) if (!GMRFLib_pardiso_thread_safe && omp_in_parallel()) \
+	{								\
+		int debug = 0;						\
+		if (debug) {						\
+			printf("RUN_SAFE: enter with thread %1d\n", omp_get_thread_num()); \
+			fflush(stdout);					\
+		}							\
+		_Pragma("omp critical")					\
+		{							\
+			if (debug) {					\
+				printf("RUN_SAFE: CRITICAL REGION with thread %1d\n", omp_get_thread_num()); \
+				fflush(stdout);				\
+			}						\
+			ret = _expr;					\
+		}							\
+		if (debug) {						\
+			printf("RUN_SAFE: done with thread %1d\n", omp_get_thread_num()); \
+			fflush(stdout);					\
+		}							\
 	} else {							\
-		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);	\
-		ret = _expr;						\
+		ret =  _expr;						\
 	}
 
 
@@ -189,40 +207,27 @@ int GMRFLib_build_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_Qfunc_tp *
 
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
-		if (GMRFLib_catch_error_for_inla) {
-			ret = GMRFLib_build_sparse_matrix_BAND(&(sm_fact->bchol), Qfunc, Qfunc_arg, graph, sm_fact->remap, sm_fact->bandwidth);
-			if (ret != GMRFLib_SUCCESS) {
-				return ret;
-			}
-		} else {
-			GMRFLib_EWRAP1(GMRFLib_build_sparse_matrix_BAND
-				       (&(sm_fact->bchol), Qfunc, Qfunc_arg, graph, sm_fact->remap, sm_fact->bandwidth));
+		ret = GMRFLib_build_sparse_matrix_BAND(&(sm_fact->bchol), Qfunc, Qfunc_arg, graph, sm_fact->remap, sm_fact->bandwidth);
+		if (ret != GMRFLib_SUCCESS) {
+			return ret;
 		}
 		break;
 
 	case GMRFLib_SMTP_TAUCS:
-		if (GMRFLib_catch_error_for_inla) {
-			ret = GMRFLib_build_sparse_matrix_TAUCS(&(sm_fact->TAUCS_L), Qfunc, Qfunc_arg, graph, sm_fact->remap);
-			if (ret != GMRFLib_SUCCESS) {
-				return ret;
-			}
-		} else {
-			GMRFLib_EWRAP1(GMRFLib_build_sparse_matrix_TAUCS(&(sm_fact->TAUCS_L), Qfunc, Qfunc_arg, graph, sm_fact->remap));
+		ret = GMRFLib_build_sparse_matrix_TAUCS(&(sm_fact->TAUCS_L), Qfunc, Qfunc_arg, graph, sm_fact->remap);
+		if (ret != GMRFLib_SUCCESS) {
+			return ret;
 		}
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
-		if (GMRFLib_catch_error_for_inla) {
-			if (sm_fact->PARDISO_fact == NULL) {
-				PARALLEL_OUTER(GMRFLib_pardiso_init(&(sm_fact->PARDISO_fact)));
-				PARALLEL_OUTER(GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph));
-			}
-			PARALLEL_OUTER(GMRFLib_pardiso_build(sm_fact->PARDISO_fact, graph, Qfunc, Qfunc_arg));
-			if (ret != GMRFLib_SUCCESS) {
-				return ret;
-			}
-		} else {
-			GMRFLib_EWRAP1(GMRFLib_pardiso_build(sm_fact->PARDISO_fact, graph, Qfunc, Qfunc_arg));
+		if (sm_fact->PARDISO_fact == NULL) {
+			GMRFLib_pardiso_init(&(sm_fact->PARDISO_fact));
+			GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph);
+		}
+		ret = GMRFLib_pardiso_build(sm_fact->PARDISO_fact, graph, Qfunc, Qfunc_arg);
+		if (ret != GMRFLib_SUCCESS) {
+			return ret;
 		}
 		break;
 
@@ -245,44 +250,33 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_
 
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
-		if (debug)
-			fprintf(stderr, "BAND\n");
-		if (GMRFLib_catch_error_for_inla) {
-			ret = GMRFLib_factorise_sparse_matrix_BAND(sm_fact->bchol, &(sm_fact->finfo), graph, sm_fact->bandwidth);
-			if (ret != GMRFLib_SUCCESS) {
-				return ret;
-			}
-		} else {
-			GMRFLib_EWRAP1(GMRFLib_factorise_sparse_matrix_BAND(sm_fact->bchol, &(sm_fact->finfo), graph, sm_fact->bandwidth));
+		ret = GMRFLib_factorise_sparse_matrix_BAND(sm_fact->bchol, &(sm_fact->finfo), graph, sm_fact->bandwidth);
+		if (ret != GMRFLib_SUCCESS) {
+			return ret;
 		}
 		break;
 
 	case GMRFLib_SMTP_TAUCS:
-		if (debug)
-			fprintf(stderr, "TAUCS\n");
-		if (GMRFLib_catch_error_for_inla) {
-			ret =
-			    GMRFLib_factorise_sparse_matrix_TAUCS(&(sm_fact->TAUCS_L), &(sm_fact->TAUCS_symb_fact), &(sm_fact->finfo),
-								  &(sm_fact->TAUCS_L_inv_diag));
-			if (ret != GMRFLib_SUCCESS) {
-				return ret;
-			}
-		} else {
-			GMRFLib_EWRAP1(GMRFLib_factorise_sparse_matrix_TAUCS
-				       (&(sm_fact->TAUCS_L), &(sm_fact->TAUCS_symb_fact), &(sm_fact->finfo), &(sm_fact->TAUCS_L_inv_diag)));
+		ret = GMRFLib_factorise_sparse_matrix_TAUCS(&(sm_fact->TAUCS_L), &(sm_fact->TAUCS_symb_fact), &(sm_fact->finfo),
+							    &(sm_fact->TAUCS_L_inv_diag));
+		if (ret != GMRFLib_SUCCESS) {
+			return ret;
 		}
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
-		if (debug)
-			fprintf(stderr, "PARDISO\n");
-		if (GMRFLib_catch_error_for_inla) {
-			PARALLEL_OUTER(GMRFLib_pardiso_chol(sm_fact->PARDISO_fact));
-			if (ret != GMRFLib_SUCCESS) {
-				return ret;
-			}
+		if (omp_in_parallel()) {
+			ret = GMRFLib_pardiso_chol(sm_fact->PARDISO_fact);
 		} else {
-			GMRFLib_EWRAP1(GMRFLib_pardiso_chol(sm_fact->PARDISO_fact));
+#pragma omp parallel num_threads(GMRFLib_openmp->max_threads_outer)
+			{
+				if (omp_get_thread_num() == 0) {
+					ret = GMRFLib_pardiso_chol(sm_fact->PARDISO_fact);
+				}
+			}
+		}
+		if (ret != GMRFLib_SUCCESS) {
+			return ret;
 		}
 		break;
 
@@ -459,7 +453,6 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm
 	 */
 	GMRFLib_ENTER_ROUTINE;
 	int ret;
-	
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
 		GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix_special_BAND(rhs, sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth, idx));
@@ -498,7 +491,6 @@ int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_
 	 * this routine is called to many times and the work is not that much, to justify GMRFLib_ENTER_ROUTINE; 
 	 */
 	int ret;
-
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
 		GMRFLib_EWRAP0(GMRFLib_solve_lt_sparse_matrix_special_BAND
@@ -532,9 +524,7 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_f
 	 * 
 	 * this routine is called to many times and the work is not that much, to justify GMRFLib_ENTER_ROUTINE; 
 	 */
-
 	int ret;
-
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
 		GMRFLib_EWRAP0(GMRFLib_solve_l_sparse_matrix_special_BAND
