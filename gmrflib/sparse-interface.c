@@ -48,16 +48,20 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 		GMRFLib_openmp_nested_fix();		\
 		ret = _expr;						\
 	} else {							\
-		_Pragma("omp parallel num_threads(GMRFLib_openmp->max_threads_outer)") \
-		{							\
-			_Pragma("omp single")				\
-			{						\
-				GMRFLib_openmp_nested_fix();		\
-				ret = _expr;				\
-			}						\
-		}							\
+		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);	\
+		ret = _expr;						\
 	}
 
+
+//		_Pragma("omp parallel num_threads(GMRFLib_openmp->max_threads_outer)") \
+//		{							\
+//			_Pragma("omp single")				\
+//			{						\
+//				GMRFLib_openmp_nested_fix();		\
+//				ret = _expr;				\
+//			}						\
+//		}							\
+//	}
 
 
 /*!
