@@ -34011,7 +34011,7 @@ int main(int argc, char **argv)
 					ntt[0] = GMRFLib_openmp->max_threads;
 					ntt[1] = 1;
 				} else if (ntt[0] == 0 && ntt[1] > 0) {
-					ntt[0] = GMRFLib_openmp->max_threads / ntt[1] + 1;
+					ntt[0] = GMRFLib_openmp->max_threads / ntt[1];
 				} else if (ntt[1] == 0) {
 					// let 0 means 1 for the moment. only larger problems gives a speedup,
 					// much likely it will slow things down.

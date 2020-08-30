@@ -80,7 +80,7 @@ for arg in "$@"; do
 	-t*) nt="$arg";;
     esac
 done
-eval $("$DIR/$prog" $nt -m openmp)
+eval $("$DIR/$prog" $nt -mopenmp|grep ^export)
 if [ ! -z ${INLA_DEBUG+x} ]; then
     set | grep ^OMP_ | while read v; do echo "*** $0 *** $v"; done
     echo " *** $0 *** exec $DIR/$prog $@"
