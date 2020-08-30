@@ -22420,7 +22420,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tscale.model[%1d]\n", std);
 		}
 		if (std) {
-			inla_besag_scale(arg, adj, mb->verbose);
 			if (mb->verbose) {
 				printf("\t\tscale.model: prec_scale[%g]\n", arg->prec_scale[0]);
 			}
@@ -29033,7 +29032,7 @@ int inla_INLA(inla_tp * mb)
 	if (mb->verbose) {
 		printf("\tSparse-matrix library... = [%s]\n", mb->smtp);
 		printf("\tOpenMP strategy......... = [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
-		printf("\tnum.threads............. = [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0],  GMRFLib_openmp->max_threads_nested[1]);
+		printf("\tnum.threads............. = [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 		printf("\tDensity-strategy........ = [%s]\n",
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 	}
@@ -33882,6 +33881,8 @@ int main(int argc, char **argv)
 	clock_t atime_used[3];
 	inla_tp *mb = NULL;
 
+	int host_max_threads = omp_get_max_threads();
+	
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = omp_get_max_threads();
 	GMRFLib_openmp->max_threads_nested = Calloc(2, int);
@@ -33896,6 +33897,7 @@ int main(int argc, char **argv)
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_catch_error_for_inla = GMRFLib_TRUE;
 	GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
+	GMRFLib_set_blas_num_threads(blas_num_threads);
 
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 
@@ -33996,10 +33998,14 @@ int main(int argc, char **argv)
 			if (inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK ||
 			    inla_sread(ntt, 1, optarg, 0) == INLA_OK) {
 
+				if (verbose > 0) {
+					printf("Read ntt %d %d with max.threads %d\n", ntt[0], ntt[1], GMRFLib_openmp->max_threads);
+				}
+				
 				for (i = 0; i < 2; i++) {
 					ntt[i] = IMAX(0, ntt[i]);
 				}
-
+				
 				// replace 0 with auto-values
 				if (ntt[0] == 0 && ntt[1] == 0) {
 					ntt[0] = GMRFLib_openmp->max_threads;
@@ -34009,7 +34015,7 @@ int main(int argc, char **argv)
 				} else if (ntt[1] == 0) {
 					// let 0 means 1 for the moment. only larger problems gives a speedup,
 					// much likely it will slow things down.
-					//ntt[1] = (GMRFLib_openmp->max_threads - 1)/ ntt[0];
+					//ntt[1] = GMRFLib_openmp->max_threads / ntt[0];
 					ntt[1] = 1;
 				}
 
@@ -34019,10 +34025,9 @@ int main(int argc, char **argv)
 				ntt[1] = 1;
 #endif				
 				for (i = 0; i < 2; i++) {
-					ntt[i] = IMIN(GMRFLib_openmp->max_threads, IMAX(1, ntt[i]));
+					ntt[i] = IMAX(1, ntt[i]);
 					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
 				}
-				// mostly for internal code use
 				GMRFLib_openmp->max_threads = ntt[0] * ntt[1];
 			} else {
 				fprintf(stderr, "Fail to read A:B from [%s]\n", optarg);
@@ -34035,8 +34040,9 @@ int main(int argc, char **argv)
 				}
 				GMRFLib_openmp->max_threads = ntt[0] * ntt[1];
 			}
-			if (verbose > 1) {
-				printf("Found num.threads = %1d:%1d\n", ntt[0], ntt[1]);
+			if (verbose > 0) {
+				printf("Found num.threads = %1d:%1d\n", GMRFLib_openmp->max_threads_nested[0],
+				       GMRFLib_openmp->max_threads_nested[1]);
 			}
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 			break;
@@ -34148,9 +34154,9 @@ int main(int argc, char **argv)
 	 */
 	switch (G.mode) {
 	case INLA_MODE_OPENMP:
-		printf("export OMP_NUM_THREADS=%1d,%1d;", GMRFLib_openmp->max_threads_outer, GMRFLib_openmp->max_threads_inner);
-		printf("export OMP_NESTED=%s;", (GMRFLib_openmp->max_threads_inner > 1 ? "TRUE" : "FALSE"));
-		printf("\n");
+		printf("export OMP_NUM_THREADS=%1d,%1d,1; ", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
+		printf("export OMP_NESTED=%s; ", (GMRFLib_openmp->max_threads_inner > 1 ? "TRUE" : "FALSE"));
+		printf("export MKL_NUM_THREADS=%1d; export OPENBLAS_NUM_THREADS=%1d;", blas_num_threads, blas_num_threads);
 		exit(EXIT_SUCCESS);
 		break;
 
@@ -34260,9 +34266,11 @@ int main(int argc, char **argv)
 	if (G.mode == INLA_MODE_DEFAULT || G.mode == INLA_MODE_HYPER) {
 		for (arg = optind; arg < argc; arg++) {
 			if (verbose) {
-				printf("Process file[%s] threads[%1d] blas_threads[%1d]", argv[arg], GMRFLib_MAX_THREADS, blas_num_threads);
+				printf("Process file[%s] threads[%1d] max.threads[%1d] blas_threads[%1d]",
+				       argv[arg], GMRFLib_MAX_THREADS, host_max_threads, blas_num_threads);
 				if (GMRFLib_openmp->max_threads_nested) {
-					printf(" nested[%1d,%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
+					printf(" nested[%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0],
+					       GMRFLib_openmp->max_threads_nested[1]);
 				} else {
 					printf("\n");
 				}

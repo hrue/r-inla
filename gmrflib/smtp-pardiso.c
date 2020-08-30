@@ -417,7 +417,11 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 	memcpy((void *) (store->pstore->dparm), (void *) (store->dparm_default), GMRFLib_PARDISO_PLEN * sizeof(double));
 
 	int ival7 = 2;					       /* #iterations for iterative improvement (max) */
-	omp_set_num_threads(store->pstore->iparm[2]);
+	if (GMRFLib_openmp->max_threads_inner != store->pstore->iparm[2]) {
+		P(GMRFLib_openmp->max_threads_inner);
+		P(store->pstore->iparm[2]);
+	}
+	omp_set_num_threads(store->pstore->iparm[2]); // this should be set already... but
 
 	store->pstore->nrhs = 0;
 	store->pstore->err_code = 0;
@@ -733,7 +737,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 		}
 	}
 	Free(bb);
-
+	
 	return GMRFLib_SUCCESS;
 }
 
@@ -1075,6 +1079,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 		P(GMRFLib_openmp->max_threads_inner);
 		FIXME("THIS IS NOT TRUE: iparm[2] >= threads_inner");
 	}
+
 	if (S.static_pstores[idx] && ok) {
 		*new = S.static_pstores[idx];
 		if (S.s_verbose) {
