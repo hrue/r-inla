@@ -2459,23 +2459,8 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 	}
 	assert(work_p == work_size);
 
-	//printf("enter solve_llt_sms with thread %1d and sm_fact 0x%p\n", omp_get_thread_num(), (void *)&(problem->sub_sm_fact));
-	      
 	c[idx] = 1.0;
-#pragma omp critical
 	GMRFLib_solve_llt_sparse_matrix_special(c, &(problem->sub_sm_fact), problem->sub_graph, idx);
-
-	double *cc = Calloc(n, double);
-	cc[idx] = 1.0;
-	GMRFLib_solve_llt_sparse_matrix_special(cc, &(problem->sub_sm_fact), problem->sub_graph, idx);
-
-#pragma omp critical
-	for(i = 0; i < n; i++) {
-		if (c[i] != cc[i]) {
-			printf("idx i c cc diff %d %d %f %f %f\n", idx,  i, c[i], cc[i], c[i]-cc[i]);
-		}
-	}
-	
 
 	if (covariances) {
 		*covariances = Calloc(n, double);
@@ -4279,7 +4264,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					if (!ai_store_id[id]) {
 						ai_store_id[id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_TRUE);
 					}
-					printf("compute ii %d with thread %d \n", ii, id);
 					GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 												   || ai_par->cpo_manual) ? &cpodens : NULL),
 								   GMRFLib_TRUE,
@@ -4291,7 +4275,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					double *xx_mode = ai_store_id[id]->mode;
 					COMPUTE2;
 					GMRFLib_free_density(cpodens);
-					printf("compute ii %d with thread %d DONE\n", ii, id);
 				}
 				GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
 				for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
