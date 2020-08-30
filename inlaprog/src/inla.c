@@ -34154,7 +34154,7 @@ int main(int argc, char **argv)
 	switch (G.mode) {
 	case INLA_MODE_OPENMP:
 		printf("export OMP_NUM_THREADS=%1d,%1d,1; ", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
-		printf("export OMP_NESTED=%s; ", (GMRFLib_openmp->max_threads_inner > 1 ? "TRUE" : "FALSE"));
+		printf("export OMP_MAX_ACTIVE_LEVELS=%1d; ", (GMRFLib_openmp->max_threads_inner > 1 ? 2 : 1));
 		printf("export MKL_NUM_THREADS=%1d; export OPENBLAS_NUM_THREADS=%1d;", blas_num_threads, blas_num_threads);
 		exit(EXIT_SUCCESS);
 		break;
