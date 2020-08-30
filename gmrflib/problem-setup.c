@@ -66,51 +66,36 @@ double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *
 	GMRFLib_Qfunc_arg_tp *args = NULL;
 	args = (GMRFLib_Qfunc_arg_tp *) arguments;
 
-	if (GMRFLib_catch_error_for_inla) {
-		// we know that the mapping is identity in this case and that the sub_graph is the same as the graph
-		// this is also validated in the problem-setup
+	// we know that the mapping is identity in this case and that the sub_graph is the same as the graph
+	// this is also validated in the problem-setup
 		
-		node = sub_node; 
-		nnode = sub_nnode;
+	node = sub_node; 
+	nnode = sub_nnode;
 		
-		if (nnode >= 0) {
-			// the normal case, nothing spesific to do
-			if (node == nnode) {
-				val = (*(args->user_Qfunc)) (node, nnode, NULL, args->user_Qfunc_args) + args->diagonal_adds[node];
-			} else {
-				val = (*(args->user_Qfunc)) (node, nnode, NULL, args->user_Qfunc_args);
-			}
-			return val;
-		} else {
-			// this is the multi-case
-			val =  (*(args->user_Qfunc)) (node, -1, values, args->user_Qfunc_args);
-			if (ISNAN(val)) {
-				// the Qfunction does not support it, move on doing it manually
-				int j, jj, k = 0;
-				values[k++] = (*(args->user_Qfunc)) (node, node, NULL, args->user_Qfunc_args) + args->diagonal_adds[node];
-				for(jj = 0; jj < args->graph->lnnbs[node]; jj++){
-					j = args->graph->lnbs[node][jj];
-					values[k++] = (*(args->user_Qfunc)) (node, j, NULL, args->user_Qfunc_args);
-				}
-			} else {
-				values[0] += args->diagonal_adds[node];
-			}
-			return 0.0;
-		}
-	} else {
-
-		if (sub_node >= 0 && sub_nnode <  0) {
-			return NAN;
-		}
-		node = args->map[sub_node];
-		nnode = args->map[sub_nnode];
+	if (nnode >= 0) {
+		// the normal case, nothing spesific to do
 		if (node == nnode) {
-			val = (*(args->user_Qfunc)) (node, nnode, NULL, args->user_Qfunc_args) + args->diagonal_adds[sub_node];
+			val = (*(args->user_Qfunc)) (node, nnode, NULL, args->user_Qfunc_args) + args->diagonal_adds[node];
 		} else {
 			val = (*(args->user_Qfunc)) (node, nnode, NULL, args->user_Qfunc_args);
 		}
-		return val;
+	} else {
+		// this is the multi-case
+		val =  (*(args->user_Qfunc)) (node, -1, values, args->user_Qfunc_args);
+		if (ISNAN(val)) {
+			// the Qfunction does not support it, move on doing it manually
+			int j, jj, k = 0;
+			values[k++] = (*(args->user_Qfunc)) (node, node, NULL, args->user_Qfunc_args) + args->diagonal_adds[node];
+			for(jj = 0; jj < args->graph->lnnbs[node]; jj++){
+				j = args->graph->lnbs[node][jj];
+				values[k++] = (*(args->user_Qfunc)) (node, j, NULL, args->user_Qfunc_args);
+			}
+		} else {
+			values[0] += args->diagonal_adds[node];
+		}
+		val = 0.0;
 	}
+	return val;
 }
 
 /*! \brief Initializes and specifies a \c GMRFLib_problem_tp -object holding all 
@@ -449,11 +434,6 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		sub_Qfunc_arg->diagonal_adds = Calloc(sub_n, double);
 		sub_Qfunc_arg->graph = (*problem)->sub_graph;
 
-		if (GMRFLib_catch_error_for_inla) {
-			// just a check
-			for (i = 0; i < sub_n; i++) assert((*problem)->map[i] == i);
-		}
-
 		if (c) {
 			for (i = 0; i < sub_n; i++) {
 				sub_Qfunc_arg->diagonal_adds[i] = c[(*problem)->map[i]];
@@ -582,29 +562,16 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			Free(s);
 		}
 
-		if (GMRFLib_catch_error_for_inla) {
-			/*
-			 * special version for INLA 
-			 */
-			int ret;
-			ret = GMRFLib_build_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->tab->Qfunc,
-							  (char *) ((*problem)->tab->Qfunc_arg), (*problem)->sub_graph);
-			if (ret != GMRFLib_SUCCESS) {
-				return ret;
-			}
-
-			ret = GMRFLib_factorise_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->sub_graph);
-			if (ret != GMRFLib_SUCCESS) {
-				return ret;
-			}
-
-		} else {
-			/*
-			 * plain version 
-			 */
-			GMRFLib_EWRAP1(GMRFLib_build_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->tab->Qfunc,
-								   (char *) ((*problem)->tab->Qfunc_arg), (*problem)->sub_graph));
-			GMRFLib_EWRAP1(GMRFLib_factorise_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->sub_graph));
+		int ret;
+		ret = GMRFLib_build_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->tab->Qfunc,
+						  (char *) ((*problem)->tab->Qfunc_arg), (*problem)->sub_graph);
+		if (ret != GMRFLib_SUCCESS) {
+			return ret;
+		}
+		
+		ret = GMRFLib_factorise_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->sub_graph);
+		if (ret != GMRFLib_SUCCESS) {
+			return ret;
 		}
 
 		if (store_store_symb_fact && (smtp == GMRFLib_SMTP_TAUCS)) {

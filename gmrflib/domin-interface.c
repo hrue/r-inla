@@ -247,15 +247,11 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 		bnew_local[GMRFLib_thread_id] = bnew_ptr;
 	}
 
-#pragma omp parallel for private(idum) num_threads(GMRFLib_openmp->max_threads_outer)
-	for (idum = 0; idum < 1; idum++) {
-		GMRFLib_openmp_nested_fix();
-		GMRFLib_ai_marginal_hyperparam(fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg, G.fixed_value,
-					       G.graph,
-					       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local[GMRFLib_thread_id]->Qfunc),
-					       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[GMRFLib_thread_id]->Qfunc_arg), G.constr,
-					       G.ai_par, ais);
-	}
+	GMRFLib_ai_marginal_hyperparam(fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg, G.fixed_value,
+				       G.graph,
+				       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local[GMRFLib_thread_id]->Qfunc),
+				       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[GMRFLib_thread_id]->Qfunc_arg), G.constr,
+				       G.ai_par, ais);
 	*fx += con;					       /* add missing constant due to b = b(theta) */
 	ffx = G.log_extra(x, G.nhyper, G.log_extra_arg);
 
@@ -398,7 +394,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			}
 			Free(xx);
 		}
-		GMRFLib_thread_id = id;
+		GMRFLib_thread_id = id_save;
 
 		/*
 		 * then compute the gradient where f0 = f[G.nhyper] 
@@ -1124,8 +1120,10 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 				}
 				gsl_matrix_memcpy(A, Adir);
 				GMRFLib_gsl_mgs(A);
-				printf("New directions for gradient\n");
-				GMRFLib_gsl_matrix_fprintf(stdout, A, "\t %6.3f");
+				if (G.ai_par->fp_log) {
+					fprintf(G.ai_par->fp_log, "New directions for gradient\n");
+					GMRFLib_gsl_matrix_fprintf(G.ai_par->fp_log, A, "\t %6.3f");
+				}
 				gsl_matrix_transpose_memcpy(tAinv, A);
 				GMRFLib_gsl_ginv(tAinv, GMRFLib_eps(0.5), -1);
 			}

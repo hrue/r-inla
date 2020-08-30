@@ -27,6 +27,14 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.08.30}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item More work on the nested parallelism stuff
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.08.29}{
   \subsection{BUG FIXES}{
     \itemize{

@@ -2804,29 +2804,19 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		 * I thought this was quicker without store, as there is just reuse and no copy... but not.  I free lproblem below and set it to NULL, so
 		 * it will always be lproblem = NULL 
 		 */
-		int idum;
-#pragma omp parallel for private(idum) num_threads(1)
-		for (idum = 0; idum < 1; idum++) {
-			if (!lproblem) {
-				if (GMRFLib_catch_error_for_inla) {
-					int ret;
-					ret = GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value,
-									 constr, GMRFLib_NEW_PROBLEM, store);
-					if (ret != GMRFLib_SUCCESS) {
-						catch_error = 1;
-					}
-				} else {
-					GMRFLib_init_problem_store
-					    (&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr, GMRFLib_NEW_PROBLEM, store);
-				}
-			} else {
-				/*
-				 * store could be NULL here I presume...? 
-				 */
-				GMRFLib_init_problem_store
-				    (&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr, GMRFLib_KEEP_graph, store);
-			}
-		}
+
+
+		if (!lproblem) {					
+			int ret;					
+			ret = GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, 
+							 constr, GMRFLib_NEW_PROBLEM, store); 
+			if (ret != GMRFLib_SUCCESS) {			
+				catch_error = 1;			
+			}						
+		} else {						
+			GMRFLib_init_problem_store			
+				(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr, GMRFLib_KEEP_graph, store); 
+		}							
 
 		if (catch_error) {
 			lproblem = NULL;
@@ -5395,25 +5385,20 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 		}
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
-
-		int idum;
-#pragma omp parallel for private(idum) num_threads(GMRFLib_openmp->max_threads_outer)
-		for (idum = 0; idum < 1; idum++) {	       /* YES YES YES, otherwise PARDISO go nuts! */
-			GMRFLib_openmp_nested_fix();
-
+		
 			/*
 			 * In this case the contents of ai_store is NULL, we need to recompute the Gaussian approximation since
 			 * the contents of ai_store is NULL in this case.
 			 */
-			double tmp_logdens;
-			double *bnew = NULL, con = 0.0;
-			GMRFLib_bnew(&bnew, &con, graph->n, b, bfunc);
-			GMRFLib_ai_marginal_hyperparam(&tmp_logdens, x, bnew, c, mean, d,
-						       loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store);
-			log_dens_mode = tmp_logdens + con + log_extra(NULL, nhyper, log_extra_arg);	/* nhyper=0, so theta=NULL is ok */
-			GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
-			Free(bnew);
-		}
+		double tmp_logdens; 
+		double *bnew = NULL, con = 0.0;				
+		GMRFLib_bnew(&bnew, &con, graph->n, b, bfunc);		
+		GMRFLib_ai_marginal_hyperparam(&tmp_logdens, x, bnew, c, mean, d, 
+					       loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store);
+		log_dens_mode = tmp_logdens + con + log_extra(NULL, nhyper, log_extra_arg); 
+		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);		
+		Free(bnew)
+
 		ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
 		if (run_with_omp) {
@@ -7688,14 +7673,9 @@ int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp * ai_store)
 	}
 
 	if (!ai_store->problem->sub_inverse) {
-		int i, n, idum;
+		int i, n;
 
-#pragma omp parallel for private(idum) num_threads(GMRFLib_openmp->max_threads_outer)
-		for (idum = 0; idum < 1; idum++) {
-			GMRFLib_openmp_nested_fix();
-
-			GMRFLib_Qinv(ai_store->problem, GMRFLib_QINV_NEIGB);
-		}
+		GMRFLib_Qinv(ai_store->problem, GMRFLib_QINV_NEIGB);
 		Free(ai_store->stdev);
 		n = ai_store->problem->n;
 		ai_store->stdev = Calloc(n, double);
@@ -8384,32 +8364,22 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, 
 	int n = (ai_store->problem ? ai_store->problem->n : 0);
 	int nd = ai_store->nd;
 
-//#pragma omp parallel sections
-	{
-//#pragma omp section
-		{
-			GMRFLib_meminfo_thread_id = id;
-			new_ai_store->store = GMRFLib_duplicate_store(ai_store->store, skeleton, copy_ptr, copy_pardiso_ptr);
-		}
-//#pragma omp section
-		{
-			GMRFLib_meminfo_thread_id = id;
-			new_ai_store->problem = GMRFLib_duplicate_problem(ai_store->problem, skeleton, copy_ptr, copy_pardiso_ptr);
-			COPY(nidx);
-			COPY(neff);
-			COPY(nd);
-
-			DUPLICATE(mode, n, double, 0);
-			DUPLICATE(aa, n, double, skeleton);
-			DUPLICATE(bb, n, double, skeleton);
-			DUPLICATE(cc, n, double, skeleton);
-			DUPLICATE(stdev, n, double, skeleton);
-			DUPLICATE(correction_term, n, double, skeleton);
-			DUPLICATE(derivative3, n, double, skeleton);
-			DUPLICATE(correction_idx, n, int, skeleton);
-			DUPLICATE(d_idx, nd, int, 0);
-		}
-	}
+	GMRFLib_meminfo_thread_id = id;
+	new_ai_store->store = GMRFLib_duplicate_store(ai_store->store, skeleton, copy_ptr, copy_pardiso_ptr);
+	new_ai_store->problem = GMRFLib_duplicate_problem(ai_store->problem, skeleton, copy_ptr, copy_pardiso_ptr);
+	COPY(nidx);
+	COPY(neff);
+	COPY(nd);
+	
+	DUPLICATE(mode, n, double, 0);
+	DUPLICATE(aa, n, double, skeleton);
+	DUPLICATE(bb, n, double, skeleton);
+	DUPLICATE(cc, n, double, skeleton);
+	DUPLICATE(stdev, n, double, skeleton);
+	DUPLICATE(correction_term, n, double, skeleton);
+	DUPLICATE(derivative3, n, double, skeleton);
+	DUPLICATE(correction_idx, n, int, skeleton);
+	DUPLICATE(d_idx, nd, int, 0);
 
 
 	GMRFLib_meminfo_thread_id *= -1;

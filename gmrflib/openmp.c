@@ -125,13 +125,15 @@ double omp_get_wtick(void)
 int omp_get_max_active_levels(void);
 void omp_set_max_active_levels(int);
 #define omp_get_nested() (omp_get_max_active_levels() > 1)
-#define omp_set_nested(_val) omp_set_max_active_levels(((_val) ? 3 : 1))
+#define omp_set_nested(_val) omp_set_max_active_levels(((_val) ? 2 : 1))
 #endif
 
 int GMRFLib_openmp_nested_fix(void) 
 {
 	if (omp_get_nested()) {
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
+	} else {
+		omp_set_num_threads(1);
 	}
 	return 0;
 }

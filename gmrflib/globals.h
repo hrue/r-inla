@@ -240,11 +240,6 @@ extern int GMRFLib_meminfo_thread_id;
 #pragma omp threadprivate(GMRFLib_meminfo_thread_id)
 
 /* 
-   catch errors for inla in a special way
- */
-extern int GMRFLib_catch_error_for_inla;
-
-/* 
    define global nodes
  */
 extern GMRFLib_global_node_tp GMRFLib_global_node; 

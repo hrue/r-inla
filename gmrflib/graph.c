@@ -683,34 +683,39 @@ int GMRFLib_printbits(FILE * fp, GMRFLib_uchar c)
 int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 {
 	/*
-	 * plain version.  return 1 if nnode is a neighbour of node, otherwise 0. assume that the nodes are sorted. (if node == 
-	 * nnode, then they are not neighbours.)
-	 * 
-	 * Sat Nov 22 12:43:09 CET 2003 : I compared this version agains a hash-table variant, both using spmatrix and map_ii
-	 * for each i. the last version was slower by a factor 2, the other even slower. it seems like this plain version is
-	 * quite fast though... 
+	 * plain version (modified Aug/2020).
+	 *
+	 * return 1 if nnode is a neighbour of node, otherwise 0. assume that the nodes are sorted. note that if node == nnode,
+	 * then they are not neighbours.
 	 */
 
-	int j, m, k;
-
-	/*
-	 * make this extention to ease its use 
-	 */
-	if (node < 0 || node >= graph->n || nnode < 0 || nnode >= graph->n)
+	if (node == nnode) {
 		return GMRFLib_FALSE;
-
-	m = graph->nnbs[node];
-
-	if (!m || nnode < graph->nbs[node][0] || nnode > graph->nbs[node][m - 1]) {
+	}
+	
+	int imin = IMIN(node, nnode);
+	int imax = IMAX(node, nnode);
+	int m, j, *k;
+	
+	if (imin < 0 || imax > graph->n) {
 		return GMRFLib_FALSE;
 	}
 
-	for (j = 0; j < m; j++) {
-		k = graph->nbs[node][j];
-		if (k > nnode) {
+	m = graph->lnnbs[imin];
+	if (m == 0) {
+		return GMRFLib_FALSE;
+	}
+
+	if (imax > graph->lnbs[imin][m-1]) {
+		return GMRFLib_FALSE;
+	}
+
+	for(j = 0; j < m; j++) {
+		k = graph->lnbs[imin] + j;
+		if (*k > imax) {
 			return GMRFLib_FALSE;
 		}
-		if (k == nnode) {
+		if (*k == imax) {
 			return GMRFLib_TRUE;
 		}
 	}
@@ -2190,23 +2195,21 @@ int GMRFLib_graph_cc_do(int node, GMRFLib_graph_tp * g, int *cc, char *visited, 
 int GMRFLib_graph_add_sha1(GMRFLib_graph_tp * g)
 {
 #define LEN 64L
-#define IUPDATE(_x, _len) if ((_x) && (_len) > 0)	\
-		if (1) {				\
-			size_t len = (_len) * sizeof(int);	\
-			size_t n = (size_t) len / LEN;		\
-			size_t m = len - n * LEN;		\
-			size_t i;				\
-			for(i = 0; i < n; i++) {			\
-				SHA1_Update(&c, &(((unsigned char *) (_x))[i * LEN]), (unsigned long) LEN); \
-			}						\
-			if (m) SHA1_Update(&c, &(((unsigned char *) (_x))[n * LEN]), (unsigned long) m); \
-		}
+#define IUPDATE(_x, _len) if ((_len) > 0 && (_x))			\
+	{								\
+		size_t len = (_len) * sizeof(int);			\
+		size_t n = (size_t) len / LEN;				\
+		size_t m = len - n * LEN;				\
+		for(size_t i = 0; i < n; i++) {				\
+			SHA1_Update(&c, &(((unsigned char *) (_x))[i * LEN]), (unsigned long) LEN); \
+		}							\
+		if (m) SHA1_Update(&c, &(((unsigned char *) (_x))[n * LEN]), (unsigned long) m); \
+	}
 
 
 	// add the SHA1 hash to the graph
 	SHA_CTX c;
 	unsigned char *md = Calloc(SHA_DIGEST_LENGTH + 1, unsigned char);
-	int i;
 
 	memset(md, 0, SHA_DIGEST_LENGTH + 1);
 	SHA1_Init(&c);
@@ -2214,7 +2217,7 @@ int GMRFLib_graph_add_sha1(GMRFLib_graph_tp * g)
 	IUPDATE(&(g->n), 1);
 	IUPDATE(g->nnbs, g->n);
 	IUPDATE(g->lnnbs, g->n);
-	for (i = 0; i < g->n; i++) {
+	for (int i = 0; i < g->n; i++) {
 		IUPDATE(g->nbs[i], g->nnbs[i]);
 		IUPDATE(g->lnbs[i], g->lnnbs[i]);
 	}

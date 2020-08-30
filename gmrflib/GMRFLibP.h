@@ -240,12 +240,7 @@ typedef enum {
 			fprintf(stdout,					\
 				"\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN or INF. idx=(%1d,%1d). I will try to fix it...", \
 				GitID, __GMRFLib_FuncName, __LINE__, omp_get_thread_num(), idx, jdx); \
-		if (GMRFLib_catch_error_for_inla) {			\
-			nan_error = 1;					\
-		} else {						\
-			if (1)abort();					\
-			if (1)exit(1);					\
-		}							\
+		nan_error = 1;						\
 	}
 
 #define GMRFLib_SET_PREC(arg_)						\
