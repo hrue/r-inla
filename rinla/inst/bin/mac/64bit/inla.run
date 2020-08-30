@@ -2,23 +2,22 @@
 
 myreadlink () {
     (
-	TARGET_FILE=$1
-	cd `dirname $TARGET_FILE`
-	TARGET_FILE=`basename $TARGET_FILE`
-	while [ -L "$TARGET_FILE" ]
+	tfile=$1
+	cd $(dirname "$tfile")
+	tfile=$(basename "$tfile")
+	while [ -L "$tfile" ]
 	do
-	    TARGET_FILE=`readlink $TARGET_FILE`
-	    cd `dirname $TARGET_FILE`
-	    TARGET_FILE=`basename $TARGET_FILE`
+	    tfile=$(readlink "$tfile")
+	    cd $(dirname "$tfile")
+	    tfile=$(basename "$tfile")
 	done
-	PHYS_DIR=`pwd -P`
-	RESULT=$PHYS_DIR/$TARGET_FILE
-	echo $RESULT
+	pdir=$(pwd -P)
+	echo "$pdir/$tfile"
     )
 }
 
 cmd=$(myreadlink "$0")
-DIR=$(dirname "$cmd")
+DIR=$(myreadlink $(dirname "$cmd"))
 tmp=$(basename "$cmd")
 prog=${tmp%%.run}
 
