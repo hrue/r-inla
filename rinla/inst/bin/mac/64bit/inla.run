@@ -50,7 +50,6 @@ for f in $DIR/first/lib*.dylib*; do
 	    ##export DYLD_FORCE_FLAT_NAMESPACE=1
 	    ;;
     esac
-    break
 done
 
 
