@@ -734,6 +734,8 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	bb = Calloc(nrhs * n, double);
 	memcpy((void *) bb, (void *) b, n * nrhs * sizeof(double));
 
+	// we might want to tweak the number of threads here, even do this in parallel for many rhs when the version is
+	// thread-safe
 	GMRFLib_pardiso_setparam(flag, store);
 	for (i = 0; i < nblock + reminder; i++) {
 		offset = i * n * max_nrhs;
@@ -1504,4 +1506,3 @@ int my_pardiso_test5(void)
 		GMRFLib_pardiso_Qinv(store);
 	}
 }
-

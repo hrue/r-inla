@@ -45,7 +45,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 
 /* 
-   NEED TO CHANGE/REVISE THIS LATER
+   NEED TO CHANGE/REVISE THIS LATER when the new version with thread-safe solve comes
  */
 #define RUN_SAFE(_expr) if (!GMRFLib_pardiso_thread_safe && omp_in_parallel()) \
 	{								\
@@ -69,18 +69,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 	} else {							\
 		ret =  _expr;						\
 	}
-
-
-//		_Pragma("omp parallel num_threads(GMRFLib_openmp->max_threads_outer)") \
-//		{							\
-//			_Pragma("omp single")				\
-//			{						\
-//				GMRFLib_openmp_nested_fix();		\
-//				ret = _expr;				\
-//			}						\
-//		}							\
-//	}
-
 
 /*!
   \brief Compute the reordering
@@ -118,9 +106,9 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 
 		case GMRFLib_SMTP_PARDISO:
 			if (sm_fact->PARDISO_fact == NULL) {
-				PARALLEL_OUTER(GMRFLib_pardiso_init(&(sm_fact->PARDISO_fact)));
+				GMRFLib_pardiso_init(&(sm_fact->PARDISO_fact));
 			}
-			PARALLEL_OUTER(GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph));
+			GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph);
 			sm_fact->remap = Calloc(graph->n, int);
 			memcpy((void *) sm_fact->remap, (void *) sm_fact->PARDISO_fact->pstore->perm, graph->n * sizeof(int));
 			break;
@@ -135,9 +123,9 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 		switch (sm_fact->smtp) {
 		case GMRFLib_SMTP_PARDISO:		       /*  same code as above */
 			if (sm_fact->PARDISO_fact == NULL) {
-				PARALLEL_OUTER(GMRFLib_pardiso_init(&(sm_fact->PARDISO_fact)));
+				GMRFLib_pardiso_init(&(sm_fact->PARDISO_fact));
 			}
-			PARALLEL_OUTER(GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph));
+			GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph);
 			sm_fact->remap = Calloc(graph->n, int);
 			memcpy((void *) sm_fact->remap, (void *) sm_fact->PARDISO_fact->pstore->perm, graph->n * sizeof(int));
 			break;
@@ -265,19 +253,7 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
-		if (omp_in_parallel()) {
-			ret = GMRFLib_pardiso_chol(sm_fact->PARDISO_fact);
-		} else {
-#pragma omp parallel num_threads(GMRFLib_openmp->max_threads_outer)
-			{
-				if (omp_get_thread_num() == 0) {
-					ret = GMRFLib_pardiso_chol(sm_fact->PARDISO_fact);
-				}
-			}
-		}
-		if (ret != GMRFLib_SUCCESS) {
-			return ret;
-		}
+		ret = GMRFLib_pardiso_chol(sm_fact->PARDISO_fact);
 		break;
 
 	default:
@@ -357,7 +333,7 @@ int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * sm
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
-		PARALLEL_OUTER(GMRFLib_pardiso_solve_L(sm_fact->PARDISO_fact, rhs, rhs, nrhs));
+		RUN_SAFE(GMRFLib_pardiso_solve_L(sm_fact->PARDISO_fact, rhs, rhs, nrhs));
 		break;
 
 	default:
@@ -399,7 +375,7 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * s
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
-		PARALLEL_OUTER(GMRFLib_pardiso_solve_LT(sm_fact->PARDISO_fact, rhs, rhs, nrhs));
+		RUN_SAFE(GMRFLib_pardiso_solve_LT(sm_fact->PARDISO_fact, rhs, rhs, nrhs));
 		break;
 
 	default:
@@ -436,7 +412,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * 
 			GMRFLib_solve_llt_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_PARDISO) {
-		PARALLEL_OUTER(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, nrhs));
+		RUN_SAFE(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, nrhs));
 	} else {
 		GMRFLib_ERROR(GMRFLib_ESNH);
 	}
@@ -465,7 +441,7 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm
 
 	case GMRFLib_SMTP_PARDISO:
 	{
-		PARALLEL_OUTER(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, 1));
+		RUN_SAFE(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, 1));
 	}
 	break;
 
@@ -502,7 +478,7 @@ int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
-		PARALLEL_OUTER(GMRFLib_pardiso_solve_LT(sm_fact->PARDISO_fact, rhs, rhs, 1));
+		RUN_SAFE(GMRFLib_pardiso_solve_LT(sm_fact->PARDISO_fact, rhs, rhs, 1));
 		break;
 
 	default:
@@ -538,9 +514,9 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_f
 	case GMRFLib_SMTP_PARDISO: 
 	{
 		if (remapped) {
-			PARALLEL_OUTER(GMRFLib_pardiso_perm(rhs, 1, sm_fact->PARDISO_fact));
+			GMRFLib_pardiso_perm(rhs, 1, sm_fact->PARDISO_fact);
 		}
-		PARALLEL_OUTER(GMRFLib_pardiso_solve_L(sm_fact->PARDISO_fact, rhs, rhs, 1));
+		RUN_SAFE(GMRFLib_pardiso_solve_L(sm_fact->PARDISO_fact, rhs, rhs, 1));
 	}
 		break;
 
@@ -649,7 +625,7 @@ int GMRFLib_compute_Qinv(void *problem, int storage)
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
-		PARALLEL_OUTER(GMRFLib_pardiso_Qinv_INLA(p));
+		GMRFLib_pardiso_Qinv_INLA(p);
 		break;
 
 	default:
