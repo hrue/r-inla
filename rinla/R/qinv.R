@@ -97,11 +97,11 @@
     inla.set.sparselib.env(inla.dir = t.dir)
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.call.no.remote()), "-s -m qinv",
-                         "-r",  reordering, "-S",  smtp, "-t", num.threads, 
+                         "-r",  reordering, "-S",  smtp, paste0("-t", num.threads), 
                          qinv.file, constr.file, out.file), intern=TRUE)
     } else if(inla.os("windows")) {
         s = system(paste(shQuote(inla.call.no.remote()), "-s -m qinv",
-                         "-r",  reordering, "-S", smtp, "-t", num.threads, 
+                         "-r",  reordering, "-S", smtp, paste0("-t", num.threads), 
                          qinv.file, constr.file, out.file), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
