@@ -27,6 +27,15 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.08.31}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item A small bug-fix with argument \code{-t}
+      \item Some improvements in the install scripts
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.08.30}{
   \subsection{BUG FIXES}{
     \itemize{
