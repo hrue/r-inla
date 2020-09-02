@@ -1,4 +1,3 @@
-
 /* inla.c
  * 
  * Copyright (C) 2007-2020 Havard Rue
@@ -16322,7 +16321,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->link_ntheta++;
 		}
-
 	}
 		break;
 
@@ -33999,7 +33997,7 @@ int main(int argc, char **argv)
 			    inla_sread(ntt, 1, optarg, 0) == INLA_OK) {
 
 				if (verbose > 0) {
-					printf("Read ntt %d %d with max.threads %d\n", ntt[0], ntt[1], GMRFLib_openmp->max_threads);
+					printf("\tRead ntt %d %d with max.threads %d\n", ntt[0], ntt[1], GMRFLib_openmp->max_threads);
 				}
 				
 				for (i = 0; i < 2; i++) {
@@ -34041,7 +34039,7 @@ int main(int argc, char **argv)
 				GMRFLib_openmp->max_threads = ntt[0] * ntt[1];
 			}
 			if (verbose > 0) {
-				printf("Found num.threads = %1d:%1d\n", GMRFLib_openmp->max_threads_nested[0],
+				printf("\tFound num.threads = %1d:%1d\n", GMRFLib_openmp->max_threads_nested[0],
 				       GMRFLib_openmp->max_threads_nested[1]);
 			}
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
