@@ -5039,7 +5039,7 @@
                              initial = 0.0001,
                              fixed = TRUE,
                              prior = "pc.sn",
-                             param = 20,
+                             param = 10,
                              ## This value defined by LINK_SN_SKEWMAX in inla.h
                              to.theta = function(x, skew.max = 0.988) log((1+x/skew.max)/(1-x/skew.max)),
                              from.theta = function(x, skew.max = 0.988) skew.max*(2*exp(x)/(1+exp(x))-1)
@@ -5050,8 +5050,8 @@
                              short.name = "intercept",
                              initial = 0.0,
                              fixed = FALSE,
-                             prior = "logitbeta",
-                             param = c(1, 1),
+                             prior = "linksnintercept",
+                             param = c(0, 0),
                              to.theta = function(x) log(x/(1-x)),
                              from.theta = function(x) exp(x)/(1+exp(x))
                          )
@@ -7799,6 +7799,11 @@
                  ),
                  gaussian = list(
                      doc = "Gaussian prior", 
+                     nparameters = 2L,
+                     pdf = "gaussian"
+                 ),
+                 linksnintercept = list(
+                     doc = "Skew-normal-link intercept-prior", 
                      nparameters = 2L,
                      pdf = "gaussian"
                  ),

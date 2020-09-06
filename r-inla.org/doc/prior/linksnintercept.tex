@@ -1,0 +1,44 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{verbatim}
+\begin{document}
+
+\section*{Prior for the intercept in the skew-normal link}
+
+\subsection*{Parametrisation}
+The skew-normal link parameterise the intercept in terms of a quantile
+level $q$, which for zero skewness equals the probit link,
+\begin{equation}
+    \mu = \Phi^{-1}(q).
+\end{equation}
+Further the quantile level $q$ is represented by
+\begin{equation}
+    q = \frac{\exp(\theta)}{1+\exp(\theta)}
+\end{equation}
+for the (internal) hyperparameter $\theta$. The
+\texttt{linksnintercept} prior is the implied prior for $\theta$ when
+$\mu$ is Normal with a given mean and precision.
+
+Note that zero precision is interpreted that the Normal density is
+uniform with unit density.
+
+\subsection*{Specification}
+\begin{center}
+    \texttt{..., prior="linksnintercept", param=c(<mean>, <precision>),...}
+\end{center}
+
+\subsection*{Example}
+
+\subsection*{Notes}
+
+This is the default prior for the intercept in the skew-normal link. 
+
+\end{document}
+
+
+% LocalWords:  hyperparameters param gaussian hyperparameter
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

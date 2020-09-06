@@ -1132,9 +1132,11 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
 
     my.gaussian = function(theta, param, log=FALSE)
     {
-        if (param[2] == 0) ## improper prior
-            param[2] = 1.0/.Machine$double.eps
-        ld = dnorm(theta, mean = param[1], sd = sqrt(1/param[2]), log=TRUE)
+        if (param[2] == 0) {
+            ld <- 0.0
+        } else {
+            ld = dnorm(theta, mean = param[1], sd = sqrt(1/param[2]), log=TRUE)
+        }
         return (if (log) ld else exp(ld))
     }
             
@@ -1150,6 +1152,21 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
         return (if (log) ld else exp(ld))
     }
         
+    my.linksnintercept <- function(theta, param, log = FALSE) 
+    {
+        mu.fun <- function(theta) qnorm(1.0/(1+exp(-theta)))
+        theta.fun <- function(mu) {
+            xx <- pnorm(mu)
+            return (log(xx/(1.0-xx)))
+        }
+        
+        step <- 1.0e-4
+        mu <- mu.fun(theta)
+        deriv <- 1.0 / ((theta.fun(mu + step) - theta.fun(mu - step))/(2.0 * step))
+        ld <- log(abs(deriv)) + my.gaussian(mu, param, log = TRUE)
+        return (if (log) ld else exp(ld))
+    }
+    
     ## end of prior functions
 
     stopifnot(!missing(range))

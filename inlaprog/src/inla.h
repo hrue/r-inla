@@ -638,6 +638,7 @@ typedef enum {
 	P_WISHART4D,
 	P_WISHART5D,
 	P_PC_SN,
+	P_SN_INTERCEPT, 
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
@@ -1529,6 +1530,7 @@ double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, d
 double inla_dmatern_cf(double dist, double range, double nu);
 double inla_log_Phi(double x);
 double inla_log_Phi_fast(double x);
+double inla_logit_Phi(double x);
 double inla_sn_intercept(double intern_quantile, double skew);
 double inla_sn_Phi(double x, double xi, double omega, double alpha);
 double inla_update_density(double *theta, inla_update_tp * arg);
@@ -1603,6 +1605,7 @@ double priorfunc_gamma(double *precision, double *parameters);
 double priorfunc_gaussian(double *x, double *parameters);
 double priorfunc_invalid(double *x, double *parameters);
 double priorfunc_jeffreys_df_student_t(double *x, double *parameters);
+double priorfunc_linksnintercept(double *x, double *parameters);
 double priorfunc_logflat(double *x, double *parameters);
 double priorfunc_loggamma(double *x, double *parameters);
 double priorfunc_logiflat(double *x, double *parameters);
