@@ -27,6 +27,26 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.09.07}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Dimension for CCD integration have been
+      increased from 38 to 52.
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Default prior for the \code{intercept} and the \code{skewness} in the
+      \code{skew-normal link} have changed. 
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Various minor changes
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.08.31}{
   \subsection{BUG FIXES}{
     \itemize{
