@@ -5036,8 +5036,8 @@
                              hyperid =  49031,
                              name = "skew",
                              short.name = "skew",
-                             initial = 0.0001,
-                             fixed = TRUE,
+                             initial = 0.00123456789,
+                             fixed = FALSE,
                              prior = "pc.sn",
                              param = 10,
                              ## This value defined by LINK_SN_SKEWMAX in inla.h
@@ -5051,7 +5051,9 @@
                              initial = 0.0,
                              fixed = FALSE,
                              prior = "linksnintercept",
-                             param = c(0, 0),
+                             ## (mean, prec) in the corresponding N(mean, prec)
+                             ## prior in the probit case
+                             param = c(0, 0), 
                              to.theta = function(x) log(x/(1-x)),
                              from.theta = function(x) exp(x)/(1+exp(x))
                          )

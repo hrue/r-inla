@@ -1159,7 +1159,6 @@ inla.get.prior.xy = function(section = NULL, hyperid = NULL, all.hyper, debug=FA
             xx <- pnorm(mu)
             return (log(xx/(1.0-xx)))
         }
-        
         step <- 1.0e-4
         mu <- mu.fun(theta)
         deriv <- 1.0 / ((theta.fun(mu + step) - theta.fun(mu - step))/(2.0 * step))
