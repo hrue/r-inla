@@ -1,4 +1,3 @@
-
 /* inla.c
  * 
  * Copyright (C) 2007-2020 Havard Rue
@@ -3227,6 +3226,27 @@ double Qfunc_ou(int i, int j, double *values, void *arg)
 	abort();
 	return 0.0;
 }
+double priorfunc_linksnintercept(double *x, double *parameters) 
+{
+	// input is theta, need to find the corresponding mu.
+	double theta = *x;
+	double mu;
+	double step = 1.0e-4;
+	double theta_lim = 25.0;
+	
+	// we should not be outside the limits, really...
+	if (ABS(theta) <  theta_lim) {
+		mu = gsl_cdf_ugaussian_Pinv(1.0/(1.0 + exp(-theta)));
+	} else if (theta >= theta_lim) {
+		mu = gsl_cdf_ugaussian_Pinv(1.0/(1.0 + exp(-theta_lim)));
+	} else {
+		mu = gsl_cdf_ugaussian_Pinv(1.0/(1.0 + exp(-(-theta_lim))));
+	}
+
+	// d_mu/d_theta = 1 / (d_theta/d_mu)  
+	double deriv = 1.0 / ((inla_logit_Phi(mu+step) - inla_logit_Phi(mu-step))/(2.0*step));
+	return (log(ABS(deriv)) + priorfunc_normal(&mu, parameters));
+}
 double priorfunc_pc_gevtail(double *x, double *parameters)
 {
 #define DIST(_xi) ((_xi)*sqrt(2.0/(1.0-(_xi))))
@@ -3823,9 +3843,12 @@ double priorfunc_normal(double *x, double *parameters)
 	/*
 	 * return log(normal(x, mean, precision)) 
 	 */
-	double mean = parameters[0], sigma = sqrt(1.0 / parameters[1]);
-
-	return log(gsl_ran_gaussian_pdf((*x) - mean, sigma));
+	if (ISZERO(parameters[1])) {
+		return 0.0; // = log(1)
+	} else {
+		double mean = parameters[0], sigma = sqrt(1.0 / parameters[1]);
+		return log(gsl_ran_gaussian_pdf((*x) - mean, sigma));
+	}
 }
 double priorfunc_mvnorm(double *x, double *parameters)
 {
@@ -4679,6 +4702,26 @@ double inla_Phi(double x)
 		return exp(inla_log_Phi(x));
 	}
 }
+double inla_logit_Phi(double x) 
+{
+	// return log(Phi(x)/(1-Phi(x)))
+	
+	if (ABS(x) < 7.0) {
+		double y = inla_Phi(x);
+		return (log(y/(1.0-y)));
+	} else {
+		//> asympt(log(Phi(x)/(1-Phi(x))), x, 16);  
+		//    2
+		//   x                 1/2   1/2       1
+		//  ---- + ln(x) + ln(2    Pi   ) + O(----)
+		//   2                                  2
+		//
+
+		double val = (SQR(x)/2.0 + log(x) + M_LN_SQRT_2PI);
+		return (x > 0.0 ? val : -val);
+	}
+}
+
 double inla_log_Phi(double x)
 {
 	// return the log of the cummulative distribution function for a standard normal.
@@ -10143,6 +10186,22 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		}
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g]\n", prior_tag, param_tag, prior->parameters[0]);
+		}
+	} else if (!strcasecmp(prior->name, "LINKSNINTERCEPT")) {
+		prior->id = P_SN_INTERCEPT;
+		prior->priorfunc = priorfunc_linksnintercept;
+		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
+			prior->parameters = Calloc(2, double);
+			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
+			}
+		} else {
+			prior->parameters = Calloc(0, double);
+			prior->parameters[0] = 0.0;
+			prior->parameters[1] = 0.0;
+		}
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[%g %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
 		}
 	} else if (!strcasecmp(prior->name, "LOGITBETA")) {
 		prior->id = P_LOGITBETA;
@@ -16322,7 +16381,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->link_ntheta++;
 		}
-
 	}
 		break;
 
@@ -33780,7 +33838,6 @@ int testit(int argc, char **argv)
 		GMRFLib_crwdef_tp *rw = Calloc(1, GMRFLib_crwdef_tp);
 		GMRFLib_graph_tp *g;
 		int n = 10, i, j;
-		double one = 1.0;
 		
 		rw->n = n;
 		rw->prec = Calloc(1, double);
@@ -33999,7 +34056,7 @@ int main(int argc, char **argv)
 			    inla_sread(ntt, 1, optarg, 0) == INLA_OK) {
 
 				if (verbose > 0) {
-					printf("Read ntt %d %d with max.threads %d\n", ntt[0], ntt[1], GMRFLib_openmp->max_threads);
+					printf("\tRead ntt %d %d with max.threads %d\n", ntt[0], ntt[1], GMRFLib_openmp->max_threads);
 				}
 				
 				for (i = 0; i < 2; i++) {
@@ -34041,7 +34098,7 @@ int main(int argc, char **argv)
 				GMRFLib_openmp->max_threads = ntt[0] * ntt[1];
 			}
 			if (verbose > 0) {
-				printf("Found num.threads = %1d:%1d\n", GMRFLib_openmp->max_threads_nested[0],
+				printf("\tFound num.threads = %1d:%1d\n", GMRFLib_openmp->max_threads_nested[0],
 				       GMRFLib_openmp->max_threads_nested[1]);
 			}
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);

@@ -223,7 +223,7 @@
                          paste0("-t", num.threads), "-r", reordering, "-z", seed, "-S", smtp,
                          if (verbose) "-v" else "", 
                          Q.file, x.file, as.integer(n), rng.file,
-                         sample.file, b.file, mu.file, constr.file, cmean.file, selection.file), intern=FALSE)
+                         sample.file, b.file, mu.file, constr.file, cmean.file, selection.file), intern=TRUE)
     } else if(inla.os("windows")) {
         s = system(paste(shQuote(inla.call.no.remote()), "-s -m qsample",
                          paste0("-t", num.threads), "-r", reordering, "-z", seed, "-S", smtp,
