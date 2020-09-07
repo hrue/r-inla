@@ -367,7 +367,7 @@
     M = inla.as.dgTMatrix(sparseMatrix(i=pmin(size[1], ceiling(AA$i*fac[1])), j=pmin(size[2], ceiling(AA$j*fac[2])), x=1,
             dims = size))
     if (binary.pattern)
-        M[ M != 0 ] = 1
+        M@x[] <- 1
 
     return (M)
 }
