@@ -27,6 +27,22 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.09.09}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item The likelihood models \code{sn} and \code{sn2}
+      are now disabled. They need a rewrite to be done right.
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item For Linux, then build so-libraries are loaded before the
+      system ones. This behaviour can be reverted by setting the
+      environment variable \code{INLA_NATIVE_LD_LIBRARY_PATH}.
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.09.07}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
