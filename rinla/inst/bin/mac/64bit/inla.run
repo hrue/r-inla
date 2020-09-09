@@ -52,8 +52,7 @@ for f in $DIR/first/lib*.dylib*; do
     esac
 done
 
-
-export DYLD_LIBRARY_PATH="$DIR/first:$RHOME_LIB:$PDIR:$DIR:$LIBPNGPATH:/usr/lib:/usr/local/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
+export DYLD_LIBRARY_PATH="$DIR/first:$PDIR:$RHOME_LIB:$DIR:$LIBPNGPATH:/usr/lib:/usr/local/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
     echo "DYLD_INSERT_LIBRARIES=$DYLD_INSERT_LIBRARIES"
     echo "DYLD_FORCE_FLAT_NAMESPACE=$DYLD_FORCE_FLAT_NAMESPACE"
