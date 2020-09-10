@@ -647,7 +647,7 @@
     ##:EXTRA:
     ##:NAME: control.hazard
     list(
-        ##:ARGUMENT: model The model for the baseline hazard model. One of 'rw1' or 'rw2'. (Default 'rw1'.)
+        ##:ARGUMENT: model The model for the baseline hazard model. One of 'rw1', 'rw2' or 'iid'. (Default 'rw1'.)
         model = "rw1",
 
         ##:ARGUMENT: hyper The definition of the hyperparameters.

@@ -5287,6 +5287,22 @@
                              from.theta = function(x) exp(x)
                          )
                      )
+                 ), 
+                 iid = list(
+                     doc = "An iid model for the log-hazard", 
+                     hyper = list(
+                         theta = list(
+                             hyperid =  55501,
+                             name = "log precision",
+                             short.name = "prec",
+                             initial = 4,
+                             fixed = FALSE,
+                             prior = "loggamma",
+                             param = c(1, 0.00005),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         )
+                     )
                  )
              )
          )
