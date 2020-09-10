@@ -321,17 +321,10 @@ typedef struct {
 	/*
 	 * Skew-Normal
 	 */
-	double **shape_skew_normal;
-	double shape_max_skew_normal;			       /* maximum value for |shape| allowed */
-	double **log_prec_skew_normal;
-	double *weight_skew_normal;			       /* weights for the skew_normal: Variance = 1/(weight*prec) [for a=0] */
-
-	/*
-	 * Skew-Normal2
-	 */
-	double **logit_skewness_skew_normal2;
-	double **log_prec_skew_normal2;
-	double *weight_skew_normal2;			       /* weights for the skew_normal2: Variance = 1/(weight*prec) */
+	double **sn_skewness;
+	double **sn_lprec;
+	double **sn_quantile_level;
+	double *sn_scale;				 /* Variance = 1/(scale*prec) */
 
 	/*
 	 * GEV 
@@ -530,7 +523,7 @@ typedef enum {
 	REMOVED___L_TEST_BINOMIAL_1,
 	L_SIMPLEX,
 	L_GAMMACOUNT,
-	L_SKEWNORMAL2,
+	L_SKEWNORMAL2____NO_LONGER_IN_USE,
 	L_QKUMAR,
 	L_QCONTPOISSON,					       /* DISABLED in models.R */
 	L_CENPOISSON,					       /* cencored poisson */
@@ -1438,6 +1431,14 @@ typedef enum {
 	INTSLOPE_Z = 2
 } inla_intslope_column_tp;
 
+typedef struct 
+{
+	double xi;
+	double omega;
+	double intercept;
+	double alpha;
+}
+	inla_sn_arg_tp;
 
 
 #define R_GENERIC_Q "Q"
@@ -1528,11 +1529,12 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec
 double inla_compute_saturated_loglik(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
 double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
 double inla_dmatern_cf(double dist, double range, double nu);
+double inla_get_sn_param(inla_sn_arg_tp *output, double **param);
 double inla_log_Phi(double x);
 double inla_log_Phi_fast(double x);
 double inla_logit_Phi(double x);
+double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *output);
 double inla_sn_intercept(double intern_quantile, double skew);
-double inla_sn_Phi(double x, double xi, double omega, double alpha);
 double inla_update_density(double *theta, inla_update_tp * arg);
 double link_cauchit(double x, map_arg_tp typ, void *param, double *cov);
 double link_cloglog(double x, map_arg_tp typ, void *param, double *cov);
@@ -1840,7 +1842,6 @@ int loglikelihood_qloglogistic(double *logll, double *x, int m, int idx, double 
 int loglikelihood_qloglogisticsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_simplex(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_skew_normal2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_stochvol_nig(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

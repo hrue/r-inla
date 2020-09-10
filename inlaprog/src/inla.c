@@ -495,8 +495,19 @@ double map_invrobit(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
+double inla_get_sn_param(inla_sn_arg_tp *output, double **param)
+{
+	// param =  *(skew_intern, intercept_intern)
+	return (map_invsn_core(0.0, MAP_FORWARD, (void *) param, output));
+}
 double map_invsn(double arg, map_arg_tp typ, void *param)
 {
+	return (map_invsn_core(arg, typ, param, NULL));
+}
+double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *output)
+{
+	// if 'output' is !NULL, just return the contents. its a backdoor avoid duplicating code
+
 #define MAP(_x) log((_x)/(1.0 - (_x)))
 #define iMAP(_x) (exp(_x)/(1.0+exp(_x)))
 #define diMAP(_x) (exp(_x)/SQR(1.0+exp(_x)))
@@ -657,6 +668,14 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 
 	if (debug) {
 		printf("... intercept_alpha= %g intercept= %g\n", intercept_alpha, intercept);
+	}
+
+	if (output) {
+		output->omega = omega;
+		output->xi = xi;
+		output->intercept = intercept;
+		output->alpha = alpha;
+		return 0.0;
 	}
 
 	switch (typ) {
@@ -4352,12 +4371,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_SKEWNORMAL:
 		idiv = 3;
-		a[0] = ds->data_observations.weight_skew_normal = Calloc(mb->predictor_ndata, double);
-		break;
-
-	case L_SKEWNORMAL2:
-		idiv = 3;
-		a[0] = ds->data_observations.weight_skew_normal2 = Calloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.sn_scale = Calloc(mb->predictor_ndata, double);
 		break;
 
 	case L_GEV:
@@ -5276,51 +5290,7 @@ int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_v
 }
 
 
-double inla_sn_intercept(double intern_quantile, double skew)
-{
-	double a3, val;
-	a3 = gsl_pow_3(inla_pc_sn_skew2alpha(skew));
-	val = map_invsn(intern_quantile, MAP_BACKWARD, (void *) &a3);
-	P(intern_quantile);
-	P(skew);
-	P(inla_pc_sn_skew2alpha(skew));
-	P(a3);
-	P(val);
-
-	return (0);
-
-	a3 = gsl_pow_3(inla_pc_sn_skew2alpha(skew));
-	return (map_invsn(intern_quantile, MAP_FORWARD, (void *) &a3));
-}
-
-double inla_sn_Phi(double x, double xi, double omega, double alpha)
-{
-	// density = 2/omega * phi((x - xi)/omega) * Phi(alpha * ((x-xi)/omega))
-
-	if (alpha == 0.0) {
-		return inla_Phi((x - xi) / omega);
-	} else {
-		double xx = (x - xi) / omega;
-		double integral = 0.0;
-		double dx = 0.1;
-		double w = 0.0;
-		double xval;
-		int i, np;
-
-		np = (int) ((x - (-7.0)) / dx);
-		np = IMAX(9, np);
-		np = (np / 2) * 2 + 1;			       /* make sure its an odd number */
-		for (i = 0; i < np; i++) {
-			w = ((i == 0 || i == np - 1) ? 1.0 : (w == 2.0 ? 4.0 : 2.0));
-			xval = xx - i * dx;
-			integral += w * exp(LOG_NORMC_GAUSSIAN + M_LN2 - 0.5 * SQR(xval) + inla_log_Phi(alpha * xval));
-		}
-
-		return (TRUNCATE(integral * dx / 3.0, 0.0, 1.0));
-	}
-}
-
-int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_sn(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ Skew_Normal(x, stdev)
@@ -5330,102 +5300,41 @@ int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *
 	}
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, lprec, sprec, w, shape, shape_max, xarg, ypred;
+	double y, lprec, sprec, w, shape, skew_max, xarg, ypred, *param[2];
+	inla_sn_arg_tp sn_arg;
 
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
-	w = ds->data_observations.weight_skew_normal[idx];
-	lprec = ds->data_observations.log_prec_skew_normal[GMRFLib_thread_id][0] + log(w);
-	sprec = sqrt(map_precision(ds->data_observations.log_prec_skew_normal[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w);
-	shape_max = ds->data_observations.shape_max_skew_normal;
-	shape = map_rho(ds->data_observations.shape_skew_normal[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * shape_max;
+	w = ds->data_observations.sn_scale[idx];
+	lprec = ds->data_observations.sn_lprec[GMRFLib_thread_id][0] + log(w);
+	sprec = exp(lprec/2.0);
+
+	param[0] = ds->data_observations.sn_skewness[GMRFLib_thread_id];
+	param[1] = ds->data_observations.sn_quantile_level[GMRFLib_thread_id];
+	inla_get_sn_param(&sn_arg, param);
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			xarg = (y - ypred) * sprec;
-			logll[i] = LOG_NORMC_GAUSSIAN + M_LN2 + 0.5 * (lprec - SQR(xarg)) + inla_log_Phi_fast(shape * xarg);
+			xarg = ((y - ypred - sn_arg.intercept) * sprec - sn_arg.xi) / sn_arg.omega;
+			logll[i] = LOG_NORMC_GAUSSIAN + M_LN2 + 0.5 * lprec  - log(sn_arg.omega) - 0.5 * SQR(xarg) + inla_log_Phi_fast(sn_arg.alpha * xarg);
 		}
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
+		double intercept = sn_arg.intercept;
+		double nan = NAN;
 
-#pragma omp parallel for private(i, ypred, xarg)
+		param[1] = &nan; 			       /* to remove the internal intercept */
 		for (i = 0; i < -m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			xarg = (yy - ypred) * sprec;
-			logll[i] = inla_sn_Phi(xarg, 0.0, 1.0, shape);
+			xarg = (yy - ypred - intercept) * sprec;
+			logll[i] = map_invsn_core(xarg, MAP_FORWARD, param, NULL);
 		}
 	}
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_skew_normal2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
-{
-	/*
-	 * y ~ Skew_Normal(x, stdev), with the moment parameterisation
-	 */
-
-	// skewmx = 0.995271746...
-#define _SKEW_MAX ((4.0-M_PI)/2.0/pow(ABS(1.0-M_PI/2), 3.0/2.0))
-
-	if (m == 0) {
-		return GMRFLib_LOGL_COMPUTE_CDF;
-	}
-	int i;
-	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, lprec, w, skewness, xarg, ypred, xi, omega, alpha, g, variance, delta;
-
-	LINK_INIT;
-	y = ds->data_observations.y[idx];
-	w = ds->data_observations.weight_skew_normal2[idx];
-	lprec = ds->data_observations.log_prec_skew_normal2[GMRFLib_thread_id][0] + log(w);
-	variance = exp(-lprec);
-	skewness = map_rho(ds->data_observations.logit_skewness_skew_normal2[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			if (ISZERO(skewness)) {
-				g = 0.0;
-			} else {
-				g = M_PI / (2.0 * (1.0 + pow((4.0 - M_PI) / (2.0 * ABS(skewness)), 2.0 / 3.0)));
-				g = DMIN(_SKEW_MAX - GMRFLib_eps(0.75), g);
-				g = DMAX(-(_SKEW_MAX - GMRFLib_eps(0.75)), g);
-			}
-			alpha = INLA_SIGN(skewness) * sqrt(g / (1.0 - g));
-			delta = alpha / sqrt(1.0 + SQR(alpha));
-			omega = sqrt(variance / (1.0 - 2.0 * SQR(delta) / M_PI));
-			xi = ypred - omega * delta * sqrt(2.0 / M_PI);
-			// xi = ypred;
-			xarg = (y - xi) / omega;
-			logll[i] = LOG_NORMC_GAUSSIAN + M_LN2 - log(omega) - 0.5 * SQR(xarg) + inla_log_Phi_fast(alpha * xarg);
-		}
-	} else {
-		double yy = (y_cdf ? *y_cdf : y);
-
-#pragma omp parallel for private(i, ypred, g, alpha, delta, omega, xi, xarg)
-		for (i = 0; i < -m; i++) {
-			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			if (ISZERO(skewness)) {
-				g = 0.0;
-			} else {
-				g = M_PI / (2.0 * (1.0 + pow((4.0 - M_PI) / (2.0 * ABS(skewness)), 2.0 / 3.0)));
-				g = DMIN(_SKEW_MAX - GMRFLib_eps(0.75), g);
-				g = DMAX(-(_SKEW_MAX - GMRFLib_eps(0.75)), g);
-			}
-			alpha = INLA_SIGN(skewness) * sqrt(g / (1.0 - g));
-			delta = alpha / sqrt(1.0 + SQR(alpha));
-			omega = sqrt(variance / (1.0 - 2.0 * SQR(delta) / M_PI));
-			xi = ypred - omega * delta * sqrt(2.0 / M_PI);
-			xarg = (yy - xi) / omega;
-			logll[i] = inla_sn_Phi(xarg, 0.0, 1.0, alpha);
-		}
-	}
-
-#undef _SKEW_MAX
-	LINK_END;
-	return GMRFLib_SUCCESS;
-}
 
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
@@ -11522,11 +11431,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_logistic;
 		ds->data_id = L_LOGISTIC;
 	} else if (!strcasecmp(ds->data_likelihood, "SKEWNORMAL") || !strcasecmp(ds->data_likelihood, "SN")) {
-		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_skew_normal;
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_sn;
 		ds->data_id = L_SKEWNORMAL;
-	} else if (!strcasecmp(ds->data_likelihood, "SKEWNORMAL2") || !strcasecmp(ds->data_likelihood, "SN2")) {
-		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_skew_normal2;
-		ds->data_id = L_SKEWNORMAL2;
 	} else if (!strcasecmp(ds->data_likelihood, "GEV")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gev;
 		ds->data_id = L_GEV;
@@ -11893,21 +11799,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_SKEWNORMAL:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.weight_skew_normal[i] <= 0.0) {
-					GMRFLib_sprintf(&msg, "%s: Skewnormal weight[%1d] = %g is void\n", secname, i,
-							ds->data_observations.weight_skew_normal[i]);
-					inla_error_general(msg);
-				}
-			}
-		}
-		break;
-
-	case L_SKEWNORMAL2:
-		for (i = 0; i < mb->predictor_ndata; i++) {
-			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.weight_skew_normal2[i] <= 0.0) {
-					GMRFLib_sprintf(&msg, "%s: Skewnormal2 weight[%1d] = %g is void\n", secname, i,
-							ds->data_observations.weight_skew_normal2[i]);
+				if (ds->data_observations.sn_scale[i] <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Skewnormal scale[%1d] = %g is void\n", secname, i,
+							ds->data_observations.sn_scale[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -13167,9 +13061,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (!ds->data_fixed0 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->data_observations.log_prec_skew_normal, tmp);
+		HYPER_NEW(ds->data_observations.sn_lprec, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.log_prec_skew_normal[0][0]);
+			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.sn_lprec[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
 		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA", NULL);
@@ -13194,7 +13088,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
 
-			mb->theta[mb->ntheta] = ds->data_observations.log_prec_skew_normal;
+			mb->theta[mb->ntheta] = ds->data_observations.sn_lprec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
@@ -13203,27 +13097,17 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->data_ntheta++;
 		}
 
-		/*
-		 * the 'shape' parameter/ the skewness parameter
-		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "SN.SHAPE.MAX"), 5.0);
-		ds->data_observations.shape_max_skew_normal = iniparser_getdouble(ini, inla_string_join(secname, "SNSHAPEMAX"), tmp);
-		ds->data_observations.shape_max_skew_normal = ABS(ds->data_observations.shape_max_skew_normal);
-		if (mb->verbose) {
-			printf("\t\tshape.max[%g]\n", ds->data_observations.shape_max_skew_normal);
-		}
-
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
 		if (!ds->data_fixed1 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->data_observations.shape_skew_normal, tmp);
+		HYPER_NEW(ds->data_observations.sn_skewness, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise shape[%g]\n", ds->data_observations.shape_skew_normal[0][0]);
+			printf("\t\tinitialise intern_skewness[%g]\n", ds->data_observations.sn_skewness[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std", NULL);
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "PCSN", NULL);
 
 		/*
 		 * add theta 
@@ -13235,8 +13119,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("intern shape parameter for skew-normal observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("shape parameter for skew-normal observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern skewness for skew-normal observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Skewness for skew-normal observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -13244,100 +13128,59 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta[mb->ntheta] = ds->data_observations.sn_skewness;
 
-			mb->theta[mb->ntheta] = ds->data_observations.shape_skew_normal;
+			double *skewmax = Calloc(1, double);
+			*skewmax = LINK_SN_SKEWMAX;	       /* yes, this is correct */
+
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_rho;
+			mb->theta_map[mb->ntheta] = map_phi;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-			ds->data_ntheta++;
-		}
-		break;
-
-	case L_SKEWNORMAL2:
-		/*
-		 * get options related to the skew-normal
-		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* yes! */
-		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		HYPER_NEW(ds->data_observations.log_prec_skew_normal2, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.log_prec_skew_normal2[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
-		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA", NULL);
-
-		/*
-		 * add theta 
-		 */
-		if (!ds->data_fixed0) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = ds->data_prior0.hyperid;
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("log precision for skew-normal observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("precision for skew-normal observations", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
-			mb->theta_dir[mb->ntheta] = msg;
-
-			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
-
-			mb->theta[mb->ntheta] = ds->data_observations.log_prec_skew_normal2;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_precision;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->theta_map_arg[mb->ntheta] = (void *) skewmax;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
 
-		/*
-		 * the standarized skewness
-		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
-		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), 0.0);
+		ds->data_fixed2 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED2"), 0);
+		if (ISNAN(tmp) || ISINF(tmp)) {
+			tmp = NAN;
+			ds->data_fixed2 = 1;
+		}
+
+		if (!ds->data_fixed2 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->data_observations.logit_skewness_skew_normal2, tmp);
+		HYPER_NEW(ds->data_observations.sn_quantile_level, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise intern skewness[%g]\n", ds->data_observations.logit_skewness_skew_normal2[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
+			printf("\t\tinitialise intern_quantile_level[%g]\n", ds->data_observations.sn_quantile_level[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed2);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std", NULL);
+		inla_read_prior2(mb, ini, sec, &(ds->data_prior2), "LOGITBETA", NULL);
 
 		/*
 		 * add theta 
 		 */
-		if (!ds->data_fixed1) {
+		if (!ds->data_fixed2) {
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
 			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = ds->data_prior1.hyperid;
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior2.hyperid;
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("intern skewness for skew-normal observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("skewness for skew-normal observations", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern quantile-level for skew-normal observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Quantile-level for skew-normal observations", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter2", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior2.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior2.to_theta);
+			mb->theta[mb->ntheta] = ds->data_observations.sn_quantile_level;
 
-			mb->theta[mb->ntheta] = ds->data_observations.logit_skewness_skew_normal2;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_rho;
+			mb->theta_map[mb->ntheta] = map_probability;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -25833,34 +25676,15 @@ double extra(double *theta, int ntheta, void *argument)
 					count++;
 				}
 				if (!ds->data_fixed1) {
-					/*
-					 * this is the shape-parameter
-					 */
-					double shape = theta[count];
+					double skewness = theta[count];
 
-					val += PRIOR_EVAL(ds->data_prior1, &shape);
+					val += PRIOR_EVAL(ds->data_prior1, &skewness);
 					count++;
 				}
-				break;
+				if (!ds->data_fixed2) {
+					double quantile_level = theta[count];
 
-			case L_SKEWNORMAL2:
-				if (!ds->data_fixed0) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
-					log_precision = theta[count];
-
-					val += PRIOR_EVAL(ds->data_prior0, &log_precision);
-					count++;
-				}
-				if (!ds->data_fixed1) {
-					/*
-					 * this is the skewness
-					 */
-					double logit_skew = theta[count];
-
-					val += PRIOR_EVAL(ds->data_prior1, &logit_skew);
+					val += PRIOR_EVAL(ds->data_prior2, &quantile_level);
 					count++;
 				}
 				break;
@@ -32920,6 +32744,24 @@ int inla_check_pardiso(void)
 		GMRFLib_pardiso_check_install(0, 0);
 	}
 	return GMRFLib_SUCCESS;
+}
+
+double inla_sn_intercept(double intern_quantile, double skew)
+{
+	// testing only
+	double a3, val;
+	a3 = gsl_pow_3(inla_pc_sn_skew2alpha(skew));
+	val = map_invsn(intern_quantile, MAP_BACKWARD, (void *) &a3);
+	P(intern_quantile);
+	P(skew);
+	P(inla_pc_sn_skew2alpha(skew));
+	P(a3);
+	P(val);
+
+	return (0);
+
+	a3 = gsl_pow_3(inla_pc_sn_skew2alpha(skew));
+	return (map_invsn(intern_quantile, MAP_FORWARD, (void *) &a3));
 }
 
 int testit(int argc, char **argv)
