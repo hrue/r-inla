@@ -162,6 +162,18 @@
     ## if -1 the intercept is not included
     intercept = inla.ifelse(attr(terms(formula), "intercept") == 0, FALSE, TRUE)
 
+    ## we have to check if we have rw1/2,  or the iid
+    if (inla.one.of(cont.hazard$model,  c("rw1", "rw2"))) {
+        d <- inla.ifelse((is.null(cont.hazard$diagonal) && cont.hazard$constr),
+                         inla.set.f.default()$diagonal, cont.hazard$diagonal)
+        sc <- paste0(", scale.model = ", inla.ifelse(is.null(cont.hazard$scale.model),
+                                                     inla.getOption("scale.model.default"),
+                                                     cont.hazard$scale.model))
+    } else {
+        sc <- ""
+        d <- if (is.null(cont.hazard$diagonal)) 0.0 else cont.hazard$diagonal
+    }
+
     f.hazard = paste(
         "~",
         inla.ifelse(intercept, "1 +", "-1 +"), 
@@ -169,11 +181,8 @@
         ", values = baseline.hazard.values", 
         ", hyper = list(prec=", as.character(cont.hazard$hyper), ")", 
         ", constr = ", cont.hazard$constr,
-        ", diagonal = ", inla.ifelse((is.null(cont.hazard$diagonal) && cont.hazard$constr),
-                                     inla.set.f.default()$diagonal, cont.hazard$diagonal), 
-        ", scale.model = ", inla.ifelse(is.null(cont.hazard$scale.model),
-                                        inla.getOption("scale.model.default"),
-                                        cont.hazard$scale.model), 
+        ", diagonal = ", d, 
+        sc, 
         inla.ifelse(is.null(strata.var), "", paste(", replicate=", strata.var)),
         ")", sep="")
     
@@ -187,11 +196,9 @@
     stopifnot(is.character(tag))
     if (nchar(tag) > 0) {
         old.names = c("y..coxph",
-                      ##"E..coxph", 
                       "expand..coxph",
                       "baseline.hazard")                       
         new.names = c(paste0("y", tag, "..coxph"),
-                      ##paste0("E", tag, "..coxph"),
                       paste0("expand", tag, "..coxph"),
                       paste0("baseline", tag, ".hazard"))
         ## formula
