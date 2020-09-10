@@ -1,3 +1,4 @@
+
 /* inla.c
  * 
  * Copyright (C) 2007-2020 Havard Rue
@@ -2118,10 +2119,10 @@ double Qfunc_bym(int i, int j, double *values, void *arg)
 }
 double Qfunc_bym2(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_bym2_Qfunc_arg_tp *a = (inla_bym2_Qfunc_arg_tp *) arg;
 	int n = a->n;
 	double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -2136,10 +2137,10 @@ double Qfunc_bym2(int i, int j, double *values, void *arg)
 }
 double Qfunc_rw2diid(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_rw2diid_Qfunc_arg_tp *a = (inla_rw2diid_Qfunc_arg_tp *) arg;
 	int n = a->n;
 	double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -2154,10 +2155,10 @@ double Qfunc_rw2diid(int i, int j, double *values, void *arg)
 }
 double Qfunc_group(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_group_def_tp *a = (inla_group_def_tp *) arg;
 	ar_def_tp *ardef = NULL;
 	double rho = 0, val, fac, ngroup, prec = 0;
@@ -2398,10 +2399,10 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 }
 double Qfunc_generic1(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_generic1_tp *a = (inla_generic1_tp *) arg;
 	double beta = map_probability(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -2410,10 +2411,10 @@ double Qfunc_generic1(int i, int j, double *values, void *arg)
 }
 double Qfunc_generic2(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	/*
 	 * [u,v], where u = v + noise. h2 = 1/prec_v / (1/prec_v + 1/prev_u). h2 in (0,1). 
 	 */
@@ -2457,10 +2458,10 @@ double Qfunc_generic2(int i, int j, double *values, void *arg)
 }
 double Qfunc_generic3(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_generic3_tp *a = (inla_generic3_tp *) arg;
 	double prec_common, prec, val = 0.0;
 	int k, same = (i == j);
@@ -2478,10 +2479,10 @@ double Qfunc_generic3(int i, int j, double *values, void *arg)
 }
 double Qfunc_replicate(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	int ii, jj;
 	inla_replicate_tp *a = (inla_replicate_tp *) arg;
 
@@ -2513,10 +2514,10 @@ int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate)
 }
 double Qfunc_z(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_z_arg_tp *a = (inla_z_arg_tp *) arg;
 	double value = 0.0;
 
@@ -2536,10 +2537,10 @@ double Qfunc_z(int i, int j, double *values, void *arg)
 }
 double Qfunc_slm(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_slm_arg_tp *a = (inla_slm_arg_tp *) arg;
 	double value = 0.0, prec, rho, rho_std;
 
@@ -2570,10 +2571,10 @@ double Qfunc_slm(int i, int j, double *values, void *arg)
 }
 double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_rgeneric_tp *a = (inla_rgeneric_tp *) arg;
 	int rebuild, ii, debug = 0, id;
 
@@ -2650,10 +2651,10 @@ double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 
 double Qfunc_dmatern(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	dmatern_arg_tp *a = (dmatern_arg_tp *) arg;
 	double prec = map_exp(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	int rebuild, debug = 0, id;
@@ -2778,40 +2779,40 @@ double mfunc_rgeneric(int i, void *arg)
 }
 double Qfunc_clinear(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_clinear_tp *a = (inla_clinear_tp *) arg;
 	assert(i == j);
 	return (a->precision);
 }
 double Qfunc_sigm(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_sigm_tp *a = (inla_sigm_tp *) arg;
 	assert(i == j);
 	return (a->precision);
 }
 double Qfunc_log1exp(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_log1exp_tp *a = (inla_log1exp_tp *) arg;
 	assert(i == j);
 	return (a->precision);
 }
 double Qfunc_logdist(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_log1exp_tp *a = (inla_log1exp_tp *) arg;
 	assert(i == j);
 	return (a->precision);
@@ -2879,10 +2880,10 @@ double mfunc_logdist(int i, void *arg)
 }
 double Qfunc_mec(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_mec_tp *a = (inla_mec_tp *) arg;
 	double prec_x = map_precision(a->log_prec_x[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double prec_obs = map_precision(a->log_prec_obs[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -2906,10 +2907,10 @@ double mfunc_mec(int i, void *arg)
 }
 double Qfunc_meb(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_meb_tp *a = (inla_meb_tp *) arg;
 
 	double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -2935,10 +2936,10 @@ int inla_iid_wishart_nparam(int dim)
 }
 double Qfunc_iid_wishart(int node, int nnode, double *values, void *arg)
 {
-	if (node >= 0 && nnode < 0){
+	if (node >= 0 && nnode < 0) {
 		return NAN;
 	}
-	
+
 	/*
 	 * This function returns the ij'th element of the precision matrix of the dim-dimensional iid. The parameterisation is given in the covariance matrix, so we
 	 * need to compute the precision matrix. We store Q to avoid to compute it all the time.
@@ -3021,10 +3022,10 @@ double Qfunc_iid_wishart(int node, int nnode, double *values, void *arg)
 }
 double Qfunc_iid2d(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_iid2d_arg_tp *a = (inla_iid2d_arg_tp *) arg;
 	double prec0, prec1, rho;
 
@@ -3044,10 +3045,10 @@ double Qfunc_iid2d(int i, int j, double *values, void *arg)
 }
 double Qfunc_2diid(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_2diid_arg_tp *a = (inla_2diid_arg_tp *) arg;
 	double prec0, prec1, rho;
 
@@ -3067,10 +3068,10 @@ double Qfunc_2diid(int i, int j, double *values, void *arg)
 }
 double Qfunc_2diid_wishart(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_2diid_arg_tp *a = (inla_2diid_arg_tp *) arg;
 	double prec0, prec1, rho;
 
@@ -3098,10 +3099,10 @@ int inla_make_ou_graph(GMRFLib_graph_tp ** graph, inla_ou_arg_tp * arg)
 }
 double Qfunc_ar1(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_ar1_arg_tp *a = (inla_ar1_arg_tp *) arg;
 	double phi, prec_marginal, prec, val;
 
@@ -3134,10 +3135,10 @@ double Qfunc_ar1(int i, int j, double *values, void *arg)
 }
 double Qfunc_ar1c(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_ar1c_arg_tp *a = (inla_ar1c_arg_tp *) arg;
 	double phi, prec_marginal, prec, val;
 	int ii, jj, m;
@@ -3183,11 +3184,11 @@ double Qfunc_ar1c(int i, int j, double *values, void *arg)
 }
 double Qfunc_ou(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
-	inla_ou_arg_tp *a = (inla_ou_arg_tp*) arg;
+
+	inla_ou_arg_tp *a = (inla_ou_arg_tp *) arg;
 	double phi, prec, w, v, delta;
 
 	phi = map_exp(a->phi_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -3226,25 +3227,25 @@ double Qfunc_ou(int i, int j, double *values, void *arg)
 	abort();
 	return 0.0;
 }
-double priorfunc_linksnintercept(double *x, double *parameters) 
+double priorfunc_linksnintercept(double *x, double *parameters)
 {
 	// input is theta, need to find the corresponding mu.
 	double theta = *x;
 	double mu;
 	double step = 1.0e-4;
 	double theta_lim = 25.0;
-	
+
 	// we should not be outside the limits, really...
-	if (ABS(theta) <  theta_lim) {
-		mu = gsl_cdf_ugaussian_Pinv(1.0/(1.0 + exp(-theta)));
+	if (ABS(theta) < theta_lim) {
+		mu = gsl_cdf_ugaussian_Pinv(1.0 / (1.0 + exp(-theta)));
 	} else if (theta >= theta_lim) {
-		mu = gsl_cdf_ugaussian_Pinv(1.0/(1.0 + exp(-theta_lim)));
+		mu = gsl_cdf_ugaussian_Pinv(1.0 / (1.0 + exp(-theta_lim)));
 	} else {
-		mu = gsl_cdf_ugaussian_Pinv(1.0/(1.0 + exp(-(-theta_lim))));
+		mu = gsl_cdf_ugaussian_Pinv(1.0 / (1.0 + exp(-(-theta_lim))));
 	}
 
-	// d_mu/d_theta = 1 / (d_theta/d_mu)  
-	double deriv = 1.0 / ((inla_logit_Phi(mu+step) - inla_logit_Phi(mu-step))/(2.0*step));
+	// d_mu/d_theta = 1 / (d_theta/d_mu) 
+	double deriv = 1.0 / ((inla_logit_Phi(mu + step) - inla_logit_Phi(mu - step)) / (2.0 * step));
 	return (log(ABS(deriv)) + priorfunc_normal(&mu, parameters));
 }
 double priorfunc_pc_gevtail(double *x, double *parameters)
@@ -3844,7 +3845,7 @@ double priorfunc_normal(double *x, double *parameters)
 	 * return log(normal(x, mean, precision)) 
 	 */
 	if (ISZERO(parameters[1])) {
-		return 0.0; // = log(1)
+		return 0.0;				       // = log(1)
 	} else {
 		double mean = parameters[0], sigma = sqrt(1.0 / parameters[1]);
 		return log(gsl_ran_gaussian_pdf((*x) - mean, sigma));
@@ -4142,10 +4143,10 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 
 double Qfunc_besag(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_besag_Qfunc_arg_tp *a;
 	double prec;
 
@@ -4173,10 +4174,10 @@ double Qfunc_besag(int i, int j, double *values, void *arg)
 }
 double Qfunc_besag2(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_besag2_Qfunc_arg_tp *aa;
 	double a;
 
@@ -4201,10 +4202,10 @@ double Qfunc_besag2(int i, int j, double *values, void *arg)
 }
 double Qfunc_besagproper(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_besag_proper_Qfunc_arg_tp *a;
 	double prec;
 
@@ -4219,10 +4220,10 @@ double Qfunc_besagproper(int i, int j, double *values, void *arg)
 }
 double Qfunc_besagproper2(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_besag_proper2_Qfunc_arg_tp *a;
 	double prec;
 	double lambda;
@@ -4702,22 +4703,22 @@ double inla_Phi(double x)
 		return exp(inla_log_Phi(x));
 	}
 }
-double inla_logit_Phi(double x) 
+double inla_logit_Phi(double x)
 {
 	// return log(Phi(x)/(1-Phi(x)))
-	
+
 	if (ABS(x) < 7.0) {
 		double y = inla_Phi(x);
-		return (log(y/(1.0-y)));
+		return (log(y / (1.0 - y)));
 	} else {
-		//> asympt(log(Phi(x)/(1-Phi(x))), x, 16);  
-		//    2
-		//   x                 1/2   1/2       1
-		//  ---- + ln(x) + ln(2    Pi   ) + O(----)
-		//   2                                  2
-		//
+		// > asympt(log(Phi(x)/(1-Phi(x))), x, 16); 
+		// 2
+		// x 1/2 1/2 1
+		// ---- + ln(x) + ln(2 Pi ) + O(----)
+		// 2 2
+		// 
 
-		double val = (SQR(x)/2.0 + log(x) + M_LN_SQRT_2PI);
+		double val = (SQR(x) / 2.0 + log(x) + M_LN_SQRT_2PI);
 		return (x > 0.0 ? val : -val);
 	}
 }
@@ -7693,9 +7694,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -8429,7 +8430,7 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 	double a, b, mu, lbeta;
 	double censor_value = ds->data_observations.beta_censor_value;
 	int no_censoring = (censor_value <= 0.0 || censor_value >= 0.5);
-	
+
 	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
@@ -8452,11 +8453,11 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 			} else {
 				// if we have censoring, we have to be more careful
 				if (y <= censor_value) {
-					logll[i] = MATHLIB_FUN(pbeta)(censor_value, a, b, 1, 1);
+					logll[i] = MATHLIB_FUN(pbeta) (censor_value, a, b, 1, 1);
 				} else if (y < 1.0 - censor_value) {
 					logll[i] = -lbeta + (a - 1.0) * log(y) + (b - 1.0) * log(1.0 - y);
 				} else {
-					logll[i] = MATHLIB_FUN(pbeta)(1.0 - censor_value, a, b, 0, 1);
+					logll[i] = MATHLIB_FUN(pbeta) (1.0 - censor_value, a, b, 0, 1);
 				}
 			}
 		}
@@ -8471,12 +8472,12 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 			} else {
 				if (yy <= censor_value) {
 					// use the expected prob instead
-					logll[i] = MATHLIB_FUN(pbeta)(censor_value, a, b, 1, 0) / 2.0;
-				} else if (yy <  1.0 - censor_value) {
+					logll[i] = MATHLIB_FUN(pbeta) (censor_value, a, b, 1, 0) / 2.0;
+				} else if (yy < 1.0 - censor_value) {
 					logll[i] = gsl_cdf_beta_P(yy, a, b);
 				} else {
-					//... and also here
-					logll[i] = 1.0 - MATHLIB_FUN(pbeta)(1.0 - censor_value, a, b, 0, 0) / 2.0;
+					// ... and also here
+					logll[i] = 1.0 - MATHLIB_FUN(pbeta) (1.0 - censor_value, a, b, 0, 0) / 2.0;
 				}
 			}
 		}
@@ -11184,7 +11185,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 				if (mb->verbose) {
 					printf("\t\tpardiso-library installed and working? = [%s]\n", "yes");
 				}
-				mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO; 
+				mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
 				openmp_strategy = GMRFLib_strdup("pardiso");
 				GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
 				smtp = GMRFLib_strdup("pardiso");
@@ -13900,7 +13901,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		if (beta_delayed_error && ds->data_observations.beta_censor_value == 0.0) {
-			GMRFLib_sprintf(&msg, "%s: Beta data: %1d observations are either 0 or 1,\n\t\tbut then you need to enable censoring, see inla.doc('^beta$')\n", secname, beta_delayed_error);
+			GMRFLib_sprintf(&msg,
+					"%s: Beta data: %1d observations are either 0 or 1,\n\t\tbut then you need to enable censoring, see inla.doc('^beta$')\n",
+					secname, beta_delayed_error);
 			inla_error_general(msg);
 		}
 
@@ -17100,10 +17103,10 @@ GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRF
 
 double Qfunc_intslope(int node, int nnode, double *values, void *arg)
 {
-	if (node >= 0 && nnode < 0){
+	if (node >= 0 && nnode < 0) {
 		return NAN;
 	}
-	
+
 	int i, imin, imax, idx, subject, strata, icase;
 	double val = 0.0, xval = 0.0, gam, z = NAN;
 	inla_intslope_arg_tp *a = (inla_intslope_arg_tp *) arg;
@@ -24416,10 +24419,10 @@ double iid_mfunc(int idx, void *arg)
 }
 double Qfunc_copy_part00(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_copy_arg_tp *a = (inla_copy_arg_tp *) arg;
 
 	if (i == j) {
@@ -24431,10 +24434,10 @@ double Qfunc_copy_part00(int i, int j, double *values, void *arg)
 }
 double Qfunc_copy_part01(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_copy_arg_tp *a = (inla_copy_arg_tp *) arg;
 	double beta = a->map_beta(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, a->map_beta_arg);
 
@@ -24442,10 +24445,10 @@ double Qfunc_copy_part01(int i, int j, double *values, void *arg)
 }
 double Qfunc_copy_part11(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_copy_arg_tp *a = (inla_copy_arg_tp *) arg;
 
 	return a->precision;
@@ -25099,9 +25102,9 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		assert(mat->nrow == mat->ncol);
 
 		gsl_matrix *M = gsl_matrix_alloc((size_t) mat->nrow, (size_t) mat->ncol);
-		for(int i = 0; i < mat->nrow; i++) {
-			for(int j = 0; j < mat->ncol; j++) {
-				gsl_matrix_set(M, (size_t)i, (size_t)j, GMRFLib_matrix_get(i, j, mat));
+		for (int i = 0; i < mat->nrow; i++) {
+			for (int j = 0; j < mat->ncol; j++) {
+				gsl_matrix_set(M, (size_t) i, (size_t) j, GMRFLib_matrix_get(i, j, mat));
 			}
 		}
 		mb->ai_par->optimise_use_directions_m = M;
@@ -29060,7 +29063,7 @@ int inla_INLA(inla_tp * mb)
 	} else {
 		storage_scheme = GMRFLib_DENSITY_STORAGE_STRATEGY_LOW;
 	}
-	
+
 	if (mb->strategy == GMRFLib_OPENMP_STRATEGY_DEFAULT) {
 		/*
 		 * to determine the strategy, count the size of the model 
@@ -33042,7 +33045,7 @@ int testit(int argc, char **argv)
 
 	case 7:
 	{
-		
+
 		inla_fgn_arg_tp *arg = Calloc(1, inla_fgn_arg_tp);
 		arg->n = 10;
 		arg->k = 3;
@@ -33809,20 +33812,20 @@ int testit(int argc, char **argv)
 		break;
 
 
-	case 44: 
+	case 44:
 	{
 		double a, b, y;
 		int i;
 
-		for(i = 0; i < 10; i++){
+		for (i = 0; i < 10; i++) {
 
-			a = 2.0*GMRFLib_uniform();
-			b = 2.0*GMRFLib_uniform();
+			a = 2.0 * GMRFLib_uniform();
+			b = 2.0 * GMRFLib_uniform();
 			y = GMRFLib_uniform();
 
 			printf("a %f b %f y %f", a, b, y);
-			printf("  pbeta %f ", MATHLIB_FUN(pbeta)(y, a, b, 1, 1));
-			printf("  1-pbeta %f\n", MATHLIB_FUN(pbeta)(y, a, b, 0, 1));
+			printf("  pbeta %f ", MATHLIB_FUN(pbeta) (y, a, b, 1, 1));
+			printf("  1-pbeta %f\n", MATHLIB_FUN(pbeta) (y, a, b, 0, 1));
 		}
 		break;
 	}
@@ -33833,12 +33836,12 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-	case 46: 
+	case 46:
 	{
 		GMRFLib_crwdef_tp *rw = Calloc(1, GMRFLib_crwdef_tp);
 		GMRFLib_graph_tp *g;
 		int n = 10, i, j;
-		
+
 		rw->n = n;
 		rw->prec = Calloc(1, double);
 		rw->prec[0] = 1.0;
@@ -33846,10 +33849,10 @@ int testit(int argc, char **argv)
 		rw->layout = GMRFLib_CRW_LAYOUT_SIMPLE;
 		rw->position = Calloc(n, double);
 		rw->position[0] = 0;
-		for(i = 1; i < n; i++) {
-			rw->position[i] = rw->position[i-1] + i;
+		for (i = 1; i < n; i++) {
+			rw->position[i] = rw->position[i - 1] + i;
 		}
-		
+
 		GMRFLib_make_crw_graph(&g, rw);
 
 		double *len = Calloc(n, double);
@@ -33857,49 +33860,49 @@ int testit(int argc, char **argv)
 		double *res = Calloc(n, double);
 
 		null[0] = 1.0;
-		null[n-1] = 1.0;
-		len[0] = (rw->position[1]-rw->position[0])/1.0;
-		len[n-1] = (rw->position[n-1]-rw->position[n-2])/1.0;
-		for(i = 1; i < n-1; i++){
+		null[n - 1] = 1.0;
+		len[0] = (rw->position[1] - rw->position[0]) / 1.0;
+		len[n - 1] = (rw->position[n - 1] - rw->position[n - 2]) / 1.0;
+		for (i = 1; i < n - 1; i++) {
 			null[i] = 1.0;
-			len[i] = (rw->position[i+1]-rw->position[i]);
+			len[i] = (rw->position[i + 1] - rw->position[i]);
 		}
 		GMRFLib_Qx(res, null, g, GMRFLib_crw, (void *) rw);
-		for(i = 0; i < n; i++)
+		for (i = 0; i < n; i++)
 			printf("constr i %1d  x %f null %f Qnull %f\n", i, rw->position[i], null[i], res[i]);
 		if (rw->order > 1) {
-			memcpy(null, rw->position, n*sizeof(double));
+			memcpy(null, rw->position, n * sizeof(double));
 			GMRFLib_Qx(res, null, g, GMRFLib_crw, (void *) rw);
-			for(i = 0; i < n; i++)
+			for (i = 0; i < n; i++)
 				printf("linear i %1d  x %f null %f Qnull %f\n", i, rw->position[i], null[i], res[i]);
 		}
 
 		if (0) {
 			gsl_matrix *Q = gsl_matrix_calloc(n, n);
-			for(i = 0; i < n; i++)
-				for(j = 0; j < n; j++){
-					if (i == j || GMRFLib_graph_is_nb(i, j, g)){
+			for (i = 0; i < n; i++)
+				for (j = 0; j < n; j++) {
+					if (i == j || GMRFLib_graph_is_nb(i, j, g)) {
 						gsl_matrix_set(Q, i, j, GMRFLib_crw(i, j, rw->position, rw));
 					} else {
 						gsl_matrix_set(Q, i, j, 0.0);
 					}
 				}
-			
+
 			gsl_matrix *vec = gsl_matrix_calloc(n, n);
 			gsl_vector *val = gsl_vector_calloc(n);
 			gsl_eigen_symmv_workspace *work = gsl_eigen_symmv_alloc(n);
 			gsl_eigen_symmv(Q, val, vec, work);
-			
-			GMRFLib_gsl_matrix_fprintf(stdout, Q,  " %8.4f");
+
+			GMRFLib_gsl_matrix_fprintf(stdout, Q, " %8.4f");
 			printf("\n");
-			GMRFLib_gsl_matrix_fprintf(stdout, vec,  " %8.4f");
+			GMRFLib_gsl_matrix_fprintf(stdout, vec, " %8.4f");
 			printf("\n");
 			GMRFLib_gsl_vector_fprintf(stdout, val, " %8.4f");
 		}
 	}
-	break;
+		break;
 
-	// this will give some more error messages, if any
+		// this will give some more error messages, if any
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
@@ -33932,7 +33935,7 @@ int main(int argc, char **argv)
 
 #define _BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
-	int i, verbose = 0, silent = 0, opt, report = 0, arg, ntt[2] = {0, 0}, err, enable_core_file = 0;
+	int i, verbose = 0, silent = 0, opt, report = 0, arg, ntt[2] = { 0, 0 }, err, enable_core_file = 0;
 	int blas_num_threads = 1;
 	char *program = argv[0];
 	double time_used[3];
@@ -33940,7 +33943,7 @@ int main(int argc, char **argv)
 	inla_tp *mb = NULL;
 
 	int host_max_threads = omp_get_max_threads();
-	
+
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = omp_get_max_threads();
 	GMRFLib_openmp->max_threads_nested = Calloc(2, int);
@@ -34052,17 +34055,16 @@ int main(int argc, char **argv)
 			break;
 
 		case 't':
-			if (inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK ||
-			    inla_sread(ntt, 1, optarg, 0) == INLA_OK) {
+			if (inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK || inla_sread(ntt, 1, optarg, 0) == INLA_OK) {
 
 				if (verbose > 0) {
 					printf("\tRead ntt %d %d with max.threads %d\n", ntt[0], ntt[1], GMRFLib_openmp->max_threads);
 				}
-				
+
 				for (i = 0; i < 2; i++) {
 					ntt[i] = IMAX(0, ntt[i]);
 				}
-				
+
 				// replace 0 with auto-values
 				if (ntt[0] == 0 && ntt[1] == 0) {
 					ntt[0] = GMRFLib_openmp->max_threads;
@@ -34072,7 +34074,7 @@ int main(int argc, char **argv)
 				} else if (ntt[1] == 0) {
 					// let 0 means 1 for the moment. only larger problems gives a speedup,
 					// much likely it will slow things down.
-					//ntt[1] = GMRFLib_openmp->max_threads / ntt[0];
+					// ntt[1] = GMRFLib_openmp->max_threads / ntt[0];
 					ntt[1] = 1;
 				}
 
@@ -34080,7 +34082,7 @@ int main(int argc, char **argv)
 				// integrated there
 #if defined(WINDOWS)
 				ntt[1] = 1;
-#endif				
+#endif
 				for (i = 0; i < 2; i++) {
 					ntt[i] = IMAX(1, ntt[i]);
 					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
@@ -34326,8 +34328,7 @@ int main(int argc, char **argv)
 				printf("Process file[%s] threads[%1d] max.threads[%1d] blas_threads[%1d]",
 				       argv[arg], GMRFLib_MAX_THREADS, host_max_threads, blas_num_threads);
 				if (GMRFLib_openmp->max_threads_nested) {
-					printf(" nested[%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0],
-					       GMRFLib_openmp->max_threads_nested[1]);
+					printf(" nested[%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 				} else {
 					printf("\n");
 				}
@@ -34402,7 +34403,7 @@ int main(int argc, char **argv)
 				printf("\n");
 			}
 		}
-	} 
+	}
 
 	if (report) {
 		GMRFLib_timer_full_report(NULL);
