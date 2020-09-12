@@ -5320,14 +5320,11 @@ int loglikelihood_sn(double *logll, double *x, int m, int idx, double *x_vec, do
 			logll[i] = LOG_NORMC_GAUSSIAN + M_LN2 + 0.5 * lprec  - log(sn_arg.omega) - 0.5 * SQR(xarg) + inla_log_Phi_fast(sn_arg.alpha * xarg);
 		}
 	} else {
-		double yy = (y_cdf ? *y_cdf : y);
-		double intercept = sn_arg.intercept;
-		double nan = NAN;
-
-		param[1] = &nan; 			       /* to remove the internal intercept */
+		double yy = (y_cdf ? *y_cdf : y), nan = NAN;
+		param[1] = &nan; 			       /* this will remove the internal intercept */
 		for (i = 0; i < -m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			xarg = (yy - ypred - intercept) * sprec;
+			xarg = (yy - ypred - sn_arg.intercept) * sprec;
 			logll[i] = map_invsn_core(xarg, MAP_FORWARD, param, NULL);
 		}
 	}
