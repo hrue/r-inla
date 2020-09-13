@@ -27,6 +27,22 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.09.13}{
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item Model \code{iid} added to possible models
+      for the baseline hazard in the Cox-ph model
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Likelihood models \code{sn} and \code{sn2} have been
+      replaced with a new version \code{sn}. The parameterisation is
+      different and now done correct.
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.09.09}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
