@@ -5,25 +5,32 @@
 \usepackage{verbatim}
 
 \begin{document}
-\section*{Skew-Normal (version 1 and 2)}
+\section*{Skew-Normal likelihood}
 
 \subsection*{Parametrisation}
 
-The Skew-Normal distribution is
+The standardised Skew-Normal distribution is
 \begin{displaymath}
-    f(y) = 2\frac{\sqrt{w\tau}}{\sqrt{2\pi}} \exp\left( -\frac{1}{2}
-      w\tau \left(y-\mu\right)^{2}\right) \;
-    \Phi(a\; a_{\text{max}} \left[w\tau \left(y-\mu\right)\right])
+    f(z) = \frac{2}{\omega_{\alpha}}
+    \phi\left(\frac{z -\xi_{\alpha}}{\omega_{\alpha}}\right)
+    \Phi\left(\alpha \frac{z -\xi_{\alpha}}{\omega_{\alpha}}\right)
 \end{displaymath}
-for continuously responses $y$ where $\Phi(\cdot)$ is the cumulative
-distribution function for a standard Normal, and
+where $\omega_\alpha$ and $\xi_\alpha$ are so that the mean is zero
+and variance is one, and they depends both on the skewness parameter
+$\alpha$.
+
+Let
+\begin{displaymath}
+    z= (y - (\eta + \mu_{\alpha}(q)))\sqrt{w \tau}
+\end{displaymath}
+where
 \begin{description}
-\item[$\mu$:] is the the location parameter
-\item[$\tau$:] is the inverse scale
-\item[$w$:] is a fixed weight, $w>0$,
-\item[$a$:] is the shape parameter
-\item[$a_{\text{max}}$:] is the (fixed) maximum value of the shape
-    paramter (added for stability reasons). Default value is $5$.
+\item[$\eta$:] is the the linear predictor
+\item[$\tau$:] is the precision
+\item[$w$:] is a fixed scale or weight, $w>0$,
+\item[$\mu_{\alpha}(q)$:] is the intercept parameterised by the
+    quantile level $q$, and is the $q$-quantile in the standardised
+    Skew-normal as a function of $\alpha$
 \end{description}
 
 \subsection*{Link-function}
@@ -35,112 +42,78 @@ The location parameter is linked to the linear predictor by
 
 \subsection*{Hyperparameters}
 
-The inverse scale is represented as
+The precision is represented as
 \begin{displaymath}
     \theta_{1} = \log \tau
 \end{displaymath}
 and the prior is defined on $\theta_{1}$. 
 
-The shape parameter is 
+The (standardised) skewness $\gamma$, is represented as
 \begin{displaymath}
-    a = 2 \frac{\exp(\theta_{2})}{1+\exp(\theta_{2})}-1
+    \gamma=0.988 (2\frac{\exp(\theta_2)}{1+\exp(\theta_2)}-1)
 \end{displaymath}
-and the prior is defined on $\theta_{2}$. 
+and the prior is defined on $\theta_{2}$. The standardised skewness
+depends on $\alpha$ as
+\begin{displaymath}
+\gamma ={\frac  {4-\pi }{2}}{\frac{\left(\delta {\sqrt  {2/\pi
+              }}\right)^{3}}{\left(1-2\delta^{2}/\pi
+        \right)^{{3/2}}}}, \qquad
+    \delta ={\frac{\alpha}{{\sqrt{1+\alpha^{2}}}}}
+\end{displaymath}
+
+The intercept parameter $q$, where $0<q<1$, is represented as
+\begin{displaymath}
+    q=\frac{\exp(\theta_3)}{1+\exp(\theta_3)}
+\end{displaymath}
+but the prior is defined on the classical intercept $\mu_c$ as defined
+for the case where $\alpha=0$, hence
+\begin{displaymath}
+    \mu_c =  \Phi^{-1}(q(\theta_3))
+\end{displaymath}
+Hence a $N(a,b)$ prior, means a normal prior with mean $a$ and
+precision $b$ for the classical intercept $\mu_c$ which is internally
+transferred to a prior for $\theta_3$. This is an exception from the
+rule, but is made to make it easier to give similar priors as in the
+probit case.
+
 
 \subsection*{Specification}
 
 \begin{itemize}
 \item $\text{family}=\texttt{sn}$
-\item Required arguments: $y$ and $w$ (keyword \texttt{scale}). The
-    weights has default value 1.
-\item Optional control arguments: \texttt{sn.shape.max}. Default value is
-    $5.0$.
+\item Required arguments: $y$ and $w$ (keyword \texttt{scale}, and 
+    $w=1$ by default).
 \end{itemize}
 
-\subsubsection*{Hyperparameter spesification and default values}
+\subsubsection*{Hyperparameter specification and default values}
 \input{../hyper/likelihood/sn.tex}
-
 
 
 \subsection*{Example}
 
-This is a simulated example requiring the package \verb@sn@.
 \verbatiminput{example-sn.R}
 
 \subsection*{Notes}
 
-An simpler approximation to $\Phi(\cdot)$ is used to improve the
-speed, which has maximum absolute error of 0.00197323; see the source
-code for further details.
-
-\clearpage
-
-
-\section*{Skew-Normal (version 2)}
-
-\subsection*{Parametrisation (version 2)}
-
-In the family ``sn2'' we offer an alternative parametersisation of the
-skew-normal with moment parameters, precision $w\tau$
-(where $w$ is a fixed weight or scale) and standarized skewness
-$\gamma$ (where $|\gamma|<1$
-due to the skew-normal family\footnote{%
-    or to be presice,
-    $|\gamma| < \frac{4-\pi}{2\left(\pi/2-1\right)^{3/2}} =
-    0.995271746\ldots$}). In this parameterisation, the location
-parameter is linked to the linear predictor by
-\begin{displaymath}
-    \mu = \eta
-\end{displaymath}
-and $\mu$ equals the expected value $\xi + \omega \delta
-\sqrt{\frac{2}{\pi}}$, and $\delta = \alpha/\sqrt{1+\alpha^{2}}$.
-
-\subsection*{Hyperparameters}
-The precision $\tau$ is represented as
-\begin{displaymath}
-    \theta_{1} = \log \tau
-\end{displaymath}
-and the prior is defined on $\theta_{1}$. 
-The (standarized) skewness $\gamma$ is 
-\begin{displaymath}
-    \gamma = 2 \frac{\exp(\theta_{2})}{1+\exp(\theta_{2})}-1
-\end{displaymath}
-and the prior is defined on $\theta_{2}$. 
-
-The function \texttt{INLA:::inla.sn.reparam} offer the mapping between
-the moments (mean, variance and skewness) and the parameters used in
-the skew-normal density in the format used in the package \texttt{sn},
-which are ($\xi, \omega, \alpha$), where
-\begin{displaymath}
-    f(x) = \frac{2}{\omega} \phi\left(\frac{x-\xi}{\omega}\right)
-    \Phi\left(\alpha \left[\frac{x-\xi}{\omega}\right]\right)
-\end{displaymath}
-where $\phi(\cdot)$ and $\Phi(\cdot)$ is the density and cumulative
-distribution function for the standard Gaussian distribution. 
-
-\subsubsection*{Hyperparameter spesification and default values for
-    \texttt{sn2}}
-\input{../hyper/likelihood/sn2.tex}
-
-\subsection*{Example for \texttt{sn2}}
-
-This is a simulated example requiring the package \verb@sn@.
-\verbatiminput{example-sn2.R}
-
-\subsection*{Notes for \texttt{sn2}}
-
-In this parametersiation there is no \texttt{sn.shape.max}.
-
-An simpler approximation to $\Phi(\cdot)$ is used to improve the
-speed, which has maximum absolute error of 0.00197323; see the source
-code for further details.
-
+\begin{itemize}
+\item This implementation replaces older ones ("sn" and "sn2") from
+    $13^{\text{\emph{th}}}$ September 2020.
+\item Please use \texttt{remove.names} argument to remove the
+    intercept after expansion. Required if some of the fixed effects
+    are factors, otherwise they do not expand correctly.
+\item Using \texttt{Inf} as initial value for the intercept, will
+    disable it and set $\mu_{\alpha}(q)$ identical to zero. In this
+    way, the 'traditional intercept' (which is not the correct way of
+    defining it though...), can be used.
+\item A $N(a,0)$ prior is interpreted as a constant prior with density
+    equal to one.
+\end{itemize}
 
 \end{document}
 
-
-% LocalWords:  np Hyperparameters Ntrials gaussian
+% LocalWords:  np Hyperparameters Ntrials gaussian Parametrisation skewness sn
 
 %%% Local Variables: 
 %%% TeX-master: t
 %%% End: 
+% LocalWords:  quantile probit Hyperparameter th

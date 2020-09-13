@@ -5287,6 +5287,22 @@
                              from.theta = function(x) exp(x)
                          )
                      )
+                 ), 
+                 iid = list(
+                     doc = "An iid model for the log-hazard", 
+                     hyper = list(
+                         theta = list(
+                             hyperid =  55501,
+                             name = "log precision",
+                             short.name = "prec",
+                             initial = 4,
+                             fixed = FALSE,
+                             prior = "loggamma",
+                             param = c(1, 0.00005),
+                             to.theta = function(x) log(x),
+                             from.theta = function(x) exp(x)
+                         )
+                     )
                  )
              )
          )
@@ -6110,45 +6126,13 @@
                      pdf = "logistic"
                  ),
 
-                 skewnormal = list(
-                     doc = "The Skew-Normal likelihoood", 
-                     hyper = list(
-                         theta1 = list(
-                             hyperid =  73001,
-                             name = "log inverse scale",
-                             short.name = "iscale",
-                             initial = 4,
-                             fixed = FALSE,
-                             prior = "loggamma",
-                             param = c(1, 0.00005), 
-                             to.theta = function(x) log(x),
-                             from.theta = function(x) exp(x)
-                         ),
-                         theta2 = list(
-                             hyperid =  73002,
-                             name = "logit skewness",
-                             short.name = "skew",
-                             initial = 4,
-                             fixed = FALSE,
-                             prior = "gaussian",
-                             param = c(0, 10), 
-                             to.theta = function(x, shape.max = 1) log((1+x/shape.max)/(1-x/shape.max)),
-                             from.theta = function(x, shape.max = 1) shape.max*(2*exp(x)/(1+exp(x))-1)
-                         )
-                     ),
-                     survival = FALSE,
-                     discrete = FALSE,
-                     link = c("default", "identity"),
-                     pdf = "sn"
-                 ),
-
                  sn = list(
                      doc = "The Skew-Normal likelihoood", 
                      hyper = list(
                          theta1 = list(
                              hyperid =  74001,
-                             name = "log inverse scale",
-                             short.name = "iscale",
+                             name = "log precision",
+                             short.name = "prec",
                              initial = 4,
                              fixed = FALSE,
                              prior = "loggamma",
@@ -6159,52 +6143,32 @@
                          theta2 = list(
                              hyperid =  74002,
                              name = "logit skewness",
-                             short.name = "skew",
-                             initial = 0,
+                             short.name = "skewness",
+                             initial = 0.00123456789,
                              fixed = FALSE,
-                             prior = "gaussian",
-                             param = c(0, 10),
-                             to.theta = function(x, shape.max = 1) log((1+x/shape.max)/(1-x/shape.max)),
-                             from.theta = function(x, shape.max = 1) shape.max*(2*exp(x)/(1+exp(x))-1)
+                             prior = "pc.sn",
+                             param = 10,
+                             ## This value defined by LINK_SN_SKEWMAX in inla.h
+                             to.theta = function(x, skew.max = 0.988) log((1+x/skew.max)/(1-x/skew.max)),
+                             from.theta = function(x, skew.max = 0.988) skew.max*(2*exp(x)/(1+exp(x))-1)
+                         ), 
+                         theta3 = list(
+                             hyperid =  74002,
+                             name = "intercept",
+                             short.name = "intercept",
+                             initial = 0.0,
+                             fixed = FALSE,
+                             prior = "linksnintercept",
+                             param = c(0, 0), 
+                             to.theta = function(x) log(x/(1-x)),
+                             from.theta = function(x) exp(x)/(1+exp(x))
                          )
                      ),
+                     status = "experimental", 
                      survival = FALSE,
                      discrete = FALSE,
                      link = c("default", "identity"),
                      pdf = "sn"
-                 ),
-
-                 sn2 = list(
-                     doc = "The Skew-Normal likelihoood (alt param)", 
-                     hyper = list(
-                         theta1 = list(
-                             hyperid =  75001,
-                             name = "log precision",
-                             short.name = "prec",
-                             initial = 1,
-                             fixed = FALSE,
-                             prior = "loggamma",
-                             param = c(1, 0.00005), 
-                             to.theta = function(x) log(x),
-                             from.theta = function(x) exp(x)
-                         ),
-                         theta2 = list(
-                             hyperid =  75002,
-                             name = "logit skewness",
-                             short.name = "skew",
-                             initial = 0,
-                             fixed = FALSE,
-                             prior = "gaussian",
-                             param = c(0, 10),
-                             to.theta = function(x, shape.max = 1) log((1+x/shape.max)/(1-x/shape.max)),
-                             from.theta = function(x, shape.max = 1) shape.max*(2*exp(x)/(1+exp(x))-1)
-                         )
-                     ),
-                     survival = FALSE,
-                     discrete = FALSE,
-                     link = c("default", "identity"),
-                     status = "disabled", 
-                     pdf = "sn2"
                  ),
 
                  gev = list(

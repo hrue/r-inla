@@ -52,8 +52,6 @@
                               "lognormal",
                               "t",
                               "sn",
-                              "sn2",
-                              "skewnormal",
                               "gev",
                               "logistic",
                               "circularnormal",

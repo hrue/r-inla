@@ -1,3 +1,4 @@
+
 /* inla.c
  * 
  * Copyright (C) 2007-2020 Havard Rue
@@ -494,8 +495,19 @@ double map_invrobit(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
+double inla_get_sn_param(inla_sn_arg_tp *output, double **param)
+{
+	// param =  *(skew_intern, intercept_intern)
+	return (map_invsn_core(0.0, MAP_FORWARD, (void *) param, output));
+}
 double map_invsn(double arg, map_arg_tp typ, void *param)
 {
+	return (map_invsn_core(arg, typ, param, NULL));
+}
+double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *output)
+{
+	// if 'output' is !NULL, just return the contents. its a backdoor avoid duplicating code
+
 #define MAP(_x) log((_x)/(1.0 - (_x)))
 #define iMAP(_x) (exp(_x)/(1.0+exp(_x)))
 #define diMAP(_x) (exp(_x)/SQR(1.0+exp(_x)))
@@ -656,6 +668,14 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 
 	if (debug) {
 		printf("... intercept_alpha= %g intercept= %g\n", intercept_alpha, intercept);
+	}
+
+	if (output) {
+		output->omega = omega;
+		output->xi = xi;
+		output->intercept = intercept;
+		output->alpha = alpha;
+		return 0.0;
 	}
 
 	switch (typ) {
@@ -2118,10 +2138,10 @@ double Qfunc_bym(int i, int j, double *values, void *arg)
 }
 double Qfunc_bym2(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_bym2_Qfunc_arg_tp *a = (inla_bym2_Qfunc_arg_tp *) arg;
 	int n = a->n;
 	double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -2136,10 +2156,10 @@ double Qfunc_bym2(int i, int j, double *values, void *arg)
 }
 double Qfunc_rw2diid(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_rw2diid_Qfunc_arg_tp *a = (inla_rw2diid_Qfunc_arg_tp *) arg;
 	int n = a->n;
 	double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -2154,10 +2174,10 @@ double Qfunc_rw2diid(int i, int j, double *values, void *arg)
 }
 double Qfunc_group(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_group_def_tp *a = (inla_group_def_tp *) arg;
 	ar_def_tp *ardef = NULL;
 	double rho = 0, val, fac, ngroup, prec = 0;
@@ -2398,10 +2418,10 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 }
 double Qfunc_generic1(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_generic1_tp *a = (inla_generic1_tp *) arg;
 	double beta = map_probability(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -2410,10 +2430,10 @@ double Qfunc_generic1(int i, int j, double *values, void *arg)
 }
 double Qfunc_generic2(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	/*
 	 * [u,v], where u = v + noise. h2 = 1/prec_v / (1/prec_v + 1/prev_u). h2 in (0,1). 
 	 */
@@ -2457,10 +2477,10 @@ double Qfunc_generic2(int i, int j, double *values, void *arg)
 }
 double Qfunc_generic3(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_generic3_tp *a = (inla_generic3_tp *) arg;
 	double prec_common, prec, val = 0.0;
 	int k, same = (i == j);
@@ -2478,10 +2498,10 @@ double Qfunc_generic3(int i, int j, double *values, void *arg)
 }
 double Qfunc_replicate(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	int ii, jj;
 	inla_replicate_tp *a = (inla_replicate_tp *) arg;
 
@@ -2513,10 +2533,10 @@ int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate)
 }
 double Qfunc_z(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_z_arg_tp *a = (inla_z_arg_tp *) arg;
 	double value = 0.0;
 
@@ -2536,10 +2556,10 @@ double Qfunc_z(int i, int j, double *values, void *arg)
 }
 double Qfunc_slm(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_slm_arg_tp *a = (inla_slm_arg_tp *) arg;
 	double value = 0.0, prec, rho, rho_std;
 
@@ -2570,10 +2590,10 @@ double Qfunc_slm(int i, int j, double *values, void *arg)
 }
 double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_rgeneric_tp *a = (inla_rgeneric_tp *) arg;
 	int rebuild, ii, debug = 0, id;
 
@@ -2650,10 +2670,10 @@ double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 
 double Qfunc_dmatern(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	dmatern_arg_tp *a = (dmatern_arg_tp *) arg;
 	double prec = map_exp(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	int rebuild, debug = 0, id;
@@ -2778,40 +2798,40 @@ double mfunc_rgeneric(int i, void *arg)
 }
 double Qfunc_clinear(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_clinear_tp *a = (inla_clinear_tp *) arg;
 	assert(i == j);
 	return (a->precision);
 }
 double Qfunc_sigm(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_sigm_tp *a = (inla_sigm_tp *) arg;
 	assert(i == j);
 	return (a->precision);
 }
 double Qfunc_log1exp(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_log1exp_tp *a = (inla_log1exp_tp *) arg;
 	assert(i == j);
 	return (a->precision);
 }
 double Qfunc_logdist(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_log1exp_tp *a = (inla_log1exp_tp *) arg;
 	assert(i == j);
 	return (a->precision);
@@ -2879,10 +2899,10 @@ double mfunc_logdist(int i, void *arg)
 }
 double Qfunc_mec(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_mec_tp *a = (inla_mec_tp *) arg;
 	double prec_x = map_precision(a->log_prec_x[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double prec_obs = map_precision(a->log_prec_obs[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -2906,10 +2926,10 @@ double mfunc_mec(int i, void *arg)
 }
 double Qfunc_meb(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_meb_tp *a = (inla_meb_tp *) arg;
 
 	double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -2935,10 +2955,10 @@ int inla_iid_wishart_nparam(int dim)
 }
 double Qfunc_iid_wishart(int node, int nnode, double *values, void *arg)
 {
-	if (node >= 0 && nnode < 0){
+	if (node >= 0 && nnode < 0) {
 		return NAN;
 	}
-	
+
 	/*
 	 * This function returns the ij'th element of the precision matrix of the dim-dimensional iid. The parameterisation is given in the covariance matrix, so we
 	 * need to compute the precision matrix. We store Q to avoid to compute it all the time.
@@ -3021,10 +3041,10 @@ double Qfunc_iid_wishart(int node, int nnode, double *values, void *arg)
 }
 double Qfunc_iid2d(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_iid2d_arg_tp *a = (inla_iid2d_arg_tp *) arg;
 	double prec0, prec1, rho;
 
@@ -3044,10 +3064,10 @@ double Qfunc_iid2d(int i, int j, double *values, void *arg)
 }
 double Qfunc_2diid(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_2diid_arg_tp *a = (inla_2diid_arg_tp *) arg;
 	double prec0, prec1, rho;
 
@@ -3067,10 +3087,10 @@ double Qfunc_2diid(int i, int j, double *values, void *arg)
 }
 double Qfunc_2diid_wishart(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_2diid_arg_tp *a = (inla_2diid_arg_tp *) arg;
 	double prec0, prec1, rho;
 
@@ -3098,10 +3118,10 @@ int inla_make_ou_graph(GMRFLib_graph_tp ** graph, inla_ou_arg_tp * arg)
 }
 double Qfunc_ar1(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_ar1_arg_tp *a = (inla_ar1_arg_tp *) arg;
 	double phi, prec_marginal, prec, val;
 
@@ -3134,10 +3154,10 @@ double Qfunc_ar1(int i, int j, double *values, void *arg)
 }
 double Qfunc_ar1c(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_ar1c_arg_tp *a = (inla_ar1c_arg_tp *) arg;
 	double phi, prec_marginal, prec, val;
 	int ii, jj, m;
@@ -3183,11 +3203,11 @@ double Qfunc_ar1c(int i, int j, double *values, void *arg)
 }
 double Qfunc_ou(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
-	inla_ou_arg_tp *a = (inla_ou_arg_tp*) arg;
+
+	inla_ou_arg_tp *a = (inla_ou_arg_tp *) arg;
 	double phi, prec, w, v, delta;
 
 	phi = map_exp(a->phi_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -3226,25 +3246,25 @@ double Qfunc_ou(int i, int j, double *values, void *arg)
 	abort();
 	return 0.0;
 }
-double priorfunc_linksnintercept(double *x, double *parameters) 
+double priorfunc_linksnintercept(double *x, double *parameters)
 {
 	// input is theta, need to find the corresponding mu.
 	double theta = *x;
 	double mu;
 	double step = 1.0e-4;
 	double theta_lim = 25.0;
-	
+
 	// we should not be outside the limits, really...
-	if (ABS(theta) <  theta_lim) {
-		mu = gsl_cdf_ugaussian_Pinv(1.0/(1.0 + exp(-theta)));
+	if (ABS(theta) < theta_lim) {
+		mu = gsl_cdf_ugaussian_Pinv(1.0 / (1.0 + exp(-theta)));
 	} else if (theta >= theta_lim) {
-		mu = gsl_cdf_ugaussian_Pinv(1.0/(1.0 + exp(-theta_lim)));
+		mu = gsl_cdf_ugaussian_Pinv(1.0 / (1.0 + exp(-theta_lim)));
 	} else {
-		mu = gsl_cdf_ugaussian_Pinv(1.0/(1.0 + exp(-(-theta_lim))));
+		mu = gsl_cdf_ugaussian_Pinv(1.0 / (1.0 + exp(-(-theta_lim))));
 	}
 
-	// d_mu/d_theta = 1 / (d_theta/d_mu)  
-	double deriv = 1.0 / ((inla_logit_Phi(mu+step) - inla_logit_Phi(mu-step))/(2.0*step));
+	// d_mu/d_theta = 1 / (d_theta/d_mu) 
+	double deriv = 1.0 / ((inla_logit_Phi(mu + step) - inla_logit_Phi(mu - step)) / (2.0 * step));
 	return (log(ABS(deriv)) + priorfunc_normal(&mu, parameters));
 }
 double priorfunc_pc_gevtail(double *x, double *parameters)
@@ -3844,7 +3864,7 @@ double priorfunc_normal(double *x, double *parameters)
 	 * return log(normal(x, mean, precision)) 
 	 */
 	if (ISZERO(parameters[1])) {
-		return 0.0; // = log(1)
+		return 0.0;				       // = log(1)
 	} else {
 		double mean = parameters[0], sigma = sqrt(1.0 / parameters[1]);
 		return log(gsl_ran_gaussian_pdf((*x) - mean, sigma));
@@ -4142,10 +4162,10 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 
 double Qfunc_besag(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_besag_Qfunc_arg_tp *a;
 	double prec;
 
@@ -4173,10 +4193,10 @@ double Qfunc_besag(int i, int j, double *values, void *arg)
 }
 double Qfunc_besag2(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_besag2_Qfunc_arg_tp *aa;
 	double a;
 
@@ -4201,10 +4221,10 @@ double Qfunc_besag2(int i, int j, double *values, void *arg)
 }
 double Qfunc_besagproper(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_besag_proper_Qfunc_arg_tp *a;
 	double prec;
 
@@ -4219,10 +4239,10 @@ double Qfunc_besagproper(int i, int j, double *values, void *arg)
 }
 double Qfunc_besagproper2(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_besag_proper2_Qfunc_arg_tp *a;
 	double prec;
 	double lambda;
@@ -4351,12 +4371,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_SKEWNORMAL:
 		idiv = 3;
-		a[0] = ds->data_observations.weight_skew_normal = Calloc(mb->predictor_ndata, double);
-		break;
-
-	case L_SKEWNORMAL2:
-		idiv = 3;
-		a[0] = ds->data_observations.weight_skew_normal2 = Calloc(mb->predictor_ndata, double);
+		a[0] = ds->data_observations.sn_scale = Calloc(mb->predictor_ndata, double);
 		break;
 
 	case L_GEV:
@@ -4702,22 +4717,22 @@ double inla_Phi(double x)
 		return exp(inla_log_Phi(x));
 	}
 }
-double inla_logit_Phi(double x) 
+double inla_logit_Phi(double x)
 {
 	// return log(Phi(x)/(1-Phi(x)))
-	
+
 	if (ABS(x) < 7.0) {
 		double y = inla_Phi(x);
-		return (log(y/(1.0-y)));
+		return (log(y / (1.0 - y)));
 	} else {
-		//> asympt(log(Phi(x)/(1-Phi(x))), x, 16);  
-		//    2
-		//   x                 1/2   1/2       1
-		//  ---- + ln(x) + ln(2    Pi   ) + O(----)
-		//   2                                  2
-		//
+		// > asympt(log(Phi(x)/(1-Phi(x))), x, 16); 
+		// 2
+		// x 1/2 1/2 1
+		// ---- + ln(x) + ln(2 Pi ) + O(----)
+		// 2 2
+		// 
 
-		double val = (SQR(x)/2.0 + log(x) + M_LN_SQRT_2PI);
+		double val = (SQR(x) / 2.0 + log(x) + M_LN_SQRT_2PI);
 		return (x > 0.0 ? val : -val);
 	}
 }
@@ -5275,51 +5290,7 @@ int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_v
 }
 
 
-double inla_sn_intercept(double intern_quantile, double skew)
-{
-	double a3, val;
-	a3 = gsl_pow_3(inla_pc_sn_skew2alpha(skew));
-	val = map_invsn(intern_quantile, MAP_BACKWARD, (void *) &a3);
-	P(intern_quantile);
-	P(skew);
-	P(inla_pc_sn_skew2alpha(skew));
-	P(a3);
-	P(val);
-
-	return (0);
-
-	a3 = gsl_pow_3(inla_pc_sn_skew2alpha(skew));
-	return (map_invsn(intern_quantile, MAP_FORWARD, (void *) &a3));
-}
-
-double inla_sn_Phi(double x, double xi, double omega, double alpha)
-{
-	// density = 2/omega * phi((x - xi)/omega) * Phi(alpha * ((x-xi)/omega))
-
-	if (alpha == 0.0) {
-		return inla_Phi((x - xi) / omega);
-	} else {
-		double xx = (x - xi) / omega;
-		double integral = 0.0;
-		double dx = 0.1;
-		double w = 0.0;
-		double xval;
-		int i, np;
-
-		np = (int) ((x - (-7.0)) / dx);
-		np = IMAX(9, np);
-		np = (np / 2) * 2 + 1;			       /* make sure its an odd number */
-		for (i = 0; i < np; i++) {
-			w = ((i == 0 || i == np - 1) ? 1.0 : (w == 2.0 ? 4.0 : 2.0));
-			xval = xx - i * dx;
-			integral += w * exp(LOG_NORMC_GAUSSIAN + M_LN2 - 0.5 * SQR(xval) + inla_log_Phi(alpha * xval));
-		}
-
-		return (TRUNCATE(integral * dx / 3.0, 0.0, 1.0));
-	}
-}
-
-int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_sn(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ Skew_Normal(x, stdev)
@@ -5329,102 +5300,38 @@ int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *
 	}
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, lprec, sprec, w, shape, shape_max, xarg, ypred;
+	double y, lprec, sprec, w, shape, skew_max, xarg, ypred, *param[2];
+	inla_sn_arg_tp sn_arg;
 
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
-	w = ds->data_observations.weight_skew_normal[idx];
-	lprec = ds->data_observations.log_prec_skew_normal[GMRFLib_thread_id][0] + log(w);
-	sprec = sqrt(map_precision(ds->data_observations.log_prec_skew_normal[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w);
-	shape_max = ds->data_observations.shape_max_skew_normal;
-	shape = map_rho(ds->data_observations.shape_skew_normal[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * shape_max;
+	w = ds->data_observations.sn_scale[idx];
+	lprec = ds->data_observations.sn_lprec[GMRFLib_thread_id][0] + log(w);
+	sprec = exp(lprec/2.0);
+
+	param[0] = ds->data_observations.sn_skewness[GMRFLib_thread_id];
+	param[1] = ds->data_observations.sn_quantile_level[GMRFLib_thread_id];
+	inla_get_sn_param(&sn_arg, param);
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			xarg = (y - ypred) * sprec;
-			logll[i] = LOG_NORMC_GAUSSIAN + M_LN2 + 0.5 * (lprec - SQR(xarg)) + inla_log_Phi_fast(shape * xarg);
+			xarg = ((y - ypred - sn_arg.intercept) * sprec - sn_arg.xi) / sn_arg.omega;
+			logll[i] = LOG_NORMC_GAUSSIAN + M_LN2 + 0.5 * lprec  - log(sn_arg.omega) - 0.5 * SQR(xarg) + inla_log_Phi_fast(sn_arg.alpha * xarg);
 		}
 	} else {
-		double yy = (y_cdf ? *y_cdf : y);
-
-#pragma omp parallel for private(i, ypred, xarg)
+		double yy = (y_cdf ? *y_cdf : y), nan = NAN;
+		param[1] = &nan; 			       /* this will remove the internal intercept */
 		for (i = 0; i < -m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			xarg = (yy - ypred) * sprec;
-			logll[i] = inla_sn_Phi(xarg, 0.0, 1.0, shape);
+			xarg = (yy - ypred - sn_arg.intercept) * sprec;
+			logll[i] = map_invsn_core(xarg, MAP_FORWARD, param, NULL);
 		}
 	}
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_skew_normal2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
-{
-	/*
-	 * y ~ Skew_Normal(x, stdev), with the moment parameterisation
-	 */
-
-	// skewmx = 0.995271746...
-#define _SKEW_MAX ((4.0-M_PI)/2.0/pow(ABS(1.0-M_PI/2), 3.0/2.0))
-
-	if (m == 0) {
-		return GMRFLib_LOGL_COMPUTE_CDF;
-	}
-	int i;
-	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, lprec, w, skewness, xarg, ypred, xi, omega, alpha, g, variance, delta;
-
-	LINK_INIT;
-	y = ds->data_observations.y[idx];
-	w = ds->data_observations.weight_skew_normal2[idx];
-	lprec = ds->data_observations.log_prec_skew_normal2[GMRFLib_thread_id][0] + log(w);
-	variance = exp(-lprec);
-	skewness = map_rho(ds->data_observations.logit_skewness_skew_normal2[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			if (ISZERO(skewness)) {
-				g = 0.0;
-			} else {
-				g = M_PI / (2.0 * (1.0 + pow((4.0 - M_PI) / (2.0 * ABS(skewness)), 2.0 / 3.0)));
-				g = DMIN(_SKEW_MAX - GMRFLib_eps(0.75), g);
-				g = DMAX(-(_SKEW_MAX - GMRFLib_eps(0.75)), g);
-			}
-			alpha = INLA_SIGN(skewness) * sqrt(g / (1.0 - g));
-			delta = alpha / sqrt(1.0 + SQR(alpha));
-			omega = sqrt(variance / (1.0 - 2.0 * SQR(delta) / M_PI));
-			xi = ypred - omega * delta * sqrt(2.0 / M_PI);
-			// xi = ypred;
-			xarg = (y - xi) / omega;
-			logll[i] = LOG_NORMC_GAUSSIAN + M_LN2 - log(omega) - 0.5 * SQR(xarg) + inla_log_Phi_fast(alpha * xarg);
-		}
-	} else {
-		double yy = (y_cdf ? *y_cdf : y);
-
-#pragma omp parallel for private(i, ypred, g, alpha, delta, omega, xi, xarg)
-		for (i = 0; i < -m; i++) {
-			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			if (ISZERO(skewness)) {
-				g = 0.0;
-			} else {
-				g = M_PI / (2.0 * (1.0 + pow((4.0 - M_PI) / (2.0 * ABS(skewness)), 2.0 / 3.0)));
-				g = DMIN(_SKEW_MAX - GMRFLib_eps(0.75), g);
-				g = DMAX(-(_SKEW_MAX - GMRFLib_eps(0.75)), g);
-			}
-			alpha = INLA_SIGN(skewness) * sqrt(g / (1.0 - g));
-			delta = alpha / sqrt(1.0 + SQR(alpha));
-			omega = sqrt(variance / (1.0 - 2.0 * SQR(delta) / M_PI));
-			xi = ypred - omega * delta * sqrt(2.0 / M_PI);
-			xarg = (yy - xi) / omega;
-			logll[i] = inla_sn_Phi(xarg, 0.0, 1.0, alpha);
-		}
-	}
-
-#undef _SKEW_MAX
-	LINK_END;
-	return GMRFLib_SUCCESS;
-}
 
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
@@ -7693,9 +7600,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -8429,7 +8336,7 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 	double a, b, mu, lbeta;
 	double censor_value = ds->data_observations.beta_censor_value;
 	int no_censoring = (censor_value <= 0.0 || censor_value >= 0.5);
-	
+
 	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
@@ -8452,11 +8359,11 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 			} else {
 				// if we have censoring, we have to be more careful
 				if (y <= censor_value) {
-					logll[i] = MATHLIB_FUN(pbeta)(censor_value, a, b, 1, 1);
+					logll[i] = MATHLIB_FUN(pbeta) (censor_value, a, b, 1, 1);
 				} else if (y < 1.0 - censor_value) {
 					logll[i] = -lbeta + (a - 1.0) * log(y) + (b - 1.0) * log(1.0 - y);
 				} else {
-					logll[i] = MATHLIB_FUN(pbeta)(1.0 - censor_value, a, b, 0, 1);
+					logll[i] = MATHLIB_FUN(pbeta) (1.0 - censor_value, a, b, 0, 1);
 				}
 			}
 		}
@@ -8471,12 +8378,12 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 			} else {
 				if (yy <= censor_value) {
 					// use the expected prob instead
-					logll[i] = MATHLIB_FUN(pbeta)(censor_value, a, b, 1, 0) / 2.0;
-				} else if (yy <  1.0 - censor_value) {
+					logll[i] = MATHLIB_FUN(pbeta) (censor_value, a, b, 1, 0) / 2.0;
+				} else if (yy < 1.0 - censor_value) {
 					logll[i] = gsl_cdf_beta_P(yy, a, b);
 				} else {
-					//... and also here
-					logll[i] = 1.0 - MATHLIB_FUN(pbeta)(1.0 - censor_value, a, b, 0, 0) / 2.0;
+					// ... and also here
+					logll[i] = 1.0 - MATHLIB_FUN(pbeta) (1.0 - censor_value, a, b, 0, 0) / 2.0;
 				}
 			}
 		}
@@ -11184,7 +11091,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 				if (mb->verbose) {
 					printf("\t\tpardiso-library installed and working? = [%s]\n", "yes");
 				}
-				mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO; 
+				mb->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
 				openmp_strategy = GMRFLib_strdup("pardiso");
 				GMRFLib_smtp = GMRFLib_SMTP_PARDISO;
 				smtp = GMRFLib_strdup("pardiso");
@@ -11521,11 +11428,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_logistic;
 		ds->data_id = L_LOGISTIC;
 	} else if (!strcasecmp(ds->data_likelihood, "SKEWNORMAL") || !strcasecmp(ds->data_likelihood, "SN")) {
-		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_skew_normal;
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_sn;
 		ds->data_id = L_SKEWNORMAL;
-	} else if (!strcasecmp(ds->data_likelihood, "SKEWNORMAL2") || !strcasecmp(ds->data_likelihood, "SN2")) {
-		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_skew_normal2;
-		ds->data_id = L_SKEWNORMAL2;
 	} else if (!strcasecmp(ds->data_likelihood, "GEV")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gev;
 		ds->data_id = L_GEV;
@@ -11892,21 +11796,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_SKEWNORMAL:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.weight_skew_normal[i] <= 0.0) {
-					GMRFLib_sprintf(&msg, "%s: Skewnormal weight[%1d] = %g is void\n", secname, i,
-							ds->data_observations.weight_skew_normal[i]);
-					inla_error_general(msg);
-				}
-			}
-		}
-		break;
-
-	case L_SKEWNORMAL2:
-		for (i = 0; i < mb->predictor_ndata; i++) {
-			if (ds->data_observations.d[i]) {
-				if (ds->data_observations.weight_skew_normal2[i] <= 0.0) {
-					GMRFLib_sprintf(&msg, "%s: Skewnormal2 weight[%1d] = %g is void\n", secname, i,
-							ds->data_observations.weight_skew_normal2[i]);
+				if (ds->data_observations.sn_scale[i] <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Skewnormal scale[%1d] = %g is void\n", secname, i,
+							ds->data_observations.sn_scale[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -13166,9 +13058,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (!ds->data_fixed0 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->data_observations.log_prec_skew_normal, tmp);
+		HYPER_NEW(ds->data_observations.sn_lprec, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.log_prec_skew_normal[0][0]);
+			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.sn_lprec[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
 		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA", NULL);
@@ -13193,7 +13085,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
 
-			mb->theta[mb->ntheta] = ds->data_observations.log_prec_skew_normal;
+			mb->theta[mb->ntheta] = ds->data_observations.sn_lprec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_precision;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
@@ -13202,27 +13094,17 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->data_ntheta++;
 		}
 
-		/*
-		 * the 'shape' parameter/ the skewness parameter
-		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "SN.SHAPE.MAX"), 5.0);
-		ds->data_observations.shape_max_skew_normal = iniparser_getdouble(ini, inla_string_join(secname, "SNSHAPEMAX"), tmp);
-		ds->data_observations.shape_max_skew_normal = ABS(ds->data_observations.shape_max_skew_normal);
-		if (mb->verbose) {
-			printf("\t\tshape.max[%g]\n", ds->data_observations.shape_max_skew_normal);
-		}
-
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
 		if (!ds->data_fixed1 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->data_observations.shape_skew_normal, tmp);
+		HYPER_NEW(ds->data_observations.sn_skewness, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise shape[%g]\n", ds->data_observations.shape_skew_normal[0][0]);
+			printf("\t\tinitialise intern_skewness[%g]\n", ds->data_observations.sn_skewness[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std", NULL);
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "PCSN", NULL);
 
 		/*
 		 * add theta 
@@ -13234,8 +13116,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("intern shape parameter for skew-normal observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("shape parameter for skew-normal observations", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern skewness for skew-normal observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Skewness for skew-normal observations", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -13243,100 +13125,59 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta[mb->ntheta] = ds->data_observations.sn_skewness;
 
-			mb->theta[mb->ntheta] = ds->data_observations.shape_skew_normal;
+			double *skewmax = Calloc(1, double);
+			*skewmax = LINK_SN_SKEWMAX;	       /* yes, this is correct */
+
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_rho;
+			mb->theta_map[mb->ntheta] = map_phi;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
-			mb->ntheta++;
-			ds->data_ntheta++;
-		}
-		break;
-
-	case L_SKEWNORMAL2:
-		/*
-		 * get options related to the skew-normal
-		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* yes! */
-		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
-		if (!ds->data_fixed0 && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		HYPER_NEW(ds->data_observations.log_prec_skew_normal2, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise log_precision[%g]\n", ds->data_observations.log_prec_skew_normal2[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
-		}
-		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA", NULL);
-
-		/*
-		 * add theta 
-		 */
-		if (!ds->data_fixed0) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = ds->data_prior0.hyperid;
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("log precision for skew-normal observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("precision for skew-normal observations", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
-			mb->theta_dir[mb->ntheta] = msg;
-
-			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
-
-			mb->theta[mb->ntheta] = ds->data_observations.log_prec_skew_normal2;
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_precision;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->theta_map_arg[mb->ntheta] = (void *) skewmax;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
 
-		/*
-		 * the standarized skewness
-		 */
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
-		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
-		if (!ds->data_fixed1 && mb->reuse_mode) {
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), 0.0);
+		ds->data_fixed2 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED2"), 0);
+		if (ISNAN(tmp) || ISINF(tmp)) {
+			tmp = NAN;
+			ds->data_fixed2 = 1;
+		}
+
+		if (!ds->data_fixed2 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->data_observations.logit_skewness_skew_normal2, tmp);
+		HYPER_NEW(ds->data_observations.sn_quantile_level, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise intern skewness[%g]\n", ds->data_observations.logit_skewness_skew_normal2[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
+			printf("\t\tinitialise intern_quantile_level[%g]\n", ds->data_observations.sn_quantile_level[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed2);
 		}
-		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "GAUSSIAN-std", NULL);
+		inla_read_prior2(mb, ini, sec, &(ds->data_prior2), "LOGITBETA", NULL);
 
 		/*
 		 * add theta 
 		 */
-		if (!ds->data_fixed1) {
+		if (!ds->data_fixed2) {
 			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
 			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = ds->data_prior1.hyperid;
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior2.hyperid;
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("intern skewness for skew-normal observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("skewness for skew-normal observations", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern quantile-level for skew-normal observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Quantile-level for skew-normal observations", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter2", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
 			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior2.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior2.to_theta);
+			mb->theta[mb->ntheta] = ds->data_observations.sn_quantile_level;
 
-			mb->theta[mb->ntheta] = ds->data_observations.logit_skewness_skew_normal2;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_rho;
+			mb->theta_map[mb->ntheta] = map_probability;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -13900,7 +13741,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		if (beta_delayed_error && ds->data_observations.beta_censor_value == 0.0) {
-			GMRFLib_sprintf(&msg, "%s: Beta data: %1d observations are either 0 or 1,\n\t\tbut then you need to enable censoring, see inla.doc('^beta$')\n", secname, beta_delayed_error);
+			GMRFLib_sprintf(&msg,
+					"%s: Beta data: %1d observations are either 0 or 1,\n\t\tbut then you need to enable censoring, see inla.doc('^beta$')\n",
+					secname, beta_delayed_error);
 			inla_error_general(msg);
 		}
 
@@ -17100,10 +16943,10 @@ GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRF
 
 double Qfunc_intslope(int node, int nnode, double *values, void *arg)
 {
-	if (node >= 0 && nnode < 0){
+	if (node >= 0 && nnode < 0) {
 		return NAN;
 	}
-	
+
 	int i, imin, imax, idx, subject, strata, icase;
 	double val = 0.0, xval = 0.0, gam, z = NAN;
 	inla_intslope_arg_tp *a = (inla_intslope_arg_tp *) arg;
@@ -24416,10 +24259,10 @@ double iid_mfunc(int idx, void *arg)
 }
 double Qfunc_copy_part00(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_copy_arg_tp *a = (inla_copy_arg_tp *) arg;
 
 	if (i == j) {
@@ -24431,10 +24274,10 @@ double Qfunc_copy_part00(int i, int j, double *values, void *arg)
 }
 double Qfunc_copy_part01(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_copy_arg_tp *a = (inla_copy_arg_tp *) arg;
 	double beta = a->map_beta(a->beta[GMRFLib_thread_id][0], MAP_FORWARD, a->map_beta_arg);
 
@@ -24442,10 +24285,10 @@ double Qfunc_copy_part01(int i, int j, double *values, void *arg)
 }
 double Qfunc_copy_part11(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_copy_arg_tp *a = (inla_copy_arg_tp *) arg;
 
 	return a->precision;
@@ -25099,9 +24942,9 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		assert(mat->nrow == mat->ncol);
 
 		gsl_matrix *M = gsl_matrix_alloc((size_t) mat->nrow, (size_t) mat->ncol);
-		for(int i = 0; i < mat->nrow; i++) {
-			for(int j = 0; j < mat->ncol; j++) {
-				gsl_matrix_set(M, (size_t)i, (size_t)j, GMRFLib_matrix_get(i, j, mat));
+		for (int i = 0; i < mat->nrow; i++) {
+			for (int j = 0; j < mat->ncol; j++) {
+				gsl_matrix_set(M, (size_t) i, (size_t) j, GMRFLib_matrix_get(i, j, mat));
 			}
 		}
 		mb->ai_par->optimise_use_directions_m = M;
@@ -25830,34 +25673,15 @@ double extra(double *theta, int ntheta, void *argument)
 					count++;
 				}
 				if (!ds->data_fixed1) {
-					/*
-					 * this is the shape-parameter
-					 */
-					double shape = theta[count];
+					double skewness = theta[count];
 
-					val += PRIOR_EVAL(ds->data_prior1, &shape);
+					val += PRIOR_EVAL(ds->data_prior1, &skewness);
 					count++;
 				}
-				break;
+				if (!ds->data_fixed2) {
+					double quantile_level = theta[count];
 
-			case L_SKEWNORMAL2:
-				if (!ds->data_fixed0) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
-					log_precision = theta[count];
-
-					val += PRIOR_EVAL(ds->data_prior0, &log_precision);
-					count++;
-				}
-				if (!ds->data_fixed1) {
-					/*
-					 * this is the skewness
-					 */
-					double logit_skew = theta[count];
-
-					val += PRIOR_EVAL(ds->data_prior1, &logit_skew);
+					val += PRIOR_EVAL(ds->data_prior2, &quantile_level);
 					count++;
 				}
 				break;
@@ -29060,7 +28884,7 @@ int inla_INLA(inla_tp * mb)
 	} else {
 		storage_scheme = GMRFLib_DENSITY_STORAGE_STRATEGY_LOW;
 	}
-	
+
 	if (mb->strategy == GMRFLib_OPENMP_STRATEGY_DEFAULT) {
 		/*
 		 * to determine the strategy, count the size of the model 
@@ -32919,6 +32743,24 @@ int inla_check_pardiso(void)
 	return GMRFLib_SUCCESS;
 }
 
+double inla_sn_intercept(double intern_quantile, double skew)
+{
+	// testing only
+	double a3, val;
+	a3 = gsl_pow_3(inla_pc_sn_skew2alpha(skew));
+	val = map_invsn(intern_quantile, MAP_BACKWARD, (void *) &a3);
+	P(intern_quantile);
+	P(skew);
+	P(inla_pc_sn_skew2alpha(skew));
+	P(a3);
+	P(val);
+
+	return (0);
+
+	a3 = gsl_pow_3(inla_pc_sn_skew2alpha(skew));
+	return (map_invsn(intern_quantile, MAP_FORWARD, (void *) &a3));
+}
+
 int testit(int argc, char **argv)
 {
 	int test_no = -1;
@@ -33042,7 +32884,7 @@ int testit(int argc, char **argv)
 
 	case 7:
 	{
-		
+
 		inla_fgn_arg_tp *arg = Calloc(1, inla_fgn_arg_tp);
 		arg->n = 10;
 		arg->k = 3;
@@ -33809,20 +33651,20 @@ int testit(int argc, char **argv)
 		break;
 
 
-	case 44: 
+	case 44:
 	{
 		double a, b, y;
 		int i;
 
-		for(i = 0; i < 10; i++){
+		for (i = 0; i < 10; i++) {
 
-			a = 2.0*GMRFLib_uniform();
-			b = 2.0*GMRFLib_uniform();
+			a = 2.0 * GMRFLib_uniform();
+			b = 2.0 * GMRFLib_uniform();
 			y = GMRFLib_uniform();
 
 			printf("a %f b %f y %f", a, b, y);
-			printf("  pbeta %f ", MATHLIB_FUN(pbeta)(y, a, b, 1, 1));
-			printf("  1-pbeta %f\n", MATHLIB_FUN(pbeta)(y, a, b, 0, 1));
+			printf("  pbeta %f ", MATHLIB_FUN(pbeta) (y, a, b, 1, 1));
+			printf("  1-pbeta %f\n", MATHLIB_FUN(pbeta) (y, a, b, 0, 1));
 		}
 		break;
 	}
@@ -33833,12 +33675,12 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-	case 46: 
+	case 46:
 	{
 		GMRFLib_crwdef_tp *rw = Calloc(1, GMRFLib_crwdef_tp);
 		GMRFLib_graph_tp *g;
 		int n = 10, i, j;
-		
+
 		rw->n = n;
 		rw->prec = Calloc(1, double);
 		rw->prec[0] = 1.0;
@@ -33846,10 +33688,10 @@ int testit(int argc, char **argv)
 		rw->layout = GMRFLib_CRW_LAYOUT_SIMPLE;
 		rw->position = Calloc(n, double);
 		rw->position[0] = 0;
-		for(i = 1; i < n; i++) {
-			rw->position[i] = rw->position[i-1] + i;
+		for (i = 1; i < n; i++) {
+			rw->position[i] = rw->position[i - 1] + i;
 		}
-		
+
 		GMRFLib_make_crw_graph(&g, rw);
 
 		double *len = Calloc(n, double);
@@ -33857,49 +33699,49 @@ int testit(int argc, char **argv)
 		double *res = Calloc(n, double);
 
 		null[0] = 1.0;
-		null[n-1] = 1.0;
-		len[0] = (rw->position[1]-rw->position[0])/1.0;
-		len[n-1] = (rw->position[n-1]-rw->position[n-2])/1.0;
-		for(i = 1; i < n-1; i++){
+		null[n - 1] = 1.0;
+		len[0] = (rw->position[1] - rw->position[0]) / 1.0;
+		len[n - 1] = (rw->position[n - 1] - rw->position[n - 2]) / 1.0;
+		for (i = 1; i < n - 1; i++) {
 			null[i] = 1.0;
-			len[i] = (rw->position[i+1]-rw->position[i]);
+			len[i] = (rw->position[i + 1] - rw->position[i]);
 		}
 		GMRFLib_Qx(res, null, g, GMRFLib_crw, (void *) rw);
-		for(i = 0; i < n; i++)
+		for (i = 0; i < n; i++)
 			printf("constr i %1d  x %f null %f Qnull %f\n", i, rw->position[i], null[i], res[i]);
 		if (rw->order > 1) {
-			memcpy(null, rw->position, n*sizeof(double));
+			memcpy(null, rw->position, n * sizeof(double));
 			GMRFLib_Qx(res, null, g, GMRFLib_crw, (void *) rw);
-			for(i = 0; i < n; i++)
+			for (i = 0; i < n; i++)
 				printf("linear i %1d  x %f null %f Qnull %f\n", i, rw->position[i], null[i], res[i]);
 		}
 
 		if (0) {
 			gsl_matrix *Q = gsl_matrix_calloc(n, n);
-			for(i = 0; i < n; i++)
-				for(j = 0; j < n; j++){
-					if (i == j || GMRFLib_graph_is_nb(i, j, g)){
+			for (i = 0; i < n; i++)
+				for (j = 0; j < n; j++) {
+					if (i == j || GMRFLib_graph_is_nb(i, j, g)) {
 						gsl_matrix_set(Q, i, j, GMRFLib_crw(i, j, rw->position, rw));
 					} else {
 						gsl_matrix_set(Q, i, j, 0.0);
 					}
 				}
-			
+
 			gsl_matrix *vec = gsl_matrix_calloc(n, n);
 			gsl_vector *val = gsl_vector_calloc(n);
 			gsl_eigen_symmv_workspace *work = gsl_eigen_symmv_alloc(n);
 			gsl_eigen_symmv(Q, val, vec, work);
-			
-			GMRFLib_gsl_matrix_fprintf(stdout, Q,  " %8.4f");
+
+			GMRFLib_gsl_matrix_fprintf(stdout, Q, " %8.4f");
 			printf("\n");
-			GMRFLib_gsl_matrix_fprintf(stdout, vec,  " %8.4f");
+			GMRFLib_gsl_matrix_fprintf(stdout, vec, " %8.4f");
 			printf("\n");
 			GMRFLib_gsl_vector_fprintf(stdout, val, " %8.4f");
 		}
 	}
-	break;
+		break;
 
-	// this will give some more error messages, if any
+		// this will give some more error messages, if any
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
@@ -33932,7 +33774,7 @@ int main(int argc, char **argv)
 
 #define _BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
-	int i, verbose = 0, silent = 0, opt, report = 0, arg, ntt[2] = {0, 0}, err, enable_core_file = 0;
+	int i, verbose = 0, silent = 0, opt, report = 0, arg, ntt[2] = { 0, 0 }, err, enable_core_file = 0;
 	int blas_num_threads = 1;
 	char *program = argv[0];
 	double time_used[3];
@@ -33940,7 +33782,7 @@ int main(int argc, char **argv)
 	inla_tp *mb = NULL;
 
 	int host_max_threads = omp_get_max_threads();
-	
+
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = omp_get_max_threads();
 	GMRFLib_openmp->max_threads_nested = Calloc(2, int);
@@ -34052,17 +33894,16 @@ int main(int argc, char **argv)
 			break;
 
 		case 't':
-			if (inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK ||
-			    inla_sread(ntt, 1, optarg, 0) == INLA_OK) {
+			if (inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK || inla_sread(ntt, 1, optarg, 0) == INLA_OK) {
 
 				if (verbose > 0) {
 					printf("\tRead ntt %d %d with max.threads %d\n", ntt[0], ntt[1], GMRFLib_openmp->max_threads);
 				}
-				
+
 				for (i = 0; i < 2; i++) {
 					ntt[i] = IMAX(0, ntt[i]);
 				}
-				
+
 				// replace 0 with auto-values
 				if (ntt[0] == 0 && ntt[1] == 0) {
 					ntt[0] = GMRFLib_openmp->max_threads;
@@ -34072,7 +33913,7 @@ int main(int argc, char **argv)
 				} else if (ntt[1] == 0) {
 					// let 0 means 1 for the moment. only larger problems gives a speedup,
 					// much likely it will slow things down.
-					//ntt[1] = GMRFLib_openmp->max_threads / ntt[0];
+					// ntt[1] = GMRFLib_openmp->max_threads / ntt[0];
 					ntt[1] = 1;
 				}
 
@@ -34080,7 +33921,7 @@ int main(int argc, char **argv)
 				// integrated there
 #if defined(WINDOWS)
 				ntt[1] = 1;
-#endif				
+#endif
 				for (i = 0; i < 2; i++) {
 					ntt[i] = IMAX(1, ntt[i]);
 					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
@@ -34326,8 +34167,7 @@ int main(int argc, char **argv)
 				printf("Process file[%s] threads[%1d] max.threads[%1d] blas_threads[%1d]",
 				       argv[arg], GMRFLib_MAX_THREADS, host_max_threads, blas_num_threads);
 				if (GMRFLib_openmp->max_threads_nested) {
-					printf(" nested[%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0],
-					       GMRFLib_openmp->max_threads_nested[1]);
+					printf(" nested[%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 				} else {
 					printf("\n");
 				}
@@ -34402,7 +34242,7 @@ int main(int argc, char **argv)
 				printf("\n");
 			}
 		}
-	} 
+	}
 
 	if (report) {
 		GMRFLib_timer_full_report(NULL);
