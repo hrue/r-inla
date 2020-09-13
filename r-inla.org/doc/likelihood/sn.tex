@@ -65,16 +65,17 @@ The intercept parameter $q$, where $0<q<1$, is represented as
 \begin{displaymath}
     q=\frac{\exp(\theta_3)}{1+\exp(\theta_3)}
 \end{displaymath}
-but the prior is defined on the classical intercept $\mu_c$ as defined
+and the prior is defined on $\theta_3$.
+The default prior is \texttt{linksnintercept}, which is a prior for
+the classical intercept $\mu_c$ as defined
 for the case where $\alpha=0$, hence
 \begin{displaymath}
     \mu_c =  \Phi^{-1}(q(\theta_3))
 \end{displaymath}
-Hence a $N(a,b)$ prior, means a normal prior with mean $a$ and
-precision $b$ for the classical intercept $\mu_c$ which is internally
-transferred to a prior for $\theta_3$. This is an exception from the
-rule, but is made to make it easier to give similar priors as in the
-probit case.
+With parameters $(a,b)$ this prior means a normal prior with mean $a$
+and precision $b$ for the classical intercept $\mu_c$ which is
+internally transferred to a prior for $\theta_3$. This prior make it
+easier to give similar priors as in the probit case.
 
 
 \subsection*{Specification}

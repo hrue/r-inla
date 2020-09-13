@@ -20,7 +20,6 @@ r = inla(y ~ 1+x,
                               prior = "pc.prec",
                               param = c(3, 0.01)),
                           intercept = list(
-                              prior = "normal", 
                               param = c(0, 0)
                           ))), 
          control.fixed = list(remove.names = "(Intercept)"))
