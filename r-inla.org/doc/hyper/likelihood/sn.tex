@@ -7,8 +7,8 @@
 	 	\item[theta1]\ 
 	 	 \begin{description}
 	 	 	\item[hyperid] 74001
-	 	 	\item[name] log inverse scale
-	 	 	\item[short.name] iscale
+	 	 	\item[name] log precision
+	 	 	\item[short.name] prec
 	 	 	\item[initial] 4
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] loggamma
@@ -20,15 +20,28 @@
 	 	 \begin{description}
 	 	 	\item[hyperid] 74002
 	 	 	\item[name] logit skewness
-	 	 	\item[short.name] skew
+	 	 	\item[short.name] skewness
+	 	 	\item[initial] 0.00123456789
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] pc.sn
+	 	 	\item[param] 10
+	 	 	\item[to.theta] \verb!function(x, skew.max = 0.988) log((1+x/skew.max)/(1-x/skew.max))!
+	 	 	\item[from.theta] \verb!function(x, skew.max = 0.988) skew.max*(2*exp(x)/(1+exp(x))-1)!
+	 	 \end{description}
+	 	\item[theta3]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 74002
+	 	 	\item[name] intercept
+	 	 	\item[short.name] intercept
 	 	 	\item[initial] 0
 	 	 	\item[fixed] FALSE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] 0 10
-	 	 	\item[to.theta] \verb!function(x, shape.max = 1) log((1+x/shape.max)/(1-x/shape.max))!
-	 	 	\item[from.theta] \verb!function(x, shape.max = 1) shape.max*(2*exp(x)/(1+exp(x))-1)!
+	 	 	\item[prior] linksnintercept
+	 	 	\item[param] 0 0
+	 	 	\item[to.theta] \verb!function(x) log(x/(1-x))!
+	 	 	\item[from.theta] \verb!function(x) exp(x)/(1+exp(x))!
 	 	 \end{description}
 	 \end{description}
+	\item[status] experimental
 	\item[survival] FALSE
 	\item[discrete] FALSE
 	\item[link] default identity
