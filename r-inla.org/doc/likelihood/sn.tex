@@ -3,6 +3,7 @@
 \usepackage{amstext}
 \usepackage{amsmath}
 \usepackage{verbatim}
+\usepackage{block}
 
 \begin{document}
 \section*{Skew-Normal likelihood}
@@ -66,9 +67,10 @@ The intercept parameter $q$, where $0<q<1$, is represented as
     q=\frac{\exp(\theta_3)}{1+\exp(\theta_3)}
 \end{displaymath}
 and the prior is defined on $\theta_3$.
-The default prior is \texttt{linksnintercept}, which is a prior for
-the classical intercept $\mu_c$ as defined
-for the case where $\alpha=0$, hence
+
+The default prior for $\theta_3$ is \texttt{linksnintercept}, which is
+a prior for the classical intercept $\mu_c$ as defined for the case
+where $\alpha=0$, hence
 \begin{displaymath}
     \mu_c =  \Phi^{-1}(q(\theta_3))
 \end{displaymath}
@@ -108,6 +110,9 @@ easier to give similar priors as in the probit case.
     defining it though...), can be used.
 \item A $N(a,0)$ prior is interpreted as a constant prior with density
     equal to one.
+\item Note that the quantile formulation of the intercept, requires in
+    pratice, that the intercept to be within (even more) reasonable
+    bounds. If not, numerical errors can and will occur.
 \end{itemize}
 
 \end{document}

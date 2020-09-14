@@ -6159,7 +6159,7 @@
                              initial = 0.0,
                              fixed = FALSE,
                              prior = "linksnintercept",
-                             param = c(0, 0), 
+                             param = c(0, 1), 
                              to.theta = function(x) log(x/(1-x)),
                              from.theta = function(x) exp(x)/(1+exp(x))
                          )
