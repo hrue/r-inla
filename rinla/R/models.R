@@ -6153,7 +6153,7 @@
                              from.theta = function(x, skew.max = 0.988) skew.max*(2*exp(x)/(1+exp(x))-1)
                          ), 
                          theta3 = list(
-                             hyperid =  74002,
+                             hyperid =  74003,
                              name = "intercept",
                              short.name = "intercept",
                              initial = 0.0,
