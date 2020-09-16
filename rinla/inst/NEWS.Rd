@@ -27,6 +27,19 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.09.16}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Likelihood model \code{sn} is redone.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Various minor changes.
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.09.13}{
   \subsection{NEW FEATURES}{
     \itemize{
