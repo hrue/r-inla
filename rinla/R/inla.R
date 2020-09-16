@@ -2359,7 +2359,7 @@
 
     ## we take this a request for serial mode:
     ## if 'N' -> 'N:1',  where 'N' is any integer
-    xx <- suppressWarnings(as.integer(num.threads), classes = "warning")
+    xx <- suppressWarnings(as.integer(num.threads))
     if (!is.na(xx)) {
         num.threads <- paste0(max(0, xx), ":1")
         return (num.threads)

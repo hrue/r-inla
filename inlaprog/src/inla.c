@@ -534,8 +534,9 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *o
 		intercept_alpha = NAN;
 	}
 
-	if (debug)
+	if (debug) {
 		printf("map_invsn: enter with arg= %g, skew= %g, intercept_alpha= %g\n", arg, skew, intercept_alpha);
+	}
 
 	if (first) {
 #pragma omp critical
@@ -5300,7 +5301,7 @@ int loglikelihood_sn(double *logll, double *x, int m, int idx, double *x_vec, do
 	}
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, lprec, sprec, w, shape, skew_max, xarg, ypred, *param[2];
+	double y, lprec, sprec, w, shape, skew_max, xarg, ypred, *param[2], nan = NAN;
 	inla_sn_arg_tp sn_arg;
 
 	LINK_INIT;
@@ -5310,9 +5311,10 @@ int loglikelihood_sn(double *logll, double *x, int m, int idx, double *x_vec, do
 	sprec = exp(lprec/2.0);
 
 	param[0] = ds->data_observations.sn_skewness[GMRFLib_thread_id];
-	param[1] = ds->data_observations.sn_quantile_level[GMRFLib_thread_id];
+	param[1] = &nan;
 	inla_get_sn_param(&sn_arg, param);
-
+	assert(sn_arg.intercept == 0);
+	
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -13134,52 +13136,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map[mb->ntheta] = map_phi;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = (void *) skewmax;
-			mb->ntheta++;
-			ds->data_ntheta++;
-		}
-
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL2"), 0.0);
-		ds->data_fixed2 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED2"), 0);
-		if (ISNAN(tmp) || ISINF(tmp)) {
-			tmp = NAN;
-			ds->data_fixed2 = 1;
-		}
-
-		if (!ds->data_fixed2 && mb->reuse_mode) {
-			tmp = mb->theta_file[mb->theta_counter_file++];
-		}
-		HYPER_NEW(ds->data_observations.sn_quantile_level, tmp);
-		if (mb->verbose) {
-			printf("\t\tinitialise intern_quantile_level[%g]\n", ds->data_observations.sn_quantile_level[0][0]);
-			printf("\t\tfixed=[%1d]\n", ds->data_fixed2);
-		}
-		inla_read_prior2(mb, ini, sec, &(ds->data_prior2), "LOGITBETA", NULL);
-
-		/*
-		 * add theta 
-		 */
-		if (!ds->data_fixed2) {
-			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-			mb->theta_hyperid[mb->ntheta] = ds->data_prior2.hyperid;
-			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern quantile-level for skew-normal observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Quantile-level for skew-normal observations", mb->ds);
-			GMRFLib_sprintf(&msg, "%s-parameter2", secname);
-			mb->theta_dir[mb->ntheta] = msg;
-
-			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior2.from_theta);
-			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior2.to_theta);
-			mb->theta[mb->ntheta] = ds->data_observations.sn_quantile_level;
-
-			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_probability;
-			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
@@ -25663,10 +25619,6 @@ double extra(double *theta, int ntheta, void *argument)
 
 			case L_SKEWNORMAL:
 				if (!ds->data_fixed0) {
-					/*
-					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
-					 * function.
-					 */
 					log_precision = theta[count];
 
 					val += PRIOR_EVAL(ds->data_prior0, &log_precision);
@@ -25676,12 +25628,6 @@ double extra(double *theta, int ntheta, void *argument)
 					double skewness = theta[count];
 
 					val += PRIOR_EVAL(ds->data_prior1, &skewness);
-					count++;
-				}
-				if (!ds->data_fixed2) {
-					double quantile_level = theta[count];
-
-					val += PRIOR_EVAL(ds->data_prior2, &quantile_level);
 					count++;
 				}
 				break;
