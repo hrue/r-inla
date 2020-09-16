@@ -20,23 +20,20 @@ where $\omega_\alpha$ and $\xi_\alpha$ are so that the mean is zero
 and variance is one, and they depends both on the skewness parameter
 $\alpha$.
 
-Let
+The skew-normal likelihood is defined as the density wrt $y$, where
 \begin{displaymath}
-    z= (y - (\eta + \mu_{\alpha}(q)))\sqrt{w \tau}
+    z = (y - \eta)\sqrt{w \tau} \;\sim\; f(z)
 \end{displaymath}
-where
+and
 \begin{description}
 \item[$\eta$:] is the the linear predictor
 \item[$\tau$:] is the precision
 \item[$w$:] is a fixed scale or weight, $w>0$,
-\item[$\mu_{\alpha}(q)$:] is the intercept parameterised by the
-    quantile level $q$, and is the $q$-quantile in the standardised
-    Skew-normal as a function of $\alpha$
 \end{description}
 
 \subsection*{Link-function}
 
-The location parameter is linked to the linear predictor by
+The mean equals the linear predictor
 \begin{displaymath}
     \mu = \eta
 \end{displaymath}
@@ -62,23 +59,6 @@ depends on $\alpha$ as
     \delta ={\frac{\alpha}{{\sqrt{1+\alpha^{2}}}}}
 \end{displaymath}
 
-The intercept parameter $q$, where $0<q<1$, is represented as
-\begin{displaymath}
-    q=\frac{\exp(\theta_3)}{1+\exp(\theta_3)}
-\end{displaymath}
-and the prior is defined on $\theta_3$.
-
-The default prior for $\theta_3$ is \texttt{linksnintercept}, which is
-a prior for the classical intercept $\mu_c$ as defined for the case
-where $\alpha=0$, hence
-\begin{displaymath}
-    \mu_c =  \Phi^{-1}(q(\theta_3))
-\end{displaymath}
-With parameters $(a,b)$ this prior means a normal prior with mean $a$
-and precision $b$ for the classical intercept $\mu_c$ which is
-internally transferred to a prior for $\theta_3$. This prior make it
-easier to give similar priors as in the probit case.
-
 
 \subsection*{Specification}
 
@@ -100,19 +80,9 @@ easier to give similar priors as in the probit case.
 
 \begin{itemize}
 \item This implementation replaces older ones ("sn" and "sn2") from
-    $13^{\text{\emph{th}}}$ September 2020.
-\item Please use \texttt{remove.names} argument to remove the
-    intercept after expansion. Required if some of the fixed effects
-    are factors, otherwise they do not expand correctly.
-\item Using \texttt{Inf} as initial value for the intercept, will
-    disable it and set $\mu_{\alpha}(q)$ identical to zero. In this
-    way, the 'traditional intercept' (which is not the correct way of
-    defining it though...), can be used.
+    $16^{\text{\emph{th}}}$ September 2020.
 \item A $N(a,0)$ prior is interpreted as a constant prior with density
     equal to one.
-\item Note that the quantile formulation of the intercept, requires in
-    pratice, that the intercept to be within (even more) reasonable
-    bounds. If not, numerical errors can and will occur.
 \end{itemize}
 
 \end{document}

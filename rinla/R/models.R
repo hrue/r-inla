@@ -6151,17 +6151,6 @@
                              ## This value defined by LINK_SN_SKEWMAX in inla.h
                              to.theta = function(x, skew.max = 0.988) log((1+x/skew.max)/(1-x/skew.max)),
                              from.theta = function(x, skew.max = 0.988) skew.max*(2*exp(x)/(1+exp(x))-1)
-                         ), 
-                         theta3 = list(
-                             hyperid =  74003,
-                             name = "intercept",
-                             short.name = "intercept",
-                             initial = 0.0,
-                             fixed = FALSE,
-                             prior = "linksnintercept",
-                             param = c(0, 1), 
-                             to.theta = function(x) log(x/(1-x)),
-                             from.theta = function(x) exp(x)/(1+exp(x))
                          )
                      ),
                      status = "experimental", 

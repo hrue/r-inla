@@ -323,7 +323,6 @@ typedef struct {
 	 */
 	double **sn_skewness;
 	double **sn_lprec;
-	double **sn_quantile_level;
 	double *sn_scale;				 /* Variance = 1/(scale*prec) */
 
 	/*

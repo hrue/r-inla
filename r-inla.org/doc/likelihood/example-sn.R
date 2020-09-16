@@ -18,9 +18,5 @@ r = inla(y ~ 1+x,
          control.family = list(
              hyper = list(prec = list(
                               prior = "pc.prec",
-                              param = c(3, 0.01)),
-                          intercept = list(
-                              param = c(0, 1)
-                          ))), 
-         control.fixed = list(remove.names = "(Intercept)"))
+                              param = c(3, 0.01)))))
 summary(r)
