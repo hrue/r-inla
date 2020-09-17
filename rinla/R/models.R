@@ -5058,7 +5058,6 @@
                              from.theta = function(x) exp(x)/(1+exp(x))
                          )
                      ),
-                     status = "disabled", 
                      pdf = "linksn"
                  ), 
                  test1 = list(
