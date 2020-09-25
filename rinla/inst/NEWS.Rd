@@ -27,6 +27,14 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.09.25}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Bug fixes and some optimisation work
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.09.16}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
