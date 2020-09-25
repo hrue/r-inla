@@ -2153,7 +2153,7 @@
             cmat = ret$misc$lincomb.derived.covariance.matrix
             idx = grep(paste0("^", tag.base, "..*:[0-9]+$"), colnames(cmat))
             snames = gsub(paste0("^", tag.base), "", colnames(cmat)[idx])
-            covmat = cmat[idx, idx]
+            covmat = cmat[idx, idx, drop = FALSE]
             colnames(covmat) = rownames(covmat) = NULL
             mean = ret$summary.lincomb.derived[idx, "mean"]
 

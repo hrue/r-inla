@@ -175,6 +175,11 @@ typedef struct {
 	 */
 	double *e_vector;
 
+	// for each i, 'jfirst' is the index of the first non-zero A[i,].
+	// 'jlen' is the length from the first non-zero to the last non-zero, like j.last-j.first+1
+	int *jfirst;
+	int *jlen;
+
 	/**
 	 *  \brief If non-NULL, a diagonal non-singular error cov-matrix
 	 * 
@@ -470,7 +475,7 @@ typedef struct {
   \brief The structure to store intermediate calculations
 */
 typedef struct GMRFLib_store_struct GMRFLib_store_tp;	       /* used recursively */
-							       
+
 struct GMRFLib_store_struct {
 	GMRFLib_smtp_tp smtp;				       /* sparse matrix type */
 	int bandwidth;					       /* for GMRFLib_smtp == GMRFLib_SMTP_BAND */
@@ -481,7 +486,7 @@ struct GMRFLib_store_struct {
 
 	supernodal_factor_matrix *TAUCS_symb_fact;	       /* for GMRFLib_smtp == GMRFLib_SMTP_TAUCS */
 	GMRFLib_pardiso_store_tp *PARDISO_fact;
-	
+
 	GMRFLib_store_tp *diag_store;			       /* store SAFE-optims in optimize */
 	GMRFLib_store_tp *sub_store;			       /* store the same if fixed values in optimize */
 
@@ -526,9 +531,11 @@ int GMRFLib_sample(GMRFLib_problem_tp * problem);
 GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int skeleton, int copy_ptr, int copy_pardiso_ptr);
 GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton, int copy_ptr, int copy_pardiso_ptr);
 double GMRFLib_Qfunc_generic(int i, int j, double *values, void *arg);
-int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_opt, int *use_global, GMRFLib_global_node_tp *gn);
+int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_opt, int *use_global, GMRFLib_global_node_tp * gn);
 GMRFLib_sizeof_tp GMRFLib_sizeof_store(GMRFLib_store_tp * store);
 GMRFLib_sizeof_tp GMRFLib_sizeof_problem(GMRFLib_problem_tp * problem);
+int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_tp * constr);
+int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr);
 
 __END_DECLS
 #endif

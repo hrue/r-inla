@@ -1,26 +1,32 @@
 #!/usr/bin/env bash
 
+if [ $# -eq 0 ]; then
+    echo 'Usage: $0 INLA_TAG [USER@IP]'
+    exit 0
+fi
+
 tt=$(mktemp)
-grep -v 192.168.122.158 ~/.ssh/known_hosts  > $tt && mv -f $tt ~/.ssh/known_hosts
+if [ $# -eq 2 ]; then
+    IP=$2
+else
+    grep -v 192.168.122.158 ~/.ssh/known_hosts  > $tt && mv -f $tt ~/.ssh/known_hosts
+    IP=0.0.0.0
+    for ip in $(~/bin/my-vm-addr); do
+	if ping -q -i1 -W1 -c1 $ip; then
+	    IP=$ip
+	    echo Host $IP is alive
+	    break
+	else
+	    echo Host $ip is not alive
+	fi
+    done
 
-IP=0.0.0.0
-for ip in $(~/bin/my-vm-addr); do
-    if ping -q -i1 -W1 -c1 $ip; then
-	IP=$ip
-	echo Host $IP is alive
-	break
-    else
-	echo Host $ip is not alive
+    if [ -n "$IP" ]; then
+	yes yes | ssh hrue@$IP echo Testing connection
+    else 
+	echo "No VM, exit"
+	exit 1
     fi
-done
-
-if [ -n "$IP" ]; then
-    export INLA_LINUX=hrue@$IP
-    export INLA_LINUX_PORT=22
-    yes yes | ssh hrue@$IP echo Testing connection
-else 
-    echo "No VM, exit"
-    exit 1
 fi
 
 export INLA_TAG="${1-devel}"
@@ -28,6 +34,7 @@ VERSION=$(ssh $IP "source /etc/os-release; echo \$NAME-\$VERSION")
 D=64bit
 
 ssh -x -t $IP "
+    . .bash_profile;
     export INLA_TAG=$INLA_TAG;
     B=builds/build64;
     make -C \$B update;

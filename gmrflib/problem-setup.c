@@ -68,10 +68,10 @@ double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *
 
 	// we know that the mapping is identity in this case and that the sub_graph is the same as the graph
 	// this is also validated in the problem-setup
-		
-	node = sub_node; 
+
+	node = sub_node;
 	nnode = sub_nnode;
-		
+
 	if (nnode >= 0) {
 		// the normal case, nothing spesific to do
 		if (node == nnode) {
@@ -81,12 +81,12 @@ double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *
 		}
 	} else {
 		// this is the multi-case
-		val =  (*(args->user_Qfunc)) (node, -1, values, args->user_Qfunc_args);
+		val = (*(args->user_Qfunc)) (node, -1, values, args->user_Qfunc_args);
 		if (ISNAN(val)) {
 			// the Qfunction does not support it, move on doing it manually
 			int j, jj, k = 0;
 			values[k++] = (*(args->user_Qfunc)) (node, node, NULL, args->user_Qfunc_args) + args->diagonal_adds[node];
-			for(jj = 0; jj < args->graph->lnnbs[node]; jj++){
+			for (jj = 0; jj < args->graph->lnnbs[node]; jj++) {
 				j = args->graph->lnbs[node][jj];
 				values[k++] = (*(args->user_Qfunc)) (node, j, NULL, args->user_Qfunc_args);
 			}
@@ -194,6 +194,74 @@ int GMRFLib_init_problem(GMRFLib_problem_tp ** problem,
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
+
+
+int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_tp * constr)
+{
+	// compute C=A*B, where A is the constr matrix, and we know that C is symmetric.
+	// see below where this is used.
+	int K = m * (m + 1) / 2, *ii, *jj, cond;
+
+	ii = Calloc(2 * K, int);
+	jj = ii + K;
+	for (int k = 0, i = 0; i < m; i++) {
+		for (int j = i; j < m; j++) {
+			ii[k] = i;
+			jj[k] = j;
+			k++;
+		}
+	}
+
+	cond = (m > GMRFLib_MAX_THREADS);
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) if(cond)
+	for (int k = 0; k < K; k++) {
+		int i = ii[k], j = jj[k], incx = m, incy = 1;
+		double value;
+
+		value = ddot_(&(constr->jlen[i]), &(A[i + m * constr->jfirst[i]]), &incx, &(B[j * n + constr->jfirst[i]]), &incy);
+		C[i + j * m] = C[j + i * m] = value;
+	}
+
+	Free(ii);
+	return GMRFLib_SUCCESS;
+}
+
+int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr)
+{
+	// compute C=A*A', where A is the constr matrix. C is symmetric. see below where this is used.
+	int K = m * (m + 1) / 2, *ii, *jj, cond;
+
+	ii = Calloc(2 * K, int);
+	jj = ii + K;
+	for (int k = 0, i = 0; i < m; i++) {
+		for (int j = i; j < m; j++) {
+			ii[k] = i;
+			jj[k] = j;
+			k++;
+		}
+	}
+
+	cond = (m > GMRFLib_MAX_THREADS);
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) if(cond)
+	for (int k = 0; k < K; k++) {
+		int i = ii[k], j = jj[k], incx = m, jf, je, jlen;
+		double value;
+
+		jf = IMAX(constr->jfirst[i], constr->jfirst[j]);
+		je = IMIN(constr->jfirst[i] + constr->jlen[i], constr->jfirst[j] + constr->jlen[j]);
+		jlen = je - jf;
+		if (jlen > 0) {
+			value = ddot_(&jlen, &(A[i + m * jf]), &incx, &(A[j + m * jf]), &incx);
+		} else {
+			value = 0.0;
+		}
+		C[i + j * m] = C[j + i * m] = value;
+	}
+
+	Free(ii);
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			       double *x,
 			       double *b,
@@ -204,7 +272,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			       void *Qfunc_args, char *fixed_value, GMRFLib_constr_tp * constr, unsigned int keep, GMRFLib_store_tp * store)
 {
 	double *bb = NULL;
-	int i, j, sub_n, node, nnode, free_x = 0, id;
+	int i, j, sub_n, node, nnode, free_x = 0, id, faster_constr = 1;
 	GMRFLib_smtp_tp smtp;
 
 	int store_store_sub_graph = 0, store_use_sub_graph = 0;
@@ -568,7 +636,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		if (ret != GMRFLib_SUCCESS) {
 			return ret;
 		}
-		
+
 		ret = GMRFLib_factorise_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 		if (ret != GMRFLib_SUCCESS) {
 			return ret;
@@ -657,8 +725,12 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 						beta = 0.0;
 						aat_m = Calloc(nc * nc, double);
 
-						dgemm_("N", "T", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix,
-						       &nc, (*problem)->sub_constr->a_matrix, &nc, &beta, aat_m, &nc, 1, 1);
+						if (faster_constr && (*problem)->sub_constr->jfirst) {
+							dgemm_special2(nc, aat_m, (*problem)->sub_constr->a_matrix, (*problem)->sub_constr);
+						} else {
+							dgemm_("N", "T", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix,
+							       &nc, (*problem)->sub_constr->a_matrix, &nc, &beta, aat_m, &nc, 1, 1);
+						}
 						GMRFLib_EWRAP1(GMRFLib_comp_chol_semidef
 							       (NULL, &map, &rank, aat_m, nc, &((*problem)->logdet_aat), eps));
 						GMRFLib_ASSERT(rank != 0, GMRFLib_EPARAMETER);
@@ -789,11 +861,15 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				 * compute l_aqat_m = chol(AQ^{-1}A^T)^{-1}) = chol(A qi_at_m)^{-1}, size = nc x nc 
 				 */
 				aqat_m = Calloc(nc * nc, double);
-
 				alpha = 1.0;
 				beta = 0.0;
-				dgemm_("N", "N", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix, &nc,
-				       (*problem)->qi_at_m, &sub_n, &beta, aqat_m, &nc, 1, 1);
+				if (faster_constr && (*problem)->sub_constr->jfirst) {
+					dgemm_special(nc, sub_n, aqat_m, (*problem)->sub_constr->a_matrix,
+						      (*problem)->qi_at_m, (*problem)->sub_constr);
+				} else {
+					dgemm_("N", "N", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix, &nc,
+					       (*problem)->qi_at_m, &sub_n, &beta, aqat_m, &nc, 1, 1);
+				}
 
 				if (STOCHASTIC_CONSTR((*problem)->sub_constr)) {
 					/*
@@ -844,8 +920,12 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					beta = 0.0;
 					aat_m = Calloc(nc * nc, double);
 
-					dgemm_("N", "T", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix,
-					       &nc, (*problem)->sub_constr->a_matrix, &nc, &beta, aat_m, &nc, 1, 1);
+					if (faster_constr && (*problem)->sub_constr->jfirst) {
+						dgemm_special2(nc, aat_m, (*problem)->sub_constr->a_matrix, (*problem)->sub_constr);
+					} else {
+						dgemm_("N", "T", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix,
+						       &nc, (*problem)->sub_constr->a_matrix, &nc, &beta, aat_m, &nc, 1, 1);
+					}
 					tmp_vector = NULL;
 					GMRFLib_EWRAP1(GMRFLib_comp_chol_general
 						       (&tmp_vector, aat_m, nc, &((*problem)->logdet_aat), GMRFLib_ESINGCONSTR));
@@ -887,17 +967,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			 */
 			alpha = -1.0;
 			beta = 1.0;			       /* mean_constr = mean - cond_m*t_vector */
-			/*
-			 * workaround for a 'bug' in goto-blas and mkl(intel); which is triggered in one example. The failsafe version is just the fortran code for
-			 * dgemv(), but renamed to it does not used the one in another blas library. 
-			 */
-			if (0) {
-				dgemv_("N", &sub_n, &nc, &alpha, (*problem)->constr_m, &sub_n, t_vector, &inc, &beta,
-				       (*problem)->sub_mean_constr, &inc, 1);
-			} else {
-				dgemv_failsafe_("N", &sub_n, &nc, &alpha, (*problem)->constr_m, &sub_n, t_vector, &inc, &beta,
-						(*problem)->sub_mean_constr, &inc, 1);
-			}
+			dgemv_("N", &sub_n, &nc, &alpha, (*problem)->constr_m, &sub_n, t_vector, &inc, &beta, (*problem)->sub_mean_constr, &inc, 1);
 		}
 	}
 
@@ -1446,6 +1516,8 @@ int GMRFLib_free_constr(GMRFLib_constr_tp * constr)
 	if (constr) {
 		Free(constr->a_matrix);
 		Free(constr->e_vector);
+		Free(constr->jfirst);
+		Free(constr->jlen);
 		Free(constr->errcov_diagonal);
 		Free(constr->errcov_general);
 		Free(constr->intern->chol);
@@ -1551,7 +1623,7 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 	 * 
 	 * NOTE: at the moment, the intern->Q is only used for checking if Q[i,j] is zero or not. 
 	 */
-	int i, nc, k, kk, n, debug = 0;
+	int i, j, nc, k, kk, n, debug = 0;
 	double ldet, *scale = NULL;
 
 	if (!constr) {
@@ -1626,6 +1698,23 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 		if (debug) {
 			printf("scaled constr\n");
 			GMRFLib_print_constr(stdout, constr, graph);
+		}
+	}
+
+	constr->jfirst = Calloc(nc, int);
+	constr->jlen = Calloc(nc, int);
+	for (i = 0; i < nc; i++) {
+		for (j = 0; j < n; j++) {
+			if (constr->a_matrix[i + j * nc] != 0.0) {
+				constr->jfirst[i] = j;
+				break;
+			}
+		}
+		for (j = n - 1; j >= 0; j--) {
+			if (constr->a_matrix[i + j * nc] != 0.0) {
+				constr->jlen[i] = j - constr->jfirst[i] + 1;
+				break;
+			}
 		}
 	}
 
@@ -2424,10 +2513,10 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 }
 double GMRFLib_Qfunc_generic(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	if (i != j) {
 		return -1.0;
 	} else {
