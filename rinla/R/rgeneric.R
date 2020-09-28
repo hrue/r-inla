@@ -84,7 +84,7 @@
     graph = function()
     {
         if (TRUE) {
-            ## we can also use this easy solution, since we know that Q[i, j] is not 0 by
+            ## we can also use this easy solution, if we know that Q[i, j] is not 0 by
             ## accident... this require that 'theta' is set; see 'theta = initial()' below.
             G = Q()
         } else {
@@ -171,7 +171,8 @@
 
     initial = function()
     {
-        ## return initial values
+        ## return initial values. second argument cannot be 0 otherwise the graph is diagonal
+        ## and everything breaks down.
         return (rep(1, 2))
     }
 
@@ -182,7 +183,7 @@
 
     ## if theta is not required, it is not set. we set it here, for convenience.
     ## (see the graph() function)
-    if (is.null(theta))
+    if (!length(theta))
         theta = initial()
     
     val = do.call(match.arg(cmd), args = list())
@@ -249,7 +250,7 @@
     }
 
     ## if theta is not required, it is not set. we set it here, for convenience.
-    if (is.null(theta))
+    if (!length(theta))
         theta = initial()
     
     val = do.call(match.arg(cmd), args = list())
