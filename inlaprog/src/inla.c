@@ -7156,7 +7156,13 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 	LINK_INIT;
 	if (m > 0) {
 		gsl_sf_result res;
-		status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
+		if (ds->variant == 0) {
+			// binomial
+			status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
+		} else {
+			// neg binomial
+			status = gsl_sf_lnchoose_e((unsigned int) (n - 1.0), (unsigned int) (y - 1.0), &res);
+		}
 		assert(status == GSL_SUCCESS);
 		for (i = 0; i < m; i++) {
 			double eta = x[i] + OFFSET(idx);
@@ -7186,8 +7192,13 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 		for (i = 0; i < -m; i++) {
 			p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
 			p = DMIN(1.0, p);
-			logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
+			if (ds->variant == 0) {
+				logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
+			} else {
+				logll[i] = gsl_cdf_negative_binomial_P((unsigned int) (n - y), p, y);
+			}
 		}
+		
 	}
 
 	LINK_END;
@@ -11493,6 +11504,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "XBINOMIAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomial;	/* yes. its the same */
+		ds->variant = 0;						/* must be */
 		ds->data_id = L_XBINOMIAL;
 		discrete_data = 0;
 	} else if (!strcasecmp(ds->data_likelihood, "NBINOMIAL2")) {
@@ -12058,7 +12070,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
-	case L_BINOMIAL:
 	case L_XBINOMIAL:
 	case L_ZERO_N_INFLATEDBINOMIAL2:
 	case L_ZERO_N_INFLATEDBINOMIAL3:
@@ -12070,6 +12081,36 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 					if (!(ISZERO(ds->data_observations.nb[i]) && ISZERO(ds->data_observations.y[i]))) {
 						GMRFLib_sprintf(&msg, "%s: Binomial data[%1d] (nb,y) = (%g,%g) is void\n", secname,
 								i, ds->data_observations.nb[i], ds->data_observations.y[i]);
+						inla_error_general(msg);
+					}
+				}
+			}
+		}
+		break;
+
+	case L_BINOMIAL:
+		if (ds->variant == 0) { 
+			for (i = 0; i < mb->predictor_ndata; i++) {
+				if (ds->data_observations.d[i]) {
+					if (ds->data_observations.nb[i] <= 0.0 ||
+					    ds->data_observations.y[i] > ds->data_observations.nb[i] || ds->data_observations.y[i] < 0.0) {
+						// we allow for binomial(0,p) if y = 0
+						if (!(ISZERO(ds->data_observations.nb[i]) && ISZERO(ds->data_observations.y[i]))) {
+							GMRFLib_sprintf(&msg, "%s: Binomial data[%1d] (nb,y) = (%g,%g) is void\n", secname,
+									i, ds->data_observations.nb[i], ds->data_observations.y[i]);
+							inla_error_general(msg);
+						}
+					}
+				}
+			}
+		} else {
+			// neg binomial
+			for (i = 0; i < mb->predictor_ndata; i++) {
+				if (ds->data_observations.d[i]) {
+					if (!((ds->data_observations.nb[i] - ds->data_observations.y[i]) >= 0.0 &&
+					      ds->data_observations.y[i] >= 1.0)) {
+						GMRFLib_sprintf(&msg, "%s: Binomial data[%1d] variant=%1d, (nb,y) = (%g,%g) is void\n", secname,
+								i, ds->variant, ds->data_observations.nb[i], ds->data_observations.y[i]);
 						inla_error_general(msg);
 					}
 				}
