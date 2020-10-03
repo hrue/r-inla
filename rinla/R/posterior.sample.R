@@ -210,7 +210,7 @@ inla.create.sn.cache <- function()
     } 
     
     ## This code section will run only once in order to create the local object 'sn.cache'
-    envir = INLA:::inla.get.inlaEnv()
+    envir = inla.get.inlaEnv()
     stopifnot(inla.require('sn'))
     
     ## The following quantities can be changed and affect the whole code
@@ -338,7 +338,7 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
     if (use.improved.mean == FALSE) {
         skew.corr <- FALSE
     }
-    if (skew.corr == TRUE && !exists("sn.cache", envir = INLA:::inla.get.inlaEnv())) {
+    if (skew.corr == TRUE && !exists("sn.cache", envir = inla.get.inlaEnv())) {
         ## function call for creating a local object in INLA environment
         inla.create.sn.cache()                          
     }
@@ -495,7 +495,7 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
                 C.th <- xx$logdens
             } else {
                 ## Skewness Correction applied on the samples
-                sh.cache = get("sn.cache", envir = INLA:::inla.get.inlaEnv())
+                sh.cache = get("sn.cache", envir = inla.get.inlaEnv())
                 dig = sh.cache$dig
                 s = sh.cache$s
                 skew.splines <- sh.cache$skew.splines

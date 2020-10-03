@@ -330,6 +330,3 @@
         print(round(dig = 3, ans))
     }
 }
-
-
-## inla.require = function(...) INLA:::inla.require(...)

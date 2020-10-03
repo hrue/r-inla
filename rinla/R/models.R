@@ -8211,7 +8211,7 @@
                 var = paste("enable.model.", section, ".", model, sep="")
                 if (!(exists(var, envir = envir) && get(var, envir = envir))) {
                     msg = paste0(c(msg, paste("  You can enable this model setting variable '", var,
-                                              "'\n  to 'TRUE' in environment INLA:::inla.get.inlaEnv().\n",
+                                              "'\n  to 'TRUE' in environment inla.get.inlaEnv().\n",
                                               "  If you chose to do so, you are on your own.")))
                     stop(msg)
                 }
@@ -8224,7 +8224,7 @@
                 var = paste("enable.model.", section, ".", model, sep="")
                 if (!(exists(var, envir = envir) && get(var, envir = envir))) {
                     msg = paste0(c(msg, paste0("\n  You can bypass this check setting variable '", var,
-                                               "'\n  to 'TRUE' in environment INLA:::inla.get.inlaEnv().\n")))
+                                               "'\n  to 'TRUE' in environment inla.get.inlaEnv().\n")))
                     stop(msg)
                 }
             }

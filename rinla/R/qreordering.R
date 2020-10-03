@@ -9,17 +9,20 @@
 ##! \description{This function compute the reordering (or find the best reordering)
 ##!              using the GMRFLib implementation}
 ##! \usage{
-##!     inla.qreordering(graph, reordering)
+##!     inla.qreordering(graph, reordering = inla.reorderings())
 ##! }
 ##! 
 ##! \arguments{
-##!   \item{graph}{A \code{(inla-)graph} object, a filename containing the graph or a matrix/Matrix defining it.}
-##!   \item{reordering}{The type of reordering algorithm to be used; either one of the names listed in \code{inla.reorderings()}.
-##!        The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
+##!   \item{graph}{A \code{(inla-)graph} object}
+##!   \item{reordering}{The name of the reordering algorithm to be used; either
+##!                     one of the names listed in \code{inla.reorderings()}.
+##!                     The default is "auto" which try several reordering algorithm
+##!                     and use the best one for this particular matrix.}
 ##!}
 ##!\value{
-##!  \code{inla.qreordering} returns a list with the name of the reordering algorithm used or found, the reordering code for the reordering algorithm,
-##!                          the actual reordering and its inverse.
+##!  \code{inla.qreordering} returns a list with the name of the reordering algorithm used or
+##!  found, the reordering code for the reordering algorithm, 
+##!  the actual reordering and its inverse.
 ##!}
 ##!\author{Havard Rue \email{hrue@r-inla.org}}
 ##! 
@@ -28,9 +31,6 @@
 ##! r = inla.qreordering(g)
 ##! m = inla.graph2matrix(g)
 ##! r = inla.qreordering(m)
-##! m.file = INLA:::inla.write.fmesher.file(m)
-##! r = inla.qreordering(m.file)
-##! unlink(m.file)
 ##!}
 
 `inla.qreordering` = function(graph, reordering = inla.reorderings())
@@ -53,10 +53,10 @@
     ## smtp must be taucs
     if (inla.os("linux") || inla.os("mac")) {
         s = system(paste(shQuote(inla.call.no.remote()), "-s -m qreordering", 
-                "-r", reordering, "-S", "taucs", g.file), intern=TRUE)
+                         "-r", reordering, "-S", "taucs", g.file), intern=TRUE)
     } else if(inla.os("windows")) {
         s = system(paste(shQuote(inla.call.no.remote()), "-s -m qreordering",
-                "-r", reordering, "-S", "taucs", g.file), intern=TRUE)
+                         "-r", reordering, "-S", "taucs", g.file), intern=TRUE)
     } else {
         stop("\n\tNot supported architecture.")
     }

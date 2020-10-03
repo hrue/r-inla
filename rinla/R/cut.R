@@ -152,7 +152,7 @@ inla.cut = function(result, split.by, mc.cores = NULL, debug=FALSE)
                 args$data = data.lik
                 lc.lik = c()
                 ## make new linear combinations:
-                lc.names = paste0("lc.pred", INLA:::inla.num(1:n.pred))
+                lc.names = paste0("lc.pred:", 1:n.pred)
                 for (i in 1:n.pred) {
                     pred.idx = rep(NA, nrow(data.lik))
                     pred.idx[i] = 1

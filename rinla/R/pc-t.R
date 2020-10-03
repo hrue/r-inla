@@ -20070,7 +20070,7 @@
             0.008915813738)
         
 	sfun = splinefun(xx, yy, method = "monoH.FC")
-        assign(func.name.in.env, sfun, envir = INLA:::inla.get.inlaEnv())
+        assign(func.name.in.env, sfun, envir = inla.get.inlaEnv())
 	return (invisible())
     }
 
@@ -20089,12 +20089,12 @@
             idx = which(dof < dof.lim)
             if (length(idx) > 0) {
                 kld[idx] = (do.call(func.name.in.env, args = list(x = dof[idx]),
-                                    envir = INLA:::inla.get.inlaEnv()))
+                                    envir = inla.get.inlaEnv()))
             }
         } else {
             if (all(dof < dof.lim)) {
                 kld = (do.call(func.name.in.env, args = list(x = dof),
-                               envir = INLA:::inla.get.inlaEnv()))
+                               envir = inla.get.inlaEnv()))
             } else {
                 kld = pc.dof.kld.approx(dof)
             }
@@ -20102,7 +20102,7 @@
 	return (sqrt(2.0 * kld))
     }
 
-    if (!exists(func.name.in.env, envir = INLA:::inla.get.inlaEnv())) {
+    if (!exists(func.name.in.env, envir = inla.get.inlaEnv())) {
         pc.dof.create.spline()
     }
     if (missing(lambda)) {
