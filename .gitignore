@@ -896,23 +896,19 @@ r-inla/GNUmakefile
 
 
 gmrflib/INLA_res.RData
-
 gmrflib/GitID.all
-
 rinla/vignettes/conditional-sampling.R
-
 rinla/vignettes/old-faq.R
-
 r-inla.org/doc/prior/linksnintercept.aux
-
 r-inla.org/doc/prior/linksnintercept.log
-
 r-inla.org/doc/prior/linksnintercept.pdf
-
 r-inla.org/doc/prior/linksnintercept.synctex.gz
-
 rinla/inst/doc/prior/linksnintercept.pdf
-
 r-inla.org/doc/prior/linksnintercept.fdb_latexmk
-
 r-inla.org/doc/prior/linksnintercept.fls
+r-inla.org/doc/likelihood/poisson-special.aux
+r-inla.org/doc/likelihood/poisson-special.fdb_latexmk
+r-inla.org/doc/likelihood/poisson-special.fls
+r-inla.org/doc/likelihood/poisson-special.log
+r-inla.org/doc/likelihood/poisson-special.pdf
+r-inla.org/doc/likelihood/poisson-special.synctex.gz

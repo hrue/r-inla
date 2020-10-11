@@ -122,7 +122,8 @@
                                      "zeroinflatednbinomial2", 
                                      "zeroinflatedpoisson0",
                                      "zeroinflatedpoisson1", 
-                                     "zeroinflatedpoisson2"))) {
+                                     "zeroinflatedpoisson2",
+                                     "poisson.special1"))) {
         if (is.null(E)) {
             E = rep(1.0, n.data)
         }
