@@ -86,12 +86,12 @@
                  ##!   the prior using the \code{pc.prec} prior with 
                  ##!   \code{param = c(0.5, 0.5)}. See documentation with 
                  ##!   \code{?inla.doc("pc.prec")}.
+                 ##! }
                  ...),
              ##! \item{...}{Arguments to be passed to the 
              ##!   \code{\link{inla}} function.}
              ...)
 {
-    ##! }
     ##!}
     ##! \value{
     ##!  \code{inla.knmodels} returns an object of class \code{"inla"}. 
@@ -205,7 +205,7 @@
     if (is.null(n)) n <- nst/m
     ##    cat('m = ', m, ', n = ', n, ', nst = ', nst, '\n', sep='')
     if (TRUE) { ## working in progress: identify need of constraints from the formula
-        etemp <- INLA:::inla.interpret.formula(formula, data, debug=FALSE)
+        etemp <- inla.interpret.formula(formula, data, debug=FALSE)
         rterms <- attr(terms(etemp[[1]]), 'term.labels')
         id.r <- which(sapply(etemp$random.spec, function(x) is.null(x$weights))) 
         if (length(id.r)>0) { 

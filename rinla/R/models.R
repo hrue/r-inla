@@ -5398,6 +5398,27 @@
                      status = "experimental"
                  ),
 
+                 poisson.special1 = list(
+                     doc = "The Poisson.special1 likelihood", 
+                     hyper = list(
+                         theta = list(
+                             hyperid =  56100,
+                             name = "logit probability",
+                             short.name = "prob",
+                             initial = -1,
+                             fixed = FALSE,
+                             prior = "gaussian",
+                             param = c(-1, 0.2),
+                             to.theta = function(x) log(x/(1-x)),
+                             from.theta = function(x) exp(x)/(1+exp(x))
+                         )
+                     ),
+                     survival = FALSE,
+                     discrete = TRUE,
+                     link = c("default", "log"), 
+                     pdf = "poisson.special"
+                 ),
+
                  binomial = list(
                      doc = "The Binomial likelihood", 
                      hyper = list(
@@ -8211,7 +8232,7 @@
                 var = paste("enable.model.", section, ".", model, sep="")
                 if (!(exists(var, envir = envir) && get(var, envir = envir))) {
                     msg = paste0(c(msg, paste("  You can enable this model setting variable '", var,
-                                              "'\n  to 'TRUE' in environment INLA:::inla.get.inlaEnv().\n",
+                                              "'\n  to 'TRUE' in environment inla.get.inlaEnv().\n",
                                               "  If you chose to do so, you are on your own.")))
                     stop(msg)
                 }
@@ -8224,7 +8245,7 @@
                 var = paste("enable.model.", section, ".", model, sep="")
                 if (!(exists(var, envir = envir) && get(var, envir = envir))) {
                     msg = paste0(c(msg, paste0("\n  You can bypass this check setting variable '", var,
-                                               "'\n  to 'TRUE' in environment INLA:::inla.get.inlaEnv().\n")))
+                                               "'\n  to 'TRUE' in environment inla.get.inlaEnv().\n")))
                     stop(msg)
                 }
             }

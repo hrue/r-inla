@@ -151,5 +151,5 @@ inla.pc.gevtail.test = function(lambda = 7)
 }
 
 ## How to run test outside the library:
-## inla.get.inlaEnv = function(...) INLA:::inla.get.inlaEnv(...)
+## inla.get.inlaEnv = function(...) inla.get.inlaEnv(...)
 ## inla.pc.gevtail.test(lambda = .01)

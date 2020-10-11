@@ -495,16 +495,16 @@ double map_invrobit(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-double inla_get_sn_param(inla_sn_arg_tp *output, double **param)
+double inla_get_sn_param(inla_sn_arg_tp * output, double **param)
 {
-	// param =  *(skew_intern, intercept_intern)
+	// param = *(skew_intern, intercept_intern)
 	return (map_invsn_core(0.0, MAP_FORWARD, (void *) param, output));
 }
 double map_invsn(double arg, map_arg_tp typ, void *param)
 {
 	return (map_invsn_core(arg, typ, param, NULL));
 }
-double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *output)
+double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * output)
 {
 	// if 'output' is !NULL, just return the contents. its a backdoor avoid duplicating code
 
@@ -4407,6 +4407,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 	case L_ZEROINFLATEDPOISSON0:
 	case L_ZEROINFLATEDPOISSON1:
 	case L_ZEROINFLATEDPOISSON2:
+	case L_POISSON_SPECIAL1:
 		idiv = 3;
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 		break;
@@ -5308,22 +5309,23 @@ int loglikelihood_sn(double *logll, double *x, int m, int idx, double *x_vec, do
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.sn_scale[idx];
 	lprec = ds->data_observations.sn_lprec[GMRFLib_thread_id][0] + log(w);
-	sprec = exp(lprec/2.0);
+	sprec = exp(lprec / 2.0);
 
 	param[0] = ds->data_observations.sn_skewness[GMRFLib_thread_id];
 	param[1] = &nan;
 	inla_get_sn_param(&sn_arg, param);
 	assert(sn_arg.intercept == 0);
-	
+
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			xarg = ((y - ypred - sn_arg.intercept) * sprec - sn_arg.xi) / sn_arg.omega;
-			logll[i] = LOG_NORMC_GAUSSIAN + M_LN2 + 0.5 * lprec  - log(sn_arg.omega) - 0.5 * SQR(xarg) + inla_log_Phi_fast(sn_arg.alpha * xarg);
+			logll[i] =
+			    LOG_NORMC_GAUSSIAN + M_LN2 + 0.5 * lprec - log(sn_arg.omega) - 0.5 * SQR(xarg) + inla_log_Phi_fast(sn_arg.alpha * xarg);
 		}
 	} else {
 		double yy = (y_cdf ? *y_cdf : y), nan = NAN;
-		param[1] = &nan; 			       /* this will remove the internal intercept */
+		param[1] = &nan;			       /* this will remove the internal intercept */
 		for (i = 0; i < -m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			xarg = (yy - ypred - sn_arg.intercept) * sprec;
@@ -6537,6 +6539,58 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 	return GMRFLib_SUCCESS;
 }
 
+int loglikelihood_poisson_special1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+{
+	/*
+	 * poisson special 1 : y ~ p*1[y=1] + (1-p)*Poisson(E*exp(x) | y > 0)
+	 */
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y),
+		p = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, p0, pp0;
+
+	LINK_INIT;
+
+	if (m > 0) {
+		if (y == 1.0) {
+			for (i = 0; i < m; i++) {
+				mu = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				p0 = exp(-mu);
+				pp0 = 1.0 - p0;
+				logll[i] = log(p + (1.0 - p) / pp0 * exp(y * log(mu) - mu - normc));
+			}
+		} else {
+			for (i = 0; i < m; i++) {
+				mu = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				p0 = exp(-mu);
+				pp0 = 1.0 - p0;
+				logll[i] = log((1.0 - p) / pp0) + (y * log(mu) - mu - normc);
+			}
+		}
+	} else {
+		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+		if (y < 1.0) {
+			for (i = 0; i < -m; i++) {
+				logll[i] = 0.0;
+			}
+		} else {
+			for (i = 0; i < -m; i++) {
+				mu = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				p0 = exp(-mu);
+				pp0 = 1.0 - p0;
+				logll[i] = p + (1.0 - p) * (gsl_cdf_poisson_P((unsigned int) y, mu) - p0) / pp0;
+			}
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
 double exp_taylor(double x, double x0, int order)
 {
 	int i;
@@ -7156,7 +7210,13 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 	LINK_INIT;
 	if (m > 0) {
 		gsl_sf_result res;
-		status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
+		if (ds->variant == 0) {
+			// binomial
+			status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
+		} else {
+			// neg binomial
+			status = gsl_sf_lnchoose_e((unsigned int) (n - 1.0), (unsigned int) (y - 1.0), &res);
+		}
 		assert(status == GSL_SUCCESS);
 		for (i = 0; i < m; i++) {
 			double eta = x[i] + OFFSET(idx);
@@ -7186,8 +7246,13 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 		for (i = 0; i < -m; i++) {
 			p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
 			p = DMIN(1.0, p);
-			logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
+			if (ds->variant == 0) {
+				logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
+			} else {
+				logll[i] = gsl_cdf_negative_binomial_P((unsigned int) (n - y), p, y);
+			}
 		}
+
 	}
 
 	LINK_END;
@@ -7602,9 +7667,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int(*func_simpson)(double **, double **, int *, void *arg))
+			   int (*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -11467,6 +11532,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gpoisson;
 		ds->data_id = L_GPOISSON;
 		discrete_data = 1;
+	} else if (!strcasecmp(ds->data_likelihood, "POISSONSPECIAL1")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_poisson_special1;
+		ds->data_id = L_POISSON_SPECIAL1;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "ZEROINFLATEDPOISSON0")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_zeroinflated_poisson0;
 		ds->data_id = L_ZEROINFLATEDPOISSON0;
@@ -11493,6 +11562,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "XBINOMIAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomial;	/* yes. its the same */
+		ds->variant = 0;			       /* must be */
 		ds->data_id = L_XBINOMIAL;
 		discrete_data = 0;
 	} else if (!strcasecmp(ds->data_likelihood, "NBINOMIAL2")) {
@@ -11898,6 +11968,18 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
+	case L_POISSON_SPECIAL1:
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 1.0) {
+					GMRFLib_sprintf(&msg, "%s: Poisson.special1 data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
+							ds->data_observations.E[i], ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+		break;
+
 	case L_POM:
 	{
 		int nclasses = -1, iy;
@@ -12058,7 +12140,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
-	case L_BINOMIAL:
 	case L_XBINOMIAL:
 	case L_ZERO_N_INFLATEDBINOMIAL2:
 	case L_ZERO_N_INFLATEDBINOMIAL3:
@@ -12070,6 +12151,36 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 					if (!(ISZERO(ds->data_observations.nb[i]) && ISZERO(ds->data_observations.y[i]))) {
 						GMRFLib_sprintf(&msg, "%s: Binomial data[%1d] (nb,y) = (%g,%g) is void\n", secname,
 								i, ds->data_observations.nb[i], ds->data_observations.y[i]);
+						inla_error_general(msg);
+					}
+				}
+			}
+		}
+		break;
+
+	case L_BINOMIAL:
+		if (ds->variant == 0) {
+			for (i = 0; i < mb->predictor_ndata; i++) {
+				if (ds->data_observations.d[i]) {
+					if (ds->data_observations.nb[i] <= 0.0 ||
+					    ds->data_observations.y[i] > ds->data_observations.nb[i] || ds->data_observations.y[i] < 0.0) {
+						// we allow for binomial(0,p) if y = 0
+						if (!(ISZERO(ds->data_observations.nb[i]) && ISZERO(ds->data_observations.y[i]))) {
+							GMRFLib_sprintf(&msg, "%s: Binomial data[%1d] (nb,y) = (%g,%g) is void\n", secname,
+									i, ds->data_observations.nb[i], ds->data_observations.y[i]);
+							inla_error_general(msg);
+						}
+					}
+				}
+			}
+		} else {
+			// neg binomial
+			for (i = 0; i < mb->predictor_ndata; i++) {
+				if (ds->data_observations.d[i]) {
+					if (!((ds->data_observations.nb[i] - ds->data_observations.y[i]) >= 0.0 &&
+					      ds->data_observations.y[i] >= 1.0)) {
+						GMRFLib_sprintf(&msg, "%s: Binomial data[%1d] variant=%1d, (nb,y) = (%g,%g) is void\n", secname,
+								i, ds->variant, ds->data_observations.nb[i], ds->data_observations.y[i]);
 						inla_error_general(msg);
 					}
 				}
@@ -14964,6 +15075,53 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta[mb->ntheta] = ds->data_observations.p_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_p_weibull_cure;	/* p = exp(p.intern)/(1+exp(p.intern)) */
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+		break;
+	}
+
+	case L_POISSON_SPECIAL1:
+	{
+		double initial_value = -1.0;
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
+		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
+		if (!ds->data_fixed && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.prob_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise prob_intern[%g]\n", ds->data_observations.prob_intern[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+		}
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "GAUSSIAN-std", NULL);
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior.hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("intern one-probability parameter for poisson.special1", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("one-probability parameter for poisson.special1", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.prob_intern;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_probability;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -26030,9 +26188,10 @@ double extra(double *theta, int ntheta, void *argument)
 			case L_ZEROINFLATEDPOISSON1:
 			case L_ZEROINFLATEDCENPOISSON0:
 			case L_ZEROINFLATEDCENPOISSON1:
+			case L_POISSON_SPECIAL1:
 				if (!ds->data_fixed) {
 					/*
-					 * this is the probability-parameter in the zero-inflated Poisson_0/1
+					 * this is the probability-parameter in the zero-inflated Poisson_0/1 or special1
 					 */
 					double prob_intern = theta[count];
 

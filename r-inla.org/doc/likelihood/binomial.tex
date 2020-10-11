@@ -5,23 +5,28 @@
 \usepackage{verbatim}
 
 \begin{document}
-\section*{Binomial}
+\section*{Binomial and negative binomial distribution}
 
 \subsection*{Parametrisation}
 
 The Binomial distribution is
 \begin{displaymath}
-    \text{Prob}(y) = {n \choose y} \ p^n (1-p)^{n-y}
+    \text{Prob}(y) = {n \choose y} \ p^y (1-p)^{n-y}
 \end{displaymath}
 for responses $y=0, 1, 2, \ldots,n$, where
 \begin{description}
 \item[$n$:] number of trials.
 \item[$p$:] probability of success in each trial.
 \end{description}
+The negative binomial distribution is
+\begin{displaymath}
+    \text{Prob}(n) = {n-1 \choose y-1} \ p^y (1-p)^{n-y}
+\end{displaymath}
+for given $y=1, 2, \dots$ and response $n-y=0,1, 2, \ldots$.
 
 \subsection*{Link-function}
 
-The mean and variance of $y$ are given as
+The mean and variance of $y$ are given in the binomial case as
 \begin{displaymath}
     \mu = np \qquad\text{and}\qquad \sigma^{2} = np(1-p)
 \end{displaymath}
@@ -41,6 +46,8 @@ None.
 \begin{itemize}
 \item $\text{family}=\texttt{binomial}$
 \item Required arguments: $y$ and $n$ (keyword \texttt{Ntrials})
+\item Optional argument: \texttt{variant=0} for binomial (default),
+    and \texttt{variant=1} for the negative binomial.
 \end{itemize}
 
 
@@ -65,11 +72,17 @@ example with binomial responses.
 
 \subsection*{Notes}
 
-If the response is a \verb|factor| it must be converted to $\{0,1\}$
-before calling \verb|inla()|, as this conversion is not done automatic
-(as for example in \verb|glm()|).
-
-
+\begin{itemize}
+\item If the response is a \verb|factor| it must be converted to
+    $\{0,1\}$ before calling \verb|inla()|, as this conversion is not
+    done automatic (as for example in \verb|glm()|).
+\item This version of the negative binomial mimics the binomial
+    distribution, and the ``data'' kind of enter in the
+    \texttt{Ntrials} argument (as $y$ is pre-determinded) which both
+    can appear, and should appear, strange. There is also an
+    alternative implementation, \texttt{family="nbinomial"}, which
+    mimics the Poisson distribution.
+\end{itemize}
 \end{document}
 
 

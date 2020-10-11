@@ -285,247 +285,227 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 
 
 */
-	int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph, const char *filename,
-					     int dim, double *prec, double *log_prec, double **log_prec_omp) {
-		/*
-		 * as GMRFLib_tabulate_Qfunc(), but reads the Q_ij values from file with name FILENAME, in format
-		 * 
-		 * i j Q_{ij} : : : i j Q_{ij}
-		 *
-		 *
-		 * only values i<=j are required. duplicated values are added up.
-		 */
+int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph, const char *filename,
+				     int dim, double *prec, double *log_prec, double **log_prec_omp)
+{
+	/*
+	 * as GMRFLib_tabulate_Qfunc(), but reads the Q_ij values from file with name FILENAME, in format
+	 * 
+	 * i j Q_{ij} : : : i j Q_{ij}
+	 *
+	 *
+	 * only values i<=j are required. duplicated values are added up.
+	 */
 
-		int i, j, ii, jj, k, ntriples, err, debug = 0, imin = INT_MAX, jmin = INT_MAX, off = 0, sparse = 0;
-		double value, *prev;
+	int i, j, ii, jj, k, ntriples, err, debug = 0, imin = INT_MAX, jmin = INT_MAX, off = 0, sparse = 0;
+	double value, *prev;
 
-		GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
-		GMRFLib_io_tp *io = NULL;
-		GMRFLib_error_handler_tp *old_handler;
-		GMRFLib_matrix_tp *M = NULL;
+	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
+	GMRFLib_io_tp *io = NULL;
+	GMRFLib_error_handler_tp *old_handler;
+	GMRFLib_matrix_tp *M = NULL;
 
-		/*
-		 * step 1. build the graph 
-		 */
+	/*
+	 * step 1. build the graph 
+	 */
 
-		GMRFLib_ged_tp *ged = NULL;
+	GMRFLib_ged_tp *ged = NULL;
 
-		GMRFLib_ged_init(&ged, NULL);
+	GMRFLib_ged_init(&ged, NULL);
 
-		/*
-		 * to fix the dimension, possibly padding with zero's 
-		 */
-		GMRFLib_ged_add(ged, 0, 0);
-		if (dim > 0) {
-			GMRFLib_ged_add(ged, dim - 1, dim - 1);
+	/*
+	 * to fix the dimension, possibly padding with zero's 
+	 */
+	GMRFLib_ged_add(ged, 0, 0);
+	if (dim > 0) {
+		GMRFLib_ged_add(ged, dim - 1, dim - 1);
+	}
+
+	if (GMRFLib_is_fmesher_file(filename, (long int) 0, -1) == GMRFLib_SUCCESS) {
+		M = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
+		sparse = (M->i && M->j);
+		if (!sparse) {
+			assert(M->ncol == 3);
+		} else {
+			/*
+			 * make sure to fix the dimension of the matrix
+			 */
+			assert(M->nrow == M->ncol);
+			GMRFLib_ged_add(ged, M->nrow - 1, M->ncol - 1);
+		}
+		if (sparse) {
+			for (k = 0; k < M->elems; k++) {
+				i = M->i[k];
+				j = M->j[k];
+				imin = IMIN(imin, i);
+				jmin = IMIN(jmin, j);
+			}
+		} else {
+			for (k = 0; k < M->nrow; k++) {
+				i = (int) M->A[k + 0 * M->nrow];
+				j = (int) M->A[k + 1 * M->nrow];
+				imin = IMIN(imin, i);
+				jmin = IMIN(jmin, j);
+			}
 		}
 
-		if (GMRFLib_is_fmesher_file(filename, (long int) 0, -1) == GMRFLib_SUCCESS) {
-			M = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
-			sparse = (M->i && M->j);
-			if (!sparse) {
-				assert(M->ncol == 3);
-			} else {
+		if (sparse) {
+			ntriples = M->elems;
+			for (k = 0; k < M->elems; k++) {
+				i = M->i[k];
+				j = M->j[k];
+				value = M->values[k];
+				if (debug) {
+					printf("read (i,j,val) = (%d,%d,%g)\n", i, j, value);
+				}
+				GMRFLib_ged_add(ged, i, j);
+			}
+		} else {
+			ntriples = M->nrow;
+			for (k = 0; k < M->nrow; k++) {
+				i = (int) M->A[k + 0 * M->nrow];
+				j = (int) M->A[k + 1 * M->nrow];
+				value = M->A[k + 2 * M->nrow];
+				if (debug) {
+					printf("read (i,j,val) = (%d,%d,%g)\n", i, j, value);
+				}
+				GMRFLib_ged_add(ged, i, j);
+			}
+		}
+		/*
+		 * I will free matrix M later... 
+		 */
+	} else {
+		/*
+		 * read it first to determine if this is a zero-based or one-based graph 
+		 */
+		GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
+		while (1) {
+			old_handler = GMRFLib_set_error_handler_off();
+			err = GMRFLib_io_read_next(io, &i, "%d");
+			GMRFLib_set_error_handler(old_handler);
+
+			if (err == GMRFLib_SUCCESS) {
 				/*
-				 * make sure to fix the dimension of the matrix
+				 * then the rest must be present to 
 				 */
-				assert(M->nrow == M->ncol);
-				GMRFLib_ged_add(ged, M->nrow - 1, M->ncol - 1);
-			}
-			if (sparse) {
-				for (k = 0; k < M->elems; k++) {
-					i = M->i[k];
-					j = M->j[k];
-					imin = IMIN(imin, i);
-					jmin = IMIN(jmin, j);
-				}
-			} else {
-				for (k = 0; k < M->nrow; k++) {
-					i = (int) M->A[k + 0 * M->nrow];
-					j = (int) M->A[k + 1 * M->nrow];
-					imin = IMIN(imin, i);
-					jmin = IMIN(jmin, j);
-				}
-			}
-
-			if (sparse) {
-				ntriples = M->elems;
-				for (k = 0; k < M->elems; k++) {
-					i = M->i[k];
-					j = M->j[k];
-					value = M->values[k];
-					if (debug) {
-						printf("read (i,j,val) = (%d,%d,%g)\n", i, j, value);
-					}
-					GMRFLib_ged_add(ged, i, j);
-				}
-			} else {
-				ntriples = M->nrow;
-				for (k = 0; k < M->nrow; k++) {
-					i = (int) M->A[k + 0 * M->nrow];
-					j = (int) M->A[k + 1 * M->nrow];
-					value = M->A[k + 2 * M->nrow];
-					if (debug) {
-						printf("read (i,j,val) = (%d,%d,%g)\n", i, j, value);
-					}
-					GMRFLib_ged_add(ged, i, j);
-				}
-			}
-			/*
-			 * I will free matrix M later... 
-			 */
-		} else {
-			/*
-			 * read it first to determine if this is a zero-based or one-based graph 
-			 */
-			GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
-			while (1) {
-				old_handler = GMRFLib_set_error_handler_off();
-				err = GMRFLib_io_read_next(io, &i, "%d");
-				GMRFLib_set_error_handler(old_handler);
-
-				if (err == GMRFLib_SUCCESS) {
-					/*
-					 * then the rest must be present to 
-					 */
-					GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &j, "%d"));
-					GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &value, "%lf"));
-					imin = IMIN(imin, i);
-					jmin = IMIN(jmin, j);
-				} else {
-					break;
-				}
-			}
-			GMRFLib_EWRAP0(GMRFLib_io_close(io));
-
-			GMRFLib_ASSERT(((imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)), GMRFLib_ESNH);
-			off = (IMIN(imin, jmin) == 1 ? 1 : 0);
-
-			ntriples = 0;
-			GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
-			while (1) {
-				old_handler = GMRFLib_set_error_handler_off();
-				err = GMRFLib_io_read_next(io, &i, "%d");
-				GMRFLib_set_error_handler(old_handler);
-
-				if (err == GMRFLib_SUCCESS) {
-					/*
-					 * then the rest must be present to 
-					 */
-					GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &j, "%d"));
-					GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &value, "%lf"));
-					GMRFLib_ged_add(ged, i - off, j - off);
-
-					if (debug)
-						printf("read (i,j,val) = (%d,%d,%g)\n", i, j, value);
-					ntriples++;
-				} else {
-					break;
-				}
-			}
-			GMRFLib_EWRAP0(GMRFLib_io_close(io));
-		}
-
-		/*
-		 * make sure to add all nodes inbetween 
-		 */
-		for (i = 0; i < GMRFLib_ged_max_node(ged); i++) {
-			GMRFLib_ged_add(ged, i, i);
-		}
-		GMRFLib_ged_build(graph, ged);
-		GMRFLib_ged_free(ged);
-
-		/*
-		 * step 2. build the tabulate_Qfunc structure 
-		 */
-		*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
-		(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction;	/* the Qfunction to use */
-		arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);
-		(*tabulate_Qfunc)->Qfunc_arg = (void *) arg;
-
-		arg->n = (*graph)->n;
-		arg->values = Calloc((*graph)->n, map_id *);
-		arg->prec = prec;
-		arg->log_prec = (prec == NULL ? log_prec : NULL);
-		if (prec == NULL && log_prec == NULL && log_prec_omp != NULL) {
-			int tmax = GMRFLib_MAX_THREADS;
-			arg->log_prec_omp = Calloc(tmax, double *);
-			for (i = 0; i < tmax; i++) {
-				arg->log_prec_omp[i] = log_prec_omp[i];
-			}
-		} else {
-			arg->log_prec_omp = NULL;
-		}
-
-		/*
-		 * allocate hash-table with the *correct* number of elements
-		 */
-		for (i = 0; i < (*graph)->n; i++) {
-			arg->values[i] = Calloc(1, map_id);
-			map_id_init_hint(arg->values[i], (*graph)->lnnbs[i] + 1);
-		}
-
-		/*
-		 * fill all entries in the graph with zero 
-		 */
-		for (i = 0; i < (*graph)->n; i++) {
-			map_id_set(arg->values[i], i, 0.0);
-			for (jj = 0; jj < (*graph)->lnnbs[i]; jj++) {
-				j = (*graph)->lnbs[i][jj];
-				map_id_set(arg->values[i], j, 0.0);
-			}
-		}
-
-		/*
-		 * then read the file again 
-		 */
-		if (M) {
-			/*
-			 * ...or we have it already 
-			 */
-			if (sparse) {
-				for (k = 0; k < M->elems; k++) {
-					i = M->i[k];
-					j = M->j[k];
-					value = M->values[k];
-					if (i <= j) {
-						i = i - off;
-						j = j - off;
-						ii = IMIN(i, j);
-						jj = IMAX(i, j);
-						CHECK_FOR_MULTIPLE_ENTRIES(arg->values[ii], jj, value);
-						map_id_set(arg->values[ii], jj, value + PREVIOUS_VALUE);
-						if (debug) {
-							printf("set (i,j,val) = (%d,%d,%g)\n", i, j, value + PREVIOUS_VALUE);
-						}
-					}
-				}
-			} else {
-				for (k = 0; k < M->nrow; k++) {
-					i = (int) M->A[k + 0 * M->nrow];
-					j = (int) M->A[k + 1 * M->nrow];
-					value = M->A[k + 2 * M->nrow];
-
-					if (i <= j) {
-						i = i - off;
-						j = j - off;
-						ii = IMIN(i, j);
-						jj = IMAX(i, j);
-						CHECK_FOR_MULTIPLE_ENTRIES(arg->values[ii], jj, value);
-						map_id_set(arg->values[ii], jj, value + PREVIOUS_VALUE);
-						if (debug) {
-							printf("set (i,j,val) = (%d,%d,%g)\n", i, j, value + PREVIOUS_VALUE);
-						}
-					}
-				}
-			}
-		} else {
-			GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
-			k = 0;
-			while (k < ntriples) {
-				GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &i, "%d"));
 				GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &j, "%d"));
 				GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &value, "%lf"));
+				imin = IMIN(imin, i);
+				jmin = IMIN(jmin, j);
+			} else {
+				break;
+			}
+		}
+		GMRFLib_EWRAP0(GMRFLib_io_close(io));
+
+		GMRFLib_ASSERT(((imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)), GMRFLib_ESNH);
+		off = (IMIN(imin, jmin) == 1 ? 1 : 0);
+
+		ntriples = 0;
+		GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
+		while (1) {
+			old_handler = GMRFLib_set_error_handler_off();
+			err = GMRFLib_io_read_next(io, &i, "%d");
+			GMRFLib_set_error_handler(old_handler);
+
+			if (err == GMRFLib_SUCCESS) {
+				/*
+				 * then the rest must be present to 
+				 */
+				GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &j, "%d"));
+				GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &value, "%lf"));
+				GMRFLib_ged_add(ged, i - off, j - off);
+
+				if (debug)
+					printf("read (i,j,val) = (%d,%d,%g)\n", i, j, value);
+				ntriples++;
+			} else {
+				break;
+			}
+		}
+		GMRFLib_EWRAP0(GMRFLib_io_close(io));
+	}
+
+	/*
+	 * make sure to add all nodes inbetween 
+	 */
+	for (i = 0; i < GMRFLib_ged_max_node(ged); i++) {
+		GMRFLib_ged_add(ged, i, i);
+	}
+	GMRFLib_ged_build(graph, ged);
+	GMRFLib_ged_free(ged);
+
+	/*
+	 * step 2. build the tabulate_Qfunc structure 
+	 */
+	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
+	(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction;	/* the Qfunction to use */
+	arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);
+	(*tabulate_Qfunc)->Qfunc_arg = (void *) arg;
+
+	arg->n = (*graph)->n;
+	arg->values = Calloc((*graph)->n, map_id *);
+	arg->prec = prec;
+	arg->log_prec = (prec == NULL ? log_prec : NULL);
+	if (prec == NULL && log_prec == NULL && log_prec_omp != NULL) {
+		int tmax = GMRFLib_MAX_THREADS;
+		arg->log_prec_omp = Calloc(tmax, double *);
+		for (i = 0; i < tmax; i++) {
+			arg->log_prec_omp[i] = log_prec_omp[i];
+		}
+	} else {
+		arg->log_prec_omp = NULL;
+	}
+
+	/*
+	 * allocate hash-table with the *correct* number of elements
+	 */
+	for (i = 0; i < (*graph)->n; i++) {
+		arg->values[i] = Calloc(1, map_id);
+		map_id_init_hint(arg->values[i], (*graph)->lnnbs[i] + 1);
+	}
+
+	/*
+	 * fill all entries in the graph with zero 
+	 */
+	for (i = 0; i < (*graph)->n; i++) {
+		map_id_set(arg->values[i], i, 0.0);
+		for (jj = 0; jj < (*graph)->lnnbs[i]; jj++) {
+			j = (*graph)->lnbs[i][jj];
+			map_id_set(arg->values[i], j, 0.0);
+		}
+	}
+
+	/*
+	 * then read the file again 
+	 */
+	if (M) {
+		/*
+		 * ...or we have it already 
+		 */
+		if (sparse) {
+			for (k = 0; k < M->elems; k++) {
+				i = M->i[k];
+				j = M->j[k];
+				value = M->values[k];
+				if (i <= j) {
+					i = i - off;
+					j = j - off;
+					ii = IMIN(i, j);
+					jj = IMAX(i, j);
+					CHECK_FOR_MULTIPLE_ENTRIES(arg->values[ii], jj, value);
+					map_id_set(arg->values[ii], jj, value + PREVIOUS_VALUE);
+					if (debug) {
+						printf("set (i,j,val) = (%d,%d,%g)\n", i, j, value + PREVIOUS_VALUE);
+					}
+				}
+			}
+		} else {
+			for (k = 0; k < M->nrow; k++) {
+				i = (int) M->A[k + 0 * M->nrow];
+				j = (int) M->A[k + 1 * M->nrow];
+				value = M->A[k + 2 * M->nrow];
 
 				if (i <= j) {
 					i = i - off;
@@ -534,18 +514,38 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 					jj = IMAX(i, j);
 					CHECK_FOR_MULTIPLE_ENTRIES(arg->values[ii], jj, value);
 					map_id_set(arg->values[ii], jj, value + PREVIOUS_VALUE);
-					if (debug)
+					if (debug) {
 						printf("set (i,j,val) = (%d,%d,%g)\n", i, j, value + PREVIOUS_VALUE);
+					}
 				}
-				k++;
 			}
-			GMRFLib_EWRAP0(GMRFLib_io_close(io));
 		}
+	} else {
+		GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
+		k = 0;
+		while (k < ntriples) {
+			GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &i, "%d"));
+			GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &j, "%d"));
+			GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &value, "%lf"));
 
-		GMRFLib_matrix_free(M);
-
-		return GMRFLib_SUCCESS;
+			if (i <= j) {
+				i = i - off;
+				j = j - off;
+				ii = IMIN(i, j);
+				jj = IMAX(i, j);
+				CHECK_FOR_MULTIPLE_ENTRIES(arg->values[ii], jj, value);
+				map_id_set(arg->values[ii], jj, value + PREVIOUS_VALUE);
+				if (debug)
+					printf("set (i,j,val) = (%d,%d,%g)\n", i, j, value + PREVIOUS_VALUE);
+			}
+			k++;
+		}
+		GMRFLib_EWRAP0(GMRFLib_io_close(io));
 	}
+
+	GMRFLib_matrix_free(M);
+	return GMRFLib_SUCCESS;
+}
 
 /*!
   \brief Tabulate a Qfunction defined in a list of (i, j, Qij)
@@ -581,146 +581,148 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 
 
 */
-	int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph,
-					     int ntriples, int *ilist, int *jlist, double *Qijlist, int dim, double *prec, double *log_prec,
-					     double **log_prec_omp) {
-		/*
-		 * as GMRFLib_tabulate_Qfunc(), but get its Q_ij values from its arguments
-		 * 
-		 * i j Q_{ij} : : : i j Q_{ij}
-		 * 
-		 */
+int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph,
+				     int ntriples, int *ilist, int *jlist, double *Qijlist, int dim, double *prec, double *log_prec,
+				     double **log_prec_omp) 
+{
+	/*
+	 * as GMRFLib_tabulate_Qfunc(), but get its Q_ij values from its arguments
+	 * 
+	 * i j Q_{ij} : : : i j Q_{ij}
+	 * 
+	 */
 
-		int i, imin = INT_MAX, jmin = INT_MAX, off;
-		GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
+	int i, imin = INT_MAX, jmin = INT_MAX, off;
+	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
 
-		/*
-		 * step 1. build the graph 
-		 */
-		GMRFLib_ged_tp *ged = NULL;
+	/*
+	 * step 1. build the graph 
+	 */
+	GMRFLib_ged_tp *ged = NULL;
 
-		GMRFLib_ged_init(&ged, NULL);
+	GMRFLib_ged_init(&ged, NULL);
 
-		for (i = 0; i < ntriples; i++) {
-			imin = IMIN(imin, ilist[i]);
-			jmin = IMIN(jmin, jlist[i]);
-		}
-		GMRFLib_ASSERT(((imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)), GMRFLib_ESNH);
-		off = (IMIN(imin, jmin) == 1 ? 1 : 0);
-
-		/*
-		 * to fix the dimension, possibly padding with zero's 
-		 */
-		GMRFLib_ged_add(ged, 0, 0);
-		if (dim > 0) {
-			GMRFLib_ged_add(ged, dim - 1, dim - 1);
-		}
-
-		for (i = 0; i < ntriples; i++) {
-			GMRFLib_ged_add(ged, ilist[i] - off, jlist[i] - off);
-		}
-
-		/*
-		 * make sure to add all nodes inbetween 
-		 */
-		for (i = 0; i < GMRFLib_ged_max_node(ged); i++) {
-			GMRFLib_ged_add(ged, i, i);
-		}
-		GMRFLib_ged_build(graph, ged);
-		GMRFLib_ged_free(ged);
-
-		/*
-		 * step 2. build the tabulate_Qfunc structure 
-		 */
-		*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
-		(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction;	/* the Qfunction to use */
-		arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);
-		(*tabulate_Qfunc)->Qfunc_arg = (void *) arg;
-
-		arg->n = (*graph)->n;
-		arg->values = Calloc((*graph)->n, map_id *);
-		if (prec == NULL && log_prec == NULL && log_prec_omp != NULL) {
-			int tmax = GMRFLib_MAX_THREADS;
-			arg->log_prec_omp = Calloc(tmax, double *);
-			for (i = 0; i < tmax; i++) {
-				arg->log_prec_omp[i] = log_prec_omp[i];
-			}
-		} else {
-			arg->log_prec_omp = NULL;
-		}
-
-		/*
-		 * allocate hash-table with the *correct* number of elements
-		 */
-#pragma omp parallel for private(i)
-		for (i = 0; i < (*graph)->n; i++) {
-			int j, jj;
-
-			arg->values[i] = Calloc(1, map_id);
-			map_id_init_hint(arg->values[i], (*graph)->lnnbs[i] + 1);
-			map_id_set(arg->values[i], i, 0.0);
-			for (jj = 0; jj < (*graph)->lnnbs[i]; jj++) {
-				j = (*graph)->lnbs[i][jj];
-				map_id_set(arg->values[i], j, 0.0);	/* fill them with default = 0.0 */
-			}
-		}
-
-		for (i = 0; i < ntriples; i++) {
-			int ii, jj;
-			double *prev;
-
-			if (ilist[i] <= jlist[i]) {
-				ii = ilist[i] - off;
-				jj = jlist[i] - off;
-				CHECK_FOR_MULTIPLE_ENTRIES(arg->values[ii], jj, Qijlist[i]);
-				map_id_set(arg->values[ii], jj, Qijlist[i] + PREVIOUS_VALUE);
-			}
-		}
-
-		return GMRFLib_SUCCESS;
+	for (i = 0; i < ntriples; i++) {
+		imin = IMIN(imin, ilist[i]);
+		jmin = IMIN(jmin, jlist[i]);
 	}
+	GMRFLib_ASSERT(((imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)), GMRFLib_ESNH);
+	off = (IMIN(imin, jmin) == 1 ? 1 : 0);
+
+	/*
+	 * to fix the dimension, possibly padding with zero's 
+	 */
+	GMRFLib_ged_add(ged, 0, 0);
+	if (dim > 0) {
+		GMRFLib_ged_add(ged, dim - 1, dim - 1);
+	}
+
+	for (i = 0; i < ntriples; i++) {
+		GMRFLib_ged_add(ged, ilist[i] - off, jlist[i] - off);
+	}
+
+	/*
+	 * make sure to add all nodes inbetween 
+	 */
+	for (i = 0; i < GMRFLib_ged_max_node(ged); i++) {
+		GMRFLib_ged_add(ged, i, i);
+	}
+	GMRFLib_ged_build(graph, ged);
+	GMRFLib_ged_free(ged);
+
+	/*
+	 * step 2. build the tabulate_Qfunc structure 
+	 */
+	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
+	(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction;	/* the Qfunction to use */
+	arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);
+	(*tabulate_Qfunc)->Qfunc_arg = (void *) arg;
+
+	arg->n = (*graph)->n;
+	arg->values = Calloc((*graph)->n, map_id *);
+	if (prec == NULL && log_prec == NULL && log_prec_omp != NULL) {
+		int tmax = GMRFLib_MAX_THREADS;
+		arg->log_prec_omp = Calloc(tmax, double *);
+		for (i = 0; i < tmax; i++) {
+			arg->log_prec_omp[i] = log_prec_omp[i];
+		}
+	} else {
+		arg->log_prec_omp = NULL;
+	}
+
+	/*
+	 * allocate hash-table with the *correct* number of elements
+	 */
+#pragma omp parallel for private(i)
+	for (i = 0; i < (*graph)->n; i++) {
+		int j, jj;
+
+		arg->values[i] = Calloc(1, map_id);
+		map_id_init_hint(arg->values[i], (*graph)->lnnbs[i] + 1);
+		map_id_set(arg->values[i], i, 0.0);
+		for (jj = 0; jj < (*graph)->lnnbs[i]; jj++) {
+			j = (*graph)->lnbs[i][jj];
+			map_id_set(arg->values[i], j, 0.0);	/* fill them with default = 0.0 */
+		}
+	}
+
+	for (i = 0; i < ntriples; i++) {
+		int ii, jj;
+		double *prev;
+
+		if (ilist[i] <= jlist[i]) {
+			ii = ilist[i] - off;
+			jj = jlist[i] - off;
+			CHECK_FOR_MULTIPLE_ENTRIES(arg->values[ii], jj, Qijlist[i]);
+			map_id_set(arg->values[ii], jj, Qijlist[i] + PREVIOUS_VALUE);
+		}
+	}
+
+	return GMRFLib_SUCCESS;
+}
 
 /*!
   \brief Free a tabulate_Qfunc-object
 
   \param[in] tabulate_Qfunc The object of type \c GMRFLib_tabulate_Qfunc_tp to be freed.
 */
-	int GMRFLib_free_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp * tabulate_Qfunc) {
-		if (!tabulate_Qfunc)
-			return GMRFLib_SUCCESS;
+int GMRFLib_free_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp * tabulate_Qfunc)
+{
+	if (!tabulate_Qfunc)
+		return GMRFLib_SUCCESS;
 
-		int i;
-		GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
+	int i;
+	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
 
-		if (tabulate_Qfunc) {
-			arg = (GMRFLib_tabulate_Qfunc_arg_tp *) tabulate_Qfunc->Qfunc_arg;
-			if (arg->graph) {
-				GMRFLib_graph_free(arg->graph);
+	if (tabulate_Qfunc) {
+		arg = (GMRFLib_tabulate_Qfunc_arg_tp *) tabulate_Qfunc->Qfunc_arg;
+		if (arg->graph) {
+			GMRFLib_graph_free(arg->graph);
+		}
+		if (arg->Q) {
+			GMRFLib_csr_free(&(arg->Q));
+		}
+		if (arg->Q_idx) {
+			for (i = 0; i < arg->n; i++) {
+				map_ii_free(arg->Q_idx[i]);
+				Free(arg->Q_idx[i]);
 			}
-			if (arg->Q) {
-				GMRFLib_csr_free(&(arg->Q));
+			Free(arg->Q_idx);
+		}
+		if (arg->values) {
+			for (i = 0; i < arg->n; i++) {
+				map_id_free(arg->values[i]);
+				Free(arg->values[i]);
 			}
-			if (arg->Q_idx) {
-				for (i = 0; i < arg->n; i++) {
-					map_ii_free(arg->Q_idx[i]);
-					Free(arg->Q_idx[i]);
-				}
-				Free(arg->Q_idx);
-			}
-			if (arg->values) {
-				for (i = 0; i < arg->n; i++) {
-					map_id_free(arg->values[i]);
-					Free(arg->values[i]);
-				}
-				Free(arg->values);
-			}
-
-			Free(arg->log_prec_omp);
-			Free(arg);
-			Free(tabulate_Qfunc);
+			Free(arg->values);
 		}
 
-		return GMRFLib_SUCCESS;
+		Free(arg->log_prec_omp);
+		Free(arg);
+		Free(tabulate_Qfunc);
 	}
+
+	return GMRFLib_SUCCESS;
+}
 #undef CHECK_FOR_MULTIPLE_ENTRIES
 #undef PREVIOUS_VALUE

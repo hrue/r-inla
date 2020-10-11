@@ -153,10 +153,11 @@ inla.rgeneric.ar1.model = function(
     quit = function() { <to be completed> }
 
     # sometimes this is useful, as argument 'graph' and 'quit'
-    # will pass theta=NULL as the values of theta are not
+    # will pass theta=numeric(0) (or NULL in R-3.6...) as 
+	# the values of theta are NOT
 	# required for defining the graph. however, this statement
     # will ensure that theta is always defined.
-    if (is.null(theta)) theta = initial()
+    if (!length(theta)) theta = initial()
 
     val = do.call(match.arg(cmd), args = list())
     return (val)

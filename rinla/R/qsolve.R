@@ -9,27 +9,27 @@
 ##! \description{This routine use the GMRFLib implementation
 ##!              to solve linear systems with a SPD matrix.}
 ##! \usage{
-##!     inla.qsolve(Q, B, reordering, method = c("solve", "forward", "backward"))
+##!     inla.qsolve(Q, B, reordering = inla.reorderings(), method = c("solve", "forward", "backward"))
 ##! }
 ##! 
 ##! \arguments{
-##!   \item{Q}{A SPD matrix,  either as a (dense) matrix,  sparse-matrix  or a filename
-##!            containing the matrix (in the fmesher-format).}
-##!   \item{B}{The right hand side matrix, either as a (dense) matrix,  sparse-matrix  or a filename
-##!            containing the matrix (in the fmesher-format).
-##!            (Must be a matrix or sparse-matrix even if \code{ncol(B)} is 1.)}
+##!   \item{Q}{A SPD matrix,  either as a (dense) matrix or sparse-matrix}.
+##!   \item{B}{The right hand side matrix, either as a (dense) matrix or  sparse-matrix.}
 ##!   \item{reordering}{The type of reordering algorithm to be used for \code{TAUCS};
 ##!        either one of the names listed in \code{inla.reorderings()} 
 ##!        or the output from \code{inla.qreordering(Q)}.
-##!        The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
-##!   \item{method}{The system to solve, one of \code{"solve"},  \code{"forward"} or \code{"backward"}. Let \code{Q = L L^T},
+##!        The default is "auto" which try several reordering
+##!        algorithm and use the best one for this particular matrix (using the TAUCS library).}
+##!   \item{method}{The system to solve, one of \code{"solve"},
+##!                 \code{"forward"} or \code{"backward"}. Let \code{Q = L L^T},
 ##!                 where \code{L} is lower triangular
 ##!                 (the Cholesky triangle),  then \code{method="solve"} solves \code{L L^T X = B} or
 ##!                  equivalently \code{Q X = B},  \code{method="forward"} solves \code{L X = B},  and
 ##!                 \code{method="backward"} solves \code{L^T X  = B}. }
 ##!}
 ##!\value{
-##!  \code{inla.qsolve} returns a matrix \code{X},  which is the solution of \code{Q X = B},  \code{L X = B} or \code{L^T X = B} 
+##!  \code{inla.qsolve} returns a matrix \code{X},
+##!  which is the solution of \code{Q X = B},  \code{L X = B} or \code{L^T X = B} 
 ##!  depending on the value of \code{method}.                      
 ##!}
 ##!\author{Havard Rue \email{hrue@r-inla.org}}
@@ -49,16 +49,10 @@
 ##!
 ##!X = inla.qsolve(Q, B, method = "backward")
 ##!print(paste("err", sum(abs( t(L) \%*\% X - B))))
-##!
-##!Q.file = INLA:::inla.write.fmesher.file(Q)
-##!B.file = INLA:::inla.write.fmesher.file(B)
-##!X = inla.qsolve(Q.file, B.file, method = "backward")
-##!print(paste("err", sum(abs( t(L) \%*\% X - B))))
-##!unlink(Q.file)
-##!unlink(B.file)
 ##!}
 
-`inla.qsolve` = function(Q, B, reordering = inla.reorderings(), method = c("solve", "forward", "backward"))
+`inla.qsolve` = function(Q, B, reordering = inla.reorderings(),
+                         method = c("solve", "forward", "backward"))
 {
     t.dir = inla.tempdir()
     smtp = match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "pardiso"))

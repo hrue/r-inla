@@ -271,5 +271,5 @@ inla.pc.sn.test2 <- function() {
 }
 
 if (FALSE) {
-    inla.get.inlaEnv = function(...) INLA:::inla.get.inlaEnv(...)
+    inla.get.inlaEnv = function(...) inla.get.inlaEnv(...)
 }
