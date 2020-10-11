@@ -5416,7 +5416,7 @@
                      survival = FALSE,
                      discrete = TRUE,
                      link = c("default", "log"), 
-                     pdf = "poisson.special"
+                     pdf = "poisson-special"
                  ),
 
                  binomial = list(
