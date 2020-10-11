@@ -27,6 +27,20 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.10.11}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New likelihood \code{poisson.special1}
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Minor code cleanup
+      \item Minor changes in code/doc to adapt to R-4.0
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.09.25}{
   \subsection{BUG FIXES}{
     \itemize{
