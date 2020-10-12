@@ -16,7 +16,7 @@
 ##! \details{
 ##! \code{inla.binary.install()} will offer a menu of alternative 
 ##! (Linux) binary builds to be installed. Currently offered,  are builds
-##! for Ubuntu1804, Ubuntu1604,  CentOS6, CentOS7, and CentOS8.
+##! for Ubuntu, CentOS, Manjaro (Arch Linux) and Fedora
 ##! }
 ##! \value{
 ##! No value returned.
@@ -60,8 +60,8 @@
     }
     cat("  ", "Chose alternative [", 1, ":", nf, "]", sep="", "\n\t")
     ans = scan(file="", what = integer(), n=1, quiet=TRUE)
-    if (!(ans %in% seq_len(nf)))
-        stop("Not a valid choice. Exit.")
+    if (length(ans) == 0) return (invisible())
+    if (!(ans %in% seq_len(nf))) stop("Not a valid choice. Exit.")
     fnm = paste0(address, "/", ff[ans])
     show("Install file [", fnm, "]")
     pa = searchpaths()
