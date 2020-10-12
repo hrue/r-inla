@@ -234,7 +234,7 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *whi
 	// this for metis version 5
 
 #if !defined(NO_PARDISO_LIB)
-	int METIS51_NodeND(idx_t *, idx_t *, idx_t *, idx_t *, idx_t *, idx_t *, idx_t *);
+	int METIS51PARDISO_NodeND(idx_t *, idx_t *, idx_t *, idx_t *, idx_t *, idx_t *, idx_t *);
 #endif
 
 
@@ -337,7 +337,7 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *whi
 	ret = METIS_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
 #else
 	// this is defined in the pardiso libs
-	ret = METIS51_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
+	ret = METIS51PARDISO_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
 #endif
 	if (ret != METIS_OK) {
 		assert(0 == 1);
