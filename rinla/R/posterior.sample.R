@@ -1,6 +1,5 @@
 ## Export: inla.posterior.sample inla.posterior.sample.eval
 
-
 ##! \name{inla.sample}
 ##! \alias{inla.posterior.sample}
 ##! \alias{posterior.sample}
@@ -59,13 +58,18 @@
 ##!                           where each of them is using \code{B:0} threads.}
 ##!   \item{verbose}{Logical. Run in verbose mode or not.}
 ##!   \item{fun}{The function to evaluate for each sample. Upon entry, the variable names
-##!               defined in the model are defined as the value of the sample.
-##!               The list of names are defined in \code{result$misc$configs$contents} where
-##!               \code{result} is an \code{inla}-object. This includes predefined names for
-##!               for the linear predictor (\code{Predictor} and \code{APredictor}),  and the
-##!               intercept (\code{(Intercept)} or \code{Intercept}).
-##!               The hyperparameters are defined as \code{theta},  no matter if they are in the
-##!               internal scale or not. The function \code{fun} can also return a vector.}
+##!              defined in the model are defined as the value of the sample.
+##!              The list of names are defined in \code{result$misc$configs$contents} where
+##!              \code{result} is an \code{inla}-object. This includes predefined names for
+##!              for the linear predictor (\code{Predictor} and \code{APredictor}),  and the
+##!              intercept (\code{(Intercept)} or \code{Intercept}).
+##!              The hyperparameters are defined as \code{theta},  no matter if they are in the
+##!              internal scale or not. The function \code{fun} can also return a vector.
+##!              To simplify usage, \code{fun} can also be a vector character's. In this case
+##!              \code{fun} it is interpreted as variable
+##!              names or subsets thereof, and a function is created that return these variables:
+##!              if argument \code{fun} equals \code{c("Intercept", "a[1:2]")},  then this is equivalent to
+##!              pass \code{function() return(c(Intercept, a[1:2]))}.}
 ##!   \item{samples}{\code{samples} is the output from \code{inla.posterior.sample()}}
 ##!   \item{return.matrix}{Logical. If \code{TRUE},  then return the samples of \code{fun}
 ##!                         as matrix,  otherwise,  as a list.}
@@ -146,6 +150,10 @@
 ##!         control.compute = list(config=TRUE),
 ##!         family = "gaussian")
 ##! r.samples = inla.posterior.sample(10^3, r)
+##!  
+##! ## just return samples of the intercept
+##! intercepts = inla.posterior.sample.eval("Intercept", r.samples)
+##!
 ##! nz = 3
 ##! znew = rnorm(nz)
 ##! fun = function(zz = NA) {
@@ -803,6 +811,14 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
     contents = attr(samples, which = ".contents", exact = TRUE)
     if (is.null(contents)) {
         stop("Argument 'samples' must be the output from 'inla.posterior.sample()'.")
+    }
+
+    ## special shorthand feature that is very useful. if this is vector of character's, then its
+    ## interpreted as a function returning these names, like ....eval(c("a", "b[1:2]"), ...)
+    ## will be converted into the function: function() return(c(a, b[1:2]))
+
+    if (is.character(fun)) {
+        fun <- inla.eval(paste("function() return(c(", paste(fun, sep = "", collapse = ", "), "))"))
     }
 
     my.fun = function(a.sample, .contents, .fun, ...) 
