@@ -628,6 +628,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	Free(ai_store->correction_term);
 	Free(ai_store->correction_idx);
 	Free(ai_store->derivative3);
+	Free(ai_store->derivative4);
 	Free(ai_store->aa);
 	Free(ai_store->bb);
 	Free(ai_store->cc);
@@ -1786,6 +1787,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 				double s = 1.0 / (2.0 * deldif);
 				ai_store->correction_term = Calloc(n, double);	/* compute this */
 				ai_store->derivative3 = Calloc(n, double);	/* and this */
+				ai_store->derivative4 = Calloc(n, double);	/* and this */
 				ai_store->correction_idx = Calloc(n, int);	/* and this one */
 
 				/*
@@ -1806,6 +1808,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 									      fixed_mode, loglFunc, loglFunc_arg,
 									      &(ai_par->step_len), &(ai_par->stencil), NULL);
 							ai_store->derivative3[i] = -(c1 - c0) * s;	/* `-' since c is negative 2.deriv */
+							ai_store->derivative4[i] = 0.0;
 							ai_store->correction_term[i] = -SQR(ai_store->stdev[i]) * ai_store->derivative3[i];
 						}
 					}
@@ -1820,6 +1823,20 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 								      &(ai_par->step_len), &(ai_par->stencil), NULL);
 						ai_store->derivative3[i] = dd;
 						ai_store->correction_term[i] = -SQR(ai_store->stdev[i]) * ai_store->derivative3[i];
+#if defined(INLA_RESEARCH1)
+						if (1) {
+							// have to redo this later if this gets serious
+							double d3[2];
+							GMRFLib_2order_approx(NULL, NULL, NULL, &(d3[0]), d[i], fixed_mode[i] - deldif, i,
+									      fixed_mode, loglFunc, loglFunc_arg,
+									      &(ai_par->step_len), &(ai_par->stencil), NULL);
+							GMRFLib_2order_approx(NULL, NULL, NULL, &(d3[1]), d[i], fixed_mode[i] + deldif, i,
+									      fixed_mode, loglFunc, loglFunc_arg,
+									      &(ai_par->step_len), &(ai_par->stencil), NULL);
+							ai_store->derivative4[i] = (d3[1] - d3[0]) * s;	
+						}
+#endif						
+
 					}
 				}
 			}
@@ -2002,7 +2019,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		GMRFLib_density_create_normal(density, -deriv_log_dens_cond, 1.0, x_mean, x_sd);
 	} else if (strategy == GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN) {
 		int np = 11, err, fail = 0;
-		double *ld = NULL, *xp = NULL, xx, low, high, third_order_derivative, a_sigma, cc, sol1, aa, tmp;
+		double *ld = NULL, *xp = NULL, xx, low, high, third_order_derivative, fourth_order_derivative, a_sigma, cc, sol1, aa, tmp;
 		GMRFLib_sn_param_tp snp;
 
 		int iii, jjj;
@@ -2013,6 +2030,16 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		}
 		third_order_derivative *= gsl_pow_3(x_sd);
 
+#if defined(INLA_RESEARCH1)
+		fourth_order_derivative = 0.0;
+		for (jjj = 0; jjj < ai_store->nidx; jjj++) {
+			iii = ai_store->correction_idx[jjj];
+			fourth_order_derivative += ai_store->derivative4[iii] * gsl_pow_4(derivative[iii]);
+		}
+		fourth_order_derivative *= gsl_pow_4(x_sd);
+		fprintf(stdout, "RESEARCH1: idx= %1d mean %.8f sd %.8f d3 %.8f d4 %.8f\n", idx, x_mean, x_sd, third_order_derivative, fourth_order_derivative);
+#endif		
+			
 		/*
 		 * match the third order derivative at the "mode" and then match the mean and variance with the meancorrected one. 
 		 */
@@ -2593,6 +2620,7 @@ int GMRFLib_free_ai_store(GMRFLib_ai_store_tp * ai_store)
 		Free(ai_store->correction_term);
 		Free(ai_store->correction_idx);
 		Free(ai_store->derivative3);
+		Free(ai_store->derivative4);
 		Free(ai_store);
 	}
 	return GMRFLib_SUCCESS;
@@ -8378,6 +8406,7 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, 
 	DUPLICATE(stdev, n, double, skeleton);
 	DUPLICATE(correction_term, n, double, skeleton);
 	DUPLICATE(derivative3, n, double, skeleton);
+	DUPLICATE(derivative4, n, double, skeleton);
 	DUPLICATE(correction_idx, n, int, skeleton);
 	DUPLICATE(d_idx, nd, int, 0);
 
@@ -8413,6 +8442,7 @@ GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp * to, GMRFLib_a
 	ASSIGN(correction_term);
 	ASSIGN(d_idx);
 	ASSIGN(derivative3);
+	ASSIGN(derivative4);
 	ASSIGN(mode);
 	ASSIGN(nc_orig);
 	ASSIGN(nd);
