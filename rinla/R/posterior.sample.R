@@ -819,6 +819,8 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
 
     if (is.character(fun)) {
         fun <- inla.eval(paste("function() return(c(", paste(fun, sep = "", collapse = ", "), "))"))
+    } else {
+        fun <- match.fun(fun)
     }
 
     my.fun = function(a.sample, .contents, .fun, ...) 
