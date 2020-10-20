@@ -65,6 +65,12 @@ __BEGIN_DECLS
 typedef short int GMRFLib_short_int;
 typedef long unsigned int GMRFLib_sizeof_tp;
 
+#if __GNUC__ > 7
+typedef size_t fortran_charlen_t;
+#else
+typedef int fortran_charlen_t;
+#endif
+
 // utility functions for this are mostly in smtp-pardiso.c
 typedef struct {
 	int n;

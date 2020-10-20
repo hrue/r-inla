@@ -729,7 +729,8 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 							dgemm_special2(nc, aat_m, (*problem)->sub_constr->a_matrix, (*problem)->sub_constr);
 						} else {
 							dgemm_("N", "T", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix,
-							       &nc, (*problem)->sub_constr->a_matrix, &nc, &beta, aat_m, &nc, 1, 1);
+							       &nc, (*problem)->sub_constr->a_matrix, &nc, &beta, aat_m, &nc,
+							       (fortran_charlen_t)1, (fortran_charlen_t)1);
 						}
 						GMRFLib_EWRAP1(GMRFLib_comp_chol_semidef
 							       (NULL, &map, &rank, aat_m, nc, &((*problem)->logdet_aat), eps));
@@ -868,7 +869,8 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 						      (*problem)->qi_at_m, (*problem)->sub_constr);
 				} else {
 					dgemm_("N", "N", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix, &nc,
-					       (*problem)->qi_at_m, &sub_n, &beta, aqat_m, &nc, 1, 1);
+					       (*problem)->qi_at_m, &sub_n, &beta, aqat_m, &nc,
+					       (fortran_charlen_t)1, (fortran_charlen_t)1);
 				}
 
 				if (STOCHASTIC_CONSTR((*problem)->sub_constr)) {
@@ -924,7 +926,8 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 						dgemm_special2(nc, aat_m, (*problem)->sub_constr->a_matrix, (*problem)->sub_constr);
 					} else {
 						dgemm_("N", "T", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix,
-						       &nc, (*problem)->sub_constr->a_matrix, &nc, &beta, aat_m, &nc, 1, 1);
+						       &nc, (*problem)->sub_constr->a_matrix, &nc, &beta, aat_m, &nc,
+						       (fortran_charlen_t)1, (fortran_charlen_t)1);
 					}
 					tmp_vector = NULL;
 					GMRFLib_EWRAP1(GMRFLib_comp_chol_general
@@ -967,7 +970,8 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			 */
 			alpha = -1.0;
 			beta = 1.0;			       /* mean_constr = mean - cond_m*t_vector */
-			dgemv_("N", &sub_n, &nc, &alpha, (*problem)->constr_m, &sub_n, t_vector, &inc, &beta, (*problem)->sub_mean_constr, &inc, 1);
+			dgemv_("N", &sub_n, &nc, &alpha, (*problem)->constr_m, &sub_n, t_vector, &inc, &beta, (*problem)->sub_mean_constr,
+			       &inc, (fortran_charlen_t)1);
 		}
 	}
 
@@ -1108,7 +1112,8 @@ int GMRFLib_sample(GMRFLib_problem_tp * problem)
 				/*
 				 * add L*z 
 				 */
-				dtrmv_("L", "N", "N", &nc, problem->sub_constr->intern->chol, &nc, z, &inc, 1, 1, 1);
+				dtrmv_("L", "N", "N", &nc, problem->sub_constr->intern->chol, &nc, z, &inc,
+				       (fortran_charlen_t)1, (fortran_charlen_t)1, (fortran_charlen_t)1);
 				for (i = 0; i < nc; i++) {
 					t_vector[i] += z[i];
 				}
@@ -1117,7 +1122,8 @@ int GMRFLib_sample(GMRFLib_problem_tp * problem)
 		}
 		alpha = -1.0;
 		beta = 1.0;				       /* sample := sample - cond_m*t_vector */
-		dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, problem->sub_sample, &inc, 1);
+		dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, problem->sub_sample,
+		       &inc, (fortran_charlen_t)1);
 		Free(t_vector);
 
 		for (i = 0; i < n; i++) {
@@ -1814,7 +1820,8 @@ int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_con
 	memcpy(t_vector, constr->e_vector, nc * sizeof(double));
 	alpha = 1.0;
 	beta = -1.0;
-	dgemv_("N", &nc, &(graph->n), &alpha, constr->a_matrix, &nc, x, &inc, &beta, t_vector, &inc, 1);
+	dgemv_("N", &nc, &(graph->n), &alpha, constr->a_matrix, &nc, x, &inc, &beta, t_vector, &inc,
+	       (fortran_charlen_t)1);
 
 	if (value) {
 		memcpy(value, t_vector, nc * sizeof(double));

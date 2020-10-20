@@ -58,10 +58,10 @@ int GMRFLib_comp_posdef_inverse(double *matrix, int dim)
 
 	switch (GMRFLib_blas_level) {
 	case BLAS_LEVEL2:
-		dpotf2_("L", &dim, matrix, &dim, &info, 1);
+		dpotf2_("L", &dim, matrix, &dim, &info, (fortran_charlen_t)1);
 		break;
 	case BLAS_LEVEL3:
-		dpotrf_("L", &dim, matrix, &dim, &info, 1);
+		dpotrf_("L", &dim, matrix, &dim, &info, (fortran_charlen_t)1);
 		break;
 	default:
 		GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);
@@ -70,7 +70,7 @@ int GMRFLib_comp_posdef_inverse(double *matrix, int dim)
 	if (info)
 		GMRFLib_ERROR(GMRFLib_ESINGMAT);
 
-	dpotri_("L", &dim, matrix, &dim, &info, 1);
+	dpotri_("L", &dim, matrix, &dim, &info, (fortran_charlen_t)1);
 	if (info)
 		GMRFLib_ERROR(GMRFLib_ESINGMAT);
 
@@ -150,10 +150,10 @@ int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *lo
 
 	switch (GMRFLib_blas_level) {
 	case BLAS_LEVEL2:
-		dpotf2_("L", &dim, a, &dim, &info, 1);
+		dpotf2_("L", &dim, a, &dim, &info, (fortran_charlen_t)1);
 		break;
 	case BLAS_LEVEL3:
-		dpotrf_("L", &dim, a, &dim, &info, 1);
+		dpotrf_("L", &dim, a, &dim, &info, (fortran_charlen_t)1);
 		break;
 	default:
 		GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);
@@ -193,7 +193,7 @@ int GMRFLib_solveAxb_posdef(double *sol, double *chol, double *b, int dim, int n
 	if (sol != b) {
 		memcpy(sol, b, dim * nrhs * sizeof(double));
 	}
-	dpotrs_("L", &dim, &nrhs, chol, &dim, sol, &dim, &info, 1);
+	dpotrs_("L", &dim, &nrhs, chol, &dim, sol, &dim, &info, (fortran_charlen_t)1);
 
 	if (info) {
 		GMRFLib_ERROR(GMRFLib_EPOSDEF);

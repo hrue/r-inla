@@ -63,22 +63,24 @@ __BEGIN_DECLS
   \brief Define BLAS_LEVEL3
 */
 #define BLAS_LEVEL3 3
-int dpbtrf_(const char *, int *, int *, double *, int *, int *, int);
-int dpbtf2_(const char *, int *, int *, double *, int *, int *, int);
-int dpotrf_(const char *, int *, double *, int *, int *, int);
-int dpotf2_(const char *, int *, double *, int *, int *, int);
-int dtbsv_(const char *, const char *, const char *, int *, int *, double *, int *, double *, int *, int, int, int);
-int dpotri_(const char *, int *, double *, int *, int *, int);
+int dpbtrf_(const char *, int *, int *, double *, int *, int *, fortran_charlen_t);
+int dpbtf2_(const char *, int *, int *, double *, int *, int *, fortran_charlen_t);
+int dpotrf_(const char *, int *, double *, int *, int *, fortran_charlen_t);
+int dpotf2_(const char *, int *, double *, int *, int *, fortran_charlen_t);
+int dtbsv_(const char *, const char *, const char *, int *, int *, double *, int *, double *, int *,
+	   fortran_charlen_t, fortran_charlen_t, fortran_charlen_t);
+int dpotri_(const char *, int *, double *, int *, int *, fortran_charlen_t);
 int dgemm_(const char *, const char *, int *, int *, int *, double *, double *, int *, double *, int
-	   *, double *, double *, int *, int, int);
+	   *, double *, double *, int *, fortran_charlen_t, fortran_charlen_t);
 int dgemv_(const char *, int *, int *, double *, double *, int *, double *, int *, double *, double
-	   *, int *, int);
+	   *, int *, fortran_charlen_t);
 int dgemv_failsafe_(const char *, int *, int *, double *, double *, int *, double *, int *, double *, double
-		    *, int *, int);
+		    *, int *, fortran_charlen_t);
 double erfi_(double *);
-int dpotrs_(const char *, int *, int *, double *, int *, double *, int *, int *, int);
+int dpotrs_(const char *, int *, int *, double *, int *, double *, int *, int *, fortran_charlen_t);
 int dchdc_(double *, int *, int *, double *, int *, int *, int *, double *);
-int dtrmv_(const char *, const char *, const char *, int *, double *, int *, double *, int *, int, int, int);
+int dtrmv_(const char *, const char *, const char *, int *, double *, int *, double *, int *,
+	   fortran_charlen_t, fortran_charlen_t, fortran_charlen_t);
 
 int GMRFLib_comp_chol_semidef(double **chol, int **map, int *rank, double *matrix, int dim, double *logdet, double eps);
 int GMRFLib_comp_posdef_inverse(double *matrix, int dim);
