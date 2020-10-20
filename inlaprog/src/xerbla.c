@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 
-void xerbla_(char *srname, int *info, int len)
+void xerbla_(char *srname, int *info, long int len)
 {
 	// fortran version
 	char *name = (char *) calloc(len+1, sizeof(char));
