@@ -130,11 +130,6 @@
     mkl <- if (mkl) "mkl." else ""
 
     if (inla.os("mac")) {
-        ## workaround for crash when MKL is used with TAUCS (Aug 2020)
-        if (nchar(mkl) > 0 && !lic) {
-            ##warning("Using Intel-MKL linked binary require the PARDISO library (Aug 2020)...")
-            mkl <- ""
-        }
         fnm = system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/inla.", mkl, "run", sep=""), package="INLA")
     } else if (inla.os("linux")) {
         fnm = system.file(paste("bin/linux/", inla.os.32or64bit(), "bit/inla.", mkl, "run", sep=""), package="INLA")
