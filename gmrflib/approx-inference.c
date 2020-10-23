@@ -2221,7 +2221,7 @@ int GMRFLib_ai_update_conditional_mean(GMRFLib_problem_tp * pproblem, double *x,
 		alpha = 1.0;
 		beta = 0.0;
 		dgemm_("N", "N", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix, &nc, (*problem)->qi_at_m, &sub_n,
-		       &beta, aqat_m, &nc, (fortran_charlen_t)1, (fortran_charlen_t)1);
+		       &beta, aqat_m, &nc, F_ONE, F_ONE);
 		if (STOCHASTIC_CONSTR((*problem)->sub_constr)) {
 			/*
 			 * add the covariance matrix, AQ^-1A^t + \Sigma 
@@ -2431,7 +2431,7 @@ int GMRFLib_ai_update_conditional_mean(GMRFLib_problem_tp * pproblem, double *x,
 		alpha = -1.0;
 		beta = 1.0;				       /* mean_constr = mean - cond_m*t_vector */
 		dgemv_("N", &sub_n, &nc, &alpha, (*problem)->constr_m, &sub_n, t_vector, &inc, &beta, (*problem)->sub_mean_constr,
-		       &inc, (fortran_charlen_t)1);
+		       &inc, F_ONE);
 		Free(t_vector);
 
 		for (i = 0; i < sub_n; i++) {
@@ -2520,7 +2520,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 			alpha = 1.0;
 			beta = 0.0;
 			dgemm_("N", "N", &nc, &nc, &n, &alpha, problem->sub_constr->a_matrix, &nc, problem->qi_at_m,
-			       &n, &beta, m, &nc, (fortran_charlen_t)1, (fortran_charlen_t)1);
+			       &n, &beta, m, &nc, F_ONE, F_ONE);
 			GMRFLib_comp_posdef_inverse(m, nc);
 #pragma omp critical
 			{
@@ -2535,9 +2535,9 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 		 */
 		alpha = 1.0;
 		beta = 0.0;
-		dgemv_("N", &nc, &n, &alpha, problem->sub_constr->a_matrix, &nc, c, &one, &beta, v, &one, (fortran_charlen_t)1);
-		dgemv_("N", &nc, &nc, &alpha, problem->inv_aqat_m, &nc, v, &one, &beta, w, &one, (fortran_charlen_t)1);
-		dgemv_("N", &n, &nc, &alpha, problem->qi_at_m, &n, w, &one, &beta, z, &one, (fortran_charlen_t)1);
+		dgemv_("N", &nc, &n, &alpha, problem->sub_constr->a_matrix, &nc, c, &one, &beta, v, &one, F_ONE);
+		dgemv_("N", &nc, &nc, &alpha, problem->inv_aqat_m, &nc, v, &one, &beta, w, &one, F_ONE);
+		dgemv_("N", &n, &nc, &alpha, problem->qi_at_m, &n, w, &one, &beta, z, &one, F_ONE);
 
 		/*
 		 * replacement for:: b22 = c[idx]; for (i = 0; i < nc; i++) b22 -= v[i] * w[i]; b22 = 1.0 / b22; 
@@ -2561,7 +2561,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 		alpha = 1.0;
 		beta = 0.0;
 		dgemm_("N", "N", &n, &nc, &nc, &alpha, problem->constr_m, &n, tmp_m, &nc, &beta, constr_m_new, &n,
-		       (fortran_charlen_t)1, (fortran_charlen_t)1);
+		       F_ONE, F_ONE);
 
 		for (k = 0; k < nc; k++) {
 			val = -b22 * w[k];
@@ -2594,7 +2594,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 	alpha = -1.0;
 	beta = 1.0;					       /* mean_constr = mean - cond_m*t_vec */
 	memcpy(cond_mean, problem->sub_mean, n * sizeof(double));
-	dgemv_("N", &n, &ncc, &alpha, constr_m_new, &n, t_vec, &one, &beta, cond_mean, &one, (fortran_charlen_t)1);
+	dgemv_("N", &n, &ncc, &alpha, constr_m_new, &n, t_vec, &one, &beta, cond_mean, &one, F_ONE);
 
 	Free(work);
 	Free(constr_m_new);

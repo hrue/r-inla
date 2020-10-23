@@ -194,10 +194,10 @@ int GMRFLib_factorise_sparse_matrix_BAND(double *band, GMRFLib_fact_info_tp * fi
 
 	switch (GMRFLib_blas_level) {
 	case BLAS_LEVEL2:
-		dpbtf2_("L", &(graph->n), &nband, band, &ldim, &error, (fortran_charlen_t)1);
+		dpbtf2_("L", &(graph->n), &nband, band, &ldim, &error, F_ONE);
 		break;
 	case BLAS_LEVEL3:
-		dpbtrf_("L", &(graph->n), &nband, band, &ldim, &error, (fortran_charlen_t)1);
+		dpbtrf_("L", &(graph->n), &nband, band, &ldim, &error, F_ONE);
 		break;
 	}
 	if (error) {
@@ -246,7 +246,7 @@ int GMRFLib_solve_lt_sparse_matrix_BAND(double *rhs, double *bchol, GMRFLib_grap
 
 	GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 	dtbsv_("L", "T", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride,
-	       (fortran_charlen_t) 1, (fortran_charlen_t) 1, (fortran_charlen_t) 1);
+	       F_ONE, F_ONE, F_ONE);
 
 	GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
 	return GMRFLib_SUCCESS;
@@ -266,9 +266,9 @@ int GMRFLib_solve_llt_sparse_matrix_BAND(double *rhs, double *bchol, GMRFLib_gra
 
 	GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 	dtbsv_("L", "N", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride,
-	       (fortran_charlen_t) 1, (fortran_charlen_t) 1, (fortran_charlen_t) 1);
+	       F_ONE, F_ONE, F_ONE);
 	dtbsv_("L", "T", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride,
-	       (fortran_charlen_t) 1, (fortran_charlen_t) 1, (fortran_charlen_t) 1);
+	       F_ONE, F_ONE, F_ONE);
 	GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
 
 	return GMRFLib_SUCCESS;
@@ -288,7 +288,7 @@ int GMRFLib_solve_l_sparse_matrix_BAND(double *rhs, double *bchol, GMRFLib_graph
 
 	GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 	dtbsv_("L", "N", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride,
-	       (fortran_charlen_t) 1, (fortran_charlen_t) 1, (fortran_charlen_t) 1);
+	       F_ONE, F_ONE, F_ONE);
 	GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
 
 	return GMRFLib_SUCCESS;
@@ -313,7 +313,7 @@ int GMRFLib_solve_lt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRF
 		GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 	}
 	dtbsvspecial_("L", "T", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, &from, &to,
-		      (fortran_charlen_t) 1, (fortran_charlen_t) 1, (fortran_charlen_t) 1);
+		      F_ONE, F_ONE, F_ONE);
 	if (!remapped) {
 		GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
 	}
@@ -340,7 +340,7 @@ int GMRFLib_solve_l_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFL
 		GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 	}
 	dtbsvspecial_("L", "N", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, &from, &to,
-		      (fortran_charlen_t) 1, (fortran_charlen_t) 1, (fortran_charlen_t) 1);
+		      F_ONE, F_ONE, F_ONE);
 	if (!remapped) {
 		GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
 	}
@@ -368,9 +368,9 @@ int GMRFLib_solve_llt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMR
 	to = graph->n;
 
 	dtbsvspecial_("L", "N", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, &from, &to,
-		      (fortran_charlen_t) 1, (fortran_charlen_t) 1, (fortran_charlen_t) 1);
+		      F_ONE, F_ONE, F_ONE);
 	dtbsv_("L", "T", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride,
-	       (fortran_charlen_t) 1, (fortran_charlen_t) 1, (fortran_charlen_t) 1);
+	       F_ONE, F_ONE, F_ONE);
 	GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
 
 	if (0) {
