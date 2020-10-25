@@ -536,6 +536,7 @@ GMRFLib_sizeof_tp GMRFLib_sizeof_store(GMRFLib_store_tp * store);
 GMRFLib_sizeof_tp GMRFLib_sizeof_problem(GMRFLib_problem_tp * problem);
 int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_tp * constr);
 int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr);
+int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr);
 
 __END_DECLS
 #endif

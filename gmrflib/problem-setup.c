@@ -262,6 +262,21 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr)
 	return GMRFLib_SUCCESS;
 }
 
+int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr)
+{
+	// compute 'res = A %*% x'
+
+	int nc = constr->nc;
+	int inc = 1;
+	int i;
+	
+	for(i = 0; i < nc; i++) {
+		res[i] = ddot_(&(constr->jlen[i]), &(constr->a_matrix[i + nc * constr->jfirst[i]]), &nc, &(x[constr->jfirst[i]]), &inc);
+	}
+	return GMRFLib_SUCCESS;
+}
+
+
 int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			       double *x,
 			       double *b,
@@ -272,7 +287,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			       void *Qfunc_args, char *fixed_value, GMRFLib_constr_tp * constr, unsigned int keep, GMRFLib_store_tp * store)
 {
 	double *bb = NULL;
-	int i, j, sub_n, node, nnode, free_x = 0, id, faster_constr = 1;
+	int i, j, sub_n, node, nnode, free_x = 0, id;
 	GMRFLib_smtp_tp smtp;
 
 	int store_store_sub_graph = 0, store_use_sub_graph = 0;
@@ -725,7 +740,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 						beta = 0.0;
 						aat_m = Calloc(nc * nc, double);
 
-						if (faster_constr && (*problem)->sub_constr->jfirst) {
+						if (GMRFLib_faster_constr) {
 							dgemm_special2(nc, aat_m, (*problem)->sub_constr->a_matrix, (*problem)->sub_constr);
 						} else {
 							dgemm_("N", "T", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix,
@@ -778,7 +793,10 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 							Free((*problem)->sub_constr->e_vector);
 							(*problem)->sub_constr->e_vector = e;
 							(*problem)->sub_constr->nc = rank;
-
+							Free((*problem)->sub_constr->jfirst);
+							Free((*problem)->sub_constr->jlen);
+							GMRFLib_prepare_constr((*problem)->sub_constr, (*problem)->sub_graph, GMRFLib_FALSE);
+							
 							if (debug) {
 								GMRFLib_print_constr(stdout, (*problem)->sub_constr, (*problem)->sub_graph);
 							}
@@ -841,7 +859,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				aqat_m = Calloc(nc * nc, double);
 				alpha = 1.0;
 				beta = 0.0;
-				if (faster_constr && (*problem)->sub_constr->jfirst) {
+				if (GMRFLib_faster_constr) {
 					dgemm_special(nc, sub_n, aqat_m, (*problem)->sub_constr->a_matrix,
 						      (*problem)->qi_at_m, (*problem)->sub_constr);
 				} else {
@@ -899,7 +917,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					beta = 0.0;
 					aat_m = Calloc(nc * nc, double);
 
-					if (faster_constr && (*problem)->sub_constr->jfirst) {
+					if (GMRFLib_faster_constr) {
 						dgemm_special2(nc, aat_m, (*problem)->sub_constr->a_matrix, (*problem)->sub_constr);
 					} else {
 						dgemm_("N", "T", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix,
@@ -1789,16 +1807,25 @@ int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_con
 	 * 
 	 * if value, *value = Ax-e if sqr_value, *sqr_value = (Ax-e)'Q(Ax-e) 
 	 */
-	double *t_vector, alpha, beta;
-	int inc = 1, nc;
+	double *t_vector, alpha, beta, *res;
+	int inc = 1, nc, i;
 
 	nc = constr->nc;
-	t_vector = Calloc(nc, double);
+	t_vector = Calloc(2*nc, double);
+	res = t_vector + nc;
 	memcpy(t_vector, constr->e_vector, nc * sizeof(double));
 	alpha = 1.0;
 	beta = -1.0;
-	dgemv_("N", &nc, &(graph->n), &alpha, constr->a_matrix, &nc, x, &inc, &beta, t_vector, &inc,
-	       F_ONE);
+
+	if (GMRFLib_faster_constr) {
+		dgemv_special(res, x, constr);
+		for(i = 0; i < nc; i++) {
+			t_vector[i] = res[i] - t_vector[i];
+		}
+	} else {
+		dgemv_("N", &nc, &(graph->n), &alpha, constr->a_matrix, &nc, x, &inc, &beta, t_vector, &inc,
+		       F_ONE);
+	}
 
 	if (value) {
 		memcpy(value, t_vector, nc * sizeof(double));
@@ -2216,6 +2243,8 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 			COPY(sub_constr->nc);
 			DUPLICATE(sub_constr->a_matrix, nc * ns, double, 0);
 			DUPLICATE(sub_constr->e_vector, nc, double, 0);
+			DUPLICATE(sub_constr->jfirst, nc, int, 0);
+			DUPLICATE(sub_constr->jlen, nc, int, 0);
 
 			if (STOCHASTIC_CONSTR(problem->sub_constr)) {
 				DUPLICATE(sub_constr->errcov_diagonal, nc, double, 0);

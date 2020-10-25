@@ -425,7 +425,7 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 	memcpy((void *) (store->pstore->iparm), (void *) (store->iparm_default), GMRFLib_PARDISO_PLEN * sizeof(int));
 	memcpy((void *) (store->pstore->dparm), (void *) (store->dparm_default), GMRFLib_PARDISO_PLEN * sizeof(double));
 
-	int ival7 = 2;					       /* #iterations for iterative improvement (max) */
+	int ival7 = 0;					       /* #iterations for iterative improvement (max) */
 
 	omp_set_num_threads(store->pstore->iparm[2]); // this should be set already... but
 	store->pstore->nrhs = 0;
@@ -717,7 +717,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	assert(store->pstore->done_with_chol == GMRFLib_TRUE);
 
 	// this is so that the RHS can be overwritten
-	int n = store->graph->n, mnum1 = 1, i, offset, nblock, reminder, local_nrhs, max_nrhs;
+	int n = store->graph->n, mnum1 = 1, i, offset, nblock, reminder, local_nrhs, max_nrhs, idum = 0;
 	div_t d;
 	double *bb = NULL;
 
@@ -734,9 +734,16 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	for (i = 0; i < nblock + reminder; i++) {
 		offset = i * n * max_nrhs;
 		local_nrhs = (i < nblock ? max_nrhs : (int) d.rem);
+		if (0) {
+			P(omp_get_thread_num());
+			PP("store", (void *) store); fflush(stdout);
+			PP("store->pt[0]", (void *) store->pt[0]); fflush(stdout);
+			PP("\tx", (void *) x);fflush(stdout);
+			PP("\tb", (void *) b);fflush(stdout);
+		}
 		pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore->phase),
 			&n, store->pstore->Q->a, store->pstore->Q->ia, store->pstore->Q->ja,
-			NULL, &local_nrhs, store->pstore->iparm, &(store->msglvl),
+			&idum, &local_nrhs, store->pstore->iparm, &(store->msglvl),
 			bb + offset, x + offset, &(store->pstore->err_code), store->pstore->dparm);
 		if (store->pstore->err_code != 0) {
 			GMRFLib_ERROR(GMRFLib_EPARDISO_INTERNAL_ERROR);
@@ -900,8 +907,10 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 		if (S.s_verbose) {
 			FIXME("Free pardiso store with copy_pardiso_ptr = 1");
 		}
-		free((*store)->pstore);
-		free((*store));
+		Free((*store)->pstore->perm);
+		Free((*store)->pstore->iperm);
+		Free((*store)->pstore);
+		Free((*store));
 		*store = NULL;
 
 		GMRFLib_LEAVE_ROUTINE;
@@ -1032,8 +1041,10 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 		CP2(nrhs);
 		CP2(phase);
 		CP2(L_nnz);
-		CP2(perm);
-		CP2(iperm);
+
+		CPv(perm, int, old->graph->n); // CP2(perm);
+		CPv(iperm, int, old->graph->n); // CP2(iperm);
+
 		CP2(log_det_Q);
 		CP2(Q);
 		CP2(Qinv);

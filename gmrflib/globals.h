@@ -264,6 +264,10 @@ extern int GMRFLib_pardiso_thread_safe;
  */
 extern int GMRFLib_pardiso_ok;
 
+
+// use jfirst/jlen computing with the constraint matrix
+extern int GMRFLib_faster_constr;
+
 #endif
 __END_DECLS
 #endif

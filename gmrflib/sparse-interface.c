@@ -47,7 +47,8 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 /* 
    NEED TO CHANGE/REVISE THIS LATER when the new version with thread-safe solve comes
  */
-#define RUN_SAFE(_expr) if (!GMRFLib_pardiso_thread_safe && omp_in_parallel()) \
+#define RUN_SAFE_DISABLE 0
+#define RUN_SAFE(_expr) if (!RUN_SAFE_DISABLE && !GMRFLib_pardiso_thread_safe && omp_in_parallel()) \
 	{								\
 		int debug = 0;						\
 		if (debug) {						\
@@ -67,6 +68,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 			fflush(stdout);					\
 		}							\
 	} else {							\
+		if (RUN_SAFE_DISABLE) FIXME1("DISABLE RUN_SAFE");	\
 		ret =  _expr;						\
 	}
 

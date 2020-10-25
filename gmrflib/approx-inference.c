@@ -2220,8 +2220,13 @@ int GMRFLib_ai_update_conditional_mean(GMRFLib_problem_tp * pproblem, double *x,
 
 		alpha = 1.0;
 		beta = 0.0;
-		dgemm_("N", "N", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix, &nc, (*problem)->qi_at_m, &sub_n,
-		       &beta, aqat_m, &nc, F_ONE, F_ONE);
+		if (GMRFLib_faster_constr) {
+			dgemm_special(nc, sub_n, aqat_m, (*problem)->sub_constr->a_matrix, (*problem)->qi_at_m, (*problem)->sub_constr);
+		} else {
+			dgemm_("N", "N", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix, &nc, (*problem)->qi_at_m, &sub_n,
+			       &beta, aqat_m, &nc, F_ONE, F_ONE);
+		}
+
 		if (STOCHASTIC_CONSTR((*problem)->sub_constr)) {
 			/*
 			 * add the covariance matrix, AQ^-1A^t + \Sigma 
@@ -2519,8 +2524,12 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 			m = Calloc(ISQR(nc), double);
 			alpha = 1.0;
 			beta = 0.0;
-			dgemm_("N", "N", &nc, &nc, &n, &alpha, problem->sub_constr->a_matrix, &nc, problem->qi_at_m,
-			       &n, &beta, m, &nc, F_ONE, F_ONE);
+			if (GMRFLib_faster_constr) {
+				dgemm_special(nc, n, m, problem->sub_constr->a_matrix, problem->qi_at_m, problem->sub_constr);
+			} else {
+				dgemm_("N", "N", &nc, &nc, &n, &alpha, problem->sub_constr->a_matrix, &nc, problem->qi_at_m,
+				       &n, &beta, m, &nc, F_ONE, F_ONE);
+			}
 			GMRFLib_comp_posdef_inverse(m, nc);
 #pragma omp critical
 			{
@@ -2535,7 +2544,11 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 		 */
 		alpha = 1.0;
 		beta = 0.0;
-		dgemv_("N", &nc, &n, &alpha, problem->sub_constr->a_matrix, &nc, c, &one, &beta, v, &one, F_ONE);
+		if (GMRFLib_faster_constr) {
+			dgemv_special(v, c, problem->sub_constr);
+		} else {
+			dgemv_("N", &nc, &n, &alpha, problem->sub_constr->a_matrix, &nc, c, &one, &beta, v, &one, F_ONE);
+		}
 		dgemv_("N", &nc, &nc, &alpha, problem->inv_aqat_m, &nc, v, &one, &beta, w, &one, F_ONE);
 		dgemv_("N", &n, &nc, &alpha, problem->qi_at_m, &n, w, &one, &beta, z, &one, F_ONE);
 

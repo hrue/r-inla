@@ -259,3 +259,4 @@ int GMRFLib_pardiso_thread_safe = 1;
  */
 int GMRFLib_pardiso_ok = -1;
 
+int GMRFLib_faster_constr = 1;
