@@ -193,7 +193,7 @@ int my_pardiso_test2(void);
 int my_pardiso_test3(void);
 int my_pardiso_test4(void);
 int my_pardiso_test5(void);
-int my_pardiso_test6(void);
+int my_pardiso_test6();
 double my_pardiso_test_Q(int i, int j, double *values, void *arg);
 
 void pardisoinit(void *, int *, int *, int *, double *, int *);
@@ -203,7 +203,6 @@ void pardiso_chkvec(int *, int *, double *, int *);
 void pardiso_printstats(int *, int *, double *, int *, int *, int *, double *, int *);
 void pardiso_get_factor_csc(void **, double *, int *, int *, double *, int *, int *, int *, int);
 void pardiso_get_inverse_factor_csc(void **, double *, int *, int *, int *, int);
-
 
 __END_DECLS
 #endif

@@ -391,6 +391,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 
 	s->iparm_default[1] = 2;			       /* use this so we can have identical solutions */
 	s->iparm_default[4] = 0;			       /* use internal reordering */
+	s->iparm_default[7] = -99;			       /* number of refinement steps (does not work yet) */
 	s->iparm_default[10] = 0;			       /* These are the default, but... */
 	s->iparm_default[12] = 0;			       /* I need these for the divided LDL^Tx=b solver to work */
 	s->iparm_default[20] = 0;			       /* Diagonal pivoting, and... */
@@ -425,8 +426,6 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 	memcpy((void *) (store->pstore->iparm), (void *) (store->iparm_default), GMRFLib_PARDISO_PLEN * sizeof(int));
 	memcpy((void *) (store->pstore->dparm), (void *) (store->dparm_default), GMRFLib_PARDISO_PLEN * sizeof(double));
 
-	int ival7 = 0;					       /* #iterations for iterative improvement (max) */
-
 	omp_set_num_threads(store->pstore->iparm[2]); // this should be set already... but
 	store->pstore->nrhs = 0;
 	store->pstore->err_code = 0;
@@ -454,19 +453,16 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_L:
 		store->pstore->phase = 33;		       // solve
-		store->pstore->iparm[7] = ival7;	       /* Max numbers of iterative refinement steps. */
 		store->pstore->iparm[25] = (S.mtype == 2 ? 1 : -12);
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_LT:
 		store->pstore->phase = 33;		       // solve
-		store->pstore->iparm[7] = ival7;	       /* Max numbers of iterative refinement steps. */
 		store->pstore->iparm[25] = (S.mtype == 2 ? 2 : -23);
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_LLT:
 		store->pstore->phase = 33;		       // solve
-		store->pstore->iparm[7] = ival7;	       /* Max numbers of iterative refinement steps. */
 		store->pstore->iparm[25] = 0;
 		break;
 
@@ -734,13 +730,6 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	for (i = 0; i < nblock + reminder; i++) {
 		offset = i * n * max_nrhs;
 		local_nrhs = (i < nblock ? max_nrhs : (int) d.rem);
-		if (0) {
-			P(omp_get_thread_num());
-			PP("store", (void *) store); fflush(stdout);
-			PP("store->pt[0]", (void *) store->pt[0]); fflush(stdout);
-			PP("\tx", (void *) x);fflush(stdout);
-			PP("\tb", (void *) b);fflush(stdout);
-		}
 		pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore->phase),
 			&n, store->pstore->Q->a, store->pstore->Q->ia, store->pstore->Q->ja,
 			&idum, &local_nrhs, store->pstore->iparm, &(store->msglvl),
@@ -1478,8 +1467,6 @@ int my_pardiso_test4(void)
 
 int my_pardiso_test5(void)
 {
-	int err = 0;
-	
 	S.msglvl = 1;
 	S.csr_check = 1;
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
@@ -1510,4 +1497,89 @@ int my_pardiso_test5(void)
 		GMRFLib_pardiso_chol(store);
 		GMRFLib_pardiso_Qinv(store);
 	}
+}
+
+int my_pardiso_test6(GMRFLib_ai_store_tp *ai_store, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *c)
+{
+	int n = ai_store->problem->sub_graph->n;
+	int i;
+
+	assert(omp_get_num_threads() == 1);
+
+	GMRFLib_thread_id = 0;
+	GMRFLib_tabulate_Qfunc_tp *tab = NULL;
+	GMRFLib_problem_tp *problem = ai_store->problem;
+	GMRFLib_pardiso_store_tp * pardiso_store = problem->sub_sm_fact.PARDISO_fact;
+
+	GMRFLib_tabulate_Qfunc(&tab, ai_store->problem->sub_graph, Qfunc, Qfunc_arg, NULL, NULL, NULL);
+	P(GMRFLib_openmp->max_threads_outer);
+	
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
+	for (i = 0; i < n; i++) {
+		int *iparm = Calloc(GMRFLib_PARDISO_PLEN, int);
+		double *dparm = Calloc(GMRFLib_PARDISO_PLEN, double);
+		
+		memcpy(iparm, pardiso_store->iparm_default, GMRFLib_PARDISO_PLEN * sizeof(int));
+		memcpy(dparm, pardiso_store->dparm_default, GMRFLib_PARDISO_PLEN * sizeof(double));
+
+                iparm[7] = 0;
+                iparm[25] = 0;
+		
+		int j;
+		int error = 0;  
+		int maxfct = 1; 
+		int mnum = 1;   
+		int msglvl = 0; 
+		int mtype = -2;
+		int phase = 33; 
+		int idum = 0;
+		int one = 1;
+		
+		double *work = Calloc(3*n, double);
+		double *b = work;
+		double *x = work + n;
+		double *res = work + 2*n;
+		double err;
+		double fake_a = 0.0;
+		int fake_ia = 0;
+		int fake_ja = 0;
+		
+		// if I set b[10]=1, then it works in parallel, but not if they are different
+		b[i] = 1.0;
+
+		assert(GMRFLib_openmp->max_threads_inner == iparm[2]);
+		omp_set_num_threads(iparm[2]);
+
+                pardiso(pardiso_store->pt,
+			&maxfct,
+			&mnum,
+			&mtype,
+			&phase,
+                        &n,
+			// not in use
+			&fake_a, //pardiso_store->pstore->Q->a,
+			&fake_ia, //pardiso_store->pstore->Q->ia,
+			&fake_ja, //pardiso_store->pstore->Q->ja,
+			//
+			&idum,
+			&one,
+			iparm,
+			&msglvl,
+			b,
+			x,
+			&error,
+			dparm);
+
+		// res = Q x
+		GMRFLib_Qx2(res, x, problem->sub_graph, tab->Qfunc, tab->Qfunc_arg, c);
+
+		for(err = 0.0, j = 0; j < n; j++) {
+			err += SQR(res[j] - b[j]);
+		}
+		err /= n;
+		if (err > 1E-4) printf("i %d err %g\n", i, err);
+
+		Free(work);
+	}
+	exit(0);
 }
