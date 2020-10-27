@@ -135,6 +135,8 @@ __BEGIN_DECLS
 */
 typedef struct {
 
+	unsigned char *sha1;
+
 	/**
 	 *  \brief Number of constaints, can be 0. 
 	 */
@@ -491,6 +493,8 @@ double GMRFLib_Qfunc_generic(int i, int j, double *values, void *arg);
 int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_opt, int *use_global, GMRFLib_global_node_tp * gn);
 GMRFLib_sizeof_tp GMRFLib_sizeof_store(GMRFLib_store_tp * store);
 GMRFLib_sizeof_tp GMRFLib_sizeof_problem(GMRFLib_problem_tp * problem);
+int GMRFLib_problem_init_constr_store(void);
+int GMRFLib_constr_add_sha1(GMRFLib_constr_tp * constr, GMRFLib_graph_tp *graph);
 int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_tp * constr);
 int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr);
 int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr);

@@ -35,7 +35,7 @@
   Sampling, whether unconditionally or conditionally, from a GMRF on a general graph, is performed
   using one function, \ref GMRFLib_sample().  Similarly, \ref GMRFLib_evaluate() computes the
   log-density for a sample from a GMRF and \ref GMRFLib_Qinv() computes elements in the inverse of
-  the precision matrix.  The functions operate on a data structure, \ref GMRFLib_problem_tp, holding
+  the precision matrix.  The functions operate on a data structure, \ref GMRFLib_problem_, holding
   all external and internal information needed by the sampling and evaluation algorithms. This data
   structure is initialised by \ref GMRFLib_init_problem().
 
@@ -58,6 +58,34 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
+
+int error_check_validate_constr1 = 0;
+
+#if defined(INLA_WINDOWS32)
+static int constr_store_use = 0;				       /* do not use it as the sha1 is not prepared for it */
+#else
+static int constr_store_use = 1;
+#endif
+static map_strd constr_store;
+static int constr_store_must_init = 1;
+static int constr_store_debug = 0;
+
+
+int GMRFLib_problem_init_constr_store(void) 
+{
+	if (constr_store_use)
+	{
+		if (constr_store_must_init) {
+			map_strd_init_hint(&constr_store, 128);		
+			constr_store.alwaysdefault = 1;
+			constr_store_must_init = 0;			
+			if (constr_store_debug) {
+				printf("constr_store: init storage\n");	
+			}
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
 
 double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *arguments)
 {
@@ -196,8 +224,33 @@ int GMRFLib_init_problem(GMRFLib_problem_tp ** problem,
 }
 
 
+int validate_constr1(GMRFLib_constr_tp *constr, int n) 
+{
+	GMRFLib_constr_tp *new = NULL;
+	GMRFLib_graph_tp *g = Calloc(1, GMRFLib_graph_tp);
+	g->n = n;
+	
+	GMRFLib_duplicate_constr(&new, constr, g);
+	for(int j = 0; j < constr->nc; j++) {
+		if ((new->jfirst[j] !=  constr->jfirst[j]) ||
+		    (new->jlen[j] != constr->jlen[j]))
+		{
+			printf("CONSTR jfirst/jlen ERROR: i= %d new->jfirst= %d old->jfirst= %d new->jlen= %d old->jlen= %d\n",
+			       j, new->jfirst[j], constr->jfirst[j], new->jlen[j], constr->jlen[j]);
+			abort();
+		}
+	}
+	GMRFLib_free_constr(new);
+	Free(g);
+
+	return GMRFLib_SUCCESS;
+}
+		
+
 int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_tp * constr)
 {
+	if (error_check_validate_constr1) validate_constr1(constr, n);
+	
 	// compute C=A*B, where A is the constr matrix, and we know that C is symmetric.
 	// see below where this is used.
 	int K = m * (m + 1) / 2, *ii, *jj, cond;
@@ -266,11 +319,11 @@ int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr)
 {
 	// compute 'res = A %*% x'
 
-	int nc = constr->nc;
-	int inc = 1;
-	int i;
-	
-	for(i = 0; i < nc; i++) {
+	int nc = constr->nc, inc = 1;
+	int cond = (nc > GMRFLib_MAX_THREADS);
+
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) if(cond)
+	for(int i = 0; i < nc; i++) {
 		res[i] = ddot_(&(constr->jlen[i]), &(constr->a_matrix[i + nc * constr->jfirst[i]]), &nc, &(x[constr->jfirst[i]]), &inc);
 	}
 	return GMRFLib_SUCCESS;
@@ -685,7 +738,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		}
 
 		if (constr && constr->nc > 0) {
-			int nc, k, kk, det_computed = 0;
+			int nc, k, kk;
 			double *aat_m, alpha, beta, *b_add = NULL, *aqat_m;
 
 			/*

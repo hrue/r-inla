@@ -188,13 +188,11 @@ int GMRFLib_solveAxb_posdef(double *sol, double *chol, double *b, int dim, int n
 	/*
 	 * solve Ax=b, where chol is lower Cholesky factor of A. 
 	 */
-	int info;
-
 	if (sol != b) {
 		memcpy(sol, b, dim * nrhs * sizeof(double));
 	}
+	int info;
 	dpotrs_("L", &dim, &nrhs, chol, &dim, sol, &dim, &info, F_ONE);
-
 	if (info) {
 		GMRFLib_ERROR(GMRFLib_EPOSDEF);
 	}

@@ -1583,3 +1583,41 @@ int my_pardiso_test6(GMRFLib_ai_store_tp *ai_store, GMRFLib_Qfunc_tp * Qfunc, vo
 	}
 	exit(0);
 }
+
+int my_pardiso_test7(void)
+{
+	S.msglvl = 0;
+	S.csr_check = 1;
+	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
+
+	P(GMRFLib_openmp->max_threads_outer);
+	P(GMRFLib_openmp->max_threads_inner);
+	P(omp_get_nested());
+
+	int k;
+#pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
+	for (k = 0; k < 1000; k++) {
+
+		// I do not free anything here...
+		
+		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
+		P(k);
+		GMRFLib_tabulate_Qfunc_tp *Qtab = NULL;
+		GMRFLib_graph_tp *g = NULL;
+
+		if (k <  500)
+			GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q.txt", -1, NULL, NULL, NULL);
+		else
+			GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "I5.txt", -1, NULL, NULL, NULL);
+		GMRFLib_csr_tp *csr = NULL;
+		GMRFLib_Q2csr(&csr, g, Qtab->Qfunc, Qtab->Qfunc_arg);
+
+		GMRFLib_pardiso_store_tp *store = NULL;
+		GMRFLib_pardiso_init(&store);
+		GMRFLib_pardiso_reorder(store, g);
+		GMRFLib_pardiso_build(store, g, Qtab->Qfunc, Qtab->Qfunc_arg);
+		GMRFLib_pardiso_chol(store);
+		GMRFLib_pardiso_Qinv(store);
+	}
+}

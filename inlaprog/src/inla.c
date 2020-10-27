@@ -26691,11 +26691,11 @@ double extra(double *theta, int ntheta, void *argument)
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
 #pragma omp critical
-			{
-				if (problem == NULL) {
-					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
-				}
-
+			if (problem == NULL) {
+				problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+			}
+			
+			if (1) {
 				/*
 				 * do a check for numerical not pos def matrix here, as its so close to being singular 
 				 */
@@ -26810,11 +26810,12 @@ double extra(double *theta, int ntheta, void *argument)
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
 #pragma omp critical
-			{
-				if (problem == NULL) {
-					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
-				}
+			if (problem == NULL) {
+				problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+			}
 
+			if (1)
+			{
 				/*
 				 * do a check for numerical not pos def matrix here, as its so close to being singular 
 				 */
@@ -26925,11 +26926,11 @@ double extra(double *theta, int ntheta, void *argument)
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
 #pragma omp critical
-			{
-				if (problem == NULL) {
-					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
-				}
+			if (problem == NULL) {
+				problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+			}
 
+			if (1) {
 				/*
 				 * do a check for numerical not pos def matrix here, as its so close to being singular 
 				 */
@@ -27175,11 +27176,11 @@ double extra(double *theta, int ntheta, void *argument)
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
 #pragma omp critical
-			{
-				if (problem == NULL) {
-					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
-				}
+			if (problem == NULL) {
+				problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+			}
 
+			if (1) {
 				/*
 				 * do a check for numerical not pos def matrix here, as it may be close to being singular 
 				 */
@@ -27280,11 +27281,11 @@ double extra(double *theta, int ntheta, void *argument)
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
 #pragma omp critical
-			{
-				if (problem == NULL) {
-					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
-				}
+			if (problem == NULL) {
+				problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+			}
 
+			if (1) {
 				/*
 				 * do a check for numerical not pos def matrix here, as it may be close to being singular 
 				 */
@@ -27375,10 +27376,11 @@ double extra(double *theta, int ntheta, void *argument)
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
 #pragma omp critical
-			{
-				if (problem == NULL) {
-					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
-				}
+			if (problem == NULL) {
+				problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+			}
+
+			if (1) {
 
 				/*
 				 * do a check for numerical not pos def matrix here, as it may be close to being singular 
@@ -27476,11 +27478,11 @@ double extra(double *theta, int ntheta, void *argument)
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
 #pragma omp critical
-			{
-				if (problem == NULL) {
-					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
-				}
+			if (problem == NULL) {
+				problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+			}
 
+			if (1) {
 				/*
 				 * do a check for numerical not pos def matrix here, as it may be close to being singular 
 				 */
@@ -27594,11 +27596,11 @@ double extra(double *theta, int ntheta, void *argument)
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
 #pragma omp critical
-			{
-				if (problem == NULL) {
-					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
-				}
+			if (problem == NULL) {
+				problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+			}
 
+			if (1) {
 				/*
 				 * do a check for numerical not pos def matrix here, as it may be close to being singular 
 				 */
@@ -33846,6 +33848,12 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 47:
+	{
+		my_pardiso_test7();
+		break;
+	}
+
 		// this will give some more error messages, if any
 	case 999:
 	{
@@ -33902,6 +33910,7 @@ int main(int argc, char **argv)
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
 	GMRFLib_set_blas_num_threads(blas_num_threads);
+	GMRFLib_problem_init_constr_store();
 
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 
@@ -34047,6 +34056,7 @@ int main(int argc, char **argv)
 				printf("\tFound num.threads = %1d:%1d\n", GMRFLib_openmp->max_threads_nested[0],
 				       GMRFLib_openmp->max_threads_nested[1]);
 			}
+			GMRFLib_pardiso_set_nrhs(ntt[1]);
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 			break;
 
@@ -34367,3 +34377,13 @@ int main(int argc, char **argv)
 #undef _BUGS_intern
 #undef _BUGS
 }
+
+
+
+// to link with an older PARDISO lib...
+#if 0
+int METIS51PARDISO_NodeND(int *nvtxs, int *xadj, int *adjncy, int *vwgt, int *options, int *perm, int *iperm)
+{
+        return METIS51_NodeND(nvtxs, xadj, adjncy, vwgt, options, perm, iperm);
+}
+#endif
