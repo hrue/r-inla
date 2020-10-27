@@ -747,13 +747,6 @@ double GMRFLib_linesearch_func(double length, double *dir, GMRFLib_optimize_prob
 	GMRFLib_thread_id = id;
 #endif
 
-	if (STOCHASTIC_CONSTR(opt_problem->sub_constr)) {
-		double sqr_val;
-
-		GMRFLib_eval_constr(NULL, &sqr_val, u, opt_problem->sub_constr, opt_problem->sub_graph);
-		fval += -0.5 * sqr_val;
-	}
-
 	Free(u);
 	Free(v);
 

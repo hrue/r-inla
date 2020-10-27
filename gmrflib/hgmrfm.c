@@ -753,9 +753,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			fc = f_constr[k];
 			if (fc) {
 				nconstr += fc->nc;
-				if (STOCHASTIC_CONSTR(fc)) {
-					GMRFLib_ASSERT(!STOCHASTIC_CONSTR(fc), GMRFLib_EPARAMETER);
-				}
 			}
 		}
 	}

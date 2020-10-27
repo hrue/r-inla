@@ -96,25 +96,6 @@ __BEGIN_DECLS
   $\Sigma$}_{\epsilon}\f$
 */
 
-/*
- */
-    typedef struct {
-
-	/**
-	 *  \brief = chol(errcov_*) 
-	 */
-	double *chol;
-
-	/**
-	 *  \brief = log(det(errcov_*)) 
-	 */
-	double *logdet;
-
-	/**
-	 *  \brief = the zero/non-zero pattern of inv(errcov_*) 
-	 */
-	char *Qpattern;
-} GMRFLib_constr__intern_tp;
 
 /*! 
   \struct GMRFLib_constr_tp problem-setup.h
@@ -180,28 +161,6 @@ typedef struct {
 	int *jfirst;
 	int *jlen;
 
-	/**
-	 *  \brief If non-NULL, a diagonal non-singular error cov-matrix
-	 * 
-	 * If <tt>!=NULL</tt>, the covariance matrix \f$ \mbox{\boldmath $\Sigma$}_{\epsilon} \f$ of the error \f$
-	 * \mbox{\boldmath $\epsilon$} \f$ is assumed to be diagonal, and \a errcov_diagonal is a length \c nc -array
-	 * containing the diagonal elements.\n\n 
-	 */
-	double *errcov_diagonal;
-
-	/**
-	 *  \brief If non-NULL, a general positive definite error cov-matrix
-	 * 
-	 * If <tt>!=NULL</tt>, \a errcov_general specifies a general positive definite covariance matrix \f$ \mbox{\boldmath
-	 * $\Sigma$}_{\epsilon} \f$ of the error \f$ \mbox{\boldmath $\epsilon$} \f$. If both \a errcov_general and \a
-	 * errcov_diagonal are <tt>!NULL</tt>, the matrix is assumed to be diagonal, and \a errcov_diagonal is used. \n\n 
-	 */
-	double *errcov_general;
-
-	/**
-	 *  \brief For internal use only 
-	 */
-	GMRFLib_constr__intern_tp *intern;
 } GMRFLib_constr_tp;
 
 typedef struct {
@@ -499,8 +458,6 @@ struct GMRFLib_store_struct {
 	GMRFLib_problem_tp *problem_new2old;		       /* stored problem */
 
 };
-
-#define STOCHASTIC_CONSTR(constr) ((constr) && ((constr)->errcov_diagonal || (constr)->errcov_general))
 
 double *GMRFLib_Qinv_get(GMRFLib_problem_tp * problem, int i, int j);
 double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *arguments);

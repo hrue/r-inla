@@ -951,16 +951,6 @@ int GMRFLib_ai_log_posterior(double *logdens,
 					}
 				}
 			}
-			{
-				/*
-				 * adjust if stochastic constraint 
-				 */
-
-				if (STOCHASTIC_CONSTR(constr)) {
-					GMRFLib_eval_constr(NULL, &sqr_term, x, constr, graph);
-					tmp3 = -0.5 * sqr_term;
-				}
-			}
 		}
 
 		val = tmp0 + tmp1 + tmp2 + tmp3 + tmp4;
@@ -1012,13 +1002,6 @@ int GMRFLib_ai_log_posterior(double *logdens,
 				}
 			}
 			val += tmp;
-		}
-		/*
-		 * adjust if stochastic constraint 
-		 */
-		if (STOCHASTIC_CONSTR(constr)) {
-			GMRFLib_EWRAP1(GMRFLib_eval_constr(NULL, &sqr_term, x, constr, graph));
-			val += -0.5 * sqr_term;
 		}
 	}
 
@@ -1153,15 +1136,6 @@ int GMRFLib_ai_log_posterior_restricted_OLD(double *logdens, double *x, double *
 			}
 		}
 
-		/*
-		 * adjust if stochastic constraint 
-		 */
-		if (STOCHASTIC_CONSTR(constr)) {
-			double sqr_term = 0.0;
-
-			GMRFLib_EWRAP0(GMRFLib_eval_constr(NULL, &sqr_term, x, constr, graph));
-			val += -0.5 * sqr_term;
-		}
 		*logdens = val;
 	}
 
@@ -1258,16 +1232,6 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 				}
 			}
 			val += tmp;
-		}
-
-		/*
-		 * adjust if stochastic constraint 
-		 */
-		if (STOCHASTIC_CONSTR(constr)) {
-			double sqr_term = 0.0;
-
-			GMRFLib_EWRAP0(GMRFLib_eval_constr(NULL, &sqr_term, x, constr, graph));
-			val += -0.5 * sqr_term;
 		}
 		*logdens = val;
 	}
@@ -2225,21 +2189,6 @@ int GMRFLib_ai_update_conditional_mean(GMRFLib_problem_tp * pproblem, double *x,
 		} else {
 			dgemm_("N", "N", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix, &nc, (*problem)->qi_at_m, &sub_n,
 			       &beta, aqat_m, &nc, F_ONE, F_ONE);
-		}
-
-		if (STOCHASTIC_CONSTR((*problem)->sub_constr)) {
-			/*
-			 * add the covariance matrix, AQ^-1A^t + \Sigma 
-			 */
-			if ((*problem)->sub_constr->errcov_diagonal) {
-				for (i = 0; i < nc; i++) {
-					aqat_m[i + i * nc] += (*problem)->sub_constr->errcov_diagonal[i];
-				}
-			} else {
-				for (i = 0; i < ISQR(nc); i++) {
-					aqat_m[i] += (*problem)->sub_constr->errcov_general[i];
-				}
-			}
 		}
 
 		/*

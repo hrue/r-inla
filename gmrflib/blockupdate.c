@@ -804,13 +804,6 @@ int GMRFLib_blockupdate_store(double *laccept,
 		neww += sum;
 	}
 
-	if (STOCHASTIC_CONSTR(constr_new)) {
-		double sqr_term = 0.0;
-
-		GMRFLib_EWRAP1(GMRFLib_eval_constr(NULL, &sqr_term, x_new, constr_new, graph));
-		neww += -0.5 * sqr_term;
-	}
-
 	/*
 	 * store the new value 
 	 */
@@ -861,12 +854,6 @@ int GMRFLib_blockupdate_store(double *laccept,
 			}
 			GMRFLib_thread_id = id;
 			old += sum;
-		}
-		if (STOCHASTIC_CONSTR(constr_old)) {
-			double sqr_term = 0.0;
-
-			GMRFLib_EWRAP1(GMRFLib_eval_constr(NULL, &sqr_term, x_old, constr_old, graph));
-			old += -0.5 * sqr_term;
 		}
 	}
 
