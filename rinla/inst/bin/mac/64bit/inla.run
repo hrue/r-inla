@@ -37,12 +37,6 @@ pathA="/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources"
 pathB="/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries"
 LIBPNGPATH=$pathA:$pathB
 
-if [ ! -z ${INLA_LOAD_PARDISO+x} ]; then 
-    PDIR="$DIR/../../pardiso/libpardiso/mac"
-else
-    PDIR="$DIR/../../pardiso/libnopardiso/mac"
-fi
-
 for f in $DIR/first/lib*.dylib*; do
     case $f in
 	$DIR/first/libjemalloc*.dylib*)
@@ -52,7 +46,7 @@ for f in $DIR/first/lib*.dylib*; do
     esac
 done
 
-export DYLD_LIBRARY_PATH="$DIR/first:$PDIR:$RHOME_LIB:$DIR:$LIBPNGPATH:/usr/lib:/usr/local/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
+export DYLD_LIBRARY_PATH="$DIR/first:$RHOME_LIB:$DIR:$LIBPNGPATH:/usr/lib:/usr/local/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
     echo "DYLD_INSERT_LIBRARIES=$DYLD_INSERT_LIBRARIES"
     echo "DYLD_FORCE_FLAT_NAMESPACE=$DYLD_FORCE_FLAT_NAMESPACE"

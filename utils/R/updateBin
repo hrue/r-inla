@@ -14,10 +14,6 @@ fix-perm () {
     done
 }
 
-## Maybe put them somewhere else, but for the moment, its here
-rsync -auv ~/p/inla/pardiso $d
-fix-perm $d/pardiso
-
 for m in 64; do
     DIR=$d/mac/${m}bit
     for p in inla inla.mkl fmesher; do 
