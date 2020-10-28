@@ -989,9 +989,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 							printf("constr_store: store value %f\n", (*problem)->logdet_aat);
 						}
 #pragma omp critical 
-						{
-							map_strd_set(&constr_store, (char *) con->sha1, (*problem)->logdet_aat);
-						}
+						map_strd_set(&constr_store, (char *) con->sha1, (*problem)->logdet_aat);
 					}
 					if (!(con->sha1) && constr_store_use) {
 						if (constr_store_debug) {

@@ -575,7 +575,7 @@ int GMRFLib_graph_free(GMRFLib_graph_tp * graph)
 		return GMRFLib_SUCCESS;
 	}
 
-	if (!graph_store_must_init && graph->sha1) {
+	if (graph_store_use && graph->sha1) {
 		void *p;
 		p = map_strvp_ptr(&graph_store, (char *) graph->sha1);
 		if (graph_store_debug) {
@@ -1022,7 +1022,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 		return GMRFLib_SUCCESS;
 	}
 
-	if (!graph_store_must_init && graph_old->sha1) {
+	if (graph_store_use && graph_old->sha1) {
 		void **p;
 		p = map_strvp_ptr(&graph_store, (char *) graph_old->sha1);
 		if (graph_store_debug) {
@@ -1075,10 +1075,11 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 	*graph_new = g;
 	GMRFLib_graph_prepare(g, is_sorted, (graph_old->sha1 ? 0 : 1));
 
-	if (!graph_store_must_init && graph_old->sha1) {
+	if (graph_store_use && graph_old->sha1) {
 		if (graph_store_debug) {
 			printf("graph_store: store graph 0x%p\n", (void *) g);
 		}
+#pragma omp critical
 		map_strvp_set(&graph_store, (char *) g->sha1, (void *) g);
 	}
 
