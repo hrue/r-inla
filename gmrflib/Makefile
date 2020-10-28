@@ -12,7 +12,7 @@ GMRFLibNAME = GMRFLib
 CC = gcc
 FC = gfortran
 FCEXTRAFLAGS = -fno-second-underscore
-FLAGS= FLAGS = -std=gnu11 -Wall -g -O2 -ftree-vectorize -mtune=generic -ftracer -fopenmp -pthread
+FLAGS = -std=gnu11 -Wall -g -O2 -ftree-vectorize -mtune=generic -ftracer -fopenmp -pthread
 
 
 # The path to the external libraries: metis, taucs, lapack, blas and zlib

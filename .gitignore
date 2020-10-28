@@ -892,6 +892,9 @@ rinla/inst/NEWS.pdf
 r-inla/inlaprog/GNUmakefile
 r-inla/gmrflib/GNUmakefile
 r-inla/GNUmakefile
+inlaprog/GNUmakefile
+gmrflib/GNUmakefile
+GNUmakefile
 
 
 
@@ -912,3 +915,8 @@ r-inla.org/doc/likelihood/poisson-special.fls
 r-inla.org/doc/likelihood/poisson-special.log
 r-inla.org/doc/likelihood/poisson-special.pdf
 r-inla.org/doc/likelihood/poisson-special.synctex.gz
+
+rinla/inst/bin/*/*/fmesher
+rinla/inst/bin/*/*/inla
+rinla/inst/bin/*/*/inla.mkl
+
