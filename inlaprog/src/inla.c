@@ -29035,6 +29035,7 @@ int inla_INLA(inla_tp * mb)
 		printf("\tSparse-matrix library... = [%s]\n", mb->smtp);
 		printf("\tOpenMP strategy......... = [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads............. = [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
+		printf("\tblas.num.threads........ = [%1d]\n", GMRFLib_openmp->blas_num_threads);
 		printf("\tDensity-strategy........ = [%s]\n",
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 	}
@@ -33900,7 +33901,8 @@ int main(int argc, char **argv)
 #define _BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
 	int i, verbose = 0, silent = 0, opt, report = 0, arg, ntt[2] = { 0, 0 }, err, enable_core_file = 0;
-	int blas_num_threads = 1;
+	int blas_num_threads_set = 0;
+	int blas_num_threads_default = 1;
 	char *program = argv[0];
 	double time_used[3];
 	clock_t atime_used[3];
@@ -33910,6 +33912,7 @@ int main(int argc, char **argv)
 
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = omp_get_max_threads();
+	GMRFLib_openmp->blas_num_threads = blas_num_threads_default;
 	GMRFLib_openmp->max_threads_nested = Calloc(2, int);
 	GMRFLib_openmp->max_threads_nested[0] = GMRFLib_openmp->max_threads;
 	GMRFLib_openmp->max_threads_nested[1] = 1;
@@ -33921,7 +33924,6 @@ int main(int argc, char **argv)
 	GMRFLib_bitmap_max_dimension = 128;
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
-	GMRFLib_set_blas_num_threads(blas_num_threads);
 
 	GMRFLib_init_constr_store();
 	GMRFLib_init_graph_store();
@@ -33941,7 +33943,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR1, inla_signal);
 	signal(SIGUSR2, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "bvVe:B:m:S:t:z:hsfir:R:cp")) != -1) {
+	while ((opt = getopt(argc, argv, "bvVe:t:B:m:S:z:hsfir:R:cp")) != -1) {
 		switch (opt) {
 		case 'b':
 			G.binary = 1;
@@ -33963,8 +33965,9 @@ int main(int argc, char **argv)
 			break;
 
 		case 'B':
-			if (inla_sread_ints(&blas_num_threads, 1, optarg) == INLA_OK) {
-				GMRFLib_set_blas_num_threads(blas_num_threads);
+			if (inla_sread_ints(&blas_num_threads_default, 1, optarg) == INLA_OK) {
+				GMRFLib_openmp->blas_num_threads = blas_num_threads_default;
+				blas_num_threads_set = 1;
 			} else {
 				fprintf(stderr, "Fail to read BLAS_NUM_THREADS from %s\n", optarg);
 				exit(EXIT_SUCCESS);
@@ -34045,7 +34048,11 @@ int main(int argc, char **argv)
 					// ntt[1] = GMRFLib_openmp->max_threads / ntt[0];
 					ntt[1] = 1;
 				}
-
+				if (!blas_num_threads_set) {
+					// this happens unless the -B option have been used already
+					GMRFLib_openmp->blas_num_threads = ntt[1];
+				}
+				
 				// there is no need to support nested on WINDOWS before PARDISO is
 				// integrated there
 #if defined(WINDOWS)
@@ -34184,7 +34191,8 @@ int main(int argc, char **argv)
 	case INLA_MODE_OPENMP:
 		printf("export OMP_NUM_THREADS=%1d,%1d,1; ", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 		printf("export OMP_MAX_ACTIVE_LEVELS=%1d; ", (GMRFLib_openmp->max_threads_inner > 1 ? 2 : 1));
-		printf("export MKL_NUM_THREADS=%1d; export OPENBLAS_NUM_THREADS=%1d;", blas_num_threads, blas_num_threads);
+		printf("export MKL_NUM_THREADS=%1d; export OPENBLAS_NUM_THREADS=%1d;", GMRFLib_openmp->blas_num_threads,
+		       GMRFLib_openmp->blas_num_threads);
 		exit(EXIT_SUCCESS);
 		break;
 
@@ -34295,7 +34303,7 @@ int main(int argc, char **argv)
 		for (arg = optind; arg < argc; arg++) {
 			if (verbose) {
 				printf("Process file[%s] threads[%1d] max.threads[%1d] blas_threads[%1d]",
-				       argv[arg], GMRFLib_MAX_THREADS, host_max_threads, blas_num_threads);
+				       argv[arg], GMRFLib_MAX_THREADS, host_max_threads, GMRFLib_openmp->blas_num_threads);
 				if (GMRFLib_openmp->max_threads_nested) {
 					printf(" nested[%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 				} else {
