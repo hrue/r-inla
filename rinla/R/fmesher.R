@@ -7,14 +7,14 @@
 {
     if (inla.os("linux") || inla.os("mac")) {
         echoc = system(paste(shQuote(fmesher.call), all.args, shQuote(prefix)),
-                       timeout = timeout)
+                       timeout = ceiling(timeout))
     }
     else if(inla.os("windows")) {
         if (TRUE) {
             echoc = try(system(paste(shQuote(fmesher.call),
                                      all.args,
                                      shQuote(prefix)),
-                               timeout = timeout),
+                               timeout = ceiling(timeout)),
                         silent=TRUE)
             echoc = 0
         } else {

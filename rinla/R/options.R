@@ -72,7 +72,8 @@
 ##!     fmesher.timeout : The timeout limit, in whole seconds, for calls to the
 ##!       fmesher binary. Default is 0, meaning no timeout limit.  Set to a
 ##!       positive integer to terminate fmesher calls that may enter infinite
-##!       loops due to special geometry regularity.
+##!       loops due to special geometry regularity. Fractional seconds are
+##!       rounded up to the nearest integer.
 ##!   }
 ##! }
 ##! 
