@@ -34334,7 +34334,7 @@ int main(int argc, char **argv)
 
 #define PEFF_OUTPUT if (1) {						\
 				double eff_nt = ((double)(atime_used[0] + atime_used[1]))/CLOCKS_PER_SEC/(time_used[0] + time_used[1]);	\
-				printf("\nParallel efficiency for 'Preparations' and 'Approx inference':\n"); \
+				printf("Parallel efficiency for 'Preparations' and 'Approx inference':\n"); \
 				printf("\tAccumulated CPU-time is equivalent to %.1f threads running at 100%%\n", eff_nt); \
 				printf("\tEfficiency using max %1d threads = %.1f%%\n", GMRFLib_MAX_THREADS, \
 				       100.0 * eff_nt/GMRFLib_MAX_THREADS); \
@@ -34366,6 +34366,8 @@ int main(int argc, char **argv)
 				printf("\tOutput          : %7.3f seconds\n", time_used[2]);
 				printf("\t---------------------------------\n");
 				printf("\tTotal           : %7.3f seconds\n", time_used[0] + time_used[1] + time_used[2]);
+				printf("\nNumber of function-calls %d  Average time %.3f seconds\n",
+				       mb->misc_output->nfunc, time_used[1]/mb->misc_output->nfunc);
 #if !defined(WINDOWS)
 				PEFF_OUTPUT;
 #endif
