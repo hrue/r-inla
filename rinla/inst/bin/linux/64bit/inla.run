@@ -1,4 +1,5 @@
 #!/bin/bash
+
 cmd=$(readlink -e "$0")
 DIR=$(readlink -e $(dirname "$cmd"))
 tmp=$(basename "$0")
