@@ -26690,9 +26690,11 @@ double extra(double *theta, int ntheta, void *argument)
 
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
-#pragma omp critical
 			if (problem == NULL) {
-				problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+#pragma omp critical
+				if (problem == NULL) {
+					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+				}
 			}
 			
 			if (1) {
@@ -26809,9 +26811,11 @@ double extra(double *theta, int ntheta, void *argument)
 
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
-#pragma omp critical
 			if (problem == NULL) {
-				problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+#pragma omp critical
+				if (problem == NULL) {
+					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+				}
 			}
 
 			if (1)
@@ -26925,9 +26929,11 @@ double extra(double *theta, int ntheta, void *argument)
 
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
-#pragma omp critical
 			if (problem == NULL) {
-				problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+#pragma omp critical
+				if (problem == NULL) {
+					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+				}
 			}
 
 			if (1) {
@@ -27175,9 +27181,11 @@ double extra(double *theta, int ntheta, void *argument)
 
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
-#pragma omp critical
 			if (problem == NULL) {
-				problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+#pragma omp critical
+				if (problem == NULL) {
+					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+				}
 			}
 
 			if (1) {
@@ -27280,9 +27288,11 @@ double extra(double *theta, int ntheta, void *argument)
 
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
-#pragma omp critical
 			if (problem == NULL) {
-				problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+#pragma omp critical
+				if (problem == NULL) {
+					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+				}
 			}
 
 			if (1) {
@@ -27375,9 +27385,11 @@ double extra(double *theta, int ntheta, void *argument)
 			// Parts of this code is a copy from F_SPDE2
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
-#pragma omp critical
 			if (problem == NULL) {
-				problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+#pragma omp critical
+				if (problem == NULL) {
+					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+				}
 			}
 
 			if (1) {
@@ -27477,9 +27489,11 @@ double extra(double *theta, int ntheta, void *argument)
 			// Parts of this code is a copy from F_SPDE2
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
-#pragma omp critical
 			if (problem == NULL) {
-				problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+#pragma omp critical
+				if (problem == NULL) {
+					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+				}
 			}
 
 			if (1) {
@@ -27595,9 +27609,11 @@ double extra(double *theta, int ntheta, void *argument)
 			// Parts of this code is a copy from F_SPDE2
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
-#pragma omp critical
 			if (problem == NULL) {
-				problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+#pragma omp critical
+				if (problem == NULL) {
+					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
+				}
 			}
 
 			if (1) {
@@ -27778,41 +27794,38 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_R_GENERIC:
 		{
-			int n_out, nn_out, ii, ntheta;
-			double *x_out = NULL, *xx_out = NULL, *param = NULL, log_norm_const = 0.0, log_prior = 0.0;
-			inla_rgeneric_tp *def = NULL;
-			def = (inla_rgeneric_tp *) mb->f_Qfunc_arg_orig[i];
-
-			ntheta = def->ntheta;
-			if (ntheta) {
-				param = Calloc(ntheta, double);
-				for (ii = 0; ii < ntheta; ii++) {
-					param[ii] = theta[count];
-					count++;
-				}
-			}
 #pragma omp critical
 			{
+				int n_out, nn_out, ii, ntheta;
+				double *x_out = NULL, *xx_out = NULL, *param = NULL, log_norm_const = 0.0, log_prior = 0.0;
+				inla_rgeneric_tp *def = NULL;
+				def = (inla_rgeneric_tp *) mb->f_Qfunc_arg_orig[i];
+
+				ntheta = def->ntheta;
+				if (ntheta) {
+					param = Calloc(ntheta, double);
+					for (ii = 0; ii < ntheta; ii++) {
+						param[ii] = theta[count];
+						count++;
+					}
+				}
 				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, ntheta, param);
 				inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_LOG_PRIOR, def->model, ntheta, param);
-			}
 
-			switch (nn_out) {
-			case 0:
-				log_prior = 0.0;
-				break;
-			case 1:
-				log_prior = (evaluate_hyper_prior ? xx_out[0] : 0.0);
-				break;
-			default:
-				assert(0 == 1);
-			}
-			Free(xx_out);
+				switch (nn_out) {
+				case 0:
+					log_prior = 0.0;
+					break;
+				case 1:
+					log_prior = (evaluate_hyper_prior ? xx_out[0] : 0.0);
+					break;
+				default:
+					assert(0 == 1);
+				}
+				Free(xx_out);
 
-			switch (n_out) {
-			case 0:
-			{
-#pragma omp critical
+				switch (n_out) {
+				case 0:
 				{
 					/*
 					 * if it is the standard norm.const, the user can request us to compute it here if numeric(0) is returned from R_rgeneric.
@@ -27903,33 +27916,32 @@ double extra(double *theta, int ntheta, void *argument)
 					Free(Qijlist);
 				}
 				break;
-			}
-
-			case 1:
-			{
-				log_norm_const = x_out[0];
-				break;
-			}
-
-			default:
-				assert(0 == 1);
-			}
-
-			if (debug) {
-				for (ii = 0; ii < ntheta; ii++) {
-					printf("p %.12g ", param[ii]);
+				
+				case 1:
+				{
+					log_norm_const = x_out[0];
+					break;
 				}
-				printf(" %.12g  prior %.12g\n", log_norm_const, log_prior);
+
+				default:
+					assert(0 == 1);
+				}
+
+				if (debug) {
+					for (ii = 0; ii < ntheta; ii++) {
+						printf("p %.12g ", param[ii]);
+					}
+					printf(" %.12g  prior %.12g\n", log_norm_const, log_prior);
+				}
+
+				_SET_GROUP_RHO(ntheta);
+				val += mb->f_nrep[i] * (normc_g + log_norm_const * (mb->f_ngroup[i] - grankdef)) + log_prior;
+				Free(param);
+				Free(x_out);
 			}
-
-			_SET_GROUP_RHO(ntheta);
-			val += mb->f_nrep[i] * (normc_g + log_norm_const * (mb->f_ngroup[i] - grankdef)) + log_prior;
-			Free(param);
-			Free(x_out);
-
 			break;
 		}
-
+		
 		case F_AR1:
 		{
 			double mean_x;
