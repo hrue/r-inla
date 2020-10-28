@@ -33927,8 +33927,8 @@ int main(int argc, char **argv)
 
 	GMRFLib_init_constr_store();
 	GMRFLib_init_graph_store();
+	GMRFLib_pardiso_set_nrhs(1);
 	
-
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 
 	 */
