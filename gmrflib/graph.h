@@ -219,6 +219,7 @@ int GMRFLib_graph_validate(FILE * fp, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_write(const char *filename, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_write2(FILE * fp, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_write_b(const char *filename, GMRFLib_graph_tp * graph);
+int GMRFLib_init_graph_store(void);
 int GMRFLib_lattice2node(int *node, int irow, int icol, int nrow, int ncol);
 int GMRFLib_node2lattice(int node, int *irow, int *icol, int nrow, int ncol);
 int GMRFLib_offset(GMRFLib_offset_tp ** off, int n_new, int offset, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
@@ -226,7 +227,6 @@ int GMRFLib_printbits(FILE * fp, GMRFLib_uchar c);
 int GMRFLib_setbit(GMRFLib_uchar * c, unsigned int bitno);
 int GMRFLib_xQx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_xQx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag);
-
 
 
 // I found this somewhere and I cannot find it again... It was under GPL, and I have modified the code to fit with inla.c.

@@ -461,9 +461,16 @@ struct GMRFLib_store_struct {
 
 };
 
+GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int skeleton, int copy_ptr, int copy_pardiso_ptr);
+GMRFLib_sizeof_tp GMRFLib_sizeof_problem(GMRFLib_problem_tp * problem);
+GMRFLib_sizeof_tp GMRFLib_sizeof_store(GMRFLib_store_tp * store);
+GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton, int copy_ptr, int copy_pardiso_ptr);
 double *GMRFLib_Qinv_get(GMRFLib_problem_tp * problem, int i, int j);
+double GMRFLib_Qfunc_generic(int i, int j, double *values, void *arg);
 double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *arguments);
 int GMRFLib_Qinv(GMRFLib_problem_tp * problem, int storage);
+int GMRFLib_constr_add_sha1(GMRFLib_constr_tp * constr, GMRFLib_graph_tp *graph);
+int GMRFLib_duplicate_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_evaluate(GMRFLib_problem_tp * problem);
 int GMRFLib_evaluate__intern(GMRFLib_problem_tp * problem, int compute_const);
@@ -473,28 +480,21 @@ int GMRFLib_free_constr(GMRFLib_constr_tp * constr);
 int GMRFLib_free_problem(GMRFLib_problem_tp * problem);
 int GMRFLib_free_store(GMRFLib_store_tp * store);
 int GMRFLib_info_problem(FILE * fp, GMRFLib_problem_tp * problem);
-int GMRFLib_init_problem(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean, GMRFLib_graph_tp * graph,
-			 GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args, char *fixed_value, GMRFLib_constr_tp * constraint, unsigned int keep);
+int GMRFLib_init_constr_store(void);
+int GMRFLib_init_problem(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
+			 GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args, char *fixed_value,
+			 GMRFLib_constr_tp * constraint, unsigned int keep);
 int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
-			       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args, char *fixed_value,
-			       GMRFLib_constr_tp * constr, unsigned int keep, GMRFLib_store_tp * store);
+			       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
+			       char *fixed_value, GMRFLib_constr_tp * constr, unsigned int keep, GMRFLib_store_tp * store);
 int GMRFLib_make_empty_constr(GMRFLib_constr_tp ** constr);
+int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_opt, int *use_global, GMRFLib_global_node_tp * gn);
 int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph, int scale_constr);
 int GMRFLib_print_constr(FILE * fp, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
-int GMRFLib_duplicate_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_print_problem(FILE * fp, GMRFLib_problem_tp * problem);
-int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, double *x, double *b_add, char *mask,
-			  GMRFLib_graph_tp * graph, GMRFLib_graph_tp * sub_graph);
+int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, double *x, double *b_add,
+			  char *mask, GMRFLib_graph_tp * graph, GMRFLib_graph_tp * sub_graph);
 int GMRFLib_sample(GMRFLib_problem_tp * problem);
-
-GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int skeleton, int copy_ptr, int copy_pardiso_ptr);
-GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton, int copy_ptr, int copy_pardiso_ptr);
-double GMRFLib_Qfunc_generic(int i, int j, double *values, void *arg);
-int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_opt, int *use_global, GMRFLib_global_node_tp * gn);
-GMRFLib_sizeof_tp GMRFLib_sizeof_store(GMRFLib_store_tp * store);
-GMRFLib_sizeof_tp GMRFLib_sizeof_problem(GMRFLib_problem_tp * problem);
-int GMRFLib_problem_init_constr_store(void);
-int GMRFLib_constr_add_sha1(GMRFLib_constr_tp * constr, GMRFLib_graph_tp *graph);
 int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_tp * constr);
 int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr);
 int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr);

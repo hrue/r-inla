@@ -71,7 +71,7 @@ static int constr_store_must_init = 1;
 static int constr_store_debug = 0;
 
 
-int GMRFLib_problem_init_constr_store(void) 
+int GMRFLib_init_constr_store(void) 
 {
 	if (constr_store_use)
 	{

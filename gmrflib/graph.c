@@ -94,19 +94,22 @@ static map_strvp graph_store;
 static int graph_store_must_init = 1;
 static int graph_store_debug = 0;
 
-#define STORE_INIT							\
-	if (graph_store_use) {						\
-		if (graph_store_must_init) {				\
-			map_strvp_init_hint(&graph_store, 128);		\
-			graph_store.alwaysdefault = 1;			\
-			graph_store_must_init = 0;			\
-			if (graph_store_debug)				\
-				printf("graph_store: init storage\n");	\
-		}							\
+
+int GMRFLib_init_graph_store(void) 
+{
+	if (graph_store_use) {						
+		if (graph_store_must_init) {
+			map_strvp_init_hint(&graph_store, 128);
+			graph_store.alwaysdefault = 1;
+			graph_store_must_init = 0;			
+			if (graph_store_debug) {
+				printf("graph_store: init storage\n");	
+			}
+		}
 	}
+	return GMRFLib_SUCCESS;
+}
 
-
-/* Pre-hg-Id: $Id: graph.c,v 1.102 2010/02/15 08:26:37 hrue Exp $ */
 
 /*!
   \brief Creates an empty graph
@@ -572,7 +575,6 @@ int GMRFLib_graph_free(GMRFLib_graph_tp * graph)
 		return GMRFLib_SUCCESS;
 	}
 
-	STORE_INIT;
 	if (!graph_store_must_init && graph->sha1) {
 		void *p;
 		p = map_strvp_ptr(&graph_store, (char *) graph->sha1);
@@ -1020,7 +1022,6 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 		return GMRFLib_SUCCESS;
 	}
 
-	STORE_INIT;
 	if (!graph_store_must_init && graph_old->sha1) {
 		void **p;
 		p = map_strvp_ptr(&graph_store, (char *) graph_old->sha1);

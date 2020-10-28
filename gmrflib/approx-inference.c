@@ -830,7 +830,7 @@ int GMRFLib_ai_log_posterior(double *logdens,
 	 */
 
 	int i, n, id, run_with_omp;
-	double *xx = NULL, val, logll, sqr_term, result;
+	double *xx = NULL, val, logll, result;
 
 	GMRFLib_ENTER_ROUTINE;
 

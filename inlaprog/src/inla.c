@@ -33922,7 +33922,10 @@ int main(int argc, char **argv)
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
 	GMRFLib_set_blas_num_threads(blas_num_threads);
-	GMRFLib_problem_init_constr_store();
+
+	GMRFLib_init_constr_store();
+	GMRFLib_init_graph_store();
+	
 
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 
