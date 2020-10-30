@@ -1807,9 +1807,10 @@ summary.inla.mesh <- function(object, verbose=FALSE, ...)
                        zlim=range(x$loc[,3]))))
     if (inla.has_PROJ6()) {
       if (is.null(x$crs) || is.null(inla.crs_get_wkt(x$crs))) {
-        ret <- c(ret, list(crs = "N/A"))
+        ret <- c(ret, list(crs = "N/A", crs_proj4 = "N/A"))
       } else {
         ret <- c(ret, list(crs = inla.crs_get_wkt(x$crs)))
+        ret <- c(ret, list(crs_proj4 = rgdal::showP4(ret$crs)))
       }
     } else {
       if (is.na(inla.CRSargs(x$crs))) {
@@ -1879,7 +1880,7 @@ print.summary.inla.mesh <- function(x, ...)
 
     cat("\nManifold:\t", x$manifold, "\n", sep="")
     if (inla.has_PROJ6()) {
-      cat("CRS/LegacyPROJ4:\t", rgdal::showP4(x$crs), "\n", sep="")
+      cat("CRS/LegacyPROJ4:\t", x$crs_proj4, "\n", sep="")
       if (x$verbose) {
         cat("CRS/WKT:\n", x$crs, "\n", sep="")
       } else {
