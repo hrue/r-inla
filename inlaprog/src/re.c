@@ -1738,7 +1738,8 @@ double re_sas_log_prior(double *val, double *param)
 
 double *re_sas_evaluate_log_prior(double skew, double kurt, double *param)
 {
-	double output[4], level, length, point, ldens_uniform, ldens_dist, *pri, logjac, lambda = param[0];
+	double output[4] = {0, 0, 0, 0}, level, length, point, ldens_uniform,
+		ldens_dist, *pri, logjac = 0.0, lambda = param[0];
 
 	re_find_in_sas_prior_table(output, skew, kurt);
 	level = output[0];

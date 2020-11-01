@@ -33921,9 +33921,8 @@ int main(int argc, char **argv)
 
 	GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
 	GMRFLib_collect_timer_statistics = GMRFLib_FALSE;
-	GMRFLib_bitmap_max_dimension = 128;
+	GMRFLib_bitmap_max_dimension = 256;
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
-	GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
 
 	GMRFLib_init_constr_store();
 	GMRFLib_init_graph_store();

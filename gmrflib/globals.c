@@ -250,11 +250,6 @@ GMRFLib_density_storage_strategy_tp GMRFLib_density_storage_strategy = GMRFLib_D
 int GMRFLib_debug_code = 0;
 
 /* 
-   tell the pardiso-interface that we're in a thread-safe area
- */
-int GMRFLib_pardiso_thread_safe = 1;
-
-/* 
    tell if we have a working pardiso library, -1, is for 'not checked yet'
  */
 int GMRFLib_pardiso_ok = -1;
