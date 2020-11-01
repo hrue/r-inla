@@ -33,11 +33,29 @@ export INLA_TAG="${1-devel}"
 VERSION=$(ssh $IP "source /etc/os-release; echo \$NAME-\$VERSION")
 D=64bit
 
+## add so we can define 'devel' to compile the most recent one
+if [ $INLA_TAG != "devel" ]; then
+    ssh -x -t $IP "
+    . .bash_profile;
+    export INLA_TAG=$INLA_TAG;
+    B=builds/build64;
+    make -C \$B download;"
+else
+    ssh -x -t $IP "
+    . .bash_profile;
+    B=builds/build64;
+    cd \$B/r-inla; 
+    git reset --hard; 
+    git checkout devel; 
+    git pull --all"
+fi
+    
+
 ssh -x -t $IP "
     . .bash_profile;
     export INLA_TAG=$INLA_TAG;
     B=builds/build64;
-    make -C \$B update;
+    make -C\$B update;
     test -d \$B/$D && rm -rf \$B/$D;
     rsync -auv \$B/r-inla/rinla/inst/bin/linux/$D \$B;
     export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib64:/usr/lib64/R/lib:\$PWD/local/lib:\$LD_LIBRARY_PATH;

@@ -33965,6 +33965,7 @@ int main(int argc, char **argv)
 
 		case 'B':
 			if (inla_sread_ints(&blas_num_threads_default, 1, optarg) == INLA_OK) {
+				blas_num_threads_default = IMAX(blas_num_threads_default, 1);
 				GMRFLib_openmp->blas_num_threads = blas_num_threads_default;
 				blas_num_threads_set = 1;
 			} else {
@@ -34049,7 +34050,7 @@ int main(int argc, char **argv)
 				}
 				if (!blas_num_threads_set) {
 					// this happens unless the -B option have been used already
-					GMRFLib_openmp->blas_num_threads = ntt[1];
+					GMRFLib_openmp->blas_num_threads = IMAX(1, ntt[1]);
 				}
 				
 				// there is no need to support nested on WINDOWS before PARDISO is
