@@ -123,10 +123,10 @@ double omp_get_wtick(void)
 // is depreciated and we get this annoying warning message using MKL.
 // OMP_NESTED=TRUE must be defined...
 //
-int omp_get_max_active_levels(void);
-void omp_set_max_active_levels(int);
-#define omp_get_nested() (omp_get_max_active_levels() > 0 ? 1 : 0)
-#define omp_set_nested(_val) omp_set_max_active_levels(((_val) ? GMRFLib_MAX_THREADS : 0))
+//int omp_get_max_active_levels(void);
+//void omp_set_max_active_levels(int);
+//#define omp_get_nested() (omp_get_max_active_levels() > 0 ? 1 : 0)
+//#define omp_set_nested(_val) omp_set_max_active_levels(((_val) ? GMRFLib_MAX_THREADS : 0))
 #endif
 
 
