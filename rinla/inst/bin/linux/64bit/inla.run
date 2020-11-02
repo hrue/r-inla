@@ -39,6 +39,7 @@ else
     export LD_LIBRARY_PATH="$DIR/first:$DIR:$D:$LD_LIBRARY_PATH"
 fi
 export PARDISOLICMESSAGE=1
+export OMP_NESTED=TRUE
 
 if [ -n "${INLA_DEBUG}" ]; then
     echo "*** $0 *** LD_PRELOAD=$LD_PRELOAD"

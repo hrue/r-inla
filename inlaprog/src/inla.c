@@ -32374,7 +32374,6 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		GMRFLib_problem_tp **problems = Calloc(GMRFLib_openmp->max_threads_outer, GMRFLib_problem_tp *);
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < ns; i++) {
-			GMRFLib_openmp_nested_fix();
 
 			int thread = omp_get_thread_num();
 			if (problems[thread] == NULL) {
@@ -34190,7 +34189,9 @@ int main(int argc, char **argv)
 	switch (G.mode) {
 	case INLA_MODE_OPENMP:
 		printf("export OMP_NUM_THREADS=%1d,%1d,1; ", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
-		printf("export OMP_MAX_ACTIVE_LEVELS=%1d; ", (GMRFLib_openmp->max_threads_inner > 1 ? 2 : 1));
+		printf("export OMP_NESTED=TRUE; ");
+		printf("export OMP_MAX_ACTIVE_LEVELS=%1d; ", (GMRFLib_openmp->max_threads_nested[0] > 1 ?
+							      GMRFLib_openmp->max_threads_nested[0] : 0));
 		printf("export MKL_NUM_THREADS=%1d; export OPENBLAS_NUM_THREADS=%1d;", GMRFLib_openmp->blas_num_threads,
 		       GMRFLib_openmp->blas_num_threads);
 		exit(EXIT_SUCCESS);

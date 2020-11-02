@@ -124,22 +124,6 @@ typedef struct {
 } GMRFLib_openmp_tp;
 
 
-#define PARALLEL_OUTHER(_body)						\
-	if (omp_in_parallel()) {					\
-		GMRFLib_openmp_nested_fix();				\
-		_body;							\
-	} else {							\
-		_Pragma("omp parallel num_threads(GMRFLib_openmp->max_threads_outer)") \
-		{							\
-			_Pragma("omp single")				\
-			{						\
-				GMRFLib_openmp_nested_fix();		\
-				_body;					\
-			}						\
-		}							\
-	}	
-
-
 #define GMRFLib_MAX_THREADS (GMRFLib_openmp ? GMRFLib_openmp->max_threads : IMIN(omp_get_max_threads(), omp_get_num_procs()))
 
 int GMRFLib_set_blas_num_threads(int threads);

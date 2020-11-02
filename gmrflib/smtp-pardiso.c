@@ -1486,7 +1486,7 @@ int my_pardiso_test5(void)
 		GMRFLib_tabulate_Qfunc_tp *Qtab = NULL;
 		GMRFLib_graph_tp *g = NULL;
 
-		GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q.dat", -1, NULL, NULL, NULL);
+		GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Qsparse2.dat", -1, NULL, NULL, NULL);
 		GMRFLib_csr_tp *csr = NULL;
 		GMRFLib_Q2csr(&csr, g, Qtab->Qfunc, Qtab->Qfunc_arg);
 
