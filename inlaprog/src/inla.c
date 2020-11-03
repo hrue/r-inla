@@ -34074,9 +34074,10 @@ int main(int argc, char **argv)
 				GMRFLib_openmp->max_threads = ntt[0] * ntt[1];
 			}
 			if (verbose > 0) {
-				printf("\tFound num.threads = %1d:%1d\n", GMRFLib_openmp->max_threads_nested[0],
-				       GMRFLib_openmp->max_threads_nested[1]);
+				printf("\tFound num.threads = %1d:%1d max_threads = %1d\n", GMRFLib_openmp->max_threads_nested[0],
+				       GMRFLib_openmp->max_threads_nested[1], GMRFLib_openmp->max_threads);
 			}
+			omp_set_num_threads(GMRFLib_MAX_THREADS);
 			GMRFLib_pardiso_set_nrhs(ntt[1]);
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 			break;

@@ -383,7 +383,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		}
 	}
 
-	int max_threads = IMAX(5, GMRFLib_openmp->max_threads_outer);
+	int max_threads = IMIN(5, GMRFLib_openmp->max_threads_outer);
 #pragma omp parallel sections num_threads(max_threads)
 	{
 #pragma omp section
