@@ -249,7 +249,6 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO:
-			nested = 1;
 			GMRFLib_openmp->max_threads_outer = GMRFLib_openmp->max_threads_nested[0];
 			GMRFLib_openmp->max_threads_inner = GMRFLib_openmp->max_threads_nested[1];
 			break;
@@ -303,7 +302,6 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO:
-			nested = 1;
 			GMRFLib_openmp->max_threads_outer = GMRFLib_openmp->max_threads_nested[0];
 			GMRFLib_openmp->max_threads_inner = GMRFLib_openmp->max_threads_nested[1];
 			break;
