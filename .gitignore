@@ -764,6 +764,8 @@ r-inla.org/doc/utils/inla.surv.pdf
 r-inla.org/doc/utils/inla.surv.synctex.gz
 
 rinla/NAMESPACE.backup
+rinla/NAMESPACE.roxygen
+rinla/NAMESPACE.ours
 
 rinla/inst/doc/likelihood/mec-details.pdf
 
