@@ -32941,8 +32941,9 @@ int testit(int argc, char **argv)
 
 	case 1:
 	{
-		P(GMRFLib_rng_uniform());
-		P(GMRFLib_rng_uniform());
+		for(int i = 0; i < 10; i++) {
+			P(GMRFLib_rng_uniform());
+		}
 	}
 		break;
 
@@ -34124,8 +34125,8 @@ int main(int argc, char **argv)
 			break;
 
 		case 'z':
-			if (G.mode != INLA_MODE_FINN && G.mode != INLA_MODE_QSAMPLE) {
-				fprintf(stderr, "\n *** ERROR *** Option `-z seed' only available in FINN mode\n");
+			if (!(G.mode == INLA_MODE_FINN || G.mode == INLA_MODE_QSAMPLE || G.mode == INLA_MODE_TESTIT)) {
+				fprintf(stderr, "\n *** ERROR *** Option `-z seed' only available in selected modes\n");
 				exit(EXIT_FAILURE);
 			} else {
 				int int_seed;
