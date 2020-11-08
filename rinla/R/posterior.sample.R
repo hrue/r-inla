@@ -339,9 +339,11 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
         if (num.threads != num.threads.user) {
             warning("Since 'seed!=0', parallel model is disabled and serial model is selected, num.threads='1:1'")
         }
-        if (!missing(parallel.configs) && !isFALSE(parallel.configs)) {
-            warning("Since 'seed!=0', parallel model is disabled and serial model is selected, parallel.configs=FALSE")
-        }
+        ## Since parallel.configs aren't used on winows anyway, warning about
+        ## overriding it on other systems is overkill and doesn't really help.
+        #    if (!missing(parallel.configs) && !isFALSE(parallel.configs)) {
+        #        warning("Since 'seed!=0', parallel model is disabled and serial model is selected, parallel.configs=FALSE")
+        #    }
         parallel.configs <- FALSE
     } else {
         num.threads <- inla.parse.num.threads(num.threads)
