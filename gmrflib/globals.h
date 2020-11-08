@@ -263,6 +263,10 @@ extern int GMRFLib_pardiso_ok;
 // use jfirst/jlen computing with the constraint matrix
 extern int GMRFLib_faster_constr;
 
+
+// add stability to AQ^-1A^T
+extern double GMRFLib_aqat_m_diag_add;
+
 #endif
 __END_DECLS
 #endif

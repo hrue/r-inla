@@ -255,3 +255,6 @@ int GMRFLib_debug_code = 0;
 int GMRFLib_pardiso_ok = -1;
 
 int GMRFLib_faster_constr = 1;
+
+// add stability to AQ^-1A^T
+double GMRFLib_aqat_m_diag_add = 0.0;

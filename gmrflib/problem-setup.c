@@ -920,10 +920,10 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					       F_ONE, F_ONE);
 				}
 
-				// add stability [testing]
-				double diag_add = GMRFLib_eps(0.5);
-				for(i = 0; i < nc; i++){
-					aqat_m[i + i * nc] += diag_add;
+				if (GMRFLib_aqat_m_diag_add > 0.0) {
+					for(i = 0; i < nc; i++){
+						aqat_m[i + i * nc] += GMRFLib_aqat_m_diag_add;
+					}
 				}
 
 				/*

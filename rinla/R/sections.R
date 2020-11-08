@@ -945,6 +945,11 @@
         cat("use.directions.matrix =", fnm, "\n", file=file, append = TRUE)
     }
 
+    if (inla.spec$constr.marginal.diagonal > 0.0) {
+        cat("constr.marginal.diagonal = ", inla.spec$constr.marginal.diagonal, "\n", sep = " ", file = file,  append = TRUE)
+    }
+
+
     cat("\n", sep = " ", file = file,  append = TRUE)
 }
 

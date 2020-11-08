@@ -545,7 +545,11 @@
         optimise.strategy = "smart", 
 
         ##:ARGUMENT: use.directions THIS OPTION IS EXPERIMENTAL. Unless \code{FALSE} or \code{NULL},  use directions for computing gradient and Hessian, initialised with \code{use.directions} if a matrix.
-        use.directions = TRUE
+        use.directions = TRUE, 
+
+        ##:ARGUMENT: constr.marginal.diagonal Add stability to \code{AQ^-1A^T} by adding a small diagonal term. (default \code{epsilon^0.5})
+        constr.marginal.diagonal = sqrt(.Machine$double.eps)
+
         )
         
  

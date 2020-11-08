@@ -25221,6 +25221,13 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		}
 	}
 
+	// default value is set in main()
+	GMRFLib_aqat_m_diag_add = iniparser_getdouble(ini, inla_string_join(secname, "CONSTR.MARGINAL.DIAGONAL"), GMRFLib_aqat_m_diag_add);
+	assert(GMRFLib_aqat_m_diag_add >= 0.0);
+	if (mb->verbose) {
+		printf("\t\tconstr.marginal.diagonal = %.3g\n", GMRFLib_aqat_m_diag_add);
+	}
+
 	if (mb->verbose) {
 		GMRFLib_print_ai_param(stdout, mb->ai_par);
 	}
@@ -33955,6 +33962,7 @@ int main(int argc, char **argv)
 	GMRFLib_collect_timer_statistics = GMRFLib_FALSE;
 	GMRFLib_bitmap_max_dimension = 256;
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
+	GMRFLib_aqat_m_diag_add = GMRFLib_eps(0.5);
 
 	GMRFLib_init_constr_store();
 	GMRFLib_init_graph_store();
