@@ -45,9 +45,13 @@
 ##!   \item{add.names}{Logical. If \code{TRUE} then add name for each elements of each
 ##!       sample. If \code{FALSE}, only add name for the first sample. 
 ##!       (This save space.)}
-##!   \item{seed}{See the same argument in \code{?inla.qsample} for further information.
-##!               In order to produce reproducible results,  you ALSO need to make sure the
-##!               RNG in R is in the same state,  see example below.}
+##!   \item{seed}{See the same argument in \code{?inla.qsample} for further
+##!               information. In order to produce reproducible results,  you
+##!               ALSO need to make sure the RNG in R is in the same state,
+##!               see example below.  When \code{seed} is non-zero,
+##!               \code{num.threads} is forced to "1:1" and parallel.configs is
+##!               set to \code{FALSE}, since parallel sampling would not produce
+##!               a reproducible sequence of pseudo-random numbers.}
 ##!   \item{num.threads}{The number of threads to use in the format 'A:B' defining the number threads in the
 ##!                      outer (A) and inner (B) layer for nested parallelism. A '0' will be replaced
 ##!                      intelligently. 
