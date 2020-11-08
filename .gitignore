@@ -877,8 +877,8 @@ rinla/man/wkt_tree.Rd
 rinla/vignettes/*.aux
 rinla/vignettes/*.html
 rinla/vignettes/*.log
-rinla/vignettes/*.pdf
 rinla/vignettes/*.tex
+rinla/vignettes/*.R
 rinla/vignettes/figure/*
 rinla/vignettes/figures/*
 rinla/vignettes/*-figs/*
@@ -900,8 +900,6 @@ GNUmakefile
 
 gmrflib/INLA_res.RData
 gmrflib/GitID.all
-rinla/vignettes/conditional-sampling.R
-rinla/vignettes/old-faq.R
 r-inla.org/doc/prior/linksnintercept.aux
 r-inla.org/doc/prior/linksnintercept.log
 r-inla.org/doc/prior/linksnintercept.pdf
