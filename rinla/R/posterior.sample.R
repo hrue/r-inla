@@ -337,8 +337,12 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
         num.threads.user <- inla.parse.num.threads(num.threads)
         num.threads <- inla.parse.num.threads("1:1")
         if (num.threads != num.threads.user) {
-            warning("Since 'seed!=0', parallel model is disabled and serial model is selected")
+            warning("Since 'seed!=0', parallel model is disabled and serial model is selected, num.threads='1:1'")
         }
+        if (!missing(parallel.configs) && !isFALSE(parallel.configs)) {
+            warning("Since 'seed!=0', parallel model is disabled and serial model is selected, parallel.configs=FALSE")
+        }
+        parallel.configs <- FALSE
     } else {
         num.threads <- inla.parse.num.threads(num.threads)
     }
@@ -394,6 +398,9 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
         if (nt[2] == 0) {
             nt[2] <- max(1, ncores %/% nt[1])
         }
+        # In parallel mode, each thread needs it's own random sequence,
+        # so seed must be 0; seed != 0 is handled above to prevent parallel
+        # runs with nonzero seed.
         xx.list <- parallel::mclapply(1:cs$nconfig,
                              (function(k) {
                                  if (n.idx[k] > 0) {
@@ -404,7 +411,7 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
                                                                         cs$config[[k]]$mean), 
                                                        constr = cs$constr,
                                                        logdens = TRUE,
-                                                       seed = seed,
+                                                       seed = 0L,
                                                        num.threads = paste0(nt[2], ":1"), 
                                                        selection = sel.map,
                                                        verbose = verbose)
