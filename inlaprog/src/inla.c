@@ -3371,8 +3371,16 @@ double priorfunc_pc_alphaw(double *x, double *parameters)
 	return (ld);
 }
 
+
 double priorfunc_pc_gamma(double *x, double *parameters)
 {
+	// in Maple, this is
+	// asympt(log(Psi(1, n)-1/n), n,4);
+	// see also testing no 48 and 49
+#define SPECIAL(x) ((x > 1.0E4 ?					\
+		     -2.0 * log(x) - log(2.0) + 1.0/(3.0*(x)) - 1.0/(18.0*SQR(x)) - 22.0/(405.0 * gsl_pow_3(x)) : \
+		     log(gsl_sf_psi_1(x) - 1.0/(x))))
+	
 	// the inla.pc.dgamma prior, which is the prior for 'a' in Gamma(1/a, 1/a) where a=0 is the base model. Here we have the
 	// argument log(a). Almost the same function as priorfunc_pc_mgamma
 	double ldens, d, a, a_inv, lambda;
@@ -3381,7 +3389,8 @@ double priorfunc_pc_gamma(double *x, double *parameters)
 	a = exp(x[0]);
 	a_inv = 1.0 / a;
 	d = sqrt(2.0 * (log(a_inv) - gsl_sf_psi(a_inv)));
-	ldens = log(lambda) - lambda * d - 2.0 * log(a) - log(d) + log(gsl_sf_psi_1(a_inv) - a) + x[0];
+	ldens = log(lambda) - lambda * d - 2.0 * log(a) - log(d) + SPECIAL(a_inv) + x[0];
+#undef SPECIAL
 
 	return ldens;
 }
@@ -33863,6 +33872,30 @@ int testit(int argc, char **argv)
 	case 47:
 	{
 		my_pardiso_test7();
+		break;
+	}
+
+	case 48: 
+	{
+		for(double x = 1.0;; x *= 10.0) {
+			printf("x= %f log(gsl_sf_psi_1(x)= %f  -log(x)= %f diff= %f\n",
+			       x, log(gsl_sf_psi_1(x)), -log(x),
+			       log(gsl_sf_psi_1(x))+log(x));
+		}
+		break;
+	}
+
+	case 49: 
+	{
+#define SPECIAL(x) ((x > 0 ?					\
+		-2.0 * log(x) - log(2.0) + 1.0/(3.0*(x)) - 1.0/(18.0*SQR(x)) : \
+		     log(gsl_sf_psi_1(x) - 1.0/(x))))
+
+		for(double x = 1.0;; x *= 10.0) {
+			printf("x= %f log(gsl_sf_psi_1(x)-1/x)= %f  %f %f\n",
+			       x, log(gsl_sf_psi_1(x)-1/x), SPECIAL(x), 
+			       log(gsl_sf_psi_1(x)-1/x)-SPECIAL(x));
+		}
 		break;
 	}
 

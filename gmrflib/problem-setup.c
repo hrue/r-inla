@@ -223,7 +223,6 @@ int GMRFLib_init_problem(GMRFLib_problem_tp ** problem,
 	return GMRFLib_SUCCESS;
 }
 
-
 int validate_constr1(GMRFLib_constr_tp *constr, int n) 
 {
 	GMRFLib_constr_tp *new = NULL;
@@ -919,6 +918,12 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					dgemm_("N", "N", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix, &nc,
 					       (*problem)->qi_at_m, &sub_n, &beta, aqat_m, &nc,
 					       F_ONE, F_ONE);
+				}
+
+				// add stability [testing]
+				double diag_add = GMRFLib_eps(0.5);
+				for(i = 0; i < nc; i++){
+					aqat_m[i + i * nc] += diag_add;
 				}
 
 				/*
