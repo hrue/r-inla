@@ -91,6 +91,9 @@ dkms.conf
 
 *~
 .Rproj.user
+.Rhistory
+rinla/.Rproj.user
+rinla/.Rhistory
 gmrflib/.deps/
 gmrflib/TAGS
 gmrflib/gitstamp
