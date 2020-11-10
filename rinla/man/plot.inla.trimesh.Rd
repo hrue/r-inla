@@ -4,7 +4,7 @@
 \alias{plot.inla.trimesh}
 \title{Low level triangulation mesh plotting}
 \usage{
-plot.inla.trimesh(
+\method{plot}{inla.trimesh}(
   x,
   S,
   color = NULL,

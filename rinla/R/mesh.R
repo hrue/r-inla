@@ -1,39 +1,5 @@
-## Export: inla.contour.segment inla.delaunay inla.fmesher.smorg
-## Export: inla.generate.colors inla.mesh inla.mesh.1d inla.mesh.1d.A
-## Export: inla.mesh.1d.bary inla.mesh.1d.fem inla.mesh.2d inla.mesh.basis
-## Export: inla.mesh.boundary inla.mesh.create inla.mesh.create.helper
-## Export: inla.mesh.deriv inla.mesh.fem
-## Export: inla.mesh.interior inla.mesh.lattice inla.mesh.map
-## Export: inla.mesh.map.lim inla.mesh.query
-## Export: inla.nonconvex.hull inla.nonconvex.hull.basic
-## Export: inla.simplify.curve plot.inla.trimesh plot!inla.trimesh
 ## Internal: inla.mesh.filter.locations
 ## Internal: inla.mesh.parse.segm.input inla.mesh.extract.segments
-##
-## S3methods; also export some methods explicitly
-## Export: extract.groups inla.mesh.project inla.mesh.projector
-## Export: extract.groups!inla.mesh.segment
-## Export: inla.mesh.segment
-## Export: inla.mesh.segment.default
-## Export: inla.mesh.segment.inla.mesh.segment
-## Export: inla.mesh.segment!default
-## Export: inla.mesh.segment!inla.mesh.segment
-## Export: inla.mesh.project.inla.mesh inla.mesh.project.inla.mesh.1d
-## Export: inla.mesh.project.inla.mesh.projector
-## Export: inla.mesh.projector.inla.mesh inla.mesh.projector.inla.mesh.1d
-## Export: inla.mesh.project!inla.mesh inla.mesh.project!inla.mesh.1d
-## Export: inla.mesh.project!inla.mesh.projector
-## Export: inla.mesh.projector!inla.mesh inla.mesh.projector!inla.mesh.1d
-## Export: lines.inla.mesh.segment plot.inla.mesh
-## Export: print.summary.inla.mesh summary.inla.mesh
-## Export: lines!inla.mesh.segment plot!inla.mesh
-## Export: print!summary.inla.mesh summary!inla.mesh
-## Export: inla.diameter
-## Export: inla.diameter!default
-## Export: inla.diameter!inla.mesh.1d
-## Export: inla.diameter!inla.mesh
-## Export: inla.diameter!inla.mesh.segment
-## Export: inla.diameter!inla.mesh.lattice
 
 
 
@@ -280,7 +246,7 @@ inla.mesh.segment.inla.mesh.segment <- function(..., grp.default=0) {
 #' @param \dots Additional parameters, passed on to graphics methods.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @seealso \code{\link{inla.mesh.segment}}
-#' @export lines.inla.mesh.segment
+#' @export
 lines.inla.mesh.segment <- function(x, loc=NULL, col=NULL,
                                     colors=c("black", "blue", "red", "green"),
                                     add=TRUE, xlim=NULL, ylim=NULL,
@@ -443,7 +409,7 @@ lines.inla.mesh.segment <- function(x, loc=NULL, col=NULL,
 #' @param \dots Additional parameters passed to and from other methods.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @seealso \code{\link{plot.inla.mesh}}
-#' @export plot.inla.trimesh
+#' @export
 `plot.inla.trimesh` <- function(x, S, color = NULL, color.axis = NULL,
                                 color.n=512, color.palette = cm.colors,
                                 color.truncate=FALSE, alpha=NULL,
@@ -559,7 +525,7 @@ lines.inla.mesh.segment <- function(x, loc=NULL, col=NULL,
 #' }
 #' }
 #' 
-#' @export plot.inla.mesh
+#' @export
 plot.inla.mesh <- function(x,
                            col="white",
                            t.sub=1:nrow(mesh$graph$tv),
@@ -1142,7 +1108,6 @@ inla.mesh.filter.locations <- function(loc, cutoff)
 
 
 
-
 inla.mesh <- function(...)
 {
     args = list(...)
@@ -1679,7 +1644,8 @@ inla.mesh.extract.segments <- function(mesh.loc,
 #' boundary = inla.mesh.boundary(mesh)
 #' interior = inla.mesh.interior(mesh)
 #' 
-#' @export inla.mesh.boundary
+#' @export
+#' @rdname inla.mesh.boundary
 inla.mesh.boundary <- function(mesh, grp=NULL)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
@@ -1692,6 +1658,8 @@ inla.mesh.boundary <- function(mesh, grp=NULL)
                                       mesh$crs))
 }
 
+#' @export
+#' @rdname inla.mesh.boundary
 inla.mesh.interior <- function(mesh, grp=NULL)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
@@ -2287,7 +2255,7 @@ inla.mesh.query <- function(mesh, ...)
 #' @param verbose If \code{TRUE}, produce a more detailed output.
 #' @param \dots further arguments passed to or from other methods.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @export summary.inla.mesh
+#' @export
 summary.inla.mesh <- function(object, verbose=FALSE, ...)
 {
     x=object
@@ -2346,6 +2314,8 @@ summary.inla.mesh <- function(object, verbose=FALSE, ...)
     return (ret)
 }
 
+#' @export
+#' @rdname summary.inla.mesh
 print.summary.inla.mesh <- function(x, ...)
 {
     my.print.proc_time <- function (x, ...)
@@ -2573,6 +2543,8 @@ inla.mesh.project.inla.mesh.1d <- function(mesh, loc, field=NULL, ...)
 }
 
 
+#' @export
+#' @rdname inla.mesh.project
 inla.mesh.project.inla.mesh.projector <-
     function(projector, field, ...)
 {
@@ -3263,6 +3235,7 @@ inla.mesh.1d <- function(loc,
     return(invisible(mesh))
 }
 
+
 inla.mesh.1d.bary <- function(mesh, loc, method=c("linear", "nearest"))
 {
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
@@ -3623,6 +3596,9 @@ inla.mesh.1d.A <- function(mesh, loc,
     }
 }
 
+#' @param mesh An inla.mesh.1d object
+#' @export
+#' @rdname inla.mesh.1d
 inla.mesh.1d.fem <- function(mesh)
 {
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")

@@ -6,6 +6,8 @@
 \title{Constraint segment extraction for inla.mesh}
 \usage{
 inla.mesh.boundary(mesh, grp = NULL)
+
+inla.mesh.interior(mesh, grp = NULL)
 }
 \arguments{
 \item{mesh}{An \code{inla.mesh} object.}

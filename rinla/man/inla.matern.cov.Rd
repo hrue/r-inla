@@ -15,6 +15,8 @@ inla.matern.cov(
   theta,
   epsilon = 1e-08
 )
+
+inla.matern.cov.s2(nu, kappa, x, norm.corr = FALSE, theta = 0)
 }
 \arguments{
 \item{nu}{The Matern smoothness parameter.}

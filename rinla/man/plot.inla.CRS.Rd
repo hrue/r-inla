@@ -5,7 +5,20 @@
 \alias{plot.CRS}
 \title{Plot CRS and inla.CRS objects}
 \usage{
-plot.inla.CRS(
+\method{plot}{inla.CRS}(
+  x,
+  xlim = NULL,
+  ylim = NULL,
+  outline = TRUE,
+  graticule = c(15, 15, 45),
+  tissot = c(30, 30, 30),
+  asp = 1,
+  add = FALSE,
+  eps = 0.05,
+  ...
+)
+
+\method{plot}{CRS}(
   x,
   xlim = NULL,
   ylim = NULL,

@@ -2,6 +2,7 @@
 % Please edit documentation in R/mesh.R
 \name{inla.mesh.1d}
 \alias{inla.mesh.1d}
+\alias{inla.mesh.1d.fem}
 \title{Function space definition objects for 1D SPDE models.}
 \usage{
 inla.mesh.1d(
@@ -12,6 +13,8 @@ inla.mesh.1d(
   free.clamped = FALSE,
   ...
 )
+
+inla.mesh.1d.fem(mesh)
 }
 \arguments{
 \item{loc}{B-spline knot locations.}
@@ -28,6 +31,8 @@ be specified, one applied to each endpoint.}
 basis functions to the interval endpoints.}
 
 \item{\dots}{Additional option, currently unused.}
+
+\item{mesh}{An inla.mesh.1d object}
 }
 \description{
 Create a 1D mesh specification \code{inla.mesh.1d} object, that defines a

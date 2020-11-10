@@ -8,34 +8,6 @@
 ## Internal: internal.clip
 ## Internal: inla.crs.bounds
 ## Internal: inla.crs.bounds.check
-##
-## S3methods; also export some methods explicitly
-## Export: inla.sp2segment
-## Export: as.inla.mesh.segment
-## Export: as.inla.mesh.segment!Polygon
-## Export: as.inla.mesh.segment!Polygons
-## Export: as.inla.mesh.segment!SpatialPolygons
-## Export: as.inla.mesh.segment!SpatialPolygonsDataFrame
-## Export: as.inla.mesh.segment!Line
-## Export: as.inla.mesh.segment!Lines
-## Export: as.inla.mesh.segment!SpatialLines
-## Export: as.inla.mesh.segment!SpatialLinesDataFrame
-## Export: as.inla.mesh.segment!SpatialPoints
-## Export: as.inla.mesh.segment!SpatialPointsDataFrame
-## Export: inla.CRSargs
-## Export: inla.as.list.CRSargs
-## Export: inla.as.CRSargs.list
-## Export: inla.as.list.CRS
-## Export: inla.as.CRS.list
-## Export: inla.identical.CRS
-## Export: inla.spTransform
-## Export: inla.spTransform!SpatialPoints
-## Export: inla.spTransform!SpatialPointsDataFrame
-## Export: inla.spTransform!inla.mesh
-## Export: inla.spTransform!inla.mesh.segment
-## Export: inla.spTransform!inla.mesh.lattice
-## Export: inla.spTransform!default
-## Export: plot!CRS plot!inla.CRS
 
 
 
@@ -688,6 +660,8 @@ plot.inla.CRS <- function(x, xlim=NULL, ylim=NULL,
   invisible(NULL)
 }
 
+#' @export
+#' @rdname plot.inla.CRS
 plot.CRS <- function(x, xlim=NULL, ylim=NULL,
                      outline=TRUE,
                      graticule=c(15, 15, 45),
@@ -1052,17 +1026,6 @@ inla.wkt_tree_set_item <- function(x, item_tree, duplicate = 1) {
 
 
 
-
-inla.as.list.CRS <- function(x, ...) {
-  inla.not_for_PROJ6("inla.as.list.CRS")
-  inla.as.list.CRSargs(inla.CRSargs(x))
-}
-
-inla.as.CRS.list <- function(x, ...) {
-  inla.not_for_PROJ6("inla.as.CRS.list")
-  inla.CRS(args = x)
-}
-
 #' Show expanded CRS arguments
 #' 
 #' Wrapper for \code{sp::CRS} and \code{inla.CRS} objects to extract the
@@ -1100,49 +1063,8 @@ inla.as.CRS.list <- function(x, ...) {
 #'   print(inla.CRSargs(crs2))
 #' }
 #' 
-
-
-
-#' Show expanded CRS arguments
-#' 
-#' Wrapper for \code{sp::CRS} and \code{inla.CRS} objects to extract the
-#' coordinate reference system argument string. Should no longer be used with
-#' PROJ6/rgdal3; see \code{\link{inla.crs_get_wkt}}
-#' 
-#' 
-#' @aliases inla.CRSargs inla.as.list.CRS inla.as.list.CRSargs inla.as.CRS.list
-#' inla.as.CRSargs.list
-#' @param x An \code{sp::CRS} or \code{inla.CRS} object (for
-#' \code{inla.CRSargs} and \code{inla.as.list.CRS}), a character string (for
-#' \code{inla.as.list.CRSargs}), or a list (for \code{inla.as.CRS.list} and
-#' \code{inla.as.CRSargs.list}).
-#' @param \dots Additional arguments passed on to other methods.
-#' @return For \code{inla.CRSargs} and \code{inla.as.CRSargs.list}, a character
-#' string with PROJ.4 arguments.
-#' 
-#' For \code{inla.as.list.CRS} and \code{inla.as.list.CRSargs}, a list of
-#' name/value pairs.
-#' 
-#' For \code{inla.as.CRS.list}, a \code{CRS} or \code{inla.CRS} object.
-#' @author Finn Lindgren <finn.lindgren@@gmail.com>
-#' @seealso \code{\link[rgdal]{CRSargs}}, \code{\link{inla.CRS}}
-#' @examples
-#' 
-#' 
-#' if (require(rgdal)) {
-#'   crs0 <- inla.CRS("longlat")
-#'   p4s <- inla.CRSargs(crs0)
-#'   lst <- inla.as.list.CRSargs(p4s)
-#'   crs1 <- inla.as.CRS.list(lst)
-#'   lst$a <- 2
-#'   crs2 <- inla.CRS(p4s, args=lst)
-#'   print(inla.CRSargs(crs0))
-#'   print(inla.CRSargs(crs1))
-#'   print(inla.CRSargs(crs2))
-#' }
-#' 
-#' 
-#' @export inla.CRSargs
+#' @export
+#' @rdname CRSargs
 inla.CRSargs <- function(x, ...) {
   inla.not_for_PROJ6("inla.CRSargs")
 
@@ -1158,7 +1080,10 @@ inla.CRSargs <- function(x, ...) {
 }
 
 
-## CRS proj4 string for name=value pair list
+#' @details * `inla.as.CRSargs.list`: CRS proj4 string for name=value pair list
+#' 
+#' @export
+#' @rdname CRSargs
 inla.as.CRSargs.list <- function(x, ...) {
   paste(lapply(names(x),
                function(xx) {
@@ -1171,7 +1096,10 @@ inla.as.CRSargs.list <- function(x, ...) {
   collapse=" ")
 }
 
-## List of name=value pairs from CRS proj4 string
+#' @details * `inla.as.list.CRSargs`: List of name=value pairs from CRS proj4 string
+#' 
+#' @export
+#' @rdname CRSargs
 inla.as.list.CRSargs <- function(x, ...) {
   inla.not_for_PROJ6("inla.as.list.CRSargs")
   
@@ -1190,6 +1118,22 @@ inla.as.list.CRSargs <- function(x, ...) {
                xx
              }))
 }
+
+
+#' @export
+#' @rdname CRSargs
+inla.as.list.CRS <- function(x, ...) {
+  inla.not_for_PROJ6("inla.as.list.CRS")
+  inla.as.list.CRSargs(inla.CRSargs(x))
+}
+
+#' @export
+#' @rdname CRSargs
+inla.as.CRS.list <- function(x, ...) {
+  inla.not_for_PROJ6("inla.as.CRS.list")
+  inla.CRS(args = x)
+}
+
 
 
 

@@ -1,19 +1,3 @@
-## 'spde2' model functions
-## Export: inla.spde.precision!inla.spde2
-## Export: inla.spde.result!inla.spde2 inla.spde2.generic
-## Export: inla.spde2.matern param2.matern.orig
-## Export: inla.spde2.matern.sd.basis inla.spde2.models
-## Export: inla.spde2.pcmatern
-## Export: inla.spde2.precision inla.spde2.result
-## Export: inla.spde2.theta2phi0 inla.spde2.theta2phi1 inla.spde2.theta2phi2
-## Internal: inla.internal.spde2.matern.B.tau
-## Internal: inla.internal.test.spde2.sd.basis
-
-
-
-
-
-
 
 #' Generic spde2 model creation.
 #' 
@@ -1516,7 +1500,11 @@ inla.spde2.models = function()
 
 
 ## spde.common-connections:
+#' @export
+#' @rdname inla.spde2.precision
 inla.spde.precision.inla.spde2 = inla.spde2.precision
+#' @export
+#' @rdname inla.spde2.precision
 inla.spde.result.inla.spde2 = inla.spde2.result
 
 

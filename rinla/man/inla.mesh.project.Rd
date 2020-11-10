@@ -16,6 +16,8 @@ inla.mesh.project(...)
 
 \method{inla.mesh.project}{inla.mesh.1d}(mesh, loc, field = NULL, ...)
 
+\method{inla.mesh.project}{inla.mesh.projector}(projector, field, ...)
+
 inla.mesh.projector(...)
 
 \method{inla.mesh.projector}{inla.mesh}(
@@ -47,6 +49,8 @@ on the mesh}
 \item{crs}{An optional CRS or inla.CRS object associated with \code{loc}
 and/or \code{lattice}.}
 
+\item{projector}{An \code{inla.mesh.projector} object.}
+
 \item{lattice}{An \code{\link{inla.mesh.lattice}} object.}
 
 \item{xlim}{X-axis limits for a lattice. For R2 meshes, defaults to covering
@@ -59,8 +63,6 @@ the domain.}
 
 \item{projection}{One of \code{c("default", "longlat", "longsinlat",
 "mollweide")}.}
-
-\item{projector}{An \code{inla.mesh.projector} object.}
 }
 \value{
 For \code{inla.mesh.project(mesh, ...)}, a list with projection

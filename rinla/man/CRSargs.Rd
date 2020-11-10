@@ -9,6 +9,14 @@
 \title{Show expanded CRS arguments}
 \usage{
 inla.CRSargs(x, ...)
+
+inla.as.CRSargs.list(x, ...)
+
+inla.as.list.CRSargs(x, ...)
+
+inla.as.list.CRS(x, ...)
+
+inla.as.CRS.list(x, ...)
 }
 \arguments{
 \item{x}{An \code{sp::CRS} or \code{inla.CRS} object (for
@@ -26,20 +34,17 @@ For \code{inla.as.list.CRS} and \code{inla.as.list.CRSargs}, a list of
 name/value pairs.
 
 For \code{inla.as.CRS.list}, a \code{CRS} or \code{inla.CRS} object.
-
-For \code{inla.CRSargs} and \code{inla.as.CRSargs.list}, a character
-string with PROJ.4 arguments.
-
-For \code{inla.as.list.CRS} and \code{inla.as.list.CRSargs}, a list of
-name/value pairs.
-
-For \code{inla.as.CRS.list}, a \code{CRS} or \code{inla.CRS} object.
 }
 \description{
 Wrapper for \code{sp::CRS} and \code{inla.CRS} objects to extract the
 coordinate reference system argument string.
 Should no longer be used with PROJ6/rgdal3;
 see \code{\link{inla.crs_get_wkt}}
+}
+\details{
+* `inla.as.CRSargs.list`: CRS proj4 string for name=value pair list
+
+* `inla.as.list.CRSargs`: List of name=value pairs from CRS proj4 string
 }
 \examples{
 
@@ -55,36 +60,10 @@ if (require(rgdal)) {
   print(inla.CRSargs(crs2))
 }
 
-Show expanded CRS arguments
-
-Wrapper for \code{sp::CRS} and \code{inla.CRS} objects to extract the
-coordinate reference system argument string. Should no longer be used with
-PROJ6/rgdal3; see \code{\link{inla.crs_get_wkt}}
-
-
-
-
-if (require(rgdal)) {
-  crs0 <- inla.CRS("longlat")
-  p4s <- inla.CRSargs(crs0)
-  lst <- inla.as.list.CRSargs(p4s)
-  crs1 <- inla.as.CRS.list(lst)
-  lst$a <- 2
-  crs2 <- inla.CRS(p4s, args=lst)
-  print(inla.CRSargs(crs0))
-  print(inla.CRSargs(crs1))
-  print(inla.CRSargs(crs2))
-}
-
-
 }
 \seealso{
 \code{\link[rgdal]{CRSargs}}, \code{\link{inla.CRS}}
-
-\code{\link[rgdal]{CRSargs}}, \code{\link{inla.CRS}}
 }
 \author{
-Finn Lindgren <finn.lindgren@gmail.com>
-
 Finn Lindgren <finn.lindgren@gmail.com>
 }

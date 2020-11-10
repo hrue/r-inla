@@ -4,7 +4,7 @@
 \alias{plot.inla.mesh}
 \title{Draw a triangulation mesh object}
 \usage{
-plot.inla.mesh(
+\method{plot}{inla.mesh}(
   x,
   col = "white",
   t.sub = 1:nrow(mesh$graph$tv),

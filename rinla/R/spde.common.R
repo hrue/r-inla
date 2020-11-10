@@ -1,10 +1,3 @@
-## Export: inla.dBind inla.extract.el inla.extract.el!data.frame
-## Export: inla.extract.el!list inla.extract.el!matrix inla.matern.cov
-## Export: inla.matern.cov.s2 inla.row.kron
-## Export: inla.spde.make.A inla.spde.make.block.A inla.spde.make.index
-## Export: inla.spde.models inla.spde.precision inla.spde.result
-## Export: inla.spde.sample inla.spde.sample!default
-## Export: inla.spde.sample!inla.spde
 ## Internal: inla.spde.homogenise_B_matrix inla.regex.match
 
 
@@ -277,7 +270,8 @@ inla.matern.cov <- function(nu,kappa,x,d=1,corr=FALSE, norm.corr=FALSE, theta, e
     }
 }
 
-
+#' @export
+#' @rdname inla.matern.cov
 inla.matern.cov.s2 <- function(nu,kappa,x,norm.corr=FALSE,theta=0)
 {
     stopifnot(inla.require("orthopolynom"))

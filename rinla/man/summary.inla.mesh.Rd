@@ -5,7 +5,9 @@
 \alias{print.summary.inla.mesh}
 \title{Summarizing triangular mesh objects}
 \usage{
-summary.inla.mesh(object, verbose = FALSE, ...)
+\method{summary}{inla.mesh}(object, verbose = FALSE, ...)
+
+\method{print}{summary.inla.mesh}(x, ...)
 }
 \arguments{
 \item{object}{an object of class \code{"inla.mesh"}, usually a result of a
