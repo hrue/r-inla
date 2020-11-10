@@ -2036,17 +2036,15 @@ meshbuilder.app <- function() {
 #' meshbuilder()
 #' }
 #' @export
+#' @import shiny
 
 meshbuilder <- function() {
-  ## Running shiny apps within imported namespaces doesn't work properly, 2018-02-12,
-  ## so explicitly load them instead.
-  library("shiny")
-  library("INLA")
-  library("fields")
-  
+  requireNamespace("fields")
+  requireNamespace("shiny")
+
   if (inla.has_PROJ6()) {
     rgdal::set_thin_PROJ6_warnings(TRUE)
   }
   
-  runApp(meshbuilder.app())
+  shiny::runApp(meshbuilder.app())
 }
