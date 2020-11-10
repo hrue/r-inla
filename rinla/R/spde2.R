@@ -1,3 +1,5 @@
+#' @include spde.common.R
+NULL
 
 #' Generic spde2 model creation.
 #' 
@@ -1322,8 +1324,9 @@ inla.spde2.iheat =
 
 
 
-
-
+#' @export
+#' @describeIn inla.spde2.matern Convert from theta vector to phi0 values in
+#' the internal spde2 model representation
 inla.spde2.theta2phi0 = function(spde, theta)
 {
     inla.require.inherits(spde, "inla.spde2", "'spde'")
@@ -1335,6 +1338,9 @@ inla.spde2.theta2phi0 = function(spde, theta)
         return(exp(spde$param.inla$B0[,1, drop=TRUE]))
 }
 
+#' @export
+#' @describeIn inla.spde2.matern Convert from theta vector to phi1 values in
+#' the internal spde2 model representation
 inla.spde2.theta2phi1 = function(spde, theta)
 {
     inla.require.inherits(spde, "inla.spde2", "'spde'")
@@ -1346,6 +1352,9 @@ inla.spde2.theta2phi1 = function(spde, theta)
         return(exp(spde$param.inla$B1[,1, drop=TRUE]))
 }
 
+#' @export
+#' @describeIn inla.spde2.matern Convert from theta vector to phi2 values in
+#' the internal spde2 model representation
 inla.spde2.theta2phi2 = function(spde, theta)
 {
     inla.require.inherits(spde, "inla.spde2", "'spde'")
@@ -1501,10 +1510,12 @@ inla.spde2.models = function()
 
 ## spde.common-connections:
 #' @export
-#' @rdname inla.spde2.precision
+#' @method inla.spde.precision inla.spde2
+#' @rdname inla.spde.precision
 inla.spde.precision.inla.spde2 = inla.spde2.precision
 #' @export
-#' @rdname inla.spde2.precision
+#' @method inla.spde.result inla.spde2
+#' @rdname inla.spde.result
 inla.spde.result.inla.spde2 = inla.spde2.result
 
 

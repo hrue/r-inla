@@ -399,7 +399,7 @@ inla.spde.sample.inla.spde =
 
 
 
-#' Precision matrices for SPDE models
+#' @title Precision matrices for SPDE models
 #' 
 #' Calculates the precision matrix for given parameter values based on an
 #' \code{inla.spde} model object.
@@ -418,7 +418,8 @@ inla.spde.sample.inla.spde =
 #' @seealso \code{\link{inla.spde.models}}, \code{\link{inla.spde2.generic}},
 #' \code{\link{inla.spde2.theta2phi0}}, \code{\link{inla.spde2.theta2phi1}},
 #' \code{\link{inla.spde2.theta2phi2}}
-#' @export inla.spde.precision
+#' @export
+#' @rdname inla.spde.precision
 inla.spde.precision <- function(...)
 {
     UseMethod("inla.spde.precision")

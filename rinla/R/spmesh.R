@@ -626,6 +626,7 @@ inla.crs.tissot <- function(x, by=c(30, 30, 30), add=FALSE, do.plot=TRUE,
 #'   }
 #' }
 #' 
+#' @method plot inla.CRS
 #' @export
 plot.inla.CRS <- function(x, xlim=NULL, ylim=NULL,
                           outline=TRUE,
@@ -661,6 +662,7 @@ plot.inla.CRS <- function(x, xlim=NULL, ylim=NULL,
 }
 
 #' @export
+#' @method plot CRS
 #' @rdname plot.inla.CRS
 plot.CRS <- function(x, xlim=NULL, ylim=NULL,
                      outline=TRUE,

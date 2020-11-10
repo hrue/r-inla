@@ -11,8 +11,6 @@
 #' boundary and interior constraint edges in calls to \code{\link{inla.mesh}}.
 #' 
 #' 
-#' @aliases inla.mesh.segment inla.mesh.segment.default
-#' inla.mesh.segment.inla.mesh.segment inla.contour.segment
 #' @param loc Matrix of point locations.
 #' @param idx Segment index sequence vector or index pair matrix.  The indices
 #' refer to the rows of \code{loc}.  If \code{loc==NULL}, the indices will be
@@ -409,6 +407,7 @@ lines.inla.mesh.segment <- function(x, loc=NULL, col=NULL,
 #' @param \dots Additional parameters passed to and from other methods.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @seealso \code{\link{plot.inla.mesh}}
+#' @method plot inla.trimesh
 #' @export
 `plot.inla.trimesh` <- function(x, S, color = NULL, color.axis = NULL,
                                 color.n=512, color.palette = cm.colors,
@@ -525,6 +524,7 @@ lines.inla.mesh.segment <- function(x, loc=NULL, col=NULL,
 #' }
 #' }
 #' 
+#' @method plot inla.mesh
 #' @export
 plot.inla.mesh <- function(x,
                            col="white",
@@ -615,6 +615,8 @@ plot.inla.mesh <- function(x,
 }
 
 
+#' @export
+#' @describeIn inla.mesh.map Projection extent limit calculations
 inla.mesh.map.lim <-
     function(loc=NULL,
              projection=
@@ -2102,12 +2104,13 @@ inla.delaunay <- function(loc, ...)
 #' 
 #' 
 #' @param mesh An \code{inla.mesh} object.
-#' @param \dots Query arguments.  \itemize{ \itemtt.neighbours Compute
+#' @param \dots Query arguments.
+#' \itemize{
+#' \item tt.neighbours Compute
 #' neighbour triangles for triangles; list of vectors: list(triangles, orders)
 #' 
-#' \itemvt.neighbours Compute neighbour triangles for vertices; list of
+#' \item vt.neighbours Compute neighbour triangles for vertices; list of
 #' vectors: list(vertices, orders)
-#' 
 #' }
 #' @return A list of query results.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
@@ -2126,7 +2129,7 @@ inla.delaunay <- function(loc, ...)
 #' mesh2 = inla.mesh.create(mesh$loc, tv=mesh$graph$tv[vt,,drop=FALSE],
 #'                          refine=FALSE, extend=FALSE)
 #' 
-#' @export inla.mesh.query
+#' @export
 inla.mesh.query <- function(mesh, ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
@@ -2255,6 +2258,7 @@ inla.mesh.query <- function(mesh, ...)
 #' @param verbose If \code{TRUE}, produce a more detailed output.
 #' @param \dots further arguments passed to or from other methods.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @method summary inla.mesh
 #' @export
 summary.inla.mesh <- function(object, verbose=FALSE, ...)
 {
@@ -2315,6 +2319,7 @@ summary.inla.mesh <- function(object, verbose=FALSE, ...)
 }
 
 #' @export
+#' @method print summary.inla.mesh
 #' @rdname summary.inla.mesh
 print.summary.inla.mesh <- function(x, ...)
 {
@@ -4009,6 +4014,8 @@ inla.simplify.curve <- function(loc, idx, eps) {
 }
 
 
+#' @export
+#' @rdname inla.mesh.segment
 inla.contour.segment <-
     function(x = seq(0, 1, length.out = nrow(z)),
              y = seq(0, 1, length.out = ncol(z)),

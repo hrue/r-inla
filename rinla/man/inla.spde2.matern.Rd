@@ -2,6 +2,9 @@
 % Please edit documentation in R/spde2.R
 \name{inla.spde2.matern}
 \alias{inla.spde2.matern}
+\alias{inla.spde2.theta2phi0}
+\alias{inla.spde2.theta2phi1}
+\alias{inla.spde2.theta2phi2}
 \title{Matern SPDE model object for INLA}
 \usage{
 inla.spde2.matern(
@@ -23,6 +26,12 @@ inla.spde2.matern(
   n.iid.group = 1,
   ...
 )
+
+inla.spde2.theta2phi0(spde, theta)
+
+inla.spde2.theta2phi1(spde, theta)
+
+inla.spde2.theta2phi2(spde, theta)
 }
 \arguments{
 \item{mesh}{The mesh to build the model on, as an \code{\link{inla.mesh}} or
@@ -115,6 +124,18 @@ Integration and other general linear constraints are supported via the
 \code{constr}, \code{extraconstr.int}, and \code{extraconstr} parameters,
 which also interact with \code{n.iid.group}.
 }
+\section{Functions}{
+\itemize{
+\item \code{inla.spde2.theta2phi0}: Convert from theta vector to phi0 values in
+the internal spde2 model representation
+
+\item \code{inla.spde2.theta2phi1}: Convert from theta vector to phi1 values in
+the internal spde2 model representation
+
+\item \code{inla.spde2.theta2phi2}: Convert from theta vector to phi2 values in
+the internal spde2 model representation
+}}
+
 \examples{
 
 n = 100

@@ -2,7 +2,6 @@
 % Please edit documentation in R/spde1.R
 \name{inla.spde1.create}
 \alias{inla.spde1.create}
-\alias{inla.spde.create}
 \alias{inla.spde1.matern}
 \alias{inla.spde1.imatern}
 \alias{inla.spde1.matern.osc}
@@ -73,7 +72,7 @@ idx.y = rep(1:n,2)
 y = field.fcn(loc[idx.y,]) + rnorm(length(idx.y))
 
 mesh = inla.mesh.create(loc, refine=list(max.edge=0.05))
-spde = inla.spde.create(mesh, model="matern")
+spde = inla.spde1.create(mesh, model="matern")
 data = list(y=y, field=mesh$idx$loc[idx.y])
 formula = y ~ -1 + f(field, model=spde)
 result = inla(formula, data=data, family="normal")

@@ -1,4 +1,5 @@
-
+#' @include spde.common.R
+NULL
 
 #' Old SPDE model objects for INLA
 #' 
@@ -28,7 +29,7 @@
 #' \code{param}: \itemize{ \item\code{alpha} = 1 or 2 \item\code{basis.T} =
 #' Matrix of basis functions for \eqn{\log\tau(u)}{log tau(u)} }
 #' 
-#' @aliases inla.spde.create inla.spde1.create inla.spde1.matern
+#' @aliases inla.spde1.create inla.spde1.matern
 #' inla.spde1.imatern inla.spde1.matern.osc inla.spde1
 #' @param mesh The mesh to build the model on, as an \code{\link{inla.mesh}}
 #' object.
@@ -49,7 +50,7 @@
 #' y = field.fcn(loc[idx.y,]) + rnorm(length(idx.y))
 #' 
 #' mesh = inla.mesh.create(loc, refine=list(max.edge=0.05))
-#' spde = inla.spde.create(mesh, model="matern")
+#' spde = inla.spde1.create(mesh, model="matern")
 #' data = list(y=y, field=mesh$idx$loc[idx.y])
 #' formula = y ~ -1 + f(field, model=spde)
 #' result = inla(formula, data=data, family="normal")
@@ -481,8 +482,10 @@ inla.spde1.matern.osc = function(mesh, ...)
 
 ## spde.common-connections:
 #' @export
-#' @rdname inla.spde1.precision
+#' @method inla.spde.precision inla.spde1
+#' @rdname inla.spde.precision
 inla.spde.precision.inla.spde1 = inla.spde1.precision
 #' @export
-#' @rdname inla.spde1.result
+#' @method inla.spde.result inla.spde1
+#' @rdname inla.spde.result
 inla.spde.result.inla.spde1 = inla.spde1.result

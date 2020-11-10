@@ -9,12 +9,13 @@ inla.mesh.query(mesh, ...)
 \arguments{
 \item{mesh}{An \code{inla.mesh} object.}
 
-\item{\dots}{Query arguments.  \itemize{ \itemtt.neighbours Compute
+\item{\dots}{Query arguments.
+\itemize{
+\item tt.neighbours Compute
 neighbour triangles for triangles; list of vectors: list(triangles, orders)
 
-\itemvt.neighbours Compute neighbour triangles for vertices; list of
+\item vt.neighbours Compute neighbour triangles for vertices; list of
 vectors: list(vertices, orders)
-
 }}
 }
 \value{

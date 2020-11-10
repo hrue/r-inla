@@ -19,7 +19,7 @@ meshbuilder()
 }
 }
 \seealso{
-\link{\code{inla.mesh.2d}}, \link{\code{inla.mesh.create}}
+\code{\link{inla.mesh.2d}}, \code{\link{inla.mesh.create}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

@@ -12,7 +12,11 @@ inla.spde.result(...)
 
 inla.spde1.result(inla, name, spde, do.transform = TRUE, ...)
 
+\method{inla.spde.result}{inla.spde1}(inla, name, spde, do.transform = TRUE, ...)
+
 inla.spde2.result(inla, name, spde, do.transform = TRUE, ...)
+
+\method{inla.spde.result}{inla.spde2}(inla, name, spde, do.transform = TRUE, ...)
 }
 \arguments{
 \item{\dots}{Further arguments passed to and from other methods.}

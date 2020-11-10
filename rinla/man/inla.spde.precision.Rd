@@ -6,13 +6,27 @@
 \alias{inla.spde2.precision}
 \alias{inla.spde.precision.inla.spde1}
 \alias{inla.spde.precision.inla.spde2}
-\title{Precision matrices for SPDE models}
+\title{Precision matrices for SPDE models
+
+Calculates the precision matrix for given parameter values based on an
+\code{inla.spde} model object.}
 \usage{
 inla.spde.precision(...)
 
 inla.spde1.precision(spde, ...)
 
+\method{inla.spde.precision}{inla.spde1}(spde, ...)
+
 inla.spde2.precision(
+  spde,
+  theta = NULL,
+  phi0 = inla.spde2.theta2phi0(spde, theta),
+  phi1 = inla.spde2.theta2phi1(spde, theta),
+  phi2 = inla.spde2.theta2phi2(spde, theta),
+  ...
+)
+
+\method{inla.spde.precision}{inla.spde2}(
   spde,
   theta = NULL,
   phi0 = inla.spde2.theta2phi0(spde, theta),
@@ -38,6 +52,8 @@ inla.spde2.precision(
 A sparse precision matrix.
 }
 \description{
+Precision matrices for SPDE models
+
 Calculates the precision matrix for given parameter values based on an
 \code{inla.spde} model object.
 }
