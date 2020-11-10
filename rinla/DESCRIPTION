@@ -57,7 +57,7 @@ Imports:
 VignetteBuilder: knitr
 BuildVignettes: true
 LazyData: true
-License: GPL (>= 2)
+License: GPL (>= 2) + file LICENSE
 Version: 99.99.9999
 Date: 9999-99-99
 RoxygenNote: 7.1.1
