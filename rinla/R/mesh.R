@@ -37,10 +37,70 @@
 
 
 
+
+
+#' Constraint segments for inla.mesh
+#' 
+#' Constructs \code{inla.mesh.segment} objects that can be used to specify
+#' boundary and interior constraint edges in calls to \code{\link{inla.mesh}}.
+#' 
+#' 
+#' @aliases inla.mesh.segment inla.mesh.segment.default
+#' inla.mesh.segment.inla.mesh.segment inla.contour.segment
+#' @param loc Matrix of point locations.
+#' @param idx Segment index sequence vector or index pair matrix.  The indices
+#' refer to the rows of \code{loc}.  If \code{loc==NULL}, the indices will be
+#' interpreted as indices into the point specification supplied to
+#' \code{\link{inla.mesh.create}}.  If \code{is.bnd==TRUE}, defaults to linking
+#' all the points in \code{loc}, as \code{c(1:nrow(loc),1L)}, otherwise
+#' \code{1:nrow(loc)}.
+#' @param grp Vector of group labels for each segment.  Set to \code{NULL} to
+#' let the labels be chosen automatically in a call to
+#' \code{\link{inla.mesh.create}}.
+#' @param is.bnd \code{TRUE} if the segments are boundary segments, otherwise
+#' \code{FALSE}.
+#' @param grp.default When joining segments, use this group label for segments
+#' that have \code{grp=NULL}.
+#' @param x,y,z,nlevels,levels Parameters specifying a set of surface contours,
+#' with syntax described in \code{\link{contour}}.
+#' @param groups Vector of group ID:s, one for each contour level.
+#' @param positive \code{TRUE} if the contours should encircle positive level
+#' excursions in a counter clockwise direction.
+#' @param eps Tolerance for \code{\link{inla.simplify.curve}}.
+#' @param crs An optional \code{CRS} or \code{inla.CRS} object
+#' @param ...  Additional parameters.  When joining segments, a list of
+#' \code{inla.mesh.segment} objects.
+#' @return An \code{inla.mesh.segment} object.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @seealso \code{\link{inla.mesh.create}}, \code{\link{inla.mesh.2d}}
+#' @examples
+#' 
+#' ## Create a square boundary and a diagonal interior segment
+#' loc.bnd = matrix(c(0,0, 1,0, 1,1, 0,1), 4, 2, byrow=TRUE)
+#' loc.int = matrix(c(0.9,0.1, 0.1,0.6), 2, 2, byrow=TRUE)
+#' segm.bnd = inla.mesh.segment(loc.bnd)
+#' segm.int = inla.mesh.segment(loc.int, is.bnd=FALSE)
+#' 
+#' ## Points to be meshed
+#' loc = matrix(runif(10*2),10,2)*0.9+0.05
+#' mesh = inla.mesh.create(loc,
+#'                         boundary=segm.bnd,
+#'                         interior=segm.int,
+#'                         refine=list())
+#' plot(mesh)
+#' 
+#' \dontrun{
+#' mesh = inla.mesh.create(loc, interior=list(segm.bnd, segm.int))
+#' plot(mesh)
+#' }
+#' 
+#' @export inla.mesh.segment
 inla.mesh.segment <- function(...) {
     UseMethod("inla.mesh.segment")
 }
 
+#' @export
+#' @rdname inla.mesh.segment
 inla.mesh.segment.default <-
   function(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE,
            crs=NULL, ...)
@@ -144,6 +204,8 @@ inla.mesh.segment.default <-
     return(invisible(ret))
 }
 
+#' @export
+#' @rdname inla.mesh.segment
 inla.mesh.segment.inla.mesh.segment <- function(..., grp.default=0) {
     segm <- list(...)
     if (!all(unlist(lapply(segm,
@@ -198,6 +260,27 @@ inla.mesh.segment.inla.mesh.segment <- function(..., grp.default=0) {
 
 
 
+
+
+#' Draw \code{inla.mesh.segment} objects.
+#' 
+#' Draws a \code{\link{inla.mesh.segment}} object with generic or \code{rgl}
+#' graphics.
+#' 
+#' 
+#' @param x An \code{\link{inla.mesh.segment}} object.
+#' @param loc Point locations to be used if \code{x$loc} is \code{NULL}.
+#' @param col Segment color specification.
+#' @param colors Colors to cycle through if \code{col} is \code{NULL}.
+#' @param add If \code{TRUE}, add to the current plot, otherwise start a new
+#' plot.
+#' @param xlim X axis limits for a new plot.
+#' @param ylim Y axis limits for a new plot.
+#' @param rgl If \code{TRUE}, use \code{rgl} for plotting.
+#' @param \dots Additional parameters, passed on to graphics methods.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @seealso \code{\link{inla.mesh.segment}}
+#' @export lines.inla.mesh.segment
 lines.inla.mesh.segment <- function(x, loc=NULL, col=NULL,
                                     colors=c("black", "blue", "red", "green"),
                                     add=TRUE, xlim=NULL, ylim=NULL,
@@ -250,6 +333,22 @@ lines.inla.mesh.segment <- function(x, loc=NULL, col=NULL,
 
 
 
+
+
+#' Generate text RGB color specifications.
+#' 
+#' Generates a tex RGB color specification matrix based on a color palette.
+#' 
+#' 
+#' @param color \code{character}, \code{matrix} or \code{vector}
+#' @param color.axis The min/max limit values for the color mapping.
+#' @param color.n The number of colors to use in the color palette.
+#' @param color.palette A color palette function.
+#' @param color.truncate If \code{TRUE}, truncate the colors at the color axis
+#' limits.
+#' @param alpha Transparency/opaqueness values.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @export inla.generate.colors
 `inla.generate.colors` <- function(color,
                                    color.axis = NULL,
                                    color.n=512,
@@ -319,6 +418,32 @@ lines.inla.mesh.segment <- function(x, loc=NULL, col=NULL,
 
 ## Export as plot!inla.trimesh as well as plot.inla.trimesh,
 ## even though it's not actually an S3 method.
+
+
+#' Low level triangulation mesh plotting
+#' 
+#' Plots a triangulation mesh using \code{rgl}.
+#' 
+#' 
+#' @param x A 3-column triangle-to-vertex index map matrix.
+#' @param S A 3-column vertex coordinate matrix.
+#' @param color Color specification.  A single named color, a vector of scalar
+#' values, or a matrix of RGB values.
+#' @param color.axis The min/max limit values for the color mapping.
+#' @param color.n The number of colors to use in the color palette.
+#' @param color.palette A color palette function.
+#' @param color.truncate If \code{TRUE}, truncate the colors at the color axis
+#' limits.
+#' @param alpha Transparency/opaqueness values. See \code{rgl.material}.
+#' @param lwd Line width for edges. See \code{rgl.material}.
+#' @param specular Specular color. See \code{rgl.material}.
+#' @param draw.vertices If \code{TRUE}, draw triangle vertices.
+#' @param draw.edges If \code{TRUE}, draw triangle edges.
+#' @param edge.color Edge color specification.
+#' @param \dots Additional parameters passed to and from other methods.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @seealso \code{\link{plot.inla.mesh}}
+#' @export plot.inla.trimesh
 `plot.inla.trimesh` <- function(x, S, color = NULL, color.axis = NULL,
                                 color.n=512, color.palette = cm.colors,
                                 color.truncate=FALSE, alpha=NULL,
@@ -391,6 +516,50 @@ lines.inla.mesh.segment <- function(x, loc=NULL, col=NULL,
 
 
 
+
+
+#' Draw a triangulation mesh object
+#' 
+#' Plots an \code{\link{inla.mesh}} object using either standard graphics or
+#' with \code{rgl}.
+#' 
+#' 
+#' @param x An \code{\link{inla.mesh}} object.
+#' @param col Color specification.  A single named color, a vector of scalar
+#' values, or a matrix of RGB values.  Requires \code{rgl=TRUE}.
+#' @param t.sub Optional triangle index subset to be drawn.
+#' @param add If \code{TRUE}, adds to the current plot instead of starting a
+#' new one.
+#' @param lwd Line width for triangle edges.
+#' @param xlim X-axis limits.
+#' @param ylim Y-axis limits.
+#' @param main The main plot title.  If not specified, a default title is
+#' generated based on the mesh type.
+#' @param rgl When \code{TRUE}, generates an \code{rgl} plot instead of a
+#' generic graphics plot.  Allows 3D plotting and color surface plotting.
+#' @param size Size of vertex points in \code{rgl} plotting. See
+#' \code{rgl.material}.
+#' @param draw.vertices If \code{TRUE}, draw triengle vertices.
+#' @param vertex.color Color specification for all vertices.
+#' @param draw.edges If \code{TRUE}, draw triangle edges.
+#' @param edge.color Color specification for all edges.
+#' @param draw.segments If \code{TRUE}, draw boundary and interior constraint
+#' edges more prominently.
+#' @param \dots Further graphics parameters, interpreted by the respective
+#' plotting systems.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @seealso \code{\link{plot.inla.trimesh}}
+#' @examples
+#' 
+#' mesh = inla.mesh.create(globe=10)
+#' plot(mesh)
+#' \donttest{
+#' if (require(rgl)) {
+#'   plot(mesh, rgl=TRUE, col=mesh$loc[,1])
+#' }
+#' }
+#' 
+#' @export plot.inla.mesh
 plot.inla.mesh <- function(x,
                            col="white",
                            t.sub=1:nrow(mesh$graph$tv),
@@ -506,6 +675,26 @@ inla.mesh.map.lim <-
     return(lim)
 }
 
+
+
+#' Coordinate mappings for \code{inla.mesh} projections.
+#' 
+#' Calculates coordinate mappings for \code{inla.mesh} projections.
+#' 
+#' 
+#' @aliases inla.mesh.map inla.mesh.map.lim
+#' @param loc Coordinates to be mapped.
+#' @param projection The projection type.
+#' @param inverse If \code{TRUE}, \code{loc} are map coordinates and
+#' coordinates in the mesh domain are calculated.  If \code{FALSE}, \code{loc}
+#' are coordinates in the mesh domain and the forward map projection is
+#' calculated.
+#' @return For \code{inla.mesh.map.lim}, a list: \item{xlim }{X axis limits in
+#' the map domain} \item{ylim }{Y axis limits in the map domain} No attempt is
+#' made to find minimal limits for partial spherical domains.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @seealso \code{\link{inla.mesh.project}}
+#' @export inla.mesh.map
 inla.mesh.map <-
     function(loc,
              projection=
@@ -579,6 +768,48 @@ inla.mesh.map <-
 }
 
 
+
+
+#' Lattice grids for inla.mesh
+#' 
+#' Construct a lattice grid for \code{\link{inla.mesh}}
+#' 
+#' 
+#' @param x vector or grid matrix of x-values
+#' @param y vector of grid matrix of y-values
+#' @param z if x is a matrix, a grid matrix of z-values
+#' @param dims the size of the grid, length 2 vector
+#' @param units One of \code{c("default", "longlat", "longsinlat")}.
+#' @param crs An optional \code{CRS} or \code{inla.CRS} object
+#' @return An \code{inla.mesh.lattice} object.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @seealso \code{\link{inla.mesh}}
+#' @examples
+#' 
+#' lattice = inla.mesh.lattice(seq(0, 1, length.out=17), seq(0, 1, length.out=10))
+#' 
+#' ## Use the lattice "as-is", without refinement:
+#' mesh = inla.mesh.create(lattice=lattice, boundary=lattice$segm)
+#' mesh = inla.mesh.create(lattice=lattice, extend=FALSE)
+#' plot(mesh)
+#' 
+#' ## Refine the triangulation, with limits on triangle angles and edges:
+#' mesh = inla.mesh.create(lattice=lattice,
+#'                         refine=list(max.edge=0.08),
+#'                         extend=FALSE)
+#' plot(mesh)
+#' 
+#' ## Add an extension around the lattice, but maintain the lattice edges:
+#' mesh = inla.mesh.create(lattice=lattice,
+#'                         refine=list(max.edge=0.08),
+#'                         interior=lattice$segm)
+#' plot(mesh)
+#' 
+#' ## Only add extension:
+#' mesh = inla.mesh.create(lattice=lattice, refine=list(max.edge=0.08))
+#' plot(mesh)
+#' 
+#' @export inla.mesh.lattice
 inla.mesh.lattice <- function(x=seq(0, 1, length.out=2),
                               y=seq(0, 1, length.out=2),
                               z=NULL,
@@ -660,11 +891,29 @@ inla.mesh.lattice <- function(x=seq(0, 1, length.out=2),
 }
 
 
+
+
+#' Extract tagged boundary/internal segments.
+#' 
+#' Extract boundary or internal segments tagged by group id:s.
+#' 
+#' 
+#' @aliases extract.groups extract.groups.inla.mesh.segment
+#' @param segm An \code{\link{inla.mesh.segment}} object.
+#' @param groups The segment groups id:s to extract.
+#' @param groups.new Optional vector of group id remapping; \code{groups[k]} in
+#' the input will be replaced by \code{groups.new[k]} in the output.
+#' @param \dots Additional arguments, passed on to other methods.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @seealso \code{\link{inla.mesh.segment}}
+#' @export extract.groups
 extract.groups <- function(...)
 {
     UseMethod("extract.groups")
 }
 
+#' @export
+#' @rdname extract.groups
 extract.groups.inla.mesh.segment <- function(segm,
                                              groups,
                                              groups.new=groups,
@@ -908,6 +1157,99 @@ inla.mesh <- function(...)
 }
 
 
+
+
+#' Low level function for high-quality triangulations
+#' 
+#' Create a constrained refined Delaunay triangulation (CRDT) for a set of
+#' spatial locations.
+#' 
+#' \code{inla.mesh.create} generates triangular meshes on subsets of
+#' \eqn{R^2}{R^2} and \eqn{S^2}{S^2}.  Use the higher level wrapper function
+#' \code{\link{inla.mesh.2d}} for greater control over mesh resolution and
+#' coarser domain extensions.
+#' 
+#' \code{inla.delaunay} is a wrapper function for obtaining the convex hull of
+#' a point set and calling \code{inla.mesh.create} to generate the classical
+#' Delaunay tringulation.
+#' 
+#' @aliases inla.mesh inla.mesh.create inla.delaunay
+#' @param loc Matrix of point locations.  Can alternatively be a
+#' \code{SpatialPoints} or \code{SpatialPointsDataFrame} object.
+#' @param tv A triangle-vertex index matrix, specifying an existing
+#' triangulation.
+#' @param boundary A list of \code{inla.mesh.segment} objects, generated by
+#' \code{\link{inla.mesh.segment}}, specifying boundary constraint segments.
+#' @param interior A list of \code{inla.mesh.segment} objects, generated by
+#' \code{\link{inla.mesh.segment}}, specifying interior constraint segments.
+#' @param extend \code{logical} or \code{list} specifying whether to extend the
+#' data region, with parameters \describe{ \item{list("n")}{the number of edges
+#' in the extended boundary (default=8)} \item{list("offset")}{the extension
+#' distance.  If negative, interpreted as a factor relative to the approximate
+#' data diameter (default=-0.10)} } Setting to \code{FALSE} is only useful in
+#' combination \code{lattice} or \code{boundary}.
+#' @param refine \code{logical} or \code{list} specifying whether to refine the
+#' triangulation, with parameters \describe{ \item{list("min.angle")}{the
+#' minimum allowed interior angle in any triangle.  The algorithm is guaranteed
+#' to converge for \code{min.angle} at most 21 (default=\code{21})}
+#' \item{list("max.edge")}{the maximum allowed edge length in any triangle.  If
+#' negative, interpreted as a relative factor in an ad hoc formula depending on
+#' the data density (default=\code{Inf})} \item{list("max.n.strict")}{the
+#' maximum number of vertices allowed, overriding \code{min.angle} and
+#' \code{max.edge} (default=-1, meaning no limit)} \item{list("max.n")}{the
+#' maximum number of vertices allowed, overriding \code{max.edge} only
+#' (default=-1, meaning no limit)} }
+#' @param lattice An \code{inla.mesh.lattice} object, generated by
+#' \code{\link{inla.mesh.lattice}}, specifying points on a regular lattice.
+#' @param globe Subdivision resolution for a semi-regular spherical
+#' triangulation with equidistant points along equidistant latitude bands.
+#' @param cutoff The minimum allowed distance between points.  Point at most as
+#' far apart as this are replaced by a single vertex prior to the mesh
+#' refinement step.
+#' @param plot.delay On Linux (and Mac if appropriate X11 libraries are
+#' installed), specifying a numeric value activates a rudimentary plotting
+#' system in the underlying \code{fmesher} program, showing the triangulation
+#' algorithm at work.
+#' @param data.dir Where to store the \code{fmesher} data files.  Defaults to
+#' \code{tempdir()} if \code{keep} is \code{FALSE}, otherwise
+#' \code{"inla.mesh.data"}.
+#' @param keep \code{TRUE} if the data files should be kept in \code{data.dir}
+#' or deleted afterwards.  Defaults to true if \code{data.dir} is specified,
+#' otherwise false.  Warning: If \code{keep} is false, \code{data.dir} and its
+#' contents will be deleted (unless set to \code{tempdir()}).
+#' @param timings If \code{TRUE}, obtain timings for the mesh construction.
+#' @param quality.spec List of vectors of per vertex \code{max.edge} target
+#' specification for each location in \code{loc}, \code{boundary/interior}
+#' (\code{segm}), and \code{lattice}.  Only used if refining the mesh.
+#' @param crs An optional \code{CRS} or \code{inla.CRS} object
+#' @param ...  Optional parameters passed on to \code{inla.mesh.create}.
+#' @return An \code{inla.mesh} object.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @seealso \code{\link{inla.mesh.2d}}, \code{\link{inla.mesh.1d}},
+#' \code{\link{inla.mesh.segment}}, \code{\link{inla.mesh.lattice}},
+#' \code{\link{inla.mesh.query}}
+#' @examples
+#' 
+#' loc = matrix(runif(10*2),10,2)
+#' 
+#' mesh = inla.delaunay(loc)
+#' plot(mesh)
+#' 
+#' mesh = inla.mesh.create(loc,
+#'                         interior=inla.mesh.segment(idx=1:2),
+#'                         extend=TRUE,
+#'                         refine=list(max.edge=0.1))
+#' plot(mesh)
+#' 
+#' loc2 = matrix(c(0,1,1,0, 0,0,1,1), 4, 2);
+#' mesh2 = inla.mesh.create(loc=loc,
+#'                          boundary=inla.mesh.segment(loc2),
+#'                          interior=inla.mesh.segment(idx=1:2),
+#'                          quality.spec=list(segm=0.2, loc=0.05),
+#'                          refine=list(min.angle=26))
+#' plot(mesh2)
+#' 
+#' @export inla.mesh.create
 inla.mesh.create <- function(loc=NULL, tv=NULL,
                              boundary=NULL, interior=NULL,
                              extend = (missing(tv) || is.null(tv)),
@@ -1314,6 +1656,30 @@ inla.mesh.extract.segments <- function(mesh.loc,
         return(NULL)
 }
 
+
+
+#' Constraint segment extraction for inla.mesh
+#' 
+#' Constructs an list of \code{inla.mesh.segment} object from boundary or
+#' interior constraint information in an \code{\link{inla.mesh}} object.
+#' 
+#' 
+#' @aliases inla.mesh.boundary inla.mesh.interior
+#' @param mesh An \code{inla.mesh} object.
+#' @param grp Group indices to extract.  If \code{NULL}, all boundary/interior
+#' constrain groups are extracted.
+#' @return A list of \code{inla.mesh.segment} objects.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @seealso \code{\link{inla.mesh.segment}}, \code{\link{inla.mesh.create}},
+#' \code{\link{inla.mesh.create.helper}}
+#' @examples
+#' 
+#' loc = matrix(runif(100*2)*1000,100,2)
+#' mesh = inla.mesh.create.helper(points.domain=loc, max.edge=c(50,500))
+#' boundary = inla.mesh.boundary(mesh)
+#' interior = inla.mesh.interior(mesh)
+#' 
+#' @export inla.mesh.boundary
 inla.mesh.boundary <- function(mesh, grp=NULL)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
@@ -1345,6 +1711,74 @@ inla.mesh.interior <- function(mesh, grp=NULL)
 ## At least one of loc, loc.domain, boundary[[1]], boundary[[2]], interior
 ## must be non-NULL
 ## For more complicated multi-step meshings, study the code and write your own.
+
+
+#' High-quality triangulations
+#' 
+#' Create a triangle mesh based on initial point locations, specified or
+#' automatic boundaries, and mesh quality parameters.
+#' 
+#' 
+#' @param loc Matrix of point locations to be used as initial triangulation
+#' nodes.  Can alternatively be a \code{SpatialPoints} or
+#' \code{SpatialPointsDataFrame} object.
+#' @param loc.domain Matrix of point locations used to determine the domain
+#' extent.  Can alternatively be a \code{SpatialPoints} or
+#' \code{SpatialPointsDataFrame} object.
+#' @param offset The automatic extension distance.  One or two values, for an
+#' inner and an optional outer extension.  If negative, interpreted as a factor
+#' relative to the approximate data diameter (default=-0.10???)
+#' @param n The number of initial nodes in the automatic extensions
+#' (default=16)
+#' @param boundary A list of one or two \code{\link{inla.mesh.segment}} objects
+#' describing domain boundaries.
+#' @param interior An \code{\link{inla.mesh.segment}} object describing desired
+#' interior edges.
+#' @param max.edge The largest allowed triangle edge length.  One or two
+#' values.
+#' @param min.angle The smallest allowed triangle angle.  One or two values.
+#' (Default=21)
+#' @param cutoff The minimum allowed distance between points.  Point at most as
+#' far apart as this are replaced by a single vertex prior to the mesh
+#' refinement step.
+#' @param max.n.strict The maximum number of vertices allowed, overriding
+#' \code{min.angle} and \code{max.edge} (default=-1, meaning no limit).  One or
+#' two values, where the second value gives the number of additional vertices
+#' allowed for the extension.
+#' @param max.n The maximum number of vertices allowed, overriding
+#' \code{max.edge} only (default=-1, meaning no limit).  One or two values,
+#' where the second value gives the number of additional vertices allowed for
+#' the extension.
+#' @param plot.delay On Linux (and Mac if appropriate X11 libraries are
+#' installed), specifying a nonnegative numeric value activates a rudimentary
+#' plotting system in the underlying \code{fmesher} program, showing the
+#' triangulation algorithm at work, with waiting time factor \code{plot.delay}
+#' between each step.
+#' 
+#' On all systems, specifying any negative value activates displaying the
+#' result after each step of the multi-step domain extension algorithm.
+#' @param crs An optional \code{CRS} or \code{inla.CRS} object
+#' @return An \code{inla.mesh} object. 
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @seealso \code{\link{inla.mesh.create}}, \code{\link{inla.delaunay}},
+#' \code{\link{inla.nonconvex.hull}}
+#' @examples
+#' 
+#' loc <- matrix(runif(10*2),10,2)
+#' 
+#' if (require("splancs")) {
+#'   boundary <- list(inla.nonconvex.hull(loc, 0.1, 0.15),
+#'                    inla.nonconvex.hull(loc, 0.2, 0.2))
+#'   offset <- NULL
+#' } else {
+#'   boundary <- NULL
+#'   offset <- c(0.1, 0.2)
+#' }
+#' mesh <- inla.mesh.2d(loc, boundary=boundary, offset=offset, max.edge=c(0.05, 0.1))
+#' 
+#' plot(mesh)
+#' 
+#' @export inla.mesh.2d
 inla.mesh.2d <-
     function(loc=NULL, ## Points to include in final triangulation
              loc.domain=NULL, ## Points that determine the automatic domain
@@ -1622,6 +2056,25 @@ inla.mesh.2d <-
 }
 
 ## Support for legacy code:
+
+
+#' High-quality triangulations
+#' 
+#' Create a triangle mesh based on initial point locations, specified or
+#' automatic boundaries, and mesh quality parameters.
+#' 
+#' 
+#' @param points Matrix of point locations to be used as initial triangulation
+#' nodes.
+#' @param points.domain Matrix of point locations used to determine the domain
+#' extent.
+#' @param \dots Additional arguments passed on to \code{\link{inla.mesh.2d}}.
+#' @note Obsolete function kept for backwards compatibility.  Use
+#' \code{\link{inla.mesh.2d}} instead.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @seealso \code{\link{inla.mesh.2d}}
+#' @keywords internal
+#' @export inla.mesh.create.helper
 inla.mesh.create.helper <- function(points=NULL, points.domain=NULL, ...)
 {
     return(invisible(inla.mesh.2d(loc=points, loc.domain=points.domain, ...)))
@@ -1641,7 +2094,8 @@ inla.mesh.create.helper <- function(points=NULL, points.domain=NULL, ...)
 ##}
 ##
 
-
+#' @export
+#' @rdname inla.mesh.create
 inla.delaunay <- function(loc, ...)
 {
     ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
@@ -1672,6 +2126,39 @@ inla.delaunay <- function(loc, ...)
 
 
 
+
+
+#' High-quality triangulations
+#' 
+#' Query information about an inla.mesh object.
+#' 
+#' 
+#' @param mesh An \code{inla.mesh} object.
+#' @param \dots Query arguments.  \itemize{ \itemtt.neighbours Compute
+#' neighbour triangles for triangles; list of vectors: list(triangles, orders)
+#' 
+#' \itemvt.neighbours Compute neighbour triangles for vertices; list of
+#' vectors: list(vertices, orders)
+#' 
+#' }
+#' @return A list of query results.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @seealso \code{\link{inla.mesh.create}}, \code{\link{inla.mesh.segment}},
+#' \code{\link{inla.mesh.lattice}}
+#' @examples
+#' 
+#' loc = matrix(c(0.1,0.15),1,2)
+#' lattice = inla.mesh.lattice(dims=c(10,10))
+#' mesh = inla.mesh.create(loc=loc, lattice=lattice, extend=FALSE)
+#' 
+#' vt = which(inla.mesh.query(mesh,
+#'                            vt.neighbours=list(mesh$idx$loc,
+#'                                               4:6))$vt.neighbours)
+#' 
+#' mesh2 = inla.mesh.create(mesh$loc, tv=mesh$graph$tv[vt,,drop=FALSE],
+#'                          refine=FALSE, extend=FALSE)
+#' 
+#' @export inla.mesh.query
 inla.mesh.query <- function(mesh, ...)
 {
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
@@ -1785,6 +2272,22 @@ inla.mesh.query <- function(mesh, ...)
     return(result)
 }
 
+
+
+#' Summarizing triangular mesh objects
+#' 
+#' Construct and print \code{inla.mesh} object summaries
+#' 
+#' 
+#' @aliases summary.inla.mesh print.summary.inla.mesh
+#' @param object an object of class \code{"inla.mesh"}, usually a result of a
+#' call to \code{\link{inla.mesh.create}} or \code{\link{inla.mesh.2d}}.
+#' @param x an object of class \code{"summary.inla.mesh"}, usually a result of
+#' a call to \code{\link{summary.inla.mesh}}.
+#' @param verbose If \code{TRUE}, produce a more detailed output.
+#' @param \dots further arguments passed to or from other methods.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @export summary.inla.mesh
 summary.inla.mesh <- function(object, verbose=FALSE, ...)
 {
     x=object
@@ -1924,11 +2427,66 @@ print.summary.inla.mesh <- function(x, ...)
 
 
 
+
+
+#' Methods for projecting to/from an inla.mesh
+#' 
+#' Calculate a lattice projection to/from an \code{\link{inla.mesh}}
+#' 
+#' The call \code{inla.mesh.project(mesh, loc, field=..., ...)}, is a shortcut
+#' to inla.mesh.project(inla.mesh.projector(mesh, loc), field).
+#' 
+#' @aliases inla.mesh.project inla.mesh.projector inla.mesh.projector.inla.mesh
+#' inla.mesh.project.inla.mesh inla.mesh.project.inla.mesh.projector
+#' inla.mesh.project.inla.mesh.1d inla.mesh.projector.inla.mesh.1d
+#' @param mesh An \code{\link{inla.mesh}} or \code{\link{inla.mesh.1d}} object.
+#' @param loc Projection locations.  Can be a matrix or a \code{SpatialPoints}
+#' or a \code{SpatialPointsDataFrame} object.
+#' @param lattice An \code{\link{inla.mesh.lattice}} object.
+#' @param xlim X-axis limits for a lattice. For R2 meshes, defaults to covering
+#' the domain.
+#' @param ylim Y-axis limits for a lattice. For R2 meshes, defaults to covering
+#' the domain.
+#' @param dims Lattice dimensions.
+#' @param projector An \code{inla.mesh.projector} object.
+#' @param field Basis function weights, one per mesh basis function, describing
+#' the function to be avaluated at the projection locationssFunction values for
+#' on the mesh
+#' @param projection One of \code{c("default", "longlat", "longsinlat",
+#' "mollweide")}.
+#' @param crs An optional CRS or inla.CRS object associated with \code{loc}
+#' and/or \code{lattice}.
+#' @param \dots Additional arguments passed on to methods.
+#' @return For \code{inla.mesh.project(mesh, ...)}, a list with projection
+#' information.  For \code{inla.mesh.projector(mesh, ...)}, an
+#' \code{inla.mesh.projector} object.  For \code{inla.mesh.project(projector,
+#' field, ...)}, a field projected from the mesh onto the locations given by
+#' the projector object.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @seealso \code{\link{inla.mesh}}, \code{\link{inla.mesh.1d}},
+#' \code{\link{inla.mesh.lattice}}
+#' @examples
+#' 
+#' n = 20
+#' loc = matrix(runif(n*2), n, 2)
+#' mesh = inla.mesh.create(loc, refine=list(max.edge=0.05))
+#' proj = inla.mesh.projector(mesh)
+#' field = cos(mesh$loc[,1]*2*pi*3)*sin(mesh$loc[,2]*2*pi*7)
+#' image(proj$x, proj$y, inla.mesh.project(proj, field))
+#' \donttest{
+#' if (require(rgl)) {
+#'   plot(mesh, rgl=TRUE, col=field, draw.edges=FALSE, draw.vertices=FALSE)
+#' }
+#' }
+#' 
+#' @export inla.mesh.project
 inla.mesh.project <- function(...)
 {
     UseMethod("inla.mesh.project")
 }
 
+#' @export
+#' @rdname inla.mesh.project
 inla.mesh.project.inla.mesh <- function(mesh, loc=NULL, field=NULL,
                                         crs=NULL, ...)
 {
@@ -1997,6 +2555,8 @@ inla.mesh.project.inla.mesh <- function(mesh, loc=NULL, field=NULL,
     list(t=ti, bary=b, A=A, ok=ok)
 }
 
+#' @export
+#' @rdname inla.mesh.project
 inla.mesh.project.inla.mesh.1d <- function(mesh, loc, field=NULL, ...)
 {
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
@@ -2042,11 +2602,15 @@ inla.mesh.project.inla.mesh.projector <-
 }
 
 
+#' @export
+#' @rdname inla.mesh.project
 inla.mesh.projector <- function(...)
 {
     UseMethod("inla.mesh.projector")
 }
 
+#' @export
+#' @rdname inla.mesh.project
 inla.mesh.projector.inla.mesh <-
     function(mesh,
              loc=NULL,
@@ -2123,6 +2687,8 @@ inla.mesh.projector.inla.mesh <-
 }
 
 
+#' @export
+#' @rdname inla.mesh.project
 inla.mesh.projector.inla.mesh.1d <-
     function(mesh,
              loc=NULL,
@@ -2193,6 +2759,53 @@ inla.internal.make.spline.mesh <-
 }
 
 
+
+
+#' Basis functions for inla.mesh
+#' 
+#' Calculate basis functions on a 1d or 2d \code{\link{inla.mesh}}
+#' 
+#' 
+#' @param mesh An \code{inla.mesh.1d} or \code{inla.mesh} object.
+#' @param type \code{b.spline} (default) for B-spline basis functions,
+#' \code{sph.harm} for spherical harmonics (available opnly for meshes on the
+#' sphere)
+#' @param n For B-splines, the number of basis functions in each direction (for
+#' 1d meshes \code{n} must be a scalar, and for planar 2d meshes a 2-vector).
+#' For spherical harmonics, \code{n} is the maximal harmonic order.
+#' @param degree Degree of B-spline polynomials.  See
+#' \code{\link{inla.mesh.1d}}.
+#' @param knot.placement For B-splines on the sphere, controls the latitudinal
+#' placements of knots. \code{"uniform.area"} (default) gives uniform spacing
+#' in sin(latitude), \code{"uniform.latitude"} gives uniform spacing in
+#' latitudes.
+#' @param rot.inv For spherical harmonics on a sphere, \code{rot.inv=TRUE}
+#' gives the rotationally invariant subset of basis functions.
+#' @param boundary Boundary specification, default is free boundaries.  See
+#' \code{\link{inla.mesh.1d}} for more information.
+#' @param free.clamped If \code{TRUE} and \code{boundary} is \code{"free"}, the
+#' boundary basis functions are clamped to 0/1 at the interval boundary by
+#' repeating the boundary knots.
+#' @param ...
+#' 
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @seealso \code{\link{inla.mesh.1d}} \code{\link{inla.mesh.2d}}
+#' @examples
+#' 
+#' n = 100
+#' loc = matrix(runif(n*2), n, 2)
+#' mesh = inla.mesh.2d(loc, max.edge=0.05)
+#' basis = inla.mesh.basis(mesh, n=c(4,5))
+#' 
+#' proj = inla.mesh.projector(mesh)
+#' image(proj$x, proj$y, inla.mesh.project(proj, basis[,7]))
+#' \donttest{
+#' if (require(rgl)) {
+#'   plot(mesh, rgl=TRUE, col=basis[,7], draw.edges=FALSE, draw.vertices=FALSE)
+#' }
+#' }
+#' 
+#' @export inla.mesh.basis
 inla.mesh.basis <- function(mesh,
                             type="b.spline",
                             n=3,
@@ -2341,6 +2954,40 @@ inla.parse.queries <-function(...)
 
 
 
+
+
+#' Compute various mesh related quantities.
+#' 
+#' Low level function for computing finite element matrices, spherical
+#' harmonics, B-splines, and point mappings with barycentric triangle
+#' coordinates.
+#' 
+#' 
+#' @param loc 3-column triangle vertex coordinate matrix.
+#' @param tv 3-column triangle vertex index matrix.
+#' @param fem Maximum finite element matrix order to be computed.
+#' @param aniso A two-element list with \eqn{\gamma}{gamma} and \eqn{v}{v} for
+#' an anisotropic operator \eqn{\nabla\cdot H \nabla}{div H grad}, where
+#' \eqn{H=\gamma I + v v^\top}{H = gamma I + v v'}
+#' @param gradients When \code{TRUE}, calculate derivative operator matrices
+#' \code{dx}, dy, and dz.
+#' @param sph0 Maximal order of rotationally invariant spherical harmonics.
+#' @param sph Maximal order of general spherical harmonics.
+#' @param bspline Rotationally invariant B-splines on a sphere.  3-vector with
+#' number of basis functions \code{n}, basis degree \code{degree}, and a
+#' logical; \code{TRUE} uniform knot angles, \code{FALSE} for uniform spacing
+#' in \eqn{\sin(latitude)}{sin(latitude)}.
+#' @param points2mesh 3-column matrix with points to be located in the mesh.
+#' @param splitlines A list with elements \code{loc} (3-column coordinate
+#' matrix) and \code{idx} (2-column index matrix) describing line segments that
+#' are to be split into sub-segments at triangle boundaries.
+#' @param output Names of objects to be included in the output, if different
+#' from defaults.
+#' @param keep When \code{TRUE}, for debugging purposes keep the \code{fmesher}
+#' I/O files on disk.
+#' @return A list of generated named quantities.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @export inla.fmesher.smorg
 `inla.fmesher.smorg` <- function(loc, tv,
                                  fem=NULL,
                                  aniso=NULL,
@@ -2463,6 +3110,25 @@ inla.parse.queries <-function(...)
 
 
 ## Deprecated: cyclic
+
+
+#' Function space definition objects for 1D SPDE models.
+#' 
+#' Create a 1D mesh specification \code{inla.mesh.1d} object, that defines a
+#' function space for 1D SPDE models.
+#' 
+#' 
+#' @param loc B-spline knot locations.
+#' @param interval Interval domain endpoints.
+#' @param boundary Boundary condition specification.  Valid conditions are
+#' \code{c('neumann', 'dirichlet', 'free', 'cyclic')}.  Two separate values can
+#' be specified, one applied to each endpoint.
+#' @param degree The B-spline basis degree.  Supported values are 0, 1, and 2.
+#' @param free.clamped If \code{TRUE}, for \code{'free'} boundaries, clamp the
+#' basis functions to the interval endpoints.
+#' @param \dots Additional option, currently unused.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @export inla.mesh.1d
 inla.mesh.1d <- function(loc,
                          interval=range(loc),
                          boundary=NULL,
@@ -2671,6 +3337,25 @@ inla.mesh.1d.bary <- function(mesh, loc, method=c("linear", "nearest"))
     return(list(index=index, bary=bary))
 }
 
+
+
+#' Mapping matrix for 1D meshes
+#' 
+#' Calculates barycentric coordinates and weight matrices for
+#' \code{\link{inla.mesh.1d}} objects.
+#' 
+#' 
+#' @aliases inla.mesh.1d.A inla.mesh.1d.bary
+#' @param mesh An \code{\link{inla.mesh.1d}} object.
+#' @param loc Coordinate values.
+#' @param weights Weights to be applied to the \code{A} matrix rows.
+#' @param derivatives If \code{TRUE}, also compute derivative weight matrices
+#' \code{dA} and \code{d2A}.
+#' @param method Interpolation method.  If not specified for
+#' \code{inla.mesh.1d.A} (recommended), it is determined by the \code{mesh}
+#' basis function properties.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @export inla.mesh.1d.A
 inla.mesh.1d.A <- function(mesh, loc,
                            weights=NULL,
                            derivatives=NULL,
@@ -3077,12 +3762,40 @@ inla.mesh.1d.fem <- function(mesh)
 
 
 
+
+
+#' Diameter of a point set
+#' 
+#' Find an upper bound to the convex hull of a point set
+#' 
+#' 
+#' @aliases inla.diameter inla.diameter.default inla.diameter.inla.mesh
+#' inla.diameter.inla.mesh.segment inla.diameter.inla.mesh.lattice
+#' inla.diameter.inla.mesh.1d
+#' @param x A point set as an \eqn{n\times d}{n x d} matrix, or an
+#' \code{inla.mesh} related object.
+#' @param manifold Character string specifying the manifold type. Default is to
+#' treat the point set with Euclidean \eqn{R^d} metrics. Use
+#' \code{manifold="S2"} for great circle distances on the unit sphere (this is
+#' set automatically for \code{inla.mesh} objects).
+#' @param \dots Additional parameters passed on to other methods.
+#' @return A scalar, upper bound for the diameter of the convex hull of the
+#' point set.
+#' @author Finn Lindgren <finn.lindgren@@gmail.com>
+#' @examples
+#' 
+#' inla.diameter(matrix(c(0,1,1,0, 0,0,1,1), 4, 2))
+#' 
+#' @export inla.diameter
 inla.diameter <- function(x, ...) {
   UseMethod("inla.diameter")
 }
 
-## Calculate upper bound for the diameter of a point set,
-## by encapsulating in a circular domain.
+#' @details * `inla.diameter.default`
+#'   Calculate upper bound for the diameter of a point set,
+#'   by encapsulating in a circular domain.
+#' @export
+#' @rdname inla.diameter
 inla.diameter.default <- function(x, manifold="", ...) {
   if (nrow(x) <= 1) {
     0
@@ -3117,23 +3830,49 @@ inla.diameter.default <- function(x, manifold="", ...) {
   }
 }
 
+#' @export
+#' @rdname inla.diameter
 inla.diameter.inla.mesh.1d <- function(x, ...) {
   diff(x$interval)
 }
 
+#' @export
+#' @rdname inla.diameter
 inla.diameter.inla.mesh <- function(x, ...) {
   inla.diameter(x$loc, manifold=x$manifold, ...)
 }
 
+#' @export
+#' @rdname inla.diameter
 inla.diameter.inla.mesh.segment <- function(x, ...) {
   inla.diameter(x$loc, ...)
 }
 
+#' @export
+#' @rdname inla.diameter
 inla.diameter.inla.mesh.lattice <- function(x, ...) {
   inla.diameter(x$loc, ...)
 }
 
 
+
+
+#' Finite element matrices
+#' 
+#' Constructs finite element matrices for \code{\link{inla.mesh}} and
+#' \code{\link{inla.mesh.1d}} objects.
+#' 
+#' 
+#' @aliases inla.mesh.fem inla.mesh.1d.fem
+#' @param mesh An \code{\link{inla.mesh}} or \code{\link{inla.mesh.1d}} object.
+#' @param order The model order.
+#' @return A list of sparse matrices based on basis functions \code{psi_i}:
+#' \item{c0 }{\code{c0[i,j] = < psi_i, 1 >}} \item{c1 }{\code{c1[i,j] = <
+#' psi_i, psi_j >}} \item{g1 }{\code{g1[i,j] = < grad psi_i, grad psi_j >}}
+#' \item{g2 }{\code{g2 = g1 * c0^-1 * g1}} \item{gk }{\code{gk = g1 * (c0^-1 *
+#' g1)^(k-1)}, up to and including \code{k=order}}
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @export inla.mesh.fem
 inla.mesh.fem <- function(mesh, order=2)
 {
     inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
@@ -3159,6 +3898,21 @@ inla.mesh.fem <- function(mesh, order=2)
 
 
 
+
+
+#' Directional derivative matrices for functions on meshes.
+#' 
+#' Calculates directional derivative matrices for functions on
+#' \code{\link{inla.mesh}} objects.
+#' 
+#' 
+#' @param mesh An \code{\link{inla.mesh}} object.
+#' @param loc Coordinates where the derivatives should be evaluated.
+#' @return \item{A }{The projection matrix, \code{u(loc_i)=sum_j A_ij w_i}}
+#' \item{dx, dy, dz }{Derivative weight matrices, \code{du/dx(loc_i)=sum_j
+#' dx_ij w_i}, etc.}
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @export inla.mesh.deriv
 inla.mesh.deriv <- function(mesh, loc)
 {
     inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
@@ -3208,6 +3962,32 @@ inla.mesh.deriv <- function(mesh, loc)
 
 
 
+
+
+#' Recursive curve simplification.
+#' 
+#' Attempts to simplify a polygonal curve by joining nearly colinear segments.
+#' 
+#' Uses a variation of the binary splitting Ramer-Douglas-Peucker algorithm,
+#' with a width \code{eps} ellipse instead of a rectangle, motivated by
+#' prediction ellipse for Brownian bridge.
+#' 
+#' @param loc Coordinate matrix.
+#' @param idx Index vector into \code{loc} specifying a polygonal curve.
+#' @param eps Straightness tolerance.
+#' @return An index vector into \code{loc} specifying the simplified polygonal
+#' curve.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @examples
+#' 
+#' theta = seq(0, 2*pi, length=1000)
+#' loc = cbind(cos(theta), sin(theta))
+#' idx = inla.simplify.curve(loc=loc, idx=1:nrow(loc), eps=0.01)
+#' print(c(nrow(loc), length(idx)))
+#' plot(loc, type="l")
+#' lines(loc[idx,], col="red")
+#' 
+#' @export inla.simplify.curve
 inla.simplify.curve <- function(loc, idx, eps) {
     ## Variation of Ramer-Douglas-Peucker
     ## Uses width epsilon ellipse instead of rectangle,
@@ -3374,57 +4154,6 @@ inla.contour.segment <-
 }
 
 
-## Based on an idea from Elias Teixeira Krainski
-## Requires  splancs::nndistF
-inla.nonconvex.hull.basic <-
-    function(points, convex=-0.15, resolution=40, eps=NULL, crs=NULL)
-{
-  if (!(missing(points) || is.null(points)) &&
-      (inherits(points, "SpatialPoints") ||
-       inherits(points, "SpatialPointsDataFrame"))) {
-    points <- inla.spTransform(coordinates(points),
-                               inla.sp_get_crs(points),
-                               crs,
-                               passthrough=TRUE)
-  }
-
-  if (length(convex)==1)
-    convex = rep(convex,2)
-  if (length(resolution)==1)
-    resolution = rep(resolution,2)
-
-    lim = rbind(range(points[,1]), range(points[,2]))
-    ex = convex
-    if (convex[1]<0) {ex[1] = -convex[1]*diff(lim[1,])}
-    if (convex[2]<0) {ex[2] = -convex[2]*diff(lim[2,])}
-
-    domain = c(diff(lim[1,]), diff(lim[2,])) + 2*ex
-    dif = domain/(resolution-1)
-    if (any(dif > min(convex))) {
-        req.res = ceiling(domain/convex+1)
-        warning(paste("Resolution (",
-                      paste(resolution,collapse=","),
-                      ") too small for convex (",
-                      paste(convex,collapse=","),
-                      ").\n",
-                      "Resolution >=(",
-                      paste(req.res,collapse=","),
-                      ") required for more accurate results.",
-                      sep=""))
-    }
-
-    ax = list(seq(lim[1,1] - ex[1], lim[1,2] + ex[1], length=resolution[1]),
-        seq(lim[2,1] - ex[2], lim[2,2] + ex[2], length=resolution[2]))
-    xy = as.matrix(expand.grid(ax[[1]], ax[[2]]))
-    tr = diag(c(1/ex[1],1/ex[2]))
-
-    stopifnot(inla.require("splancs"))
-    z = (matrix(splancs::nndistF(points%*%tr, xy%*%tr),
-                resolution[1], resolution[2]))
-    segm = inla.contour.segment(ax[[1]], ax[[2]], z,
-        levels=c(1), positive=FALSE, eps=eps, crs=crs)
-    return(segm)
-}
 
 
 ## Morphological dilation by "convex",
@@ -3441,6 +4170,54 @@ inla.nonconvex.hull.basic <-
 ## The implementation is based on the identity
 ##   dilation(a) & closing(b) = dilation(a+b) & erosion(b)
 ## where all operations are with respect to disks with the specified radii.
+
+
+#' Nonconvex set extensions.
+#' 
+#' Constructs a nonconvex boundary for a point set using morphological
+#' operations.
+#' 
+#' Morphological dilation by \code{convex}, followed by closing by
+#' \code{concave}, with minimum concave curvature radius \code{concave}.  If
+#' the dilated set has no gaps of width between \deqn{2 convex (\sqrt{1+2
+#' concave/convex} - 1)}{2*convex*(sqrt(1+2*concave/convex) - 1)} and \eqn{2
+#' concave}{2*concave}, then the minimum convex curvature radius is
+#' \code{convex}.  Special case \code{concave=0} delegates to
+#' \code{inla.nonconvex.hull.basic}
+#' 
+#' The implementation is based on the identity \deqn{dilation(a) \& closing(b)
+#' = dilation(a+b) \& erosion(b)}{dilation(a) & closing(b) = dilation(a+b) &
+#' erosion(b)} where all operations are with respect to disks with the
+#' specified radii.
+#' 
+#' @aliases inla.nonconvex.hull inla.nonconvex.hull.basic
+#' @param points 2D point coordinates (2-column matrix).  Can alternatively be
+#' a \code{SpatialPoints} or \code{SpatialPointsDataFrame} object.
+#' @param convex The desired extension radius.  Also determines the smallest
+#' allowed convex curvature radius.  Negative values are interpreted as
+#' fractions of the approximate initial set diameter.
+#' @param concave The desired minimal concave curvature radius. Default is
+#' \code{concave=convex}.
+#' @param resolution The internal computation resolution.  A warning will be
+#' issued when this needs to be increased for higher accuracy, with the
+#' required resolution stated.
+#' @param eps The polygonal curve simplification tolerance used for simplifying
+#' the resulting boundary curve.  See \code{\link{inla.simplify.curve}} for
+#' details.
+#' @param crs An optional \code{CRS} or \code{inla.CRS} object
+#' @return An \code{\link{inla.mesh.segment}} object.
+#' @note Requires \code{nndistF} from the \code{splancs} package.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @examples
+#' 
+#' if (require(splancs)) {
+#'   loc = matrix(runif(20), 10, 2)
+#'   boundary = inla.nonconvex.hull(loc, convex=0.2)
+#'   lines(boundary, add=FALSE)
+#'   points(loc)
+#' }
+#' 
+#' @export inla.nonconvex.hull
 inla.nonconvex.hull <-
   function(points, convex=-0.15, concave=convex, resolution=40, eps=NULL,
            crs=NULL)
@@ -3522,3 +4299,57 @@ inla.nonconvex.hull <-
 
     segm.closing
 }
+
+#' @export
+#' @rdname inla.nonconvex.hull
+## Based on an idea from Elias Teixeira Krainski
+## Requires  splancs::nndistF
+inla.nonconvex.hull.basic <-
+  function(points, convex=-0.15, resolution=40, eps=NULL, crs=NULL)
+  {
+    if (!(missing(points) || is.null(points)) &&
+        (inherits(points, "SpatialPoints") ||
+         inherits(points, "SpatialPointsDataFrame"))) {
+      points <- inla.spTransform(coordinates(points),
+                                 inla.sp_get_crs(points),
+                                 crs,
+                                 passthrough=TRUE)
+    }
+    
+    if (length(convex)==1)
+      convex = rep(convex,2)
+    if (length(resolution)==1)
+      resolution = rep(resolution,2)
+    
+    lim = rbind(range(points[,1]), range(points[,2]))
+    ex = convex
+    if (convex[1]<0) {ex[1] = -convex[1]*diff(lim[1,])}
+    if (convex[2]<0) {ex[2] = -convex[2]*diff(lim[2,])}
+    
+    domain = c(diff(lim[1,]), diff(lim[2,])) + 2*ex
+    dif = domain/(resolution-1)
+    if (any(dif > min(convex))) {
+      req.res = ceiling(domain/convex+1)
+      warning(paste("Resolution (",
+                    paste(resolution,collapse=","),
+                    ") too small for convex (",
+                    paste(convex,collapse=","),
+                    ").\n",
+                    "Resolution >=(",
+                    paste(req.res,collapse=","),
+                    ") required for more accurate results.",
+                    sep=""))
+    }
+    
+    ax = list(seq(lim[1,1] - ex[1], lim[1,2] + ex[1], length=resolution[1]),
+              seq(lim[2,1] - ex[2], lim[2,2] + ex[2], length=resolution[2]))
+    xy = as.matrix(expand.grid(ax[[1]], ax[[2]]))
+    tr = diag(c(1/ex[1],1/ex[2]))
+    
+    stopifnot(inla.require("splancs"))
+    z = (matrix(splancs::nndistF(points%*%tr, xy%*%tr),
+                resolution[1], resolution[2]))
+    segm = inla.contour.segment(ax[[1]], ax[[2]], z,
+                                levels=c(1), positive=FALSE, eps=eps, crs=crs)
+    return(segm)
+  }

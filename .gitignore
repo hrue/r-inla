@@ -813,13 +813,6 @@ rinla/man/group.Rd
 rinla/man/hyperpar.Rd
 rinla/man/idx.Rd
 rinla/man/inla-class.Rd
-rinla/man/inla.CRS.Rd
-rinla/man/inla.CRSargs.Rd
-rinla/man/inla.Rd
-rinla/man/inla.has_PROJ6.Rd
-rinla/man/inla.over_sp_mesh.Rd
-rinla/man/inla.sp_get_crs.Rd
-rinla/man/inla.stack.Rd
 rinla/man/jmarginal.Rd
 rinla/man/jp.Rd
 rinla/man/knmodels.Rd
@@ -832,9 +825,6 @@ rinla/man/load.Rd
 rinla/man/marginal.Rd
 rinla/man/mdata.Rd
 rinla/man/merge.Rd
-rinla/man/mesh.components.Rd
-rinla/man/meshassessment.Rd
-rinla/man/meshbuilder.Rd
 rinla/man/models.Rd
 rinla/man/nmix.lambda.fitted.Rd
 rinla/man/options.Rd
@@ -861,7 +851,6 @@ rinla/man/qinv.Rd
 rinla/man/qreordering.Rd
 rinla/man/qsample.Rd
 rinla/man/qsolve.Rd
-rinla/man/rbind.inla.data.stack.info.Rd
 rinla/man/read.graph.Rd
 rinla/man/remote.Rd
 rinla/man/reorderings.Rd

@@ -15,27 +15,6 @@
 ##   You should have received a copy of the GNU General Public License
 ##   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Only one function is exported:
-## Export: meshbuilder
-
-##!\name{meshbuider}
-##!\alias{meshbuilder}
-##!\title{Interactive mesh building and diagnostics}
-##!\description{Interactively design and build a triangle mesh
-##!  for use with SPDE models, and assess the finite element
-##!  approximation errors. The R code needed to recreate the mesh
-##!  outside the interactive Shiny app is also generated. Spatial
-##!  objects can be imported from the global workspace. }
-##!\usage{
-##!meshbuilder()
-##!}
-##!\author{Finn Lindgren \email{finn.lindgren@gmail.com}}
-##!\seealso{inla.mesh.2d, inla.mesh.create}
-##!\examples{
-##!\dontrun{
-##!meshbuilder()
-##!}
-##!}
 
 
 
@@ -2041,6 +2020,22 @@ meshbuilder.app <- function() {
   shinyApp(ui = meshbuilder.ui, server = meshbuilder.server)
 }
 
+
+#' @title Interactive mesh building and diagnostics
+#'
+#' @description Interactively design and build a triangle mesh
+#'  for use with SPDE models, and assess the finite element
+#'  approximation errors. The R code needed to recreate the mesh
+#'  outside the interactive Shiny app is also generated. Spatial
+#'  objects can be imported from the global workspace.
+#'  
+#' @author Finn Lindgren \email{finn.lindgren@gmail.com}
+#' @seealso \link{\code{inla.mesh.2d}}, \link{\code{inla.mesh.create}}
+#' @examples
+#' \dontrun{
+#' meshbuilder()
+#' }
+#' @export
 
 meshbuilder <- function() {
   ## Running shiny apps within imported namespaces doesn't work properly, 2018-02-12,
