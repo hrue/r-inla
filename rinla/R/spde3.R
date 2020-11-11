@@ -1,3 +1,6 @@
+#' @include spde.common.R
+NULL
+
 ## 'spde3' model functions
 ## External: inla.spde.precision!inla.spde3
 ## External: inla.spde.result!inla.spde3 inla.spde3.generic

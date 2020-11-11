@@ -9,6 +9,14 @@
 \title{Show expanded CRS arguments}
 \usage{
 inla.CRSargs(x, ...)
+
+inla.as.CRSargs.list(x, ...)
+
+inla.as.list.CRSargs(x, ...)
+
+inla.as.list.CRS(x, ...)
+
+inla.as.CRS.list(x, ...)
 }
 \arguments{
 \item{x}{An \code{sp::CRS} or \code{inla.CRS} object (for
@@ -32,6 +40,11 @@ Wrapper for \code{sp::CRS} and \code{inla.CRS} objects to extract the
 coordinate reference system argument string.
 Should no longer be used with PROJ6/rgdal3;
 see \code{\link{inla.crs_get_wkt}}
+}
+\details{
+* `inla.as.CRSargs.list`: CRS proj4 string for name=value pair list
+
+* `inla.as.list.CRSargs`: List of name=value pairs from CRS proj4 string
 }
 \examples{
 

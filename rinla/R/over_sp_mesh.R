@@ -40,7 +40,6 @@
 #' inla.over_sp_mesh(obj, inla.spTransform(mesh, CRSobj=inla.CRS("mollweide_norm")), ignore.CRS = TRUE)
 #'
 #' @export
-
 inla.over_sp_mesh <- function(x, y, type = c("centroid", "vertex"), ignore.CRS=FALSE) {
   if (!inherits(y, "inla.mesh")) {
     stop(paste0(

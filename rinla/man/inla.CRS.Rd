@@ -35,8 +35,8 @@ for an oblique projection, all values defaulting to zero. The values
 indicate (longitude, latitude, orientation, orbit), as explained in the
 Details section below.}
 
-\item{SRS_string}{a WKT2 string defining the coordinate system;
-see \code{sp::CRS}. This takes precedence over \code{projargs}.}
+\item{SRS_string}{a WKT2 string defining the coordinate system; see
+\code{sp::CRS}. This takes precedence over \code{projargs}.}
 
 \item{\dots}{Additional parameters. Not currently in use.}
 }
@@ -50,18 +50,20 @@ containing at least one element: \item{crs }{The basic \code{sp::CRS}
 object}
 
 \code{inla.wkt_predef} returns a WKT2 string defining a projection
+
+\code{inla.wkt_predef} returns a WKT2 string defining a projection
 }
 \description{
 Creates either a CRS object or an inla.CRS object, describing a coordinate
 reference system
 }
 \details{
-The first two
-elements of the \code{oblique} vector are the (longitude, latitude)
-coordinates for the oblique centre point. The third value (orientation) is a
-counterclockwise rotation angle for an observer looking at the centre point
-from outside the sphere. The fourth value is the quasi-longitude (orbit
-angle) for a rotation along the oblique observers equator.
+The first two elements of the \code{oblique} vector are the (longitude,
+latitude) coordinates for the oblique centre point. The third value
+(orientation) is a counterclockwise rotation angle for an observer looking
+at the centre point from outside the sphere. The fourth value is the
+quasi-longitude (orbit angle) for a rotation along the oblique observers
+equator.
 
 Simple oblique: \code{oblique=c(0, 45)}
 
@@ -83,6 +85,7 @@ projection is only correct for perfect spheres.
 }
 \examples{
 
+
 if (require(rgdal)) {
   crs1 <- inla.CRS("longlat_globe")
   crs2 <- inla.CRS("lambert_globe")
@@ -94,11 +97,15 @@ if (require(rgdal)) {
 \dontrun{
  names(inla.wkt_predef())
 }
+
+\dontrun{
+ names(inla.wkt_predef())
+}
 }
 \seealso{
 \code{\link[sp]{CRS}}, \code{\link{crs_wkt}},
-\code{\link{inla.sp_get_crs}}
-\code{\link{plot.CRS}}, \code{\link{inla.identical.CRS}}
+\code{\link{inla.sp_get_crs}} \code{\link{plot.CRS}},
+\code{\link{inla.identical.CRS}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

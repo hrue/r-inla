@@ -1,11 +1,76 @@
-## 'spde' model functions
-## Export: inla.spde.precision.inla.spde1 inla.spde.result.inla.spde1
-## Export: inla.spde.precision!inla.spde1 inla.spde.result!inla.spde1
-## Export: inla.spde1.create inla.spde.create
-## Export: inla.spde1.imatern inla.spde1.matern
-## Export: inla.spde1.matern.osc inla.spde1.models inla.spde1.precision
-## Export: inla.spde1.result
+#' @include spde.common.R
+NULL
 
+#' Old SPDE model objects for INLA
+#' 
+#' Create an \code{inla.spde1} model object.
+#' 
+#' Note: This is an old spde object format retained for backwards
+#' compatibility.  Please use \code{\link{inla.spde2}} models for new code.
+#' 
+#' This method constructs an object for SPDE models.  Currently implemented:
+#' 
+#' \code{model="matern"}
+#' 
+#' \deqn{(\kappa^2(u)-\Delta)^{\alpha/2}(\tau(u) }{(kappa^2(u)-Delta)^(alpha/2)
+#' (tau(u) x(u)) = W(u)}\deqn{ x(u))=W(u)}{(kappa^2(u)-Delta)^(alpha/2) (tau(u)
+#' x(u)) = W(u)}
+#' 
+#' \code{param}: \itemize{ \item\code{alpha} = 1 or 2 \item\code{basis.T} =
+#' Matrix of basis functions for \eqn{\log\tau(u)}{log tau(u)}
+#' \item\code{basis.K} = Matrix of basis functions for
+#' \eqn{\log\kappa^2(u)}{log kappa^2(u)} }
+#' 
+#' \code{model="imatern"}
+#' 
+#' \deqn{(-\Delta)^{\alpha/2}(\tau(u) }{(-Delta)^(alpha/2) (tau(u) x(u)) =
+#' W(u)}\deqn{ x(u))=W(u)}{(-Delta)^(alpha/2) (tau(u) x(u)) = W(u)}
+#' 
+#' \code{param}: \itemize{ \item\code{alpha} = 1 or 2 \item\code{basis.T} =
+#' Matrix of basis functions for \eqn{\log\tau(u)}{log tau(u)} }
+#' 
+#' @aliases inla.spde1.create inla.spde1.matern
+#' inla.spde1.imatern inla.spde1.matern.osc inla.spde1
+#' @param mesh The mesh to build the model on, as an \code{\link{inla.mesh}}
+#' object.
+#' @param model The name of the model.
+#' @param param Model specific parameters.
+#' @param ...  Additional parameters passed on to other methods.
+#' @return An \code{inla.spde1} object.
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @seealso \code{\link{inla.spde2.matern}}, \code{\link{inla.mesh.2d}},
+#' \code{\link{inla.mesh.basis}}
+#' @examples
+#' 
+#' n = 100
+#' field.fcn = function(loc) (10*cos(2*pi*2*(loc[,1]+loc[,2])))
+#' loc = matrix(runif(n*2),n,2)
+#' ## One field, 2 observations per location
+#' idx.y = rep(1:n,2)
+#' y = field.fcn(loc[idx.y,]) + rnorm(length(idx.y))
+#' 
+#' mesh = inla.mesh.create(loc, refine=list(max.edge=0.05))
+#' spde = inla.spde1.create(mesh, model="matern")
+#' data = list(y=y, field=mesh$idx$loc[idx.y])
+#' formula = y ~ -1 + f(field, model=spde)
+#' result = inla(formula, data=data, family="normal")
+#' 
+#' ## Plot the mesh structure:
+#' plot(mesh)
+#' \donttest{
+#' if (require(rgl)) {
+#'   ## Plot the posterior mean:
+#'   plot(mesh, rgl=TRUE,
+#'        result$summary.random$field[,"mean"],
+#'        color.palette = colorRampPalette(c("blue","green","red")))
+#'   ## Plot residual field:
+#'   plot(mesh, rgl=TRUE,
+#'        result$summary.random$field[,"mean"]-field.fcn(mesh$loc),
+#'        color.palette = colorRampPalette(c("blue","green","red")))
+#' }
+#' }
+#' 
+#' @export inla.spde1.create
 inla.spde1.create =
     function(mesh,
              model=c("matern", "imatern", "matern.osc"),
@@ -247,7 +312,8 @@ inla.spde1.query = function(spde, ...)
 
 
 
-
+#' @export
+#' @rdname inla.spde.result
 inla.spde1.result = function(inla, name, spde, do.transform=TRUE, ...)
 {
     warning("'inla.spde1.result' is not fully implemented yet.")
@@ -378,7 +444,8 @@ inla.spde1.result = function(inla, name, spde, do.transform=TRUE, ...)
     return(result)
 }
 
-
+#' @export
+#' @rdname inla.spde.precision
 inla.spde1.precision = function(spde, ...)
 {
     inla.require.inherits(spde, "inla.spde1", "'spde'")
@@ -387,27 +454,38 @@ inla.spde1.precision = function(spde, ...)
 }
 
 
+#' @export
+#' @rdname inla.spde.models
 inla.spde1.models = function()
 {
     return(c("matern", "imatern", "matern.osc"))
 }
 
+#' @export
+#' @rdname inla.spde1.create
 inla.spde1.matern = function(mesh, ...)
 {
     return(inla.spde1.create(mesh, model="matern", ...))
 }
+#' @export
+#' @rdname inla.spde1.create
 inla.spde1.imatern = function(mesh, ...)
 {
     return(inla.spde1.create(mesh, model="imatern", ...))
 }
+#' @export
+#' @rdname inla.spde1.create
 inla.spde1.matern.osc = function(mesh, ...)
 {
     return(inla.spde1.create(mesh, model="matern.osc", ...))
 }
 
 ## spde.common-connections:
+#' @export
+#' @method inla.spde.precision inla.spde1
+#' @rdname inla.spde.precision
 inla.spde.precision.inla.spde1 = inla.spde1.precision
+#' @export
+#' @method inla.spde.result inla.spde1
+#' @rdname inla.spde.result
 inla.spde.result.inla.spde1 = inla.spde1.result
-
-## Backwards compatibility:
-inla.spde.create = inla.spde1.create

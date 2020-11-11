@@ -19,13 +19,25 @@ inla.fallback_PROJ6(fun)
 inla.requires_PROJ6(fun)
 }
 \value{
-For \code{inla.has_PROJ6}, logical;
-`TRUE` if PROJ6 is available, `FALSE` otherwise
+For \code{inla.has_PROJ6}, logical; `TRUE` if PROJ6 is available,
+`FALSE` otherwise
 }
 \description{
 Detect whether PROJ6 is available for INLA
 }
 \details{
+\code{inla.not_for_PROJ6} is called to warn about using old PROJ4 features
+even though PROJ6 is available
+
+\code{inla.not_for_PROJ4} is called to give an error when calling methods
+that are only available for PROJ6
+
+\code{inla.fallback_PROJ6} is called to warn about falling back to using old
+PROJ4 methods when a RPOJ6 method hasn't been implemented
+
+\code{inla.requires_PROJ6} is called to give an error when PROJ6 is required
+but not available
+
 \code{inla.not_for_PROJ6} is called to warn about using old PROJ4
 features even though PROJ6 is available
 
@@ -39,5 +51,7 @@ to using old PROJ4 methods when a RPOJ6 method hasn't been implemented
 is required but not available
 }
 \examples{
+
 inla.has_PROJ6()
+
 }

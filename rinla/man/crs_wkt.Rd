@@ -56,6 +56,24 @@ supported)}
 \code{inla.wkt_unit_params()}}
 }
 \value{
+For \code{inla.wkt_unit_params}, a list of named unit definitions
+
+For \code{inla.wkt_get_lengthunit}, a list of length units used in the wkt
+string, excluding the ellipsoid radius unit.
+
+For \code{inla.wkt_set_lengthunit}, a WKT2 string with altered length units.
+Note that the length unit for the ellipsoid radius is unchanged.
+
+For \code{inla.crs_get_wkt}, WKT2 string.
+
+For \code{inla.crs_get_lengthunit}, a list of length units used in the wkt
+string, excluding the ellipsoid radius unit. (For legacy PROJ4 code, the raw
+units from the proj4string are returned, if present.)
+
+For \code{inla.crs_set_lengthunit}, a \code{sp::CRS} object with altered
+length units. Note that the length unit for the ellipsoid radius is
+unchanged.
+
 For \code{inla.wkt_unit_params}, a
 list of named unit definitions
 
@@ -82,6 +100,16 @@ Note that the length unit for the ellipsoid radius is unchanged.
 Get and set CRS object or WKT string properties.
 }
 \examples{
+
+\dontrun{
+if(inla.has_PROJ6()){
+  c1 <- inla.CRS("globe")
+  inla.crs_get_lengthunit(c1)
+  c2 <- inla.crs_set_lengthunit(c1, "km")
+  inla.crs_get_lengthunit(c2)
+ }
+}
+
 \dontrun{
 if(inla.has_PROJ6()){
   c1 <- inla.CRS("globe")
@@ -93,7 +121,11 @@ if(inla.has_PROJ6()){
 }
 \seealso{
 \code{\link{inla.sp_get_crs}}
+
+\code{\link{inla.sp_get_crs}}
 }
 \author{
+Finn Lindgren \email{finn.lindgren@gmail.com}
+
 Finn Lindgren \email{finn.lindgren@gmail.com}
 }

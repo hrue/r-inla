@@ -13,20 +13,21 @@ inla.sp_get_crs(x)
 A \code{CRS} object, or NULL if no valid CRS identified
 }
 \description{
-Wrapper for CRS(projargs) (PROJ4) and CRS(wkt) for
-\code{sp::Spatial} objects.
-}
-\details{
-This function is a convenience method to workaround PROJ4/PROJ6
-differences, and the lack of a crs extraction method for Spatial objects.
+Wrapper for CRS(projargs) (PROJ4) and CRS(wkt) for \code{sp::Spatial}
+objects.
+
+This function is a convenience method to workaround PROJ4/PROJ6 differences,
+and the lack of a crs extraction method for Spatial objects.
 }
 \examples{
+
 \dontrun{
 if(interactive()){
  s <- sp::SpatialPoints(matrix(1:6, 3, 2), proj4string = inla.CRS("sphere"))
  inla.sp_get_crs(s)
  }
 }
+
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}
