@@ -23,7 +23,6 @@ import(splines)
 # ## Export: func1 func2
 # ## Export: method1!class
 # etc...
-
 export(inla.ar.pacf2phi)
 export(inla.ar.phi2pacf)
 export(inla.ar.pacf2acf)

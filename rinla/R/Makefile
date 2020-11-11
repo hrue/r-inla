@@ -19,14 +19,15 @@ TAGS : $(wildcard *.R) Makefile
 
 ## need option keep.source otherwise there is no attribute 'source'!!!!
 ../man/models.Rd: inlaEnv.R models.R models-generate.R utils.R version.R
-	echo -e ''\
-	'options(keep.source=TRUE)\n'\
-	'source("inlaEnv.R")\n'\
-	'source("models.R")\n'\
-	'source("models-generate.R")\n'\
-	'source("utils.R")\n'\
-	'source("version.R")\n'\
-	'inla.models.generate.Rd("../man/models.Rd")\n' | $(R) --vanilla
+	{ \
+	  echo 'options(keep.source=TRUE)';\
+	  echo 'source("inlaEnv.R")';\
+	  echo 'source("models.R")';\
+	  echo 'source("models-generate.R")';\
+	  echo 'source("utils.R")';\
+	  echo 'source("version.R")';\
+	  echo 'inla.models.generate.Rd("../man/models.Rd")';\
+	} | $(R) --vanilla
 
 
 ## creating roxygen documentation also create the NAMESPACE file,
@@ -50,14 +51,15 @@ endef
 
 ../NAMESPACE.ours: $(wildcard *.R) Makefile
 	rm -f ../NAMESPACE.ours
-	echo -e ""\
-	"# *** NAMESPACE contributions from our old system\n"\
-	"# The functions to be exported are defined in the R-code with\n"\
-	"# lines as:\n"\
-	"# ## Export: func1\n"\
-	"# ## Export: func1 func2\n"\
-	"# ## Export: method1!class\n"\
-	"# etc...\n" > ../NAMESPACE.ours
+	{ \
+	  echo "# *** NAMESPACE contributions from our old system";\
+	  echo "# The functions to be exported are defined in the R-code with";\
+	  echo "# lines as:";\
+	  echo "# ## Export: func1";\
+	  echo "# ## Export: func1 func2";\
+	  echo "# ## Export: method1!class";\
+	  echo "# etc...";\
+	} > ../NAMESPACE.ours
 	ls -1 *.R \
 	    | while read f; do \
 	        egrep "^## *Export *:" $$f \
