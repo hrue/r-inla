@@ -60,7 +60,7 @@ endef
 	  echo "# ## Export: method1!class";\
 	  echo "# etc...";\
 	} > ../NAMESPACE.ours
-	ls -1 *.R \
+	LC_ALL=C ls -1 *.R \
 	    | while read f; do \
 	        egrep "^## *Export *:" $$f \
 		    | while read ff; do \
