@@ -19,7 +19,7 @@ TAGS : $(wildcard *.R) Makefile
 
 ## need option keep.source otherwise there is no attribute 'source'!!!!
 ../man/models.Rd: inlaEnv.R models.R models-generate.R utils.R version.R
-	echo ''\
+	echo -e ''\
 	'options(keep.source=TRUE)\n'\
 	'source("inlaEnv.R")\n'\
 	'source("models.R")\n'\
@@ -50,7 +50,7 @@ endef
 
 ../NAMESPACE.ours: $(wildcard *.R) Makefile
 	rm -f ../NAMESPACE.ours
-	echo ""\
+	echo -e ""\
 	"# *** NAMESPACE contributions from our old system\n"\
 	"# The functions to be exported are defined in the R-code with\n"\
 	"# lines as:\n"\
