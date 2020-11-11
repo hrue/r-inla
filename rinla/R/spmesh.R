@@ -16,20 +16,9 @@
 #' 
 #' Detect whether PROJ6 is available for INLA
 #' 
-#' \code{inla.not_for_PROJ6} is called to warn about using old PROJ4 features
-#' even though PROJ6 is available
-#' 
-#' \code{inla.not_for_PROJ4} is called to give an error when calling methods
-#' that are only available for PROJ6
-#' 
-#' \code{inla.fallback_PROJ6} is called to warn about falling back to using old
-#' PROJ4 methods when a RPOJ6 method hasn't been implemented
-#' 
-#' \code{inla.requires_PROJ6} is called to give an error when PROJ6 is required
-#' but not available
-#' 
 #' @aliases inla.has_PROJ6 inla.not_for_PROJ6 inla.not_for_PROJ4
 #' inla.fallback_PROJ6 inla.requires_PROJ6
+#' @details \code{inla.has_PROJ6} is called to check if PROJ6&GDAL3 are available.
 #' @return For \code{inla.has_PROJ6}, logical; `TRUE` if PROJ6 is available,
 #' `FALSE` otherwise
 #' @examples
@@ -45,9 +34,9 @@ inla.has_PROJ6 <- function() {
   result
 }
 
-#' @details \code{inla.not_for_PROJ6} is called to warn about using old PROJ4
+#' @describeIn inla.has_PROJ6 Called to warn about using old PROJ4
 #' features even though PROJ6 is available
-#' @rdname inla.has_PROJ6
+#' @param fun The name of the calling function
 
 inla.not_for_PROJ6 <- function(fun) {
   if (inla.has_PROJ6()) {
@@ -62,9 +51,8 @@ inla.not_for_PROJ6 <- function(fun) {
   }
 }
 
-#' @details \code{inla.not_for_PROJ4} is called to give an error when
+#' @describeIn inla.has_PROJ6 Called to give an error when
 #' calling methods that are only available for PROJ6
-#' @rdname inla.has_PROJ6
 
 inla.not_for_PROJ4 <- function(fun) {
   if (!inla.has_PROJ6()) {
@@ -74,9 +62,8 @@ inla.not_for_PROJ4 <- function(fun) {
   }
 }
 
-#' @details \code{inla.fallback_PROJ6} is called to warn about falling back
+#' @describeIn inla.has_PROJ6 Called to warn about falling back
 #' to using old PROJ4 methods when a RPOJ6 method hasn't been implemented
-#' @rdname inla.has_PROJ6
 
 inla.fallback_PROJ6 <- function(fun) {
   if (inla.has_PROJ6()) {
@@ -86,9 +73,8 @@ inla.fallback_PROJ6 <- function(fun) {
   }
 }
 
-#' @details \code{inla.requires_PROJ6} is called to give an error when PROJ6
+#' @describeIn inla.has_PROJ6 Called to give an error when PROJ6
 #' is required but not available
-#' @rdname inla.has_PROJ6
 
 inla.requires_PROJ6 <- function(fun) {
   if (!inla.has_PROJ6()) {
