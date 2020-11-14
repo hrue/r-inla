@@ -29,6 +29,22 @@ TAGS : $(wildcard *.R) Makefile
 	  echo 'inla.models.generate.Rd("../man/models.Rd")';\
 	} | $(R) --vanilla
 
+models_doc: ../R/models_documentation.R
+../R/models_documentation.R: inlaEnv.R models.R models-generate.R utils.R version.R
+	{ \
+	  echo 'options(keep.source=TRUE)';\
+	  echo 'source("inlaEnv.R")';\
+	  echo 'source("models.R")';\
+	  echo 'source("models-generate.R")';\
+	  echo 'source("utils.R")';\
+	  echo 'source("version.R")';\
+	  echo 'inla.models.generate.roxygen("../R/models_documentation.R")';\
+	} | $(R) --vanilla
+	rm ../NAMESPACE
+	{ \
+	  echo 'devtools::document()';\
+	} | $(R) --vanilla
+
 
 ## creating roxygen documentation also create the NAMESPACE file,
 ## which is no longer part of the repo, but created by concatenating
