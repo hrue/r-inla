@@ -5,8 +5,8 @@
 
 
 
-#' Constraint segments for inla.mesh
-#' 
+#' @title Constraint segments for inla.mesh
+#'  
 #' Constructs `inla.mesh.segment` objects that can be used to specify
 #' boundary and interior constraint edges in calls to [inla.mesh()].
 #' 
@@ -313,13 +313,13 @@ lines.inla.mesh.segment <- function(x, loc=NULL, col=NULL,
 #' @param alpha Transparency/opaqueness values.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @export inla.generate.colors
-`inla.generate.colors` <- function(color,
-                                   color.axis = NULL,
-                                   color.n=512,
-                                   color.palette = cm.colors,
-                                   color.truncate=FALSE,
-                                   alpha=NULL)
-  {
+inla.generate.colors <- function(color,
+                                 color.axis = NULL,
+                                 color.n=512,
+                                 color.palette = cm.colors,
+                                 color.truncate=FALSE,
+                                 alpha=NULL)
+{
     if (is.character(color)) {
       colors = color
     } else if (is.vector(color) || (is.matrix(color) && (ncol(color)==1))) {
@@ -409,7 +409,7 @@ lines.inla.mesh.segment <- function(x, loc=NULL, col=NULL,
 #' @seealso [plot.inla.mesh()]
 #' @method plot inla.trimesh
 #' @export
-`plot.inla.trimesh` <- function(x, S, color = NULL, color.axis = NULL,
+plot.inla.trimesh <- function(x, S, color = NULL, color.axis = NULL,
                                 color.n=512, color.palette = cm.colors,
                                 color.truncate=FALSE, alpha=NULL,
                                 lwd = 1, specular = "black",
@@ -921,7 +921,6 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
                                        loc.offset=0L,
                                        crs=NULL)
 {
-###########################################
     homogenise.segm.input <- function(x, is.bnd, crs=NULL)
     {
         if (is.matrix(x) || is.vector(x)) { ## Coordinates or indices
@@ -955,7 +954,7 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
         }
         ret
     }
-##################################################
+
     homogenise.segm.grp <- function(input) {
         grp.idx = 0L
         for (k in 1:length(input)) if (!is.null(input[[k]])) {
@@ -975,7 +974,7 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
         }
         return(input)
     }
-##################################################
+
   join.segm.input <- function(segm, segm.offset=0L, loc.offset=0L,
                               crs=NULL)
     {
@@ -1032,7 +1031,6 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
                                                          FALSE,
                                                          crs)))))
     }
-###########################
 
     segm = (c(lapply(inla.ifelse(inherits(boundary, "list"),
                                  boundary, list(boundary)),
@@ -1053,7 +1051,6 @@ inla.mesh.parse.segm.input <- function(boundary=NULL,
 
 
 
-################################
 ##
 ## Old code.  Filtering is now done in fmesher itself.
 ## Retained for now so that we can check if the results are the same.
@@ -1103,12 +1100,12 @@ inla.mesh.filter.locations <- function(loc, cutoff)
 
         return(list(loc = node.coord, node.idx = map.loc.to.node))
     }
-############################
 
 
 
 
 
+# Mesh creation ----
 
 inla.mesh <- function(...)
 {
@@ -1768,7 +1765,6 @@ inla.mesh.2d <-
     ## <0  --> Intermediate meshes displayed at the end
     ## >0   --> Dynamical fmesher plotting
 {
-###########################
   unify.one.segm <- function(segm, crs=NULL) {
     if (inherits(segm, "inla.mesh.segment")) {
       segm <- inla.spTransform(segm, crs, passthrough=TRUE)
@@ -1795,7 +1791,7 @@ inla.mesh.2d <-
     }
     segm
   }
-###########################
+
 
   if ((missing(max.edge) || is.null(max.edge)) &&
       (missing(max.n.strict) || is.null(max.n.strict)) &&
@@ -2095,7 +2091,7 @@ inla.delaunay <- function(loc, ...)
 
 
 
-
+# Queries ----
 
 
 #' High-quality triangulations
@@ -3086,7 +3082,7 @@ inla.parse.queries <-function(...)
 
 
 
-## Deprecated: cyclic
+# 1D mesh creation ----
 
 
 #' Function space definition objects for 1D SPDE models.
@@ -3240,6 +3236,8 @@ inla.mesh.1d <- function(loc,
     return(invisible(mesh))
 }
 
+
+# 1D mesh queries ----
 
 inla.mesh.1d.bary <- function(mesh, loc, method=c("linear", "nearest"))
 {
@@ -3743,7 +3741,7 @@ inla.mesh.1d.fem <- function(mesh)
 
 
 
-
+# Queries ----
 
 #' Diameter of a point set
 #' 

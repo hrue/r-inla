@@ -5,7 +5,10 @@
 \alias{inla.mesh.segment.default}
 \alias{inla.mesh.segment.inla.mesh.segment}
 \alias{inla.contour.segment}
-\title{Constraint segments for inla.mesh}
+\title{Constraint segments for inla.mesh
+
+Constructs \code{inla.mesh.segment} objects that can be used to specify
+boundary and interior constraint edges in calls to \code{\link[=inla.mesh]{inla.mesh()}}.}
 \usage{
 inla.mesh.segment(...)
 
@@ -71,6 +74,8 @@ excursions in a counter clockwise direction.}
 An \code{inla.mesh.segment} object.
 }
 \description{
+Constraint segments for inla.mesh
+
 Constructs \code{inla.mesh.segment} objects that can be used to specify
 boundary and interior constraint edges in calls to \code{\link[=inla.mesh]{inla.mesh()}}.
 }
