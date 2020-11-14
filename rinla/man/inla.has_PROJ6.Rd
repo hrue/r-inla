@@ -22,8 +22,8 @@ inla.requires_PROJ6(fun)
 \item{fun}{The name of the calling function}
 }
 \value{
-For \code{inla.has_PROJ6}, logical; `TRUE` if PROJ6 is available,
-`FALSE` otherwise
+For \code{inla.has_PROJ6}, logical; \code{TRUE} if PROJ6 is available,
+\code{FALSE} otherwise
 }
 \description{
 Detect whether PROJ6 is available for INLA

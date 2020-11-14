@@ -52,7 +52,7 @@ Default \code{theta.mu}}
 corresponding \code{theta} value as known.}
 
 \item{theta.fixed}{Vector holding the values of fixed \code{theta} values.
-Default \code{=theta.initial[fixed]}}
+Default \verb{=theta.initial[fixed]}}
 
 \item{BLC}{Basis definition matrix for linear combinations of \code{theta}.}
 
@@ -63,7 +63,7 @@ Default \code{=theta.initial[fixed]}}
 \item{theta}{parameter values to be mapped.}
 }
 \value{
-For \code{inla.spde2.generic}, an \code{\link{inla.spde2}} object.
+For \code{inla.spde2.generic}, an \code{\link[=inla.spde2]{inla.spde2()}} object.
 
 For \code{inla.spde2.theta2phi0/1/2}, a vector of \eqn{\phi}{phi} values.
 }
@@ -72,7 +72,7 @@ Creates and inla.spde2 object describing the internal structure of an
 \code{'spde2'} model.
 }
 \seealso{
-\code{\link{inla.spde2.models}}, \code{\link{inla.spde2.matern}}
+\code{\link[=inla.spde2.models]{inla.spde2.models()}}, \code{\link[=inla.spde2.matern]{inla.spde2.matern()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

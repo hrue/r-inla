@@ -7,5 +7,5 @@
 The inla class is defined in the INLA package
 }
 \seealso{
-\link[INLA]{inla}
+\link[=inla]{inla}
 }

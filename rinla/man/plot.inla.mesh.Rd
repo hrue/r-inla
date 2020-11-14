@@ -24,7 +24,7 @@
 )
 }
 \arguments{
-\item{x}{An \code{\link{inla.mesh}} object.}
+\item{x}{An \code{\link[=inla.mesh]{inla.mesh()}} object.}
 
 \item{col}{Color specification.  A single named color, a vector of scalar
 values, or a matrix of RGB values.  Requires \code{rgl=TRUE}.}
@@ -64,7 +64,7 @@ edges more prominently.}
 plotting systems.}
 }
 \description{
-Plots an \code{\link{inla.mesh}} object using either standard graphics or
+Plots an \code{\link[=inla.mesh]{inla.mesh()}} object using either standard graphics or
 with \code{rgl}.
 }
 \examples{
@@ -79,7 +79,7 @@ if (require(rgl)) {
 
 }
 \seealso{
-\code{\link{plot.inla.trimesh}}
+\code{\link[=plot.inla.trimesh]{plot.inla.trimesh()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

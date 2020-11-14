@@ -44,7 +44,7 @@
 #' Interactive mesh building and diagnostics
 #' 
 #' Assess the finite element approximation errors in a mesh for interactive R
-#' sessions.  More detailed assessment tools are in \code{\link{meshbuilder}}.
+#' sessions.  More detailed assessment tools are in [meshbuilder()].
 #' 
 #' 
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}

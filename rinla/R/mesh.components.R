@@ -53,9 +53,9 @@
 #' connected by edges.
 #' 
 #' 
-#' @return A list with elements \code{vertex} and \code{triangle}, vectors of
-#' integer labels for which connected component they belong, and \code{info}, a
-#' \code{data.frame} with columns \item{component}{Connected component integer
+#' @return A list with elements `vertex` and `triangle`, vectors of
+#' integer labels for which connected component they belong, and `info`, a
+#' `data.frame` with columns \item{component}{Connected component integer
 #' label.} \item{nV}{The number of vertices in the component.} \item{nT}{The
 #' number of triangles in the component.} \item{area}{The surface area
 #' associated with the component.  Component lables are not comparable across

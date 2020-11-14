@@ -8,20 +8,18 @@
 inla.mesh.fem(mesh, order = 2)
 }
 \arguments{
-\item{mesh}{An \code{\link{inla.mesh}} or \code{\link{inla.mesh.1d}} object.}
+\item{mesh}{An \code{\link[=inla.mesh]{inla.mesh()}} or \code{\link[=inla.mesh.1d]{inla.mesh.1d()}} object.}
 
 \item{order}{The model order.}
 }
 \value{
 A list of sparse matrices based on basis functions \code{psi_i}:
-\item{c0 }{\code{c0[i,j] = < psi_i, 1 >}} \item{c1 }{\code{c1[i,j] = <
-psi_i, psi_j >}} \item{g1 }{\code{g1[i,j] = < grad psi_i, grad psi_j >}}
-\item{g2 }{\code{g2 = g1 * c0^-1 * g1}} \item{gk }{\code{gk = g1 * (c0^-1 *
-g1)^(k-1)}, up to and including \code{k=order}}
+\item{c0 }{\verb{c0[i,j] = < psi_i, 1 >}} \item{c1 }{\verb{c1[i,j] = < psi_i, psi_j >}} \item{g1 }{\verb{g1[i,j] = < grad psi_i, grad psi_j >}}
+\item{g2 }{\code{g2 = g1 * c0^-1 * g1}} \item{gk }{\code{gk = g1 * (c0^-1 * g1)^(k-1)}, up to and including \code{k=order}}
 }
 \description{
-Constructs finite element matrices for \code{\link{inla.mesh}} and
-\code{\link{inla.mesh.1d}} objects.
+Constructs finite element matrices for \code{\link[=inla.mesh]{inla.mesh()}} and
+\code{\link[=inla.mesh.1d]{inla.mesh.1d()}} objects.
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

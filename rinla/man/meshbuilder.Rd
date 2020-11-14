@@ -8,10 +8,10 @@ meshbuilder()
 }
 \description{
 Interactively design and build a triangle mesh
- for use with SPDE models, and assess the finite element
- approximation errors. The R code needed to recreate the mesh
- outside the interactive Shiny app is also generated. Spatial
- objects can be imported from the global workspace.
+for use with SPDE models, and assess the finite element
+approximation errors. The R code needed to recreate the mesh
+outside the interactive Shiny app is also generated. Spatial
+objects can be imported from the global workspace.
 }
 \examples{
 \dontrun{
@@ -19,7 +19,7 @@ meshbuilder()
 }
 }
 \seealso{
-\code{\link{inla.mesh.2d}}, \code{\link{inla.mesh.create}}
+\code{\link[=inla.mesh.2d]{inla.mesh.2d()}}, \code{\link[=inla.mesh.create]{inla.mesh.create()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

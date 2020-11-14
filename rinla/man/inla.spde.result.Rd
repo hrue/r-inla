@@ -21,14 +21,14 @@ inla.spde2.result(inla, name, spde, do.transform = TRUE, ...)
 \arguments{
 \item{\dots}{Further arguments passed to and from other methods.}
 
-\item{inla}{An \code{inla} object obtained from a call to \code{\link{inla}}}
+\item{inla}{An \code{inla} object obtained from a call to \code{\link[=inla]{inla()}}}
 
 \item{name}{A character string with the name of the SPDE effect in the inla
 formula.}
 
 \item{spde}{The \code{inla.spde} object used for the effect in the inla
 formula. (Note: this could have been stored in the inla output, but isn't.)
-Usually the result of a call to \code{\link{inla.spde2.matern}}.}
+Usually the result of a call to \code{\link[=inla.spde2.matern]{inla.spde2.matern()}}.}
 
 \item{do.transform}{If \code{TRUE}, also calculate marginals transformed to
 user-scale.  Setting to \code{FALSE} is useful for large non-stationary
@@ -83,7 +83,7 @@ plot(spde.result$marginals.range.nominal[[1]], type="l")
 
 }
 \seealso{
-\code{\link{inla.spde.models}}, \code{\link{inla.spde2.matern}}
+\code{\link[=inla.spde.models]{inla.spde.models()}}, \code{\link[=inla.spde2.matern]{inla.spde2.matern()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

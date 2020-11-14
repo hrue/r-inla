@@ -40,7 +40,7 @@ Calculates coordinate mappings for \code{inla.mesh} projections.
 }}
 
 \seealso{
-\code{\link{inla.mesh.project}}
+\code{\link[=inla.mesh.project]{inla.mesh.project()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

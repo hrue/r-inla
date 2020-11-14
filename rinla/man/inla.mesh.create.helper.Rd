@@ -13,7 +13,7 @@ nodes.}
 \item{points.domain}{Matrix of point locations used to determine the domain
 extent.}
 
-\item{\dots}{Additional arguments passed on to \code{\link{inla.mesh.2d}}.}
+\item{\dots}{Additional arguments passed on to \code{\link[=inla.mesh.2d]{inla.mesh.2d()}}.}
 }
 \description{
 Create a triangle mesh based on initial point locations, specified or
@@ -21,10 +21,10 @@ automatic boundaries, and mesh quality parameters.
 }
 \note{
 Obsolete function kept for backwards compatibility.  Use
-\code{\link{inla.mesh.2d}} instead.
+\code{\link[=inla.mesh.2d]{inla.mesh.2d()}} instead.
 }
 \seealso{
-\code{\link{inla.mesh.2d}}
+\code{\link[=inla.mesh.2d]{inla.mesh.2d()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

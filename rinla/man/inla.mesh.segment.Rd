@@ -41,13 +41,13 @@ inla.contour.segment(
 \item{idx}{Segment index sequence vector or index pair matrix.  The indices
 refer to the rows of \code{loc}.  If \code{loc==NULL}, the indices will be
 interpreted as indices into the point specification supplied to
-\code{\link{inla.mesh.create}}.  If \code{is.bnd==TRUE}, defaults to linking
+\code{\link[=inla.mesh.create]{inla.mesh.create()}}.  If \code{is.bnd==TRUE}, defaults to linking
 all the points in \code{loc}, as \code{c(1:nrow(loc),1L)}, otherwise
 \code{1:nrow(loc)}.}
 
 \item{grp}{Vector of group labels for each segment.  Set to \code{NULL} to
 let the labels be chosen automatically in a call to
-\code{\link{inla.mesh.create}}.}
+\code{\link[=inla.mesh.create]{inla.mesh.create()}}.}
 
 \item{is.bnd}{\code{TRUE} if the segments are boundary segments, otherwise
 \code{FALSE}.}
@@ -58,21 +58,21 @@ let the labels be chosen automatically in a call to
 that have \code{grp=NULL}.}
 
 \item{x, y, z, nlevels, levels}{Parameters specifying a set of surface contours,
-with syntax described in \code{\link{contour}}.}
+with syntax described in \code{\link[=contour]{contour()}}.}
 
 \item{groups}{Vector of group ID:s, one for each contour level.}
 
 \item{positive}{\code{TRUE} if the contours should encircle positive level
 excursions in a counter clockwise direction.}
 
-\item{eps}{Tolerance for \code{\link{inla.simplify.curve}}.}
+\item{eps}{Tolerance for \code{\link[=inla.simplify.curve]{inla.simplify.curve()}}.}
 }
 \value{
 An \code{inla.mesh.segment} object.
 }
 \description{
 Constructs \code{inla.mesh.segment} objects that can be used to specify
-boundary and interior constraint edges in calls to \code{\link{inla.mesh}}.
+boundary and interior constraint edges in calls to \code{\link[=inla.mesh]{inla.mesh()}}.
 }
 \examples{
 
@@ -97,7 +97,7 @@ plot(mesh)
 
 }
 \seealso{
-\code{\link{inla.mesh.create}}, \code{\link{inla.mesh.2d}}
+\code{\link[=inla.mesh.create]{inla.mesh.create()}}, \code{\link[=inla.mesh.2d]{inla.mesh.2d()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

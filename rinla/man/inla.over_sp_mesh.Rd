@@ -7,9 +7,9 @@
 inla.over_sp_mesh(x, y, type = c("centroid", "vertex"), ignore.CRS = FALSE)
 }
 \arguments{
-\item{x}{geometry (typically a \code{\link[sp]{SpatialPolygons}} object) for the queries}
+\item{x}{geometry (typically a \code{\link[sp:SpatialPolygons]{sp::SpatialPolygons()}} object) for the queries}
 
-\item{y}{an \code{\link{inla.mesh}} object}
+\item{y}{an \code{\link[=inla.mesh]{inla.mesh()}} object}
 
 \item{type}{the query type; either \code{'centroid'} (default, for triangle centroids),
 or \code{'vertex'} (for mesh vertices)}
@@ -19,10 +19,10 @@ or \code{'vertex'} (for mesh vertices)}
 }
 \value{
 A vector of triangle indices (when \code{type} is \code{'centroid'}) or
-  vertex indices (when \code{type} is \code{'vertex'})
+vertex indices (when \code{type} is \code{'vertex'})
 }
 \description{
-Wrapper for the \code{\link[sp]{over}} method to find triangle centroids
+Wrapper for the \code{\link[sp:over]{sp::over()}} method to find triangle centroids
 or vertices inside \code{sp} polygon objects
 }
 \examples{

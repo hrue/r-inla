@@ -48,7 +48,7 @@ spde.result = inla.spde2.result(result, "spatial", spde)
 
 }
 \seealso{
-\code{\link{inla.spde.make.A}}, \code{\link{inla.spde2.result}}
+\code{\link[=inla.spde.make.A]{inla.spde.make.A()}}, \code{\link[=inla.spde2.result]{inla.spde2.result()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

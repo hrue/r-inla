@@ -30,7 +30,7 @@ inla.mesh.lattice(
 An \code{inla.mesh.lattice} object.
 }
 \description{
-Construct a lattice grid for \code{\link{inla.mesh}}
+Construct a lattice grid for \code{\link[=inla.mesh]{inla.mesh()}}
 }
 \examples{
 
@@ -59,7 +59,7 @@ plot(mesh)
 
 }
 \seealso{
-\code{\link{inla.mesh}}
+\code{\link[=inla.mesh]{inla.mesh()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

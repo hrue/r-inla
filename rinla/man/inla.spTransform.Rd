@@ -47,7 +47,7 @@ Handles transformation of various inla objects accorting to coordinate
 reference systems of \code{sp::CRS} or \code{inla.CRS} class.
 }
 \details{
-`inla.spTransform.default` Low level transformation of raw coordinates.
+\code{inla.spTransform.default} Low level transformation of raw coordinates.
 }
 \examples{
 
@@ -62,8 +62,8 @@ if (require(rgdal)) {
 
 }
 \seealso{
-\code{\link{inla.CRS}}
+\code{\link[=inla.CRS]{inla.CRS()}}
 }
 \author{
-Finn Lindgren <finn.lindgren@gmail.com>
+Finn Lindgren \href{mailto:finn.lindgren@gmail.com}{finn.lindgren@gmail.com}
 }

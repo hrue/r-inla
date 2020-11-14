@@ -37,7 +37,7 @@ inla.mesh.projector(...)
 \arguments{
 \item{\dots}{Additional arguments passed on to methods.}
 
-\item{mesh}{An \code{\link{inla.mesh}} or \code{\link{inla.mesh.1d}} object.}
+\item{mesh}{An \code{\link[=inla.mesh]{inla.mesh()}} or \code{\link[=inla.mesh.1d]{inla.mesh.1d()}} object.}
 
 \item{loc}{Projection locations.  Can be a matrix or a \code{SpatialPoints}
 or a \code{SpatialPointsDataFrame} object.}
@@ -51,7 +51,7 @@ and/or \code{lattice}.}
 
 \item{projector}{An \code{inla.mesh.projector} object.}
 
-\item{lattice}{An \code{\link{inla.mesh.lattice}} object.}
+\item{lattice}{An \code{\link[=inla.mesh.lattice]{inla.mesh.lattice()}} object.}
 
 \item{xlim}{X-axis limits for a lattice. For R2 meshes, defaults to covering
 the domain.}
@@ -61,18 +61,16 @@ the domain.}
 
 \item{dims}{Lattice dimensions.}
 
-\item{projection}{One of \code{c("default", "longlat", "longsinlat",
-"mollweide")}.}
+\item{projection}{One of \code{c("default", "longlat", "longsinlat", "mollweide")}.}
 }
 \value{
 For \code{inla.mesh.project(mesh, ...)}, a list with projection
 information.  For \code{inla.mesh.projector(mesh, ...)}, an
-\code{inla.mesh.projector} object.  For \code{inla.mesh.project(projector,
-field, ...)}, a field projected from the mesh onto the locations given by
+\code{inla.mesh.projector} object.  For \code{inla.mesh.project(projector, field, ...)}, a field projected from the mesh onto the locations given by
 the projector object.
 }
 \description{
-Calculate a lattice projection to/from an \code{\link{inla.mesh}}
+Calculate a lattice projection to/from an \code{\link[=inla.mesh]{inla.mesh()}}
 }
 \details{
 The call \code{inla.mesh.project(mesh, loc, field=..., ...)}, is a shortcut
@@ -94,8 +92,8 @@ if (require(rgl)) {
 
 }
 \seealso{
-\code{\link{inla.mesh}}, \code{\link{inla.mesh.1d}},
-\code{\link{inla.mesh.lattice}}
+\code{\link[=inla.mesh]{inla.mesh()}}, \code{\link[=inla.mesh.1d]{inla.mesh.1d()}},
+\code{\link[=inla.mesh.lattice]{inla.mesh.lattice()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

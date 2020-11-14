@@ -56,7 +56,7 @@ limits.}
 Plots a triangulation mesh using \code{rgl}.
 }
 \seealso{
-\code{\link{plot.inla.mesh}}
+\code{\link[=plot.inla.mesh]{plot.inla.mesh()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

@@ -4,7 +4,7 @@
 
 #' Build a block-diagonal sparse matrix.
 #' 
-#' Build a block-diagonal sparse matrix.  Obsolete wrapper for \code{bdiag()}.
+#' Build a block-diagonal sparse matrix.  Obsolete wrapper for `bdiag()`.
 #' 
 #' 
 #' @aliases inla.dBind inla.dBind-deprecated
@@ -27,15 +27,15 @@ inla.dBind <- function(...)
 
 #' Extract elements by matching name from container objects.
 #' 
-#' Extract elements by wildcard name matching from a \code{data.frame},
-#' \code{list}, or \code{matrix}.
+#' Extract elements by wildcard name matching from a `data.frame`,
+#' `list`, or `matrix`.
 #' 
 #' 
 #' @aliases inla.extract.el inla.extract.el.data.frame inla.extract.el.list
 #' inla.extract.el.matrix
 #' @param M A container object.
 #' @param match A regex defining the matching criterion.
-#' @param by.row If \code{TRUE}, extract data by row, otherwise by column.
+#' @param by.row If `TRUE`, extract data by row, otherwise by column.
 #' @param \dots Additional arguments, not used.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @export inla.extract.el
@@ -137,7 +137,7 @@ inla.spde.homogenise_B_matrix <- function(B, n.spde, n.theta)
 #' related oscillating SPDE models, on \eqn{R^d}{R^d} and on the sphere,
 #' \eqn{S^2}{S^2}.
 #' 
-#' On \eqn{R^d}{R^d}, the models are \emph{defined} by the spectral density
+#' On \eqn{R^d}{R^d}, the models are *defined* by the spectral density
 #' given by \deqn{S(w) = \frac{1}{(2\pi)^d (\kappa^4 + 2 \kappa^2 \cos(\pi
 #' }{S(w) = 1 / ( (2\pi)^d * (kappa^4 + 2 kappa^2 * cos(pi * theta) * |w|^2 +
 #' |w|^4)^((nu + d/2)/2) )}\deqn{ \theta) |w|^2 + |w|^4)^{(\nu + d/2)/2}}
@@ -145,7 +145,7 @@ inla.spde.homogenise_B_matrix <- function(B, n.spde, n.theta)
 #' |w|^4)^((nu + d/2)/2) )}\deqn{ }{S(w) = 1 / ( (2\pi)^d * (kappa^4 + 2
 #' kappa^2 * cos(pi * theta) * |w|^2 + |w|^4)^((nu + d/2)/2) )}
 #' 
-#' On \eqn{S^2}{S^2}, the models are \emph{defined} by the spectral
+#' On \eqn{S^2}{S^2}, the models are *defined* by the spectral
 #' coefficients \deqn{S(k) = \frac{2k+1}{4\pi (\kappa^4 + 2 \kappa^2 \cos(\pi
 #' }{S(k) = (2k+1) / (4 pi (kappa^4 + 2 kappa^2 cos(pi theta) k(k+1) +
 #' k^2(k+1)^2)^((\nu + 1)/2) )}\deqn{ \theta) k(k+1) + k^2(k+1)^2)^{(\nu +
@@ -158,10 +158,10 @@ inla.spde.homogenise_B_matrix <- function(B, n.spde, n.theta)
 #' @param kappa The spatial scale parameter.
 #' @param x Distance values.
 #' @param d Space dimension; the domain is \eqn{R^d}{R^d}.
-#' @param corr If \code{TRUE}, calculate correlations, otherwise calculate
+#' @param corr If `TRUE`, calculate correlations, otherwise calculate
 #' covariances.  Only used for pure Matern models (i.e. with
 #' \eqn{\theta=0}{theta=0}).
-#' @param norm.corr If \code{TRUE}, normalise by the estimated variance, giving
+#' @param norm.corr If `TRUE`, normalise by the estimated variance, giving
 #' approximate correlations.
 #' @param theta Oscillation strength parameter.
 #' @param epsilon Tolerance for detecting points close to distance zero.
@@ -306,12 +306,12 @@ inla.matern.cov.s2 <- function(nu,kappa,x,norm.corr=FALSE,theta=0)
 #' List SPDE models supported by inla.spde objects
 #' 
 #' Returns a list of available SPDE model type name lists, one for each
-#' inla.spde model class (currently \code{\link{inla.spde1}} and
-#' \code{\link{inla.spde2}}).
+#' inla.spde model class (currently [inla.spde1()] and
+#' [inla.spde2()]).
 #' 
 #' @aliases inla.spde.models inla.spde1.models inla.spde2.models
-#' @param function.names If \code{FALSE}, return list model name lists.  If
-#' \code{TRUE}, return list of model object constructor function names.
+#' @param function.names If `FALSE`, return list model name lists.  If
+#' `TRUE`, return list of model object constructor function names.
 #' @return List of available SPDE model type name lists.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @examples
@@ -357,17 +357,17 @@ inla.spde.models <- function(function.names=FALSE)
 #' Sample from SPDE models
 #' 
 #' Old methods fo sampling from a SPDE model.  For new code, use
-#' \code{\link{inla.spde.precision}} and \code{\link{inla.qsample}} instead.
+#' [inla.spde.precision()] and [inla.qsample()] instead.
 #' 
 #' 
 #' @aliases inla.spde.sample inla.spde.sample.default
 #' inla.spde.sample.inla.spde
 #' @param precision A precision matrix.
 #' @param seed The seed for the pseudo-random generator.
-#' @param spde An \code{inla.spde} object.
+#' @param spde An `inla.spde` object.
 #' @param \dots Parameters passed on to other methods.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso \code{\link{inla.spde.precision}}, \code{\link{inla.qsample}}
+#' @seealso [inla.spde.precision()], [inla.qsample()]
 #' @export inla.spde.sample
 inla.spde.sample <- function(...)
 {
@@ -402,12 +402,12 @@ inla.spde.sample.inla.spde =
 #' @title Precision matrices for SPDE models
 #' 
 #' Calculates the precision matrix for given parameter values based on an
-#' \code{inla.spde} model object.
+#' `inla.spde` model object.
 #' 
 #' 
 #' @aliases inla.spde.precision inla.spde1.precision inla.spde2.precision
 #' inla.spde.precision.inla.spde1 inla.spde.precision.inla.spde2
-#' @param spde An \code{inla.spde} object.
+#' @param spde An `inla.spde` object.
 #' @param theta The parameter vector.
 #' @param phi0 Internal parameter for a generic model.  Expert option only.
 #' @param phi1 Internal parameter for a generic model.  Expert option only.
@@ -415,9 +415,9 @@ inla.spde.sample.inla.spde =
 #' @param \dots Additional parameters passed on to other methods.
 #' @return A sparse precision matrix.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso \code{\link{inla.spde.models}}, \code{\link{inla.spde2.generic}},
-#' \code{\link{inla.spde2.theta2phi0}}, \code{\link{inla.spde2.theta2phi1}},
-#' \code{\link{inla.spde2.theta2phi2}}
+#' @seealso [inla.spde.models()], [inla.spde2.generic()],
+#' [inla.spde2.theta2phi0()], [inla.spde2.theta2phi1()],
+#' [inla.spde2.theta2phi2()]
 #' @export
 #' @rdname inla.spde.precision
 inla.spde.precision <- function(...)
@@ -430,22 +430,22 @@ inla.spde.precision <- function(...)
 #' SPDE result extraction from INLA estimation results
 #' 
 #' Exctract field and parameter values and distributions for an
-#' \code{inla.spde} SPDE effect from an inla result object.
+#' `inla.spde` SPDE effect from an inla result object.
 #' 
 #' 
 #' @aliases inla.spde.result inla.spde.result.inla.spde1
 #' inla.spde.result.inla.spde2 inla.spde1.result inla.spde2.result
-#' @param inla An \code{inla} object obtained from a call to \code{\link{inla}}
+#' @param inla An `inla` object obtained from a call to [inla()]
 #' @param name A character string with the name of the SPDE effect in the inla
 #' formula.
-#' @param spde The \code{inla.spde} object used for the effect in the inla
+#' @param spde The `inla.spde` object used for the effect in the inla
 #' formula. (Note: this could have been stored in the inla output, but isn't.)
-#' Usually the result of a call to \code{\link{inla.spde2.matern}}.
-#' @param do.transform If \code{TRUE}, also calculate marginals transformed to
-#' user-scale.  Setting to \code{FALSE} is useful for large non-stationary
+#' Usually the result of a call to [inla.spde2.matern()].
+#' @param do.transform If `TRUE`, also calculate marginals transformed to
+#' user-scale.  Setting to `FALSE` is useful for large non-stationary
 #' models, as transforming many marginal densities is time-consuming.
 #' @param \dots Further arguments passed to and from other methods.
-#' @return For \code{inla.spde2} models, a list, where the nominal range and
+#' @return For `inla.spde2` models, a list, where the nominal range and
 #' variance are defined as the values that would have been obtained with a
 #' stationary model and no boundary effects: \item{marginals.kappa }{Marginal
 #' densities for kappa} \item{marginals.log.kappa }{Marginal densities for
@@ -464,7 +464,7 @@ inla.spde.precision <- function(...)
 #' log(kappa)} \item{summary.theta }{Summary statistics for the theta
 #' parameters} \item{summary.values }{Summary statistics for the field values}
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso \code{\link{inla.spde.models}}, \code{\link{inla.spde2.matern}}
+#' @seealso [inla.spde.models()], [inla.spde2.matern()]
 #' @examples
 #' 
 #' loc = matrix(runif(100*2),100,2)
@@ -510,15 +510,15 @@ inla.spde.result <- function(...)
 #' 
 #' 
 #' @param name A character string with the base name of the effect.
-#' @param n.spde The size of the model, typically from \code{spde$n.spde}.
-#' @param n.group The size of the \code{group} model.
+#' @param n.spde The size of the model, typically from `spde$n.spde`.
+#' @param n.group The size of the `group` model.
 #' @param n.repl The number of model replicates.
 #' @param ...  Additional parameters.  Currently unused.
 #' @return A list of named index vectors. \item{name }{Indices into the vector
 #' of latent variables} \item{name.group }{'group' indices} \item{name.repl
 #' }{Indices for replicates}
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso \code{\link{inla.spde.make.A}}, \code{\link{inla.spde2.result}}
+#' @seealso [inla.spde.make.A()], [inla.spde2.result()]
 #' @examples
 #' 
 #' loc = matrix(runif(100*2),100,2)
@@ -568,21 +568,21 @@ inla.spde.make.index <- function(name, n.spde, n.group=1, n.repl=1, ...)
 #' 
 #' Takes two Matrices and computes the row-wise Kronecker product.  Optionally
 #' applies row-wise weights and/or applies an additional 0/1 row-wise Kronecker
-#' matrix product, as needed by \code{\link{inla.spde.make.A}}.
+#' matrix product, as needed by [inla.spde.make.A()].
 #' 
 #' 
 #' @param M1 A matrix that can be transformed into a sparse Matrix.
 #' @param M2 A matrix that can be transformed into a sparse Matrix.
 #' @param repl An optional index vector.  For each entry, specifies which
 #' replicate the row belongs to, in the sense used in
-#' \code{\link{inla.spde.make.A}}.
+#' [inla.spde.make.A()].
 #' @param n.repl The maximum replicate index, in the sense used in
-#' \code{\link{inla.spde.make.A}}.
+#' [inla.spde.make.A()].
 #' @param weights Optional scaling weights to be applied row-wise to the
 #' resulting matrix.
-#' @return A \code{sparseMatrix} object.
+#' @return A `sparseMatrix` object.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso \code{\link{inla.spde.make.A}}
+#' @seealso [inla.spde.make.A()]
 #' @export inla.row.kron
 inla.row.kron <- function(M1, M2, repl=NULL, n.repl=NULL, weights=NULL) {
     M1 = inla.as.dgTMatrix(M1)
@@ -686,25 +686,25 @@ inla.row.kron <- function(M1, M2, repl=NULL, n.repl=NULL, weights=NULL) {
 #' 
 #' Constructs observation/prediction weight matrices for numerical integration
 #' schemes for regional data problems.  Primarily intended for internal use by
-#' \code{\link{inla.spde.make.A}}.
+#' [inla.spde.make.A()].
 #' 
 #' 
 #' @param A A precomputed observation/prediction matrix for locations that are
 #' to be joined.
 #' @param block Indices specifying block groupings: Entries with the same
-#' \code{block} value are joined into a single row in the resulting matrix, and
-#' the \code{block} values are the row indices.
+#' `block` value are joined into a single row in the resulting matrix, and
+#' the `block` values are the row indices.
 #' @param n.block The number of blocks.
 #' @param weights Optional scaling weights to be applied row-wise to the input
-#' \code{A} matrix.
+#' `A` matrix.
 #' @param rescale Specifies what scaling method should be used when joining the
-#' rows of the \code{A} matrix as grouped by the \code{block} specification.
-#' \itemize{ \item \code{'none'}: Straight sum, no rescaling.  \item
-#' \code{'count'}: Divide by the number of entries in the block.  \item
-#' \code{'weights'}: Divide by the sum of the \code{weight} values within each
-#' block.  \item \code{'sum'}: Divide by the resulting row sums.  }
+#' rows of the `A` matrix as grouped by the `block` specification.
+#' \itemize{ \item `'none'`: Straight sum, no rescaling.  \item
+#' `'count'`: Divide by the number of entries in the block.  \item
+#' `'weights'`: Divide by the sum of the `weight` values within each
+#' block.  \item `'sum'`: Divide by the resulting row sums.  }
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso \code{\link{inla.spde.make.A}}
+#' @seealso [inla.spde.make.A()]
 #' @export inla.spde.make.block.A
 inla.spde.make.block.A =
     function(A,
@@ -777,19 +777,19 @@ inla.spde.make.block.A =
 #' Observation/prediction matrices for mesh models.
 #' 
 #' Constructs observation/prediction weight matrices for models based on
-#' \code{\link{inla.mesh}} and \code{\link{inla.mesh.1d}} objects.
+#' [inla.mesh()] and [inla.mesh.1d()] objects.
 #' 
 #' 
-#' @param mesh An \code{\link{inla.mesh}} or \code{\link{inla.mesh.1d}} object
+#' @param mesh An [inla.mesh()] or [inla.mesh.1d()] object
 #' specifying a function basis on a mesh domain.  Alternatively, an
-#' \code{inla.spde} object that includes a mesh (e.g. from
-#' \code{\link{inla.spde2.matern}}).
-#' @param loc Observation/prediction coordinates.  \code{mesh} and \code{loc}
-#' defines a matrix \code{A.loc} of mapping weights between basis function
-#' weights and field values.  If \code{loc} is \code{NULL}, \code{A.loc} is
-#' defined as \code{Diagonal(n.spde, 1)}.
+#' `inla.spde` object that includes a mesh (e.g. from
+#' [inla.spde2.matern()]).
+#' @param loc Observation/prediction coordinates.  `mesh` and `loc`
+#' defines a matrix `A.loc` of mapping weights between basis function
+#' weights and field values.  If `loc` is `NULL`, `A.loc` is
+#' defined as `Diagonal(n.spde, 1)`.
 #' @param index For each observation/prediction value, an index into
-#' \code{loc}.  Default is \code{seq_len(nrow(A.loc))}.
+#' `loc`.  Default is `seq_len(nrow(A.loc))`.
 #' @param group For each observation/prediction value, an index into the group
 #' model.
 #' @param repl For each observation/prediction value, the replicate index.
@@ -797,30 +797,30 @@ inla.spde.make.block.A =
 #' different than the number of mesh vertices/nodes/knots.)
 #' @param n.group The size of the group model.
 #' @param n.repl The total number of replicates.
-#' @param group.mesh An optional \code{\link{inla.mesh.1d}} object for the
+#' @param group.mesh An optional [inla.mesh.1d()] object for the
 #' group model.
 #' @param weights Optional scaling weights to be applied row-wise to the
 #' resulting matrix.
 #' @param A.loc Optional precomputed observation/prediction matrix.
-#' \code{A.loc} can be specified instead of \code{mesh}+\code{loc}, optionally
-#' with \code{index} supplied.
+#' `A.loc` can be specified instead of `mesh`+`loc`, optionally
+#' with `index` supplied.
 #' @param A.group Optional precomputed observation/prediction matrix for the
-#' group model. \code{A.group} can be specified instead of \code{group} and/or
-#' \code{group.mesh}, optionally with \code{group.index} supplied.
+#' group model. `A.group` can be specified instead of `group` and/or
+#' `group.mesh`, optionally with `group.index` supplied.
 #' @param group.index For each observation/prediction value, an index into the
-#' rows of \code{A.group}.
+#' rows of `A.group`.
 #' @param block Optional indices specifying block groupings: Entries with the
-#' same \code{block} value are joined into a single row in the resulting
-#' matrix, and the \code{block} values are the row indices.  This is intended
+#' same `block` value are joined into a single row in the resulting
+#' matrix, and the `block` values are the row indices.  This is intended
 #' for construction of approximate integration schemes for regional data
-#' problems. See \code{\link{inla.spde.make.block.A}} for details.
+#' problems. See [inla.spde.make.block.A()] for details.
 #' @param n.block The number of blocks.
 #' @param block.rescale Specifies what scaling method should be used when
-#' joining entries as grouped by a \code{block} specification.  See
-#' \code{\link{inla.spde.make.block.A}} for details.
+#' joining entries as grouped by a `block` specification.  See
+#' [inla.spde.make.block.A()] for details.
 #' @param \dots Additional parameters.  Currently unused.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso \code{\link{inla.spde.make.index}}
+#' @seealso [inla.spde.make.index()]
 #' @examples
 #' 
 #' loc = matrix(runif(10000*2)*1000,10000,2)
@@ -1259,10 +1259,10 @@ inla.stack.compress <- function(stack, remove.unused=TRUE)
 #' Data stacking for advanced INLA models
 #' 
 #' Functions for combining data, effects and observation matrices into
-#' \code{inla.stack} objects, and extracting information from such objects.
+#' `inla.stack` objects, and extracting information from such objects.
 #' 
 #' For models with a single effects collection, the outer list container for
-#' \code{A} and \code{effects} may be omitted.
+#' `A` and `effects` may be omitted.
 #' 
 #' Component size definitions: \itemize{ \item[\eqn{n_l}{n_l}] effect blocks
 #' \item[\eqn{n_k}{n_k}] effects \item[\eqn{n_i}{n_i}] data values
@@ -1270,10 +1270,10 @@ inla.stack.compress <- function(stack, remove.unused=TRUE)
 #' \item[\eqn{n_j}{n_j}] \eqn{= \sum_{l=1}^{n_l} n_{j,l}}{sum_l n_jl} total
 #' effect size }
 #' 
-#' Input: \itemize{ \item[\code{data}] \eqn{(y^1, \ldots, y^p)}{} \eqn{p}{p}
-#' vectors, each of length \eqn{n_i}{n_i} \item[\code{A}] \eqn{(A^1, \ldots,
+#' Input: \itemize{ \item[`data`] \eqn{(y^1, \ldots, y^p)}{} \eqn{p}{p}
+#' vectors, each of length \eqn{n_i}{n_i} \item[`A`] \eqn{(A^1, \ldots,
 #' A^{n_l})}{} matrices of size \eqn{n_i \times n_{j,l}}{n_i by n_jl}
-#' \item[\code{effects}] \eqn{\left((x^{1,1},\ldots,x^{n_k,1}), \ldots,
+#' \item[`effects`] \eqn{\left((x^{1,1},\ldots,x^{n_k,1}), \ldots,
 #' }{}\eqn{ (x^{1,n_l},\ldots,x^{n_k,n_l})\right)}{} collections of effect
 #' vectors of length \eqn{n_{j,l}}{n_jl} }
 #' 
@@ -1295,21 +1295,21 @@ inla.stack.compress <- function(stack, remove.unused=TRUE)
 #' \tilde{x}^k = \mbox{rbind}\left( x^{k,1}, \ldots, x^{k,n_l} \right) }{
 #' tilde{x}^k = rbind( x^{k,1}, ..., x^{k,n_l} ) }\deqn{ }{ tilde{x}^k = rbind(
 #' x^{k,1}, ..., x^{k,n_l} ) } and for each block \eqn{l}{l}, any missing
-#' \eqn{x^{k,l}} is replaced by an \code{NA} vector.
+#' \eqn{x^{k,l}} is replaced by an `NA` vector.
 #' 
 #' @aliases inla.stack inla.stack.remove.unused inla.stack.compress
 #' inla.stack.sum inla.stack.join inla.stack.index inla.stack.LHS
 #' inla.stack.RHS inla.stack.data inla.stack.A
-#' @param stack A \code{inla.data.stack} object, created by a call to
-#' \code{inla.stack}, \code{inla.stack.sum}, or \code{inla.stack.join}.
-#' @param remove.unused If \code{TRUE}, compress the model by removing rows of
-#' effects corresponding to all-zero columns in the \code{A} matrix (and
+#' @param stack A `inla.data.stack` object, created by a call to
+#' `inla.stack`, `inla.stack.sum`, or `inla.stack.join`.
+#' @param remove.unused If `TRUE`, compress the model by removing rows of
+#' effects corresponding to all-zero columns in the `A` matrix (and
 #' removing those columns).
-#' @param ... For \code{inla.stack.join}, two or more data stacks of class
-#' \code{inla.data.stack}, created by a call to \code{inla.stack},
-#' \code{inla.stack.sum}, or \code{inla.stack.join}. For
-#' \code{inla.stack.data}, a list of variables to be joined with the data list.
-#' @param compress If \code{TRUE}, compress the model by removing duplicated
+#' @param ... For `inla.stack.join`, two or more data stacks of class
+#' `inla.data.stack`, created by a call to `inla.stack`,
+#' `inla.stack.sum`, or `inla.stack.join`. For
+#' `inla.stack.data`, a list of variables to be joined with the data list.
+#' @param compress If `TRUE`, compress the model by removing duplicated
 #' rows of effects, replacing the corresponding A-matrix columns with a single
 #' column containing the sum.
 #' @param data A list or codedata.frame of named data vectors. Scalars are
@@ -1320,43 +1320,43 @@ inla.stack.compress <- function(stack, remove.unused=TRUE)
 #' is inconsistent or ambiguous.
 #' @param effects A collection of effects/predictors.  Each list element
 #' corresponds to an observation matrix, and must either be a single vector, a
-#' list of vectors, or a \code{data.frame}. Single-element effect vectors are
+#' list of vectors, or a `data.frame`. Single-element effect vectors are
 #' expanded to vectors matching the number of columns in the corresponding A
 #' matrix.  An error is given if the input is inconsistent or ombiguous.
 #' @param tag A string specifying a tag for later identification.
-#' @return A data stack of class \code{inla.data.stack}.  Elements: \itemize{
-#' \item\code{data} \eqn{=(y^1, \ldots, y^p, \tilde{x}^1, \ldots,
-#' \tilde{x}^{n_k})} \item\code{A} \eqn{=\tilde{A}} \item\code{data.names} List
-#' of data names, length \eqn{p} \item\code{effect.names} List of effect names,
-#' length \eqn{n_k} \item\code{n.data} Data length, \eqn{n_i} \item\code{index}
-#' List indexed by \code{tag}s, each element indexing into \eqn{i=1, \ldots,
+#' @return A data stack of class `inla.data.stack`.  Elements: \itemize{
+#' \item`data` \eqn{=(y^1, \ldots, y^p, \tilde{x}^1, \ldots,
+#' \tilde{x}^{n_k})} \item`A` \eqn{=\tilde{A}} \item`data.names` List
+#' of data names, length \eqn{p} \item`effect.names` List of effect names,
+#' length \eqn{n_k} \item`n.data` Data length, \eqn{n_i} \item`index`
+#' List indexed by `tag`s, each element indexing into \eqn{i=1, \ldots,
 #' n_i} }
-#' @section Functions: \itemize{ \item \code{inla.stack.remove.unused}: Remove
+#' @section Functions: \itemize{ \item `inla.stack.remove.unused`: Remove
 #' unused entries from an existing stack
 #' 
-#' \item \code{inla.stack.compress}: Compress an existing stack by removing
+#' \item `inla.stack.compress`: Compress an existing stack by removing
 #' duplicates
 #' 
-#' \item \code{inla.stack}: Shorthand for inla.stack.join and inla.stack.sum
+#' \item `inla.stack`: Shorthand for inla.stack.join and inla.stack.sum
 #' 
-#' \item \code{inla.stack.sum}: Create data stack as a sum of predictors
+#' \item `inla.stack.sum`: Create data stack as a sum of predictors
 #' 
-#' \item \code{inla.stack.join}: Join two or more data stacks
+#' \item `inla.stack.join`: Join two or more data stacks
 #' 
-#' \item \code{inla.stack.index}: Extract tagged indices
+#' \item `inla.stack.index`: Extract tagged indices
 #' 
-#' \item \code{inla.stack.LHS}: Extract data associated with the "left hand
-#' side" of the model (e.g. the data itself, \code{Ntrials}, \code{link},
-#' \code{E})
+#' \item `inla.stack.LHS`: Extract data associated with the "left hand
+#' side" of the model (e.g. the data itself, `Ntrials`, `link`,
+#' `E`)
 #' 
-#' \item \code{inla.stack.RHS}: Extract data associated with the "right hand
+#' \item `inla.stack.RHS`: Extract data associated with the "right hand
 #' side" of the model (all the covariates/predictors)
 #' 
-#' \item \code{inla.stack.data}: Extract data for an inla call, and optionally
+#' \item `inla.stack.data`: Extract data for an inla call, and optionally
 #' join with other variables
 #' 
-#' \item \code{inla.stack.A}: Extract the "A matrix" for control.predictor }
-#' @seealso \code{\link{inla.spde.make.A}}, \code{\link{inla.spde.make.index}}
+#' \item `inla.stack.A`: Extract the "A matrix" for control.predictor }
+#' @seealso [inla.spde.make.A()], [inla.spde.make.index()]
 #' @keywords fmesher
 #' @examples
 #' 
@@ -1746,7 +1746,7 @@ inla.stack.do.extract <- function(dat)
 
 
 #' @describeIn inla.stack Extract data associated with the "left hand side" of the model
-#' (e.g. the data itself, \code{Ntrials}, \code{link}, \code{E})
+#' (e.g. the data itself, `Ntrials`, `link`, `E`)
 #'
 #' @export
 inla.stack.LHS <- function(stack)

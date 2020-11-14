@@ -7,18 +7,17 @@
 inla.mesh.deriv(mesh, loc)
 }
 \arguments{
-\item{mesh}{An \code{\link{inla.mesh}} object.}
+\item{mesh}{An \code{\link[=inla.mesh]{inla.mesh()}} object.}
 
 \item{loc}{Coordinates where the derivatives should be evaluated.}
 }
 \value{
-\item{A }{The projection matrix, \code{u(loc_i)=sum_j A_ij w_i}}
-\item{dx, dy, dz }{Derivative weight matrices, \code{du/dx(loc_i)=sum_j
-dx_ij w_i}, etc.}
+\item{A }{The projection matrix, \verb{u(loc_i)=sum_j A_ij w_i}}
+\item{dx, dy, dz }{Derivative weight matrices, \verb{du/dx(loc_i)=sum_j dx_ij w_i}, etc.}
 }
 \description{
 Calculates directional derivative matrices for functions on
-\code{\link{inla.mesh}} objects.
+\code{\link[=inla.mesh]{inla.mesh()}} objects.
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

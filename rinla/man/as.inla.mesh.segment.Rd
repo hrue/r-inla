@@ -49,7 +49,7 @@ inla.sp2segment(sp, ...)
 backwards.}
 
 \item{grp}{Group ID specification for each polygon, as used by
-\code{\link{inla.mesh.segment}}, one ID per polygon.}
+\code{\link[=inla.mesh.segment]{inla.mesh.segment()}}, one ID per polygon.}
 
 \item{crs}{An optional \code{CRS} or \code{inla.CRS} object}
 
@@ -57,14 +57,14 @@ backwards.}
 (possibly non-simply connected).}
 }
 \value{
-A \code{\link{inla.mesh.segment}} object, or a list of
-\code{\link{inla.mesh.segment}} objects.
+A \code{\link[=inla.mesh.segment]{inla.mesh.segment()}} object, or a list of
+\code{\link[=inla.mesh.segment]{inla.mesh.segment()}} objects.
 }
 \description{
 Convert \code{sp} curve objects to \code{inla.mesh.segment} objects.
 }
 \seealso{
-\code{\link{inla.mesh.segment}}
+\code{\link[=inla.mesh.segment]{inla.mesh.segment()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

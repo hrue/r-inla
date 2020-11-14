@@ -20,7 +20,7 @@ A list of \code{inla.mesh.segment} objects.
 }
 \description{
 Constructs an list of \code{inla.mesh.segment} object from boundary or
-interior constraint information in an \code{\link{inla.mesh}} object.
+interior constraint information in an \code{\link[=inla.mesh]{inla.mesh()}} object.
 }
 \examples{
 
@@ -31,8 +31,8 @@ interior = inla.mesh.interior(mesh)
 
 }
 \seealso{
-\code{\link{inla.mesh.segment}}, \code{\link{inla.mesh.create}},
-\code{\link{inla.mesh.create.helper}}
+\code{\link[=inla.mesh.segment]{inla.mesh.segment()}}, \code{\link[=inla.mesh.create]{inla.mesh.create()}},
+\code{\link[=inla.mesh.create.helper]{inla.mesh.create.helper()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

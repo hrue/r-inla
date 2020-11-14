@@ -17,7 +17,7 @@
 )
 }
 \arguments{
-\item{x}{An \code{\link{inla.mesh.segment}} object.}
+\item{x}{An \code{\link[=inla.mesh.segment]{inla.mesh.segment()}} object.}
 
 \item{loc}{Point locations to be used if \code{x$loc} is \code{NULL}.}
 
@@ -37,11 +37,11 @@ plot.}
 \item{\dots}{Additional parameters, passed on to graphics methods.}
 }
 \description{
-Draws a \code{\link{inla.mesh.segment}} object with generic or \code{rgl}
+Draws a \code{\link[=inla.mesh.segment]{inla.mesh.segment()}} object with generic or \code{rgl}
 graphics.
 }
 \seealso{
-\code{\link{inla.mesh.segment}}
+\code{\link[=inla.mesh.segment]{inla.mesh.segment()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

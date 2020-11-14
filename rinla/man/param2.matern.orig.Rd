@@ -18,7 +18,7 @@ param2.matern.orig(
 )
 }
 \arguments{
-\item{mesh}{The mesh to build the model on, as an \code{\link{inla.mesh}}
+\item{mesh}{The mesh to build the model on, as an \code{\link[=inla.mesh]{inla.mesh()}}
 object.}
 
 \item{alpha}{Fractional operator order, \eqn{0<\alpha\leq 2} supported.
@@ -39,7 +39,7 @@ object.}
 \item{prior.kappa}{Prior mean for kappa (overrides
 \code{prior.range.nominal})}
 
-\item{theta.prior.mean}{(overrides \code{prior.*})}
+\item{theta.prior.mean}{(overrides \verb{prior.*})}
 
 \item{theta.prior.prec}{Scalar, vector or matrix, specifying the joint prior
 precision for \eqn{theta}.}
@@ -48,7 +48,7 @@ precision for \eqn{theta}.}
 Construct parameter settings for \code{inla.spde2.matern} models.
 }
 \seealso{
-\code{\link{inla.spde2.matern}}
+\code{\link[=inla.spde2.matern]{inla.spde2.matern()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

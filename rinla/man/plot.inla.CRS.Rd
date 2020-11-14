@@ -32,7 +32,7 @@
 )
 }
 \arguments{
-\item{x}{A \code{CRS} or \code{\link{inla.CRS}} object.}
+\item{x}{A \code{CRS} or \code{\link[=inla.CRS]{inla.CRS()}} object.}
 
 \item{xlim}{Optional x-axis limits.}
 
@@ -77,8 +77,8 @@ if (require(rgdal)) {
 
 }
 \seealso{
-\code{\link{inla.CRS}}
+\code{\link[=inla.CRS]{inla.CRS()}}
 }
 \author{
-Finn Lindgren <finn.lindgren@gmail.com>
+Finn Lindgren \href{mailto:finn.lindgren@gmail.com}{finn.lindgren@gmail.com}
 }

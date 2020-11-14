@@ -38,13 +38,13 @@ issued when this needs to be increased for higher accuracy, with the
 required resolution stated.}
 
 \item{eps}{The polygonal curve simplification tolerance used for simplifying
-the resulting boundary curve.  See \code{\link{inla.simplify.curve}} for
+the resulting boundary curve.  See \code{\link[=inla.simplify.curve]{inla.simplify.curve()}} for
 details.}
 
 \item{crs}{An optional \code{CRS} or \code{inla.CRS} object}
 }
 \value{
-An \code{\link{inla.mesh.segment}} object.
+An \code{\link[=inla.mesh.segment]{inla.mesh.segment()}} object.
 }
 \description{
 Constructs a nonconvex boundary for a point set using morphological
