@@ -64,6 +64,7 @@ RoxygenNote: 7.1.1
 Encoding: UTF-8
 StagedInstall: no
 Collate: 
+    'INLA-package.R'
     'ar.R'
     'barrier.R'
     'binary.R'
