@@ -10,7 +10,6 @@ test_that("Case 1", {
     idx = 1:n
     formula = y ~ 1 + f(idx,  model="ar1")
     
-    inla.setOption(inla.call='inla.work')
     r = inla(formula, data = data.frame(y, idx),
             control.inla = list(int.strategy = "eb"))
     rr = inla(formula, data = data.frame(y, idx),

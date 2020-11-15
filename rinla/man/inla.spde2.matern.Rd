@@ -34,8 +34,8 @@ inla.spde2.theta2phi1(spde, theta)
 inla.spde2.theta2phi2(spde, theta)
 }
 \arguments{
-\item{mesh}{The mesh to build the model on, as an \code{\link{inla.mesh}} or
-\code{\link{inla.mesh.1d}} object.}
+\item{mesh}{The mesh to build the model on, as an \code{\link[=inla.mesh]{inla.mesh()}} or
+\code{\link[=inla.mesh.1d]{inla.mesh.1d()}} object.}
 
 \item{alpha}{Fractional operator order, \eqn{0<\alpha\leq 2} supported.
 (\eqn{\nu=\alpha-d/2})}
@@ -70,7 +70,7 @@ approximates low-order properties.}
 \item{prior.kappa}{Prior mean for kappa (overrides
 \code{prior.range.nominal})}
 
-\item{theta.prior.mean}{(overrides \code{prior.*})}
+\item{theta.prior.mean}{(overrides \verb{prior.*})}
 
 \item{theta.prior.prec}{Scalar, vector or matrix, specifying the joint prior
 precision for \eqn{theta}.}
@@ -171,9 +171,9 @@ plot(result.field$marginals.range.nominal[[1]])
 
 }
 \seealso{
-\code{\link{inla.mesh.2d}}, \code{\link{inla.mesh.create}},
-\code{\link{inla.mesh.1d}}, \code{\link{inla.mesh.basis}},
-\code{\link{inla.spde2.pcmatern}}, \code{\link{inla.spde2.generic}}
+\code{\link[=inla.mesh.2d]{inla.mesh.2d()}}, \code{\link[=inla.mesh.create]{inla.mesh.create()}},
+\code{\link[=inla.mesh.1d]{inla.mesh.1d()}}, \code{\link[=inla.mesh.basis]{inla.mesh.basis()}},
+\code{\link[=inla.spde2.pcmatern]{inla.spde2.pcmatern()}}, \code{\link[=inla.spde2.generic]{inla.spde2.generic()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

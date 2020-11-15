@@ -2030,7 +2030,7 @@ meshbuilder.app <- function() {
 #'  objects can be imported from the global workspace.
 #'  
 #' @author Finn Lindgren \email{finn.lindgren@gmail.com}
-#' @seealso \code{\link{inla.mesh.2d}}, \code{\link{inla.mesh.create}}
+#' @seealso [inla.mesh.2d()], [inla.mesh.create()]
 #' @examples
 #' \dontrun{
 #' meshbuilder()

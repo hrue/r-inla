@@ -8,7 +8,7 @@ inla.mesh.assessment(mesh, spatial.range, alpha = 2, dims = c(500, 500))
 }
 \description{
 Assess the finite element approximation errors in a mesh for interactive R
-sessions.  More detailed assessment tools are in \code{\link{meshbuilder}}.
+sessions.  More detailed assessment tools are in \code{\link[=meshbuilder]{meshbuilder()}}.
 }
 \examples{
 

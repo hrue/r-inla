@@ -1,53 +1,42 @@
-## Export: inla.barrier.pcmatern inla.barrier.polygon inla.barrier.q inla.barrier.fem
-
-##! \name{inla.barrier}
-##! \alias{inla.barrier}
-##! \alias{barrier}
-##! \alias{inla.barrier.pcmatern}
-##! \alias{barrier.pcmatern}
-##! \alias{inla.barrier.polygon}
-##! \alias{barrier.polygon}
-##! \alias{inla.barrier.q}
-##! \alias{barrier.q}
-##! \alias{inla.barrier.fem}
-##! \alias{barrier.fem}
-##! 
-##! \title{Functions for defining the Barrier models}
-##! 
-##! \description{Functions for defining Barrier models as an \code{inla rgeneric} model}
-##!
-##! \usage{
-##! inla.barrier.pcmatern(mesh, barrier.triangles, prior.range,
-##!                       prior.sigma, range.fraction=0.2)
-##! inla.barrier.polygon(mesh, barrier.triangles, Omega=NULL)
-##! inla.barrier.q(fem, ranges, sigma=1)
-##! inla.barrier.fem(mesh, barrier.triangles, Omega=NULL)
-##! }
-##! \arguments{
-##!   \item{mesh}{The mesh to build the model on, from inla.mesh.2d}
-##!   \item{barrier.triangles}{The numerical ids of the triangles that make up the barrier area}
-##!   \item{prior.range}{2 parameters \code{(range0,Prange)} for the prior spatial range. 
-##!         If \code{Prange} is \code{NA}, then \code{range0} is used as a fixed range value (not tested).}
-##!   \item{prior.sigma}{2 parameters \code{(sig0,Psig)} for the prior marginal standard deviation sigma. 
-##!         If \code{Psig} is \code{NA}, then \code{sig0} is used as a fixed sigma value (not tested).}
-##!   \item{range.fraction}{The length of the spatial range inside the barrier area,
-##!                         as a fraction of the range parameter.}
-##!   \item{Omega}{Advanced option for creating a set of permeable barriers (not documented)}
-##! }
-##! \details{
-##!     This model is described in the ArXiv preprint arXiv:1608.03787.
-##!     For examples, see \url{https://haakonbakka.bitbucket.io/btopic107.html}.
-##! }
-##!\value{%%
-##!  \code{inla.barrier.pcmatern} gives the (rgeneric) model object for fitting the model in INLA,
-##!  \code{inla.barrier.polygon} gives the polygon around the barrier (mainly for plotting),
-##!  \code{inla.barrier.q} is an internal method producing the Q matrix from a result of inla.barrier.fem,
-##!  \code{inla.barrier.fem} is an internal method producing the Finite Element matrices.
-##! }
-##! \seealso{inla.spde2.pcmatern}
-##! \author{Haakon Bakka \email{bakka@r-inla.org}}
-
-## This function creates the model component used in inla(...)
+#' Functions for defining the Barrier models
+#' 
+#' Functions for defining Barrier models as an `inla rgeneric` model
+#' 
+#' This model is described in the ArXiv preprint arXiv:1608.03787.  For
+#' examples, see <https://haakonbakka.bitbucket.io/btopic107.html>.
+#' 
+#' @aliases inla.barrier barrier inla.barrier.pcmatern barrier.pcmatern
+#' inla.barrier.polygon barrier.polygon inla.barrier.q barrier.q
+#' inla.barrier.fem barrier.fem
+#' @param mesh The mesh to build the model on, from inla.mesh.2d
+#' @param barrier.triangles The numerical ids of the triangles that make up the
+#' barrier area
+#' @param prior.range 2 parameters `(range0,Prange)` for the prior spatial
+#' range.  If `Prange` is `NA`, then `range0` is used as a fixed
+#' range value (not tested).
+#' @param prior.sigma 2 parameters `(sig0,Psig)` for the prior marginal
+#' standard deviation sigma.  If `Psig` is `NA`, then `sig0` is
+#' used as a fixed sigma value (not tested).
+#' @param range.fraction The length of the spatial range inside the barrier
+#' area, as a fraction of the range parameter.
+#' @param Omega Advanced option for creating a set of permeable barriers (not
+#' documented)
+#' @return
+#' * `inla.barrier.pcmatern` gives the (rgeneric) model object
+#' for fitting the model in INLA
+#' * `inla.barrier.polygon` gives the polygon
+#' around the barrier (mainly for plotting)
+#' * `inla.barrier.q` is an
+#' internal method producing the Q matrix from a result of inla.barrier.fem,
+#' * `inla.barrier.fem` is an internal method producing the Finite Element
+#' matrices.
+#' @author Haakon Bakka \email{bakka@@r-inla.org}
+#' @seealso inla.spde2.pcmatern
+#' 
+#' @export
+#' @rdname inla.barrier
+#' @details * `inla.barrier.pcmatern`
+#' This function creates the model component used in inla(...)
 `inla.barrier.pcmatern` <- function(mesh, barrier.triangles, prior.range, prior.sigma, range.fraction=0.2)
 {
     ## Give default values if absolutely needed
@@ -212,7 +201,9 @@
     return(barrier.model)
 }
 
-## This function constructs SpatialPolygons for the different subdomains (areas)
+#' @export
+#' @rdname inla.barrier
+#' @details * `inla.barrier.polygon` This function constructs SpatialPolygons for the different subdomains (areas)
 `inla.barrier.polygon` <- function(mesh, barrier.triangles, Omega=NULL)
 {
     ## Requires an inla mesh to work
@@ -255,10 +246,12 @@
 ### PRECISION MATRIX FUNCTIONS ###
 ## I.e. Solve the differential equation (the SPDE)
 
-## This function computes a specific precision matrix
-## Input fem represents the Barrier model or the Different Terrains (DT) model
-## Input fem contains all the needed matrices to solve the SPDE
-## The ranges and sigma are the hyperparameters that determine Q
+#' @details * `inla.barrier.q`: This function computes a specific precision matrix
+#' @param fem represents the Barrier model or the Different Terrains (DT) model,
+#' by containing all the needed matrices to solve the SPDE
+#' @param ranges,sigma the hyperparameters that determine Q
+#' @export
+#' @rdname inla.barrier
 `inla.barrier.q` <- function(fem, ranges, sigma=1)
 {
     if (is.null(ranges)) stop("ranges cannot be NULL")
@@ -295,8 +288,10 @@
     return (Q)
 }
 
-## This function computes the Finite Element matrices
-## - this is needed to compute the precision matrix Q later
+#' @details * `inla.barrier.fem` This function computes the Finite Element
+#' matrices that are needed to compute the precision matrix Q later
+#' @export
+#' @rdname inla.barrier
 `inla.barrier.fem` = function(mesh, barrier.triangles, Omega = NULL)
 {
     stopifnot(class(mesh) == 'inla.mesh')

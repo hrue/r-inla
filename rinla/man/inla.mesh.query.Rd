@@ -39,8 +39,8 @@ mesh2 = inla.mesh.create(mesh$loc, tv=mesh$graph$tv[vt,,drop=FALSE],
 
 }
 \seealso{
-\code{\link{inla.mesh.create}}, \code{\link{inla.mesh.segment}},
-\code{\link{inla.mesh.lattice}}
+\code{\link[=inla.mesh.create]{inla.mesh.create()}}, \code{\link[=inla.mesh.segment]{inla.mesh.segment()}},
+\code{\link[=inla.mesh.lattice]{inla.mesh.lattice()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

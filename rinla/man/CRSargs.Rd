@@ -39,12 +39,16 @@ For \code{inla.as.CRS.list}, a \code{CRS} or \code{inla.CRS} object.
 Wrapper for \code{sp::CRS} and \code{inla.CRS} objects to extract the
 coordinate reference system argument string.
 Should no longer be used with PROJ6/rgdal3;
-see \code{\link{inla.crs_get_wkt}}
+see \code{\link[=inla.crs_get_wkt]{inla.crs_get_wkt()}}
 }
 \details{
-* `inla.as.CRSargs.list`: CRS proj4 string for name=value pair list
+\itemize{
+\item \code{inla.as.CRSargs.list}: CRS proj4 string for name=value pair list
+}
 
-* `inla.as.list.CRSargs`: List of name=value pairs from CRS proj4 string
+\itemize{
+\item \code{inla.as.list.CRSargs}: List of name=value pairs from CRS proj4 string
+}
 }
 \examples{
 
@@ -62,8 +66,8 @@ if (require(rgdal)) {
 
 }
 \seealso{
-\code{\link[rgdal]{CRSargs}}, \code{\link{inla.CRS}}
+\code{\link[rgdal:CRS-class]{rgdal::CRSargs()}}, \code{\link[=inla.CRS]{inla.CRS()}}
 }
 \author{
-Finn Lindgren <finn.lindgren@gmail.com>
+Finn Lindgren \href{mailto:finn.lindgren@gmail.com}{finn.lindgren@gmail.com}
 }

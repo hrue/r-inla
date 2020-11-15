@@ -13,10 +13,10 @@ inla.row.kron(M1, M2, repl = NULL, n.repl = NULL, weights = NULL)
 
 \item{repl}{An optional index vector.  For each entry, specifies which
 replicate the row belongs to, in the sense used in
-\code{\link{inla.spde.make.A}}.}
+\code{\link[=inla.spde.make.A]{inla.spde.make.A()}}.}
 
 \item{n.repl}{The maximum replicate index, in the sense used in
-\code{\link{inla.spde.make.A}}.}
+\code{\link[=inla.spde.make.A]{inla.spde.make.A()}}.}
 
 \item{weights}{Optional scaling weights to be applied row-wise to the
 resulting matrix.}
@@ -27,10 +27,10 @@ A \code{sparseMatrix} object.
 \description{
 Takes two Matrices and computes the row-wise Kronecker product.  Optionally
 applies row-wise weights and/or applies an additional 0/1 row-wise Kronecker
-matrix product, as needed by \code{\link{inla.spde.make.A}}.
+matrix product, as needed by \code{\link[=inla.spde.make.A]{inla.spde.make.A()}}.
 }
 \seealso{
-\code{\link{inla.spde.make.A}}
+\code{\link[=inla.spde.make.A]{inla.spde.make.A()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

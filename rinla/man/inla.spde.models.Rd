@@ -24,8 +24,8 @@ List SPDE models supported by inla.spde objects
 }
 \details{
 Returns a list of available SPDE model type name lists, one for each
-inla.spde model class (currently \code{\link{inla.spde1}} and
-\code{\link{inla.spde2}}).
+inla.spde model class (currently \code{\link[=inla.spde1]{inla.spde1()}} and
+\code{\link[=inla.spde2]{inla.spde2()}}).
 }
 \examples{
 

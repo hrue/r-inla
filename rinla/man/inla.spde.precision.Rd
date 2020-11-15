@@ -58,9 +58,9 @@ Calculates the precision matrix for given parameter values based on an
 \code{inla.spde} model object.
 }
 \seealso{
-\code{\link{inla.spde.models}}, \code{\link{inla.spde2.generic}},
-\code{\link{inla.spde2.theta2phi0}}, \code{\link{inla.spde2.theta2phi1}},
-\code{\link{inla.spde2.theta2phi2}}
+\code{\link[=inla.spde.models]{inla.spde.models()}}, \code{\link[=inla.spde2.generic]{inla.spde2.generic()}},
+\code{\link[=inla.spde2.theta2phi0]{inla.spde2.theta2phi0()}}, \code{\link[=inla.spde2.theta2phi1]{inla.spde2.theta2phi1()}},
+\code{\link[=inla.spde2.theta2phi2]{inla.spde2.theta2phi2()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

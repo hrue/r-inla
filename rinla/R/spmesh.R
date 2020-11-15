@@ -18,8 +18,8 @@
 #' 
 #' @aliases inla.has_PROJ6 inla.not_for_PROJ6 inla.not_for_PROJ4
 #' inla.fallback_PROJ6 inla.requires_PROJ6
-#' @details \code{inla.has_PROJ6} is called to check if PROJ6&GDAL3 are available.
-#' @return For \code{inla.has_PROJ6}, logical; `TRUE` if PROJ6 is available,
+#' @details `inla.has_PROJ6` is called to check if PROJ6&GDAL3 are available.
+#' @return For `inla.has_PROJ6`, logical; `TRUE` if PROJ6 is available,
 #' `FALSE` otherwise
 #' @examples
 #' 
@@ -92,14 +92,14 @@ inla.requires_PROJ6 <- function(fun) {
 #' @title Extract CRS information
 #' 
 #' @description
-#' Wrapper for CRS(projargs) (PROJ4) and CRS(wkt) for \code{sp::Spatial}
+#' Wrapper for CRS(projargs) (PROJ4) and CRS(wkt) for `sp::Spatial`
 #' objects.
 #' 
 #' This function is a convenience method to workaround PROJ4/PROJ6 differences,
 #' and the lack of a crs extraction method for Spatial objects.
 #' 
-#' @param x A \code{sp::Spatial} object
-#' @return A \code{CRS} object, or NULL if no valid CRS identified
+#' @param x A `sp::Spatial` object
+#' @return A `CRS` object, or NULL if no valid CRS identified
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @examples
 #' 
@@ -165,34 +165,34 @@ internal.clip <- function(bounds, coords, eps=0.05) {
 #' inla.wkt_unit_params crs_wkt inla.wkt_get_lengthunit inla.wkt_set_lengthunit
 #' inla.crs_get_wkt inla.crs_get_lengthunit inla.crs_set_lengthunit
 #' @param wkt A WKT2 character string
-#' @param crs A \code{sp::CRS} or \code{inla.CRS} object
+#' @param crs A `sp::CRS` or `inla.CRS` object
 #' @param unit character, name of a unit. Supported names are "metre",
 #' "kilometre", and the aliases "meter", "m", International metre",
-#' "kilometer", and "km", as defined by \code{inla.wkt_unit_params} or the
-#' \code{params} argument. (For legacy PROJ4 use, only "m" and "km" are
+#' "kilometer", and "km", as defined by `inla.wkt_unit_params` or the
+#' `params` argument. (For legacy PROJ4 use, only "m" and "km" are
 #' supported)
 #' @param params Length unit definitions, in the list format produced by
-#' \code{inla.wkt_unit_params()}, Default: NULL, which invokes
-#' \code{inla.wkt_unit_params()}
-#' @return For \code{inla.wkt_unit_params}, a list of named unit definitions
+#' `inla.wkt_unit_params()`, Default: NULL, which invokes
+#' `inla.wkt_unit_params()`
+#' @return For `inla.wkt_unit_params`, a list of named unit definitions
 #' 
-#' For \code{inla.wkt_get_lengthunit}, a list of length units used in the wkt
+#' For `inla.wkt_get_lengthunit`, a list of length units used in the wkt
 #' string, excluding the ellipsoid radius unit.
 #' 
-#' For \code{inla.wkt_set_lengthunit}, a WKT2 string with altered length units.
+#' For `inla.wkt_set_lengthunit`, a WKT2 string with altered length units.
 #' Note that the length unit for the ellipsoid radius is unchanged.
 #' 
-#' For \code{inla.crs_get_wkt}, WKT2 string.
+#' For `inla.crs_get_wkt`, WKT2 string.
 #' 
-#' For \code{inla.crs_get_lengthunit}, a list of length units used in the wkt
+#' For `inla.crs_get_lengthunit`, a list of length units used in the wkt
 #' string, excluding the ellipsoid radius unit. (For legacy PROJ4 code, the raw
 #' units from the proj4string are returned, if present.)
 #' 
-#' For \code{inla.crs_set_lengthunit}, a \code{sp::CRS} object with altered
+#' For `inla.crs_set_lengthunit`, a `sp::CRS` object with altered
 #' length units. Note that the length unit for the ellipsoid radius is
 #' unchanged.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso \code{\link{inla.sp_get_crs}}
+#' @seealso [inla.sp_get_crs()]
 #' @examples
 #' 
 #' \dontrun{
@@ -581,27 +581,27 @@ inla.crs.tissot <- function(x, by=c(30, 30, 30), add=FALSE, do.plot=TRUE,
 #' 
 #' 
 #' @aliases plot.inla.CRS plot.CRS
-#' @param x A \code{CRS} or \code{\link{inla.CRS}} object.
+#' @param x A `CRS` or [inla.CRS()] object.
 #' @param xlim Optional x-axis limits.
 #' @param ylim Optional y-axis limits.
-#' @param outline Logical, if \code{TRUE}, draw the outline of the projection.
+#' @param outline Logical, if `TRUE`, draw the outline of the projection.
 #' @param graticule Vector of length at most 3, to plot meridians with spacing
-#' \code{graticule[1]} degrees and parallels with spacing \code{graticule[2]}
-#' degrees. \code{graticule[3]} optionally specifies the spacing above and
-#' below the first and last parallel.  When \code{graticule[1]==0} no meridians
-#' are drawn, and when \code{graticule[2]==0} no parallels are drawn. Use
-#' \code{graticule=NULL} to skip drawing a graticule.
+#' `graticule[1]` degrees and parallels with spacing `graticule[2]`
+#' degrees. `graticule[3]` optionally specifies the spacing above and
+#' below the first and last parallel.  When `graticule[1]==0` no meridians
+#' are drawn, and when `graticule[2]==0` no parallels are drawn. Use
+#' `graticule=NULL` to skip drawing a graticule.
 #' @param tissot Vector of length at most 3, to plot Tissot's indicatrices with
-#' spacing \code{tissot[1]} degrees and parallels with spacing \code{tissot[2]}
-#' degrees. \code{tissot[3]} specifices a scaling factor.  Use
-#' \code{tissot=NULL} to skip drawing a Tissot's indicatrices.
+#' spacing `tissot[1]` degrees and parallels with spacing `tissot[2]`
+#' degrees. `tissot[3]` specifices a scaling factor.  Use
+#' `tissot=NULL` to skip drawing a Tissot's indicatrices.
 #' @param asp The aspect ratio for the plot, default 1.
-#' @param add If \code{TRUE}, add the projecton plot to an existing plot.
+#' @param add If `TRUE`, add the projecton plot to an existing plot.
 #' @param eps Clipping tolerance for rudimentary boundary clipping
 #' @param \dots Additional arguments passed on to the internal calls to
-#' \code{plot} and \code{lines}.
+#' `plot` and `lines`.
 #' @author Finn Lindgren <finn.lindgren@@gmail.com>
-#' @seealso \code{\link{inla.CRS}}
+#' @seealso [inla.CRS()]
 #' @examples
 #' 
 #' if (require(rgdal)) {
@@ -671,62 +671,62 @@ plot.CRS <- function(x, xlim=NULL, ylim=NULL,
 #' Creates either a CRS object or an inla.CRS object, describing a coordinate
 #' reference system
 #' 
-#' The first two elements of the \code{oblique} vector are the (longitude,
+#' The first two elements of the `oblique` vector are the (longitude,
 #' latitude) coordinates for the oblique centre point. The third value
 #' (orientation) is a counterclockwise rotation angle for an observer looking
 #' at the centre point from outside the sphere. The fourth value is the
 #' quasi-longitude (orbit angle) for a rotation along the oblique observers
 #' equator.
 #' 
-#' Simple oblique: \code{oblique=c(0, 45)}
+#' Simple oblique: `oblique=c(0, 45)`
 #' 
-#' Polar: \code{oblique=c(0, 90)}
+#' Polar: `oblique=c(0, 90)`
 #' 
-#' Quasi-transversal: \code{oblique=c(0, 0, 90)}
+#' Quasi-transversal: `oblique=c(0, 0, 90)`
 #' 
-#' Satellite orbit viewpoint: \code{oblique=c(lon0-time*v1, 0, orbitangle,
-#' orbit0+time*v2)}, where \code{lon0} is the longitude at which a satellite
-#' orbit crosses the equator at \code{time=0}, when the satellite is at an
-#' angle \code{orbit0} further along in its orbit.  The orbital angle relative
-#' to the equatorial plane is \code{orbitangle}, and \code{v1} and \code{v2}
+#' Satellite orbit viewpoint: `oblique=c(lon0-time*v1, 0, orbitangle,
+#' orbit0+time*v2)`, where `lon0` is the longitude at which a satellite
+#' orbit crosses the equator at `time=0`, when the satellite is at an
+#' angle `orbit0` further along in its orbit.  The orbital angle relative
+#' to the equatorial plane is `orbitangle`, and `v1` and `v2`
 #' are the angular velocities of the planet and the satellite, respectively.
 #' Note that "forward" from the satellite's point of view is "to the right" in
 #' the projection.
 #' 
-#' When \code{oblique[2]} or \code{oblique[3]} are non-zero, the resulting
+#' When `oblique[2]` or `oblique[3]` are non-zero, the resulting
 #' projection is only correct for perfect spheres.
 #' 
 #' @aliases inla.CRS inla.wkt_predef
 #' @param projargs Either 1) a projection argument string suitable as input to
-#' \code{sp::CRS}, or 2) an existing \code{CRS} object, or 3) a shortcut
+#' `sp::CRS`, or 2) an existing `CRS` object, or 3) a shortcut
 #' reference string to a predefined projection; run
-#' \code{names(inla.wkt_predef())} for valid predefined projections.
+#' `names(inla.wkt_predef())` for valid predefined projections.
 #' @param doCheckCRSArgs default TRUE, must be set to FALSE by package
-#' developers including \code{CRS} in an S4 class definition to avoid
-#' uncontrollable loading of the \code{rgdal} namespace.
+#' developers including `CRS` in an S4 class definition to avoid
+#' uncontrollable loading of the `rgdal` namespace.
 #' @param args An optional list of name/value pairs to add to and/or override
-#' the PROJ4 arguments in \code{projargs}.  \code{name=value} is converted to
-#' \code{"+name=value"}, and \code{name=NA} is converted to \code{"+name"}.
+#' the PROJ4 arguments in `projargs`.  `name=value` is converted to
+#' `"+name=value"`, and `name=NA` is converted to `"+name"`.
 #' @param oblique Vector of length at most 4 of rotation angles (in degrees)
 #' for an oblique projection, all values defaulting to zero. The values
 #' indicate (longitude, latitude, orientation, orbit), as explained in the
 #' Details section below.
 #' @param SRS_string a WKT2 string defining the coordinate system; see
-#' \code{sp::CRS}. This takes precedence over \code{projargs}.
+#' `sp::CRS`. This takes precedence over `projargs`.
 #' @param \dots Additional parameters. Not currently in use.
-#' @return Either an \code{sp::CRS} object or an \code{inla.CRS} object,
+#' @return Either an `sp::CRS` object or an `inla.CRS` object,
 #' depending on if the coordinate reference system described by the parameters
-#' can be expressed with a pure \code{sp::CRS} object or not.
+#' can be expressed with a pure `sp::CRS` object or not.
 #' 
-#' An S3 \code{inla.CRS} object is a list, usually (but not necessarily)
-#' containing at least one element: \item{crs }{The basic \code{sp::CRS}
+#' An S3 `inla.CRS` object is a list, usually (but not necessarily)
+#' containing at least one element: \item{crs }{The basic `sp::CRS`
 #' object}
 #' 
-#' \code{inla.wkt_predef} returns a WKT2 string defining a projection
+#' `inla.wkt_predef` returns a WKT2 string defining a projection
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso \code{\link[sp]{CRS}}, \code{\link{crs_wkt}},
-#' \code{\link{inla.sp_get_crs}} \code{\link{plot.CRS}},
-#' \code{\link{inla.identical.CRS}}
+#' @seealso [sp::CRS()], [crs_wkt()],
+#' [inla.sp_get_crs()] [plot.CRS()],
+#' [inla.identical.CRS()]
 #' @examples
 #' 
 #' 
@@ -844,7 +844,7 @@ inla.CRS <- function(projargs = NULL, doCheckCRSArgs = TRUE,
   x
 }
 
-#' @return \code{inla.wkt_predef} returns a WKT2 string defining a projection
+#' @return `inla.wkt_predef` returns a WKT2 string defining a projection
 #' @examples 
 #' \dontrun{
 #'  names(inla.wkt_predef())
@@ -877,11 +877,11 @@ inla.wkt_predef <- function() {
 #' 
 #' @aliases inla.as.wkt_tree.wkt inla.as.wkt.wkt_tree inla.wkt_tree_get_item
 #' inla.wkt_tree_set_item
-#' @param x A WKT2 string, or a \code{wkt_tree} list structure
+#' @param x A WKT2 string, or a `wkt_tree` list structure
 #' @param \dots Unused
 #' @param item character vector with item labels identifying a parameter item
 #' entry.
-#' @param duplicate For items that have more than one match, \code{duplicate}
+#' @param duplicate For items that have more than one match, `duplicate`
 #' indicates the index number of the desired version. Default: 1
 #' @param item_tree An item tree identifying a parameter item entry
 #' @export inla.as.wkt_tree.wkt
@@ -971,7 +971,7 @@ inla.as.wkt.wkt_tree <- function(x, pretty = FALSE, ...) {
 
 #' @param item character vector with item labels identifying a parameter item
 #' entry. 
-#' @param duplicate For items that have more than one match, \code{duplicate}
+#' @param duplicate For items that have more than one match, `duplicate`
 #' indicates the index number of the desired version. Default: 1
 #' @rdname wkt_tree
 #' @export
@@ -1016,27 +1016,27 @@ inla.wkt_tree_set_item <- function(x, item_tree, duplicate = 1) {
 
 #' Show expanded CRS arguments
 #' 
-#' Wrapper for \code{sp::CRS} and \code{inla.CRS} objects to extract the
+#' Wrapper for `sp::CRS` and `inla.CRS` objects to extract the
 #' coordinate reference system argument string.
 #' Should no longer be used with PROJ6/rgdal3;
-#' see \code{\link{inla.crs_get_wkt}}
+#' see [inla.crs_get_wkt()]
 #' 
 #' @aliases inla.CRSargs inla.as.list.CRS inla.as.list.CRSargs inla.as.CRS.list
 #' inla.as.CRSargs.list
-#' @param x An \code{sp::CRS} or \code{inla.CRS} object (for
-#' \code{inla.CRSargs} and \code{inla.as.list.CRS}), a character string (for
-#' \code{inla.as.list.CRSargs}), or a list (for \code{inla.as.CRS.list} and
-#' \code{inla.as.CRSargs.list}).
+#' @param x An `sp::CRS` or `inla.CRS` object (for
+#' `inla.CRSargs` and `inla.as.list.CRS`), a character string (for
+#' `inla.as.list.CRSargs`), or a list (for `inla.as.CRS.list` and
+#' `inla.as.CRSargs.list`).
 #' @param \dots Additional arguments passed on to other methods.
-#' @return For \code{inla.CRSargs} and \code{inla.as.CRSargs.list}, a character
+#' @return For `inla.CRSargs` and `inla.as.CRSargs.list`, a character
 #' string with PROJ.4 arguments.
 #' 
-#' For \code{inla.as.list.CRS} and \code{inla.as.list.CRSargs}, a list of
+#' For `inla.as.list.CRS` and `inla.as.list.CRSargs`, a list of
 #' name/value pairs.
 #' 
-#' For \code{inla.as.CRS.list}, a \code{CRS} or \code{inla.CRS} object.
+#' For `inla.as.CRS.list`, a `CRS` or `inla.CRS` object.
 #' @author Finn Lindgren <finn.lindgren@@gmail.com>
-#' @seealso \code{\link[rgdal]{CRSargs}}, \code{\link{inla.CRS}}
+#' @seealso [rgdal::CRSargs()], [inla.CRS()]
 #' @examples
 #' 
 #' if (require(rgdal)) {
@@ -1126,17 +1126,17 @@ inla.as.CRS.list <- function(x, ...) {
 
 
 
-#' @param crs A \code{sp::CRS} or \code{inla.CRS} object
+#' @param crs A `sp::CRS` or `inla.CRS` object
 #' @param wkt A WKT2 character string
 #' @param unit character, name of a unit. Supported names are
 #' "metre", "kilometre", and the aliases "meter", "m", International metre",
-#' "kilometer", and "km", as defined by \code{inla.wkt_unit_params} or the
-#' \code{params} argument. (For legacy PROJ4 use, only "m" and "km" are
+#' "kilometer", and "km", as defined by `inla.wkt_unit_params` or the
+#' `params` argument. (For legacy PROJ4 use, only "m" and "km" are
 #' supported)
 #' @param params Length unit definitions, in the list format produced by
-#' \code{inla.wkt_unit_params()}, Default: NULL, which invokes
-#' \code{inla.wkt_unit_params()}
-#' @return For \code{inla.wkt_unit_params}, a
+#' `inla.wkt_unit_params()`, Default: NULL, which invokes
+#' `inla.wkt_unit_params()`
+#' @return For `inla.wkt_unit_params`, a
 #' list of named unit definitions
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @examples 
@@ -1149,7 +1149,7 @@ inla.as.CRS.list <- function(x, ...) {
 #'  }
 #' }
 #' @export 
-#' @seealso \code{\link{inla.sp_get_crs}}
+#' @seealso [inla.sp_get_crs()]
 #' @aliases crs_wkt
 #' @rdname crs_wkt
 
@@ -1176,7 +1176,7 @@ inla.wkt_unit_params <- function() {
 
 #' @export 
 #' @rdname crs_wkt
-#' @return For \code{inla.wkt_get_lengthunit}, a
+#' @return For `inla.wkt_get_lengthunit`, a
 #' list of length units used in the wkt string, excluding the ellipsoid radius
 #' unit.
 
@@ -1213,7 +1213,7 @@ inla.wkt_get_lengthunit <- function(wkt) {
 
 #' @export 
 #' @rdname crs_wkt
-#' @return For \code{inla.wkt_set_lengthunit}, a
+#' @return For `inla.wkt_set_lengthunit`, a
 #' WKT2 string with altered length units.
 #' Note that the length unit for the ellipsoid radius is unchanged.
 
@@ -1249,7 +1249,7 @@ inla.wkt_set_lengthunit <- function(wkt, unit, params = NULL) {
   inla.as.wkt.wkt_tree(wt)
 }
 
-#' @return For \code{inla.crs_get_wkt}, WKT2 string.
+#' @return For `inla.crs_get_wkt`, WKT2 string.
 #' @export
 #' @rdname crs_wkt
 
@@ -1267,7 +1267,7 @@ inla.crs_get_wkt <- function(crs) {
   comment(crs)
 }
 
-#' @return For \code{inla.crs_get_lengthunit}, a
+#' @return For `inla.crs_get_lengthunit`, a
 #' list of length units used in the wkt string, excluding the ellipsoid radius
 #' unit. (For legacy PROJ4 code, the raw units from the proj4string are
 #' returned, if present.)
@@ -1291,7 +1291,7 @@ inla.crs_get_lengthunit <- function(crs) {
   x
 }
 
-#' @return For \code{inla.crs_set_lengthunit}, a \code{sp::CRS} object with
+#' @return For `inla.crs_set_lengthunit`, a `sp::CRS` object with
 #' altered length units.
 #' Note that the length unit for the ellipsoid radius is unchanged.
 #' @export
@@ -1564,12 +1564,12 @@ internal.update.crs <- function(crs, newcrs, mismatch.allowed) {
 #' Wrapper for identical, optionally testing only the CRS part of two objects
 #' 
 #' 
-#' @param crs0 A \code{CRS} or \code{inla.CRS} object.
-#' @param crs1 A \code{CRS} or \code{inla.CRS} object.
-#' @param crsonly Logical. If \code{TRUE}, only the \code{CRS} part of a
-#' \code{inla.CRS} object is compared.
+#' @param crs0 A `CRS` or `inla.CRS` object.
+#' @param crs1 A `CRS` or `inla.CRS` object.
+#' @param crsonly Logical. If `TRUE`, only the `CRS` part of a
+#' `inla.CRS` object is compared.
 #' @author Finn Lindgren <finn.lindgren@@gmail.com>
-#' @seealso \code{\link{inla.CRS}}
+#' @seealso [inla.CRS()]
 #' @examples
 #' 
 #' crs0 <- inla.CRS("longlat")
@@ -1598,10 +1598,10 @@ inla.identical.CRS <- function(crs0, crs1, crsonly=FALSE) {
 
 
 
-#' Wrapper method for \code{sp::spTransform}
+#' Wrapper method for `sp::spTransform`
 #' 
 #' Handles transformation of various inla objects accorting to coordinate
-#' reference systems of \code{sp::CRS} or \code{inla.CRS} class.
+#' reference systems of `sp::CRS` or `inla.CRS` class.
 #' 
 #' 
 #' @aliases inla.spTransform inla.spTransform.default
@@ -1609,15 +1609,15 @@ inla.identical.CRS <- function(crs0, crs1, crsonly=FALSE) {
 #' inla.spTransform.inla.mesh.segment inla.spTransform.inla.mesh
 #' @param x The object that should be transformed from it's current CRS to a
 #' new CRS
-#' @param crs0 The source \code{sp::CRS} or \code{inla.CRS} object
-#' @param crs1 The target \code{sp::CRS} or \code{inla.CRS} object
-#' @param CRSobj The target \code{sp::CRS} or \code{inla.CRS} object
+#' @param crs0 The source `sp::CRS` or `inla.CRS` object
+#' @param crs1 The target `sp::CRS` or `inla.CRS` object
+#' @param CRSobj The target `sp::CRS` or `inla.CRS` object
 #' @param passthrough default FALSE. Setting to TRUE allows objects with no CRS
 #' information to be passed through without transformation.
 #' @param \dots Potential additional arguments
 #' @return The object is returned with its coordinates transformed
 #' @author Finn Lindgren <finn.lindgren@@gmail.com>
-#' @seealso \code{\link{inla.CRS}}
+#' @seealso [inla.CRS()]
 #' @examples
 #' 
 #' if (require(rgdal)) {
@@ -1999,9 +1999,9 @@ inla.internal.sp2segment.join <- function(inp, grp=NULL, closed=TRUE) {
 
 
 
-#' Convert \code{sp} curve objects to \code{inla.mesh.segment} objects.
+#' Convert `sp` curve objects to `inla.mesh.segment` objects.
 #' 
-#' Convert \code{sp} curve objects to \code{inla.mesh.segment} objects.
+#' Convert `sp` curve objects to `inla.mesh.segment` objects.
 #' 
 #' 
 #' @aliases as.inla.mesh.segment as.inla.mesh.segment.Line
@@ -2009,20 +2009,20 @@ inla.internal.sp2segment.join <- function(inp, grp=NULL, closed=TRUE) {
 #' as.inla.mesh.segment.SpatialLinesDataFrame as.inla.mesh.segment.Polygon
 #' as.inla.mesh.segment.Polygons as.inla.mesh.segment.SpatialPolygons
 #' as.inla.mesh.segment.SpatialPolygonsDataFrame inla.sp2segment
-#' @param sp An \code{sp} polygon object of class \code{Polygon},
-#' \code{Polygons}, \code{SpatialPolygons}, or \code{SpatialPolygonsDataFrame}.
-#' @param join If \code{TRUE}, join multiple polygons into a single segment
+#' @param sp An `sp` polygon object of class `Polygon`,
+#' `Polygons`, `SpatialPolygons`, or `SpatialPolygonsDataFrame`.
+#' @param join If `TRUE`, join multiple polygons into a single segment
 #' (possibly non-simply connected).
 #' @param grp Group ID specification for each polygon, as used by
-#' \code{\link{inla.mesh.segment}}, one ID per polygon.
+#' [inla.mesh.segment()], one ID per polygon.
 #' @param reverse Logical, indicating if the line sequence should be traversed
 #' backwards.
-#' @param crs An optional \code{CRS} or \code{inla.CRS} object
+#' @param crs An optional `CRS` or `inla.CRS` object
 #' @param \dots Additional arguments passed on to other methods.
-#' @return A \code{\link{inla.mesh.segment}} object, or a list of
-#' \code{\link{inla.mesh.segment}} objects.
+#' @return A [inla.mesh.segment()] object, or a list of
+#' [inla.mesh.segment()] objects.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso \code{\link{inla.mesh.segment}}
+#' @seealso [inla.mesh.segment()]
 #' @export as.inla.mesh.segment
 as.inla.mesh.segment <-
     function(sp, ...)

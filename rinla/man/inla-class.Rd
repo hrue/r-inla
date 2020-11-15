@@ -2,10 +2,10 @@
 % Please edit documentation in R/export-class.R
 \name{inla-class}
 \alias{inla-class}
-\title{inla}
+\title{inla estimation object class}
 \description{
 The inla class is defined in the INLA package
 }
 \seealso{
-\link[INLA]{inla}
+\link[=inla]{inla}
 }

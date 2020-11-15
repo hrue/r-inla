@@ -35,10 +35,10 @@ block.  \item \code{'sum'}: Divide by the resulting row sums.  }}
 \description{
 Constructs observation/prediction weight matrices for numerical integration
 schemes for regional data problems.  Primarily intended for internal use by
-\code{\link{inla.spde.make.A}}.
+\code{\link[=inla.spde.make.A]{inla.spde.make.A()}}.
 }
 \seealso{
-\code{\link{inla.spde.make.A}}
+\code{\link[=inla.spde.make.A]{inla.spde.make.A()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

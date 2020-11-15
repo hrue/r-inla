@@ -25,10 +25,10 @@ inla.spde.make.A(
 )
 }
 \arguments{
-\item{mesh}{An \code{\link{inla.mesh}} or \code{\link{inla.mesh.1d}} object
+\item{mesh}{An \code{\link[=inla.mesh]{inla.mesh()}} or \code{\link[=inla.mesh.1d]{inla.mesh.1d()}} object
 specifying a function basis on a mesh domain.  Alternatively, an
 \code{inla.spde} object that includes a mesh (e.g. from
-\code{\link{inla.spde2.matern}}).}
+\code{\link[=inla.spde2.matern]{inla.spde2.matern()}}).}
 
 \item{loc}{Observation/prediction coordinates.  \code{mesh} and \code{loc}
 defines a matrix \code{A.loc} of mapping weights between basis function
@@ -50,7 +50,7 @@ different than the number of mesh vertices/nodes/knots.)}
 
 \item{n.repl}{The total number of replicates.}
 
-\item{group.mesh}{An optional \code{\link{inla.mesh.1d}} object for the
+\item{group.mesh}{An optional \code{\link[=inla.mesh.1d]{inla.mesh.1d()}} object for the
 group model.}
 
 \item{weights}{Optional scaling weights to be applied row-wise to the
@@ -71,19 +71,19 @@ rows of \code{A.group}.}
 same \code{block} value are joined into a single row in the resulting
 matrix, and the \code{block} values are the row indices.  This is intended
 for construction of approximate integration schemes for regional data
-problems. See \code{\link{inla.spde.make.block.A}} for details.}
+problems. See \code{\link[=inla.spde.make.block.A]{inla.spde.make.block.A()}} for details.}
 
 \item{n.block}{The number of blocks.}
 
 \item{block.rescale}{Specifies what scaling method should be used when
 joining entries as grouped by a \code{block} specification.  See
-\code{\link{inla.spde.make.block.A}} for details.}
+\code{\link[=inla.spde.make.block.A]{inla.spde.make.block.A()}} for details.}
 
 \item{\dots}{Additional parameters.  Currently unused.}
 }
 \description{
 Constructs observation/prediction weight matrices for models based on
-\code{\link{inla.mesh}} and \code{\link{inla.mesh.1d}} objects.
+\code{\link[=inla.mesh]{inla.mesh()}} and \code{\link[=inla.mesh.1d]{inla.mesh.1d()}} objects.
 }
 \examples{
 
@@ -95,7 +95,7 @@ A = inla.spde.make.A(mesh, loc=loc)
 
 }
 \seealso{
-\code{\link{inla.spde.make.index}}
+\code{\link[=inla.spde.make.index]{inla.spde.make.index()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

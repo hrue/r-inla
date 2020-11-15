@@ -28,7 +28,7 @@ sphere)}
 For spherical harmonics, \code{n} is the maximal harmonic order.}
 
 \item{degree}{Degree of B-spline polynomials.  See
-\code{\link{inla.mesh.1d}}.}
+\code{\link[=inla.mesh.1d]{inla.mesh.1d()}}.}
 
 \item{knot.placement}{For B-splines on the sphere, controls the latitudinal
 placements of knots. \code{"uniform.area"} (default) gives uniform spacing
@@ -39,7 +39,7 @@ latitudes.}
 gives the rotationally invariant subset of basis functions.}
 
 \item{boundary}{Boundary specification, default is free boundaries.  See
-\code{\link{inla.mesh.1d}} for more information.}
+\code{\link[=inla.mesh.1d]{inla.mesh.1d()}} for more information.}
 
 \item{free.clamped}{If \code{TRUE} and \code{boundary} is \code{"free"}, the
 boundary basis functions are clamped to 0/1 at the interval boundary by
@@ -48,7 +48,7 @@ repeating the boundary knots.}
 \item{...}{}
 }
 \description{
-Calculate basis functions on a 1d or 2d \code{\link{inla.mesh}}
+Calculate basis functions on a 1d or 2d \code{\link[=inla.mesh]{inla.mesh()}}
 }
 \examples{
 
@@ -67,7 +67,7 @@ if (require(rgl)) {
 
 }
 \seealso{
-\code{\link{inla.mesh.1d}} \code{\link{inla.mesh.2d}}
+\code{\link[=inla.mesh.1d]{inla.mesh.1d()}} \code{\link[=inla.mesh.2d]{inla.mesh.2d()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

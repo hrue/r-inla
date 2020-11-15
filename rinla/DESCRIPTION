@@ -45,7 +45,8 @@ Suggests:
     splancs,
     spdep,
     mpoly,
-    symmoments
+    symmoments,
+    testthat
 Imports:
     graphics,
     grDevices,
@@ -64,6 +65,7 @@ RoxygenNote: 7.1.1
 Encoding: UTF-8
 StagedInstall: no
 Collate: 
+    'INLA-package.R'
     'ar.R'
     'barrier.R'
     'binary.R'
@@ -169,3 +171,4 @@ Collate:
     'upgrade.R'
     'utils.R'
     'version.R'
+Roxygen: list(markdown = TRUE)

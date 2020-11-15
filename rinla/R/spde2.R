@@ -4,36 +4,36 @@ NULL
 #' Generic spde2 model creation.
 #' 
 #' Creates and inla.spde2 object describing the internal structure of an
-#' \code{'spde2'} model.
+#' `'spde2'` model.
 #' 
 #' 
 #' @aliases inla.spde2.generic inla.spde2 inla.spde2.theta2phi0
 #' inla.spde2.theta2phi1 inla.spde2.theta2phi2
-#' @param M0 The symmetric \code{M0} matrix.
-#' @param M1 The square \code{M1} matrix.
-#' @param M2 The symmetric \code{M2} matrix.
+#' @param M0 The symmetric `M0` matrix.
+#' @param M1 The square `M1` matrix.
+#' @param M2 The symmetric `M2` matrix.
 #' @param B0 Basis definition matrix for \eqn{\phi_0}{phi0}.
 #' @param B1 Basis definition matrix for \eqn{\phi_2}{phi1}.
 #' @param B2 Basis definition matrix for \eqn{\phi_2}{phi2}.
 #' @param theta.mu Prior expectation for the \eqn{\theta}{theta} vector
 #' @param theta.Q Prior precision for the \eqn{\theta}{theta} vector
 #' @param transform Transformation link for \eqn{\phi_2}{phi2}.  Valid settings
-#' are \code{"logit"}, \code{"log"}, and \code{"identity"}
+#' are `"logit"`, `"log"`, and `"identity"`
 #' @param theta.initial Initial value for the \eqn{\theta}{theta} vector.
-#' Default \code{theta.mu}
-#' @param fixed Logical vector.  For every \code{TRUE} value, treat the
-#' corresponding \code{theta} value as known.
-#' @param theta.fixed Vector holding the values of fixed \code{theta} values.
-#' Default \code{=theta.initial[fixed]}
-#' @param BLC Basis definition matrix for linear combinations of \code{theta}.
+#' Default `theta.mu`
+#' @param fixed Logical vector.  For every `TRUE` value, treat the
+#' corresponding `theta` value as known.
+#' @param theta.fixed Vector holding the values of fixed `theta` values.
+#' Default `=theta.initial[fixed]`
+#' @param BLC Basis definition matrix for linear combinations of `theta`.
 #' @param \dots Additional parameters, currently unused.
-#' @param spde An \code{inla.sdpe2} object.
+#' @param spde An `inla.sdpe2` object.
 #' @param theta parameter values to be mapped.
-#' @return For \code{inla.spde2.generic}, an \code{\link{inla.spde2}} object.
+#' @return For `inla.spde2.generic`, an [inla.spde2()] object.
 #' 
-#' For \code{inla.spde2.theta2phi0/1/2}, a vector of \eqn{\phi}{phi} values.
+#' For `inla.spde2.theta2phi0/1/2`, a vector of \eqn{\phi}{phi} values.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso \code{\link{inla.spde2.models}}, \code{\link{inla.spde2.matern}}
+#' @seealso [inla.spde2.models()], [inla.spde2.matern()]
 #' @export inla.spde2.generic
 inla.spde2.generic =
     function(M0, M1, M2, B0, B1, B2, theta.mu, theta.Q,
@@ -180,24 +180,24 @@ inla.internal.spde2.matern.B.tau =
 
 #' Approximate variance-compensating basis functions
 #' 
-#' Calculates an approximate basis for \code{tau} and \code{kappa} for an
-#' \code{inla.spde2.matern} model where \code{tau} is a rescaling parameter.
+#' Calculates an approximate basis for `tau` and `kappa` for an
+#' `inla.spde2.matern` model where `tau` is a rescaling parameter.
 #' 
 #' 
-#' @param mesh An \code{\link{inla.mesh}} object.
+#' @param mesh An [inla.mesh()] object.
 #' @param B.sd Desired basis for log-standard deviations.
 #' @param B.range Desired basis for spatial range.
 #' @param method Construction method selector.  Expert option only.
-#' @param local.offset.compensation If \code{FALSE}, only compensate in the
-#' average for the \code{tau} offset.
-#' @param alpha The model \code{alpha} parameter.
+#' @param local.offset.compensation If `FALSE`, only compensate in the
+#' average for the `tau` offset.
+#' @param alpha The model `alpha` parameter.
 #' @param \dots Additional parameters passed on to internal
-#' \code{inla.spde2.matern} calls.
+#' `inla.spde2.matern` calls.
 #' @return List of basis specifications \item{B.tau }{Basis for
-#' \code{log(tau)}} \item{B.kappa }{Basis for \code{log(kappa)}} Intended for
-#' passing on to \code{\link{inla.spde2.matern}}.
+#' `log(tau)`} \item{B.kappa }{Basis for `log(kappa)`} Intended for
+#' passing on to [inla.spde2.matern()].
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso \code{\link{inla.spde2.matern}}
+#' @seealso [inla.spde2.matern()]
 #' @export inla.spde2.matern.sd.basis
 inla.spde2.matern.sd.basis =
     function(mesh, B.sd, B.range, method=1,
@@ -345,12 +345,12 @@ inla.internal.test.spde2.sd.basis = function (k=1, dth=0.1, r=1000, globe=25, co
 
 
 
-#' Parameter settings for \code{inla.spde2.matern} models.
+#' Parameter settings for `inla.spde2.matern` models.
 #' 
-#' Construct parameter settings for \code{inla.spde2.matern} models.
+#' Construct parameter settings for `inla.spde2.matern` models.
 #' 
 #' 
-#' @param mesh The mesh to build the model on, as an \code{\link{inla.mesh}}
+#' @param mesh The mesh to build the model on, as an [inla.mesh()]
 #' object.
 #' @param alpha Fractional operator order, \eqn{0<\alpha\leq 2} supported.
 #' (\eqn{\nu=\alpha-d/2})
@@ -360,14 +360,14 @@ inla.internal.test.spde2.sd.basis = function (k=1, dth=0.1, r=1000, globe=25, co
 #' @param prior.variance.nominal Nominal prior mean for the field variance
 #' @param prior.range.nominal Nominal prior mean for the spatial range
 #' @param prior.tau Prior mean for tau (overrides
-#' \code{prior.variance.nominal})
+#' `prior.variance.nominal`)
 #' @param prior.kappa Prior mean for kappa (overrides
-#' \code{prior.range.nominal})
-#' @param theta.prior.mean (overrides \code{prior.*})
+#' `prior.range.nominal`)
+#' @param theta.prior.mean (overrides `prior.*`)
 #' @param theta.prior.prec Scalar, vector or matrix, specifying the joint prior
 #' precision for \eqn{theta}.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso \code{\link{inla.spde2.matern}}
+#' @seealso [inla.spde2.matern()]
 #' @export param2.matern.orig
 param2.matern.orig =
     function(mesh,
@@ -501,8 +501,8 @@ param2.matern.orig =
 
 #' Matern SPDE model object for INLA
 #' 
-#' Create an \code{inla.spde2} model object for a Matern model. Use
-#' \code{inla.spde2.pcmatern} instead for a PC prior for the parameters.
+#' Create an `inla.spde2` model object for a Matern model. Use
+#' `inla.spde2.pcmatern` instead for a PC prior for the parameters.
 #' 
 #' This method constructs a Matern SPDE model, with spatial scale parameter
 #' \eqn{\kappa(u)} and variance rescaling parameter \eqn{\tau(u)}.
@@ -513,7 +513,7 @@ param2.matern.orig =
 #' 
 #' Stationary models are supported for \eqn{0 < \alpha \leq 2}, with spectral
 #' approximation methods used for non-integer \eqn{\alpha}, with approximation
-#' method determined by \code{fractional.method}.
+#' method determined by `fractional.method`.
 #' 
 #' Non-stationary models are supported for \eqn{\alpha=2} only, with \itemize{
 #' \item \eqn{\log\tau(u) = B^\tau_0(u) + \sum_{k=1}^p B^\tau_k(u) }{log tau(u)
@@ -531,22 +531,22 @@ param2.matern.orig =
 #' constant across \eqn{u}.
 #' 
 #' Integration and other general linear constraints are supported via the
-#' \code{constr}, \code{extraconstr.int}, and \code{extraconstr} parameters,
-#' which also interact with \code{n.iid.group}.
+#' `constr`, `extraconstr.int`, and `extraconstr` parameters,
+#' which also interact with `n.iid.group`.
 #' 
-#' @param mesh The mesh to build the model on, as an \code{\link{inla.mesh}} or
-#' \code{\link{inla.mesh.1d}} object.
+#' @param mesh The mesh to build the model on, as an [inla.mesh()] or
+#' [inla.mesh.1d()] object.
 #' @param alpha Fractional operator order, \eqn{0<\alpha\leq 2} supported.
 #' (\eqn{\nu=\alpha-d/2})
-#' @param param Parameter, e.g. generated by \code{param2.matern.orig}
-#' @param constr If \code{TRUE}, apply an integrate-to-zero constraint.
-#' Default \code{FALSE}.
+#' @param param Parameter, e.g. generated by `param2.matern.orig`
+#' @param constr If `TRUE`, apply an integrate-to-zero constraint.
+#' Default `FALSE`.
 #' @param extraconstr.int Field integral constraints.
 #' @param extraconstr Direct linear combination constraints on the basis
 #' weights.
 #' @param fractional.method Specifies the approximation method to use for
-#' fractional (non-integer) \code{alpha} values. \code{'parsimonious'} gives an
-#' overall approximate minimal covariance error, \code{'null'} uses
+#' fractional (non-integer) `alpha` values. `'parsimonious'` gives an
+#' overall approximate minimal covariance error, `'null'` uses
 #' approximates low-order properties.
 #' @param B.tau Matrix with specification of log-linear model for \eqn{\tau}.
 #' @param B.kappa Matrix with specification of log-linear model for
@@ -554,26 +554,26 @@ param2.matern.orig =
 #' @param prior.variance.nominal Nominal prior mean for the field variance
 #' @param prior.range.nominal Nominal prior mean for the spatial range
 #' @param prior.tau Prior mean for tau (overrides
-#' \code{prior.variance.nominal})
+#' `prior.variance.nominal`)
 #' @param prior.kappa Prior mean for kappa (overrides
-#' \code{prior.range.nominal})
-#' @param theta.prior.mean (overrides \code{prior.*})
+#' `prior.range.nominal`)
+#' @param theta.prior.mean (overrides `prior.*`)
 #' @param theta.prior.prec Scalar, vector or matrix, specifying the joint prior
 #' precision for \eqn{theta}.
 #' @param n.iid.group If greater than 1, build an explicitly iid replicated
 #' model, to support constraints applied to the combined replicates, for
 #' example in a time-replicated spatial model. Constraints can either be
 #' specified for a single mesh, in which case it's applied to the average of
-#' the replicates (\code{ncol(A)} should be \code{mesh$n} for 2D meshes,
-#' \code{mesh$m} for 1D), or as general constraints on the collection of
-#' replicates (\code{ncol(A)} should be \code{mesh$n * n.iid.group} for 2D
-#' meshes, \code{mesh$m * n.iid.group} for 1D).
+#' the replicates (`ncol(A)` should be `mesh$n` for 2D meshes,
+#' `mesh$m` for 1D), or as general constraints on the collection of
+#' replicates (`ncol(A)` should be `mesh$n * n.iid.group` for 2D
+#' meshes, `mesh$m * n.iid.group` for 1D).
 #' @param \dots Additional parameters for special uses.
-#' @return An \code{inla.spde2} object.
+#' @return An `inla.spde2` object.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso \code{\link{inla.mesh.2d}}, \code{\link{inla.mesh.create}},
-#' \code{\link{inla.mesh.1d}}, \code{\link{inla.mesh.basis}},
-#' \code{\link{inla.spde2.pcmatern}}, \code{\link{inla.spde2.generic}}
+#' @seealso [inla.mesh.2d()], [inla.mesh.create()],
+#' [inla.mesh.1d()], [inla.mesh.basis()],
+#' [inla.spde2.pcmatern()], [inla.spde2.generic()]
 #' @examples
 #' 
 #' n = 100
@@ -848,7 +848,7 @@ inla.spde2.matern =
 
 #' Matern SPDE model object with PC prior for INLA
 #' 
-#' Create an \code{inla.spde2} model object for a Matern model, using a PC
+#' Create an `inla.spde2` model object for a Matern model, using a PC
 #' prior for the parameters.
 #' 
 #' This method constructs a Matern SPDE model, with spatial range \eqn{\rho}
@@ -862,11 +862,11 @@ inla.spde2.matern =
 #' 
 #' Stationary models are supported for \eqn{0 < \alpha \leq 2}{0 < alpha <= 2},
 #' with spectral approximation methods used for non-integer \eqn{\alpha}, with
-#' approximation method determined by \code{fractional.method}.
+#' approximation method determined by `fractional.method`.
 #' 
 #' Integration and other general linear constraints are supported via the
-#' \code{constr}, \code{extraconstr.int}, and \code{extraconstr} parameters,
-#' which also interact with \code{n.iid.group}.
+#' `constr`, `extraconstr.int`, and `extraconstr` parameters,
+#' which also interact with `n.iid.group`.
 #' 
 #' The joint PC prior density for the spatial range, \eqn{\rho}, and the
 #' marginal standard deviation, \eqn{\sigma}, and is \deqn{ }{p(rho, sigma) =
@@ -907,41 +907,41 @@ inla.spde2.matern =
 #' et al. (2016) and is based on the PC prior framework (Simpson, et al.,
 #' 2015).
 #' 
-#' @param mesh The mesh to build the model on, as an \code{\link{inla.mesh}} or
-#' \code{\link{inla.mesh.1d}} object.
+#' @param mesh The mesh to build the model on, as an [inla.mesh()] or
+#' [inla.mesh.1d()] object.
 #' @param alpha Fractional operator order, \eqn{0<\alpha\leq 2}{0 < alpha <= 2}
 #' supported, for \eqn{\nu=\alpha-d/2>0}.
 #' @param param Further model parameters. Not currently used.
-#' @param constr If \code{TRUE}, apply an integrate-to-zero constraint.
-#' Default \code{FALSE}.
+#' @param constr If `TRUE`, apply an integrate-to-zero constraint.
+#' Default `FALSE`.
 #' @param extraconstr.int Field integral constraints.
 #' @param extraconstr Direct linear combination constraints on the basis
 #' weights.
 #' @param fractional.method Specifies the approximation method to use for
-#' fractional (non-integer) \code{alpha} values. \code{'parsimonious'} gives an
-#' overall approximate minimal covariance error, \code{'null'} uses
+#' fractional (non-integer) `alpha` values. `'parsimonious'` gives an
+#' overall approximate minimal covariance error, `'null'` uses
 #' approximates low-order properties.
 #' @param n.iid.group If greater than 1, build an explicitly iid replicated
 #' model, to support constraints applied to the combined replicates, for
 #' example in a time-replicated spatial model. Constraints can either be
 #' specified for a single mesh, in which case it's applied to the average of
-#' the replicates (\code{ncol(A)} should be \code{mesh$n} for 2D meshes,
-#' \code{mesh$m} for 1D), or as general constraints on the collection of
-#' replicates (\code{ncol(A)} should be \code{mesh$n * n.iid.group} for 2D
-#' meshes, \code{mesh$m * n.iid.group} for 1D).
-#' @param prior.range A length 2 vector, with \code{(range0,Prange)} specifying
+#' the replicates (`ncol(A)` should be `mesh$n` for 2D meshes,
+#' `mesh$m` for 1D), or as general constraints on the collection of
+#' replicates (`ncol(A)` should be `mesh$n * n.iid.group` for 2D
+#' meshes, `mesh$m * n.iid.group` for 1D).
+#' @param prior.range A length 2 vector, with `(range0,Prange)` specifying
 #' that \eqn{P(\rho < \rho_0)=p_\rho}, where \eqn{\rho} is the spatial range of
-#' the random field. If \code{Prange} is \code{NA}, then \code{range0} is used
+#' the random field. If `Prange` is `NA`, then `range0` is used
 #' as a fixed range value.
-#' @param prior.sigma A length 2 vector, with \code{(sigma0,Psigma)} specifying
+#' @param prior.sigma A length 2 vector, with `(sigma0,Psigma)` specifying
 #' that \eqn{P(\sigma > \sigma_0)=p_\sigma}, where \eqn{\sigma} is the marginal
-#' standard deviation of the field.  If \code{Psigma} is \code{NA}, then
-#' \code{sigma0} is used as a fixed range value.
-#' @return An \code{inla.spde2} object.
+#' standard deviation of the field.  If `Psigma` is `NA`, then
+#' `sigma0` is used as a fixed range value.
+#' @return An `inla.spde2` object.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso \code{\link{inla.mesh.2d}}, \code{\link{inla.mesh.create}},
-#' \code{\link{inla.mesh.1d}}, \code{\link{inla.mesh.basis}},
-#' \code{\link{inla.spde2.matern}}, \code{\link{inla.spde2.generic}}
+#' @seealso [inla.mesh.2d()], [inla.mesh.create()],
+#' [inla.mesh.1d()], [inla.mesh.basis()],
+#' [inla.spde2.matern()], [inla.spde2.generic()]
 #' @references Fuglstad, G.-A., Simpson, D., Lindgren, F., and Rue, H. (2016)
 #' Constructing Priors that Penalize the Complexity of Gaussian Random Fields.
 #' arXiv:1503.00256

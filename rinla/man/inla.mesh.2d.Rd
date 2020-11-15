@@ -36,10 +36,10 @@ relative to the approximate data diameter (default=-0.10???)}
 \item{n}{The number of initial nodes in the automatic extensions
 (default=16)}
 
-\item{boundary}{A list of one or two \code{\link{inla.mesh.segment}} objects
+\item{boundary}{A list of one or two \code{\link[=inla.mesh.segment]{inla.mesh.segment()}} objects
 describing domain boundaries.}
 
-\item{interior}{An \code{\link{inla.mesh.segment}} object describing desired
+\item{interior}{An \code{\link[=inla.mesh.segment]{inla.mesh.segment()}} object describing desired
 interior edges.}
 
 \item{max.edge}{The largest allowed triangle edge length.  One or two
@@ -98,8 +98,8 @@ plot(mesh)
 
 }
 \seealso{
-\code{\link{inla.mesh.create}}, \code{\link{inla.delaunay}},
-\code{\link{inla.nonconvex.hull}}
+\code{\link[=inla.mesh.create]{inla.mesh.create()}}, \code{\link[=inla.delaunay]{inla.delaunay()}},
+\code{\link[=inla.nonconvex.hull]{inla.nonconvex.hull()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

@@ -120,9 +120,9 @@ if(inla.has_PROJ6()){
 }
 }
 \seealso{
-\code{\link{inla.sp_get_crs}}
+\code{\link[=inla.sp_get_crs]{inla.sp_get_crs()}}
 
-\code{\link{inla.sp_get_crs}}
+\code{\link[=inla.sp_get_crs]{inla.sp_get_crs()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

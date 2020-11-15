@@ -12,7 +12,7 @@ extract.groups(...)
 \arguments{
 \item{\dots}{Additional arguments, passed on to other methods.}
 
-\item{segm}{An \code{\link{inla.mesh.segment}} object.}
+\item{segm}{An \code{\link[=inla.mesh.segment]{inla.mesh.segment()}} object.}
 
 \item{groups}{The segment groups id:s to extract.}
 
@@ -23,7 +23,7 @@ the input will be replaced by \code{groups.new[k]} in the output.}
 Extract boundary or internal segments tagged by group id:s.
 }
 \seealso{
-\code{\link{inla.mesh.segment}}
+\code{\link[=inla.mesh.segment]{inla.mesh.segment()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

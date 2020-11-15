@@ -22,7 +22,7 @@ inla.spde1.imatern(mesh, ...)
 inla.spde1.matern.osc(mesh, ...)
 }
 \arguments{
-\item{mesh}{The mesh to build the model on, as an \code{\link{inla.mesh}}
+\item{mesh}{The mesh to build the model on, as an \code{\link[=inla.mesh]{inla.mesh()}}
 object.}
 
 \item{model}{The name of the model.}
@@ -39,7 +39,7 @@ Create an \code{inla.spde1} model object.
 }
 \details{
 Note: This is an old spde object format retained for backwards
-compatibility.  Please use \code{\link{inla.spde2}} models for new code.
+compatibility.  Please use \code{\link[=inla.spde2]{inla.spde2()}} models for new code.
 
 This method constructs an object for SPDE models.  Currently implemented:
 
@@ -94,8 +94,8 @@ if (require(rgl)) {
 
 }
 \seealso{
-\code{\link{inla.spde2.matern}}, \code{\link{inla.mesh.2d}},
-\code{\link{inla.mesh.basis}}
+\code{\link[=inla.spde2.matern]{inla.spde2.matern()}}, \code{\link[=inla.mesh.2d]{inla.mesh.2d()}},
+\code{\link[=inla.mesh.basis]{inla.mesh.basis()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

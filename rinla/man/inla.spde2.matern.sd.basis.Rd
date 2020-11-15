@@ -15,7 +15,7 @@ inla.spde2.matern.sd.basis(
 )
 }
 \arguments{
-\item{mesh}{An \code{\link{inla.mesh}} object.}
+\item{mesh}{An \code{\link[=inla.mesh]{inla.mesh()}} object.}
 
 \item{B.sd}{Desired basis for log-standard deviations.}
 
@@ -34,14 +34,14 @@ average for the \code{tau} offset.}
 \value{
 List of basis specifications \item{B.tau }{Basis for
 \code{log(tau)}} \item{B.kappa }{Basis for \code{log(kappa)}} Intended for
-passing on to \code{\link{inla.spde2.matern}}.
+passing on to \code{\link[=inla.spde2.matern]{inla.spde2.matern()}}.
 }
 \description{
 Calculates an approximate basis for \code{tau} and \code{kappa} for an
 \code{inla.spde2.matern} model where \code{tau} is a rescaling parameter.
 }
 \seealso{
-\code{\link{inla.spde2.matern}}
+\code{\link[=inla.spde2.matern]{inla.spde2.matern()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

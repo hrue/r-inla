@@ -71,8 +71,7 @@ Polar: \code{oblique=c(0, 90)}
 
 Quasi-transversal: \code{oblique=c(0, 0, 90)}
 
-Satellite orbit viewpoint: \code{oblique=c(lon0-time*v1, 0, orbitangle,
-orbit0+time*v2)}, where \code{lon0} is the longitude at which a satellite
+Satellite orbit viewpoint: \code{oblique=c(lon0-time*v1, 0, orbitangle, orbit0+time*v2)}, where \code{lon0} is the longitude at which a satellite
 orbit crosses the equator at \code{time=0}, when the satellite is at an
 angle \code{orbit0} further along in its orbit.  The orbital angle relative
 to the equatorial plane is \code{orbitangle}, and \code{v1} and \code{v2}
@@ -103,9 +102,9 @@ if (require(rgdal)) {
 }
 }
 \seealso{
-\code{\link[sp]{CRS}}, \code{\link{crs_wkt}},
-\code{\link{inla.sp_get_crs}} \code{\link{plot.CRS}},
-\code{\link{inla.identical.CRS}}
+\code{\link[sp:CRS-class]{sp::CRS()}}, \code{\link[=crs_wkt]{crs_wkt()}},
+\code{\link[=inla.sp_get_crs]{inla.sp_get_crs()}} \code{\link[=plot.CRS]{plot.CRS()}},
+\code{\link[=inla.identical.CRS]{inla.identical.CRS()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

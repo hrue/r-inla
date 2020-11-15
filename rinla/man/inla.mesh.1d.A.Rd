@@ -14,7 +14,7 @@ inla.mesh.1d.A(
 )
 }
 \arguments{
-\item{mesh}{An \code{\link{inla.mesh.1d}} object.}
+\item{mesh}{An \code{\link[=inla.mesh.1d]{inla.mesh.1d()}} object.}
 
 \item{loc}{Coordinate values.}
 
@@ -29,7 +29,7 @@ basis function properties.}
 }
 \description{
 Calculates barycentric coordinates and weight matrices for
-\code{\link{inla.mesh.1d}} objects.
+\code{\link[=inla.mesh.1d]{inla.mesh.1d()}} objects.
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

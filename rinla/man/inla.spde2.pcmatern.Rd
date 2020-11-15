@@ -18,8 +18,8 @@ inla.spde2.pcmatern(
 )
 }
 \arguments{
-\item{mesh}{The mesh to build the model on, as an \code{\link{inla.mesh}} or
-\code{\link{inla.mesh.1d}} object.}
+\item{mesh}{The mesh to build the model on, as an \code{\link[=inla.mesh]{inla.mesh()}} or
+\code{\link[=inla.mesh.1d]{inla.mesh.1d()}} object.}
 
 \item{alpha}{Fractional operator order, \eqn{0<\alpha\leq 2}{0 < alpha <= 2}
 supported, for \eqn{\nu=\alpha-d/2>0}.}
@@ -48,12 +48,12 @@ the replicates (\code{ncol(A)} should be \code{mesh$n} for 2D meshes,
 replicates (\code{ncol(A)} should be \code{mesh$n * n.iid.group} for 2D
 meshes, \code{mesh$m * n.iid.group} for 1D).}
 
-\item{prior.range}{A length 2 vector, with \code{(range0,Prange)} specifying
+\item{prior.range}{A length 2 vector, with \verb{(range0,Prange)} specifying
 that \eqn{P(\rho < \rho_0)=p_\rho}, where \eqn{\rho} is the spatial range of
 the random field. If \code{Prange} is \code{NA}, then \code{range0} is used
 as a fixed range value.}
 
-\item{prior.sigma}{A length 2 vector, with \code{(sigma0,Psigma)} specifying
+\item{prior.sigma}{A length 2 vector, with \verb{(sigma0,Psigma)} specifying
 that \eqn{P(\sigma > \sigma_0)=p_\sigma}, where \eqn{\sigma} is the marginal
 standard deviation of the field.  If \code{Psigma} is \code{NA}, then
 \code{sigma0} is used as a fixed range value.}
@@ -226,9 +226,9 @@ Penalising model component complexity: A principled, practical approach to
 constructing priors. arXiv:1403.4630
 }
 \seealso{
-\code{\link{inla.mesh.2d}}, \code{\link{inla.mesh.create}},
-\code{\link{inla.mesh.1d}}, \code{\link{inla.mesh.basis}},
-\code{\link{inla.spde2.matern}}, \code{\link{inla.spde2.generic}}
+\code{\link[=inla.mesh.2d]{inla.mesh.2d()}}, \code{\link[=inla.mesh.create]{inla.mesh.create()}},
+\code{\link[=inla.mesh.1d]{inla.mesh.1d()}}, \code{\link[=inla.mesh.basis]{inla.mesh.basis()}},
+\code{\link[=inla.spde2.matern]{inla.spde2.matern()}}, \code{\link[=inla.spde2.generic]{inla.spde2.generic()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

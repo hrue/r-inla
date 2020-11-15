@@ -27,8 +27,8 @@ print(c(inla.identical.CRS(crs0, crs0),
 
 }
 \seealso{
-\code{\link{inla.CRS}}
+\code{\link[=inla.CRS]{inla.CRS()}}
 }
 \author{
-Finn Lindgren <finn.lindgren@gmail.com>
+Finn Lindgren \href{mailto:finn.lindgren@gmail.com}{finn.lindgren@gmail.com}
 }

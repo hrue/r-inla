@@ -23,10 +23,10 @@ inla.spde.sample(...)
 }
 \description{
 Old methods fo sampling from a SPDE model.  For new code, use
-\code{\link{inla.spde.precision}} and \code{\link{inla.qsample}} instead.
+\code{\link[=inla.spde.precision]{inla.spde.precision()}} and \code{\link[=inla.qsample]{inla.qsample()}} instead.
 }
 \seealso{
-\code{\link{inla.spde.precision}}, \code{\link{inla.qsample}}
+\code{\link[=inla.spde.precision]{inla.spde.precision()}}, \code{\link[=inla.qsample]{inla.qsample()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

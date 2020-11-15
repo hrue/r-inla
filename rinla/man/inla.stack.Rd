@@ -90,16 +90,16 @@ Functions for combining data, effects and observation matrices into
 For models with a single effects collection, the outer list container for
 \code{A} and \code{effects} may be omitted.
 
-Component size definitions: \itemize{ \item[\eqn{n_l}{n_l}] effect blocks
-\item[\eqn{n_k}{n_k}] effects \item[\eqn{n_i}{n_i}] data values
-\item[\eqn{n_{j,l}}{n_jl}] effect size for block \eqn{l}{l}
-\item[\eqn{n_j}{n_j}] \eqn{= \sum_{l=1}^{n_l} n_{j,l}}{sum_l n_jl} total
+Component size definitions: \itemize{ \item\link{\eqn{n_l}{n_l}} effect blocks
+\item\link{\eqn{n_k}{n_k}} effects \item\link{\eqn{n_i}{n_i}} data values
+\item\link{\eqn{n_{j,l}}{n_jl}} effect size for block \eqn{l}{l}
+\item\link{\eqn{n_j}{n_j}} \eqn{= \sum_{l=1}^{n_l} n_{j,l}}{sum_l n_jl} total
 effect size }
 
-Input: \itemize{ \item[\code{data}] \eqn{(y^1, \ldots, y^p)}{} \eqn{p}{p}
-vectors, each of length \eqn{n_i}{n_i} \item[\code{A}] \eqn{(A^1, \ldots,
+Input: \itemize{ \item\code{\link{data}} \eqn{(y^1, \ldots, y^p)}{} \eqn{p}{p}
+vectors, each of length \eqn{n_i}{n_i} \item\code{\link{A}} \eqn{(A^1, \ldots,
 A^{n_l})}{} matrices of size \eqn{n_i \times n_{j,l}}{n_i by n_jl}
-\item[\code{effects}] \eqn{\left((x^{1,1},\ldots,x^{n_k,1}), \ldots,
+\item\code{\link{effects}} \eqn{\left((x^{1,1},\ldots,x^{n_k,1}), \ldots,
 }{}\eqn{ (x^{1,n_l},\ldots,x^{n_k,n_l})\right)}{} collections of effect
 vectors of length \eqn{n_{j,l}}{n_jl} }
 
@@ -247,6 +247,6 @@ plot(field, (field.pred - field) / 1,
 
 }
 \seealso{
-\code{\link{inla.spde.make.A}}, \code{\link{inla.spde.make.index}}
+\code{\link[=inla.spde.make.A]{inla.spde.make.A()}}, \code{\link[=inla.spde.make.index]{inla.spde.make.index()}}
 }
 \keyword{fmesher}

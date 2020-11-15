@@ -11,14 +11,14 @@
 }
 \arguments{
 \item{object}{an object of class \code{"inla.mesh"}, usually a result of a
-call to \code{\link{inla.mesh.create}} or \code{\link{inla.mesh.2d}}.}
+call to \code{\link[=inla.mesh.create]{inla.mesh.create()}} or \code{\link[=inla.mesh.2d]{inla.mesh.2d()}}.}
 
 \item{verbose}{If \code{TRUE}, produce a more detailed output.}
 
 \item{\dots}{further arguments passed to or from other methods.}
 
 \item{x}{an object of class \code{"summary.inla.mesh"}, usually a result of
-a call to \code{\link{summary.inla.mesh}}.}
+a call to \code{\link[=summary.inla.mesh]{summary.inla.mesh()}}.}
 }
 \description{
 Construct and print \code{inla.mesh} object summaries
