@@ -45,7 +45,8 @@ Suggests:
     splancs,
     spdep,
     mpoly,
-    symmoments
+    symmoments,
+    testthat
 Imports:
     graphics,
     grDevices,
