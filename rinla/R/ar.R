@@ -1,59 +1,37 @@
-## Export: inla.ar.pacf2phi
-## Export: inla.ar.phi2pacf
-## Export: inla.ar.pacf2acf
-## Export: inla.ar.phi2acf
-
-##!\name{inla.ar}
-##!\alias{inla.ar.pacf2phi}
-##!\alias{ar.pacf2phi}
-##!\alias{pacf2phi}
-##!\alias{inla.ar.phi2pacf}
-##!\alias{ar.phi2pacf}
-##!\alias{phi2pacf}
-##!\alias{inla.ar.phi2acf}
-##!\alias{ar.phi2acf}
-##!\alias{phi2acf}
-##!\alias{inla.ar.pacf2acf}
-##!\alias{ar.pacf2acf}
-##!\alias{pacf2acf}
-##!
-##!\title{Convert between parameterizations for the AR(p) model}
-##!
-##!\description{These functions convert between the AR(p) coefficients \code{phi}, 
-##!             the partial autorcorrelation coefficients \code{pacf} and the
-##!             autocorrelation function \code{acf}.
-##!             The \code{phi}-parameterization is the same as used for \code{arima}-models in \code{R}; see \code{?arima}
-##!             and the parameter-vector \code{a} in \code{Details}.}
-##!\usage{
-##!   inla.ar.pacf2phi(pac)
-##!   inla.ar.phi2pacf(phi)
-##!   inla.ar.pacf2acf(pac, lag.max = length(pac))
-##!   inla.ar.phi2acf(phi, lag.max = length(phi))
-##!}
-##!
-##!\arguments{
-##!  \item{pac}{The partial autorcorrelation coefficients}
-##!  \item{phi}{The AR(p) parameters \code{phi}}
-##!  \item{lag.max}{The maximum lag to compute the ACF for}
-##!}
-##!\value{
-##!  \code{inla.ar.pacf2phi}  returns \code{phi} for given \code{pacf}.
-##!  \code{inla.ar.phi2pacf}  returns \code{pac} for given \code{phi}.
-##!  \code{inla.ar.phi2acf}  returns \code{acf} for given \code{phi}.
-##!  \code{inla.ar.pacf2acf}  returns \code{acf} for given \code{pacf}.
-##!}
-##!\author{Havard Rue \email{hrue@r-inla.org}}
-##!\examples{
-##! pac = runif(5)
-##! phi = inla.ar.pacf2phi(pac)
-##! pac2 = inla.ar.phi2pacf(phi)
-##! print(paste("Error:", max(abs(pac2-pac))))
-##! print("Correlation matrix (from pac)")
-##! print(toeplitz(inla.ar.pacf2acf(pac)))
-##! print("Correlation matrix (from phi)")
-##! print(toeplitz(inla.ar.phi2acf(phi)))
-##!}
-
+#' Convert between parameterizations for the AR(p) model
+#' 
+#' These functions convert between the AR(p) coefficients `phi`, the
+#' partial autorcorrelation coefficients `pacf` and the autocorrelation
+#' function `acf`.  The `phi`-parameterization is the same as used
+#' for `arima`-models in `R`; see `?arima` and the
+#' parameter-vector `a` in `Details`.
+#' 
+#' 
+#' @aliases inla.ar.pacf2phi ar.pacf2phi pacf2phi inla.ar.phi2pacf ar.phi2pacf
+#' phi2pacf inla.ar.phi2acf ar.phi2acf phi2acf inla.ar.pacf2acf ar.pacf2acf
+#' pacf2acf
+#' @param pac The partial autorcorrelation coefficients
+#' @param phi The AR(p) parameters `phi`
+#' @param lag.max The maximum lag to compute the ACF for
+#' @return
+#' * `inla.ar.pacf2phi` returns `phi` for given `pacf`.
+#' * `inla.ar.phi2pacf` returns `pac` for given `phi`.
+#' * `inla.ar.phi2acf` returns `acf` for given `phi`.
+#' * `inla.ar.pacf2acf` returns `acf` for given `pacf`.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @examples
+#' 
+#'  pac = runif(5)
+#'  phi = inla.ar.pacf2phi(pac)
+#'  pac2 = inla.ar.phi2pacf(phi)
+#'  print(paste("Error:", max(abs(pac2-pac))))
+#'  print("Correlation matrix (from pac)")
+#'  print(toeplitz(inla.ar.pacf2acf(pac)))
+#'  print("Correlation matrix (from phi)")
+#'  print(toeplitz(inla.ar.phi2acf(phi)))
+#' 
+#' @export
+#' @rdname ar
 
 ## functions for the AR model, same as its C-versions in ar.c
 inla.ar.pacf2phi = function(pac)
@@ -75,6 +53,8 @@ inla.ar.pacf2phi = function(pac)
     
     return(phi)
 }
+#' @export
+#' @rdname ar
 inla.ar.phi2pacf = function(phi)
 {
     ## I know, the R-coding is a bit weird as these are translated
@@ -95,6 +75,8 @@ inla.ar.phi2pacf = function(phi)
     
     return (pac)
 }
+#' @export
+#' @rdname ar
 inla.ar.phi2acf = function(phi, lag.max = length(phi))
 {
     ## return acf for given phi
@@ -132,6 +114,8 @@ inla.ar.phi2acf = function(phi, lag.max = length(phi))
 
     return (r)
 }
+#' @export
+#' @rdname ar
 inla.ar.pacf2acf = function(pac, lag.max = length(pac))
 {
     return (inla.ar.phi2acf(inla.ar.pacf2phi(pac), lag.max = lag.max))
