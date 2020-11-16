@@ -115,28 +115,13 @@ typedef struct {
 	GMRFLib_openmp_place_tp place;
 	int max_threads;
 	int *max_threads_nested;
+	int blas_num_threads;
 	// for PARDISO, like _outer is the number of threads in the outer loop, while _inner is the number of threads for
 	// pardiso. the _inner is only relevant if nested=1.
 	int max_threads_outer;
 	int max_threads_inner;
 	GMRFLib_openmp_strategy_tp strategy;
 } GMRFLib_openmp_tp;
-
-
-#define PARALLEL_OUTHER(_body)						\
-	if (omp_in_parallel()) {					\
-		GMRFLib_openmp_nested_fix();				\
-		_body;							\
-	} else {							\
-		_Pragma("omp parallel num_threads(GMRFLib_openmp->max_threads_outer)") \
-		{							\
-			_Pragma("omp single")				\
-			{						\
-				GMRFLib_openmp_nested_fix();		\
-				_body;					\
-			}						\
-		}							\
-	}	
 
 
 #define GMRFLib_MAX_THREADS (GMRFLib_openmp ? GMRFLib_openmp->max_threads : IMIN(omp_get_max_threads(), omp_get_num_procs()))

@@ -35,7 +35,7 @@
   Sampling, whether unconditionally or conditionally, from a GMRF on a general graph, is performed
   using one function, \ref GMRFLib_sample().  Similarly, \ref GMRFLib_evaluate() computes the
   log-density for a sample from a GMRF and \ref GMRFLib_Qinv() computes elements in the inverse of
-  the precision matrix.  The functions operate on a data structure, \ref GMRFLib_problem_tp, holding
+  the precision matrix.  The functions operate on a data structure, \ref GMRFLib_problem_, holding
   all external and internal information needed by the sampling and evaluation algorithms. This data
   structure is initialised by \ref GMRFLib_init_problem().
 
@@ -58,6 +58,34 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
+
+int error_check_validate_constr1 = 0;
+
+#if defined(INLA_WINDOWS32)
+static int constr_store_use = 0;				       /* do not use it as the sha1 is not prepared for it */
+#else
+static int constr_store_use = 1;
+#endif
+static map_strd constr_store;
+static int constr_store_must_init = 1;
+static int constr_store_debug = 0;
+
+
+int GMRFLib_init_constr_store(void) 
+{
+	if (constr_store_use)
+	{
+		if (constr_store_must_init) {
+			map_strd_init_hint(&constr_store, 128);		
+			constr_store.alwaysdefault = 1;
+			constr_store_must_init = 0;			
+			if (constr_store_debug) {
+				printf("constr_store: init storage\n");	
+			}
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
 
 double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *arguments)
 {
@@ -195,9 +223,33 @@ int GMRFLib_init_problem(GMRFLib_problem_tp ** problem,
 	return GMRFLib_SUCCESS;
 }
 
+int validate_constr1(GMRFLib_constr_tp *constr, int n) 
+{
+	GMRFLib_constr_tp *new = NULL;
+	GMRFLib_graph_tp *g = Calloc(1, GMRFLib_graph_tp);
+	g->n = n;
+	
+	GMRFLib_duplicate_constr(&new, constr, g);
+	for(int j = 0; j < constr->nc; j++) {
+		if ((new->jfirst[j] !=  constr->jfirst[j]) ||
+		    (new->jlen[j] != constr->jlen[j]))
+		{
+			printf("CONSTR jfirst/jlen ERROR: i= %d new->jfirst= %d old->jfirst= %d new->jlen= %d old->jlen= %d\n",
+			       j, new->jfirst[j], constr->jfirst[j], new->jlen[j], constr->jlen[j]);
+			abort();
+		}
+	}
+	GMRFLib_free_constr(new);
+	Free(g);
+
+	return GMRFLib_SUCCESS;
+}
+		
 
 int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_tp * constr)
 {
+	if (error_check_validate_constr1) validate_constr1(constr, n);
+	
 	// compute C=A*B, where A is the constr matrix, and we know that C is symmetric.
 	// see below where this is used.
 	int K = m * (m + 1) / 2, *ii, *jj, cond;
@@ -262,6 +314,21 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr)
 	return GMRFLib_SUCCESS;
 }
 
+int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr)
+{
+	// compute 'res = A %*% x'
+
+	int nc = constr->nc, inc = 1;
+	int cond = (nc > GMRFLib_MAX_THREADS);
+
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) if(cond)
+	for(int i = 0; i < nc; i++) {
+		res[i] = ddot_(&(constr->jlen[i]), &(constr->a_matrix[i + nc * constr->jfirst[i]]), &nc, &(x[constr->jfirst[i]]), &inc);
+	}
+	return GMRFLib_SUCCESS;
+}
+
+
 int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			       double *x,
 			       double *b,
@@ -272,7 +339,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			       void *Qfunc_args, char *fixed_value, GMRFLib_constr_tp * constr, unsigned int keep, GMRFLib_store_tp * store)
 {
 	double *bb = NULL;
-	int i, j, sub_n, node, nnode, free_x = 0, id, faster_constr = 1;
+	int i, j, sub_n, node, nnode, free_x = 0, id;
 	GMRFLib_smtp_tp smtp;
 
 	int store_store_sub_graph = 0, store_use_sub_graph = 0;
@@ -670,7 +737,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		}
 
 		if (constr && constr->nc > 0) {
-			int nc, k, kk, det_computed = 0;
+			int nc, k, kk;
 			double *aat_m, alpha, beta, *b_add = NULL, *aqat_m;
 
 			/*
@@ -695,16 +762,15 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				/*
 				 * go further only if the constraint is still there: it might go away!!! 
 				 */
-
-				double *tmp_vector;
-
 				nc = (*problem)->sub_constr->nc;	/* shortname */
 
-				if (!STOCHASTIC_CONSTR((*problem)->sub_constr)) {
+				// we assume this is ok for INLA so we turn this off.
+				if (0) {
 					/*
 					 * this is for deterministic constraints only. the stochastic version will most likely
 					 * be ok. 
 					 */
+
 					do {
 						/*
 						 * check that the constaints are not singular, if so, remove them 
@@ -718,6 +784,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 							printf("enter check with nc = %d\n", nc);
 						}
 
+						FIXME1("NOT ADDED CONSTR STORE HERE");
 						/*
 						 * compute |A*A'| 
 						 */
@@ -725,11 +792,12 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 						beta = 0.0;
 						aat_m = Calloc(nc * nc, double);
 
-						if (faster_constr && (*problem)->sub_constr->jfirst) {
+						if (GMRFLib_faster_constr) {
 							dgemm_special2(nc, aat_m, (*problem)->sub_constr->a_matrix, (*problem)->sub_constr);
 						} else {
 							dgemm_("N", "T", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix,
-							       &nc, (*problem)->sub_constr->a_matrix, &nc, &beta, aat_m, &nc, 1, 1);
+							       &nc, (*problem)->sub_constr->a_matrix, &nc, &beta, aat_m, &nc,
+							       F_ONE, F_ONE);
 						}
 						GMRFLib_EWRAP1(GMRFLib_comp_chol_semidef
 							       (NULL, &map, &rank, aat_m, nc, &((*problem)->logdet_aat), eps));
@@ -740,7 +808,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 							 * ok, the reduced constraints are fine 
 							 */
 							fail = 0;
-							det_computed = 1;	/* flag that (*problem)->logdet_aat is computed */
+							//det_computed = 1;	/* flag that (*problem)->logdet_aat is computed */
 						} else {
 							/*
 							 * oops, the reduced constraints are singular. this have to be fixed 
@@ -777,7 +845,10 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 							Free((*problem)->sub_constr->e_vector);
 							(*problem)->sub_constr->e_vector = e;
 							(*problem)->sub_constr->nc = rank;
-
+							Free((*problem)->sub_constr->jfirst);
+							Free((*problem)->sub_constr->jlen);
+							GMRFLib_prepare_constr((*problem)->sub_constr, (*problem)->sub_graph, GMRFLib_FALSE);
+							
 							if (debug) {
 								GMRFLib_print_constr(stdout, (*problem)->sub_constr, (*problem)->sub_graph);
 							}
@@ -787,7 +858,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					}
 					while (fail);
 				}
-
+				
 				/*
 				 * then compute the important constr_matrix 
 				 */
@@ -810,50 +881,27 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					/*
 					 * compute it as usual 
 					 */
-					if (0) {
-						for (k = 0; k < nc; k++) {
-							kk = k * sub_n;
-							for (i = 0; i < sub_n; i++) {
-								(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
-							}
-							GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[kk]), 1,
-											&((*problem)->sub_sm_fact), (*problem)->sub_graph);
+					for (k = 0; k < nc; k++) {
+						kk = k * sub_n;
+						for (i = 0; i < sub_n; i++) {
+							(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
 						}
-					} else {
-						for (k = 0; k < nc; k++) {
-							kk = k * sub_n;
-							for (i = 0; i < sub_n; i++) {
-								(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
-							}
-						}
-						GMRFLib_solve_llt_sparse_matrix((*problem)->qi_at_m, nc,
-										&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 					}
+					GMRFLib_solve_llt_sparse_matrix((*problem)->qi_at_m, nc,
+									&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 				} else {
 					/*
 					 * reuse 
 					 */
-					if (0) {
-						memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
-						for (k = nc - 1; k < nc; k++) {
-							kk = k * sub_n;
-							for (i = 0; i < sub_n; i++) {
-								(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
-							}
-							GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[kk]), 1,
-											&((*problem)->sub_sm_fact), (*problem)->sub_graph);
+					memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
+					for (k = nc - 1; k < nc; k++) {
+						kk = k * sub_n;
+						for (i = 0; i < sub_n; i++) {
+							(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
 						}
-					} else {
-						memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
-						for (k = nc - 1; k < nc; k++) {
-							kk = k * sub_n;
-							for (i = 0; i < sub_n; i++) {
-								(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
-							}
-						}
-						GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[(nc - 1) * sub_n]), 1,
-										&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 					}
+					GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[(nc - 1) * sub_n]), 1,
+									&((*problem)->sub_sm_fact), (*problem)->sub_graph);
 				}
 				Free(qi_at_m_store);
 
@@ -863,26 +911,18 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				aqat_m = Calloc(nc * nc, double);
 				alpha = 1.0;
 				beta = 0.0;
-				if (faster_constr && (*problem)->sub_constr->jfirst) {
+				if (GMRFLib_faster_constr) {
 					dgemm_special(nc, sub_n, aqat_m, (*problem)->sub_constr->a_matrix,
 						      (*problem)->qi_at_m, (*problem)->sub_constr);
 				} else {
 					dgemm_("N", "N", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix, &nc,
-					       (*problem)->qi_at_m, &sub_n, &beta, aqat_m, &nc, 1, 1);
+					       (*problem)->qi_at_m, &sub_n, &beta, aqat_m, &nc,
+					       F_ONE, F_ONE);
 				}
 
-				if (STOCHASTIC_CONSTR((*problem)->sub_constr)) {
-					/*
-					 * add the covariance matrix, AQ^-1A^t + \Sigma 
-					 */
-					if ((*problem)->sub_constr->errcov_diagonal) {
-						for (i = 0; i < nc; i++) {
-							aqat_m[i + i * nc] += (*problem)->sub_constr->errcov_diagonal[i];
-						}
-					} else {
-						for (i = 0; i < ISQR(nc); i++) {
-							aqat_m[i] += (*problem)->sub_constr->errcov_general[i];
-						}
+				if (GMRFLib_aqat_m_diag_add > 0.0) {
+					for(i = 0; i < nc; i++){
+						aqat_m[i + i * nc] += GMRFLib_aqat_m_diag_add;
 					}
 				}
 
@@ -897,7 +937,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				 * ...and the constr-matrix Q^-1A^T inv(AQ^{-1}A^T + Sigma) 
 				 */
 				(*problem)->constr_m = Calloc(sub_n * nc, double);
-				tmp_vector = Calloc(sub_n * nc, double);
+				double *tmp_vector = Calloc(sub_n * nc, double);
 
 				for (i = 0, k = 0; i < sub_n; i++) {
 					for (j = 0; j < nc; j++) {
@@ -912,7 +952,23 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				}
 				Free(tmp_vector);
 
-				if (!STOCHASTIC_CONSTR((*problem)->sub_constr) && !det_computed) {
+				GMRFLib_constr_tp *con = (*problem)->sub_constr;
+				double *p = NULL;
+					
+				if (con->sha1 && constr_store_use) {
+					p = map_strd_ptr(&constr_store, (char *) con->sha1);
+					if (p) {
+						(*problem)->logdet_aat = *p;
+					}
+					if (constr_store_debug) {
+						if (p) {
+							printf("constr_store: constr found in store= %f\n", *p);
+						} else {
+							printf("constr_store: constr not found in store\n");
+						}
+					}
+				}
+				if (!p) {
 					/*
 					 * compute |A*A'| 
 					 */
@@ -920,17 +976,32 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					beta = 0.0;
 					aat_m = Calloc(nc * nc, double);
 
-					if (faster_constr && (*problem)->sub_constr->jfirst) {
+					if (GMRFLib_faster_constr) {
 						dgemm_special2(nc, aat_m, (*problem)->sub_constr->a_matrix, (*problem)->sub_constr);
 					} else {
 						dgemm_("N", "T", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix,
-						       &nc, (*problem)->sub_constr->a_matrix, &nc, &beta, aat_m, &nc, 1, 1);
+						       &nc, (*problem)->sub_constr->a_matrix, &nc, &beta, aat_m, &nc,
+						       F_ONE, F_ONE);
 					}
 					tmp_vector = NULL;
 					GMRFLib_EWRAP1(GMRFLib_comp_chol_general
 						       (&tmp_vector, aat_m, nc, &((*problem)->logdet_aat), GMRFLib_ESINGCONSTR));
 					Free(aat_m);
 					Free(tmp_vector);
+
+					if (con->sha1 && constr_store_use) {
+						if (constr_store_debug) {
+							printf("constr_store: store value %f\n", (*problem)->logdet_aat);
+						}
+#pragma omp critical 
+						map_strd_set(&constr_store, (char *) con->sha1, (*problem)->logdet_aat);
+					}
+					if (!(con->sha1) && constr_store_use) {
+						if (constr_store_debug) {
+							printf("constr_store: value computed %f, but not set\n",
+							       (*problem)->logdet_aat);
+						}
+					}
 				}
 			}
 		}
@@ -967,7 +1038,8 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			 */
 			alpha = -1.0;
 			beta = 1.0;			       /* mean_constr = mean - cond_m*t_vector */
-			dgemv_("N", &sub_n, &nc, &alpha, (*problem)->constr_m, &sub_n, t_vector, &inc, &beta, (*problem)->sub_mean_constr, &inc, 1);
+			dgemv_("N", &sub_n, &nc, &alpha, (*problem)->constr_m, &sub_n, t_vector, &inc, &beta, (*problem)->sub_mean_constr,
+			       &inc, F_ONE);
 		}
 	}
 
@@ -1085,39 +1157,10 @@ int GMRFLib_sample(GMRFLib_problem_tp * problem)
 		GMRFLib_EWRAP1(GMRFLib_eval_constr(problem->sub_constr_value, NULL, problem->sub_sample, problem->sub_constr, problem->sub_graph));
 		memcpy(t_vector, problem->sub_constr_value, nc * sizeof(double));
 
-		if (STOCHASTIC_CONSTR(problem->sub_constr)) {
-			/*
-			 * add (YES: do not set t_vector to zero!) noisy terms here 
-			 */
-			double *z = NULL;
-
-			z = Calloc(nc, double);
-
-			for (i = 0; i < nc; i++) {
-				z[i] = GMRFLib_stdnormal();
-			}
-
-			if (problem->sub_constr->errcov_diagonal) {
-				/*
-				 * add L*z, where L=sqrt(diag(Q)) 
-				 */
-				for (i = 0; i < nc; i++) {
-					t_vector[i] += problem->sub_constr->intern->chol[i] * z[i];
-				}
-			} else {
-				/*
-				 * add L*z 
-				 */
-				dtrmv_("L", "N", "N", &nc, problem->sub_constr->intern->chol, &nc, z, &inc, 1, 1, 1);
-				for (i = 0; i < nc; i++) {
-					t_vector[i] += z[i];
-				}
-			}
-			Free(z);
-		}
 		alpha = -1.0;
 		beta = 1.0;				       /* sample := sample - cond_m*t_vector */
-		dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, problem->sub_sample, &inc, 1);
+		dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, problem->sub_sample,
+		       &inc, F_ONE);
 		Free(t_vector);
 
 		for (i = 0; i < n; i++) {
@@ -1201,41 +1244,6 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp * problem, int compute_const)
 	 */
 	if (!problem->sub_constr || problem->sub_constr->nc == 0) {
 		return GMRFLib_SUCCESS;
-	} else if (STOCHASTIC_CONSTR(problem->sub_constr)) {
-		/*
-		 * stochastic constraints 
-		 */
-		int nc = problem->sub_constr->nc;
-		double exp_corr2;
-
-		if (compute_const) {
-			/*
-			 * t_vector = A mu -b tt_vector = work 
-			 */
-			double *t_vector = NULL, *tt_vector = NULL, exp_corr = 0.0;
-
-			Free(problem->sub_constr_value);
-			problem->sub_constr_value = t_vector = Calloc(nc, double);
-			tt_vector = Calloc(nc, double);
-
-			GMRFLib_EWRAP0(GMRFLib_eval_constr(t_vector, NULL, problem->sub_mean, problem->sub_constr, problem->sub_graph));
-
-
-			GMRFLib_EWRAP0(GMRFLib_solveAxb_posdef(tt_vector, problem->l_aqat_m, t_vector, nc, 1));
-			for (i = 0, exp_corr = 0.0; i < nc; i++) {
-				exp_corr += t_vector[i] * tt_vector[i];
-			}
-			problem->exp_corr = exp_corr;
-			Free(tt_vector);
-		}
-
-		GMRFLib_EWRAP0(GMRFLib_eval_constr(NULL, &exp_corr2, problem->sub_sample, problem->sub_constr, problem->sub_graph));
-
-		/*
-		 * [x|Ax] = [x] [Ax|x] / [Ax] 
-		 */
-		problem->sub_logdens += -0.5 * *(problem->sub_constr->intern->logdet) - 0.5 * exp_corr2	/* [Ax|x] */
-		    - (-0.5 * problem->logdet_aqat - 0.5 * problem->exp_corr);	/* [Ax] */
 	} else {
 		/*
 		 * deterministic constraints 
@@ -1265,7 +1273,7 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp * problem, int compute_const)
 		 * [x|Ax] = [x] [Ax|x] / [Ax] 
 		 */
 		problem->sub_logdens += (-0.5 * problem->logdet_aat)	/* [Ax|x] */
-		    -(-0.5 * nc * log(2.0 * M_PI) - 0.5 * problem->logdet_aqat - 0.5 * problem->exp_corr);	/* [Ax] */
+			-(-0.5 * nc * log(2.0 * M_PI) - 0.5 * problem->logdet_aqat - 0.5 * problem->exp_corr);	/* [Ax] */
 	}
 
 	return GMRFLib_SUCCESS;
@@ -1493,7 +1501,6 @@ int GMRFLib_make_empty_constr(GMRFLib_constr_tp ** constr)
 {
 	if (constr) {
 		*constr = Calloc(1, GMRFLib_constr_tp);
-		(*constr)->intern = Calloc(1, GMRFLib_constr__intern_tp);
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -1518,12 +1525,6 @@ int GMRFLib_free_constr(GMRFLib_constr_tp * constr)
 		Free(constr->e_vector);
 		Free(constr->jfirst);
 		Free(constr->jlen);
-		Free(constr->errcov_diagonal);
-		Free(constr->errcov_general);
-		Free(constr->intern->chol);
-		Free(constr->intern->Qpattern);
-		Free(constr->intern->logdet);
-		Free(constr->intern);
 		Free(constr);
 	}
 	return GMRFLib_SUCCESS;
@@ -1556,40 +1557,8 @@ int GMRFLib_print_constr(FILE * fp, GMRFLib_constr_tp * constr, GMRFLib_graph_tp
 		}
 		fprintf(fpp, "\n");
 	}
-	if (STOCHASTIC_CONSTR(constr)) {
-		if (constr->errcov_diagonal) {
-			fprintf(fpp, "errcov_diagonal ");
-			for (i = 0; i < constr->nc; i++) {
-				fprintf(fpp, " %12.6f", constr->errcov_diagonal[i]);
-			}
-			fprintf(fpp, "\n");
-			if (constr->intern && constr->intern->chol) {
-				fprintf(fpp, "intern->chol ");
-				for (i = 0; i < constr->nc; i++) {
-					fprintf(fpp, " %12.6f", constr->intern->chol[i]);
-				}
-				fprintf(fpp, "\n");
-			}
-		} else {
-			fprintf(fpp, "errcov_general\n");
-			for (i = 0; i < constr->nc; i++) {
-				fprintf(fpp, "%1d: ", i);
-				for (j = 0; j <= i; j++) {
-					fprintf(fpp, " %12.6f", constr->errcov_general[i + j * constr->nc]);
-				}
-				fprintf(fpp, "\n");
-			}
-			if (constr->intern && constr->intern->chol) {
-				fprintf(fpp, "intern->chol\n");
-				for (i = 0; i < constr->nc; i++) {
-					fprintf(fpp, "%1d: ", i);
-					for (j = 0; j <= i; j++) {
-						fprintf(fpp, " %12.6f", constr->intern->chol[i + j * constr->nc]);
-					}
-					fprintf(fpp, "\n");
-				}
-			}
-		}
+	for (i = 0; i < constr->nc; i++) {
+		fprintf(fpp, "constraint %d, jfirst= %d jlen= %d\n", i, constr->jfirst[i], constr->jlen[i]);
 	}
 
 	return GMRFLib_SUCCESS;
@@ -1619,12 +1588,10 @@ int GMRFLib_print_constr(FILE * fp, GMRFLib_constr_tp * constr, GMRFLib_graph_tp
 int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph, int scale_constr)
 {
 	/*
-	 * prepare a constraint: compute the internal variables in constr->intern
-	 * 
-	 * NOTE: at the moment, the intern->Q is only used for checking if Q[i,j] is zero or not. 
+	 * prepare a constraint
 	 */
-	int i, j, nc, k, kk, n, debug = 0;
-	double ldet, *scale = NULL;
+	int i, j, nc, k, n, debug = 0;
+	double *scale = NULL;
 
 	if (!constr) {
 		return GMRFLib_SUCCESS;
@@ -1669,30 +1636,6 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 				}
 				constr->e_vector[k] /= scale[k];
 			}
-
-			if (STOCHASTIC_CONSTR(constr)) {
-				if (constr->errcov_diagonal) {
-					for (k = 0; k < nc; k++) {
-						constr->errcov_diagonal[k] /= SQR(scale[k]);
-					}
-				}
-				if (constr->errcov_general) {
-					for (k = 0; k < nc; k++) {
-						for (kk = 0; kk < nc; kk++) {
-							constr->errcov_general[k + kk * nc] /= (scale[k] * scale[kk]);
-						}
-					}
-				}
-
-				if (constr->intern) {
-					/*
-					 * if we have scaled, then recompute these [can be avoided but....] 
-					 */
-					Free(constr->intern->logdet);
-					Free(constr->intern->chol);
-					Free(constr->intern->Qpattern);
-				}
-			}
 		}
 		Free(scale);
 		if (debug) {
@@ -1718,68 +1661,43 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 		}
 	}
 
-	if (!STOCHASTIC_CONSTR(constr)) {
-		return GMRFLib_SUCCESS;
-	}
-	if (constr->intern && constr->intern->chol && constr->intern->Qpattern && constr->intern->logdet) {
-		return GMRFLib_SUCCESS;
-	}
-
-	if (!constr->intern) {
-		constr->intern = Calloc(1, GMRFLib_constr__intern_tp);
-
-	}
-
-	if (constr->errcov_diagonal) {
-		if (!constr->intern->chol) {
-			constr->intern->chol = Calloc(nc, double);
-
-			for (i = 0; i < nc; i++) {
-				constr->intern->chol[i] = sqrt(constr->errcov_diagonal[i]);
-			}
-		}
-		if (!constr->intern->Qpattern) {
-			constr->intern->Qpattern = Calloc(nc, char);
-
-			memset(constr->intern->Qpattern, 1, (unsigned) nc);	/* by definition they are.... */
-		}
-		if (!constr->intern->logdet) {
-			constr->intern->logdet = Calloc(1, double);
-
-			for (i = 0, ldet = 0.0; i < nc; i++) {
-				ldet += log(constr->errcov_diagonal[i]);
-			}
-			*(constr->intern->logdet) = ldet;
-		}
-	} else {
-		if (!constr->intern->chol) {
-			GMRFLib_comp_chol_general(&(constr->intern->chol), constr->errcov_general, nc, NULL, GMRFLib_ESINGCONSTR);
-		}
-		if (!constr->intern->logdet) {
-			constr->intern->logdet = Calloc(1, double);
-
-			for (ldet = 0.0, i = 0; i < nc; i++) {
-				ldet += log(constr->intern->chol[i + i * nc]);
-			}
-			*(constr->intern->logdet) = 2.0 * ldet;
-		}
-		if (!constr->intern->Qpattern) {
-			double *Q = NULL, eps = GMRFLib_eps(1. / 2.);
-
-			Q = Calloc(ISQR(nc), double);
-			constr->intern->Qpattern = Calloc(ISQR(nc), char);
-
-			memcpy(Q, constr->errcov_general, ISQR(nc) * sizeof(double));
-			GMRFLib_comp_posdef_inverse(Q, nc);
-			for (i = 0; i < ISQR(nc); i++) {
-				constr->intern->Qpattern[i] = (ABS(Q[i]) < eps ? 0 : 1);
-			}
-			Free(Q);
-		}
-	}
+	GMRFLib_constr_add_sha1(constr, graph);
 
 	return GMRFLib_SUCCESS;
 }
+
+int GMRFLib_constr_add_sha1(GMRFLib_constr_tp * constr, GMRFLib_graph_tp *graph)
+{
+#define LEN 64L
+#define DUPDATE(_x, _len) if ((_len) > 0 && (_x))			\
+	{								\
+		size_t len = (_len) * sizeof(double);			\
+		size_t n = (size_t) len / LEN;				\
+		size_t m = len - n * LEN;				\
+		for(size_t i = 0; i < n; i++) {				\
+			SHA1_Update(&c, &(((unsigned char *) (_x))[i * LEN]), (unsigned long) LEN); \
+		}							\
+		if (m) SHA1_Update(&c, &(((unsigned char *) (_x))[n * LEN]), (unsigned long) m); \
+	}
+
+	// add the SHA1 hash to the constr
+	SHA_CTX c;
+	unsigned char *md = Calloc(SHA_DIGEST_LENGTH + 1, unsigned char);
+
+	memset(md, 0, SHA_DIGEST_LENGTH + 1);
+	SHA1_Init(&c);
+
+	DUPDATE(constr->a_matrix, graph->n);
+	DUPDATE(constr->e_vector, constr->nc);
+	SHA1_Final(md, &c);
+	md[SHA_DIGEST_LENGTH] = '\0';
+	constr->sha1 = md;
+#undef DUPDATE
+	return GMRFLib_SUCCESS;
+}
+
+
+
 
 /*! \brief Evaluates the expressions 
   \f$ \mbox{\boldmath $Ax-e$} \f$ and 
@@ -1806,44 +1724,31 @@ int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_con
 	 * 
 	 * if value, *value = Ax-e if sqr_value, *sqr_value = (Ax-e)'Q(Ax-e) 
 	 */
-	double *t_vector, alpha, beta;
-	int inc = 1, nc;
+	double *t_vector, alpha, beta, *res;
+	int inc = 1, nc, i;
 
 	nc = constr->nc;
-	t_vector = Calloc(nc, double);
+	t_vector = Calloc(2*nc, double);
+	res = t_vector + nc;
 	memcpy(t_vector, constr->e_vector, nc * sizeof(double));
 	alpha = 1.0;
 	beta = -1.0;
-	dgemv_("N", &nc, &(graph->n), &alpha, constr->a_matrix, &nc, x, &inc, &beta, t_vector, &inc, 1);
+
+	if (GMRFLib_faster_constr) {
+		dgemv_special(res, x, constr);
+		for(i = 0; i < nc; i++) {
+			t_vector[i] = res[i] - t_vector[i];
+		}
+	} else {
+		dgemv_("N", &nc, &(graph->n), &alpha, constr->a_matrix, &nc, x, &inc, &beta, t_vector, &inc,
+		       F_ONE);
+	}
 
 	if (value) {
 		memcpy(value, t_vector, nc * sizeof(double));
 	}
 	if (sqr_value) {
 		*sqr_value = 0.0;
-	}
-	if (sqr_value && STOCHASTIC_CONSTR(constr)) {
-		double *tt_vector, val;
-		int i;
-
-		tt_vector = Calloc(nc, double);
-
-		if (constr->errcov_diagonal) {
-			for (i = 0; i < nc; i++) {
-				tt_vector[i] = t_vector[i] / constr->errcov_diagonal[i];
-			}
-		} else {
-			if (constr->errcov_general) {
-				GMRFLib_EWRAP0(GMRFLib_solveAxb_posdef(tt_vector, constr->intern->chol, t_vector, nc, 1));
-			}
-		}
-
-		for (i = 0, val = 0.0; i < nc; i++) {
-			val += t_vector[i] * tt_vector[i];
-		}
-		*sqr_value = val;
-
-		Free(tt_vector);
 	}
 	Free(t_vector);
 
@@ -1872,7 +1777,7 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * c
 
 	GMRFLib_ENTER_ROUTINE;
 
-	int i, ii, j, k, kk, n, ns, *in_use = NULL, *cmap = NULL, nc = 0;
+	int i, k, kk, n, ns, *in_use = NULL, *cmap = NULL, nc = 0;
 
 	if (!constr) {
 		if (new_constr) {
@@ -1895,23 +1800,7 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * c
 		(*new_constr)->e_vector = Calloc(constr->nc, double);
 		memcpy((*new_constr)->e_vector, constr->e_vector, constr->nc * sizeof(double));
 
-		if (constr->errcov_diagonal) {
-			(*new_constr)->errcov_diagonal = Calloc(constr->nc, double);
-			memcpy((*new_constr)->errcov_diagonal, constr->errcov_diagonal, constr->nc * sizeof(double));
-		} else {
-			(*new_constr)->errcov_diagonal = NULL;
-		}
-
-		if (constr->errcov_general) {
-			(*new_constr)->errcov_general = Calloc(ISQR(constr->nc), double);
-			memcpy((*new_constr)->errcov_general, constr->errcov_general, ISQR(constr->nc) * sizeof(double));
-		} else {
-			(*new_constr)->errcov_general = NULL;
-		}
-
-		/*
-		 * compute the internal stuff. scaling should not be needed.
-		 */
+		// this will add jfirst and jlen
 		GMRFLib_prepare_constr(*new_constr, graph, 0);
 
 		GMRFLib_LEAVE_ROUTINE;
@@ -1936,35 +1825,6 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * c
 		for (i = 0; i < ns && in_use[k] == 0; i++) {
 			if (constr->a_matrix[k + constr->nc * sub_graph->mothergraph_idx[i]]) {
 				in_use[k] = 1;
-			}
-		}
-	}
-
-	/*
-	 * find those constrs that are in use, part II.
-	 * 
-	 * if are in the errcov_general-case, then we need to do a detailed check: constraint k is out, iff Q_kj=0 for all
-	 * other constraints j that are in (in_use[k]=1). (Q_kj can non-zero for a constraint j that is out (in_use[j]=0)). Q
-	 * is the inverse of COV and its zero/non-zero pattern is stored in intern->Qpattern. 
-	 */
-	if (constr->errcov_general) {
-		for (i = 0; i < constr->nc; i++) {
-			if (!in_use[i]) {
-				/*
-				 * test if constraint i is really out 
-				 */
-				int really_out;
-
-				for (j = 0, really_out = 1; j < constr->nc && really_out == 1; j++) {
-					if (j != i) {
-						if (in_use[j] == 1 && constr->intern->Qpattern[i + j * constr->nc]) {
-							really_out = 0;
-						}
-					}
-				}
-				if (!really_out) {
-					in_use[i] = 1;
-				}
 			}
 		}
 	}
@@ -2002,70 +1862,7 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * c
 		}
 	}
 
-	if (STOCHASTIC_CONSTR(constr)) {
-		/*
-		 * in this case we need to rebuild the covariance matrix, and compute 'b_add' which account also for setting
-		 * 'b=0' in the constraint. 
-		 */
-		double *t_vec = NULL;
-
-		t_vec = Calloc(nc, double);		       /* tmp-storage */
-
-		/*
-		 * compute new covariance-matrix for the new constraints 
-		 */
-		if (constr->errcov_diagonal) {
-			(*new_constr)->errcov_diagonal = Calloc(nc, double);
-
-			for (i = 0; i < nc; i++) {
-				(*new_constr)->errcov_diagonal[i] = constr->errcov_diagonal[cmap[i]];
-			}
-		} else {				       /* the general case */
-			(*new_constr)->errcov_general = Calloc(ISQR(nc), double);
-
-			for (i = 0; i < nc; i++) {
-				ii = cmap[i];
-				for (j = 0; j < nc; j++) {
-					(*new_constr)->errcov_general[i + j * nc] = constr->errcov_general[ii + cmap[j] * constr->nc];
-				}
-			}
-		}
-
-		/*
-		 * compute the internal stuff & scale 
-		 */
-		GMRFLib_prepare_constr(*new_constr, sub_graph, 1);
-
-		/*
-		 * compute the contribution to b, ``b_add''.  t_vec = Q*(e-A_2 x_2). `b_add' account for `e_vector' in this
-		 * case, so e_vector=0 
-		 */
-		if ((*new_constr)->errcov_diagonal) {
-			for (i = 0; i < nc; i++) {
-				t_vec[i] = (*new_constr)->e_vector[i] / (*new_constr)->errcov_diagonal[i];
-			}
-		} else {
-			GMRFLib_solveAxb_posdef(t_vec, (*new_constr)->intern->chol, (*new_constr)->e_vector, nc, 1);
-		}
-
-		for (j = 0; j < nc; j++) {
-			for (i = 0; i < ns; i++) {
-				b_add[i] += (*new_constr)->a_matrix[i * nc + j] * t_vec[j];
-			}
-		}
-
-		memset((*new_constr)->e_vector, 0, nc * sizeof(double));
-
-		/*
-		 * done ;-) 
-		 */
-		Free(t_vec);
-	} else {
-		/*
-		 * scale it 
-		 */
-		GMRFLib_prepare_constr(*new_constr, sub_graph, 1);
-	}
+	GMRFLib_prepare_constr(*new_constr, sub_graph, 1);
 
 	Free(in_use);
 	Free(cmap);
@@ -2232,16 +2029,8 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 			COPY(sub_constr->nc);
 			DUPLICATE(sub_constr->a_matrix, nc * ns, double, 0);
 			DUPLICATE(sub_constr->e_vector, nc, double, 0);
-
-			if (STOCHASTIC_CONSTR(problem->sub_constr)) {
-				DUPLICATE(sub_constr->errcov_diagonal, nc, double, 0);
-				DUPLICATE(sub_constr->errcov_general, ISQR(nc), double, 0);
-
-				if (problem->sub_constr->intern) {
-					np->sub_constr->intern = Calloc(1, GMRFLib_constr__intern_tp);
-					DUPLICATE(sub_constr->intern->Qpattern, ISQR(nc), char, 0);
-				}
-			}
+			DUPLICATE(sub_constr->jfirst, nc, int, 0);
+			DUPLICATE(sub_constr->jlen, nc, int, 0);
 		} else {
 			COPY(sub_constr);
 		}
@@ -2361,15 +2150,8 @@ GMRFLib_sizeof_tp GMRFLib_sizeof_problem(GMRFLib_problem_tp * problem)
 		siz += sizeof(GMRFLib_constr_tp);
 		DUPLICATE(sub_constr->a_matrix, nc * ns, double);
 		DUPLICATE(sub_constr->e_vector, nc, double);
-
-		if (STOCHASTIC_CONSTR(problem->sub_constr)) {
-			DUPLICATE(sub_constr->errcov_diagonal, nc, double);
-			DUPLICATE(sub_constr->errcov_general, ISQR(nc), double);
-
-			if (problem->sub_constr->intern) {
-				DUPLICATE(sub_constr->intern->Qpattern, ISQR(nc), char);
-			}
-		}
+		DUPLICATE(sub_constr->jfirst, nc, int);
+		DUPLICATE(sub_constr->jlen, nc, int);
 	}
 
 	DUPLICATE(sub_constr_value, nc, double);

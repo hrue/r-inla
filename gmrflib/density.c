@@ -544,7 +544,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 			/*
 			 * for the skew-normal we know the moments 
 			 */
-			double mom[3];			       /* as we have params in 'float' */
+			double mom[3] = {0, 0, 0};	       /* as we have params in 'float' */
 			GMRFLib_sn_moments(&mom[0], &mom[1], &mom[2], density->sn_param);
 			density->mean = mom[0];
 			density->stdev = mom[1];

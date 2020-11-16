@@ -318,6 +318,10 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 			gsl_vector_set(sqrt_eigen_values_new, k, gsl_vector_get(a->sqrt_eigen_values, idx_map[k]));
 		} else {
 			theta_new[k] = model->fixed_values[kk];
+			if (ISNAN(theta_new[k])) {
+				// otherwise other things will break
+				theta_new[k] = 0.0;
+			}
 			stdev_corr_pos_new[k] = 1.0;
 			stdev_corr_neg_new[k] = 1.0;
 			gsl_vector_set(sqrt_eigen_values_new, k, 0.0);

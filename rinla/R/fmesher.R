@@ -2,16 +2,20 @@
 
 `inla.fmesher.call` = function(
         fmesher.call = inla.getOption("fmesher.call"),
-        all.args, prefix)
+        all.args, prefix,
+        timeout = inla.getOption("fmesher.timeout"))
 {
     if (inla.os("linux") || inla.os("mac")) {
-        echoc = system(paste(shQuote(fmesher.call), all.args, shQuote(prefix)))
+        echoc = system(paste(shQuote(fmesher.call), all.args, shQuote(prefix)),
+                       timeout = ceiling(timeout))
     }
     else if(inla.os("windows")) {
         if (TRUE) {
             echoc = try(system(paste(shQuote(fmesher.call),
                                      all.args,
-                                     shQuote(prefix))), silent=TRUE)
+                                     shQuote(prefix)),
+                               timeout = ceiling(timeout)),
+                        silent=TRUE)
             echoc = 0
         } else {
             ## we might need it if we want one day to make the fmesher program run remotely

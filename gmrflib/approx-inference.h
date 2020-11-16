@@ -637,9 +637,10 @@ typedef struct {
 	double *correction_term;			       /* hold the correction term for the use_linear_correction */
 
 	/**
-	 *\brief Store the third derivative of the log likelihood
+	 *\brief Store the third (and optionally fourth) derivative of the log likelihood
 	 */
 	double *derivative3;
+	double *derivative4;
 	int *correction_idx;				       /* hold the idx's for the corrections, ie those with d[i] != 0 */
 	int nidx;					       /* number of those */
 

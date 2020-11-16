@@ -298,7 +298,7 @@ int GMRFLib_init_wa_problem(GMRFLib_wa_problem_tp ** wa_problem, GMRFLib_graph_t
 	}
 
 	Free(memsiz);
-	GMRFLib_graph_prepare(graph, 0);
+	GMRFLib_graph_prepare(graph, 0, 0);
 
 	/*
 	 * setup the new types 

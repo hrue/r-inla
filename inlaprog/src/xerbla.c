@@ -5,8 +5,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+// need fortran_charlen_t
+#include "GMRFLib/GMRFLibP.h"
 
-void xerbla_(char *srname, int *info, int len)
+
+void xerbla_(char *srname, int *info, fortran_charlen_t len)
 {
 	// fortran version
 	char *name = (char *) calloc(len+1, sizeof(char));

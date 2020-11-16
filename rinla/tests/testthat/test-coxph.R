@@ -26,7 +26,7 @@ test_that("Case 1", {
     df = data.frame(intercept2, x, y)
     ## new need to cbind the data.frames, and then add the list-part of
     ## the data
-    df.joint = c(as.list(inla.cbind.data.frames(p$data, df)), p$data.list)
+    df.joint = c(as.list(inla.rbind.data.frames(p$data, df)), p$data.list)
     df.joint$Y = cbind(df.joint$y..coxph, df.joint$y)
     ## merge the formulas, recall to add '-1' and to use the new joint
     ## reponse 'Y'

@@ -190,7 +190,7 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_find_idx(int *idx, int n, int *iarray, int value);
 int GMRFLib_getbit(GMRFLib_uchar c, unsigned int bitno);
-int GMRFLib_graph_add_sha1(GMRFLib_graph_tp *g);
+int GMRFLib_graph_add_sha1(GMRFLib_graph_tp *g, int skip_sha1);
 int GMRFLib_graph_cc_do(int node, GMRFLib_graph_tp * g, int *cc, char *visited, int *ccc);
 int GMRFLib_graph_comp_bw(int *bandwidth, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp * graph, char *remove_flag);
@@ -206,7 +206,7 @@ int GMRFLib_graph_mk_linear(GMRFLib_graph_tp ** graph, int n, int bw, int cyclic
 int GMRFLib_graph_mk_unique(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_nfold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * og, int nfold);
 int GMRFLib_graph_nnodes(int *nelm, GMRFLib_graph_tp * graph);
-int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph, int is_sorted);
+int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph, int is_sorted, int skip_sha1);
 int GMRFLib_graph_printf(FILE * fp, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_prune(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_graph_read(GMRFLib_graph_tp ** graph, const char *filename);
@@ -219,6 +219,7 @@ int GMRFLib_graph_validate(FILE * fp, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_write(const char *filename, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_write2(FILE * fp, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_write_b(const char *filename, GMRFLib_graph_tp * graph);
+int GMRFLib_init_graph_store(void);
 int GMRFLib_lattice2node(int *node, int irow, int icol, int nrow, int ncol);
 int GMRFLib_node2lattice(int node, int *irow, int *icol, int nrow, int ncol);
 int GMRFLib_offset(GMRFLib_offset_tp ** off, int n_new, int offset, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
@@ -226,7 +227,6 @@ int GMRFLib_printbits(FILE * fp, GMRFLib_uchar c);
 int GMRFLib_setbit(GMRFLib_uchar * c, unsigned int bitno);
 int GMRFLib_xQx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_xQx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag);
-
 
 
 // I found this somewhere and I cannot find it again... It was under GPL, and I have modified the code to fit with inla.c.

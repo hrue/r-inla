@@ -16,14 +16,19 @@ test_that("Case 1", {
     x = c(a*xx, xx/a)
     E = c(Oral$E, Oral$E)
     N = 2*n
+    set.seed(1234)
     y = rpois(N, lambda = E*exp(x))
     
     ## model='besag2' defines a model with length N = 2*graph->n, the
     ## first half is weighted with 'a' the other half is weighted with
-    ## 1/a. here there is no unstructed terms.
+    ## 1/a. here there is no unstructured terms.
     i = 1:N
     std = TRUE
     formula = y ~ f(i, model="besag2", graph=g, scale.model=std) -1
     r = inla(formula, family = "poisson", data = data.frame(E,y,i), E=E)
-    expect_true(abs(r$summary.hyperpar[2, "mean"] - a) < 0.1)
+    expect_equal(
+        r$summary.hyperpar[2, "mean"],
+        a,
+        tolerance = 0.1
+    )
 })

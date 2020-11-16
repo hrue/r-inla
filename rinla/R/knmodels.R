@@ -38,25 +38,26 @@
              ##!   interaction type is being fitted.}
              progress=FALSE,
              ##! \item{control.st}{Named list of arguments to control
-             ##!   the spacetime interaction. It should contains: 
+             ##!   the spacetime interaction. It should contain: 
+             ##! \describe{
              control.st=list(
-                 ##!  \code{time} to be used as the index set for the
+                 ##!  \item{time}{to be used as the index set for the
                  ##!   main temporal effect which will be considered
-                 ##!   for the constraints when it is the case.
+                 ##!   for the constraints when it is the case.}
                  time,
-                 ##!  \code{space} to be used as the index set for the
+                 ##!  \item{space}{to be used as the index set for the
                  ##!   main spatial effect which will be considered
-                 ##!   for the constraints when it is the case.
+                 ##!   for the constraints when it is the case.}
                  space,
-                 ##!  \code{spacetime} to be the index set for the
-                 ##!   spacetime interaction effect.
+                 ##!  \item{spacetime}{to be the index set for the
+                 ##!   spacetime interaction effect.}
                  spacetime,
-                 ##! \code{graph} to be the graph for the spatial neighbor 
+                 ##! \item{graph}{to be the graph for the spatial neighbor 
                  ##!   structure to be used in a \code{\link{f}} term 
                  ##!   for the main spatial random effect term or for 
-                 ##!   building the spacetime interaction model.
+                 ##!   building the spacetime interaction model.}
                  graph,
-                 ##! \code{type} to specify the spacetime interaction type.  
+                 ##! \item{type}{to specify the spacetime interaction type.  
                  ##!   \code{1} to \code{4} corresponds to the four 
                  ##!   interaction types in Knorr-Held, L. (2000) with 
                  ##!   all the needed sum-to-zero constraints. 
@@ -65,18 +66,18 @@
                  ##!   or space constrained to be equal to zero. 
                  ##!   \code{2d}, \code{3d} and \code{4d} are the 
                  ##!   corresponding versions when considering the 
-                 ##!   diagonal add approach.  
+                 ##!   diagonal add approach.}
                  type=c(paste(1:4), paste0(2:4, 'c'), paste0(2:4, 'd')), 
-                 ##! \code{diagonal} to be the value to be added to the 
-                 ##!   diagonal when using the diagonal add approach.
+                 ##! \item{diagonal}{to be the value to be added to the 
+                 ##!   diagonal when using the diagonal add approach.}
                  diagonal=1e-5, 
-                 ##! \code{timeref} to specify the time point to be the
-                 ##!   reference time in the contrast parametrization.
+                 ##! \item{timeref}{to specify the time point to be the
+                 ##!   reference time in the contrast parametrization.}
                  timeref=1, 
-                 ##! \item{spaceref} to specify the area to be the
-                 ##!   reference for the contrast parametrization.
+                 ##! \item{spaceref}{to specify the area to be the
+                 ##!   reference for the contrast parametrization.}
                  spaceref=1, 
-                 ##!  \code{...} where additional arguments can be 
+                 ##!  \item{...}{where additional arguments can be 
                  ##!   passed to \code{\link{f}} function.
                  ##!   Specification of the hyperparameter, 
                  ##!   fixed or random, initial value, prior and its 
@@ -85,9 +86,10 @@
                  ##!   By default we scale it and use the PC-prior to set 
                  ##!   the prior using the \code{pc.prec} prior with 
                  ##!   \code{param = c(0.5, 0.5)}. See documentation with 
-                 ##!   \code{?inla.doc("pc.prec")}.
+                 ##!   \code{?inla.doc("pc.prec")}.}
                  ##! }
                  ...),
+             ##! }
              ##! \item{...}{Arguments to be passed to the 
              ##!   \code{\link{inla}} function.}
              ...)

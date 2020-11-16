@@ -1,17 +1,17 @@
 #' Check which mesh triangles are inside a polygon
 #'
-#' Wrapper for the \code{\link[sp]{over}} method to find triangle centroids
-#' or vertices inside \code{sp} polygon objects
+#' Wrapper for the [sp::over()] method to find triangle centroids
+#' or vertices inside `sp` polygon objects
 #'
-#' @param x geometry (typically a \code{\link[sp]{SpatialPolygons}} object) for the queries
-#' @param y an \code{\link{inla.mesh}} object
-#' @param type the query type; either \code{'centroid'} (default, for triangle centroids),
-#'   or \code{'vertex'} (for mesh vertices)
-#' @param ignore.CRS logical; whether to ignore the coordinate system information in \code{x} and \code{y}
-#'   (default \code{FALSE})
+#' @param x geometry (typically a [sp::SpatialPolygons()] object) for the queries
+#' @param y an [inla.mesh()] object
+#' @param type the query type; either `'centroid'` (default, for triangle centroids),
+#'   or `'vertex'` (for mesh vertices)
+#' @param ignore.CRS logical; whether to ignore the coordinate system information in `x` and `y`
+#'   (default `FALSE`)
 #'
-#' @return A vector of triangle indices (when \code{type} is \code{'centroid'}) or
-#'   vertex indices (when \code{type} is \code{'vertex'})
+#' @return A vector of triangle indices (when `type` is `'centroid'`) or
+#'   vertex indices (when `type` is `'vertex'`)
 #'   
 #' @author Haakon Bakka, \email{bakka@@r-inla.org}, and Finn Lindgren \email{finn.lindgren@@gmail.com}
 #'
@@ -40,7 +40,6 @@
 #' inla.over_sp_mesh(obj, inla.spTransform(mesh, CRSobj=inla.CRS("mollweide_norm")), ignore.CRS = TRUE)
 #'
 #' @export
-
 inla.over_sp_mesh <- function(x, y, type = c("centroid", "vertex"), ignore.CRS=FALSE) {
   if (!inherits(y, "inla.mesh")) {
     stop(paste0(

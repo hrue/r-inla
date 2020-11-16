@@ -57,7 +57,7 @@ __BEGIN_DECLS
 /*
  */
 void gpskca_(int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *);
-void dtbsvspecial_(const char *, const char *, const char *, int *, int *, double *, int *, double *, int *, int *, int *, int, int, int);
+void dtbsvspecial_(const char *, const char *, const char *, int *, int *, double *, int *, double *, int *, int *, int *, fortran_charlen_t, fortran_charlen_t, fortran_charlen_t);
 int cmsd_(double *, double *, int *, int *, int *, double *, int *, double *);
 
 int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp * graph);

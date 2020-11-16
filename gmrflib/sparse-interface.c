@@ -44,32 +44,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 /* Pre-hg-Id: $Id: sparse-interface.c,v 1.41 2010/02/27 08:32:02 hrue Exp $ */
 
 
-/* 
-   NEED TO CHANGE/REVISE THIS LATER when the new version with thread-safe solve comes
- */
-#define RUN_SAFE(_expr) if (!GMRFLib_pardiso_thread_safe && omp_in_parallel()) \
-	{								\
-		int debug = 0;						\
-		if (debug) {						\
-			printf("RUN_SAFE: enter with thread %1d\n", omp_get_thread_num()); \
-			fflush(stdout);					\
-		}							\
-		_Pragma("omp critical")					\
-		{							\
-			if (debug) {					\
-				printf("RUN_SAFE: CRITICAL REGION with thread %1d\n", omp_get_thread_num()); \
-				fflush(stdout);				\
-			}						\
-			ret = _expr;					\
-		}							\
-		if (debug) {						\
-			printf("RUN_SAFE: done with thread %1d\n", omp_get_thread_num()); \
-			fflush(stdout);					\
-		}							\
-	} else {							\
-		ret =  _expr;						\
-	}
-
 /*!
   \brief Compute the reordering
 */
@@ -333,7 +307,7 @@ int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * sm
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
-		RUN_SAFE(GMRFLib_pardiso_solve_L(sm_fact->PARDISO_fact, rhs, rhs, nrhs));
+		GMRFLib_pardiso_solve_L(sm_fact->PARDISO_fact, rhs, rhs, nrhs);
 		break;
 
 	default:
@@ -375,7 +349,7 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * s
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
-		RUN_SAFE(GMRFLib_pardiso_solve_LT(sm_fact->PARDISO_fact, rhs, rhs, nrhs));
+		GMRFLib_pardiso_solve_LT(sm_fact->PARDISO_fact, rhs, rhs, nrhs);
 		break;
 
 	default:
@@ -412,7 +386,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * 
 			GMRFLib_solve_llt_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_PARDISO) {
-		RUN_SAFE(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, nrhs));
+		GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, nrhs);
 	} else {
 		GMRFLib_ERROR(GMRFLib_ESNH);
 	}
@@ -441,7 +415,7 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm
 
 	case GMRFLib_SMTP_PARDISO:
 	{
-		RUN_SAFE(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, 1));
+		GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, 1);
 	}
 	break;
 
@@ -478,7 +452,7 @@ int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
-		RUN_SAFE(GMRFLib_pardiso_solve_LT(sm_fact->PARDISO_fact, rhs, rhs, 1));
+		GMRFLib_pardiso_solve_LT(sm_fact->PARDISO_fact, rhs, rhs, 1);
 		break;
 
 	default:
@@ -516,7 +490,7 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_f
 		if (remapped) {
 			GMRFLib_pardiso_perm(rhs, 1, sm_fact->PARDISO_fact);
 		}
-		RUN_SAFE(GMRFLib_pardiso_solve_L(sm_fact->PARDISO_fact, rhs, rhs, 1));
+		GMRFLib_pardiso_solve_L(sm_fact->PARDISO_fact, rhs, rhs, 1);
 	}
 		break;
 

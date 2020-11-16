@@ -383,7 +383,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		}
 	}
 
-#pragma omp parallel sections num_threads(GMRFLib_openmp->max_threads_outer)
+	int max_threads = IMIN(5, GMRFLib_openmp->max_threads_outer);
+#pragma omp parallel sections num_threads(max_threads)
 	{
 #pragma omp section
 		{
@@ -753,9 +754,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			fc = f_constr[k];
 			if (fc) {
 				nconstr += fc->nc;
-				if (STOCHASTIC_CONSTR(fc)) {
-					GMRFLib_ASSERT(!STOCHASTIC_CONSTR(fc), GMRFLib_EPARAMETER);
-				}
 			}
 		}
 	}

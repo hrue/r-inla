@@ -1,6 +1,5 @@
 ## Export: inla.posterior.sample inla.posterior.sample.eval
 
-
 ##! \name{inla.sample}
 ##! \alias{inla.posterior.sample}
 ##! \alias{posterior.sample}
@@ -46,9 +45,13 @@
 ##!   \item{add.names}{Logical. If \code{TRUE} then add name for each elements of each
 ##!       sample. If \code{FALSE}, only add name for the first sample. 
 ##!       (This save space.)}
-##!   \item{seed}{See the same argument in \code{?inla.qsample} for further information.
-##!               In order to produce reproducible results,  you ALSO need to make sure the
-##!               RNG in R is in the same state,  see example below.}
+##!   \item{seed}{See the same argument in \code{?inla.qsample} for further
+##!               information. In order to produce reproducible results,  you
+##!               ALSO need to make sure the RNG in R is in the same state,
+##!               see example below.  When \code{seed} is non-zero,
+##!               \code{num.threads} is forced to "1:1" and parallel.configs is
+##!               set to \code{FALSE}, since parallel sampling would not produce
+##!               a reproducible sequence of pseudo-random numbers.}
 ##!   \item{num.threads}{The number of threads to use in the format 'A:B' defining the number threads in the
 ##!                      outer (A) and inner (B) layer for nested parallelism. A '0' will be replaced
 ##!                      intelligently. 
@@ -59,13 +62,18 @@
 ##!                           where each of them is using \code{B:0} threads.}
 ##!   \item{verbose}{Logical. Run in verbose mode or not.}
 ##!   \item{fun}{The function to evaluate for each sample. Upon entry, the variable names
-##!               defined in the model are defined as the value of the sample.
-##!               The list of names are defined in \code{result$misc$configs$contents} where
-##!               \code{result} is an \code{inla}-object. This includes predefined names for
-##!               for the linear predictor (\code{Predictor} and \code{APredictor}),  and the
-##!               intercept (\code{(Intercept)} or \code{Intercept}).
-##!               The hyperparameters are defined as \code{theta},  no matter if they are in the
-##!               internal scale or not. The function \code{fun} can also return a vector.}
+##!              defined in the model are defined as the value of the sample.
+##!              The list of names are defined in \code{result$misc$configs$contents} where
+##!              \code{result} is an \code{inla}-object. This includes predefined names for
+##!              for the linear predictor (\code{Predictor} and \code{APredictor}),  and the
+##!              intercept (\code{(Intercept)} or \code{Intercept}).
+##!              The hyperparameters are defined as \code{theta},  no matter if they are in the
+##!              internal scale or not. The function \code{fun} can also return a vector.
+##!              To simplify usage, \code{fun} can also be a vector character's. In this case
+##!              \code{fun} it is interpreted as variable
+##!              names or subsets thereof, and a function is created that return these variables:
+##!              if argument \code{fun} equals \code{c("Intercept", "a[1:2]")},  then this is equivalent to
+##!              pass \code{function() return(c(Intercept, a[1:2]))}.}
 ##!   \item{samples}{\code{samples} is the output from \code{inla.posterior.sample()}}
 ##!   \item{return.matrix}{Logical. If \code{TRUE},  then return the samples of \code{fun}
 ##!                         as matrix,  otherwise,  as a list.}
@@ -146,6 +154,10 @@
 ##!         control.compute = list(config=TRUE),
 ##!         family = "gaussian")
 ##! r.samples = inla.posterior.sample(10^3, r)
+##!  
+##! ## just return samples of the intercept
+##! intercepts = inla.posterior.sample.eval("Intercept", r.samples)
+##!
 ##! nz = 3
 ##! znew = rnorm(nz)
 ##! fun = function(zz = NA) {
@@ -329,8 +341,14 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
         num.threads.user <- inla.parse.num.threads(num.threads)
         num.threads <- inla.parse.num.threads("1:1")
         if (num.threads != num.threads.user) {
-            warning("Since 'seed!=0', parallel model is disabled and serial model is selected")
+            warning("Since 'seed!=0', parallel model is disabled and serial model is selected, num.threads='1:1'")
         }
+        ## Since parallel.configs aren't used on winows anyway, warning about
+        ## overriding it on other systems is overkill and doesn't really help.
+        #    if (!missing(parallel.configs) && !isFALSE(parallel.configs)) {
+        #        warning("Since 'seed!=0', parallel model is disabled and serial model is selected, parallel.configs=FALSE")
+        #    }
+        parallel.configs <- FALSE
     } else {
         num.threads <- inla.parse.num.threads(num.threads)
     }
@@ -386,6 +404,9 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
         if (nt[2] == 0) {
             nt[2] <- max(1, ncores %/% nt[1])
         }
+        # In parallel mode, each thread needs it's own random sequence,
+        # so seed must be 0; seed != 0 is handled above to prevent parallel
+        # runs with nonzero seed.
         xx.list <- parallel::mclapply(1:cs$nconfig,
                              (function(k) {
                                  if (n.idx[k] > 0) {
@@ -396,7 +417,7 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
                                                                         cs$config[[k]]$mean), 
                                                        constr = cs$constr,
                                                        logdens = TRUE,
-                                                       seed = seed,
+                                                       seed = 0L,
                                                        num.threads = paste0(nt[2], ":1"), 
                                                        selection = sel.map,
                                                        verbose = verbose)
@@ -803,6 +824,16 @@ inla.posterior.sample = function(n = 1L, result, selection = list(),
     contents = attr(samples, which = ".contents", exact = TRUE)
     if (is.null(contents)) {
         stop("Argument 'samples' must be the output from 'inla.posterior.sample()'.")
+    }
+
+    ## special shorthand feature that is very useful. if this is vector of character's, then its
+    ## interpreted as a function returning these names, like ....eval(c("a", "b[1:2]"), ...)
+    ## will be converted into the function: function() return(c(a, b[1:2]))
+
+    if (is.character(fun)) {
+        fun <- inla.eval(paste("function() return(c(", paste(fun, sep = "", collapse = ", "), "))"))
+    } else {
+        fun <- match.fun(fun)
     }
 
     my.fun = function(a.sample, .contents, .fun, ...) 

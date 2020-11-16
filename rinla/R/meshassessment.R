@@ -39,6 +39,24 @@
 
 
 
+
+
+#' Interactive mesh building and diagnostics
+#' 
+#' Assess the finite element approximation errors in a mesh for interactive R
+#' sessions.  More detailed assessment tools are in [meshbuilder()].
+#' 
+#' 
+#' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @seealso inla.mesh.2d, inla.mesh.create, meshbuilder
+#' @examples
+#' 
+#' bnd <- inla.mesh.segment(cbind(c(0, 10, 10, 0, 0),
+#'                                c(0, 0, 10, 10, 0)), bnd = TRUE)
+#' mesh <- inla.mesh.2d(boundary = bnd, max.edge = 1)
+#' out <- inla.mesh.assessment(mesh, spatial.range = 3, alpha = 2)
+#' 
+#' @export inla.mesh.assessment
 inla.mesh.assessment <- function(mesh, spatial.range, alpha = 2,
                                  dims = c(500, 500)) {
   mesh.edgelengths <- function(mesh, proj) {

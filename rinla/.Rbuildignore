@@ -4,6 +4,8 @@
 ^NAMESPACE\.init$
 ^NAMESPACE\.backup$
 ^NAMESPACE\.new$
+^NAMESPACE\.roxygen$
+^NAMESPACE\.ours$
 ^DESCRIPTION\.backup$
 ^DESCRIPTION\.new$
 ^R/Makefile$

@@ -23,6 +23,7 @@
 ##!              prefix = "inla.plots/figure-",
 ##!              intern = FALSE, 
 ##!              debug = FALSE, 
+##!              cex = 1.25, 
 ##!              ...)
 ##! }
 ##! \arguments{
@@ -47,6 +48,8 @@
 ##!   \item{prefix}{The prefix for the created files. Additional numbering and suffix is added.}
 ##!   \item{intern}{Plot also the hyperparameters in its internal scale.}
 ##!   \item{debug}{Write some debug information}
+##!   \item{cex}{The \code{cex} parameter in \code{par()}. If set to \code{NULL} or \code{0},
+##!              then default values will be used for graphics parameters}
 ##!   \item{...}{Additional arguments to \code{postscript()}, \code{pdf()} or \code{dev.new()}.}
 ##! }
 ##! \value{The return value is a list of the files created (if any).}
@@ -56,8 +59,8 @@
 ##!\dontrun{
 ##!result = inla(...)
 ##!plot(result)
-##!plot(result, single=TRUE)
-##!plot(result, single=TRUE, pdf=TRUE, paper = "a4")
+##!plot(result, single = TRUE, plot.prior = TRUE)
+##!plot(result, single = TRUE, pdf = TRUE, paper = "a4")
 ##!   }
 ##! }
 ##! \keyword{plot}
@@ -78,11 +81,36 @@
              prefix = "inla.plots/figure-",
              intern = FALSE, 
              debug = FALSE, 
+             cex = 1.25, 
              ...)
 {
     ## for G & J
     if (!is.null(x$joint.model)) {
         return (plot(x$joint.model, ...))
+    }
+
+    ## if cex is ok, then use that one, otherwise, fall-back to plain defaults
+    if (is.numeric(cex) && cex > 0) {
+        cex <- cex
+        cex.axis <- cex
+        cex.lab <- cex
+        cex.main <- cex
+        cex.sub <- cex
+        lwd <- 2
+        bty <- "l"
+        my.plot <- function(...) plot(..., cex = cex, cex.axis = cex.axis, cex.main = cex.main,
+                                      cex.sub = cex.sub, bty = "l", lwd = lwd)
+        my.lines <- function(...) lines(..., cex = cex, cex.axis = cex.axis, cex.main = cex.main,
+                                        cex.sub = cex.sub, bty = "l", lwd = lwd)
+        my.points <- function(...) points(..., cex = cex, cex.axis = cex.axis, cex.main = cex.main,
+                                          cex.sub = cex.sub, bty = "l", lwd = lwd)
+        my.title <- function(...) title(..., cex = cex, cex.axis = cex.axis, cex.main = cex.main,
+                                        cex.sub = cex.sub, bty = "l", lwd = lwd)
+    } else {
+        my.plot <- function(...) plot(...)
+        my.lines <- function(...) lines(...)
+        my.points <- function(...) points(...)
+        my.title <- function(...) title(...)
     }
 
     figure.count = 1L
@@ -96,8 +124,7 @@
         stop("Only one of 'postscript' and 'pdf' can be generated at the time.")
     }
 
-    initiate.plot = function(...)
-    {
+    initiate.plot = function(...) {
         if (!postscript && !pdf) {
             inla.dev.new(...)
         } else {
@@ -111,17 +138,16 @@
         return (invisible())
     }
 
-    new.plot = function(...)
-    {
+    new.plot = function(...) {
         if (!postscript && !pdf) {
             inla.dev.new(...)
         } else {
             found = FALSE
             while(!found) {
                 filename = paste(prefix,
-                        inla.ifelse(regexpr("/$", prefix), "", "/"),
-                        figure.count,
-                        inla.ifelse(postscript, ".eps", ".pdf"), sep="")
+                                 inla.ifelse(regexpr("/$", prefix), "", "/"),
+                                 figure.count,
+                                 inla.ifelse(postscript, ".eps", ".pdf"), sep="")
                 if (file.exists(filename)) {
                     figure.count <<- figure.count + 1L ## YES
                 } else {
@@ -140,8 +166,7 @@
         return (invisible())
     }
 
-    close.plot = function(...)
-    {
+    close.plot = function(...) {
         if (postscript || pdf) {
             if (names(dev.cur()) != "null device") {
                 dev.off()
@@ -150,8 +175,7 @@
         return (invisible())
     }
 
-    close.and.new.plot = function(...)
-    {
+    close.and.new.plot = function(...) {
         close.plot(...)
         new.plot(...)
         return (invisible())
@@ -186,13 +210,13 @@
                     ss = x$summary.fixed[i,]
                     sub=paste("Mean = ", round(ss[names(ss)=="mean"], 3)," SD = ", round(ss[names(ss)=="sd"], 3), sep="")
                     m = inla.smarginal(fix[[i]])
-                    plot(m, type="l", main=paste("PostDens [", inla.nameunfix(labels.fix[i]),"]", sep=""),
-                         sub=sub, xlab="", ylab="")
+                    my.plot(m, type="l", main=paste("PostDens [", inla.nameunfix(labels.fix[i]),"]", sep=""),
+                            sub=sub, xlab="", ylab="")
 
                     if (plot.prior) {
                         xy = (inla.get.prior.xy(section = "fixed", hyperid = labels.fix[i],
                                                 all.hyper = all.hyper, range = range(m$x), debug = debug))
-                        lines(xy, lwd = 1, col = "blue")
+                        my.lines(xy, col = "blue")
                     }
 
                 }
@@ -225,8 +249,9 @@
                 if (!all(is.na(fix[[i]]))) {
                     ss = x$summary.lincomb.derived[i,]
                     sub=paste("Mean = ", round(ss[names(ss)=="mean"], 3)," SD = ", round(ss[names(ss)=="sd"], 3), sep="")
-                    plot(inla.smarginal(fix[[i]]), type="l", main=paste("PostDens [", inla.nameunfix(labels.fix[i]),"] (derived)", sep=""),
-                         sub=sub, xlab="", ylab="")
+                    my.plot(inla.smarginal(fix[[i]]), type="l",
+                            main=paste("PostDens [", inla.nameunfix(labels.fix[i]),"] (derived)", sep=""),
+                            sub=sub, xlab="", ylab="")
                 }
             }
         }
@@ -262,8 +287,9 @@
                 if (!all(is.na(fix[[i]]))) {
                     ss = x$summary.lincomb[i,]
                     sub=paste("Mean = ", round(ss[names(ss)=="mean"], 3)," SD = ", round(ss[names(ss)=="sd"], 3), sep="")
-                    plot(inla.smarginal(fix[[i]]), type="l", main=paste("PostDens [", inla.nameunfix(labels.fix[i]),"]", sep=""),
-                         sub=sub, xlab="", ylab="")
+                    my.plot(inla.smarginal(fix[[i]]), type="l",
+                            main=paste("PostDens [", inla.nameunfix(labels.fix[i]),"]", sep=""),
+                            sub=sub, xlab="", ylab="")
                 }
             }
         }
@@ -324,37 +350,33 @@
                                     }
 
                                     idx = (r.rep-1)*r.N +  (r.group-1)*r.N.orig + (ii-1)*r.n.orig + (1:r.n.orig)
-
+                                    
                                     ## if the dimension is > 1, then plot the means++
-                                    ##
                                     xval = NULL
-                                    if (tp == "s") ## baseline.hazard
-                                    {
+                                    if (tp == "s") {
+                                        ## baseline.hazard                                        
                                         xval = rr[, colnames(rr)=="ID"][idx]
                                         yval = rr[, colnames(rr)=="mean"][idx]
-                                        plot(xval, yval,
-                                             ylim=range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
-                                             xlim=range(xval),
-                                             axes=TRUE, ylab="", xlab="", type=tp, lwd=2)
+                                        my.plot(xval, yval,
+                                                ylim=range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
+                                                xlim=range(xval),
+                                                axes=TRUE, ylab="", xlab="", type=tp)
                                         if (!is.null(x$.args$data$baseline.hazard.strata.coding)) {
                                             rep.txt = inla.paste(c(rep.txt, "[",
-                                                    x$.args$data$baseline.hazard.strata.coding[r.rep], "]"), sep="")
+                                                                   x$.args$data$baseline.hazard.strata.coding[r.rep], "]"), sep="")
                                         }
                                     } else {
                                         xval = rr[, colnames(rr)=="ID"][idx]
                                         yval = rr[, colnames(rr)=="mean"][idx]
                                         if (is.numeric(xval)) {
-                                            plot(xval, yval,
-                                                 ylim=range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
-                                                 xlim=range(xval),
-                                                 axes=FALSE, ylab="", xlab="", type=tp, lwd=2)
-                                            axis(1)
-                                            axis(2)
-                                            box()
+                                            my.plot(xval, yval,
+                                                    ylim=range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
+                                                    xlim=range(xval),
+                                                    ylab="", xlab="", type=tp)
                                         } else {
-                                            plot(as.factor(xval), yval,
-                                                 ylim=range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
-                                                 axes=TRUE, ylab="", xlab="", type=tp, lwd=2)
+                                            my.plot(as.factor(xval), yval,
+                                                    ylim=range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
+                                                    axes=TRUE, ylab="", xlab="", type=tp)
                                         }
                                     }
 
@@ -372,16 +394,16 @@
                                                 yval = c(yval, yval[ length(yval) ])
                                             }
                                             if (is.numeric(xval)) {
-                                                points(xval, yval, type=tp, lty=2)
+                                                my.points(xval, yval, type=tp, lty=2)
                                             } else {
-                                                points(as.factor(xval), yval, pch=19)
+                                                my.points(as.factor(xval), yval, pch=19)
                                             }
                                             sub = gsub("quant", "%", paste(sub, colnames(qq)[j]))
                                         }
-                                        title(main=inla.nameunfix(main), sub=paste(inla.nameunfix(sub), rep.txt))
+                                        my.title(main=inla.nameunfix(main), sub=paste(inla.nameunfix(sub), rep.txt))
                                     }
                                     else
-                                        title(main=inla.nameunfix(main), sub=paste("Posterior mean", rep.txt))
+                                        my.title(main=inla.nameunfix(main), sub=paste("Posterior mean", rep.txt))
                                 }
                             }
                         }
@@ -408,9 +430,9 @@
                                 ##
                                 if (!is.null(x$marginals.random[[i]])) {
                                     zz = x$marginals.random[[i]][[r.rep]]
-                                    plot(inla.smarginal(zz), type="l",
-                                         main=paste("PostDens [", inla.nameunfix(labels.random[i]),"]", " ", rep.txt, sep=""),
-                                         xlab=inla.nameunfix(labels.random[i]), ylab="")
+                                    my.plot(inla.smarginal(zz), type="l",
+                                            main=paste("PostDens [", inla.nameunfix(labels.random[i]),"]", " ", rep.txt, sep=""),
+                                            xlab=inla.nameunfix(labels.random[i]), ylab="")
                                 }
                             }
                         }
@@ -446,8 +468,8 @@
                 if (!is.null(hh)) {
                     label = inla.nameunfix(names(hyper)[i])
                     m = inla.smarginal(hh)
-                    plot(m, type="l", ylab="", xlab="")
-                    title(main=paste("PostDens [", label, "]", sep=""))
+                    my.plot(m, type="l", ylab="", xlab="")
+                    my.title(main=paste("PostDens [", label, "]", sep=""))
 
                     if (plot.prior) {
                         id = unlist(strsplit(attr(hyper[[i]], "hyperid"), "\\|"))
@@ -455,7 +477,7 @@
                             xy = (inla.get.prior.xy(section = tolower(id[2]), hyperid = id[1],
                                                     all.hyper = all.hyper, range = range(m$x), intern = FALSE,
                                                     debug = debug))
-                            lines(xy, lwd = 1, col = "blue")
+                            my.lines(xy, col = "blue")
                         }
                     }
                 }
@@ -489,8 +511,8 @@
                 if (!is.null(hh)) {
                     label = inla.nameunfix(names(hyper)[i])
                     m = inla.smarginal(hh)
-                    plot(m, type="l", ylab="", xlab="")
-                    title(main=paste("PostDens [", label, "]", sep=""))
+                    my.plot(m, type="l", ylab="", xlab="")
+                    my.title(main=paste("PostDens [", label, "]", sep=""))
 
                     if (plot.prior) {
                         id = unlist(strsplit(attr(hyper[[i]], "hyperid"), "\\|"))
@@ -498,7 +520,7 @@
                             xy = (inla.get.prior.xy(section = tolower(id[2]), hyperid = id[1], 
                                                     all.hyper = all.hyper, range = range(m$x), intern = TRUE,
                                                     debug = debug))
-                            lines(xy, lwd = 1, col = "blue")
+                            my.lines(xy, col = "blue")
                         }
                     }
                 }
@@ -507,7 +529,6 @@
     }
 
     if (plot.predictor) {
-
         ## linear predictor and fitted values
         n = x$size.linear.predictor$n
         if (!is.null(n)) {
@@ -553,40 +574,42 @@
                             par(mfrow=c(2, 1))
                         }
                     }
-                    plot(plot.idx, lp[idx, colnames(lp)=="mean"], ylim=range(lp[idx, names(lp) != "sd"]), ylab="", xlab="Index", type="l", lwd=2, ...)
+                    my.plot(plot.idx, lp[idx, colnames(lp)=="mean"],
+                            ylim=range(lp[idx, names(lp) != "sd"]), ylab="", xlab="Index", type="l", ...)
                     lq = grep("quan", colnames(lp))
                     if (length(lq)>0) {
                         qq = lp[, lq]
                         dq = dim(qq)[2]
                         sub = paste("Posterior mean together with ")
                         for(j in 1:dq) {
-                            points(plot.idx, qq[idx, j], type="l", lty=2)
+                            my.points(plot.idx, qq[idx, j], type="l", lty=2)
                             sub = paste(sub, colnames(qq)[j])
                         }
-                        title(main=paste("Linear Predictor", msg), sub= inla.nameunfix(sub))
+                        my.title(main=paste("Linear Predictor", msg), sub= inla.nameunfix(sub))
                     }
                     else
-                        title(main=paste("Linear Predictor ", msg, inla.nameunfix(labels.random[i])), sub="Posterior mean")
+                        my.title(main=paste("Linear Predictor ", msg, inla.nameunfix(labels.random[i])), sub="Posterior mean")
 
                     if (single) {
                         close.and.new.plot()
                     }
 
                     if (!is.null(fv)) {
-                        plot(plot.idx, fv[idx , colnames(fv)=="mean"], ylim=range(fv[idx, names(fv) != "sd"]), ylab="", xlab="Index", type="l", lwd=2, ...)
+                        my.plot(plot.idx, fv[idx , colnames(fv)=="mean"],
+                                ylim=range(fv[idx, names(fv) != "sd"]), ylab="", xlab="Index", type="l", ...)
                         lq = grep("quan", colnames(fv))
                         if (length(lq)>0) {
                             qq = fv[, lq]
                             dq = dim(qq)[2]
                             sub = paste("Posterior mean together with ")
                             for(j in 1:dq) {
-                                points(plot.idx, qq[idx, j], type="l", lty=2)
+                                my.points(plot.idx, qq[idx, j], type="l", lty=2)
                                 sub = paste(sub, colnames(qq)[j])
                             }
-                            title(main=paste("Fitted values (inv.link(lin.pred))", msg), sub = inla.nameunfix(sub))
+                            my.title(main=paste("Fitted values (inv.link(lin.pred))", msg), sub = inla.nameunfix(sub))
                         }
                         else
-                            title(main=paste("Fitted values (inv.link(lin.pred))", msg, inla.nameunfix(labels.random[i])))
+                            my.title(main=paste("Fitted values (inv.link(lin.pred))", msg, inla.nameunfix(labels.random[i])))
                     }
                 }
             }
@@ -601,19 +624,19 @@
             par(mfrow = c(2, 2))
         }
         if (!is.null(x$Q$Q)) {
-            plot(x$Q$Q, main = "The precision matrix", ...)
+            my.plot(x$Q$Q, main = "The precision matrix", ...)
             nx = x$Q$Q@size[1L]
-            lines(c(0, nx, nx, 0, 0), c(0, 0, nx, nx, 0), lwd=2)
+            my.lines(c(0, nx, nx, 0, 0), c(0, 0, nx, nx, 0))
         }
         if (!is.null(x$Q$Q.reorder)) {
-            plot(x$Q$Q.reorder, main = "The reordered precision matrix", ...)
+            my.plot(x$Q$Q.reorder, main = "The reordered precision matrix", ...)
             nx = x$Q$Q.reorder@size[1L]
-            lines(c(0, nx, nx, 0, 0), c(0, 0, nx, nx, 0), lwd=2)
+            my.lines(c(0, nx, nx, 0, 0), c(0, 0, nx, nx, 0))
         }
         if (!is.null(x$Q$L)) {
-            plot(x$Q$L, main = "The Cholesky triangle", ...)
+            my.plot(x$Q$L, main = "The Cholesky triangle", ...)
             nx = x$Q$L@size[1L]
-            lines(c(0, nx, nx, 0, 0), c(0, 0, nx, nx, 0), lwd=2)
+            my.lines(c(0, nx, nx, 0, 0), c(0, 0, nx, nx, 0))
         }
     }
 
@@ -662,12 +685,12 @@
                     pp <- rep(NA, len)
                     pp[ii] <- p
                     main.txt <- paste(m, ", nfail", n.fail, ", ", fam.name, "[", ifam, "]", sep="")
-                    plot(pp, main = main.txt, ylab = "Probability", xlab = "index", ylim = c(0, 1), ...)
+                    my.plot(pp, main = main.txt, ylab = "Probability", xlab = "index", ylim = c(0, 1), ...)
                     if (n.fail > 0) {
                         p.fail <- p
                         p.fail[failure == 0] <- NA
                         pp[ii] <- p.fail
-                        points(pp, pch=20)
+                        my.points(pp, pch=20)
                     }
                     hist(p, main = main.txt, xlab = "Probability",
                          n = max(20, min(round(length(pit)/10), 100)))
@@ -679,15 +702,15 @@
                     ccpo <- rep(NA, len)
                     ccpo[ii] <- cpo
                     if (discrete) {
-                        plot(ccpo, main = main.txt, ylab = "Probability", xlab = "index", ylim = c(0, 1), ...)
+                        my.plot(ccpo, main = main.txt, ylab = "Probability", xlab = "index", ylim = c(0, 1), ...)
                     } else {
-                        plot(ccpo, main = main.txt, ylab = "Probability", xlab = "index", ...)
+                        my.plot(ccpo, main = main.txt, ylab = "Probability", xlab = "index", ...)
                     }
                     if (n.fail > 0) {
                         cpo.fail <- cpo
                         cpo.fail[failure == 0] <- NA
                         ccpo[ii] <- cpo.fail
-                        points(ccpo, pch=20)
+                        my.points(ccpo, pch=20)
                     }
                     hist(cpo, main = main.txt, xlab = "Probability",
                          n = max(20L, min(round(length(pit)/10L), 100L)))

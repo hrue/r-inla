@@ -1,4 +1,5 @@
 #!/bin/bash
+
 cmd=$(readlink -e "$0")
 DIR=$(readlink -e $(dirname "$cmd"))
 tmp=$(basename "$0")
@@ -22,12 +23,6 @@ for d in {,/usr}/lib64 /usr/lib64/R/lib {,/usr}/lib/x86_64-linux-gnu {,/usr}/lib
     fi
 done
 
-if [ ! -z ${INLA_LOAD_PARDISO+x} ]; then 
-    PDIR="$DIR/../../pardiso/libpardiso/linux"
-else
-    PDIR="$DIR/../../pardiso/libnopardiso/linux"
-fi
-
 for f in $DIR/first/lib*.so*; do
     case "$f" in
 	$DIR/first/libjemalloc.so*)
@@ -37,13 +32,14 @@ done
 
 if [ -n "${INLA_NATIVE_LD_LIBRARY_PATH}" ]; then
     ## so we can revert back to old behaviour
-    export LD_LIBRARY_PATH="$DIR/first:$PDIR:$D:$DIR:$LD_LIBRARY_PATH"
+    export LD_LIBRARY_PATH="$DIR/first:$D:$DIR:$LD_LIBRARY_PATH"
 else
     ## this is the new default, is that we use the libs used when we
     ## build
-    export LD_LIBRARY_PATH="$DIR/first:$PDIR:$DIR:$D:$LD_LIBRARY_PATH"
+    export LD_LIBRARY_PATH="$DIR/first:$DIR:$D:$LD_LIBRARY_PATH"
 fi
 export PARDISOLICMESSAGE=1
+export OMP_NESTED=TRUE
 
 if [ -n "${INLA_DEBUG}" ]; then
     echo "*** $0 *** LD_PRELOAD=$LD_PRELOAD"

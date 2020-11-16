@@ -3371,8 +3371,16 @@ double priorfunc_pc_alphaw(double *x, double *parameters)
 	return (ld);
 }
 
+
 double priorfunc_pc_gamma(double *x, double *parameters)
 {
+	// in Maple, this is
+	// asympt(log(Psi(1, n)-1/n), n,4);
+	// see also testing no 48 and 49
+#define SPECIAL(x) ((x > 1.0E4 ?					\
+		     -2.0 * log(x) - log(2.0) + 1.0/(3.0*(x)) - 1.0/(18.0*SQR(x)) - 22.0/(405.0 * gsl_pow_3(x)) : \
+		     log(gsl_sf_psi_1(x) - 1.0/(x))))
+	
 	// the inla.pc.dgamma prior, which is the prior for 'a' in Gamma(1/a, 1/a) where a=0 is the base model. Here we have the
 	// argument log(a). Almost the same function as priorfunc_pc_mgamma
 	double ldens, d, a, a_inv, lambda;
@@ -3381,7 +3389,8 @@ double priorfunc_pc_gamma(double *x, double *parameters)
 	a = exp(x[0]);
 	a_inv = 1.0 / a;
 	d = sqrt(2.0 * (log(a_inv) - gsl_sf_psi(a_inv)));
-	ldens = log(lambda) - lambda * d - 2.0 * log(a) - log(d) + log(gsl_sf_psi_1(a_inv) - a) + x[0];
+	ldens = log(lambda) - lambda * d - 2.0 * log(a) - log(d) + SPECIAL(a_inv) + x[0];
+#undef SPECIAL
 
 	return ldens;
 }
@@ -25212,6 +25221,13 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		}
 	}
 
+	// default value is set in main()
+	GMRFLib_aqat_m_diag_add = iniparser_getdouble(ini, inla_string_join(secname, "CONSTR.MARGINAL.DIAGONAL"), GMRFLib_aqat_m_diag_add);
+	assert(GMRFLib_aqat_m_diag_add >= 0.0);
+	if (mb->verbose) {
+		printf("\t\tconstr.marginal.diagonal = %.3g\n", GMRFLib_aqat_m_diag_add);
+	}
+
 	if (mb->verbose) {
 		GMRFLib_print_ai_param(stdout, mb->ai_par);
 	}
@@ -26690,12 +26706,14 @@ double extra(double *theta, int ntheta, void *argument)
 
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
+			if (problem == NULL) {
 #pragma omp critical
-			{
 				if (problem == NULL) {
 					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
 				}
-
+			}
+			
+			if (1) {
 				/*
 				 * do a check for numerical not pos def matrix here, as its so close to being singular 
 				 */
@@ -26809,12 +26827,15 @@ double extra(double *theta, int ntheta, void *argument)
 
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
+			if (problem == NULL) {
 #pragma omp critical
-			{
 				if (problem == NULL) {
 					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
 				}
+			}
 
+			if (1)
+			{
 				/*
 				 * do a check for numerical not pos def matrix here, as its so close to being singular 
 				 */
@@ -26924,12 +26945,14 @@ double extra(double *theta, int ntheta, void *argument)
 
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
+			if (problem == NULL) {
 #pragma omp critical
-			{
 				if (problem == NULL) {
 					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
 				}
+			}
 
+			if (1) {
 				/*
 				 * do a check for numerical not pos def matrix here, as its so close to being singular 
 				 */
@@ -27174,12 +27197,14 @@ double extra(double *theta, int ntheta, void *argument)
 
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
+			if (problem == NULL) {
 #pragma omp critical
-			{
 				if (problem == NULL) {
 					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
 				}
+			}
 
+			if (1) {
 				/*
 				 * do a check for numerical not pos def matrix here, as it may be close to being singular 
 				 */
@@ -27279,12 +27304,14 @@ double extra(double *theta, int ntheta, void *argument)
 
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
+			if (problem == NULL) {
 #pragma omp critical
-			{
 				if (problem == NULL) {
 					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
 				}
+			}
 
+			if (1) {
 				/*
 				 * do a check for numerical not pos def matrix here, as it may be close to being singular 
 				 */
@@ -27374,11 +27401,14 @@ double extra(double *theta, int ntheta, void *argument)
 			// Parts of this code is a copy from F_SPDE2
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
+			if (problem == NULL) {
 #pragma omp critical
-			{
 				if (problem == NULL) {
 					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
 				}
+			}
+
+			if (1) {
 
 				/*
 				 * do a check for numerical not pos def matrix here, as it may be close to being singular 
@@ -27475,12 +27505,14 @@ double extra(double *theta, int ntheta, void *argument)
 			// Parts of this code is a copy from F_SPDE2
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
+			if (problem == NULL) {
 #pragma omp critical
-			{
 				if (problem == NULL) {
 					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
 				}
+			}
 
+			if (1) {
 				/*
 				 * do a check for numerical not pos def matrix here, as it may be close to being singular 
 				 */
@@ -27593,12 +27625,14 @@ double extra(double *theta, int ntheta, void *argument)
 			// Parts of this code is a copy from F_SPDE2
 			static GMRFLib_problem_tp **problem = NULL;
 #pragma omp threadprivate(problem)
+			if (problem == NULL) {
 #pragma omp critical
-			{
 				if (problem == NULL) {
 					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
 				}
+			}
 
+			if (1) {
 				/*
 				 * do a check for numerical not pos def matrix here, as it may be close to being singular 
 				 */
@@ -27776,41 +27810,38 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_R_GENERIC:
 		{
-			int n_out, nn_out, ii, ntheta;
-			double *x_out = NULL, *xx_out = NULL, *param = NULL, log_norm_const = 0.0, log_prior = 0.0;
-			inla_rgeneric_tp *def = NULL;
-			def = (inla_rgeneric_tp *) mb->f_Qfunc_arg_orig[i];
-
-			ntheta = def->ntheta;
-			if (ntheta) {
-				param = Calloc(ntheta, double);
-				for (ii = 0; ii < ntheta; ii++) {
-					param[ii] = theta[count];
-					count++;
-				}
-			}
 #pragma omp critical
 			{
+				int n_out, nn_out, ii, ntheta;
+				double *x_out = NULL, *xx_out = NULL, *param = NULL, log_norm_const = 0.0, log_prior = 0.0;
+				inla_rgeneric_tp *def = NULL;
+				def = (inla_rgeneric_tp *) mb->f_Qfunc_arg_orig[i];
+
+				ntheta = def->ntheta;
+				if (ntheta) {
+					param = Calloc(ntheta, double);
+					for (ii = 0; ii < ntheta; ii++) {
+						param[ii] = theta[count];
+						count++;
+					}
+				}
 				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, ntheta, param);
 				inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_LOG_PRIOR, def->model, ntheta, param);
-			}
 
-			switch (nn_out) {
-			case 0:
-				log_prior = 0.0;
-				break;
-			case 1:
-				log_prior = (evaluate_hyper_prior ? xx_out[0] : 0.0);
-				break;
-			default:
-				assert(0 == 1);
-			}
-			Free(xx_out);
+				switch (nn_out) {
+				case 0:
+					log_prior = 0.0;
+					break;
+				case 1:
+					log_prior = (evaluate_hyper_prior ? xx_out[0] : 0.0);
+					break;
+				default:
+					assert(0 == 1);
+				}
+				Free(xx_out);
 
-			switch (n_out) {
-			case 0:
-			{
-#pragma omp critical
+				switch (n_out) {
+				case 0:
 				{
 					/*
 					 * if it is the standard norm.const, the user can request us to compute it here if numeric(0) is returned from R_rgeneric.
@@ -27901,33 +27932,32 @@ double extra(double *theta, int ntheta, void *argument)
 					Free(Qijlist);
 				}
 				break;
-			}
-
-			case 1:
-			{
-				log_norm_const = x_out[0];
-				break;
-			}
-
-			default:
-				assert(0 == 1);
-			}
-
-			if (debug) {
-				for (ii = 0; ii < ntheta; ii++) {
-					printf("p %.12g ", param[ii]);
+				
+				case 1:
+				{
+					log_norm_const = x_out[0];
+					break;
 				}
-				printf(" %.12g  prior %.12g\n", log_norm_const, log_prior);
+
+				default:
+					assert(0 == 1);
+				}
+
+				if (debug) {
+					for (ii = 0; ii < ntheta; ii++) {
+						printf("p %.12g ", param[ii]);
+					}
+					printf(" %.12g  prior %.12g\n", log_norm_const, log_prior);
+				}
+
+				_SET_GROUP_RHO(ntheta);
+				val += mb->f_nrep[i] * (normc_g + log_norm_const * (mb->f_ngroup[i] - grankdef)) + log_prior;
+				Free(param);
+				Free(x_out);
 			}
-
-			_SET_GROUP_RHO(ntheta);
-			val += mb->f_nrep[i] * (normc_g + log_norm_const * (mb->f_ngroup[i] - grankdef)) + log_prior;
-			Free(param);
-			Free(x_out);
-
 			break;
 		}
-
+		
 		case F_AR1:
 		{
 			double mean_x;
@@ -29021,6 +29051,7 @@ int inla_INLA(inla_tp * mb)
 		printf("\tSparse-matrix library... = [%s]\n", mb->smtp);
 		printf("\tOpenMP strategy......... = [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads............. = [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
+		printf("\tblas.num.threads........ = [%1d]\n", GMRFLib_openmp->blas_num_threads);
 		printf("\tDensity-strategy........ = [%s]\n",
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 	}
@@ -32359,7 +32390,6 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		GMRFLib_problem_tp **problems = Calloc(GMRFLib_openmp->max_threads_outer, GMRFLib_problem_tp *);
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < ns; i++) {
-			GMRFLib_openmp_nested_fix();
 
 			int thread = omp_get_thread_num();
 			if (problems[thread] == NULL) {
@@ -32911,8 +32941,9 @@ int testit(int argc, char **argv)
 
 	case 1:
 	{
-		P(GMRFLib_rng_uniform());
-		P(GMRFLib_rng_uniform());
+		for(int i = 0; i < 10; i++) {
+			P(GMRFLib_rng_uniform());
+		}
 	}
 		break;
 
@@ -33846,6 +33877,36 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 47:
+	{
+		my_pardiso_test7();
+		break;
+	}
+
+	case 48: 
+	{
+		for(double x = 1.0;; x *= 10.0) {
+			printf("x= %f log(gsl_sf_psi_1(x)= %f  -log(x)= %f diff= %f\n",
+			       x, log(gsl_sf_psi_1(x)), -log(x),
+			       log(gsl_sf_psi_1(x))+log(x));
+		}
+		break;
+	}
+
+	case 49: 
+	{
+#define SPECIAL(x) ((x > 0 ?					\
+		-2.0 * log(x) - log(2.0) + 1.0/(3.0*(x)) - 1.0/(18.0*SQR(x)) : \
+		     log(gsl_sf_psi_1(x) - 1.0/(x))))
+
+		for(double x = 1.0;; x *= 10.0) {
+			printf("x= %f log(gsl_sf_psi_1(x)-1/x)= %f  %f %f\n",
+			       x, log(gsl_sf_psi_1(x)-1/x), SPECIAL(x), 
+			       log(gsl_sf_psi_1(x)-1/x)-SPECIAL(x));
+		}
+		break;
+	}
+
 		// this will give some more error messages, if any
 	case 999:
 	{
@@ -33880,7 +33941,8 @@ int main(int argc, char **argv)
 #define _BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
 	int i, verbose = 0, silent = 0, opt, report = 0, arg, ntt[2] = { 0, 0 }, err, enable_core_file = 0;
-	int blas_num_threads = 1;
+	int blas_num_threads_set = 0;
+	int blas_num_threads_default = 1;
 	char *program = argv[0];
 	double time_used[3];
 	clock_t atime_used[3];
@@ -33890,6 +33952,7 @@ int main(int argc, char **argv)
 
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = omp_get_max_threads();
+	GMRFLib_openmp->blas_num_threads = blas_num_threads_default;
 	GMRFLib_openmp->max_threads_nested = Calloc(2, int);
 	GMRFLib_openmp->max_threads_nested[0] = GMRFLib_openmp->max_threads;
 	GMRFLib_openmp->max_threads_nested[1] = 1;
@@ -33898,10 +33961,13 @@ int main(int argc, char **argv)
 
 	GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
 	GMRFLib_collect_timer_statistics = GMRFLib_FALSE;
-	GMRFLib_bitmap_max_dimension = 128;
+	GMRFLib_bitmap_max_dimension = 256;
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
-	GMRFLib_pardiso_thread_safe = GMRFLib_TRUE;
-	GMRFLib_set_blas_num_threads(blas_num_threads);
+	GMRFLib_aqat_m_diag_add = GMRFLib_eps(0.5);
+
+	GMRFLib_init_constr_store();
+	GMRFLib_init_graph_store();
+	GMRFLib_pardiso_set_nrhs(1);
 
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 
@@ -33917,7 +33983,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR1, inla_signal);
 	signal(SIGUSR2, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "bvVe:B:m:S:t:z:hsfir:R:cp")) != -1) {
+	while ((opt = getopt(argc, argv, "bvVe:t:B:m:S:z:hsfir:R:cp")) != -1) {
 		switch (opt) {
 		case 'b':
 			G.binary = 1;
@@ -33939,8 +34005,10 @@ int main(int argc, char **argv)
 			break;
 
 		case 'B':
-			if (inla_sread_ints(&blas_num_threads, 1, optarg) == INLA_OK) {
-				GMRFLib_set_blas_num_threads(blas_num_threads);
+			if (inla_sread_ints(&blas_num_threads_default, 1, optarg) == INLA_OK) {
+				blas_num_threads_default = IMAX(blas_num_threads_default, 1);
+				GMRFLib_openmp->blas_num_threads = blas_num_threads_default;
+				blas_num_threads_set = 1;
 			} else {
 				fprintf(stderr, "Fail to read BLAS_NUM_THREADS from %s\n", optarg);
 				exit(EXIT_SUCCESS);
@@ -34021,7 +34089,11 @@ int main(int argc, char **argv)
 					// ntt[1] = GMRFLib_openmp->max_threads / ntt[0];
 					ntt[1] = 1;
 				}
-
+				if (!blas_num_threads_set) {
+					// this happens unless the -B option have been used already
+					GMRFLib_openmp->blas_num_threads = IMAX(1, ntt[1]);
+				}
+				
 				// there is no need to support nested on WINDOWS before PARDISO is
 				// integrated there
 #if defined(WINDOWS)
@@ -34044,15 +34116,17 @@ int main(int argc, char **argv)
 				GMRFLib_openmp->max_threads = ntt[0] * ntt[1];
 			}
 			if (verbose > 0) {
-				printf("\tFound num.threads = %1d:%1d\n", GMRFLib_openmp->max_threads_nested[0],
-				       GMRFLib_openmp->max_threads_nested[1]);
+				printf("\tFound num.threads = %1d:%1d max_threads = %1d\n", GMRFLib_openmp->max_threads_nested[0],
+				       GMRFLib_openmp->max_threads_nested[1], GMRFLib_openmp->max_threads);
 			}
+			omp_set_num_threads(GMRFLib_MAX_THREADS);
+			GMRFLib_pardiso_set_nrhs(ntt[1]);
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 			break;
 
 		case 'z':
-			if (G.mode != INLA_MODE_FINN && G.mode != INLA_MODE_QSAMPLE) {
-				fprintf(stderr, "\n *** ERROR *** Option `-z seed' only available in FINN mode\n");
+			if (!(G.mode == INLA_MODE_FINN || G.mode == INLA_MODE_QSAMPLE || G.mode == INLA_MODE_TESTIT)) {
+				fprintf(stderr, "\n *** ERROR *** Option `-z seed' only available in selected modes\n");
 				exit(EXIT_FAILURE);
 			} else {
 				int int_seed;
@@ -34158,8 +34232,11 @@ int main(int argc, char **argv)
 	switch (G.mode) {
 	case INLA_MODE_OPENMP:
 		printf("export OMP_NUM_THREADS=%1d,%1d,1; ", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
-		printf("export OMP_MAX_ACTIVE_LEVELS=%1d; ", (GMRFLib_openmp->max_threads_inner > 1 ? 2 : 1));
-		printf("export MKL_NUM_THREADS=%1d; export OPENBLAS_NUM_THREADS=%1d;", blas_num_threads, blas_num_threads);
+		printf("export OMP_NESTED=TRUE; ");
+		printf("export OMP_MAX_ACTIVE_LEVELS=%1d; ", (GMRFLib_openmp->max_threads_nested[0] > 1 ?
+							      GMRFLib_openmp->max_threads_nested[0] : 0));
+		printf("export MKL_NUM_THREADS=%1d; export OPENBLAS_NUM_THREADS=%1d;", GMRFLib_openmp->blas_num_threads,
+		       GMRFLib_openmp->blas_num_threads);
 		exit(EXIT_SUCCESS);
 		break;
 
@@ -34270,7 +34347,7 @@ int main(int argc, char **argv)
 		for (arg = optind; arg < argc; arg++) {
 			if (verbose) {
 				printf("Process file[%s] threads[%1d] max.threads[%1d] blas_threads[%1d]",
-				       argv[arg], GMRFLib_MAX_THREADS, host_max_threads, blas_num_threads);
+				       argv[arg], GMRFLib_MAX_THREADS, host_max_threads, GMRFLib_openmp->blas_num_threads);
 				if (GMRFLib_openmp->max_threads_nested) {
 					printf(" nested[%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 				} else {
@@ -34309,7 +34386,7 @@ int main(int argc, char **argv)
 
 #define PEFF_OUTPUT if (1) {						\
 				double eff_nt = ((double)(atime_used[0] + atime_used[1]))/CLOCKS_PER_SEC/(time_used[0] + time_used[1]);	\
-				printf("\nParallel efficiency for 'Preparations' and 'Approx inference':\n"); \
+				printf("Parallel efficiency for 'Preparations' and 'Approx inference':\n"); \
 				printf("\tAccumulated CPU-time is equivalent to %.1f threads running at 100%%\n", eff_nt); \
 				printf("\tEfficiency using max %1d threads = %.1f%%\n", GMRFLib_MAX_THREADS, \
 				       100.0 * eff_nt/GMRFLib_MAX_THREADS); \
@@ -34341,6 +34418,8 @@ int main(int argc, char **argv)
 				printf("\tOutput          : %7.3f seconds\n", time_used[2]);
 				printf("\t---------------------------------\n");
 				printf("\tTotal           : %7.3f seconds\n", time_used[0] + time_used[1] + time_used[2]);
+				printf("\nNumber of function-calls %d  Average time %.3f seconds\n",
+				       mb->misc_output->nfunc, time_used[1]/mb->misc_output->nfunc);
 #if !defined(WINDOWS)
 				PEFF_OUTPUT;
 #endif
@@ -34367,3 +34446,13 @@ int main(int argc, char **argv)
 #undef _BUGS_intern
 #undef _BUGS
 }
+
+
+
+// to link with an older PARDISO lib...
+#if 0
+int METIS51PARDISO_NodeND(int *nvtxs, int *xadj, int *adjncy, int *vwgt, int *options, int *perm, int *iperm)
+{
+        return METIS51_NodeND(nvtxs, xadj, adjncy, vwgt, options, perm, iperm);
+}
+#endif

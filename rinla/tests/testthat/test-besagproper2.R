@@ -13,7 +13,7 @@ test_that("Case 1", {
     diag(R) = g$nnbs
     n = g$n
     Q = tau * ( (1-lambda) * diag(n) + lambda * R)
-    y = c(inla.qsample(nrep, Q))
+    y = c(inla.qsample(nrep, Q, seed = 1234L))
     i = rep(1:g$n, nrep)
     replicate = rep(1:nrep, each = g$n)
     formula = y ~ f(i, model="besagproper2",  graph = g,
