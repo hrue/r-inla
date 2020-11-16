@@ -2374,7 +2374,7 @@ void SHA1_Final(unsigned char hash[], SHA_CTX * ctx)
 
 // dummy-functions for WINDOWS32 (cpp symbol INLA_WINDOWS32 defined)
 
-int GMRFLib_graph_add_sha1(GMRFLib_graph_tp * g)
+int GMRFLib_graph_add_sha1(GMRFLib_graph_tp * g, int skip_sha1)
 {
 	g->sha1 = NULL;
 	return GMRFLib_SUCCESS;
