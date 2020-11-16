@@ -45,20 +45,19 @@ related oscillating SPDE models, on \eqn{R^d}{R^d} and on the sphere,
 }
 \details{
 On \eqn{R^d}{R^d}, the models are \emph{defined} by the spectral density
-given by \deqn{S(w) = \frac{1}{(2\pi)^d (\kappa^4 + 2 \kappa^2 \cos(\pi
+given by
+\deqn{S(w) = \frac{1}{(2\pi)^d (\kappa^4 + 2 \kappa^2 \cos(\pi
+ \theta) |w|^2 + |w|^4)^{(\nu + d/2)/2}}
 }{S(w) = 1 / ( (2\pi)^d * (kappa^4 + 2 kappa^2 * cos(pi * theta) * |w|^2 +
-|w|^4)^((nu + d/2)/2) )}\deqn{ \theta) |w|^2 + |w|^4)^{(\nu + d/2)/2}}
-}{S(w) = 1 / ( (2\pi)^d * (kappa^4 + 2 kappa^2 * cos(pi * theta) * |w|^2 +
-|w|^4)^((nu + d/2)/2) )}\deqn{ }{S(w) = 1 / ( (2\pi)^d * (kappa^4 + 2
-kappa^2 * cos(pi * theta) * |w|^2 + |w|^4)^((nu + d/2)/2) )}
+|w|^4)^((nu + d/2)/2) )}
 
 On \eqn{S^2}{S^2}, the models are \emph{defined} by the spectral
-coefficients \deqn{S(k) = \frac{2k+1}{4\pi (\kappa^4 + 2 \kappa^2 \cos(\pi
+coefficients
+\deqn{S(k) = \frac{2k+1}{4\pi (\kappa^4 + 2 \kappa^2 \cos(\pi
+\theta) k(k+1) + k^2(k+1)^2)^{(\nu +
+1)/2}}
 }{S(k) = (2k+1) / (4 pi (kappa^4 + 2 kappa^2 cos(pi theta) k(k+1) +
-k^2(k+1)^2)^((\nu + 1)/2) )}\deqn{ \theta) k(k+1) + k^2(k+1)^2)^{(\nu +
-1)/2}} }{S(k) = (2k+1) / (4 pi (kappa^4 + 2 kappa^2 cos(pi theta) k(k+1) +
-k^2(k+1)^2)^((\nu + 1)/2) )}\deqn{ }{S(k) = (2k+1) / (4 pi (kappa^4 + 2
-kappa^2 cos(pi theta) k(k+1) + k^2(k+1)^2)^((\nu + 1)/2) )}
+k^2(k+1)^2)^((\nu + 1)/2) )}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

@@ -74,11 +74,18 @@ matrix.  An error is given if the input is inconsistent or ombiguous.}
 \item{tag}{A string specifying a tag for later identification.}
 }
 \value{
-A data stack of class \code{inla.data.stack}.  Elements: \itemize{
+A data stack of class \code{inla.data.stack}.
+Elements: \itemize{
 \item\code{data} \eqn{=(y^1, \ldots, y^p, \tilde{x}^1, \ldots,
-\tilde{x}^{n_k})} \item\code{A} \eqn{=\tilde{A}} \item\code{data.names} List
-of data names, length \eqn{p} \item\code{effect.names} List of effect names,
-length \eqn{n_k} \item\code{n.data} Data length, \eqn{n_i} \item\code{index}
+\tilde{x}^{n_k})}{=(y^1, \dots, y^p, tilde{x}^1, \dots,
+tilde{x}^{n_k})}
+\item\code{A} \eqn{=\tilde{A}}{=tilde{A}}
+\item\code{data.names} List
+of data names, length \eqn{p}
+\item\code{effect.names} List of effect names,
+length \eqn{n_k}
+\item\code{n.data} Data length, \eqn{n_i}
+\item\code{index}
 List indexed by \code{tag}s, each element indexing into \eqn{i=1, \ldots,
 n_i} }
 }
@@ -90,37 +97,39 @@ Functions for combining data, effects and observation matrices into
 For models with a single effects collection, the outer list container for
 \code{A} and \code{effects} may be omitted.
 
-Component size definitions: \itemize{ \item\link{\eqn{n_l}{n_l}} effect blocks
-\item\link{\eqn{n_k}{n_k}} effects \item\link{\eqn{n_i}{n_i}} data values
-\item\link{\eqn{n_{j,l}}{n_jl}} effect size for block \eqn{l}{l}
-\item\link{\eqn{n_j}{n_j}} \eqn{= \sum_{l=1}^{n_l} n_{j,l}}{sum_l n_jl} total
-effect size }
+Component size definitions:
+\itemize{
+\item \eqn{n_l}{n_l} effect blocks
+\item \eqn{n_k}{n_k} effects
+\item \eqn{n_i}{n_i} data values
+\item \eqn{n_{j,l}}{n_jl} effect size for block \eqn{l}{l}
+\item \eqn{n_j}{n_j} \eqn{= \sum_{l=1}^{n_l} n_{j,l}}{sum_l n_jl} total
+effect size
+}
 
-Input: \itemize{ \item\code{\link{data}} \eqn{(y^1, \ldots, y^p)}{} \eqn{p}{p}
-vectors, each of length \eqn{n_i}{n_i} \item\code{\link{A}} \eqn{(A^1, \ldots,
-A^{n_l})}{} matrices of size \eqn{n_i \times n_{j,l}}{n_i by n_jl}
-\item\code{\link{effects}} \eqn{\left((x^{1,1},\ldots,x^{n_k,1}), \ldots,
-}{}\eqn{ (x^{1,n_l},\ldots,x^{n_k,n_l})\right)}{} collections of effect
+Input: \describe{
+\item{\code{data}}{\eqn{(y^1, \ldots, y^p)}{(y1,\dots,y2)} \eqn{p}{p}
+vectors, each of length \eqn{n_i}{n_i}}
+\item{\code{A}}{\eqn{(A^1, \ldots, A^{n_l})}{(A1,\dots,A2)} matrices of size
+\eqn{n_i \times n_{j,l}}{n_i by n_jl}}
+\item{\code{effects}}{\eqn{\left((x^{1,1},\ldots,x^{n_k,1}), \ldots,
+(x^{1,n_l},\ldots,x^{n_k,n_l})\right)}{((x_[1,1],\dots,x_[n_k,1]),\dots(x_[1,n_l],\dots,x_[n_k,n_l]))}
+collections of effect
 vectors of length \eqn{n_{j,l}}{n_jl} }
+}
 
-\deqn{ }{ predictor(y^1, \ldots, y^p) ~ sum_{l=1}^{n_l} A^l sum_{k=1}^{n_k}
-g(k, x^{k,l}) = tilde{A} sum_{k=1}^{n_k} g(k, tilde{x}^k) }\deqn{
-\mbox{predictor}(y^1, \ldots, y^p) \sim }{ predictor(y^1, \ldots, y^p) ~
-sum_{l=1}^{n_l} A^l sum_{k=1}^{n_k} g(k, x^{k,l}) = tilde{A} sum_{k=1}^{n_k}
-g(k, tilde{x}^k) }\deqn{ \sum_{l=1}^{n_l} A^l \sum_{k=1}^{n_k} g(k, x^{k,l})
-}{ predictor(y^1, \ldots, y^p) ~ sum_{l=1}^{n_l} A^l sum_{k=1}^{n_k} g(k,
-x^{k,l}) = tilde{A} sum_{k=1}^{n_k} g(k, tilde{x}^k) }\deqn{ = \tilde{A}
-\sum_{k=1}^{n_k} g(k, \tilde{x}^k) }{ predictor(y^1, \ldots, y^p) ~
-sum_{l=1}^{n_l} A^l sum_{k=1}^{n_k} g(k, x^{k,l}) = tilde{A} sum_{k=1}^{n_k}
-g(k, tilde{x}^k) }\deqn{ }{ predictor(y^1, \ldots, y^p) ~ sum_{l=1}^{n_l}
-A^l sum_{k=1}^{n_k} g(k, x^{k,l}) = tilde{A} sum_{k=1}^{n_k} g(k,
-tilde{x}^k) } where \deqn{ }{ tilde{A} = cbind( A^1, ..., A^{n_l} ) }\deqn{
-\tilde{A} = \mbox{cbind}\left( A^1, \ldots, A^{n_l} \right) }{ tilde{A} =
-cbind( A^1, ..., A^{n_l} ) }\deqn{ }{ tilde{A} = cbind( A^1, ..., A^{n_l} )
-} \deqn{ }{ tilde{x}^k = rbind( x^{k,1}, ..., x^{k,n_l} ) }\deqn{
-\tilde{x}^k = \mbox{rbind}\left( x^{k,1}, \ldots, x^{k,n_l} \right) }{
-tilde{x}^k = rbind( x^{k,1}, ..., x^{k,n_l} ) }\deqn{ }{ tilde{x}^k = rbind(
-x^{k,1}, ..., x^{k,n_l} ) } and for each block \eqn{l}{l}, any missing
+\deqn{\mbox{predictor}(y^1, \ldots, y^p) \sim
+\sum_{l=1}^{n_l} A^l \sum_{k=1}^{n_k} g(k, x^{k,l})
+= \tilde{A} \sum_{k=1}^{n_k} g(k, \tilde{x}^k) 
+}{ predictor(y^1, \ldots, y^p) ~ sum_{l=1}^{n_l} A^l sum_{k=1}^{n_k}
+g(k, x^{k,l}) = tilde{A} sum_{k=1}^{n_k} g(k, tilde{x}^k) }
+where
+\deqn{\tilde{A} = \mbox{cbind}\left( A^1, \ldots, A^{n_l} \right)
+}{ tilde{A} = cbind( A^1, ..., A^{n_l} ) }
+and
+\deqn{\tilde{x}^k = \mbox{rbind}\left( x^{k,1}, \ldots, x^{k,n_l} \right)
+}{ tilde{x}^k = rbind( x^{k,1}, ..., x^{k,n_l} ) }
+and for each block \eqn{l}{l}, any missing
 \eqn{x^{k,l}} is replaced by an \code{NA} vector.
 }
 \section{Functions}{
@@ -147,7 +156,8 @@ x^{k,1}, ..., x^{k,n_l} ) } and for each block \eqn{l}{l}, any missing
 }}
 
 \section{Functions}{
- \itemize{ \item \code{inla.stack.remove.unused}: Remove
+ \itemize{
+\item \code{inla.stack.remove.unused}: Remove
 unused entries from an existing stack
 
 \item \code{inla.stack.compress}: Compress an existing stack by removing
