@@ -27,6 +27,33 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.11.16}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item PARDISO version 7 is included for Mac and Linux.
+      \item Improved paralellism and nested paralellism
+      \item Speedup improvements, especially for models with many
+      constraints.
+      \item Improved default \code{plot(result)}. Argument
+      \code{cex=..} will now work
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item New shorthand feature in \code{inla.posterior.sample.eval}
+      for extracing model components from samples
+      \item Added \code{fmesher.timeout} option, see \code{?inla.setOption}
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Using a non-zero seed in \code{inla.posterior.sample} will
+      now force serial computations.
+      \item A lot of internal code cleanup and improvements
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.10.11}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
