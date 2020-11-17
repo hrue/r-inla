@@ -27810,149 +27810,157 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_R_GENERIC:
 		{
-#pragma omp critical
-			{
-				int n_out, nn_out, ii, ntheta;
-				double *x_out = NULL, *xx_out = NULL, *param = NULL, log_norm_const = 0.0, log_prior = 0.0;
-				inla_rgeneric_tp *def = NULL;
-				def = (inla_rgeneric_tp *) mb->f_Qfunc_arg_orig[i];
+			int n_out, nn_out, ii, ntheta;
+			double *x_out = NULL, *xx_out = NULL, *param = NULL, log_norm_const = 0.0, log_prior = 0.0;
+			inla_rgeneric_tp *def = NULL;
+			def = (inla_rgeneric_tp *) mb->f_Qfunc_arg_orig[i];
 
-				ntheta = def->ntheta;
-				if (ntheta) {
-					param = Calloc(ntheta, double);
-					for (ii = 0; ii < ntheta; ii++) {
-						param[ii] = theta[count];
-						count++;
-					}
+			ntheta = def->ntheta;
+			if (ntheta) {
+				param = Calloc(ntheta, double);
+				for (ii = 0; ii < ntheta; ii++) {
+					param[ii] = theta[count];
+					count++;
 				}
+			}
+#pragma omp critical 
+			{
 				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, ntheta, param);
 				inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_LOG_PRIOR, def->model, ntheta, param);
+			}
 
-				switch (nn_out) {
-				case 0:
-					log_prior = 0.0;
-					break;
-				case 1:
-					log_prior = (evaluate_hyper_prior ? xx_out[0] : 0.0);
-					break;
-				default:
-					assert(0 == 1);
-				}
-				Free(xx_out);
-
-				switch (n_out) {
-				case 0:
-				{
-					/*
-					 * if it is the standard norm.const, the user can request us to compute it here if numeric(0) is returned from R_rgeneric.
-					 */
-					int *ilist = NULL, *jlist = NULL, n, len, k = 0, jj;
-					double *Qijlist = NULL;
-					GMRFLib_tabulate_Qfunc_tp *Qf = NULL;
-					GMRFLib_graph_tp *graph = NULL;
-
-					inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_Q, def->model, ntheta, param);
-					assert(nn_out >= 2);
-					n = (int) xx_out[k++];
-					len = (int) xx_out[k++];
-					ilist = Calloc(len, int);
-					jlist = Calloc(len, int);
-					Qijlist = Calloc(len, double);
-					for (jj = 0; jj < len; jj++) {
-						ilist[jj] = (int) xx_out[k++];
-					}
-					for (jj = 0; jj < len; jj++) {
-						jlist[jj] = (int) xx_out[k++];
-					}
-					for (jj = 0; jj < len; jj++) {
-						Qijlist[jj] = xx_out[k++];
-					}
-					assert(k == nn_out);
-					GMRFLib_tabulate_Qfunc_from_list(&Qf, &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
-					int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
-					GMRFLib_problem_tp *problem = NULL;
-					GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-					double *cc_add = Calloc(n, double);
-
-					if (mb->f_diag[i]) {
-						for (jj = 0; jj < n; jj++) {
-							cc_add[jj] = mb->f_diag[i];
-						}
-					}
-
-					while (!ok) {
-						retval = GMRFLib_init_problem(&problem, NULL, NULL, cc_add, NULL,
-									      graph, Qf->Qfunc, Qf->Qfunc_arg, NULL,
-									      mb->f_constr_orig[i], GMRFLib_NEW_PROBLEM);
-						switch (retval) {
-						case GMRFLib_EPOSDEF:
-						{
-							double eps = GMRFLib_eps(0.5);
-							for (jj = 0; jj < n; jj++) {
-								cc_add[jj] = (cc_add[jj] == 0.0 ? eps : cc_add[jj] * 10.0);
-							}
-
-							/*
-							 * possible memory leak here, by purpose. if it fail, the internal structure might be incomplete and unsafe
-							 * to free.
-							 */
-							problem = NULL;
-							break;
-						}
-
-						case GMRFLib_SUCCESS:
-							ok = 1;
-							break;
-
-						default:
-							/*
-							 * some other error 
-							 */
-							GMRFLib_set_error_handler(old_handler);
-							assert(0 == 1);
-							abort();
-						}
-
-						if (++num_try >= num_try_max) {
-							FIXME("This should not happen. Contact developers...");
-							abort();
-						}
-					}
-					Free(cc_add);
-					GMRFLib_set_error_handler(old_handler);
-					GMRFLib_evaluate(problem);
-					log_norm_const = problem->sub_logdens;
-
-					GMRFLib_free_problem(problem);
-					GMRFLib_free_tabulate_Qfunc(Qf);
-					GMRFLib_graph_free(graph);
-					Free(xx_out);
-					Free(ilist);
-					Free(jlist);
-					Free(Qijlist);
-				}
+			switch (nn_out) {
+			case 0:
+				log_prior = 0.0;
 				break;
-				
-				case 1:
+			case 1:
+				log_prior = (evaluate_hyper_prior ? xx_out[0] : 0.0);
+				break;
+			default:
+				assert(0 == 1);
+			}
+			if (nn_out) {
+				Free(xx_out);
+			}
+
+			switch (n_out) {
+			case 0:
+			{
+				/*
+				 * if it is the standard norm.const, the user can request us to compute it here if numeric(0) is
+				 * returned from R_rgeneric.
+				 */
+				int *ilist = NULL, *jlist = NULL, n, len, k = 0, jj;
+				double *Qijlist = NULL;
+				GMRFLib_tabulate_Qfunc_tp *Qf = NULL;
+				GMRFLib_graph_tp *graph = NULL;
+#pragma omp critical 
 				{
-					log_norm_const = x_out[0];
-					break;
+					inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_Q, def->model, ntheta, param);
 				}
-
-				default:
-					assert(0 == 1);
+				assert(nn_out >= 2);
+				n = (int) xx_out[k++];
+				len = (int) xx_out[k++];
+				ilist = Calloc(len, int);
+				jlist = Calloc(len, int);
+				Qijlist = Calloc(len, double);
+				for (jj = 0; jj < len; jj++) {
+					ilist[jj] = (int) xx_out[k++];
 				}
+				for (jj = 0; jj < len; jj++) {
+					jlist[jj] = (int) xx_out[k++];
+				}
+				for (jj = 0; jj < len; jj++) {
+					Qijlist[jj] = xx_out[k++];
+				}
+				assert(k == nn_out);
+				GMRFLib_tabulate_Qfunc_from_list(&Qf, &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
+				int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
+				GMRFLib_problem_tp *problem = NULL;
+				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+				double *cc_add = Calloc(n, double);
 
-				if (debug) {
-					for (ii = 0; ii < ntheta; ii++) {
-						printf("p %.12g ", param[ii]);
+				if (mb->f_diag[i]) {
+					for (jj = 0; jj < n; jj++) {
+						cc_add[jj] = mb->f_diag[i];
 					}
-					printf(" %.12g  prior %.12g\n", log_norm_const, log_prior);
 				}
 
-				_SET_GROUP_RHO(ntheta);
-				val += mb->f_nrep[i] * (normc_g + log_norm_const * (mb->f_ngroup[i] - grankdef)) + log_prior;
-				Free(param);
+				while (!ok) {
+					retval = GMRFLib_init_problem(&problem, NULL, NULL, cc_add, NULL,
+								      graph, Qf->Qfunc, Qf->Qfunc_arg, NULL,
+								      mb->f_constr_orig[i], GMRFLib_NEW_PROBLEM);
+					switch (retval) {
+					case GMRFLib_EPOSDEF:
+					{
+						double eps = GMRFLib_eps(0.5);
+						for (jj = 0; jj < n; jj++) {
+							cc_add[jj] = (cc_add[jj] == 0.0 ? eps : cc_add[jj] * 10.0);
+						}
+
+						/*
+						 * possible memory leak here, by purpose. if it fail, the internal structure might be incomplete and unsafe
+						 * to free.
+						 */
+						problem = NULL;
+						break;
+					}
+
+					case GMRFLib_SUCCESS:
+						ok = 1;
+						break;
+
+					default:
+						/*
+						 * some other error 
+						 */
+						GMRFLib_set_error_handler(old_handler);
+						assert(0 == 1);
+						abort();
+					}
+
+					if (++num_try >= num_try_max) {
+						FIXME("This should not happen. Contact developers...");
+						abort();
+					}
+				}
+				Free(cc_add);
+				GMRFLib_set_error_handler(old_handler);
+				GMRFLib_evaluate(problem);
+				log_norm_const = problem->sub_logdens;
+
+				GMRFLib_free_problem(problem);
+				GMRFLib_free_tabulate_Qfunc(Qf);
+				GMRFLib_graph_free(graph);
+				Free(xx_out);
+				Free(ilist);
+				Free(jlist);
+				Free(Qijlist);
+			}
+			break;
+				
+			case 1:
+			{
+				log_norm_const = x_out[0];
+				break;
+			}
+
+			default:
+				assert(0 == 1);
+			}
+
+			if (debug) {
+				for (ii = 0; ii < ntheta; ii++) {
+					printf("p %.12g ", param[ii]);
+				}
+				printf(" %.12g  prior %.12g\n", log_norm_const, log_prior);
+			}
+
+			_SET_GROUP_RHO(ntheta);
+			val += mb->f_nrep[i] * (normc_g + log_norm_const * (mb->f_ngroup[i] - grankdef)) + log_prior;
+
+			Free(param);
+			if (n_out) {
 				Free(x_out);
 			}
 			break;

@@ -91,7 +91,7 @@ void delay(int milliseconds)
 	pause = milliseconds * (CLOCKS_PER_SEC / 1000);
 	now = then = clock();
 	while ((now - then) < pause) {
-		if (1) {
+		if (0) {
 			fprintf(stderr, "thread %d is waiting as R_busy=%d\n", omp_get_thread_num(), R_busy);
 			fflush(stderr);
 		}
