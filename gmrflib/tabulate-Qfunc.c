@@ -137,7 +137,7 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 			}						\
 		}							\
 		return 0.0;						\
-	 }								
+	 }
 
 double GMRFLib_tabulate_Qfunction(int node, int nnode, double *values, void *arg)
 {
@@ -172,10 +172,11 @@ double GMRFLib_tabulate_Qfunction_std(int node, int nnode, double *values, void 
 
 */
 int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
-			   GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *prec, double *log_prec, double **log_prec_omp) {
+			   GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *prec, double *log_prec, double **log_prec_omp)
+{
 
 	int i, j, k;
-	
+
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
 
 	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
@@ -440,7 +441,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	 * step 2. build the tabulate_Qfunc structure 
 	 */
 	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
-	(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction;	/* the Qfunction to use */
+	(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction; /* the Qfunction to use */
 	arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);
 	(*tabulate_Qfunc)->Qfunc_arg = (void *) arg;
 
@@ -583,7 +584,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 */
 int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph,
 				     int ntriples, int *ilist, int *jlist, double *Qijlist, int dim, double *prec, double *log_prec,
-				     double **log_prec_omp) 
+				     double **log_prec_omp)
 {
 	/*
 	 * as GMRFLib_tabulate_Qfunc(), but get its Q_ij values from its arguments
@@ -634,7 +635,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	 * step 2. build the tabulate_Qfunc structure 
 	 */
 	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
-	(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction;	/* the Qfunction to use */
+	(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction; /* the Qfunction to use */
 	arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);
 	(*tabulate_Qfunc)->Qfunc_arg = (void *) arg;
 
@@ -662,7 +663,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 		map_id_set(arg->values[i], i, 0.0);
 		for (jj = 0; jj < (*graph)->lnnbs[i]; jj++) {
 			j = (*graph)->lnbs[i][jj];
-			map_id_set(arg->values[i], j, 0.0);	/* fill them with default = 0.0 */
+			map_id_set(arg->values[i], j, 0.0);    /* fill them with default = 0.0 */
 		}
 	}
 

@@ -1,3 +1,4 @@
+
 /* libpardiso.c
  * 
  * Copyright (C) 2018 Havard Rue
@@ -66,4 +67,3 @@ int METIS51PARDISO_NodeND(int *nvtxs, int *xadj, int *adjncy, int *vwgt, int *op
 {
 	return METIS_NodeND(nvtxs, xadj, adjncy, vwgt, options, perm, iperm);
 }
-

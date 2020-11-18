@@ -95,15 +95,15 @@ static int graph_store_must_init = 1;
 static int graph_store_debug = 0;
 
 
-int GMRFLib_init_graph_store(void) 
+int GMRFLib_init_graph_store(void)
 {
-	if (graph_store_use) {						
+	if (graph_store_use) {
 		if (graph_store_must_init) {
 			map_strvp_init_hint(&graph_store, 128);
 			graph_store.alwaysdefault = 1;
-			graph_store_must_init = 0;			
+			graph_store_must_init = 0;
 			if (graph_store_debug) {
-				printf("graph_store: init storage\n");	
+				printf("graph_store: init storage\n");
 			}
 		}
 	}
@@ -323,7 +323,7 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 		GMRFLib_EWRAP0(GMRFLib_graph_validate(stderr, *graph));
 	}
 
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*graph, 0, 0));      /* prepare the graph for computations */
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*graph, 0, 0));   /* prepare the graph for computations */
 #undef TO_INT
 	return GMRFLib_SUCCESS;
 }
@@ -694,11 +694,11 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 	if (node == nnode) {
 		return GMRFLib_FALSE;
 	}
-	
+
 	int imin = IMIN(node, nnode);
 	int imax = IMAX(node, nnode);
 	int m, j, *k;
-	
+
 	if (imin < 0 || imax > graph->n) {
 		return GMRFLib_FALSE;
 	}
@@ -708,11 +708,11 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 		return GMRFLib_FALSE;
 	}
 
-	if (imax > graph->lnbs[imin][m-1]) {
+	if (imax > graph->lnbs[imin][m - 1]) {
 		return GMRFLib_FALSE;
 	}
 
-	for(j = 0; j < m; j++) {
+	for (j = 0; j < m; j++) {
 		k = graph->lnbs[imin] + j;
 		if (*k > imax) {
 			return GMRFLib_FALSE;
@@ -2196,12 +2196,10 @@ int GMRFLib_graph_cc_do(int node, GMRFLib_graph_tp * g, int *cc, char *visited, 
 
 int GMRFLib_graph_add_sha1(GMRFLib_graph_tp * g, int skip_sha1)
 {
-	if (skip_sha1)
-	{
+	if (skip_sha1) {
 		g->sha1 = NULL;
 		return GMRFLib_SUCCESS;
 	}
-
 #define LEN 64L
 #define IUPDATE(_x, _len) if ((_len) > 0 && (_x))			\
 	{								\

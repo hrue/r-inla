@@ -27,6 +27,19 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.11.18}{
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item New family \code{gammajw}
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed an OpenMP deadlock case, using \code{rgeneric}
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.11.16}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{

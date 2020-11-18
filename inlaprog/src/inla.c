@@ -3380,7 +3380,7 @@ double priorfunc_pc_gamma(double *x, double *parameters)
 #define SPECIAL(x) ((x > 1.0E4 ?					\
 		     -2.0 * log(x) - log(2.0) + 1.0/(3.0*(x)) - 1.0/(18.0*SQR(x)) - 22.0/(405.0 * gsl_pow_3(x)) : \
 		     log(gsl_sf_psi_1(x) - 1.0/(x))))
-	
+
 	// the inla.pc.dgamma prior, which is the prior for 'a' in Gamma(1/a, 1/a) where a=0 is the base model. Here we have the
 	// argument log(a). Almost the same function as priorfunc_pc_mgamma
 	double ldens, d, a, a_inv, lambda;
@@ -4432,6 +4432,11 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[0] = ds->data_observations.gamma_scale = Calloc(mb->predictor_ndata, double);
 		break;
 
+	case L_GAMMAJW:
+		idiv = 2;
+		a[0] = NULL;
+		break;
+
 	case L_DGP:
 	case L_EXPONENTIAL:
 	case L_GP:
@@ -4486,6 +4491,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_EXPONENTIALSURV:
 	case L_GAMMASURV:
+	case L_GAMMAJWSURV:
 	case L_LOGLOGISTICSURV:
 	case L_LOGNORMALSURV:
 	case L_QLOGLOGISTICSURV:
@@ -6560,7 +6566,7 @@ int loglikelihood_poisson_special1(double *logll, double *x, int m, int idx, dou
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y),
-		p = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, p0, pp0;
+	    p = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, p0, pp0;
 
 	LINK_INIT;
 
@@ -7676,9 +7682,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -8223,6 +8229,46 @@ int loglikelihood_gamma(double *logll, double *x, int m, int idx, double *x_vec,
 int loglikelihood_gammasurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gamma));
+}
+
+int loglikelihood_gammajw(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+{
+	/*
+	 * Gammajw
+	 */
+
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double ly = log(y);
+	double mu;
+
+	LINK_INIT;
+
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			logll[i] = -gsl_sf_lngamma(mu) + (mu - 1.0) * ly - y;
+		}
+	} else {
+		double yy = (y_cdf ? *y_cdf : y);
+		for (i = 0; i < -m; i++) {
+			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			logll[i] = gsl_cdf_gamma_P(yy, mu, 1.0);
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_gammajwsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+{
+	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gammajw));
 }
 
 int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
@@ -11589,6 +11635,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "GAMMA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gamma;
 		ds->data_id = L_GAMMA;
+	} else if (!strcasecmp(ds->data_likelihood, "GAMMAJW")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gammajw;
+		ds->data_id = L_GAMMAJW;
 	} else if (!strcasecmp(ds->data_likelihood, "GAMMACOUNT")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gammacount;
 		ds->data_id = L_GAMMACOUNT;
@@ -11689,6 +11738,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "GAMMASURV")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gammasurv;
 		ds->data_id = L_GAMMASURV;
+	} else if (!strcasecmp(ds->data_likelihood, "GAMMAJWSURV")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gammajwsurv;
+		ds->data_id = L_GAMMAJWSURV;
 	} else if (!strcasecmp(ds->data_likelihood, "WEIBULL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_weibull;
 		ds->data_id = L_WEIBULL;
@@ -12110,6 +12162,18 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
+	case L_GAMMAJW:
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.y[i] <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Gammajw data[%1d] (y) = %g or weight %g is void\n", secname, i,
+							ds->data_observations.y[i], ds->data_observations.gamma_scale[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+		break;
+
 	case L_QKUMAR:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
@@ -12278,6 +12342,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_EXPONENTIALSURV:
 	case L_GAMMASURV:
+	case L_GAMMAJWSURV:
 	case L_WEIBULLSURV:
 	case L_WEIBULL_CURE:
 	case L_LOGLOGISTICSURV:
@@ -13661,6 +13726,13 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+		break;
+
+	case L_GAMMAJW:
+	case L_GAMMAJWSURV:
+		/*
+		 * get options related to the gammajw
+		 */
 		break;
 
 	case L_GAMMACOUNT:
@@ -25872,6 +25944,10 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				break;
 
+			case L_GAMMAJW:
+			case L_GAMMAJWSURV:
+				break;
+
 			case L_GAMMACOUNT:
 				if (!ds->data_fixed) {
 					/*
@@ -26712,7 +26788,7 @@ double extra(double *theta, int ntheta, void *argument)
 					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
 				}
 			}
-			
+
 			if (1) {
 				/*
 				 * do a check for numerical not pos def matrix here, as its so close to being singular 
@@ -26834,8 +26910,7 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 			}
 
-			if (1)
-			{
+			if (1) {
 				/*
 				 * do a check for numerical not pos def matrix here, as its so close to being singular 
 				 */
@@ -27810,154 +27885,162 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_R_GENERIC:
 		{
+			int n_out, nn_out, ii, ntheta;
+			double *x_out = NULL, *xx_out = NULL, *param = NULL, log_norm_const = 0.0, log_prior = 0.0;
+			inla_rgeneric_tp *def = NULL;
+			def = (inla_rgeneric_tp *) mb->f_Qfunc_arg_orig[i];
+
+			ntheta = def->ntheta;
+			if (ntheta) {
+				param = Calloc(ntheta, double);
+				for (ii = 0; ii < ntheta; ii++) {
+					param[ii] = theta[count];
+					count++;
+				}
+			}
 #pragma omp critical
 			{
-				int n_out, nn_out, ii, ntheta;
-				double *x_out = NULL, *xx_out = NULL, *param = NULL, log_norm_const = 0.0, log_prior = 0.0;
-				inla_rgeneric_tp *def = NULL;
-				def = (inla_rgeneric_tp *) mb->f_Qfunc_arg_orig[i];
-
-				ntheta = def->ntheta;
-				if (ntheta) {
-					param = Calloc(ntheta, double);
-					for (ii = 0; ii < ntheta; ii++) {
-						param[ii] = theta[count];
-						count++;
-					}
-				}
 				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, ntheta, param);
 				inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_LOG_PRIOR, def->model, ntheta, param);
+			}
 
-				switch (nn_out) {
-				case 0:
-					log_prior = 0.0;
-					break;
-				case 1:
-					log_prior = (evaluate_hyper_prior ? xx_out[0] : 0.0);
-					break;
-				default:
-					assert(0 == 1);
-				}
-				Free(xx_out);
-
-				switch (n_out) {
-				case 0:
-				{
-					/*
-					 * if it is the standard norm.const, the user can request us to compute it here if numeric(0) is returned from R_rgeneric.
-					 */
-					int *ilist = NULL, *jlist = NULL, n, len, k = 0, jj;
-					double *Qijlist = NULL;
-					GMRFLib_tabulate_Qfunc_tp *Qf = NULL;
-					GMRFLib_graph_tp *graph = NULL;
-
-					inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_Q, def->model, ntheta, param);
-					assert(nn_out >= 2);
-					n = (int) xx_out[k++];
-					len = (int) xx_out[k++];
-					ilist = Calloc(len, int);
-					jlist = Calloc(len, int);
-					Qijlist = Calloc(len, double);
-					for (jj = 0; jj < len; jj++) {
-						ilist[jj] = (int) xx_out[k++];
-					}
-					for (jj = 0; jj < len; jj++) {
-						jlist[jj] = (int) xx_out[k++];
-					}
-					for (jj = 0; jj < len; jj++) {
-						Qijlist[jj] = xx_out[k++];
-					}
-					assert(k == nn_out);
-					GMRFLib_tabulate_Qfunc_from_list(&Qf, &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
-					int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
-					GMRFLib_problem_tp *problem = NULL;
-					GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-					double *cc_add = Calloc(n, double);
-
-					if (mb->f_diag[i]) {
-						for (jj = 0; jj < n; jj++) {
-							cc_add[jj] = mb->f_diag[i];
-						}
-					}
-
-					while (!ok) {
-						retval = GMRFLib_init_problem(&problem, NULL, NULL, cc_add, NULL,
-									      graph, Qf->Qfunc, Qf->Qfunc_arg, NULL,
-									      mb->f_constr_orig[i], GMRFLib_NEW_PROBLEM);
-						switch (retval) {
-						case GMRFLib_EPOSDEF:
-						{
-							double eps = GMRFLib_eps(0.5);
-							for (jj = 0; jj < n; jj++) {
-								cc_add[jj] = (cc_add[jj] == 0.0 ? eps : cc_add[jj] * 10.0);
-							}
-
-							/*
-							 * possible memory leak here, by purpose. if it fail, the internal structure might be incomplete and unsafe
-							 * to free.
-							 */
-							problem = NULL;
-							break;
-						}
-
-						case GMRFLib_SUCCESS:
-							ok = 1;
-							break;
-
-						default:
-							/*
-							 * some other error 
-							 */
-							GMRFLib_set_error_handler(old_handler);
-							assert(0 == 1);
-							abort();
-						}
-
-						if (++num_try >= num_try_max) {
-							FIXME("This should not happen. Contact developers...");
-							abort();
-						}
-					}
-					Free(cc_add);
-					GMRFLib_set_error_handler(old_handler);
-					GMRFLib_evaluate(problem);
-					log_norm_const = problem->sub_logdens;
-
-					GMRFLib_free_problem(problem);
-					GMRFLib_free_tabulate_Qfunc(Qf);
-					GMRFLib_graph_free(graph);
-					Free(xx_out);
-					Free(ilist);
-					Free(jlist);
-					Free(Qijlist);
-				}
+			switch (nn_out) {
+			case 0:
+				log_prior = 0.0;
 				break;
-				
-				case 1:
+			case 1:
+				log_prior = (evaluate_hyper_prior ? xx_out[0] : 0.0);
+				break;
+			default:
+				assert(0 == 1);
+			}
+			if (nn_out) {
+				Free(xx_out);
+			}
+
+			switch (n_out) {
+			case 0:
+			{
+				/*
+				 * if it is the standard norm.const, the user can request us to compute it here if numeric(0) is
+				 * returned from R_rgeneric.
+				 */
+				int *ilist = NULL, *jlist = NULL, n, len, k = 0, jj;
+				double *Qijlist = NULL;
+				GMRFLib_tabulate_Qfunc_tp *Qf = NULL;
+				GMRFLib_graph_tp *graph = NULL;
+#pragma omp critical
 				{
-					log_norm_const = x_out[0];
-					break;
+					inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_Q, def->model, ntheta, param);
 				}
-
-				default:
-					assert(0 == 1);
+				assert(nn_out >= 2);
+				n = (int) xx_out[k++];
+				len = (int) xx_out[k++];
+				ilist = Calloc(len, int);
+				jlist = Calloc(len, int);
+				Qijlist = Calloc(len, double);
+				for (jj = 0; jj < len; jj++) {
+					ilist[jj] = (int) xx_out[k++];
 				}
+				for (jj = 0; jj < len; jj++) {
+					jlist[jj] = (int) xx_out[k++];
+				}
+				for (jj = 0; jj < len; jj++) {
+					Qijlist[jj] = xx_out[k++];
+				}
+				assert(k == nn_out);
+				GMRFLib_tabulate_Qfunc_from_list(&Qf, &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
+				int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
+				GMRFLib_problem_tp *problem = NULL;
+				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+				double *cc_add = Calloc(n, double);
 
-				if (debug) {
-					for (ii = 0; ii < ntheta; ii++) {
-						printf("p %.12g ", param[ii]);
+				if (mb->f_diag[i]) {
+					for (jj = 0; jj < n; jj++) {
+						cc_add[jj] = mb->f_diag[i];
 					}
-					printf(" %.12g  prior %.12g\n", log_norm_const, log_prior);
 				}
 
-				_SET_GROUP_RHO(ntheta);
-				val += mb->f_nrep[i] * (normc_g + log_norm_const * (mb->f_ngroup[i] - grankdef)) + log_prior;
-				Free(param);
+				while (!ok) {
+					retval = GMRFLib_init_problem(&problem, NULL, NULL, cc_add, NULL,
+								      graph, Qf->Qfunc, Qf->Qfunc_arg, NULL,
+								      mb->f_constr_orig[i], GMRFLib_NEW_PROBLEM);
+					switch (retval) {
+					case GMRFLib_EPOSDEF:
+					{
+						double eps = GMRFLib_eps(0.5);
+						for (jj = 0; jj < n; jj++) {
+							cc_add[jj] = (cc_add[jj] == 0.0 ? eps : cc_add[jj] * 10.0);
+						}
+
+						/*
+						 * possible memory leak here, by purpose. if it fail, the internal structure might be incomplete and unsafe
+						 * to free.
+						 */
+						problem = NULL;
+						break;
+					}
+
+					case GMRFLib_SUCCESS:
+						ok = 1;
+						break;
+
+					default:
+						/*
+						 * some other error 
+						 */
+						GMRFLib_set_error_handler(old_handler);
+						assert(0 == 1);
+						abort();
+					}
+
+					if (++num_try >= num_try_max) {
+						FIXME("This should not happen. Contact developers...");
+						abort();
+					}
+				}
+				Free(cc_add);
+				GMRFLib_set_error_handler(old_handler);
+				GMRFLib_evaluate(problem);
+				log_norm_const = problem->sub_logdens;
+
+				GMRFLib_free_problem(problem);
+				GMRFLib_free_tabulate_Qfunc(Qf);
+				GMRFLib_graph_free(graph);
+				Free(xx_out);
+				Free(ilist);
+				Free(jlist);
+				Free(Qijlist);
+			}
+				break;
+
+			case 1:
+			{
+				log_norm_const = x_out[0];
+				break;
+			}
+
+			default:
+				assert(0 == 1);
+			}
+
+			if (debug) {
+				for (ii = 0; ii < ntheta; ii++) {
+					printf("p %.12g ", param[ii]);
+				}
+				printf(" %.12g  prior %.12g\n", log_norm_const, log_prior);
+			}
+
+			_SET_GROUP_RHO(ntheta);
+			val += mb->f_nrep[i] * (normc_g + log_norm_const * (mb->f_ngroup[i] - grankdef)) + log_prior;
+
+			Free(param);
+			if (n_out) {
 				Free(x_out);
 			}
 			break;
 		}
-		
+
 		case F_AR1:
 		{
 			double mean_x;
@@ -32941,7 +33024,7 @@ int testit(int argc, char **argv)
 
 	case 1:
 	{
-		for(int i = 0; i < 10; i++) {
+		for (int i = 0; i < 10; i++) {
 			P(GMRFLib_rng_uniform());
 		}
 	}
@@ -33883,26 +33966,24 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-	case 48: 
+	case 48:
 	{
-		for(double x = 1.0;; x *= 10.0) {
+		for (double x = 1.0;; x *= 10.0) {
 			printf("x= %f log(gsl_sf_psi_1(x)= %f  -log(x)= %f diff= %f\n",
-			       x, log(gsl_sf_psi_1(x)), -log(x),
-			       log(gsl_sf_psi_1(x))+log(x));
+			       x, log(gsl_sf_psi_1(x)), -log(x), log(gsl_sf_psi_1(x)) + log(x));
 		}
 		break;
 	}
 
-	case 49: 
+	case 49:
 	{
 #define SPECIAL(x) ((x > 0 ?					\
 		-2.0 * log(x) - log(2.0) + 1.0/(3.0*(x)) - 1.0/(18.0*SQR(x)) : \
 		     log(gsl_sf_psi_1(x) - 1.0/(x))))
 
-		for(double x = 1.0;; x *= 10.0) {
+		for (double x = 1.0;; x *= 10.0) {
 			printf("x= %f log(gsl_sf_psi_1(x)-1/x)= %f  %f %f\n",
-			       x, log(gsl_sf_psi_1(x)-1/x), SPECIAL(x), 
-			       log(gsl_sf_psi_1(x)-1/x)-SPECIAL(x));
+			       x, log(gsl_sf_psi_1(x) - 1 / x), SPECIAL(x), log(gsl_sf_psi_1(x) - 1 / x) - SPECIAL(x));
 		}
 		break;
 	}
@@ -34093,7 +34174,7 @@ int main(int argc, char **argv)
 					// this happens unless the -B option have been used already
 					GMRFLib_openmp->blas_num_threads = IMAX(1, ntt[1]);
 				}
-				
+
 				// there is no need to support nested on WINDOWS before PARDISO is
 				// integrated there
 #if defined(WINDOWS)
@@ -34419,7 +34500,7 @@ int main(int argc, char **argv)
 				printf("\t---------------------------------\n");
 				printf("\tTotal           : %7.3f seconds\n", time_used[0] + time_used[1] + time_used[2]);
 				printf("\nNumber of function-calls %d  Average time %.3f seconds\n",
-				       mb->misc_output->nfunc, time_used[1]/mb->misc_output->nfunc);
+				       mb->misc_output->nfunc, time_used[1] / mb->misc_output->nfunc);
 #if !defined(WINDOWS)
 				PEFF_OUTPUT;
 #endif
@@ -34453,6 +34534,6 @@ int main(int argc, char **argv)
 #if 0
 int METIS51PARDISO_NodeND(int *nvtxs, int *xadj, int *adjncy, int *vwgt, int *options, int *perm, int *iperm)
 {
-        return METIS51_NodeND(nvtxs, xadj, adjncy, vwgt, options, perm, iperm);
+	return METIS51_NodeND(nvtxs, xadj, adjncy, vwgt, options, perm, iperm);
 }
 #endif

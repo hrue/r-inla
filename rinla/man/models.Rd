@@ -6752,11 +6752,15 @@ inla.models()
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{status = }{`experimental'}
-								\item{link = }{`default log quantile'}
+								\item{link = }{`default log'}
 								\item{pdf = }{`gammasurv'}
 							 }
 						 }
 					 }
+				 }
+				\item{Model `gammajw'.}{Number of hyperparmeters are 0.
+				 }
+				\item{Model `gammajwsurv'.}{Number of hyperparmeters are 0.
 				 }
 				\item{Model `gammacount'.}{Number of hyperparmeters are 1.
 					 \describe{

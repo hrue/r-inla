@@ -98,7 +98,7 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 	G.fixed_value = fixed_value;
 	G.graph = graph;
 	G.directions = ai_par->optimise_use_directions_m;
-	
+
 	G.Qfunc = Calloc(GMRFLib_MAX_THREADS, GMRFLib_Qfunc_tp *);
 	G.Qfunc_arg = Calloc(GMRFLib_MAX_THREADS, void *);
 	for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
@@ -249,8 +249,7 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 	GMRFLib_ai_marginal_hyperparam(fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg, G.fixed_value,
 				       G.graph,
 				       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local[GMRFLib_thread_id]->Qfunc),
-				       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[GMRFLib_thread_id]->Qfunc_arg), G.constr,
-				       G.ai_par, ais);
+				       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[GMRFLib_thread_id]->Qfunc_arg), G.constr, G.ai_par, ais);
 	*fx += con;					       /* add missing constant due to b = b(theta) */
 	ffx = G.log_extra(x, G.nhyper, G.log_extra_arg);
 
@@ -838,8 +837,8 @@ GMRFLib_matrix_tp *GMRFLib_opt_get_directions(void)
 		D->nrow = D->ncol = n;
 		D->elems = ISQR(n);
 		D->A = Calloc(ISQR(n), double);
-		for(i = 0; i < n; i++) {
-			for(j = 0; j < n; j++) {
+		for (i = 0; i < n; i++) {
+			for (j = 0; j < n; j++) {
 				D->A[i + j * n] = gsl_matrix_get(Opt_dir_params.A, i, j);
 			}
 		}
@@ -1033,14 +1032,13 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 
 			if (G.directions) {
 				// start fom here instead
-				if (Adir->size1 == G.directions->size1 &&
-				    Adir->size2 == G.directions->size2) {
+				if (Adir->size1 == G.directions->size1 && Adir->size2 == G.directions->size2) {
 					gsl_matrix_memcpy(Adir, G.directions);
 				} else {
 					fprintf(stderr, "Direction matrix has wrong dimension, ignore. [(%1d,%1d) != (%1d,%1d)]\n",
 						(int) G.directions->size1, (int) G.directions->size2, (int) Adir->size1, (int) Adir->size2);
 				}
-			} 
+			}
 			gsl_matrix_memcpy(A, Adir);
 			gsl_matrix_memcpy(tAinv, Adir);
 			first = 0;

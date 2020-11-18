@@ -1,0 +1,66 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{A special case of the Gamma-distribution}
+
+\subsection*{Parametrisation}
+
+We consider this distribution
+\begin{displaymath}
+    \pi(y) = \frac{1}{\Gamma(a)} y^{a-1} \exp(-y), \qquad a>0,
+    \quad y >0,
+\end{displaymath}
+where $\text{E}(y) = \mu = a$.
+
+\subsection*{Link-function}
+
+The linear predictor $\eta$ is linked to the mean $\mu$ using a
+default log-link
+\begin{displaymath}
+    \mu = \exp(\eta)
+\end{displaymath}
+
+\subsection*{Hyperparameter}
+
+None.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{gammajw}$ for regression models and
+    $\text{family}=\texttt{gammajw.surv}$ for survival models.
+\item Required arguments: for \texttt{gammajw.surv}, $y$ (to be given in
+    a format by using $\texttt{inla.surv()}$), and for \texttt{gammajw},
+    $y$.
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+
+\textbf{gammajw:}
+\input{../hyper/likelihood/gammajw.tex}
+
+\textbf{gammajwsurv:}
+\input{../hyper/likelihood/gammajwsurv.tex}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example.
+\verbatiminput{example-gammajw.R}
+
+\subsection*{Notes}
+
+None.
+
+\end{document}
+
+
+% LocalWords:  hyperparameter overdispersion Hyperparameters nbinomial
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

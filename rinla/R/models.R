@@ -5745,8 +5745,26 @@
                      survival = TRUE,
                      discrete = FALSE,
                      status = "experimental", 
-                     link = c("default", "log", "quantile"),
+                     link = c("default", "log"),
                      pdf = "gammasurv"
+                 ),
+
+                 gammajw = list(
+                     doc = "A special case of the Gamma likelihood", 
+                     hyper = list(),
+                     survival = FALSE,
+                     discrete = FALSE,
+                     link = c("default", "log"),
+                     pdf = "gammajw"
+                 ),
+
+                 gammajwsurv = list(
+                     doc = "A special case of the Gamma likelihood (survival)", 
+                     hyper = list(),
+                     survival = TRUE,
+                     discrete = FALSE,
+                     link = c("default", "log"),
+                     pdf = "gammajw"
                  ),
 
                  gammacount = list(
