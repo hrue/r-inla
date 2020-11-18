@@ -4432,6 +4432,11 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 		a[0] = ds->data_observations.gamma_scale = Calloc(mb->predictor_ndata, double);
 		break;
 
+	case L_GAMMAJW:
+		idiv = 2;
+		a[0] = NULL;
+		break;
+
 	case L_DGP:
 	case L_EXPONENTIAL:
 	case L_GP:
@@ -4486,6 +4491,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_EXPONENTIALSURV:
 	case L_GAMMASURV:
+	case L_GAMMAJWSURV:
 	case L_LOGLOGISTICSURV:
 	case L_LOGNORMALSURV:
 	case L_QLOGLOGISTICSURV:
@@ -8225,6 +8231,46 @@ int loglikelihood_gammasurv(double *logll, double *x, int m, int idx, double *x_
 	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gamma));
 }
 
+int loglikelihood_gammajw(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+{
+	/*
+	 * Gammajw
+	 */
+
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double ly = log(y);
+	double mu;
+
+	LINK_INIT;
+
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			logll[i] = -gsl_sf_lngamma(mu) + (mu - 1.0) * ly - y;
+		}
+	} else {
+		double yy = (y_cdf ? *y_cdf : y);
+		for (i = 0; i < -m; i++) {
+			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			logll[i] = gsl_cdf_gamma_P(yy, mu, 1.0);
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_gammajwsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+{
+	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gammajw));
+}
+
 int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	/*
@@ -11589,6 +11635,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "GAMMA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gamma;
 		ds->data_id = L_GAMMA;
+	} else if (!strcasecmp(ds->data_likelihood, "GAMMAJW")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gammajw;
+		ds->data_id = L_GAMMAJW;
 	} else if (!strcasecmp(ds->data_likelihood, "GAMMACOUNT")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gammacount;
 		ds->data_id = L_GAMMACOUNT;
@@ -11689,6 +11738,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "GAMMASURV")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gammasurv;
 		ds->data_id = L_GAMMASURV;
+	} else if (!strcasecmp(ds->data_likelihood, "GAMMAJWSURV")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gammajwsurv;
+		ds->data_id = L_GAMMAJWSURV;
 	} else if (!strcasecmp(ds->data_likelihood, "WEIBULL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_weibull;
 		ds->data_id = L_WEIBULL;
@@ -12110,6 +12162,18 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
+	case L_GAMMAJW:
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.y[i] <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Gammajw data[%1d] (y) = %g or weight %g is void\n", secname, i,
+							ds->data_observations.y[i], ds->data_observations.gamma_scale[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+		break;
+
 	case L_QKUMAR:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
@@ -12278,6 +12342,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_EXPONENTIALSURV:
 	case L_GAMMASURV:
+	case L_GAMMAJWSURV:
 	case L_WEIBULLSURV:
 	case L_WEIBULL_CURE:
 	case L_LOGLOGISTICSURV:
@@ -13661,6 +13726,13 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+		break;
+
+	case L_GAMMAJW:
+	case L_GAMMAJWSURV:
+		/*
+		 * get options related to the gammajw
+		 */
 		break;
 
 	case L_GAMMACOUNT:
@@ -25870,6 +25942,10 @@ double extra(double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &precision_intern);
 					count++;
 				}
+				break;
+
+			case L_GAMMAJW:
+			case L_GAMMAJWSURV:
 				break;
 
 			case L_GAMMACOUNT:

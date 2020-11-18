@@ -110,7 +110,6 @@ r-inla.org/doc/Intro/Intro.fls
 r-inla.org/doc/Intro/Intro.log
 r-inla.org/doc/Intro/Intro.pdf
 r-inla.org/doc/Intro/Intro.synctex.gz
-
 r-inla.org/doc/latent/ar.aux
 r-inla.org/doc/latent/ar.fdb_latexmk
 r-inla.org/doc/latent/ar.fls
@@ -353,7 +352,6 @@ r-inla.org/doc/latent/z.fls
 r-inla.org/doc/latent/z.log
 r-inla.org/doc/latent/z.pdf
 r-inla.org/doc/latent/z.synctex.gz
-
 r-inla.org/doc/likelihood/beta.aux
 r-inla.org/doc/likelihood/beta.fdb_latexmk
 r-inla.org/doc/likelihood/beta.fls
@@ -432,6 +430,8 @@ r-inla.org/doc/likelihood/gammacount.fls
 r-inla.org/doc/likelihood/gammacount.log
 r-inla.org/doc/likelihood/gammacount.pdf
 r-inla.org/doc/likelihood/gammacount.synctex.gz
+r-inla.org/doc/likelihood/gammajw.log
+r-inla.org/doc/likelihood/gammajw.synctex.gz
 r-inla.org/doc/likelihood/gaussian.aux
 r-inla.org/doc/likelihood/gaussian.fdb_latexmk
 r-inla.org/doc/likelihood/gaussian.fls
@@ -522,6 +522,12 @@ r-inla.org/doc/likelihood/nmixnb.fls
 r-inla.org/doc/likelihood/nmixnb.log
 r-inla.org/doc/likelihood/nmixnb.pdf
 r-inla.org/doc/likelihood/nmixnb.synctex.gz
+r-inla.org/doc/likelihood/poisson-special.aux
+r-inla.org/doc/likelihood/poisson-special.fdb_latexmk
+r-inla.org/doc/likelihood/poisson-special.fls
+r-inla.org/doc/likelihood/poisson-special.log
+r-inla.org/doc/likelihood/poisson-special.pdf
+r-inla.org/doc/likelihood/poisson-special.synctex.gz
 r-inla.org/doc/likelihood/poisson.aux
 r-inla.org/doc/likelihood/poisson.fdb_latexmk
 r-inla.org/doc/likelihood/poisson.fls
@@ -624,7 +630,6 @@ r-inla.org/doc/likelihood/zeroinflatedbetabinomial2.fls
 r-inla.org/doc/likelihood/zeroinflatedbetabinomial2.log
 r-inla.org/doc/likelihood/zeroinflatedbetabinomial2.pdf
 r-inla.org/doc/likelihood/zeroinflatedbetabinomial2.synctex.gz
-
 r-inla.org/doc/link/logoffset.aux
 r-inla.org/doc/link/logoffset.fdb_latexmk
 r-inla.org/doc/link/logoffset.fls
@@ -643,7 +648,6 @@ r-inla.org/doc/link/sn.fls
 r-inla.org/doc/link/sn.log
 r-inla.org/doc/link/sn.pdf
 r-inla.org/doc/link/sn.synctex.gz
-
 r-inla.org/doc/prior/betacorrelation.aux
 r-inla.org/doc/prior/betacorrelation.fdb_latexmk
 r-inla.org/doc/prior/betacorrelation.fls
@@ -668,6 +672,12 @@ r-inla.org/doc/prior/gaussian.fls
 r-inla.org/doc/prior/gaussian.log
 r-inla.org/doc/prior/gaussian.pdf
 r-inla.org/doc/prior/gaussian.synctex.gz
+r-inla.org/doc/prior/linksnintercept.aux
+r-inla.org/doc/prior/linksnintercept.fdb_latexmk
+r-inla.org/doc/prior/linksnintercept.fls
+r-inla.org/doc/prior/linksnintercept.log
+r-inla.org/doc/prior/linksnintercept.pdf
+r-inla.org/doc/prior/linksnintercept.synctex.gz
 r-inla.org/doc/prior/logitbeta.aux
 r-inla.org/doc/prior/logitbeta.fdb_latexmk
 r-inla.org/doc/prior/logitbeta.fls
@@ -758,7 +768,6 @@ r-inla.org/doc/prior/various-flat.fls
 r-inla.org/doc/prior/various-flat.log
 r-inla.org/doc/prior/various-flat.pdf
 r-inla.org/doc/prior/various-flat.synctex.gz
-
 r-inla.org/doc/utils/inla.surv.aux
 r-inla.org/doc/utils/inla.surv.fdb_latexmk
 r-inla.org/doc/utils/inla.surv.fls
@@ -804,19 +813,6 @@ GNUmakefile
 
 gmrflib/INLA_res.RData
 gmrflib/GitID.all
-r-inla.org/doc/prior/linksnintercept.aux
-r-inla.org/doc/prior/linksnintercept.log
-r-inla.org/doc/prior/linksnintercept.pdf
-r-inla.org/doc/prior/linksnintercept.synctex.gz
-rinla/inst/doc/prior/linksnintercept.pdf
-r-inla.org/doc/prior/linksnintercept.fdb_latexmk
-r-inla.org/doc/prior/linksnintercept.fls
-r-inla.org/doc/likelihood/poisson-special.aux
-r-inla.org/doc/likelihood/poisson-special.fdb_latexmk
-r-inla.org/doc/likelihood/poisson-special.fls
-r-inla.org/doc/likelihood/poisson-special.log
-r-inla.org/doc/likelihood/poisson-special.pdf
-r-inla.org/doc/likelihood/poisson-special.synctex.gz
 
 rinla/inst/bin/*/*/fmesher
 rinla/inst/bin/*/*/inla
@@ -824,3 +820,9 @@ rinla/inst/bin/*/*/inla.mkl
 
 
 rinla/vignettes/multinomial_files/figure-latex/
+
+r-inla.org/doc/likelihood/gammajw.aux
+
+r-inla.org/doc/likelihood/gammajw.fdb_latexmk
+
+r-inla.org/doc/likelihood/gammajw.fls
