@@ -3380,7 +3380,7 @@ double priorfunc_pc_gamma(double *x, double *parameters)
 #define SPECIAL(x) ((x > 1.0E4 ?					\
 		     -2.0 * log(x) - log(2.0) + 1.0/(3.0*(x)) - 1.0/(18.0*SQR(x)) - 22.0/(405.0 * gsl_pow_3(x)) : \
 		     log(gsl_sf_psi_1(x) - 1.0/(x))))
-	
+
 	// the inla.pc.dgamma prior, which is the prior for 'a' in Gamma(1/a, 1/a) where a=0 is the base model. Here we have the
 	// argument log(a). Almost the same function as priorfunc_pc_mgamma
 	double ldens, d, a, a_inv, lambda;
@@ -6566,7 +6566,7 @@ int loglikelihood_poisson_special1(double *logll, double *x, int m, int idx, dou
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y),
-		p = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, p0, pp0;
+	    p = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, p0, pp0;
 
 	LINK_INIT;
 
@@ -7682,9 +7682,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -26788,7 +26788,7 @@ double extra(double *theta, int ntheta, void *argument)
 					problem = Calloc(mb->nf, GMRFLib_problem_tp *);
 				}
 			}
-			
+
 			if (1) {
 				/*
 				 * do a check for numerical not pos def matrix here, as its so close to being singular 
@@ -26910,8 +26910,7 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 			}
 
-			if (1)
-			{
+			if (1) {
 				/*
 				 * do a check for numerical not pos def matrix here, as its so close to being singular 
 				 */
@@ -27899,7 +27898,7 @@ double extra(double *theta, int ntheta, void *argument)
 					count++;
 				}
 			}
-#pragma omp critical 
+#pragma omp critical
 			{
 				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, ntheta, param);
 				inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_LOG_PRIOR, def->model, ntheta, param);
@@ -27930,7 +27929,7 @@ double extra(double *theta, int ntheta, void *argument)
 				double *Qijlist = NULL;
 				GMRFLib_tabulate_Qfunc_tp *Qf = NULL;
 				GMRFLib_graph_tp *graph = NULL;
-#pragma omp critical 
+#pragma omp critical
 				{
 					inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_Q, def->model, ntheta, param);
 				}
@@ -28013,8 +28012,8 @@ double extra(double *theta, int ntheta, void *argument)
 				Free(jlist);
 				Free(Qijlist);
 			}
-			break;
-				
+				break;
+
 			case 1:
 			{
 				log_norm_const = x_out[0];
@@ -28041,7 +28040,7 @@ double extra(double *theta, int ntheta, void *argument)
 			}
 			break;
 		}
-		
+
 		case F_AR1:
 		{
 			double mean_x;
@@ -33025,7 +33024,7 @@ int testit(int argc, char **argv)
 
 	case 1:
 	{
-		for(int i = 0; i < 10; i++) {
+		for (int i = 0; i < 10; i++) {
 			P(GMRFLib_rng_uniform());
 		}
 	}
@@ -33967,26 +33966,24 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-	case 48: 
+	case 48:
 	{
-		for(double x = 1.0;; x *= 10.0) {
+		for (double x = 1.0;; x *= 10.0) {
 			printf("x= %f log(gsl_sf_psi_1(x)= %f  -log(x)= %f diff= %f\n",
-			       x, log(gsl_sf_psi_1(x)), -log(x),
-			       log(gsl_sf_psi_1(x))+log(x));
+			       x, log(gsl_sf_psi_1(x)), -log(x), log(gsl_sf_psi_1(x)) + log(x));
 		}
 		break;
 	}
 
-	case 49: 
+	case 49:
 	{
 #define SPECIAL(x) ((x > 0 ?					\
 		-2.0 * log(x) - log(2.0) + 1.0/(3.0*(x)) - 1.0/(18.0*SQR(x)) : \
 		     log(gsl_sf_psi_1(x) - 1.0/(x))))
 
-		for(double x = 1.0;; x *= 10.0) {
+		for (double x = 1.0;; x *= 10.0) {
 			printf("x= %f log(gsl_sf_psi_1(x)-1/x)= %f  %f %f\n",
-			       x, log(gsl_sf_psi_1(x)-1/x), SPECIAL(x), 
-			       log(gsl_sf_psi_1(x)-1/x)-SPECIAL(x));
+			       x, log(gsl_sf_psi_1(x) - 1 / x), SPECIAL(x), log(gsl_sf_psi_1(x) - 1 / x) - SPECIAL(x));
 		}
 		break;
 	}
@@ -34177,7 +34174,7 @@ int main(int argc, char **argv)
 					// this happens unless the -B option have been used already
 					GMRFLib_openmp->blas_num_threads = IMAX(1, ntt[1]);
 				}
-				
+
 				// there is no need to support nested on WINDOWS before PARDISO is
 				// integrated there
 #if defined(WINDOWS)
@@ -34503,7 +34500,7 @@ int main(int argc, char **argv)
 				printf("\t---------------------------------\n");
 				printf("\tTotal           : %7.3f seconds\n", time_used[0] + time_used[1] + time_used[2]);
 				printf("\nNumber of function-calls %d  Average time %.3f seconds\n",
-				       mb->misc_output->nfunc, time_used[1]/mb->misc_output->nfunc);
+				       mb->misc_output->nfunc, time_used[1] / mb->misc_output->nfunc);
 #if !defined(WINDOWS)
 				PEFF_OUTPUT;
 #endif
@@ -34537,6 +34534,6 @@ int main(int argc, char **argv)
 #if 0
 int METIS51PARDISO_NodeND(int *nvtxs, int *xadj, int *adjncy, int *vwgt, int *options, int *perm, int *iperm)
 {
-        return METIS51_NodeND(nvtxs, xadj, adjncy, vwgt, options, perm, iperm);
+	return METIS51_NodeND(nvtxs, xadj, adjncy, vwgt, options, perm, iperm);
 }
 #endif

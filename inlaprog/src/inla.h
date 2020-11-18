@@ -56,13 +56,11 @@ __BEGIN_DECLS
 #define FIFO_PUT "inla-mcmc-fifo-put"
 #define FIFO_GET_DATA "inla-mcmc-fifo-get-data"
 #define FIFO_PUT_DATA "inla-mcmc-fifo-put-data"
-
 //
 // just to have a big and small number to use
 #include <gsl/gsl_machine.h>
 #define INLA_REAL_BIG   GSL_SQRT_FLT_MAX
 #define INLA_REAL_SMALL GMRFLib_eps2()
-
 #define INLA_SIGN(_x) ((_x) >= 0.0 ? 1.0 : -1.0)
 
 /*
@@ -228,7 +226,7 @@ typedef struct {
 	 */
 	double *beta_weight;
 	double beta_censor_value;
-	
+
 	/*
 	 * y ~ Simplex(....,1/(weight*prec))
 	 */
@@ -323,7 +321,7 @@ typedef struct {
 	 */
 	double **sn_skewness;
 	double **sn_lprec;
-	double *sn_scale;				 /* Variance = 1/(scale*prec) */
+	double *sn_scale;				       /* Variance = 1/(scale*prec) */
 
 	/*
 	 * GEV 
@@ -544,7 +542,7 @@ typedef enum {
 	L_XBINOMIAL,
 	L_ZEROINFLATEDCENPOISSON0,
 	L_ZEROINFLATEDCENPOISSON1,
-	L_POISSON_SPECIAL1, 
+	L_POISSON_SPECIAL1,
 	L_GAMMAJW,
 	L_GAMMAJWSURV,
 	F_RW2D = 1000,					       /* f-models */
@@ -633,7 +631,7 @@ typedef enum {
 	P_WISHART4D,
 	P_WISHART5D,
 	P_PC_SN,
-	P_SN_INTERCEPT, 
+	P_SN_INTERCEPT,
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
@@ -1433,14 +1431,12 @@ typedef enum {
 	INTSLOPE_Z = 2
 } inla_intslope_column_tp;
 
-typedef struct 
-{
+typedef struct {
 	double xi;
 	double omega;
 	double intercept;
 	double alpha;
-}
-	inla_sn_arg_tp;
+} inla_sn_arg_tp;
 
 
 #define R_GENERIC_Q "Q"
@@ -1531,11 +1527,11 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec
 double inla_compute_saturated_loglik(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
 double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
 double inla_dmatern_cf(double dist, double range, double nu);
-double inla_get_sn_param(inla_sn_arg_tp *output, double **param);
+double inla_get_sn_param(inla_sn_arg_tp * output, double **param);
 double inla_log_Phi(double x);
 double inla_log_Phi_fast(double x);
 double inla_logit_Phi(double x);
-double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *output);
+double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * output);
 double inla_sn_intercept(double intern_quantile, double skew);
 double inla_update_density(double *theta, inla_update_tp * arg);
 double link_cauchit(double x, map_arg_tp typ, void *param, double *cov);
@@ -1831,7 +1827,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(double **, double **, int *, void *), int(*simpson)(double **, double **, int *, void *));
+			   int (*quadrature)(double **, double **, int *, void *), int (*simpson)(double **, double **, int *, void *));
 int loglikelihood_mix_loggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
