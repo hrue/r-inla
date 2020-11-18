@@ -95,7 +95,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 
 	case GMRFLib_REORDER_PARDISO:
 		switch (sm_fact->smtp) {
-		case GMRFLib_SMTP_PARDISO:		       /*  same code as above */
+		case GMRFLib_SMTP_PARDISO:		       /* same code as above */
 			if (sm_fact->PARDISO_fact == NULL) {
 				GMRFLib_pardiso_init(&(sm_fact->PARDISO_fact));
 			}
@@ -417,7 +417,7 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm
 	{
 		GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, 1);
 	}
-	break;
+		break;
 
 	default:
 		GMRFLib_ERROR(GMRFLib_ESNH);
@@ -485,7 +485,7 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_f
 		GMRFLib_EWRAP0(GMRFLib_solve_l_sparse_matrix_special_TAUCS(rhs, sm_fact->TAUCS_L, graph, sm_fact->remap, findx, toindx, remapped));
 		break;
 
-	case GMRFLib_SMTP_PARDISO: 
+	case GMRFLib_SMTP_PARDISO:
 	{
 		if (remapped) {
 			GMRFLib_pardiso_perm(rhs, 1, sm_fact->PARDISO_fact);
@@ -588,7 +588,7 @@ int GMRFLib_compute_Qinv(void *problem, int storage)
 {
 	GMRFLib_problem_tp *p = (GMRFLib_problem_tp *) problem;
 	int ret;
-	
+
 	switch (p->sub_sm_fact.smtp) {
 	case GMRFLib_SMTP_BAND:
 		GMRFLib_EWRAP0(GMRFLib_compute_Qinv_BAND(p, storage));

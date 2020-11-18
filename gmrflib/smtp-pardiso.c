@@ -139,7 +139,7 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from)
 
 int GMRFLib_csr_base(int base, GMRFLib_csr_tp * M)
 {
-	int imin = GMRFLib_imin_value(M->ia, M->n+1, NULL);
+	int imin = GMRFLib_imin_value(M->ia, M->n + 1, NULL);
 	int jmin = GMRFLib_imin_value(M->ja, M->na, NULL);
 	int ijmin = IMIN(imin, jmin);
 
@@ -426,7 +426,7 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 	memcpy((void *) (store->pstore->iparm), (void *) (store->iparm_default), GMRFLib_PARDISO_PLEN * sizeof(int));
 	memcpy((void *) (store->pstore->dparm), (void *) (store->dparm_default), GMRFLib_PARDISO_PLEN * sizeof(double));
 
-	omp_set_num_threads(store->pstore->iparm[2]); // this should be set already... but
+	omp_set_num_threads(store->pstore->iparm[2]);	       // this should be set already... but
 	store->pstore->nrhs = 0;
 	store->pstore->err_code = 0;
 
@@ -739,7 +739,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 		}
 	}
 	Free(bb);
-	
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -1031,8 +1031,8 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 		CP2(phase);
 		CP2(L_nnz);
 
-		CPv(perm, int, old->graph->n); // CP2(perm);
-		CPv(iperm, int, old->graph->n); // CP2(iperm);
+		CPv(perm, int, old->graph->n);		       // CP2(perm);
+		CPv(iperm, int, old->graph->n);		       // CP2(iperm);
 
 		CP2(log_det_Q);
 		CP2(Q);
@@ -1481,7 +1481,7 @@ int my_pardiso_test5(void)
 	for (k = 0; k < 1000; k++) {
 
 		// I do not free anything here...
-		
+
 		P(k);
 		GMRFLib_tabulate_Qfunc_tp *Qtab = NULL;
 		GMRFLib_graph_tp *g = NULL;
@@ -1499,7 +1499,7 @@ int my_pardiso_test5(void)
 	}
 }
 
-int my_pardiso_test6(GMRFLib_ai_store_tp *ai_store, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *c)
+int my_pardiso_test6(GMRFLib_ai_store_tp * ai_store, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *c)
 {
 	int n = ai_store->problem->sub_graph->n;
 	int i;
@@ -1509,75 +1509,64 @@ int my_pardiso_test6(GMRFLib_ai_store_tp *ai_store, GMRFLib_Qfunc_tp * Qfunc, vo
 	GMRFLib_thread_id = 0;
 	GMRFLib_tabulate_Qfunc_tp *tab = NULL;
 	GMRFLib_problem_tp *problem = ai_store->problem;
-	GMRFLib_pardiso_store_tp * pardiso_store = problem->sub_sm_fact.PARDISO_fact;
+	GMRFLib_pardiso_store_tp *pardiso_store = problem->sub_sm_fact.PARDISO_fact;
 
 	GMRFLib_tabulate_Qfunc(&tab, ai_store->problem->sub_graph, Qfunc, Qfunc_arg, NULL, NULL, NULL);
 	P(GMRFLib_openmp->max_threads_outer);
-	
+
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < n; i++) {
 		int *iparm = Calloc(GMRFLib_PARDISO_PLEN, int);
 		double *dparm = Calloc(GMRFLib_PARDISO_PLEN, double);
-		
+
 		memcpy(iparm, pardiso_store->iparm_default, GMRFLib_PARDISO_PLEN * sizeof(int));
 		memcpy(dparm, pardiso_store->dparm_default, GMRFLib_PARDISO_PLEN * sizeof(double));
 
-                iparm[7] = 0;
-                iparm[25] = 0;
-		
+		iparm[7] = 0;
+		iparm[25] = 0;
+
 		int j;
-		int error = 0;  
-		int maxfct = 1; 
-		int mnum = 1;   
-		int msglvl = 0; 
+		int error = 0;
+		int maxfct = 1;
+		int mnum = 1;
+		int msglvl = 0;
 		int mtype = -2;
-		int phase = 33; 
+		int phase = 33;
 		int idum = 0;
 		int one = 1;
-		
-		double *work = Calloc(3*n, double);
+
+		double *work = Calloc(3 * n, double);
 		double *b = work;
 		double *x = work + n;
-		double *res = work + 2*n;
+		double *res = work + 2 * n;
 		double err;
 		double fake_a = 0.0;
 		int fake_ia = 0;
 		int fake_ja = 0;
-		
+
 		// if I set b[10]=1, then it works in parallel, but not if they are different
 		b[i] = 1.0;
 
 		assert(GMRFLib_openmp->max_threads_inner == iparm[2]);
 		omp_set_num_threads(iparm[2]);
 
-                pardiso(pardiso_store->pt,
-			&maxfct,
-			&mnum,
-			&mtype,
-			&phase,
-                        &n,
+		pardiso(pardiso_store->pt, &maxfct, &mnum, &mtype, &phase, &n,
 			// not in use
-			&fake_a, //pardiso_store->pstore->Q->a,
-			&fake_ia, //pardiso_store->pstore->Q->ia,
-			&fake_ja, //pardiso_store->pstore->Q->ja,
-			//
-			&idum,
-			&one,
-			iparm,
-			&msglvl,
-			b,
-			x,
-			&error,
-			dparm);
+			&fake_a,			       // pardiso_store->pstore->Q->a,
+			&fake_ia,			       // pardiso_store->pstore->Q->ia,
+			&fake_ja,			       // pardiso_store->pstore->Q->ja,
+			// 
+			&idum, &one, iparm, &msglvl, b, x, &error, dparm);
 
 		// res = Q x
 		GMRFLib_Qx2(res, x, problem->sub_graph, tab->Qfunc, tab->Qfunc_arg, c);
 
-		for(err = 0.0, j = 0; j < n; j++) {
+		for (err = 0.0, j = 0; j < n; j++) {
 			err += SQR(res[j] - b[j]);
 		}
 		err /= n;
-		if (err > 1E-4) printf("i %d err %g\n", i, err);
+		if (err > 1E-4)
+			printf("i %d err %g\n", i, err);
 
 		Free(work);
 	}
@@ -1600,13 +1589,13 @@ int my_pardiso_test7(void)
 	for (k = 0; k < 1000; k++) {
 
 		// I do not free anything here...
-		
+
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 		P(k);
 		GMRFLib_tabulate_Qfunc_tp *Qtab = NULL;
 		GMRFLib_graph_tp *g = NULL;
 
-		if (k <  500)
+		if (k < 500)
 			GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q.txt", -1, NULL, NULL, NULL);
 		else
 			GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "I5.txt", -1, NULL, NULL, NULL);

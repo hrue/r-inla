@@ -351,9 +351,9 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	gsl_matrix *m = ai_par->optimise_use_directions_m;
 	if (m) {
 		fprintf(fp, "\tDirection matrix:\n");
-		for(size_t i = 0; i < m->size1; i++) {
+		for (size_t i = 0; i < m->size1; i++) {
 			fprintf(fp, "\t\t");
-			for(size_t j = 0; j < m->size2; j++) {
+			for (size_t j = 0; j < m->size2; j++) {
 				fprintf(fp, " %7.3f", gsl_matrix_get(m, i, j));
 			}
 			fprintf(fp, "\n");
@@ -1797,9 +1797,9 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 							GMRFLib_2order_approx(NULL, NULL, NULL, &(d3[1]), d[i], fixed_mode[i] + deldif, i,
 									      fixed_mode, loglFunc, loglFunc_arg,
 									      &(ai_par->step_len), &(ai_par->stencil), NULL);
-							ai_store->derivative4[i] = (d3[1] - d3[0]) * s;	
+							ai_store->derivative4[i] = (d3[1] - d3[0]) * s;
 						}
-#endif						
+#endif
 
 					}
 				}
@@ -2001,9 +2001,10 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			fourth_order_derivative += ai_store->derivative4[iii] * gsl_pow_4(derivative[iii]);
 		}
 		fourth_order_derivative *= gsl_pow_4(x_sd);
-		fprintf(stdout, "RESEARCH1: idx= %1d mean %.8f sd %.8f d3 %.8f d4 %.8f\n", idx, x_mean, x_sd, third_order_derivative, fourth_order_derivative);
-#endif		
-			
+		fprintf(stdout, "RESEARCH1: idx= %1d mean %.8f sd %.8f d3 %.8f d4 %.8f\n", idx, x_mean, x_sd, third_order_derivative,
+			fourth_order_derivative);
+#endif
+
 		/*
 		 * match the third order derivative at the "mode" and then match the mean and variance with the meancorrected one. 
 		 */
@@ -2384,8 +2385,7 @@ int GMRFLib_ai_update_conditional_mean(GMRFLib_problem_tp * pproblem, double *x,
 
 		alpha = -1.0;
 		beta = 1.0;				       /* mean_constr = mean - cond_m*t_vector */
-		dgemv_("N", &sub_n, &nc, &alpha, (*problem)->constr_m, &sub_n, t_vector, &inc, &beta, (*problem)->sub_mean_constr,
-		       &inc, F_ONE);
+		dgemv_("N", &sub_n, &nc, &alpha, (*problem)->constr_m, &sub_n, t_vector, &inc, &beta, (*problem)->sub_mean_constr, &inc, F_ONE);
 		Free(t_vector);
 
 		for (i = 0; i < sub_n; i++) {
@@ -2408,6 +2408,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 	 * assume FIXED == NULL
 	 * 
 	 */
+
 /* 
    this one is FIXED by design and such that A[IDX(i,j,n)] = A_ij, i=0...n-1, j = 0..k-1 for n x k matrix A 
  */
@@ -2522,8 +2523,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 
 		alpha = 1.0;
 		beta = 0.0;
-		dgemm_("N", "N", &n, &nc, &nc, &alpha, problem->constr_m, &n, tmp_m, &nc, &beta, constr_m_new, &n,
-		       F_ONE, F_ONE);
+		dgemm_("N", "N", &n, &nc, &nc, &alpha, problem->constr_m, &n, tmp_m, &nc, &beta, constr_m_new, &n, F_ONE, F_ONE);
 
 		for (k = 0; k < nc; k++) {
 			val = -b22 * w[k];
@@ -2798,17 +2798,17 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		 */
 
 
-		if (!lproblem) {					
-			int ret;					
-			ret = GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, 
-							 constr, GMRFLib_NEW_PROBLEM, store); 
-			if (ret != GMRFLib_SUCCESS) {			
-				catch_error = 1;			
-			}						
-		} else {						
-			GMRFLib_init_problem_store			
-				(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr, GMRFLib_KEEP_graph, store); 
-		}							
+		if (!lproblem) {
+			int ret;
+			ret = GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value,
+							 constr, GMRFLib_NEW_PROBLEM, store);
+			if (ret != GMRFLib_SUCCESS) {
+				catch_error = 1;
+			}
+		} else {
+			GMRFLib_init_problem_store
+			    (&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr, GMRFLib_KEEP_graph, store);
+		}
 
 		if (catch_error) {
 			lproblem = NULL;
@@ -5065,8 +5065,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->
-																   cpo_manual)
+																   ai_par->cpo_manual)
 															   ? &cpodens : NULL),
 												   GMRFLib_FALSE, ii, x, bnew, c, mean, d, loglFunc,
 												   loglFunc_arg, fixed_value, graph,
@@ -5097,8 +5096,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->
-																   cpo_manual)
+																   ai_par->cpo_manual)
 															   ? &cpodens : NULL),
 												   GMRFLib_FALSE, ii, x, bnew, c, mean, d, loglFunc,
 												   loglFunc_arg, fixed_value, graph,
@@ -5252,8 +5250,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->
-																   cpo_manual)
+																   ai_par->cpo_manual)
 															   ? &cpodens : NULL),
 												   GMRFLib_FALSE, ii, x, bnew, c, mean, d, loglFunc,
 												   loglFunc_arg, fixed_value, graph,
@@ -5285,8 +5282,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->
-																   cpo_manual)
+																   ai_par->cpo_manual)
 															   ? &cpodens : NULL),
 												   GMRFLib_FALSE, ii, x, bnew, c, mean, d, loglFunc,
 												   loglFunc_arg, fixed_value, graph,
@@ -5361,21 +5357,20 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 		}
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
-		
-			/*
-			 * In this case the contents of ai_store is NULL, we need to recompute the Gaussian approximation since
-			 * the contents of ai_store is NULL in this case.
-			 */
-		double tmp_logdens; 
-		double *bnew = NULL, con = 0.0;				
-		GMRFLib_bnew(&bnew, &con, graph->n, b, bfunc);		
-		GMRFLib_ai_marginal_hyperparam(&tmp_logdens, x, bnew, c, mean, d, 
-					       loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store);
-		log_dens_mode = tmp_logdens + con + log_extra(NULL, nhyper, log_extra_arg); 
-		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);		
-		Free(bnew)
 
-		ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
+		/*
+		 * In this case the contents of ai_store is NULL, we need to recompute the Gaussian approximation since
+		 * the contents of ai_store is NULL in this case.
+		 */
+		double tmp_logdens;
+		double *bnew = NULL, con = 0.0;
+		GMRFLib_bnew(&bnew, &con, graph->n, b, bfunc);
+		GMRFLib_ai_marginal_hyperparam(&tmp_logdens, x, bnew, c, mean, d,
+					       loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store);
+		log_dens_mode = tmp_logdens + con + log_extra(NULL, nhyper, log_extra_arg);
+		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
+		Free(bnew)
+		    ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
 		if (run_with_omp) {
 			GMRFLib_ai_store_tp **ai_store_id = Calloc(GMRFLib_MAX_THREADS, GMRFLib_ai_store_tp *);
@@ -8340,7 +8335,7 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, 
 	COPY(nidx);
 	COPY(neff);
 	COPY(nd);
-	
+
 	DUPLICATE(mode, n, double, 0);
 	DUPLICATE(aa, n, double, skeleton);
 	DUPLICATE(bb, n, double, skeleton);
