@@ -120,6 +120,8 @@ char *keywords[] = {
 	"FIXED", "INITIAL", "PRIOR", "HYPERID", "PARAMETERS", "TO.THETA", "FROM.THETA", NULL
 };
 
+// defined in R-interface.c
+extern double R_rgeneric_cputime;
 
 /* 
    default values for priors
@@ -34499,8 +34501,14 @@ int main(int argc, char **argv)
 				printf("\tOutput          : %7.3f seconds\n", time_used[2]);
 				printf("\t---------------------------------\n");
 				printf("\tTotal           : %7.3f seconds\n", time_used[0] + time_used[1] + time_used[2]);
-				printf("\nNumber of function-calls %d  Average time %.3f seconds\n",
+				printf("\nNumber of f.calls= %1d with %.3f sec/f.call\n",
 				       mb->misc_output->nfunc, time_used[1] / mb->misc_output->nfunc);
+				if (R_rgeneric_cputime > 0.0) {
+					printf("rgeneric-time= %.3f seconds, with %.3f sec/f.call and %.2f%% of the total time\n", 
+					       R_rgeneric_cputime, 
+					       R_rgeneric_cputime / mb->misc_output->nfunc, 
+					       R_rgeneric_cputime /time_used[1] * 100.0);
+				}
 #if !defined(WINDOWS)
 				PEFF_OUTPUT;
 #endif

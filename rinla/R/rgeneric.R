@@ -22,7 +22,7 @@
 ##!\description{A framework for defining latent models in R}
 ##!
 ##!\usage{
-##!inla.rgeneric.define(model = NULL, debug = FALSE, ...)
+##!inla.rgeneric.define(model = NULL, debug = FALSE, compile = TRUE, ...)
 ##!inla.rgeneric.iid.model(
 ##!        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
 ##!        theta = NULL)
@@ -42,6 +42,7 @@
 ##!  \item{model}{The definition of the model; see \code{inla.rgeneric.ar1.model}}
 ##!  \item{rmodel}{The rgeneric model-object, the output of \code{inla.rgeneric.define}}
 ##!  \item{debug}{Logical. Turn on/off debugging}
+##!  \item{compile}{Logical. Compile the definition of the model or not.}
 ##!  \item{cmd}{An allowed request}
 ##!  \item{theta}{Values of theta}
 ##!  \item{...}{Named list of variables that defines the environment of \code{model}}
@@ -257,7 +258,7 @@
     return (val)
 }
 
-`inla.rgeneric.define` = function(model = NULL, debug = FALSE, ...)
+`inla.rgeneric.define` = function(model = NULL, debug = FALSE, compile = TRUE, ...)
 {
     stopifnot(!missing(model))
     args = list(...)
@@ -273,10 +274,9 @@
             model = "rgeneric", 
             n = dim(model(cmd="graph", theta = NULL))[1], 
             rgeneric = list(
-                definition = if (TRUE) {
+                definition = if (!compile) {
                                  model
                              } else {
-                                 ## did not see any speedup. maybe revisit this issue later...
                                  inla.require("compiler")
                                  compiler::cmpfun(model,
                                                   options = list(
