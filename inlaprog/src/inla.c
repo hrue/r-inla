@@ -2677,11 +2677,6 @@ double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 					jlist[jj] = (int) x_out[k + len + jj];
 				}
 
-				if (0)
-					for (jj = 0; jj < len; jj++) {
-						printf("%d %d %g\n", ilist[jj], jlist[jj], Qijlist[jj]);
-					}
-
 				if (a->graph) {
 					GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
 					assert(a->graph->n == a->n);

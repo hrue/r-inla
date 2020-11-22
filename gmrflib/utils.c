@@ -555,7 +555,7 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 #endif
 #if defined(GMRFLib_TRACE_MEMORY)
 	if (nmemb * size > GMRFLib_TRACE_MEMORY)
-		printf("%s:%s:%u: calloc %zu x %zu bytes, total %zu\n", file, funcname, lineno, nmemb, size, nmemb * size);
+		printf("%s:%s:%u: calloc %lu x %lu bytes, total %lu\n", file, funcname, lineno, nmemb, size, nmemb * size);
 #endif
 	if (ptr) {
 		return ptr;
@@ -564,7 +564,7 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 	/*
 	 * alloc failed 
 	 */
-	GMRFLib_sprintf(&msg, "Fail to calloc nmemb=%1zu elements of size=%1zu bytes", nmemb, size);
+	GMRFLib_sprintf(&msg, "Fail to calloc nmemb=%1lu elements of size=%1lu bytes", nmemb, size);
 	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
 	abort();
 
@@ -584,7 +584,7 @@ void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int li
 #endif
 #if defined(GMRFLib_TRACE_MEMORY)
 	if (size > GMRFLib_TRACE_MEMORY)
-		printf("%s:%s:%u: malloc %zu bytes, total %zu\n", file, funcname, lineno, size, size);
+		printf("%s:%s:%u: malloc %lu bytes, total %lu\n", file, funcname, lineno, size, size);
 #endif
 	if (ptr) {
 		return ptr;
@@ -593,7 +593,7 @@ void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int li
 	/*
 	 * alloc failed 
 	 */
-	GMRFLib_sprintf(&msg, "Fail to malloc size=%1zu bytes", size);
+	GMRFLib_sprintf(&msg, "Fail to malloc size=%1lu bytes", size);
 	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
 	abort();
 
@@ -613,7 +613,7 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 #endif
 #if defined(GMRFLib_TRACE_MEMORY)
 	if (size > GMRFLib_TRACE_MEMORY)
-		printf("%s:%s:%u: realloc %zu bytes, total %zu\n", file, funcname, lineno, size, size);
+		printf("%s:%s:%u: realloc %lu bytes, total %lu\n", file, funcname, lineno, size, size);
 #endif
 	if (ptr) {
 		return ptr;
@@ -622,7 +622,7 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 	/*
 	 * realloc failed 
 	 */
-	GMRFLib_sprintf(&msg, "Fail to realloc size=%1zu bytes", size);
+	GMRFLib_sprintf(&msg, "Fail to realloc size=%1lu bytes", size);
 	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
 	abort();
 
@@ -715,7 +715,7 @@ char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcn
 	char *tag = NULL;
 
 	tag = (char *) calloc(1024 + 1, sizeof(char));
-	snprintf(tag, 1024, "size: %zu bytes \tfile: %s \tfuncname: %s \tlineno: %d \tid: %s", size, file, funcname, lineno, id);
+	snprintf(tag, 1024, "size: %lu bytes \tfile: %s \tfuncname: %s \tlineno: %d \tid: %s", size, file, funcname, lineno, id);
 
 	return tag;
 }
