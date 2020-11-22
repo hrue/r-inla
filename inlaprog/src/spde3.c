@@ -32,7 +32,6 @@
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-
 #if !defined(__FreeBSD__)
 #include <malloc.h>
 #endif
@@ -211,7 +210,7 @@ int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const ch
 
 	return INLA_OK;
 }
-double inla_spde3_Qfunction(int i, int j, double *values, void *arg)
+double inla_spde3_Qfunction(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0){
 		return NAN;

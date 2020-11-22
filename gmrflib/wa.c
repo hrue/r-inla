@@ -370,7 +370,7 @@ int GMRFLib_init_wa_problem(GMRFLib_wa_problem_tp ** wa_problem, GMRFLib_graph_t
   reduce all the lookups. This is now implemented and controlled by the global varable
   GMRFLib_use_wa_table_lookup.
 */
-double GMRFLib_waQfunc(int node, int nnode, double *values, void *arg)
+double GMRFLib_waQfunc(int node, int nnode, double *UNUSED(values), void *arg)
 {
 	if (node >= 0 && nnode < 0){
 		return NAN;
@@ -674,7 +674,7 @@ int GMRFLib_free_nwa_problem(GMRFLib_nwa_problem_tp * nwa_problem)
 
 	return GMRFLib_SUCCESS;
 }
-double GMRFLib_nwaQfunc(int node, int nnode, double *values, void *arg)
+double GMRFLib_nwaQfunc(int node, int nnode, double *UNUSED(values), void *arg)
 {
 	if (node >= 0 && nnode < 0){
 		return NAN;

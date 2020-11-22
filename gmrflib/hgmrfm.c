@@ -132,7 +132,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
 			int nbeta, double **covariate, double *prior_precision, int nlc, GMRFLib_lc_tp ** lc, double *lc_precision,
-			GMRFLib_ai_param_tp * ai_par)
+			GMRFLib_ai_param_tp * UNUSED(ai_par))
 {
 	/*
 	 * define a HGMRF-model, of the form
@@ -895,7 +895,7 @@ GMRFLib_hgmrfm_type_tp GMRFLib_hgmrfm_what_type(int node, GMRFLib_hgmrfm_arg_tp 
 	}
 	return t;
 }
-double GMRFLib_hgmrfm_Qfunc(int node, int nnode, double *values, void *arg)
+double GMRFLib_hgmrfm_Qfunc(int node, int nnode, double *UNUSED(values), void *arg)
 {
 	if (node >= 0 && nnode < 0) {
 		return NAN;
@@ -951,7 +951,7 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, double *values, void *arg)
 			if (a->ff_Qfunc) {
 				if ((it.idx == jt.idx) && (it.tp_idx != jt.tp_idx) && a->ff_Qfunc[it.tp_idx][jt.tp_idx]) {
 					value +=
-					    a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx, NULL, 
+					    a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx, NULL,
 									       (a->ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
 				}
 			}

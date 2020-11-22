@@ -629,6 +629,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 		GMRFLib_ged_add(ged, i, i);
 	}
 	GMRFLib_ged_build(graph, ged);
+	GMRFLib_graph_prepare(*graph, 0, 0);
 	GMRFLib_ged_free(ged);
 
 	/*
@@ -683,8 +684,8 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 }
 
 int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
-				     int ntriples, int *ilist, int *jlist, double *Qijlist, int dim, double *prec, double *log_prec,
-				     double **log_prec_omp)
+				      int ntriples, int *ilist, int *jlist, double *Qijlist, int UNUSED(dim),
+				      double *prec, double *log_prec, double **log_prec_omp)
 {
 	// this is a special version for Qfunc_rgeneric, as we assume here that graph is know.
 
@@ -698,9 +699,13 @@ int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfun
 	int i, imin = INT_MAX, jmin = INT_MAX, off;
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
 
-	/*
-	 * step 2. build the tabulate_Qfunc structure 
-	 */
+	for (i = 0; i < ntriples; i++) {
+		imin = IMIN(imin, ilist[i]);
+		jmin = IMIN(jmin, jlist[i]);
+	}
+	GMRFLib_ASSERT(((imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)), GMRFLib_ESNH);
+	off = (IMIN(imin, jmin) == 1 ? 1 : 0);
+
 	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
 	(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction; /* the Qfunction to use */
 	arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);

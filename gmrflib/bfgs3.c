@@ -667,7 +667,8 @@ static int vector_bfgs3_restart(void *vstate)
 	return GSL_SUCCESS;
 }
 
-static int vector_bfgs3_iterate(void *vstate, gsl_multimin_function_fdf * fdf, gsl_vector * x, double *f, gsl_vector * gradient, gsl_vector * dx)
+static int vector_bfgs3_iterate(void *vstate, gsl_multimin_function_fdf * UNUSED(fdf),
+				gsl_vector * x, double *f, gsl_vector * gradient, gsl_vector * dx)
 {
 	vector_bfgs3_state_t *state = (vector_bfgs3_state_t *) vstate;
 	double alpha = 0.0, alpha1;

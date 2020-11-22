@@ -538,7 +538,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_optimize2(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_tp * store)
+int GMRFLib_optimize2(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_tp * UNUSED(store))
 {
 
 	/*
@@ -912,7 +912,7 @@ int GMRFLib_optimize3(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 			int idx;
 			double bcoof, ccoof;
 			double cmin = 0.0;
-			
+
 			GMRFLib_thread_id = id;
 			idx = idxs[i];
 			GMRFLib_2order_approx(NULL, &bcoof, &ccoof, NULL, opt_problem->d[idx],

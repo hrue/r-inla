@@ -216,7 +216,7 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 	return GMRFLib_SUCCESS;
 }
 
-double ar_map_pacf(double arg, map_arg_tp typ, void *param)
+double ar_map_pacf(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the map-function for the PACF
@@ -249,7 +249,7 @@ double ar_map_pacf(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-double Qfunc_ar(int i, int j, double *values, void *arg)
+double Qfunc_ar(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0){
 		return NAN;

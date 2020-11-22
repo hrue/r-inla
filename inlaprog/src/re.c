@@ -283,7 +283,7 @@ int re_sas_f(const gsl_vector * x, void *data, gsl_vector * f)
 	return GSL_SUCCESS;
 }
 
-int re_sas_df(const gsl_vector * x, void *data, gsl_matrix * J)
+int re_sas_df(const gsl_vector * x, void *UNUSED(data), gsl_matrix * J)
 {
 	double h = GMRFLib_eps(1. / 3.), epsilon, log_delta, skew_h, skew_mh, kurt_h, kurt_mh;
 

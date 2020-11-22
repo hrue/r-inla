@@ -230,7 +230,7 @@ int inla_mkdir(const char *dirname)
 #endif
 }
 
-double map_identity(double arg, map_arg_tp typ, void *param)
+double map_identity(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the idenity map-function
@@ -262,7 +262,7 @@ double map_identity(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
-double map_inverse(double arg, map_arg_tp typ, void *param)
+double map_inverse(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the inverse map-function, assuming > 0
@@ -328,7 +328,7 @@ double map_identity_scale(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
-double map_exp(double arg, map_arg_tp typ, void *param)
+double map_exp(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the exp-map-function
@@ -393,7 +393,7 @@ double map_exp_scale(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
-double map_negexp(double arg, map_arg_tp typ, void *param)
+double map_negexp(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the negexp-map-function
@@ -722,7 +722,7 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * 
 	return 0.0;
 }
 
-double map_invprobit(double arg, map_arg_tp typ, void *param)
+double map_invprobit(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the inverse probit function
@@ -755,7 +755,7 @@ double map_invprobit(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
-double map_invloglog(double arg, map_arg_tp typ, void *param)
+double map_invloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the inverse loglog function
@@ -787,7 +787,7 @@ double map_invloglog(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
-double map_invcauchit(double arg, map_arg_tp typ, void *param)
+double map_invcauchit(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the inverse cauchit function
@@ -819,7 +819,7 @@ double map_invcauchit(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
-double map_invcloglog(double arg, map_arg_tp typ, void *param)
+double map_invcloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the inverse cloglog function
@@ -854,8 +854,9 @@ double map_invcloglog(double arg, map_arg_tp typ, void *param)
 double map_beta(double x, map_arg_tp typ, void *param)
 {
 	/*
-	 * the map for the beta parameter, which can have a lower and upper range as well. If range.low=range.high, then its interpreted as range.low = -INF and
-	 * range.high = INF, ie the mapping is the identity. If range.high = INF and range.low != INF, then the mapping is range.low + exp(...).
+	 * the map for the beta parameter, which can have a lower and upper range as well. If range.low=range.high, then its
+	 * interpreted as range.low = -INF and range.high = INF, ie the mapping is the identity. If range.high = INF and
+	 * range.low != INF, then the mapping is range.low + exp(...).
 	 */
 
 	double *range = (double *) param;
@@ -918,7 +919,7 @@ double map_beta(double x, map_arg_tp typ, void *param)
 	}
 	return 0.0;
 }
-double map_1exp(double arg, map_arg_tp typ, void *param)
+double map_1exp(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the 1/exp-map-function
@@ -950,7 +951,7 @@ double map_1exp(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
-double map_sqrt1exp(double arg, map_arg_tp typ, void *param)
+double map_sqrt1exp(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the sqrt(1/exp) map
@@ -982,7 +983,7 @@ double map_sqrt1exp(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
-double map_dof(double arg, map_arg_tp typ, void *param)
+double map_dof(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the map-function for the degrees of freedom for the student-t 
@@ -1014,7 +1015,7 @@ double map_dof(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
-double map_dof5(double arg, map_arg_tp typ, void *param)
+double map_dof5(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the map-function for the degrees of freedom for the student-t 
@@ -1105,7 +1106,7 @@ double map_range(double arg, map_arg_tp typ, void *param)
 	 */
 	return map_exp(arg, typ, param);
 }
-double map_alpha_weibull(double arg, map_arg_tp typ, void *param)
+double map_alpha_weibull(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the map-function for the range
@@ -1113,7 +1114,7 @@ double map_alpha_weibull(double arg, map_arg_tp typ, void *param)
 	double scale = INLA_WEIBULL_ALPHA_SCALE;
 	return map_exp_scale(arg, typ, (void *) &scale);
 }
-double map_prec_qkumar(double arg, map_arg_tp typ, void *param)
+double map_prec_qkumar(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the map-function for the precision
@@ -1128,7 +1129,7 @@ double map_p_weibull_cure(double arg, map_arg_tp typ, void *param)
 	 */
 	return map_invlogit(arg, typ, param);
 }
-double map_invlogit(double x, map_arg_tp typ, void *param)
+double map_invlogit(double x, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * extern = exp(local) / (1 + exp(local)) 
@@ -1151,7 +1152,7 @@ double map_invlogit(double x, map_arg_tp typ, void *param)
 	}
 	return 0.0;
 }
-double map_probability(double x, map_arg_tp typ, void *param)
+double map_probability(double x, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * extern = exp(local) / (1 + exp(local)) 
@@ -1174,7 +1175,7 @@ double map_probability(double x, map_arg_tp typ, void *param)
 	}
 	return 0.0;
 }
-double map_shape_svnig(double arg, map_arg_tp typ, void *param)
+double map_shape_svnig(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the mapping for the shape-parameters in the stochvol-nig model. shape = 1 + exp(shape_intern)
@@ -1206,7 +1207,7 @@ double map_shape_svnig(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
-double map_H(double x, map_arg_tp typ, void *param)
+double map_H(double x, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * extern = 1/2  + 1/2 * exp(local) / (1 + exp(local)) 
@@ -1283,7 +1284,7 @@ double map_group_rho(double x, map_arg_tp typ, void *param)
 	}
 	return 0.0;
 }
-double map_invtan(double x, map_arg_tp typ, void *param)
+double map_invtan(double x, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * y = 2*atan(x), so that |y| <= Pi
@@ -1307,7 +1308,7 @@ double map_invtan(double x, map_arg_tp typ, void *param)
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
 }
-double link_this_should_not_happen(double x, map_arg_tp typ, void *param, double *cov)
+double link_this_should_not_happen(double UNUSED(x), map_arg_tp UNUSED(typ), void *UNUSED(param), double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1316,14 +1317,14 @@ double link_this_should_not_happen(double x, map_arg_tp typ, void *param, double
 	abort();
 	return 0.0;
 }
-double link_probit(double x, map_arg_tp typ, void *param, double *cov)
+double link_probit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_invprobit(x, typ, param);
 }
-double link_robit(double x, map_arg_tp typ, void *param, double *cov)
+double link_robit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1333,7 +1334,7 @@ double link_robit(double x, map_arg_tp typ, void *param, double *cov)
 
 	return map_invrobit(x, typ, (void *) &dof_intern);
 }
-double link_sn(double x, map_arg_tp typ, void *param, double *cov)
+double link_sn(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1346,39 +1347,39 @@ double link_sn(double x, map_arg_tp typ, void *param, double *cov)
 
 	return map_invsn(x, typ, (void *) par);
 }
-double link_tan(double x, map_arg_tp typ, void *param, double *cov)
+double link_tan(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	return map_invtan(x, typ, param);
 }
-double link_cloglog(double x, map_arg_tp typ, void *param, double *cov)
+double link_cloglog(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_invcloglog(x, typ, param);
 }
-double link_loglog(double x, map_arg_tp typ, void *param, double *cov)
+double link_loglog(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_invloglog(x, typ, param);
 }
-double link_cauchit(double x, map_arg_tp typ, void *param, double *cov)
+double link_cauchit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_invcauchit(x, typ, param);
 }
-double link_log(double x, map_arg_tp typ, void *param, double *cov)
+double link_log(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_exp(x, typ, param);
 }
-double link_loga(double x, map_arg_tp typ, void *param, double *cov)
+double link_loga(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 #define MAP(_x) log((_x)/(1.0 - (_x)))
 #define iMAP(_x) (exp(_x)/(1.0+exp(_x)))
@@ -1487,28 +1488,28 @@ double link_loga(double x, map_arg_tp typ, void *param, double *cov)
 
 	return 0.0;
 }
-double link_neglog(double x, map_arg_tp typ, void *param, double *cov)
+double link_neglog(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_negexp(x, typ, param);
 }
-double link_logit(double x, map_arg_tp typ, void *param, double *cov)
+double link_logit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_invlogit(x, typ, param);
 }
-double link_identity(double x, map_arg_tp typ, void *param, double *cov)
+double link_identity(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_identity(x, typ, param);
 }
-double link_inverse(double x, map_arg_tp typ, void *param, double *cov)
+double link_inverse(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1555,7 +1556,7 @@ double link_logoffset(double x, map_arg_tp typ, void *param, double *cov)
 	}
 	return NAN;
 }
-double link_logitoffset(double x, map_arg_tp typ, void *param, double *cov)
+double link_logitoffset(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1580,7 +1581,7 @@ double link_logitoffset(double x, map_arg_tp typ, void *param, double *cov)
 	}
 	return NAN;
 }
-double link_sslogit(double x, map_arg_tp typ, void *param, double *cov)
+double link_sslogit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	Link_param_tp *p;
 	double sens, spec, a, b, xx;
@@ -2100,7 +2101,7 @@ int inla_make_bym_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph)
 
 	return GMRFLib_SUCCESS;
 }
-double Qfunc_bym(int i, int j, double *values, void *arg)
+double Qfunc_bym(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2138,7 +2139,7 @@ double Qfunc_bym(int i, int j, double *values, void *arg)
 	GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	return 0.0;
 }
-double Qfunc_bym2(int i, int j, double *values, void *arg)
+double Qfunc_bym2(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2156,7 +2157,7 @@ double Qfunc_bym2(int i, int j, double *values, void *arg)
 	}
 	return -sqrt(phi * prec) / (1.0 - phi);
 }
-double Qfunc_rw2diid(int i, int j, double *values, void *arg)
+double Qfunc_rw2diid(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2174,7 +2175,7 @@ double Qfunc_rw2diid(int i, int j, double *values, void *arg)
 	}
 	return -sqrt(phi * prec) / (1.0 - phi);
 }
-double Qfunc_group(int i, int j, double *values, void *arg)
+double Qfunc_group(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2418,7 +2419,7 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 
 	return GMRFLib_SUCCESS;
 }
-double Qfunc_generic1(int i, int j, double *values, void *arg)
+double Qfunc_generic1(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2430,7 +2431,7 @@ double Qfunc_generic1(int i, int j, double *values, void *arg)
 
 	return prec * ((i == j ? 1.0 : 0.0) - (beta / a->max_eigenvalue) * a->tab->Qfunc(i, j, NULL, a->tab->Qfunc_arg));
 }
-double Qfunc_generic2(int i, int j, double *values, void *arg)
+double Qfunc_generic2(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2477,7 +2478,7 @@ double Qfunc_generic2(int i, int j, double *values, void *arg)
 	GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	return 0.0;
 }
-double Qfunc_generic3(int i, int j, double *values, void *arg)
+double Qfunc_generic3(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2498,7 +2499,7 @@ double Qfunc_generic3(int i, int j, double *values, void *arg)
 
 	return (val);
 }
-double Qfunc_replicate(int i, int j, double *values, void *arg)
+double Qfunc_replicate(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2533,7 +2534,7 @@ int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate)
 
 	return GMRFLib_SUCCESS;
 }
-double Qfunc_z(int i, int j, double *values, void *arg)
+double Qfunc_z(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2556,7 +2557,7 @@ double Qfunc_z(int i, int j, double *values, void *arg)
 	}
 	return value;
 }
-double Qfunc_slm(int i, int j, double *values, void *arg)
+double Qfunc_slm(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2668,13 +2669,18 @@ double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 				len = (int) x_out[k++];
 
 				// we can overlay these arrays to avoid allocating new ones, since x_out is double
-				ilist = (int *) &x_out[k];
-				jlist = (int *) &x_out[k + len];
-				Qijlist = (double *) &x_out[k + 2 * len];
+				ilist = (int *) &(x_out[k]);
+				jlist = (int *) &(x_out[k + len]);
+				Qijlist = (double *) &(x_out[k + 2 * len]);
 				for (jj = 0; jj < len; jj++) {
 					ilist[jj] = (int) x_out[k + jj];
 					jlist[jj] = (int) x_out[k + len + jj];
 				}
+
+				if (0)
+					for (jj = 0; jj < len; jj++) {
+						printf("%d %d %g\n", ilist[jj], jlist[jj], Qijlist[jj]);
+					}
 
 				if (a->graph) {
 					GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
@@ -2708,7 +2714,7 @@ double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 	}
 }
 
-double Qfunc_dmatern(int i, int j, double *values, void *arg)
+double Qfunc_dmatern(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2764,7 +2770,7 @@ double Qfunc_dmatern(int i, int j, double *values, void *arg)
 	return prec * gsl_matrix_get(a->Q[id], i, j);
 }
 
-double mfunc_ar1(int i, void *arg)
+double mfunc_ar1(int UNUSED(i), void *arg)
 {
 	inla_ar1_arg_tp *a = (inla_ar1_arg_tp *) arg;
 	return (a->mean[GMRFLib_thread_id][0]);
@@ -2836,7 +2842,7 @@ double mfunc_rgeneric(int i, void *arg)
 
 	return (a->mu[id][i]);
 }
-double Qfunc_clinear(int i, int j, double *values, void *arg)
+double Qfunc_clinear(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2846,7 +2852,7 @@ double Qfunc_clinear(int i, int j, double *values, void *arg)
 	assert(i == j);
 	return (a->precision);
 }
-double Qfunc_sigm(int i, int j, double *values, void *arg)
+double Qfunc_sigm(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2856,7 +2862,7 @@ double Qfunc_sigm(int i, int j, double *values, void *arg)
 	assert(i == j);
 	return (a->precision);
 }
-double Qfunc_log1exp(int i, int j, double *values, void *arg)
+double Qfunc_log1exp(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2866,7 +2872,7 @@ double Qfunc_log1exp(int i, int j, double *values, void *arg)
 	assert(i == j);
 	return (a->precision);
 }
-double Qfunc_logdist(int i, int j, double *values, void *arg)
+double Qfunc_logdist(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2937,7 +2943,7 @@ double mfunc_logdist(int i, void *arg)
 
 	return beta * (1.0 + exp(alpha1 * log(x) - alpha2 * x));
 }
-double Qfunc_mec(int i, int j, double *values, void *arg)
+double Qfunc_mec(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2964,7 +2970,7 @@ double mfunc_mec(int i, void *arg)
 
 	return beta * (prec_obs * scale[i] * x_obs[i] + prec_x * mean_x) / (prec_obs * scale[i] + prec_x);
 }
-double Qfunc_meb(int i, int j, double *values, void *arg)
+double Qfunc_meb(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2993,7 +2999,7 @@ int inla_iid_wishart_nparam(int dim)
 	 */
 	return ((dim * (dim + 1)) / 2);
 }
-double Qfunc_iid_wishart(int node, int nnode, double *values, void *arg)
+double Qfunc_iid_wishart(int node, int nnode, double *UNUSED(values), void *arg)
 {
 	if (node >= 0 && nnode < 0) {
 		return NAN;
@@ -3078,7 +3084,7 @@ double Qfunc_iid_wishart(int node, int nnode, double *values, void *arg)
 
 	return gsl_matrix_get(hold->Q, node / a->n, nnode / a->n);
 }
-double Qfunc_iid2d(int i, int j, double *values, void *arg)
+double Qfunc_iid2d(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -3101,7 +3107,7 @@ double Qfunc_iid2d(int i, int j, double *values, void *arg)
 
 	return -rho * sqrt(prec0 * prec1) / (1.0 - SQR(rho));
 }
-double Qfunc_2diid(int i, int j, double *values, void *arg)
+double Qfunc_2diid(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -3124,7 +3130,7 @@ double Qfunc_2diid(int i, int j, double *values, void *arg)
 
 	return -rho * sqrt(prec0 * prec1) / (1.0 - SQR(rho));
 }
-double Qfunc_2diid_wishart(int i, int j, double *values, void *arg)
+double Qfunc_2diid_wishart(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -3155,7 +3161,7 @@ int inla_make_ou_graph(GMRFLib_graph_tp ** graph, inla_ou_arg_tp * arg)
 {
 	return GMRFLib_graph_mk_linear(graph, arg->n, 1, 0);
 }
-double Qfunc_ar1(int i, int j, double *values, void *arg)
+double Qfunc_ar1(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -3191,7 +3197,7 @@ double Qfunc_ar1(int i, int j, double *values, void *arg)
 
 	return val;
 }
-double Qfunc_ar1c(int i, int j, double *values, void *arg)
+double Qfunc_ar1c(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -3240,7 +3246,7 @@ double Qfunc_ar1c(int i, int j, double *values, void *arg)
 
 	return val;
 }
-double Qfunc_ou(int i, int j, double *values, void *arg)
+double Qfunc_ou(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -3612,7 +3618,7 @@ double priorfunc_pc_cor1(double *x, double *parameters)
 #undef _Fsolve
 	return (val);
 }
-double priorfunc_jeffreys_df_student_t(double *x, double *parameters)
+double priorfunc_jeffreys_df_student_t(double *x, double *UNUSED(parameters))
 {
 	double df = map_dof(x[0], MAP_FORWARD, NULL);
 	double value, log_jacobian;
@@ -3671,7 +3677,7 @@ double priorfunc_bymjoint(double *logprec_besag, double *p_besag, double *logpre
 
 	return val;
 }
-double priorfunc_invalid(double *x, double *parameters)
+double priorfunc_invalid(double *UNUSED(x), double *UNUSED(parameters))
 {
 	inla_error_general("Prior 'invalid' is used, but it is not ment to be.");
 	exit(EXIT_FAILURE);
@@ -3695,15 +3701,15 @@ double priorfunc_logitbeta(double *x, double *parameters)
 	return log(gsl_ran_beta_pdf(p, a, b)) + (*x) - 2.0 * log(1.0 + exp(*x));
 }
 
-double priorfunc_logflat(double *x, double *parameters)
+double priorfunc_logflat(double *x, double *UNUSED(parameters))
 {
 	return exp(*x);
 }
-double priorfunc_logiflat(double *x, double *parameters)
+double priorfunc_logiflat(double *x, double *UNUSED(parameters))
 {
 	return exp(-*x);
 }
-double priorfunc_flat(double *x, double *parameters)
+double priorfunc_flat(double *UNUSED(x), double *UNUSED(parameters))
 {
 	return 0.0;
 }
@@ -4208,7 +4214,7 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 	return val;
 }
 
-double Qfunc_besag(int i, int j, double *values, void *arg)
+double Qfunc_besag(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -4239,7 +4245,7 @@ double Qfunc_besag(int i, int j, double *values, void *arg)
 	// ``classical model''
 	return prec * (i == j ? a->graph->nnbs[i] : -1.0);
 }
-double Qfunc_besag2(int i, int j, double *values, void *arg)
+double Qfunc_besag2(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -4267,7 +4273,7 @@ double Qfunc_besag2(int i, int j, double *values, void *arg)
 		return -aa->precision / SQR(a);
 	}
 }
-double Qfunc_besagproper(int i, int j, double *values, void *arg)
+double Qfunc_besagproper(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -4285,7 +4291,7 @@ double Qfunc_besagproper(int i, int j, double *values, void *arg)
 		return -prec;
 	}
 }
-double Qfunc_besagproper2(int i, int j, double *values, void *arg)
+double Qfunc_besagproper2(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -4377,7 +4383,7 @@ int inla_read_data_all(double **x, int *n, const char *filename, int *ncol_data_
 		return INLA_OK;
 	}
 }
-int inla_read_data_likelihood(inla_tp * mb, dictionary * ini, int sec)
+int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED(sec))
 {
 	/*
 	 * read data from file 
@@ -4857,7 +4863,7 @@ double inla_log_Phi_fast(double x)
 		}
 	}
 }
-int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ Normal(x, stdev)
@@ -4905,7 +4911,7 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_v
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ LogNormal. This is similar to the normal
@@ -4946,7 +4952,7 @@ int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double
 	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_lognormal));
 }
 
-int loglikelihood_simplex(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_simplex(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
 	/*
 	 * y ~ simplex
@@ -4980,7 +4986,7 @@ int loglikelihood_simplex(double *logll, double *x, int m, int idx, double *x_ve
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
-int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
 	/*
 	 * y ~ circular normal
@@ -5031,7 +5037,7 @@ int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, doub
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
-int loglikelihood_wrapped_cauchy(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_wrapped_cauchy(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
 	/*
 	 * y ~ wrapped cauchy. DOES NOT WORK WELL OF'COURSE...
@@ -5074,7 +5080,7 @@ int loglikelihood_wrapped_cauchy(double *logll, double *x, int m, int idx, doubl
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
-int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ N(0, var = exp(x) + 1/tau) 
@@ -5108,7 +5114,7 @@ int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_v
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y / exp(x/2)  ~ Student-t_dof(0, ***var = 1***)
@@ -5150,7 +5156,7 @@ int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *x
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_stochvol_nig(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_stochvol_nig(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
 	/*
 	 * y / exp(x/2)  ~ NIG with skew and shape parameter. beta = skew, psi = shape. Note that E=1 and Var=1.
@@ -5192,7 +5198,7 @@ int loglikelihood_stochvol_nig(double *logll, double *x, int m, int idx, double 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
 	/*
 	 * y ~ iid_gamma
@@ -5229,7 +5235,7 @@ int loglikelihood_iid_gamma(double *logll, double *x, int m, int idx, double *x_
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
 	/*
 	 * y ~ iid_logitbeta
@@ -5259,7 +5265,7 @@ int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_loggamma_frailty(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_loggamma_frailty(double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
 	/*
 	 * Log-gamma frailty Gamma(a,a), a = exp(log_prec...)
@@ -5287,7 +5293,7 @@ int loglikelihood_loggamma_frailty(double *logll, double *x, int m, int idx, dou
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ Logisistc. scaled so that prec = 1 gives variance = 1
@@ -5345,7 +5351,7 @@ int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *x_v
 }
 
 
-int loglikelihood_sn(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_sn(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ Skew_Normal(x, stdev)
@@ -5355,7 +5361,7 @@ int loglikelihood_sn(double *logll, double *x, int m, int idx, double *x_vec, do
 	}
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, lprec, sprec, w, shape, skew_max, xarg, ypred, *param[2], nan = NAN;
+	double y, lprec, sprec, w, xarg, ypred, *param[2], nan = NAN;
 	inla_sn_arg_tp sn_arg;
 
 	LINK_INIT;
@@ -5390,7 +5396,7 @@ int loglikelihood_sn(double *logll, double *x, int m, int idx, double *x_vec, do
 }
 
 
-int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_gev(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ GEV
@@ -5465,7 +5471,7 @@ int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, d
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_bgev(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_bgev(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 #define f3_BETA_STD(_x) (30.0 * SQR(_x) * SQR(1.0-(_x)))
 #define F3_BETA_STD(_x) (gsl_pow_3(_x) * (10.0 + (-15.0 + 6.0 * (_x)) * (_x)))
@@ -5703,7 +5709,7 @@ int loglikelihood_bgev(double *logll, double *x, int m, int idx, double *x_vec, 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_t(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y -x ~ (Student_t with variance 1) times 1/sqrt(precision * weight)
@@ -5749,7 +5755,7 @@ int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, dou
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y -x ~ (Student_t with variance 1) times 1/sqrt(precision * weight)
@@ -5943,7 +5949,7 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_ve
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ GPoisson(E*exp(x))
@@ -5988,7 +5994,7 @@ int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *x_v
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 #define _logE(E_) (E_ > 0.0 ? log(E_) : 0.0)
 
@@ -6070,7 +6076,7 @@ double eval_log_contpoisson(double y, double lambda)
 	return (lval);
 }
 
-int loglikelihood_contpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_contpoisson(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	// this model is disabled
 	assert(0 == 1);
@@ -6107,7 +6113,7 @@ int loglikelihood_contpoisson(double *logll, double *x, int m, int idx, double *
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_qcontpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_qcontpoisson(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	// this model is disabled
 	assert(0 == 1);
@@ -6147,7 +6153,7 @@ int loglikelihood_qcontpoisson(double *logll, double *x, int m, int idx, double 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ Poisson(E*exp(x)), also accept E=0, giving the likelihood y * x. values in CENINTERVAL is cencored
@@ -6211,7 +6217,7 @@ int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *x
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_cenpoisson0(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zeroinflated_cenpoisson0(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -6285,7 +6291,7 @@ int loglikelihood_zeroinflated_cenpoisson0(double *logll, double *x, int m, int 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_cenpoisson1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zeroinflated_cenpoisson1(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -6342,7 +6348,7 @@ int loglikelihood_zeroinflated_cenpoisson1(double *logll, double *x, int m, int 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_pom(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_pom(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
 #define _F_CORE(_x) (1.0/(1.0 + exp(-(_x))))
 #define _P(_class, _eta) (_class == 1 ? _F_CORE(alpha[_class] - (_eta)) : \
@@ -6385,7 +6391,7 @@ int loglikelihood_pom(double *logll, double *x, int m, int idx, double *x_vec, d
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_poisson0(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zeroinflated_poisson0(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * zeroinflated Poission: y ~ p*1[y=0] + (1-p)*Poisson(E*exp(x) | y > 0)
@@ -6441,7 +6447,7 @@ int loglikelihood_zeroinflated_poisson0(double *logll, double *x, int m, int idx
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * zeroinflated Poission: y ~ p*1[y=0] + (1-p)*Poisson(E*exp(x))
@@ -6495,7 +6501,7 @@ int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * zeroinflated Poission: y ~ p*1[y=0] + (1-p)*Poisson(E*exp(x)), where p=p(x; alpha)
@@ -6593,7 +6599,7 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_poisson_special1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_poisson_special1(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * poisson special 1 : y ~ p*1[y=1] + (1-p)*Poisson(E*exp(x) | y > 0)
@@ -6668,7 +6674,7 @@ double ddexp_taylor(double x, double x0, int order)
 	return exp_taylor(x, x0, order - 2);
 }
 
-int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
 	/*
 	 * y = x -log(2) + log\chi^2
@@ -6697,7 +6703,7 @@ int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, doubl
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ NegativeBinomial(size, p) where E(y) = E*exp(x); same definition as in R and GSL, similar parameterisation as for the Poisson.
@@ -6772,7 +6778,7 @@ int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, do
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_negative_binomial0(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zeroinflated_negative_binomial0(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ NegativeBinomial(size, p) where E(y) = E*exp(x); same definition as in R and GSL, similar parameterisation as for the Poisson.  This version is
@@ -6854,7 +6860,7 @@ int loglikelihood_zeroinflated_negative_binomial0(double *logll, double *x, int 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_negative_binomial1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zeroinflated_negative_binomial1(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ NegativeBinomial(size, p) where E(y) = E*exp(x); same definition as in R and GSL, similar parameterisation as for the Poisson.  This version is
@@ -6941,7 +6947,7 @@ int loglikelihood_zeroinflated_negative_binomial1(double *logll, double *x, int 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_negative_binomial1_strata2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zeroinflated_negative_binomial1_strata2(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ NegativeBinomial(size, p) where E(y) = E*exp(x); same definition as in R and GSL, similar parameterisation as for the Poisson.  This version is
@@ -7030,7 +7036,7 @@ int loglikelihood_zeroinflated_negative_binomial1_strata2(double *logll, double 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_negative_binomial1_strata3(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zeroinflated_negative_binomial1_strata3(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ NegativeBinomial(size, p) where E(y) = E*exp(x); same definition as in R and GSL, similar parameterisation as for the Poisson.  This version is
@@ -7120,7 +7126,7 @@ int loglikelihood_zeroinflated_negative_binomial1_strata3(double *logll, double 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ NegativeBinomial(size, p) where E(y) = E*exp(x); same definition as in R and GSL, similar parameterisation as for the Poisson.  This version is
@@ -7227,7 +7233,7 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ Binomial(n, p)
@@ -7313,7 +7319,7 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_v
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ nBinomial2. y is the number of failures to get n successes with a success in the last trial
@@ -7354,7 +7360,7 @@ int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
 	/*
 	 * y ~ Binomial(n, p) * poisson(n, lambda), log(lambda) = X'beta
@@ -7421,7 +7427,7 @@ int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *x_vec, 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
 	/*
 	 * y ~ Binomial(n, p) * NegBinom(n, mu=lambda, size=1/overdispersion), log(lambda) = X'beta
@@ -7515,7 +7521,7 @@ int inla_mix_int_quadrature_gaussian(double **x, double **w, int *n, void *arg)
 	return GMRFLib_SUCCESS;
 }
 
-int inla_mix_int_quadrature_loggamma(double **x, double **w, int *n, void *arg)
+int inla_mix_int_quadrature_loggamma(double **UNUSED(x), double **UNUSED(w), int *UNUSED(n), void *UNUSED(arg))
 {
 	char *msg = GMRFLib_strdup("This function is not yet implemented.");
 	inla_error_general(msg);
@@ -7523,7 +7529,7 @@ int inla_mix_int_quadrature_loggamma(double **x, double **w, int *n, void *arg)
 	return GMRFLib_SUCCESS;
 }
 
-int inla_mix_int_quadrature_mloggamma(double **x, double **w, int *n, void *arg)
+int inla_mix_int_quadrature_mloggamma(double **UNUSED(x), double **UNUSED(w), int *UNUSED(n), void *UNUSED(arg))
 {
 	char *msg = GMRFLib_strdup("This function is not yet implemented.");
 	inla_error_general(msg);
@@ -7721,9 +7727,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -7816,7 +7822,7 @@ int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_v
 }
 
 
-int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * z ~ CBinomial(k, n, p) == Binomial(k, 1-(1-p)^n)
@@ -7875,7 +7881,7 @@ int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_binomial0(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zeroinflated_binomial0(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * zeroinflated Binomial : y ~ p*1[y=0] + (1-p) Binomial(n, p | y > 0), where logit(p) = x. 
@@ -7928,7 +7934,7 @@ int loglikelihood_zeroinflated_binomial0(double *logll, double *x, int m, int id
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_binomial1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zeroinflated_binomial1(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * zeroinflated Binomial : y ~ p*1[y=0] + (1-p)*Binomial(n, p), where logit(p) = x. 
@@ -7981,7 +7987,7 @@ int loglikelihood_zeroinflated_binomial1(double *logll, double *x, int m, int id
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zeroinflated_binomial2(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * zeroinflated Binomial : y ~ prob*1[y=0] + (1-prob)*Binomial(n, p), where logit(p) = x, and prob = 1-p^alpha.
@@ -8081,7 +8087,7 @@ double eval_logsum_safe(double lA, double lB)
 	}
 }
 
-int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
 	/*
 	 * zeroNinflated Binomial : see doc from JS.
@@ -8172,7 +8178,7 @@ int loglikelihood_zero_n_inflated_binomial2(double *logll, double *x, int m, int
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zero_n_inflated_binomial3(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zero_n_inflated_binomial3(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
 	/*
 	 * zeroNinflated Binomial : see doc from JS.
@@ -8224,7 +8230,7 @@ int loglikelihood_zero_n_inflated_binomial3(double *logll, double *x, int m, int
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_gamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_gamma(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * Gamma
@@ -8270,7 +8276,7 @@ int loglikelihood_gammasurv(double *logll, double *x, int m, int idx, double *x_
 	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gamma));
 }
 
-int loglikelihood_gammajw(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_gammajw(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * Gammajw
@@ -8310,7 +8316,7 @@ int loglikelihood_gammajwsurv(double *logll, double *x, int m, int idx, double *
 	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gammajw));
 }
 
-int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * Gammacount
@@ -8358,7 +8364,7 @@ int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_qkumar(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_qkumar(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * qKumar-distr
@@ -8396,7 +8402,7 @@ int loglikelihood_qkumar(double *logll, double *x, int m, int idx, double *x_vec
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_gp(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_gp(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * genPareto
@@ -8437,7 +8443,7 @@ int loglikelihood_gp(double *logll, double *x, int m, int idx, double *x_vec, do
 }
 
 
-int loglikelihood_dgp(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_dgp(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 #define F(_y, _sigma, _xi) (1.0 - pow(1.0 + (_xi) * ((_y) + 1.0)/(_sigma), -1.0/(_xi)))
 	/*
@@ -8479,7 +8485,7 @@ int loglikelihood_dgp(double *logll, double *x, int m, int idx, double *x_vec, d
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_beta(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * Beta : y ~ Beta(y; a, b) = BetaFunction(a,b)^{-1} y^{a-1} (1-y)^{b-1}. mu = a/(a+b), phi = a+b = exp(theta).
@@ -8554,7 +8560,7 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * BetaBinomial : y ~ BetaBinomial(n, a, b), where logit(p) = a/(a+b), overdispertsion = 1/(a+b+1)
@@ -8653,7 +8659,7 @@ int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_betabinomialna(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_betabinomialna(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * BetaBinomialNA : y ~ BetaBinomial(n, a, b), where logit(p) = a/(a+b), overdispertsion = 1/(a+b+1), and use the normal
@@ -8695,7 +8701,7 @@ int loglikelihood_betabinomialna(double *logll, double *x, int m, int idx, doubl
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_betabinomial0(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zeroinflated_betabinomial0(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * zeroinflated BetaBinomial : y ~ BetaBinomial(n, a, b), where logit(p) = a/(a+b), overdispertsion = 1/(a+b+1)
@@ -8762,7 +8768,7 @@ int loglikelihood_zeroinflated_betabinomial0(double *logll, double *x, int m, in
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_betabinomial1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zeroinflated_betabinomial1(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * zeroinflated BetaBinomial : y ~ BetaBinomial(n, a, b), where logit(p) = a/(a+b), overdispertsion = 1/(a+b+1)
@@ -8820,7 +8826,7 @@ int loglikelihood_zeroinflated_betabinomial1(double *logll, double *x, int m, in
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
 	/*
 	 * zeroinflated BetaBinomial : y ~ prob*1[y=0] + (1-prob)*BetaBinomial(n, p, delta), where logit(p) = x, and prob = 1-p^alpha.
@@ -8883,7 +8889,7 @@ int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, in
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_exp(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ Exponential
@@ -9006,7 +9012,7 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
 	 * y ~ Weibull.
@@ -9075,7 +9081,7 @@ int loglikelihood_weibullsurv(double *logll, double *x, int m, int idx, double *
 	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_weibull));
 }
 
-int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -9139,7 +9145,7 @@ int loglikelihood_loglogisticsurv(double *logll, double *x, int m, int idx, doub
 	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_loglogistic));
 }
 
-int loglikelihood_qloglogistic(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_qloglogistic(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -9210,7 +9216,7 @@ int loglikelihood_qloglogisticsurv(double *logll, double *x, int m, int idx, dou
 	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_qloglogistic));
 }
 
-int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
 	/*
 	 * Likelihood model for Patrick's and Silvia's model. (Internal use only.)
@@ -9757,7 +9763,7 @@ int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 }
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag,
 			    const char *param_tag, const char *from_theta, const char *to_theta, const char *hyperid, const char *default_prior,
-			    void *args)
+			    void *UNUSED(args))
 {
 	char *secname = NULL, *param = NULL;
 	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
@@ -16578,7 +16584,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case LINK_TEST1:
 	{
 		/*
-		 * exp(eta - beta*cov)
+		 * exp(eta - beta*cov
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL"), 0.0);
 		ds->link_fixed = Calloc(1, int);
@@ -17175,7 +17181,7 @@ GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRF
 	return c;
 }
 
-double Qfunc_intslope(int node, int nnode, double *values, void *arg)
+double Qfunc_intslope(int node, int nnode, double *UNUSED(values), void *arg)
 {
 	if (node >= 0 && nnode < 0) {
 		return NAN;
@@ -24489,11 +24495,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 #undef _SetInitial
 	return INLA_OK;
 }
-double iid_mfunc(int idx, void *arg)
+double iid_mfunc(int idx, void *UNUSED(arg))
 {
 	return 1.0 + idx;
 }
-double Qfunc_copy_part00(int i, int j, double *values, void *arg)
+double Qfunc_copy_part00(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -24508,7 +24514,7 @@ double Qfunc_copy_part00(int i, int j, double *values, void *arg)
 		return a->Qfunc(i, j, NULL, a->Qfunc_arg);
 	}
 }
-double Qfunc_copy_part01(int i, int j, double *values, void *arg)
+double Qfunc_copy_part01(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -24519,7 +24525,7 @@ double Qfunc_copy_part01(int i, int j, double *values, void *arg)
 
 	return -a->precision * beta;
 }
-double Qfunc_copy_part11(int i, int j, double *values, void *arg)
+double Qfunc_copy_part11(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -24857,7 +24863,7 @@ int inla_setup_ai_par_default(inla_tp * mb)
 
 	return INLA_OK;
 }
-int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
+int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir))
 {
 	/*
 	 * parse section = INLA 
@@ -25347,7 +25353,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 
 	return INLA_OK;
 }
-int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int make_dir)
+int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir))
 {
 	/*
 	 * parse section = UPDATE
@@ -32952,7 +32958,7 @@ int inla_fgn(char *infile, char *outfile)
 }
 
 
-int loglikelihood_testit(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+int loglikelihood_testit(double *logll, double *x, int m, int UNUSED(idx), double *x_vec, double *UNUSED(y_cdf), void *UNUSED(arg))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;

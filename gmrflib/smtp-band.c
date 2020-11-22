@@ -245,8 +245,7 @@ int GMRFLib_solve_lt_sparse_matrix_BAND(double *rhs, double *bchol, GMRFLib_grap
 	ldim = nband + 1;
 
 	GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
-	dtbsv_("L", "T", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride,
-	       F_ONE, F_ONE, F_ONE);
+	dtbsv_("L", "T", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, F_ONE, F_ONE, F_ONE);
 
 	GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
 	return GMRFLib_SUCCESS;
@@ -265,10 +264,8 @@ int GMRFLib_solve_llt_sparse_matrix_BAND(double *rhs, double *bchol, GMRFLib_gra
 	ldim = nband + 1;
 
 	GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
-	dtbsv_("L", "N", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride,
-	       F_ONE, F_ONE, F_ONE);
-	dtbsv_("L", "T", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride,
-	       F_ONE, F_ONE, F_ONE);
+	dtbsv_("L", "N", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, F_ONE, F_ONE, F_ONE);
+	dtbsv_("L", "T", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, F_ONE, F_ONE, F_ONE);
 	GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
 
 	return GMRFLib_SUCCESS;
@@ -287,8 +284,7 @@ int GMRFLib_solve_l_sparse_matrix_BAND(double *rhs, double *bchol, GMRFLib_graph
 	ldim = nband + 1;
 
 	GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
-	dtbsv_("L", "N", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride,
-	       F_ONE, F_ONE, F_ONE);
+	dtbsv_("L", "N", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, F_ONE, F_ONE, F_ONE);
 	GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
 
 	return GMRFLib_SUCCESS;
@@ -312,8 +308,7 @@ int GMRFLib_solve_lt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRF
 	if (!remapped) {
 		GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 	}
-	dtbsvspecial_("L", "T", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, &from, &to,
-		      F_ONE, F_ONE, F_ONE);
+	dtbsvspecial_("L", "T", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, &from, &to, F_ONE, F_ONE, F_ONE);
 	if (!remapped) {
 		GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
 	}
@@ -339,8 +334,7 @@ int GMRFLib_solve_l_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFL
 	if (!remapped) {
 		GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 	}
-	dtbsvspecial_("L", "N", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, &from, &to,
-		      F_ONE, F_ONE, F_ONE);
+	dtbsvspecial_("L", "N", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, &from, &to, F_ONE, F_ONE, F_ONE);
 	if (!remapped) {
 		GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
 	}
@@ -367,10 +361,8 @@ int GMRFLib_solve_llt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMR
 	from = idxnew + 1;
 	to = graph->n;
 
-	dtbsvspecial_("L", "N", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, &from, &to,
-		      F_ONE, F_ONE, F_ONE);
-	dtbsv_("L", "T", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride,
-	       F_ONE, F_ONE, F_ONE);
+	dtbsvspecial_("L", "N", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, &from, &to, F_ONE, F_ONE, F_ONE);
+	dtbsv_("L", "T", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, F_ONE, F_ONE, F_ONE);
 	GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
 
 	if (0) {
@@ -641,7 +633,7 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem, int storage)
 /* 
    from here is for internal use only. not documented
 */
-int GMRFLib_bitmap_factorisation_BAND__intern(const char *filename, double *band, GMRFLib_graph_tp * graph, int *remap, int bandwidth)
+int GMRFLib_bitmap_factorisation_BAND__intern(const char *filename, double *band, GMRFLib_graph_tp * graph, int *UNUSED(remap), int bandwidth)
 {
 #define BIDX(i,j) ((i)+(j)*ldim)			       /* band index'ing */
 

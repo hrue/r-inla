@@ -157,14 +157,13 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 	 * Evaluate nx function evaluations of f for configuration x[i][0]...x[i][..], in parallel.
 	 */
 
-	int i, tmax, id, *err = NULL;
+	int i, tmax, *err = NULL;
 	GMRFLib_ai_store_tp **ai_store = NULL, *ai_store_reference = NULL;
 
 	GMRFLib_ASSERT(omp_in_parallel() == 0, GMRFLib_ESNH);
 	tmax = GMRFLib_MAX_THREADS;
 	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
 	err = Calloc(nx, int);
-	id = omp_get_thread_num();
 
 	/*
 	 * This is the copy that is to be copied 
@@ -208,7 +207,7 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 	/*
 	 * this version controls AI_STORE 
 	 */
-	int i, debug = 0, idum;
+	int i, debug = 0;
 	double ffx, fx_local;
 
 	/*
@@ -326,7 +325,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	 * new implementation more suited for OpenMP. return also, optionally, also a better estimate for f0.
 	 */
 
-	int i, tmax, id, debug = 0, id_save;
+	int i, tmax, debug = 0, id_save;
 	double h = G.ai_par->gradient_finite_difference_step_len, f_zero;
 	GMRFLib_ai_store_tp **ai_store = NULL;
 	GMRFLib_ai_store_tp *ai_store_reference = NULL;
@@ -334,7 +333,6 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	GMRFLib_ASSERT(omp_in_parallel() == 0, GMRFLib_ESNH);
 	tmax = GMRFLib_MAX_THREADS;
 	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
-	id = omp_get_thread_num();
 	id_save = GMRFLib_thread_id;
 
 	/*
@@ -853,7 +851,7 @@ int GMRFLib_opt_get_f_count(void)
 		return 0;
 	}
 }
-double GMRFLib_gsl_f(const gsl_vector * v, void *params)
+double GMRFLib_gsl_f(const gsl_vector * v, void *UNUSED(params))
 {
 	/*
 	 * this function is called only for thread=0!!! 
@@ -872,7 +870,7 @@ double GMRFLib_gsl_f(const gsl_vector * v, void *params)
 
 	return fx;
 }
-void GMRFLib_gsl_df(const gsl_vector * v, void *params, gsl_vector * df)
+void GMRFLib_gsl_df(const gsl_vector * v, void *UNUSED(params), gsl_vector * df)
 {
 	/*
 	 * this function is called only for thread=0!!! 
@@ -895,7 +893,7 @@ void GMRFLib_gsl_df(const gsl_vector * v, void *params, gsl_vector * df)
 	Free(x);
 	Free(gradx);
 }
-void GMRFLib_gsl_fdf(const gsl_vector * v, void *params, double *f, gsl_vector * df)
+void GMRFLib_gsl_fdf(const gsl_vector * v, void *UNUSED(params), double *f, gsl_vector * df)
 {
 	/*
 	 * This function is a merge of the _f and _df function, but we can compute the 'f' value through the gradient

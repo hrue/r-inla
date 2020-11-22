@@ -2284,7 +2284,7 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 #undef COPY
 	return new_store;
 }
-double GMRFLib_Qfunc_generic(int i, int j, double *values, void *arg)
+double GMRFLib_Qfunc_generic(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
