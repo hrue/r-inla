@@ -546,8 +546,8 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * 
 			if (debug) {
 				fprintf(stderr, "map_invsn: build table\n");
 			}
-			table = Calloc(ISQR(GMRFLib_MAX_THREADS), inla_sn_table_tp *);
-			for (i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
+			table = Calloc(GMRFLib_CACHE_LEN, inla_sn_table_tp *);
+			for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
 				table[i] = Calloc(1, inla_sn_table_tp);
 				table[i]->alpha = INLA_REAL_BIG;
 				table[i]->cdf = NULL;
@@ -561,8 +561,7 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * 
 	delta = alpha / sqrt(1.0 + SQR(alpha));
 	omega = 1.0 / sqrt(1.0 - 2.0 * SQR(delta) / M_PI);
 	xi = -omega * delta * sqrt(2.0 / M_PI);
-	id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
-
+	GMRFLib_CACHE_SET_ID(id);
 	if (debug) {
 		printf("...this gives alpha= %g, delta= %g, omega= %g, xi= %g\n", alpha, delta, omega, xi);
 	}
@@ -1400,8 +1399,8 @@ double link_loga(double x, map_arg_tp typ, void *param, double *cov)
 			if (debug) {
 				fprintf(stderr, "link_loga: init tables\n");
 			}
-			table = Calloc(ISQR(GMRFLib_MAX_THREADS), inla_loga_table_tp *);
-			for (i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
+			table = Calloc(GMRFLib_CACHE_LEN, inla_loga_table_tp *);
+			for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
 				table[i] = Calloc(1, inla_loga_table_tp);
 				table[i]->a = NAN;
 				table[i]->cdf = NULL;
@@ -1411,7 +1410,7 @@ double link_loga(double x, map_arg_tp typ, void *param, double *cov)
 		}
 	}
 
-	id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
+	GMRFLib_CACHE_SET_ID(id);
 	if (a != table[id]->a) {
 		int len, llen;
 		double *work, *x, *y, p;
@@ -2593,14 +2592,34 @@ double Qfunc_slm(int i, int j, double *values, void *arg)
 }
 double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 {
-	if (i >= 0 && j < 0) {
-		return NAN;
-	}
-
 	inla_rgeneric_tp *a = (inla_rgeneric_tp *) arg;
 	int rebuild, ii, debug = 0, id;
 
-	id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
+	GMRFLib_CACHE_SET_ID(id);
+
+	// reset cache once in a while
+	if (a->reset_cache >= 0) {
+		if (a->reset_cache || (id == 0 && omp_get_level() == 0 && i == 0 && j <= 0)) {
+			a->reset_cache = 1;
+#pragma omp critical
+			{
+				if (a->reset_cache) {
+					// yes, start loops at 1 to reset the rest of the cache, but not for id=0.
+					for (int i = 1; i < GMRFLib_CACHE_LEN; i++) {
+						if (a->Q[i]) {
+							GMRFLib_free_tabulate_Qfunc(a->Q[i]);
+							a->Q[i] = NULL;
+						}
+						if (a->ntheta && a->param && a->param[i]) {
+							Free(a->param[i]);
+						}
+					}
+				}
+				a->reset_cache = 0;
+			}
+		}
+	}
+
 	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 	if (!rebuild) {
 		for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
@@ -2614,61 +2633,79 @@ double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 		GMRFLib_graph_tp *graph = NULL;
 #pragma omp critical
 		{
-			if (debug) {
-				printf("Qfunc_rgeneric: Rebuild Q-hash for id %d\n", id);
-			}
-			if (a->Q[id]) {
-				GMRFLib_free_tabulate_Qfunc(a->Q[id]);
-			}
-			if (!(a->param[id])) {
-				a->param[id] = Calloc(a->ntheta, double);
-			}
-			for (jj = 0; jj < a->ntheta; jj++) {
-				a->param[id][jj] = a->theta[jj][GMRFLib_thread_id][0];
-				if (debug) {
-					printf("\ttheta[%1d] %.12g\n", jj, a->param[id][jj]);
+			rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
+			if (!rebuild) {
+				for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
+					rebuild = (a->param[id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
 				}
 			}
 
-			if (debug) {
-				printf("\tCall rgeneric\n");
-			}
-			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_Q, a->model, a->ntheta, a->param[id]);
-			if (debug) {
-				printf("\tReturn from rgeneric with n_out= %1d\n", n_out);
-			}
+			if (rebuild) {
+				if (debug) {
+					printf("Qfunc_rgeneric: Rebuild Q-hash for id %d thread_id %d\n", id, GMRFLib_thread_id);
+				}
+				if (a->Q[id]) {
+					GMRFLib_free_tabulate_Qfunc(a->Q[id]);
+				}
+				double *a_tmp = Calloc(a->ntheta, double);
+				for (jj = 0; jj < a->ntheta; jj++) {
+					a_tmp[jj] = a->theta[jj][GMRFLib_thread_id][0];
+					if (debug) {
+						printf("\ttheta[%1d] %.12f\n", jj, a_tmp[jj]);
+					}
+				}
 
-			assert(n_out >= 2);
-			n = (int) x_out[k++];
-			len = (int) x_out[k++];
+				if (debug) {
+					printf("\tCall rgeneric\n");
+				}
+				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_Q, a->model, a->ntheta, a_tmp);
+				if (debug) {
+					printf("\tReturn from rgeneric with n_out= %1d\n", n_out);
+				}
 
-			ilist = Calloc(len, int);
-			for (jj = 0; jj < len; jj++) {
-				ilist[jj] = (int) x_out[k++];
+				assert(n_out >= 2);
+				n = (int) x_out[k++];
+				len = (int) x_out[k++];
+
+				// we can overlay these arrays to avoid allocating new ones, since x_out is double
+				ilist = (int *) &x_out[k];
+				jlist = (int *) &x_out[k + len];
+				Qijlist = (double *) &x_out[k + 2 * len];
+				for (jj = 0; jj < len; jj++) {
+					ilist[jj] = (int) x_out[k + jj];
+					jlist[jj] = (int) x_out[k + len + jj];
+				}
+
+				if (a->graph) {
+					GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
+					assert(a->graph->n == a->n);
+				} else {
+					GMRFLib_tabulate_Qfunc_from_list(&(a->Q[id]), &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
+					assert(graph->n == a->n);
+				}
+				Free(x_out);
+
+				if (a->param[id]) {
+					memcpy(a->param[id], a_tmp, a->ntheta * sizeof(double));
+					Free(a_tmp);
+				} else {
+					a->param[id] = a_tmp;
+				}
+				if (!(a->graph)) {
+					a->graph = graph;
+				}
+				if (debug) {
+					printf("\tRebuild for id %1d done\n", id);
+				}
 			}
-
-			jlist = Calloc(len, int);
-			for (jj = 0; jj < len; jj++) {
-				jlist[jj] = (int) x_out[k++];
-			}
-
-			Qijlist = Calloc(len, double);
-			for (jj = 0; jj < len; jj++) {
-				Qijlist[jj] = x_out[k++];
-			}
-			assert(k == n_out);
-			Free(x_out);
-
-			GMRFLib_tabulate_Qfunc_from_list(&(a->Q[id]), &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
-			assert(graph->n == a->n);
 		}
-		GMRFLib_graph_free(graph);
-		Free(ilist);
-		Free(jlist);
-		Free(Qijlist);
 	}
 
-	return (a->Q[id]->Qfunc(i, j, NULL, a->Q[id]->Qfunc_arg));
+	if (j >= 0) {
+		return (a->Q[id]->Qfunc(i, j, NULL, a->Q[id]->Qfunc_arg));
+	} else {
+		return (a->Q[id]->Qfunc(i, j, values, a->Q[id]->Qfunc_arg));
+	}
 }
 
 double Qfunc_dmatern(int i, int j, double *values, void *arg)
@@ -2681,7 +2718,7 @@ double Qfunc_dmatern(int i, int j, double *values, void *arg)
 	double prec = map_exp(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	int rebuild, debug = 0, id;
 
-	id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
+	GMRFLib_CACHE_SET_ID(id);
 	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 	if (!rebuild) {
 		// yes, log_prec is ...[0], so we start at 1
@@ -2742,7 +2779,7 @@ double mfunc_rgeneric(int i, void *arg)
 		return 0.0;
 	}
 
-	id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
+	GMRFLib_CACHE_SET_ID(id);
 	rebuild = (a->mu_param[id] == NULL || a->mu[GMRFLib_thread_id] == NULL);
 	if (!rebuild) {
 		for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
@@ -2986,8 +3023,7 @@ double Qfunc_iid_wishart(int node, int nnode, double *values, void *arg)
 	/*
 	 * using this prevent us for using '#pragma omp critical' below, so its much quicker 
 	 */
-	id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
-
+	GMRFLib_CACHE_SET_ID(id);
 	assert(a->hold);
 	hold = a->hold[id];
 	if (hold == NULL) {
@@ -6083,10 +6119,11 @@ int loglikelihood_qcontpoisson(double *logll, double *x, int m, int idx, double 
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	int i, id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
+	int i, id;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], lambda, q;
 
+	GMRFLib_CACHE_SET_ID(id);
 	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
@@ -7684,9 +7721,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int(*func_simpson)(double **, double **, int *, void *arg))
+			   int (*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -10931,8 +10968,8 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	lc->n = 0;
 	lc->idx = NULL;
 	lc->weight = NULL;
-	lc->tinfo = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_lc_tinfo_tp);
-	for (i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
+	lc->tinfo = Calloc(GMRFLib_CACHE_LEN, GMRFLib_lc_tinfo_tp);
+	for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
 		lc->tinfo[i].first_nonzero = -1;
 		lc->tinfo[i].last_nonzero = -1;
 		lc->tinfo[i].first_nonzero_mapped = -1;
@@ -12586,7 +12623,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_QCONTPOISSON:
 		GMRFLib_ASSERT(ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0, GMRFLib_EPARAMETER);
-		ds->data_observations.qcontpoisson_func = inla_qcontpois_func(ds->data_observations.quantile, ISQR(GMRFLib_MAX_THREADS));
+		ds->data_observations.qcontpoisson_func = inla_qcontpois_func(ds->data_observations.quantile, GMRFLib_CACHE_LEN);
 		break;
 
 	case L_CENPOISSON:
@@ -22801,10 +22838,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def->log_prec = log_prec;
 		def->pacf_intern = pacf_intern;
 
-		def->hold_pacf_intern = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		def->hold_Q = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		def->hold_Qmarg = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		for (i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
+		def->hold_pacf_intern = Calloc(GMRFLib_CACHE_LEN, double *);
+		def->hold_Q = Calloc(GMRFLib_CACHE_LEN, double *);
+		def->hold_Qmarg = Calloc(GMRFLib_CACHE_LEN, double *);
+		for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
 			def->hold_pacf_intern[i] = Calloc(def->p, double);
 			for (j = 0; j < def->p; j++) {
 				def->hold_pacf_intern[i][j] = GMRFLib_uniform();
@@ -22997,7 +23034,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_rankdef[mb->nf] = 0;
 		arg->log_prec = theta_iidwishart;
 		arg->rho_intern = theta_iidwishart + dim;
-		arg->hold = Calloc(ISQR(GMRFLib_MAX_THREADS), inla_wishart_hold_tp *);
+		arg->hold = Calloc(GMRFLib_CACHE_LEN, inla_wishart_hold_tp *);
 		mb->f_Qfunc[mb->nf] = Qfunc_iid_wishart;
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		inla_make_iid_wishart_graph(&(mb->f_graph[mb->nf]), arg);
@@ -23023,7 +23060,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg->warg->N = arg->warg->dim * arg->warg->n;
 		arg->warg->log_prec = theta_iidwishart;
 		arg->warg->rho_intern = theta_iidwishart + arg->warg->dim;
-		arg->warg->hold = Calloc(ISQR(GMRFLib_MAX_THREADS), inla_wishart_hold_tp *);
+		arg->warg->hold = Calloc(GMRFLib_CACHE_LEN, inla_wishart_hold_tp *);
 
 		// For each subject, we need to know all those using it. Since we have all stored in the 'intslope_def' matrix,
 		// we only need to store the references to the rows in that one.
@@ -23222,11 +23259,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		def->filename = GMRFLib_strdup(rgeneric_filename);
 		def->model = GMRFLib_strdup(rgeneric_model);
-		def->mu = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		def->mu_param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		def->mu = Calloc(GMRFLib_CACHE_LEN, double *);
+		def->mu_param = Calloc(GMRFLib_CACHE_LEN, double *);
 		def->ntheta = mb->f_ntheta[mb->nf];
-		def->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		def->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_tabulate_Qfunc_tp *);
+		def->param = Calloc(GMRFLib_CACHE_LEN, double *);
+		def->Q = Calloc(GMRFLib_CACHE_LEN, GMRFLib_tabulate_Qfunc_tp *);
+		def->reset_cache = 0;			       /* only do if set=0 */
+		def->graph = NULL;
 		if (def->ntheta) {
 			tptr = Calloc(def->ntheta, double **);
 			for (j = 0; j < def->ntheta; j++)
@@ -23238,11 +23277,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		def_orig->filename = GMRFLib_strdup(rgeneric_filename);
 		def_orig->model = GMRFLib_strdup(rgeneric_model);
-		def_orig->mu = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		def_orig->mu_param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
+		def_orig->mu = Calloc(GMRFLib_CACHE_LEN, double *);
+		def_orig->mu_param = Calloc(GMRFLib_CACHE_LEN, double *);
 		def_orig->ntheta = mb->f_ntheta[mb->nf];
-		def_orig->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		def_orig->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_tabulate_Qfunc_tp *);
+		def_orig->param = Calloc(GMRFLib_CACHE_LEN, double *);
+		def_orig->Q = Calloc(GMRFLib_CACHE_LEN, GMRFLib_tabulate_Qfunc_tp *);
 		if (def_orig->ntheta) {
 			tptr = Calloc(def_orig->ntheta, double **);
 			for (j = 0; j < def_orig->ntheta; j++)
@@ -23637,12 +23676,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_DMATERN;
 
 		// setup cache and prefill parameters with random numbers
-		arg->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		arg->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), gsl_matrix *);
-		arg_orig->param = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		arg_orig->Q = Calloc(ISQR(GMRFLib_MAX_THREADS), gsl_matrix *);
+		arg->param = Calloc(GMRFLib_CACHE_LEN, double *);
+		arg->Q = Calloc(GMRFLib_CACHE_LEN, gsl_matrix *);
+		arg_orig->param = Calloc(GMRFLib_CACHE_LEN, double *);
+		arg_orig->Q = Calloc(GMRFLib_CACHE_LEN, gsl_matrix *);
 
-		for (int i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
+		for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
 			int np = 3;
 			arg->param[i] = Calloc(np, double);
 			arg_orig->param[i] = Calloc(np, double);
@@ -24368,10 +24407,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				def->ardef->p = mb->f_group_order[mb->nf];
 				def->ardef->log_prec = log_prec;
 				def->ardef->pacf_intern = pacf_intern;
-				def->ardef->hold_pacf_intern = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-				def->ardef->hold_Q = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-				def->ardef->hold_Qmarg = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-				for (i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
+				def->ardef->hold_pacf_intern = Calloc(GMRFLib_CACHE_LEN, double *);
+				def->ardef->hold_Q = Calloc(GMRFLib_CACHE_LEN, double *);
+				def->ardef->hold_Qmarg = Calloc(GMRFLib_CACHE_LEN, double *);
+				for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
 					def->ardef->hold_pacf_intern[i] = Calloc(def->ardef->p, double);
 					for (j = 0; j < def->ardef->p; j++) {
 						def->ardef->hold_pacf_intern[i][j] = GMRFLib_uniform();
@@ -27938,20 +27977,20 @@ double extra(double *theta, int ntheta, void *argument)
 				assert(nn_out >= 2);
 				n = (int) xx_out[k++];
 				len = (int) xx_out[k++];
-				ilist = Calloc(len, int);
-				jlist = Calloc(len, int);
-				Qijlist = Calloc(len, double);
+				ilist = (int *) &xx_out[k];
+				jlist = (int *) &xx_out[k + len];
+				Qijlist = &xx_out[k + 2 * len];
 				for (jj = 0; jj < len; jj++) {
-					ilist[jj] = (int) xx_out[k++];
+					ilist[jj] = (int) xx_out[k + jj];
+					jlist[jj] = (int) xx_out[k + len + jj];
 				}
-				for (jj = 0; jj < len; jj++) {
-					jlist[jj] = (int) xx_out[k++];
+				if (def->graph) {
+					GMRFLib_tabulate_Qfunc_from_list2(&Qf, def->graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
+					graph = def->graph;
+				} else {
+					GMRFLib_tabulate_Qfunc_from_list(&Qf, &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
+					def->graph = graph;
 				}
-				for (jj = 0; jj < len; jj++) {
-					Qijlist[jj] = xx_out[k++];
-				}
-				assert(k == nn_out);
-				GMRFLib_tabulate_Qfunc_from_list(&Qf, &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
 				int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 				GMRFLib_problem_tp *problem = NULL;
 				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
@@ -28008,11 +28047,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 				GMRFLib_free_problem(problem);
 				GMRFLib_free_tabulate_Qfunc(Qf);
-				GMRFLib_graph_free(graph);
 				Free(xx_out);
-				Free(ilist);
-				Free(jlist);
-				Free(Qijlist);
 			}
 				break;
 
@@ -29423,7 +29458,7 @@ int inla_INLA(inla_tp * mb)
 		}
 
 	} else {
-#pragma omp parallel for private(i)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (mb->d[i]) {
 				x[i] = inla_compute_initial_value(i, mb->loglikelihood[i], x, (void *) mb->loglikelihood_arg[i]);
@@ -29525,7 +29560,7 @@ int inla_INLA(inla_tp * mb)
 	/*
 	 * add the offsets to the linear predictor. Add the offsets to the 'configs' (if any), at a later stage. 
 	 */
-#pragma omp parallel for private(i)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
 		GMRFLib_density_tp *d;
 
@@ -29942,7 +29977,7 @@ int inla_output(inla_tp * mb)
 	 * GOMP_sections_next (in /usr/lib/libgomp.so.1.0.0) ==24889== by 0x805FD42: inla_output.omp_fn.1 (inla.c:4244) ==24889== by 0x805FCC4: inla_output
 	 * (inla.c:4360) ==24889== by 0x80644D2: main (inla.c:5237) 
 	 */
-#pragma omp parallel for private(i)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < 3; i++) {
 		if (i == 0) {
 			/*
@@ -30239,7 +30274,7 @@ int inla_output(inla_tp * mb)
 	 * 
 	 * wheras the ``parallel for'' is ok. 
 	 */
-#pragma omp parallel for private(i)
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < 2; i++) {
 		if (i == 0 && mb->density) {
 			int ii;
@@ -32475,7 +32510,6 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		GMRFLib_problem_tp **problems = Calloc(GMRFLib_openmp->max_threads_outer, GMRFLib_problem_tp *);
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < ns; i++) {
-
 			int thread = omp_get_thread_num();
 			if (problems[thread] == NULL) {
 				problems[thread] = GMRFLib_duplicate_problem(problem, 0, 1, 1);
@@ -34501,13 +34535,12 @@ int main(int argc, char **argv)
 				printf("\tOutput          : %7.3f seconds\n", time_used[2]);
 				printf("\t---------------------------------\n");
 				printf("\tTotal           : %7.3f seconds\n", time_used[0] + time_used[1] + time_used[2]);
-				printf("\nNumber of f.calls= %1d with %.3f sec/f.call\n",
+				printf("\nNumber of fn-calls= %1d with %.3f sec/fn-call\n",
 				       mb->misc_output->nfunc, time_used[1] / mb->misc_output->nfunc);
 				if (R_rgeneric_cputime > 0.0) {
-					printf("rgeneric-time= %.3f seconds, with %.3f sec/f.call and %.2f%% of the total time\n", 
-					       R_rgeneric_cputime, 
-					       R_rgeneric_cputime / mb->misc_output->nfunc, 
-					       R_rgeneric_cputime /time_used[1] * 100.0);
+					printf("rgeneric-time= %.3f seconds, with %.3f sec/fn-call and %.2f%% of the total time\n",
+					       R_rgeneric_cputime,
+					       R_rgeneric_cputime / mb->misc_output->nfunc, R_rgeneric_cputime / time_used[1] * 100.0);
 				}
 #if !defined(WINDOWS)
 				PEFF_OUTPUT;

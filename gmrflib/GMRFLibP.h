@@ -260,6 +260,17 @@ typedef enum {
 	 : (arg_->log_range ? exp(*(arg_->log_range))			\
 	    : (arg_->log_range_omp ? exp(*(arg_->log_range_omp[GMRFLib_thread_id])) : 1.0)))
 
+
+// This is for internal caching
+#define GMRFLib_CACHE_LEN (ISQR(GMRFLib_MAX_THREADS))
+#define GMRFLib_CACHE_SET_ID(_id) _id = (omp_get_level() == 2 ? \
+					 ((omp_get_ancestor_thread_num(omp_get_level()-1) * \
+					   omp_get_team_size(omp_get_level()) + \
+					   omp_get_thread_num()) +	\
+					  GMRFLib_MAX_THREADS * GMRFLib_thread_id) : \
+					 (omp_get_thread_num() + GMRFLib_MAX_THREADS * GMRFLib_thread_id)); \
+	assert((_id) < GMRFLib_CACHE_LEN); assert((_id) >= 0)
+
 /* from /usr/include/assert.h. use __GMRFLib_FuncName to define name of current function.
 
    Version 2.4 and later of GCC define a magical variable `__PRETTY_FUNCTION__' which contains the

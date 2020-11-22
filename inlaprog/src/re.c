@@ -149,12 +149,12 @@ int re_sas_fit_parameters(re_sas_param_tp * param, double *mean, double *prec, d
 #pragma omp critical
 			{
 				if (!pin && !pout && !perr) {
-					pin = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-					pout = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-					perr = Calloc(ISQR(GMRFLib_MAX_THREADS), int);
+					pin = Calloc(GMRFLib_CACHE_LEN, double *);
+					pout = Calloc(GMRFLib_CACHE_LEN, double *);
+					perr = Calloc(GMRFLib_CACHE_LEN, int);
 
 					int i;
-					for (i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
+					for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
 						pin[i] = Calloc(2, double);
 						pout[i] = Calloc(2, double);
 					}
@@ -170,7 +170,7 @@ int re_sas_fit_parameters(re_sas_param_tp * param, double *mean, double *prec, d
 	double npin[2], pout_tmp[2];
 	int id, err = 0, debug = 0;
 
-	id = omp_get_thread_num() + GMRFLib_thread_id * GMRFLib_MAX_THREADS;
+	GMRFLib_CACHE_SET_ID(id);
 	npin[0] = (skew ? *skew : 0.0);
 	npin[1] = (kurt ? *kurt : 3.0);
 
@@ -1146,7 +1146,6 @@ int re_sas_table_add_logjac(int debug)
 		logjac[i] = NAN;
 	}
 
-#pragma omp parallel for private(i, j)
 	for (i = off; i < sas_prior_table->nx - off; i++) {
 		if (debug) {
 			printf(".");
@@ -1325,7 +1324,6 @@ int re_sas_table_check(double *param)
 			printf("kurt[%d]  = %g\n", i, kurt[i]);
 	}
 
-#pragma omp parallel for private(j, i, ii)
 	for (j = 0; j < n; j++) {
 		for (i = 0; i < n; i++) {
 			ii = i + j * n;
@@ -1496,7 +1494,7 @@ int re_sas_prior_table_core(int read_only, int add_logjac, int debug, double *pa
 	if (read_only) {
 		return !GMRFLib_SUCCESS;
 	}
-//#pragma omp critical
+
 	{
 		if (!sas_prior_table) {
 			printf("MAKE TABLE...\n");
@@ -1525,7 +1523,6 @@ int re_sas_prior_table_core(int read_only, int add_logjac, int debug, double *pa
 				s->kurt[j] = kurt_low + j * dd;
 			}
 
-#pragma omp parallel for private(j, i) schedule(dynamic)
 			for (j = 0; j < s->ny; j++) {
 				for (i = 0; i < s->nx; i++) {
 					int k = i + j * s->nx;
@@ -1542,7 +1539,6 @@ int re_sas_prior_table_core(int read_only, int add_logjac, int debug, double *pa
 			printf("MAKE TABLE... Part 1 done\n");
 
 
-#pragma omp parallel for private(j, i) schedule(dynamic)
 			for (j = 0; j < s->ny; j++) {
 				printf("...outer loop j = %d/%d\n", j, s->ny);
 				for (i = 0; i < s->nx; i++) {

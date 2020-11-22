@@ -742,8 +742,8 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 			Alin[i]->idx[0] = compute_idx[i];
 			Alin[i]->weight = Calloc(1, float);
 			Alin[i]->weight[0] = 1.0;
-			Alin[i]->tinfo = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_lc_tinfo_tp);
-			for (j = 0; j < ISQR(GMRFLib_MAX_THREADS); j++) {
+			Alin[i]->tinfo = Calloc(GMRFLib_CACHE_LEN, GMRFLib_lc_tinfo_tp);
+			for (j = 0; j < GMRFLib_CACHE_LEN; j++) {
 				Alin[i]->tinfo[j].first_nonzero = -1;
 				Alin[i]->tinfo[j].last_nonzero = -1;
 				Alin[i]->tinfo[j].first_nonzero_mapped = -1;
@@ -919,7 +919,7 @@ int GMRFLib_ai_log_posterior(double *logdens,
 								idxs[nidx++] = ii;
 							}
 						}
-#pragma omp parallel for private(ii, iii, logll) reduction(+: tmp2) schedule(static)
+#pragma omp parallel for private(ii, iii, logll) reduction(+: tmp2) schedule(static) num_threads(GMRFLib_openmp->max_threads_inner)
 						for (iii = 0; iii < nidx; iii++) {
 							GMRFLib_thread_id = id;
 							ii = idxs[iii];
@@ -2746,7 +2746,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		memcpy(cc, c, n * sizeof(double));
 
 		cc_is_negative = 0;
-#pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i) schedule(static) num_threads(GMRFLib_openmp->max_threads_inner)
 		for (i = 0; i < nidx; i++) {
 			int idx;
 			double bcoof, ccoof;
@@ -2853,7 +2853,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			/*
 			 * I need to update 'aa' as this is not evaluated in the mode! The sum of the a's are used later
 			 */
-#pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i) schedule(static) num_threads(GMRFLib_openmp->max_threads_inner)
 			for (i = 0; i < nidx; i++) {
 				int idx = idxs[i];
 				GMRFLib_thread_id = id;
@@ -7039,8 +7039,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 		remap = problem->sub_sm_fact.PARDISO_fact->pstore->perm;
 	}
 
-	// id = GMRFLib_thread_id;
-	id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
+	GMRFLib_CACHE_SET_ID(id); 
 	assert(problem != NULL);
 	if (nlin <= 0) {
 		return !GMRFLib_SUCCESS;

@@ -480,10 +480,7 @@ int GMRFLib_pardiso_check_install(int quiet, int no_err)
 	void **pt = Calloc(GMRFLib_PARDISO_PLEN, void *);
 
 	STDOUT_TO_DEV_NULL_START(quiet);
-#pragma omp parallel for private(idum) num_threads(1)
-	for (idum = 0; idum < 1; idum++) {
-		pardisoinit(pt, &mtype, &solver, iparm, dparm, &err_code);
-	}
+	pardisoinit(pt, &mtype, &solver, iparm, dparm, &err_code);
 	STDOUT_TO_DEV_NULL_END;
 
 	Free(pt);
@@ -1169,11 +1166,7 @@ int my_pardiso_test1(void)
 	GMRFLib_pardiso_reorder(store, g);
 	GMRFLib_pardiso_build(store, g, Qtab->Qfunc, Qtab->Qfunc_arg);
 	GMRFLib_pardiso_chol(store);
-
-#pragma omp parallel for private(idum) num_threads(GMRFLib_openmp->max_threads_outer)
-	for (idum = 0; idum < 1; idum++) {
-		GMRFLib_pardiso_Qinv(store);
-	}
+	GMRFLib_pardiso_Qinv(store);
 
 	P(GMRFLib_openmp->max_threads_outer);
 	P(GMRFLib_openmp->max_threads_inner);
@@ -1290,10 +1283,7 @@ int my_pardiso_test2(void)
 
 	GMRFLib_init_problem(&problem, x, b, c, mean, graph, my_pardiso_test_Q, (void *) graph, NULL, constr, GMRFLib_NEW_PROBLEM);
 	GMRFLib_evaluate(problem);
-#pragma omp parallel for private(idum) num_threads(GMRFLib_openmp->max_threads_outer)
-	for (idum = 0; idum < 1; idum++) {
-		GMRFLib_Qinv(problem, GMRFLib_QINV_ALL);
-	}
+	GMRFLib_Qinv(problem, GMRFLib_QINV_ALL);
 
 	for (i = 0; i < n; i++) {
 		var = GMRFLib_Qinv_get(problem, i, i);
@@ -1340,10 +1330,7 @@ int my_pardiso_test3(void)
 	GMRFLib_pardiso_build(store, g, Qtab->Qfunc, Qtab->Qfunc_arg);
 	GMRFLib_pardiso_chol(store);
 
-#pragma omp parallel for private(idum) num_threads(GMRFLib_openmp->max_threads_outer)
-	for (idum = 0; idum < 1; idum++) {
-		GMRFLib_pardiso_Qinv(store);
-	}
+	GMRFLib_pardiso_Qinv(store);
 
 	P(GMRFLib_openmp->max_threads_outer);
 	P(GMRFLib_openmp->max_threads_inner);

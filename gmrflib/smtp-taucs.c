@@ -747,7 +747,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 		}
 		Q->colptr[i + 1] = Q->colptr[i] + ne;
 	}
-#pragma omp parallel for private(i, ic, k, j)
+#pragma omp parallel for private(i, ic, k, j) num_threads(GMRFLib_openmp->max_threads_inner)
 	for (i = 0; i < n; i++) {
 		double val;
 
@@ -1229,7 +1229,7 @@ map_ii **GMRFLib_compute_Qinv_TAUCS_check(taucs_ccs_matrix * L)
 			nnbs[L->rowind[jp]]++;
 		}
 	}
-#pragma omp parallel for private(i)
+
 	for (i = 0; i < n; i++) {
 		nbs[i] = Calloc(nnbs[i], int);
 		nnbs[i] = 0;

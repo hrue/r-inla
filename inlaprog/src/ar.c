@@ -268,7 +268,7 @@ double Qfunc_ar(int i, int j, double *values, void *arg)
 	assert(def->n >= 2 * def->p);
 
 	dimQ = 2 * def->p + 1;
-	id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
+	GMRFLib_CACHE_SET_ID(id);
 	eq = 1;
 
 	for (ii = 0; ii < def->p && eq; ii++) {
@@ -398,10 +398,10 @@ int ar_test1()
 		/*
 		 * easier if the storage is setup here 
 		 */
-		def.hold_pacf_intern = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		def.hold_Q = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		def.hold_Qmarg = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		for (i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
+		def.hold_pacf_intern = Calloc(GMRFLib_CACHE_LEN, double *);
+		def.hold_Q = Calloc(GMRFLib_CACHE_LEN, double *);
+		def.hold_Qmarg = Calloc(GMRFLib_CACHE_LEN, double *);
+		for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
 			def.hold_pacf_intern[i] = Calloc(def.p, double);
 			for (j = 0; j < def.p; j++) {
 				def.hold_pacf_intern[i][j] = GMRFLib_uniform();
