@@ -100,9 +100,9 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *whi
 */
 int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix * L, const char *filename);
 int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matrix * L);
-GMRFLib_sizeof_tp GMRFLib_L_sizeof_TAUCS(taucs_ccs_matrix * L);
-GMRFLib_sizeof_tp GMRFLib_sm_fact_sizeof_TAUCS(supernodal_factor_matrix * L);
-GMRFLib_sizeof_tp GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L);
+size_t GMRFLib_L_sizeof_TAUCS(taucs_ccs_matrix * L);
+size_t GMRFLib_sm_fact_sizeof_TAUCS(supernodal_factor_matrix * L);
+size_t GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L);
 
 __END_DECLS
 #endif

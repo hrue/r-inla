@@ -348,12 +348,12 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *UNU
 	Free(adj);
 }
 
-GMRFLib_sizeof_tp GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L)
+size_t GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L)
 {
 	/*
 	 * return the number of non-zeros in the matrix 
 	 */
-	GMRFLib_sizeof_tp nnz = 0;
+	size_t nnz = 0;
 	int jp, sn;
 
 	for (sn = 0; sn < L->n_sn; sn++) {
@@ -365,12 +365,12 @@ GMRFLib_sizeof_tp GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L)
 	return (nnz);
 }
 
-GMRFLib_sizeof_tp GMRFLib_sm_fact_sizeof_TAUCS(supernodal_factor_matrix * L)
+size_t GMRFLib_sm_fact_sizeof_TAUCS(supernodal_factor_matrix * L)
 {
 	/*
 	 * return, approximately, the size of L 
 	 */
-	GMRFLib_sizeof_tp siz = 0;
+	size_t siz = 0;
 
 	if (!L) {
 		return siz;
@@ -457,13 +457,13 @@ int GMRFLib_print_ccs_matrix(FILE * fp, taucs_ccs_matrix * L)
 	return GMRFLib_SUCCESS;
 }
 
-GMRFLib_sizeof_tp GMRFLib_L_sizeof_TAUCS(taucs_ccs_matrix * L)
+size_t GMRFLib_L_sizeof_TAUCS(taucs_ccs_matrix * L)
 {
 	/*
 	 * return, approximately, the sizeof L 
 	 */
 
-	GMRFLib_sizeof_tp siz = 0;
+	size_t siz = 0;
 	int n, nnz;
 
 	if (!L) {

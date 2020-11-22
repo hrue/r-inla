@@ -179,7 +179,7 @@ typedef struct {
 	int n;						       /* original graph->n */
 } GMRFLib_offset_arg_tp;
 
-GMRFLib_sizeof_tp GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph);
+size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph);
 double GMRFLib_offset_Qfunc(int node, int nnode, double *values, void *arg);
 int *GMRFLib_graph_cc(GMRFLib_graph_tp * g);
 int GMRFLib_Qfunc_print(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);

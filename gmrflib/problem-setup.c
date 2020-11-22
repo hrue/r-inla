@@ -2094,11 +2094,11 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 	return np;
 }
 
-GMRFLib_sizeof_tp GMRFLib_sizeof_problem(GMRFLib_problem_tp * problem)
+size_t GMRFLib_sizeof_problem(GMRFLib_problem_tp * problem)
 {
 #define DUPLICATE(name, len, tp)  if (problem->name && ((len)>0)) siz += (len)*sizeof(tp);
 
-	GMRFLib_sizeof_tp siz = 0;
+	size_t siz = 0;
 
 	if (!problem) {
 		return 0;
@@ -2179,7 +2179,7 @@ GMRFLib_sizeof_tp GMRFLib_sizeof_problem(GMRFLib_problem_tp * problem)
 
 	return siz;
 }
-GMRFLib_sizeof_tp GMRFLib_sizeof_store(GMRFLib_store_tp * store)
+size_t GMRFLib_sizeof_store(GMRFLib_store_tp * store)
 {
 	/*
 	 * return, approximately, the size of STORE 
@@ -2188,7 +2188,7 @@ GMRFLib_sizeof_tp GMRFLib_sizeof_store(GMRFLib_store_tp * store)
 	if (!store)
 		return 0;
 
-	GMRFLib_sizeof_tp siz = 0;
+	size_t siz = 0;
 	int ns = store->sub_graph->n;
 
 	siz += sizeof(GMRFLib_store_tp);
@@ -2304,7 +2304,7 @@ double GMRFLib_Qfunc_generic(int i, int j, double *UNUSED(values), void *arg)
   This functions factorise a precision matrix (symbolically) using several different reorderings techniques and chose the one with fewest fillins. If sizeof_L is
   non-NULL, then the sizeof_L in bytes, is returned.
 */
-int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_opt, int *use_global, GMRFLib_global_node_tp * gn)
+int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, size_t * nnz_opt, int *use_global, GMRFLib_global_node_tp * gn)
 {
 	if (!graph) {
 		if (nnz_opt)
@@ -2319,7 +2319,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
 		*nnz_opt = 0;
 	} else {
-		GMRFLib_sizeof_tp *nnzs = NULL, nnz_best;
+		size_t *nnzs = NULL, nnz_best;
 		int k, debug = 0, n = -1, nk, r, i, ne = 0, use_global_nodes;
 		GMRFLib_reorder_tp rs[] = { GMRFLib_REORDER_METIS, GMRFLib_REORDER_AMDC };
 		taucs_ccs_matrix *Q = NULL;
@@ -2365,7 +2365,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 		 * do this for all reorderings, first with global node detection and then without global nodes detection 
 		 */
 		nk = 2 * (int) (sizeof(rs) / sizeof(int));     /* yes, twice... */
-		nnzs = Calloc(nk, GMRFLib_sizeof_tp);
+		nnzs = Calloc(nk, size_t);
 		cputime = Calloc(nk, double);
 
 		for (k = 0; k < nk; k++) {
@@ -2421,7 +2421,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 				if (debug) {
 #pragma omp critical
 					{
-						printf("%s: reorder=[%s] \tnnz=%lu \tUseGlobalNodes=%1d cpu=%.4f\n",
+						printf("%s: reorder=[%s] \tnnz=%zu \tUseGlobalNodes=%1d cpu=%.4f\n",
 						       __GMRFLib_FuncName, GMRFLib_reorder_name(rs[kkk]), nnzs[k], use_global_nodes, cputime[k]);
 					}
 				}

@@ -10940,7 +10940,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 
 	if (mb->verbose) {
 		printf("\t\tfilename [%s]\n", filename);
-		printf("\t\tfile.offset [%lu]\n", (long unsigned) fileoffset);
+		printf("\t\tfile.offset [%zu]\n", fileoffset);
 	}
 
 	mb->lc_order[mb->nlc] = iniparser_getdouble(ini, inla_string_join(secname, "LINCOMB.ORDER"), -1.0);
@@ -10957,7 +10957,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_io_seek(io, fileoffset, SEEK_SET);
 
 	if (mb->verbose) {
-		printf("\t\tOpen file [%s] at location [%lu]\n", filename, (long unsigned) fileoffset);
+		printf("\t\tOpen file [%s] at location [%zu]\n", filename, fileoffset);
 	}
 
 	GMRFLib_io_read(io, &num_sections, sizeof(int));
@@ -29409,7 +29409,7 @@ int inla_INLA(inla_tp * mb)
 	mb->ai_par->adapt_len = (adapt ? N : 0);
 
 	if (G.reorder < 0) {
-		GMRFLib_sizeof_tp nnz = 0;
+		size_t nnz = 0;
 		int use_g = 0;
 		GMRFLib_optimize_reorder(mb->hgmrfm->graph, &nnz, &use_g, &(mb->gn));
 		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
@@ -29418,7 +29418,7 @@ int inla_INLA(inla_tp * mb)
 			GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
 		}
 		if (mb->verbose) {
-			printf("\tFound optimal reordering=[%s] nnz(L)=[%lu] and use_global_nodes(user)=[%s]\n",
+			printf("\tFound optimal reordering=[%s] nnz(L)=[%zu] and use_global_nodes(user)=[%s]\n",
 			       GMRFLib_reorder_name(GMRFLib_reorder), nnz, (use_g ? "yes" : "no"));
 		}
 	}
@@ -33879,7 +33879,7 @@ int testit(int argc, char **argv)
 		float x[2] = { 0, 0 };
 		printf("x= %f %f\n", x[0], x[1]);
 		x[0] = NAN;
-		printf("x= %f %f (x[1]==0 %1d) sizeof()=%lu\n", x[0], x[1], x[1] == 0, sizeof(float));
+		printf("x= %f %f (x[1]==0 %1d) sizeof()=%zu\n", x[0], x[1], x[1] == 0, sizeof(float));
 		break;
 	}
 

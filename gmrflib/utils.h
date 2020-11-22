@@ -81,8 +81,8 @@ typedef struct
 /*
  */
 
-GMRFLib_sizeof_tp GMRFLib_sizeof_map_id(map_id * hash);
-GMRFLib_sizeof_tp GMRFLib_sizeof_map_ii(map_ii * hash);
+size_t GMRFLib_sizeof_map_id(map_id * hash);
+size_t GMRFLib_sizeof_map_ii(map_ii * hash);
 char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcname, int lineno, const char *id);
 char *GMRFLib_rindex(const char *p, int ch);
 char *GMRFLib_strdup(const char *ptr);

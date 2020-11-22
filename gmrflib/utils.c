@@ -555,7 +555,7 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 #endif
 #if defined(GMRFLib_TRACE_MEMORY)
 	if (nmemb * size > GMRFLib_TRACE_MEMORY)
-		printf("%s:%s:%u: calloc %lu x %lu bytes, total %lu\n", file, funcname, lineno, nmemb, size, nmemb * size);
+		printf("%s:%s:%u: calloc %zu x %zu bytes, total %zu\n", file, funcname, lineno, nmemb, size, nmemb * size);
 #endif
 	if (ptr) {
 		return ptr;
@@ -584,7 +584,7 @@ void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int li
 #endif
 #if defined(GMRFLib_TRACE_MEMORY)
 	if (size > GMRFLib_TRACE_MEMORY)
-		printf("%s:%s:%u: malloc %lu bytes, total %lu\n", file, funcname, lineno, size, size);
+		printf("%s:%s:%u: malloc %zu bytes, total %zu\n", file, funcname, lineno, size, size);
 #endif
 	if (ptr) {
 		return ptr;
@@ -613,7 +613,7 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 #endif
 #if defined(GMRFLib_TRACE_MEMORY)
 	if (size > GMRFLib_TRACE_MEMORY)
-		printf("%s:%s:%u: realloc %lu bytes, total %lu\n", file, funcname, lineno, size, size);
+		printf("%s:%s:%u: realloc %zu bytes, total %zu\n", file, funcname, lineno, size, size);
 #endif
 	if (ptr) {
 		return ptr;
@@ -715,7 +715,7 @@ char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcn
 	char *tag = NULL;
 
 	tag = (char *) calloc(1024 + 1, sizeof(char));
-	snprintf(tag, 1024, "size: %lu bytes \tfile: %s \tfuncname: %s \tlineno: %d \tid: %s", size, file, funcname, lineno, id);
+	snprintf(tag, 1024, "size: %zu bytes \tfile: %s \tfuncname: %s \tlineno: %d \tid: %s", size, file, funcname, lineno, id);
 
 	return tag;
 }
@@ -1032,12 +1032,12 @@ map_ii *GMRFLib_duplicate_map_ii(map_ii * hash)
 
 	return newhash;
 }
-GMRFLib_sizeof_tp GMRFLib_sizeof_map_ii(map_ii * hash)
+size_t GMRFLib_sizeof_map_ii(map_ii * hash)
 {
 	if (!hash) {
 		return 0;
 	}
-	GMRFLib_sizeof_tp siz = 0;
+	size_t siz = 0;
 	mapkit_size_t nelm = GMRFLib_nelm_map_ii(hash);
 	siz += sizeof(map_ii) + nelm * sizeof(int);
 
@@ -1068,12 +1068,12 @@ map_id *GMRFLib_duplicate_map_id(map_id * hash)
 
 	return newhash;
 }
-GMRFLib_sizeof_tp GMRFLib_sizeof_map_id(map_id * hash)
+size_t GMRFLib_sizeof_map_id(map_id * hash)
 {
 	if (!hash) {
 		return 0;
 	}
-	GMRFLib_sizeof_tp siz = 0;
+	size_t siz = 0;
 	mapkit_size_t nelm = GMRFLib_nelm_map_id(hash);
 	siz += sizeof(map_id) + nelm * sizeof(double);
 
