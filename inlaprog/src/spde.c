@@ -86,7 +86,7 @@ int inla_spde_free_points(inla_spde_points_tp * p)
 	}
 	return INLA_OK;
 }
-double inla_spde_Qfunction(int node, int nnode, double *values, void *arg)
+double inla_spde_Qfunction(int node, int nnode, double *UNUSED(values), void *arg)
 {
 	if (node >= 0 && nnode < 0){
 		return NAN;
@@ -381,7 +381,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 
 	return INLA_OK;
 }
-double *inla_spde_userfunc0(GMRFLib_problem_tp * problem, double *theta, int nhyper)
+double *inla_spde_userfunc0(GMRFLib_problem_tp * UNUSED(problem), double *UNUSED(theta), int UNUSED(nhyper))
 {
 	/*
 	 * return the log(deformations). First the T's so the K's
@@ -407,7 +407,7 @@ double *inla_spde_userfunc0(GMRFLib_problem_tp * problem, double *theta, int nhy
 
 	return deformations;
 }
-double *inla_spde_userfunc1(double *theta, int nhyper, double *covmat)
+double *inla_spde_userfunc1(double *UNUSED(theta), int nhyper, double *covmat)
 {
 	/*
 	 * compute the marginals for the log(deformations). First the T's so the K's. using the mode and the covariance at the mode

@@ -259,7 +259,7 @@ int GMRFLib_revise_geo_problem(GMRFLib_geo_problem_tp * geo_problem, int name, d
 
 	return GMRFLib_SUCCESS;
 }
-double GMRFLib_geoQfunc(int node, int nnode, double *values, void *arg)
+double GMRFLib_geoQfunc(int node, int nnode, double *UNUSED(values), void *arg)
 {
 	if (node >= 0 && nnode < 0){
                 return NAN;

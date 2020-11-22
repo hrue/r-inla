@@ -92,7 +92,7 @@ int inla_make_fgn2_graph(GMRFLib_graph_tp ** graph, inla_fgn2_arg_tp * def)
 
 
 
-double Qfunc_fgn(int i, int j, double *values, void *arg)
+double Qfunc_fgn(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0){
 		return NAN;
@@ -110,11 +110,11 @@ double Qfunc_fgn(int i, int j, double *values, void *arg)
 #pragma omp critical 
 			{
 				if (phi_cache == NULL) {
-					phi_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-					w_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-					H_intern_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double);
+					phi_cache = Calloc(GMRFLib_CACHE_LEN, double *);
+					w_cache = Calloc(GMRFLib_CACHE_LEN, double *);
+					H_intern_cache = Calloc(GMRFLib_CACHE_LEN, double);
 					
-					for (int j = 0; j < ISQR(GMRFLib_MAX_THREADS); j++) {
+					for (int j = 0; j < GMRFLib_CACHE_LEN; j++) {
 						phi_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
 						w_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
 					}
@@ -129,8 +129,9 @@ double Qfunc_fgn(int i, int j, double *values, void *arg)
 
 	inla_fgn_arg_tp *a = (inla_fgn_arg_tp *) arg;
 	double H_intern, prec, val = 0.0, *phi, *w, kappa;
-	int id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
+	int id; 
 
+	GMRFLib_CACHE_SET_ID(id);
 	phi = phi_cache[id];
 	w = w_cache[id];
 
@@ -200,7 +201,7 @@ double inla_fgn2_helper(int i, int j, int n, double phi)
 	}
 }
 
-double Qfunc_fgn2(int i, int j, double *values, void *arg)
+double Qfunc_fgn2(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0){
 		return NAN;
@@ -213,11 +214,11 @@ double Qfunc_fgn2(int i, int j, double *values, void *arg)
 
 	if (!arg) {
 		assert(phi_cache == NULL);		       /* do not initialize twice */
-		phi_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		w_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double *);
-		H_intern_cache = Calloc(ISQR(GMRFLib_MAX_THREADS), double);
+		phi_cache = Calloc(GMRFLib_CACHE_LEN, double *);
+		w_cache = Calloc(GMRFLib_CACHE_LEN, double *);
+		H_intern_cache = Calloc(GMRFLib_CACHE_LEN, double);
 
-		for (int j = 0; j < ISQR(GMRFLib_MAX_THREADS); j++) {
+		for (int j = 0; j < GMRFLib_CACHE_LEN; j++) {
 			phi_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
 			w_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
 		}
@@ -229,8 +230,9 @@ double Qfunc_fgn2(int i, int j, double *values, void *arg)
 
 	inla_fgn2_arg_tp *a = (inla_fgn2_arg_tp *) arg;
 	double H_intern, prec, val = 0.0, *phi, *w;
-	int id = omp_get_thread_num() * GMRFLib_MAX_THREADS + GMRFLib_thread_id;
+	int id; 
 
+	GMRFLib_CACHE_SET_ID(id);
 	phi = phi_cache[id];
 	w = w_cache[id];
 

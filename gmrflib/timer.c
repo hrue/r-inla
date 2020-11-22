@@ -402,7 +402,7 @@ int GMRFLib_timer_full_report(FILE * fp)
 	}
 	return GMRFLib_timer_report(fp, NULL);
 }
-void GMRFLib_timer_report__signal(int sig)
+void GMRFLib_timer_report__signal(int UNUSED(sig))
 {
 	/*
 	 * a version to be installed using signal(...) 

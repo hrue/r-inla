@@ -229,7 +229,7 @@ supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matr
 	return LL;
 }
 
-void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *which)
+void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *UNUSED(which))
 {
 	// this for metis version 5
 
@@ -747,7 +747,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 		}
 		Q->colptr[i + 1] = Q->colptr[i] + ne;
 	}
-#pragma omp parallel for private(i, ic, k, j)
+#pragma omp parallel for private(i, ic, k, j) num_threads(GMRFLib_openmp->max_threads_inner)
 	for (i = 0; i < n; i++) {
 		double val;
 
@@ -1029,8 +1029,8 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * 
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * L, double *L_inv_diag, GMRFLib_graph_tp * graph, int *remap,
-						  int idx)
+int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * L, double *L_inv_diag, GMRFLib_graph_tp * UNUSED(graph),
+						  int *remap, int idx)
 {
 	/*
 	 * this is special version of the GMRFLib_solve_llt_sparse_matrix_TAUCS()-routine, where we KNOW that x is 0 exect for a 1 at index
@@ -1229,7 +1229,7 @@ map_ii **GMRFLib_compute_Qinv_TAUCS_check(taucs_ccs_matrix * L)
 			nnbs[L->rowind[jp]]++;
 		}
 	}
-#pragma omp parallel for private(i)
+
 	for (i = 0; i < n; i++) {
 		nbs[i] = Calloc(nnbs[i], int);
 		nnbs[i] = 0;
@@ -1922,8 +1922,9 @@ int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matr
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_amdc(int n, int *pe, int *iw, int *len, int iwlen, int pfree,
-		 int *nv, int *next, int *last, int *head, int *elen, int *degree, int ncmpa, int *w)
+int GMRFLib_amdc(int n, int *pe, int *iw, int *UNUSED(len), int UNUSED(iwlen), int UNUSED(pfree),
+		 int *UNUSED(nv), int *UNUSED(next), int *last, int *UNUSED(head), int *UNUSED(elen),
+		 int *UNUSED(degree), int UNUSED(ncmpa), int *UNUSED(w))
 {
 	int result, i;
 	double control[AMD_CONTROL], info[AMD_INFO];
@@ -1939,8 +1940,9 @@ int GMRFLib_amdc(int n, int *pe, int *iw, int *len, int iwlen, int pfree,
 	return (result == AMD_OK ? GMRFLib_SUCCESS : !GMRFLib_SUCCESS);
 }
 
-int GMRFLib_amdbarc(int n, int *pe, int *iw, int *len, int iwlen, int pfree,
-		    int *nv, int *next, int *last, int *head, int *elen, int *degree, int ncmpa, int *w)
+int GMRFLib_amdbarc(int n, int *pe, int *iw, int *UNUSED(len), int UNUSED(iwlen), int UNUSED(pfree),
+		    int *UNUSED(nv), int *UNUSED(next), int *last, int *UNUSED(head), int *UNUSED(elen),
+		    int *UNUSED(degree), int UNUSED(ncmpa), int *UNUSED(w))
 {
 	int result, i;
 	double control[AMD_CONTROL], info[AMD_INFO];

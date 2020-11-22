@@ -80,16 +80,24 @@
 #endif
 #include <stdlib.h>
 
-/*
-  CHANGE/HRue: added these two lines
-*/
+// hrue
+// see https://stackoverflow.com/questions/3599160/how-to-suppress-unused-parameter-warnings-in-c
+#ifdef __GNUC__
+#  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#else
+#  define UNUSED(x) UNUSED_ ## x
+#endif
+#ifdef __GNUC__
+#  define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
+#else
+#  define UNUSED_FUNCTION(x) UNUSED_ ## x
+#endif
 #include "GMRFLib/GMRFLib.h"
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-//static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-/* Pre-hg-Id: $Id: integrator.c,v 1.10 2009/09/05 07:52:14 hrue Exp $ */
+
 
 /***************************************************************************/
 
@@ -166,6 +174,8 @@ static region make_region(const hypercube * h)
 
 	R.h = make_hypercube(h->dim, h->data, h->data + h->dim);
 	R.splitDim = 0;
+	R.ee.err = 0;
+	R.ee.val = 0.0;
 	return R;
 }
 
@@ -509,7 +519,7 @@ static rule *make_rule75genzmalik(unsigned dim)
 /* 1d 15-point Gaussian quadrature rule, based on qk15.c and qk.c in
    GNU GSL (which in turn is based on QUADPACK). */
 
-static unsigned rule15gauss_evalError(rule * r, integrand f, void *fdata, const hypercube * h, esterr * ee)
+static unsigned rule15gauss_evalError(rule * UNUSED(r), integrand f, void *fdata, const hypercube * h, esterr * ee)
 {
 	/*
 	 * Gauss quadrature weights and kronrod quadrature abscissae and weights as evaluated with 80 decimal digit arithmetic by L. W.

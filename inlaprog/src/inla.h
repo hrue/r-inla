@@ -1381,8 +1381,10 @@ typedef struct {
 	int ntheta;
 	int n;
 	int mu_zero;					       /* often mu is zero, allow for fast return */
+	int reset_cache;
 	double ***theta;
 	double **param;
+	GMRFLib_graph_tp *graph;
 	GMRFLib_tabulate_Qfunc_tp **Q;
 	double **mu;
 	double **mu_param;

@@ -133,14 +133,14 @@ int GMRFLib_iwhich_sorted(int val, int *ix, int len)
 	if (len == 0) {
 		return -1;
 	}
-	
+
 	low = 0;
-	high = len -1;
+	high = len - 1;
 
 	while (1) {
 		n = high - low - 1;			       /* n is how many alternatives left */
-		if (n <= n_lim) {			       
-			for(i = low; i <= high; i++) {
+		if (n <= n_lim) {
+			for (i = low; i <= high; i++) {
 				if (ix[i] == val) {
 					return (i);
 				}
@@ -181,18 +181,18 @@ int GMRFLib_find_nonzero(double *array, int len, int direction)
 
 	return -1;
 }
-double GMRFLib_eps2(void) 
+double GMRFLib_eps2(void)
 {
 	static double eps2 = -1.0;
-	if (eps2 <  0.0) {
+	if (eps2 < 0.0) {
 		eps2 = GMRFLib_eps(0.5);
 	}
 	return (eps2);
 }
-double GMRFLib_eps1(void) 
+double GMRFLib_eps1(void)
 {
 	static double eps1 = -1.0;
-	if (eps1 <  0.0) {
+	if (eps1 < 0.0) {
 		eps1 = GMRFLib_eps(1.0);
 	}
 	return (eps1);
@@ -455,7 +455,7 @@ int GMRFLib_dcmp_abs(const void *a, const void *b)
 	 */
 	return 0;
 }
-int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z, int (*compar) (const void *, const void *))
+int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z, int (*compar)(const void *, const void *))
 {
 	/*
 	 * sort x and optionally sort y and z along
@@ -632,10 +632,15 @@ void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno,
 {
 	if (ptr) {
 #if defined(GMRFLib_MEMCHECK) && !defined(_OPENMP)
-		GMRFLib_free__(ptr, file, funcname, lineno, id);
+		int choice = 1;
 #else
-		free(ptr);
+		int choice = 0;
 #endif
+		if (choice) {
+			GMRFLib_free__(ptr, file, funcname, lineno, id);
+		} else {
+			free(ptr);
+		}
 	}
 }
 char *GMRFLib_strdup(const char *ptr)
@@ -772,15 +777,22 @@ int GMRFLib_memcheck_remove(void *p, const char *file, const char *funcname, int
 int GMRFLib_memcheck_printf(FILE * fp)
 {
 #if defined(GMRFLib_MEMCHECK) && !defined(_OPENMP)
-	int i;
+	int choice = 1;
+#else
+	int choice = 0;
+#endif
 
-	fp = (fp ? fp : stdout);
-	if (!memcheck_first) {
-		for (i = -1; (i = map_vpvp_next(&memcheck_hash_table, i)) != -1;) {
-			fprintf(fp, "0x%lx %s\n", (size_t) memcheck_hash_table.contents[i].key, (char *) memcheck_hash_table.contents[i].value);
+	if (choice == 1) {
+		int i;
+		fp = (fp ? fp : stdout);
+		if (!memcheck_first) {
+			for (i = -1; (i = map_vpvp_next(&memcheck_hash_table, i)) != -1;) {
+				fprintf(fp, "0x%lx %s\n", (size_t) memcheck_hash_table.contents[i].key,
+					(char *) memcheck_hash_table.contents[i].value);
+			}
 		}
 	}
-#endif
+
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_unique_relative(int *n, double *x, double eps)
@@ -1201,7 +1213,7 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idx_create(GMRFLib_idx_tp **hold) 
+int GMRFLib_idx_create(GMRFLib_idx_tp ** hold)
 {
 	int alloc_add = 32L;
 	*hold = Calloc(1, GMRFLib_idx_tp);
@@ -1211,7 +1223,7 @@ int GMRFLib_idx_create(GMRFLib_idx_tp **hold)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_idx2_create(GMRFLib_idx2_tp **hold) 
+int GMRFLib_idx2_create(GMRFLib_idx2_tp ** hold)
 {
 	int alloc_add = 32L;
 	*hold = Calloc(1, GMRFLib_idx2_tp);
@@ -1223,7 +1235,7 @@ int GMRFLib_idx2_create(GMRFLib_idx2_tp **hold)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_idx_add(GMRFLib_idx_tp **hold, int idx)
+int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx)
 {
 	int alloc_add = 32L;
 	if (*hold == NULL) {
@@ -1239,7 +1251,7 @@ int GMRFLib_idx_add(GMRFLib_idx_tp **hold, int idx)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_idx2_add(GMRFLib_idx2_tp **hold, int idx0, int idx1)
+int GMRFLib_idx2_add(GMRFLib_idx2_tp ** hold, int idx0, int idx1)
 {
 	int alloc_add = 32L;
 	if (*hold == NULL) {
@@ -1257,37 +1269,37 @@ int GMRFLib_idx2_add(GMRFLib_idx2_tp **hold, int idx0, int idx1)
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_idx_print(FILE *fp, GMRFLib_idx_tp *hold, char *msg)
+int GMRFLib_idx_print(FILE * fp, GMRFLib_idx_tp * hold, char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
-		for(int i = 0; i < hold->n; i++) {
+		for (int i = 0; i < hold->n; i++) {
 			fprintf(fp, "\tidx[%1d] = %1d\n", i, hold->idx[i]);
 		}
 	}
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_idx2_print(FILE *fp, GMRFLib_idx2_tp *hold, char *msg)
+int GMRFLib_idx2_print(FILE * fp, GMRFLib_idx2_tp * hold, char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
-		for(int i = 0; i < hold->n; i++) {
+		for (int i = 0; i < hold->n; i++) {
 			fprintf(fp, "\tidx[][%1d] = %1d %1d\n", i, hold->idx[0][i], hold->idx[1][i]);
 		}
 	}
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_idx_free(GMRFLib_idx_tp *hold) 
+int GMRFLib_idx_free(GMRFLib_idx_tp * hold)
 {
-	if (hold){
+	if (hold) {
 		Free(hold->idx);
 		Free(hold);
 	}
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_idx2_free(GMRFLib_idx2_tp *hold) 
+int GMRFLib_idx2_free(GMRFLib_idx2_tp * hold)
 {
-	if (hold){
+	if (hold) {
 		Free(hold->idx[0]);
 		Free(hold->idx[1]);
 		Free(hold->idx);

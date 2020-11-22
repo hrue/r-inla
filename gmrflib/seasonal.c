@@ -61,7 +61,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
  \sa \ref GMRFLib_seasonaldef_tp, \ref GMRFLib_make_seasonal_graph
  */
 
-double GMRFLib_seasonal(int node, int nnode, double *values, void *def)
+double GMRFLib_seasonal(int node, int nnode, double *UNUSED(values), void *def)
 {
 	if (node >= 0 && nnode < 0){
 		return NAN;

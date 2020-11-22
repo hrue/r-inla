@@ -1519,7 +1519,7 @@ int GMRFLib_graph_mk_lattice(GMRFLib_graph_tp ** graph, int nrow, int ncol, int 
   See \ref ex_graph
   \sa GMRFLib_node2lattice, GMRFLib_graph_mk_lattice
  */
-int GMRFLib_lattice2node(int *node, int irow, int icol, int nrow, int ncol)
+int GMRFLib_lattice2node(int *node, int irow, int icol, int nrow, int UNUSED(ncol))
 {
 	// *node = icol + irow * ncol;
 	*node = irow + icol * nrow;
@@ -1542,7 +1542,7 @@ int GMRFLib_lattice2node(int *node, int irow, int icol, int nrow, int ncol)
   See \ref ex_graph
   \sa GMRFLib_lattice2node, GMRFLib_graph_mk_lattice
  */
-int GMRFLib_node2lattice(int node, int *irow, int *icol, int nrow, int ncol)
+int GMRFLib_node2lattice(int node, int *irow, int *icol, int nrow, int UNUSED(ncol))
 {
 	// *irow = node / ncol;
 	// *icol = node - (*irow) * ncol;
@@ -2099,7 +2099,7 @@ int GMRFLib_graph_insert(GMRFLib_graph_tp ** new_graph, int n_new, int offset, G
 
 	return GMRFLib_SUCCESS;
 }
-double GMRFLib_offset_Qfunc(int node, int nnode, double *values, void *arg)
+double GMRFLib_offset_Qfunc(int node, int nnode, double *UNUSED(values), void *arg)
 {
 	if (node >= 0 && nnode < 0) {
 		return NAN;

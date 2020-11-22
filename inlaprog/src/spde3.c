@@ -32,7 +32,6 @@
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-
 #if !defined(__FreeBSD__)
 #include <malloc.h>
 #endif
@@ -194,8 +193,8 @@ int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const ch
 	model->Qfunc = inla_spde3_Qfunction;
 	model->Qfunc_arg = (void *) model;
 
-	model->store = Calloc(ISQR(GMRFLib_MAX_THREADS), inla_spde3_d3store_tp *);
-	for (i = 0; i < ISQR(GMRFLib_MAX_THREADS); i++) {
+	model->store = Calloc(GMRFLib_CACHE_LEN, inla_spde3_d3store_tp *);
+	for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
 		int j;
 
 		model->store[i] = Calloc(1, inla_spde3_d3store_tp);
@@ -211,7 +210,7 @@ int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const ch
 
 	return INLA_OK;
 }
-double inla_spde3_Qfunction(int i, int j, double *values, void *arg)
+double inla_spde3_Qfunction(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0){
 		return NAN;
@@ -334,8 +333,9 @@ double inla_spde3_Qfunction(int i, int j, double *values, void *arg)
 	}
 
 	if (model->M[3]) {
-		int id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
+		int id; 
 
+		GMRFLib_CACHE_SET_ID(id);
 		if (use_store) {
 			// check if we need to recompute storage
 			int recompute = 0;

@@ -56,7 +56,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
   \sa \ref GMRFLib_rwdef_tp, \ref GMRFLib_make_rw_graph, \ref GMRFLib_graph_prune
 */
-double GMRFLib_rw(int node, int nnode, double *values, void *def)
+double GMRFLib_rw(int node, int nnode, double *UNUSED(values), void *def)
 {
 	if (node >= 0 && nnode < 0) {
 		return NAN;
@@ -187,7 +187,7 @@ double GMRFLib_rw(int node, int nnode, double *values, void *def)
  
   \sa \ref GMRFLib_crwdef_tp,  \ref GMRFLib_make_crw_graph,  \ref GMRFLib_graph_prune
 */
-double GMRFLib_crw(int node, int nnode, double *values, void *def)
+double GMRFLib_crw(int node, int nnode, double *UNUSED(values), void *def)
 {
 	if (node >= 0 && nnode < 0) {
 		return NAN;
@@ -574,7 +574,7 @@ double GMRFLib_crw(int node, int nnode, double *values, void *def)
  
   \sa \ref GMRFLib_rw2ddef_tp,  \ref GMRFLib_make_rw2d_graph
 */
-double GMRFLib_rw2d(int node, int nnode, double *values, void *def)
+double GMRFLib_rw2d(int node, int nnode, double *UNUSED(values), void *def)
 {
 	if (node >= 0 && nnode < 0) {
 		return NAN;

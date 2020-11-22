@@ -742,8 +742,8 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 			Alin[i]->idx[0] = compute_idx[i];
 			Alin[i]->weight = Calloc(1, float);
 			Alin[i]->weight[0] = 1.0;
-			Alin[i]->tinfo = Calloc(ISQR(GMRFLib_MAX_THREADS), GMRFLib_lc_tinfo_tp);
-			for (j = 0; j < ISQR(GMRFLib_MAX_THREADS); j++) {
+			Alin[i]->tinfo = Calloc(GMRFLib_CACHE_LEN, GMRFLib_lc_tinfo_tp);
+			for (j = 0; j < GMRFLib_CACHE_LEN; j++) {
 				Alin[i]->tinfo[j].first_nonzero = -1;
 				Alin[i]->tinfo[j].last_nonzero = -1;
 				Alin[i]->tinfo[j].first_nonzero_mapped = -1;
@@ -823,7 +823,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 int GMRFLib_ai_log_posterior(double *logdens,
 			     double *x, double *b, double *c, double *mean, double *d,
 			     GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
-			     GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_constr_tp * constr)
+			     GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_constr_tp * UNUSED(constr))
 {
 	/*
 	 * compute the log posterior of configuration 'x' up to an additive constant and return the value in 'logdens'. 
@@ -919,7 +919,7 @@ int GMRFLib_ai_log_posterior(double *logdens,
 								idxs[nidx++] = ii;
 							}
 						}
-#pragma omp parallel for private(ii, iii, logll) reduction(+: tmp2) schedule(static)
+#pragma omp parallel for private(ii, iii, logll) reduction(+: tmp2) schedule(static) num_threads(GMRFLib_openmp->max_threads_inner)
 						for (iii = 0; iii < nidx; iii++) {
 							GMRFLib_thread_id = id;
 							ii = idxs[iii];
@@ -1144,9 +1144,9 @@ int GMRFLib_ai_log_posterior_restricted_OLD(double *logdens, double *x, double *
 }
 int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mode, double *x_gradient, double delta,
 					double *b, double *c, double *mean, double *d,
-					GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
+					GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *UNUSED(fixed_value),
 					GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-					GMRFLib_constr_tp * constr, GMRFLib_graph_tp * subgraph, GMRFLib_ai_store_tp * ai_store)
+					GMRFLib_constr_tp * UNUSED(constr), GMRFLib_graph_tp * subgraph, GMRFLib_ai_store_tp * UNUSED(ai_store))
 {
 	/*
 	 * this is the same function as GMRFLib_ai_log_posterior, BUT we only include those terms where at least one component
@@ -1983,7 +1983,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		GMRFLib_density_create_normal(density, -deriv_log_dens_cond, 1.0, x_mean, x_sd);
 	} else if (strategy == GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN) {
 		int np = 11, err, fail = 0;
-		double *ld = NULL, *xp = NULL, xx, low, high, third_order_derivative, fourth_order_derivative, a_sigma, cc, sol1, aa, tmp;
+		double *ld = NULL, *xp = NULL, xx, low, high, third_order_derivative, a_sigma, cc, sol1, aa, tmp;
 		GMRFLib_sn_param_tp snp;
 
 		int iii, jjj;
@@ -1995,7 +1995,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		third_order_derivative *= gsl_pow_3(x_sd);
 
 #if defined(INLA_RESEARCH1)
-		fourth_order_derivative = 0.0;
+		double fourth_order_derivative = 0.0;
 		for (jjj = 0; jjj < ai_store->nidx; jjj++) {
 			iii = ai_store->correction_idx[jjj];
 			fourth_order_derivative += ai_store->derivative4[iii] * gsl_pow_4(derivative[iii]);
@@ -2746,7 +2746,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		memcpy(cc, c, n * sizeof(double));
 
 		cc_is_negative = 0;
-#pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i) schedule(static) num_threads(GMRFLib_openmp->max_threads_inner)
 		for (i = 0; i < nidx; i++) {
 			int idx;
 			double bcoof, ccoof;
@@ -2853,7 +2853,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			/*
 			 * I need to update 'aa' as this is not evaluated in the mode! The sum of the a's are used later
 			 */
-#pragma omp parallel for private(i) schedule(static)
+#pragma omp parallel for private(i) schedule(static) num_threads(GMRFLib_openmp->max_threads_inner)
 			for (i = 0; i < nidx; i++) {
 				int idx = idxs[i];
 				GMRFLib_thread_id = id;
@@ -5065,7 +5065,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->cpo_manual)
+																   ai_par->
+																   cpo_manual)
 															   ? &cpodens : NULL),
 												   GMRFLib_FALSE, ii, x, bnew, c, mean, d, loglFunc,
 												   loglFunc_arg, fixed_value, graph,
@@ -5096,7 +5097,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->cpo_manual)
+																   ai_par->
+																   cpo_manual)
 															   ? &cpodens : NULL),
 												   GMRFLib_FALSE, ii, x, bnew, c, mean, d, loglFunc,
 												   loglFunc_arg, fixed_value, graph,
@@ -5250,7 +5252,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->cpo_manual)
+																   ai_par->
+																   cpo_manual)
 															   ? &cpodens : NULL),
 												   GMRFLib_FALSE, ii, x, bnew, c, mean, d, loglFunc,
 												   loglFunc_arg, fixed_value, graph,
@@ -5282,7 +5285,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->cpo_manual)
+																   ai_par->
+																   cpo_manual)
 															   ? &cpodens : NULL),
 												   GMRFLib_FALSE, ii, x, bnew, c, mean, d, loglFunc,
 												   loglFunc_arg, fixed_value, graph,
@@ -6556,13 +6560,14 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp *** density, // need two types
 			       int dens_count,
 			       GMRFLib_density_tp ** dens_local,
 			       double *ldens_hyperpar_corr,
-			       double *b,
+			       double *UNUSED(b),
 			       double *c,
 			       double *d,
 			       GMRFLib_ai_param_tp * ai_par,
 			       GMRFLib_ai_store_tp * ai_store,
 			       GMRFLib_graph_tp * graph,
-			       GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_bfunc_tp ** bfunc)
+			       GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+			       GMRFLib_bfunc_tp ** UNUSED(bfunc))
 {
 	int id = GMRFLib_thread_id;
 	int i, j;
@@ -7039,8 +7044,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 		remap = problem->sub_sm_fact.PARDISO_fact->pstore->perm;
 	}
 
-	// id = GMRFLib_thread_id;
-	id = GMRFLib_thread_id + omp_get_thread_num() * GMRFLib_MAX_THREADS;
+	GMRFLib_CACHE_SET_ID(id);
 	assert(problem != NULL);
 	if (nlin <= 0) {
 		return !GMRFLib_SUCCESS;
@@ -8043,7 +8047,7 @@ double GMRFLib_interpolator_distance(int ndim, double *x, double *xx)
 {
 	return sqrt(GMRFLib_interpolator_distance2(ndim, x, xx));
 }
-double GMRFLib_interpolator_nearest(int ndim, int nobs, double *x, double *xobs, double *yobs, void *arg)
+double GMRFLib_interpolator_nearest(int ndim, int nobs, double *x, double *xobs, double *yobs, void *UNUSED(arg))
 {
 	/*
 	 * Just use the nearest point
@@ -8065,7 +8069,7 @@ double GMRFLib_interpolator_nearest(int ndim, int nobs, double *x, double *xobs,
 
 	return value;
 }
-double GMRFLib_interpolator_linear(int ndim, int nobs, double *x, double *xobs, double *yobs, void *arg)
+double GMRFLib_interpolator_linear(int ndim, int nobs, double *x, double *xobs, double *yobs, void *UNUSED(arg))
 {
 	/*
 	 * Compute the interpolated value at x for nobs observations: xobs, yobs. dimension of xobs is ndim*nobs and stored
@@ -8257,7 +8261,7 @@ double GMRFLib_interpolator_wdistance(int ndim, int nobs, double *x, double *xob
 	}
 	return value / wsum;
 }
-double GMRFLib_interpolator_ccd(int ndim, int nobs, double *x, double *xobs, double *yobs, void *arg)
+double GMRFLib_interpolator_ccd(int ndim, int UNUSED(nobs), double *x, double *UNUSED(xobs), double *UNUSED(yobs), void *arg)
 {
 	/*
 	 * This is rather special; we use explicitely that the posterior is approximately Gaussian, but we use the corrected

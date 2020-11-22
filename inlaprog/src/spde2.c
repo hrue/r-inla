@@ -32,7 +32,6 @@
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-
 #if !defined(__FreeBSD__)
 #include <malloc.h>
 #endif
@@ -46,7 +45,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 extern G_tp G;						       /* import some global parametes from inla */
 
-double inla_spde2_Qfunction(int i, int j, double *values, void *arg)
+double inla_spde2_Qfunction(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0){
 		return NAN;

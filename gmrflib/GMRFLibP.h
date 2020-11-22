@@ -72,6 +72,19 @@ typedef int fortran_charlen_t;
 #endif
 #define F_ONE ((fortran_charlen_t)1)
 
+// see https://stackoverflow.com/questions/3599160/how-to-suppress-unused-parameter-warnings-in-c
+#ifdef __GNUC__
+#  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#else
+#  define UNUSED(x) UNUSED_ ## x
+#endif
+#ifdef __GNUC__
+#  define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
+#else
+#  define UNUSED_FUNCTION(x) UNUSED_ ## x
+#endif
+
+
 // utility functions for this are mostly in smtp-pardiso.c
 typedef struct {
 	int n;
@@ -192,7 +205,7 @@ typedef enum {
 /* 
    some useful macros
 */
-#if 0
+#if 1
 //#define GMRFLib_TRACE_MEMORY    1000000   // trace memory larger than this ammount. undefine it to disable this feature.
 #define Calloc(n, type)         (type *)GMRFLib_calloc((size_t)(n),sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
 #define Malloc(n, type)         (type *)GMRFLib_malloc((size_t)(n)*sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
@@ -259,6 +272,17 @@ typedef enum {
 	(arg_->range ? *(arg_->range)					\
 	 : (arg_->log_range ? exp(*(arg_->log_range))			\
 	    : (arg_->log_range_omp ? exp(*(arg_->log_range_omp[GMRFLib_thread_id])) : 1.0)))
+
+
+// This is for internal caching
+#define GMRFLib_CACHE_LEN (ISQR(GMRFLib_MAX_THREADS))
+#define GMRFLib_CACHE_SET_ID(_id) _id = (omp_get_level() == 2 ? \
+					 ((omp_get_ancestor_thread_num(omp_get_level()-1) * \
+					   omp_get_team_size(omp_get_level()) + \
+					   omp_get_thread_num()) +	\
+					  GMRFLib_MAX_THREADS * GMRFLib_thread_id) : \
+					 (omp_get_thread_num() + GMRFLib_MAX_THREADS * GMRFLib_thread_id)); \
+	assert((_id) < GMRFLib_CACHE_LEN); assert((_id) >= 0)
 
 /* from /usr/include/assert.h. use __GMRFLib_FuncName to define name of current function.
 

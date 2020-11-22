@@ -629,6 +629,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 		GMRFLib_ged_add(ged, i, i);
 	}
 	GMRFLib_ged_build(graph, ged);
+	GMRFLib_graph_prepare(*graph, 0, 0);
 	GMRFLib_ged_free(ged);
 
 	/*
@@ -681,6 +682,78 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 
 	return GMRFLib_SUCCESS;
 }
+
+int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
+				      int ntriples, int *ilist, int *jlist, double *Qijlist, int UNUSED(dim),
+				      double *prec, double *log_prec, double **log_prec_omp)
+{
+	// this is a special version for Qfunc_rgeneric, as we assume here that graph is know.
+
+	/*
+	 * as GMRFLib_tabulate_Qfunc(), but get its Q_ij values from its arguments
+	 * 
+	 * i j Q_{ij} : : : i j Q_{ij}
+	 * 
+	 */
+
+	int i, imin = INT_MAX, jmin = INT_MAX, off;
+	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
+
+	for (i = 0; i < ntriples; i++) {
+		imin = IMIN(imin, ilist[i]);
+		jmin = IMIN(jmin, jlist[i]);
+	}
+	GMRFLib_ASSERT(((imin == 0 || imin == 1) && (jmin == 0 || jmin == 1)), GMRFLib_ESNH);
+	off = (IMIN(imin, jmin) == 1 ? 1 : 0);
+
+	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
+	(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction; /* the Qfunction to use */
+	arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);
+	(*tabulate_Qfunc)->Qfunc_arg = (void *) arg;
+
+	arg->n = graph->n;
+	arg->values = Calloc(graph->n, map_id *);
+	if (prec == NULL && log_prec == NULL && log_prec_omp != NULL) {
+		int tmax = GMRFLib_MAX_THREADS;
+		arg->log_prec_omp = Calloc(tmax, double *);
+		for (i = 0; i < tmax; i++) {
+			arg->log_prec_omp[i] = log_prec_omp[i];
+		}
+	} else {
+		arg->log_prec_omp = NULL;
+	}
+
+	/*
+	 * allocate hash-table with the *correct* number of elements
+	 */
+//#pragma omp parallel for private(i)
+	for (i = 0; i < graph->n; i++) {
+		int j, jj;
+
+		arg->values[i] = Calloc(1, map_id);
+		map_id_init_hint(arg->values[i], graph->lnnbs[i] + 1);
+		map_id_set(arg->values[i], i, 0.0);
+		for (jj = 0; jj < graph->lnnbs[i]; jj++) {
+			j = graph->lnbs[i][jj];
+			map_id_set(arg->values[i], j, 0.0);    /* fill them with default = 0.0 */
+		}
+	}
+
+	for (i = 0; i < ntriples; i++) {
+		int ii, jj;
+		double *prev;
+
+		if (ilist[i] <= jlist[i]) {
+			ii = ilist[i] - off;
+			jj = jlist[i] - off;
+			CHECK_FOR_MULTIPLE_ENTRIES(arg->values[ii], jj, Qijlist[i]);
+			map_id_set(arg->values[ii], jj, Qijlist[i] + PREVIOUS_VALUE);
+		}
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
 
 /*!
   \brief Free a tabulate_Qfunc-object

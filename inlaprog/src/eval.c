@@ -232,7 +232,7 @@ double inla_eval_expression(char *expression, double *x, double *theta, int nthe
 
 	return value;
 }
-double inla_eval_table(char *expression, double *xval, double *theta, int ntheta)
+double inla_eval_table(char *expression, double *xval, double *UNUSED(theta), int UNUSED(ntheta))
 {
 	double value;
 	GMRFLib_spline_tp *s;

@@ -63,6 +63,7 @@ int GMRFLib_sprintf(char **ptr, const char *fmt, ...);
 static int R_init = 1;
 static int R_debug = 0;
 static int R_busy = 0;
+double R_rgeneric_cputime = 0.0;
 
 #define CHECK_IN				\
 	if (1) {				\
@@ -443,6 +444,7 @@ int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *mod
 	}
 	CHECK_IN;
 
+	double tref = omp_get_wtime();
 	int error, i;
 	SEXP xx_theta, result, e, yy, yyy;
 
@@ -471,6 +473,7 @@ int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *mod
 	}
 
 	UNPROTECT(5);
+	R_rgeneric_cputime += omp_get_wtime() - tref;
 
 	if (R_debug) {
 		fprintf(stderr, "R-interface[%1d]: leave: rgeneric: cmd [%s] model [%s]\n", omp_get_thread_num(), cmd, model);

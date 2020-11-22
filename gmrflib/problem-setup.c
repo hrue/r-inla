@@ -2284,7 +2284,7 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 #undef COPY
 	return new_store;
 }
-double GMRFLib_Qfunc_generic(int i, int j, double *values, void *arg)
+double GMRFLib_Qfunc_generic(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2368,7 +2368,6 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_o
 		nnzs = Calloc(nk, GMRFLib_sizeof_tp);
 		cputime = Calloc(nk, double);
 
-//#pragma omp parallel for private(k) schedule(dynamic)
 		for (k = 0; k < nk; k++) {
 			int *iperm = NULL, *perm = NULL, ii, kkk, use_global_nodes;
 			supernodal_factor_matrix *TAUCS_symb_fact = NULL;
