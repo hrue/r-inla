@@ -27,6 +27,15 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.11.22}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Code improvement and optimization for \code{rgeneric}.
+      \item Some OpenMP improvements
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.11.18}{
   \subsection{NEW FEATURES}{
     \itemize{
