@@ -516,7 +516,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 	}
 	if (simple) {
 		int *imap = NULL;
-		imap = Calloc(graph->n, int);
+		if (graph->n >= 0) imap = Calloc(graph->n, int);
 
 		for (i = 0; i < graph->n; i++) {
 			imap[i] = i;

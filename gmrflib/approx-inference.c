@@ -4637,7 +4637,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					} else {
 						weights[dens_count] = 0.0;
 					}
-					izs[dens_count] = Calloc((nhyper), double);
+					if (nhyper >= 0) izs[dens_count] = Calloc((nhyper), double);
 
 					for (i = 0; i < nhyper; i++) {
 						izs[dens_count][i] = z[i];
@@ -6903,7 +6903,7 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 	mo->configs[id]->config[mo->configs[id]->nconfig] = Calloc(1, GMRFLib_store_config_tp);
 
 	int ii, jj, k, kk, found = 0;
-	double *Qinv, *Q, *Qprior, *mean, *imean, *skew;
+	double *Qinv = NULL, *Q = NULL, *Qprior = NULL, *mean = NULL, *imean = NULL, *skew = NULL;
 	GMRFLib_graph_tp *g = gmrf_approx->sub_graph;
 
 	Q = Calloc(mo->configs[id]->nz, double);
@@ -6926,7 +6926,7 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 		}
 	}
 
-	Qprior = Calloc((g->n), double);
+	if (g->n >= 0) Qprior = Calloc(g->n, double);
 	for (ii = 0; ii < g->n; ii++) {
 		Qprior[ii] = Qfunc(ii, ii, NULL, Qfunc_arg) + c[ii];
 	}

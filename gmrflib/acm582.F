@@ -359,6 +359,7 @@ c     ... initialize counters, then number any nodes of degree  0.
 c         the list of nodes, by new number, will be built in place at
 c         the front of the work area.
 c
+      rvnode = 0
       nxtnum = 1
       error = 0
       space = 2*n
@@ -1061,7 +1062,7 @@ c
               lvllst(i,2) = lvllst(i,3)
   400     continue
 c
-          do 500 i = 1, depth + 1
+          do 500 i = 2, depth + 1
               lvlptr(i-1,2) = lvlptr(i-1,3)
   500     continue
 c
