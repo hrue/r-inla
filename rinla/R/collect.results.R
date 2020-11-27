@@ -2114,7 +2114,7 @@ inla.internal.experimental.mode = FALSE
     return(res)
 }
 
-`inla.image.reduce` = function(im, image.dim=256)
+`inla.image.reduce` = function(im, image.dim=512)
 {
     ## reduce image IM to image.dim IMAGE.DIM and return the image as a matrix.
     ## order the indices so the output can be plotted by image()

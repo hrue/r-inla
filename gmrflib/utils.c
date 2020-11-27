@@ -564,7 +564,7 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 	/*
 	 * alloc failed 
 	 */
-	GMRFLib_sprintf(&msg, "Fail to calloc nmemb=%1zu elements of size=%1zu bytes", nmemb, size);
+	GMRFLib_sprintf(&msg, "Fail to calloc nmemb=%1lu elements of size=%1lu bytes", nmemb, size);
 	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
 	abort();
 
@@ -593,7 +593,7 @@ void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int li
 	/*
 	 * alloc failed 
 	 */
-	GMRFLib_sprintf(&msg, "Fail to malloc size=%1zu bytes", size);
+	GMRFLib_sprintf(&msg, "Fail to malloc size=%1lu bytes", size);
 	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
 	abort();
 
@@ -622,7 +622,7 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 	/*
 	 * realloc failed 
 	 */
-	GMRFLib_sprintf(&msg, "Fail to realloc size=%1zu bytes", size);
+	GMRFLib_sprintf(&msg, "Fail to realloc size=%1lu bytes", size);
 	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
 	abort();
 
@@ -1032,12 +1032,12 @@ map_ii *GMRFLib_duplicate_map_ii(map_ii * hash)
 
 	return newhash;
 }
-GMRFLib_sizeof_tp GMRFLib_sizeof_map_ii(map_ii * hash)
+size_t GMRFLib_sizeof_map_ii(map_ii * hash)
 {
 	if (!hash) {
 		return 0;
 	}
-	GMRFLib_sizeof_tp siz = 0;
+	size_t siz = 0;
 	mapkit_size_t nelm = GMRFLib_nelm_map_ii(hash);
 	siz += sizeof(map_ii) + nelm * sizeof(int);
 
@@ -1068,12 +1068,12 @@ map_id *GMRFLib_duplicate_map_id(map_id * hash)
 
 	return newhash;
 }
-GMRFLib_sizeof_tp GMRFLib_sizeof_map_id(map_id * hash)
+size_t GMRFLib_sizeof_map_id(map_id * hash)
 {
 	if (!hash) {
 		return 0;
 	}
-	GMRFLib_sizeof_tp siz = 0;
+	size_t siz = 0;
 	mapkit_size_t nelm = GMRFLib_nelm_map_id(hash);
 	siz += sizeof(map_id) + nelm * sizeof(double);
 

@@ -2631,7 +2631,6 @@ double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 	if (rebuild) {
 		int *ilist = NULL, *jlist = NULL, n, len, k = 0, n_out, jj;
 		double *Qijlist = NULL, *x_out = NULL;
-		GMRFLib_graph_tp *graph = NULL;
 #pragma omp critical
 		{
 			rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
@@ -2663,31 +2662,31 @@ double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 				if (debug) {
 					printf("\tReturn from rgeneric with n_out= %1d\n", n_out);
 				}
-
 				assert(n_out >= 2);
-				n = (int) x_out[k++];
-				len = (int) x_out[k++];
 
-				// we can overlay these arrays to avoid allocating new ones, since x_out is double
-				ilist = (int *) &(x_out[k]);
-				jlist = (int *) &(x_out[k + len]);
-				Qijlist = (double *) &(x_out[k + 2 * len]);
-				for (jj = 0; jj < len; jj++) {
-					ilist[jj] = (int) x_out[k + jj];
-					jlist[jj] = (int) x_out[k + len + jj];
-				}
+				assert(a->graph);
+				if ((int)x_out[0] == -1) {
+					// optimized output
+					k = 1;
+					len = (int)x_out[k++];
+					assert(len == a->len_list);
+					n = a->graph->n;
+					GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, a->len_list, a->ilist, a->jlist, &(x_out[k]), n, NULL, NULL, NULL);
+				} else {
+					n = (int) x_out[k++];
+					len = (int) x_out[k++];
 
-				if (0)
+					// we can overlay these arrays to avoid allocating new ones, since x_out is double
+					ilist = (int *) &(x_out[k]);
+					jlist = (int *) &(x_out[k + len]);
+					Qijlist = (double *) &(x_out[k + 2 * len]);
 					for (jj = 0; jj < len; jj++) {
-						printf("%d %d %g\n", ilist[jj], jlist[jj], Qijlist[jj]);
+						ilist[jj] = (int) x_out[k + jj];
+						jlist[jj] = (int) x_out[k + len + jj];
 					}
 
-				if (a->graph) {
 					GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
 					assert(a->graph->n == a->n);
-				} else {
-					GMRFLib_tabulate_Qfunc_from_list(&(a->Q[id]), &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
-					assert(graph->n == a->n);
 				}
 				Free(x_out);
 
@@ -2696,9 +2695,6 @@ double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 					Free(a_tmp);
 				} else {
 					a->param[id] = a_tmp;
-				}
-				if (!(a->graph)) {
-					a->graph = graph;
 				}
 				if (debug) {
 					printf("\tRebuild for id %1d done\n", id);
@@ -10945,7 +10941,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 
 	if (mb->verbose) {
 		printf("\t\tfilename [%s]\n", filename);
-		printf("\t\tfile.offset [%lu]\n", (long unsigned) fileoffset);
+		printf("\t\tfile.offset [%zu]\n", fileoffset);
 	}
 
 	mb->lc_order[mb->nlc] = iniparser_getdouble(ini, inla_string_join(secname, "LINCOMB.ORDER"), -1.0);
@@ -10962,7 +10958,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_io_seek(io, fileoffset, SEEK_SET);
 
 	if (mb->verbose) {
-		printf("\t\tOpen file [%s] at location [%lu]\n", filename, (long unsigned) fileoffset);
+		printf("\t\tOpen file [%s] at location [%zu]\n", filename, fileoffset);
 	}
 
 	GMRFLib_io_read(io, &num_sections, sizeof(int));
@@ -23270,7 +23266,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def->ntheta = mb->f_ntheta[mb->nf];
 		def->param = Calloc(GMRFLib_CACHE_LEN, double *);
 		def->Q = Calloc(GMRFLib_CACHE_LEN, GMRFLib_tabulate_Qfunc_tp *);
-		def->reset_cache = 0;			       /* only do if set=0 */
+		def->reset_cache = 0;			       /* only do if = 0 */
 		def->graph = NULL;
 		if (def->ntheta) {
 			tptr = Calloc(def->ntheta, double **);
@@ -23336,11 +23332,35 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		Free(Qijlist);
 		Free(x_out);
 
+		def->graph = graph;
 		mb->f_graph[mb->nf] = graph;
 		mb->f_Qfunc[mb->nf] = Qfunc_rgeneric;
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 
+		// save the indices for the graph, as we need them repeatedly
+		GMRFLib_graph_nnodes(&(def->len_list), graph);
+		def->ilist = Calloc(def->len_list, int);
+		def->jlist = Calloc(def->len_list, int);
+		for(i = 0, k = 0; i < graph->n; i++) {
+			def->ilist[k] = i;
+			def->jlist[k] = i;
+			k++;
+			for(jj = 0; jj < graph->lnnbs[i]; jj++) {
+				j = graph->lnbs[i][jj];
+				def->ilist[k] = i;
+				def->jlist[k] = j;
+				k++;
+			}
+		}
+		assert(k == def->len_list);
+		def_orig->len_list = def->len_list;
+		def_orig->ilist = Calloc(def_orig->len_list, int);
+		def_orig->jlist = Calloc(def_orig->len_list, int);
+		memcpy(def_orig->ilist, def->ilist, def->len_list * sizeof(int));
+		memcpy(def_orig->jlist, def->jlist, def->len_list * sizeof(int));
+
 		GMRFLib_graph_duplicate(&ggraph, graph);
+		def_orig->graph = graph;
 		mb->f_graph_orig[mb->nf] = ggraph;
 		mb->f_Qfunc_orig[mb->nf] = Qfunc_rgeneric;
 		mb->f_Qfunc_arg_orig[mb->nf] = (void *) def_orig;
@@ -27975,28 +27995,34 @@ double extra(double *theta, int ntheta, void *argument)
 				int *ilist = NULL, *jlist = NULL, n, len, k = 0, jj;
 				double *Qijlist = NULL;
 				GMRFLib_tabulate_Qfunc_tp *Qf = NULL;
-				GMRFLib_graph_tp *graph = NULL;
 #pragma omp critical
 				{
 					inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_Q, def->model, ntheta, param);
 				}
 				assert(nn_out >= 2);
-				n = (int) xx_out[k++];
-				len = (int) xx_out[k++];
-				ilist = (int *) &xx_out[k];
-				jlist = (int *) &xx_out[k + len];
-				Qijlist = &xx_out[k + 2 * len];
-				for (jj = 0; jj < len; jj++) {
-					ilist[jj] = (int) xx_out[k + jj];
-					jlist[jj] = (int) xx_out[k + len + jj];
-				}
-				if (def->graph) {
-					GMRFLib_tabulate_Qfunc_from_list2(&Qf, def->graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
-					graph = def->graph;
+
+				if ((int) xx_out[0] == -1) {
+					// optimized output
+					k = 1;
+					len = (int)xx_out[k++];
+					assert(len == def->len_list);
+					assert(def->graph);
+					assert(def->ilist);
+					assert(def->jlist);
+					GMRFLib_tabulate_Qfunc_from_list2(&Qf, def->graph, def->len_list, def->ilist, def->jlist, &(xx_out[k]), def->graph->n, NULL, NULL, NULL);
 				} else {
-					GMRFLib_tabulate_Qfunc_from_list(&Qf, &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
-					def->graph = graph;
+					n = (int) xx_out[k++];
+					len = (int) xx_out[k++];
+					ilist = (int *) &xx_out[k];
+					jlist = (int *) &xx_out[k + len];
+					Qijlist = &xx_out[k + 2 * len];
+					for (jj = 0; jj < len; jj++) {
+						ilist[jj] = (int) xx_out[k + jj];
+						jlist[jj] = (int) xx_out[k + len + jj];
+					}
+					GMRFLib_tabulate_Qfunc_from_list2(&Qf, def->graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
 				}
+				
 				int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 				GMRFLib_problem_tp *problem = NULL;
 				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
@@ -28010,7 +28036,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 				while (!ok) {
 					retval = GMRFLib_init_problem(&problem, NULL, NULL, cc_add, NULL,
-								      graph, Qf->Qfunc, Qf->Qfunc_arg, NULL,
+								      def->graph, Qf->Qfunc, Qf->Qfunc_arg, NULL,
 								      mb->f_constr_orig[i], GMRFLib_NEW_PROBLEM);
 					switch (retval) {
 					case GMRFLib_EPOSDEF:
@@ -29414,7 +29440,7 @@ int inla_INLA(inla_tp * mb)
 	mb->ai_par->adapt_len = (adapt ? N : 0);
 
 	if (G.reorder < 0) {
-		GMRFLib_sizeof_tp nnz = 0;
+		size_t nnz = 0;
 		int use_g = 0;
 		GMRFLib_optimize_reorder(mb->hgmrfm->graph, &nnz, &use_g, &(mb->gn));
 		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
@@ -29423,7 +29449,7 @@ int inla_INLA(inla_tp * mb)
 			GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
 		}
 		if (mb->verbose) {
-			printf("\tFound optimal reordering=[%s] nnz(L)=[%lu] and use_global_nodes(user)=[%s]\n",
+			printf("\tFound optimal reordering=[%s] nnz(L)=[%zu] and use_global_nodes(user)=[%s]\n",
 			       GMRFLib_reorder_name(GMRFLib_reorder), nnz, (use_g ? "yes" : "no"));
 		}
 	}
@@ -33884,7 +33910,7 @@ int testit(int argc, char **argv)
 		float x[2] = { 0, 0 };
 		printf("x= %f %f\n", x[0], x[1]);
 		x[0] = NAN;
-		printf("x= %f %f (x[1]==0 %1d) sizeof()=%lu\n", x[0], x[1], x[1] == 0, sizeof(float));
+		printf("x= %f %f (x[1]==0 %1d) sizeof()=%zu\n", x[0], x[1], x[1] == 0, sizeof(float));
 		break;
 	}
 
@@ -34084,7 +34110,7 @@ int main(int argc, char **argv)
 
 	GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
 	GMRFLib_collect_timer_statistics = GMRFLib_FALSE;
-	GMRFLib_bitmap_max_dimension = 256;
+	GMRFLib_bitmap_max_dimension = 512;
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_aqat_m_diag_add = GMRFLib_eps(0.5);
 

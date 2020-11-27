@@ -462,8 +462,8 @@ struct GMRFLib_store_struct {
 };
 
 GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int skeleton, int copy_ptr, int copy_pardiso_ptr);
-GMRFLib_sizeof_tp GMRFLib_sizeof_problem(GMRFLib_problem_tp * problem);
-GMRFLib_sizeof_tp GMRFLib_sizeof_store(GMRFLib_store_tp * store);
+size_t GMRFLib_sizeof_problem(GMRFLib_problem_tp * problem);
+size_t GMRFLib_sizeof_store(GMRFLib_store_tp * store);
 GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton, int copy_ptr, int copy_pardiso_ptr);
 double *GMRFLib_Qinv_get(GMRFLib_problem_tp * problem, int i, int j);
 double GMRFLib_Qfunc_generic(int i, int j, double *values, void *arg);
@@ -488,7 +488,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem, double *x, double 
 			       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
 			       char *fixed_value, GMRFLib_constr_tp * constr, unsigned int keep, GMRFLib_store_tp * store);
 int GMRFLib_make_empty_constr(GMRFLib_constr_tp ** constr);
-int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, GMRFLib_sizeof_tp * nnz_opt, int *use_global, GMRFLib_global_node_tp * gn);
+int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, size_t * nnz_opt, int *use_global, GMRFLib_global_node_tp * gn);
 int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph, int scale_constr);
 int GMRFLib_print_constr(FILE * fp, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_print_problem(FILE * fp, GMRFLib_problem_tp * problem);

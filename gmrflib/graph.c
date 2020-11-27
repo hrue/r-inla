@@ -1087,7 +1087,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 	return GMRFLib_SUCCESS;
 }
 
-GMRFLib_sizeof_tp GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph)
+size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph)
 {
 	/*
 	 * return, approximately, the sizeof GRAPH 
@@ -1097,7 +1097,7 @@ GMRFLib_sizeof_tp GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph)
 		return 0;
 	}
 
-	GMRFLib_sizeof_tp siz = 0;
+	size_t siz = 0;
 	int i, m, n;
 
 	n = graph->n;

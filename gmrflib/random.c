@@ -124,7 +124,7 @@ int GMRFLib_rng_set_default_seed(void)
 	}
 
 	if (debug)
-		fprintf(stderr, "Init RNG with seed %lu\n", seed);
+		fprintf(stderr, "Init RNG with seed %zu\n", (size_t) seed);
 
 	GMRFLib_rng_init(seed);
 

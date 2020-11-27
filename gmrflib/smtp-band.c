@@ -60,8 +60,8 @@ int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp * graph)
 		simple = (graph->nnbs[i] > 0 ? 0 : 1);
 	}
 	if (simple) {
-		int *imap;
-		imap = Calloc(graph->n, int);
+		int *imap = NULL;
+		if (graph->n >= 0) imap = Calloc(graph->n, int);
 
 		for (i = 0; i < graph->n; i++) {
 			imap[i] = i;

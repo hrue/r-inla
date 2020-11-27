@@ -62,8 +62,6 @@ __BEGIN_DECLS
 
 /* 
  */
-typedef short int GMRFLib_short_int;
-typedef long unsigned int GMRFLib_sizeof_tp;
 
 #if __GNUC__ > 7
 typedef size_t fortran_charlen_t;

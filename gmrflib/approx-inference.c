@@ -4637,7 +4637,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					} else {
 						weights[dens_count] = 0.0;
 					}
-					izs[dens_count] = Calloc((nhyper), double);
+					if (nhyper >= 0) izs[dens_count] = Calloc((nhyper), double);
 
 					for (i = 0; i < nhyper; i++) {
 						izs[dens_count][i] = z[i];
@@ -6903,7 +6903,7 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 	mo->configs[id]->config[mo->configs[id]->nconfig] = Calloc(1, GMRFLib_store_config_tp);
 
 	int ii, jj, k, kk, found = 0;
-	double *Qinv, *Q, *Qprior, *mean, *imean, *skew;
+	double *Qinv = NULL, *Q = NULL, *Qprior = NULL, *mean = NULL, *imean = NULL, *skew = NULL;
 	GMRFLib_graph_tp *g = gmrf_approx->sub_graph;
 
 	Q = Calloc(mo->configs[id]->nz, double);
@@ -6926,7 +6926,7 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 		}
 	}
 
-	Qprior = Calloc((g->n), double);
+	if (g->n >= 0) Qprior = Calloc(g->n, double);
 	for (ii = 0; ii < g->n; ii++) {
 		Qprior[ii] = Qfunc(ii, ii, NULL, Qfunc_arg) + c[ii];
 	}
@@ -8285,7 +8285,7 @@ double GMRFLib_interpolator_ccd(int ndim, int UNUSED(nobs), double *x, double *U
 
 	return value;
 }
-GMRFLib_sizeof_tp GMRFLib_sizeof_ai_store(GMRFLib_ai_store_tp * ai_store)
+size_t GMRFLib_sizeof_ai_store(GMRFLib_ai_store_tp * ai_store)
 {
 	/*
 	 * return, approximately, the size in bytes of ai_store 
@@ -8293,7 +8293,7 @@ GMRFLib_sizeof_tp GMRFLib_sizeof_ai_store(GMRFLib_ai_store_tp * ai_store)
 	if (!ai_store)
 		return 0;
 
-	GMRFLib_sizeof_tp siz = 0;
+	size_t siz = 0;
 	int n = (ai_store->problem ? ai_store->problem->n : 0);
 
 	siz += sizeof(GMRFLib_ai_store_tp);
@@ -8415,7 +8415,7 @@ int GMRFLib_ai_pool_init(GMRFLib_ai_pool_tp ** pool, GMRFLib_ai_param_tp * ai_pa
 			  (nhyper == 1 ? 6.0 : (nhyper == 2 ? 4.0 : (nhyper == 3 ? 2.0 : 1.0))));
 	len = (2 * half_len + 1);
 	p->nconfig = (size_t) pow((double) len, (double) p->nhyper);
-	p->configurations = Calloc((size_t) (p->nconfig * p->nhyper), GMRFLib_short_int);
+	p->configurations = Calloc((size_t) (p->nconfig * p->nhyper), int);
 	p->idx_mapping = Calloc(p->nconfig, size_t);
 	p->out = Calloc(p->nconfig, char);
 	p->idx_next = 0;
@@ -8438,7 +8438,7 @@ int GMRFLib_ai_pool_init(GMRFLib_ai_pool_tp ** pool, GMRFLib_ai_param_tp * ai_pa
 			printf(" ]\n");
 		}
 		for (j = 0; j < p->nhyper; j++) {
-			p->configurations[k + j] = (GMRFLib_short_int) izz[j];
+			p->configurations[k + j] = (int) izz[j];
 		}
 		k += p->nhyper;
 
@@ -8455,12 +8455,12 @@ int GMRFLib_ai_pool_init(GMRFLib_ai_pool_tp ** pool, GMRFLib_ai_param_tp * ai_pa
 	 */
 	pool_nhyper = (int) p->nhyper;
 	if (GMRFLib_MAX_THREADS > 1) {
-		qsort(p->configurations, p->nconfig, p->nhyper * sizeof(GMRFLib_short_int), GMRFLib_pool_cmp);
+		qsort(p->configurations, p->nconfig, p->nhyper * sizeof(int), GMRFLib_pool_cmp);
 	} else {
 		/*
 		 * alternative sorting: _pool_cmp1: seems like _pool_cmp runs faster (better wrt 'reject') 
 		 */
-		qsort(p->configurations, p->nconfig, p->nhyper * sizeof(GMRFLib_short_int), GMRFLib_pool_cmp);
+		qsort(p->configurations, p->nconfig, p->nhyper * sizeof(int), GMRFLib_pool_cmp);
 	}
 	pool_nhyper = -1;
 
@@ -8487,13 +8487,13 @@ int GMRFLib_pool_cmp(const void *a, const void *b)
 	 * 
 	 * Note that pool_hyper must be set properly. 
 	 */
-	const GMRFLib_short_int *ia, *ib;
+	const int *ia, *ib;
 	int i, larger, dist_a, dist_b;
 
 	GMRFLib_ASSERT(pool_nhyper > 0, GMRFLib_ESNH);
 
-	ia = (const GMRFLib_short_int *) a;
-	ib = (const GMRFLib_short_int *) b;
+	ia = (const int *) a;
+	ib = (const int *) b;
 	dist_a = dist_b = 0.0;
 	for (i = 0; i < pool_nhyper; i++) {
 		dist_a += ISQR((int) ia[i]);
@@ -8522,13 +8522,13 @@ int GMRFLib_pool_cmp1(const void *a, const void *b)
 	 * 
 	 * Note that pool_hyper must be set properly. 
 	 */
-	const GMRFLib_short_int *ia, *ib;
+	const int *ia, *ib;
 	int i, larger, eq;
 
 	GMRFLib_ASSERT(pool_nhyper > 0, GMRFLib_ESNH);
 
-	ia = (const GMRFLib_short_int *) a;
-	ib = (const GMRFLib_short_int *) b;
+	ia = (const int *) a;
+	ib = (const int *) b;
 	larger = 1;
 	eq = 1;
 	for (i = 0; i < pool_nhyper; i++) {
