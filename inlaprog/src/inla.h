@@ -1382,6 +1382,9 @@ typedef struct {
 	int n;
 	int mu_zero;					       /* often mu is zero, allow for fast return */
 	int reset_cache;
+	int *ilist;
+	int *jlist;
+	int len_list;
 	double ***theta;
 	double **param;
 	GMRFLib_graph_tp *graph;

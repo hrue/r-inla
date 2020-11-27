@@ -1,4 +1,5 @@
 ## Export: inla.rgeneric.ar1.model 
+## Export: inla.rgeneric.ar1.model.opt
 ## Export: inla.rgeneric.iid.model 
 ## Export: inla.rgeneric.define
 ## Export: inla.rgeneric.wrapper
@@ -22,11 +23,14 @@
 ##!\description{A framework for defining latent models in R}
 ##!
 ##!\usage{
-##!inla.rgeneric.define(model = NULL, debug = FALSE, compile = TRUE, ...)
+##!inla.rgeneric.define(model = NULL, debug = FALSE, compile = TRUE, optimize = FALSE, ...)
 ##!inla.rgeneric.iid.model(
 ##!        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
 ##!        theta = NULL)
 ##!inla.rgeneric.ar1.model(
+##!        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
+##!        theta = NULL)
+##!inla.rgeneric.ar1.model.opt(
 ##!        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
 ##!        theta = NULL)
 ##!inla.rgeneric.wrapper(
@@ -43,6 +47,10 @@
 ##!  \item{rmodel}{The rgeneric model-object, the output of \code{inla.rgeneric.define}}
 ##!  \item{debug}{Logical. Turn on/off debugging}
 ##!  \item{compile}{Logical. Compile the definition of the model or not.}
+##!  \item{optimze}{Logical. Pass only the values of \code{Q} using ordering
+##!                 optained calling \code{inla.as.sparse} on the matrix.
+##!                 Only the upper-triangular part (diagonal included)
+##!                 must be passed.}
 ##!  \item{cmd}{An allowed request}
 ##!  \item{theta}{Values of theta}
 ##!  \item{...}{Named list of variables that defines the environment of \code{model}}
@@ -74,16 +82,14 @@
     ## (which is in the path)
     envir = parent.env(environment())
 
-    interpret.theta = function()
-    {
+    interpret.theta = function() {
         ## internal helper-function to map the parameters from the internal-scale to the
         ## user-scale
         return (list(prec = exp(theta[1L]),
                      rho = 2*exp(theta[2L])/(1+exp(theta[2L])) - 1.0))
     }
 
-    graph = function()
-    {
+    graph = function() {
         if (TRUE) {
             ## we can also use this easy solution, if we know that Q[i, j] is not 0 by
             ## accident... this require that 'theta' is set; see 'theta = initial()' below.
@@ -114,8 +120,7 @@
         return (G)
     }
 
-    Q = function()
-    {
+    Q = function() {
         ## returns the precision matrix for given parameters
         param = interpret.theta()
         if (FALSE) {
@@ -145,13 +150,11 @@
         return (Q)
     }
 
-    mu = function()
-    {
+    mu = function() {
         return (numeric(0))
     }
         
-    log.norm.const = function()
-    {
+    log.norm.const = function() {
         ## return the log(normalising constant) for the model
         param = interpret.theta()
         prec.innovation  = param$prec / (1.0 - param$rho^2)
@@ -159,8 +162,7 @@
         return (val)
     }
 
-    log.prior = function()
-    {
+    log.prior = function() {
         ## return the log-prior for the hyperparameters. the '+theta[1L]' is the log(Jacobian)
         ## for having a gamma prior on the precision and convert it into the prior for the
         ## log(precision).
@@ -170,15 +172,109 @@
         return (val)
     }
 
-    initial = function()
-    {
+    initial = function() {
         ## return initial values. second argument cannot be 0 otherwise the graph is diagonal
         ## and everything breaks down.
         return (rep(1, 2))
     }
 
-    quit = function()
-    {
+    quit = function() {
+        return (invisible())
+    }
+
+    ## if theta is not required, it is not set. we set it here, for convenience.
+    ## (see the graph() function)
+    if (!length(theta))
+        theta = initial()
+    
+    val = do.call(match.arg(cmd), args = list())
+    return (val)
+}
+
+`inla.rgeneric.ar1.model.opt` = function(
+    cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
+    theta = NULL)
+{
+    ## this is an example of the optimzed 'rgeneric' model
+    
+    ## variables defined the in the define-call, are stored here
+    ## (which is in the path)
+    envir = parent.env(environment())
+
+    interpret.theta = function() {
+        ## internal helper-function to map the parameters from the internal-scale to the
+        ## user-scale
+        return (list(prec = exp(theta[1L]),
+                     rho = 2*exp(theta[2L])/(1+exp(theta[2L])) - 1.0))
+    }
+
+    graph = function() {
+        i = c(
+            ## diagonal
+            1L, n, 2L:(n-1L),
+            ## off-diagonal
+            1L:(n-1L))
+        j = c(
+            ## diagonal
+            1L, n, 2L:(n-1L),
+            ## off-diagonal
+            2L:n)
+        x = 1 ## meaning that all are 1
+        G = inla.as.sparse(sparseMatrix(i=i, j=j, x=x, giveCsparse = FALSE))
+        return (G)
+    }
+
+    Q = function() {
+        ## returns the precision matrix for given parameters
+        param = interpret.theta()
+        i = c(
+            ## diagonal
+            1L, n, 2L:(n-1L),
+            ## off-diagonal
+            1L:(n-1L))
+        j = c(
+            ## diagonal
+            1L, n, 2L:(n-1L),
+            ## off-diagonal
+            2L:n)
+        x = param$prec/(1-param$rho^2) *
+            c(  ## diagonal
+                1L, 1L, rep(1+param$rho^2, n-2L),
+                ## off-diagonal
+                rep(-param$rho, n-1L))
+        Q = inla.as.sparse(sparseMatrix(i=i, j=j, x=x, giveCsparse=FALSE))
+        return (Q@x)
+    }
+
+    mu = function() {
+        return (numeric(0))
+    }
+    
+    log.norm.const = function() {
+        ## return the log(normalising constant) for the model
+        param = interpret.theta()
+        prec.innovation  = param$prec / (1.0 - param$rho^2)
+        val = n * (- 0.5 * log(2*pi) + 0.5 * log(prec.innovation)) + 0.5 * log(1.0 - param$rho^2)
+        return (val)
+    }
+
+    log.prior = function() {
+        ## return the log-prior for the hyperparameters. the '+theta[1L]' is the log(Jacobian)
+        ## for having a gamma prior on the precision and convert it into the prior for the
+        ## log(precision).
+        param = interpret.theta()
+        val = (dgamma(param$prec, shape = 1, rate = 1, log=TRUE) + theta[1L] + 
+               dnorm(theta[2L], mean = 0, sd = 1, log=TRUE))
+        return (val)
+    }
+
+    initial = function() {
+        ## return initial values. second argument cannot be 0 otherwise the graph is diagonal
+        ## and everything breaks down.
+        return (rep(1, 2))
+    }
+
+    quit = function() {
         return (invisible())
     }
 
@@ -202,51 +298,43 @@
     ## (which is in the path)
     envir = parent.env(environment())
     
-    interpret.theta = function()
-    {
+    interpret.theta = function() {
         return (list(prec = exp(theta[1L])))
     }
 
-    graph = function()
-    {
+    graph = function() {
         G = Diagonal(n, x= rep(1, n))
         return (G)
     }
 
-    Q = function()
-    {
+    Q = function() {
         prec = interpret.theta()$prec
         Q = Diagonal(n, x= rep(prec, n))
         return (Q)
     }
 
-    mu = function()
-    {
+    mu = function() {
         return (numeric(0))
     }
     
-    log.norm.const = function()
-    {
+    log.norm.const = function() {
         prec = interpret.theta()$prec
         val = sum(dnorm(rep(0, n), sd = 1/sqrt(prec), log=TRUE))
         return (val)
     }
 
-    log.prior = function()
-    {
+    log.prior = function() {
         prec = interpret.theta()$prec
         val = dgamma(prec, shape = 1, rate = 1, log=TRUE) + theta[1L]
         return (val)
     }
 
-    initial = function()
-    {
+    initial = function() {
         ntheta = 1
         return (rep(1, ntheta))
     }
 
-    quit = function()
-    {
+    quit = function() {
         return (invisible())
     }
 
@@ -258,7 +346,7 @@
     return (val)
 }
 
-`inla.rgeneric.define` = function(model = NULL, debug = FALSE, compile = TRUE, ...)
+`inla.rgeneric.define` = function(model = NULL, debug = FALSE, compile = TRUE, optimize = FALSE, ...)
 {
     stopifnot(!missing(model))
     args = list(...)
@@ -283,7 +371,8 @@
                                                       optimize=3L,
                                                       suppressUndefined=TRUE))
                              }, 
-                debug = debug
+                debug = debug,
+                optimize = optimize
                 )
             )
         )
@@ -320,14 +409,23 @@
     time.ref = proc.time()[3]
     
     if (cmd %in% "Q") {
-        Q = inla.as.sparse(res)
-        debug.cat("dim(Q)", dim(Q))
-        n = dim(Q)[1L]
-        stopifnot(dim(Q)[1L] == dim(Q)[2L])
-        idx = which(Q@i <= Q@j)
-        len = length(Q@i[idx])
-        result = c(n, len, Q@i[idx], Q@j[idx], Q@x[idx])
-        Q = NULL
+        if (model$optimize) {
+            ## optimize while passing Q, by just passing Q@x, using the ordering after applying
+            ## 'inla.sparse.matrix()' to 'Q'. only the upper triangular part of Q, diagonal
+            ## included, must be passed.
+            len = length(res)
+            debug.cat("length(Q@x)", len)
+            result = c(-1, len, res) ## yes, this is the code that we have optimized Q-output
+        } else {
+            Q = inla.as.sparse(res)
+            debug.cat("dim(Q)", dim(Q))
+            n = dim(Q)[1L]
+            stopifnot(dim(Q)[1L] == dim(Q)[2L])
+            idx = which(Q@i <= Q@j)
+            len = length(Q@i[idx])
+            result = c(n, len, Q@i[idx], Q@j[idx], Q@x[idx])
+            Q = NULL
+        }
     } else if (cmd %in% "graph") {
         diag(res) = 1
         G = inla.as.sparse(res)
@@ -362,17 +460,6 @@
     }
     res = NULL
 
-    if (FALSE) {
-        nm = "...cpu.time"
-        envir = environment(model$definition)
-        cpu.time = if (exists(nm, envir, envir)) get(nm, envir = envir) else list()
-        if (is.null(cpu.time[[cmd]])) cpu.time[[cmd]] = list(total.time = 0, n.times = 0)
-        cpu.time[[cmd]] =
-            list(total.time = cpu.time[[cmd]]$total.time + proc.time()[3] - time.ref,
-                 n.times = cpu.time[[cmd]]$n.times + 1)
-        assign(nm, cpu.time, envir = envir)
-    }
-    
     return (as.numeric(result))
 }
 
@@ -410,14 +497,34 @@
 
     res = do.call(what = func, args = list(cmd = cmd, theta = theta))
     if (cmd %in% c("Q", "graph")) {
-        ## since only the upper triangular matrix (diagonal included) is required return from
-        ## 'do.call', then make sure its symmetric and that diag(Graph) = 1
-        if (cmd %in% "Q") {
-            Q = inla.as.sparse(res)
+
+        ## in the case of optimized output of Q
+        if (!(is.matrix(res) || is(res, "Matrix"))) {
+            ## optimized output
+            len.x <- length(res)
+            ## need the graph to interpret the output
+            graph <- do.call(what = func, args = list(cmd = "graph"))
+            diag(graph) <- 1
+            graph <- inla.as.sparse(graph)
+            idx <- which(graph@i <= graph@j)
+            graph@i <- graph@i[idx]
+            graph@j <- graph@j[idx]
+            graph@x <- graph@x[idx]
+            graph@x[] <- 1
+            stopifnot(length(graph@x) == len.x)
+            Q <- inla.as.sparse(graph)
+            graph <- NULL
+            Q@x <- res
         } else {
-            diag(res) = 1
-            Q = inla.as.sparse(res, na.rm = TRUE, zeros.rm = TRUE)
-            Q[Q != 0] = 1
+            ## since only the upper triangular matrix (diagonal included) is required return from
+            ## 'do.call', then make sure its symmetric and that diag(Graph) = 1
+            if (cmd %in% "Q") {
+                Q = inla.as.sparse(res)
+            } else {
+                diag(res) = 1
+                Q = inla.as.sparse(res, na.rm = TRUE, zeros.rm = TRUE)
+                Q[Q != 0] = 1
+            }
         }
         n = dim(Q)[1]
         idx.eq = which(Q@i == Q@j)
@@ -428,6 +535,7 @@
                          index1 = FALSE, 
                          dims = c(n, n),
                          giveCsparse = FALSE)
+        Q <- inla.as.sparse(Q)
         return (Q)
     } else if (cmd %in% c("mu", "initial", "log.norm.const", "log.prior")) {
         return (c(as.numeric(res)))
