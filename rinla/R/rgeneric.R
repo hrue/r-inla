@@ -219,31 +219,16 @@
             1L, n, 2L:(n-1L),
             ## off-diagonal
             2L:n)
-        x = 1 ## meaning that all are 1
-        G = inla.as.sparse(sparseMatrix(i=i, j=j, x=x, giveCsparse = FALSE))
+        G = inla.as.sparse(sparseMatrix(i=i, j=j, x=1, giveCsparse = FALSE))
         return (G)
     }
 
     Q = function() {
-        ## returns the precision matrix for given parameters
         param = interpret.theta()
-        i = c(
-            ## diagonal
-            1L, n, 2L:(n-1L),
-            ## off-diagonal
-            1L:(n-1L))
-        j = c(
-            ## diagonal
-            1L, n, 2L:(n-1L),
-            ## off-diagonal
-            2L:n)
-        x = param$prec/(1-param$rho^2) *
-            c(  ## diagonal
-                1L, 1L, rep(1+param$rho^2, n-2L),
-                ## off-diagonal
-                rep(-param$rho, n-1L))
-        Q = inla.as.sparse(sparseMatrix(i=i, j=j, x=x, giveCsparse=FALSE))
-        return (Q@x)
+        a <- 1+param$rho^2
+        b <- -param$rho
+        x = param$prec/(1-param$rho^2) * c(1, b, rep(c(a, b), n-2), 1)
+        return (x)
     }
 
     mu = function() {
@@ -410,9 +395,8 @@
     
     if (cmd %in% "Q") {
         if (model$optimize) {
-            ## optimize while passing Q, by just passing Q@x, using the ordering after applying
-            ## 'inla.sparse.matrix()' to 'Q'. only the upper triangular part of Q, diagonal
-            ## included, must be passed.
+            ## pass only Q@x, using the ordering after applying 'inla.sparse.matrix()' to 'Q'
+            ## and (of course) only the upper triangular part of Q
             len = length(res)
             debug.cat("length(Q@x)", len)
             result = c(-1, len, res) ## yes, this is the code that we have optimized Q-output

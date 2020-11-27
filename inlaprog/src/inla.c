@@ -23339,6 +23339,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		// save the indices for the graph, as we need them repeatedly
 		GMRFLib_graph_nnodes(&(def->len_list), graph);
+		def->len_list = (def->len_list - graph->n)/2 + graph->n;
 		def->ilist = Calloc(def->len_list, int);
 		def->jlist = Calloc(def->len_list, int);
 		for(i = 0, k = 0; i < graph->n; i++) {
@@ -23347,12 +23348,27 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			k++;
 			for(jj = 0; jj < graph->lnnbs[i]; jj++) {
 				j = graph->lnbs[i][jj];
-				def->ilist[k] = i;
-				def->jlist[k] = j;
+				def->ilist[k] = i; 
+				def->jlist[k] = j; 
 				k++;
 			}
 		}
+
+		// we need to revert the order of the list. pretty annoying...
+		GMRFLib_qsorts((void *) def->jlist, (size_t) def->len_list, sizeof(int), (void *) def->ilist,
+			       sizeof(int), NULL, 0, GMRFLib_icmp);
+		// now we need to sort within each value of jlist.
+		assert(def->jlist[0] == 0);
+		for(j = k = 0; j < graph->n; j++) {
+			for(jj = k; jj < def->len_list; jj++) {
+				if (def->jlist[jj] > j)
+					break;
+			}
+			qsort((void *) &def->ilist[k], (size_t) (jj-k), sizeof(int), GMRFLib_icmp);
+			k = jj;
+		}
 		assert(k == def->len_list);
+
 		def_orig->len_list = def->len_list;
 		def_orig->ilist = Calloc(def_orig->len_list, int);
 		def_orig->jlist = Calloc(def_orig->len_list, int);
@@ -28009,7 +28025,9 @@ double extra(double *theta, int ntheta, void *argument)
 					assert(def->graph);
 					assert(def->ilist);
 					assert(def->jlist);
-					GMRFLib_tabulate_Qfunc_from_list2(&Qf, def->graph, def->len_list, def->ilist, def->jlist, &(xx_out[k]), def->graph->n, NULL, NULL, NULL);
+					n = def->graph->n;
+					GMRFLib_tabulate_Qfunc_from_list2(&Qf, def->graph, def->len_list, def->ilist, def->jlist, &(xx_out[k]),
+									  def->graph->n, NULL, NULL, NULL);
 				} else {
 					n = (int) xx_out[k++];
 					len = (int) xx_out[k++];
@@ -28032,7 +28050,7 @@ double extra(double *theta, int ntheta, void *argument)
 					for (jj = 0; jj < n; jj++) {
 						cc_add[jj] = mb->f_diag[i];
 					}
-				}
+				} 
 
 				while (!ok) {
 					retval = GMRFLib_init_problem(&problem, NULL, NULL, cc_add, NULL,
