@@ -2665,13 +2665,14 @@ double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 				assert(n_out >= 2);
 
 				assert(a->graph);
-				if ((int)x_out[0] == -1) {
+				if ((int) x_out[0] == -1) {
 					// optimized output
 					k = 1;
-					len = (int)x_out[k++];
+					len = (int) x_out[k++];
 					assert(len == a->len_list);
 					n = a->graph->n;
-					GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, a->len_list, a->ilist, a->jlist, &(x_out[k]), n, NULL, NULL, NULL);
+					GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, a->len_list, a->ilist, a->jlist, &(x_out[k]), n,
+									  NULL, NULL, NULL);
 				} else {
 					n = (int) x_out[k++];
 					len = (int) x_out[k++];
@@ -7723,9 +7724,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int(*func_simpson)(double **, double **, int *, void *arg))
+			   int (*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -23339,20 +23340,35 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		// save the indices for the graph, as we need them repeatedly
 		GMRFLib_graph_nnodes(&(def->len_list), graph);
+		def->len_list = (def->len_list - graph->n) / 2 + graph->n;
 		def->ilist = Calloc(def->len_list, int);
 		def->jlist = Calloc(def->len_list, int);
-		for(i = 0, k = 0; i < graph->n; i++) {
+		for (i = 0, k = 0; i < graph->n; i++) {
 			def->ilist[k] = i;
 			def->jlist[k] = i;
 			k++;
-			for(jj = 0; jj < graph->lnnbs[i]; jj++) {
+			for (jj = 0; jj < graph->lnnbs[i]; jj++) {
 				j = graph->lnbs[i][jj];
 				def->ilist[k] = i;
 				def->jlist[k] = j;
 				k++;
 			}
 		}
+
+		// we need to revert the order of the list. pretty annoying...
+		GMRFLib_qsorts((void *) def->jlist, (size_t) def->len_list, sizeof(int), (void *) def->ilist, sizeof(int), NULL, 0, GMRFLib_icmp);
+		// now we need to sort within each value of jlist.
+		assert(def->jlist[0] == 0);
+		for (j = k = 0; j < graph->n; j++) {
+			for (jj = k; jj < def->len_list; jj++) {
+				if (def->jlist[jj] > j)
+					break;
+			}
+			qsort((void *) &def->ilist[k], (size_t) (jj - k), sizeof(int), GMRFLib_icmp);
+			k = jj;
+		}
 		assert(k == def->len_list);
+
 		def_orig->len_list = def->len_list;
 		def_orig->ilist = Calloc(def_orig->len_list, int);
 		def_orig->jlist = Calloc(def_orig->len_list, int);
@@ -28004,12 +28020,14 @@ double extra(double *theta, int ntheta, void *argument)
 				if ((int) xx_out[0] == -1) {
 					// optimized output
 					k = 1;
-					len = (int)xx_out[k++];
+					len = (int) xx_out[k++];
 					assert(len == def->len_list);
 					assert(def->graph);
 					assert(def->ilist);
 					assert(def->jlist);
-					GMRFLib_tabulate_Qfunc_from_list2(&Qf, def->graph, def->len_list, def->ilist, def->jlist, &(xx_out[k]), def->graph->n, NULL, NULL, NULL);
+					n = def->graph->n;
+					GMRFLib_tabulate_Qfunc_from_list2(&Qf, def->graph, def->len_list, def->ilist, def->jlist, &(xx_out[k]),
+									  def->graph->n, NULL, NULL, NULL);
 				} else {
 					n = (int) xx_out[k++];
 					len = (int) xx_out[k++];
@@ -28022,7 +28040,7 @@ double extra(double *theta, int ntheta, void *argument)
 					}
 					GMRFLib_tabulate_Qfunc_from_list2(&Qf, def->graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
 				}
-				
+
 				int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 				GMRFLib_problem_tp *problem = NULL;
 				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();

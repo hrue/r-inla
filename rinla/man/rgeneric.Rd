@@ -20,11 +20,14 @@
 \description{A framework for defining latent models in R}
 
 \usage{
-inla.rgeneric.define(model = NULL, debug = FALSE, compile = TRUE, ...)
+inla.rgeneric.define(model = NULL, debug = FALSE, compile = TRUE, optimize = FALSE, ...)
 inla.rgeneric.iid.model(
         cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
         theta = NULL)
 inla.rgeneric.ar1.model(
+        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
+        theta = NULL)
+inla.rgeneric.ar1.model.opt(
         cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
         theta = NULL)
 inla.rgeneric.wrapper(
@@ -41,6 +44,10 @@ inla.rgeneric.q(
   \item{rmodel}{The rgeneric model-object, the output of \code{inla.rgeneric.define}}
   \item{debug}{Logical. Turn on/off debugging}
   \item{compile}{Logical. Compile the definition of the model or not.}
+  \item{optimze}{Logical. Pass only the values of \code{Q} using ordering
+                 optained calling \code{inla.as.sparse} on the matrix.
+                 Only the upper-triangular part (diagonal included)
+                 must be passed.}
   \item{cmd}{An allowed request}
   \item{theta}{Values of theta}
   \item{...}{Named list of variables that defines the environment of \code{model}}
