@@ -44,10 +44,10 @@ inla.rgeneric.q(
   \item{rmodel}{The rgeneric model-object, the output of \code{inla.rgeneric.define}}
   \item{debug}{Logical. Turn on/off debugging}
   \item{compile}{Logical. Compile the definition of the model or not.}
-  \item{optimze}{Logical. Pass only the values of \code{Q} using ordering
-                 optained calling \code{inla.as.sparse} on the matrix.
-                 Only the upper-triangular part (diagonal included)
-                 must be passed.}
+  \item{optimze}{Logical. With this option \code{TRUE}, then \code{model}
+                 pass only the values of \code{Q} and not the whole matrix.
+                 Please see the vignette for details and
+                 \code{inla.rgeneric.ar1.model.opt} for an example.}
   \item{cmd}{An allowed request}
   \item{theta}{Values of theta}
   \item{...}{Named list of variables that defines the environment of \code{model}}
