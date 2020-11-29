@@ -294,9 +294,9 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 					printf("\t%d: set: B.f_best %.12g fx %.12g\n", omp_get_thread_num(), B.f_best, fx_local);
 				}
 				if (G.ai_par->fp_log) {
-					fprintf(G.ai_par->fp_log, "max.logdens= %.4f fn= %1d theta=", -fx_local, GMRFLib_opt_get_f_count());
+					fprintf(G.ai_par->fp_log, "maxldens= %.3f fn=%3d theta=", -fx_local, GMRFLib_opt_get_f_count());
 					for (i = 0; i < G.nhyper; i++) {
-						fprintf(G.ai_par->fp_log, " %.4f", x[i]);
+						fprintf(G.ai_par->fp_log, " %.3f", x[i]);
 					}
 					fprintf(G.ai_par->fp_log, "  range=[%.2f", GMRFLib_min_value(ais->mode, G.graph->n, NULL));
 					fprintf(G.ai_par->fp_log, " %.2f]", GMRFLib_max_value(ais->mode, G.graph->n, NULL));
@@ -1105,7 +1105,11 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 				gsl_matrix_memcpy(A, Adir);
 				GMRFLib_gsl_mgs(A);
 				if (G.ai_par->fp_log) {
-					fprintf(G.ai_par->fp_log, "New directions for gradient\n");
+					fprintf(G.ai_par->fp_log, "New directions for numerical gradient\n");
+					for(j = 0; j < A->size2; j++) {
+						printf("\t  dir%.2d", j+1);
+					}
+					printf("\n");
 					GMRFLib_gsl_matrix_fprintf(G.ai_par->fp_log, A, "\t %6.3f");
 				}
 				gsl_matrix_transpose_memcpy(tAinv, A);
