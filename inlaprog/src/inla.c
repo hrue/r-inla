@@ -34110,6 +34110,7 @@ int main(int argc, char **argv)
 #define _BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
 	int i, verbose = 0, silent = 0, opt, report = 0, arg, ntt[2] = { 0, 0 }, err;
+	int enable_core_file = 0;		       /* allow for core files */
 	int blas_num_threads_set = 0;
 	int blas_num_threads_default = 1;
 	char *program = argv[0];
