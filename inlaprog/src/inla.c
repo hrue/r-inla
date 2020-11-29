@@ -1655,7 +1655,7 @@ double link_special2(double x, map_arg_tp typ, void *param, double *cov)
 }
 double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov)
 {
-	double shape, ret;
+	double shape, ret = 0.0;
 	Link_param_tp *lparam = (Link_param_tp *) param;
 
 	switch (typ) {
@@ -1710,7 +1710,7 @@ double link_qweibull(double x, map_arg_tp typ, void *param, double *cov)
 {
 	Link_param_tp *lparam = (Link_param_tp *) param;
 	double alpha = map_alpha_weibull(lparam->alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double ret;
+	double ret = 0.0;
 
 	switch (typ) {
 	case INVLINK:
@@ -1783,7 +1783,7 @@ double link_qgamma(double x, map_arg_tp typ, void *param, double *cov)
 	double s = lparam->scale[lparam->idx];
 	double phi_param = map_exp(lparam->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double shape = phi_param * s;
-	double ret;
+	double ret = 0.0;
 
 	switch (typ) {
 	case INVLINK:
@@ -1827,7 +1827,7 @@ double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
 {
 	// individual link
 	Link_param_tp *lparam = (Link_param_tp *) param;
-	double q, ret;
+	double q, ret = 0.0;
 
 	switch (typ) {
 	case INVLINK:
@@ -1877,7 +1877,7 @@ double link_pqbinomial(double x, map_arg_tp typ, void *param, double *cov)
 {
 	// population link
 	Link_param_tp *lparam = (Link_param_tp *) param;
-	double q, ret;
+	double q, ret = 0.0;
 
 	switch (typ) {
 	case INVLINK:
@@ -34109,7 +34109,7 @@ int main(int argc, char **argv)
 
 #define _BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
-	int i, verbose = 0, silent = 0, opt, report = 0, arg, ntt[2] = { 0, 0 }, err, enable_core_file = 0;
+	int i, verbose = 0, silent = 0, opt, report = 0, arg, ntt[2] = { 0, 0 }, err;
 	int blas_num_threads_set = 0;
 	int blas_num_threads_default = 1;
 	char *program = argv[0];
