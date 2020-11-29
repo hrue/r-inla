@@ -27,6 +27,25 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.11.29}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Added new section to the vignette about \code{rgeneric}
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item Option \code{optimize} in \code{inla.rgeneric.define}
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Cleanup in some output format.
+      \item Various internal changes. 
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.11.22}{
   \subsection{BUG FIXES}{
     \itemize{
