@@ -32,7 +32,7 @@ GITCOMMIT:= $(shell git log --pretty=format:"%H - %cd" | head -n1)
 
 INCL    = -I.. -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
 LDFLAGS = $(FLAGS) 
-FFLAGS  = $(INCL) $(FLAGS) $(FCEXTRAFLAGS)
+FFLAGS  = $(INCL) $(FLAGS) -Wno-compare-reals -Wno-function-elimination $(FCEXTRAFLAGS)
 CFLAGS  = $(INCL) $(FLAGS) $(IEXTLIBS) -DGITCOMMIT="\"${GITCOMMIT}\""
 LD      = $(FC)
 INSTALL = /usr/bin/install

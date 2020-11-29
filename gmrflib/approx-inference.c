@@ -354,7 +354,7 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 		for (size_t i = 0; i < m->size1; i++) {
 			fprintf(fp, "\t\t");
 			for (size_t j = 0; j < m->size2; j++) {
-				fprintf(fp, " %7.3f", gsl_matrix_get(m, i, j));
+				fprintf(fp, " %6.3f", gsl_matrix_get(m, i, j));
 			}
 			fprintf(fp, "\n");
 		}
@@ -431,10 +431,10 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	}
 	GMRFLib_print_design(fp, ai_par->int_design);
 
-	fprintf(fp, "\t\tf0 (CCD only):\t %f\n", ai_par->f0);
-	fprintf(fp, "\t\tdz (GRID only):\t %f\n", ai_par->dz);
+	fprintf(fp, "\t\tf0 (CCD only):\t %.3f\n", ai_par->f0);
+	fprintf(fp, "\t\tdz (GRID only):\t %.3f\n", ai_par->dz);
 	fprintf(fp, "\t\tAdjust weights (GRID only):\t %s\n", (ai_par->adjust_weights == GMRFLib_FALSE ? "Off" : "On"));
-	fprintf(fp, "\t\tDifference in log-density limit (GRID only):\t %f\n", ai_par->diff_log_dens);
+	fprintf(fp, "\t\tDifference in log-density limit (GRID only):\t %.3f\n", ai_par->diff_log_dens);
 	fprintf(fp, "\t\tSkip configurations with (presumed) small density (GRID only):\t %s\n",
 		(ai_par->skip_configurations == GMRFLib_FALSE ? "Off" : "On"));
 
@@ -494,7 +494,7 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	}
 
 	if (ai_par->correct_enable) {
-		fprintf(fp, "\tLaplace-correction is Enabled with correction factor[%.4f]\n", ai_par->correct_factor);
+		fprintf(fp, "\tLaplace-correction is Enabled with correction factor[%.3f]\n", ai_par->correct_factor);
 		if (ai_par->correct_strategy == GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN ||
 		    ai_par->correct_strategy == GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN)
 			fprintf(fp, "\t\tstrategy = [simplified.laplace]\n");
@@ -1433,7 +1433,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 				if (_debug) {				\
 					if (0) \
 						for(itmp = 0; itmp < np; itmp++) \
-							printf("xp[%1d] = %f\n", itmp, xp[itmp]); \
+							printf("xp[%1d] = %.3f\n", itmp, xp[itmp]); \
 					GMRFLib_density_printf(stdout, *density); \
 				}					\
 				GMRFLib_evaluate_nlogdensity(ld, xp, np, *density); \
@@ -3672,12 +3672,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				for (i = 0; i < nhyper; i++) {
 					fprintf(ai_par->fp_log, " %6.3f", theta_mode[i]);
 				}
-				fprintf(ai_par->fp_log, "]\n");
+				fprintf(ai_par->fp_log, " ]\n");
 			}
 			GMRFLib_opt_f(theta_mode, &log_dens_mode, &ierr, NULL, NULL);
 			log_dens_mode *= -1.0;
 			if (ai_par->fp_log) {
-				fprintf(ai_par->fp_log, "Compute mode: %10.4f\n", log_dens_mode);
+				fprintf(ai_par->fp_log, "Compute mode: %10.3f\n", log_dens_mode);
 			}
 		}
 
@@ -3875,7 +3875,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		if (ai_par->fp_log) {
 			for (i = 0; i < nhyper; i++) {
 				for (j = 0; j < nhyper; j++) {
-					fprintf(ai_par->fp_log, " %10.4f", hessian[i + j * nhyper]);
+					fprintf(ai_par->fp_log, " %10.3f", hessian[i + j * nhyper]);
 				}
 				fprintf(ai_par->fp_log, "\n");
 			}
@@ -3895,9 +3895,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 		if (ai_par->fp_log) {
 			fprintf(ai_par->fp_log, "Eigenvectors of the Hessian\n");
-			GMRFLib_gsl_matrix_fprintf(ai_par->fp_log, eigen_vectors, "\t%.4f");
+			GMRFLib_gsl_matrix_fprintf(ai_par->fp_log, eigen_vectors, "\t%7.3f");
 			fprintf(ai_par->fp_log, "Eigenvalues of the Hessian\n");
-			gsl_vector_fprintf(ai_par->fp_log, eigen_values, "\t%.4f");
+			gsl_vector_fprintf(ai_par->fp_log, eigen_values, "\t%12.3f");
 		}
 
 		/*
@@ -4022,7 +4022,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							val = inverse_hessian[ii + jj * nhyper] /
 							    sqrt(inverse_hessian[ii + ii * nhyper] * inverse_hessian[jj + jj * nhyper]);
 						}
-						fprintf(ai_par->fp_log, " %10.4f", val);
+						fprintf(ai_par->fp_log, " %10.3f", val);
 					} else {
 						fprintf(ai_par->fp_log, " %10s", "");
 					}
@@ -4176,7 +4176,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			for (k = 0; k < nhyper; k++) {
 				if (ai_par->fp_log) {
 					fprintf(ai_par->fp_log,
-						"Compute corrected stdev for theta[%1d]: negative %f  positive %f\n", k,
+						"Compute corrected stdev for theta[%1d]: negative %.3f  positive %.3f\n", k,
 						stdev_corr_neg[k], stdev_corr_pos[k]);
 				}
 			}
@@ -4505,14 +4505,14 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					if (ai_par->fp_log) {
 #pragma omp critical
 						{
-							fprintf(ai_par->fp_log, "\tconfig %2d/%1d=[", config_count++, design->nexperiments);
+							fprintf(ai_par->fp_log, "config %2d/%1d=[", config_count++, design->nexperiments);
 							for (i = 0; i < nhyper; i++) {
-								fprintf(ai_par->fp_log, " %5.3f", z_local[i]);
+								fprintf(ai_par->fp_log, " %6.3f", z_local[i]);
 							}
 							/*
 							 * we need to use the log_dens_orig as the other one is also included the integration weights. 
 							 */
-							fprintf(ai_par->fp_log, "] log(rel.dens)=%5.3f, [%1d] accept, compute,",
+							fprintf(ai_par->fp_log, " ] log(rel.dens)= %6.3f, [%1d] accept, compute,",
 								log_dens_orig - log_dens_mode, omp_get_thread_num());
 							fprintf(ai_par->fp_log, " %.2fs\n", tu);
 						}
@@ -4574,11 +4574,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					log_dens_orig = log_dens;
 
 					if (ai_par->fp_log) {
-						fprintf(ai_par->fp_log, "\tconfig %2d=[", config_count++);
+						fprintf(ai_par->fp_log, "config %2d=[", config_count++);
 						for (i = 0; i < nhyper; i++) {
-							fprintf(ai_par->fp_log, " %5.3f", z[i]);
+							fprintf(ai_par->fp_log, " %6.3f", z[i]);
 						}
-						fprintf(ai_par->fp_log, "] log(rel.dens)=%5.3f, [%1d] accept, compute,",
+						fprintf(ai_par->fp_log, " ] log(rel.dens)= %6.3f, [%1d] accept, compute,",
 							log_dens - log_dens_mode, omp_get_thread_num());
 					}
 
@@ -4804,12 +4804,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							if (ai_par->fp_log) {
 #pragma omp critical
 								{
-									fprintf(ai_par->fp_log, "\tconfig %2d=[", config_count++);
+									fprintf(ai_par->fp_log, "config %2d=[", config_count++);
 									for (i = 0; i < nhyper; i++) {
-										fprintf(ai_par->fp_log, " %5.3f", z_local[i]);
+										fprintf(ai_par->fp_log, " %6.3f", z_local[i]);
 									}
 									fprintf(ai_par->fp_log,
-										"] log(rel.dens)=%5.3f, reject, %.2fs\n", val,
+										" ] log(rel.dens)= %6.3f, reject, %.2fs\n", val,
 										GMRFLib_cpu() - tref);
 								}
 							}
@@ -4879,12 +4879,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 								int ii;
 								if (ai_par->fp_log) {
 									{
-										fprintf(ai_par->fp_log, "\tconfig %2d=[", config_count++);
+										fprintf(ai_par->fp_log, "config %2d=[", config_count++);
 										for (i = 0; i < nhyper; i++) {
-											fprintf(ai_par->fp_log, " %5.3f", z_local[i]);
+											fprintf(ai_par->fp_log, " %6.3f", z_local[i]);
 										}
 										fprintf(ai_par->fp_log,
-											"] log(rel.dens)=%5.3f, [%1d] accept, compute,",
+											" ] log(rel.dens)= %6.3f, [%1d] accept, compute,",
 											val, omp_get_thread_num());
 										fprintf(ai_par->fp_log, " %.2fs\n", tu);
 									}
@@ -5009,7 +5009,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							 * print out and check if we should stop or not 
 							 */
 							if (ai_par->fp_log) {
-								fprintf(ai_par->fp_log, "\tconfig %2d=[%s] log(rel.dens)=%6.2f,",
+								fprintf(ai_par->fp_log, "config %2d=[%s] log(rel.dens)= %6.3f,",
 									config_count++, tag, log_dens - log_dens_mode);
 							}
 							if (log_dens_mode - log_dens > ai_par->diff_log_dens) {
@@ -5178,7 +5178,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						GMRFLib_opt_f(theta, &log_dens, &ierr, &tabQfunc, &bnew);
 						log_dens *= -1.0;
 						if (ai_par->fp_log) {
-							fprintf(ai_par->fp_log, "\tconfig %2d=[%s] log(rel.dens)=%6.2f,",
+							fprintf(ai_par->fp_log, "config %2d=[%s] log(rel.dens)= %6.3f,",
 								config_count++, tag, log_dens - log_dens_mode);
 						}
 
@@ -5512,18 +5512,18 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	}
 
 	if (ai_par->fp_log) {
-		fprintf(ai_par->fp_log, "Combine the densities with relative weights:\n");
+		fprintf(ai_par->fp_log, "\nCombine the densities with relative weights:\n");
 		for (j = 0; j < dens_count; j++) {
-			fprintf(ai_par->fp_log, "\tconfig %2d/%2d=[", j, dens_count);
+			fprintf(ai_par->fp_log, "config %2d/%2d=[", j, dens_count);
 			for (k = 0; k < nhyper; k++) {
-				fprintf(ai_par->fp_log, " %5.3f", izs[j][k]);
+				fprintf(ai_par->fp_log, " %6.3f", izs[j][k]);
 			}
-			fprintf(ai_par->fp_log, "] weight = %.3f", weights[j]);
+			fprintf(ai_par->fp_log, " ] weight= %6.3f", weights[j]);
 			if (ai_par->adjust_weights && (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID)) {
-				fprintf(ai_par->fp_log, " adjusted weight = %.3f", adj_weights[j]);
+				fprintf(ai_par->fp_log, " adjusted weight= %6.3f", adj_weights[j]);
 			}
 			if (ai_par->compute_nparam_eff) {
-				fprintf(ai_par->fp_log, "  neff = %.2f\n", neff[j]);
+				fprintf(ai_par->fp_log, "  neff= %.2f\n", neff[j]);
 			} else {
 				fprintf(ai_par->fp_log, "\n");
 			}
@@ -5629,7 +5629,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 	}
 	if (ai_par->fp_log) {
-		fprintf(ai_par->fp_log, "Done.\n");
+		fprintf(ai_par->fp_log, "\n");
 	}
 
 	if (ai_par->compute_nparam_eff) {
@@ -6025,7 +6025,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				marginal_likelihood->marginal_likelihood_integration = log(integral) + log_jacobian + log_dens_mode;
 			}
 			if (ai_par->fp_log) {
-				fprintf(ai_par->fp_log, "Marginal likelihood: Integration %f Gaussian-approx %f\n",
+				fprintf(ai_par->fp_log, "Marginal likelihood: Integration %.3f Gaussian-approx %.3f\n",
 					marginal_likelihood->marginal_likelihood_integration,
 					marginal_likelihood->marginal_likelihood_gaussian_approx);
 			}
@@ -6129,7 +6129,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					}
 					if (ai_par->fp_log) {
 						fprintf(ai_par->fp_log,
-							"\tLoop %1d: Added %1d guard-points with log-dens-diff equal to %f\n",
+							"\tLoop %1d: Added %1d guard-points with log-dens-diff equal to %.3f\n",
 							ntimes, guard_count, hyper_ldens[hyper_count - 1]);
 					}
 				}
@@ -6753,12 +6753,12 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp *** density, // need two types
 			printf("\t\tNumber of nodes corrected for [%1d]\n", (int) delta->size);
 			printf("\t\tRefinement [%1d]\n", (int) ai_par->vb_refinement);
 			if (ai_par->vb_hyperpar_correct) {
-				printf("\t\tCorrection for ldens_hyperpar [%.4f]\n", (ldens_hyperpar_corr ? *ldens_hyperpar_corr : 0.0));
+				printf("\t\tCorrection for ldens_hyperpar [%.3f]\n", (ldens_hyperpar_corr ? *ldens_hyperpar_corr : 0.0));
 			}
 			printf("\t\tNumber of corrections truncated [%1d] with max.correct[%.2f]\n", num_trunc, ai_par->vb_max_correct);
 			for (jj = 0; jj < vb_idx->n; jj++) {
 				j = vb_idx->idx[jj];
-				printf("\t\tNode[%1d] delta[%.4f] correction[%.4f] correction/stdev[%.4f]\n",
+				printf("\t\tNode[%1d] delta[%.3f] correction[%.3f] correction/stdev[%.3f]\n",
 				       j, gsl_vector_get(delta_mu, j), gsl_vector_get(delta_mu, j), gsl_vector_get(delta_mu, j) / sd[j]);
 			}
 			printf("\t\tImplied correction for [%1d] nodes\n", graph->n - vb_idx->n);
@@ -7787,7 +7787,6 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 		for (i = 0; i < npoints; i++) {
 			ldens_values[i] = log(dens[i]);
 			points[i] = (points[i] - theta_mode[idx]) / sd;
-			// printf("points[%1d] = %f ldens %f \n", i, points[i], ldens_values[i]);
 		}
 		GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, points, ldens_values,
 				       theta_mode[idx], std_stdev_theta[idx], GMRFLib_TRUE);

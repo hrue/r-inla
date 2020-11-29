@@ -250,7 +250,6 @@ typedef struct {
 	float log_norm_const;				       /* log(norm_const), divide by norm_const to get the normalised
 							        * density.  */
 	GMRFLib_spline_tp *log_correction;
-
 	GMRFLib_spline_tp *P;
 	GMRFLib_spline_tp *Pinv;
 

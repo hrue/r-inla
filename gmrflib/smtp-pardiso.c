@@ -665,6 +665,10 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 		store->pstore->perm, &(store->pstore->nrhs),
 		store->pstore->iparm, &(store->msglvl), NULL, NULL, &(store->pstore->err_code), store->pstore->dparm);
 
+	if (debug) {
+		printf("Average number of non-zeros in L per row %.2f\n", store->pstore->iparm[17]/(double)n);
+	}
+
 	// Have to check if we need to revert back to C indexing
 	int perm_min = GMRFLib_imin_value(store->pstore->perm, n, NULL);
 	assert(perm_min == 0 || perm_min == 1);		       /* must either be C or F... */

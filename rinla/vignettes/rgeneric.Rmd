@@ -1,7 +1,7 @@
 ---
 title: "Defining a latent model in `R`: The `rgeneric` model"
 author: "Haavard Rue `(hrue@r-inla.org)`"
-date: "Nov 22th 2017"
+date: "Nov 28th 2020"
 output: rmarkdown::pdf_document
 vignette: >
   %\VignetteIndexEntry{rgeneric model}
@@ -519,3 +519,244 @@ plot(inla.smarginal(r$marginals.hyperpar[['Theta2 for idx']]),
      type="l", lwd=5, col="red", xlab="Slope", ylab="density")
 lines(inla.smarginal(rr$marginals.fixed$x), col="yellow")
 ```
+
+
+# Some comments on optimization
+
+The rgeneric-interface is not ment to be a replacement for
+implementing a model component in C, but rather a tool to experiment
+with new models and adding case spesific model components. Needless to
+say, it will be a somewhat slower than a model that is implemented in
+C. For smaller problems the overhead is relative larger than for
+larger problems, since more less time is used to factorize matrices
+etc, compared to constructing the matrices.
+
+To discuss some easy steps that can be taken, we can consider this
+simple Gaussian model with zero mean and precision matrix
+\begin{displaymath}
+	Q = \tau R.
+\end{displaymath}
+We observe a sample from this matrix with known Gaussian noise. 
+
+The rgeneric implementation of this, could be as follows.
+```{r}
+rgeneric.test = function(
+    cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
+    theta = NULL)
+{
+    envir = parent.env(environment())
+
+    graph = function() {
+        return(matrix(1, n, n))
+    }
+
+    Q = function() {
+        R <- matrix(sin(1:n^2), n, n)
+        R <- R %*% t(R)
+        diag(R) <- diag(R)+1
+        Q <- exp(theta[1]) * R
+        return(Q)
+    }
+
+    mu = function() return (numeric(0))
+
+    log.norm.const = function() {
+        return (numeric(0))
+    }
+
+    log.prior = function() {
+        return (dgamma(exp(theta[1]), shape = 1, rate = 1, log=TRUE) + theta[1])
+    }
+
+    initial = function() {
+        return(4)
+    }
+
+    if (!length(theta)) theta = initial()
+    val = do.call(match.arg(cmd), args = list())
+
+    return (val)
+}
+```
+
+We can now simulate some data and compare the results with the
+buildt-in implementation
+
+```{r}
+n = 200
+s = .1
+Q <- rgeneric.test("Q", theta = 0)
+library(mvtnorm)
+S <- solve(as.matrix(Q))
+S <- (S + t(S))/2
+x <- drop(rmvnorm(1, sigma = S))
+y <- x + rnorm(n, sd = s)
+cont.family = list(hyper = list(prec = list(initial=log(1/s^2), fixed=TRUE)))
+
+r1 = inla(y ~ -1 + f(idx, model="generic", Cmatrix = Q,
+                     hyper = list(prec = list(prior = "loggamma", param = c(1, 1)))), 
+          data = data.frame(y = y, idx = 1:n), control.family = cont.family)
+ld <- 0.5 * log(det(as.matrix(Q)))
+r1$mlik <- r1$mlik + ld ## see the documentation for why
+
+model2 = inla.rgeneric.define(rgeneric.test, n=n, optimize = FALSE)
+r2 = inla(y ~ -1 + f(idx, model=model2), 
+          data = data.frame(y = y, idx = 1:n), control.family = cont.family)
+```
+We can compare the results, with
+```{r}
+r2$mlik - r1$mlik
+```
+
+there are a couple of things that can be done in order to improve the
+speed of the rgeneric model. The first is to *cache* intermediate
+calculations and to make sure the same calculations are not done over
+and over again.
+
+For this, we use the rgeneric function's environment. We can cache the
+matrix $R$ and also precompute large parts of the normalizing
+constant.
+```{r}
+rgeneric.test.opt.1 = function(
+    cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
+    theta = NULL)
+{
+    envir = parent.env(environment())
+
+    if (!exists("cache.done", envir = envir)) {
+        R <- matrix(sin(1:n^2), n, n)
+        R <- R %*% t(R)
+        diag(R) <- diag(R)+1
+        R.logdet <- log(det(R))
+        R <- inla.as.sparse(R)
+        idx <- which(R@i <= R@j)
+        R@i <- R@i[idx]
+        R@j <- R@j[idx]
+        R@x <- R@x[idx]
+        assign("R", R, envir = envir)
+        norm.const <- -n/2 * log(2*pi) + 0.5 * R.logdet
+        assign("norm.const", norm.const, envir = envir)
+        assign("cache.done", TRUE, envir = envir)
+    }
+
+    graph = function() {
+        return (R)
+    }
+
+    Q = function() {
+        return(exp(theta[1]) * R)
+    }
+
+    mu = function() return (numeric(0))
+
+    log.norm.const = function() {
+        return (norm.const + n/2 * theta[1])
+    }
+
+    log.prior = function() {
+        return (dgamma(exp(theta[1]), shape = 1, rate = 1, log=TRUE) + theta[1])
+    }
+
+    initial = function() {
+        return(4)
+    }
+
+    if (!length(theta)) theta = initial()
+    val = do.call(match.arg(cmd), args = list())
+
+    return (val)
+}
+```
+
+We can also go one step further, to add option `optimize=TRUE` when
+calling `inla.rgeneric.define`, which inform the interpreter that we
+pass only the matrix values of $Q$, not the indices! This impose
+a constraint on the ordering, which must be the that is defined after
+converting the matrix to `inla.as.sparse` and returning only the upper
+triangular part. This is a row-based ordering, like
+```{r}
+A=matrix(1:9,3,3)
+A
+inla.as.sparse(A)@x
+```
+
+The updated model will then be
+```{r}
+rgeneric.test.opt.2 = function(
+    cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
+    theta = NULL)
+{
+    envir = parent.env(environment())
+
+    if (!exists("cache.done", envir = envir)) {
+        R <- matrix(sin(1:n^2), n, n)
+        R <- R %*% t(R)
+        diag(R) <- diag(R)+1
+        R.logdet <- log(det(R))
+        R <- inla.as.sparse(R)
+        idx <- which(R@i <= R@j)
+        R@i <- R@i[idx]
+        R@j <- R@j[idx]
+        R@x <- R@x[idx]
+        assign("R", R, envir = envir)
+        norm.const <- -n/2 * log(2*pi) + 0.5 * R.logdet
+        assign("norm.const", norm.const, envir = envir)
+        assign("cache.done", TRUE, envir = envir)
+    }
+
+    graph = function() {
+        return (R)
+    }
+
+    Q = function() {
+        ## since R was created with 'inla.sparse.matrix' above, the indices are sorted in a
+        ## spesific order. This ordering is REQUIRED for R@x to be interpreted correctly.
+        return(exp(theta[1]) * R@x)
+    }
+
+    mu = function() return (numeric(0))
+
+    log.norm.const = function() {
+        return (norm.const + n/2 * theta[1])
+    }
+
+    log.prior = function() {
+        return (dgamma(exp(theta[1]), shape = 1, rate = 1, log=TRUE) + theta[1])
+    }
+
+    initial = function() {
+        return(4)
+    }
+
+    if (!length(theta)) theta = initial()
+    val = do.call(match.arg(cmd), args = list())
+
+    return (val)
+}
+```
+We can now run the two optimized variants
+```{r}
+model3 = inla.rgeneric.define(rgeneric.test.opt.1, n=n, optimize = FALSE)
+r3 = inla(y ~ -1 + f(idx, model=model3), 
+          data = data.frame(y = y, idx = 1:n), control.family = cont.family)
+
+model4 = inla.rgeneric.define(rgeneric.test.opt.2, n=n, optimize = TRUE)
+r4 = inla(y ~ -1 + f(idx, model=model4), 
+          data = data.frame(y = y, idx = 1:n), control.family = cont.family)
+```
+We can now compare the time and results for all models
+```{r}
+print(r2$mlik - r1$mlik)
+print(r3$mlik - r1$mlik)
+print(r4$mlik - r1$mlik)
+
+print(rbind(native = r1$cpu[2], 
+            rgeneric.plain = r2$cpu[2], 
+            rgeneric.cache = r3$cpu[2], 
+            rgeneric.optimze = r4$cpu[2]))
+```
+
+Another general approach to optimizing R-code, is to write critical
+parts in C or C++. This can also be done here, by calling C-code
+within the rgeneric model.
+
