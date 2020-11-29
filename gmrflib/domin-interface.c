@@ -1106,8 +1106,8 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 				GMRFLib_gsl_mgs(A);
 				if (G.ai_par->fp_log) {
 					fprintf(G.ai_par->fp_log, "New directions for numerical gradient\n");
-					for(j = 0; j < A->size2; j++) {
-						printf("\t  dir%.2d", j+1);
+					for(size_t j = 0; j < A->size2; j++) {
+						printf("\t  dir%.2zu", j+1);
 					}
 					printf("\n");
 					GMRFLib_gsl_matrix_fprintf(G.ai_par->fp_log, A, "\t %6.3f");
