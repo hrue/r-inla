@@ -29466,9 +29466,11 @@ int inla_INLA(inla_tp * mb)
 		} else {
 			GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
 		}
-		if (mb->verbose) {
-			printf("\tFound optimal reordering=[%s] nnz(L)=[%zu] and use_global_nodes(user)=[%s]\n",
-			       GMRFLib_reorder_name(GMRFLib_reorder), nnz, (use_g ? "yes" : "no"));
+		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
+			if (mb->verbose) {
+				printf("\tFound optimal reordering=[%s] nnz(L)=[%zu] and use_global_nodes(user)=[%s]\n",
+				       GMRFLib_reorder_name(GMRFLib_reorder), nnz, (use_g ? "yes" : "no"));
+			}
 		}
 	}
 	if (mb->verbose) {
@@ -34554,8 +34556,8 @@ int main(int argc, char **argv)
 #define PEFF_OUTPUT if (1) {						\
 				double eff_nt = ((double)(atime_used[0] + atime_used[1]))/CLOCKS_PER_SEC/(time_used[0] + time_used[1]);	\
 				printf("Parallel efficiency for 'Preparations' and 'Approx inference':\n"); \
-				printf("Accumulated CPU-time is equivalent to %.2f threads running at 100%%\n", eff_nt); \
-				printf("Efficiency using %1d threads = %.2f%%\n", GMRFLib_MAX_THREADS, \
+				printf("    Accumulated CPU-time is equivalent to %.2f threads running at 100%%\n", eff_nt); \
+				printf("    Efficiency using %1d threads = %.2f%%\n", GMRFLib_MAX_THREADS, \
 				       100.0 * eff_nt/GMRFLib_MAX_THREADS); \
 			}
 
