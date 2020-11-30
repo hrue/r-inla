@@ -27968,19 +27968,27 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_R_GENERIC:
 		{
-			int n_out, nn_out, ii, ntheta;
+			int n_out, nn_out, ii, ntheta, all_fixed = 0;
+			
 			double *x_out = NULL, *xx_out = NULL, *param = NULL, log_norm_const = 0.0, log_prior = 0.0;
 			inla_rgeneric_tp *def = NULL;
 			def = (inla_rgeneric_tp *) mb->f_Qfunc_arg_orig[i];
 
 			ntheta = def->ntheta;
 			if (ntheta) {
+				all_fixed = 1;
 				param = Calloc(ntheta, double);
 				for (ii = 0; ii < ntheta; ii++) {
-					param[ii] = theta[count];
-					count++;
+					if (_NOT_FIXED(f_fixed[i][ii])) {
+						param[ii] = theta[count];
+						all_fixed = 0;
+						count++;
+					} else {
+						param[ii] = mb->f_theta[i][ii][GMRFLib_thread_id][0];
+					}
 				}
 			}
+
 #pragma omp critical
 			{
 				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, ntheta, param);
@@ -27992,7 +28000,9 @@ double extra(double *theta, int ntheta, void *argument)
 				log_prior = 0.0;
 				break;
 			case 1:
-				log_prior = (evaluate_hyper_prior ? xx_out[0] : 0.0);
+				// we need to add a check for 'all_fixed' here, as with control.mode=list(...,fixed=TRUE) will
+				// trigger all_fixed=1.
+				log_prior = (evaluate_hyper_prior && !all_fixed ? xx_out[0] : 0.0);
 				break;
 			default:
 				assert(0 == 1);
