@@ -614,7 +614,7 @@ inla.internal.experimental.mode = FALSE
         for(i in 1L:n.fix) {
             tag = paste(results.dir, .Platform$file.sep, fix[i], .Platform$file.sep,"TAG", sep="")
             if (!file.exists(tag))
-                names.fixed[i] = "missing NAME"
+                names.fixed[i] = "NameMissing"
             else
                 names.fixed[i] = readLines(tag, n=1L)
         }
@@ -634,43 +634,43 @@ inla.internal.experimental.mode = FALSE
                 summ = inla.read.binary.file(paste(file, .Platform$file.sep,"summary.dat", sep=""))[-1L]
                 if (first.time)
                     col.nam = c("mean","sd")
-            
-                ##read quantiles if existing
-                if (length(grep("^quantiles.dat$", dir.fix))>0L) {
+                
+                ## read quantiles if existing
+                if (length(grep("^quantiles.dat$", dir.fix)) > 0L) {
                     qq = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "quantiles.dat", sep="")),
-                            debug=debug)
+                                               debug=debug)
                     summ = c(summ, qq[, 2L])
                     if (first.time)
                         col.nam = c(col.nam, paste(as.character(qq[, 1L]),"quant", sep=""))
                 }
 
-                ##read mode if existing
-                if (length(grep("^mode.dat$", dir.fix))>0L) {
+                ## read mode if existing
+                if (length(grep("^mode.dat$", dir.fix)) > 0L) {
                     mm = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "mode.dat", sep="")),
-                            debug=debug)
+                                               debug=debug)
                     summ = c(summ, mm[, 2L])
                     if (first.time)
                         col.nam = c(col.nam, "mode")
                 }
 
-                if (length(grep("^cdf.dat$", dir.fix))>0L) {
+                if (length(grep("^cdf.dat$", dir.fix)) > 0L) {
                     qq = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "cdf.dat", sep="")),
-                            debug=debug)
+                                               debug=debug)
                     summ = c(summ, qq[, 2L])
                     if (first.time)
                         col.nam = c(col.nam, paste(as.character(qq[, 1L]),"cdf", sep=""))
                 }
-            
-                ##read also kld distance
+                
+                ## read also kld distance
                 kld.fixed = inla.read.binary.file(paste(file, .Platform$file.sep,"symmetric-kld.dat", sep=""))[-1L]
                 summ = c(summ, kld.fixed)
                 if (first.time)
                     col.nam = c(col.nam, "kld")
                 summary.fixed = rbind(summary.fixed, summ)
 
-                ##read the marginals
+                ## read the marginals
                 xx = inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep,"marginal-densities.dat", sep="")),
-                        debug=debug)
+                                           debug=debug)
                 if (is.null(xx))
                     xx = cbind(c(NA, NA, NA), c(NA, NA, NA))
                 colnames(xx) = c("x", "y")
@@ -699,8 +699,7 @@ inla.internal.experimental.mode = FALSE
         if (length(marginals.fixed) > 0L) {
             names(marginals.fixed) = names.fixed
         }
-    }
-    else {
+    } else {
         if (debug)
             print("No fixed effects")
         names.fixed=NULL
@@ -714,8 +713,8 @@ inla.internal.experimental.mode = FALSE
     }
 
     ret = list(names.fixed=names.fixed,
-            summary.fixed= as.data.frame(summary.fixed),
-            marginals.fixed=marginals.fixed)
+               summary.fixed= as.data.frame(summary.fixed),
+               marginals.fixed=marginals.fixed)
     return(ret)
 }
 
