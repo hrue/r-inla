@@ -4022,9 +4022,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							val = inverse_hessian[ii + jj * nhyper] /
 							    sqrt(inverse_hessian[ii + ii * nhyper] * inverse_hessian[jj + jj * nhyper]);
 						}
-						fprintf(ai_par->fp_log, " %10.3f", val);
+						fprintf(ai_par->fp_log, " %7.3f", val);
 					} else {
-						fprintf(ai_par->fp_log, " %10s", "");
+						fprintf(ai_par->fp_log, " %7s", "");
 					}
 				}
 				fprintf(ai_par->fp_log, "\n");
