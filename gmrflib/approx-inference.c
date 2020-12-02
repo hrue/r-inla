@@ -834,8 +834,7 @@ int GMRFLib_ai_log_posterior(double *logdens,
 
 	GMRFLib_ENTER_ROUTINE;
 
-	run_with_omp = (GMRFLib_openmp->max_threads_inner > 1 ? 1 : 0);
-
+	run_with_omp = (GMRFLib_MAX_THREADS > 1);
 	n = graph->n;
 	xx = Calloc(n, double);				       /* xx = x - mean */
 
