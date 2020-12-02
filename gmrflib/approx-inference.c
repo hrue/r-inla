@@ -3922,7 +3922,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			if (eigv < 0.0) {
 				fprintf(stderr, "\n");
 				fprintf(stderr, "\t*** WARNING *** Eigenvalue %1d of the Hessian is %.6g < 0\n", i, eigv);
-				fprintf(stderr, "\t*** WARNING *** This have consequence for the accurancy of\n");
+				fprintf(stderr, "\t*** WARNING *** This have consequence for the accurancy of the hyperpar\n");
 				fprintf(stderr, "\t*** WARNING *** Continue with a diagonal Hessian.\n");
 				fprintf(stderr, "\n");
 
