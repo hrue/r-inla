@@ -3902,7 +3902,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		/*
 		 * check that the hessian is positive definite 
 		 */
-
 		double min_pos_eigenvalue = DBL_MAX;
 		for (i = 0; i < nhyper; i++) {
 			double eigv = gsl_vector_get(eigen_values, (unsigned int) i);
@@ -3923,11 +3922,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			if (eigv < 0.0) {
 				fprintf(stderr, "\n");
 				fprintf(stderr, "\t*** WARNING *** Eigenvalue %1d of the Hessian is %.6g < 0\n", i, eigv);
-				fprintf(stderr, "\t*** WARNING *** Set this eigenvalue to %.6g\n", min_pos_eigenvalue);
 				fprintf(stderr, "\t*** WARNING *** This have consequence for the accurancy of\n");
-				fprintf(stderr, "\t*** WARNING *** the approximations; please check!!!\n");
-				fprintf(stderr, "\t*** WARNING *** R-inla: Use option inla(..., control.inla = list(h = h.value), ...) \n");
-				fprintf(stderr, "\t*** WARNING *** R-inla: to chose a different  `h.value'.\n");
+				fprintf(stderr, "\t*** WARNING *** Continue with a diagonal Hessian.\n");
 				fprintf(stderr, "\n");
 
 				gsl_vector_set(eigen_values, (unsigned int) i, min_pos_eigenvalue);
@@ -3957,19 +3953,42 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				 */
 
 				fprintf(stderr,
-					"\n\t*** WARNING *** R-inla: All eigenvalues of the Hessian are negative. Go on with Hessian = Identity\n\n");
+					"\n\t*** WARNING *** R-inla: All eigenvalues of the Hessian are negative. Move on with Hessian = Identity\n\n");
 				memset(hessian, 0, ISQR(nhyper) * sizeof(double));
 				for (i = 0; i < nhyper; i++)
 					hessian[i + i * nhyper] = 1.0;
 			} else {
-				for (i = 0; i < nhyper; i++) {
-					for (j = i; j < nhyper; j++) {
-						double sum = 0.0;
-						for (k = 0; k < nhyper; k++) {
-							sum += gsl_matrix_get(eigen_vectors, i, k) * gsl_matrix_get(eigen_vectors, j, k)
-							    * gsl_vector_get(eigen_values, k);
+				// I have changed my mind. It is better to knock of all off-diagonal terms and just use the
+				// diagonal, we do not control anything about negative eigenvalue(s).
+				if (1) {
+					// new. revert back to a diagonal hessian
+					for (i = 0; i < nhyper; i++) {
+						hessian[i + i * nhyper] = DMAX(DBL_EPSILON,  hessian[i + i * nhyper]);
+						for (j = i + 1; j < nhyper; j++) {
+							hessian[i + j * nhyper] = hessian[j + i * nhyper] = 0.0;
 						}
-						hessian[i + j * nhyper] = hessian[j + i * nhyper] = sum;
+					}
+					// need the new eigenvalues/vectors for futher calculations. its easy, we just compute
+					// them again.
+					for (i = 0; i < nhyper; i++) {
+						for (j = 0; j < nhyper; j++) {
+							gsl_matrix_set(H, (size_t) i, (size_t) j, hessian[i + nhyper * j]);
+						}
+					}
+					work = gsl_eigen_symmv_alloc((size_t) nhyper);
+					gsl_eigen_symmv(H, eigen_values, eigen_vectors, work);
+					gsl_eigen_symmv_free(work);
+				} else {
+					// old 
+					for (i = 0; i < nhyper; i++) {
+						for (j = i; j < nhyper; j++) {
+							double sum = 0.0;
+							for (k = 0; k < nhyper; k++) {
+								sum += gsl_matrix_get(eigen_vectors, i, k) * gsl_matrix_get(eigen_vectors, j, k)
+									* gsl_vector_get(eigen_values, k);
+							}
+							hessian[i + j * nhyper] = hessian[j + i * nhyper] = sum;
+						}
 					}
 				}
 			}
