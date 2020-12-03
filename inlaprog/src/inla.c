@@ -26964,10 +26964,6 @@ double extra(double *theta, int ntheta, void *argument)
 					first = 0;
 				}
 			}
-			// if there is nothting to do, then break,
-			if (spde2->ntheta_used == 0)
-				break;
-			// ...so we can assume from here on, that ntheta_used > 0.
 
 			spde2->debug = 0;
 			if (!mb->fixed_mode) {
@@ -26993,7 +26989,7 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 			}
 
-			if (1) {
+			if (spde2->ntheta_used > 0 || problem[i] == NULL) {
 				/*
 				 * do a check for numerical not pos def matrix here, as its so close to being singular 
 				 */
@@ -27072,7 +27068,7 @@ double extra(double *theta, int ntheta, void *argument)
 					assert(local_count == spde2->ntheta_used);
 					val += PRIOR_EVAL(mb->f_prior[i][0], local_theta);
 				} else {
-					// normally, the mvnorm prior, defined on the _USED_ thetas!
+					// the mvnorm prior, defined on the _USED_ thetas!
 					val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
 				}
 			}
