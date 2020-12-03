@@ -19074,8 +19074,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		/*
-		 * need to read this twice. can save memory by changing the pointer from spde2_model_orig to spde2_model, like for B and M matrices and BLC. maybe
-		 * do later 
+		 * need to read this twice. can save memory by changing the pointer from spde2_model_orig to spde2_model, like
+		 * for B and M matrices and BLC. maybe do later
 		 */
 		inla_spde2_build_model(&spde2_model_orig, (const char *) spde2_prefix, (const char *) transform);
 		mb->f_model[mb->nf] = (void *) spde2_model_orig;
@@ -19146,6 +19146,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 
 			HYPER_INIT(spde2_model->theta[i], theta_initial);
+			HYPER_INIT(spde2_model_orig->theta[i], theta_initial);
 			if (mb->verbose) {
 				printf("\t\tinitialise theta[%1d]=[%g]\n", i, theta_initial);
 				printf("\t\tfixed[%1d]=[%1d]\n", i, mb->f_fixed[mb->nf][i]);
@@ -19350,6 +19351,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 
 			HYPER_INIT(spde3_model->theta[i], theta_initial);
+			HYPER_INIT(spde3_model_orig->theta[i], theta_initial);
 
 			if (mb->verbose) {
 				printf("\t\tinitialise theta[%1d]=[%g]\n", i, theta_initial);
@@ -26989,7 +26991,7 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 			}
 
-			if (spde2->ntheta_used > 0 || problem[i] == NULL) {
+			if (1) {
 				/*
 				 * do a check for numerical not pos def matrix here, as its so close to being singular 
 				 */
