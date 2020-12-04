@@ -787,7 +787,7 @@ int GMRFLib_memcheck_printf(FILE * fp)
 		fp = (fp ? fp : stdout);
 		if (!memcheck_first) {
 			for (i = -1; (i = map_vpvp_next(&memcheck_hash_table, i)) != -1;) {
-				fprintf(fp, "0x%lx %s\n", (size_t) memcheck_hash_table.contents[i].key,
+				fprintf(fp, "0x%zu %s\n", (size_t) memcheck_hash_table.contents[i].key,
 					(char *) memcheck_hash_table.contents[i].value);
 			}
 		}
