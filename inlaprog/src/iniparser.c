@@ -41,9 +41,9 @@ static void iniparser_add_entry(dictionary * d, char *sec, char *key, char *val)
 	 */
 	longkey = (char *) calloc((size_t) ((sec ? strlen(sec) : 0) + (key ? strlen(key) : 0) + LEN_INIPARSER_SEP + 1), (size_t) 1);
 	if (key != NULL) {
-		sprintf(longkey, "%s%c%s", sec, INIPARSER_SEP, key);
+		sprintf(longkey, "%s%c%s", (sec ? sec : ""), INIPARSER_SEP, key);
 	} else {
-		strcpy(longkey, sec);
+		strcpy(longkey, (sec ? sec : ""));
 	}
 
 	/*

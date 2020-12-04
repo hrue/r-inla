@@ -96,7 +96,7 @@ meshbuilder.app <- function() {
     } else if (inherits(sp, "inla.mesh.segment") || inherits(sp, "inla.mesh")) {
       coord <- sp$loc
       if (is.null(sp$crs)) {
-        crs <- CRS()
+        crs <- sp::CRS()
         crs.code <- ""
       } else {
         crs <- inla.CRS(sp$crs)
@@ -105,10 +105,10 @@ meshbuilder.app <- function() {
       code <- paste0("SpatialPoints(%%%$loc", crs.code, ")")
     } else {
       coord <- as.matrix(sp)
-      crs <- CRS()
+      crs <- sp::CRS()
       code <- "SpatialPoints(as.matrix(%%%))"
     }
-    out <- SpatialPoints(coord, crs)
+    out <- sp::SpatialPoints(coord, crs)
     attr(out, "code") <- code
     out
   }
@@ -192,161 +192,161 @@ meshbuilder.app <- function() {
     ))
   }
 
-  meshbuilder.ui <- fluidPage(
-    sidebarLayout(
-      sidebarPanel(
-        h4("Settings for inla.nonconvex.hull()"),
-        sliderInput(
+  meshbuilder.ui <- shiny::fluidPage(
+    shiny::sidebarLayout(
+      shiny::sidebarPanel(
+        shiny::h4("Settings for inla.nonconvex.hull()"),
+        shiny::sliderInput(
           inputId = "offset", label = "offsets for automatic boundaries",
           value = c(0.1, 0.3), min = 0.05, max = 2
         ),
-        h4("Settings for inla.mesh.2d()"),
-        sliderInput(
+        shiny::h4("Settings for inla.mesh.2d()"),
+        shiny::sliderInput(
           inputId = "max.edge", label = "max.edge",
           value = c(0.05, 0.5), min = 0.01, max = 2
         ),
-        sliderInput(
+        shiny::sliderInput(
           inputId = "cutoff", label = "cutoff",
           value = 0.01, min = 0, max = 0.2
         ),
-        sliderInput(
+        shiny::sliderInput(
           inputId = "min.angle", label = "min.angle",
           value = c(21, 30), min = 1, max = 35
         ),
-        hr(),
-        h4("Mesh resolution assessment"),
-        fluidRow(
-          column(
+        shiny::hr(),
+        shiny::h4("Mesh resolution assessment"),
+        shiny::fluidRow(
+          shiny::column(
             6,
-            checkboxInput("assess", label = "Active", value = FALSE),
-            uiOutput("overlay.ui"),
-            uiOutput("assess.resolution.ui")
+            shiny::checkboxInput("assess", label = "Active", value = FALSE),
+            shiny::uiOutput("overlay.ui"),
+            shiny::uiOutput("assess.resolution.ui")
           ),
-          column(
+          shiny::column(
             6,
-            checkboxInput("assess.advanced", label = "Advanced", value = FALSE),
-            uiOutput("assess.quantity.ui")
+            shiny::checkboxInput("assess.advanced", label = "Advanced", value = FALSE),
+            shiny::uiOutput("assess.quantity.ui")
           )
         ),
-        sliderInput(
+        shiny::sliderInput(
           inputId = "corr.range", label = "Spatial correlation range",
           value = 0.2, min = 0.01, max = 4
         ),
-        sliderInput(
+        shiny::sliderInput(
           inputId = "corr.nu", label = "Matern smoothness (nu)",
           value = 1, min = 0.01, max = 1
         ),
-        hr(),
-        actionButton(inputId = "plot.save", label = "Save plot"),
-        verbatimTextOutput("plot.filename"),
+        shiny::hr(),
+        shiny::actionButton(inputId = "plot.save", label = "Save plot"),
+        shiny::verbatimTextOutput("plot.filename"),
         width = 3
       ),
-      mainPanel(
-        tabsetPanel(
-          tabPanel(
+      shiny::mainPanel(
+        shiny::tabsetPanel(
+          shiny::tabPanel(
             "Input",
-            fluidRow(
-              column(
+            shiny::fluidRow(
+              shiny::column(
                 4,
-                h4("Random seed points"),
-                fluidRow(
-                  column(
+                shiny::h4("Random seed points"),
+                shiny::fluidRow(
+                  shiny::column(
                     8,
-                    sliderInput(
+                    shiny::sliderInput(
                       inputId = "input.loc.n",
                       label = "Seed points",
                       value = 10, min = 0, max = 1000
                     )
                   ),
-                  column(
+                  shiny::column(
                     4,
-                    actionButton(
+                    shiny::actionButton(
                       inputId = "update.loc",
                       label = "Generate"
                     )
                   )
                 ),
-                h4("User defined points"),
-                selectInput(
+                shiny::h4("User defined points"),
+                shiny::selectInput(
                   "boundary.loc.name",
                   label = "Boundary domain points variable name(s)",
                   multiple = TRUE,
                   choices = spatial.object.choices(TRUE),
                   selected = "RANDOM"
                 ),
-                selectInput(
+                shiny::selectInput(
                   "mesh.loc.name",
                   label = "Mesh vertex seed points variable name(s)",
                   multiple = TRUE,
                   choices = spatial.object.choices(TRUE)
                 ),
-                h4("User defined boundaries"),
-                selectInput(
+                shiny::h4("User defined boundaries"),
+                shiny::selectInput(
                   "boundary1.name",
                   label = "Inner boundary variable name(s)",
                   multiple = TRUE,
                   choices = spatial.object.choices(FALSE),
                   selected = c()
                 ),
-                selectInput(
+                shiny::selectInput(
                   "boundary2.name",
                   label = "Outer boundary variable name(s)",
                   multiple = TRUE,
                   choices = spatial.object.choices(FALSE),
                   selected = c()
                 ),
-                hr(),
-                textInput("crs.mesh", label = "Mesh CRS (experimental feature)"),
-                verbatimTextOutput("crs.strings")
+                shiny::hr(),
+                shiny::textInput("crs.mesh", label = "Mesh CRS (experimental feature)"),
+                shiny::verbatimTextOutput("crs.strings")
               ),
-              column(
+              shiny::column(
                 8,
-                plotOutput(
+                shiny::plotOutput(
                   "inputplot", height = "auto",
                   hover = "inputplot.hover"
                 )
               )
             ),
-            hr(),
-            verbatimTextOutput("input.loc.coordinates")
+            shiny::hr(),
+            shiny::verbatimTextOutput("input.loc.coordinates")
           ),
-          tabPanel(
+          shiny::tabPanel(
             "Display",
-            plotOutput(
+            shiny::plotOutput(
               "meshplot", height = "auto",
               click = "meshplot.click"
             ),
-            fluidRow(
-              column(
+            shiny::fluidRow(
+              shiny::column(
                 3,
-                tableOutput("meshmeta")
+                shiny::tableOutput("meshmeta")
               ),
-              column(
+              shiny::column(
                 3,
-                tableOutput("click.information")
+                shiny::tableOutput("click.information")
               ),
-              column(
+              shiny::column(
                 6,
-                tableOutput("field.information")
+                shiny::tableOutput("field.information")
               )
             ),
-            verbatimTextOutput("meshplot.loc.coordinates")
+            shiny::verbatimTextOutput("meshplot.loc.coordinates")
           ),
-          tabPanel(
+          shiny::tabPanel(
             "Code",
-            verbatimTextOutput("code")
+            shiny::verbatimTextOutput("code")
           ),
-          tabPanel(
+          shiny::tabPanel(
             "Debug",
-            checkboxInput(
+            shiny::checkboxInput(
               "debug.use.trace", label = "Use trace",
               value = FALSE
             ),
-            checkboxInput(
+            shiny::checkboxInput(
               "debug.use.plot.delay", label = "Use plot.delay",
               value = FALSE
             ),
-            verbatimTextOutput("debug")
+            shiny::verbatimTextOutput("debug")
           ),
           id = "panel",
           selected = "Input"
@@ -356,14 +356,14 @@ meshbuilder.app <- function() {
   )
 
   meshbuilder.server <- function(input, output, session) {
-    plot.filename <- eventReactive(c(input$plot.save), {
+    plot.filename <- shiny::eventReactive(c(input$plot.save), {
       tempfile("meshbuilder_", getwd(), ".pdf")
     })
-    output$plot.filename <- renderText({
+    output$plot.filename <- shiny::renderText({
       plot.filename()
     })
 
-    observeEvent(c(input$plot.save), {
+    shiny::observeEvent(c(input$plot.save), {
       if (input$plot.save > 0) { ## Don't save on app initialisation!
         pdf(plot.filename(), width = 4, height = 4)
         eval(meshplot.expr)
@@ -371,22 +371,22 @@ meshbuilder.app <- function() {
         plot.filename()
       }
     })
-    loc.seed <- eventReactive(c(input$update.loc), {
+    loc.seed <- shiny::eventReactive(c(input$update.loc), {
       as.integer(runif(1, min = 0, max = .Machine$integer.max))
     })
-    input.loc.crs <- reactive({
+    input.loc.crs <- shiny::reactive({
       sp <- c(boundary.loc.input(), mesh.loc.input())
       if (!is.null(sp) && (length(sp) > 0)) {
-        stopifnot(identicalCRS(sp))
+        stopifnot(sp::identicalCRS(sp))
         inla.sp_get_crs(sp[[1]])
       } else {
-        CRS()
+        sp::CRS()
       }
     })
-    loc <- reactive({
+    loc <- shiny::reactive({
       if (input$input.loc.n > 0) {
         set.seed(loc.seed())
-        out <- SpatialPoints(
+        out <- sp::SpatialPoints(
           matrix(
             runif(2 * input$input.loc.n) *
               c(diff(userinput.xlim()), diff(userinput.ylim())) +
@@ -397,7 +397,7 @@ meshbuilder.app <- function() {
         )
         attr(out, "code") <- paste0(
           "set.seed(", loc.seed(), ")\n",
-          "loc <- SpatialPoints(matrix(runif(2*", input$input.loc.n, "), ",
+          "loc <- sp::SpatialPoints(matrix(runif(2*", input$input.loc.n, "), ",
           input$input.loc.n, ", 2, byrow=TRUE))\n"
         )
       } else {
@@ -445,7 +445,7 @@ meshbuilder.app <- function() {
           seq.to.points(seq.U, delta, scale, offset = c(1.2, 0) * 2)
         )
 
-        out <- SpatialPoints(
+        out <- sp::SpatialPoints(
           matrix(
             as.vector(t(out)) *
               c(diff(userinput.xlim()), diff(userinput.ylim())) +
@@ -459,9 +459,9 @@ meshbuilder.app <- function() {
       out
     })
 
-    random.loc.usage <- reactiveValues(boundary = TRUE, mesh = FALSE)
+    random.loc.usage <- shiny::reactiveValues(boundary = TRUE, mesh = FALSE)
     observe({
-      if (isolate(debug$trace)) {
+      if (shiny::isolate(debug$trace)) {
         message(paste(
           "  input$boundary.loc.name = (",
           paste(input$boundary.loc.name, collapse = ", "),
@@ -475,7 +475,7 @@ meshbuilder.app <- function() {
       }
     })
     observe({
-      if (isolate(debug$trace)) {
+      if (shiny::isolate(debug$trace)) {
         message(paste(
           "  input$mesh.loc.name = (",
           paste(input$mesh.loc.name, collapse = ", "),
@@ -490,7 +490,7 @@ meshbuilder.app <- function() {
     })
     observe({
       random.loc.usage$boundary <- length(intersect(current$boundary.loc.name, "RANDOM")) > 0
-      if (isolate(debug$trace)) {
+      if (shiny::isolate(debug$trace)) {
         message(paste(
           "random.loc.usage$boundary =",
           random.loc.usage$boundary
@@ -499,7 +499,7 @@ meshbuilder.app <- function() {
     })
     observe({
       random.loc.usage$mesh <- length(intersect(current$mesh.loc.name, "RANDOM")) > 0
-      if (isolate(debug$trace)) {
+      if (shiny::isolate(debug$trace)) {
         message(paste(
           "random.loc.usage$mesh =",
           random.loc.usage$mesh
@@ -507,11 +507,11 @@ meshbuilder.app <- function() {
       }
     })
 
-    current <- reactiveValues(
+    current <- shiny::reactiveValues(
       boundary.loc.name = "RANDOM",
       mesh.loc.name = c()
     )
-    observeEvent(list(input$boundary.loc.name, length(input$boundary.loc.name)), {
+    shiny::observeEvent(list(input$boundary.loc.name, length(input$boundary.loc.name)), {
       tmp <- input$boundary.loc.name
       input.boundary.loc.name <- setdiff(tmp, "RANDOM")
       if (("RANDOM" %in% current$boundary.loc.name) &&
@@ -534,7 +534,7 @@ meshbuilder.app <- function() {
       }
     })
     mesh.loc.name.previous <- "RANDOM"
-    observeEvent(list(input$mesh.loc.name, length(input$mesh.loc.name)), {
+    shiny::observeEvent(list(input$mesh.loc.name, length(input$mesh.loc.name)), {
       input.mesh.loc.name <- setdiff(input$mesh.loc.name, "RANDOM")
       if (("RANDOM" %in% current$mesh.loc.name) &&
         ("RANDOM" %in% input$mesh.loc.name) &&
@@ -589,11 +589,11 @@ meshbuilder.app <- function() {
       }
       out
     }
-    boundary.loc.input <- reactive({
+    boundary.loc.input <- shiny::reactive({
       names <- setdiff(current$boundary.loc.name, "RANDOM")
       convert.globalenv.to.SpatialPoints(names)
     })
-    mesh.loc.input <- reactive({
+    mesh.loc.input <- shiny::reactive({
       names <- setdiff(current$mesh.loc.name, "RANDOM")
       convert.globalenv.to.SpatialPoints(names)
     })
@@ -611,21 +611,21 @@ meshbuilder.app <- function() {
       }
       out
     }
-    boundary1.auto <- reactive({
+    boundary1.auto <- shiny::reactive({
       loc0 <- boundary.loc()
       offset0 <- input$offset[1]
       boundary.loc.to.boundary.auto(loc0, offset0)
     })
-    boundary2.auto <- reactive({
+    boundary2.auto <- shiny::reactive({
       loc0 <- boundary.loc()
       offset0 <- input$offset[2]
       boundary.loc.to.boundary.auto(loc0, offset0)
     })
-    boundary1.input <- reactive({
+    boundary1.input <- shiny::reactive({
       names <- input$boundary1.name
       convert.globalenv.to.segments(names)
     })
-    boundary2.input <- reactive({
+    boundary2.input <- shiny::reactive({
       names <- input$boundary2.name
       convert.globalenv.to.segments(names)
     })
@@ -663,7 +663,7 @@ meshbuilder.app <- function() {
       }
       out
     }
-    boundary.loc <- reactive({
+    boundary.loc <- shiny::reactive({
       sp <- boundary.loc.input()
       out <- combine.input.loc(sp, random.loc.usage$boundary)
       if (!is.null(out)) {
@@ -671,7 +671,7 @@ meshbuilder.app <- function() {
       }
       out
     })
-    mesh.loc <- reactive({
+    mesh.loc <- shiny::reactive({
       sp <- mesh.loc.input()
       out <- combine.input.loc(sp, random.loc.usage$mesh)
       if (!is.null(out)) {
@@ -718,7 +718,7 @@ meshbuilder.app <- function() {
       attr(bnd, "code") <- code
       bnd
     }
-    boundary <- reactive({
+    boundary <- shiny::reactive({
       bnd1 <- combine.boundaries(boundary1.auto(), boundary1.input())
       bnd2 <- combine.boundaries(boundary2.auto(), boundary2.input())
       if (length(bnd1) + length(bnd2) == 0) {
@@ -733,8 +733,8 @@ meshbuilder.app <- function() {
       }
       bnd
     })
-    mesh <- reactive({
-      if (isolate(debug$trace)) message("mesh")
+    mesh <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("mesh")
       loc1 <- mesh.loc()
       bnd1 <- boundary()
       if (is.null(loc1)) {
@@ -753,7 +753,7 @@ meshbuilder.app <- function() {
         out <- NULL
         metadata$mesh <- NULL
       } else {
-        if (isolate(debug$trace)) {
+        if (shiny::isolate(debug$trace)) {
           if (inla.has_PROJ6()) {
             try(message(paste(
               "crs.mesh               =",
@@ -789,7 +789,7 @@ meshbuilder.app <- function() {
           } else {
             inla.CRS(input$crs.mesh)
           },
-          plot.delay = isolate(debug$plot.delay)
+          plot.delay = shiny::isolate(debug$plot.delay)
         )
         attr(out, "code") <- paste0(
           "mesh <- inla.mesh.2d(", loc.code, bnd.code,
@@ -813,12 +813,12 @@ meshbuilder.app <- function() {
       metadata$fine <- NULL
       out
     })
-    fine <- reactive({
+    fine <- shiny::reactive({
       if (is.null(mesh())) {
         out <- NULL
         metadata$fine <- NULL
       } else {
-        if (isolate(debug$trace)) message("fine")
+        if (shiny::isolate(debug$trace)) message("fine")
         out <- INLA::inla.mesh.2d(
           loc = mesh()$loc,
           boundary = do.call(INLA::inla.mesh.segment, INLA::inla.mesh.boundary(mesh())),
@@ -850,7 +850,7 @@ meshbuilder.app <- function() {
       out
     })
 
-    mesh.edgelengths <- reactive({
+    mesh.edgelengths <- shiny::reactive({
       m <- mesh()
       if (is.null(m)) {
         c(NA)
@@ -862,7 +862,7 @@ meshbuilder.app <- function() {
         ))
       }
     })
-    fine.edgelengths <- reactive({
+    fine.edgelengths <- shiny::reactive({
       m <- fine()
       if (is.null(m)) {
         c(NA)
@@ -875,26 +875,26 @@ meshbuilder.app <- function() {
       }
     })
 
-    mesh.proj <- reactive({
+    mesh.proj <- shiny::reactive({
       if (is.null(mesh())) {
         NULL
       } else {
         INLA::inla.mesh.projector(mesh(), dims = c(500, 500))
       }
     })
-    fine.proj <- reactive({
+    fine.proj <- shiny::reactive({
       if (is.null(fine())) {
         NULL
       } else {
         INLA::inla.mesh.projector(fine(), lattice = mesh.proj()$lattice)
       }
     })
-    mesh.spde <- reactive({
-      if (isolate(debug$trace)) message("mesh.spde")
+    mesh.spde <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("mesh.spde")
       if (is.null(mesh())) {
         NULL
       } else {
-        if (isolate(debug$trace)) message("mesh.spde!")
+        if (shiny::isolate(debug$trace)) message("mesh.spde!")
         INLA::inla.spde2.pcmatern(
           mesh(),
           alpha = input$corr.nu + 1,
@@ -903,12 +903,12 @@ meshbuilder.app <- function() {
         )
       }
     })
-    fine.spde <- reactive({
-      if (isolate(debug$trace)) message("fine.spde")
+    fine.spde <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("fine.spde")
       if (is.null(mesh())) {
         NULL
       } else {
-        if (isolate(debug$trace)) message("fine.spde!")
+        if (shiny::isolate(debug$trace)) message("fine.spde!")
         INLA::inla.spde2.pcmatern(
           fine(),
           alpha = input$corr.nu + 1,
@@ -917,71 +917,71 @@ meshbuilder.app <- function() {
         )
       }
     })
-    mesh.Q <- reactive({
-      if (isolate(debug$trace)) message("mesh.Q")
+    mesh.Q <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("mesh.Q")
       if (is.null(mesh.spde())) {
         NULL
       } else {
-        if (isolate(debug$trace)) message("mesh.Q!")
+        if (shiny::isolate(debug$trace)) message("mesh.Q!")
         INLA::inla.spde.precision(mesh.spde(), theta = log(c(input$corr.range, 1)))
       }
     })
-    fine.Q <- reactive({
-      if (isolate(debug$trace)) message("fine.Q")
+    fine.Q <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("fine.Q")
       if (is.null(fine.spde())) {
         NULL
       } else {
-        if (isolate(debug$trace)) message("fine.Q!")
+        if (shiny::isolate(debug$trace)) message("fine.Q!")
         INLA::inla.spde.precision(fine.spde(), theta = log(c(input$corr.range, 1)))
       }
     })
-    mesh.S <- reactive({
-      if (isolate(debug$trace)) message("mesh.S")
+    mesh.S <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("mesh.S")
       if (is.null(mesh.Q())) {
         NULL
       } else {
-        if (isolate(debug$trace)) message("mesh.S!")
+        if (shiny::isolate(debug$trace)) message("mesh.S!")
         INLA::inla.qinv(mesh.Q(), reordering = INLA::inla.reorderings())
       }
     })
-    fine.S <- reactive({
-      if (isolate(debug$trace)) message("fine.S")
+    fine.S <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("fine.S")
       if (is.null(fine.Q())) {
         NULL
       } else {
-        if (isolate(debug$trace)) message("fine.S!")
+        if (shiny::isolate(debug$trace)) message("fine.S!")
         INLA::inla.qinv(fine.Q(), reordering = INLA::inla.reorderings())
       }
     })
-    mesh.sd <- reactive({
-      if (isolate(debug$trace)) message("mesh.sd")
+    mesh.sd <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("mesh.sd")
       if (is.null(mesh.S())) {
-        if (isolate(debug$trace)) message("mesh.sd: NULL")
+        if (shiny::isolate(debug$trace)) message("mesh.sd: NULL")
         NULL
       } else {
-        if (isolate(debug$trace)) message("mesh.sd!")
+        if (shiny::isolate(debug$trace)) message("mesh.sd!")
         proj <- mesh.proj()
         v <- Matrix::rowSums(proj$proj$A * (proj$proj$A %*% mesh.S()))
         v[!proj$proj$ok] <- NA
         matrix(v ^ 0.5, length(proj$x), length(proj$y))
       }
     })
-    fine.sd <- reactive({
-      if (isolate(debug$trace)) message("fine.sd")
+    fine.sd <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("fine.sd")
       if (is.null(fine.S())) {
         NULL
       } else {
-        if (isolate(debug$trace)) message("fine.sd!")
+        if (shiny::isolate(debug$trace)) message("fine.sd!")
         proj <- fine.proj()
         v <- Matrix::rowSums(proj$proj$A * (proj$proj$A %*% fine.S()))
         v[!proj$proj$ok] <- NA
         matrix(v ^ 0.5, length(proj$x), length(proj$y))
       }
     })
-    mesh.sd.deviation.approx <- reactive({
-      if (isolate(debug$trace)) message("mesh.sd.deviation.approx")
+    mesh.sd.deviation.approx <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("mesh.sd.deviation.approx")
       if (is.null(mesh.sd()) || is.null(mesh.proj())) {
-        if (isolate(debug$trace)) message("mesh.sd.deviation.approx: NULL")
+        if (shiny::isolate(debug$trace)) message("mesh.sd.deviation.approx: NULL")
         NULL
       } else {
         val0 <- mesh.sd()
@@ -997,10 +997,10 @@ meshbuilder.app <- function() {
         )
       }
     })
-    fine.sd.deviation.approx <- reactive({
-      if (isolate(debug$trace)) message("fine.sd.deviation.approx")
+    fine.sd.deviation.approx <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("fine.sd.deviation.approx")
       if (is.null(fine.sd()) || is.null(fine.proj())) {
-        if (isolate(debug$trace)) message("fine.sd.deviation.approx: NULL")
+        if (shiny::isolate(debug$trace)) message("fine.sd.deviation.approx: NULL")
         NULL
       } else {
         val0 <- fine.sd()
@@ -1017,55 +1017,55 @@ meshbuilder.app <- function() {
       }
     })
 
-    mesh.sd.bound <- reactive({
-      if (isolate(debug$trace)) message("mesh.sd.bound")
+    mesh.sd.bound <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("mesh.sd.bound")
       if (is.null(mesh.S())) {
         NULL
       } else {
-        if (isolate(debug$trace)) message("mesh.sd.bound!")
+        if (shiny::isolate(debug$trace)) message("mesh.sd.bound!")
         proj <- mesh.proj()
         INLA::inla.mesh.project(proj, field = diag(mesh.S()) ^ 0.5)
       }
     })
-    fine.sd.bound <- reactive({
-      if (isolate(debug$trace)) message("fine.sd.bound")
+    fine.sd.bound <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("fine.sd.bound")
       if (is.null(fine.S())) {
         NULL
       } else {
-        if (isolate(debug$trace)) message("fine.sd.bound!")
+        if (shiny::isolate(debug$trace)) message("fine.sd.bound!")
         proj <- fine.proj()
         INLA::inla.mesh.project(proj, field = diag(fine.S()) ^ 0.5)
       }
     })
-    mesh.corr <- reactive({
-      if (isolate(debug$trace)) message("mesh.corr")
+    mesh.corr <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("mesh.corr")
       if (is.null(mesh.sd()) || is.null(meshplot.A.mesh()) ||
         is.null(click.information()) || is.null(mesh.proj())) {
-        if (isolate(debug$trace)) message("mesh.corr: NULL")
+        if (shiny::isolate(debug$trace)) message("mesh.corr: NULL")
         NULL
       } else {
-        if (isolate(debug$trace)) message("mesh.corr!")
+        if (shiny::isolate(debug$trace)) message("mesh.corr!")
         A <- meshplot.A.mesh()
         s <- click.information()
         proj <- mesh.proj()
-        if (isolate(debug$trace)) {
+        if (shiny::isolate(debug$trace)) {
           print(str(A))
           print(str(s))
           print(str(proj))
         }
         corr <- proj$proj$A %*% as.vector(inla.qsolve(mesh.Q(), t(A)))
         out <- matrix(corr, length(proj$x), length(proj$y)) / mesh.sd() / s["SD", "Mesh"]
-        if (isolate(debug$trace)) message("mesh.corr: end")
+        if (shiny::isolate(debug$trace)) message("mesh.corr: end")
         out
       }
     })
-    fine.corr <- reactive({
-      if (isolate(debug$trace)) message("fine.corr")
+    fine.corr <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("fine.corr")
       if (is.null(fine.sd()) || is.null(meshplot.A.fine()) ||
         is.null(click.information) || is.null(fine.proj())) {
         NULL
       } else {
-        if (isolate(debug$trace)) message("fine.corr!")
+        if (shiny::isolate(debug$trace)) message("fine.corr!")
         A <- meshplot.A.fine()
         s <- click.information()
         proj <- fine.proj()
@@ -1074,10 +1074,10 @@ meshbuilder.app <- function() {
       }
     })
 
-    axis.infos <- reactiveValues(offset = NULL, max.edge = NULL, cutoff = NULL, corr.range = NULL)
-    axis.update <- reactiveValues(offset = FALSE, max.edge = FALSE, cutoff = FALSE, corr.range = FALSE)
-    observeEvent(c(input$offset, limits$input.xlim, limits$input$ylim), {
-      if (isolate(debug$trace)) message("Observe offset limit recalculation")
+    axis.infos <- shiny::reactiveValues(offset = NULL, max.edge = NULL, cutoff = NULL, corr.range = NULL)
+    axis.update <- shiny::reactiveValues(offset = FALSE, max.edge = FALSE, cutoff = FALSE, corr.range = FALSE)
+    shiny::observeEvent(c(input$offset, limits$input.xlim, limits$input$ylim), {
+      if (shiny::isolate(debug$trace)) message("Observe offset limit recalculation")
       val <- input$offset
       new.info <- pretty.axis.info(
         range(c(
@@ -1086,20 +1086,20 @@ meshbuilder.app <- function() {
           diff(limits$input.ylim) / 5
         )),
         val,
-        isolate(debug$trace)
+        shiny::isolate(debug$trace)
       )
-      if (isolate(debug$trace)) {
+      if (shiny::isolate(debug$trace)) {
         print(axis.infos$offset$lim)
         print(new.info$lim)
       }
       axis.update$offset <- !identical(axis.infos$offset, new.info)
-      if (isolate(debug$trace)) message(paste("Update offset", axis.update$offset))
+      if (shiny::isolate(debug$trace)) message(paste("Update offset", axis.update$offset))
       if (axis.update$offset) {
         axis.infos$offset <- new.info
       }
     })
-    observeEvent(c(input$max.edge, limits$input.xlim, limits$input.ylim), {
-      if (isolate(debug$trace)) message("Observe max.edge limit recalculation")
+    shiny::observeEvent(c(input$max.edge, limits$input.xlim, limits$input.ylim), {
+      if (shiny::isolate(debug$trace)) message("Observe max.edge limit recalculation")
       val <- input$max.edge
       new.info <- pretty.axis.info(
         range(c(
@@ -1108,20 +1108,20 @@ meshbuilder.app <- function() {
           diff(limits$input.ylim) / 5
         )),
         val,
-        isolate(debug$trace)
+        shiny::isolate(debug$trace)
       )
       axis.update$max.edge <- !identical(axis.infos$max.edge, new.info)
       if (axis.update$max.edge) {
         axis.infos$max.edge <- new.info
       }
     })
-    observeEvent(c(input$cutoff, input$max.edge), {
-      if (isolate(debug$trace)) message("Observe cutoff limit recalculation")
+    shiny::observeEvent(c(input$cutoff, input$max.edge), {
+      if (shiny::isolate(debug$trace)) message("Observe cutoff limit recalculation")
       val <- min(input$cutoff, input$max.edge[1])
       new.info <- pretty.axis.info(
         range(c(val, input$max.edge[1])),
         val,
-        isolate(debug$trace)
+        shiny::isolate(debug$trace)
       )
       new.info$lim[2] <- min(new.info$lim[2], input$max.edge[1])
       axis.update$cutoff <- !identical(axis.infos$cutoff, new.info)
@@ -1129,8 +1129,8 @@ meshbuilder.app <- function() {
         axis.infos$cutoff <- new.info
       }
     })
-    observeEvent(c(input$corr.range, limits$input.xlim, limits$input.ylim), {
-      if (isolate(debug$trace)) message("Observe corr.range limit recalculation")
+    shiny::observeEvent(c(input$corr.range, limits$input.xlim, limits$input.ylim), {
+      if (shiny::isolate(debug$trace)) message("Observe corr.range limit recalculation")
       val <- input$corr.range
       new.info <- pretty.axis.info(
         range(c(
@@ -1139,79 +1139,79 @@ meshbuilder.app <- function() {
           diff(limits$input.ylim) / 5
         )),
         val,
-        isolate(debug$trace)
+        shiny::isolate(debug$trace)
       )
       axis.update$corr.range <- !identical(axis.infos$corr.range, new.info)
       if (axis.update$corr.range) {
         axis.infos$corr.range <- new.info
       }
     })
-    observeEvent(axis.update$offset, {
-      if (isolate(debug$trace)) message(paste("Observe offset limit update", axis.update$offset))
+    shiny::observeEvent(axis.update$offset, {
+      if (shiny::isolate(debug$trace)) message(paste("Observe offset limit update", axis.update$offset))
       if (axis.update$offset) {
         axis.update$offset <- FALSE
         info <- axis.infos$offset
         new.val <- pretty.axis.value(info, input$offset)
-        if (isolate(debug$trace)) {
+        if (shiny::isolate(debug$trace)) {
           print(paste("Old values", paste(input$offset, collapse = ", ")))
           print(paste("New limits", paste(info$lim, collapse = ", ")))
           print(paste("New values", paste(new.val, collapse = ", ")))
         }
-        updateSliderInput(
+        shiny::updateSliderInput(
           session, "offset",
           min = info$lim[1], max = info$lim[2],
           step = info$step, value = new.val
         )
       }
     }, priority = 10)
-    observeEvent(axis.update$max.edge, {
-      if (isolate(debug$trace)) message(paste("Observe max.edge limit update", axis.update$max.edge))
+    shiny::observeEvent(axis.update$max.edge, {
+      if (shiny::isolate(debug$trace)) message(paste("Observe max.edge limit update", axis.update$max.edge))
       if (axis.update$max.edge) {
         axis.update$max.edge <- FALSE
         info <- axis.infos$max.edge
         new.val <- pretty.axis.value(info, input$max.edge)
-        if (isolate(debug$trace)) {
+        if (shiny::isolate(debug$trace)) {
           print(paste("Old values", paste(input$max.edge, collapse = ", ")))
           print(paste("New limits", paste(info$lim, collapse = ", ")))
           print(paste("New values", paste(new.val, collapse = ", ")))
         }
-        updateSliderInput(
+        shiny::updateSliderInput(
           session, "max.edge",
           min = info$lim[1], max = info$lim[2],
           step = info$step, value = new.val
         )
       }
     }, priority = 9)
-    observeEvent(c(axis.update$cutoff, input$cutoff, input$max.edge), {
-      if (isolate(debug$trace)) message(paste("Observe cutoff limit update", axis.update$cutoff))
+    shiny::observeEvent(c(axis.update$cutoff, input$cutoff, input$max.edge), {
+      if (shiny::isolate(debug$trace)) message(paste("Observe cutoff limit update", axis.update$cutoff))
       if (axis.update$cutoff || (input$cutoff > input$max.edge[1])) {
         axis.update$cutoff <- FALSE
         info <- axis.infos$cutoff
         new.val <- pretty.axis.value(info, min(input$cutoff, input$max.edge[1]))
-        if (isolate(debug$trace)) {
+        if (shiny::isolate(debug$trace)) {
           print(paste("Old values", paste(input$cutoff, collapse = ", ")))
           print(paste("New limits", paste(info$lim, collapse = ", ")))
           print(paste("New values", paste(new.val, collapse = ", ")))
         }
-        updateSliderInput(
+        shiny::updateSliderInput(
           session, "cutoff",
           min = info$lim[1], max = info$lim[2],
           step = info$step, value = new.val
         )
       }
     }, priority = 8)
-    observeEvent(axis.update$corr.range, {
-      if (isolate(debug$trace)) message(paste("Observe corr.range limit update", axis.update$corr.range))
+    shiny::observeEvent(axis.update$corr.range, {
+      if (shiny::isolate(debug$trace)) message(paste("Observe corr.range limit update", axis.update$corr.range))
       if (axis.update$corr.range) {
         axis.update$corr.range <- FALSE
         info <- axis.infos$corr.range
         new.val <- pretty.axis.value(info, input$corr.range)
-        if (isolate(debug$trace)) {
+        if (shiny::isolate(debug$trace)) {
           print(paste("Old values", paste(input$corr.range, collapse = ", ")))
           print(paste("New limits", paste(info$lim, collapse = ", ")))
           print(paste("New values", paste(new.val, collapse = ", ")))
         }
-        updateSliderInput(
+        shiny::updateSliderInput(
           session, "corr.range",
           min = info$lim[1], max = info$lim[2],
           step = info$step, value = new.val
@@ -1219,11 +1219,11 @@ meshbuilder.app <- function() {
       }
     }, priority = 7)
 
-    metadata <- reactiveValues(
+    metadata <- shiny::reactiveValues(
       mesh = NULL,
       fine = NULL
     )
-    meshmeta <- reactive({
+    meshmeta <- shiny::reactive({
       m1 <- m2 <- NULL
       if (!is.null(metadata$mesh)) {
         m1 <- rbind(metadata$mesh)
@@ -1240,22 +1240,22 @@ meshbuilder.app <- function() {
       out
     })
 
-    observeEvent(c(input$assess.quantity, input$assess.resolution), {
+    shiny::observeEvent(c(input$assess.quantity, input$assess.resolution), {
       if (!is.null(input$assess.quantity)) {
         if (input$assess.quantity == "deviation.approx") {
           if (input$assess.resolution == "rel") {
-            updateRadioButtons(session, "assess.resolution", selected = "mesh")
+            shiny::updateRadioButtons(session, "assess.resolution", selected = "mesh")
           }
         } else
         if (input$assess.quantity == "deviation") {
-          updateRadioButtons(session, "assess.quantity", selected = "sd")
-          updateRadioButtons(session, "assess.resolution", selected = "rel")
+          shiny::updateRadioButtons(session, "assess.quantity", selected = "sd")
+          shiny::updateRadioButtons(session, "assess.resolution", selected = "rel")
         }
       }
     }, priority = 10)
 
     output$assess.quantity.ui <- renderUI({
-      sel <- isolate(input$assess.quantity)
+      sel <- shiny::isolate(input$assess.quantity)
       default <- 1
       choices <- list(
         "SD" = "sd",
@@ -1279,7 +1279,7 @@ meshbuilder.app <- function() {
       if (is.null(input$assess.advanced)) {
         return(NULL)
       }
-      sel <- isolate(input$overlay)
+      sel <- shiny::isolate(input$overlay)
       default <- 2
       if (input$assess.advanced) {
         choices <- list(
@@ -1305,7 +1305,7 @@ meshbuilder.app <- function() {
       if (is.null(input$assess.quantity)) {
         return(NULL)
       }
-      sel <- isolate(input$assess.resolution)
+      sel <- shiny::isolate(input$assess.resolution)
       default <- 1
       if (input$assess.advanced) {
         if (input$assess.quantity == "corr") {
@@ -1334,11 +1334,11 @@ meshbuilder.app <- function() {
     })
 
     meshplot.expr <- quote({
-      if (isolate(debug$trace)) message("meshplot.expr")
+      if (shiny::isolate(debug$trace)) message("meshplot.expr")
       col <- colorRampPalette(c("blue", "white", "red"))
       n.col <- 1 + 64
       if (!input$assess && !is.null(mesh())) {
-        if (isolate(debug$trace)) message("meshplot.expr: basic")
+        if (shiny::isolate(debug$trace)) message("meshplot.expr: basic")
         zlim <- c(0.5, 1.5)
         ##                fields::image.plot(mesh.proj()$x, mesh.proj()$y,
         ##                                   matrix(0, length(mesh.proj()$x), length(mesh.proj()$y)),
@@ -1356,7 +1356,7 @@ meshbuilder.app <- function() {
         )
         plot(mesh(), add = TRUE)
       } else if (input$assess) {
-        if (isolate(debug$trace)) {
+        if (shiny::isolate(debug$trace)) {
           message("meshplot.expr: assess")
           message(paste("meshplot.expr: assess.quantity", input$assess.quantity))
           message(paste("meshplot.expr: assess.resolution", input$assess.resolution))
@@ -1459,11 +1459,11 @@ meshbuilder.app <- function() {
           points(clicks$meshplot.loc, col = 2)
         }
         if ("mesh" %in% input$overlay) {
-          if (isolate(debug$trace)) message("meshplot.expr: mesh overlay")
+          if (shiny::isolate(debug$trace)) message("meshplot.expr: mesh overlay")
           plot(mesh(), add = TRUE)
         }
         if ("fine" %in% input$overlay) {
-          if (isolate(debug$trace)) message("meshplot.expr: fine overlay")
+          if (shiny::isolate(debug$trace)) message("meshplot.expr: fine overlay")
           plot(fine(), add = TRUE)
         }
       }
@@ -1472,7 +1472,7 @@ meshbuilder.app <- function() {
     output$meshplot <-
       renderPlot(meshplot.expr, quoted = TRUE, height = 1000, units = "px")
 
-    userinput.xlim <- reactive({
+    userinput.xlim <- shiny::reactive({
       lim1 <- if (is.null(boundary.loc.input())) {
         NA
       } else {
@@ -1525,7 +1525,7 @@ meshbuilder.app <- function() {
       }
       r
     })
-    userinput.ylim <- reactive({
+    userinput.ylim <- shiny::reactive({
       lim1 <- if (is.null(boundary.loc.input())) {
         NA
       } else {
@@ -1579,7 +1579,7 @@ meshbuilder.app <- function() {
       r
     })
 
-    limits <- reactiveValues(
+    limits <- shiny::reactiveValues(
       input.xlim = c(0, 1),
       input.ylim = c(0, 1),
       inputplot.xlim = c(0, 1),
@@ -1619,7 +1619,7 @@ meshbuilder.app <- function() {
       limits$inputplot.ylim <- limits$input.ylim + c(-1, 1) * input$offset[2]
     })
 
-    xlim <- reactive({
+    xlim <- shiny::reactive({
       lim1 <- if (is.null(mesh())) NA else range(mesh()$loc[, 1], na.rm = TRUE)
       r <- c(lim1)
       if (all(is.na(r))) {
@@ -1629,7 +1629,7 @@ meshbuilder.app <- function() {
       }
       r
     })
-    ylim <- reactive({
+    ylim <- shiny::reactive({
       lim1 <- if (is.null(mesh())) NA else range(mesh()$loc[, 2], na.rm = TRUE)
       r <- lim1
       if (all(is.na(r))) {
@@ -1666,26 +1666,26 @@ meshbuilder.app <- function() {
       meshmeta()
     }, digits = 3, rownames = TRUE)
 
-    clicks <- reactiveValues(meshplot.loc = NULL)
-    observeEvent(input$meshplot.click, {
-      if (isolate(debug$trace)) message("meshplot.loc")
+    clicks <- shiny::reactiveValues(meshplot.loc = NULL)
+    shiny::observeEvent(input$meshplot.click, {
+      if (shiny::isolate(debug$trace)) message("meshplot.loc")
       if (is.null(input$meshplot.click)) {
         clicks$meshplot.loc <- NULL
       } else {
         clicks$meshplot.loc <- cbind(input$meshplot.click$x, input$meshplot.click$y)
       }
-      if (isolate(debug$trace)) {
+      if (shiny::isolate(debug$trace)) {
         message(paste(
           "meshplot.loc: meshplot.loc =",
           paste(clicks$meshplot.loc, collapse = ", ")
         ))
       }
     })
-    meshplot.A.mesh <- reactive({
-      if (isolate(debug$trace)) message("meshplot.A.mesh")
+    meshplot.A.mesh <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("meshplot.A.mesh")
       A <- NULL
       if (input$assess && !is.null(clicks$meshplot.loc) && !is.null(mesh())) {
-        if (isolate(debug$trace)) {
+        if (shiny::isolate(debug$trace)) {
           message(paste(
             "meshplot.A.mesh:",
             paste0(
@@ -1701,11 +1701,11 @@ meshbuilder.app <- function() {
       }
       A
     })
-    meshplot.A.fine <- reactive({
-      if (isolate(debug$trace)) message("meshplot.A.fine")
+    meshplot.A.fine <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("meshplot.A.fine")
       A <- NULL
       if (input$assess && !is.null(clicks$meshplot.loc) && !is.null(fine())) {
-        if (isolate(debug$trace)) {
+        if (shiny::isolate(debug$trace)) {
           message(paste(
             "meshplot.A.fine:",
             paste0(
@@ -1722,15 +1722,15 @@ meshbuilder.app <- function() {
       A
     })
 
-    click.information <- reactive({
-      if (isolate(debug$trace)) message("click.information")
+    click.information <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("click.information")
       if (input$assess.advanced) {
         if (is.null(clicks$meshplot.loc) ||
           is.null(meshplot.A.mesh()) ||
           is.null(meshplot.A.fine())) {
           out <- rbind(cbind(NA, NA, NA), cbind(NA, NA, NA), cbind(NA, NA, NA))
         } else {
-          if (isolate(debug$trace)) message("click.information!")
+          if (shiny::isolate(debug$trace)) message("click.information!")
           A.mesh <- meshplot.A.mesh()
           A.fine <- meshplot.A.fine()
           sd.bound.mesh <- as.vector(A.mesh %*% diag(mesh.S()) ^ 0.5)
@@ -1759,7 +1759,7 @@ meshbuilder.app <- function() {
           is.null(meshplot.A.mesh())) {
           out <- rbind(NA, NA, NA)
         } else {
-          if (isolate(debug$trace)) message("click.information!")
+          if (shiny::isolate(debug$trace)) message("click.information!")
           A.mesh <- meshplot.A.mesh()
           sd.bound.mesh <- as.vector(A.mesh %*% diag(mesh.S()) ^ 0.5)
           sd.mesh <- Matrix::rowSums(A.mesh * (A.mesh %*% mesh.S())) ^ 0.5
@@ -1771,12 +1771,12 @@ meshbuilder.app <- function() {
       }
       out
     })
-    SD.information <- reactive({
-      if (isolate(debug$trace)) message("SD.information")
+    SD.information <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("SD.information")
       if (!input$assess) {
         NULL
       } else {
-        if (isolate(debug$trace)) message("SD.information!")
+        if (shiny::isolate(debug$trace)) message("SD.information!")
         if (input$assess.advanced) {
           out <- matrix(NA, 3, 5)
         } else {
@@ -1813,12 +1813,12 @@ meshbuilder.app <- function() {
         out
       }
     })
-    corr.information <- reactive({
-      if (isolate(debug$trace)) message("corr.information")
+    corr.information <- shiny::reactive({
+      if (shiny::isolate(debug$trace)) message("corr.information")
       if (!input$assess) {
         NULL
       } else {
-        if (isolate(debug$trace)) message("corr.information!")
+        if (shiny::isolate(debug$trace)) message("corr.information!")
         if (input$assess.advanced) {
           out <- matrix(NA, 3, 5)
         } else {
@@ -1869,7 +1869,7 @@ meshbuilder.app <- function() {
       }
     }, digits = 3, rownames = TRUE)
 
-    output$code <- renderText({
+    output$code <- shiny::renderText({
       out <- "## Generated by meshbuilder()\n\n"
       spacing <- ""
       if (random.loc.usage$boundary || random.loc.usage$mesh) {
@@ -1926,7 +1926,7 @@ meshbuilder.app <- function() {
       out
     })
 
-    output$crs.strings <- renderText({
+    output$crs.strings <- shiny::renderText({
       add_wkt <- function(crs_list, x) {
         crs <- inla.sp_get_crs(x)
         wkt <- inla.crs_get_wkt(crs)
@@ -1951,7 +1951,7 @@ meshbuilder.app <- function() {
       out
     })
 
-    output$input.loc.coordinates <- renderText({
+    output$input.loc.coordinates <- shiny::renderText({
       xy_str <- function(e) {
         if (is.null(e)) {
           "NULL\n"
@@ -1961,7 +1961,7 @@ meshbuilder.app <- function() {
       }
       paste0(xy_str(input$inputplot.hover))
     })
-    output$meshplot.loc.coordinates <- renderText({
+    output$meshplot.loc.coordinates <- shiny::renderText({
       xy_str <- function(e) {
         if (is.null(e)) {
           "NULL\n"
@@ -1975,7 +1975,7 @@ meshbuilder.app <- function() {
 
 
 
-    debug <- reactiveValues(trace = FALSE, plot.delay = NULL)
+    debug <- shiny::reactiveValues(trace = FALSE, plot.delay = NULL)
     observe({
       if (input$debug.use.trace) {
         debug$trace <- TRUE
@@ -1991,7 +1991,7 @@ meshbuilder.app <- function() {
       }
     })
 
-    output$debug <- renderText({
+    output$debug <- shiny::renderText({
       out <- paste0("boundary.loc.name: ", current$boundary.loc.name)
       out <- paste0(
         out, "\n",
@@ -2017,7 +2017,7 @@ meshbuilder.app <- function() {
     })
   }
 
-  shinyApp(ui = meshbuilder.ui, server = meshbuilder.server)
+  shiny::shinyApp(ui = meshbuilder.ui, server = meshbuilder.server)
 }
 
 
@@ -2036,7 +2036,6 @@ meshbuilder.app <- function() {
 #' meshbuilder()
 #' }
 #' @export
-#' @import shiny
 
 meshbuilder <- function() {
   requireNamespace("fields")

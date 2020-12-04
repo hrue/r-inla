@@ -27,6 +27,14 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.12.04}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Bug-fix release only
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.11.29}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{

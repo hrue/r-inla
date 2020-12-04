@@ -1655,7 +1655,7 @@ double link_special2(double x, map_arg_tp typ, void *param, double *cov)
 }
 double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov)
 {
-	double shape, ret;
+	double shape, ret = 0.0;
 	Link_param_tp *lparam = (Link_param_tp *) param;
 
 	switch (typ) {
@@ -1710,7 +1710,7 @@ double link_qweibull(double x, map_arg_tp typ, void *param, double *cov)
 {
 	Link_param_tp *lparam = (Link_param_tp *) param;
 	double alpha = map_alpha_weibull(lparam->alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double ret;
+	double ret = 0.0;
 
 	switch (typ) {
 	case INVLINK:
@@ -1783,7 +1783,7 @@ double link_qgamma(double x, map_arg_tp typ, void *param, double *cov)
 	double s = lparam->scale[lparam->idx];
 	double phi_param = map_exp(lparam->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double shape = phi_param * s;
-	double ret;
+	double ret = 0.0;
 
 	switch (typ) {
 	case INVLINK:
@@ -1827,7 +1827,7 @@ double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
 {
 	// individual link
 	Link_param_tp *lparam = (Link_param_tp *) param;
-	double q, ret;
+	double q, ret = 0.0;
 
 	switch (typ) {
 	case INVLINK:
@@ -1877,7 +1877,7 @@ double link_pqbinomial(double x, map_arg_tp typ, void *param, double *cov)
 {
 	// population link
 	Link_param_tp *lparam = (Link_param_tp *) param;
-	double q, ret;
+	double q, ret = 0.0;
 
 	switch (typ) {
 	case INVLINK:
@@ -19074,8 +19074,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		/*
-		 * need to read this twice. can save memory by changing the pointer from spde2_model_orig to spde2_model, like for B and M matrices and BLC. maybe
-		 * do later 
+		 * need to read this twice. can save memory by changing the pointer from spde2_model_orig to spde2_model, like
+		 * for B and M matrices and BLC. maybe do later
 		 */
 		inla_spde2_build_model(&spde2_model_orig, (const char *) spde2_prefix, (const char *) transform);
 		mb->f_model[mb->nf] = (void *) spde2_model_orig;
@@ -19146,6 +19146,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 
 			HYPER_INIT(spde2_model->theta[i], theta_initial);
+			HYPER_INIT(spde2_model_orig->theta[i], theta_initial);
 			if (mb->verbose) {
 				printf("\t\tinitialise theta[%1d]=[%g]\n", i, theta_initial);
 				printf("\t\tfixed[%1d]=[%1d]\n", i, mb->f_fixed[mb->nf][i]);
@@ -19350,6 +19351,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 
 			HYPER_INIT(spde3_model->theta[i], theta_initial);
+			HYPER_INIT(spde3_model_orig->theta[i], theta_initial);
 
 			if (mb->verbose) {
 				printf("\t\tinitialise theta[%1d]=[%g]\n", i, theta_initial);
@@ -26964,10 +26966,6 @@ double extra(double *theta, int ntheta, void *argument)
 					first = 0;
 				}
 			}
-			// if there is nothting to do, then break,
-			if (spde2->ntheta_used == 0)
-				break;
-			// ...so we can assume from here on, that ntheta_used > 0.
 
 			spde2->debug = 0;
 			if (!mb->fixed_mode) {
@@ -27072,7 +27070,7 @@ double extra(double *theta, int ntheta, void *argument)
 					assert(local_count == spde2->ntheta_used);
 					val += PRIOR_EVAL(mb->f_prior[i][0], local_theta);
 				} else {
-					// normally, the mvnorm prior, defined on the _USED_ thetas!
+					// the mvnorm prior, defined on the _USED_ thetas!
 					val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count_ref]);
 				}
 			}
@@ -27968,19 +27966,27 @@ double extra(double *theta, int ntheta, void *argument)
 
 		case F_R_GENERIC:
 		{
-			int n_out, nn_out, ii, ntheta;
+			int n_out, nn_out, ii, ntheta, all_fixed = 0;
+			
 			double *x_out = NULL, *xx_out = NULL, *param = NULL, log_norm_const = 0.0, log_prior = 0.0;
 			inla_rgeneric_tp *def = NULL;
 			def = (inla_rgeneric_tp *) mb->f_Qfunc_arg_orig[i];
 
 			ntheta = def->ntheta;
 			if (ntheta) {
+				all_fixed = 1;
 				param = Calloc(ntheta, double);
 				for (ii = 0; ii < ntheta; ii++) {
-					param[ii] = theta[count];
-					count++;
+					if (_NOT_FIXED(f_fixed[i][ii])) {
+						param[ii] = theta[count];
+						all_fixed = 0;
+						count++;
+					} else {
+						param[ii] = mb->f_theta[i][ii][GMRFLib_thread_id][0];
+					}
 				}
 			}
+
 #pragma omp critical
 			{
 				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, ntheta, param);
@@ -27992,7 +27998,9 @@ double extra(double *theta, int ntheta, void *argument)
 				log_prior = 0.0;
 				break;
 			case 1:
-				log_prior = (evaluate_hyper_prior ? xx_out[0] : 0.0);
+				// we need to add a check for 'all_fixed' here, as with control.mode=list(...,fixed=TRUE) will
+				// trigger all_fixed=1.
+				log_prior = (evaluate_hyper_prior && !all_fixed ? xx_out[0] : 0.0);
 				break;
 			default:
 				assert(0 == 1);
@@ -34109,7 +34117,8 @@ int main(int argc, char **argv)
 
 #define _BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
-	int i, verbose = 0, silent = 0, opt, report = 0, arg, ntt[2] = { 0, 0 }, err, enable_core_file = 0;
+	int i, verbose = 0, silent = 0, opt, report = 0, arg, ntt[2] = { 0, 0 }, err;
+	int enable_core_file = 0;		       /* allow for core files */
 	int blas_num_threads_set = 0;
 	int blas_num_threads_default = 1;
 	char *program = argv[0];
@@ -34260,7 +34269,7 @@ int main(int argc, char **argv)
 				}
 				if (!blas_num_threads_set) {
 					// this happens unless the -B option have been used already
-					GMRFLib_openmp->blas_num_threads = IMAX(1, ntt[1]);
+					GMRFLib_openmp->blas_num_threads = 1;
 				}
 
 				// there is no need to support nested on WINDOWS before PARDISO is
@@ -34402,8 +34411,7 @@ int main(int argc, char **argv)
 	case INLA_MODE_OPENMP:
 		printf("export OMP_NUM_THREADS=%1d,%1d,1; ", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 		printf("export OMP_NESTED=TRUE; ");
-		printf("export OMP_MAX_ACTIVE_LEVELS=%1d; ", (GMRFLib_openmp->max_threads_nested[0] > 1 ?
-							      GMRFLib_openmp->max_threads_nested[0] : 0));
+		printf("export OMP_MAX_ACTIVE_LEVELS=%1d; ", GMRFLib_MAX_THREADS);
 		printf("export MKL_NUM_THREADS=%1d; export OPENBLAS_NUM_THREADS=%1d;", GMRFLib_openmp->blas_num_threads,
 		       GMRFLib_openmp->blas_num_threads);
 		exit(EXIT_SUCCESS);
