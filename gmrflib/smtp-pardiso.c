@@ -681,9 +681,8 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 		store->pstore->iparm, &(store->msglvl), NULL, NULL, &(store->pstore->err_code), store->pstore->dparm);
 
 	if (debug) {
-		printf("Average number of non-zeros in L per row %.2f\n", store->pstore->iparm[17]/(double)n);
+		printf("Average number of non-zeros in L per row %.2f\n", store->pstore->iparm[17] / (double) n);
 	}
-
 	// Have to check if we need to revert back to C indexing
 	int perm_min = GMRFLib_imin_value(store->pstore->perm, n, NULL);
 	assert(perm_min == 0 || perm_min == 1);		       /* must either be C or F... */
@@ -1069,7 +1068,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 				S.static_pstores = Calloc(PSTORES_NUM, GMRFLib_pardiso_store_tp *);
 				S.busy = Calloc(PSTORES_NUM, int);
 				S.level = Calloc(PSTORES_NUM, int);
-				for(int ii = 0; ii < PSTORES_NUM; ii++) {
+				for (int ii = 0; ii < PSTORES_NUM; ii++) {
 					S.level[ii] = -1;
 				}
 				if (S.s_verbose) {
@@ -1084,15 +1083,13 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 	{
 		int lv = omp_get_level();
 		for (i = 0; i < PSTORES_NUM && !found; i++) {
-			if (!S.busy[i] &&
-			    (!(GMRFLib_openmp->adaptive) ||
-			     (GMRFLib_openmp->adaptive && (S.level[i] < 0 || lv == S.level[i])))) {
+			if (!S.busy[i] && (!(GMRFLib_openmp->adaptive) || (GMRFLib_openmp->adaptive && (S.level[i] < 0 || lv == S.level[i])))) {
 				S.busy[i] = 1;
 				S.level[i] = lv;
 				idx = i;
 				found = 1;
 			}
-				
+
 		}
 	}
 

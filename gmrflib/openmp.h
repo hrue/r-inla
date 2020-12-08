@@ -122,7 +122,7 @@ typedef struct {
 	int max_threads_outer;
 	int max_threads_inner;
 	// when this is TRUE, then do PARDISO is parallel if the function call is serial
-	int adaptive;	
+	int adaptive;
 } GMRFLib_openmp_tp;
 
 
