@@ -781,7 +781,7 @@
     }
 
     if (is.null(inla.spec$tolerance.f) || is.na(inla.spec$tolerance.f)) {
-        inla.spec$tolerance.f = inla.spec$tolerance^(3/2) ## yes.
+        inla.spec$tolerance.f = inla.spec$tolerance * 2.0
     }
     cat("tolerance.f = ", inla.spec$tolerance.f,"\n", sep = " ", file = file,  append = TRUE)
 
