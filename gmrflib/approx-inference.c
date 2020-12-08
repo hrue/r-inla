@@ -3963,7 +3963,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				if (1) {
 					// new. revert back to a diagonal hessian
 					for (i = 0; i < nhyper; i++) {
-						hessian[i + i * nhyper] = DMAX(DBL_EPSILON,  hessian[i + i * nhyper]);
+						hessian[i + i * nhyper] = DMAX(DBL_EPSILON, hessian[i + i * nhyper]);
 						for (j = i + 1; j < nhyper; j++) {
 							hessian[i + j * nhyper] = hessian[j + i * nhyper] = 0.0;
 						}
@@ -3985,7 +3985,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							double sum = 0.0;
 							for (k = 0; k < nhyper; k++) {
 								sum += gsl_matrix_get(eigen_vectors, i, k) * gsl_matrix_get(eigen_vectors, j, k)
-									* gsl_vector_get(eigen_values, k);
+								    * gsl_vector_get(eigen_values, k);
 							}
 							hessian[i + j * nhyper] = hessian[j + i * nhyper] = sum;
 						}
@@ -4655,7 +4655,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					} else {
 						weights[dens_count] = 0.0;
 					}
-					if (nhyper >= 0) izs[dens_count] = Calloc((nhyper), double);
+					if (nhyper >= 0)
+						izs[dens_count] = Calloc((nhyper), double);
 
 					for (i = 0; i < nhyper; i++) {
 						izs[dens_count][i] = z[i];
@@ -5083,8 +5084,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->
-																   cpo_manual)
+																   ai_par->cpo_manual)
 															   ? &cpodens : NULL),
 												   GMRFLib_FALSE, ii, x, bnew, c, mean, d, loglFunc,
 												   loglFunc_arg, fixed_value, graph,
@@ -5115,8 +5115,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->
-																   cpo_manual)
+																   ai_par->cpo_manual)
 															   ? &cpodens : NULL),
 												   GMRFLib_FALSE, ii, x, bnew, c, mean, d, loglFunc,
 												   loglFunc_arg, fixed_value, graph,
@@ -5270,8 +5269,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->
-																   cpo_manual)
+																   ai_par->cpo_manual)
 															   ? &cpodens : NULL),
 												   GMRFLib_FALSE, ii, x, bnew, c, mean, d, loglFunc,
 												   loglFunc_arg, fixed_value, graph,
@@ -5303,8 +5301,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									GMRFLib_thread_id = 0;
 									GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 																   ||
-																   ai_par->
-																   cpo_manual)
+																   ai_par->cpo_manual)
 															   ? &cpodens : NULL),
 												   GMRFLib_FALSE, ii, x, bnew, c, mean, d, loglFunc,
 												   loglFunc_arg, fixed_value, graph,
@@ -6944,7 +6941,8 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 		}
 	}
 
-	if (g->n >= 0) Qprior = Calloc(g->n, double);
+	if (g->n >= 0)
+		Qprior = Calloc(g->n, double);
 	for (ii = 0; ii < g->n; ii++) {
 		Qprior[ii] = Qfunc(ii, ii, NULL, Qfunc_arg) + c[ii];
 	}

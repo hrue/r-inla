@@ -64,18 +64,16 @@ static opt_dir_params_tp Opt_dir_params = {
 	NULL
 };
 
-typedef struct 
-{
+typedef struct {
 	double time_used;
 	int num_fncall;
-}
-	fncall_timing_tp;
+} fncall_timing_tp;
 
-static fncall_timing_tp fncall_timing =  {
+static fncall_timing_tp fncall_timing = {
 	0.0, 0
 };
-	
-	
+
+
 int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 		      GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
 		      char *compute,
@@ -222,7 +220,7 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 	int i, debug = 0;
 	double ffx, fx_local;
 	double tref = GMRFLib_cpu();
-	
+
 	/*
 	 * tabulate Qfunc here. store it in argument 'tagQfunc' if present, otherwise, use local storage. 
 	 */
@@ -322,7 +320,8 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 					double m_min = GMRFLib_min_value(ais->mode, G.graph->n, NULL);
 					double m_max = GMRFLib_max_value(ais->mode, G.graph->n, NULL);
 
-					fprintf(G.ai_par->fp_log, " [%.1f, %.2f]\n", DMAX(ABS(m_min), ABS(m_max)), fncall_timing.time_used / fncall_timing.num_fncall);
+					fprintf(G.ai_par->fp_log, " [%.1f, %.2f]\n", DMAX(ABS(m_min), ABS(m_max)),
+						fncall_timing.time_used / fncall_timing.num_fncall);
 					fflush(G.ai_par->fp_log);
 					fflush(stdout);	       /* helps for remote inla */
 					fflush(stderr);	       /* helps for remote inla */
@@ -1128,8 +1127,8 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 				GMRFLib_gsl_mgs(A);
 				if (G.ai_par->fp_log) {
 					fprintf(G.ai_par->fp_log, "New directions for numerical gradient\n");
-					for(size_t j = 0; j < A->size2; j++) {
-						printf("\t  dir%.2zu", j+1);
+					for (size_t j = 0; j < A->size2; j++) {
+						printf("\t  dir%.2zu", j + 1);
 					}
 					printf("\n");
 					GMRFLib_gsl_matrix_fprintf(G.ai_par->fp_log, A, "\t %6.3f");
