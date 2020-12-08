@@ -34134,7 +34134,8 @@ int main(int argc, char **argv)
 	GMRFLib_openmp->max_threads_nested = Calloc(2, int);
 	GMRFLib_openmp->max_threads_nested[0] = GMRFLib_openmp->max_threads;
 	GMRFLib_openmp->max_threads_nested[1] = 1;
-	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
+	GMRFLib_openmp->adaptive = GMRFLib_FALSE;
+	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;	
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
@@ -34254,6 +34255,12 @@ int main(int argc, char **argv)
 				for (i = 0; i < 2; i++) {
 					ntt[i] = IMAX(0, ntt[i]);
 				}
+
+				// a hidden option...
+				if (ntt[1] < 0) {
+					ntt[1] = -ntt[1];
+					GMRFLib_openmp->adaptive = GMRFLib_TRUE;
+				} 
 
 				// replace 0 with auto-values
 				if (ntt[0] == 0 && ntt[1] == 0) {

@@ -161,7 +161,6 @@ int GMRFLib_opt_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp **
 	GMRFLib_ASSERT(omp_get_thread_num() == 0, GMRFLib_ESNH);
 
 	GMRFLib_opt_f_intern(x, fx, ierr, G.ai_store, tabQfunc, bnew);
-
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)

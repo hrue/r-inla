@@ -108,11 +108,12 @@ typedef enum {
 	     ((num) == GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR ? "integrate.hyperpar" : \
 	      ((num) == GMRFLib_OPENMP_PLACES_COMBINE ? "combine" :	\
 	       ((num) == GMRFLib_OPENMP_PLACES_EXTERNAL ? "external" :	\
-		((num) == GMRFLib_OPENMP_PLACES_DEFAULT ? "default" :	\
-		 ((num) == GMRFLib_OPENMP_PLACES_NONE ? "none" : "THIS SHOULD NOT HAPPEN"))))))))))
+		 ((num) == GMRFLib_OPENMP_PLACES_DEFAULT ? "default" :	\
+		  ((num) == GMRFLib_OPENMP_PLACES_NONE ? "none" : "THIS SHOULD NOT HAPPEN"))))))))))
 
 typedef struct {
 	GMRFLib_openmp_place_tp place;
+	GMRFLib_openmp_strategy_tp strategy;
 	int max_threads;
 	int *max_threads_nested;
 	int blas_num_threads;
@@ -120,7 +121,8 @@ typedef struct {
 	// pardiso. the _inner is only relevant if nested=1.
 	int max_threads_outer;
 	int max_threads_inner;
-	GMRFLib_openmp_strategy_tp strategy;
+	// when this is TRUE, then do PARDISO is parallel if the function call is serial
+	int adaptive;	
 } GMRFLib_openmp_tp;
 
 
