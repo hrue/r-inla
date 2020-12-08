@@ -57,8 +57,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 // do not change: also inlaprog/src/libpardiso.c uses this code
 #define NOLIB_ECODE (270465)
 
-#define ADAPTIVE_NUM_THREADS IMIN(GMRFLib_MAX_THREADS, GMRFLib_openmp->max_threads_nested[1] * 4)
-
 typedef struct {
 	int verbose;
 	int s_verbose;
@@ -68,7 +66,6 @@ typedef struct {
 	int nrhs_max;
 	int parallel_reordering;
 	int *busy;
-	int *level;
 	GMRFLib_pardiso_store_tp **static_pstores;
 } GMRFLib_static_pardiso_tp;
 
@@ -81,7 +78,6 @@ GMRFLib_static_pardiso_tp S = {
 	1,						       // maximum number of rhs
 	0,						       // parallel reordering? no
 	NULL,						       // busy
-	NULL,						       // omp_get_level()
 	NULL
 };
 
@@ -384,13 +380,8 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default = Calloc(GMRFLib_PARDISO_PLEN, int);
 	s->dparm_default = Calloc(GMRFLib_PARDISO_PLEN, double);
 	s->iparm_default[0] = 0;			       /* use default values */
-
-	if (GMRFLib_openmp->adaptive) {
-		s->iparm_default[2] = IMIN(GMRFLib_MAX_THREADS, GMRFLib_openmp->max_threads_nested[1] * 4);
-	} else {
-		s->iparm_default[2] = GMRFLib_openmp->max_threads_nested[1];
-	}
-
+	s->iparm_default[2] = GMRFLib_PARDISO_MAX_NUM_THREADS;
+	
 	if (S.s_verbose) {
 		PPg("_pardiso_init(): num_threads", (double) (s->iparm_default[2]));
 	}
@@ -434,16 +425,9 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 	memcpy((void *) (store->pstore->iparm), (void *) (store->iparm_default), GMRFLib_PARDISO_PLEN * sizeof(int));
 	memcpy((void *) (store->pstore->dparm), (void *) (store->dparm_default), GMRFLib_PARDISO_PLEN * sizeof(double));
 
-	int nt;
-	if (GMRFLib_openmp->adaptive) {
-		nt = (omp_get_level() == 0 ? ADAPTIVE_NUM_THREADS : GMRFLib_openmp->max_threads_inner);
-	} else {
-		nt = GMRFLib_openmp->max_threads_inner;
-	}
-
 	store->pstore->nrhs = 0;
 	store->pstore->err_code = 0;
-	store->pstore->iparm[2] = nt;
+	store->pstore->iparm[2] = GMRFLib_PARDISO_MAX_NUM_THREADS;
 
 	switch (flag) {
 	case GMRFLib_PARDISO_FLAG_REORDER:
@@ -671,10 +655,15 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_CHOL, store);
 
 	if (debug) {
-		printf("CHOL: NUM_THREADS %d iparm[2] %d\n", omp_get_num_threads(), store->pstore->iparm[2]);
+		printf("CHOL: level %d NUM_THREADS %d iparm[2] %d\n", omp_get_level(), omp_get_num_threads(), store->pstore->iparm[2]);
 	}
 
-	omp_set_num_threads(store->pstore->iparm[2]);
+	if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
+		omp_set_num_threads(store->pstore->iparm[2]);
+	} else {
+		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
+	}
+	
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore->phase),
 		&n, store->pstore->Q->a, store->pstore->Q->ia, store->pstore->Q->ja,
 		store->pstore->perm, &(store->pstore->nrhs),
@@ -695,7 +684,7 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 		store->pstore->iperm[store->pstore->perm[i]] = i;
 	}
 
-	if (debug) {
+	if (0 && debug) {
 		for (i = 0; i < n; i++) {
 			printf("perm[%1d] = %1d | iperm[%1d] = %1d\n", i, store->pstore->perm[i], i, store->pstore->iperm[i]);
 		}
@@ -940,7 +929,6 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 				found = 1;
 				if (S.busy[i]) {
 					S.busy[i] = 0;
-					S.level[i] = -1;
 					if (S.s_verbose) {
 						printf("==> S.busy[%1d] = 1\n", i);
 						PP("S.static_pstores[i]", S.static_pstores[i]);
@@ -1060,17 +1048,12 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 		return GMRFLib_SUCCESS;
 	}
 
-	int i;
 	if (S.static_pstores == NULL) {
 #pragma omp critical
 		{
 			if (S.static_pstores == NULL) {
 				S.static_pstores = Calloc(PSTORES_NUM, GMRFLib_pardiso_store_tp *);
 				S.busy = Calloc(PSTORES_NUM, int);
-				S.level = Calloc(PSTORES_NUM, int);
-				for (int ii = 0; ii < PSTORES_NUM; ii++) {
-					S.level[ii] = -1;
-				}
 				if (S.s_verbose) {
 					printf("==> init static_pstores\n");
 				}
@@ -1081,15 +1064,12 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 	int found = 0, idx = -1, ok = 0;
 #pragma omp critical
 	{
-		int lv = omp_get_level();
-		for (i = 0; i < PSTORES_NUM && !found; i++) {
-			if (!S.busy[i] && (!(GMRFLib_openmp->adaptive) || (GMRFLib_openmp->adaptive && (S.level[i] < 0 || lv == S.level[i])))) {
+		for (int i = 0; i < PSTORES_NUM && !found; i++) {
+			if (!S.busy[i]) {
 				S.busy[i] = 1;
-				S.level[i] = lv;
 				idx = i;
 				found = 1;
 			}
-
 		}
 	}
 
@@ -1097,16 +1077,16 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 	if (S.static_pstores[idx]) {
 		if (debug) {
 			printf("%s:%1d: static_pstores...iparm[2] = %1d\n", __FILE__, __LINE__, S.static_pstores[idx]->pstore->iparm[2]);
-			printf("%s:%1d: max_threads_inner = %1d\n", __FILE__, __LINE__, GMRFLib_openmp->max_threads_inner);
+			printf("%s:%1d: level %d max_threads_nested = %1d\n", __FILE__, __LINE__, omp_get_level(), GMRFLib_openmp->max_threads_nested[1]);
 		}
-		ok = (S.static_pstores[idx]->pstore->iparm[2] >= GMRFLib_openmp->max_threads_inner);
+		ok = (S.static_pstores[idx]->pstore->iparm[2] >= GMRFLib_openmp->max_threads_nested[1]);
 	} else {
 		ok = 1;
 	}
 	if (!ok) {
 		P(S.static_pstores[idx]->pstore->iparm[2]);
-		P(GMRFLib_openmp->max_threads_inner);
-		FIXME("THIS IS NOT TRUE: iparm[2] >= threads_inner");
+		P(GMRFLib_openmp->max_threads_nested[1]);
+		FIXME("THIS IS NOT TRUE: iparm[2] >= threads_nested[1]");
 	}
 
 	if (S.static_pstores[idx] && ok) {

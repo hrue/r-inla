@@ -29226,11 +29226,14 @@ int inla_INLA(inla_tp * mb)
 	GMRFLib_openmp->strategy = mb->strategy;
 
 	if (mb->verbose) {
-		printf("\tSparse-matrix library... = [%s]\n", mb->smtp);
-		printf("\tOpenMP strategy......... = [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
-		printf("\tnum.threads............. = [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
-		printf("\tblas.num.threads........ = [%1d]\n", GMRFLib_openmp->blas_num_threads);
-		printf("\tDensity-strategy........ = [%s]\n",
+		printf("\tSparse-matrix library.... = [%s]\n", mb->smtp);
+		printf("\tOpenMP strategy.......... = [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
+		printf("\tnum.threads.............. = [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
+		if (GMRFLib_openmp->adaptive) {
+			printf("\tnum.threads (adaptive)... = [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS);
+		}
+		printf("\tblas.num.threads......... = [%1d]\n", GMRFLib_openmp->blas_num_threads);
+		printf("\tDensity-strategy......... = [%s]\n",
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 	}
 
@@ -34252,15 +34255,15 @@ int main(int argc, char **argv)
 					printf("\tRead ntt %d %d with max.threads %d\n", ntt[0], ntt[1], GMRFLib_openmp->max_threads);
 				}
 
-				for (i = 0; i < 2; i++) {
-					ntt[i] = IMAX(0, ntt[i]);
-				}
-
 				// a hidden option...
 				if (ntt[1] < 0) {
 					ntt[1] = -ntt[1];
 					GMRFLib_openmp->adaptive = GMRFLib_TRUE;
 				} 
+
+				for (i = 0; i < 2; i++) {
+					ntt[i] = IMAX(0, ntt[i]);
+				}
 
 				// replace 0 with auto-values
 				if (ntt[0] == 0 && ntt[1] == 0) {

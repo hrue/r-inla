@@ -66,7 +66,6 @@ extern double omp_get_wtime(void);
 extern double omp_get_wtick(void);
 #endif
 
-
 typedef enum {
 	GMRFLib_OPENMP_STRATEGY_SMALL = 1,
 	GMRFLib_OPENMP_STRATEGY_MEDIUM,
@@ -127,6 +126,9 @@ typedef struct {
 
 
 #define GMRFLib_MAX_THREADS (GMRFLib_openmp ? GMRFLib_openmp->max_threads : IMIN(omp_get_max_threads(), omp_get_num_procs()))
+#define GMRFLib_PARDISO_MAX_NUM_THREADS (GMRFLib_openmp->adaptive ?	\
+					 IMIN(GMRFLib_MAX_THREADS, GMRFLib_openmp->max_threads_nested[1] * 4) : \
+					 GMRFLib_openmp->max_threads_nested[1])
 
 int GMRFLib_set_blas_num_threads(int threads);
 int GMRFLib_openmp_nested_fix(void);
