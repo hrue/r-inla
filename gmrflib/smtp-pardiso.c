@@ -659,9 +659,12 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	}
 
 	if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
+		// this is the exception of the rule, as we want to run this in parallel if we are in adaptive model and
+		// level=0.
 		omp_set_num_threads(store->pstore->iparm[2]);
 	} else {
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
+		assert(GMRFLib_openmp->max_threads_inner <= store->pstore->iparm[2]);
 	}
 	
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore->phase),
@@ -854,7 +857,6 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 {
 	GMRFLib_ENTER_ROUTINE;
-	// GMRFLib_ASSERT(omp_get_num_threads() <= store->pstore->iparm[2], GMRFLib_ESNH);
 
 	assert(store->done_with_reorder == GMRFLib_TRUE);
 	assert(store->pstore->done_with_build == GMRFLib_TRUE);
