@@ -27,6 +27,19 @@
   }
 }
 
+\section{CHANGES IN VERSION 20.12.10}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added a new experimental feature for running PARDISO in parallel
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Various minor fixes and improvements
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.12.04}{
   \subsection{BUG FIXES}{
     \itemize{
