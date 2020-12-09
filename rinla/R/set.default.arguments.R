@@ -428,7 +428,7 @@
         ##:ARGUMENT: adjust.weights Logical If TRUE then just more accurate integration weights. (Default TRUE.)
         adjust.weights=TRUE,
 
-        ##:ARGUMENT: tolerance Numerical The tolerance for the optimisation of the hyperparameters. If set, this is the default value for for 'tolerance.f^(2/3)',  'tolerance.g' and  'tolerance.x'; see below.
+        ##:ARGUMENT: tolerance Numerical The tolerance for the optimisation of the hyperparameters. If set, this is the default value for for 'tolerance.f/2',  'tolerance.g' and  'tolerance.x'; see below.
         tolerance = 0.005,
 
         ##:ARGUMENT: tolerance.f Numerical The tolerance for the absolute change in the log posterior in the optimisation of the hyperparameters.

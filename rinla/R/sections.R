@@ -2,6 +2,16 @@
 
 ### Functions to write the different sections in the .ini-file
 
+`inla.text2vector` <- function(text) {
+    ## > as.numeric(unlist(strsplit("1,2,3 5", "[ ,\t]")))
+    ## [1] 1 2 3 5
+    if (is.character(text)) {
+        return (as.numeric(unlist(strsplit(text, "[ ,\t]+"))))
+    } else {
+        return (text)
+    }
+}
+
 `inla.secsep` = function(secname) 
 {
     sep = "!"
@@ -771,7 +781,7 @@
     }
 
     if (is.null(inla.spec$tolerance.f) || is.na(inla.spec$tolerance.f)) {
-        inla.spec$tolerance.f = inla.spec$tolerance^(3/2) ## yes.
+        inla.spec$tolerance.f = inla.spec$tolerance * 2.0
     }
     cat("tolerance.f = ", inla.spec$tolerance.f,"\n", sep = " ", file = file,  append = TRUE)
 
@@ -1177,6 +1187,7 @@
         }
 
         if (!is.null(args$theta)) {
+            args$theta <- inla.text2vector(args$theta)
             ## set non-finite's to 0
             args$theta[!is.finite(args$theta)] = 0
             file.theta = inla.tempfile(tmpdir=data.dir)
@@ -1198,6 +1209,7 @@
             args$x = args$result$mode$x
         }
         if (!is.null(args$x)) {
+            args$x <- inla.text2vector(args$x)
             ## set non-finite's to 0
             args$x[!is.finite(args$x)] = 0
             file.x = inla.tempfile(tmpdir=data.dir)
@@ -1334,7 +1346,7 @@
 
             for(j in 1:length(lc)) {
 
-                lc.j.name = as.character( names(lc[[j]]) )
+                lc.j.name = as.character(names(lc[[j]]))
                 lc.j = lc[[j]][[1]]
 
                 ## if $idx is not there, its default 1.

@@ -114,7 +114,7 @@ static const char GitID[] = GITCOMMIT;
 #define INTSLOPE_MAXTHETA (10L)				       /* as given in models.R */
 #define BGEV_MAXTHETA (10L)
 
-G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
+G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0 };
 
 char *keywords[] = {
 	"FIXED", "INITIAL", "PRIOR", "HYPERID", "PARAMETERS", "TO.THETA", "FROM.THETA", NULL
@@ -29226,11 +29226,14 @@ int inla_INLA(inla_tp * mb)
 	GMRFLib_openmp->strategy = mb->strategy;
 
 	if (mb->verbose) {
-		printf("\tSparse-matrix library... = [%s]\n", mb->smtp);
-		printf("\tOpenMP strategy......... = [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
-		printf("\tnum.threads............. = [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
-		printf("\tblas.num.threads........ = [%1d]\n", GMRFLib_openmp->blas_num_threads);
-		printf("\tDensity-strategy........ = [%s]\n",
+		printf("\tSparse-matrix library.... = [%s]\n", mb->smtp);
+		printf("\tOpenMP strategy.......... = [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
+		printf("\tnum.threads.............. = [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
+		if (GMRFLib_openmp->adaptive) {
+			printf("\tnum.threads (adaptive)... = [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS);
+		}
+		printf("\tblas.num.threads......... = [%1d]\n", GMRFLib_openmp->blas_num_threads);
+		printf("\tDensity-strategy......... = [%s]\n",
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 	}
 
@@ -32391,7 +32394,7 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	GMRFLib_tabulate_Qfunc_tp *tab;
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem = NULL;
-
+	
 	/*
 	 * I need B to be dense 
 	 */
@@ -32405,10 +32408,14 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = GMRFLib_REORDER_BAND;
+	} else if (GMRFLib_smtp == GMRFLib_SMTP_TAUCS) {
+		if (GMRFLib_reorder == GMRFLib_REORDER_DEFAULT) {
+			GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
+		}
 	} else {
-		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
-		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
+		assert(0 == 1);
 	}
+	
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
 	assert(problem->n == B->nrow);
 
@@ -34134,7 +34141,8 @@ int main(int argc, char **argv)
 	GMRFLib_openmp->max_threads_nested = Calloc(2, int);
 	GMRFLib_openmp->max_threads_nested[0] = GMRFLib_openmp->max_threads;
 	GMRFLib_openmp->max_threads_nested[1] = 1;
-	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
+	GMRFLib_openmp->adaptive = GMRFLib_FALSE;
+	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;	
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
@@ -34146,7 +34154,8 @@ int main(int argc, char **argv)
 	GMRFLib_init_constr_store();
 	GMRFLib_init_graph_store();
 	GMRFLib_pardiso_set_nrhs(1);
-
+	GMRFLib_reorder = G.reorder;
+	
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 
 	 */
@@ -34250,6 +34259,12 @@ int main(int argc, char **argv)
 				if (verbose > 0) {
 					printf("\tRead ntt %d %d with max.threads %d\n", ntt[0], ntt[1], GMRFLib_openmp->max_threads);
 				}
+
+				// a hidden option...
+				if (ntt[1] < 0) {
+					ntt[1] = -ntt[1];
+					GMRFLib_openmp->adaptive = GMRFLib_TRUE;
+				} 
 
 				for (i = 0; i < 2; i++) {
 					ntt[i] = IMAX(0, ntt[i]);

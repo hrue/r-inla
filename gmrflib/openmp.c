@@ -180,6 +180,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	nt = ntmax;
 	nested = 1;
 
+	GMRFLib_openmp->place = place;
 	switch (place) {
 	case GMRFLib_OPENMP_PLACES_PARSE_MODEL:
 		// this is serial section, except for _scale_model computations which

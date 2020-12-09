@@ -30,7 +30,7 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 \item{skip.configurations}{  Logical Skip configurations if the values at the main axis are to small. (Default \code{TRUE})}
 \item{mode.known}{  Logical If TRUE then no optimisation is done. (Default FALSE.)}
 \item{adjust.weights}{  Logical If TRUE then just more accurate integration weights. (Default TRUE.)}
-\item{tolerance}{  Numerical The tolerance for the optimisation of the hyperparameters. If set, this is the default value for for 'tolerance.f^(2/3)', 'tolerance.g' and 'tolerance.x'; see below.}
+\item{tolerance}{  Numerical The tolerance for the optimisation of the hyperparameters. If set, this is the default value for for 'tolerance.f/2', 'tolerance.g' and 'tolerance.x'; see below.}
 \item{tolerance.f}{  Numerical The tolerance for the absolute change in the log posterior in the optimisation of the hyperparameters.}
 \item{tolerance.g}{  Numerical The tolerance for the absolute change in the gradient of the log posterior in the optimisation of the hyperparameters.}
 \item{tolerance.x}{  Numerical The tolerance for the change in the hyperparameters (root-mean-square) in the optimisation of the hyperparameters.}

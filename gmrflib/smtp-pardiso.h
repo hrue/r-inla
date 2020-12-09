@@ -58,10 +58,8 @@ __BEGIN_DECLS
 /* 
    
  */
-
 #define GMRFLib_PARDISO_PLEN (64)
-
-typedef enum {
+    typedef enum {
 	GMRFLib_PARDISO_FLAG_REORDER = 1,
 	GMRFLib_PARDISO_FLAG_SYMFACT,
 	GMRFLib_PARDISO_FLAG_CHOL,

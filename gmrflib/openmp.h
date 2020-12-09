@@ -66,7 +66,6 @@ extern double omp_get_wtime(void);
 extern double omp_get_wtick(void);
 #endif
 
-
 typedef enum {
 	GMRFLib_OPENMP_STRATEGY_SMALL = 1,
 	GMRFLib_OPENMP_STRATEGY_MEDIUM,
@@ -108,11 +107,12 @@ typedef enum {
 	     ((num) == GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR ? "integrate.hyperpar" : \
 	      ((num) == GMRFLib_OPENMP_PLACES_COMBINE ? "combine" :	\
 	       ((num) == GMRFLib_OPENMP_PLACES_EXTERNAL ? "external" :	\
-		((num) == GMRFLib_OPENMP_PLACES_DEFAULT ? "default" :	\
-		 ((num) == GMRFLib_OPENMP_PLACES_NONE ? "none" : "THIS SHOULD NOT HAPPEN"))))))))))
+		 ((num) == GMRFLib_OPENMP_PLACES_DEFAULT ? "default" :	\
+		  ((num) == GMRFLib_OPENMP_PLACES_NONE ? "none" : "THIS SHOULD NOT HAPPEN"))))))))))
 
 typedef struct {
 	GMRFLib_openmp_place_tp place;
+	GMRFLib_openmp_strategy_tp strategy;
 	int max_threads;
 	int *max_threads_nested;
 	int blas_num_threads;
@@ -120,11 +120,16 @@ typedef struct {
 	// pardiso. the _inner is only relevant if nested=1.
 	int max_threads_outer;
 	int max_threads_inner;
-	GMRFLib_openmp_strategy_tp strategy;
+	// when this is TRUE, then do PARDISO is parallel if the function call is serial
+	int adaptive;
 } GMRFLib_openmp_tp;
 
 
 #define GMRFLib_MAX_THREADS (GMRFLib_openmp ? GMRFLib_openmp->max_threads : IMIN(omp_get_max_threads(), omp_get_num_procs()))
+// Might replace `4' in the generic pardiso control statement later (if that happens)
+#define GMRFLib_PARDISO_MAX_NUM_THREADS (GMRFLib_openmp->adaptive ?	\
+					 IMIN(GMRFLib_MAX_THREADS, GMRFLib_openmp->max_threads_nested[1] * 4) : \
+					 GMRFLib_openmp->max_threads_nested[1])
 
 int GMRFLib_set_blas_num_threads(int threads);
 int GMRFLib_openmp_nested_fix(void);
