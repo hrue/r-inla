@@ -114,7 +114,7 @@ static const char GitID[] = GITCOMMIT;
 #define INTSLOPE_MAXTHETA (10L)				       /* as given in models.R */
 #define BGEV_MAXTHETA (10L)
 
-G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, -1, 0, 0 };
+G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0 };
 
 char *keywords[] = {
 	"FIXED", "INITIAL", "PRIOR", "HYPERID", "PARAMETERS", "TO.THETA", "FROM.THETA", NULL
@@ -32394,7 +32394,7 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	GMRFLib_tabulate_Qfunc_tp *tab;
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem = NULL;
-
+	
 	/*
 	 * I need B to be dense 
 	 */
@@ -32408,11 +32408,14 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = GMRFLib_REORDER_BAND;
-	} else {
+	} else if (GMRFLib_smtp == GMRFLib_SMTP_TAUCS) {
 		if (GMRFLib_reorder == GMRFLib_REORDER_DEFAULT) {
 			GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 		}
+	} else {
+		assert(0 == 1);
 	}
+	
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
 	assert(problem->n == B->nrow);
 
@@ -34151,7 +34154,8 @@ int main(int argc, char **argv)
 	GMRFLib_init_constr_store();
 	GMRFLib_init_graph_store();
 	GMRFLib_pardiso_set_nrhs(1);
-
+	GMRFLib_reorder = G.reorder;
+	
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 
 	 */
