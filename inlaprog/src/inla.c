@@ -29127,30 +29127,24 @@ double inla_compute_saturated_loglik(int idx, GMRFLib_logl_tp * loglfunc, double
 
 double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg)
 {
-	double precs[] = { 1.0, 1.0E-1, 1.0E-2, 1.0E-4, 1.0E-8 },
-	    epss[] = { 1.0E-3, 1.0E-4, 1.0E-5, 1.0E-6, 1.0E-7 },
-	    isafefactors[] = { 4.0, 3.0, 2.0, 1.0, 1.0 }, prec, eps, safefac, x, xnew, xinit, f, deriv, dderiv, arr[3], xarr[3], steplen = 1.0e-4;
-	int niter, compute_deriv, retval, niter_max = 1000, debug = 0, stencil = 5, k, nk;
+	double precs[] = { 1.0E2, 1.0E0, 1.0E-2, 1.0E-4, 1.0E-8 },
+		epss[] = { 1.0E-2, 1.0E-4, 1.0E-6, 1.0E-8, 1.0E-10 },
+		isafefactors[] = { 8.0, 4.0, 2.0, 1.0, 1.0 };
+	double prec, eps, safefac, x, xnew, xinit, f, deriv, dderiv, arr[3], steplen = GMRFLib_eps(0.25);
+	int niter, niter_max = 50, debug = 0, stencil = 7, k, nk;
 
+	(void) loglfunc(NULL, NULL, 0, 0, NULL, NULL, NULL);
 	x = xnew = xinit = (x_vec ? x_vec[idx] : 0.0);
-	retval = loglfunc(NULL, NULL, 0, 0, NULL, NULL, NULL);
-	compute_deriv = (retval == GMRFLib_LOGL_COMPUTE_DERIVATIES || retval == GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF);
-
 	nk = ((int) sizeof(precs)) / ((int) sizeof(double));
-	for (k = 0; k < nk; k++) {
 
+	for (k = 0; k < nk; k++) {
 		prec = precs[k];
 		eps = epss[k];
 		safefac = 1.0 / isafefactors[k];
 		niter = 0;
 
 		while (1) {
-			if (compute_deriv) {
-				xarr[0] = xarr[1] = xarr[2] = x;
-				loglfunc(arr, xarr, 3, idx, x_vec, NULL, arg);
-			} else {
-				GMRFLib_2order_taylor(&arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
-			}
+			GMRFLib_2order_taylor(&arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
 			f = arr[0] - 0.5 * prec * SQR(x);
 			deriv = arr[1] - prec * x;
 			dderiv = DMIN(0.0, arr[2]) - prec;
