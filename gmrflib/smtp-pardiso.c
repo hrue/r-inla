@@ -204,7 +204,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 {
 	// create a upper triangular csr matrix from Q
 #define M (*csr)
-	int i, j, jj, k, n, na, nnz, nan_error = 0;
+	int i, j, k, n, na, nnz, nan_error = 0;
 
 	M = Calloc(1, GMRFLib_csr_tp);
 	M->base = 0;
@@ -256,7 +256,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 				}
 			}
 		} else {
-#pragma omp parallel for private(i, k, jj, j) num_threads(GMRFLib_openmp->max_threads_inner)
+#pragma omp parallel for private(i, k) num_threads(GMRFLib_openmp->max_threads_inner)
 			for (i = 0; i < n; i++) {
 				GMRFLib_thread_id = id_save;
 				double v;
