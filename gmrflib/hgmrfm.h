@@ -52,7 +52,22 @@ __BEGIN_DECLS
 /* 
  * 
  */
-    typedef struct {
+
+typedef enum {
+	GMRFLib_HGMRFM_TP_ETA = 1,
+	GMRFLib_HGMRFM_TP_F,
+	GMRFLib_HGMRFM_TP_BETA,
+	GMRFLib_HGMRFM_TP_LC,
+	GMRFLib_HGMRFM_TP___VOID = -1
+} GMRFLib_hgmrfm_type_types_tp;
+
+typedef struct {
+	GMRFLib_hgmrfm_type_types_tp tp;
+	int idx;
+	int tp_idx;
+} GMRFLib_hgmrfm_type_tp;
+
+typedef struct {
 	int n;						       /* length of the linear predictor */
 	int n_ext;					       /* length of the extended part of the linear predictor */
 	int N;						       /* grand total */
@@ -85,6 +100,8 @@ __BEGIN_DECLS
 
 	GMRFLib_graph_tp *lc_graph;
 	GMRFLib_tabulate_Qfunc_tp *lc_Q;
+
+	GMRFLib_hgmrfm_type_tp *what_type;
 } GMRFLib_hgmrfm_arg_tp;
 
 typedef struct {
@@ -109,20 +126,6 @@ typedef struct {
 	 */
 	GMRFLib_constr_tp *constr;
 } GMRFLib_hgmrfm_tp;
-
-typedef enum {
-	GMRFLib_HGMRFM_TP_ETA = 1,
-	GMRFLib_HGMRFM_TP_F,
-	GMRFLib_HGMRFM_TP_BETA,
-	GMRFLib_HGMRFM_TP_LC,
-	GMRFLib_HGMRFM_TP___VOID = -1
-} GMRFLib_hgmrfm_type_types_tp;
-
-typedef struct {
-	GMRFLib_hgmrfm_type_types_tp tp;
-	int idx;
-	int tp_idx;
-} GMRFLib_hgmrfm_type_tp;
 
 int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			int *eta_sumzero, double *logprec_unstruct, double **logprec_unstruct_omp,

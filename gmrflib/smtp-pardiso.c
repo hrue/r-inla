@@ -107,7 +107,11 @@ int GMRFLib_csr_free(GMRFLib_csr_tp ** csr)
 	if (*csr) {
 		Free((*csr)->ia);
 		Free((*csr)->ja);
-		Free((*csr)->a);
+		if ((*csr)->copy_only) {
+			// do not free
+		} else {
+			Free((*csr)->a);
+		}
 		Free(*csr);
 	}
 	return GMRFLib_SUCCESS;
@@ -124,6 +128,7 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from)
 	(*csr_to)->base = csr_from->base;
 	(*csr_to)->n = csr_from->n;
 	(*csr_to)->na = csr_from->na;
+	(*csr_to)->copy_only = csr_from->copy_only;
 
 	(*csr_to)->ia = Calloc(csr_from->n + 1, int);
 	memcpy((void *) ((*csr_to)->ia), (void *) (csr_from->ia), (size_t) (csr_from->n + 1) * sizeof(int));
@@ -131,9 +136,12 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from)
 	(*csr_to)->ja = Calloc(csr_from->na, int);
 	memcpy((void *) ((*csr_to)->ja), (void *) (csr_from->ja), (size_t) (csr_from->na) * sizeof(int));
 
-	(*csr_to)->a = Calloc(csr_from->na, double);
-	memcpy((void *) ((*csr_to)->a), (void *) (csr_from->a), (size_t) (csr_from->na) * sizeof(double));
-
+	if (csr_from->copy_only) {
+		(*csr_to)->a = csr_from->a;
+	} else {
+		(*csr_to)->a = Calloc(csr_from->na, double);
+		memcpy((void *) ((*csr_to)->a), (void *) (csr_from->a), (size_t) (csr_from->na) * sizeof(double));
+	}
 	return GMRFLib_SUCCESS;
 }
 
@@ -205,28 +213,42 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 	na = (nnz - n) / 2 + n;				       // only upper triangular. yes, integer division
 	M->na = na;
 	M->n = n;
-	M->a = Calloc(na, double);
 	M->ja = Calloc(na, int);
 	M->ia = Calloc(n + 1, int);
 
 	M->ia[0] = 0;
 	for (i = k = 0; i < n; i++) {
 		M->ja[k++] = i;
-		for (jj = 0; jj < graph->lnnbs[i]; jj++) {
-			M->ja[k++] = graph->lnbs[i][jj];       // ja[k++]=j
+		if (1) {
+			// better code
+			if (graph->lnnbs[i]) {
+				memcpy(&(M->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
+				k += graph->lnnbs[i];
+			}
+		} else {
+			// slower
+			for (jj = 0; jj < graph->lnnbs[i]; jj++) {
+				M->ja[k++] = graph->lnbs[i][jj];       // ja[k++]=j
+			}
 		}
 		M->ia[i + 1] = M->ia[i] + (1 + graph->lnnbs[i]);
 	}
 	assert(M->ia[n] == na);
 
-	// when this is true, we can just copy the whole matrix at once
+	// when this is true, we can just copy the pointer to the matrix.
 	int used_fast_tab = 0;
 	if (Qfunc == GMRFLib_tabulate_Qfunction) {
 		GMRFLib_tabulate_Qfunc_arg_tp *arg = (GMRFLib_tabulate_Qfunc_arg_tp *) Qfunc_arg;
 		if (arg->Q) {
-			memcpy(M->a, arg->Q->a, na * sizeof(double));
+			// earlier we did this: memcpy(M->a, arg->Q->a, na * sizeof(double));
+			M->a = arg->Q->a;
+			// mark this a copy only, not to be free'd.
+			M->copy_only = 1; 
 			used_fast_tab = 1;
 		}
+	}
+	if (!used_fast_tab) {
+		M->a = Calloc(na, double);
 	}
 
 	int id_save = GMRFLib_thread_id;
@@ -316,7 +338,7 @@ int GMRFLib_csr_print(FILE * fp, GMRFLib_csr_tp * csr)
 	int i, j, k, jj, nnb;
 	double value;
 
-	fprintf(fp, "Q->base = %1d, Q->n = %1d, Q->na = %1d\n", csr->base, csr->n, csr->na);
+	fprintf(fp, "Q->base = %1d, Q->n = %1d, Q->na = %1d copy_only= %1d \n", csr->base, csr->n, csr->na, csr->copy_only);
 	for (i = k = 0; i < csr->n; i++) {
 		nnb = csr->ia[i + 1] - csr->ia[i];
 		for (jj = 0; jj < nnb; jj++) {

@@ -43,6 +43,7 @@
 #endif
 #include <stdlib.h>
 #include <stdio.h>
+#include <openssl/sha.h>
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS
@@ -227,23 +228,6 @@ int GMRFLib_printbits(FILE * fp, GMRFLib_uchar c);
 int GMRFLib_setbit(GMRFLib_uchar * c, unsigned int bitno);
 int GMRFLib_xQx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_xQx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag);
-
-
-// I found this somewhere and I cannot find it again... It was under GPL, and I have modified the code to fit with inla.c.
-// can also use openssl
-
-typedef struct {
-	unsigned char data[64];
-	unsigned int datalen;
-	unsigned int bitlen[2];
-	unsigned int state[5];
-	unsigned int k[4];
-} SHA_CTX;
-#define SHA_DIGEST_LENGTH 20
-void SHA1_Transform(SHA_CTX * ctx, unsigned char data[]);
-void SHA1_Init(SHA_CTX * ctx);
-void SHA1_Update(SHA_CTX * ctx, unsigned char data[], unsigned long len);
-void SHA1_Final(unsigned char hash[], SHA_CTX * ctx);
 
 __END_DECLS
 #endif

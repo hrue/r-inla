@@ -91,6 +91,7 @@ typedef struct {
 	int *ia;
 	int *ja;
 	double *a;
+	int copy_only;
 } GMRFLib_csr_tp;
 
 typedef struct

@@ -124,6 +124,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
  *
  * \sa \c GMRFLib_free_hgmrfm()
  */
+
 int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			int *eta_sumzero, double *logprec_unstruct, double **logprec_unstruct_omp,
 			const char *Aext_fnm, double Aext_precision,
@@ -812,8 +813,11 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	arg->idx_map_beta = idx_map_beta;
 	arg->idx_map_lc = idx_map_lc;
 	arg->N = (*hgmrfm)->graph->n;
-
 	GMRFLib_ASSERT(arg->N == N, GMRFLib_ESNH);
+	arg->what_type = Calloc(N, GMRFLib_hgmrfm_type_tp);
+	for (i = 0; i < N; i++) {
+		arg->what_type[i] = GMRFLib_hgmrfm_what_type(i, arg);
+	}
 
 	Free(uniq);
 	if (nf) {
@@ -912,8 +916,10 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 	a = (GMRFLib_hgmrfm_arg_tp *) arg;
 	ii = IMIN(node, nnode);
 	jj = IMAX(node, nnode);
-	it = GMRFLib_hgmrfm_what_type(ii, a);
-	jt = GMRFLib_hgmrfm_what_type(jj, a);
+
+	// old non-caching code: it = GMRFLib_hgmrfm_what_type(ii, a); jt = GMRFLib_hgmrfm_what_type(jj, a);
+	it = a->what_type[ii];
+	jt = a->what_type[jj];
 
 	if ((ii == jj) || GMRFLib_graph_is_nb(ii, jj, a->eta_graph)) {
 		value += a->eta_Q->Qfunc(ii, jj, NULL, a->eta_Q->Qfunc_arg);
@@ -1014,6 +1020,7 @@ int GMRFLib_free_hgmrfm(GMRFLib_hgmrfm_tp * hgmrfm)
 	Free(a->idx_map_f);
 	Free(a->idx_map_beta);
 	Free(a->idx_map_lc);
+	Free(a->what_type);
 	Free(a);
 	Free(hgmrfm);
 
