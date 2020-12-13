@@ -1332,46 +1332,22 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 		double qij;
 		for (i = 0; i < graph->n; i++) {
 			result[i] += (Qfunc(i, i, NULL, Qfunc_arg) + (diag ? diag[i] : 0.0)) * x[i];
-			if (1) {
-				// better code
-				for (jj = 0; jj < graph->lnnbs[i]; jj++) {
-					j = graph->lnbs[i][jj];
-					qij = Qfunc(i, j, NULL, Qfunc_arg);
-					result[i] += qij * x[j];
-					result[j] += qij * x[i];
-				} 
-			} else {
-				for (jj = 0; jj < graph->nnbs[i]; jj++) {
-					j = graph->nbs[i][jj];
-					if (j > i) {
-						qij = Qfunc(i, j, NULL, Qfunc_arg);
-						result[i] += qij * x[j];
-						result[j] += qij * x[i];
-					}
-				}
-			}
+			for (jj = 0; jj < graph->lnnbs[i]; jj++) {
+				j = graph->lnbs[i][jj];
+				qij = Qfunc(i, j, NULL, Qfunc_arg);
+				result[i] += qij * x[j];
+				result[j] += qij * x[i];
+			} 
 		}
 	} else {
 		for (i = 0; i < graph->n; i++) {
 			res = Qfunc(i, -1, values, Qfunc_arg);
 			result[i] += (values[0] + (diag ? diag[i] : 0.0)) * x[i];
-			if (1) {
-				// better code
-				for (k = 1, jj = 0; jj < graph->lnnbs[i]; jj++) {
-					j = graph->lnbs[i][jj];
-					result[i] += values[k] * x[j];
-					result[j] += values[k] * x[i];
-					k++;
-				}
-			} else {
-				for (k = 1, jj = 0; jj < graph->nnbs[i]; jj++) {
-					j = graph->nbs[i][jj];
-					if (j > i) {
-						result[i] += values[k] * x[j];
-						result[j] += values[k] * x[i];
-						k++;
-					}
-				}
+			for (k = 1, jj = 0; jj < graph->lnnbs[i]; jj++) {
+				j = graph->lnbs[i][jj];
+				result[i] += values[k] * x[j];
+				result[j] += values[k] * x[i];
+				k++;
 			}
 		}
 	}

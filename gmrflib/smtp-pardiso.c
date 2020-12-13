@@ -219,17 +219,9 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 	M->ia[0] = 0;
 	for (i = k = 0; i < n; i++) {
 		M->ja[k++] = i;
-		if (1) {
-			// better code
-			if (graph->lnnbs[i]) {
-				memcpy(&(M->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
-				k += graph->lnnbs[i];
-			}
-		} else {
-			// slower
-			for (jj = 0; jj < graph->lnnbs[i]; jj++) {
-				M->ja[k++] = graph->lnbs[i][jj];       // ja[k++]=j
-			}
+		if (graph->lnnbs[i]) {
+			memcpy(&(M->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
+			k += graph->lnnbs[i];
 		}
 		M->ia[i + 1] = M->ia[i] + (1 + graph->lnnbs[i]);
 	}
@@ -240,7 +232,6 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 	if (Qfunc == GMRFLib_tabulate_Qfunction) {
 		GMRFLib_tabulate_Qfunc_arg_tp *arg = (GMRFLib_tabulate_Qfunc_arg_tp *) Qfunc_arg;
 		if (arg->Q) {
-			// earlier we did this: memcpy(M->a, arg->Q->a, na * sizeof(double));
 			M->a = arg->Q->a;
 			// mark this a copy only, not to be free'd.
 			M->copy_only = 1; 
