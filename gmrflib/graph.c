@@ -594,6 +594,9 @@ int GMRFLib_graph_free(GMRFLib_graph_tp * graph)
 	}
 	Free(graph->nbs);
 	Free(graph->nnbs);
+	Free(graph->lnbs);
+	Free(graph->lnnbs);
+	Free(graph->sha1);
 	Free(graph->mothergraph_idx);
 	Free(graph);
 
@@ -1044,10 +1047,8 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 	m = m - graph_old->n;
 	hold = Calloc(IMAX(1, m), int);
 	g->nbs = Calloc(n, int *);
-	g->lnbs = Calloc(n, int *);
 
 	int is_sorted = 1;
-
 	for (i = hold_idx = 0; i < n; i++) {
 		if (g->nnbs[i]) {
 			g->nbs[i] = &hold[hold_idx];
@@ -2209,10 +2210,8 @@ int GMRFLib_graph_add_sha1(GMRFLib_graph_tp * g, int skip_sha1)
 
 	IUPDATE(&(g->n), 1);
 	IUPDATE(g->nnbs, g->n);
-	IUPDATE(g->lnnbs, g->n);
 	for (int i = 0; i < g->n; i++) {
 		IUPDATE(g->nbs[i], g->nnbs[i]);
-		IUPDATE(g->lnbs[i], g->lnnbs[i]);
 	}
 	IUPDATE(g->mothergraph_idx, g->n);
 	SHA1_Final(md, &c);
