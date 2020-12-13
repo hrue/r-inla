@@ -1337,7 +1337,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 				qij = Qfunc(i, j, NULL, Qfunc_arg);
 				result[i] += qij * x[j];
 				result[j] += qij * x[i];
-			} 
+			}
 		}
 	} else {
 		for (i = 0; i < graph->n; i++) {

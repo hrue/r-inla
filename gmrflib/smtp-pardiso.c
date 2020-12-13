@@ -234,7 +234,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 		if (arg->Q) {
 			M->a = arg->Q->a;
 			// mark this a copy only, not to be free'd.
-			M->copy_only = 1; 
+			M->copy_only = 1;
 			used_fast_tab = 1;
 		}
 	}
@@ -394,7 +394,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->dparm_default = Calloc(GMRFLib_PARDISO_PLEN, double);
 	s->iparm_default[0] = 0;			       /* use default values */
 	s->iparm_default[2] = GMRFLib_PARDISO_MAX_NUM_THREADS;
-	
+
 	if (S.s_verbose) {
 		PPg("_pardiso_init(): num_threads", (double) (s->iparm_default[2]));
 	}
@@ -679,7 +679,7 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 		assert(GMRFLib_openmp->max_threads_inner <= store->pstore->iparm[2]);
 	}
-	
+
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore->phase),
 		&n, store->pstore->Q->a, store->pstore->Q->ia, store->pstore->Q->ja,
 		store->pstore->perm, &(store->pstore->nrhs),
@@ -1092,7 +1092,8 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 	if (S.static_pstores[idx]) {
 		if (debug) {
 			printf("%s:%1d: static_pstores...iparm[2] = %1d\n", __FILE__, __LINE__, S.static_pstores[idx]->pstore->iparm[2]);
-			printf("%s:%1d: level %d max_threads_nested = %1d\n", __FILE__, __LINE__, omp_get_level(), GMRFLib_openmp->max_threads_nested[1]);
+			printf("%s:%1d: level %d max_threads_nested = %1d\n", __FILE__, __LINE__, omp_get_level(),
+			       GMRFLib_openmp->max_threads_nested[1]);
 		}
 		ok = (S.static_pstores[idx]->pstore->iparm[2] >= GMRFLib_openmp->max_threads_nested[1]);
 	} else {
