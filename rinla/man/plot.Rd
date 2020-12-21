@@ -25,7 +25,7 @@
               prefix = "inla.plots/figure-",
               intern = FALSE, 
               debug = FALSE, 
-              cex = 1.25, 
+              cex = 1.75, 
               ...)
  }
  \arguments{
