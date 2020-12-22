@@ -39,6 +39,7 @@ inla(
     control.hazard = list(),
     control.lincomb = list(),
     control.update = list(), 
+    control.pardiso = list(), 
     only.hyperparam = FALSE,
     inla.call = inla.getOption("inla.call"),
     inla.arg = inla.getOption("inla.arg"),
@@ -151,6 +152,7 @@ See also \code{?inla.rjmarginal}. }
 \item{control.hazard}{ See \code{?control.hazard}}
 \item{control.lincomb}{ See \code{?control.lincomb}}
 \item{control.update}{ See \code{?control.update}}
+\item{control.pardiso}{ See \code{?control.pardiso}}
 \item{only.hyperparam}{ A boolean variable saying if
 only the hyperparameters should be computed. This option is mainly used
 internally. (TODO: This option should not be located here,  change it!)}

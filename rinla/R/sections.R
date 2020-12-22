@@ -1281,6 +1281,17 @@
     }
 }
 
+`inla.pardiso.section` = function(file, data.dir, contr)
+{
+    cat(inla.secsep("INLA.pardiso"), "\n", sep = " ", file = file,  append = TRUE)
+    cat("type = pardiso\n", sep = " ", file = file,  append = TRUE)
+
+    cat("verbose = ", if (contr$verbose) 1 else 0, "\n", sep = " ", file = file,  append = TRUE)
+    cat("debug = ", if (contr$debug) 1 else 0, "\n", sep = " ", file = file,  append = TRUE)
+    cat("parallel.reordering = ", if (contr$parallel.reordering) 1 else 0, "\n", sep = " ", file = file,  append = TRUE)
+    cat("nrhs = ", contr$nrhs, "\n", sep = " ", file = file,  append = TRUE)
+}
+
 `inla.lincomb.section` = function(file, data.dir, contr, lincomb)
 {
     ## this one write binary format files...

@@ -60,6 +60,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 typedef struct {
 	int verbose;
 	int s_verbose;
+	int debug;
 	int csr_check;
 	int mtype;
 	int msglvl;
@@ -72,6 +73,7 @@ typedef struct {
 GMRFLib_static_pardiso_tp S = {
 	0,						       // verbose
 	0,						       // s_verbose
+	0,						       // debug
 	0,						       // csr_check
 	-2,						       // mtype (-2 = sym, 2 = sym pos def)
 	0,						       // msg-level (0: no, 1: yes)
@@ -84,22 +86,38 @@ GMRFLib_static_pardiso_tp S = {
 
 #define PSTORES_NUM (16384)
 
-int GMRFLib_pardiso_set_parallel_reordering(int UNUSED(value))
+int GMRFLib_pardiso_set_parallel_reordering(int value)
 {
-	// S.parallel_reordering = (value == 0 ? 0 : 1);
-	// fprintf(stderr, "set S.parallel_reordering = %1d\n", S.parallel_reordering);
+	if (value > 0) {
+		S.parallel_reordering = (value ? 1 : 0);
+	}
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_pardiso_set_nrhs(int nrhs)
 {
-	S.nrhs_max = IMAX(1, nrhs);
-	// fprintf(stderr, "set S.nrhs_max = %1d\n", S.nrhs_max);
+	if (nrhs > 0) {
+		S.nrhs_max = nrhs;
+	}
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_pardiso_get_nrhs(void)
+
+int GMRFLib_pardiso_set_verbose(int verbose)
 {
-	return (S.nrhs_max);
+	if (verbose > 0) {
+		S.verbose = (verbose ? 1 : 0);
+		S.msglvl = (verbose ? 1 : 0);
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_pardiso_set_debug(int debug)
+{
+	if (debug) {
+		S.s_verbose = (debug ? 1 : 0);
+		S.debug = (debug ? 1 : 0);
+	}
+	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_csr_free(GMRFLib_csr_tp ** csr)
@@ -530,7 +548,7 @@ double GMRFLib_pardiso_Qfunc_default(int i, int j, double *UNUSED(values), void 
 
 int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph)
 {
-	int debug = 0;
+	int debug = S.debug;
 
 	assert(store != NULL);
 	assert(store->done_with_init == GMRFLib_TRUE);
@@ -551,7 +569,7 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 	if (S.csr_check) {
 		GMRFLib_csr_check(Q);
 	}
-	if (S.verbose) {
+	if (0 && S.debug) {
 		GMRFLib_csr_print(stdout, Q);
 	}
 
@@ -571,7 +589,7 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 		store->pstore->iperm[store->pstore->perm[i]] = i;
 	}
 
-	if (debug) {
+	if (0 && debug) {
 		for (i = 0; i < n; i++) {
 			printf("perm[%1d] = %1d | iperm[%1d] = %1d\n", i, store->pstore->perm[i], i, store->pstore->iperm[i]);
 		}
@@ -644,7 +662,7 @@ int GMRFLib_pardiso_build(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * g
 	if (S.csr_check) {
 		GMRFLib_csr_check(store->pstore->Q);
 	}
-	if (S.verbose) {
+	if (0 && S.debug) {
 		GMRFLib_csr_print(stdout, store->pstore->Q);
 	}
 
@@ -656,7 +674,7 @@ int GMRFLib_pardiso_build(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * g
 
 int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 {
-	int debug = 0;
+	int debug = S.debug;
 
 	GMRFLib_ENTER_ROUTINE;
 	assert(store->done_with_init == GMRFLib_TRUE);
@@ -904,7 +922,7 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 	}
 
 	GMRFLib_csr_base(0, store->pstore->Qinv);
-	if (S.verbose) {
+	if (0 && S.debug) {
 		GMRFLib_csr_print(stdout, store->pstore->Qinv);
 	}
 
@@ -1003,7 +1021,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 {
 	// if copy_pardiso_ptr, then copy the ptr to read-only objects. 'copy_ptr' is NOT USED
 
-	int debug = 0, failsafe_mode = 0;
+	int debug = S.debug, failsafe_mode = 0;
 	if (old == NULL) {
 		*new = NULL;
 		return GMRFLib_SUCCESS;

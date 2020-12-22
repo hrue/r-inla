@@ -37,6 +37,7 @@
 ##!    control.hazard = list(),
 ##!    control.lincomb = list(),
 ##!    control.update = list(), 
+##!    control.pardiso = list(), 
 ##!    only.hyperparam = FALSE,
 ##!    inla.call = inla.getOption("inla.call"),
 ##!    inla.arg = inla.getOption("inla.arg"),
@@ -203,6 +204,9 @@
               ##!\item{control.update}{ See \code{?control.update}}
               control.update = list(),
               
+              ##!\item{control.pardiso}{ See \code{?control.pardiso}}
+              control.pardiso = list(),
+
               ##!\item{only.hyperparam}{ A boolean variable saying if
               ##!only the hyperparameters should be computed. This option is mainly used
               ##!internally. (TODO: This option should not be located here,  change it!)}
@@ -503,6 +507,7 @@
     control.hazard = inla.check.control(control.hazard, data)
     control.lincomb = inla.check.control(control.lincomb, data)
     control.update = inla.check.control(control.update, data)
+    control.pardiso = inla.check.control(control.pardiso, data)
 
     n.family = length(family)
     for(i in 1:n.family) {
@@ -589,6 +594,7 @@
             control.hazard = control.hazard,
             control.lincomb = control.lincomb,
             control.update = control.update,
+            control.pardiso = control.pardiso,
             only.hyperparam = only.hyperparam,
             inla.call = inla.call,
             inla.arg = inla.arg,
@@ -1042,7 +1048,7 @@
     mf$family = NULL; mf$quantiles=NULL; 
     mf$verbose = NULL; mf$control.compute = NULL; mf$control.predictor = NULL;
     mf$silent = NULL; mf$control.hazard=NULL;
-    mf$control.family = NULL;  mf$control.update = NULL;
+    mf$control.family = NULL;  mf$control.update = NULL; mf$control.pardiso = NULL;
     mf$control.inla = NULL; mf$control.results = NULL; mf$control.fixed = NULL; mf$control.lincomb=NULL;
     mf$control.mode = NULL; mf$control.expert = NULL; mf$inla.call = NULL;
     mf$num.threads = NULL; mf$blas.num.threads = NULL; mf$keep = NULL;
@@ -1921,6 +1927,11 @@
     cont.update = inla.set.control.update.default()
     cont.update[names(control.update)] = control.update
     inla.update.section(file=file.ini, data.dir=data.dir, contr=cont.update)
+    
+    ## create pardiso section
+    cont.pardiso = inla.set.control.pardiso.default()
+    cont.pardiso[names(control.pardiso)] = control.pardiso
+    inla.pardiso.section(file=file.ini, data.dir=data.dir, contr=cont.pardiso)
     
     ## now, do the job
     if (debug) {

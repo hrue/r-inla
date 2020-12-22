@@ -10638,6 +10638,23 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	}
 
 	/*
+	 * type = PARDISO
+	 */
+	for (sec = 0; sec < nsec; sec++) {
+		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		if (!strcmp(sectype, "PARDISO")) {
+			if (mb->verbose) {
+				printf("\tparse section=[%1d] name=[%s] type=[PARDISO]\n", sec, iniparser_getsecname(ini, sec));
+			}
+			sec_read[sec] = 1;
+			inla_parse_pardiso(mb, ini, sec, make_dir);
+		}
+		Free(secname);
+		Free(sectype);
+	}
+
+	/*
 	 * build the index table and the hash; need this before reading the lincomb sections
 	 */
 	len = 1 + (mb->predictor_m > 0 ? 1 : 0) + mb->nf + mb->nlinear;
@@ -25466,6 +25483,49 @@ int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_d
 		assert(i == M->nrow);
 		GMRFLib_matrix_free(M);
 	}
+
+	return INLA_OK;
+}
+
+int inla_parse_pardiso(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir))
+{
+	/*
+	 * parse section = PARDISO
+	 */
+	char *secname = NULL;
+	int val;
+
+	if (mb->verbose) {
+		printf("\tinla_parse_pardiso...\n");
+	}
+	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+	if (mb->verbose) {
+		printf("\t\tsection[%s]\n", secname);
+	}
+
+	val = iniparser_getint(ini, inla_string_join(secname, "VERBOSE"), 0);
+	if (mb->verbose) {
+		printf("\t\tverbose[%1d]\n", val);
+	}
+	GMRFLib_pardiso_set_verbose(val);
+
+	val = iniparser_getint(ini, inla_string_join(secname, "DEBUG"), 0);
+	if (mb->verbose) {
+		printf("\t\tdebug[%1d]\n", val);
+	}
+	GMRFLib_pardiso_set_debug(val);
+	
+	val = iniparser_getint(ini, inla_string_join(secname, "PARALLEL.REORDERING"), 0);
+	if (mb->verbose) {
+		printf("\t\tparallel.reordering[%1d]\n", val);
+	}
+	GMRFLib_pardiso_set_parallel_reordering(val);
+	
+	val = iniparser_getint(ini, inla_string_join(secname, "NRHS"), -1);
+	if (mb->verbose) {
+		printf("\t\tnrhs[%1d]\n", val);
+	}
+	GMRFLib_pardiso_set_nrhs(val);
 
 	return INLA_OK;
 }

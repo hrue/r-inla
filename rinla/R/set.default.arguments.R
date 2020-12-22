@@ -13,6 +13,7 @@
 ## Export: inla.set.control.mode.default
 ## Export: inla.set.control.hazard.default
 ## Export: inla.set.control.bgev.default
+## Export: inla.set.control.pardiso.default
 
 ## Export: control.lincomb
 ## Export: control.update
@@ -31,6 +32,7 @@
 ## Export: control.mode
 ## Export: control.hazard
 ## Export: control.bgev
+## Export: control.pardiso
 
 
 ### Defines default arguments
@@ -257,6 +259,28 @@
     ##:SEEALSO: inla
 }
 
+`inla.set.control.pardiso.default` =
+    function(...)
+{
+    ##:EXTRA: Extra options controlling the PARDISO library
+    ##:NAME: control.pardiso.default
+    list(
+        ##:ARGUMENT: verbose Show detailed output (default FALSE) 
+        verbose = FALSE,
+        
+        ##:ARGUMENT: debug Show internal debug output (default FALSE) 
+        debug = FALSE,
+        
+        ##:ARGUMENT: parallel.reordering Do reordering in parallel (default FALSE) 
+        parallel.reordering = FALSE,
+        
+        ##:ARGUMENT: nrhs Number of right-hand sides to solve for in parallel (default depends on the argument \code{num.threads} and \code{-1} will not change it)
+        nrhs = -1
+    )
+
+    ##:SEEALSO: inla
+}
+
 `inla.set.control.bgev.default` =
     function(...)
 {
@@ -277,7 +301,6 @@
 
     ##:SEEALSO: inla
 }
-
 
 `inla.set.control.family.default`=
     function(...)
@@ -791,3 +814,4 @@ control.results = inla.make.completion.function(names(inla.set.control.results.d
 control.mode = inla.make.completion.function(names(inla.set.control.mode.default()))
 control.hazard = inla.make.completion.function(names(inla.set.control.hazard.default()))
 control.bgev = inla.make.completion.function(names(inla.set.control.bgev.default()))
+control.pardiso = inla.make.completion.function(names(inla.set.control.pardiso.default()))
