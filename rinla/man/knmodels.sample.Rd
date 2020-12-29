@@ -6,16 +6,16 @@
  \alias{inla.knmodels.sample}
  \title{Spacetime interaction models sampler function}
  \description{
-    It implements the sampling method for the models 
-    in Knorr-Held, L. (2000) considering the algorithm 
+    It implements the sampling method for the models
+    in Knorr-Held, L. (2000) considering the algorithm
     3.1 in Rue & Held (2005) book.
- } 
+ }
  \usage{
 inla.knmodels.sample(
   graph,
   m,
   type=4,
-  intercept=0, 
+  intercept=0,
   tau.t=1,
   phi.t=0.7,
   tau.s=1,
@@ -31,7 +31,7 @@ inla.knmodels.sample(
     of the four interaction type.}
  \item{intercept}{A constant to be added to the linear predictor}
  \item{tau.t}{Precision parameter for the main temporal effect.}
- \item{phi.t}{Mixing parameter in the \code{bym2} model 
+ \item{phi.t}{Mixing parameter in the \code{bym2} model
     assumed for the main temporal effect.}
  \item{tau.s}{Precision parameter for the main spatial effect.}
  \item{phi.s}{Mixing parameter in the \code{bym2} model
@@ -39,17 +39,17 @@ inla.knmodels.sample(
  \item{tau.st}{Precision parameter for the spacetime effect.}
  \item{ev.t}{Eigenvalues and eigenvectors of the temporal
     precision matrix structure.}
- \item{ev.s}{Eigenvalues and eigenvectors of the spatial 
+ \item{ev.s}{Eigenvalues and eigenvectors of the spatial
     precision matrix structure.}
  }
  \value{
   A list with the following elements
-   \item{time}{The time index for each obervation, 
-       with length equals m*n.} 
-   \item{space}{The spatial index for each obervation, 
-       with length equals m*n.} 
-   \item{spacetime}{The spacetime index for each obervation, 
-       with length equals m*n.} 
+   \item{time}{The time index for each obervation,
+       with length equals m*n.}
+   \item{space}{The spatial index for each obervation,
+       with length equals m*n.}
+   \item{spacetime}{The spacetime index for each obervation,
+       with length equals m*n.}
    \item{x}{A list with the following elements}
    \item{t.iid}{The unstructured main temporal effect part.}
    \item{t.str}{The structured main temporal effect part.}
