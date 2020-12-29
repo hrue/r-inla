@@ -12,9 +12,9 @@
  }
 
  \usage{
-inla(
+ inla(
     formula,
-    family = "gaussian", 
+    family = "gaussian",
     contrasts = NULL,
     data,
     quantiles=c(0.025, 0.5, 0.975),
@@ -38,8 +38,8 @@ inla(
     control.expert = list(),
     control.hazard = list(),
     control.lincomb = list(),
-    control.update = list(), 
-    control.pardiso = list(), 
+    control.update = list(),
+    control.pardiso = list(),
     only.hyperparam = FALSE,
     inla.call = inla.getOption("inla.call"),
     inla.arg = inla.getOption("inla.arg"),
@@ -48,180 +48,180 @@ inla(
     keep = inla.getOption("keep"),
     working.directory = inla.getOption("working.directory"),
     silent = inla.getOption("silent"),
-    debug = inla.getOption("debug"), 
+    debug = inla.getOption("debug"),
     .parent.frame = parent.frame()
     )
 
  }
  \arguments{
  \item{formula}{ A \code{inla} formula like \code{y
-~1 + z + f(ind, model="iid")} + f(ind2,
-weights, model="ar1") This is much like the formula
-for a \code{glm} except that smooth or spatial terms
-can be added to the right hand side of the formula.
-See \code{\link{f}} for full details and the web site
-\url{www.r-inla.org} for several worked out
-examples. Each smooth or spatial term specified
-through \code{f} should correspond to separate column
-of the data frame \code{data}.
-The response
-variable, \code{y} can be a univariate response
-variable, a list or the output of the function
-\code{inla.surf} for survival analysis models.}
-\item{family}{ A string indicating the likelihood
+ ~1 + z + f(ind, model="iid")} + f(ind2,
+ weights, model="ar1") This is much like the formula
+ for a \code{glm} except that smooth or spatial terms
+ can be added to the right hand side of the formula.
+ See \code{\link{f}} for full details and the web site
+ \url{www.r-inla.org} for several worked out
+ examples. Each smooth or spatial term specified
+ through \code{f} should correspond to separate column
+ of the data frame \code{data}.
+ The response
+ variable, \code{y} can be a univariate response
+ variable, a list or the output of the function
+ \code{inla.surf} for survival analysis models.}
+ \item{family}{ A string indicating the likelihood
  family. The default is \code{gaussian} with identity
  link. See \code{names(inla.models()$likelihood)} for a
  list of possible alternatives and use \code{\link{inla.doc}}
  for detailed docs for individual families.}
-\item{contrasts}{Optional contrasts for the fixed
-effects; see \code{?lm} or \code{?glm} for details.}
-\item{data}{ A data frame or list containing the
-variables in the model.  The data frame MUST be
-provided}
-\item{quantiles}{ A vector of quantiles,
-\eqn{p(0), p(1),\dots}{p(0), p(1),\ldots} to compute
-for each posterior marginal. The function returns,
-for each posterior marginal, the values
-\eqn{x(0), x(1),\dots}{x(0), x(1),\ldots} such that
-\deqn{\mbox{Prob}(X<x(p))=p}{Prob(X<x)=p} }
-\item{E}{ Known component in the mean for the Poisson
-likelihoods defined as \deqn{E_i\exp(\eta_i)}{E
-exp(eta)} where \deqn{\eta_i}{eta} is the linear
-predictor. If not provided it is set to \code{rep(1, n.data)}.}
-\item{offset}{This argument is used to specify an
-a-priori known and fixed component to be included in
-the linear predictor during fitting.  This should be
-\code{NULL} or a numeric vector of length either one
-or equal to the number of cases. One or more
-\code{offset()} terms can be included in the formula
-instead or as well, and if both are used, they are
-combined into a common offset.  If the
-\code{A}-matrix is used in the linear predictor
-statement \code{control.predictor}, then the
-\code{offset} given in this argument is added to
-\code{eta*}, the linear predictor related to the
-observations, as \code{eta* = A eta + offset},
-whereas an offset in the formula is added to
-\code{eta}, the linear predictor related to the
-formula, as \code{eta = ... + offset.formula}. So in
-this case, the offset defined here and in the formula
-has a different meaning and usage.}
-\item{scale}{ Fixed (optional) scale parameters of
-the precision for Gaussian and Student-T response
-models. Default value is rep(1, n.data).}
-\item{weights}{ Fixed (optional) weights parameters of
-the likelihood, so the log-likelihood[i] is changed into
-weights[i]*log-likelihood[i]. Default value is rep(1,
-n.data). Due to the danger of mis-interpreting the results (see below), this option is DISABLED
-by default. You can enable this option for the rest of your \code{R} session,
-doing \code{inla.setOption(enable.inla.argument.weights=TRUE)}.
-WARNING: The normalizing constant for the likelihood is NOT recomputed, so
-ALL marginals (and the marginal likelihood) must be interpreted with great care.
-Possibly, you may want to set the prior for the hyperparameters to \code{"uniform"}
-and the integration strategy to \code{"eb"} to mimic a maximum-likelihood approach.}
-\item{Ntrials}{A vector containing the number of trials for the \code{binomial} 
-likelihood and variantes, or the number of required successes for the
-\code{nbinomial2} likelihood. Default value is \code{rep(1, n.data)}.}
-\item{strata}{Fixed (optional) strata indicators 
-for tstrata likelihood model.}
-\item{link.covariates}{A vector or matrix with covariates for link functions}
-\item{verbose}{
-Boolean indicating if the \code{inla}-program should
-run in a verbose mode (default \code{FALSE}).}
-\item{lincomb}{Used to define linear combination of
-nodes in the latent field. The posterior distribution
-of such linear combination is computed by the
-\code{inla} function. See
-\url{www.r-inla.org/faq} for examples of
-how to define such linear combinations.}
-\item{selection}{ This is a similar argument to the one in
-\code{inla.posterior.sample}  and follow the same format. 
-This argument allows to define a subset of the latent field
-for which to compute an approximated joint
-distribution. It will appear in \code{result$selection}.
-See also \code{?inla.rjmarginal}. }
-\item{control.compute}{ See \code{?control.compute}}
-\item{control.predictor}{ See
-\code{?control.predictor}}
-\item{control.family}{ See \code{?control.family}}
-\item{control.inla}{ See \code{?control.inla}}
-\item{control.results}{ See \code{?control.result}}
-\item{control.fixed}{ See \code{?control.fixed}}
-\item{control.mode}{ See \code{?control.mode}}
-\item{control.expert}{ See \code{?control.expert}}
-\item{control.hazard}{ See \code{?control.hazard}}
-\item{control.lincomb}{ See \code{?control.lincomb}}
-\item{control.update}{ See \code{?control.update}}
-\item{control.pardiso}{ See \code{?control.pardiso}}
-\item{only.hyperparam}{ A boolean variable saying if
-only the hyperparameters should be computed. This option is mainly used
-internally. (TODO: This option should not be located here,  change it!)}
-\item{inla.call}{ The path to, or the name of, the
-\code{inla}-program. This is program is installed
-together with the \code{R}-package, but, for example,
-a native compiled version can be used instead to
-improve the performance.}
-\item{inla.arg}{ A string indicating ALL arguments to
-the 'inla' program and do not include default
-arguments. (OOPS: This is an expert option!)}
-\item{num.threads}{ Maximum number of threads the
-\code{inla}-program will use, or as 'A:B' defining the number threads in the
-outer (A) and inner (B) layer for nested parallelism. }
-\item{blas.num.threads}{The absolute value of \code{blas.num.threads} is the maximum
-number of threads the the \code{openblas}/\code{mklblas} will use (if
-available). Value is ignored if \code{<=0} (then environment variables are used).}
-\item{keep}{ A boolean variable indicating that the
-working files (ini file, data files and results
-files) should be kept. If TRUE and no
-\code{working.directory} is specified the working
-files are stored in a directory called "inla".  }
-\item{working.directory}{ A string giving the name
-of an non-existing directory where to store the
-working files.}
-\item{silent}{If equal to 1L or TRUE, then the
-\code{inla}-program would be ``silent''. If equal to
-2L, then supress also error messages from the
-\code{inla}-program.}
-\item{debug}{ If \code{TRUE}, then enable some debug
-output.  }
-\item{.parent.frame}{Internal use only}
-}
-\value{%%
-\code{inla} returns an object of class \code{"inla"}. This is a list
-containing at least the following arguments:
-\item{summary.fixed}{Matrix containing the mean and standard
-deviation (plus, possibly quantiles and cdf) of the the fixed
-effects of the model.}
-\item{marginals.fixed}{
-A list containing the posterior marginal
-densities of the fixed effects of the model.}
-\item{summary.random}{List of matrices containing the mean and
-standard deviation (plus, possibly quantiles and cdf) of the
-the smooth or spatial effects defined through \code{f()}.}
-\item{marginals.random}{If
-\code{return.marginals.random}=\code{TRUE} in
-\code{control.results} (default), a list containing the
-posterior marginal densities of the random effects defined
-through \code{f}.}
-\item{summary.hyperpar}{
-A matrix containing the mean and sd
-(plus, possibly quantiles and cdf) of the hyperparameters of
-the model }
-\item{marginals.hyperpar}{
-A list containing the posterior marginal
-densities of the hyperparameters of the model.} 
-\item{summary.linear.predictor}{
+ \item{contrasts}{Optional contrasts for the fixed
+ effects; see \code{?lm} or \code{?glm} for details.}
+ \item{data}{ A data frame or list containing the
+ variables in the model.  The data frame MUST be
+ provided}
+ \item{quantiles}{ A vector of quantiles,
+ \eqn{p(0), p(1),\dots}{p(0), p(1),\ldots} to compute
+ for each posterior marginal. The function returns,
+ for each posterior marginal, the values
+ \eqn{x(0), x(1),\dots}{x(0), x(1),\ldots} such that
+ \deqn{\mbox{Prob}(X<x(p))=p}{Prob(X<x)=p} }
+ \item{E}{ Known component in the mean for the Poisson
+ likelihoods defined as \deqn{E_i\exp(\eta_i)}{E
+ exp(eta)} where \deqn{\eta_i}{eta} is the linear
+ predictor. If not provided it is set to \code{rep(1, n.data)}.}
+ \item{offset}{This argument is used to specify an
+ a-priori known and fixed component to be included in
+ the linear predictor during fitting.  This should be
+ \code{NULL} or a numeric vector of length either one
+ or equal to the number of cases. One or more
+ \code{offset()} terms can be included in the formula
+ instead or as well, and if both are used, they are
+ combined into a common offset.  If the
+ \code{A}-matrix is used in the linear predictor
+ statement \code{control.predictor}, then the
+ \code{offset} given in this argument is added to
+ \code{eta*}, the linear predictor related to the
+ observations, as \code{eta* = A eta + offset},
+ whereas an offset in the formula is added to
+ \code{eta}, the linear predictor related to the
+ formula, as \code{eta = ... + offset.formula}. So in
+ this case, the offset defined here and in the formula
+ has a different meaning and usage.}
+ \item{scale}{ Fixed (optional) scale parameters of
+ the precision for Gaussian and Student-T response
+ models. Default value is rep(1, n.data).}
+ \item{weights}{ Fixed (optional) weights parameters of
+ the likelihood, so the log-likelihood[i] is changed into
+ weights[i]*log-likelihood[i]. Default value is rep(1,
+ n.data). Due to the danger of mis-interpreting the results (see below), this option is DISABLED
+ by default. You can enable this option for the rest of your \code{R} session,
+ doing \code{inla.setOption(enable.inla.argument.weights=TRUE)}.
+ WARNING: The normalizing constant for the likelihood is NOT recomputed, so
+ ALL marginals (and the marginal likelihood) must be interpreted with great care.
+ Possibly, you may want to set the prior for the hyperparameters to \code{"uniform"}
+ and the integration strategy to \code{"eb"} to mimic a maximum-likelihood approach.}
+ \item{Ntrials}{A vector containing the number of trials for the \code{binomial}
+ likelihood and variantes, or the number of required successes for the
+ \code{nbinomial2} likelihood. Default value is \code{rep(1, n.data)}.}
+ \item{strata}{Fixed (optional) strata indicators
+ for tstrata likelihood model.}
+ \item{link.covariates}{A vector or matrix with covariates for link functions}
+ \item{verbose}{
+ Boolean indicating if the \code{inla}-program should
+ run in a verbose mode (default \code{FALSE}).}
+ \item{lincomb}{Used to define linear combination of
+ nodes in the latent field. The posterior distribution
+ of such linear combination is computed by the
+ \code{inla} function. See
+ \url{www.r-inla.org/faq} for examples of
+ how to define such linear combinations.}
+ \item{selection}{ This is a similar argument to the one in
+ \code{inla.posterior.sample}  and follow the same format.
+ This argument allows to define a subset of the latent field
+ for which to compute an approximated joint
+ distribution. It will appear in \code{result$selection}.
+ See also \code{?inla.rjmarginal}. }
+ \item{control.compute}{ See \code{?control.compute}}
+ \item{control.predictor}{ See
+ \code{?control.predictor}}
+ \item{control.family}{ See \code{?control.family}}
+ \item{control.inla}{ See \code{?control.inla}}
+ \item{control.results}{ See \code{?control.result}}
+ \item{control.fixed}{ See \code{?control.fixed}}
+ \item{control.mode}{ See \code{?control.mode}}
+ \item{control.expert}{ See \code{?control.expert}}
+ \item{control.hazard}{ See \code{?control.hazard}}
+ \item{control.lincomb}{ See \code{?control.lincomb}}
+ \item{control.update}{ See \code{?control.update}}
+ \item{control.pardiso}{ See \code{?control.pardiso}}
+ \item{only.hyperparam}{ A boolean variable saying if
+ only the hyperparameters should be computed. This option is mainly used
+ internally. (TODO: This option should not be located here,  change it!)}
+ \item{inla.call}{ The path to, or the name of, the
+ \code{inla}-program. This is program is installed
+ together with the \code{R}-package, but, for example,
+ a native compiled version can be used instead to
+ improve the performance.}
+ \item{inla.arg}{ A string indicating ALL arguments to
+ the 'inla' program and do not include default
+ arguments. (OOPS: This is an expert option!)}
+ \item{num.threads}{ Maximum number of threads the
+ \code{inla}-program will use, or as 'A:B' defining the number threads in the
+ outer (A) and inner (B) layer for nested parallelism. }
+ \item{blas.num.threads}{The absolute value of \code{blas.num.threads} is the maximum
+ number of threads the the \code{openblas}/\code{mklblas} will use (if
+ available). Value is ignored if \code{<=0} (then environment variables are used).}
+ \item{keep}{ A boolean variable indicating that the
+ working files (ini file, data files and results
+ files) should be kept. If TRUE and no
+ \code{working.directory} is specified the working
+ files are stored in a directory called "inla".  }
+ \item{working.directory}{ A string giving the name
+ of an non-existing directory where to store the
+ working files.}
+ \item{silent}{If equal to 1L or TRUE, then the
+ \code{inla}-program would be ``silent''. If equal to
+ 2L, then supress also error messages from the
+ \code{inla}-program.}
+ \item{debug}{ If \code{TRUE}, then enable some debug
+ output.  }
+ \item{.parent.frame}{Internal use only}
+ }
+ \value{%%
+ \code{inla} returns an object of class \code{"inla"}. This is a list
+ containing at least the following arguments:
+ \item{summary.fixed}{Matrix containing the mean and standard
+ deviation (plus, possibly quantiles and cdf) of the the fixed
+ effects of the model.}
+ \item{marginals.fixed}{
+ A list containing the posterior marginal
+ densities of the fixed effects of the model.}
+ \item{summary.random}{List of matrices containing the mean and
+ standard deviation (plus, possibly quantiles and cdf) of the
+ the smooth or spatial effects defined through \code{f()}.}
+ \item{marginals.random}{If
+ \code{return.marginals.random}=\code{TRUE} in
+ \code{control.results} (default), a list containing the
+ posterior marginal densities of the random effects defined
+ through \code{f}.}
+ \item{summary.hyperpar}{
+ A matrix containing the mean and sd
+ (plus, possibly quantiles and cdf) of the hyperparameters of
+ the model }
+ \item{marginals.hyperpar}{
+ A list containing the posterior marginal
+ densities of the hyperparameters of the model.}
+ \item{summary.linear.predictor}{
  A matrix containing the mean and sd
  (plus, possibly quantiles and cdf) of the linear predictors
  \eqn{\eta} in
  the model
  }
-\item{marginals.linear.predictor}{
+ \item{marginals.linear.predictor}{
  If \code{compute=TRUE} in
  \code{control.predictor}, a list containing the posterior
  marginals of the linear predictors \eqn{\eta} in the model.
  }
-\item{summary.fitted.values}{ A matrix containing the mean and
+ \item{summary.fitted.values}{ A matrix containing the mean and
  sd (plus, possibly quantiles and cdf) of the fitted values
  \eqn{g^{-1}(\eta)} obtained by transforming the linear
  predictors by the inverse of the link function. This quantity
@@ -232,7 +232,7 @@ densities of the hyperparameters of the model.}
  \code{link} in the \code{control.predictor}-list;
  see \code{?control.predictor}
  }
-\item{marginals.fitted.values}{
+ \item{marginals.fitted.values}{
  If \code{compute=TRUE} in
  \code{control.predictor}, a list containing the posterior
  marginals  of the fitted values
@@ -245,74 +245,74 @@ densities of the hyperparameters of the model.}
  \code{link} in the \code{control.predictor}-list;
  see \code{?control.predictor}
  }
-\item{summary.lincomb}{
-If \code{lincomb != NULL} a list of
-matrices containing the mean and sd (plus, possibly quantiles
-and cdf) of all linear combinations defined.  }
-\item{marginals.lincomb}{
-If \code{lincomb != NULL} a list of
- posterior marginals of all linear combinations defined.  } 
-\item{selection}{Provide the approximated joint
-distribution for the \code{selection}}
-\item{dic}{
-If \code{dic}=\code{TRUE} in \code{control.compute}, the
-deviance information criteria and effective number of parameters,
-otherwise \code{NULL}
-}
-\item{cpo}{
-If \code{cpo}=\code{TRUE} in \code{control.compute}, a list
-of three elements: \code{cpo$cpo} are the values of the conditional 
-predictive ordinate (CPO), \code{cpo$pit} are the values of the 
-probability integral transform (PIT) and \code{cpo$failure} 
-indicates whether some assumptions are violated. In short, if 
-cpo$failure[i] > 0 then some assumption is violated, the higher the 
-value (maximum 1) the more seriously.
-}
-\item{po}{
-If \code{po}=\code{TRUE} in \code{control.compute}, a list
-of one elements: \code{po$po} are the values of the 
-predictive ordinate (CPO) (\code{pi(yi|y)})
-}
-\item{waic}{
-If \code{waic}=\code{TRUE} in \code{control.compute}, a list
-of two elements: \code{waic$waic} is the Watanabe-Akaike information criteria,  and 
-\code{waic$p.eff} is the estimated effective number of parameters
-}
-\item{mlik}{
-If \code{mlik}=\code{TRUE} in \code{control.compute}, the
+ \item{summary.lincomb}{
+ If \code{lincomb != NULL} a list of
+ matrices containing the mean and sd (plus, possibly quantiles
+ and cdf) of all linear combinations defined.  }
+ \item{marginals.lincomb}{
+ If \code{lincomb != NULL} a list of
+ posterior marginals of all linear combinations defined.  }
+ \item{selection}{Provide the approximated joint
+ distribution for the \code{selection}}
+ \item{dic}{
+ If \code{dic}=\code{TRUE} in \code{control.compute}, the
+ deviance information criteria and effective number of parameters,
+ otherwise \code{NULL}
+ }
+ \item{cpo}{
+ If \code{cpo}=\code{TRUE} in \code{control.compute}, a list
+ of three elements: \code{cpo$cpo} are the values of the conditional
+ predictive ordinate (CPO), \code{cpo$pit} are the values of the
+ probability integral transform (PIT) and \code{cpo$failure}
+ indicates whether some assumptions are violated. In short, if
+ cpo$failure[i] > 0 then some assumption is violated, the higher the
+ value (maximum 1) the more seriously.
+ }
+ \item{po}{
+ If \code{po}=\code{TRUE} in \code{control.compute}, a list
+ of one elements: \code{po$po} are the values of the
+ predictive ordinate (CPO) (\code{pi(yi|y)})
+ }
+ \item{waic}{
+ If \code{waic}=\code{TRUE} in \code{control.compute}, a list
+ of two elements: \code{waic$waic} is the Watanabe-Akaike information criteria,  and
+ \code{waic$p.eff} is the estimated effective number of parameters
+ }
+ \item{mlik}{
+ If \code{mlik}=\code{TRUE} in \code{control.compute}, the
  log marginal likelihood of the model (using two different estimates), otherwise \code{NULL}
-}
+ }
  \item{neffp}{
-Expected effective number of parameters in the model. The
-standard deviation of the expected number of parameters and the
-number of replicas for parameter are also returned}
-\item{mode}{
-A list of two elements: \code{mode$theta} is the
-computed mode of the hyperparameters and \code{mode$x} is the
-mode of the latent field given the modal value of the
-hyperparamters.
-}
-\item{call}{
-The matched call.}                   
-\item{formula}{
-The formula supplied}
-\item{nhyper}{
-The number of hyperparameters in the model}
-\item{cpu.used}{
-The cpu time used by the \code{inla} function}
-}
-\references{
-Rue, H. and Martino, S. and Chopin, N. (2009)
-\emph{Approximate Bayesian Inference for latent Gaussian models
-using Integrated Nested Laplace Approximations, JRSS-series B
-(with discussion)}, vol 71, no 2, pp 319-392.
-Rue, H and Held, L. (2005) \emph{Gaussian Markov Random Fields
-- Theory and Applications} Chapman and Hall}
-\author{Havard Rue \email{hrue@r-inla.org} and Sara Martino}
-\seealso{\code{\link{f}}, 
-\code{\link{inla.hyperpar}} }
-\examples{
-\dontrun{
-##See the web page \url{www.r-inla.org} for a series of worked out examples
-}
-}
+ Expected effective number of parameters in the model. The
+ standard deviation of the expected number of parameters and the
+ number of replicas for parameter are also returned}
+ \item{mode}{
+ A list of two elements: \code{mode$theta} is the
+ computed mode of the hyperparameters and \code{mode$x} is the
+ mode of the latent field given the modal value of the
+ hyperparamters.
+ }
+ \item{call}{
+ The matched call.}
+ \item{formula}{
+ The formula supplied}
+ \item{nhyper}{
+ The number of hyperparameters in the model}
+ \item{cpu.used}{
+ The cpu time used by the \code{inla} function}
+ }
+ \references{
+ Rue, H. and Martino, S. and Chopin, N. (2009)
+ \emph{Approximate Bayesian Inference for latent Gaussian models
+ using Integrated Nested Laplace Approximations, JRSS-series B
+ (with discussion)}, vol 71, no 2, pp 319-392.
+ Rue, H and Held, L. (2005) \emph{Gaussian Markov Random Fields
+ - Theory and Applications} Chapman and Hall}
+ \author{Havard Rue \email{hrue@r-inla.org} and Sara Martino}
+ \seealso{\code{\link{f}},
+ \code{\link{inla.hyperpar}} }
+ \examples{
+ \dontrun{
+ ##See the web page \url{www.r-inla.org} for a series of worked out examples
+ }
+ }
