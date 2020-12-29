@@ -5,16 +5,16 @@
  \name{qsample}
  \alias{inla.qsample}
  \alias{qsample}
- 
+
  \title{Generate samples from a GMRF using the GMRFLib implementation}
- 
+
  \description{This function generate samples from a GMRF using the GMRFLib implementation}
  \usage{
  inla.qsample(
         n = 1L,
         Q,
         b,
-        mu, 
+        mu,
         sample,
         constr,
         reordering = INLA::inla.reorderings(),
@@ -24,7 +24,7 @@
         num.threads = if (seed == 0L) "0:0" else NULL,
         selection = NULL, verbose = FALSE)
  }
- 
+
  \arguments{
    \item{n}{Number of samples. Only used if \code{missing(sample)}}
    \item{Q}{The precision matrix or a filename containing it.}
@@ -33,7 +33,7 @@
    \item{sample}{A matrix of optional samples where each column is a sample. If set, then evaluate the log-density for each sample only.}
    \item{constr}{Optional linear constraints; see \code{?INLA::f} and argument \code{extraconstr}}
    \item{reordering}{The type of reordering algorithm to be used for \code{TAUCS};
-        either one of the names listed in \code{inla.reorderings()} 
+        either one of the names listed in \code{inla.reorderings()}
         or the output from \code{inla.qreordering(Q)}.
         The default is "auto" which try several reordering algorithm and use the best one for this particular matrix.}
    \item{seed}{Control the RNG. If \code{seed=0L} then GMRFLib will set the seed
@@ -52,7 +52,7 @@
    \item{compute.mean}{If \code{TRUE}, compute also the (constrained) mean. Note that the output format then change.}
    \item{num.threads}{Maximum number of threads the
                       \code{inla}-program will use, or as 'A:B' defining the number threads in the
-                      outer (A) and inner (B) layer for nested parallelism. 
+                      outer (A) and inner (B) layer for nested parallelism.
                       \code{seed!=0} requires serial comptuations.}
    \item{selection}{A vector of indices of each sample to
                     return. \code{NULL} means return the whole sample.
@@ -63,18 +63,18 @@
 \value{
       The log-density has form {-1/2(x-mu)^T Q (x-mu) + b^T x}
 
-  If \code{logdens} is \code{FALSE},  then \code{inla.qsample} returns 
-  the samples in a matrix,  where each column is a sample. 
-  If \code{logdens} or \code{compute.mean} is \code{TRUE}, then a list 
-   with names \code{sample}, 
+  If \code{logdens} is \code{FALSE},  then \code{inla.qsample} returns
+  the samples in a matrix,  where each column is a sample.
+  If \code{logdens} or \code{compute.mean} is \code{TRUE}, then a list
+   with names \code{sample},
   \code{logdens} and \code{mean} is returned. The samples are stored in the matrix
   \code{sample} where each column is a sample, and the log
   densities of each sample are stored as the vector \code{logdens}.
   The mean (include corrections for the constraints,  if any) is store in
-  the vector \code{mean}. 
+  the vector \code{mean}.
 }
 \author{Havard Rue \email{hrue@r-inla.org}}
- 
+
 \examples{
  g = system.file("demodata/germany.graph", package="INLA")
  Q = inla.graph2matrix(g)
@@ -87,17 +87,17 @@
  n = 3
  Q = diag(n)
  ns = 2
- 
+
  ## sample and evaluate a sample
  x = inla.qsample(n, Q=Q, logdens=TRUE)
  xx = inla.qsample(Q=Q,  sample = x$sample)
  print(x$logdens - xx$logdens)
- 
+
  ## the use of a constraint
  constr = list(A = matrix(rep(1, n), 1, n), e = 0)
  x = inla.qsample(n, Q=Q, constr=constr)
  print(constr$A \%*\% x)
- 
+
  ## control the RNG (require serial mode)
  x = inla.qsample(n, Q=Q, seed = 123, num.threads="1:1")
  ## restart from same seed,  only sample 1

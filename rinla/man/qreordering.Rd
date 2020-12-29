@@ -5,15 +5,15 @@
  \name{qreordering}
  \alias{inla.qreordering}
  \alias{qreordering}
- 
+
  \title{Compute the reordering using the GMRFLib implementation}
- 
+
  \description{This function compute the reordering (or find the best reordering)
               using the GMRFLib implementation}
  \usage{
      inla.qreordering(graph, reordering = inla.reorderings())
  }
- 
+
  \arguments{
    \item{graph}{A \code{(inla-)graph} object}
    \item{reordering}{The name of the reordering algorithm to be used; either
@@ -23,11 +23,11 @@
 }
 \value{
   \code{inla.qreordering} returns a list with the name of the reordering algorithm used or
-  found, the reordering code for the reordering algorithm, 
+  found, the reordering code for the reordering algorithm,
   the actual reordering and its inverse.
 }
 \author{Havard Rue \email{hrue@r-inla.org}}
- 
+
 \examples{
  g = system.file("demodata/germany.graph", package="INLA")
  r = inla.qreordering(g)
