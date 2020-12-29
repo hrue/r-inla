@@ -25,8 +25,6 @@ NB: The last 12 lines of the data set have the first column set to
 \examples{
 
 data(Drivers)
-
-
 }
 \references{
 Rue, H and Held, L. (2005) \emph{Gaussian Markov Random Fields -

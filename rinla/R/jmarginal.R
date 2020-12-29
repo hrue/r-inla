@@ -4,117 +4,116 @@
 
 ## Export: inla.rjmarginal inla.rjmarginal.eval inla.tjmarginal inla.1djmarginal
 
-##! \name{joint.marginal}
-##! \alias{inla.joint.marginal}
-##! \alias{inla.joint.marginal.eval}
-##! \alias{joint.marginal}
-##! \alias{joint.marginal.eval}
-##! \alias{rjmarginal}
-##! \alias{rjmarginal.eval}
-##! \alias{inla.rjmarginal}
-##! \alias{inla.rjmarginal.eval}
-##! \alias{inla.tjmarginal}
-##! \alias{tjmarginal}
-##! \alias{inla.1djmarginal}
-##! \alias{1djmarginal}
-##!
-##! \title{Sample, transform and evaluate from a joint marginal approximation}
-##! 
-##! \description{Sample, transform and evalue from from a joint marginal approximation
-##! as returned using argument \code{selection} in \code{inla}.
-##! }
-##! 
-##! \usage{
-##! inla.rjmarginal(n, jmarginal, constr)
-##! inla.rjmarginal.eval(fun, samples, ...) 
-##! inla.tjmarginal(jmarginal, A)
-##! inla.1djmarginal(jmarginal)
-##! }
-##! \arguments{
-##!   \item{n}{The number of samples}
-##!   \item{jmarginal}{A marginal object given  either by a \code{inla} object
-##!     or \code{result$selection}}
-##!   \item{constr}{Optional linear constraints;
-##!                 see \code{?INLA::f} and argument \code{extraconstr}}
-##!   \item{fun}{A function which is evaluated for each sample, similar to
-##!              \code{inla.posterior.sample.eval}: please see the documentation
-##!              for this functions for details. }
-##!   \item{samples}{The samples, as in the form of the output from \code{inla.rjmarginal}}
-##!   \item{A}{A matrix used for the linear combination}
-##! }
-##! 
-##! \value{%%
-##! THESE FUNCTIONS ARE EXPERIMENTAL FOR THE MOMENT (JULY 2020)
-##!
-##!
-##! \code{inla.rjmarginal} returns a list with the samples in \code{samples}
-##! (matrix) and the corresponding log-densities
-##! in \code{log.density} (vector). Each column in \code{samples} contains one sample.
-##!
-##! \code{inla.rjmarginal.eval} returns a matrix, where each row is the (vector) function
-##! evaluated at each sample.
-##!
-##! \code{inla.tjmarginal} returns a \code{inla.jmarginal}-object of the linear combination
-##! defined by the matrix \code{A}. 
-##!
-##! \code{inla.1djmarginal} return the marginal densities from a joint approximation.
-##! }
-##! 
-##! \author{Cristian Chiuchiolo and Havard Rue \email{hrue@r-inla.org}}
-##! \seealso{\code{\link{inla}}}
-##!
-##! \examples{
-##! n = 10
-##! x = 1+rnorm(n)
-##! xx = 3 + rnorm(n)
-##! y = 1 + x + xx + rnorm(n)
-##! selection = list(xx=1, Predictor = 3:4, x=1)
-##! r = inla(y ~ 1 + x + xx,
-##!          data = data.frame(y, x, xx),
-##!          selection = selection)
-##! ns = 100
-##! xx = inla.rjmarginal(ns, r)
-##! 
-##! print(cbind(mean = r$selection$mean, sample.mean = rowMeans(xx$samples)))
-##! print("cov matrix")
-##! print(round(r$selection$cov.matrix, dig=3))
-##! print("sample cov matrix")
-##! print(round(cov(t(xx$samples)), dig=3))
-##! 
-##! skew = function(z) mean((z-mean(z))^3)/var(z)^1.5
-##! print(round(cbind(skew = r$selection$skewness,
-##!                   sample.skew = apply(xx$sample, 1, skew)), dig=3))
-##!
-##! ## illustrating the eval function
-##! n = 10
-##! x = rnorm(n)
-##! eta = 1 + x
-##! y = eta + rnorm(n, sd=0.1)
-##! selection = list(x = 1, Predictor = c(1, 2, 4, 5),  '(Intercept)' = 1)
-##! r = inla(y ~ 1 + x,
-##!          data = data.frame(y, x),
-##!          selection = selection)
-##! xx = inla.rjmarginal(100,  r)
-##! xx.eval = inla.rjmarginal.eval(function() c(x, Predictor, Intercept),  xx)
-##! print(cbind(xx$samples[, 1]))
-##! print(cbind(xx.eval[, 1]))
-##!
-##! constr <- list(A = matrix(1, ncol = n, nrow = 1), e = 1)
-##! x <- inla.rjmarginal(10, r, constr = constr)
-##!
-##! A <- matrix(rnorm(n^2), n, n)
-##! b <- inla.tjmarginal(r, A)
-##! b.marg <- inla.1djmarginal(b)
-##!}
+## ! \name{joint.marginal}
+## ! \alias{inla.joint.marginal}
+## ! \alias{inla.joint.marginal.eval}
+## ! \alias{joint.marginal}
+## ! \alias{joint.marginal.eval}
+## ! \alias{rjmarginal}
+## ! \alias{rjmarginal.eval}
+## ! \alias{inla.rjmarginal}
+## ! \alias{inla.rjmarginal.eval}
+## ! \alias{inla.tjmarginal}
+## ! \alias{tjmarginal}
+## ! \alias{inla.1djmarginal}
+## ! \alias{1djmarginal}
+## !
+## ! \title{Sample, transform and evaluate from a joint marginal approximation}
+## !
+## ! \description{Sample, transform and evalue from from a joint marginal approximation
+## ! as returned using argument \code{selection} in \code{inla}.
+## ! }
+## !
+## ! \usage{
+## ! inla.rjmarginal(n, jmarginal, constr)
+## ! inla.rjmarginal.eval(fun, samples, ...)
+## ! inla.tjmarginal(jmarginal, A)
+## ! inla.1djmarginal(jmarginal)
+## ! }
+## ! \arguments{
+## !   \item{n}{The number of samples}
+## !   \item{jmarginal}{A marginal object given  either by a \code{inla} object
+## !     or \code{result$selection}}
+## !   \item{constr}{Optional linear constraints;
+## !                 see \code{?INLA::f} and argument \code{extraconstr}}
+## !   \item{fun}{A function which is evaluated for each sample, similar to
+## !              \code{inla.posterior.sample.eval}: please see the documentation
+## !              for this functions for details. }
+## !   \item{samples}{The samples, as in the form of the output from \code{inla.rjmarginal}}
+## !   \item{A}{A matrix used for the linear combination}
+## ! }
+## !
+## ! \value{%%
+## ! THESE FUNCTIONS ARE EXPERIMENTAL FOR THE MOMENT (JULY 2020)
+## !
+## !
+## ! \code{inla.rjmarginal} returns a list with the samples in \code{samples}
+## ! (matrix) and the corresponding log-densities
+## ! in \code{log.density} (vector). Each column in \code{samples} contains one sample.
+## !
+## ! \code{inla.rjmarginal.eval} returns a matrix, where each row is the (vector) function
+## ! evaluated at each sample.
+## !
+## ! \code{inla.tjmarginal} returns a \code{inla.jmarginal}-object of the linear combination
+## ! defined by the matrix \code{A}.
+## !
+## ! \code{inla.1djmarginal} return the marginal densities from a joint approximation.
+## ! }
+## !
+## ! \author{Cristian Chiuchiolo and Havard Rue \email{hrue@r-inla.org}}
+## ! \seealso{\code{\link{inla}}}
+## !
+## ! \examples{
+## ! n = 10
+## ! x = 1+rnorm(n)
+## ! xx = 3 + rnorm(n)
+## ! y = 1 + x + xx + rnorm(n)
+## ! selection = list(xx=1, Predictor = 3:4, x=1)
+## ! r = inla(y ~ 1 + x + xx,
+## !          data = data.frame(y, x, xx),
+## !          selection = selection)
+## ! ns = 100
+## ! xx = inla.rjmarginal(ns, r)
+## !
+## ! print(cbind(mean = r$selection$mean, sample.mean = rowMeans(xx$samples)))
+## ! print("cov matrix")
+## ! print(round(r$selection$cov.matrix, dig=3))
+## ! print("sample cov matrix")
+## ! print(round(cov(t(xx$samples)), dig=3))
+## !
+## ! skew = function(z) mean((z-mean(z))^3)/var(z)^1.5
+## ! print(round(cbind(skew = r$selection$skewness,
+## !                   sample.skew = apply(xx$sample, 1, skew)), dig=3))
+## !
+## ! ## illustrating the eval function
+## ! n = 10
+## ! x = rnorm(n)
+## ! eta = 1 + x
+## ! y = eta + rnorm(n, sd=0.1)
+## ! selection = list(x = 1, Predictor = c(1, 2, 4, 5),  '(Intercept)' = 1)
+## ! r = inla(y ~ 1 + x,
+## !          data = data.frame(y, x),
+## !          selection = selection)
+## ! xx = inla.rjmarginal(100,  r)
+## ! xx.eval = inla.rjmarginal.eval(function() c(x, Predictor, Intercept),  xx)
+## ! print(cbind(xx$samples[, 1]))
+## ! print(cbind(xx.eval[, 1]))
+## !
+## ! constr <- list(A = matrix(1, ncol = n, nrow = 1), e = 1)
+## ! x <- inla.rjmarginal(10, r, constr = constr)
+## !
+## ! A <- matrix(rnorm(n^2), n, n)
+## ! b <- inla.tjmarginal(r, A)
+## ! b.marg <- inla.1djmarginal(b)
+## !}
 
-`inla.rjmarginal` = function(n, jmarginal, constr) 
-{
+`inla.rjmarginal` <- function(n, jmarginal, constr) {
     if (missing(jmarginal) || missing(n) || n <= 0) {
-        return (list(samples = matrix(ncol=0, nrow=0), log.density = numeric(0)))
+        return(list(samples = matrix(ncol = 0, nrow = 0), log.density = numeric(0)))
     }
-    
+
     if (inherits(jmarginal, "inla")) {
-        jmarginal = jmarginal$selection
+        jmarginal <- jmarginal$selection
     } else if (inherits(jmarginal, "inla.jmarginal")) {
         ## ok
     } else {
@@ -132,109 +131,114 @@
         Q <- solve(jmarginal$cov.matrix)
         Qi <- jmarginal$cov.matrix
         QiA <- Qi %*% t(constr$A)
-        SS <- solve(constr$A %*% QiA) 
+        SS <- solve(constr$A %*% QiA)
         Qi <- Qi - QiA %*% SS %*% t(QiA)
         mm <- jmarginal$mean - QiA %*% SS %*% (constr$A %*% jmarginal$mean - constr$e)
     }
-    
+
     ## build a fake 'inla'-object, so we can feed that into 'inla.posterior.sample'
-    m = length(jmarginal$mean)
-    r = list(
+    m <- length(jmarginal$mean)
+    r <- list(
         misc = list(
             configs = list(
-                n = m, 
+                n = m,
                 nconfig = 1,
                 max.log.posterior = 0,
-                nz = m*(m+1)/2, 
+                nz = m * (m + 1) / 2,
                 contents = list(
                     tag = jmarginal$names,
                     start = 1:m,
-                    length = rep(1, m)),
+                    length = rep(1, m)
+                ),
                 ntheta = 0,
-                constr = constr, 
-                config = list(list(theta = NULL,
-                                   Q = inla.as.sparse(Q), 
-                                   Qinv = inla.as.sparse(Qi), 
-                                   mean = mm, 
-                                   improved.mean = mm, 
-                                   skewness = jmarginal$skewness,
-                                   log.posterior = 0,
-                                   log.posterior.orig = 0))
+                constr = constr,
+                config = list(list(
+                    theta = NULL,
+                    Q = inla.as.sparse(Q),
+                    Qinv = inla.as.sparse(Qi),
+                    mean = mm,
+                    improved.mean = mm,
+                    skewness = jmarginal$skewness,
+                    log.posterior = 0,
+                    log.posterior.orig = 0
+                ))
             )
         )
     )
-    class(r) = "inla"
+    class(r) <- "inla"
 
-    x = inla.posterior.sample(n, r, use.improved.mean = TRUE, skew.corr = TRUE,
-                              add.names = FALSE)
-    xx = matrix(unlist(lapply(x, function(z) z$latent)), ncol = n)
-    log.dens = unlist(lapply(x, function(z) z$logdens$joint))
-    rownames(xx) = jmarginal$names
-    colnames(xx) = paste0("sample:", 1:n)
-    names(log.dens) = colnames(xx)
-    
-    return (list(samples = xx, log.density = log.dens))
+    x <- inla.posterior.sample(n, r,
+        use.improved.mean = TRUE, skew.corr = TRUE,
+        add.names = FALSE
+    )
+    xx <- matrix(unlist(lapply(x, function(z) z$latent)), ncol = n)
+    log.dens <- unlist(lapply(x, function(z) z$logdens$joint))
+    rownames(xx) <- jmarginal$names
+    colnames(xx) <- paste0("sample:", 1:n)
+    names(log.dens) <- colnames(xx)
+
+    return(list(samples = xx, log.density = log.dens))
 }
 
-`inla.rjmarginal.eval` = function (fun, samples, ...) 
-{
+`inla.rjmarginal.eval` <- function(fun, samples, ...) {
     stopifnot(all(names(samples) == c("samples", "log.density")))
 
-    var = "inla.jmarginal.eval.warning.given"
+    var <- "inla.jmarginal.eval.warning.given"
     if (!(exists(var, envir = inla.get.inlaEnv()) &&
-          get(var, envir = inla.get.inlaEnv()) == TRUE)) {
+        get(var, envir = inla.get.inlaEnv()) == TRUE)) {
         warning("Function 'inla.rjmarginal.eval()' is experimental.")
         assign(var, TRUE, envir = inla.get.inlaEnv())
     }
 
-    nm.split = strsplit(rownames(samples$samples), ":")
+    nm.split <- strsplit(rownames(samples$samples), ":")
     ## determine the names
-    nms = unique(unlist(lapply(nm.split, function(x) x[1])))
-    contents = rep(list(list()), length(nms))
-    for(i in seq_along(nms)) {
-        contents[[i]]$tag = nms[i]
-        contents[[i]]$start = min(which(nms[i] == lapply(nm.split, function(x) x[1])))
-        contents[[i]]$sample.idx = which(nms[i] == lapply(nm.split, function(x) x[1]))
+    nms <- unique(unlist(lapply(nm.split, function(x) x[1])))
+    contents <- rep(list(list()), length(nms))
+    for (i in seq_along(nms)) {
+        contents[[i]]$tag <- nms[i]
+        contents[[i]]$start <- min(which(nms[i] == lapply(nm.split, function(x) x[1])))
+        contents[[i]]$sample.idx <- which(nms[i] == lapply(nm.split, function(x) x[1]))
     }
 
-    my.fun = function(a.sample, .contents, .fun, ...) {
-        env = new.env()
+    my.fun <- function(a.sample, .contents, .fun, ...) {
+        env <- new.env()
         for (i in seq_along(.contents)) {
-            .tmp = a.sample[contents[[i]]$sample.idx]
+            .tmp <- a.sample[contents[[i]]$sample.idx]
             assign(.contents[[i]]$tag, .tmp, envir = env)
         }
         if (exists("(Intercept)", envir = env)) {
-            assign("Intercept", get("(Intercept)", envir = env), 
-                   envir = env)
+            assign("Intercept", get("(Intercept)", envir = env),
+                envir = env
+            )
         }
-        parent.env(env) = .GlobalEnv
-        environment(.fun) = env
+        parent.env(env) <- .GlobalEnv
+        environment(.fun) <- env
         return(.fun(...))
     }
 
-    ret = apply(samples$samples, 2, my.fun, .fun = fun, .contents = contents, ...)
-    ret = matrix(ret, ncol = ncol(samples$samples))
-    colnames(ret) = paste0("sample:", 1:ncol(ret))
-    rownames(ret) = paste0("fun[", 1:nrow(ret), "]")
+    ret <- apply(samples$samples, 2, my.fun, .fun = fun, .contents = contents, ...)
+    ret <- matrix(ret, ncol = ncol(samples$samples))
+    colnames(ret) <- paste0("sample:", 1:ncol(ret))
+    rownames(ret) <- paste0("fun[", 1:nrow(ret), "]")
 
     return(ret)
 }
 
-`print.inla.jmarginal`  <- function(x) 
-{
+`print.inla.jmarginal` <- function(x) {
     x$.private <- NULL
     class(x) <- class(list())
     print(x)
 }
 
-`summary.inla.jmarginal` <- function(object) 
-{
+`summary.inla.jmarginal` <- function(object) {
     stopifnot(inla.require("sn"))
     mode.sn <- function(xi, omega, alpha) {
         med <- sn::qsn(0.5, xi, omega, alpha)
-        res = optimize(f = dsn, interval = c(med - omega, med + omega), maximum = TRUE, 
-                       ## arguments to 'dsn'
-                       log = TRUE, xi = xi, omega = omega, alpha = alpha)
+        res <- optimize(
+            f = dsn, interval = c(med - omega, med + omega), maximum = TRUE,
+            ## arguments to 'dsn'
+            log = TRUE, xi = xi, omega = omega, alpha = alpha
+        )
         return(res$maximum)
     }
 
@@ -244,7 +248,7 @@
     dsn.xi <- object$marginal.sn.par$xi
     dsn.omega <- object$marginal.sn.par$omega
     dsn.alpha <- object$marginal.sn.par$alpha
-    prob <- c(0.025,0.5,0.975)
+    prob <- c(0.025, 0.5, 0.975)
     mode <- c()
     qsn.eval <- matrix(NA, nrow = length(n.sel), ncol = length(prob))
     for (i in seq_along(n.sel)) {
@@ -260,15 +264,13 @@
     return(ret)
 }
 
-`print.summary.inla.jmarginal` <- function(x) 
-{
+`print.summary.inla.jmarginal` <- function(x) {
     print(x$msg)
     print(as.matrix(x$matrix))
     return(invisible())
 }
 
-`inla.tjmarginal` <- function(jmarginal, A)
-{
+`inla.tjmarginal` <- function(jmarginal, A) {
     stopifnot(inla.require("mpoly"))
     stopifnot(inla.require("symmoments"))
 
@@ -281,16 +283,17 @@
     }
     stopifnot(is.matrix(A))
 
-    if(is.null(rownames(A))){
-        names.sel <- sapply(1:nrow(A), function(x) paste0("Lin:",x))
+    if (is.null(rownames(A))) {
+        names.sel <- sapply(1:nrow(A), function(x) paste0("Lin:", x))
     } else {
         names.sel <- rownames(A)
     }
 
-    ##create global environment symmoments to store all moments
-    if (!exists('symmoments'))
-        symmoments <<- new.env()               
-    if (is.null(symmoments$n.max)){
+    ## create global environment symmoments to store all moments
+    if (!exists("symmoments")) {
+          symmoments <<- new.env()
+      }
+    if (is.null(symmoments$n.max)) {
         symmoments$n.max <- 1
         symmoments::make.all.moments(moment = rep(1, 1), verbose = FALSE)
     }
@@ -314,22 +317,24 @@
         m3.lin <- mom3[lc.ind]
         S.lin <- S[lc.ind, lc.ind]
         S.str <- S.lin[lower.tri(S.lin, diag = TRUE)]
-        n.max <- get('n.max', envir = symmoments)
+        n.max <- get("n.max", envir = symmoments)
         m <- rep(2, n)
         names(m) <- sapply(1:n, function(x) paste0("x", x))
         names(coef) <- rep("coef", n)
         bicross <- tricross <- NULL
-        for (i in 1:(n-1)) {
-            j <- i+1
-            while((i < j) && (j <= n)) {
-                bicross <- c(bicross, list(c(m[i], m[j]/2, 3*coef[i]^2, coef[j])), 
-                             list(c(m[i]/2, m[j], 3*coef[i], coef[j]^2)))
-                if (n > n.max){
+        for (i in 1:(n - 1)) {
+            j <- i + 1
+            while ((i < j) && (j <= n)) {
+                bicross <- c(
+                    bicross, list(c(m[i], m[j] / 2, 3 * coef[i]^2, coef[j])),
+                    list(c(m[i] / 2, m[j], 3 * coef[i], coef[j]^2))
+                )
+                if (n > n.max) {
                     mom.eval <- rep(0, n)
                     mom.eval[i] <- mom.eval[j] <- 2
                     symmoments::make.all.moments(moment = mom.eval, verbose = FALSE)
                 }
-                j <- j+1
+                j <- j + 1
             }
         }
 
@@ -337,30 +342,30 @@
         if (n > 2) {
             for (i in 1:n) {
                 j <- 1
-                while(j < i) {
+                while (j < i) {
                     k <- 1
-                    while(k < j) {
-                        tricross <- c(tricross, list(c(m[i]/3, m[j]/3, m[k]/3, 6*coef[i], coef[j], coef[k])))
-                        if (n > n.max){
+                    while (k < j) {
+                        tricross <- c(tricross, list(c(m[i] / 3, m[j] / 3, m[k] / 3, 6 * coef[i], coef[j], coef[k])))
+                        if (n > n.max) {
                             symmoments$n.max <- n
                             mom.eval <- rep(0, n)
                             mom.eval[i] <- mom.eval[j] <- mom.eval[k] <- 1
                             symmoments::make.all.moments(moment = mom.eval, verbose = FALSE)
                         }
-                        k <- k+1
+                        k <- k + 1
                     }
-                    j <- j+1
+                    j <- j + 1
                 }
             }
         }
-        
+
         all3 <- c(bicross, tricross)
         poly3 <- mpoly::mpoly(all3)
         mom1.m <- mu.tjoint[lc]
         mom2.m <- m2.tjoint[lc]
-        mom3.m <- sum(coef^3*m3.lin) +
+        mom3.m <- sum(coef^3 * m3.lin) +
             symmoments::evaluate_expected.polynomial(poly = poly3, mu = m1.lin, sigma = S.str)
-        skew.m <- (mom3.m-3*mom2.m*mom1.m+2*mom1.m^3)*((mom2.m-mom1.m^2)^(-1.5))   #global skewnesses
+        skew.m <- (mom3.m - 3 * mom2.m * mom1.m + 2 * mom1.m^3) * ((mom2.m - mom1.m^2)^(-1.5)) # global skewnesses
         m3.tjoint[lc] <- mom3.m
         if (any(abs(skew.m) > skew.max)) {
             skew.m <- pmax(-skew.max, pmin(skew.max, skew.m))
@@ -368,9 +373,11 @@
         }
         skew.tjoint[lc] <- skew.m
     }
-    sn.par <- inla.sn.reparam(moments = list(mean = as.numeric(mu.tjoint), 
-                                             variance = diag(S.tjoint), 
-                                             skewness = skew.tjoint))
+    sn.par <- inla.sn.reparam(moments = list(
+        mean = as.numeric(mu.tjoint),
+        variance = diag(S.tjoint),
+        skewness = skew.tjoint
+    ))
     output <- list()
     output$names <- names.sel
     output$mean <- mu.tjoint
@@ -388,8 +395,7 @@
     return(output)
 }
 
-`inla.1djmarginal` <- function(jmarginal)
-{
+`inla.1djmarginal` <- function(jmarginal) {
     stopifnot(inla.require("sn"))
     if (inherits(jmarginal, "inla")) {
         jmarginal <- jmarginal$selection
@@ -405,22 +411,24 @@
     dsn.xi <- jmarginal$marginal.sn.par$xi
     dsn.omega <- jmarginal$marginal.sn.par$omega
     dsn.alpha <- jmarginal$marginal.sn.par$alpha
-    obj <- vector('list', length(n.sel))
+    obj <- vector("list", length(n.sel))
     names(obj) <- n.sel
 
     ## copy from density.c
-    q.many <- c(0.0000001, 0.000001, 0.00001, 0.0001, 0.0005, 0.001, 0.005, 0.01, 0.025,
-                0.05, 0.075, 0.10, 0.125, 0.15, 0.175, 0.2, 0.225, 0.25, 0.275, 0.30,
-                0.325, 0.35, 0.375, 0.40, 0.425, 0.45, 0.46, 0.47, 0.475, 0.48, 0.49,
-                0.50, 0.51, 0.52, 0.525, 0.53, 0.54, 0.55, 0.575, 0.60, 0.625, 0.65,
-                0.675, 0.70, 0.725, 0.75, 0.775, 0.80, 0.825, 0.85, 0.875, 0.9, 0.925,
-                0.95, 0.975, 0.99, 0.995, 0.999, 0.9995, 0.9999, 0.99999, 0.999999, 0.9999999)
-    
-    for(i in seq_along(n.sel)) {
+    q.many <- c(
+        0.0000001, 0.000001, 0.00001, 0.0001, 0.0005, 0.001, 0.005, 0.01, 0.025,
+        0.05, 0.075, 0.10, 0.125, 0.15, 0.175, 0.2, 0.225, 0.25, 0.275, 0.30,
+        0.325, 0.35, 0.375, 0.40, 0.425, 0.45, 0.46, 0.47, 0.475, 0.48, 0.49,
+        0.50, 0.51, 0.52, 0.525, 0.53, 0.54, 0.55, 0.575, 0.60, 0.625, 0.65,
+        0.675, 0.70, 0.725, 0.75, 0.775, 0.80, 0.825, 0.85, 0.875, 0.9, 0.925,
+        0.95, 0.975, 0.99, 0.995, 0.999, 0.9995, 0.9999, 0.99999, 0.999999, 0.9999999
+    )
+
+    for (i in seq_along(n.sel)) {
         val <- sn::qsn(q.many, xi = dsn.xi[i], omega = dsn.omega[i], alpha = dsn.alpha[i])
         dsn.eval <- sn::dsn(val, xi = dsn.xi[i], omega = dsn.omega[i], alpha = dsn.alpha[i])
         obj[[i]] <- cbind(val, dsn.eval)
-        colnames(obj[[i]]) = c('x', 'y')
+        colnames(obj[[i]]) <- c("x", "y")
     }
 
     return(obj)

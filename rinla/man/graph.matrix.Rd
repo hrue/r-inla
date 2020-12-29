@@ -16,7 +16,7 @@
 \arguments{
     \item{graph}{An \code{inla.graph}-object, a (sparse) symmetric matrix, a filename containing the graph,
                  or a list or collection of characters and/or numbers defining the graph.}
-    \item{reordering}{A possible reordering. Typical the one obtained from a \code{inla}-call,  \code{result$misc$reordering}, 
+    \item{reordering}{A possible reordering. Typical the one obtained from a \code{inla}-call,  \code{result$misc$reordering},
                       or the result of \code{inla.qreordering}.}
     \item{factor}{A scaling of the \code{inla.graph}-object to reduce the size.}
     \item{max.dim}{Maximum dimension of the \code{inla.graph}-object plotted;

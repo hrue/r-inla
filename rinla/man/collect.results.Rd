@@ -13,7 +13,7 @@
               control.results = inla.set.control.results.default(),
               debug=FALSE,
               only.hyperparam=FALSE,
-              file.log = NULL, 
+              file.log = NULL,
               file.log2 = NULL)
 }
  \arguments{
@@ -30,8 +30,8 @@
  }
  \value{ The function returns an object of class \code{"inla"}, see the
  help file for \code{inla} for details.}
- 
- \details{This function is mainly used inside \code{inla} 
+
+ \details{This function is mainly used inside \code{inla}
   to collect results after running the inla
   function. It can also be used to collect results into R after having
   runned a inla section outside R.  }

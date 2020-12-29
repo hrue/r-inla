@@ -16,22 +16,22 @@ control.compute(config, cpo, dic, gdensity, graph, hyperpar, mlik, openmp.strate
 }
 \arguments{
 \item{...}{Possible arguments}
-\item{openmp.strategy}{  The computational strategy to use: 'small', 'medium', 'large', 'huge', 'default' and 'pardiso'.}
-\item{hyperpar}{  A boolean variable if the marginal for the hyperparameters should be computed. Default TRUE.}
-\item{return.marginals}{  A boolean variable if the marginals for the latent field should be returned (although it is computed). Default TRUE}
-\item{dic}{  A boolean variable if the DIC-value should be computed. Default FALSE.}
-\item{mlik}{  A boolean variable if the marginal likelihood should be computed. Default \code{TRUE}.}
-\item{cpo}{  A boolean variable if the cross-validated predictive measures (cpo, pit) should be computed (default \code{FALSE})}
-\item{po}{  A boolean variable if the predictive ordinate should be computed (default \code{FALSE})}
-\item{waic}{  A boolean variable if the Watanabe-Akaike information criteria should be computed (default \code{FALSE})}
-\item{q}{  A boolean variable if binary images of the precision matrix, the reordered precision matrix and the Cholesky triangle should be generated. (Default FALSE.)}
-\item{config}{  A boolean variable if the internal GMRF approximations be stored. (Default FALSE. EXPERIMENTAL)}
-\item{smtp}{  The sparse-matrix solver, one of 'default', 'taucs', 'band' or 'pardiso' (default \code{inla.getoption("smtp")}). \code{smtp='pardiso'} implies \code{openmp.strategy='pardiso'}.}
-\item{graph}{  A boolean variable if the graph itself should be returned. (Default FALSE.)}
-\item{gdensity}{  A boolean variable if the Gaussian-densities itself should be returned. (Default FALSE.)}
+\item{openmp.strategy}{   The computational strategy to use: 'small', 'medium', 'large', 'huge', 'default' and 'pardiso'.}
+\item{hyperpar}{   A boolean variable if the marginal for the hyperparameters should be computed. Default TRUE.}
+\item{return.marginals}{   A boolean variable if the marginals for the latent field should be returned (although it is computed). Default TRUE}
+\item{dic}{   A boolean variable if the DIC-value should be computed. Default FALSE.}
+\item{mlik}{   A boolean variable if the marginal likelihood should be computed. Default \code{TRUE}.}
+\item{cpo}{   A boolean variable if the cross-validated predictive measures (cpo, pit) should be computed (default \code{FALSE})}
+\item{po}{   A boolean variable if the predictive ordinate should be computed (default \code{FALSE})}
+\item{waic}{   A boolean variable if the Watanabe-Akaike information criteria should be computed (default \code{FALSE})}
+\item{q}{   A boolean variable if binary images of the precision matrix, the reordered precision matrix and the Cholesky triangle should be generated. (Default FALSE.)}
+\item{config}{   A boolean variable if the internal GMRF approximations be stored. (Default FALSE. EXPERIMENTAL)}
+\item{smtp}{   The sparse-matrix solver, one of 'default', 'taucs', 'band' or 'pardiso' (default \code{inla.getoption("smtp")}). \code{smtp='pardiso'} implies \code{openmp.strategy='pardiso'}.}
+\item{graph}{   A boolean variable if the graph itself should be returned. (Default FALSE.)}
+\item{gdensity}{   A boolean variable if the Gaussian-densities itself should be returned. (Default FALSE.)}
 }
 \value{
- 
+  
 The function \code{control.compute} is used to TAB-complete arguments and returns a list of given arguments.
 The function \code{inla.set.control.compute.default} returns a list with all the default values of all parameters within this control statement.
 }

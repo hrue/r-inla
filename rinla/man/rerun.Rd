@@ -8,13 +8,13 @@
 
  \title{Rerun an analysis}
  \description{Rerun \code{\link{inla}} on an
-              inla-object (output from \code{link{inla}})} 
+              inla-object (output from \code{link{inla}})}
  \usage{
  inla.rerun(object, plain=FALSE)
  }
  \arguments{
 
-\item{object}{An \code{inla}-object, ie the output from an \code{inla}-call} 
+\item{object}{An \code{inla}-object, ie the output from an \code{inla}-call}
 \item{plain}{Logical. If \code{FALSE} (default), then make
 changes in \code{object} to improve the performance}
 }

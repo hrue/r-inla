@@ -47,7 +47,7 @@ related oscillating SPDE models, on \eqn{R^d}{R^d} and on the sphere,
 On \eqn{R^d}{R^d}, the models are \emph{defined} by the spectral density
 given by
 \deqn{S(w) = \frac{1}{(2\pi)^d (\kappa^4 + 2 \kappa^2 \cos(\pi
- \theta) |w|^2 + |w|^4)^{(\nu + d/2)/2}}
+\theta) |w|^2 + |w|^4)^{(\nu + d/2)/2}}
 }{S(w) = 1 / ( (2\pi)^d * (kappa^4 + 2 kappa^2 * cos(pi * theta) * |w|^2 +
 |w|^4)^((nu + d/2)/2) )}
 

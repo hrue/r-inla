@@ -13,9 +13,9 @@
  \alias{inla.pc.pgammacount}
  \alias{pc.qgammacount}
  \alias{inla.pc.qgammacount}
- 
+
  \title{Utility functions for the PC prior for the \code{gammacount} likelihood}
- 
+
  \description{Functions to evaluate, sample, compute quantiles and
               percentiles of the PC prior for the \code{gammacount} likelihood}
  \usage{

@@ -111,25 +111,27 @@ Delaunay tringulation.
 }
 \examples{
 
-loc = matrix(runif(10*2),10,2)
+loc <- matrix(runif(10 * 2), 10, 2)
 
-mesh = inla.delaunay(loc)
+mesh <- inla.delaunay(loc)
 plot(mesh)
 
-mesh = inla.mesh.create(loc,
-                        interior=inla.mesh.segment(idx=1:2),
-                        extend=TRUE,
-                        refine=list(max.edge=0.1))
+mesh <- inla.mesh.create(loc,
+    interior = inla.mesh.segment(idx = 1:2),
+    extend = TRUE,
+    refine = list(max.edge = 0.1)
+)
 plot(mesh)
 
-loc2 = matrix(c(0,1,1,0, 0,0,1,1), 4, 2);
-mesh2 = inla.mesh.create(loc=loc,
-                         boundary=inla.mesh.segment(loc2),
-                         interior=inla.mesh.segment(idx=1:2),
-                         quality.spec=list(segm=0.2, loc=0.05),
-                         refine=list(min.angle=26))
+loc2 <- matrix(c(0, 1, 1, 0, 0, 0, 1, 1), 4, 2)
+mesh2 <- inla.mesh.create(
+    loc = loc,
+    boundary = inla.mesh.segment(loc2),
+    interior = inla.mesh.segment(idx = 1:2),
+    quality.spec = list(segm = 0.2, loc = 0.05),
+    refine = list(min.angle = 26)
+)
 plot(mesh2)
-
 }
 \seealso{
 \code{\link[=inla.mesh.2d]{inla.mesh.2d()}}, \code{\link[=inla.mesh.1d]{inla.mesh.1d()}},

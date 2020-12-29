@@ -16,11 +16,11 @@ control.lincomb(precision, verbose)
 }
 \arguments{
 \item{...}{Possible arguments}
-\item{precision}{  The precision for the artificial tiny noise. Default 1e09.}
-\item{verbose}{  Use verbose mode for linear combinations if verbose model is set globally. (Default TRUE)}
+\item{precision}{   The precision for the artificial tiny noise. Default 1e09.}
+\item{verbose}{   Use verbose mode for linear combinations if verbose model is set globally. (Default TRUE)}
 }
 \value{
- 
+  
 The function \code{control.lincomb} is used to TAB-complete arguments and returns a list of given arguments.
 The function \code{inla.set.control.lincomb.default} returns a list with all the default values of all parameters within this control statement.
 }

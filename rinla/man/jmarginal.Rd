@@ -17,14 +17,14 @@
  \alias{1djmarginal}
 
  \title{Sample, transform and evaluate from a joint marginal approximation}
- 
+
  \description{Sample, transform and evalue from from a joint marginal approximation
  as returned using argument \code{selection} in \code{inla}.
  }
- 
+
  \usage{
  inla.rjmarginal(n, jmarginal, constr)
- inla.rjmarginal.eval(fun, samples, ...) 
+ inla.rjmarginal.eval(fun, samples, ...)
  inla.tjmarginal(jmarginal, A)
  inla.1djmarginal(jmarginal)
  }
@@ -40,7 +40,7 @@
    \item{samples}{The samples, as in the form of the output from \code{inla.rjmarginal}}
    \item{A}{A matrix used for the linear combination}
  }
- 
+
  \value{%%
  THESE FUNCTIONS ARE EXPERIMENTAL FOR THE MOMENT (JULY 2020)
 
@@ -53,11 +53,11 @@
  evaluated at each sample.
 
  \code{inla.tjmarginal} returns a \code{inla.jmarginal}-object of the linear combination
- defined by the matrix \code{A}. 
+ defined by the matrix \code{A}.
 
  \code{inla.1djmarginal} return the marginal densities from a joint approximation.
  }
- 
+
  \author{Cristian Chiuchiolo and Havard Rue \email{hrue@r-inla.org}}
  \seealso{\code{\link{inla}}}
 
@@ -72,13 +72,13 @@
           selection = selection)
  ns = 100
  xx = inla.rjmarginal(ns, r)
- 
+
  print(cbind(mean = r$selection$mean, sample.mean = rowMeans(xx$samples)))
  print("cov matrix")
  print(round(r$selection$cov.matrix, dig=3))
  print("sample cov matrix")
  print(round(cov(t(xx$samples)), dig=3))
- 
+
  skew = function(z) mean((z-mean(z))^3)/var(z)^1.5
  print(round(cbind(skew = r$selection$skewness,
                    sample.skew = apply(xx$sample, 1, skew)), dig=3))

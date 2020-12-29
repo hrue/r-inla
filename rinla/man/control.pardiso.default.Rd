@@ -16,13 +16,13 @@ control.pardiso.default(debug, nrhs, parallel.reordering, verbose)
 }
 \arguments{
 \item{...}{Possible arguments}
-\item{verbose}{  Show detailed output (default FALSE)}
-\item{debug}{  Show internal debug output (default FALSE)}
-\item{parallel.reordering}{  Do reordering in parallel (default FALSE)}
-\item{nrhs}{  Number of right-hand sides to solve for in parallel (default depends on the argument \code{num.threads} and \code{-1} will not change it)}
+\item{verbose}{   Show detailed output (default FALSE)}
+\item{debug}{   Show internal debug output (default FALSE)}
+\item{parallel.reordering}{   Do reordering in parallel (default FALSE)}
+\item{nrhs}{   Number of right-hand sides to solve for in parallel (default depends on the argument \code{num.threads} and \code{-1} will not change it)}
 }
 \value{
-  Extra options controlling the PARDISO library
+   Extra options controlling the PARDISO library
 The function \code{control.pardiso.default} is used to TAB-complete arguments and returns a list of given arguments.
 The function \code{inla.set.control.pardiso.default.default} returns a list with all the default values of all parameters within this control statement.
 }

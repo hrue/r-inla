@@ -26,7 +26,5 @@ for 59 patients.
 \examples{
 
 data(Epil)
-
-
 }
 \keyword{datasets}

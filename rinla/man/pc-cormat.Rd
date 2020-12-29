@@ -26,10 +26,10 @@
  \alias{cormat.rtheta}
  \alias{inla.pc.cormat.dtheta}
  \alias{cormat.dtheta}
- 
+
  \title{Utility functions for the PC prior for a correlation matrix}
- 
- \description{Functions to evaluate and sample from the 
+
+ \description{Functions to evaluate and sample from the
               PC prior for a correlation matrix.}
  \usage{
     inla.pc.cormat.dim2p(dim)
@@ -61,7 +61,7 @@
     correlation matrix \code{R}. The functions \code{inla.pc.cormat.<A>2<B>} convert between
     parameterisations \code{<A>} to parameterisations \code{<B>},  where both
     \code{<A>} and \code{<B>} are one of \code{theta},  \code{r} and \code{R},
-    and \code{p} and \code{dim}. 
+    and \code{p} and \code{dim}.
  }
  \value{%%
      \code{inla.pc.cormat.rtheta} generate samples from the prior,  returning a matrix

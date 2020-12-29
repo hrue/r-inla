@@ -12,9 +12,9 @@
      inla.dev.new(...)
  }
  \arguments{
-   \item{...}{Optional arguments to \code{\link{dev.new}}} 
+   \item{...}{Optional arguments to \code{\link{dev.new}}}
 }
  \value{
-   The value of \code{\link{dev.new}} if not running RStudio, otherwise \code{NULL} 
+   The value of \code{\link{dev.new}} if not running RStudio, otherwise \code{NULL}
  }
  \author{Havard Rue \email{hrue@r-inla.org}}

@@ -21,7 +21,5 @@ surgery in babies
 \examples{
 
 data(Surg)
-
-
 }
 \keyword{datasets}

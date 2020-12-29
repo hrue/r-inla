@@ -53,17 +53,16 @@ see \code{\link[=inla.crs_get_wkt]{inla.crs_get_wkt()}}
 \examples{
 
 if (require(rgdal)) {
-  crs0 <- inla.CRS("longlat")
-  p4s <- inla.CRSargs(crs0)
-  lst <- inla.as.list.CRSargs(p4s)
-  crs1 <- inla.as.CRS.list(lst)
-  lst$a <- 2
-  crs2 <- inla.CRS(p4s, args=lst)
-  print(inla.CRSargs(crs0))
-  print(inla.CRSargs(crs1))
-  print(inla.CRSargs(crs2))
+    crs0 <- inla.CRS("longlat")
+    p4s <- inla.CRSargs(crs0)
+    lst <- inla.as.list.CRSargs(p4s)
+    crs1 <- inla.as.CRS.list(lst)
+    lst$a <- 2
+    crs2 <- inla.CRS(p4s, args = lst)
+    print(inla.CRSargs(crs0))
+    print(inla.CRSargs(crs1))
+    print(inla.CRSargs(crs2))
 }
-
 }
 \seealso{
 \code{\link[rgdal:CRS-class]{rgdal::CRSargs()}}, \code{\link[=inla.CRS]{inla.CRS()}}

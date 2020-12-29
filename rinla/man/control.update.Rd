@@ -16,10 +16,10 @@ control.update(result)
 }
 \arguments{
 \item{...}{Possible arguments}
-\item{result}{  Update the joint posterior for the hyperparameters from result}
+\item{result}{   Update the joint posterior for the hyperparameters from result}
 }
 \value{
- 
+  
 The function \code{control.update} is used to TAB-complete arguments and returns a list of given arguments.
 The function \code{inla.set.control.update.default} returns a list with all the default values of all parameters within this control statement.
 }

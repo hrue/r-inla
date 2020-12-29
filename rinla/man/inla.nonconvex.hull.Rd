@@ -70,12 +70,11 @@ Requires \code{nndistF} from the \code{splancs} package.
 \examples{
 
 if (require(splancs)) {
-  loc = matrix(runif(20), 10, 2)
-  boundary = inla.nonconvex.hull(loc, convex=0.2)
-  lines(boundary, add=FALSE)
-  points(loc)
+    loc <- matrix(runif(20), 10, 2)
+    boundary <- inla.nonconvex.hull(loc, convex = 0.2)
+    lines(boundary, add = FALSE)
+    points(loc)
 }
-
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

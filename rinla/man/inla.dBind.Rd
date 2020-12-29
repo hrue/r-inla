@@ -18,8 +18,7 @@ Build a block-diagonal sparse matrix.  Obsolete wrapper for \code{bdiag()}.
 }
 \examples{
 
-inla.dBind(Matrix(1,2,1), Matrix(2,1,2))
-
+inla.dBind(Matrix(1, 2, 1), Matrix(2, 1, 2))
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

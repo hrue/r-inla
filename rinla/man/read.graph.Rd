@@ -24,14 +24,14 @@ inla.write.graph(graph, filename = "graph.dat", mode = c("binary", "ascii"), ...
 \arguments{
     \item{filename}{The filename of the graph.}
     \item{graph}{An \code{inla.graph}-object, a (sparse) symmetric matrix, a filename containing the graph,
-                 a list or collection of characters and/or numbers defining the graph, 
+                 a list or collection of characters and/or numbers defining the graph,
                  or a neighbours list with class \code{nb} (see \code{spdep::card} and
                  \code{spdep::poly2nb} for for details of \code{nb} and an example a function
                  returning an \code{nb} object}
-    \item{mode}{The mode of the file; ascii-file or a (gzip-compressed) binary. Default value depends on 
+    \item{mode}{The mode of the file; ascii-file or a (gzip-compressed) binary. Default value depends on
                 the inla.option \code{internal.binary.mode} which is default \code{TRUE}; see \code{inla.setOption}.}
-    \item{object}{An \code{inla.graph} -object} 
-    \item{x}{An \code{inla.graph} -object} 
+    \item{object}{An \code{inla.graph} -object}
+    \item{x}{An \code{inla.graph} -object}
     \item{y}{Not used}
     \item{size.only}{Only read the size of the graph}
     \item{...}{Additional arguments. In \code{inla.read.graph},
@@ -71,7 +71,7 @@ summary(g)
 Not run:
 plot(g)
 inla.spy(g)
-## when defining the graph directly in the call, 
+## when defining the graph directly in the call,
 ## we can use a mix of character and numbers
 g = inla.read.graph(c(3, 1, "1 2 2 1 1 3", 0))
 inla.spy(c(3, 1, "1 2 2 1 1 3 0"))

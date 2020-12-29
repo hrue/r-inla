@@ -22,8 +22,8 @@
  \alias{pc.multvar.h.default}
 
  \title{Multivariate PC priors}
- 
- \description{Functions to evaluate and simulate from 
+
+ \description{Functions to evaluate and simulate from
               multivariate PC priors: The simplex and sphere case}
  \usage{
  inla.pc.multvar.h.default(x, inverse = FALSE, derivative = FALSE)
@@ -57,7 +57,7 @@
      \code{inla.pc.multvar.sphere.r} generate samples from the sphere case,  and
      \code{inla.pc.multvar.sphere.d} evaluate the density.
      \code{inla.pc.multvar.h.default} implements the default h()-function and illustrate how
-     to code your own spesific one, if needed. 
+     to code your own spesific one, if needed.
  }
  \author{Havard Rue \email{hrue@r-inla.org}}
  \examples{

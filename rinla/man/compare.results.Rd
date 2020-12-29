@@ -19,7 +19,7 @@
 }
 
 \value{%%
-  Return nothing. This is an interactive function. 
+  Return nothing. This is an interactive function.
 
   This function is OBSOLETE
 }

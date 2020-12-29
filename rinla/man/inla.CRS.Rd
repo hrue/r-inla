@@ -86,19 +86,19 @@ projection is only correct for perfect spheres.
 
 
 if (require(rgdal)) {
-  crs1 <- inla.CRS("longlat_globe")
-  crs2 <- inla.CRS("lambert_globe")
-  crs3 <- inla.CRS("mollweide_norm")
-  crs4 <- inla.CRS("hammer_globe")
-  crs5 <- inla.CRS("sphere")
-  crs6 <- inla.CRS("globe")
-} 
+    crs1 <- inla.CRS("longlat_globe")
+    crs2 <- inla.CRS("lambert_globe")
+    crs3 <- inla.CRS("mollweide_norm")
+    crs4 <- inla.CRS("hammer_globe")
+    crs5 <- inla.CRS("sphere")
+    crs6 <- inla.CRS("globe")
+}
 \dontrun{
- names(inla.wkt_predef())
+names(inla.wkt_predef())
 }
 
 \dontrun{
- names(inla.wkt_predef())
+names(inla.wkt_predef())
 }
 }
 \seealso{

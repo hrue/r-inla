@@ -34,7 +34,7 @@ inla.rgeneric.wrapper(
         cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
         model, theta = NULL)
 inla.rgeneric.q(
-        rmodel, 
+        rmodel,
         cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
         theta = NULL)
 }
@@ -55,10 +55,10 @@ inla.rgeneric.q(
 }
 
 \value{%%
-  This allows a latent model to be 
+  This allows a latent model to be
   defined in \code{R}.
   See \code{inla.rgeneric.ar1.model} and
-  \code{inla.rgeneric.iid.model} and the documentation for 
+  \code{inla.rgeneric.iid.model} and the documentation for
   worked out examples of how to define latent models in  this way.
   This will be somewhat slow and is intended for special cases and
   protyping. The function \code{inla.rgeneric.wrapper} is for

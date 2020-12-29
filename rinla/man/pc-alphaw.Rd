@@ -13,9 +13,9 @@
  \alias{inla.pc.palphaw}
  \alias{pc.qalphaw}
  \alias{inla.pc.qalphaw}
- 
+
  \title{Utility functions for the PC prior for the \code{alpha} parameter in the Weibull likelihood}
- 
+
  \description{Functions to evaluate, sample, compute quantiles and
               percentiles of the PC prior for the \code{alpha} parameter
               in the Weibull likelihood}
@@ -35,7 +35,7 @@
  }
  \details{
  This gives the PC prior for the \code{alpha} parameter for the Weibull likelihood,
- where \code{alpha=1} is the base model. 
+ where \code{alpha=1} is the base model.
  }
 \value{%%
   \code{inla.pc.dalphaw} gives the density,

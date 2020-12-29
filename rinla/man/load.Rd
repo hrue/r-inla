@@ -20,5 +20,5 @@
    Try to \code{load} the file into the global environment,
    if that fail,  try to \code{source} the file into the
    global environment.
- }    
+ }
  \author{Havard Rue \email{hrue@r-inla.org}}

@@ -12,11 +12,12 @@ sessions.  More detailed assessment tools are in \code{\link[=meshbuilder]{meshb
 }
 \examples{
 
-bnd <- inla.mesh.segment(cbind(c(0, 10, 10, 0, 0),
-                               c(0, 0, 10, 10, 0)), bnd = TRUE)
+bnd <- inla.mesh.segment(cbind(
+    c(0, 10, 10, 0, 0),
+    c(0, 0, 10, 10, 0)
+), bnd = TRUE)
 mesh <- inla.mesh.2d(boundary = bnd, max.edge = 1)
 out <- inla.mesh.assessment(mesh, spatial.range = 3, alpha = 2)
-
 }
 \seealso{
 inla.mesh.2d, inla.mesh.create, meshbuilder

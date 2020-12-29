@@ -20,7 +20,5 @@ at the introduction of the SPDE tutorial.
 \examples{
 
 data(SPDEtoy)
-
-
 }
 \keyword{datasets}

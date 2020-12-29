@@ -20,11 +20,12 @@ Wrapper for identical, optionally testing only the CRS part of two objects
 \examples{
 
 crs0 <- inla.CRS("longlat")
-crs1 <- inla.CRS("longlat", oblique=c(0,90))
-print(c(inla.identical.CRS(crs0, crs0),
-        inla.identical.CRS(crs0, crs1),
-        inla.identical.CRS(crs0, crs1, crsonly=TRUE)))
-
+crs1 <- inla.CRS("longlat", oblique = c(0, 90))
+print(c(
+    inla.identical.CRS(crs0, crs0),
+    inla.identical.CRS(crs0, crs1),
+    inla.identical.CRS(crs0, crs1, crsonly = TRUE)
+))
 }
 \seealso{
 \code{\link[=inla.CRS]{inla.CRS()}}

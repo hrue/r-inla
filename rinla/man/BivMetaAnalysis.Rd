@@ -31,7 +31,6 @@ for LAG, the following 19 for CT and the last 10 for MR.
 \examples{
 
 data(BivMetaAnalysis)
-
 }
 \references{
 J. Scheidler and H. Hricak and K. K. Yu and L. Subak and M. R.

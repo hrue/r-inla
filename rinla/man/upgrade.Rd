@@ -22,8 +22,8 @@ inla.update(lib = NULL, testing=FALSE, ask = TRUE)
     INLA-package.}
   \item{ask}{same argument as in \code{update.packages}}
 }
-\value{\code{inla.upgrade} will update the INLA package to the current version, 
- and \code{inla.update} do the same 
+\value{\code{inla.upgrade} will update the INLA package to the current version,
+ and \code{inla.update} do the same
   for backward compatibility. This function is simple wrapper for
   \code{update.packages} using the INLA repository.}
 \author{Havard Rue \email{hrue@r-inla.org}}

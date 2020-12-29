@@ -120,7 +120,7 @@ vectors of length \eqn{n_{j,l}}{n_jl} }
 
 \deqn{\mbox{predictor}(y^1, \ldots, y^p) \sim
 \sum_{l=1}^{n_l} A^l \sum_{k=1}^{n_k} g(k, x^{k,l})
-= \tilde{A} \sum_{k=1}^{n_k} g(k, \tilde{x}^k) 
+= \tilde{A} \sum_{k=1}^{n_k} g(k, \tilde{x}^k)
 }{ predictor(y^1, \ldots, y^p) ~ sum_{l=1}^{n_l} A^l sum_{k=1}^{n_k}
 g(k, x^{k,l}) = tilde{A} sum_{k=1}^{n_k} g(k, tilde{x}^k) }
 where
@@ -187,74 +187,103 @@ join with other variables
 \examples{
 
 n <- 200
-loc <- matrix(runif(n*2), n, 2)
-mesh <- inla.mesh.2d(loc.domain = loc,
-                     max.edge=c(0.05, 0.2))
+loc <- matrix(runif(n * 2), n, 2)
+mesh <- inla.mesh.2d(
+    loc.domain = loc,
+    max.edge = c(0.05, 0.2)
+)
 proj.obs <- inla.mesh.projector(mesh, loc = loc)
 proj.pred <- inla.mesh.projector(mesh, loc = mesh$loc)
 spde <- inla.spde2.pcmatern(mesh,
-                            prior.range = c(0.01, 0.01),
-                            prior.sigma = c(10, 0.01))
+    prior.range = c(0.01, 0.01),
+    prior.sigma = c(10, 0.01)
+)
 
 covar <- rnorm(n)
-field <- inla.qsample(n = 1, Q = inla.spde.precision(spde, theta = log(c(0.5, 1))))[,1]
-y <- 2*covar + inla.mesh.project(proj.obs, field)
+field <- inla.qsample(n = 1, Q = inla.spde.precision(spde, theta = log(c(0.5, 1))))[, 1]
+y <- 2 * covar + inla.mesh.project(proj.obs, field)
 
 A.obs <- inla.spde.make.A(mesh, loc = loc)
-A.pred = inla.spde.make.A(mesh, loc = proj.pred$loc)
+A.pred <- inla.spde.make.A(mesh, loc = proj.pred$loc)
 stack.obs <-
-    inla.stack(data=list(y=y),
-               A=list(A.obs, 1),
-               effects=list(c(list(Intercept = 1),
-                              inla.spde.make.index("spatial", spde$n.spde)),
-                            covar=covar),
-               tag="obs")
+    inla.stack(
+        data = list(y = y),
+        A = list(A.obs, 1),
+        effects = list(c(
+            list(Intercept = 1),
+            inla.spde.make.index("spatial", spde$n.spde)
+        ),
+        covar = covar
+        ),
+        tag = "obs"
+    )
 stack.pred <-
-    inla.stack(data=list(y=NA),
-               A=list(A.pred),
-               effects=list(c(list(Intercept = 1),
-                              inla.spde.make.index("spatial", mesh$n))),
-               tag="pred")
+    inla.stack(
+        data = list(y = NA),
+        A = list(A.pred),
+        effects = list(c(
+            list(Intercept = 1),
+            inla.spde.make.index("spatial", mesh$n)
+        )),
+        tag = "pred"
+    )
 stack <- inla.stack(stack.obs, stack.pred)
 
-formula <- y ~ -1 + Intercept + covar + f(spatial, model=spde)
+formula <- y ~ -1 + Intercept + covar + f(spatial, model = spde)
 result1 <- inla(formula,
-                data=inla.stack.data(stack.obs, spde = spde),
-                family="gaussian",
-                control.predictor = list(A = inla.stack.A(stack.obs),
-                                        compute = TRUE))
+    data = inla.stack.data(stack.obs, spde = spde),
+    family = "gaussian",
+    control.predictor = list(
+        A = inla.stack.A(stack.obs),
+        compute = TRUE
+    )
+)
 
-plot(y, result1$summary.fitted.values[inla.stack.index(stack.obs,"obs")$data, "mean"],
-     main = "Observations vs posterior predicted values at the data locations")
+plot(y, result1$summary.fitted.values[inla.stack.index(stack.obs, "obs")$data, "mean"],
+    main = "Observations vs posterior predicted values at the data locations"
+)
 
 result2 <- inla(formula,
-                data=inla.stack.data(stack, spde = spde),
-                family="gaussian",
-                control.predictor = list(A = inla.stack.A(stack),
-                                         compute = TRUE))
+    data = inla.stack.data(stack, spde = spde),
+    family = "gaussian",
+    control.predictor = list(
+        A = inla.stack.A(stack),
+        compute = TRUE
+    )
+)
 
-field.pred <- inla.mesh.project(proj.pred,
-  result2$summary.fitted.values[inla.stack.index(stack,"pred")$data, "mean"])
-field.pred.sd <- inla.mesh.project(proj.pred,
-  result2$summary.fitted.values[inla.stack.index(stack,"pred")$data, "sd"])
+field.pred <- inla.mesh.project(
+    proj.pred,
+    result2$summary.fitted.values[inla.stack.index(stack, "pred")$data, "mean"]
+)
+field.pred.sd <- inla.mesh.project(
+    proj.pred,
+    result2$summary.fitted.values[inla.stack.index(stack, "pred")$data, "sd"]
+)
 
 plot(field, field.pred, main = "True vs predicted field")
 abline(0, 1)
 image(inla.mesh.project(mesh,
-                        field = field,
-                        dims = c(200,200)),
-      main = "True field")
+    field = field,
+    dims = c(200, 200)
+),
+main = "True field"
+)
 image(inla.mesh.project(mesh,
-                        field = field.pred,
-                        dims = c(200,200)),
-      main = "Posterior field mean")
+    field = field.pred,
+    dims = c(200, 200)
+),
+main = "Posterior field mean"
+)
 image(inla.mesh.project(mesh,
-                        field = field.pred.sd,
-                        dims = c(200,200)),
-      main = "Prediction standard deviation")
+    field = field.pred.sd,
+    dims = c(200, 200)
+),
+main = "Prediction standard deviation"
+)
 plot(field, (field.pred - field) / 1,
-     main = "True field vs standardised prediction residuals")
-
+    main = "True field vs standardised prediction residuals"
+)
 }
 \seealso{
 \code{\link[=inla.spde.make.A]{inla.spde.make.A()}}, \code{\link[=inla.spde.make.index]{inla.spde.make.index()}}

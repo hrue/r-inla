@@ -16,11 +16,11 @@ control.results(return.marginals.predictor, return.marginals.random)
 }
 \arguments{
 \item{...}{Possible arguments}
-\item{return.marginals.random}{  A boolean variable; read the marginals for the fterms? (Default TRUE)}
-\item{return.marginals.predictor}{  A boolean variable; read the marginals for the linear predictor? (Default TRUE)}
+\item{return.marginals.random}{   A boolean variable; read the marginals for the fterms? (Default TRUE)}
+\item{return.marginals.predictor}{   A boolean variable; read the marginals for the linear predictor? (Default TRUE)}
 }
 \value{
- 
+  
 The function \code{control.results} is used to TAB-complete arguments and returns a list of given arguments.
 The function \code{inla.set.control.results.default} returns a list with all the default values of all parameters within this control statement.
 }

@@ -37,7 +37,7 @@ inla.nmix.lambda.fitted(result, sample.size = 1000,
 
   \item{scale}{A character string, where the default string, \code{"exp"}, causes values from
   the linear predictor to be exponentiated before being returned. The string, \code{"log"},
-  causes values to be returned on the \code{log(lambda)} scale.} 
+  causes values to be returned on the \code{log(lambda)} scale.}
 }
 
 \value{
@@ -50,7 +50,7 @@ inla.nmix.lambda.fitted(result, sample.size = 1000,
   \item{fitted.posteriors}{A data frame containing samples that comprise the full estimated
   posteriors of fitted values. The number of rows equals the number of rows in the data used to
   create the \code{'nmix'} or \code{'nmixnb'} model. The number of columns equals one plus the
-  number of samples specified by the \code{sample.size} argument.} 
+  number of samples specified by the \code{sample.size} argument.}
 }
 
 \references{

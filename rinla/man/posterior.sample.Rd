@@ -7,20 +7,20 @@
  \alias{posterior.sample}
  \alias{inla.posterior.sample.eval}
  \alias{posterior.sample.eval}
- 
+
  \title{Generate samples, and functions thereof, from an approximated posterior of a fitted model}
- 
+
  \description{This function generate samples, and functions of those,
               from an approximated posterior of a fitted model (an inla-object)}
  \usage{
-     inla.posterior.sample(n = 1L, result, selection = list(), 
+     inla.posterior.sample(n = 1L, result, selection = list(),
                            intern = FALSE,
-                           use.improved.mean = TRUE, skew.corr = TRUE, 
-                           add.names = TRUE, seed = 0L, num.threads = NULL, 
+                           use.improved.mean = TRUE, skew.corr = TRUE,
+                           add.names = TRUE, seed = 0L, num.threads = NULL,
                            parallel.configs = TRUE,  verbose=FALSE)
      inla.posterior.sample.eval(fun, samples, return.matrix = TRUE, ...)
  }
- 
+
  \arguments{
    \item{n}{Number of samples.}
    \item{result}{The inla-object, ie the output from an \code{inla}-call.
@@ -32,7 +32,7 @@
        \code{Predictor}, \code{(Intercept)},  and otherwise names in the formula.
        The values of the list, is interpreted as indices. If they
        are negative, they are interpreted as 'not', a zero is interpreted as 'all',  and
-       positive indices are interpreted as 'only'. The names of elements of each samples 
+       positive indices are interpreted as 'only'. The names of elements of each samples
        refer to the indices in the full sample. }
    \item{intern}{Logical. If \code{TRUE} then produce samples in the
         internal scale for the hyperparmater, if \code{FALSE} then produce
@@ -45,7 +45,7 @@
        if \code{FALSE},  do not correct samples for skewness (ie use the
        Gaussian).}
    \item{add.names}{Logical. If \code{TRUE} then add name for each elements of each
-       sample. If \code{FALSE}, only add name for the first sample. 
+       sample. If \code{FALSE}, only add name for the first sample.
        (This save space.)}
    \item{seed}{See the same argument in \code{?inla.qsample} for further
                information. In order to produce reproducible results,  you
@@ -56,11 +56,11 @@
                a reproducible sequence of pseudo-random numbers.}
    \item{num.threads}{The number of threads to use in the format 'A:B' defining the number threads in the
                       outer (A) and inner (B) layer for nested parallelism. A '0' will be replaced
-                      intelligently. 
+                      intelligently.
                       \code{seed!=0} requires serial comptuations.}
    \item{parallel.configs}{Logical. If \code{TRUE} and not on Windows,
                            then try to run each configuration in
-                           parallel (not Windows) using \code{A} threads (see \code{num.threads}), 
+                           parallel (not Windows) using \code{A} threads (see \code{num.threads}),
                            where each of them is using \code{B:0} threads.}
    \item{verbose}{Logical. Run in verbose mode or not.}
    \item{fun}{The function to evaluate for each sample. Upon entry, the variable names
@@ -85,7 +85,7 @@
        numerical integration, hence if you want a higher resolution, you need to
        to change the \code{int.stratey} variable and friends. The latent field is
        sampled from the Gaussian approximation conditioned on the hyperparameters,
-       but with a correction for the mean (default), 
+       but with a correction for the mean (default),
         and optional (and by default) corrected for the estimated skewness.
 
        The log.density report is only correct when there is no constraints.
@@ -100,11 +100,11 @@
      names \code{hyperpar} and \code{latent}, and with their marginal
      densities in \code{logdens$hyperpar} and \code{logdens$latent}
      and the joint density is in \code{logdens$joint}.
-     \code{inla.posterior.sample.eval} return a list or a matrix of 
+     \code{inla.posterior.sample.eval} return a list or a matrix of
      \code{fun} applied to each sample.
 }
 \author{Havard Rue \email{hrue@r-inla.org} and Cristian Chiuchiolo \email{cristian.chiuchiolo@kaust.edu.sa}}
- 
+
 \examples{
   r = inla(y ~ 1 ,data = data.frame(y=rnorm(1)), control.compute = list(config=TRUE))
   samples = inla.posterior.sample(2,r)
@@ -124,21 +124,21 @@
  z = runif(n)
  y = rnorm(n)
  r = inla(y ~ 1 + z + f(xx) + f(yy, copy="xx"),
-         data = data.frame(y, z, xx, yy), 
+         data = data.frame(y, z, xx, yy),
          control.compute = list(config=TRUE),
          family = "gaussian")
  r.samples = inla.posterior.sample(10, r)
- 
+
  fun = function(...) {
      mean(xx) - mean(yy)
  }
  f1 = inla.posterior.sample.eval(fun, r.samples)
- 
+
  fun = function(...) {
      c(exp(Intercept), exp(Intercept + z))
  }
  f2 = inla.posterior.sample.eval(fun, r.samples)
- 
+
  fun = function(...) {
      return (theta[1]/(theta[1] + theta[2]))
  }
@@ -151,12 +151,12 @@
  alpha = beta = s = 1
  z = rnorm(n)
  y = alpha + beta * z + rnorm(n, sd = s)
- r = inla(y ~ 1 + z, 
-         data = data.frame(y, z), 
+ r = inla(y ~ 1 + z,
+         data = data.frame(y, z),
          control.compute = list(config=TRUE),
          family = "gaussian")
  r.samples = inla.posterior.sample(10^3, r)
-  
+
  ## just return samples of the intercept
  intercepts = inla.posterior.sample.eval("Intercept", r.samples)
 

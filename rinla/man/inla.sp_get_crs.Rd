@@ -22,10 +22,10 @@ and the lack of a crs extraction method for Spatial objects.
 \examples{
 
 \dontrun{
-if(interactive()){
- s <- sp::SpatialPoints(matrix(1:6, 3, 2), proj4string = inla.CRS("sphere"))
- inla.sp_get_crs(s)
- }
+if (interactive()) {
+    s <- sp::SpatialPoints(matrix(1:6, 3, 2), proj4string = inla.CRS("sphere"))
+    inla.sp_get_crs(s)
+}
 }
 
 }

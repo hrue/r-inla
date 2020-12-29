@@ -22,6 +22,5 @@ This map is used in association to the Leukemia data from Henderson et al
 
 data(Leuk)
 plot(nwEngland)
-
 }
 \keyword{datasets}

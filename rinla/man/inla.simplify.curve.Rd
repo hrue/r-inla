@@ -27,13 +27,12 @@ prediction ellipse for Brownian bridge.
 }
 \examples{
 
-theta = seq(0, 2*pi, length=1000)
-loc = cbind(cos(theta), sin(theta))
-idx = inla.simplify.curve(loc=loc, idx=1:nrow(loc), eps=0.01)
+theta <- seq(0, 2 * pi, length = 1000)
+loc <- cbind(cos(theta), sin(theta))
+idx <- inla.simplify.curve(loc = loc, idx = 1:nrow(loc), eps = 0.01)
 print(c(nrow(loc), length(idx)))
-plot(loc, type="l")
-lines(loc[idx,], col="red")
-
+plot(loc, type = "l")
+lines(loc[idx, ], col = "red")
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

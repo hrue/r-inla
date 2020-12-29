@@ -24,11 +24,10 @@ interior constraint information in an \code{\link[=inla.mesh]{inla.mesh()}} obje
 }
 \examples{
 
-loc = matrix(runif(100*2)*1000,100,2)
-mesh = inla.mesh.create.helper(points.domain=loc, max.edge=c(50,500))
-boundary = inla.mesh.boundary(mesh)
-interior = inla.mesh.interior(mesh)
-
+loc <- matrix(runif(100 * 2) * 1000, 100, 2)
+mesh <- inla.mesh.create.helper(points.domain = loc, max.edge = c(50, 500))
+boundary <- inla.mesh.boundary(mesh)
+interior <- inla.mesh.interior(mesh)
 }
 \seealso{
 \code{\link[=inla.mesh.segment]{inla.mesh.segment()}}, \code{\link[=inla.mesh.create]{inla.mesh.create()}},

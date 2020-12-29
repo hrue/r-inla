@@ -20,8 +20,6 @@ Cases of Oral cavity cancer in Germany from 1986-1990
 \examples{
 
 data(Germany)
-
-
 }
 \references{
 Rue, H and Held, L. (2005) \emph{Gaussian Markov Random Fields -

@@ -52,16 +52,16 @@ Calculate basis functions on a 1d or 2d \code{\link[=inla.mesh]{inla.mesh()}}
 }
 \examples{
 
-n = 100
-loc = matrix(runif(n*2), n, 2)
-mesh = inla.mesh.2d(loc, max.edge=0.05)
-basis = inla.mesh.basis(mesh, n=c(4,5))
+n <- 100
+loc <- matrix(runif(n * 2), n, 2)
+mesh <- inla.mesh.2d(loc, max.edge = 0.05)
+basis <- inla.mesh.basis(mesh, n = c(4, 5))
 
-proj = inla.mesh.projector(mesh)
-image(proj$x, proj$y, inla.mesh.project(proj, basis[,7]))
+proj <- inla.mesh.projector(mesh)
+image(proj$x, proj$y, inla.mesh.project(proj, basis[, 7]))
 \donttest{
 if (require(rgl)) {
-  plot(mesh, rgl=TRUE, col=basis[,7], draw.edges=FALSE, draw.vertices=FALSE)
+    plot(mesh, rgl = TRUE, col = basis[, 7], draw.edges = FALSE, draw.vertices = FALSE)
 }
 }
 

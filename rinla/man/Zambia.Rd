@@ -30,7 +30,5 @@ contains also other infomation about each child.
 \examples{
 
 data(Zambia)
-
-
 }
 \keyword{datasets}

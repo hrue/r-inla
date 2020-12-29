@@ -13,9 +13,9 @@
  \alias{inla.pc.pcor1}
  \alias{pc.qcor1}
  \alias{inla.pc.qcor1}
- 
+
  \title{Utility functions for the PC prior for correlation in AR(1)}
- 
+
  \description{Functions to evaluate, sample, compute quantiles and
               percentiles of the PC prior for the correlation
               in the Gaussian AR(1) model where the base-model
@@ -40,7 +40,7 @@
      The statement \code{Prob(cor > u) = alpha} is used to
      determine \code{lambda} unless \code{lambda} is given.
      Either \code{lambda}  must be given,  or
-     \code{u} AND \code{alpha}. 
+     \code{u} AND \code{alpha}.
  }
 \value{%%
   \code{inla.pc.dcor1} gives the density,

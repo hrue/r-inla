@@ -13,9 +13,9 @@
  \alias{inla.pc.pcor0}
  \alias{pc.qcor0}
  \alias{inla.pc.qcor0}
- 
+
  \title{Utility functions for the PC prior for correlation in AR(1)}
- 
+
  \description{Functions to evaluate, sample, compute quantiles and
               percentiles of the PC prior for the correlation
               in the Gaussian AR(1) model where the base-model

@@ -13,7 +13,7 @@
 
  \usage{
      inla.fgn(H, K=4L, lag.max = NULL, approx = TRUE)
- } 
+ }
 
  \arguments{
    \item{H}{The Hurst coeffcient (0<H<1),  or a vector of those}
@@ -24,8 +24,8 @@
                    then return the true ACF instead of the approximated one.}
   }
  \value{
-  \code{inla.fgn} returns a named matrix. 
-  If \code{is.null(lag.max)},  then 
+  \code{inla.fgn} returns a named matrix.
+  If \code{is.null(lag.max)},  then
   first column is \code{H},
   columns \code{1+1:K} are lag one correlations (or phi's),
   and columns \code{1+K+1:K} are the weights.
@@ -39,4 +39,4 @@
  \examples{
      r = c(inla.fgn(0.7))
      r_m = inla.fgn(seq(0.6, 0.8, by=0.01))
- } 
+ }

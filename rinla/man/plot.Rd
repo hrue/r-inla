@@ -18,14 +18,14 @@
               plot.predictor = TRUE,
               plot.q = TRUE,
               plot.cpo = TRUE,
-              plot.prior = FALSE, 
+              plot.prior = FALSE,
               single = FALSE,
               postscript = FALSE,
               pdf = FALSE,
               prefix = "inla.plots/figure-",
-              intern = FALSE, 
-              debug = FALSE, 
-              cex = 1.75, 
+              intern = FALSE,
+              debug = FALSE,
+              cex = 1.75,
               ...)
  }
  \arguments{
