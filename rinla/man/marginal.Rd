@@ -49,7 +49,7 @@
  inla.smarginal(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE, factor=15L)
  inla.emarginal(fun, marginal, ...)
  inla.mmarginal(marginal)
- inla.tmarginal(fun, marginal, n=2048L, h.diff = .Machine$double.eps^(1/3),
+ inla.tmarginal(fun, marginal, n=2048L, h.diff = .Machine[["double.eps"]]^(1.0/3.0),
                 method = c("quantile", "linear"))
  inla.zmarginal(marginal, silent = FALSE)
  }
@@ -118,7 +118,7 @@
  sd = 0.1
  y = 1+x + rnorm(n,sd=sd)
  res = inla(y ~ 1 + x, data = data.frame(x,y),
-            control.family=list(initial = log(1/sd^2),fixed=TRUE))
+            control.family=list(initial = log(1/sd^2L),fixed=TRUE))
 
  ## chose a marginal and compare the with the results computed by the
  ## inla-program
@@ -144,16 +144,16 @@
  hist(inla.rmarginal(1000, m), add=TRUE, prob=TRUE)
  lines(density(s), lty=2)
 
- m1 = inla.emarginal(function(x) x^1, m)
- m2 = inla.emarginal(function(x) x^2, m)
- stdev = sqrt(m2 - m1^2)
+ m1 = inla.emarginal(function(x) x, m)
+ m2 = inla.emarginal(function(x) x^2L, m)
+ stdev = sqrt(m2 - m1^2L)
  q = inla.qmarginal(c(0.025,0.975), m)
 
  ## inla-program results
  print(r)
 
  ## inla.marginal-results (they shouldn't be perfect!)
- print(c(mean=m1, sd=stdev, "0.025quant" = q[1], "0.975quant" = q[2]))
+ print(c(mean=m1, sd=stdev, "0.025quant" = q[1], "0.975quant" = q[2L]))
  ## using the buildt-in function
  inla.zmarginal(m)
  }

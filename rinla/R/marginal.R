@@ -50,7 +50,7 @@
 ## ! inla.smarginal(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE, factor=15L)
 ## ! inla.emarginal(fun, marginal, ...)
 ## ! inla.mmarginal(marginal)
-## ! inla.tmarginal(fun, marginal, n=2048L, h.diff = .Machine$double.eps^(1/3),
+## ! inla.tmarginal(fun, marginal, n=2048L, h.diff = .Machine[["double.eps"]]^(1.0/3.0),
 ## !                method = c("quantile", "linear"))
 ## ! inla.zmarginal(marginal, silent = FALSE)
 ## ! }
@@ -119,7 +119,7 @@
 ## ! sd = 0.1
 ## ! y = 1+x + rnorm(n,sd=sd)
 ## ! res = inla(y ~ 1 + x, data = data.frame(x,y),
-## !            control.family=list(initial = log(1/sd^2),fixed=TRUE))
+## !            control.family=list(initial = log(1/sd^2L),fixed=TRUE))
 ## !
 ## ! ## chose a marginal and compare the with the results computed by the
 ## ! ## inla-program
@@ -145,16 +145,16 @@
 ## ! hist(inla.rmarginal(1000, m), add=TRUE, prob=TRUE)
 ## ! lines(density(s), lty=2)
 ## !
-## ! m1 = inla.emarginal(function(x) x^1, m)
-## ! m2 = inla.emarginal(function(x) x^2, m)
-## ! stdev = sqrt(m2 - m1^2)
+## ! m1 = inla.emarginal(function(x) x, m)
+## ! m2 = inla.emarginal(function(x) x^2L, m)
+## ! stdev = sqrt(m2 - m1^2L)
 ## ! q = inla.qmarginal(c(0.025,0.975), m)
 ## !
 ## ! ## inla-program results
 ## ! print(r)
 ## !
 ## ! ## inla.marginal-results (they shouldn't be perfect!)
-## ! print(c(mean=m1, sd=stdev, "0.025quant" = q[1], "0.975quant" = q[2]))
+## ! print(c(mean=m1, sd=stdev, "0.025quant" = q[1], "0.975quant" = q[2L]))
 ## ! ## using the buildt-in function
 ## ! inla.zmarginal(m)
 ## ! }
@@ -169,27 +169,27 @@
     ## density is to small compared to the maximum density. (othewise
     ## we can get trouble with the spline interpolation). same with
     ## 'x'? No...
-    eps <- .Machine$double.eps * 1000
+    eps <- .Machine[["double.eps"]] * 1000.0
     ## marginal = spline(marginal)
     if (is.matrix(marginal)) {
-        if (any(is.na(marginal[, 2]))) {
-            idx <- which(is.na(marginal[, 2]))
+        if (any(is.na(marginal[, 2L]))) {
+            idx <- which(is.na(marginal[, 2L]))
             marginal <- marginal[-idx, ]
         }
-        i <- (marginal[, 2] > 0) & (abs(marginal[, 2] / max(marginal[, 2])) > eps)
-        m <- list(x = marginal[i, 1], y = marginal[i, 2])
-        ## i = c(diff(marginal[, 1]) > eps, TRUE)
-        ## m = list(x=marginal[i, 1], y=marginal[i, 2])
+        i <- (marginal[, 2L] > 0.0) & (abs(marginal[, 2L] / max(marginal[, 2L])) > eps)
+        m <- list(x = marginal[i, 1L], y = marginal[i, 2L])
+        ## i = c(diff(marginal[, 1L]) > eps, TRUE)
+        ## m = list(x=marginal[i, 1L], y=marginal[i, 2L])
     } else {
-        if (any(is.na(marginal$y))) {
-            idx <- which(is.na(marginal$y))
-            marginal$x <- marginal$x[-idx]
-            marginal$y <- marginal$y[-idx]
+        if (any(is.na(marginal[["y"]]))) {
+            idx <- which(is.na(marginal[["y"]]))
+            marginal[["x"]] <- marginal[["x"]][-idx]
+            marginal[["y"]] <- marginal[["y"]][-idx]
         }
-        i <- (marginal$y > 0) & (abs(marginal$y / max(marginal$y)) > eps)
-        m <- list(x = marginal$x[i], y = marginal$y[i])
-        ## i = c(diff(marginal$x) > eps, TRUE)
-        ## m = list(x = marginal$x[i], y = marginal$y[i])
+        i <- (marginal[["y"]] > 0.0) & (abs(marginal[["y"]] / max(marginal[["y"]])) > eps)
+        m <- list(x = marginal[["x"]][i], y = marginal[["y"]][i])
+        ## i = c(diff(marginal[["x"]]) > eps, TRUE)
+        ## m = list(x = marginal[["x"]][i], y = marginal[["y"]][i])
     }
 
     return(m)
@@ -198,9 +198,9 @@
 `inla.spline` <- function(x, ...) {
     s <- spline(x, ...)
     if (is.matrix(x)) {
-        m <- cbind(x = s$x, y = s$y)
+        m <- cbind(x = s[["x"]], y = s[["y"]])
     } else if (is.list(x)) {
-        m <- list(x = s$x, y = s$y)
+        m <- list(x = s[["x"]], y = s[["y"]])
     } else {
         m <- s
     }
@@ -214,30 +214,30 @@
 
     is.mat <- is.matrix(marginal)
     m <- inla.marginal.fix(marginal)
-    r <- diff(range(m$x))
-    xmin <- min(m$x) - extrapolate * r
-    xmax <- max(m$x) + extrapolate * r
-    n <- factor * length(m$x)
+    r <- diff(range(m[["x"]]))
+    xmin <- min(m[["x"]]) - extrapolate * r
+    xmax <- max(m[["x"]]) + extrapolate * r
+    n <- factor * length(m[["x"]])
     xx <- seq(xmin, xmax, len = n)
     if (extrapolate) {
-        xx <- c(xmin, m$x, xmax)
+        xx <- c(xmin, m[["x"]], xmax)
     } else {
-        xx <- m$x
+        xx <- m[["x"]]
     }
     nx <- length(xx)
     dx <- nx * diff(xx) / mean(diff(xx))
-    xnew <- c(0, cumsum(sqrt(dx)))
+    xnew <- c(0.0, cumsum(sqrt(dx)))
     xnew <- xmin + (xmax - xmin) * ((xnew - min(xnew)) / (max(xnew) - min(xnew)))
     fun <- splinefun(xnew, xx, method = "hyman")
     fun.inv <- splinefun(xx, xnew, method = "hyman")
-    ans <- spline(fun.inv(m$x), log(m$y), xmin = fun.inv(xmin), xmax = fun.inv(xmax), n = n, method = "fmm")
-    ans$x <- fun(ans$x)
+    ans <- spline(fun.inv(m[["x"]]), log(m[["y"]]), xmin = fun.inv(xmin), xmax = fun.inv(xmax), n = n, method = "fmm")
+    ans[["x"]] <- fun(ans[["x"]])
     if (!log) {
-        ans$y <- exp(ans$y)
+        ans[["y"]] <- exp(ans[["y"]])
         ans <- inla.marginal.fix(ans)
     }
     if (is.mat && keep.type) {
-        return(cbind(x = ans$x, y = ans$y))
+        return(cbind(x = ans[["x"]], y = ans[["y"]]))
     } else {
         return(ans)
     }
@@ -248,8 +248,8 @@
     ## return the spline-function which returns the log-density
 
     m <- inla.marginal.fix(marginal)
-    r <- range(m$x)
-    return(list(range = r, fun = splinefun(m$x, log(m$y))))
+    r <- range(m[["x"]])
+    return(list(range = r, fun = splinefun(m[["x"]], log(m[["y"]]))))
 }
 
 `inla.emarginal` <- function(fun, marginal, ...) {
@@ -258,33 +258,33 @@
     ## returning a vector.
 
     xx <- inla.smarginal(marginal)
-    n <- length(xx$x)
-    if (n %% 2 == 0) {
-        n <- n - 1
-        xx$x <- xx$x[1:n]
-        xx$y <- xx$y[1:n]
+    n <- length(xx[["x"]])
+    if (n %% 2L == 0L) {
+        n <- n - 1L
+        xx[["x"]] <- xx[["x"]][1L:n]
+        xx[["y"]] <- xx[["y"]][1L:n]
     }
 
     ## use Simpsons integration rule
-    i.0 <- c(1, n)
-    i.4 <- seq(2, n - 1, by = 2)
-    i.2 <- seq(3, n - 2, by = 2)
+    i.0 <- c(1L, n)
+    i.4 <- seq(2L, n - 1L, by = 2L)
+    i.2 <- seq(3L, n - 2L, by = 2L)
 
-    dx <- diff(xx$x)
-    dx <- 0.5 * (c(dx, 0) + c(0, dx))
+    dx <- diff(xx[["x"]])
+    dx <- 0.5 * (c(dx, 0.0) + c(0.0, dx))
     fun <- match.fun(fun)
-    ff <- fun(xx$x[1:n], ...) * xx$y[1:n] * dx
+    ff <- fun(xx[["x"]][1L:n], ...) * xx[["y"]][1L:n] * dx
     nf <- length(ff) %/% n
     e <- numeric(nf)
     off <- 0L
-    for (i in 1:nf) {
-        e[i] <- sum(sum(ff[i.0 + off]) + 4 * sum(ff[i.4 + off]) + 2 * sum(ff[i.2 + off]))
+    for (i in 1L:nf) {
+        e[i] <- sum(sum(ff[i.0 + off]) + 4.0 * sum(ff[i.4 + off]) + 2.0 * sum(ff[i.2 + off]))
         off <- off + n
     }
 
     ## normalise, so that E(1) = 1
-    ff <- dx * xx$y[1:n]
-    e.1 <- sum(sum(ff[i.0]) + 4 * sum(ff[i.4]) + 2 * sum(ff[i.2]))
+    ff <- dx * xx[["y"]][1L:n]
+    e.1 <- sum(sum(ff[i.0]) + 4.0 * sum(ff[i.4]) + 2.0 * sum(ff[i.2]))
 
     return(e / e.1)
 }
@@ -300,19 +300,19 @@
     n <- length(x)
     d <- numeric(n)
 
-    for (i in 1:n) {
-        if (x[i] >= f$range[1] && x[i] <= f$range[2]) {
+    for (i in 1L:n) {
+        if (x[i] >= f[["range"]][[1L]] && x[i] <= f[["range"]][[2L]]) {
             if (log) {
-                  d[i] <- f$fun(x[i])
-              } else {
-                  d[i] <- exp(f$fun(x[i]))
-              }
+                d[i] <- f[["fun"]](x[i])
+            } else {
+                d[i] <- exp(f[["fun"]](x[i]))
+            }
         } else {
             if (log) {
-                  d[i] <- -Inf
-              } else {
-                  d[i] <- 0.0
-              }
+                d[i] <- -Inf
+            } else {
+                d[i] <- 0.0
+            }
         }
     }
     return(d)
@@ -320,8 +320,8 @@
 
 `inla.pmarginal` <- function(q, marginal, normalize = TRUE, len = 2048L) {
     f <- inla.sfmarginal(inla.smarginal(marginal))
-    xx <- seq(f$range[1], f$range[2], length = len)
-    d <- cumsum(exp(f$fun(xx)))
+    xx <- seq(f[["range"]][[1L]], f[["range"]][[2L]], length = len)
+    d <- cumsum(exp(f[["fun"]](xx)))
     d <- d / d[length(d)]
 
     ## just spline-interpolate the mapping
@@ -329,24 +329,24 @@
 
     ## just make sure the p's are in [0, 1]
     n <- length(q)
-    xx <- pmin(pmax(q, rep(f$range[1], n)), rep(f$range[2], n))
+    xx <- pmin(pmax(q, rep(f[["range"]][[1L]], n)), rep(f[["range"]][[2L]], n))
 
     return(fq(xx))
 }
 
 `inla.qmarginal` <- function(p, marginal, len = 2048L) {
     f <- inla.sfmarginal(inla.smarginal(marginal))
-    xx <- seq(f$range[1], f$range[2], length = len)
-    d <- cumsum(exp(f$fun(xx)))
+    xx <- seq(f[["range"]][[1L]], f[["range"]][[2L]], length = len)
+    d <- cumsum(exp(f[["fun"]](xx)))
     d <- d / d[length(d)]
 
     ## for the moment, we remove only duplicated zero's and one's.
-    eps <- .Machine$double.eps * 1000.0
+    eps <- .Machine[["double.eps"]] * 1000.0
     for (val in c(0.0, 1.0)) {
         is.val <- which(abs(d - val) <= eps)
-        if (length(is.val) > 1) {
+        if (length(is.val) > 1L) {
             ## keep the first, ie remove it from the list to the removed
-            is.val <- is.val[-1]
+            is.val <- is.val[-1L]
             ## and remove the rest
             d <- d[-is.val]
             xx <- xx[-is.val]
@@ -358,30 +358,30 @@
 
     ## just make sure the p's are in [0, 1]
     n <- length(p)
-    pp <- pmin(pmax(p, rep(0, n)), rep(1, n))
+    pp <- pmin(pmax(p, rep(0.0, n)), rep(1.0, n))
 
     return(fq(pp))
 }
 `inla.hpdmarginal` <- function(p, marginal, len = 2048L) {
     sm <- inla.smarginal(marginal, keep.type = FALSE)
     f <- inla.sfmarginal(sm)
-    x.range <- f$range
-    xx <- seq(x.range[1], x.range[2], length = len)
+    x.range <- f[["range"]]
+    xx <- seq(x.range[[1L]], x.range[[2L]], length = len)
     ## simply add 0 density outside the range.
-    dx <- diff(xx)[1]
-    ef <- exp(f$fun(xx))
+    dx <- diff(xx)[[1L]]
+    ef <- exp(f[["fun"]](xx))
     xx <- c(min(xx) - dx, xx, max(xx) + dx)
-    d <- c(0, ef, 0)
+    d <- c(0.0, ef, 0.0)
     d <- cumsum(d)
     d <- d / d[length(d)]
 
     ## for the moment, we remove only duplicated zero's and one's.
-    eps <- .Machine$double.eps * 1000.0
+    eps <- .Machine[["double.eps"]] * 1000.0
     for (val in c(0.0, 1.0)) {
         is.val <- which(abs(d - val) <= eps)
-        if (length(is.val) > 1) {
+        if (length(is.val) > 1L) {
             ## keep the first, ie remove it from the list to the removed
-            is.val <- is.val[-1]
+            is.val <- is.val[-1L]
             ## and remove the rest
             d <- d[-is.val]
             xx <- xx[-is.val]
@@ -392,27 +392,27 @@
 
     ## just make sure the p's are in [0, 1]
     np <- length(p)
-    pp <- 1 - pmin(pmax(p, rep(0, np)), rep(1, np))
+    pp <- 1.0 - pmin(pmax(p, rep(0.0, np)), rep(1.0, np))
 
     ## parts of this code below is taken from TeachingDemo::hpd
     f <- function(x, posterior.icdf, conf) {
-        return(posterior.icdf(1 - conf + x) - posterior.icdf(x))
+        return(posterior.icdf(1.0 - conf + x) - posterior.icdf(x))
     }
 
-    tol <- sqrt(.Machine$double.eps)
+    tol <- sqrt(.Machine[["double.eps"]])
     tol <- 1E-6
-    result <- matrix(NA, np, 2)
-    for (i in 1:np) {
-        out <- optimize(f, c(0, pp[i]), posterior.icdf = fq, conf = pp[i], tol = tol)
-        result[i, ] <- c(fq(out$minimum), fq(1 - pp[i] + out$minimum))
+    result <- matrix(NA, np, 2L)
+    for (i in 1L:np) {
+        out <- optimize(f, c(0.0, pp[i]), posterior.icdf = fq, conf = pp[i], tol = tol)
+        result[i, ] <- c(fq(out[["minimum"]]), fq(1.0 - pp[i] + out[["minimum"]]))
         ## make sure its in the range of the marginal itself as we expanded the domain
         result[i, ] <- c(
-            min(x.range[2], max(result[i, 1], x.range[1])),
-            min(x.range[2], max(result[i, 2], x.range[1]))
+            min(x.range[[2L]], max(result[i, 1L], x.range[[1L]])),
+            min(x.range[[2L]], max(result[i, 2L], x.range[[1L]]))
         )
     }
     colnames(result) <- c("low", "high")
-    rownames(result) <- paste("level:", format(1 - pp, digits = 6, justify = "left", trim = TRUE), sep = "")
+    rownames(result) <- paste("level:", format(1.0 - pp, digits = 6L, justify = "left", trim = TRUE), sep = "")
 
     return(result)
 }
@@ -420,46 +420,49 @@
     return(inla.qmarginal(runif(n), marginal))
 }
 
-`inla.marginal.transform` <- function(fun, marginal, n = 2048L, h.diff = .Machine$double.eps^(1 / 3),
+`inla.marginal.transform` <- function(fun, marginal, n = 2048L, h.diff =
+                                          .Machine[["double.eps"]]^(1.0 / 3.0),
                                       method = c("quantile", "linear")) {
     return(inla.tmarginal(fun, marginal, n, h.diff, method = method))
 }
 
-`inla.deriv.func` <- function(fun, step.size = .Machine$double.eps^(1 / 4)) {
+`inla.deriv.func` <- function(fun,
+                              step.size = .Machine[["double.eps"]]^(1.0 / 4.0)) {
     ## return a function computing the derivatives to 'fun = function(x)' which must
     ## vectorize
     func <- match.fun(fun)
     if (inla.require("Deriv")) {
-        fd <- try(Deriv::Deriv(func, names(formals(func))[1]), silent = TRUE)
+        fd <- try(Deriv::Deriv(func, names(formals(func))[[1L]]), silent = TRUE)
         if (!inherits(fd, "try-error")) {
-              return(fd)
-          }
+            return(fd)
+        }
     }
     if (inla.require("numDeriv")) {
         fd <- function(x) unlist(lapply(x, function(xi) numDeriv::grad(func, xi)))
     } else {
         fd <- function(x) {
-            ((-func(x + 2 * step.size) + 8 * func(x + step.size) -
-                8 * func(x - step.size) + func(x - 2 * step.size)) / (12 * step.size))
+            ((-func(x + 2.0 * step.size) + 8.0 * func(x + step.size) -
+                8.0 * func(x - step.size) + func(x - 2.0 * step.size)) / (12.0 * step.size))
         }
     }
 
     return(fd)
 }
 
-`inla.tmarginal` <- function(fun, marginal, n = 2048L, h.diff = .Machine$double.eps^(1 / 3),
+`inla.tmarginal` <- function(fun, marginal, n = 2048L,
+                             h.diff = .Machine[["double.eps"]]^(1.0 / 3.0),
                              method = c("quantile", "linear")) {
     ff <- match.fun(fun)
 
     is.mat <- is.matrix(marginal)
     m <- inla.smarginal(marginal)
-    r <- range(m$x)
+    r <- range(m[["x"]])
 
     method <- match.arg(method)
     if (inla.strcasecmp(method, "quantile")) {
-        x <- inla.qmarginal((1:n) / (n + 1), marginal)
+        x <- inla.qmarginal((1L:n) / (n + 1.0), marginal)
     } else if (inla.strcasecmp(method, "linear")) {
-        x <- seq(r[1], r[2], length = n)
+        x <- seq(r[[1L]], r[[2L]], length = n)
     } else {
         stop("unknown method")
     }
@@ -469,9 +472,9 @@
     log.dens <- inla.dmarginal(x, marginal, log = FALSE) / abs(fd(x))
 
     ## if decreasing function, then reverse
-    if (xx[1] > xx[n]) {
-        xx[1:n] <- xx[n:1]
-        log.dens[1:n] <- log.dens[n:1]
+    if (xx[[1L]] > xx[n]) {
+        xx[1L:n] <- xx[n:1L]
+        log.dens[1L:n] <- log.dens[n:1L]
     }
 
     if (is.mat) {
@@ -501,30 +504,30 @@
         ## arguments to inla.dmarginal
         marginal = marginal, log = TRUE
     )
-    return(res$maximum)
+    return(res[["maximum"]])
 }
 
 `inla.zmarginal` <- function(marginal, silent = FALSE) {
     stopifnot(inla.is.marginal(marginal))
 
-    m <- inla.emarginal(function(xx) c(xx, xx^2), marginal)
+    m <- inla.emarginal(function(xx) c(xx, xx^2L), marginal)
     q <- inla.qmarginal(c(0.025, 0.25, 0.5, 0.75, 0.975), marginal)
-    s <- sqrt(max(0, m[2] - m[1]^2))
+    s <- sqrt(max(0.0, m[[2L]] - m[[1L]]^2L))
 
     if (!silent) {
-        ## cat(as.character(match.call()[-1]), "\n")
+        ## cat(as.character(match.call()[-1L]), "\n")
         ## cat("+--------+-----+------------\n")
-        cat("Mean           ", format(m[1], digits = 6), "\n")
-        cat("Stdev          ", format(s, digits = 6), "\n")
-        cat("Quantile  0.025", format(q[1], digits = 6), "\n")
-        cat("Quantile  0.25 ", format(q[2], digits = 6), "\n")
-        cat("Quantile  0.5  ", format(q[3], digits = 6), "\n")
-        cat("Quantile  0.75 ", format(q[4], digits = 6), "\n")
-        cat("Quantile  0.975", format(q[5], digits = 6), "\n")
+        cat("Mean           ", format(m[[1L]], digits = 6L), "\n")
+        cat("Stdev          ", format(s, digits = 6L), "\n")
+        cat("Quantile  0.025", format(q[[1L]], digits = 6L), "\n")
+        cat("Quantile  0.25 ", format(q[[2L]], digits = 6L), "\n")
+        cat("Quantile  0.5  ", format(q[[3L]], digits = 6L), "\n")
+        cat("Quantile  0.75 ", format(q[[4L]], digits = 6L), "\n")
+        cat("Quantile  0.975", format(q[[5L]], digits = 6L), "\n")
     }
     return(invisible(list(
-        mean = m[1], sd = s, "quant0.025" = q[1],
-        "quant0.25" = q[2], "quant0.5" = q[3], "quant0.75" = q[4], "quant0.975" = q[5]
+        mean = m[[1L]], sd = s, "quant0.025" = q[[1L]],
+        "quant0.25" = q[[2L]], "quant0.5" = q[[3L]], "quant0.75" = q[[4L]], "quant0.975" = q[[5L]]
     )))
 }
 
@@ -536,12 +539,12 @@
 
 ## 'plot' and 'summary'-methods for marginals
 plot.inla.marginal <- function(x, y, ...) {
-    m <- inla.emarginal(function(xx) c(xx, xx^2), x)
+    m <- inla.emarginal(function(xx) c(xx, xx^2L), x)
     xlab <- paste(
-        "x (mean", format(m[1], digits = 4),
-        ", stdev", format(sqrt(max(0, m[2] - m[1]^2)), digits = 4), ")"
+        "x (mean", format(m[[1L]], digits = 4L),
+        ", stdev", format(sqrt(max(0.0, m[[2L]] - m[[1L]]^2L)), digits = 4L), ")"
     )
-    plot(inla.smarginal(x, extrapolate = 0), type = "l", xlab = xlab, ylab = "marginal density", ...)
+    plot(inla.smarginal(x, extrapolate = 0.0), type = "l", xlab = xlab, ylab = "marginal density", ...)
 
     return(invisible())
 }
@@ -550,66 +553,27 @@ summary.inla.marginal <- function(object, ...) {
     silent <- FALSE
     inla.eval.dots(...)
 
-    m <- inla.emarginal(function(xx) c(xx, xx^2), object)
+    m <- inla.emarginal(function(xx) c(xx, xx^2L), object)
     q <- inla.qmarginal(c(0.025, 0.25, 0.5, 0.75, 0.975), object)
-    s <- sqrt(max(0, m[2] - m[1]^2))
+    s <- sqrt(max(0.0, m[[2L]] - m[[1L]]^2L))
 
     if (!silent) {
         cat("Properties of: ", "FIXME", "\n")
         cat("+--------------+------------------\n")
-        cat("Mean           ", format(m[1], digits = 6), "\n")
-        cat("Stdev          ", format(s, digits = 6), "\n")
-        cat("Quantile  0.025", format(q[1], digits = 6), "\n")
-        cat("Quantile  0.25 ", format(q[2], digits = 6), "\n")
-        cat("Quantile  0.5  ", format(q[3], digits = 6), "\n")
-        cat("Quantile  0.75 ", format(q[4], digits = 6), "\n")
-        cat("Quantile  0.975", format(q[5], digits = 6), "\n")
+        cat("Mean           ", format(m[[1L]], digits = 6L), "\n")
+        cat("Stdev          ", format(s, digits = 6L), "\n")
+        cat("Quantile  0.025", format(q[[1L]], digits = 6L), "\n")
+        cat("Quantile  0.25 ", format(q[[2L]], digits = 6L), "\n")
+        cat("Quantile  0.5  ", format(q[[3L]], digits = 6L), "\n")
+        cat("Quantile  0.75 ", format(q[[4L]], digits = 6L), "\n")
+        cat("Quantile  0.975", format(q[[5L]], digits = 6L), "\n")
     }
     return(invisible(list(
-        mean = m[1], sd = s, "quant0.025" = q[1],
-        "quant0.25" = q[2], "quant0.5" = q[3], "quant0.75" = q[4], "quant0.975" = q[5]
+        mean = m[[1L]], sd = s, "quant0.025" = q[[1L]],
+        "quant0.25" = q[[2L]], "quant0.5" = q[[3L]], "quant0.75" = q[[4L]], "quant0.975" = q[[5L]]
     )))
 }
 
 `inla.plot.inla.marginals` <- function(x, ...) {
     stop("NOT IN USE FOR THE MOMENT")
-
-    ## input here is a list of marginals
-
-    n <- length(x)
-    if (n == 1) {
-        ## length is 1,  so here we plot the marginal itself
-        plot(x[[1]], ...)
-    } else {
-        xx <- sapply(x, summary, silent = TRUE)
-
-        stopifnot(dim(xx)[1] == 7)
-        stopifnot(dim(xx)[2] == n)
-
-        xx.min <- min(as.numeric(xx))
-        xx.max <- max(as.numeric(xx))
-
-        ylim <- range(pretty(c(xx.min, xx.max)))
-        lab <- c("mean", "quant0.5", "quant0.025", "quant0.975", "quant0.25", "quant0.75")
-        xval <- 1:n
-
-        plot(xval, rep(ylim[2] * 1000, n),
-            ylim = ylim, main = "FIXME",
-            xlab = "x", ylab = inla.paste(lab, sep = ", "), ...
-        )
-
-        polygon(c(xval, rev(xval)), c(xx[lab[3], ], rev(xx[lab[4], ])), col = "lightgray", border = NA, ...)
-        polygon(c(xval, rev(xval)), c(xx[lab[5], ], rev(xx[lab[6], ])), col = "gray", border = NA, ...)
-
-        ## mean
-        j <- 1
-        lines(xval, xx[lab[j], ], lwd = 1, lty = j, ...)
-        j <- 1
-        points(xval, xx[lab[j], ], pch = 20, cex = 0.4)
-        ## median
-        j <- 2
-        lines(xval, xx[lab[j], ], lwd = 1, lty = j, ...)
-
-        return(invisible())
-    }
 }
