@@ -5,10 +5,10 @@
 `inla.numlen` <- function(n) {
     ## number of digits required to represent a specific (integer)
     ## numb{e{r
-    return(floor(log10(max(abs(n)))) + 1)
+    return(floor(log10(max(abs(n)))) + 1L)
 }
 
-`inla.num` <- function(x, width = if (length(x) > 1) inla.numlen(x) else 8, digits = max(4, width)) {
+`inla.num` <- function(x, width = if (length(x) > 1L) inla.numlen(x) else 8L, digits = max(4L, width)) {
     ## format numbers using preceeding zeros.
     ## > inla.num(sqrt(2))
     ## [1] "0001.414"
@@ -64,16 +64,16 @@
 
 `inla.strncmp` <- function(s, ss) {
     ## compare two strings
-    if (length(s) == 1 && length(ss) > 1) {
-        ans <- c()
-        for (i in 1:length(ss)) {
+    if (length(s) == 1L && length(ss) > 1L) {
+        ans <- NULL
+        for (i in 1L:length(ss)) {
             ans <- c(ans, inla.strncmp(s, ss[i]))
         }
         return(ans)
-    } else if (length(s) > 1 && length(ss) > 1) {
+    } else if (length(s) > 1L && length(ss) > 1L) {
         stop("length(s) > 1 && length(ss) > 1: not allowed.")
     } else {
-        return(substr(s, 1, nchar(ss)) == ss)
+        return(substr(s, 1L, nchar(ss)) == ss)
     }
 }
 
@@ -84,16 +84,16 @@
 
 `inla.strncasecmp` <- function(s, ss) {
     ## compare two strings, ignore case
-    if (length(s) == 1 && length(ss) > 1) {
-        ans <- c()
-        for (i in 1:length(ss)) {
+    if (length(s) == 1L && length(ss) > 1L) {
+        ans <- NULL
+        for (i in 1L:length(ss)) {
             ans <- c(ans, inla.strncasecmp(s, ss[i]))
         }
         return(ans)
-    } else if (length(s) > 1 && length(ss) > 1) {
+    } else if (length(s) > 1L && length(ss) > 1L) {
         stop("length(s) > 1 && length(ss) > 1: not allowed.")
     } else {
-        return(substr(tolower(s), 1, nchar(ss)) == tolower(ss))
+        return(substr(tolower(s), 1L, nchar(ss)) == tolower(ss))
     }
 }
 
@@ -102,7 +102,7 @@
     if (!is.null(msg)) {
           cat(msg, "\n")
       }
-    scan(quiet = TRUE, multi.line = TRUE, what = character(0))
+    scan(quiet = TRUE, multi.line = TRUE, what = character(0L))
 }
 
 `inla.call.builtin` <- function() {
@@ -112,7 +112,7 @@
     if (exists("inla.options", env = inla.get.inlaEnv())) {
         opt <- get("inla.options", env = inla.get.inlaEnv())
         mkl <- if (!is.null(opt$mkl)) opt$mkl else opt.default$mkl
-        lic <- (!is.null(opt$pardiso.license) && nchar(opt$pardiso.license) > 0)
+        lic <- (!is.null(opt$pardiso.license) && nchar(opt$pardiso.license) > 0L)
     } else {
         mkl <- opt.default$mkl
         lic <- FALSE
@@ -120,7 +120,7 @@
     mkl <- if (mkl) "mkl." else ""
 
     if (inla.os("mac")) {
-        if (nchar(mkl) > 0 && !lic) {
+        if (nchar(mkl) > 0L && !lic) {
             mkl <- ""
         }
         fnm <- system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/inla.", mkl, "run", sep = ""), package = "INLA")
@@ -189,16 +189,16 @@
 
     inla.only.for.developers(msg = "inla.my.update", strict = TRUE)
 
-    if (Sys.getenv("USER") %in% c("hrue")) {
+    if (Sys.getenv("USER") %in% "hrue") {
         dir.default <- "~/p/inla/r-inla/rinla/R"
         bin.default <- "~/p/inla/work/local/bin"
-    } else if (Sys.getenv("USER") %in% c("rueh")) {
+    } else if (Sys.getenv("USER") %in% "rueh") {
         dir.default <- "~/build64/r-inla/rinla/R"
         bin.default <- "~/build64/local/bin"
-    } else if (Sys.getenv("USER") %in% c("elias")) {
+    } else if (Sys.getenv("USER") %in% "elias") {
         dir.default <- "~/inla-project/source/inla/rinla/R"
         bin.default <- "~/inla-project/compile/local/bin"
-    } else if (Sys.getenv("USER") %in% c("fuglstad")) {
+    } else if (Sys.getenv("USER") %in% "fuglstad") {
         dir.default <- "~/build64/rinla/R"
         bin.default <- "~/build64/local/bin"
     } else if (Sys.getenv("USER") %in% c("rieblera", "ariebler")) {
@@ -251,7 +251,7 @@
     ## replace the ones in the INLA-namespace
     funcs <- ls(tmp.env)
     env <- as.environment("package:INLA")
-    nfuncs <- 0
+    nfuncs <- 0L
     for (func in funcs) {
         if (existsFunction(f = func, where = tmp.env)) {
             locked <- try(bindingIsLocked(func, env), silent = TRUE)
@@ -272,7 +272,7 @@
                     lockBinding(func, env)
                 }
             }
-            nfuncs <- nfuncs + 1
+            nfuncs <- nfuncs + 1L
         }
     }
 
@@ -302,7 +302,7 @@
         ## OLD CODE
         if (is.list(from) || is.data.frame(from)) {
               for (nm in name) {
-                    if (length(grep(nm, names(from))) > 0) {
+                    if (length(grep(nm, names(from))) > 0L) {
                           inla.eval(paste("from$", nm, "=NULL", sep = ""))
                       }
                 }
@@ -320,7 +320,7 @@
 }
 
 `inla.ifelse` <- function(test, yes, no) {
-    if (length(test) > 1) {
+    if (length(test) > 1L) {
           stop("oops: len(test) > 1")
       }
 
@@ -355,18 +355,18 @@
         size <- ceiling(n * factor)
     } else if (length(size) == 1L) {
         ## Keep aspect ratio:
-        size <- c(size, size / n[1] * n[2])
+        size <- c(size, size / n[1L] * n[2L])
     }
     fac <- size / n
 
     ## duplicated entries will simply add up, so we need to truncate
     M <- inla.as.dgTMatrix(sparseMatrix(
-        i = pmin(size[1], ceiling(AA$i * fac[1])), j = pmin(size[2], ceiling(AA$j * fac[2])), x = 1,
+        i = pmin(size[1L], ceiling(AA$i * fac[1L])), j = pmin(size[2L], ceiling(AA$j * fac[2L])), x = 1.0,
         dims = size
     ))
     if (binary.pattern) {
-          M@x[] <- 1
-      }
+          M@x[] <- 1.0
+    }
 
     return(M)
 }
@@ -389,7 +389,7 @@
 
 `inla.is.list.of.lists` <- function(a.list) {
     ## return TRUE if `a.list' is a list of lists, otherwise FALSE
-    if (length(a.list) == 0) {
+    if (length(a.list) == 0L) {
         return(FALSE)
     } else {
         return(is.null(names(a.list)) && all(sapply(a.list, is.list)))
@@ -397,7 +397,7 @@
 }
 
 `inla.as.list.of.lists` <- function(a) {
-    if (is.matrix(a) || is.data.frame(a) || length(dim(a)) == 2) {
+    if (is.matrix(a) || is.data.frame(a) || length(dim(a)) == 2L) {
         return(as.list(as.data.frame(as.matrix(a))))
     } else if (inla.is.list.of.lists(a) || TRUE) {
         return(a)
@@ -410,7 +410,7 @@
     ## make a list() into a list of lists.  example: list(a=1) =>
     ## list(list(a=1), list(a=1), ...)
 
-    if (nrep <= 0) {
+    if (nrep <= 0L) {
           stop("nrep must be > 0")
       }
 
@@ -419,19 +419,19 @@
 
 `inla.tictac` <- function(num, elms = "|/-\\|/-\\") {
     len <- nchar(elms)
-    i <- (num %% len) + 1
+    i <- (num %% len) + 1L
     return(substr(elms, i, i))
 }
 
 `inla.2list` <- function(x = NULL) {
-    ## convert a vector `x' or string 'x' into the string ``c(x[1],
-    ## x[2], x[3])'' so it can be evaluated using
+    ## convert a vector `x' or string 'x' into the string ``c(x[1L],
+    ## x[2L], x[3L])'' so it can be evaluated using
     ## inla.eval()
 
     if (is.numeric(x)) {
-        return(as.character(enquote(as.numeric(x)))[2])
+        return(as.character(enquote(as.numeric(x)))[2L])
     } else {
-        return(as.character(enquote(x))[2])
+        return(as.character(enquote(x))[2L])
     }
 
     ## example:
@@ -441,12 +441,12 @@
 
     if (is.null(x)) {
           return(NULL)
-      }
+    }
 
     if (!is.character(x)) {
         return(paste("c(", paste(x, collapse = ","), ")"))
     } else {
-        if (length(x) == 0) {
+        if (length(x) == 0L) {
               return("numeric(0)")
           }
         s <- inla.paste(as.character(x))
@@ -474,16 +474,16 @@
           return(rep(TRUE, length(n)))
       }
     if (by > 0L) {
-          return((n %% by) == 0L)
-      } else {
-          return((n %% (-by)) != 0L)
-      }
+        return((n %% by) == 0L)
+    } else {
+        return((n %% (-by)) != 0L)
+    }
 }
 
 `inla.one.of` <- function(family, candidates) {
-    if (is.null(candidates) || length(candidates) == 0) {
-          return(FALSE)
-      }
+    if (is.null(candidates) || length(candidates) == 0L) {
+        return(FALSE)
+    }
 
     ## check if family is one of the canidates
     return(any(inla.trim.family(family) == inla.trim.family(candidates)))
@@ -498,12 +498,12 @@
     for (U in c("USER", "USERNAME", "LOGNAME")) {
         u <- Sys.getenv(U)
         if (u != "") {
-              break
-          }
+            break
+        }
     }
     if (u == "") {
-          u <- "UnknownUserName"
-      }
+        u <- "UnknownUserName"
+    }
 
     return(as.character(u))
 }
@@ -521,7 +521,6 @@
 
 `inla.tempfile` <- function(pattern = "file", tmpdir = tempdir()) {
     ## just replace \ in Windows with /
-
     return(gsub("\\\\", "/", tempfile(pattern, tmpdir)))
 }
 
@@ -573,9 +572,9 @@
     ## have a matrix, we form a vector where each element is the
     ## character string of that column.
 
-    n <- dim(A)[1]
-    ncol <- dim(A)[2]
-    a <- apply(A, 1, function(x) inla.paste(c(as.character(x)), sep = "<|>"))
+    n <- dim(A)[1L]
+    ncol <- dim(A)[2L]
+    a <- apply(A, 1L, function(x) inla.paste(c(as.character(x)), sep = "<|>"))
 
     ## then we know which columns that are duplicated. the next step
     ## is to make an index-table over unique rows, and if duplicated,
@@ -584,15 +583,15 @@
     dup <- as.integer(duplicated(a))
     nu <- sum(!dup)
     uA <- matrix(NA, nu, ncol)
-    k <- 1
-    for (i in 1:n) {
-        if (dup[i] == 1) {
-            idx <- which(a[i] == a[1:(i - 1)])[1]
+    k <- 1L
+    for (i in 1L:n) {
+        if (dup[i] == 1L) {
+            idx <- which(a[i] == a[1L:(i - 1L)])[1L]
             dup[i] <- dup[idx]
         } else {
             dup[i] <- k
             uA[k, ] <- A[i, ]
-            k <- k + 1
+            k <- k + 1L
         }
     }
 
@@ -607,14 +606,14 @@
 
 `inla.dirname` <- function(path) {
     if (identical(substr(path, nchar(path), nchar(path)), .Platform$file.sep)) {
-        return(substr(path, 1, nchar(path) - 1))
+        return(substr(path, 1L, nchar(path) - 1L))
     } else {
         return(dirname(path))
     }
 }
 
 `inla.affirm.integer` <- function(A, ...) {
-    is.wholenumber <- function(x, tol = .Machine$double.eps * 2) {
+    is.wholenumber <- function(x, tol = .Machine$double.eps * 2.0) {
         return(abs(x - round(x)) <= tol)
     }
     is.integer.values <- function(A, ...) {
@@ -644,8 +643,8 @@
     }
 
     stopifnot(is.matrix(A))
-    a <- c()
-    for (i in 1:nrow(A)) {
+    a <- NULL
+    for (i in 1L:nrow(A)) {
         b <- list(as.list(A[i, ]))
         names(b) <- rownames(A)[i]
         a <- c(a, b)
@@ -674,7 +673,7 @@
     ## the value is non null and not NA.
     if (any(names(alist) == name)) {
         idx <- which(names(alist) == name)
-        if (length(alist[[idx]]) > 0 && !is.null(alist[[idx]]) && !is.na(alist[[idx]])) {
+        if (length(alist[[idx]]) > 0L && !is.null(alist[[idx]]) && !is.na(alist[[idx]])) {
             return(TRUE)
         } else {
             return(FALSE)
@@ -695,15 +694,15 @@
         n.what <- length(as.list(what))
         stop(paste(name, " must inherit from class ",
             inla.ifelse(
-                n.what == 1,
+                n.what == 1L,
                 paste("\"", what, "\".", sep = ""),
                 paste("\"",
                     inla.paste(
-                        what[1:(n.what - 1)],
+                        what[1L:(n.what - 1L)],
                         "\", \""
                     ),
                     "\"",
-                    inla.ifelse(n.what == 2, "", ","),
+                    inla.ifelse(n.what == 2L, "", ","),
                     " or \"",
                     what[n.what],
                     "\".",
@@ -727,7 +726,7 @@
 `inla.source2function` <- function(the.source, newline = "<<NEWLINE>>") {
     ## take function source, output from inla.function2source(), and
     ## return the function, using 'newline' as newline.
-    return(inla.eval(strsplit(the.source, split = newline)[[1]]))
+    return(inla.eval(strsplit(the.source, split = newline)[[1L]]))
 }
 
 `inla.writeLines` <- function(filename, lines) {
@@ -783,7 +782,7 @@
         if (is.null(d)) {
             return(FALSE)
         } else {
-            return(length(d) == 2)
+            return(length(d) == 2L)
         }
     }
 }
@@ -794,12 +793,12 @@
     levels <- levels(f)
     if (sparse) {
         factor.matrix <- sparseMatrix(
-            i = which(ok), j = as.integer(f[ok]), x = 1,
+            i = which(ok), j = as.integer(f[ok]), x = 1.0,
             dims = c(length(f), nlevels(f))
         )
     } else {
-        factor.matrix <- matrix(0, length(f), nlevels(f))
-        for (k in 1:nlevels(f)) {
+        factor.matrix <- matrix(0.0, length(f), nlevels(f))
+        for (k in 1L:nlevels(f)) {
             factor.matrix[ok, k] <- (f[ok] == levels[k])
         }
     }
@@ -865,7 +864,7 @@
                                length = NULL) {
     ## Like match.arg, but for a vector of options 'arg'
     if (is.null(length)) {
-        length <- inla.ifelse(is.null(arg), 1, length(arg))
+        length <- inla.ifelse(is.null(arg), 1L, length(arg))
     }
     if (is.null(arg)) {
         arg <- match.arg(arg, choices)
@@ -881,6 +880,7 @@
     }
     return(arg)
 }
+
 `inla.get.var` <- function(var, data = NULL) {
     if (is.null(data)) {
         return(get(var))
@@ -888,12 +888,13 @@
         return(get(var, envir = as.environment(data)))
     }
 }
+
 `inla.ginv` <- function(x, tol = sqrt(.Machine$double.eps), rankdef = NULL) {
     ## from MASS::ginv, but with added option 'rankdef'.
     if (!is.matrix(x)) {
         x <- as.matrix(x)
     }
-    if (length(dim(x)) > 2 || !(is.numeric(x) || is.complex(x))) {
+    if (length(dim(x)) > 2L || !(is.numeric(x) || is.complex(x))) {
         stop("'x' must be a numeric or complex matrix")
     }
 
@@ -902,33 +903,33 @@
         xsvd$u <- Conj(xsvd$u)
     }
 
-    if (is.null(rankdef) || rankdef == 0) {
-        Positive <- xsvd$d > max(tol * xsvd$d[1], 0)
+    if (is.null(rankdef) || rankdef == 0L) {
+        Positive <- xsvd$d > max(tol * xsvd$d[1L], 0.0)
     } else {
         n <- length(xsvd$d)
-        stopifnot(rankdef >= 1 && rankdef <= n)
+        stopifnot(rankdef >= 1L && rankdef <= n)
         Positive <- c(rep(TRUE, n - rankdef), rep(FALSE, rankdef))
     }
 
     if (all(Positive)) {
-        xsvd$v %*% (1 / xsvd$d * t(xsvd$u))
+        xsvd$v %*% (1.0 / xsvd$d * t(xsvd$u))
     } else if (!any(Positive)) {
-        array(0, dim(x)[2:1])
+        array(0.0, dim(x)[2L:1L])
     } else {
-        xsvd$v[, Positive, drop = FALSE] %*% ((1 / xsvd$d[Positive]) *
+        xsvd$v[, Positive, drop = FALSE] %*% ((1.0 / xsvd$d[Positive]) *
             t(xsvd$u[, Positive, drop = FALSE]))
     }
 }
 `inla.gdet` <- function(x, tol = sqrt(.Machine$double.eps), rankdef = NULL, log = TRUE) {
     x <- as.matrix(x)
     lambda <- eigen(x, only.values = TRUE)$values
-    if (is.null(rankdef) || rankdef == 0) {
-        non.zero <- (lambda > max(tol * max(lambda), 0))
+    if (is.null(rankdef) || rankdef == 0L) {
+        non.zero <- (lambda > max(tol * max(lambda), 0.0))
         lambda <- lambda[non.zero]
     } else {
-        if (rankdef > 0) {
+        if (rankdef > 0L) {
             lambda <- sort(lambda)
-            lambda <- lambda[-(1:rankdef)]
+            lambda <- lambda[-(1L:rankdef)]
         }
     }
 
@@ -938,23 +939,26 @@
         return(prod(lambda))
     }
 }
+
 ## nice to have these around
 `inla.rw1` <- function(n, ...) {
     inla.rw(n, order = 1L, ...)
 }
+
 `inla.rw2` <- function(n, ...) {
     inla.rw(n, order = 2L, ...)
 }
+
 `inla.rw` <- function(n, order = 1L, sparse = TRUE, scale.model = FALSE, cyclic = FALSE) {
-    stopifnot(n >= 1 + 2 * order)
+    stopifnot(n >= 1L + 2L * order)
     if (scale.model) {
         if (!cyclic) {
             rd <- order
         } else {
-            if (order == 1) {
-                rd <- 1
+            if (order == 1L) {
+                rd <- 1L
             } else {
-                rd <- order - 1
+                rd <- order - 1L
             }
         }
         Q <- inla.rw(n, order = order, sparse = sparse, scale.model = FALSE, cyclic = cyclic)
@@ -965,11 +969,11 @@
             U <- diff(diag(n), diff = order)
             Q <- t(U) %*% U
         } else {
-            m <- 2 * order + 1
-            k <- 1 + order
+            m <- 2L * order + 1L
+            k <- 1L + order
             U <- diff(diag(m), diff = order)
             U <- t(U) %*% U
-            Q <- toeplitz(c(U[k, k:m], rep(0, n - m), U[k, m:(k + 1)]))
+            Q <- toeplitz(c(U[k, k:m], rep(0.0, n - m), U[k, m:(k + 1L)]))
         }
     }
     return(if (sparse) inla.as.sparse(Q) else Q)
@@ -984,11 +988,11 @@
             if (is.null(mc.cores)) {
                 num.threads <- inla.getOption("num.threads")
                 num.threads <- inla.parse.num.threads(num.threads)
-                nt <- as.numeric(strsplit(num.threads, ":")[[1]])
-                if (nt[1] == 0) {
+                nt <- as.numeric(strsplit(num.threads, ":")[[1L]])
+                if (nt[1L] == 0L) {
                     mc.cores <- parallel::detectCores(all.tests = TRUE, logical = FALSE)
                 } else {
-                    mc.cores <- nt[1]
+                    mc.cores <- nt[1L]
                 }
             }
         }
@@ -1016,14 +1020,14 @@
             omega <- param$omega
             alpha <- param$alpha
         } else {
-            xi <- param[1]
-            omega <- param[2]
-            alpha <- param[3]
+            xi <- param[1L]
+            omega <- param[2L]
+            alpha <- param[3L]
         }
-        delta <- alpha / sqrt(1 + alpha^2)
-        mean <- xi + omega * delta * sqrt(2 / pi)
-        variance <- omega^2 * (1 - 2 * delta^2 / pi)
-        skewness <- (4 - pi) / 2 * (delta * sqrt(2 / pi))^3 / (1 - 2 * delta^2 / pi)^(3 / 2)
+        delta <- alpha / sqrt(1 + alpha^2L)
+        mean <- xi + omega * delta * sqrt(2.0 / pi)
+        variance <- omega^2L * (1.0 - 2.0 * delta^2L / pi)
+        skewness <- (4.0 - pi) / 2.0 * (delta * sqrt(2.0 / pi))^3L / (1.0 - 2.0 * delta^2L / pi)^(3.0 / 2.0)
 
         return(list(mean = mean, variance = variance, skewness = skewness))
     } else {
@@ -1032,16 +1036,16 @@
             variance <- moments$variance
             skewness <- moments$skewness
         } else {
-            mean <- moments[1]
-            variance <- moments[2]
-            skewness <- moments[3]
+            mean <- moments[1L]
+            variance <- moments[2L]
+            skewness <- moments[3L]
         }
-        delta <- sqrt(pi / 2 * abs(skewness)^(2 / 3) /
-            (abs(skewness)^(2 / 3) + ((4 - pi) / 2)^(2 / 3)))
+        delta <- sqrt(pi / 2.0 * abs(skewness)^(2.0 / 3.0) /
+            (abs(skewness)^(2.0 / 3.0) + ((4.0 - pi) / 2.0)^(2.0 / 3.0)))
         delta <- delta * sign(skewness)
-        alpha <- delta / sqrt(1 - delta^2)
-        omega <- sqrt(variance / (1 - 2 * delta^2 / pi))
-        xi <- mean - omega * delta * sqrt(2 / pi)
+        alpha <- delta / sqrt(1.0 - delta^2L)
+        omega <- sqrt(variance / (1.0 - 2.0 * delta^2L / pi))
+        xi <- mean - omega * delta * sqrt(2.0 / pi)
 
         return(list(xi = xi, omega = omega, alpha = alpha))
     }
@@ -1054,7 +1058,7 @@
 }
 
 `inla.check.location` <- function(loc, term, model, section = "latent") {
-    if (is.null(loc) || length(loc) <= 1) {
+    if (is.null(loc) || length(loc) <= 1L) {
         return(invisible())
     }
     lim <- inla.model.properties(model, section)$min.diff
@@ -1070,8 +1074,8 @@
             term, ", model=\"",
             model, "\", ...): ",
             " min(diff(sort(x)))/diff(range(x)) = ",
-            format(min.diff, scientific = TRUE, digits = 4),
-            " < ", format(lim, scientific = TRUE, digits = 4), "\n",
+            format(min.diff, scientific = TRUE, digits = 4L),
+            " < ", format(lim, scientific = TRUE, digits = 4L), "\n",
             "  You can fix this by some kind of binning, see ?inla.group", "\n",
             "  If you want/need to bypass this check at your own risk, do", "\n",
             "\t> m = get(\"inla.models\", inla.get.inlaEnv())\n",
@@ -1087,7 +1091,7 @@
     return(invisible())
 }
 
-`inla.matern.cf` <- function(dist, range = 1, nu = 0.5) {
+`inla.matern.cf` <- function(dist, range = 1.0, nu = 0.5) {
     ## the matern correlation function, with parameter 'range' as defined for the SPDE models.
     ## this function can vectorize over 'dist'
     kappa <- sqrt(8.0 * nu) / range ## this the definition used
@@ -1106,15 +1110,15 @@
     ## like those given in the sn-package. based on code written by CC.
 
     sn.map <- function(mu, variance, skew) {
-        delta <- sign(skew) * sqrt((pi / 2) * (abs(skew)^(2 / 3) / (((4 - pi) / 2)^(2 / 3) + abs(skew)^(2 / 3))))
-        alpha <- delta / sqrt(1 - delta^2)
-        xi <- mu - delta * sqrt((2 * variance) / (pi - 2 * delta^2))
-        omega <- sqrt((pi * variance) / (pi - 2 * delta^2))
+        delta <- sign(skew) * sqrt((pi / 2.0) * (abs(skew)^(2.0 / 3.0) / (((4.0 - pi) / 2.0)^(2.0 / 3.0) + abs(skew)^(2.0 / 3.0))))
+        alpha <- delta / sqrt(1.0 - delta^2L)
+        xi <- mu - delta * sqrt((2.0 * variance) / (pi - 2.0 * delta^2L))
+        omega <- sqrt((pi * variance) / (pi - 2.0 * delta^2L))
         return(list(xi = xi, omega = omega, alpha = alpha))
     }
 
     skew.max <- 0.99
-    skew[which(is.na(skew))] <- 0
+    skew[which(is.na(skew))] <- 0.0
     if (any(abs(skew) > skew.max)) {
         skew <- pmax(-skew.max, pmin(skew.max, skew))
         warning(paste0("One or more abs(skewness) are too high. Coerced to be ", skew.max))
