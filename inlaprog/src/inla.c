@@ -34145,6 +34145,19 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 50:
+	{
+		double df = atof(args[0]);
+		double x = 1.2345;
+		double ncp = 12.345;
+		printf("R --vanilla -q -e 'df=%.8f; x= %.8f; ncp= %.8f; dchisq(x,df,ncp,log=TRUE); pchisq(x,df,ncp)'\n", df, x, ncp);
+		printf("log.density= %.8f\n", MATHLIB_FUN(dnchisq)(x, df, ncp, 1));
+		printf("CDF(%.8f)= %.8f\n", x, MATHLIB_FUN(pnchisq)(x, df, ncp, 1, 0));
+		printf("iCDF(CDF(%.8f))= %.8f\n", x, MATHLIB_FUN(qnchisq)(MATHLIB_FUN(pnchisq)(x, df, ncp, 1, 0), df, ncp, 1, 0));
+		
+		break;
+	}
+
 		// this will give some more error messages, if any
 	case 999:
 	{
