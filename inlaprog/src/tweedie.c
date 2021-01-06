@@ -38,9 +38,12 @@ static const char GitID[] = GITCOMMIT;
 #include <malloc.h>
 #endif
 #include <stdlib.h>
+
+#include "rmath.h"
+#undef ISNAN
+
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
-
 #include "tweedie.h"
 
 // This code is modified from tweedie.c in the (GPL'ed) cplm_0.7-9.tar.gz
@@ -152,12 +155,17 @@ double ptweedie(double y, double mu, double phi, double p)
 	double gamma = phi * (p - 1.0) * pow(mu, p - 1.0);
 	double plim = 0.999;
 	double retval, prob, pacc;
+	
+	// some examples; Rmath takes 30% more time than the GSL call to 'pgamma'
+	// retval += prob * MATHLIB_FUN(pgamma)(y, n * alpha, gamma, 1, 0);
 
-	retval = pacc = gsl_ran_poisson_pdf((unsigned int) 0, lambda);
+	retval = pacc = prob = gsl_ran_poisson_pdf((unsigned int) 0, lambda);
 	for (int n = 1; pacc < plim; n++, pacc += prob) {
-		prob = gsl_ran_poisson_pdf((unsigned int) n, lambda);
+		// better to use the recursion for poisson
+		// prob = gsl_ran_poisson_pdf((unsigned int) n, lambda);
+		prob *= lambda / n;
 		retval += prob * gsl_cdf_gamma_P(y, n * alpha, gamma);
-	}
 
+	}
 	return (retval);
 }

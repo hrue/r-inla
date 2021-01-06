@@ -8733,9 +8733,9 @@ int loglikelihood_tweedie(double *logll, double *x, int m, int idx, double *UNUS
 		dtweedie(m, y, mu, phi, p, logll);
 		Free(mu);
 	} else {
-		double mu, yy = (y_cdf ? *y_cdf : y);
+		double yy = (y_cdf ? *y_cdf : y);
 		for (i = 0; i < -m; i++) {
-			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			double mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			logll[i] = ptweedie(yy, mu, phi, p);
 		}
 	}
