@@ -46,8 +46,8 @@ static const char GitID[] = GITCOMMIT;
 #include "GMRFLib/GMRFLibP.h"
 #include "tweedie.h"
 
-// This code is modified from tweedie.c in the (GPL'ed) cplm_0.7-9.tar.gz
-// package of Wayne Zhang <actuary_zhang@hotmail.com>
+// the dtweedie-code is modified from tweedie.c in the (GPL'ed) cplm_0.7-9.tar.gz package of Wayne Zhang
+// <actuary_zhang@hotmail.com>, to tailor it to the INLA use.
 
 #define TWEEDIE_DROP 37.0
 #define TWEEDIE_INCRE 5
@@ -131,7 +131,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 
 	for (int k = 0; k < nterms; k++) {
 		j = k + jl;
-		store.wwork[k] = j * logz- my_gsl_sf_lngamma(1 + j) - my_gsl_sf_lngamma(-a * j);
+		store.wwork[k] = j * logz - my_gsl_sf_lngamma(1 + j) - my_gsl_sf_lngamma(-a * j);
 		ww_max = (k == 0 ? store.wwork[k] : DMAX(ww_max, store.wwork[k]));
 	}
 	sum_ww = 0.0;
@@ -140,7 +140,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 	}
 
 	for (int i = 0; i < n; i++) {
-		ldens[i] = -pow(mu[i], p2) / (phi * p2) -y / (phi * p1 * pow(mu[i], p1)) - log(y) + log(sum_ww) + ww_max;
+		ldens[i] = -pow(mu[i], p2) / (phi * p2) - y / (phi * p1 * pow(mu[i], p1)) - log(y) + log(sum_ww) + ww_max;
 	}
 
 	return;
@@ -155,7 +155,7 @@ double ptweedie(double y, double mu, double phi, double p)
 	double gamma = phi * (p - 1.0) * pow(mu, p - 1.0);
 	double plim = 0.999;
 	double retval, prob, pacc;
-	
+
 	// some examples; Rmath takes 30% more time than the GSL call to 'pgamma'
 	// retval += prob * MATHLIB_FUN(pgamma)(y, n * alpha, gamma, 1, 0);
 
