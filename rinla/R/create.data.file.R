@@ -59,7 +59,8 @@
         "iidgamma",
         "simplex",
         "gamma",
-        "beta"
+        "beta",
+        "tweedie"
     ))) {
         if (is.null(scale)) {
             scale <- rep(1.0, n.data)

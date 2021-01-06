@@ -443,6 +443,13 @@ typedef struct {
 	double **gp_intern_tail;			       /* log(xi) parameter */
 	double *gp_tail_interval;
 
+	/*
+	 * Tweedie 
+	 */
+	double **tweedie_p_intern;
+	double **tweedie_phi_intern;
+	double *tweedie_w;
+
 } Data_tp;
 
 typedef struct {
@@ -545,6 +552,7 @@ typedef enum {
 	L_POISSON_SPECIAL1,
 	L_GAMMAJW,
 	L_GAMMAJWSURV,
+	L_TWEEDIE, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1855,6 +1863,7 @@ int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *x
 int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_testit(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_tweedie(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg);
 int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_weibullsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
