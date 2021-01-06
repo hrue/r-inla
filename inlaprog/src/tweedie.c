@@ -66,17 +66,15 @@ static const char GitID[] = GITCOMMIT;
 
 void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 {
+	// nice simplifications are possible since only 'mu' depends on '[i]' and the rest of the parameters are constants
+
 	static struct {
-		int n_max;
 		int nn_max;
-		double *work;
 		double *wwork;
-	} store = { -1, -1, NULL, NULL };
+	} store = { -1, NULL };
 #pragma omp threadprivate(store)
 
-	if (store.n_max < 0) {
-		store.n_max = 8;
-		store.work = Calloc(store.n_max * 4, double);
+	if (store.nn_max < 0) {
 		store.nn_max = 128;
 		store.wwork = Calloc(store.nn_max, double);
 	}
@@ -91,66 +89,46 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 		}
 		return;
 	}
-	// only need the lower bound and the # terms to be stored 
-	int jh, *jl, *jd, jd_max = 0, jl_low = TWEEDIE_NTERM;
-	double *jmax, *logz;
 
-	if (n > store.n_max) {
-		store.n_max = n * 2;
-		Free(store.work);
-		store.work = Calloc(store.n_max * 4, double);
-	}
-
-	jl = (int *) (store.work + 0);
-	jd = (int *) (store.work + n);
-	jmax = store.work + 2 * n;
-	logz = store.work + 3 * n;
+	int jh, jl, jd, jmax, nterms;
+	double logz;
 
 	cc = a * log(p1) - log(p2);
-	for (int i = 0; i < n; i++) {
-		jmax[i] = DMAX(1.0, pow(y, p2) / (phi * p2));
-		logz[i] = -a * log(y) - a1 * log(phi) + cc;
-		P(logz[i]);
-	}
+	jmax = DMAX(1.0, pow(y, p2) / (phi * p2));
+	logz = -a * log(y) - a1 * log(phi) + cc;
 
-	// find bounds in the summation 
-	for (int i = 0; i < n; i++) {
-		// locate upper bound 
-		cc = logz[i] + a1 + a * log(-a);
-		j = jmax[i];
-		w = a1 * j;
-		while (1) {
-			j += TWEEDIE_INCRE;
-			if (j * (cc - a1 * log(j)) < (w - TWEEDIE_DROP))
-				break;
-		}
-		jh = ceil(j);
-		// locate lower bound 
-		j = jmax[i];
-		while (1) {
-			j -= TWEEDIE_INCRE;
-			if (j < 1 || j * (cc - a1 * log(j)) < w - TWEEDIE_DROP)
-				break;
-		}
-		jl[i] = IMAX(1, floor(j));
-		jd[i] = jh - jl[i] + 1;
-		jl_low = IMIN(jl_low, jd[i]);
-		jd_max = IMAX(jd_max, jd[i]);
+	// locate upper bound 
+	cc = logz + a1 + a * log(-a);
+	j = jmax;
+	w = a1 * j;
+	while (1) {
+		j += TWEEDIE_INCRE;
+		if (j * (cc - a1 * log(j)) < (w - TWEEDIE_DROP))
+			break;
 	}
+	jh = ceil(j);
+
+	// locate lower bound 
+	j = jmax;
+	while (1) {
+		j -= TWEEDIE_INCRE;
+		if (j < 1 || j * (cc - a1 * log(j)) < w - TWEEDIE_DROP)
+			break;
+	}
+	jl = IMAX(1, floor(j));
+	jd = jh - jl + 1;
 
 	// set limit for # terms in the sum 
-	int nterms = IMIN(jd_max, TWEEDIE_NTERM);
-
+	nterms = IMIN(jd, TWEEDIE_NTERM);
 	if (nterms > store.nn_max) {
 		store.nn_max = nterms * 2;
 		Free(store.wwork);
 		store.wwork = Calloc(store.nn_max, double);
 	}
 
-	// this term does not depend on mu[i], so we only need to do this once, as only 'mu[i]' varies with 'i'.
 	for (int k = 0; k < nterms; k++) {
-		j = k + jl_low;
-		store.wwork[k] = j * logz[0] - my_gsl_sf_lngamma(1 + j) - my_gsl_sf_lngamma(-a * j);
+		j = k + jl;
+		store.wwork[k] = j * logz- my_gsl_sf_lngamma(1 + j) - my_gsl_sf_lngamma(-a * j);
 		ww_max = (k == 0 ? store.wwork[k] : DMAX(ww_max, store.wwork[k]));
 	}
 	sum_ww = 0.0;
@@ -158,10 +136,8 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 		sum_ww += exp(store.wwork[k] - ww_max);
 	}
 
-	// evaluate series using the finite sum
 	for (int i = 0; i < n; i++) {
-		ldens[i] = -pow(mu[i], p2) / (phi * p2);
-		ldens[i] += -y / (phi * p1 * pow(mu[i], p1)) - log(y) + log(sum_ww) + ww_max;
+		ldens[i] = -pow(mu[i], p2) / (phi * p2) -y / (phi * p1 * pow(mu[i], p1)) - log(y) + log(sum_ww) + ww_max;
 	}
 
 	return;
