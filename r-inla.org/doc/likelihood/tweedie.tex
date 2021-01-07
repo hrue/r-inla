@@ -1,0 +1,83 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Tweedie}
+
+\subsection*{Parametrisation}
+
+The Tweedie distribution\footnote{This documentation follows the
+    notation in \emph{ Likelihood-based and Bayesian methods for
+        Tweedie compound Poisson linear mixed models, by Yanwei Zhang,
+        Stat Comput (2013) 23:743–757, DOI 10.1007/s11222-012-9343-7}}
+is a compond Poisson-Gamma model, where
+\begin{displaymath}
+    Y = \sum_{i=1}^{N} X_i,
+\end{displaymath}
+and $\{X_i\}$ are iid Gamma variables with parameter
+$(\alpha, \gamma)$ so that the mean of $X_i$ is $\alpha\gamma$ and
+variance $\alpha\gamma^{2}$, and $N$ is (independent) Poisson with
+mean $\lambda$. Since $N$ can be $0$ with a positive probability, then
+the Tweedie distribution have a singleton in zero and is continuous
+for $y>0$.
+
+We will use the following reparametersation
+\begin{displaymath}
+    \mu = \lambda \alpha \gamma,\qquad
+    p = \frac{\alpha+2}{\alpha+1},\qquad
+    \frac{\phi}{w} = \frac{\lambda^{1-p} (\alpha\gamma)^{2-p}}{2-p}
+\end{displaymath}
+where $w>0$ is a fixed scaling, so the mean of $Y$ is $\mu>0$,
+variance is $\frac{\phi}{w} \mu^{p}$ where $1<p<2$, and $\phi$ is a
+dispersion parameter.
+
+\subsection*{Link-function}
+
+The linkfunction is given as 
+\begin{displaymath}
+    \log(\mu) =  \eta
+\end{displaymath}
+where $\eta$  is the linear predictor.
+
+\subsection*{Hyperparameters}
+
+The hyperparameters are ${\theta}=(\theta_1,\theta_2)$, where
+\begin{displaymath}
+    p=1 + \frac{\exp(\theta_1)}{1+\exp(\theta_1)}, \qquad 1<p<2.
+\end{displaymath}
+and
+\begin{displaymath}
+    \phi=\exp(\theta_2), \qquad \phi>0
+\end{displaymath}
+The priors are given on $(\theta_1,\theta_2)$.
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{tweedie}$
+\item Required arguments: $y$ (and optional $w$ through option
+    \texttt{scale})
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/tweedie.tex}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example.
+\verbatiminput{example-tweedie.R}
+
+\subsection*{Notes}
+
+This distribution is experimental, and changes will occur.
+
+\end{document}
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

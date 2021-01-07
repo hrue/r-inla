@@ -9222,6 +9222,48 @@ inla.models()
 				 }
 				\item{Model `logperiodogram'.}{Number of hyperparmeters are 0.
 				 }
+				\item{Model `tweedie'.}{Number of hyperparmeters are 2.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{hyperid = }{`102101'}
+							\item{name = }{`prob'}
+							\item{short.name = }{`p'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 10'}
+							\item{to.theta = }{`\code{function(x, interval = c(1.0, 2.0)) log(-(interval[1] - x) / (interval[2] - x))}'}
+							\item{from.theta = }{`\code{function(x, interval = c(1.0, 2.0)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{hyperid = }{`102201'}
+							\item{name = }{`log.dispersion'}
+							\item{short.name = }{`dispersion'}
+							\item{initial = }{`-4'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 0.1'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`Tweedie distribution'}
+								\item{status = }{`experimental'}
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default log'}
+								\item{pdf = }{`tweedie'}
+							 }
+						 }
+					 }
+				 }
 			 }
 		 }
 		\item{Section `prior'.}{

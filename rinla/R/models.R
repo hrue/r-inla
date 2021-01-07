@@ -7774,6 +7774,39 @@
                     discrete = FALSE,
                     link = c("default", "identity"),
                     pdf = NA
+                ),
+
+                tweedie = list(
+                    doc = "Tweedie distribution",
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 102101,
+                            name = "prob",
+                            short.name = "p",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 10),
+                            to.theta = function(x, interval = c(1.0, 2.0)) log(-(interval[1] - x) / (interval[2] - x)),
+                            from.theta = function(x, interval = c(1.0, 2.0)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))
+                        ),
+                        theta2 = list(
+                            hyperid = 102201,
+                            name = "log.dispersion",
+                            short.name = "dispersion",
+                            initial = -4,
+                            fixed = FALSE,
+                            prior = "loggamma",
+                            param = c(1, 0.1),
+                            to.theta = function(x) log(x),
+                            from.theta = function(x) exp(x)
+                        )
+                    ),
+                    status = "experimental", 
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "log"),
+                    pdf = "tweedie"
                 )
             )
     )
