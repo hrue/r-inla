@@ -50,8 +50,9 @@ static const char GitID[] = GITCOMMIT;
 // <actuary_zhang@hotmail.com>, to tailor it to the INLA use.
 
 #define TWEEDIE_DROP 40.0
-#define TWEEDIE_INCRE 8
-#define TWEEDIE_NTERM 32768
+#define TWEEDIE_INCRE 2
+#define TWEEDIE_INCRE_HIGH 32
+#define TWEEDIE_MAX_IDX 32768
 
 /**
  * Compute the log density for the tweedie compound Poisson distribution.
@@ -69,6 +70,185 @@ static const char GitID[] = GITCOMMIT;
 
 void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 {
+	// nice simplifications are possible since only 'mu' depends on '[i]' and the rest of the parameters are constants
+
+	static struct {
+		int nn_max;
+		int idx_low;
+		int idx_high;
+		double save_phi;
+		double save_p;
+		double *work;
+		double *wwork;
+	} store = { -1, -1, -1, -9999.9999, -9999.9999, NULL, NULL};
+#pragma omp threadprivate(store)
+
+	if (store.nn_max < 0) {
+		store.nn_max = 1024;
+		store.work = Calloc(2 * store.nn_max, double);
+		store.wwork = store.work + store.nn_max;
+	}
+
+	double p1 = p - 1.0, p2 = 2.0 - p;
+	double a = -p2 / p1, a1 = 1.0 / p1;
+	double cc, j, w, sum_ww = 0.0, ww_max = 0.0;
+
+	int use_interpolation = 1, nterms, k, i;
+	int reuse = 1;
+	
+	// fast return
+	if (ISZERO(y)) {
+		for (int i = 0; i < n; i++) {
+			ldens[i] = -pow(mu[i], p2) / (phi * p2);
+		}
+		return;
+	}
+
+
+	int jh, jl, jd, jmax;
+	double logz, logz_no_y;
+
+	cc = a * log(p1) - log(p2);
+	jmax = DMAX(1.0, pow(y, p2) / (phi * p2));
+	logz = -a * log(y) - a1 * log(phi) + cc;
+	logz_no_y = - a1 * log(phi) + cc;
+
+	// locate upper bound 
+	cc = logz + a1 + a * log(-a);
+	j = jmax;
+	w = a1 * j;
+	while (1) {
+		j += TWEEDIE_INCRE;
+		if (j * (cc - a1 * log(j)) < (w - TWEEDIE_DROP))
+			break;
+	}
+	jh = IMIN(TWEEDIE_MAX_IDX, ceil(j));
+
+	if (0) {
+		// locate lower bound 
+		j = jmax;
+		while (1) {
+			j -= TWEEDIE_INCRE;
+			if (j < 1 || j * (cc - a1 * log(j)) < w - TWEEDIE_DROP)
+				break;
+		}
+	}
+	
+	jl = 1;						       /* use this all the time */
+	jd = jh - jl + 1;
+	nterms = jd;
+
+	if (nterms + TWEEDIE_INCRE_HIGH >= store.nn_max) {
+		reuse = 0;
+		store.nn_max = (nterms + TWEEDIE_INCRE_HIGH) * 2;
+		Free(store.work);
+		store.work = Calloc(2 * store.nn_max, double);
+		store.wwork = store.work + store.nn_max;
+	}
+
+	reuse = reuse && (p ==  store.save_p && phi ==  store.save_phi);
+	reuse = reuse && (store.idx_low <= jl && store.idx_high >= jh);
+
+	if (!reuse) {
+		jh += TWEEDIE_INCRE_HIGH;
+		jd = jh - jl + 1;
+		nterms = jd;
+				
+		if (!use_interpolation) {
+			for (k = 0; k < nterms; k++) {
+				j = k + jl;
+				store.wwork[k] = j * logz_no_y - inla_lgamma_fast(1.0 + j) - inla_lgamma_fast(-a * j);
+			}
+		} else {
+			for (k = 0; k < nterms + 1; k += 2) {
+				j = k + jl;
+				store.wwork[k] = j * logz_no_y - inla_lgamma_fast(1.0 + j) - inla_lgamma_fast(-a * j);
+
+				if (k > 0) {
+					double estimate = 0.5 * (store.wwork[k] + store.wwork[k - 2]);
+					double correction = (1.0 - a) * (1.0 / j + 1.0 / SQR(j));
+					double limit = 0.05;
+					if (ABS(correction) > limit) {
+						// correction term to large: skip interpolation
+						double jj = j - 1.0;
+						store.wwork[k - 1] = jj * logz_no_y - inla_lgamma_fast(1.0 + jj) - inla_lgamma_fast(-a * jj);
+					} else {
+						// correction term small: do interpolation
+						store.wwork[k - 1] = estimate + correction;
+					}
+				}
+			}
+		}
+		store.save_p = p;
+		store.save_phi = phi;
+		store.idx_low = jl;
+		store.idx_high = jh;
+	} 
+	
+	// assume every 'y' is potential different, but the parameters changes just once in a while
+	double term = -a * log(y); // the y-term we have removed from 'logz'
+	nterms = store.idx_high - store.idx_low + 1;
+			
+	sum_ww = 0.0;
+	double tmp;
+
+	if (0) {
+		ww_max = store.wwork[0] + store.idx_low * term;
+		for(k = 0; k < nterms; k++) {
+			j = k + store.idx_low;
+			store.work[k] = store.wwork[k] + term * j;
+			if (store.work[k] > ww_max) {
+				ww_max = store.work[k];
+			}
+		}
+		for (k = 0; k < nterms; k++) {
+			tmp = store.work[k] - ww_max;
+			if (tmp > -14.0) {
+				sum_ww += exp(tmp);
+			}
+		}
+	} else {
+		int idx_max = 0;
+		double lim = -18.0;
+
+		ww_max = store.wwork[0] + store.idx_low * term;
+		for(k = 0; k < nterms; k++) {
+			j = k + store.idx_low;
+			store.work[k] = store.wwork[k] + term * j;
+			if (store.work[k] > ww_max) {
+				ww_max = store.work[k];
+				idx_max = k;
+			}
+		}
+
+		for (k = idx_max; k < nterms; k++) {	       /* assume there is one mode */
+			tmp = store.work[k] - ww_max;
+			if (tmp > lim) {
+				sum_ww += exp(tmp);
+			} else {
+				break;
+			}
+		}
+		for (k = idx_max - 1; k >= 0; k--) {
+			tmp = store.work[k] - ww_max;
+			if (tmp > lim) {
+				sum_ww += exp(tmp);
+			} else {
+				break;
+			}
+		}
+	}
+
+	for (i = 0; i < n; i++) {
+		ldens[i] = -pow(mu[i], p2) / (phi * p2) - y / (phi * p1 * pow(mu[i], p1)) - log(y) + log(sum_ww) + ww_max;
+	}
+
+	return;
+}
+
+void dtweedie_orig(int n, double y, double *mu, double phi, double p, double *ldens)
+{
+#define TWEEDIE_NTERM 32768
 	// nice simplifications are possible since only 'mu' depends on '[i]' and the rest of the parameters are constants
 
 	static struct {
@@ -186,6 +366,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 
 	return;
 }
+
 
 double ptweedie(double y, double mu, double phi, double p)
 {
