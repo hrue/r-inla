@@ -4866,6 +4866,24 @@ double inla_log_Phi_fast(double x)
 		}
 	}
 }
+double inla_lgamma_fast(double x)
+{
+	// this is the Gergo Nemes (2007) approximation from
+	// https://en.wikipedia.org/wiki/Stirling's_approximation
+
+	if (round(x) == x) {
+		return (my_gsl_sf_lngamma(x));
+	}
+
+	double val;
+	if (x < 1.0) {
+		val = gsl_sf_lngamma(x);
+	} else {
+		double lx = log(x), l2pi = 1.837877066409345; // ln 2\pi
+		val = 0.5 * (l2pi - lx) + x * (log(x + 1.0/( 12.0*x - 0.1/x)) - 1.0);
+	}
+	return (val);
+}
 int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
@@ -34379,7 +34397,18 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-		// this will give some more error messages, if any
+	case 52: 
+	{
+		for(double x = 0.1; x < 20; x+= 0.1) {
+			printf("x %f lgamma %f lgamma.fast %f diff %f\n",
+			       x, gsl_sf_lngamma(x), inla_lgamma_fast(x),
+			       gsl_sf_lngamma(x) - inla_lgamma_fast(x));
+		}
+
+		break;
+	}
+
+	// this will give some more error messages, if any
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
