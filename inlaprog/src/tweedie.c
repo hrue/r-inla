@@ -158,13 +158,13 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 			for (k = k_low; k < nterms; k++) {
 				j = k + one;
 				cache.wwork[k] = j * logz_no_y - inla_lgamma_fast(1.0 + j) - inla_lgamma_fast(-a * j);
-				assert(!ISNAN(cache.wwork[k]) && !ISINF(cache.wwork[k]));
+				//assert(!ISNAN(cache.wwork[k]) && !ISINF(cache.wwork[k]));
 			}
 		} else {
 			for (k = k_low; k < nterms + 1; k += 2) {
 				j = k + one;
 				cache.wwork[k] = j * logz_no_y - inla_lgamma_fast(1.0 + j) - inla_lgamma_fast(-a * j);
-				assert(!ISNAN(cache.wwork[k]) && !ISINF(cache.wwork[k]));
+				//assert(!ISNAN(cache.wwork[k]) && !ISINF(cache.wwork[k]));
 
 				if (k > 0) {
 					double estimate = 0.5 * (cache.wwork[k] + cache.wwork[k - 2]);
@@ -178,7 +178,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 						// correction term small: do interpolation
 						cache.wwork[k - 1] = estimate + correction;
 					}
-					assert(!ISNAN(cache.wwork[k - 1]) && !ISINF(cache.wwork[k - 1]));
+					//assert(!ISNAN(cache.wwork[k - 1]) && !ISINF(cache.wwork[k - 1]));
 				}
 			}
 		}
