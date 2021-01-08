@@ -34374,6 +34374,8 @@ int testit(int argc, char **argv)
 			double y = 2.345;
 			double ldens;
 
+			printf("R --vanilla --quiet -e 'library(tweedie);phi=%f;xi=%f;mu=%f;y=%f;dtweedie(y,xi,mu,phi);ptweedie(y,xi,mu,phi)'",
+			       phi, xi, mu, y);
 			dtweedie(1, y, &mu, phi, xi, &ldens);
 			P(exp(ldens));
 			P(ptweedie(y, mu, phi, xi));

@@ -7792,9 +7792,9 @@
                         ),
                         theta2 = list(
                             hyperid = 102201,
-                            name = "log.dispersion",
-                            short.name = "dispersion",
-                            initial = -4,
+                            name = "dispersion",
+                            short.name = "phi",
+                            initial = 4,
                             fixed = FALSE,
                             prior = "loggamma",
                             param = c(1, 0.1),

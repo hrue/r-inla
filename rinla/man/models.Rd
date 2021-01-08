@@ -9240,9 +9240,9 @@ inla.models()
 						\item{Hyperparameter `theta2'}{
 							 \describe{
 							\item{hyperid = }{`102201'}
-							\item{name = }{`log.dispersion'}
-							\item{short.name = }{`dispersion'}
-							\item{initial = }{`-4'}
+							\item{name = }{`dispersion'}
+							\item{short.name = }{`phi'}
+							\item{initial = }{`4'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 0.1'}

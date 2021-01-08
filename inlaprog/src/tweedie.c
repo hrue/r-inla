@@ -51,8 +51,8 @@ static const char GitID[] = GITCOMMIT;
 
 #define TWEEDIE_DROP 40.0
 #define TWEEDIE_INCRE 2
-#define TWEEDIE_INCRE_HIGH 32
-#define TWEEDIE_MAX_IDX 32768
+#define TWEEDIE_NTERMS_ADD 8
+#define TWEEDIE_MAX_IDX 16384
 
 /**
  * Compute the log density for the tweedie compound Poisson distribution.
@@ -72,30 +72,35 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 {
 	// nice simplifications are possible since only 'mu' depends on '[i]' and the rest of the parameters are constants
 
+	// make further simplifications assuming jl=idx_low=1.
+
 	static struct {
-		int nn_max;
-		int idx_low;
-		int idx_high;
+		int nterms;
 		double save_phi;
 		double save_p;
 		double *work;
 		double *wwork;
-	} store = { -1, -1, -1, -9999.9999, -9999.9999, NULL, NULL};
-#pragma omp threadprivate(store)
+	} cache = { -1, -9999.9999, -9999.9999, NULL, NULL };
+#pragma omp threadprivate(cache)
 
-	if (store.nn_max < 0) {
-		store.nn_max = 1024;
-		store.work = Calloc(2 * store.nn_max, double);
-		store.wwork = store.work + store.nn_max;
-	}
+	static size_t cache_count[] = { 0, 0, 0 };
+	static double cache_nterms = 0.0;
 
 	double p1 = p - 1.0, p2 = 2.0 - p;
 	double a = -p2 / p1, a1 = 1.0 / p1;
 	double cc, j, w, sum_ww = 0.0, ww_max = 0.0;
 
-	int use_interpolation = 1, nterms, k, i;
-	int reuse = 1;
-	
+	int use_interpolation = 1, nterms, k, i, one = 1, k_low = -1, reuse = 0;
+	int debug = 1, show_stat = 0;
+
+	if (cache.nterms < 0) {
+		if (debug) {
+			printf("\tdtweedie: initialize cache. use_interpolation= %1d\n", use_interpolation);
+		}
+		cache.nterms = 0;
+		cache.work = Calloc(2 * TWEEDIE_MAX_IDX, double);
+		cache.wwork = cache.work + TWEEDIE_MAX_IDX;
+	}
 	// fast return
 	if (ISZERO(y)) {
 		for (int i = 0; i < n; i++) {
@@ -105,13 +110,13 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 	}
 
 
-	int jh, jl, jd, jmax;
+	int jmax;
 	double logz, logz_no_y;
 
 	cc = a * log(p1) - log(p2);
 	jmax = DMAX(1.0, pow(y, p2) / (phi * p2));
 	logz = -a * log(y) - a1 * log(phi) + cc;
-	logz_no_y = - a1 * log(phi) + cc;
+	logz_no_y = -a1 * log(phi) + cc;
 
 	// locate upper bound 
 	cc = logz + a1 + a * log(-a);
@@ -122,125 +127,115 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 		if (j * (cc - a1 * log(j)) < (w - TWEEDIE_DROP))
 			break;
 	}
-	jh = IMIN(TWEEDIE_MAX_IDX, ceil(j));
+	nterms = IMIN(TWEEDIE_MAX_IDX, ceil(j));
+	cache_nterms += nterms;
 
-	if (0) {
-		// locate lower bound 
-		j = jmax;
-		while (1) {
-			j -= TWEEDIE_INCRE;
-			if (j < 1 || j * (cc - a1 * log(j)) < w - TWEEDIE_DROP)
-				break;
-		}
-	}
-	
-	jl = 1;						       /* use this all the time */
-	jd = jh - jl + 1;
-	nterms = jd;
-
-	if (nterms + TWEEDIE_INCRE_HIGH >= store.nn_max) {
+	if (!(p == cache.save_p && phi == cache.save_phi)) {
+		// if the params have changed, we have to update from the beginning.
 		reuse = 0;
-		store.nn_max = (nterms + TWEEDIE_INCRE_HIGH) * 2;
-		Free(store.work);
-		store.work = Calloc(2 * store.nn_max, double);
-		store.wwork = store.work + store.nn_max;
-	}
-
-	reuse = reuse && (p ==  store.save_p && phi ==  store.save_phi);
-	reuse = reuse && (store.idx_low <= jl && store.idx_high >= jh);
-
-	if (!reuse) {
-		jh += TWEEDIE_INCRE_HIGH;
-		jd = jh - jl + 1;
-		nterms = jd;
-				
-		if (!use_interpolation) {
-			for (k = 0; k < nterms; k++) {
-				j = k + jl;
-				store.wwork[k] = j * logz_no_y - inla_lgamma_fast(1.0 + j) - inla_lgamma_fast(-a * j);
+		k_low = 0;
+		cache_count[0]++;
+		show_stat = 1;
+	} else {
+		if (nterms > cache.nterms) {
+			// if only the 'nterms' have increased, we can add the terms.
+			nterms = IMIN(TWEEDIE_MAX_IDX, nterms + TWEEDIE_NTERMS_ADD);
+			reuse = 0;
+			k_low = cache.nterms;
+			cache_count[1]++;
+			if (0 && debug) {
+				printf("\tdtweedie: increase cache from %d to %d\n", cache.nterms, nterms);
 			}
 		} else {
-			for (k = 0; k < nterms + 1; k += 2) {
-				j = k + jl;
-				store.wwork[k] = j * logz_no_y - inla_lgamma_fast(1.0 + j) - inla_lgamma_fast(-a * j);
+			// this is the case where we are fine and can reuse what we have
+			reuse = 1;
+			cache_count[2]++;
+		}
+	}
+
+	if (!reuse) {
+		if (!use_interpolation) {
+			for (k = k_low; k < nterms; k++) {
+				j = k + one;
+				cache.wwork[k] = j * logz_no_y - inla_lgamma_fast(1.0 + j) - inla_lgamma_fast(-a * j);
+				assert(!ISNAN(cache.wwork[k]) && !ISINF(cache.wwork[k]));
+			}
+		} else {
+			for (k = k_low; k < nterms + 1; k += 2) {
+				j = k + one;
+				cache.wwork[k] = j * logz_no_y - inla_lgamma_fast(1.0 + j) - inla_lgamma_fast(-a * j);
+				assert(!ISNAN(cache.wwork[k]) && !ISINF(cache.wwork[k]));
 
 				if (k > 0) {
-					double estimate = 0.5 * (store.wwork[k] + store.wwork[k - 2]);
+					double estimate = 0.5 * (cache.wwork[k] + cache.wwork[k - 2]);
 					double correction = (1.0 - a) * (1.0 / j + 1.0 / SQR(j));
 					double limit = 0.05;
 					if (ABS(correction) > limit) {
 						// correction term to large: skip interpolation
 						double jj = j - 1.0;
-						store.wwork[k - 1] = jj * logz_no_y - inla_lgamma_fast(1.0 + jj) - inla_lgamma_fast(-a * jj);
+						cache.wwork[k - 1] = jj * logz_no_y - inla_lgamma_fast(1.0 + jj) - inla_lgamma_fast(-a * jj);
 					} else {
 						// correction term small: do interpolation
-						store.wwork[k - 1] = estimate + correction;
+						cache.wwork[k - 1] = estimate + correction;
 					}
+					assert(!ISNAN(cache.wwork[k - 1]) && !ISINF(cache.wwork[k - 1]));
 				}
 			}
 		}
-		store.save_p = p;
-		store.save_phi = phi;
-		store.idx_low = jl;
-		store.idx_high = jh;
-	} 
-	
+		cache.save_p = p;
+		cache.save_phi = phi;
+		cache.nterms = nterms;
+	}
 	// assume every 'y' is potential different, but the parameters changes just once in a while
-	double term = -a * log(y); // the y-term we have removed from 'logz'
-	nterms = store.idx_high - store.idx_low + 1;
-			
+	double term = -a * log(y);			       // the y-term we have removed from 'logz'
+
+	double lim = -20.72326584;			       // log(1.0e-9)
+	int idx_max = -1;
+
 	sum_ww = 0.0;
-	double tmp;
+	ww_max = cache.wwork[0] + one * term;
+	for (k = 0; k < nterms; k++) {
+		j = k + one;
+		cache.work[k] = cache.wwork[k] + term * j;
+		if (cache.work[k] > ww_max) {
+			ww_max = cache.work[k];
+			idx_max = k;
+		}
+	}
 
-	if (0) {
-		ww_max = store.wwork[0] + store.idx_low * term;
-		for(k = 0; k < nterms; k++) {
-			j = k + store.idx_low;
-			store.work[k] = store.wwork[k] + term * j;
-			if (store.work[k] > ww_max) {
-				ww_max = store.work[k];
-			}
+	for (k = idx_max; k < nterms; k++) {		       /* assume there is one mode */
+		double tmp = cache.work[k] - ww_max;
+		if (tmp > lim) {
+			sum_ww += exp(tmp);
+		} else {
+			break;
 		}
-		for (k = 0; k < nterms; k++) {
-			tmp = store.work[k] - ww_max;
-			if (tmp > -14.0) {
-				sum_ww += exp(tmp);
-			}
-		}
-	} else {
-		int idx_max = 0;
-		double lim = -18.0;
-
-		ww_max = store.wwork[0] + store.idx_low * term;
-		for(k = 0; k < nterms; k++) {
-			j = k + store.idx_low;
-			store.work[k] = store.wwork[k] + term * j;
-			if (store.work[k] > ww_max) {
-				ww_max = store.work[k];
-				idx_max = k;
-			}
-		}
-
-		for (k = idx_max; k < nterms; k++) {	       /* assume there is one mode */
-			tmp = store.work[k] - ww_max;
-			if (tmp > lim) {
-				sum_ww += exp(tmp);
-			} else {
-				break;
-			}
-		}
-		for (k = idx_max - 1; k >= 0; k--) {
-			tmp = store.work[k] - ww_max;
-			if (tmp > lim) {
-				sum_ww += exp(tmp);
-			} else {
-				break;
-			}
+	}
+	for (k = idx_max - 1; k >= 0; k--) {
+		double tmp = cache.work[k] - ww_max;
+		if (tmp > lim) {
+			sum_ww += exp(tmp);
+		} else {
+			break;
 		}
 	}
 
 	for (i = 0; i < n; i++) {
 		ldens[i] = -pow(mu[i], p2) / (phi * p2) - y / (phi * p1 * pow(mu[i], p1)) - log(y) + log(sum_ww) + ww_max;
+	}
+
+	if (debug) {
+		static size_t count = 0;
+		size_t ntot = cache_count[0] + cache_count[1] + cache_count[2];
+
+		count++;
+		if (show_stat) {
+			printf("\tdtweedie: n=%zu rebuild=%.2f%%  adjust=%.2f%% reuse=%.2f%% nterms=%1d\n",
+			       ntot,
+			       100.0 * (double) cache_count[0] / (double) ntot,
+			       100.0 * (double) cache_count[1] / (double) ntot,
+			       100.0 * (double) cache_count[2] / (double) ntot, (int) (cache_nterms / (double) count));
+		}
 	}
 
 	return;
