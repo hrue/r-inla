@@ -13,8 +13,8 @@
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] pc.sn
 	 	 	\item[param] 10
-	 	 	\item[to.theta] \verb!function(x, skew.max = 0.988) log((1+x/skew.max)/(1-x/skew.max))!
-	 	 	\item[from.theta] \verb!function(x, skew.max = 0.988) skew.max*(2*exp(x)/(1+exp(x))-1)!
+	 	 	\item[to.theta] \verb!function(x, skew.max = 0.988) log((1 + x / skew.max) / (1 - x / skew.max))!
+	 	 	\item[from.theta] \verb!function(x, skew.max = 0.988) skew.max * (2 * exp(x) / (1 + exp(x)) - 1)!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
@@ -25,8 +25,8 @@
 	 	 	\item[fixed] FALSE
 	 	 	\item[prior] linksnintercept
 	 	 	\item[param] 0 0
-	 	 	\item[to.theta] \verb!function(x) log(x/(1-x))!
-	 	 	\item[from.theta] \verb!function(x) exp(x)/(1+exp(x))!
+	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
+	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 \end{description}
 	\item[pdf] linksn

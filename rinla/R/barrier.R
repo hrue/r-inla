@@ -1,10 +1,10 @@
 #' Functions for defining the Barrier models
-#' 
+#'
 #' Functions for defining Barrier models as an `inla rgeneric` model
-#' 
+#'
 #' This model is described in the ArXiv preprint arXiv:1608.03787.  For
 #' examples, see <https://haakonbakka.bitbucket.io/btopic107.html>.
-#' 
+#'
 #' @aliases inla.barrier barrier inla.barrier.pcmatern barrier.pcmatern
 #' inla.barrier.polygon barrier.polygon inla.barrier.q barrier.q
 #' inla.barrier.fem barrier.fem
@@ -32,209 +32,209 @@
 #' matrices.
 #' @author Haakon Bakka \email{bakka@@r-inla.org}
 #' @seealso inla.spde2.pcmatern
-#' 
+#'
 #' @export
 #' @rdname inla.barrier
 #' @details * `inla.barrier.pcmatern`
 #' This function creates the model component used in inla(...)
-`inla.barrier.pcmatern` <- function(mesh, barrier.triangles, prior.range, prior.sigma, range.fraction=0.2)
-{
+`inla.barrier.pcmatern` <- function(mesh, barrier.triangles, prior.range, prior.sigma, range.fraction = 0.2) {
     ## Give default values if absolutely needed
     if (missing(prior.range)) {
         warning("Arbitrary prior values chosen automatically. This may suffice for a first attempt, 
             but should be changed in any serious analysis.")
-        prior.range = c(diff(range(mesh$loc[, 1]))/5, 0.5)
+        prior.range <- c(diff(range(mesh$loc[, 1])) / 5, 0.5)
     }
-    
+
     if (missing(prior.sigma)) {
-        prior.sigma = c(1, 0.5)
+        prior.sigma <- c(1, 0.5)
     }
-    
+
     ## Input verification
-    stopifnot(class(mesh) == 'inla.mesh')
+    stopifnot(class(mesh) == "inla.mesh")
     stopifnot(range.fraction > 0.000001)
-    
+
     ## ## ## FUNCTIONS FOR RGENERIC MODEL SETUP ## ## ##
-    
+
     ## This function is the model component definition in the rgeneric inla framework
     ## See inla.doc('rgeneric')
-    barrier.rgeneric.model = function(cmd = c("graph", "Q", "mu", "initial",
-                                              "log.norm.const", "log.prior", "quit"),
-                                      theta = NULL) {
+    barrier.rgeneric.model <- function(cmd = c(
+                                           "graph", "Q", "mu", "initial",
+                                           "log.norm.const", "log.prior", "quit"
+                                       ),
+                                       theta = NULL) {
         ## Dynamic input
         ## theta = log(sigma), log(range1), log(range2), ...
-        
+
         ## Static input
-        prior.sigma = obj$prior.sigma
-        prior.range = obj$prior.range
-        
+        prior.sigma <- obj$prior.sigma
+        prior.range <- obj$prior.range
+
         ## The finite element matrices
-        fem=obj$fem
-        
+        fem <- obj$fem
+
         ## The function for creating the precision matrix
-        inla.barrier.q=obj$inla.barrier.q
-        
+        inla.barrier.q <- obj$inla.barrier.q
+
         ## The fraction used for the barrier model
-        range.fraction = obj$range.fraction
-        
+        range.fraction <- obj$range.fraction
+
         ## Initial values on the internal scale
         ## Can be overrridden in inla(...)
         ## Warning: Not implemented for multiple ranges
-        initial = function(theta) {
-            initial.theta = c()
+        initial <- function(theta) {
+            initial.theta <- c()
             if (!is.na(prior.sigma[2])) {
-                initial.theta = c(0, initial.theta)
+                initial.theta <- c(0, initial.theta)
             }
             if (!is.na(prior.range[2])) {
-                initial.theta = c(initial.theta, 0)
+                initial.theta <- c(initial.theta, 0)
             }
-            
-            return (initial.theta)
+
+            return(initial.theta)
         }
-        
+
         ## This is the log-prior for the internal parametrisation theta
         ## Log of probability for log transform of exponential distribution
-        log.prior = function(theta) {
+        log.prior <- function(theta) {
             ## Lambdas:
-            ## The prior parameters are the lambdas in the exponential 
-            ##   priors for standard deviation and inverse-range
+            ## The prior parameters are the lambdas in the exponential
+            ## priors for standard deviation and inverse-range
             ## - the first is log(prob)/exceed, the second log(prob)*exceed
             ## - the second is exponential for inverse range, therefore multiplication!
-            
-            val = 0
+
+            val <- 0
             ## If the sigma is not fixed
             if (!is.na(prior.sigma[2])) {
-                lambda0 = -log(prior.sigma[2])/prior.sigma[1]
+                lambda0 <- -log(prior.sigma[2]) / prior.sigma[1]
                 ## Prior for standard deviation
-                val = val + log(lambda0) - lambda0*exp(theta[1]) + theta[1]
+                val <- val + log(lambda0) - lambda0 * exp(theta[1]) + theta[1]
                 ## Which of the thetas are ranges ...
                 ## ... not the first
-                theta.ran = theta[-1]
+                theta.ran <- theta[-1]
             } else {
                 ## ... all of them
-                theta.ran = theta
+                theta.ran <- theta
             }
-            
+
             ## If the range(s) is/are not fixed
             if (!is.na(prior.range[2])) {
-                lambda1 = -log(prior.range[2])*prior.range[1]
-                
+                lambda1 <- -log(prior.range[2]) * prior.range[1]
+
                 ## Prior for range(s)
                 ## All are forced to have the same prior (if there are more than 1)
                 for (logrange in theta.ran) {
-                    val = val + log(lambda1) - lambda1*exp(-logrange) + -logrange
+                    val <- val + log(lambda1) - lambda1 * exp(-logrange) + -logrange
                 }
             }
             return(val)
         }
-        
-        Q = function(theta) {
+
+        Q <- function(theta) {
             ## Make a theta that contains all variables
-            theta.full = theta
+            theta.full <- theta
             ## If there is no theta param for sigma
-            ##   add the fixed sigma value
+            ## add the fixed sigma value
             if (is.na(prior.sigma[2])) {
-                theta.full = c(log(prior.sigma[1]), theta.full)
+                theta.full <- c(log(prior.sigma[1]), theta.full)
             }
             ## If there is no theta param for sigma
-            ##   add the fixed range value
+            ## add the fixed range value
             if (is.na(prior.range[2])) {
-                theta.full = c(theta.full, log(prior.range[1]))
+                theta.full <- c(theta.full, log(prior.range[1]))
                 ## How it would be for multiple ranges (not barrier model)
-                                        #all.ranges = rep(prior.range[1], fem$hdim)
-                                        #theta.full = c(theta.full, log(all.ranges))
+                # all.ranges = rep(prior.range[1], fem$hdim)
+                # theta.full = c(theta.full, log(all.ranges))
             }
-            
+
             ## Not implemented for multiple ranges
             ## Hence, we should always have 2 theta param at this stage
             stopifnot(length(theta.full) == 2)
-            
+
             ## Construct the precision matrix
             ## Not from the raw theta, but using both parameters
-            Q = inla.barrier.q(fem=fem, ranges=exp(theta.full[2])*c(1, range.fraction), sigma=exp(theta.full[1]))
+            Q <- inla.barrier.q(fem = fem, ranges = exp(theta.full[2]) * c(1, range.fraction), sigma = exp(theta.full[1]))
             return(Q)
         }
-        
+
         ## Here we create the graph by just calling the Q function a few times
         ## on some arbitrary inputs (several: to be sure we do not get accidental 0s)
-        graph = function(theta) {
+        graph <- function(theta) {
             require(methods)
-            ntheta = 2 # only for barrier model
-            theta.full = (1:ntheta)/3.217233456
-            G1 = inla.barrier.q(fem=fem, ranges=exp(theta.full[2])*c(1, range.fraction), sigma=exp(theta.full[1]))
-            G1[G1 != 0] = 1
-            theta.full = (1:ntheta)^2/12.1543534
-            G2 = inla.barrier.q(fem=fem, ranges=exp(theta.full[2])*c(1, range.fraction), sigma=exp(theta.full[1]))
-            G2[G2 != 0] = 1
-            
-            return (G1+G2)
+            ntheta <- 2 # only for barrier model
+            theta.full <- (1:ntheta) / 3.217233456
+            G1 <- inla.barrier.q(fem = fem, ranges = exp(theta.full[2]) * c(1, range.fraction), sigma = exp(theta.full[1]))
+            G1[G1 != 0] <- 1
+            theta.full <- (1:ntheta)^2 / 12.1543534
+            G2 <- inla.barrier.q(fem = fem, ranges = exp(theta.full[2]) * c(1, range.fraction), sigma = exp(theta.full[1]))
+            G2[G2 != 0] <- 1
+
+            return(G1 + G2)
         }
-        
+
         ## These can always be like this for all rgeneric models
-        mu = function(theta) numeric(0)
-        log.norm.const = function(theta) numeric(0)
-        quit = function(theta) invisible()
-        
-        val = do.call(match.arg(cmd), args = list(theta))
-        return (val) 
+        mu <- function(theta) numeric(0)
+        log.norm.const <- function(theta) numeric(0)
+        quit <- function(theta) invisible()
+
+        val <- do.call(match.arg(cmd), args = list(theta))
+        return(val)
     }
-    
+
     ## Create a valid Omega from the barrier.triangles
-    barrier.triangles = unique(barrier.triangles)
-    
+    barrier.triangles <- unique(barrier.triangles)
+
     ## Create the barrier model
-    obj = list()
-    obj$prior.sigma = prior.sigma
-    obj$prior.range = prior.range
-    obj$range.fraction = range.fraction
-    obj$inla.barrier.q = inla.barrier.q
-    
-    obj$fem = inla.barrier.fem(mesh, barrier.triangles = barrier.triangles)
-    barrier.model = inla.rgeneric.define(model = barrier.rgeneric.model, obj = obj)
-    
+    obj <- list()
+    obj$prior.sigma <- prior.sigma
+    obj$prior.range <- prior.range
+    obj$range.fraction <- range.fraction
+    obj$inla.barrier.q <- inla.barrier.q
+
+    obj$fem <- inla.barrier.fem(mesh, barrier.triangles = barrier.triangles)
+    barrier.model <- inla.rgeneric.define(model = barrier.rgeneric.model, obj = obj)
+
     if (!is.na(prior.sigma[2]) && !is.na(prior.range[2])) {
-        ## All ok 
-    } else{
+        ## All ok
+    } else {
         warning("Not properly tested, let us know if you have problems.")
     }
-    
+
     return(barrier.model)
 }
 
 #' @export
 #' @rdname inla.barrier
 #' @details * `inla.barrier.polygon` This function constructs SpatialPolygons for the different subdomains (areas)
-`inla.barrier.polygon` <- function(mesh, barrier.triangles, Omega=NULL)
-{
+`inla.barrier.polygon` <- function(mesh, barrier.triangles, Omega = NULL) {
     ## Requires an inla mesh to work
-    stopifnot(class(mesh) == 'inla.mesh')
+    stopifnot(class(mesh) == "inla.mesh")
     ## Requires rgeos for combining polygons
     stopifnot(inla.require("rgeos"))
-    
-    if (missing(barrier.triangles)) { 
+
+    if (missing(barrier.triangles)) {
         ## Use Omega
     } else {
         ## Create a valid Omega
-        barrier.triangles = unique(barrier.triangles)
+        barrier.triangles <- unique(barrier.triangles)
         ## Number of triangles in total
-        t = length(mesh$graph$tv[,1])
-        remaining = setdiff(1:t, barrier.triangles)
+        t <- length(mesh$graph$tv[, 1])
+        remaining <- setdiff(1:t, barrier.triangles)
         if (!is.null(Omega)) warning("Omega is replaced by barrier.triangles")
-        Omega = list(remaining, barrier.triangles)
+        Omega <- list(remaining, barrier.triangles)
     }
-    
-    Omega.SP.list = list()
+
+    Omega.SP.list <- list()
     for (j in 1:length(Omega)) {
-        poly.list = list()
+        poly.list <- list()
         for (tri in Omega[[j]]) {
-            px = mesh$graph$tv[tri, ]
-            temp = mesh$loc[px, ] # is a 3 by 3 matrix of node locations
-            poly.list = c(poly.list, Polygon(rbind(temp[, 1:2], temp[1, 1:2]), hole=F))
+            px <- mesh$graph$tv[tri, ]
+            temp <- mesh$loc[px, ] # is a 3 by 3 matrix of node locations
+            poly.list <- c(poly.list, Polygon(rbind(temp[, 1:2], temp[1, 1:2]), hole = F))
         }
-        mesh.polys = SpatialPolygons(list(Polygons(poly.list, ID='noid')))
-        Omega.SP.list[[j]] = rgeos::gUnaryUnion(mesh.polys)
+        mesh.polys <- SpatialPolygons(list(Polygons(poly.list, ID = "noid")))
+        Omega.SP.list[[j]] <- rgeos::gUnaryUnion(mesh.polys)
     }
-    
+
     if (missing(barrier.triangles)) {
         return(Omega.SP.list)
     } else {
@@ -252,187 +252,187 @@
 #' @param ranges,sigma the hyperparameters that determine Q
 #' @export
 #' @rdname inla.barrier
-`inla.barrier.q` <- function(fem, ranges, sigma=1)
-{
+`inla.barrier.q` <- function(fem, ranges, sigma = 1) {
     if (is.null(ranges)) stop("ranges cannot be NULL")
     if (any(is.na(ranges))) stop("No range can be NA")
-    
-    xi = length(ranges)
+
+    xi <- length(ranges)
     if (xi != length(fem$D)) {
-        print('inla.barrier.q has encountered an error. Will stop.')
-        stop ('Ranges do no correspond to fem')
+        print("inla.barrier.q has encountered an error. Will stop.")
+        stop("Ranges do no correspond to fem")
     }
     if (any(ranges < 0.001)) {
-        warning('This hyper parameter value may fail. A very small maximum edge length needed in the mesh.')
+        warning("This hyper parameter value may fail. A very small maximum edge length needed in the mesh.")
     }
-    
-    Cdiag = ranges[1]^2* fem$C[[1]] # already raised to power 2
+
+    Cdiag <- ranges[1]^2 * fem$C[[1]] # already raised to power 2
     if (xi > 1) {
         for (k in 2:xi) {
-            Cdiag = Cdiag + ranges[k]^2 * fem$C[[k]]
+            Cdiag <- Cdiag + ranges[k]^2 * fem$C[[k]]
         }
     }
-    N = length(Cdiag)
-    Cinv = sparseMatrix(i=1:N, j=1:N, x=1.0/Cdiag, dims = c(N,N), giveCsparse=FALSE) 
-    
-    A = fem$I  
+    N <- length(Cdiag)
+    Cinv <- sparseMatrix(i = 1:N, j = 1:N, x = 1.0 / Cdiag, dims = c(N, N), giveCsparse = FALSE)
+
+    A <- fem$I
     for (k in 1:xi) {
-        A = A + (ranges[k]^2/8.0)*fem$D[[k]]
+        A <- A + (ranges[k]^2 / 8.0) * fem$D[[k]]
     }
-    
+
     ## Build the precision matrix
     ## The last multiplication factor is because the C matrix
     ## is different by a factor of 3 compared to the corresponding matrix
     ## in the stationary spde approach
-    Q = inla.as.dgTMatrix(t(A) %*% Cinv %*% A*(1/sigma^2)/pi*2*3)
-    return (Q)
+    Q <- inla.as.dgTMatrix(t(A) %*% Cinv %*% A * (1 / sigma^2) / pi * 2 * 3)
+    return(Q)
 }
 
 #' @details * `inla.barrier.fem` This function computes the Finite Element
 #' matrices that are needed to compute the precision matrix Q later
 #' @export
 #' @rdname inla.barrier
-`inla.barrier.fem` = function(mesh, barrier.triangles, Omega = NULL)
-{
-    stopifnot(class(mesh) == 'inla.mesh')
-    
+`inla.barrier.fem` <- function(mesh, barrier.triangles, Omega = NULL) {
+    stopifnot(class(mesh) == "inla.mesh")
+
     if (missing(barrier.triangles) && is.null(Omega)) stop("Input barrier triangles")
-    
-    if (missing(barrier.triangles)) { 
+
+    if (missing(barrier.triangles)) {
         ## Use Omega
     } else {
         ## Create a valid Omega
-        barrier.triangles = unique(barrier.triangles)
-        t = length(mesh$graph$tv[,1])
+        barrier.triangles <- unique(barrier.triangles)
+        t <- length(mesh$graph$tv[, 1])
         ## - all triangles
-        remaining = setdiff(1:t, barrier.triangles)
+        remaining <- setdiff(1:t, barrier.triangles)
         if (!is.null(Omega)) warning("Omega is replaced by barrier.triangles")
-        Omega = list(remaining, barrier.triangles)
+        Omega <- list(remaining, barrier.triangles)
     }
-    
-    ## This function computes the Finite Element matrix of the white noise 
-    ##     on one subdomain (area)
+
+    ## This function computes the Finite Element matrix of the white noise
+    ## on one subdomain (area)
     ## Returns a diagonal matrix, represented as a vector
     dt.fem.white <- function(mesh, subdomain) {
-        
+
         ## Pre-allocation
-        Ck = rep(0, mesh$n)
-        
+        Ck <- rep(0, mesh$n)
+
         for (t in subdomain) {
             ## Node indexes for triangle t:
-            px = mesh$graph$tv[t, ]
-            temp = mesh$loc[px, ] # is a 3 by 3 matrix of node locations
-            p1 = t(t(temp[1, c(1,2)]))
-            p2 = t(t(temp[2, c(1,2)]))
-            p3 = t(t(temp[3, c(1,2)]))
-            Ts = cbind(p2-p1, p3-p1) # is the transformation to reference triangle
-            area=  abs(det(Ts)) * 0.5
+            px <- mesh$graph$tv[t, ]
+            temp <- mesh$loc[px, ] # is a 3 by 3 matrix of node locations
+            p1 <- t(t(temp[1, c(1, 2)]))
+            p2 <- t(t(temp[2, c(1, 2)]))
+            p3 <- t(t(temp[3, c(1, 2)]))
+            Ts <- cbind(p2 - p1, p3 - p1) # is the transformation to reference triangle
+            area <- abs(det(Ts)) * 0.5
             for (i in 1:3) {
-                Ck[px[i]] = Ck[px[i]] + area
+                Ck[px[i]] <- Ck[px[i]] + area
             }
         }
-        return (Ck)
+        return(Ck)
     }
-    
-    ## This function computes the Finite Element matrix for the '1' in 
-    ##   the SPDE (the identity operator) <phi, phi>
+
+    ## This function computes the Finite Element matrix for the '1' in
+    ## the SPDE (the identity operator) <phi, phi>
     ## Result does not depend on the subdomains
     dt.fem.identity <- function(mesh) {
         ## Preallocation
-        len = length(mesh$graph$tv[,1])
-        index.i = rep(0,len * 6)
-        index.j = rep(0,len * 6)
-        Aij = rep(0,len * 6) # matrix values
-        counter = 1
-        
+        len <- length(mesh$graph$tv[, 1])
+        index.i <- rep(0, len * 6)
+        index.j <- rep(0, len * 6)
+        Aij <- rep(0, len * 6) # matrix values
+        counter <- 1
+
         for (t in 1:len) {
             ## Node indexes for triangle t:
-            px = mesh$graph$tv[t, ]
-            temp = mesh$loc[px, ] # is a 3 by 3 matrix of node locations
-            p1 = t(t(temp[1, c(1,2)]))
-            p2 = t(t(temp[2, c(1,2)]))
-            p3 = t(t(temp[3, c(1,2)]))
-            Ts = cbind(p2-p1, p3-p1) # is the transformation to reference triangle
-            twiceArea=  abs(det(Ts))
-            
+            px <- mesh$graph$tv[t, ]
+            temp <- mesh$loc[px, ] # is a 3 by 3 matrix of node locations
+            p1 <- t(t(temp[1, c(1, 2)]))
+            p2 <- t(t(temp[2, c(1, 2)]))
+            p3 <- t(t(temp[3, c(1, 2)]))
+            Ts <- cbind(p2 - p1, p3 - p1) # is the transformation to reference triangle
+            twiceArea <- abs(det(Ts))
+
             for (i in 1:3) {
-                index.i[counter] = px[i]
-                index.j[counter] = px[i] # same
-                Aij[counter] = (twiceArea)*1/12
-                counter = counter + 1
+                index.i[counter] <- px[i]
+                index.j[counter] <- px[i] # same
+                Aij[counter] <- (twiceArea) * 1 / 12
+                counter <- counter + 1
             }
-            
+
             for (i in 1:2) {
-                for (j in (i+1):3) {
-                    index.i[counter] = px[i]
-                    index.j[counter] = px[j]
-                    Aij[counter]= (twiceArea)*1/24
-                    counter=counter + 1
-                                        # symmetry:
-                    index.i[counter] = px[j]
-                    index.j[counter] = px[i]
-                    Aij[counter]= (twiceArea)*1/24
-                    counter=counter + 1
+                for (j in (i + 1):3) {
+                    index.i[counter] <- px[i]
+                    index.j[counter] <- px[j]
+                    Aij[counter] <- (twiceArea) * 1 / 24
+                    counter <- counter + 1
+                    # symmetry:
+                    index.i[counter] <- px[j]
+                    index.j[counter] <- px[i]
+                    Aij[counter] <- (twiceArea) * 1 / 24
+                    counter <- counter + 1
                 }
             }
         }
-        
-        I = sparseMatrix(i=index.i, j = index.j, x=Aij, dims = c(mesh$n, mesh$n), 
-                         giveCsparse=FALSE) 
-        return (I)
+
+        I <- sparseMatrix(
+            i = index.i, j = index.j, x = Aij, dims = c(mesh$n, mesh$n),
+            giveCsparse = FALSE
+        )
+        return(I)
     }
-    
-    ## This function computes the Finite Element matrix of the laplace operator 
-    ##   on one subdomain (area)
+
+    ## This function computes the Finite Element matrix of the laplace operator
+    ## on one subdomain (area)
     ## The resulting matrix is very sparse
     dt.fem.laplace <- function(mesh, subdomain) {
         ## The nabla phi's
-        Nphix = rbind(c(-1,-1), c(1,0), c(0,1))
-        len = length(subdomain)
-        index.i = rep(0,len * 9)
-        index.j = rep(0,len * 9)
-        Aij = rep(0,len * 9) # matrix values
-        counter = 1
-        
+        Nphix <- rbind(c(-1, -1), c(1, 0), c(0, 1))
+        len <- length(subdomain)
+        index.i <- rep(0, len * 9)
+        index.j <- rep(0, len * 9)
+        Aij <- rep(0, len * 9) # matrix values
+        counter <- 1
+
         for (tri in subdomain) {
-            px = mesh$graph$tv[tri, ]
-            temp = mesh$loc[px, ] # is a 3 by 3 matrix of node locations
-            p1 = t(t(temp[1, c(1,2)]))
-            p2 = t(t(temp[2, c(1,2)]))
-            p3 = t(t(temp[3, c(1,2)]))
-            Ts = cbind(p2-p1, p3-p1) # is the transformation to reference triangle
-            TTTinv = solve(t(Ts)%*%Ts)
-            area = abs(det(Ts)) * 0.5
-            
+            px <- mesh$graph$tv[tri, ]
+            temp <- mesh$loc[px, ] # is a 3 by 3 matrix of node locations
+            p1 <- t(t(temp[1, c(1, 2)]))
+            p2 <- t(t(temp[2, c(1, 2)]))
+            p3 <- t(t(temp[3, c(1, 2)]))
+            Ts <- cbind(p2 - p1, p3 - p1) # is the transformation to reference triangle
+            TTTinv <- solve(t(Ts) %*% Ts)
+            area <- abs(det(Ts)) * 0.5
+
             for (k in 1:3) {
                 for (m in 1:3) {
-                    tmp = (3*m+k-4)*length(subdomain)
-                    index.i[(tmp + counter)] = px[k]
-                    index.j[(tmp + counter)] = px[m]
-                    Aij[(tmp + counter)] = area*Nphix[k, c(1,2) ]%*%TTTinv%*%as.matrix(Nphix[m, c(1,2) ])
+                    tmp <- (3 * m + k - 4) * length(subdomain)
+                    index.i[(tmp + counter)] <- px[k]
+                    index.j[(tmp + counter)] <- px[m]
+                    Aij[(tmp + counter)] <- area * Nphix[k, c(1, 2)] %*% TTTinv %*% as.matrix(Nphix[m, c(1, 2)])
                 }
             }
-            counter = counter + 1
+            counter <- counter + 1
         }
-        
-        Dk = sparseMatrix(i=index.i, j = index.j, x=Aij, dims = c(mesh$n, mesh$n), giveCsparse=FALSE) 
-        return (Dk)
+
+        Dk <- sparseMatrix(i = index.i, j = index.j, x = Aij, dims = c(mesh$n, mesh$n), giveCsparse = FALSE)
+        return(Dk)
     }
-    
+
     ## Call all the functions to get the resulting list of fem matrices
-    
-    xi = length(Omega)
-    fem = list()
-    fem$I = dt.fem.identity(mesh)
-    fem$D = list()
-    fem$C = list()
+
+    xi <- length(Omega)
+    fem <- list()
+    fem$I <- dt.fem.identity(mesh)
+    fem$D <- list()
+    fem$C <- list()
     for (k in 1:xi) {
-        fem$D[[k]] = dt.fem.laplace(mesh, Omega[[k]])
+        fem$D[[k]] <- dt.fem.laplace(mesh, Omega[[k]])
     }
     for (k in 1:xi) {
-        fem$C[[k]] = dt.fem.white(mesh, Omega[[k]])
+        fem$C[[k]] <- dt.fem.white(mesh, Omega[[k]])
     }
-    fem$hdim = xi 
-    
+    fem$hdim <- xi
+
     return(fem)
 }

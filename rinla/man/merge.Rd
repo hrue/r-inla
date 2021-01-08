@@ -30,9 +30,9 @@
     The function \code{merge.inla} implements method \code{merge} for
     \code{inla}-objects. \code{merge.inla} is a wrapper for the function
     \code{inla.merge}. The interface is slightly different, \code{merge.inla}
-    is more tailored for interactive use, whereas \code{inla.merge} is better 
+    is more tailored for interactive use, whereas \code{inla.merge} is better
     in general code.
-   
+
     \code{inla.merge} is intented for merging a mixture of \code{inla}-objects,
     each run with the same formula and settings, except for a set of
     hyperparameters that are fixed to different values. Using this function,
@@ -45,12 +45,12 @@
     while some are just set to  \code{NULL}.
     Those objectes that are merged,
     will be listed if run with option \code{verbose=TRUE}.
-  
+
     Note that merging hyperparameter in the user-scale is prone to
     discretization error in general, so it is more stable to convert
     the marginal of the hyperparameter from the merged internal scale
     to the user-scale. (This is not done by this function.)
- }    
+ }
  \author{Havard Rue \email{hrue@r-inla.org}}
  \examples{
  set.seed(123)
@@ -72,9 +72,9 @@
  rr = list()
  for (logprec in c(0, 1, 2))
      rr[[length(rr)+1]] = inla(y ~ 1 + x + f(idx, z1) + f(idx2, z2),
-              lincomb = lc, 
-              control.family = list(hyper = list(prec = list(initial = logprec))), 
-              control.predictor = list(compute = TRUE, link = 1), 
+              lincomb = lc,
+              control.family = list(hyper = list(prec = list(initial = logprec))),
+              control.predictor = list(compute = TRUE, link = 1),
               data = data.frame(y, x, idx, idx2, z1, z2))
  r = inla.merge(rr, prob = seq_along(rr), verbose=TRUE)
  summary(r)

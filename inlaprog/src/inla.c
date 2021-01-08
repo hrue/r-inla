@@ -97,6 +97,7 @@ static const char GitID[] = GITCOMMIT;
 #include "pc-priors.h"
 #include "R-interface.h"
 #include "fgn.h"
+#include "tweedie.h"
 
 #define PREVIEW (10)
 #define MODEFILENAME ".inla-mode"
@@ -4556,6 +4557,11 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 		a[0] = ds->data_observations.weight_wrapped_cauchy = Calloc(mb->predictor_ndata, double);
 		break;
 
+	case L_TWEEDIE:
+		idiv = 3;
+		a[0] = ds->data_observations.tweedie_w = Calloc(mb->predictor_ndata, double);
+		break;
+
 	case L_NMIX:
 	case L_NMIXNB:
 	{
@@ -4859,6 +4865,24 @@ double inla_log_Phi_fast(double x)
 			return (log(1.0 / 4.0) - sqrt(M_PI / 8.0) * SQR(x));
 		}
 	}
+}
+double inla_lgamma_fast(double x)
+{
+	// this is the Gergo Nemes (2007) approximation from
+	// https://en.wikipedia.org/wiki/Stirling's_approximation
+
+	if (round(x) == x) {
+		return (my_gsl_sf_lngamma(x));
+	}
+
+	double val;
+	if (x < 1.0) {
+		val = gsl_sf_lngamma(x);
+	} else {
+		double lx = log(x), l2pi = 1.837877066409345; // ln 2\pi
+		val = 0.5 * (l2pi - lx) + x * (log(x + 1.0/( 12.0*x - 0.1/x)) - 1.0);
+	}
+	return (val);
 }
 int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
@@ -8698,6 +8722,47 @@ int loglikelihood_betabinomialna(double *logll, double *x, int m, int idx, doubl
 	return GMRFLib_SUCCESS;
 }
 
+int loglikelihood_tweedie(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
+{
+	/*
+	 * Tweedie
+	 */
+
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double w = (ds->data_observations.tweedie_w ? ds->data_observations.tweedie_w[idx] : 1.0);
+	double interval[2] = {1.0, 2.0};
+	double p = map_interval(ds->data_observations.tweedie_p_intern[GMRFLib_thread_id][0], MAP_FORWARD, (void *) interval);
+	double phi = map_exp(ds->data_observations.tweedie_phi_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+
+	phi /= w;
+	LINK_INIT;
+
+	if (m > 0) {
+		double *mu = Calloc(m, double);
+		for (i = 0; i < m; i++) {
+			mu[i] = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+		}
+		dtweedie(m, y, mu, phi, p, logll);
+		Free(mu);
+	} else {
+		double yy = (y_cdf ? *y_cdf : y);
+		for (i = 0; i < -m; i++) {
+			double mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			logll[i] = ptweedie(yy, mu, phi, p);
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+
 int loglikelihood_zeroinflated_betabinomial0(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
@@ -10638,6 +10703,23 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	}
 
 	/*
+	 * type = PARDISO
+	 */
+	for (sec = 0; sec < nsec; sec++) {
+		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
+		if (!strcmp(sectype, "PARDISO")) {
+			if (mb->verbose) {
+				printf("\tparse section=[%1d] name=[%s] type=[PARDISO]\n", sec, iniparser_getsecname(ini, sec));
+			}
+			sec_read[sec] = 1;
+			inla_parse_pardiso(mb, ini, sec, make_dir);
+		}
+		Free(secname);
+		Free(sectype);
+	}
+
+	/*
 	 * build the index table and the hash; need this before reading the lincomb sections
 	 */
 	len = 1 + (mb->predictor_m > 0 ? 1 : 0) + mb->nf + mb->nlinear;
@@ -11810,6 +11892,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "WRAPPEDCAUCHY")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_wrapped_cauchy;
 		ds->data_id = L_WRAPPED_CAUCHY;
+	} else if (!strcasecmp(ds->data_likelihood, "TWEEDIE")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_tweedie;
+		ds->data_id = L_TWEEDIE;
 	} else if (!strcasecmp(ds->data_likelihood, "GP")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gp;
 		ds->data_id = L_GP;
@@ -11928,6 +12013,25 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			if (ds->data_observations.d[i]) {
 				if (ABS(ds->data_observations.y[i]) > 2.0 * M_PI) {
 					GMRFLib_sprintf(&msg, "%s: Wrapped Cauchy observation y[%1d] = %g is void\n", secname, i,
+							ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+		break;
+
+	case L_TWEEDIE:
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.tweedie_w[i] <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Tweedie scale[%1d] = %g is void\n", secname, i,
+							ds->data_observations.tweedie_w[i]);
+					inla_error_general(msg);
+				}
+			}
+			if (ds->data_observations.d[i]) {
+				if (ABS(ds->data_observations.y[i]) < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Tweedie observation y[%1d] = %g is void\n", secname, i,
 							ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
@@ -12930,6 +13034,100 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->data_ntheta++;
 		}
 		break;
+
+	case L_TWEEDIE:
+		/*
+		 * get options related to the tweedie
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* yes! */
+		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
+		if (!ds->data_fixed0 && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.tweedie_p_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise p_intern[%g]\n", ds->data_observations.tweedie_p_intern[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
+		}
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA", NULL);
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed0) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior0.hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("p_intern parameter for Tweedie", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("p parameter for Tweedie", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.tweedie_p_intern;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_interval;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			double *AB = Calloc(2, double);
+			AB[0] = 1.0;
+			AB[1] = 2.0;
+			mb->theta_map_arg[mb->ntheta] = (void *)AB;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+
+		/*
+		 * the 'dispersion' parameter
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 0.0);
+		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 0);
+		if (!ds->data_fixed1 && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.tweedie_phi_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise phi_intern[%g]\n", ds->data_observations.tweedie_phi_intern[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
+		}
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "loggamma", NULL);
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed1) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior1.hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log dispersion parameter for Tweedie", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Dispersion parameter for Tweedie", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.tweedie_phi_intern;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_exp;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+		break;
+
 
 	case L_GP:
 	case L_DGP:
@@ -15185,7 +15383,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("p.intern for ps", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("p_intern for ps", mb->ds);
 			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("p parameter for ps", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -25469,6 +25667,49 @@ int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_d
 
 	return INLA_OK;
 }
+
+int inla_parse_pardiso(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir))
+{
+	/*
+	 * parse section = PARDISO
+	 */
+	char *secname = NULL;
+	int val;
+
+	if (mb->verbose) {
+		printf("\tinla_parse_pardiso...\n");
+	}
+	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
+	if (mb->verbose) {
+		printf("\t\tsection[%s]\n", secname);
+	}
+
+	val = iniparser_getint(ini, inla_string_join(secname, "VERBOSE"), 0);
+	if (mb->verbose) {
+		printf("\t\tverbose[%1d]\n", val);
+	}
+	GMRFLib_pardiso_set_verbose(val);
+
+	val = iniparser_getint(ini, inla_string_join(secname, "DEBUG"), 0);
+	if (mb->verbose) {
+		printf("\t\tdebug[%1d]\n", val);
+	}
+	GMRFLib_pardiso_set_debug(val);
+	
+	val = iniparser_getint(ini, inla_string_join(secname, "PARALLEL.REORDERING"), 0);
+	if (mb->verbose) {
+		printf("\t\tparallel.reordering[%1d]\n", val);
+	}
+	GMRFLib_pardiso_set_parallel_reordering(val);
+	
+	val = iniparser_getint(ini, inla_string_join(secname, "NRHS"), -1);
+	if (mb->verbose) {
+		printf("\t\tnrhs[%1d]\n", val);
+	}
+	GMRFLib_pardiso_set_nrhs(val);
+
+	return INLA_OK;
+}
 int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 {
 	/*
@@ -25865,6 +26106,27 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					log_precision = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
+					count++;
+				}
+				break;
+
+			case L_TWEEDIE:
+				if (!ds->data_fixed0) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					double p_intern = theta[count];
+					val += PRIOR_EVAL(ds->data_prior0, &p_intern);
+					count++;
+				}
+				if (!ds->data_fixed1) {
+					/*
+					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
+					 * function.
+					 */
+					double log_phi = theta[count];
+					val += PRIOR_EVAL(ds->data_prior1, &log_phi);
 					count++;
 				}
 				break;
@@ -29127,30 +29389,24 @@ double inla_compute_saturated_loglik(int idx, GMRFLib_logl_tp * loglfunc, double
 
 double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg)
 {
-	double precs[] = { 1.0, 1.0E-1, 1.0E-2, 1.0E-4, 1.0E-8 },
-	    epss[] = { 1.0E-3, 1.0E-4, 1.0E-5, 1.0E-6, 1.0E-7 },
-	    isafefactors[] = { 4.0, 3.0, 2.0, 1.0, 1.0 }, prec, eps, safefac, x, xnew, xinit, f, deriv, dderiv, arr[3], xarr[3], steplen = 1.0e-4;
-	int niter, compute_deriv, retval, niter_max = 1000, debug = 0, stencil = 5, k, nk;
+	double precs[] = { 1.0E2, 1.0E0, 1.0E-2, 1.0E-4, 1.0E-8 },
+		epss[] = { 1.0E-2, 1.0E-4, 1.0E-6, 1.0E-8, 1.0E-10 },
+		isafefactors[] = { 8.0, 4.0, 2.0, 1.0, 1.0 };
+	double prec, eps, safefac, x, xnew, xinit, f, deriv, dderiv, arr[3], steplen = GMRFLib_eps(0.25);
+	int niter, niter_max = 50, debug = 0, stencil = 7, k, nk;
 
+	(void) loglfunc(NULL, NULL, 0, 0, NULL, NULL, NULL);
 	x = xnew = xinit = (x_vec ? x_vec[idx] : 0.0);
-	retval = loglfunc(NULL, NULL, 0, 0, NULL, NULL, NULL);
-	compute_deriv = (retval == GMRFLib_LOGL_COMPUTE_DERIVATIES || retval == GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF);
-
 	nk = ((int) sizeof(precs)) / ((int) sizeof(double));
-	for (k = 0; k < nk; k++) {
 
+	for (k = 0; k < nk; k++) {
 		prec = precs[k];
 		eps = epss[k];
 		safefac = 1.0 / isafefactors[k];
 		niter = 0;
 
 		while (1) {
-			if (compute_deriv) {
-				xarr[0] = xarr[1] = xarr[2] = x;
-				loglfunc(arr, xarr, 3, idx, x_vec, NULL, arg);
-			} else {
-				GMRFLib_2order_taylor(&arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
-			}
+			GMRFLib_2order_taylor(&arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
 			f = arr[0] - 0.5 * prec * SQR(x);
 			deriv = arr[1] - prec * x;
 			dderiv = DMIN(0.0, arr[2]) - prec;
@@ -34091,7 +34347,87 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-		// this will give some more error messages, if any
+	case 50:
+	{
+		if (nargs != 3) {
+			printf("X DF NCP\n");
+			exit(1);
+		}
+		double x = atof(args[0]);
+		double df = atof(args[1]);
+		double ncp = atof(args[2]);
+		printf("R --vanilla --quiet -e 'df=%.8f; x= %.8f; ncp= %.8f; dchisq(x,df,ncp,log=TRUE); pchisq(x,df,ncp)'\n", df, x, ncp);
+		printf("log.density= %.8f\n", MATHLIB_FUN(dnchisq)(x, df, ncp, 1));
+		printf("CDF(%.8f)= %.8f\n", x, MATHLIB_FUN(pnchisq)(x, df, ncp, 1, 0));
+		printf("iCDF(CDF(%.8f))= %.8f\n", x, MATHLIB_FUN(qnchisq)(MATHLIB_FUN(pnchisq)(x, df, ncp, 1, 0), df, ncp, 1, 0));
+		
+		break;
+	}
+                                
+	case 51: 
+	{
+
+		if (1) {
+			double phi = 1.0;
+			double xi = 1.5;
+			double mu = 1.234;
+			double y = 2.345;
+			double ldens;
+
+			printf("R --vanilla --quiet -e 'library(tweedie);phi=%f;xi=%f;mu=%f;y=%f;dtweedie(y,xi,mu,phi);ptweedie(y,xi,mu,phi)'",
+			       phi, xi, mu, y);
+			dtweedie(1, y, &mu, phi, xi, &ldens);
+			P(exp(ldens));
+			P(ptweedie(y, mu, phi, xi));
+
+			break;
+		}
+
+		double mu = 7.986;
+		double phi = 1.717755;
+		double p = 1.476;
+		double ldens;
+		double y, dy = 0.001, sum = 0.0;
+		int iy;
+				
+#pragma omp parallel for private(iy, y, ldens) reduction(+:sum)
+		for(iy = 0; iy < 100000; iy++) {
+			double y = SQR(dy) + iy * dy;
+			dtweedie(1, y, &mu, phi, p, &ldens);
+			printf("LDENS %f %f\n", y, ldens);
+			sum += dy * exp(ldens);
+		}
+		y = 0.0;
+		dtweedie(1, y, &mu, phi, p, &ldens);
+		P(sum);
+		P(exp(ldens));
+		P(sum + exp(ldens));
+		
+		
+		double lmu;
+		y = 1;
+		p = 1.51;
+		for(lmu =-10; lmu < 10; lmu += 0.01) {
+			mu = exp(lmu);
+			dtweedie(1, y, &mu, phi, p, &ldens);
+			printf("LMU %f %f\n", lmu, ldens);
+		}
+
+		break;
+	}
+
+	case 52: 
+	{
+		for(double x = 0.1; x < 20; x+= 0.1) {
+			printf("x %f lgamma %f lgamma.fast %f diff %f\n",
+			       x, gsl_sf_lngamma(x), inla_lgamma_fast(x),
+			       gsl_sf_lngamma(x) - inla_lgamma_fast(x));
+		}
+
+		break;
+	}
+
+	// this will give some more error messages, if any
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
@@ -34125,7 +34461,9 @@ int main(int argc, char **argv)
 #define _BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
 	int i, verbose = 0, silent = 0, opt, report = 0, arg, ntt[2] = { 0, 0 }, err;
+#if !defined(WINDOWS)
 	int enable_core_file = 0;		       /* allow for core files */
+#endif
 	int blas_num_threads_set = 0;
 	int blas_num_threads_default = 1;
 	char *program = argv[0];
@@ -34382,7 +34720,9 @@ int main(int argc, char **argv)
 			break;
 
 		case 'c':
+#if !defined(WINDOWS)
 			enable_core_file = 1;		       /* allow for core files */
+#endif
 			break;
 
 		case 'p':

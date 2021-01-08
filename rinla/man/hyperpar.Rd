@@ -21,7 +21,7 @@
          diff.logdens = 15,
          h = NULL,
          restart = FALSE,
-         quantiles = NULL, 
+         quantiles = NULL,
          keep = FALSE)
 }
 

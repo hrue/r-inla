@@ -1,35 +1,34 @@
 ## Export: inla.prune
 
-##!\name{inla.prune}
-##!\alias{inla.prune}
-##!\alias{prune}
-##!
-##!\title{Prune the INLA-package}
-##!\description{Prune the INLA-package by deleting binary files not supported by the running OS}
-##!\usage{
-##!inla.prune(ask = TRUE)
-##!}
-##!\arguments{
-##!\item{ask}{Logical. If TRUE, then ask for user confirmation before deleting.
-##!           If FALSE, then delete without user confirmation.}
-##!}
-##!\value{No value is returned.}
-##!\author{Havard Rue \email{hrue@r-inla.org}}
+## !\name{inla.prune}
+## !\alias{inla.prune}
+## !\alias{prune}
+## !
+## !\title{Prune the INLA-package}
+## !\description{Prune the INLA-package by deleting binary files not supported by the running OS}
+## !\usage{
+## !inla.prune(ask = TRUE)
+## !}
+## !\arguments{
+## !\item{ask}{Logical. If TRUE, then ask for user confirmation before deleting.
+## !           If FALSE, then delete without user confirmation.}
+## !}
+## !\value{No value is returned.}
+## !\author{Havard Rue \email{hrue@r-inla.org}}
 
-`inla.dir.size` <- function(d) 
-{
+`inla.dir.size` <- function(d) {
     ## return the disk usage of a directory, recursively, in Mb
-    return (sum(file.info(list.files(d,
-                                     all.files = TRUE,
-                                     full.names = TRUE,
-                                     recursive = TRUE))$size, na.rm = TRUE)/1024^2)
+    return(sum(file.info(list.files(d,
+        all.files = TRUE,
+        full.names = TRUE,
+        recursive = TRUE
+    ))$size, na.rm = TRUE) / 1024^2)
 }
 
-`inla.prune` = function(ask = TRUE)
-{
+`inla.prune` <- function(ask = TRUE) {
     pkg <- installed.packages()
     if ("INLA" %in% pkg) {
-        path <- pkg["INLA","LibPath"]
+        path <- pkg["INLA", "LibPath"]
     } else {
         stop("Cannot find package 'INLA' using 'installed.packages()'")
     }
@@ -46,7 +45,7 @@
 
     size <- 0
     found <- FALSE
-    for(d in dd) {
+    for (d in dd) {
         info <- file.info(d)
         if (!is.na(info$isdir) && info$isdir) {
             found <- TRUE
@@ -56,13 +55,13 @@
             ans <- if (ask) askYesNo("Remove directory?", default = FALSE) else TRUE
             if (is.na(ans)) {
                 cat("---> Cancel\n")
-                return (invisible())
+                return(invisible())
             }
             if (ans) {
                 cat("---> Remove...", "\n")
                 size <- size + siz
                 unlink(d, recursive = TRUE, force = TRUE)
-            } 
+            }
         }
     }
 
@@ -73,17 +72,16 @@
         cat("---> Removed ", format(size, dig = 1), "Mb in total.\n", sep = "")
     }
 
-    return (invisible())
+    return(invisible())
 }
 
-`inla.prune.check` = function()
-{
+`inla.prune.check` <- function() {
     ## return the ammount that could be removed in Mb
     pkg <- installed.packages()
     if ("INLA" %in% pkg) {
-        path <- pkg["INLA","LibPath"]
+        path <- pkg["INLA", "LibPath"]
     } else {
-        return (0)
+        return(0)
     }
     bin.path <- paste0(path, "/INLA/bin")
     dd <- c()
@@ -96,12 +94,12 @@
     dd <- setdiff(dd, native)
 
     size <- 0
-    for(d in dd) {
+    for (d in dd) {
         info <- file.info(d)
         if (!is.na(info$isdir) && info$isdir) {
             size <- size + inla.dir.size(d)
         }
     }
 
-    return (round(dig = 1, size))
+    return(round(dig = 1, size))
 }

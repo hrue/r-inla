@@ -21,10 +21,10 @@
  consistent with the other groups except \code{i} (so a small p-value is evidence
  that the group is an "outlier"). See Ferkingstad et al (2017) for further details.
  }
- 
+
  \usage{
      inla.cut(result, split.by, mc.cores = NULL, debug=FALSE)
- } 
+ }
 
  \arguments{
    \item{result}{An object of class \code{inla}, i.e. a result of a call to \code{inla()}}
@@ -56,13 +56,13 @@
  model criticism and conflict diagnostics using R-INLA. arXiv preprint
  arXiv:1708.03272, available at http://arxiv.org/abs/1708.03272.
  Published in Stat, 6:331-344 (2017).
- 
+
  Marshall, E. C. and Spiegelhalter, D. J. (2007). Identifying outliers
  in Bayesian hierarchical models: a simulation-based approach.
  Bayesian Analysis, 2(2):409-444.
- 
+
  Presanis, A. M., Ohlssen, D., Spiegelhalter,
  D. J., De Angelis, D., et al. (2013). Conflict diagnostics
- in directed acyclic graphs, with applications in Bayesian evidence synthesis. 
+ in directed acyclic graphs, with applications in Bayesian evidence synthesis.
  Statistical Science, 28(3):376-397.
  }

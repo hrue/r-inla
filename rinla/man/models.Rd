@@ -457,8 +457,8 @@ inla.models()
 							\item{param = }{`0.5 0.5'}
 							\item{initial = }{`-3'}
 							\item{fixed = }{`FALSE'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -551,8 +551,8 @@ inla.models()
 							\item{param = }{`0 0.45'}
 							\item{initial = }{`3'}
 							\item{fixed = }{`FALSE'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -598,8 +598,8 @@ inla.models()
 							\item{param = }{`0.9 0.1'}
 							\item{initial = }{`2'}
 							\item{fixed = }{`FALSE'}
-							\item{to.theta = }{`\code{function(x) log((2*x-1)/(2*(1-x)))}'}
-							\item{from.theta = }{`\code{function(x) 0.5 + 0.5*exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log((2 * x - 1) / (2 * (1 - x)))}'}
+							\item{from.theta = }{`\code{function(x) 0.5 + 0.5 * exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -646,8 +646,8 @@ inla.models()
 							\item{param = }{`0.9 0.1'}
 							\item{initial = }{`2'}
 							\item{fixed = }{`FALSE'}
-							\item{to.theta = }{`\code{function(x) log((2*x-1)/(2*(1-x)))}'}
-							\item{from.theta = }{`\code{function(x) 0.5 + 0.5*exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log((2 * x - 1) / (2 * (1 - x)))}'}
+							\item{from.theta = }{`\code{function(x) 0.5 + 0.5 * exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -694,8 +694,8 @@ inla.models()
 							\item{param = }{`0 0.15'}
 							\item{initial = }{`2'}
 							\item{fixed = }{`FALSE'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta3'}{
@@ -753,8 +753,8 @@ inla.models()
 							\item{param = }{`0.5 0.5'}
 							\item{initial = }{`2'}
 							\item{fixed = }{`FALSE'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 					 }
@@ -800,8 +800,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.5'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta3'}{
@@ -813,8 +813,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.4'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta4'}{
@@ -826,8 +826,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.3'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta5'}{
@@ -839,8 +839,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.2'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta6'}{
@@ -852,8 +852,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta7'}{
@@ -865,8 +865,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta8'}{
@@ -878,8 +878,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta9'}{
@@ -891,8 +891,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta10'}{
@@ -904,8 +904,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta11'}{
@@ -917,8 +917,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 					 }
@@ -1022,8 +1022,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta4'}{
@@ -1265,8 +1265,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`0 0.1'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -1547,8 +1547,8 @@ inla.models()
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`0 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -4279,8 +4279,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 					 }
@@ -4351,8 +4351,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta5'}{
@@ -4364,8 +4364,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta6'}{
@@ -4377,8 +4377,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 					 }
@@ -4462,8 +4462,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta6'}{
@@ -4475,8 +4475,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta7'}{
@@ -4488,8 +4488,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta8'}{
@@ -4501,8 +4501,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta9'}{
@@ -4514,8 +4514,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta10'}{
@@ -4527,8 +4527,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 					 }
@@ -4625,8 +4625,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta7'}{
@@ -4638,8 +4638,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta8'}{
@@ -4651,8 +4651,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta9'}{
@@ -4664,8 +4664,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta10'}{
@@ -4677,8 +4677,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta11'}{
@@ -4690,8 +4690,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta12'}{
@@ -4703,8 +4703,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta13'}{
@@ -4716,8 +4716,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta14'}{
@@ -4729,8 +4729,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta15'}{
@@ -4742,8 +4742,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`none'}
 							\item{param = }{`'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 					 }
@@ -4801,8 +4801,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`0 0.15'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 					 }
@@ -4914,8 +4914,8 @@ inla.models()
 							\item{param = }{`0.5 0.5'}
 							\item{initial = }{`3'}
 							\item{fixed = }{`FALSE'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -4961,8 +4961,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`0 10'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 1/(1+exp(-x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 1 / (1 + exp(-x))}'}
 							}
 						}
 					 }
@@ -5101,8 +5101,8 @@ inla.models()
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`1 10'}
-							\item{to.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                             if (all(is.infinite(c(low, high))) || low == high) {} \code{                                 return (x)} \code{                             } else if (all(is.finite(c(low, high)))) {} \code{                                 stopifnot(low < high)} \code{                                 return (log( - (low - x)/(high -x)))} \code{                             } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                 return (log(x-low))} \code{                             } else {} \code{                                 stop("Condition not yet implemented")} \code{                             }} \code{                         }}'}
-							\item{from.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                             if (all(is.infinite(c(low, high))) || low == high) {} \code{                                 return (x)} \code{                             } else if (all(is.finite(c(low, high)))) {} \code{                                 stopifnot(low < high)} \code{                                 return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                             } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                 return (low + exp(x))} \code{                             } else {} \code{                                 stop("Condition not yet implemented")} \code{                             }} \code{                         }}'}
+							\item{to.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                if (all(is.infinite(c(low, high))) || low == high) {} \code{                                    return(x)} \code{                                } else if (all(is.finite(c(low, high)))) {} \code{                                    stopifnot(low < high)} \code{                                    return(log(-(low - x) / (high - x)))} \code{                                } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                    return(log(x - low))} \code{                                } else {} \code{                                    stop("Condition not yet implemented")} \code{                                }} \code{                            }}'}
+							\item{from.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                if (all(is.infinite(c(low, high))) || low == high) {} \code{                                    return(x)} \code{                                } else if (all(is.finite(c(low, high)))) {} \code{                                    stopifnot(low < high)} \code{                                    return(low + exp(x) / (1 + exp(x)) * (high - low))} \code{                                } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                    return(low + exp(x))} \code{                                } else {} \code{                                    stop("Condition not yet implemented")} \code{                                }} \code{                            }}'}
 							}
 						}
 					 }
@@ -5134,8 +5134,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`1 10'}
-							\item{to.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                             if (all(is.infinite(c(low, high))) || low == high) {} \code{                                 stopifnot(low < high)} \code{                                 return (x)} \code{                             } else if (all(is.finite(c(low, high)))) {} \code{                                 stopifnot(low < high)} \code{                                 return (log( - (low - x)/(high -x)))} \code{                             } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                 return (log(x-low))} \code{                             } else {} \code{                                 stop("Condition not yet implemented")} \code{                             }} \code{                         }}'}
-							\item{from.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                             if (all(is.infinite(c(low, high))) || low == high) {} \code{                                 stopifnot(low < high)} \code{                                 return (x)} \code{                             } else if (all(is.finite(c(low, high)))) {} \code{                                 stopifnot(low < high)} \code{                                 return (low + exp(x)/(1+exp(x)) * (high - low))} \code{                             } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                 return (low + exp(x))} \code{                             } else {} \code{                                 stop("Condition not yet implemented")} \code{                             }} \code{                         }}'}
+							\item{to.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                if (all(is.infinite(c(low, high))) || low == high) {} \code{                                    stopifnot(low < high)} \code{                                    return(x)} \code{                                } else if (all(is.finite(c(low, high)))) {} \code{                                    stopifnot(low < high)} \code{                                    return(log(-(low - x) / (high - x)))} \code{                                } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                    return(log(x - low))} \code{                                } else {} \code{                                    stop("Condition not yet implemented")} \code{                                }} \code{                            }}'}
+							\item{from.theta = }{`\code{function(x, REPLACE.ME.low, REPLACE.ME.high) {} \code{                                if (all(is.infinite(c(low, high))) || low == high) {} \code{                                    stopifnot(low < high)} \code{                                    return(x)} \code{                                } else if (all(is.finite(c(low, high)))) {} \code{                                    stopifnot(low < high)} \code{                                    return(low + exp(x) / (1 + exp(x)) * (high - low))} \code{                                } else if (is.finite(low) && is.infinite(high) && high > low) {} \code{                                    return(low + exp(x))} \code{                                } else {} \code{                                    stop("Condition not yet implemented")} \code{                                }} \code{                            }}'}
 							}
 						}
 					 }
@@ -5412,8 +5412,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`0 0.2'}
-							\item{to.theta = }{`\code{function(x, REPLACE.ME.ngroup) log((1+x*(ngroup-1))/(1-x))}'}
-							\item{from.theta = }{`\code{function(x, REPLACE.ME.ngroup) (exp(x)-1)/(exp(x) + ngroup -1)}'}
+							\item{to.theta = }{`\code{function(x, REPLACE.ME.ngroup) log((1 + x * (ngroup - 1)) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x, REPLACE.ME.ngroup) (exp(x) - 1) / (exp(x) + ngroup - 1)}'}
 							}
 						}
 					 }
@@ -5436,8 +5436,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.5'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -5460,8 +5460,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`0 0.15'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 					 }
@@ -5497,8 +5497,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.5'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta3'}{
@@ -5510,8 +5510,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.4'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta4'}{
@@ -5523,8 +5523,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.3'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta5'}{
@@ -5536,8 +5536,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.2'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta6'}{
@@ -5549,8 +5549,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta7'}{
@@ -5562,8 +5562,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta8'}{
@@ -5575,8 +5575,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta9'}{
@@ -5588,8 +5588,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta10'}{
@@ -5601,8 +5601,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 						\item{Hyperparameter `theta11'}{
@@ -5614,8 +5614,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.cor0'}
 							\item{param = }{`0.5 0.1'}
-							\item{to.theta = }{`\code{function(x) log((1+x)/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) 2*exp(x)/(1+exp(x))-1}'}
+							\item{to.theta = }{`\code{function(x) log((1 + x) / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) 2 * exp(x) / (1 + exp(x)) - 1}'}
 							}
 						}
 					 }
@@ -5844,8 +5844,8 @@ inla.models()
 							\item{param = }{`10 5'}
 							\item{initial = }{`1'}
 							\item{fixed = }{`FALSE'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 						\item{Hyperparameter `theta2'}{
@@ -5857,8 +5857,8 @@ inla.models()
 							\item{param = }{`10 5'}
 							\item{initial = }{`1'}
 							\item{fixed = }{`FALSE'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -5908,8 +5908,8 @@ inla.models()
 							\item{param = }{`-1 100'}
 							\item{initial = }{`-1'}
 							\item{fixed = }{`FALSE'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -5934,8 +5934,8 @@ inla.models()
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`pc.dof'}
 							\item{param = }{`50 0.5'}
-							\item{to.theta = }{`\code{function(x) log(x-2)}'}
-							\item{from.theta = }{`\code{function(x) 2+exp(x)}'}
+							\item{to.theta = }{`\code{function(x) log(x - 2)}'}
+							\item{from.theta = }{`\code{function(x) 2 + exp(x)}'}
 							}
 						}
 					 }
@@ -5960,8 +5960,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.sn'}
 							\item{param = }{`10'}
-							\item{to.theta = }{`\code{function(x, skew.max = 0.988) log((1+x/skew.max)/(1-x/skew.max))}'}
-							\item{from.theta = }{`\code{function(x, skew.max = 0.988) skew.max*(2*exp(x)/(1+exp(x))-1)}'}
+							\item{to.theta = }{`\code{function(x, skew.max = 0.988) log((1 + x / skew.max) / (1 - x / skew.max))}'}
+							\item{from.theta = }{`\code{function(x, skew.max = 0.988) skew.max * (2 * exp(x) / (1 + exp(x)) - 1)}'}
 							}
 						}
 						\item{Hyperparameter `theta2'}{
@@ -5973,8 +5973,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`linksnintercept'}
 							\item{param = }{`0 0'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -6362,8 +6362,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -6553,8 +6553,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.gevtail'}
 							\item{param = }{`7 0 0.5'}
-							\item{to.theta = }{`\code{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x)/(interval[2] - x))}'}
-							\item{from.theta = }{`\code{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2]-interval[1]) * exp(x)/(1.0 + exp(x))}'}
+							\item{to.theta = }{`\code{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x) / (interval[2] - x))}'}
+							\item{from.theta = }{`\code{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))}'}
 							}
 						}
 						\item{Hyperparameter `theta3'}{
@@ -6802,8 +6802,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 0.1'}
-							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x)/sc}'}
-							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc*x)}'}
+							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x) / sc}'}
+							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc * x)}'}
 							}
 						}
 					 }
@@ -6914,8 +6914,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`0 0.4'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -6942,8 +6942,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`0 0.4'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -7100,8 +7100,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 0.005'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -7283,8 +7283,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.sn'}
 							\item{param = }{`10'}
-							\item{to.theta = }{`\code{function(x, skew.max = 0.988) log((1+x/skew.max)/(1-x/skew.max))}'}
-							\item{from.theta = }{`\code{function(x, skew.max = 0.988) skew.max*(2*exp(x)/(1+exp(x))-1)}'}
+							\item{to.theta = }{`\code{function(x, skew.max = 0.988) log((1 + x / skew.max) / (1 - x / skew.max))}'}
+							\item{from.theta = }{`\code{function(x, skew.max = 0.988) skew.max * (2 * exp(x) / (1 + exp(x)) - 1)}'}
 							}
 						}
 					 }
@@ -7416,8 +7416,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.alphaw'}
 							\item{param = }{`5'}
-							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x)/sc}'}
-							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc*x)}'}
+							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x) / sc}'}
+							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc * x)}'}
 							}
 						}
 					 }
@@ -7444,8 +7444,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.alphaw'}
 							\item{param = }{`5'}
-							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x)/sc}'}
-							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc*x)}'}
+							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x) / sc}'}
+							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc * x)}'}
 							}
 						}
 					 }
@@ -7528,8 +7528,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.alphaw'}
 							\item{param = }{`5'}
-							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x)/sc}'}
-							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc*x)}'}
+							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x) / sc}'}
+							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc * x)}'}
 							}
 						}
 						\item{Hyperparameter `theta2'}{
@@ -7541,8 +7541,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -7597,8 +7597,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.dof'}
 							\item{param = }{`15 0.5'}
-							\item{to.theta = }{`\code{function(x) log(x-2)}'}
-							\item{from.theta = }{`\code{function(x) 2+exp(x)}'}
+							\item{to.theta = }{`\code{function(x) log(x - 2)}'}
+							\item{from.theta = }{`\code{function(x) 2 + exp(x)}'}
 							}
 						}
 					 }
@@ -7638,8 +7638,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 0.5'}
-							\item{to.theta = }{`\code{function(x) log(x-1)}'}
-							\item{from.theta = }{`\code{function(x) 1+exp(x)}'}
+							\item{to.theta = }{`\code{function(x) log(x - 1)}'}
+							\item{from.theta = }{`\code{function(x) 1 + exp(x)}'}
 							}
 						}
 					 }
@@ -7666,8 +7666,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -7694,8 +7694,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -7750,8 +7750,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -7779,8 +7779,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -7808,8 +7808,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`0 0.4'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 						\item{Hyperparameter `theta2'}{
@@ -7821,8 +7821,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -7849,8 +7849,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`0 0.4'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 						\item{Hyperparameter `theta2'}{
@@ -7862,8 +7862,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -7890,8 +7890,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -7918,8 +7918,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -8111,8 +8111,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -8152,8 +8152,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -8193,8 +8193,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 						\item{Hyperparameter `theta3'}{
@@ -8206,8 +8206,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 						\item{Hyperparameter `theta4'}{
@@ -8219,8 +8219,8 @@ inla.models()
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 						\item{Hyperparameter `theta5'}{
@@ -8232,8 +8232,8 @@ inla.models()
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 						\item{Hyperparameter `theta6'}{
@@ -8245,8 +8245,8 @@ inla.models()
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 						\item{Hyperparameter `theta7'}{
@@ -8258,8 +8258,8 @@ inla.models()
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 						\item{Hyperparameter `theta8'}{
@@ -8271,8 +8271,8 @@ inla.models()
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 						\item{Hyperparameter `theta9'}{
@@ -8284,8 +8284,8 @@ inla.models()
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 						\item{Hyperparameter `theta10'}{
@@ -8297,8 +8297,8 @@ inla.models()
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 						\item{Hyperparameter `theta11'}{
@@ -8310,8 +8310,8 @@ inla.models()
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 					 }
@@ -8339,8 +8339,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`gaussian'}
 							\item{param = }{`-1 0.2'}
-							\item{to.theta = }{`\code{function(x) log(x/(1-x))}'}
-							\item{from.theta = }{`\code{function(x) exp(x)/(1+exp(x))}'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
 							}
 						}
 						\item{Hyperparameter `theta2'}{
@@ -8552,8 +8552,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.dof'}
 							\item{param = }{`15 0.5'}
-							\item{to.theta = }{`\code{function(x) log(x-2)}'}
-							\item{from.theta = }{`\code{function(x) 2+exp(x)}'}
+							\item{to.theta = }{`\code{function(x) log(x - 2)}'}
+							\item{from.theta = }{`\code{function(x) 2 + exp(x)}'}
 							}
 						}
 					 }
@@ -8580,8 +8580,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.dof'}
 							\item{param = }{`15 0.5'}
-							\item{to.theta = }{`\code{function(x) log(x-5)}'}
-							\item{from.theta = }{`\code{function(x) 5+exp(x)}'}
+							\item{to.theta = }{`\code{function(x) log(x - 5)}'}
+							\item{from.theta = }{`\code{function(x) 5 + exp(x)}'}
 							}
 						}
 						\item{Hyperparameter `theta2'}{
@@ -9173,8 +9173,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.gevtail'}
 							\item{param = }{`7 0 0.5'}
-							\item{to.theta = }{`\code{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x)/(interval[2] - x))}'}
-							\item{from.theta = }{`\code{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2]-interval[1]) * exp(x)/(1.0 + exp(x))}'}
+							\item{to.theta = }{`\code{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x) / (interval[2] - x))}'}
+							\item{from.theta = }{`\code{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))}'}
 							}
 						}
 					 }
@@ -9202,8 +9202,8 @@ inla.models()
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.gevtail'}
 							\item{param = }{`7 0 0.5'}
-							\item{to.theta = }{`\code{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x)/(interval[2] - x))}'}
-							\item{from.theta = }{`\code{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2]-interval[1]) * exp(x)/(1.0 + exp(x))}'}
+							\item{to.theta = }{`\code{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x) / (interval[2] - x))}'}
+							\item{from.theta = }{`\code{function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))}'}
 							}
 						}
 					 }
@@ -9221,6 +9221,48 @@ inla.models()
 					 }
 				 }
 				\item{Model `logperiodogram'.}{Number of hyperparmeters are 0.
+				 }
+				\item{Model `tweedie'.}{Number of hyperparmeters are 2.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{hyperid = }{`102101'}
+							\item{name = }{`p'}
+							\item{short.name = }{`p'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 10'}
+							\item{to.theta = }{`\code{function(x, interval = c(1.0, 2.0)) log(-(interval[1] - x) / (interval[2] - x))}'}
+							\item{from.theta = }{`\code{function(x, interval = c(1.0, 2.0)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{hyperid = }{`102201'}
+							\item{name = }{`dispersion'}
+							\item{short.name = }{`phi'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`1 0.1'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`Tweedie distribution'}
+								\item{status = }{`experimental'}
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default log'}
+								\item{pdf = }{`tweedie'}
+							 }
+						 }
+					 }
 				 }
 			 }
 		 }

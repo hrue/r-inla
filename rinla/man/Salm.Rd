@@ -21,7 +21,5 @@ quinoline and the number of revertant colonies of TA98 Salmonella measured
 \examples{
 
 data(Salm)
-
-
 }
 \keyword{datasets}

@@ -13,12 +13,12 @@
  \alias{inla.pc.psn}
  \alias{pc.qsn}
  \alias{inla.pc.qsn}
- 
+
  \title{Utility functions for the PC prior for \code{skewness} in the skew-normal
  linkfunction and likelihood}
- 
+
  \description{Functions to evaluate, sample, compute quantiles and
-              percentiles of the PC prior for the \code{skewness} 
+              percentiles of the PC prior for the \code{skewness}
               in the skew-normal link-function and likelihood}
  \usage{
  inla.pc.rsn(n, lambda = 40)

@@ -47,15 +47,14 @@ parameter-vector \code{a} in \code{Details}.
 }
 \examples{
 
- pac = runif(5)
- phi = inla.ar.pacf2phi(pac)
- pac2 = inla.ar.phi2pacf(phi)
- print(paste("Error:", max(abs(pac2-pac))))
- print("Correlation matrix (from pac)")
- print(toeplitz(inla.ar.pacf2acf(pac)))
- print("Correlation matrix (from phi)")
- print(toeplitz(inla.ar.phi2acf(phi)))
-
+pac <- runif(5)
+phi <- inla.ar.pacf2phi(pac)
+pac2 <- inla.ar.phi2pacf(phi)
+print(paste("Error:", max(abs(pac2 - pac))))
+print("Correlation matrix (from pac)")
+print(toeplitz(inla.ar.pacf2acf(pac)))
+print("Correlation matrix (from phi)")
+print(toeplitz(inla.ar.phi2acf(phi)))
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

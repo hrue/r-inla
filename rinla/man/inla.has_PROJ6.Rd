@@ -49,5 +49,4 @@ is required but not available
 \examples{
 
 inla.has_PROJ6()
-
 }

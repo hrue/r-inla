@@ -30,7 +30,7 @@ as.inla.surv(object, ...)
     interval data, this is the starting time for the interval. For in-interval event,  this is
     the observed time to event. }
   \item{event}{The status indicator, 1=observed event, 0=right censored
-    event, 2=left censored event, 3=interval censored event, 
+    event, 2=left censored event, 3=interval censored event,
     and 4=observed event in an interval (left, right).
     Although
     unusual, the event indicator can be omitted, in which case all
@@ -44,7 +44,7 @@ as.inla.surv(object, ...)
   \item{...}{Additional argument}
   }
 
-\value{An object of class \code{inla.surv}.  There are methods for \code{print}, 
+\value{An object of class \code{inla.surv}.  There are methods for \code{print},
   \code{plot} for \code{inla.surv} objects.
 
      \code{is.inla.surv} returns \code{TRUE} if \code{object}
@@ -68,8 +68,8 @@ Sara Martino and Rupali Akerkar
           1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)
   time = c(17,42,44,48,60,72,74,95,103, 108, 122, 144, 167, 170, 183, 185,
            193, 195, 197, 208, 234, 235, 254, 307, 315, 401, 445, 464, 484,  528, 542, 567,
-           577, 580, 795, 855, 1174, 1214, 1232, 1366, 1455, 1585, 1622, 1626, 1736, 1,63, 
-           105, 125, 182, 216, 250, 262, 301, 301, 342, 354, 356, 358, 380, 383, 383, 388, 
+           577, 580, 795, 855, 1174, 1214, 1232, 1366, 1455, 1585, 1622, 1626, 1736, 1,63,
+           105, 125, 182, 216, 250, 262, 301, 301, 342, 354, 356, 358, 380, 383, 383, 388,
            394, 408, 460, 489, 499, 523, 524, 535, 562, 569, 675, 676, 748, 778, 786, 797,
            955, 968, 977, 1245, 1271, 1420, 1460, 1516, 1551, 1690, 1694)
   event = c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,

@@ -48,8 +48,7 @@ by encapsulating in a circular domain.
 }
 \examples{
 
-inla.diameter(matrix(c(0,1,1,0, 0,0,1,1), 4, 2))
-
+inla.diameter(matrix(c(0, 1, 1, 0, 0, 0, 1, 1), 4, 2))
 }
 \author{
 Finn Lindgren \href{mailto:finn.lindgren@gmail.com}{finn.lindgren@gmail.com}

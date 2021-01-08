@@ -1,19 +1,19 @@
 #' Integrated Nested Laplace Approximation
-#' 
+#'
 #' Package to perform full Bayesian analysis on generalised additive mixed
 #' models using Integrated Nested Laplace Approximations.
-#' 
+#'
 #' \describe{
-#'   \item{Package}{INLA}
-#'   \item{Version}{Currently, this package uses a YY.MM.DD versioning
-#'     system, and is in heavy development.
-#'     See <https://github.com/hrue/r-inla/> and
-#'     <https://www.r-inla.org>}
-#'   \item{License}{GPL2}
+#' \item{Package}{INLA}
+#' \item{Version}{Currently, this package uses a YY.MM.DD versioning
+#' system, and is in heavy development.
+#' See <https://github.com/hrue/r-inla/> and
+#' <https://www.r-inla.org>}
+#' \item{License}{GPL2}
 #' }
-#' 
+#'
 #' See the web-site <https://www.r-inla.org> for further details.
-#' 
+#'
 #' @name INLA-package
 #' @aliases INLA-package INLA
 #' @docType package
@@ -26,24 +26,24 @@ NULL
 
 
 #' Bivariate Meta Analysis
-#' 
+#'
 #' Data are taken from a meta-analysis to compare the utility of three types of
 #' diagnostic imaging - lymphangiography (LAG), computed tomography (CT) and
 #' magnetic resonance (MR) - to detect lymph node metastases in patients with
 #' cervical cancer. The dataset consists of a total of 46 studies: the first 17
 #' for LAG, the following 19 for CT and the last 10 for MR.
-#' 
+#'
 #' @format A data frame with 92 observations on the following 9 variables.
 #' \describe{
-#'   \item{N}{a numeric vector}
-#'   \item{Y}{a numeric vector}
-#'   \item{diid}{a numeric vector}
-#'   \item{lag.tp}{a numeric vector}
-#'   \item{lag.tn}{a numeric vector}
-#'   \item{ct.tp}{a numeric vector}
-#'   \item{ct.tn}{a numeric vector}
-#'   \item{mr.tp}{a numeric vector}
-#'   \item{mr.tn}{a numeric vector}
+#' \item{N}{a numeric vector}
+#' \item{Y}{a numeric vector}
+#' \item{diid}{a numeric vector}
+#' \item{lag.tp}{a numeric vector}
+#' \item{lag.tn}{a numeric vector}
+#' \item{ct.tp}{a numeric vector}
+#' \item{ct.tn}{a numeric vector}
+#' \item{mr.tp}{a numeric vector}
+#' \item{mr.tn}{a numeric vector}
 #' }
 #' @references J. Scheidler and H. Hricak and K. K. Yu and L. Subak and M. R.
 #' Segal,"Radiological evaluation of lymph node metastases in patients with
@@ -51,9 +51,8 @@ NULL
 #' @keywords datasets
 #' @docType data
 #' @examples
-#' 
+#'
 #' data(BivMetaAnalysis)
-#' 
 "BivMetaAnalysis"
 
 
@@ -61,18 +60,18 @@ NULL
 
 
 #' ~~ data name/kind ... ~~
-#' 
+#'
 #' ~~ A concise (1-5 lines) description of the dataset. ~~
-#' 
-#' 
+#'
+#'
 #' @name Cancer
 #' @docType data
 #' @format A data frame with 6690 observations on the following 4 variables.
 #' \describe{
-#'   \item{Y}{Number of cases}
-#'   \item{N}{a numeric vector}
-#'   \item{Age}{a numeric vector}
-#'   \item{region}{a numeric vector}
+#' \item{Y}{Number of cases}
+#' \item{N}{a numeric vector}
+#' \item{Age}{a numeric vector}
+#' \item{region}{a numeric vector}
 #' }
 #' @references Rue, H and Held, L. (2005) *Gaussian Markov Random Fields -
 #' Theory and Applications* Chapman and Hall
@@ -84,32 +83,30 @@ NULL
 
 
 #' Time series with seasonal effect
-#' 
+#'
 #' Montly total of car drivers killed or several injuried in England from
 #' January 1969 to December 1984
-#' 
+#'
 #' NB: The last 12 lines of the data set have the first column set to
 #' `NULL` since these data where not observed but we want to predict them.
-#' 
-#' 
+#'
+#'
 #' @name Drivers
 #' @docType data
 #' @format A data frame with 204 observations on the following 4 variables.
 #' \describe{
-#'   \item{y}{Number of deaths}
-#'   \item{belt}{Indicator of weather the belt was compulsory to use
-#'    (1) or not (0)}
-#'   \item{trend}{time (in months)}
-#'   \item{seasonal}{time (in months)}
+#' \item{y}{Number of deaths}
+#' \item{belt}{Indicator of weather the belt was compulsory to use
+#' (1) or not (0)}
+#' \item{trend}{time (in months)}
+#' \item{seasonal}{time (in months)}
 #' }
 #' @references Rue, H and Held, L. (2005) *Gaussian Markov Random Fields -
 #' Theory and Applications* Chapman and Hall
 #' @keywords datasets
 #' @examples
-#' 
+#'
 #' data(Drivers)
-#' 
-#' 
 NULL
 
 
@@ -117,30 +114,28 @@ NULL
 
 
 #' Repeated measures on Poisson counts
-#' 
+#'
 #' Seizure counts in a randomised trial of anti-convulsant therpay in epilepsy
 #' for 59 patients.
-#' 
-#' 
+#'
+#'
 #' @name Epil
 #' @docType data
 #' @format A data frame with 236 observations on the following 7 variables.
 #' \describe{
-#'   \item{y}{Number of seizures}
-#'   \item{Trt}{indicator for the presence of treatment}
-#'   \item{Base}{8-week baseline seizure counts}
-#'   \item{Age}{Age of the patient}
-#'   \item{V4}{indicator variable for the 4th visit.}
-#'   \item{rand}{a numeric vector}
-#'   \item{Ind}{indicator for the specific patient}
+#' \item{y}{Number of seizures}
+#' \item{Trt}{indicator for the presence of treatment}
+#' \item{Base}{8-week baseline seizure counts}
+#' \item{Age}{Age of the patient}
+#' \item{V4}{indicator variable for the 4th visit.}
+#' \item{rand}{a numeric vector}
+#' \item{Ind}{indicator for the specific patient}
 #' }
 #' @source WinBUGS/OpenBUGS Manual Examples Vol I
 #' @keywords datasets
 #' @examples
-#' 
+#'
 #' data(Epil)
-#' 
-#' 
 NULL
 
 
@@ -148,28 +143,26 @@ NULL
 
 
 #' Disease Mapping
-#' 
+#'
 #' Cases of Oral cavity cancer in Germany from 1986-1990
-#' 
-#' 
+#'
+#'
 #' @name Germany
 #' @docType data
 #' @format A data frame with 544 observations on the following 4 variables.
 #' \describe{
-#'   \item{region}{Region of Germany}
-#'   \item{E}{Fixed quantity which accounts for number of people
-#'    in the district (offset)}
-#'   \item{Y}{Number of cases}
-#'   \item{x}{covariate measuring smoking consumption}
+#' \item{region}{Region of Germany}
+#' \item{E}{Fixed quantity which accounts for number of people
+#' in the district (offset)}
+#' \item{Y}{Number of cases}
+#' \item{x}{covariate measuring smoking consumption}
 #' }
 #' @references Rue, H and Held, L. (2005) *Gaussian Markov Random Fields -
 #' Theory and Applications* Chapman and Hall
 #' @keywords datasets
 #' @examples
-#' 
+#'
 #' data(Germany)
-#' 
-#' 
 NULL
 
 
@@ -182,37 +175,37 @@ NULL
 
 
 #' Kidney infection data
-#' 
+#'
 #' Times of infection from the time to insertion of the catheter for 38 kindey
 #' patients using portable dialysis equipment
-#' 
-#' 
+#'
+#'
 #' @name Kidney
 #' @docType data
 #' @format A data frame with 76 observations on the following 9 variables.
 #' \describe{
-#'   \item{time}{a numeric vector. Time to infection from the
-#'     insertion of catheter}
-#'   \item{event}{a numeric vector. 1: time of
-#'     infection 0: time of censuring }
-#'   \item{age}{a numeric vector. Age of
-#'     the patient at the time of infection}
-#'   \item{sex}{a numeric vector.
-#'     Sex of the patient 0: male 1:female}
-#'   \item{disease}{a numeric
-#'     vector. Type of disease}
-#'   \item{dis1}{a numeric vector. Dummy
-#'     variable to codify the disease type.}
-#'   \item{dis2}{a numeric vector.
-#'     Dummy variable to codify the disease type.}
-#'   \item{dis3}{a numeric
-#'     vector. Dummy variable to codify the disease type.}
-#'   \item{ID}{a
-#'     numeric vector. Patient code.}
+#' \item{time}{a numeric vector. Time to infection from the
+#' insertion of catheter}
+#' \item{event}{a numeric vector. 1: time of
+#' infection 0: time of censuring }
+#' \item{age}{a numeric vector. Age of
+#' the patient at the time of infection}
+#' \item{sex}{a numeric vector.
+#' Sex of the patient 0: male 1:female}
+#' \item{disease}{a numeric
+#' vector. Type of disease}
+#' \item{dis1}{a numeric vector. Dummy
+#' variable to codify the disease type.}
+#' \item{dis2}{a numeric vector.
+#' Dummy variable to codify the disease type.}
+#' \item{dis3}{a numeric
+#' vector. Dummy variable to codify the disease type.}
+#' \item{ID}{a
+#' numeric vector. Patient code.}
 #' }
 #' @references McGilchrist and C.W. Aisbett (1991), Regression with frailty in
 #' survival analysis, Biometrics,vol.47,pages 461--166.
-#' 
+#'
 #' D.J. Spiegelhalter and A. Thomas and N.G. Best and W.R. Gilks (1995) BUGS:
 #' Bayesian Inference Using Gibbs sampling, Version 0.50., MRC Biostatistics
 #' Unit, Cambridre, England.
@@ -224,34 +217,33 @@ NULL
 
 
 #' The Leukemia data
-#' 
+#'
 #' This the Leukemia data from Henderson et al (2003); see source.
-#' 
-#' 
+#'
+#'
 #' @name Leuk
 #' @aliases Leukemia Leuk
 #' @docType data
 #' @format A data frame with 1043 observations on the following 9 variables.
 #' \describe{
-#'   \item{time}{TODO}
-#'   \item{cens}{TODO}
-#'   \item{xcoord}{TODO}
-#'   \item{ycoord}{TODO}
-#'   \item{age}{TODO}
-#'   \item{sex}{TODO}
-#'   \item{wbc}{TODO}
-#'   \item{tpi}{TODO}
-#'   \item{district}{TODO}
+#' \item{time}{TODO}
+#' \item{cens}{TODO}
+#' \item{xcoord}{TODO}
+#' \item{ycoord}{TODO}
+#' \item{age}{TODO}
+#' \item{sex}{TODO}
+#' \item{wbc}{TODO}
+#' \item{tpi}{TODO}
+#' \item{district}{TODO}
 #' }
 #' @source This is the dataset from
-#' 
+#'
 #' Henderson, R. and Shimakura, S. and Gorst, D., 2002, Modeling spatial
 #' variation in leukemia survival data, JASA, 97, 460, 965--972.
 #' @keywords datasets
 #' @examples
-#' 
+#'
 #' data(Leuk)
-#' 
 NULL
 
 
@@ -259,15 +251,15 @@ NULL
 
 
 #' The Munich rent data
-#' 
+#'
 #' The Munich rent data
-#' 
-#' 
+#'
+#'
 #' @name Munich
 #' @docType data
 #' @format A data frame with 2035 observations on the following 17 variables.
 #' \describe{
-#' 
+#'
 #' \item{"rent}{Net rent per square meter.}
 #' \item{"floor.size}{Size of the flat in square meters.}
 #' \item{"year}{Year of construction of the building in which the flat
@@ -285,7 +277,7 @@ NULL
 #' rooms.} \item{zim4}{Dummy for a flat with 4 rooms.}
 #' \item{zim5}{Dummy for a flat with 5 rooms.}
 #' \item{zim6}{Dummy for a flat with 6 rooms.}
-#' 
+#'
 #' }
 #' @references Rue, H and Held, L. (2005) *Gaussian Markov Random Fields -
 #' Theory and Applications* Chapman and Hall
@@ -298,25 +290,24 @@ NULL
 
 
 #' The New England map
-#' 
+#'
 #' This map is used in association to the Leukemia data from Henderson et al
 #' (2003); see source.
-#' 
-#' 
+#'
+#'
 #' @name nwEngland
 #' @aliases nwEngland NewEngland
 #' @docType data
 #' @format A SpatialPolygons object.
 #' @source This map are used to analyse the Leukaemia dataset from
-#' 
+#'
 #' Henderson, R. and Shimakura, S. and Gorst, D., 2002, Modeling spatial
 #' variation in leukemia survival data, JASA, 97, 460, 965--972.
 #' @keywords datasets
 #' @examples
-#' 
+#'
 #' data(Leuk)
 #' plot(nwEngland)
-#' 
 NULL
 
 
@@ -324,10 +315,10 @@ NULL
 
 
 #' ~~ data name/kind ... ~~
-#' 
+#'
 #' ~~ A concise (1-5 lines) description of the dataset. ~~
-#' 
-#' 
+#'
+#'
 #' @name Oral
 #' @docType data
 #' @format A data frame with 544 observations on the following 3 variables.
@@ -343,11 +334,11 @@ NULL
 
 
 #' The PRborder data
-#' 
+#'
 #' A data matrix with Longitude and Latitude coordinates for the boundary of
 #' Parana State.
-#' 
-#' 
+#'
+#'
 #' @name PRborder
 #' @aliases PRborder PRborder
 #' @docType data
@@ -362,10 +353,10 @@ NULL
 
 
 #' The PRprec data
-#' 
+#'
 #' A data frame with daily rainfall in the Parana State.
-#' 
-#' 
+#'
+#'
 #' @name PRprec
 #' @aliases PRprec PRprec
 #' @docType data
@@ -605,12 +596,12 @@ NULL
 
 
 #' Extra-Poisson variation in dose-response study
-#' 
+#'
 #' Breslow (1984) analyses some mutagenicity assay data (shown below) on
 #' salmonella in which three plates have been processed at each dose i of
 #' quinoline and the number of revertant colonies of TA98 Salmonella measured
-#' 
-#' 
+#'
+#'
 #' @name Salm
 #' @docType data
 #' @format A data frame with 18 observations on the following 3 variables.
@@ -620,10 +611,8 @@ NULL
 #' @source WinBUGS/OpenBUGS manual Examples VOl.I
 #' @keywords datasets
 #' @examples
-#' 
+#'
 #' data(Salm)
-#' 
-#' 
 NULL
 
 
@@ -631,15 +620,15 @@ NULL
 
 
 #' Conditional Autoregressive (CAR) model for disease mapping
-#' 
-#' 
+#'
+#'
 #' The rate of lip cancer in 56 counties in Scotland is recorder. The data set
 #' includes the observed and expected cases (based on the population and its
 #' age and sex distribution in the country), a covariate measuring the
 #' percentage of the population engaged in agricolture, fishing or forestry and
 #' the "position" of each county expressed as a list of adjacent counties
-#' 
-#' 
+#'
+#'
 #' @name Scotland
 #' @docType data
 #' @format A data frame with 56 observations on the following 4 variables.
@@ -648,15 +637,13 @@ NULL
 #' percentage of the population engaged in agricolture, fishing or forestry }
 #' \item{Region}{The county} }
 #' @references
-#' 
+#'
 #' Clayton and Kaldor (1987) and Breslow and Clayton (1993)
 #' @source OpenBUGS Example manual, GeoBUGS
 #' @keywords datasets
 #' @examples
-#' 
+#'
 #' data(Scotland)
-#' 
-#' 
 NULL
 
 
@@ -664,12 +651,12 @@ NULL
 
 
 #' Factorial design
-#' 
-#' 
+#'
+#'
 #' Proportion of seeds that germinated on each of 21 plates arranged according
 #' to a 2 by 2 factorial layout by seed and type of root extract
-#' 
-#' 
+#'
+#'
 #' @name Seeds
 #' @docType data
 #' @format A data frame with 21 observations on the following 5 variables.
@@ -680,10 +667,8 @@ NULL
 #' @source WinBUGS/OpenBUGS Manual Example, Vol. I
 #' @keywords datasets
 #' @examples
-#' 
+#'
 #' data(Seeds)
-#' 
-#' 
 NULL
 
 
@@ -691,11 +676,11 @@ NULL
 
 
 #' toy simulated data set for the SPDE tutorial
-#' 
+#'
 #' Simulated data set on 200 location points.  The simulation process is made
 #' at the introduction of the SPDE tutorial.
-#' 
-#' 
+#'
+#'
 #' @name SPDEtoy
 #' @docType data
 #' @format A data frame with 200 observations on the following 3 variables.
@@ -705,10 +690,8 @@ NULL
 #' @source SPDE tutorial
 #' @keywords datasets
 #' @examples
-#' 
+#'
 #' data(SPDEtoy)
-#' 
-#' 
 NULL
 
 
@@ -716,11 +699,11 @@ NULL
 
 
 #' Surgical: Institutional ranking
-#' 
+#'
 #' This example considers mortality rates in 12 hospitals performing cardiac
 #' surgery in babies
-#' 
-#' 
+#'
+#'
 #' @name Surg
 #' @docType data
 #' @format A data frame with 12 observations on the following 3 variables.
@@ -731,10 +714,8 @@ NULL
 #' @source WinBUGS/OpenBUGS Manual Examples Vol. I
 #' @keywords datasets
 #' @examples
-#' 
+#'
 #' data(Surg)
-#' 
-#' 
 NULL
 
 
@@ -742,10 +723,10 @@ NULL
 
 
 #' Survival data
-#' 
+#'
 #' Simulated data set for Weibull survival model
-#' 
-#' 
+#'
+#'
 #' @name SurvSim
 #' @docType data
 #' @format A data frame with 100 observations on the following 3 variables.
@@ -760,17 +741,17 @@ NULL
 
 
 #' Binomial time series
-#' 
+#'
 #' Recorded days of rain above 1 mm in Tokyo for 2 years, 1983:84
-#' 
-#' 
+#'
+#'
 #' @name Tokyo
 #' @docType data
 #' @format A data frame with 366 observations on the following 3 variables.
 #' \describe{
-#'   \item{y}{number of days with rain}
-#'   \item{n}{total number of days}
-#'   \item{time}{day of the year}
+#' \item{y}{number of days with rain}
+#' \item{n}{total number of days}
+#' \item{time}{day of the year}
 #' }
 #' @references Rue, H and Held, L. (2005) *Gaussian Markov Random Fields -
 #' Theory and Applications* Chapman and Hall
@@ -778,10 +759,8 @@ NULL
 #' <http://www.math.ntnu.no/~hrue/GMRF-book/tokyo.rainfall.data.dat>
 #' @keywords datasets
 #' @examples
-#' 
+#'
 #' data(Tokyo)
-#' 
-#' 
 NULL
 
 
@@ -789,12 +768,12 @@ NULL
 
 
 #' Semiparametric regression
-#' 
+#'
 #' Undernutrition of children in each region of Zambia is measured through a
 #' score computed on the basis of some anthropometric measures. The data set
 #' contains also other infomation about each child.
-#' 
-#' 
+#'
+#'
 #' @name Zambia
 #' @docType data
 #' @format A data frame with 4847 observations on the following 10 variables.
@@ -813,11 +792,6 @@ NULL
 #' <http://www.stat.uni-muenchen.de/~bayesx/bayesx.html>
 #' @keywords datasets
 #' @examples
-#' 
+#'
 #' data(Zambia)
-#' 
-#' 
 NULL
-
-
-

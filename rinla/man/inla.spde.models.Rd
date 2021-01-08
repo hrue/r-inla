@@ -30,19 +30,22 @@ inla.spde model class (currently \code{\link[=inla.spde1]{inla.spde1()}} and
 \examples{
 
 ## Display help for each supported inla.spde2 model:
-for (model in inla.spde2.models())
-  print(help(paste("inla.spde2.", model, sep="")))
+for (model in inla.spde2.models()) {
+      print(help(paste("inla.spde2.", model, sep = "")))
+  }
 
 ## Display help for each supported inla.spde* model:
-models = inla.spde.models()
-for (type in names(models))
-  for (model in models[[type]])
-    print(help(paste("inla.", type, ".", model, sep="")))
+models <- inla.spde.models()
+for (type in names(models)) {
+      for (model in models[[type]]) {
+            print(help(paste("inla.", type, ".", model, sep = "")))
+        }
+  }
 
 ## Display help for each supported inla.spde* model (equivalent to above):
-for (model in inla.spde.models(function.names=TRUE))
-  print(help(model))
-
+for (model in inla.spde.models(function.names = TRUE)) {
+      print(help(model))
+  }
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

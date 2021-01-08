@@ -52,14 +52,15 @@ reference systems of \code{sp::CRS} or \code{inla.CRS} class.
 \examples{
 
 if (require(rgdal)) {
-  latt <- inla.mesh.lattice(-10:10, 40:60)
-  mesh1 <- inla.mesh.create(lattice=latt, extend=FALSE, refine=FALSE,
-                            crs=inla.CRS("longlat"))
-  mesh2 <- inla.spTransform(mesh1, inla.CRS("lambert"))
-  summary(mesh1)
-  summary(mesh2)
+    latt <- inla.mesh.lattice(-10:10, 40:60)
+    mesh1 <- inla.mesh.create(
+        lattice = latt, extend = FALSE, refine = FALSE,
+        crs = inla.CRS("longlat")
+    )
+    mesh2 <- inla.spTransform(mesh1, inla.CRS("lambert"))
+    summary(mesh1)
+    summary(mesh2)
 }
-
 }
 \seealso{
 \code{\link[=inla.CRS]{inla.CRS()}}

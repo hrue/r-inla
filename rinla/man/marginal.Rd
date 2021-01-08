@@ -24,22 +24,22 @@
  \alias{mmarginal}
  \alias{inla.zmarginal}
  \alias{zmarginal}
- 
+
  \title{Functions which operates on marginals}
- 
+
  \description{Density, distribution function, quantile function, random
       generation, hpd-interval, interpolation, expectations, mode and transformations of
       marginals obtained by \code{inla} or \code{inla.hyperpar()}.
- These functions computes the density (inla.dmarginal), 
- the distribution function (inla.pmarginal), 
- the quantile function (inla.qmarginal), 
- random generation (inla.rmarginal), 
- spline smoothing (inla.smarginal), 
- computes expected values (inla.emarginal), 
- computes the mode (inla.mmarginal), 
+ These functions computes the density (inla.dmarginal),
+ the distribution function (inla.pmarginal),
+ the quantile function (inla.qmarginal),
+ random generation (inla.rmarginal),
+ spline smoothing (inla.smarginal),
+ computes expected values (inla.emarginal),
+ computes the mode (inla.mmarginal),
  transforms the marginal (inla.tmarginal), and provide summary statistics (inla.zmarginal).
  }
- 
+
  \usage{
  inla.dmarginal(x, marginal, log = FALSE)
  inla.pmarginal(q, marginal, normalize = TRUE, len = 2048L)
@@ -49,12 +49,12 @@
  inla.smarginal(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE, factor=15L)
  inla.emarginal(fun, marginal, ...)
  inla.mmarginal(marginal)
- inla.tmarginal(fun, marginal, n=2048L, h.diff = .Machine$double.eps^(1/3),
-                method = c("quantile", "linear")) 
+ inla.tmarginal(fun, marginal, n=2048L, h.diff = .Machine[["double.eps"]]^(1.0/3.0),
+                method = c("quantile", "linear"))
  inla.zmarginal(marginal, silent = FALSE)
  }
  \arguments{
- 
+
    \item{marginal}{A marginal object from either \code{inla} or
      \code{inla.hyperpar()}, which is either \code{list(x=c(), y=c())}
      with density values \code{y} at locations \code{x}, or a
@@ -62,55 +62,55 @@
      column and the locations in the first column.
      The\code{inla.hpdmarginal()}-function
      assumes a unimodal density.}
- 
+
    \item{fun}{A (vectorised) function like \code{function(x) exp(x)} to
      compute the expectation against, or which define the transformation
      new = fun(old)}
-   
+
    \item{x}{Evaluation points}
- 
+
    \item{q}{Quantiles}
- 
+
    \item{p}{Probabilities}
- 
+
    \item{n}{The number of observations. If \code{length(n) > 1}, the
      length is taken to be the number required.}
- 
+
    \item{h.diff}{The step-length for the numerical differeniation inside \code{inla.tmarginal}}
-     
+
    \item{...}{Further arguments to be passed to function which
      expectation is to be computed.}
- 
+
    \item{log}{Return density or interpolated density in log-scale?}
- 
+
    \item{normalize}{Renormalise the density after interpolation?}
    \item{len}{Number of locations used to interpolate the distribution
    function.}
 
    \item{keep.type}{If \code{FALSE} then return a \code{list(x=, y=)},  otherwise if \code{TRUE},
                    then return a matrix if the input is a matrix}
- 
+
    \item{extrapolate}{How much to extrapolate on each side when computing the
    interpolation. In fraction of the range.}
 
    \item{factor}{The number of points after interpolation is \code{factor} times the original number of points;
                  which is argument \code{n} in \code{spline}}
-   
+
     \item{method}{Which method should be used to layout points for where the transformation is computed.}
 
     \item{silent}{Output the result visually (TRUE) or just through the call.}
  }
- 
+
  \value{%%
    \code{inla.smarginal} returns \code{list=c(x=c(), y=c())} of
-   interpolated values do extrapolation using the factor given, 
+   interpolated values do extrapolation using the factor given,
    and the remaining function returns what they say they should do.  }
  %%
- 
+
  \author{Havard Rue \email{hrue@r-inla.org}}
- 
+
  \seealso{\code{\link{inla}}, \code{\link{inla.hyperpar}}}
- 
+
  \examples{
  ## a simple linear regression example
  n = 10
@@ -118,8 +118,8 @@
  sd = 0.1
  y = 1+x + rnorm(n,sd=sd)
  res = inla(y ~ 1 + x, data = data.frame(x,y),
-            control.family=list(initial = log(1/sd^2),fixed=TRUE))
- 
+            control.family=list(initial = log(1/sd^2L),fixed=TRUE))
+
  ## chose a marginal and compare the with the results computed by the
  ## inla-program
  r = res$summary.fixed["x",]
@@ -136,25 +136,25 @@
  r.exp = inla.tmarginal(exp, m)
  ## or version 2
  r.exp = inla.tmarginal(function(x) exp(x), m)
- 
+
  ## to plot the marginal, we use the inla.smarginal, which interpolates (in
  ## log-scale). Compare with some samples.
  plot(inla.smarginal(m), type="l")
  s = inla.rmarginal(1000, m)
  hist(inla.rmarginal(1000, m), add=TRUE, prob=TRUE)
  lines(density(s), lty=2)
- 
- m1 = inla.emarginal(function(x) x^1, m)
- m2 = inla.emarginal(function(x) x^2, m)
- stdev = sqrt(m2 - m1^2)
+
+ m1 = inla.emarginal(function(x) x, m)
+ m2 = inla.emarginal(function(x) x^2L, m)
+ stdev = sqrt(m2 - m1^2L)
  q = inla.qmarginal(c(0.025,0.975), m)
- 
+
  ## inla-program results
  print(r)
- 
+
  ## inla.marginal-results (they shouldn't be perfect!)
- print(c(mean=m1, sd=stdev, "0.025quant" = q[1], "0.975quant" = q[2]))
+ print(c(mean=m1, sd=stdev, "0.025quant" = q[1], "0.975quant" = q[2L]))
  ## using the buildt-in function
  inla.zmarginal(m)
  }
- 
+

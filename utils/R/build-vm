@@ -22,7 +22,7 @@ else
     done
 
     if [ -n "$IP" ]; then
-	yes yes | ssh hrue@$IP echo Testing connection
+	yes yes | ssh -x hrue@$IP echo Testing connection
     else 
 	echo "No VM, exit"
 	exit 1
@@ -30,7 +30,7 @@ else
 fi
 
 export INLA_TAG="${1-devel}"
-VERSION=$(ssh $IP "source /etc/os-release; echo \$NAME-\$VERSION")
+VERSION=$(ssh -x $IP "source /etc/os-release; echo \$NAME-\$VERSION")
 D=64bit
 
 ## add so we can define 'devel' to compile the most recent one

@@ -24,8 +24,6 @@ the "position" of each county expressed as a list of adjacent counties
 \examples{
 
 data(Scotland)
-
-
 }
 \references{
 Clayton and Kaldor (1987) and Breslow and Clayton (1993)

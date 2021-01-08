@@ -8,10 +8,10 @@
  \alias{ar.rpacf}
  \alias{inla.pc.ar.dpacf}
  \alias{ar.dpacf}
- 
+
  \title{Utility functions for the PC prior for a an AR(p) model}
- 
- \description{Functions to evaluate and sample from the 
+
+ \description{Functions to evaluate and sample from the
               PC prior for an AR(p) model}
  \usage{
     inla.pc.ar.rpacf(n=1, p, lambda = 1)

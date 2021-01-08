@@ -26,7 +26,7 @@
       \code{inla.coxph} returns a list of new expanded variables to be used in the \code{inla}-call.
       Note that element \code{data} and \code{data.list} needs to be merged into
       a \code{list} to be passed as the \code{data} argument. See the example for details.
- 
+
       \code{inla.rbind.data.frames} returns the rbinded data.frames padded with NAs.
       There is a better
       implementation in \code{dplyr::bind_rows}, which is used if package \code{dplyr} is
@@ -51,9 +51,9 @@ intercept1 = rep(1, n)
 p = inla.coxph(y.surv ~ -1 + intercept1 + x,
                list(y.surv = y.surv,  x=x, intercept1 = intercept1))
 
-r = inla(p$formula, 
-        family = p$family, 
-        data=c(as.list(p$data), p$data.list), 
+r = inla(p$formula,
+        family = p$family,
+        data=c(as.list(p$data), p$data.list),
         E = p$E)
 summary(r)
 

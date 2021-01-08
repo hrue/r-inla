@@ -87,12 +87,13 @@ Constructs observation/prediction weight matrices for models based on
 }
 \examples{
 
-loc = matrix(runif(10000*2)*1000,10000,2)
-mesh = inla.mesh.2d(loc=loc,
-                    cutoff=50,
-                    max.edge=c(50,500))
-A = inla.spde.make.A(mesh, loc=loc)
-
+loc <- matrix(runif(10000 * 2) * 1000, 10000, 2)
+mesh <- inla.mesh.2d(
+    loc = loc,
+    cutoff = 50,
+    max.edge = c(50, 500)
+)
+A <- inla.spde.make.A(mesh, loc = loc)
 }
 \seealso{
 \code{\link[=inla.spde.make.index]{inla.spde.make.index()}}

@@ -9,12 +9,12 @@
 \title{Improved estimates for the CPO/PIT-values}
 \description{
  Improve the estimates of the  CPO/PIT-values
- be recomputing the model-fit by removing data-points. 
+ be recomputing the model-fit by removing data-points.
 }
 \usage{
 inla.cpo(result,
          force = FALSE,
-         mc.cores = NULL, 
+         mc.cores = NULL,
          verbose = TRUE,
          recompute.mode = TRUE)
 }
@@ -22,7 +22,7 @@ inla.cpo(result,
 \arguments{
 \item{result}{An object of class \code{inla}, ie a result
 of a call to \code{inla()}}
-\item{force}{If TRUE,  then recompute all CPO/PIT values and not just 
+\item{force}{If TRUE,  then recompute all CPO/PIT values and not just
 those with \code{result$cpo$failure > 0}.}
 \item{mc.cores}{The number of cores to use in \code{parallel::mclapply}. If
                 \code{is.null(mc.cores)}, then check \code{getOption("mc.cores")}

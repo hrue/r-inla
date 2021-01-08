@@ -1,44 +1,43 @@
 ## Nothing to Export
 
-`inla.create.data.file` = function(
-        y.orig = NULL,
-        MPredictor = NULL,
-        mf = NULL,
-        scale = NULL,
-        weights = NULL, 
-        E = NULL,
-        Ntrials = NULL,
-        strata = NULL, 
-        event = NULL,
-        family = NULL,
-        data.dir = NULL,
-        file = NULL,
-        debug = FALSE)
-{
-    y.attr = attr(y.orig, "inla.ncols", exact=TRUE)
+`inla.create.data.file` <- function(
+                                    y.orig = NULL,
+                                    MPredictor = NULL,
+                                    mf = NULL,
+                                    scale = NULL,
+                                    weights = NULL,
+                                    E = NULL,
+                                    Ntrials = NULL,
+                                    strata = NULL,
+                                    event = NULL,
+                                    family = NULL,
+                                    data.dir = NULL,
+                                    file = NULL,
+                                    debug = FALSE) {
+    y.attr <- attr(y.orig, "inla.ncols", exact = TRUE)
     if (is.null(y.attr)) {
-        y.attr = 0
+        y.attr <- 0
     }
 
     if (is.null(y.orig)) {
-        y.orig = c(mf[, 1L])
+        y.orig <- c(mf[, 1L])
     } else if (is.inla.surv(y.orig)) {
-        y.orig = as.data.frame(unclass(y.orig))
+        y.orig <- as.data.frame(unclass(y.orig))
     } else if (is.inla.mdata(y.orig)) {
-        y.orig = as.data.frame(unclass(y.orig))
+        y.orig <- as.data.frame(unclass(y.orig))
     } else {
-        y.orig = as.data.frame(y.orig)
+        y.orig <- as.data.frame(y.orig)
     }
-    n.data = dim(y.orig)[1L]
-    ind=seq(0L, n.data-1L)
+    n.data <- dim(y.orig)[1L]
+    ind <- seq(0L, n.data - 1L)
 
     if (debug) {
         cat("inla.create.data.file: n.data = ", n.data, "\n")
     }
-    
+
     if (!is.null(weights) && !is.function(weights)) {
         if (length(weights) == 1L) {
-            weights = rep(weights, n.data)
+            weights <- rep(weights, n.data)
         }
         if (length(weights) != n.data) {
             file.remove(file)
@@ -47,25 +46,27 @@
         }
     }
 
-    if (inla.one.of(family, c("gaussian",
-                              "normal",
-                              "lognormal",
-                              "t",
-                              "sn",
-                              "gev",
-                              "logistic",
-                              "circularnormal",
-                              "wrappedcauchy",
-                              "iidgamma",
-                              "simplex", 
-                              "gamma",
-                              "beta"))) {
-
+    if (inla.one.of(family, c(
+        "gaussian",
+        "normal",
+        "lognormal",
+        "t",
+        "sn",
+        "gev",
+        "logistic",
+        "circularnormal",
+        "wrappedcauchy",
+        "iidgamma",
+        "simplex",
+        "gamma",
+        "beta",
+        "tweedie"
+    ))) {
         if (is.null(scale)) {
-            scale = rep(1.0, n.data)
+            scale <- rep(1.0, n.data)
         }
         if (length(scale) == 1L) {
-            scale = rep(scale, n.data)
+            scale <- rep(scale, n.data)
         }
 
         if (length(scale) != n.data) {
@@ -74,24 +75,22 @@
             stop(paste("Length of scale has to be the same as the length of the response:", length(scale), n.data))
         }
 
-        response = cbind(ind, scale, y.orig)
-        null.dat = is.na(response[, 3L])
-        response = response[!null.dat,]
-
+        response <- cbind(ind, scale, y.orig)
+        null.dat <- is.na(response[, 3L])
+        response <- response[!null.dat, ]
     } else if (inla.one.of(family, c("tstrata"))) {
-
         if (is.null(scale)) {
-            scale = rep(1.0, n.data)
+            scale <- rep(1.0, n.data)
         }
         if (length(scale) == 1L) {
-            scale = rep(scale, n.data)
+            scale <- rep(scale, n.data)
         }
 
         if (is.null(strata)) {
-            strata = rep(1L, n.data)
+            strata <- rep(1L, n.data)
         }
         if (length(strata) == 1L) {
-            strata = rep(strata, n.data)
+            strata <- rep(strata, n.data)
         }
 
         stopifnot(all(!is.na(strata)))
@@ -100,38 +99,41 @@
         if (length(scale) != n.data || length(strata) != n.data) {
             file.remove(file)
             file.remove(data.dir)
-            stop(paste("Length of scale and strata has to be the same as the length of the response:",
-                       length(scale), length(strata), n.data))
+            stop(paste(
+                "Length of scale and strata has to be the same as the length of the response:",
+                length(scale), length(strata), n.data
+            ))
         }
 
         ## strata goes from 0L to nstrata-1L,  therefore subtract 1L.
-        response = cbind(ind, scale, as.integer(strata)-1L, y.orig)
-        null.dat = is.na(response[, 4L])
-        response = response[!null.dat,]
-
-    } else if (inla.one.of(family, c("poisson",
-                                     "cenpoisson", 
-                                     "gammacount",
-                                     "gpoisson", 
-                                     "nbinomial",
-                                     "xpoisson", 
-                                     "zeroinflatedcenpoisson0", 
-                                     "zeroinflatedcenpoisson1", 
-                                     "zeroinflatednbinomial0",
-                                     "zeroinflatednbinomial1",
-                                     "zeroinflatednbinomial2", 
-                                     "zeroinflatedpoisson0",
-                                     "zeroinflatedpoisson1", 
-                                     "zeroinflatedpoisson2",
-                                     "poisson.special1"))) {
+        response <- cbind(ind, scale, as.integer(strata) - 1L, y.orig)
+        null.dat <- is.na(response[, 4L])
+        response <- response[!null.dat, ]
+    } else if (inla.one.of(family, c(
+        "poisson",
+        "cenpoisson",
+        "gammacount",
+        "gpoisson",
+        "nbinomial",
+        "xpoisson",
+        "zeroinflatedcenpoisson0",
+        "zeroinflatedcenpoisson1",
+        "zeroinflatednbinomial0",
+        "zeroinflatednbinomial1",
+        "zeroinflatednbinomial2",
+        "zeroinflatedpoisson0",
+        "zeroinflatedpoisson1",
+        "zeroinflatedpoisson2",
+        "poisson.special1"
+    ))) {
         if (is.null(E)) {
-            E = rep(1.0, n.data)
+            E <- rep(1.0, n.data)
         }
         if (length(E) == 1L) {
-            E = rep(E, n.data)
+            E <- rep(E, n.data)
         }
 
-        response = cbind(ind, E, y.orig)
+        response <- cbind(ind, E, y.orig)
 
         if (length(E) != n.data) {
             file.remove(file)
@@ -139,93 +141,93 @@
             stop(paste("Length of E has to be the same as the length of the response:", length(E), n.data))
         }
 
-        null.dat = is.na(response[, 3L])
-        response = response[!null.dat,]
-
+        null.dat <- is.na(response[, 3L])
+        response <- response[!null.dat, ]
     } else if (inla.one.of(family, c("exponential", "weibull", "loglogistic", "gammajw"))) {
-
-        response = cbind(ind, y.orig)
-        null.dat = is.na(response[, 2L])
-        response = response[!null.dat,]
-
+        response <- cbind(ind, y.orig)
+        null.dat <- is.na(response[, 2L])
+        response <- response[!null.dat, ]
     } else if (inla.one.of(family, c("zeroinflatednbinomial1strata2", "zeroinflatednbinomial1strata3"))) {
-
         if (is.null(E)) {
-            E = rep(1.0, n.data)
+            E <- rep(1.0, n.data)
         }
         if (length(E) == 1L) {
-            E = rep(E, n.data)
+            E <- rep(E, n.data)
         }
 
         if (is.null(strata)) {
-            strata = rep(1L, n.data)
+            strata <- rep(1L, n.data)
         }
         if (length(strata) == 1L) {
-            strata = rep(strata, n.data)
+            strata <- rep(strata, n.data)
         }
 
         stopifnot(all(!is.na(strata)))
         stopifnot(all(strata %in% 1:10))
 
-        response = cbind(ind, E, strata-1L, y.orig)
+        response <- cbind(ind, E, strata - 1L, y.orig)
 
         if (length(E) != n.data) {
             file.remove(file)
             file.remove(data.dir)
-            stop(paste("Length of E has to be the same as the length of the response:",
-                       length(E), n.data))
+            stop(paste(
+                "Length of E has to be the same as the length of the response:",
+                length(E), n.data
+            ))
         }
 
         if (length(strata) != n.data) {
             file.remove(file)
             file.remove(data.dir)
-            stop(paste("Length of strata has to be the same as the length of the response:",
-                       length(strata), n.data))
+            stop(paste(
+                "Length of strata has to be the same as the length of the response:",
+                length(strata), n.data
+            ))
         }
 
-        null.dat = is.na(response[, 4L])
-        response = response[!null.dat,]
-
-    } else if (inla.one.of(family,
-                           c("binomial",
-                             "xbinomial", 
-                             "binomialtest", 
-                             "betabinomial", 
-                             "nbinomial2", 
-                             "zeroinflatedbinomial0",
-                             "zeroinflatedbinomial1",
-                             "zeroinflatedbinomial2",
-                             "zeroninflatedbinomial2",
-                             "zeroninflatedbinomial3",
-                             "zeroinflatedbetabinomial0",
-                             "zeroinflatedbetabinomial1",
-                             "zeroinflatedbetabinomial2"))) {
-
+        null.dat <- is.na(response[, 4L])
+        response <- response[!null.dat, ]
+    } else if (inla.one.of(
+        family,
+        c(
+            "binomial",
+            "xbinomial",
+            "binomialtest",
+            "betabinomial",
+            "nbinomial2",
+            "zeroinflatedbinomial0",
+            "zeroinflatedbinomial1",
+            "zeroinflatedbinomial2",
+            "zeroninflatedbinomial2",
+            "zeroninflatedbinomial3",
+            "zeroinflatedbetabinomial0",
+            "zeroinflatedbetabinomial1",
+            "zeroinflatedbetabinomial2"
+        )
+    )) {
         if (is.null(Ntrials)) {
-            Ntrials = rep(1L, n.data)
+            Ntrials <- rep(1L, n.data)
         }
         if (length(Ntrials) == 1L) {
-            Ntrials = rep(Ntrials, n.data)
+            Ntrials <- rep(Ntrials, n.data)
         }
 
-        response = cbind(ind, Ntrials, y.orig)
-        null.dat = is.na(response[, 3L])
-        response = response[!null.dat,]
-
+        response <- cbind(ind, Ntrials, y.orig)
+        null.dat <- is.na(response[, 3L])
+        response <- response[!null.dat, ]
     } else if (inla.one.of(family, c("betabinomialna"))) {
-
         if (is.null(Ntrials)) {
-            Ntrials = rep(1L, n.data)
+            Ntrials <- rep(1L, n.data)
         }
         if (length(Ntrials) == 1L) {
-            Ntrials = rep(Ntrials, n.data)
+            Ntrials <- rep(Ntrials, n.data)
         }
 
         if (is.null(scale)) {
-            scale = rep(1.0, n.data)
+            scale <- rep(1.0, n.data)
         }
         if (length(scale) == 1L) {
-            scale = rep(scale, n.data)
+            scale <- rep(scale, n.data)
         }
 
         if (length(scale) != n.data) {
@@ -234,24 +236,24 @@
             stop(paste("Length of scale has to be the same as the length of the response:", length(scale), n.data))
         }
 
-        response = cbind(ind, Ntrials, scale, y.orig)
-        null.dat = is.na(response[, 4L])
-        response = response[!null.dat,]
-
+        response <- cbind(ind, Ntrials, scale, y.orig)
+        null.dat <- is.na(response[, 4L])
+        response <- response[!null.dat, ]
     } else if (inla.one.of(family, c("cbinomial"))) {
-
         if (!(is.matrix(Ntrials) && all(dim(Ntrials) == c(n.data, 2)))) {
-            stop(paste("Argument 'Ntrials' for family='cbinomial' must be a", n.data,
-                       "x", 2, "-matrix; see the documentation."))
+            stop(paste(
+                "Argument 'Ntrials' for family='cbinomial' must be a", n.data,
+                "x", 2, "-matrix; see the documentation."
+            ))
         }
-        response = cbind(ind, Ntrials, y.orig)
-        null.dat = is.na(response[, 4L])
-        response = response[!null.dat,]
-
-    } else if (inla.one.of(family, c("exponentialsurv", "weibullsurv", "weibullcure",
-                                     "loglogisticsurv",  "qloglogisticsurv", "lognormalsurv",
-                                     "gammasurv", "gammajwsurv"))) {
-
+        response <- cbind(ind, Ntrials, y.orig)
+        null.dat <- is.na(response[, 4L])
+        response <- response[!null.dat, ]
+    } else if (inla.one.of(family, c(
+        "exponentialsurv", "weibullsurv", "weibullcure",
+        "loglogisticsurv", "qloglogisticsurv", "lognormalsurv",
+        "gammasurv", "gammajwsurv"
+    ))) {
         if (!inla.model.properties(family, "likelihood")$survival) {
             file.remove(file)
             file.remove(data.dir)
@@ -262,86 +264,84 @@
             file.remove(data.dir)
             stop("Responce does not contain variable `time'.")
         }
-        len = length(y.orig$time)
+        len <- length(y.orig$time)
 
         if (is.null(y.orig$truncation)) {
-            y.orig$truncation = rep(0, len)
+            y.orig$truncation <- rep(0, len)
         }
         if (is.null(y.orig$lower)) {
-            y.orig$lower = rep(0, len)
+            y.orig$lower <- rep(0, len)
         }
         if (is.null(y.orig$upper)) {
-            y.orig$upper = rep(Inf, len)
+            y.orig$upper <- rep(Inf, len)
         }
         if (is.null(y.orig$event)) {
-            y.orig$event = rep(1, len)
+            y.orig$event <- rep(1, len)
         }
 
-        idx = !is.na(y.orig$time)
-        response = cbind(ind[idx],
-                         y.orig$event[idx],
-                         y.orig$truncation[idx],
-                         y.orig$lower[idx],
-                         y.orig$upper[idx],
-                         y.orig$time[idx])
+        idx <- !is.na(y.orig$time)
+        response <- cbind(
+            ind[idx],
+            y.orig$event[idx],
+            y.orig$truncation[idx],
+            y.orig$lower[idx],
+            y.orig$upper[idx],
+            y.orig$time[idx]
+        )
         if (any(is.na(response))) {
             file.remove(file)
             file.remove(data.dir)
             stop("NA in truncation/event/lower/upper/time is not allowed")
         }
-
-    } else if (inla.one.of(family, c("stochvol", "stochvolt", "stochvolnig", "loggammafrailty",
-                                     "iidlogitbeta", "qkumar", "qloglogistic", "gp", "dgp", "pom"))) {
-
-        response = cbind(ind, y.orig)
-        null.dat = is.na(response[, 2L])
-        response = response[!null.dat,]
-
+    } else if (inla.one.of(family, c(
+        "stochvol", "stochvolt", "stochvolnig", "loggammafrailty",
+        "iidlogitbeta", "qkumar", "qloglogistic", "gp", "dgp", "pom"
+    ))) {
+        response <- cbind(ind, y.orig)
+        null.dat <- is.na(response[, 2L])
+        response <- response[!null.dat, ]
     } else if (inla.one.of(family, c("nmix", "nmixnb"))) {
-
-        if (inla.one.of(family,  "nmix")) {
-            mmax = length(inla.model.properties(model=family, section="likelihood")$hyper)
+        if (inla.one.of(family, "nmix")) {
+            mmax <- length(inla.model.properties(model = family, section = "likelihood")$hyper)
         } else if (inla.one.of(family, "nmixnb")) {
             ## remove the overdispersion parameter
-            mmax = length(inla.model.properties(model=family, section="likelihood")$hyper) -1
+            mmax <- length(inla.model.properties(model = family, section = "likelihood")$hyper) - 1
         } else {
             stop("This should not happen.")
         }
 
-        response = cbind(IDX=ind, y.orig)
-        col.idx = grep("^IDX$", names(response))
-        col.x = grep("^X[0-9]+", names(response))
-        col.y = grep("^Y[0-9]+", names(response))
-        m.x = length(col.x)
-        m.y = length(col.y)
+        response <- cbind(IDX = ind, y.orig)
+        col.idx <- grep("^IDX$", names(response))
+        col.x <- grep("^X[0-9]+", names(response))
+        col.y <- grep("^Y[0-9]+", names(response))
+        m.x <- length(col.x)
+        m.y <- length(col.y)
         stopifnot(m.x >= 1 && m.x <= mmax)
 
         ## remove entries with NA's in all responses
-        na.y = apply(response[, col.y, drop=FALSE], 1, function(x) all(is.na(x)))
-        response = response[!na.y,, drop=FALSE]
+        na.y <- apply(response[, col.y, drop = FALSE], 1, function(x) all(is.na(x)))
+        response <- response[!na.y, , drop = FALSE]
 
-        X = response[, col.x, drop=FALSE]
-        Y = response[, col.y, drop=FALSE]
-        idx = response[, col.idx, drop=FALSE]
-        yfake = rep(-1, nrow(Y))
+        X <- response[, col.x, drop = FALSE]
+        Y <- response[, col.y, drop = FALSE]
+        idx <- response[, col.idx, drop = FALSE]
+        yfake <- rep(-1, nrow(Y))
 
         ## replace NA's in the covariates with 0's
-        X[is.na(X)] = 0
+        X[is.na(X)] <- 0
         ## augment X til the maximum allowed,  padding with NA's
-        X = cbind(X, matrix(NA, nrow = nrow(response), ncol = mmax -m.x)) 
+        X <- cbind(X, matrix(NA, nrow = nrow(response), ncol = mmax - m.x))
 
         ## sort each row so that the NA's are at the end. Sort numerically the non-NA's as well
         ## although it is not required
-        Y = matrix(c(apply(Y, 1, function(x) c(sort(x[!is.na(x)]), x[is.na(x)]))), ncol = ncol(Y), byrow=TRUE)
-        response = cbind(idx, X, Y, yfake)
-
+        Y <- matrix(c(apply(Y, 1, function(x) c(sort(x[!is.na(x)]), x[is.na(x)]))), ncol = ncol(Y), byrow = TRUE)
+        response <- cbind(idx, X, Y, yfake)
     } else if (inla.one.of(family, c("bgev"))) {
-
         if (is.null(scale)) {
-            scale = rep(1.0, n.data)
+            scale <- rep(1.0, n.data)
         }
         if (length(scale) == 1L) {
-            scale = rep(scale, n.data)
+            scale <- rep(scale, n.data)
         }
 
         if (length(scale) != n.data) {
@@ -350,77 +350,74 @@
             stop(paste("Length of scale has to be the same as the length of the response:", length(scale), n.data))
         }
 
-        mmax = length(inla.model.properties(model=family, section="likelihood")$hyper) -2L
-        response = cbind(IDX=ind, y.orig)
-        col.idx = grep("^IDX$", names(response))
-        col.x = grep("^X[0-9]+", names(response))
-        col.y = grep("^Y[0-9]+", names(response))
-        m.x = length(col.x)
-        m.y = length(col.y)
+        mmax <- length(inla.model.properties(model = family, section = "likelihood")$hyper) - 2L
+        response <- cbind(IDX = ind, y.orig)
+        col.idx <- grep("^IDX$", names(response))
+        col.x <- grep("^X[0-9]+", names(response))
+        col.y <- grep("^Y[0-9]+", names(response))
+        m.x <- length(col.x)
+        m.y <- length(col.y)
 
         ## remove entries with NA's in all responses
-        na.y = apply(response[, col.y, drop=FALSE], 1, function(x) all(is.na(x)))
-        response = response[!na.y,, drop=FALSE]
-        scale = scale[!na.y]
-        
-        X = response[, col.x, drop=FALSE]
-        Y = response[, col.y, drop=FALSE]
-        stopifnot(ncol(Y) == 1)
-        idx = response[, col.idx, drop=FALSE]
-        ## replace NA's in the covariates with 0's
-        X[is.na(X)] = 0
+        na.y <- apply(response[, col.y, drop = FALSE], 1, function(x) all(is.na(x)))
+        response <- response[!na.y, , drop = FALSE]
+        scale <- scale[!na.y]
 
-        response = cbind(idx, scale, X, Y)
+        X <- response[, col.x, drop = FALSE]
+        Y <- response[, col.y, drop = FALSE]
+        stopifnot(ncol(Y) == 1)
+        idx <- response[, col.idx, drop = FALSE]
+        ## replace NA's in the covariates with 0's
+        X[is.na(X)] <- 0
+
+        response <- cbind(idx, scale, X, Y)
         ## fix attr, so the order corresponds to (X, Y) and not (Y, X) as in the inla.mdata() input.
         ## y.attr[1] is number of attributes
         stopifnot(y.attr[1] > 0)
-        if (y.attr[1] == 1) { 
-            y.attr = c(3, y.attr[2], 0, 0)
+        if (y.attr[1] == 1) {
+            y.attr <- c(3, y.attr[2], 0, 0)
         } else if (y.attr[1] == 2) {
-            y.attr = c(3, y.attr[2], y.attr[3], 0)
+            y.attr <- c(3, y.attr[2], y.attr[3], 0)
         } else if (y.attr[1] == 3) {
-            y.attr = c(3, y.attr[2], y.attr[3], y.attr[4])
+            y.attr <- c(3, y.attr[2], y.attr[3], y.attr[4])
         }
-        y.attr = c(y.attr[1], y.attr[-c(1, 2)], y.attr[2])
-
+        y.attr <- c(y.attr[1], y.attr[-c(1, 2)], y.attr[2])
     } else {
-
         file.remove(file)
         file.remove(data.dir)
         stop(paste("Family", family, ", not recognised in 'create.data.file.R'"))
-
     }
 
-    file.data = inla.tempfile(tmpdir=data.dir)
+    file.data <- inla.tempfile(tmpdir = data.dir)
     if (inla.getOption("internal.binary.mode")) {
-        inla.write.fmesher.file(as.matrix(response), filename = file.data, debug=debug)
+        inla.write.fmesher.file(as.matrix(response), filename = file.data, debug = debug)
     } else {
         file.create(file.data)
-        write(t(response), ncolumns=ncol(response), file=file.data, append=FALSE)
+        write(t(response), ncolumns = ncol(response), file = file.data, append = FALSE)
     }
-    file.data = gsub(data.dir, "$inladatadir", file.data, fixed=TRUE)
+    file.data <- gsub(data.dir, "$inladatadir", file.data, fixed = TRUE)
 
-    file.weights = inla.tempfile(tmpdir=data.dir)
+    file.weights <- inla.tempfile(tmpdir = data.dir)
     if (!is.null(weights) && !is.function(weights)) {
         if (inla.getOption("internal.binary.mode")) {
-            inla.write.fmesher.file(as.matrix(weights), filename = file.weights, debug=debug)
+            inla.write.fmesher.file(as.matrix(weights), filename = file.weights, debug = debug)
         } else {
             file.create(file.weights)
-            write(weights, ncolumns = 1, file=file.weights, append=FALSE)
+            write(weights, ncolumns = 1, file = file.weights, append = FALSE)
         }
     } else {
         file.create(file.weights)
     }
-    file.weights = gsub(data.dir, "$inladatadir", file.weights, fixed=TRUE)
+    file.weights <- gsub(data.dir, "$inladatadir", file.weights, fixed = TRUE)
 
-    file.attr = inla.tempfile(tmpdir=data.dir)
+    file.attr <- inla.tempfile(tmpdir = data.dir)
     if (inla.getOption("internal.binary.mode")) {
-        inla.write.fmesher.file(as.matrix(y.attr, ncol=1), filename = file.attr, debug=debug)
+        inla.write.fmesher.file(as.matrix(y.attr, ncol = 1), filename = file.attr, debug = debug)
     } else {
         file.create(file.attr)
-        write(y.attr, ncolumns=1, file=file.attr, append=FALSE)
+        write(y.attr, ncolumns = 1, file = file.attr, append = FALSE)
     }
-    file.attr = gsub(data.dir, "$inladatadir", file.attr, fixed=TRUE)
+    file.attr <- gsub(data.dir, "$inladatadir", file.attr, fixed = TRUE)
 
     return(list(file.data = file.data, file.weights = file.weights, file.attr = file.attr))
 }

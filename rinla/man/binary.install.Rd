@@ -11,12 +11,12 @@
  }
  \usage{
     inla.binary.install(debug = TRUE)
- } 
+ }
  \arguments{
     \item{debug}{Logical. Turn on debugging messages if \code{TRUE}}
  }
  \details{
- \code{inla.binary.install()} will offer a menu of alternative 
+ \code{inla.binary.install()} will offer a menu of alternative
  (Linux) binary builds to be installed. Currently offered,  are builds
  for Ubuntu, CentOS, Manjaro (Arch Linux) and Fedora
  }

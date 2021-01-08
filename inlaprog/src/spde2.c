@@ -47,12 +47,16 @@ extern G_tp G;						       /* import some global parametes from inla */
 
 double inla_spde2_Qfunction(int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_spde2_tp *model = (inla_spde2_tp *) arg;
-	double value, phi_i[3], phi_j[3], d_i[3], d_j[3];
+	double value;
+	double phi_i[3] = { 0.0, 0.0, 0.0 };
+	double phi_j[3] = { 0.0, 0.0, 0.0 };
+	double d_i[3] = { 0.0, 0.0, 0.0 };
+	double d_j[3] = { 0.0, 0.0, 0.0 };
 	int k, kk;
 
 	/*

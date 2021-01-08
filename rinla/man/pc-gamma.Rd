@@ -13,9 +13,9 @@
  \alias{inla.pc.pgamma}
  \alias{pc.qgamma}
  \alias{inla.pc.qgamma}
- 
+
  \title{Utility functions for the PC prior for \code{Gamma(1/a, 1/a)}}
- 
+
  \description{Functions to evaluate, sample, compute quantiles and
               percentiles of the PC prior for \code{Gamma(1/a, 1/a)}}
  \usage{
@@ -34,7 +34,7 @@
  }
  \details{
  This gives the PC prior for the \code{Gamma(1/a, 1/a)} case,  where \code{a=0} is the
- base model. 
+ base model.
  }
 \value{%%
   \code{inla.pc.dgamma} gives the density,

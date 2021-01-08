@@ -63,7 +63,7 @@ inla.vector2matrix(a.vector, nrow, ncol)
   lattice indices and nodes. \code{inla.matrix2vector} provide the
   mapped vector from a matrix, and \code{inla.vector2matrix} provide the
   inverse mapped matrix from vector.}
-  
+
 %%
 
 \author{Havard Rue \email{hrue@r-inla.org}}
@@ -111,6 +111,6 @@ print(z.vector)
 
 ## the vector2matrix is the inverse, and should give us the z-matrix
 ## back. matrix(z.vector, nrow, ncol) could also be used here.
-z.matrix = inla.vector2matrix(z.vector, nrow, ncol) 
+z.matrix = inla.vector2matrix(z.vector, nrow, ncol)
 print(z.matrix)
 }

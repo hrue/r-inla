@@ -1,71 +1,68 @@
 ## Export: inla.pc.ddof
 
-##! \name{pc.ddof}
-##! \alias{pc.ddof}
-##! \alias{inla.pc.ddof}
-##! \alias{pc.t}
-##! \alias{pc.dof}
-##! \alias{inla.pc.t}
-##! \alias{inla.pc.dof}
-##!
-##! \title{PC-prior for dof in a standarized Student-t}
-##! 
-##! \description{A function to evaluate the PC-prior for the degrees of freedom
-##!              in a standarized Student-t distribution}
-##! \usage{
-##!     inla.pc.ddof(dof, lambda, u, alpha, log=FALSE)
-##! }
-##! \arguments{
-##!   \item{dof}{Degrees of freedom}
-##!   \item{log}{Logical. Return the density or the log-density}
-##!   \item{lambda}{The optional value of \code{lambda},  instead of defining it implicitely
-##!                 through \code{u} and \code{alpha}}
-##!   \item{u}{The upper value of dof used to elicitate \code{lambda},  \code{Prob(dof < u) = alpha}}
-##!   \item{alpha}{The probability \code{alpha} used to elicitate \code{lambda}}
-##!}
-##! \details{
-##!   These functions implements the PC-prior for the dof in a standarized Student-t
-##!   distribution (ie. with unit variance and \code{dof} > 2).
-##!   Either \code{lambda}, or \code{u} AND \code{alpha} must be given.
-##!   Due the internal tabulation, \code{dof} must be larger than 2.0025.
-##! }
-##! \value{%%
-##!     \code{inla.pc.ddof} returns the prior density for given \code{dof}.
-##! }
-##! \author{Havard Rue \email{hrue@r-inla.org}}
-##! \examples{
-##! }
+## ! \name{pc.ddof}
+## ! \alias{pc.ddof}
+## ! \alias{inla.pc.ddof}
+## ! \alias{pc.t}
+## ! \alias{pc.dof}
+## ! \alias{inla.pc.t}
+## ! \alias{inla.pc.dof}
+## !
+## ! \title{PC-prior for dof in a standarized Student-t}
+## !
+## ! \description{A function to evaluate the PC-prior for the degrees of freedom
+## !              in a standarized Student-t distribution}
+## ! \usage{
+## !     inla.pc.ddof(dof, lambda, u, alpha, log=FALSE)
+## ! }
+## ! \arguments{
+## !   \item{dof}{Degrees of freedom}
+## !   \item{log}{Logical. Return the density or the log-density}
+## !   \item{lambda}{The optional value of \code{lambda},  instead of defining it implicitely
+## !                 through \code{u} and \code{alpha}}
+## !   \item{u}{The upper value of dof used to elicitate \code{lambda},  \code{Prob(dof < u) = alpha}}
+## !   \item{alpha}{The probability \code{alpha} used to elicitate \code{lambda}}
+## !}
+## ! \details{
+## !   These functions implements the PC-prior for the dof in a standarized Student-t
+## !   distribution (ie. with unit variance and \code{dof} > 2).
+## !   Either \code{lambda}, or \code{u} AND \code{alpha} must be given.
+## !   Due the internal tabulation, \code{dof} must be larger than 2.0025.
+## ! }
+## ! \value{%%
+## !     \code{inla.pc.ddof} returns the prior density for given \code{dof}.
+## ! }
+## ! \author{Havard Rue \email{hrue@r-inla.org}}
+## ! \examples{
+## ! }
 
 
-`inla.pc.ddof` = function(dof, lambda, u, alpha, log=FALSE)
-{
-    func.name.in.env = "inla.pc.t.dof.func"
-    dof.lim = 9.0
-    dof.min = 2.0025
+`inla.pc.ddof` <- function(dof, lambda, u, alpha, log = FALSE) {
+    func.name.in.env <- "inla.pc.t.dof.func"
+    dof.lim <- 9.0
+    dof.min <- 2.0025
 
-    pc.dof.kld.approx = function (dof)
-    {
-        t1 = dof * dof
-        t4 = t1 * dof
-        t7 = t1 * t1
-        t10 = t7 * dof
-        t13 = t7 * t1
-        t16 = t7 * t4
-        t19 = t7 * t7
-        t43 = t19 * t19
-        t61 = 0.7500000000000000e0 / t1 + 0.1500000000000000e1 / t4 + 0.2125000000000000e1 / t7 + 0.2900000000000000e1 / t10
-        + 0.5083333333333333e1 / t13 + 0.1035714285714286e2 / t16 + 0.1706250000000000e2 / t19
-        + 0.1983333333333333e2 / t19 / dof + 0.4345000000000000e2 / t19 / t1 + 0.1873181818181818e3 / t19 / t4
-        + 0.2570416666666667e3 / t19 / t7 - 0.1155192307692308e4 / t19 / t10 - 0.7801071428571429e3 / t19 / t13
-        + 0.3207790000000000e5 / t19 / t16 + 0.3109703125000000e5 / t43 - 0.8438102058823529e6 / t43 / dof
-        - 0.7932909722222222e6 / t43 / t1 + 0.2921518928947368e8 / t43 / t4 + 0.2776753702500000e8 / t43 / t7
+    pc.dof.kld.approx <- function(dof) {
+        t1 <- dof * dof
+        t4 <- t1 * dof
+        t7 <- t1 * t1
+        t10 <- t7 * dof
+        t13 <- t7 * t1
+        t16 <- t7 * t4
+        t19 <- t7 * t7
+        t43 <- t19 * t19
+        t61 <- 0.7500000000000000e0 / t1 + 0.1500000000000000e1 / t4 + 0.2125000000000000e1 / t7 + 0.2900000000000000e1 / t10
+        +0.5083333333333333e1 / t13 + 0.1035714285714286e2 / t16 + 0.1706250000000000e2 / t19
+        +0.1983333333333333e2 / t19 / dof + 0.4345000000000000e2 / t19 / t1 + 0.1873181818181818e3 / t19 / t4
+        +0.2570416666666667e3 / t19 / t7 - 0.1155192307692308e4 / t19 / t10 - 0.7801071428571429e3 / t19 / t13
+        +0.3207790000000000e5 / t19 / t16 + 0.3109703125000000e5 / t43 - 0.8438102058823529e6 / t43 / dof
+        -0.7932909722222222e6 / t43 / t1 + 0.2921518928947368e8 / t43 / t4 + 0.2776753702500000e8 / t43 / t7
 
-        return (t61)
+        return(t61)
     }
 
-    pc.dof.create.spline = function()
-    {
-        xx = c(
+    pc.dof.create.spline <- function() {
+        xx <- c(
             2.002478752000,
             2.002480761000,
             2.002482771000,
@@ -10065,9 +10062,10 @@
             10.146348230000,
             10.152950110000,
             10.159557330000,
-            10.166169910000)
+            10.166169910000
+        )
 
-        yy = c(
+        yy <- c(
             2.318956313000,
             2.318561288000,
             2.318166270000,
@@ -20067,39 +20065,43 @@
             0.008954469105,
             0.008941566541,
             0.008928681425,
-            0.008915813738)
-        
-	sfun = splinefun(xx, yy, method = "monoH.FC")
+            0.008915813738
+        )
+
+        sfun <- splinefun(xx, yy, method = "monoH.FC")
         assign(func.name.in.env, sfun, envir = inla.get.inlaEnv())
-	return (invisible())
+        return(invisible())
     }
 
-    pc.dof.dist = function(dof, deriv = FALSE)
-    {
+    pc.dof.dist <- function(dof, deriv = FALSE) {
         ## if 'deriv', then evaluate all 'dof' using the same approximation. in this case, dof
         ## are known to be close.
-        n = length(dof)
-        kld = numeric(n)
+        n <- length(dof)
+        kld <- numeric(n)
 
         if (!deriv) {
-            idx = which(dof >= dof.lim)
+            idx <- which(dof >= dof.lim)
             if (length(idx) > 0) {
-                kld[idx] = pc.dof.kld.approx(dof[idx])
+                kld[idx] <- pc.dof.kld.approx(dof[idx])
             }
-            idx = which(dof < dof.lim)
+            idx <- which(dof < dof.lim)
             if (length(idx) > 0) {
-                kld[idx] = (do.call(func.name.in.env, args = list(x = dof[idx]),
-                                    envir = inla.get.inlaEnv()))
+                kld[idx] <- (do.call(func.name.in.env,
+                    args = list(x = dof[idx]),
+                    envir = inla.get.inlaEnv()
+                ))
             }
         } else {
             if (all(dof < dof.lim)) {
-                kld = (do.call(func.name.in.env, args = list(x = dof),
-                               envir = inla.get.inlaEnv()))
+                kld <- (do.call(func.name.in.env,
+                    args = list(x = dof),
+                    envir = inla.get.inlaEnv()
+                ))
             } else {
-                kld = pc.dof.kld.approx(dof)
+                kld <- pc.dof.kld.approx(dof)
             }
         }
-	return (sqrt(2.0 * kld))
+        return(sqrt(2.0 * kld))
     }
 
     if (!exists(func.name.in.env, envir = inla.get.inlaEnv())) {
@@ -20108,28 +20110,28 @@
     if (missing(lambda)) {
         stopifnot(!(missing(u) && missing(alpha)))
         stopifnot(u > 2.0 && (alpha > 0 && alpha < 1))
-        lambda = -log(alpha) / pc.dof.dist(u)
+        lambda <- -log(alpha) / pc.dof.dist(u)
     } else {
         stopifnot(!(missing(lambda)))
         stopifnot(lambda > 0.0)
     }
 
     stopifnot(all(dof > dof.min))
-    d = pc.dof.dist(dof)
+    d <- pc.dof.dist(dof)
 
-    wf = c( 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 )
-    jac = c()
-    for(df in dof) {
-        step = sqrt(df) * 1e-3
+    wf <- c(1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0)
+    jac <- c()
+    for (df in dof) {
+        step <- sqrt(df) * 1e-3
         if (df - 2.0 * step < dof.min) {
-            step = (df - dof.min) / 2.0
+            step <- (df - dof.min) / 2.0
         }
-        dfs = df + (-2):2 * step 
-        dd = pc.dof.dist(dfs, deriv=TRUE)
-        val = sum(dd * wf) / step
-        jac = c(jac, abs(val))
+        dfs <- df + (-2):2 * step
+        dd <- pc.dof.dist(dfs, deriv = TRUE)
+        val <- sum(dd * wf) / step
+        jac <- c(jac, abs(val))
     }
- 
-    val = dexp(d, rate = lambda, log = TRUE) + log(jac)
-    return (if (log) val else exp(val))
+
+    val <- dexp(d, rate = lambda, log = TRUE) + log(jac)
+    return(if (log) val else exp(val))
 }

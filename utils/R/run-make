@@ -27,7 +27,7 @@ done
 if [ -n "$IP" ]; then
     export INLA_LINUX=hrue@$IP
     export INLA_LINUX_PORT=22
-    yes yes | ssh hrue@$IP echo Testing connection
+    yes yes | ssh -x hrue@$IP echo Testing connection
 fi
 
 output () {

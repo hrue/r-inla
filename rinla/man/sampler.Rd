@@ -24,7 +24,7 @@ inla.hyperpar.sample(n, result, intern=FALSE, improve.marginals = FALSE)
         samples in the user-scale. (For example log-precision (intern)
         and precision (user-scale))}
   \item{improve.marginals}{Logical. If \code{TRUE}, then improve the samples taking into account
-        possible better marginal estimates for the hyperparameters in \code{result}.} 
+        possible better marginal estimates for the hyperparameters in \code{result}.}
 }
 
 \value{%%

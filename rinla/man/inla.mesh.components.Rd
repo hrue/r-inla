@@ -26,10 +26,10 @@ connected by edges.
 \examples{
 
 # Construct two simple meshes:
-loc <- matrix(c(0,1,0,1), 2, 2)
-mesh1 <- inla.mesh.2d(loc = loc, max.edge=0.1)
+loc <- matrix(c(0, 1, 0, 1), 2, 2)
+mesh1 <- inla.mesh.2d(loc = loc, max.edge = 0.1)
 bnd <- inla.nonconvex.hull(loc, 0.3)
-mesh2 <- inla.mesh.2d(boundary = bnd, max.edge=0.1)
+mesh2 <- inla.mesh.2d(boundary = bnd, max.edge = 0.1)
 
 # Compute connectivity information:
 conn1 <- inla.mesh.components(mesh1)
@@ -41,11 +41,12 @@ conn2$info
 
 # Extract the subset mesh for the largest component:
 # (Note: some information is lost, such as fixed segments,
-#  and boundary edge labels.)
+# and boundary edge labels.)
 maxi <- conn2$info$component[which.max(conn2$info$area)]
-mesh3 <- inla.mesh.create(loc = mesh2$loc,
-                          tv = mesh2$graph$tv[conn2$triangle == maxi,,drop=FALSE])
-
+mesh3 <- inla.mesh.create(
+    loc = mesh2$loc,
+    tv = mesh2$graph$tv[conn2$triangle == maxi, , drop = FALSE]
+)
 }
 \seealso{
 \code{\link[=inla.mesh.2d]{inla.mesh.2d()}}, \code{\link[=inla.mesh.create]{inla.mesh.create()}}

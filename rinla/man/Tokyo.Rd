@@ -21,8 +21,6 @@ Recorded days of rain above 1 mm in Tokyo for 2 years, 1983:84
 \examples{
 
 data(Tokyo)
-
-
 }
 \references{
 Rue, H and Held, L. (2005) \emph{Gaussian Markov Random Fields -

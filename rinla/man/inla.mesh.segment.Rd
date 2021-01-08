@@ -82,21 +82,21 @@ boundary and interior constraint edges in calls to \code{\link[=inla.mesh]{inla.
 \examples{
 
 ## Create a square boundary and a diagonal interior segment
-loc.bnd = matrix(c(0,0, 1,0, 1,1, 0,1), 4, 2, byrow=TRUE)
-loc.int = matrix(c(0.9,0.1, 0.1,0.6), 2, 2, byrow=TRUE)
-segm.bnd = inla.mesh.segment(loc.bnd)
-segm.int = inla.mesh.segment(loc.int, is.bnd=FALSE)
+loc.bnd <- matrix(c(0, 0, 1, 0, 1, 1, 0, 1), 4, 2, byrow = TRUE)
+loc.int <- matrix(c(0.9, 0.1, 0.1, 0.6), 2, 2, byrow = TRUE)
+segm.bnd <- inla.mesh.segment(loc.bnd)
+segm.int <- inla.mesh.segment(loc.int, is.bnd = FALSE)
 
 ## Points to be meshed
-loc = matrix(runif(10*2),10,2)*0.9+0.05
-mesh = inla.mesh.create(loc,
-                        boundary=segm.bnd,
-                        interior=segm.int,
-                        refine=list())
+loc <- matrix(runif(10 * 2), 10, 2) * 0.9 + 0.05
+mesh <- inla.mesh.create(loc,
+    boundary = segm.bnd,
+    interior = segm.int,
+    refine = list()
+)
 plot(mesh)
-
 \dontrun{
-mesh = inla.mesh.create(loc, interior=list(segm.bnd, segm.int))
+mesh <- inla.mesh.create(loc, interior = list(segm.bnd, segm.int))
 plot(mesh)
 }
 

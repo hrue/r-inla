@@ -37,7 +37,7 @@ inla.qnuke()
 \details{
 \code{inla.qstat} show job(s) on the server,
 \code{inla.qget} fetch the results (and by default remove
-the files on the server),  \code{inla.qdel} removes 
+the files on the server),  \code{inla.qdel} removes
 a job on the server and \code{inla.qnuke} remove all jobs on the server.
 \code{inla.qlog} fetches the logfile only.
 

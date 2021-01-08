@@ -31,6 +31,5 @@ This the Leukemia data from Henderson et al (2003); see source.
 \examples{
 
 data(Leuk)
-
 }
 \keyword{datasets}

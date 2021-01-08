@@ -34,29 +34,32 @@ Construct a lattice grid for \code{\link[=inla.mesh]{inla.mesh()}}
 }
 \examples{
 
-lattice = inla.mesh.lattice(seq(0, 1, length.out=17), seq(0, 1, length.out=10))
+lattice <- inla.mesh.lattice(seq(0, 1, length.out = 17), seq(0, 1, length.out = 10))
 
 ## Use the lattice "as-is", without refinement:
-mesh = inla.mesh.create(lattice=lattice, boundary=lattice$segm)
-mesh = inla.mesh.create(lattice=lattice, extend=FALSE)
+mesh <- inla.mesh.create(lattice = lattice, boundary = lattice$segm)
+mesh <- inla.mesh.create(lattice = lattice, extend = FALSE)
 plot(mesh)
 
 ## Refine the triangulation, with limits on triangle angles and edges:
-mesh = inla.mesh.create(lattice=lattice,
-                        refine=list(max.edge=0.08),
-                        extend=FALSE)
+mesh <- inla.mesh.create(
+    lattice = lattice,
+    refine = list(max.edge = 0.08),
+    extend = FALSE
+)
 plot(mesh)
 
 ## Add an extension around the lattice, but maintain the lattice edges:
-mesh = inla.mesh.create(lattice=lattice,
-                        refine=list(max.edge=0.08),
-                        interior=lattice$segm)
+mesh <- inla.mesh.create(
+    lattice = lattice,
+    refine = list(max.edge = 0.08),
+    interior = lattice$segm
+)
 plot(mesh)
 
 ## Only add extension:
-mesh = inla.mesh.create(lattice=lattice, refine=list(max.edge=0.08))
+mesh <- inla.mesh.create(lattice = lattice, refine = list(max.edge = 0.08))
 plot(mesh)
-
 }
 \seealso{
 \code{\link[=inla.mesh]{inla.mesh()}}

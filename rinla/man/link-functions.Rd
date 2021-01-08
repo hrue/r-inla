@@ -31,9 +31,9 @@
  \alias{inla.link.invrobit}
  \alias{inla.link.sn}
  \alias{inla.link.invsn}
- 
+
  \title{Link functions in INLA}
- 
+
  \description{Define link-functions and its inverse}
 
  \usage{
@@ -64,7 +64,7 @@
  inla.link.invalid(x, inverse=FALSE)
  inla.link.invinvalid(x, inverse=FALSE)
  }
- 
+
  \arguments{
      \item{x}{The argument. A numeric vector.}
      \item{df}{The degrees of freedom for the Student-t}
@@ -76,9 +76,9 @@
      \item{a}{The \code{a}-paraeter in the Skew-Normal.
               Not both of \code{skew} and \code{a} can be given.}
 }
- 
+
  \value{Return the values of the link-function or its inverse.}
- \note{The \code{inv}-functions are redundant,  as 
+ \note{The \code{inv}-functions are redundant,  as
        \code{inla.link.invlog(x) = inla.link.log(x, inverse=TRUE)}
        and so on,  but they are simpler to use a arguments
        to other functions.}

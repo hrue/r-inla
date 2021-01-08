@@ -13,9 +13,9 @@
  \alias{inla.pc.pgevtail}
  \alias{pc.qgevtail}
  \alias{inla.pc.qgevtail}
- 
+
  \title{Utility functions for the PC prior for the \code{tail} parameter in the GEV likelihood}
- 
+
  \description{Functions to evaluate, sample, compute quantiles and
               percentiles of the PC prior for the \code{tail} parameter
               in the GEV likelihood}
@@ -35,7 +35,7 @@
  }
  \details{
  This gives the PC prior for the \code{tail} parameter for the GEV likelihood,
- where \code{xi=0} is the base model. 
+ where \code{xi=0} is the base model.
  }
 \value{%%
   \code{inla.pc.dgevtail} gives the density,

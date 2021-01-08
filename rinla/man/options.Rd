@@ -7,46 +7,46 @@
  \alias{inla.options}
  \alias{inla.setOption}
  \alias{inla.getOption}
- 
+
  \title{Set and get global options for INLA}
- 
+
  \description{Set and get global options for INLA}
  \usage{
  inla.setOption(...)
  inla.getOption(option)
  }
- 
+
  \arguments{
- 
+
    \item{...}{Option and value,  like \code{option=value} or \code{option, value}; see the Examples}
    \item{option}{The option to get. If \code{option = NULL} then
      \code{inla.getOption} then \code{inla.getOption} will return a named list of
      current values, otherwise, \code{option} must be one of
- 
+
      inla.call: The path to the inla-program.
- 
+
      inla.arg: Additional arguments to \code{inla.call}
- 
+
      fmesher.call: The path to the fmesher-program
 
      fmesher.arg: Additional arguments to \code{fmesher.call}
-     
+
      num.threads: Character string with the number of threads to use as \code{A:B}
 
      blas.num.threads: Number of threads to use for openblas and mklblas (see \code{inla} for details)
-     
+
      smtp: Sparse matrix library to use,  one of \code{band}, \code{taucs} (\code{default}) or \code{pardiso}
 
      mkl: Use binaries buildt with Intel MKL?  (If possible)
 
      pardiso.license: The full path to the PARDISO license file
-     
+
      keep: Keep temporary files?
- 
+
      working.directory: The name of the working directory.
 
      silent: Run the inla-program in a silent mode?
- 
+
      debug : Run the inla-program in a debug mode?
 
      internal.binary.mode : if \code{FALSE} the (some) output are in ascii format instead of binary format.
@@ -55,21 +55,21 @@
      internal.experimental.mode :  Expert option
 
      cygwin : The home of the Cygwin installation (default "C:/cygwin") [Remote computing for Windows only]
- 
+
      ssh.auth.sock: The ssh bind-adress (value of $SSH_AUTH_SOCK int the
      Cygwin-shell). [Remote computing for Windows only]
 
-     enable.inla.argument.weights : if \code{TRUE} the \code{inla} accepts argument \code{weights} 
+     enable.inla.argument.weights : if \code{TRUE} the \code{inla} accepts argument \code{weights}
 
      show.warning.graph.file : Give a warning for using the obsolete argument
-                               \code{graph.file} instead of \code{graph} 
+                               \code{graph.file} instead of \code{graph}
 
      scale.model.default : The default value of argument \code{scale.model} which
                            optionally scale intrinisic models to have generalized
-                           unit average variance 
-     
+                           unit average variance
+
      short.summary : Use a less verbose output for \code{summary}. Useful for Markdown
-                     documents. 
+                     documents.
 
      fmesher.timeout : The timeout limit, in whole seconds, for calls to the
        fmesher binary. Default is 0, meaning no timeout limit.  Set to a
@@ -78,9 +78,9 @@
        rounded up to the nearest integer.
    }
  }
- 
+
  \author{Havard Rue \email{hrue@r-inla.org}}
- 
+
  \examples{
  ## set number of threads
  inla.setOption("num.threads", "4:1")

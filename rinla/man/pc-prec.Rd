@@ -13,9 +13,9 @@
  \alias{inla.pc.pprec}
  \alias{pc.qprec}
  \alias{inla.pc.qprec}
- 
+
  \title{Utility functions for the PC prior for the precision}
- 
+
  \description{Functions to evaluate, sample, compute quantiles and
               percentiles of the PC prior for the precision
               in the Gaussian distribution.}

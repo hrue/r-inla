@@ -16,24 +16,24 @@ control.group(adjust.for.con.comp, cyclic, fixed, graph, hyper, initial, model, 
 }
 \arguments{
 \item{...}{Possible arguments}
-\item{model}{  Group model (one of 'exchangable', 'exchangablepos', 'ar1', 'ar', 'rw1', 'rw2', 'besag', or 'iid')}
-\item{order}{  Defines the \code{order} of the model: for model \code{ar} this defines the order p, in AR(p). Not used for other models at the time being.}
-\item{cyclic}{  Make the group model cyclic? (Only applies to models 'ar1', 'rw1' and 'rw2')}
-\item{graph}{  The graph spesification (Only applies to model 'besag')}
-\item{scale.model}{  Scale the intrinsic model (RW1, RW2, BESAG) so the generalized variance is 1. (Default \code{TRUE})}
-\item{adjust.for.con.comp}{  Adjust for connected components when \code{scale.model=TRUE}? (default \code{TRUE})}
-\item{hyper}{  Definition of the hyperparameter(s)}
-\item{initial}{  (OBSOLETE!) The initial value for the group correlation or precision in the internal scale.}
-\item{fixed}{  (OBSOLETE!) A boolean variable if the group correction or precision is assumed to be fixed or random.}
-\item{prior}{  (OBSOLETE!) The name of the prior distribution for the group correlation or precision in the internal scale}
-\item{param}{  (OBSOLETE!) Prior parameters}
+\item{model}{   Group model (one of 'exchangable', 'exchangablepos', 'ar1', 'ar', 'rw1', 'rw2', 'besag', or 'iid')}
+\item{order}{   Defines the \code{order} of the model: for model \code{ar} this defines the order p, in AR(p). Not used for other models at the time being.}
+\item{cyclic}{   Make the group model cyclic? (Only applies to models 'ar1', 'rw1' and 'rw2')}
+\item{graph}{   The graph spesification (Only applies to model 'besag')}
+\item{scale.model}{   Scale the intrinsic model (RW1, RW2, BESAG) so the generalized variance is 1. (Default \code{TRUE})}
+\item{adjust.for.con.comp}{   Adjust for connected components when \code{scale.model=TRUE}? (default \code{TRUE})}
+\item{hyper}{   Definition of the hyperparameter(s)}
+\item{initial}{   (OBSOLETE!) The initial value for the group correlation or precision in the internal scale.}
+\item{fixed}{   (OBSOLETE!) A boolean variable if the group correction or precision is assumed to be fixed or random.}
+\item{prior}{   (OBSOLETE!) The name of the prior distribution for the group correlation or precision in the internal scale}
+\item{param}{   (OBSOLETE!) Prior parameters}
 }
 \value{
- 
+  
 The function \code{control.group} is used to TAB-complete arguments and returns a list of given arguments.
 The function \code{inla.set.control.group.default} returns a list with all the default values of all parameters within this control statement.
 }
 \seealso{
-\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
+\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.pardiso.default}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
 \code{\link{inla}}
 }

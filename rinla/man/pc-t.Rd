@@ -11,7 +11,7 @@
  \alias{inla.pc.dof}
 
  \title{PC-prior for dof in a standarized Student-t}
- 
+
  \description{A function to evaluate the PC-prior for the degrees of freedom
               in a standarized Student-t distribution}
  \usage{

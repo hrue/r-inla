@@ -16,17 +16,17 @@ control.expert(cpo.idx, cpo.manual, disable.gaussian.check, jp)
 }
 \arguments{
 \item{...}{Possible arguments}
-\item{cpo.manual}{  A boolean variable to decide if the inla-program is to be runned in a manual-cpo-mode. (EXPERT OPTION: DO NOT USE)}
-\item{cpo.idx}{  The index/indices of the data point(s) to remove. (EXPERT OPTION: DO NOT USE)}
-\item{disable.gaussian.check}{  Disable the check for fast computations with a Gaussian likelihood and identity link (default \code{FALSE})}
-\item{jp}{  An object of class \code{inla.jp} defining a joint prior}
+\item{cpo.manual}{   A boolean variable to decide if the inla-program is to be runned in a manual-cpo-mode. (EXPERT OPTION: DO NOT USE)}
+\item{cpo.idx}{   The index/indices of the data point(s) to remove. (EXPERT OPTION: DO NOT USE)}
+\item{disable.gaussian.check}{   Disable the check for fast computations with a Gaussian likelihood and identity link (default \code{FALSE})}
+\item{jp}{   An object of class \code{inla.jp} defining a joint prior}
 }
 \value{
- 
+  
 The function \code{control.expert} is used to TAB-complete arguments and returns a list of given arguments.
 The function \code{inla.set.control.expert.default} returns a list with all the default values of all parameters within this control statement.
 }
 \seealso{
-\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
+\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.pardiso.default}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
 \code{\link{inla}}
 }

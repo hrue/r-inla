@@ -19,7 +19,7 @@ This function provides a more human-friendly output of \code{result$all.hyper}
 of all the priors used for the hyperparameters.
 Since not all information about the model is encoded in this object, more hyperparameters
 than actually used, may be printed. In particular, \code{group.theta1} is printed
-even though the argument \code{group} in \code{f()} is not used. Similarly for spde-models, 
+even though the argument \code{group} in \code{f()} is not used. Similarly for spde-models,
 but the user should know that, for example, only the two first ones
 are actually used.
 Hopefully, this issue will be fixed in the future.

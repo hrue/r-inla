@@ -7,7 +7,7 @@
 \alias{list.models}
 \title{List available model components, likelihoods,  priors,  etc}
 \description{
-    List available model components, likelihoods,  priors,  etc. 
+    List available model components, likelihoods,  priors,  etc.
     To read specific documentation for the individual elements, use \code{\link{inla.doc}}.
 }
 \usage{
@@ -26,7 +26,7 @@
 \value{
    Nothing is returned
 }
-\author{Havard Rue} 
+\author{Havard Rue}
 \examples{
 \dontrun{
 inla.list.models("likelihood")

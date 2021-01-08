@@ -22,7 +22,7 @@ inla.ssh.copy.id()
 \value{%%
  \code{inla.remote} is used once to setup the remote host information
  file (definition file) in the users home directory; see the FAQ entry on this
- issue for more information. 
+ issue for more information.
  \code{inla.ssh.copy.id} will return the path to the internal script to transfer ssh-keys.
 }
 \author{Havard Rue \email{hrue@r-inla.org}}

@@ -15,7 +15,7 @@
 \usage{
 inla.idx(idx, n = max(idx),
          group = rep(1, length(idx)), ngroup = max(group),
-         replicate = rep(1, length(idx)),  nrep = max(replicate)) 
+         replicate = rep(1, length(idx)),  nrep = max(replicate))
 }
 
 \arguments{

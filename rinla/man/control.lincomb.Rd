@@ -16,15 +16,15 @@ control.lincomb(precision, verbose)
 }
 \arguments{
 \item{...}{Possible arguments}
-\item{precision}{  The precision for the artificial tiny noise. Default 1e09.}
-\item{verbose}{  Use verbose mode for linear combinations if verbose model is set globally. (Default TRUE)}
+\item{precision}{   The precision for the artificial tiny noise. Default 1e09.}
+\item{verbose}{   Use verbose mode for linear combinations if verbose model is set globally. (Default TRUE)}
 }
 \value{
- 
+  
 The function \code{control.lincomb} is used to TAB-complete arguments and returns a list of given arguments.
 The function \code{inla.set.control.lincomb.default} returns a list with all the default values of all parameters within this control statement.
 }
 \seealso{
-\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
+\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.pardiso.default}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
 \code{\link{inla}}
 }

@@ -21,7 +21,5 @@ to a 2 by 2 factorial layout by seed and type of root extract
 \examples{
 
 data(Seeds)
-
-
 }
 \keyword{datasets}

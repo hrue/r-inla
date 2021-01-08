@@ -26,17 +26,21 @@ Query information about an inla.mesh object.
 }
 \examples{
 
-loc = matrix(c(0.1,0.15),1,2)
-lattice = inla.mesh.lattice(dims=c(10,10))
-mesh = inla.mesh.create(loc=loc, lattice=lattice, extend=FALSE)
+loc <- matrix(c(0.1, 0.15), 1, 2)
+lattice <- inla.mesh.lattice(dims = c(10, 10))
+mesh <- inla.mesh.create(loc = loc, lattice = lattice, extend = FALSE)
 
-vt = which(inla.mesh.query(mesh,
-                           vt.neighbours=list(mesh$idx$loc,
-                                              4:6))$vt.neighbours)
+vt <- which(inla.mesh.query(mesh,
+    vt.neighbours = list(
+        mesh$idx$loc,
+        4:6
+    )
+)$vt.neighbours)
 
-mesh2 = inla.mesh.create(mesh$loc, tv=mesh$graph$tv[vt,,drop=FALSE],
-                         refine=FALSE, extend=FALSE)
-
+mesh2 <- inla.mesh.create(mesh$loc,
+    tv = mesh$graph$tv[vt, , drop = FALSE],
+    refine = FALSE, extend = FALSE
+)
 }
 \seealso{
 \code{\link[=inla.mesh.create]{inla.mesh.create()}}, \code{\link[=inla.mesh.segment]{inla.mesh.segment()}},

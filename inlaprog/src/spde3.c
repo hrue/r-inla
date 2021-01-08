@@ -212,12 +212,16 @@ int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const ch
 }
 double inla_spde3_Qfunction(int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	inla_spde3_tp *model = (inla_spde3_tp *) arg;
-	double value, phi_i[3], phi_j[3], d_i[3], d_j[3];
+	double value;
+	double phi_i[3] = { 0.0, 0.0, 0.0 };
+	double phi_j[3] = { 0.0, 0.0, 0.0 };
+	double d_i[3] = { 0.0, 0.0, 0.0 };
+	double d_j[3] = { 0.0, 0.0, 0.0 };
 	int k, kk, use_store = 1, debug = 0;
 
 	/*
@@ -333,7 +337,7 @@ double inla_spde3_Qfunction(int i, int j, double *UNUSED(values), void *arg)
 	}
 
 	if (model->M[3]) {
-		int id; 
+		int id;
 
 		GMRFLib_CACHE_SET_ID(id);
 		if (use_store) {
