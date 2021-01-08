@@ -9227,7 +9227,7 @@ inla.models()
 						\item{Hyperparameter `theta1'}{
 							 \describe{
 							\item{hyperid = }{`102101'}
-							\item{name = }{`prob'}
+							\item{name = }{`p'}
 							\item{short.name = }{`p'}
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
@@ -9242,7 +9242,7 @@ inla.models()
 							\item{hyperid = }{`102201'}
 							\item{name = }{`dispersion'}
 							\item{short.name = }{`phi'}
-							\item{initial = }{`4'}
+							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 0.1'}

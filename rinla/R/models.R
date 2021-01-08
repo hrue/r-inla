@@ -7781,7 +7781,7 @@
                     hyper = list(
                         theta1 = list(
                             hyperid = 102101,
-                            name = "prob",
+                            name = "p",
                             short.name = "p",
                             initial = 0,
                             fixed = FALSE,
@@ -7794,7 +7794,7 @@
                             hyperid = 102201,
                             name = "dispersion",
                             short.name = "phi",
-                            initial = 4,
+                            initial = 0,
                             fixed = FALSE,
                             prior = "loggamma",
                             param = c(1, 0.1),

@@ -91,7 +91,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 	double cc, j, w, sum_ww = 0.0, ww_max = 0.0;
 
 	int use_interpolation = 1, nterms, k, i, one = 1, k_low = -1, reuse = 0;
-	int debug = 1, show_stat = 0;
+	int debug = 0, show_stat = 0;
 
 	if (cache.nterms < 0) {
 		if (debug) {
