@@ -55,25 +55,16 @@ static const char GitID[] = GITCOMMIT;
 #define TWEEDIE_MAX_IDX 16384
 
 /**
- * Compute the log density for the tweedie compound Poisson distribution.
- * This is based on the dtweedie.series function in R, but bounds
- * are not determined using all observations because this could result in 
- * dramatically slower computation in certain circumstances. 
- *
- * @param n the number of observations
- * @param y the observation
- * @param mu the vector of means
- * @param phi scalar: the dispersion parameter
- * @param p scalar: the index parameter
- * @param ldens the vector that stores the computed log density
+ * n the number of observations
+ * y the observation
+ * mu the vector of means
+ * phi scalar: the dispersion parameter
+ * p scalar: the index parameter
+ * ldens the vector that stores the computed log density
  */
 
 void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 {
-	// nice simplifications are possible since only 'mu' depends on '[i]' and the rest of the parameters are constants
-
-	// make further simplifications assuming jl=idx_low=1.
-
 	static struct {
 		int nterms;
 		double save_phi;
@@ -101,7 +92,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 		cache.work = Calloc(2 * TWEEDIE_MAX_IDX, double);
 		cache.wwork = cache.work + TWEEDIE_MAX_IDX;
 	}
-	// fast return
+
 	if (ISZERO(y)) {
 		for (int i = 0; i < n; i++) {
 			ldens[i] = -pow(mu[i], p2) / (phi * p2);
@@ -118,7 +109,6 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 	logz = -a * log(y) - a1 * log(phi) + cc;
 	logz_no_y = -a1 * log(phi) + cc;
 
-	// locate upper bound 
 	cc = logz + a1 + a * log(-a);
 	j = jmax;
 	w = a1 * j;
@@ -131,7 +121,6 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 	cache_nterms += nterms;
 
 	if (!(p == cache.save_p && phi == cache.save_phi)) {
-		// if the params have changed, we have to update from the beginning.
 		reuse = 0;
 		k_low = 0;
 		cache_count[0]++;
@@ -158,27 +147,22 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 			for (k = k_low; k < nterms; k++) {
 				j = k + one;
 				cache.wwork[k] = j * logz_no_y - inla_lgamma_fast(1.0 + j) - inla_lgamma_fast(-a * j);
-				//assert(!ISNAN(cache.wwork[k]) && !ISINF(cache.wwork[k]));
 			}
 		} else {
 			for (k = k_low; k < nterms + 1; k += 2) {
 				j = k + one;
 				cache.wwork[k] = j * logz_no_y - inla_lgamma_fast(1.0 + j) - inla_lgamma_fast(-a * j);
-				//assert(!ISNAN(cache.wwork[k]) && !ISINF(cache.wwork[k]));
 
 				if (k > 0) {
 					double estimate = 0.5 * (cache.wwork[k] + cache.wwork[k - 2]);
 					double correction = (1.0 - a) * (1.0 / j + 1.0 / SQR(j));
 					double limit = 0.05;
 					if (ABS(correction) > limit) {
-						// correction term to large: skip interpolation
 						double jj = j - 1.0;
 						cache.wwork[k - 1] = jj * logz_no_y - inla_lgamma_fast(1.0 + jj) - inla_lgamma_fast(-a * jj);
 					} else {
-						// correction term small: do interpolation
 						cache.wwork[k - 1] = estimate + correction;
 					}
-					//assert(!ISNAN(cache.wwork[k - 1]) && !ISINF(cache.wwork[k - 1]));
 				}
 			}
 		}
@@ -186,9 +170,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 		cache.save_phi = phi;
 		cache.nterms = nterms;
 	}
-	// assume every 'y' is potential different, but the parameters changes just once in a while
 	double term = -a * log(y);			       // the y-term we have removed from 'logz'
-
 	double lim = -20.72326584;			       // log(1.0e-9)
 	int idx_max = -1;
 
