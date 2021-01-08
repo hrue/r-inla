@@ -27,6 +27,19 @@
   }
 }
 
+\section{CHANGES IN VERSION 21.01.08}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New family \code{tweedie}
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Optimization work, code improvement and maintenance
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 20.12.10}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
