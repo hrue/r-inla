@@ -88,7 +88,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 	double jmax, logz, logz_stripped;
 
 	int use_interpolation = 1, nterms, k, i, j, one = 1, k_low = -1, reuse = 0;
-	int verbose = 0, show_stat = 0;
+	int verbose = 1, show_stat = 0;
 
 	if (cache.nterms < 0) {
 		if (verbose) {
@@ -98,8 +98,8 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 		cache.work = Calloc(2 * TWEEDIE_MAX_IDX, double);
 		cache.wwork = cache.work + TWEEDIE_MAX_IDX;
 		cache.lgammas = Calloc(TWEEDIE_MAX_IDX, double);
-		for(i = 0; i < TWEEDIE_MAX_IDX; i++) {
-			cache.lgammas[i] = my_gsl_sf_lngamma(1.0 + i); /* factorials for integers */
+		for (i = 0; i < TWEEDIE_MAX_IDX; i++) {
+			cache.lgammas[i] = my_gsl_sf_lngamma(1.0 + i);	/* factorials for integers */
 		}
 	}
 
@@ -117,36 +117,29 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 	logz = -a * ly - a1 * log(phi) + cc;
 	logz_stripped = cc;
 
-	if (0) {
-		cc = logz + a1 + a * log(-a);
-		w = a1 * jmax;
-		while (1) {
-			jmax *= TWEEDIE_INCRE;
-			if (jmax * (cc - a1 * log(jmax)) < (w - TWEEDIE_DROP))
-				break;
-		}
-	} else {
-		cc = logz + a1 + a * log(-a);
-		w = a1 * jmax;
-		double ljmax = log(jmax), jmax_add = log((double) TWEEDIE_INCRE);
-		while (1) {
-			jmax *= TWEEDIE_INCRE;
-			ljmax += jmax_add;
-			if (jmax * (cc - a1 * ljmax) < (w - TWEEDIE_DROP))
-				break;
-		}
+	cc = logz + a1 + a * log(-a);
+	w = a1 * jmax;
+	double ljmax = log(jmax);
+	double ljmax_add = log((double) TWEEDIE_INCRE);
+	while (1) {
+		jmax *= TWEEDIE_INCRE;
+		ljmax += ljmax_add;
+		if (jmax * (cc - a1 * ljmax) < (w - TWEEDIE_DROP))
+			break;
 	}
-	
-	nterms = IMIN(TWEEDIE_MAX_IDX, ceil(jmax));
+
+	nterms = IMIN(TWEEDIE_MAX_IDX, (int) ceil(jmax));
 	if (nterms == TWEEDIE_MAX_IDX) {
-		fprintf(stderr, "\ndtweedie: considering increasing TWEEDIE_MAX_IDX or scale your data!\n");
+		fprintf(stderr, "\ndtweedie: Reached upper limit. Increase TWEEDIE_MAX_IDX or scale your data!\n");
 	}
+#pragma omp atomic
 	sum_nterms += nterms;
 
 	if (!(p == cache.save_p)) {
 		reuse = 0;
 		cache.interpolation_ok = 0;		       /* yes, we need to start again */
 		k_low = 0;
+#pragma omp atomic
 		cache_count[0]++;
 		show_stat = 1;
 	} else {
@@ -155,6 +148,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 			nterms = IMIN(TWEEDIE_MAX_IDX, nterms);
 			reuse = 0;
 			k_low = cache.nterms;
+#pragma omp atomic
 			cache_count[1]++;
 			if (verbose) {
 				printf("\tdtweedie: increase cache from %d to %d\n", cache.nterms, nterms);
@@ -162,6 +156,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 		} else {
 			// this is the case where we are fine and can reuse what we have
 			reuse = 1;
+#pragma omp atomic
 			cache_count[2]++;
 		}
 	}
@@ -176,12 +171,12 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 		} else {
 			// correction term has expansion c[0]/j + c[1]/j^2 + c[2]/j^3 + c[3]/j^4
 			double coofs[] = {
-				0.5 - 0.5 * a, 
-				0.5 - 0.5 * a, 
-				-(1.0 + (-8.0 + 7.0 * a) * a) / (12.0 * a), 
+				0.5 - 0.5 * a,
+				0.5 - 0.5 * a,
+				-(1.0 + (-8.0 + 7.0 * a) * a) / (12.0 * a),
 				-(1.0 + (-4.0 + 3.0 * a) * a) / (4.0 * a)
 			};
-				
+
 			for (k = k_low; k < nterms + 1; k += 2) {
 				j = k + one;
 				cache.wwork[k] = j * logz_stripped - cache.lgammas[j] - LGAMMA_FAST(-a * j);
@@ -193,7 +188,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 						// so, we use interpolation for all j' > j (for this cache). any time the cache is
 						// rebuilt, then we start over again
 						double estimate = 0.5 * (cache.wwork[k] + cache.wwork[k - 2]);
-						double inv_j = 1.0/(double) j;
+						double inv_j = 1.0 / (double) j;
 						double correction = inv_j * (coofs[0] + inv_j * (coofs[1] + inv_j * (coofs[2] + inv_j * coofs[3])));
 						double limit = 1.0e-5;
 
@@ -202,7 +197,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 						} else {
 							int jj = j - 1.0;
 							cache.wwork[k - 1] = jj * logz_stripped - cache.lgammas[jj] - LGAMMA_FAST(-a * jj);
-							if (ABS(cache.wwork[k - 1] - (estimate + correction)) <  limit) {
+							if (ABS(cache.wwork[k - 1] - (estimate + correction)) < limit) {
 								// from here on, we can safely use interpolation
 								cache.interpolation_ok = 1;
 								if (verbose) {
@@ -220,7 +215,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 		cache.save_p = p;
 		cache.nterms = nterms;
 	}
-	double term_removed = -a * ly -a1 * log(phi);      // the terms we have removed from 'logz'
+	double term_removed = -a * ly - a1 * log(phi);	       // the terms we have removed from 'logz'
 	double lim = -20.72326584;			       // log(1.0e-9)
 	int idx_max = -1;
 
@@ -261,8 +256,11 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 		static size_t count = 0;
 		size_t ntot = cache_count[0] + cache_count[1] + cache_count[2];
 
+#pragma omp atomic
 		count++;
+
 		if (show_stat) {
+#pragma omp critical
 			printf("\tdtweedie: ntimes=%zu rebuild=%.3f%%  adjust=%.3f%% reuse=%.3f%% mean.nterms=%1d\n",
 			       ntot,
 			       100.0 * (double) cache_count[0] / (double) ntot,
