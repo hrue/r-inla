@@ -50,7 +50,7 @@ static const char GitID[] = GITCOMMIT;
 // <actuary_zhang@hotmail.com>, to tailor it to the INLA use.
 
 #define TWEEDIE_DROP 40.0
-#define TWEEDIE_INCRE 2
+#define TWEEDIE_INCRE 4
 #define TWEEDIE_NTERMS_ADD 8
 #define TWEEDIE_MAX_IDX 16384
 
@@ -67,25 +67,24 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 {
 	static struct {
 		int nterms;
-		double save_phi;
 		double save_p;
 		double *work;
 		double *wwork;
-	} cache = { -1, -9999.9999, -9999.9999, NULL, NULL };
+	} cache = { -1, -9999.9999, NULL, NULL };
 #pragma omp threadprivate(cache)
 
 	static size_t cache_count[] = { 0, 0, 0 };
-	static double cache_nterms = 0.0;
+	static double sum_nterms = 0.0;
 
 	double p1 = p - 1.0, p2 = 2.0 - p;
 	double a = -p2 / p1, a1 = 1.0 / p1;
 	double cc, j, w, sum_ww = 0.0, ww_max = 0.0;
 
 	int use_interpolation = 1, nterms, k, i, one = 1, k_low = -1, reuse = 0;
-	int debug = 0, show_stat = 0;
+	int verbose = 1, show_stat = 0;
 
 	if (cache.nterms < 0) {
-		if (debug) {
+		if (verbose) {
 			printf("\tdtweedie: initialize cache. use_interpolation= %1d\n", use_interpolation);
 		}
 		cache.nterms = 0;
@@ -102,12 +101,12 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 
 
 	int jmax;
-	double logz, logz_no_y;
+	double logz, logz_stripped;
 
 	cc = a * log(p1) - log(p2);
 	jmax = DMAX(1.0, pow(y, p2) / (phi * p2));
 	logz = -a * log(y) - a1 * log(phi) + cc;
-	logz_no_y = -a1 * log(phi) + cc;
+	logz_stripped = cc;
 
 	cc = logz + a1 + a * log(-a);
 	j = jmax;
@@ -118,9 +117,9 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 			break;
 	}
 	nterms = IMIN(TWEEDIE_MAX_IDX, ceil(j));
-	cache_nterms += nterms;
+	sum_nterms += nterms;
 
-	if (!(p == cache.save_p && phi == cache.save_phi)) {
+	if (!(p == cache.save_p)) {
 		reuse = 0;
 		k_low = 0;
 		cache_count[0]++;
@@ -132,7 +131,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 			reuse = 0;
 			k_low = cache.nterms;
 			cache_count[1]++;
-			if (0 && debug) {
+			if (0 && verbose) {
 				printf("\tdtweedie: increase cache from %d to %d\n", cache.nterms, nterms);
 			}
 		} else {
@@ -146,12 +145,12 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 		if (!use_interpolation) {
 			for (k = k_low; k < nterms; k++) {
 				j = k + one;
-				cache.wwork[k] = j * logz_no_y - inla_lgamma_fast(1.0 + j) - inla_lgamma_fast(-a * j);
+				cache.wwork[k] = j * logz_stripped - inla_lgamma_fast(1.0 + j) - inla_lgamma_fast(-a * j);
 			}
 		} else {
 			for (k = k_low; k < nterms + 1; k += 2) {
 				j = k + one;
-				cache.wwork[k] = j * logz_no_y - inla_lgamma_fast(1.0 + j) - inla_lgamma_fast(-a * j);
+				cache.wwork[k] = j * logz_stripped - inla_lgamma_fast(1.0 + j) - inla_lgamma_fast(-a * j);
 
 				if (k > 0) {
 					double estimate = 0.5 * (cache.wwork[k] + cache.wwork[k - 2]);
@@ -159,7 +158,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 					double limit = 0.05;
 					if (ABS(correction) > limit) {
 						double jj = j - 1.0;
-						cache.wwork[k - 1] = jj * logz_no_y - inla_lgamma_fast(1.0 + jj) - inla_lgamma_fast(-a * jj);
+						cache.wwork[k - 1] = jj * logz_stripped - inla_lgamma_fast(1.0 + jj) - inla_lgamma_fast(-a * jj);
 					} else {
 						cache.wwork[k - 1] = estimate + correction;
 					}
@@ -167,18 +166,17 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 			}
 		}
 		cache.save_p = p;
-		cache.save_phi = phi;
 		cache.nterms = nterms;
 	}
-	double term = -a * log(y);			       // the y-term we have removed from 'logz'
+	double term_removed = -a * log(y) -a1 * log(phi);      // the terms we have removed from 'logz'
 	double lim = -20.72326584;			       // log(1.0e-9)
 	int idx_max = -1;
 
 	sum_ww = 0.0;
-	ww_max = cache.wwork[0] + one * term;
+	ww_max = cache.wwork[0] + one * term_removed;
 	for (k = 0; k < nterms; k++) {
 		j = k + one;
-		cache.work[k] = cache.wwork[k] + term * j;
+		cache.work[k] = cache.wwork[k] + term_removed * j;
 		if (cache.work[k] > ww_max) {
 			ww_max = cache.work[k];
 			idx_max = k;
@@ -206,17 +204,17 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 		ldens[i] = -pow(mu[i], p2) / (phi * p2) - y / (phi * p1 * pow(mu[i], p1)) - log(y) + log(sum_ww) + ww_max;
 	}
 
-	if (debug) {
+	if (verbose) {
 		static size_t count = 0;
 		size_t ntot = cache_count[0] + cache_count[1] + cache_count[2];
 
 		count++;
 		if (show_stat) {
-			printf("\tdtweedie: n=%zu rebuild=%.2f%%  adjust=%.2f%% reuse=%.2f%% nterms=%1d\n",
+			printf("\tdtweedie: ntimes=%zu rebuild=%.3f%%  adjust=%.3f%% reuse=%.3f%% mean.nterms=%1d\n",
 			       ntot,
 			       100.0 * (double) cache_count[0] / (double) ntot,
 			       100.0 * (double) cache_count[1] / (double) ntot,
-			       100.0 * (double) cache_count[2] / (double) ntot, (int) (cache_nterms / (double) count));
+			       100.0 * (double) cache_count[2] / (double) ntot, (int) (sum_nterms / (double) count));
 		}
 	}
 

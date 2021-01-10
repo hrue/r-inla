@@ -34427,6 +34427,24 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 53: 
+	{
+		double mu = 17.986;
+		double phi = 1.717755;
+		double p = 1.476;
+		double ldens;
+		int iy;
+				
+		for(iy = 10; iy < 100; iy += 10) {
+			double pphi = phi/iy;
+			double y = (double) iy;
+			dtweedie(1, y, &mu, pphi, p, &ldens);
+			printf("LDENS %f %f %f\n", y, pphi, ldens);
+		}
+
+		break;
+	}
+
 	// this will give some more error messages, if any
 	case 999:
 	{
