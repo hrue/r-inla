@@ -450,6 +450,12 @@ typedef struct {
 	double **tweedie_phi_intern;
 	double *tweedie_w;
 
+	/*
+	 * fmri 
+	 */
+	double **fmri_lprec;
+	double **fmri_ldof;
+	double *fmri_scale;
 } Data_tp;
 
 typedef struct {
@@ -553,6 +559,8 @@ typedef enum {
 	L_GAMMAJW,
 	L_GAMMAJWSURV,
 	L_TWEEDIE, 
+	L_FMRI, 
+	L_FMRISURV, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1492,6 +1500,7 @@ GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRF
 GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n);
 char *inla_create_hyperid(int id, const char *secname);
 char *inla_make_tag(const char *string, int ds);
+char *inla_make_tag2(const char *string, int ds, const char *estr);
 const char *inla_string_join(const char *a, const char *b);
 double Qfunc_2diid(int i, int j, double *values, void *arg);
 double Qfunc_2diid_wishart(int i, int j, double *values, void *arg);
@@ -1820,6 +1829,8 @@ int loglikelihood_contpoisson(double *logll, double *x, int m, int idx, double *
 int loglikelihood_dgp(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_exp(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_expsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_fmri(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_fmrisurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gammajw(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gammasurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

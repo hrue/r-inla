@@ -836,3 +836,13 @@ r-inla.org/doc/likelihood/tweedie.fls
 r-inla.org/doc/likelihood/tweedie.log
 
 r-inla.org/doc/likelihood/tweedie.synctex.gz
+
+r-inla.org/doc/likelihood/fmri.aux
+
+r-inla.org/doc/likelihood/fmri.log
+
+r-inla.org/doc/likelihood/fmri.synctex.gz
+
+*.fdb_latexmk
+
+*.fls

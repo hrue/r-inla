@@ -7807,6 +7807,76 @@
                     discrete = FALSE,
                     link = c("default", "log"),
                     pdf = "tweedie"
+                ),
+
+                fmri = list(
+                    doc = "fmri distribution (special nc-chi)",
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 103101,
+                            name = "precision",
+                            short.name = "prec",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "loggamma",
+                            param = c(10, 10),
+                            to.theta = function(x) log(x)
+                            from.theta = function(x) exp(x)
+                        ),
+                        theta2 = list(
+                            ## this parameter is ment to be fixed. this is why the identity
+                            ## mapping is used. an error is thown if fixed=FALSE is set.
+                            hyperid = 103202,
+                            name = "dof",
+                            short.name = "df",
+                            initial = 4,
+                            fixed = TRUE,
+                            prior = "normal",
+                            param = c(0, 1),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        )
+                    ),
+                    status = "experimental", 
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "log"),
+                    pdf = "fmri"
+                ), 
+
+                fmrisurvival = list(
+                    doc = "fmri distribution (special nc-chi, survival version)",
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 104101,
+                            name = "precision",
+                            short.name = "prec",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "loggamma",
+                            param = c(10, 10),
+                            to.theta = function(x) log(x)
+                            from.theta = function(x) exp(x)
+                        ),
+                        theta2 = list(
+                            ## this parameter is ment to be fixed. this is why the identity
+                            ## mapping is used. an error is thown if fixed=FALSE is set.
+                            hyperid = 104201,
+                            name = "dof",
+                            short.name = "df",
+                            initial = 4,
+                            fixed = TRUE,
+                            prior = "normal",
+                            param = c(0, 1),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        )
+                    ),
+                    status = "experimental", 
+                    survival = TRUE,
+                    discrete = FALSE,
+                    link = c("default", "log"),
+                    pdf = "fmri"
                 )
             )
     )
