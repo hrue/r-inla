@@ -1,0 +1,37 @@
+%% DO NOT EDIT!
+%% This file is generated automatically from models.R
+\begin{description}
+	\item[doc] fmri distribution (special nc-chi)
+	\item[hyper]\ 
+	 \begin{description}
+	 	\item[theta1]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 104101
+	 	 	\item[name] precision
+	 	 	\item[short.name] prec
+	 	 	\item[initial] 0
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] loggamma
+	 	 	\item[param] 10 10
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
+	 	 \end{description}
+	 	\item[theta2]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 104201
+	 	 	\item[name] dof
+	 	 	\item[short.name] df
+	 	 	\item[initial] 4
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] normal
+	 	 	\item[param] 0 1
+	 	 	\item[to.theta] \verb!function(x) x!
+	 	 	\item[from.theta] \verb!function(x) x!
+	 	 \end{description}
+	 \end{description}
+	\item[status] experimental
+	\item[survival] TRUE
+	\item[discrete] FALSE
+	\item[link] default log
+	\item[pdf] fmri
+\end{description}

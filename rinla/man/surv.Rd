@@ -27,15 +27,13 @@ as.inla.surv(object, ...)
 
 \arguments{
   \item{time}{For right censored data, this is the follow up time.  For
-    interval data, this is the starting time for the interval. For in-interval event,  this is
-    the observed time to event. }
+    interval data, this is the starting time for the interval. For in-interval event, this is
+    the observed time (in the interval) for the event. For left censored data, this the
+    censoring time. }
   \item{event}{The status indicator, 1=observed event, 0=right censored
     event, 2=left censored event, 3=interval censored event,
-    and 4=observed event in an interval (left, right).
-    Although
-    unusual, the event indicator can be omitted, in which case all
-    subjects are assumed to have an event.}
-  \item{time2}{Ending time for the interval censured data or an in-interval event.}
+    and 4=observed event in an interval (left, right).}
+  \item{time2}{Ending time for the interval censored data or an in-interval event.}
   \item{truncation}{Left truncation. If missing it is assumed to be 0. The lower limit for event=4.}
   \item{subject}{Patient number in multiple event data, not needed otherwise. }
   \item{object}{Any \code{R}-object}

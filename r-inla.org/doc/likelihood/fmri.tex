@@ -1,0 +1,81 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Likelihood \textbf{fmri}}
+
+\subsection*{Parametrisation}
+
+This is special parameterisation of the non-central $\chi_\nu$
+distribution. Let $\{x_i\}$ are iid Gaussians with mean $\mu$ and
+precision $\tau$, then
+\begin{displaymath}
+    z = \sqrt{\sum_{i=1}^{\nu} \tau x_i^{2}}
+\end{displaymath}
+is non-central $\chi$-distribution with (integer and fixed by design) $\nu>0$ degrees of
+freedom, and non-centrality parameter
+\begin{displaymath}
+    \rho = \sqrt{\nu \tau \mu^{2}}.
+\end{displaymath}
+The observation $y$ is $y=z/\sqrt{\tau}$
+and we're interested in the underlying true signal
+\begin{displaymath}
+    \lambda=\rho/\sqrt{\tau} = \sqrt{\nu\mu^{2}}
+\end{displaymath}
+
+\subsection*{Link-function}
+
+The linkfunction is given as 
+\begin{displaymath}
+    \log(\lambda) =  \eta
+\end{displaymath}
+where $\eta$  is the linear predictor.
+
+\subsection*{Hyperparameters}
+
+The hyperparameters are ${\theta}=(\theta_1,\theta_2)$, where
+\begin{displaymath}
+    \tau = \exp(\theta_1)
+\end{displaymath}
+is the precision, and
+\begin{displaymath}
+    \nu = \theta_2
+\end{displaymath}
+For technical reasons, $\nu$ is implemented as a hyper-parameter, but
+is required to be fixed. Hence, the initial value for $\theta_2$
+defines the (fixed) value for $\nu$.
+
+The prior is given on $\theta_1$.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{fmri}$ or $\text{family}=\texttt{fmrisurv}$
+\item Required arguments: $y$ (and optional \texttt{scale} for
+    \texttt{fmri} to scale $\tau$)
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/fmri.tex}
+\input{../hyper/likelihood/fmrisurv.tex}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example.
+\verbatiminput{example-fmri.R}
+
+\subsection*{Notes}
+
+This distribution is experimental, and changes will occur.
+
+\end{document}
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

@@ -60,8 +60,8 @@
         "simplex",
         "gamma",
         "beta",
-        "tweedie"
-    ))) {
+        "tweedie",
+        "fmri"))) {
         if (is.null(scale)) {
             scale <- rep(1.0, n.data)
         }
@@ -124,8 +124,7 @@
         "zeroinflatedpoisson0",
         "zeroinflatedpoisson1",
         "zeroinflatedpoisson2",
-        "poisson.special1"
-    ))) {
+        "poisson.special1"))) {
         if (is.null(E)) {
             E <- rep(1.0, n.data)
         }
@@ -252,8 +251,7 @@
     } else if (inla.one.of(family, c(
         "exponentialsurv", "weibullsurv", "weibullcure",
         "loglogisticsurv", "qloglogisticsurv", "lognormalsurv",
-        "gammasurv", "gammajwsurv"
-    ))) {
+        "gammasurv", "gammajwsurv", "fmrisurv"))) {
         if (!inla.model.properties(family, "likelihood")$survival) {
             file.remove(file)
             file.remove(data.dir)
@@ -295,8 +293,7 @@
         }
     } else if (inla.one.of(family, c(
         "stochvol", "stochvolt", "stochvolnig", "loggammafrailty",
-        "iidlogitbeta", "qkumar", "qloglogistic", "gp", "dgp", "pom"
-    ))) {
+        "iidlogitbeta", "qkumar", "qloglogistic", "gp", "dgp", "pom"))) {
         response <- cbind(ind, y.orig)
         null.dat <- is.na(response[, 2L])
         response <- response[!null.dat, ]
