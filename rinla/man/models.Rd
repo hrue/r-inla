@@ -9338,7 +9338,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
-								\item{doc = }{`fmri distribution (special nc-chi, survival version)'}
+								\item{doc = }{`fmri distribution (special nc-chi)'}
 								\item{status = }{`experimental'}
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}

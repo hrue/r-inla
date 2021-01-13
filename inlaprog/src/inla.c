@@ -9011,11 +9011,12 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 	upper = ds->data_observations.upper[idx];
 
 	if (m > 0) {
+		// by default, all these are set to zero due to Calloc
 		double *work = Calloc(4 * m, double);
 		double *log_dens = &work[0], *prob_lower = &work[m], *prob_upper = &work[2 * m], *prob_truncation = &work[3 * m];
 
+		for(i = 0; i < m; i++) prob_upper[i] = 1.0;    /* this is upper=INF */
 		if (!ISZERO(truncation)) {
-			// no need to consider the case truncation = 0 as prob_truncation is already set to zero using Calloc
 			loglfun(prob_truncation, x, -m, idx, x_vec, &truncation, arg);
 		}
 
@@ -9028,50 +9029,30 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 			break;
 
 		case SURV_EVENT_RIGHT:
-			if (ISZERO(lower)) {
-				for(i = 0; i < m; i++) {
-					prob_lower[i] = 0.0;
-				}
-			} else {
+			if (!ISZERO(lower)) {
 				loglfun(prob_lower, x, -m, idx, x_vec, &lower, arg);
 			}
-
 			for (i = 0; i < m; i++) {
 				logll[i] = log(1.0 - ((prob_lower[i] - prob_truncation[i]) / (1.0 - prob_truncation[i])));
 			}
 			break;
 
 		case SURV_EVENT_LEFT:
-			if (ISINF(upper)) {
-				for(i = 0; i < m; i++) {
-					prob_upper[i] = 1.0;
-				}
-			} else {
+			if (!ISINF(upper)) {
 				loglfun(prob_upper, x, -m, idx, x_vec, &upper, arg);
 			}
-
 			for (i = 0; i < m; i++) {
 				logll[i] = log(((prob_upper[i] - prob_truncation[i]) / (1.0 - prob_truncation[i])));
 			}
 			break;
 
 		case SURV_EVENT_INTERVAL:
-			if (ISZERO(lower)) {
-				for(i = 0; i < m; i++) {
-					prob_lower[i] = 0.0;
-				}
-			} else {
+			if (!ISZERO(lower)) {
 				loglfun(prob_lower, x, -m, idx, x_vec, &lower, arg);
 			}
-
-			if (ISINF(upper)) {
-				for(i = 0; i < m; i++) {
-					prob_upper[i] = 1.0;
-				}
-			} else {
+			if (!ISINF(upper)) {
 				loglfun(prob_upper, x, -m, idx, x_vec, &upper, arg);
 			}
-
 			for (i = 0; i < m; i++) {
 				logll[i] = log(((prob_upper[i] - prob_truncation[i]) / (1.0 - prob_truncation[i]))
 					       - ((prob_lower[i] - prob_truncation[i]) / (1.0 - prob_truncation[i])));
@@ -9079,22 +9060,12 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 			break;
 
 		case SURV_EVENT_ININTERVAL:
-			if (ISZERO(lower)) {
-				for(i = 0; i < m; i++) {
-					prob_lower[i] = 0.0;
-				}
-			} else {
+			if (!ISZERO(lower)) {
 				loglfun(prob_lower, x, -m, idx, x_vec, &lower, arg);
 			}
-
-			if (ISINF(upper)) {
-				for(i = 0; i < m; i++) {
-					prob_upper[i] = 1.0;
-				}
-			} else {
+			if (!ISINF(upper)) {
 				loglfun(prob_upper, x, -m, idx, x_vec, &upper, arg);
 			}
-
 			loglfun(log_dens, x, m, idx, x_vec, NULL, arg);
 			for (i = 0; i < m; i++) {
 				logll[i] = log_dens[i] - log(prob_upper[i] - prob_lower[i]);
@@ -9103,13 +9074,6 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 
 		default:
 			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
-		}
-
-		if (0) {
-			P(ievent);
-			P(idx);
-			for (i = 0; i < m; i++)
-				printf("\tx[%1d] = %g ll = %g\n", i, x[i], logll[i]);
 		}
 
 		Free(work);
