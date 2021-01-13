@@ -27,6 +27,19 @@
   }
 }
 
+\section{CHANGES IN VERSION 21.01.13}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Family \code{fmri}
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Speed improvements for family \code{tweedie}
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.01.08}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
