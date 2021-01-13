@@ -60,7 +60,8 @@
         "simplex",
         "gamma",
         "beta",
-        "tweedie"))) {
+        "tweedie",
+        "fmri"))) {
         if (is.null(scale)) {
             scale <- rep(1.0, n.data)
         }
@@ -141,7 +142,7 @@
 
         null.dat <- is.na(response[, 3L])
         response <- response[!null.dat, ]
-    } else if (inla.one.of(family, c("exponential", "weibull", "loglogistic", "gammajw", "fmri"))) {
+    } else if (inla.one.of(family, c("exponential", "weibull", "loglogistic", "gammajw"))) {
         response <- cbind(ind, y.orig)
         null.dat <- is.na(response[, 2L])
         response <- response[!null.dat, ]

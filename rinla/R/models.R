@@ -7820,7 +7820,7 @@
                             fixed = FALSE,
                             prior = "loggamma",
                             param = c(10, 10),
-                            to.theta = function(x) log(x)
+                            to.theta = function(x) log(x), 
                             from.theta = function(x) exp(x)
                         ),
                         theta2 = list(
@@ -7844,8 +7844,8 @@
                     pdf = "fmri"
                 ), 
 
-                fmrisurvival = list(
-                    doc = "fmri distribution (special nc-chi, survival version)",
+                fmrisurv = list(
+                    doc = "fmri distribution (special nc-chi)",
                     hyper = list(
                         theta1 = list(
                             hyperid = 104101,
@@ -7855,7 +7855,7 @@
                             fixed = FALSE,
                             prior = "loggamma",
                             param = c(10, 10),
-                            to.theta = function(x) log(x)
+                            to.theta = function(x) log(x), 
                             from.theta = function(x) exp(x)
                         ),
                         theta2 = list(

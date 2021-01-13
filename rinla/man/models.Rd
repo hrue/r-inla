@@ -9264,6 +9264,90 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `fmri'.}{Number of hyperparmeters are 2.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{hyperid = }{`103101'}
+							\item{name = }{`precision'}
+							\item{short.name = }{`prec'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`10 10'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{hyperid = }{`103202'}
+							\item{name = }{`dof'}
+							\item{short.name = }{`df'}
+							\item{initial = }{`4'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 1'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`fmri distribution (special nc-chi)'}
+								\item{status = }{`experimental'}
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default log'}
+								\item{pdf = }{`fmri'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `fmrisurv'.}{Number of hyperparmeters are 2.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{hyperid = }{`104101'}
+							\item{name = }{`precision'}
+							\item{short.name = }{`prec'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`10 10'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{hyperid = }{`104201'}
+							\item{name = }{`dof'}
+							\item{short.name = }{`df'}
+							\item{initial = }{`4'}
+							\item{fixed = }{`TRUE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 1'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`fmri distribution (special nc-chi, survival version)'}
+								\item{status = }{`experimental'}
+								\item{survival = }{`TRUE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default log'}
+								\item{pdf = }{`fmri'}
+							 }
+						 }
+					 }
+				 }
 			 }
 		 }
 		\item{Section `prior'.}{

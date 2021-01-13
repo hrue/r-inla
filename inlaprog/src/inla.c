@@ -9028,34 +9028,74 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 			break;
 
 		case SURV_EVENT_RIGHT:
-			loglfun(prob_lower, x, -m, idx, x_vec, &lower, arg);
+			if (ISZERO(lower)) {
+				for(i = 0; i < m; i++) {
+					prob_lower[i] = 0.0;
+				}
+			} else {
+				loglfun(prob_lower, x, -m, idx, x_vec, &lower, arg);
+			}
+
 			for (i = 0; i < m; i++) {
 				logll[i] = log(1.0 - ((prob_lower[i] - prob_truncation[i]) / (1.0 - prob_truncation[i])));
 			}
 			break;
 
 		case SURV_EVENT_LEFT:
-			loglfun(prob_upper, x, -m, idx, x_vec, &upper, arg);
+			if (ISINF(upper)) {
+				for(i = 0; i < m; i++) {
+					prob_upper[i] = 1.0;
+				}
+			} else {
+				loglfun(prob_upper, x, -m, idx, x_vec, &upper, arg);
+			}
+
 			for (i = 0; i < m; i++) {
-				logll[i] = log(((prob_upper[i] - prob_truncation[i]) / (1.0 - prob_truncation[i]))
-				    );
+				logll[i] = log(((prob_upper[i] - prob_truncation[i]) / (1.0 - prob_truncation[i])));
 			}
 			break;
 
 		case SURV_EVENT_INTERVAL:
-			loglfun(prob_lower, x, -m, idx, x_vec, &lower, arg);
-			loglfun(prob_upper, x, -m, idx, x_vec, &upper, arg);
+			if (ISZERO(lower)) {
+				for(i = 0; i < m; i++) {
+					prob_lower[i] = 0.0;
+				}
+			} else {
+				loglfun(prob_lower, x, -m, idx, x_vec, &lower, arg);
+			}
+
+			if (ISINF(upper)) {
+				for(i = 0; i < m; i++) {
+					prob_upper[i] = 1.0;
+				}
+			} else {
+				loglfun(prob_upper, x, -m, idx, x_vec, &upper, arg);
+			}
+
 			for (i = 0; i < m; i++) {
 				logll[i] = log(((prob_upper[i] - prob_truncation[i]) / (1.0 - prob_truncation[i]))
-					       - ((prob_lower[i] - prob_truncation[i]) / (1.0 - prob_truncation[i]))
-				    );
+					       - ((prob_lower[i] - prob_truncation[i]) / (1.0 - prob_truncation[i])));
 			}
 			break;
 
 		case SURV_EVENT_ININTERVAL:
+			if (ISZERO(lower)) {
+				for(i = 0; i < m; i++) {
+					prob_lower[i] = 0.0;
+				}
+			} else {
+				loglfun(prob_lower, x, -m, idx, x_vec, &lower, arg);
+			}
+
+			if (ISINF(upper)) {
+				for(i = 0; i < m; i++) {
+					prob_upper[i] = 1.0;
+				}
+			} else {
+				loglfun(prob_upper, x, -m, idx, x_vec, &upper, arg);
+			}
+
 			loglfun(log_dens, x, m, idx, x_vec, NULL, arg);
-			loglfun(prob_lower, x, -m, idx, x_vec, &lower, arg);
-			loglfun(prob_upper, x, -m, idx, x_vec, &upper, arg);
 			for (i = 0; i < m; i++) {
 				logll[i] = log_dens[i] - log(prob_upper[i] - prob_lower[i]);
 			}
@@ -9377,29 +9417,33 @@ int loglikelihood_fmri(double *logll, double *x, int m, int idx, double *UNUSED(
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i;
-	double y, prec, scale, dof, ncp, s;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double eta, y, yy, prec, dof, ncp, scale, l2y, y2, yy2;
 
 	y = ds->data_observations.y[idx];
 	prec = map_exp(ds->data_observations.fmri_lprec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	dof = map_identity(ds->data_observations.fmri_ldof[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	scale = ds->data_observations.fmri_scale[idx];
+	scale = (ds->data_observations.fmri_scale ? ds->data_observations.fmri_scale[idx] : 1.0);
 
-	s = sqrt(prec * scale);
-	
+	prec *= scale;
 	LINK_INIT;
 
 	if (m > 0) {
+		y2 = prec * SQR(y);
+		l2y = log(2.0 * prec * y);
 		for (i = 0; i < m; i++) {
-			ncp = s * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = MATHLIB_FUN(dnchisq)(y, dof, ncp, 1);
+			eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			ncp = prec * SQR(eta);
+			logll[i] = l2y + MATHLIB_FUN(dnchisq)(y2, dof, ncp, 1);
 		}
 	} else {
-		double yy = (y_cdf ? *y_cdf : y);
+		yy = (y_cdf ? *y_cdf : y);
+		yy2 = prec * SQR(yy);
 		for (i = 0; i < -m; i++) {
-			ncp = s * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = MATHLIB_FUN(pnchisq)(yy, dof, ncp, 1, 0);
+			eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			ncp = prec * SQR(eta);
+			logll[i] = MATHLIB_FUN(pnchisq)(yy2, dof, ncp, 1, 0);
 		}
 
 	}
@@ -11670,9 +11714,9 @@ char *inla_make_tag2(const char *string, int ds, const char *estr)
 	char *res;
 
 	if (ds > 0) {
-		GMRFLib_sprintf(&res, "%s%s[%1d]", string, (estr ? estr : NULL), ds + 1); /* yes, number these from 1...nds */
+		GMRFLib_sprintf(&res, "%s%s[%1d]", string, (estr ? estr : ""), ds + 1); /* yes, number these from 1...nds */
 	} else {
-		GMRFLib_sprintf(&res, "%s%s", string, (estr ? estr : NULL));
+		GMRFLib_sprintf(&res, "%s%s", string, (estr ? estr : ""));
 	}
 
 	return res;
@@ -12111,7 +12155,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 			if (ds->data_observations.d[i]) {
-				if (ABS(ds->data_observations.y[i]) < 0.0) {
+				if (ABS(ds->data_observations.y[i]) <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: fmri observation y[%1d] = %g is void\n", secname, i,
 							ds->data_observations.y[i]);
 					inla_error_general(msg);
@@ -12926,7 +12970,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	{
 		/*
 		 */
-		char *lname =  (ds->data_id == L_FMRI ? GMRFLib_strdup("fmri") : GMRFLib_strdup("fmrisurv"));
+		char *lname =  (ds->data_id == L_FMRI ? GMRFLib_strdup(" fmri") : GMRFLib_strdup(" fmrisurv"));
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), -4.0);
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
@@ -12950,8 +12994,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag2("Log precision for %s", mb->ds, lname);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag2("Precision for %s", mb->ds, lname);
+			mb->theta_tag[mb->ntheta] = inla_make_tag2("Log precision for", mb->ds, lname);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag2("Precision for", mb->ds, lname);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -12983,6 +13027,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
 		GMRFLib_ASSERT(ds->data_fixed1, GMRFLib_EPARAMETER);
+		GMRFLib_ASSERT(ds->data_observations.fmri_ldof[0][0] == round(ds->data_observations.fmri_ldof[0][0]), GMRFLib_EPARAMETER);
 
 		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "normal", NULL);
 		/*
@@ -12995,8 +13040,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag2("DOF for %s", mb->ds, lname);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag2("DOF p for %s", mb->ds, lname);
+			mb->theta_tag[mb->ntheta] = inla_make_tag2("DOF for", mb->ds, lname);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag2("DOF for", mb->ds, lname);
 			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
