@@ -1,7 +1,7 @@
 
 /* GMRFLib-smtp-taucs.c
  * 
- * Copyright (C) 2001-2020 Havard Rue
+ * Copyright (C) 2001-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -327,10 +327,11 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *UNU
 		options[i] = -1;
 	}
 
-	options[METIS_OPTION_NUMBERING] = 0;
-	options[METIS_OPTION_NSEPS] = 5;
 	options[METIS_OPTION_COMPRESS] = 0;
-	options[METIS_OPTION_PFACTOR] = 100;
+	options[METIS_OPTION_NSEPS] = 5;
+	options[METIS_OPTION_NUMBERING] = 0;
+	options[METIS_OPTION_PFACTOR] = 200;
+	options[METIS_OPTION_RTYPE] = 2;
 
 #if defined(NO_PARDISO_LIB)
 	// this the metis5 lib
