@@ -27,6 +27,14 @@
   }
 }
 
+\section{CHANGES IN VERSION 21.01.18}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Use METIS5 with PARDISO
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.01.13}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
