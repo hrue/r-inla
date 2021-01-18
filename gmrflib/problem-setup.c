@@ -1,7 +1,7 @@
 
 /* problem-setup.c
  * 
- * Copyright (C) 2001-2020 Havard Rue
+ * Copyright (C) 2001-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1437,12 +1437,9 @@ int GMRFLib_free_store(GMRFLib_store_tp * store)
 */
 int GMRFLib_Qinv(GMRFLib_problem_tp * problem, int storage)
 {
-	GMRFLib_ENTER_ROUTINE;
 	if (problem) {
 		GMRFLib_EWRAP1(GMRFLib_compute_Qinv((void *) problem, storage));
 	}
-	GMRFLib_LEAVE_ROUTINE;
-
 	return GMRFLib_SUCCESS;
 }
 

@@ -327,8 +327,10 @@ const char *GMRFLib_timer_strip(const char *name)
 
 int GMRFLib_timer_print_entry(FILE * ffp, GMRFLib_timer_hashval_tp * p, double total_time)
 {
-	fprintf(ffp, "%-39s %10.1f/%4.1f%% %6d %6.1f %6.1f %6.1f %6.1f\n",
-		p->name, p->ctime_acc, (total_time > 0.0 ? p->ctime_acc / total_time * 100.0 : 0.0), 
+	char *nm = (strncmp(p->name, "GMRFLib_", (size_t) 8L) == 0 ? p->name + 8L : p->name);
+
+	fprintf(ffp, "%-39s %10.1f %4.1f%% %10d %6.2f %6.2f %6.2f %6.2f\n",
+		nm, p->ctime_acc, (total_time > 0.0 ? p->ctime_acc / total_time * 100.0 : 0.0), 
 		(int) p->ntimes, (p->ntimes ? p->ctime_acc / p->ntimes : 0.0),
 		(p->ntimes ? sqrt(DMAX(0.0, p->ctime_acc2 / p->ntimes - SQR(p->ctime_acc / p->ntimes))) : 0.0),
 		p->ctime_min, p->ctime_max);
@@ -348,7 +350,7 @@ int GMRFLib_timer_print_entry(FILE * ffp, GMRFLib_timer_hashval_tp * p, double t
 int GMRFLib_timer_report_OLD(FILE * fp)
 {
 	FILE *ffp;
-	const char *sep = "-----------------------------------------------------------------------------------------------";
+	const char *sep = "--------------------------------------------------------------------------------------------------";
 	int k;
 
 	if (!GMRFLib_timer_hashtable) {
@@ -357,8 +359,8 @@ int GMRFLib_timer_report_OLD(FILE * fp)
 	ffp = (fp ? fp : stdout);
 
 	for (k = 0; k < GMRFLib_MAX_THREADS; k++) {
-		fprintf(ffp, "\n\nGMRFLib report on time usage for thread %1d\n%-42s   %11s %6s %6s %6s %6s %6s\n%s\n",
-			k, "Function", "Total/%", "N", "Mean", "Stdev", "Min", "Max", sep);
+		fprintf(ffp, "\n\nGMRFLib report on time usage for thread %1d\n%-42s   %11s %10s %6s %6s %6s %6s\n%s\n",
+			k, "Function", "Total(s) %", "N", "Mean", "Stdev", "Min", "Max", sep);
 		if (1) {
 			map_strvp_element *all;
 			mapkit_size_t count, i;
@@ -445,10 +447,10 @@ int GMRFLib_timer_report(FILE * fp)
 		map_strvp_set(total, value->name, value);
 	}
 
-	const char *sep = "--------------------------------------------------------------------------------------------";
+	const char *sep = "-----------------------------------------------------------------------------------------------";
 
-	fprintf(fp, "\n\nGMRFLib report on time usage\n%-42s   %11s %6s %6s %6s %6s %6s\n%s\n",
-		"Function", "Total/%", "N", "Mean", "Stdev", "Min", "Max", sep);
+	fprintf(fp, "\n%-42s   %11s %10s %6s %6s %6s %6s\n%s\n",
+		"Function", "Total(s) %", "N", "Mean", "Stdev", "Min", "Max", sep);
 	
 	map_strvp_getall(total, &all, &count);
 	qsort(all, (size_t) count, sizeof(map_strvp_element), GMRFLib_timer_compare);
