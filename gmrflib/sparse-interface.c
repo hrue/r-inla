@@ -147,13 +147,10 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 */
 int GMRFLib_free_reordering(GMRFLib_sm_fact_tp * sm_fact)
 {
-	GMRFLib_ENTER_ROUTINE;
-
 	if (sm_fact) {
 		Free(sm_fact->remap);
 		sm_fact->bandwidth = 0;
 	}
-	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -243,8 +240,6 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_
 */
 int GMRFLib_free_fact_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact)
 {
-	GMRFLib_ENTER_ROUTINE;
-
 	if (sm_fact) {
 		switch (sm_fact->smtp) {
 		case GMRFLib_SMTP_BAND:
@@ -272,7 +267,6 @@ int GMRFLib_free_fact_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact)
 		}
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 

@@ -6194,10 +6194,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						fprintf(ai_par->fp_log, "\tCompute the marginal for theta[%1d] using numerical integration\n", k);
 					}
 				}
-				GMRFLib_ai_marginal_for_one_hyperparamter(&((*density_hyper)[k]), k, nhyper, hyper_count, hyper_z,
-									  hyper_ldens, theta_mode, sqrt_eigen_values, eigen_vectors,
-									  std_stdev_theta, ai_par->dz, stdev_corr_pos,
-									  stdev_corr_neg, interpol, ai_par, inverse_hessian);
+				GMRFLib_ai_marginal_one_hyperparamter(&((*density_hyper)[k]), k, nhyper, hyper_count, hyper_z,
+								      hyper_ldens, theta_mode, sqrt_eigen_values, eigen_vectors,
+								      std_stdev_theta, ai_par->dz, stdev_corr_pos,
+								      stdev_corr_neg, interpol, ai_par, inverse_hessian);
 			}
 
 			if (run_with_omp) {
@@ -7722,11 +7722,11 @@ int GMRFLib_ai_adjust_integration_weights(double *adj_weights, double *weights, 
 	}
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int idx, int nhyper, int hyper_count, double *hyper_z,
-					      double *hyper_ldens, double *theta_mode, gsl_vector * sqrt_eigen_values,
-					      gsl_matrix * eigen_vectors, double *std_stdev_theta, double dz,
-					      double *stdev_corr_pos, double *stdev_corr_neg,
-					      GMRFLib_ai_interpolator_tp interpolator, GMRFLib_ai_param_tp * ai_par, double *covmat)
+int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp ** density, int idx, int nhyper, int hyper_count, double *hyper_z,
+					  double *hyper_ldens, double *theta_mode, gsl_vector * sqrt_eigen_values,
+					  gsl_matrix * eigen_vectors, double *std_stdev_theta, double dz,
+					  double *stdev_corr_pos, double *stdev_corr_neg,
+					  GMRFLib_ai_interpolator_tp interpolator, GMRFLib_ai_param_tp * ai_par, double *covmat)
 {
 #define COV(i, j)  covmat[ (i) + (j)*nhyper ]
 #define NEXTRA 19
@@ -7948,7 +7948,7 @@ int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int
 			if (retval) {
 #pragma omp critical
 				{
-					fprintf(stderr, "\n\tGMRFLib_ai_marginal_for_one_hyperparamter: warning:\n");
+					fprintf(stderr, "\n\tGMRFLib_ai_marginal_one_hyperparamter: warning:\n");
 					fprintf(stderr, "\t\tMaximum number of function evaluations is reached\n");
 					fprintf(stderr, "\t\ti=%1d, point=%g, thread=%1d\n", i, points[i], thread);
 				}

@@ -1,7 +1,7 @@
 
 /* timer.c
  *
- * Copyright (C) 2001-2020 Havard Rue
+ * Copyright (C) 2001-2021 Havard Rue
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -149,7 +149,7 @@ int GMRFLib_timer_compare(const void *a, const void *b)
 		return -1;
 	if (bb->ntimes && !aa->ntimes)
 		return 1;
-	return (aa->ctime_acc / aa->ntimes > bb->ctime_acc / bb->ntimes ? -1 : 1);
+	return (aa->ctime_acc > bb->ctime_acc ? -1 : 1);
 }
 int GMRFLib_timer_init(void) 
 {
@@ -325,12 +325,13 @@ const char *GMRFLib_timer_strip(const char *name)
 	return nm;
 }
 
-int GMRFLib_timer_print_entry(FILE * ffp, GMRFLib_timer_hashval_tp * p)
+int GMRFLib_timer_print_entry(FILE * ffp, GMRFLib_timer_hashval_tp * p, double total_time)
 {
-	fprintf(ffp, "%-41s %10.3f %6d %8.3f %8.3f %8.3f %8.3f\n",
-		p->name, (p->ntimes ? p->ctime_acc / p->ntimes : 0.0),
-		(int) p->ntimes, p->ctime_acc,
-		(p->ntimes ? sqrt(DMAX(0.0, p->ctime_acc2 / p->ntimes - SQR(p->ctime_acc / p->ntimes))) : 0.0), p->ctime_min, p->ctime_max);
+	fprintf(ffp, "%-39s %10.1f/%4.1f%% %6d %6.1f %6.1f %6.1f %6.1f\n",
+		p->name, p->ctime_acc, (total_time > 0.0 ? p->ctime_acc / total_time * 100.0 : 0.0), 
+		(int) p->ntimes, (p->ntimes ? p->ctime_acc / p->ntimes : 0.0),
+		(p->ntimes ? sqrt(DMAX(0.0, p->ctime_acc2 / p->ntimes - SQR(p->ctime_acc / p->ntimes))) : 0.0),
+		p->ctime_min, p->ctime_max);
 
 	return GMRFLib_SUCCESS;
 }
@@ -344,13 +345,10 @@ int GMRFLib_timer_print_entry(FILE * ffp, GMRFLib_timer_hashval_tp * p)
                                                                                                                   
   \sa GMRFLib_timer_full_report
 */
-int GMRFLib_timer_report(FILE * fp, const char *name)
+int GMRFLib_timer_report_OLD(FILE * fp)
 {
-	GMRFLib_timer_hashval_tp *p;
-	void *vpp;
 	FILE *ffp;
 	const char *sep = "-----------------------------------------------------------------------------------------------";
-	char *cname;
 	int k;
 
 	if (!GMRFLib_timer_hashtable) {
@@ -359,23 +357,16 @@ int GMRFLib_timer_report(FILE * fp, const char *name)
 	ffp = (fp ? fp : stdout);
 
 	for (k = 0; k < GMRFLib_MAX_THREADS; k++) {
-		fprintf(ffp, "\n\nGMRFLib report on time usage for thread %1d\n%-41s %10s %6s %8s %8s %8s %8s\n%s\n",
-			k, "Function", "Mean", "N", "Total", "Stdev", "Min", "Max", sep);
-		if (name) {
-			cname = GMRFLib_strdup(name);
-			if ((vpp = map_strvp_ptr(&GMRFLib_timer_hashtable[k], cname))) {
-				p = *((GMRFLib_timer_hashval_tp **) vpp);
-				GMRFLib_timer_print_entry(ffp, p);
-			}
-			Free(cname);
-		} else {
+		fprintf(ffp, "\n\nGMRFLib report on time usage for thread %1d\n%-42s   %11s %6s %6s %6s %6s %6s\n%s\n",
+			k, "Function", "Total/%", "N", "Mean", "Stdev", "Min", "Max", sep);
+		if (1) {
 			map_strvp_element *all;
 			mapkit_size_t count, i;
 
 			map_strvp_getall(&GMRFLib_timer_hashtable[k], &all, &count);
 			qsort(all, (size_t) count, sizeof(map_strvp_element), GMRFLib_timer_compare);
 			for (i = 0; i < count; i++) {
-				GMRFLib_timer_print_entry(ffp, (GMRFLib_timer_hashval_tp *) (all[i].value));
+				GMRFLib_timer_print_entry(ffp, (GMRFLib_timer_hashval_tp *) (all[i].value), -1.0);
 			}
 			free(all);
 			all = NULL;
@@ -384,6 +375,94 @@ int GMRFLib_timer_report(FILE * fp, const char *name)
 	}
 	return GMRFLib_SUCCESS;
 }
+
+int GMRFLib_timer_report(FILE * fp)
+{
+	// this function is used just before exit(), hence its ok that this function leak
+	fp = (fp ? fp : stdout);
+
+	char **namelist = NULL;
+	int namelist_len = 0;
+	int namelist_len_max = 1024;
+	int k, j, found;
+	GMRFLib_timer_hashval_tp *val;
+	map_strvp_element *all;
+	mapkit_size_t count, i;
+	
+	namelist = Calloc(namelist_len_max, char *);
+	for (k = 0; k < GMRFLib_MAX_THREADS; k++) {
+		
+		map_strvp_getall(&GMRFLib_timer_hashtable[k], &all, &count);
+		if (all) {
+			for (i = 0; i < count; i++) {
+				val = (GMRFLib_timer_hashval_tp *) (all[i].value);
+				for(j = found = 0; j < namelist_len; j++) {
+					if (!strcmp(namelist[j], val->name)) {
+						found = 1;
+						break;
+					}
+				}
+				if (!found) {
+					assert(namelist_len < namelist_len_max);
+					namelist[namelist_len] = strdup(val->name);
+					namelist_len++;
+				}
+			}
+			Free(all);
+		}
+	}
+
+	map_strvp *total = Calloc(1, map_strvp);
+	map_strvp_init_hint(total, namelist_len);	
+
+	double total_acc_time = 0.0;
+	for(int ilist = 0; ilist < namelist_len; ilist++) {
+		char *nm = namelist[ilist];
+		GMRFLib_timer_hashval_tp *value = Calloc(1, GMRFLib_timer_hashval_tp);
+
+		value->name = strdup(nm);
+		for (k = 0; k < GMRFLib_MAX_THREADS; k++) {
+			map_strvp_element *all;
+			mapkit_size_t count, i;
+		
+			map_strvp_getall(&GMRFLib_timer_hashtable[k], &all, &count);
+			if (all) {
+				for (i = 0, found = 0; i < count && !found; i++) {
+					val = (GMRFLib_timer_hashval_tp *) (all[i].value);
+					if (!strcmp(nm, val->name)) {
+						total_acc_time += val->ctime_acc;
+						value->ctime_acc += val->ctime_acc;
+						value->ctime_acc2 += val->ctime_acc2;
+						value->ctime_min = (value->ctime_min > 0.0 ?
+								    DMIN(value->ctime_min, val->ctime_min) : val->ctime_min);
+						value->ctime_max = DMAX(value->ctime_max, val->ctime_max);
+						value->ntimes += val->ntimes;
+						found = 1;
+					}
+				}
+			}
+		}
+		map_strvp_set(total, value->name, value);
+	}
+
+	const char *sep = "--------------------------------------------------------------------------------------------";
+
+	fprintf(fp, "\n\nGMRFLib report on time usage\n%-42s   %11s %6s %6s %6s %6s %6s\n%s\n",
+		"Function", "Total/%", "N", "Mean", "Stdev", "Min", "Max", sep);
+	
+	map_strvp_getall(total, &all, &count);
+	qsort(all, (size_t) count, sizeof(map_strvp_element), GMRFLib_timer_compare);
+	for (i = 0; i < count; i++) {
+		GMRFLib_timer_print_entry(fp, (GMRFLib_timer_hashval_tp *) (all[i].value), total_acc_time);
+	}
+	fprintf(fp, "%s\n", sep);
+	
+	Free(namelist);
+	Free(total);
+	
+	return GMRFLib_SUCCESS;
+}
+
 
 /*!
   \brief Write  statistics collected for all functions to \c fp.
@@ -400,13 +479,13 @@ int GMRFLib_timer_full_report(FILE * fp)
 	if (!GMRFLib_timer_hashtable) {
 		return GMRFLib_SUCCESS;
 	}
-	return GMRFLib_timer_report(fp, NULL);
+	return GMRFLib_timer_report(fp);
 }
 void GMRFLib_timer_report__signal(int UNUSED(sig))
 {
 	/*
 	 * a version to be installed using signal(...) 
 	 */
-	GMRFLib_timer_report(stdout, NULL);
+	GMRFLib_timer_report(stdout);
 	return;
 }
