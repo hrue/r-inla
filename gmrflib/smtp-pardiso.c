@@ -78,7 +78,7 @@ GMRFLib_static_pardiso_tp S = {
 	-2,						       // mtype (-2 = sym, 2 = sym pos def)
 	0,						       // msg-level (0: no, 1: yes)
 	1,						       // maximum number of rhs
-	0,						       // parallel reordering? no
+	1,						       // parallel reordering? yes
 	NULL,						       // busy
 	NULL
 };
@@ -419,17 +419,22 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 
 	pardisoinit(s->pt, &(s->mtype), &(s->solver), s->iparm_default, s->dparm_default, &error);
 
-	s->iparm_default[1] = 2;			       /* use this so we can have identical solutions */
+	s->iparm_default[1] = 3;			       /* use METIS5 */
 	s->iparm_default[4] = 0;			       /* use internal reordering */
 	s->iparm_default[7] = 4;			       /* maximum number of refinement steps */
 	s->iparm_default[10] = 0;			       /* These are the default, but... */
 	s->iparm_default[12] = 0;			       /* I need these for the divided LDL^Tx=b solver to work */
 	s->iparm_default[20] = 0;			       /* Diagonal pivoting, and... */
 	s->iparm_default[23] = 1;			       /* two level scheduling, and... */
-	s->iparm_default[24] = 0;			       /* use parallel solve, as... */
+	s->iparm_default[24] = 1;			       /* use parallel solve */
 	s->iparm_default[27] = S.parallel_reordering;	       /* parallel reordering? */
-	s->iparm_default[33] = 1;			       /* I want identical solutions (require iparm_default[1]=2) */
+	s->iparm_default[33] = 1;			       /* want identical solutions */
 
+	// options for METIS5; see manual. Pays off to do a good reordering
+	s->iparm_default[57] = 2;		       /* default 1 */
+	s->iparm_default[60] = 200; 		       /* default */
+	s->iparm_default[61] = 5;		       /* default 1 */
+	
 	if (error != 0) {
 		if (error == NOLIB_ECODE) {
 			GMRFLib_ERROR(GMRFLib_EPARDISO_NO_LIBRARY);
