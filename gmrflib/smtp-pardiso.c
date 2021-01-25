@@ -578,6 +578,17 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 	store->pstore->perm = Calloc(n, int);
 	store->pstore->iperm = Calloc(n, int);
 
+	if (S.parallel_reordering) {
+		if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
+			// this is the exception of the rule, as we want to run this in parallel if we are in adaptive model and
+			// level=0.
+			omp_set_num_threads(store->pstore->iparm[2]);
+		} else {
+			omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
+			assert(GMRFLib_openmp->max_threads_inner <= store->pstore->iparm[2]);
+		}
+	}
+
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype),
 		&(store->pstore->phase),
 		&(Q->n), Q->a, Q->ia, Q->ja, store->pstore->perm,
