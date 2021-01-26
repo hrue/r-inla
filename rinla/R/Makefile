@@ -6,7 +6,7 @@ all: TAGS make-man-pages.timestamp ../NAMESPACE
 
 .PHONY : all clean clean_roxygen clean_homebrew models_doc \
 	check_Rd_pdf clean_Rd_pdf roxygen homebrew
-	
+
 roxygen: ../NAMESPACE.roxygen
 homebrew: ../NAMESPACE.ours
 
@@ -62,7 +62,7 @@ models_doc: ../R/models_documentation.R
 
 ../NAMESPACE.roxygen: $(wildcard *.R)
 	-test -f ../NAMESPACE && mv -f ../NAMESPACE ../NAMESPACE.backup
-	echo 'devtools::document()' | $(R) --vanilla 
+	echo 'testthat_print <- function(...) print(...) ; devtools::document()' | $(R) --vanilla 
 	test -f ../NAMESPACE && mv -f ../NAMESPACE ../NAMESPACE.roxygen
 
 define AWK_PROGRAM
@@ -134,6 +134,6 @@ check_Rd_pdf: $(patsubst %.Rd,%.pdf,$(wildcard ../man/*.Rd))
 
 ../man/%.pdf: ../man/%.Rd
 	$(R) --vanilla CMD Rd2pdf --force --no-preview --output=$@ $<
-	
+
 clean_Rd_pdf:
 	rm -f ../man/*.pdf
