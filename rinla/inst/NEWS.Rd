@@ -4,6 +4,16 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.01.26}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Improve parallel rerodering for PARDISO
+      \item Improve \code{coxph} for large data
+      \item Improve internal CPU-timing output
+    }
+  }
+}
+
 \section{CHANGES IN VERSION xx.xx.xx}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
