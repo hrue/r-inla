@@ -1,7 +1,7 @@
 
 /* GMRFLib-sparse-interface.c
  * 
- * Copyright (C) 2001-2020 Havard Rue
+ * Copyright (C) 2001-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -147,13 +147,10 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 */
 int GMRFLib_free_reordering(GMRFLib_sm_fact_tp * sm_fact)
 {
-	GMRFLib_ENTER_ROUTINE;
-
 	if (sm_fact) {
 		Free(sm_fact->remap);
 		sm_fact->bandwidth = 0;
 	}
-	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -243,8 +240,6 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_
 */
 int GMRFLib_free_fact_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact)
 {
-	GMRFLib_ENTER_ROUTINE;
-
 	if (sm_fact) {
 		switch (sm_fact->smtp) {
 		case GMRFLib_SMTP_BAND:
@@ -272,7 +267,6 @@ int GMRFLib_free_fact_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact)
 		}
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -435,9 +429,8 @@ int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_
 	/*
 	 * rhs in real world, bchol in mapped world. solve L^Tx=b backward only from rhs[findx] up to rhs[toindx]. note that
 	 * findx and toindx is in mapped world. if remapped, do not remap/remap-back the rhs before solving.
-	 * 
-	 * this routine is called to many times and the work is not that much, to justify GMRFLib_ENTER_ROUTINE; 
 	 */
+	GMRFLib_ENTER_ROUTINE;
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
 		GMRFLib_EWRAP0(GMRFLib_solve_lt_sparse_matrix_special_BAND
@@ -456,6 +449,7 @@ int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_
 		GMRFLib_ERROR(GMRFLib_ESNH);
 		break;
 	}
+	GMRFLib_LEAVE_ROUTINE;
 
 	return GMRFLib_SUCCESS;
 }
@@ -468,9 +462,8 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_f
 	/*
 	 * rhs in real world, bchol in mapped world. solve Lx=b backward only from rhs[findx] up to rhs[toindx]. note that
 	 * findx and toindx is in mapped world. if remapped, do not remap/remap-back the rhs before solving.
-	 * 
-	 * this routine is called to many times and the work is not that much, to justify GMRFLib_ENTER_ROUTINE; 
 	 */
+	GMRFLib_ENTER_ROUTINE;
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
 		GMRFLib_EWRAP0(GMRFLib_solve_l_sparse_matrix_special_BAND
@@ -495,6 +488,7 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_f
 		break;
 	}
 
+	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -530,6 +524,7 @@ int GMRFLib_log_determinant(double *logdet, GMRFLib_sm_fact_tp * sm_fact, GMRFLi
 */
 int GMRFLib_comp_cond_meansd(double *cmean, double *csd, int indx, double *x, int remapped, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph)
 {
+	GMRFLib_ENTER_ROUTINE;
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
 		GMRFLib_EWRAP1(GMRFLib_comp_cond_meansd_BAND
@@ -548,6 +543,7 @@ int GMRFLib_comp_cond_meansd(double *cmean, double *csd, int indx, double *x, in
 		GMRFLib_ERROR(GMRFLib_ESNH);
 		break;
 	}
+	GMRFLib_LEAVE_ROUTINE;
 
 	return GMRFLib_SUCCESS;
 }
@@ -583,7 +579,8 @@ int GMRFLib_bitmap_factorisation(const char *filename_body, GMRFLib_sm_fact_tp *
 int GMRFLib_compute_Qinv(void *problem, int storage)
 {
 	GMRFLib_problem_tp *p = (GMRFLib_problem_tp *) problem;
-
+	GMRFLib_ENTER_ROUTINE;
+	
 	switch (p->sub_sm_fact.smtp) {
 	case GMRFLib_SMTP_BAND:
 		GMRFLib_EWRAP0(GMRFLib_compute_Qinv_BAND(p, storage));
@@ -601,6 +598,7 @@ int GMRFLib_compute_Qinv(void *problem, int storage)
 		GMRFLib_ERROR(GMRFLib_ESNH);
 		break;
 	}
+	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 

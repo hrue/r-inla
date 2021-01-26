@@ -987,11 +987,11 @@ int GMRFLib_pool_cmp(const void *a, const void *b);
 int GMRFLib_pool_cmp1(const void *a, const void *b);
 
 
-int GMRFLib_ai_marginal_for_one_hyperparamter(GMRFLib_density_tp ** density, int idx, int nhyper, int hyper_count, double *hyper_z,
-					      double *hyper_ldens, double *theta_mode, gsl_vector * sqrt_eigen_values,
-					      gsl_matrix * eigen_vectors, double *std_stdev_theta, double dz,
-					      double *stdev_corr_pos, double *stdev_corr_neg, GMRFLib_ai_interpolator_tp interpolator,
-					      GMRFLib_ai_param_tp * ai_par, double *covmat);
+int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp ** density, int idx, int nhyper, int hyper_count, double *hyper_z,
+					  double *hyper_ldens, double *theta_mode, gsl_vector * sqrt_eigen_values,
+					  gsl_matrix * eigen_vectors, double *std_stdev_theta, double dz,
+					  double *stdev_corr_pos, double *stdev_corr_neg, GMRFLib_ai_interpolator_tp interpolator,
+					  GMRFLib_ai_param_tp * ai_par, double *covmat);
 double GMRFLib_ai_integrator_func(unsigned ndim, const double *x, void *arg);
 double GMRFLib_interpolator_linear(int ndim, int nobs, double *x, double *xobs, double *yobs, void *arg);
 double GMRFLib_interpolator_quadratic(int ndim, int nobs, double *x, double *xobs, double *yobs, void *arg);

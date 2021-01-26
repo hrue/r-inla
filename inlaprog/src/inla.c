@@ -29682,14 +29682,14 @@ int inla_INLA(inla_tp * mb)
 	GMRFLib_openmp->strategy = mb->strategy;
 
 	if (mb->verbose) {
-		printf("\tSparse-matrix library.... = [%s]\n", mb->smtp);
-		printf("\tOpenMP strategy.......... = [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
-		printf("\tnum.threads.............. = [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
+		printf("\tSparse-matrix library.... [%s]\n", mb->smtp);
+		printf("\tOpenMP strategy.......... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
+		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 		if (GMRFLib_openmp->adaptive) {
-			printf("\tnum.threads (adaptive)... = [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS);
+			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS);
 		}
-		printf("\tblas.num.threads......... = [%1d]\n", GMRFLib_openmp->blas_num_threads);
-		printf("\tDensity-strategy......... = [%s]\n",
+		printf("\tblas.num.threads......... [%1d]\n", GMRFLib_openmp->blas_num_threads);
+		printf("\tDensity-strategy......... [%s]\n",
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 	}
 
@@ -29703,8 +29703,8 @@ int inla_INLA(inla_tp * mb)
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 	N = ((GMRFLib_hgmrfm_arg_tp *) mb->hgmrfm->Qfunc_arg)->N;
 	if (mb->verbose) {
-		printf("\tSize of graph........... = [%d]\n", N);
-		printf("\tNumber of constraints... = [%d]\n", (mb->hgmrfm->constr ? mb->hgmrfm->constr->nc : 0));
+		printf("\tSize of graph............ [%d]\n", N);
+		printf("\tNumber of constraints.... [%d]\n", (mb->hgmrfm->constr ? mb->hgmrfm->constr->nc : 0));
 	}
 
 	mb->d = Realloc(mb->d, N, double);
