@@ -32728,17 +32728,18 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 void inla_signal(int sig)
 {
 #if !defined(WINDOWS)
+	fflush(stdout);
 	switch (sig) {
 	case SIGUSR1:
 		GMRFLib_timer_full_report(NULL);
 		break;
-
 	case SIGUSR2:
 		fprintf(stderr, "\n\n\t%s: Recieve signal %1d: request optimiser to stop\n\n", __GMRFLib_FuncName, sig);
 		GMRFLib_request_optimiser_to_stop = GMRFLib_TRUE;
 		break;
-
 	default:
+		fprintf(stderr, "\n\n\t%s: Recieve signal %1d, call exit(%1d)\n\n", __GMRFLib_FuncName, sig, sig);
+		exit(sig);
 		break;
 	}
 #endif
@@ -34725,6 +34726,9 @@ int main(int argc, char **argv)
 #if !defined(WINDOWS)
 	signal(SIGUSR1, inla_signal);
 	signal(SIGUSR2, inla_signal);
+	// seems like rstudio use these, at least for Linux
+	signal(SIGINT,  inla_signal);
+	signal(SIGCHLD, inla_signal);
 #endif
 	while ((opt = getopt(argc, argv, "bvVe:t:B:m:S:z:hsfir:R:cp")) != -1) {
 		switch (opt) {
