@@ -1325,7 +1325,7 @@
 }
 
 `inla.pardiso.section` <- function(file, data.dir, contr) {
-    cat("\n", inla.secsep("INLA.pardiso"), "\n", sep = " ", file = file, append = TRUE)
+    cat("\n", inla.secsep("INLA.pardiso"), "\n", sep = "", file = file, append = TRUE)
     cat("type = pardiso\n", sep = " ", file = file, append = TRUE)
 
     cat("verbose = ", if (contr$verbose) 1 else 0, "\n", sep = " ", file = file, append = TRUE)
