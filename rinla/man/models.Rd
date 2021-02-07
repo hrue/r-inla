@@ -6216,7 +6216,7 @@ inla.models()
 					 \describe{
 						\item{Properties:}{
 							\describe{
-								\item{doc = }{`(not used)'}
+								\item{doc = }{`(do not use)'}
 							 }
 						 }
 					 }
