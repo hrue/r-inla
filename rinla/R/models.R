@@ -5235,14 +5235,15 @@
         predictor =
             list(
                 predictor = list(
-                    doc = "(not used)",
+                    doc = "(do not use)",
                     hyper = list(
                         theta = list(
                             hyperid = 53001,
                             name = "log precision",
                             short.name = "prec",
                             initial = 12,
-                            fixed = TRUE,
+                            ## do not change
+                            fixed = TRUE, 
                             prior = "loggamma",
                             param = c(1, 0.00001),
                             to.theta = function(x) log(x),
