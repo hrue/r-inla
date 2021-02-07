@@ -588,8 +588,10 @@ inla.internal.experimental.mode <- FALSE
         print(paste("Read logfile", file.log))
     }
     if (file.exists(file.log)) {
-        ## replace tab with spaces.........12345678....
-        return(list(logfile = gsub("\t", "        ", readLines(file.log))))
+        ## replace tab with spaces
+        logfile = gsub("\t", "        ", readLines(file.log))
+        logfile <- logfile[-which(nchar(logfile) == 0)]
+        return(list(logfile = logfile))
     } else {
         return(list(logfile = NULL))
     }
