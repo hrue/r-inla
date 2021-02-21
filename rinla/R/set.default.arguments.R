@@ -402,8 +402,8 @@
         ## :EXTRA:
         ## :NAME: control.inla
         ans <- list(
-            ## :ARGUMENT: strategy  Character The strategy to use for the approximations; one of 'gaussian', 'simplified.laplace' (default), 'laplace' or 'adaptive'
-            strategy = "simplified.laplace",
+            ## :ARGUMENT: strategy  Character The strategy to use for the approximations; one of 'auto' (default), 'gaussian', 'simplified.laplace', 'laplace' or 'adaptive'
+            strategy = "auto",
 
             ## :ARGUMENT: int.strategy  Character The integration strategy to use; one of 'auto' (default),  'ccd', 'grid', 'eb' (empirical bayes),  'user' or 'user.std'
             int.strategy = "auto",

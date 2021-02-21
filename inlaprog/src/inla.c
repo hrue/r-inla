@@ -1,7 +1,7 @@
 
 /* inla.c
  * 
- * Copyright (C) 2007-2020 Havard Rue
+ * Copyright (C) 2007-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25389,31 +25389,31 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
 
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "STRATEGY"), NULL));
-	if (opt) {
-		if (!strcasecmp(opt, "GMRFLib_AI_STRATEGY_GAUSSIAN") || !strcasecmp(opt, "GAUSSIAN")) {
-			mb->ai_par->strategy = GMRFLib_AI_STRATEGY_GAUSSIAN;
-		} else if (!strcasecmp(opt, "GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN") ||
-			   !strcasecmp(opt, "MEANSKEWCORRECTED_GAUSSIAN") || !strcasecmp(opt, "SLA") || !strcasecmp(opt, "SIMPLIFIED_LAPLACE")
-			   || !strcasecmp(opt, "SIMPLIFIED.LAPLACE")) {
-			mb->ai_par->strategy = GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN;
-		} else if (!strcasecmp(opt, "GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN") ||
-			   !strcasecmp(opt, "FIT_SCGAUSSIAN") ||
-			   !strcasecmp(opt, "FIT.SCGAUSSIAN") || !strcasecmp(opt, "SCGAUSSIAN") || !strcasecmp(opt, "LAPLACE")
-			   || !strcasecmp(opt, "LA")) {
-			mb->ai_par->strategy = GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN;
-		} else if (!strcasecmp(opt, "GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN")
-			   || !strcasecmp(opt, "MEANCORRECTED_GAUSSIAN")) {
-			mb->ai_par->strategy = GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN;
-		} else if (!strcasecmp(opt, "GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN") ||
-			   !strcasecmp(opt, "MEANSKEWCORRECTED_GAUSSIAN") || !strcasecmp(opt, "SLA") || !strcasecmp(opt, "SIMPLIFIED_LAPLACE")
-			   || !strcasecmp(opt, "SIMPLIFIED.LAPLACE")) {
-			mb->ai_par->strategy = GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN;
-		} else if (!strcasecmp(opt, "ADAPTIVE")) {
-			mb->ai_par->strategy = GMRFLib_AI_STRATEGY_ADAPTIVE;
-		} else {
-			inla_error_field_is_void(__GMRFLib_FuncName, secname, "strategy", opt);
-		}
+	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "STRATEGY"), GMRFLib_strdup("AUTO")));
+	if (!strcasecmp(opt, "AUTO")) {
+		mb->ai_par->strategy = (mb->idx_ntot < 5000 ? GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN : GMRFLib_AI_STRATEGY_ADAPTIVE);
+	} else if (!strcasecmp(opt, "GMRFLib_AI_STRATEGY_GAUSSIAN") || !strcasecmp(opt, "GAUSSIAN")) {
+		mb->ai_par->strategy = GMRFLib_AI_STRATEGY_GAUSSIAN;
+	} else if (!strcasecmp(opt, "GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN") ||
+		   !strcasecmp(opt, "MEANSKEWCORRECTED_GAUSSIAN") || !strcasecmp(opt, "SLA") || !strcasecmp(opt, "SIMPLIFIED_LAPLACE")
+		   || !strcasecmp(opt, "SIMPLIFIED.LAPLACE")) {
+		mb->ai_par->strategy = GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN;
+	} else if (!strcasecmp(opt, "GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN") ||
+		   !strcasecmp(opt, "FIT_SCGAUSSIAN") ||
+		   !strcasecmp(opt, "FIT.SCGAUSSIAN") || !strcasecmp(opt, "SCGAUSSIAN") || !strcasecmp(opt, "LAPLACE")
+		   || !strcasecmp(opt, "LA")) {
+		mb->ai_par->strategy = GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN;
+	} else if (!strcasecmp(opt, "GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN")
+		   || !strcasecmp(opt, "MEANCORRECTED_GAUSSIAN")) {
+		mb->ai_par->strategy = GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN;
+	} else if (!strcasecmp(opt, "GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN") ||
+		   !strcasecmp(opt, "MEANSKEWCORRECTED_GAUSSIAN") || !strcasecmp(opt, "SLA") || !strcasecmp(opt, "SIMPLIFIED_LAPLACE")
+		   || !strcasecmp(opt, "SIMPLIFIED.LAPLACE")) {
+		mb->ai_par->strategy = GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN;
+	} else if (!strcasecmp(opt, "ADAPTIVE")) {
+		mb->ai_par->strategy = GMRFLib_AI_STRATEGY_ADAPTIVE;
+	} else {
+		inla_error_field_is_void(__GMRFLib_FuncName, secname, "strategy", opt);
 	}
 	mb->ai_par->adapt_max = iniparser_getint(ini, inla_string_join(secname, "ADAPTIVE.MAX"), 5);
 
