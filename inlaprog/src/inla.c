@@ -34726,9 +34726,7 @@ int main(int argc, char **argv)
 #if !defined(WINDOWS)
 	signal(SIGUSR1, inla_signal);
 	signal(SIGUSR2, inla_signal);
-	// seems like rstudio use these, at least for Linux
 	signal(SIGINT,  inla_signal);
-	signal(SIGCHLD, inla_signal);
 #endif
 	while ((opt = getopt(argc, argv, "bvVe:t:B:m:S:z:hsfir:R:cp")) != -1) {
 		switch (opt) {
