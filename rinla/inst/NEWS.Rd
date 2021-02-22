@@ -4,6 +4,20 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.02.22}{
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item Default \code{strategy} is now \code{simplified.laplace}
+      for smaller models (< 5000 nodes) and \code{adaptive} for larger ones
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Minor bug-fixes
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.01.26}{
   \subsection{BUG FIXES}{
     \itemize{
