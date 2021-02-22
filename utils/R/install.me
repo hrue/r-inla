@@ -56,11 +56,11 @@ SRC=INLA-source.tgz
 tar cvfzh INLA-source.tgz INLA
 
 
-## If required, build with ``--no-build-vignettes''
-if R --vanilla CMD build --keep-empty-dirs --resave-data --log INLA; then
+## Build vignettes manually from now on
+if R --vanilla CMD build --keep-empty-dirs --resave-data --no-build-vignettes --log INLA; then
     echo '*** Build OK'
 else
-    if R --vanilla CMD build --keep-empty-dirs --no-build-vignettes --resave-data --log INLA; then
+    if R --vanilla CMD build --keep-empty-dirs --resave-data --no-build-vignettes --log INLA; then
 	echo '*** Build without rebuilding vignettes OK'
     else
 	exit 1

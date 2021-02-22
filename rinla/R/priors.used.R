@@ -56,7 +56,9 @@
     }
 
     h4cat <- function(h4, pre = NULL, name = "theta") {
+        nh <- 0
         if (h4$fixed == FALSE) {
+            nh <- 1
             cat("\t\t",
                 if (!is.null(pre)) paste0(pre, ".") else "",
                 name, "", j, ":", "\n",
@@ -71,14 +73,17 @@
                   }
             }
         }
+        return (nh)
     }
 
     stopifnot(class(result) == "inla")
     h <- result$all.hyper
     ntheta <- length(result$mode$theta)
 
+    count.theta <- 0
     for (nm in names(h)) {
         h2 <- h[[nm]]
+        ## this will not print out if predictor prec is fixed=FALSE.
         if (!(nm %in% c("predictor"))) {
             cat("section=[", nm, "]", "\n", sep = "")
             for (i in seq_along(h2)) {
@@ -100,17 +105,21 @@
                     h4cat(h3$hyper[[1]], name = "beta")
                 } else {
                     for (j in seq_along(h3$hyper)) {
-                        if (j <= ntheta) h4cat(h3$hyper[[j]])
+                        if (count.theta >= ntheta) break
+                        count.theta <- count.theta + h4cat(h3$hyper[[j]])
                     }
                 }
-                for (j in seq_along(h3$group.hyper)) {
-                    if (j <= ntheta) h4cat(h3$group.hyper[[j]], "group")
-                }
                 for (j in seq_along(h3$link$hyper)) {
-                    if (j <= ntheta) h4cat(h3$link$hyper[[j]], "link")
+                    if (count.theta >= ntheta) break
+                    count.theta <- count.theta + h4cat(h3$link$hyper[[j]], "link")
+                }
+                for (j in seq_along(h3$group.hyper)) {
+                    if (count.theta >= ntheta) break
+                    count.theta <- count.theta + h4cat(h3$group.hyper[[j]], "group")
                 }
                 for (j in seq_along(h3$mix$hyper)) {
-                    if (j <= ntheta) h4cat(h3$mix$hyper[[j]], "mix")
+                    if (count.theta >= ntheta) break
+                    count.theta <- count.theta + h4cat(h3$mix$hyper[[j]], "mix")
                 }
             }
         }
