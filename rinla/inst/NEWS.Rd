@@ -4,7 +4,7 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
-\section{CHANGES IN VERSION 21.02.22}{
+\section{CHANGES IN VERSION 21.02.23}{
   \subsection{NEW FEATURES}{
     \itemize{
       \item Default \code{strategy} is now \code{simplified.laplace}
