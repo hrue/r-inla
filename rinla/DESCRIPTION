@@ -18,7 +18,7 @@ Depends:
     Matrix,
     foreach,
     parallel,
-    sp
+    sp (>= 1.4-2)
 Suggests:
     Deriv,
     Ecdat,
