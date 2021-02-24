@@ -29585,47 +29585,34 @@ double inla_compute_saturated_loglik(int idx, GMRFLib_logl_tp * loglfunc, double
 
 double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg)
 {
-	double precs[] = { 1.0E2, 1.0E0, 1.0E-2, 1.0E-4, 1.0E-8 },
-		epss[] = { 1.0E-2, 1.0E-4, 1.0E-6, 1.0E-8, 1.0E-10 },
-		isafefactors[] = { 8.0, 4.0, 2.0, 1.0, 1.0 };
-	double prec, eps, safefac, x, xnew, xinit, f, deriv, dderiv, arr[3], steplen = GMRFLib_eps(0.25);
-	int niter, niter_max = 50, debug = 0, stencil = 7, k, nk;
+	double prec_high = 1.0E6, prec_low = 1.0E-6, eps = 1.0E-4;
+	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3], steplen = GMRFLib_eps(0.25), w;
+	int niter, niter_min = 25, niter_max = 100, debug = 0, stencil = 5;
 
 	(void) loglfunc(NULL, NULL, 0, 0, NULL, NULL, NULL);
-	x = xnew = xinit = (x_vec ? x_vec[idx] : 0.0);
-	nk = ((int) sizeof(precs)) / ((int) sizeof(double));
+	x = xnew = xsol = 0.0;
+	for (niter = 0; niter < niter_max; niter++) {
+		w = DMIN(1.0, (double) niter / (double) niter_min);
+		prec = exp(log(prec_high) * (1.0 - w) + log(prec_low) * w);
 
-	for (k = 0; k < nk; k++) {
-		prec = precs[k];
-		eps = epss[k];
-		safefac = 1.0 / isafefactors[k];
-		niter = 0;
+		GMRFLib_2order_taylor(&arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
+		f = arr[0] - 0.5 * prec * SQR(x);
+		deriv = arr[1] - prec * x;
+		dderiv = DMIN(0.0, arr[2]) - prec;
 
-		while (1) {
-			GMRFLib_2order_taylor(&arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
-			f = arr[0] - 0.5 * prec * SQR(x);
-			deriv = arr[1] - prec * x;
-			dderiv = DMIN(0.0, arr[2]) - prec;
-
-			xnew = x - DMIN(safefac + niter * safefac, 1.0) * deriv / dderiv;
-
-			if (debug) {
-				printf("PHASE%1d: idx %d x %.6g xnew %.6g f %.6g deriv %.6g dderiv %.6g\n", k, idx, x, xnew, f, deriv, dderiv);
-			}
-			x = xnew;
-
-			if (ABS(deriv / dderiv) < eps) {
-				break;
-			}
-			if (++niter > niter_max) {
-				x = xinit;
-				break;
-			}
+		xnew = x - deriv / dderiv;
+		if (debug) {
+			printf("ITER%1d: idx %d x %.6g xnew %.6g f %.6g deriv %.6g dderiv %.6g prec %.6g\n", niter, idx, x, xnew, f, deriv, dderiv, prec);
 		}
-		xinit = x;
+		x = xnew;
+
+		if (niter >  niter_min && ABS(deriv / dderiv) < eps) {
+			xsol = x;
+			break;
+		}
 	}
 
-	return arr[0];
+	return(xsol);
 }
 int inla_INLA(inla_tp * mb)
 {
