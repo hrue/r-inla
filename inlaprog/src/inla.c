@@ -29542,33 +29542,29 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp * loglfunc, double *x
 	 * solve arg min logl(x[i]) - prec * 0.5*(x[i]-mean)^2. But we have no option of what PREC is, so I set it to 10.0
 	 */
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double prec = 10.0, x, xnew, f, deriv, dderiv, arr[3], xarr[3], eps = 1.0e-4, steplen = 1.0e-4, mean = -OFFSET(idx);
-	int niter = 0, compute_deriv, retval, niter_max = 100, debug = 0, stencil = 3;
-
+	double prec, prec_max = 1.0E6, prec_min = 10.0, w, 
+		x, xnew, f, deriv, dderiv, arr[3], eps = 1.0E-4, steplen = 1.0E-4, mean = -OFFSET(idx);
+	int niter = 0, niter_min = 25, niter_max = 100, debug = 0, stencil = 5;
+	
 	GMRFLib_thread_id = 0;				       /* yes, this is what we want! */
 	x = xnew = mean;
 
-	retval = loglfunc(NULL, NULL, 0, 0, NULL, NULL, NULL);
-	compute_deriv = (retval == GMRFLib_LOGL_COMPUTE_DERIVATIES || retval == GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF);
-
 	while (1) {
-		if (compute_deriv) {
-			xarr[0] = xarr[1] = xarr[2] = x;
-			loglfunc(arr, xarr, 3, idx, x_vec, NULL, arg);
-		} else {
-			GMRFLib_2order_taylor(&arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
-		}
+		w = (double) DMIN(niter_min, niter) / (double) niter_min;
+		prec = exp(w * log(prec_min) + (1.0 - w) * log(prec_max));
+		GMRFLib_2order_taylor(&arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
 		f = arr[0] - 0.5 * prec * SQR((x - mean));
 		deriv = arr[1] - prec * (x - mean);
 		dderiv = DMIN(0.0, arr[2]) - prec;
 
 		xnew = x - DMIN(0.25 + niter * 0.25, 1.0) * deriv / dderiv;
 		if (debug) {
-			printf("idx %d x %.10g xnew %.10g f %.10g deriv %.10g dderiv %.10g mean %.6g\n", idx, x, xnew, f, deriv, dderiv, mean);
+			printf("idx %d x %.4g xnew %.4g f %.4g deriv %.4g dderiv %.4g mean %.6g prec %.2g\n",
+			       idx, x, xnew, f, deriv, dderiv, mean, prec);
 		}
 		x = xnew;
 
-		if (ABS(deriv / dderiv) < eps) {
+		if (niter > niter_min && ABS(deriv / dderiv) < eps) {
 			break;
 		}
 		if (++niter > niter_max) {
@@ -29984,7 +29980,7 @@ int inla_INLA(inla_tp * mb)
 			} else {
 				x[i] = 0.0;
 			}
-			// printf("initial value x[%1d] = %g\n", i, x[i]);
+			//printf("initial value x[%1d] = %g\n", i, x[i]);
 		}
 	}
 
@@ -35171,11 +35167,12 @@ int main(int argc, char **argv)
 				printf("\t---------------------------------\n");
 				printf("\tTotal           : %7.3f seconds\n", time_used[0] + time_used[1] + time_used[2]);
 				printf("\nNumber of fn-calls= %1d with %.3f sec/fn-call\n",
-				       mb->misc_output->nfunc, time_used[1] / mb->misc_output->nfunc);
+				       mb->misc_output->nfunc, time_used[1] / IMAX(1, mb->misc_output->nfunc));
 				if (R_rgeneric_cputime > 0.0) {
 					printf("rgeneric-time= %.3f seconds, with %.3f sec/fn-call and %.2f%% of the total time\n",
 					       R_rgeneric_cputime,
-					       R_rgeneric_cputime / mb->misc_output->nfunc, R_rgeneric_cputime / time_used[1] * 100.0);
+					       R_rgeneric_cputime / IMAX(1, mb->misc_output->nfunc),
+					       R_rgeneric_cputime / time_used[1] * 100.0);
 				}
 #if !defined(WINDOWS)
 				PEFF_OUTPUT;
