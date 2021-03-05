@@ -6709,8 +6709,7 @@ int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, doubl
 	 *
 	 * use the exact expression or a taylor-series for the exp-term of a given order ??
 	 */
-	int order = 12, i;
-	double x0 = 0.0;
+	int i;
 
 	if (m == 0) {
 		return 0;
@@ -6723,7 +6722,7 @@ int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, doubl
 		for (i = 0; i < m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			v = y - ypred + M_LN2;
-			logll[i] = -M_LN2 + v - 0.5 * exp_taylor(v, x0, order);
+			logll[i] = -M_LN2 + v - 0.5 * exp(v);
 		}
 	}
 
@@ -34624,6 +34623,17 @@ int testit(int argc, char **argv)
 			double y = (double) iy;
 			dtweedie(1, y, &mu, pphi, p, &ldens);
 			printf("LDENS %f %f %f\n", y, pphi, ldens);
+		}
+
+		break;
+	}
+
+	case 54: 
+	{
+
+		double x0 = 0, v;
+		for(v = 0.0; v <= 1.0; v += 0.1) {
+			printf("x %f exp %.12f exp_taylor %.12f %.12f\n", v, exp(v),  exp_taylor(v, x0, 6), exp_taylor(v, x0, 12));
 		}
 
 		break;
