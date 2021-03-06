@@ -334,6 +334,18 @@
         ## although it is not required
         Y <- matrix(c(apply(Y, 1, function(x) c(sort(x[!is.na(x)]), x[is.na(x)]))), ncol = ncol(Y), byrow = TRUE)
         response <- cbind(idx, X, Y, yfake)
+    } else if (inla.one.of(family, c("agaussian"))) {
+        response <- cbind(IDX = ind, y.orig)
+        col.idx <- grep("^IDX$", names(response))
+        col.y <- grep("^Y[0-9]+", names(response))
+        m.y <- length(col.y)
+        stopifnot(m.y == 5L)
+        ## remove entries with NA's in all responses
+        na.y <- apply(response[, col.y, drop = FALSE], 1, function(x) all(is.na(x)))
+        response <- response[!na.y, , drop = FALSE]
+        Y <- response[, col.y, drop = FALSE]
+        idx <- response[, col.idx, drop = FALSE]
+        response <- cbind(idx, Y)
     } else if (inla.one.of(family, c("bgev"))) {
         if (is.null(scale)) {
             scale <- rep(1.0, n.data)

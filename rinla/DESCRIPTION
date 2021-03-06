@@ -71,6 +71,7 @@ Encoding: UTF-8
 StagedInstall: no
 Collate: 
     'INLA-package.R'
+    'agaussian.R'
     'ar.R'
     'barrier.R'
     'binary.R'

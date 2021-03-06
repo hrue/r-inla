@@ -6015,6 +6015,27 @@
                     pdf = "gaussian"
                 ),
 
+                agaussian = list(
+                    doc = "The aggregated Gaussian likelihoood",
+                    hyper = list(
+                        theta = list(
+                            hyperid = 66001,
+                            name = "log precision",
+                            short.name = "prec",
+                            initial = 4,
+                            fixed = FALSE,
+                            prior = "loggamma",
+                            param = c(1, 0.00005),
+                            to.theta = function(x) log(x),
+                            from.theta = function(x) exp(x)
+                        )
+                    ),
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "identity", "logit", "loga", "cauchit", "log", "logoffset"),
+                    pdf = "agaussian"
+                ),
+
                 circularnormal = list(
                     doc = "The circular Gaussian likelihoood",
                     hyper = list(

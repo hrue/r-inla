@@ -843,6 +843,16 @@ r-inla.org/doc/likelihood/fmri.log
 
 r-inla.org/doc/likelihood/fmri.synctex.gz
 
-*.fdb_latexmk
+r-inla.org/doc/likelihood/agaussian.log
 
-*.fls
+r-inla.org/doc/likelihood/agaussian.synctex.gz
+
+r-inla.org/doc/likelihood/agaussian.fdb_latexmk
+
+r-inla.org/doc/likelihood/agaussian.fls
+
+r-inla.org/doc/likelihood/fmri.fdb_latexmk
+
+r-inla.org/doc/likelihood/fmri.fls
+
+r-inla.org/doc/likelihood/agaussian.aux
