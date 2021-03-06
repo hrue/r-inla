@@ -20,7 +20,7 @@
 ## !            a vector of repeated observations. If \code{y} is a vector,  then the whole vector
 ## !            represents repeated observations. The optional scaling \code{s},  must have 
 ## !            the same format as \code{y},  ie \code{matrix} or \code{vector}.
-## !            \code{NA}'s in \code{y} (and \code{s}) are removed and not counted.
+## !            \code{NA}'s in \code{y} (and \code{s}) are removed and not used or counted.
 ## !            If \code{s} is given, then the \code{NA}-pattern in \code{y} and \code{s} must be the same.
 ## !  }
 ## !
@@ -81,18 +81,16 @@
 }
         
 `inla.agaussian.test` <- function() {
-    for(i in 1:20) {
+    for(i in 1:10) {
         n <- sample(1:5, 1)
         s <- runif(n)
         y <- rnorm(n)
         mu <- rnorm(1)
         tau <- exp(rnorm(1))
-        ##d <- inla.agaussian(y, s)
-        d <- inla.agaussian(list(y), list(s)) 
-
+        d <- inla.agaussian(y, s)
         v1 <- sum(dnorm(y, mean = mu, sd = 1/sqrt(s*tau), log = TRUE))
-        v2 <- -d$Y5/2*log(2*pi) + 0.5 * d$Y5 * log(tau) + d$Y3 -
-            0.5 * tau * d$Y4 * ( (d$Y1 - mu)^2 + d$Y2 )
+        v2 <- -d$Y4/2*log(2*pi) + 0.5 * d$Y4 * log(tau) + d$Y2 -
+            0.5 * tau * d$Y3 * ( (d$Y5 - mu)^2 + d$Y1 )
         cat("Test ", i, "n=", n, "value=", v1, " error=", v2-v1, "\n")
     }
 }
