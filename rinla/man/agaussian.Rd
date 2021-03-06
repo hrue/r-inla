@@ -24,7 +24,7 @@
             the same format as \code{y},  ie \code{matrix} or \code{vector}.
             \code{NA}'s in \code{y} (and \code{s}) are removed and not used or counted.
             If \code{s} is given, then the \code{NA}-pattern in \code{y} and \code{s} must be the same.
-   \item{s}{Fixed scaling of the precisions. Must be in the same format as \code{y},  and
+   \item{s}{Optinonal fixed scaling of the precisions. Must be in the same format as \code{y},  and
             have the same \code{NA}-pattern. See the documentation for details.}
   }
 
