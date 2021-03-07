@@ -7080,6 +7080,7 @@ inla.models()
 						\item{Properties:}{
 							\describe{
 								\item{doc = }{`The aggregated Gaussian likelihoood'}
+								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity logit loga cauchit log logoffset'}
