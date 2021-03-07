@@ -4,6 +4,22 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.03.08}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added family \code{logperiodogram} back in
+      \item Added new family \code{agaussian}
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Improved initial values for \code{x} 
+      \item Improved computations for saturated likelihood
+      \item Various minor code cleanup
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.02.23}{
   \subsection{NEW FEATURES}{
     \itemize{
