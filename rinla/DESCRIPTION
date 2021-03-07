@@ -18,7 +18,7 @@ Depends:
     Matrix,
     foreach,
     parallel,
-    sp
+    sp (>= 1.4-2)
 Suggests:
     Deriv,
     Ecdat,
@@ -71,6 +71,7 @@ Encoding: UTF-8
 StagedInstall: no
 Collate: 
     'INLA-package.R'
+    'agaussian.R'
     'ar.R'
     'barrier.R'
     'binary.R'

@@ -428,6 +428,11 @@ typedef struct {
 	 */
 	GMRFLib_spline_tp **qcontpoisson_func;
 
+	/* 
+	 * Aggregated Gaussian  
+	 */
+	double **agaussian;
+
 	/*
 	 * For both modelx nmix and nmixnb
 	 */
@@ -561,6 +566,7 @@ typedef enum {
 	L_TWEEDIE, 
 	L_FMRI, 
 	L_FMRISURV, 
+	L_AGAUSSIAN,					       /* likelihood-models */
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1818,6 +1824,7 @@ int inla_tolower(char *string);
 int inla_trim_family(char *family);
 int inla_wishart3d_adjust(double *rho);
 int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc);
+int loglikelihood_agaussian(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_betabinomialna(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
@@ -1837,6 +1844,7 @@ int loglikelihood_gammasurv(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_gammasurvjw(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_agaussian(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, GMRFLib_logl_tp * loglfun);
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_bgev(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

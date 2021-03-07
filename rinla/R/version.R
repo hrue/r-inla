@@ -34,6 +34,7 @@
 ## !}
 
 `inla.version` <- function(what = c("default", "version", "date")) {
+
     `trim` <- function(string) {
         string <- gsub("^[ \t]+", "", string)
         string <- gsub("[ \t]+$", "", string)
@@ -45,8 +46,7 @@
     what <- match.arg(what)
 
     if (what %in% "default") {
-        cat("\n")
-        cat(paste("\n\tR-INLA version ..........: ", version, "\n", sep = ""))
+        cat(paste("\tR-INLA version ..........: ", version, "\n", sep = ""))
         cat(paste("\tDate ....................: ", date, "\n", sep = ""))
         cat("\tMaintainers .............: Havard Rue <hrue@r-inla.org>\n")
         cat("\t                         : Finn Lindgren <finn.lindgren@gmail.com>\n")
@@ -56,8 +56,6 @@
         cat("\tEmail support ...........: help@r-inla.org\n")
         cat("\t                         : r-inla-discussion-group@googlegroups.com\n")
         cat("\tSource-code .............: github.com/hrue/r-inla\n")
-        cat("\n")
-
         return(invisible())
     } else if (what %in% "date") {
         return(date)

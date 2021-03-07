@@ -1,0 +1,99 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Aggregated Gaussian}
+
+\subsection*{Parametrisation}
+
+This is shorthand to allow for aggregated Gaussian observations, where
+we have repeated observations with the same mean and (known scaled)
+precision. These can be aggregated into an equivalent likelihood
+reducing the computional effort.
+
+Let $y=(y_1, \ldots, y_n)$ be iid observations of a Gaussian with mean
+$\mu$ and precisions $s_i\tau$, where the $s_i$'s are fixed and known
+scaling parameters (default $s_i=1$), then
+\begin{eqnarray}
+    f(y|\mu,\tau) &=& \prod_{i=1}^{n}
+    (2\pi)^{-1/2}(s_i\tau)^{1/2} \exp\left( -\frac{1}{2}
+                       (s_i\tau) \left(y_i-\mu\right)^{2}\right) \\
+                   &=& (2\pi)^{-n/2} \tau^{n/2} \left(\prod_{i=1}^{n} s_i^{1/2}\right)
+                       \exp\left(-\frac{1}{2} \tau \sum_{i=1}^{n} s_i
+                       (y_i-\mu)^{2}\right)\\
+                   &=& (2\pi)^{-n/2} \tau^{n/2} \left(\prod_{i=1}^{n} s_i^{1/2}\right)
+                       \exp\left(-\frac{1}{2} m\tau \left[
+                       (\bar{y} - \mu)^{2} + v \right]\right)
+\end{eqnarray}
+where
+\begin{eqnarray}
+  m &=& \sum_{i=1}^{n} s_i\nonumber\\
+  \bar{y} &=& \frac{1}{m}\sum_{i=1}^{n} s_i y_i\nonumber\\
+  v & =&  \frac{1}{m}\sum_{i=1}^{n} s_i y_i^2 -  {\bar{y}}^2 \nonumber
+\end{eqnarray}
+
+\subsection*{Link-function}
+
+The mean $\mu$ is linked to the linear predictor $\eta$ by
+\begin{displaymath}
+    \mu = \eta
+\end{displaymath}
+
+\subsection*{Hyperparameters}
+
+The hyperparameter is $\theta$, where
+\begin{displaymath}
+    \theta = \log \tau
+\end{displaymath}
+and the prior is defined on $\theta$.
+
+\subsection*{Specification}
+
+This family require the response to be an \texttt{inla.mdata}-object,
+where each row\footnote{It is a list of vectors, so not strictly a
+    ``row''.} is
+\begin{displaymath}
+    (v, \,
+    \frac{1}{2}\sum_{i=1}^{n} \log(s_i), \,
+    m, \,
+    n, \,
+    \bar{y})
+\end{displaymath}
+This object is most easily constructed using the
+\texttt{inla.agaussian()} function, which gives the object to use
+directly.
+
+\begin{itemize}
+\item $\text{family}=\texttt{agaussian}$
+\item Required arguments: \texttt{inla.mdata(}$Y,S$\texttt{)}.
+    Argument $S$ is optional, and is not given, then $s_i$ for $i$.
+\end{itemize}
+Here, $Y$ is a matrix where each row is a vector of observations. NA's
+in each row are remove. The matrix $S$ is optional
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/agaussian.tex}
+
+\subsection*{Example}
+
+\verbatiminput{example-agaussian.R}
+
+\subsection*{Notes}
+
+\begin{itemize}
+\item Thanks to JW for suggesting this formulation and for providing
+    the details.
+\end{itemize}
+
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

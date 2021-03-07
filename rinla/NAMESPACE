@@ -23,6 +23,7 @@ import(splines)
 # ## Export: func1 func2
 # ## Export: method1!class
 # etc...
+export(inla.agaussian)
 export(inla.binary.install)
 export(inla.changelog)
 export(inla.collect.results)
