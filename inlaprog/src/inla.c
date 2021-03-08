@@ -2761,6 +2761,11 @@ double Qfunc_dmatern(int i, int j, double *UNUSED(values), void *arg)
 					gsl_matrix_set(a->Q[id], j, i, val);
 				}
 			}
+			if (0) {
+				FILE *fp = fopen("Q.dat", "w");
+				GMRFLib_gsl_matrix_fprintf(fp, a->Q[id],  "%.16f ");
+				fclose(fp);
+			}
 			GMRFLib_gsl_spd_inverse(a->Q[id]);
 		}
 	}
