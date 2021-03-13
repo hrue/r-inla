@@ -535,7 +535,7 @@ inla.internal.experimental.mode <- FALSE
                         x = c(Q, Qadd),
                         dims = c(configs$n, configs$n),
                         index1 = FALSE,
-                        giveCsparse = TRUE
+                        repr = "C"
                     ),
                     Qinv = sparseMatrix(
                         i = c(configs.i, iadd),
@@ -543,7 +543,7 @@ inla.internal.experimental.mode <- FALSE
                         x = c(Qinv, Qinvadd),
                         dims = c(configs$n, configs$n),
                         index1 = FALSE,
-                        giveCsparse = TRUE
+                        repr = "C"
                     ),
                     Qprior.diag = Qprior
                 )
