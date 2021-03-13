@@ -229,7 +229,7 @@
             ## off-diagonal
             2L:n
         )
-        G <- inla.as.sparse(sparseMatrix(i = i, j = j, x = 1, repr = "T")
+        G <- inla.as.sparse(sparseMatrix(i = i, j = j, x = 1, repr = "T"))
         return(G)
     }
 
