@@ -52,7 +52,7 @@
                             }
                             if (file.exists(filename.full)) {
                                 RShowDoc(
-                                    paste(sections[[sec]], "/", pdf, sep = ""),
+                                    paste("documentation/", sections[[sec]], "/", pdf, sep = ""),
                                     "pdf", "INLA"
                                 )
                             }
