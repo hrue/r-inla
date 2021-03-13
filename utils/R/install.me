@@ -66,25 +66,26 @@ else
     fi
 fi
 
-INLA=$(echo INLA_*.tar.gz)
-tgzINLA=${INLA%%.tar.gz}.tgz
-mv $INLA $tgzINLA 
-
+gzINLA=$(echo INLA_*.tar.gz)
+tgzINLA=${gzINLA%%.tar.gz}.tgz
 zipINLA=${tgzINLA%%.tgz}.zip
+cp -v $gzINLA $tgzINLA 
 
 DD=$(echo ~/R/x86_64-redhat-linux-gnu-library/default)
 test -d $DD || mkdir -p $DD
-##export R_ENABLE_JIT=3
+export R_ENABLE_JIT=3
 export R_COMPILE_PKGS=1
-R --vanilla CMD INSTALL --library=$DD $tgzINLA || exit 1
+R CMD INSTALL --use-vanilla --library=$DD $gzINLA || exit 1
 
 ~/bin/fix-permissions $DD
 
 ( cd $DD; zip -v -r $zipINLA INLA; )
-
 mv -f $DD/$zipINLA .
 
-ls -l INLA*gz INLA*zip
+( cd $DD; gzip cvfz $gzINLA INLA; )
+mv -f $DD/$gzINLA .
+
+ls -l $tgzINLA $gzINLA $zipINLA
 www=../www
 wwwR=../www/R
 
@@ -111,7 +112,7 @@ updateBinaryPackages () {
 if [ $# -ge 1 -a "$1" == "1" ]; then
     for prefix in stable testing; do
 	d=$wwwR/$prefix/src/contrib
-	cp -v $SRC $d/INLA_$INLA_VERSION.tar.gz
+	cp -v $gzINLA $d/INLA_$INLA_VERSION.tar.gz
 	updateBinaryPackages $d
 	
 	d=$wwwR/$prefix/bin/macosx/contrib/$RVersion
@@ -128,7 +129,7 @@ fi
 if [ $# -ge 1 -a "$1" == "2" ]; then
     for prefix in testing; do
 	d=$wwwR/$prefix/src/contrib
-	cp -v $SRC $d/INLA_$INLA_VERSION.tar.gz
+	cp -v $gzINLA $d/INLA_$INLA_VERSION.tar.gz
 	updateBinaryPackages $d
 	
 	d=$wwwR/$prefix/bin/macosx/contrib/$RVersion
@@ -162,4 +163,6 @@ fi
 } | sed 's/inla.os/inla.installer.os/g' >  $www/givemeINLA-testing.R
 
 rm -f $tgzINLA 
+rm -f $gzINLA 
 rm -f $zipINLA 
+rm -f $SRC
