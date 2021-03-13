@@ -68,11 +68,9 @@ directly.
 
 \begin{itemize}
 \item $\text{family}=\texttt{agaussian}$
-\item Required arguments: \texttt{inla.mdata(}$Y,S$\texttt{)}.
-    Argument $S$ is optional, and is not given, then $s_i$ for $i$.
+\item Required arguments: An \texttt{inla.mdata}-object created with
+    \texttt{inla.agaussian()}.
 \end{itemize}
-Here, $Y$ is a matrix where each row is a vector of observations. NA's
-in each row are remove. The matrix $S$ is optional
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/likelihood/agaussian.tex}

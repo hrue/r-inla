@@ -1,12 +1,11 @@
 \documentclass[authoryear]{article}
-\usepackage{graphics}
-% or use the graphicx package for more complicated commands
-\usepackage{graphicx}
+%%\usepackage{graphics}
 \usepackage{pgf}
 \usepackage{epsfig}
 \usepackage{amssymb}
 \usepackage{amsmath,latexsym}
 \usepackage{array}
+\usepackage{hyperref}
 \usepackage[round]{natbib}
    
 \usepackage{setspace} 

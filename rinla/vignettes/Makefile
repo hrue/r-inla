@@ -1,7 +1,12 @@
-RMDs := $(wildcard *.Rmd)
-RNWs := $(wildcard *.Rnw)
-PDFs := $(RMDs:.Rmd=.pdf) $(RNWs:.Rnw=.pdf)
-HTMLs := $(RMDs:.Rmd=.html) 
+RMDs := bGEVtutorial1-2.Rmd conditional_logit.Rmd  jmarginal.Rmd  old-faq.Rmd stack-with-factors.Rmd conditional-sampling.Rmd  int-design.Rmd multinomial.Rmd  rgeneric.Rmd
+
+RNWs := SPDE1d.Rnw  SPDEhowto.Rnw  scale-model.Rnw
+
+PDFs := SPDE1d.pdf bGEVtutorial1-2.pdf conditional_logit.pdf  jmarginal.pdf  old-faq.pdf scale-model.pdf SPDEhowto.pdf  conditional-sampling.pdf  int-design.pdf multinomial.pdf  rgeneric.pdf  stack-with-factors.pdf
+
+HTMLs := bGEVtutorial1-2.html conditional_logit.html  jmarginal.html  old-faq.html stack-with-factors.html conditional-sampling.html  int-design.html multinomial.html  rgeneric.html
+
+
 
 all : $(PDFs) $(HTMLs)
 
