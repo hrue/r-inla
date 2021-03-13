@@ -4,6 +4,15 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.03.13}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed some missprints in doc
+      \item Trying to get vigettes to work again
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.03.08}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
