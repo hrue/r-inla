@@ -375,9 +375,8 @@
             }
         }
 
-        I <- sparseMatrix(
-            i = index.i, j = index.j, x = Aij, dims = c(mesh$n, mesh$n), repr = "T"
-        )
+        I <- sparseMatrix(i = index.i, j = index.j, x = Aij,
+                          dims = c(mesh$n, mesh$n), repr = "T")
         return(I)
     }
 
