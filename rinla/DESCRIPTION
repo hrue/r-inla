@@ -60,7 +60,7 @@ Imports:
     splines,
     stats,
     utils
-VignetteBuilder: rmarkdown, knitr
+VignetteBuilder: knitr
 BuildVignettes: true
 LazyData: true
 License: GPL (>= 2) + file LICENSE
