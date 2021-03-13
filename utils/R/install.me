@@ -53,7 +53,7 @@ test -d $md || mkdir $md
 cp $mf $md/$mf
 
 SRC=INLA-source.tgz
-tar cvfzh INLA-source.tgz INLA
+tar cvfz INLA-source.tgz INLA
 
 
 if R --vanilla CMD build --keep-empty-dirs --resave-data --log INLA; then
@@ -82,7 +82,7 @@ R CMD INSTALL --use-vanilla --library=$DD $gzINLA || exit 1
 ( cd $DD; zip -v -r $zipINLA INLA; )
 mv -f $DD/$zipINLA .
 
-( cd $DD; gzip cvfz $gzINLA INLA; )
+( cd $DD; tar cvfz $gzINLA INLA; )
 mv -f $DD/$gzINLA .
 
 ls -l $tgzINLA $gzINLA $zipINLA

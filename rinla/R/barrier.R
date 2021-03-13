@@ -272,7 +272,7 @@
         }
     }
     N <- length(Cdiag)
-    Cinv <- sparseMatrix(i = 1:N, j = 1:N, x = 1.0 / Cdiag, dims = c(N, N), giveCsparse = FALSE)
+    Cinv <- sparseMatrix(i = 1:N, j = 1:N, x = 1.0 / Cdiag, dims = c(N, N), repr = "T")
 
     A <- fem$I
     for (k in 1:xi) {
@@ -375,10 +375,8 @@
             }
         }
 
-        I <- sparseMatrix(
-            i = index.i, j = index.j, x = Aij, dims = c(mesh$n, mesh$n),
-            giveCsparse = FALSE
-        )
+        I <- sparseMatrix(i = index.i, j = index.j, x = Aij,
+                          dims = c(mesh$n, mesh$n), repr = "T")
         return(I)
     }
 
@@ -415,7 +413,7 @@
             counter <- counter + 1
         }
 
-        Dk <- sparseMatrix(i = index.i, j = index.j, x = Aij, dims = c(mesh$n, mesh$n), giveCsparse = FALSE)
+        Dk <- sparseMatrix(i = index.i, j = index.j, x = Aij, dims = c(mesh$n, mesh$n), repr = "T")
         return(Dk)
     }
 

@@ -41,7 +41,7 @@
                     for (i in idx) {
                         pdf <- m[[sec]][[i]]$pdf
                         if (!is.null(pdf) && !is.na(pdf)) {
-                            filename <- paste("doc/", sections[[sec]], "/", pdf, ".pdf", sep = "")
+                            filename <- paste("documentation/", sections[[sec]], "/", pdf, ".pdf", sep = "")
                             filename.full <- system.file(filename, package = "INLA")
                             if (verbose) {
                                 cat("\n")
