@@ -13,7 +13,7 @@ vignette: >
 ```{r setup, include=FALSE}
 set.seed(1)
 knitr::opts_chunk$set(echo=TRUE, message=FALSE, warning=FALSE)
-knitr::opt_chunk$set(fig.path="figures/stack-with-factors/")
+knitr::opts_chunk$set(fig.path="figures/stack-with-factors/")
 library(INLA)
 set.seed(123)
 inla.setOption(num.threads="1:1")

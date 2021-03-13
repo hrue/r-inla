@@ -15,7 +15,7 @@ library(INLA)
 inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
 knitr::opts_chunk$set(echo = TRUE, cache = FALSE)
-knitr::opt_chunk$set(fig.path="figures/conditional-sampling/")
+knitr::opts_chunk$set(fig.path="figures/conditional-sampling/")
 ```
 This short note describe how to do conditional sampling from a fitted
 model, where we want to condition on new events. An easy example which
