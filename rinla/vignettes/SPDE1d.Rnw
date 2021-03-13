@@ -32,7 +32,7 @@ set.seed(123)
 inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
 opts_chunk$set(message=FALSE, warning=FALSE, tidy=FALSE,
-fig.path="SPDE1d-figs/SPDE1d")
+fig.path="figures/SPDE1d/")
 knit_hooks$set(small.mar = function(before, options, envir) {
     if (before) par(mar = c(0.1, 0.1, .1, .1))  # smaller margin on top and right
 })

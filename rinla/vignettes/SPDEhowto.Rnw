@@ -36,7 +36,7 @@ knit_hooks$set(pars = function(before, options, envir) {
     if (before) graphics::par(options$pars)
 })
 opts_chunk$set(message=FALSE, warning=FALSE, tidy=FALSE,
-               fig.path='SPDEhowto-figs/SPDEhowto-')
+               fig.path='figures/SPDEhowto/')
 library(lattice);   library(gridExtra);  library(INLA);  library(plyr) 
 set.seed(123)
 inla.setOption(num.threads="1:1")
