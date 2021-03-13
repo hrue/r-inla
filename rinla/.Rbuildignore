@@ -12,3 +12,5 @@
 ^R/make-man-pages$
 ^R/make-man-pages\.timestamp$
 ^R/TAGS$
+^doc$
+^Meta$

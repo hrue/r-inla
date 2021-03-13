@@ -6,7 +6,9 @@ output: rmarkdown::pdf_document
 vignette: >
   %\VignetteIndexEntry{Blended GEV}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8} 
+  %\VignetteEncoding{UTF-8}
+header-includes:
+  - \usepackage{xcolor}
 ---
 \def\F{\text{F}}
 \def\G{\text{G}}
