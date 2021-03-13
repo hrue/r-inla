@@ -14,7 +14,9 @@ vignette: >
 ```{r setup, include=FALSE}
 set.seed(123)
 library(knitr)
-knitr::opts_chunk$set(echo = TRUE, results = 'show', fig.keep = 'high', fig.align = 'center', fig.pos = 'h')
+knitr::opts_chunk$set(echo = TRUE, results = 'show', 
+	fig.keep = 'high', fig.align = 'center', fig.pos = 'h')
+knitr::opt_chunk$set(fig.path="figures/bgev/")
 
 library(INLA)
 inla.setOption(smtp="taucs")

@@ -80,6 +80,8 @@ library(INLA)
 set.seed(123)
 inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
+opts_chunk$set(message=FALSE, warning=FALSE, tidy=FALSE,
+               fig.path='figures/scale-model/')
 @
 
 \section{Introduction}

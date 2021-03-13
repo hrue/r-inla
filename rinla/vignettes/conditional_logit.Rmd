@@ -1,4 +1,4 @@
----
+i---
 title: "Conditional Logistic Regression Model"
 author: "Stefanie Muff (stefanie.muff@uzh.ch), Johannes Signer, John Fieberg"
 date: "July 16th 2018"
@@ -17,8 +17,8 @@ inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
 library(knitr)
 library(rmarkdown)
-knitr::opts_chunk$set(echo=TRUE, cache=FALSE, message=FALSE,
-warning=FALSE)
+knitr::opts_chunk$set(echo=TRUE, cache=FALSE, message=FALSE,warning=FALSE)
+knitr::opt_chunk$set(fig.path="figures/conditional-logit/")
 ```
 
 ## Parametrization

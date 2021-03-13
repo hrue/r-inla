@@ -11,6 +11,7 @@ vignette: >
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, cache = FALSE)
+knitr::opt_chunk$set(fig.path="figures/int-design/")
 Design = matrix()
 library(INLA)
 set.seed(123)
