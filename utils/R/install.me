@@ -86,6 +86,45 @@ mv -f $DD/$zipINLA .
 mv -f $DD/$gzINLA .
 
 ls -l $tgzINLA $gzINLA $zipINLA
+
+##
+## remove binaries not needed
+## tgzINLA is for MAC
+## gzINLA is for Linux
+## zipINLA is for Windows
+##
+TDIR=INLA-TMP
+test -d $TDIR && rm -rf $TDIR
+mkdir $TDIR
+
+(  
+    echo " *** Make Mac binary"
+    cd $TDIR
+    tar xfz ../$tgzINLA
+    for d in INLA/bin/{linux,windows}/{32,64}bit; do test -d && rm -rf $d; done
+    rm -f ../$tgzINLA
+    tar cfz ../$tgzINLA INLA
+)
+
+(
+    echo " *** Make Linux binary"
+    cd $TDIR
+    tar xfz ../$gzINLA
+    for d in INLA/bin/{mac,windows}/{32,64}bit; do test -d && rm -rf $d; done
+    rm -f ../$gzINLA
+    tar cfz ../$gzINLA INLA
+)
+
+(
+    echo " *** Make Windows binary"
+    cd $TDIR
+    unzip ../$zipINLA
+    for d in INLA/bin/{linux,mac}/{32,64}bit; do test -d && rm -rf $d; done
+    rm -f ../$zipINLA
+    zip -r ../$zipINLA INLA
+)
+rm -rf $TDIR
+
 www=../www
 wwwR=../www/R
 
@@ -152,6 +191,7 @@ fi
     echo 'givemeINLA(testing=FALSE, lib = inla.lib)'
     echo 'cat("\n\n\nYou can later upgrade INLA using: inla.upgrade()\n")'
 } | sed 's/inla.os/inla.installer.os/g' >  $www/givemeINLA.R
+
 {
     cat $D/upgrade.R | sed 's/inla.upgrade/inla.installer/g' | grep -v ^#
     cat $D/os.R | grep -v ^#
