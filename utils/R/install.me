@@ -101,27 +101,39 @@ mkdir $TDIR
     echo " *** Make Mac binary"
     cd $TDIR
     tar xfz ../$tgzINLA
-    for d in INLA/bin/{linux,windows}/{32,64}bit; do test -d && rm -rf $d; done
+    for d in INLA/{,inst/}bin/{linux,windows}/{32,64}bit; do 
+	echo "    -> $d"
+	test -d $d && rm -rf $d; 
+    done
     rm -f ../$tgzINLA
     tar cfz ../$tgzINLA INLA
+    rm -rf INLA
 )
 
 (
     echo " *** Make Linux binary"
     cd $TDIR
     tar xfz ../$gzINLA
-    for d in INLA/bin/{mac,windows}/{32,64}bit; do test -d && rm -rf $d; done
+    for d in INLA/{,inst/}bin/{mac,windows}/{32,64}bit; do 
+	echo "    -> $d"
+	test -d $d && rm -rf $d; 
+    done
     rm -f ../$gzINLA
     tar cfz ../$gzINLA INLA
+    rm -rf INLA
 )
 
 (
     echo " *** Make Windows binary"
     cd $TDIR
-    unzip ../$zipINLA
-    for d in INLA/bin/{linux,mac}/{32,64}bit; do test -d && rm -rf $d; done
+    unzip -q ../$zipINLA
+    for d in INLA/{,inst/}bin/{linux,mac}/{32,64}bit; do 
+	echo "    -> $d"
+	test -d $d && rm -rf $d; 
+    done
     rm -f ../$zipINLA
-    zip -r ../$zipINLA INLA
+    zip -r -q ../$zipINLA INLA
+    rm -rf INLA
 )
 rm -rf $TDIR
 
