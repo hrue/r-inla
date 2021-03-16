@@ -11,13 +11,15 @@
 ## !    inla.binary.install(os = c("CentOS Linux-6", "CentOS Linux-7", "CentOS Linux-8",
 ## !                               "CentOS Stream-8", "Fedora-33", "Manjaro Linux",
 ## !                               "Ubuntu-16.04", "Ubuntu-18.04", "Ubuntu-20.04"), 
-## !                        verbose = TRUE)
+## !                        verbose = TRUE, md5.check = TRUE)
 ## ! }
 ## ! \arguments{
 ## !    \item{os}{If \code{os} is given, install binary build for this \code{os}.
 ## !              If \code{os} is not given, chose \code{os} interactively
 ## !              among available builds.}
 ## !    \item{verbose}{Logical. Verbose output if \code{TRUE}}
+## !    \item{md5.check}{Logical. If \code{TRUE}, stop if md5-checksum-file is not present
+## !                     or md5-checksum fail. If \code{FALSE}, ignore md5-checksum check.}
 ## ! }
 ## ! \details{
 ## ! Install a new binary for \code{os} unless
@@ -25,7 +27,7 @@
 ## ! interactively among the available builds.
 ## ! }
 ## ! \value{
-## ! No value returned.
+## ! Return \code{TRUE} if installation was sucessful and \code{FALSE} if not.
 ## ! }
 ## ! \author{Havard Rue \email{hrue@r-inla.org}}
 ## ! \examples{
@@ -44,7 +46,8 @@
                                          "Ubuntu-16.04", 
                                          "Ubuntu-18.04", 
                                          "Ubuntu-20.04"),
-                                  verbose = TRUE) {
+                                  verbose = TRUE,
+                                  md5.check = TRUE) {
     show <- function(...) {
         if (verbose) {
             msg <- paste(unlist(list(...)), sep = "", collapse = "")
@@ -56,6 +59,7 @@
         return(gsub(" ", "%20", fnm))
     }
 
+    random.num <- gsub("\\.", "", as.character(abs(rnorm(1))))
     os <- if (missing(os)) NULL else match.arg(os)
     stopifnot(inla.os.type() == "linux")
     version <- paste("Version_", inla.version("version"), sep = "")
@@ -77,7 +81,7 @@
         cat("  ", "Chose alternative [", 1, ":", nf, "]", sep = "", "\n\t")
         ans <- scan(file = "", what = integer(), n = 1, quiet = TRUE)
         if (length(ans) == 0) {
-            return(invisible())
+            return (invisible(FALSE))
         }
     } else {
         ans <- grep(os, ff)
@@ -102,7 +106,7 @@
     pa <- paste0(pa, "/bin/linux")
 
     show("Checking for write access...")
-    test.fnm <- paste0(pa, "/test-file---", as.integer(runif(1) * .Machine$integer.max), ".txt")
+    test.fnm <- paste0(pa, "/test-file---", random.num, ".txt")
     test.result <- file.create(test.fnm, showWarnings = FALSE)
     if (test.result) {
         unlink(test.fnm, force = TRUE)
@@ -111,12 +115,32 @@
     }
 
     show("Download file, please wait...")
-    to.file <- paste0(pa, "/64bit-download-", date(), ".tgz")
+    to.file <- paste0(pa, "/64bit-download-", random.num, ".tgz")
     ret <- download.file(map.filename(fnm), to.file, quiet = TRUE)
+    
+    if (md5.check) {
+        fnm.md5 <- gsub("/64bit.tgz", "/md5sum.txt", fnm)
+        md5.file <- paste0(pa, "/64bit-download-md5sum-", random.num, ".txt")
+        ret.md5 <- try(download.file(map.filename(fnm.md5), md5.file, quiet = TRUE),  silent = TRUE)
+        if (!inherits(ret.md5, "try-error")) {
+            md5.checksum <- scan(file=md5.file, what=character(), n=1, quiet = TRUE)
+            if (md5.checksum == tools::md5sum(to.file)) {
+                show("md5-checksum [", md5.checksum, "] OK.")
+            } else {
+                stop(paste0("md5-checksum [", md5.checksum, "] FAILED. Stop."))
+            }
+        } else {
+            stop("No md5-checksum found. Run with 'md5.check=FALSE' to force install.")
+        }
+    }
+
     if (ret == 0) {
         ##
     } else {
         unlink(to.file, force = TRUE)
+        if (md5.check) {
+            unlink(md5.file, force = TRUE)
+        }
         stop("Error downloading file. Abort.")
     }
 
@@ -130,7 +154,7 @@
 
     show("Rename old 64bit directory...")
     from.dir <- paste0(pa, "/64bit")
-    to.dir <- paste0(pa, "/64bit-", date())
+    to.dir <- paste0(pa, "/64bit-", random.num)
     ret <- file.rename(from.dir, to.dir)
     if (ret == TRUE) {
         ##
@@ -150,10 +174,12 @@
 
     show("Remove temporary file...")
     unlink(to.file, force = TRUE)
-
+    if (md5.check) {
+        unlink(md5.file, force = TRUE)
+    }
     show("Remove old 64bit directory...")
     unlink(to.dir, recursive = TRUE, force = TRUE)
     show("Done!")
 
-    return(invisible())
+    return(invisible(TRUE))
 }

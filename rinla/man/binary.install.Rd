@@ -13,13 +13,15 @@
     inla.binary.install(os = c("CentOS Linux-6", "CentOS Linux-7", "CentOS Linux-8",
                                "CentOS Stream-8", "Fedora-33", "Manjaro Linux",
                                "Ubuntu-16.04", "Ubuntu-18.04", "Ubuntu-20.04"), 
-                        verbose = TRUE)
+                        verbose = TRUE, md5.check = TRUE)
  }
  \arguments{
     \item{os}{If \code{os} is given, install binary build for this \code{os}.
               If \code{os} is not given, chose \code{os} interactively
               among available builds.}
     \item{verbose}{Logical. Verbose output if \code{TRUE}}
+    \item{md5.check}{Logical. If \code{TRUE}, stop if md5-checksum-file is not present
+                     or md5-checksum fail. If \code{FALSE}, ignore md5-checksum check.}
  }
  \details{
  Install a new binary for \code{os} unless
@@ -27,7 +29,7 @@
  interactively among the available builds.
  }
  \value{
- No value returned.
+ Return \code{TRUE} if installation was sucessful and \code{FALSE} if not.
  }
  \author{Havard Rue \email{hrue@r-inla.org}}
  \examples{
