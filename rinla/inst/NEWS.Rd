@@ -4,6 +4,20 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.03.16}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item \code{inla.binary.install()} can now also run
+            non-interactive
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Internal code changes
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.03.14}{
   \subsection{BUG FIXES}{
     \itemize{
