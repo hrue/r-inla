@@ -8,15 +8,21 @@
 ## !    Install alternative binary builds.
 ## ! }
 ## ! \usage{
-## !    inla.binary.install(debug = TRUE)
+## !    inla.binary.install(os = c("CentOS Linux-6", "CentOS Linux-7", "CentOS Linux-8",
+## !                               "CentOS Stream-8", "Fedora-33", "Manjaro Linux",
+## !                               "Ubuntu-16.04", "Ubuntu-18.04", "Ubuntu-20.04"), 
+## !                        verbose = TRUE)
 ## ! }
 ## ! \arguments{
-## !    \item{debug}{Logical. Turn on debugging messages if \code{TRUE}}
+## !    \item{os}{If \code{os} is given, install binary build for this \code{os}.
+## !              If \code{os} is not given, chose \code{os} interactively
+## !              among available builds.}
+## !    \item{verbose}{Logical. Verbose output if \code{TRUE}}
 ## ! }
 ## ! \details{
-## ! \code{inla.binary.install()} will offer a menu of alternative
-## ! (Linux) binary builds to be installed. Currently offered,  are builds
-## ! for Ubuntu, CentOS, Manjaro (Arch Linux) and Fedora
+## ! Install a new binary for \code{os} unless
+## ! \code{missing(os)}, for which the \code{os} is chosen
+## ! interactively among the available builds.
 ## ! }
 ## ! \value{
 ## ! No value returned.
@@ -25,14 +31,22 @@
 ## ! \examples{
 ## !   \dontrun{
 ## !     inla.binary.install()
+## !     inla.binary.install(os = "CentOS Linux-7")
 ## !   }
 ## ! }
 
-`inla.binary.install` <- function(debug = TRUE) {
-    ## install alternative binary builds
-
+`inla.binary.install` <- function(os = c("CentOS Linux-6",
+                                         "CentOS Linux-7", 
+                                         "CentOS Linux-8", 
+                                         "CentOS Stream-8", 
+                                         "Fedora-33", 
+                                         "Manjaro Linux", 
+                                         "Ubuntu-16.04", 
+                                         "Ubuntu-18.04", 
+                                         "Ubuntu-20.04"),
+                                  verbose = TRUE) {
     show <- function(...) {
-        if (debug) {
+        if (verbose) {
             msg <- paste(unlist(list(...)), sep = "", collapse = "")
             cat("* ", msg, "\n", sep = "")
         }
@@ -42,9 +56,10 @@
         return(gsub(" ", "%20", fnm))
     }
 
+    os <- if (missing(os)) NULL else match.arg(os)
     stopifnot(inla.os.type() == "linux")
     version <- paste("Version_", inla.version("version"), sep = "")
-    show("Looking for ", version)
+    show("Looking for ", version, " and os=", if (!is.null(os)) os else "'<choose interactively>'")
 
     address <- "https://inla.r-inla-download.org/Linux-builds"
     Files <- paste0(address, "/FILES")
@@ -53,16 +68,28 @@
     close(fp)
     ff <- ff[grep(version, ff)]
     nf <- length(ff)
-    cat("  Available alternatives:\n")
-    for (i in seq_len(nf)) {
-        cat("  \t", paste0("Alternative ", i), " is ", ff[i], "\n")
-    }
-    cat("  ", "Chose alternative [", 1, ":", nf, "]", sep = "", "\n\t")
-    ans <- scan(file = "", what = integer(), n = 1, quiet = TRUE)
-    if (length(ans) == 0) {
-        return(invisible())
+
+    if (is.null(os)) {
+        cat("  Available alternatives:\n")
+        for (i in seq_len(nf)) {
+            cat("  \t", paste0("Alternative ", i), " is ", ff[i], "\n")
+        }
+        cat("  ", "Chose alternative [", 1, ":", nf, "]", sep = "", "\n\t")
+        ans <- scan(file = "", what = integer(), n = 1, quiet = TRUE)
+        if (length(ans) == 0) {
+            return(invisible())
+        }
+    } else {
+        ans <- grep(os, ff)
+        if (length(ans) == 0) {
+            stop(paste0("Sorry, os=", os, " is not available for ", version))
+        }
+        if (length(ans) > 1) {
+            stop("Internal error. Please report to <help@r-inla.org>")
+        }
     }
     if (!(ans %in% seq_len(nf))) stop("Not a valid choice. Exit.")
+
     fnm <- paste0(address, "/", ff[ans])
     show("Install file [", fnm, "]")
     pa <- searchpaths()

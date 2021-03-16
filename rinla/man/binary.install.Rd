@@ -10,15 +10,21 @@
     Install alternative binary builds.
  }
  \usage{
-    inla.binary.install(debug = TRUE)
+    inla.binary.install(os = c("CentOS Linux-6", "CentOS Linux-7", "CentOS Linux-8",
+                               "CentOS Stream-8", "Fedora-33", "Manjaro Linux",
+                               "Ubuntu-16.04", "Ubuntu-18.04", "Ubuntu-20.04"), 
+                        verbose = TRUE)
  }
  \arguments{
-    \item{debug}{Logical. Turn on debugging messages if \code{TRUE}}
+    \item{os}{If \code{os} is given, install binary build for this \code{os}.
+              If \code{os} is not given, chose \code{os} interactively
+              among available builds.}
+    \item{verbose}{Logical. Verbose output if \code{TRUE}}
  }
  \details{
- \code{inla.binary.install()} will offer a menu of alternative
- (Linux) binary builds to be installed. Currently offered,  are builds
- for Ubuntu, CentOS, Manjaro (Arch Linux) and Fedora
+ Install a new binary for \code{os} unless
+ \code{missing(os)}, for which the \code{os} is chosen
+ interactively among the available builds.
  }
  \value{
  No value returned.
@@ -27,5 +33,6 @@
  \examples{
    \dontrun{
      inla.binary.install()
+     inla.binary.install(os = "CentOS Linux-7")
    }
  }

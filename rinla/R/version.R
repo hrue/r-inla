@@ -42,7 +42,7 @@
     }
 
     date <- trim("Thu 30 Jun 08:30:28 CEST 2016")
-    version <- trim("Version_12.34.56")
+    version <- trim("12.34.56")
     what <- match.arg(what)
 
     if (what %in% "default") {
