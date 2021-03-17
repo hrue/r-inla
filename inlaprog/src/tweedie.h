@@ -50,6 +50,7 @@ __BEGIN_DECLS
 
 // ***
 
+void dtweedie_init_cache(void);
 void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens);
 double ptweedie(double y, double mu, double phi, double p);
 
