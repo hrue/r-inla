@@ -4,6 +4,14 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.03.17}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Internal code changes for \code{family=tweedie}
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.03.16}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
