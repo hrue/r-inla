@@ -80,20 +80,19 @@ static double *lgammas = NULL;
 void dtweedie_init_cache(void)
 {
 	if (!cache) {
-		dtweedie_cache_tp **cc = Calloc(GMRFLib_CACHE_LEN, dtweedie_cache_tp *);
+		cache = Calloc(GMRFLib_CACHE_LEN, dtweedie_cache_tp *);
 		for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
-			cc[i] = Calloc(GMRFLib_CACHE_LEN, dtweedie_cache_tp);
-			cc[i]->nterms = -1;
-			cc[i]->interpolation_ok = 0;
-			cc[i]->save_p = -9999.9999;
-			cc[i]->work = NULL;
-			cc[i]->wwork = NULL;
+			cache[i] = Calloc(GMRFLib_CACHE_LEN, dtweedie_cache_tp);
+			cache[i]->nterms = -1;
+			cache[i]->interpolation_ok = 0;
+			cache[i]->save_p = -9999.9999;
+			cache[i]->work = NULL;
+			cache[i]->wwork = NULL;
 		}
 		lgammas = Calloc(TWEEDIE_MAX_IDX, double);
 		for (int i = 0; i < TWEEDIE_MAX_IDX; i++) {
 			lgammas[i] = my_gsl_sf_lngamma(1.0 + i);	/* factorials for integers */
 		}
-		cache = cc;
 	}
 }
 
@@ -108,7 +107,6 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 	double a = -p2 / p1, a1 = 1.0 / p1;
 	double cc, w, sum_ww = 0.0, ww_max = 0.0, lsum_ww, ly;
 	double jmax, logz, logz_stripped;
-
 	int id, use_interpolation = 1, nterms, k, i, j, one = 1, k_low = -1, reuse = 0, verbose = 0, show_stat = 0;
 
 	GMRFLib_CACHE_SET_ID(id);
@@ -261,17 +259,15 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 
 	for (k = idx_max; k < nterms; k++) {		       /* assume there is one mode */
 		double tmp = cache_ptr->work[k] - ww_max;
-		if (tmp > lim) {
-			sum_ww += exp(tmp);
-		} else {
+		sum_ww += exp(tmp);
+		if (tmp < lim) {
 			break;
 		}
 	}
 	for (k = idx_max - 1; k >= 0; k--) {
 		double tmp = cache_ptr->work[k] - ww_max;
-		if (tmp > lim) {
-			sum_ww += exp(tmp);
-		} else {
+		sum_ww += exp(tmp);
+		if (tmp < lim) {
 			break;
 		}
 	}
