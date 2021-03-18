@@ -1,10 +1,10 @@
 SHELL = /bin/bash
 
 default:;
-	@echo "TARGETS: all build-configs update-inla update-R update-r-inla.org update-build-yourself www Rinla-local Rinla-install Rinla-testing"
+	@echo "TARGETS: all build-configs update-inla update-R update-r-inla.org update-build-yourself www Rinla-local Rinla-install Rinla-testing md5"
 
 all:;
-	$(MAKE) build-configs update-inla update-R update-r-inla.org update-build-yourself
+	$(MAKE) build-configs update-inla update-R update-r-inla.org update-build-yourself md5
 
 build-configs :;
 	./make-builds
@@ -33,7 +33,9 @@ update-build-yourself :;
 
 www :;
 	$(MAKE) update-r-inla.org
-	-rsync -auv --exclude md5sum.txt --delete www/. ~/www/www.inla/. 
+	-rsync -auv --delete www/. ~/www/www.inla/. 
+
+md5 :; ./www/make-md5
 
 Rinla-local :;
 	make update-inla
@@ -64,6 +66,6 @@ Rinla-testing-Ronly :;
 	make www
 	-do-rsync-www
 
-.PHONY: build-configs update-inla update-R update-REPO update-r-inla.org update-build-yourself all default www Rinla-testing Rinla Rinla-install Rinla-local Rinla-local-Ronly
+.PHONY: build-configs update-inla update-R update-REPO update-r-inla.org update-build-yourself all default www Rinla-testing Rinla Rinla-install Rinla-local Rinla-local-Ronly md5
 
 
