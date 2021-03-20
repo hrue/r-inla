@@ -1,4 +1,4 @@
-SHELL = /bin/bash
+SHELL = /bin/bash 
 
 default:;
 	@echo "TARGETS: all build-configs update-inla update-R update-r-inla.org update-build-yourself www Rinla-local Rinla-install Rinla-testing md5"
