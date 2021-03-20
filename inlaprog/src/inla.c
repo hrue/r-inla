@@ -26396,28 +26396,53 @@ double extra(double *theta, int ntheta, void *argument)
 	}
 	// joint prior evaluated in R
 	static int jp_first_time = 1;
+	static void *jp_vec_sexp = NULL;
+	
 	if (mb->jp) {
 #pragma omp critical
 		{
 			if (jp_first_time) {
-				// inla_R_library("INLA");
+				char **vec_str = NULL;
+
+				inla_R_library("INLA");
 				inla_R_load(mb->jp->file);
+				if (mb->ntheta > 0) {
+					vec_str = Calloc(mb->ntheta, char *);
+					for(int i = 0; i < mb->ntheta; i++) {
+						vec_str[i] = GMRFLib_strdup(mb->theta_tag[i]);
+					}
+				}
+				jp_vec_sexp = inla_R_vector_of_strings(mb->ntheta, vec_str);
 				jp_first_time = 0;
+
+				if (vec_str) {
+					for(int i = 0; i < mb->ntheta; i++) {
+						Free(vec_str[i]);
+					}
+					Free(vec_str);
+				}
 			}
 			assert(!(mb->update));		       /* only one at the time... */
 			evaluate_hyper_prior = 0;
 
 			int verbose = 0;
-			double *lprior = NULL;
-			int n_out;
+			if (ntheta > 0) {
+				int n_out = 0;
+				double *lprior = NULL;
 
-			inla_R_funcall1(&n_out, &lprior, (const char *) mb->jp->model, ntheta, theta);
-			assert(n_out == 1);
-			assert(lprior);
-			val += *lprior;
-			if (verbose)
-				printf("got lprior = %g\n", *lprior);
-			Free(lprior);
+				inla_R_funcall_jp(&n_out, &lprior, (const char *) mb->jp->model, ntheta, theta, jp_vec_sexp);
+				assert(n_out == 1);
+				assert(lprior);
+				val += *lprior;
+				if (verbose) {
+					printf("got lprior = %g\n", *lprior);
+				}
+				Free(lprior);
+			} else {
+				if (verbose) {
+					printf("lprior: ntheta= 0, no prior needed\n");
+				}
+			}
 		}
 	}
 
