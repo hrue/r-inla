@@ -275,7 +275,7 @@ typedef struct {
 	/*
 	 * survival: event is 1 is y is the failure time or 0 if its right sensored 
 	 */
-	double **alpha_intern;				       /* For the Weibull, PS and loglogistic */
+	double **alpha_intern;				       /* For the Weibull, PS, loglogistic and gompertz */
 	double *truncation;				       /* for survival */
 	double *event;					       /* one of inla_surv_event_tp */
 	double *lower;					       /* for survival */
@@ -461,6 +461,7 @@ typedef struct {
 	double **fmri_lprec;
 	double **fmri_ldof;
 	double *fmri_scale;
+
 } Data_tp;
 
 typedef struct {
@@ -567,6 +568,8 @@ typedef enum {
 	L_FMRI, 
 	L_FMRISURV, 
 	L_AGAUSSIAN,					       /* likelihood-models */
+	L_GOMPERTZ, 
+	L_GOMPERTZSURV, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1844,6 +1847,8 @@ int loglikelihood_gammasurv(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_gammasurvjw(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_gompertz(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_gompertzsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_agaussian(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, GMRFLib_logl_tp * loglfun);
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

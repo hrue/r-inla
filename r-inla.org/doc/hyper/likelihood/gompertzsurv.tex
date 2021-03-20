@@ -1,0 +1,25 @@
+%% DO NOT EDIT!
+%% This file is generated automatically from models.R
+\begin{description}
+	\item[doc] gompertz distribution
+	\item[hyper]\ 
+	 \begin{description}
+	 	\item[theta]\ 
+	 	 \begin{description}
+	 	 	\item[hyperid] 106101
+	 	 	\item[name] shape
+	 	 	\item[short.name] alpha
+	 	 	\item[initial] 0
+	 	 	\item[fixed] FALSE
+	 	 	\item[prior] loggamma
+	 	 	\item[param] 0.001 0.001
+	 	 	\item[to.theta] \verb!function(x, sc = 0.1) log(x) / sc!
+	 	 	\item[from.theta] \verb!function(x, sc = 0.1) exp(sc * x)!
+	 	 \end{description}
+	 \end{description}
+	\item[status] experimental
+	\item[survival] TRUE
+	\item[discrete] FALSE
+	\item[link] default log
+	\item[pdf] gompertz
+\end{description}
