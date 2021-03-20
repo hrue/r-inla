@@ -4,6 +4,20 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.03.20}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New family \code{gompertz}
+      \item \code{inla.binary.install()} now do md5-checksum check
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Code optimization for \code{barrier} models
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.03.17}{
   \subsection{BUG FIXES}{
     \itemize{
