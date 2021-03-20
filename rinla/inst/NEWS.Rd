@@ -4,6 +4,14 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.03.21}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Changes in \code{inla.jp}; see help-page for details.
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.03.20}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
@@ -17,6 +25,7 @@
     }
   }
 }
+
 
 \section{CHANGES IN VERSION 21.03.17}{
   \subsection{BUG FIXES}{
