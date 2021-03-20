@@ -2,7 +2,7 @@
 
 /* R-interface.c
  * 
- * Copyright (C) 2014-2020 Havard Rue
+ * Copyright (C) 2014-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -351,6 +351,56 @@ int inla_R_funcall1(int *n_out, double **x_out, const char *function, int n, dou
 	return inla_R_funcall2(n_out, x_out, function, NULL, n, x);
 }
 
+int inla_R_funcall_jp(int *n_out, double **x_out, const char *function, int n, double *x, void *sexp)
+{
+	/*
+	 * Call function(x, sexp), where x is a double vector of length n, and 'sexp' is some SEXP ptr.
+	 * Output is 'x_out' with length 'n_out'
+	 */
+
+	if (R_debug) {
+		fprintf(stderr, "R-interface[%1d]: enter: funcall_jp: function[%s] n[%1d]\n", omp_get_thread_num(), function, n);
+		fflush(stderr);
+	}
+	CHECK_IN;
+
+	int error, i;
+	SEXP xx, result, e;
+
+	xx = PROTECT(allocVector(REALSXP, n));
+	for (i = 0; i < n; i++) {
+		REAL(xx)[i] = x[i];
+	}
+
+	e = PROTECT(lang3(install(function), xx, (SEXP) sexp));
+	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
+	if (result == NULL || error) {
+		fprintf(stderr, "\n *** ERROR *** Calling R-function [%s] with [%1d] arguments\n", function, n);
+		exit(1);
+	}
+	*n_out = (int) XLENGTH(result);
+	assert(*n_out >= 0);
+	if (*n_out > 0) {
+		*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
+		for (i = 0; i < *n_out; i++) {
+			(*x_out)[i] = REAL(result)[i];
+		}
+	} else {
+		*x_out = NULL;
+	}
+
+	UNPROTECT(3);
+
+	if (R_debug) {
+		fprintf(stderr, "R-interface[%1d]: leave: funcall2: function [%s] n[%1d]\n", omp_get_thread_num(), function, n);
+		fflush(stderr);
+	}
+	CHECK_OUT;
+
+
+	return (INLA_OK);
+}
+
 int inla_R_assign(const char *variable, int n, double *x)
 {
 	/*
@@ -484,12 +534,29 @@ int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *mod
 	return (INLA_OK);
 }
 
+void *inla_R_vector_of_strings(int n, char **s)
+{
+	// make and return an SEXP object which is a vector of given strings
+
+	if (n == 0) {
+		return ((void *) NULL);
+	}
+
+	SEXP sexp = PROTECT(allocVector(STRSXP, n));
+	for (int i = 0; i < n; i++) {
+		SEXP str = PROTECT(mkChar(s[i]));
+		SET_STRING_ELT(sexp, i, str);
+	}
+
+	return ((void *) sexp);
+}
 
 #else
 
-
 #include <stdlib.h>
 #include <stdio.h>
+double R_rgeneric_cputime = 0.0;
+
 #define ERROR_MESSAGE \
 	if (1) {							\
 		fprintf(stderr, "\n\n\n\t*** ERROR ***: The R-interface was not enabled at compile time: please recompile.\n\n\n"); \
@@ -551,7 +618,14 @@ int inla_R_inlaload(const char *filename)
 {
 	ERROR_MESSAGE;
 }
-
+void *inla_R_vector_of_strings(int n, char **s)
+{
+	ERROR_MESSAGE;
+}
+int inla_R_funcall_jp(int *n_out, double **x_out, const char *function, int n, double *x, void *sexp)
+{
+	ERROR_MESSAGE;
+}
 
 #undef ERROR_MESSAGE
 

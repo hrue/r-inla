@@ -14,7 +14,11 @@
 }
 
 \arguments{
-  \item{jp}{The \code{jp}-function}
+  \item{jp}{The \code{jp}-function which returns the joint log-prior as a function of
+            argument \code{theta}. There is an optional second argument that is a
+            vector of \code{theta}-names. If
+            second argument is not present, argument \code{.theta.desc}
+            will be added.}
   \item{...}{Named list of variables that defines the environment of \code{jp}}
 }
 

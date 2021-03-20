@@ -47,6 +47,7 @@ __BEGIN_DECLS
 int inla_R_assign(const char *variable, int n, double *x);
 int inla_R_funcall1(int *n_out, double **x_out, const char *function, int n, double *x);
 int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char *tag, int n, double *x);
+int inla_R_funcall_jp(int *n_out, double **x_out, const char *function, int n, double *x, void *sexp);
 int inla_R_get(int *n_out, double **x_out, const char *variable);
 int inla_R_init(void);
 int inla_R_inlaload(const char *filename);
@@ -54,6 +55,7 @@ int inla_R_library(const char *library);
 int inla_R_load(const char *filename);
 int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *model, int n, double *theta);
 int inla_R_source(const char *filename);
+void *inla_R_vector_of_strings(int n, char ** s);
 void inla_R_exit(void);
 
 __END_DECLS
