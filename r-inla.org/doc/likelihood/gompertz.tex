@@ -1,0 +1,72 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{ifpdf}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+\newcommand{\vect}[1]{\boldsymbol{#1}}
+\begin{document}
+\section*{Gompertz}
+
+\subsection*{Parametrisation}
+
+The Gompertz distribution has log survial function
+\begin{displaymath}
+    \log S(y) = -\frac{\mu}{\alpha}\left(\exp(\alpha y) -1\right)
+\end{displaymath}
+for response $y\ge 0$, $\mu>0$ and $\alpha>0$. The cummulative
+distribution function and the density then follows as
+\begin{displaymath}
+    F(y) = 1 - \exp\left[ -\frac{\mu}{\alpha}\left(\exp(\alpha y)
+        -1\right) \right]
+\end{displaymath}
+and
+\begin{displaymath}
+    f(y) = \mu \exp\left[ \alpha y -\frac{\mu}{\alpha}\left(\exp(\alpha y)
+        -1\right) \right].
+\end{displaymath}
+
+\subsection*{Link-function}
+The parameter $\mu$ is linked to the linear predictor $\eta$ as:
+\[
+    \mu = \exp(\eta)
+\]
+
+\subsection*{Hyperparameters}
+
+The shape parameter $\alpha$ is represented as
+\begin{displaymath}
+    \alpha = \exp(S\theta)
+\end{displaymath}
+and the prior is defined on $\theta$. The constant $S$ currently set
+to $0.1$ to avoid numerical instabilities in the optimization, since
+small changes of $\alpha$ can make a huge difference.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{gompertz}$ for regression models and 
+ $\text{family}=\texttt{gompertz.surv}$ for survival models.
+\item Required arguments: $y$ (to be given in a format by using
+    $\texttt{inla.surv()}$ for survival models )
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/gompertz.tex}
+\input{../hyper/likelihood/gompertzsurv.tex}
+
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+case%%
+\verbatiminput{example-gompertz.R}
+
+\subsection*{Notes}
+
+\end{document}
+
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

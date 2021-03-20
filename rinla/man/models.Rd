@@ -9377,6 +9377,64 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `gompertz'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{hyperid = }{`105101'}
+							\item{name = }{`shape'}
+							\item{short.name = }{`alpha'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`0.001 0.001'}
+							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x) / sc}'}
+							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc * x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`gompertz distribution'}
+								\item{status = }{`experimental'}
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default log'}
+								\item{pdf = }{`gompertz'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `gompertzsurv'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{hyperid = }{`106101'}
+							\item{name = }{`shape'}
+							\item{short.name = }{`alpha'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`loggamma'}
+							\item{param = }{`0.001 0.001'}
+							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x) / sc}'}
+							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc * x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`gompertz distribution'}
+								\item{status = }{`experimental'}
+								\item{survival = }{`TRUE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default log'}
+								\item{pdf = }{`gompertz'}
+							 }
+						 }
+					 }
+				 }
 			 }
 		 }
 		\item{Section `prior'.}{

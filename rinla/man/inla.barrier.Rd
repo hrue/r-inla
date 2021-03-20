@@ -23,7 +23,7 @@ inla.barrier.pcmatern(
 
 inla.barrier.polygon(mesh, barrier.triangles, Omega = NULL)
 
-inla.barrier.q(fem, ranges, sigma = 1)
+inla.barrier.q(fem, ranges, sigma = 1, envir = NULL)
 
 inla.barrier.fem(mesh, barrier.triangles, Omega = NULL)
 }
@@ -51,6 +51,8 @@ documented)}
 by containing all the needed matrices to solve the SPDE}
 
 \item{ranges, sigma}{the hyperparameters that determine Q}
+
+\item{envir}{the environment used for caching (with optimize=TRUE), if any}
 }
 \value{
 \itemize{
@@ -69,7 +71,7 @@ Functions for defining Barrier models as an \verb{inla rgeneric} model
 }
 \details{
 This model is described in the ArXiv preprint arXiv:1608.03787.  For
-examples, see \url{https://haakonbakka.bitbucket.io/btopic107.html}.
+examples, see \url{https://haakonbakkagit.github.io/btopic128.html}
 \itemize{
 \item \code{inla.barrier.pcmatern}
 This function creates the model component used in inla(...)

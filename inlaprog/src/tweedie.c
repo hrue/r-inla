@@ -46,8 +46,9 @@ static const char GitID[] = GITCOMMIT;
 #include "GMRFLib/GMRFLibP.h"
 #include "tweedie.h"
 
-// the dtweedie-code is modified from tweedie.c in the (GPL'ed) cplm_0.7-9.tar.gz package of Wayne Zhang
-// <actuary_zhang@hotmail.com>, to tailor it to the INLA use.
+// the 'dtweedie'-code is inspired from tweedie.c in the (GPL'ed) cplm_0.7-9.tar.gz package of Wayne Zhang
+// <actuary_zhang@hotmail.com>, but got largly rewritten to incorporate caching and interpolation and other optimization
+// features. This to optimize it to how its used within the INLA context.
 
 #define TWEEDIE_DROP 40.0
 #define TWEEDIE_INCRE 1.2

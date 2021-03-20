@@ -5336,25 +5336,25 @@
                     pdf = "poisson"
                 ),
 
-                ### contpoisson = list(
-                ### doc = "The Cont Poisson likelihood",
-                ### hyper = list(
-                ### ),
-                ### survival = FALSE,
-                ### discrete = TRUE,
-                ### link = c("default", "log"),
-                ### pdf = "contpoisson"
-                ### ),
-                ###
-                ### qcontpoisson = list(
-                ### doc = "The quantile Cont Poisson likelihood",
-                ### hyper = list(
-                ### ),
-                ### survival = FALSE,
-                ### discrete = TRUE,
-                ### link = c("default", "log"),
-                ### pdf = "qcontpoisson"
-                ### ),
+                ## contpoisson = list(
+                ## doc = "The Cont Poisson likelihood",
+                ## hyper = list(
+                ## ),
+                ## survival = FALSE,
+                ## discrete = TRUE,
+                ## link = c("default", "log"),
+                ## pdf = "contpoisson"
+                ## ),
+                ##
+                ## qcontpoisson = list(
+                ## doc = "The quantile Cont Poisson likelihood",
+                ## hyper = list(
+                ## ),
+                ## survival = FALSE,
+                ## discrete = TRUE,
+                ## link = c("default", "log"),
+                ## pdf = "qcontpoisson"
+                ## ),
 
                 cenpoisson = list(
                     doc = "Then censored Poisson likelihood",
@@ -7900,7 +7900,57 @@
                     discrete = FALSE,
                     link = c("default", "log"),
                     pdf = "fmri"
-                )
+                ),
+
+                gompertz = list(
+                    doc = "gompertz distribution",
+                    hyper = list(
+                        theta = list(
+                            hyperid = 105101,
+                            name = "shape",
+                            short.name = "alpha",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "loggamma",
+                            param = c(0.001, 0.001),
+                            ## the 'sc' constant is defined in inla.h, and must be the same.
+                            ## I know, this is hard-coded for the moment. Should be a generic
+                            ## way of doing this...
+                            to.theta = function(x, sc = 0.1) log(x) / sc,
+                            from.theta = function(x, sc = 0.1) exp(sc * x)
+                        )
+                    ),
+                    status = "experimental", 
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "log"),
+                    pdf = "gompertz"
+                ), 
+
+                gompertzsurv = list(
+                    doc = "gompertz distribution",
+                    hyper = list(
+                        theta = list(
+                            hyperid = 106101,
+                            name = "shape",
+                            short.name = "alpha",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "loggamma",
+                            param = c(0.001, 0.001),
+                            ## the 'sc' constant is defined in inla.h, and must be the same.
+                            ## I know, this is hard-coded for the moment. Should be a generic
+                            ## way of doing this...
+                            to.theta = function(x, sc = 0.1) log(x) / sc,
+                            from.theta = function(x, sc = 0.1) exp(sc * x)
+                        )
+                    ),
+                    status = "experimental", 
+                    survival = TRUE,
+                    discrete = FALSE,
+                    link = c("default", "log"),
+                    pdf = "gompertz"
+                ) 
             )
     )
 }

@@ -3,7 +3,7 @@
 #' Functions for defining Barrier models as an `inla rgeneric` model
 #'
 #' This model is described in the ArXiv preprint arXiv:1608.03787.  For
-#' examples, see <https://haakonbakka.bitbucket.io/btopic107.html>.
+#' examples, see <https://haakonbakkagit.github.io/btopic128.html>
 #'
 #' @aliases inla.barrier barrier inla.barrier.pcmatern barrier.pcmatern
 #' inla.barrier.polygon barrier.polygon inla.barrier.q barrier.q
@@ -62,6 +62,9 @@
                                            "log.norm.const", "log.prior", "quit"
                                        ),
                                        theta = NULL) {
+
+        envir = parent.env(environment())
+
         ## Dynamic input
         ## theta = log(sigma), log(range1), log(range2), ...
 
@@ -142,8 +145,8 @@
             if (is.na(prior.range[2])) {
                 theta.full <- c(theta.full, log(prior.range[1]))
                 ## How it would be for multiple ranges (not barrier model)
-                # all.ranges = rep(prior.range[1], fem$hdim)
-                # theta.full = c(theta.full, log(all.ranges))
+                                        # all.ranges = rep(prior.range[1], fem$hdim)
+                                        # theta.full = c(theta.full, log(all.ranges))
             }
 
             ## Not implemented for multiple ranges
@@ -152,7 +155,8 @@
 
             ## Construct the precision matrix
             ## Not from the raw theta, but using both parameters
-            Q <- inla.barrier.q(fem = fem, ranges = exp(theta.full[2]) * c(1, range.fraction), sigma = exp(theta.full[1]))
+            Q <- inla.barrier.q(fem = fem, ranges = exp(theta.full[2]) * c(1, range.fraction),
+                                sigma = exp(theta.full[1]), envir = envir)
             return(Q)
         }
 
@@ -191,7 +195,7 @@
     obj$inla.barrier.q <- inla.barrier.q
 
     obj$fem <- inla.barrier.fem(mesh, barrier.triangles = barrier.triangles)
-    barrier.model <- inla.rgeneric.define(model = barrier.rgeneric.model, obj = obj)
+    barrier.model <- inla.rgeneric.define(model = barrier.rgeneric.model, optimize = TRUE, obj = obj)
 
     if (!is.na(prior.sigma[2]) && !is.na(prior.range[2])) {
         ## All ok
@@ -250,9 +254,10 @@
 #' @param fem represents the Barrier model or the Different Terrains (DT) model,
 #' by containing all the needed matrices to solve the SPDE
 #' @param ranges,sigma the hyperparameters that determine Q
+#' @param envir the environment used for caching (with optimize=TRUE), if any
 #' @export
 #' @rdname inla.barrier
-`inla.barrier.q` <- function(fem, ranges, sigma = 1) {
+`inla.barrier.q` <- function(fem, ranges, sigma = 1, envir = NULL) {
     if (is.null(ranges)) stop("ranges cannot be NULL")
     if (any(is.na(ranges))) stop("No range can be NA")
 
@@ -283,8 +288,22 @@
     ## The last multiplication factor is because the C matrix
     ## is different by a factor of 3 compared to the corresponding matrix
     ## in the stationary spde approach
-    Q <- inla.as.dgTMatrix(t(A) %*% Cinv %*% A * (1 / sigma^2) / pi * 2 * 3)
-    return(Q)
+    Q <- inla.as.sparse(t(A) %*% Cinv %*% A * (1 / sigma^2) / pi * 2 * 3)
+
+    ## if it exists, then this is the environment used for caching and optimize=TRUE.
+    ## otherwise, use optimize=FALSE format
+    if (is.environment(envir)) {
+        if (!exists("cache.done", envir = envir)) {
+            Qx.idx <- which(Q@i <= Q@j)
+            assign("Qx.idx", Qx.idx, envir = envir)
+            assign("cache.done", TRUE, envir = envir)
+        } else {
+            Qx.idx <- get("Qx.idx", envir = envir)
+        }
+        return(Q@x[Qx.idx])
+    } else {
+        return (Q)
+    }
 }
 
 #' @details * `inla.barrier.fem` This function computes the Finite Element
@@ -366,7 +385,7 @@
                     index.j[counter] <- px[j]
                     Aij[counter] <- (twiceArea) * 1 / 24
                     counter <- counter + 1
-                    # symmetry:
+                    ## symmetry:
                     index.i[counter] <- px[j]
                     index.j[counter] <- px[i]
                     Aij[counter] <- (twiceArea) * 1 / 24

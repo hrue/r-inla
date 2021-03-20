@@ -2763,7 +2763,7 @@ double Qfunc_dmatern(int i, int j, double *UNUSED(values), void *arg)
 			}
 			if (0) {
 				FILE *fp = fopen("Q.dat", "w");
-				GMRFLib_gsl_matrix_fprintf(fp, a->Q[id],  "%.16f ");
+				GMRFLib_gsl_matrix_fprintf(fp, a->Q[id], "%.16f ");
 				fclose(fp);
 			}
 			GMRFLib_gsl_spd_inverse(a->Q[id]);
@@ -4498,6 +4498,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 	case L_STOCHVOL_NIG:
 	case L_STOCHVOL_T:
 	case L_WEIBULL:
+	case L_GOMPERTZ:
 		idiv = 2;
 		a[0] = NULL;
 		break;
@@ -4545,6 +4546,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 	case L_WEIBULLSURV:
 	case L_WEIBULL_CURE:
 	case L_FMRISURV:
+	case L_GOMPERTZSURV:
 		idiv = 6;
 		a[0] = ds->data_observations.event = Calloc(mb->predictor_ndata, double);	/* the failure code */
 		a[1] = ds->data_observations.truncation = Calloc(mb->predictor_ndata, double);
@@ -7812,9 +7814,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -9211,6 +9213,48 @@ int loglikelihood_weibullsurv(double *logll, double *x, int m, int idx, double *
 {
 	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_weibull));
 }
+
+
+int loglikelihood_gompertz(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
+{
+	/*
+	 * y ~ gompertz
+	 */
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	int i;
+	double y, alpha, mu;
+
+	y = ds->data_observations.y[idx];
+	// yes, use the same mapping as weibull
+	alpha = map_alpha_weibull(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+
+	LINK_INIT;
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			logll[i] = log(mu) + alpha * y - mu / alpha * (exp(alpha * y) - 1.0);
+		}
+	} else {
+		double yy = (y_cdf ? *y_cdf : y);
+		for (i = 0; i < -m; i++) {
+			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			logll[i] = 1.0 - exp(-mu / alpha * (exp(alpha * yy) - 1.0));
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_gompertzsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
+{
+	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gompertz));
+}
+
 
 int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
@@ -11996,6 +12040,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "WEIBULLSURV")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_weibullsurv;
 		ds->data_id = L_WEIBULLSURV;
+	} else if (!strcasecmp(ds->data_likelihood, "GOMPERTZ")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gompertz;
+		ds->data_id = L_GOMPERTZ;
+	} else if (!strcasecmp(ds->data_likelihood, "GOMPERTZSURV")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gompertzsurv;
+		ds->data_id = L_GOMPERTZSURV;
 	} else if (!strcasecmp(ds->data_likelihood, "LOGLOGISTIC")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_loglogistic;
 		ds->data_id = L_LOGLOGISTIC;
@@ -12426,6 +12476,18 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
+	case L_GOMPERTZ:
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: GOMPERTZ data[%1d] (y) = (%g) is void\n", secname, i,
+							ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+		break;
+
 	case L_GPOISSON:
 	case L_ZEROINFLATEDPOISSON0:
 	case L_ZEROINFLATEDPOISSON1:
@@ -12659,6 +12721,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_QLOGLOGISTICSURV:
 	case L_LOGNORMALSURV:
 	case L_FMRISURV:
+	case L_GOMPERTZSURV:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				int event;
@@ -13346,7 +13409,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * get options related to the tweedie
 		 */
-		dtweedie_init_cache(); // will only initialize once
+		dtweedie_init_cache();			       // will only initialize once
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* yes! */
 		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
 		if (!ds->data_fixed0 && mb->reuse_mode) {
@@ -15611,6 +15674,64 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->theta[mb->ntheta] = ds->data_observations.alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_alpha_weibull;	/* alpha = exp(alpha.intern) */
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+		break;
+	}
+
+	case L_GOMPERTZ:
+	case L_GOMPERTZSURV:
+	{
+		/*
+		 * get options related to the gompertz
+		 */
+		double initial_value = 0.0;
+
+		GMRFLib_ASSERT(ds->variant == 0 || ds->variant == 1, GMRFLib_EPARAMETER);
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), initial_value);
+		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
+		if (!ds->data_fixed && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.alpha_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise alpha_intern[%g]\n", ds->data_observations.alpha_intern[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+		}
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior.hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			if (ds->data_id == L_GOMPERTZ) {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("alpha_intern for Gompertz", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("alpha parameter for Gompertz", mb->ds);
+			} else {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("alpha_intern for Gompertz-surv", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("alpha parameter for Gompertz-surv", mb->ds);
+			}
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.alpha_intern;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			// yes, use the same mapping
 			mb->theta_map[mb->ntheta] = map_alpha_weibull;	/* alpha = exp(alpha.intern) */
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
@@ -26938,6 +27059,15 @@ double extra(double *theta, int ntheta, void *argument)
 
 			case L_WEIBULL:
 			case L_WEIBULLSURV:
+				if (!ds->data_fixed) {
+					double alpha_intern = theta[count];
+					val += PRIOR_EVAL(ds->data_prior, &alpha_intern);
+					count++;
+				}
+				break;
+
+			case L_GOMPERTZ:
+			case L_GOMPERTZSURV:
 				if (!ds->data_fixed) {
 					double alpha_intern = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &alpha_intern);
