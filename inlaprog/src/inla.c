@@ -34929,6 +34929,31 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 55: 
+	{
+		double skew = 0.3;
+		double *x= NULL, *w= NULL;
+		int n = 21;
+		
+		GMRFLib_snq(&x, &w, n, skew);
+
+		for(int i; i <  n; i++) {
+			printf("i %d x %.8f w %.8f ww %.8f www %.8f\n", i, x[i], w[i], w[i+n], w[i+2*n]);
+		}
+
+		double fun = 0, fund = 0, fundd = 0, fval;
+		for(int i; i <  n; i++) {
+			fval = sin(x[i]);
+
+			fun += fval * w[i];
+			fund += fval * w[i + n];
+			fundd += fval * w[i + 2*n];
+		}
+		printf("sin(x): value= %.8f deriv= %.8f dderiv= %.8f\n", fun, fund, fundd);
+		
+		break;
+	}
+
 		// this will give some more error messages, if any
 	case 999:
 	{

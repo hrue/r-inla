@@ -1,7 +1,7 @@
 
 /* ghq.c
  * 
- * Copyright (C) 2006-2020 Havard Rue
+ * Copyright (C) 2006-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -132,9 +132,9 @@ int GMRFLib_ghq_ms(double **xp, double **wp, int n, double mean, double stdev)
 
 	*xp = Calloc(n, double);
 	*wp = Calloc(n, double);
-	for(i = 0; i < n; i++) {
+	for (i = 0; i < n; i++) {
 		(*xp)[i] = xxp[i] * stdev + mean;
-		(*wp)[i] = wwp[i]; 
+		(*wp)[i] = wwp[i];
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -220,5 +220,85 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 			*wp = w;			       /* return a ptr only */
 		}
 	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_snq(double **xp, double **wp, int n, double skew)
+{
+
+// RATIO is the skew-normal density divided by the normal, each with mean zero and unit variance
+#define RATIO_CORE(x_, z_) (2.0 / omega * exp(-0.5 * SQR(z_) + 0.5 * SQR(x_) + inla_log_Phi(alpha * (z_))))
+#define RATIO(x_) RATIO_CORE(x_, (((x_)-xi)/omega))
+
+	// Return the integration points and weights for integrating with respect to a skew normal with mean=0, var=1 and given
+	// skewness.
+
+	// the weights wp[i+n] and wp[i+2*n] gives the weight to get the first and second derivative wrt the skewness
+
+	// New memory for xp and wp is allocated
+
+	int i, j;
+	double *xxp = NULL, *wwp = NULL;
+	double inla_log_Phi(double x);			       /* external function */
+
+	double c1 = 1.2533141373155001208;		       // = sqrt(M_PI/2)
+	double c2 = 0.63661977236758138243;		       // 2/M_PI
+	double c3 = 0.568995659411924537;		       // pow((4 - M_PI)/2.0, 2.0/3.0)));
+	double v1, delta, alpha, omega, xi;
+
+	*xp = Calloc(n, double);
+	*wp = Calloc(3 * n, double);
+	GMRFLib_ghq(&xxp, &wwp, n);
+	memcpy(*xp, xxp, n * sizeof(double));
+
+	double skews[5];
+	double ds = GMRFLib_eps(1.0 / 3.9134);		       // ds=1.0e-4 
+	double **ww = NULL;
+	int ns = sizeof(skews) / sizeof(double);
+
+	ww = Calloc(ns, double *);
+	ww[0] = Calloc(ns * n, double);
+	for (j = 1; j < ns; j++) {
+		ww[j] = ww[0] + j * n;
+	}
+
+	skews[0] = skew - 2.0 * ds;
+	skews[1] = skew - 1.0 * ds;
+	skews[2] = skew;
+	skews[3] = skew + 1.0 * ds;
+	skews[4] = skew + 2.0 * ds;
+
+	for (j = 0; j < ns; j++) {
+		v1 = pow(ABS(skews[j]), 2.0 / 3.0);
+		delta = c1 * sqrt(v1 / (v1 + c3)) * (skews[j] >= 0 ? 1.0 : -1.0);
+		alpha = delta / sqrt(1.0 - SQR(delta));
+		omega = sqrt(1.0 / (1.0 - c2 * SQR(delta)));
+		xi = 0.0 - omega * delta / c1;
+
+		for (i = 0; i < n; i++) {
+			ww[j][i] = wwp[i] * RATIO(xxp[i]);
+		}
+	}
+
+	// stencil for the first and second derivative
+	double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
+	double wff[] = { -1.0 / 12.0, 4.0 / 3.0, -5.0 / 2.0, 4.0 / 3.0, -1.0 / 12.0 };
+
+	for (i = 0; i < n; i++) {
+
+		double f0 = ww[2][i];
+		double df = (wf[0] * ww[0][i] + wf[1] * ww[1][i] + wf[2] * ww[2][i] + wf[3] * ww[3][i] + wf[4] * ww[4][i]) / ds;
+		double ddf = (wff[0] * ww[0][i] + wff[1] * ww[1][i] + wff[2] * ww[2][i] + wff[3] * ww[3][i] + wff[4] * ww[4][i]) / SQR(ds);
+
+		(*wp)[i + 0 * n] = f0;
+		(*wp)[i + 1 * n] = df;
+		(*wp)[i + 2 * n] = ddf;
+	}
+
+	Free(ww[0]);
+	Free(ww);
+
+#undef RATIO_CORE
+#undef RATIO
 	return GMRFLib_SUCCESS;
 }
