@@ -7923,7 +7923,7 @@
                     status = "experimental", 
                     survival = FALSE,
                     discrete = FALSE,
-                    link = c("default", "log"),
+                    link = c("default", "log", "neglog"),
                     pdf = "gompertz"
                 ), 
 
@@ -7948,7 +7948,7 @@
                     status = "experimental", 
                     survival = TRUE,
                     discrete = FALSE,
-                    link = c("default", "log"),
+                    link = c("default", "log", "neglog"),
                     pdf = "gompertz"
                 ) 
             )

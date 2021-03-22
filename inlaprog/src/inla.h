@@ -68,7 +68,8 @@ __BEGIN_DECLS
  *
  * YES, CHANGE IT MANUALLY!
  */
-#define INLA_WEIBULL_ALPHA_SCALE 0.10
+#define INLA_WEIBULL_ALPHA_SCALE 0.1
+#define INLA_GOMPERTZ_ALPHA_SCALE 0.1
 
 /*
  * The scaling of the critical 'precision' parameter. If this value change, it must also be changed in models.R 
@@ -1592,7 +1593,8 @@ double link_test1(double x, map_arg_tp typ, void *param, double *cov);
 double link_this_should_not_happen(double x, map_arg_tp typ, void *param, double *cov);
 double map_1exp(double arg, map_arg_tp typ, void *param);
 double map_H(double x, map_arg_tp typ, void *param);
-double map_alpha_weibull(double arg, map_arg_tp typ, void *param);
+double map_alpha_gompertz(double arg, map_arg_tp typ, void *UNUSED(param));
+double map_alpha_weibull(double arg, map_arg_tp typ, void *UNUSED(param));
 double map_prec_qkumar(double arg, map_arg_tp typ, void *param);
 double map_beta(double arg, map_arg_tp typ, void *param);
 double map_dof(double arg, map_arg_tp typ, void *param);

@@ -1115,6 +1115,14 @@ double map_alpha_weibull(double arg, map_arg_tp typ, void *UNUSED(param))
 	double scale = INLA_WEIBULL_ALPHA_SCALE;
 	return map_exp_scale(arg, typ, (void *) &scale);
 }
+double map_alpha_gompertz(double arg, map_arg_tp typ, void *UNUSED(param))
+{
+	/*
+	 * the map-function for the range
+	 */
+	double scale = INLA_GOMPERTZ_ALPHA_SCALE;
+	return map_exp_scale(arg, typ, (void *) &scale);
+}
 double map_prec_qkumar(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -9057,11 +9065,20 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 {
 	// this function makes a survival likelihood out of a regression likelihood
 
+	// this safeguard computed CDF's that should not be exactly 0 or 1
+#define SAFEGUARD(value_, m_) for(int i_ = 0; i_ < (m_); i_++) value_[i_] = TRUNCATE(value_[i_], p_min, 1.0 - p_min)
+
+	static double p_min = -1.0;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i, ievent;
 	double event, truncation, lower, upper;
 
 	assert(y_cdf == NULL);				       // I do not think this should be used. 
+
+	if (p_min < 0.0) {
+#pragma omp critical
+		p_min = GMRFLib_eps(0.75);
+	}
 
 	event = ds->data_observations.event[idx];
 	ievent = (int) event;
@@ -9073,9 +9090,9 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 		// by default, all these are set to zero due to Calloc
 		double *work = Calloc(4 * m, double);
 		double *log_dens = &work[0], *prob_lower = &work[m], *prob_upper = &work[2 * m], *prob_truncation = &work[3 * m];
-
-		for (i = 0; i < m; i++)
-			prob_upper[i] = 1.0;		       /* this is upper=INF */
+		for (i = 0; i < m; i++) {
+			prob_upper[i] = 1.0;
+		}
 		if (!ISZERO(truncation)) {
 			loglfun(prob_truncation, x, -m, idx, x_vec, &truncation, arg);
 		}
@@ -9091,6 +9108,7 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 		case SURV_EVENT_RIGHT:
 			if (!ISZERO(lower)) {
 				loglfun(prob_lower, x, -m, idx, x_vec, &lower, arg);
+				SAFEGUARD(prob_lower, m);
 			}
 			for (i = 0; i < m; i++) {
 				logll[i] = log(1.0 - ((prob_lower[i] - prob_truncation[i]) / (1.0 - prob_truncation[i])));
@@ -9100,6 +9118,7 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 		case SURV_EVENT_LEFT:
 			if (!ISINF(upper)) {
 				loglfun(prob_upper, x, -m, idx, x_vec, &upper, arg);
+				SAFEGUARD(prob_upper, m);
 			}
 			for (i = 0; i < m; i++) {
 				logll[i] = log(((prob_upper[i] - prob_truncation[i]) / (1.0 - prob_truncation[i])));
@@ -9109,9 +9128,11 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 		case SURV_EVENT_INTERVAL:
 			if (!ISZERO(lower)) {
 				loglfun(prob_lower, x, -m, idx, x_vec, &lower, arg);
+				SAFEGUARD(prob_lower, m);
 			}
 			if (!ISINF(upper)) {
 				loglfun(prob_upper, x, -m, idx, x_vec, &upper, arg);
+				SAFEGUARD(prob_upper, m);
 			}
 			for (i = 0; i < m; i++) {
 				logll[i] = log(((prob_upper[i] - prob_truncation[i]) / (1.0 - prob_truncation[i]))
@@ -9122,9 +9143,11 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 		case SURV_EVENT_ININTERVAL:
 			if (!ISZERO(lower)) {
 				loglfun(prob_lower, x, -m, idx, x_vec, &lower, arg);
+				SAFEGUARD(prob_lower, m);
 			}
 			if (!ISINF(upper)) {
 				loglfun(prob_upper, x, -m, idx, x_vec, &upper, arg);
+				SAFEGUARD(prob_upper, m);
 			}
 			loglfun(log_dens, x, m, idx, x_vec, NULL, arg);
 			for (i = 0; i < m; i++) {
@@ -9141,7 +9164,7 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 	} else {
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
-
+#undef SAFEGUARD
 	return GMRFLib_SUCCESS;
 }
 
@@ -9223,26 +9246,26 @@ int loglikelihood_gompertz(double *logll, double *x, int m, int idx, double *UNU
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
-
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i;
 	double y, alpha, mu;
 
 	y = ds->data_observations.y[idx];
 	// yes, use the same mapping as weibull
-	alpha = map_alpha_weibull(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	alpha = map_alpha_gompertz(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
 	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = log(mu) + alpha * y - mu / alpha * (exp(alpha * y) - 1.0);
+			logll[i] = log(mu) + alpha * y - mu * (exp(alpha * y) - 1.0) / alpha;
+			//if (i == 0)printf("idx %d x %f mu %f logll %f y %f alpha %f\n", idx, x[i], mu, logll[i], y, alpha);
 		}
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
 		for (i = 0; i < -m; i++) {
 			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = 1.0 - exp(-mu / alpha * (exp(alpha * yy) - 1.0));
+			logll[i] = 1.0 - exp(- mu * (exp(alpha * yy) - 1.0) / alpha);
 		}
 	}
 
@@ -15731,8 +15754,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->theta[mb->ntheta] = ds->data_observations.alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			// yes, use the same mapping
-			mb->theta_map[mb->ntheta] = map_alpha_weibull;	/* alpha = exp(alpha.intern) */
+			mb->theta_map[mb->ntheta] = map_alpha_gompertz;	/* alpha = exp(alpha.intern) */
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
