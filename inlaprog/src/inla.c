@@ -6249,6 +6249,25 @@ int loglikelihood_qcontpoisson(double *logll, double *x, int m, int idx, double 
 	return GMRFLib_SUCCESS;
 }
 
+double inla_poisson_interval(double mean, int y_from, int y_to)
+{
+	// Compute Prob(y_from <= Y <= y_to) for the poisson with given mean.
+	// NOTE: Both ends of the interval are included.
+
+	y_from = IMAX(0, y_from);
+	assert(y_to >= y_from);
+	
+	double prob = pow(mean, y_from) * exp(-mean) / exp(gsl_sf_lnfact((double) y_from));
+	double prob_sum = prob;
+
+	for (int y = y_from + 1; y <= y_to; y++) {
+		prob *= mean / (double) y;
+		prob_sum += prob;
+	}
+
+	return (prob_sum);
+}
+
 int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
@@ -7822,9 +7841,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int(*func_simpson)(double **, double **, int *, void *arg))
+			   int (*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -9259,13 +9278,13 @@ int loglikelihood_gompertz(double *logll, double *x, int m, int idx, double *UNU
 		for (i = 0; i < m; i++) {
 			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			logll[i] = log(mu) + alpha * y - mu * (exp(alpha * y) - 1.0) / alpha;
-			//if (i == 0)printf("idx %d x %f mu %f logll %f y %f alpha %f\n", idx, x[i], mu, logll[i], y, alpha);
+			// if (i == 0)printf("idx %d x %f mu %f logll %f y %f alpha %f\n", idx, x[i], mu, logll[i], y, alpha);
 		}
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
 		for (i = 0; i < -m; i++) {
 			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = 1.0 - exp(- mu * (exp(alpha * yy) - 1.0) / alpha);
+			logll[i] = 1.0 - exp(-mu * (exp(alpha * yy) - 1.0) / alpha);
 		}
 	}
 
@@ -26419,7 +26438,7 @@ double extra(double *theta, int ntheta, void *argument)
 	// joint prior evaluated in R
 	static int jp_first_time = 1;
 	static void *jp_vec_sexp = NULL;
-	
+
 	if (mb->jp) {
 #pragma omp critical
 		{
@@ -26430,7 +26449,7 @@ double extra(double *theta, int ntheta, void *argument)
 				inla_R_load(mb->jp->file);
 				if (mb->ntheta > 0) {
 					vec_str = Calloc(mb->ntheta, char *);
-					for(int i = 0; i < mb->ntheta; i++) {
+					for (int i = 0; i < mb->ntheta; i++) {
 						vec_str[i] = GMRFLib_strdup(mb->theta_tag[i]);
 					}
 				}
@@ -26438,7 +26457,7 @@ double extra(double *theta, int ntheta, void *argument)
 				jp_first_time = 0;
 
 				if (vec_str) {
-					for(int i = 0; i < mb->ntheta; i++) {
+					for (int i = 0; i < mb->ntheta; i++) {
 						Free(vec_str[i]);
 					}
 					Free(vec_str);
@@ -33838,7 +33857,7 @@ int testit(int argc, char **argv)
 {
 	int test_no = -1;
 	char **args = NULL;
-	int nargs = 0, i;
+	int nargs = 0, i, j;
 
 	if (argc > 0) {
 		test_no = atoi(argv[0]);
@@ -34951,34 +34970,41 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-	case 55: 
+	case 55:
 	{
 		double skew = 0.3;
-		double m = 2.0, v = 9.0;
 		GMRFLib_snq_tp *q;
 		int n = 21;
-		
+
 		q = GMRFLib_snq(n, skew);
-		for(int i; i <  q->n; i++) {
-			printf("i %d x %.8f w %.8f ww %.8f www %.8f\n",
-			       i,
-			       q->nodes[i], 
-			       q->w[i],
-			       q->w_grad[i],
-			       q->w_hess[i]);
+		for (int i; i < q->n; i++) {
+			printf("i %d x %.8f w %.8f ww %.8f www %.8f\n", i, q->nodes[i], q->w[i], q->w_grad[i], q->w_hess[i]);
 		}
 
 		double fun = 0, fund = 0, fundd = 0, fval = 0;
-		for(int i; i < q->n; i++) {
+		for (int i; i < q->n; i++) {
 			fval = sin(q->nodes[i]);
 			fun += fval * q->w[i];
 			fund += fval * q->w_grad[i];
 			fundd += fval * q->w_hess[i];
 		}
 		printf("sin(x): value= %.8f deriv= %.8f dderiv= %.8f\n", fun, fund, fundd);
-		
+
 		GMRFLib_snq_free(q);
-		
+
+		break;
+	}
+
+	case 56:
+	{
+		for (i = 0, j = 1; i < 10; i++, j = j + 2) {
+			double lambda = exp(-1 + GMRFLib_uniform());
+			double new = inla_poisson_interval(lambda, i, j);
+			double gsl = (gsl_cdf_poisson_P((unsigned) j, lambda) -
+				      (i <= 0 ? 0.0 : gsl_cdf_poisson_P((unsigned) (i - 1), lambda)));
+			printf("lambda %f from= %d to= %d: new %f gsl %f diff %.12f\n",
+			       lambda, i, j, new, gsl, new-gsl);
+		}
 		break;
 	}
 
