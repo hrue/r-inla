@@ -34958,17 +34958,12 @@ int testit(int argc, char **argv)
 		int n = 21;
 		
 		q = GMRFLib_snq(n, skew);
-
 		for(int i; i <  q->n; i++) {
 			printf("i %d x %.8f w %.8f ww %.8f www %.8f\n", i, q->nodes[i], q->w[i], q->w_grad[i], q->w_hess[i]);
 		}
 
-		P(q->n);
-		P(q->nodes[11]);
-		
 		double fun = 0, fund = 0, fundd = 0, fval = 0;
 		for(int i; i < q->n; i++) {
-			P(q->nodes[i]);
 			fval = sin(q->nodes[i]);
 
 			fun += fval * q->w[i];
