@@ -334,6 +334,15 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew)
 		snq->w[i] *= tmp;
 	}
 
+	double tmp = 0.0;
+	for(i = 0; i < snq->n; i++) {
+		tmp += snq->w[i];
+	}
+	tmp = 1.0/tmp;
+	for(i = 0; i < snq->n; i++) {
+		snq->w[i] *= tmp;
+	}
+
 	Free(ww[0]);
 	Free(ww);
 	Free(work);
