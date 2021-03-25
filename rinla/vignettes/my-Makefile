@@ -8,7 +8,7 @@ HTMLs := bGEVtutorial1-2.html conditional_logit.html  jmarginal.html  old-faq.ht
 
 
 
-all : $(PDFs) $(HTMLs)
+all : $(PDFs) $(HTMLs) 
 
 %.pdf : %.Rmd
 	R --vanilla -e 'library(rmarkdown); render("'$<'", c("pdf_document"))'
@@ -19,3 +19,6 @@ all : $(PDFs) $(HTMLs)
 %.pdf : %.Rnw
 	R --vanilla -e 'library(knitr); knit2pdf("'$<'")'
 
+.PHONY : install
+
+install :; cp -v $(PDFs) $(HTMLs) ../../r-inla.org/doc/vignettes
