@@ -292,10 +292,14 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew)
 
 	for (i = 0; i < n; i++) {
 		w[i] = ww[n2][i];
-		w_grad[i] = (wf[0] * ww[0][i] + wf[1] * ww[1][i] + wf[2] * ww[2][i] + wf[3] * ww[3][i] +
-			     wf[4] * ww[4][i] + wf[5] * ww[5][i] + wf[6] * ww[6][i]) / ds;
-		w_hess[i] = (wff[0] * ww[0][i] + wff[1] * ww[1][i] + wff[2] * ww[2][i] + wff[3] * ww[3][i] +
-			     wff[4] * ww[4][i] + wff[5] * ww[5][i] + wff[6] * ww[6][i]) / SQR(ds);
+		w_grad[i] = 0.0;
+		w_hess[i] = 0.0;
+		for(j = 0; j < ns; j++) {
+			w_grad[i] += wf[j] * ww[j][i];
+			w_hess[i] += wff[j] * ww[j][i];
+		}
+		w_grad[i] /= ds;
+		w_hess[i] /= SQR(ds);
 	}
 
 	double w_max = GMRFLib_max_value(w, n, NULL);
@@ -330,15 +334,6 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew)
 	}
 	tmp = 1.0 / tmp;
 	for (i = 0; i < snq->n; i++) {
-		snq->w[i] *= tmp;
-	}
-
-	double tmp = 0.0;
-	for(i = 0; i < snq->n; i++) {
-		tmp += snq->w[i];
-	}
-	tmp = 1.0/tmp;
-	for(i = 0; i < snq->n; i++) {
 		snq->w[i] *= tmp;
 	}
 
