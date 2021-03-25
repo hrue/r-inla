@@ -268,14 +268,14 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew)
 	double **ww = NULL;
 	int ns = sizeof(skews) / sizeof(double);
 	int n2 = ns / 2;
-
+	
 	ww = Calloc(ns, double *);
 	ww[0] = Calloc(ns * n, double);
 	for (j = 1; j < ns; j++) {
 		ww[j] = ww[0] + j * n;
 	}
 
-	for (j = 0, i = -(n2 - 1); j < ns; j++, i++) {
+	for (j = 0, i = -n2; j < ns; j++, i++) {
 		skews[j] = skew + i * ds;
 	}
 
@@ -285,6 +285,7 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew)
 		alpha = delta / sqrt(1.0 - SQR(delta));
 		omega = sqrt(1.0 / (1.0 - c2 * SQR(delta)));
 		xi = 0.0 - omega * delta / c1;
+		
 		for (i = 0; i < n; i++) {
 			ww[j][i] = wwp[i] * RATIO(xxp[i]);
 		}
@@ -329,12 +330,14 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew)
 	memcpy(snq->w_hess, w_hess, snq->n * sizeof(double));
 
 	double tmp = 0.0;
-	for (i = 0; i < snq->n; i++) {
+	for(i = 0; i < snq->n; i++) {
 		tmp += snq->w[i];
 	}
-	tmp = 1.0 / tmp;
-	for (i = 0; i < snq->n; i++) {
+	tmp = 1.0/tmp;
+	for(i = 0; i < snq->n; i++) {
 		snq->w[i] *= tmp;
+		snq->w_grad[i] *= tmp;
+		snq->w_hess[i] *= tmp;
 	}
 
 	Free(ww[0]);
