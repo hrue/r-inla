@@ -292,7 +292,7 @@
             stop("NA in truncation/event/lower/upper/time is not allowed")
         }
     } else if (inla.one.of(family, c(
-        "stochvol", "stochvolt", "stochvolnig", "loggammafrailty",
+        "stochvol", "stochvolt", "stochvolnig", "stochvolsn", "loggammafrailty",
         "iidlogitbeta", "qkumar", "qloglogistic", "gp", "dgp", "pom",
         "logperiodogram"))) {
         response <- cbind(ind, y.orig)

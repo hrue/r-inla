@@ -320,7 +320,7 @@ typedef struct {
 	/*
 	 * Skew-Normal
 	 */
-	double **sn_skewness;
+	double **sn_skew;
 	double **sn_lprec;
 	double *sn_scale;				       /* Variance = 1/(scale*prec) */
 
@@ -571,6 +571,7 @@ typedef enum {
 	L_AGAUSSIAN,					       /* likelihood-models */
 	L_GOMPERTZ, 
 	L_GOMPERTZSURV, 
+	L_STOCHVOL_SN, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1594,8 +1595,8 @@ double link_test1(double x, map_arg_tp typ, void *param, double *cov);
 double link_this_should_not_happen(double x, map_arg_tp typ, void *param, double *cov);
 double map_1exp(double arg, map_arg_tp typ, void *param);
 double map_H(double x, map_arg_tp typ, void *param);
-double map_alpha_gompertz(double arg, map_arg_tp typ, void *UNUSED(param));
-double map_alpha_weibull(double arg, map_arg_tp typ, void *UNUSED(param));
+double map_alpha_gompertz(double arg, map_arg_tp typ, void *param);
+double map_alpha_weibull(double arg, map_arg_tp typ, void *param);
 double map_prec_qkumar(double arg, map_arg_tp typ, void *param);
 double map_beta(double arg, map_arg_tp typ, void *param);
 double map_dof(double arg, map_arg_tp typ, void *param);
@@ -1886,12 +1887,13 @@ int loglikelihood_qloglogisticsurv(double *logll, double *x, int m, int idx, dou
 int loglikelihood_simplex(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_skew_normal(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_stochvol_sn(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_stochvol_nig(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_stochvol_t(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_t(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_testit(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_tweedie(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg);
+int loglikelihood_tweedie(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_weibull(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_weibullsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
