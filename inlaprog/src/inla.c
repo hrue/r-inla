@@ -4503,6 +4503,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 	case L_QKUMAR:
 	case L_QLOGLOGISTIC:
 	case L_STOCHVOL:
+	case L_STOCHVOL_SN: 
 	case L_STOCHVOL_NIG:
 	case L_STOCHVOL_T:
 	case L_WEIBULL:
@@ -5466,7 +5467,7 @@ int loglikelihood_sn(double *logll, double *x, int m, int idx, double *UNUSED(x_
 	lprec = ds->data_observations.sn_lprec[GMRFLib_thread_id][0] + log(w);
 	sprec = exp(lprec / 2.0);
 
-	param[0] = ds->data_observations.sn_skewness[GMRFLib_thread_id];
+	param[0] = ds->data_observations.sn_skew[GMRFLib_thread_id];
 	param[1] = &nan;
 	inla_get_sn_param(&sn_arg, param);
 	assert(sn_arg.intercept == 0);
@@ -5491,6 +5492,40 @@ int loglikelihood_sn(double *logll, double *x, int m, int idx, double *UNUSED(x_
 	return GMRFLib_SUCCESS;
 }
 
+int loglikelihood_stochvol_sn(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
+{
+	/*
+	 * y ~ Skew_Normal(0, var= exp(x)+offset, skew)
+	 */
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y, sprec, xarg, *param[2], nan = NAN, var_offset, var, lomega;
+	inla_sn_arg_tp sn_arg;
+	
+	LINK_INIT;
+	y = ds->data_observations.y[idx];
+	var_offset = 1.0 / map_precision(ds->data_observations.log_offset_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	param[0] = ds->data_observations.sn_skew[GMRFLib_thread_id];
+	param[1] = &nan;
+	inla_get_sn_param(&sn_arg, param);
+	assert(sn_arg.intercept == 0.0);
+	lomega = log(sn_arg.omega);
+	
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)) + var_offset;
+			sprec = sqrt(1.0 / var);
+			xarg = (y * sprec - sn_arg.xi) / sn_arg.omega;
+			logll[i] = LOG_NORMC_GAUSSIAN + M_LN2 + log(sprec) - lomega - 0.5 * SQR(xarg) +
+				inla_log_Phi_fast(sn_arg.alpha * xarg);
+		}
+	} 
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
 
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
@@ -12055,6 +12090,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "STOCHVOL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_stochvol;
 		ds->data_id = L_STOCHVOL;
+	} else if (!strcasecmp(ds->data_likelihood, "STOCHVOLSN")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_stochvol_sn;
+		ds->data_id = L_STOCHVOL_SN;
 	} else if (!strcasecmp(ds->data_likelihood, "STOCHVOLT")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_stochvol_t;
 		ds->data_id = L_STOCHVOL_T;
@@ -13939,9 +13977,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (!ds->data_fixed1 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->data_observations.sn_skewness, tmp);
+		HYPER_NEW(ds->data_observations.sn_skew, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise intern_skewness[%g]\n", ds->data_observations.sn_skewness[0][0]);
+			printf("\t\tinitialise intern_skewness[%g]\n", ds->data_observations.sn_skew[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
 		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "PCSN", NULL);
@@ -13965,7 +14003,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
-			mb->theta[mb->ntheta] = ds->data_observations.sn_skewness;
+			mb->theta[mb->ntheta] = ds->data_observations.sn_skew;
 
 			double *skewmax = Calloc(1, double);
 			*skewmax = LINK_SN_SKEWMAX;	       /* yes, this is correct */
@@ -15516,6 +15554,100 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.log_offset_prec;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+		break;
+	}
+
+	case L_STOCHVOL_SN:
+	{
+		/*
+		 * get options related to the stochvol_sn
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.00123456789);	/* yes! */
+		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
+		if (!ds->data_fixed0 && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.sn_skew, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise intern skewness[%g]\n", ds->data_observations.sn_skew[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
+		}
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "PCSN", NULL);
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed0) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior0.hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern skewness for stochvol_sn observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Skewness for stochvol_sn observations", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta[mb->ntheta] = ds->data_observations.sn_skew;
+
+			double *skewmax = Calloc(1, double);
+			*skewmax = LINK_SN_SKEWMAX;	       /* yes, this is correct */
+
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_phi;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = (void *) skewmax;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+
+
+		double initial_value = 500.0;
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), initial_value);
+		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 1);	/* yes, default fixed */
+		if (!ds->data_fixed && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.log_offset_prec, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_offset_prec[%g]\n", ds->data_observations.log_offset_prec[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
+		}
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "LOGGAMMA", NULL);
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed1) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior1.hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log offset precision for stochvol_sn", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Offset precision for stochvol_sn", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
 
 			mb->theta[mb->ntheta] = ds->data_observations.log_offset_prec;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
@@ -27086,6 +27218,19 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					log_precision = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
+					count++;
+				}
+				break;
+
+			case L_STOCHVOL_SN:
+				if (!ds->data_fixed0) {
+					double skew_intern = theta[count];
+					val += PRIOR_EVAL(ds->data_prior0, &skew_intern);
+					count++;
+				}
+				if (!ds->data_fixed1) {
+					double log_prec_offset = theta[count];
+					val += PRIOR_EVAL(ds->data_prior1, &log_prec_offset);
 					count++;
 				}
 				break;

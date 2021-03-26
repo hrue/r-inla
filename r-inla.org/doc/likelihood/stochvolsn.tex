@@ -1,0 +1,84 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Skew-Normal stochastic volatility likelihood}
+
+\subsection*{Parametrisation}
+
+The standardised Skew-Normal distribution is
+\begin{displaymath}
+    f(z) = \frac{2}{\omega_{\alpha}}
+    \phi\left(\frac{z -\xi_{\alpha}}{\omega_{\alpha}}\right)
+    \Phi\left(\alpha \frac{z -\xi_{\alpha}}{\omega_{\alpha}}\right)
+\end{displaymath}
+where $\omega_\alpha$ and $\xi_\alpha$ are so that the mean is zero
+and variance is one, and they a functions of the skewness parameter
+$\alpha$. The skewness $s$ is the standardised skewness (standarized
+third central moment), which is a function of $\alpha$
+
+The skew-normal stochastic likelihood is defined as the density wrt
+$y$, where $y$ is Skew-Normal distributed with zero mean, skewness $s$
+and variance
+\begin{displaymath}
+    \text{variance} = \exp(\eta) + 1/\tau
+\end{displaymath}
+and
+\begin{description}
+\item[$\eta$:] is the the linear predictor
+\item[$\tau$:] is an offset in the variance
+\end{description}
+
+\subsection*{Link-function}
+
+The variance depends on the linear predictor
+\begin{displaymath}
+    \mu = \exp(\eta) + 1/\tau
+\end{displaymath}
+
+\subsection*{Hyperparameters}
+
+The (standardised) skewness $s$, is represented as
+\begin{displaymath}
+    \gamma=0.988 (2\frac{\exp(\theta_1)}{1+\exp(\theta_1)}-1)
+\end{displaymath}
+and the prior is defined on $\theta_{1}$.
+
+The offset in the variance, $1/\tau$ is represented as
+\begin{displaymath}
+    \tau = \exp(\theta_2)
+\end{displaymath}
+and the prior is defined on $\theta_2$. (By default $\theta_2$ is
+fixed to a high value which makes $1/\tau \approx 0$.)
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{stochvolsn}$
+\item Required arguments: $y$.
+\end{itemize}
+
+\subsubsection*{Hyperparameter specification and default values}
+\input{../hyper/likelihood/stochvolsn.tex}
+
+
+\subsection*{Example}
+
+\verbatiminput{example-stochvolsn.R}
+
+\subsection*{Notes}
+
+This implementation is similar to \texttt{family="sn"}, see also that
+documentation.
+
+\end{document}
+
+% LocalWords:  
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
+
