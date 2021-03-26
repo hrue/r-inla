@@ -5362,8 +5362,17 @@
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "log", "logoffset", "test1", "special1", "special2"),
-                    status = "experimental",
                     pdf = "cenpoisson"
+                ),
+
+                cenpoisson2 = list(
+                    doc = "Then censored Poisson likelihood (version 2)",
+                    hyper = list(),
+                    survival = FALSE,
+                    discrete = TRUE,
+                    link = c("default", "log", "logoffset", "test1", "special1", "special2"),
+                    status = "experimental",
+                    pdf = "cenpoisson2"
                 ),
 
                 gpoisson = list(

@@ -181,7 +181,9 @@ typedef struct {
 	 * y ~ Poisson(E*exp(x)) 
 	 */
 	double *E;
-
+	double *cen_low;				       /* cenpoisson2 */
+	double *cen_high;				       /* cenpoisson2 */
+	
 	/*
 	 * y ~ Binomial(nb, p(x))
 	 */
@@ -572,6 +574,7 @@ typedef enum {
 	L_GOMPERTZ, 
 	L_GOMPERTZSURV, 
 	L_STOCHVOL_SN, 
+	L_CENPOISSON2,					       /* cencored poisson (version 2) */
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1838,6 +1841,7 @@ int loglikelihood_betabinomialna(double *logll, double *x, int m, int idx, doubl
 int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_cenpoisson2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_contpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_dgp(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

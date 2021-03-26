@@ -4476,6 +4476,12 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 		break;
 
+	case L_CENPOISSON2:
+		idiv = 5;
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.cen_low = Calloc(mb->predictor_ndata, double);
+		a[2] = ds->data_observations.cen_high = Calloc(mb->predictor_ndata, double);
+		break;
 	case L_CBINOMIAL:
 		idiv = 4;
 		a[0] = ds->data_observations.cbinomial_k = Calloc(mb->predictor_ndata, double);
@@ -6307,6 +6313,70 @@ double inla_poisson_interval(double mean, int ifrom, int ito)
 		}
 	}
 	return (prob_sum);
+}
+
+int loglikelihood_cenpoisson2(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
+{
+	/*
+	 * y ~ Poisson(E*exp(x)), [cen_low,cen_high] is cencored. cen_high<0 means Inf
+	 */
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double mu;
+	double lambda;
+	double y = ds->data_observations.y[idx];
+	double E = ds->data_observations.E[idx];
+	double cen_low = ds->data_observations.cen_low[idx];
+	double cen_high = ds->data_observations.cen_high[idx];
+	double normc = gsl_sf_lnfact((unsigned int) y);
+	int int_low = (int) cen_low;
+	int int_high = (int) cen_high;
+
+	LINK_INIT;
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			mu = E * lambda;
+			if (y >= int_low && (int_high < 0 || y <= int_high)) {
+				logll[i] = log(inla_poisson_interval(mu, int_low, int_high));
+			} else {
+				logll[i] = y * log(mu) - mu - normc;
+			}
+		}
+	} else {
+		double *yy = (y_cdf ? y_cdf : &y);
+		int iy = (int) (*yy);
+
+		for (i = 0; i < -m; i++) {
+			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			mu = E * lambda;
+			if (ISZERO(mu)) {
+				if (ISZERO(iy)) {
+					logll[i] = 1.0;
+				} else {
+					assert(!ISZERO(iy));
+				}
+			} else {
+				if (iy < int_low || (int_high >= 0 && iy > int_high)) {
+					logll[i] = gsl_cdf_poisson_P((unsigned int) iy, mu);
+				} else {
+					if (int_low > 0) {
+						logll[i] = gsl_cdf_poisson_P((unsigned int) (int_low-1), mu);
+					} else {
+						logll[i] = 0.0;
+					}
+					logll[i] += 0.5 * inla_poisson_interval(mu, int_low, int_high);
+				}
+			}
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
 }
 
 int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
@@ -11959,6 +12029,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "CENPOISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_cenpoisson;
 		ds->data_id = L_CENPOISSON;
+		discrete_data = 1;
+	} else if (!strcasecmp(ds->data_likelihood, "CENPOISSON2")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_cenpoisson2;
+		ds->data_id = L_CENPOISSON2;
 		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "GPOISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gpoisson;
