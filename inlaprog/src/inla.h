@@ -1565,7 +1565,7 @@ double inla_lgamma_fast(double x);
 double inla_log_Phi(double x);
 double inla_log_Phi_fast(double x);
 double inla_logit_Phi(double x);
-double inla_poisson_interval(double lambda, int y_from, int y_to);
+double inla_poisson_interval(double lambda, int y_from,  int y_to);
 double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * output);
 double inla_sn_intercept(double intern_quantile, double skew);
 double inla_update_density(double *theta, inla_update_tp * arg);

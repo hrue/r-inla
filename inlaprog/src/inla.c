@@ -6284,22 +6284,28 @@ int loglikelihood_qcontpoisson(double *logll, double *x, int m, int idx, double 
 	return GMRFLib_SUCCESS;
 }
 
-double inla_poisson_interval(double mean, int y_from, int y_to)
+double inla_poisson_interval(double mean, int ifrom, int ito)
 {
 	// Compute Prob(y_from <= Y <= y_to) for the poisson with given mean.
-	// NOTE: Both ends of the interval are included.
+	// NOTE1: Both ends of the interval are included.
+	// NOTE2: if ito<0, then 'ito' is interpreted as INFINITY
 
-	y_from = IMAX(0, y_from);
-	assert(y_to >= y_from);
-	
-	double prob = pow(mean, y_from) * exp(-mean) / exp(gsl_sf_lnfact((double) y_from));
-	double prob_sum = prob;
-
-	for (int y = y_from + 1; y <= y_to; y++) {
-		prob *= mean / (double) y;
-		prob_sum += prob;
+	double prob, prob_sum = 0.0;
+	ifrom = IMAX(0, ifrom);
+	if (ito < 0) {
+		if (ifrom == 0) {
+			prob_sum = 1.0;
+		} else {
+			prob_sum = 1.0 - gsl_cdf_poisson_P((unsigned int) (ifrom -1), mean);
+		}
+	} else {
+		assert(ito >= ifrom);
+		prob_sum = prob = pow(mean, (double) ifrom) * exp(-mean) / exp(gsl_sf_lnfact((double) ifrom));
+		for (int y = ifrom + 1; y <= ito; y++) {
+			prob *= mean / (double) y;
+			prob_sum += prob;
+		}
 	}
-
 	return (prob_sum);
 }
 
@@ -6307,6 +6313,8 @@ int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *U
 {
 	/*
 	 * y ~ Poisson(E*exp(x)), also accept E=0, giving the likelihood y * x. values in CENINTERVAL is cencored
+	 *
+	 * interval[1] < 0 means infinity
 	 */
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -6316,19 +6324,20 @@ int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *U
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double *interval = ds->data_observations.cenpoisson_interval, mu;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y), lambda;
+	int int_low = (int) interval[0], int_high = (int) interval[1];
+
+	// must use 'double' to store an INF
+	if (ISINF(interval[1]) || interval[1] < 0) {
+		int_high = -1;
+	}
 
 	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			mu = E * lambda;
-			if (y >= interval[0] && y <= interval[1]) {
-				if (interval[0] > 0.0) {
-					logll[i] = log(gsl_cdf_poisson_P((unsigned int) interval[1], mu)
-						       - gsl_cdf_poisson_P((unsigned int) (interval[0] - 1L), mu));
-				} else {
-					logll[i] = log(gsl_cdf_poisson_P((unsigned int) interval[1], mu));
-				}
+			if (y >= int_low && (int_high < 0 || y <= int_high)) {
+				logll[i] = log(inla_poisson_interval(mu, int_low, int_high));
 			} else {
 				logll[i] = y * log(mu) - mu - normc;
 			}
@@ -6347,17 +6356,15 @@ int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *U
 					assert(!ISZERO(iy));
 				}
 			} else {
-				if (iy < interval[0] || iy > interval[1]) {
+				if (iy < int_low || (int_high >= 0 && iy > int_high)) {
 					logll[i] = gsl_cdf_poisson_P((unsigned int) iy, mu);
 				} else {
-					// censored: compute the expected value
-					double pp = 0.0, one = 0.0, prob;
-					for (iy = interval[0]; iy <= interval[1]; iy++) {
-						prob = gsl_ran_poisson_pdf((unsigned int) iy, mu);
-						pp += gsl_cdf_poisson_P((unsigned int) iy, mu) * prob;
-						one += prob;
+					if (int_low > 0) {
+						logll[i] = gsl_cdf_poisson_P((unsigned int) (int_low-1), mu);
+					} else {
+						logll[i] = 0.0;
 					}
-					logll[i] = pp / one;
+					logll[i] += 0.5 * inla_poisson_interval(mu, int_low, int_high);
 				}
 			}
 		}
@@ -35146,6 +35153,15 @@ int testit(int argc, char **argv)
 			double lambda = exp(-1 + GMRFLib_uniform());
 			double new = inla_poisson_interval(lambda, i, j);
 			double gsl = (gsl_cdf_poisson_P((unsigned) j, lambda) -
+				      (i <= 0 ? 0.0 : gsl_cdf_poisson_P((unsigned) (i - 1), lambda)));
+			printf("lambda %f from= %d to= %d: new %f gsl %f diff %.12f\n",
+			       lambda, i, j, new, gsl, new-gsl);
+		}
+		// j < 0 <==> j=INF
+		for (i = 0, j = -1; i < 10; i++) {
+			double lambda = exp(-1 + GMRFLib_uniform());
+			double new = inla_poisson_interval(lambda, i, j);
+			double gsl = (gsl_cdf_poisson_P((unsigned) 1000, lambda) -
 				      (i <= 0 ? 0.0 : gsl_cdf_poisson_P((unsigned) (i - 1), lambda)));
 			printf("lambda %f from= %d to= %d: new %f gsl %f diff %.12f\n",
 			       lambda, i, j, new, gsl, new-gsl);
