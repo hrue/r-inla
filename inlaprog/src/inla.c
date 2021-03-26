@@ -6294,11 +6294,14 @@ double inla_poisson_interval(double mean, int ifrom, int ito)
 {
 	// Compute Prob(y_from <= Y <= y_to) for the poisson with given mean.
 	// NOTE1: Both ends of the interval are included.
-	// NOTE2: if ito<0, then 'ito' is interpreted as INFINITY
+	// NOTE2: if ito < 0, then 'ito' is interpreted as INFINITY
+	// NOTE3: if ifrom < 0, then 'ifrom' is interpreted as INFINITY
 
 	double prob, prob_sum = 0.0;
-	ifrom = IMAX(0, ifrom);
-	if (ito < 0) {
+
+	if (ifrom < 0) {
+		// ifrom=INFINITE
+	} else if (ito < 0) {
 		if (ifrom == 0) {
 			prob_sum = 1.0;
 		} else {
@@ -6341,7 +6344,10 @@ int loglikelihood_cenpoisson2(double *logll, double *x, int m, int idx, double *
 		for (i = 0; i < m; i++) {
 			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			mu = E * lambda;
-			if (y >= int_low && (int_high < 0 || y <= int_high)) {
+			if (int_low < 0) {
+				// code for low=INF
+				logll[i] = y * log(mu) - mu - normc;
+			} else if (y >= int_low && (int_high < 0 || y <= int_high)) {
 				logll[i] = log(inla_poisson_interval(mu, int_low, int_high));
 			} else {
 				logll[i] = y * log(mu) - mu - normc;
@@ -6361,7 +6367,9 @@ int loglikelihood_cenpoisson2(double *logll, double *x, int m, int idx, double *
 					assert(!ISZERO(iy));
 				}
 			} else {
-				if (iy < int_low || (int_high >= 0 && iy > int_high)) {
+				if (int_low < 0) {
+					logll[i] = gsl_cdf_poisson_P((unsigned int) iy, mu);
+				} else if (iy < int_low || (int_high >= 0 && iy > int_high)) {
 					logll[i] = gsl_cdf_poisson_P((unsigned int) iy, mu);
 				} else {
 					if (int_low > 0) {
@@ -12542,8 +12550,27 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
-					GMRFLib_sprintf(&msg, "%s: CPoisson data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
+					GMRFLib_sprintf(&msg, "%s: CenPoisson data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
 							ds->data_observations.E[i], ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+		break;
+
+	case L_CENPOISSON2:
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: CenPoisson2 data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
+							ds->data_observations.E[i], ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+				if ((ds->data_observations.cen_high[i] > 0 &&
+				     (ds->data_observations.cen_high[i] < ds->data_observations.cen_low[i]))) {
+					GMRFLib_sprintf(&msg, "%s: CPoisson2 (idx,low,high) = (%d,%g,%g) is void\n", secname, i,
+							ds->data_observations.cen_low[i], 
+							ds->data_observations.cen_high[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -13182,6 +13209,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			       ds->data_observations.cenpoisson_interval[0], ds->data_observations.cenpoisson_interval[1]);
 		}
 		Free(ctmp);
+		break;
+
+	case L_CENPOISSON2:
+		/*
+		 * get options related to the cenpoisson2
+		 */
 		break;
 
 	case L_GPOISSON:

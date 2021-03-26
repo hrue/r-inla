@@ -3,8 +3,7 @@ a <- 0
 b <- 1
 x <- rnorm(n, sd = 0.3)
 eta = a + b*x
-low = sample(0:10, n, replace = TRUE) 
-## using 'Inf' here is allowed
+low = sample(c(0, 1, 4, Inf), n, replace = TRUE) 
 high <- low + sample(c(0, 1, 2, Inf), n, replace = TRUE) 
 
 E = sample(1:10, n, replace=TRUE)
@@ -17,7 +16,5 @@ y[censored] = low[censored]
 r = inla(inla.mdata(cbind(y, low, high))  ~ 1 + x, 
          family = "cenpoisson2",
          data = data.frame(y, low, high, x), 
-         E=E,
-         control.compute = list(dic = T, cpo = T), 
-         verbose = TRUE)
+         E=E)
 summary(r)

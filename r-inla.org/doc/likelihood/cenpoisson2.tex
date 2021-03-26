@@ -14,16 +14,16 @@ The Poisson distribution is
     \text{Prob}(y) = \frac{\lambda^{y}}{y!}\exp(-\lambda)
 \end{displaymath}
 for responses $y=0, 1, 2, \ldots$, where $\lambda$ is the expected
-value.  The cencored version is that reponse values in the interval
+value.  The cencored version is that response values in the interval
 $L \le y \le H$ are cencored (and reported as $y=L$, say), whereas
 other values are reported as is.
 
 \subsection*{Link-function}
 
-The mean-parameter is $\lambda$ and is linked to the linear predictor
+The mean-parameter is $\lambda$ and is linked to the linear predictor $\eta$
 by
 \begin{displaymath}
-    \lambda(\eta) = E \exp(\eta)
+    \lambda = E \exp(\eta)
 \end{displaymath}
 where $E>0$ is a known constant (or $\log(E)$ is the offset of $\eta$).
 
@@ -39,7 +39,15 @@ None.
     triplet $(y_i,L_i,H_i)$ must be given as a
     \texttt{inla.mdata}-object. $L$ and $H$ are vectors of same length
     as $y$ hence the cencoring can be different for each observation.
-    See the example for details.
+    $L$ and $H$ must be integer valued or \texttt{Inf}.
+
+    $L[i]=$\texttt{Inf} and/or $H[i]=$\texttt{Inf} are allowed, which
+    is equivalent to $L[i]= -1$ and/or $H[i] = -1$. See the example
+    for details.
+
+    $L[i]=$\texttt{Inf} (or $-1$) implies no interval censoring.
+    $H[i]=$\texttt{Inf} (or $-1$) and $0\leq L[i]<\infty$ implies
+    right censoring.
 \end{itemize}
 
 \subsection*{Example}
