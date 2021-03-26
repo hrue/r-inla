@@ -1,13 +1,13 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] Skew-normal link
+	\item[doc] The SkewNormal stochvol likelihood
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 49031
-	 	 	\item[name] skewness
+	 	 	\item[hyperid] 82101
+	 	 	\item[name] logit skew
 	 	 	\item[short.name] skew
 	 	 	\item[initial] 0.00123456789
 	 	 	\item[fixed] FALSE
@@ -18,16 +18,20 @@
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 49032
-	 	 	\item[name] intercept
-	 	 	\item[short.name] intercept
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] linksnintercept
-	 	 	\item[param] 0 0
-	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
-	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
+	 	 	\item[hyperid] 82102
+	 	 	\item[name] log precision
+	 	 	\item[short.name] prec
+	 	 	\item[initial] 500
+	 	 	\item[fixed] TRUE
+	 	 	\item[prior] loggamma
+	 	 	\item[param] 1 0.005
+	 	 	\item[to.theta] \verb!function(x) log(x)!
+	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 \end{description}
-	\item[pdf] linksn
+	\item[status] experimental
+	\item[survival] FALSE
+	\item[discrete] FALSE
+	\item[link] default log
+	\item[pdf] stochvolsn
 \end{description}

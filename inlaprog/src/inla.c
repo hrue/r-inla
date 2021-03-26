@@ -1115,6 +1115,14 @@ double map_alpha_weibull(double arg, map_arg_tp typ, void *UNUSED(param))
 	double scale = INLA_WEIBULL_ALPHA_SCALE;
 	return map_exp_scale(arg, typ, (void *) &scale);
 }
+double map_alpha_gompertz(double arg, map_arg_tp typ, void *UNUSED(param))
+{
+	/*
+	 * the map-function for the range
+	 */
+	double scale = INLA_GOMPERTZ_ALPHA_SCALE;
+	return map_exp_scale(arg, typ, (void *) &scale);
+}
 double map_prec_qkumar(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -4468,6 +4476,12 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 		break;
 
+	case L_CENPOISSON2:
+		idiv = 5;
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.cen_low = Calloc(mb->predictor_ndata, double);
+		a[2] = ds->data_observations.cen_high = Calloc(mb->predictor_ndata, double);
+		break;
 	case L_CBINOMIAL:
 		idiv = 4;
 		a[0] = ds->data_observations.cbinomial_k = Calloc(mb->predictor_ndata, double);
@@ -4495,6 +4509,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 	case L_QKUMAR:
 	case L_QLOGLOGISTIC:
 	case L_STOCHVOL:
+	case L_STOCHVOL_SN: 
 	case L_STOCHVOL_NIG:
 	case L_STOCHVOL_T:
 	case L_WEIBULL:
@@ -5458,7 +5473,7 @@ int loglikelihood_sn(double *logll, double *x, int m, int idx, double *UNUSED(x_
 	lprec = ds->data_observations.sn_lprec[GMRFLib_thread_id][0] + log(w);
 	sprec = exp(lprec / 2.0);
 
-	param[0] = ds->data_observations.sn_skewness[GMRFLib_thread_id];
+	param[0] = ds->data_observations.sn_skew[GMRFLib_thread_id];
 	param[1] = &nan;
 	inla_get_sn_param(&sn_arg, param);
 	assert(sn_arg.intercept == 0);
@@ -5483,6 +5498,40 @@ int loglikelihood_sn(double *logll, double *x, int m, int idx, double *UNUSED(x_
 	return GMRFLib_SUCCESS;
 }
 
+int loglikelihood_stochvol_sn(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
+{
+	/*
+	 * y ~ Skew_Normal(0, var= exp(x)+offset, skew)
+	 */
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y, sprec, xarg, *param[2], nan = NAN, var_offset, var, lomega;
+	inla_sn_arg_tp sn_arg;
+	
+	LINK_INIT;
+	y = ds->data_observations.y[idx];
+	var_offset = 1.0 / map_precision(ds->data_observations.log_offset_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	param[0] = ds->data_observations.sn_skew[GMRFLib_thread_id];
+	param[1] = &nan;
+	inla_get_sn_param(&sn_arg, param);
+	assert(sn_arg.intercept == 0.0);
+	lomega = log(sn_arg.omega);
+	
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)) + var_offset;
+			sprec = sqrt(1.0 / var);
+			xarg = (y * sprec - sn_arg.xi) / sn_arg.omega;
+			logll[i] = LOG_NORMC_GAUSSIAN + M_LN2 + log(sprec) - lomega - 0.5 * SQR(xarg) +
+				inla_log_Phi_fast(sn_arg.alpha * xarg);
+		}
+	} 
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
 
 int loglikelihood_gev(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
@@ -6241,10 +6290,38 @@ int loglikelihood_qcontpoisson(double *logll, double *x, int m, int idx, double 
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
+double inla_poisson_interval(double mean, int ifrom, int ito)
+{
+	// Compute Prob(y_from <= Y <= y_to) for the poisson with given mean.
+	// NOTE1: Both ends of the interval are included.
+	// NOTE2: if ito < 0, then 'ito' is interpreted as INFINITY
+	// NOTE3: if ifrom < 0, then 'ifrom' is interpreted as INFINITY
+
+	double prob, prob_sum = 0.0;
+
+	if (ifrom < 0) {
+		// ifrom=INFINITE
+	} else if (ito < 0) {
+		if (ifrom == 0) {
+			prob_sum = 1.0;
+		} else {
+			prob_sum = 1.0 - gsl_cdf_poisson_P((unsigned int) (ifrom -1), mean);
+		}
+	} else {
+		assert(ito >= ifrom);
+		prob_sum = prob = pow(mean, (double) ifrom) * exp(-mean) / exp(gsl_sf_lnfact((double) ifrom));
+		for (int y = ifrom + 1; y <= ito; y++) {
+			prob *= mean / (double) y;
+			prob_sum += prob;
+		}
+	}
+	return (prob_sum);
+}
+
+int loglikelihood_cenpoisson2(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
-	 * y ~ Poisson(E*exp(x)), also accept E=0, giving the likelihood y * x. values in CENINTERVAL is cencored
+	 * y ~ Poisson(E*exp(x)), [cen_low,cen_high] is cencored. cen_high<0 means Inf
 	 */
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -6252,21 +6329,26 @@ int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *U
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double *interval = ds->data_observations.cenpoisson_interval, mu;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y), lambda;
+	double mu;
+	double lambda;
+	double y = ds->data_observations.y[idx];
+	double E = ds->data_observations.E[idx];
+	double cen_low = ds->data_observations.cen_low[idx];
+	double cen_high = ds->data_observations.cen_high[idx];
+	double normc = gsl_sf_lnfact((unsigned int) y);
+	int int_low = (int) cen_low;
+	int int_high = (int) cen_high;
 
 	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			mu = E * lambda;
-			if (y >= interval[0] && y <= interval[1]) {
-				if (interval[0] > 0.0) {
-					logll[i] = log(gsl_cdf_poisson_P((unsigned int) interval[1], mu)
-						       - gsl_cdf_poisson_P((unsigned int) (interval[0] - 1L), mu));
-				} else {
-					logll[i] = log(gsl_cdf_poisson_P((unsigned int) interval[1], mu));
-				}
+			if (int_low < 0) {
+				// code for low=INF
+				logll[i] = y * log(mu) - mu - normc;
+			} else if (y >= int_low && (int_high < 0 || y <= int_high)) {
+				logll[i] = log(inla_poisson_interval(mu, int_low, int_high));
 			} else {
 				logll[i] = y * log(mu) - mu - normc;
 			}
@@ -6285,17 +6367,82 @@ int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *U
 					assert(!ISZERO(iy));
 				}
 			} else {
-				if (iy < interval[0] || iy > interval[1]) {
+				if (int_low < 0) {
+					logll[i] = gsl_cdf_poisson_P((unsigned int) iy, mu);
+				} else if (iy < int_low || (int_high >= 0 && iy > int_high)) {
 					logll[i] = gsl_cdf_poisson_P((unsigned int) iy, mu);
 				} else {
-					// censored: compute the expected value
-					double pp = 0.0, one = 0.0, prob;
-					for (iy = interval[0]; iy <= interval[1]; iy++) {
-						prob = gsl_ran_poisson_pdf((unsigned int) iy, mu);
-						pp += gsl_cdf_poisson_P((unsigned int) iy, mu) * prob;
-						one += prob;
+					if (int_low > 0) {
+						logll[i] = gsl_cdf_poisson_P((unsigned int) (int_low-1), mu);
+					} else {
+						logll[i] = 0.0;
 					}
-					logll[i] = pp / one;
+					logll[i] += 0.5 * inla_poisson_interval(mu, int_low, int_high);
+				}
+			}
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
+{
+	/*
+	 * y ~ Poisson(E*exp(x)), also accept E=0, giving the likelihood y * x. values in CENINTERVAL is cencored
+	 *
+	 * interval[1] < 0 means infinity
+	 */
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	int i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double *interval = ds->data_observations.cenpoisson_interval, mu;
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y), lambda;
+	int int_low = (int) interval[0], int_high = (int) interval[1];
+
+	// must use 'double' to store an INF
+	if (ISINF(interval[1]) || interval[1] < 0) {
+		int_high = -1;
+	}
+
+	LINK_INIT;
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			mu = E * lambda;
+			if (y >= int_low && (int_high < 0 || y <= int_high)) {
+				logll[i] = log(inla_poisson_interval(mu, int_low, int_high));
+			} else {
+				logll[i] = y * log(mu) - mu - normc;
+			}
+		}
+	} else {
+		double *yy = (y_cdf ? y_cdf : &y);
+		int iy = (int) (*yy);
+
+		for (i = 0; i < -m; i++) {
+			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			mu = E * lambda;
+			if (ISZERO(mu)) {
+				if (ISZERO(iy)) {
+					logll[i] = 1.0;
+				} else {
+					assert(!ISZERO(iy));
+				}
+			} else {
+				if (iy < int_low || (int_high >= 0 && iy > int_high)) {
+					logll[i] = gsl_cdf_poisson_P((unsigned int) iy, mu);
+				} else {
+					if (int_low > 0) {
+						logll[i] = gsl_cdf_poisson_P((unsigned int) (int_low-1), mu);
+					} else {
+						logll[i] = 0.0;
+					}
+					logll[i] += 0.5 * inla_poisson_interval(mu, int_low, int_high);
 				}
 			}
 		}
@@ -7814,9 +7961,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int(*func_simpson)(double **, double **, int *, void *arg))
+			   int (*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -9057,11 +9204,20 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 {
 	// this function makes a survival likelihood out of a regression likelihood
 
+	// this safeguard computed CDF's that should not be exactly 0 or 1
+#define SAFEGUARD(value_, m_) for(int i_ = 0; i_ < (m_); i_++) value_[i_] = TRUNCATE(value_[i_], p_min, 1.0 - p_min)
+
+	static double p_min = -1.0;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i, ievent;
 	double event, truncation, lower, upper;
 
 	assert(y_cdf == NULL);				       // I do not think this should be used. 
+
+	if (p_min < 0.0) {
+#pragma omp critical
+		p_min = GMRFLib_eps(0.75);
+	}
 
 	event = ds->data_observations.event[idx];
 	ievent = (int) event;
@@ -9073,9 +9229,9 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 		// by default, all these are set to zero due to Calloc
 		double *work = Calloc(4 * m, double);
 		double *log_dens = &work[0], *prob_lower = &work[m], *prob_upper = &work[2 * m], *prob_truncation = &work[3 * m];
-
-		for (i = 0; i < m; i++)
-			prob_upper[i] = 1.0;		       /* this is upper=INF */
+		for (i = 0; i < m; i++) {
+			prob_upper[i] = 1.0;
+		}
 		if (!ISZERO(truncation)) {
 			loglfun(prob_truncation, x, -m, idx, x_vec, &truncation, arg);
 		}
@@ -9091,6 +9247,7 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 		case SURV_EVENT_RIGHT:
 			if (!ISZERO(lower)) {
 				loglfun(prob_lower, x, -m, idx, x_vec, &lower, arg);
+				SAFEGUARD(prob_lower, m);
 			}
 			for (i = 0; i < m; i++) {
 				logll[i] = log(1.0 - ((prob_lower[i] - prob_truncation[i]) / (1.0 - prob_truncation[i])));
@@ -9100,6 +9257,7 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 		case SURV_EVENT_LEFT:
 			if (!ISINF(upper)) {
 				loglfun(prob_upper, x, -m, idx, x_vec, &upper, arg);
+				SAFEGUARD(prob_upper, m);
 			}
 			for (i = 0; i < m; i++) {
 				logll[i] = log(((prob_upper[i] - prob_truncation[i]) / (1.0 - prob_truncation[i])));
@@ -9109,9 +9267,11 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 		case SURV_EVENT_INTERVAL:
 			if (!ISZERO(lower)) {
 				loglfun(prob_lower, x, -m, idx, x_vec, &lower, arg);
+				SAFEGUARD(prob_lower, m);
 			}
 			if (!ISINF(upper)) {
 				loglfun(prob_upper, x, -m, idx, x_vec, &upper, arg);
+				SAFEGUARD(prob_upper, m);
 			}
 			for (i = 0; i < m; i++) {
 				logll[i] = log(((prob_upper[i] - prob_truncation[i]) / (1.0 - prob_truncation[i]))
@@ -9122,9 +9282,11 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 		case SURV_EVENT_ININTERVAL:
 			if (!ISZERO(lower)) {
 				loglfun(prob_lower, x, -m, idx, x_vec, &lower, arg);
+				SAFEGUARD(prob_lower, m);
 			}
 			if (!ISINF(upper)) {
 				loglfun(prob_upper, x, -m, idx, x_vec, &upper, arg);
+				SAFEGUARD(prob_upper, m);
 			}
 			loglfun(log_dens, x, m, idx, x_vec, NULL, arg);
 			for (i = 0; i < m; i++) {
@@ -9141,7 +9303,7 @@ int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double 
 	} else {
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
-
+#undef SAFEGUARD
 	return GMRFLib_SUCCESS;
 }
 
@@ -9223,26 +9385,26 @@ int loglikelihood_gompertz(double *logll, double *x, int m, int idx, double *UNU
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
-
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i;
 	double y, alpha, mu;
 
 	y = ds->data_observations.y[idx];
 	// yes, use the same mapping as weibull
-	alpha = map_alpha_weibull(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	alpha = map_alpha_gompertz(ds->data_observations.alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
 	LINK_INIT;
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = log(mu) + alpha * y - mu / alpha * (exp(alpha * y) - 1.0);
+			logll[i] = log(mu) + alpha * y - mu * (exp(alpha * y) - 1.0) / alpha;
+			// if (i == 0)printf("idx %d x %f mu %f logll %f y %f alpha %f\n", idx, x[i], mu, logll[i], y, alpha);
 		}
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
 		for (i = 0; i < -m; i++) {
 			mu = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = 1.0 - exp(-mu / alpha * (exp(alpha * yy) - 1.0));
+			logll[i] = 1.0 - exp(-mu * (exp(alpha * yy) - 1.0) / alpha);
 		}
 	}
 
@@ -11876,6 +12038,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_cenpoisson;
 		ds->data_id = L_CENPOISSON;
 		discrete_data = 1;
+	} else if (!strcasecmp(ds->data_likelihood, "CENPOISSON2")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_cenpoisson2;
+		ds->data_id = L_CENPOISSON2;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "GPOISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gpoisson;
 		ds->data_id = L_GPOISSON;
@@ -12013,6 +12179,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "STOCHVOL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_stochvol;
 		ds->data_id = L_STOCHVOL;
+	} else if (!strcasecmp(ds->data_likelihood, "STOCHVOLSN")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_stochvol_sn;
+		ds->data_id = L_STOCHVOL_SN;
 	} else if (!strcasecmp(ds->data_likelihood, "STOCHVOLT")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_stochvol_t;
 		ds->data_id = L_STOCHVOL_T;
@@ -12381,8 +12550,27 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
-					GMRFLib_sprintf(&msg, "%s: CPoisson data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
+					GMRFLib_sprintf(&msg, "%s: CenPoisson data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
 							ds->data_observations.E[i], ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+		break;
+
+	case L_CENPOISSON2:
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: CenPoisson2 data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
+							ds->data_observations.E[i], ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+				if ((ds->data_observations.cen_high[i] > 0 &&
+				     (ds->data_observations.cen_high[i] < ds->data_observations.cen_low[i]))) {
+					GMRFLib_sprintf(&msg, "%s: CPoisson2 (idx,low,high) = (%d,%g,%g) is void\n", secname, i,
+							ds->data_observations.cen_low[i], 
+							ds->data_observations.cen_high[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -13021,6 +13209,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			       ds->data_observations.cenpoisson_interval[0], ds->data_observations.cenpoisson_interval[1]);
 		}
 		Free(ctmp);
+		break;
+
+	case L_CENPOISSON2:
+		/*
+		 * get options related to the cenpoisson2
+		 */
 		break;
 
 	case L_GPOISSON:
@@ -13897,9 +14091,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (!ds->data_fixed1 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
-		HYPER_NEW(ds->data_observations.sn_skewness, tmp);
+		HYPER_NEW(ds->data_observations.sn_skew, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise intern_skewness[%g]\n", ds->data_observations.sn_skewness[0][0]);
+			printf("\t\tinitialise intern_skewness[%g]\n", ds->data_observations.sn_skew[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
 		}
 		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "PCSN", NULL);
@@ -13923,7 +14117,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
-			mb->theta[mb->ntheta] = ds->data_observations.sn_skewness;
+			mb->theta[mb->ntheta] = ds->data_observations.sn_skew;
 
 			double *skewmax = Calloc(1, double);
 			*skewmax = LINK_SN_SKEWMAX;	       /* yes, this is correct */
@@ -15486,6 +15680,100 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
+	case L_STOCHVOL_SN:
+	{
+		/*
+		 * get options related to the stochvol_sn
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.00123456789);	/* yes! */
+		ds->data_fixed0 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
+		if (!ds->data_fixed0 && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.sn_skew, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise intern skewness[%g]\n", ds->data_observations.sn_skew[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
+		}
+		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "PCSN", NULL);
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed0) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior0.hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Intern skewness for stochvol_sn observations", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Skewness for stochvol_sn observations", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior0.to_theta);
+			mb->theta[mb->ntheta] = ds->data_observations.sn_skew;
+
+			double *skewmax = Calloc(1, double);
+			*skewmax = LINK_SN_SKEWMAX;	       /* yes, this is correct */
+
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_phi;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = (void *) skewmax;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+
+
+		double initial_value = 500.0;
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), initial_value);
+		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 1);	/* yes, default fixed */
+		if (!ds->data_fixed && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.log_offset_prec, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_offset_prec[%g]\n", ds->data_observations.log_offset_prec[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed1);
+		}
+		inla_read_prior1(mb, ini, sec, &(ds->data_prior1), "LOGGAMMA", NULL);
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed1) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior1.hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Log offset precision for stochvol_sn", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Offset precision for stochvol_sn", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior1.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.log_offset_prec;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_precision;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+		break;
+	}
+
 	case L_STOCHVOL_T:
 	{
 		/*
@@ -15731,8 +16019,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->theta[mb->ntheta] = ds->data_observations.alpha_intern;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			// yes, use the same mapping
-			mb->theta_map[mb->ntheta] = map_alpha_weibull;	/* alpha = exp(alpha.intern) */
+			mb->theta_map[mb->ntheta] = map_alpha_gompertz;	/* alpha = exp(alpha.intern) */
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -26397,7 +26684,7 @@ double extra(double *theta, int ntheta, void *argument)
 	// joint prior evaluated in R
 	static int jp_first_time = 1;
 	static void *jp_vec_sexp = NULL;
-	
+
 	if (mb->jp) {
 #pragma omp critical
 		{
@@ -26408,7 +26695,7 @@ double extra(double *theta, int ntheta, void *argument)
 				inla_R_load(mb->jp->file);
 				if (mb->ntheta > 0) {
 					vec_str = Calloc(mb->ntheta, char *);
-					for(int i = 0; i < mb->ntheta; i++) {
+					for (int i = 0; i < mb->ntheta; i++) {
 						vec_str[i] = GMRFLib_strdup(mb->theta_tag[i]);
 					}
 				}
@@ -26416,7 +26703,7 @@ double extra(double *theta, int ntheta, void *argument)
 				jp_first_time = 0;
 
 				if (vec_str) {
-					for(int i = 0; i < mb->ntheta; i++) {
+					for (int i = 0; i < mb->ntheta; i++) {
 						Free(vec_str[i]);
 					}
 					Free(vec_str);
@@ -27045,6 +27332,19 @@ double extra(double *theta, int ntheta, void *argument)
 					 */
 					log_precision = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
+					count++;
+				}
+				break;
+
+			case L_STOCHVOL_SN:
+				if (!ds->data_fixed0) {
+					double skew_intern = theta[count];
+					val += PRIOR_EVAL(ds->data_prior0, &skew_intern);
+					count++;
+				}
+				if (!ds->data_fixed1) {
+					double log_prec_offset = theta[count];
+					val += PRIOR_EVAL(ds->data_prior1, &log_prec_offset);
 					count++;
 				}
 				break;
@@ -33816,7 +34116,7 @@ int testit(int argc, char **argv)
 {
 	int test_no = -1;
 	char **args = NULL;
-	int nargs = 0, i;
+	int nargs = 0, i, j;
 
 	if (argc > 0) {
 		test_no = atoi(argv[0]);
@@ -34926,6 +35226,53 @@ int testit(int argc, char **argv)
 			printf("x %f exp %.12f exp_taylor %.12f %.12f\n", v, exp(v), exp_taylor(v, x0, 6), exp_taylor(v, x0, 12));
 		}
 
+		break;
+	}
+
+	case 55:
+	{
+		double skew = 0.3;
+		GMRFLib_snq_tp *q;
+		int n = 21;
+
+		q = GMRFLib_snq(n, skew);
+		for (int i; i < q->n; i++) {
+			printf("i %d x %.8f w %.8f ww %.8f www %.8f\n", i, q->nodes[i], q->w[i], q->w_grad[i], q->w_hess[i]);
+		}
+
+		double fun = 0, fund = 0, fundd = 0, fval = 0;
+		for (int i; i < q->n; i++) {
+			fval = sin(q->nodes[i]);
+			fun += fval * q->w[i];
+			fund += fval * q->w_grad[i];
+			fundd += fval * q->w_hess[i];
+		}
+		printf("sin(x): value= %.8f deriv= %.8f dderiv= %.8f\n", fun, fund, fundd);
+
+		GMRFLib_snq_free(q);
+
+		break;
+	}
+
+	case 56:
+	{
+		for (i = 0, j = 1; i < 10; i++, j = j + 2) {
+			double lambda = exp(-1 + GMRFLib_uniform());
+			double new = inla_poisson_interval(lambda, i, j);
+			double gsl = (gsl_cdf_poisson_P((unsigned) j, lambda) -
+				      (i <= 0 ? 0.0 : gsl_cdf_poisson_P((unsigned) (i - 1), lambda)));
+			printf("lambda %f from= %d to= %d: new %f gsl %f diff %.12f\n",
+			       lambda, i, j, new, gsl, new-gsl);
+		}
+		// j < 0 <==> j=INF
+		for (i = 0, j = -1; i < 10; i++) {
+			double lambda = exp(-1 + GMRFLib_uniform());
+			double new = inla_poisson_interval(lambda, i, j);
+			double gsl = (gsl_cdf_poisson_P((unsigned) 1000, lambda) -
+				      (i <= 0 ? 0.0 : gsl_cdf_poisson_P((unsigned) (i - 1), lambda)));
+			printf("lambda %f from= %d to= %d: new %f gsl %f diff %.12f\n",
+			       lambda, i, j, new, gsl, new-gsl);
+		}
 		break;
 	}
 

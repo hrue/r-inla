@@ -1261,7 +1261,6 @@ int GMRFLib_2order_approx_core(double *a, double *b, double *c, double *dd, doub
 	} else {
 		int num_points = (stencil ? *stencil : 5);
 		step = (step_len && *step_len > 0.0 ? *step_len : GMRFLib_eps(1.0 / 3.9134));
-
 		switch (num_points) {
 			/*
 			 * see https://en.wikipedia.org/wiki/Finite_difference_coefficients

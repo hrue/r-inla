@@ -5036,7 +5036,7 @@
                     hyper = list(
                         theta1 = list(
                             hyperid = 49031,
-                            name = "skew",
+                            name = "skewness",
                             short.name = "skew",
                             initial = 0.00123456789,
                             fixed = FALSE,
@@ -5362,8 +5362,17 @@
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "log", "logoffset", "test1", "special1", "special2"),
-                    status = "experimental",
                     pdf = "cenpoisson"
+                ),
+
+                cenpoisson2 = list(
+                    doc = "Then censored Poisson likelihood (version 2)",
+                    hyper = list(),
+                    survival = FALSE,
+                    discrete = TRUE,
+                    link = c("default", "log", "logoffset", "test1", "special1", "special2"),
+                    status = "experimental",
+                    pdf = "cenpoisson2"
                 ),
 
                 gpoisson = list(
@@ -6206,8 +6215,8 @@
                         ),
                         theta2 = list(
                             hyperid = 74002,
-                            name = "logit skewness",
-                            short.name = "skewness",
+                            name = "logit skew",
+                            short.name = "skew",
                             initial = 0.00123456789,
                             fixed = FALSE,
                             prior = "pc.sn",
@@ -6474,6 +6483,40 @@
                     discrete = FALSE,
                     link = c("default", "log"),
                     pdf = "stochvolgaussian"
+                ),
+
+                stochvolsn = list(
+                    doc = "The SkewNormal stochvol likelihood",
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 82101,
+                            name = "logit skew",
+                            short.name = "skew",
+                            initial = 0.00123456789,
+                            fixed = FALSE,
+                            prior = "pc.sn",
+                            param = 10,
+                            ## This value defined by LINK_SN_SKEWMAX in inla.h
+                            to.theta = function(x, skew.max = 0.988) log((1 + x / skew.max) / (1 - x / skew.max)),
+                            from.theta = function(x, skew.max = 0.988) skew.max * (2 * exp(x) / (1 + exp(x)) - 1)
+                        ), 
+                        theta2 = list(
+                            hyperid = 82102,
+                            name = "log precision",
+                            short.name = "prec",
+                            initial = 500, ## yes, this is correct
+                            fixed = TRUE, ## yes, this is correct
+                            prior = "loggamma",
+                            param = c(1, 0.005),
+                            to.theta = function(x) log(x),
+                            from.theta = function(x) exp(x)
+                        )
+                    ),
+                    status = "experimental", 
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "log"),
+                    pdf = "stochvolsn"
                 ),
 
                 stochvolt = list(
@@ -7923,7 +7966,7 @@
                     status = "experimental", 
                     survival = FALSE,
                     discrete = FALSE,
-                    link = c("default", "log"),
+                    link = c("default", "log", "neglog"),
                     pdf = "gompertz"
                 ), 
 
@@ -7948,7 +7991,7 @@
                     status = "experimental", 
                     survival = TRUE,
                     discrete = FALSE,
-                    link = c("default", "log"),
+                    link = c("default", "log", "neglog"),
                     pdf = "gompertz"
                 ) 
             )

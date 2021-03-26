@@ -4,6 +4,21 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.03.27}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New family \code{stochvolsn}
+      \item New family \code{cenpoisson2}
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Improve robustness for survival models
+      \item General code improvement
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.03.21}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
