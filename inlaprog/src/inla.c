@@ -17925,7 +17925,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 	}
 
-	if ((ds->data_id != L_GAUSSIAN && ds->data_id != L_GAUSSIAN) ||
+	if ((ds->data_id != L_GAUSSIAN && ds->data_id != L_AGAUSSIAN) ||
 	    ds->predictor_invlinkfunc != link_identity || ds->mix_use || mb->expert_disable_gaussian_check) {
 		mb->gaussian_data = GMRFLib_FALSE;
 	}
