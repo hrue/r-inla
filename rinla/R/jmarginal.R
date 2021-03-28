@@ -168,9 +168,9 @@
     class(r) <- "inla"
 
     x <- inla.posterior.sample(n, r,
-        use.improved.mean = TRUE, skew.corr = TRUE,
-        add.names = FALSE
-    )
+                               use.improved.mean = TRUE, skew.corr = TRUE,
+                               add.names = FALSE
+                               )
     xx <- matrix(unlist(lapply(x, function(z) z$latent)), ncol = n)
     log.dens <- unlist(lapply(x, function(z) z$logdens$joint))
     rownames(xx) <- jmarginal$names
@@ -185,7 +185,7 @@
 
     var <- "inla.jmarginal.eval.warning.given"
     if (!(exists(var, envir = inla.get.inlaEnv()) &&
-        get(var, envir = inla.get.inlaEnv()) == TRUE)) {
+          get(var, envir = inla.get.inlaEnv()) == TRUE)) {
         warning("Function 'inla.rjmarginal.eval()' is experimental.")
         assign(var, TRUE, envir = inla.get.inlaEnv())
     }
@@ -208,8 +208,8 @@
         }
         if (exists("(Intercept)", envir = env)) {
             assign("Intercept", get("(Intercept)", envir = env),
-                envir = env
-            )
+                   envir = env
+                   )
         }
         parent.env(env) <- .GlobalEnv
         environment(.fun) <- env
@@ -283,6 +283,11 @@
     }
     stopifnot(is.matrix(A))
 
+    sel.len <- length(jmarginal$names)
+    if (ncol(A) != sel.len){
+        stop("Incorrect dimension for the selected components")
+    }
+
     if (is.null(rownames(A))) {
         names.sel <- sapply(1:nrow(A), function(x) paste0("Lin:", x))
     } else {
@@ -291,11 +296,7 @@
 
     ## create global environment symmoments to store all moments
     if (!exists("symmoments")) {
-          symmoments <<- new.env()
-      }
-    if (is.null(symmoments$n.max)) {
-        symmoments$n.max <- 1
-        symmoments::make.all.moments(moment = rep(1, 1), verbose = FALSE)
+        symmoments <<- new.env()
     }
 
     skew.max <- 0.99
@@ -317,7 +318,6 @@
         m3.lin <- mom3[lc.ind]
         S.lin <- S[lc.ind, lc.ind]
         S.str <- S.lin[lower.tri(S.lin, diag = TRUE)]
-        n.max <- get("n.max", envir = symmoments)
         m <- rep(2, n)
         names(m) <- sapply(1:n, function(x) paste0("x", x))
         names(coef) <- rep("coef", n)
@@ -325,15 +325,19 @@
         for (i in 1:(n - 1)) {
             j <- i + 1
             while ((i < j) && (j <= n)) {
+                mom.eval <- rep(0, n)
                 bicross <- c(
                     bicross, list(c(m[i], m[j] / 2, 3 * coef[i]^2, coef[j])),
                     list(c(m[i] / 2, m[j], 3 * coef[i], coef[j]^2))
                 )
-                if (n > n.max) {
-                    mom.eval <- rep(0, n)
-                    mom.eval[i] <- mom.eval[j] <- 2
-                    symmoments::make.all.moments(moment = mom.eval, verbose = FALSE)
-                }
+                mom.eval[i] <- 1
+                mom.eval[j] <- 2
+                symmoments::make.all.moments(moment = mom.eval,
+                                             verbose = FALSE)
+                mom.eval[i] <- 2
+                mom.eval[j] <- 1
+                symmoments::make.all.moments(moment = mom.eval,
+                                             verbose = FALSE)
                 j <- j + 1
             }
         }
@@ -345,13 +349,11 @@
                 while (j < i) {
                     k <- 1
                     while (k < j) {
+                        mom.eval <- rep(0, n)
                         tricross <- c(tricross, list(c(m[i] / 3, m[j] / 3, m[k] / 3, 6 * coef[i], coef[j], coef[k])))
-                        if (n > n.max) {
-                            symmoments$n.max <- n
-                            mom.eval <- rep(0, n)
-                            mom.eval[i] <- mom.eval[j] <- mom.eval[k] <- 1
-                            symmoments::make.all.moments(moment = mom.eval, verbose = FALSE)
-                        }
+                        mom.eval[i] <- mom.eval[j] <- mom.eval[k] <- 1
+                        symmoments::make.all.moments(moment = mom.eval, 
+                                                     verbose = FALSE)
                         k <- k + 1
                     }
                     j <- j + 1
@@ -374,10 +376,10 @@
         skew.tjoint[lc] <- skew.m
     }
     sn.par <- inla.sn.reparam(moments = list(
-        mean = as.numeric(mu.tjoint),
-        variance = diag(S.tjoint),
-        skewness = skew.tjoint
-    ))
+                                  mean = as.numeric(mu.tjoint),
+                                  variance = diag(S.tjoint),
+                                  skewness = skew.tjoint
+                              ))
     output <- list()
     output$names <- names.sel
     output$mean <- mu.tjoint
