@@ -342,14 +342,14 @@ int GMRFLib_make_spd(double *A, int dim, double tol)
 	gsl_matrix *AA = gsl_matrix_alloc((size_t) dim, (size_t) dim);
 	size_t i, j;
 
-	for(i = 0; i < dim; i++){
+	for(i = 0; i < (size_t) dim; i++){
 		for(j = 0; j <= i; j++){
 			gsl_matrix_set(AA, i, j, A[i + j * dim]);
 			gsl_matrix_set(AA, j, i, A[i + j * dim]);
 		}
 	}
-	GMRFLib_gsl_make_spde(AA, tol);
-	for(i = 0; i < dim; i++){
+	GMRFLib_gsl_make_spd(AA, tol);
+	for(i = 0; i < (size_t) dim; i++){
 		for(j = 0; j <= i; j++){
 			A[i + j * dim] = gsl_matrix_get(AA, i, j);
 			A[j + i * dim] = gsl_matrix_get(AA, i, j);
