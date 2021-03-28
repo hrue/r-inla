@@ -925,7 +925,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 						}
 					}
 					if (neg_diag) {
-						GMRFLib_make_spd(aqat_m, GMRFLib_eps(0.5));
+						GMRFLib_make_spd(aqat_m, nc, GMRFLib_eps(0.5));
 					}
 
 					for (i = 0; i < nc; i++) {
