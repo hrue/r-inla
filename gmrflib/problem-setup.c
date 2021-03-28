@@ -918,7 +918,14 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 
 				if (GMRFLib_aqat_m_diag_add > 0.0) {
 					for (i = 0; i < nc; i++) {
-						aqat_m[i + i * nc] += GMRFLib_aqat_m_diag_add;
+						if (aqat_m[i + i * nc] >= 0.0) {
+							// normal case
+							aqat_m[i + i * nc] += GMRFLib_aqat_m_diag_add;
+						} else {
+							fprintf(stderr, "\nAQA^T matrix have negative diagonal value(s). Fix...\n");
+							// near singular case
+							aqat_m[i + i * nc] = GMRFLib_aqat_m_diag_add;
+						}
 					}
 				}
 
