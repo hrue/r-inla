@@ -337,7 +337,7 @@ int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_make_spd(double *A, int dim, double tol) 
+int GMRFLib_ensure_spd(double *A, int dim, double tol) 
 {
 	gsl_matrix *AA = gsl_matrix_alloc((size_t) dim, (size_t) dim);
 	size_t i, j;
@@ -348,7 +348,7 @@ int GMRFLib_make_spd(double *A, int dim, double tol)
 			gsl_matrix_set(AA, j, i, A[i + j * dim]);
 		}
 	}
-	GMRFLib_gsl_make_spd(AA, tol);
+	GMRFLib_gsl_ensure_spd(AA, tol);
 	for(i = 0; i < (size_t) dim; i++){
 		for(j = 0; j <= i; j++){
 			A[i + j * dim] = gsl_matrix_get(AA, i, j);
@@ -359,7 +359,7 @@ int GMRFLib_make_spd(double *A, int dim, double tol)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_make_spd(gsl_matrix * A, double tol)
+int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol)
 {
 	/*
 	 * replace n x n matrix A with its SPD matrix, replacing negative eigenvalues with 'tol' * max(eigenvalue).
@@ -368,15 +368,15 @@ int GMRFLib_gsl_make_spd(gsl_matrix * A, double tol)
 	assert(A && (A->size1 == A->size2));
 	assert(tol >= 0.0);
 	gsl_matrix *U = GMRFLib_gsl_duplicate_matrix(A);
-	gsl_matrix *V = gsl_matrix_alloc(A->size1, A->size2);
 	gsl_vector *S = gsl_vector_alloc(A->size1);
-	gsl_vector *work = gsl_vector_alloc(A->size1);
-
-	gsl_linalg_SV_decomp(U, V, S, work);
+	gsl_eigen_symmv_workspace *work = gsl_eigen_symmv_alloc(A->size1);
+	
+	gsl_eigen_symmv(A, S, U, work);
 
 	size_t i;
-	double one = 1.0, zero = 0.0;
-	double s_max = gsl_vector_get(S, 0);
+	double one = 1.0, zero = 0.0, s;
+
+	double s_max = ABS(gsl_vector_max(S));
 	gsl_matrix *M1 = gsl_matrix_alloc(A->size1, A->size2);
 	gsl_matrix *M2 = gsl_matrix_alloc(A->size1, A->size2);
 
@@ -384,8 +384,7 @@ int GMRFLib_gsl_make_spd(gsl_matrix * A, double tol)
 	gsl_matrix_set_zero(M2);
 
 	for (i = 0; i < A->size1; i++) {
-		double s = gsl_vector_get(S, i);
-		
+		s = gsl_vector_get(S, i);
 		if (s <= 0.0) {
 			gsl_matrix_set(M2, i, i, tol * s_max);
 		} else {
@@ -394,15 +393,14 @@ int GMRFLib_gsl_make_spd(gsl_matrix * A, double tol)
 	} 
 
 	gsl_blas_dgemm(CblasNoTrans, CblasTrans, one, M2, U, zero, M1);
-	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, V, M1, zero, M2);
+	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, U, M1, zero, M2);
 	gsl_matrix_memcpy(A, M2);
 
 	gsl_matrix_free(U);
-	gsl_matrix_free(V);
 	gsl_matrix_free(M1);
 	gsl_matrix_free(M2);
 	gsl_vector_free(S);
-	gsl_vector_free(work);
+	gsl_eigen_symmv_free(work);
 
 	return GMRFLib_SUCCESS;
 }

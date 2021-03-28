@@ -927,11 +927,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				 */
 				retval = GMRFLib_comp_chol_general(&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR);
 				if (retval != GMRFLib_SUCCESS) {
-					FIXME("BEFORE");
-					GMRFLib_matrix_fprintf(stdout, aqat_m, nc, nc);
-					GMRFLib_make_spd(aqat_m, nc, GMRFLib_eps(0.5));
-					FIXME("AFTER");
-					GMRFLib_matrix_fprintf(stdout, aqat_m, nc, nc);
+					GMRFLib_ensure_spd(aqat_m, nc, GMRFLib_eps(0.5));
 					GMRFLib_EWRAP1(GMRFLib_comp_chol_general(&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR));
 				}
 				Free(aqat_m);
