@@ -35276,6 +35276,24 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 57: 
+	{
+		// testing qpoisson
+
+		double eta,  shape;
+		Link_param_tp *lparam = Calloc(1, Link_param_tp);
+		lparam->quantile = 0.87;
+
+		P(lparam->quantile);
+		for(eta = 1.0; eta < 10.0; eta += 0.5) {
+			shape = exp(eta) + 1;
+			printf("eta %f shape %f qpoisson %f qgamma %f\n", eta, shape,
+			       link_qpoisson(eta, INVLINK, lparam, NULL),
+			       MATHLIB_FUN(qgamma)(lparam->quantile, shape, 1.0, 0, 0));
+		}
+		break;
+	}
+	
 		// this will give some more error messages, if any
 	case 999:
 	{
