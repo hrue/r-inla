@@ -339,6 +339,8 @@ int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef)
 
 int GMRFLib_ensure_spd(double *A, int dim, double tol) 
 {
+	// this just a plain interface to the GMRFLib_gsl_ensure_spd
+	
 	gsl_matrix *AA = gsl_matrix_alloc((size_t) dim, (size_t) dim);
 	size_t i, j;
 
@@ -362,7 +364,7 @@ int GMRFLib_ensure_spd(double *A, int dim, double tol)
 int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol)
 {
 	/*
-	 * replace n x n matrix A with its SPD matrix, replacing negative eigenvalues with 'tol' * max(eigenvalue).
+	 * replace n x n matrix A with its SPD matrix, replacing negative eigenvalues with 'tol' * max(|eigenvalue|).
 	 */
 
 	assert(A && (A->size1 == A->size2));
