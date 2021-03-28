@@ -927,7 +927,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				 */
 				retval = GMRFLib_comp_chol_general(&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR);
 				if (retval != GMRFLib_SUCCESS) {
-					GMRFLib_ensure_spd(aqat_m, nc, 1.0);
+					GMRFLib_ensure_spd(aqat_m, nc, 1.0); /* yes, use tol=1 */
 					GMRFLib_EWRAP1(GMRFLib_comp_chol_general(&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR));
 				}
 				Free(aqat_m);
