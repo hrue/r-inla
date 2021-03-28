@@ -338,7 +338,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			       void *Qfunc_args, char *fixed_value, GMRFLib_constr_tp * constr, unsigned int keep, GMRFLib_store_tp * store)
 {
 	double *bb = NULL;
-	int i, j, sub_n, node, nnode, free_x = 0, id;
+	int i, j, sub_n, node, nnode, free_x = 0, id, retval;
 	GMRFLib_smtp_tp smtp;
 
 	int store_store_sub_graph = 0, store_use_sub_graph = 0;
@@ -916,19 +916,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					       (*problem)->qi_at_m, &sub_n, &beta, aqat_m, &nc, F_ONE, F_ONE);
 				}
 
-				GMRFLib_matrix_fprintf(stdout, aqat_m, nc, nc);
 				if (GMRFLib_aqat_m_diag_add > 0.0) {
-
-					int neg_diag = 0;
-					for (i = 0; i < nc && !neg_diag; i++) {
-						if (aqat_m[i + i * nc] <= 0.0) {
-							neg_diag = 1;
-						}
-					}
-					if (neg_diag) {
-						GMRFLib_make_spd(aqat_m, nc, GMRFLib_eps(0.5));
-					}
-
 					for (i = 0; i < nc; i++) {
 						aqat_m[i + i * nc] += GMRFLib_aqat_m_diag_add;
 					}
@@ -937,8 +925,15 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				/*
 				 * compute chol(aqat_m), recall that GMRFLib_comp_chol_general returns a new malloced L 
 				 */
-				GMRFLib_EWRAP1(GMRFLib_comp_chol_general
-					       (&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR));
+				retval = GMRFLib_comp_chol_general(&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat));
+				if (retval != GMRFLib_SUCCESS) {
+					FIXME("BEFORE");
+					GMRFLib_matrix_fprintf(stdout, aqat_m, nc, nc);
+					GMRFLib_make_spd(aqat_m, nc, GMRFLib_eps(0.5));
+					FIXME("AFTER");
+					GMRFLib_matrix_fprintf(stdout, aqat_m, nc, nc);
+					GMRFLib_EWRAP1(GMRFLib_comp_chol_general(&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat)));
+				}
 				Free(aqat_m);
 
 				/*
