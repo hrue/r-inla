@@ -337,6 +337,76 @@ int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_make_spd(double *A, int dim, double tol) 
+{
+	gsl_matrix *AA = gsl_matrix_alloc((size_t) dim, (size_t) dim);
+	size_t i, j;
+
+	for(i = 0; i < dim; i++){
+		for(j = 0; j <= i; j++){
+			gsl_matrix_set(AA, i, j, A[i + j * dim]);
+			gsl_matrix_set(AA, j, i, A[i + j * dim]);
+		}
+	}
+	GMRFLib_gsl_make_spde(AA, tol);
+	for(i = 0; i < dim; i++){
+		for(j = 0; j <= i; j++){
+			A[i + j * dim] = gsl_matrix_get(AA, i, j);
+			A[j + i * dim] = gsl_matrix_get(AA, i, j);
+		}
+	}
+	gsl_matrix_free(AA);
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_gsl_make_spd(gsl_matrix * A, double tol)
+{
+	/*
+	 * replace n x n matrix A with its SPD matrix, replacing negative eigenvalues with 'tol' * max(eigenvalue).
+	 */
+
+	assert(A && (A->size1 == A->size2));
+	assert(tol >= 0.0);
+	gsl_matrix *U = GMRFLib_gsl_duplicate_matrix(A);
+	gsl_matrix *V = gsl_matrix_alloc(A->size1, A->size2);
+	gsl_vector *S = gsl_vector_alloc(A->size1);
+	gsl_vector *work = gsl_vector_alloc(A->size1);
+
+	gsl_linalg_SV_decomp(U, V, S, work);
+
+	size_t i;
+	double one = 1.0, zero = 0.0;
+	double s_max = gsl_vector_get(S, 0);
+	gsl_matrix *M1 = gsl_matrix_alloc(A->size1, A->size2);
+	gsl_matrix *M2 = gsl_matrix_alloc(A->size1, A->size2);
+
+	gsl_matrix_set_zero(M1);
+	gsl_matrix_set_zero(M2);
+
+	for (i = 0; i < A->size1; i++) {
+		double s = gsl_vector_get(S, i);
+		
+		if (s <= 0.0) {
+			gsl_matrix_set(M2, i, i, tol * s_max);
+		} else {
+			gsl_matrix_set(M2, i, i, s);
+		}
+	} 
+
+	gsl_blas_dgemm(CblasNoTrans, CblasTrans, one, M2, U, zero, M1);
+	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, V, M1, zero, M2);
+	gsl_matrix_memcpy(A, M2);
+
+	gsl_matrix_free(U);
+	gsl_matrix_free(V);
+	gsl_matrix_free(M1);
+	gsl_matrix_free(M2);
+	gsl_vector_free(S);
+	gsl_vector_free(work);
+
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_gsl_mgs(gsl_matrix * A)
 {
 	// this is the modified Gram-Schmith ortogonalisation, and it 
