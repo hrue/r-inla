@@ -916,7 +916,19 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					       (*problem)->qi_at_m, &sub_n, &beta, aqat_m, &nc, F_ONE, F_ONE);
 				}
 
+				GMRFLib_matrix_fprintf(stdout, aqat_m, nc, nc);
 				if (GMRFLib_aqat_m_diag_add > 0.0) {
+
+					int neg_diag = 0;
+					for (i = 0; i < nc && !neg_diag; i++) {
+						if (aqat_m[i + i * nc] <= 0.0) {
+							neg_diag = 1;
+						}
+					}
+					if (neg_diag) {
+						GMRFLib_make_spd(aqat_m, nc, GMRFLib_eps(0.5));
+					}
+
 					for (i = 0; i < nc; i++) {
 						aqat_m[i + i * nc] += GMRFLib_aqat_m_diag_add;
 					}
