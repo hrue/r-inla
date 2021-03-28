@@ -916,6 +916,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					       (*problem)->qi_at_m, &sub_n, &beta, aqat_m, &nc, F_ONE, F_ONE);
 				}
 
+				GMRFLib_matrix_fprintf(stdout, aqat_m, nc, nc);
 				if (GMRFLib_aqat_m_diag_add > 0.0) {
 
 					int neg_diag = 0;
