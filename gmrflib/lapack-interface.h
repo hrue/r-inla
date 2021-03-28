@@ -85,8 +85,8 @@ int dtrmv_(const char *, const char *, const char *, int *, double *, int *, dou
 int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *logdet, int ecode);
 int GMRFLib_comp_chol_semidef(double **chol, int **map, int *rank, double *matrix, int dim, double *logdet, double eps);
 int GMRFLib_comp_posdef_inverse(double *matrix, int dim);
-int GMRFLib_gsl_make_spd(gsl_matrix * A, double tol);
-int GMRFLib_make_spd(double *A, int dim, double tol);
+int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol);
+int GMRFLib_ensure_spd(double *A, int dim, double tol);
 int GMRFLib_solveAxb_posdef(double *sol, double *chol, double *b, int dim, int nrhs);
 
 int daxpy_(int *n, double *alpha, double *x, int *incx, double *y, int *incy);
