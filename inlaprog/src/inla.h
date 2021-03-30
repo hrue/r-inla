@@ -1563,6 +1563,7 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp * logl, double *x_vec
 double inla_compute_saturated_loglik(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
 double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg);
 double inla_dmatern_cf(double dist, double range, double nu);
+double inla_dnchisq(double x, double df, double ncp);
 double inla_get_sn_param(inla_sn_arg_tp * output, double **param);
 double inla_lgamma_fast(double x);
 double inla_log_Phi(double x);

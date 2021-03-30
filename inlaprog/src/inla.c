@@ -4509,7 +4509,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 	case L_QKUMAR:
 	case L_QLOGLOGISTIC:
 	case L_STOCHVOL:
-	case L_STOCHVOL_SN: 
+	case L_STOCHVOL_SN:
 	case L_STOCHVOL_NIG:
 	case L_STOCHVOL_T:
 	case L_WEIBULL:
@@ -4812,6 +4812,37 @@ int loglikelihood_inla(double *logll, double *x, int m, int idx, double *x_vec, 
 	inla_tp *a = (inla_tp *) arg;
 	return a->loglikelihood[idx] (logll, x, m, idx, x_vec, y_cdf, a->loglikelihood_arg[idx]);
 }
+
+double inla_dnchisq(double x, double df, double ncp)
+{
+	// code provided by L.Starke
+
+	double ldens = 0.0;
+	if (ISZERO(ncp)) {
+		// besselI is not defined for x = 0
+		ldens = MATHLIB_FUN(dnchisq) (x, df, ncp, 1);
+	} else if (sqrt(ncp * x) < 8.0E4) {
+		// the cutoff is due to besselI
+		// see xlrg_IJ at https://github.com/atks/Rmath/blob/master/bessel.h
+		// 
+		// alternative form of pdf is used
+		// https://en.wikipedia.org/wiki/Noncentral_chi-squared_distribution
+		// 
+		// note for C implementation with Rmath: 
+		// besselI(..., ..., TRUE) -> bessel_i(..., ..., 2)
+		double c1 = sqrt(x * ncp);
+		ldens = -M_LN2 - (x + ncp) / 2.0 + (df / 4.0 - 0.5) * log(x / ncp) + c1 + log(MATHLIB_FUN(bessel_i) (c1, df / 2.0 - 1.0, 2.0));
+	} else {
+		// Approximation of Fraser (is perfect on right tail)
+		double c1 = log(x / ncp);
+		double c2 = sqrt(x) - sqrt(ncp);
+		ldens = -0.5 * log(8.0 * M_PI * x) -
+		    0.5 * SQR(c2 - (df - 1.0) / 4.0 * c1 / c2) + log(1.0 - (df - 1.0) / (2.0 * c2) * (1.0 / sqrt(x) - 0.5 * c1 / c2));
+	}
+
+	return (ldens);
+}
+
 double inla_Phi(double x)
 {
 	/*
@@ -5510,7 +5541,7 @@ int loglikelihood_stochvol_sn(double *logll, double *x, int m, int idx, double *
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y, sprec, xarg, *param[2], nan = NAN, var_offset, var, lomega;
 	inla_sn_arg_tp sn_arg;
-	
+
 	LINK_INIT;
 	y = ds->data_observations.y[idx];
 	var_offset = 1.0 / map_precision(ds->data_observations.log_offset_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -5519,16 +5550,15 @@ int loglikelihood_stochvol_sn(double *logll, double *x, int m, int idx, double *
 	inla_get_sn_param(&sn_arg, param);
 	assert(sn_arg.intercept == 0.0);
 	lomega = log(sn_arg.omega);
-	
+
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			var = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx)) + var_offset;
 			sprec = sqrt(1.0 / var);
 			xarg = (y * sprec - sn_arg.xi) / sn_arg.omega;
-			logll[i] = LOG_NORMC_GAUSSIAN + M_LN2 + log(sprec) - lomega - 0.5 * SQR(xarg) +
-				inla_log_Phi_fast(sn_arg.alpha * xarg);
+			logll[i] = LOG_NORMC_GAUSSIAN + M_LN2 + log(sprec) - lomega - 0.5 * SQR(xarg) + inla_log_Phi_fast(sn_arg.alpha * xarg);
 		}
-	} 
+	}
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
@@ -6305,7 +6335,7 @@ double inla_poisson_interval(double mean, int ifrom, int ito)
 		if (ifrom == 0) {
 			prob_sum = 1.0;
 		} else {
-			prob_sum = 1.0 - gsl_cdf_poisson_P((unsigned int) (ifrom -1), mean);
+			prob_sum = 1.0 - gsl_cdf_poisson_P((unsigned int) (ifrom - 1), mean);
 		}
 	} else {
 		assert(ito >= ifrom);
@@ -6373,7 +6403,7 @@ int loglikelihood_cenpoisson2(double *logll, double *x, int m, int idx, double *
 					logll[i] = gsl_cdf_poisson_P((unsigned int) iy, mu);
 				} else {
 					if (int_low > 0) {
-						logll[i] = gsl_cdf_poisson_P((unsigned int) (int_low-1), mu);
+						logll[i] = gsl_cdf_poisson_P((unsigned int) (int_low - 1), mu);
 					} else {
 						logll[i] = 0.0;
 					}
@@ -6438,7 +6468,7 @@ int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *U
 					logll[i] = gsl_cdf_poisson_P((unsigned int) iy, mu);
 				} else {
 					if (int_low > 0) {
-						logll[i] = gsl_cdf_poisson_P((unsigned int) (int_low-1), mu);
+						logll[i] = gsl_cdf_poisson_P((unsigned int) (int_low - 1), mu);
 					} else {
 						logll[i] = 0.0;
 					}
@@ -9663,7 +9693,9 @@ int loglikelihood_fmri(double *logll, double *x, int m, int idx, double *UNUSED(
 		for (i = 0; i < m; i++) {
 			eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			ncp = prec * SQR(eta);
-			logll[i] = l2y + MATHLIB_FUN(dnchisq) (y2, dof, ncp, 1);
+			// more robust implementation provided by L.Starke
+			// logll[i] = l2y + MATHLIB_FUN(dnchisq) (y2, dof, ncp, 1);
+			logll[i] = l2y + inla_dnchisq(y2, dof, ncp);
 		}
 	} else {
 		yy = (y_cdf ? *y_cdf : y);
@@ -12569,8 +12601,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				if ((ds->data_observations.cen_high[i] > 0 &&
 				     (ds->data_observations.cen_high[i] < ds->data_observations.cen_low[i]))) {
 					GMRFLib_sprintf(&msg, "%s: CPoisson2 (idx,low,high) = (%d,%g,%g) is void\n", secname, i,
-							ds->data_observations.cen_low[i], 
-							ds->data_observations.cen_high[i]);
+							ds->data_observations.cen_low[i], ds->data_observations.cen_high[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -35259,42 +35290,50 @@ int testit(int argc, char **argv)
 		for (i = 0, j = 1; i < 10; i++, j = j + 2) {
 			double lambda = exp(-1 + GMRFLib_uniform());
 			double new = inla_poisson_interval(lambda, i, j);
-			double gsl = (gsl_cdf_poisson_P((unsigned) j, lambda) -
-				      (i <= 0 ? 0.0 : gsl_cdf_poisson_P((unsigned) (i - 1), lambda)));
-			printf("lambda %f from= %d to= %d: new %f gsl %f diff %.12f\n",
-			       lambda, i, j, new, gsl, new-gsl);
+			double gsl = (gsl_cdf_poisson_P((unsigned) j, lambda) - (i <= 0 ? 0.0 : gsl_cdf_poisson_P((unsigned) (i - 1), lambda)));
+			printf("lambda %f from= %d to= %d: new %f gsl %f diff %.12f\n", lambda, i, j, new, gsl, new - gsl);
 		}
 		// j < 0 <==> j=INF
 		for (i = 0, j = -1; i < 10; i++) {
 			double lambda = exp(-1 + GMRFLib_uniform());
 			double new = inla_poisson_interval(lambda, i, j);
-			double gsl = (gsl_cdf_poisson_P((unsigned) 1000, lambda) -
-				      (i <= 0 ? 0.0 : gsl_cdf_poisson_P((unsigned) (i - 1), lambda)));
-			printf("lambda %f from= %d to= %d: new %f gsl %f diff %.12f\n",
-			       lambda, i, j, new, gsl, new-gsl);
+			double gsl = (gsl_cdf_poisson_P((unsigned) 1000, lambda) - (i <= 0 ? 0.0 : gsl_cdf_poisson_P((unsigned) (i - 1), lambda)));
+			printf("lambda %f from= %d to= %d: new %f gsl %f diff %.12f\n", lambda, i, j, new, gsl, new - gsl);
 		}
 		break;
 	}
 
-	case 57: 
+	case 57:
 	{
 		// testing qpoisson
 
-		double eta,  shape;
+		double eta, shape;
 		Link_param_tp *lparam = Calloc(1, Link_param_tp);
 		lparam->quantile = 0.87;
 
 		P(lparam->quantile);
-		for(eta = 1.0; eta < 10.0; eta += 0.5) {
+		for (eta = 1.0; eta < 10.0; eta += 0.5) {
 			shape = exp(eta) + 1;
 			printf("eta %f shape %f qpoisson %f qgamma %f\n", eta, shape,
-			       link_qpoisson(eta, INVLINK, lparam, NULL),
-			       MATHLIB_FUN(qgamma)(lparam->quantile, shape, 1.0, 0, 0));
+			       link_qpoisson(eta, INVLINK, lparam, NULL), MATHLIB_FUN(qgamma) (lparam->quantile, shape, 1.0, 0, 0));
 		}
 		break;
 	}
-	
-		// this will give some more error messages, if any
+
+	case 58:
+	{
+		double df = 3.0;
+		double x = SQR(50);
+		double ncp, ncp_sqrt;
+
+		for (ncp_sqrt = 0.0; ncp_sqrt < 2 * sqrt(x); ncp_sqrt += 2.0 * sqrt(x) / 1.0E4) {
+			ncp = SQR(ncp_sqrt);
+			printf("sqrt(ncp) inla_dnchisq %f %f\n", sqrt(ncp), inla_dnchisq(x, df, ncp));
+		}
+
+		break;
+	}
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
