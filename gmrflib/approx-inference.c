@@ -5388,8 +5388,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					       loglFunc, loglFunc_arg, fixed_value, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store);
 		log_dens_mode = tmp_logdens + con + log_extra(NULL, nhyper, log_extra_arg);
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
-		Free(bnew)
-		    ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
+		Free(bnew);
+		ai_store->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
 		if (run_with_omp) {
 			GMRFLib_ai_store_tp **ai_store_id = Calloc(GMRFLib_MAX_THREADS, GMRFLib_ai_store_tp *);
