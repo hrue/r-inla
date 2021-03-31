@@ -83,6 +83,6 @@ rsync $IP:builds/build64/$tarfile "$d"
     cd $D
     f="FILES"
     test -f "$f" && rm "$f"
-    find . -type f -print | sort > $f
+    find . -type f -print | grep -v md5sum.txt | sort > $f
 )
 
