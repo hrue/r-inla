@@ -284,7 +284,7 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3)
 	}
 
 	for (j = 0; j < ns; j++) {
-		s = gsl_pow_3(skew3s[j]);
+		s = GMRFLib_skew3_to_skew(skew3s[j]);
 		v1 = pow(ABS(s), 2.0 / 3.0);
 		delta = c1 * sqrt(v1 / (v1 + c3)) * SIGN(s);
 		alpha = delta / sqrt(1.0 - SQR(delta));

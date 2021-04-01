@@ -35262,7 +35262,7 @@ int testit(int argc, char **argv)
 
 	case 55:
 	{
-		double skew3 = pow(0.3, 1.0/3.0);
+		double skew3 = GMRFLib_skew_to_skew3(0.3);
 		GMRFLib_snq_tp *q;
 		int n = 31;
 
