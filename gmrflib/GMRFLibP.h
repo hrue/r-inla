@@ -249,6 +249,7 @@ typedef enum {
 #define ISZERO(x) (gsl_fcmp(x, 0.0, DBL_EPSILON) == 0)
 #define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
 #define LEGAL(i, n) ((i) >= 0 && (i) < (n))
+#define SIGN(x) ((x) >= 0 ? 1.0 : -1.0)
 
 #define GMRFLib_GLOBAL_NODE(n, gptr) ((int) IMIN((n-1)*(gptr ? (gptr)->factor :  GMRFLib_global_node.factor), \
 						 (gptr ? (gptr)->degree : GMRFLib_global_node.degree)))

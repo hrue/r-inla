@@ -223,16 +223,17 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 	return GMRFLib_SUCCESS;
 }
 
-GMRFLib_snq_tp *GMRFLib_snq(int n, double skew)
+GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3)
 {
-// RATIO is the skew-normal density divided by the normal, each with mean zero and unit variance
+	// RATIO is the skew-normal density divided by the normal, each with mean zero and unit variance
+	// skew3 is the skewness^(1/3)
 #define RATIO_CORE(x_, z_) (2.0 / omega * exp(-0.5 * SQR(z_) + 0.5 * SQR(x_) + inla_log_Phi(alpha * (z_))))
 #define RATIO(x_) RATIO_CORE(x_, (((x_)-xi)/omega))
 
 	// Return a new allocted _snq_tp object with the required information. Note that 'n' in the object can be less than the
 	// 'n' in the function call.
 
-	// the weights wp[i+n] and wp[i+2*n] gives the weight to get the first and second derivative wrt the skewness
+	// the weights wp[i+n] and wp[i+2*n] gives the weight to get the first and second derivative wrt the skew3
 
 	// New memory for xp and wp is allocated
 
@@ -255,18 +256,21 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew)
 	memcpy(nodes, xxp, n * sizeof(double));
 	memcpy(w, wwp, n * sizeof(double));
 
-	// stencil for the first and second derivative. degree 5 and 7
+	// stencil for the first and second derivative. degree 5, 7 and 9
 	// double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
 	// double wff[] = { -1.0 / 12.0, 4.0 / 3.0, -5.0 / 2.0, 4.0 / 3.0, -1.0 / 12.0 };
-	double wf[] = { -1.0 / 60.0, 3.0 / 20.0, -3.0 / 4.0, 0.0, 3.0 / 4.0, -3.0 / 20.0, 1.0 / 60.0 };
-	double wff[] = { 1.0 / 90.0, -3.0 / 20.0, 3.0 / 2.0, -49.0 / 18.0, 3.0 / 2.0, -3.0 / 20.0, 1.0 / 90.0 };
+	// double wf[] = { -1.0 / 60.0, 3.0 / 20.0, -3.0 / 4.0, 0.0, 3.0 / 4.0, -3.0 / 20.0, 1.0 / 60.0 };
+	// double wff[] = { 1.0 / 90.0, -3.0 / 20.0, 3.0 / 2.0, -49.0 / 18.0, 3.0 / 2.0, -3.0 / 20.0, 1.0 / 90.0 };
 	// double wfff[] = { 1.0 / 8.0, -1.0, 13.0 / 8.0, 0.0, -13.0 / 8.0, 1.0, -1.0 / 8.0 };
+	double wf[] = { 1.0 / 280.0, -4.0 / 105.0, 1.0 / 5.0, -4.0 / 5.0, 0.0, 4.0 / 5.0, -1.0 / 5.0, 4.0 / 105.0, -1.0 / 280.0 };
+	double wff[] = { -1.0 / 560.0, 8.0 / 315.0, -1.0 / 5.0, 8.0 / 5.0, -205.0 / 72.0, 8.0 / 5.0, -1.0 / 5.0, 8.0 / 315.0, -1.0 / 560.0 };
+	//double wfff[] = { -7.0 / 240.0, 3.0 / 10.0, -169.0 / 120.0, 61.0 / 30.0, 0.0, -61.0 / 30.0, 169.0 / 120.0, -3.0 / 10.0, 7.0 / 240.0 };
 
-	double skews[ sizeof(wf)/sizeof(double) ];
+	double skew3s[ sizeof(wf)/sizeof(double) ], s;
 
 	double ds = GMRFLib_eps(1.0 / 3.9134);		       // ds=1.0e-4 
 	double **ww = NULL;
-	int ns = sizeof(skews) / sizeof(double);
+	int ns = sizeof(skew3s) / sizeof(double);
 	int n2 = ns / 2;
 	
 	ww = Calloc(ns, double *);
@@ -276,12 +280,13 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew)
 	}
 
 	for (j = 0, i = -n2; j < ns; j++, i++) {
-		skews[j] = skew + i * ds;
+		skew3s[j] = skew3 + i * ds;
 	}
 
 	for (j = 0; j < ns; j++) {
-		v1 = pow(ABS(skews[j]), 2.0 / 3.0);
-		delta = c1 * sqrt(v1 / (v1 + c3)) * (skews[j] >= 0 ? 1.0 : -1.0);
+		s = gsl_pow_3(skew3s[j]);
+		v1 = pow(ABS(s), 2.0 / 3.0);
+		delta = c1 * sqrt(v1 / (v1 + c3)) * SIGN(s);
 		alpha = delta / sqrt(1.0 - SQR(delta));
 		omega = sqrt(1.0 / (1.0 - c2 * SQR(delta)));
 		xi = 0.0 - omega * delta / c1;
@@ -318,7 +323,7 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew)
 
 	GMRFLib_snq_tp *snq = Calloc(1, GMRFLib_snq_tp);
 	snq->n = k;
-	snq->skew = skew;
+	snq->skew3 = skew3;
 	snq->nodes = Calloc(4 * snq->n, double);
 	snq->w = snq->nodes + snq->n;
 	snq->w_grad = snq->nodes + 2*snq->n;

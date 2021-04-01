@@ -35262,11 +35262,11 @@ int testit(int argc, char **argv)
 
 	case 55:
 	{
-		double skew = 0.3;
+		double skew3 = pow(0.3, 1.0/3.0);
 		GMRFLib_snq_tp *q;
-		int n = 21;
+		int n = 31;
 
-		q = GMRFLib_snq(n, skew);
+		q = GMRFLib_snq(n, skew3);
 		for (int i = 0; i < q->n; i++) {
 			printf("i %d x %.8f w %.8f ww %.8f www %.8f\n", i, q->nodes[i], q->w[i], q->w_grad[i], q->w_hess[i]);
 		}

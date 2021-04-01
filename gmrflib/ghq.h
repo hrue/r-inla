@@ -59,7 +59,7 @@ __BEGIN_DECLS
 typedef struct 
 {
 	int n;
-	double skew;
+	double skew3;					       /* skewness^(1/3) */
 	double *nodes;
 	double *w;
 	double *w_grad;
@@ -76,7 +76,7 @@ int GMRFLib_ghq_ms(double **xp, double **wp, int n, double mean, double stdev);
 int GMRFLib_ghq_weights(double **wp, int n);
 
 int GMRFLib_snq_free(GMRFLib_snq_tp *q);
-GMRFLib_snq_tp *GMRFLib_snq(int n, double skew);
+GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3);
 
 __END_DECLS
 #endif
