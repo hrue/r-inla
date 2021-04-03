@@ -15764,7 +15764,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		double initial_value = 500.0;
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), initial_value);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 1);	/* yes, default fixed */
-		if (!ds->data_fixed && mb->reuse_mode) {
+		if (!ds->data_fixed1 && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
 		}
 		HYPER_NEW(ds->data_observations.log_offset_prec, tmp);
