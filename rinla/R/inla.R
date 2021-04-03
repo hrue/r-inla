@@ -2048,6 +2048,14 @@
     ## create mode section
     cont.mode <- inla.set.control.mode.default()
     cont.mode[names(control.mode)] <- control.mode
+    if (!is.null(cont.mode$result)) {
+        ## Reduce the size of 'result' stored in 'r$.args'. If this is stored directly it
+        ## can/will require lots of storage. We do this by creating a stripped object with only
+        ## what is needed and pass that one along, with the expected class.
+        cont.mode$result <- list(mode = list(x = cont.mode$result$mode$x,
+                                             theta = cont.mode$result$mode$theta))
+        class(cont.mode$result) <- "inla" ## in case there are checks on
+    }
     inla.mode.section(file = file.ini, cont.mode, data.dir)
 
     ## create expert section
