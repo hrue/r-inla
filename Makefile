@@ -1,16 +1,9 @@
 ## keep track of updates needed to be done
 
 all:; \
-	## update the TAGS-file and the man-files that are generated
-	## automatically 
-	-make -C rinla/R 
-	## update the doc extracted from the R-files
+	make tags
+	-make -C rinla/R
 	-make -C r-inla.org/doc
-	## update the TAGS-file
-	-make -C gmrflib TAGS
-	## update the TAGS-file
-	-make -C inlaprog src/TAGS
-	##
 	-make doc-links
 
 
@@ -42,5 +35,7 @@ INLA-package-check:
 	@echo Checking $(FILENAME)
 	$(R) --vanilla CMD check --no-examples $(FILENAME)
 
+tags:; gtags
+
 ##
-.PHONY: doc-links INLA-package all INLA-package-check
+.PHONY: doc-links INLA-package all INLA-package-check tags

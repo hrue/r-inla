@@ -210,9 +210,6 @@ gitstamp: dummytarget
 	echo '$(GITCOMMIT)' | cmp -s $@ - || echo '$(GITCOMMIT)' > $@
 dummytarget: ;
 
-TAGS : $(wildcard *.c *.h)
-	etags $^
-
 .PHONY: depend clean clean-deps uninstall install doc dummytarget 
 
 include $(dir $(DEPDIR))dependencies.d $(wildcard $(dir $(DEPDIR))*.d)
