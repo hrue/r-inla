@@ -302,6 +302,7 @@ double GMRFLib_log_gsl_cdf_ugaussian_P(double z);
 double GMRFLib_sn_logdensity_diff_alpha(double x, void *param);
 double GMRFLib_sn_logdensity_diff_omega(double x, void *param);
 double GMRFLib_sn_logdensity_diff_xi(double x, void *param);
+double GMRFLib_sn_cdfinv(double u, double a);
 int GMRFLib_density_P(double *px, double x, GMRFLib_density_tp * density);
 int GMRFLib_density_Pinv(double *xp, double p, GMRFLib_density_tp * density);
 int GMRFLib_density_adjust_vector(double *ldens, int n);

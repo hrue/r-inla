@@ -35334,6 +35334,39 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 59: 
+	{
+		double x = GMRFLib_uniform();
+
+		printf("x= %.12f\n", x);
+		printf("Phi= %.12f\n", GMRFLib_Phi(x));
+		printf("Phi_inv = %.12f\n", GMRFLib_Phi_inv(x));
+		printf("erf = %.12f\n", GMRFLib_erf(x));
+		printf("erfinv = %.12f\n", GMRFLib_erf_inv(x));
+		printf("erfc = %.12f\n", GMRFLib_erfc(x));
+		printf("erfcinv = %.12f\n", GMRFLib_erfc_inv(x));
+		
+		printf("%s%.12f%s%s\n", "R --vanilla --quiet -e 'library(pracma);x=",
+		       x, ";print(x); print(pnorm(x)); print(qnorm(x)); print(erf(x));",
+		       "print(erfinv(x)); print(erfc(x)); print(erfcinv(x))'\n");
+
+		break;
+	}
+
+	case 60: 
+	{
+		double x = GMRFLib_uniform();
+		double a = GMRFLib_uniform()-0.5;
+		
+		printf("x= %.12f\n", x);
+		printf("a= %.12f\n", a);
+		printf("sn_inv= %.12f\n", GMRFLib_sn_cdfinv(x, a));
+		
+		printf("%s%.12f%s%.12f%s\n", "R --vanilla --quiet -e 'library(sn);x=",
+		       x, "; a=", a, "; print(qsn(x,alpha=a))'\n");
+		break;
+	}
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
