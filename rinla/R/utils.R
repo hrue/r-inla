@@ -1029,7 +1029,7 @@
         variance <- omega^2L * (1.0 - 2.0 * delta^2L / pi)
         skewness <- (4.0 - pi) / 2.0 * (delta * sqrt(2.0 / pi))^3L / (1.0 - 2.0 * delta^2L / pi)^(3.0 / 2.0)
 
-        return(list(mean = mean, variance = variance, skewness = skewness))
+        return(c(mean = mean, variance = variance, skewness = skewness))
     } else {
         if (is.list(moments)) {
             mean <- moments$mean
@@ -1047,7 +1047,7 @@
         omega <- sqrt(variance / (1.0 - 2.0 * delta^2L / pi))
         xi <- mean - omega * delta * sqrt(2.0 / pi)
 
-        return(list(xi = xi, omega = omega, alpha = alpha))
+        return(c(xi = xi, omega = omega, alpha = alpha))
     }
 }
 
