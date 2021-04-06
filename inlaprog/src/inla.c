@@ -35360,7 +35360,7 @@ int testit(int argc, char **argv)
 		
 		printf("x= %.12f\n", x);
 		printf("a= %.12f\n", a);
-		printf("sn_inv= %.12f\n", GMRFLib_sn_cdfinv(x, a));
+		printf("sn_inv= %.12f\n", GMRFLib_sn_Pinv(x, a));
 		
 		printf("%s%.12f%s%.12f%s\n", "R --vanilla --quiet -e 'library(sn);x=",
 		       x, "; a=", a, "; print(qsn(x,alpha=a))'\n");

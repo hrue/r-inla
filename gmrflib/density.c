@@ -2119,7 +2119,7 @@ int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * de
   D.A. Barry, J.-Y. Parlange, L. Li, H. Prommer, C.J. Cunningham, and F. Stagnitti. Erratum to analytical approximations for
   real values of the Lambert W-function. Mathematics and computers in simulation, 59(6):543-543, 2002.
 
-  GMRFLib_sn_cdfinv:
+  GMRFLib_sn_Pinv:
   
   Based on: Luu, T; (2016) Fast and accurate parallel computation of quantile functions for random number generation. Doctoral
   thesis, UCL (University College London). http://discovery.ucl.ac.uk/1482128/
@@ -2154,7 +2154,7 @@ double plog(double x)
 	return w1;
 }
 
-double GMRFLib_sn_cdfinv(double u, double a)
+double GMRFLib_sn_Pinv(double u, double a)
 {
 	double tol = 0.01;
 
