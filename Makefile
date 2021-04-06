@@ -35,7 +35,7 @@ INLA-package-check:
 	@echo Checking $(FILENAME)
 	$(R) --vanilla CMD check --no-examples $(FILENAME)
 
-tags:; gtags
+tags:; gtags; htags
 
 ##
 .PHONY: doc-links INLA-package all INLA-package-check tags
