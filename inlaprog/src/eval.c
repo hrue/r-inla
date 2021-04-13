@@ -45,7 +45,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #include "GMRFLib/GMRFLib.h"
 #include "inla.h"
-#include "interpol.h"
 #include "eval.h"
 
 /* 
@@ -248,8 +247,8 @@ double inla_eval_table(char *expression, double *xval, double *UNUSED(theta), in
 	assert(M->nrow >= 4);
 	assert(M->ncol == 2);
 
-	s = inla_spline_create(M->A, M->A + M->nrow, M->nrow);
-	value = inla_spline_eval(*xval, s);
+	s = GMRFLib_spline_create(M->A, M->A + M->nrow, M->nrow);
+	value = GMRFLib_spline_eval(*xval, s);
 
 	if (0) {
 		// a check of the interpolation
@@ -257,7 +256,7 @@ double inla_eval_table(char *expression, double *xval, double *UNUSED(theta), in
 		{
 			double xx;
 			for (xx = -20; xx < 20; xx += .1)
-				printf("TABLE %g %g\n", xx, inla_spline_eval(xx, s));
+				printf("TABLE %g %g\n", xx, GMRFLib_spline_eval(xx, s));
 			exit(1);
 		}
 	}
@@ -270,7 +269,7 @@ double inla_eval_table(char *expression, double *xval, double *UNUSED(theta), in
 	}
 
 	GMRFLib_matrix_free(M);
-	inla_spline_free(s);
+	GMRFLib_spline_free(s);
 
 	return value;
 }

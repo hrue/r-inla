@@ -91,7 +91,6 @@ static const char GitID[] = GITCOMMIT;
 #include "spde2.h"
 #include "spde3.h"
 #include "eval.h"
-#include "interpol.h"
 #include "re.h"
 #include "ar.h"
 #include "pc-priors.h"
@@ -522,7 +521,7 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * 
 	static char first = 1;
 
 	int i, j, id, debug = 0;
-	double alpha, dx = 0.02, range = 10.0, p, pp, omega, delta, xi, skew, skew_intern, skew_max = LINK_SN_SKEWMAX;
+	double alpha, dx = 0.02, range = 10.0, p, pp, omega, delta, xi, skew, skew_intern, skew_max = GMRFLib_SN_SKEWMAX;
 	double **par, intercept, intercept_intern, intercept_alpha;
 
 	par = (double **) param;
@@ -653,17 +652,17 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * 
 		table[id]->pmin = iMAP(y[0]);
 		table[id]->pmax = iMAP(y[len - 1]);
 
-		inla_spline_free(table[id]->cdf);	       /* ok if NULL */
-		inla_spline_free(table[id]->icdf);	       /* ok if NULL */
+		GMRFLib_spline_free(table[id]->cdf);	       /* ok if NULL */
+		GMRFLib_spline_free(table[id]->icdf);	       /* ok if NULL */
 
-		table[id]->cdf = inla_spline_create(x, y, len);
-		table[id]->icdf = inla_spline_create(y, x, len);
+		table[id]->cdf = GMRFLib_spline_create(x, y, len);
+		table[id]->icdf = GMRFLib_spline_create(y, x, len);
 		Free(work);
 	}
 
 	// ...as the mapping using this reparameterisation
 	if (!ISNAN(intercept_intern)) {
-		intercept = inla_spline_eval(intercept_intern, table[id]->icdf);
+		intercept = GMRFLib_spline_eval(intercept_intern, table[id]->icdf);
 	} else {
 		// this removes the intercept from the model
 		intercept = 0.0;
@@ -687,7 +686,7 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * 
 		 * extern = func(local) 
 		 */
 		arg = TRUNCATE(intercept + arg, table[id]->xmin, table[id]->xmax);
-		p = inla_spline_eval(arg, table[id]->cdf);
+		p = GMRFLib_spline_eval(arg, table[id]->cdf);
 		return iMAP(p);
 
 	case MAP_BACKWARD:
@@ -695,15 +694,15 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * 
 		 * local = func(extern) 
 		 */
 		arg = TRUNCATE(arg, table[id]->pmin, table[id]->pmax);
-		return inla_spline_eval(MAP(arg), table[id]->icdf) - intercept;
+		return GMRFLib_spline_eval(MAP(arg), table[id]->icdf) - intercept;
 
 	case MAP_DFORWARD:
 		/*
 		 * d_extern / d_local 
 		 */
 		arg = TRUNCATE(intercept + arg, table[id]->xmin, table[id]->xmax);
-		p = inla_spline_eval(arg, table[id]->cdf);
-		pp = inla_spline_eval_deriv(arg, table[id]->cdf);
+		p = GMRFLib_spline_eval(arg, table[id]->cdf);
+		pp = GMRFLib_spline_eval_deriv(arg, table[id]->cdf);
 		return diMAP(p) * pp;
 
 	case MAP_INCREASING:
@@ -1451,11 +1450,11 @@ double link_loga(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 		table[id]->eta_min = x[0];
 		table[id]->eta_max = x[len - 1];
 
-		inla_spline_free(table[id]->cdf);	       /* ok if NULL */
-		inla_spline_free(table[id]->icdf);	       /* ok if NULL */
+		GMRFLib_spline_free(table[id]->cdf);	       /* ok if NULL */
+		GMRFLib_spline_free(table[id]->icdf);	       /* ok if NULL */
 
-		table[id]->cdf = inla_spline_create(x, y, len);
-		table[id]->icdf = inla_spline_create(y, x, len);
+		table[id]->cdf = GMRFLib_spline_create(x, y, len);
+		table[id]->icdf = GMRFLib_spline_create(y, x, len);
 		Free(work);
 	}
 
@@ -1465,7 +1464,7 @@ double link_loga(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 		 * extern = func(local) 
 		 */
 		x = TRUNCATE(x, table[id]->eta_min, table[id]->eta_max);
-		p = inla_spline_eval(x, table[id]->cdf);
+		p = GMRFLib_spline_eval(x, table[id]->cdf);
 		return (iMAP(p));
 
 	case MAP_BACKWARD:
@@ -1473,15 +1472,15 @@ double link_loga(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 		 * local = func(extern) 
 		 */
 		x = TRUNCATE(MAP(x), table[id]->p_intern_min, table[id]->p_intern_max);
-		return inla_spline_eval(x, table[id]->icdf);
+		return GMRFLib_spline_eval(x, table[id]->icdf);
 
 	case MAP_DFORWARD:
 		/*
 		 * d_extern / d_local 
 		 */
 		x = TRUNCATE(x, table[id]->eta_min, table[id]->eta_max);
-		p = inla_spline_eval(x, table[id]->cdf);
-		pp = inla_spline_eval_deriv(x, table[id]->cdf);
+		p = GMRFLib_spline_eval(x, table[id]->cdf);
+		pp = GMRFLib_spline_eval_deriv(x, table[id]->cdf);
 		return diMAP(p) * pp;
 
 	case MAP_INCREASING:
@@ -3523,7 +3522,7 @@ double priorfunc_pc_dof(double *x, double *parameters)
 }
 double priorfunc_pc_sn(double *x, double *parameters)
 {
-	double lambda = parameters[0], val, dist, dist_max, deriv, xx, xxd, skew_max = LINK_SN_SKEWMAX;
+	double lambda = parameters[0], val, dist, dist_max, deriv, xx, xxd, skew_max = GMRFLib_SN_SKEWMAX;
 
 	xx = map_phi(*x, MAP_FORWARD, (void *) &skew_max);
 	xxd = map_phi(*x, MAP_DFORWARD, (void *) &skew_max);
@@ -6233,9 +6232,9 @@ double eval_log_contpoisson(double y, double lambda)
 		xx[i] = iy + 0.5;
 		yy[i] = iy * log(lambda) - lambda - gsl_sf_lnfact((unsigned int) iy);
 	}
-	spline = inla_spline_create(xx, yy, len);
-	lval = inla_spline_eval(y, spline);
-	inla_spline_free(spline);
+	spline = GMRFLib_spline_create(xx, yy, len);
+	lval = GMRFLib_spline_eval(y, spline);
+	GMRFLib_spline_free(spline);
 #undef _L
 #undef _R
 #undef _LEN
@@ -6301,7 +6300,7 @@ int loglikelihood_qcontpoisson(double *logll, double *x, int m, int idx, double 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			q = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			lambda = E * exp(inla_spline_eval(log(q), ds->data_observations.qcontpoisson_func[id]));
+			lambda = E * exp(GMRFLib_spline_eval(log(q), ds->data_observations.qcontpoisson_func[id]));
 			logll[i] = eval_log_contpoisson(y + 1.0, lambda);
 		}
 	} else {
@@ -6311,7 +6310,7 @@ int loglikelihood_qcontpoisson(double *logll, double *x, int m, int idx, double 
 		double normc = exp(gsl_sf_lngamma(y + 1.0));
 		for (i = 0; i < -m; i++) {
 			q = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			lambda = E * exp(inla_spline_eval(log(q), ds->data_observations.qcontpoisson_func[id]));
+			lambda = E * exp(GMRFLib_spline_eval(log(q), ds->data_observations.qcontpoisson_func[id]));
 			logll[i] = gsl_sf_gamma_inc(y + 1.0, lambda) / normc;
 		}
 	}
@@ -14151,7 +14150,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta[mb->ntheta] = ds->data_observations.sn_skew;
 
 			double *skewmax = Calloc(1, double);
-			*skewmax = LINK_SN_SKEWMAX;	       /* yes, this is correct */
+			*skewmax = GMRFLib_SN_SKEWMAX;	       /* yes, this is correct */
 
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_phi;
@@ -15750,7 +15749,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta[mb->ntheta] = ds->data_observations.sn_skew;
 
 			double *skewmax = Calloc(1, double);
-			*skewmax = LINK_SN_SKEWMAX;	       /* yes, this is correct */
+			*skewmax = GMRFLib_SN_SKEWMAX;	       /* yes, this is correct */
 
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_phi;
@@ -17345,7 +17344,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta[mb->ntheta] = ds->link_parameters->sn_skew;
 
 			double *skewmax = Calloc(1, double);
-			*skewmax = LINK_SN_SKEWMAX;
+			*skewmax = GMRFLib_SN_SKEWMAX;
 
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_phi;
@@ -26331,6 +26330,8 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 		printf("\t\tconstr.marginal.diagonal = %.3g\n", GMRFLib_aqat_m_diag_add);
 	}
 
+	mb->ai_par->improved_simplified_laplace = iniparser_getboolean(ini, inla_string_join(secname, "IMPROVED.SIMPLIFIED.LAPLACE"), 0);
+
 	if (mb->verbose) {
 		GMRFLib_print_ai_param(stdout, mb->ai_par);
 	}
@@ -34238,7 +34239,7 @@ int testit(int argc, char **argv)
 #pragma omp parallel for
 		for (int i = 0; i < 10000; i++) {
 			lq = -5 + i * 0.001;
-			printf("%1d quantile %f  eta %f\n", omp_get_thread_num(), exp(lq), inla_spline_eval(lq, spline[omp_get_thread_num()]));
+			printf("%1d quantile %f  eta %f\n", omp_get_thread_num(), exp(lq), GMRFLib_spline_eval(lq, spline[omp_get_thread_num()]));
 		}
 		exit(0);
 	}

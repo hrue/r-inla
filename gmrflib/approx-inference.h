@@ -589,6 +589,8 @@ typedef struct {
 	int optimise_use_directions;
 	gsl_matrix *optimise_use_directions_m;
 	
+	// use the experimental version?
+	int improved_simplified_laplace;
 } GMRFLib_ai_param_tp;
 
 /**

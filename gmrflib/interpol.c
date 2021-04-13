@@ -1,7 +1,7 @@
 
 /* interpol.c
  * 
- * Copyright (C) 2011-2020 Havard Rue
+ * Copyright (C) 2011-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,9 +35,7 @@ static const char GitID[] = GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-#include "interpol.h"
-
-GMRFLib_spline_tp *inla_spline_create(double *x, double *y, int n)
+GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n)
 {
 	/*
 	 * Return a spline interpolant for {(x,y)} 
@@ -66,7 +64,7 @@ GMRFLib_spline_tp *inla_spline_create(double *x, double *y, int n)
 	return s;
 }
 
-GMRFLib_spline_tp *inla_spline_create_from_matrix(GMRFLib_matrix_tp * M)
+GMRFLib_spline_tp *GMRFLib_spline_create_from_matrix(GMRFLib_matrix_tp * M)
 {
 	/*
 	 * Return a spline interpolant between {(x,y)} where x is the first column in M and y is the second column of M. 
@@ -79,10 +77,10 @@ GMRFLib_spline_tp *inla_spline_create_from_matrix(GMRFLib_matrix_tp * M)
 	double *x = M->A;
 	double *y = M->A + M->nrow;			       /* column-based storage */
 
-	return inla_spline_create(x, y, M->nrow);
+	return GMRFLib_spline_create(x, y, M->nrow);
 }
 
-double inla_spline_eval(double x, GMRFLib_spline_tp * s)
+double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s)
 {
 	/*
 	 * Evaluate a spline 's' in point 'x' 
@@ -96,11 +94,11 @@ double inla_spline_eval(double x, GMRFLib_spline_tp * s)
 			// maybe I should put this into the GMRFLib_spline_tp as a parameter...
 			double deriv;
 			if (x > s->xmax) {
-				deriv = inla_spline_eval_deriv(s->xmax, s);
-				val = inla_spline_eval(s->xmax, s) + deriv * (x - s->xmax);
+				deriv = GMRFLib_spline_eval_deriv(s->xmax, s);
+				val = GMRFLib_spline_eval(s->xmax, s) + deriv * (x - s->xmax);
 			} else if (x < s->xmin) {
-				deriv = inla_spline_eval_deriv(s->xmin, s);
-				val = inla_spline_eval(s->xmin, s) + deriv * (x - s->xmin);
+				deriv = GMRFLib_spline_eval_deriv(s->xmin, s);
+				val = GMRFLib_spline_eval(s->xmin, s) + deriv * (x - s->xmin);
 			} else {
 				assert(0 == 1);
 			}
@@ -108,13 +106,14 @@ double inla_spline_eval(double x, GMRFLib_spline_tp * s)
 			val = NAN;
 		}
 	} else {
+		FIXME("ok");
 		val = gsl_spline_eval(s->spline, x, s->accel);
 	}
 
 	return val;
 }
 
-double inla_spline_eval_deriv(double x, GMRFLib_spline_tp * s)
+double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp * s)
 {
 	/*
 	 * Evaluate the derivative of the spline 's' in point 'x' 
@@ -131,7 +130,7 @@ double inla_spline_eval_deriv(double x, GMRFLib_spline_tp * s)
 	return val;
 }
 
-double inla_spline_eval_deriv2(double x, GMRFLib_spline_tp * s)
+double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp * s)
 {
 	/*
 	 * Evaluate the 2.derivative of the spline 's' in point 'x' 
@@ -148,7 +147,7 @@ double inla_spline_eval_deriv2(double x, GMRFLib_spline_tp * s)
 	return val;
 }
 
-int inla_spline_free(GMRFLib_spline_tp * s)
+int GMRFLib_spline_free(GMRFLib_spline_tp * s)
 {
 	/*
 	 * Free spline in 's' including 's' iteself. 

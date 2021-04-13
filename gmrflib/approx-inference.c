@@ -381,6 +381,9 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	if (ai_par->strategy == GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN) {
 		fprintf(fp, "Use a mean-skew corrected Gaussian by fitting a Skew-Normal\n");
 	}
+	if (ai_par->improved_simplified_laplace) {
+		fprintf(fp, "\t\t\tUse an experimental improved simplified.laplace\n");
+	}
 	if (ai_par->strategy == GMRFLib_AI_STRATEGY_ADAPTIVE) {
 		fprintf(fp, "Use an adaptive strategy (max=%1d)\n", ai_par->adapt_max);
 	}
@@ -2018,20 +2021,43 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			/*
 			 * this require the Skew-Normal 
 			 */
-			a_sigma = GMRFLib_signed_pow(third_order_derivative / 0.2180136141449902, 1. / 3.);
-			cc = 1.0 / a_sigma;
-			err = GMRFLib_2order_poleq(&sol1, NULL, SQR(cc) * (1.0 - 2.0 / M_PI), SQR(cc) - 1.0, -1.0);
-			if (err == GMRFLib_SUCCESS) {
-				snp.alpha = aa = sqrt(sol1) * (third_order_derivative > 0.0 ? 1.0 : -1.0);
-				tmp = 1.0 / (1.0 - (2.0 / M_PI) * SQR(aa) / (1.0 + SQR(aa)));
-				if (tmp > 0.0) {
-					snp.omega = sqrt(tmp);
-					snp.xi = -deriv_log_dens_cond - snp.omega * sqrt(2.0 / M_PI) * aa / sqrt(1.0 + SQR(aa));
+
+			if (!(ai_par->improved_simplified_laplace)) {
+				a_sigma = GMRFLib_signed_pow(third_order_derivative / 0.2180136141449902, 1. / 3.);
+				cc = 1.0 / a_sigma;
+				err = GMRFLib_2order_poleq(&sol1, NULL, SQR(cc) * (1.0 - 2.0 / M_PI), SQR(cc) - 1.0, -1.0);
+				if (err == GMRFLib_SUCCESS) {
+					snp.alpha = aa = sqrt(sol1) * (third_order_derivative > 0.0 ? 1.0 : -1.0);
+					tmp = 1.0 / (1.0 - (2.0 / M_PI) * SQR(aa) / (1.0 + SQR(aa)));
+					if (tmp > 0.0) {
+						snp.omega = sqrt(tmp);
+						snp.xi = -deriv_log_dens_cond - snp.omega * sqrt(2.0 / M_PI) * aa / sqrt(1.0 + SQR(aa));
+					} else {
+						fail = 1;
+					}
 				} else {
 					fail = 1;
 				}
 			} else {
-				fail = 1;
+				int debug = 0;
+
+				double mom[3] = {0.0, 1.0, 0.0};
+				mom[2] = GMRFLib_sn_d3_to_skew(third_order_derivative);
+
+				if (ABS(mom[2]) > GMRFLib_SN_SKEWMAX) {
+					mom[2] = 0.0;
+					fail = 1;
+				}
+
+				GMRFLib_sn_moments2par(&snp, &mom[0], &mom[1], &mom[2]);
+
+				if (debug) {
+					double mm[3];
+					GMRFLib_sn_par2moments(&mm[0], &mm[1], &mm[2], &snp);
+					printf("NEW d3 %f\n", third_order_derivative);
+					printf("NEW par: %f %f %f\n", snp.xi, snp.omega, snp.alpha);
+					printf("NEW mom: %f %f %f\n", mm[0], mm[1], mm[2]);
+				}
 			}
 		}
 
@@ -2041,7 +2067,6 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			ld = Calloc(2 * np, double);	       /* xp = Calloc(np,double) */
 
 			xp = &ld[np];
-
 			for (k = 0; k < np; k++) {
 				xp[k] = xx = low + k * (high - low) / (np - 1.0);
 				ld[k] =
