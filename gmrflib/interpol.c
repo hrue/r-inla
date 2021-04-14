@@ -106,7 +106,6 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s)
 			val = NAN;
 		}
 	} else {
-		FIXME("ok");
 		val = gsl_spline_eval(s->spline, x, s->accel);
 	}
 
