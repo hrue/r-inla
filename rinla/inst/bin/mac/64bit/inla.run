@@ -48,6 +48,7 @@ done
 
 ## this option may only be set, if mkl=FALSE
 vecLibPath=""
+vecLibLink="$HOME/.R/INLA/vecLib"
 for arg in "$@"; do 
     case "$arg" in
 	-L) ## this option is also allowed in the inla-program, but do nothing	    
@@ -58,7 +59,7 @@ for arg in "$@"; do
 		    echo "Load vecLib BLAS and LAPACK from [$vecLibPath]"
 		fi
 	    else
-		## vecLib libraries are not installed, revert back
+		## vecLib libraries are not there
 		if [ "${INLA_DEBUG}XX" != "XX" ]; then
 		    echo "vecLib BLAS and LAPACK is not installed in [$vecLibPath]"
 		    echo "revert back to libRblas and libRlapack"
@@ -69,7 +70,23 @@ for arg in "$@"; do
     esac
 done
 
-export DYLD_LIBRARY_PATH="$DIR/first:$DIR/vecLib:$RHOME_LIB:$DIR:$LIBPNGPATH:/usr/lib:/usr/local/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
+if [ "$vecLibPath"XX != "XX" ]; then
+    if [ "${INLA_DEBUG}XX" != "XX" ]; then
+	echo "soft-link vecLib-libraries to $vecLibLink"
+    fi
+    test -d "$vecLibLink" || mkdir -p "$vecLibLink"
+    ( 
+	cd "$vecLibLink"
+	ln -sf "$vecLibPath"/* .
+	## need other names as well
+	ln -sf "$vecLibPath"/libLAPACK.dylib libRlapack.dylib
+	ln -sf "$vecLibPath"/libBLAS.dylib libRblas.dylib
+    )
+else 
+    vecLibLink=""
+fi
+
+export DYLD_LIBRARY_PATH="$DIR/first:$vecLibLink:$RHOME_LIB:$DIR:$LIBPNGPATH:/usr/lib:/usr/local/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
     echo "DYLD_INSERT_LIBRARIES=$DYLD_INSERT_LIBRARIES"
     echo "DYLD_FORCE_FLAT_NAMESPACE=$DYLD_FORCE_FLAT_NAMESPACE"
