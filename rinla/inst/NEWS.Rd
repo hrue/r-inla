@@ -4,7 +4,7 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
-\section{CHANGES IN VERSION 21.04.15}{
+\section{CHANGES IN VERSION 21.04.16}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
       \item Mac only: Link with \code{vecLib} BLAS and LAPACK libraries
