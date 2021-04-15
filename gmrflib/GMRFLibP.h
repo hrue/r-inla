@@ -62,7 +62,6 @@ __BEGIN_DECLS
 
 /* 
  */
-
 #if __GNUC__ > 7
 typedef size_t fortran_charlen_t;
 #else
@@ -72,14 +71,14 @@ typedef int fortran_charlen_t;
 
 // see https://stackoverflow.com/questions/3599160/how-to-suppress-unused-parameter-warnings-in-c
 #ifdef __GNUC__
-#  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
 #else
-#  define UNUSED(x) UNUSED_ ## x
+#define UNUSED(x) UNUSED_ ## x
 #endif
 #ifdef __GNUC__
-#  define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
+#define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
 #else
-#  define UNUSED_FUNCTION(x) UNUSED_ ## x
+#define UNUSED_FUNCTION(x) UNUSED_ ## x
 #endif
 
 
@@ -94,19 +93,16 @@ typedef struct {
 	int copy_only;
 } GMRFLib_csr_tp;
 
-typedef struct
-{
+typedef struct {
 	double *x;
 	int free;
-}
-	GMRFLib_vec_tp;
+} GMRFLib_vec_tp;
 
 typedef enum {
-	INLA_B_STRATEGY_SKIP = 0, 
+	INLA_B_STRATEGY_SKIP = 0,
 	INLA_B_STRATEGY_KEEP = 1
-}
-	inla_b_strategy_tp;
-	
+} inla_b_strategy_tp;
+
 
 /* 
    here are the wrappers for calling functions which return the error-code if it fails
@@ -249,6 +245,14 @@ typedef enum {
 #define ISZERO(x) (gsl_fcmp(x, 0.0, DBL_EPSILON) == 0)
 #define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
 #define LEGAL(i, n) ((i) >= 0 && (i) < (n))
+#define SIGN(x) ((x) >= 0 ? 1.0 : -1.0)
+
+#define GMRFLib_Phi(_x) gsl_cdf_ugaussian_P(_x)
+#define GMRFLib_Phi_inv(_x) gsl_cdf_ugaussian_Pinv(_x)
+#define GMRFLib_erf(_x) (2.0 * GMRFLib_Phi((_x)*M_SQRT2) - 1.0)
+#define GMRFLib_erf_inv(_x) (M_SQRT1_2 * GMRFLib_Phi_inv(((_x) + 1.0)/2.0))
+#define GMRFLib_erfc(_x) (2.0 * GMRFLib_Phi(- (_x) * M_SQRT2))
+#define GMRFLib_erfc_inv(_x) (- GMRFLib_Phi_inv((_x) / 2.0) * M_SQRT1_2)
 
 #define GMRFLib_GLOBAL_NODE(n, gptr) ((int) IMIN((n-1)*(gptr ? (gptr)->factor :  GMRFLib_global_node.factor), \
 						 (gptr ? (gptr)->degree : GMRFLib_global_node.degree)))

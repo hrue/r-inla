@@ -1003,6 +1003,7 @@
         cat("constr.marginal.diagonal = ", inla.spec$constr.marginal.diagonal, "\n", sep = " ", file = file, append = TRUE)
     }
 
+    inla.write.boolean.field("improved.simplified.laplace", inla.spec$improved.simplified.laplace, file)
 
     cat("\n", sep = " ", file = file, append = TRUE)
 }

@@ -5042,7 +5042,7 @@
                             fixed = FALSE,
                             prior = "pc.sn",
                             param = 10,
-                            ## This value defined by LINK_SN_SKEWMAX in inla.h
+                            ## This value defined by GMRFLib_SN_SKEWMAX
                             to.theta = function(x, skew.max = 0.988) log((1 + x / skew.max) / (1 - x / skew.max)),
                             from.theta = function(x, skew.max = 0.988) skew.max * (2 * exp(x) / (1 + exp(x)) - 1)
                         ),
@@ -6221,7 +6221,7 @@
                             fixed = FALSE,
                             prior = "pc.sn",
                             param = 10,
-                            ## This value defined by LINK_SN_SKEWMAX in inla.h
+                            ## This value defined by GMRFLib_SN_SKEWMAX
                             to.theta = function(x, skew.max = 0.988) log((1 + x / skew.max) / (1 - x / skew.max)),
                             from.theta = function(x, skew.max = 0.988) skew.max * (2 * exp(x) / (1 + exp(x)) - 1)
                         )
@@ -6496,7 +6496,7 @@
                             fixed = FALSE,
                             prior = "pc.sn",
                             param = 10,
-                            ## This value defined by LINK_SN_SKEWMAX in inla.h
+                            ## This value defined by GMRFLib_SN_SKEWMAX
                             to.theta = function(x, skew.max = 0.988) log((1 + x / skew.max) / (1 - x / skew.max)),
                             from.theta = function(x, skew.max = 0.988) skew.max * (2 * exp(x) / (1 + exp(x)) - 1)
                         ), 

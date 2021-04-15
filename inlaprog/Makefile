@@ -76,7 +76,7 @@ CFLAGS  = $(FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DGITCOMMIT="\"${GITCOMMIT}\"
 
 
 INLA = inla
-OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/spde.o src/spde2.o src/spde3.o src/eval.o src/interpol.o src/re.o src/ar.o src/bessel.o src/pc-priors.o src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o src/xerbla.o src/libpardiso.o src/tweedie.o
+OBJ = src/inla.o src/dictionary.o  src/iniparser.o  src/strlib.o src/my-fix.o src/spde.o src/spde2.o src/spde3.o src/eval.o src/re.o src/ar.o src/bessel.o src/pc-priors.o src/R-interface.o src/fgn.o src/quantile-regression.o src/my.o src/stochvol.o src/xerbla.o src/libpardiso.o src/tweedie.o
 
 $(INLA) : $(OBJ)
 	$(LD) $(LDFLAGS) -o $@ $(OBJ) -L$(PREFIX)/lib  $(EXTLIBS)
@@ -91,9 +91,6 @@ install: $(INLA)
 	 install -m755 $(INLA) $(PREFIX)/bin/$(INLA)-$(VERSION);\
 	 rsync -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete doc/* $(PREFIX)/doc/inla; \
 	 rsync -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete examples/* $(PREFIX)/doc/inla/examples; 
-
-src/TAGS : $(wildcard src/*.c src/*.h)
-	etags --output=$@ $^
 
 clean:; -$(RM) $(OBJ) $(INLA)
 

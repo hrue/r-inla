@@ -79,12 +79,6 @@ __BEGIN_DECLS
 #define INLA_QKUMAR_PREC_SCALE 0.10
 
 /* 
- * The maximum skewness This constant also appears in the 'to.theta' and 'from.theta' functions in
- * inla.models()$link$sn$hyper$theta
- */
-#define LINK_SN_SKEWMAX (0.988)
-
-/* 
  *
  */
     typedef enum {

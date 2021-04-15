@@ -35,7 +35,6 @@ static const char GitID[] = GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-#include "interpol.h"
 #include "pc-priors.h"
 #include "inla.h"
 
@@ -141,7 +140,7 @@ double inla_pcp_dof_d(double dof)
 	}
 
 	if (dof < dof_lim) {
-		kld = inla_spline_eval(dof, spline);
+		kld = GMRFLib_spline_eval(dof, spline);
 	} else {
 		kld = inla_pcp_dof_kld_approx(dof);
 	}
@@ -178,19 +177,19 @@ double inla_pcp_dof_dof(double d)
 					xx[i] = dof;
 					yy[i] = inla_pcp_dof_d(dof);
 				}
-				spline = inla_spline_create(yy, xx, n);	// yes, we want the inverse
+				spline = GMRFLib_spline_create(yy, xx, n);	// yes, we want the inverse
 				Free(xx);
 				Free(yy);
 			}
 		}
 	}
 
-	return (inla_spline_eval(d, spline));
+	return (GMRFLib_spline_eval(d, spline));
 }
 
 double inla_pc_sn_d(double skew, double *deriv)
 {
-	double skew_max = LINK_SN_SKEWMAX, dist;
+	double skew_max = GMRFLib_SN_SKEWMAX, dist;
 
 	static GMRFLib_spline_tp *spline = NULL;
 #pragma omp threadprivate(spline)
@@ -205,9 +204,9 @@ double inla_pc_sn_d(double skew, double *deriv)
 	}
 
 	skew = DMIN(skew_max, ABS(skew));
-	dist = inla_spline_eval(skew, spline);
+	dist = GMRFLib_spline_eval(skew, spline);
 	if (deriv) {
-		*deriv = inla_spline_eval_deriv(skew, spline);
+		*deriv = GMRFLib_spline_eval_deriv(skew, spline);
 	}
 	return dist;
 }
@@ -233,17 +232,17 @@ double inla_pc_sn_core(int code, double arg)
 					skew[i] = (4.0 - M_PI) / 2.0 * gsl_pow_3(delta * sqrt(2.0 / M_PI)) /
 					    pow(1.0 - 2.0 * SQR(delta) / M_PI, 3.0 / 2.0);
 				}
-				spline_a2s = inla_spline_create(alpha, skew, n);
-				spline_s2a = inla_spline_create(skew, alpha, n);
+				spline_a2s = GMRFLib_spline_create(alpha, skew, n);
+				spline_s2a = GMRFLib_spline_create(skew, alpha, n);
 			}
 		}
 	}
 
 	double value, sign = INLA_SIGN(arg);
 	if (code < 0) {
-		value = sign * inla_spline_eval(ABS(arg), spline_a2s);
+		value = sign * GMRFLib_spline_eval(ABS(arg), spline_a2s);
 	} else {
-		value = sign * inla_spline_eval(ABS(arg), spline_s2a);
+		value = sign * GMRFLib_spline_eval(ABS(arg), spline_s2a);
 	}
 
 	return value;
@@ -20260,7 +20259,7 @@ GMRFLib_spline_tp *inla_pcp_dof_create_spline(void)
 		0.008915813738
 	};
 
-	GMRFLib_spline_tp *spline = inla_spline_create(xx, yy, sizeof(xx) / sizeof(double));
+	GMRFLib_spline_tp *spline = GMRFLib_spline_create(xx, yy, sizeof(xx) / sizeof(double));
 
 	return spline;
 }
@@ -21273,7 +21272,7 @@ GMRFLib_spline_tp *inla_pc_sn_create_spline(void)
 		0.5648361232,
 	};
 
-	GMRFLib_spline_tp *spline = inla_spline_create(skew, dist, sizeof(skew) / sizeof(double));
+	GMRFLib_spline_tp *spline = GMRFLib_spline_create(skew, dist, sizeof(skew) / sizeof(double));
 
 	return spline;
 }

@@ -564,9 +564,11 @@
             use.directions = TRUE,
 
             ## :ARGUMENT: constr.marginal.diagonal Add stability to \code{AQ^-1A^T} by adding a small diagonal term. (default \code{epsilon^0.5})
-            constr.marginal.diagonal = sqrt(.Machine$double.eps)
-        )
+            constr.marginal.diagonal = sqrt(.Machine$double.eps),
 
+            ## :ARGUMENT: improved.simplified.laplace If \code{TRUE} use an experimental improved variant, otherwise, use the standard one.
+            improved.simplified.laplace = FALSE
+        )
 
         ## :SEEALSO: inla
 

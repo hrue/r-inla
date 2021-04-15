@@ -39,7 +39,6 @@ static const char GitID[] = GITCOMMIT;
 #include "GMRFLib/density.h"
 
 #include "quantile-regression.h"
-#include "interpol.h"
 
 double inla_pcontpois(double y, double lambda)
 {
@@ -114,7 +113,7 @@ GMRFLib_spline_tp **inla_qcontpois_func(double alpha, int num)
 	}
 	spline = Calloc(num, GMRFLib_spline_tp *);
 	for (int i = 0; i < num; i++) {
-		spline[i] = inla_spline_create(lquantile, eta, n);
+		spline[i] = GMRFLib_spline_create(lquantile, eta, n);
 	}
 
 	Free(eta);
@@ -163,7 +162,7 @@ double inla_qgamma_cache(double shape, double quantile, int id)
 			cache[cache_len-1]->quantile = quantile;
 			cache[cache_len-1]->s = Calloc(id_max, GMRFLib_spline_tp *);
 			for(i = 0; i < id_max; i++){
-				cache[cache_len-1]->s[i] = inla_spline_create(x, y, nn);
+				cache[cache_len-1]->s[i] = GMRFLib_spline_create(x, y, nn);
 			}
 			Free(xy);
 		}
@@ -182,7 +181,7 @@ double inla_qgamma_cache(double shape, double quantile, int id)
 			}
 		}
 		if (found) {
-			return (exp(inla_spline_eval(log(shape), cache[i]->s[thread])));
+			return (exp(GMRFLib_spline_eval(log(shape), cache[i]->s[thread])));
 		} else {
 			inla_qgamma_cache(shape, quantile, -1); /* init a new one */
 			return (inla_qgamma_cache(shape, quantile, id));

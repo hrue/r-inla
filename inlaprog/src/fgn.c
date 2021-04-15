@@ -36,7 +36,6 @@ static const char GitID[] = GITCOMMIT;
 #include "GMRFLib/GMRFLibP.h"
 
 #include "fgn.h"
-#include "interpol.h"
 
 int inla_make_fgn_graph(GMRFLib_graph_tp ** graph, inla_fgn_arg_tp * def)
 {
@@ -292,20 +291,20 @@ double priorfunc_fgn_priorH(double *H_intern, double *param)
 	{
 		static GMRFLib_spline_tp *dist_spline = NULL;
 		if (!dist_spline) {
-			dist_spline = inla_spline_create(H_int, Dist, sizeof(H_int) / sizeof(double));
+			dist_spline = GMRFLib_spline_create(H_int, Dist, sizeof(H_int) / sizeof(double));
 		}
 
 		double U_intern, lambda;
 		U_intern = map_H(param[0], MAP_BACKWARD, NULL);
-		lambda = -log(param[1]) / inla_spline_eval(U_intern, dist_spline);
-		lprior = log(lambda) - lambda * inla_spline_eval(*H_intern, dist_spline) +
-		    log(fabs(inla_spline_eval_deriv(*H_intern, dist_spline)));
+		lambda = -log(param[1]) / GMRFLib_spline_eval(U_intern, dist_spline);
+		lprior = log(lambda) - lambda * GMRFLib_spline_eval(*H_intern, dist_spline) +
+		    log(fabs(GMRFLib_spline_eval_deriv(*H_intern, dist_spline)));
 
 		if (0) {
 			P(*H_intern);
 			P(lambda);
-			P(inla_spline_eval(*H_intern, dist_spline));
-			P(inla_spline_eval_deriv(*H_intern, dist_spline));
+			P(GMRFLib_spline_eval(*H_intern, dist_spline));
+			P(GMRFLib_spline_eval_deriv(*H_intern, dist_spline));
 			P(lprior);
 		}
 	}

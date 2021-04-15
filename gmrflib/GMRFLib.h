@@ -108,6 +108,8 @@ __BEGIN_DECLS
 #include "GMRFLib/sparse-interface.h"
 #include "GMRFLib/problem-setup.h"
 #include "GMRFLib/openmp.h"
+#include "GMRFLib/fmesher-io.h"
+#include "GMRFLib/interpol.h"
 #include "GMRFLib/density.h"
 #include "GMRFLib/globals.h"
 #include "GMRFLib/error-handler.h"
@@ -135,7 +137,6 @@ __BEGIN_DECLS
 #include "GMRFLib/version.h"
 #include "GMRFLib/hgmrfm.h"
 #include "GMRFLib/matern.h"
-#include "GMRFLib/fmesher-io.h"
 
     __END_DECLS
 #endif

@@ -164,13 +164,6 @@ typedef struct {
 */
 #define GMRFLib_SN_WEIGHT_SCALING (0.5)
 
-typedef struct {
-	double xmin;
-	double xmax;
-	gsl_interp_accel *accel;
-	gsl_spline *spline;
-} GMRFLib_spline_tp;
-
 /**
  * \brief The density-object
  */
@@ -302,6 +295,9 @@ double GMRFLib_log_gsl_cdf_ugaussian_P(double z);
 double GMRFLib_sn_logdensity_diff_alpha(double x, void *param);
 double GMRFLib_sn_logdensity_diff_omega(double x, void *param);
 double GMRFLib_sn_logdensity_diff_xi(double x, void *param);
+double GMRFLib_sn_Pinv(double u, double a);
+double GMRFLib_sn_mode(double skew);
+double GMRFLib_sn_d3_to_skew(double d3);
 int GMRFLib_density_P(double *px, double x, GMRFLib_density_tp * density);
 int GMRFLib_density_Pinv(double *xp, double p, GMRFLib_density_tp * density);
 int GMRFLib_density_adjust_vector(double *ldens, int n);
@@ -342,7 +338,8 @@ int GMRFLib_sn_fit_df(const gsl_vector * param, void *data, gsl_matrix * J);
 int GMRFLib_sn_fit_f(const gsl_vector * param, void *data, gsl_vector * f);
 int GMRFLib_sn_fit_fdf(const gsl_vector * param, void *data, gsl_vector * f, gsl_matrix * J);
 int GMRFLib_sn_logdensity(double *ldens, double x, void *param);
-int GMRFLib_sn_moments(double *mean, double *stdev, double *skewness, GMRFLib_sn_param_tp * p);
+int GMRFLib_sn_par2moments(double *mean, double *stdev, double *skewness, GMRFLib_sn_param_tp * p);
+int GMRFLib_sn_moments2par(GMRFLib_sn_param_tp * p, double *mean, double *stdev, double *skew);
 void GMRFLib_density_Pinv_fdf(double x, void *param, double *f, double *df);
 
 __END_DECLS
