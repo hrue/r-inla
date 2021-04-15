@@ -39,6 +39,8 @@
 
      mkl: Use binaries buildt with Intel MKL?  (If possible)
 
+     vecLib: This option applies to Mac only. If TRUE and mkl=FALSE, link with vecLib BLAS and LAPACK libs (if available)
+
      pardiso.license: The full path to the PARDISO license file
 
      keep: Keep temporary files?
