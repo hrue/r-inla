@@ -35446,7 +35446,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "bvVe:t:B:m:S:z:hsfir:R:cp")) != -1) {
+	while ((opt = getopt(argc, argv, "bvVe:t:B:m:S:z:hsfir:R:cpL")) != -1) {
 		switch (opt) {
 		case 'b':
 			G.binary = 1;
@@ -35674,8 +35674,14 @@ int main(int argc, char **argv)
 			}
 #endif
 		}
-			break;
+		        break;
 
+		case 'L':
+		{
+			// link with vecLib on Mac. this is just dummy option
+		}
+		        break;
+		
 		default:
 			_USAGE;
 			exit(EXIT_FAILURE);

@@ -33,8 +33,8 @@ fi
 
 ## this is the system path for libPng.dylib needed by grDevices.so
 ## when loadlib libR.dylib using rgeneric.
-pathA="/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources"
-pathB="/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries"
+pathA="/System/Library/Frameworks/ImageIO.framework/Versions/Current/Resources"
+pathB="/System/Library/Frameworks/OpenGL.framework/Versions/Current/Libraries"
 LIBPNGPATH=$pathA:$pathB
 
 for f in $DIR/first/lib*.dylib*; do
@@ -46,7 +46,30 @@ for f in $DIR/first/lib*.dylib*; do
     esac
 done
 
-export DYLD_LIBRARY_PATH="$DIR/first:$RHOME_LIB:$DIR:$LIBPNGPATH:/usr/lib:/usr/local/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
+## this option may only be set, if mkl=FALSE
+vecLibPath=""
+for arg in "$@"; do 
+    case "$arg" in
+	-L) ## this option is also allowed in the inla-program, but do nothing	    
+	    vecLibPath="/System/Library/Frameworks/vecLib.framework/Versions/Current"
+	    if [ -f "$vecLibPath/libBLAS.dylib" -a -f "$vecLibPath/libLAPACK.dylib" ]; then
+		## all ok
+		if [ "${INLA_DEBUG}XX" != "XX" ]; then
+		    echo "Load vecLib BLAS and LAPACK from [$vecLibPat]"
+		fi
+	    else
+		## vecLib libraries are not installed, revert back
+		if [ "${INLA_DEBUG}XX" != "XX" ]; then
+		    echo "vecLib BLAS and LAPACK is not installed in [$vecLibPat]"
+		    echo "revert back to Rblas and Rlapack"
+		fi
+		veclibPath=""
+	    fi
+	    ;;
+    esac
+done
+
+export DYLD_LIBRARY_PATH="$DIR/first:$vecLibPath:$RHOME_LIB:$DIR:$LIBPNGPATH:/usr/lib:/usr/local/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
     echo "DYLD_INSERT_LIBRARIES=$DYLD_INSERT_LIBRARIES"
     echo "DYLD_FORCE_FLAT_NAMESPACE=$DYLD_FORCE_FLAT_NAMESPACE"

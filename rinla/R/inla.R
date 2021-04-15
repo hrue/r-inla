@@ -2108,8 +2108,14 @@
         arg.b <- ""
     }
 
+    if (inla.os("mac") && inla.getOption("vecLib") && !inla.getOption("mkl")) {
+        arg.vecLib <- "-L"
+    } else {
+        arg.vecLib <- ""
+    }
+
     ## collect all. we might add '-p' later if inla.call="submit"
-    all.args <- paste(arg.arg, arg.b, arg.s, arg.v, arg.nt, sep = " ")
+    all.args <- paste(arg.arg, arg.b, arg.s, arg.v, arg.nt, arg.vecLib, sep = " ")
 
     ## define some environment variables for remote computing
     vars <- list(
