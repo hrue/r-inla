@@ -17,10 +17,10 @@ done
 ## make man-pages, compile doc-pdf's and run roxygen
 make -C $D/../.. -B
 
+## sync with 'L' and then fix those dirs we need to fix afterwards
 rsync -auvL --delete --exclude '/*~' --exclude TAGS $D/.. INLA/. 
-if [ -d $D/../inst/bin/linux/64bit/first ]; then
-    rsync -auv $D/../inst/bin/linux/64bit/first/. $DD/../inst/bin/linux/64bit/first/.
-fi
+rsync -auv $D/../inst/bin/linux/64bit/first/. $DD/../inst/bin/linux/64bit/first/.
+rsync -auv $D/../inst/bin/mac/64bit/vecLib/. $DD/../inst/bin/mac/64bit/vecLib/.
 ./updateBin
 
 tt=.tt

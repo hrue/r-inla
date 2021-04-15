@@ -375,11 +375,9 @@
         }
         skew.tjoint[lc] <- skew.m
     }
-    sn.par <- inla.sn.reparam(moments = list(
-                                  mean = as.numeric(mu.tjoint),
-                                  variance = diag(S.tjoint),
-                                  skewness = skew.tjoint
-                              ))
+    sn.par <- inla.sn.reparam(moments = list(mean = as.numeric(mu.tjoint),
+                                          variance = diag(S.tjoint),
+                                          skewness = skew.tjoint))
     output <- list()
     output$names <- names.sel
     output$mean <- mu.tjoint

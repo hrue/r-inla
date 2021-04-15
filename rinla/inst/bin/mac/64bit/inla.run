@@ -55,13 +55,13 @@ for arg in "$@"; do
 	    if [ -f "$vecLibPath/libBLAS.dylib" -a -f "$vecLibPath/libLAPACK.dylib" ]; then
 		## all ok
 		if [ "${INLA_DEBUG}XX" != "XX" ]; then
-		    echo "Load vecLib BLAS and LAPACK from [$vecLibPat]"
+		    echo "Load vecLib BLAS and LAPACK from [$vecLibPath]"
 		fi
 	    else
 		## vecLib libraries are not installed, revert back
 		if [ "${INLA_DEBUG}XX" != "XX" ]; then
-		    echo "vecLib BLAS and LAPACK is not installed in [$vecLibPat]"
-		    echo "revert back to Rblas and Rlapack"
+		    echo "vecLib BLAS and LAPACK is not installed in [$vecLibPath]"
+		    echo "revert back to libRblas and libRlapack"
 		fi
 		veclibPath=""
 	    fi
@@ -69,7 +69,7 @@ for arg in "$@"; do
     esac
 done
 
-export DYLD_LIBRARY_PATH="$DIR/first:$vecLibPath:$RHOME_LIB:$DIR:$LIBPNGPATH:/usr/lib:/usr/local/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
+export DYLD_LIBRARY_PATH="$DIR/first:$DIR/vecLib:$RHOME_LIB:$DIR:$LIBPNGPATH:/usr/lib:/usr/local/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
     echo "DYLD_INSERT_LIBRARIES=$DYLD_INSERT_LIBRARIES"
     echo "DYLD_FORCE_FLAT_NAMESPACE=$DYLD_FORCE_FLAT_NAMESPACE"

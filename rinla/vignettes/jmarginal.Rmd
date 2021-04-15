@@ -11,6 +11,7 @@ bibliography: jmarginal.bib
 ---
 
 ```{r setup, include=FALSE}
+set.seed(1234)
 library(INLA)
 inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
