@@ -4,6 +4,22 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.04.15}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Mac only: Link with \code{vecLib} BLAS and LAPACK libraries
+            by default. Turn off with \code{inla.setOption(vecLib=FALSE)}.
+      \item Adding an experimental improvement
+            for \code{strategy=simplified.laplace} (not enabled by default)
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Some code improvement 
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.03.31}{
   \subsection{BUG FIXES}{
     \itemize{
