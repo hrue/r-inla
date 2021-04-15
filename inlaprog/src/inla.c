@@ -20777,6 +20777,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\trgeneric.model  [%s]\n", rgeneric_model);
 		}
 
+		int n_out, nn_out, nn;
+		double *x_out = NULL, *xx_out = NULL;
+
 		/*
 		 * we need to know ntheta, therefore we need to initialise and load files etc, here...
 		 */
@@ -20784,16 +20787,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		{
 			inla_R_library("INLA");
 			inla_R_load(rgeneric_filename);
-		}
-
-		int n_out, nn_out, nn;
-		double *x_out = NULL, *xx_out = NULL;
-
-#pragma omp critical
-		{
 			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_INITIAL, rgeneric_model, 0, NULL);
 			inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_GRAPH, rgeneric_model, 0, NULL);	/* need graph->n */
 		}
+
 		nn = (int) xx_out[0];
 		if (mb->f_n[mb->nf] != nn) {
 			int err = 0;
