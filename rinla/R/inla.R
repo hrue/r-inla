@@ -2126,7 +2126,8 @@
             R.Version()$major, ".",
             strsplit(R.Version()$minor, "[.]")[[1]][1]
         ),
-        INLA_RHOME = Sys.getenv("R_HOME")
+        INLA_RHOME = Sys.getenv("R_HOME"),
+        INLA_VECLIB_PATH = inla.getOption("vecLibPath")
     )
     do.call("Sys.setenv", vars)
     inla.set.sparselib.env(inla.dir, blas.num.threads = blas.num.threads)
