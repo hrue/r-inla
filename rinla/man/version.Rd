@@ -32,5 +32,5 @@ inla.version(what = c("default", "version", "date"))
 ## Summary of all
 inla.version()
 ## The building date
-inla.version("bdate")
+inla.version("date")
 }

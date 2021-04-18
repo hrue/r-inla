@@ -30,19 +30,21 @@
 ## !## Summary of all
 ## !inla.version()
 ## !## The building date
-## !inla.version("bdate")
+## !inla.version("date")
 ## !}
 
 `inla.version` <- function(what = c("default", "version", "date")) {
 
     `trim` <- function(string) {
+        string <- gsub("^[^:]*:", "", string)
         string <- gsub("^[ \t]+", "", string)
         string <- gsub("[ \t]+$", "", string)
         return(string)
     }
 
-    date <- trim("Thu 30 Jun 08:30:28 CEST 2016")
-    version <- trim("12.34.56")
+    desc <- readLines(system.file("DESCRIPTION", package="INLA"))
+    version <- trim(desc[grep("^Version:", desc)])
+    date <- trim(desc[grep("^Date:", desc)])
     what <- match.arg(what)
 
     if (what %in% "default") {
@@ -50,12 +52,12 @@
         cat(paste("\tDate ....................: ", date, "\n", sep = ""))
         cat("\tMaintainers .............: Havard Rue <hrue@r-inla.org>\n")
         cat("\t                         : Finn Lindgren <finn.lindgren@gmail.com>\n")
-        cat("\t                         : Elias Teixeira Krainski <elias.krainski@gmail.com>\n")
+        cat("\t                         : Elias Teixeira Krainski <elias@r-inla.org>\n")
         cat("\tMain web-page ...........: www.r-inla.org\n")
         cat("\tDownload-page ...........: inla.r-inla-download.org\n")
+        cat("\tRepository ..............: github.com/hrue/r-inla\n")
         cat("\tEmail support ...........: help@r-inla.org\n")
         cat("\t                         : r-inla-discussion-group@googlegroups.com\n")
-        cat("\tSource-code .............: github.com/hrue/r-inla\n")
         return(invisible())
     } else if (what %in% "date") {
         return(date)
