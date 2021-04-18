@@ -983,7 +983,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					}
 					tmp_vector = NULL;
 					GMRFLib_EWRAP1(GMRFLib_comp_chol_general
-						       (&tmp_vector, aat_m, nc, &((*problem)->logdet_aat), GMRFLib_ESINGCONSTR));
+						       (&tmp_vector, aat_m, nc, &((*problem)->logdet_aat), GMRFLib_ESINGCONSTR2));
 					Free(aat_m);
 					Free(tmp_vector);
 

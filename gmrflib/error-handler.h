@@ -76,7 +76,7 @@ __BEGIN_DECLS
 #define  GMRFLib_EOPTCGLINE  (14)			       /* The Conjugate-Gradient line-optimizer did not converge */
 #define  GMRFLib_EMAPKIT     (15)			       /* Error occured in the mapkit-library (hash) */
 #define  GMRFLib_ESMTP       (16)			       /* Sparse-matrix type (or function) not implemented */
-#define  GMRFLib_ESINGCONSTR (17)			       /* Constraints (A) or its covariance matrix is singular */
+#define  GMRFLib_ESINGCONSTR (17)			       /* Covariance matrix for Ax is singular */
 #define  GMRFLib_ESN         (18)			       /* Fitting of the Skew-Normal distribution fail to converge */
 #define  GMRFLib_EGEOCOOF    (19)			       /* Geo-coefficients are not available */
 #define  GMRFLib_EGSL        (20)			       /* Error occured in the GSL-Library */
@@ -88,6 +88,7 @@ __BEGIN_DECLS
 #define  GMRFLib_EPARDISO_LICENSE_ERR_USERNAME  (26)	       /*  */
 #define  GMRFLib_EPARDISO_INTERNAL_ERROR  (27)		       /*  */
 #define  GMRFLib_EPARDISO_NO_LIBRARY  (28)		       /*  */
+#define  GMRFLib_ESINGCONSTR2 (29)			       /* Singular constraints: Matrix AA' is singular (input error) */
 
 
 /**

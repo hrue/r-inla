@@ -93,7 +93,7 @@ static GMRFLib_error_handler_tp *handler = NULL;
   14 :   The line-optimizer in the Conjugate-Gradient optimizer did not converge \n
   15 :   Error occured in the mapkit-library (hash)\n
   16 :   Sparse-matrix-type not implemented yet\n
-  17 :   Constraints or its covariance matrix is singular\n
+  17 :   Covariance matrix for Ax is singular\n
   18 :   Fitting of the Skew-Normal distribution fail to converge\n
   19 :   Geo-coefficients are not available\n
   20 :   Error occured in the GSL-Library\n
@@ -105,7 +105,8 @@ static GMRFLib_error_handler_tp *handler = NULL;
   26 :   PARDISO License file: wrong username\
   27 :   PARDISO: Internal error\
   28 :   PARDISO: Library not loaded or available\
-  29 :   (this is an unknown error code) \n
+  29 :   Singular constraints: Matrix AA' is singular (input error)\
+  30 :   (this is an unknown error code) \n
 
   \remarks This function is used within the library generating the \a reason argument 
   in the default error handling function \c GMRFLib_error_handler().
@@ -116,7 +117,7 @@ const char *GMRFLib_error_reason(int errorno)
 	/*
 	 * return a pointer to the reason for error=errorno 
 	 */
-#define NMSG 30
+#define NMSG 31
 	static const char *reasons[NMSG] = {
 		"No error, please ignore",
 		"Alloc failed",
@@ -135,7 +136,7 @@ const char *GMRFLib_error_reason(int errorno)
 		"The line-optimizer in the Conjugate-Gradient optimizer did not converge",
 		"Error occured in the mapkit-library (hash)",
 		"Sparse-matrix-type (or function) not implemented yet",
-		"Constraints or its covariance matrix is singular",
+		"Covariance matrix for Ax is singular", 
 		"Fitting of the Skew-Normal distribution fail to converge",
 		"Geo-coefficients are not available",
 		"Error occured in the GSL-Library",
@@ -147,6 +148,7 @@ const char *GMRFLib_error_reason(int errorno)
 		"License file for PARDISO: Wrong username",
 		"PARDISO: Internal error",
 		"PARDISO: Library not available",
+		"Singular constraints: Matrix AA' is singular (input error)", 
 		"(((this is an unknown errorcode)))"
 	};
 	if (errorno < 0 || errorno >= NMSG - 1)
