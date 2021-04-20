@@ -34,17 +34,21 @@
 }
 
 `inla.upgrade` <- function(lib = NULL, testing = FALSE, ask = TRUE) {
-    repo <- c(
-        CRAN = "https://cran.rstudio.com",
-        INLA = paste("https://inla.r-inla-download.org/R/",
-            (if (testing) "testing" else "stable"),
-            sep = ""
-        )
-    )
-    if (require("INLA",
-        quietly = TRUE, lib.loc = lib,
-        character.only = TRUE, warn.conflicts = FALSE
-    )) {
+
+    repo <- c(CRAN = "https://cran.rstudio.com",
+              INLA = paste0("https://inla.r-inla-download.org/R/",
+                            if (testing) "testing" else "stable"))
+
+    ## default timeout (60 is sometimes to low
+    min.timeout <- 300
+    opt <- options()
+    if (is.null(opt$timeout) || opt$timeout < min.timeout) {
+        options(timeout = min.timeout)
+    } else {
+        min.timeout <- 0
+    }
+
+    if (require("INLA", quietly = TRUE, lib.loc = lib, character.only = TRUE, warn.conflicts = FALSE)) {
         suppressWarnings(new.pack <- any(old.packages(repos = repo)[, 1] == "INLA"))
         if (new.pack) {
             if (.Platform$OS.type == "windows") {
@@ -54,13 +58,9 @@
                     "\n ***     https://cran.r-project.org/bin/windows/base/rw-FAQ.html",
                     "\n *** Section 4.8,  so you cannot update a package that is in use.",
                     "\n *** We recommend to remove the INLA-package and then reinstall, like",
-                    "\n     remove.packages(\"INLA\")"
+                    "\n         remove.packages(\"INLA\")"
                 )
-                if (testing) {
-                    cat("\n     install.packages(\"INLA\", repos=\"https://inla.r-inla-download.org/R/testing\")")
-                } else {
-                    cat("\n     install.packages(\"INLA\", repos=\"https://inla.r-inla-download.org/R/stable\")")
-                }
+                cat(paste0("\n         install.packages(\"INLA\", repos=\"", repo["INLA"], "\")"))
                 cat("\n *** and then restart R.", "\n")
             } else {
                 suppressWarnings(update.packages(repos = repo, oldPkgs = "INLA", ask = ask))
@@ -70,11 +70,12 @@
             cat("\n *** You already have the latest version.\n\n")
         }
     } else {
-        install.packages(
-            pkgs = "INLA", lib = lib, repos = repo,
-            dependencies = TRUE
-        )
+        install.packages(pkgs = "INLA", lib = lib, repos = repo, dependencies = TRUE)
         library("INLA")
+    }
+
+    if (min.timeout) {
+        options(opt)
     }
 
     return(invisible())
