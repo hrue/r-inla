@@ -4,6 +4,22 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.04.21}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Mac only: Added optional path to \code{vecLib}
+      BLAS and LAPACK libraries.
+      \item Adding argument \code{.special} to \code{inla.surv}-object.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Some code improvement 
+    }
+  }
+}
+
+
 \section{CHANGES IN VERSION 21.04.16}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
