@@ -5,7 +5,7 @@ Authors@R: c(
     person("Havard", "Rue", email = "hrue@r-inla.org", role = c("cre", "aut")),
     person("Finn", "Lindgren", email = "finn.lindgren@gmail.com", role = c("cre", "aut")),
     person("Elias", "Teixeira Krainski", email = "elias@r-inla.org", role = "aut"), 
-    person("Sara", "Martino", email = "saramartino0@gmail.com", role = ("cre", "aut")),
+    person("Sara", "Martino", email = "saramartino0@gmail.com", role = c("cre", "aut")),
     person("Haakon", "Bakka", email = "bakka@r-inla.org", role = "ctb"),
     person("Daniel", "Simpson", email = "dp.simpson@gmail.com", role = "ctb"),
     person("Andrea", "Riebler", email = "andrea.riebler@math.ntnu.no", role = "ctb"),
