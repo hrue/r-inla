@@ -76,7 +76,8 @@
 ## !        E = df.joint$E..coxph)
 ## !}
 
-`inla.coxph` <- function(formula, data, control.hazard = list(), debug = FALSE, tag = "") {
+`inla.coxph` <- function(formula, data, control.hazard = list(), debug = FALSE, tag = "") 
+{
     ## convert a coxph-model into poisson-regression and return a new
     ## data-list with the expand variables and new variables to use in
     ## the poisson regression
@@ -101,10 +102,14 @@
         try.res <- try(inla.eval(inla.paste(c("y.surv = with(data,", name.y, ")"))), silent = TRUE)
         if (inherits(try.res, "try-error")) {
             stop(inla.paste(c("The reponse '", name.y, "' is not in 'data' and trying to expand it, failed."),
-                sep = ""
-            ))
+                            sep = ""
+                            ))
         }
     }
+
+    ## this one is not used in this function
+    y.surv$.special <- NULL
+
     len.y.surv <- max(sapply(y.surv, length))
     data.f <- inla.fix.data(data, len.y.surv, revert = FALSE)
     data.l <- inla.fix.data(data, len.y.surv, revert = TRUE)
@@ -115,9 +120,9 @@
 
     if (class(y.surv) != "inla.surv") {
         stop(paste("For survival models, then the reponse has to be of class `inla.surv'; you have `",
-            class(y.surv), "'",
-            sep = ""
-        ))
+                   class(y.surv), "'",
+                   sep = ""
+                   ))
     }
     control.hazard <- inla.check.control(control.hazard, data.f)
     cont.hazard <- inla.set.control.hazard.default()
@@ -172,15 +177,13 @@
 
     ## we have to check if we have rw1/2,  or the iid
     if (inla.one.of(cont.hazard$model, c("rw1", "rw2"))) {
-        d <- inla.ifelse(
-            (is.null(cont.hazard$diagonal) && cont.hazard$constr),
-            inla.set.f.default()$diagonal, cont.hazard$diagonal
-        )
+        d <- inla.ifelse((is.null(cont.hazard$diagonal) && cont.hazard$constr),
+                         inla.set.f.default()$diagonal, cont.hazard$diagonal)
         sc <- paste0(", scale.model = ", inla.ifelse(
-            is.null(cont.hazard$scale.model),
-            inla.getOption("scale.model.default"),
-            cont.hazard$scale.model
-        ))
+                                             is.null(cont.hazard$scale.model),
+                                             inla.getOption("scale.model.default"),
+                                             cont.hazard$scale.model
+                                         ))
     } else {
         sc <- ""
         d <- if (is.null(cont.hazard$diagonal)) 0.0 else cont.hazard$diagonal
@@ -256,7 +259,8 @@
     ))
 }
 
-`inla.rbind.data.frames` <- function(...) {
+`inla.rbind.data.frames` <- function(...)
+{
     ## rbind data.frames padding with NA
 
     if (inla.require("dplyr")) {

@@ -17,7 +17,7 @@
 ## !model  formula for the \code{\link{inla}} function for survival models.
 ## !}
 ## !\usage{
-## !inla.surv(time, event, time2, truncation, subject=NULL)
+## !inla.surv(time, event, time2, truncation, subject = NULL, .special = NULL)
 ## !\method{plot}{inla.surv}(x, y, ...)
 ## !\method{print}{inla.surv}(x, ...)
 ## !is.inla.surv(object)
@@ -35,6 +35,7 @@
 ## !  \item{time2}{Ending time for the interval censored data or an in-interval event.}
 ## !  \item{truncation}{Left truncation. If missing it is assumed to be 0. The lower limit for event=4.}
 ## !  \item{subject}{Patient number in multiple event data, not needed otherwise. }
+## !  \item{.special}{An internal object, not for public use}
 ## !  \item{object}{Any \code{R}-object}
 ## !  \item{x}{Object to plot or print}
 ## !  \item{y}{Object to plot (not in use)}
@@ -51,7 +52,7 @@
 ## !}
 ## !
 ## !\author{
-## !Sara Martino and Rupali Akerkar
+## !Sara Martino, Rupali Akerkar and Haavard Rue
 ## !}
 ## !
 ## !\seealso{
@@ -84,23 +85,25 @@
 ## !
 ## !\keyword{Survival models}
 
-`inla.surv` <- function(time, event, time2, truncation, subject = NULL) {
+`inla.surv` <- function(time, event, time2, truncation, subject = NULL, .special = NULL) 
+{
     ret <- NULL
     if (is.null(subject)) {
-        ret <- inla.surv.1(time, event, time2, truncation)
+        ret <- inla.surv.1(time, event, time2, truncation, .special = .special)
     } else {
         if (!missing(time2)) {
-              stop("Argument 'time2' is not allowed when 'subject' is used")
-          }
+            stop("Argument 'time2' is not allowed when 'subject' is used")
+        }
         if (!missing(truncation)) {
-              stop("Argument 'truncation' is not allowed when 'subject' is used")
-          }
-        ret <- inla.surv.2(time, event, subject)
+            stop("Argument 'truncation' is not allowed when 'subject' is used")
+        }
+        ret <- inla.surv.2(time, event, subject, .special = .special)
     }
     return(ret)
 }
 
-`plot.inla.surv` <- function(x, y, ...) {
+`plot.inla.surv` <- function(x, y, ...)
+{
     ## argument y is not used
     if (is.null(x$subject)) {
         inla.plot.inla.surv.1(x, ...)
@@ -109,7 +112,8 @@
     }
 }
 
-`print.inla.surv` <- function(x, ...) {
+`print.inla.surv` <- function(x, ...)
+{
     if (is.null(x$subject)) {
         inla.print.inla.surv.1(x, ...)
     } else {
@@ -117,7 +121,8 @@
     }
 }
 
-`as.inla.surv` <- function(object, ...) {
+`as.inla.surv` <- function(object, ...)
+{
     ## the '...' are not used.
     if (is.null(object$subject)) {
         inla.as.inla.surv.1(object)
@@ -126,14 +131,15 @@
     }
 }
 
-`inla.surv.1` <- function(time, event, time2, truncation) {
+`inla.surv.1` <- function(time, event, time2, truncation, .special = NULL)
+{
     ## check that time is present
     if (missing(time)) {
-          stop("Must have a 'time' argument")
-      }
+        stop("Must have a 'time' argument")
+    }
     if (!is.numeric(time)) {
-          stop("'Time' variable is not numeric")
-      }
+        stop("'Time' variable is not numeric")
+    }
     nn <- length(time)
     if (any(is.na(time))) {
         ## fixup the rest of the argument if some of 'time' is NA; in
@@ -141,32 +147,32 @@
         ## routine still goes through
         idx <- is.na(time)
         if (!missing(event)) {
-              event[idx] <- 1
-          }
+            event[idx] <- 1
+        }
         if (!missing(time2)) {
-              time2[idx] <- 0
-          }
+            time2[idx] <- 0
+        }
         if (!missing(truncation)) {
-              truncation[idx] <- 0
-          }
+            truncation[idx] <- 0
+        }
     }
 
     ## check that no time varible is negative
     if (any(time[!is.na(time)] < 0)) {
-          stop("Negative times are not allowed")
-      }
+        stop("Negative times are not allowed")
+    }
     if (!missing(time2)) {
         if (any(time2[!is.na(time2)] < 0)) {
-              stop("Negative times2 are not allowed")
-          }
+            stop("Negative times2 are not allowed")
+        }
     }
     if (!missing(truncation)) {
         if (any(is.na(truncation))) {
-              stop("Non valid values for 'truncation")
-          }
+            stop("Non valid values for 'truncation")
+        }
         if (any(truncation < 0)) {
-              stop("Negative truncation times are not allowed")
-          }
+            stop("Negative truncation times are not allowed")
+        }
     }
     ## if event is totally missing assume that all data are failures
     if (missing(event)) {
@@ -181,30 +187,30 @@
 
     ## check that event is 0, 1, 2, 3, 4
     if (!all(is.element(event, 0:4))) {
-          stop("Invalid value for event")
-      }
+        stop("Invalid value for event")
+    }
 
     ## check that for event=3 or 4, time2 is present
     interval <- (event == 3 | event == 4)
     if (sum(interval) > 0 && missing(time2)) {
-          stop("'time2' has to be present for interval censored data or in-interval events")
-      }
+        stop("'time2' has to be present for interval censored data or in-interval events")
+    }
     ## and warn that time2 is ignored for even!=3
     if (sum(interval) == 0 && !missing(time2)) {
-          warning("'time2' is ignored for data that are not interval censored")
-      }
+        warning("'time2' is ignored for data that are not interval censored")
+    }
     if (missing(time2)) {
-          time2 <- rep(0, nn)
-      }
+        time2 <- rep(0, nn)
+    }
 
     ## if truncation is missing set it to 0
     if (missing(truncation)) {
-          truncation <- rep(0, nn)
-      }
+        truncation <- rep(0, nn)
+    }
     ## check that it has the correct length
     if (length(truncation) != nn) {
-          stop("'truncation' is of the wrong dimension")
-      }
+        stop("'truncation' is of the wrong dimension")
+    }
 
     surv.time <- numeric(nn)
     surv.upper <- numeric(nn)
@@ -227,7 +233,7 @@
     truncation[ininterval] <- 0
     ss <- list(
         time = surv.time, lower = surv.lower, upper = surv.upper,
-        event = event, truncation = truncation
+        event = event, truncation = truncation, .special = .special
     )
     class(ss) <- "inla.surv"
 
@@ -292,11 +298,13 @@
     }
 }
 
-`inla.print.inla.surv.1` <- function(object, quote = FALSE, ...) {
+`inla.print.inla.surv.1` <- function(object, quote = FALSE, ...) 
+{
     invisible(print(inla.as.character.inla.surv.1(object), quote = quote, ...))
 }
 
-`inla.as.character.inla.surv.1` <- function(x, ...) {
+`inla.as.character.inla.surv.1` <- function(x, ...)
+{
     class(x) <- NULL
     nn <- length(x$event)
 
@@ -315,33 +323,36 @@
     return(out)
 }
 
-`is.inla.surv` <- function(object) inherits(object, "inla.surv")
+`is.inla.surv` <- function(object) {
+    return (inherits(object, "inla.surv"))
+}
 
-`inla.as.inla.surv.1` <- function(object) {
+`inla.as.inla.surv.1` <- function(object) 
+{
     if (is.list(object)) {
         for (nm in names(object)) {
-              if (!is.element(nm, c("event", "time", "lower", "upper", "truncation"))) {
-                    stop(paste("Wrong name:", nm))
-                }
-          }
+            if (!is.element(nm, c("event", "time", "lower", "upper", "truncation", ".special"))) {
+                stop(paste("Wrong name:", nm))
+            }
+        }
         class(object) <- "inla.surv"
         return(object)
     }
     if (is.data.frame(object)) {
-          return(inla.as.inla.surv.1(as.list(object)))
-      }
-
+        return(inla.as.inla.surv.1(as.list(object)))
+    }
     stop("Argument must be a list or a data.frame")
 }
 
-`inla.surv.2` <- function(time, event, subject) {
+`inla.surv.2` <- function(time, event, subject, .special = NULL) 
+{
     ## check that time is present
     if (missing(time)) {
-          stop("Must have a 'time' argument")
-      }
+        stop("Must have a 'time' argument")
+    }
     if (!is.numeric(time)) {
-          stop("'Time' variable is not numeric")
-      }
+        stop("'Time' variable is not numeric")
+    }
     nn <- length(time)
 
     if (any(is.na(time))) {
@@ -350,14 +361,14 @@
         ## routine still goes through
         idx <- is.na(time)
         if (!missing(event)) {
-              event[idx] <- 0
-          }
+            event[idx] <- 0
+        }
     }
 
     ## check that no time varible is negative
     if (any(time[!is.na(time)] < 0)) {
-          stop("Negative times are not allowed")
-      }
+        stop("Negative times are not allowed")
+    }
 
     ## here event is multiple events if event is totally missing
     ## assume that no tumor/event is found
@@ -374,12 +385,12 @@
 
     ## check that event is 0, 1
     if (!all(is.element(event, 0:1))) {
-          stop("Invalid value for event")
-      }
+        stop("Invalid value for event")
+    }
 
     if (missing(subject)) {
-          stop("'subject' is missing")
-      }
+        stop("'subject' is missing")
+    }
 
     surv.time <- numeric(nn)
     detect <- (event == 1)
@@ -389,15 +400,15 @@
     surv.time[detect] <- time[detect]
     surv.time[notdetect] <- time[notdetect]
 
-    ss <- list(time = surv.time, event = event, subject = subject)
+    ss <- list(time = surv.time, event = event, subject = subject, .special = .special)
     class(ss) <- "inla.surv"
 
     return(ss)
 }
 
-
 ## plotting the time according to event detect or not detect
-`inla.plot.inla.surv.2` <- function(object, legend = TRUE, ...) {
+`inla.plot.inla.surv.2` <- function(object, legend = TRUE, ...) 
+{
     time <- object$time
     event <- object$event
     subject <- object$subject
@@ -415,14 +426,14 @@
     for (i in 1:nn) {
         lines(time[subject == i], rep(i, length(time[subject == i])), type = "l")
         points(time[subject == i & event == 1],
-            rep(i, length(time[subject == i & event == 1])),
-            pch = 8, col = "red"
-        )
+               rep(i, length(time[subject == i & event == 1])),
+               pch = 8, col = "red"
+               )
         points(time[subject == i & event == 0],
-            rep(i, length(time[subject == i & event == 0])),
-            pch = 10,
-            col = "green"
-        )
+               rep(i, length(time[subject == i & event == 0])),
+               pch = 10,
+               col = "green"
+               )
     }
 
     if (legend) {
@@ -442,7 +453,8 @@
     invisible(print(inla.as.character.inla.surv.2(object), quote = quote, ...))
 }
 
-`inla.as.character.inla.surv.2` <- function(x, ...) {
+`inla.as.character.inla.surv.2` <- function(x, ...) 
+{
     class(x) <- NULL
     nn <- length(x$event)
     out <- character(nn)
@@ -454,27 +466,28 @@
     return(out)
 }
 
-`inla.as.inla.surv.2` <- function(object) {
+`inla.as.inla.surv.2` <- function(object) 
+{
     if (is.list(object)) {
         for (nm in names(object)) {
-            if (!is.element(nm, c("event", "time", "subject"))) {
-                  stop(paste("Wrong name:", nm))
-              }
+            if (!is.element(nm, c("event", "time", "subject", ".special"))) {
+                stop(paste("Wrong name:", nm))
+            }
         }
         class(object) <- "inla.surv"
 
         return(object)
     }
     if (is.data.frame(object)) {
-          return(inla.as.inla.surv.2(as.list(object)))
-      }
+        return(inla.as.inla.surv.2(as.list(object)))
+    }
 
     stop("Argument must be a list or a data.frame")
 }
 
-`inla.strata` <- function(object) {
+`inla.strata` <- function(object) 
+{
     ## similar to survival::strata but with levels = 1, 2, ...
-
     xf <- as.factor(object)
     return(list(strata = as.numeric(xf), coding = levels(xf)))
 }
