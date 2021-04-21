@@ -46,13 +46,18 @@ for f in $DIR/first/lib*.dylib*; do
     esac
 done
 
-## this option may only be set, if mkl=FALSE
+## '-L' option may only be set, if mkl=FALSE
+if [ -z "$INLA_VECLIB_PATH" ]; then
+    vecLibPathDefault="/System/Library/Frameworks/Accelerate.framework/Frameworks/vecLib.framework/Versions/Current"
+else
+    vecLibPathDefault="$INLA_VECLIB_PATH"
+fi
 vecLibPath=""
 vecLibLink="$HOME/.R/INLA/vecLib"
 for arg in "$@"; do 
     case "$arg" in
 	-L) ## this option is also allowed in the inla-program, but do nothing	    
-	    vecLibPath="/System/Library/Frameworks/vecLib.framework/Versions/Current"
+	    vecLibPath="$vecLibPathDefault"
 	    if [ -f "$vecLibPath/libBLAS.dylib" -a -f "$vecLibPath/libLAPACK.dylib" ]; then
 		## all ok
 		if [ "${INLA_DEBUG}XX" != "XX" ]; then

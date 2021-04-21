@@ -1,12 +1,17 @@
 ## Nothing to export from here
 
-`inla.expand.dataframe.1` <- function(response, dataframe, control.hazard = inla.set.control.hazard.default()) {
+`inla.expand.dataframe.1` <- function(response, dataframe,
+                                      control.hazard = inla.set.control.hazard.default())
+{
     n.intervals <- control.hazard$n.intervals
     cutpoints <- control.hazard$cutpoints
 
     if (class(response) != "inla.surv") {
-          stop("Response has to be an object of class `inla.surv'")
-      }
+        stop("Response has to be an object of class `inla.surv'")
+    }
+    ## not used
+    response$.special <- NULL
+
     class(response) <- NULL
     event <- response$event
     nn <- length(event)
@@ -19,8 +24,8 @@
 
     ## create cutpoints if not provided
     if (is.null(cutpoints)) {
-          cutpoints <- seq(0L, max(time), len = n.intervals + 1L)
-      }
+        cutpoints <- seq(0L, max(time), len = n.intervals + 1L)
+    }
 
     new.data <- inla.get.poisson.data.1(time = time, truncation = truncation, event = event, cutpoints = cutpoints)
     expand.df <- table(new.data$indicator)
@@ -28,8 +33,8 @@
     if (!missing(dataframe) && prod(dim(dataframe)) > 0L) {
         new.dataframe <- as.data.frame(matrix(0.0, length(new.data$y), dim(dataframe)[2L]))
         for (i in 1L:dim(dataframe)[2L]) {
-              new.dataframe[, i] <- rep(dataframe[, i], expand.df)
-          }
+            new.dataframe[, i] <- rep(dataframe[, i], expand.df)
+        }
 
         ## alternative code,  not faster...
         ## new.dataframe = apply(dataframe, 2, rep, times = expand.df)
@@ -57,7 +62,8 @@
     return(list(data = res, data.list = list(baseline.hazard.values = cutpoints)))
 }
 
-`inla.get.poisson.data.1` <- function(time, truncation, event, cutpoints) {
+`inla.get.poisson.data.1` <- function(time, truncation, event, cutpoints)
+{
     if (TRUE) {
         ##
         ## this is the new code of (Jan 21st, 2021) that runs better
@@ -76,7 +82,7 @@
                                               rep(0L, (end[i] - 1L)),
                                               rep(i, (end[i] - 1L)),
                                               c(1L:(end[i] - 1L))
-                                  )
+                                              )
                               } else {
                                   dc <- numeric(0L)
                               }
@@ -159,21 +165,26 @@
 }
 
 
-`inla.expand.dataframe.2` <- function(response, dataframe, control.hazard = inla.set.control.hazard.default()) {
+`inla.expand.dataframe.2` <- function(response, dataframe,
+                                      control.hazard = inla.set.control.hazard.default())
+{
     n.intervals <- control.hazard$n.intervals
     cutpoints <- control.hazard$cutpoints
 
     if (class(response) != "inla.surv") {
-          stop("Response has to be an object of class `inla.surv'")
-      }
+        stop("Response has to be an object of class `inla.surv'")
+    }
+    ## not used
+    response$.special <- NULL
+
     class(response) <- NULL
     event <- response$event
     nn <- length(event)
 
     ## nhpp models do not work for interval censoring
     if (sum(event == 3L) > 0L || sum(event == 2L) > 0L) {
-          stop("coxph model does not work for event type 2 and 3.")
-      }
+        stop("coxph model does not work for event type 2 and 3.")
+    }
 
     ## time, event and subjects related to response
     time <- numeric(nn)
@@ -187,13 +198,12 @@
     aa3 <- which(names(dataframe) == "event")
     jj <- unique(dataframe$subject)
     subject.first.line <- numeric(length(jj))
-    for (i in 1L:length(jj))
-    {
+    for (i in 1L:length(jj)) {
         rows <- which(dataframe[, aa1] == i)
         sem <- dataframe[rows, -c(aa1, aa2, aa3), drop = FALSE]
         if (mode(apply(sem, 2L, unique)) == "list") {
-              stop("coxph with subject only works for fixed covariates")
-          }
+            stop("coxph with subject only works for fixed covariates")
+        }
         subject.first.line[i] <- rows[1L]
     }
     dataframe.copy <- dataframe[subject.first.line, -c(aa1, aa2, aa3), drop = FALSE]
@@ -234,15 +244,15 @@
     return(list(data = res, data.list = list(baseline.hazard.values = cutpoints)))
 }
 
-`inla.get.poisson.data.2` <- function(subject, time, event, cutpoints) {
+`inla.get.poisson.data.2` <- function(subject, time, event, cutpoints)
+{
     data.new <- numeric(0L)
     nn <- max(subject)
     ds <- diff(cutpoints)
     ris <- matrix(0.0, max(subject), (length(cutpoints) - 1L))
     dataF <- cbind(subject, time, event)
     end <- integer(0L)
-    for (i in 1L:nn)
-    {
+    for (i in 1L:nn) {
         da <- matrix(dataF[dataF[, 1L] == i, ], ncol = 3L)
         ## to find the interval for each recurrent time
         rec <- cut(da[, 2L], cutpoints, labels = 1L:(length(cutpoints) - 1L))
@@ -255,17 +265,16 @@
     totalevent <- 0
     length(totalevent) <- 0
     for (i in 1L:nn) {
-          totalevent <- c(totalevent, ris[i, ])
-      }
+        totalevent <- c(totalevent, ris[i, ])
+    }
 
     ## checking for interval lengths
     E <- numeric(0)
     length(E) <- 0
-    for (i in 1L:nn)
-    {
+    for (i in 1L:nn) {
         if (end[i] == 1L) {
-              E <- c(E, c(max(time[subject == i]) - cutpoints[1L]), rep(0.0, length(cutpoints) - 1L - end[i]))
-          } else {
+            E <- c(E, c(max(time[subject == i]) - cutpoints[1L]), rep(0.0, length(cutpoints) - 1L - end[i]))
+        } else {
             E <- c(
                 E, ds[1L:end[i] - 1L], max(time[subject == i]) - cutpoints[end[i]],
                 rep(0.0, length(cutpoints) - 1L - end[i])

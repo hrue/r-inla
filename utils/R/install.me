@@ -22,18 +22,6 @@ rsync -auvL --delete --exclude '/*~' --exclude TAGS $D/.. INLA/.
 rsync -auv $D/../inst/bin/linux/64bit/first/. $DD/../inst/bin/linux/64bit/first/.
 ./updateBin
 
-tt=.tt
-test -f $tt && rm -rf $tt
-cat $D/version.R | \
-    awk '/^[ \t]*date *<-/{       print "    date       <- ", "inla.trim(\"" date    "\")"; next;}
-         /^[ \t]*version *<-/{      print "    version      <- ", "inla.trim(\"" version   "\")"; next;}
-	 {print}' date="$date" version="$INLA_VERSION" > $tt
-cp $tt $D/version.R
-mv -f $tt $DD/version.R
-
-cat $D/version.R
-cat $DD/version.R
-
 ## Modify the DESCRIPTION file
 desc="INLA/DESCRIPTION"
 {

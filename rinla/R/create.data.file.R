@@ -22,6 +22,8 @@
     if (is.null(y.orig)) {
         y.orig <- c(mf[, 1L])
     } else if (is.inla.surv(y.orig)) {
+        ## this is not passed into the inla-program
+        y.orig$.special <- NULL
         y.orig <- as.data.frame(unclass(y.orig))
     } else if (is.inla.mdata(y.orig)) {
         y.orig <- as.data.frame(unclass(y.orig))

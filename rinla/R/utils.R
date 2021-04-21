@@ -191,7 +191,7 @@
 
     if (Sys.getenv("USER") %in% "hrue") {
         dir.default <- "~/p/inla/r-inla/rinla/R"
-        bin.default <- "~/p/inla/work/local/bin"
+        bin.default <- "~/bin"
     } else if (Sys.getenv("USER") %in% "rueh") {
         dir.default <- "~/build64/r-inla/rinla/R"
         bin.default <- "~/build64/local/bin"

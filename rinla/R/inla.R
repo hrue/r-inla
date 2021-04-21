@@ -628,6 +628,8 @@
         nc <- NULL ## not in use
         if (inherits(y...orig, "inla.surv")) {
             class(y...orig) <- NULL
+            ## this one is not passed along
+            y...orig$.special <- NULL
             ny <- max(sapply(y...orig, length))
         } else if (inherits(y...orig, "inla.mdata")) {
             class(y...orig) <- NULL
@@ -2126,7 +2128,8 @@
             R.Version()$major, ".",
             strsplit(R.Version()$minor, "[.]")[[1]][1]
         ),
-        INLA_RHOME = Sys.getenv("R_HOME")
+        INLA_RHOME = Sys.getenv("R_HOME"),
+        INLA_VECLIB_PATH = inla.getOption("vecLibPath")
     )
     do.call("Sys.setenv", vars)
     inla.set.sparselib.env(inla.dir, blas.num.threads = blas.num.threads)

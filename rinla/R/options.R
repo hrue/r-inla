@@ -39,6 +39,8 @@
 ## !
 ## !     vecLib: This option applies to Mac only. If TRUE and mkl=FALSE, link with vecLib BLAS and LAPACK libs (if available)
 ## !
+## !     vecLibPath: This option applies to Mac only. Path to vecLib-libraries. If empty, use default.
+## !
 ## !     pardiso.license: The full path to the PARDISO license file
 ## !
 ## !     keep: Keep temporary files?
@@ -101,6 +103,7 @@
             smtp = "default",
             mkl = if (inla.os("linux") || inla.os("mac")) TRUE else FALSE,
             vecLib = if (inla.os("mac")) TRUE else FALSE,
+            vecLibPath = "", 
             pardiso.license = NULL,
             keep = FALSE,
             working.directory = NULL,
@@ -131,6 +134,7 @@
                                  "smtp",
                                  "mkl",
                                  "vecLib",
+                                 "vecLibPath",
                                  "pardiso.license",
                                  "keep",
                                  "working.directory",
@@ -222,6 +226,7 @@
                                           "smtp",
                                           "mkl",
                                           "vecLib",
+                                          "vecLibPath",
                                           "pardiso.license",
                                           "keep",
                                           "working.directory",
