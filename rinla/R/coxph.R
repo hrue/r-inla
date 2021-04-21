@@ -17,7 +17,9 @@
 ## !  \item{data}{All the data used in the formula,  as a list.}
 ## !  \item{control.hazard}{Control the model for the baseline-hazard; see \code{?control.hazard}.}
 ## !  \item{tag}{An optional tag added to the names of the new variables created (to make them
-## !             unique when combined with several calls of \code{inla.coxph}}
+## !             unique when combined with several calls of \code{inla.coxph}. Note that 
+## !             \code{E..coxph} is not included,  as its usually merged into one 
+## !             vector over different expansions.}
 ## !  \item{debug}{Print debug-information}
 ## !  \item{...}{Data.frames to be \code{rbind}-ed,  padding with \code{NA}.}
 ## !}
@@ -91,19 +93,15 @@
     y.surv <- NULL
     if (any(tmp)) {
         if (sum(tmp) > 1) {
-            stop(inla.paste(c(
-                "Several entries in 'data' match the name of the response:",
-                "response=", name.y, ", matches=", sum(tmp), "."
-            )))
+            stop(paste(c("Several entries in 'data' match the name of the response:",
+                         "response=", name.y, ", matches=", sum(tmp), ".")))
         }
         y.surv <- data[[which(tmp)]]
         data[[which(tmp)]] <- NULL
     } else {
-        try.res <- try(inla.eval(inla.paste(c("y.surv = with(data,", name.y, ")"))), silent = TRUE)
+        try.res <- try(inla.eval(paste(c("y.surv = with(data,", name.y, ")"))), silent = TRUE)
         if (inherits(try.res, "try-error")) {
-            stop(inla.paste(c("The reponse '", name.y, "' is not in 'data' and trying to expand it, failed."),
-                            sep = ""
-                            ))
+            stop(paste(c("The reponse '", name.y, "' is not in 'data' and trying to expand it, failed.")))
         }
     }
 
@@ -119,10 +117,8 @@
     }
 
     if (class(y.surv) != "inla.surv") {
-        stop(paste("For survival models, then the reponse has to be of class `inla.surv'; you have `",
-                   class(y.surv), "'",
-                   sep = ""
-                   ))
+        stop(paste0("For survival models, then the reponse has to be of class `inla.surv'; you have `",
+                    class(y.surv), "'"))
     }
     control.hazard <- inla.check.control(control.hazard, data.f)
     cont.hazard <- inla.set.control.hazard.default()
@@ -155,11 +151,9 @@
     }
     if (!is.null(strata.var)) {
         if (!is.element(strata.var, names(data.f))) {
-            stop(inla.paste(c(
-                "Variable `", strata.var,
-                "' in control.hazard=list(strata=...) needs to be in the data.frame: names(data) = ",
-                names(data.f)
-            )))
+            stop(inla.paste(c("Variable `", strata.var,
+                              "' in control.hazard=list(strata=...) needs to be in the data.frame: names(data) = ",
+                              names(data.f))))
         }
         if (debug) print("apply inla.strata() on strata.var")
         ## cleaner code...
@@ -215,12 +209,18 @@
         old.names <- c(
             "y..coxph",
             "expand..coxph",
-            "baseline.hazard"
+            "baseline.hazard", 
+            "baseline.hazard.idx", 
+            "baseline.hazard.time", 
+            "baseline.hazard.length"
         )
         new.names <- c(
             paste0("y", tag, "..coxph"),
             paste0("expand", tag, "..coxph"),
-            paste0("baseline", tag, ".hazard")
+            paste0("baseline", tag, ".hazard"), 
+            paste0("baseline", tag, ".hazard.idx"), 
+            paste0("baseline", tag, ".hazard.time"), 
+            paste0("baseline", tag, ".hazard.length")
         )
         ## formula
         nf.text <- as.character(new.formula)
@@ -246,14 +246,13 @@
     }
 
     expand..coxph.idx <- which(names(res$data) == paste0("expand", tag, "..coxph"))
-    E..coxph.idx <- which(names(res$data) == paste0("E", tag, "..coxph"))
 
     return(list(
         formula = new.formula,
         data = res$data,
         data.list = data.list,
         family = "poisson",
-        E = res$data[, E..coxph.idx],
+        E = res$data[, "E..coxph"],
         expand.df = res$data[, expand..coxph.idx],
         control.hazard = cont.hazard
     ))

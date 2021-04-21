@@ -18,7 +18,9 @@
   \item{data}{All the data used in the formula,  as a list.}
   \item{control.hazard}{Control the model for the baseline-hazard; see \code{?control.hazard}.}
   \item{tag}{An optional tag added to the names of the new variables created (to make them
-             unique when combined with several calls of \code{inla.coxph}}
+             unique when combined with several calls of \code{inla.coxph}. Note that 
+             \code{E..coxph} is not included,  as its usually merged into one 
+             vector over different expansions.}
   \item{debug}{Print debug-information}
   \item{...}{Data.frames to be \code{rbind}-ed,  padding with \code{NA}.}
 }
