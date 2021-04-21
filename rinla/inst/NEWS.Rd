@@ -4,7 +4,7 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
-\section{CHANGES IN VERSION 21.04.21}{
+\section{CHANGES IN VERSION 21.04.22}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
       \item Mac only: Added optional path to \code{vecLib}
