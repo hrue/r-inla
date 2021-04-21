@@ -23,6 +23,7 @@ rsync -auv $D/../inst/bin/linux/64bit/first/. $DD/../inst/bin/linux/64bit/first/
 ./updateBin
 
 ## Modify the DESCRIPTION file
+tt=$(mktemp)
 desc="INLA/DESCRIPTION"
 {
     egrep -v '^(Version:|Date:)' r-inla/rinla/DESCRIPTION
