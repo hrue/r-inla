@@ -35536,9 +35536,9 @@ int main(int argc, char **argv)
 					printf("\tRead ntt %d %d with max.threads %d\n", ntt[0], ntt[1], GMRFLib_openmp->max_threads);
 				}
 
-				// a hidden option...
-				if (ntt[1] < 0) {
-					ntt[1] = -ntt[1];
+				// a hidden option...  enable also if ntt[1] > 1, not only if < 0.
+				if (ntt[1] > 1 || ntt[1] < 0) {
+					ntt[1] = IABS(ntt[1]);
 					GMRFLib_openmp->adaptive = GMRFLib_TRUE;
 				}
 
@@ -35927,13 +35927,3 @@ int main(int argc, char **argv)
 #undef _BUGS_intern
 #undef _BUGS
 }
-
-
-
-// to link with an older PARDISO lib...
-#if 0
-int METIS51PARDISO_NodeND(int *nvtxs, int *xadj, int *adjncy, int *vwgt, int *options, int *perm, int *iperm)
-{
-	return METIS51_NodeND(nvtxs, xadj, adjncy, vwgt, options, perm, iperm);
-}
-#endif
