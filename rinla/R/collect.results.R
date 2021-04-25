@@ -95,7 +95,7 @@
         file <- paste(results.dir, .Platform$file.sep, "neffp", .Platform$file.sep, "neffp.dat", sep = "")
         neffp <- matrix(inla.read.binary.file(file), 3, 1)
         rownames(neffp) <- inla.trim(c(
-            "Expectected  number of parameters",
+            "Expectected number of parameters",
             "Stdev of the number of parameters",
             "Number of equivalent replicates"
         ))

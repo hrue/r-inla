@@ -8287,6 +8287,7 @@
     envir <- inla.get.inlaEnv()
 
     if (exists("inla.models", envir = envir) &&
+        !is.null(get("inla.models", envir = envir)) && 
         exists("rinla.version", envir = envir) &&
         get("rinla.version", envir = envir) == inla.version("version")) {
         return(get("inla.models", envir = envir))
