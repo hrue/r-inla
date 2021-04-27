@@ -2040,10 +2040,9 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 				}
 			} else {
 				int debug = 0;
-
 				double mom[3] = {0.0, 1.0, 0.0};
-				mom[2] = GMRFLib_sn_d3_to_skew(third_order_derivative);
 
+				mom[2] = GMRFLib_sn_d3_to_skew(third_order_derivative);
 				if (ABS(mom[2]) > GMRFLib_SN_SKEWMAX) {
 					mom[2] = 0.0;
 					fail = 1;
