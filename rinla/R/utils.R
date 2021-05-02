@@ -288,9 +288,10 @@
     }
 
     ## hash the models again
-    assign("inla.version", "(Undefined)", envir = inla.get.inlaEnv())
-    assign("inla.models", NULL, envir = inla.get.inlaEnv())
+    rm("inla.models", envir = inla.get.inlaEnv())
+    rm("rinla.version", envir = inla.get.inlaEnv())
     cat("Reset stored 'inla.models()' in .inlaEnv\n")
+    m <- inla.models()
 
     return(invisible())
 }
