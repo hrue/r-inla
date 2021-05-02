@@ -2022,6 +2022,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			 * this require the Skew-Normal 
 			 */
 
+			int debug = 0;
 			if (!(ai_par->improved_simplified_laplace)) {
 				a_sigma = GMRFLib_signed_pow(third_order_derivative / 0.2180136141449902, 1. / 3.);
 				cc = 1.0 / a_sigma;
@@ -2039,25 +2040,27 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 					fail = 1;
 				}
 			} else {
-				int debug = 0;
 				double mom[3] = {0.0, 1.0, 0.0};
 
+				mom[0] = -deriv_log_dens_cond;
 				mom[2] = GMRFLib_sn_d3_to_skew(third_order_derivative);
 				if (ABS(mom[2]) > GMRFLib_SN_SKEWMAX) {
 					mom[2] = 0.0;
 					fail = 1;
 				}
-
-				GMRFLib_sn_moments2par(&snp, &mom[0], &mom[1], &mom[2]);
-
 				if (debug) {
-					double mm[3];
-					GMRFLib_sn_par2moments(&mm[0], &mm[1], &mm[2], &snp);
-					printf("NEW d3 %f\n", third_order_derivative);
-					printf("NEW par: %f %f %f\n", snp.xi, snp.omega, snp.alpha);
-					printf("NEW mom: %f %f %f\n", mm[0], mm[1], mm[2]);
+					printf("NEW mom: %f %f %f\n", mom[0], mom[1], mom[2]);
 				}
+				GMRFLib_sn_moments2par(&snp, &mom[0], &mom[1], &mom[2]);
 			}
+			if (debug && !fail) {
+				double mm[3];
+				GMRFLib_sn_par2moments(&mm[0], &mm[1], &mm[2], &snp);
+				printf("NEW d3 %f\n", third_order_derivative);
+				printf("NEW par: %f %f %f\n", snp.xi, snp.omega, snp.alpha);
+				printf("NEW mm: %f %f %f\n\n", mm[0], mm[1], mm[2]);
+			}
+			
 		}
 
 		if (fail) {
